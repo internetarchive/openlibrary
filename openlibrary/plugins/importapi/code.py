@@ -84,14 +84,15 @@ def parse_data(data):
             if not metadata:
                 raise DataError("invalid-ia-identifier")
 
-            if not ia.edition_from_item_metadata(itemid, metadata):
-                raise DataError("item-not-a-book")
+            status = ia.get_item_status(itemid, metadata)
+            if status != 'ok':
+                raise DataError(status)
 
             try:
                 rec = get_marc_record_from_ia(itemid)
 
                 # skip serials
-                if rec.leader()[7] == 's':
+                if rec and rec.leader()[7] == 's':
                     raise DataError("item-is-serial")
             except IOError:
                 raise DataError("no-marc-record")

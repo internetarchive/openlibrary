@@ -78,7 +78,6 @@ def get_marc_record_from_ia(identifier):
 
     # Try marc.xml first
     if marc_xml_filename in filenames:
-        print 'found', marc_xml_filename, "in filenames"
         data = urlopen_keep_trying(item_base + marc_xml_filename).read()
         if data[:10].find('<?xml') != -1:
             root = etree.fromstring(data)

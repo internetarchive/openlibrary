@@ -146,6 +146,9 @@ def edition_from_item_metadata(itemid, metadata):
         e.add_metadata(metadata)
         return e
 
+def get_item_status(itemid, metadata):
+    return ItemEdition.get_item_status(itemid, metadata)
+
 class ItemEdition(dict):
     """Class to convert item metadata into edition dict.
     """
@@ -167,24 +170,35 @@ class ItemEdition(dict):
             "last_modified": timestamp
         })
 
-    @staticmethod
-    def is_valid_item(itemid, metadata):
-        """Returns True if the item with metadata can be useable as edition
-        in Open Library.
+    @classmethod
+    def get_item_status(cls, itemid, metadata):
+        """Returns the status of the item related to importing it in OL.
 
-        Items that are not book scans, darked or with noindex=true etc. are 
-        not eligible to be shown in Open Library.
+        Possible return values are:
+
+        * ok
+        * not-texts-item
+        * bad-repub-state
+        * no-imagecount
+        * prefix-blacklisted
+        * noindex-true
         """
         # Not a book, or scan not complete or no images uploaded
-        if metadata.get("mediatype") != "texts" or metadata.get("repub_state", "4") not in ["4", "6"] or "imagecount" not in metadata:
-            return False
+        if metadata.get("mediatype") != "texts":
+            return "not-texts-item"
+
+        if metadata.get("repub_state", "4") not in ["4", "6"]:
+            return "bad-repub-state"
+
+        if "imagecount" not in metadata:
+            return "no-imagecount"
 
         # items start with these prefixes are not books
         ignore_prefixes = config.get("ia_ignore_prefixes", [])
         for prefix in ignore_prefixes:
             # ignore all JSTOR items
             if itemid.startswith(prefix):
-                return False
+                return "prefix-blacklisted"
 
         # Anand - Oct 2013
         # If an item is with noindex=true and it is not marked as lending or printdisabled, ignore it.
@@ -196,9 +210,19 @@ class ItemEdition(dict):
             and "printdisabled" not in collections \
             and "inlibrary" not in collections \
             and "lendinglibrary" not in collections:
-            return
+            return "noindex-true"
 
-        return True
+        return "ok"
+
+    @classmethod
+    def is_valid_item(cls, itemid, metadata):
+        """Returns True if the item with metadata can be useable as edition
+        in Open Library.
+
+        Items that are not book scans, darked or with noindex=true etc. are
+        not eligible to be shown in Open Library.
+        """
+        return cls.get_item_status(itemid, metadata) == 'ok'
 
     def add_metadata(self, metadata):
         self.metadata = metadata

@@ -54,6 +54,12 @@ class ImportItem(web.storage):
         result = db.where("import_item", status="pending", order="id", limit=limit)
         return [ImportItem(row) for row in result]
 
+    @staticmethod
+    def find_by_identifier(identifier):
+        result = db.where("import_item", ia_id=identifier)
+        if result:
+            return ImportItem(result[0])
+
     def _set_status(self, status, error=None, ol_key=None):
         logger.info("set-status %s - %s %s %s", self.ia_id, status, error, ol_key)
         d = dict(
@@ -157,6 +163,14 @@ def import_batch(args):
     for item in batch.get_items():
         item.do_import()
 
+def import_item(args):
+    ia_id = args[0]
+    item = ImportItem.find_by_identifier(ia_id)
+    if item:
+        item.do_import()
+    else:
+        logger.error("%s is not found in the import queue", ia_id)
+
 def import_all(args):
     while True:
         items = ImportItem.find_pending()
@@ -186,6 +200,10 @@ def main():
         return import_batch(args)
     elif cmd == "import-all":
         return import_all(args)
+    elif cmd == "import-item":
+        return import_item(args)
+    else:
+        logger.error("Unknown command: %s", cmd)
 
 if __name__ == "__main__":
     main()
