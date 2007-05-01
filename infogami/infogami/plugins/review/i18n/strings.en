@@ -1,0 +1,9 @@
+
+UNREVIEWED_CHANGES = "Unreviewed Changes"
+PATH = "path"
+REVIEWED = "Reviewed"
+LATEST = "Latest"
+REVIEW = "Review"
+NO_NEW_CHANGES_TO_REVIEW = "No new changes to review."
+
+REVIEW_FAILED_ERROR = "Sorry, someone made a change to the page while you were reviewing."

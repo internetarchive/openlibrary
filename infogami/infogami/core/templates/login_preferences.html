@@ -1,0 +1,8 @@
+$def with (form)
+
+$var title: Login Preferences
+
+<form method="POST">
+$:form.render()
+<input type="hidden" name="_action" value="login_preferences"/>
+</form>

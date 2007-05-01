@@ -1,0 +1,26 @@
+$def with (page)
+
+$var title: $page.name
+
+<table>
+<tbody>
+
+$ schema = get_schema(ctx.site, page.type)
+$for key in schema:
+    $if schema[key].endswith('*'):
+        $for x in page.d[key]:
+            <tr>
+                <td>$key</td>
+                <td>$x</td>
+                <td></td>
+            </tr>
+    $else:
+        <tr>
+            <td>$key</td>
+            <td>$page.d[key]</td>
+            <td></td>
+        </tr>
+</tbody>
+</table>
+
+<p class="status">[<a href="$changequery(m='edit')" accesskey="e">$_.EDIT</a>][<a href="$changequery(m='history')">$_.HISTORY</a>][<a href="$changequery(m='backlinks')">$_.BACKLINKS</a>] $_.LAST_MODIFIED $datestr(page.v.created)</p>

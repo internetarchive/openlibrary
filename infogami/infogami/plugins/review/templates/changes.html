@@ -1,0 +1,25 @@
+$def with (root, changes)
+
+$var title: $_.UNREVIEWED_CHANGES
+
+<table>
+<tr>
+  <th>$_.PATH</th>
+  <th>$_.REVIEWED</th>
+  <th>$_.LATEST</th>
+  <th></th>
+</tr>
+
+$for c in changes:
+    <tr>
+    <td>$c.path</td>
+    <td>$(c.reviewed_revision or "-")</td>
+    <td>$c.revision</td>
+    <td>
+    <a href="$root/$c.path?m=review&a=$c.reviewed_revision&b=$c.revision&c=$c.revision">$_.REVIEW</a>
+    </td>
+    </tr>
+$else:
+    <tr><td colspan="3"><em>$_.NO_NEW_CHANGES_TO_REVIEW</em></td></tr>
+</table>
+

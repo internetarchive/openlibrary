@@ -1,0 +1,8 @@
+$def with (page)
+
+$var title: $page.title
+
+<pre>$page.body</pre>
+
+<p class="status">[<a href="$changequery(m='edit')" accesskey="e">$_.EDIT</a>][<a href="$changequery(m='history')">$_.HISTORY</a>][<a href="$changequery(m='backlinks')">$_.BACKLINKS</a>] $_.LAST_MODIFIED $datestr(page.v.created)</p>
+

@@ -1,0 +1,14 @@
+$def with (f)
+
+$var title: $_.LOGIN
+
+<p>$_.LOGIN_STMT</p>
+
+<form name="login" method="POST">
+$:f.render()
+    <input type="submit" name="submit" value="$_.LOGIN">
+</form>
+
+<p>(<a href="$homepath()/login_reminder">$_.FORGOT_PASSWORD</a>)</p>
+
+<p>$:_.LINK_CREATE_ACCOUNT(url("/register"))</p>

@@ -1,0 +1,10 @@
+$def with (preferences)
+
+$var title: Preferences
+
+$for p in preferences:
+    <fieldset>
+    <legend>$p.title</legend>
+    $:p
+    </fieldset>
+    <br/>

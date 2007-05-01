@@ -1,0 +1,65 @@
+$def with (page)
+
+$var title: Edit $page.name
+
+$add_javascript("/files/core/repetition/repetition-model.js")
+
+<script>
+function changeTemplate() {
+    var t = document.edit._type.value;
+    document.location.href += '&t=' + t;
+}
+</script>
+
+<form name="edit" method="POST">
+<table>
+<tbody>
+    <tr>
+        <td>$_.PAGETYPE</td>
+        <td><input type="text" name="_type" value="$page.type.name"></td>
+        <td><input type="button" onclick="changeTemplate()" value="$_.CHANGE"/></td>
+    </tr>
+    <tr>
+        <td>&nbsp;</td>
+        <td>&nbsp;</td>
+        <td>&nbsp;</td>
+    </tr>            
+</tbody>
+$ schema = get_schema(ctx.site, page.type)
+
+$for key in schema:
+    <tbody>
+    $if schema[key].endswith('*'):
+        $ i = 0
+        $for x in page.d[key]:
+            <tr repeat="$i">
+                <td>$key</td>
+                <td><input type="text" name="$key" value="$x" /></td>
+                <td><button type="remove" template="source_records">Delete</button></td>
+            </tr>
+            $ i = i + 1
+        <tr id="row_$key" repeat="template">
+            <td>$key</td>
+            <td><input type="text" name="$key" value="" /></td>
+            <td><button type="remove" template="row_$key">Delete</button></td>
+        </tr>
+        <tr>
+            <td><button type="add" template="row_$key">Add $key</button></td>
+            <td></td>
+            <td></td>
+        </tr>
+    $else:
+        <tr>
+            <td>$key</td>
+            <td><input type="text" name="$key" value="$page.d[key]" /></td>
+            <td></td>
+        </tr>
+    </tbody>
+</table>
+
+<p>
+<input type="submit" name='_save' value="$_.SAVE" />
+<input type="submit" name='_preview' value="$_.PREVIEW" />
+<input type="submit" name='_delete' value="$_.DELETE" />
+</p>
+</form>
