@@ -16,6 +16,7 @@ import sys
 import unicodedata
 import re
 import os
+from lang import *
 
 def setup ():
 	def getvar (name, required=True):
@@ -64,9 +65,11 @@ def import_author (x):
 	try:
 		Item.withName (name)
 		a = Author.withName (name)
+		warn ("---------------------------> already author %s" % name)
 	except:
 		a = Author (name, d=x)
 		a.save ()
+		warn ("AUTHOR %s" % name)
 	return a
 
 def import_item (x):
@@ -77,12 +80,13 @@ def import_item (x):
 	for e in Things (ISBN_13=isbn):
 		skipped += 1
 		if skipped % 100 == 0:
-			warn ("skipped %n" % skipped)
+			warn ("skipped %d" % skipped)
 		return
 
 	# import the authors
-	authors = map (import_author, x["authors"])
-	del x["authors"]
+	authors = map (import_author, x.get ("authors") or [])
+	if x.get ("authors"):
+		del x["authors"]
 
 	# find a unique name for the edition
 	name = None
@@ -99,11 +103,9 @@ def import_item (x):
 	e.save ()
 	imported += 1
 	if imported % 100 == 0:
-		warn ("imported %n" % imported)
+		warn ("imported %d" % imported)
 
-	sys.stderr.write ("%s\n" % name)
-	# sys.stderr.write ("saved %s --> %s\n" % (repr (x['title']), name))
-	# sys.stderr.write ("saved %s --> %s\n%s\n-------------\n" % (repr (x['title']), name, x))
+	sys.stderr.write ("EDITION %s\n" % name)
 
 ignore_title_words = ['a', 'the']
 tsep = '_'
@@ -130,8 +132,7 @@ def edition_names (x):
 	if name:
 		name += "_"
 	name += ttail
-	if len (name) > 30:
-		raise Exception ("name too long for %s" % x)
+	name = name[0:30]
 	yield name
 
 	ed_number = x.get ('edition_number')

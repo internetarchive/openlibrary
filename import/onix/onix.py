@@ -165,6 +165,7 @@ class OnixHandler (ContentHandler):
 
 			iname = c.get ("PersonNameInverted")
 			name = c.get ("PersonName")
+			# if not name: construct name from parts
 			if not name:
 				if iname:
 					# XXX this often works, but is not reliable;
@@ -173,7 +174,8 @@ class OnixHandler (ContentHandler):
 					if m:
 						name = m.group (2) + " " + m.group (1)
 			if not name:
-				die ("no name for contributor")
+				warn ("no name for contributor")
+				continue
 
 			if role_code != 'A01':
 				role = self.contributor_role (role_code)
@@ -315,7 +317,7 @@ class OnixHandler (ContentHandler):
 
 		# publish_status
 		pstat = op.get ("PublishingStatus")
-		if pstat:
+		if pstat and pstat != "??":
 			status = self.codelists["List64"][pstat][0]
 			pstatnote = op.get ("PublishingStatusNote")
 			if pstatnote:
