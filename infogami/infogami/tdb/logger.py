@@ -217,6 +217,25 @@ def parse2a(p1):
         if x[0] != 'version': continue
         yield withID(x[2]['thing_id'])
 
+def parse2b(p1):
+    from tdb import Thing, LazyThing, withID
+    
+    while 1:
+        x = p1.next()
+        
+        if x[0] == 'thing':
+            thing = x
+            version = p1.next()
+            data = p1.next()
+            
+            yield Thing(thing[1], thing[2]['name'],
+                        LazyThing(thing[2]['parent_id']),
+                        data[2].pop('__type__'), data[2])
+        elif x[0] == 'version':
+            yield withID(x[2]['thing_id'])
+        else:
+            raise ValueError, "I wasn't expecting that..."
+
 def load(filename):
     """Loads a tdb log file into database."""
     def savedatum(vid, key, value, ordering=None):
