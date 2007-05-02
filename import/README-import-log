@@ -1,0 +1,21 @@
+# this is what i do to create the logs:
+
+export PHAROS_DBNAME=authortest
+export PHAROS_DBUSER=pharos
+export PHAROS_DBPASS=pharos
+export PHAROS_SITE=site0
+export PHAROS_LOGFILE="/1/pharos/db/$PHAROS_DBNAME"
+export URL_CACHE_DIR=/1/pharos/onix/urlcache/
+
+# destroy the database
+rm $PHAROS_LOGFILE
+dropdb -U $PHAROS_DBUSER $PHAROS_DBNAME
+
+# create a fresh database
+createdb -U $PHAROS_DBUSER $PHAROS_DBNAME
+psql -U $PHAROS_DBUSER $PHAROS_DBNAME < ~dbg/repo/infogami/infogami/tdb/schema.sql
+
+# import some data
+cd ~dbg/repo/import/onix	# need to read from some data files here
+# export PYTHONPATH=/home/dbg/lib/python
+python2.4 onix-import.py < data/something

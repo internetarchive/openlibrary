@@ -1,5 +1,14 @@
+# TODO
+# - source record identifier
+#   - two fields -- source-id and record-id ?
+#   - pre-fetch the set of these that are already in the db?
+# SCHEMA
+# author
+# - name
+# - inverted_name
+
 import web
-import infogami.tdb
+import infogami.tdb as tdb
 from infogami.tdb import NotFound, Things
 from items import *
 from onix import onix_parser
@@ -9,26 +18,28 @@ import re
 import os
 
 def setup ():
-	dbname = os.getenv ("PHAROS_DBNAME")
-	if not dbname:
-		raise Exception ("found no PHAROS_DBNAME environment variable")
-	dbuser = os.getenv ("PHAROS_DBUSER")
-	if not dbuser:
-		raise Exception ("found no PHAROS_DBUSER environment variable")
-	web.config.db_parameters = dict(dbn='postgres', db=dbname, user=dbuser, pw='')
+	def getvar (name, required=True):
+		val = os.getenv (name)
+		if required and val is None:
+			raise Exception ("found no environment variable %s" % name)
+		return val
+	dbname = getvar ("PHAROS_DBNAME")
+	dbuser = getvar ("PHAROS_DBUSER")
+	dbpass = getvar ("PHAROS_DBPASS")
+	web.config.db_parameters = dict(dbn='postgres', db=dbname, user=dbuser, pw=dbpass)
 	web.db._hasPooling = False
 	web.config.db_printing = False
 	web.load()
-	infogami.tdb.setup()
-	logfile = os.getenv ("PHAROS_LOGFILE")
+	tdb.setup()
+	logfile = getvar ("PHAROS_LOGFILE", False)
 	if logfile:
-		infogami.tdb.logger.set_logfile (open (logfile, "a"))
+		tdb.logger.set_logfile (open (logfile, "a"))
 		sys.stderr.write ("logging to %s\n" % logfile)
 
 def clear ():
 	web.query('delete from datum where version_id > 2')
 	web.query('delete from version where thing_id > 2')
-	web.query('delete from thing where id > 4')
+	web.query('delete from thing where id > 2')
 
 def import_file (input):
 	n = 0
@@ -44,19 +55,34 @@ def dump_items ():
 		print "> ", i.title
 
 used_names = {}
+skipped = 0
+imported = 0
+
+def import_author (x):
+	name = name_string (x["name"])
+	a = None
+	try:
+		Item.withName (name)
+		a = Author.withName (name)
+	except:
+		a = Author (name, d=x)
+		a.save ()
+	return a
 
 def import_item (x):
-	global used_names
-
-	e = None
+	global used_names, skipped, imported
 
 	# check whether this record has already been imported
 	isbn = x["ISBN_13"]
-	for x in Things (ISBN_13=isbn):
-		e = x
-	if e:
-		# sys.stderr.write ("already have ISBN %s\n" % isbn)
+	for e in Things (ISBN_13=isbn):
+		skipped += 1
+		if skipped % 100 == 0:
+			warn ("skipped %n" % skipped)
 		return
+
+	# import the authors
+	authors = map (import_author, x["authors"])
+	del x["authors"]
 
 	# find a unique name for the edition
 	name = None
@@ -67,11 +93,15 @@ def import_item (x):
 			break
 	if not name:
 		raise Exception ("couldn't find a unique name for %s" % x)
-		
-	e = Edition (name, d=x)
-	e.save ()
 
-	# sys.stderr.write ("%s\n" % name)
+	e = Edition (name, d=x)
+	e.authors = authors
+	e.save ()
+	imported += 1
+	if imported % 100 == 0:
+		warn ("imported %n" % imported)
+
+	sys.stderr.write ("%s\n" % name)
 	# sys.stderr.write ("saved %s --> %s\n" % (repr (x['title']), name))
 	# sys.stderr.write ("saved %s --> %s\n%s\n-------------\n" % (repr (x['title']), name, x))
 
@@ -124,10 +154,11 @@ def edition_names (x):
 		name = tsep.join ([name, name_string (format)])
 		yield name
 
-	authors = x.get ('author_names')
-	if authors:
-		name = tsep.join ([name, name_string (authors[0])])
-		yield name
+	# author_names is now authors (dicts)
+	# authors = x.get ('author_names')
+	# if authors:
+	# 	name = tsep.join ([name, name_string (authors[0])])
+	# 	yield name
 
 	nlen = len (name)
 	n = 0

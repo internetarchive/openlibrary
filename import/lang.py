@@ -1,3 +1,10 @@
+import sys
+
+def warn (msg):
+	sys.stderr.write ("%s\n" % msg)
+
+def die (msg):
+	raise Exception (msg)
 
 class Box:
 	def __init__ (self):

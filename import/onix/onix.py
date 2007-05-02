@@ -2,6 +2,7 @@ import re
 import sys
 import os
 from types import *
+from lang import *
 
 import xml.sax
 from xml.sax.handler import *
@@ -158,29 +159,69 @@ class OnixHandler (ContentHandler):
 
 		# author, contributors
 		for c in op["Contributor":]:
-			role_code = c.get ("ContributorRole")
-			if role_code:
-				name = c.get ("PersonName")
-				if not name:
-					iname = c.get ("PersonNameInverted")
-					if iname:
-						m = re_iname.match (unicode (iname))
-						if m:
-							name = m.group (2) + " " + m.group (1)
-				if name:
-					if role_code == 'A01':
-						add_val (o, "author_names", name)
-						# bio = elt_get (c, "b044", "BiographicalNote")
-						# if bio:
-						# 	add_val (o, "author-bio", bio)
-					else:
-						role = self.contributor_role (role_code)
-						add_val (o, "contributor_names", role + ": " + name)
-		if not o.get ("author_names"):
-			author = op.get ("ContributorStatement")
-			if author:
-				author = re_by.sub ('', author)
-				add_val (o, "author_names", author)
+			role_codes = c["ContributorRole":]
+			role_codes.sort ()
+			role_code = role_codes[0]
+
+			iname = c.get ("PersonNameInverted")
+			name = c.get ("PersonName")
+			if not name:
+				if iname:
+					# XXX this often works, but is not reliable;
+					# shouldn't really mess with unstructured names
+					m = re_iname.match (unicode (iname))
+					if m:
+						name = m.group (2) + " " + m.group (1)
+			if not name:
+				die ("no name for contributor")
+
+			if role_code != 'A01':
+				role = self.contributor_role (role_code)
+				add_val (o, "contributor_names", role + ": " + name)
+				continue
+
+			author = {}
+			author["name"] = name
+			add_val (o, "authors", author)
+
+			if iname:
+				author["inverted_name"] = iname
+				# XXX else construct inverted name from name parts
+
+			pnis = c["PersonNameIdentifier":]
+			if len (pnis) > 0:
+				warn ("got PersonNameIdentifier(s): %s" % pnis[0]["IDValue"])
+
+			# other_names = c["Name":]
+			# XX: for pseudonyms, etc. ... should stash this somewhere
+
+			for pdate in c["PersonDate":]:
+				role = pdate["PersonDateRole"]
+				# fmt = None
+				# fmt_code = pdate.get ("DateFormat")
+				# if fmt_code:
+				# 	fmt = self.codelists["List55"][fmt_code]
+				date = pdate["Date"]
+				if role == "007": author["birth_date"] = date
+				elif role == "008": author["death_date"] = date
+				else: die ("bad date role: %s" % role)
+
+			bio = c.get ("BiographicalNote")
+			if bio:
+				author["bio"] = bio
+
+			# website
+			# country
+			# region
+
+		contrib = op.get ("ContributorStatement")
+		if not o.get ("authors"):
+			# XXX: shouldn't do this: the ContributorStatement could have anything in it
+			# ... but this is the only way to get author names for one of the catalogs
+			if contrib:
+				author = {}
+				author["name"] = re_by.sub ('', contrib)
+				add_val (o, "authors", author)
 
 		# edition
 		ed_type = op.get ("EditionTypeCode")
@@ -272,7 +313,6 @@ class OnixHandler (ContentHandler):
 			if imprint:
 				o["imprint"] = imprint
 
-
 		# publish_status
 		pstat = op.get ("PublishingStatus")
 		if pstat:
@@ -346,5 +386,4 @@ def parse_codelists (input):
 		return DictCollector ({ 'simpleType': simpleType })
 	return collector_parse (input, { 'schema': schema })
 
-def warn (msg):
-	sys.stderr.write ("%s\n" % msg)
+
