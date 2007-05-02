@@ -131,15 +131,33 @@ def _encode(value):
     else:
         return repr(value)
 
-def parse(filename):
+def parse(filename, infinite=False):
     """Parses a tdb log file and returns an iteratable over the contents.
+    If argument 'infinite' is true, the iterable never terminates.
+    It instead expects the file to keep growing as new log records
+    arrive, so on reaching end of file it blocks until more data
+    becomes available.   If 'infinite' is false, generator terminates
+    when it reaches end of log file.
     """
     from tdb import LazyThing
     def parse_items():
         """Parses the file and returns an iteratable over the items."""
         lines = []
-        for line in open(filename).xreadlines():
-            line = line.strip()
+
+        def infinite_lines(fd):
+            # generate a sequence of the lines in fd, never
+            # terminating.  On reaching end of fd, fd.read(1)
+            # will block until more characters are available.
+            while True:
+                yield ''.join(iter(lambda: fd.read(1), '\n'))
+
+        fd = open(filename)
+        if infinite:
+            xlines = infinite_lines(fd)
+        else:
+            xlines = (x.strip() for x in fd.xreadlines())
+        
+        for line in xlines:
             if line == "":
                 yield lines
                 lines = []
