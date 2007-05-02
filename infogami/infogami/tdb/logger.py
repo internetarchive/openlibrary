@@ -177,6 +177,28 @@ def parse(filename):
         data = parse_data(item[1:])
         yield key, id, data
 
+def parse2(p1):
+    from tdb import Thing, LazyThing
+
+    while 1:
+        thing = p1.next()
+        version = p1.next()
+        data = p1.next()
+
+        yield Thing(thing[1], thing[2]['name'],
+                    LazyThing(thing[2]['parent_id']),
+                    data[2].pop('__type__'), data[2])
+        
+def parse2a(p1):
+    """Generate sequence of things retrieved from tdb, given a parsed logfile
+    stream (from logger.parse) as input"""
+    from tdb import withID
+    
+    while 1:
+        x = p1.next()
+        if x[0] != 'version': continue
+        yield withID(x[2]['thing_id'])
+
 def load(filename):
     """Loads a tdb log file into database."""
     def savedatum(vid, key, value, ordering=None):
