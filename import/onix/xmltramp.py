@@ -18,7 +18,7 @@ def quote(x, elt=True):
 	return x
 
 class Element:
-	def __init__(self, name, attrs=None, children=None, prefixes=None):
+	def __init__(self, name, attrs=None, children=None, prefixes=None, line=None):
 		if islst(name) and name[0] == None: name = name[1]
 		if attrs:
 			na = {}
@@ -36,6 +36,8 @@ class Element:
 		
 		if prefixes: self._dNS = prefixes.get(None, None)
 		else: self._dNS = None
+
+		self._line = line
 	
 	def __repr__(self, recursive=0, multiline=0, inprefixes=None):
 		def qname(name, inprefixes): 
@@ -204,6 +206,9 @@ class Element:
 		except KeyError:
 			return None
 
+	def getLineNumber (self):
+		return self._line
+
 class Namespace:
 	def __init__(self, uri): self.__uri = uri
 	def __getattr__(self, n): return (self.__uri, n)
@@ -212,7 +217,11 @@ class Namespace:
 from xml.sax.handler import EntityResolver, DTDHandler, ContentHandler, ErrorHandler
 
 class Seeder(EntityResolver, DTDHandler, ContentHandler, ErrorHandler):
-	def __init__(self):
+	def __init__(self, parser=None):
+		if parser:
+			self.getLineNumber = lambda: parser.getLineNumber ()
+		else:
+			self.getLineNumber = lambda: None
 		self.stack = []
 		self.ch = ''
 		self.prefixes = {}
@@ -232,7 +241,7 @@ class Seeder(EntityResolver, DTDHandler, ContentHandler, ErrorHandler):
 		newprefixes = {}
 		for k in self.prefixes.keys(): newprefixes[k] = self.prefixes[k][-1]
 		
-		self.stack.append(Element(name, attrs, prefixes=newprefixes.copy()))
+		self.stack.append(Element(name, attrs, prefixes=newprefixes.copy(), line=self.getLineNumber ()))
 	
 	def characters(self, ch):
 		self.ch += ch
