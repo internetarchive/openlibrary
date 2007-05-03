@@ -6,6 +6,7 @@ export PHAROS_DBPASS=pharos
 export PHAROS_SITE=site0
 export PHAROS_LOGFILE="/1/pharos/db/$PHAROS_DBNAME"
 export URL_CACHE_DIR=/1/pharos/onix/urlcache/
+export PHAROS_REPO=~dbg/repo
 
 # destroy the database
 rm $PHAROS_LOGFILE
@@ -16,6 +17,6 @@ createdb -U $PHAROS_DBUSER $PHAROS_DBNAME
 psql -U $PHAROS_DBUSER $PHAROS_DBNAME < ~dbg/repo/infogami/infogami/tdb/schema.sql
 
 # import some data
-cd ~dbg/repo/import/onix	# need to read from some data files here
+cd $PHAROS_REPO/import/onix/	# need to read from some data files here
 # export PYTHONPATH=/home/dbg/lib/python
 python2.4 onix-import.py < data/something

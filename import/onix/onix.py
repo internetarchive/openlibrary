@@ -24,7 +24,7 @@ def onix_parser (input):
 
 		parser = xml.sax.make_parser ()
 		parser.setFeature (xml.sax.handler.feature_namespaces, 1)
-		parser.setContentHandler (OnixHandler (produce))
+		parser.setContentHandler (OnixHandler (parser, produce))
 		url_cache_dir = os.getenv ("URL_CACHE_DIR")
 		if url_cache_dir:
 			sys.stderr.write ("using url cache in %s\n" % url_cache_dir)
@@ -83,6 +83,9 @@ class OnixProduct:
 		except KeyError:
 			return None
 
+	def getLineNumber (self):
+		return self.p.getLineNumber ()
+
 	def __unicode__ (self):
 		return self.p.__unicode__ ()
 
@@ -120,7 +123,8 @@ class OnixProduct:
 
 class OnixHandler (ContentHandler):
 
-	def __init__ (self, receiver):
+	def __init__ (self, parser, receiver):
+		self.parser = parser
 		self.receiver = receiver
 		self.subhandler = None
 		self.codelists = parse_codelists (open (codelists_path, "r"))
@@ -129,6 +133,9 @@ class OnixHandler (ContentHandler):
 	def process_product (self, p):
 		op = OnixProduct (p)
 		o = {}
+
+		# record id
+		o['source_record_lineno'] = p.getLineNumber ()
 
 		# title, subtitle
 		tt = [ t for t in op["Title":] if t["TitleType"] == '01' ]
@@ -139,8 +146,9 @@ class OnixHandler (ContentHandler):
 		t = tt[0]
 		prefix = t.get ("TitlePrefix")
 		if prefix:
-			o['title_prefix_len'] = len (prefix)
-			o['title'] = prefix + t["TitleWithoutPrefix"]
+			prefix = prefix.strip ()
+			o['title_prefix_len'] = len (prefix) + 1  # prefix plus space
+			o['title'] = prefix + " " + t["TitleWithoutPrefix"].strip ()
 		else:
 			title = t.get ("TitleText")
 			if title:
@@ -163,18 +171,9 @@ class OnixHandler (ContentHandler):
 			role_codes.sort ()
 			role_code = role_codes[0]
 
-			iname = c.get ("PersonNameInverted")
-			name = c.get ("PersonName")
-			# if not name: construct name from parts
+			name = person_name (c)
 			if not name:
-				if iname:
-					# XXX this often works, but is not reliable;
-					# shouldn't really mess with unstructured names
-					m = re_iname.match (unicode (iname))
-					if m:
-						name = m.group (2) + " " + m.group (1)
-			if not name:
-				warn ("no name for contributor")
+				warn ("=====> no name for contributor at line %d" % c.getLineNumber ())
 				continue
 
 			if role_code != 'A01':
@@ -186,9 +185,10 @@ class OnixHandler (ContentHandler):
 			author["name"] = name
 			add_val (o, "authors", author)
 
-			if iname:
-				author["inverted_name"] = iname
-				# XXX else construct inverted name from name parts
+			# iname = c.get ("PersonNameInverted")
+			# if iname:
+			# 	author["inverted_name"] = iname
+			# 	# XXX else construct inverted name from name parts
 
 			pnis = c["PersonNameIdentifier":]
 			if len (pnis) > 0:
@@ -343,7 +343,7 @@ class OnixHandler (ContentHandler):
 		else:
 			(uri, localname) = name
 			if localname == "product":
-				self.subhandler = xmltramp.Seeder ()
+				self.subhandler = xmltramp.Seeder (self.parser)
 				self.subhandler.startElementNS (name, qname, attrs)
 				self.subdepth = 1
 
@@ -358,6 +358,27 @@ class OnixHandler (ContentHandler):
 	def characters (self, content):
 		if self.subhandler:
 			self.subhandler.characters (content)
+
+name_parts = ["TitlesBeforeNames", "NamesBeforeKey", "PrefixToKey", "KeyNames", "NamesAfterKey", "SuffixToKey"]
+def person_name (x):
+	global name_parts
+	name = x.get ("PersonName")
+	if not name:
+		parts = [ p for p in map (lambda p: x.get (p), name_parts) if p ]
+		name = " ".join (parts)
+	if not name:
+		iname = x.get ("PersonNameInverted")
+		if iname:
+			# XXX this often works, but is not reliable;
+			# shouldn't really mess with unstructured names
+			m = re_iname.match (iname)
+			if m:
+				name = m.group (2) + " " + m.group (1)
+			else:
+				name = iname
+	if not name:
+		name = x.get ("CorporateName")
+	return name
 
 def elt_get (e, tag, reference_name):
        ee = e.get (tag) or e.get (reference_name.lower ())

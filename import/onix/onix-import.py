@@ -17,6 +17,7 @@ import unicodedata
 import re
 import os
 from lang import *
+from types import *
 
 def setup ():
 	def getvar (name, required=True):
@@ -67,7 +68,7 @@ def import_author (x):
 		a = Author.withName (name)
 		warn ("---------------------------> already author %s" % name)
 	except:
-		a = Author (name, d=x)
+		a = Author (name, d=massage_dict (x))
 		a.save ()
 		warn ("AUTHOR %s" % name)
 	return a
@@ -98,7 +99,7 @@ def import_item (x):
 	if not name:
 		raise Exception ("couldn't find a unique name for %s" % x)
 
-	e = Edition (name, d=x)
+	e = Edition (name, d=massage_dict (x))
 	e.authors = authors
 	e.save ()
 	imported += 1
@@ -183,6 +184,20 @@ def name_string (s):
 
 def asciify (s):
 	return unicodedata.normalize('NFKD', s).encode('ASCII', 'ignore')
+
+def massage_value (v):
+	if (isinstance (v, UnicodeType)):
+		return v.encode ('utf8')
+	elif (isinstance (v, ListType)):
+		return map (massage_value, v)
+	else:
+		return v
+
+def massage_dict (d):
+	dd = {}
+	for (k, v) in d.iteritems ():
+		dd[k] = massage_value (v)
+	return dd
 
 if __name__ == "__main__":
 	setup()
