@@ -3,14 +3,19 @@ sys.path.insert(0, "../infogami")
 
 logfile = '/1/dbg/import-logs/dbglog'
 logfile = '/1/pharos/db/authortest'
-logfile = '/tmp/log.test'
+#logfile = '/tmp/log.test'
 # outfile = sys.stdout
 outfile = open('solr1.xml', 'w')
+
+# solr = 'http://localhost:8983/solr/update'
+solr = ('localhost', 1235)
+solr = ('localhost', 8983)
 
 from infogami.tdb.logger import parse, parse2a, parse2b
 import web
 
 import re
+import socket
 from itertools import *
 from itools import *
 from operator import itemgetter
@@ -27,14 +32,15 @@ def setup():
 #@slicer(5)
 def logparse(logfile):
     return parse2b(parse(logfile,
-                         infinite=True))
+                         infinite=False))
 
 def speed():
     from time import time
     p = logparse(logfile)
     t0=time()
-    print sum(1 for x in p)
-    print time()-t0
+    n = sum(1 for x in p)
+    dt = time()-t0
+    print '%d items, %.3f seconds, %.2f items/sec'% (n, dt, n/dt)
 
 setup()
 
@@ -46,15 +52,16 @@ def main():
     global t,k
     # out = open('solr.xml', 'w')
     from time import time
-    t0 = time()
+    t1 = t0 = time()
 
     print >>outfile, "<add>"
 
     for i,t in enumerate(logparse(logfile)):
         # print list(k for k in t.d)
-        if True or i % 100 == 0:
-            print (i, time()-t0)
+        if time()-t1 > 5 or i % 100 == 0:
+            print (i, time()-t1, time()-t0)
             sys.stdout.flush()
+            t1 = time()
         emit_doc (t)
 
     print >>outfile, "</add>"
@@ -91,5 +98,20 @@ def emit_field(field_name, field_val, non_strings = set()):
 
         print >>outfile, "  <field name=%s>%s</field>"% (field_name,
                                                          escape(field_val))
+
+def solr_submit(xml):
+    """submit an XML document to solr"""
+    sock = socket.socket()
+    try:
+        sock.connect(solr)
+        sock.sendall('POST /solr/update HTTP/1.1\n')
+        sock.sendall('Host: %s:%d\n'% solr)
+        sock.sendall('Content-type:text/xml; charset=utf-8\n')
+        sock.sendall('Content-Length: %d\n\n'% len(xml))
+        sock.sendall(xml)
+        response = sock.recv(10000)
+    finally:
+        sock.close()
+    return response
 
 main()
