@@ -4,21 +4,22 @@ sys.path.insert(0, "../infogami")
 logfile = '/1/dbg/import-logs/dbglog'
 logfile = '/1/pharos/db/authortest'
 #logfile = '/tmp/log.test'
-# outfile = sys.stdout
+outfile = sys.stdout
 outfile = open('solr1.xml', 'w')
 
-# solr = 'http://localhost:8983/solr/update'
-solr = ('localhost', 1235)
+# tcp socket of solr server
 solr = ('localhost', 8983)
 
-from infogami.tdb.logger import parse, parse2a, parse2b
+from infogami.tdb.logger import parse, parse1, parse2a, parse2b
 import web
 
 import re
 import socket
 from itertools import *
 from itools import *
+from cStringIO import StringIO
 from operator import itemgetter
+
 fst = itemgetter(0)
 snd = itemgetter(1)
 
@@ -29,10 +30,10 @@ def setup():
                                     pw="pharos")
     web.load()
 
-#@slicer(5)
-def logparse(logfile):
-    return parse2b(parse(logfile,
-                         infinite=False))
+@slicer(10000)
+def logparse(log_fd):
+    return parse2b(parse1(log_fd,
+                          infinite=True))
 
 def speed():
     from time import time
@@ -54,36 +55,83 @@ def main():
     from time import time
     t1 = t0 = time()
 
-    print >>outfile, "<add>"
+    log_fd = open(logfile)
+    lastpos_fd = open('lastpos', 'r+', 0)
+    lastpos = int(open('lastpos').readline())
+    print 'seeking to %d'% lastpos
+    log_fd.seek(lastpos)
 
-    for i,t in enumerate(logparse(logfile)):
-        # print list(k for k in t.d)
+    for i,t in enumerate(logparse(log_fd)):
+        outbuf = StringIO()
+        print >>outbuf, "<add>"
+
         if time()-t1 > 5 or i % 100 == 0:
             print (i, time()-t1, time()-t0)
             sys.stdout.flush()
             t1 = time()
-        emit_doc (t)
+        emit_doc (outbuf, t)
 
-    print >>outfile, "</add>"
+        print >>outbuf, "</add>"
 
-def emit_doc(t):
-    print >>outfile, "<document>"
+        outfile.write(outbuf.getvalue())
+        outfile.flush()
+
+        lastpos_fd.seek(0)
+        log_pos = log_fd.tell()
+        lastpos_fd.write('%d\n'% log_pos)
+        lastpos_fd.flush()
+
+    lastpos_fd.close()
+
+# dict of fields for which there will be a corresponding sortable
+# field.  The field values will have to be transformed into a
+# sorting key that does stuff like strips punctuation and folds
+# case, or inserts leading zeros for numeric fields,
+# but for now we just use the identity function.  The
+# dict entries are of the form:
+#     fieldname : (new field name, conversion function)
+
+def identity(x): return x
+
+sorted_field_dict = {
+    'author': ('creatorSorter', identity),
+    'title': ('titleSorter', identity),
+    # there may also be something for dates here.  @@
+    }
+
+ids_seen = set()
+
+def emit_doc(outbuf, t):
+    assert t.name not in ids_seen
+    for forbidden in ('text', 'identifier'):
+        assert forbidden not in t.d
+    ids_seen.add(t.name)
+
+    print >>outbuf, "<document>"
+    emit_field(outbuf, 'identifier', t.name)
+
     for k in t.d:
-        assert k != 'text'
         v = getattr(t.d, k)
-        emit_field(k, v)
+        emit_field(outbuf, k, v)
         if k not in excluded_fields:
-            emit_field('text', v)
-    print >>outfile, "</document>\n"
+            emit_field(outbuf, 'text', v)
+        if k in sorted_field_dict:
+            sfname, conversion = sorted_field_dict[k]
+            emit_field(outbuf, sfname, conversion(v))
+                       
+    print >>outbuf, "</document>\n"
+    return outbuf.getvalue()
 
-
-def emit_field(field_name, field_val, non_strings = set()):
+def emit_field(outbuf,
+               field_name,
+               field_val,
+               non_strings = set()):
     from cgi import escape
     assert escape(field_name) == field_name
 
     if type(field_val) == list:
         for v in field_val:
-            emit_field(field_name, v)
+            emit_field(outbuf, field_name, v)
     else:
         # some fields are numeric--may need to pad these with
         # leading zeros for sorting purposes, but don't bother for now. @@
@@ -92,11 +140,11 @@ def emit_field(field_name, field_val, non_strings = set()):
             if field_name not in non_strings:
                 # temporarily print out names of fields which
                 # are found to (sometimes) actually contain a
-                # non-string value.
+                # non-string value. @@
                 print 'non-string fieldname', field_name
                 non_strings.add(field_name)
 
-        print >>outfile, "  <field name=%s>%s</field>"% (field_name,
+        print >>outbuf, "  <field name=%s>%s</field>"% (field_name,
                                                          escape(field_val))
 
 def solr_submit(xml):
