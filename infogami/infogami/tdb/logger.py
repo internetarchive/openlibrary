@@ -132,6 +132,10 @@ def _encode(value):
         return repr(value)
 
 def parse(filename, infinite=False):
+    fd = open(filename)
+    return parse1(fd, infinite)
+
+def parse1(fd, infinite=False):
     """Parses a tdb log file and returns an iteratable over the contents.
     If argument 'infinite' is true, the iterable never terminates.
     It instead expects the file to keep growing as new log records
@@ -140,6 +144,10 @@ def parse(filename, infinite=False):
     when it reaches end of log file.
     """
     from tdb import LazyThing
+
+    if not infinite and fd.tell() != 0:
+        raise NotImplementedError, "can't seek in non-tailing logfile"
+
     def parse_items():
         """Parses the file and returns an iteratable over the items."""
         lines = []
@@ -151,7 +159,6 @@ def parse(filename, infinite=False):
             while True:
                 yield ''.join(iter(lambda: fd.read(1), '\n'))
 
-        fd = open(filename)
         if infinite:
             xlines = infinite_lines(fd)
         else:
