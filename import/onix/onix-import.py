@@ -19,6 +19,8 @@ import os
 from lang import *
 from types import *
 
+source_name
+
 def setup ():
 	def getvar (name, required=True):
 		val = os.getenv (name)
@@ -37,6 +39,11 @@ def setup ():
 	if logfile:
 		tdb.logger.set_logfile (open (logfile, "a"))
 		sys.stderr.write ("logging to %s\n" % logfile)
+
+	global source_name
+	source_dir = getvar ("PHAROS_SOURCE_DIR")
+	source_name = sys.argv[1]
+	source_path = "%s/%s" % (source_dir, source_name)
 
 def clear ():
 	web.query('delete from datum where version_id > 2')
@@ -100,6 +107,8 @@ def import_item (x):
 		raise Exception ("couldn't find a unique name for %s" % x)
 
 	e = Edition (name, d=massage_dict (x))
+	global source_name
+	e.source_name = source_name
 	e.authors = authors
 	e.save ()
 	imported += 1
@@ -202,6 +211,5 @@ def massage_dict (d):
 if __name__ == "__main__":
 	setup()
 	sys.stderr.write ("--> setup finished\n")
-	import_file (sys.stdin)
+	import_file (open (source_path, "r"))
 	sys.stderr.write ("--> import finished\n")
-	# dump_items ()
