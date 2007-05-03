@@ -1,12 +1,15 @@
 # this is what i do to create the logs:
 
-export PHAROS_DBNAME=authortest
+export PHAROS_SOURCE_DIR=/1/pharos/onix/data
+export PHAROS_DBNAME=crap
 export PHAROS_DBUSER=pharos
 export PHAROS_DBPASS=pharos
 export PHAROS_SITE=site0
 export PHAROS_LOGFILE="/1/pharos/db/$PHAROS_DBNAME"
 export URL_CACHE_DIR=/1/pharos/onix/urlcache/
 export PHAROS_REPO=~dbg/repo
+
+HARPERCOLLINS=harpercollins-full-2007-0305
 
 # destroy the database
 rm $PHAROS_LOGFILE
@@ -19,4 +22,4 @@ psql -U $PHAROS_DBUSER $PHAROS_DBNAME < ~dbg/repo/infogami/infogami/tdb/schema.s
 # import some data
 cd $PHAROS_REPO/import/onix/	# need to read from some data files here
 # export PYTHONPATH=/home/dbg/lib/python
-python2.4 onix-import.py < data/something
+python2.4 onix-import.py harpercollins-full-2007-0305

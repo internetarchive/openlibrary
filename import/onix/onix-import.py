@@ -19,7 +19,8 @@ import os
 from lang import *
 from types import *
 
-source_name
+source_name = None
+source_path = None
 
 def setup ():
 	def getvar (name, required=True):
@@ -40,7 +41,7 @@ def setup ():
 		tdb.logger.set_logfile (open (logfile, "a"))
 		sys.stderr.write ("logging to %s\n" % logfile)
 
-	global source_name
+	global source_name, source_path
 	source_dir = getvar ("PHAROS_SOURCE_DIR")
 	source_name = sys.argv[1]
 	source_path = "%s/%s" % (source_dir, source_name)
