@@ -1,10 +1,13 @@
 # this is what i do to create the logs:
 
+# metatype <- "site" <- "openlibrary.org"
+
+export PHAROS_SITE="openlibrary.org"
+export PHAROS_NAME_PREFIX="b/"
 export PHAROS_SOURCE_DIR=/1/pharos/onix/data
-export PHAROS_DBNAME=crap
+export PHAROS_DBNAME=pharos
 export PHAROS_DBUSER=pharos
 export PHAROS_DBPASS=pharos
-export PHAROS_SITE=site0
 export PHAROS_LOGFILE="/1/pharos/db/$PHAROS_DBNAME"
 export URL_CACHE_DIR=/1/pharos/onix/urlcache/
 export PHAROS_REPO=~dbg/repo

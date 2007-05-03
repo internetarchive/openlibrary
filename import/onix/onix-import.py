@@ -21,6 +21,7 @@ from types import *
 
 source_name = None
 source_path = None
+name_prefix = None
 
 def setup ():
 	def getvar (name, required=True):
@@ -46,6 +47,9 @@ def setup ():
 	source_name = sys.argv[1]
 	source_path = "%s/%s" % (source_dir, source_name)
 
+	global name_prefix
+	name_prefix = getvar ("PHAROS_NAME_PREFIX", False) or ""
+
 def clear ():
 	web.query('delete from datum where version_id > 2')
 	web.query('delete from version where thing_id > 2')
@@ -69,7 +73,7 @@ skipped = 0
 imported = 0
 
 def import_author (x):
-	name = name_string (x["name"])
+	name = name_prefix + name_string (x["name"])
 	a = None
 	try:
 		Item.withName (name)
@@ -100,9 +104,10 @@ def import_item (x):
 	# find a unique name for the edition
 	name = None
 	for n in edition_names (x):
-		if not n in used_names and not Item.withName (n, default=None):
-			name = n
-			used_names[n] = True
+		nn = name_prefix + n
+		if not nn in used_names and not Item.withName (nn, default=None):
+			name = nn
+			used_names[name] = True
 			break
 	if not name:
 		raise Exception ("couldn't find a unique name for %s" % x)

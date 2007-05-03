@@ -54,14 +54,30 @@ def site_object ():
 	site_name = os.getenv ("PHAROS_SITE")
 	if not site_name:
 		raise Exception ("no site name found in PHAROS_SITE environment variable")
+
+	site_parent = None
+	try:
+		site_parent = tdb.withName ("site", tdb.metatype)
+	except NotFound:
+		site_parent = tdb.new ("site", tdb.metatype, tdb.metatype)
+		site_parent.save ()
+
 	site = None
 	try:
-		site = tdb.withName (site_name, tdb.metatype)
+		site = tdb.withName (site_name, site_parent)
 	except NotFound:
-		site = tdb.new (site_name, tdb.metatype, tdb.metatype)
+		site = tdb.new (site_name, site_parent, tdb.metatype)
 		site.save ()
 	return site
 
-class Work (Item): pass
-class Edition (Item): pass
-class Author (Item): pass
+class Work (Item):
+	@classmethod
+	def typename (cl): return "work"
+
+class Edition (Item):
+	@classmethod
+	def typename (cl): return "edition"
+
+class Author (Item):
+	@classmethod
+	def typename (cl): return "author"
