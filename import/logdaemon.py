@@ -1,12 +1,13 @@
-# -*- eval: (setq py-python-command "sudo -u anand python") -*-
-
 import sys
 sys.path.insert(0, "../infogami")
 
 logfile = '/1/dbg/import-logs/dbglog'
-logfile = '/tmp/dbglog'
+logfile = '/1/pharos/db/authortest'
+logfile = '/tmp/log.test'
+# outfile = sys.stdout
+outfile = open('solr1.xml', 'w')
 
-from infogami.tdb.logger import parse, parse2a, parse2
+from infogami.tdb.logger import parse, parse2a, parse2b
 import web
 
 import re
@@ -23,9 +24,10 @@ def setup():
                                     pw="pharos")
     web.load()
 
-# @slicer(5)
+#@slicer(5)
 def logparse(logfile):
-    return parse2a(parse(logfile))
+    return parse2b(parse(logfile,
+                         infinite=True))
 
 def speed():
     from time import time
@@ -40,13 +42,41 @@ setup()
 
 from exclude import excluded_fields
 
-def emit(out, field_name, field_val, non_strings = set()):
+def main():
+    global t,k
+    # out = open('solr.xml', 'w')
+    from time import time
+    t0 = time()
+
+    print >>outfile, "<add>"
+
+    for i,t in enumerate(logparse(logfile)):
+        # print list(k for k in t.d)
+        if True or i % 100 == 0:
+            print (i, time()-t0)
+            sys.stdout.flush()
+        emit_doc (t)
+
+    print >>outfile, "</add>"
+
+def emit_doc(t):
+    print >>outfile, "<document>"
+    for k in t.d:
+        assert k != 'text'
+        v = getattr(t.d, k)
+        emit_field(k, v)
+        if k not in excluded_fields:
+            emit_field('text', v)
+    print >>outfile, "</document>\n"
+
+
+def emit_field(field_name, field_val, non_strings = set()):
     from cgi import escape
     assert escape(field_name) == field_name
 
     if type(field_val) == list:
         for v in field_val:
-            emit(out, field_name, v)
+            emit_field(field_name, v)
     else:
         # some fields are numeric--may need to pad these with
         # leading zeros for sorting purposes, but don't bother for now. @@
@@ -59,25 +89,7 @@ def emit(out, field_name, field_val, non_strings = set()):
                 print 'non-string fieldname', field_name
                 non_strings.add(field_name)
 
-        print >>out, "  <field name=%s>%s</field>"% (field_name,
-                                              escape(field_val))
-    
-def main():
-    global t,k
-    out = open('solr.xml', 'w')
-
-    for i,t in enumerate(logparse(logfile)):
-        # print list(k for k in t.d)
-        if i % 100 == 0:
-            print i,
-            sys.stdout.flush()
-        print >>out, "<add><document>"
-        for k in t.d:
-            assert k != 'text'
-            v = getattr(t.d, k)
-            emit(out, k, v)
-            if k not in excluded_fields:
-                emit(out, 'text', v)
-        print >>out, "</document></add>\n"
+        print >>outfile, "  <field name=%s>%s</field>"% (field_name,
+                                                         escape(field_val))
 
 main()
