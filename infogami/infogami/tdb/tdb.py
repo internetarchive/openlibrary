@@ -64,9 +64,6 @@ class Thing:
         def savedatum(vid, key, value, ordering=None):
             if isinstance(value, str):
                 dt = 0
-            elif isinstance (value, unicode):
-                dt = 0
-                value = value.encode('utf8')
             elif isinstance(value, Thing):
                 dt = 1
                 value = value.id
@@ -192,7 +189,7 @@ def withID(id, revision=None, raw=False):
         for r in data:
             value = r.value
             if r.data_type == 0:
-                value = value.decode('utf8')
+                pass # already a string
             elif r.data_type == 1:
                 value = LazyThing(int(value))
             elif r.data_type == 2:
