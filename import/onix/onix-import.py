@@ -16,8 +16,9 @@ edition_prefix = None
 author_prefix = None
 
 edition_records = set ([])
-edition_names = set ([])
-author_names = {}
+item_names = {}
+#edition_names = set ([])
+#author_names = {}
 
 def setup ():
 	def getvar (name, required=True):
@@ -47,28 +48,23 @@ def setup ():
 	edition_prefix = getvar ("PHAROS_EDITION_PREFIX", False) or ""
 	author_prefix = getvar ("PHAROS_AUTHOR_PREFIX", False) or ""
 
+	setup_names ()
+
+def setup_names ():
+	global item_names, edition_records, source_name
+
 	warn ("walking the length and breadth of the database ...")
 	author_type = Author.type ()
 	edition_type = Edition.type ()
-	for x in Things (parent=site_object ()):
-		if x.type == author_type:
-			author_names[x.name] = x.id
-		elif x.type == edition_type:
-			if x.source_name == source_name:
-				edition_records.add (x.source_record_lineno)
-			edition_names.add (x.name)
+	walked = 0
+	parent_id = site_object().id
+	for r in web.query ("SELECT id,name FROM thing WHERE parent_id = $parent_id", vars=locals()):
+		item_names[r.name] = r.id
+	
+	for r in web.query ("SELECT d1.value FROM datum AS d1, datum AS d2 WHERE d1.version_id=d2.version_id AND d1.key='source_record_lineno' AND d2.key='source_name' AND d2.value=$source_name", { 'source_name': source_name }):
+		edition_records.add (int (r.value))
 
-	# for a in Things (parent=site_object(), type=Author.type()):
-	# 	author_names[a.name] = a.id
-
-	warn ("noted %d authors" % len (author_names))
-
-	# for e in Things (parent=site_object(), type=Edition.type()):
-	# 	if e.source_name == source_name:
-	# 		edition_records.add (e.source_record_lineno)
-	# 	edition_names.add (e.name)
-
-	warn ("noted %d editions" % len (edition_names))
+	warn ("noted %d items" % len (item_names))
 	if len (edition_records) > 0:
 		warn ("already have %d records from this source; they will be ignored" % len (edition_records))
 
@@ -88,16 +84,16 @@ def import_author (x):
 	name = author_prefix + name_string (x["name"])
 	a = None
 
-	global author_names
-	aid = author_names.get (name, None)
+	global item_names
+	aid = item_names.get (name, None)
 	if aid:
 		a = LazyThing (aid)
-		warn ("---------------------------> already author %s" % name)
+		# warn ("---------------------------> already author %s" % name)
 	else:
 		a = Author (name, d=massage_dict (x))
 		a.save ()
-		author_names[name] = a.id
-		warn ("AUTHOR %s" % name)
+		item_names[name] = a.id
+		# warn ("AUTHOR %s" % name)
 	return a
 
 def import_item (x):
@@ -117,11 +113,11 @@ def import_item (x):
 		del x["authors"]
 
 	# find a unique name for the edition
-	global edition_names
+	global item_names
 	name = None
 	for n in edition_name_choices (x):
 		nn = edition_prefix + n
-		if nn not in edition_names:
+		if nn not in item_names:
 			name = nn
 			break
 
@@ -133,13 +129,13 @@ def import_item (x):
 	e.source_name = source_name
 	e.authors = authors
 	e.save ()
-	edition_names.add (name)
+	item_names[name] = e.id
 	edition_records.add (e.source_record_lineno)
 	imported += 1
 	if imported % 100 == 0:
 		warn ("imported %d" % imported)
 
-	sys.stderr.write ("EDITION %s\n" % name)
+	# sys.stderr.write ("EDITION %s\n" % name)
 
 ignore_title_words = ['a', 'the']
 tsep = '_'
