@@ -3,6 +3,9 @@ sys.path.insert(0, "../infogami")
 
 logfile = '/1/dbg/import-logs/dbglog'
 logfile = '/1/pharos/db/authortest'
+logfile = '/1/pharos/db/good'
+logfile = '/1/pharos/db/pharos'
+
 #logfile = '/tmp/log.test'
 outfile = sys.stdout
 outfile = open('solr1.xml', 'w')
@@ -25,15 +28,16 @@ snd = itemgetter(1)
 
 def setup():
     web.config.db_parameters = dict(dbn="postgres",
-                                    db="dbglog",
+#                                    db="pharos",
+                                    db="pharos",
                                     user="pharos",
                                     pw="pharos")
     web.load()
 
-@slicer(10000)
+@slicer(500)
 def logparse(log_fd):
     return parse2b(parse1(log_fd,
-                          infinite=True))
+                          infinite=False))
 
 def speed():
     from time import time
@@ -47,7 +51,7 @@ setup()
 
 # ================================================================
 
-from exclude import excluded_fields
+from exclude import excluded_fields, multivalued_fields
 
 def main():
     global t,k
@@ -57,24 +61,35 @@ def main():
 
     log_fd = open(logfile)
     lastpos_fd = open('lastpos', 'r+', 0)
-    lastpos = int(open('lastpos').readline())
+    lastpos = 0 # int(open('lastpos').readline())
     print 'seeking to %d'% lastpos
     log_fd.seek(lastpos)
 
     for i,t in enumerate(logparse(log_fd)):
-        outbuf = StringIO()
-        print >>outbuf, "<add>"
-
+#        print (t,t.type,type(t.type),t.type.name, type(t.type.name))
         if time()-t1 > 5 or i % 100 == 0:
             print (i, time()-t1, time()-t0)
             sys.stdout.flush()
             t1 = time()
+
+        if t.type.name != 'edition': continue
+        outbuf = StringIO()
+        print >>outbuf, "<add>"
+
         emit_doc (outbuf, t)
 
         print >>outbuf, "</add>"
 
-        outfile.write(outbuf.getvalue())
-        outfile.flush()
+        if 0:
+            xml = outbuf.getvalue()
+            # print 'xml:(%s)'% xml
+            solr_response = solr_submit(xml)
+            assert '<result status="0">' in solr_response
+            # print 'solr response: ((%s))\n'% solr_response
+
+        else:
+            outfile.write(outbuf.getvalue())
+            outfile.flush()
 
         lastpos_fd.seek(0)
         log_pos = log_fd.tell()
@@ -82,6 +97,11 @@ def main():
         lastpos_fd.flush()
 
     lastpos_fd.close()
+
+def sort_canon(s):
+    s = s.strip().lower()
+    s = re.sub('\s+', ' ', s)
+    return s
 
 # dict of fields for which there will be a corresponding sortable
 # field.  The field values will have to be transformed into a
@@ -94,8 +114,8 @@ def main():
 def identity(x): return x
 
 sorted_field_dict = {
-    'author': ('creatorSorter', identity),
-    'title': ('titleSorter', identity),
+    'authors': ('creatorSorter', sort_canon),
+    'title': ('titleSorter', sort_canon),
     # there may also be something for dates here.  @@
     }
 
@@ -107,19 +127,22 @@ def emit_doc(outbuf, t):
         assert forbidden not in t.d
     ids_seen.add(t.name)
 
-    print >>outbuf, "<document>"
+    print >>outbuf, "<doc>"
     emit_field(outbuf, 'identifier', t.name)
 
     for k in t.d:
         v = getattr(t.d, k)
         emit_field(outbuf, k, v)
+        
+        if k in multivalued_fields:
+            assert type(v) != list or len(v) == 1, t
         if k not in excluded_fields:
             emit_field(outbuf, 'text', v)
         if k in sorted_field_dict:
             sfname, conversion = sorted_field_dict[k]
             emit_field(outbuf, sfname, conversion(v))
                        
-    print >>outbuf, "</document>\n"
+    print >>outbuf, "</doc>\n"
     return outbuf.getvalue()
 
 def emit_field(outbuf,
@@ -144,7 +167,7 @@ def emit_field(outbuf,
                 print 'non-string fieldname', field_name
                 non_strings.add(field_name)
 
-        print >>outbuf, "  <field name=%s>%s</field>"% (field_name,
+        print >>outbuf, '  <field name="%s">%s</field>'% (field_name,
                                                          escape(field_val))
 
 def solr_submit(xml):
