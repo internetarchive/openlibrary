@@ -1,15 +1,6 @@
-# TODO
-# - source record identifier
-#   - two fields -- source-id and record-id ?
-#   - pre-fetch the set of these that are already in the db?
-# SCHEMA
-# author
-# - name
-# - inverted_name
-
 import web
 import infogami.tdb as tdb
-from infogami.tdb import NotFound, Things
+from infogami.tdb import NotFound, Things, LazyThing
 from items import *
 from onix import onix_parser
 import sys
@@ -21,7 +12,12 @@ from types import *
 
 source_name = None
 source_path = None
-name_prefix = None
+edition_prefix = None
+author_prefix = None
+
+edition_records = set ([])
+edition_names = set ([])
+author_names = {}
 
 def setup ():
 	def getvar (name, required=True):
@@ -47,13 +43,34 @@ def setup ():
 	source_name = sys.argv[1]
 	source_path = "%s/%s" % (source_dir, source_name)
 
-	global name_prefix
-	name_prefix = getvar ("PHAROS_NAME_PREFIX", False) or ""
+	global edition_prefix, author_prefix
+	edition_prefix = getvar ("PHAROS_EDITION_PREFIX", False) or ""
+	author_prefix = getvar ("PHAROS_AUTHOR_PREFIX", False) or ""
 
-def clear ():
-	web.query('delete from datum where version_id > 2')
-	web.query('delete from version where thing_id > 2')
-	web.query('delete from thing where id > 2')
+	warn ("walking the length and breadth of the database ...")
+	author_type = Author.type ()
+	edition_type = Edition.type ()
+	for x in Things (parent=site_object ()):
+		if x.type == author_type:
+			author_names[x.name] = x.id
+		elif x.type == edition_type:
+			if x.source_name == source_name:
+				edition_records.add (x.source_record_lineno)
+			edition_names.add (x.name)
+
+	# for a in Things (parent=site_object(), type=Author.type()):
+	# 	author_names[a.name] = a.id
+
+	warn ("noted %d authors" % len (author_names))
+
+	# for e in Things (parent=site_object(), type=Edition.type()):
+	# 	if e.source_name == source_name:
+	# 		edition_records.add (e.source_record_lineno)
+	# 	edition_names.add (e.name)
+
+	warn ("noted %d editions" % len (edition_names))
+	if len (edition_records) > 0:
+		warn ("already have %d records from this source; they will be ignored" % len (edition_records))
 
 def import_file (input):
 	n = 0
@@ -64,33 +81,31 @@ def import_file (input):
 			sys.stderr.write ("." * 30 + " read %d records\n" % n)
 	sys.stderr.write ("\nread %d records\n" % n)
 
-def dump_items ():
-	for i in Things (parent=site_object()):
-		print "> ", i.title
-
-used_names = {}
 skipped = 0
 imported = 0
 
 def import_author (x):
-	name = name_prefix + name_string (x["name"])
+	name = author_prefix + name_string (x["name"])
 	a = None
-	try:
-		Item.withName (name)
-		a = Author.withName (name)
+
+	global author_names
+	aid = author_names.get (name, None)
+	if aid:
+		a = LazyThing (aid)
 		warn ("---------------------------> already author %s" % name)
-	except:
+	else:
 		a = Author (name, d=massage_dict (x))
 		a.save ()
+		author_names[name] = a.id
 		warn ("AUTHOR %s" % name)
 	return a
 
 def import_item (x):
-	global used_names, skipped, imported
+	global skipped, imported
 
-	# check whether this record has already been imported
-	isbn = x["ISBN_13"]
-	for e in Things (ISBN_13=isbn):
+	global edition_records
+	lineno = x["source_record_lineno"]
+	if lineno in edition_records:
 		skipped += 1
 		if skipped % 100 == 0:
 			warn ("skipped %d" % skipped)
@@ -102,13 +117,14 @@ def import_item (x):
 		del x["authors"]
 
 	# find a unique name for the edition
+	global edition_names
 	name = None
-	for n in edition_names (x):
-		nn = name_prefix + n
-		if not nn in used_names and not Item.withName (nn, default=None):
+	for n in edition_name_choices (x):
+		nn = edition_prefix + n
+		if nn not in edition_names:
 			name = nn
-			used_names[name] = True
 			break
+
 	if not name:
 		raise Exception ("couldn't find a unique name for %s" % x)
 
@@ -117,6 +133,8 @@ def import_item (x):
 	e.source_name = source_name
 	e.authors = authors
 	e.save ()
+	edition_names.add (name)
+	edition_records.add (e.source_record_lineno)
 	imported += 1
 	if imported % 100 == 0:
 		warn ("imported %d" % imported)
@@ -126,7 +144,7 @@ def import_item (x):
 ignore_title_words = ['a', 'the']
 tsep = '_'
 
-def edition_names (x):
+def edition_name_choices (x):
 	# use up to 25 chars of title, including last word
 	title = name_safe (x['title'])
 	title_words = [ w for w in title.split() if w.lower() not in ignore_title_words ]
@@ -170,12 +188,6 @@ def edition_names (x):
 	if format:
 		name = tsep.join ([name, name_string (format)])
 		yield name
-
-	# author_names is now authors (dicts)
-	# authors = x.get ('author_names')
-	# if authors:
-	# 	name = tsep.join ([name, name_string (authors[0])])
-	# 	yield name
 
 	nlen = len (name)
 	n = 0
