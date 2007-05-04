@@ -13,6 +13,8 @@ server_addr = ('pharosdb.us.archive.org', 8983)
 # solr_server_addr = ('pharosdb.us.archive.org', 8983)
 solr_server_addr = ('127.0.0.1', 8983)
 
+class SolrError(Exception): pass
+
 # Solr search client; fancier version will have multiple persistent
 # connections, etc.
 class Solr_client(object):
@@ -29,7 +31,10 @@ class Solr_client(object):
         server_url = 'http://%s:%d/solr/select' % self.server_addr
         ru = urlopen('%s?q=%s'% (server_url, quote(query)))
         e = ElementTree()
-        e.parse(ru)
+        try:
+            e.parse(ru)
+        except SyntaxError, e:
+            raise SolrError, e
         return list(str(a.text) for a in e.getiterator('identifier'))
 
     advanced_search = search
