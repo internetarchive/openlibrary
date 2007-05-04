@@ -21,6 +21,12 @@ multivalued_fields = _checkfields('field',
                                   lambda a: str(a)=='true',
                                   'name')
     
+all_fields = _checkfields('field', 'name', lambda a: True, 'name')
+
+singleton_fields = all_fields - multivalued_fields
+
 if __name__ == "__main__":
     print 'excluded:', sorted(excluded_fields)
     print 'multi:', sorted(multivalued_fields)
+    print 'all:', sorted(all_fields)
+    print 'singleton:', sorted(singleton_fields)

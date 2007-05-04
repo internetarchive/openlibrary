@@ -51,7 +51,8 @@ setup()
 
 # ================================================================
 
-from exclude import excluded_fields, multivalued_fields
+# from exclude import excluded_fields, multivalued_fields
+import solr_fields
 
 def main():
     global t,k
@@ -116,7 +117,9 @@ def identity(x): return x
 sorted_field_dict = {
     'authors': ('creatorSorter', sort_canon),
     'title': ('titleSorter', sort_canon),
-    # there may also be something for dates here.  @@
+    # for publish_date, also output 'date' which basic query
+    # treats specially to handle ranges
+    'publish_date': ('date', identity),
     }
 
 ids_seen = set()
@@ -134,13 +137,18 @@ def emit_doc(outbuf, t):
         v = getattr(t.d, k)
         emit_field(outbuf, k, v)
         
-        if k in multivalued_fields:
-            assert type(v) != list or len(v) == 1, t
-        if k not in excluded_fields:
+        if k in solr_fields.singleton_fields:
+            assert type(v) != list or len(v) == 1, (t,k,v)
+        if k not in solr_fields.excluded_fields:
             emit_field(outbuf, 'text', v)
         if k in sorted_field_dict:
             sfname, conversion = sorted_field_dict[k]
-            emit_field(outbuf, sfname, conversion(v))
+            global z                    # debug @@
+            z = (t,k,v)
+            if type(v) != list:
+                assert type(v) == str
+                v = [v]
+            emit_field(outbuf, sfname, map(conversion,map(str,v)))
                        
     print >>outbuf, "</doc>\n"
     return outbuf.getvalue()
