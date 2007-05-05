@@ -1,0 +1,1 @@
+CREATE INDEX "datum_vid_key" ON datum (version_id);
