@@ -7,9 +7,14 @@ from lang import *
 def input_items (input):
 	def buf2elt (buf):
 		buf.seek (0, 0)
-		et = ElementTree.parse (buf)
+		e = None
+		try:
+			et = ElementTree.parse (buf)
+			e = et.getroot ()
+		except Exception, e:
+			warn ("ignoring XML error: %s" % e)
 		buf.close ()
-		return et.getroot ()
+		return e
 
 	buf = None
 	pos = None
@@ -60,6 +65,7 @@ def parse_item (r):
 def parse_input (input):
 	n = 0
 	for (r,pos) in input_items (input):
+		if r is None: continue
 		# parse_item (r)
 		n += 1
 		if n % 100 == 0:
