@@ -177,7 +177,7 @@ def edition_name_choices (x):
 
 	ed = x.get ('edition')
 	if ed:
-		name = tsep.join ([name, name_string (ed_type)])
+		name = tsep.join ([name, name_string (ed)])
 		yield name
 
 	format = x.get ('physical_format')
