@@ -34,10 +34,9 @@ def setup():
                                     pw="pharos")
     web.load()
 
-@slicer(500)
 def logparse(log_fd):
     return parse2b(parse1(log_fd,
-                          infinite=False))
+                          infinite=True))
 
 def speed():
     from time import time
@@ -62,7 +61,7 @@ def main():
 
     log_fd = open(logfile)
     lastpos_fd = open('lastpos', 'r+', 0)
-    lastpos = 0 # int(open('lastpos').readline())
+    lastpos = int(open('lastpos').readline())
     print 'seeking to %d'% lastpos
     log_fd.seek(lastpos)
 
@@ -73,19 +72,21 @@ def main():
             sys.stdout.flush()
             t1 = time()
 
-        if t.type.name != 'edition': continue
+        if t.type.name not in ('delete', 'edition'):
+            continue
+        if t.type.name == 'delete': action = 'delete'
+        else: action = 'add'
+
         outbuf = StringIO()
-        print >>outbuf, "<add>"
+        print >>outbuf, "<%s>"% action
+        emit_doc (outbuf, action, t)
+        print >>outbuf, "</%s>"% action
 
-        emit_doc (outbuf, t)
-
-        print >>outbuf, "</add>"
-
-        if 0:
+        if 1:
             xml = outbuf.getvalue()
             # print 'xml:(%s)'% xml
             solr_response = solr_submit(xml)
-            assert '<result status="0">' in solr_response
+            assert '<result status="0">' in solr_response, solr_response
             # print 'solr response: ((%s))\n'% solr_response
 
         else:
@@ -115,16 +116,16 @@ def sort_canon(s):
 def identity(x): return x
 
 sorted_field_dict = {
-    'authors': ('creatorSorter', sort_canon),
-    'title': ('titleSorter', sort_canon),
+#    'authors': ('creatorSorter', sort_canon),
+#    'title': ('titleSorter', sort_canon),
     # for publish_date, also output 'date' which basic query
     # treats specially to handle ranges
-    'publish_date': ('date', identity),
+#    'publish_date': ('date', identity),
     }
 
 ids_seen = set()
 
-def emit_doc(outbuf, t):
+def emit_doc(outbuf, action, t):
     assert t.name not in ids_seen
     for forbidden in ('text', 'identifier'):
         assert forbidden not in t.d
@@ -133,22 +134,26 @@ def emit_doc(outbuf, t):
     print >>outbuf, "<doc>"
     emit_field(outbuf, 'identifier', t.name)
 
-    for k in t.d:
-        v = getattr(t.d, k)
-        emit_field(outbuf, k, v)
-        
-        if k in solr_fields.singleton_fields:
-            assert type(v) != list or len(v) == 1, (t,k,v)
-        if k not in solr_fields.excluded_fields:
-            emit_field(outbuf, 'text', v)
-        if k in sorted_field_dict:
-            sfname, conversion = sorted_field_dict[k]
-            global z                    # debug @@
-            z = (t,k,v)
-            if type(v) != list:
-                assert type(v) == str
-                v = [v]
-            emit_field(outbuf, sfname, map(conversion,map(str,v)))
+    if action != 'delete':
+        for k in t.d:
+            v = getattr(t.d, k)
+            emit_field(outbuf, k, v)
+
+            if k in solr_fields.singleton_fields:
+                # should do something better than crash the importer
+                # on finding this error.  but it shouldn't happen. @@
+                assert type(v) != list or len(v) == 1, (t,k,v)
+
+            if k not in solr_fields.excluded_fields:
+                emit_field(outbuf, 'text', v)
+            if k in sorted_field_dict:
+                sfname, conversion = sorted_field_dict[k]
+                global z                    # debug @@
+                z = (t,k,v)
+                if type(v) != list:
+                    assert type(v) == str
+                    v = [v]
+                emit_field(outbuf, sfname, map(conversion,map(str,v)))
                        
     print >>outbuf, "</doc>\n"
     return outbuf.getvalue()

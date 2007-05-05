@@ -30,6 +30,7 @@ Log format:
 import threading
 import os
 import re
+import time
 
 logfile = None
 
@@ -153,11 +154,16 @@ def parse1(fd, infinite=False):
         lines = []
 
         def infinite_lines(fd):
-            # generate a sequence of the lines in fd, never
-            # terminating.  On reaching end of fd, fd.read(1)
-            # will block until more characters are available.
+            def charstream(fd):
+                # generate a sequence of the lines in fd, never
+                # terminating.  On reaching end of fd, 
+                # sleep til more characters are available.
+                while True:
+                    c = fd.read(1)
+                    if c=='': time.sleep(1)
+                    else: yield c
             while True:
-                yield ''.join(iter(lambda: fd.read(1), '\n'))
+                yield ''.join(iter(charstream(fd).next, '\n'))
 
         if infinite:
             xlines = infinite_lines(fd)
