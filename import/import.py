@@ -87,11 +87,16 @@ skipped = 0
 imported = 0
 
 def import_author (x):
-	name = author_prefix + name_string (x["name"])
-	a = None
+	name = name_string (x["name"])
+	name = name[0:30].rstrip ('_')
+	if len (name) == 0:
+		warn ("couldn't make name for author:\n%s" % x)
+		return None
+	name = author_prefix + name
 
 	global item_names
 	aid = item_names.get (name, None)
+	a = None
 	if aid:
 		a = LazyThing (aid)
 		warn ("(AUTHOR %s)" % name)
@@ -118,7 +123,7 @@ def import_item (x):
 		return
 
 	# import the authors
-	authors = map (import_author, x.get ("authors") or [])
+	authors = filter (lambda x: x is not None, map (import_author, x.get ("authors") or []))
 	if x.get ("authors"):
 		del x["authors"]
 
@@ -172,28 +177,39 @@ def edition_name_choices (x):
 	if name:
 		name += "_"
 	name += ttail
-	name = name[0:30]
+	name = name[0:40].rstrip (tsep)
 	yield name
 
-	ed_number = x.get ('edition_number')
-	if ed_number:
-		name = tsep.join ([name, name_string (ed_number)])
-		yield name
+	def extensions (name):
+		ed_number = x.get ('edition_number')
+		if ed_number:
+			name = tsep.join ([name, name_string (ed_number)])
+			yield name
 
-	ed_type = x.get ('edition_type')
-	if ed_type:
-		name = tsep.join ([name, name_string (ed_type)])
-		yield name
+		ed_type = x.get ('edition_type')
+		if ed_type:
+			name = tsep.join ([name, name_string (ed_type)])
+			yield name
 
-	ed = x.get ('edition')
-	if ed:
-		name = tsep.join ([name, name_string (ed)])
-		yield name
+		ed = x.get ('edition')
+		if ed:
+			name = tsep.join ([name, name_string (ed)])
+			yield name
 
-	format = x.get ('physical_format')
-	if format:
-		name = tsep.join ([name, name_string (format)])
-		yield name
+		format = x.get ('physical_format')
+		if format:
+			name = tsep.join ([name, name_string (format)])
+			yield name
+
+	if len (name) < 40:
+		for n in extensions (name):
+			if len (n) > 40:
+				name = n[0:40].rstrip (tsep)
+				yield name
+				break
+			else:
+				name = n
+				yield name
 
 	nlen = len (name)
 	n = 0

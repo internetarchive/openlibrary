@@ -47,7 +47,6 @@ def addval (x, v, k, translate=lambda x: x):
 		vv.append (v)
 	else:
 		x[k] = [v]
-	x.setdefault (k, []).append (v)
 
 def concval (x, v, k, sep=" "):
 	vv = x.get (k)
