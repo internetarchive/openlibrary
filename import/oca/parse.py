@@ -20,22 +20,19 @@ def input_items (input):
 
 	buf = None
 	bufpos = None
-	try:
-		for (line, linepos) in lines_positions (input):
-			if line.startswith('<?xml '):
-				if buf is not None:
-					yield (buf2elt (buf), bufpos)
-				buf = StringIO ()
-				bufpos = None
-			else:
+	for (line, linepos) in lines_positions (input):
+		if line.startswith('<?xml '):
+			if buf is not None:
+				yield (buf2elt (buf), bufpos)
+			buf = StringIO ()
+			bufpos = None
+		else:
+			if buf: # this lets us start anywhere and pick up the next record
 				if bufpos is None:
 					bufpos = linepos
 				buf.write (line)
-		if buf is not None:
-			yield (buf2elt (buf), bufpos)
-	except:
-		warn ("breaking at input position %d on data:\n%s" % (bufpos, buf.getvalue ()))
-		raise
+	if buf is not None:
+		yield (buf2elt (buf), bufpos)
 
 def setval (x, v, k):
 	x[k] = v

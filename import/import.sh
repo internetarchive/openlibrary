@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export PHAROS_DBNAME=crap
+export PHAROS_DBNAME=pharos
 export PHAROS_DBUSER=pharos
 export PHAROS_DBPASS=pharos
 export PHAROS_LOGFILE="/1/pharos/db/$PHAROS_DBNAME"
@@ -27,5 +27,6 @@ export PHAROS_REPO=~dbg/repo
 # import some data
 SOURCE_TYPE=${1:?}
 SOURCE_NAME=${2:?}
+SOURCE_POS=$3
 
-python2.4 import.py $SOURCE_TYPE $SOURCE_NAME
+python2.4 import.py $SOURCE_TYPE $SOURCE_NAME $SOURCE_POS

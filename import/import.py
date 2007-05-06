@@ -14,6 +14,7 @@ import oca
 source_name = None
 source_type = None
 source_path = None
+source_pos = None
 edition_prefix = None
 author_prefix = None
 
@@ -39,11 +40,15 @@ def setup ():
 		tdb.logger.set_logfile (open (logfile, "a"))
 		sys.stderr.write ("logging to %s\n" % logfile)
 
-	global source_name, source_type, source_path
+	global source_name, source_type, source_path, source_pos
 	source_dir = getvar ("PHAROS_SOURCE_DIR")
 	source_type = sys.argv[1]
 	source_name = sys.argv[2]
+	source_pos = 0
+	if len (sys.argv) > 3:
+		source_pos = int (sys.argv[3])
 	source_path = "%s/%s/%s" % (source_dir, source_type, source_name)
+	warn ("reading %s at %d ..." % (source_path, source_pos))
 
 	global edition_prefix, author_prefix
 	edition_prefix = getvar ("PHAROS_EDITION_PREFIX", False) or ""
@@ -122,7 +127,7 @@ def import_item (x):
 		# warn ("no title in record at position %d" % pos)
 		return
 
-	# import the authors
+	# import the authors; XXX: don't save until edition goes through?
 	authors = filter (lambda x: x is not None, map (import_author, x.get ("authors") or []))
 	if x.get ("authors"):
 		del x["authors"]
@@ -137,7 +142,8 @@ def import_item (x):
 			break
 
 	if not name:
-		raise Exception ("couldn't find a unique name for %s" % x)
+		warn ("couldn't find a unique name for %s" % x)
+		return
 
 	e = Edition (name, d=massage_dict (x))
 	global source_name
@@ -160,7 +166,8 @@ def edition_name_choices (x):
 	title = name_safe (x['title'])
 	title_words = [ w for w in title.split() if w.lower() not in ignore_title_words ]
 	if len (title_words) == 0:
-		raise Exception ("no usable title chars")
+		warn ("no usable title chars")
+		return
 	ttail = title_words.pop (-1)
 	tlen = len (ttail)
 	name = ""
@@ -257,5 +264,8 @@ if __name__ == "__main__":
 	setup()
 	sys.stderr.write ("--> setup finished\n")
 
-	import_file (source_type, open (source_path, "r"))
+	f = open (source_path, "r")
+	if source_pos:
+		f.seek (source_pos)
+	import_file (source_type, f)
 	sys.stderr.write ("--> import finished\n")
