@@ -19,24 +19,29 @@ def input_items (input):
 		return elt
 
 	buf = None
-	pos = None
+	bufpos = None
 	try:
-		for line in input:
+		for (line, linepos) in lines_positions (input):
 			if line.startswith('<?xml '):
-				if buf: yield (buf2elt (buf), pos)
-				pos = input.tell ()
+				if buf is not None:
+					yield (buf2elt (buf), bufpos)
 				buf = StringIO ()
+				bufpos = None
 			else:
+				if bufpos is None:
+					bufpos = linepos
 				buf.write (line)
-		if buf: yield (buf2elt (buf), pos)
+		if buf is not None:
+			yield (buf2elt (buf), bufpos)
 	except:
-		warn ("breaking at input position %d on data:\n%s" % (pos, buf.getvalue ()))
+		warn ("breaking at input position %d on data:\n%s" % (bufpos, buf.getvalue ()))
 		raise
 
 def setval (x, v, k):
 	x[k] = v
 
-def addval (x, v, k):
+def addval (x, v, k, translate=lambda x: x):
+	v = translate (v)
 	vv = x.get (k)
 	if vv:
 		vv.append (v)
@@ -51,9 +56,12 @@ def concval (x, v, k, sep=" "):
 	else:
 		x[k] = v
 
+def thingify_with (field):
+	return lambda v: { field: v }
+
 element_dispatch = {
 	'title': (setval, 'title'),
-	'creator': (addval, 'author'),
+	'creator': (addval, 'authors', thingify_with ('name')),
 	'subject': (addval, 'subject'),
 	'description': (concval, 'description', "; "),
 	'publisher': (setval, 'publisher'),
@@ -67,13 +75,10 @@ element_dispatch = {
 
 ignored = {}
 
-def parse_item (r, pos):
+def parse_item (r):
 	global ignored
-	# ElementTree.dump (e)
 	e = {}
 	for field in r:
-		if not ElementTree.iselement (r):
-			die ("what is it: %s" % repr (r))
 		text = field.text
 		if text is None: continue
 		tag = field.tag
@@ -89,16 +94,15 @@ def parse_item (r, pos):
 	return e
 
 limit = 1000
-
-def parse_input (input):
+def test_input (input):
 	n = 0
 	global ignored
 	ignored = {}
 	for (r,pos) in input_items (input):
 		# if limit and n == limit: break
 		if r is None: continue
-		o = parse_item (r, pos)
-		# print o
+		o = parse_item (r)
+		print o
 		n += 1
 		if n % 100 == 0:
 			warn ("...... read %d records" % n)
@@ -106,6 +110,13 @@ def parse_input (input):
 	for (tag,count) in ignored.iteritems ():
 		warn ("\t%d\t%s" % (count, tag))
 	warn ("done.  read %d records" % n)
+
+def parser (input):
+	for (r,pos) in input_items (input):
+		if r is None: continue
+		d = parse_item (r)
+		d["source_record_pos"] = pos
+		yield d
 
 def encode_val (v):
 	if isinstance (v, StringType):
@@ -115,4 +126,4 @@ def encode_val (v):
 	else:
 		die ("couldn't encode value: %s" % repr (v))
 
-parse_input (sys.stdin)
+# parse_input (sys.stdin)

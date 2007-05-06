@@ -15,7 +15,7 @@ from sax_utils import *
 codelists_path = "ONIX_BookProduct_CodeLists.xsd"
 ref_dtd_path = "ONIX_BookProduct_Release2.1_reference.xsd"
 
-def onix_parser (input):
+def parser (input):
 
 	def produce_items (produce):
 		OnixProduct.load_shortnames (ref_dtd_path)
