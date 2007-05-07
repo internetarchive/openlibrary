@@ -4,6 +4,9 @@
 
 from string import strip, join
 from MARC21 import *
+from types import *
+
+re_dates = re.compile (r'(\d{4})-(\d{4})?')
 
 class MARC21BiblioExn (MARC21Exn):
         pass
@@ -93,6 +96,7 @@ class MARC21BiblioRecord:
                         return default
 
 	output_fields = (
+		"source_record_pos",
 		"marc_control_number",
 		# "marc_character_coding_scheme",
                 # "marc_biblio_record_status",
@@ -158,6 +162,9 @@ class MARC21BiblioRecord:
 			return None
 		return lang
 
+	def source_record_pos (self):
+		return self.marc21_record.file_pos
+
 	def language_code (self):
 		return self.marc_biblio_language ()
 
@@ -193,12 +200,16 @@ class MARC21BiblioRecord:
 				a = { 'name': name }
 				dates = pn.get_elt ("d", None)
 				if dates:
-					a["dates"] = dates
+					m = re_dates.search (dates)
+					if m:
+						a["birth_date"] = m.group (1)
+						if m.group (2):
+							a["death_date"] = m.group (2)
 		else:
 			ts = self.title_statement ()
 			name = join (ts.get_elts ("c"), ", ")
 			if name:
-				a = { name: name }
+				a = { 'name': name }
 		return a
 
 	def authors (self):
@@ -225,7 +236,13 @@ class MARC21BiblioRecord:
                 return join ([ join (p.get_elts ("b"), ", ") for p in self.publications () ], ", ")
 
         def publish_date (self):
-                return join ([ join (p.get_elts ("c"), ", ") for p in self.publications () ], ", ")
+                d = join ([ join (p.get_elts ("c"), ", ") for p in self.publications () ], ", ")
+		if d:
+			if d[-1] == ".":
+				d = d[:-1]
+			return d
+		else:
+			return None
 
 	def physicals (self):
 		return self.get_fields ("300")
@@ -291,7 +308,7 @@ class MARC21BiblioFile:
 		item = {}
 		for f in self.output_fields:
 			v = r[f]
-			if v:
+			if (isinstance (v, StringTypes) and v) or v is not None:
 				item[f] = v
 		return item
 

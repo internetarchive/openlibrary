@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export PHAROS_DBNAME=pharos
+export PHAROS_DBNAME=crap
 export PHAROS_DBUSER=pharos
 export PHAROS_DBPASS=pharos
 export PHAROS_LOGFILE="/1/pharos/db/$PHAROS_DBNAME"

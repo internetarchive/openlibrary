@@ -178,7 +178,7 @@ class OnixHandler (ContentHandler):
 
 			if role_code != 'A01':
 				role = self.contributor_role (role_code)
-				add_val (o, "contributor_names", role + ": " + name)
+				add_val (o, "contributions", role + ": " + name)
 				continue
 
 			author = {}

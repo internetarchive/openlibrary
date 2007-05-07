@@ -10,6 +10,7 @@ from lang import *
 from types import *
 
 import oca
+import marc
 
 source_name = None
 source_type = None
@@ -75,7 +76,8 @@ def setup_names ():
 		warn ("already have %d records from this source; they will be ignored" % len (edition_records))
 
 parsers = {
-	'oca': oca.parser
+	'oca': oca.parser,
+	'marc': marc.parser
 	}
 
 def import_file (type, input):
