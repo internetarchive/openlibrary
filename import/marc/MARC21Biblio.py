@@ -77,10 +77,7 @@ class MARC21BiblioRecord:
                 extractor = MARC21BiblioRecord.__dict__.get (key)
                 if not extractor:
                         raise MARC21BiblioExn ("don't know how to extract the feature called \"%s\"" % key)
-                v = extractor (self)
-		if v is not None and type(v) is not list:
-			v = [v]
-		return v
+                return extractor (self)
         
         def get_field (self, tag, default=None):
                 return self.marc21_record.get_field (tag, default)
@@ -108,18 +105,19 @@ class MARC21BiblioRecord:
 		# "marc_biblio_language",
 		"universal_decimal_class",
 		"dewey_decimal_class",
+		"language_code",
 		"title",
-		"author",
-		"medium",
+		"authors",
 		"edition",
 		"publisher",
 		"publish_place",
 		"publish_date",
+		"physical_format",
 		"physical_extent",
 		"physical_dimensions",
 		"notes",
-		"summary",
-		"subject"
+		"description",
+		"subjects"
 		)
 
         def marc_control_number (self):
@@ -160,6 +158,9 @@ class MARC21BiblioRecord:
 			return None
 		return lang
 
+	def language_code (self):
+		return self.marc_biblio_language ()
+
 	def universal_decimal_class (self):
 		classes = []
 		for udcn in self.get_fields ("080"):
@@ -184,10 +185,28 @@ class MARC21BiblioRecord:
                 return strip (ts.get_elt ("a") + " " + join (ts.get_elts ("b"), " "))
 
         def author (self):
-                ts = self.title_statement ()
-                return (join (ts.get_elts ("c"), ", ") or None)
+		a = None
+		pn = self.get_field ("100")
+		if pn:
+			name = pn.get_elt ("a", None)
+			if name:
+				a = { 'name': name }
+				dates = pn.get_elt ("d", None)
+				if dates:
+					a["dates"] = dates
+		else:
+			ts = self.title_statement ()
+			name = join (ts.get_elts ("c"), ", ")
+			if name:
+				a = { name: name }
+		return a
 
-        def medium (self):
+	def authors (self):
+		a = self.author ()
+		if a: return [a]
+		else: return None
+
+        def physical_format (self):
                 return self.title_statement ().get_elt ("h", None)
         
         def edition (self):
@@ -200,14 +219,13 @@ class MARC21BiblioRecord:
                 return self.get_fields ("260")
 
         def publish_place (self):
-		# XXX
-                return [ join (p.get_elts ("a"), ", ") for p in self.publications () ]
+                return join ([ join (p.get_elts ("a"), ", ") for p in self.publications () ], ", ")
 
         def publisher (self):
-                return [ join (p.get_elts ("b"), ", ") for p in self.publications () ]
+                return join ([ join (p.get_elts ("b"), ", ") for p in self.publications () ], ", ")
 
         def publish_date (self):
-                return [ join (p.get_elts ("c"), ", ") for p in self.publications () ]
+                return join ([ join (p.get_elts ("c"), ", ") for p in self.publications () ], ", ")
 
 	def physicals (self):
 		return self.get_fields ("300")
@@ -238,16 +256,22 @@ class MARC21BiblioRecord:
 			notes.extend (apfan.get_elts ("c"))
 			notes.extend (apfan.get_elts ("d"))
 			notes.extend (apfan.get_elts ("u"))
-		return notes
+		if len (notes) > 0:
+			return join (notes, "; ")
+		else:
+			return None
 
-	def summary (self):
+	def description (self):
 		summaries = []
 		for s in self.get_fields ("520"):
 			summaries.extend (s.get_elts ("a"))
 			summaries.extend (s.get_elts ("b"))
-		return summaries;
+		if len (summaries) > 0:
+			return join (summaries, "; ")
+		else:
+			return None
 
-	def subject (self):
+	def subjects (self):
 		subjects = []
 		for pn in self.get_fields ("600"):
 			subjects.append (join (pn.get_elts ("c") + pn.get_elts ("a") + pn.get_elts ("b"), " "))
