@@ -189,7 +189,7 @@ class MARC21BiblioRecord:
 
         def title (self):
                 ts = self.title_statement ()
-                return strip (ts.get_elt ("a") + " " + join (ts.get_elts ("b"), " "))
+		return clean_name (ts.get_elt ("a") + " " + join (ts.get_elts ("b"), " "))
 
         def author (self):
 		a = None
@@ -197,6 +197,7 @@ class MARC21BiblioRecord:
 		if pn:
 			name = pn.get_elt ("a", None)
 			if name:
+				name = clean_name (name)
 				a = { 'name': name }
 				dates = pn.get_elt ("d", None)
 				if dates:
@@ -207,7 +208,7 @@ class MARC21BiblioRecord:
 							a["death_date"] = m.group (2)
 		else:
 			ts = self.title_statement ()
-			name = join (ts.get_elts ("c"), ", ")
+			name = clean (join (ts.get_elts ("c"), ", "))
 			if name:
 				a = { 'name': name }
 		return a
@@ -230,19 +231,13 @@ class MARC21BiblioRecord:
                 return self.get_fields ("260")
 
         def publish_place (self):
-                return join ([ join (p.get_elts ("a"), ", ") for p in self.publications () ], ", ")
+                return clean (join ([ join (p.get_elts ("a"), ", ") for p in self.publications () ], ", "))
 
         def publisher (self):
-                return join ([ join (p.get_elts ("b"), ", ") for p in self.publications () ], ", ")
+                return clean_name (join ([ join (p.get_elts ("b"), ", ") for p in self.publications () ], ", "))
 
         def publish_date (self):
-                d = join ([ join (p.get_elts ("c"), ", ") for p in self.publications () ], ", ")
-		if d:
-			if d[-1] == ".":
-				d = d[:-1]
-			return d
-		else:
-			return None
+                return clean (join ([ join (p.get_elts ("c"), ", ") for p in self.publications () ], ", "))
 
 	def physicals (self):
 		return self.get_fields ("300")
@@ -293,6 +288,12 @@ class MARC21BiblioRecord:
 		for pn in self.get_fields ("600"):
 			subjects.append (join (pn.get_elts ("c") + pn.get_elts ("a") + pn.get_elts ("b"), " "))
 		return subjects
+
+def clean (s):
+	return strip (s, " /.,;:")
+
+def clean_name (s):
+	return strip (s, " /,;:")
 
 class MARC21BiblioFile:
 

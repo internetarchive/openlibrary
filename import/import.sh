@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export PHAROS_DBNAME=crap
+export PHAROS_DBNAME=pharos
 export PHAROS_DBUSER=pharos
 export PHAROS_DBPASS=pharos
 export PHAROS_LOGFILE="/1/pharos/db/$PHAROS_DBNAME"
@@ -21,7 +21,7 @@ export PHAROS_REPO=~dbg/repo
 # createdb -U $PHAROS_DBUSER $PHAROS_DBNAME
 # psql -U $PHAROS_DBUSER $PHAROS_DBNAME < $PHAROS_REPO/infogami/infogami/tdb/schema.sql
 
-# maybe need this ...
+# i don't know how to make python modules yet ...
 # export PYTHONPATH=/home/dbg/lib/python
 
 # import some data
