@@ -5,10 +5,12 @@ logfile = '/1/dbg/import-logs/dbglog'
 logfile = '/1/pharos/db/authortest'
 logfile = '/1/pharos/db/good'
 logfile = '/1/pharos/db/pharos'
+# logfile = '/1/pharos/db/crap'
 
 #logfile = '/tmp/log.test'
 outfile = sys.stdout
 outfile = open('solr1.xml', 'w')
+oca_map = open('oca-map.log', 'a')
 
 # tcp socket of solr server
 solr = ('localhost', 8983)
@@ -22,6 +24,7 @@ from itertools import *
 from itools import *
 from cStringIO import StringIO
 from operator import itemgetter
+from time import time
 
 fst = itemgetter(0)
 snd = itemgetter(1)
@@ -39,7 +42,6 @@ def logparse(log_fd):
                           infinite=True))
 
 def speed():
-    from time import time
     p = logparse(logfile)
     t0=time()
     n = sum(1 for x in p)
@@ -56,7 +58,6 @@ import solr_fields
 def main():
     global t,k
     # out = open('solr.xml', 'w')
-    from time import time
     t1 = t0 = time()
 
     log_fd = open(logfile)
@@ -133,6 +134,10 @@ def emit_doc(outbuf, action, t):
 
     print >>outbuf, "<doc>"
     emit_field(outbuf, 'identifier', t.name)
+
+    if 'oca_identifier' in t.d:
+        print >> oca_map, (t.d.oca_identifier, t.name, time())
+        oca_map.flush()
 
     if action != 'delete':
         for k in t.d:

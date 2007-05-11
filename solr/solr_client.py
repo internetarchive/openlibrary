@@ -2,7 +2,6 @@
 # from __future__ import with_statement
 from urllib import quote, urlopen
 from xml.etree.cElementTree import ElementTree
-from contextlib import closing
 import os
 
 server_addr = ('pharosdb.us.archive.org', 8983)
@@ -23,13 +22,32 @@ class Solr_client(object):
                  pool_size = 1):
         self.server_addr = server_addr
 
-    def search(self, query):
+    def __query_fmt(self, query, rows, start):
+        d = {'rows':, rows, 'start': start}
+        q = '&'.join('%s=%d'%(k, v) for k,v in d.items()
+                                        if v is not None)
+        query = quote(query)
+        if q != '':
+            query += '?' + q
+        return query
+
+    def isearch(self, query, loc=0):
+        # iterator interface to search
+        while True:
+            s = search(self, query, start=loc)
+            if len(s) == 0: return
+            loc += len(s)
+            for y in s:
+                if not y.startswith('OCA/'):
+                    yield y
+                    
+    def search(self, query, rows=None, start=None):
         # advanced search: directly post a Solr search which uses fieldnames etc.        
         # return list of document id's
         assert type(query) == str
 
         server_url = 'http://%s:%d/solr/select' % self.server_addr
-        ru = urlopen('%s?q=%s'% (server_url, quote(query)))
+        ru = urlopen('%s?q=%s'% (server_url, self.__query_fmt(query, rows, start)))
         e = ElementTree()
         try:
             e.parse(ru)
@@ -39,7 +57,7 @@ class Solr_client(object):
 
     advanced_search = search
 
-    def raw_search(self, query):
+    def raw_search(self, query, rows=None, start=None):
         # raw search: directly post a Solr search which uses fieldnames etc.
         # return the raw xml result that comes from solr
         # need to refactor this class to combine some of these methods @@
@@ -47,7 +65,7 @@ class Solr_client(object):
         assert type(query) == str
 
         server_url = 'http://%s:%d/solr/select' % self.server_addr
-        ru = urlopen('%s?q=%s'% (server_url, quote(query)))
+        ru = urlopen('%s?q=%s'% (server_url, self.__query_fmt(query, rows, start)))
         return ru.read()
 
     # translate a basic query into an advanced query, by launching PHP
@@ -61,22 +79,22 @@ class Solr_client(object):
                                  echo Search::querySolr(pack("H*", "%s"),
                                  false,
                                  array("title"=>100,
-                                 "description"=>15,
-                                 "creator"=>15,
-                                 "language"=>10,
-                                 "text"=>1,
-                                 "fulltext"=>0.5));'""" %
+                                       "description"=>15,
+                                       "creator"=>15,
+                                       "language"=>10,
+                                       "text"=>1,
+                                       "fulltext"=>0.5));'""" %
                      qhex)
         return f.read()
 
-    def basic_search(self, query):
+    def basic_search(self, query, rows=None, start=None):
         # basic search: use archive.org PHP script to transform the basic
         # search query into an advanced (i.e. expanded) query.  "Basic" searches
         # can actually use complicated syntax that the PHP script transforms
         # by adding search weights, range expansions, and so forth.
         assert type(query)==str         # not sure what to do with unicode @@
 
-        return self.search(self.basic_query(query))
+        return self.search(self.basic_query(query), rows, start)
 
 if __name__ == '__main__':
     def test(q='random'):
