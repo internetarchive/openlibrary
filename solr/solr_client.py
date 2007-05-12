@@ -9,8 +9,8 @@ server_addr = ('pharosdb.us.archive.org', 8983)
 # Solr search client; fancier version will have multiple persistent
 # connections, etc.
 
-# solr_server_addr = ('pharosdb.us.archive.org', 8983)
-solr_server_addr = ('127.0.0.1', 8983)
+solr_server_addr = ('pharosdb.us.archive.org', 8983)
+# solr_server_addr = ('127.0.0.1', 8983)
 
 class SolrError(Exception): pass
 
@@ -23,7 +23,7 @@ class Solr_client(object):
         self.server_addr = server_addr
 
     def __query_fmt(self, query, rows, start):
-        d = {'rows':, rows, 'start': start}
+        d = {'rows': rows, 'start': start}
         q = '&'.join('%s=%d'%(k, v) for k,v in d.items()
                                         if v is not None)
         query = quote(query)
