@@ -377,7 +377,7 @@ def MARC21PrettyPrint(M):
 					else:
 						subfieldContentList=[content[subfield]]
 					for subfieldContent in subfieldContentList:
-						print '\t%s : %s'%(subfield,subfieldContent)
+						print '\t%s : %s'%(subfield,subfieldContent.encode ('utf8'))
 
 re_pure_ascii_graphic = re.compile ("^[ -~]*$")
 
