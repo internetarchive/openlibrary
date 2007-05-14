@@ -1,3 +1,5 @@
 . config.sh
 
-python2.4 probe.py
+THING_NAME=${1:?}
+
+python2.4 probe.py $THING_NAME

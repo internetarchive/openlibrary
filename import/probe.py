@@ -9,6 +9,8 @@ import os
 from lang import *
 from types import *
 
+thing_name = None
+
 def setup ():
 	def getvar (name, required=True):
 		val = os.getenv (name)
@@ -24,8 +26,9 @@ def setup ():
 	web.load()
 	tdb.setup()
 
-	global source_dir
+	global source_dir, thing_name
 	source_dir = getvar ("PHAROS_SOURCE_DIR")
+	thing_name = sys.argv[1]
 	#global source_name, source_type, source_path, source_pos
 	#source_type = sys.argv[1]
 	#source_name = sys.argv[2]
@@ -39,7 +42,7 @@ def setup ():
 from MARC21 import MARC21File, MARC21PrettyPrint
 
 def probe ():
-	t = tdb.withName ("b/Die_deutsche_und_Berlin", site_object ())
+	t = tdb.withName (thing_name, site_object ())
 	print repr (t.d)
 
 	global source_dir
