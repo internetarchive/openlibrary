@@ -68,7 +68,7 @@ def setup_names ():
 	for r in web.query ("SELECT id,name FROM thing WHERE parent_id = $parent_id", vars=locals()):
 		item_names[r.name] = r.id
 	
-	for r in web.query ("SELECT d1.value FROM datum AS d1, datum AS d2 WHERE d1.version_id=d2.version_id AND d1.key='source_record_pos' AND d2.key='source_name' AND d2.value=$source_name", { 'source_name': source_name }):
+	for r in web.query ("SELECT d1.value FROM datum AS d1, datum AS d2 WHERE d1.version_id=d2.version_id AND d1.key='source_record_pos' AND d2.key='source_name' AND substr(d2.value,0,250)=$source_name", { 'source_name': source_name }):
 		edition_records.add (int (r.value))
 
 	warn ("noted %d items" % len (item_names))
@@ -83,11 +83,16 @@ parsers = {
 def import_file (type, input):
 	parser = parsers[type]
 	n = 0
+	web.transact ()
 	for x in parser (input):
 		n += 1
 		import_item (x)
-		if n % 100 == 0:
+		if n % 1000 == 0:
+			web.commit ()
+			web.transact ()
+		if n % 1000 == 0:
 			sys.stderr.write ("." * 30 + " read %d records\n" % n)
+	web.commit ()
 	sys.stderr.write ("\nread %d records\n" % n)
 
 skipped = 0

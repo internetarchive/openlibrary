@@ -29,4 +29,5 @@ SOURCE_TYPE=${1:?}
 SOURCE_NAME=${2:?}
 SOURCE_POS=$3
 
+ulimit -c 4194304
 python2.4 import.py $SOURCE_TYPE $SOURCE_NAME $SOURCE_POS
