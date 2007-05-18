@@ -1,3 +1,6 @@
 syntax: glob
-.*\.pyc
-.*\.swp
+*.pyc
+*.swp
+*~
+\#*\#
+phr-import/*
