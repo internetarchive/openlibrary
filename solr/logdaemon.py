@@ -16,6 +16,7 @@ oca_map = open('oca-map.log', 'a')
 solr = ('localhost', 8983)
 
 from infogami.tdb.logger import parse, parse1, parse2a, parse2b
+import infogami.tdb.tdb
 import web
 
 import re
@@ -56,9 +57,12 @@ setup()
 import solr_fields
 
 def main():
+    import time as _time
+
     global t,k
     # out = open('solr.xml', 'w')
     t1 = t0 = time()
+    print 'start time: ', _time.ctime(t0)
 
     log_fd = open(logfile)
     lastpos_fd = open('lastpos', 'r+', 0)
@@ -80,7 +84,8 @@ def main():
 
         outbuf = StringIO()
         print >>outbuf, "<%s>"% action
-        emit_doc (outbuf, action, t)
+        if emit_doc (outbuf, action, t) is None:
+            continue
         print >>outbuf, "</%s>"% action
 
         if 1:
@@ -126,13 +131,14 @@ sorted_field_dict = {
 
 ids_seen = set()
 
-def emit_doc(outbuf, action, t):
-    assert t.name not in ids_seen
+def emit_doc(outbuf, action, t, loss=count()):
+    assert t.name not in ids_seen, t.name
     for forbidden in ('text', 'identifier'):
         assert forbidden not in t.d
     ids_seen.add(t.name)
 
     print >>outbuf, "<doc>"
+
     emit_field(outbuf, 'identifier', t.name)
 
     if 'oca_identifier' in t.d:
@@ -142,7 +148,12 @@ def emit_doc(outbuf, action, t):
     if action != 'delete':
         for k in t.d:
             v = getattr(t.d, k)
-            emit_field(outbuf, k, v)
+
+            try:
+                emit_field(outbuf, k, v)
+            except infogami.tdb.tdb.NotFound, e:
+                print ('dropping', loss.next(), time(), t.name)
+                return None
 
             if k in solr_fields.singleton_fields:
                 # should do something better than crash the importer

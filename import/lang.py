@@ -1,8 +1,14 @@
 import sys
 from StringIO import StringIO
+import time, re
 
+def cftime():
+	t,m = divmod(time.time(), 1.0)
+	return re.sub(r':\d\d ', r'\1.%02d ',
+		      (time.ctime(t), int(100*m)))
+	
 def warn (msg):
-	sys.stderr.write ("%s\n" % msg)
+	sys.stderr.write (cftime() + " %s\n" % msg)
 
 def die (msg):
 	raise Exception (msg)
