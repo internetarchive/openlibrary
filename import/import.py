@@ -83,16 +83,16 @@ parsers = {
 def import_file (type, input):
 	parser = parsers[type]
 	n = 0
-	web.transact ()
+	# web.transact ()
 	for x in parser (input):
 		n += 1
 		import_item (x)
-		if n % 1000 == 0:
-			web.commit ()
-			web.transact ()
+		# if n % 1000 == 0:
+		# 	web.commit ()
+		# 	web.transact ()
 		if n % 1000 == 0:
 			sys.stderr.write ("." * 30 + " read %d records\n" % n)
-	web.commit ()
+	# web.commit ()
 	sys.stderr.write ("\nread %d records\n" % n)
 
 skipped = 0

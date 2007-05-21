@@ -74,7 +74,7 @@ class MARC21BiblioRecord:
         def __init__ (self, marc21_record):
                 self.marc21_record = marc21_record
 		if self.marc21_record.dataFields.get ("880"):
-			r.warn ("has ALTERNATE GRAPHICS REPRESENTATION")
+			marc21_record.warn ("has ALTERNATE GRAPHICS REPRESENTATION")
 
         def __getitem__ (self, key):
                 extractor = MARC21BiblioRecord.__dict__.get (key)
