@@ -10,6 +10,8 @@ infogami.config.site = 'openlibrary.org'
 infogami.config.cache_templates = False
 infogami.config.db_printing = True
 
+infogami.config.plugins += ['search']
+
 infogami.tdb.logger.set_logfile(open("tdb.log", "a"))
 
 if __name__ == "__main__":
