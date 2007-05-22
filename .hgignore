@@ -1,4 +1,8 @@
 syntax: glob
 *.pyc
 .*.swp
+*.swp
 transaction.log
+*~
+\#*\#
+phr-import/*
