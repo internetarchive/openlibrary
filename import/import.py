@@ -11,6 +11,7 @@ from types import *
 
 import oca
 import marc
+import onix
 
 source_name = None
 source_type = None
@@ -76,8 +77,9 @@ def setup_names ():
 		warn ("already have %d records from this source; they will be ignored" % len (edition_records))
 
 parsers = {
-	'oca': oca.parser,
-	'marc': marc.parser
+	'onix': onix.parser,
+	'marc': marc.parser,
+	'oca': oca.parser
 	}
 
 def import_file (type, input):

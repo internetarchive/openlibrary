@@ -12,8 +12,9 @@ import xmltramp
 from thread_utils import AsyncChannel, threaded_generator
 from sax_utils import *
 
-codelists_path = "ONIX_BookProduct_CodeLists.xsd"
-ref_dtd_path = "ONIX_BookProduct_Release2.1_reference.xsd"
+repo_path = os.getenv ("PHAROS_REPO")
+codelists_path = "%s/%s" % (repo_path, "import/onix/ONIX_BookProduct_CodeLists.xsd")
+ref_dtd_path = "%s/%s" % (repo_path, "import/onix/ONIX_BookProduct_Release2.1_reference.xsd")
 
 def parser (input):
 
@@ -121,6 +122,8 @@ class OnixProduct:
 			OnixProduct.shortnames = collector_parse (f, { 'schema': schema })
 			f.close ()
 
+record_no = 0
+
 class OnixHandler (ContentHandler):
 
 	def __init__ (self, parser, receiver):
@@ -133,6 +136,9 @@ class OnixHandler (ContentHandler):
 	def process_product (self, p):
 		op = OnixProduct (p)
 		o = {}
+		global record_no
+		o["source_record_pos"] = record_no; # XXX
+		record_no += 1
 
 		# record id
 		o['source_record_lineno'] = p.getLineNumber ()

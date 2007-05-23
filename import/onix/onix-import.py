@@ -2,7 +2,7 @@ import web
 import infogami.tdb as tdb
 from infogami.tdb import NotFound, Things, LazyThing
 from items import *
-from onix import onix_parser
+from onix import parser
 import sys
 import unicodedata
 import re
@@ -70,7 +70,7 @@ def setup_names ():
 
 def import_file (input):
 	n = 0
-	for x in onix_parser (input):
+	for x in parser (input):
 		n += 1
 		import_item (x)
 		if n % 100 == 0:
