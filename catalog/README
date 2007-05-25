@@ -1,0 +1,26 @@
+INSTALLATION
+
+you need python2.4, and also whatever is required to make
+catalog/marc/marc8_to_utf8.pl run.  you can test that the
+script is in basic working order by running
+test-marc8_to_utf8.sh while in that directory.
+
+HOW TO IMPORT CATALOG DATA
+
+the source file must be in the "catalog source repository",
+currently /1/pharos/sources.
+
+within that directory, there is a directory for each format.
+(e.g., "marc", "onix", "oca".)
+
+for example, to import the data in
+/1/pharos/sources/marc/lc/part01.dat, do this:
+
+make your own copy of catalog/import.sh in order to
+configure it to point to your repository, to import to the
+appropriate database, etc.
+
+then:
+
+my-import.sh marc lc/part01.dat
+

@@ -21,13 +21,9 @@ export PHAROS_REPO=~dbg/repo
 # createdb -U $PHAROS_DBUSER $PHAROS_DBNAME
 # psql -U $PHAROS_DBUSER $PHAROS_DBNAME < $PHAROS_REPO/infogami/infogami/tdb/schema.sql
 
-# i don't know how to make python modules yet ...
-# export PYTHONPATH=/home/dbg/lib/python
-
 # import some data
 SOURCE_TYPE=${1:?}
 SOURCE_NAME=${2:?}
 SOURCE_POS=$3
 
-ulimit -c 4194304
-python2.4 import.py $SOURCE_TYPE $SOURCE_NAME $SOURCE_POS
+python2.4 $PHAROS_REPO/catalog/import.py $SOURCE_TYPE $SOURCE_NAME $SOURCE_POS
