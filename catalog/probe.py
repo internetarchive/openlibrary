@@ -1,13 +1,14 @@
-import web
-import infogami.tdb as tdb
-from infogami.tdb import Thing, NotFound, Things, LazyThing
-from items import *
 import sys
 import unicodedata
 import re
 import os
-from lang import *
 from types import *
+
+import web
+import infogami.tdb as tdb
+from infogami.tdb import Thing, NotFound, Things, LazyThing
+from items import *
+from lang import *
 
 thing_name = None
 
@@ -39,7 +40,7 @@ def setup ():
 	edition_prefix = getvar ("PHAROS_EDITION_PREFIX", False) or ""
 	author_prefix = getvar ("PHAROS_AUTHOR_PREFIX", False) or ""
 
-from MARC21 import MARC21File, MARC21PrettyPrint
+from marc.MARC21 import MARC21File, MARC21PrettyPrint
 
 def probe ():
 	t = tdb.withName (thing_name, site_object ())

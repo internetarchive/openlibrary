@@ -1,4 +1,5 @@
 from types import *
+from unicodedata import normalize
 
 from MARC21 import *
 from MARC21Biblio import *
@@ -18,7 +19,8 @@ def parser (file):
 
 def massage_value (v):
 	if (isinstance (v, UnicodeType)):
-		return v.encode ('utf8')
+		nv = normalize ('NFKC', v)
+		return nv.encode ('utf8')
 	elif (isinstance (v, ListType)):
 		return map (massage_value, v)
 	else:

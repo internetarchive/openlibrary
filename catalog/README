@@ -1,14 +1,19 @@
 INSTALLATION
 
-you need python2.4, and also whatever is required to make
-catalog/marc/marc8_to_utf8.pl run.  you can test that the
-script is in basic working order by running
-test-marc8_to_utf8.sh while in that directory.
+you need python2.4, and, to import MARC catalogs, whatever
+is required by catalog/marc/marc8_to_utf8.pl, including
+this:
+
+http://search.cpan.org/dist/MARC-Charset/
+
+you can test that the script is in basic working order by
+running test-marc8_to_utf8.sh while in that directory.
 
 HOW TO IMPORT CATALOG DATA
 
 the source file must be in the "catalog source repository",
-currently /1/pharos/sources.
+currently /1/pharos/sources, but configurable as described
+below.
 
 within that directory, there is a directory for each format.
 (e.g., "marc", "onix", "oca".)
@@ -23,4 +28,13 @@ appropriate database, etc.
 then:
 
 my-import.sh marc lc/part01.dat
+
+CAVEAT
+
+there is code in catalog/import.py that looks up all the ids
+of editions that have already been imported.  it incorrectly
+ignores the "parent" of each edition, meaning that it will
+import a record only once for each database, regardless of
+the "site".  (of course, this is not a problem if you only
+ever use one site object.)
 
