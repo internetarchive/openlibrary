@@ -1,17 +1,18 @@
-import web
-import infogami.tdb as tdb
-from infogami.tdb import NotFound, Things, LazyThing
-from items import *
 import sys
 import unicodedata
 import re
 import os
-from lang import *
 from types import *
 
-import oca
-import marc
-import onix
+import web
+import infogami.tdb as tdb
+from infogami.tdb import NotFound, Things, LazyThing
+from items import *
+from lang import *
+
+from oca.parse import parser as oca_parser
+from marc.parse import parser as marc_parser
+from onix.parse import parser as onix_parser
 
 source_name = None
 source_type = None
@@ -77,9 +78,9 @@ def setup_names ():
 		warn ("already have %d records from this source; they will be ignored" % len (edition_records))
 
 parsers = {
-	'onix': onix.parser,
-	'marc': marc.parser,
-	'oca': oca.parser
+	'onix': onix_parser,
+	'marc': marc_parser,
+	'oca': oca_parser
 	}
 
 def import_file (type, input):

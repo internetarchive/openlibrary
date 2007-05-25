@@ -1,7 +1,8 @@
+from types import *
+
 from MARC21 import *
 from MARC21Biblio import *
-from lang import *
-from types import *
+from catalog.lang import *
 
 def parser (file):
     f = MARC21BiblioFile (file)

@@ -13,8 +13,8 @@ from thread_utils import AsyncChannel, threaded_generator
 from sax_utils import *
 
 repo_path = os.getenv ("PHAROS_REPO")
-codelists_path = "%s/%s" % (repo_path, "import/onix/ONIX_BookProduct_CodeLists.xsd")
-ref_dtd_path = "%s/%s" % (repo_path, "import/onix/ONIX_BookProduct_Release2.1_reference.xsd")
+codelists_path = "%s/%s" % (repo_path, "catalog/onix/ONIX_BookProduct_CodeLists.xsd")
+ref_dtd_path = "%s/%s" % (repo_path, "catalog/onix/ONIX_BookProduct_Release2.1_reference.xsd")
 
 def parser (input):
 

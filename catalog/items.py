@@ -1,6 +1,7 @@
+import os
+
 from infogami import tdb
 from infogami.tdb import Thing, NotFound
-import os
 from lang import memoized
  
 class Unspecified: pass
