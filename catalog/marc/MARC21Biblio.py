@@ -7,6 +7,8 @@ from MARC21 import *
 from types import *
 
 re_dates = re.compile (r'(\d{4})-(\d{4})?')
+re_isbn_10 = re.compile (r'^([\dX]{10})[^\d]')
+re_isbn_10_concise = re.compile (r'^([\dX]{10})$')
 
 class MARC21BiblioExn (MARC21Exn):
         pass
@@ -107,6 +109,7 @@ class MARC21BiblioRecord:
 		# "marc_biblio_descriptive_cataloging_form",
 		# "marc_biblio_linked_record_requirement",
 		# "marc_biblio_language",
+		"isbn_10",
 		"universal_decimal_class",
 		"dewey_decimal_class",
 		"language_code",
@@ -164,6 +167,15 @@ class MARC21BiblioRecord:
 
 	def source_record_pos (self):
 		return self.marc21_record.file_pos
+
+	def isbn_10 (self):
+		for cf020 in self.get_fields ("020"):
+			num = cf020.get_elt ("a", "")
+			m = re_isbn_10.match (num) or re_isbn_10_concise.match (num)
+			if m:
+				isbn = m.group (1)
+				return isbn
+		return None
 
 	def language_code (self):
 		return self.marc_biblio_language ()
