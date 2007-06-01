@@ -10,3 +10,6 @@ export PHAROS_AUTHOR_PREFIX="a/"
 export PHAROS_SOURCE_DIR=/1/pharos/sources/
 export URL_CACHE_DIR=/1/pharos/sources/onix/urlcache/
 export PHAROS_REPO=~dbg/repo
+
+export PYTHONPATH="$PHAROS_REPO:$PHAROS_REPO/infogami"
+

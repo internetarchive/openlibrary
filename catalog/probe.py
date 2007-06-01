@@ -10,8 +10,6 @@ from infogami.tdb import Thing, NotFound, Things, LazyThing
 from items import *
 from lang import *
 
-thing_name = None
-
 def setup ():
 	def getvar (name, required=True):
 		val = os.getenv (name)
@@ -29,12 +27,6 @@ def setup ():
 
 	global source_dir, thing_name
 	source_dir = getvar ("PHAROS_SOURCE_DIR")
-	thing_name = sys.argv[1]
-	#global source_name, source_type, source_path, source_pos
-	#source_type = sys.argv[1]
-	#source_name = sys.argv[2]
-	#if len (sys.argv) > 3:
-	#	source_pos = int (sys.argv[3])
 
 	global edition_prefix, author_prefix
 	edition_prefix = getvar ("PHAROS_EDITION_PREFIX", False) or ""
@@ -42,8 +34,17 @@ def setup ():
 
 from marc.MARC21 import MARC21File, MARC21PrettyPrint
 
-def probe ():
-	t = tdb.withName (thing_name, site_object ())
+def probe (name):
+	t = tdb.withName (name, site_object ())
+	dump (t)
+
+def probe_isbn (val):
+	tt = Things (parent=site_object(), ISBN_10=val)
+	for t in tt:
+		dump (t)
+	
+def dump (t):
+	print "----> %s" % t.name
 	print repr (t.d)
 
 	global source_dir
@@ -67,5 +68,18 @@ def probe ():
 
 if __name__ == "__main__":
 	setup ()
-	warn ("--> setup finished")
-	probe ()
+	# warn ("--> setup finished")
+	if len (sys.argv) == 3:
+		key = sys.argv[1]
+		val = sys.argv[2]
+		if key == "ISBN_10":
+			warn ("probing things with %s='%s' ..." % (key, val))
+			probe_isbn (val)
+		else:
+			die ("can't probe key '%s'" % key)
+	elif len (sys.argv) == 2:
+		thing_name = sys.argv[1]
+		warn ("probing thing with name '%s' ..." % thing_name)
+		probe (thing_name)
+	else:
+		die ("bad args")
