@@ -1,0 +1,49 @@
+
+.diff .sidebyside { clear: both; margin: 0; padding: 0 }
+.diff table.sidebyside colgroup.content { width: 50% }
+.diff table.sidebyside tbody.mod td.l { background: #fe9 }
+.diff table.sidebyside tbody.mod td.r { background: #fd8 }
+.diff table.sidebyside tbody.add td.l { background: #dfd }
+.diff table.sidebyside tbody.add td.r { background: #cfc }
+.diff table.sidebyside tbody.rem td.l { background: #f88 }
+.diff table.sidebyside tbody.rem td.r { background: #faa }
+.diff table.sidebyside tbody.mod del, .diff table.sidebyside tbody.mod ins {
+     background: #fc0;
+}
+
+.diff table.sidebyside {
+    float: left;
+    width: 100%;
+}
+
+.diff #legend .mod { background: #fd8 }
+.diff #legend .rem { background: #f88 }
+.diff #legend .add { background: #bfb }
+
+
+.diff #legend {
+ float: left;
+ font-size: 9px;
+ line-height: 1em;
+ margin: 1em 0;
+ padding: .5em;
+}
+
+
+.diff #legend h3 { display: none; }
+.diff #legend dt {
+ background: #fff;
+ border: 1px solid #999;
+ float: left;
+ margin: .1em .5em .1em 2em;
+ overflow: hidden;
+ width: .8em; height: .8em;
+}
+.diff #legend dl, .diff #legend dd {
+ display: inline; 
+ float: left;
+ padding: 0;
+ margin: 0;
+ margin-right: .5em;
+}
+

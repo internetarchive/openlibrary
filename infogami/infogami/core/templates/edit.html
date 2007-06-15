@@ -1,0 +1,29 @@
+$def with (page, preview=False)
+
+$var title: $_.EDIT $page.title
+
+<p>[<a href="$changequery(m=None)">$_.VIEW</a>][<a href="$changequery(m='history')">$_.HISTORY</a>]</p>
+
+$if preview:
+    <p>$:format(page.body)</p>
+
+<script>
+function changeTemplate() {
+    var t = document.edit._type.value;
+    document.location.href += '&t=' + t;
+}
+</script>
+
+<form name="edit" method="post" action="">
+
+<strong>$_.PAGETYPE</strong> <input type="text" name="_type" value="$page.type.name" />
+<input type="button" onclick="changeTemplate()" value="$_.CHANGE"/><br /><br />
+
+<strong>$_.TITLE</strong> <input type="text" name="title" value="$page.title" /><br />
+<textarea name="body" rows="15" cols="80">$page.body</textarea>
+<p>
+<input type="submit" name='_save' value="$_.SAVE" />
+<input type="submit" name='_preview' value="$_.PREVIEW" />
+<input type="submit" name='_delete' value="$_.DELETE" />
+</p>
+</form>

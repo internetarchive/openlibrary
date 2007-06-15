@@ -1,0 +1,46 @@
+$def with (page)
+
+$var title: $_.HISTORY
+
+<p>[<a href="$changequery(m=None)">$_.VIEW</a>][<a href="$changequery(m='edit')">$_.EDIT</a>]</p>
+
+<form>
+<table>
+<tr>
+  <th>#</th>
+  <th></th>
+  <th></th>
+  <th></th>
+  <th>$_.WHO</th>
+  <th>$_.WHEN</th>
+</tr>
+$for v in page.h:
+    <tr>
+      <td>$v.revision</td>
+      <td><input type="radio" id="a$v.revision" name="a" value="$v.revision"></td>
+      <td><input type="radio" id="b$v.revision" name="b" value="$v.revision"></td>
+      <td><a href="$changequery(m='edit', v=v.revision)">$_.EDIT</a></td>
+      <td>$(v.author or v.ip)</td>
+      <td><a href="$changequery(m=None, v=v.revision)">$datestr(v.created)</a></td>
+      <td>
+    </tr>
+</table>
+<input type="hidden" name='m' value="diff">
+<input type="submit" value="$_.COMPARE">
+</form>
+
+<script>
+
+var a = document.getElementById("a${page.latest_revision - 1}");
+var a2 = document.getElementById("a$page.latest_revision");
+var b = document.getElementById("b$page.latest_revision");
+
+if (a) 
+    a.checked = true;
+else
+    a2.checked = true;
+
+b.checked = true;
+
+</script>
+

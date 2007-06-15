@@ -1,0 +1,4 @@
+- there are text characters outside of 7-bit ASCII.  european accents, etc.
+  - what charset is being used to represent them?
+  - what charset should we record? (unicode)
+  - what representation should we use? (UTF-8?)

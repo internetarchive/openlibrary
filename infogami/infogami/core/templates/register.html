@@ -1,0 +1,8 @@
+$def with (f)
+
+$var title: $_.CREATE_NEW_ACCOUNT
+
+<form name="register" method="POST">
+$:f.render()
+    <input type="submit" name="submit" value="$_.REGISTER">
+</form>

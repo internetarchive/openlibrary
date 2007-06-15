@@ -1,0 +1,3 @@
+delete from datum where version_id > 2;
+delete from version where thing_id > 2;
+delete from thing where id > 2;

@@ -1,0 +1,50 @@
+$def with (page)
+
+<html>
+<head>
+    <title>$page.title (infogami)</title>
+    <style type="text/css">
+    .login { text-align: right; }
+    .login, .status { color: lightgray }
+    .login :link, .login :visited, .status :link, .status :visited { color: gray; text-decoration: underline;}
+
+    .error { color: red; font-weight: bold; }
+
+    .linky {
+        color: blue; background-color: transparent;
+        border: none; cursor: pointer;
+        font-size: 1em; margin: 0px; padding: 0px; vertical-align: bottom;
+        display: inline;
+        text-align: right;
+    }
+    form th { text-align: right; color: gray; font-weight: normal; text-transform: lowercase; }
+    form .wrong { color: red; font-weight: bold; }
+    </style>
+
+$for s in ctx.stylesheets:
+    <link rel="stylesheet" type="text/css" href="$s">
+
+$for url in ctx.javascripts:
+    <script type="text/javascript" src="$url"></script>
+
+</head>
+<body>
+$if ctx.user:
+    <form action="$url('/logout')" method='POST'>
+    <p class="login"><strong>$ctx.user.name</strong>
+    [<button class="linky" type="submit">logout</button>]
+    </p>
+    </form>
+$else:
+    <p class="login">[$:link('/login', _.LOGIN)]</p>
+
+<h1>$page.title</h1>
+
+$if ctx.error:
+    <p class="error">$ctx.error</p>
+
+<p>
+$:page
+</p>
+</body>
+</html>
