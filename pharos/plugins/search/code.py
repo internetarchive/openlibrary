@@ -3,7 +3,7 @@ import web
 from infogami import utils
 from infogami.utils import delegate
 from infogami.utils import view
-from infogami import tdb
+from infogami import tdb, config
 from infogami.plugins.wikitemplates import code as wt
 
 render = view.render.search
@@ -11,12 +11,20 @@ render.search = wt.sitetemplate("search", render.search)
 wt.register_wiki_template("Search Template", "plugins/search/templates/search.html", "templates/search.tmpl")
 
 import solr_client
-solr = solr_client.Solr_client()
+
+solr_server_address = getattr(config, 'solr_server_address', None)
+if solr_server_address:
+    solr = solr_client.Solr_client(solr_server_address)
+else:
+    solr = None
 
 class search(delegate.page):
     def GET(self, site):
         i = web.input()
-        if 'q' in i:
+        if solr is None:
+            view.set_error('Solr is not configured.')
+            results = []
+        elif 'q' in i:
             if i.q == '':
                 view.set_error('You need to enter some search terms.')
                 results = []

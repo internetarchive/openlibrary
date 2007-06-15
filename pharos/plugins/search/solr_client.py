@@ -4,22 +4,15 @@ from urllib import quote, urlopen
 from xml.etree.cElementTree import ElementTree
 import os
 
-server_addr = ('pharosdb.us.archive.org', 8983)
-
 # Solr search client; fancier version will have multiple persistent
 # connections, etc.
-
-solr_server_addr = ('pharosdb.us.archive.org', 8983)
-# solr_server_addr = ('127.0.0.1', 8983)
 
 class SolrError(Exception): pass
 
 # Solr search client; fancier version will have multiple persistent
 # connections, etc.
 class Solr_client(object):
-    def __init__(self,
-                 server_addr = solr_server_addr,
-                 pool_size = 1):
+    def __init__(self, server_addr, pool_size = 1):
         self.server_addr = server_addr
 
     def __query_fmt(self, query, rows, start):
@@ -97,9 +90,10 @@ class Solr_client(object):
         return self.search(self.basic_query(query), rows, start)
 
 if __name__ == '__main__':
+    import sys
     def test(q='random'):
         global z
-        s = Solr_client()
+        s = Solr_client(sys.argv[1])
         z = s.search('fulltext:'+q)
     #    print z
 
