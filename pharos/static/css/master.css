@@ -41,6 +41,7 @@ p.maintext { padding-left: 30px; }
 	font-size: 18px;
 	line-height: 24px;
 	color: #666;
+	margin-bottom: -8px;
 }
 
 #error {
@@ -748,7 +749,11 @@ li {
 
 #browse-rule {
 border-top: 1px solid #ccc;
+}
 
+#browse-rule-bottom {
+border-bottom: 1px solid #ccc;
+padding-top: 10px;
 }
 
 #form-border {
@@ -803,7 +808,9 @@ td.delete { padding: 2px 4px 2px 4px; background-color: #eeeeee; border-bottom: 
 .refineindent { padding-left: 15px; }
 
 
-.attention { color: #666; background-color: #eee; border: 1px solid #ccc; padding: 10px; max-width: 390px; }
+.attention { font-size: 14px; line-height: 20px; color: #666; background-color: #fff; border: 1px solid #fff; padding: 10px; max-width: 410px; margin-left: 223px; margin-bottom: 10px; font-style: italic; }
+.attention-fullpage { font-size: 14px; line-height: 20px; color: #666; background-color: #f8f8f8; border-bottom: 1px solid #ccc; padding: 10px 25px 10px 25px; font-style: italic; }
+.attention-emphasis { color: #900;  }
 
 .history { height: 24px; font-size: 12px; padding-left: 24px; padding-right: 14px; border-bottom: 1px solid #fff; white-space: nowrap }
 .compare { height: 24px; font-size: 12px; padding-left: 2px; padding-right: 2px; border-bottom: 1px solid #fff; border-right: 1px solid #fff; }
@@ -1240,7 +1247,7 @@ a.fulltext:hover 		{ text-decoration: underline; font-size: 11px;  }
 .refineindent { padding-left: 15px; line-height: 16px; }
 .editions { padding-top: 6px; padding-bottom: 6px; }
 
-.go-button { padding-top: 4px; padding-left: 4px; }
+.go-button { padding-top: 4px; padding-left: 4px; border: 0; background-color: transparent; }
 .simple-search-form { padding-top: 4px; padding-right: 8px; float:left; }
 
 #user-header{
@@ -1261,3 +1268,5 @@ th { text-align: right; padding: 6px; }
 textarea { width: 100%; height: 600px; margin-top: 20px; }
 
 p { margin-right: 40px; }
+
+button { border: 0; background-color: transparent; padding: 0} 
