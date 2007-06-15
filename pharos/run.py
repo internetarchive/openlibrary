@@ -11,7 +11,7 @@ infogami.config.cache_templates = True
 infogami.config.db_printing = False
 infogami.config.plugins += ['search']
 infogami.config.plugin_path += ['plugins']
-infogami.config.solr_server_address = ('pharosdb.us.archive.org', '8983')
+infogami.config.solr_server_address = ('pharosdb.us.archive.org', 8983)
 
 infogami.tdb.logger.set_logfile(open("tdb.log", "a"))
 
