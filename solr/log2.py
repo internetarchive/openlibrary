@@ -13,7 +13,7 @@ outfile = open('solr1.xml', 'w')
 oca_map = open('oca-map.log', 'a')
 
 # tcp socket of solr server
-solr = ('localhost', 8983)
+solr = ('localhost', 8993)
 
 from infogami.tdb.logger import parse, parse1, parse2a, parse2b
 import infogami.tdb.tdb
@@ -65,8 +65,8 @@ def main():
     print 'start time: ', _time.ctime(t0)
 
     log_fd = open(logfile)
-    lastpos_fd = open('lastpos', 'r+', 0)
-    lastpos = int(open('lastpos').readline())
+    lastpos_fd = open('lastpos2', 'r+', 0)
+    lastpos = int(open('lastpos2').readline())
     print 'seeking to %d'% lastpos
     log_fd.seek(lastpos)
 
