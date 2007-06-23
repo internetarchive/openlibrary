@@ -31,8 +31,10 @@ class search(delegate.page):
             else:
                 try:
                     results = []
-                    qresults = solr.basic_search(i.q)
-                    for res in qresults:
+                    offset = int(i.get('offset', '0'))
+                    qresults = solr.basic_search(i.q, start=offset)
+
+                    for res in qresults.result_list:
                         if res.startswith('OCA/'):
                             t = tdb.Things(oca_identifier=res[4:]).list()[0].name
                             if t not in results: results.append(t)
@@ -47,4 +49,6 @@ class search(delegate.page):
 	else:
 	    results = []
 
-	return render.search(i.get('q', ''), results)
+	return render.search(i.get('q', ''),
+                             qresults,
+                             results)
