@@ -73,15 +73,15 @@ def load(filename):
                 yield item
     
     def get_dependencies(page):
-        d = [pages[v.id] for v in flat(page.d.values()) if isinstance(v, tdb.LazyThing)]
+        d = [pages[v.id] for v in flat(page.d.values()) if isinstance(v, tdb.Thing)]
         if page.type.id != page.id:
             t =  pages[page.type.id]
             d = [t] + d
         return d
     
     def remap(v):
-        if isinstance(v, tdb.LazyThing):
-            return tdb.LazyThing(mapping[v.id])
+        if isinstance(v, tdb.Thing):
+            return tdb.withID(mapping[v.id], lazy=True)
         elif isinstance(v, list):
             return [remap(x) for x in v]
         else:
