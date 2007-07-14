@@ -159,6 +159,10 @@ a 					{ color: #A05629; text-decoration: none; }
 a:visited 			{ color: #6F320D; text-decoration: none; }	
 a:hover 			{ text-decoration: underline; }
 
+a.copyright 			{ color: #999; text-decoration: underline; }
+a.copyright:visited 	{ color: #999; text-decoration: underline; }	
+a.copyright:hover 		{ text-decoration: underline; }
+
 a.attentionlink 			{ color: #666; text-decoration: underline; }
 a.attentionlink:visited 	{ color: #666; text-decoration: underline; }	
 a.attentionlink:hover 		{ text-decoration: underline; }
@@ -182,6 +186,7 @@ a.optionlink:hover 		{ text-decoration: underline; }
 a.datalink 			{ color: #6F320D; text-decoration: underline; }
 a.datalink:visited 	{ color: #6F320D; text-decoration: underline; }	
 a.datalink:hover 		{ text-decoration: underline; }
+
 
 a.showall 			{ color: #669; text-decoration: underline; }
 a.showall:visited 	{ color: #669; text-decoration: underline; }	
@@ -715,6 +720,12 @@ td.optionlink{
   padding-right: 20px;
 }
 
+.navlinks-top{
+  float:right;
+  padding-right: 20px;
+  margin-top: -4px;
+}
+
 .logotype{
   float:left;
   font-weight: bold;
@@ -821,12 +832,17 @@ td.delete { padding: 2px 4px 2px 4px; background-color: #eeeeee; border-bottom: 
   border: 6px solid #fff; 
 }
 .refinesearch { font-weight: bold }
-.refineindent { padding-left: 15px; color: #666; font-style: italic; text-transform: lowercase; }
+.refineindent { padding-left: 15px; color: #666; }
 
 .homenav { padding-left: 8px; color: #666; font-style: bold; }
 
 .attention { font-size: 14px; line-height: 20px; color: #666; background-color: #fff; border: 1px solid #fff; padding: 10px; max-width: 410px; margin-left: 223px; margin-bottom: 10px; font-style: italic; }
 .attention-fullpage { font-size: 14px; line-height: 20px; color: #666; background-color: #f8f8f8; border-bottom: 1px solid #ccc; padding: 10px 25px 10px 25px; font-style: italic; padding-left: 180px; }
+
+.subhead-emphasis-dark { font-size: 14px; line-height: 20px; color: #333; font-weight: bold; }
+
+.subhead-emphasis { font-size: 14px; line-height: 20px; color: #666; font-style: italic; }
+
 .attention-emphasis { color: #900;  }
 
 .history { height: 24px; font-size: 12px; padding-left: 24px; padding-right: 14px; border-bottom: 1px solid #fff; white-space: nowrap }
@@ -834,6 +850,8 @@ td.delete { padding: 2px 4px 2px 4px; background-color: #eeeeee; border-bottom: 
 .comment { height: 24px; font-size: 12px; padding-left: 24px; padding-right: 2px; border-bottom: 1px solid #fff; color: #919070; }
 
 .historyheader { height: 24px; font-size: 12px; font-weight: bold; padding-left: 24px; padding-right: 14px; border-bottom: 1px solid #fff; }
+
+.preferenceheader { height: 24px; font-size: 12px; font-weight: bold; padding-right: 14px; }
 
 .number { padding-left: 12px; padding-right: 9px; height: 24px; width: 24px; font-size: 12px; text-align: right; font-weight: bold; border-bottom: 1px solid #fff;   border-right: 1px solid #fff; color: #919070 }
 .numberhead { padding-left: 12px; padding-right: 9px; height: 24px; width: 24px; font-size: 12px; text-align: center; font-weight: bold; border-bottom: 1px solid #fff; }
@@ -850,6 +868,7 @@ td.delete { padding: 2px 4px 2px 4px; background-color: #eeeeee; border-bottom: 
 
 .simplesearch {
 	float: right;
+	margin-top: -6px;
 	height: 28px;
 	font-family: verdana, arial, helvetica, sans-serif;
 	font-size: 10px;
@@ -1036,18 +1055,8 @@ a.fulltext:visited 	{ color: #625E25; text-decoration: underline; font-size: 11p
 a.fulltext:hover 		{ text-decoration: underline; font-size: 11px;  }
 
 
-.result-text {
-	padding-bottom: 6px;
-	padding-left: 10px;
-	padding-right: 10px;
-	color: #919070;
-	font-size: 14px;
-	line-height: 20px;
-}
-
-
 .result-small { 
-	margin-left: 10px; 
+	margin-left: 0px; 
 	margin-top: 2px; 
 	line-height: 20px;
 	}
@@ -1119,13 +1128,12 @@ a.fulltext:hover 		{ text-decoration: underline; font-size: 11px;  }
 	font-size: 14px;
 	}
 	
-.pagination { 	border-top: 1px solid #ccc;  margin-bottom: 0px; 	background-color: #fff; }
+.pagination { padding-top: 12px; border-top: 0px solid #ccc;  margin-bottom: 0px;  }
 
 .paginate { 
 	padding-right: 5px;
 	padding-top: 4px;
 	color: #999;
-	height: 20px;
 }
 
 .moreresults{
@@ -1152,7 +1160,7 @@ a.fulltext:hover 		{ text-decoration: underline; font-size: 11px;  }
 	border-left: 1px solid #ccc;  
 	border-right: 1px solid #ccc;  
 /*	border-bottom: 1px solid #ccc; */
-	padding: 6px 10px 6px 10px;
+	padding: 0px;
 	color: #919070;
 	font-size: 14px;
 	line-height: 20px;
@@ -1205,10 +1213,14 @@ a.fulltext:hover 		{ text-decoration: underline; font-size: 11px;  }
 }
 
 .cover {
-	float: left;
 	height: 60px;	
+	width: 100px;
+	text-align: right;
 /*	text-align: center  */
-	padding-right: 12px;
+	padding-right: 18px;
+	padding-top: 6px;
+	padding-bottom: 6px;
+	border-bottom: 1px solid #ccc;
 	}
 
 .bookmark {
@@ -1216,7 +1228,35 @@ a.fulltext:hover 		{ text-decoration: underline; font-size: 11px;  }
 	width: 20px;
 	height: 60px;	
 /*	text-align: center  */
+	border-bottom: 1px solid #ccc;
 	}
+
+.result-text {
+	padding-bottom: 6px;
+	padding-left: 10px;
+	padding-right: 10px;
+	color: #919070;
+	font-size: 14px;
+	line-height: 20px;
+	padding-top: 6px;
+	padding-bottom: 6px;
+	border-bottom: 1px solid #ccc;
+}
+
+.result-option {
+	padding-bottom: 6px;
+	padding-left: 10px;
+	padding-right: 10px;
+	color: #666;
+	font-style: italic;
+	background-color: #f8f8f8;
+	font-size: 14px;
+	line-height: 20px;
+	padding-top: 6px;
+	padding-bottom: 6px;
+	border-bottom: 1px solid #ccc;
+	border-left: 1px solid #ccc;
+}
 
 .bookmarks { padding-bottom: 6px; padding-left: 22px; padding-top: 3px; color: #000; line-height: 16px; background-color: #eee; 	border-top: 1px solid #ccc;  }
 
@@ -1288,6 +1328,9 @@ p { margin-right: 40px; }
 
 button { border: 0; background-color: transparent; padding: 4px 0 0 0; 	font-family: georgia, times new roman, times, serif; font-size:12px; } 
 
+button.white { margin-top: -4px; border: 0; background-color: transparent; padding: 4px 0 0 0; 	font-family: georgia, times new roman, times, serif; font-size:12px; } 
+
+
 #violator { position: absolute; top: 54px; left: 0px; z-index: 100000 } 
 
 .preview { 	font-size:14px;
@@ -1300,5 +1343,44 @@ button { border: 0; background-color: transparent; padding: 4px 0 0 0; 	font-fam
  }
  
  
-hr { border: 0; text-align: center; color: #999 }
-hr:after { content: "* * *"; }
+hr { border: 0; text-align: center; color: #999; background: #fff url(/static/images/rule.png) no-repeat scroll left; height: 40px; }
+hr:after { content: ""; }
+
+.box-left { padding: 6px; border: 1px solid #BEBE7C; background-color: #fff; margin-top: 10px; margin-bottom: 10px; width: 25em; }
+.box-right { padding: 6px; border: 1px solid #BEBE7C; background-color: #fff; float: right; }
+.box-right-noborder { padding: 6px; border: 1px solid #fff; background-color: #fff; float: right; }
+
+#page { max-width: 650px; 
+	font-size:14px;
+	line-height:24px;
+	margin: 11px 0px 14px 0px;
+	text-align : left;
+	color: #000;
+}
+
+
+a.readerlink 			{ color: #6F320D; text-decoration: none; padding: 2px; border: 1px solid #fff; }
+a.readerlink:visited 	{ color: #6F320D; text-decoration: none; padding: 2px; border: 1px solid #fff; background-color: #eee  }
+a.readerlink:hover 		{ text-decoration: none;  padding: 2px; border: 1px solid #666; }
+
+#header-reader { 
+padding: 15px 0px 10px 20px;
+}
+
+
+.changelog { font-size: 14px; line-height: 20px; color: #666; background-color: #f8f8f8; border: 1px solid #ccc; padding: 10px 25px 10px 25px; width: 400px; }
+
+.copyright { font-size: 14px; line-height: 20px; color: #999; font-style: italic; }
+
+.copyright-footer { font-size: 14px; line-height: 20px; color: #666; background-color: #f8f8f8; border-top: 1px solid #ccc; padding: 10px 25px 10px 25px; font-style: italic; }
+
+
+.wp {  line-height: 16px;	background:#EBF6FF; padding: 10px; border: 1px dotted #336699; margin: 0px 50px 0px 50px }
+
+img { border: none }
+
+/*mailman*/
+table.password { border: 1px solid #ccc; width: 550px; padding: 12px; background-color: #f8f8f8; }
+table.username { border-top: 1px solid #ccc; border-left: 1px solid #ccc; border-right: 1px solid #ccc; width: 100%; padding: 12px; background-color: #f8f8f8; }
+
+.mailman-option 			{ font-size: 18px; color: #6F320D; padding-bottom: 6px; }
