@@ -21,16 +21,16 @@ else:
 class search(delegate.page):
     def GET(self, site):
         i = web.input()
+        results = []
+        qresults = web.storage(begin=0, total_results=0)
+        errortext = None
         if solr is None:
-            view.set_error('Solr is not configured.')
-            results = []
+            errortext = 'Solr is not configured.'
         elif 'q' in i:
             if i.q == '':
-                view.set_error('You need to enter some search terms.')
-                results = []
+                errortext = 'You need to enter some search terms.'
             else:
                 try:
-                    results = []
                     offset = int(i.get('offset', '0'))
                     qresults = solr.basic_search(i.q, start=offset)
 
@@ -44,11 +44,8 @@ class search(delegate.page):
                     for x in results:
                         if x.type.name != 'edition' or not x.get('title'): results.remove(x)
                 except solr_client.SolrError:
-                    view.set_error('Sorry, there was an error in your search.')
-                    results = []
-	else:
-	    results = []
+                    errortext = 'Sorry, there was an error in your search.'
 
-	return render.search(i.get('q', ''),
+        return render.search(i.get('q', ''),
                              qresults,
-                             results)
+                             results, errortext=errortext)
