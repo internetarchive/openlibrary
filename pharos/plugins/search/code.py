@@ -21,34 +21,33 @@ else:
 
 class search(delegate.page):
     def GET(self, site):
-        i = web.input()
+        i = web.input(q=None)
         results = []
         qresults = web.storage(begin=0, total_results=0)
         facets = []
         errortext = None
         if solr is None:
             errortext = 'Solr is not configured.'
-        elif 'q' in i:
-            if i.q == '':
-                errortext = 'You need to enter some search terms.'
-            else:
-                try:
-                    offset = int(i.get('offset', '0'))
-                    qresults = solr.basic_search(i.q, start=offset)
-                    facets = solr.facets(solr.basic_query(i.q), maxrows=5000)
+        elif not i.q:
+            errortext = 'You need to enter some search terms.'
+        else:
+            try:
+                offset = int(i.get('offset', '0'))
+                qresults = solr.basic_search(i.q, start=offset)
+                facets = solr.facets(solr.basic_query(i.q), maxrows=5000)
 
-                    for res in qresults.result_list:
-                        if res.startswith('OCA/'):
-                            t = tdb.Things(oca_identifier=res[4:]).list()[0].name
-                            if t not in results: results.append(t)
-                        else:
-                            if res not in results: results.append(res)
-                    results = tdb.withNames(results, site)
-                    for x in results:
-                        if x.type.name not in ['edition', 'type/edition'] or not x.get('title'):
-                            results.remove(x)
-                except solr_client.SolrError:
-                    errortext = 'Sorry, there was an error in your search.'
+                for res in qresults.result_list:
+                    if res.startswith('OCA/'):
+                        t = tdb.Things(oca_identifier=res[4:]).list()[0].name
+                        if t not in results: results.append(t)
+                    else:
+                        if res not in results: results.append(res)
+                results = tdb.withNames(results, site)
+                for x in results:
+                    if x.type.name not in ['edition', 'type/edition'] or not x.get('title'):
+                        results.remove(x)
+            except solr_client.SolrError:
+                errortext = 'Sorry, there was an error in your search.'
 
         return render.search(i.get('q', ''),
                              qresults,
