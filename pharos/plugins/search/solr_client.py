@@ -3,7 +3,7 @@
 from urllib import quote, urlopen
 from xml.etree.cElementTree import ElementTree
 from cStringIO import StringIO
-import os
+import os, re
 from collections import defaultdict
 
 # server_addr = ('pharosdb.us.archive.org', 8983)
@@ -76,20 +76,51 @@ class Solr_client(object):
     advanced_search = search
 
     def fulltext_search(self, query, rows=None, start=None):
-        """for fulltext search, just do advanced search on fulltext:blah.
-        You get back a list of identifiers like ["OCA/foo", "OCA/bar", etc.]"""
+        """Does an advanced search on fulltext:blah.
+        You get back a list of identifiers like ["foo", "bar", etc.]"""
 
-        pass
+        result_list = self.raw_search('fulltext:' + query, rows, start)
+        e = ElementTree()
+        try:
+            e.parse(StringIO(result_list))
+        except SyntaxError, e:
+            raise SolrError, e
+        
+        out = []
+        for r in e.getiterator('hit'):
+            for d in r.find('metadata'):
+                for x in list(d.getiterator()):
+                    if x.tag == "identifier":
+                        out.append(unicode(x.text).encode('utf-8')[4:])
+                        break
+        return out
+                    
 
     def pagetext_search(self, locator, query, rows=None, start=None):
-        """for pagetext search, just do advanced search on
+        """Does an advanced search on
                pagetext:blah locator:identifier
-        where identifier is one of the id's from fulltext search with the
-        OCA/ prefix removed.  You get back a list of identifiers like
-        ["foo_0013.djvu", "foo_0018.djvu", etc.] where the numbers are
-        page numbers."""
+        where identifier is one of the id's from fulltext search.
+        You get back a list of page numbers like [21, 25, 39]."""
+        
+        def extract(page_id):
+            """A page id is something like
+            'adventsuburbanit00butlrich_0065.djvu',
+            which this function extracts asa a locator and
+            a leaf number ('adventsuburbanit00butlrich', 65). """
+            
+            g = re.search('(.*)_(\d{4})\.djvu$', page_id)
+            a,b = g.group(1,2)
+            return a, int(b)
+        
 
-        pass
+        page_hits =self.raw_search('locator:%s pagetext:%s' % (locator, query), rows, start)
+        XML = ElementTree()
+        try:
+            XML.parse(StringIO(page_hits))            
+        except SyntaxError, e:
+            raise SolrError, e
+        page_ids = list(e.text for e in XML.getiterator('identifier'))
+        return [extract(x)[1] for x in page_ids]
 
     def facets(self,
                query,

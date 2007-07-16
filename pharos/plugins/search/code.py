@@ -8,6 +8,7 @@ from infogami.plugins.wikitemplates import code as wt
 
 render = view.render.search
 render.search = wt.sitetemplate("search", render.search)
+render.fullsearch = wt.sitetemplate("fullsearch", render.fullsearch)
 wt.register_wiki_template("Search Template", "plugins/search/templates/search.html", "templates/search.tmpl")
 
 import solr_client
@@ -53,3 +54,17 @@ class search(delegate.page):
                              results, 
                              facets,
                              errortext=errortext)
+
+solr_fulltext = solr_client.Solr_client(('pharosdb', 8983))
+solr_pagetext = solr_client.Solr_client(('h7', 8983))
+class fullsearch(delegate.page):
+    def GET(self, site):
+        i = web.input()
+        results = solr_fulltext.fulltext_search(i.q)
+
+        out = []
+        for ocaid in results:
+            ocat = tdb.Things(oca_identifier=ocaid).list()[0]
+            out.append((ocat, solr_pagetext.pagetext_search(ocaid, i.q)))
+
+        return render.fullsearch(i.q, out)
