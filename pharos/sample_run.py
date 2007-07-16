@@ -6,14 +6,11 @@ import infogami.tdb.tdb
 
 # Database parameters.
 # ** EDIT THIS **
-infogami.config.db_parameters = dict(dbn='postgres', db="pharos", user='anand', pw='')
-
-#@@ for openlibrary
-#infogami.config.db_parameters = dict(dbn='postgres', host='pharosdb', db="pharos", user='anand', pw='')
+infogami.config.db_parameters = dict(dbn='postgres', db="pharos", user='yourname', pw='')
 
 infogami.config.site = 'openlibrary.org'
 infogami.config.cache_templates = True
-infogami.config.db_printing = True
+infogami.config.db_printing = False
 
 infogami.config.plugins += ['dump']
 infogami.config.plugin_path += ['plugins']
