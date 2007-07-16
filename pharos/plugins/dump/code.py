@@ -117,6 +117,7 @@ def load(filename):
 
 @infogami.action
 def ls(path):
+    """List pages in a directory."""
     site = db.get_site(config.site)
     pages = db.list_pages(site, path)
     for p in pages:
