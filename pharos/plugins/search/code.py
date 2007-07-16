@@ -24,6 +24,7 @@ class search(delegate.page):
         i = web.input()
         results = []
         qresults = web.storage(begin=0, total_results=0)
+        facets = []
         errortext = None
         if solr is None:
             errortext = 'Solr is not configured.'
