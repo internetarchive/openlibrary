@@ -33,6 +33,7 @@ class search(delegate.page):
                 try:
                     offset = int(i.get('offset', '0'))
                     qresults = solr.basic_search(i.q, start=offset)
+                    facets = solr.facets(solr.basic_query(i.q), maxrows=5000)
 
                     for res in qresults.result_list:
                         if res.startswith('OCA/'):
@@ -42,10 +43,13 @@ class search(delegate.page):
                             if res not in results: results.append(res)
                     results = tdb.withNames(results, site)
                     for x in results:
-                        if x.type.name != 'edition' or not x.get('title'): results.remove(x)
+                        if x.type.name not in ['edition', 'type/edition'] or not x.get('title'):
+                            results.remove(x)
                 except solr_client.SolrError:
                     errortext = 'Sorry, there was an error in your search.'
 
         return render.search(i.get('q', ''),
                              qresults,
-                             results, errortext=errortext)
+                             results, 
+                             facets,
+                             errortext=errortext)

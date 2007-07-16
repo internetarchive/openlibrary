@@ -4,6 +4,9 @@ from urllib import quote, urlopen
 from xml.etree.cElementTree import ElementTree
 from cStringIO import StringIO
 import os
+from collections import defaultdict
+
+# server_addr = ('pharosdb.us.archive.org', 8983)
 
 # Solr search client; fancier version will have multiple persistent
 # connections, etc.
@@ -40,9 +43,9 @@ class Solr_client(object):
                  pool_size = 1):
         self.server_addr = server_addr
 
-    def __query_fmt(self, query, rows, start):
-        d = {'rows': rows, 'start': start}
-        q = [query] + ['%s=%d'%(k, v) \
+    def __query_fmt(self, query, rows=None, start=None, wt=None):
+        d = {'rows': rows, 'start': start, 'wt': wt}
+        q = [query] + ['%s=%s'%(k, v) \
                        for k,v in d.items() if v is not None]
         return '&'.join(q)
 
@@ -62,14 +65,58 @@ class Solr_client(object):
         assert type(query) == str
 
         server_url = 'http://%s:%d/solr/select' % self.server_addr
-        ru = urlopen('%s?q=%s'% (server_url, self.__query_fmt(query, rows, start)))
+        query_url = '%s?q=%s'% (server_url, self.__query_fmt(query, rows, start))
+        #import web
+        #print >> web.debug, query_url
+        ru = urlopen(query_url)
         xml = ru.read()
         ru.close()
         return Solr_result(xml)
 
     advanced_search = search
 
-    def raw_search(self, query, rows=None, start=None):
+    def fulltext_search(self, query, rows=None, start=None):
+        """for fulltext search, just do advanced search on fulltext:blah.
+        You get back a list of identifiers like ["OCA/foo", "OCA/bar", etc.]"""
+
+        pass
+
+    def pagetext_search(self, locator, query, rows=None, start=None):
+        """for pagetext search, just do advanced search on
+               pagetext:blah locator:identifier
+        where identifier is one of the id's from fulltext search with the
+        OCA/ prefix removed.  You get back a list of identifiers like
+        ["foo_0013.djvu", "foo_0018.djvu", etc.] where the numbers are
+        page numbers."""
+
+        pass
+
+    def facets(self,
+               query,
+               facet_list = ('author', 'subject', 'language'),
+               maxrows=20000):
+        """Get facet counts for query.  Todo: statistical faceting."""
+
+        result_set = self.raw_search(query, rows=maxrows, wt='python')
+
+        # TODO: avoid using eval here, by instead using xml response format
+        # and parsing it with elementtree, if speed is acceptable.  That also
+        # can reduce memory usage by counting facets incrementally instead
+        # of building an in-memory structure for the whole response before
+        # counting the facets.
+        try:
+            h1 = eval(result_set)
+        except SyntaxError, e:   # we got a solr stack dump
+            raise SolrError, (e, result_set)
+
+        docs = h1['response']['docs']
+        r = facet_counts(docs, ('publisher',
+                                'authors',
+                                'subject',
+                                'language'))
+        return r
+
+    def raw_search(self, query, rows=None, start=None, wt=None):
         # raw search: directly post a Solr search which uses fieldnames etc.
         # return the raw xml result that comes from solr
         # need to refactor this class to combine some of these methods @@
@@ -77,7 +124,7 @@ class Solr_client(object):
         assert type(query) == str
 
         server_url = 'http://%s:%d/solr/select' % self.server_addr
-        ru = urlopen('%s?q=%s'% (server_url, self.__query_fmt(query, rows, start)))
+        ru = urlopen('%s?q=%s'% (server_url, self.__query_fmt(query, rows, start, wt)))
         return ru.read()
 
     # translate a basic query into an advanced query, by launching PHP
@@ -91,11 +138,11 @@ class Solr_client(object):
                                  echo Search::querySolr(pack("H*", "%s"),
                                  false,
                                  array("title"=>100,
-                                       "description"=>2,
+                                       "description"=>0.5,
                                        "creator"=>15,
                                        "language"=>10,
                                        "text"=>1,
-                                       "fulltext"=>0.5));'""" %
+                                       "fulltext"=>1));'""" %
                      qhex)
         return f.read()
 
@@ -108,12 +155,61 @@ class Solr_client(object):
 
         return self.advanced_search(self.basic_query(query), rows, start)
 
-if __name__ == '__main__':
+# get second element of a tuple
+def snd((a,b)): return b
+
+def facet_counts(result_list, facet_fields):
+    """Return list of facet counts for a search result set.
+
+    The list of field names to fact on is `facet_fields'.
+    The result list from solr is `result_list'.  The structures
+    look like:
+       result_list = [ { fieldname1 : [values...] }, ... ]
+       facet_fields = ('author', 'media_type', ...)
+
+
+    >>> results = [  \
+           {'title': ['Julius Caesar'],                         \
+            'author': ['William Shakespeare'],                  \
+            'format': ['folio'] },                              \
+           {'title': ['Richard III'],                           \
+            'author': ['William Shakespeare'],                  \
+            'format': ['folio'] },                              \
+           {'title': ['Tom Sawyer'],                            \
+            'author': ['Mark Twain'],                           \
+            'format': ['hardcover'] },                          \
+           {'title': ['The Space Merchants'],                   \
+            'author': ['Frederik Pohl', 'C. M. Kornbluth'],     \
+            'format': ['paperback'] },                          \
+           ]
+    >>> fnames = ('author', 'topic', 'format')
+    >>> facet_counts(results, fnames)  #doctest: +NORMALIZE_WHITESPACE
+    [('author', [('William Shakespeare', 2),
+                 ('C. M. Kornbluth', 1),
+                 ('Frederik Pohl', 1),
+                 ('Mark Twain', 1)]),
+     ('format', [('folio', 2),
+                 ('hardcover', 1),
+                 ('paperback', 1)])]
+    """
+
+    facets = defaultdict(lambda: defaultdict(int))
+    for r in result_list:
+        for k in set(r.keys()) & set(facet_fields):
+            facets_k = facets[k]        # move lookup out of loop for speed
+            for x in r[k]:
+                facets_k[x] += 1
+
+    return filter(snd, ((f, sorted(facets[f].items(),
+                                   key=lambda (a,b): (-b,a)))
+                        for f in facet_fields))
+
+if False and __name__ == '__main__':
     def test(q='random'):
         global z
         s = Solr_client()
         z = s.search('fulltext:'+q)
-        print z.result_list
+    #    print z
 
     # cache-hostile search engine speed test: send search words to
     # solr in random order
