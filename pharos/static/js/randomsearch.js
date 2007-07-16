@@ -15,6 +15,8 @@ random_text[number++] = "engineers revolt"
 random_text[number++] = "against love"
 random_text[number++] = "little women"
 random_text[number++] = "tom sawyer adventure"
+random_text[number++] = "raintree county"
+random_text[number++] = "whole earth catalog"
 var random_number = Math.floor(Math.random() * number);
         document.write("<input type='text' name='q' value='");
         document.write(random_text[random_number]);
