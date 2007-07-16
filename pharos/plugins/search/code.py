@@ -59,12 +59,16 @@ solr_fulltext = solr_client.Solr_client(('pharosdb', 8983))
 solr_pagetext = solr_client.Solr_client(('h7', 8983))
 class fullsearch(delegate.page):
     def GET(self, site):
-        i = web.input()
-        results = solr_fulltext.fulltext_search(i.q)
-
+        i = web.input(q=None)
+        errortext = None
         out = []
-        for ocaid in results:
-            ocat = tdb.Things(oca_identifier=ocaid).list()[0]
-            out.append((ocat, solr_pagetext.pagetext_search(ocaid, i.q)))
+        
+        if i.q:
+            results = solr_fulltext.fulltext_search(i.q)
+            for ocaid in results:
+                ocat = tdb.Things(oca_identifier=ocaid).list()[0]
+                out.append((ocat, solr_pagetext.pagetext_search(ocaid, i.q)))
+        else:
+            errortext = 'You need to enter some search terms.'
 
-        return render.fullsearch(i.q, out)
+        return render.fullsearch(i.q, out, errortext=errortext)
