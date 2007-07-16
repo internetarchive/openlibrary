@@ -2872,3 +2872,10 @@ th { text-align: right; padding: 6px; }
 textarea { width: 100%; height: 600px; margin-top: 20px; }
 
 p { margin-right: 40px; }
+
+#violator { position: absolute; top: 25px; left: 0px; z-index: 100000 } 
+
+.attention { font-size: 14px; line-height: 20px; color: #666; background-color: #fff; border: 1px solid #fff; padding: 10px; max-width: 410px; margin-left: 223px; margin-bottom: 10px; font-style: italic; }
+.attention-fullpage { font-size: 14px; line-height: 20px; color: #666; background-color: #f8f8f8; border-bottom: 1px solid #ccc; padding: 10px 25px 10px 25px; font-style: italic; padding-left: 10px; }
+
+button { border: 0; background-color: transparent; padding: 4px 0 0 0; 	font-family: georgia, times new roman, times, serif; font-size:12px; } 
