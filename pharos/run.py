@@ -9,11 +9,16 @@ infogami.config.db_parameters = dict(dbn='postgres', host='pharosdb', db="pharos
 infogami.config.site = 'openlibrary.org'
 infogami.config.cache_templates = True
 infogami.config.db_printing = False
-infogami.config.plugins += ['search']
 infogami.config.plugin_path += ['plugins']
-infogami.config.solr_server_address = ('pharosdb.us.archive.org', 8983)
+infogami.config.plugins += ['search', 'dump', 'stats']
+infogami.config.solr_server_address = ('pharosdb.us.archive.org', 8993)
 
 infogami.tdb.logger.set_logfile(open("tdb.log", "a"))
+
+@infogami.action
+def migrateusers():
+    import passwd
+    passwd.migrate()
 
 if __name__ == "__main__":
     infogami.run()

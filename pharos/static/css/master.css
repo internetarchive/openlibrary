@@ -1384,3 +1384,8 @@ table.password { border: 1px solid #ccc; width: 550px; padding: 12px; background
 table.username { border-top: 1px solid #ccc; border-left: 1px solid #ccc; border-right: 1px solid #ccc; width: 100%; padding: 12px; background-color: #f8f8f8; }
 
 .mailman-option 			{ font-size: 18px; color: #6F320D; padding-bottom: 6px; }
+
+
+/*documentation*/
+table.document { border: 1px solid #ccc; width: 100%; padding: 12px; background-color: #f8f8f8; }
+.document-table-item { font-size: 14px; line-height: 20px; color: #666; margin-left: 22px; font-style: italic; }
