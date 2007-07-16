@@ -34,11 +34,11 @@ class search(delegate.page):
             errortext = 'You need to enter some search terms.'
         else:
             try:
-                query = i.q
-                query = query.split(' ')
-                for x in stopwords:
-                    if x in query: query.remove(x)
-                query = ' '.join(query)
+                query = i.q.replace(' ', '+')
+                #query = query.split(' ')
+                #for x in stopwords:
+                #    if x in query: query.remove(x)
+                #query = ' '.join(query)
                 offset = int(i.get('offset', '0'))
                 qresults = solr.basic_search(query, start=offset)
                 facets = solr.facets(solr.basic_query(i.q), maxrows=5000)
