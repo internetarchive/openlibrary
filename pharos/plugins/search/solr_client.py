@@ -48,6 +48,14 @@ class Solr_client(object):
         q = [query] + ['%s=%s'%(k, v) \
                        for k,v in d.items() if v is not None]
         return '&'.join(q)
+    
+    def _prefix_query(self, prefix, query):
+        if '"' in query:
+            query = prefix + ':' + query
+        else:
+            query = ' '.join(prefix + ':' + x for x in query.split(' '))
+        return query
+        
 
     def isearch(self, query, loc=0):
         # iterator interface to search
@@ -78,8 +86,9 @@ class Solr_client(object):
     def fulltext_search(self, query, rows=None, start=None):
         """Does an advanced search on fulltext:blah.
         You get back a list of identifiers like ["foo", "bar", etc.]"""
-
-        result_list = self.raw_search('fulltext:' + query, rows, start)
+        
+        query = self._prefix_query('fulltext', query)
+        result_list = self.raw_search(query, rows, start)
         e = ElementTree()
         try:
             e.parse(StringIO(result_list))
@@ -91,7 +100,12 @@ class Solr_client(object):
             for d in r.find('metadata'):
                 for x in list(d.getiterator()):
                     if x.tag == "identifier":
-                        out.append(unicode(x.text).encode('utf-8')[4:])
+                        xid = unicode(x.text).encode('utf-8')
+                        if xid.startswith('OCA/'):
+                            xid = xid[4:]
+                        elif xid.endswith('.txt'):
+                            xid = xid.split('/')[-1].split('_')[0]
+                        out.append(xid)
                         break
         return out
                     
@@ -112,8 +126,8 @@ class Solr_client(object):
             a,b = g.group(1,2)
             return a, int(b)
         
-
-        page_hits =self.raw_search('locator:%s pagetext:%s' % (locator, query), rows, start)
+        query = self._prefix_query('pagetext', query)        
+        page_hits = self.raw_search('locator:' + locator + ' ' + query, rows, start)
         XML = ElementTree()
         try:
             XML.parse(StringIO(page_hits))            

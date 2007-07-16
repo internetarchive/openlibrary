@@ -38,8 +38,11 @@ class search(delegate.page):
 
                 for res in qresults.result_list:
                     if res.startswith('OCA/'):
-                        t = tdb.Things(oca_identifier=res[4:]).list()[0].name
-                        if t not in results: results.append(t)
+                        try:
+                            t = tdb.Things(oca_identifier=res[4:]).list()[0].name
+                            if t not in results: results.append(t)
+                        except IndexError:
+                            pass
                     else:
                         if res not in results: results.append(res)
                 results = tdb.withNames(results, site)
@@ -55,7 +58,7 @@ class search(delegate.page):
                              facets,
                              errortext=errortext)
 
-solr_fulltext = solr_client.Solr_client(('pharosdb', 8983))
+solr_fulltext = solr_client.Solr_client(('ia301443', 8983))
 solr_pagetext = solr_client.Solr_client(('h7', 8983))
 class fullsearch(delegate.page):
     def GET(self, site):
@@ -66,8 +69,11 @@ class fullsearch(delegate.page):
         if i.q:
             results = solr_fulltext.fulltext_search(i.q)
             for ocaid in results:
-                ocat = tdb.Things(oca_identifier=ocaid).list()[0]
-                out.append((ocat, solr_pagetext.pagetext_search(ocaid, i.q)))
+                try:
+                    ocat = tdb.Things(oca_identifier=ocaid).list()[0]
+                    out.append((ocat, solr_pagetext.pagetext_search(ocaid, i.q)))
+                except IndexError:
+                    pass
         else:
             errortext = 'You need to enter some search terms.'
 
