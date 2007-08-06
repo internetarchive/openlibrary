@@ -4,7 +4,6 @@ var random_text = new random_text();
 var number = 0;
 random_text[number++] = "france"
 random_text[number++] = "staggering genius"
-random_text[number++] = "e.o. wilson ants"
 random_text[number++] = "making comics"
 random_text[number++] = "free city"
 random_text[number++] = "political fictions"
