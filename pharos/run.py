@@ -44,7 +44,7 @@ Content-Disposition: attachment; filename="bug.html"
 infogami.config.internalerror = error
 
 #web.db._hasPooling = False
-infogami.config.db_parameters = dict(dbn='postgres', host='pharosdb', db="pharos_staging", user='anand', pw='')
+infogami.config.db_parameters = dict(dbn='postgres', host='pharosdb', db="pharos", user='anand', pw='')
 infogami.config.site = 'openlibrary.org'
 infogami.config.cache_templates = True
 infogami.config.db_printing = False
