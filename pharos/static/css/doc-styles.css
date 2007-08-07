@@ -1,3 +1,13 @@
+/* 
+   OL DEFAULT STYLES - BETA 
+   Comment date: 08.07.07
+   -------------------------------
+   This is the first pass at modularizing the default stylesheet for OL
+   The stylesheet will be vastly improved by full launch 10=17-07
+   Please email me with any suggested improvements: webchick@invisible.net
+*/
+
+
 /*DOCUMENTATION LINKS*/
 	a 					{ color: #A05629;  }
 	a:visited 			{ color: #6F320D;  }	

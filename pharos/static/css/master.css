@@ -1,3 +1,13 @@
+/* 
+   OL DEFAULT STYLES - BETA 
+   Comment date: 08.07.07
+   -------------------------------
+   This is the first pass at modularizing the default stylesheet for OL
+   The stylesheet will be vastly improved by full launch 10=17-07
+   Please email me with any suggested improvements: webchick@invisible.net
+*/
+
+
 /*MAIN TEXT ELEMENTS*/
 
 	body { margin: 0; border: 0; background-color:#fff; font-family: georgia, times new roman, times, serif; font-size:12px; color: #000000; padding : 0; }
@@ -8,6 +18,8 @@
 	#databar-bottom { clear: both; padding-right: 8px; background-color: #F1EFED; height: 28px; border-bottom: 1px solid #BEBE7C; }
 	#databar { clear: both; padding-right: 8px; background-color: #F1EFED; height: 28px; border-bottom: 1px solid #BEBE7C;  vertical-align: middle; }
 	.widgetlabel { color: #919070; padding: 8px 8px 4px 8px; font-family: verdana, arial, helvetica, sans-serif; font-size: 10px; float: left; }
+	.navlinks{ float:right; padding-right: 20px; height: 25px; line-height: 25px; vertical-align: middle; }
+	.navlinks-top { float:right; padding-right: 20px; height: 25px; line-height: 25px; vertical-align: middle; margin-top: -4px; }
 
 	#title { font-size: 28px; color: #919070; padding-top: 4px; padding-bottom: 8px; }
 	.pretitle { font-size: 18px; line-height: 24px; color: #666; }
@@ -19,7 +31,8 @@
 	#error { font-size: 18px; line-height: 24px; color: #900; padding: 20px; }
 
 	.abstract { font-size:22px; line-height:30px; font-style: italic; color: #999; margin: 11px 14px 14px 14px; text-align : left; }
-	.maintext { font-size:14px; line-height:20px; margin: 11px 34px 14px 14px; text-align : left; }
+	#header-view { margin: 11px 34px 14px 35px;}
+	.maintext { font-size:14px; line-height:20px; margin: 25px 34px 14px 55px; text-align : left; }
 	.contenttext { font-size:14px; line-height:20px; margin: 11px 54px 54px 54px; text-align : left; }
 	.hometext { font-size:18px; line-height:28px; margin: 11px 14px 14px 14px; text-align : left; }
 	#searchtext { font-size:16px; line-height:28px; margin: 11px 60px 14px 225px; text-align : left; color: #000; }
@@ -30,7 +43,7 @@
 	.quote-right { float: right; }
 
 	.summary { font-size:14px; line-height:20px; margin: 11px 0px 14px 0px; padding: 10px 0px 6px 14px; text-align : left; background-color : #fff; border-top: 1px solid #cccccc; }
-	.content { margin: 11px 14px 14px 0px; font-size:14px; line-height:20px; }
+	.content { margin: 0px 0px 34px 24px; font-size:14px; line-height:20px; }
 
 	.subhead { font-size:18px; line-height:20px; margin: 0px 8px 0px 0px; text-align : left; color: #633; }
 	.attribution { color: #666; font-family: verdana, arial, helvetica, sans-serif; font-size: 10px; }
@@ -117,7 +130,7 @@
 
 	#bibliography { clear: both; }
 
-	#book-art { width: 205px; height: 325px; text-align: center; float: left; padding-top: 21px; padding-left: 13px; background: #fff url(/static/images/front.page.png) top center no-repeat; }
+	#book-art { width: 205px; height: 325px; text-align: center; float: left; padding-top: 21px; padding-left: 13px; padding-right: 14px; background: #fff url(/static/images/front.page.png) top center no-repeat; }
 	#book-art-home { width: 205px; height: 285px; text-align: center; float: left; padding-top: 27px; padding-left: 18px; background: #fff url(/static/images/front.page.png) top center no-repeat;}
 
 	#browse-rule { border-top: 1px solid #ccc; }
@@ -139,7 +152,7 @@
 	#nav{
 	  float:right;
 	  padding: 0px 20px 0px 0px;
-	  width: 220px;
+	  width: 230px;
 	  margin: 0px 0px 30px 30px;
 	/*  min-height: 370px; */
 	  border-left: 1px solid #fff;
@@ -147,18 +160,18 @@
 	/*	text-align: center   */
 	}
 
-	.navinner { background-color: #F9F8D0; width: 190px; border: 1px solid #ccc; }
-	.navinner-padding { background-color: #F9F8D0; width: 178px; padding: 10px 0px 10px 0px; border: 6px solid #fff; text-align: center; }
+
+	.navinner { background-color: #F9F8D0; width: 200px; border: 1px solid #ccc; }
+	.navinner-padding { background-color: #F9F8D0; width: 188px; padding: 10px 0px 10px 0px; border: 6px solid #fff; text-align: left; }
 	.homenav { margin-left: 10px; margin-right: 10px; color: #666; font-style: bold; text-align: left; }
 
-	.navlinks{ float:right; padding-right: 20px; height: 25px; line-height: 25px; vertical-align: middle; }
-	.navlinks-top { float:right; padding-right: 20px; height: 25px; line-height: 25px; vertical-align: middle; margin-top: -4px; }
+	.navheader { font-weight: bold; padding-left: 10px; }
+	.navsubheader { padding-left: 25px; line-height: 16px; }
 	.navtext{ padding-left: 10px; padding-right: 10px; }
-	.navinner-border { border: 1px solid #ccc; width: 190px; }
-	.navouter { width: 184px; margin-left: 18px; padding-top: 30px; padding-bottom: 20px; }
+	.navouter { width: 194px; margin-left: 18px; padding-top: 30px; padding-bottom: 20px; text-align: center; }
 	.navouter-biblio { background-color: #F9F8D0; width: 164px; margin-left: 18px; }
 
-	#options { width: 200px; min-height: 190px; margin: 0px 10px 10px 10px; }
+	#options { width: 210px; min-height: 190px; margin: 0px 10px 10px 10px; }
 	#options-biblio { width: 200px; min-height: 290px; margin: 0px 10px 10px 10px; background-color: #F9F8D0; float: right; }
 
 	#result-container { padding: 0px 0px 10px 30px; }
@@ -178,7 +191,7 @@
 	#toc { float:right; padding: 0px 20px 0px 0px; width: 160px; margin: 10px 0px 10px 30px; height: 370px; border-left: 1px solid #ccc; background-color: #F9F8D0; }
 
 	#viewthisbook { position: relative; top: 169px; left: -13px; z-index: 1000px; font-family: georgia; font-size: 14px; color: #999; }
-	#viewthisbook-oln { position: relative; margin-left: -20px; top: 5px; left: 0px; }
+	#viewthisbook-oln { position: relative; margin-left: 0px; top: 265px; left: 0px; }
 
 	.logotype { float:left; font-weight: bold; height: 25px; line-height: 25px; vertical-align: middle; }
 	.related { padding: 4px 20px 4px 20px; }
@@ -210,7 +223,6 @@
 
 	.truncatedisplayname { 
 	width: 10em;            /* constrain width try 20em */
-    height: 1em;            /* constrain height */
     line-height:1em;        /* to be adjusted */
     overflow: hidden;       /* hide excess */
     position:relative;      /* Fix IE missing overflow bug of r.p. span */
@@ -219,7 +231,6 @@
 
 	.truncatepath { 
 	width: 20em;            /* constrain width try 20em */
-    height: 1em;            /* constrain height */
     line-height:1em;        /* to be adjusted */
     overflow: hidden;       /* hide excess */
     position:relative;      /* Fix IE missing overflow bug of r.p. span */

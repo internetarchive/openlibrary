@@ -1,3 +1,13 @@
+/* 
+   OL DEFAULT STYLES - BETA 
+   Comment date: 08.07.07
+   -------------------------------
+   This is the first pass at modularizing the default stylesheet for OL
+   The stylesheet will be vastly improved by full launch 10=17-07
+   Please email me with any suggested improvements: webchick@invisible.net
+*/
+
+
 /*FACETED RESULTS LINKS*/
 
 .cover { height: 60px; width: 100px; text-align: center; padding-right: 18px; padding-top: 6px; padding-bottom: 6px; border-bottom: 1px solid #ccc; }
