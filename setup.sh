@@ -18,10 +18,11 @@ function setup_infogami() {
 
     if [ -d $hgroot/infogami ]
     then
-       cd $hgroot/infogami && hg pull && hg update
+       cd $hgroot/infogami && hg pull
     else
         cd $hgroot && hg clone http://infogami.org/hg $hgroot/infogami
     fi
+    cd $hgroot && hg update -C ol_softlaunch
 }
 
 function setup_webpy() {
