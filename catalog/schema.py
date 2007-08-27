@@ -5,16 +5,17 @@ schema = {
 
             'author':
             [
-                    ('name', { 'type': 'string' }),
-                    ('birth_date', { 'type': 'date' }),
-                    ('death_date', { 'type': 'date' }),
+		    ('identifier', { 'type': 'string', 'count': 'multiple', 'example': "Twain, Mark, 1835-1910", 'description': "unique id in some catalog" }),
+                    ('name', { 'type': 'string', 'example': "Mark Twain", 'description': "human-readable name" }),
+                    ('birth_date', { 'type': 'date', 'example': "1835" }),
+                    ('death_date', { 'type': 'date', 'example': "1910" }),
                     ('bio', { 'type': 'text' })
             ],
 
             'edition':
             [ 
-                    ('source_name', { 'type': 'string' }),
-                    ('source_record_pos', { 'type': 'int' }),
+                    ('source_record_loc', { 'type': 'string', 'count': 'multiple', 'example': "marc_records_scriblio_net/part01.dat:29834:543", 'description': "a locator for the source record data" }),
+                    ('source_record_id', { 'type': 'string', 'count': 'multiple', 'example': "LC:DLC:00000006", 'description': "a record identifier that is globally unique and that also can be constructed consistently from the contents of a record and an identifier for its source catalog" }),
                     ('authors', { 'type': 'id-ref', 'count': 'multiple', 'example': 'a/Mark_Twain' }),
                     ('contributions', { 'type': 'string', 'count': 'multiple', 'example': 'Illustrated by: Steve Bjorkman' }),
                     ('title', { 'type': 'string', 'example': 'The adventures of Tom Sawyer' }),
