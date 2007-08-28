@@ -163,10 +163,25 @@ schema = {
 def print_html ():
         for (typename, fields) in schema.iteritems ():
                 print "<p><b>" + typename + "</b></p>"
-                print "<ul>"
+                print "<table><tbody>"
+                print "<tr><th>Field</th><th>Type</th><th>MARC Fields</th><th>Example (Description)</th></tr>"
                 for (fname, fspec) in fields:
-                        print "<li><b>" + fname + "</b> [" + fspec['type'] + ((fspec.get ('count') == 'multiple' and '*') or '') + "] : " + ((fspec.get ('example') and '"' + fspec['example'] + '"') or '') + ((fspec.get ('description') and " <i>(" + fspec['description'] + ")</i>") or '') + "</li>"
-                print "</ul>"
+                        marc_fields = fspec.get ('marc_fields', [])
+                        if (type (marc_fields) != list):
+                                marc_fields = [marc_fields]
+                        print "<tr>"
+                        print "<td><b>" + fname + "</b></td>"
+                        print "<td>" + fspec['type'] + ((fspec.get ('count', "single") == "multiple" and "*") or '') + "</td>"
+                        print "<td>" + ", ".join (marc_fields) + "</td>"
+                        print "<td>" + ((fspec.get ('example') and '"' + fspec['example'] + '"') or '') + ((fspec.get ('description') and " <i>(" + fspec['description'] + ")</i>") or '') + "</td>"
+                        print "</tr>"
+                print "</tbody></table>"
+
+#        for (typename, fields) in schema.iteritems ():
+#                print "<p><b>" + typename + "</b></p>"
+#                for (fname, fspec) in fields:
+#                        print "<li><b>" + fname + "</b> [" + fspec['type'] + ((fspec.get ('count') == 'multiple' and '*') or '') + "] : " + ((fspec.get ('example') and '"' + fspec['example'] + '"') or '') + ((fspec.get ('description') and " <i>(" + fspec['description'] + ")</i>") or '') + "</li>"
+#                print "</ul>"
                         
                 
 if __name__ == "__main__":
