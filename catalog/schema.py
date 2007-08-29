@@ -3,7 +3,12 @@
 
 ### questions
 # agencies/orgs as "authors" or "contributors"?
-# what is meant by the asterisk in "a-z*"?
+# "020 $z - Canceled/invalid ISBN"
+# dewey decimal (and universal decimal?): need edition number?
+# strip punctuation:
+#       - title: "/", ";", ":"
+#       - publisher, publish_place
+# for our physical_format field, how about 245:h (Medium) and 300:c (Dimensions) ?
 
 schema = {
 
@@ -41,7 +46,7 @@ schema = {
                         'example': 'Illustrated by: Steve Bjorkman' }),
                     ('title', {
                         'type': 'string',
-                        'marc_fields': '245:ab',
+                        'marc_fields': '245:ab=>clean_name',
                         'example': 'The adventures of Tom Sawyer' }),
                     ('by_statement', {
                         'type': 'string',
@@ -52,11 +57,11 @@ schema = {
                     ('other_titles', {
                         'type': 'string',
                         'count': 'multiple',
-                        'marc_fields': ['246:a', '730:a-z*', '740:apn' ],
+                        'marc_fields': ['246:a', '730:a-z', '740:apn' ],
                         'example': "Mark Twain's The Adventures of Tom Sawyer" }),
                     ('work_title', {
                         'type': 'string',
-                        'marc_fields': ['240:amnpr', '130:a-z*'],
+                        'marc_fields': ['240:amnpr', '130:a-z'],
                         'description': "The 240 \"work title\" is used in the OCLC FRBR algorithm. The 130 is also used, and there should be either a 130 or a 240 in a record, but not both. It would be ideal if we could pick up either for the work title." }),
                     ('edition', {
                         'type': 'string',
@@ -65,12 +70,13 @@ schema = {
                         'description': 'information about this edition' }),
                     ('publisher', {
                         'type': 'string',
-                        'marc_fields': '260:b',
+                        'marc_fields': '260:b=>clean_name',
                         'example': 'W. W. Norton & Co.' }),
                     ('publish_place', {
                          'type': 'string',
-                         'marc_fields': '260:a',
-                         'example': 'New York; Boston' }),
+                         'count': 'multiple',
+                         'marc_fields': '260:a=>clean',
+                         'example': 'New York' }),
                     ('publish_date', { 
                         'type': 'date',
                         'marc_fields': '008:7-10',
@@ -88,22 +94,25 @@ schema = {
                     ('subjects', {
                         'type': 'string',
                         'count': 'multiple',
-                        'marc_fields': ['600:abcdxvyz', '610:abxvyz', '650:axvyz', '651:axvyz'],
+                        'marc_fields': ['600:abcd[ -- ]x[ -- ]v[ -- ]y[ -- ]z',
+                                        '610:ab[ -- ]x[ -- ]v[ -- ]y[ -- ]z',
+                                        '650:a[ -- ]x[ -- ]v[ -- ]y[ -- ]z',
+                                        '651:a[ -- ]x[ -- ]v[ -- ]y[ -- ]z'],
                         'example': 'LCSH: Runaway children -- Fiction' }),
                     ('subject_place', {
                         'type': 'string',
                         'count': 'multiple',
-                        'marc_fields': ['651:a', '650:z'],
+                        'marc_fields': ['651:a*', '650:z*'],
                         'example': "Venice (Italy)" }),
                     ('subject_time', {
                         'type': 'string',
                         'count': 'multiple',
-                        'marc_fields': ['600:y', '650:y'],
+                        'marc_fields': ['600:y*', '650:y*'],
                         'example': '20th century' }),
                     ('genre', {
                         'type': 'string',
                         'count': 'multiple',
-                        'marc_fields': ['600:v', '650:v', '651:v'],
+                        'marc_fields': ['600:v*', '650:v*', '651:v*'],
                         'example': "Biography" }),
                     ('series', {
                         'type': 'string',
@@ -115,11 +124,14 @@ schema = {
                         'marc_fields': '"ISO: "++008:35-37',
                         'example': 'ISO: tel',
                         'description': "coded or human-readable description of the text's language" }),
-                    ('physical_format', { 'type': 'string' }),
+                    ('physical_format', {
+                        'type': 'string',
+			'count': 'multiple',
+                        'marc_fields': '245:h' }),
                     ('notes', {
                         'type': 'string',
-                        'marc_fields': '5??-505-520:a-z',
-                        'count': 'multiple' }),
+                        'count': 'multiple',
+                        'marc_fields': '5??-505-520:a-z', }),
                     ('description', {
                         'type': 'text',
                         'marc_fields': '520:a'
@@ -144,7 +156,8 @@ schema = {
                         'example': 'BJ1533.C4 L49' }),
                     ('ISBN', {
                         'type': 'string',
-                        'marc_fields': ['020:a=>normalize_isbn', '024:a=>normalize_isbn'],
+                        'count': 'multiple',
+                        'marc_fields': ['020:a=>normalize_isbn_20', '024:a=>normalize_isbn'],
                         'example': '9780393926033',
                         'description': '13-digit ISBN' }),
                     ('UCC_13', { 'type': 'string' }),
@@ -163,7 +176,7 @@ schema = {
 def print_html ():
         for (typename, fields) in schema.iteritems ():
                 print "<p><b>" + typename + "</b></p>"
-                print "<table><tbody>"
+                print "<table border=\"1\"><tbody>"
                 print "<tr><th>Field</th><th>Type</th><th>MARC Fields</th><th>Example (Description)</th></tr>"
                 for (fname, fspec) in fields:
                         marc_fields = fspec.get ('marc_fields', [])
