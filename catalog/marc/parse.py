@@ -11,26 +11,34 @@ from MARC21Biblio import *
 from catalog.lang import *
 from catalog.schema import schema
 
-def parser (file, file_locator=None):
+record_id_delimiter = ":"
+
+def parser (file, file_locator, source_id):
+    if (source_id.find (record_id_delimiter) >= 0):
+        die ("the source id '%s' contains the record id delimiter '%s'" % (source_id, record_id))
     f = MARC21BiblioFile (file)
     try:
         while True:
             try:
                 record = f.next()
-                item = distill_record (record, file_locator)
+                item = distill_record (record, file_locator, source_id)
                 yield item
             except MARC21Exn, e:
                 warn ("couldn't parse record: %s" % e)
     except StopIteration:
         pass
 
-def display_record_locator (r, file_locator):
-    return urlencode ({ 'file': file_locator or "?",
+def urlencode_record_locator (r, file_locator):
+    return urlencode ({ 'file': file_locator,
                         'offset': r.record_pos (),
                         'length': r.record_len () })
 
-def distill_record (r, file_locator):
+def distill_record (r, file_locator, source_id):
     edition = {}
+    edition['source_record_loc'] = [urlencode_record_locator (r, file_locator)]
+    edition['source_record_id'] = [record_id_delimiter.join ([source_id,
+                                                              strip (r.get_field_value ('003')),
+                                                              strip (r.get_field_value ('001'))])]
     for (field_name, field_spec) in schema['edition'].iteritems ():
         marc_specs = field_spec.get ('marc_fields')
         multiple = (field_spec.get ('count', "single") == "multiple")
@@ -148,5 +156,8 @@ def normalize_isbn (s):
 #       return classes
 
 if __name__ == "__main__":
-    for item in parser (sys.stdin):
+    source_id = sys.argv[1]
+    file_locator = sys.argv[2]
+    for item in parser (sys.stdin, file_locator, source_id):
+        print item['source_record_loc'][0]
         print item
