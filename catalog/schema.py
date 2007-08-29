@@ -9,8 +9,15 @@
 #       - title: "/", ";", ":"
 #       - publisher, publish_place
 # for our physical_format field, how about 245:h (Medium) and 300:c (Dimensions) ?
+# tag all 6XX fields as "LCSH"?
 
-schema = {
+# 024: A standard number or code published on an item which cannot be
+# accommodated in another field (e.g., field 020 (International Standard Book
+# Number), 022 (International Standard Serial Number) , and 027 (Standard
+# Technical Report Number)). The type of standard number or code is identified
+# in the first indicator position or in subfield $2 (Source of number or code).
+
+schema_ordered = {
 
             'author':
             [
@@ -46,7 +53,7 @@ schema = {
                         'example': 'Illustrated by: Steve Bjorkman' }),
                     ('title', {
                         'type': 'string',
-                        'marc_fields': '245:ab=>clean_name',
+                        'marc_fields': '245:ab clean_name',
                         'example': 'The adventures of Tom Sawyer' }),
                     ('by_statement', {
                         'type': 'string',
@@ -70,13 +77,13 @@ schema = {
                         'description': 'information about this edition' }),
                     ('publisher', {
                         'type': 'string',
-                        'marc_fields': '260:b=>clean_name',
+                        'marc_fields': '260:b clean_name',
                         'example': 'W. W. Norton & Co.' }),
                     ('publish_place', {
-                         'type': 'string',
-                         'count': 'multiple',
-                         'marc_fields': '260:a=>clean',
-                         'example': 'New York' }),
+                        'type': 'string',
+                        'count': 'multiple',
+                        'marc_fields': '260:a clean',
+                        'example': 'New York' }),
                     ('publish_date', { 
                         'type': 'date',
                         'marc_fields': '008:7-10',
@@ -89,16 +96,16 @@ schema = {
                     ('number_of_pages', {
                         'type': 'int',
                         'example': '237',
-                        'marc_fields': '300:a=>biggest_decimal',
+                        'marc_fields': '300:a biggest_decimal',
                         'description': 'largest decimal found' }),
                     ('subjects', {
                         'type': 'string',
                         'count': 'multiple',
-                        'marc_fields': ['600:abcd[ -- ]x[ -- ]v[ -- ]y[ -- ]z',
-                                        '610:ab[ -- ]x[ -- ]v[ -- ]y[ -- ]z',
-                                        '650:a[ -- ]x[ -- ]v[ -- ]y[ -- ]z',
-                                        '651:a[ -- ]x[ -- ]v[ -- ]y[ -- ]z'],
-                        'example': 'LCSH: Runaway children -- Fiction' }),
+                        'marc_fields': ['600:abcd-x-v-y-z',
+                                        '610:ab-x-v-y-z',
+                                        '650:a-x-v-y-z',
+                                        '651:a-x-v-y-z'],
+                        'example': 'Runaway children -- Fiction' }),
                     ('subject_place', {
                         'type': 'string',
                         'count': 'multiple',
@@ -121,7 +128,7 @@ schema = {
                         'example': "Oxford world's classics" }),
                     ('language', {
                         'type': 'string',
-                        'marc_fields': '"ISO: "++008:35-37',
+                        'marc_fields': '008:35-37 "ISO" tag',
                         'example': 'ISO: tel',
                         'description': "coded or human-readable description of the text's language" }),
                     ('physical_format', {
@@ -131,7 +138,7 @@ schema = {
                     ('notes', {
                         'type': 'string',
                         'count': 'multiple',
-                        'marc_fields': '5??-505-520:a-z', }),
+                        'marc_fields': '5XX!505!520:a-z', }),
                     ('description', {
                         'type': 'text',
                         'marc_fields': '520:a'
@@ -157,7 +164,7 @@ schema = {
                     ('ISBN', {
                         'type': 'string',
                         'count': 'multiple',
-                        'marc_fields': ['020:a=>normalize_isbn_20', '024:a=>normalize_isbn'],
+                        'marc_fields': ['020:a normalize_isbn', '024:a normalize_isbn'],
                         'example': '9780393926033',
                         'description': '13-digit ISBN' }),
                     ('UCC_13', { 'type': 'string' }),
@@ -166,15 +173,22 @@ schema = {
                     ('DOI', { 'type': 'string' }),
                     ('LCCN', {
                         'type': 'string',
-                        'marc_fields': '010:a=>normalize_lccn',
+                        'marc_fields': '010:a normalize_lccn',
                         'example': "2006285320" }),
                     ('GTIN_14', { 'type': 'string' }),
                     ('oca_identifier', { 'type': 'string', 'example': 'albertgallatinja00stevrich' })
             ]
     }
 
+schema = {}
+for (typename, ordered_fields) in schema_ordered.iteritems ():
+	fields = {}
+	for (fname, fspec) in ordered_fields:
+		fields[fname] = fspec
+	schema[typename] = fields
+
 def print_html ():
-        for (typename, fields) in schema.iteritems ():
+        for (typename, fields) in schema_ordered.iteritems ():
                 print "<p><b>" + typename + "</b></p>"
                 print "<table border=\"1\"><tbody>"
                 print "<tr><th>Field</th><th>Type</th><th>MARC Fields</th><th>Example (Description)</th></tr>"

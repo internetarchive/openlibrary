@@ -131,7 +131,7 @@ class MARC21BiblioRecord:
 
 class MARC21BiblioFile:
 
-        def __init__ (self, input)
+        def __init__ (self, input):
                 self.marc_file = MARC21File (input)
                 self.eof = False
 
