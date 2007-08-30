@@ -47,32 +47,38 @@ def distill_record (r, file_locator, source_id):
                 marc_specs = [marc_specs]
             for marc_spec in marc_specs:
                 marc_value_producer = compile_marc_spec (marc_spec)
-                field_values = list (marc_value_producer (r))
+                field_values = (marc_value_producer and list (marc_value_producer (r))) or []
                 if (len (field_values) > 1 and not multiple):
                     raise Error ("record %s: multiple values from MARC data for single-valued OL field '%s'" % (field_name, display_record_locator (r, file_locator)))
                 if (len (field_values) > 0):
                     edition[field_name] = (multiple and field_values) or field_values[0];
     return edition
 
+re_spaces = re.compile (r'\s+')
+re_codespec = re.compile (r'(\d\d\d):([a-z]+)')
+
+def field_producer (field, subfields):
+        def generator (r):
+            ff = r.get_fields (field)
+            for f in ff:
+                def subfield_data (sf):
+                    return " ".join (map (unicode_to_utf8, f.get_elts (sf)))
+                yield " ".join (map (subfield_data, subfields))
+        return generator
+
 def compile_marc_spec (spec):
-    def producer (r):
-        yield "VAL"
-    return producer
+    terms = re_spaces.split (spec)
+    if (len (terms) == 1):
+        m = re_codespec.match (terms[0])
+        if m:
+            field = m.group (1)
+            subfields = list (m.group (2))
+            return field_producer (field, subfields)
+    return None
 
-def massage_value (v):
-    if (isinstance (v, UnicodeType)):
-        nv = normalize ('NFKC', v)
-        return nv.encode ('utf8')
-    elif (isinstance (v, ListType)):
-        return map (massage_value, v)
-    else:
-        return v
-
-def massage_dict (d):
-    dd = {}
-    for (k, v) in d.iteritems ():
-        dd[k] = massage_value (v)
-    return dd
+def unicode_to_utf8 (u):
+        nu = normalize ('NFKC', u)
+        return nu.encode ('utf8')
 
 ### authors
 
@@ -159,5 +165,6 @@ if __name__ == "__main__":
     source_id = sys.argv[1]
     file_locator = sys.argv[2]
     for item in parser (sys.stdin, file_locator, source_id):
+        print ""
         print item['source_record_loc'][0]
         print item
