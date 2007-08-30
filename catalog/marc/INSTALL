@@ -1,3 +1,5 @@
 the charset-conversion helper-program, marc8_to_utf8.pl, requires
 that the MARC::Charset module be installed.  it is available here:
 http://search.cpan.org/dist/MARC-Charset/
+
+see parse-test.sh for the environment necessary to parsing.
