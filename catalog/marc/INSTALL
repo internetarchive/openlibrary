@@ -1,5 +1,10 @@
+cp example-config.sh config.sh
+# perhaps edit config.sh ... this allows the tests to work
+
+to use this code as library components, check config.sh
+for necessary environment variables.
+
 the charset-conversion helper-program, marc8_to_utf8.pl, requires
 that the MARC::Charset module be installed.  it is available here:
 http://search.cpan.org/dist/MARC-Charset/
 
-see parse-test.sh for the environment necessary to parsing.
