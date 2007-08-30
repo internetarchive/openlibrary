@@ -12,10 +12,14 @@ from catalog.lang import *
 from catalog.schema import schema
 
 record_id_delimiter = ":"
+record_loc_delimiter = ":"
 
 def parser (file, file_locator, source_id):
     if (source_id.find (record_id_delimiter) >= 0):
-        die ("the source id '%s' contains the record id delimiter '%s'" % (source_id, record_id))
+        die ("the source id '%s' contains the record-id delimiter '%s'" % (source_id, record_id_delimiter))
+    if (file_locator.find (record_loc_delimiter) >= 0):
+        die ("the file locator '%s' contains the record-locator delimiter '%s'" % (file_locator, record_loc_delimiter))
+
     f = MARC21BiblioFile (file)
     try:
         while True:
@@ -28,6 +32,9 @@ def parser (file, file_locator, source_id):
     except StopIteration:
         pass
 
+def encode_record_locator (r, file_locator):
+    return record_loc_delimiter.join ([file_locator, str (r.record_pos ()), str (r.record_len ())])
+
 def urlencode_record_locator (r, file_locator):
     return urlencode ({ 'file': file_locator,
                         'offset': r.record_pos (),
@@ -35,7 +42,7 @@ def urlencode_record_locator (r, file_locator):
 
 def distill_record (r, file_locator, source_id):
     edition = {}
-    edition['source_record_loc'] = [urlencode_record_locator (r, file_locator)]
+    edition['source_record_loc'] = [encode_record_locator (r, file_locator)]
     edition['source_record_id'] = [record_id_delimiter.join ([source_id,
                                                               strip (r.get_field_value ('003')),
                                                               strip (r.get_field_value ('001'))])]
@@ -48,37 +55,46 @@ def distill_record (r, file_locator, source_id):
             for marc_spec in marc_specs:
                 marc_value_producer = compile_marc_spec (marc_spec)
                 field_values = (marc_value_producer and list (marc_value_producer (r))) or []
+                field_values = list (set (field_values))    # remove duplicate values
                 if (len (field_values) > 1 and not multiple):
-                    raise Error ("record %s: multiple values from MARC data for single-valued OL field '%s'" % (field_name, display_record_locator (r, file_locator)))
+                    die ("record %s: multiple values from MARC data for single-valued OL field '%s'" % (field_name, display_record_locator (r, file_locator)))
                 if (len (field_values) > 0):
                     edition[field_name] = (multiple and field_values) or field_values[0];
     return edition
 
 re_spaces = re.compile (r'\s+')
-re_codespec = re.compile (r'(\d\d\d):([a-z]+)')
-
-def field_producer (field, subfields):
-        def generator (r):
-            ff = r.get_fields (field)
-            for f in ff:
-                def subfield_data (sf):
-                    return " ".join (map (unicode_to_utf8, f.get_elts (sf)))
-                yield " ".join (map (subfield_data, subfields))
-        return generator
+re_fieldspec = re.compile (r'(\d\d\d):(\S+)')
 
 def compile_marc_spec (spec):
     terms = re_spaces.split (spec)
     if (len (terms) == 1):
-        m = re_codespec.match (terms[0])
+        m = re_fieldspec.match (terms[0])
         if m:
             field = m.group (1)
-            subfields = list (m.group (2))
-            return field_producer (field, subfields)
+            subfield_spec = m.group (2)
+            return field_producer (field, subfield_spec)
     return None
 
+re_subfieldspec = re.compile (r'[a-z]+')
+
+def field_producer (field, subfield_spec):
+        if re_subfieldspec.match (subfield_spec):
+            subfields = list (subfield_spec)
+            def generator (r):
+                ff = r.get_fields (field)
+                for f in ff:
+                    def subfield_data (sf):
+                        return " ".join (map (unicode_to_utf8, f.get_elts (sf)))
+                    fval = " ".join (map (subfield_data, subfields))
+                    if fval:
+                        yield fval
+            return generator
+        else:
+            return None
+
 def unicode_to_utf8 (u):
-        nu = normalize ('NFKC', u)
-        return nu.encode ('utf8')
+    nu = normalize ('NFKC', u)
+    return nu.encode ('utf8')
 
 ### authors
 
@@ -133,17 +149,6 @@ def normalize_isbn (s):
             else:
                 warn ("bad ISBN: '%s'" % isbn_chars)
     return None
-
-## don't give empty string values in items
-#
-# def next (self):
-#   r = self.next_record ()
-#   item = {}
-#   for f in self.output_fields:
-#       v = r[f]
-#       if (isinstance (v, StringTypes) and v) or v is not None:
-#           item[f] = v
-#   return item
 
 ## check for language code field?
 #

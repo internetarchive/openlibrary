@@ -101,10 +101,10 @@ schema_ordered = {
                     ('subjects', {
                         'type': 'string',
                         'count': 'multiple',
-                        'marc_fields': ['600:abcd-x-v-y-z',
-                                        '610:ab-x-v-y-z',
-                                        '650:a-x-v-y-z',
-                                        '651:a-x-v-y-z'],
+                        'marc_fields': ['600:abcd--x--v--y--z',
+                                        '610:ab--x--v--y--z',
+                                        '650:a--x--v--y--z',
+                                        '651:a--x--v--y--z'],
                         'example': 'Runaway children -- Fiction' }),
                     ('subject_place', {
                         'type': 'string',
