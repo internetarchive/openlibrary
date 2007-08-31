@@ -140,7 +140,7 @@ schema_ordered = {
                         'example': "Oxford world's classics" }),
                     ('language', {
                         'type': 'string',
-                        'marc_fields': '008:35-37 "ISO" tag',
+                        'marc_fields': '"ISO" 008:35-37 +',
                         'example': 'ISO: tel',
                         'description': "coded or human-readable description of the text's language" }),
                     ('physical_format', {
@@ -171,6 +171,7 @@ schema_ordered = {
                         'example': '914.3' }),
                     ('LC_classification', {
                         'type': 'string',
+                        'count': 'multiple',
                         'marc_fields': '050:ab',
                         'example': 'BJ1533.C4 L49' }),
                     ('ISBN', {

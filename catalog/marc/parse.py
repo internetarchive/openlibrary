@@ -14,6 +14,8 @@ from catalog.schema import schema
 record_id_delimiter = ":"
 record_loc_delimiter = ":"
 
+marc_value_generators = {}
+
 def parser (file, file_locator, source_id):
     if (source_id.find (record_id_delimiter) >= 0):
         die ("the source id '%s' contains the record-id delimiter '%s'" % (source_id, record_id_delimiter))
@@ -47,38 +49,118 @@ def distill_record (r, file_locator, source_id):
                                                               strip (r.get_field_value ('003')),
                                                               strip (r.get_field_value ('001'))])]
     for (field_name, field_spec) in schema['edition'].iteritems ():
-        marc_specs = field_spec.get ('marc_fields')
         multiple = (field_spec.get ('count', "single") == "multiple")
+        field_values = []
+        marc_value_generator = marc_value_generators.get (field_name)
+        if marc_value_generator:
+            field_values = list (marc_value_generator (r))
+            field_values = list (set (field_values))  # remove duplicates
+        if (len (field_values) > 1 and not multiple):
+            die ("record %s: multiple values from MARC data for single-valued OL field '%s'" %
+                 (urlencode_record_locator (r, file_locator), field_name))
+        if (len (field_values) > 0):
+            edition[field_name] = (multiple and field_values) or field_values[0];
+    return edition
+
+def initialize_marc_value_generators ():
+    for (field_name, field_spec) in schema['edition'].iteritems ():
+        marc_specs = field_spec.get ('marc_fields')
         if marc_specs:
             if (type (marc_specs) != list):
                 marc_specs = [marc_specs]
-            for marc_spec in marc_specs:
-                marc_value_producer = compile_marc_spec (marc_spec)
-                field_values = (marc_value_producer and list (marc_value_producer (r))) or []
-                field_values = list (set (field_values))    # remove duplicate values
-                if (len (field_values) > 1 and not multiple):
-                    die ("record %s: multiple values from MARC data for single-valued OL field '%s'" % (field_name, display_record_locator (r, file_locator)))
-                if (len (field_values) > 0):
-                    edition[field_name] = (multiple and field_values) or field_values[0];
-    return edition
+            marc_value_generators[field_name] = compile_marc_specs (marc_specs)
+
+def compile_marc_specs (specs):
+    generators = map (compile_marc_spec, specs)
+    def generator (r):
+        for g in generators:
+            for v in g (r):
+                yield v
+    return generator
 
 re_spaces = re.compile (r'\s+')
-re_fieldspec = re.compile (r'(\d\d\d):(\S+)')
+re_literal = re.compile (r'"([^"]*)"')
+re_field = re.compile (r'(\d\d\d):(\S+)')
+re_procedure = re.compile (r'[^\d"].*')
+
+def null_generator (r):
+    if 0: yield None
 
 def compile_marc_spec (spec):
+    def spec_die (msg):
+        die ("in marc spec '%s': %s" % (spec, msg))
+
     terms = re_spaces.split (spec)
-    if (len (terms) == 1):
-        m = re_fieldspec.match (terms[0])
-        if m:
-            field = m.group (1)
-            subfield_spec = m.group (2)
-            return field_producer (field, subfield_spec)
-    return None
+
+    vals = []   # a stack of value generators
+    def push (v):
+        vals[0:0] = [v]
+    def pop (n=1):
+        vv = vals[0:n]
+        del vals[0:n]
+        return vv
+
+    for term in terms:
+        match_literal = re_literal.match (term)
+        match_field = re_field.match (term)
+        if match_literal:
+            s = match_literal.group (1)
+            def literal_generator (r):
+                yield s
+            push (literal_generator)
+        elif match_field:
+            field = match_field.group (1)
+            subfield_spec = match_field.group (2)
+            push (field_generator (field, subfield_spec))
+        else:
+            proc = compile_procedure (term)
+            if proc:
+                func = proc['func']
+                nargs = proc['nargs']
+                if (len (vals) < nargs):
+                    spec_die ("procedure '%s' expects %d arguments but only %d remain" %
+                              (term, nargs, len (vals)))
+                args = pop (nargs)
+                push (call_generator (func, args))
+            else:
+                warn ("unknown procedure '%s' will consume all available arguments and produce no values" % term)
+                vals = []
+                push (null_generator)
+
+    if len (vals) > 1:
+        spec_die ("there are too many values here")
+    if len (vals) < 1:
+        spec_die ("there are no values to produce here")
+    value_generator = vals[0]
+    return value_generator
+
+procedures = {
+    '+': (2, lambda s1, s2: s1 + s2)
+    }
+
+def compile_procedure (name):
+    info = procedures.get (name)
+    if info:
+        return { 'nargs': info[0], 'func': info[1] }
+    else:
+        return None
+
+def call_generator (f, arg_generators):
+    def value_generator (r):
+        def generate_arglists (arg_generators):
+            """generate the cross-product of the values generated by each arg_generator"""
+            if (len (arg_generators) > 0):
+                restlist = list (generate_arglists (arg_generators[1:]))
+                for a in arg_generators[0](r):
+                    yield [a] + restlist
+        for arglist in generate_arglists (arg_generators):
+            yield f (*arglist)
+    return value_generator
 
 re_subfields_exact = re.compile (r'[a-z]+')
 re_subfields_range = re.compile (r'([a-z])-([a-z])')
 
-def field_producer (field, subfield_spec):
+def field_generator (field, subfield_spec):
         subfields_lister = None
         def generator (r):
             ff = r.get_fields (field)
@@ -104,7 +186,7 @@ def field_producer (field, subfield_spec):
             subfields_lister = lambda r: [ s for s in r.subfields () if (s >= low and s <= hi) ]
             return generator
 
-        return None
+        return null_generator
 
 def unicode_to_utf8 (u):
     nu = normalize ('NFKC', u)
@@ -148,8 +230,12 @@ re_isbn_chars = re.compile (r'^([\dX]+)')
 def clean (s):
     return strip (s, " /.,;:")
 
+procedures['clean'] = (1, clean)
+
 def clean_name (s):
     return strip (s, " /,;:")
+
+procedures['clean_name'] = (1, clean_name)
 
 def normalize_isbn (s):
     m = re_isbn_chars.match (s)
@@ -159,10 +245,23 @@ def normalize_isbn (s):
             return isbn_chars
         else:
             if (len (isbn_chars) == 10):
-                return isbn_10_to_isbn_13 (isbn_10)
+                # return isbn10_to_isbn13 (isbn_10) XXXXXXXXXXXX
+                return None
             else:
                 warn ("bad ISBN: '%s'" % isbn_chars)
     return None
+
+procedures['normalize_isbn'] = (1, normalize_isbn)
+
+def biggest_decimal (s):
+    return s
+
+# procedures['biggest_decimal'] = (1, biggest_decimal)
+
+def normalize_lccn (s):
+    return s
+
+# procedures['normalize_lccn'] = (1, normalize_lccn)
 
 ## check for language code field?
 #
@@ -179,6 +278,8 @@ def normalize_isbn (s):
 #           classification_numbers = ddcn.get_elts ("a")
 #           classes.extend ([ "%s:%s"%(edition_number,cn) for cn in classification_numbers ])
 #       return classes
+
+initialize_marc_value_generators ()
 
 if __name__ == "__main__":
     source_id = sys.argv[1]
