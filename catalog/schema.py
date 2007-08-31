@@ -41,6 +41,10 @@ schema_ordered = {
 
             'edition':
             [ 
+                    ('test', {
+                        'count': 'multiple',
+                        'marc_fields': '"a" "b" +'
+                        }),
                     ('source_record_loc', {
                         'type': 'string',
                         'count': 'multiple',
@@ -140,7 +144,7 @@ schema_ordered = {
                         'example': "Oxford world's classics" }),
                     ('language', {
                         'type': 'string',
-                        'marc_fields': '"ISO" 008:35-37 +',
+                        'marc_fields': '"ISO:" 008:35-37 +',
                         'example': 'ISO: tel',
                         'description': "coded or human-readable description of the text's language" }),
                     ('physical_format', {

@@ -134,8 +134,13 @@ def compile_marc_spec (spec):
     value_generator = vals[0]
     return value_generator
 
+def conc (s1, s2):
+    return s1 + s2
+
 procedures = {
-    '+': (2, lambda s1, s2: s1 + s2)
+    #'+': (2, (lambda s1, s2: s1 + s2))
+    '+': (2, conc),
+    'pair': (2, lambda s1, s2: "pair")
     }
 
 def compile_procedure (name):

@@ -1,7 +1,10 @@
+# 2007 dbg for the Internet Archive
+
 import sys
 from threading import Thread, Lock, Condition
 
 class AsyncChannel:
+	# yes, i believe this is just Queue ... i was new to python and couldn't find it
 
 	def __init__ (self, buffer_size=1):
 		self.buffer = []
@@ -42,6 +45,14 @@ def ForeignException_extract ():
 	return ForeignException (exc_type, exc_value, exc_traceback)
 
 def threaded_generator (producer, buffer_size=1):
+	# the producer function will be invoked with a single argument, a "produce" function.
+	# the producer may pass an object to this "produce" function any number of times before
+	# returning.  the values thus passed will, in turn, be produced by the generator which
+	# is the return value of threaded_generator().
+	#
+	# this provides a sort of coroutine facility, because python's generators can't do that:
+	# they can only yield values from the bottom of the call stack.  sometimes you need to
+	# keep control context between producing values.
 
 	t = None
 	chan = AsyncChannel (buffer_size)
