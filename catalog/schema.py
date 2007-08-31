@@ -17,6 +17,12 @@
 # Technical Report Number)). The type of standard number or code is identified
 # in the first indicator position or in subfield $2 (Source of number or code).
 
+# Following is a python datastructure representing the field-schema for
+# bibliographic items in ThingDB.  Where the `count` attribute is not
+# specified, its value is `'single'`.  The types `string`, `text`, `url` (and
+# perhaps `date`) may all be stored as "strings" in ThingDB, but the
+# distinction here may help to render those strings appropriately in the UI.
+
 schema_ordered = {
 
             'author':
@@ -45,7 +51,13 @@ schema_ordered = {
                         'count': 'multiple',
                         'example': "LC:DLC:00000006",
                         'description': "a record identifier that is globally unique and that also can be constructed consistently from the contents of a record and an identifier for its source catalog" }),
-                    ('authors', { 'type': 'id-ref', 'count': 'multiple', 'example': 'a/Mark_Twain' }),
+                    ('author_identifier', {
+                        'type': 'string',
+                        'count': 'multiple',
+                        'marc_fields': ['100:abcd', '110:ab', '710:ab', '111:acdn', '711:acdn'],
+                        'example': "Twain, Mark, 1835-1910",
+                        'description': "unique author id in some catalog" }),
+                    # ('authors', { 'type': 'id-ref', 'count': 'multiple', 'example': 'a/Mark_Twain' }),
                     ('contributions', {
                         'type': 'string',
                         'count': 'multiple',
@@ -133,7 +145,7 @@ schema_ordered = {
                         'description': "coded or human-readable description of the text's language" }),
                     ('physical_format', {
                         'type': 'string',
-			'count': 'multiple',
+                        'count': 'multiple',
                         'marc_fields': '245:h' }),
                     ('notes', {
                         'type': 'string',
@@ -182,10 +194,10 @@ schema_ordered = {
 
 schema = {}
 for (typename, ordered_fields) in schema_ordered.iteritems ():
-	fields = {}
-	for (fname, fspec) in ordered_fields:
-		fields[fname] = fspec
-	schema[typename] = fields
+    fields = {}
+    for (fname, fspec) in ordered_fields:
+        fields[fname] = fspec
+    schema[typename] = fields
 
 def print_html ():
         for (typename, fields) in schema_ordered.iteritems ():
