@@ -75,22 +75,36 @@ def compile_marc_spec (spec):
             return field_producer (field, subfield_spec)
     return None
 
-re_subfieldspec = re.compile (r'[a-z]+')
+re_subfields_exact = re.compile (r'[a-z]+')
+re_subfields_range = re.compile (r'([a-z])-([a-z])')
 
 def field_producer (field, subfield_spec):
-        if re_subfieldspec.match (subfield_spec):
-            subfields = list (subfield_spec)
-            def generator (r):
-                ff = r.get_fields (field)
-                for f in ff:
-                    def subfield_data (sf):
-                        return " ".join (map (unicode_to_utf8, f.get_elts (sf)))
-                    fval = " ".join (map (subfield_data, subfields))
-                    if fval:
-                        yield fval
+        subfields_lister = None
+        def generator (r):
+            ff = r.get_fields (field)
+            for f in ff:
+                def subfield_data (sf):
+                    return " ".join ([ unicode_to_utf8 (s) for s in [ strip (ss) for ss in f.get_elts (sf) ] if s ])
+                subfields = subfields_lister (f)
+                fval = " ".join ([ s for s in map (subfield_data, subfields) if s ])
+                if fval:
+                    yield fval
+
+        if re_subfields_exact.match (subfield_spec):
+            subfields_exact = list (subfield_spec)
+            subfields_lister = lambda r: subfields_exact
             return generator
-        else:
-            return None
+
+        m = re_subfields_range.match (subfield_spec)
+        if m:
+            low = m.group (1)
+            hi = m.group (2)
+            if low > hi:
+                die ("subfield range '%s' is ill-formed" % subfield_spec)
+            subfields_lister = lambda r: [ s for s in r.subfields () if (s >= low and s <= hi) ]
+            return generator
+
+        return None
 
 def unicode_to_utf8 (u):
     nu = normalize ('NFKC', u)
