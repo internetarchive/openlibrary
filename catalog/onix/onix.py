@@ -181,7 +181,7 @@ def produce_items (input, produce):
 	parser.parse (source)
 
 def process_item (i):
-	print i
+	print OnixProduct (i)
 
 if __name__ == "__main__":
 	from sys import stdin
