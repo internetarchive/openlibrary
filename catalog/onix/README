@@ -1,0 +1,4 @@
+
+to test basic onix handling, you can run test-onix.sh
+with an onix file on standard input.
+
