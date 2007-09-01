@@ -53,7 +53,7 @@ def distill_record (r, file_locator, source_id):
         field_values = []
         marc_value_generator = marc_value_generators.get (field_name)
         if marc_value_generator:
-            field_values = list (marc_value_generator (r))
+            field_values = [ normalize_string (s) for s in marc_value_generator (r) ]
             field_values = list (set (field_values))  # remove duplicates
         if (len (field_values) > 1 and not multiple):
             die ("record %s: multiple values from MARC data for single-valued OL field '%s'" %
@@ -162,43 +162,72 @@ def call_generator (f, arg_generators):
                         yield [a] + rest_list
         for arglist in generate_arglists (arg_generators):
             arglist.reverse ()
-            yield f (*arglist)
+            val = f (*arglist)
+            if val is not None:
+                yield val
     return value_generator
 
 re_subfields_exact = re.compile (r'[a-z]+')
 re_subfields_range = re.compile (r'([a-z])-([a-z])')
+re_positions = re.compile (r'(\d+)-(\d+)')
 
-def field_generator (field, subfield_spec):
-        subfields_lister = None
-        def generator (r):
-            ff = r.get_fields (field)
-            for f in ff:
+def field_generator (fieldname, subfield_spec):
+
+    def code_chars_generator (start, end):
+        assert isControlFieldTag (fieldname)
+        assert start < end
+        def gen (r):
+            for f in r.get_fields (fieldname):
+                yield str(f)[start:end+1]
+        return gen
+
+    def subfields_generator (subfields_lister):
+        def gen (r):
+            for f in r.get_fields (fieldname):
                 def subfield_data (sf):
-                    return " ".join ([ unicode_to_utf8 (s) for s in [ strip (ss) for ss in f.get_elts (sf) ] if s ])
+                    return " ".join ([ s for s in [ strip (ss) for ss in f.get_elts (sf) ] if s ])
                 subfields = subfields_lister (f)
                 fval = " ".join ([ s for s in map (subfield_data, subfields) if s ])
                 if fval:
                     yield fval
+        return gen
 
+    if (isControlFieldTag (fieldname)):
+        m = re_positions.match (subfield_spec)
+        if m:
+            start = int (m.group (1))
+            end = int (m.group (2))
+            return code_chars_generator (start, end)
+        else:
+            warn ("in field '%s', the subfield spec '%s' is ill-formed; ignoring" % (fieldname, subfield_spec))
+            return null_generator
+    else:
         if re_subfields_exact.match (subfield_spec):
             subfields_exact = list (subfield_spec)
-            subfields_lister = lambda r: subfields_exact
-            return generator
-
+            subfields_lister = lambda f: subfields_exact
+            return subfields_generator (subfields_lister)
         m = re_subfields_range.match (subfield_spec)
         if m:
             low = m.group (1)
             hi = m.group (2)
             if low > hi:
                 die ("subfield range '%s' is ill-formed" % subfield_spec)
-            subfields_lister = lambda r: [ s for s in r.subfields () if (s >= low and s <= hi) ]
-            return generator
-
+            subfields_lister = lambda f: [ s for s in f.subfields () if (s >= low and s <= hi) ]
+            return subfields_generator (subfields_lister)
+        warn ("in field '%s', couldn't parse subfield spec '%s'; will produce no values" % (fieldname, subfield_spec))
         return null_generator
 
 def unicode_to_utf8 (u):
     nu = normalize ('NFKC', u)
     return nu.encode ('utf8')
+
+def normalize_string (s):
+    if (type (s) is StringType):
+        return s
+    elif (type (s) is UnicodeType):
+        return unicode_to_utf8 (s)
+    else:
+        die ("normalize_string called on non-string: %s" % s)
 
 ### authors
 
@@ -261,15 +290,36 @@ def normalize_isbn (s):
 
 procedures['normalize_isbn'] = (1, normalize_isbn)
 
-def biggest_decimal (s):
-    return s
+re_digits = re.compile (r'\d\d+')
 
-# procedures['biggest_decimal'] = (1, biggest_decimal)
+def biggest_decimal (s):
+    nums = re_digits.findall (s)
+    if (len (nums) > 0):
+        return max (nums)
+    else:
+        return None
+
+procedures['biggest_decimal'] = (1, biggest_decimal)
+
+re_lccn = re.compile (r'(...\d+).*')
 
 def normalize_lccn (s):
-    return s
+    m = re_lccn.match (s)
+    if m:
+        return m.group (1)
+    else:
+        warn ("bad LCCN: '%s'" % s)
+        return None
 
-# procedures['normalize_lccn'] = (1, normalize_lccn)
+procedures['normalize_lccn'] = (1, normalize_lccn)
+
+re_author_id_parts = re.compile (r'\w+', re.UNICODE)
+
+def author_id (s):
+    parts = [ p.lower() for p in re_author_id_parts.findall (s) ]
+    return " ".join (parts)
+
+procedures['author_id'] = (1, author_id)
 
 ## check for language code field?
 #

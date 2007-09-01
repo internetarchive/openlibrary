@@ -54,14 +54,14 @@ schema_ordered = {
                     ('author_identifier', {
                         'type': 'string',
                         'count': 'multiple',
-                        'marc_fields': ['100:abcd', '110:ab', '710:ab', '111:acdn', '711:acdn'],
+                        'marc_fields': ['100:abcd author_id', '110:ab author_id', '111:acdn author_id'],
                         'example': "Twain, Mark, 1835-1910",
                         'description': "unique author id in some catalog" }),
                     # ('authors', { 'type': 'id-ref', 'count': 'multiple', 'example': 'a/Mark_Twain' }),
                     ('contributions', {
                         'type': 'string',
                         'count': 'multiple',
-                        'marc_fields': '700:abcde',
+                        'marc_fields': ['700:abcde', '710:ab', '711:acdn'],
                         'example': 'Illustrated by: Steve Bjorkman' }),
                     ('title', {
                         'type': 'string',
@@ -141,7 +141,7 @@ schema_ordered = {
                     ('language', {
                         'type': 'string',
                         'marc_fields': '"ISO:" 008:35-37 +',
-                        'example': 'ISO: tel',
+                        'example': 'ISO:tel',
                         'description': "coded or human-readable description of the text's language" }),
                     ('physical_format', {
                         'type': 'string',
