@@ -1,6 +1,6 @@
 #!/bin/sh -e
 
-source ./config.sh
+. ./config.sh
 
 exec $PYTHON_INTERPRETER onix.py
 

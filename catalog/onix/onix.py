@@ -7,8 +7,8 @@
 # data is encoded with opaque ("short") names.)
 
 from xml.sax.handler import *
-from sax_utils import *
-import xmltramp
+from catalog.onix.sax_utils import *
+from catalog.onix import xmltramp
 
 repo_path = os.getenv ("PHAROS_REPO")
 codelists_path = "%s/%s" % (repo_path, "catalog/onix/ONIX_BookProduct_CodeLists.xsd")
