@@ -95,7 +95,7 @@ def compile_marc_spec (spec):
     def spec_die (msg):
         die ("in marc spec '%s': %s" % (spec, msg))
 
-    terms = re_spaces.split (spec)
+    terms = [ t for t in re_spaces.split (spec) if t ]
 
     vals = []   # a stack of value generators
     def push (v):
@@ -161,6 +161,7 @@ def call_generator (f, arg_generators):
                     for rest_list in rest_lists:
                         yield [a] + rest_list
         for arglist in generate_arglists (arg_generators):
+            arglist.reverse ()
             yield f (*arglist)
     return value_generator
 

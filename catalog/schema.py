@@ -41,14 +41,6 @@ schema_ordered = {
 
             'edition':
             [ 
-                    ('test', {
-                        'count': 'multiple',
-                        'marc_fields': '"--------a-------" "=======b=======" +'
-                        }),
-                    ('test_literal', {
-                        'count': 'multiple',
-                        'marc_fields': '"literal" clean'
-                        }),
                     ('source_record_loc', {
                         'type': 'string',
                         'count': 'multiple',
