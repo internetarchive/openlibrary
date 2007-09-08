@@ -5,11 +5,14 @@ from types import *
 from string import strip, join
 from unicodedata import normalize
 from urllib import urlencode
+from os import getenv
 
 from MARC21 import *
 from MARC21Biblio import *
 from catalog.lang import *
 from catalog.schema import schema
+
+discard_extra_values = getenv ("PHAROS_DISCARD_EXTRA_VALUES")
 
 record_id_delimiter = ":"
 record_loc_delimiter = ":"
@@ -56,8 +59,12 @@ def distill_record (r, file_locator, source_id):
             field_values = [ normalize_string (s) for s in marc_value_generator (r) ]
             field_values = list (set (field_values))  # remove duplicates
         if (len (field_values) > 1 and not multiple):
-            die ("record %s: multiple values from MARC data for single-valued OL field '%s'" %
-                 (urlencode_record_locator (r, file_locator), field_name))
+            msg = "record [%s]: multiple values from MARC data for single-valued OL field '%s'" % (encode_record_locator (r, file_locator), field_name)
+            if discard_extra_values:
+                warn (msg + "; using first value")
+                edition[field_name] = field_values[0]
+            else:
+                die (msg)
         if (len (field_values) > 0):
             edition[field_name] = (multiple and field_values) or field_values[0];
     return edition
@@ -343,6 +350,7 @@ if __name__ == "__main__":
     source_id = sys.argv[1]
     file_locator = sys.argv[2]
     for item in parser (sys.stdin, file_locator, source_id):
-        print ""
-        print item['source_record_loc'][0]
-        print item
+        # print ""
+	print item['source_record_id'][0]
+        # print item['source_record_loc'][0]
+        # print item
