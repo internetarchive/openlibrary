@@ -90,13 +90,14 @@ re_spaces = re.compile (r'\s+')
 
 # terms
 re_literal = re.compile (r'"([^"]*)"$')
-re_field = re.compile (r'(\d\d\d):(.*)$')
+re_field = re.compile (r'(\d[^:]+):(.*)$')
 # any string not matching the above can be a procedure name
 
 def null_generator (r):
     if 0: yield None
 
-def literal_generator (s):
+def literal_generator (m):
+    s = m.group (1)
     def gen (r):
         yield s
     return gen
@@ -125,12 +126,9 @@ def compile_marc_spec (spec):
         match_literal = re_literal.match (term)
         match_field = re_field.match (term)
         if match_literal:
-            s = match_literal.group (1)
-            push (literal_generator (s))
+            push (literal_generator (match_literal))
         elif match_field:
-            field = match_field.group (1)
-            subfield_spec = match_field.group (2)
-            push (field_generator (field, subfield_spec))
+            push (field_generator (match_field))
         else:
             proc = compile_procedure (term)
             if proc:
@@ -194,24 +192,38 @@ re_subfield_prefixed = re.compile (r'--([a-z])')
 # each instance of a subfield yielded separately (must be alone in a field-spec)
 re_subfield_separate = re.compile (r'([a-z])\*$')
 
-def field_generator (fieldname, subfield_spec):
+def field_generator (m):
+    field_spec = m.group (1)
+    subfield_spec = m.group (2)
 
-    warn ("field_generator: '%s':'%s'" % (fieldname, subfield_spec))
+    field_name = field_spec
+    subfield_values = subfield_generator (subfield_spec)
+
+    def gen (r):
+        for field in r.get_fields (field_name):
+            for val in subfield_values (field):
+                yield val
+    return gen
+
+def subfield_generator (subfield_spec):
+
+    warn ("subfield_generator: '%s'" % subfield_spec)
 
     def subfield_die (msg):
-        die ("schema: in field '%s', concerning subfield spec '%s': %s" % (fieldname, subfield_spec, msg))
+        die ("schema: in subfield spec '%s': %s" % (subfield_spec, msg))
 
-    def code_chars (start, end):
-        assert isControlFieldTag (fieldname)
+    def code_chars (m):
+        start = int (m.group (1))
+        end = int (m.group (2))
         assert start <= end
         lim = end+1
         warn ("chars: [%d,%d)" % (start, lim))
-        def gen (r):
-            for f in r.get_fields (fieldname):
-                yield str(f)[start:lim]
+        def gen (field):
+            yield str(field)[start:lim]
         return gen
 
     def concatenated_subfields (subfield_spec):
+        # concatenate all indicated subfields into one string per field instance
 
         def range_subfields (m):
             low = m.group (1)
@@ -249,47 +261,36 @@ def field_generator (fieldname, subfield_spec):
                                                   (re_subfield_prefixed, prefixed_subfields)],
                                                  subfield_spec))
 
-        # given a particular field, produce all the subfield values requested
+        # given a field object, extract all the subfield values requested
         def subfields_generator (field):
             for sfg in subfield_generators:
                 for sf in sfg (field):
                     yield sf
 
-        def gen (r):
-            # for each field instance, concatenate all requested subfield values into one string
-            for field in r.get_fields (fieldname):
-                yield " ".join ([ sf for sf in subfields_generator(field) ])
+        def gen (field):
+            # for each field object, concatenate all requested subfield values into one string
+            yield " ".join ([ sf for sf in subfields_generator(field) ])
 
         return gen
 
-    def separate_subfields (subfield_name):
+    def separate_subfields (m):
+        subfield_name = m.group (1)
         warn ("separate: %s" % subfield_name)
-        def gen (r):
-            for field in r.get_fields (fieldname):
-                for subfield in clean_subfields (field, subfield_name):
-                    yield subfield
+        def gen (field):
+            # produce a value for each individual subfield occurence
+            for subfield in clean_subfields (field, subfield_name):
+                yield subfield
         return gen
 
-    if (isControlFieldTag (fieldname)):
-        m = re_positions.match (subfield_spec)
-        if m:
-            start = int (m.group (1))
-            end = int (m.group (2))
-            return code_chars (start, end)
-        else:
-            subfield_die ("ill-formed control-field character-range")
+    m = re_positions.match (subfield_spec)
+    if m:
+        return code_chars (m)
+    m = re_subfield_separate.match (subfield_spec)
+    if m:
+        return separate_subfields (m)
     else:
-        # Data field
-        m = re_subfield_separate.match (subfield_spec)
-        if m:
-            subfield = m.group (1)
-            # no matter how many times a subfield appears within a particular instance
-            # of a field, produce a separate value for it
-            return separate_subfields (subfield)
-        else:
-            # concatenate all indicated subfields into one string per field instance
-            return concatenated_subfields (subfield_spec)
-        subfield_die ("couldn't parse spec")
+        return concatenated_subfields (subfield_spec)
+    subfield_die ("couldn't parse spec")
 
 def clean_subfields (field, subfield_name):
     for subfield in field.get_elts (subfield_name):
