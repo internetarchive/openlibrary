@@ -150,7 +150,8 @@ schema_ordered = {
                     ('notes', {
                         'type': 'string',
                         'count': 'multiple',
-                        'marc_fields': '5XX!505!520:a-z', }),
+                        # 'marc_fields': '5XX!505!520:a-z',
+                        }),
                     ('description', {
                         'type': 'text',
                         'marc_fields': '520:a'
