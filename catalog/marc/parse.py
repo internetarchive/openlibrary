@@ -183,43 +183,91 @@ def call_generator (f, arg_generators):
                 yield val
     return value_generator
 
-re_subfields_exact = re.compile (r'[a-z]+$')
-re_subfields_range = re.compile (r'([a-z])-([a-z])$')
-re_subfield_separate = re.compile (r'([a-z])\*$')
+# characters in a control field
 re_positions = re.compile (r'(\d+)-(\d+)$')
+
+# multiple subfields, concatenated
+re_subfields_range = re.compile (r'([a-z])-([a-z])')
+re_subfield_exact = re.compile (r'[a-z]')
+re_subfield_prefixed = re.compile (r'--([a-z])')
+
+# each instance of a subfield yielded separately (must be alone in a field-spec)
+re_subfield_separate = re.compile (r'([a-z])\*$')
 
 def field_generator (fieldname, subfield_spec):
 
-    warn ("field_generator: '%s'/'%s'" % (fieldname, subfield_spec))
+    warn ("field_generator: '%s':'%s'" % (fieldname, subfield_spec))
 
     def subfield_die (msg):
         die ("schema: in field '%s', concerning subfield spec '%s': %s" % (fieldname, subfield_spec, msg))
 
-    def code_chars_generator (start, end):
+    def code_chars (start, end):
         assert isControlFieldTag (fieldname)
         assert start <= end
+        lim = end+1
+        warn ("chars: [%d,%d)" % (start, lim))
         def gen (r):
             for f in r.get_fields (fieldname):
-                yield str(f)[start:end+1]
+                yield str(f)[start:lim]
         return gen
 
-    def subfields_generator (subfields_lister):
+    def concatenated_subfields (subfield_spec):
+
+        def range_subfields (m):
+            low = m.group (1)
+            hi = m.group (2)
+            if low > hi:
+                subfield_die ("range is ill-formed")
+            warn ("range: (%s-%s)" % (low, hi))
+            def gen (field):
+                for subfield_name in field.subfields ():
+                    if (subfield_name >= low and subfield_name <= hi):
+                        for subfield in clean_subfields (field, subfield_name):
+                            yield subfield
+            return gen
+
+        def exact_subfields (m):
+            subfield_name = m.group (0)
+            warn ("exact: '%s'" % subfield_name)
+            def gen (field):
+                for subfield in clean_subfields (field, subfield_name):
+                    yield subfield
+            return gen
+
+        def prefixed_subfields (m):
+            subfield_name = m.group (1)
+            warn ("prefixed: '%s'" % subfield_name)
+            def gen (field):
+                for subfield in clean_subfields (field, subfield_name):
+                    yield ("-- " + subfield)
+            return gen
+
+        # parse the subfield_spec into a list of subfield-value generators
+        # (note that the order of REs provided is important -- e.g. range before exact)
+        subfield_generators = list (re_tokenize ([(re_subfields_range, range_subfields),
+                                                  (re_subfield_exact, exact_subfields),
+                                                  (re_subfield_prefixed, prefixed_subfields)],
+                                                 subfield_spec))
+
+        # given a particular field, produce all the subfield values requested
+        def subfields_generator (field):
+            for sfg in subfield_generators:
+                for sf in sfg (field):
+                    yield sf
+
         def gen (r):
-            for f in r.get_fields (fieldname):
-                def subfield_data (sf):
-                    return " ".join ([ s for s in [ strip (ss) for ss in f.get_elts (sf) ] if s ])
-                subfields = subfields_lister (f)
-                fval = " ".join ([ s for s in map (subfield_data, subfields) if s ])
-                if fval:
-                    yield fval
+            # for each field instance, concatenate all requested subfield values into one string
+            for field in r.get_fields (fieldname):
+                yield " ".join ([ sf for sf in subfields_generator(field) ])
+
         return gen
 
-    def subfield_separate_generator (subfield_name):
+    def separate_subfields (subfield_name):
         warn ("separate: %s" % subfield_name)
         def gen (r):
-            for f in r.get_fields (fieldname):
-                for sf in f.get_elts (subfield_name):
-                    yield sf
+            for field in r.get_fields (fieldname):
+                for subfield in clean_subfields (field, subfield_name):
+                    yield subfield
         return gen
 
     if (isControlFieldTag (fieldname)):
@@ -227,29 +275,27 @@ def field_generator (fieldname, subfield_spec):
         if m:
             start = int (m.group (1))
             end = int (m.group (2))
-            return code_chars_generator (start, end)
+            return code_chars (start, end)
         else:
             subfield_die ("ill-formed control-field character-range")
     else:
-        if re_subfields_exact.match (subfield_spec):
-            subfields_exact = list (subfield_spec)
-            warn ("subfields_exact: %s" % subfields_exact)
-            subfields_lister = lambda f: subfields_exact
-            return subfields_generator (subfields_lister)
-        m = re_subfields_range.match (subfield_spec)
-        if m:
-            low = m.group (1)
-            hi = m.group (2)
-            if low > hi:
-                subfield_die ("range is ill-formed")
-            warn ("subfields_range: (%d,%d)" % (low, hi))
-            subfields_lister = lambda f: [ s for s in f.subfields () if (s >= low and s <= hi) ]
-            return subfields_generator (subfields_lister)
+        # Data field
         m = re_subfield_separate.match (subfield_spec)
         if m:
             subfield = m.group (1)
-            return subfield_separate_generator (subfield)
+            # no matter how many times a subfield appears within a particular instance
+            # of a field, produce a separate value for it
+            return separate_subfields (subfield)
+        else:
+            # concatenate all indicated subfields into one string per field instance
+            return concatenated_subfields (subfield_spec)
         subfield_die ("couldn't parse spec")
+
+def clean_subfields (field, subfield_name):
+    for subfield in field.get_elts (subfield_name):
+        subfield = strip (subfield)
+        if subfield:
+            yield subfield
 
 def unicode_to_utf8 (u):
     nu = normalize ('NFKC', u)
@@ -262,6 +308,19 @@ def normalize_string (s):
         return unicode_to_utf8 (s)
     else:
         die ("normalize_string called on non-string: %s" % s)
+
+def re_tokenize (clauses, target, pos=0):
+    tlen = len (target)
+    while pos < tlen:
+        m = None
+        for (pattern, handler) in clauses:
+            m = pattern.match (target, pos)
+            if m: break
+        if m:
+            pos = m.end ()
+            yield (handler (m))
+        else:
+            die ("re_tokenize: no match at position %d for target '%s'" % (pos, target))
 
 ### authors
 
@@ -374,13 +433,12 @@ procedures['author_id'] = (1, author_id)
 initialize_marc_value_generators ()
 
 if __name__ == "__main__":
-    if len (sys.argv) == 2:
+    if len (sys.argv) == 3:
         source_id = sys.argv[1]
         file_locator = sys.argv[2]
         for item in parser (sys.stdin, file_locator, source_id):
-            # print ""
-            print item['source_record_id'][0]
-            # print item['source_record_loc'][0]
-            # print item
+            print ""
+            print ">>> " + item['source_record_loc'][0]
+            print item
     else:
         die ("usage: parse.py source_id file_locator")
