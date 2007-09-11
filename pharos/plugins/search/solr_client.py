@@ -183,7 +183,6 @@ class Solr_client(object):
                                  echo Search::querySolr(pack("H*", "%s"),
                                  false,
                                  array("title"=>100,
-                                       "description"=>0.5,
                                        "creator"=>15,
                                        "language"=>10,
                                        "text"=>1,

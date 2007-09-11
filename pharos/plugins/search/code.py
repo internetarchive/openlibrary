@@ -34,7 +34,7 @@ class search(delegate.page):
             errortext = 'You need to enter some search terms.'
         else:
             try:
-                query = i.q.replace(' ', '+')
+                query = i.q.rstrip()
                 #query = query.split(' ')
                 #for x in stopwords:
                 #    if x in query: query.remove(x)
