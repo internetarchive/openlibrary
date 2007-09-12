@@ -196,19 +196,65 @@ re_subfield_prefixed = re.compile (r'--([a-z])')
 re_subfield_separate = re.compile (r'([a-z])\*$')
 
 def field_generator (m):
+    warn (">>>> '%s'" % m.group (0))
     field_spec = m.group (1)
     subfield_spec = m.group (2)
 
-    field_name = field_spec
-    subfield_values = subfield_generator (subfield_spec)
+    field_names = fieldname_generator (field_spec)
+    subfield_values = subfield_value_generator (subfield_spec)
 
     def gen (r):
-        for field in r.get_fields (field_name):
-            for val in subfield_values (field):
-                yield val
+        for field_name in field_names (r):
+            for field in r.get_fields (field_name):
+                for val in subfield_values (field):
+                    yield val
     return gen
 
-def subfield_generator (subfield_spec):
+re_field_separator = re.compile (r',')
+re_field_exclude = re.compile (r'\!(\d\d\d)')
+re_field_range = re.compile (r'(\d\d\d)-(\d\d\d)')
+re_field_exact = re.compile (r'\d\d\d')
+
+def fieldname_generator (field_spec):
+    excluded = {}
+    def handle_excluded_field (m):
+        field_name = m.group (1)
+        excluded[field_name] = 1
+        return None
+    def handle_field_range (m):
+        lo = int (m.group (1))
+        hi = int (m.group (2))
+        warn ("field-range [%d,%d]" % (lo,hi))
+        def gen (r):
+            for field_name in r.fields ():
+                field_n = int (field_name)
+                if lo <= field_n <= hi:
+                    yield str (field_n)
+        return gen
+    def handle_exact_field (m):
+        field_name = m.group (0)
+        warn ("field '%s'" % field_name)
+        def gen (r):
+            yield field_name
+        return gen
+
+    fieldname_generators = filter (lambda x: x,
+                                   re_tokenize ([(re_field_range, handle_field_range),
+                                                 (re_field_exact, handle_exact_field),
+                                                 (re_field_exclude, handle_excluded_field),
+                                                 (re_field_separator, lambda m: None)],
+                                                field_spec))
+    if len (excluded):
+        warn ("excluded: %s" % excluded)
+
+    def gen (r):
+        for fg in fieldname_generators:
+            for field_name in fg (r):
+                if not excluded.get (field_name):
+                    yield field_name
+    return gen
+
+def subfield_value_generator (subfield_spec):
 
     warn ("subfield_generator: '%s'" % subfield_spec)
 
