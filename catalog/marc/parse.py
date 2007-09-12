@@ -196,7 +196,7 @@ re_subfield_prefixed = re.compile (r'--([a-z])')
 re_subfield_separate = re.compile (r'([a-z])\*$')
 
 def field_generator (m):
-    warn (">>>> '%s'" % m.group (0))
+    # warn (">>>> '%s'" % m.group (0))
     field_spec = m.group (1)
     subfield_spec = m.group (2)
 
@@ -224,7 +224,7 @@ def fieldname_generator (field_spec):
     def handle_field_range (m):
         lo = int (m.group (1))
         hi = int (m.group (2))
-        warn ("field-range [%d,%d]" % (lo,hi))
+        # warn ("field-range [%d,%d]" % (lo,hi))
         def gen (r):
             for field_name in r.fields ():
                 field_n = int (field_name)
@@ -233,7 +233,7 @@ def fieldname_generator (field_spec):
         return gen
     def handle_exact_field (m):
         field_name = m.group (0)
-        warn ("field '%s'" % field_name)
+        # warn ("field '%s'" % field_name)
         def gen (r):
             yield field_name
         return gen
@@ -244,8 +244,8 @@ def fieldname_generator (field_spec):
                                                  (re_field_exclude, handle_excluded_field),
                                                  (re_field_separator, lambda m: None)],
                                                 field_spec))
-    if len (excluded):
-        warn ("excluded: %s" % excluded)
+    # if len (excluded):
+    #    warn ("excluded: %s" % excluded)
 
     def gen (r):
         for fg in fieldname_generators:
@@ -256,7 +256,7 @@ def fieldname_generator (field_spec):
 
 def subfield_value_generator (subfield_spec):
 
-    warn ("subfield_generator: '%s'" % subfield_spec)
+    # warn ("subfield_generator: '%s'" % subfield_spec)
 
     def subfield_die (msg):
         die ("schema: in subfield spec '%s': %s" % (subfield_spec, msg))
@@ -266,7 +266,7 @@ def subfield_value_generator (subfield_spec):
         end = int (m.group (2))
         assert start <= end
         lim = end+1
-        warn ("chars: [%d,%d)" % (start, lim))
+        # warn ("chars: [%d,%d)" % (start, lim))
         def gen (field):
             yield str(field)[start:lim]
         return gen
@@ -279,7 +279,7 @@ def subfield_value_generator (subfield_spec):
             hi = m.group (2)
             if low > hi:
                 subfield_die ("range is ill-formed")
-            warn ("range: (%s-%s)" % (low, hi))
+            # warn ("range: (%s-%s)" % (low, hi))
             def gen (field):
                 for subfield_name in field.subfields ():
                     if (subfield_name >= low and subfield_name <= hi):
@@ -289,7 +289,7 @@ def subfield_value_generator (subfield_spec):
 
         def exact_subfields (m):
             subfield_name = m.group (0)
-            warn ("exact: '%s'" % subfield_name)
+            # warn ("exact: '%s'" % subfield_name)
             def gen (field):
                 for subfield in clean_subfields (field, subfield_name):
                     yield subfield
@@ -297,7 +297,7 @@ def subfield_value_generator (subfield_spec):
 
         def prefixed_subfields (m):
             subfield_name = m.group (1)
-            warn ("prefixed: '%s'" % subfield_name)
+            # warn ("prefixed: '%s'" % subfield_name)
             def gen (field):
                 for subfield in clean_subfields (field, subfield_name):
                     yield ("-- " + subfield)
@@ -324,7 +324,7 @@ def subfield_value_generator (subfield_spec):
 
     def handle_separate_subfields (m):
         subfield_name = m.group (1)
-        warn ("separate: %s" % subfield_name)
+        # warn ("separate: %s" % subfield_name)
         def gen (field):
             # produce a value for each individual subfield occurence
             for subfield in clean_subfields (field, subfield_name):
