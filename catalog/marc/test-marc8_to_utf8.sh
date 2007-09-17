@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source config.sh
+. ./config.sh
 
 string="3:foo,"
 result=`echo -n $string | ${PHAROS_PERL?} marc8_to_utf8.pl`

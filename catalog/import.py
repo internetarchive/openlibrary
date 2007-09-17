@@ -6,7 +6,7 @@ from types import *
 
 import web
 import infogami.tdb as tdb
-from infogami.tdb import NotFound, Things, LazyThing
+from infogami.tdb.tdb import NotFound, Things, LazyThing
 from items import *
 from lang import *
 
@@ -160,6 +160,10 @@ def import_item (x):
 	global edition_records
 	record_id = x["source_record_id"]
 	if record_id in edition_records:
+		# XXX: just skip the record ... but what we should
+		# actually do is compare its transaction date (ask kcoyle how to
+		# determine this for the various formats) to that of the record
+		# we already have, and replace it if the new one is more recent.
 		skipped += 1
 		if skipped % 100 == 0:
 			warn ("skipped %d" % skipped)
@@ -191,7 +195,7 @@ def import_item (x):
 	e.authors = authors
 	e.save ()
 	item_names[name] = e.id
-	edition_records.add (e.source_record_
+	edition_records.add (e.source_record_id)
 	imported += 1
 	if imported % 100 == 0:
 		warn ("imported %d" % imported)
@@ -306,7 +310,7 @@ def getvar (name, required=True):
 		raise Exception ("found no environment variable %s" % name)
 	return val
 
-def import_cached_file ()
+def import_cached_file ():
 	# this is the "old" approach to importing; ideally, we would
 	# instead use import_source(), which gets all its parameters from
 	# metadata stored at the Archive item
@@ -322,7 +326,7 @@ def import_cached_file ()
 	if source_pos:
 		input.seek (source_pos)
 
-	import_file (source_type, source_id, file_locator, input):
+	import_file (source_type, source_id, file_locator, input)
 
 if __name__ == "__main__":
 	setup()
