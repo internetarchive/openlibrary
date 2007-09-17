@@ -19,13 +19,13 @@ record_loc_delimiter = ":"
 
 marc_value_generators = {}
 
-def parser (file, file_locator, source_id):
+def parser (source_id, file_locator, input):
     if (source_id.find (record_id_delimiter) >= 0):
         die ("the source id '%s' contains the record-id delimiter '%s'" % (source_id, record_id_delimiter))
     if (file_locator.find (record_loc_delimiter) >= 0):
         die ("the file locator '%s' contains the record-locator delimiter '%s'" % (file_locator, record_loc_delimiter))
 
-    f = MARC21BiblioFile (file)
+    f = MARC21BiblioFile (input)
     try:
         while True:
             try:
@@ -489,7 +489,7 @@ if __name__ == "__main__":
     if len (sys.argv) == 3:
         source_id = sys.argv[1]
         file_locator = sys.argv[2]
-        for item in parser (sys.stdin, file_locator, source_id):
+        for item in parser (source_id, file_locator, sys.stdin):
             print ""
             print ">>> " + item['source_record_loc'][0]
             print item

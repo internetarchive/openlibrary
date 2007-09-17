@@ -1,29 +1,22 @@
 #!/bin/bash
 
-export PHAROS_DBNAME=pharos
-export PHAROS_DBUSER=pharos
-export PHAROS_DBPASS=pharos
-export PHAROS_LOGFILE="/1/pharos/db/$PHAROS_DBNAME"
+CONFIG=${1:?}
+. $CONFIG
 
-export PHAROS_SITE="openlibrary.org"
-export PHAROS_EDITION_PREFIX="b/"
-export PHAROS_AUTHOR_PREFIX="a/"
-
-export PHAROS_SOURCE_DIR=/1/pharos/sources/
-export URL_CACHE_DIR=/1/pharos/sources/onix/urlcache/
-export PHAROS_REPO=~dbg/repo
-
-# destroy the database
+# # to destroy the database:
 # rm $PHAROS_LOGFILE
 # dropdb -U $PHAROS_DBUSER $PHAROS_DBNAME
 
-# create a fresh database
+# # to create a fresh database:
 # createdb -U $PHAROS_DBUSER $PHAROS_DBNAME
-# psql -U $PHAROS_DBUSER $PHAROS_DBNAME < $PHAROS_REPO/infogami/infogami/tdb/schema.sql
+# psql -U $PHAROS_DBUSER $PHAROS_DBNAME < $INFOGAMI_PATH/tdb/schema.sql
 
-# import some data
-SOURCE_TYPE=${1:?}
-SOURCE_NAME=${2:?}
-SOURCE_POS=$3
+# identify the data to be imported
+SOURCE_TYPE=${2:?}	# the record type; e.g., "marc"
+SOURCE_ID=${3:?}	# the source catalog; e.g., "LC"
+FILE_LOCATOR=${4:?}	# the file_locator (an Archive item id plus path to file); e.g., "marc_records_scriblio_net/part01.dat"
 
-python2.4 $PHAROS_REPO/catalog/import.py $SOURCE_TYPE $SOURCE_NAME $SOURCE_POS
+# note: the import program expects the data associated with FILE_LOCATOR on stdin
+
+exec python2.4 $PHAROS_REPO/catalog/import.py $SOURCE_TYPE $SOURCE_ID $FILE_LOCATOR
+
