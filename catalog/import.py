@@ -83,11 +83,26 @@ parsers = {
 	'oca': oca_parser
 	}
 
-def import_file (type, input):
-	parser = parsers[type]
+def import_source (source_locator):
+	# source_locator: an Archive item id; e.g., "marc_records_scriblio_net"
+	source_type = get_source_type (source_locator)
+	source_id = get_source_id (source_locator)
+	file_locators = get_file_locators (source_locators)
+
+	for file_locator in file_locators:
+		input = open_file_locator (file_locator)
+		import_file (source_type, source_id, file_locator, input)
+	
+def import_file (source_type, source_id, file_locator, input):
+	# file_locator: an Archive item id plus path to file; e.g., "marc_records_scriblio_net/part01.dat"
+
+	parser = parsers.get (source_type)
+	if not parser:
+		die ("sorry, we don't have a parser for catalogs of type '%s'" % source_type)
+
 	n = 0
 	# web.transact ()
-	for x in parser (input):
+	for x in parser (source_id, file_locator, input):
 		n += 1
 		import_item (x)
 		# if n % 1000 == 0:
@@ -97,6 +112,27 @@ def import_file (type, input):
 			sys.stderr.write ("." * 30 + " read %d records\n" % n)
 	# web.commit ()
 	sys.stderr.write ("\nread %d records\n" % n)
+
+def get_source_file_locators (source_locator):
+	# this should use HTTP to query the Archive item at source_locator
+	# and look at OpenLibrary-specific metadata there (not yet invented) to determine the
+	# list of file_locators
+	return []
+
+def get_source_type (source_locator):
+	# this should use HTTP to query the Archive item at source_locator
+	# and look at OpenLibrary-specific metadata there (not yet invented) to determine the type
+	return "marc"
+
+def get_source_id (source_locator):
+	# this should use HTTP to query the Archive item at source_locator
+	# and look at OpenLibrary-specific metadata there (not yet invented) to determine the source id
+	return "LC"
+
+def open_file_locator (file_locator):
+	# this should use HTTP to retrieve the data from the indicated file,
+	# or something equivalent like consulting a local cache.
+	die ("unimplemented")
 
 skipped = 0
 imported = 0
