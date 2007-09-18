@@ -5,10 +5,12 @@ import os
 from types import *
 
 import web
-import infogami.tdb as tdb
-from infogami.tdb.tdb import NotFound, Things, LazyThing
-from items import *
+from infogami.tdb.tdb import NotFound, Things, Thing, LazyThing
+import infogami.tdb.tdb
 from lang import *
+
+global tdb
+tdb = None
 
 from oca.parse import parser as oca_parser
 from marc.parse import parser as marc_parser
@@ -23,12 +25,18 @@ item_names = {}
 def setup ():
 	dbname = getvar ("PHAROS_DBNAME")
 	dbuser = getvar ("PHAROS_DBUSER")
-	dbpass = getvar ("PHAROS_DBPASS")
-	web.config.db_parameters = dict(dbn='postgres', db=dbname, user=dbuser, pw=dbpass)
+	dbpass = getvar ("PHAROS_DBPASS", False)
+	web.config.db_parameters = dict(dbn='postgres', db=dbname, user=dbuser)
+	if dbpass:
+		web.config.db_parameters['pw'] = dbpass
 	web.db._hasPooling = False
 	web.config.db_printing = False
 	web.load()
-	tdb.setup()
+
+	global tdb
+	tdb = infogami.tdb.tdb.SimpleTDBImpl ()
+	tdb.setup ()
+
 	logfile = getvar ("PHAROS_LOGFILE", False)
 	if logfile:
 		tdb.logger.set_logfile (open (logfile, "a"))
@@ -41,17 +49,14 @@ def setup ():
 	setup_names ()
 
 def setup_names ():
-	global item_names, edition_records, source_name
+	global item_names, edition_records
 
 	# suck in all the Thing names in the database, in order to have them in
 	# memory when trying to generate a unique name.  (note that this assumes
 	# the database is not being changed by others during the import.)
 
 	warn ("getting all Thing names from the database ...")
-	author_type = Author.type ()
-	edition_type = Edition.type ()
-	parent_id = site_object().id
-	for t in Things():
+	for t in Things(tdb):
 		item_names[t.name] = t.id
 	
 	# the above code is not tested, and used to be this:
@@ -59,8 +64,10 @@ def setup_names ():
 	#		item_names[r.name] = r.id
 
 	warn ("getting all Edition source_record_ids from the database ...")
-	for e in Things(type='edition'):
-		edition_records.add (e.source_record_id)
+	for e in Things(tdb, type=edition_type()):
+		ids = e.get ('source_record_id', [])
+		for id in ids:
+			edition_records.add (id)
 
 	# the above code is not tested, and used to be this:
 	# (because records used to be identified by <source_name,source_record_pos>
@@ -146,7 +153,7 @@ def import_author (x):
 		a = LazyThing (aid)
 		warn ("(AUTHOR %s)" % name)
 	else:
-		a = Author (name, d=massage_dict (x))
+		a = make_author (name, x)
 		a.save ()
 		item_names[name] = a.id
 		warn ("AUTHOR %s" % name)
@@ -156,18 +163,19 @@ def import_item (x):
 	global skipped, imported
 
 	record_locator = x['source_record_loc']
+	warn ("import_item: %s" % record_locator)
 
 	global edition_records
-	record_id = x["source_record_id"]
-	if record_id in edition_records:
-		# XXX: just skip the record ... but what we should
-		# actually do is compare its transaction date (ask kcoyle how to
-		# determine this for the various formats) to that of the record
-		# we already have, and replace it if the new one is more recent.
-		skipped += 1
-		if skipped % 100 == 0:
-			warn ("skipped %d" % skipped)
-		return
+	for record_id in x["source_record_id"]:
+		if record_id in edition_records:
+			# XXX: just skip the record ... but what we should
+			# actually do is compare its transaction date (ask kcoyle how to
+			# determine this for the various formats) to that of the record
+			# we already have, and replace it if the new one is more recent.
+			skipped += 1
+			if skipped % 100 == 0:
+				warn ("skipped %d" % skipped)
+			return
 
 	if not x.get ("title"):
 		# warn ("no title in record %s" % record_locator)
@@ -191,16 +199,53 @@ def import_item (x):
 		warn ("couldn't find a unique name for %s" % x)
 		return
 
-	e = Edition (name, d=x)
+	e = make_edition (name, x)
 	e.authors = authors
 	e.save ()
 	item_names[name] = e.id
-	edition_records.add (e.source_record_id)
+	edition_records.update (e.get ('source_record_id', []))
 	imported += 1
 	if imported % 100 == 0:
 		warn ("imported %d" % imported)
 
 	warn ("EDITION %s" % name)
+
+def make_edition (name, data):
+	type = edition_type ()
+	return make_thing (name, type, data)
+
+def make_author (name, data):
+	type = author_type ()
+	return make_thing (name, type, data)
+
+def make_thing (name, type, data):
+	id = None
+	parent = site_object ()
+	latest_revision = None
+	v = None
+	return Thing (tdb, id, name, parent, latest_revision, v, type, data)
+	
+@memoized
+def edition_type (): return type_object ("edition")
+
+@memoized
+def author_type (): return type_object ("author")
+
+def type_object (type_name):
+	try:
+		return tdb.withName ("type/" + type_name, site_object ())
+	except NotFound:
+		die ("can't find type object for type '%s'" % type_name)
+	
+@memoized
+def site_object ():
+	site_name = os.getenv ("PHAROS_SITE")
+	if not site_name:
+		raise Exception ("no site name found in PHAROS_SITE environment variable")
+	try:
+		return tdb.withName (site_name, tdb.root)
+	except NotFound:
+		raise Exception ("no site object for site named '%'" % site_name)
 
 ignore_title_words = ['a', 'the']
 tsep = '_'
@@ -232,23 +277,12 @@ def edition_name_choices (x):
 	yield name
 
 	def extensions (name):
-		ed_number = x.get ('edition_number')
-		if ed_number:
-			name = tsep.join ([name, name_string (ed_number)])
-			yield name
-
-		ed_type = x.get ('edition_type')
-		if ed_type:
-			name = tsep.join ([name, name_string (ed_type)])
-			yield name
-
 		ed = x.get ('edition')
 		if ed:
 			name = tsep.join ([name, name_string (ed)])
 			yield name
 
-		format = x.get ('physical_format')
-		if format:
+		for format in x.get ('physical_format', []):
 			name = tsep.join ([name, name_string (format)])
 			yield name
 
