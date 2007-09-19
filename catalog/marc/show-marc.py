@@ -25,22 +25,24 @@ def main():
         f = form.getfirst(fieldname, "")
         return f
     
-    res = getval('file')
-    offset = int(getval('offset'))
-    length = int(getval('length'))
+    locator = getval ('record')
+    if locator:
+        (file, offset, length) = locator.split (":")
+        offset = int (offset)
+        length = int (length)
+    else:
+        file = getval('file')
+        offset = int(getval('offset'))
+        length = int(getval('length'))
+        locator = "%s:%d:%d" % (file, offset, length)
 
-    print "record_locator: <code>%s:%d:%d</code><p/><hr>"% (res, offset, length)
-    # print "Your query:"
-    # print "<pre>"
-    # print (res, offset, length)
-    # print "</pre>"
+    print "record_locator: <code>%s</code><p/><hr>" % locator
 
     r0, r1 = offset, offset+length-1
-    url = 'http://www.archive.org/download/%s'% res
+    url = 'http://www.archive.org/download/%s'% file
 
     assert 0 < length < 100000
-    assert re.match('[\w/_.]+$', res)
-
+    assert re.match('[\w/_.]+$', file)
 
     t0 = time()
     ureq = urllib2.Request(url,

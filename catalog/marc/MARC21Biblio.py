@@ -81,6 +81,9 @@ class MARC21BiblioRecord:
         def get_field (self, tag, default=None):
                 return self.marc21_record.get_field (tag, default)
 
+	def fields (self):
+		return self.marc21_record.fields ()
+
 	def get_fields (self, tag):
 		return self.marc21_record.get_fields (tag)
 

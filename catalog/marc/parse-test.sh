@@ -1,4 +1,6 @@
-source config.sh
+#!/bin/bash -e
+
+. ./config.sh
 
 source_id=${1:-"LC"}
 file_loc=${2:-"marc_records_scriblio_net/part01.dat"}

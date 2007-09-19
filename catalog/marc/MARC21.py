@@ -390,10 +390,10 @@ def MARC21PrettyPrint(M, outfile=sys.stdout):
                                                 print >>outfile, '\t%s : %s'%(subfield,subfieldContent.encode ('utf8'))
 
 def xlist(x):
-    return x if type(x)==list else [x]
+    return ((type(x) is list and x) or [x])
 
 def sp(c):
-    return ('&nbsp;' if c==' ' else c)
+    return ((c==' ' and '&nbsp;') or c)
 
 from unicodedata import normalize
 
