@@ -1,21 +1,7 @@
 # a python representation of the Open Library schema
-# (run this to produce an html representation)
-
-### questions
-# agencies/orgs as "authors" or "contributors"?
-# "020 $z - Canceled/invalid ISBN"
-# dewey decimal (and universal decimal?): need edition number?
-# strip punctuation:
-#       - title: "/", ";", ":"
-#       - publisher, publish_place
-# for our physical_format field, how about 245:h (Medium) and 300:c (Dimensions) ?
-# tag all 6XX fields as "LCSH"?
-
-# 024: A standard number or code published on an item which cannot be
-# accommodated in another field (e.g., field 020 (International Standard Book
-# Number), 022 (International Standard Serial Number) , and 027 (Standard
-# Technical Report Number)). The type of standard number or code is identified
-# in the first indicator position or in subfield $2 (Source of number or code).
+# (run this to produce an html representation, or invoke
+# it with the arguments "template edition" to print out
+# template markup for an edition item.)
 
 # Following is a python datastructure representing the field-schema for
 # bibliographic items in ThingDB.  Where the `count` attribute is not
