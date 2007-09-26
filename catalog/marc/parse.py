@@ -12,6 +12,10 @@ from MARC21Biblio import *
 from catalog.lang import *
 from catalog.schema import schema
 
+def warn (msg):
+	sys.stderr.write ("%s complained:\n  %s\n" % (curr_loc, msg))
+
+
 discard_extra_values = getenv ("PHAROS_DISCARD_EXTRA_VALUES")
 
 record_id_delimiter = ":"
@@ -46,8 +50,10 @@ def urlencode_record_locator (r, file_locator):
                         'length': r.record_len () })
 
 def distill_record (r, file_locator, source_id):
+    global curr_loc
     edition = {}
     edition['source_record_loc'] = [encode_record_locator (r, file_locator)]
+    curr_loc = edition['source_record_loc'][0]
     edition['source_record_id'] = [record_id_delimiter.join ([source_id,
                                                               strip (r.get_field_value ('003')),
                                                               strip (r.get_field_value ('001'))])]
