@@ -57,7 +57,12 @@ def distill_record (r, file_locator, source_id):
         marc_value_generator = marc_value_generators.get (field_name)
         if marc_value_generator:
             field_values = [ normalize_string (s) for s in marc_value_generator (r) ]
-            field_values = list (set (field_values))  # remove duplicates
+            # remove duplicates:
+            new_field_values = []
+            for value in field_values:
+                if value not in new_field_values:
+                    new_field_values.append(value)
+            field_values = new_field_values
         if (len (field_values) > 1 and not multiple):
             msg = "record [%s]: multiple values from MARC data for single-valued OL field '%s'" % (encode_record_locator (r, file_locator), field_name)
             if discard_extra_values:
