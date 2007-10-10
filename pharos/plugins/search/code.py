@@ -25,7 +25,7 @@ else:
     solr = None
 
 
-class search(delegate.page):
+class old_search(delegate.page):
     def GET(self, site):
         i = web.input(q=None)
         results = []
@@ -105,14 +105,7 @@ def tpanic(msg,x=0):
 import facet_hash
 facet_token = view.public(facet_hash.facet_token)
 
-class Facet:
-    def __init__(self, name, label, count):
-        self.name = name
-        self.label = label
-        self.count = count
-        self.token = facet_token(name, label)
-
-class advanced_search(delegate.page):
+class search(delegate.page):
     def GET(self, site):
         i = web.input(wtitle='',
                       wauthor='',
@@ -181,17 +174,6 @@ class advanced_search(delegate.page):
 
         ft_pairs = list((t, solr.facet_token_inverse(t)) for t in ft_list)
 
-        # where's the hose?
-        def find_hose():
-            class Hose(Exception): pass
-            def hose(a,b):
-                raise Hose, ('hoser',a,b)
-            from signal import signal,getsignal,SIGALRM,alarm
-            print >> web.debug, 'old alrm handler', getsignal(SIGALRM)
-            # signal(SIGALRM, hose)
-            alarm(7)
-        # find_hose()
-
         if not q0:
             errortext = 'You need to enter some search terms.'
             return render.advanced_search(i.get('wtitle',''),
@@ -207,12 +189,12 @@ class advanced_search(delegate.page):
         try:
             query = i.q.strip() + qtokens
             offset = int(i.get('offset', '0'))
-            qresults = solr.advanced_search(query, start=offset)
+            # qresults = solr.advanced_search(query, start=offset)
+            qresults = solr.basic_search(query, start=offset)
             facets = solr.facets(query, maxrows=5000)
             results = munch_qresults(qresults.result_list, site)
         except solr_client.SolrError:
             errortext = 'Sorry, there was an error in your search.'
-
 
         return render.advanced_search(i.get('q', ''),
                                       qresults,
