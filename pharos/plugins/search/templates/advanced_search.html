@@ -82,7 +82,6 @@ $else:
             $ fval = fentry[0]
             $ fcount = fentry[1]
 	    $ ftoken = facet_token(fname, fval)
-            <!-- facet_token(($fname), ($fval)) -->
             <a class="datalink" href="$changequery(ftokens=ftokens + ',' + ftoken, remove=[])">$fval</a> ($fcount)<br />
         </div></div>
 
