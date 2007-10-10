@@ -1,0 +1,107 @@
+$def with (q, qresults, results, facets, ftokens, ft_pairs, errortext)
+
+$var title: Search Results
+
+$add_stylesheet('/static/css/search.css')
+
+<div id="databar">
+<div class="widgetlabel">
+<b><font color=orange>Selected Facets:</font></b> 
+$for token, tpair in ft_pairs:
+    $ name = tpair[0]
+    $ label = tpair[1]
+    <!-- <input type=checkbox checked> -->
+    <b>$name:</b> <font color=green>$label</font>
+    <a href="$changequery(remove=token, ftokens=ftokens)" title="Remove this facet">(x)</a>
+     &nbsp;<b>&gt;</b>&nbsp;
+<!-- <input type="submit" value="change"> -->
+</div>
+</div>
+$:macros.AlertTour()
+
+<table border="0" cellpadding="0" cellspacing="0" width="100%"><tr><td>
+
+<div id="header-fullpage">
+  <span id="title">Search Results</span><br />
+  
+  <form method="get" action="/advanced_search">
+  <input type="hidden" name="go" value="go">
+  <table cellpadding="0" cellspacing="0" border="0" width="100%"><tr><td>
+  <div class="simple-search-form"><input style="background-color: #f8f8f8; font-family: georgia; font-size: 18px; color: #6F320D; border: 1px solid #ccc; padding-left: 4px;" type="text" name="q" value="$q" size="38" title="Type your search terms here." /></div>
+  </td><td width="100%">
+<button class="button" type="submit"><img src="/static/images/go.png" alt="go" /></button>
+  </td>
+</tr><tr>
+<td colspan="2"><span class="copyright">showing $qresults.begin - $(qresults.begin + 20) of $qresults.total_results</span></td>
+</tr></table></form>
+</div>
+
+<!-- 
+<table border=1 bgcolor=pink>
+<tr><td>hello!  query is </td><td>($q)</td></tr>
+<tr><td>3 squared is </td><td>($square(3))</td></tr>
+<tr><td>to remove:</td><td>($removals())</td></tr>
+<tr><td>ftokens are </td><td>($ftokens)</td></tr>
+<tr><td>ft pairs are:</td><td>
+<table border=1>
+$for a, b in ft_pairs:
+    <tr><td>$a</td><td>$b</td></tr>
+</table>
+</td></tr>
+<tr><td>nresults is</td><td>($qresults.total_results)</td></tr>
+</table>
+@@ -->
+
+    <p style="font-family: georgia; font-size: 18px;  margin-left: 30px;">The following books contain the words <span style="color: #6F320D;">$q</span>:</p>
+
+<div style="padding-left: 45px;"> 
+   $:macros.SearchResults(results)
+ </div>   
+    
+  
+
+<!-- BEGIN FACETS --> 
+
+</td><td valign="top">
+
+$if errortext:
+    <div id="error">Error: $errortext</div>
+$else:
+
+    <div id="search-nav">
+    <div id="search-options">
+    <div class="search-outer">
+    <div style="width: 100%; text-align: center;"><img src="/static/images/nav.top.search.png" alt="Refine Results" border="0" /></div>  
+
+    $for facet in facets:
+        $ fname = facet[0]
+        $ fentries = facet[1]
+        <div class="search-inner"><span class="refinesearch">$fname:</span>
+        <div class="refineindent">
+        $for fentry in fentries[slice(5)]:
+            $ fval = fentry[0]
+            $ fcount = fentry[1]
+	    $ ftoken = facet_token(fname, fval)
+            <!-- facet_token(($fname), ($fval)) -->
+            <a class="datalink" href="$changequery(ftokens=ftokens + ',' + ftoken, remove=[])">$fval</a> ($fcount)<br />
+        </div></div>
+
+
+</div></div></div>        
+</td></tr></table>        
+    
+  <div class="pagination">
+    <div class="moreresults"><strong>More Results:</strong></div>
+    <div class="paginate">
+    $if (qresults.begin - 1000) > 0: ...
+    $for n in range(qresults.begin - 1000, qresults.begin + 1000, 20):
+        $if (n >= 0) and (n <= qresults.total_results):
+            $if n == qresults.begin:
+                $if n != 0: | 
+                <strong>$n - $(n + 20)</strong>
+            $else:
+                $if n != 0: | 
+                <a href="$changequery(offset=n)">$n - $(n + 20)</a>
+    $if (qresults.begin + 1000) < qresults.total_results: | ...
+        </div>
+    </div>
