@@ -75,14 +75,19 @@ $else:
 
     $for facet in facets:
         $ fname = facet[0]
+	$ fn1 = fname
+	$if fname == 'has_fulltext':
+            $ fn1 = 'full text'
         $ fentries = facet[1]
-        <div class="search-inner"><span class="refinesearch">$fname:</span>
+        <div class="search-inner"><span class="refinesearch">$fn1:</span>
         <div class="refineindent">
         $for fentry in fentries[slice(5)]:
             $ fval = fentry[0]
             $ fcount = fentry[1]
 	    $ ftoken = facet_token(fname, fval)
-            <a class="datalink" href="$changequery(ftokens=ftokens + ',' + ftoken, remove=[])">$fval</a> ($fcount)<br />
+            $if fname == 'has_fulltext':
+                $ fval = {'1': 'Available', '0': 'Not available'}[str(fval)]
+            <a class="datalink" href="$changequery(ftokens=ftokens + ',' + ftoken, remove='')">$fval</a> ($fcount)<br />
         </div></div>
 
 
