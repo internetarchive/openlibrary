@@ -1,0 +1,34 @@
+$def with (review)
+
+$var title: $review.book[0].title - reviewed by $review.author[0].displayname
+
+$add_stylesheet('/static/css/master.css')
+$add_stylesheet('/static/css/book_reviews.css')
+
+$:macros.databar(review)
+
+$:macros.AlertTour(review)
+
+<div class="maintext"> 
+
+    <h1>$review.book[0].title</h1>
+
+    <p>A review by <a href="/$review.author[0].name">$review.author[0].displayname</a>.</p>
+
+    <hr>
+    $:format(review.text[0])
+    <hr>
+
+    <p>
+    View <a href="/$review.book[0].name">book page</a>. Book authors:
+$for author in review.book[0].authors:
+    &nbsp;<a href="/$author.name">$author.d.get('name')</a>\
+.
+    Write a <a href="/$review.book[0].name?m=review">new review</a> of this book yourself.
+    </p>
+
+    <!--p>Comments: ...</p-->
+
+</div>
+
+$:macros.Copyright(review)
