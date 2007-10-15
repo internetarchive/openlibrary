@@ -6,7 +6,7 @@ from types import *
 
 import web
 import infogami.tdb as tdb
-from infogami.tdb import Thing, NotFound, Things, LazyThing
+from infogami.tdb.tdb import Thing, NotFound, Things, LazyThing
 from items import *
 from lang import *
 
