@@ -49,7 +49,7 @@ infogami.config.site = 'openlibrary.org'
 infogami.config.cache_templates = True
 infogami.config.db_printing = False
 infogami.config.plugin_path += ['plugins']
-infogami.config.plugins += ['search', 'dump', 'heartbeat']
+infogami.config.plugins += ['search', 'dump', 'heartbeat', 'bookrev']
 infogami.config.solr_server_address = ('pharosdb.us.archive.org', 8993)
 
 infogami.tdb.logger.set_logfile(open("tdb.log", "a"))

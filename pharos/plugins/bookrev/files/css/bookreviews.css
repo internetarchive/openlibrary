@@ -1,0 +1,7 @@
+#review_form textarea {
+    width: 38em; 
+    height: 40em;
+}
+#review_form label {
+    display: none;
+} 

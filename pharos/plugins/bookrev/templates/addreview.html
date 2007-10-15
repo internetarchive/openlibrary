@@ -1,0 +1,28 @@
+$def with (user, book, form)
+
+$var title: $book.title - write a new review
+
+$add_stylesheet('/static/css/master.css')
+$add_stylesheet('/static/css/bookreviews.css')
+
+$:macros.AlertTour(book)
+
+<div class="maintext"> 
+
+    <h3>Write a review</h3>
+
+    <p>Book: <a href="/$book.name">$book.title</a></p>
+
+    <p>Book authors: \
+$for author in book.authors:
+    <a href="/$author.name">$author.d.get('name')</a>
+</p>
+
+    <p>Review author: <a href="/$user.name">$user.d.get('displayname')</a></p>
+
+    <form action="" method="post" id="review_form">
+        $:form.render()
+        <input type="submit" value="Submit the review" />
+    </form>
+
+</div>

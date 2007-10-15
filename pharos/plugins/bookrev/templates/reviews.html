@@ -1,0 +1,11 @@
+$def with (reviews)
+$var title: test
+<div style="padding: 4em; padding-top: 8em;">
+<h3>Latest reviews</h3>
+$for review in reviews:
+    <p>
+    <a href="/$review.author.name">$review.author.displayname</a>
+    on 
+    <a href="/$review.name">$review.book.title</a>.
+    </p>
+</div>
