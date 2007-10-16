@@ -17,11 +17,12 @@ solr_server_addr = ('pharosdb.us.archive.org', 8983)
 # solr_server_addr = ('127.0.0.1', 8983)
 
 default_facet_list = ('has_fulltext', 
-                      'publisher',
                       'authors',
                       'subject',
+                      'facet_year',
                       'language',
                       'language_code',
+                      'publisher',
                       )
 
 class SolrError(Exception): pass
@@ -52,7 +53,6 @@ class Solr_client(object):
                  server_addr = solr_server_addr,
                  pool_size = 1):
         self.server_addr = server_addr
-	print 'creating solr client (%r)<br/>'% (server_addr,)
 
     def __query_fmt(self, query, rows=None, start=None, wt=None):
         d = {'rows': rows, 'start': start, 'wt': wt}
