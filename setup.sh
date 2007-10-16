@@ -43,7 +43,7 @@ function setup_infogami() {
     else
         cd $hgroot && hg clone http://infogami.org/hg $hgroot/infogami
     fi
-    cd $hgroot/infogami && hg update -C ol_softlaunch
+    cd $hgroot/infogami && hg update -C default
 }
 
 function setup_webpy() {
