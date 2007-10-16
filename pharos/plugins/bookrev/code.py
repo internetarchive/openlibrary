@@ -40,15 +40,18 @@ class addreview(delegate.page):
     def POST(self, site, user):
         form = forms.review_form()
         if form.validates():
-            edition = db.get_thing(form.d.edition, db.get_type('type/edition'))
-            if not edition:
-                return error()
+	    edition = db.get_thing(form.d.edition, db.get_type('type/edition'))
+	    if not edition:
+		return error()
             review = db.insert_book_review(edition, 
                                            user, 
                                            reviewsources.data.get('web'), 
                                            form.d.text,
                                            title=form.d.title)
-            return web.redirect('/' + review.name)
+            return web.redirect('/' + edition.name + '#reviews')
         else:
+	    edition = db.get_thing(form.d.edition, db.get_type('type/edition'))
+	    if not edition:
+		return error()
             return render.addreview(user, edition, form)
 
