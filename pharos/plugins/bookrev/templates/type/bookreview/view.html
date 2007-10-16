@@ -1,30 +1,33 @@
 $def with (review)
 
-$var title: $review.book[0].title - reviewed by $review.author[0].displayname
+$var title: $review.book.title - reviewed by $review.author.displayname
 
 $add_stylesheet('/static/css/master.css')
-$add_stylesheet('/static/css/book_reviews.css')
+$add_stylesheet('/static/css/bookreviews.css')
 
 $:macros.databar(review)
 
 $:macros.AlertTour(review)
 
-<div class="maintext"> 
+<div class="maintext review"> 
 
-    <h1>$review.book[0].title</h1>
+    <h1>$review.title</h1>
 
-    <p>A review by <a href="/$review.author[0].name">$review.author[0].displayname</a>.</p>
+    <p class="details">
+    A review of <a href="/$review.book.name">$review.book.title</a>
+    by <a href="/$review.author.name">$review.author.displayname</a>.
+    </p>
 
-    <hr>
-    $:format(review.text[0])
-    <hr>
+    <div class="text">
+    $:format(review.text)
+    </div>
 
-    <p>
-    View <a href="/$review.book[0].name">book page</a>. Book authors:
-$for author in review.book[0].authors:
+    <p class="navigation">
+    View <a href="/$review.book.name">book page</a>. Book authors:
+$for author in review.book.authors:
     &nbsp;<a href="/$author.name">$author.d.get('name')</a>\
 .
-    Write a <a href="/$review.book[0].name?m=review">new review</a> of this book yourself.
+    Write a <a href="/addreview?edition=$review.book.name">new review</a> of this book yourself.
     </p>
 
     <!--p>Comments: ...</p-->

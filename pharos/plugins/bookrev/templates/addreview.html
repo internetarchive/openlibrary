@@ -6,23 +6,35 @@ $add_stylesheet('/static/css/master.css')
 $add_stylesheet('/static/css/bookreviews.css')
 
 $:macros.AlertTour(book)
+<br />
+<br />
+<br />
 
-<div class="maintext"> 
 
-    <h3>Write a review</h3>
+<div id="header">
+<div style="float:left;padding-left:10px;padding-right:15px;"></div>
+                <span class="pretitle">Write a review of:<br /</span>
+      <div id="title"><a href="/$book.name">$book.title</a></div>
+</div>
 
-    <p>Book: <a href="/$book.name">$book.title</a></p>
 
-    <p>Book authors: \
-$for author in book.authors:
-    <a href="/$author.name">$author.d.get('name')</a>
-</p>
+<div id="form-border">
+<div id="metadata-body">
 
     <p>Review author: <a href="/$user.name">$user.d.get('displayname')</a></p>
 
-    <form action="" method="post" id="review_form">
-        $:form.render()
-        <input type="submit" value="Submit the review" />
-    </form>
+<form action="" method="post" id="review_form">
+    <input type="hidden" name="book" value="$book.name" />
+    <p>
+    <strong>Review title</strong>:<br />
+    <input type="text" name="title" style="width: 100%" />
+    <p>
+    <strong>Review text</strong>:<br />
+    <textarea name="text" rows="15" cols="80" style="width:100%"></textarea>
+    <br /><br />   
+    <button class="button" type="submit"  value="$_.SAVE"  name="_save" title="Save"><img src="/static/images/save.png" alt="Save" /></button>
+</form>
 
 </div>
+</div>
+
