@@ -28,7 +28,7 @@
 td.paginate { padding-right: 5px; padding-top: 2px; color: #999; background-color: #eee; height: 20px; }
 td.moreresults { text-align: right; padding-left: 5px; padding-right: 5px; padding-top: 2px; color: #666; background-color: #eee; }
 td.totalresults { font-size: 14px; line-height: 20px; color: #666; font-style: italic; text-align: right; }
-
+td.search-form-title { white-space: nowrap; text-align: right; color: #919070; font-size: 13px; }
 
 
 

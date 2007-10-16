@@ -419,7 +419,8 @@ def authors (self):
 
 ### filters, referenced from the schema
 
-re_isbn_chars = re.compile (r'^([\dX]+)')
+re_isbn_chars = re.compile ('([- \dX]+)')
+re_not_isbn_chars = re.compile ('[^\dX]')
 
 def clean (s):
     return strip (s, " /.,;:")
@@ -432,18 +433,11 @@ def clean_name (s):
 procedures['clean_name'] = (1, clean_name)
 
 def normalize_isbn (s):
-    m = re_isbn_chars.match (s)
+    m = re_isbn_chars.search(s)
     if m:
-        isbn_chars = m.group (1)
-        if (len (isbn_chars) == 13):
-            return isbn_chars
-        else:
-            if (len (isbn_chars) == 10):
-                # return isbn10_to_isbn13 (isbn_10) XXXXXXXXXXXX
-                return None
-            else:
-                warn ("bad ISBN: '%s'" % isbn_chars)
-    return None
+        return re_not_isbn_chars.sub('', m.group(1))
+    else:
+        return None
 
 procedures['normalize_isbn'] = (1, normalize_isbn)
 
