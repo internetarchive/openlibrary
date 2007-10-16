@@ -245,7 +245,7 @@ def site_object ():
 	try:
 		return tdb.withName (site_name, tdb.root)
 	except NotFound:
-		raise Exception ("no site object for site named '%'" % site_name)
+		raise Exception ("no site object for site named '%s'" % site_name)
 
 ignore_title_words = ['a', 'the']
 tsep = '_'
