@@ -435,7 +435,7 @@ procedures['clean_name'] = (1, clean_name)
 def normalize_isbn (s):
     m = re_isbn_chars.search(s)
     if m:
-        return re_not_isbn_chars.sub(m.group(1), '')
+        return re_not_isbn_chars.sub('', m.group(1))
     else:
         return None
 
