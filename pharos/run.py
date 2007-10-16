@@ -49,10 +49,13 @@ infogami.config.site = 'openlibrary.org'
 infogami.config.cache_templates = True
 infogami.config.db_printing = False
 infogami.config.plugin_path += ['plugins']
-infogami.config.plugins += ['search', 'dump', 'heartbeat', 'bookrev']
+infogami.config.plugins += ['openlibrary', 'search', 'pages', 'heartbeat', 'upload', 'dump', 'bookrev']
 infogami.config.solr_server_address = ('pharosdb.us.archive.org', 8993)
 
 infogami.tdb.logger.set_logfile(open("tdb.log", "a"))
+
+infogami.config.from_address = "noreply@demo.openlibrary.org"
+infogami.config.smtp_server = "mail.archive.org"
 
 @infogami.action
 def migrateusers():
