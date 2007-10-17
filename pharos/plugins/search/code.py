@@ -1,4 +1,5 @@
 import web
+import stopword
 
 from infogami import utils
 from infogami.utils import delegate
@@ -187,7 +188,9 @@ class search(delegate.page):
         out = []
         i.q = ' '.join(q0)
         try:
-            query = i.q.strip() + qtokens
+            # work around bug in PHP module that makes queries containing stopwords
+            # come back empty.
+            query = stopword.basic_strip_stopwords(i.q.strip()) + qtokens
             offset = int(i.get('offset', '0'))
             # qresults = solr.advanced_search(query, start=offset)
             qresults = solr.basic_search(query, start=offset)
