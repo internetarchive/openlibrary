@@ -191,7 +191,7 @@
 	#toc { float:right; padding: 0px 20px 0px 0px; width: 160px; margin: 10px 0px 10px 30px; height: 370px; border-left: 1px solid #ccc; background-color: #F9F8D0; }
 
 	#viewthisbook { position: relative; top: 169px; left: -13px; z-index: 1000px; font-family: georgia; font-size: 14px; color: #999; }
-	#viewthisbook-oln { position: relative; margin-left: 0px; top: 265px; left: 0px; }
+	#viewthisbook-oln { position: absolute; margin-left: 45px; top: 425px; left: 0px; }
 
 	.logotype { float:left; font-weight: bold; height: 25px; line-height: 25px; vertical-align: middle; }
 	.related { padding: 4px 20px 4px 20px; }
