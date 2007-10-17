@@ -191,7 +191,7 @@ class search(delegate.page):
             # work around bug in PHP module that makes queries containing stopwords
             # come back empty.
             query = stopword.basic_strip_stopwords(i.q.strip()) + qtokens
-            offset = int(i.get('offset', '0'))
+            offset = int(i.get('offset', '0') or 0)
             # qresults = solr.advanced_search(query, start=offset)
             qresults = solr.basic_search(query, start=offset)
             facets = solr.facets(query, maxrows=5000)
