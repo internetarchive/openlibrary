@@ -6,8 +6,8 @@ def basic_strip_stopwords(q):
     soul man
     >>> print basic_strip_stopwords('Rubber soul')
     Rubber soul
-    >>> print basic_strip_stopwords('title:(soul man)')
-    title:(soul man)
+    >>> print basic_strip_stopwords('title:(soul of man)')
+    title:(soul of man)
     """
     
     # standard list of Lucene stopwords, from solr distribution
