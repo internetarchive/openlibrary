@@ -68,20 +68,20 @@ class old_search(delegate.page):
 
 solr_fulltext = solr_client.Solr_client(('ia301443', 8983))
 solr_pagetext = solr_client.Solr_client(('h7', 8983))
+from collapse import collapse_groups
 class fullsearch(delegate.page):
     def GET(self, site):
         i = web.input(q=None)
         errortext = None
         out = []
-        
-        assert 0
 
         if i.q:
             results = solr_fulltext.fulltext_search(i.q)
             for ocaid in results:
                 try:
                     ocat = tdb.Things(oca_identifier=ocaid).list()[0]
-                    out.append((ocat, solr_pagetext.pagetext_search(ocaid, i.q)))
+                    out.append((ocat,
+                                collapse_groups(solr_pagetext.pagetext_search(ocaid, i.q))))
                 except IndexError:
                     pass
         else:
@@ -188,8 +188,8 @@ class search(delegate.page):
         out = []
         i.q = ' '.join(q0)
         try:
-            # work around bug in PHP module that makes queries containing stopwords
-            # come back empty.
+            # work around bug in PHP module that makes queries
+            # containing stopwords come back empty.
             query = stopword.basic_strip_stopwords(i.q.strip()) + qtokens
             offset = int(i.get('offset', '0') or 0)
             # qresults = solr.advanced_search(query, start=offset)

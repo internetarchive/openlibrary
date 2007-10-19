@@ -69,7 +69,7 @@ class Solr_client(object):
         return query
 
     def _prefix_query(self, prefix, query):
-        return prefix_query(self, query)
+        return Solr_client.prefix_query(prefix, query)
 
     def facet_token_inverse(self, *a,**k):
         import web
