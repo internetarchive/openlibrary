@@ -2,10 +2,13 @@ from itertools import groupby
 
 def collapse_groups(page_numbers):
     """
-    Given a list of page numbers, return a list of strings corresponding
-    to ranges of consecutive page numbers.
+    Given a list of page numbers, return a list of (pn, rstring) pairs
+    corresponding to ranges of consecutive page numbers.  For each range,
+    rn is the first page number in the range, and rstring is a string
+    describing the range.
+
     >>> print collapse_groups([3,9,23,4,25,1,7,12,18,11,8,24,10])
-    ['1', '3-4', '7-12', '18', '23-25']
+    [(1, '1'), (3, '3-4'), (7, '7-12'), (18, '18'), (23, '23-25')]
     """
 
     # first use groupby to make an iterator whose elts are groups that
@@ -18,7 +21,7 @@ def collapse_groups(page_numbers):
 
     # now flatten that iterator into a list of lists of leaf numbers
     groups = list(list(z for _, z in y) for _, y in g_iter)
-    return map(collapse_one_group, groups)
+    return list((g[0], collapse_one_group(g)) for g in groups)
 
 # finally, we'll make text strings for the leaf groups
 def collapse_one_group(leaf_group):
