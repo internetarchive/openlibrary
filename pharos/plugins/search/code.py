@@ -70,7 +70,7 @@ solr_fulltext = solr_client.Solr_client(('ia301443', 8983))
 solr_pagetext = solr_client.Solr_client(('h7', 8983))
 from collapse import collapse_groups
 class fullsearch(delegate.page):
-    def GET(self, site):
+    def POST(self, site):
         i = web.input(q=None)
         errortext = None
         out = []
@@ -86,9 +86,12 @@ class fullsearch(delegate.page):
                 except IndexError:
                     pass
         else:
+            q = i.q
             errortext = 'You need to enter some search terms.'
 
         return render.fullsearch(q, out, errortext=errortext)
+
+    GET = POST
 
 # this is just to test exporting python functions to templates
 @view.public
