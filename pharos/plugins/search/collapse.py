@@ -2,9 +2,9 @@ from itertools import groupby
 
 def collapse_groups(page_numbers):
     """
-    Given a list of page numbers, return a list of (pn, rstring) pairs
+    Given a list of page numbers, return a list of (pagenum, rdesc) pairs
     corresponding to ranges of consecutive page numbers.  For each range,
-    rn is the first page number in the range, and rstring is a string
+    pagenum is the first page number in the range, and rdesc is a string
     describing the range.
 
     >>> print collapse_groups([3,9,23,4,25,1,7,12,18,11,8,24,10])

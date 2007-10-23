@@ -76,18 +76,19 @@ class fullsearch(delegate.page):
         out = []
 
         if i.q:
-            results = solr_fulltext.fulltext_search(i.q)
+            q = re.sub('[\r\n]+', ' ', i.q)
+            results = solr_fulltext.fulltext_search(q)
             for ocaid in results:
                 try:
                     ocat = tdb.Things(oca_identifier=ocaid).list()[0]
                     out.append((ocat,
-                                collapse_groups(solr_pagetext.pagetext_search(ocaid, i.q))))
+                                collapse_groups(solr_pagetext.pagetext_search(ocaid, q))))
                 except IndexError:
                     pass
         else:
             errortext = 'You need to enter some search terms.'
 
-        return render.fullsearch(i.q, out, errortext=errortext)
+        return render.fullsearch(q, out, errortext=errortext)
 
 # this is just to test exporting python functions to templates
 @view.public
