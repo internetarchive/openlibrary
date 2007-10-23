@@ -445,8 +445,8 @@ re_digits = re.compile (r'\d\d+')
 
 def biggest_decimal (s):
     nums = re_digits.findall (s)
-    if (len (nums) > 0):
-        return max (nums)
+    if len (nums):
+        return str(max (map(int, nums)))
     else:
         return None
 
@@ -495,7 +495,7 @@ if __name__ == "__main__":
         source_id = sys.argv[1]
         file_locator = sys.argv[2]
         for item in parser (source_id, file_locator, sys.stdin):
-            print ""
+            print
             print ">>> " + item['source_record_loc'][0]
             print item
     else:
