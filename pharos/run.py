@@ -1,4 +1,4 @@
-#!/usr/local/bin/python2.5
+#!/usr/bin/python2.5
 import sys, os
 import web
 import infogami
