@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 import unittest
-from parse import normalize_isbn, biggest_decimal
+from parse import normalize_isbn, biggest_decimal, compile_marc_spec
 
 class TestMarcParse(unittest.TestCase):
     def test_normalize_isbn(self):
@@ -31,6 +31,58 @@ class TestMarcParse(unittest.TestCase):
         for (input, expect) in data:
             output = biggest_decimal(input)
             self.assertEqual(output, expect)
+
+    def test_compile_marc_spec(self):
+        class MockField:
+            def __init__(self, subfields):
+                self.subfield_sequence = subfields
+                self.contents = {}
+                for k, v in subfields:
+                    self.contents.setdefault(k, []).append(v)
+            def get_elts(self, i):
+                if i in self.contents:
+                    return self.contents[i]
+                else:
+                    return []
+        class MockRecord:
+            def __init__(self, subfields):
+                self.field = MockField(subfields)
+            def get_fields(self, tag):
+                return [self.field]
+
+        gen = compile_marc_spec('650:a--x--v--y--z')
+
+        data = [
+            ([  ('a', 'Authors, American'),
+                ('y', '19th century'),
+                ('x', 'Biography.')],
+                'Authors, American -- 19th century -- Biography.'),
+            ([  ('a', 'Western stories'),
+                ('x', 'History and criticism.')],
+                'Western stories -- History and criticism.'),
+            ([  ('a', 'United States'),
+                ('x', 'History'),
+                ('y', 'Revolution, 1775-1783'),
+                ('x', 'Influence.')],
+                'United States -- History -- Revolution, 1775-1783 -- Influence.'
+            ),
+            ([  ('a', 'West Indies, British'),
+                ('x', 'History'),
+                ('y', '18th century.')],
+                'West Indies, British -- History -- 18th century.'),
+            ([  ('a', 'Great Britain'),
+                ('x', 'Relations'),
+                ('z', 'West Indies, British.')],
+                'Great Britain -- Relations -- West Indies, British.'),
+            ([  ('a', 'West Indies, British'),
+                ('x', 'Relations'),
+                ('z', 'Great Britain.')],
+                'West Indies, British -- Relations -- Great Britain.')
+        ]
+        for (input, expect) in data:
+            output = [i for i in gen(MockRecord(input))]
+            self.assertEqual([expect], output)
+
 
 if __name__ == '__main__':
     unittest.main()
