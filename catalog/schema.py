@@ -58,6 +58,11 @@ schema_ordered = {
                         'type': 'string',
                         'marc_fields': '245:ab clean_name',
                         'example': 'The adventures of Tom Sawyer' }),
+                    ('subtitle', {
+                        'title': "Subtitle",
+                        'type': 'string',
+                        'count': 'multiple',
+                    }),
                     ('by_statement', {
                         'title': "By Statement",
                         'type': 'string',
