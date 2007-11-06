@@ -1,13 +1,18 @@
 from catalog.marc.MARC21Biblio import *
 
-import sys, codecs, locale, re
-import unicodedata 
+import sys, re, unicodedata 
 
 record_id_delimiter = ":"
 record_loc_delimiter = ":"
 
 re_isbn = re.compile('([^ ()]+[\dX])(?: \((?:v\. (\d+)(?: : )?)?(.*)\))?')
 re_lccn = re.compile('(...\d+).*')
+re_date = map (re.compile, ['(?P<birth>\d+\??)-(?P<death>\d+\??)',
+                            '(?P<birth>\d+\??)-',
+                            'b\.? (?P<birth>(?:ca\. )?\d+\??)',
+                            'd\.? (?P<death>(?:ca\. )?\d+\??)',
+                            '(?P<birth>.*\d+.*)-(?P<death>.*\d+.*)',
+                            '^(?P<birth>[^-]*\d+[^-]+ cent\.[^-]*)$'])
 
 def unicode_to_utf8 (u):
     nu = normalize ('NFKC', u)
@@ -16,13 +21,28 @@ def unicode_to_utf8 (u):
 def specific_subtags(f, subtags):
     return [v for s, v in f.subfield_sequence if s in subtags]
 
+def parse_date(date):
+    for r in re_date:
+        m = r.search(date)
+        if m:
+            return m.groupdict()
+    return {}
+
 def find_authors (r, edition):
     authors = []
-    for tag, subtags in [ ('100', 'abcd'), ('110', 'ab'), ('111', 'acdn') ]:
+    for tag, subtags in [ ('100', 'abc'), ('110', 'ab'), ('111', 'acdn') ]:
         for f in r.get_fields(tag):
-            authors.append(" ".join(specific_subtags(f, subtags)).lower())
+            author = {}
+            if tag == '100' and 'd' in f.contents:
+                x = f.contents['d']
+                if x:
+                    assert len(x) == 1
+                    author = parse_date(x[0])
+            author['name'] = " ".join(specific_subtags(f, subtags)).strip(' /,;:')
+            author = fix_unicode(author)
+            authors.append(author)
     if authors:
-        edition['author_identifier'] = authors
+        edition['authors'] = authors
 
 def find_contributions(r, edition):
     contributions = []
