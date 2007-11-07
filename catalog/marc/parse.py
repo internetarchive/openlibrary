@@ -34,10 +34,7 @@ def find_authors (r, edition):
         for f in r.get_fields(tag):
             author = {}
             if tag == '100' and 'd' in f.contents:
-                x = f.contents['d']
-                if x:
-                    assert len(x) == 1
-                    author = parse_date(x[0])
+                author = parse_date(f.contents['d'][0])
             author['name'] = " ".join(specific_subtags(f, subtags)).strip(' /,;:')
             author = fix_unicode(author)
             authors.append(author)
