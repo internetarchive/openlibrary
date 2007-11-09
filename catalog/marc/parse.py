@@ -89,9 +89,11 @@ def find_work_title(r, edition):
         edition["work_title"] = work_title
 
 def find_edition(r, edition):
-    f = r.get_field('250')
-    if f:
-        edition["edition"] = ' '.join([x[1] for x in f.subfield_sequence])
+    e = []
+    for f in r.get_fields('250'):
+        e += [x[1] for x in f.subfield_sequence]
+    if edition:
+        edition["edition"] = ' '.join(e)
 
 def find_publisher(r, edition):
     publisher = []
