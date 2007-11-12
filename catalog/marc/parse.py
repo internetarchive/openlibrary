@@ -19,7 +19,7 @@ def unicode_to_utf8 (u):
     return nu.encode ('utf8')
 
 def specific_subtags(f, subtags):
-    return [v for s, v in f.subfield_sequence if s in subtags]
+    return [j for i, j in f.subfield_sequence if i in subtags]
 
 def parse_date(date):
     for r in re_date:
@@ -35,7 +35,13 @@ def find_authors (r, edition):
             author = {}
             if tag == '100' and 'd' in f.contents:
                 author = parse_date(f.contents['d'][0])
-            author['name'] = " ".join(specific_subtags(f, subtags)).strip(' /,;:')
+            author['name'] = " ".join([j.strip(' /,;:') for i, j in f.subfield_sequence if i in subtags])
+            if tag == '100':
+                db_name = [j.strip(' /,;:') for i, j in f.subfield_sequence if i in 'abcd']
+                author['db_name'] = " ".join(db_name)
+            else:
+                author['db_name'] = author['name']
+
             author = fix_unicode(author)
             authors.append(author)
     if authors:
@@ -64,13 +70,11 @@ def find_title(r, edition):
 def find_other_titles(r, edition):
     other_titles = [' '.join(f.contents['a']) for f in r.get_fields('246')]
 
-    for s in (f.subfield_sequence for f in r.get_fields('730')):
-        for i in s:
-            assert i[0].islower()
-        other_titles.append(' '.join([i[1] for i in s]))
+    for f in r.get_fields('730'):
+        other_titles.append(' '.join([j for i,j in f.subfield_sequence if i.islower()]))
 
-    for b in (f.subfield_sequence for f in r.get_fields('740')):
-        other_titles.append(' '.join([d for c,d in b if c in 'apn']))
+    for f in r.get_fields('740'):
+        other_titles.append(' '.join(specific_subtags(f, 'apn')))
 
     if other_titles:
         edition["other_titles"] = other_titles
@@ -83,7 +87,7 @@ def find_work_title(r, edition):
 
     f = r.get_field('130')
     if f:
-        work_title.append(' '.join([a[1] for a in f.subfield_sequence if a[0].islower()]))
+        work_title.append(' '.join([j for i,j in f.subfield_sequence if i.islower()]))
 
     if work_title:
         edition["work_title"] = work_title
@@ -91,7 +95,7 @@ def find_work_title(r, edition):
 def find_edition(r, edition):
     e = []
     for f in r.get_fields('250'):
-        e += [x[1] for x in f.subfield_sequence]
+        e += [j for i,j in f.subfield_sequence]
     if edition:
         edition["edition"] = ' '.join(e)
 
@@ -212,7 +216,7 @@ def find_notes(r, edition):
             continue
         fields = r.get_fields(str(tag))
         for f in fields:
-            x = [x[1] for x in f.subfield_sequence if x[0].islower()]
+            x = [j for i,j in f.subfield_sequence if i.islower()]
             if x:
                 notes.append(' '.join(x))
     if notes:
