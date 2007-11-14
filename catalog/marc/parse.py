@@ -1,6 +1,6 @@
 from catalog.marc.MARC21Biblio import *
 
-import sys, re, unicodedata 
+import sys, re
 
 record_id_delimiter = ":"
 record_loc_delimiter = ":"
@@ -13,10 +13,6 @@ re_date = map (re.compile, ['(?P<birth>\d+\??)-(?P<death>\d+\??)',
                             'd\.? (?P<death>(?:ca\. )?\d+\??)',
                             '(?P<birth>.*\d+.*)-(?P<death>.*\d+.*)',
                             '^(?P<birth>[^-]*\d+[^-]+ cent\.[^-]*)$'])
-
-def unicode_to_utf8 (u):
-    nu = normalize ('NFKC', u)
-    return nu.encode ('utf8')
 
 def specific_subtags(f, subtags):
     return [j for i, j in f.subfield_sequence if i in subtags]
@@ -42,7 +38,6 @@ def find_authors (r, edition):
             else:
                 author['db_name'] = author['name']
 
-            author = fix_unicode(author)
             authors.append(author)
     if authors:
         edition['authors'] = authors
@@ -255,16 +250,6 @@ def find_lccn(r, edition):
 def encode_record_locator (r, file_locator):
     return record_loc_delimiter.join ([file_locator, str(r.record_pos()), str(r.record_len())])
 
-def fix_unicode (edition):
-    for k, v in edition.iteritems():
-        if isinstance(v, unicode):
-            edition[k] = unicode_to_utf8(v)
-        elif isinstance(v, list):
-            for i in range(len(v)):
-                if isinstance(v[i], unicode):
-                    v[i] = unicode_to_utf8(v[i])
-    return edition
-
 def parser(source_id, file_locator, input):
     for r in MARC21BiblioFile (input):
         edition = {}
@@ -298,8 +283,6 @@ def parser(source_id, file_locator, input):
         f = r.get_field('008')
         edition["publish_date"] = str(f)[7:11]
         edition["language"] = "ISO:" + str(f)[35:38]
-
-        edition = fix_unicode(edition)
 
         yield edition
 
