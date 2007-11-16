@@ -1,3 +1,5 @@
+from infogami.utils import view
+
 import copyrightstatus
 
 @view.public
