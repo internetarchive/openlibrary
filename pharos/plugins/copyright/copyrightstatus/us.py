@@ -1,7 +1,7 @@
 OLDEST_PERSON_EVER = 123
 
 def copyright_status(edition):
-    pubyear = edition.publication_year
+    pubyear = edition.publish_year
     assumptions = ["We're assuming that the data is correct."]
     assumptions.append("We're assuming it was published.")
     assumptions.append("We're assuming it was published in the US.")

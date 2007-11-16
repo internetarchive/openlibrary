@@ -2,7 +2,7 @@ OLDEST_PERSON_EVER_IN_CANADA = 117
 
 def copyright_status(edition):
   assumptions = ["We're assuming that the data is correct."]
-  pubyear = edition.publication_year
+  pubyear = edition.publish_year
   maxauthordeath = None
   for author in edition.authors:
     death_year = None
