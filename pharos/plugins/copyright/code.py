@@ -6,8 +6,10 @@ r_year = re.compile(r'(?:[^\d]|^)(\d\d\d\d)(?:[^\d]|$)')
 
 @view.public
 def copyright_status(edition):
+    year = r_year.findall(edition.get('publication_date', ''))
     try:
-        edition.publication_year = int(r_year.findall(edition.get('publication_date', '')))
-        return copyrightstatus.copyright_status(edition)
-    except:
-        return None # unknown
+        year = int(year)
+    except ValueError:
+        return None
+    edition.publication_year = year
+    return copyrightstatus.copyright_status(edition)
