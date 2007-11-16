@@ -1,6 +1,6 @@
 OLDEST_PERSON_EVER_IN_CANADA = 117
 
-def is_public_domain(edition):
+def copyright_status(edition):
   assumptions = ["We're assuming that the data is correct."]
   pubyear = edition.publication_year
   maxauthordeath = None
