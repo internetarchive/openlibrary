@@ -9,7 +9,7 @@ def copyright_status(edition):
     year = r_year.findall(edition.get('publication_date', ''))
     try:
         year = int(year[0])
-    except ValueError:
+    except (IndexError, ValueError):
         return None
     edition.publication_year = year
     return copyrightstatus.copyright_status(edition)
