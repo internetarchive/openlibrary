@@ -8,7 +8,7 @@ r_year = re.compile(r'(?:[^\d]|^)(\d\d\d\d)(?:[^\d]|$)')
 def copyright_status(edition):
     year = r_year.findall(edition.get('publication_date', ''))
     try:
-        year = int(year)
+        year = int(year[0])
     except ValueError:
         return None
     edition.publication_year = year
