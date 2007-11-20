@@ -15,8 +15,6 @@ from hashlib import sha1 as mkhash
 
 facet_token_length = 12
 
-import pdb                              # @@
-
 # str, str -> str
 def facet_token(field, v):
     token = []
