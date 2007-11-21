@@ -120,8 +120,7 @@ class search(delegate.page):
                       wdescription='',
                       psort_order='',
                       pfulltext='',
-                      ftokens='',
-                      fselect=[],
+                      ftokens=[],
                       q='',
                       )
         results = []
@@ -159,15 +158,12 @@ class search(delegate.page):
             fs = set(init)
             return list(t for t in seq if not (t in fs or fs.add(t)))
 
-        # @@
-        @view.public
-        def removals(x=i.get('remove')):
-            return x
-        @view.public
-        def selections(x=i.get('fselect')):
-            return x
-
-        ft_list = strip_duplicates((t for t in i.ftokens.split(',') if t),
+        # we use two tokens fields in the input form so we can support
+        # date_range and fulltext_only in advanced search.  Might have
+        # to add even more of these, or fix web.input to be able to
+        # get multiple fields of the same name as lists.
+        tokens2 = ','.join(i.ftokens)
+        ft_list = strip_duplicates((t for t in tokens2.split(',') if t),
                                    (i.get('remove'),))
         # reassemble ftokens string in case it had duplicates
         i.ftokens = ','.join(ft_list)

@@ -14,7 +14,7 @@ infogami.config.encryption_key = eval(open('/etc/openlibrary.key').read())
 infogami.config.cache_templates = True
 infogami.config.db_printing = False
 infogami.config.plugin_path += ['plugins']
-infogami.config.plugins += ['openlibrary', 'search', 'pages', 'heartbeat', 'bookrev', 'upload']
+infogami.config.plugins += ['openlibrary', 'search', 'pages', 'heartbeat', 'bookrev', 'upload', 'api', 'copyright']
 infogami.config.solr_server_address = ('pharosdb.us.archive.org', 8993)
 
 infogami.tdb.logger.set_logfile(open("tdb.log", "a"))

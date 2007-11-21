@@ -1,7 +1,7 @@
 OLDEST_PERSON_EVER = 123
 
-def is_public_domain(edition):
-    pubyear = edition.publication_year
+def copyright_status(edition):
+    pubyear = edition.publish_year
     assumptions = ["We're assuming that the data is correct."]
     assumptions.append("We're assuming it was published.")
     assumptions.append("We're assuming it was published in the US.")
@@ -23,9 +23,9 @@ def is_public_domain(edition):
                 else:
                     assumptions.append("We're assuming that the author whose death dates are missing didn't die after those whose are available.")
         if maxauthordeath:
-			pdyear = maxauthordeath + 70
+            pdyear = maxauthordeath + 70
         else:
-        	assumptions.append("We're assuming that the author lived as long as the oldest person ever and published the work at birth.")
-        	#TODO: look for author birth years
+            assumptions.append("We're assuming that the author lived as long as the oldest person ever and published the work at birth.")
+            #TODO: look for author birth years
             pdyear = pubyear + OLDEST_PERSON_EVER
     return { 'date': pdyear, 'assumptions': assumptions }
