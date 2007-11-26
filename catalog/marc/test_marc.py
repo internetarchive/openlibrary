@@ -3,6 +3,23 @@
 import unittest
 from parse import normalize_isbn, biggest_decimal, compile_marc_spec
 
+class MockField:
+    def __init__(self, subfields):
+        self.subfield_sequence = subfields
+        self.contents = {}
+        for k, v in subfields:
+            self.contents.setdefault(k, []).append(v)
+    def get_elts(self, i):
+        if i in self.contents:
+            return self.contents[i]
+        else:
+            return []
+class MockRecord:
+    def __init__(self, subfields):
+        self.field = MockField(subfields)
+    def get_fields(self, tag):
+        return [self.field]
+
 class TestMarcParse(unittest.TestCase):
     def test_normalize_isbn(self):
         data = [
@@ -32,24 +49,7 @@ class TestMarcParse(unittest.TestCase):
             output = biggest_decimal(input)
             self.assertEqual(output, expect)
 
-    def test_compile_marc_spec(self):
-        class MockField:
-            def __init__(self, subfields):
-                self.subfield_sequence = subfields
-                self.contents = {}
-                for k, v in subfields:
-                    self.contents.setdefault(k, []).append(v)
-            def get_elts(self, i):
-                if i in self.contents:
-                    return self.contents[i]
-                else:
-                    return []
-        class MockRecord:
-            def __init__(self, subfields):
-                self.field = MockField(subfields)
-            def get_fields(self, tag):
-                return [self.field]
-
+    def xtest_subject_order(self):
         gen = compile_marc_spec('650:a--x--v--y--z')
 
         data = [
@@ -83,6 +83,29 @@ class TestMarcParse(unittest.TestCase):
             output = [i for i in gen(MockRecord(input))]
             self.assertEqual([expect], output)
 
+    def test_title(self):
+        gen = compile_marc_spec('245:ab clean_name')
+        data = [
+            ([  ('a', 'Railroad construction.'),
+                ('b', 'Theory and practice.  A textbook for the use of students in colleges and technical schools.'),
+                ('b', 'By Walter Loring Webb.')],
+                'Railroad construction. Theory and practice.  A textbook for the use of students in colleges and technical schools. By Walter Loring Webb.')
+        ]
+
+        for (input, expect) in data:
+            output = [i for i in gen(MockRecord(input))]
+            self.assertEqual([expect], output)
+    def test_by_statement(self):
+        gen = compile_marc_spec('245:c')
+        data = [
+            ([  ('a', u'Trois contes de No\u0308el'),
+                ('c', u'[par] Madame Georges Renard,'),
+                ('c', u'edited by F. Th. Meylan ...')],
+                '[par] Madame Georges Renard, edited by F. Th. Meylan ...')
+        ]
+        for (input, expect) in data:
+            output = [i for i in gen(MockRecord(input))]
+            self.assertEqual([expect], output)
 
 if __name__ == '__main__':
     unittest.main()

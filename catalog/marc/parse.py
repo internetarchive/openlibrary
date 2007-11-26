@@ -7,12 +7,12 @@ record_loc_delimiter = ":"
 
 re_isbn = re.compile('([^ ()]+[\dX])(?: \((?:v\. (\d+)(?: : )?)?(.*)\))?')
 re_lccn = re.compile('(...\d+).*')
-re_date = map (re.compile, ['(?P<birth>\d+\??)-(?P<death>\d+\??)',
-                            '(?P<birth>\d+\??)-',
-                            'b\.? (?P<birth>(?:ca\. )?\d+\??)',
+re_date = map (re.compile, ['(?P<birth_date>\d+\??)-(?P<death>\d+\??)',
+                            '(?P<birth_date>\d+\??)-',
+                            'b\.? (?P<birth_date>(?:ca\. )?\d+\??)',
                             'd\.? (?P<death>(?:ca\. )?\d+\??)',
-                            '(?P<birth>.*\d+.*)-(?P<death>.*\d+.*)',
-                            '^(?P<birth>[^-]*\d+[^-]+ cent\.[^-]*)$'])
+                            '(?P<birth_date>.*\d+.*)-(?P<death>.*\d+.*)',
+                            '^(?P<birth_date>[^-]*\d+[^-]+ cent\.[^-]*)$'])
 
 def specific_subtags(f, subtags):
     return [j for i, j in f.subfield_sequence if i in subtags]
@@ -59,11 +59,10 @@ def find_title(r, edition):
     if 'c' in f.contents:
         edition["by_statement"] = f.contents['c']
     if 'h' in f.contents:
-        assert len(f.contents['h']) == 1
-        edition["physical_format"] = f.contents['h'][0]
+        edition["physical_format"] = f.contents['h']
 
 def find_other_titles(r, edition):
-    other_titles = [' '.join(f.contents['a']) for f in r.get_fields('246')]
+    other_titles = [' '.join(f.contents['a']) for f in r.get_fields('246') if 'a' in f.contents]
 
     for f in r.get_fields('730'):
         other_titles.append(' '.join([j for i,j in f.subfield_sequence if i.islower()]))
@@ -125,7 +124,8 @@ def find_dewey_number(r, edition):
     if fields:
         dewey_number = []
         for f in fields:
-            dewey_number += f.contents['a']
+            if 'a' in f.contents:
+                dewey_number += f.contents['a']
         edition["dewey_number"] = dewey_number
 
 def find_subjects(r, edition):
@@ -242,6 +242,8 @@ def find_isbn(r, edition):
         edition["ISBN"] = isbn
 
 def find_lccn(r, edition):
+    if 'a' not in r.get_field('010').contents:
+        return
     lccn = r.get_field('010').contents['a'][0].strip()
     m = re_lccn.match(lccn)
     assert m
@@ -255,9 +257,11 @@ def parser(source_id, file_locator, input):
         edition = {}
         edition['source_record_loc'] = [encode_record_locator (r, file_locator)]
         curr_loc = edition['source_record_loc'][0]
-        edition['source_record_id'] = [record_id_delimiter.join ([source_id,
-            r.get_field_value ('003').strip(),
-            r.get_field_value ('001').strip()])]
+        field_1 = r.get_field_value('001')
+        field_3 = r.get_field_value('003')
+        if field_1 and field_3:
+            edition['source_record_id'] = [record_id_delimiter.join ([source_id,
+                field_1.strip(), field_3.strip()])]
 
         find_table_of_contents(r, edition)
         find_authors(r, edition)
