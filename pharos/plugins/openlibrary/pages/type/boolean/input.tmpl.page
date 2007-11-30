@@ -1,0 +1,1 @@
+{'type': {'name': 'type/template'}, 'name': 'type/boolean/input.tmpl', 'd': {'body': '$def with (p, name)\n\n$if p.value:\n    <input type="checkbox" name="$name" checked="checked"/>\n$else:\n    <input type="checkbox" name="$name"/>', 'title': 'input template for type/boolean'}}

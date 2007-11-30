@@ -1,0 +1,1 @@
+{'type': {'name': 'type/macro'}, 'name': 'macros/PageList', 'd': {'macro': '$def with (path="")\r\n\r\n<ul>\r\n$for p in list_pages(ctx.site, path):\r\n    <li><a href="/$p.name">$p.name</a></li>\r\n</ul>\r\n\r\n<!--\r\n$list(list_pages(ctx.site, path))\r\n-->', 'description': 'List of pages'}}

@@ -1,0 +1,1 @@
+{'type': {'name': 'type/page'}, 'name': 'type', 'd': {'body': '\r\n{{PageList("type")}}', 'title': 'Types'}}

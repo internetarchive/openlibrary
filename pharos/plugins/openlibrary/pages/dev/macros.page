@@ -1,0 +1,1 @@
+{'type': {'name': 'type/page'}, 'name': 'dev/macros', 'd': {'body': 'Macro are like functions which can be embeded into markdown. \r\nFor example `{{Hello(name="openlibrary", times=3)}}` produces the following result:\r\n\r\n{{Hello(name="openlibrary", times=3)}}\r\n\r\n## List of Macros\r\n{{ListOfMacros()}}', 'title': 'Macros'}}

@@ -1,0 +1,1 @@
+{'type': {'name': 'type/template'}, 'name': 'type/image/diff.tmpl', 'd': {'body': '$def with (a, b, name)\r\n\r\n<tr>\r\n    <td class="diff-header-side" valign="top">$name</td>\r\n    <td class="diff-body" valign="top">$:thingrepr(a)</td> \r\n    <td class="diff-body" valign="top">$:thingrepr(b)</td> \r\n</tr>', 'title': 'Diff template for type/image'}}

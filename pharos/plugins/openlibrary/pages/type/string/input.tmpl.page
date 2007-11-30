@@ -1,0 +1,1 @@
+{'type': {'name': 'type/template'}, 'name': 'type/string/input.tmpl', 'd': {'body': '$def with (p, name)\r\n\r\n<input type="text" name="$name" value="$p.value" style="width: 100%" />', 'title': '/type/string/input.tmpl'}}
