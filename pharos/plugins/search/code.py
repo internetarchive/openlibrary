@@ -76,7 +76,7 @@ class fullsearch(delegate.page):
         out = []
 
         if i.q:
-            q = re.sub('[\r\n]+', ' ', i.q)
+            q = re.sub('[\r\n]+', ' ', i.q).strip()
             results = solr_fulltext.fulltext_search(q)
             for ocaid in results:
                 try:
