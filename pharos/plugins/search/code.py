@@ -71,12 +71,16 @@ solr_pagetext = solr_client.Solr_client(('h7', 8983))
 from collapse import collapse_groups
 class fullsearch(delegate.page):
     def POST(self, site):
-        i = web.input(q=None)
         errortext = None
         out = []
+        q = web.input(q=None).q
 
-        if i.q:
-            q = re.sub('[\r\n]+', ' ', i.q).strip()
+        if not q:
+            errortext='you need to enter some search terms'
+            return render.fullsearch(q, out, errortext)
+
+        try:
+            q = re.sub('[\r\n]+', ' ', q).strip()
             results = solr_fulltext.fulltext_search(q)
             for ocaid in results:
                 try:
@@ -85,9 +89,9 @@ class fullsearch(delegate.page):
                                 collapse_groups(solr_pagetext.pagetext_search(ocaid, q))))
                 except IndexError:
                     pass
-        else:
-            q = i.q
-            errortext = 'You need to enter some search terms.'
+        except IOError, e:
+            errortext = 'fulltext search is temporarily unavailable (%s)' % \
+                        str(e)
 
         return render.fullsearch(q, out, errortext=errortext)
 
@@ -149,7 +153,8 @@ class search(delegate.page):
             # @@
         
         # get list of facet tokens by splitting out comma separated
-        # tokens, and remove duplicates.
+        # tokens, and remove duplicates.  Also remove anything in the
+        # initial set `init'.
         def strip_duplicates(seq, init=[]):
             """>>> print strip_duplicates((1,2,3,3,4,9,2,0,3))
             [1, 2, 3, 4, 9, 0]
@@ -158,10 +163,9 @@ class search(delegate.page):
             fs = set(init)
             return list(t for t in seq if not (t in fs or fs.add(t)))
 
-        # we use two tokens fields in the input form so we can support
-        # date_range and fulltext_only in advanced search.  Might have
-        # to add even more of these, or fix web.input to be able to
-        # get multiple fields of the same name as lists.
+        # we use multiple tokens fields in the input form so we can support
+        # date_range and fulltext_only in advanced search, and can add
+        # more like that if needed.
         tokens2 = ','.join(i.ftokens)
         ft_list = strip_duplicates((t for t in tokens2.split(',') if t),
                                    (i.get('remove'),))

@@ -21,9 +21,10 @@ def collapse_groups(page_numbers):
 
     # now flatten that iterator into a list of lists of leaf numbers
     groups = list(list(z for _, z in y) for _, y in g_iter)
+
+    # finally, we'll make text strings for the leaf groups
     return list((g[0], collapse_one_group(g)) for g in groups)
 
-# finally, we'll make text strings for the leaf groups
 def collapse_one_group(leaf_group):
     """collapse list of leaves into a single string, i.e.
     >>> collapse_one_group([2,3,4])
@@ -39,9 +40,12 @@ def collapse_one_group(leaf_group):
     >>> collapse_one_group([280,281,282,283,284,285])
     '280-285'
     """
+    # get the first and last leaf numbers in the group
     a,b = leaf_group[0], leaf_group[-1]
-    if a == b: return '%d'% a
 
+    # if there's just one leaf number, convert it, otherwise
+    # convert the range.
+    if a == b: return '%d'% a
     return '%d-%d' % (a,b)
 
 if __name__ == '__main__':
