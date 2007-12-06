@@ -1,0 +1,1 @@
+{'type': {'name': 'type/macro'}, 'name': 'macros/ChangeTemplate', 'd': {'macro': '<script  type="text/javascript">\r\nfunction changeTemplate() {\r\n    var t = document.edit._type.value;\r\n    document.location.href += \'&t=\' + t;\r\n}\r\n</script>', 'type/string': 'Javascript to change type'}}

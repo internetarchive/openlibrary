@@ -1,0 +1,1 @@
+{'type': {'name': 'type/template'}, 'name': 'templates/viewpage.tmpl', 'd': {'body': "$def with (page)\r\n\r\n$if page.type.name == 'type/home':\r\n    $:macros.MostRecent()    \r\n$else:\r\n    $:macros.databar(page)\r\n\r\n$:macros.AlertTour(page)\r\n\r\n$ view = thingview(page)\r\n\r\n$var title: $view.title\r\n\r\n$:view\r\n", 'title': 'viewpage template'}}

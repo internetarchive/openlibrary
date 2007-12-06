@@ -1,0 +1,1 @@
+{'type': {'name': 'type/macro'}, 'name': 'macros/HelpFormatting', 'd': {'macro': 'Learn more about the formatting language used in our wiki at <a href="http://daringfireball.net/projects/markdown/basics/" class="datalink">Markdown Basics.</a>', 'description': 'Formatting Help Macro'}}

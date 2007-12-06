@@ -1,0 +1,1 @@
+{'type': {'name': 'type/type'}, 'name': 'type/rawtext', 'd': {'description': '', 'is_primitive': False, 'properties': [{'child': True, 'type': {'name': 'type/property'}, 'name': 'rawtext', 'd': {'unique': True, 'type': {'name': 'type/text'}, 'description': ''}}]}}

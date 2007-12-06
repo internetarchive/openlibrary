@@ -1,0 +1,1 @@
+{'type': {'name': 'type/template'}, 'name': 'type/image/repr.tmpl', 'd': {'body': '$def with (page)\r\n<img src="$page.value" />', 'title': 'Repr template for image'}}
