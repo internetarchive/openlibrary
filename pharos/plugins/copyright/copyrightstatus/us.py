@@ -2,10 +2,12 @@ OLDEST_PERSON_EVER = 123
 
 def copyright_status(edition):
     pubyear = edition.publish_year
-    assumptions = ["We're assuming that the data is correct."]
+    assumptions = ["We're assuming the year of publication is %d."% pubyear]
+    assumptions.append("We're assuming that the data is correct.")
     assumptions.append("We're assuming it was published.")
     assumptions.append("We're assuming it was published in the US.")
     assumptions.append("We're assuming it was published with a valid copyright notice.")
+
     if pubyear < 1923:
         pdyear =  pubyear + 28 + 28
     elif pubyear < 1964:
