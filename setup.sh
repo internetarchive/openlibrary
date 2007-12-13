@@ -41,7 +41,7 @@ function setup_infogami() {
     then
        cd $hgroot/infogami && hg pull
     else
-        cd $hgroot && hg clone http://infogami.org/hg $hgroot/infogami
+        cd $hgroot && hg clone http://infogami.org/hg/ $hgroot/infogami
     fi
     cd $hgroot/infogami && hg update -C default
 }
@@ -49,11 +49,12 @@ function setup_infogami() {
 function setup_webpy() {
     echo "** updating webpy repository **"
 
-    if [ -d $hgroot/web ]
+    if [ -d $hgroot/webpy.svn ]
     then
-       cd $hgroot/web && svn up -q
+       cd $hgroot/webpy.svn && bzr pull
     else
-        cd $hgroot && svn co -q http://webpy.org/svn/trunk/web
+        cd $hgroot && bzr get http://webpy.org/bzr/webpy.svn
+        
     fi
 }
 
@@ -61,7 +62,7 @@ function setup_symlinks() {
     echo "**creating symlinks**"
     cd $hgroot/pharos
     ln -fs ../infogami/infogami .
-    ln -fs ../web .
+    ln -fs ../webpy.svn/web .
 }
 
 setup_infogami
