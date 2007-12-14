@@ -106,7 +106,7 @@ class ArchiveDisk(WARCDisk):
     def write(self, filename, data, headers={}):
         WARCDisk.write(self, filename, data, headers)
         warcfilename, offset, size = self.index[filename]
-        itemname = self.get_item_name()
+        itemname = self.get_item_name(warcfilename)
         self.upload(itemname, warcfilename)
         
     def read(self, filename):

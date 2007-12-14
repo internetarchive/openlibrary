@@ -12,7 +12,6 @@ some example of urls:
 
 import os.path
 import web
-import Image
 import simplejson
 
 from store.store import Store, File
@@ -47,15 +46,24 @@ def write(filename, data):
 
 SIZES = dict(small=(100, 100), medium=(200, 200), large=(400, 400))
 
-def _convert_thumbnail(src_file, dest_file, sizename):
-    """Converts src image to thumnail of specified size."""
-    size = SIZES[sizename]
-    image = Image.open(src_file)
-    image.thumbnail(size)
-    image.save(dest_file)
+class PIL:
+    def thumbnail(self, src_file, dest_file, size):
+        """Converts src image to thumnail of specified size."""
+        import Image
+        image = Image.open(src_file)
+        image.thumbnail(size)
+        image.save(dest_file)
+
+class ImageMagick:
+    def thumbnail(self, src_file, dest_file, size):
+        size = '%sx%s' % size
+        cmd = 'convert -size %s -thumbnail %s %s %s' % (size, size, src_file, dest_file)
+        os.system(cmd)
+        
+imagelib = PIL()
 
 def create_thumbnail(id, size):
-    _convert_thumbnail(imgpath(id, 'original'), imgpath(id, size), size)
+    imagelib.thumbnail(imgpath(id, 'original'), imgpath(id, size), SIZES[size])
 
 def populate_cache(id, file=None):
     if os.path.exists(imgpath(id, 'small')):
