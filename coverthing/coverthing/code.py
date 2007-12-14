@@ -10,7 +10,7 @@ some example of urls:
     /olid/1234/large.jpg
 """
 
-import os.path
+import os
 import web
 import simplejson
 
@@ -26,25 +26,16 @@ urls = (
 
 store = None
 cache_dir = None
+imagecache = None
 
 def run(disk, cachedir, *middleware):
-    global store, cache_dir
+    global store, cache_dir, imagecache
     store = Store(disk)
     cache_dir = cachedir
+    imagecache = ImageCache(cache_dir, store, 5)    
     web.run(urls, globals(), *middleware)
     
 render = web.template.render(os.path.join(os.path.dirname(__file__), 'templates/'))
-
-def imgpath(id, size):
-    return '%s/%d-%s.jpg' % (cache_dir, id, size)
-
-def write(filename, data):
-    print >> web.debug, 'write', filename
-    f = open(filename, 'w')
-    f.write(data)
-    f.close()
-
-SIZES = dict(small=(100, 100), medium=(200, 200), large=(400, 400))
 
 class PIL:
     def thumbnail(self, src_file, dest_file, size):
@@ -62,31 +53,58 @@ class ImageMagick:
         
 imagelib = PIL()
 
-def create_thumbnail(id, size):
-    imagelib.thumbnail(imgpath(id, 'original'), imgpath(id, size), SIZES[size])
+SIZES = dict(small=(100, 100), medium=(200, 200), large=(400, 400))
 
-def populate_cache(id, file=None):
-    if os.path.exists(imgpath(id, 'small')):
-        return
-    else:
-        if file is None:
-            result = store.get(id, ['image'])
-            if result is None:
-                web.notfound()
-                raise StopIteration
+class ImageCache:
+    def __init__(self, cache_dir, store, cache_size=30000):
+        self.cache_dir = cache_dir
+        self.image_count = len(os.listdir(cache_dir))
+        self.cache_size = cache_size
+        self.store = store
 
-            file = result['image']
+    def create_thumbnail(self, id, size):
+        imagelib.thumbnail(self.imgpath(id, 'original'), self.imgpath(id, size), SIZES[size])
 
-        data = file.getdata()
-        write(imgpath(id, 'original'), data)
-        create_thumbnail(id, 'small')
-        create_thumbnail(id, 'medium')
-        create_thumbnail(id, 'large')
+    def imgpath(self, id, size):
+        return '%s/%d-%s.jpg' % (self.cache_dir, id, size)
+
+    def write(self, filename, data):
+        f = open(filename, 'w')
+        f.write(data)
+        f.close()
+
+    def populate_cache(self, id, file=None):
+        if os.path.exists(self.imgpath(id, 'small')):
+            return
+        else:
+            if file is None:
+                result = self.store.get(id, ['image'])
+                if result is None:
+                    web.notfound()
+                    raise StopIteration
+
+                file = result['image']
+
+            data = file.getdata()
+            self.write(self.imgpath(id, 'original'), data)
+            self.create_thumbnail(id, 'small')
+            self.create_thumbnail(id, 'medium')
+            self.create_thumbnail(id, 'large')
+            os.remove(self.imgpath(id, 'original'))
+            self.image_count += 3
+            self.prune_cache()
+            
+    def prune_cache(self):
+        if self.image_count > 2 * self.cache_size:
+            files = [os.path.join(self.cache_dir, f) for f in os.listdir(self.cache_dir)]
+            files.sort(key=lambda f: os.stat(f).st_atime, reverse=True)
+            for f in files[self.cache_size:]:
+                os.remove(f)
         
-def get_image(id, size):
-    populate_cache(id)
-    return open(imgpath(id, size)).read()
-
+    def get_image(self, id, size):
+        self.populate_cache(id)
+        return open(self.imgpath(id, size)).read()
+        
 class index:
     def GET(self):
         print render.index()
@@ -103,7 +121,7 @@ class image:
                 raise StopIteration
             else:
                 id = ids[0]
-        print get_image(int(id), size)
+        print imagecache.get_image(int(id), size)
         
 class uploader:
     def GET(self):
@@ -153,5 +171,5 @@ class upload:
         i.setdefault('source', 'unknown')
 
         id = store.save(i)
-        populate_cache(id, file=i.image)
+        imagecache.populate_cache(id, file=i.image)
         return dict(id=id)
