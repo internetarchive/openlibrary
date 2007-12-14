@@ -1,6 +1,7 @@
 """Disk: interface to store files."""
 import os.path
 import warc
+import urllib
 
 class Disk:
     def __init__(self, root):
