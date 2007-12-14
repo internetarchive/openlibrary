@@ -5,6 +5,7 @@ http://archive-access.sourceforge.net/warc/warc_file_format.html
 """
 
 import urllib
+import httplib
 import datetime
 
 WARC_VERSION = "0.10"
@@ -96,7 +97,7 @@ class HTTPFile:
     def read(self, size):
         protocol, host, port, path = self.urlsplit(self.url)
         conn = httplib.HTTPConnection(host, port)
-        headers = {'Range': 'bytes=%d:%d' % (self.offset, self.offset + size - 1)}
+        headers = {'Range': 'bytes=%d-%d' % (self.offset, self.offset + size - 1)}
         conn.request('GET', path, None, headers)
         response = conn.getresponse()
         data = response.read()
