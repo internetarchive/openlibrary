@@ -32,7 +32,7 @@ def run(disk, cachedir, *middleware):
     global store, cache_dir, imagecache
     store = Store(disk)
     cache_dir = cachedir
-    imagecache = ImageCache(cache_dir, store, 5)    
+    imagecache = ImageCache(cache_dir, store, 30000)
     web.run(urls, globals(), *middleware)
     
 render = web.template.render(os.path.join(os.path.dirname(__file__), 'templates/'))
