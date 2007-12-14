@@ -2,6 +2,7 @@
 import os.path
 import warc
 import urllib
+import re
 
 class Disk:
     def __init__(self, root):
@@ -131,8 +132,5 @@ class ArchiveDisk(WARCDisk):
     def item_url(self, itemname):
         """Returns http url to access files from the item specified by the itemname."""
         result = urllib.urlopen('http://archive.org/details/' + itemname).read()
-        # In the html page, the line containing the string 'File downloads' has a link to item url
-        text = [line for line in result.splitlines() if 'File downloads' in line][0]
-        url = [x for x in text.split('"') if x.startswith('http://')][0]
-        return url
-
+        urls =  re.findall(r'(?:http|ftp)://ia[0-9]*.us.archive.org/[0-9]*/items/' + itemname, result)
+        return urls[0].replace('ftp://', 'http://')
