@@ -49,11 +49,11 @@ function setup_infogami() {
 function setup_webpy() {
     echo "** updating webpy repository **"
 
-    if [ -d $hgroot/webpy.svn ]
+    if [ -d $hgroot/webpy ]
     then
-       cd $hgroot/webpy.svn && bzr pull
+       cd $hgroot/webpy && bzr pull
     else
-        cd $hgroot && bzr get http://webpy.org/bzr/webpy.svn
+        cd $hgroot && bzr get /Users/anand/work/webpy-0.23 webpy
         
     fi
 }
@@ -62,7 +62,7 @@ function setup_symlinks() {
     echo "**creating symlinks**"
     cd $hgroot/pharos
     ln -fs ../infogami/infogami .
-    ln -fs ../webpy.svn/web .
+    ln -fs ../webpy/web .
 }
 
 setup_infogami
