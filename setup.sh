@@ -53,8 +53,7 @@ function setup_webpy() {
     then
        cd $hgroot/webpy && bzr pull
     else
-        cd $hgroot && bzr get /Users/anand/work/webpy-0.23 webpy
-        
+        cd $hgroot && bzr get http://webpy.org/bzr/webpy-0.23 webpy
     fi
 }
 
