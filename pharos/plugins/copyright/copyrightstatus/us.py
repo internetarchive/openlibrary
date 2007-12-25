@@ -16,7 +16,7 @@ def copyright_status(edition):
     elif pubyear < 1978:
         pdyear = pubyear + 95
     else:
-        assumptions.append("We're assuming it wasn't published by a corporation or under a psuedonym.")
+        assumptions.append("We're assuming it wasn't published by a corporation or under a pseudonym.")
         maxauthordeath = None
         for author in edition.authors:
             if author.get('death_year'):

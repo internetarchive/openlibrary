@@ -25,49 +25,11 @@ if solr_server_address:
 else:
     solr = None
 
-
-class old_search(delegate.page):
-    def GET(self, site):
-        i = web.input(q=None)
-        results = []
-        qresults = web.storage(begin=0, total_results=0)
-        facets = []
-        errortext = None
-        if solr is None:
-            errortext = 'Solr is not configured.'
-        elif not i.q:
-            errortext = 'You need to enter some search terms.'
-        else:
-            try:
-                query = i.q.strip()
-                offset = int(i.get('offset', '0'))
-                qresults = solr.basic_search(query, start=offset)
-                facets = solr.facets(solr.basic_query(i.q), maxrows=5000)
-
-                for res in qresults.result_list:
-                    if res.startswith('OCA/'):
-                        try:
-                            t = tdb.Things(oca_identifier=res[4:]).list()[0].name
-                            if t not in results: results.append(t)
-                        except IndexError:
-                            pass
-                    else:
-                        if res not in results: results.append(res)
-                results = tdb.withNames(results, site)
-                for x in results:
-                    if x.type.name not in ['edition', 'type/edition'] or not x.get('title'):
-                        results.remove(x)
-            except solr_client.SolrError:
-                errortext = 'Sorry, there was an error in your search.'
-
-        return render.search(i.get('q', ''),
-                             qresults,
-                             results, 
-                             facets,
-                             errortext=errortext)
-
 solr_fulltext = solr_client.Solr_client(('ia301443', 8983))
-solr_pagetext = solr_client.Solr_client(('h7', 8983))
+# solr_pagetext = solr_client.Solr_client(('h7', 8983))
+# fulltext and pagetext are on the same server now
+solr_pagetext = solr_client.Solr_client(('ia301443', 8983))
+
 from collapse import collapse_groups
 class fullsearch(delegate.page):
     def POST(self, site):
@@ -97,22 +59,10 @@ class fullsearch(delegate.page):
 
     GET = POST
 
-# this is just to test exporting python functions to templates
-@view.public
-def square(n):
-    if n != 3:
-        raise TypeError, 'whoops'
-    return n*n
-
-class Panic(Exception): pass
-@view.public
-def tpanic(msg,x=0):
-    print >> web.debug, ('panic', msg)
-    if x:
-        raise Panic, msg
-
 import facet_hash
 facet_token = view.public(facet_hash.facet_token)
+
+class DebugException(Exception): pass
 
 class search(delegate.page):
     def GET(self, site):
