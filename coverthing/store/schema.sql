@@ -1,5 +1,6 @@
 create table thing (
     id serial primary key,
+    created timestamp default (current_timestamp at time zone 'utc'),
     dummy int
 );
 

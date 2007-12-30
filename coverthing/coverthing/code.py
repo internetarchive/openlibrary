@@ -40,16 +40,27 @@ render = web.template.render(os.path.join(os.path.dirname(__file__), 'templates/
 class PIL:
     def thumbnail(self, src_file, dest_file, size):
         """Converts src image to thumnail of specified size."""
+        print 'thumnail', src_file, dest_file
         import Image
         image = Image.open(src_file)
         image.thumbnail(size)
         image.save(dest_file)
+        
+    def mimetype(self, filename):
+        import Image
+        image = Image.open(src_file)
+        types = dict(JPEG='image/jpeg', GIF='image/gif')
+        return types.get(image.format, 'application/octet-stream')
 
 class ImageMagick:
     def thumbnail(self, src_file, dest_file, size):
         size = '%sx%s' % size
         cmd = 'convert -size %s -thumbnail %s %s %s' % (size, size, src_file, dest_file)
         os.system(cmd)
+        
+    def mimetype(self, filename):
+        # TODO
+        return 'application/octet-stream'
         
 imagelib = PIL()
 
@@ -85,8 +96,7 @@ class ImageCache:
 
                 file = result['image']
 
-            data = file.getdata()
-            self.write(self.imgpath(id, 'original'), data)
+            self.write(self.imgpath(id, 'original'), file.data)
             self.create_thumbnail(id, 'small')
             self.create_thumbnail(id, 'medium')
             self.create_thumbnail(id, 'large')
@@ -163,11 +173,11 @@ class upload:
     @jsonify
     def POST(self):
         i = web.input("image")
-        i.image = File(i.image)
         for k in i.keys():
             if k.startswith('_'):
                 del i[k]
-
+                
+        i.image = File(i.image, 'image/jpeg')
         i.setdefault('source', 'unknown')
 
         id = store.save(i)
