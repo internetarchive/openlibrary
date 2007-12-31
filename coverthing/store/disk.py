@@ -101,10 +101,16 @@ class WARCDisk:
         offset = w.write(warc_record)
         self.update_index(filename, warcfilename, offset, len(file.data))
         w.close()
+        
+    def find(self, dir):
+        """Find all files in the given directory."""
+        for dirpath, dirnames, filenames in os.walk(dir):
+            for f in filenames:
+                yield os.path.join(dirpath, f)
     
     def get_next_warcfile(self):
         if self.next_warcfile is None:
-            files = [f for f in os.listdir(self.root) if f.startswith(self.warcfile_prefix) and f.endswith('.warc')]
+            files = [os.path.basename(f) for f in self.find(self.root) if f.endswith('.warc')]
             if files:
                 files.sort()
                 self.next_warcfile = files[-1]
