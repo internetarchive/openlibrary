@@ -7,11 +7,12 @@ record_loc_delimiter = ":"
 
 re_isbn = re.compile('([^ ()]+[\dX])(?: \((?:v\. (\d+)(?: : )?)?(.*)\))?')
 re_lccn = re.compile('(...\d+).*')
-re_date = map (re.compile, ['(?P<birth_date>\d+\??)-(?P<death>\d+\??)',
+re_int = re.compile ('\d{2,}')
+re_date = map (re.compile, ['(?P<birth_date>\d+\??)-(?P<death_date>\d+\??)',
                             '(?P<birth_date>\d+\??)-',
                             'b\.? (?P<birth_date>(?:ca\. )?\d+\??)',
-                            'd\.? (?P<death>(?:ca\. )?\d+\??)',
-                            '(?P<birth_date>.*\d+.*)-(?P<death>.*\d+.*)',
+                            'd\.? (?P<death_date>(?:ca\. )?\d+\??)',
+                            '(?P<birth_date>.*\d+.*)-(?P<death_date>.*\d+.*)',
                             '^(?P<birth_date>[^-]*\d+[^-]+ cent\.[^-]*)$'])
 
 def specific_subtags(f, subtags):
@@ -35,6 +36,8 @@ def find_authors (r, edition):
             if tag == '100':
                 db_name = [j.strip(' /,;:') for i, j in f.subfield_sequence if i in 'abcd']
                 author['db_name'] = " ".join(db_name)
+                if 'q' in f.contents:
+                    author['fuller_name'] = ' '.join(f.contents['q'])
             else:
                 author['db_name'] = author['name']
 
@@ -109,9 +112,10 @@ def find_publisher(r, edition):
 def find_pagination(r, edition):
     pagination = []
     for f in r.get_fields('300'):
-        pagination += f.contents['a']
+        if 'a' in f.contents:
+            pagination += f.contents['a']
     if pagination:
-        edition["pagination"] = pagination
+        edition["pagination"] = ' '.join(pagination)
         num = []
         for x in pagination:
             num += re_int.findall(x)
@@ -141,7 +145,7 @@ def find_subjects(r, edition):
     subdivision_fields = 'vxyz'
 
     for tag, name_fields in fields:
-        subject += [" ".join(specific_subtags(f, name_fields) + ["--".join(specific_subtags(f, subdivision_fields))]) for f in r.get_fields(tag)]
+        subject += [" -- ".join([" ".join(specific_subtags(f, name_fields))] + specific_subtags(f, subdivision_fields)) for f in r.get_fields(tag)]
 
     if subject:
         edition["subject"] = subject
@@ -271,6 +275,7 @@ def parser(source_id, file_locator, input):
         find_work_title(r, edition)
         find_edition(r, edition)
         find_publisher(r, edition)
+        find_pagination(r, edition)
         find_subjects(r, edition)
         find_subject_place(r, edition)
         find_subject_time(r, edition)
@@ -282,7 +287,6 @@ def parser(source_id, file_locator, input):
         find_lc_classification(r, edition)
         find_isbn(r, edition)
         find_lccn(r, edition)
-        find_subjects(r, edition)
 
         f = r.get_field('008')
         edition["publish_date"] = str(f)[7:11]
