@@ -3,18 +3,7 @@ Object store.
 """
 import re
 import web
-
-class File:
-    def __init__(self, data):
-        self.data = data
-
-    def getdata(self):
-        return self.data
-
-    def __eq__(self, object):
-        return self.getdata() == object.getdata()
-    
-    def __ne__(self, other):pass
+from disk import File
 
 class BadData(Exception): pass
 
@@ -34,17 +23,19 @@ class Store:
         """Saves the data and returns its object id"""
         web.transact()
         id = web.insert('thing', dummy=1)
+        values = {}
         for k, v in object.items():
             validate_key(k)
             datatype = self._gettype(v)
             if datatype == TYPE_FILE:
                 v = '%d.%s' % (id, k)
+            values[k] = v
             web.insert('datum', False, thing_id=id, key=k, value=v, datatype=datatype)
         web.commit()
 
         for k, v in object.items():
             if isinstance(v, File):
-                self.disk.write('%d.%s' % (id, k), v.getdata())
+                self.disk.write('%d.%s' % (id, k), v)
 
         return id
 
@@ -66,7 +57,7 @@ class Store:
         for row in result:
             key, value, datatype = row.key, row.value, row.datatype
             if datatype == TYPE_FILE:
-                value = File(self.disk.read(value))
+                value = self.disk.read(value)
             d[key] = value
         return d
 

@@ -130,7 +130,7 @@ def find_dewey_number(r, edition):
         for f in fields:
             if 'a' in f.contents:
                 dewey_number += f.contents['a']
-        edition["dewey_number"] = dewey_number
+        edition["dewey_decimal_class"] = dewey_number
 
 def find_subjects(r, edition):
     fields = [
@@ -233,17 +233,23 @@ def find_lc_classification(r, edition):
         edition["LC_classification"] = lc
 
 def find_isbn(r, edition):
-    isbn = []
+    isbn_10 = []
+    isbn_13 = []
     for f in r.get_fields('020'):
         for subtag in 'a', 'z':
             if subtag in f.contents:
                 for x in f.contents[subtag]:
                     m = re_isbn.match(x)
                     if m:
-                        isbn.append(m.group(1))
+                        if len(m.group(1)) == 13:
+                            isbn_13.append(m.group(1))
+                        else:
+                            isbn_10.append(m.group(1))
 
-    if isbn:
-        edition["ISBN"] = isbn
+    if isbn_10:
+        edition["ISBN_10"] = isbn_10
+    if isbn_13:
+        edition["ISBN_13"] = isbn_13
 
 def find_lccn(r, edition):
     if 'a' not in r.get_field('010').contents:
@@ -251,7 +257,7 @@ def find_lccn(r, edition):
     lccn = r.get_field('010').contents['a'][0].strip()
     m = re_lccn.match(lccn)
     assert m
-    edition["lccn"] = m.group(1)
+    edition["LCCN"] = m.group(1)
 
 def encode_record_locator (r, file_locator):
     return record_loc_delimiter.join ([file_locator, str(r.record_pos()), str(r.record_len())])
