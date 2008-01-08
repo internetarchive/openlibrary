@@ -21,21 +21,25 @@ class Store:
 
     def save(self, object):
         """Saves the data and returns its object id"""
-        web.transact()
-        id = web.insert('thing', dummy=1)
-        values = {}
         for k, v in object.items():
             validate_key(k)
-            datatype = self._gettype(v)
-            if datatype == TYPE_FILE:
-                v = '%d.%s' % (id, k)
-            values[k] = v
-            web.insert('datum', False, thing_id=id, key=k, value=v, datatype=datatype)
-        web.commit()
+
+        #@@ what will happen to this row if subsequent operations fail?
+        id = web.insert('thing', dummy=1)
+        headers = dict((k, v) for k, v in object.items() if not isinstance(v, File))
+        values = {}
 
         for k, v in object.items():
             if isinstance(v, File):
-                self.disk.write('%d.%s' % (id, k), v)
+                filename = self.disk.write('%d.%s' % (id, k), v)
+                values[k] = (filename, TYPE_FILE)
+            else:
+                values[k] = (v, self._gettype(v))
+
+        web.transact()
+        for k, (v, datatype) in values.items():
+            web.insert('datum', False, thing_id=id, key=k, value=v, datatype=datatype)
+        web.commit()
 
         return id
 

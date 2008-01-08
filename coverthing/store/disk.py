@@ -30,11 +30,15 @@ class Disk:
         self.root = root
 
     def write(self, filename, file):
+        """Writes the given file to disk and returns the saved filename.
+        The file may be saved with a different name on the disk.
+        """
         "Write a file to disk."
         path = os.path.join(self.root, filename)
         f = open(path, 'w')
         f.write(file.data)
         f.close()
+        return filename
 
     def read(self, filename):
         "Reads a file from disk."
@@ -49,8 +53,6 @@ class WARCDisk:
         import uuid
 
         self.root = root
-        self.index_path = os.path.join(root, 'index.txt')
-        self.index = self._make_index(self.index_path)
         self.next_warcfile = None
         self.maxsize = maxsize
         self.warcfile_prefix = prefix
@@ -60,26 +62,10 @@ class WARCDisk:
         itemname, _ = warcfilename.rsplit('_', 1)
         return itemname
     
-    def _make_index(self, path):
-        index = {}
-        if not os.path.exists(path):
-            return index
-
-        for line in open(path).readlines():
-            filename, warcfilename, offset, size = line.strip().split()
-            index[filename] = warcfilename, int(offset), int(size)
-        return index
-        
-    def update_index(self, filename, warcfilename, offset, size):
-        self.index[filename] = warcfilename, offset, size
-        f = open(self.index_path, 'a')
-        f.write("%s %s %d %d\n" % (filename, warcfilename, offset, size))
-        f.close()
-        
     def read(self, filename):
-        if filename not in self.index:
-            raise IOError, 'No such file or directory: %s' % repr(filename)
-        warcfilename, offset, size = self.index[filename]
+        warcfilename, offset, size = filename.split(':')
+        offset = int(offset)
+        size = int(size)
         path = self.get_path(warcfilename)
         f = open(path)
         f.seek(offset)
@@ -99,8 +85,10 @@ class WARCDisk:
         subject_uri = filename
         warc_record = warc.WARCRecord('resource', subject_uri, file.mimetype, file.headers, file.data)
         offset = w.write(warc_record)
-        self.update_index(filename, warcfilename, offset, len(file.data))
         w.close()
+        filename = '%s:%d:%d' % (warcfilename, offset, len(file.data))
+        print 'write', filename
+        return filename
         
     def find(self, dir):
         """Find all files in the given directory."""
@@ -109,6 +97,8 @@ class WARCDisk:
                 yield os.path.join(dirpath, f)
     
     def get_next_warcfile(self):
+        #@@ this is dangerous. If we clear the directory, it starts again from count 0. 
+        #@@ Probably, this should be taken from database.
         if self.next_warcfile is None:
             files = [os.path.basename(f) for f in self.find(self.root) if f.endswith('.warc')]
             if files:
@@ -141,10 +131,11 @@ class ArchiveDisk(WARCDisk):
         self.upload = upload_func
     
     def write(self, filename, data, headers={}):
-        WARCDisk.write(self, filename, data, headers)
-        warcfilename, offset, size = self.index[filename]
+        fileid = WARCDisk.write(self, filename, data, headers)
+        warcfilename = fileid.split(':')[0]
         itemname = self.get_item_name(warcfilename)
         self.upload(itemname, warcfilename)
+        return fileid
         
     def read(self, filename):
         warcfilename, offset, size = self.index[filename]

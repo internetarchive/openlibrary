@@ -40,7 +40,6 @@ render = web.template.render(os.path.join(os.path.dirname(__file__), 'templates/
 class PIL:
     def thumbnail(self, src_file, dest_file, size):
         """Converts src image to thumnail of specified size."""
-        print 'thumnail', src_file, dest_file
         import Image
         image = Image.open(src_file)
         image.thumbnail(size)
