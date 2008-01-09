@@ -65,7 +65,7 @@ facet_token = view.public(facet_hash.facet_token)
 class DebugException(Exception): pass
 
 class search(delegate.page):
-    def GET(self, site):
+    def POST(self, site):
         i = web.input(wtitle='',
                       wauthor='',
                       wtopic='',
@@ -160,6 +160,8 @@ class search(delegate.page):
                                       i.ftokens,
                                       ft_pairs,
                                       errortext=errortext)
+
+    GET = POST
 
 def munch_qresults(qlist, site):
     results = []
