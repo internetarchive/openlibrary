@@ -5,6 +5,8 @@ import re
 import web
 from disk import File
 
+from multiple_insert import multiple_insert
+
 class BadData(Exception): pass
 
 TYPE_STRING = 1
@@ -43,6 +45,33 @@ class Store:
 
         return id
 
+    def save_multiple(self, objects):
+        for o in objects:
+            for k, v in o.items():
+                validate_key(k)
+
+        web.transact()
+        ids = multiple_insert('thing', [dict(dummy=1) for o in objects])
+
+        data = []
+
+        for id, o in zip(ids, objects):
+            headers = dict((k, v) for k, v in o.items() if not isinstance(v, File))
+            values = {}
+
+            for k, v in o.items():
+                if isinstance(v, File):
+                    filename = self.disk.write('%d.%s' % (id, k), v)
+                    values[k] = (filename, TYPE_FILE)
+                else:
+                    values[k] = (v, self._gettype(v))
+
+            for k, (v, datatype) in values.items():
+                data.append(dict(thing_id=id, key=k, value=v, datatype=datatype))
+
+        multiple_insert('datum', data, seqname=False)
+        web.commit()
+        
     def _gettype(self, value):
         if isinstance(value, basestring):
             return TYPE_STRING
