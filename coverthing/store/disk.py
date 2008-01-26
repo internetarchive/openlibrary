@@ -87,7 +87,6 @@ class WARCDisk:
         offset = w.write(warc_record)
         w.close()
         filename = '%s:%d:%d' % (warcfilename, offset, len(file.data))
-        print 'write', filename
         return filename
         
     def find(self, dir):
@@ -137,11 +136,20 @@ class ArchiveDisk(WARCDisk):
         self.upload(itemname, warcfilename)
         return fileid
         
+    def make_warcfile(self, warcfilename):
+        path = self.get_path(warcfilename)
+	if os.path.exists(path):
+	    return open(path)
+	else:
+	    itemname = self.get_item_name(warcfilename)
+	    url = self.item_url(itemname) + '/' + warcfilename
+	    return warc.HTTPFile(url)
+    
     def read(self, filename):
-        warcfilename, offset, size = self.index[filename]
-        itemname = self.get_item_name(warcfilename)
-        url = self.item_url(itemname) + '/' + warcfilename
-        f = warc.HTTPFile(url)
+        warcfilename, offset, size = filename.split(':')
+        offset = int(offset)
+        size = int(size)
+	f = self.make_warcfile(warcfilename)
         f.seek(offset)
         #@ what about mimetype?
         return File(lambda: f.read(size))
