@@ -1,6 +1,33 @@
 <html>
 <head></head>
 <body>
-<a href="/upload">Upload new cover image</a><br/>
+    <h1>Coverthing</h1>
+
+<h2>API:</h2>
+<p>
+    /api/get/id : return all properties of thing with that id.<br/>
+        example: <a href="/api/get/1">/api/get/1</a> 
+</p>
+
+<p>
+    /api/query: returns ids of all things that match the query.<br/>
+        example: <a href="/api/query?isbn=0000000183">/api/query?isbn=0000000183</a> 
+</p>
+
+<p>
+    /api/upload: Please don't use this now. This is not stable yet.
+</p>
+
+
+<h2>IMAGES:</h2>
+<p>
+    /key/value/size.jpg - gives the image of the thing having property key with specified value with in the specified size. Supported sizes are small 100x100, medium 200x200 and large 400x400.<br/>
+examples: 
+    <ul>
+	<li><a href="/isbn/0000000183/small.jpg">/isbn/0000000183/small.jpg</a></li>
+	<li><a href="/id/1/large.jpg">/id/1/small.jpg</a></li>
+    <ul/>
+</p>
+
 </body>
 </html>
