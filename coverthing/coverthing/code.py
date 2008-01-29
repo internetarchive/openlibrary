@@ -14,106 +14,34 @@ import os
 import web
 import simplejson
 
+import imagecache
 from store.store import Store, File
+
 urls = (
     r'/', 'index',
     r'/upload', 'uploader',
-    r'/([^/]*)/(.*)/(small|medium|large).jpg$', 'image',
+    r'/([^/]*)/(.*)/(thumbnail|small|medium|large).jpg$', 'image',
     r'/api/query', 'query',
     r'/api/upload', 'upload',
+    r'/api/multiple_upload', 'multiple_upload',
     r'/api/get/(.*)', 'get',
 )
 
-store = None
-cache_dir = None
-imagecache = None
-
-def run(disk, cachedir, *middleware):
-    global store, cache_dir, imagecache
-    store = Store(disk)
-    cache_dir = cachedir
-    imagecache = ImageCache(cache_dir, store, 30000)
-    web.run(urls, globals(), *middleware)
-    
 render = web.template.render(os.path.join(os.path.dirname(__file__), 'templates/'))
 
-class PIL:
-    def thumbnail(self, src_file, dest_file, size):
-        """Converts src image to thumnail of specified size."""
-        import Image
-        image = Image.open(src_file)
-        image.thumbnail(size)
-        image.save(dest_file)
-        
-    def mimetype(self, filename):
-        import Image
-        image = Image.open(src_file)
-        types = dict(JPEG='image/jpeg', GIF='image/gif')
-        return types.get(image.format, 'application/octet-stream')
+store = None
 
-class ImageMagick:
-    def thumbnail(self, src_file, dest_file, size):
-        size = '%sx%s' % size
-        cmd = 'convert -size %s -thumbnail %s %s %s' % (size, size, src_file, dest_file)
-        os.system(cmd)
-        
-    def mimetype(self, filename):
-        # TODO
-        return 'application/octet-stream'
-        
-imagelib = PIL()
+def run(*middleware):
+    import config
+    global store
+    store = Store(config.disk)
+    web.run(urls, globals(), *middleware)
 
-SIZES = dict(small=(100, 100), medium=(200, 200), large=(400, 400))
+def redirect_amazon(isbn, size):
+    size_codes = dict(thumbnail='THUMBZZZ', small='TZZZZZZZ', medium='MZZZZZZZ', large='LZZZZZZZ')
+    url = 'http://images.amazon.com/images/P/%s.01.%s.jpg' % (isbn, size_codes[size])
+    web.seeother(url)
 
-class ImageCache:
-    def __init__(self, cache_dir, store, cache_size=30000):
-        self.cache_dir = cache_dir
-        self.image_count = len(os.listdir(cache_dir))
-        self.cache_size = cache_size
-        self.store = store
-
-    def create_thumbnail(self, id, size):
-        imagelib.thumbnail(self.imgpath(id, 'original'), self.imgpath(id, size), SIZES[size])
-
-    def imgpath(self, id, size):
-        return '%s/%d-%s.jpg' % (self.cache_dir, id, size)
-
-    def write(self, filename, data):
-        f = open(filename, 'w')
-        f.write(data)
-        f.close()
-
-    def populate_cache(self, id, file=None):
-        if os.path.exists(self.imgpath(id, 'small')):
-            return
-        else:
-            if file is None:
-                result = self.store.get(id, ['image'])
-                if result is None:
-                    web.notfound()
-                    raise StopIteration
-
-                file = result['image']
-
-            self.write(self.imgpath(id, 'original'), file.data)
-            self.create_thumbnail(id, 'small')
-            self.create_thumbnail(id, 'medium')
-            self.create_thumbnail(id, 'large')
-            os.remove(self.imgpath(id, 'original'))
-            self.image_count += 3
-            self.prune_cache()
-            
-    def prune_cache(self):
-        if self.image_count > 2 * self.cache_size:
-            files = [os.path.join(self.cache_dir, f) for f in os.listdir(self.cache_dir)]
-            files.sort(key=lambda f: os.stat(f).st_atime, reverse=True)
-            for f in files[self.cache_size:]:
-                os.remove(f)
-        
-    def get_image(self, id, size):
-        self.populate_cache(id)
-        return open(self.imgpath(id, size)).read()
-        
 class index:
     def GET(self):
         print render.index()
@@ -130,7 +58,12 @@ class image:
                 raise StopIteration
             else:
                 id = ids[0]
-        print imagecache.get_image(int(id), size)
+        d = store.get(id)
+        if 'source' in d and d['source'] == 'amazon':
+            redirect_amazon(d.get('isbn', '0'), size)
+            raise StopIteration
+        else:
+            print imagecache.get_image(store, int(id), size)
         
 class uploader:
     def GET(self):
@@ -180,5 +113,26 @@ class upload:
         i.setdefault('source', 'unknown')
 
         id = store.save(i)
-        imagecache.populate_cache(id, file=i.image)
+        imagecache.populate_cache(store, id, file=i.image)
         return dict(id=id)
+
+class multiple_upload:
+    @jsonify
+    def POST(self):
+        # allow multiple upload only from localhost
+        assert web.ctx.env['REMOTE_ADDR'] == '127.0.0.1'
+
+        i = web.input('data')
+        data = simplejson.loads(i.data)
+        assert isinstance(data, list)
+
+        for d in data:
+            assert len(d) > 1
+            path = d['image']
+            if not os.exists(path):
+                raise Exception, 'file not found: ' + p
+            d['image'] = File(lambda: open(p).read(), 'image/jpeg')
+        
+        ids = store.save_multiple(data)
+        return dict(ids=ids)
+

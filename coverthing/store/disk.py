@@ -53,6 +53,9 @@ class WARCDisk:
         import uuid
 
         self.root = root
+        if not os.path.exists(root):
+            os.makedirs(root)
+
         self.next_warcfile = None
         self.maxsize = maxsize
         self.warcfile_prefix = prefix
@@ -138,18 +141,18 @@ class ArchiveDisk(WARCDisk):
         
     def make_warcfile(self, warcfilename):
         path = self.get_path(warcfilename)
-	if os.path.exists(path):
-	    return open(path)
-	else:
-	    itemname = self.get_item_name(warcfilename)
-	    url = self.item_url(itemname) + '/' + warcfilename
-	    return warc.HTTPFile(url)
+        if os.path.exists(path):
+            return open(path)
+        else:
+            itemname = self.get_item_name(warcfilename)
+            url = self.item_url(itemname) + '/' + warcfilename
+            return warc.HTTPFile(url)
     
     def read(self, filename):
         warcfilename, offset, size = filename.split(':')
         offset = int(offset)
         size = int(size)
-	f = self.make_warcfile(warcfilename)
+        f = self.make_warcfile(warcfilename)
         f.seek(offset)
         #@ what about mimetype?
         return File(lambda: f.read(size))
