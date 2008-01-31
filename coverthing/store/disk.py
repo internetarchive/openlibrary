@@ -149,6 +149,12 @@ class ArchiveDisk(WARCDisk):
             return warc.HTTPFile(url)
     
     def read(self, filename):
+        # if the file is locally available then read it from there.
+        # else contact the server
+        try:
+            return WARCDisk.read(self, file)
+        except IOError:
+            pass
         warcfilename, offset, size = filename.split(':')
         offset = int(offset)
         size = int(size)

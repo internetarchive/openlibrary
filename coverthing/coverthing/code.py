@@ -14,6 +14,7 @@ import os
 import web
 import simplejson
 
+import config
 import imagecache
 from store.store import Store, File
 
@@ -30,11 +31,11 @@ urls = (
 render = web.template.render(os.path.join(os.path.dirname(__file__), 'templates/'))
 
 store = None
-
+cache = None
 def run(*middleware):
-    import config
-    global store
+    global store, cache
     store = Store(config.disk)
+    cache = imagecache.ImageCache(config.cache_dir, store)
     web.run(urls, globals(), *middleware)
 
 def redirect_amazon(isbn, size):
@@ -45,6 +46,10 @@ def redirect_amazon(isbn, size):
 class index:
     def GET(self):
         print render.index()
+        
+def notfound():
+    web.notfound()
+    raise StopIteration
 
 class image:
     def GET(self, key, value, size):
@@ -54,16 +59,18 @@ class image:
             q = {key: value}
             ids = store.query(q)
             if not ids:
-                web.notfound()
-                raise StopIteration
+                notfound()
             else:
                 id = ids[0]
         d = store.get(id)
-        if 'source' in d and d['source'] == 'amazon':
+        if not d:
+            notfound()
+        
+        if config.redirect_amazon_images and d.get('source') == 'amazon':
             redirect_amazon(d.get('isbn', '0'), size)
             raise StopIteration
         else:
-            print imagecache.get_image(store, int(id), size)
+            print cache.get_image(int(id), size)
         
 class uploader:
     def GET(self):
@@ -113,7 +120,7 @@ class upload:
         i.setdefault('source', 'unknown')
 
         id = store.save(i)
-        imagecache.populate_cache(store, id, file=i.image)
+        cache.populate_cache(id, file=i.image)
         return dict(id=id)
 
 class multiple_upload:
