@@ -11,6 +11,8 @@ def copyright_status(edition):
       death_year = author.death_year
     elif author.get('birth_year'):
       death_year = author.birth_year + OLDEST_PERSON_EVER_IN_CANADA
+    elif pubyear:
+      death_year = pubyear + OLDEST_PERSON_EVER_IN_CANADA
     if death_year:
       if not maxauthordeath or death_year > maxauthordeath:
         maxauthordeath = death_year
