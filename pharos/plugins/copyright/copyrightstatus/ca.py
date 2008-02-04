@@ -22,7 +22,7 @@ def copyright_status(edition):
     if maxauthordeath < pubyear and pubyear < 1999:
       pdyear = pubyear + 50            
     else:
-      pdyear = maxauthordeath + 75
+      pdyear = maxauthordeath + 50
   else:
     pdyear = pubyear + 50
   return { 'date': pdyear, 'assumptions': assumptions }
