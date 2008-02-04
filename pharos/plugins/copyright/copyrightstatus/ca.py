@@ -19,7 +19,7 @@ def copyright_status(edition):
     else:
       assumptions.append("We're assuming that the author whose death dates are missing didn't die after those whose are available.")
   if maxauthordeath:
-    if maxauthordeath > pubyear and pubyear < 1999:
+    if maxauthordeath < pubyear and pubyear < 1999:
       pdyear = pubyear + 50            
     else:
       pdyear = maxauthordeath + 75
