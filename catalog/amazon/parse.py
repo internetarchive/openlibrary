@@ -158,7 +158,7 @@ re_other_editions = re.compile('<table border="0" cellspacing="0" cellpadding="0
 
 re_other_editions_tr = re.compile('<tr bgcolor= #ffffff >\s*(.*?)\s*</tr>', re.DOTALL)
 re_other_editions_see_all = re.compile('See all (\d+) editions and formats')
-re_other_editions2 = re.compile('<td  class="tiny"  >\s*<a href="http://www.amazon.com(?::80.*?|/.*?/dp/([0-9A-Z]{10}).*?)">(.*?)</a>\s*(?:\((.*?)\))?\s*</td>')
+re_other_editions2 = re.compile('^<td  class="tiny"  >\s*<a href="http://www.amazon.com(?::80.*?|(?:/.*?/dp/|/gp/product/)([0-9A-Z]{10}).*?)">(.*?)</a>\s*(?:\((.*?)\))?\s*</td>')
 re_other_edition_url = re.compile('/dp/(\d{9}[\dX])')
 re_other_edition_empty = re.compile('<td\s*class="tiny"\s*>\s*</td>\s*<td\s*class="tiny"\s*>\s*</td>\s*<td class="tinyprice"></td>')
 
