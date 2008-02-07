@@ -136,9 +136,8 @@ def parse_price_block(m, edition):
         elif heading == 'Value Priced at:':
             m = re_amazon_price.match(value)
             edition["value_priced_at"] = dollars_and_cents(m.group(1), m.group(2))
-        else:
-            print heading
-            sys.exit(0)
+        elif heading == 'Import List Price:':
+            pass
 
 #    print edition
 
@@ -165,7 +164,7 @@ re_other_edition_empty = re.compile('<td\s*class="tiny"\s*>\s*</td>\s*<td\s*clas
 def parse_other_editions(m, edition):
     m2 = re_other_editions_see_all.search(m.group(1))
     if m2:
-        other_edition_count = m.group(1)
+        other_edition_count = int(m2.group(1))
         assert other_edition_count > 4
         edition['other_edition_count'] = other_edition_count
 
@@ -378,7 +377,6 @@ def parse_head(html, edition):
     try:
         assert m
     except AssertionError:
-        print description
         raise
     (title, subtitle, product_type, desc_author) = m.groups()
 
@@ -408,7 +406,6 @@ def check_title(html_title, title, subtitle, product_type, desc_author):
     try:
         assert html_title == ': '.join(expect_title)
     except AssertionError:
-        print `html_title`, `': '.join(expect_title)`
         raise
 
 re_prod_image = re.compile('<td id="prodImageCell" .*<img src="(.*?)" id="prodImage"')
@@ -485,12 +482,12 @@ def parse_sections(html, edition, prev_end):
         if not m:
             assert not required
             continue
-        assert prev_end < m.pos + m.end()
+#        assert prev_end < m.pos + m.end()
         prev_end = m.end()
         endings.append((prev_end, name))
         func(m, edition)
-    if endings != sorted(endings):
-        print sorted(endings)
+#    if endings != sorted(endings):
+#        print sorted(endings)
 
 def parse_edition(html):
     edition = {}
