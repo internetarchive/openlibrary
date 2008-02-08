@@ -312,6 +312,7 @@ re_category = re.compile("""
 re_category_li = re.compile('<li>(.+?)</li>', re.MULTILINE | re.DOTALL)
 
 re_link = re.compile('<a href="http://www.amazon.com/.*">(.*)</a>')
+re_phrase_link = re.compile('\s*<a href="/phrase/.*" >(.*)</a>')
 
 def parse_category(m, edition):
     category = []
@@ -434,11 +435,19 @@ def parse_product_description(html, edition, prev_end):
         print filename
         print m.group(1)
 
+def parse_phrase(m):
+    phrases = m.group(1).split(', ')
+    if phrases[0][0] != '<':
+        for p in phrases[1:]:
+            assert p[0] != '<'
+        return phrases
+    return [re_phrase_link.match(p).group(1).replace('&nbsp;', ' ') for p in phrases]
+
 def parse_sip(m, edition):
-    edition["sip"] = m.group(1).split(', ')
+    edition['sip'] = parse_phrase(m)
 
 def parse_cap(m, edition):
-    edition["cap"] = m.group(1).split(', ')
+    edition['cap'] = parse_phrase(m)
 
 citing_re = re.compile("<a href='#citing'>This book cites (\d+) book(?:s)?</a>")
 
