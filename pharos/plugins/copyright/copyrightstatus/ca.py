@@ -1,3 +1,4 @@
+from __future__ import with_statement
 import time
 
 OLDEST_PERSON_EVER_IN_CANADA = 117
@@ -34,7 +35,7 @@ def copyright_status(edition):
   assume("We're assuming the current year is %d."% current_year)
 
   maxauthordeath = None
-
+      
   for author in edition.authors:
     def y(attr):
       """Extract attribute (i.e. a string-valued date field) from author and
@@ -42,7 +43,7 @@ def copyright_status(edition):
       r = author.get(attr, None)
       try:
         return int(r)
-      except ValueError:
+      except (ValueError, AttributeError):
         return None
 
     ydeath, ybirth = y('death_date'), y('birth_date')
