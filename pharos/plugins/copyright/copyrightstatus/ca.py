@@ -6,7 +6,7 @@ current_year = int(time.strftime('%Y'))
 
 def mmax(*args):
   """Return maximum of args given, ignoring any None values.  If there are
-  no None values, return None.
+  no non-None values, return None.
   >>> print mmax()
   None
   >>> print mmax(1)
@@ -26,27 +26,36 @@ def copyright_status(edition):
   the date at which the edition is conservatively expected to enter the public domain,
   and a list of assumptions made during the calculation."""
 
-  pubyear = edition.publish_year
   assumptions = []
   assume = assumptions.append
 
-  assume("We're assuming that the data is correct.")
-  assume("We're assuming the year of publication is %d."% pubyear)
   assume("We're assuming the current year is %d."% current_year)
+
+  pubyear = edition.publish_year
+  if pubyear is None:
+    pubyear = current_year
+    assume("The publication year is unspecified, so we're assuming that the year of publication is %d."% pubyear)
+  else:
+    assume("We're assuming the year of publication is %d."% pubyear)
+
+  if len(edition.authors) > 0:
+    assume("We're assuming the list of authors is complete.")
+  else:
+    assume("We're assuming the authorship is anonymous.")
 
   maxauthordeath = None
       
-  for author in edition.authors:
-    def y(attr):
-      """Extract attribute (i.e. a string-valued date field) from author and
-      convert it to integer.  If field is absent or no valid conversion, return None."""
-      r = author.get(attr, None)
-      try:
-        return int(r)
-      except (ValueError, AttributeError):
-        return None
+  def y(author, attr):
+    """Extract attribute (i.e. a string-valued date field) from author and
+    convert it to integer.  If field is absent or no valid conversion, return None."""
+    r = author.get(attr, None)
+    try:
+      return int(r)
+    except (ValueError, AttributeError):
+      return None
 
-    ydeath, ybirth = y('death_date'), y('birth_date')
+  for author in edition.authors:
+    ydeath, ybirth = y(author, 'death_date'), y(author, 'birth_date')
     aname = author.d.get('name')
 
     if ydeath:
@@ -55,16 +64,19 @@ def copyright_status(edition):
     elif ybirth:
       death_year = ybirth + OLDEST_PERSON_EVER_IN_CANADA
       assume("We're assuming author (%s) was born in %d."% (aname, ybirth))
-      assume("We're assuming author (%s) will live to age 117, the same as the oldest person ever in Canada so far." % aname)
     elif pubyear:
       death_year = pubyear + OLDEST_PERSON_EVER_IN_CANADA
       assume("We're assuming author (%s) was born at the time of publication, since we don't have a known birthdate."% (aname,))
     else:
       death_year = None
 
-    if death_year is not None and ydeath is None and death_year < current_year:
-      assume("We're assuming author (%s) didn't live longer than the oldest person ever in Canada, \
- and therefore died no later than the year %d, since we have no known death date."% (aname, death_year))
+    if death_year is not None and ydeath is None:
+      if death_year < current_year:
+        assume("We're assuming author (%s) didn't live longer than the oldest person ever in Canada, \
+and therefore died no later than the year %d, since we have no known death date."% (aname, death_year))
+      else:
+        assume("We're assuming author (%s) will live to age %d, the same as the oldest person ever in Canada so far." % \
+             (aname, OLDEST_PERSON_EVER_IN_CANADA))
 
     maxauthordeath = mmax(maxauthordeath, death_year)
 
@@ -75,6 +87,16 @@ def copyright_status(edition):
       pdyear = maxauthordeath + 50
   else:
     pdyear = pubyear + 50
+
+  def nominal_death(author):
+    ydeath, ybirth = y(author, 'death_date'), y(author, 'birth_date')
+    if ydeath is not None:
+      return ydeath
+    if ybirth is not None:
+      return ybirth + OLDEST_PERSON_EVER_IN_CANADA
+    return None
+
+  if any(nominal_death(author) is None for author in edition.authors):
     assume("We're assuming that the authors whose death dates are missing didn't die after those whose are available.")
 
   # assume(repr({ 'date': pdyear, 'assumptions': assumptions })) # debugging diagnostic @@
@@ -83,3 +105,4 @@ def copyright_status(edition):
 if __name__ == '__main__':
   import doctest
   doctest.testmod()
+  
