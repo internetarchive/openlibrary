@@ -55,6 +55,7 @@ def copyright_status(edition):
     elif ybirth:
       death_year = ybirth + OLDEST_PERSON_EVER_IN_CANADA
       assume("We're assuming author (%s) was born in %d."% (aname, ybirth))
+      assume("We're assuming author (%s) will live to age 117, the same as the oldest person ever in Canada so far." % aname)
     elif pubyear:
       death_year = pubyear + OLDEST_PERSON_EVER_IN_CANADA
       assume("We're assuming author (%s) was born at the time of publication, since we don't have a known birthdate."% (aname,))
