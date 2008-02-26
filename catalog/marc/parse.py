@@ -10,17 +10,27 @@ re_isbn = re.compile('([^ ()]+[\dX])(?: \((?:v\. (\d+)(?: : )?)?(.*)\))?')
 re_question = re.compile('^\?+$')
 re_lccn = re.compile('(...\d+).*')
 re_int = re.compile ('\d{2,}')
-re_date = map (re.compile, ['(?P<birth_date>\d+\??)-(?P<death_date>\d+\??)',
-                            '(?P<birth_date>\d+\??)-',
-                            'b\.? (?P<birth_date>(?:ca\. )?\d+\??)',
-                            'd\.? (?P<death_date>(?:ca\. )?\d+\??)',
-                            '(?P<birth_date>.*\d+.*)-(?P<death_date>.*\d+.*)',
-                            '^(?P<birth_date>[^-]*\d+[^-]+ cent\.[^-]*)$'])
+re_date = map (re.compile, [
+    '(?P<birth_date>\d+\??)-(?P<death_date>\d+\??)',
+    '(?P<birth_date>\d+\??)-',
+    'b\.? (?P<birth_date>(?:ca\. )?\d+\??)',
+    'd\.? (?P<death_date>(?:ca\. )?\d+\??)',
+    '(?P<birth_date>.*\d+.*)-(?P<death_date>.*\d+.*)',
+    '^(?P<birth_date>[^-]*\d+[^-]+ cent\.[^-]*)$'])
 
 def specific_subtags(f, subtags):
     return [j for i, j in f.subfield_sequence if i in subtags]
 
 def parse_date(date):
+    if date.find('-') != -1:
+        parts = date.split('-')
+        assert len(parts) == 2
+        i = { 'birth_date': parts[0].strip() }
+        parts[1] = parts[1].strip()
+        if len(parts[1]):
+            i['death_date'] = parts[1]
+        return i
+
     for r in re_date:
         m = r.search(date)
         if m:
