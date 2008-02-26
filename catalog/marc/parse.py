@@ -1,4 +1,5 @@
 from catalog.marc.MARC21Biblio import *
+import catalog.marc.MARC21
 
 import sys, re
 
@@ -6,6 +7,7 @@ record_id_delimiter = ":"
 record_loc_delimiter = ":"
 
 re_isbn = re.compile('([^ ()]+[\dX])(?: \((?:v\. (\d+)(?: : )?)?(.*)\))?')
+re_question = re.compile('^\?+$')
 re_lccn = re.compile('(...\d+).*')
 re_int = re.compile ('\d{2,}')
 re_date = map (re.compile, ['(?P<birth_date>\d+\??)-(?P<death_date>\d+\??)',
@@ -26,8 +28,13 @@ def parse_date(date):
     return {}
 
 def find_authors (r, edition):
-    authors = []
-    for tag, subtags in [ ('100', 'abc'), ('110', 'ab'), ('111', 'acdn') ]:
+    author_fields = [
+        ('100', 'abc', 'person'),
+        ('110', 'ab', 'org'),
+        ('111', 'acdn', 'event'),
+    ]
+    for tag, subtags, field in author_fields:
+        authors = []
         for f in r.get_fields(tag):
             author = {}
             if tag == '100' and 'd' in f.contents:
@@ -42,8 +49,9 @@ def find_authors (r, edition):
                 author['db_name'] = author['name']
 
             authors.append(author)
-    if authors:
-        edition['authors'] = authors
+        if authors:
+            assert len(authors) == 1
+            edition['author_' + field] = authors[0]
 
 def find_contributions(r, edition):
     contributions = []
@@ -56,6 +64,8 @@ def find_contributions(r, edition):
 def find_title(r, edition):
     # title
     f = r.get_field('245')
+    if not f:
+        return
     edition["title"] = ' '.join(x.strip(' /,;:') for x in f.contents['a'])
     if 'b' in f.contents:
         edition["subtitle"] = [x.strip(' /,;:') for x in f.contents['b']]
@@ -226,7 +236,10 @@ def find_lc_classification(r, edition):
     for f in r.get_fields('050'):
         if 'b' in f.contents:
             b = ' '.join(f.contents['b'])
-            lc += [' '.join([a, b]) for a in f.contents['a']]
+            if 'a' in f.contents:
+                lc += [' '.join([a, b]) for a in f.contents['a']]
+            else:
+                lc += [b]
         else:
             lc += f.contents['a']
     if lc:
@@ -235,29 +248,58 @@ def find_lc_classification(r, edition):
 def find_isbn(r, edition):
     isbn_10 = []
     isbn_13 = []
+    invalid = []
+    odd_length = []
     for f in r.get_fields('020'):
         for subtag in 'a', 'z':
             if subtag in f.contents:
                 for x in f.contents[subtag]:
                     m = re_isbn.match(x)
                     if m:
-                        if len(m.group(1)) == 13:
+                        if subtag == 'z':
+                            invalid.append(m.group(1))
+                        elif len(m.group(1)) == 13:
                             isbn_13.append(m.group(1))
-                        else:
+                        elif len(m.group(1)) == 10:
                             isbn_10.append(m.group(1))
+                        else:
+                            odd_length.append(m.group(1))
 
     if isbn_10:
         edition["ISBN_10"] = isbn_10
     if isbn_13:
         edition["ISBN_13"] = isbn_13
+    if invalid:
+        edition["ISBN_invalid"] = invalid
+    if odd_length:
+        edition["ISBN_odd_length"] = odd_length
+
 
 def find_lccn(r, edition):
-    if 'a' not in r.get_field('010').contents:
+    f = r.get_field('010')
+    if not f or 'a' not in f.contents:
         return
-    lccn = r.get_field('010').contents['a'][0].strip()
-    m = re_lccn.match(lccn)
-    assert m
+    lccn = f.contents['a'][0].strip()
+    if re_question.match(lccn):
+        return
+    m = re_lccn.search(lccn)
+    try:
+        assert m
+    except AssertionError:
+        print "lccn:", lccn
+        raise
     edition["LCCN"] = m.group(1)
+
+def find_url(r, edition):
+    url = []
+    for f in r.get_fields('856'):
+        if 'u' not in f.contents:
+            continue
+        u = f.contents['u']
+        assert len(u) == 1
+        url.append(u)
+    if len(url):
+        edition["URL"] = url
 
 def encode_record_locator (r, file_locator):
     return record_loc_delimiter.join ([file_locator, str(r.record_pos()), str(r.record_len())])
@@ -267,6 +309,8 @@ def parser(source_id, file_locator, input):
         edition = {}
         edition['source_record_loc'] = [encode_record_locator (r, file_locator)]
         curr_loc = edition['source_record_loc'][0]
+        if len(r.get_fields('001')) > 1:
+            continue
         field_1 = r.get_field_value('001')
         field_3 = r.get_field_value('003')
         if field_1 and field_3:
@@ -277,6 +321,8 @@ def parser(source_id, file_locator, input):
         find_authors(r, edition)
         find_contributions(r, edition)
         find_title(r, edition)
+        if not "title" in edition:
+            continue
         find_other_titles(r, edition)
         find_work_title(r, edition)
         find_edition(r, edition)
@@ -293,9 +339,13 @@ def parser(source_id, file_locator, input):
         find_lc_classification(r, edition)
         find_isbn(r, edition)
         find_lccn(r, edition)
+        find_url(r, edition)
 
+        if len(r.get_fields('008')) > 1:
+            continue
         f = r.get_field('008')
         edition["publish_date"] = str(f)[7:11]
+        edition["publish_country"] = str(f)[15:17]
         edition["language"] = "ISO:" + str(f)[35:38]
 
         yield edition
