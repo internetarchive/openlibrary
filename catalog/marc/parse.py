@@ -18,24 +18,30 @@ re_date = map (re.compile, [
     '(?P<birth_date>.*\d+.*)-(?P<death_date>.*\d+.*)',
     '^(?P<birth_date>[^-]*\d+[^-]+ cent\.[^-]*)$'])
 
+re_ad_bc = re.compile(r'\b(B\.C\.?|A\.D\.?)')
+
 def specific_subtags(f, subtags):
     return [j for i, j in f.subfield_sequence if i in subtags]
 
 def parse_date(date):
-    if date.find('-') != -1:
-        parts = date.split('-')
-        assert len(parts) == 2
-        i = { 'birth_date': parts[0].strip() }
-        parts[1] = parts[1].strip()
-        if len(parts[1]):
-            i['death_date'] = parts[1]
-        return i
+    if date.find('-') == -1:
+        for r in re_date:
+            m = r.search(date)
+            if m:
+                return m.groupdict()
+        return {}
 
-    for r in re_date:
-        m = r.search(date)
-        if m:
-            return m.groupdict()
-    return {}
+    parts = date.split('-')
+    i = { 'birth_date': parts[0].strip() }
+    if len(parts) == 2:
+        parts[1] = parts[1].strip()
+        if parts[1]:
+            i['death_date'] = parts[1]
+            if not re_ad_bc.search(i['birth_date']):
+            m = re_ad_bc.search(i['death_date'])
+            if m:
+                i['birth_date'] += ' ' + m.group(1)
+    return i
 
 def find_authors (r, edition):
     author_fields = [
@@ -48,6 +54,7 @@ def find_authors (r, edition):
         for f in r.get_fields(tag):
             author = {}
             if tag == '100' and 'd' in f.contents:
+                assert len(f.contents['d']) == 1
                 author = parse_date(f.contents['d'][0])
             author['name'] = " ".join([j.strip(' /,;:') for i, j in f.subfield_sequence if i in subtags])
             if tag == '100':
