@@ -42,7 +42,8 @@ def main():
     url = 'http://www.archive.org/download/%s'% file
 
     assert 0 < length < 100000
-    assert re.match('[\w/_.]+$', file)
+    # regular expression was failing for new sources
+    #assert re.match('[\w/_.]+$', file)
 
     t0 = time()
     ureq = urllib2.Request(url,
