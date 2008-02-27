@@ -98,7 +98,32 @@ def marc_title(amazon_first_parts, marc_first_parts):
     return False
 
 # use for person, org and event because the LC data says "Berkovitch, Israel." is an org
+
+def match_not_just_surname(amazon, marc):
+    return match_name2(amazon, marc, False)
+
 def match_name(amazon, marc):
+    return match_name2(amazon, marc, True)
+
+def remove_trailing_dot(s):
+    s = s.strip()
+    if len(s) < 3 or not s.endswith('.') or s[-3] == ' ' or s[-3] == '.':
+        return s
+    return s[:-1]
+
+def flip_marc_name(marc):
+    m = re_marc_name.match(marc)
+    if not m:
+        return remove_trailing_dot(marc)
+    first_parts = split_parts(m.group(2))
+    if normalize(first_parts[-1]) not in titles: 
+        # example: Eccles, David Eccles Viscount
+        return remove_trailing_dot(m.group(2)) + ' ' + m.group(1)
+    if len(first_parts) > 2 and normalize(first_parts[-2]) == normalize(m.group(1)):
+        return u' '.join(first_parts[0:-1])
+    return u' '.join(first_parts[:-1] + [m.group(1)])
+
+def match_name2(amazon, marc, last_name_only_ok):
     amazon_normalized = normalize(amazon)
     if amazon_normalized == normalize(marc):
         if verbose:
@@ -110,7 +135,7 @@ def match_name(amazon, marc):
     if amazon_normalized == normalize(m.group(1)):
         if verbose:
             print 'Amazon only has a last name, it matches MARC'
-        return True
+        return last_name_only_ok
     if amazon_normalized == normalize(m.group(2) + ' ' + m.group(1)):
         if verbose:
             print 'match'
