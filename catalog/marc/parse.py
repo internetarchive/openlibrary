@@ -43,6 +43,18 @@ def parse_date(date):
                     i['birth_date'] += ' ' + m.group(1)
     return i
 
+def pick_first_date(dates):
+    # this is to handle this case:
+    # 100: $aLogan, Olive (Logan), $cSikes, $dMrs., $d1839-
+    # see http://archive.org/download/gettheebehindmes00logaiala/gettheebehindmes00logaiala_meta.mrc
+    # or http://pharosdb.us.archive.org:9090/show-marc?record=gettheebehindmes00logaiala/gettheebehindmes00logaiala_meta.mrc:0:521
+
+    for date in dates:
+        result = parse_date(date)
+        if result != {}:
+            return result
+    return {}
+
 def find_authors (r, edition):
     author_fields = [
         ('100', 'abc', 'person'),
@@ -54,8 +66,7 @@ def find_authors (r, edition):
         for f in r.get_fields(tag):
             author = {}
             if tag == '100' and 'd' in f.contents:
-                assert len(f.contents['d']) == 1
-                author = parse_date(f.contents['d'][0])
+                author = pick_first_date(f.contents['d'])
             author['name'] = " ".join([j.strip(' /,;:') for i, j in f.subfield_sequence if i in subtags])
             if tag == '100':
                 db_name = [j.strip(' /,;:') for i, j in f.subfield_sequence if i in 'abcd']
