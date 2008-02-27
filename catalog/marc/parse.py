@@ -38,9 +38,9 @@ def parse_date(date):
         if parts[1]:
             i['death_date'] = parts[1]
             if not re_ad_bc.search(i['birth_date']):
-            m = re_ad_bc.search(i['death_date'])
-            if m:
-                i['birth_date'] += ' ' + m.group(1)
+                m = re_ad_bc.search(i['death_date'])
+                if m:
+                    i['birth_date'] += ' ' + m.group(1)
     return i
 
 def find_authors (r, edition):
