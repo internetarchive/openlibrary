@@ -304,7 +304,7 @@ def find_isbn(r, edition):
 
 
 def find_lccn(r, edition):
-    f = r.get_field('010')
+    f = r.get_fields('010')[0]
     if not f or 'a' not in f.contents:
         return
     lccn = f.contents['a'][0].strip()
