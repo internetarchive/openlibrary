@@ -82,8 +82,7 @@ def find_authors (r, edition):
 
             authors.append(author)
         if authors:
-            assert len(authors) == 1
-            edition['author_' + field] = authors[0]
+            edition['author_' + field] = authors
 
 def find_contributions(r, edition):
     contributions = []
@@ -240,6 +239,8 @@ def find_series(r, edition):
 def find_description(r, edition):
     description = []
     for f in r.get_fields('520'):
+        if 'a' not in f.contents:
+            continue
         assert len(f.contents["a"]) == 1
         description.append(f.contents["a"][0])
     if description:
