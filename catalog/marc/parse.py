@@ -242,9 +242,29 @@ def find_description(r, edition):
         edition["description"] = "\n\n".join(description)
 
 def find_table_of_contents(r, edition):
-    toc = [' '.join(specific_subtags(f, 'art')) for f in r.get_fields('505')]
-    if toc:
+    len_toc = len(r.get_fields('505'))
+    if len_toc == 0:
+        return
+    assert len_toc < 2
+    f = r.get_field('505')
+    if 'a' in f.contents:
+        assert 't' not in f.contents
+        assert 'r' not in f.contents
+        assert len(f.contents['a'][0]) == 1
+        toc = [x.strip() for x in f.contents['a'][0].split('--')]
         edition["table_of_contents"] = toc
+        return
+    toc = []
+    for subfield, value in f.subfield_sequence:
+        if subfield == 't':
+            assert t == None
+            t = value.strip(" /")
+            continue
+        assert subfield == 'r':
+        assert t
+        toc.append("%s (%s)" % (t, value.strip(" --")))
+        t = None
+    edition["table_of_contents"] = toc
 
 def find_notes(r, edition):
     notes = []
