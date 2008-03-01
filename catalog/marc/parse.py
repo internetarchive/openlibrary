@@ -1,5 +1,6 @@
 from catalog.marc.MARC21Biblio import *
 import catalog.marc.MARC21
+from catalog.merge.names import flip_marc_name
 
 import sys, re
 
@@ -69,8 +70,11 @@ def find_authors (r, edition):
                 author = pick_first_date(f.contents['d'])
             author['name'] = " ".join([j.strip(' /,;:') for i, j in f.subfield_sequence if i in subtags])
             if tag == '100':
-                db_name = [j.strip(' /,;:') for i, j in f.subfield_sequence if i in 'abcd']
-                author['db_name'] = " ".join(db_name)
+                db_name = flip_marc_name(' '.join([j.strip(' /,;:') for i, j in f.subfield_sequence if i in 'abc']))
+                if 'd' in f.contents:
+                    author['db_name'] = " ".join([db_name] + f.contents['d'])
+                else:
+                    author['db_name'] = db_name
                 if 'q' in f.contents:
                     author['fuller_name'] = ' '.join(f.contents['q'])
             else:
@@ -78,8 +82,7 @@ def find_authors (r, edition):
 
             authors.append(author)
         if authors:
-            assert len(authors) == 1
-            edition['author_' + field] = authors[0]
+            edition['author_' + field] = authors
 
 def find_contributions(r, edition):
     contributions = []
@@ -236,6 +239,8 @@ def find_series(r, edition):
 def find_description(r, edition):
     description = []
     for f in r.get_fields('520'):
+        if 'a' not in f.contents:
+            continue
         assert len(f.contents["a"]) == 1
         description.append(f.contents["a"][0])
     if description:
