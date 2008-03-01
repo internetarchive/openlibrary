@@ -103,7 +103,7 @@ def compare_authors(amazon, marc):
         return ('main', 'field missing from one record', -25)
 
     for a in amazon['authors']:
-        if match_name(a[0], marc['author_' + marc_field]):
+        if match_name(a[0], marc['author_' + marc_field]['name']):
             return ('main', 'exact match', 125)
     return ('main', 'mismatch', -200)
 
