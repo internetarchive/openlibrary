@@ -250,25 +250,20 @@ def find_table_of_contents(r, edition):
     toc = []
     for f in r.get_fields('505'):
         try:
-            if 'a' in f.contents:
-                assert 't' not in f.contents
-                assert 'r' not in f.contents
-                if len(f.contents['a']) != 1:
-                    print f.subfield_sequence
-                assert len(f.contents['a']) == 1
-                toc.extend([x.strip() for x in f.contents['a'][0].split('--')])
-            else:
-                toc_line = []
-                for subfield, value in f.subfield_sequence:
-                    if subfield == 't':
-                        if len(toc_line):
-                            toc.append(' -- '.join(toc_line))
-                        toc_line = [value.strip(" /")]
-                        continue
-                    assert subfield in ('r', 'g')
-                    toc_line.append(value.strip(" -"))
-                if toc:
-                    toc.append(' -- '.join(toc_line))
+            toc_line = []
+            for subfield, value in f.subfield_sequence:
+                if subfield == 'a':
+                    toc.extend([x.strip() for x in value.split('--')])
+                    continue
+                if subfield == 't':
+                    if len(toc_line):
+                        toc.append(' -- '.join(toc_line))
+                    toc_line = [value.strip(" /")]
+                    continue
+                assert subfield in ('r', 'g')
+                toc_line.append(value.strip(" -"))
+            if toc:
+                toc.append(' -- '.join(toc_line))
         except AssertionError:
             print f.subfield_sequence
             raise
