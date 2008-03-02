@@ -300,7 +300,7 @@ def find_lc_classification(r, edition):
         else:
             lc += f.contents['a']
     if lc:
-        edition["LC_classification"] = lc
+        edition["lc_classification"] = lc
 
 def find_isbn(r, edition):
     isbn_10 = []
@@ -323,13 +323,13 @@ def find_isbn(r, edition):
                             odd_length.append(m.group(1))
 
     if isbn_10:
-        edition["ISBN_10"] = isbn_10
+        edition["isbn_10"] = isbn_10
     if isbn_13:
-        edition["ISBN_13"] = isbn_13
+        edition["isbn_13"] = isbn_13
     if invalid:
-        edition["ISBN_invalid"] = invalid
+        edition["isbn_invalid"] = invalid
     if odd_length:
-        edition["ISBN_odd_length"] = odd_length
+        edition["isbn_odd_length"] = odd_length
 
 
 def find_lccn(r, edition):
@@ -345,7 +345,7 @@ def find_lccn(r, edition):
     except AssertionError:
         print "lccn:", lccn
         raise
-    edition["LCCN"] = m.group(1)
+    edition["lccn"] = m.group(1)
 
 def find_url(r, edition):
     url = []
@@ -356,7 +356,7 @@ def find_url(r, edition):
         assert len(u) == 1
         url.append(u)
     if len(url):
-        edition["URL"] = url
+        edition["url"] = url
 
 def encode_record_locator (r, file_locator):
     return record_loc_delimiter.join ([file_locator, str(r.record_pos()), str(r.record_len())])
