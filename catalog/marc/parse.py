@@ -65,7 +65,7 @@ def find_authors (r, edition):
     for tag, subtags, field in author_fields:
         authors = []
         for f in r.get_fields(tag):
-            author = {}
+            author = { 'entity_type': field }
             if tag == '100' and 'd' in f.contents:
                 author = pick_first_date(f.contents['d'])
             author['name'] = " ".join([j.strip(' /,;:') for i, j in f.subfield_sequence if i in subtags])
@@ -81,8 +81,8 @@ def find_authors (r, edition):
                 author['db_name'] = author['name']
 
             authors.append(author)
-        if authors:
-            edition['author_' + field] = authors
+    if authors:
+        edition['author'] = authors
 
 def find_contributions(r, edition):
     contributions = []
