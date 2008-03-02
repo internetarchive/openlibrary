@@ -28,13 +28,13 @@ def build_titles(title):
         t = title.replace(" & ", " and ")
         titles.append(t)
         titles.append(normalize(t))
+    t2 = []
     for t in titles:
-        t2 = []
         if t.lower().startswith('the '):
             t2.append(t[4:])
         elif t.lower().startswith('a '):
             t2.append(t[2:])
-        titles += t2
+    titles += t2
 
     if re_amazon_title_paren.match(title):
         t2 = []
@@ -42,6 +42,7 @@ def build_titles(title):
             m = re_amazon_title_paren.match(t)
             if m:
                 t2.append(m.group(1))
+                t2.append(normalize(m.group(1)))
         titles += t2
 
     return {
@@ -105,7 +106,19 @@ def compare_authors(amazon, marc):
     for a in amazon['authors']:
         if match_name(a[0], marc['author_' + marc_field]['name']):
             return ('main', 'exact match', 125)
-    return ('main', 'mismatch', -200)
+    max_score = 0
+    for a in amazon['authors']:
+        percent, ordered = keyword_match(a[0], marc['author_' + marc_field]['name'])
+        if percent > 0.50:
+            score = percent * 80
+            if ordered:
+                score += 10
+            if score > max_score:
+                max_score = score
+    if max_score:
+        return ('main', 'keyword match', max_score)
+    else:
+        return ('main', 'mismatch', -200)
 
 def title_replace_amp(amazon):
     return normalize(amazon['full-title'].replace(" & ", " and ")).lower()
@@ -113,21 +126,47 @@ def title_replace_amp(amazon):
 def substr_match(a, b):
     return a.find(b) != -1 or b.find(a) != -1
 
+def keyword_match(in1, in2):
+    s1, s2 = [i.split() for i in in1, in2]
+    s1_set = set(s1)
+    s2_set = set(s2)
+    match = s1_set & s2_set
+    ordered = [x for x in s1 if x in match] == [x for x in s2 if x in match]
+    return float(len(match)) / max(len(s1), len(s2)), ordered
+
 def compare_title(amazon, marc):
     amazon_title = amazon['normalized_title'].lower()
     marc_title = normalize(marc['full_title']).lower()
+    short = False
     if len(amazon_title) < 9 or len(marc_title) < 9:
-        return ('full-title', 'shorter than 9 characters', 0)
-    for a in amazon['titles']:
-        for m in marc['titles']:
-            if a == m:
-                return ('full-title', 'exact match', 600)
+        short = True
 
+    if not short:
+        for a in amazon['titles']:
+            for m in marc['titles']:
+                if a == m:
+                    return ('full-title', 'exact match', 600)
+
+        for a in amazon['titles']:
+            for m in marc['titles']:
+                if substr_match(a, m):
+                    return ('full-title', 'containted within other title', 350)
+
+    max_score = 0
     for a in amazon['titles']:
         for m in marc['titles']:
-            if substr_match(a, m):
-                return ('full-title', 'containted within other title', 350)
-    return ('full-title', 'mismatch', -600)
+            percent, ordered = keyword_match(a, m)
+            score = percent * 450
+            if ordered:
+                score += 50
+            if score and score > max_score:
+                max_score = score
+    if max_score:
+        return ('full-title', 'keyword match', max_score)
+    elif short:
+        return ('full-title', 'shorter than 9 characters', 0)
+    else:
+        return ('full-title', 'mismatch', -600)
 
 def compare_number_of_pages(amazon, marc):
     if 'number_of_pages' not in amazon or 'number_of_pages' not in marc:
