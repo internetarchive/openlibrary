@@ -62,25 +62,35 @@ def find_authors (r, edition):
         ('110', 'ab', 'org'),
         ('111', 'acdn', 'event'),
     ]
-    for tag, subtags, field in author_fields:
-        authors = []
-        for f in r.get_fields(tag):
-            author = { 'entity_type': field }
-            if tag == '100' and 'd' in f.contents:
-                author = pick_first_date(f.contents['d'])
-            author['name'] = " ".join([j.strip(' /,;:') for i, j in f.subfield_sequence if i in subtags])
-            if tag == '100':
-                db_name = flip_marc_name(' '.join([j.strip(' /,;:') for i, j in f.subfield_sequence if i in 'abc']))
-                if 'd' in f.contents:
-                    author['db_name'] = " ".join([db_name] + f.contents['d'])
-                else:
-                    author['db_name'] = db_name
-                if 'q' in f.contents:
-                    author['fuller_name'] = ' '.join(f.contents['q'])
-            else:
-                author['db_name'] = author['name']
+    authors = []
+    for f in r.get_fields('100'):
+        author = {}
+        if 'd' in f.contents:
+            author = pick_first_date(f.contents['d'])
+        author['entity_type'] = 'person'
+        author['name'] = " ".join([j.strip(' /,;:') for i, j in f.subfield_sequence if i in 'abc'])
+        author['personal_name'] = " ".join([x.strip(' /,;:') for x in f.contents['a']])
+        if 'b' in f.contents:
+            author['numeration'] = ' '.join([x.strip(' /,;:') for x in f.contents['b']])
+        if 'c' in f.contents:
+            author['title'] = ' '.join([x.strip(' /,;:') for x in f.contents['c']])
+        if 'q' in f.contents:
+            author['fuller_name'] = ' '.join(f.contents['q'])
+        authors.append(author)
 
-            authors.append(author)
+    for f in r.get_fields('110'):
+        author = {
+            'entity_type': 'org',
+            'name': " ".join([j.strip(' /,;:') for i, j in f.subfield_sequence if i in 'ab'])
+        }
+        authors.append(author)
+
+    for f in r.get_fields('111'):
+        author = {
+            'entity_type': 'org',
+            'name': " ".join([j.strip(' /,;:') for i, j in f.subfield_sequence if i in 'acdn'])
+        }
+        authors.append(author)
     if authors:
         edition['author'] = authors
 
