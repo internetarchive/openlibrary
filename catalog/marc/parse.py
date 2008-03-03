@@ -69,6 +69,7 @@ def find_authors (r, edition):
             author = pick_first_date(f.contents['d'])
         author['entity_type'] = 'person'
         author['name'] = " ".join([j.strip(' /,;:') for i, j in f.subfield_sequence if i in 'abc'])
+        author['db_name'] = ' '.join([author['name']] + f.contents['d'])
         author['personal_name'] = " ".join([x.strip(' /,;:') for x in f.contents['a']])
         if 'b' in f.contents:
             author['numeration'] = ' '.join([x.strip(' /,;:') for x in f.contents['b']])
@@ -83,6 +84,7 @@ def find_authors (r, edition):
             'entity_type': 'org',
             'name': " ".join([j.strip(' /,;:') for i, j in f.subfield_sequence if i in 'ab'])
         }
+        author['db_name'] = author['name']
         authors.append(author)
 
     for f in r.get_fields('111'):
@@ -90,6 +92,7 @@ def find_authors (r, edition):
             'entity_type': 'org',
             'name': " ".join([j.strip(' /,;:') for i, j in f.subfield_sequence if i in 'acdn'])
         }
+        author['db_name'] = author['name']
         authors.append(author)
     if authors:
         edition['author'] = authors
