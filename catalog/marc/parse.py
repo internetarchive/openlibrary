@@ -65,11 +65,13 @@ def find_authors (r, edition):
     authors = []
     for f in r.get_fields('100'):
         author = {}
-        if 'd' in f.contents:
-            author = pick_first_date(f.contents['d'])
         author['entity_type'] = 'person'
         author['name'] = " ".join([j.strip(' /,;:') for i, j in f.subfield_sequence if i in 'abc'])
-        author['db_name'] = ' '.join([author['name']] + f.contents['d'])
+        if 'd' in f.contents:
+            author = pick_first_date(f.contents['d'])
+            author['db_name'] = ' '.join([author['name']] + f.contents['d'])
+        else:
+            author['db_name'] = author['name']
         author['personal_name'] = " ".join([x.strip(' /,;:') for x in f.contents['a']])
         if 'b' in f.contents:
             author['numeration'] = ' '.join([x.strip(' /,;:') for x in f.contents['b']])
