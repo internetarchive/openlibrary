@@ -114,7 +114,13 @@ def find_title(r, edition):
     f = r.get_field('245')
     if not f:
         return
-    edition["title"] = ' '.join(x.strip(' /,;:') for x in f.contents['a'])
+    title_prefix_len = int(f.indicator2)
+    title = ' '.join(x.strip(' /,;:') for x in f.contents['a'])
+    if title_prefix_len:
+        edition['title'] = title[title_prefix_len:]
+        edition['title_prefix'] = title[:title_prefix_len]
+    else:
+        edition['title'] = title
     if 'b' in f.contents:
         edition["subtitles"] = [x.strip(' /,;:') for x in f.contents['b']]
     if 'c' in f.contents:
