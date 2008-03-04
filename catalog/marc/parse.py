@@ -11,6 +11,7 @@ re_isbn = re.compile('([^ ()]+[\dX])(?: \((?:v\. (\d+)(?: : )?)?(.*)\))?')
 re_question = re.compile('^\?+$')
 re_lccn = re.compile('(...\d+).*')
 re_int = re.compile ('\d{2,}')
+re_oclc = re.compile ('^\(OCoLC\).*0*(\d+)')
 re_date = map (re.compile, [
     '(?P<birth_date>\d+\??)-(?P<death_date>\d+\??)',
     '(?P<birth_date>\d+\??)-',
@@ -65,13 +66,14 @@ def find_authors (r, edition):
     authors = []
     for f in r.get_fields('100'):
         author = {}
-        author['entity_type'] = 'person'
-        author['name'] = " ".join([j.strip(' /,;:') for i, j in f.subfield_sequence if i in 'abc'])
+        name = " ".join([j.strip(' /,;:') for i, j in f.subfield_sequence if i in 'abc'])
         if 'd' in f.contents:
             author = pick_first_date(f.contents['d'])
-            author['db_name'] = ' '.join([author['name']] + f.contents['d'])
+            author['db_name'] = ' '.join([name] + f.contents['d'])
         else:
-            author['db_name'] = author['name']
+            author['db_name'] = name
+        author['name'] = name
+        author['entity_type'] = 'person'
         author['personal_name'] = " ".join([x.strip(' /,;:') for x in f.contents['a']])
         if 'b' in f.contents:
             author['numeration'] = ' '.join([x.strip(' /,;:') for x in f.contents['b']])
@@ -97,7 +99,7 @@ def find_authors (r, edition):
         author['db_name'] = author['name']
         authors.append(author)
     if authors:
-        edition['author'] = authors
+        edition['authors'] = authors
 
 def find_contributions(r, edition):
     contributions = []
@@ -114,11 +116,11 @@ def find_title(r, edition):
         return
     edition["title"] = ' '.join(x.strip(' /,;:') for x in f.contents['a'])
     if 'b' in f.contents:
-        edition["subtitle"] = [x.strip(' /,;:') for x in f.contents['b']]
+        edition["subtitles"] = [x.strip(' /,;:') for x in f.contents['b']]
     if 'c' in f.contents:
-        edition["by_statement"] = f.contents['c']
+        edition["by_statements"] = f.contents['c']
     if 'h' in f.contents:
-        edition["physical_format"] = f.contents['h']
+        edition["physical_format"] = ' '.join(f.contents['h'])
 
 def find_other_titles(r, edition):
     other_titles = [' '.join(f.contents['a']) for f in r.get_fields('246') if 'a' in f.contents]
@@ -312,6 +314,14 @@ def find_lc_classification(r, edition):
     if lc:
         edition["lc_classification"] = lc
 
+def find_oclc(r, edition):
+    f = r.get_field('035')
+    if f:
+        assert len(f.contents['a']) == 1
+        m = re_oclc.match(f.contents['a'][0])
+        if m:
+            edition['oclc'] = m.group(1)
+
 def find_isbn(r, edition):
     isbn_10 = []
     isbn_13 = []
@@ -405,6 +415,7 @@ def parser(source_id, file_locator, input):
         find_dewey_number(r, edition)
         find_lc_classification(r, edition)
         find_isbn(r, edition)
+        find_oclc(r, edition)
         find_lccn(r, edition)
         find_url(r, edition)
 
