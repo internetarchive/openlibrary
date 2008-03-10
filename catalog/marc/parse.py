@@ -93,7 +93,7 @@ def find_authors (r, edition):
 
     for f in r.get_fields('111'):
         author = {
-            'entity_type': 'org',
+            'entity_type': 'event',
             'name': " ".join([j.strip(' /,;:') for i, j in f.subfield_sequence if i in 'acdn'])
         }
         author['db_name'] = author['name']
@@ -114,7 +114,11 @@ def find_title(r, edition):
     f = r.get_field('245')
     if not f:
         return
-    title_prefix_len = int(f.indicator2)
+    try:
+        title_prefix_len = int(f.indicator2)
+    except ValueError:
+        title_prefix_len = None
+        pass
     title = ' '.join(x.strip(' /,;:') for x in f.contents['a'])
     if title_prefix_len:
         edition['title'] = title[title_prefix_len:]
@@ -321,12 +325,16 @@ def find_lc_classification(r, edition):
         edition["lc_classification"] = lc
 
 def find_oclc(r, edition):
-    f = r.get_field('035')
-    if f:
+    oclc = []
+    for f in r.get_fields('035'):
+        if 'a' not in f.contents:
+            continue
         assert len(f.contents['a']) == 1
         m = re_oclc.match(f.contents['a'][0])
         if m:
-            edition['oclc'] = m.group(1)
+            oclc.append(m.group(1))
+    if oclc:
+        edition['oclc'] = oclc
 
 def find_isbn(r, edition):
     isbn_10 = []
@@ -429,8 +437,8 @@ def parser(source_id, file_locator, input):
             continue
         f = r.get_field('008')
         edition["publish_date"] = str(f)[7:11]
-        edition["publish_country"] = str(f)[15:17]
-        edition["language"] = "ISO:" + str(f)[35:38]
+        edition["publish_country"] = str(f)[15:18]
+        edition["languages"] = ["ISO:" + str(f)[35:38]]
 
         yield edition
 
