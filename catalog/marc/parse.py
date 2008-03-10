@@ -287,7 +287,6 @@ def find_table_of_contents(r, edition):
                         toc.append(' -- '.join(toc_line))
                     toc_line = [value.strip(" /")]
                     continue
-                assert subfield in ('r', 'g')
                 toc_line.append(value.strip(" -"))
             if toc:
                 toc.append(' -- '.join(toc_line))
