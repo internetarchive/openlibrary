@@ -58,14 +58,11 @@ def pick_first_date(dates):
     return {}
 
 def find_authors (r, edition):
-    author_fields = [
-        ('100', 'abc', 'person'),
-        ('110', 'ab', 'org'),
-        ('111', 'acdn', 'event'),
-    ]
     authors = []
     for f in r.get_fields('100'):
         author = {}
+        if 'a' not in f.contents and 'c' not in f.contents:
+            continue # should at least be a name or title
         name = " ".join([j.strip(' /,;:') for i, j in f.subfield_sequence if i in 'abc'])
         if 'd' in f.contents:
             author = pick_first_date(f.contents['d'])
@@ -74,11 +71,14 @@ def find_authors (r, edition):
             author['db_name'] = name
         author['name'] = name
         author['entity_type'] = 'person'
-        author['personal_name'] = " ".join([x.strip(' /,;:') for x in f.contents['a']])
-        if 'b' in f.contents:
-            author['numeration'] = ' '.join([x.strip(' /,;:') for x in f.contents['b']])
-        if 'c' in f.contents:
-            author['title'] = ' '.join([x.strip(' /,;:') for x in f.contents['c']])
+        subfields = [
+            ('a', 'personal_name'),
+            ('b', 'numeration'),
+            ('c', 'title')
+        ]
+        for subfield, field_name in subfields:
+            if subfield in f.contents:
+                author[field_name] = ' '.join([x.strip(' /,;:') for x in f.contents[subfield]])
         if 'q' in f.contents:
             author['fuller_name'] = ' '.join(f.contents['q'])
         authors.append(author)
