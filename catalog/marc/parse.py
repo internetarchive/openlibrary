@@ -4,9 +4,6 @@ from catalog.merge.names import flip_marc_name
 
 import sys, re
 
-record_id_delimiter = ":"
-record_loc_delimiter = ":"
-
 re_isbn = re.compile('([^ ()]+[\dX])(?: \((?:v\. (\d+)(?: : )?)?(.*)\))?')
 re_question = re.compile('^\?+$')
 re_lccn = re.compile('(...\d+).*')
@@ -392,54 +389,55 @@ def find_url(r, edition):
         edition["url"] = url
 
 def encode_record_locator (r, file_locator):
-    return record_loc_delimiter.join ([file_locator, str(r.record_pos()), str(r.record_len())])
+    return ':'.join ([file_locator, str(r.record_pos()), str(r.record_len())])
 
-def parser(source_id, file_locator, input):
+def parser(file_locator, input, bad_data):
     for r in MARC21BiblioFile (input):
-        edition = {}
-        edition['source_record_loc'] = [encode_record_locator (r, file_locator)]
-        curr_loc = edition['source_record_loc'][0]
-        if len(r.get_fields('001')) > 1:
-            continue
-        field_1 = r.get_field_value('001')
-        field_3 = r.get_field_value('003')
-        if field_1 and field_3:
-            edition['source_record_id'] = [record_id_delimiter.join ([source_id,
-                field_1.strip(), field_3.strip()])]
+        edition = {
+            'source_record_loc': encode_record_locator (r, file_locator)
+        }
+        try:
+            curr_loc = edition['source_record_loc'][0]
+            if len(r.get_fields('001')) > 1:
+                continue
 
-        find_table_of_contents(r, edition)
-        find_authors(r, edition)
-        find_contributions(r, edition)
-        find_title(r, edition)
-        if not "title" in edition:
-            continue
-        find_other_titles(r, edition)
-        find_work_title(r, edition)
-        find_edition(r, edition)
-        find_publisher(r, edition)
-        find_pagination(r, edition)
-        find_subjects(r, edition)
-        find_subject_place(r, edition)
-        find_subject_time(r, edition)
-        find_genre(r, edition)
-        find_series(r, edition)
-        find_description(r, edition)
-        find_table_of_contents(r, edition)
-        find_dewey_number(r, edition)
-        find_lc_classification(r, edition)
-        find_isbn(r, edition)
-        find_oclc(r, edition)
-        find_lccn(r, edition)
-        find_url(r, edition)
+            find_title(r, edition)
+            if not "title" in edition:
+                continue
+            find_other_titles(r, edition)
+            find_work_title(r, edition)
+            find_table_of_contents(r, edition)
+            find_authors(r, edition)
+            find_contributions(r, edition)
+            find_edition(r, edition)
+            find_publisher(r, edition)
+            find_pagination(r, edition)
+            find_subjects(r, edition)
+            find_subject_place(r, edition)
+            find_subject_time(r, edition)
+            find_genre(r, edition)
+            find_series(r, edition)
+            find_description(r, edition)
+            find_table_of_contents(r, edition)
+            find_dewey_number(r, edition)
+            find_lc_classification(r, edition)
+            find_isbn(r, edition)
+            find_oclc(r, edition)
+            find_lccn(r, edition)
+            find_url(r, edition)
 
-        if len(r.get_fields('008')) > 1:
-            continue
-        f = r.get_field('008')
-        edition["publish_date"] = str(f)[7:11]
-        edition["publish_country"] = str(f)[15:18]
-        edition["languages"] = ["ISO:" + str(f)[35:38]]
+            if len(r.get_fields('008')) > 1:
+                continue
+            f = r.get_field('008')
+            edition["publish_date"] = str(f)[7:11]
+            edition["publish_country"] = str(f)[15:18]
+            edition["languages"] = ["ISO:" + str(f)[35:38]]
 
-        yield edition
+            yield edition
+        except KeyboardInterrupt:
+            raise
+        except:
+            bad_data(edition['source_record_loc'])
 
 if __name__ == '__main__':
     for x in parser(sys.argv[1], sys.argv[2], sys.stdin):
