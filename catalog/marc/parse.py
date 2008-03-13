@@ -8,7 +8,7 @@ re_isbn = re.compile('([^ ()]+[\dX])(?: \((?:v\. (\d+)(?: : )?)?(.*)\))?')
 re_question = re.compile('^\?+$')
 re_lccn = re.compile('(...\d+).*')
 re_int = re.compile ('\d{2,}')
-re_oclc = re.compile ('^\(OCoLC\).*0*(\d+)')
+re_oclc = re.compile ('^\(OCoLC\).*?0*(\d+)')
 re_date = map (re.compile, [
     '(?P<birth_date>\d+\??)-(?P<death_date>\d+\??)',
     '(?P<birth_date>\d+\??)-',
@@ -243,14 +243,14 @@ def find_subject_time(r, edition):
         edition["subject_time"] = remove_duplicates(subject_time)
 
 def find_genre(r, edition):
-    genre = []
+    genres = []
     for (tag, subtag) in [('600', 'v'), ('650', 'v'), ('651', 'v')]:
         for f in r.get_fields(tag):
             if subtag in f.contents:
-                genre += f.contents[subtag]
+                genres += f.contents[subtag]
 
-    if genre:
-        edition["genre"] = remove_duplicates(genre)
+    if genres:
+        edition["genres"] = remove_duplicates(genres)
 
 def find_series(r, edition):
     series = []
