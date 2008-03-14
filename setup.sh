@@ -37,31 +37,29 @@ function setup_infogami() {
 
     ensure_hg_version
 
-    if [ -d $hgroot/infogami ]
+    if [ -d $hgroot/infogami.new ]
     then
-       cd $hgroot/infogami && hg pull
+       cd $hgroot/infogami.new && hg pull
     else
-        cd $hgroot && hg clone http://infogami.org/hg/ $hgroot/infogami
+        cd $hgroot && hg clone http://infogami.org/src/infogami.new $hgroot/infogami.new
     fi
-    cd $hgroot/infogami && hg update -C default
+    cd $hgroot/infogami.new && hg update -C default
 }
 
 function setup_webpy() {
-    echo "** updating webpy repository **"
-
-    if [ -d $hgroot/webpy ]
+    if [ ! -d $hgroot/webpy ]
     then
-       cd $hgroot/webpy && bzr pull
-    else
-        cd $hgroot && bzr get http://webpy.org/bzr/webpy-0.23 webpy
-        
+        echo "** fetching web.py**"
+
+        cd $hgroot && wget http://webpy.org/static/web.py-0.23.tar.gz
+        cd $hgroot && tar xzf web.py-0.23.tar.gz
     fi
 }
 
 function setup_symlinks() {
     echo "**creating symlinks**"
     cd $hgroot/pharos
-    ln -fs ../infogami/infogami .
+    ln -fs ../infogami.new/infogami .
     ln -fs ../webpy/web .
 }
 
