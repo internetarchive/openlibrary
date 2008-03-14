@@ -1,0 +1,16 @@
+$def with (page)
+
+$var title: $page.title
+
+<div id="header">
+    <div style="float:left;padding-left:10px;padding-right:15px;"></div>
+    <span class="pretitle"></span>
+    <div id="title">$page.title</div>
+</div>
+
+$if '<!--islist-->' in page.body:
+    $:format(page.body)
+$else:
+    <div class="contenttext">
+    $:format(page.body)
+    </div>

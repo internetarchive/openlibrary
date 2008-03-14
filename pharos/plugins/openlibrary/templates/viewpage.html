@@ -1,0 +1,17 @@
+$def with (page)
+
+$if page.type.name == '/type/home':
+    $:macros.MostRecent()    
+$else:
+    $:macros.databar(page)
+
+$ view = thingview(page)
+
+$var title: $view.title
+
+$:view
+
+$if page.type.name == '/type/rawtext':
+    $var ContentType: $:view.ContentType
+    $var rawtext: $:view.rawtext
+

@@ -1,0 +1,5 @@
+$def with (thing)
+
+$if thing.is_primitive: $thing.value
+$else: <a href="$thing.key">$thing.key</a>
+

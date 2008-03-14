@@ -1,0 +1,56 @@
+$def with (page)
+
+<div id="nav">
+<div id="options">
+<div class="navouter">
+<img src="/static/images/nav.top.png" alt="Options" border="0" />
+<div class="navinner">
+
+<div class="navinner-padding">
+<span class="navheader">Buy</span> <br />
+$if page.isbn10:
+    <div class="navsubheader">
+    <a href="http://booksense.com/product/info.jsp?isbn=$page.isbn10'">Booksense</a><br />
+    <a href="http://www.amazon.com/gp/product/$page.isbn10'?tag=openlibr-20" class="datalink">Amazon</a><br />
+    <a href="http://www.dpbolvw.net/click-2017500-7134912?url=http%3A%2F%2Fwww.abebooks.com%2Fservlet%2FSearchResults%3Fbi%3D0%26bx%3Doff%26ds%3D30%26isbn%3D;$page.isbn10'%26sortby%3D2%26x%3D21%26y%3D20&cm_mmc=CJ-_-1074909-_-885608-_-Abebooks-Book%20Redirection%20Allowed" class="datalink">AbeBooks</a><br />
+    <a href="http://search.barnesandnoble.com/booksearch/isbninquiry.asp?ISBN&#61;$page.isbn10'&#38;pdf&#61;y" class="datalink">Barnes and Noble</a><br />
+    <a href="http://www.alibris.com/search/search.cfm?S&#61;R&#38;qisbn&#61;$page.isbn10'" class="datalink">Alibris</a><br />
+    <a href="http://www.powells.com/biblio/$page.isbn10'" class="datalink">Powells</a>
+    </div>
+$else:
+    <div class="navsubheader"><em>Not available for this book.</em></div>
+
+<br />
+<span class="navheader">Borrow</span> <br />
+$if page.isbn10:
+    <div class="navsubheader">
+    <a href="http://worldcat.org/isbn/$page.isbn10'" class="datalink">Your local library</a><br />
+    <a href="http://www.bookmooch.com/m/mooch_choice?asin&#61;$page.isbn10'" class="datalink">BookMooch</a><br />
+    <a href="http://www.titletrader.com/invinfo/${page.isbn10}.html" class="datalink">Title Trader</a><br />
+    </div>
+$else:
+    <div class="navsubheader"><em>Not available for this book.</em></div>
+
+<br />
+
+        <span class="navheader">Download</span> <br />
+<div class="navsubheader">
+$if page.oca_identifier:
+    <em>Internet Archive:</em><br />
+    <span class="navtext">- <a href="http://www.openlibrary.org/details/$page.oca_identifier">View this book</a></span><br />
+    <span class="navtext">- <a href="http://www.archive.org/download/${page.oca_identifier}/${page.oca_identifier}.pdf">Download PDF</a></span><br />
+    <span class="navtext">- <a href="http://www.archive.org/stream/${page.oca_identifier}/${page.oca_identifier}.djvu">Download DjVu</a></span><br />
+    <span class="navtext">- <a href="http://www.archive.org/download/${page.oca_identifier}/${page.oca_identifier}_djvu.txt">Download plain text</a></span><br />
+    <span class="navtext">- <a href="http://www.archive.org/download/$page.oca_identifier">See all files</a><br /></span>
+$else:
+    <em>not available for this book</em>
+<br />
+</div>
+<br />
+
+</div>
+</div>
+
+<img src="/static/images/nav.bot.png" alt="" border="0" />
+</div>
+</div>

@@ -5,7 +5,7 @@
 **
 ** Loosely based on http://www.positioniseverything.net/ordered-floats.html by Big John
 ** and the Plone 2.0 styles, see http://plone.org/ (Alexander Limi,Joe Geldart & Tom Croucher,
-** Michael Zeltner and Geir B¾kholt)
+** Michael Zeltner and Geir Bï¿½kholt)
 ** All you guys rock :)
 */
 
@@ -2879,3 +2879,88 @@ p { margin-right: 40px; }
 .attention-fullpage { font-size: 14px; line-height: 20px; color: #666; background-color: #f8f8f8; border-bottom: 1px solid #ccc; padding: 10px 25px 10px 25px; font-style: italic; padding-left: 10px; }
 
 button { border: 0; background-color: transparent; padding: 4px 0 0 0; 	font-family: georgia, times new roman, times, serif; font-size:12px; } 
+
+
+button.go:hover { background-color: #6F320D; color: #fff; }
+button.alert:hover { background-color: #6F320D; color: #fff; }
+button.edition:hover { background-color: #6F320D; color: #fff; }
+button.edit-delete:hover { background-color: #6F320D; color: #fff; }
+
+	button.go { 
+			background-color: #F9F8D0; border: 1px solid #B9B7A1;
+			font-family: georgia; font-size: 12px; color: #6F320D;
+			text-transform: uppercase;
+			font-weight: bold;
+			letter-spacing: .05em;
+			height: 26px;
+			margin: 0px 0px 0px 0px;
+			padding: 0px 4px 0px 4px;
+			}
+	button.go-small { 
+			background-color: #fff; border: 1px solid #B9B7A1;
+			font-family: georgia; font-size: 12px; color: #6F320D;
+			text-transform: uppercase;
+			font-weight: bold;
+			letter-spacing: .05em;
+			margin: 0px 0px 0px 0px;
+			padding: 0px 4px 0px 4px;
+			}			
+	.fulltext { float: right;
+			background-color: #F9F8D0; border: 1px solid #B9B7A1;
+			font-family: georgia; font-size: 12px; color: #6F320D;
+			text-transform: uppercase;
+			font-weight: bold;
+			letter-spacing: .05em;
+			margin: 0px 0px 0px 0px;
+			padding: 0px 4px 0px 4px;
+			}			
+	.editbutton { 
+			background-color: #F9F8D0; border: 1px solid #B9B7A1;
+			font-family: georgia; font-size: 12px; color: #6F320D;
+			text-transform: uppercase;
+			font-weight: bold;
+			letter-spacing: .05em;
+			margin: 0px 0px 0px 0px;
+			padding: 0px 4px 0px 4px;
+			}			
+	button.alert { 
+			background-color: #fff; border: 1px solid #B9B7A1;
+			font-family: georgia; font-size: 12px; color: #919070;
+			text-transform: uppercase;
+			font-weight: bold;
+			letter-spacing: .05em;
+			height: 26px;
+			margin: 0px 0px 0px 0px;
+			padding: 0px 4px 0px 4px;
+			}
+	button.edition { 
+			background-color: #F9F8D0; border: 1px solid #B9B7A1;
+			font-family: georgia; font-size: 12px; color: #6F320D;
+			text-transform: uppercase;
+			font-weight: bold;
+			letter-spacing: .05em;
+			height: 2.25em;
+			margin: 0px 0px 0px 0px;
+			padding: 0px 4px 0px 4px;
+			}
+
+	button.edit { 
+			background-color: #F9F8D0; border: 1px solid #B9B7A1;
+			font-family: georgia; font-size: 12px; color: #6F320D;
+			text-transform: uppercase;
+			font-weight: bold;
+			letter-spacing: .05em;
+			height: 26px;
+			margin: 0px 6px 0px 0px;
+			padding: 0px 4px 0px 4px;
+			}
+	button.edit-delete { 
+			background-color: #F9F8D0; border: 1px solid #B9B7A1;
+			font-family: georgia; font-size: 12px; color: #6F320D;
+			text-transform: uppercase;
+			font-weight: bold;
+			letter-spacing: .05em;
+			height: 26px;
+			margin: 0px 0px 0px 0px;
+			padding: 0px 4px 0px 4px;
+			}

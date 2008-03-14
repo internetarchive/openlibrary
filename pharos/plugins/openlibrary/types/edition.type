@@ -1,0 +1,63 @@
+{
+    'create': 'unless_exists',
+    'key': '/type/edition',
+    'type': '/type/type',
+    'properties': [
+        property('/type/edition', 'title', '/type/string', True),
+        property('/type/edition', 'title_prefix', '/type/string', True),
+        property('/type/edition', 'subtitles', '/type/string', False),
+        property('/type/edition', 'other_titles', '/type/string', False),
+        property('/type/edition', 'authors', {
+            'create': 'unless_exists',
+            'key': '/type/author',
+            'type': '/type/type',
+            'properties': [
+                property('/type/author', 'name', '/type/string', True),
+                property('/type/author', 'alternate_names', '/type/string', False),
+                property('/type/author', 'website', '/type/string', True),
+                property('/type/author', 'bio', '/type/text', True),
+                property('/type/author', 'location', '/type/string', True),
+                property('/type/author', 'birth_date', '/type/string', True),
+                property('/type/author', 'death_date', '/type/string', True),
+                property('/type/author', 'photograph', '/type/uri', True, rendering_hint='image'),
+            ],
+            'backreferences': [
+                backreference('/type/author', 'books', '/type/edition', 'authors')
+            ]
+        }, False),
+        
+        property('/type/edition', 'by_statements', '/type/string', False),
+        property('/type/edition', 'publish_dates', '/type/string', False),
+        property('/type/edition', 'edition_name', '/type/string', True),
+        property('/type/edition', 'languages', {
+            'create': 'unless_exists',
+            'key': '/type/language',
+            'type': '/type/type',
+            'property': [
+                property('/type/language', 'name', '/type/string', True),
+                property('/type/language', 'code', '/type/string', True),
+            ]
+        }, False),
+        property('/type/edition', 'description', '/type/text', True),
+        property('/type/edition', 'notes', '/type/text', True),
+        property('/type/edition', 'genres', '/type/string', False),
+        property('/type/edition', 'toc', '/type/string', False),
+        property('/type/edition', 'work_titles', '/type/string', False),
+        property('/type/edition', 'series', '/type/string', False),
+        
+        property('/type/edition', 'physical_dimensions', '/type/string', True),
+        property('/type/edition', 'physical_format', '/type/string', True),
+        property('/type/edition', 'pagination', '/type/string', True),
+        
+        property('/type/edition', 'subjects', '/type/string', False),
+        
+        property('/type/edition', 'lccn', '/type/string', True),
+        property('/type/edition', 'ocaid', '/type/string', True),
+        property('/type/edition', 'olcc_number', '/type/string', True),
+        property('/type/edition', 'isbn10', '/type/string', True),
+        property('/type/edition', 'isbn13', '/type/string', True),
+        
+        property('/type/edition', 'dewey_decimal_class', '/type/string', True),
+        property('/type/edition', 'lc_classification', '/type/string', True),
+    ]
+}

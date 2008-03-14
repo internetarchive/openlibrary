@@ -1,0 +1,18 @@
+$def with (page)
+
+$ _ = _.get_namespace('/mode/edit')
+
+<div id="databar">
+<div class="widgetlabel">
+    [<a href="$changequery(m=None)">$_.view</a>]
+    [<a href="$changequery(m='history')">$_.history</a>]
+    [<a href="$page.type.name/edit.tmpl?m=edit">$_.modify_template</a>]
+</div>
+
+<div class="simplesearch">
+    <form method="get" action="/search">
+        <input type="text" name="q" value="" size="19" title="Type your search terms here." />
+        <button type="submit" class="go-small">Go</button>
+    </form>
+</div>
+</div>

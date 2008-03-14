@@ -1,11 +1,10 @@
 /* 
-   OL DEFAULT STYLES - BETA 
-   Comment date: 08.07.07
+   OPEN LIBRARY DOCUMENTATION STYLES - BETA 
+   Comment date: 03.03.08
    -------------------------------
-   This is the first pass at modularizing the default stylesheet for OL
-   The stylesheet will be vastly improved by full launch 10=17-07
    Please email me with any suggested improvements: webchick@invisible.net
 */
+
 
 
 /*DOCUMENTATION LINKS*/
@@ -29,11 +28,16 @@
 
 /*TABLE OF CONTENTS*/
 
-     TD.toc-link-end { background-color: #eeeeee; font-size: 14px; border-bottom: 1px solid #ccc; border-right: 1px solid #ccc; border-left: 1px solid #ccc;  padding: 4px 6px 4px 6px; }
-     TD.toc-link { background-color: #eeeeee; font-size: 14px; border-bottom: 1px solid #eee; border-right: 1px solid #ccc; border-left: 1px solid #ccc;  padding: 4px 6px 4px 6px; }
-     TD.toc { color: #000000; font-size: 14px; background-color: #ffffff; padding: 4px 6px 4px 6px; border-bottom: 1px solid #ccc;  }
-     TD.toc-number { color: #000000; font-size: 14px; background-color: #ffffff; padding: 4px 6px 4px 6px; border-bottom: 1px solid #ccc; border-left: 1px solid #ccc; }
+     TD.toc-link-end { font-size: 14px; padding: 4px 6px 4px 6px; }
+     TD.toc-link { font-size: 14px; border-bottom: 1px solid #eee; padding: 4px 6px 4px 6px; }
+     TD.toc { color: #000000; font-size: 14px; background-color: #ffffff; padding: 4px 6px 4px 6px; }
+
+     TD.toc-number { color: #000000; font-size: 14px; background-color: #ffffff; padding: 4px 6px 4px 6px; text-align: right; font-weight: bold; }
      TD.question { color: #ffffff; background-color: #A05629; color:#ffffff; font-weight: normal; text-decoration: none; font-size: 14px }
+
+	 TD.rule { border-bottom: 1px solid #d5d5d5; }
+     TD.first { border-top: 1px solid #ccc; }
+     TD.last { border-bottom: 1px solid #ccc;; }
 
      .toc-nav { color: #ffffff; background-color: #A05629; color:#ffffff; font-weight: normal; text-decoration: none; font-size: 14px }
      .question { color: #ffffff; background-color: #A05629; line-height: 1.3em; }
@@ -44,7 +48,7 @@
 
 	TD.head { font-weight: bold; color: #ffffff; }
 	TD.subhead { font-weight: bold; color: #000000; text-transform:  uppercase; }
-	blockquote.text { margin-left: 2em; margin-right: 3em; font-size:14px; line-height:19px; margin: 11px 60px 14px 44px; text-align : left; color: #000; }
+	blockquote.text { margin-left: 2em; margin-right: 3em; font-size:14px; line-height:19px; margin: 11px 10px 14px 10px; text-align : left; color: #000; }
 	blockquote.quote { margin-left: 8em; margin-right: 8em; font-size:14px; line-height:19px; text-align : left; color: #000; font-style: italic; }
 
 	table.document { border: 1px solid #ccc; width: 100%; padding: 12px; background-color: #f8f8f8; }
@@ -72,7 +76,7 @@
      .link2 { color:#ffffff; font-weight: bold; text-decoration: none; font-size: 14px }
      .RFC { color:#666666; font-weight: bold; text-decoration: none; font-size: 14px }
      .hotText { color:#ffffff; font-weight: normal; text-decoration: none; font-size: 14px }
-     #toc-header { color: #666666; font-size: 16px; line-height: 16px; text-transform: uppercase; font-style: bold; }
+     .toc-header { color: #666666; font-size: 16px; line-height: 16px; text-transform: uppercase; font-style: bold; padding-top: 0px; padding-bottom: 10px; }
 
      H2 { color: #625E25; font-size: 22px; font-weight: normal;  margin-left: 0px }
      H3 { color: #666666; font-size: 16px; line-height: 16px; text-transform: uppercase; margin-left: 25px;}

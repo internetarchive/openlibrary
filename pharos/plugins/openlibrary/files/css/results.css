@@ -1,9 +1,7 @@
 /* 
-   OL DEFAULT STYLES - BETA 
-   Comment date: 08.07.07
+   OPEN LIBRARY SEARCH RESULTS STYLES - BETA 
+   Comment date: 03.03.08
    -------------------------------
-   This is the first pass at modularizing the default stylesheet for OL
-   The stylesheet will be vastly improved by full launch 10=17-07
    Please email me with any suggested improvements: webchick@invisible.net
 */
 
@@ -205,7 +203,7 @@ a.fulltext:hover 		{ text-decoration: underline; font-size: 11px;  }
 /*	text-align: center  */
 	}
 
-.bookmarks { padding-bottom: 6px; padding-left: 22px; padding-top: 3px; color: #000; line-height: 16px; background-color: #eee; 	border-top: 1px solid #ccc;  }
+.bookmarks { padding-bottom: 6px; padding-left: 22px; padding-top: 3px; color: #000; line-height: 16px; background-color: #eee; border-top: 1px solid #ccc; }
 
 .expand{
 	border-bottom: 1px solid #ccc;
@@ -265,3 +263,6 @@ a.fulltext:hover 		{ text-decoration: underline; font-size: 11px;  }
   border-left: 1px solid #ccc;
   border-right: 1px solid #ccc;
 }
+
+
+.number-results { color: #000000; font-size: 14px; background-color: #ffffff; padding: 4px 6px 4px 6px; text-align: right; font-weight: bold; }

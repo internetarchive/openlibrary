@@ -1,0 +1,50 @@
+$def with (a, b)
+
+$ _t = _.get_namespace(a.type.key)
+$ _ = _.get_namespace('/mode/diff')
+
+$add_stylesheet('/static/diff.css')
+
+$var title: $_.diff_title(a.key)
+
+<div id="databar"></div>
+
+$:macros.AlertChanges()
+
+<div id="header">
+    <div style="float:left;padding-left:10px;padding-right:15px;"></div>
+    <span class="pretitle">$_.diff_heading(a.key)<br /></span>
+</div>
+
+<div class="diff-border">
+<div class="diff">
+
+    <table class="sidebyside" cellpadding="0" cellspacing="0" border="0" summary="$_.differences">
+       <colgroup class="l"><col class="lineno" /><col class="content" /></colgroup>
+       <colgroup class="r"><col class="lineno" /><col class="content" /></colgroup>
+       <thead>
+           <tr> 
+              <td colspan="2" class="diff-header-top">$_.revision $a.revision</td> 
+              <td colspan="2" class="diff-header-top">$_.revision $b.revision</td>
+           </tr>
+       </thead>
+       <tbody>
+$for p in a.type.properties:
+   $ label = _t[p.name]
+   $:thingdiff(p.expected_type, label, a[p.name], b[p.name])
+
+    </tbody>
+    </table>
+       
+   <div id="legend">
+       <h3>$_.legend:</h3>
+       <dl>
+           <dt class="unmod"></dt><dd>$_.modified</dd>
+           <dt class="add"></dt><dd>$_.added</dd>
+           <dt class="rem"></dt><dd>$_.removed</dd>
+           <dt class="mod"></dt><dd>$_.modified</dd>
+       </dl>
+    </div>
+    
+</div>
+</div>
