@@ -1,1 +1,0 @@
-{'type': {'name': 'type/template'}, 'name': 'type/text/input.tmpl', 'd': {'body': '$def with (p, name)\r\n<textarea name="$name" rows="10" cols="80">$p.value</textarea>\r\n', 'title': 'input template for type/text'}}

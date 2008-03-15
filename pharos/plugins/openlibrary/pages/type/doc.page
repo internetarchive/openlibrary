@@ -1,1 +1,0 @@
-{'type': {'name': 'type/type'}, 'name': 'type/doc', 'd': {'properties': [{'child': True, 'type': {'name': 'type/property'}, 'name': 'title', 'd': {'unique': 'on', 'type': {'name': 'type/string'}}}, {'child': True, 'type': {'name': 'type/property'}, 'name': 'body', 'd': {'unique': 'on', 'type': {'name': 'type/text'}}}]}}

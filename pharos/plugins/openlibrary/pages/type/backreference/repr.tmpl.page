@@ -1,1 +1,0 @@
-{'type': {'name': 'type/template'}, 'name': 'type/backreference/repr.tmpl', 'd': {'body': '$def with (p)\nBack-reference to $p.property_name property of $:thingrepr(p.d.type)\n\n', 'title': 'repr template for type/backreference'}}

@@ -1,1 +1,0 @@
-{'type': {'name': 'type/template'}, 'name': 'type/property/repr.tmpl', 'd': {'body': '$def with (p)\n${p.name}${(p.get(\'unique\') and " ") or []} of type $:thingrepr(p.d.type)\n\n', 'title': 'repr template for type/property'}}

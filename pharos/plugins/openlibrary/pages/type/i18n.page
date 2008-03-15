@@ -1,1 +1,0 @@
-{'type': {'name': 'type/type'}, 'name': 'type/i18n', 'd': {'description': '', 'is_primitive': False, 'properties': [{'child': True, 'type': {'name': 'type/property'}, 'name': '*', 'd': {'unique': True, 'type': {'name': 'type/string'}, 'description': ''}}]}}

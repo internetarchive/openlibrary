@@ -1,1 +1,0 @@
-{'type': {'name': 'type/page'}, 'name': 'dev', 'd': {'body': 'Notes for developers who want to work on the Open Library:\r\n\r\n* [Bug tracking](https://bugs.launchpad.net/openlibrary/)\r\n* [Source code](http://demo.openlibrary.org:9021/)\r\n* [[dev/docs|Documentation]]', 'links': ['dev/docs'], 'title': 'Developer Notes'}}

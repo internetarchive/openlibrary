@@ -1,1 +1,0 @@
-{'type': {'name': 'type/macro'}, 'name': 'macros/TruncateString', 'd': {'macro': '$def with (s, n)\r\n\r\n$if s: $s[slice(n)] $(s[slice(n, None)] and "...")\r\n', 'description': 'Truncate long strings'}}
