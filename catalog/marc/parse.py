@@ -380,9 +380,7 @@ def find_url(r, edition):
     for f in r.get_fields('856'):
         if 'u' not in f.contents:
             continue
-        u = f.contents['u']
-        assert len(u) == 1
-        url.append(u)
+        url += f.contents['u']
     if len(url):
         edition["url"] = url
 
