@@ -325,10 +325,10 @@ def find_oclc(r, edition):
     for f in r.get_fields('035'):
         if 'a' not in f.contents:
             continue
-        assert len(f.contents['a']) == 1
-        m = re_oclc.match(f.contents['a'][0])
-        if m:
-            oclc.append(m.group(1))
+        for a in f.contents['a']:
+            m = re_oclc.match(f.contents['a'][0])
+            if m:
+                oclc.append(m.group(1))
     if oclc:
         edition['oclc'] = oclc
 
@@ -363,19 +363,17 @@ def find_isbn(r, edition):
 
 
 def find_lccn(r, edition):
-    f = r.get_fields('010')[0]
-    if not f or 'a' not in f.contents:
-        return
-    lccn = f.contents['a'][0].strip()
-    if re_question.match(lccn):
-        return
-    m = re_lccn.search(lccn)
-    try:
-        assert m
-    except AssertionError:
-        print "lccn:", lccn
-        raise
-    edition["lccn"] = m.group(1)
+    for f in r.get_fields('010'):
+        if not f or 'a' not in f.contents:
+            continue
+        for v in f.contents['a']:
+            lccn = v.strip()
+            if re_question.match(lccn):
+                continue
+            m = re_lccn.search(lccn)
+            if m:
+                edition["lccn"] = m.group(1)
+                return
 
 def find_url(r, edition):
     url = []
