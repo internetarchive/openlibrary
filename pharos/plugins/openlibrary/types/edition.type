@@ -14,6 +14,11 @@
             'properties': [
                 property('/type/author', 'name', '/type/string', True),
                 property('/type/author', 'alternate_names', '/type/string', False),
+                property('/type/author', 'entity_type', '/type/string', True),
+                property('/type/author', 'personal_name', '/type/string', True),
+                property('/type/author', 'numeration', '/type/string', True),
+                property('/type/author', 'title', '/type/string', True),
+                property('/type/author', 'fuller_name', '/type/string', True),
                 property('/type/author', 'website', '/type/string', True),
                 property('/type/author', 'bio', '/type/text', True),
                 property('/type/author', 'location', '/type/string', True),
@@ -54,8 +59,8 @@
         property('/type/edition', 'lccn', '/type/string', True),
         property('/type/edition', 'ocaid', '/type/string', True),
         property('/type/edition', 'olcc_number', '/type/string', True),
-        property('/type/edition', 'isbn10', '/type/string', True),
-        property('/type/edition', 'isbn13', '/type/string', True),
+        property('/type/edition', 'isbn_10', '/type/string', True),
+        property('/type/edition', 'isbn_13', '/type/string', True),
         
         property('/type/edition', 'dewey_decimal_class', '/type/string', True),
         property('/type/edition', 'lc_classification', '/type/string', True),
