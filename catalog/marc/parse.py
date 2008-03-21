@@ -270,7 +270,7 @@ def find_description(r, edition):
     if description:
         edition["description"] = "\n\n".join(description)
 
-def find_table_of_contents(r, edition):
+def find_toc(r, edition): # table of contents
     toc = []
     for f in r.get_fields('505'):
         try:
@@ -291,7 +291,7 @@ def find_table_of_contents(r, edition):
             print f.subfield_sequence
             raise
     if toc:
-        edition["table_of_contents"] = toc
+        edition["toc"] = toc
 
 def find_notes(r, edition):
     notes = []
@@ -402,7 +402,7 @@ def parser(file_locator, input, bad_data):
                 continue
             find_other_titles(r, edition)
             find_work_title(r, edition)
-            find_table_of_contents(r, edition)
+            find_toc(r, edition)
             find_authors(r, edition)
             find_contributions(r, edition)
             find_edition(r, edition)
