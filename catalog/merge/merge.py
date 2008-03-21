@@ -5,12 +5,6 @@ from normalize import normalize
 re_year = re.compile('(\d{4})$')
 re_amazon_title_paren = re.compile('^(.*) \([^)]+?\)$')
 
-def find_marc_author_field(marc):
-    for f in 'person', 'org', 'event':
-        if 'author_' + f in marc:
-            return f
-    return None
-
 def amazon_year(date):
     m = re_year.search(date)
     try:
@@ -92,23 +86,17 @@ def level1_merge(e1, e2):
     return score
 
 def compare_authors(amazon, marc):
-    marc_field = find_marc_author_field(marc)
-    for f in 'person', 'org', 'event':
-        if 'author_' + f in marc:
-            marc_field = f
-            break
-
-    if len(amazon['authors']) == 0 and not marc_field:
+    if len(amazon['authors']) == 0 and 'authors' not in marc:
         return ('main', 'no authors', 75)
-    if len(amazon['authors']) == 0 or not marc_field:
+    if len(amazon['authors']) == 0 or 'authors' not in marc:
         return ('main', 'field missing from one record', -25)
 
     for a in amazon['authors']:
-        if match_name(a[0], marc['author_' + marc_field]['name']):
+        if match_name(a[0], marc['authors'][0]['name']):
             return ('main', 'exact match', 125)
     max_score = 0
     for a in amazon['authors']:
-        percent, ordered = keyword_match(a[0], marc['author_' + marc_field]['name'])
+        percent, ordered = keyword_match(a[0], marc['authors'][0]['name'])
         if percent > 0.50:
             score = percent * 80
             if ordered:
