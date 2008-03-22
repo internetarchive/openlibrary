@@ -402,7 +402,6 @@ def parser(file_locator, input, bad_data):
                 continue
             find_other_titles(r, edition)
             find_work_title(r, edition)
-            find_toc(r, edition)
             find_authors(r, edition)
             find_contributions(r, edition)
             find_edition(r, edition)
@@ -414,7 +413,7 @@ def parser(file_locator, input, bad_data):
             find_genre(r, edition)
             find_series(r, edition)
             find_description(r, edition)
-            find_table_of_contents(r, edition)
+            find_toc(r, edition)
             find_dewey_number(r, edition)
             find_lc_classification(r, edition)
             find_isbn(r, edition)
@@ -433,6 +432,7 @@ def parser(file_locator, input, bad_data):
         except KeyboardInterrupt:
             raise
         except:
+            raise
             bad_data(edition['source_record_loc'])
 
 if __name__ == '__main__':
