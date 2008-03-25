@@ -4,6 +4,8 @@ from catalog.merge.names import flip_marc_name
 
 import sys, re
 
+# no monograph should be longer than 50,000 pages
+max_number_of_pages = 50000
 re_isbn = re.compile('([^ ()]+[\dX])(?: \((?:v\. (\d+)(?: : )?)?(.*)\))?')
 re_question = re.compile('^\?+$')
 re_lccn = re.compile('(...\d+).*')
@@ -183,7 +185,7 @@ def find_pagination(r, edition):
         edition["pagination"] = ' '.join(pagination)
         num = []
         for x in pagination:
-            num += re_int.findall(x)
+            num += [ x for x in re_int.findall(x) if x < max_number_of_pages ]
         if num:
             edition["number_of_pages"] = max([int(x) for x in num])
 
