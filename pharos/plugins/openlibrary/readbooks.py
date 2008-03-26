@@ -2,81 +2,67 @@
 
 WARNING: This gets only the new books with revision=1.
 
-Examples:
-    Get first 1M books reading 5000 books at a time.
-        python readbooks.py 0 1000000 5000
-
-    Get next 1M books.
-        python readbooks.py 0 1000000 5000
 """
 import web
 import time
 import sys
 
-def things(ids):
-    ids = "(" + ", ".join([str(id) for id in ids]) + ")"
-    
-    # this works only for now, because the
-    result = web.query(
-        'SELECT thing_id, key, value, ordering FROM datum WHERE thing_id IN ' + 
-        ids + 
-        " ORDER BY thing_id, key, ordering")
-
-    things = {}
-    for row in result:
-        t = things.setdefault(row.thing_id, {})
-        if row.ordering is None:
-            t[row.key] = row.value
-        else:
-            t.setdefault(row.key, [])
-            t[row.key].append(row.value)
-    return things
-
-def books(start=0, count=100000, chunk_size=1000):
-    max_revision = 2**31 - 1
-    tbook = web.query("SELECT id FROM thing WHERE site_id=1 AND key='/type/edition'")[0].id
-
-    offset = start
-    limit = chunk_size
-
-    for i in range(count/limit):
-        t1 = time.time()
-        #@@ this works only for new books
-        result = web.query("SELECT thing.id FROM thing, datum"
-            " WHERE thing.id=datum.thing_id"
-            " AND datum.key='type' AND datum.value::int=$tbook AND datum.datatype=0"
-            " AND begin_revision=1 AND end_revision=$max_revision"
-            " ORDER BY thing.id OFFSET $offset LIMIT $limit", vars=locals())
-
-        book_ids = [b.id for b in result]
-        if not book_ids:
+def select(query, chunk_size=50000):
+    """Selects large number of rows efficiently using cursors."""
+    web.transact()
+    web.query('DECLARE select_cursor CURSOR FOR ' + query)
+    while True:
+        result = web.query('FETCH FORWARD $chunk_size FROM select_cursor', vars=locals())
+        if not result:
             break
+        for r in result:
+            yield r
+    web.rollback()
+        
+def parse_datum(rows):
+    thing = None
+    for r in rows:
+        if thing is None:
+            thing = dict(id=r.thing_id)
+        elif thing.get('id') != r.thing_id:
+            yield thing
+            thing = dict(id=r.thing_id)
+        
+        if r.ordering is None:
+            thing[r.key] = r.value
+        else:
+            thing.setdefault(r.key, []).append(r.value)
+            
+def books(fbooks, fauthors):        
+    authors = {}
+    type_author = str(web.query("SELECT * FROM thing WHERE site_id=1 AND key='/type/author'")[0].id)
+    type_edition = str(web.query("SELECT * FROM thing WHERE site_id=1 AND key='/type/edition'")[0].id)
+    result = select("SELECT * FROM datum ORDER BY thing_id")
+    t1 = time.time()
+    for i, t in enumerate(parse_datum(result)):
+        if t['type'] == type_author:
+            fauthors.write(str(t))
+            fauthors.write("\n")
+        elif t['type'] == type_edition:
+            fbooks.write(str(t))
+            fbooks.write("\n")
 
-        books = things(book_ids)
-        books = [books[id] for id in book_ids]
-        author_ids = set()
-        for b in books:
-            b.setdefault('authors', [])
-            author_ids.update(b['authors'])
-
-        authors = things(sorted(author_ids))
-        for b in books:
-            b['authors'] = [authors[int(id)] for id in b['authors']]
-            yield b    
-        offset += len(books)
-        t2 = time.time()
-        print >> web.debug, offset, "%f books per sec." % (len(books)/(t2-t1))
-
+        if i and i%10000 == 0:
+            t2 = time.time()
+            dt = t2 - t1
+            t1 = t2
+            print "%d: 10000 books read in %f time. %f things/sec" % (i, dt, 10000/dt)
+ 
 def main():
-    web.config.db_parameters = dict(dbn='postgres', db='infobase_data2', host='pharosdb', user='anand', pw='')
-    #web.config.db_printing = True
+    web.config.db_parameters = dict(dbn='postgres', db='infobase_data4', host='pharosdb', user='anand', pw='')
+    web.config.db_printing = True
     web.load()
-
-    offset = int(web.listget(sys.argv, 1, 0))
-    count = int(web.listget(sys.argv, 2, 100000))
-    chunk_size = int(web.listget(sys.argv, 3, 1000))
-    for b in books(offset, count, chunk_size):
-        print b
+    
+    fbooks = open("books.txt", "w")
+    fauthors = open("authors.txt", "w")
+    books(fbooks, fauthors)
+    fbooks.close()
+    fauthors.close()
 
 if __name__ == "__main__":
     main()
