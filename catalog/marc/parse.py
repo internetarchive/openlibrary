@@ -154,14 +154,14 @@ def find_work_title(r, edition):
         work_title.append(' '.join([j for i,j in f.subfield_sequence if i.islower()]))
 
     if work_title:
-        edition["work_title"] = work_title
+        edition["work_titles"] = work_title
 
 def find_edition(r, edition):
     e = []
     for f in r.get_fields('250'):
         e += [j for i,j in f.subfield_sequence]
     if edition:
-        edition["edition"] = ' '.join(e)
+        edition['edition_name'] = ' '.join(e)
 
 def find_publisher(r, edition):
     publisher = []
@@ -172,9 +172,9 @@ def find_publisher(r, edition):
         if 'a' in f.contents:
             publish_place += [x.strip(" /.,;:") for x in f.contents['a']]
     if publisher:
-        edition["publisher"] = publisher
+        edition["publishers"] = publisher
     if publish_place:
-        edition["publish_place"] = publish_place
+        edition["publish_places"] = publish_place
 
 def find_pagination(r, edition):
     pagination = []
@@ -215,7 +215,7 @@ def find_subjects(r, edition):
         subject += [" -- ".join([" ".join(specific_subtags(f, name_fields))] + specific_subtags(f, subdivision_fields)) for f in r.get_fields(tag)]
 
     if subject:
-        edition["subject"] = subject
+        edition["subjects"] = subject
 
 def remove_duplicates(seq):
     u = []
@@ -232,7 +232,7 @@ def find_subject_place(r, edition):
                 subject_place += f.contents[subtag]
 
     if subject_place:
-        edition["subject_place"] = remove_duplicates(subject_place)
+        edition["subject_places"] = remove_duplicates(subject_place)
         
 def find_subject_time(r, edition):
     subject_time = []
@@ -242,7 +242,7 @@ def find_subject_time(r, edition):
                 subject_time += f.contents[subtag]
 
     if subject_time:
-        edition["subject_time"] = remove_duplicates(subject_time)
+        edition["subject_times"] = remove_duplicates(subject_time)
 
 def find_genre(r, edition):
     genres = []
@@ -258,7 +258,7 @@ def find_series(r, edition):
     series = []
     for tag in ('440', '490', '830'):
         for f in r.get_fields(tag):
-            series += specific_subtags(f, 'av')
+            series += ' -- '.join(specific_subtags(f, 'av'))
     if series:
         edition["series"] = series
 
@@ -293,7 +293,7 @@ def find_toc(r, edition): # table of contents
             print f.subfield_sequence
             raise
     if toc:
-        edition["toc"] = toc
+        edition['toc'] = toc
 
 def find_notes(r, edition):
     notes = []
@@ -320,7 +320,7 @@ def find_lc_classification(r, edition):
         else:
             lc += f.contents['a']
     if lc:
-        edition["lc_classification"] = lc
+        edition["lc_classifications"] = lc
 
 def find_oclc(r, edition):
     oclc = []
@@ -332,7 +332,7 @@ def find_oclc(r, edition):
             if m:
                 oclc.append(m.group(1))
     if oclc:
-        edition['oclc'] = oclc
+        edition['oclc_numbers'] = oclc
 
 def find_isbn(r, edition):
     isbn_10 = []
@@ -410,8 +410,8 @@ def parser(file_locator, input, bad_data):
             find_publisher(r, edition)
             find_pagination(r, edition)
             find_subjects(r, edition)
-            find_subject_place(r, edition)
-            find_subject_time(r, edition)
+#            find_subject_place(r, edition)
+#            find_subject_time(r, edition)
             find_genre(r, edition)
             find_series(r, edition)
             find_description(r, edition)

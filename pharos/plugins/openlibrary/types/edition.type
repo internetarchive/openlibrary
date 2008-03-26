@@ -32,7 +32,10 @@
         }, False),
         
         property('/type/edition', 'by_statements', '/type/string', False),
-        property('/type/edition', 'publish_dates', '/type/string', False),
+        property('/type/edition', 'publish_date', '/type/string', True),
+        property('/type/edition', 'publish_places', '/type/string', False),
+        property('/type/edition', 'publish_country', '/type/string', True),
+        property('/type/edition', 'publishers', '/type/string', False),
         property('/type/edition', 'edition_name', '/type/string', True),
         property('/type/edition', 'languages', {
             'create': 'unless_exists',
@@ -46,7 +49,7 @@
         property('/type/edition', 'description', '/type/text', True),
         property('/type/edition', 'notes', '/type/text', True),
         property('/type/edition', 'genres', '/type/string', False),
-        property('/type/edition', 'toc', '/type/string', False),
+        property('/type/edition', 'toc', '/type/text', False),
         property('/type/edition', 'work_titles', '/type/string', False),
         property('/type/edition', 'series', '/type/string', False),
         
@@ -58,11 +61,11 @@
         
         property('/type/edition', 'lccn', '/type/string', True),
         property('/type/edition', 'ocaid', '/type/string', True),
-        property('/type/edition', 'olcc_number', '/type/string', True),
-        property('/type/edition', 'isbn_10', '/type/string', True),
-        property('/type/edition', 'isbn_13', '/type/string', True),
+        property('/type/edition', 'oclc_numbers', '/type/string', False),
+        property('/type/edition', 'isbn_10', '/type/string', False),
+        property('/type/edition', 'isbn_13', '/type/string', False),
         
         property('/type/edition', 'dewey_decimal_class', '/type/string', True),
-        property('/type/edition', 'lc_classification', '/type/string', True),
+        property('/type/edition', 'lc_classifications', '/type/string', False),
     ]
 }
