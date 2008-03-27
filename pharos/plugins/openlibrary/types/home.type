@@ -1,0 +1,10 @@
+{
+    'create': 'unless_exists',
+    'key': '/type/home',
+    'type': '/type/type',
+    'properties': [
+        property('/type/home', 'title', '/type/string', True),
+        property('/type/home', 'body', '/type/text', True),
+        property('/type/home', 'news', '/type/text', True),
+    ]    
+}
