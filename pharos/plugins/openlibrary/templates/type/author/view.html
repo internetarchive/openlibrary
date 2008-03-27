@@ -1,0 +1,47 @@
+$def with (page)
+
+$ _t = _.get_namespace('type/author')
+$ _ = _.get_namespace('mode/view')
+
+$var title: page.name
+
+$add_stylesheet('/static/css/search.css')
+
+<div id="header-view">
+    <br />
+    <div style="float:left;padding-right:15px;">
+        $if page.photograph:
+            <div style="border: 1px solid #ccc;" />
+                <div style="border: 7px solid #fff; height: 125px;" /><img src="$page.photograph" align="left" width="100" height="125" /></div>
+            </div>
+    </div>
+    <div id="title">$page.name&nbsp;&nbsp;&nbsp;<a href="$changequery(m='edit')" accesskey="e"><span class="editbutton">Edit</span></a></div>
+    <span class="book-details-italic">&nbsp;&nbsp;&nbsp;
+    $if page.birth_date or page.death_date:
+        $page.birth_date - $page.death_date
+    </span>
+</div>
+
+<div class="maintext"> 
+    $:format(page.get('bio', ''))
+
+    $if page.website:
+        <p><b>$_.website:</b> <a href="$page.website" class="datalink">$page.website</a></p>
+            
+    $if page.location:
+        <p><b>$_.location:</b> $page.location</p>
+
+    $if page.alternate_names:
+        <p><b>$_.alternate_names:</b> $", ".join(page.alternate_names)</p>
+</div>
+
+<!-- BEGIN SEARCH -->   
+
+<br clear="all" />
+<span class="subhead-emphasis" style="padding-left: 45px;">$_.by_author</span>
+
+<div id="browse-rule"></div>
+<div id="biblio-form-body">
+    $:macros.SearchResults(page.books)
+</div>
+

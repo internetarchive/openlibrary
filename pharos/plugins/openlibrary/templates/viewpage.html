@@ -1,6 +1,6 @@
 $def with (page)
 
-$if page.type.name == '/type/home':
+$if page.type.key == '/type/home':
     $:macros.MostRecent()    
 $else:
     $:macros.databar(page)
@@ -11,7 +11,7 @@ $var title: $view.title
 
 $:view
 
-$if page.type.name == '/type/rawtext':
+$if page.type.key == '/type/rawtext':
     $var ContentType: $:view.ContentType
     $var rawtext: $:view.rawtext
 

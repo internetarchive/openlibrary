@@ -19,9 +19,16 @@ $var title: $_.edit_title(page.key)
             <strong>$_t.title</strong>
             <input type="text" name="title" value="$page.title" />
             <br/>
+            <strong>$_t.body</strong><br/>        
             <textarea name="body" rows="15" cols="80">$page.body</textarea>
+            <br/>
+            <strong>$_t.news</strong><br/>
+            <textarea name="news" rows="15" cols="80">$page.news</textarea>
+
             $:macros.EditButtons()
         </form>
         $:macros.HelpFormatting()
     </div>
+</div>
+
 </div>
