@@ -1,6 +1,6 @@
 $def with (page)
 
-$ _t = _.get_namespace('/type/page')
+$ _t = _.get_namespace('/type/template')
 $ _ = _.get_namespace('/mode/edit')
 
 $var title: $_.edit_title(page.key)
@@ -19,7 +19,7 @@ $var title: $_.edit_title(page.key)
             <strong>$_t.title</strong>
             <input type="text" name="title" value="$page.title" />
             <br/>
-            <textarea name="body" rows="15" cols="80">$page.body</textarea>
+            <textarea name="body" rows="15" cols="80" style="font-family: monospace;">$page.body</textarea>
             $:macros.EditButtons()
         </form>
         $:macros.HelpFormatting()
