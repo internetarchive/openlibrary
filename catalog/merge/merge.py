@@ -5,6 +5,11 @@ from normalize import normalize
 re_year = re.compile('(\d{4})$')
 re_amazon_title_paren = re.compile('^(.*) \([^)]+?\)$')
 
+isbn_match = 85
+
+def set_isbn_match(score):
+    isbn_match = score
+
 def amazon_year(date):
     m = re_year.search(date)
     try:
@@ -70,7 +75,7 @@ def compare_isbn10(e1, e2):
     for i in e1['ISBN_10']:
         for j in e2['ISBN_10']:
             if i == j:
-                return ('ISBN', 'match', 85)
+                return ('ISBN', 'match', isbn_match)
 
     return ('ISBN', 'mismatch', -225)
 
@@ -119,6 +124,8 @@ def keyword_match(in1, in2):
     s1_set = set(s1)
     s2_set = set(s2)
     match = s1_set & s2_set
+    if len(s1) == 0 and len(s2) == 0:
+        return 0, True
     ordered = [x for x in s1 if x in match] == [x for x in s2 if x in match]
     return float(len(match)) / max(len(s1), len(s2)), ordered
 

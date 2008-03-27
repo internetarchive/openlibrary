@@ -123,6 +123,44 @@ def flip_marc_name(marc):
         return u' '.join(first_parts[0:-1])
     return u' '.join(first_parts[:-1] + [m.group(1)])
 
+def match_marc_name(marc1, marc2, last_name_only_ok):
+    m1_normalized = normalize(marc1)
+    m2_normalized = normalize(marc2)
+    if m1_normalized == m2_normalized:
+        return True
+    m1 = re_marc_name.match(marc1)
+    m2 = re_marc_name.match(marc2)
+    if not m1:
+        if m2 and marc1_normalized == normalize(m2.group(1)):
+            return last_name_only_ok
+        else:
+            return False
+    if not m2:
+        if marc2_normalized == normalize(m1.group(1)):
+            return last_name_only_ok
+        else:
+            return False
+    if marc1_normalized == normalize(m2.group(2) + ' ' + m2.group(1)) or marc2_normalized == normalize(m1.group(2) + ' ' + m1.group(1)):
+        return True
+    if not (m1.group(1).endswith(' ' + m2.group(1)) or m1.endswith('.' + m2.group(1)) or \
+            m2.group(1).endswith(' ' + m1.group(1)) or m2.endswith('.' + m1.group(1))):
+        return False # Last name mismatch
+    marc1_first_parts = split_parts(m1.group(2))
+    marc2_first_parts = split_parts(m2.group(2))
+    if compare_parts(marc1_first_parts, marc2_first_parts):
+        return True
+    if match_seq(marc1_first_parts, marc2_first_parts):
+        return True
+    if marc_title(marc1_first_parts, marc2_first_parts):
+        return True
+    if marc_title(marc2_first_parts, marc1_first_parts):
+        return True
+    if amazon_title(marc1_first_parts, marc2_first_parts):
+        return True
+    if amazon_title(marc2_first_parts, marc1_first_parts):
+        return True
+    return False
+
 def match_name2(amazon, marc, last_name_only_ok):
     amazon_normalized = normalize(amazon)
     if amazon_normalized == normalize(marc):
