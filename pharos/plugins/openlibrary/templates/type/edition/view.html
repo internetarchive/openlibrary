@@ -114,7 +114,9 @@ $if page.reviews:
 
 <br clear="both" />
 
-$ c = copyright_status(page)
+$# publish_year is missing from /type/edition schema
+$# c = copyright_status(page)
+$ c = None
 
 $if not c:
     <div class="pdstatus-footer">
