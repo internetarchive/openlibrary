@@ -1,0 +1,31 @@
+title = "Title"
+authors = "Author"
+by_statements = "Creators"
+
+publish_date = "Published in"
+publishers = "Published by"
+publish_places = "Published at"
+
+edition_name = "Edition"
+description = "Description"
+notes = "Notes"
+genres = "Genre"
+table_of_contents = "Table of Contents"
+work_titles = "Work"
+series = "Series"
+physical_dimensions = "Dimensions"
+physical_format = "Format"
+pagination = "Pagination"
+subjects = "Subject"
+languages = "Language"
+
+lccn = "LCCN"
+ocaid = "OCA"
+oclc_number = "OCLC"
+isbn_10 = "ISBN 10"
+isbn_13 = "ISBN 13"
+dewry_decimal_class = "Dewry"
+lc_classifications = "LC"
+
+
+

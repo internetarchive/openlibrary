@@ -1,0 +1,103 @@
+$def with (q, qresults, results, facets, ftokens, ft_pairs, errortext)
+
+$var title: Search Results
+
+$add_stylesheet('/static/css/search.css')
+
+<div id="databar">
+<div class="widgetlabel">
+<b>Selected Facets:</b> 
+$for token, tpair in ft_pairs:
+    $ name = tpair[0]
+    $ label = tpair[1]
+    <b>$name:</b> $:macros.HasFulltext(name, label)
+    <a href="$changequery(remove=token, ftokens=ftokens)" title="Remove this facet">(x)</a>
+     &nbsp;<b>&gt;</b>&nbsp;
+</div>
+</div>
+$:macros.AlertTour()
+
+$# check for the presence of a facet token corresponding to a fulltext search selection facet
+$# this is kludgy and maybe it should be done some other way, like with another plugin function
+$ want_fulltext = ''
+$if 'mhsncqbxgkup' in ftokens:
+    $ want_fulltext = 'checked'
+
+<table border="0" cellpadding="0" cellspacing="0" width="100%"><tr><td valign="top">
+
+<div id="header-fullpage">
+  <span id="title">Search Results</span><br />
+  
+  <form method="get" action="/search">
+  <input type="hidden" name="go" value="go">
+  <table cellpadding="0" cellspacing="0" border="0" width="100%"><tr><td>
+  <div class="simple-search-form"><input style="background-color: #f8f8f8; font-family: georgia; font-size: 18px; color: #6F320D; border: 1px solid #ccc; padding-left: 4px;" type="text" name="q" value="$q" size="38" title="Type your search terms here." /></div>
+  </td><td width="100%">
+        <div class="button-border"><button class="go" type="submit">go</button><img src="/static/images/flourish.gif" width="17" height="28" alt="Go" /></div>
+  </td>
+</tr><tr>
+<td colspan="2"><span class="copyright">Showing $qresults.begin - $(qresults.begin + 20) of $qresults.total_results
+<img src="/static/images/arrow.red.png" alt="Disclosure Arrow" /><span class="attention-emphasis"><input tabindex="9" type="checkbox" value="mhsncqbxgkup" name="ftokens" $want_fulltext> Fulltext items only </span></span></td>
+</tr></table></form>
+</div>
+
+$if errortext:
+    <br /><br /><br /><br />
+$else:
+    <p style="font-family: georgia; font-size: 18px;  margin-left: 30px;">The following books contain the words <span style="color: #6F320D;">$q</span>:</p>
+
+<div style="padding-left: 45px;"> 
+   $:macros.SearchResults(results)
+ </div>   
+    
+
+ 
+
+<!-- BEGIN FACETS --> 
+
+</td><td valign="top">
+
+$if errortext:
+    <div id="error">Error: $errortext</div>
+$else:
+    <div id="search-nav">
+    <div id="search-options">
+    <div class="search-outer">
+    <div style="width: 100%; text-align: center; font-weight: bold; padding-bottom: 8px">Refine Results</div>  
+
+    $for facet in facets:
+        $ fname = facet[0]
+        $ fn1 = fname
+        $if fname == 'has_fulltext':
+            $ fn1 = 'full text'
+        $elif fname == 'facet_year':
+            $ fn1 = 'date range'
+        $ fentries = facet[1]
+        <div class="search-inner"><span class="refinesearch">$fn1:</span>
+        <div class="refineindent">
+        $for fentry in fentries[slice(5)]:
+            $ fval = fentry[0]
+            $ fcount = fentry[1]
+            $ ftoken = facet_token(fname, fval)
+            <a class="datalink" href="$changequery(ftokens=ftokens + ',' + ftoken, remove='')">$:macros.HasFulltext(fname, fval)</a> ($fcount)<br />
+        </div></div>
+
+
+</div></div></div>        
+</td></tr></table>        
+    
+  <div class="pagination">
+    <div class="moreresults"><strong>More Results:</strong></div>
+    <div class="paginate">
+    $if (qresults.begin - 1000) > 0: ...
+    $for n in range(qresults.begin - 1000, qresults.begin + 1000, 20):
+        $if (n >= 0) and (n <= qresults.total_results):
+            $if n == qresults.begin:
+                $if n != 0: | 
+                <strong>$n - $(n + 20)</strong>
+            $else:
+                $if n != 0: | 
+                <a href="$changequery(offset=n)">$n - $(n + 20)</a>
+    $if (qresults.begin + 1000) < qresults.total_results: | ...
+        </div>
+    </div>

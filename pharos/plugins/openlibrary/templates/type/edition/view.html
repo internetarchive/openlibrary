@@ -1,140 +1,132 @@
 $def with (page)
 
-$ _t = _.get_namespace('type/edition')
-$ _ = _.get_namespace('mode/view')
+$ _t = _.get_namespace('/type/edition')
+$ _ = _.get_namespace('/mode/view')
 
 $var title: $page.title
 
 $add_stylesheet('/static/css/results.css')
 $add_stylesheet('/static/css/doc-styles.css')
-$add_stylesheet('/static/css/thickbox.css')
-
-$add_javascript('/static/js/toggle.js')
-$add_javascript('/static/js/jquery.js')
-$add_javascript('/static/js/thickbox.js')
-
-<a name="top"></a>
 
 <blockquote class="text">
-    <div id="book-art" style="height: 370px;">
-        <div id="book">
-        $if page.cover_image:
-            <img src="$:page.cover_image" alt="$page.title" border="1"  height="275" width="185" />
+    <div id="header">               
+        <div id="title" class="title-pad">$page.title</div>
+        <div id="statement">
+            by <a href="" class="datalink">$:thingrepr(page.authors)</a><br />		
         </div>
-        <br clear="all" />
-        <div id="viewthisbook-oln" style="padding: 20px; margin-top: -20px;">
-            $if page.ocaid:
-                <a href="http://openlibrary.org/details/$page.ocaid" style="text-decoration:none"><button type="submit" name="submit" value="$_.view_book" class="edition" style="width: 176px;">$_.view_book</button></a>
-            <br />
+
+        <div id="book-art" class="datalink">
+            <img src="http://ecx.images-amazon.com/images/I/21C0JTG6V6L.jpg" width="180" alt="Cover Image" />
+            <div id="book"></div>
+            <br clear="all" />
         </div>
     </div>
 
     <div id="content-right">
-    $:macros.OptionsEdition(page)
-    </div>
+        <div id="nav">
+            <div id="options" style="margin-top: -20px;">
+                <div class="navouter" style="padding-top: 0px;">
+                    <img src="nav.top.png" alt="" border="0" />
+                    <div class="navinner">
+                        <div class="navinner-padding" style="font-size: 12px;">
+                            <span class="navheader">Buy</span> <br />
+                            <div class="navsubheader">
+                            	<a href="#" class="datalink">Alibris</a><br />
+                            	<a href="#" class="datalink">Amazon</a><br />
+                            	<a href="#" class="datalink">AbeBooks</a><br />
+                            	<a href="#" class="datalink">Barnes and Noble</a><br />
+                            	<a href="#">Booksense</a><br />
+                            	<a href="#" class="datalink">Powells</a>
+                            </div>
+                            <br />
+                            
+                            <span class="navheader">Borrow</span> <br />
+                            <div class="navsubheader">
+                                <a href="#" class="datalink">BookMooch</a><br />
+                                <a href="#" class="datalink">Title Trader</a><br />
+                                <a href="#" class="datalink">Worldcat</a><br />
+                            </div>
+                            <br />
+                            
+                            <span class="navheader">Download</span> <br />
+                            <div class="navsubheader">
+                                <a href="http://worldcat.org/isbn/0676973655" class="datalink">Internet Archive</a><br />
+                            </div>
+                            <br />
+                        </div>
+                    </div>
 
-<div id="header">
-    <div id="title">$page.title</div>
-    <div id="statement">
-        <a href="" onclick="return toggle('1')"><img src="/static/images/arrow.red.png" id="expandCategory1" alt="$_.arrow" /></a> by
-        $for author in page.authors:
-            <a class="author" href="$author.key">$author.name</a> <br />
-
-    </div>
-
-    <span class="book-details-italic">
-        $if page.notes: 
-            <a href="" onclick="return toggle('2')"><img src="/static/images/arrow.red.png" id="expandCategory2" alt="$_.arrow" /></a>
-    &copy; 
-        $if page.publish_date: $page.publish_date
-        $if page.publishers: $page.publishers[0] /
-        $if page.publish_places: $page.publish_places[0] /
-        $if page.edition_name: $page.edition_name /
-        $if page.languages: $thing_repr(page.languages) /
-        $if page.number_of_pages: $page.number_of_pages /
-    </span>
-    <br/>
-    $if page.notes: 
-        <div class="gall" id="expand2" style="display: none;  margin-bottom: 10px; margin-top: 4px; margin-left: 250px; margin-right: 300px;">
-            <b>$_.notes:</b> $page.notes
-        </div>
-
-    <span class="book-details-italic">
-        <a href="" onclick="return toggle('3')"><img src="/static/images/arrow.red.png" id="expandCategory3" alt="$_.arrow" /></a> 
-        $if page.isbn_13: $page.isbn_13
-        $if page.isbn_10: $page.isbn_10
-    </span>
-
-    <div id="expand3" style="display: none;">
-        <div class="css" style="margin-bottom: 10px; margin-top: 4px;  margin-left: 250px; width: 350px;">
-            $if page.dewey_decimal_class: <b>$_.dewey_decimal_class:</b> $page.dewey_decimal_class
-            $if page.lccn: <b>$_.lccn:</b> <a href="http://lccn.loc.gov/$page.LCCN">$page.lccn</a><br/>
-        </div>
-    </div>
-</div>
-
-<br />
-
-$if page.description: 
-    $:format(page.description)
-
-<div id="toc-header" style="margin-top: 30px; margin-left: -30px;">
-    <b>$_.toc</b>
-</div>
-
-<a name="reviews"></a>
-<div id="toc-header" style="margin-top: 15px; margin-left: -30px;">
-    <b>$_.reviews</b>
-</div>
-
-$if page.reviews:
-    <div id="reviews-border">
-        <div class="bookmarks">
-            <span class="subhead-emphasis">
-                <img src="/static/images/arrow.red.png" alt="$_.arrow" /> 
-                Submit a review of <b><a href="/addreview?edition=$page.name">$page.title</a></b> ...
-            </span>
-        </div>
-        $for i, review in enumerate(page.reviews):
-            <div class="result-item">
-                <span class="number-results">$(i + 1)</span>
-                <span class="result-text">
-                    <a href="$review.key" class="result">$review.title</a> - <a href="/$review.author.key">$review.author.displayname</a>
-                    <br />
-                    $review.text
-                </span>
+                    <div style="padding-top: 10px">
+                        <span class="book-details-italic">
+                            Data comes from <a href="http://www.amazon.com/" class="sidebar">Amazon</a>, 
+                            <a href="http://www.loc.gov/" class="sidebar">Library of Congress</a>, and 
+                            <a href="http://demo.openlibrary.org/users/" class="sidebar">users like you</a>.
+                        </span>
+                        <br />
+                    </div>
+                    <img src="/static/images/nav.bot.png" alt="" border="0" />
+                </div>
             </div>
+        </div>
     </div>
 
-    <div style="margin-top: 0px;">
-        <a href="/addreview?edition=$page.key" class="edit" style="text-decoration:none"><img src="/static/images/flourish.left.gif"  alt="[" /><button type="submit" name="submit" value="$_.submit_review" class="edition">$_.add_review</button><img src="/static/images/flourish.gif"  alt="]" /></a>
-        <br /><br />
-    </div>
-</blockquote>
+    <div>
+        <div id="header">
+            <table border="0" cellpadding="0" cellspacing="0">
 
-<br clear="both" />
+                $ s0 = ["publish_date", "publishers", "publish_places"]
+                $ s1 = ["work_titles", "by_statements", "series", "languages", "edition_name", "physical_format", "physical_dimensions"]
+                $ s2 = ["isbn_10", "isbn_13", "lccn", "dewry_decimal_class", "lc_classifications"]
+                $ s3 = ["genres", "subjects"]
+                $ sections = [s0, s1, s2, s3]
 
-$# publish_year is missing from /type/edition schema
-$# c = copyright_status(page)
-$ c = None
+                $ rule = "-top"
 
-$if not c:
-    <div class="pdstatus-footer">
-        <div style="float:left; padding: 0px 4px 0px 0px; margin-top: -4px;"><img src="/static/images/yellow.c.png"><img src="/static/images/yellow.png"></div>
-        <span class="pdstatus-unknown"><em> - The copyright status of this book in the US is unknown</em></span>
-        <span class="pdstatus"><em> - <a href="http://invisible.net/openlibrary/copyright/moreinfo_unknown_copyright.html" class="datalink">more info ...</a></em></span>
+                $for s in sections:
+                    $for name in s:
+                        <tr>
+                            <td class="formheader$rule">$_t[name]:</td>
+                            <td class="formfield$rule">$:thingrepr(page[name])</td>
+                        </tr>
+                        $ rule = ""
+                     $ rule = "-rule"
+
+            </table>
+            <br clear="all" />
+
+            <div class="toc-header" style="border-bottom: 1px solid #ccc">
+                <b>Description</b>
+                <div style="padding-top: 0px; margin-top: -35px; float: right;">
+                    <img src="/static/images/flourish.left.gif"  alt="[" /><button type="submit" name="submit" value="submit" class="edition" onclick="window.location='$:changequery(m='edit')'">Edit</button><img src="/static/images/flourish.gif"  alt="]" />
+                </div>
+            </div>
+            <br />
+            
+            $page.description
+            <br /><br />
+            <b>Notes:</b> $page.notes
+
+            <div class="toc-header" style="padding-top: 35px;">
+                <b>Table of Contents</b>
+                <div style="padding-top: 0px; float:right; margin-top: -25px;">
+                    <img src="/static/images/flourish.left.gif"  alt="[" /><button type="submit" name="submit" value="edit" class="edition" onclick="window.location='$:changequery(m='edit')'">Edit</button><img src="/static/images/flourish.gif"  alt="]" />
+                </div>
+            </div>
+
+
+            <div style="padding-top: 10px;">
+                <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                    $ first = "first"
+                    $for i, toc in enumerate(page.toc):
+                        <tr>
+                            <td class="toc-number rule $first"><a href="#anchor1">$(i + 1)</a>&nbsp;&nbsp;</td>
+                            <td class="toc rule $first" width="100%">$toc</td>
+                            <td class="toc-link-end rule $first" align="center">&nbsp;&nbsp;</td>
+                        </tr>
+                        $ first = ""
+                </table>
+            </div>
+              
+        </div>
     </div>
-$elif c['us']['date'] > 2006:
-    <div class="pdstatus-footer">
-        <div style="float:left; padding: 0px 4px 0px 0px; margin-top: -4px;"><img src="/static/images/red.png"></div>
-        <span class="pdstatus-in"><em> - This book is in copyright in the US until $c['us']['date']</em></span>
-        <span class="pdstatus"><em> - $page.publish_date, $page.publisher —  this calculation makes many assumptions</em></span>
-        <span class="pdstatus"><em> - <a href="http://invisible.net/openlibrary/copyright/moreinfo_in_copyright.html" class="datalink">more info ...</a></em></span>
-     </div>
-$elif c['us']['date'] < 2006:
-    <div class="pdstatus-footer">
-        <div style="float:left; padding: 0px 4px 0px 0px; margin-top: -4px;"><img src="/static/images/green.png"></div>
-        <span class="pdstatus-out"><em> - This book is out of copyright in the US</em></span>
-        <span class="pdstatus"><em> - This book entered the public domain in $c['us']['date'] — this calculation makes many assumptions</em></span>
-        <span class="pdstatus"><em> - <a href="http://invisible.net/openlibrary/copyright/moreinfo_out_copyright.html" class="datalink">more info ...</a></em></span>
-    </div>
+</div>

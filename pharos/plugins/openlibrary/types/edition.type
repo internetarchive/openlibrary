@@ -50,7 +50,7 @@
         property('/type/edition', 'description', '/type/text', True),
         property('/type/edition', 'notes', '/type/text', True),
         property('/type/edition', 'genres', '/type/string', False),
-        property('/type/edition', 'toc', '/type/text', False),
+        property('/type/edition', 'table_of_contents', '/type/text', False),
         property('/type/edition', 'work_titles', '/type/string', False),
         property('/type/edition', 'series', '/type/string', False),
         

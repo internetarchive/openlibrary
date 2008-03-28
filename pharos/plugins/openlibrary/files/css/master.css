@@ -1,6 +1,6 @@
 /* 
    OPEN LIBRARY DEFAULT STYLES - BETA 
-   Comment date: 03.03.08
+   Comment date: 03.19.08
    -------------------------------
    Please email me with any suggested improvements: webchick@invisible.net
 */
@@ -22,6 +22,7 @@
 	.navlinks a:visited { color: white; text-decoration: underline; }
 
 	#title { font-size: 28px; color: #919070; padding-bottom: 8px; line-height: 32px; }
+	.title-pad { padding-left: 22px; }
 	.pretitle { font-size: 18px; line-height: 24px; color: #666; }
 	.posttitle { font-size: 18px; line-height: 8px; color: #666; }
 
@@ -29,12 +30,14 @@
 	p.maintext { padding-left: 30px; }
 	.statement { font-size: 18px; line-height: 24px; color: #666; margin-bottom: -16px; }
 	#statement { font-size: 18px; line-height: 24px; color: #666; margin-bottom: -16px; padding-left: 24px; }
-	#error { font-size: 18px; line-height: 24px; color: #900; padding: 20px; }
+	#error { font-size: 18px; line-height: 24px; background-color: #900; color: #fff; padding: 20px; position: absolute; top: 170px; left: 30px;}
 
 	.abstract { font-size:22px; line-height:30px; font-style: italic; color: #999; margin: 11px 14px 14px 14px; text-align : left; }
 	#header-view { margin: 11px 34px 14px 35px;}
 
 	p { margin-right: 40px; }
+	.form { padding-left: 10px; }
+	.form-margin { padding-left: 30px; }
 
 	th { text-align: right; padding: 6px; }
 	td {color: #000}
@@ -124,13 +127,16 @@
 	td.formheader { padding: 0px 4px 6px 10px; text-align: left; font-weight: bold; color: #625E25; white-space: nowrap;}
 	td.formheader-top { padding: 10px 4px 6px 10px; text-align: left; font-weight: bold; color: #625E25; white-space: nowrap; }
 	td.formheader-rule { padding: 10px 4px 6px 10px; text-align: left; font-weight: bold; color: #625E25; white-space: nowrap; border-top: 1px solid #ccc; }
-	td.formfield  { padding: 0px 2px 6px 4px; }
+	td.formfield  { padding: 0px 8px 6px 4px; }
 	td.formfield-top  { padding: 10px 2px 6px 4px; }
 	td.formfield-rule  { padding: 10px 2px 6px 4px; border-top: 1px solid #ccc; }
 
-	td.formfield-identifier  { padding: 0px 8px 4px 0px; border-bottom: 0px solid #BBBA92; padding-top: 3px; font-weight: normal; }
-	td.formheader-identifier-left { padding: 4px 0px 0px 0px; font-weight: bold; text-align: left; color: #625E25;}
-	td.formheader-data-left { padding: 4px 8px 4px 4px; border-bottom: 0px solid #BBBA92; color: #625E25; text-align: left; white-space: nowrap; }
+	td.formfield-identifier  { padding: 0px 8px 4px 8px; border-bottom: 0px solid #BBBA92; padding-top: 3px; font-weight: normal; }
+	td.formheader-identifier-left { padding: 4px 0px 6px 0px; font-weight: bold; text-align: left; color: #625E25;}
+	td.formheader-data-left { padding: 0px 8px 6px 4px; border-bottom: 0px solid #BBBA92; color: #625E25; text-align: left; white-space: nowrap; font-weight: bold; }
+
+	td.vertspace24 { padding-top: 24px; }
+	td.vertspace9 { padding-top: 9px; }
 
 	td.formbuttons  { padding: 0px 4px 6px 4px; white-space: nowrap; }
 	td.formbuttons-meta  { padding: 0px 0px 0px 4px; border-bottom: 0px solid #BBBA92; white-space: nowrap; }
@@ -138,7 +144,9 @@
 	td.formbuttons-toc  { padding: 3px 0px 0px 4px; border-bottom: 0px solid #BBBA92; white-space: nowrap; }
 
 	pre { font-family: courier, monospaced; font-size: 12px; padding: 30px; }
-	input { font-family: georgia, times new roman, times, serif; font-size: 12px; background-color: #fff; border: 1px solid #ccc; }
+	input { font-family: georgia, times new roman, times, serif; font-size: 12px; background-color: #fff; border: 1px solid #ccc; font-weight: normal; }
+	input:focus { background-color: #eee; border-color: #900; }
+	textarea:focus { background-color: #eee; border-color: #900; }
 	select, option, textarea { font-family: georgia, times new roman, times, serif; font-size: 12px; }
 	textarea { width: 100%; margin-top: 0px;  background-color: #fff; border: 1px solid #ccc; }
 
@@ -170,6 +178,7 @@
 		} 
 
 	button:hover { background-color: #6F320D; color: #fff; }
+	button.action:hover { background-color: #625E25; color: #fff; }
 	button.edit:hover { background-color: #6F320D; color: #fff; }
 	button.go-small:hover { background-color: #6F320D; color: #fff; }			
 	button.small-button:hover { background-color: #6F320D; color: #fff; }			
@@ -183,7 +192,7 @@
 	button.edit { background-color: #fff; color: #919070; margin: 0px 6px 0px 0px; }
 	button.edit-delete { }
 
-	button.control { border: 0px; background-color: transparent; padding: 0px; margin: 0px; }
+	button.control { border: 0px; background-color: transparent; padding: 0px; margin: -5px 0px 0px 0px; }
 
 	.fulltext { float: right; }			
 	.small-button { 

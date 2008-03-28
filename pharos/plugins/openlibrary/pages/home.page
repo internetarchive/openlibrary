@@ -1,0 +1,20 @@
+{
+    'create': 'unless_exists',
+    'key': '/',
+    'type': {
+        'connect': 'update',
+        'key': '/type/home'
+    },
+    'title': {
+        'connect': 'update',
+        'value': 'Open Library'
+    },
+    'body': {
+        'connect': 'update',
+        'value': "Imagine a library that collected all the world's information about all the world's books and made it available for everyone to view and update. We're building that library. ([More...](/about))",
+    },
+    'news': {
+        'connect': 'update',
+        'value': 'Edit to add news'
+    }
+}
