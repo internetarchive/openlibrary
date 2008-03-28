@@ -293,7 +293,7 @@ def find_toc(r, edition): # table of contents
             print f.subfield_sequence
             raise
     if toc:
-        edition['toc'] = toc
+        edition['table_of_contents'] = toc
 
 def find_notes(r, edition):
     notes = []
