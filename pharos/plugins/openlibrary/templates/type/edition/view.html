@@ -3,14 +3,16 @@ $def with (page)
 $ _t = _.get_namespace('/type/edition')
 $ _ = _.get_namespace('/mode/view')
 
-$var title: $page.title
+$ title = page.title_prefix + join(": ", [page.title] + page.subtitles)
+
+$var title: $title
 
 $add_stylesheet('/static/css/results.css')
 $add_stylesheet('/static/css/doc-styles.css')
 
 <blockquote class="text">
-    <div id="header">               
-        <div id="title" class="title-pad">$page.title</div>
+    <div id="header">
+        <div id="title" class="title-pad">$title</div>
         <div id="statement">
             by <a href="" class="datalink">$:thingrepr(page.authors)</a><br />		
         </div>

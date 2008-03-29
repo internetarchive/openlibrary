@@ -1,4 +1,7 @@
+title_prefix = "Title Prefix"
 title = "Title"
+subtitles = "Subtitle"
+
 authors = "Author"
 by_statements = "Creators"
 
@@ -21,7 +24,7 @@ languages = "Language"
 
 lccn = "LCCN"
 ocaid = "OCA"
-oclc_number = "OCLC"
+oclc_numbers = "OCLC"
 isbn_10 = "ISBN 10"
 isbn_13 = "ISBN 13"
 dewry_decimal_class = "Dewry"
