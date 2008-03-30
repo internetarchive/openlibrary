@@ -100,6 +100,17 @@
 	/*	text-align: center   */
 	}
 
+	#nav-home{
+	  position: absolute;
+	  top: 40px;
+	  left: 620px;
+	  padding: 0px 20px 0px 0px;
+	  width: 230px;
+	  margin: 0px 0px 30px 30px;
+	  border-left: 1px solid #fff;
+	  border-bottom: 1px solid #fff;
+	}
+
 
 	.navinner { background-color: #F9F8D0; width: 200px; border: 1px solid #ccc; }
 	.navinner-padding { background-color: #F9F8D0; width: 188px; padding: 10px 0px 10px 0px; border: 6px solid #fff; text-align: left; }
@@ -127,7 +138,7 @@
 	td.formheader { padding: 0px 4px 6px 10px; text-align: left; font-weight: bold; color: #625E25; white-space: nowrap;}
 	td.formheader-top { padding: 10px 4px 6px 10px; text-align: left; font-weight: bold; color: #625E25; white-space: nowrap; }
 	td.formheader-rule { padding: 10px 4px 6px 10px; text-align: left; font-weight: bold; color: #625E25; white-space: nowrap; border-top: 1px solid #ccc; }
-	td.formfield  { padding: 0px 8px 6px 4px; }
+	td.formfield  { padding: 0px 8px 6px 4px; width: 100%; }
 	td.formfield-top  { padding: 10px 2px 6px 4px; }
 	td.formfield-rule  { padding: 10px 2px 6px 4px; border-top: 1px solid #ccc; }
 
@@ -299,7 +310,7 @@
 	.book { margin-left: 70px; float: right; width: 300px; text-align: right; border: 0px solid #666 }
 	.book-temp { margin-left: 70px; float: right; width: 300px; text-align: right; padding-right: 1px; border: 0px solid #666 }
 
-	.result-text-home { padding-bottom: 6px; padding-left: 10px; padding-right: 10px; color: #919070; font-size: 16px; line-height: 20px; }
+	.result-text-home { padding-bottom: 6px; padding-left: 10px; padding-right: 10px; color: #919070; font-size: 16px; line-height: 20px; white-space: nowrap; }
 
 	.formnote { padding-left: 0px; }
 

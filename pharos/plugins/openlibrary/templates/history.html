@@ -37,7 +37,7 @@ $for v in h:
       <td class="compare"><input type="radio" id="b$v.revision" name="b" value="$v.revision"></td>
       <td class="history"><a href="$changequery(m='edit', v=v.revision)">$_.EDIT</a></td>
       $if v.author:
-          <td class="history"><a href="$homepath()/$v.author.name">$v.author.displayname</a></td>
+          <td class="history"><a href="$homepath()$v.author.name">$v.author.displayname</a></td>
       $else:
           <td class="history">$v.ip</td>
       <td class="comment">$v.comment</td>

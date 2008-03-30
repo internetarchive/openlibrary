@@ -68,5 +68,6 @@
         
         property('/type/edition', 'dewey_decimal_class', '/type/string', True),
         property('/type/edition', 'lc_classifications', '/type/string', False),
+        property('/type/edition', 'coverimage', '/type/string', True),
     ]
 }

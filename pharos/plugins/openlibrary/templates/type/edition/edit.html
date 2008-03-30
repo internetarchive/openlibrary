@@ -109,22 +109,30 @@ $ plus = '<button class="control" name="+" title="+"><img src="/static/images/+.
             </td>
             <td valign="top" class="form-margin">
                 <br />
-                <img src="http://ecx.images-amazon.com/images/I/21C0JTG6V6L.jpg" width="180" alt="Cover Image" />
+                $:macros.ImageUploader(page.key.replace('/b/', ''), 'coverimage', page['coverimage'])
                 <br />
+                <script>
+                    function changecover() {
+                        \$("#div_iframe_coverimage").show();
+                    }
+                </script>    
                     
                 <!-- begin right table -->
                 <table cellspacing="0" cellpadding="0" border="0">
                     <tr>
                         <td valign="top" colspan="4" width="100%" class="vertspace9">
-                    		<button type="submit" name="submit" value="Change Cover" class="action">Change</button>
-                    		<button type="submit" name="submit" value="Delete" class="edit-delete">Delete</button><br /><br /><br />
+                    		<button type="button" value="Change Cover" onClick="changecover()" class="action">Change</button>
+                    		<!--
+                    		<button value="Delete" class="edit-delete">Delete</button>
+                		    -->
+                    		<br /><br /><br />
                             </td>
                     </tr>
 
                     $:macros.EditionEditRow(page, "dewry_decimal_class", unique=True, right=True)
                     $:macros.EditionEditRow(page, "lc_classifications", unique=False, right=True)
-                    $:macros.EditionEditRow(page, "isbn_10", unique=True, right=True)
-                    $:macros.EditionEditRow(page, "isbn_13", unique=True, right=True)
+                    $:macros.EditionEditRow(page, "isbn_10", unique=False, right=True)
+                    $:macros.EditionEditRow(page, "isbn_13", unique=False, right=True)
                     $:macros.EditionEditRow(page, "lccn", unique=True, right=True)
                     $:macros.EditionEditRow(page, "ocaid", unique=True, right=True)
                     $:macros.EditionEditRow(page, "oclc_numbers", unique=False, right=True)

@@ -25,16 +25,16 @@ $var islist: true
             $for v in changes:
                 <tr>
                     <td class="time" valign="top">$datestr(v.created)</td>
-                    <td class="path" valign="top"><div class="truncatepath"><a href="$homepath$v.key" class="datalink" title="$v.key">$v.key</a><span class="ellipsis">&nbsp;</span></div></td>
+                    <td class="path" valign="top"><div class="truncatepath"><a href="$homepath()$v.key" class="datalink" title="$v.key">$v.key</a><span class="ellipsis">&nbsp;</span></div></td>
                     $if v.author:
                         <td class="displayname" valign="top"><div class="truncatedisplayname"><a href="$homepath()$v.author.key" class="truncate" title="$v.author.displayname">$v.author.displayname</a><span class="ellipsis">&nbsp;</span></div></td>
                     $else:
                         <td class="history" valign="top">$v.ip</td>
                     <td class="comment" valign="top">$v.comment</td>
                     <td class="buttons" valign="top">
-                        <a href="$homepath$v.key?m=view&v=$v.revision">$_.view</a> -
-                        <a href="$homepath$v.key?m=edit&v=$v.revision">$_.edit</a> - 
-                        <a href="$homepath$v.key?m=diff&b=$v.revision">$_.diff</a>
+                        <a href="$homepath()$v.key?m=view&v=$v.revision">$_.view</a> -
+                        <a href="$homepath()$v.key?m=edit&v=$v.revision">$_.edit</a> - 
+                        <a href="$homepath()$v.key?m=diff&b=$v.revision">$_.diff</a>
                     </td>
                 </tr>
         </table>

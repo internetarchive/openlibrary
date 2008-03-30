@@ -1,0 +1,18 @@
+$def with (objectname, name, value)
+
+<div id="image_$name">
+    <img id="img_$name" src="$value"/>
+    <input type="hidden" id="id_$name" name="$name" value="$value" />
+
+    <script type="text/javascript">
+    var onload_$name = function(frame) {
+        var d = window.frames["iframe_$name"].document;
+        var path = d.getElementById("path").value;
+        document.getElementById("img_$name").src = path;
+        document.getElementById("id_$name").value = path;
+    };
+    </script>
+
+    <iframe name="iframe_$name" id="iframe_$name" src="/upload?name=${objectname}_$name&file=$value" onload="onload_${name}(this)" frameborder="0">
+    </iframe>
+</div>

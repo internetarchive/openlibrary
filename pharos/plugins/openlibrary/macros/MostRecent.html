@@ -9,7 +9,7 @@ $if changes:
     
     <b>What's New:</b> $datestr(v.created) - <a href="$homepath()$v.key">$v.key</a>
     $if v.author:
-        updated by<a href="$homepath()/$v.author.key">$v.author.displayname</a> 
+        updated by <a href="$homepath()$v.author.key">$v.author.displayname</a> 
     $if v.comment:
         ($v.comment)
 </div>
