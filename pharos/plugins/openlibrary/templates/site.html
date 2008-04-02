@@ -4,63 +4,55 @@ $def with (page)
     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>$:page.title (Open Library)</title>
 
-<title>$:page.title (Open Library)</title>
+    <link href="/static/css/master.css" rel="stylesheet" type="text/css" />
+    $for s in ctx.stylesheets:
+        <link rel="stylesheet" type="text/css" href="$s" />
 
-<link href="/static/css/master.css" rel="stylesheet" type="text/css" />
+    $for url in ctx.javascripts:
+        <script src="$url" type="text/javascript"></script>
 
+    <script type="text/javascript" src="/static/js/jquery/jquery.slicker.js"></script>
+    <script type="text/javascript" src="/static/js/jquery/jquery.js"></script>
 
-$for s in ctx.stylesheets:
-    <link rel="stylesheet" type="text/css" href="$s" />
-
-$for url in ctx.javascripts:
-    <script src="$url" type="text/javascript"></script>
-
-<script type="text/javascript" src="/static/js/toggle.js"></script>
 </head>
 
 <body>
+    <div id="contentwrapper">
+        <div id="toolbar">
+            <div class="logotype"><a href="/"><img src="/static/images/logotype.png" alt="Open Library" border="0" /></a></div>
+            <div class="navlinks">
+            $if ctx.user:
+                <form name='logout' action="$homepath()/account/logout" method='POST'></form>
+                $:_.welcome_user(homepath() + ctx.user.key, ctx.user.displayname)
+                | <a href="$homepath()/account/preferences">$_.preferences</a>
+                | <a href="#" onclick="document.forms['logout'].submit()">$_.logout</a>
+            $else:
+                <a href="/account/login" class="white">$_.login</a>
+            </div>
+        </div>
 
-
-<div id="contentwrapper">
-
-<div id="toolbar">
-	<div class="logotype"><a href="/"><img src="/static/images/logotype.png" alt="Open Library" border="0" /></a></div>
-	<div class="navlinks">
-		
-$if ctx.user:
-    <form name='logout' action="$homepath()/account/logout" method='POST'></form>
-    $:_.welcome_user(homepath() + ctx.user.key, ctx.user.displayname)
-    | <a href="$homepath()/account/preferences">$_.preferences</a>
-    | <a href="#" onclick="document.forms['logout'].submit()">$_.logout</a>
-$else:
-    <a href="/account/login" class="white">$_.login</a>
-<!-- end -->
-
-</div>
-</div>
-
-$if ctx.error:
-    <script type="text/javascript">window.onload=tOff('violator');</script>
-    <div id="error">$ctx.error</div>
-
-<div>$:page</div>
-
-</div>
-<div id="footer">
-    <div class="logotype">
-        <a href="/"><img src="/static/images/logotype.png" alt="Open Library" border="0" /></a>
+    $if ctx.error:
+        <div id="error"><span class="errorhead">ERROR:</span> $ctx.error <div id="hideerror"><a href="#" onclick="tOff('error')" class="white">x</a></div></div>
+        
+    <div>$:page</div>
     </div>
-    <div class="navlinks">
-        <a class="white" href="/about">About Us</a> |
-        <a class="white" href="http://www.archive.org/">Internet Archive</a> |
-        <a class="white" href="http://www.opencontentalliance.org/">OCA</a> |
-        <a class="white" href="http://creativecommons.org/">CC</a> |
-        <a class="white" href="http://wikimediafoundation.org/">WMF</a> |
-        <a class="white" href="/about/contact">Contact Us</a>
+    
+    <div id="footer">
+        <div class="logotype">
+            <a href="/"><img src="/static/images/logotype.png" alt="Open Library" border="0" /></a>
+        </div>
+        <div class="navlinks">
+            <a class="white" href="/about">About Us</a> |
+            <a class="white" href="http://www.archive.org/">Internet Archive</a> |
+            <a class="white" href="http://www.opencontentalliance.org/">OCA</a> |
+            <a class="white" href="http://creativecommons.org/">CC</a> |
+            <a class="white" href="http://wikimediafoundation.org/">WMF</a> |
+            <a class="white" href="/about/contact">Contact Us</a>
+        </div>
     </div>
-</div>
 
 </body>
 </html>

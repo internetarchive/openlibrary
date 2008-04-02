@@ -6,7 +6,11 @@ $ _ = _.get_namespace('/mode/edit')
 <div class="widgetlabel">
     [<a href="$changequery(m=None)">$_.view</a>]
     [<a href="$changequery(m='history')">$_.history</a>]
-    [<a href="$page.type.name/edit.tmpl?m=edit">$_.modify_template</a>]
+    [<a href="#" id="slick-toggle">$_.change_type</a>]
+    [<a href="/templates/$page.type/edit.tmpl?m=edit">$_.modify_edit</a>]
+    [<a href="/templates/$page.type/view.tmpl?m=edit">$_.modify_view</a>]
+
+
 </div>
 
 <div class="simplesearch">

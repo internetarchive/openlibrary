@@ -1,0 +1,18 @@
+Change Language: 
+
+$:Dropdown('lang', _.get_languages(), onchange="changelang();", id="lang_dropdown", value="en").render()
+
+<br/><br/>
+
+
+<script>
+       function changelang() {
+           setlang(document.getElementById("lang_dropdown").value);
+       }
+
+       function setlang(lang) {
+           document.cookie = "HTTP_LANG=" + lang + "; path=/;";
+           window.location.reload()
+       }
+</script>
+

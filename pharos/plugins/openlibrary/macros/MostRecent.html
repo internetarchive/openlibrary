@@ -1,0 +1,16 @@
+$def with (author=None, limit=1)
+
+$ changes = get_recent_changes(author=author, limit=limit)
+
+<div id="databar">
+<div class="widgetlabel">
+$if changes:
+    $ v = changes[0]
+    
+    <b>What's New:</b> $datestr(v.created) - <a href="$homepath()$v.key">$v.key</a>
+    $if v.author:
+        updated by <a href="$homepath()$v.author.key">$v.author.displayname</a> 
+    $if v.comment:
+        ($v.comment)
+</div>
+</div>

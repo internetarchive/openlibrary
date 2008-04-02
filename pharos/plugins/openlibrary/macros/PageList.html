@@ -1,0 +1,20 @@
+$def with (path="", limit=50)
+
+$ page = safeint(query_param("page", "0"))
+$ pages = list_pages(path, limit=limit, offset=page * limit)
+
+
+<div class="contenttext">
+<ul>
+$for p in pages:
+    <li><a href="$homepath()$p.key">$p.key</a></li>
+</ul>
+</div>
+
+<div class="copyright-footer">
+$if page != 0:
+    &larr; <a href="$:changequery(page=page - 1)">Prev</a>
+
+$if len(pages) == limit:
+    ... <a href="$:changequery(page=page + 1)">Next</a> &rarr;
+<div>

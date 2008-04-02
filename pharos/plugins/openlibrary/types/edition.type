@@ -46,10 +46,11 @@
                 property('/type/language', 'code', '/type/string', True),
             ]
         }, False),
+        property('/type/edition', 'number_of_pages', '/type/int', True),
         property('/type/edition', 'description', '/type/text', True),
         property('/type/edition', 'notes', '/type/text', True),
         property('/type/edition', 'genres', '/type/string', False),
-        property('/type/edition', 'toc', '/type/text', False),
+        property('/type/edition', 'table_of_contents', '/type/text', False),
         property('/type/edition', 'work_titles', '/type/string', False),
         property('/type/edition', 'series', '/type/string', False),
         
@@ -67,5 +68,6 @@
         
         property('/type/edition', 'dewey_decimal_class', '/type/string', True),
         property('/type/edition', 'lc_classifications', '/type/string', False),
+        property('/type/edition', 'coverimage', '/type/string', True),
     ]
 }

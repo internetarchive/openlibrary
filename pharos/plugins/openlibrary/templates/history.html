@@ -9,7 +9,7 @@ $:macros.databar(page)
 $:macros.AlertChanges(page)
 
 <div id="header">
-<div style="float:left;padding-left:10px;padding-right:15px;"><img src="../covers/circle.jpg"  alt="" border="1" height="58" /></div>
+<div style="float:left;padding-left:10px;padding-right:15px;"></div>
 		<span class="pretitle">Currently viewing the history for:<br /></span>
         <div id="title">$page.key</div>
 </div>
@@ -37,7 +37,7 @@ $for v in h:
       <td class="compare"><input type="radio" id="b$v.revision" name="b" value="$v.revision"></td>
       <td class="history"><a href="$changequery(m='edit', v=v.revision)">$_.EDIT</a></td>
       $if v.author:
-          <td class="history"><a href="$homepath()/$v.author.name">$v.author.displayname</a></td>
+          <td class="history"><a href="$homepath()$v.author.key">$v.author.displayname</a></td>
       $else:
           <td class="history">$v.ip</td>
       <td class="comment">$v.comment</td>
@@ -48,7 +48,7 @@ $for v in h:
 <input type="hidden" name='m' value="diff">
 
 <br />
-<div class="button-border"><img src="/static/images/flourish.left.gif"  alt="[" /><button class="alert" type="submit"  value="$_.compare"  name="_save" title="$_.compare">$_.compare</button><img src="/static/images/flourish.gif"  alt="]" /></div>
+<div class="button-border"><img src="/static/images/flourish.left.gif"  alt="[" /><button class="action" type="submit"  value="$_.compare"  name="_save" title="$_.compare">$_.compare</button><img src="/static/images/flourish.gif"  alt="]" /></div>
 <br /><br />
 
 </form>
