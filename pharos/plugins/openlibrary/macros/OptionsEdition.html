@@ -18,7 +18,7 @@ $ djvutxt = "http://www.archive.org/download/XXX/XXX_djvu.txt"
 $ seeall = "http://www.archive.org/download/XXX"
 $ google = ""
 
-<div id="nav">
+<div id="nav" style="margin-top: -60px;">
 <div id="options">
 <div class="navouter">
 <img src="/static/images/nav.top.png" alt="Options" border="0" />
@@ -26,25 +26,28 @@ $ google = ""
 
 <div class="navinner-padding">
 <span class="navheader">Buy</span> <br />
-$if page.get('ISBN_10'):
+
+$ isbn_10 = (page.isbn_10 and page.isbn_10[0]) or ""
+
+$if isbn_10:
     <div class="navsubheader">
-    <a href="$booksense.replace('XXX', page.isbn_10)">Booksense</a><br />
-    <a href="$amazon.replace('XXX', page.isbn_10)" class="datalink">Amazon</a><br />
-    <a href="$abebooks.replace('XXX', page.isbn_10)" class="datalink">AbeBooks</a><br />
-    <a href="$barnesandnoble.replace('XXX', page.isbn_10)" class="datalink">Barnes and Noble</a><br />
-    <a href="$alibris.replace('XXX', page.isbn_10)" class="datalink">Alibris</a><br />
-    <a href="$powells.replace('XXX', page.isbn_10)" class="datalink">Powells</a>
+    <a href="$booksense.replace('XXX', isbn_10)">Booksense</a><br />
+    <a href="$amazon.replace('XXX', isbn_10)" class="datalink">Amazon</a><br />
+    <a href="$abebooks.replace('XXX', isbn_10)" class="datalink">AbeBooks</a><br />
+    <a href="$barnesandnoble.replace('XXX', isbn_10)" class="datalink">Barnes and Noble</a><br />
+    <a href="$alibris.replace('XXX', isbn_10)" class="datalink">Alibris</a><br />
+    <a href="$powells.replace('XXX', isbn_10)" class="datalink">Powells</a>
     </div>
 $else:
     <div class="navsubheader"><em>Not available for this book.</em></div>
 
 <br />
 <span class="navheader">Borrow</span> <br />
-$if page.get('ISBN_10'):
+$if isbn_10:
     <div class="navsubheader">
-    <a href="$worldcat.replace('XXX', page.isbn_10)" class="datalink">Your local library</a><br />
-    <a href="$bookmooch.replace('XXX', page.isbn_10)" class="datalink">BookMooch</a><br />
-    <a href="$titletrader.replace('XXX', page.isbn_10)" class="datalink">Title Trader</a><br />
+    <a href="$worldcat.replace('XXX', isbn_10)" class="datalink">Your local library</a><br />
+    <a href="$bookmooch.replace('XXX', isbn_10)" class="datalink">BookMooch</a><br />
+    <a href="$titletrader.replace('XXX', isbn_10)" class="datalink">Title Trader</a><br />
     </div>
 $else:
     <div class="navsubheader"><em>Not available for this book.</em></div>

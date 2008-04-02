@@ -1,7 +1,9 @@
 $def with (objectname, name, value)
 
-<div id="image_$name">
-    <img id="img_$name" src="$value"/>
+$ _ = _.get_namespace('/mode/edit')
+
+<div id="image_$name" style="background: url(/static/images/book.upload.gif); height: 266px; width: 180px;">
+    <img id="img_$name" width="180" height="266" src="$value"/>
     <input type="hidden" id="id_$name" name="$name" value="$value" />
 
     <script type="text/javascript">
@@ -12,7 +14,14 @@ $def with (objectname, name, value)
         document.getElementById("id_$name").value = path;
     };
     </script>
-
-    <iframe name="iframe_$name" id="iframe_$name" src="/upload?name=${objectname}_$name&file=$value" onload="onload_${name}(this)" frameborder="0">
-    </iframe>
+    <br/>
 </div>
+
+
+    <div id="div_iframe_$name" style="height: 50px;">
+    <iframe name="iframe_$name" id="iframe_$name" src="/upload?name=${objectname}_$name&file=$value" onload="onload_${name}(this)" frameborder="0" style="margin-top: -266px; height: 325px;">
+    </iframe>
+
+<div class="formheader" style="margin-top: -15px; font-weight: normal">$:_.add_image</div>
+
+    </div>
