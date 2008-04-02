@@ -1,0 +1,11 @@
+$def with (page)
+
+$var title: strings
+
+<table>
+$ lang = page.key.split('.')[-1]
+$ namespace = find_i18n_namespace(page.key)
+
+$for key in _.getkeys(namespace, lang):
+    <tr><td>$key</td><td>$page.get('string_' + key, '-')</td>
+</table>

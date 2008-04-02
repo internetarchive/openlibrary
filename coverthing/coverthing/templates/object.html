@@ -1,0 +1,14 @@
+$def with (id, object)
+<html>
+<body>
+
+$if object:
+    <b>Properties of object#$id</b><br/>
+    <table>
+    $for k in object:
+        <tr><td>$k</td><td>$object[k]</td></tr>
+    </table>
+$else:
+    Object#$id not found.
+</body>
+</html>

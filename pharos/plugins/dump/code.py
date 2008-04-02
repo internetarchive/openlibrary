@@ -40,6 +40,7 @@ def dump(filename):
         data = dict(p.d)
         data['__type__'] = p.type
         data['__name__'] = p.name
+        data['__parent__'] = p.parent
         print tdb.logger.format('thing', p.id, data),
            
 @infogami.action

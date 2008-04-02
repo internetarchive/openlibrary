@@ -5,19 +5,17 @@ import os
 from types import *
 
 import web
-import infogami.tdb as tdb
-from infogami.tdb import NotFound, Things, LazyThing
-from items import *
+from infogami.tdb.tdb import NotFound, Things, Thing, LazyThing
+import infogami.tdb.tdb
 from lang import *
+
+global tdb
+tdb = None
 
 from oca.parse import parser as oca_parser
 from marc.parse import parser as marc_parser
 from onix.parse import parser as onix_parser
 
-source_name = None
-source_type = None
-source_path = None
-source_pos = None
 edition_prefix = None
 author_prefix = None
 
@@ -25,33 +23,24 @@ edition_records = set ([])
 item_names = {}
 
 def setup ():
-	def getvar (name, required=True):
-		val = os.getenv (name)
-		if required and val is None:
-			raise Exception ("found no environment variable %s" % name)
-		return val
 	dbname = getvar ("PHAROS_DBNAME")
 	dbuser = getvar ("PHAROS_DBUSER")
-	dbpass = getvar ("PHAROS_DBPASS")
-	web.config.db_parameters = dict(dbn='postgres', db=dbname, user=dbuser, pw=dbpass)
+	dbpass = getvar ("PHAROS_DBPASS", False)
+	web.config.db_parameters = dict(dbn='postgres', db=dbname, user=dbuser)
+	if dbpass:
+		web.config.db_parameters['pw'] = dbpass
 	web.db._hasPooling = False
 	web.config.db_printing = False
 	web.load()
-	tdb.setup()
+
+	global tdb
+	tdb = infogami.tdb.tdb.SimpleTDBImpl ()
+	tdb.setup ()
+
 	logfile = getvar ("PHAROS_LOGFILE", False)
 	if logfile:
 		tdb.logger.set_logfile (open (logfile, "a"))
 		sys.stderr.write ("logging to %s\n" % logfile)
-
-	global source_name, source_type, source_path, source_pos
-	source_dir = getvar ("PHAROS_SOURCE_DIR")
-	source_type = sys.argv[1]
-	source_name = sys.argv[2]
-	source_pos = 0
-	if len (sys.argv) > 3:
-		source_pos = int (sys.argv[3])
-	source_path = "%s/%s/%s" % (source_dir, source_type, source_name)
-	warn ("reading %s at %d ..." % (source_path, source_pos))
 
 	global edition_prefix, author_prefix
 	edition_prefix = getvar ("PHAROS_EDITION_PREFIX", False) or ""
@@ -60,18 +49,30 @@ def setup ():
 	setup_names ()
 
 def setup_names ():
-	global item_names, edition_records, source_name
+	global item_names, edition_records
 
-	warn ("walking the length and breadth of the database ...")
-	author_type = Author.type ()
-	edition_type = Edition.type ()
-	walked = 0
-	parent_id = site_object().id
-	for r in web.query ("SELECT id,name FROM thing WHERE parent_id = $parent_id", vars=locals()):
-		item_names[r.name] = r.id
+	# suck in all the Thing names in the database, in order to have them in
+	# memory when trying to generate a unique name.  (note that this assumes
+	# the database is not being changed by others during the import.)
+
+	warn ("getting all Thing names from the database ...")
+	for t in Things(tdb):
+		item_names[t.name] = t.id
 	
-	for r in web.query ("SELECT d1.value FROM datum AS d1, datum AS d2 WHERE d1.version_id=d2.version_id AND d1.key='source_record_pos' AND d2.key='source_name' AND substr(d2.value,0,250)=$source_name", { 'source_name': source_name }):
-		edition_records.add (int (r.value))
+	# the above code is not tested, and used to be this:
+	#	for r in web.query ("SELECT id,name FROM thing WHERE parent_id = $parent_id", vars=locals()):
+	#		item_names[r.name] = r.id
+
+	warn ("getting all Edition source_record_ids from the database ...")
+	for e in Things(tdb, type=edition_type()):
+		ids = e.get ('source_record_id', [])
+		for id in ids:
+			edition_records.add (id)
+
+	# the above code is not tested, and used to be this:
+	# (because records used to be identified by <source_name,source_record_pos>
+	#	for r in web.query ("SELECT d1.value FROM datum AS d1, datum AS d2 WHERE d1.version_id=d2.version_id AND d1.key='source_record_pos' AND d2.key='source_name' AND substr(d2.value,0,250)=$source_name", { 'source_name': source_name }):
+	#		edition_records.add (int (r.value))
 
 	warn ("noted %d items" % len (item_names))
 	if len (edition_records) > 0:
@@ -83,11 +84,26 @@ parsers = {
 	'oca': oca_parser
 	}
 
-def import_file (type, input):
-	parser = parsers[type]
+def import_source (source_locator):
+	# source_locator: an Archive item id; e.g., "marc_records_scriblio_net"
+	source_type = get_source_type (source_locator)
+	source_id = get_source_id (source_locator)
+	file_locators = get_file_locators (source_locators)
+
+	for file_locator in file_locators:
+		input = open_file_locator (file_locator)
+		import_file (source_type, source_id, file_locator, input)
+	
+def import_file (source_type, source_id, file_locator, input):
+	# file_locator: an Archive item id plus path to file; e.g., "marc_records_scriblio_net/part01.dat"
+
+	parser = parsers.get (source_type)
+	if not parser:
+		die ("sorry, we don't have a parser for catalogs of type '%s'" % source_type)
+
 	n = 0
 	# web.transact ()
-	for x in parser (input):
+	for x in parser (source_id, file_locator, input):
 		n += 1
 		import_item (x)
 		# if n % 1000 == 0:
@@ -97,6 +113,27 @@ def import_file (type, input):
 			sys.stderr.write ("." * 30 + " read %d records\n" % n)
 	# web.commit ()
 	sys.stderr.write ("\nread %d records\n" % n)
+
+def get_source_file_locators (source_locator):
+	# this should use HTTP to query the Archive item at source_locator
+	# and look at OpenLibrary-specific metadata there (not yet invented) to determine the
+	# list of file_locators
+	return []
+
+def get_source_type (source_locator):
+	# this should use HTTP to query the Archive item at source_locator
+	# and look at OpenLibrary-specific metadata there (not yet invented) to determine the type
+	return "marc"
+
+def get_source_id (source_locator):
+	# this should use HTTP to query the Archive item at source_locator
+	# and look at OpenLibrary-specific metadata there (not yet invented) to determine the source id
+	return "LC"
+
+def open_file_locator (file_locator):
+	# this should use HTTP to retrieve the data from the indicated file,
+	# or something equivalent like consulting a local cache.
+	die ("unimplemented")
 
 skipped = 0
 imported = 0
@@ -116,7 +153,7 @@ def import_author (x):
 		a = LazyThing (aid)
 		warn ("(AUTHOR %s)" % name)
 	else:
-		a = Author (name, d=massage_dict (x))
+		a = make_author (name, x)
 		a.save ()
 		item_names[name] = a.id
 		warn ("AUTHOR %s" % name)
@@ -125,16 +162,23 @@ def import_author (x):
 def import_item (x):
 	global skipped, imported
 
+	record_locator = x['source_record_loc']
+	warn ("import_item: %s" % record_locator)
+
 	global edition_records
-	pos = x["source_record_pos"]
-	if pos in edition_records:
-		skipped += 1
-		if skipped % 100 == 0:
-			warn ("skipped %d" % skipped)
-		return
+	for record_id in x["source_record_id"]:
+		if record_id in edition_records:
+			# XXX: just skip the record ... but what we should
+			# actually do is compare its transaction date (ask kcoyle how to
+			# determine this for the various formats) to that of the record
+			# we already have, and replace it if the new one is more recent.
+			skipped += 1
+			if skipped % 100 == 0:
+				warn ("skipped %d" % skipped)
+			return
 
 	if not x.get ("title"):
-		# warn ("no title in record at position %d" % pos)
+		# warn ("no title in record %s" % record_locator)
 		return
 
 	# import the authors; XXX: don't save until edition goes through?
@@ -155,18 +199,53 @@ def import_item (x):
 		warn ("couldn't find a unique name for %s" % x)
 		return
 
-	e = Edition (name, d=massage_dict (x))
-	global source_name
-	e.source_name = source_name
+	e = make_edition (name, x)
 	e.authors = authors
 	e.save ()
 	item_names[name] = e.id
-	edition_records.add (e.source_record_pos)
+	edition_records.update (e.get ('source_record_id', []))
 	imported += 1
 	if imported % 100 == 0:
 		warn ("imported %d" % imported)
 
 	warn ("EDITION %s" % name)
+
+def make_edition (name, data):
+	type = edition_type ()
+	return make_thing (name, type, data)
+
+def make_author (name, data):
+	type = author_type ()
+	return make_thing (name, type, data)
+
+def make_thing (name, type, data):
+	id = None
+	parent = site_object ()
+	latest_revision = None
+	v = None
+	return Thing (tdb, id, name, parent, latest_revision, v, type, data)
+	
+@memoized
+def edition_type (): return type_object ("edition")
+
+@memoized
+def author_type (): return type_object ("author")
+
+def type_object (type_name):
+	try:
+		return tdb.withName ("type/" + type_name, site_object ())
+	except NotFound:
+		die ("can't find type object for type '%s'" % type_name)
+	
+@memoized
+def site_object ():
+	site_name = os.getenv ("PHAROS_SITE")
+	if not site_name:
+		raise Exception ("no site name found in PHAROS_SITE environment variable")
+	try:
+		return tdb.withName (site_name, tdb.root)
+	except NotFound:
+		raise Exception ("no site object for site named '%s'" % site_name)
 
 ignore_title_words = ['a', 'the']
 tsep = '_'
@@ -198,23 +277,12 @@ def edition_name_choices (x):
 	yield name
 
 	def extensions (name):
-		ed_number = x.get ('edition_number')
-		if ed_number:
-			name = tsep.join ([name, name_string (ed_number)])
-			yield name
-
-		ed_type = x.get ('edition_type')
-		if ed_type:
-			name = tsep.join ([name, name_string (ed_type)])
-			yield name
-
 		ed = x.get ('edition')
 		if ed:
 			name = tsep.join ([name, name_string (ed)])
 			yield name
 
-		format = x.get ('physical_format')
-		if format:
+		for format in x.get ('physical_format', []):
 			name = tsep.join ([name, name_string (format)])
 			yield name
 
@@ -252,7 +320,7 @@ def asciify (s):
 	if isinstance (s, StringType):
 		return s
 	elif isinstance (s, UnicodeType):
-		return unicodedata.normalize('NFKD', s).encode('ASCII', 'ignore')
+		return unicodedata.normalize('NFKC', s).encode('ASCII', 'ignore')
 	else:
 		die ("not a string: %s" % s)
 
@@ -270,12 +338,33 @@ def massage_dict (d):
 		dd[k] = massage_value (v)
 	return dd
 
+def getvar (name, required=True):
+	val = os.getenv (name)
+	if required and val is None:
+		raise Exception ("found no environment variable %s" % name)
+	return val
+
+def import_cached_file ():
+	# this is the "old" approach to importing; ideally, we would
+	# instead use import_source(), which gets all its parameters from
+	# metadata stored at the Archive item
+
+	source_type = sys.argv[1]
+	source_id = sys.argv[2]
+	file_locator = sys.argv[3]
+	input = sys.stdin
+
+	source_pos = 0
+	if len (sys.argv) > 4:
+		source_pos = int (sys.argv[3])
+	if source_pos:
+		input.seek (source_pos)
+
+	import_file (source_type, source_id, file_locator, input)
+
 if __name__ == "__main__":
 	setup()
 	sys.stderr.write ("--> setup finished\n")
-
-	f = open (source_path, "r")
-	if source_pos:
-		f.seek (source_pos)
-	import_file (source_type, f)
+	import_cached_file ()
 	sys.stderr.write ("--> import finished\n")
+

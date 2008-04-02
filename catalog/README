@@ -11,30 +11,11 @@ running test-marc8_to_utf8.sh while in that directory.
 
 HOW TO IMPORT CATALOG DATA
 
-the source file must be in the "catalog source repository",
-currently /1/pharos/sources, but configurable as described
-below.
+CATALOG=(this directory)
+SOURCE_DATA=(path to data)
+> cp $CATALOG/config-example.sh $MYDIR/config.sh
+> # edit $MYDIR/config.sh
+> $CATALOG/import.sh $MYDIR/config.sh "marc" "LC" "marc_records_scriblio_net/part01.dat" <$SOURCE_DATA
 
-within that directory, there is a directory for each format.
-(e.g., "marc", "onix", "oca".)
-
-for example, to import the data in
-/1/pharos/sources/marc/lc/part01.dat, do this:
-
-make your own copy of catalog/import.sh in order to
-configure it to point to your repository, to import to the
-appropriate database, etc.
-
-then:
-
-my-import.sh marc lc/part01.dat
-
-CAVEAT
-
-there is code in catalog/import.py that looks up all the ids
-of editions that have already been imported.  it incorrectly
-ignores the "parent" of each edition, meaning that it will
-import a record only once for each database, regardless of
-the "site".  (of course, this is not a problem if you only
-ever use one site object.)
+see import.sh for details.
 

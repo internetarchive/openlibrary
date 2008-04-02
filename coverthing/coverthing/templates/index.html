@@ -1,0 +1,33 @@
+<html>
+<head></head>
+<body>
+    <h1>Coverthing</h1>
+
+<h2>API:</h2>
+<p>
+    /api/get/id : return all properties of thing with that id.<br/>
+        example: <a href="/api/get/1">/api/get/1</a> 
+</p>
+
+<p>
+    /api/query: returns ids of all things that match the query.<br/>
+        example: <a href="/api/query?isbn=0000000183">/api/query?isbn=0000000183</a> 
+</p>
+
+<p>
+    /api/upload: Please don't use this now. This is not stable yet.
+</p>
+
+
+<h2>IMAGES:</h2>
+<p>
+    /key/value/size.jpg - gives the image of the thing having property key with specified value with in the specified size. Supported sizes are thumbnail 75x75, small 110x110, medium 160x160 and large 500x500.<br/>
+examples: 
+    <ul>
+	<li><a href="/isbn/0000000183/small.jpg">/isbn/0000000183/small.jpg</a></li>
+	<li><a href="/id/1/large.jpg">/id/1/large.jpg</a></li>
+    </ul>
+</p>
+
+</body>
+</html>

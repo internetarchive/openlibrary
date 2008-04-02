@@ -1,0 +1,33 @@
+$def with (page)
+
+$var title: $page.displayname
+
+$ _t = _.get_namespace('/type/user')
+$ _ = _.get_namespace('/mode/view')
+
+<div id="header">
+        <div style="float:left;padding-left:10px;padding-right:15px;"></div>
+        <div id="title"> $page.displayname</div>
+</div>
+
+<div class="contenttext">
+
+<p>
+$if page.get('website'):
+    $for url in page.website: <a href="$url">$url</a><br />
+</p>
+
+$if page.get('description'):
+    $:format(page.description)
+
+$if page.get('reviews'):
+    <h2>$_.book_reviews</h2>
+    $for review in page.reviews:
+        <a href="/$review.name">$review.title</a> (<a href="/$review.book.name">$review.book.title</a>)<br />
+
+</div>
+
+<br clear="all" />
+<span class="subhead-emphasis" style="padding-left: 45px;">$_t.users_activity(page.displayname):</span>
+
+$:macros.RecentChanges(author=page, limit=10)

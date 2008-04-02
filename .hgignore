@@ -6,3 +6,6 @@ transaction.log
 *~
 \#*\#
 phr-import/*
+infogami.new/*
+webpy/*
+pharos/static/*

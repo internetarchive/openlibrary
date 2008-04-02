@@ -1,3 +1,5 @@
+### this has fallen out of sync with ThingDB and is no longer used
+
 import os
 
 from infogami import tdb

@@ -2,13 +2,7 @@
 #-- it according to the MARC 21 Format for Bibliographic Data,
 #-- described here: http://www.loc.gov/marc/bibliographic/ecbdhome.html
 
-from string import strip, join
 from MARC21 import *
-from types import *
-
-re_dates = re.compile (r'(\d{4})-(\d{4})?')
-re_isbn_10 = re.compile (r'^([\dX]{10})[^\d]')
-re_isbn_10_concise = re.compile (r'^([\dX]{10})$')
 
 class MARC21BiblioExn (MARC21Exn):
         pass
@@ -78,14 +72,17 @@ class MARC21BiblioRecord:
 		if self.marc21_record.dataFields.get ("880"):
 			marc21_record.warn ("has ALTERNATE GRAPHICS REPRESENTATION")
 
-        def __getitem__ (self, key):
-                extractor = MARC21BiblioRecord.__dict__.get (key)
-                if not extractor:
-                        raise MARC21BiblioExn ("don't know how to extract the feature called \"%s\"" % key)
-                return extractor (self)
-        
+	def record_pos (self):
+		return self.marc21_record.file_pos
+
+	def record_len (self):
+		return len (self.marc21_record.raw_data)
+
         def get_field (self, tag, default=None):
                 return self.marc21_record.get_field (tag, default)
+
+	def fields (self):
+		return self.marc21_record.fields ()
 
 	def get_fields (self, tag):
 		return self.marc21_record.get_fields (tag)
@@ -97,38 +94,8 @@ class MARC21BiblioRecord:
                 else:
                         return default
 
-	output_fields = (
-		"source_record_pos",
-		"marc_control_number",
-		# "marc_character_coding_scheme",
-                # "marc_biblio_record_status",
-		# "marc_biblio_record_type",
-		# "marc_biblio_bibliographic_level",
-		# "marc_biblio_type_of_control",
-		# "marc_biblio_encoding_level",
-		# "marc_biblio_descriptive_cataloging_form",
-		# "marc_biblio_linked_record_requirement",
-		# "marc_biblio_language",
-		"isbn_10",
-		"universal_decimal_class",
-		"dewey_decimal_class",
-		"language_code",
-		"title",
-		"authors",
-		"edition",
-		"publisher",
-		"publish_place",
-		"publish_date",
-		"physical_format",
-		"physical_extent",
-		"physical_dimensions",
-		"notes",
-		"description",
-		"subjects"
-		)
-
         def marc_control_number (self):
-                return strip (self.get_field_value ("001"))
+                return self.get_field_value ("001")
 
 	def marc_character_coding_scheme (self):
 		return self.marc21_record.character_coding_scheme
@@ -165,167 +132,15 @@ class MARC21BiblioRecord:
 			return None
 		return lang
 
-	def source_record_pos (self):
-		return self.marc21_record.file_pos
-
-	def isbn_10 (self):
-		for cf020 in self.get_fields ("020"):
-			num = cf020.get_elt ("a", "")
-			m = re_isbn_10.match (num) or re_isbn_10_concise.match (num)
-			if m:
-				isbn = m.group (1)
-				return isbn
-		return None
-
-	def language_code (self):
-		return self.marc_biblio_language ()
-
-	def universal_decimal_class (self):
-		classes = []
-		for udcn in self.get_fields ("080"):
-			edition_number = udcn.get_elt ("2", "?")
-			classification_numbers = udcn.get_elts ("a")
-			classes.extend ([ "%s:%s"%(edition_number,cn) for cn in classification_numbers ])
-		return classes
-
-	def dewey_decimal_class (self):
-		classes = []
-		for ddcn in self.get_fields ("082"):
-			edition_number = ddcn.get_elt ("2", "?")
-			classification_numbers = ddcn.get_elts ("a")
-			classes.extend ([ "%s:%s"%(edition_number,cn) for cn in classification_numbers ])
-		return classes
-		
-        def title_statement (self):
-                return self.get_field ("245")
-
-        def title (self):
-                ts = self.title_statement ()
-		return clean_name (ts.get_elt ("a") + " " + join (ts.get_elts ("b"), " "))
-
-        def author (self):
-		a = None
-		pn = self.get_field ("100")
-		if pn:
-			name = pn.get_elt ("a", None)
-			if name:
-				name = clean_name (name)
-				a = { 'name': name }
-				dates = pn.get_elt ("d", None)
-				if dates:
-					m = re_dates.search (dates)
-					if m:
-						a["birth_date"] = m.group (1)
-						if m.group (2):
-							a["death_date"] = m.group (2)
-		else:
-			ts = self.title_statement ()
-			name = clean (join (ts.get_elts ("c"), ", "))
-			if name:
-				a = { 'name': name }
-		return a
-
-	def authors (self):
-		a = self.author ()
-		if a: return [a]
-		else: return None
-
-        def physical_format (self):
-                return self.title_statement ().get_elt ("h", None)
-        
-        def edition (self):
-                es = self.get_field ("250")
-                if not es:
-                        return None
-                return (strip (es.get_elt ("a", "") + " " + es.get_elt ("b", "")) or None)
-
-        def publications (self):
-                return self.get_fields ("260")
-
-        def publish_place (self):
-                return clean (join ([ join (p.get_elts ("a"), ", ") for p in self.publications () ], ", "))
-
-        def publisher (self):
-                return clean_name (join ([ join (p.get_elts ("b"), ", ") for p in self.publications () ], ", "))
-
-        def publish_date (self):
-                return clean (join ([ join (p.get_elts ("c"), ", ") for p in self.publications () ], ", "))
-
-	def physicals (self):
-		return self.get_fields ("300")
-
-	def physical_extent (self):
-		# XXX
-		extents = [ join (p.get_elts ("a"), ", ") for p in self.physicals ()]
-		return join (extents, ", ")
-
-	def physical_dimensions (self):
-		dimensions = [ join (p.get_elts ("c"), ", ") for p in self.physicals ()]
-		return join (dimensions, ", ")
-
-	def notes (self):
-		notes = []
-		for wn in self.get_fields ("501"):
-			notes.extend (wn.get_elts ("a"))
-		for dn in self.get_fields ("502"):
-			notes.extend (dn.get_elts ("a"))
-		for fcn in self.get_fields ("505"):
-			notes.extend (fcn.get_elts ("a"))
-			notes.extend (fcn.get_elts ("t"))
-		for sn in self.get_fields ("525"):
-			notes.extend (sn.get_elts ("a"))
-		for apfan in self.get_fields ("530"):
-			notes.extend (apfan.get_elts ("a"))
-			notes.extend (apfan.get_elts ("b"))
-			notes.extend (apfan.get_elts ("c"))
-			notes.extend (apfan.get_elts ("d"))
-			notes.extend (apfan.get_elts ("u"))
-		if len (notes) > 0:
-			return join (notes, "; ")
-		else:
-			return None
-
-	def description (self):
-		summaries = []
-		for s in self.get_fields ("520"):
-			summaries.extend (s.get_elts ("a"))
-			summaries.extend (s.get_elts ("b"))
-		if len (summaries) > 0:
-			return join (summaries, "; ")
-		else:
-			return None
-
-	def subjects (self):
-		subjects = []
-		for pn in self.get_fields ("600"):
-			subjects.append (join (pn.get_elts ("c") + pn.get_elts ("a") + pn.get_elts ("b"), " "))
-		return subjects
-
-def clean (s):
-	return strip (s, " /.,;:")
-
-def clean_name (s):
-	return strip (s, " /,;:")
-
 class MARC21BiblioFile:
 
-        def __init__ (self, input, output_fields=MARC21BiblioRecord.output_fields):
+        def __init__ (self, input):
                 self.marc_file = MARC21File (input)
-                self.output_fields = output_fields
                 self.eof = False
 
         def __iter__(self): return self
 
         def next (self):
-		r = self.next_record ()
-		item = {}
-		for f in self.output_fields:
-			v = r[f]
-			if (isinstance (v, StringTypes) and v) or v is not None:
-				item[f] = v
-		return item
-
-        def next_record (self):
                 if self.eof:
                         raise StopIteration
                 marc_record = self.marc_file.next ()

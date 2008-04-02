@@ -6,6 +6,8 @@ from cStringIO import StringIO
 import os, re
 from collections import defaultdict
 
+php_location = "/petabox/setup.inc"
+
 # server_addr = ('pharosdb.us.archive.org', 8983)
 
 # Solr search client; fancier version will have multiple persistent
@@ -13,6 +15,15 @@ from collections import defaultdict
 
 solr_server_addr = ('pharosdb.us.archive.org', 8983)
 # solr_server_addr = ('127.0.0.1', 8983)
+
+default_facet_list = ('has_fulltext', 
+                      'authors',
+                      'subject',
+                      'facet_year',
+                      'language',
+                      'language_code',
+                      'publisher',
+                      )
 
 class SolrError(Exception): pass
 
@@ -49,13 +60,45 @@ class Solr_client(object):
                        for k,v in d.items() if v is not None]
         return '&'.join(q)
     
-    def _prefix_query(self, prefix, query):
+    @staticmethod
+    def prefix_query(prefix, query):
         if '"' in query:
             query = prefix + ':' + query
         else:
             query = ' '.join(prefix + ':' + x for x in query.split(' '))
         return query
-        
+
+    def _prefix_query(self, prefix, query):
+        return Solr_client.prefix_query(prefix, query)
+
+    def facet_token_inverse(self, *a,**k):
+        import web
+        r = self.Xfacet_token_inverse(*a,**k)
+        return r
+
+    def Xfacet_token_inverse(self,
+                            token,
+                            facet_list = default_facet_list):
+        import web # @@
+        from facet_hash import facet_token
+
+        # for now, just pull this straight from the SE
+        # need to add an LRU cache for performance.  @@
+
+        if not re.match('^[a-z]+$', token):
+            raise SolrError, 'invalid facet token'
+        m = eval(self.raw_search('facet_tokens:%s'% token, rows=1, wt='python'))
+        facet_set = set(facet_list)
+        for d in m['response']['docs']:
+            for k,vx in d.iteritems():
+                kfs = k in facet_set
+                # if not kfs: continue
+                vvx = {str:(vx,), list:vx}.get(type(vx),())
+                for v in map(unicode, vvx):
+                    ft = facet_token(k,v)
+                    if facet_token(k,v) == token:
+                        return (k,v)
+        return None
 
     def isearch(self, query, loc=0):
         # iterator interface to search
@@ -75,7 +118,6 @@ class Solr_client(object):
         server_url = 'http://%s:%d/solr/select' % self.server_addr
         query_url = '%s?q=%s'% (server_url, self.__query_fmt(query, rows, start))
         #import web
-        #print >> web.debug, query_url
         ru = urlopen(query_url)
         xml = ru.read()
         ru.close()
@@ -138,8 +180,8 @@ class Solr_client(object):
 
     def facets(self,
                query,
-               facet_list = ('author', 'subject', 'language'),
-               maxrows=20000):
+               facet_list = default_facet_list,
+               maxrows=5000):
         """Get facet counts for query.  Todo: statistical faceting."""
 
         result_set = self.raw_search(query, rows=maxrows, wt='python')
@@ -155,10 +197,7 @@ class Solr_client(object):
             raise SolrError, (e, result_set)
 
         docs = h1['response']['docs']
-        r = facet_counts(docs, ('publisher',
-                                'authors',
-                                'subject',
-                                'language'))
+        r = facet_counts(docs, facet_list)
         return r
 
     def raw_search(self, query, rows=None, start=None, wt=None):
@@ -179,17 +218,20 @@ class Solr_client(object):
         # by including escape characters, quotes, etc. in the query.
         qhex = query.encode('hex')
 
-        f = os.popen("""php -r 'require_once("/petabox/setup.inc");
+        f = os.popen("""php -r 'require_once("%s");
                                  echo Search::querySolr(pack("H*", "%s"),
                                  false,
                                  array("title"=>100,
-                                       "description"=>0.5,
-                                       "creator"=>15,
+                                       # "description"=>0.000,
+                                       "authors"=>15,
                                        "language"=>10,
                                        "text"=>1,
                                        "fulltext"=>1));'""" %
-                     qhex)
-        return f.read()
+                     (php_location, qhex))
+        aq = f.read()
+        if aq and aq[0] == '\n':
+            raise SolrError, ('invalid response from basic query conversion', aq, php_location)
+        return aq
 
     def basic_search(self, query, rows=None, start=None):
         # basic search: use archive.org PHP script to transform the basic

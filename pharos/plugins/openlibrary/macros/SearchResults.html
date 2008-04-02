@@ -1,0 +1,31 @@
+$def with (results, fulltext=False)
+
+<table border="0" cellpadding="0" cellspacing="0" width="100%" class="result-item">
+
+$for book in results:
+    $if fulltext:
+        $ pages = book[1]
+        $ book = book[0]
+    <tr>
+    <td class="cover"> 
+        <a href="$book.key"><img src="$:book.cover" alt="$book.title" border="1" height="58" /></a>
+    </td>
+    <td class="result-text" valign="top">
+        <a href="$book.key" class="result">$book.title</a>
+        <span class="result-small">by 
+        $for author in book.authors:
+            <a href="$author.key">$author.name</a>
+        </span>
+        <div class="result-small">
+            ($book.publisher, $book.publish_date)
+            $$book.physical_format
+            $book.oca_identifier: &nbsp;&nbsp;<a href="http://openlibrary.org/details/$book.oca_identifier"><div class="fulltext">Full Text</div></a>
+        </div>
+        $if fulltext:
+            <p>
+            $for pn, pg in pages:
+                <a href="http://openlibrary.org/details/$book.oca_identifier/leaf$(pn / 2)">$pg</a>
+            </p>
+    </td></tr>
+
+</table>
