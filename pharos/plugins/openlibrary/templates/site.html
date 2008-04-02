@@ -14,7 +14,9 @@ $def with (page)
     $for url in ctx.javascripts:
         <script src="$url" type="text/javascript"></script>
 
-    <script type="text/javascript" src="/static/js/toggle.js"></script>
+    <script type="text/javascript" src="/static/js/jquery/jquery.slicker.js"></script>
+    <script type="text/javascript" src="/static/js/jquery/jquery.js"></script>
+
 </head>
 
 <body>
@@ -32,10 +34,10 @@ $def with (page)
             </div>
         </div>
 
-        $if ctx.error:
-            <script type="text/javascript">window.onload=tOff('violator');</script>
-            <div id="error">$ctx.error</div>
-        <div>$:page</div>
+    $if ctx.error:
+        <div id="error"><span class="errorhead">ERROR:</span> $ctx.error <div id="hideerror"><a href="#" onclick="tOff('error')" class="white">x</a></div></div>
+        
+    <div>$:page</div>
     </div>
     
     <div id="footer">

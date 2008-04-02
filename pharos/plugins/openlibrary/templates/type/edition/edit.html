@@ -29,6 +29,10 @@ $ up = '<button class="control" name="up" title="up"><img src="/static/images/ar
 $ down = '<button class="control" name="down" title="down"><img src="/static/images/arrow.down.gif" alt="up" width="18" height="18" /></button>'
 $ plus = '<button class="control" name="+" title="+"><img src="/static/images/+.gif" alt="up" width="18" height="18" /></button>'
 
+<div id="slickbox" style="overflow: hidden">
+    $:macros.TypeChanger(page.type)
+</div>
+
 <form method="POST">
 
     <input type="hidden" name="type.key" value="/type/edition"/>
@@ -54,23 +58,40 @@ $ plus = '<button class="control" name="+" title="+"><img src="/static/images/+.
                     $:macros.EditionEditRow(page, 'authors', False)
                     $:macros.EditionEditRow(page, 'by_statements', False)
 
-                    <tr><td valign="top" colspan="4" class="vertspace9"></td></tr>
+                    <tr><td valign="top" colspan="4" class="vertspace24"></td></tr>
+
                     $:macros.EditionEditRow(page, 'publish_date', True)
                     $:macros.EditionEditRow(page, 'publishers', False)
                     $:macros.EditionEditRow(page, 'publish_places', False)
 
                     $:macros.EditionEditRow(page, 'series', False)
                     $:macros.EditionEditRow(page, 'edition_name', True)
+                    $:macros.EditionEditRow(page, 'language', True)
                     $:macros.EditionEditRow(page, 'work_titles', False)
 
-                    $:macros.EditionEditRow(page, 'physical_format', True)
-                    $:macros.EditionEditRow(page, 'physical_dimentions', True)
-                    $:macros.EditionEditRow(page, 'pagination', True)
-                    $:macros.EditionEditRow(page, 'number_of_pages', True)
-                    $:macros.EditionEditRow(page, 'language', True)
+                    <tr><td valign="top" colspan="3" height="22"></td></tr>
+
+                    <tr>
+                        <td valign="middle" class="formheader">$_t.pagination</td>
+	                <td>
+		            <table cellspacing="0" cellpadding="0" border="0">
+                                <tr>
+		                    <td valign="top"><input type="text" name="language_code" value="$page['pagination']"  size="8" /></td>
+		                    <td valign="middle" class="formheader">Size</td>
+		                    <td valign="top"><input type="text" name="language_code" value="$page['physical_dimensions']" size="10" /></td>
+		                    <td valign="middle" class="formheader">$_t.physical_format</td>
+		                    <td valign="top"><input type="text" name="language" value="$page['physical_format']" size="10" /></td>
+		                    <td valign="middle" class="formheader">Pages</td>
+		                    <td valign="top" width="100%"><input type="text" name="language_code" value="$page['number_of_pages']"  size="8" /></td>
+		                </tr>
+                            </table>
+	                </td>
+                    </tr>
+
+
 
                     <!-- ADDITIONAL METADATA -->
-                    <tr><td valign="top" colspan="4" class="vertspace9"></td></tr>
+                    <tr><td valign="top" colspan="4" class="vertspace24"></td></tr>
 
                     <!-- description -->
                     <tr><td valign="top" colspan="4" class="formheader-top">$_t.description</td></tr>
@@ -111,20 +132,19 @@ $ plus = '<button class="control" name="+" title="+"><img src="/static/images/+.
                 <br />
                 $:macros.ImageUploader(page.key.replace('/b/', ''), 'coverimage', page['coverimage'])
                 <br />
+<!--
                 <script>
-                    function changecover() {
+                   function changecover() {
                         \$("#div_iframe_coverimage").show();
                     }
                 </script>    
-                    
-                <!-- begin right table -->
+-->                    
+ 
+               <!-- begin right table -->
                 <table cellspacing="0" cellpadding="0" border="0">
                     <tr>
                         <td valign="top" colspan="4" width="100%" class="vertspace9">
-                    		<button type="button" value="Change Cover" onClick="changecover()" class="action">Change</button>
-                    		<!--
-                    		<button value="Delete" class="edit-delete">Delete</button>
-                		    -->
+
                     		<br /><br /><br />
                             </td>
                     </tr>
