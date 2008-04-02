@@ -160,8 +160,8 @@ def find_edition(r, edition):
     e = []
     for f in r.get_fields('250'):
         e += [j for i,j in f.subfield_sequence]
-    if edition:
-        edition['edition_name'] = ' '.join(e)
+    if e:
+        edition['edition'] = ' '.join(e)
 
 def find_publisher(r, edition):
     publisher = []
