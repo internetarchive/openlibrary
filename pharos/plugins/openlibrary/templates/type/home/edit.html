@@ -20,13 +20,17 @@ $var title: $_.edit_title(page.key)
     <div id="metadata-body">
 
             <strong>$_t.title</strong>
-            <input type="text" name="title" value="$page.title" />
-            <br/>
+            <input type="text" name="title" value="$page.title" style="width: 100%" />
+            <br/><br/>
             <strong>$_t.body</strong><br/>        
-            <textarea name="body" rows="15" cols="80">$page.body</textarea>
+            <textarea name="body" rows="8" cols="80">$page.body</textarea>
             <br/>
             <strong>$_t.news</strong><br/>
             <textarea name="news" rows="15" cols="80">$page.news</textarea>
+            <br/>
+            <strong>$_t.stats</strong><br/>
+            <textarea name="stats" rows="4" cols="80">$page.stats</textarea>
+
 
             $:macros.EditButtons()
         </form>

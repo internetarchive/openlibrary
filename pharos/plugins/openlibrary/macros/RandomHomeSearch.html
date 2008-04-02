@@ -1,3 +1,5 @@
+$def with (page)
+
 <form method="get" action="/search">
     <table cellpadding="0" cellspacing="0" border="0">
         <tr>
@@ -26,8 +28,7 @@
                     <tr>
                         <td valign="top"><b>Stats:</b></td>
                         <td>
-                            Number of Records: 000<br />
-                            Number of full text books: 000
+                            $:page.stats
                         </td>
                     </tr>
                 </table>

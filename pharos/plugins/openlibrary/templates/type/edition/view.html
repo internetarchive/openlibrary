@@ -20,6 +20,8 @@ $if page.get('lccn'): gbs_process(d['LCCN:$page.lccn'])
 }
 </script>
 
+$ lccn = "http://lccn.loc.gov/XXX"
+
 
 <blockquote class="text">
 
@@ -68,7 +70,8 @@ $if page.get('lccn'): gbs_process(d['LCCN:$page.lccn'])
                             <td class="formheader$rule">$_t[name]:</td>
                             <td class="formfield$rule">$:thingrepr(page[name])</td>
                         </tr>
-                        $ rule = ""
+
+                       $ rule = ""
                      $ rule = "-rule"
 
             </table>
