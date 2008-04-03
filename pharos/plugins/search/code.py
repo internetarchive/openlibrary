@@ -65,7 +65,7 @@ facet_token = view.public(facet_hash.facet_token)
 class DebugException(Exception): pass
 
 class search(delegate.page):
-    def POST(self, site):
+    def POST(self):
         i = web.input(wtitle='',
                       wauthor='',
                       wtopic='',
@@ -149,7 +149,7 @@ class search(delegate.page):
             # qresults = solr.advanced_search(query, start=offset)
             qresults = solr.basic_search(query, start=offset)
             facets = solr.facets(query, maxrows=5000)
-            results = munch_qresults(qresults.result_list, site)
+            results = munch_qresults(qresults.result_list)
         except solr_client.SolrError:
             errortext = 'Sorry, there was an error in your search.'
 
@@ -163,9 +163,12 @@ class search(delegate.page):
 
     GET = POST
 
-def munch_qresults(qlist, site):
+def munch_qresults(qlist):
     results = []
     rset = set()
+
+    # this is so we can remove duplicates from qlist while preserving
+    # its original order
     def maybe_add(t):
         if t not in rset:
             rset.add(t)
@@ -181,4 +184,11 @@ def munch_qresults(qlist, site):
         else:
             maybe_add(res)
 
-    return tdb.withNames(results, site)
+    # somehow the leading / got stripped off the book identifiers during some
+    # part of the search import process.  figure out where that happened and
+    # fix it later.  for now, just put the slash back.
+    def restore_slash(book):
+        if not book.startswith('/'): return '/'+book
+        return book
+
+    return [web.ctx.site.get(restore_slash(r)) for r in results]
