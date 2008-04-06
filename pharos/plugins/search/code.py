@@ -148,7 +148,7 @@ class search(delegate.page):
             bquery = solr.basic_query(query)
             # print >> web.debug, 'query=(%r), bquery=(%r)'% (query,bquery)
             offset = int(i.get('offset', '0') or 0)
-            qresults = solr.advanced_search(query, start=offset)
+            qresults = solr.advanced_search(bquery, start=offset)
             # qresults = solr.basic_search(query, start=offset)
             facets = solr.facets(bquery, maxrows=5000)
             results = munch_qresults(qresults.result_list)
@@ -156,12 +156,12 @@ class search(delegate.page):
             errortext = 'Sorry, there was an error in your search.'
 
         # print >> web.debug, 'basic search: about to advanced search (%r)'% \
-        #      list((i.get('q', ''),
-        #            qresults,
-        #            results, 
-        #            facets,
-        #            i.ftokens,
-        #            ft_pairs))
+        #     list((i.get('q', ''),
+        #           qresults,
+        #           results, 
+        #           facets,
+        #           i.ftokens,
+        #           ft_pairs))
         
         return render.advanced_search(i.get('q', ''),
                                       qresults,
