@@ -145,14 +145,24 @@ class search(delegate.page):
             # work around bug in PHP module that makes queries
             # containing stopwords come back empty.
             query = stopword.basic_strip_stopwords(i.q.strip()) + qtokens
+            bquery = solr.basic_query(query)
+            # print >> web.debug, 'query=(%r), bquery=(%r)'% (query,bquery)
             offset = int(i.get('offset', '0') or 0)
-            # qresults = solr.advanced_search(query, start=offset)
-            qresults = solr.basic_search(query, start=offset)
-            facets = solr.facets(query, maxrows=5000)
+            qresults = solr.advanced_search(query, start=offset)
+            # qresults = solr.basic_search(query, start=offset)
+            facets = solr.facets(bquery, maxrows=5000)
             results = munch_qresults(qresults.result_list)
         except solr_client.SolrError:
             errortext = 'Sorry, there was an error in your search.'
 
+        # print >> web.debug, 'basic search: about to advanced search (%r)'% \
+        #      list((i.get('q', ''),
+        #            qresults,
+        #            results, 
+        #            facets,
+        #            i.ftokens,
+        #            ft_pairs))
+        
         return render.advanced_search(i.get('q', ''),
                                       qresults,
                                       results, 
@@ -167,22 +177,12 @@ def munch_qresults(qlist):
     results = []
     rset = set()
 
-    # this is so we can remove duplicates from qlist while preserving
-    # its original order
-    def maybe_add(t):
-        if t not in rset:
-            rset.add(t)
-            results.append(t)
-
+    # make a copy of qlist with duplicates removed, but retaining
+    # original order
     for res in qlist:
-        if res.startswith('OCA/'):
-            try:
-                t = tdb.Things(oca_identifier=res[4:]).list()[0].name
-                maybe_add(t)
-            except (IndexError, AttributeError):
-                pass
-        else:
-            maybe_add(res)
+        if res not in rset:
+            rset.add(res)
+            results.append(res)
 
     # somehow the leading / got stripped off the book identifiers during some
     # part of the search import process.  figure out where that happened and

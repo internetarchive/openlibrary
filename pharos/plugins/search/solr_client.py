@@ -1,10 +1,12 @@
 #!/usr/bin/python
 # from __future__ import with_statement
-from urllib import quote, urlopen
+from urllib import quote_plus, urlopen
 from xml.etree.cElementTree import ElementTree
 from cStringIO import StringIO
 import os, re
 from collections import defaultdict
+import cgi
+import web
 
 php_location = "/petabox/setup.inc"
 
@@ -22,10 +24,12 @@ default_facet_list = ('has_fulltext',
                       'facet_year',
                       'language',
                       'language_code',
-                      'publisher',
+                      'publishers',
                       )
 
 class SolrError(Exception): pass
+
+import traceback                        # @@
 
 class Solr_result(object):
     def __init__(self, result_xml):
@@ -33,7 +37,8 @@ class Solr_result(object):
         try:
             et.parse(StringIO(result_xml))
         except SyntaxError, e:
-            raise SolrError, e
+            ptb = traceback.extract_stack()
+            raise SolrError, (e, result_xml, traceback.format_list(ptb))
         range_info = et.find('info').find('range_info')
 
         def gn(tagname):
@@ -56,9 +61,11 @@ class Solr_client(object):
 
     def __query_fmt(self, query, rows=None, start=None, wt=None):
         d = {'rows': rows, 'start': start, 'wt': wt}
-        q = [query] + ['%s=%s'%(k, v) \
+        q = [quote_plus(query)] + ['%s=%s'%(k, v) \
                        for k,v in d.items() if v is not None]
-        return '&'.join(q)
+        r = '&'.join(q)
+        # print >> web.debug, "* query fmt: returning (%r)"% r
+        return r
     
     @staticmethod
     def prefix_query(prefix, query):
@@ -72,7 +79,6 @@ class Solr_client(object):
         return Solr_client.prefix_query(prefix, query)
 
     def facet_token_inverse(self, *a,**k):
-        import web
         r = self.Xfacet_token_inverse(*a,**k)
         return r
 
@@ -89,6 +95,7 @@ class Solr_client(object):
             raise SolrError, 'invalid facet token'
         m = eval(self.raw_search('facet_tokens:%s'% token, rows=1, wt='python'))
         facet_set = set(facet_list)
+
         for d in m['response']['docs']:
             for k,vx in d.iteritems():
                 kfs = k in facet_set
@@ -117,10 +124,10 @@ class Solr_client(object):
 
         server_url = 'http://%s:%d/solr/select' % self.server_addr
         query_url = '%s?q=%s'% (server_url, self.__query_fmt(query, rows, start))
-        #import web
         ru = urlopen(query_url)
         xml = ru.read()
         ru.close()
+        # raise ValueError, (query_url, xml)
         return Solr_result(xml)
 
     advanced_search = search
@@ -240,7 +247,9 @@ class Solr_client(object):
         # by adding search weights, range expansions, and so forth.
         assert type(query)==str         # not sure what to do with unicode @@
 
-        return self.advanced_search(self.basic_query(query), rows, start)
+        bquery = self.basic_query(query)
+        # print >> web.debug, '* basic search: query=(%r)'% bquery
+        return self.advanced_search(bquery, rows, start)
 
 # get second element of a tuple
 def snd((a,b)): return b
