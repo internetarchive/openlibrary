@@ -1,7 +1,8 @@
 # get set of meta tag names to exclude from solr slop field
 from xml.etree.ElementTree import ElementTree as ET
 
-_schema_file = ET().parse('/home/phr/petabox/solr/example/solr/conf/schema.xml')
+# _schema_file = ET().parse('/home/phr/petabox/solr/example/solr/conf/schema.xml')
+_schema_file = ET().parse('solr-schema.xml')
 
 def _checkfields(fieldname, attrname, pred, resultname):
     def m():

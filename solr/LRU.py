@@ -14,9 +14,9 @@ class LRU(object):
     >>> assert (4 in a) and (5 in a)
     >>> assert (1 not in a) and (2 not in a) # these are aged out
     """
-    def __init__(self, max_size = 1000):
+    def __init__(self, min_retention = 1000):
         self.cache = {}
-        self.max_size = max_size
+        self.min_retention = min_retention
         self.size = 0
         self.timestamp = count().next
 
@@ -34,12 +34,12 @@ class LRU(object):
         if a is not None:
             a[1] = value
         else:
-            if len(self.cache) >= 2*self.max_size:
+            if len(self.cache) >= 2*self.min_retention:
                 # replace the cache with a new one containing only the
-                # self.max_size newest entries.
+                # self.min_retention newest entries.
                 chopped = sorted(self.cache.iteritems(),
                                  key=(lambda (k,(ts,v)): ts),
-                                 reverse=True)[:self.max_size]
+                                 reverse=True)[:self.min_retention]
                 self.cache = dict(chopped)
             self.cache[key] = [self.timestamp(), value]
         

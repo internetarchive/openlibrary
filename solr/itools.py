@@ -7,11 +7,12 @@ def slicer(n):
         return lambda *a,**kw: islice(g(*a,**kw), n)
     return s2
 
+from operator import itemgetter
+snd = itemgetter(1)           # snd(tuple t) = second element of t
+
 # separate sequence into runs of size `runsize'
 def runs(seq, runsize):
     from itertools import groupby, imap
-    from operator import itemgetter
-    snd = itemgetter(1)           # snd(tuple t) = second element of t
     for n,g in groupby(enumerate(seq),
                        lambda (n,s): n // runsize):
         yield imap(snd, g)

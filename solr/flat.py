@@ -56,48 +56,25 @@ def doc_seq():
 
 # doc -> doc
 def fix_doc(d):
-    global sid                          # @@
-
     try:
         e = ET.XML(d)
     except SyntaxError, x:
         raise ValueError, (x,d)
-    sid = defaultdict(list)
-    for a in e.getiterator('field'):
-        field_name = a.get('name')
-        # the description field is basically SEO spam, so don't index it
-        if field_name != 'description':
-            sid[field_name].append(a.text)
 
-    # this tuple unpack should raise an exception if there's more than
-    # one title field
-    (title,) = sid['title']
-    if 'title_prefix_len' in sid:
-        (tlx,) = sid['title_prefix_len'] # tuple unpack as above
-        sort_title = title[:tlx]
-    else:
-        sort_title = title
+    (title,) = (x for x in e.findall('field') if x.get('name')=='title')
+    tplx = list(x for x in e.findall('field') if x.get('name')=='title_prefix_len')
 
-    assert 'sort_title' not in sid
-    sid['sort_title'].append(sort_title)
-    
-    print ('sid',sid)
+    assert len(tplx) <= 1
+    tp_len = int(tplx[0]) if tplx else 0
+    ts = ET.SubElement(e, 'field')
+    ts.set('name', 'titlesort')
+    ts.text = title.text[tp_len:]
+    if tp_len:
+        print (tp_len, title.text)
 
-    def mk_xml():
-        yield '<doc>'
-        for a,b in sid.iteritems():
-            for bi in b:
-                yield '  <field name="%s">%s</field>'% (a,bi)
-        yield '</doc>'
-
-    xml_out = '\n'.join(mk_xml())
-
-    print ('xml_out', xml_out)
+    # xml_out = '\n'.join(mk_xml())
+    xml_out = ET.tostring(e)
     return xml_out
-                              
-                              
-
-    # do nothing with e, this is just to time the parser
 
 def tf2():
     global d
@@ -110,13 +87,14 @@ def testfix():
 
 import operator
 snd = operator.itemgetter(1)
-
-def cc(groupsize=100):
+    
+# [doc], int -> [compound doc]
+def cc(seq, groupsize=100):
     # generate sequence of compound docs that can be injected
     # into solr
 
     # emit runs of groupsize elements
-    bb = groupby(enumerate(doc_seq()), lambda (i,d): i//groupsize)
+    bb = groupby(enumerate(seq), lambda (i,d): i//groupsize)
     for i,d in bb:
         yield '<add>' + \
               '\n\n<!-- #### -->\n\n'.join(b for a,b in d) + \
@@ -140,13 +118,13 @@ def inject():
     print ('done',i,t2-t0)
         
 import socket
-frotz = False
+frotz = False                           # debugging cruft @@
 def solr_submit(solr, xml):
     global frotz
     """submit an XML document to solr"""
     sock = socket.socket()
 
-    if not frotz:
+    if not frotz:                       # @@
         frotz = True
         with open('frotz','w') as f:
             f.write(xml)

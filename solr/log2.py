@@ -1,15 +1,20 @@
 import sys
+from time import time
+
+sys.path.insert(0, "..")
 sys.path.insert(0, "../infogami")
 
 logfile = '/1/dbg/import-logs/dbglog'
 logfile = '/1/pharos/db/authortest'
 logfile = '/1/pharos/db/good'
 logfile = '/1/pharos/db/pharos'
+logfile = '/x-home/phr/pharos-log'
 # logfile = '/1/pharos/db/crap'
 
 #logfile = '/tmp/log.test'
 outfile = sys.stdout
-outfile = open('solr1.xml', 'w')
+
+outfile = open('solr1-%f.xml' % time(), 'w')
 oca_map = open('oca-map.log', 'a')
 
 # tcp socket of solr server
@@ -21,23 +26,25 @@ import web
 
 import re
 import socket
+import random, string
 from itertools import *
 from itools import *
 from cStringIO import StringIO
 from operator import itemgetter
-from time import time
 
 fst = itemgetter(0)
 snd = itemgetter(1)
 
 def setup():
     web.config.db_parameters = dict(dbn="postgres",
-#                                    db="pharos",
+#                                    host='apollonius.us.archive.org',
+                                    host='localhost',
                                     db="pharos",
                                     user="pharos",
                                     pw="pharos")
     web.load()
 
+# @slicer(20)
 def logparse(log_fd):
     return parse2b(parse1(log_fd,
                           infinite=True))
@@ -56,7 +63,19 @@ setup()
 # from exclude import excluded_fields, multivalued_fields
 import solr_fields
 
+sys.path.append('../pharos')
+import run
+
+import pdb
+debug = False
+
 def main():
+    if debug:
+        pdb.run('main2()')
+    else:
+        main2()
+
+def main2():
     import time as _time
 
     global t,k
@@ -71,16 +90,22 @@ def main():
     log_fd.seek(lastpos)
 
     for i,t in enumerate(logparse(log_fd)):
-#        print (t,t.type,type(t.type),t.type.name, type(t.type.name))
+        # print (t,t.type,type(t.type),t.type.name, type(t.type.name))
         if time()-t1 > 5 or i % 100 == 0:
             print (i, time()-t1, time()-t0)
             sys.stdout.flush()
             t1 = time()
 
-        if t.type.name not in ('delete', 'edition'):
+        assert t.type.name.startswith('type/')
+        typename = t.type.name[5:]
+        assert '/' not in typename
+
+        action = {'delete': 'delete',
+                  'edition': 'add'}.get(typename)
+        if action is None:
+            # this is probably an author record; anyway it's something
+            # that we don't index.
             continue
-        if t.type.name == 'delete': action = 'delete'
-        else: action = 'add'
 
         outbuf = StringIO()
         print >>outbuf, "<%s>"% action
@@ -88,7 +113,7 @@ def main():
             continue
         print >>outbuf, "</%s>"% action
 
-        if 1:
+        if 0:
             xml = outbuf.getvalue()
             # print 'xml:(%s)'% xml
             solr_response = solr_submit(xml)
@@ -132,7 +157,13 @@ sorted_field_dict = {
 ids_seen = set()
 
 def emit_doc(outbuf, action, t, loss=count()):
-    assert t.name not in ids_seen, t.name
+
+    if t.name in ids_seen:
+        # This is not supposed to happen and there was an assertion
+        # against it, but it kept triggering so we ignore it for now.
+        print ('error', loss.next(), time(), t.name)
+        return ''
+
     for forbidden in ('text', 'identifier'):
         assert forbidden not in t.d
     ids_seen.add(t.name)
@@ -141,13 +172,24 @@ def emit_doc(outbuf, action, t, loss=count()):
 
     emit_field(outbuf, 'identifier', t.name)
 
-    if 'oca_identifier' in t.d:
-        print >> oca_map, (t.d.oca_identifier, t.name, time())
-        oca_map.flush()
+    # if 'oca_identifier' in t.d:
+    #    print >> oca_map, (t.d.oca_identifier, t.name, time())
+    #    oca_map.flush()
 
     if action != 'delete':
         for k in t.d:
-            v = getattr(t.d, k)
+            if k == 'authors':
+                def translate(a):
+                    try:                   return a.d.name
+                    except (AttributeError,infogami.tdb.tdb.NotFound), e:
+                        id_str = t.d.get('identifier', '(no identifier)')
+                        print ('nameless_author', loss.next(), a, id_str, e.args)
+                        return a
+
+                v = list(translate(a) for a in getattr(t.d,k))
+                # print 'expanded authors (%s)=>(%s)'% (getattr(t.d,k), v)
+            else:
+                v = getattr(t.d, k)
 
             try:
                 emit_field(outbuf, k, v)
@@ -162,6 +204,7 @@ def emit_doc(outbuf, action, t, loss=count()):
 
             if k not in solr_fields.excluded_fields:
                 emit_field(outbuf, 'text', v)
+
             if k in sorted_field_dict:
                 sfname, conversion = sorted_field_dict[k]
                 global z                    # debug @@
@@ -170,7 +213,22 @@ def emit_doc(outbuf, action, t, loss=count()):
                     assert type(v) == str
                     v = [v]
                 emit_field(outbuf, sfname, map(conversion,map(str,v)))
+
+        # emit a field indicating the availability of fulltext,
+        # so we can give it a big scoring bonus at query time.
+        if 'oca_identifier' in t.d:
+            emit_field(outbuf, 'has_fulltext', '1')
+        else:
+            emit_field(outbuf, 'has_fulltext', '0')
                        
+        # make an xfacet field (random 10-character "word").
+        # this is for use in statistical faceting.
+        # might want to add more such words or fields, to help make
+        # multiple overlapping queries get uncorrelated result sets.
+        random_xword = ''.join(random.choice(string.lowercase)
+                               for i in xrange(10))
+        emit_field(outbuf, 'xfacet', random_xword)
+
     print >>outbuf, "</doc>\n"
     return outbuf.getvalue()
 
@@ -200,6 +258,8 @@ def emit_field(outbuf,
                                                          escape(field_val))
 
 def solr_submit(xml):
+    raise ValueError, 'oops'
+
     """submit an XML document to solr"""
     sock = socket.socket()
     try:
