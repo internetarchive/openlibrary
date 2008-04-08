@@ -1,3 +1,4 @@
+from __future__ import with_statement
 import web
 import stopword
 
@@ -20,19 +21,47 @@ render = template.render
 import solr_client
 
 solr_server_address = getattr(config, 'solr_server_address', None)
+solr_fulltext_address = getattr(config, 'solr_fulltext_address',
+                                ('ia301443', 8983))
+
+if solr_fulltext_address is not None:
+    solr_pagetext_address = getattr(config,
+                                    'solr_pagetext_address',
+                                    solr_fulltext_address)
+    
 if solr_server_address:
     solr = solr_client.Solr_client(solr_server_address)
 else:
     solr = None
 
-solr_fulltext = solr_client.Solr_client(('ia301443', 8983))
-# solr_pagetext = solr_client.Solr_client(('h7', 8983))
-# fulltext and pagetext are on the same server now
-solr_pagetext = solr_client.Solr_client(('ia301443', 8983))
+solr_fulltext = solr_client.Solr_client(solr_fulltext_address)
+solr_pagetext = solr_client.Solr_client(solr_pagetext_address)
+
+def trans():
+    # this should only happen once (or once per long-running thread)
+    print >> web.debug, 'loading ocaid translations...'
+    with open('id_map') as f:
+        d = {}
+        for i,x in enumerate(f):
+            g = re.match('^([^:]+)_meta.mrc:\d+:\d+ (/b/OL\d+M)$', x)
+            a,b = g.group(1,2)
+            d[a] = b
+    print >> web.debug, len(d), 'translations'
+    return d
+
+id_trans = trans()
+
+
+def lookup_ocaid(ocaid):
+    # return [web.ctx.site.get(restore_slash(r)) for r in results]
+    ocat = id_trans.get(ocaid)
+    w = web.ctx.site.get(ocat) if ocat is not None else None
+    # print >> web.debug, ('lookup ocaid', ocaid, w, dir(w))
+    return w
 
 from collapse import collapse_groups
 class fullsearch(delegate.page):
-    def POST(self, site):
+    def POST(self):
         errortext = None
         out = []
         q = web.input(q=None).q
@@ -45,16 +74,30 @@ class fullsearch(delegate.page):
             q = re.sub('[\r\n]+', ' ', q).strip()
             results = solr_fulltext.fulltext_search(q)
             for ocaid in results:
+                # print >> web.debug, ('ocaid', ocaid)
+
                 try:
-                    ocat = tdb.Things(oca_identifier=ocaid).list()[0]
-                    out.append((ocat,
-                                collapse_groups(solr_pagetext.pagetext_search(ocaid, q))))
-                except IndexError:
+                    pts = solr_pagetext.pagetext_search(ocaid, q)
+                    # print >> web.debug, ('pts', pts)
+                    # print >> web.debug, ('groups', collapse_groups(pts))
+
+                    oln_thing = lookup_ocaid(ocaid)
+                    if oln_thing is None:
+                        # print >> web.debug, 'No oln_thing found for', ocaid
+                        pass
+                    else:
+                        out.append((oln_thing, ocaid,
+                                    collapse_groups(solr_pagetext.pagetext_search
+                                                    (ocaid, q))))
+                except IndexError, e:
+                    print >> web.debug, ('fullsearch index error', e, e.args)
                     pass
+            # print >> web.debug, ('pagetexts:', out)
         except IOError, e:
             errortext = 'fulltext search is temporarily unavailable (%s)' % \
                         str(e)
 
+        # print >> web.debug, 'render fullsearch:', (q, out)
         return render.fullsearch(q, out, errortext=errortext)
 
     GET = POST
