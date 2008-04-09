@@ -13,13 +13,15 @@ types.register_type('^/b/[^/]*$', '/type/edition')
 class addbook(delegate.page):
     def GET(self):
         page = web.ctx.site.new("", {'type': web.ctx.site.get('/type/edition')})
-        return render.edit(page)
+        return render.edit(page, '/addbook', 'Add Book')
         
     def POST(self):
         from infogami.core.code import edit
-        books = web.ctx.site.things(dict(type='/type/edition', sort='-id', limit=1))
-        key = books[0]
-        return edit().POST(key, action='/addbook', title='Add Book')
+        books = web.ctx.site.things({'key~': '/b/OL*', 'sort': '-id', 'limit': 1})
+
+        key = '/b/OL%dM' % (1 + int(web.numify(books[0].key)))
+	web.ctx.path = key
+        return edit().POST(key)
         
 class clonebook(delegate.page):
     def GET(self):
