@@ -53,7 +53,6 @@ id_trans = trans()
 
 
 def lookup_ocaid(ocaid):
-    # return [web.ctx.site.get(restore_slash(r)) for r in results]
     ocat = id_trans.get(ocaid)
     w = web.ctx.site.get(ocat) if ocat is not None else None
     # print >> web.debug, ('lookup ocaid', ocaid, w, dir(w))
@@ -132,7 +131,7 @@ class search(delegate.page):
         for formfield, searchfield in \
                 (('wtitle', 'title'),
                  ('wauthor', 'authors'),
-                 ('wtopic', 'subject'),
+                 ('wtopic', 'subjects'),
                  ('wisbn', 'isbn'),
                  ('wpublisher', 'publisher'),
                  ('wdescription', 'description'),
