@@ -132,14 +132,19 @@ class search(delegate.page):
                 (('wtitle', 'title'),
                  ('wauthor', 'authors'),
                  ('wtopic', 'subjects'),
-                 ('wisbn', 'isbn'),
-                 ('wpublisher', 'publisher'),
+                 ('wisbn', ['isbn_10', 'isbn_13']),
+                 ('wpublisher', 'publishers'),
                  ('wdescription', 'description'),
                  ('pfulltext', 'has_fulltext'),
                  ):
             v = i.get(formfield)
             if v:
-                q0.append('%s:(%s)'% (searchfield, v))
+                if type(searchfield) == str:
+                    q0.append('%s:(%s)'% (searchfield, v))
+                elif type(searchfield) == list:
+                    q0.append('(%s)'% \
+                              ' OR '.join(('%s:(%s)'%(s,v))
+                                          for s in searchfield))
             # @@
             # @@ need to unpack date range field and sort order here
             # @@
