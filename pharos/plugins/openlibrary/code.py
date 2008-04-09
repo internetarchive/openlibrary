@@ -19,7 +19,7 @@ class addbook(delegate.page):
         from infogami.core.code import edit
         books = web.ctx.site.things({'key~': '/b/OL*', 'sort': '-id', 'limit': 1})
 
-        key = '/b/OL%dM' % (1 + int(web.numify(books[0].key)))
+        key = '/b/OL%dM' % (1 + int(web.numify(books[0])))
 	web.ctx.path = key
         return edit().POST(key)
         
