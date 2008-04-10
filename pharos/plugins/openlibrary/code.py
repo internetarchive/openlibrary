@@ -87,16 +87,22 @@ def save(filename, text):
     f.write(text)
     f.close()
 
+def change_ext(filename, ext):
+    filename, _ = os.path.splitext(filename)
+    if ext:
+	filename = filename + ext
+    return filename
+
 def get_pages(type, processor):
     pages = web.ctx.site.things(dict(type=type))
     for p in pages:
         processor(web.ctx.site.get(p))
 
 def get_templates():
-    get_pages('/type/template', lambda page: save(page.key, page.body))
+    get_pages('/type/template', lambda page: save(change_ext(page.key,'.html'), page.body))
 
 def get_macros():
-    get_pages('/type/macro', lambda page: save(page.key, page.macro))
+    get_pages('/type/macro', lambda page: save(change_ext(page.key, '.html'), page.macro))
 
 def get_i18n():
     from infogami.plugins.i18n.code import unstringify
