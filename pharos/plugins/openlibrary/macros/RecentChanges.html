@@ -5,9 +5,7 @@ $ _ = _.get_namespace('/macros/RecentChanges')
 $ page = safeint(query_param('page', '0'))
 $ changes = get_recent_changes(author=author, limit=limit, offset=page * limit)
 
-$var title: $_.recent_changes
-$var islist: true
-
+<!--islist-->
 
 <div id="bibliography">
     <div id="browse-rule"></div>

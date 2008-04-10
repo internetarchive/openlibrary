@@ -1,11 +1,12 @@
 $ languages = _.get_languages()
 
+$ locale = _.get_locale()
 $ _ = _.get_namespace('/macros/ChangeLanguage')
 
 <br clear="all" />
 <span class="green">
 <b>$_.change_language:</b>
-$:Dropdown('lang', languages, onchange="changelang();", id="lang_dropdown", value=_.get_locale()).render()
+$:Dropdown('lang', languages, onchange="changelang();", id="lang_dropdown", value=locale).render()
 </span>
 
 

@@ -1,10 +1,11 @@
 $def with (fname, fval)
+ $ _ = _.get_namespace('/search')
 $if fname == 'has_fulltext':
-    $ d = {'0': 'Not available', '1': 'Available'}
-    $d[str(fval)]
+    $if int(fval): $_.available
+    $else: $_.not_available
 $elif fname == 'facet_year':
-    $if fval == 'pre1920': pre-1920
-    $elif fval == '2000': 2000-now
+    $if fval == 'pre1920': $_.pre1920
+    $elif fval == '2000': $_.after2000
     $else:
          $ y = int(fval[slice(4)])
          $(y)-$(y + 19)

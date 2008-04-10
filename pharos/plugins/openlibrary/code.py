@@ -24,6 +24,16 @@ class addbook(delegate.page):
         key = '/b/OL%dM' % (1 + int(web.numify(books[0])))
 	web.ctx.path = key
         return edit().POST(key)
+
+class addauthor(delegate.page):
+    def POST(self):
+	i = web.input("name")
+	if len(i.name) < 2:
+	    return web.badinput()
+        authors = web.ctx.site.things({'key~': '/a/OL*', 'sort': '-id', 'limit': 1})
+        key = '/a/OL%dA' % (1 + int(web.numify(authors[0])))
+	web.ctx.site.write({'create': 'unless_exists', 'key': key, 'name': i.name})
+	return key
         
 class clonebook(delegate.page):
     def GET(self):

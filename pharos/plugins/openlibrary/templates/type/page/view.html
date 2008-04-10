@@ -16,7 +16,11 @@ $var title: $title
     <div id="title">$title</div>
 </div>
 
+$ text = format(page.body)
 
-
-$if page.body:
-    $:format(page.body)
+$if utf8('<!--islist-->') in utf8(text):
+    $:text
+$else:
+    <div class="contenttext">
+    $:text
+    </div>
