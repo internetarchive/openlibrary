@@ -1,16 +1,22 @@
 $def with (page)
 
-$var title: $page.title
+$ title = page.title or page.key
+
+
+$if title.startswith("i18n::") and title.count(':') == 3:
+    $ namespace = title.split(':')[2]
+    $ key = title.split(':')[3]
+    $ title = _.get(namespace, key)
+
+$var title: $title
 
 <div id="header">
     <div style="float:left;padding-left:10px;padding-right:15px;"></div>
     <span class="pretitle"></span>
-    <div id="title">$page.title</div>
+    <div id="title">$title</div>
 </div>
 
-$if '<!--islist-->' in page.body:
+
+
+$if page.body:
     $:format(page.body)
-$else:
-    <div class="contenttext">
-    $:format(page.body)
-    </div>

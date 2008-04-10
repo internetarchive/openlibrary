@@ -4,18 +4,19 @@ $var title: Search Results
 
 $add_stylesheet('/static/css/search.css')
 
+<!-- revert to version 3 of template -->
 <div id="databar">
 <div class="widgetlabel">
-<b>Selected Facets:</b> 
+$if facets: <b>Selected Facets:</b> 
 $for token, tpair in ft_pairs:
     $ name = tpair[0]
     $ label = tpair[1]
     <b>$name:</b> $:macros.HasFulltext(name, label)
     <a href="$changequery(remove=token, ftokens=ftokens)" title="Remove this facet">(x)</a>
      &nbsp;<b>&gt;</b>&nbsp;
+$else: (none)
 </div>
 </div>
-$:macros.AlertTour()
 
 $# check for the presence of a facet token corresponding to a fulltext search selection facet
 $# this is kludgy and maybe it should be done some other way, like with another plugin function
@@ -23,10 +24,10 @@ $ want_fulltext = ''
 $if 'mhsncqbxgkup' in ftokens:
     $ want_fulltext = 'checked'
 
-<table border="0" cellpadding="0" cellspacing="0" width="100%"><tr><td valign="top">
+<table border="0" cellpadding="0" cellspacing="0" width="100%" style="clear:both"><tr><td valign="top" width="100%">
 
 <div id="header-fullpage">
-  <span id="title">Search Results</span><br />
+  <span id="title">Search Results</span><br /><br />
   
   <form method="get" action="/search">
   <input type="hidden" name="go" value="go">
@@ -36,18 +37,24 @@ $if 'mhsncqbxgkup' in ftokens:
         <div class="button-border"><button class="go" type="submit">go</button><img src="/static/images/flourish.gif" width="17" height="28" alt="Go" /></div>
   </td>
 </tr><tr>
-<td colspan="2"><span class="copyright">Showing $qresults.begin - $(qresults.begin + 20) of $qresults.total_results
-<img src="/static/images/arrow.red.png" alt="Disclosure Arrow" /><span class="attention-emphasis"><input tabindex="9" type="checkbox" value="mhsncqbxgkup" name="ftokens" $want_fulltext> Fulltext items only </span></span></td>
+<td colspan="2">
+<span class="copyright">
+<span class="attention-emphasis"><input tabindex="9" type="checkbox" value="mhsncqbxgkup" name="ftokens" $want_fulltext> Scanned books only </span>
+                    <img src="/static/images/arrow.red.png" alt="$_.arrow" />
+                    <a href="/advanced" style="text-decoration: underline">Advanced Search</a><br />
+$if facets: Showing $qresults.begin - $(qresults.begin + 20) of $qresults.total_results
+</span>
+</td>
 </tr></table></form>
 </div>
 
 $if errortext:
     <br /><br /><br /><br />
 $else:
-    <p style="font-family: georgia; font-size: 18px;  margin-left: 30px;">The following books contain the words <span style="color: #6F320D;">$q</span>:</p>
+$if facets: <p style="font-family: georgia; font-size: 18px;  margin-left: 30px;">The following book records contain the words <span style="color: #6F320D;">$q</span>:</p>
 
 <div style="padding-left: 45px;"> 
-   $:macros.SearchResults(results)
+$:macros.SearchResults(results)
  </div>   
     
 
@@ -58,46 +65,52 @@ $else:
 </td><td valign="top">
 
 $if errortext:
-    <div id="error">Error: $errortext</div>
+    <br /><div id="error"><span class="errorhead">Error:</span> $errortext</div>
 $else:
-    <div id="search-nav">
-    <div id="search-options">
-    <div class="search-outer">
-    <div style="width: 100%; text-align: center; font-weight: bold; padding-bottom: 8px">Refine Results</div>  
+$if facets: <div id="search-nav"><div id="search-options"><div class="search-outer"><div style="width: 100%; text-align: center; font-weight: bold; padding-bottom: 8px">Refine Results</div>  
 
-    $for facet in facets:
-        $ fname = facet[0]
-        $ fn1 = fname
-        $if fname == 'has_fulltext':
-            $ fn1 = 'full text'
-        $elif fname == 'facet_year':
-            $ fn1 = 'date range'
-        $ fentries = facet[1]
-        <div class="search-inner"><span class="refinesearch">$fn1:</span>
-        <div class="refineindent">
-        $for fentry in fentries[slice(5)]:
-            $ fval = fentry[0]
-            $ fcount = fentry[1]
-            $ ftoken = facet_token(fname, fval)
-            <a class="datalink" href="$changequery(ftokens=ftokens + ',' + ftoken, remove='')">$:macros.HasFulltext(fname, fval)</a> ($fcount)<br />
-        </div></div>
+   $for facet in facets:
+       $ fname = facet[0]
+       $ fn1 = fname
+       $if fname == 'has_fulltext':
+           $ fn1 = 'full text'
+       $elif fname == 'facet_year':
+           $ fn1 = 'date range'
+       $ fentries = facet[1]
+       <div class="search-inner"><span class="refinesearch">$fn1:</span>
+       <div class="refineindent">
+       $for fentry in fentries[slice(5)]:
+           $ fval = fentry[0]
+           $ fcount = fentry[1]
+           $ ftoken = facet_token(fname, fval)
+           <a class="datalink" href="$changequery(ftokens=ftokens + ',' + ftoken, remove='')">$:macros.HasFulltext(fname, fval)</a> ($fcount)<br />
+       </div></div>
 
 
 </div></div></div>        
 </td></tr></table>        
     
+
+
   <div class="pagination">
-    <div class="moreresults"><strong>More Results:</strong></div>
+$if facets: <div class="moreresults"><strong>More Results:</strong></div>
     <div class="paginate">
     $if (qresults.begin - 1000) > 0: ...
     $for n in range(qresults.begin - 1000, qresults.begin + 1000, 20):
         $if (n >= 0) and (n <= qresults.total_results):
             $if n == qresults.begin:
                 $if n != 0: | 
-                <strong>$n - $(n + 20)</strong>
+                $if facets: <strong>$n - $(n + 20)</strong>
             $else:
                 $if n != 0: | 
                 <a href="$changequery(offset=n)">$n - $(n + 20)</a>
     $if (qresults.begin + 1000) < qresults.total_results: | ...
+
+
+<div style="padding-left: 20px; text-align: right"><br />Can't find the book you are searching for?&nbsp;&nbsp;<div><a href="http://demo.openlibrary.org:8080/addbook">Add A New Book</a> &rarr;</div><br /><br /></div>
+
+
+
         </div>
+
     </div>

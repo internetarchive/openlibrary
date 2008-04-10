@@ -5,6 +5,7 @@ $ _ = _.get_namespace('/mode/edit')
 
 $var title: $_.edit_title(page.key)
 
+<form name="edit" method="post" action="">
 
 <div id="slickbox" style="overflow: hidden">
     $:macros.TypeChanger(page.type)
@@ -18,10 +19,9 @@ $var title: $_.edit_title(page.key)
 
 <div id="form-border">
     <div id="metadata-body">
-        <form name="edit" method="post" action="">
 
             <strong>$_t.description</strong>
-            <input type="text" name="description" width="100%" value="$page.description" /><br />
+            <input type="text" name="description" style="width: 100%" value="$page.description" /><br />
             <br/>
             <textarea name="macro" rows="40" cols="80" style="font-family: monospace;">$page.macro</textarea>
             $:macros.EditButtons()

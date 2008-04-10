@@ -1,0 +1,11 @@
+$def with (fname, fval)
+$if fname == 'has_fulltext':
+    $ d = {'0': 'Not available', '1': 'Available'}
+    $d[str(fval)]
+$elif fname == 'facet_year':
+    $if fval == 'pre1920': pre-1920
+    $elif fval == '2000': 2000-now
+    $else:
+         $ y = int(fval[slice(4)])
+         $(y)-$(y + 19)
+$else: $fval

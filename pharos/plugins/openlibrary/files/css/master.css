@@ -11,8 +11,8 @@
 
 	body { margin: 0; border: 0; background-color:#fff; font-family: georgia, times new roman, times, serif; font-size:12px; color: #000000; padding : 0; }
 
-	#footer { clear: both; color: #FFF; padding: 0px 0px 0px 10px; background: #625E25; height: 25px; line-height: 25px; vertical-align: middle; }
-	#toolbar { background: #625E25; color: #FFF; padding: 0px 0px 0px 10px; height: 25px; }
+	#footer { clear: both; color: #FFF; padding: 0px 0px 0px 10px; background: #625E25; height: 2em; line-height: 25px; vertical-align: middle; font-size: 12px; }
+	#toolbar { background: #625E25; color: #FFF; padding: 0px 0px 0px 10px; height: 2em; font-size: 12px;  }
 	#databar { clear: both; padding-right: 8px; background-color: #F1EFED; height: 2.25em; border-bottom: 1px solid #BEBE7C;  vertical-align: middle; }
 
 	.widgetlabel { color: #919070; padding: 8px 8px 4px 8px; font-family: verdana, arial, helvetica, sans-serif; font-size: 10px; float: left; }
@@ -31,7 +31,7 @@
 	p.maintext { padding-left: 30px; }
 	.statement { font-size: 18px; line-height: 24px; color: #666; margin-bottom: -16px; }
 	#statement { font-size: 18px; line-height: 24px; color: #666; margin-bottom: -16px; padding-left: 24px; }
-	#error {  color: #900; font-size: 14px; line-height: 19px; margin-right: 30px; background:#FFF8F1; padding: 10px; border: 1px dotted #990000; position: absolute; top: 170px; left: 30px; }
+	#error {  color: #900; font-size: 14px; line-height: 19px; margin-right: 30px; background:#FFF8F1; padding: 10px; border: 1px dotted #990000; position: absolute; top: 190px; left: 30px; }
 	.wrong {  color: #900; font-size: 14px; line-height: 19px; background:#FFF8F1; padding: 10px; border: 1px dotted #990000; font-weight: normal; }
 	.errorhead    { color: #900; font-weight: bold; font-family: helvetica, arial, sans-serif;  }				
 
@@ -43,7 +43,8 @@
 	.form-margin { padding-left: 30px; }
 
 	th { text-align: right; padding: 6px; }
-	td {color: #000}
+	td {color: #000; background-color: transparent; }
+	td.rule {border-bottom: 1px #fff solid; line-height: 22px; }
 
 	hr { border: 0; text-align: center; color: #999; background: #fff url(/static/images/rule.png) no-repeat scroll left; height: 40px; }
 	hr:after { content: ""; }
@@ -78,17 +79,20 @@
 	a.sidebar:hover 		{ text-decoration: underline; }
 	
 	a.white 			{ color: #fff }
+	a.white:hover 		{ text-decoration: none; }
+	a.white:visited		{ color: #fff }
 
+	a.button 			{ text-decoration: none; }
+	a.button:hover 		{ text-decoration: none; }
 
 
 /*GLOBAL PAGE (VIEW) ELEMENTS*/
 
-	#book-art { width: 205px; height: 300px; text-align: center; float: left; padding-top: 21px; padding-left: 13px; padding-right: 14px; background: #fff url(/static/images/front.page.png) top center no-repeat; }
  	.book-details-italic { padding: 0px 10px 0px 0px; font-family: georgia; font-size: 14px; color: #999; }
 
-	#contentwrapper{ min-width: 650px; }
+	#contentwrapper{ min-width: 650px; min-height: 310px; }
 
-	#header { padding: 25px 0px 20px 10px; }
+	#header { padding: 25px 0px 20px 10px; z-index: 100; }
 	#header-edit { padding: 25px 0px 0px 40px; }
 	#header-fullpage { padding: 20px 0px 20px 30px; }
 	
@@ -106,14 +110,14 @@
 	}
 
 	#nav-home{
-	  position: absolute;
+/*	  position: absolute;
 	  top: 40px;
-	  left: 620px;
+	  left: 570px;  */
 	  padding: 0px 20px 0px 0px;
 	  width: 230px;
-	  margin: 0px 0px 30px 30px;
-	  border-left: 1px solid #fff;
-	  border-bottom: 1px solid #fff;
+	  margin: 0px 0px 30px 0px;
+	  border-left: 0px solid #fff;
+	  border-bottom: 0px solid #fff;
 	}
 
 
@@ -128,7 +132,7 @@
 
 	#options { width: 210px; min-height: 190px; margin: 0px 0px 10px 10px; font-size: 12px; }
 
-	#viewthisbook-oln { position: absolute; margin-left: 45px; top: 375px; left: 0px; }
+	#viewthisbook-oln { position: absolute; margin-left: 45px; top: 455px; left: 0px; }
 
 	.logotype { float:left; font-weight: bold; height: 25px; line-height: 25px; vertical-align: middle; }
 
@@ -143,6 +147,7 @@
 	#metadata-body { clear: both; background-color: #F9F8D0; padding: 20px 30px 20px 30px; }
 
 	td.formheader { padding: 0px 4px 6px 10px; text-align: left; font-weight: bold; color: #625E25; white-space: nowrap; vertical-align: top; }
+	td.formheader-i18n { padding: 6px 4px 2px 0px; text-align: left; font-weight: bold; color: #625E25; white-space: nowrap; vertical-align: top; }
 	.formheader { padding: 0px 4px 6px 10px; text-align: left; font-weight: bold; color: #625E25; width: 220px; }
 
 	td.formheader-top { padding: 10px 4px 6px 10px; text-align: left; font-weight: bold; color: #625E25; white-space: nowrap; }
@@ -184,7 +189,7 @@
 
 
 /* BUTTONS */
-
+	
 	button, .editbutton { 	
 			background-color: #F9F8D0; border: 1px solid #B9B7A1;
 			font-family: georgia; font-size: 12px; color: #6F320D;
@@ -199,16 +204,31 @@
 
 	button:hover { background-color: #6F320D; color: #fff; }
 	button.action:hover { background-color: #625E25; color: #fff; }
-	button.edit:hover { background-color: #6F320D; color: #fff; }
+	button.edit:hover { background-color: #625E25; color: #fff; }
+	button.clone:hover { background-color: #625E25; color: #fff; }
 	button.go-small:hover { background-color: #6F320D; color: #fff; }			
 	button.small-button:hover { background-color: #6F320D; color: #fff; }			
 
-	button.go { margin: 8px 0px 0px 0px; }
+	button.go { margin: 8px 0px 0px 6px; }
 	.button-border { margin: -9px 0px 0px 0px; padding: 0px 4px 0px 6px; white-space: nowrap; }
-	button.go-small { background-color: #fff; height: 18px; }			
+	button.go-small { background-color: #fff; height: 1.4em; }			
+	button.addkey-small { background-color: #625E25; color: #fff; height: 18px; }			
+	.addkey-small { background-color: #625E25; color: #fff; height: 18px; }			
 	button.action { background-color: #fff; color: #919070; }
-	button.edition { }
 
+	.edit-button { 	
+			background-color: #F9F8D0; border: 1px solid #B9B7A1;
+			font-family: georgia; font-size: 12px; color: #6F320D;
+			text-transform: uppercase;
+			font-weight: bold;
+			letter-spacing: .05em;
+			height: 26px;
+			line-height: 28px;
+			margin: 0px 0px 0px 0px;
+			padding: 0px 4px 0px 4px;
+		} 
+		
+	button.clone { background-color: #DEDCBF; color: #625E25;  margin: 0px 3px 0px 0px; font-style: normal }
 	button.edit { background-color: #fff; color: #919070; margin: 0px 6px 0px 0px; }
 	#hideerror { background-color: #900; color: #fff; margin: 0px 6px 0px 0px; font-weight: bold; font-family: helvetica, arial, sans-serif; width: 20px; float: right; text-align: center; }
 	button.edit-delete { }
@@ -254,7 +274,7 @@
 
 	.blue {  line-height: 16px;	background:#EBF6FF; padding: 10px; border: 1px dotted #336699; margin: 0px 0px 0px 50px; color: #000; font-size: 13px; text-align: left; }
 	.yellow {  line-height: 16px; 	background:#ffffcc; padding: 10px; border: 1px dotted #990000; margin: 0px 0px 0px 50px; color: #000; font-size: 13px; text-align: left; }
-	.green {  line-height: 16px; 	background:#ccffcc; padding: 10px; border: 1px dotted #336600; margin: 0px 0px 0px 50px; color: #000; font-size: 13px; text-align: left; }
+	.green {  line-height: 16px; 	background:#ccffcc; padding: 10px; border: 1px dotted #336600; margin: 0px 0px 0px 10px; color: #000; font-size: 13px; text-align: left; white-space: nowrap }
 
 	.alert {  line-height: 16px; 	background:#ffffcc; padding: 10px; border: 1px dotted #990000; }
 
@@ -262,12 +282,12 @@
 
 /*HISTORY - RECENT CHANGES*/
 
-	.history { height: 24px; font-size: 12px; padding-left: 24px; padding-right: 14px; border-bottom: 1px solid #fff;  }
-	.path { height: 24px; font-size: 12px; padding-left: 24px; padding-right: 14px; border-bottom: 1px solid #fff; }
-	.displayname { height: 24px; font-size: 12px; padding-left: 24px; padding-right: 14px; border-bottom: 1px solid #fff; }
-	.buttons { height: 24px; font-size: 12px; padding-left: 24px; border-bottom: 1px solid #fff; white-space: nowrap; ; color: #919070; }
-	.compare { height: 24px; font-size: 12px; padding-left: 2px; padding-right: 2px; border-bottom: 1px solid #fff; border-right: 1px solid #fff; }
-	.comment { height: 24px; font-size: 12px; padding-left: 24px; padding-right: 2px; border-bottom: 1px solid #fff; color: #919070; }
+	.history { height: 2em; font-size: 12px; padding-left: 24px; padding-right: 14px; border-bottom: 1px solid #fff;  }
+	.path { height: 2em; font-size: 12px; padding-left: 24px; padding-right: 14px; border-bottom: 1px solid #fff; }
+	.displayname { height: 2em; font-size: 12px; padding-left: 24px; padding-right: 14px; border-bottom: 1px solid #fff; }
+	.buttons { height: 2em; font-size: 12px; padding-left: 24px; border-bottom: 1px solid #fff; white-space: nowrap; ; color: #919070; }
+	.compare { height: 2em; font-size: 12px; padding-left: 2px; padding-right: 2px; border-bottom: 1px solid #fff; border-right: 1px solid #fff; }
+	.comment { height: 2em; font-size: 12px; padding-left: 24px; padding-right: 2px; border-bottom: 1px solid #fff; color: #919070; }
 
 	.truncatedisplayname { 
 		width: 10em;            /* constrain width try 20em */
@@ -327,8 +347,7 @@
 
 /* HOME AND CONTENT */
 
-	#book-art-home { width: 205px; height: 285px; text-align: center; float: left; padding-top: 27px; padding-left: 18px; background: #fff url(/static/images/front.page.png) top center no-repeat;}
-	#searchtext { font-size:16px; line-height:28px; margin: 11px 60px 14px 225px; text-align : left; color: #000; }
+	#searchtext { font-size:16px; line-height:28px; margin: 11px 0px 14px 0px; text-align : left; color: #000; min-width: 300px; }
 	.contenttext { font-size:14px; line-height:20px; margin: 11px 54px 54px 54px; text-align : left; }
 	#browse-rule { border-top: 1px solid #ccc; clear: both; }
 

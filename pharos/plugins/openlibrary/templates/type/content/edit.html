@@ -1,0 +1,29 @@
+$def with (page)
+
+$ _t = _.get_namespace('/type/content')
+$ _ = _.get_namespace('/mode/edit')
+
+$var title: $_.edit_title(page.key)
+
+<form name="edit" method="post" action="">
+<div id="slickbox" style="overflow: hidden">
+    $:macros.TypeChanger(page.type)
+</div>
+
+<div id="header">
+    <div style="float:left;padding-left:10px;padding-right:15px;"></div>
+    <span class="pretitle">$_.edit_pretitle:<br /></span>
+    <div id="title"> $page.title</div>
+</div>
+
+<div id="form-border">
+    <div id="metadata-body">
+            <strong>$_t.title</strong>
+            <input type="text" name="title" value="$page.title" style="width:100%" />
+            <br/><br/>
+            <textarea name="body" rows="15" cols="80">$page.body</textarea>
+            $:macros.EditButtons()
+        </form>
+        $:macros.HelpFormatting()
+    </div>
+</div>

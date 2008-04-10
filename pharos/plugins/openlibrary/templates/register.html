@@ -10,17 +10,21 @@ $var title: $_.create_new_account
     <span id="title">$_.create_new_account</span> 
 </div>
 
-<table cellpadding="0" cellspacing="30" border="0">
+<table cellpadding="0" cellspacing="20" border="0">
 <tr>
     <td valign="top"  width="50%">
         <div id="login-form-border">
-            <img src="/static/images/openlibraryid.png" alt="The Open Library" border="0" />
+            <div id="login-openid-form">
+                <div class="homeheader">$_.create_new_account</div>
             <br /><br />
-            <form name="register" method="POST">
+            <form name="register" method="post">
                 $:f.render()
-                <button type="submit"><img src="/static/images/register.png" alt="Register"></button>
+                    <div class="button-border"><img src="/static/images/flourish.left.gif"  alt="[" />
+                       <button value="$_.register" type="submit"  name="submit" title="$._register" class="action">
+                        $._register
+                       </button><img src="/static/images/flourish.gif"  alt="]" />
             </form>
-        </div>
+        </div></div>
     </td>
     <td>
         <span id="statement">
@@ -32,5 +36,4 @@ $var title: $_.create_new_account
 </tr>
 </table>
 
-<br /><br />
 <br /><br />

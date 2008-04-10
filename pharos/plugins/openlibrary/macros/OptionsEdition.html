@@ -57,20 +57,24 @@ $else:
         <span class="navheader">Browse</span> <br />
 <div class="navsubheader">
 $if page.get('ocaid'):
-    <em>Internet Archive:</em><br />
-    <span class="navtext">- <a href="$viewbook.replace('XXX', page.ocaid)">View this book</a></span><br />
-    <span class="navtext">- <a href="$downloadbook.replace('XXX', page.ocaid)">Download PDF</a></span><br />
-    <span class="navtext">- <a href="$djvu.replace('XXX', page.ocaid)">Download DjVu</a></span><br />
-    <span class="navtext">- <a href="$djvutxt.replace('XXX', page.ocaid)">Download plain text</a></span><br />
-    <span class="navtext">- <a href="$seeall.replace('XXX', page.ocaid)">See all files</a><br /></span>
+    <a href="$viewbook.replace('XXX', page.ocaid)">Internet Archive</a><br />
     <span id="gbs_placeholder"></span>
 $else:
-    <span id="gbs_placeholder"><em>Not available for this book.</em>
+    <span id="gbs_placeholder"><em>Not available for this book.</em></span>
 <br /><br />
 </div>
 <br />
 
 </div>
+</div>
+
+<div style="padding-top: 10px">
+
+<span class="book-details-italic">
+Data comes from <a href="http://www.amazon.com/" class="sidebar">Amazon</a>, 
+<a href="http://www.loc.gov/" class="sidebar">Library of Congress</a>, and users like you.
+</span>
+<br />
 </div>
 
 <img src="/static/images/nav.bot.png" alt="" border="0" />

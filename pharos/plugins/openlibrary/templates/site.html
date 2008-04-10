@@ -1,28 +1,28 @@
 $def with (page)
 
+$add_javascript('/static/js/jquery/jquery.js')
+$add_javascript('/static/js/jquery/jquery.slicker.js')
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>$:page.title (Open Library)</title>
+    <title>$:page.title ($_.open_library)</title>
 
-    <link href="/static/css/master.css" rel="stylesheet" type="text/css" />
     $for s in ctx.stylesheets:
         <link rel="stylesheet" type="text/css" href="$s" />
+    <link href="/static/css/master.css" rel="stylesheet" type="text/css" />
 
     $for url in ctx.javascripts:
         <script src="$url" type="text/javascript"></script>
-
-    <script type="text/javascript" src="/static/js/jquery/jquery.slicker.js"></script>
-    <script type="text/javascript" src="/static/js/jquery/jquery.js"></script>
 
 </head>
 
 <body>
     <div id="contentwrapper">
         <div id="toolbar">
-            <div class="logotype"><a href="/"><img src="/static/images/logotype.png" alt="Open Library" border="0" /></a></div>
+            <div class="logotype"><a href="/" class="white">$_.open_library</a></div>
             <div class="navlinks">
             $if ctx.user:
                 <form name='logout' action="$homepath()/account/logout" method='POST'></form>
@@ -42,15 +42,15 @@ $def with (page)
     
     <div id="footer">
         <div class="logotype">
-            <a href="/"><img src="/static/images/logotype.png" alt="Open Library" border="0" /></a>
+            <a href="/" class="white">$_.open_library</a>
         </div>
         <div class="navlinks">
-            <a class="white" href="/about">About Us</a> |
-            <a class="white" href="http://www.archive.org/">Internet Archive</a> |
+            <a class="white" href="/about">$_.about_us</a> |
+            <a class="white" href="http://www.archive.org/">$_.internet_archive</a> |
             <a class="white" href="http://www.opencontentalliance.org/">OCA</a> |
             <a class="white" href="http://creativecommons.org/">CC</a> |
             <a class="white" href="http://wikimediafoundation.org/">WMF</a> |
-            <a class="white" href="/about/contact">Contact Us</a>
+            <a class="white" href="/about/contact">$_.contact_us</a>
         </div>
     </div>
 

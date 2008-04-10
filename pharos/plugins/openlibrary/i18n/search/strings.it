@@ -1,0 +1,3 @@
+search = u'B\xfasqueda'
+fulltext = u'Texto completo'
+by = u'por'

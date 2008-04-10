@@ -8,21 +8,23 @@ $var title: $_.login
 
 <div id="header-fullpage">
     <span id="title">$_.login</span> 
-    <span id="statement"> -  $_.login_stmt:</span><br />
+    <span id="statement"> - $_.login_stmt:</span>
 </div>
 
-<table cellpadding="0" cellspacing="30" border="0">
+<table cellpadding="0" cellspacing="20" border="0">
 <tr>
     <td valign="top" width="50%">
         <div id="login-form-border">
             <div id="login-openid-form">
-                <div class="homeheader">Login with Open Library ID</div>
+                <div class="homeheader">$_.ol_id</div><br clear="all" />
                 <form name="login" method="post" action="">
                     $:f.render()
-                    <button  value="$_.login" type="submit"  name="submit" title="Log In">
-                        <img src="/static/images/login.png" alt="Log In" />
-                    </button>
+                    <div class="button-border"><img src="/static/images/flourish.left.gif"  alt="[" />
+                       <button value="$_.login" type="submit"  name="submit" title="$_.login" class="action">
+                        $_.login
+                       </button><img src="/static/images/flourish.gif"  alt="]" />
                 </form>
+                <p>(<a href="/account/forgot_password">$_.forgot_password</a>)
             </div>
         </div>
     </td>
@@ -30,9 +32,8 @@ $var title: $_.login
 </table>
 
 
-<div id="content-bottom">
+<div class="content-bottom">
     <span class="statement"> $:_.create_new_account(url("/account/register"))</span><br />
 </div>
 
-<br /><br />
 <br /><br />

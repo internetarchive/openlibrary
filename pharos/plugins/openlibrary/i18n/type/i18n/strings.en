@@ -1,0 +1,5 @@
+add_new_key = u'Add new key'
+add = u'Add'
+add_new_language = u'Add New Language'
+i18n_strings = u'i18n strings'
+add_new_namespace = u'Add New Namespace'

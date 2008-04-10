@@ -1,11 +1,11 @@
 $def with (author=None, limit=50)
 
-$ _ = _.get_namespace('macros/RecentChanges')
+$ _ = _.get_namespace('/macros/RecentChanges')
 
 $ page = safeint(query_param('page', '0'))
 $ changes = get_recent_changes(author=author, limit=limit, offset=page * limit)
 
-$var title: Recent Changes
+$var title: $_.recent_changes
 $var islist: true
 
 
@@ -43,8 +43,8 @@ $var islist: true
 
 <div class="copyright-footer">
 $if page != 0:
-    &larr; <a href="$:changequery(page=page - 1)" class="datalink">Newer</a>
+    &larr; <a href="$:changequery(page=page - 1)" class="datalink" rel="nofollow">$_.newer</a>
     
 $if len(changes) == limit:
-    ... <a href="$:changequery(page=page + 1)" class="datalink">Older</a> &rarr;
+    ... <a href="$:changequery(page=page + 1)" class="datalink" rel="nofollow">$_.older</a> &rarr;
 </div>

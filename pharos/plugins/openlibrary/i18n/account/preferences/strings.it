@@ -1,0 +1,11 @@
+confirm_password = u'Conferma password'
+login_preferences = u'Login Preferenze'
+new_password = u'Nuova password'
+template_root = u'Template Root'
+current_password = u'Password attuale'
+template_preferences = u'Template Preferenze'
+users_preferences = u"% S's Preferenze"
+passwords_did_not_match = u'Password non corrispondono'
+save = u'Salva'
+incorrect_password = u'Password errata'
+preferences = u'Preferenze'

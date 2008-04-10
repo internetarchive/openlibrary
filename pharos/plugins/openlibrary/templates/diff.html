@@ -7,9 +7,7 @@ $add_stylesheet('/static/diff.css')
 
 $var title: $_.diff_title(a.key)
 
-<div id="databar"></div>
-
-$:macros.AlertChanges()
+$:macros.databarDiff()
 
 <div id="header">
     <div style="float:left;padding-left:10px;padding-right:15px;"></div>

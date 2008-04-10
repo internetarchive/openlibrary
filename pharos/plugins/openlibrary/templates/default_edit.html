@@ -1,0 +1,134 @@
+$def with (page)
+
+$ _t = _.get_namespace(page.type.key)
+$ _ = _.get_namespace('/mode/edit')
+
+$var title: $_.edit_title(page.name)
+
+$add_javascript("/static/js/repetition/repetition-model.js")
+$add_javascript("/static/js/jquery/jquery.js")
+
+<script>
+function changeTemplate() {
+    var t = document.edit._type.value;
+    document.location.href += '&t=' + t;
+}
+
+function moveup(e) {
+    if (!e) e = window.event;
+    if (e.preventDefault)
+        e.preventDefault();
+    
+    var parents = $ (this).parents().filter("tr[@repeat]");
+    var a = parents[0];
+    var b = parents.prev()[0]
+    swapvalues(a, b);
+    return this.returnValue = false;
+}
+
+function movedown(e) {
+    if (!e) e = window.event;
+    if (e.preventDefault)
+        e.preventDefault();
+    
+    var parents = $ (this).parents().filter("tr[@repeat]");
+    var a = parents[0];
+    var b = parents.next()[0]
+    swapvalues(a, b);
+    return this.returnValue = false;
+}
+
+function swapvalues(a, b) {
+    var ia = $ (':input', a);
+    var ib = $ (':input', b);
+    
+    for (var i=0; i<ia.length; i++)
+        swap(ia[i], ib[i]);
+}
+
+function swap(a, b) {
+    // probably this check must also be there for type radio
+    if (a.nodeName.toLowerCase() == 'input' && a.type.toLowerCase() == 'checkbox') {
+        var t = a.checked; 
+        a.checked = b.checked; 
+        b.checked = t; 
+    }
+    else {
+        var t = a.value; 
+        a.value = b.value; 
+        b.value = t;         
+    }
+}
+
+</script>
+
+<form name="edit" method="POST">
+<table>
+<tbody>
+    <tr>
+        <td>$_.page_type</td>
+        <td>$:macros.ThingReference("/type/type", "type", page.type.key)</td>
+        <td><input type="button" onclick="changeTemplate()" value="$_.change"/></td>
+    </tr>
+    <tr>
+        <td>&nbsp;</td>
+        <td>&nbsp;</td>
+        <td>&nbsp;</td>
+    </tr>            
+</tbody>
+
+$for p in page.type.properties:
+    $ key = p.name
+    $ label = _t[key]
+    <tbody>
+    $if not p.unique:
+        $ i = 0
+        <tr>
+            <td>$label</td>
+            <td></td>
+            <td></td>
+        </tr>
+        </tbody>
+        <tbody>
+        $for x in page[key]:
+            <tr repeat="$i">
+                <td colspan="2" style="padding-left:1.0em"> $:thinginput(p.expected_type, key + "#" + str(i), value=x)</td>
+                <td>
+                    <button type="remove" template="row_$key">$_.delete</button>
+                    <button type="move-up" template="row_$key" onclick="return moveup.apply(this, [event]);">$_.move_up</button>
+                    <button type="move-down" template="row_$key" onclick="return movedown.apply(this, [event]);">$_.move_down</button>
+                </td>
+            </tr>
+            $ i = i + 1
+        <tr id="row_$key" repeat="template">
+            <td colspan="2" style="padding-left:1.0em">
+                $:thinginput(p.expected_type, key + '#[row_' + key + ']', value="")
+            </td>
+            <td>
+                <button type="remove" template="row_$key">$_.delete</button>
+            	<button type="move-up" template="row_$key" onclick="return moveup.apply(this, [event]);">$_.move_up</button>
+            	<button type="move-down" template="row_$key" onclick="return movedown.apply(this, [event]);">$_.move_down</button>
+            </td>
+        </tr>
+        <tr>
+            <td></td>
+            <td></td>
+            <td><button type="add" template="row_$key">$_.add_property(label)</button></td>
+        </tr>
+    $else:
+        <tr>
+            <td>$label</td>
+            <td>$:thinginput(p.expected_type, key, value=page[key])</td>
+            <td></td>
+        </tr>
+    </tbody>
+</table>
+<p>$:_.edit_summary<br />
+<input type="text" name="_comment" value="" />
+</p>
+<p>
+<input type="submit" name='_save' value="$_.save" />
+<input type="submit" name='_preview' value="$_.preview" />
+<input type="submit" name='_delete' value="$_.delete" />
+</p>
+</form>

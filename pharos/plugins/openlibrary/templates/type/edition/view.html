@@ -3,52 +3,74 @@ $def with (page)
 $ _t = _.get_namespace('/type/edition')
 $ _ = _.get_namespace('/mode/view')
 
-$var title: $page.title
+$var title: $page.title_prefix $page.title
 
 $add_stylesheet('/static/css/results.css')
 $add_stylesheet('/static/css/doc-styles.css')
 
-<script>
+<script type="text/javascript">
+<!--
 function gbs_process(d) {
   if (d) {
-    document.getElementById('gbs_placeholder').innerHTML = '<a href="' + d['info_url'] + '" class="datalink">Google Book Search</a> (' + d['preview']+')';
+    document.getElementById('gbs_placeholder').innerHTML = '<a href="' + d['info_url'] + '" class="datalink">$_t.gbs</a> (' + d['preview']+')';
   }
 }
 function gbs_callback(d) {
 $if page.get('isbn_10'): gbs_process(d['ISBN:$page.isbn_10'])
 $if page.get('lccn'): gbs_process(d['LCCN:$page.lccn'])
 }
+// -->
 </script>
 
-$ lccn = "http://lccn.loc.gov/XXX"
+<style type="text/css">
+<!--
+#book-art { width: 205px; height: 300px; text-align: center; float: left; padding-top: 21px; padding-left: 13px; padding-right: 14px; background: transparent url(/static/images/front.page.png) top center no-repeat; }
+-->
+</style>
+	
 
-
+$ lccn = page["lccn"] and ("http://lccn.loc.gov/" + page["lccn"])
 <blockquote class="text">
-
     <div id="header">               
-        <div id="title" class="title-pad">$page.title</div>
+        <div id="title" class="title-pad">$page.title_prefix $page.title</div>
+
         <div id="statement">
-            by <a href="" class="datalink">$:thingrepr(page.authors)</a><br />		
-            <span class="book-details-italic"><br /></span> 
+            by <span class="datalink">$:thingrepr(page.authors)</span><br />
+            <span class="book-details-italic">
+            $if page.get('publish_date'): $_.published_in $page.publish_date 
+            $if page.get('publishers'): $:thingrepr(page.publishers)
+            $if page.get('publish_places'): ($:thingrepr(page.publish_places).strip())
+
+            <br /></span> 
+
         </div>
 
         <div id="book-art" class="datalink">
 
-            <img src="$page.coverimage" width="180" alt="Cover Image" />
+            $if page.coverimage:
+                $ cover = page.coverimage width="180" alt="$page.title" />
+            $elif page.isbn_10 and len(page.isbn_10[0]) == 10:
+                $ cover = "/static/bookcovers/full/" + page.isbn_10[0][0] + "/" + page.isbn_10[0][1] + "/" + page.isbn_10[0] + ".jpg"
+            $else:
+                $ cover = "/static/images/book.trans.gif"
+            <img src="$cover" width="180" alt="$_.cover_not_available" onError="this.src='/static/images/book.trans.gif';"/>
+
+
             <div id="book"></div>
             <br clear="all" />
-            <!-- 
-            <div id="viewthisbook-oln" style="margin-top: -50px; padding-left: 20px;">
-                <a href="http://demo.openlibrary.org:8080/search?q=socialism" class="brown" style="text-decoration:none"><button type="submit" name="submit" value="Change Cover" class="action" style="background-color: #C9D389; color: #6A2E00; width: 176px;">View All Editions (265)</button></a>
+
+
+            <div id="viewthisbook-oln" style="margin-top: 0px; padding-left: 0px;">
                 <div style="margin-top: 4px;">
-                    <a href="http://www.openlibrary.org/details/soulofmanunderso00wilduoft" class="white" style="text-decoration:none"><button type="submit" name="submit" value="Change Cover" class="action" style="width: 176px;">Scan This Book</button></a>
+        $if page.ocaid: <a href="http://openlibrary.org/details/$page.ocaid" class="white" style="text-decoration:none"><button type="submit" name="submit" value="$_.scan_this_book" class="submit" style="width: 176px;">$_.full_text</button></a>
                 </div>
             </div>
-            -->
+            
         </div>
     </div>
 
-    <div id="content-right">$:macros.OptionsEdition(page)
+    <div id="content-right">
+      $:macros.OptionsEdition(page)
     </div>
 
     <div>
@@ -56,22 +78,26 @@ $ lccn = "http://lccn.loc.gov/XXX"
 
             <table border="0" cellpadding="0" cellspacing="0">
 
-                $ s0 = ["publish_date", "publishers", "publish_places"]
-                $ s1 = ["work_titles", "by_statements", "series", "languages", "edition_name", "physical_format", "physical_dimensions"]
-                $ s2 = ["isbn_10", "isbn_13", "lccn", "dewry_decimal_class", "lc_classifications"]
+                $ s1 = ["contributions", "work_titles", "by_statements", "series", "languages", "edition_name", "physical_format", "physical_dimensions", "pagination"]
+                $ s2 = ["isbn_10", "isbn_13", "lccn", "dewey_decimal_class", "lc_classifications", "oclc_numbers"]
                 $ s3 = ["genres", "subjects"]
-                $ sections = [s0, s1, s2, s3]
+                $ sections = [s1, s2, s3]
 
                 $ rule = "-top"
 
                 $for s in sections:
                     $for name in s:
-                        <tr>
-                            <td class="formheader$rule">$_t[name]:</td>
-                            <td class="formfield$rule">$:thingrepr(page[name])</td>
-                        </tr>
-
-                       $ rule = ""
+                        $if page[name]:
+                            <tr>
+                                <td class="formheader$rule">$_t[name]:</td>
+                                $if name == "lccn":
+                                    <td class="formfield$rule" width="100%"><a href="$lccn">$:thingrepr(page[name])</a></td>
+                                $elif name == "subjects":
+                                    <td class="formfield$rule" width="100%">$:thingrepr(page[name]).replace('--', '&mdash;')</td>
+                                $else:
+                                    <td class="formfield$rule" width="100%">$:thingrepr(page[name])</td>
+                            </tr>
+                            $ rule = ""
                      $ rule = "-rule"
 
             </table>
@@ -79,31 +105,30 @@ $ lccn = "http://lccn.loc.gov/XXX"
 
 
             <div class="toc-header" style="border-bottom: 1px solid #ccc">
-                <b>Description</b>
-                <div style="padding-top: 0px; margin-top: -35px; float: right;">
-                    <img src="/static/images/flourish.left.gif"  alt="[" />
-                    <button type="submit" name="submit" value="Submit A Review" class="edition">Edit</button>
-                    <img src="/static/images/flourish.gif"  alt="]" />
-                </div>
+                <b>$_.description</b>
+
+$:macros.FlourishButton("edit", changequery(m='edit'), "right", "edition")
+
             </div>
             <br />
             
             $page.description
             <br /><br />
-            <b>Notes:</b> $page.notes
+
+$if page.notes: <b>Notes:</b> $page.notes
 
             <div class="toc-header" style="padding-top: 35px;">
-                <b>Table of Contents</b>
-                <div style="padding-top: 0px; float:right; margin-top: -25px;">
-                    <img src="/static/images/flourish.left.gif"  alt="[" /><button type="submit" name="submit" value="Submit A Review" class="edition">Edit</button><img src="/static/images/flourish.gif"  alt="]" />
-                </div>
+                <b>$_t.table_of_contents</b>
+
+$:macros.FlourishButton("edit", changequery(m='edit'), "right", "edition")
+
             </div>
 
-
+        $if page.table_of_contents:
             <div style="padding-top: 10px;">
                 <table border="0" cellpadding="0" cellspacing="0" width="100%">
                     $ first = "first"
-                    $for i, toc in enumerate(page.toc):
+                    $for i, toc in enumerate(page.table_of_contents):
                         <tr>
                             <td class="toc-number rule $first"><a href="#anchor1">$(i + 1)</a>&nbsp;&nbsp;</td>
                             <td class="toc rule $first" width="100%">$toc</td>
@@ -112,10 +137,16 @@ $ lccn = "http://lccn.loc.gov/XXX"
                         $ first = ""
                 </table>
             </div>
+        $else:
+            <p><em><span class="copyright">No table of contents available</span> <img src="/static/images/arrow.red.png" alt="Disclosure Arrow" /> <a href="$changequery(m='edit')"  style="text-decoration: underline">Add it!</a></em></p>
 
 
     </div>
 </div>
+</blockquote>
 
-$if page.get('isbn_10'): <script src="http://books.google.com/books?bibkeys=ISBN:${page.isbn_10}&amp;jscmd=viewapi&amp;callback=gbs_callback"></script>
-$if page.get('lccn'): <script src="http://books.google.com/books?bibkeys=LCCN:${page.lccn}&amp;jscmd=viewapi&amp;callback=gbs_callback"></script>
+<br /><br />
+
+
+$if page.get('isbn_10'): <script src="http://books.google.com/books?bibkeys=ISBN:${page.isbn_10}&amp;jscmd=viewapi&amp;callback=gbs_callback" type="text/javascript"></script>
+$if page.get('lccn'): <script src="http://books.google.com/books?bibkeys=LCCN:${page.lccn}&amp;jscmd=viewapi&amp;callback=gbs_callback" type="text/javascript"></script>

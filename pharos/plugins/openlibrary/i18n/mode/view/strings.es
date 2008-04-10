@@ -1,0 +1,5 @@
+edit = u'Editar'
+whats_new = u'\xbfQu\xe9 hay de nuevo'
+updated_by = u'actualizada por'
+last_modified = u'Fecha de modificaci\xf3n'
+history = u'Historia'

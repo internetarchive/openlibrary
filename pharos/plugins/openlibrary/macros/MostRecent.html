@@ -1,5 +1,7 @@
 $def with (author=None, limit=1)
 
+$ _ = _.get_namespace('/mode/view')
+
 $ changes = get_recent_changes(author=author, limit=limit)
 
 <div id="databar">
@@ -7,9 +9,9 @@ $ changes = get_recent_changes(author=author, limit=limit)
 $if changes:
     $ v = changes[0]
     
-    <b>What's New:</b> $datestr(v.created) - <a href="$homepath()$v.key">$v.key</a>
+    <b>$_.whats_new:</b> $datestr(v.created) - <a href="$homepath()$v.key">$v.key</a>
     $if v.author:
-        updated by <a href="$homepath()$v.author.key">$v.author.displayname</a> 
+        $_.updated_by <a href="$homepath()$v.author.key">$v.author.displayname</a> 
     $if v.comment:
         ($v.comment)
 </div>

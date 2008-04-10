@@ -1,0 +1,8 @@
+$def with (form)
+
+$var title: $_.get('/account/preferences', 'login_preferences')
+
+<form method="POST">
+$:form.render()
+<input type="hidden" name="_action" value="login_preferences"/>
+</form>

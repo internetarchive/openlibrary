@@ -1,16 +1,14 @@
 /* 
-   OL DEFAULT STYLES - BETA 
-   Comment date: 08.07.07
+   OPEN LIBRARY DEFAULT STYLES - BETA 
+   Comment date: 03.19.08
    -------------------------------
-   This is the first pass at modularizing the default stylesheet for OL
-   The stylesheet will be vastly improved by full launch 10=17-07
    Please email me with any suggested improvements: webchick@invisible.net
 */
 
 
 /*FACETED RESULTS LINKS*/
 
-.cover { height: 60px; width: 100px; text-align: center; padding-right: 18px; padding-top: 6px; padding-bottom: 6px; border-bottom: 1px solid #ccc; }
+.cover { height: 60px; width: 100px; text-align: center; padding-right: 18px; padding-top: 6px; padding-bottom: 6px; border-bottom: 1px solid #ccc;  }
 .search-outer { background-color: #F9F8D0; margin-left: 18px; margin-right: 18px; margin-bottom: 18px; padding-top: 30px; }
 .search-inner { background-color: #ffffff; padding: 10px; }
 .result-text { padding-bottom: 6px; padding-left: 10px; padding-right: 10px; color: #919070; font-size: 14px; line-height: 20px; padding-top: 6px; padding-bottom: 6px; border-bottom: 1px solid #ccc; }

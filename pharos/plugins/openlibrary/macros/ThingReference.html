@@ -1,0 +1,10 @@
+$def with (type, name, value="", limit=100)
+
+$add_javascript('/static/js/jquery/jquery.js')
+$add_javascript('/static/js/jquery/jquery.bgiframe.min.js')
+$add_javascript('/static/js/jquery/jquery.dimensions.pack.js')
+$add_javascript('/static/js/jquery/jquery.autocomplete.js')
+$add_javascript('/static/js/autocomplete.js')
+
+
+<input type="text" id="input_$name" name="${name}.key" value="$value" infogami_autocomplete="true" thingtype="$type" limit="$limit"/>

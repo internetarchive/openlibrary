@@ -1,0 +1,9 @@
+$def with (p)
+
+$var title: Permission of $p.key
+
+<form method="POST">
+    Permission: $:thinginput("/type/permission", "permission", p.permission)<br/>
+    Child Permission: $:thinginput("/type/permission", "child_permission", p.child_permission)<br/>
+    <input type="submit" value="Save"/>
+</form>

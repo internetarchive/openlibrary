@@ -2,29 +2,42 @@ $def with (results, fulltext=False)
 
 <table border="0" cellpadding="0" cellspacing="0" width="100%" class="result-item">
 
-$for book in results:
+$for b in results:
     $if fulltext:
-        $ pages = book[1]
-        $ book = book[0]
+        $ book = b[0]
+        $ ocaid = b[1]
+        $ pages = b[2]
+    $else:
+        $ book = b
+        $ ocaid = None
     <tr>
-    <td class="cover"> 
-        <a href="$book.key"><img src="$:book.cover" alt="$book.title" border="1" height="58" /></a>
+    <td class="cover">
+            $if book.coverimage:
+                $ cover = book.coverimage
+            $elif book.isbn_10 and len(book.isbn_10[0]) == 10:
+                $ cover = "/static/bookcovers/thumb/" + book.isbn_10[0][0] + "/" + book.isbn_10[0][1] + "/" + book.isbn_10[0] + ".jpg"
+            $else:
+                $ cover = "/static/images/book.trans.gif"
+            <a href="$book.key"><img src="$cover" height="58" alt="$_.cover_image" onError="this.src='/static/images/book.trans.gif';"/></a>
     </td>
     <td class="result-text" valign="top">
-        <a href="$book.key" class="result">$book.title</a>
-        <span class="result-small">by 
+        <a href="$book.key" class="result">$book.title_prefix $book.title</a>
+        <span class="result-small">$_.by 
         $for author in book.authors:
             <a href="$author.key">$author.name</a>
         </span>
         <div class="result-small">
-            ($book.publisher, $book.publish_date)
-            $$book.physical_format
-            $book.oca_identifier: &nbsp;&nbsp;<a href="http://openlibrary.org/details/$book.oca_identifier"><div class="fulltext">Full Text</div></a>
+            $if book.publishers:
+                ($(', '.join(book.publishers)), $book.publish_date)
+            $else:
+                ($book.publish_date)
+            $book.physical_format
+            $if book.ocaid: &nbsp;&nbsp;<a href="http://openlibrary.org/details/$book.ocaid"><div class="small-button fulltext">$_.fulltext</div></a>
         </div>
         $if fulltext:
             <p>
             $for pn, pg in pages:
-                <a href="http://openlibrary.org/details/$book.oca_identifier/leaf$(pn / 2)">$pg</a>
+                <a href="http://openlibrary.org/details/$ocaid/leaf$(pn / 2)">$pg</a>
             </p>
     </td></tr>
 

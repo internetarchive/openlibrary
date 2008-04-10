@@ -1,6 +1,7 @@
 $(document).ready(function() {
  // hides the slickbox as soon as the DOM is ready (a little sooner than page load)
   $('#slickbox').hide();
+  $('#slickbox2').hide();
   
  // shows and hides and toggles the slickbox on click  
   $('#slick-show').click(function() {
@@ -13,6 +14,10 @@ $(document).ready(function() {
   });
   $('#slick-toggle').click(function() {
     $('#slickbox').toggle(400);
+    return false;
+  });
+  $('#slick-toggle2').click(function() {
+    $('#slickbox2').toggle(400);
     return false;
   });
 

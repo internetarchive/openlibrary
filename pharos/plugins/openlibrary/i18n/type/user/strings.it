@@ -1,0 +1,5 @@
+website = u'Sito web'
+users_activity = u"%s's Wiki attivit\xe0"
+displayname = u'Nome visualizzato'
+email = u'Email'
+description = u'Descrizione'

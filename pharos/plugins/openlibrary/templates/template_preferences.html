@@ -1,0 +1,10 @@
+$def with (form)
+
+$ _ = _.get_namespace('/account/preferences')
+
+$var title: $_.template_preferences
+
+<form method="POST">
+$:form.render()
+<input type="hidden" name="_action" value="template_preferences"/>
+</form>

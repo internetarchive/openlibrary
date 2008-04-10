@@ -5,8 +5,6 @@ $ _ = _.get_namespace('/mode/edit')
  
 $var title: Editing $page.displayname
 
-$add_javascript("/static/js/jquery/jquery.js")
-
 <script>
 function add_row(name) {
     var tbody = \$("#tbody_" + name);
@@ -25,9 +23,7 @@ function add_row(name) {
 </script>
 
 
-$ up = '<button class="control" name="up" title="up"><img src="/static/images/arrow.up.gif" alt="up" width="18" height="18" /></button>'
-$ down = '<button class="control" name="down" title="down"><img src="/static/images/arrow.down.gif" alt="up" width="18" height="18" /></button>'
-$ plus = '<button class="control" name="+" title="+"><img src="/static/images/+.gif" alt="up" width="18" height="18" /></button>'
+    $:macros.RowButtons(page.type)
 
 <div id="slickbox" style="overflow: hidden">
     $:macros.TypeChanger(page.type)

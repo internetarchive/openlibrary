@@ -1,0 +1,3 @@
+expected_type = u'Tipo attesi'
+name = u'Nome'
+property_name = u'Nome propriet\xe0'
