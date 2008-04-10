@@ -3,7 +3,9 @@ Open Library Plugin.
 """
 import web
 import simplejson
+import os
 
+import infogami
 from infogami.utils import types, delegate
 from infogami.utils.view import render, public
 
@@ -73,3 +75,42 @@ def get_property_type(type, name):
 	if p.name == name:
 	    return p.expected_type
     return web.ctx.site.get("/type/string")
+
+def save(filename, text):
+    root = os.path.dirname(__file__)
+    path = root + filename
+    print 'saving', path
+    dir = os.path.dirname(path)
+    if not os.path.exists(dir):
+        os.makedirs(dir)
+    f = open(path, 'w')
+    f.write(text)
+    f.close()
+
+def get_pages(type, processor):
+    pages = web.ctx.site.things(dict(type=type))
+    for p in pages:
+        processor(web.ctx.site.get(p))
+
+def get_templates():
+    get_pages('/type/template', lambda page: save(page.key, page.body))
+
+def get_macros():
+    get_pages('/type/macro', lambda page: save(page.key, page.macro))
+
+def get_i18n():
+    from infogami.plugins.i18n.code import unstringify
+    def process(page):
+        text = "\n".join("%s = %s" % (k, repr(v)) for k, v in unstringify(page.dict()).items())
+        save(page.key, text)
+    get_pages('/type/i18n', process)
+
+@infogami.action
+def pull_templates():
+    """Pull templates, macros and i18n strings to checkin them repository."""
+    get_templates()
+    get_macros()
+    get_i18n()
+
+if __name__ == "__main__":
+    main()
