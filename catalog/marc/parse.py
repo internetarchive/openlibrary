@@ -125,9 +125,9 @@ def find_title(r, edition):
     else:
         edition['title'] = title
     if 'b' in f.contents:
-        edition["subtitles"] = [x.strip(' /,;:') for x in f.contents['b']]
+        edition["subtitle"] = ' : '.join([x.strip(' /,;:') for x in f.contents['b']])
     if 'c' in f.contents:
-        edition["by_statements"] = f.contents['c']
+        edition["by_statement"] = ' '.join(f.contents['c'])
     if 'h' in f.contents:
         edition["physical_format"] = ' '.join(f.contents['h'])
 
@@ -161,7 +161,7 @@ def find_edition(r, edition):
     for f in r.get_fields('250'):
         e += [j for i,j in f.subfield_sequence]
     if e:
-        edition['edition'] = ' '.join(e)
+        edition['edition_name'] = ' '.join(e)
 
 def find_publisher(r, edition):
     publisher = []
@@ -258,7 +258,16 @@ def find_series(r, edition):
     series = []
     for tag in ('440', '490', '830'):
         for f in r.get_fields(tag):
-            series += ' -- '.join(specific_subtags(f, 'av'))
+            this_series = []
+            for tag, value in f.subfield_sequence:
+                if tag == 'a':
+                    v = value.rstrip('.,; ')
+                    if v:
+                        this_series += [v]
+                elif tag == 'v' and value:
+                    this_series += [value]
+            if this_series:
+                series += [' -- '.join(this_series)]
     if series:
         edition["series"] = series
 
@@ -374,7 +383,7 @@ def find_lccn(r, edition):
                 continue
             m = re_lccn.search(lccn)
             if m:
-                edition["lccn"] = m.group(1)
+                edition["lccn"] = [m.group(1)]
                 return
 
 def find_url(r, edition):
