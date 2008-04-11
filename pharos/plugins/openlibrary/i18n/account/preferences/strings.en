@@ -1,11 +1,15 @@
 confirm_password = u'Confirm Password'
+preferences = u'Preferences'
+translate = u"Select a language from the pulldown menu above to view Open Library in another language. Don't see your language?"
 login_preferences = u'Login Preferences'
-new_password = u'New Password'
 template_root = u'Template Root'
+new_password = u'New Password'
+add_to_site = u'about how you can add it to our site.'
+learn_more = u'Learn more'
 current_password = u'Current Password'
 template_preferences = u'Template Preferences'
 users_preferences = u"%s's Preferences"
 passwords_did_not_match = u'Passwords did not match'
 save = u'Save'
 incorrect_password = u'Incorrect password'
-preferences = u'Preferences'
+trranslate_ol = u'Translate Open Library'

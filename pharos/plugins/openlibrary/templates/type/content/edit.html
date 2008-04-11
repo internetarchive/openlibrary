@@ -1,5 +1,6 @@
 $def with (page)
 
+$ lang = _.get_locale() or 'en'
 $ _t = _.get_namespace('/type/content')
 $ _ = _.get_namespace('/mode/edit')
 
@@ -13,7 +14,8 @@ $var title: $_.edit_title(page.key)
 <div id="header">
     <div style="float:left;padding-left:10px;padding-right:15px;"></div>
     <span class="pretitle">$_.edit_pretitle:<br /></span>
-    <div id="title"> $page.title</div>
+    <div id="title"> $page.title  
+    </div>
 </div>
 
 <div id="form-border">

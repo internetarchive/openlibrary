@@ -693,7 +693,7 @@ p.loading_show = function(input) {
                     '<div class="fbs-bottomshadow">'+
                         '<ul class="fbs-ul">' +
                             '<li class="fbs-li">'+ 
-                                '<div class="fbs-li-name">Author names are case-sensitive: [Last, First]</div>' +
+                                '<div class="fbs-li-name">loading...</div>' +
                             '</li>' +
                         '</ul>' +
                     '</div>' +

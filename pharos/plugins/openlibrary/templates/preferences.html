@@ -10,9 +10,17 @@ $var title: $_.preferences
 
 <div id="form-border">
 <div id="metadata-body">
+<table cellpadding="0" cellspacing="0" border="0" width="100%"><tr><td width="50%" valign="top">
 $for p in preferences:
     <span id="statement">$p.title</span>
     $:p
     <br/>
+</td><td width="50%" valign="top">
+<div class="statement">$_.trranslate_ol</div>
+<br clear="all">
+     $:macros.change_language()
+<p class="preftext">$_.translate <a href="/i18n/" style="text-decoration: underline">$_.learn_more</a> $_.add_to_site
+</td></tr></table>
+
 </div>
 </div>

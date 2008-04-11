@@ -6,8 +6,9 @@ $add_stylesheet("/static/css/freebase-controls.css")
 $add_javascript("/static/js/jquery/freebase.suggest.js")
 
 <input id="key_$name" type="hidden" name="$name" value="$author.key"/>
-<input id="saved_name_$name" type="hidden" name="_saved_name_$name" value="$author.name" onselect="\$(this).parent().hide(); return false;" style="width: 100%"/>
+<input id="saved_name_$name" type="hidden" name="_saved_name_$name" value="$author.name"/>
 <input id="name_$name" type="text" name="_name_$name" value="$author.name" style="width: 100%"/>
+
 <div id="fberror_$name" style="display: none;">
     <div class="fb_error">$_t.author_dropdown</div><br>
 <span id="hideerror"></div>
@@ -19,7 +20,21 @@ $add_javascript("/static/js/jquery/freebase.suggest.js")
 
 <script type="text/javascript">
     function new_author(name) {
-        alert("$_t.author_create_new: " + name);
+        \$.post(
+            '/addauthor', 
+            {name: name}, 
+            function(data, status) {
+                if (status == "success") {
+	            \$(document.getElementById("key_$name")).attr("value", data);
+	            \$(document.getElementById("saved_name_$name")).attr("value", name);
+                     alert("Author added.");
+                }
+                else {
+                    alert("Error in creating author: " + status); 
+                }
+            }, 
+            "text"
+         );
     }
 
     jQuery(function(\$) {
@@ -33,7 +48,7 @@ $add_javascript("/static/js/jquery/freebase.suggest.js")
             })
             .bind("fb-select", function(e, data) {
 	        \$(document.getElementById("key_$name")).attr("value", data.id);
-	        \$(document.getElementById("_saved_name_$name")).attr("value", data.name);
+	        \$(document.getElementById("saved_name_$name")).attr("value", data.name);
             })
             .bind("fb-select-new", function(e, data) {
                 new_author(data.name);

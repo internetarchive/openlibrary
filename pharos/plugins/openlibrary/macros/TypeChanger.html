@@ -16,7 +16,7 @@ $if usetable:
         <td><input type="button" onclick="changeTemplate()" value="$_.change"/></td>
     </tr>
 $else:
-    <div id="typechanger">
+    <div id="typechanger" style="width: 200px; white-space: nowrap"">
       <strong>$_.page_type</strong>  $:thinginput("/type/type", "type", type)
       <input type="button" class="small-button" onclick="changeTemplate()" value="$_.change"/><br /><br />
     </div>

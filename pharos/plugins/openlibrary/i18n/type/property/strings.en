@@ -1,4 +1,4 @@
 is_unique = u'Unique'
-type = u'function add_key() {\r\n\tvar key = document.getElementById("newkey").value;\r\n\tvar table = document.getElementById("strings_table");\r\n\tvar row = table.insertRow(table.rows.length);\r\n\tvar cell1 = row.insertCell(0);\r\n\tvar cell2 = row.insertCell(1);\r\n\tcell1.innerHTML = key;\r\n        cell2.innerHTML = \'<input type="text" name="string_\' + key + \'" value=""/ style="width: 100%">\';\r\n        \\$("table#strings_table tr:last td:first").attr("class", "formheader")\r\n\treturn false;\r\n}'
+type = u'Type'
 name = u'Name'
 description = u'Description'

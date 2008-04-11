@@ -231,6 +231,7 @@
 	button.clone { background-color: #DEDCBF; color: #625E25;  margin: 0px 3px 0px 0px; font-style: normal }
 	button.edit { background-color: #fff; color: #919070; margin: 0px 6px 0px 0px; }
 	#hideerror { background-color: #900; color: #fff; margin: 0px 6px 0px 0px; font-weight: bold; font-family: helvetica, arial, sans-serif; width: 20px; float: right; text-align: center; }
+	.hideerror { background-color: #900; color: #fff; margin: 0px 6px 0px 0px; font-weight: bold; font-family: helvetica, arial, sans-serif; width: 20px; text-align: center; }
 	button.edit-delete { }
 
 	button.control { border: 0px; background-color: transparent; padding: 0px; margin: -5px 0px 0px 0px; }
@@ -275,6 +276,8 @@
 	.blue {  line-height: 16px;	background:#EBF6FF; padding: 10px; border: 1px dotted #336699; margin: 0px 0px 0px 50px; color: #000; font-size: 13px; text-align: left; }
 	.yellow {  line-height: 16px; 	background:#ffffcc; padding: 10px; border: 1px dotted #990000; margin: 0px 0px 0px 50px; color: #000; font-size: 13px; text-align: left; }
 	.green {  line-height: 16px; 	background:#ccffcc; padding: 10px; border: 1px dotted #336600; margin: 0px 0px 0px 10px; color: #000; font-size: 13px; text-align: left; white-space: nowrap }
+
+	.fb_error { color: #900; font-size: 12px; line-height: 19px; margin-right: 30px; margin-top: 5px; background:#FFF8F1; padding: 10px; border: 1px dotted #990000; }
 
 	.alert {  line-height: 16px; 	background:#ffffcc; padding: 10px; border: 1px dotted #990000; }
 
@@ -349,6 +352,7 @@
 
 	#searchtext { font-size:16px; line-height:28px; margin: 11px 0px 14px 0px; text-align : left; color: #000; min-width: 300px; }
 	.contenttext { font-size:14px; line-height:20px; margin: 11px 54px 54px 54px; text-align : left; }
+	.preftext { font-size:13px; line-height:18px; margin: 21px 10px 10px 10px; text-align : left; }
 	#browse-rule { border-top: 1px solid #ccc; clear: both; }
 
 	#viewcontainer { min-height: 480px; }

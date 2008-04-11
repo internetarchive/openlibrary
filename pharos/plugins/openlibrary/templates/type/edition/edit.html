@@ -13,22 +13,46 @@ $add_javascript('/static/js/jquery/freebase.suggest.js')
 $add_javascript('/static/js/jquery/freebase.controls.js')
 $add_javascript('/static/js/jquery/freebase.select.js')
 
-
-
 <script type="text/javascript">
+
+function next(key) {
+    var tokens = key.split('#');
+
+    try { 
+        if (tokens.length == 2) {
+             var prefix = tokens[0];
+             tokens = tokens[1].split('.');
+             var x = tokens[0];
+             var suffix = tokens[1];
+
+             x = prefix + '#' + (1 + eval(x)); // there must be better way to convert a string to integer than using eval
+             if (suffix) {
+                 x = x + '.' + suffix;
+             }
+             return x;
+        }
+    }
+    catch (e) {
+    }
+    return key;
+}
+
 function add_row(name) {
     var tbody = \$("#tbody_" + name);
     var n = tbody.children().length;
 
     var row = \$("tr:last", tbody);
-    var newrow = row.clone();
+    var newrow = row.clone(true);
     tbody.append(newrow);
 
     \$("td:last", row).html("");
 
     \$("td:first", newrow).html("");
-    \$("input", newrow).attr("name", name + "#" + n);
-    \$("input", newrow).attr("value", "");
+    \$("input", newrow).map(function() { 
+        \$(this).attr('id', next(\$(this).attr('id'))); 
+        \$(this).attr('name', next(\$(this).attr('name'))); 
+        \$(this).attr('value', ''); 
+    }); 
 }
 
 jQuery(function(\$) {
@@ -67,7 +91,7 @@ jQuery(function(\$) {
                     $:macros.EditionEditRow(page, 'title_prefix', True)
                     $:macros.EditionEditRow(page, 'title', True)
                     $:macros.EditionEditRow(page, 'subtitle', True)
-                    $:macros.EditionEditRow(page, 'by_statement', True)
+                    $:macros.EditionEditRow(page, 'by_statements', True)
                     $:macros.EditionEditRow(page, 'authors', False)
                     $:macros.EditionEditRow(page, 'contributions', False)
 
@@ -100,7 +124,6 @@ jQuery(function(\$) {
                             </table>
 	                </td>
                     </tr>
-
 
 
                     <!-- ADDITIONAL METADATA -->

@@ -32,7 +32,7 @@ $if page.get('lccn'): gbs_process(d['LCCN:$page.lccn'])
 
 	
 
-$ lccn = page["lccn"] and ("http://lccn.loc.gov/" + page["lccn"][0])
+$ lccn = page["lccn"] and page["lccn"][0] and ("http://lccn.loc.gov/" + page["lccn"][0])
 <blockquote class="text">
     <div id="header">               
         <div id="title" class="title-pad">$page.title_prefix $page.title</div>
@@ -94,9 +94,9 @@ $ lccn = page["lccn"] and ("http://lccn.loc.gov/" + page["lccn"][0])
                             <tr>
                                 <td class="formheader$rule">$_t[name]:</td>
                                 $if name == "lccn":
-                                    <td class="formfield$rule" width="100%"><a href="$lccn">$:thingrepr(page[name])</a></td>
+                                    $if lccn: <td class="formfield$rule" width="100%"><a href="$lccn">$:thingrepr(page[name])</a></td>
                                 $elif name == "subjects":
-                                    <td class="formfield$rule" width="100%">$:thingrepr(page[name]) <!--.replace('--', '&mdash;')--></td>
+                                    <td class="formfield$rule" width="100%">$:utf8(thingrepr(page[name])).replace('--', '&mdash;')</td>
                                 $else:
                                     <td class="formfield$rule" width="100%">$:thingrepr(page[name])</td>
                             </tr>
