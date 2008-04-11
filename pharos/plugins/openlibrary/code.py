@@ -27,14 +27,14 @@ class addbook(delegate.page):
 
 class addauthor(delegate.page):
     def POST(self):
-	i = web.input("name")
-	if len(i.name) < 2:
-	    return web.badinput()
+        i = web.input("name")
+        if len(i.name) < 2:
+            return web.badinput()
         authors = web.ctx.site.things({'key~': '/a/OL*', 'sort': '-id', 'limit': 1})
         key = '/a/OL%dA' % (1 + int(web.numify(authors[0])))
-	web.ctx.site.write({'create': 'unless_exists', 'key': key, 'name': i.name})
-	return key
-        
+        web.ctx.site.write({'create': 'unless_exists', 'key': key, 'name': i.name, 'type': dict(key='/type/author')}, comment='New Author')
+        print key
+
 class clonebook(delegate.page):
     def GET(self):
         from infogami.core.code import edit
@@ -53,17 +53,22 @@ class search(delegate.page):
     
     def GET(self):
         i = web.input()
-        q = {'type': '/type/author', 'name~': i.prefix + '*', 'sort': 'key', 'limit': 5}
-        things = web.ctx.site.things(q)
-        things = [web.ctx.site.get(key) for key in things]
-        
 	if len(i.prefix) > 2:
+	    q = {'type': '/type/author', 'name~': i.prefix + '*', 'sort': 'key', 'limit': 5}
+	    things = web.ctx.site.things(q)
+	    things = [web.ctx.site.get(key) for key in things]
+        
 	    result = [dict(type=[{'id': t.key, 'name': t.key}], name=web.utf8(t.name), guid=t.key, id=t.key, article=dict(id=t.key)) for t in things]
 	else:
 	    result = []
-        callback = i.pop('callback')
+        callback = i.pop('callback', None)
         d = dict(status="200 OK", query=dict(i, escape='html'), code='/api/status/ok', result=result)
-        print '%s(%s)' % (callback, simplejson.dumps(d))
+
+        if callback:
+            print '%s(%s)' % (callback, simplejson.dumps(d))
+        else:
+            print simplejson.dumps(d)
+
         
 class blurb(delegate.page):
     path = "/suggest/blurb/(.*)"
