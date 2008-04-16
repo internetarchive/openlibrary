@@ -7,6 +7,7 @@ import os, re
 from collections import defaultdict
 import cgi
 import web
+import simplejson
 
 php_location = "/petabox/setup.inc"
 
@@ -35,7 +36,10 @@ class Solr_result(object):
     def __init__(self, result_xml):
         et = ElementTree()
         try:
-            et.parse(StringIO(result_xml))
+            w = result_xml.encode('utf-8')
+            def tx(a): return (type(a), len(a))
+            print >> web.debug, 'utf8:', w==result_xml,  tx(result_xml), tx(w)
+            et.parse(StringIO(w))
         except SyntaxError, e:
             ptb = traceback.extract_stack()
             raise SolrError, (e, result_xml, traceback.format_list(ptb))
@@ -51,6 +55,22 @@ class Solr_result(object):
         self.result_list = list(str(a.text) \
                                 for a in et.getiterator('identifier'))
         
+# rewrite of solr result class, to use python or json format result
+class SR2(Solr_result):
+    def __init__(self, result_json):
+        try:
+            e = simplejson.loads(result_json)
+            # h = e['responseHeader']
+            r = e['response']
+            self.total_results = r['numFound']
+            self.begin = r['start']
+            self.end = self.begin + len(r['docs']) - 1
+            self.contained_in_this_set = len(r['docs'])
+            self.result_list = list(d['identifier'] for d in r['docs'])
+        except Exception, e:
+            ptb = traceback.extract_stack()
+            raise SolrError, (e, result_json, traceback.format_list(ptb))
+            
 # Solr search client; fancier version will have multiple persistent
 # connections, etc.
 class Solr_client(object):
@@ -93,7 +113,8 @@ class Solr_client(object):
 
         if not re.match('^[a-z]+$', token):
             raise SolrError, 'invalid facet token'
-        m = eval(self.raw_search('facet_tokens:%s'% token, rows=1, wt='python'))
+        m = simplejson.loads(self.raw_search('facet_tokens:%s'% token,
+                                             rows=1, wt='json'))
         facet_set = set(facet_list)
 
         for d in m['response']['docs']:
@@ -124,11 +145,14 @@ class Solr_client(object):
 
         server_url = 'http://%s:%d/solr/select' % self.server_addr
         query_url = '%s?q=%s'% (server_url, self.__query_fmt(query, rows, start))
-        ru = urlopen(query_url)
-        xml = ru.read()
+        # ru = urlopen(query_url)
+        # xml = ru.read()
+        ru = urlopen(query_url+'&wt=json')
+        py = ru.read()
         ru.close()
         # raise ValueError, (query_url, xml)
-        return Solr_result(xml)
+        # return Solr_result(xml)
+        return SR2(py)
 
     advanced_search = search
 
@@ -191,15 +215,15 @@ class Solr_client(object):
                maxrows=5000):
         """Get facet counts for query.  Todo: statistical faceting."""
 
-        result_set = self.raw_search(query, rows=maxrows, wt='python')
+        result_set = self.raw_search(query, rows=maxrows, wt='json')
 
-        # TODO: avoid using eval here, by instead using xml response format
-        # and parsing it with elementtree, if speed is acceptable.  That also
-        # can reduce memory usage by counting facets incrementally instead
+        # TODO: avoid using json here, by instead using xml response format
+        # and parsing it with elementtree, if speed is acceptable.  That
+        # should reduce memory usage by counting facets incrementally instead
         # of building an in-memory structure for the whole response before
         # counting the facets.
         try:
-            h1 = eval(result_set)
+            h1 = simplejson.loads(result_set)
         except SyntaxError, e:   # we got a solr stack dump
             raise SolrError, (e, result_set)
 
