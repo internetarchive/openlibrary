@@ -65,6 +65,8 @@ def find_authors (r, edition):
         name = " ".join([j.strip(' /,;:') for i, j in f.subfield_sequence if i in 'abc'])
         if 'd' in f.contents:
             author = pick_first_date(f.contents['d'])
+            if author == {}:
+                author['date'] = ' '.join(f.contents['d'])
             author['db_name'] = ' '.join([name] + f.contents['d'])
         else:
             author['db_name'] = name
