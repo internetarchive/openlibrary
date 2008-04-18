@@ -48,7 +48,7 @@ def parse_date(date):
 def remove_trailing_number_dot(date):
     m = re_number_dot.match(date)
     if m:
-        return m.match(1)
+        return m.group(1)
     else:
         return date
 
