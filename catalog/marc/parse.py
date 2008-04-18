@@ -407,48 +407,48 @@ def find_url(r, edition):
 def encode_record_locator (r, file_locator):
     return ':'.join ([file_locator, str(r.record_pos()), str(r.record_len())])
 
+def read_edition(r, edition):
+    if len(r.get_fields('001')) > 1:
+        return False
+
+    find_title(r, edition)
+    if not "title" in edition:
+        return False
+    find_other_titles(r, edition)
+    find_work_title(r, edition)
+    find_authors(r, edition)
+    find_contributions(r, edition)
+    find_edition(r, edition)
+    find_publisher(r, edition)
+    find_pagination(r, edition)
+    find_subjects(r, edition)
+    find_genre(r, edition)
+    find_series(r, edition)
+    find_description(r, edition)
+    find_toc(r, edition)
+    find_dewey_number(r, edition)
+    find_lc_classification(r, edition)
+    find_isbn(r, edition)
+    find_oclc(r, edition)
+    find_lccn(r, edition)
+    find_url(r, edition)
+
+    if len(r.get_fields('008')) > 1:
+        return False
+    f = r.get_field('008')
+    edition["publish_date"] = str(f)[7:11]
+    edition["publish_country"] = str(f)[15:18]
+    edition["languages"] = ["ISO:" + str(f)[35:38]]
+    return True
+
 def parser(file_locator, input, bad_data):
     for r in MARC21BiblioFile (input):
         edition = {
             'source_record_loc': encode_record_locator (r, file_locator)
         }
         try:
-            curr_loc = edition['source_record_loc'][0]
-            if len(r.get_fields('001')) > 1:
-                continue
-
-            find_title(r, edition)
-            if not "title" in edition:
-                continue
-            find_other_titles(r, edition)
-            find_work_title(r, edition)
-            find_authors(r, edition)
-            find_contributions(r, edition)
-            find_edition(r, edition)
-            find_publisher(r, edition)
-            find_pagination(r, edition)
-            find_subjects(r, edition)
-#            find_subject_place(r, edition)
-#            find_subject_time(r, edition)
-            find_genre(r, edition)
-            find_series(r, edition)
-            find_description(r, edition)
-            find_toc(r, edition)
-            find_dewey_number(r, edition)
-            find_lc_classification(r, edition)
-            find_isbn(r, edition)
-            find_oclc(r, edition)
-            find_lccn(r, edition)
-            find_url(r, edition)
-
-            if len(r.get_fields('008')) > 1:
-                continue
-            f = r.get_field('008')
-            edition["publish_date"] = str(f)[7:11]
-            edition["publish_country"] = str(f)[15:18]
-            edition["languages"] = ["ISO:" + str(f)[35:38]]
-
-            yield edition
+            if read_edition(r, edition):
+                yield edition
         except KeyboardInterrupt:
             raise
         except:
