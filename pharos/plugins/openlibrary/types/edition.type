@@ -24,6 +24,7 @@
                 property('/type/author', 'location', '/type/string', True),
                 property('/type/author', 'birth_date', '/type/string', True),
                 property('/type/author', 'death_date', '/type/string', True),
+                property('/type/author', 'date', '/type/string', True),
                 property('/type/author', 'photograph', '/type/uri', True, rendering_hint='image'),
             ],
             'backreferences': [
