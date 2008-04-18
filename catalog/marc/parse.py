@@ -20,6 +20,7 @@ re_date = map (re.compile, [
     '^(?P<birth_date>[^-]*\d+[^-]+ cent\.[^-]*)$'])
 
 re_ad_bc = re.compile(r'\b(B\.C\.?|A\.D\.?)')
+re_number_dot = re.compile('^(.*\d{3,})\.$')
 
 def specific_subtags(f, subtags):
     return [j for i, j in f.subfield_sequence if i in subtags]
@@ -44,6 +45,13 @@ def parse_date(date):
                     i['birth_date'] += ' ' + m.group(1)
     return i
 
+def remove_trailing_number_dot(date):
+    m = re_number_dot.match(date):
+    if m:
+        return m.match(1)
+    else:
+        return date
+
 def pick_first_date(dates):
     # this is to handle this case:
     # 100: $aLogan, Olive (Logan), $cSikes, $dMrs., $d1839-
@@ -54,7 +62,8 @@ def pick_first_date(dates):
         result = parse_date(date)
         if result != {}:
             return result
-    return {}
+
+    return { 'date': ' '.join([remove_trailing_number_dot(d) for d in dates]) }
 
 def find_authors (r, edition):
     authors = []
@@ -65,8 +74,6 @@ def find_authors (r, edition):
         name = " ".join([j.strip(' /,;:') for i, j in f.subfield_sequence if i in 'abc'])
         if 'd' in f.contents:
             author = pick_first_date(f.contents['d'])
-            if author == {}:
-                author['date'] = ' '.join(f.contents['d'])
             author['db_name'] = ' '.join([name] + f.contents['d'])
         else:
             author['db_name'] = name
