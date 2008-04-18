@@ -8,6 +8,8 @@ from infogami.utils import view, template
 from infogami import tdb, config
 #from infogami.plugins.wikitemplates import code as wt
 import re
+import solr_client
+import time
 
 render = template.render
 
@@ -17,8 +19,6 @@ render = template.render
 #wt.register_wiki_template("Search Template", "plugins/search/templates/search.html", "templates/search.tmpl")
 
 #wt.register_wiki_template("Advanced Search Template", "plugins/search/templates/advanced.html", "templates/advanced.tmpl")
-
-import solr_client
 
 solr_server_address = getattr(config, 'solr_server_address', None)
 solr_fulltext_address = getattr(config, 'solr_fulltext_address',
@@ -55,7 +55,6 @@ id_trans = trans()
 def lookup_ocaid(ocaid):
     ocat = id_trans.get(ocaid)
     w = web.ctx.site.get(ocat) if ocat is not None else None
-    # print >> web.debug, ('lookup ocaid', ocaid, w, dir(w))
     return w
 
 from collapse import collapse_groups
@@ -73,13 +72,8 @@ class fullsearch(delegate.page):
             q = re.sub('[\r\n]+', ' ', q).strip()
             results = solr_fulltext.fulltext_search(q)
             for ocaid in results:
-                # print >> web.debug, ('ocaid', ocaid)
-
                 try:
                     pts = solr_pagetext.pagetext_search(ocaid, q)
-                    # print >> web.debug, ('pts', pts)
-                    # print >> web.debug, ('groups', collapse_groups(pts))
-
                     oln_thing = lookup_ocaid(ocaid)
                     if oln_thing is None:
                         # print >> web.debug, 'No oln_thing found for', ocaid
@@ -91,12 +85,10 @@ class fullsearch(delegate.page):
                 except IndexError, e:
                     print >> web.debug, ('fullsearch index error', e, e.args)
                     pass
-            # print >> web.debug, ('pagetexts:', out)
         except IOError, e:
             errortext = 'fulltext search is temporarily unavailable (%s)' % \
                         str(e)
 
-        # print >> web.debug, 'render fullsearch:', (q, out)
         return render.fullsearch(q, out, errortext=errortext)
 
     GET = POST
@@ -105,6 +97,15 @@ import facet_hash
 facet_token = view.public(facet_hash.facet_token)
 
 class DebugException(Exception): pass
+
+class Timestamp(object):
+    def __init__(self):
+        self.t0 = time.time()
+        self.ts = []
+    def update(self, msg):
+        self.ts.append((msg, time.time()-self.t0))
+    def results(self):
+        return (time.ctime(self.t0), self.ts)
 
 class search(delegate.page):
     def POST(self):
@@ -119,6 +120,7 @@ class search(delegate.page):
                       ftokens=[],
                       q='',
                       )
+        timings = Timestamp()
         results = []
         qresults = web.storage(begin=0, total_results=0)
         facets = []
@@ -193,14 +195,20 @@ class search(delegate.page):
             # containing stopwords come back empty.
             query = stopword.basic_strip_stopwords(i.q.strip()) + qtokens
             bquery = solr.basic_query(query)
-            # print >> web.debug, 'query=(%r), bquery=(%r)'% (query,bquery)
             offset = int(i.get('offset', '0') or 0)
             qresults = solr.advanced_search(bquery, start=offset)
             # qresults = solr.basic_search(query, start=offset)
+            timings.update("begin faceting")
             facets = solr.facets(bquery, maxrows=5000)
+            timings.update("done faceting")
             results = munch_qresults(qresults.result_list)
-        except solr_client.SolrError:
-            errortext = 'Sorry, there was an error in your search.'
+            timings.update("done expanding, %d results"% len(results))
+            # print >> web.debug, '***', timings.results()
+
+        except solr_client.SolrError, e:
+            import traceback
+            errortext = 'Sorry, there was an error in your search. (%r)' % \
+                        (e.args,)
 
         # print >> web.debug, 'basic search: about to advanced search (%r)'% \
         #     list((i.get('q', ''),
@@ -209,13 +217,14 @@ class search(delegate.page):
         #           facets,
         #           i.ftokens,
         #           ft_pairs))
-        
+
         return render.advanced_search(i.get('q', ''),
                                       qresults,
                                       results, 
                                       facets,
                                       i.ftokens,
                                       ft_pairs,
+                                      timings.results(),
                                       errortext=errortext)
 
     GET = POST

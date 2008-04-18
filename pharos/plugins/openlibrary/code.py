@@ -133,5 +133,20 @@ def pull_templates():
     get_macros()
     get_i18n()
 
+class bookreader(delegate.page):
+    path = "/details/(.*)"
+
+    def GET(self, identifier):
+	import os, re
+	assert re.match('^[a-zA-Z0-9_]*$', identifier), 'Bad identifier'
+	data = os.popen('/petabox/sw/bin/file_location_client.pl ' + identifier).read()
+	if  not data:
+	    print 'bad identifier', identifier
+	else:
+	    data = data.strip().split()[-1]
+	    server, path = data.split(':')
+	    title = identifier
+	    print render.bookreader(identifier, server, path, title)
+
 if __name__ == "__main__":
     main()
