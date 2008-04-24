@@ -38,7 +38,6 @@ class Solr_result(object):
         try:
             w = result_xml.encode('utf-8')
             def tx(a): return (type(a), len(a))
-            print >> web.debug, 'utf8:', w==result_xml,  tx(result_xml), tx(w)
             et.parse(StringIO(w))
         except SyntaxError, e:
             ptb = traceback.extract_stack()
