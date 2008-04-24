@@ -212,6 +212,9 @@ class search(delegate.page):
         #           i.ftokens,
         #           ft_pairs))
 
+
+        results = filter(bool, results)
+
         return render.advanced_search(i.get('q', ''),
                                       qresults,
                                       results, 
