@@ -24,6 +24,7 @@
                 property('/type/author', 'location', '/type/string', True),
                 property('/type/author', 'birth_date', '/type/string', True),
                 property('/type/author', 'death_date', '/type/string', True),
+                property('/type/author', 'date', '/type/string', True),
                 property('/type/author', 'photograph', '/type/uri', True, rendering_hint='image'),
             ],
             'backreferences': [
@@ -46,6 +47,7 @@
                 property('/type/language', 'code', '/type/string', True),
             ]
         }, False),
+        property('/type/edition', 'contributions', '/type/string', False),
         property('/type/edition', 'number_of_pages', '/type/int', True),
         property('/type/edition', 'description', '/type/text', True),
         property('/type/edition', 'notes', '/type/text', True),

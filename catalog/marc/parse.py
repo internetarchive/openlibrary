@@ -20,6 +20,7 @@ re_date = map (re.compile, [
     '^(?P<birth_date>[^-]*\d+[^-]+ cent\.[^-]*)$'])
 
 re_ad_bc = re.compile(r'\b(B\.C\.?|A\.D\.?)')
+re_number_dot = re.compile('^(.*\d{3,})\.$')
 
 def specific_subtags(f, subtags):
     return [j for i, j in f.subfield_sequence if i in subtags]
@@ -44,6 +45,13 @@ def parse_date(date):
                     i['birth_date'] += ' ' + m.group(1)
     return i
 
+def remove_trailing_number_dot(date):
+    m = re_number_dot.match(date)
+    if m:
+        return m.group(1)
+    else:
+        return date
+
 def pick_first_date(dates):
     # this is to handle this case:
     # 100: $aLogan, Olive (Logan), $cSikes, $dMrs., $d1839-
@@ -54,7 +62,8 @@ def pick_first_date(dates):
         result = parse_date(date)
         if result != {}:
             return result
-    return {}
+
+    return { 'date': ' '.join([remove_trailing_number_dot(d) for d in dates]) }
 
 def find_authors (r, edition):
     authors = []
@@ -398,48 +407,48 @@ def find_url(r, edition):
 def encode_record_locator (r, file_locator):
     return ':'.join ([file_locator, str(r.record_pos()), str(r.record_len())])
 
+def read_edition(r, edition):
+    if len(r.get_fields('001')) > 1:
+        return False
+
+    find_title(r, edition)
+    if not "title" in edition:
+        return False
+    find_other_titles(r, edition)
+    find_work_title(r, edition)
+    find_authors(r, edition)
+    find_contributions(r, edition)
+    find_edition(r, edition)
+    find_publisher(r, edition)
+    find_pagination(r, edition)
+    find_subjects(r, edition)
+    find_genre(r, edition)
+    find_series(r, edition)
+    find_description(r, edition)
+    find_toc(r, edition)
+    find_dewey_number(r, edition)
+    find_lc_classification(r, edition)
+    find_isbn(r, edition)
+    find_oclc(r, edition)
+    find_lccn(r, edition)
+    find_url(r, edition)
+
+    if len(r.get_fields('008')) > 1:
+        return False
+    f = r.get_field('008')
+    edition["publish_date"] = str(f)[7:11]
+    edition["publish_country"] = str(f)[15:18]
+    edition["languages"] = ["ISO:" + str(f)[35:38]]
+    return True
+
 def parser(file_locator, input, bad_data):
     for r in MARC21BiblioFile (input):
         edition = {
             'source_record_loc': encode_record_locator (r, file_locator)
         }
         try:
-            curr_loc = edition['source_record_loc'][0]
-            if len(r.get_fields('001')) > 1:
-                continue
-
-            find_title(r, edition)
-            if not "title" in edition:
-                continue
-            find_other_titles(r, edition)
-            find_work_title(r, edition)
-            find_authors(r, edition)
-            find_contributions(r, edition)
-            find_edition(r, edition)
-            find_publisher(r, edition)
-            find_pagination(r, edition)
-            find_subjects(r, edition)
-#            find_subject_place(r, edition)
-#            find_subject_time(r, edition)
-            find_genre(r, edition)
-            find_series(r, edition)
-            find_description(r, edition)
-            find_toc(r, edition)
-            find_dewey_number(r, edition)
-            find_lc_classification(r, edition)
-            find_isbn(r, edition)
-            find_oclc(r, edition)
-            find_lccn(r, edition)
-            find_url(r, edition)
-
-            if len(r.get_fields('008')) > 1:
-                continue
-            f = r.get_field('008')
-            edition["publish_date"] = str(f)[7:11]
-            edition["publish_country"] = str(f)[15:18]
-            edition["languages"] = ["ISO:" + str(f)[35:38]]
-
-            yield edition
+            if read_edition(r, edition):
+                yield edition
         except KeyboardInterrupt:
             raise
         except:
