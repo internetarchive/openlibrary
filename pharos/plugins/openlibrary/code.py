@@ -22,7 +22,7 @@ class addbook(delegate.page):
         books = web.ctx.site.things({'key~': '/b/OL*', 'sort': '-id', 'limit': 1})
 
         key = '/b/OL%dM' % (1 + int(web.numify(books[0])))
-	web.ctx.path = key
+        web.ctx.path = key
         return edit().POST(key)
 
 class addauthor(delegate.page):
@@ -43,9 +43,9 @@ class clonebook(delegate.page):
         if page is None:
             web.seeother(i.key)
         else:
-	    d =page._getdata()
-	    for k in ['isbn_10', 'isbn_13', 'lccn', "oclc"]:
-		 d.pop(k, None)
+            d =page._getdata()
+            for k in ['isbn_10', 'isbn_13', 'lccn', "oclc"]:
+                 d.pop(k, None)
             return render.edit(page, '/addbook', 'Clone Book')
 
 class search(delegate.page):
@@ -53,14 +53,14 @@ class search(delegate.page):
     
     def GET(self):
         i = web.input()
-	if len(i.prefix) > 2:
-	    q = {'type': '/type/author', 'name~': i.prefix + '*', 'sort': 'key', 'limit': 5}
-	    things = web.ctx.site.things(q)
-	    things = [web.ctx.site.get(key) for key in things]
+        if len(i.prefix) > 2:
+            q = {'type': '/type/author', 'name~': i.prefix + '*', 'sort': 'key', 'limit': 5}
+            things = web.ctx.site.things(q)
+            things = [web.ctx.site.get(key) for key in things]
         
-	    result = [dict(type=[{'id': t.key, 'name': t.key}], name=web.utf8(t.name), guid=t.key, id=t.key, article=dict(id=t.key)) for t in things]
-	else:
-	    result = []
+            result = [dict(type=[{'id': t.key, 'name': t.key}], name=web.utf8(t.name), guid=t.key, id=t.key, article=dict(id=t.key)) for t in things]
+        else:
+            result = []
         callback = i.pop('callback', None)
         d = dict(status="200 OK", query=dict(i, escape='html'), code='/api/status/ok', result=result)
 
@@ -75,8 +75,8 @@ class blurb(delegate.page):
     def GET(self, path):
         i = web.input()        
         callback = i.pop('callback')
-	author = web.ctx.site.get('/' +path)
-	bio = author and author.bio or ""
+        author = web.ctx.site.get('/' +path)
+        bio = author and author.bio or ""
         result = dict(body=web.utf8(bio), media_type="text/html", text_encoding="utf-8")
         d = dict(status="200 OK", code="/api/status/ok", result=result)
         print "%s(%s)" % (callback, simplejson.dumps(d))
@@ -87,8 +87,8 @@ class thumbnail(delegate.page):
 @public
 def get_property_type(type, name):
     for p in type.properties:
-	if p.name == name:
-	    return p.expected_type
+        if p.name == name:
+            return p.expected_type
     return web.ctx.site.get("/type/string")
 
 def save(filename, text):
@@ -105,7 +105,7 @@ def save(filename, text):
 def change_ext(filename, ext):
     filename, _ = os.path.splitext(filename)
     if ext:
-	filename = filename + ext
+        filename = filename + ext
     return filename
 
 def get_pages(type, processor):
@@ -134,19 +134,36 @@ def pull_templates():
     get_i18n()
 
 class bookreader(delegate.page):
-    path = "/details/(.*)"
+    path = "/details/([a-zA-Z0-9_-]*)(?:/leaf(\d+))?"
 
-    def GET(self, identifier):
-	import os, re
-	assert re.match('^[a-zA-Z0-9_]*$', identifier), 'Bad identifier'
-	data = os.popen('/petabox/sw/bin/file_location_client.pl ' + identifier).read()
-	if  not data:
-	    print 'bad identifier', identifier
-	else:
-	    data = data.strip().split()[-1]
-	    server, path = data.split(':')
-	    title = identifier
-	    print render.bookreader(identifier, server, path, title)
+    def GET(self, identifier, leaf):
+        import os
+        data = os.popen('/petabox/sw/bin/file_location_client.pl ' + identifier).read()
+        if  not data:
+            return web.notfound()
+        else:
+            data = data.strip().split()[-1]
+            server, path = data.split(':')
+            title = identifier
+            
+            params = dict(identifier=identifier, dataserver=server, datapath=path)
+            if leaf:
+                params['leaf'] = leaf
+            import urllib
+            url = "http://%s/flipbook/flipbook.php?%s" % (server, urllib.urlencode(params))     
+            print render.bookreader(url, title)
+                        
+class search_api:
+    def GET(self):
+        #@@ To be implemented
+        return {"status": "ok", "result": []}
+        
+# add search API if api plugin is enabled.
+if 'api' in delegate.get_plugins():
+    from infogami.plugins.api import code as api
+    api.add_hook('search', search_api)
+    
+    
 
 if __name__ == "__main__":
     main()
