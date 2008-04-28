@@ -6,19 +6,11 @@ from infogami import utils
 from infogami.utils import delegate
 from infogami.utils import view, template
 from infogami import tdb, config
-#from infogami.plugins.wikitemplates import code as wt
 import re
 import solr_client
 import time
 
 render = template.render
-
-#render = view.render.search
-#render.search = wt.sitetemplate("search", render.search)
-#render.fullsearch = wt.sitetemplate("fullsearch", render.fullsearch)
-#wt.register_wiki_template("Search Template", "plugins/search/templates/search.html", "templates/search.tmpl")
-
-#wt.register_wiki_template("Advanced Search Template", "plugins/search/templates/advanced.html", "templates/advanced.tmpl")
 
 solr_server_address = getattr(config, 'solr_server_address', None)
 solr_fulltext_address = getattr(config, 'solr_fulltext_address',
@@ -96,8 +88,6 @@ class fullsearch(delegate.page):
 import facet_hash
 facet_token = view.public(facet_hash.facet_token)
 
-class DebugException(Exception): pass
-
 class Timestamp(object):
     def __init__(self):
         self.t0 = time.time()
@@ -129,7 +119,10 @@ class search(delegate.page):
         if solr is None:
             errortext = 'Solr is not configured.'
 
-        q0 = filter(bool, [i.q])
+        if i.q:
+            q0 = [clean_punctuation(i.q)]
+        else:
+            q0 = []
         for formfield, searchfield in \
                 (('wtitle', 'title'),
                  ('wauthor', 'authors'),
@@ -139,7 +132,7 @@ class search(delegate.page):
                  ('wdescription', 'description'),
                  ('pfulltext', 'has_fulltext'),
                  ):
-            v = i.get(formfield)
+            v = clean_punctuation(i.get(formfield))
             if v:
                 if type(searchfield) == str:
                     q0.append('%s:(%s)'% (searchfield, v))
@@ -151,6 +144,8 @@ class search(delegate.page):
             # @@ need to unpack date range field and sort order here
             # @@
         
+        # print >> web.debug, '** i.q=(%s), q0=(%s)'%(i.q, q0)
+
         # get list of facet tokens by splitting out comma separated
         # tokens, and remove duplicates.  Also remove anything in the
         # initial set `init'.
@@ -203,7 +198,6 @@ class search(delegate.page):
             timings.update("done faceting")
             results = munch_qresults(qresults.result_list)
             timings.update("done expanding, %d results"% len(results))
-            # print >> web.debug, '***', timings.results()
 
         except solr_client.SolrError, e:
             import traceback
@@ -217,6 +211,9 @@ class search(delegate.page):
         #           facets,
         #           i.ftokens,
         #           ft_pairs))
+
+
+        results = filter(bool, results)
 
         return render.advanced_search(i.get('q', ''),
                                       qresults,
@@ -248,3 +245,16 @@ def munch_qresults(qlist):
         return book
 
     return [web.ctx.site.get(restore_slash(r)) for r in results]
+
+from string import punctuation, translate
+ptable = ''.join(' ' if chr(i) in punctuation else chr(i) for i in xrange(256))
+def clean_punctuation(s):
+    """>>> print clean_punctuation('New York : Harper & Brothers')
+    New York   Harper   Brothers"""
+
+    r = s.translate(ptable)
+    return r
+
+if __name__ == '__main__':
+    import doctest
+    doctest.testmod()

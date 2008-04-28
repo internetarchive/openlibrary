@@ -1,4 +1,4 @@
-$def with (identifier, server, path, title)
+$def with (url, title)
 <html><head>
 <title>Open Library: Details: $title</title>
 <style>
@@ -6,7 +6,9 @@ $def with (identifier, server, path, title)
   iframe{ margin:0px; padding:0px; border:0px; width:100%; height:100%; overflow:visible;}
 </style>
 </head>
+
+
 <body class="Texts">
-<iframe src="http://$server/flipbook/flipbook.php?identifier=$identifier&datapath=$path&dataserver=$server">
+<iframe src="$:url">
 </iframe>
 </body></html>

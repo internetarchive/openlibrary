@@ -15,13 +15,21 @@ from hashlib import sha1 as mkhash
 
 facet_token_length = 12
 
-# str, str -> str
-def facet_token(field, v):
-    token = []
+# turn v into a str object, by encoding from unicode or numeric
+# if necessary.
+def coerce_str(v):
     if type(v) == unicode:
         v=v.encode('utf-8')
     v = str(v)    # in case v is a numeric type
     assert type(v) == str,(type(v),v)
+    return v
+
+# str, str -> str
+def facet_token(field, v):
+    token = []
+    v = coerce_str(v)
+    field = coerce_str(field)
+
     q = int(mkhash('FT,%s,%s'%(field,v)).hexdigest(), 16)
     for i in xrange(facet_token_length):
         q,r = divmod(q, 26)
