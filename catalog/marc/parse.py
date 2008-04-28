@@ -21,11 +21,14 @@ re_date = map (re.compile, [
 
 re_ad_bc = re.compile(r'\b(B\.C\.?|A\.D\.?)')
 re_number_dot = re.compile('^(.*\d{3,})\.$')
+re_date_fl = re.compile('^fl[., ]')
 
 def specific_subtags(f, subtags):
     return [j for i, j in f.subfield_sequence if i in subtags]
 
 def parse_date(date):
+    if re_date_fl.match(date):
+        return {}
     if date.find('-') == -1:
         for r in re_date:
             m = r.search(date)
