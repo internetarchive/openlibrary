@@ -42,7 +42,7 @@
             'create': 'unless_exists',
             'key': '/type/language',
             'type': '/type/type',
-            'property': [
+            'properties': [
                 property('/type/language', 'name', '/type/string', True),
                 property('/type/language', 'code', '/type/string', True),
             ]
