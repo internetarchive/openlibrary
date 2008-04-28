@@ -173,6 +173,10 @@ class search(delegate.page):
 
         ft_pairs = list((t, solr.facet_token_inverse(t)) for t in ft_list)
 
+        # we have somehow gotten some queries for facet tokens with no
+        # inverse.  remove these from the list.
+        ft_pairs = filter(lambda (a,b): b, ft_pairs)
+
         if not q0:
             errortext = 'You need to enter some search terms.'
             return render.advanced_search(i.get('wtitle',''),
@@ -181,6 +185,7 @@ class search(delegate.page):
                                           [],
                                           i.ftokens,
                                           ft_pairs,
+                                          [],
                                           errortext=errortext)
 
         out = []
