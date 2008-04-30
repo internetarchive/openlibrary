@@ -5,7 +5,7 @@
     'properties': [
         property('/type/edition', 'title', '/type/string', True),
         property('/type/edition', 'title_prefix', '/type/string', True),
-        property('/type/edition', 'subtitles', '/type/string', False),
+        property('/type/edition', 'subtitle', '/type/string', True),
         property('/type/edition', 'other_titles', '/type/string', False),
         property('/type/edition', 'authors', {
             'create': 'unless_exists',
@@ -32,7 +32,7 @@
             ]
         }, False),
         
-        property('/type/edition', 'by_statements', '/type/string', False),
+        property('/type/edition', 'by_statement', '/type/string', True),
         property('/type/edition', 'publish_date', '/type/string', True),
         property('/type/edition', 'publish_places', '/type/string', False),
         property('/type/edition', 'publish_country', '/type/string', True),
@@ -52,7 +52,7 @@
         property('/type/edition', 'description', '/type/text', True),
         property('/type/edition', 'notes', '/type/text', True),
         property('/type/edition', 'genres', '/type/string', False),
-        property('/type/edition', 'table_of_contents', '/type/text', False),
+        property('/type/edition', 'table_of_contents', '/type/string', False),
         property('/type/edition', 'work_titles', '/type/string', False),
         property('/type/edition', 'series', '/type/string', False),
         
@@ -62,14 +62,17 @@
         
         property('/type/edition', 'subjects', '/type/string', False),
         
-        property('/type/edition', 'lccn', '/type/string', True),
+        property('/type/edition', 'lccn', '/type/string', False),
         property('/type/edition', 'ocaid', '/type/string', True),
         property('/type/edition', 'oclc_numbers', '/type/string', False),
         property('/type/edition', 'isbn_10', '/type/string', False),
         property('/type/edition', 'isbn_13', '/type/string', False),
         
-        property('/type/edition', 'dewey_decimal_class', '/type/string', True),
+        property('/type/edition', 'dewey_decimal_class', '/type/string', False),
         property('/type/edition', 'lc_classifications', '/type/string', False),
         property('/type/edition', 'coverimage', '/type/string', True),
+
+        property('/type/edition', 'first_sentense', '/type/text', True),
+        property('/type/edition', 'weight', '/type/string', True),
     ]
 }
