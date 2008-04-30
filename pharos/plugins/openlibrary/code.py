@@ -29,7 +29,7 @@ class addauthor(delegate.page):
     def POST(self):
         i = web.input("name")
         if len(i.name) < 2:
-            return web.badinput()
+            return web.badrequest()
         authors = web.ctx.site.things({'key~': '/a/OL*', 'sort': '-id', 'limit': 1})
         key = '/a/OL%dA' % (1 + int(web.numify(authors[0])))
         web.ctx.site.write({'create': 'unless_exists', 'key': key, 'name': i.name, 'type': dict(key='/type/author')}, comment='New Author')
@@ -52,7 +52,7 @@ class search(delegate.page):
     path = "/suggest/search"
     
     def GET(self):
-        i = web.input()
+        i = web.input(prefix="")
         if len(i.prefix) > 2:
             q = {'type': '/type/author', 'name~': i.prefix + '*', 'sort': 'key', 'limit': 5}
             things = web.ctx.site.things(q)
@@ -68,18 +68,20 @@ class search(delegate.page):
             print '%s(%s)' % (callback, simplejson.dumps(d))
         else:
             print simplejson.dumps(d)
-
         
 class blurb(delegate.page):
     path = "/suggest/blurb/(.*)"
     def GET(self, path):
         i = web.input()        
-        callback = i.pop('callback')
+        callback = i.pop('callback', None)
         author = web.ctx.site.get('/' +path)
         bio = author and author.bio or ""
         result = dict(body=web.utf8(bio), media_type="text/html", text_encoding="utf-8")
         d = dict(status="200 OK", code="/api/status/ok", result=result)
-        print "%s(%s)" % (callback, simplejson.dumps(d))
+        if callback:
+            print '%s(%s)' % (callback, simplejson.dumps(d))
+        else:
+            print simplejson.dumps(d)
 
 class thumbnail(delegate.page):
     path = "/suggest/thumbnail"
