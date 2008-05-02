@@ -204,10 +204,11 @@ class search(delegate.page):
             results = munch_qresults(qresults.result_list)
             timings.update("done expanding, %d results"% len(results))
 
-        except solr_client.SolrError, e:
+        except (solr_client.SolrError, Exception), e:
             import traceback
-            errortext = 'Sorry, there was an error in your search. (%r)' % \
-                        (e.args,)
+            errortext = 'Sorry, there was an error in your search.'
+            if i.get('safe')=='false':
+                errortext +=  '(%r)' % (e.args,)
 
         # print >> web.debug, 'basic search: about to advanced search (%r)'% \
         #     list((i.get('q', ''),
@@ -251,14 +252,18 @@ def munch_qresults(qlist):
 
     return [web.ctx.site.get(restore_slash(r)) for r in results]
 
-from string import punctuation, translate
-ptable = ''.join(' ' if chr(i) in punctuation else chr(i) for i in xrange(256))
-def clean_punctuation(s):
-    """>>> print clean_punctuation('New York : Harper & Brothers')
-    New York   Harper   Brothers"""
+class xsearch(delegate.page):
+    def GET(self):
+        q = web.input(q='')
+        result = solr.basic_search(q)
 
-    r = s.translate(ptable)
-    return r
+# disable the above function by redefining it as a do-nothing.
+# This replaces a version that removed all punctuation from the
+# query (see change history, 2008-05-01).  Something a bit smarter
+# than this is probably better.
+def clean_punctuation(s):
+    ws = [w.lstrip(':') for w in s.split()]
+    return ' '.join(filter(bool,ws))
 
 if __name__ == '__main__':
     import doctest
