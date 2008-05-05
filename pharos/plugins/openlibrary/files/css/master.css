@@ -16,6 +16,7 @@
 	#databar { clear: both; padding-right: 8px; background-color: #F1EFED; height: 2.25em; border-bottom: 1px solid #BEBE7C;  vertical-align: middle; }
 
 	.widgetlabel { color: #919070; padding: 8px 8px 4px 8px; font-family: verdana, arial, helvetica, sans-serif; font-size: 10px; float: left; }
+	.helplabel { color: #919070; padding: 8px 8px 4px 8px; font-family: verdana, arial, helvetica, sans-serif; font-size: 10px; font-style: bold; }
 	.navlinks { float:right; padding: 0px 20px 0px 0px; margin: 0px; height: 25px; line-height: 25px; vertical-align: middle; }
 	.navlinks a { color: white; text-decoration: underline; }
 	.navlinks a:hover { color: white; text-decoration: underline; }
@@ -25,6 +26,7 @@
 	.title-pad { padding-left: 22px; }
 	.pretitle { font-size: 18px; line-height: 24px; color: #666; }
 	.posttitle { font-size: 18px; line-height: 8px; color: #666; }
+	.subtitle { font-size: 18px; line-height: 22px; color: #999; font-style: italic; padding-left: 24px; padding-bottom: 12px; }
 
 	.content { margin: 0px 0px 34px 24px; font-size:14px; line-height:20px; }
 	.content-bottom { margin: 0px 0px 34px 24px; font-size:14px; line-height:20px; }
@@ -54,6 +56,7 @@
 	li { }
 
 	h2 { color: #625E25; font-size: 22px; font-weight: normal;  margin-left: 0px }
+	h2.api { color: #336699; font-size: 22px; font-weight: normal;  margin-left: 0px }
 	h3 { color: #666666; font-size: 16px; line-height: 16px; text-transform: uppercase; }
 	h4 { color: #999; font-size: 14px; margin-left: 35px; }
 	
@@ -81,6 +84,10 @@
 	a.white 			{ color: #fff }
 	a.white:hover 		{ text-decoration: none; }
 	a.white:visited		{ color: #fff }
+	
+	a.light 			{ color: #666; text-decoration: underline; }
+	a.light:hover 		{ text-decoration: underline; }
+	a.light:visited		{ color: #666; text-decoration: underline; }
 
 	a.button 			{ text-decoration: none; }
 	a.button:hover 		{ text-decoration: none; }
@@ -149,8 +156,9 @@
 	td.formheader { padding: 0px 4px 6px 10px; text-align: left; font-weight: bold; color: #625E25; white-space: nowrap; vertical-align: top; }
 	td.formheader-i18n { padding: 6px 4px 2px 0px; text-align: left; font-weight: bold; color: #625E25; white-space: nowrap; vertical-align: top; }
 	.formheader { padding: 0px 4px 6px 10px; text-align: left; font-weight: bold; color: #625E25; width: 220px; }
+	.formheader-edit { padding: 0px 4px 6px 0px; text-align: left; font-weight: bold; color: #625E25; }
 
-	td.formheader-top { padding: 10px 4px 6px 10px; text-align: left; font-weight: bold; color: #625E25; white-space: nowrap; }
+	td.formheader-top { padding: 10px 4px 6px 10px; text-align: left; font-weight: bold; color: #625E25; white-space: nowrap; vertical-align: top; }
 	td.formheader-rule { padding: 10px 4px 6px 10px; text-align: left; font-weight: bold; color: #625E25; white-space: nowrap; border-top: 1px solid #ccc; }
 	td.formfield  { padding: 0px 8px 6px 4px; width: 100%; vertical-align: top; }
 	td.formfield-top  { padding: 10px 2px 6px 4px; }
@@ -168,7 +176,7 @@
 	td.formbuttons-identifier  { padding: 0px 0px 0px 0px; border-bottom: 0px solid #BBBA92; white-space: nowrap; }
 	td.formbuttons-toc  { padding: 3px 0px 0px 4px; border-bottom: 0px solid #BBBA92; white-space: nowrap; }
 
-	pre { font-family: courier, monospaced; font-size: 12px; padding: 30px; }
+	pre { font-family: courier, monospaced; font-size: 12px; padding: 5px; }
 	input { font-family: georgia, times new roman, times, serif; font-size: 12px; background-color: #fff; border: 1px solid #ccc; font-weight: normal; }
 	input:focus { background-color: #eee; border-color: #900; }
 	textarea:focus { background-color: #eee; border-color: #900; }
@@ -196,8 +204,8 @@
 			text-transform: uppercase;
 			font-weight: bold;
 			letter-spacing: .05em;
+			line-height: 28px;			
 			height: 26px;
-			line-height: 28px;
 			margin: 0px 0px 0px 0px;
 			padding: 0px 4px 0px 4px;
 		} 
@@ -211,7 +219,7 @@
 
 	button.go { margin: 8px 0px 0px 6px; }
 	.button-border { margin: -9px 0px 0px 0px; padding: 0px 4px 0px 6px; white-space: nowrap; }
-	button.go-small { background-color: #fff; height: 1.4em; }			
+	button.go-small { background-color: #fff; height: 1.4em; line-height: 1em; }			
 	button.addkey-small { background-color: #625E25; color: #fff; height: 18px; }			
 	.addkey-small { background-color: #625E25; color: #fff; height: 18px; }			
 	button.action { background-color: #fff; color: #919070; }
@@ -229,10 +237,15 @@
 		} 
 		
 	button.clone { background-color: #DEDCBF; color: #625E25;  margin: 0px 3px 0px 0px; font-style: normal }
+	button.highlight { background-color: #6F320D; color: #fff;  margin: 0px 3px 0px 0px; font-style: normal }
+	button.highlight-green { background-color: #625E25; color: #fff;  margin: 0px 3px 0px 0px; font-style: normal }
 	button.edit { background-color: #fff; color: #919070; margin: 0px 6px 0px 0px; }
 	#hideerror { background-color: #900; color: #fff; margin: 0px 6px 0px 0px; font-weight: bold; font-family: helvetica, arial, sans-serif; width: 20px; float: right; text-align: center; }
 	.hideerror { background-color: #900; color: #fff; margin: 0px 6px 0px 0px; font-weight: bold; font-family: helvetica, arial, sans-serif; width: 20px; text-align: center; }
 	button.edit-delete { }
+
+	button.apiblue { background-color: #fff; color: #336699; border: solid 1px #336699; }
+	button.apiblue:hover { background-color: #336699; color: #fff; border: solid 1px #336699; }
 
 	button.control { border: 0px; background-color: transparent; padding: 0px; margin: -5px 0px 0px 0px; }
 
@@ -263,7 +276,7 @@
 /*ALERT STYLES*/
 	#violator { position: absolute; top: 54px; left: 0px; z-index: 100000 } 
 	.attention { font-size: 14px; line-height: 20px; color: #666; background-color: #fff; border: 1px solid #fff; padding: 10px; max-width: 410px; margin-left: 223px; margin-bottom: 10px; font-style: italic; }
-	.attention-fullpage { font-size: 14px; line-height: 20px; color: #666; background-color: #f8f8f8; border-bottom: 1px solid #ccc; padding: 10px 25px 10px 25px; font-style: italic; padding-left: 180px; }
+	.attention-fullpage { font-size: 14px; line-height: 20px; color: #666; background-color: #f8f8f8; border-bottom: 1px solid #ccc; padding: 10px 25px 10px 0px; font-style: italic;}
 
 	.subhead-emphasis-dark { font-size: 14px; line-height: 20px; color: #333; font-weight: bold; }
 	.subhead-emphasis { font-size: 14px; line-height: 20px; color: #666; font-style: italic; }
@@ -273,9 +286,19 @@
 	.copyright { font-size: 14px; line-height: 20px; color: #999; font-style: italic; }
 	.copyright-footer { font-size: 14px; line-height: 20px; color: #666; background-color: #f8f8f8; border-top: 1px solid #ccc; padding: 10px 25px 10px 25px; font-style: italic; }
 
-	.blue {  line-height: 16px;	background:#EBF6FF; padding: 10px; border: 1px dotted #336699; margin: 0px 0px 0px 50px; color: #000; font-size: 13px; text-align: left; }
-	.yellow {  line-height: 16px; 	background:#ffffcc; padding: 10px; border: 1px dotted #990000; margin: 0px 0px 0px 50px; color: #000; font-size: 13px; text-align: left; }
+	.blue {  line-height: 16px;	background:#EBF6FF; padding: 10px; border: 1px dotted #336699; margin: 0px 50px 0px 50px; color: #000; font-size: 13px; text-align: left; }
+	.yellow {  line-height: 16px; 	background:#ffffcc; padding: 10px; border: 1px dotted #990000; margin: 0px 50px 0px 50px; color: #000; font-size: 13px; text-align: left; }
 	.green {  line-height: 16px; 	background:#ccffcc; padding: 10px; border: 1px dotted #336600; margin: 0px 0px 0px 10px; color: #000; font-size: 13px; text-align: left; white-space: nowrap }
+
+
+	.query {  line-height: 16px; background:#EBF6FF; padding: 10px; border: 1px dotted #336699; color: #336699; margin: 0px 10px 0px 10px; font-size: 13px; text-align: left; }
+	.response {  line-height: 16px;	background:#ccffcc; padding: 10px; border: 1px dotted #336600; color: #336600; margin: 0px 10px 0px 10px; font-size: 13px; text-align: left; }
+	td.arrow { color: #336600; font-size: 32px; padding-top: 30px; }
+	code { background-color: #ffffcc; color: #900; }
+	.api a { color: #900; text-decoration: none; padding-left: 18px; line-height: 20px; }
+	.api a:before { content: "- "; }
+	
+	code.normal { font-family: courier, monospaced; font-size: 12px; padding: 5px; }
 
 	.fb_error { color: #900; font-size: 12px; line-height: 19px; margin-right: 30px; margin-top: 5px; background:#FFF8F1; padding: 10px; border: 1px dotted #990000; }
 
@@ -340,7 +363,7 @@
 	#tempmetadata { padding-top: 12px; font-style: italic; height: 24px; margin-bottom: -6px; }
 	.tempmetatitle { float: left; padding-right: 3px; }
 
-	.book { margin-left: 70px; float: right; width: 300px; text-align: right; border: 0px solid #666 }
+	.book { margin-left: 70px; float: right; width: 300px; text-align: right; border: 0px solid #666; background-color: trasparent; }
 	.book-temp { margin-left: 70px; float: right; width: 300px; text-align: right; padding-right: 1px; border: 0px solid #666 }
 
 	.result-text-home { padding-bottom: 6px; padding-left: 10px; padding-right: 10px; color: #919070; font-size: 16px; line-height: 20px; white-space: nowrap; }
@@ -374,9 +397,9 @@
 	.pdstatus-in { color: #FF2000 }
 	.pdstatus-unknown { color: #EDB141 }
 	.pdstatus-out { color: #669933 }
-	.pdstatus-footer { background-color: #f8f8f8; border-top: 1px solid #ccc; text-align: left; padding: 10px 30px 20px 30px; }
+	.pdstatus-footer { background-color: #f8f8f8; border-top: 1px solid #ccc; text-align: right; padding: 10px 30px 20px 30px; }
 
 
 
-
+b.i18n { color: #919070; font-family: courier, monospaced; }
 

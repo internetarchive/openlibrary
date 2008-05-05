@@ -23,6 +23,9 @@ $:macros.FlourishButton("edit", changequery(m='edit'), "right", "edition")
     <span class="book-details-italic">&nbsp;&nbsp;&nbsp;
     $if page.birth_date or page.death_date:
         $page.birth_date - $page.death_date
+    $else:
+        $if page.date:
+            $page.date
     </span>
 </div>
 

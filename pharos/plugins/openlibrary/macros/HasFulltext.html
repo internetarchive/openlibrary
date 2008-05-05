@@ -6,6 +6,7 @@ $if fname == 'has_fulltext':
 $elif fname == 'facet_year':
     $if fval == 'pre1920': $_.pre1920
     $elif fval == '2000': $_.after2000
+    $elif fval == 'unknown': $_.unknown
     $else:
          $ y = int(fval[slice(4)])
          $(y)-$(y + 19)

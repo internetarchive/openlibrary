@@ -23,7 +23,9 @@ $var title: $page.key
 
 <div id="header">
 <div style="float:left;padding-left:10px;padding-right:15px;"></div>
-    <div id="title">$page.key</div>
+    <div class="button-border"><div id="title">$page.key
+<button type="button" name="submit" value="$_.edit" class="action"  onclick="window.location.href = '$changequery(m='edit')';">$_.edit</button><img src="/static/images/flourish.gif"  alt="]" /></div>
+</div>
 </div>
 
 <table border="0" cellspacing="0" cellpadding="0" width="100%">
@@ -52,6 +54,8 @@ $for ns in _.get_namespaces():
     </table>
 <br/>
     
+
+
 </td>
 </tr>
 </table>
@@ -65,6 +69,8 @@ $for ns in _.get_namespaces():
 Language: $:Dropdown('lang', _.get_languages(), onchange="changelang();", id="id_lang", value=lang).render()
 </span></span>
 <input type="hidden" name="ns" value="$namespace">
+
+<div class="formheader" style="margin-top: 20px; font-weight: normal">Use the pulldown menu to toggle between the default string set of English (en) and your desired language to begin working with translations.</div>
 
 </td></tr></table>
 

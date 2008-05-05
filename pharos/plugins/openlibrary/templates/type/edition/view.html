@@ -17,8 +17,10 @@ function gbs_process(d) {
   }
 }
 function gbs_callback(d) {
-$if page.get('isbn_10'): gbs_process(d['ISBN:$page.isbn_10'])
-$if page.get('lccn'): gbs_process(d['LCCN:$page.lccn'])
+$for isbn in page.get('isbn_10', []):
+    gbs_process(d['ISBN:$isbn'])
+$for lccn in page.get('lccn'):
+    gbs_process(d['LCCN:$lccn'])
 }
 // -->
 </script>
@@ -26,19 +28,23 @@ $if page.get('lccn'): gbs_process(d['LCCN:$page.lccn'])
 
 <style type="text/css">
 <!--
-#book-art { width: 205px; height: 300px; text-align: center; float: left; padding-top: 21px; padding-left: 13px; padding-right: 14px; background: #fff url(/static/logos/logo-${lang}.png) top center no-repeat; }
--->
-</style>
+#book-art { width: 205px; height: 300px; text-align: center; float: left; padding-top: 21px; padding-left: 13px; padding-right: 14px; clear: both; }
 
-	
+/*background: transparent url(/static/logos/logo-${lang}.png) top center no-repeat; } */
+
+-->
+</style>	
 
 $ lccn = page["lccn"] and page["lccn"][0] and ("http://lccn.loc.gov/" + page["lccn"][0])
+
+
 <blockquote class="text">
     <div id="header">               
         <div id="title" class="title-pad">$page.title_prefix $page.title</div>
+            $if page.get('subtitle'): <div class="subtitle" style="margin-top: -4px;">$page.subtitle<br /></div>
 
         <div id="statement">
-            by <span class="datalink">$:thingrepr(page.authors)</span><br />
+            $if page.authors: by <span class="datalink">$:thingrepr(page.authors)</span><br />
             <span class="book-details-italic">
             $if page.get('publish_date'): $_.published_in $page.publish_date, 
             $if page.get('publishers'): $:thingrepr(page.publishers)
@@ -50,14 +56,22 @@ $ lccn = page["lccn"] and page["lccn"][0] and ("http://lccn.loc.gov/" + page["lc
 
         <div id="book-art" class="datalink">
 
+                <script>
+                   function set_bookart() {
+                       \$("#book-art").css("background", "transparent url(/static/logos/logo-${lang}.png) top center no-repeat");
+                   }
+                </script>
+
             $if page.coverimage:
-                $ cover = page.coverimage width="180" alt="$page.title" />
+                $ cover = page.coverimage
             $elif page.isbn_10 and len(page.isbn_10[0]) == 10:
                 $ cover = "/static/bookcovers/full/" + page.isbn_10[0][0] + "/" + page.isbn_10[0][1] + "/" + page.isbn_10[0] + ".jpg"
             $else:
-                $ cover = "/static/images/book.trans.gif"
-            <img src="$cover" width="180" alt="$_.cover_not_available" onError="this.src='/static/images/book.trans.gif';"/>
+                $ cover = None
+                <script>set_bookart();</script>
 
+            $if cover:
+                <img src="$cover" width="180" alt="$_.cover_not_available" onError="set_bookart(); \$(this).attr('src', '/static/images/book.trans.gif');"/>
 
             <div id="book"></div>
             <br clear="all" />
@@ -65,7 +79,7 @@ $ lccn = page["lccn"] and page["lccn"][0] and ("http://lccn.loc.gov/" + page["lc
 
             <div id="viewthisbook-oln" style="margin-top: 0px; padding-left: 0px;">
                 <div style="margin-top: 4px;">
-        $if page.ocaid: <a href="http://openlibrary.org/details/$page.ocaid" class="white" style="text-decoration:none"><button type="submit" name="submit" value="$_.scan_this_book" class="submit" style="width: 176px;">$_.full_text</button></a>
+        $if page.ocaid: <a href="http://www.archive.org/details/$page.ocaid" class="white" style="text-decoration:none"><button type="submit" name="submit" value="$_.scan_this_book" class="submit" style="width: 176px;">$_.full_text</button></a>
                 </div>
             </div>
             
@@ -81,7 +95,7 @@ $ lccn = page["lccn"] and page["lccn"][0] and ("http://lccn.loc.gov/" + page["lc
 
             <table border="0" cellpadding="0" cellspacing="0">
 
-                $ s1 = ["contributions", "work_titles", "by_statement", "series", "languages", "edition_name", "physical_format", "physical_dimensions", "pagination"]
+                $ s1 = ["contributions", "work_titles", "by_statements", "series", "languages", "edition_name", "physical_format", "physical_dimensions", "pagination", "weight"]
                 $ s2 = ["isbn_10", "isbn_13", "lccn", "dewey_decimal_class", "lc_classifications", "oclc_numbers"]
                 $ s3 = ["genres", "subjects"]
                 $ sections = [s1, s2, s3]
@@ -116,6 +130,8 @@ $:macros.FlourishButton("edit", changequery(m='edit'), "right", "edition")
 
 <br />
 $if page.notes: <b>Notes:</b> $page.notes<br /><br />
+
+$if page.first_sentence: <b>First sentence:</b> $page.first_sentence<br /><br />
             
 $if page.description: $page.description<br /><br />
 
@@ -152,5 +168,7 @@ $:macros.FlourishButton("edit", changequery(m='edit'), "right", "edition")
 <br /><br />
 
 
-$if page.get('isbn_10'): <script src="http://books.google.com/books?bibkeys=ISBN:${page.isbn_10}&amp;jscmd=viewapi&amp;callback=gbs_callback" type="text/javascript"></script>
-$if page.get('lccn'): <script src="http://books.google.com/books?bibkeys=LCCN:${page.lccn}&amp;jscmd=viewapi&amp;callback=gbs_callback" type="text/javascript"></script>
+$for isbn in page.get('isbn_10', []):
+    <script src="http://books.google.com/books?bibkeys=ISBN:${isbn}&amp;jscmd=viewapi&amp;callback=gbs_callback" type="text/javascript"></script>
+$for lccn in page.get('lccn', []):
+    <script src="http://books.google.com/books?bibkeys=LCCN:${lccn}&amp;jscmd=viewapi&amp;callback=gbs_callback" type="text/javascript"></script>

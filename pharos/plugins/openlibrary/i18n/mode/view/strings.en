@@ -1,7 +1,8 @@
 updated_by = u'updated by'
-full_text = u'Read Online'
-edit = u'edit'
+change_language = u'See in different language ...'
+edit = u'Edit'
 published_in = u'Published in'
 last_modified = u'last modified'
+full_text = u'Read Online'
+history = u'History'
 whats_new = u"What's New"
-history = u'history'
