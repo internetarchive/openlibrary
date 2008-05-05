@@ -1,6 +1,7 @@
 $def with (page)
 
-$if page.type.key == '/type/home':
+
+$if (page.type.key == '/type/home') or (page.key == "/"):
     $:macros.MostRecent()    
 $else:
     $:macros.databar(page)

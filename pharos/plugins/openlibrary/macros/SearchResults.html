@@ -1,7 +1,6 @@
 $def with (results, fulltext=False)
 
 $ _ = _.get_namespace('/search')
-
 <table border="0" cellpadding="0" cellspacing="0" width="100%" class="result-item">
 
 $for b in results:
@@ -34,7 +33,7 @@ $for b in results:
             $else:
                 ($book.publish_date)
             $book.physical_format
-            $if book.ocaid: &nbsp;&nbsp;<a href="http://openlibrary.org/details/$book.ocaid"><div class="small-button fulltext">$_.fulltext</div></a>
+            $if book.ocaid: &nbsp;&nbsp;<a href="/details/$book.ocaid"><div class="small-button fulltext">$_.fulltext</div></a>
         </div>
         $if fulltext:
             <p>

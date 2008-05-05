@@ -28,11 +28,16 @@
 
 /*TABLE OF CONTENTS*/
 
-     TD.toc-link-end { font-size: 14px; padding: 4px 6px 4px 6px; }
-     TD.toc-link { font-size: 14px; border-bottom: 1px solid #eee; padding: 4px 6px 4px 6px; }
-     TD.toc { color: #000000; font-size: 14px; background-color: #ffffff; padding: 4px 6px 4px 6px; }
+     TD.toc-link-end { background-color: #fff; font-size: 14px; border-bottom: 1px solid #ccc;  padding: 4px 6px 4px 6px; }
+     TD.toc-link { background-color: #fff; font-size: 14px; border-bottom: 1px solid #eee;  padding: 4px 6px 4px 6px; }
+     TD.toc { color: #000000; font-size: 14px; background-color: #ffffff; padding: 4px 6px 4px 6px; border-bottom: 1px solid #ccc;  }
+     TD.toc-number { color: #000000; font-size: 14px; background-color: #ffffff; padding: 4px 6px 4px 6px; border-bottom: 1px solid #ccc; vertical-align: top; }
 
-     TD.toc-number { color: #000000; font-size: 14px; background-color: #ffffff; padding: 4px 6px 4px 6px; text-align: right; font-weight: bold; }
+     TD.doc-link-end { background-color: #eeeeee; font-size: 14px; border-bottom: 1px solid #ccc; border-right: 1px solid #ccc; border-left: 1px solid #ccc;  padding: 4px 6px 4px 6px; }
+     TD.doc-link { background-color: #eeeeee; font-size: 14px; border-bottom: 1px solid #eee; border-right: 1px solid #ccc; border-left: 1px solid #ccc;  padding: 4px 6px 4px 6px; }
+     TD.doc { color: #000000; font-size: 14px; background-color: #ffffff; padding: 4px 6px 4px 6px; border-bottom: 1px solid #ccc;  }
+     TD.doc-number { color: #000000; font-size: 14px; background-color: #ffffff; padding: 4px 6px 4px 6px; border-bottom: 1px solid #ccc; vertical-align: top; }
+
      TD.question { color: #ffffff; background-color: #A05629; color:#ffffff; font-weight: normal; text-decoration: none; font-size: 14px }
 
 	 TD.rule { border-bottom: 1px solid #d5d5d5; }

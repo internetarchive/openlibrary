@@ -11,8 +11,10 @@ $:macros.databarDiff()
 
 <div id="header">
     <div style="float:left;padding-left:10px;padding-right:15px;"></div>
-    <span class="pretitle">$_.diff_heading(a.key)<br /></span>
+    <span class="pretitle">$_.pretitle:<br /></span>             
+    <div id="title">$a.key</div>            
 </div>
+
 
 <div class="diff-border">
 <div class="diff">
@@ -27,9 +29,10 @@ $:macros.databarDiff()
            </tr>
         </thead>
         <tbody>
-        $for p in a.type.properties:
-            $ label = _t[p.name]
-            $:thingdiff(p.expected_type, label, a[p.name], b[p.name])
+	
+        $for p in set(a.keys() + b.keys()):
+            $ label = _t[p]
+            $:thingdiff(get_expected_type(a, p), label, a[p], b[p])    
         </tbody>
     </table>
        

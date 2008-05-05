@@ -11,8 +11,8 @@ $def with (name, path)
 {
 	width: 180px;
 	height: 266px;
+	background-color: transparent;
 
-/*	background: url(btn-choose-file.gif) 0 0 no-repeat;  */
 /*      border: 1px solid #ccc;  */
 
 	display: block;
@@ -45,9 +45,11 @@ button {
 button.action:hover { background-color: #625E25; color: #fff; }
 button.action { background-color: #fff; color: #919070; }
 
+body {background-color:transparent}
 
 /* ]]> */
 </style>
+
 
 </head>
 
@@ -61,9 +63,9 @@ button.action { background-color: #fff; color: #919070; }
         <input type="file" name="file" class="file" /><br/><br/>
         </label>
 
-        <button type="submit" name="upload" class="action" value="Upload" style="width: 170" />$_.upload</button>
+        <button type="submit" name="upload" class="action" value="Upload" style="width: 170">$_.upload</button>
         <!--
-        <button type="submit" name="upload" class="action" value="Upload"/>Upload</button>
+        <button type="submit" name="upload" class="action" value="Upload">Upload</button>
         -->
 
 

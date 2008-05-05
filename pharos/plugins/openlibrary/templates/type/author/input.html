@@ -5,12 +5,12 @@ $ _t = _.get_namespace('/type/edition')
 $add_stylesheet("/static/css/freebase-controls.css")
 $add_javascript("/static/js/jquery/freebase.suggest.js")
 
-<input id="key_$name" type="hidden" name="$name" value="$author.key"/>
+<input id="name_$name" type="text" name="_name_$name" value="$author.name" style="width: 100%" ac_name="$name" freebase_suggest="true"/>
+<input id="key_$name" type="hidden" name="${name}.key" value="$author.key"/>
 <input id="saved_name_$name" type="hidden" name="_saved_name_$name" value="$author.name"/>
-<input id="name_$name" type="text" name="_name_$name" value="$author.name" style="width: 100%"/>
 
-<div id="fberror_$name" style="display: none;">
-    <div class="fb_error">$_t.author_dropdown</div><br>
+<div class="fberror" style="display: none;">
+    <div class="fberror">$_t.author_dropdown</div><br>
 <span id="hideerror"></div>
 </div>
 
@@ -19,14 +19,15 @@ $add_javascript("/static/js/jquery/freebase.suggest.js")
 </div>
 
 <script type="text/javascript">
+<!--
     function new_author(name) {
         \$.post(
             '/addauthor', 
             {name: name}, 
             function(data, status) {
                 if (status == "success") {
-	            \$(document.getElementById("key_$name")).attr("value", data);
-	            \$(document.getElementById("saved_name_$name")).attr("value", name);
+                    \$(document.getElementById("key_$name")).attr("value", data);
+                    \$(document.getElementById("saved_name_$name")).attr("value", name);
                      alert("Author added.");
                 }
                 else {
@@ -36,9 +37,10 @@ $add_javascript("/static/js/jquery/freebase.suggest.js")
             "text"
          );
     }
-
-    jQuery(function(\$) {
-        \$(document.getElementById("name_$name"))
+    
+    function setup_freebase_suggest(e) {
+        var name = \$(e).attr("ac_name");
+        \$(document.getElementById("name_" + name))
             .freebaseSuggest({
                 soft: false, 
                 suggest_new: "$_t.author_create", 
@@ -47,25 +49,38 @@ $add_javascript("/static/js/jquery/freebase.suggest.js")
                 blurb_path: '/suggest/blurb'
             })
             .bind("fb-select", function(e, data) {
-	        \$(document.getElementById("key_$name")).attr("value", data.id);
-	        \$(document.getElementById("saved_name_$name")).attr("value", data.name);
+                var name = \$(this).attr("ac_name");
+                \$(document.getElementById("key_" + name)).attr("value", data.id);
+                \$(document.getElementById("saved_name_" + name)).attr("value", data.name);
             })
             .bind("fb-select-new", function(e, data) {
                 new_author(data.name);
+            })
+            .bind("change", function() {
+                var name = \$(this).attr("ac_name");
+                if (\$.trim(\$(this).val()) == "") {
+                    \$(document.getElementById('key_' + name)).val("")
+                    \$(document.getElementById('saved_name_' + name)).val("")
+                }
             });
 
-        \$(document.getElementById('key_$name')).parents('form')
+        \$(document.getElementById('key_' + name)).parents('form')
             .bind("submit", function(e, data) {
-                var v1 = \$(document.getElementById("saved_name_$name")).val();
-                var v2 = \$(document.getElementById("name_$name")).val();
+                var v1 = \$(document.getElementById("saved_name" + name)).val();
+                var v2 = \$(document.getElementById("name_" + name)).val();
 
                 if (v1 != v2) {
-                    \$(document.getElementById("fberror_$name")).show()
-                    \$(document.getElementById("name_$name")).focus();
+                    \$(document.getElementById(".fberror", \$(document.getElementById("name_" + name)).parent())).show()
+                    \$(document.getElementById("name_" + name)).focus();
                     return false;
                 }
                 return True;
             });
+    }
+
+    jQuery(function() {
+        setup_freebase_suggest(document.getElementById("name_$name"));
     });
 
+-->
 </script>
