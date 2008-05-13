@@ -99,12 +99,6 @@ def marc_title(amazon_first_parts, marc_first_parts):
 
 # use for person, org and event because the LC data says "Berkovitch, Israel." is an org
 
-def match_not_just_surname(amazon, marc):
-    return match_name2(amazon, marc, False)
-
-def match_name(amazon, marc):
-    return match_name2(amazon, marc, True)
-
 def remove_trailing_dot(s):
     s = s.strip()
     if len(s) < 3 or not s.endswith('.') or s[-3] == ' ' or s[-3] == '.':
@@ -161,7 +155,7 @@ def match_marc_name(marc1, marc2, last_name_only_ok):
         return True
     return False
 
-def match_name2(amazon, marc, last_name_only_ok):
+def match_name(amazon, marc, last_name_only_ok=True):
     amazon_normalized = normalize(amazon)
     if amazon_normalized == normalize(marc):
         if verbose:
@@ -200,3 +194,6 @@ def match_name2(amazon, marc, last_name_only_ok):
     if verbose:
         print "no match"
     return False
+
+def match_not_just_surname(amazon, marc):
+    return match_name(amazon, marc, last_name_only_ok=False)
