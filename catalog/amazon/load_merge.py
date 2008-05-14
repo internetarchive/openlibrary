@@ -6,7 +6,7 @@ import urllib2
 
 entity_fields = ('name', 'birth_date', 'death_date', 'date')
 
-def find_entity(entity):
+def find_entity(site, entity):
     entity = dict((k, entity[k]) for k in entity_fields if k in entity)
     print entity
     things = site.things(entity)
@@ -124,7 +124,7 @@ def load(site, filename):
             assert len(lc_contrib) == len(contrib_detail)
             for c, detail in zip(lc_contrib, contrib_detail):
                 print c,
-                find_entity(detail)
+                find_entity(site, detail)
         print
         continue
         print "LC"
