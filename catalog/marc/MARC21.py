@@ -365,7 +365,8 @@ def isControlFieldTag(tag):
                 return 0
 
 import sys
-def MARC21PrettyPrint(M, outfile=sys.stdout):
+def MARC21PrettyPrint(M, outfile=None):
+	outfile = outfile or sys.stdout
         sortedFields=M.fields()
         sortedFields.sort()
         for field in sortedFields:
@@ -397,7 +398,8 @@ def sp(c):
 
 from unicodedata import normalize
 
-def MARC21HtmlPrint(M, outfile=sys.stdout):
+def MARC21HtmlPrint(M, outfile=None):
+    outfile = outfile or sys.stdout
     for field in sorted(M.fields()):
         for content in xlist(M[field]):
 	    print >>outfile, '<large>%s</large>'% field,
