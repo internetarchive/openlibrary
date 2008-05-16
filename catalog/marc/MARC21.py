@@ -73,6 +73,8 @@ class MARC21Record:
                 leaderData=data[:24]
                 data=data[24:]
 
+                self.leader = leaderData
+
                 #-- Read the fields in the leader and modify the state of the object.
                 lengthOfRecord=int(leaderData[:5])
                 if len(self.raw_data) < lengthOfRecord:
@@ -233,6 +235,13 @@ class MARC21Record:
                 leaderData=leaderData+self.entry_map[:4]
 
                 return leaderData+directoryData+data
+
+        def html(self):
+            from cStringIO import StringIO
+            f = StringIO()
+            MARC21HtmlPrint(self, f)
+            return f.getvalue()
+
 
 class MARC21ControlField:
 

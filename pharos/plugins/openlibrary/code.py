@@ -12,6 +12,9 @@ from infogami.utils.view import render, public
 types.register_type('^/a/[^/]*$', '/type/author')
 types.register_type('^/b/[^/]*$', '/type/edition')
 
+# this adds /show-marc/xxx page to infogami
+import show_marc
+
 class addbook(delegate.page):
     def GET(self):
         page = web.ctx.site.new("", {'type': web.ctx.site.get('/type/edition')})
