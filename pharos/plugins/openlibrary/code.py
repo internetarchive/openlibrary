@@ -13,7 +13,7 @@ types.register_type('^/a/[^/]*$', '/type/author')
 types.register_type('^/b/[^/]*$', '/type/edition')
 
 # this adds /show-marc/xxx page to infogami
-import show_marc
+import showmarc
 
 class addbook(delegate.page):
     def GET(self):
