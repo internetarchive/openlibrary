@@ -144,13 +144,13 @@ class Solr_client(object):
 
         server_url = 'http://%s:%d/solr/select' % self.server_addr
         query_url = '%s?q=%s'% (server_url, self.__query_fmt(query, rows, start))
-        # ru = urlopen(query_url)
-        # xml = ru.read()
-        ru = urlopen(query_url+'&wt=json')
-        py = ru.read()
-        ru.close()
-        # raise ValueError, (query_url, xml)
-        # return Solr_result(xml)
+
+        try:
+            ru = urlopen(query_url+'&wt=json')
+            py = ru.read()
+            ru.close()
+        except IOError:
+            raise SolrError, "Search temporarily unavailable, please try later"
         return SR2(py)
 
     advanced_search = search
