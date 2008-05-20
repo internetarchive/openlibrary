@@ -120,6 +120,51 @@ def find_contributions(r, edition):
     if contributions:
         edition['contributions'] = contributions
 
+def find_contributions_compex(r, edition):
+    authors = []
+    for f in r.get_fields('700'):
+        author = {}
+        if 'a' not in f.contents and 'c' not in f.contents:
+            continue # should at least be a name or title
+        name = " ".join([j.strip(' /,;:') for i, j in f.subfield_sequence if i in 'abc'])
+        if 'd' in f.contents:
+            author = pick_first_date(f.contents['d'])
+            author['db_name'] = ' '.join([name] + f.contents['d'])
+        else:
+            author['db_name'] = name
+        author['name'] = name
+        author['entity_type'] = 'person'
+        subfields = [
+            ('a', 'personal_name'),
+            ('b', 'numeration'),
+            ('c', 'title')
+        ]
+        for subfield, field_name in subfields:
+            if subfield in f.contents:
+                author[field_name] = ' '.join([x.strip(' /,;:') for x in f.contents[subfield]])
+        if 'q' in f.contents:
+            author['fuller_name'] = ' '.join(f.contents['q'])
+        authors.append(author)
+
+    for f in r.get_fields('710'):
+        author = {
+            'entity_type': 'org',
+            'name': " ".join([j.strip(' /,;:') for i, j in f.subfield_sequence if i in 'ab'])
+        }
+        author['db_name'] = author['name']
+        authors.append(author)
+
+    for f in r.get_fields('711'):
+        author = {
+            'entity_type': 'event',
+            'name': " ".join([j.strip(' /,;:') for i, j in f.subfield_sequence if i in 'acdn'])
+        }
+        author['db_name'] = author['name']
+        authors.append(author)
+    if authors:
+        edition['authors'] = authors
+
+
 def find_title(r, edition):
     # title
     f = r.get_field('245')
@@ -157,11 +202,11 @@ def find_other_titles(r, edition):
 
 def find_work_title(r, edition):
     work_title = []
-    f = r.get_field('240')
+    f = r.get_field('240', default=None)
     if f:
         work_title.append(' '.join(specific_subtags(f, 'amnpr')))
 
-    f = r.get_field('130')
+    f = r.get_field('130', default=None)
     if f:
         work_title.append(' '.join([j for i,j in f.subfield_sequence if i.islower()]))
 
