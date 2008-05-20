@@ -155,25 +155,47 @@ def match_marc_name(marc1, marc2, last_name_only_ok):
         return True
     return False
 
+def match_surname(surname, name):
+    if name.endswith(' ' + surname) or name.endswith('.' + surname):
+        return True
+    surname = surname.replace(' ', '')
+    if name.endswith(' ' + surname) or name.endswith('.' + surname):
+        return True
+    return False
+
 def match_name(amazon, marc, last_name_only_ok=True):
     amazon_normalized = normalize(amazon)
-    if amazon_normalized == normalize(marc):
+    amazon_normalized_no_space = normalize(amazon).replace(' ', '')
+    marc_normalized = normalize(marc)
+    # catches events and organizations
+    if amazon_normalized == marc_normalized:
         if verbose:
             print 'normalized names match'
         return True
+    if amazon_normalized_no_space == marc_normalized.replace(' ', ''):
+        if verbose:
+            print 'normalized, spaces removed, names match'
+        return True
+    # split MARC name
     m = re_marc_name.match(marc)
     if not m:
         return False
-    if amazon_normalized == normalize(m.group(1)):
+    surname = m.group(1)
+    surname_no_space = surname.replace(' ', '')
+    if amazon_normalized == normalize(surname) \
+            or amazon_normalized_no_space == normalize(surname_no_space):
         if verbose:
             print 'Amazon only has a last name, it matches MARC'
         return last_name_only_ok
-    if amazon_normalized == normalize(m.group(2) + ' ' + m.group(1)):
+    if amazon_normalized == normalize(m.group(2) + ' ' + surname):
         if verbose:
             print 'match'
         return True
-    if not (amazon.endswith(' ' + m.group(1)) \
-            or amazon.endswith('.' + m.group(1))):
+    if amazon_normalized_no_space == normalize(m.group(2) + surname).replace(' ', ''):
+        if verbose:
+            print 'match when spaces removed'
+        return True
+    if not match_surname(surname, amazon):
         if verbose:
             print 'Last name mismatch'
         return False
