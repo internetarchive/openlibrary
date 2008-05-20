@@ -12,6 +12,9 @@ from infogami.utils.view import render, public
 types.register_type('^/a/[^/]*$', '/type/author')
 types.register_type('^/b/[^/]*$', '/type/edition')
 
+# this adds /show-marc/xxx page to infogami
+import showmarc
+
 class addbook(delegate.page):
     def GET(self):
         page = web.ctx.site.new("", {'type': web.ctx.site.get('/type/edition')})
@@ -19,9 +22,12 @@ class addbook(delegate.page):
         
     def POST(self):
         from infogami.core.code import edit
-        books = web.ctx.site.things({'key~': '/b/OL*', 'sort': '-id', 'limit': 1})
+        #books = web.ctx.site.things({'key~': '/b/OL*', 'sort': '-id', 'limit': 1})
 
-        key = '/b/OL%dM' % (1 + int(web.numify(books[0])))
+        # sorry for the mess, but this is the quickest fix for Bug#
+        books = web.query("select key from thing where site_id=1 and key LIKE '/b/OL%%M' order by cast(ltrim(rtrim(key, 'M'), '/b/OL') as int) desc limit 1")
+        b = books[0].key
+        key = '/b/OL%dM' % (1 + int(web.numify(b)))
         web.ctx.path = key
         return edit().POST(key)
 
@@ -30,8 +36,10 @@ class addauthor(delegate.page):
         i = web.input("name")
         if len(i.name) < 2:
             return web.badrequest()
-        authors = web.ctx.site.things({'key~': '/a/OL*', 'sort': '-id', 'limit': 1})
-        key = '/a/OL%dA' % (1 + int(web.numify(authors[0])))
+        #authors = web.ctx.site.things({'key~': '/a/OL*', 'sort': '-id', 'limit': 1})
+        authors = web.query("select key from thing where site_id=1 and key LIKE '/a/OL%%A' order by cast(ltrim(rtrim(key, 'A'), '/a/OL') as int) desc limit 1")
+        a = authors[0].key
+        key = '/a/OL%dA' % (1 + int(web.numify(a)))
         web.ctx.site.write({'create': 'unless_exists', 'key': key, 'name': i.name, 'type': dict(key='/type/author')}, comment='New Author')
         print key
 

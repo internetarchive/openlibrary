@@ -2,9 +2,9 @@ from SubprocessRPC import SubprocessRPC
 import os
 
 def marc8_to_unicode_converter ():
-        repo = os.getenv ("PHAROS_REPO")
-        perl = os.getenv ("PHAROS_PERL")
-        marc8_to_utf8_bytes = SubprocessRPC ([perl, "%s/catalog/marc/%s" % (repo, "marc8_to_utf8.pl")])
+        dir = os.path.dirname(__file__)
+        perl = os.getenv ("PHAROS_PERL", "perl")
+        marc8_to_utf8_bytes = SubprocessRPC ([perl, os.path.join(dir, "marc8_to_utf8.pl")])
         def marc8_to_unicode (s_marc8):
                 utf8_bytes = marc8_to_utf8_bytes (s_marc8)
                 return unicode (utf8_bytes, "utf_8")

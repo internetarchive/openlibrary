@@ -1,80 +1,60 @@
 #!/usr/bin/python2.5
 
-from __future__ import with_statement
-import cgi
-import cgitb; cgitb.enable()
-from itertools import *
+import web
 import urllib2
 from time import time
-import sys,os
 import re
 
-from catalog.marc.MARC21 import MARC21Record, MARC21HtmlPrint, MARC21Exn
+from MARC21 import MARC21Record, MARC21HtmlPrint, MARC21Exn
 
-# open('/tmp/mug','w').write('%f\n'% time())
+class show_marc:
+    def GET(self, record, offset, length):
+        web.header('Content-Type', 'text/html; charset=utf-8')
 
-def main():
+        file = locator = record
+        offset = int(offset)
+        length = int(length)
 
-    print "Content-type: text/html; charset=utf-8"
-    print
+        print "record_locator: <code>%s</code><p/><hr>" % locator
 
-    # print >> sys.stderr, 'huh'
+        r0, r1 = offset, offset+length-1
+        url = 'http://www.archive.org/download/%s'% file
 
-    form = cgi.FieldStorage()
-    def getval(fieldname, form=form):
-        f = form.getfirst(fieldname, "")
-        return f
-    
-    locator = getval ('record')
-    if locator:
-        (file, offset, length) = locator.split (":")
-        offset = int (offset)
-        length = int (length)
-    else:
-        file = getval('file')
-        offset = int(getval('offset'))
-        length = int(getval('length'))
-        locator = "%s:%d:%d" % (file, offset, length)
+        assert 0 < length < 100000
 
-    print "record_locator: <code>%s</code><p/><hr>" % locator
+        t0 = time()
+        ureq = urllib2.Request(url,
+                               None,
+                               {'Range':'bytes=%d-%d'% (r0, r1)},
+                               )
 
-    r0, r1 = offset, offset+length-1
-    url = 'http://www.archive.org/download/%s'% file
+        
+        result = urllib2.urlopen(ureq).read(100000)
+        # print 'urllib2 got %d bytes (%.3f sec):<p/>'% (len(result), time()-t0)
 
-    assert 0 < length < 100000
-    # regular expression was failing for new sources
-    #assert re.match('[\w/_.]+$', file)
+        rec = None
+        try:
+            rec = MARC21Record(result)
+        except (ValueError,MARC21Exn), e:
+            print 'Invalid MARC data %s<p/>'% str(e)
 
-    t0 = time()
-    ureq = urllib2.Request(url,
-                           None,
-                           {'Range':'bytes=%d-%d'% (r0, r1)},
-                           )
+        if rec:
+            print '<b>LEADER:</b> <code>%s</code><br/>'% result[:24]
+            MARC21HtmlPrint(rec)
 
-    
-    result = urllib2.urlopen(ureq).read(100000)
-    # print 'urllib2 got %d bytes (%.3f sec):<p/>'% (len(result), time()-t0)
+        print '<hr><p/>'
 
-    rec = None
-    try:
-        rec = MARC21Record(result)
-    except (ValueError,MARC21Exn), e:
-        print 'Invalid MARC data %s<p/>'% str(e)
+        print """In order to retrieve the exact bytes of this MARC record, perform a
+        HTTP GET on the url <blockquote><b>%s</b></blockquote> and include the HTTP header"""% url
+        print "<pre>&nbsp;&nbsp;&nbsp; Range: bytes=%d-%d</pre>"% (r0, r1)
+        print """You will need to do this with a special purpose web client
+           such as <a href=http://curl.haxx.se>curl</a>, not a browser.
+           The curl command you'd use is:
+           <blockquote>
+           <code>curl -L -r %d-%d '%s'</code>"""% (r0, r1, url)
 
-    if rec:
-        print '<b>LEADER:</b> <code>%s</code><br/>'% result[:24]
-        MARC21HtmlPrint(rec)
-
-    print '<hr><p/>'
-
-    print """In order to retrieve the exact bytes of this MARC record, perform a
-    HTTP GET on the url <blockquote><b>%s</b></blockquote> and include the HTTP header"""% url
-    print "<pre>&nbsp;&nbsp;&nbsp; Range: bytes=%d-%d</pre>"% (r0, r1)
-    print """You will need to do this with a special purpose web client
-       such as <a href=http://curl.haxx.se>curl</a>, not a browser.
-       The curl command you'd use is:
-       <blockquote>
-       <code>curl -L -r %d-%d '%s'</code>"""% (r0, r1, url)
-
-
-main()
+if __name__ == "__main__":
+    urls = (
+        "/show-marc/(.*):(\d+):(\d+)", "show_marc"
+    )
+    web.run(urls, globals())
