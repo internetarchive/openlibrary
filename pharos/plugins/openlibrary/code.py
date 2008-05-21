@@ -157,18 +157,6 @@ class bookreader(delegate.page):
             import urllib
             url = "http://%s/flipbook/flipbook.php?%s" % (server, urllib.urlencode(params))     
             print render.bookreader(url, title)
-                        
-class search_api:
-    def GET(self):
-        #@@ To be implemented
-        return {"status": "ok", "result": []}
-        
-# add search API if api plugin is enabled.
-if 'api' in delegate.get_plugins():
-    from infogami.plugins.api import code as api
-    api.add_hook('search', search_api)
     
-    
-
 if __name__ == "__main__":
     main()
