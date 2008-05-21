@@ -37,7 +37,7 @@ def books(fbooks, fauthors):
     authors = {}
     type_author = str(web.query("SELECT * FROM thing WHERE site_id=1 AND key='/type/author'")[0].id)
     type_edition = str(web.query("SELECT * FROM thing WHERE site_id=1 AND key='/type/edition'")[0].id)
-    result = select("SELECT * FROM datum ORDER BY thing_id")
+    result = select("SELECT * FROM datum ORDER BY thing_id WHERE end_revision=2147483647")
     t1 = time.time()
     for i, t in enumerate(parse_datum(result)):
         if t['type'] == type_author:
