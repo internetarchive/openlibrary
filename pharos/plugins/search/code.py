@@ -9,6 +9,8 @@ from infogami import tdb, config
 import re
 import solr_client
 import time
+import simplejson
+from functools import partial
 
 render = template.render
 
@@ -166,11 +168,15 @@ class search(delegate.page):
         # reassemble ftokens string in case it had duplicates
         i.ftokens = ','.join(ft_list)
         
-        assert all(re.match('^[a-z]{5,}$', a) for a in ft_list), \
-               ('invalid facet token(s) in',ft_list)
+        # don't throw a backtrace if there's junk tokens.  Robots have
+        # been sending them, so just throw away any invalid ones.
+        # assert all(re.match('^[a-z]{5,}$', a) for a in ft_list), \
+        #       ('invalid facet token(s) in',ft_list)
+
+
+        ft_list = filter(partial(re.match, '^[a-z]{5,}$'), ft_list)
 
         qtokens = ' facet_tokens:(%s)'%(' '.join(ft_list)) if ft_list else ''
-
         ft_pairs = list((t, solr.facet_token_inverse(t)) for t in ft_list)
 
         # we have somehow gotten some queries for facet tokens with no
@@ -232,6 +238,13 @@ class search(delegate.page):
 
     GET = POST
 
+# somehow the leading / got stripped off the book identifiers during some
+# part of the search import process.  figure out where that happened and
+# fix it later.  for now, just put the slash back.
+def restore_slash(book):
+    if not book.startswith('/'): return '/'+book
+    return book
+
 def munch_qresults(qlist):
     results = []
     rset = set()
@@ -243,19 +256,7 @@ def munch_qresults(qlist):
             rset.add(res)
             results.append(res)
 
-    # somehow the leading / got stripped off the book identifiers during some
-    # part of the search import process.  figure out where that happened and
-    # fix it later.  for now, just put the slash back.
-    def restore_slash(book):
-        if not book.startswith('/'): return '/'+book
-        return book
-
     return [web.ctx.site.get(restore_slash(r)) for r in results]
-
-class xsearch(delegate.page):
-    def GET(self):
-        q = web.input(q='')
-        result = solr.basic_search(q)
 
 # disable the above function by redefining it as a do-nothing.
 # This replaces a version that removed all punctuation from the
@@ -264,6 +265,40 @@ class xsearch(delegate.page):
 def clean_punctuation(s):
     ws = [w.lstrip(':') for w in s.split()]
     return ' '.join(filter(bool,ws))
+
+class search_api:
+    def GET(self):
+        def format(val, pp=False):
+            if pp:
+                return simplejson.dumps(val, indent = 4)
+            else:
+                return simplejson.dumps(val)
+            
+        i = web.input(q='{"query":"null"}',
+                      rows = 20,
+                      offset = 0,
+                      prettyprint=False)
+        try:
+            query = simplejson.loads(i.q)
+        except ValueError:
+            return format({"status":"error"}, i.prettyprint)
+        
+        qresult = query and \
+                   solr.basic_search(query.get('query').encode('utf8'))
+        if not qresult:
+            result = []
+        else:
+            result = qresult.result_list
+        dval = { "status": "ok",
+                 "result": map(restore_slash, result),
+               }
+        return format(dval, i.prettyprint)
+        
+# add search API if api plugin is enabled.
+if 'api' in delegate.get_plugins():
+    from infogami.plugins.api import code as api
+    print "*** adding search api hook"
+    api.add_hook('search', search_api)
 
 if __name__ == '__main__':
     import doctest
