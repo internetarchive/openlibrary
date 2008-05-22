@@ -183,7 +183,6 @@ def amazon_spaced_name(amazon, marc):
         return False
     marc_first_parts = split_parts(m.group(2))
     amazon_first_parts = [x for x in amazon_initals]
-    print amazon_first_parts
     if compare_parts(marc_first_parts, amazon_first_parts):
         return True
     if match_seq(amazon_first_parts, marc_first_parts):
