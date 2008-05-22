@@ -1,6 +1,8 @@
 #!/usr/bin/python
 
-import unittest
+# run using py.tests:
+# py.test name_tests.py
+
 import names
 
 samples = [
@@ -18,14 +20,22 @@ samples = [
     ('Louis Philippe', 'Louis Philippe King of the French'),
     ('Gregory of Tours', 'Gregory Saint, Bishop of Tours'),
     ('Marjorie Allen', 'Allen, Marjory Gill Allen, Baroness'),
+    ('Shewbridge                   Ea', 'Shewbridge, Edythe.'),
+    ('Maitland-Jones               Jf', 'Maitland-Jones, J. F.'),
+    ('Quine                        Wv', 'Quine, W. V.'),
+    ('Auden                        Wh', 'Auden, W. H.'),
+    ('Evans                        Cm', 'Evans, Charles M.'),
+    ('Buckwalter                   L', 'Buckwalter, Len.'),
+    ('Bozic                        Sm', 'Bozic, S. M.'),
+    ('Lawrence                     Dh', 'Lawrence, D. H.'),
+    ('De Grazia                    T', 'De Grazia'),
+    ('Purcell                      R', 'Purcell, Rosamond Wolff.'),
+    ('Warring                      Rh', 'Warring, R. H.'),
 ]
 
-class TestNames(unittest.TestCase):
-    def setUp(self):
-        names.verbose = True
-    def testnames(self):
-        for amazon, marc in samples:
-            self.assert_(names.match_name(amazon, marc))
+def test_names():
+    for amazon, marc in samples:
+        yield check, amazon, marc
 
-if __name__ == '__main__':
-    unittest.main()
+def check(i, j):
+    assert names.match_name(i, j)
