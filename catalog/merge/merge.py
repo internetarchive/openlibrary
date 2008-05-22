@@ -215,7 +215,7 @@ def level2_merge(amazon, marc):
 
     score = []
     score.append(compare_date(amazon, marc))
-    score.append(compare_isbn10(e1, e2))
+    score.append(compare_isbn10(amazon, marc))
     score.append(compare_title(amazon, marc))
     page_score = compare_number_of_pages(amazon, marc)
     if page_score:
