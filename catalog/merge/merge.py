@@ -96,12 +96,17 @@ def level1_merge(e1, e2):
 def compare_authors(amazon, marc):
     if len(amazon['authors']) == 0 and 'authors' not in marc:
         return ('main', 'no authors', 75)
-    if len(amazon['authors']) == 0 or 'authors' not in marc:
+    if len(amazon['authors']) == 0:
         return ('main', 'field missing from one record', -25)
 
-    for a in amazon['authors']:
-        if match_name(a[0], marc['authors'][0]['name']):
+    for name, role in amazon['authors']:
+        if 'authors' in marc and match_name(name, marc['authors'][0]['name']):
             return ('main', 'exact match', 125)
+        if marc['by_statement'].find(name) != -1:
+            return ('main', 'exact match', 125)
+    if 'authors' not in marc:
+        return ('main', 'field missing from one record', -25)
+
     max_score = 0
     for a in amazon['authors']:
         percent, ordered = keyword_match(a[0], marc['authors'][0]['name'])
@@ -222,6 +227,7 @@ def compare_publisher(amazon, marc):
         return ('publisher', 'either missing', 0)
 
 def level2_merge(amazon, marc):
+    print 'MARC', marc
 
     score = []
     score.append(compare_date(amazon, marc))
@@ -284,6 +290,7 @@ def attempt_merge(amazon, marc, threshold):
         return True
     l2 = level2_merge(amazon, marc)
     total = sum(i[2] for i in l2)
+    print total, l2
     return total >= threshold
 
 def test_merge():
@@ -299,3 +306,28 @@ def test_merge2():
 
     threshold = 735
     #assert attempt_merge(amazon, marc, threshold)
+
+def test_merge3():
+    amazon = {'publisher': u'Intl Specialized Book Service Inc', 'ISBN_10': ['0002169770'], 'number_of_pages': 207, 'short_title': u'women of the north', 'normalized_title': u'women of the north', 'full_title': u'Women of the North', 'titles': [u'Women of the North', u'women of the north'], 'publish_date': u'1985', 'authors': [(u'Jane Wordsworth', u'Author')]}
+    marc = {'publisher': [u'Collins', u'Exclusive distributor ISBS'], 'ISBN_10': [u'0002169770'], 'short_title': u'women of the north', 'normalized_title': u'women of the north', 'full_title': u'Women of the North', 'titles': [u'Women of the North', u'women of the north'], 'publish_date': '1981', 'number_of_pages': 207, 'authors': [{'db_name': u'Wordsworth, Jane.', 'entity_type': 'person', 'name': u'Wordsworth, Jane.', 'personal_name': u'Wordsworth, Jane.'}], 'source_record_loc': 'marc_records_scriblio_net/part17.dat:110989084:798'}
+
+    threshold = 735
+#    assert attempt_merge(amazon, marc, threshold)
+
+def test_merge4():
+    amazon = {'publisher': u'HarperCollins Publishers Ltd', 'ISBN_10': ['0002173433'], 'number_of_pages': 128, 'short_title': u'd day to victory', 'normalized_title': u'd day to victory', 'full_title': u'D-Day to Victory', 'titles': [u'D-Day to Victory', u'd day to victory'], 'publish_date': u'1984', 'authors': [(u'Wynfod Vaughan-Thomas', u'Editor, Introduction')]}
+    marc = {'publisher': [u'Collins'], 'ISBN_10': [u'0002173433'], 'short_title': u'great front pages  d day ', 'normalized_title': u'great front pages  d day to victory 1944 1945', 'full_title': u'Great front pages : D-Day to victory 1944-1945', 'titles': [u'Great front pages : D-Day to victory 1944-1945', u'great front pages  dday to victory 1944 1945'], 'publish_date': '1984', 'number_of_pages': 128, 'by_statement': 'introduced by Wynford Vaughan-Thomas.', 'source_record_loc': 'marc_records_scriblio_net/part17.dat:102360356:983'}
+
+    threshold = 735
+    assert attempt_merge(amazon, marc, threshold)
+
+def test_merge5():
+    amazon = {'publisher': u'HarperCollins Publishers (Australia) Pty Ltd', 'ISBN_10': ['0002174049'], 'number_of_pages': 120, 'short_title': u'netherlandish and german ', 'normalized_title': u'netherlandish and german paintings national gallery schools of painting', 'full_title': u'Netherlandish and German Paintings (National Gallery Schools of Painting)', 'titles': [u'Netherlandish and German Paintings (National Gallery Schools of Painting)', u'netherlandish and german paintings national gallery schools of painting', u'Netherlandish and German Paintings', u'netherlandish and german paintings'], 'publish_date': u'1985', 'authors': [(u'Alistair Smith', u'Author')]}
+    marc = {'publisher': [u'National Gallery in association with W. Collins'], 'ISBN_10': [u'0002174049'], 'short_title': u'early netherlandish and g', 'normalized_title': u'early netherlandish and german paintings', 'full_title': u'Early Netherlandish and German paintings', 'titles': [u'Early Netherlandish and German paintings', u'early netherlandish and german paintings'], 'publish_date': '1985', 'authors': [{'db_name': u'National Gallery (Great Britain)', 'name': u'National Gallery (Great Britain)', 'entity_type': 'org'}], 'number_of_pages': 116, 'by_statement': 'Alistair Smith.', 'source_record_loc': 'marc_records_scriblio_net/part17.dat:170029527:1210'}
+    threshold = 735
+    assert attempt_merge(amazon, marc, threshold)
+
+def test_compare_authors():
+    amazon = {'authors': [(u'Alistair Smith', u'Author')]}
+    marc = {'authors': [{'db_name': u'National Gallery (Great Britain)', 'name': u'National Gallery (Great Britain)', 'entity_type': 'org'}], 'by_statement': 'Alistair Smith.'}
+    assert compare_authors(amazon, marc) == ('main', 'exact match', 125)
