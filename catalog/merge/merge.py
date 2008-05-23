@@ -4,6 +4,7 @@ from normalize import normalize
 
 re_year = re.compile('(\d{4})$')
 re_amazon_title_paren = re.compile('^(.*) \([^)]+?\)$')
+re_and_of_space = re.compile(' and | of | ')
 
 isbn_match = 85
 
@@ -62,7 +63,9 @@ def compare_date(e1, e2):
     try:
         e1_pub = int(e1['publish_date'])
         e2_pub = int(e2['publish_date'])
-        if within(e1_pub, e2_pub, 2):
+        if within(e1_pub, e2_pub, 1):
+            return ('date', 'within 1 year', 100)
+        elif within(e1_pub, e2_pub, 2):
             return ('date', '+/-2 years', -25)
         else:
             return ('date', 'mismatch', -250)
@@ -129,6 +132,11 @@ def keyword_match(in1, in2):
     ordered = [x for x in s1 if x in match] == [x for x in s2 if x in match]
     return float(len(match)) / max(len(s1), len(s2)), ordered
 
+def strip_and_compare(t1, t2):
+    t1 = re_and_of_space.sub('', t1).lower()
+    t2 = re_and_of_space.sub('', t2).lower()
+    return t1 == t2
+
 def compare_title(amazon, marc):
     amazon_title = amazon['normalized_title'].lower()
     marc_title = normalize(marc['full_title']).lower()
@@ -136,15 +144,21 @@ def compare_title(amazon, marc):
     if len(amazon_title) < 9 or len(marc_title) < 9:
         short = True
 
+    print amazon['titles']
+    print marc['titles']
+
     if not short:
         for a in amazon['titles']:
             for m in marc['titles']:
-                if a == m:
+#                print `a.lower().replace(' ', ''), m.lower().replace(' ', '')`
+                if a.lower() == m.lower():
+                    return ('full-title', 'exact match', 600)
+                if strip_and_compare(a, m):
                     return ('full-title', 'exact match', 600)
 
         for a in amazon['titles']:
             for m in marc['titles']:
-                if substr_match(a, m):
+                if substr_match(a.lower(), m.lower()):
                     return ('full-title', 'containted within other title', 350)
 
     max_score = 0
@@ -256,15 +270,38 @@ def test_merge_titles():
     assert amazon['short_title'] == marc['short_title']
     assert compare_title(amazon, marc) == ('full-title', 'containted within other title', 350)
 
-def test_merge():
-    amazon = {'publisher': u'Collins', 'ISBN_10': ['0002167360'], 'number_of_pages': 120, 'short_title': u'souvenirs', 'normalized_title': u'souvenirs', 'full_title': u'Souvenirs', 'titles': [u'Souvenirs', u'souvenirs'], 'publish_date': u'1975', 'authors': [(u'David Hamilton', u'Photographer')]}
-    marc = {'publisher': [u'Collins'], 'ISBN_10': [u'0002167360'], 'short_title': u'souvenirs', 'normalized_title': u'souvenirs', 'full_title': u'Souvenirs', 'titles': [u'Souvenirs', u'souvenirs'], 'publish_date': '1978', 'authors': [{'birth_date': u'1933', 'db_name': u'Hamilton, David 1933-', 'entity_type': 'person', 'name': u'Hamilton, David', 'personal_name': u'Hamilton, David'}], 'source_record_loc': 'marc_records_scriblio_net/part11.dat:155728070:617'}
+def test_merge_titles2():
+    amazon = {'title': u'Sea Birds Britain Ireland'}
+    marc = {
+        'title_with_subtitles': u'seabirds of Britain and Ireland',
+        'title': u'seabirds of Britain and Ireland', 
+        'full_title': u'The seabirds of Britain and Ireland',
+    }
+    amazon = build_titles(unicode(full_title(amazon)))
+    marc = build_titles(marc['title_with_subtitles'])
+    assert compare_title(amazon, marc) == ('full-title', 'exact match', 600)
 
+def attempt_merge(amazon, marc, threshold):
     l1 = level1_merge(amazon, marc)
     total = sum(i[2] for i in l1)
-    print l1
+    print total, l1
+    if total >= threshold:
+        return True
     l2 = level2_merge(amazon, marc)
     total = sum(i[2] for i in l2)
-    print l2
-    assert total > 735
+    print total, l2
+    return total >= threshold
 
+def test_merge():
+    amazon = {'publisher': u'Collins', 'ISBN_10': ['0002167360'], 'number_of_pages': 120, 'short_title': u'souvenirs', 'normalized_title': u'souvenirs', 'full_title': u'Souvenirs', 'titles': [u'Souvenirs', u'souvenirs'], 'publish_date': u'1975', 'authors': [(u'David Hamilton', u'Photographer')]}
+    marc = {'publisher': [u'Collins'], 'ISBN_10': [u'0002167360'], 'short_title': u'souvenirs', 'normalized_title': u'souvenirs', 'full_title': u'Souvenirs', 'titles': [u'Souvenirs', u'souvenirs'], 'publish_date': '1978', 'authors': [{'birth_date': u'1933', 'db_name': u'Hamilton, David 1933-', 'entity_type': 'person', 'name': u'Hamilton, David', 'personal_name': u'Hamilton, David'}], 'source_record_loc': 'marc_records_scriblio_net/part11.dat:155728070:617', 'number_of_pages': 120}
+
+    threshold = 735
+    assert attempt_merge(amazon, marc, threshold)
+
+def test_merge2():
+    amazon = {'publisher': u'Collins', 'ISBN_10': ['0002167530'], 'number_of_pages': 287, 'short_title': u'sea birds britain ireland', 'normalized_title': u'sea birds britain ireland', 'full_title': u'Sea Birds Britain Ireland', 'titles': [u'Sea Birds Britain Ireland', u'sea birds britain ireland'], 'publish_date': u'1975', 'authors': [(u'Stanley Cramp', u'Author')]}
+    marc = {'publisher': [u'Collins'], 'ISBN_10': [u'0002167530'], 'short_title': u'seabirds of britain and i', 'normalized_title': u'seabirds of britain and ireland', 'full_title': u'seabirds of Britain and Ireland', 'titles': [u'seabirds of Britain and Ireland', u'seabirds of britain and ireland'], 'publish_date': '1974', 'authors': [{'db_name': u'Cramp, Stanley.', 'entity_type': 'person', 'name': u'Cramp, Stanley.', 'personal_name': u'Cramp, Stanley.'}], 'source_record_loc': 'marc_records_scriblio_net/part08.dat:61449973:855'}
+
+    threshold = 735
+    #assert attempt_merge(amazon, marc, threshold)
