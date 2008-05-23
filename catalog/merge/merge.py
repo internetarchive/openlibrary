@@ -144,13 +144,9 @@ def compare_title(amazon, marc):
     if len(amazon_title) < 9 or len(marc_title) < 9:
         short = True
 
-    print amazon['titles']
-    print marc['titles']
-
     if not short:
         for a in amazon['titles']:
             for m in marc['titles']:
-#                print `a.lower().replace(' ', ''), m.lower().replace(' ', '')`
                 if a.lower() == m.lower():
                     return ('full-title', 'exact match', 600)
                 if strip_and_compare(a, m):
@@ -284,12 +280,10 @@ def test_merge_titles2():
 def attempt_merge(amazon, marc, threshold):
     l1 = level1_merge(amazon, marc)
     total = sum(i[2] for i in l1)
-    print total, l1
     if total >= threshold:
         return True
     l2 = level2_merge(amazon, marc)
     total = sum(i[2] for i in l2)
-    print total, l2
     return total >= threshold
 
 def test_merge():
