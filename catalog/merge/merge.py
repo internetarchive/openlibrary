@@ -225,3 +225,46 @@ def level2_merge(amazon, marc):
     score.append(compare_authors(amazon, marc))
 
     return score
+
+def full_title(edition):
+    title = edition['title']
+    if 'subtitle' in edition:
+        title += ' : ' + edition['subtitle']
+    return title
+
+def test_full_title():
+    assert full_title({ 'title': "Hamlet"}) == "Hamlet"
+    edition = {
+        'title': 'Flatland',
+        'subtitle': 'A Romance of Many Dimensions',
+    }
+    assert full_title(edition) == "Flatland : A Romance of Many Dimensions"
+
+def test_merge_titles():
+    marc = {
+        'title_with_subtitles': 'Spytime : the undoing of James Jesus Angleton : a novel',
+        'title': 'Spytime',
+        'full_title': 'Spytime : the undoing of James Jesus Angleton : a novel',
+    }
+    amazon = {
+        'subtitle': 'The Undoing oF James Jesus Angleton',
+        'title': 'Spytime',
+    }
+
+    amazon = build_titles(unicode(full_title(amazon)))
+    marc = build_titles(marc['title_with_subtitles'])
+    assert amazon['short_title'] == marc['short_title']
+    assert compare_title(amazon, marc) == ('full-title', 'containted within other title', 350)
+
+def test_merge():
+    amazon = {'publisher': u'Collins', 'ISBN_10': ['0002167360'], 'number_of_pages': 120, 'short_title': u'souvenirs', 'normalized_title': u'souvenirs', 'full_title': u'Souvenirs', 'titles': [u'Souvenirs', u'souvenirs'], 'publish_date': u'1975', 'authors': [(u'David Hamilton', u'Photographer')]}
+    marc = {'publisher': [u'Collins'], 'ISBN_10': [u'0002167360'], 'short_title': u'souvenirs', 'normalized_title': u'souvenirs', 'full_title': u'Souvenirs', 'titles': [u'Souvenirs', u'souvenirs'], 'publish_date': '1978', 'authors': [{'birth_date': u'1933', 'db_name': u'Hamilton, David 1933-', 'entity_type': 'person', 'name': u'Hamilton, David', 'personal_name': u'Hamilton, David'}], 'source_record_loc': 'marc_records_scriblio_net/part11.dat:155728070:617'}
+
+    l1 = level1_merge(amazon, marc)
+    total = sum(i[2] for i in l1)
+    print l1
+    l2 = level2_merge(amazon, marc)
+    total = sum(i[2] for i in l2)
+    print l2
+    assert total > 735
+
