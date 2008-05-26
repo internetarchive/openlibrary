@@ -62,7 +62,7 @@ class search(delegate.page):
     def GET(self):
         i = web.input(prefix="")
         if len(i.prefix) > 2:
-            q = {'type': '/type/author', 'name~': i.prefix + '*', 'sort': 'key', 'limit': 5}
+            q = {'type': '/type/author', 'name~': i.prefix + '*', 'sort': 'name', 'limit': 5}
             things = web.ctx.site.things(q)
             things = [web.ctx.site.get(key) for key in things]
         
