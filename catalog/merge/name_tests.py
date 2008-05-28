@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# coding: utf-8
 
 # run using py.tests:
 # py.test name_tests.py
@@ -9,6 +10,7 @@ samples = [
     ("John Smith", "Smith, John"),
     ("Diane DiPrima", "Di Prima, Diane."),
     ("Buckley, William F.", "William F. Buckley Jr."),
+    ("Duong Thu Huong", u"Dương, Thu Hương."),
 #    ("Deanne Spears", "Milan Spears, Deanne."),
 #    ("Victor Erofeyev", "Erofeev, V. V."),
 #    ("Courcy Catherine De", "De Courcy, Catherine."),
