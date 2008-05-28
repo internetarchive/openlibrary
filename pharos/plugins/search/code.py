@@ -183,7 +183,7 @@ class search(delegate.page):
         # inverse.  remove these from the list.
         ft_pairs = filter(lambda (a,b): b, ft_pairs)
 
-        if not q0:
+        if not q0 and not qtokens:
             errortext = 'You need to enter some search terms.'
             return render.advanced_search(i.get('wtitle',''),
                                           qresults,
