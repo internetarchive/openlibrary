@@ -21,7 +21,7 @@ solr_server_addr = ('pharosdb.us.archive.org', 8983)
 
 default_facet_list = ('has_fulltext', 
                       'authors',
-                      'subject',
+                      'subjects',
                       'facet_year',
                       'language',
                       'language_code',
