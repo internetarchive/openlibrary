@@ -81,9 +81,9 @@ def level1_merge(e1, e2):
     return score
 
 def compare_authors(e1, e2):
-    if len(e1['authors']) == 0 and len(e2['authors']) == 0:
+    if 'authors' not in e1 and 'authors' not in e2:
         return ('main', 'no authors', 75)
-    if len(e1['authors']) == 0 or len(e2['authors']) == 0:
+    if 'authors' not in e1 or 'authors' not in e2:
         return ('main', 'field missing from one record', -25)
 
     for i in e1['authors']:
@@ -225,7 +225,7 @@ def attempt_merge(e1, e2, threshold):
         return True
     l2 = level2_merge(e1, e2)
     total = sum(i[2] for i in l2)
-    print total, l2
+#    print total, l2
     return total >= threshold
 
 def test_merge():
