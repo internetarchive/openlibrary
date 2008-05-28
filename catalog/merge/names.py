@@ -3,6 +3,7 @@ from normalize import normalize
 
 re_split_parts = re.compile('(.*?[. ]+)')
 re_marc_name = re.compile('^(.*), (.*)$')
+re_amazon_space_name = re.compile('^(.+?[^ ]) +([A-Z][a-z]?)$')
 
 verbose = False
 
@@ -163,7 +164,34 @@ def match_surname(surname, name):
         return True
     return False
 
+def amazon_spaced_name(amazon, marc):
+    len_amazon = len(amazon)
+    if len_amazon != 30 and len_amazon != 31:
+        return False
+    m = re_amazon_space_name.search(amazon)
+    if not m:
+        return False
+    amazon_surname = m.group(1)
+    if normalize(amazon_surname) == normalize(marc):
+        return True
+    amazon_initals = m.group(2)
+    m = re_marc_name.match(marc)
+    if not m:
+        return False
+    marc_surname = m.group(1)
+    if normalize(amazon_surname) != normalize(marc_surname):
+        return False
+    marc_first_parts = split_parts(m.group(2))
+    amazon_first_parts = [x for x in amazon_initals]
+    if compare_parts(marc_first_parts, amazon_first_parts):
+        return True
+    if match_seq(amazon_first_parts, marc_first_parts):
+        return True
+    return False
+
 def match_name(amazon, marc, last_name_only_ok=True):
+    if amazon_spaced_name(amazon, marc):
+        return True
     amazon_normalized = normalize(amazon)
     amazon_normalized_no_space = normalize(amazon).replace(' ', '')
     marc_normalized = normalize(marc)
