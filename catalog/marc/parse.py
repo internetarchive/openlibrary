@@ -452,6 +452,17 @@ def find_url(r, edition):
     if len(url):
         edition["url"] = url
 
+def find_location(r, edition):
+    loc = []
+    for f in r.get_fields('852'):
+        f_loc = f.contents['a']
+        if not f_loc:
+            continue
+        assert len(f_loc) == 1
+        loc += f_loc
+    if loc:
+        edition['location'] = loc
+
 def encode_record_locator (r, file_locator):
     return ':'.join ([file_locator, str(r.record_pos()), str(r.record_len())])
 
@@ -480,6 +491,7 @@ def read_edition(r, edition):
     find_oclc(r, edition)
     find_lccn(r, edition)
     find_url(r, edition)
+    find_location(r, edition)
 
     if len(r.get_fields('008')) > 1:
         return False
