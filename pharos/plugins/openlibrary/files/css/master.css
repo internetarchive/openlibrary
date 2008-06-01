@@ -159,7 +159,7 @@
 	.formheader-edit { padding: 0px 4px 6px 0px; text-align: left; font-weight: bold; color: #625E25; }
 
 	td.formheader-top { padding: 10px 4px 6px 10px; text-align: left; font-weight: bold; color: #625E25; white-space: nowrap; vertical-align: top; }
-	td.formheader-rule { padding: 10px 4px 6px 10px; text-align: left; font-weight: bold; color: #625E25; white-space: nowrap; border-top: 1px solid #ccc; }
+	td.formheader-rule { padding: 10px 4px 6px 10px; text-align: left; font-weight: bold; color: #625E25; white-space: nowrap; border-top: 1px solid #ccc; vertical-align: top; }
 	td.formfield  { padding: 0px 8px 6px 4px; width: 100%; vertical-align: top; }
 	td.formfield-top  { padding: 10px 2px 6px 4px; }
 	td.formfield-rule  { padding: 10px 2px 6px 4px; border-top: 1px solid #ccc; }
