@@ -20,8 +20,19 @@ while (!$input->eof) {
 	last unless $ns;
 	
 	my $s_marc8 = netstring_decode ($ns);
+
+	my $error = 0;
+	$SIG{__WARN__} = sub {
+		$error = $_[0];
+		chomp $error;
+	};
 	my $s_unicode = marc8_to_utf8 ($s_marc8);
-	my $s_utf8_bytes = encode_utf8 ($s_unicode);
-	$output->print (netstring_encode ($s_utf8_bytes));
+	delete $SIG{__WARN__};
+	if ($error) {
+		$output->print (netstring_encode ("-" . encode_utf8($error)));
+	} else {
+		my $s_utf8_bytes = encode_utf8 ($s_unicode);
+		$output->print (netstring_encode ("+$s_utf8_bytes"));
+	}
 	$output->flush ()
 }
