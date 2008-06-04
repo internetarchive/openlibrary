@@ -1,11 +1,9 @@
 from SubprocessRPC import SubprocessRPC
 import os
+from MARC21 import MARC21Exn
 
-class MARC21CharsetExn (Exception):
-        def __init__ (self, value):
-                self.value = value
-        def __str__ (self):
-                return repr(self.value)
+class MARC21CharsetExn (MARC21Exn):
+    pass
 
 def marc8_to_unicode_converter ():
         dir = os.path.dirname(__file__)
