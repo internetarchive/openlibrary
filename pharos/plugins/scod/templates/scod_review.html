@@ -1,0 +1,114 @@
+$def with (book, scanning_center)
+
+$var title: $book.title
+
+
+$add_stylesheet("/static/css/global.css")
+$add_stylesheet("/static/css/thickbox.css")
+$add_stylesheet("/static/css/master.css")
+$add_stylesheet("/static/css/doc-styles.css")
+
+$add_javascript("/static/js/jquery/jquery.js")
+$add_javascript("/static/js/jquery/thickbox.js")
+$add_javascript("/static/js/global.js")
+
+
+<style type="text/css">
+<!--
+.simple { border-bottom: 1px solid #ccc; background-color: #ffffff; margin: 0px 10px 0px 10px; padding: 3px; }
+.booktitle { margin: 0px 5px 0px 19px; }
+
+input {background-color: #fff; font-family: georgia; font-size: 18px; color: #6F320D; border: 1px solid #ccc; padding-left: 4px; margin-top: 6px; margin-bottom: 6px; width: 100%}
+textarea {height:200px; background-color: #fff; font-family: georgia; font-size: 18px; color: #6F320D; border: 1px solid #ccc; padding-left: 4px; margin-top: 6px; margin-bottom: 6px; width: 100%}
+
+#book-art { width: 205px; height: 300px; text-align: center; float: left; padding-top: 21px; padding-left: 13px; padding-right: 14px; background: #fff url(/static/logos/logo-en.png) top center no-repeat; }
+-->
+</style>
+
+
+<div id="book-art">
+    <div id="book">
+    </div>
+    <div id="viewthisbook-oln">
+    <br clear="all" />
+    <!--    <a href="ajax-page-1.html?keepThis=true&TB_iframe=true&height=300&width=500" title="Open Library Scan On Demand" class="thickbox"><img src="webchick.top_files/scanthisbook.png" alt="Scan This Book" border="0" width="140"></a><br />
+        <a href="http://demo.openlibrary.org/addreview?edition=b/soul_of_man_solidarity"><img src="webchick.top_files/reviewbook.png" alt="Review Book" border="0" width="140"></a>
+    -->     
+    </div>
+</div>
+
+
+<div id="header">
+    <span id="title">Thank you for your patronage, $ctx.user.displayname.</span><br />
+    <br />
+    <span id="statement">
+    Please review the following information before proceeding:
+    <br /><br />
+    Scan-on-Demand this book from $scanning_center.<br />
+    </span><br />
+</div>
+
+<br />
+<div class="content"> 
+    <table cellpadding="10" cellspacing="0" border="0" class="scod"><tr><td valign="top">
+<div class="scod-table-item">
+
+<b>You have offered to sponsor:</b><br />
+        <span class="sponsorprice"><a href="$book.key" class="author">$book.title</a></span> &nbsp;(by $:thingrepr(book.authors))<br /> <br />
+
+<b>Scanning time:</b><br />
+        <span class="sponsorprice">5-7 Days<br />
+
+<!--
+<b>Cost estimate:</b><br />
+        <span class="sponsorprice">(48pp. &times; 10&cent;) + $5 = $9.80</span> <!--&nbsp;(time)--><br />
+-->
+
+<br /><b>Virtual Bookplate:</b><br />
+Please fill out the fields below to be recognized for your contribution.</div>
+<br />
+<form action="" method="post" id="review_form">
+    <input type="hidden" name="book" value="b/soul_of_man_solidarity" />
+    <p>
+	    <strong>Sponsor Name - Individual or Organization</strong>:<br />
+            <input type="text" name="q" value="$ctx.user.displayname"/>
+    </p>
+    <p>
+    	<strong>Sponsorship Date</strong>:<br />
+        <input type="text" name="q" value=""/>
+    </p>
+    <!--
+    <p>
+	    <strong>Contributing Library</strong>:<br />
+            <input type="text" name="q" value="$scanning_center"/>
+    </p>
+    -->
+    <p>
+    	<strong>First review</strong>:
+    	<textarea>One Book Closer to Universal Access To Human Knowledge!</textarea>
+    </p>
+	<button type="submit" name="submit" class="edition" style="width: 200px;">Scan This Book</button></a>
+</form>
+
+</div>
+
+
+</div>
+
+</td></tr></table>
+
+<div class="content" style="clear: both"> 
+</div>
+
+
+
+<a name="reviews"></a>
+<br clear="both" />
+
+</div>
+
+
+
+</div>
+
+</div>
