@@ -1,9 +1,5 @@
 from SubprocessRPC import SubprocessRPC
 import os
-from MARC21 import MARC21Exn
-
-class MARC21CharsetExn (MARC21Exn):
-    pass
 
 def marc8_to_unicode_converter ():
         dir = os.path.dirname(__file__)
@@ -14,7 +10,7 @@ def marc8_to_unicode_converter ():
             if utf8_bytes[0] == '+':
                 return unicode (utf8_bytes[1:], "utf_8")
             else:
-                raise MARC21CharsetExn(utf8_bytes[1:])
+                raise MARC21Exn(utf8_bytes[1:])
         return marc8_to_unicode
 
 if __name__ == "__main__":
