@@ -116,10 +116,10 @@ class get:
         ureq = urllib2.Request(url, None, {'Range':'bytes=%d-%d'% (r0, r1)},)
         f = urllib2.urlopen(ureq)
         while 1:
-            result = f.read(1024)
-            if not result:
+            buf = f.read(1024)
+            if not buf:
                 break
-            print result,
+            web.output(buf)
         f.close()
 
 web.webapi.internalerror = web.debugerror
