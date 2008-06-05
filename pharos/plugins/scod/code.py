@@ -12,6 +12,8 @@ def get_book(path):
         error('Invalid book: ' + page)
     elif page.type.key != '/type/edition':
         error(path + ' is not a book')
+    elif page.ocaid:
+        error('This book is already scanned')
     elif not page.location or page.location[0] not in SCANNING_CENTERS:
         error(path + ' is not scannable.')
     else:    
@@ -61,3 +63,33 @@ class scod_review(delegate.mode):
         book = get_book(path)
         return render.scod_inprogress(book)
 
+class scod_complete(delegate.mode):
+    def assert_scod_user(self):
+        usergroup = web.ctx.site.get('/usergroup/scod')
+        user = web.ctx.site.get_user()
+        
+        if user and usergroup and user.key in (m.key for m in usergroup.members):
+            return True
+        else:
+            print "Permission denied"
+            raise StopIteration
+        
+    def GET(self, path):
+        self.assert_scod_user()
+        book = get_book(path)
+        return render.scod_complete(book)
+        
+    def POST(self, path):
+        self.assert_scod_user()
+        book = get_book(path)
+        i = web.input("ocaid")
+        
+        q = {
+            'key': path,
+            'ocaid': {
+                'connect': 'update',
+                'value': i.ocaid
+            }
+        }
+        web.ctx.site.write(q)
+        web.seeother(web.changequery(query={}))
