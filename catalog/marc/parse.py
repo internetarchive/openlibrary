@@ -503,6 +503,11 @@ def read_edition(r, edition):
 
 def parser(file_locator, input, bad_data):
     for r in MARC21BiblioFile (input):
+        # only interested in books
+        if r.marc_biblio_record_type() != 'a':
+            continue
+        if r.marc_biblio_bibliographic_level() != 'm':
+            continue
         edition = {
             'source_record_loc': encode_record_locator (r, file_locator)
         }
