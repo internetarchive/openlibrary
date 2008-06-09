@@ -24,7 +24,7 @@ def get_book(path, check_scanned=True):
         error(path + ' is not a book')
     elif page.ocaid:
         error('This book is already scanned')
-    elif check_scanned and get_scan_status(path) == 'NOT_SCANNED':
+    elif check_scanned and get_scan_status(path) != 'NOT_SCANNED':
         error(path + ' is not scannable.')
     else:    
         return page
@@ -62,8 +62,10 @@ class scod_review(delegate.mode):
                 'key': user.key
             },
         }
-        web.ctx.site.write(q)
-        web.ctx.headers = []
+        try:
+            web.ctx.site.write(q)
+        finally:
+            web.ctx.headers = []
         return render.scod_inprogress(book)
 
 class scod_complete(delegate.mode):
