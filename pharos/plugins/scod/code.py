@@ -1,5 +1,6 @@
 from infogami.utils import delegate
 from infogami.utils.view import render, require_login, public
+from infogami import config
 import web
 
 @public
@@ -70,8 +71,9 @@ class scod_review(delegate.mode):
         
         to = getattr(config, 'scod_email_recipients', [])
         if to:
+            scan_record = get_scan_record(path)
             message = render.scod_request_email(book, scan_record)
-            web.sendmail(config.from_address, to, message.subject, message)
+            web.sendmail(config.from_address, to, message.subject.strip(), message)
     
         return render.scod_inprogress(book)
 
@@ -117,14 +119,15 @@ class scod_complete(delegate.mode):
         def get_email(user):
             try:
                 delegate.admin_login()
-                return web.ctx.site.get_user_email(user.key)
+                return web.utf8(web.ctx.site.get_user_email(user.key).email)
             finally:
                 web.ctx.headers = []
 
+        scan_record = get_scan_record(path)
         to = scan_record.sponsor and get_email(scan_record.sponsor)
         cc = getattr(config, 'scod_email_recipients', [])
         if to:
-            message = render.scod_request_email(book, scan_record)
-            web.sendmail(config.from_address, to, message.subject, message, cc=cc)
+            message = render.scod_complete_email(book, scan_record)
+            web.sendmail(config.from_address, to, message.subject.strip(), str(message), cc=cc)
 
         web.seeother(web.changequery(query={}))
