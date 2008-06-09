@@ -131,3 +131,17 @@ class scod_complete(delegate.mode):
             web.sendmail(config.from_address, to, message.subject.strip(), str(message), cc=cc)
 
         web.seeother(web.changequery(query={}))
+
+def get_scod_queue():
+    q = {
+        'type': '/type/scan_record',
+        'scan_status': 'SCAN_IN_PROGRESS',
+        'sort': '-last_modified'
+    } 
+    result = web.ctx.site.things(q)
+    return [web.ctx.site.get(key) for key in result]
+
+class scan_queue(delegate.page):
+    def GET(self):
+        queue = get_scod_queue()
+        return render.scod_queue(queue)
