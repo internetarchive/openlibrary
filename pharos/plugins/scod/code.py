@@ -49,6 +49,7 @@ class scod_review(delegate.mode):
     @require_login
     def POST(self, path):
         book = get_book(path)
+        record = get_scan_record(path)
         user = web.ctx.site.get_user()
         delegate.admin_login()
         q = {
@@ -66,6 +67,12 @@ class scod_review(delegate.mode):
             web.ctx.site.write(q)
         finally:
             web.ctx.headers = []
+        
+        to = getattr(config, 'scod_email_recipients', [])
+        if to:
+            message = render.scod_request_email(book, scan_record)
+            web.sendmail(config.from_address, to, message.subject, message)
+    
         return render.scod_inprogress(book)
 
 class scod_complete(delegate.mode):
@@ -106,4 +113,18 @@ class scod_complete(delegate.mode):
             }
         ]
         web.ctx.site.write(q)
+
+        def get_email(user):
+            try:
+                delegate.admin_login()
+                return web.ctx.site.get_user_email(user.key)
+            finally:
+                web.ctx.headers = []
+
+        to = scan_record.sponsor and get_email(scan_record.sponsor)
+        cc = getattr(config, 'scod_email_recipients', [])
+        if to:
+            message = render.scod_request_email(book, scan_record)
+            web.sendmail(config.from_address, to, message.subject, message, cc=cc)
+
         web.seeother(web.changequery(query={}))
