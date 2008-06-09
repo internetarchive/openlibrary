@@ -1,12 +1,22 @@
 from infogami.utils import delegate
-from infogami.utils.view import render, require_login
+from infogami.utils.view import render, require_login, public
 import web
+
+@public
+def get_scan_status(key):
+    key = "/scan_record" + key
+    record = web.ctx.site.get(key)
+    return record and record.scan_status
+
+def get_scan_record(key):
+    key = "/scan_record" + key
+    return  web.ctx.site.get(key)
 
 def error(message):
     print 'ERROR:', message
     raise StopIteration
 
-def get_book(path):
+def get_book(path, check_scanned=True):
     page = web.ctx.site.get(path)
     if not page:
         error('Invalid book: ' + page)
@@ -14,33 +24,11 @@ def get_book(path):
         error(path + ' is not a book')
     elif page.ocaid:
         error('This book is already scanned')
-    elif not page.location or page.location[0] not in SCANNING_CENTERS:
+    elif check_scanned and get_scan_status(path) == 'NOT_SCANNED':
         error(path + ' is not scannable.')
     else:    
         return page
         
-SCANNING_CENTERS = {
-    "BPL1": "BPL Central Library - Copley Square (circulating)",
-    "BPL1FA": "BPL Central - Fine Arts",
-    "BPL1GD": "BPL Central - Government Documents",
-    "BPL1GR": "BPL Central - General Reference",
-    "BPL1HU": "BPL Central - Humanities",
-    "BPL1ILL": "BPL Central - ILL",
-    "BPL1MC": "BPL Central - Leventhal Map Center",
-    "BPL1MI": "BPL Central - Microtext",
-    "BPL1MU": "BPL Central - Music",
-    "BPL1NE": "BPL Central - Newspapers",
-    "BPL1PR": "BPL Central - Print",
-    "BPL1RB": "BPL Central - Rare Books",
-    "BPL1RSO": "BPL Central - Regional Services",
-    "BPL1SA": "BPL Central - Sound Archives",
-    "BPL1SC": "BPL Central - Science",
-    "BPL1SO": "BPL Central - Social Sciences",
-    "BPL1SP": "BPL Central - Special Collections",
-    "BPL1ST": "BPL Central - Book Delivery",
-    "BPL1TR": "BPL Central - Telephone Reference",
-}
-
 class scod_confirm(delegate.mode):
     def GET(self, path):
         book = get_book(path)
@@ -55,12 +43,27 @@ class scod_review(delegate.mode):
     @require_login
     def GET(self, path):
         book = get_book(path)
-        scanning_center = SCANNING_CENTERS[book.location[0]]
+        scanning_center = get_scan_record(path).locations[0].name
         return render.scod_review(book, scanning_center)
     
     @require_login
     def POST(self, path):
         book = get_book(path)
+        user = web.ctx.site.get_user()
+        delegate.admin_login()
+        q = {
+            'key': '/scan_record' + path,
+            'scan_status': {
+                'connect': 'update',
+                'value': 'SCAN_IN_PROGRESS'
+            },
+            'sponsor': {
+                'connect': 'update',
+                'key': user.key
+            },
+        }
+        web.ctx.site.write(q)
+        web.ctx.headers = []
         return render.scod_inprogress(book)
 
 class scod_complete(delegate.mode):
@@ -76,20 +79,29 @@ class scod_complete(delegate.mode):
         
     def GET(self, path):
         self.assert_scod_user()
-        book = get_book(path)
+        book = get_book(path, check_scanned=False)
         return render.scod_complete(book)
         
     def POST(self, path):
         self.assert_scod_user()
-        book = get_book(path)
+        book = get_book(path, check_scanned=False)
         i = web.input("ocaid")
         
-        q = {
-            'key': path,
-            'ocaid': {
-                'connect': 'update',
-                'value': i.ocaid
+        q = [
+            {
+                'key': path,
+                'ocaid': {
+                    'connect': 'update',
+                    'value': i.ocaid
+                }
+            },
+            {
+                'key': '/scan_record' + path,
+                'scan_status': {
+                    'connect': 'update',
+                    'value': 'SCAN_COMPLETE'
+                }
             }
-        }
+        ]
         web.ctx.site.write(q)
         web.seeother(web.changequery(query={}))
