@@ -455,6 +455,8 @@ def find_url(r, edition):
 def find_location(r, edition):
     loc = []
     for f in r.get_fields('852'):
+        if 'a' not in f.contents:
+            continue
         f_loc = f.contents['a']
         if not f_loc:
             continue
