@@ -1,0 +1,13 @@
+$def with (book, scan_record)
+
+$var subject: Scan of $book.title is completed
+
+Dear $scan_record.sponsor.displayname,
+
+We are sending this mail to inform you that the scan "$book.title", that you have sponsored, has been completed. The scanned copy is available at the following URL.
+
+http://openlibrary.org$book.key
+
+Thanks for sponsoring the scan!
+
+Open Library

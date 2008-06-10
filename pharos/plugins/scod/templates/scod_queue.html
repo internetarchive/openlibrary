@@ -1,0 +1,37 @@
+$def with (queue)
+
+$var title: Scan Queue
+
+<div id="header">
+    <div style="float:left;padding-left:10px;padding-right:15px;"></div>
+    <span class="pretitle">Currently Viewing:<br /></span>
+    <div id="title">Scan Queue</div>   
+</div>
+
+<div id="bibliography">
+    <div id="browse-rule"></div>
+    <div id="biblio-form-body">
+
+        <table cellpadding="0" cellspacing="0" border="0" width="100%">
+            <tr>
+                <td class="historyheader">Title</td>
+                <td class="historyheader">Sponsor</td>
+                <td class="historyheader">Scanning Center</td>
+                <td class="historyheader">Request Date</td>
+                <td class="historyheader">Scan Status</td>
+                <!--   <td class="historyheader">Estimated Date</td>  -->
+            </tr>
+
+        $for record in queue:
+            <tr>
+                <td class="number" valign="top" style="white-space: nowrap"><a href="$record.edition.key">$record.edition.title</a></td>
+                <td class="path" valign="top"><a href="$record.sponsor.key">$record.sponsor.displayname</a></td>
+                <td class="path" valign="top"><a href="$record.locations[0].key">$record.locations[0].name</a></td>
+                <td class="path" valign="top">$datestr(record.last_modified)</td>
+                <td class="path" valign="top">$record.scan_status</td>
+                <!--   <td class="path" valign="top">${record.last_modified} + 7 days</td>  -->
+             </tr>
+        </table>
+    </div>
+</div>
+
