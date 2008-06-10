@@ -29,17 +29,17 @@ class xml_rec:
                 if i.attrib['tag'] == '':
                     self.has_blank_tag = True
                 self.fields.setdefault(i.attrib['tag'], []).append(i)
-    def get_field(self, tag):
+    def get_field(self, tag, default=None):
         if tag not in self.fields:
-            return None
+            return default
         assert len(self.fields[tag]) == 1
         element = self.fields[tag][0]
         if element.tag == control_tag:
             return element.text if element.text else ''
         if element.tag == data_tag:
             return datafield(element)
+        return default
 
-        return None
     def get_fields(self, tag):
         if tag not in self.fields:
             return []
@@ -48,7 +48,6 @@ class xml_rec:
         if self.fields[tag][0].tag == data_tag:
             return [datafield(i) for i in self.fields[tag]]
         return []
-
 
 def parse(f):
     rec = xml_rec(f)
