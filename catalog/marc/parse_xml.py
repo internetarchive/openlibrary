@@ -6,6 +6,9 @@ data_tag = '{http://www.loc.gov/MARC21/slim}datafield'
 control_tag = '{http://www.loc.gov/MARC21/slim}controlfield'
 subfield_tag = '{http://www.loc.gov/MARC21/slim}subfield'
 
+class BadSubtag:
+    pass
+
 class datafield:
     def __init__(self, element):
         assert element.tag == data_tag
@@ -16,6 +19,8 @@ class datafield:
         for i in element:
             assert i.tag == subfield_tag
             text = i.text if i.text else ''
+            if i.attrib['code'] == '':
+                raise BadSubtag
             self.contents.setdefault(i.attrib['code'], []).append(text)
             self.subfield_sequence.append((i.attrib['code'], text))
 
@@ -28,7 +33,9 @@ class xml_rec:
             if i.tag == data_tag or i.tag == control_tag:
                 if i.attrib['tag'] == '':
                     self.has_blank_tag = True
-                self.fields.setdefault(i.attrib['tag'], []).append(i)
+                else:
+                    self.fields.setdefault(i.attrib['tag'], []).append(i)
+
     def get_field(self, tag, default=None):
         if tag not in self.fields:
             return default
@@ -52,5 +59,6 @@ class xml_rec:
 def parse(f):
     rec = xml_rec(f)
     edition = {}
-    if rec.has_blank_tag or not read_edition(rec, edition)
-        return edition
+    if rec.has_blank_tag or not read_edition(rec, edition):
+        return {}
+    return edition
