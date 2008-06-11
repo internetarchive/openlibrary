@@ -5,6 +5,7 @@ from parse import read_edition
 data_tag = '{http://www.loc.gov/MARC21/slim}datafield'
 control_tag = '{http://www.loc.gov/MARC21/slim}controlfield'
 subfield_tag = '{http://www.loc.gov/MARC21/slim}subfield'
+leader_tag = '{http://www.loc.gov/MARC21/slim}leader'
 
 class BadSubtag:
     pass
@@ -35,6 +36,11 @@ class xml_rec:
                     self.has_blank_tag = True
                 else:
                     self.dataFields.setdefault(i.attrib['tag'], []).append(i)
+
+    def leader(self):
+        leader = self.tree.getroot()[0]
+        assert leader.tag == leader_tag
+        return leader.text
 
     def fields(self):
         return self.dataFields.keys()

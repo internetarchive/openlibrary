@@ -2,6 +2,7 @@ import sys
 import types
 import string
 import re
+from MARC21Exn import MARC21Exn
 
 import pdb
 # pdb.set_trace()
@@ -25,12 +26,7 @@ marc8_to_unicode = marc8_to_unicode_converter ()
 # parsing data (and which has not subsequently been modified via
 # __setitem__) will always have fields that are lists.
 
-class MARC21Exn (Exception):
-        def __init__ (self, value):
-                self.value = value
-        def __str__ (self):
-                return repr(self.value)
- 
+
 class NoDefault:
         pass
 

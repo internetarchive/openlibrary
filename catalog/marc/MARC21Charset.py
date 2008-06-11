@@ -1,4 +1,5 @@
 from SubprocessRPC import SubprocessRPC
+from MARC21Exn import MARC21Exn
 import os
 
 def marc8_to_unicode_converter ():
@@ -9,8 +10,18 @@ def marc8_to_unicode_converter ():
             utf8_bytes = marc8_to_utf8_bytes (s_marc8)
             if utf8_bytes[0] == '+':
                 return unicode (utf8_bytes[1:], "utf_8")
-            else:
-                raise MARC21Exn(utf8_bytes[1:])
+
+            try:
+                return s_marc8.decode('utf-8')
+            except:
+                pass
+
+            try:
+                return s_marc8.decode('latin-1')
+            except:
+                pass
+
+            raise MARC21Exn(utf8_bytes[1:])
         return marc8_to_unicode
 
 if __name__ == "__main__":

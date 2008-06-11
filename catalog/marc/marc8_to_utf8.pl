@@ -29,7 +29,7 @@ while (!$input->eof) {
 	my $s_unicode = marc8_to_utf8 ($s_marc8);
 	delete $SIG{__WARN__};
 	if ($error) {
-		$output->print (netstring_encode ("-" . encode_utf8($error)));
+		$output->print (netstring_encode ("-$error"));
 	} else {
 		my $s_utf8_bytes = encode_utf8 ($s_unicode);
 		$output->print (netstring_encode ("+$s_utf8_bytes"));
