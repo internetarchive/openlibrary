@@ -27,20 +27,23 @@ class datafield:
 class xml_rec:
     def __init__(self, f):
         self.tree = et.parse(f)
-        self.fields = {}
+        self.dataFields = {}
         self.has_blank_tag = False
         for i in self.tree.getroot():
             if i.tag == data_tag or i.tag == control_tag:
                 if i.attrib['tag'] == '':
                     self.has_blank_tag = True
                 else:
-                    self.fields.setdefault(i.attrib['tag'], []).append(i)
+                    self.dataFields.setdefault(i.attrib['tag'], []).append(i)
+
+    def fields(self):
+        return self.dataFields.keys()
 
     def get_field(self, tag, default=None):
-        if tag not in self.fields:
+        if tag not in self.dataFields:
             return default
-        assert len(self.fields[tag]) == 1
-        element = self.fields[tag][0]
+        assert len(self.dataFields[tag]) == 1
+        element = self.dataFields[tag][0]
         if element.tag == control_tag:
             return element.text if element.text else ''
         if element.tag == data_tag:
@@ -48,12 +51,12 @@ class xml_rec:
         return default
 
     def get_fields(self, tag):
-        if tag not in self.fields:
+        if tag not in self.dataFields:
             return []
-        if self.fields[tag][0].tag == control_tag:
-            return [i.text if i.text else '' for i in self.fields[tag]]
-        if self.fields[tag][0].tag == data_tag:
-            return [datafield(i) for i in self.fields[tag]]
+        if self.dataFields[tag][0].tag == control_tag:
+            return [i.text if i.text else '' for i in self.dataFields[tag]]
+        if self.dataFields[tag][0].tag == data_tag:
+            return [datafield(i) for i in self.dataFields[tag]]
         return []
 
 def parse(f):
