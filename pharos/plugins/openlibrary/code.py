@@ -162,6 +162,16 @@ class bookreader(delegate.page):
             import urllib
             url = "http://%s/flipbook/flipbook.php?%s" % (server, urllib.urlencode(params))     
             print render.bookreader(url, title)
+
+class robotstxt(delegate.page):
+    path = "/robots.txt"
+    def GET(self):
+        web.header('Content-Type', 'text/plain')
+        try:
+            print open('static/robots.txt').read()
+        except:
+            return web.notfound()
+    
     
 if __name__ == "__main__":
     main()
