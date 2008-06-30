@@ -146,14 +146,19 @@ def pull_templates():
 class bookreader(delegate.page):
     path = "/details/([a-zA-Z0-9_-]*)(?:/leaf(\d+))?"
 
+    SCRIPT_PATH = "/petabox/sw/bin/file_location_client.pl"
+
     def GET(self, identifier, leaf):
         import os
-        data = os.popen('/petabox/sw/bin/file_location_client.pl ' + identifier).read()
-        if  not data:
+
+        if os.path.exists(self.SCRIPT_PATH):
+            server, path = self.find_location(identifier)
+        else:
+            server, path = self.find_location_from_archive(identifier)
+
+        if  not server:
             return web.notfound()
         else:
-            data = data.strip().split()[-1]
-            server, path = data.split(':')
             title = identifier
             
             params = dict(identifier=identifier, dataserver=server, datapath=path)
@@ -163,6 +168,30 @@ class bookreader(delegate.page):
             url = "http://%s/flipbook/flipbook.php?%s" % (server, urllib.urlencode(params))     
             print render.bookreader(url, title)
 
+    def find_location_from_archive(self, identifier):
+        """Use archive.org to get the location.
+        """
+        import urllib, re
+
+        data= urllib.urlopen('http://www.archive.org/stream/' + identifier).read()
+        rx = re.compile('<iframe src="http://(.*)/flipbook/flipbook.php.*\&datapath=(.*)\&.*', re.M)
+        match = rx.search(data)
+        if match:
+            server, path = match.groups()
+            return server, path
+        else:
+            return None, None
+          
+    def find_location(self, identifier):
+        import os
+        data = os.popen(self.SCRIPT_PATH + ' ' + identifier).read()
+        if  not data:
+            return None, None
+        else:
+            data = data.strip().split()[-1]
+            server, path = data.split(':')
+            return server, path
+
 class robotstxt(delegate.page):
     path = "/robots.txt"
     def GET(self):
@@ -171,7 +200,6 @@ class robotstxt(delegate.page):
             print open('static/robots.txt').read()
         except:
             return web.notfound()
-    
     
 if __name__ == "__main__":
     main()
