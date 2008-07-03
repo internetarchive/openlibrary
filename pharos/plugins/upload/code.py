@@ -25,7 +25,6 @@ class upload(delegate.page):
 
     def POST(self):
         i = web.input(name="foo", file={})
-        print >> web.debug, 'upload', i
         name = i.name
         assert re.match(r'^[a-zA-Z0-9_]*$', name), "bad name: " + repr(name)
         
