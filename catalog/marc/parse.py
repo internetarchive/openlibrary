@@ -348,18 +348,26 @@ def find_toc(r, edition): # table of contents
                     toc.extend([x.strip() for x in value.split('--')])
                     continue
                 if subfield == 't':
-                    if len(toc_line):
+                    if toc_line:
                         toc.append(' -- '.join(toc_line))
                     toc_line = [value.strip(" /")]
                     continue
                 toc_line.append(value.strip(" -"))
-            if toc:
+            if toc_line:
                 toc.append(' -- '.join(toc_line))
         except AssertionError:
             print f.subfield_sequence
             raise
-    if toc:
-        edition['table_of_contents'] = toc
+    if not toc:
+        return
+    toc2 = []
+    for i in toc:
+        if len(i) > 2048:
+            i = t.split('  ')
+            for j in i:
+                assert len(j) < 2048
+        toc2.append(i)
+    edition['table_of_contents'] = toc2
 
 def find_notes(r, edition):
     notes = []
