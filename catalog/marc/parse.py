@@ -168,7 +168,7 @@ def find_contributions_compex(r, edition):
 def find_title(r, edition):
     # title
     f = r.get_field('245')
-    if not f:
+    if not f or 'a' not in f.contents:
         return
     try:
         title_prefix_len = int(f.indicator2)
@@ -498,9 +498,14 @@ def read_edition(r, edition):
     if len(r.get_fields('008')) > 1:
         return False
     f = r.get_field('008')
-    edition["publish_date"] = str(f)[7:11]
-    edition["publish_country"] = str(f)[15:18]
-    edition["languages"] = ["ISO:" + str(f)[35:38]]
+    publish_date = str(f)[7:11]
+    if publish_date != '||||':
+        edition["publish_date"] = publish_date
+    publish_country = str(f)[15:18]
+    if publish_country not in ('|||', '   '):
+        edition["publish_country"] = publish_country
+    lang = str(f)[35:38]
+    edition["languages"] = { 'key': '/l/' + lang }
     return True
 
 def parser(file_locator, input, bad_data):
@@ -519,6 +524,7 @@ def parser(file_locator, input, bad_data):
         except KeyboardInterrupt:
             raise
         except:
+            raise
             bad_data(edition['source_record_loc'])
 
 if __name__ == '__main__':
