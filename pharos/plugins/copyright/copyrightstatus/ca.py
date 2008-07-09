@@ -51,12 +51,12 @@ def copyright_status(edition):
     r = author.get(attr, None)
     try:
       return int(r)
-    except (ValueError, AttributeError):
+    except (ValueError, AttributeError, TypeError):
       return None
 
   for author in edition.authors:
     ydeath, ybirth = y(author, 'death_date'), y(author, 'birth_date')
-    aname = author.d.get('name')
+    aname = author.name
 
     if ydeath:
       death_year = ydeath

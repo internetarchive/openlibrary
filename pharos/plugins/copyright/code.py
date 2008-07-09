@@ -1,7 +1,8 @@
 import re
-from infogami.utils import view, delegate, template
+from infogami.utils import view, delegate
 import copyrightstatus
-import web,db
+import web
+from infogami.utils.view import render
 
 r_year = re.compile(r'(?:[^\d]|^)(\d\d\d\d)(?:[^\d]|$)')
 
@@ -16,18 +17,19 @@ def copyright_status(edition):
         year = int(year[0])
     except (IndexError, ValueError):
         return None
-    assert not hasattr(edition, 'publish_year')
+    #assert not hasattr(edition, 'publish_year')
     edition.publish_year = year
     return copyrightstatus.copyright_status(edition)
 
 class copyright(delegate.page):
-    def POST(self, site):
+    def POST(self):
         i = web.input(status='U',
                       edition='zzzzzzz')
-        edition = db.get_thing(i.edition, db.get_type('type/edition'))
+
+        edition = web.ctx.site.get(i.edition)
         status = i.status
         assert status in ('U','PD','C')
-        return getattr(template.render, 'copyright') (
+        return render.copyright(
             i.edition,
             status,
             edition)
