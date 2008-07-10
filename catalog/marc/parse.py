@@ -513,7 +513,7 @@ def read_edition(r, edition):
     if publish_country not in ('|||', '   '):
         edition["publish_country"] = publish_country
     lang = str(f)[35:38]
-    edition["languages"] = { 'key': '/l/' + lang }
+    edition["languages"] = [{ 'key': '/l/' + lang }]
     return True
 
 def parser(file_locator, input, bad_data):
