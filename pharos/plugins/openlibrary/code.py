@@ -146,7 +146,7 @@ def pull_templates():
 class bookreader(delegate.page):
     path = "/details/([a-zA-Z0-9_-]*)(?:/leaf(\d+))?"
 
-    SCRIPT_PATH = "/petabox/sw/bin/file_location_client.pl"
+    SCRIPT_PATH = "/petabox/sw/bin/find_item.php"
 
     def GET(self, identifier, leaf):
         import os
@@ -172,25 +172,22 @@ class bookreader(delegate.page):
         """Use archive.org to get the location.
         """
         import urllib, re
+        from xml.dom import minidom
 
-        data= urllib.urlopen('http://www.archive.org/stream/' + identifier).read()
-        rx = re.compile('<iframe src="http://(.*)/flipbook/flipbook.php.*\&datapath=(.*)\&.*', re.M)
-        match = rx.search(data)
-        if match:
-            server, path = match.groups()
-            return server, path
-        else:
+        base_url = "http://www.archive.org/services/find_file.php?loconly=1&file="
+
+        try:
+            data= urllib.urlopen(base_url + identifier).read()
+            doc = minidom.parseString(data)
+            vals = [(e.getAttribute('host'), e.getAttribute('dir')) for e in doc.getElementsByTagName('location')]
+            return vals and vals[0]
+        except Exception:
             return None, None
-          
+            
     def find_location(self, identifier):
         import os
-        data = os.popen(self.SCRIPT_PATH + ' ' + identifier).read()
-        if  not data:
-            return None, None
-        else:
-            data = data.strip().split()[-1]
-            server, path = data.split(':')
-            return server, path
+        data = os.popen(self.SCRIPT_PATH + ' ' + identifier).read().strip()
+        return data and data.split(':')
 
 class robotstxt(delegate.page):
     path = "/robots.txt"
