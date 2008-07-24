@@ -267,33 +267,88 @@ def clean_punctuation(s):
     return ' '.join(filter(bool,ws))
 
 class search_api:
+    error_val = {'status':'error'}
     def GET(self):
-        def format(val, pp=False):
-            if pp:
-                return simplejson.dumps(val, indent = 4)
+        def format(val, prettyprint=False, callback=None):
+            if callback is not None:
+                if type(callback) != str or \
+                       not re.match('[a-z][a-z0-9\.]*$', callback, re.I):
+                    val = self.error_val
+                    callback = None
+                    
+            if prettyprint:
+                json = simplejson.dumps(val, indent = 4)
             else:
-                return simplejson.dumps(val)
+                json = simplejson.dumps(val)
             
-        i = web.input(q='{"query":"null"}',
+            if callback is None:
+                return json
+            else:
+                return '%s(%s)'% (callback, json)
+
+        i = web.input(q = None,
                       rows = 20,
                       offset = 0,
+                      format = None,
+                      callback = None,
                       prettyprint=False)
+
+        offset = int(i.get('offset', '0') or 0)
+        rows = int(i.get('rows', '0') or 20)
+
         try:
-            query = simplejson.loads(i.q)
-        except ValueError:
-            return format({"status":"error"}, i.prettyprint)
+            query = simplejson.loads(i.q).get('query')
+        except (ValueError, TypeError):
+            return format(self.error_val, i.prettyprint, i.callback)
+
+        dval = dict()
         
+        if type(query) == list:
+            qval = list(self._lookup(i, q, offset, rows) for q in query)
+            dval["result_list"] = qval
+        else:
+            dval = self._lookup(i, query, offset, rows)
+
+        return format(dval, i.prettyprint, i.callback)
+        
+    def _lookup(self, *args):
+        try:
+            return self._lookup_1(*args)
+        except solr_client.SolrError:
+            return self.error_val
+
+    def _lookup_1(self, i, query, offset, rows):
         qresult = query and \
-                   solr.basic_search(query.get('query').encode('utf8'))
+                   solr.basic_search(query.encode('utf8'),
+                                     start=offset,
+                                     rows=rows
+                                     )
         if not qresult:
             result = []
         else:
-            result = qresult.result_list
-        dval = { "status": "ok",
-                 "result": map(restore_slash, result),
-               }
-        return format(dval, i.prettyprint)
-        
+            result = map(restore_slash, qresult.result_list)
+
+        dval = dict()
+
+        if i.format == "expanded":
+            eresult = list(book.dict() for book in munch_qresults(result)
+                           if book)
+            for e in eresult:
+                for a in e.get("authors", []):
+                    ak = web.ctx.site.get(a["key"])
+                    if ak:
+                        akd = ak.dict()
+                        del akd['books']
+                        a["expanded"] = akd
+                    
+            dval["expanded_result"] = eresult
+        else:
+            dval["result"] = result
+
+        dval["status"] = "ok"
+        return dval
+
+
 # add search API if api plugin is enabled.
 if 'api' in delegate.get_plugins():
     from infogami.plugins.api import code as api
