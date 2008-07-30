@@ -24,7 +24,12 @@ def get_tag_lines(data, want):
     want = set(want)
     dir_end = data.find(chr(30))
     directory = data[24:dir_end]
-    assert len(directory) % 12 == 0
+    if len(directory) % 12 != 0:
+        # directory is the wrong size
+        # sometimes the leader includes some utf-8 by mistake
+        directory = data[:dir_end].decode('utf-8')[24:]
+        assert len(directory) % 12 == 0
+
 
     fields = []
 
