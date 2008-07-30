@@ -1,4 +1,6 @@
 # fast parse for merge
+# TODO: title and author
+# TODO: handle MARC8 charset
 
 import re
 
@@ -68,7 +70,10 @@ def read_edition(data):
         if tag == '300':
             for k, v in get_subfields(line, ['a']):
                 num = [ int(i) for i in re_int.findall(v) ]
-                max_page_num = max(i for i in num if i < max_number_of_pages)
+                num = [i for i in num if i < max_number_of_pages]
+                if not num:
+                    continue
+                max_page_num = max(num)
                 if 'number_of_pages' not in edition \
                         or max_page_num > edition['number_of_pages']:
                     edition['number_of_pages'] = max_page_num
