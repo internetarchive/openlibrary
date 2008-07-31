@@ -17,7 +17,7 @@ def get_subfields(line, want):
     want = set(want)
     assert line[2] == '\x1f'
     for i in line[3:-1].split('\x1f'):
-        if i[0] in want:
+        if i and i[0] in want:
             yield i[0], i[1:]
 
 def get_tag_lines(data, want):
@@ -63,8 +63,13 @@ def read_edition(data):
                 if m:
                     edition.setdefault('lccn', []).append(m.group(1))
         if tag == '020':
-            for k, v in get_subfields(line, ['a']):
-                m = re_isbn.match(v)
+            if line.find('\x1f') != -1:
+                for k, v in get_subfields(line, ['a']):
+                    m = re_isbn.match(v)
+                    if m:
+                        edition.setdefault('isbn', []).append(m.group(1))
+            else:
+                m = re_isbn.match(line[3:-1])
                 if m:
                     edition.setdefault('isbn', []).append(m.group(1))
         if tag == '035':
