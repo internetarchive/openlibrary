@@ -147,7 +147,7 @@ def get_scod_queue():
         return [web.ctx.site.get(key) for key in result]
 
     result = f('WAITING_FOR_BOOK') + f('SCAN_IN_PROGRESS')
-    result.sort(key=lambda record: to_datetime(record.request_date), reverse=True)
+    result.sort(key=lambda record: to_datetime(record.request_date) or record.last_modified, reverse=True)
     return result
 
 @public
