@@ -57,7 +57,7 @@ class scod_review(delegate.mode):
             'key': '/scan_record' + path,
             'scan_status': {
                 'connect': 'update',
-                'value': 'SCAN_IN_PROGRESS'
+                'value': 'WAITING_FOR_BOOK'
             },
             'sponsor': {
                 'connect': 'update',
@@ -133,13 +133,18 @@ class scod_complete(delegate.mode):
         web.seeother(web.changequery(query={}))
 
 def get_scod_queue():
-    q = {
-        'type': '/type/scan_record',
-        'scan_status': 'SCAN_IN_PROGRESS',
-        'sort': '-last_modified'
-    } 
-    result = web.ctx.site.things(q)
-    return [web.ctx.site.get(key) for key in result]
+    def f(scan_status):
+        q = {
+            'type': '/type/scan_record',
+            'scan_status': scan_status,
+            'sort': '-last_modified'
+        } 
+        result = web.ctx.site.things(q)
+        return [web.ctx.site.get(key) for key in result]
+
+    result = f('WAITING_FOR_BOOK') + f('SCAN_IN_PROGRESS')
+    result.sort(lambda record: -record.last_modified)
+    return result
 
 class scan_queue(delegate.page):
     def GET(self):
