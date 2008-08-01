@@ -137,13 +137,12 @@ def get_scod_queue():
         q = {
             'type': '/type/scan_record',
             'scan_status': scan_status,
-            'sort': '-last_modified'
         } 
         result = web.ctx.site.things(q)
         return [web.ctx.site.get(key) for key in result]
 
     result = f('WAITING_FOR_BOOK') + f('SCAN_IN_PROGRESS')
-    result.sort(lambda record: -record.last_modified)
+    result.sort(key=lambda record: record.last_modified, reverse=True)
     return result
 
 class scan_queue(delegate.page):
