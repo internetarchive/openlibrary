@@ -2,6 +2,7 @@ from infogami.utils import delegate
 from infogami.utils.view import render, require_login, public
 from infogami import config
 import web
+import datetime
 
 @public
 def get_scan_status(key):
@@ -63,6 +64,10 @@ class scod_review(delegate.mode):
                 'connect': 'update',
                 'key': user.key
             },
+            'request_date': {
+                'connect': 'update',
+                'value': datetime.datetime.utcnow().isoformat()
+            }
         }
         try:
             web.ctx.site.write(q)
@@ -142,8 +147,29 @@ def get_scod_queue():
         return [web.ctx.site.get(key) for key in result]
 
     result = f('WAITING_FOR_BOOK') + f('SCAN_IN_PROGRESS')
-    result.sort(key=lambda record: record.last_modified, reverse=True)
+    result.sort(key=lambda record: to_datetime(record.request_date), reverse=True)
     return result
+
+@public
+def to_datetime(iso_date_string):
+    """
+        >>> t = '2008-01-01T01:01:01.010101'
+        >>> to_timestamp(t).isoformat()
+        '2008-01-01T01:01:01.010101'
+    """
+    if not iso_date_string:
+        return None
+
+    try:
+        #@@ python datetime module is ugly. 
+        #@@ It takes so much of work to create datetime from isoformat.
+        date, time = iso_date_string.split('T', 1)
+        y, m, d = date.split('-')
+        H, M, S = time.split(':')
+        S, ms = S.split('.')
+        return datetime.datetime(*map(int, [y, m, d, H, M, S, ms]))
+    except:
+        return None
 
 class scan_queue(delegate.page):
     def GET(self):
