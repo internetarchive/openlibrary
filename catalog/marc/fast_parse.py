@@ -32,9 +32,9 @@ def read_short_title(line):
         if k == 'a':
             title.append(v)
     
-    titles = [' '.join(title)]
+    titles = [' '.join(title).strip()]
     if title != title_and_subtitle:
-        titles.append(' '.join(title_and_subtitle))
+        titles.append(' '.join(title_and_subtitle).strip())
     if prefix_len and prefix_len != '0':
         try:
             prefix_len = int(prefix_len)
@@ -99,7 +99,7 @@ def read_isbn(line):
     else:
         m = re_isbn.match(line[3:-1])
         if m:
-            return [isbn]
+            return [m.group(1)]
     return found
 
 def read_oclc(line):
