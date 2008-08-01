@@ -6,16 +6,46 @@ import re
 
 re_question = re.compile('^\?+$')
 re_lccn = re.compile('(...\d+).*')
+re_letters = re.compile('[A-Za-z]')
 re_int = re.compile ('\d{2,}')
 re_isbn = re.compile('([^ ()]+[\dX])(?: \((?:v\. (\d+)(?: : )?)?(.*)\))?')
 re_oclc = re.compile ('^\(OCoLC\).*?0*(\d+)')
 
+re_normalize = re.compile('[^\w ]')
+re_whitespace = re.compile('\s+')
+
+def normalize(s):
+    s = re_normalize.sub('', s.strip())
+    s = re_whitespace.sub(' ', s)
+    return s.lower()
+
 # no monograph should be longer than 50,000 pages
 max_number_of_pages = 50000
 
+def read_short_title(line):
+    prefix_len = line[1]
+    title_and_subtitle = []
+    title = []
+    for k, v in get_subfields(line, ['a', 'b']):
+        v = v.strip(' /,;:')
+        title_and_subtitle.append(v)
+        if k == 'a':
+            title.append(v)
+    
+    titles = [' '.join(title)]
+    if title != title_and_subtitle:
+        titles.append(' '.join(title_and_subtitle))
+    if prefix_len and prefix_len != '0':
+        try:
+            prefix_len = int(prefix_len)
+            titles += [t[prefix_len:] for t in titles]
+        except ValueError:
+            pass
+    return [str(normalize(i)[:25]) for i in titles]
+
 def get_subfields(line, want):
     want = set(want)
-    assert line[2] == '\x1f'
+    #assert line[2] == '\x1f'
     for i in line[3:-1].split('\x1f'):
         if i and i[0] in want:
             yield i[0], i[1:]
@@ -45,38 +75,64 @@ def get_tag_lines(data, want):
         fields.append((tag, tag_line))
     return fields
 
+def read_lccn(line):
+    found = []
+    for k, v in get_subfields(line, ['a']):
+        lccn = v.strip()
+        if re_question.match(lccn):
+            continue
+        m = re_lccn.search(lccn)
+        if not m:
+            continue
+        lccn = re_letters.sub(m.group(1), '').strip()
+        if lccn:
+            found.append(lccn)
+    return found
+
+def read_isbn(line):
+    found = []
+    if line.find('\x1f') != -1:
+        for k, v in get_subfields(line, ['a', 'z']):
+            m = re_isbn.match(v)
+            if m:
+                found.append(m.group(1))
+    else:
+        m = re_isbn.match(line[3:-1])
+        if m:
+            return [isbn]
+    return found
+
+def read_oclc(line):
+    found = []
+    for k, v in get_subfields(line, ['a']):
+        m = re_oclc.match(v)
+        if m:
+            found.append(m.group(1))
+    return found
+
 def read_edition(data):
     edition = {}
     want = ['008', '010', '020', '035', '100', '110', '111', '245', '260', '300']
     fields = get_tag_lines(data, want)
+    read_tag = [
+        ('010', read_lccn, 'lccn'),
+        ('020', read_isbn, 'isbn'),
+        ('035', read_oclc, 'oclc'),
+        ('245', read_short_title, 'short_title'),
+    ]
     for tag, line in fields:
         if tag == '008':
             edition['publish_date'] = line[7:11]
             edition['publish_country'] = line[15:18]
             edition['languages'] = line[35:38]
-        if tag == '010':
-            for k, v in get_subfields(line, ['a']):
-                lccn = v.strip()
-                if re_question.match(lccn):
-                    continue
-                m = re_lccn.search(lccn)
-                if m:
-                    edition.setdefault('lccn', []).append(m.group(1))
-        if tag == '020':
-            if line.find('\x1f') != -1:
-                for k, v in get_subfields(line, ['a']):
-                    m = re_isbn.match(v)
-                    if m:
-                        edition.setdefault('isbn', []).append(m.group(1))
-            else:
-                m = re_isbn.match(line[3:-1])
-                if m:
-                    edition.setdefault('isbn', []).append(m.group(1))
-        if tag == '035':
-            for k, v in get_subfields(line, ['a']):
-                m = re_oclc.match(v)
-                if m:
-                    edition.setdefault('oclc', []).append(m.group(1))
+            continue
+        for t, proc, key in read_tag:
+            if t != tag:
+                continue
+            found = proc(line)
+            if found:
+                edition.setdefault(key, []).extend(found)
+            break
         if tag == '300':
             for k, v in get_subfields(line, ['a']):
                 num = [ int(i) for i in re_int.findall(v) ]
