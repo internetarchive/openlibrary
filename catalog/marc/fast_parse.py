@@ -84,7 +84,7 @@ def read_lccn(line):
         m = re_lccn.search(lccn)
         if not m:
             continue
-        lccn = re_letters.sub(m.group(1), '').strip()
+        lccn = re_letters.sub('', m.group(1)).strip()
         if lccn:
             found.append(lccn)
     return found
@@ -100,7 +100,7 @@ def read_isbn(line):
         m = re_isbn.match(line[3:-1])
         if m:
             return [m.group(1)]
-    return found
+    return [i.replace('-', '') for i in found]
 
 def read_oclc(line):
     found = []
