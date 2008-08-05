@@ -116,6 +116,10 @@ class scan_complete(delegate.mode):
                 'scan_status': {
                     'connect': 'update',
                     'value': 'SCAN_COMPLETE'
+                },
+                'completion_date': {
+                    'connect': 'update',
+                    'value': datetime.datetime.utcnow().isoformat()
                 }
             }
         ]
