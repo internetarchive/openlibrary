@@ -31,22 +31,22 @@ def get_book(path, check_scanned=True):
     else:    
         return page
         
-class scod_confirm(delegate.mode):
+class scan_confirm(delegate.mode):
     def GET(self, path):
         book = get_book(path)
-        print render.scod_confirm(book)
+        print render.scan_confirm(book)
 
-class scod_login(delegate.mode):
+class scan_login(delegate.mode):
     def GET(self, path):
         book = get_book(path)
-        print render.scod_login(book)
+        print render.scan_login(book)
         
-class scod_review(delegate.mode):
+class scan_review(delegate.mode):
     @require_login
     def GET(self, path):
         book = get_book(path)
         scanning_center = get_scan_record(path).locations[0].name
-        return render.scod_review(book, scanning_center)
+        return render.scan_review(book, scanning_center)
     
     @require_login
     def POST(self, path):
@@ -74,17 +74,17 @@ class scod_review(delegate.mode):
         finally:
             web.ctx.headers = []
         
-        to = getattr(config, 'scod_email_recipients', [])
+        to = getattr(config, 'scan_email_recipients', [])
         if to:
             scan_record = get_scan_record(path)
-            message = render.scod_request_email(book, scan_record)
+            message = render.scan_request_email(book, scan_record)
             web.sendmail(config.from_address, to, message.subject.strip(), message)
     
-        return render.scod_inprogress(book)
+        return render.scan_inprogress(book)
 
-class scod_complete(delegate.mode):
-    def assert_scod_user(self):
-        usergroup = web.ctx.site.get('/usergroup/scod')
+class scan_complete(delegate.mode):
+    def assert_scan_user(self):
+        usergroup = web.ctx.site.get('/usergroup/scan')
         user = web.ctx.site.get_user()
         
         if user and usergroup and user.key in (m.key for m in usergroup.members):
@@ -94,12 +94,12 @@ class scod_complete(delegate.mode):
             raise StopIteration
         
     def GET(self, path):
-        self.assert_scod_user()
+        self.assert_scan_user()
         book = get_book(path, check_scanned=False)
-        return render.scod_complete(book)
+        return render.scan_complete(book)
         
     def POST(self, path):
-        self.assert_scod_user()
+        self.assert_scan_user()
         book = get_book(path, check_scanned=False)
         i = web.input("ocaid")
         
@@ -130,14 +130,14 @@ class scod_complete(delegate.mode):
 
         scan_record = get_scan_record(path)
         to = scan_record.sponsor and get_email(scan_record.sponsor)
-        cc = getattr(config, 'scod_email_recipients', [])
+        cc = getattr(config, 'scan_email_recipients', [])
         if to:
-            message = render.scod_complete_email(book, scan_record)
+            message = render.scan_complete_email(book, scan_record)
             web.sendmail(config.from_address, to, message.subject.strip(), str(message), cc=cc)
 
         web.seeother(web.changequery(query={}))
 
-def get_scod_queue():
+def get_scan_queue():
     def f(scan_status):
         q = {
             'type': '/type/scan_record',
@@ -173,5 +173,5 @@ def to_datetime(iso_date_string):
 
 class scan_queue(delegate.page):
     def GET(self):
-        queue = get_scod_queue()
-        return render.scod_queue(queue)
+        queue = get_scan_queue()
+        return render.scan_queue(queue)
