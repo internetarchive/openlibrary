@@ -1,0 +1,59 @@
+$def with (page)
+
+$var title: Scan Record of $page.edition.title
+
+<div id="header">
+    <div style="float:left;padding-left:10px;padding-right:15px;"></div>
+    <span class="pretitle">Scan Record of</span>
+    <div id="title">$page.edition.title</div>
+</div>
+
+
+<div id="bibliography">
+    <div id="browse-rule"></div>
+    <div id="biblio-form-body">
+
+        <table cellpadding="0" cellspacing="0" border="0" width="100%">
+            <tr>
+                <td class="historyheader" style="white-space: nowrap;">Edition:</td><td class="path" valign="top" width="100%"> $:thingrepr(page.edition)</td>
+            </tr><tr>
+                <td class="historyheader" style="white-space: nowrap;">Locations:</td><td class="path" valign="top" width="100%">$:thingrepr(page.locations)</td>
+            </tr><tr>
+                <td class="historyheader" style="white-space: nowrap;">Source Record ID:</td><td class="path" valign="top" width="100%">$page.source_record_id</td>
+            </tr><tr>
+                <td class="historyheader" style="white-space: nowrap;">Shelf:</td><td class="path" valign="top" width="100%">$page.shelf</td>
+            </tr>
+        </table>
+<br/><br /><br />
+
+<script>
+
+function toggle_scan_edit() {
+    \$("#scan_status").toggle();
+    \$("#scan_status_edit").toggle();
+    return false;
+}
+</script>
+
+
+
+<div id="scan_status">
+<span class="green"><span class="formheader">
+    Scan Status: $page.scan_status <input class="small-button" type="button" value="UPDATE" style="margin-left: 10px"  onclick="return toggle_scan_edit();" />
+</span></span>
+</div>
+
+<div id="scan_status_edit" style="display: none;">
+    $ options = ["NOT_SCANNED", "WAITING_FOR_BOOK", "SCAN_IN_PROGRESS", "SCAN_COMPLETE"]
+    <form name="edit" method="POST" action="$:changequery(m='edit')">
+        <span class="green"><span class="formheader">
+        Scan Status: $:Dropdown("scan_status", options, value=page.scan_status).render() 
+        <input class="small-button" type="submit" name="_save" value="SAVE" style="margin-left: 10px" />
+        <input class="small-button" type="button" name="_cancel" value="DELETE" onclick="return toggle_scan_edit();" />
+        </span></span>
+    </form>
+</div>
+
+<br /><br />
+
+</div>

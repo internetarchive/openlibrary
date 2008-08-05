@@ -2,7 +2,6 @@ $def with (book, scanning_center)
 
 $var title: $book.title
 
-
 $add_stylesheet("/static/css/global.css")
 $add_stylesheet("/static/css/thickbox.css")
 $add_stylesheet("/static/css/master.css")
@@ -27,25 +26,16 @@ textarea {height:200px; background-color: #fff; font-family: georgia; font-size:
 
 
 <div id="book-art">
-    <div id="book">
-    </div>
-    <div id="viewthisbook-oln">
-    <br clear="all" />
-    <!--    <a href="ajax-page-1.html?keepThis=true&TB_iframe=true&height=300&width=500" title="Open Library Scan On Demand" class="thickbox"><img src="webchick.top_files/scanthisbook.png" alt="Scan This Book" border="0" width="140"></a><br />
-        <a href="http://demo.openlibrary.org/addreview?edition=b/soul_of_man_solidarity"><img src="webchick.top_files/reviewbook.png" alt="Review Book" border="0" width="140"></a>
-    -->     
+    <div id="book" style="height: 286px;">
     </div>
 </div>
 
 
 <div id="header">
-    <span id="title">Thank you for your patronage, $ctx.user.displayname.</span><br />
+    <span id="title"><br />Thank you for your patronage, $ctx.user.displayname.</span><br />
     <br />
     <span id="statement">
     Please review the following information before proceeding:
-    <br /><br />
-    Scan-on-Demand this book from $scanning_center.<br />
-    </span><br />
 </div>
 
 <br />
@@ -53,40 +43,23 @@ textarea {height:200px; background-color: #fff; font-family: georgia; font-size:
     <table cellpadding="10" cellspacing="0" border="0" class="scod"><tr><td valign="top">
 <div class="scod-table-item">
 
+<div class="alert"">
+   <code class="normal">
+   <b>NOTE:</b> This feature is still under development. Please be patient during the scanning process.
+   </code>
+   </div>
+
+<br />
+
 <b>You have offered to sponsor:</b><br />
         <span class="sponsorprice"><a href="$book.key" class="author">$book.title</a></span> &nbsp;(by $:thingrepr(book.authors))<br /> <br />
 
+<b>This book is available for Scan on Demand from:</b><br />
+        <span class="sponsorprice">$scanning_center.<br /><br />
+
 <b>Scanning time:</b><br />
-        <span class="sponsorprice">5-7 Days<br />
+        <span class="sponsorprice">5-7 Days<br /><br />
 
-<!--
-<b>Cost estimate:</b><br />
-        <span class="sponsorprice">(48pp. &times; 10&cent;) + \$5 = \$9.80</span> <!--&nbsp;(time)--><br />
-
-<br /><b>Virtual Bookplate:</b><br />
-Please fill out the fields below to be recognized for your contribution.</div>
-<br />
-<form action="" method="post" id="review_form">
-    <input type="hidden" name="book" value="b/soul_of_man_solidarity" />
-    <p>
-        <strong>Sponsor Name - Individual or Organization</strong>:<br />
-            <input type="text" name="q" value="$ctx.user.displayname"/>
-    </p>
-    <p>
-        <strong>Sponsorship Date</strong>:<br />
-        <input type="text" name="q" value=""/>
-    </p>
-    <p>
-        <strong>Contributing Library</strong>:<br />
-            <input type="text" name="q" value="$scanning_center"/>
-    </p>
-    <p>
-        <strong>First review</strong>:
-        <textarea>One Book Closer to Universal Access To Human Knowledge!</textarea>
-    </p>
-    <button type="submit" name="submit" class="edition" style="width: 200px;">Scan This Book</button>
-</form>
--->
 
     <form action="" method="post" id="review_form">
         <button type="submit" name="submit" class="edition" style="width: 200px;">Scan This Book</button>
@@ -98,16 +71,12 @@ Please fill out the fields below to be recognized for your contribution.</div>
 
 </td></tr></table>
 
-<div class="content" style="clear: both"> 
-</div>
 
-
-
-<a name="reviews"></a>
+<div class="content" style="clear: both">  	 	
+</div> 		
+ 					 			
+<a name="reviews"></a> 		
 <br clear="both" />
-
-</div>
-
 
 
 </div>
