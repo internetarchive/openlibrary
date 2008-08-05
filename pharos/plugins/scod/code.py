@@ -1,5 +1,5 @@
 from infogami.utils import delegate
-from infogami.utils.view import render, require_login, public
+from infogami.utils.view import render, require_login, public, permission_denied
 from infogami import config
 import web
 import datetime
@@ -83,23 +83,22 @@ class scan_review(delegate.mode):
         return render.scan_inprogress(book)
 
 class scan_complete(delegate.mode):
-    def assert_scan_user(self):
+    def is_scan_user(self):
         usergroup = web.ctx.site.get('/usergroup/scan')
         user = web.ctx.site.get_user()
-        
-        if user and usergroup and user.key in (m.key for m in usergroup.members):
-            return True
-        else:
-            print "Permission denied"
-            raise StopIteration
-        
+        return user and usergroup and user.key in (m.key for m in usergroup.members)
+
     def GET(self, path):
-        self.assert_scan_user()
+        if not self.is_scan_user():
+            return permission_denied('Permission denied.')
+
         book = get_book(path, check_scanned=False)
         return render.scan_complete(book)
         
     def POST(self, path):
-        self.assert_scan_user()
+        if not self.is_scan_user():
+            return permission_denied('Permission denied.')
+
         book = get_book(path, check_scanned=False)
         i = web.input("ocaid")
         
