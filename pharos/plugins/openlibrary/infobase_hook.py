@@ -19,7 +19,10 @@ def hook(object):
     site = object._site
     timestamp = datetime.datetime.utcnow()
     if object.type.key == '/type/edition':
-        _logger.write('book', site.name, timestamp, object._get_data(expand=True))
+        d = object._get_data(expand=True)
+        # save some space by not expanding type
+        d['type'] = {'key': '/type/edition'}
+        _logger.write('book', site.name, timestamp, d)
 
     #TODO: take care of author modifications
 

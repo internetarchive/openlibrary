@@ -37,9 +37,10 @@ class show_marc(delegate.page):
                                {'Range':'bytes=%d-%d'% (r0, r1)},
                                )
 
-        
-        result = urllib2.urlopen(ureq).read(100000)
-        # print 'urllib2 got %d bytes (%.3f sec):<p/>'% (len(result), time()-t0)
+        try:        
+            result = urllib2.urlopen(ureq).read(100000)
+        except urllib2.HTTPError, e:
+            return "ERROR:" + str(e)
 
         try:
             record = MARC21Record(result)

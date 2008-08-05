@@ -141,18 +141,16 @@ class scan_complete(delegate.mode):
 
         web.seeother(web.changequery(query={}))
 
-def get_scan_queue():
-    def f(scan_status):
-        q = {
-            'type': '/type/scan_record',
-            'scan_status': scan_status,
-        } 
-        result = web.ctx.site.things(q)
-        return [web.ctx.site.get(key) for key in result]
-
-    result = f('WAITING_FOR_BOOK') + f('SCAN_IN_PROGRESS')
-    result.sort(key=lambda record: to_datetime(record.request_date) or record.last_modified, reverse=True)
-    return result
+def get_scan_queue(scan_status, sort=None, limit=None):
+    q = {
+        'type': '/type/scan_record',
+        'scan_status': scan_status,
+        'sort': sort or 'request_date'
+    } 
+    if limit:
+        q['limit'] = limit
+    result = web.ctx.site.things(q)
+    return [web.ctx.site.get(key) for key in result]
 
 @public
 def to_datetime(iso_date_string):
@@ -177,5 +175,8 @@ def to_datetime(iso_date_string):
 
 class scan_queue(delegate.page):
     def GET(self):
-        queue = get_scan_queue()
+        queue = web.storage(
+            waiting=get_scan_queue('WAITING_FOR_BOOK'),
+            inprogress=get_scan_queue('SCAN_IN_PROGRESS'),
+            completed=get_scan_queue('SCAN_COMPLETE', limit=10, sort='completion_date'))
         return render.scan_queue(queue)

@@ -5,7 +5,7 @@ import infogami
 
 # Database parameters.
 # ** EDIT THIS **
-infogami.config.db_parameters = dict(dbn='postgres', host="pharosdb", db="infobase_staging", user='anand', pw='')
+infogami.config.db_parameters = dict(dbn='postgres', db="pharos", user='anand', pw='')
 
 infogami.config.site = 'openlibrary.org'
 infogami.config.admin_password = "admin123"
@@ -14,10 +14,10 @@ infogami.config.cache_templates = True
 infogami.config.db_printing = True
 
 infogami.config.plugin_path += ['plugins']
-infogami.config.plugins += ['openlibrary', "upload", "i18n", 'api', 'sync']
+infogami.config.plugins += ['openlibrary', "upload", "i18n", 'api', 'scod']
 
-infogami.config.plugins += ['search']
-infogami.config.solr_server_address = ('ia311530.us.archive.org', 8983)
+#infogami.config.plugins += ['search']
+#infogami.config.solr_server_address = ('ia311530.us.archive.org', 8983)
 
 
 web.config.infobase_logroot = "log"
