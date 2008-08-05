@@ -141,11 +141,11 @@ class scan_complete(delegate.mode):
 
         web.seeother(web.changequery(query={}))
 
-def get_scan_queue(scan_status, sort=None, limit=None):
+def get_scan_queue(scan_status, limit=None):
     q = {
         'type': '/type/scan_record',
         'scan_status': scan_status,
-        'sort': sort or 'request_date'
+        'sort': 'last_modified'
     } 
     if limit:
         q['limit'] = limit
@@ -178,5 +178,5 @@ class scan_queue(delegate.page):
         queue = web.storage(
             waiting=get_scan_queue('WAITING_FOR_BOOK'),
             inprogress=get_scan_queue('SCAN_IN_PROGRESS'),
-            completed=get_scan_queue('SCAN_COMPLETE', limit=10, sort='completion_date'))
+            completed=get_scan_queue('SCAN_COMPLETE', limit=10))
         return render.scan_queue(queue)
