@@ -58,18 +58,21 @@ def read_author_person(line):
 
 def read_full_title(line, edition):
     contents = {}
-    prefix_len = line[1]
+    full_title = []
     for k, v in get_subfields(line, ['a', 'b', 'c', 'h']):
         contents.setdefault(k, []).append(v)
+        if k in ('a', 'b'):
+            full_title.append(v.strip(' /,;:'))
     if 'a' not in contents:
         return
 
     try:
-        prefix_len = int(prefix_len)
+        prefix_len = int(line[1])
     except ValueError:
         prefix_len = None
 
     title = ' '.join(x.strip(' /,;:') for x in contents['a'])
+    edition['full_title'] = ' '.join(full_title)
 
     if prefix_len:
         edition['title'] = title[prefix_len:]

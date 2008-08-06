@@ -217,6 +217,18 @@ def level2_merge(e1, e2):
 
     return score
 
+def build_marc(edition):
+    marc = merge.build_titles(edition['full_title'])
+    marc['source_record_loc'] = loc 
+    if 'isbn' in edition:
+        marc['isbn'] = edition['isbn']
+    else:
+        marc['isbn'] = []
+    for f in 'publishers', 'publish_date', 'number_of_pages', 'authors':
+        if f in edition:
+            marc[f] = edition[f]
+    return marc
+
 def attempt_merge(e1, e2, threshold):
     l1 = level1_merge(e1, e2)
     total = sum(i[2] for i in l1)
