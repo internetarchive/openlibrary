@@ -60,10 +60,10 @@ def compare_date(e1, e2):
         return ('date', 'mismatch', -250)
 
 def compare_isbn10(e1, e2):
-    if len(e1['isbn_10']) == 0 or len(e2['isbn_10']) == 0:
+    if len(e1['isbn']) == 0 or len(e2['isbn']) == 0:
         return ('ISBN', 'missing', 0)
-    for i in e1['isbn_10']:
-        for j in e2['isbn_10']:
+    for i in e1['isbn']:
+        for j in e2['isbn']:
             if i == j:
                 return ('ISBN', 'match', isbn_match)
 
@@ -235,7 +235,7 @@ def test_merge():
                       'name': u'Green, Constance McLaughlin',
                       'personal_name': u'Green, Constance McLaughlin'}],
          'full_title': u'Eli Whitney and the birth of American technology',
-         'isbn_10': [u'188674632X'],
+         'isbn': [u'188674632X'],
          'normalized_title': u'eli whitney and the birth of american technology',
          'number_of_pages': 215,
          'publish_date': '1956',
@@ -250,7 +250,7 @@ def test_merge():
                      'name': u'Green, Constance McLaughlin',
                      'personal_name': u'Green, Constance McLaughlin'}],
         'full_title': u'Eli Whitney and the birth of American technology.',
-        'isbn_10': [],
+        'isbn': [],
         'normalized_title': u'eli whitney and the birth of american technology',
         'number_of_pages': 215,
         'publish_date': '1956',
