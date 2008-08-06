@@ -172,6 +172,10 @@ def read_oclc(line):
             found.append(m.group(1))
     return found
 
+def read_publisher(line):
+    return [v.strip(' /,;:') for k, v in get_subfields(line, ['b'])]
+
+
 def read_author_org(line):
     name = " ".join(v.strip(' /,;:') for k, v in get_subfields(line, ['a', 'b'])),
     return [{ 'entity_type': 'org', 'name': name, 'db_name': name, }]
@@ -191,6 +195,7 @@ def read_edition(data, get_short_title = True):
         ('100', read_author_person, 'authors'),
         ('110', read_author_org, 'authors'),
         ('111', read_author_event, 'authors'),
+        ('260', read_publisher, 'publisher'),
     ]
 
     if get_short_title:
