@@ -219,7 +219,6 @@ def level2_merge(e1, e2):
 
 def build_marc(edition):
     marc = build_titles(edition['full_title'])
-    marc['source_record_loc'] = loc 
     if 'isbn' in edition:
         marc['isbn'] = edition['isbn']
     else:
