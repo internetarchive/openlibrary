@@ -178,13 +178,12 @@ def read_oclc(line):
 def read_publisher(line):
     return [v.strip(' /,;:') for k, v in get_subfields(line, ['b'])]
 
-
 def read_author_org(line):
-    name = " ".join(v.strip(' /,;:') for k, v in get_subfields(line, ['a', 'b'])),
+    name = " ".join(v.strip(' /,;:') for k, v in get_subfields(line, ['a', 'b']))
     return [{ 'entity_type': 'org', 'name': name, 'db_name': name, }]
 
 def read_author_event(line):
-    name = " ".join(v.strip(' /,;:') for k, v in get_subfields(line, ['a', 'b', 'd', 'n'])),
+    name = " ".join(v.strip(' /,;:') for k, v in get_subfields(line, ['a', 'b', 'd', 'n']))
     return [{ 'entity_type': 'event', 'name': name, 'db_name': name, }]
 
 def read_edition(data, get_short_title = True):
