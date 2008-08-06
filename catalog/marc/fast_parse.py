@@ -3,7 +3,6 @@
 # TODO: handle MARC8 charset
 
 import re
-from catalog.marc.parse import pick_first_date
 
 re_question = re.compile('^\?+$')
 re_lccn = re.compile('(...\d+).*')
@@ -24,68 +23,20 @@ def normalize(s):
 max_number_of_pages = 50000
 
 def read_author_person(line):
-    contents = {}
-    name_list = []
-    author = {}
-    for k, v in get_subfields(line, ['a', 'b', 'c', 'd', 'q']):
-        contents.setdefault(k, []).append(v)
-        if k in ('a', 'b', 'c'):
-            name_list.append(v.strip(' /,;:'))
-    if 'a' not in contents and 'c' not in contents:
+    name = []
+    name_and_date = []
+    for k, v in get_subfields(line, ['a', 'b', 'c', 'd']):
+        if k != 'd':
+            v = v.strip(' /,;:')
+            name.append(v)
+        name_and_date.append(v)
+    if not name:
         return []
 
-    name = " ".join(name_list)
-    if 'd' in contents:
-        author = pick_first_date(contents['d'])
-        author['db_name'] = ' '.join([name] + contents['d'])
-    else:
-        author['db_name'] = name
-    author['name'] = name
-    author['entity_type'] = 'person'
+    return [{ 'db_name': ' '.join(name_and_date), 'name': ' '.join(name), }]
 
-    subfields = [
-        ('a', 'personal_name'),
-        ('b', 'numeration'),
-        ('c', 'title')
-    ]
-
-    for subfield, field_name in subfields:
-        if subfield in contents:
-            author[field_name] = ' '.join([x.strip(' /,;:') for x in contents[subfield]])
-    if 'q' in contents:
-        author['fuller_name'] = ' '.join(contents['q'])
-    return [author]
-
-def read_full_title(line, edition):
-    contents = {}
-    full_title = []
-    for k, v in get_subfields(line, ['a', 'b', 'c', 'h']):
-        contents.setdefault(k, []).append(v)
-        if k in ('a', 'b'):
-            full_title.append(v.strip(' /,;:'))
-    if 'a' not in contents:
-        return
-
-    try:
-        prefix_len = int(line[1])
-    except ValueError:
-        prefix_len = None
-
-    title = ' '.join(x.strip(' /,;:') for x in contents['a'])
-    edition['full_title'] = ' '.join(full_title)
-
-    if prefix_len:
-        edition['title'] = title[prefix_len:]
-        edition['title_prefix'] = title[:prefix_len]
-    else:
-        edition['title'] = title
-
-    if 'b' in contents:
-        edition["subtitle"] = ' : '.join([x.strip(' /,;:') for x in contents['b']])
-    if 'c' in contents:
-        edition["by_statement"] = ' '.join(contents['c'])
-    if 'h' in contents:
-        edition["physical_format"] = ' '.join(contents['h'])
+def read_full_title(line):
+    return ' '.join(v.strip(' /,;:') for k, v in get_subfields(line, ['a', 'b']))
 
 def read_short_title(line):
     prefix_len = line[1]
@@ -124,7 +75,6 @@ def get_tag_lines(data, want):
         # sometimes the leader includes some utf-8 by mistake
         directory = data[:dir_end].decode('utf-8')[24:]
         assert len(directory) % 12 == 0
-
 
     fields = []
 
@@ -180,11 +130,11 @@ def read_publisher(line):
 
 def read_author_org(line):
     name = " ".join(v.strip(' /,;:') for k, v in get_subfields(line, ['a', 'b']))
-    return [{ 'entity_type': 'org', 'name': name, 'db_name': name, }]
+    return [{ 'name': name, 'db_name': name, }]
 
 def read_author_event(line):
     name = " ".join(v.strip(' /,;:') for k, v in get_subfields(line, ['a', 'b', 'd', 'n']))
-    return [{ 'entity_type': 'event', 'name': name, 'db_name': name, }]
+    return [{ 'name': name, 'db_name': name, }]
 
 def read_edition(data, get_short_title = True):
     edition = {}
@@ -206,8 +156,6 @@ def read_edition(data, get_short_title = True):
     for tag, line in fields:
         if tag == '008':
             edition['publish_date'] = line[7:11]
-            edition['publish_country'] = line[15:18]
-            edition['languages'] = line[35:38]
             continue
         for t, proc, key in read_tag:
             if t != tag:
@@ -217,7 +165,7 @@ def read_edition(data, get_short_title = True):
                 edition.setdefault(key, []).extend(found)
             break
         if tag == '245':
-            read_full_title(line, edition)
+            edition['full_title'] = read_full_title(line)
         if tag == '300':
             for k, v in get_subfields(line, ['a']):
                 num = [ int(i) for i in re_int.findall(v) ]
