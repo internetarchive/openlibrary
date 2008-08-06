@@ -3,6 +3,7 @@
 # TODO: handle MARC8 charset
 
 import re
+from catalog.marc.parse import pick_first_date
 
 re_question = re.compile('^\?+$')
 re_lccn = re.compile('(...\d+).*')
@@ -21,6 +22,67 @@ def normalize(s):
 
 # no monograph should be longer than 50,000 pages
 max_number_of_pages = 50000
+
+def read_author_person(line):
+    contents = {}
+    name_list = []
+    author = {}
+    for k, v in get_subfields(line, ['a', 'b', 'c', 'd', 'q']):
+        contents.setdefault(k, []).append(v)
+        if k in ('a', 'b', 'c'):
+            name_list.append(v.strip(' /,;:'))
+    if 'a' not in contents and 'c' not in contents:
+        return []
+
+    name = " ".join(name_list)
+    if 'd' in contents:
+        author = pick_first_date(contents['d'])
+        author['db_name'] = ' '.join([name] + contents['d'])
+    else:
+        author['db_name'] = name
+    author['name'] = name
+    author['entity_type'] = 'person'
+
+    subfields = [
+        ('a', 'personal_name'),
+        ('b', 'numeration'),
+        ('c', 'title')
+    ]
+
+    for subfield, field_name in subfields:
+        if subfield in contents:
+            author[field_name] = ' '.join([x.strip(' /,;:') for x in contents[subfield]])
+    if 'q' in contents:
+        author['fuller_name'] = ' '.join(contents['q'])
+    return [author]
+
+def read_full_title(line, edition):
+    contents = {}
+    prefix_len = line[1]
+    for k, v in get_subfields(line, ['a', 'b', 'c', 'h']):
+        contents.setdefault(k, []).append(v)
+    if 'a' not in contents:
+        return
+
+    try:
+        prefix_len = int(prefix_len)
+    except ValueError:
+        prefix_len = None
+
+    title = ' '.join(x.strip(' /,;:') for x in contents['a'])
+
+    if prefix_len:
+        edition['title'] = title[prefix_len:]
+        edition['title_prefix'] = title[:prefix_len]
+    else:
+        edition['title'] = title
+
+    if 'b' in contents:
+        edition["subtitle"] = ' : '.join([x.strip(' /,;:') for x in contents['b']])
+    if 'c' in contents:
+        edition["by_statement"] = ' '.join(contents['c'])
+    if 'h' in contents:
+        edition["physical_format"] = ' '.join(contents['h'])
 
 def read_short_title(line):
     prefix_len = line[1]
@@ -110,6 +172,14 @@ def read_oclc(line):
             found.append(m.group(1))
     return found
 
+def read_author_org(line):
+    name = " ".join(v.strip(' /,;:') for k, v in get_subfields(line, ['a', 'b'])),
+    return [{ 'entity_type': 'org', 'name': name, 'db_name': name, }]
+
+def read_author_event(line):
+    name = " ".join(v.strip(' /,;:') for k, v in get_subfields(line, ['a', 'b', 'd', 'n'])),
+    return [{ 'entity_type': 'event', 'name': name, 'db_name': name, }]
+
 def read_edition(data):
     edition = {}
     want = ['008', '010', '020', '035', '100', '110', '111', '245', '260', '300']
@@ -118,6 +188,9 @@ def read_edition(data):
         ('010', read_lccn, 'lccn'),
         ('020', read_isbn, 'isbn'),
         ('035', read_oclc, 'oclc'),
+        ('100', read_author_person, 'authors'),
+        ('110', read_author_org, 'authors'),
+        ('111', read_author_event, 'authors'),
         ('245', read_short_title, 'short_title'),
     ]
     for tag, line in fields:
@@ -133,6 +206,8 @@ def read_edition(data):
             if found:
                 edition.setdefault(key, []).extend(found)
             break
+        if tag == '245':
+            read_full_title(line, edition)
         if tag == '300':
             for k, v in get_subfields(line, ['a']):
                 num = [ int(i) for i in re_int.findall(v) ]
