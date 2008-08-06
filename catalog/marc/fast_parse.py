@@ -180,7 +180,7 @@ def read_author_event(line):
     name = " ".join(v.strip(' /,;:') for k, v in get_subfields(line, ['a', 'b', 'd', 'n'])),
     return [{ 'entity_type': 'event', 'name': name, 'db_name': name, }]
 
-def read_edition(data):
+def read_edition(data, get_short_title = True):
     edition = {}
     want = ['008', '010', '020', '035', '100', '110', '111', '245', '260', '300']
     fields = get_tag_lines(data, want)
@@ -191,8 +191,11 @@ def read_edition(data):
         ('100', read_author_person, 'authors'),
         ('110', read_author_org, 'authors'),
         ('111', read_author_event, 'authors'),
-        ('245', read_short_title, 'short_title'),
     ]
+
+    if get_short_title:
+        read_tag.append(('245', read_short_title, 'short_title'))
+
     for tag, line in fields:
         if tag == '008':
             edition['publish_date'] = line[7:11]
