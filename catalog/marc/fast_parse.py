@@ -1,6 +1,4 @@
 # fast parse for merge
-# TODO: title and author
-# TODO: handle MARC8 charset
 
 import re
 
@@ -36,28 +34,15 @@ def read_author_person(line):
     return [{ 'db_name': ' '.join(name_and_date), 'name': ' '.join(name), }]
 
 def read_full_title(line):
-    return ' '.join(v.strip(' /,;:') for k, v in get_subfields(line, ['a', 'b']))
+    title = [v.strip(' /,;:') for k, v in get_subfields(line, ['a', 'b'])]
+    return ' '.join([t for t in title if t])
 
 def read_short_title(line):
-    prefix_len = line[1]
-    title_and_subtitle = []
-    title = []
-    for k, v in get_subfields(line, ['a', 'b']):
-        v = v.strip(' /,;:')
-        title_and_subtitle.append(v)
-        if k == 'a':
-            title.append(v)
-    
-    titles = [' '.join(title).strip()]
-    if title != title_and_subtitle:
-        titles.append(' '.join(title_and_subtitle).strip())
-    if prefix_len and prefix_len != '0':
-        try:
-            prefix_len = int(prefix_len)
-            titles += [t[prefix_len:] for t in titles]
-        except ValueError:
-            pass
-    return [str(normalize(i)[:25]) for i in titles]
+    title = str(normalize(read_full_title(line))[:25])
+    if title:
+        return [title]
+    else:
+        return []
 
 def get_subfields(line, want):
     want = set(want)
@@ -136,9 +121,33 @@ def read_author_event(line):
     name = " ".join(v.strip(' /,;:') for k, v in get_subfields(line, ['a', 'b', 'd', 'n']))
     return [{ 'name': name, 'db_name': name, }]
 
-def read_edition(data, get_short_title = True):
+def index_fields(data):
+    if str(data)[6:8] != 'am': # only want books
+        return None
     edition = {}
-    want = ['008', '010', '020', '035', '100', '110', '111', '245', '260', '300']
+    fields = get_tag_lines(data, ['006', '010', '020', '035', '245'])
+    read_tag = {
+        '010': (read_lccn, 'lccn'),
+        '020': (read_isbn, 'isbn'),
+        '035': (read_oclc, 'oclc'),
+        '245': (read_short_title, 'short_title'),
+    }
+
+    for tag, line in fields:
+        if tag == '006':
+            if line[0] == 'm': # don't want electronic resources
+                return None
+            continue
+        assert tag in read_tag
+        proc, key = read_tag[tag]
+        found = proc(line)
+        if found:
+            edition.setdefault(key, []).extend(found)
+    return edition
+
+def read_edition(data)
+    edition = {}
+    want = ['006', '008', '010', '020', '035', '100', '110', '111', '245', '260', '300']
     fields = get_tag_lines(data, want)
     read_tag = [
         ('010', read_lccn, 'lccn'),
@@ -150,10 +159,11 @@ def read_edition(data, get_short_title = True):
         ('260', read_publisher, 'publisher'),
     ]
 
-    if get_short_title:
-        read_tag.append(('245', read_short_title, 'short_title'))
-
     for tag, line in fields:
+        if tag == '006':
+            if line[0] == 'm':
+                return None
+            continue
         if tag == '008':
             edition['publish_date'] = line[7:11]
             continue
@@ -166,6 +176,7 @@ def read_edition(data, get_short_title = True):
             break
         if tag == '245':
             edition['full_title'] = read_full_title(line)
+            continue
         if tag == '300':
             for k, v in get_subfields(line, ['a']):
                 num = [ int(i) for i in re_int.findall(v) ]
