@@ -53,7 +53,7 @@ def get_subfields(line, want):
 
 def get_tag_lines(data, want):
     want = set(want)
-    dir_end = data.find(chr(30))
+    dir_end = data.find('\x1e')
     directory = data[24:dir_end]
     if len(directory) % 12 != 0:
         # directory is the wrong size
@@ -70,8 +70,18 @@ def get_tag_lines(data, want):
             continue
         length = int(line[3:7])
         offset = int(line[7:12])
+
+        # handle off-by-one errors in MARC records
+        if data[dir_end+offset] != '\x1e':
+            assert data[dir_end+offset+1] == '\x1e'
+            offset+=1
+        last = dir_end+length+offset
+        if data[last] != '\x1e':
+            assert data[last+1] == '\x1e'
+            length+=1
+
         tag_line = data[dir_end+offset + 1:dir_end+1+length+offset]
-        assert ord(tag_line[-1]) == 30
+        assert tag_line[-1] == '\x1e'
         fields.append((tag, tag_line))
     return fields
 
