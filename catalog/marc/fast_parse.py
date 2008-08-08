@@ -145,7 +145,7 @@ def index_fields(data):
             edition.setdefault(key, []).extend(found)
     return edition
 
-def read_edition(data)
+def read_edition(data):
     edition = {}
     want = ['006', '008', '010', '020', '035', '100', '110', '111', '245', '260', '300']
     fields = get_tag_lines(data, want)
