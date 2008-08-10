@@ -60,6 +60,7 @@ def get_tag_lines(data, want):
         # sometimes the leader includes some utf-8 by mistake
         directory = data[:dir_end].decode('utf-8')[24:]
         assert len(directory) % 12 == 0
+    data = data[dir_end:]
 
     fields = []
 
@@ -72,16 +73,17 @@ def get_tag_lines(data, want):
         offset = int(line[7:12])
 
         # handle off-by-one errors in MARC records
-        if data[dir_end+offset] != '\x1e':
-            assert data[dir_end+offset+1] == '\x1e'
-            offset+=1
-        last = dir_end+length+offset
+        if data[offset] != '\x1e':
+            offset += data[offset:].find('\x1e')
+        last = offset+length
         if data[last] != '\x1e':
-            assert data[last+1] == '\x1e'
-            length+=1
+            length += data[last:].find('\x1e')
 
-        tag_line = data[dir_end+offset + 1:dir_end+1+length+offset]
-        assert tag_line[-1] == '\x1e'
+        tag_line = data[offset + 1:offset + length + 1]
+        if not tag.startswith('00'):
+            # marc_western_washington_univ/wwu_bibs.mrc_revrev.mrc:636441290:1277
+            if tag_line[1:8] == '{llig}\x1f':
+                tag_line = tag_line[0] + u'\uFE20' + tag_line[7:]
         fields.append((tag, tag_line))
     return fields
 
@@ -131,11 +133,12 @@ def read_author_event(line):
     name = " ".join(v.strip(' /,;:') for k, v in get_subfields(line, ['a', 'b', 'd', 'n']))
     return [{ 'name': name, 'db_name': name, }]
 
-def index_fields(data):
+def index_fields(data, want):
     if str(data)[6:8] != 'am': # only want books
         return None
     edition = {}
-    fields = get_tag_lines(data, ['006', '010', '020', '035', '245'])
+    # ['006', '010', '020', '035', '245']
+    fields = get_tag_lines(data, ['006'] + want)
     read_tag = {
         '010': (read_lccn, 'lccn'),
         '020': (read_isbn, 'isbn'),
