@@ -179,6 +179,7 @@ def read_edition(data):
             continue
         if tag == '008':
             edition['publish_date'] = line[7:11]
+            edition['publish_country'] = line[15:18]
             continue
         for t, proc, key in read_tag:
             if t != tag:

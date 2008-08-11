@@ -69,6 +69,8 @@ def compare_isbn10(e1, e2):
 
     return ('ISBN', 'mismatch', -225)
 
+# 450 + 200 + 85 + 200
+
 def level1_merge(e1, e2):
     score = []
     if e1['short_title'] == e2['short_title']:
@@ -205,6 +207,9 @@ def compare_publisher(e1, e2):
 def level2_merge(e1, e2):
 
     score = []
+    if 'publish_country' in e1 and 'publish_country' in e2 \
+            and e1['publish_country'] == e2['publish_country']:
+        score.append(('publish_country', 'exact match', 40))
     score.append(compare_date(e1, e2))
     score.append(compare_isbn10(e1, e2))
     score.append(compare_title(e1, e2))
@@ -223,7 +228,7 @@ def build_marc(edition):
         marc['isbn'] = edition['isbn']
     else:
         marc['isbn'] = []
-    for f in 'publishers', 'publish_date', 'number_of_pages', 'authors':
+    for f in 'lccn', 'publishers', 'publish_date', 'number_of_pages', 'authors':
         if f in edition:
             marc[f] = edition[f]
     return marc
