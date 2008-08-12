@@ -187,7 +187,10 @@ class bookreader(delegate.page):
     def find_location(self, identifier):
         import os
         data = os.popen(self.SCRIPT_PATH + ' ' + identifier).read().strip()
-        return data and data.split(':')
+        if ':' in data:
+            return data.split(':', 1)
+        else:
+            return None, None
 
 class robotstxt(delegate.page):
     path = "/robots.txt"
