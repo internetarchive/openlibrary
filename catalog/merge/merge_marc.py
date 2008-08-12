@@ -44,6 +44,14 @@ def build_titles(title):
 def within(a, b, distance):
     return abs(a-b) <= distance
 
+def compare_country(e1, e2):
+    field = 'publish_country'
+    if field not in e1 or field not in e2:
+        return (field, 'value missing', 0)
+    if e1[field] == e2[field]:
+        return (field, 'match', 40)
+    return (field, 'mismatch', -205)
+
 def compare_date(e1, e2):
     if 'publish_date' not in e1 or 'publish_date' not in e2:
         return ('date', 'value missing', 0)
@@ -205,12 +213,9 @@ def compare_publisher(e1, e2):
         return ('publisher', 'either missing', 0)
 
 def level2_merge(e1, e2):
-
     score = []
-    if 'publish_country' in e1 and 'publish_country' in e2 \
-            and e1['publish_country'] == e2['publish_country']:
-        score.append(('publish_country', 'exact match', 40))
     score.append(compare_date(e1, e2))
+    score.append(compare_country(e1, e2))
     score.append(compare_isbn10(e1, e2))
     score.append(compare_title(e1, e2))
     page_score = compare_number_of_pages(e1, e2)
@@ -228,6 +233,9 @@ def build_marc(edition):
         marc['isbn'] = edition['isbn']
     else:
         marc['isbn'] = []
+    if 'publish_country' in edition \
+            and edition['publish_country'] not in ('   ', '|||'):
+        marc['publish_country'] = edition['publish_country']
     for f in 'lccn', 'publishers', 'publish_date', 'number_of_pages', 'authors':
         if f in edition:
             marc[f] = edition[f]
