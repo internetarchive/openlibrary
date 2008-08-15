@@ -18,6 +18,8 @@ re_marc_name = re.compile('^(.*), (.*)$')
 re_end_dot = re.compile('[^ ][^ ]\.$', re.UNICODE)
 re_odd_dot = re.compile('[^ ][^ ]\. ', re.UNICODE)
 
+author_type_id = get_type_id('/type/author')
+
 def get_thing(id):
     sql = "select key, value from datum where thing_id=%d and end_revision=2147483647 and key != 'type'" % id
     iter = web.query(sql)
@@ -27,43 +29,20 @@ def get_thing(id):
     return thing
 
 def get_author_by_name(name):
-    sql = """
-select d1.thing_id as id
-from datum as d1, datum as d2
-where d1.key='type' and cast(d1.value as integer)=58 and d1.datatype=0 and d1.end_revision=2147483647
-    and d2.key='name' and d2.value=$name and d2.datatype=2 and d2.end_revision=2147483647
-    and d1.thing_id = d2.thing_id
-"""
-    iter = web.query(sql, vars={'name': name})
+    sql = "select d1.thing_id as id from thing, datum where thing.type=$type and and thing.id=datum and thing_id and datum.key='name' and datum.value=$name and datum.datatype=2 and datum.end_revision=2147483647"
+    iter = web.query(sql, vars={'name': name, 'type': author_type_id})
     return [row.id for row in iter]
 
 def flip_name(name):
     m = re_end_dot.search(name)
-    if m:
+    if m: # strip dot
         name = name[:-1]
+
     m = re_marc_name.match(name)
-    if not m:
-        return None
     return m.group(2) + ' ' + m.group(1)
 
 east_list = [line[:-1].lower() for line in open("east")]
 east = frozenset(east_list + [flip_name(i) for i in east_list])
-
-def find_east():
-    for name in (line[:-1] for line in open("east")):
-        authors = get_author_by_name(name)
-        if not authors:
-            continue
-        name1 = name.replace(', ', ' ')
-        name2 = flip_name(name)
-        if not name2:
-            continue
-        other = get_author_by_name(name.replace(', ', ' '))
-        if not other:
-            continue
-        other2 = get_author_by_name(name.replace(', ', ' '))
-        if not other2:
-            continue
 
 def author_dates_match(a, b):
     for k in ['birth_date', 'death_date', 'date']:
@@ -71,22 +50,26 @@ def author_dates_match(a, b):
             return False
     return True
 
-#find_east()
+def get_type_id(type):
+    w = "key='" + type + "' and site_id=1"
+    return web.select('thing', what='id', where=w)[0].id
 
-sql = "select thing_id from datum where key='type' and cast(value as integer)=58 and datatype=0 and end_revision = 2147483647 limit 10000"
 print 'running query'
-thing_iter = web.query(sql)
-for thing_row in thing_iter:
-    id = thing_row.thing_id
+# limit for test runs
+for thing_row in web.select('thing', what='id, key', where='type='+`author_type_id`, limit=10000):
+    id = thing_row.id
     author = get_thing(id)
-    if 'personal_name' not in author or author['personal_name'] != author['name']:
+
+    if 'personal_name' not in author \ 
+            or author['personal_name'] != author['name']:
         continue
-    if author['name'].find(',') == -1:
+    if author['name'].find(', ') == -1:
         continue
     if author['name'].lower().replace('.', '') in east:
         continue
-    name = flip_name(author['name'])
+
     key = author['key']
+    name = flip_name(author['name'])
     if not name:
         continue
     other = get_author_by_name(name)
