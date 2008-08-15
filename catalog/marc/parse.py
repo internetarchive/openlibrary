@@ -120,7 +120,7 @@ def find_contributions(r, edition):
     if contributions:
         edition['contributions'] = contributions
 
-def find_contributions_compex(r, edition):
+def find_contributions_complex(r, edition):
     authors = []
     for f in r.get_fields('700'):
         author = {}
