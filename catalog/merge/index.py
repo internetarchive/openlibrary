@@ -1,5 +1,6 @@
 from normalize import normalize
 from time import time
+import re
 
 def add_to_index(dbm, key, thing_id):
     if not key:
@@ -12,6 +13,8 @@ def add_to_index(dbm, key, thing_id):
 
 def short_title(s):
     return normalize(s)[:25]
+
+re_letters = re.compile('[A-Za-z]')
 
 def clean_lccn(lccn):
     return re_letters.sub('', lccn).strip()
@@ -46,10 +49,18 @@ def read_record(record, dbm):
             add_to_index(dbm[b], v, thing_id)
 
 def test_read_record():
-    dbm = dict((i, {}) for i in ('lccn', 'oclc', 'isbn', 'title'))
+    def empty_dbm():
+        return dict((i, {}) for i in ('lccn', 'oclc', 'isbn', 'title'))
+
+    dbm = empty_dbm()
 
     line = '{"title_prefix": null, "subtitle": null, "description": null, "language": null, "title": "Metamagical Themas", "by_statement": null, "notes": null, "language_code": null, "id": 9888119, "edition_name": null, "publish_date": null, "key": "/b/OL7254007M", "authors": [{"key": "/a/OL2621476A"}], "ocaid": null, "type": "/type/edition", "coverimage": null}'
     line = line.replace('null', 'None')
     record = eval(line)
     read_record(record, dbm)
     assert dbm == { 'lccn': {}, 'isbn': {}, 'oclc': {}, 'title': {'metamagical themas': '9888119'} }
+
+    record = {"pagination": "8, 304 p.", "description": "Test", "title": "Kabita\u0304.", "lccn": ["sa 64009056"], "notes": "Bibliographical footnotes.\r\nIn Oriya.", "number_of_pages": 304, "languages": [{"key": "/l/ori"}], "authors": [{"key": "/a/OL1A"}], "lc_classifications": ["PK2579.R255 K3"], "publish_date": "1962", "publish_country": "ii ", "key": "/b/OL1M", "language_code": "304", "coverimage": "/static/images/book.trans.gif", "oclc_numbers": ["31249133"], "type": "/type/edition", "id": 96}
+    dbm = empty_dbm()
+    read_record(record, dbm)
+    assert dbm == {'lccn': {'64009056': '96'}, 'isbn': {}, 'oclc': {'31249133': '96'}, 'title': {'kabitau0304': '96'}}
