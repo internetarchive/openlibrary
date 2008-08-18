@@ -18,6 +18,10 @@ re_marc_name = re.compile('^(.*), (.*)$')
 re_end_dot = re.compile('[^ ][^ ]\.$', re.UNICODE)
 re_odd_dot = re.compile('[^ ][^ ]\. ', re.UNICODE)
 
+def get_type_id(type):
+    w = "key='" + type + "' and site_id=1"
+    return web.select('thing', what='id', where=w)[0].id
+
 author_type_id = get_type_id('/type/author')
 
 def get_thing(id):
@@ -50,9 +54,12 @@ def author_dates_match(a, b):
             return False
     return True
 
-def get_type_id(type):
-    w = "key='" + type + "' and site_id=1"
-    return web.select('thing', what='id', where=w)[0].id
+def get_other_authors(name):
+    other = [(name, i) for i in get_author_by_name(name)]
+    if name.find('.') == -1:
+        name = name.replace('.', '')
+        other.extend([(name, i) for i in get_author_by_name(name)])
+    return other
 
 print 'running query'
 # limit for test runs
@@ -60,7 +67,7 @@ for thing_row in web.select('thing', what='id, key', where='type='+`author_type_
     id = thing_row.id
     author = get_thing(id)
 
-    if 'personal_name' not in author \ 
+    if 'personal_name' not in author \
             or author['personal_name'] != author['name']:
         continue
     if author['name'].find(', ') == -1:
@@ -70,32 +77,30 @@ for thing_row in web.select('thing', what='id, key', where='type='+`author_type_
 
     key = author['key']
     name = flip_name(author['name'])
-    if not name:
-        continue
-    other = get_author_by_name(name)
-    other_no_dot = []
-    if name.find('.') != -1:
-        name_no_dot = name.replace('.', '')
-        other_no_dot = get_author_by_name(name_no_dot)
-    if len(other) == 0 and len(other_no_dot) == 0 and not re_odd_dot.search(author['name']):
-        continue
+    other = get_other_authors(name)
+    if len(other) == 0 and not re_odd_dot.search(author['name']):
         print "rename %s to %s" % (`author['name']`, `name`)
         author['type'] = { 'key': '/type/author' }
         author['personal_name'] = { 'connect': 'delete' }
         author['name'] = name
         pprint(author)
-#        q = ctx.make_query({'key': key, 'name': { 'connect': 'update', 'value': name}})
-#        print `q`
+        q = {
+            'key': key,
+            'name': { 'connect': 'update', 'value': name},
+        }
+#        q = ctx.make_query(q)
+        print `q`
         continue
-    if (len(other) + len(other_no_dot)) != 1:
+
+    if len(other) != 1:
         continue
-    same_name = get_author_by_name(author['name'])
-    if len(same_name) > 1:
+    # don't merge authors when more than one like "Smith, John"
+    if len(get_author_by_name(author['name'])) > 1:
         continue
-    if other_no_dot:
-        other = other_no_dot
-        name = name_no_dot
-    author2 = get_thing(other[0])
+
+    name = other[0][0]
+
+    author2 = get_thing(other[0][1])
     if not author_dates_match(author, author2):
         continue
     print 'merge author %s and %s' % (`author['name']`, `name`)
@@ -103,12 +108,26 @@ for thing_row in web.select('thing', what='id, key', where='type='+`author_type_
     pprint(author)
     pprint(author2)
     author['name'] == author2['name']
-#    for k, v in author.iteritems():
-#        if k in ('name', 'key'):
-#            continue
-#        if k in author2:
-#            assert v == author2[k]
-#            continue
-#        author2[k] = v
-    pprint(author2)
 
+    for k, v in author2.iteritems():
+        if k in ('name', 'key'):
+            continue
+        if k in author:
+            assert v == author[k]
+        else:
+            author2[k] = v
+    pprint(author)
+
+    # todo: find books by author2 and update to point at author
+    q = {
+        'authors': author2['key'],
+        'type': '/type/edition',
+    }
+    for edition in site.things(q):
+        authors = [a for a in edition.authors]
+        q = {
+            'key': edition.key.value,
+            'authors': { 'connect': 'update_list', 'value': name}
+        }
+#        q = ctx.make_query(q)
+        print `q`
