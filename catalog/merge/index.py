@@ -1,0 +1,55 @@
+from normalize import normalize
+from time import time
+
+def add_to_index(dbm, key, thing_id):
+    if not key:
+        return
+    key = str(key)
+    if key in dbm:
+        dbm[key] += ' ' + thing_id
+    else:
+        dbm[key] = thing_id
+
+def short_title(s):
+    return normalize(s)[:25]
+
+def clean_lccn(lccn):
+    return re_letters.sub('', lccn).strip()
+
+def read_record(record, dbm):
+    if 'title' not in record or record['title'] is None:
+        return
+    if 'subtitle' in record and record['subtitle'] is not None:
+        title = record['title'] + ' ' + record['subtitle']
+    else:
+        title = record['title']
+    thing_id = `record['id']`
+    add_to_index(dbm['title'], short_title(title), thing_id)
+    if 'title_prefix' in record and record['title_prefix'] is not None:
+        title2 = short_title(record['title_prefix'] + title)
+        add_to_index(dbm['title'], title2, thing_id)
+
+    fields = [
+        ('lccn', 'lccn', clean_lccn),
+        ('oclc_numbers', 'oclc', None),
+        ('isbn_10', 'isbn', None),
+        ('isbn_13', 'isbn', None),
+    ]
+    for a, b, clean in fields:
+        if a not in record:
+            continue
+        for v in record[a]:
+            if not v:
+                continue
+            if clean:
+                v = clean(v)
+            add_to_index(dbm[b], v, thing_id)
+
+def test_read_record():
+    dbm = dict((i, {}) for i in ('lccn', 'oclc', 'isbn', 'title'))
+
+    line = '{"title_prefix": null, "subtitle": null, "description": null, "language": null, "title": "Metamagical Themas", "by_statement": null, "notes": null, "language_code": null, "id": 9888119, "edition_name": null, "publish_date": null, "key": "/b/OL7254007M", "authors": [{"key": "/a/OL2621476A"}], "ocaid": null, "type": "/type/edition", "coverimage": null}'
+    line = line.replace('null', 'None')
+    record = eval(line)
+    read_record(record, dbm)
+    assert dbm == { 'lccn': {}, 'isbn': {}, 'oclc': {}, 'title': {'metamagical themas': '9888119'} }
