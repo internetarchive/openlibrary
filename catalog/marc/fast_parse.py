@@ -143,7 +143,7 @@ def index_fields(data, want):
         '010': (read_lccn, 'lccn'),
         '020': (read_isbn, 'isbn'),
         '035': (read_oclc, 'oclc'),
-        '245': (read_short_title, 'short_title'),
+        '245': (read_short_title, 'title'),
     }
 
     for tag, line in fields:
