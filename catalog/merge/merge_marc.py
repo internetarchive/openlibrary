@@ -52,6 +52,14 @@ def compare_country(e1, e2):
         return (field, 'match', 40)
     return (field, 'mismatch', -205)
 
+def compare_lccn(e1, e2):
+    field = 'lccn'
+    if field not in e1 or field not in e2:
+        return (field, 'value missing', 0)
+    if e1[field] == e2[field]:
+        return (field, 'match', 200)
+    return (field, 'mismatch', -320)
+
 def compare_date(e1, e2):
     if 'publish_date' not in e1 or 'publish_date' not in e2:
         return ('date', 'value missing', 0)
@@ -86,6 +94,7 @@ def level1_merge(e1, e2):
     else:
         score.append(('short-title', 'mismatch', 0))
 
+    score.append(compare_lccn(e1, e2))
     score.append(compare_date(e1, e2))
     score.append(compare_isbn10(e1, e2))
     return score
@@ -218,6 +227,7 @@ def level2_merge(e1, e2):
     score.append(compare_country(e1, e2))
     score.append(compare_isbn10(e1, e2))
     score.append(compare_title(e1, e2))
+    score.append(compare_lccn(e1, e2))
     page_score = compare_number_of_pages(e1, e2)
     if page_score:
         score.append(page_score)
