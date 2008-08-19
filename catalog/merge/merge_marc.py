@@ -251,15 +251,17 @@ def build_marc(edition):
             marc[f] = edition[f]
     return marc
 
-def attempt_merge(e1, e2, threshold):
+def attempt_merge(e1, e2, threshold, debug = False):
     l1 = level1_merge(e1, e2)
     total = sum(i[2] for i in l1)
-#    print total, l1
+    if debug:
+        print total, l1
     if total >= threshold:
         return True
     l2 = level2_merge(e1, e2)
     total = sum(i[2] for i in l2)
-#    print total, l2
+    if debug:
+        print total, l2
     return total >= threshold
 
 def test_merge():
