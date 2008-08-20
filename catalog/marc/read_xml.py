@@ -108,7 +108,7 @@ def get_subfields(line, want):
 
 def read_edition(data):
     edition = {}
-    want = ['006', '008', '010', '020', '035', '100', '110', '111', '245', '260', '300']
+    want = ['008', '010', '020', '035', '100', '110', '111', '245', '260', '300']
     fields = get_tag_lines(data, want)
     read_tag = [
         ('010', read_lccn, 'lccn'),
@@ -121,10 +121,11 @@ def read_edition(data):
     ]
 
     for tag, line in fields:
-        if tag == '006':
-            if line[0] == 'm':
-                return None
-            continue
+        # http://openlibrary.org/b/OL7074573M
+        # if tag == '006':
+        #    if line[0] == 'm':
+        #        return None
+        #    continue
         if tag == '008':
             edition['publish_date'] = line[7:11]
             edition['publish_country'] = line[15:18]
