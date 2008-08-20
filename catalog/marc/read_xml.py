@@ -51,15 +51,10 @@ def read_lccn(line):
 
 def read_isbn(line):
     found = []
-    if line.find('\x1f') != -1:
-        for k, v in get_subfields(line, ['a', 'z']):
-            m = re_isbn.match(v)
-            if m:
-                found.append(m.group(1))
-    else:
-        m = re_isbn.match(line[3:-1])
+    for k, v in get_subfields(line, ['a', 'z']):
+        m = re_isbn.match(v)
         if m:
-            return [m.group(1)]
+            found.append(m.group(1))
     return [i.replace('-', '') for i in found]
 
 def read_oclc(line):
