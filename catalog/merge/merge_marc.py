@@ -107,7 +107,7 @@ def compare_authors(e1, e2):
 
     for i in e1['authors']:
         for j in e2['authors']:
-            if i['db_name'] == j['db_name']:
+            if normalize(i['db_name']) == normalize(j['db_name']):
                 return ('main', 'exact match', 125)
     max_score = 0
     for i in e1['authors']:
