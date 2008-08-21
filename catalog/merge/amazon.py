@@ -22,11 +22,11 @@ def amazon_year(date):
     return year
 
 def build_amazon(edition, author):
-    amazon = merge.build_titles(full_title(edition))
+    amazon = build_titles(full_title(edition))
 
     amazon['isbn'] = editon['isbn_10']
     if 'publish_date' in edition:
-        amazon['publish_date'] = merge.amazon_year(edition['publish_date'])
+        amazon['publish_date'] = amazon_year(edition['publish_date'])
     if authors:
         amazon['authors'] = authors
     else:
