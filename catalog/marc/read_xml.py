@@ -18,6 +18,9 @@ data_tag = '{http://www.loc.gov/MARC21/slim}datafield'
 control_tag = '{http://www.loc.gov/MARC21/slim}controlfield'
 subfield_tag = '{http://www.loc.gov/MARC21/slim}subfield'
 
+class BadXML:
+    pass
+
 def read_author_person(line):
     name = []
     name_and_date = []
@@ -84,7 +87,8 @@ def get_tag_lines(archive_id, want):
         if i.tag != data_tag and i.tag != control_tag:
             continue
         tag = i.attrib['tag']
-        assert tag != ''
+        if tag == '':
+            raise BadXML
         if tag not in want:
             continue
         if i.tag == control_tag:
@@ -97,7 +101,8 @@ def get_tag_lines(archive_id, want):
         }
         for k in i:
             assert k.tag == subfield_tag
-            assert k.attrib['code'] != ''
+            if k.attrib['code'] == '':
+                raise BadXML
             field['seq'].append((k.attrib['code'], k.text if k.text else ''))
         fields.append((tag, field))
     return fields
