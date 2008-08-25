@@ -138,7 +138,12 @@ def index_fields(data, want):
         return None
     edition = {}
     # ['006', '010', '020', '035', '245']
-    fields = get_tag_lines(data, ['006'] + want)
+    author = {
+        '100': 'person',
+        '110': 'org',
+        '111': 'even',
+    }
+    fields = get_tag_lines(data, ['006'] + want + author.keys())
     read_tag = {
         '010': (read_lccn, 'lccn'),
         '020': (read_isbn, 'isbn'),
@@ -150,6 +155,10 @@ def index_fields(data, want):
         if tag == '006':
             if line[0] == 'm': # don't want electronic resources
                 return None
+            continue
+        if tag in author:
+            assert 'author' not in edition
+            edition['author'] = author[tag]
             continue
         assert tag in read_tag
         proc, key = read_tag[tag]
