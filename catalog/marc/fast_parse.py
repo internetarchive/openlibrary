@@ -176,7 +176,7 @@ def index_fields(data, want):
             edition.setdefault(key, []).extend(found)
     return edition
 
-def read_edition(data):
+def read_edition(data, accept_electronic = False):
     edition = {}
     want = ['006', '008', '010', '020', '035', '100', '110', '111', '245', '260', '300']
     fields = get_tag_lines(data, want)
@@ -192,7 +192,7 @@ def read_edition(data):
 
     for tag, line in fields:
         if tag == '006':
-            if line[0] == 'm':
+            if not accept_electronic and line[0] == 'm':
                 return None
             continue
         if tag == '008':

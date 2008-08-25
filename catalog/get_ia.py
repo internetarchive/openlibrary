@@ -13,7 +13,7 @@ def get_ia(ia):
     except read_xml.BadXML:
         pass
     url = base + ia + "/" + ia + "_meta.mrc"
-    return fast_parse.read_edition(urlopen(url).read())
+    return fast_parse.read_edition(urlopen(url).read(), accept_electronic = True)
 
 def test_get_ia():
     ia = "poeticalworksoft00grayiala"
