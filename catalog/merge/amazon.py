@@ -21,7 +21,7 @@ def amazon_year(date):
         raise
     return year
 
-def build_amazon(edition, author):
+def build_amazon(edition, authors):
     amazon = build_titles(full_title(edition))
 
     amazon['isbn'] = edition['isbn_10']
@@ -373,3 +373,11 @@ def test_compare_publisher():
     assert compare_publisher(amazon, marc) == ('publisher', 'match', 100)
     assert compare_publisher(amazon2, marc) == ('publisher', 'mismatch', -25)
     assert compare_publisher(amazon2, marc2) == ('publisher', 'match', 100)
+
+def test_merge8():
+    amazon = {'publisher': u'Shambhala', 'isbn': [u'1590301390'], 'number_of_pages': 144, 'short_title': u'the spiritual teaching of', 'normalized_title': u'the spiritual teaching of ramana maharshi', 'full_title': u'The Spiritual Teaching of Ramana Maharshi', 'titles': [u'The Spiritual Teaching of Ramana Maharshi', u'the spiritualteaching of ramana maharshi', u'Spiritual Teaching of Ramana Maharshi', u'spiritual teaching of ramana maharshi'], 'publish_date': u'2004', 'authors': [u'Ramana Maharshi.']}
+    marc = {'isbn': [], 'number_of_pages': 180, 'short_title': 'the spiritual teaching of', 'normalized_title': 'the spiritual teaching of mary of the incarnation', 'full_title': 'The spiritual teaching of Mary of the Incarnation', 'titles': ['The spiritual teaching of Mary of the Incarnation', 'the spiritual teaching of mary of the incarnation', 'spiritual teaching of Mary of the Incarnation', 'spiritual teaching of mary of the incarnation'], 'publish_date': '1963', 'publish_country': 'nyu', 'authors': [{'db_name': 'Jett\xc3\xa9, Fernand.', 'name': 'Jett\xc3\xa9, Fernand.'}]}
+    threshold = 735
+    assert attempt_merge(amazon, marc, threshold)
+
+test_merge8()
