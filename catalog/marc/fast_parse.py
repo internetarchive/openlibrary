@@ -42,7 +42,13 @@ def read_author_person(line):
 
     return [{ 'db_name': ' '.join(name_and_date), 'name': ' '.join(name), }]
 
+class SoundRecording:
+    pass
+
 def read_full_title(line):
+    for k, v in get_subfields(line, ['h']):
+        if v.lower().startswith("[sound recording]"):
+            raise SoundRecording
     title = [v.strip(' /,;:') for k, v in get_subfields(line, ['a', 'b'])]
     return ' '.join([t for t in title if t])
 
@@ -166,12 +172,17 @@ def index_fields(data, want):
                 return None
             continue
         if tag in author:
-            assert 'author' not in edition
-            edition['author'] = author[tag]
+            if 'author' in edition:
+                return None
+            else:
+                edition['author'] = author[tag]
             continue
         assert tag in read_tag
         proc, key = read_tag[tag]
-        found = proc(line)
+        try:
+            found = proc(line)
+        except SoundRecording:
+            return None
         if found:
             edition.setdefault(key, []).extend(found)
     return edition
