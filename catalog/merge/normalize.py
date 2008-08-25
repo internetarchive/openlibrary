@@ -15,14 +15,12 @@ def normalize(s):
     s = re_normalize.sub('', s.strip())
     return s
 
+#def test_normalize():
+#    a = "The La{dotb}t{macr}a{mlrhring}if al-ma{mllhring}{macr}arif of Tha{mllhring} {macr}alibi. The book of curious and entertaining information"
+#    b = u"The La\xf2t\xe5a\xaeif al-ma\xb0\xe5arif of Tha\xb0 \xe5alibi. The book of curious and entertaining information"
+#    assert normalize(a) == normalize(b)
+#
+#    a = "Tha{mllhring}{macr}alib{macr}i, {mllhring}Abd al-Malik ibn Mu{dotb}hammad 961 or 2-1037 or 8."
+#    b = u"Tha\xb0\xe5alib\xe5i, \xb0Abd al-Malik ibn Mu\xf2hammad 961 or 2-1037 or 8."
+#    assert normalize(a) == normalize(b)
 
-def test_normalize():
-    a = "The La{dotb}t{macr}a{mlrhring}if al-ma{mllhring}{macr}arif of Tha{mllhring} {macr}alibi. The book of curious and entertaining information"
-    b = u"The La\xf2t\xe5a\xaeif al-ma\xb0\xe5arif of Tha\xb0 \xe5alibi. The book of curious and entertaining information"
-    assert normalize(a) == normalize(b)
-
-    a = "Tha{mllhring}{macr}alib{macr}i, {mllhring}Abd al-Malik ibn Mu{dotb}hammad 961 or 2-1037 or 8."
-    b = u"Tha\xb0\xe5alib\xe5i, \xb0Abd al-Malik ibn Mu\xf2hammad 961 or 2-1037 or 8."
-    assert normalize(a) == normalize(b)
-
-test_normalize()
