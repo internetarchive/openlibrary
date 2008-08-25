@@ -2,7 +2,6 @@
 # result is in MARC8 and still needs to be converted to Unicode
 
 import re
-from pprint import pprint
 
 re_brace = re.compile('(\{.+?\})')
 
@@ -715,5 +714,3 @@ def test_read():
 
 def read(input):
     return re_brace.sub(lambda x: mapping[x.group(1)], input)
-
-pprint(mapping)
