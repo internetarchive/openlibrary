@@ -1,6 +1,6 @@
 import re
 
-re_brace = re.compile('{[^{}]+?}')
+#re_brace = re.compile('{[^{}]+?}')
 re_normalize = re.compile('[^\w ]')
 re_whitespace = re.compile('[-\s,.]+')
 
@@ -10,7 +10,7 @@ def normalize(s):
     s = s.replace(' & ', ' and ')
     # remove {mlrhring} and friends
     # see http://www.loc.gov/marc/mnemonics.html
-    s = re_brace.sub('', s)
+    # s = re_brace.sub('', s)
     s = re_whitespace.sub(' ', s.lower())
     s = re_normalize.sub('', s.strip())
     return s

@@ -1,6 +1,15 @@
 # fast parse for merge
 
 import re
+from pymarc import MARC8ToUnicode
+import catalog.marc.mnemonics as mnemonics
+
+marc8 = MARC8ToUnicode()
+def translate(data):
+    if type(data) == unicode:
+        return data
+    else:
+        return marc8.translate(mnemonics.read(data))
 
 re_question = re.compile('^\?+$')
 re_lccn = re.compile('(...\d+).*')
@@ -49,7 +58,7 @@ def get_subfields(line, want):
     #assert line[2] == '\x1f'
     for i in line[3:-1].split('\x1f'):
         if i and i[0] in want:
-            yield i[0], i[1:]
+            yield i[0], translate(i[1:])
 
 def get_tag_lines(data, want):
     want = set(want)
