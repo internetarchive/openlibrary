@@ -711,6 +711,8 @@ def test_read():
     input = 'Tha{mllhring}{macr}alib{macr}i, {mllhring}Abd al-Malik ibn Mu{dotb}hammad,'
     output = 'Tha\xb0\xe5alib\xe5i, \xb0Abd al-Malik ibn Mu\xf2hammad,'
     assert read(input) == output
+    input = 'El Ing.{eniero} Federico E. Capurro y el nacimiento de la profesi\xe2on bibliotecaria en el Uruguay.'
+    assert read(input) == input
 
 def read(input):
-    return re_brace.sub(lambda x: mapping[x.group(1)], input)
+    return re_brace.sub(lambda x: mapping.get(x.group(1), x.group(1)), input)
