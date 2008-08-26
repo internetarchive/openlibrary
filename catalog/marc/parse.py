@@ -20,7 +20,7 @@ re_date = map (re.compile, [
     '^(?P<birth_date>[^-]*\d+[^-]+ cent\.[^-]*)$'])
 
 re_ad_bc = re.compile(r'\b(B\.C\.?|A\.D\.?)')
-re_number_dot = re.compile('^(.*\d{3,})\.$')
+re_number_dot = re.compile('\d{3,}\.$')
 re_date_fl = re.compile('^fl[., ]')
 
 def specific_subtags(f, subtags):
@@ -49,9 +49,9 @@ def parse_date(date):
     return i
 
 def remove_trailing_number_dot(date):
-    m = re_number_dot.match(date)
+    m = re_number_dot.search(date)
     if m:
-        return m.group(1)
+        return date[:-1]
     else:
         return date
 
@@ -163,7 +163,6 @@ def find_contributions_complex(r, edition):
         authors.append(author)
     if authors:
         edition['authors'] = authors
-
 
 def find_title(r, edition):
     # title
@@ -437,7 +436,6 @@ def find_isbn(r, edition):
     if odd_length:
         edition["isbn_odd_length"] = odd_length
 
-
 def find_lccn(r, edition):
     for f in r.get_fields('010'):
         if not f or 'a' not in f.contents:
@@ -538,3 +536,4 @@ def parser(file_locator, input, bad_data):
 if __name__ == '__main__':
     for x in parser(sys.argv[1], sys.argv[2], sys.stdin):
         print x
+

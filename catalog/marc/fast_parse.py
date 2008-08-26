@@ -59,6 +59,14 @@ def read_short_title(line):
     else:
         return []
 
+def get_raw_subfields(line, want):
+    # no translate
+    want = set(want)
+    #assert line[2] == '\x1f'
+    for i in line[3:-1].split('\x1f'):
+        if i and i[0] in want:
+            yield i[0], i[1:]
+
 def get_subfields(line, want):
     want = set(want)
     #assert line[2] == '\x1f'
@@ -104,7 +112,7 @@ def get_tag_lines(data, want):
 
 def read_lccn(line):
     found = []
-    for k, v in get_subfields(line, ['a']):
+    for k, v in get_raw_subfields(line, ['a']):
         lccn = v.strip()
         if re_question.match(lccn):
             continue
@@ -119,7 +127,7 @@ def read_lccn(line):
 def read_isbn(line):
     found = []
     if line.find('\x1f') != -1:
-        for k, v in get_subfields(line, ['a', 'z']):
+        for k, v in get_raw_subfields(line, ['a', 'z']):
             m = re_isbn.match(v)
             if m:
                 found.append(m.group(1))
@@ -127,11 +135,11 @@ def read_isbn(line):
         m = re_isbn.match(line[3:-1])
         if m:
             return [m.group(1)]
-    return [i.replace('-', '') for i in found]
+    return [str(i.replace('-', '')) for i in found]
 
 def read_oclc(line):
     found = []
-    for k, v in get_subfields(line, ['a']):
+    for k, v in get_raw_subfields(line, ['a']):
         m = re_oclc.match(v)
         if m:
             found.append(m.group(1))
