@@ -174,11 +174,17 @@ def index_fields(data, want):
         '245': (read_short_title, 'title'),
     }
 
+    seen_008 = False
+
     for tag, line in fields:
         if tag == '006':
             if line[0] == 'm': # don't want electronic resources
                 return None
             continue
+        if tag == '008':
+            if seen_008: # dup
+                return None
+            seen_008 = True
         if tag in author:
             if 'author' in edition:
                 return None
@@ -193,6 +199,10 @@ def index_fields(data, want):
             return None
         if found:
             edition.setdefault(key, []).extend(found)
+    if not seen008:
+        return None
+    if 'title' not in edition:
+        return None
     return edition
 
 def read_edition(data, accept_electronic = False):
