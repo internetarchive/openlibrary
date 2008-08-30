@@ -2,20 +2,9 @@ import catalog.marc.fast_parse as fast_parse
 import catalog.marc.read_xml as read_xml
 import xml.etree.ElementTree as et
 import xml.parsers.expat
-from urllib2 import urlopen
+import urllib2
 
 base = "http://archive.org/download/"
-
-def get_ia(ia):
-    # read MARC record of scanned book from archive.org
-    # try the XML first because it has better character encoding
-    # if there is a problem with the XML switch to the binary MARC
-    try:
-        return read_xml.read_edition(ia)
-    except read_xml.BadXML:
-        pass
-    url = base + ia + "/" + ia + "_meta.mrc"
-    return fast_parse.read_edition(urlopen(url).read(), accept_electronic = True)
 
 def urlopen_keep_trying(url):
     while True:
@@ -29,6 +18,18 @@ def urlopen_keep_trying(url):
         print url, "failed"
         sleep(5)
         print "trying again"
+
+def get_ia(ia):
+    # read MARC record of scanned book from archive.org
+    # try the XML first because it has better character encoding
+    # if there is a problem with the XML switch to the binary MARC
+    try:
+        return read_xml.read_edition(ia)
+    except read_xml.BadXML:
+        pass
+    url = base + ia + "/" + ia + "_meta.mrc"
+    f = urlopen_keep_trying(url)
+    return fast_parse.read_edition(f.read(), accept_electronic = True)
 
 def files(archive_id):
     url = archive_url + archive_id + "/" + archive_id + "_files.xml"
