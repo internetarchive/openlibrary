@@ -47,7 +47,7 @@ class SoundRecording:
 
 def read_full_title(line):
     for k, v in get_subfields(line, ['h']):
-        if v.lower().startswith("[sound recording]"):
+        if v.lower().startswith("[sound"):
             raise SoundRecording
     title = [v.strip(' /,;:') for k, v in get_subfields(line, ['a', 'b'])]
     return ' '.join([t for t in title if t])
@@ -185,6 +185,10 @@ def index_fields(data, want):
             if seen_008: # dup
                 return None
             seen_008 = True
+        if tag == '260': 
+            if line.find('\x1fh[sound') != -1: # sound recording
+                return None
+
         if tag in author:
             if 'author' in edition:
                 return None
@@ -199,7 +203,7 @@ def index_fields(data, want):
             return None
         if found:
             edition.setdefault(key, []).extend(found)
-    if not seen008:
+    if not seen_008:
         return None
     if 'title' not in edition:
         return None
