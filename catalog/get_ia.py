@@ -24,7 +24,7 @@ def get_ia(ia):
     # try the XML first because it has better character encoding
     # if there is a problem with the XML switch to the binary MARC
     try:
-        loc = ia "/" + ia + "_marc.xml"
+        loc = ia + "/" + ia + "_marc.xml"
         return loc, read_xml.read_edition(ia)
     except read_xml.BadXML:
         pass
@@ -32,7 +32,7 @@ def get_ia(ia):
     f = urlopen_keep_trying(url)
     data = f.read()
     length = data[0:5]
-    loc = ia "/" + ia + "_meta.mrc:0:" + length
+    loc = ia + "/" + ia + "_meta.mrc:0:" + length
     return ia, fast_parse.read_edition(data, accept_electronic = True)
 
 def files(archive_id):
