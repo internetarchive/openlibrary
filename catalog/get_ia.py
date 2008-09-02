@@ -32,7 +32,7 @@ def get_ia(ia):
     return fast_parse.read_edition(f.read(), accept_electronic = True)
 
 def files(archive_id):
-    url = archive_url + archive_id + "/" + archive_id + "_files.xml"
+    url = base + archive_id + "/" + archive_id + "_files.xml"
     for i in range(5):
         try:
             tree = et.parse(urlopen_keep_trying(url))
