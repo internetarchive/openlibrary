@@ -132,8 +132,12 @@ def read_edition(data):
         #        return None
         #    continue
         if tag == '008':
-            edition['publish_date'] = line[7:11]
-            edition['publish_country'] = line[15:18]
+            publish_date = str(line)[7:11]
+            if publish_date.isdigit():
+                edition["publish_date"] = publish_date
+            publish_country = str(line)[15:18]
+            if publish_country not in ('|||', '   '):
+                edition["publish_country"] = publish_country
             continue
         for t, proc, key in read_tag:
             if t != tag:
