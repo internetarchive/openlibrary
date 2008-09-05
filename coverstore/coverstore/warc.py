@@ -1,7 +1,7 @@
 """
-Reader and writer for WARC file format.
+Reader and writer for WARC file format version 0.10.
 
-http://archive-access.sourceforge.net/warc/warc_file_format.html
+http://archive-access.sourceforge.net/warc/warc_file_format-0.10.html
 """
 
 import urllib
@@ -12,6 +12,21 @@ WARC_VERSION = "0.10"
 CRLF = "\r\n"
 
 class WARCReader:
+    """Reader to read records from a warc file.
+    
+    >>> import StringIO
+    >>> f = StringIO.StringIO()
+    >>> r1 = WARCRecord("resource", "subject_uri", "image/jpeg", {"hello": "world"}, "foo")
+    >>> r2 = WARCRecord("resource", "subject_uri", "image/jpeg", {"hello": "world"}, "bar")
+    >>> w = WARCWriter(f)
+    >>> _ = w.write(r1)
+    >>> _ = w.write(r2)
+    >>> f.seek(0)
+    >>> reader = WARCReader(f)
+    >>> records = list(reader.read())
+    >>> records == [r1, r2]
+    True
+    """
     def __init__(self, file):
         self._file = file
         
@@ -117,7 +132,16 @@ class HTTPFile:
         return protocol, host, port, path        
     
 class WARCHeader:
-    """WARCHeader class represents the header in the WARC file format.
+    r"""WARCHeader class represents the header in the WARC file format.
+    
+    header      = header-line CRLF *anvl-field CRLF
+    header-line = warc-id tsp data-length tsp record-type tsp
+                  subject-uri tsp creation-date tsp
+                  record-id tsp content-type
+    anvl-field  =  field-name ":" [ field-body ] CRLF
+    
+    >>> WARCHeader("WARC/0.10", 10, "resource", "subject_uri", "20080808080808", "record_42", "image/jpeg", {'hello': 'world'})
+    <header: 'WARC/0.10 10 resource subject_uri 20080808080808 record_42 image/jpeg\r\nhello: world\r\n\r\n'>
     """
     def __init__(self, warc_id, 
             data_length, record_type, subject_uri, 
@@ -149,13 +173,16 @@ class WARCHeader:
         return "<header: %s>" % repr(str(self))
 
 class WARCRecord:
-    """A record in a WARC file. 
+    r"""A record in a WARC file.
+    
+    >>> WARCRecord("resource", "subject_uri", "image/jpeg", {"hello": "world"}, "foo bar", creation_date="20080808080808", record_id="record_42")
+    <record: 'WARC/0.10 7 resource subject_uri 20080808080808 record_42 image/jpeg\r\nhello: world\r\n\r\nfoo bar'>
     """
-    def __init__(self, record_type, subject_uri, content_type, headers, data):        
+    def __init__(self, record_type, subject_uri, content_type, headers, data, creation_date=None, record_id=None):        
         warc_id = "WARC/" + WARC_VERSION
         data_length = len(data)
-        creation_date = datetime.datetime.utcnow().strftime('%Y%m%d%H%M%S')
-        record_id = self.create_uuid()
+        creation_date = creation_date or datetime.datetime.utcnow().strftime('%Y%m%d%H%M%S')
+        record_id = record_id or self.create_uuid()
         
         self._header = WARCHeader(warc_id, data_length, record_type, subject_uri, 
                                 creation_date, record_id, content_type, headers)
@@ -180,7 +207,20 @@ class WARCRecord:
     def __str__(self):
         return str(self.get_header()) + self.get_data()
         
+    def __repr__(self):
+        return "<record: %s>" % repr(str(self))
+        
 class LazyWARCRecord(WARCRecord):
+    """Class to create WARCRecord lazily.
+    
+    >>> import StringIO
+    >>> r1 = WARCRecord("resource", "subject_uri", "image/jpeg", {"hello": "world"}, "foo bar", creation_date="20080808080808", record_id="record_42")
+    >>> f = StringIO.StringIO(str(r1))
+    >>> offset = len(str(r1.get_header()))
+    >>> r2 = LazyWARCRecord(f, offset, r1.get_header())
+    >>> r1 == r2
+    True
+    """
     def __init__(self, file, offset, header):
         self.header = header
         self.file = file
@@ -197,6 +237,30 @@ class LazyWARCRecord(WARCRecord):
         return self._data
 
 class WARCWriter:
+    r"""Writes to write warc records to file.
+    
+    >>> import re, StringIO
+    >>> f = StringIO.StringIO()
+    >>> r1 = WARCRecord("resource", "subject_uri", "image/jpeg", {"hello": "world"}, "foo", creation_date="20080808080808", record_id="record_42")
+    >>> r2 = WARCRecord("resource", "subject_uri", "image/jpeg", {"hello": "world"}, "bar", creation_date="20080808090909", record_id="record_43")
+    >>> w = WARCWriter(f)
+    >>> w.write(r1)
+    86
+    >>> w.write(r2)
+    179
+    >>> lines = re.findall('[^\r\n]*\r\n', f.getvalue()) # break at \r\n to print in a readable way
+    >>> for line in lines: print repr(line)
+    'WARC/0.10 3 resource subject_uri 20080808080808 record_42 image/jpeg\r\n'
+    'hello: world\r\n'
+    '\r\n'
+    'foo\r\n'
+    '\r\n'
+    'WARC/0.10 3 resource subject_uri 20080808090909 record_43 image/jpeg\r\n'
+    'hello: world\r\n'
+    '\r\n'
+    'bar\r\n'
+    '\r\n'
+    """
     def __init__(self, file):
         self.file = file
         
@@ -215,18 +279,5 @@ class WARCWriter:
         return offset
 
 if __name__ == "__main__":
-    import sys
-    if len(sys.argv) > 1 and sys.argv[1] == '-t':
-        import doctest
-        doctest.testmod()
-    else:
-        r1 = WARCRecord("resource", "file:///tmp/a.txt", "text/plain", {'a': 42}, "hello, world!")
-        r2 = WARCRecord("resource", "file:///tmp/life.txt", "text/plain", {'x': 32}, "Life is suffering")
-        w = WARCWriter("/tmp/a.warc", "w")
-        w.write(r1)
-        w.write(r2)
-        w.close()
-    
-        r = LocalWARCReader('/tmp/a.warc')
-        for r in r.records():
-            print r
+    import doctest
+    doctest.testmod()
