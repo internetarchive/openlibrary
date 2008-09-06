@@ -144,7 +144,9 @@ class PIL:
         print >> web.debug, 'thumbnail', src_file, dest_file
         import Image
         image = Image.open(src_file)
-        image.thumbnail(size)
+        if image.mode != 'RGB':
+            image = image.convert('RGB')
+        image.thumbnail(size, resample=Image.ANTIALIAS)
         image.save(dest_file)
         
     def mimetype(self, filename):

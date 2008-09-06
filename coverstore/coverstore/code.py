@@ -5,11 +5,9 @@ import db
 import imagecache
 import config
 
-SIZES = ['small', 'medium', 'large']
-
 urls = (
     '/([^ /]*)/upload', 'upload',
-    '/([^ /]*)/([^ /]*)/([^ /]*)/(small|medium|large).jpg', 'image',
+    '/([^ /]*)/([a-zA-Z]*)/(.*)-([SML]).jpg', 'cover',
     '/([^ /]*)/query', 'query',
     '/([^ /]*)/touch', 'touch',
 )
@@ -73,12 +71,10 @@ class upload:
         db.new(**d)
         print "done"
         
-class image:
+class cover:
     def GET(self, category, key, value, size):
-        print >> web.debug, 'images', category, key, value, size
+        i = web.input(default="true")
         key = key.lower()
-        if size not in SIZES:
-            return web.notfound()
         
         id = _query(category, key, value)
         if id:
@@ -86,8 +82,11 @@ class image:
             filename = _cache.get_image(id, size)
             if filename:
                 print open(filename).read()
-        
-        return web.notfound()
+        elif config.default_image and i.default.lower() != "false":
+            print open(config.default_image).read()
+        else:
+            web.notfound()
+            web.ctx.output = ""
 
 class query:
     def GET(self, category):

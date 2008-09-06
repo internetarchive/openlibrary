@@ -203,6 +203,8 @@ class ArchiveDisk(WARCDisk):
 
     def item_url(self, itemname):
         """Returns http url to access files from the item specified by the itemname."""
+        from xml.dom import minidom
+        import urllib
         base_url = 'http://www.archive.org/services/find_file.php?loconly=1&file='
         try:
             data= urllib.urlopen(base_url + itemname).read()
