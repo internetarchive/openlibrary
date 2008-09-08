@@ -166,7 +166,7 @@ def index_fields(data, want):
         '110': 'org',
         '111': 'even',
     }
-    fields = get_tag_lines(data, ['006'] + want + author.keys())
+    fields = get_tag_lines(data, ['006', '008'] + want + author.keys())
     read_tag = {
         '010': (read_lccn, 'lccn'),
         '020': (read_isbn, 'isbn'),
