@@ -2,7 +2,7 @@ import re
 
 #re_brace = re.compile('{[^{}]+?}')
 re_normalize = re.compile('[^\w ]')
-re_whitespace = re.compile('[-\s,.]+')
+re_whitespace = re.compile('[-\s,;.]+')
 
 def normalize(s):
     if isinstance(s, unicode):
