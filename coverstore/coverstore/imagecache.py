@@ -7,6 +7,8 @@ import time
 import config
 import web
 
+import db
+
 NBLOCKS = 10000
 BLOCK_SIZE = 100
 OVERLOAD_FACTOR = 1.25
@@ -14,9 +16,9 @@ OVERLOAD_FACTOR = 1.25
 class ImageCache:
     """LRU cache implementation on disk for storing images.
     """
-    def __init__(self, root, store):
-        self.store = store
+    def __init__(self, root, disk):
         self.root = root
+        self.disk = disk
         self.engine = self._create_image_engine()
         # access times
         self.atimes = _BlockDict(NBLOCKS)
@@ -43,33 +45,36 @@ class ImageCache:
                         
     def get_image(self, id, size):
         """Returns image with the specified id in the specified size."""
-        self.populate_cache(id)
-        self.atimes[id] = time.time()
-        return open(self._imgpath(id, size)).read()
+        if self.populate_cache(id):
+            self.atimes[id] = time.time()
+            return self._imgpath(id, size)
         
-    def populate_cache(self, id, file=None):
+    def populate_cache(self, id):
         """Populates cache with images of the given id."""
         def write(path, data):
             print >> web.debug, 'write', path
             f = open(path, 'w')
             f.write(data)
             f.close()
-        
+            
         if id not in self.atimes:
-            if file is None:
-                result = self.store.get(id, ['image'])
-                if result is None:
-                    raise IOError("no such image")    
-                file = result['image']
+            filename = db.get_filename(id)
+            print >> web.debug, 'db.get_filename', id, filename
+            if filename is None:
+                return False
 
             # get the original image
-            write(self._imgpath(id, 'original'), file.data)
+            write(self._imgpath(id, 'original'), self.disk.read(filename))
+            
             # create thumbnails
             for size in config.image_sizes:
                 self.engine.thumbnail(self._imgpath(id, 'original'), self._imgpath(id, size), config.image_sizes[size])    
+            
             # remove original
             os.remove(self._imgpath(id, 'original'))
             self.atimes[id] = time.time()
+            
+        return True
 
     def _imgpath(self, id, size):
         return os.path.join(self._dirname(id), '%d-%s.jpg' % (id, size))
@@ -98,7 +103,7 @@ class ImageCache:
         return os.path.join(self.root, a, b)
 
 class _BlockDict:
-    """A different dictionary with integer keys to use with ImageCache.
+    """A dictionary with integer keys to use with ImageCache.
     
     Values can be accessed just like normal dictionary and also blockwise.
     Keys are grouped into blocks. Key i belongs to block number i % nblocks.
@@ -136,10 +141,12 @@ class PIL:
 
     def thumbnail(self, src_file, dest_file, size):
         """Converts src image to thumnail of specified size."""
-        print >> web.debug, 'thumnail', src_file, dest_file
+        print >> web.debug, 'thumbnail', src_file, dest_file
         import Image
         image = Image.open(src_file)
-        image.thumbnail(size)
+        if image.mode != 'RGB':
+            image = image.convert('RGB')
+        image.thumbnail(size, resample=Image.ANTIALIAS)
         image.save(dest_file)
         
     def mimetype(self, filename):
