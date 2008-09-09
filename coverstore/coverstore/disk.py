@@ -52,6 +52,8 @@ class WARCDisk:
     def __init__(self, root, prefix="file", maxsize=500 * 1024 * 1024):
         """Creates a disk to write read and write resources in warc files.
 
+        WARNING: This class is not thread-safe. Multiple threads trying to write at the same time may result in race-conditions.
+
         >>> import os, string
         >>> _ = os.system("rm -rf test_disk")
         >>> disk = WARCDisk("test_disk", maxsize=200)
@@ -82,13 +84,16 @@ class WARCDisk:
         return itemname
 
     def read(self, filename):
+        if filename.count(':') != 2:
+            return None
         warcfilename, offset, size = filename.split(':')
         offset = int(offset)
         size = int(size)
         path = self.get_path(warcfilename)
-        f = open(path)
-        f.seek(offset)
-        return f.read(size)
+        if os.path.exists(path):
+            f = open(path)
+            f.seek(offset)
+            return f.read(size)
 
     def get_path(self, warcfilename, create_dirs=False):
         dir = os.path.join(self.root, self.get_item_name(warcfilename))
@@ -213,6 +218,23 @@ class ArchiveDisk(WARCDisk):
             return vals and vals[0]
         except Exception:
             return None
+            
+class LayeredDisk:
+    """Disk interface over multiple disks.
+    Write always happens to the first disk and 
+    read happens on the first disk where the file is available.
+    """
+    def __init__(self, disks):
+        self.disks = disks
+        
+    def read(self, filename):
+        for disk in self.disks:
+            data = disk.read(filename)
+            if data:
+                return data
+        
+    def write(self, data, headers={}):
+        self.disks[0].write(data, headers)
 
 if __name__ == "__main__":
     import doctest
