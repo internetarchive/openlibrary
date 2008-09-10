@@ -1,5 +1,6 @@
 import web
 import simplejson
+import urllib
 
 import db
 import imagecache
@@ -14,6 +15,11 @@ urls = (
 
 _cache = None
 _disk = None
+
+class AppURLopener(urllib.FancyURLopener):
+    version = "Mozilla/5.0 (Compatible; coverstore downloader http://covers.openlibrary.org)"
+
+urllib._urlopener = AppURLopener()
 
 def run():
     global _cache
@@ -45,17 +51,29 @@ def _query(category, key, value):
         return result and result[0] or None
     else:
         return None
-        
+
+def download(url):
+    r = urllib.urlopen(url)
+    return r.read()
+
 class upload:
     def POST(self, category):
-        i = web.input('olid', author=None, file={}, source_url=None)
+        i = web.input('olid', author=None, file={}, source_url=None, success_url=None, failure_url=None)
 
-        #@@ downloading from source_url is not yet implemented.
-        data = i.file.value
-        source_url = None
+        if i.source_url:
+            data = download(i.source_url)
+            source_url = i.source_url
+        else:
+            #@@ downloading from source_url is not yet implemented.
+            data = i.file.value
+            source_url = None
+
+        success_url = i.success_url or web.ctx.get('HTTP_REFERRER')
+        failure_url = i.failure_url or web.ctx.get('HTTP_REFERRER')
         
         if not data:
-            print 'no image'
+            web.seeother(failure_url)
+            #print 'no image'
             return
 
         d = {
@@ -69,7 +87,7 @@ class upload:
         d['filename'] = filename
         print >> web.debug, 'db.new', d
         db.new(**d)
-        print "done"
+        return web.seeother(success_url)
         
 class cover:
     def GET(self, category, key, value, size):
@@ -103,10 +121,13 @@ class query:
         
 class touch:
     def POST(self, category):
-        i = web.input(id=None)
+        i = web.input(id=None, redirect_url=None)
+        redirect_url = i.redirect_url or web.ctx.get('HTTP_REFERRER')
+        print >> web.debug, 'touch', redirect_url
+
         id = i.id and safeint(i.id, None)
         if id:
             db.touch(id)
-            print 'Done'
+            web.seeother(redirect_url)
         else:
             print 'no such id: %s' % id

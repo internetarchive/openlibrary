@@ -234,7 +234,7 @@ class LayeredDisk:
                 return data
         
     def write(self, data, headers={}):
-        self.disks[0].write(data, headers)
+        return self.disks[0].write(data, headers)
 
 if __name__ == "__main__":
     import doctest
