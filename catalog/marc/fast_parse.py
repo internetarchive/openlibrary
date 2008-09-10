@@ -4,7 +4,7 @@ import re
 from pymarc import MARC8ToUnicode
 import catalog.marc.mnemonics as mnemonics
 
-marc8 = MARC8ToUnicode()
+marc8 = MARC8ToUnicode(quiet=True)
 def translate(data):
     if type(data) == unicode:
         return data
@@ -166,7 +166,7 @@ def index_fields(data, want):
         '110': 'org',
         '111': 'even',
     }
-    fields = get_tag_lines(data, ['006', '008'] + want + author.keys())
+    fields = get_tag_lines(data, ['006', '008', '260'] + want + author.keys())
     read_tag = {
         '010': (read_lccn, 'lccn'),
         '020': (read_isbn, 'isbn'),
