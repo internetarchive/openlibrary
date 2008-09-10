@@ -29,7 +29,8 @@ class Disk:
             os.makedirs(root)
 
     def write(self, data, params={}):
-        filename = self.make_filename()
+        prefix = params.get('olid')
+        filename = self.make_filename(prefix)
         path = os.path.join(self.root, filename)
         f = open(path, 'w')
         f.write(data)
@@ -40,12 +41,12 @@ class Disk:
         path = os.path.join(self.root, filename)
         return open(path).read()
         
-    def make_filename(self):
+    def make_filename(self, prefix=""):
         def exists(filename):
             return os.path.exists(os.path.join(self.root, filename))
-        filename = random_string(6)
+        filename = prefix + "_" + random_string(4)
         while exists(filename):
-            filename = random_string(6)
+            filename = prefix + "_"  + random_string(4)
         return filename
 
 class WARCDisk:

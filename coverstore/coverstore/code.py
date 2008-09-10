@@ -56,25 +56,44 @@ def download(url):
     r = urllib.urlopen(url)
     return r.read()
 
+def test_valid_image(data):
+    import Image
+    from CStringIO import StringIO
+    try:
+        Image.open(StringIO(data))
+    except IOError:
+        return False
+    return True
+
+ERROR_EMPTY = 1, "No image found"
+ERROR_INVALID_URL = 2, "Invalid URL"
+ERROR_BAD_IMAGE = 3, "Invalid Image"
+        
 class upload:
     def POST(self, category):
         i = web.input('olid', author=None, file={}, source_url=None, success_url=None, failure_url=None)
 
+        success_url = i.success_url or web.ctx.get('HTTP_REFERRER')
+        failure_url = i.failure_url or web.ctx.get('HTTP_REFERRER')
+        def error((code, msg)):
+            web.seeother(change_query(failure_url, code=code, msg=msg))
+            raise StopIteration
+        
         if i.source_url:
-            data = download(i.source_url)
+            try:
+                data = download(i.source_url)
+            except:
+                error(ERROR_INVALID_URL)
             source_url = i.source_url
         else:
             #@@ downloading from source_url is not yet implemented.
             data = i.file.value
             source_url = None
 
-        success_url = i.success_url or web.ctx.get('HTTP_REFERRER')
-        failure_url = i.failure_url or web.ctx.get('HTTP_REFERRER')
-        
         if not data:
-            web.seeother(failure_url)
-            #print 'no image'
-            return
+            error(ERROR_EMPTY)
+        elif not is_valid_image(data):
+            error(ERROR_BAD_IMAGE)
 
         d = {
             'category': category,
@@ -82,10 +101,10 @@ class upload:
             'author': i.author,
             'source_url': source_url,
         }
+
         filename = _disk.write(data, d)
         d['ip'] = web.ctx.ip
         d['filename'] = filename
-        print >> web.debug, 'db.new', d
         db.new(**d)
         return web.seeother(success_url)
         
