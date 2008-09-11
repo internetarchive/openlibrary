@@ -68,8 +68,7 @@ def get_from_archive(locator):
     ureq = urllib2.Request(url, None, {'Range':'bytes=%d-%d'% (r0, r1)},)
     return urllib2.urlopen(ureq).read(100000)
 
-def read_marc_file(part, f):
-    pos = 0
+def read_marc_file(part, f, pos=0):
     buf = None
     while 1:
         if buf:
