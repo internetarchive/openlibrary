@@ -8,12 +8,15 @@ base = "http://archive.org/download/"
 
 def urlopen_keep_trying(url):
     while True:
-        f = None
         try:
             f = urllib2.urlopen(url)
+        except urllib2.HTTPError, error:
+            if error == 404:
+                raise
+            pass
         except urllib2.URLError:
             pass
-        if f:
+        else:
             return f
         print url, "failed"
         sleep(5)
@@ -25,7 +28,9 @@ def get_ia(ia):
     # if there is a problem with the XML switch to the binary MARC
     try:
         loc = ia + "/" + ia + "_marc.xml"
-        return loc, read_xml.read_edition(ia)
+        url = base + loc
+        f = urlopen_keep_trying(url)
+        return loc, read_xml.read_edition(f)
     except read_xml.BadXML:
         pass
     url = base + ia + "/" + ia + "_meta.mrc"
