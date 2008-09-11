@@ -2,6 +2,9 @@ import re
 from names import match_name
 from normalize import normalize
 
+# fields needed for merge process:
+# title_prefix, title, subtitle, isbn, publish_country, lccn, publishers, publish_date, number_of_pages, authors
+
 re_year = re.compile('(\d{4})$')
 re_amazon_title_paren = re.compile('^(.*) \([^)]+?\)$')
 
