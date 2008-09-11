@@ -1,6 +1,7 @@
 import web
 import simplejson
 import urllib
+import os
 
 import db
 import imagecache
@@ -56,9 +57,28 @@ def download(url):
     r = urllib.urlopen(url)
     return r.read()
 
-def test_valid_image(data):
+def urldecode(url):
+    """
+        >>> urldecode('http://google.com/search?q=bar&x=y')
+        ('http://google.com/search', {'q': 'bar', 'x': 'y'})
+    """
+    base, query = urllib.splitquery(url)
+    items = [item.split('=', 1) for item in query.split('&') if '=' in item]
+    d = dict((urllib.unquote(k), urllib.unquote_plus(v)) for (k, v) in items)
+    return base, d
+
+def changequery(url, **kw):
+    """
+        >>> changequery('http://google.com/search?q=foo', q='bar', x='y')
+        'http://google.com/search?q=bar&x=y'
+    """
+    base, params = urldecode(url)
+    params.update(kw)
+    return base + '?' + urllib.urlencode(params)
+
+def is_valid_image(data):
     import Image
-    from CStringIO import StringIO
+    from cStringIO import StringIO
     try:
         Image.open(StringIO(data))
     except IOError:
@@ -73,10 +93,11 @@ class upload:
     def POST(self, category):
         i = web.input('olid', author=None, file={}, source_url=None, success_url=None, failure_url=None)
 
-        success_url = i.success_url or web.ctx.get('HTTP_REFERRER')
-        failure_url = i.failure_url or web.ctx.get('HTTP_REFERRER')
+        success_url = i.success_url or web.ctx.get('HTTP_REFERRER') or web.ctx.fullpath
+        failure_url = i.failure_url or web.ctx.get('HTTP_REFERRER') or web.ctx.fullpath
         def error((code, msg)):
-            web.seeother(change_query(failure_url, code=code, msg=msg))
+            url = changequery(failure_url, errcode=code, errmsg=msg)
+            web.seeother(url)
             raise StopIteration
         
         if i.source_url:
@@ -85,10 +106,11 @@ class upload:
             except:
                 error(ERROR_INVALID_URL)
             source_url = i.source_url
-        else:
-            #@@ downloading from source_url is not yet implemented.
+        elif i.file is not None and i.file != {}:
             data = i.file.value
             source_url = None
+        else:
+            error(ERROR_EMPTY)
 
         if not data:
             error(ERROR_EMPTY)
@@ -107,6 +129,21 @@ class upload:
         d['filename'] = filename
         db.new(**d)
         return web.seeother(success_url)
+
+def filesize(path):
+    try:
+        return os.stat(path).st_size
+    except:
+        return 0
+
+
+def serve_file(path):
+    # when xsendfile is enabled, lighttpd takes X-LIGHTTPD-Send-file header from response and serves that file.
+    if os.getenv('XSENDFILE') == 'true':
+        web.header('X-LIGHTTPD-Send-file', os.path.abspath(path))
+        web.header('Content-Length', filesize(path))
+    else:
+        print open(path).read()
         
 class cover:
     def GET(self, category, key, value, size):
@@ -118,9 +155,9 @@ class cover:
             web.header('Content-Type', 'image/jpeg')
             filename = _cache.get_image(id, size)
             if filename:
-                print open(filename).read()
+                serve_file(filename)
         elif config.default_image and i.default.lower() != "false":
-            print open(config.default_image).read()
+                serve_file(config.default_image)
         else:
             web.notfound()
             web.ctx.output = ""
@@ -142,7 +179,6 @@ class touch:
     def POST(self, category):
         i = web.input(id=None, redirect_url=None)
         redirect_url = i.redirect_url or web.ctx.get('HTTP_REFERRER')
-        print >> web.debug, 'touch', redirect_url
 
         id = i.id and safeint(i.id, None)
         if id:
