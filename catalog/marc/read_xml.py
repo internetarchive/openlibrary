@@ -1,6 +1,5 @@
 import xml.etree.ElementTree as et
 import xml.parsers.expat
-from urllib2 import urlopen
 from pprint import pprint
 import re
 
@@ -79,9 +78,8 @@ def read_author_event(line):
     name = " ".join(v.strip(' /,;:') for k, v in get_subfields(line, ['a', 'b', 'd', 'n']))
     return [{ 'name': name, 'db_name': name, }]
 
-def get_tag_lines(archive_id, want):
-    url = "http://archive.org/download/" + archive_id + "/" + archive_id + "_marc.xml"
-    tree = et.parse(urlopen(url))
+def get_tag_lines(f, want):
+    tree = et.parse(f)
     fields = []
     for i in tree.getroot():
         if i.tag != data_tag and i.tag != control_tag:
@@ -111,10 +109,10 @@ def get_subfields(line, want):
     want = set(want)
     return (i for i in line['seq'] if i[0] in want)
 
-def read_edition(data):
+def read_edition(f):
     edition = {}
     want = ['008', '010', '020', '035', '100', '110', '111', '245', '260', '300']
-    fields = get_tag_lines(data, want)
+    fields = get_tag_lines(f, want)
     read_tag = [
         ('010', read_lccn, 'lccn'),
         ('020', read_isbn, 'isbn'),
