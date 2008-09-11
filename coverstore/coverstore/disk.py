@@ -39,7 +39,8 @@ class Disk:
 
     def read(self, filename):
         path = os.path.join(self.root, filename)
-        return open(path).read()
+        if os.path.exists(path):
+            return open(path).read()
         
     def make_filename(self, prefix=""):
         def exists(filename):
@@ -187,9 +188,13 @@ class ArchiveDisk(WARCDisk):
         # if the file is locally available then read it from there.
         # else contact the server
         try:
-            return WARCDisk.read(self, filename)
+            data = WARCDisk.read(self, filename)
         except IOError:
-            pass
+            data = None
+
+        if data:
+            return data
+
         warcfilename, offset, size = filename.split(':')
         offset = int(offset)
         size = int(size)
