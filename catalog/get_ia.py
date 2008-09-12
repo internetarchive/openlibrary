@@ -99,7 +99,7 @@ def read_marc_file(part, f, pos=0):
             break
         loc = "%s:%d:%d" % (part, pos, int_length)
         pos += int_length
-        yield (loc, data)
+        yield (pos, loc, data)
 
 def test_get_ia():
     ia = "poeticalworksoft00grayiala"
