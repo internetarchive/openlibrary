@@ -203,6 +203,13 @@ class robotstxt(delegate.page):
             print open('static/robots.txt').read()
         except:
             return web.notfound()
+
+class change_cover(delegate.mode):
+    def GET(self, key):
+        page = web.ctx.site.get(key)
+        if page is None or page.type.key not in  ['/type/edition', '/type/author']:
+            return web.seeother(key)
+        return render.change_cover(page)
     
 if __name__ == "__main__":
     main()
