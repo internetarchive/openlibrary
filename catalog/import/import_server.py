@@ -1,5 +1,5 @@
 #!/usr/local/bin/python2.5
-import web, anydbm, sys
+import web, dbhash, sys
 import cjson
 from catalog.load import add_keys
 from copy import deepcopy
@@ -16,10 +16,13 @@ site = Infobase().get_site('openlibrary.org')
 
 path = '/1/pharos/edward/index/'
 dbm_fields = ('lccn', 'oclc', 'isbn', 'title')
-dbm = dict((i, anydbm.open(path + i + '.dbm', flag='w')) for i in dbm_fields)
+dbm = dict((i, dbhash.open(path + i + '.dbm', flag='w')) for i in dbm_fields)
+
+store_db = dbhash.open(path + "store.dbm", flag='w')
 
 urls = (
     '/', 'index'
+    '/store/(.*)', 'store'
 )
 
 def build_pool(index_fields):
@@ -103,6 +106,17 @@ class index:
         add_to_indexes(q, id, dbm)
         print key
         
+class store:
+    def GET(self, key):
+        web.header('Content-Type','application/json; charset=utf-8', unique=True)
+        if key in store_dbm:
+            print store_dbm[key]
+        else:
+            print key, "not found"
+    def POST(self, key):
+        store_dbm[key] = web.data()
+        print "saved"
+
 if __name__ == '__main__':
     try:
         web.run(urls, globals(), web.reloader)
