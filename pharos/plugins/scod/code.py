@@ -100,7 +100,7 @@ class scan_complete(delegate.mode):
             return permission_denied('Permission denied.')
 
         book = get_book(path, check_scanned=False)
-        i = web.input("ocaid")
+        i = web.input("ocaid", _comment=None)
         
         q = [
             {
@@ -122,7 +122,7 @@ class scan_complete(delegate.mode):
                 }
             }
         ]
-        web.ctx.site.write(q)
+        web.ctx.site.write(q, i._comment)
 
         def get_email(user):
             try:
