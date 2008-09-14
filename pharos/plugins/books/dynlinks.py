@@ -37,23 +37,6 @@ def cond(p, c, a=None):
     if p: return c
     else: return a
 
-def get_thumbnail(page):
-    try:
-        coverimage = page.get('coverimage') and page.get('coverimage') != "/static/images/book.trans.gif"
-        if coverimage:
-            return coverimage
-
-        if page.get('isbn_10') and len(page['isbn_10'][0]) == 10:
-            isbn = page['isbn_10'][0]
-            path = 'static/bookcovers/thumb/%s/%s/%s.jpg' % (isbn[0], isbn[1], isbn)
-            if os.path.exists(path):
-                return '/' + path
-    except:
-        import traceback
-        traceback.print_exc()
-
-    return '/static/logos/logo-en.jpg'
-
 def make_data(bib_key, olid):
     page = api_get(olid)
     if 'ocaid' in page:
@@ -62,7 +45,7 @@ def make_data(bib_key, olid):
     else:
         preview = 'noview'
         preview_url = 'http://openlibrary.org' + olid
-    thumbnail_url = 'http://openlibrary.org' + get_thumbnail(page)
+    thumbnail_url = 'http://covers.openlibrary.org/b/olid/%s-S.jpg' % (olid.split('/')[-1])
     
     return {
         'bib_key': bib_key,
@@ -91,7 +74,7 @@ def split_key(bib_key):
     if not bib_key:
         return None, None
 
-    valid_keys = ['isbn', 'lccn', 'oclc']
+    valid_keys = ['isbn', 'lccn', 'oclc', 'ocaid']
     key, value = None, None
 
     # split with : when possible
