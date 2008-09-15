@@ -12,9 +12,8 @@ def translate(data):
     try:
         ustr = data.decode('utf8')
     except UnicodeDecodeError:
-        return marc8.translate(mnemonics.read(data))
-    else:
-        return normalize('NFC', ustr)
+        ustr = marc8.translate(mnemonics.read(data))
+    return normalize('NFC', ustr)
 
 re_question = re.compile('^\?+$')
 re_lccn = re.compile('(...\d+).*')
