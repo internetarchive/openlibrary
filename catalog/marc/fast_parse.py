@@ -8,9 +8,9 @@ from unicodedata import normalize
 marc8 = MARC8ToUnicode(quiet=True)
 def translate(data):
     if type(data) == unicode:
-        return normalize('NFC', data)
+        return normalize('NFC', mnemonics.read(data))
     try:
-        ustr = data.decode('utf8')
+        ustr = mnemonics.read(data.decode('utf8'))
     except UnicodeDecodeError:
         ustr = marc8.translate(mnemonics.read(data))
     return normalize('NFC', ustr)
