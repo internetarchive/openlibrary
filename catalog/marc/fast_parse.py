@@ -3,13 +3,18 @@
 import re
 from pymarc import MARC8ToUnicode
 import catalog.marc.mnemonics as mnemonics
+from unicodedata import normalize
 
 marc8 = MARC8ToUnicode(quiet=True)
 def translate(data):
     if type(data) == unicode:
-        return data
-    else:
+        return normalize('NFC', data)
+    try:
+        ustr = data.decode('utf8')
+    except UnicodeDecodeError:
         return marc8.translate(mnemonics.read(data))
+    else:
+        return normalize('NFC', ustr)
 
 re_question = re.compile('^\?+$')
 re_lccn = re.compile('(...\d+).*')
@@ -21,10 +26,10 @@ re_oclc = re.compile ('^\(OCoLC\).*?0*(\d+)')
 re_normalize = re.compile('[^\w ]')
 re_whitespace = re.compile('\s+')
 
-def normalize(s):
+def normalize_str(s):
     s = re_normalize.sub('', s.strip())
     s = re_whitespace.sub(' ', s)
-    return s.lower()
+    return str(s.lower())
 
 # no monograph should be longer than 50,000 pages
 max_number_of_pages = 50000
@@ -53,7 +58,7 @@ def read_full_title(line):
     return ' '.join([t for t in title if t])
 
 def read_short_title(line):
-    title = str(normalize(read_full_title(line))[:25])
+    title = normalize_str(read_full_title(line))[:25]
     if title:
         return [title]
     else:
@@ -220,7 +225,7 @@ def read_edition(data, accept_electronic = False):
         ('100', read_author_person, 'authors'),
         ('110', read_author_org, 'authors'),
         ('111', read_author_event, 'authors'),
-        ('260', read_publisher, 'publisher'),
+        ('260', read_publisher, 'publishers'),
     ]
 
     for tag, line in fields:
