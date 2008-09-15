@@ -53,6 +53,9 @@ def compare_country(e1, e2):
         return (field, 'value missing', 0)
     if e1[field] == e2[field]:
         return (field, 'match', 40)
+    # West Berlin (wb) == Germany (gw)
+    if e1[field] in ('gw ', 'wb ') and e2[field] in ('gw ', 'wb '):
+        return (field, 'match', 40)
     return (field, 'mismatch', -205)
 
 def compare_lccn(e1, e2):
