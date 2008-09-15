@@ -15,6 +15,9 @@ types.register_type('^/b/[^/]*$', '/type/edition')
 # this adds /show-marc/xxx page to infogami
 import showmarc
 
+# add zip to the list of public functions
+public(zip)
+
 def new_key(seq, pattern):
     # repeat until a non-existing key is found.
     # This is required to prevent error in cases where an object with the next key is already created.
