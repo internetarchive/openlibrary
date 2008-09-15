@@ -15,6 +15,15 @@ types.register_type('^/b/[^/]*$', '/type/edition')
 # this adds /show-marc/xxx page to infogami
 import showmarc
 
+def new_key(seq, pattern):
+    # repeat until a non-existing key is found.
+    # This is required to prevent error in cases where an object with the next key is already created.
+    while True:
+        value = web.query("SELECT NEXTVAL($seq) as value", vars=locals())[0].value
+        key = pattern % value
+        if web.ctx.site.get(key) is None:
+            return key
+    
 class addbook(delegate.page):
     def GET(self):
         page = web.ctx.site.new("", {'type': web.ctx.site.get('/type/edition')})
@@ -22,14 +31,7 @@ class addbook(delegate.page):
         
     def POST(self):
         from infogami.core.code import edit
-        #books = web.ctx.site.things({'key~': '/b/OL*', 'sort': '-id', 'limit': 1})
-
-        # sorry for the mess, but this is the quickest fix for Bug#
-        #books = web.query("select key from thing where site_id=1 and key LIKE '/b/OL%%M' order by cast(ltrim(rtrim(key, 'M'), '/b/OL') as int) desc limit 1")
-        books = web.query("select key from thing where site_id=1 and key like '/b/OL%%M' and type=52 order by id desc limit 1")
-
-        b = books[0].key
-        key = '/b/OL%dM' % (1 + int(web.numify(b)))
+        key = new_key('book_key_seq', '/b/OL%dM')
         web.ctx.path = key
         return edit().POST(key)
 
@@ -38,11 +40,8 @@ class addauthor(delegate.page):
         i = web.input("name")
         if len(i.name) < 2:
             return web.badrequest()
-        #authors = web.ctx.site.things({'key~': '/a/OL*', 'sort': '-id', 'limit': 1})
-        #authors = web.query("select key from thing where site_id=1 and key LIKE '/a/OL%%' and created < order by cast(ltrim(rtrim(key, 'A'), '/a/OL') as int) desc limit 1")
-        authors = web.query("select key from thing where site_id=1 and key like '/a/OL%%A' and type=58 order by id desc limit 1")
-        a = authors[0].key
-        key = '/a/OL%dA' % (1 + int(web.numify(a)))
+        key = new_key('author_key_seq', '/a/OL%dA')
+        web.ctx.path = key
         web.ctx.site.write({'create': 'unless_exists', 'key': key, 'name': i.name, 'type': dict(key='/type/author')}, comment='New Author')
         print key
 
@@ -210,6 +209,64 @@ class change_cover(delegate.mode):
         if page is None or page.type.key not in  ['/type/edition', '/type/author']:
             return web.seeother(key)
         return render.change_cover(page)
+        
+class create:
+    """API hook for creating books and authors."""
+    def POST(self):
+        ip = web.ctx.ip
+        assert ip in ['127.0.0.1', '207.241.226.140']
+        pass
+        
+def assert_localhost(ip):
+    import socket
+    local_ip = socket.gethostbyname(socket.gethostname())
+    localhost = '127.0.0.1'
+    assert ip in [localhost, local_ip]
     
+class new:
+    """API Hook to support book import.
+    Key the new object being created is automatically computed based on the type.
+    Works only from the localhost.    
+    """
+    def POST(self):
+        assert_localhost(web.ctx.ip)
+        i = web.input("query", comment=None, machine_comment=None)
+        query = simplejson.loads(i.query)
+        
+        if isinstance(query['type'], dict):
+            type = query['type']['key']
+        else:
+            type = query['type']
+        
+        if type == '/type/edition':
+            query['key'] = new_key('book_key_seq', '/b/OL%dM')
+        elif type == '/type/author':
+            query['key'] = new_key('author_key_seq', '/a/OL%dA')
+        else:
+            result = {'status': 'fail', 'message': 'Invalid type %s. Expected /type/edition or /type/author.' % repr(query['type'])}
+            return simplejson.dumps(result)
+        
+        result = web.ctx.site._conn.request(self.name, '/write', 'POST',
+            dict(query=_query, comment=comment, machine_comment=machine_comment))
+        return simplejson.dumps(result)
+
+class write:
+    """Hack to support push and pull of templates.
+    Works only from the localhost.
+    """
+    def POST(self):
+        assert_localhost(web.ctx.ip)
+        
+        i = web.input("query", comment=None)
+        query = simplejson.loads(i.query)
+        result = web.ctx.site.write(query, i.comment)
+        return simplejson.dumps(dict(status='ok', result=dict(result)))
+
+# add search API if api plugin is enabled.
+if 'api' in delegate.get_plugins():
+    from infogami.plugins.api import code as api
+    api.add_hook('write', write)
+    api.add_hook('new', new)
+
 if __name__ == "__main__":
     main()
