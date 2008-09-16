@@ -248,8 +248,7 @@ class new:
         else:
             result = {'status': 'fail', 'message': 'Invalid type %s. Expected /type/edition or /type/author.' % repr(query['type'])}
             return simplejson.dumps(result)
-        
-        result = web.ctx.site._conn.request(self.name, '/write', 'POST',
+        result = web.ctx.site._conn.request(web.ctx.site.name, '/write', 'POST',
             dict(query=_query, comment=comment, machine_comment=machine_comment))
         return simplejson.dumps(result)
 
