@@ -53,11 +53,14 @@ def ol_things(key, value):
     }
     try:
         d = dict(query=simplejson.dumps(query))
-        result = urllib.urlopen('http://openlibrary.org/api/thing?' + urllib.urlencode(d)).read()
+        result = urllib.urlopen('http://openlibrary.org/api/things?' + urllib.urlencode(d)).read()
         result = simplejson.loads(result)
         olids = result['result']
         return [olid.split('/')[-1] for olid in olids]
     except:
+        import traceback
+        traceback.print_exc()
+
         return []
         
 def _query(category, key, value):
