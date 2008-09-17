@@ -43,6 +43,22 @@ def safeint(value, default=None):
         return int(value)
     except:
         return default
+
+def ol_things(key, value):
+    query = {
+        'type': '/type/edition',
+        key: value, 
+        'sort': 'last_modified',
+        'limit': 1
+    }
+    try:
+        d = dict(query=simplejson.dumps(query))
+        result = urllib.urlopen('http://openlibrary.org/api/thing?' + urllib.urlencode(d)).read()
+        result = simplejson.loads(result)
+        olids = result['result']
+        return [olid.split('/')[-1] for olid in olids]
+    except:
+        return []
         
 def _query(category, key, value):
     if key == 'id':
@@ -51,7 +67,18 @@ def _query(category, key, value):
         result = db.query(category, value, limit=1)
         return result and result[0] or None
     else:
-        return None
+        if category == 'b' and key in ['isbn', 'lccn', 'oclc', 'ocaid']:
+            if key == 'isbn':
+                if len(value) == 13:
+                    key = 'isbn_13'
+                else:
+                    key = 'isbn_10'
+            if key == 'oclc':
+                key = 'oclc_numbers'
+            olids = ol_things(key, value)
+            if olids:
+                return _query(category, 'olid', olids[0])
+    return None
 
 def download(url):
     r = urllib.urlopen(url)
@@ -157,7 +184,7 @@ class cover:
             if filename:
                 serve_file(filename)
         elif config.default_image and i.default.lower() != "false":
-                serve_file(config.default_image)
+            serve_file(config.default_image)
         else:
             web.notfound()
             web.ctx.output = ""
