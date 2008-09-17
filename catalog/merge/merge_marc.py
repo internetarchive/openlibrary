@@ -105,19 +105,17 @@ def level1_merge(e1, e2):
     score.append(compare_isbn10(e1, e2))
     return score
 
-def compare_authors(e1, e2):
-    if 'authors' not in e1 and 'authors' not in e2:
-        return ('main', 'no authors', 75)
-    if 'authors' not in e1 or 'authors' not in e2:
-        return ('main', 'field missing from one record', -25)
-
-    for i in e1['authors']:
-        for j in e2['authors']:
+def compare_author_fields(e1_authors, e2_authors):
+    for i in e1_authors:
+        for j in e2_authors:
             if normalize(i['db_name']) == normalize(j['db_name']):
-                return ('main', 'exact match', 125)
+                return True
+    return False
+
+def compare_author_keywords(e1_authors, e2_authors):
     max_score = 0
-    for i in e1['authors']:
-        for j in e2['authors']:
+    for i in e1_authors:
+        for j in e2_authors:
             percent, ordered = keyword_match(i['name'], j['name'])
             if percent > 0.50:
                 score = percent * 80
@@ -129,6 +127,24 @@ def compare_authors(e1, e2):
         return ('main', 'keyword match', max_score)
     else:
         return ('main', 'mismatch', -200)
+
+def compare_authors(e1, e2):
+    if 'authors' in e1 and 'authors' in e2:
+        if compare_author_fields(e1['authors'], e2['authors']):
+            return ('main', 'exact match', 125)
+    if 'authors' in e1 and 'contribs' in e2 and \
+            compare_author_fields(e1['authors'], e2['contribs']):
+        return ('main', 'exact match', 125)
+    if 'contribs' in e1 and 'authors' in e2 and \
+            compare_author_fields(e1['contribs'], e2['authors']):
+        return ('main', 'exact match', 125)
+    if 'authors' in e1 and 'authors' in e2:
+        return compare_author_keywords(e1['authors'], e2['authors'])
+
+    if 'authors' not in e1 and 'authors' not in e2:
+        return ('main', 'no authors', 75)
+    return ('main', 'field missing from one record', -25)
+
 
 def title_replace_amp(amazon):
     return normalize(amazon['full-title'].replace(" & ", " and ")).lower()
@@ -252,7 +268,7 @@ def build_marc(edition):
     if 'publish_country' in edition \
             and edition['publish_country'] not in ('   ', '|||'):
         marc['publish_country'] = edition['publish_country']
-    for f in 'lccn', 'publishers', 'publish_date', 'number_of_pages', 'authors':
+    for f in 'lccn', 'publishers', 'publish_date', 'number_of_pages', 'authors', 'contribs':
         if f in edition:
             marc[f] = edition[f]
     return marc
@@ -305,3 +321,30 @@ def test_merge():
     assert compare_authors(bpl, lc) == ('main', 'exact match', 125)
     threshold = 735
     assert attempt_merge(bpl, lc, threshold)
+
+def test_author_contrib():
+    rec1 = {'authors': [{'db_name': u'Bruner, Jerome S.', 'name': u'Bruner, Jerome S.'}],
+    'full_title': u'Contemporary approaches to cognition a symposium held at the University of Colorado.',
+    'number_of_pages': 210,
+    'publish_country': 'xxu',
+    'publish_date': '1957',
+    'publishers': [u'Harvard U.P']}
+
+    rec2 = {'authors': [{'db_name': u'University of Colorado (Boulder campus). Dept. of Psychology.',
+                'name': u'University of Colorado (Boulder campus). Dept. of Psychology.'}],
+    'contribs': [{'db_name': u'Bruner, Jerome S.', 'name': u'Bruner, Jerome S.'}],
+    'full_title': u'Contemporary approaches to cognition a symposium held at the University of Colorado',
+    'lccn': ['57012963'],
+    'number_of_pages': 210,
+    'publish_country': 'mau',
+    'publish_date': '1957',
+    'publishers': [u'Harvard University Press']}
+
+    e1 = build_marc(rec1)
+    e2 = build_marc(rec2)
+
+    assert compare_authors(e1, e2) == ('main', 'exact match', 125)
+    threshold = 875
+    assert attempt_merge(e1, e2, threshold)
+
+test_author_contrib()
