@@ -142,6 +142,9 @@ def compare_authors(e1, e2):
         return compare_author_keywords(e1['authors'], e2['authors'])
 
     if 'authors' not in e1 and 'authors' not in e2:
+        if 'contribs' in e1 and 'contribs' in e2 and \
+                compare_author_fields(e1['contribs'], e2['contribs']):
+            return ('main', 'exact match', 125)
         return ('main', 'no authors', 75)
     return ('main', 'field missing from one record', -25)
 
