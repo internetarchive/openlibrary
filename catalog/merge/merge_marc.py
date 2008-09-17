@@ -124,29 +124,29 @@ def compare_author_keywords(e1_authors, e2_authors):
                 if score > max_score:
                     max_score = score
     if max_score:
-        return ('main', 'keyword match', max_score)
+        return ('authors', 'keyword match', max_score)
     else:
-        return ('main', 'mismatch', -200)
+        return ('authors', 'mismatch', -200)
 
 def compare_authors(e1, e2):
     if 'authors' in e1 and 'authors' in e2:
         if compare_author_fields(e1['authors'], e2['authors']):
-            return ('main', 'exact match', 125)
+            return ('authors', 'exact match', 125)
     if 'authors' in e1 and 'contribs' in e2 and \
             compare_author_fields(e1['authors'], e2['contribs']):
-        return ('main', 'exact match', 125)
+        return ('authors', 'exact match', 125)
     if 'contribs' in e1 and 'authors' in e2 and \
             compare_author_fields(e1['contribs'], e2['authors']):
-        return ('main', 'exact match', 125)
+        return ('authors', 'exact match', 125)
     if 'authors' in e1 and 'authors' in e2:
         return compare_author_keywords(e1['authors'], e2['authors'])
 
     if 'authors' not in e1 and 'authors' not in e2:
         if 'contribs' in e1 and 'contribs' in e2 and \
                 compare_author_fields(e1['contribs'], e2['contribs']):
-            return ('main', 'exact match', 125)
-        return ('main', 'no authors', 75)
-    return ('main', 'field missing from one record', -25)
+            return ('authors', 'exact match', 125)
+        return ('authors', 'no authors', 75)
+    return ('authors', 'field missing from one record', -25)
 
 
 def title_replace_amp(amazon):
@@ -321,7 +321,7 @@ def test_merge():
         'titles': [u'Eli Whitney and the birth of American technology.',
                    u'eli whitney and the birth of american technology']}
 
-    assert compare_authors(bpl, lc) == ('main', 'exact match', 125)
+    assert compare_authors(bpl, lc) == ('authors', 'exact match', 125)
     threshold = 735
     assert attempt_merge(bpl, lc, threshold)
 
@@ -346,7 +346,7 @@ def test_author_contrib():
     e1 = build_marc(rec1)
     e2 = build_marc(rec2)
 
-    assert compare_authors(e1, e2) == ('main', 'exact match', 125)
+    assert compare_authors(e1, e2) == ('authors', 'exact match', 125)
     threshold = 875
     assert attempt_merge(e1, e2, threshold)
 
