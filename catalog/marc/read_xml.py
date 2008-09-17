@@ -111,7 +111,8 @@ def get_subfields(line, want):
 
 def read_edition(f):
     edition = {}
-    want = ['008', '010', '020', '035', '100', '110', '111', '245', '260', '300']
+    want = ['008', '010', '020', '035', \
+            '100', '110', '111', '700', '710', '711', '245', '260', '300']
     fields = get_tag_lines(f, want)
     read_tag = [
         ('010', read_lccn, 'lccn'),
@@ -120,6 +121,9 @@ def read_edition(f):
         ('100', read_author_person, 'authors'),
         ('110', read_author_org, 'authors'),
         ('111', read_author_event, 'authors'),
+        ('700', read_author_person, 'contribs'),
+        ('710', read_author_org, 'contribs'),
+        ('711', read_author_event, 'contribs'),
         ('260', read_publisher, 'publisher'),
     ]
 
