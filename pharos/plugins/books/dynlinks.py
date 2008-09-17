@@ -36,24 +36,61 @@ def api_get(key):
 def cond(p, c, a=None):
     if p: return c
     else: return a
+    
+def get_thumbnail_url(key):
+    olid = key.split('/')[-1]
+    try:
+        result = urllib2.urlopen('http://covers.openlibrary.org/b/query?limit=1&olid=' + olid).read()
+        ids = simplejson.loads(result)
+    except (urllib2.HTTPError, ValueError):
+        ids = []
+    if ids:
+        return 'http://covers.openlibrary.org/b/olid/%s-S.jpg' % olid
+        
+def get_details(page):
+    def get_author(key):
+        return {'key': key, 'name': api_get(key).get('name', '')}
+    
+    key = page['key']
+    
+    title_prefix = page.get('title_prefix') or ''
+    title = page.get('title') or ''
+    if title_prefix:
+        title = title_prefix + ' ' + title
+    
+    publisher = page.get('publisher') or []
+    
+    authors = page.get('authors') or []
+    authors = [get_author(a['key']) for a in authors]
+    
+    by_statement = page.get('by_statement') or ''
+    
+    return dict(key=key, title=title, publisher=publisher, authors=authors, by_statement=by_statement)
 
-def make_data(bib_key, olid):
-    page = api_get(olid)
+def make_data(bib_key, key, details=False):
+    page = api_get(key)
     if 'ocaid' in page:
         preview = 'full'
         preview_url = 'http://openlibrary.org/details/' + page['ocaid']
     else:
         preview = 'noview'
-        preview_url = 'http://openlibrary.org' + olid
-    thumbnail_url = 'http://covers.openlibrary.org/b/olid/%s-S.jpg' % (olid.split('/')[-1])
+        preview_url = 'http://openlibrary.org' + key
+        
+    thumbnail_url = get_thumbnail_url(key)
     
-    return {
+    d = {
         'bib_key': bib_key,
-        'info_url': 'http://openlibrary.org' + olid,
+        'info_url': 'http://openlibrary.org' + key,
         'preview': preview,
         'preview_url': preview_url,
-        'thumbnail_url': thumbnail_url,
     }
+    if thumbnail_url:
+        d['thumbnail_url'] = thumbnail_url
+        
+    if details:
+        d['details'] = get_details(page)
+        
+    return d
 
 def split_key(bib_key):
     """
@@ -74,7 +111,7 @@ def split_key(bib_key):
     if not bib_key:
         return None, None
 
-    valid_keys = ['isbn', 'lccn', 'oclc', 'ocaid']
+    valid_keys = ['isbn', 'lccn', 'oclc', 'ocaid', 'olid']
     key, value = None, None
 
     # split with : when possible
@@ -88,12 +125,17 @@ def split_key(bib_key):
                 key = k
                 value = bib_key[len(k):]
                 continue
-
+                
     # treat plain number as ISBN
     if key is None and bib_key[0].isdigit():
         key = 'isbn'
         value = bib_key
         
+    # treat OLxxxM as OLID
+    if key is None and bib_key.startswith('ol') and bib_key.endswith('m'):
+        key = 'olid'
+        value = bib_key
+    
     # decide isbn_10 or isbn_13 based on length.
     if key == 'isbn':
         if len(value) == 13:
@@ -103,19 +145,23 @@ def split_key(bib_key):
 
     if key == 'oclc':
         key = 'oclc_numbers'
+        
+    if key == 'olid':
+        key = 'key'
+        value = '/b/' + value.upper()
 
     return key, value
         
-def get(bibkey):
+def get(bibkey, details=False):
     key, value = split_key(bibkey)
     things = key and api_things(key, value)
-    return things and {bibkey: make_data(bibkey, things[0])}
+    return things and {bibkey: make_data(bibkey, things[0], details=details)}
 
-def get_multi(bib_keys):
+def get_multi(bib_keys, details=False):
     try:
         result = {}
         for bib_key in bib_keys:
-            d = get(bib_key)
+            d = get(bib_key, details=details)
             d and result.update(d)
         return result
     except:
