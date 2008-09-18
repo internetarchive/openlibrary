@@ -58,14 +58,14 @@ def get_details(page):
     if title_prefix:
         title = title_prefix + ' ' + title
     
-    publisher = page.get('publisher') or []
+    publishers = page.get('publishers') or []
     
     authors = page.get('authors') or []
     authors = [get_author(a['key']) for a in authors]
     
     by_statement = page.get('by_statement') or ''
     
-    return dict(key=key, title=title, publisher=publisher, authors=authors, by_statement=by_statement)
+    return dict(key=key, title=title, publishers=publishers, authors=authors, by_statement=by_statement)
 
 def make_data(bib_key, key, details=False):
     page = api_get(key)
