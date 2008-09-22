@@ -52,7 +52,7 @@ def files(archive_id):
     for i in tree.getroot():
         assert i.tag == 'file'
         name = i.attrib['name']
-        if name.endswith('.mrc') or name.endswith('.marc') or name.endswith('.out') or name.endswith('.dat') or name.endswith('.utf8'):
+        if name.endswith('.mrc') or name.endswith('.marc') or name.endswith('.out') or name.endswith('.dat') or name.endswith('.records.utf8'):
             size = i.find('size')
             if size:
                 yield name, size.text
