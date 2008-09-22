@@ -409,7 +409,7 @@ def check_title(html_title, title, subtitle, product_type, desc_author):
     except AssertionError:
         raise
 
-re_prod_image = re.compile('<td id="prodImageCell" .*<img src="(.*?)" id="prodImage"')
+re_prod_image = re.compile('<td id="prodImageCell" .*<img.*src="(.*?)" id="prodImage"')
 
 def parse_prod_image(html, edition, prev_end):
     m = re_prod_image.search(html, prev_end)
