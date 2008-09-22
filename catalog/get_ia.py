@@ -53,7 +53,11 @@ def files(archive_id):
         assert i.tag == 'file'
         name = i.attrib['name']
         if name.endswith('.mrc') or name.endswith('.marc') or name.endswith('.out') or name.endswith('.dat') or name.endswith('.utf8'):
-            yield archive_id + "/" + name
+            size = i.find('size')
+            if size:
+                yield name, size.text
+            else:
+                yield name, None
 
 def get_from_archive(locator):
     (file, offset, length) = locator.split (":")
