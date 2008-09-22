@@ -54,8 +54,8 @@ def files(archive_id):
         name = i.attrib['name']
         if name.endswith('.mrc') or name.endswith('.marc') or name.endswith('.out') or name.endswith('.dat') or name.endswith('.records.utf8'):
             size = i.find('size')
-            if size:
-                yield name, size.text
+            if size is not None:
+                yield name, int(size.text)
             else:
                 yield name, None
 
