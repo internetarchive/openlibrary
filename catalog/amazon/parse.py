@@ -179,7 +179,8 @@ def parse_other_editions(m, edition):
 
 def parse_title(html, edition, prev_end):
     # parse title
-    expect_div_title_str = '<div class="buying"><b class="sans">' + edition["title"]
+    #expect_div_title_str = '<div class="buying"><b class="sans">' + edition["title"]
+    expect_div_title_str = '<div class="buying"><h1 class="parseasinTitle"><span id="btAsinTitle" style="">' + edition["title"]
     if 'subtitle' in edition:
         expect_div_title_str += ': ' + edition['subtitle']
     pos = html[prev_end:].find(expect_div_title_str)
