@@ -137,7 +137,7 @@ class scan_complete(delegate.mode):
                     }
                 }
                     
-            volumes = i.volumes and [v.strip() for v in i.volumes.split('\n')] or []
+            volumes = i.volumes and i.volumes.split() or []
             q[0]['volumes'] = {
                 'connect': 'update_list',
                 'value': [volume(index+1, v) for index, v in enumerate(volumes)]
