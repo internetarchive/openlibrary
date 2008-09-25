@@ -21,7 +21,7 @@ class show_ia(delegate.page):
     path = "/show-marc/ia:(.*)"
 
     def GET(self, ia):
-        filename = ia + "/" + ia + "_meta.xml"
+        filename = ia + "/" + ia + "_marc.xml"
 
         url = 'http://www.archive.org/download/%s'% filename
 
