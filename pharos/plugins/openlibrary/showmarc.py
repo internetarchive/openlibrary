@@ -17,6 +17,21 @@ sys.path.append(root)
 
 from catalog.marc.MARC21 import MARC21Record, MARC21HtmlPrint, MARC21Exn
 
+class show_ia(delegate.page):
+    path = "/show-marc/ia:(.*)"
+
+    def GET(self, ia):
+        filename = ia + "/" + ia + ".xml"
+
+        url = 'http://www.archive.org/download/%s'% filename
+
+        try:        
+            record = urllib2.urlopen(url).read(100000)
+        except urllib2.HTTPError, e:
+            return "ERROR:" + str(e)
+
+        return render.showia(record, filename)
+
 class show_marc(delegate.page):
     path = "/show-marc/(.*):(\d+):(\d+)"
 	
