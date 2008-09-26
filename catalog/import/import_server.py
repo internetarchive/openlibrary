@@ -6,7 +6,7 @@ from copy import deepcopy
 from catalog.merge.index import *
 import psycopg2
 
-web.config.db_parameters = dict(dbn='postgres', db='infobase_production', user='edward', pw='', host='pharosdb.us.archive.org')
+web.config.db_parameters = dict(dbn='postgres', db='infobase_production', user='', pw='', host='pharosdb.us.archive.org')
 web.load()
 web.ctx.ip = '127.0.0.1'
 
@@ -21,8 +21,9 @@ dbm = dict((i, dbhash.open(path + i + '.dbm', flag='w')) for i in dbm_fields)
 store_db = dbhash.open(path + "store.dbm", flag='w')
 
 urls = (
-    '/', 'index'
-    '/store/(.*)', 'store'
+    '/', 'index',
+    '/store/(.*)', 'store',
+    '/keys', 'keys',
 )
 
 def build_pool(index_fields):
@@ -82,7 +83,7 @@ def add_to_database(orig, loc):
     # login as ImportBot
     site.get_account_manager().set_auth_token(site.withKey('/user/ImportBot'))
 
-    while True:
+    while True: # keep trying until there is no error
         q = deepcopy(orig)
         add_keys(web, q)
         try:
@@ -104,23 +105,31 @@ class index:
         key = add_to_database(q, loc)
         id = site.withKey(key).id
         add_to_indexes(q, id, dbm)
-        print key
+        print key,
         
 class store:
     def GET(self, key):
         web.header('Content-Type','application/json; charset=utf-8', unique=True)
-        if key in store_dbm:
-            print store_dbm[key]
+        if key in store_db:
+            print store_db[key]
         else:
-            print key, "not found"
+            print cjson.encode({'error': key + " not found", 'keys': store_db.keys() })
     def POST(self, key):
-        store_dbm[key] = web.data()
+        store_db[key] = web.data()
         print "saved"
+
+class keys:
+    def GET(self):
+        web.header('Content-Type','application/json; charset=utf-8', unique=True)
+        print cjson.encode(store_db.keys())
 
 if __name__ == '__main__':
     try:
         web.run(urls, globals(), web.reloader)
     except:
         print "closing dbm files"
+        for v in dbm.itervalues():
+            v.close()
+        store_db.close()
         print "closed"
         raise
