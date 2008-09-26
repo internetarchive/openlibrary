@@ -100,7 +100,7 @@ class scan_complete(delegate.mode):
             return permission_denied('Permission denied.')
 
         book = get_book(path, check_scanned=False)
-        i = web.input("ocaid", _comment=None)
+        i = web.input("ocaid", volumes=None, multivolume_work=None, _comment=None)
         
         q = [
             {
@@ -122,6 +122,31 @@ class scan_complete(delegate.mode):
                 }
             }
         ]
+
+        if i.multivolume_work:
+            def volume(index, ia_id):
+                return {
+                    'create': 'unless_exists', 
+                    'key': '%s/v%d' % (path, index),
+                    'type': {'key': '/type/volume'},
+                    'edition': {'key': path}, 
+                    'volume_number': index,
+                    'ia_id': {
+                        'connect': 'update',
+                        'value': ia_id,
+                    }
+                }
+                    
+            volumes = i.volumes and i.volumes.split() or []
+            q[0]['volumes'] = {
+                'connect': 'update_list',
+                'value': [volume(index+1, v) for index, v in enumerate(volumes)]
+            }
+            q[0]['ocaid'] = {
+                'connect': 'update',
+                'value': '' 
+            }
+
         web.ctx.site.write(q, i._comment)
 
         def get_email(user):
