@@ -6,17 +6,33 @@ from catalog.merge.merge_marc import *
 import catalog.merge.amazon as amazon
 from catalog.get_ia import *
 from pprint import pprint
-import web, sys, codecs, psycopg2, cjson
+import web, sys, codecs, psycopg2, cjson, urllib2, dbhash
 from parse import read_edition
 from load import build_query
 from urllib2 import urlopen, Request
-import urllib2
 
 sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
 
 amazon.set_isbn_match(225)
 
-web.config.db_parameters = dict(dbn='postgres', db='', user='', pw='', host='pharosdb.us.archive.org')
+index_path = '/1/pharos/edward/index/'
+docid_db = dbhash.open(index_path + "docid.dbm", flag='r')
+
+marc_path = '/2/pharos/marc/'
+
+def get_data(loc):
+    try:
+        filename, p, l = loc.split(':')
+    except ValueError:
+        print loc
+        raise
+    f = open(marc_path + filename)
+    f.seek(int(p))
+    buf = f.read(int(l))
+    f.close()
+    return buf
+
+web.config.db_parameters = dict(dbn='postgres', db='', user='', pw='', host='')
 web.load()
 web.ctx.ip = '127.0.0.1'
 threshold = 875
@@ -68,24 +84,38 @@ def try_amazon(thing):
         authors = []
     return amazon.build_amazon(thing._get_data(), authors)
 
-def try_merge(e1, doc_id):
-    try:
-        thing = site.withID(doc_id)
-    except NotFound:
-        print doc_id
-        print e1
-        raise
+def try_merge(e1, docid):
     ia = None
-    thing_type = str(thing.type)
-    if thing_type == '/type/delete': # 
-        return False
-    if thing_type != '/type/edition':
-        print thing_type
-    assert thing_type == '/type/edition'
-    try:
-        ia = thing.ocaid.value
-    except AttributeError:
-        pass
+    thing = None
+    mc = None
+    if str(docid) in docid_db:
+        mc = docid_db[str(docid)]
+        if not mc.startswith('amazon:'):
+            if mc.startswith('ia:'):
+                ia = mc[3:]
+            elif mc.endswith('.xml') or mc.endswith('.mrc'):
+                ia = mc[:mc.find('/')]
+            elif mc.find('/') == -1:
+                ia = mc[:mc.find('_meta')]
+        print mc
+    if not mc or mc.startswith('amazon:'):
+        try:
+            thing = site.withID(docid)
+        except NotFound:
+            print docid
+            print e1
+            raise
+        thing_type = str(thing.type)
+        if thing_type == '/type/delete': # 
+            return False
+        if thing_type != '/type/edition':
+            print thing_type
+        assert thing_type == '/type/edition'
+        if not mc:
+            try:
+                ia = thing.ocaid.value
+            except AttributeError:
+                pass
     rec2 = None
     if ia:
         try:
@@ -95,7 +125,8 @@ def try_merge(e1, doc_id):
         except urllib2.HTTPError, error:
             assert error.code == 404
     if not rec2:
-        mc = get_mc(doc_id)
+        if not mc:
+            mc = get_mc(docid)
         if not mc:
             return False
         if mc.startswith('amazon:'):
@@ -116,10 +147,23 @@ def try_merge(e1, doc_id):
                 print thing.key
                 raise
         try:
-            rec2 = fast_parse.read_edition(get_from_archive(mc))
+            rec2 = fast_parse.read_edition(get_data(mc))
+        except AssertionError:
+            print mc
+            if not thing:
+                thing = site.withID(docid)
+            print thing.key
+            return False
+        except fast_parse.SoundRecording:
+            print mc
+            return False
         except (fast_parse.SoundRecording, IndexError, AssertionError):
             print mc
+            if not thing:
+                thing = site.withID(docid)
             print thing.key
+            if str(thing.type) == '/type/delete':
+                return False
             raise
     if not rec2:
         return False
@@ -144,12 +188,11 @@ def load_part(archive_id, part, start_pos=0):
     t_match = 0
     t_existing = 0
     full_part = archive_id + "/" + part
-    url = archive_url + full_part
     if start_pos:
-        req = urllib2.Request(url, None, {'Range':'bytes=%d-'% start_pos},)
-        f = urlopen_keep_trying(req)
+        f = open(marc_path + full_part)
+        f.seek(start_pos)
     else:
-        f = urlopen_keep_trying(url)
+        f = open(marc_path + full_part)
     for pos, loc, data in read_marc_file(full_part, f, pos=start_pos):
         rec_no += 1
         if rec_no % chunk == 0:
@@ -228,8 +271,8 @@ def load_part(archive_id, part, start_pos=0):
 #        print pool,
         try:
             for k, v in pool.iteritems():
-                for doc_id in v:
-                    if try_merge(e1, doc_id):
+                for docid in v:
+                    if try_merge(e1, docid):
                         match = True
                         break
                 if match:
@@ -297,3 +340,4 @@ for part, size in files(archive_id):
         raise
 
 print "finished"
+docid_db.close()
