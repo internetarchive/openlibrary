@@ -169,7 +169,7 @@ def get_scan_queue(scan_status, limit=None, offset=None):
     q = {
         'type': '/type/scan_record',
         'scan_status': scan_status,
-        'sort': 'last_modified'
+        'sort': '-last_modified'
     } 
     if limit:
         q['limit'] = limit
@@ -208,7 +208,7 @@ class scan_queue(delegate.page):
         if i.status not in options:
             return web.seeother(web.changequery({}))
             
-        offset = safeint(p, 0) * 50
+        offset = safeint(i.p, 0) * 50
             
         records = get_scan_queue(i.status, limit=50, offset=offset)
         return render.scan_queue(records)
