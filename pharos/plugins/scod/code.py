@@ -1,5 +1,5 @@
 from infogami.utils import delegate
-from infogami.utils.view import render, require_login, public, permission_denied
+from infogami.utils.view import render, require_login, public, permission_denied, safeint
 from infogami import config
 import web
 import datetime
@@ -208,5 +208,7 @@ class scan_queue(delegate.page):
         if i.status not in options:
             return web.seeother(web.changequery({}))
             
-        records = get_scan_queue(i.status, limit=50, offset=None)
+        offset = safeint(p, 0) * 50
+            
+        records = get_scan_queue(i.status, limit=50, offset=offset)
         return render.scan_queue(records)
