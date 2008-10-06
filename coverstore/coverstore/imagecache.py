@@ -62,7 +62,12 @@ class ImageCache:
             # get the original image
             filename = db.get_filename(id)
             if filename is None:
-                return False            
+                return False
+            
+            # prune the folder if it has more files    
+            block_number = id % NBLOCKS
+            self._prune(block_number)
+            
             write(self._imgpath(id, 'original'), self.disk.read(filename))
             
             # create thumbnails
@@ -88,24 +93,26 @@ class ImageCache:
         del self.atimes[id]    
         
     def _prune(self, block_number):
-        # other process could be updating the imagecache. 
-        # update the atimes to remove the real unused files.
-        self._update_atimes(block_number)
-        
         block = self.atimes.get_block(block_number)
         threshold = int(OVERLOAD_FACTOR * BLOCK_SIZE)
         if len(block) > threshold:
+            # other process could be updating the imagecache. 
+            # update the atimes to remove the real unused files.
+            self.atimes[block_number] = self.get_atimes(block_number)
+
             ids = sorted(block.keys(), key=lambda id: block[id], reverse=True)
             for id in ids[BLOCK_SIZE:]:
                 self._delete_images(id)
                 
-    def update_atimes(block_number):
-        d = self._dirname(block_number) # this works even though block is not an id
+    def get_atimes(block_number):
+        atimes = {}
+        d = self._dirname(block_number) # _dirname works even with block_number
         for f in os.listdir(d):
             id = int(web.numify(f))
             atime = os.stat(os.path.join(d, f)).st_atime
-            self.atimes[id] = max(self.atimes.get(id, 0), atime)
-
+            atimes[id] = max(self.atimes.get(id, 0), atime)
+        return atimes
+        
     def _dirname(self, id):
         block = "%04d" % (id % NBLOCKS)
         a, b = block[:2], block[2:]
