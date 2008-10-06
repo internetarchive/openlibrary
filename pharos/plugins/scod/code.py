@@ -204,7 +204,7 @@ def to_datetime(iso_date_string):
 class scan_queue(delegate.page):
     def GET(self):
         i = web.input(status="WAITING_FOR_BOOK", p=None)
-        options = ["NOT_SCANNED", "WAITING_FOR_BOOK", "SCAN_IN_PROGRESS", "SCAN_COMPLETE"]
+        options = ["NOT_SCANNED", "WAITING_FOR_BOOK", "BOOK_NOT_FOUND", "SCAN_IN_PROGRESS", "SCAN_COMPLETE"]
         if i.status not in options:
             return web.seeother(web.changequery({}))
             
