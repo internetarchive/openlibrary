@@ -30,13 +30,7 @@ class ImageCache:
             d = self._dirname(i)
             if not os.path.exists(d):
                 os.makedirs(d)
-            
-            # setup atimes
-            for f in os.listdir(d):
-                id = int(web.numify(f))
-                atime = os.stat(os.path.join(d, f)).st_atime
-                self.atimes[id] = max(self.atimes.get(id, 0), atime)
-                
+                            
     def _create_image_engine(self):
         engines = dict(pil=PIL, imagemagick=ImageMagick)
         if config.image_engine not in engines:
@@ -58,12 +52,17 @@ class ImageCache:
             f.close()
             
         if id not in self.atimes:
-            filename = db.get_filename(id)
-            print >> web.debug, 'db.get_filename', id, filename
-            if filename is None:
-                return False
+            # Lazily add entry to atimes if the file exists
+            # Doing this lazily saves lot of startup time.
+            path = self._imgpath(id, 'S')
+            if os.path.exists(path):
+                self.atimes[id] = time.time()
+                return True
 
             # get the original image
+            filename = db.get_filename(id)
+            if filename is None:
+                return False            
             write(self._imgpath(id, 'original'), self.disk.read(filename))
             
             # create thumbnails
@@ -83,19 +82,29 @@ class ImageCache:
         for size in config.image_sizes:
             path = self._imgpath(id, size)
             try:
-                print >> web.debug, 'removing', path
                 os.remove(path)
             except:
                 pass
         del self.atimes[id]    
         
     def _prune(self, block_number):
+        # other process could be updating the imagecache. 
+        # update the atimes to remove the real unused files.
+        self._update_atimes(block_number)
+        
         block = self.atimes.get_block(block_number)
         threshold = int(OVERLOAD_FACTOR * BLOCK_SIZE)
         if len(block) > threshold:
             ids = sorted(block.keys(), key=lambda id: block[id], reverse=True)
             for id in ids[BLOCK_SIZE:]:
                 self._delete_images(id)
+                
+    def update_atimes(block_number):
+        d = self._dirname(block_number) # this works even though block is not an id
+        for f in os.listdir(d):
+            id = int(web.numify(f))
+            atime = os.stat(os.path.join(d, f)).st_atime
+            self.atimes[id] = max(self.atimes.get(id, 0), atime)
 
     def _dirname(self, id):
         block = "%04d" % (id % NBLOCKS)
