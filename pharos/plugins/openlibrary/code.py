@@ -17,6 +17,7 @@ import showmarc
 
 # add zip to the list of public functions
 public(zip)
+web.template.Template.globals['NEWLINE'] = "\n"
 
 def new_key(seq, pattern):
     # repeat until a non-existing key is found.
@@ -249,7 +250,7 @@ class new:
             result = {'status': 'fail', 'message': 'Invalid type %s. Expected /type/edition or /type/author.' % repr(query['type'])}
             return simplejson.dumps(result)
         result = web.ctx.site._conn.request(web.ctx.site.name, '/write', 'POST',
-            dict(query=_query, comment=comment, machine_comment=machine_comment))
+            dict(query=simplejson.dumps(query), comment=i.comment, machine_comment=i.machine_comment))
         return simplejson.dumps(result)
 
 class write:
