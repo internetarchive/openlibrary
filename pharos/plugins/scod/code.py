@@ -165,7 +165,7 @@ class scan_complete(delegate.mode):
 
         web.seeother(web.changequery(query={}))
 
-def get_scan_queue(scan_status, limit=None):
+def get_scan_queue(scan_status, limit=None, offset=None):
     q = {
         'type': '/type/scan_record',
         'scan_status': scan_status,
@@ -173,6 +173,10 @@ def get_scan_queue(scan_status, limit=None):
     } 
     if limit:
         q['limit'] = limit
+    
+    if offset:
+        q['offset'] = offset
+        
     result = web.ctx.site.things(q)
     return [web.ctx.site.get(key) for key in result]
 
@@ -199,8 +203,10 @@ def to_datetime(iso_date_string):
 
 class scan_queue(delegate.page):
     def GET(self):
-        queue = web.storage(
-            waiting=get_scan_queue('WAITING_FOR_BOOK'),
-            inprogress=get_scan_queue('SCAN_IN_PROGRESS'),
-            completed=get_scan_queue('SCAN_COMPLETE', limit=10))
-        return render.scan_queue(queue)
+        i = web.input(status="WAITING_FOR_BOOK", p=None)
+        options = ["NOT_SCANNED", "WAITING_FOR_BOOK", "SCAN_IN_PROGRESS", "SCAN_COMPLETE"]
+        if i.status not in options:
+            return web.seeother(web.changequery({}))
+            
+        records = get_scan_queue(i.status, limit=50, offset=None)
+        return render.scan_queue(records)

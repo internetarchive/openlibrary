@@ -1,4 +1,4 @@
-$def with (queue)
+$def with (records)
 
 $var title: Scan Queue
 
@@ -7,6 +7,14 @@ $var title: Scan Queue
     <span class="pretitle">Open Library Scan on Demand:<br /></span>
     <div id="title">Scan Queue</div>   
 </div>
+
+<form action="$:changequery({})" method="GET">
+    $ options = ["NOT_SCANNED", "WAITING_FOR_BOOK", "SCAN_IN_PROGRESS", "SCAN_COMPLETE"]
+    <span class="green"><span class="formheader">
+    Scan Status: $:Dropdown("status", options, value=query_param("status", "WAITING_FOR_BOOK")).render()
+    <input class="small-button" type="submit" name="change" value="CHANGE" style="margin-left: 10px" />
+    </span></span>
+</form>
 
 <div id="bibliography">
     <div id="browse-rule"></div>
@@ -21,27 +29,22 @@ $var title: Scan Queue
                 <td class="historyheader" style="white-space: nowrap">Request Date</td>
                 <td class="historyheader">Scan Status</td>
             </tr>
-        $ queue_records = [queue.waiting, queue.inprogress, queue.completed]
-
-        $for records in queue_records:
             $for record in records:
-                <tr style="height:33px;">
+                <tr style="height:33px;" class="$record.scan_status.lower()">
                     <td class="number" valign="top" style="white-space: nowrap">$record.shelf</td>
                     <td class="path" valign="top"><a href="/scan_record$record.edition.key" style="text-decoration: underline">$record.edition.title</a> (<a href="$record.edition.key">edition</a>)</td>
                     <td class="path" valign="top" style="white-space: nowrap"><a href="$record.sponsor.key">$record.sponsor.displayname</a></td>
                     <td class="path" valign="top"><a href="$record.locations[0].key">$record.locations[0].name</a></td>
-
-                    $if record.scan_status == 'SCAN_COMPLETE':
-                        $ t = (record.completion_date and to_datetime(record.completion_date)) or record.last_modified
-                    $else:
-                        $ t = (record.request_date and to_datetime(record.request_date)) or record.last_modified
-                    <td class="path" valign="top">$datestr(t)</td>
+                    <td class="path" valign="top">
+                        $ t = (record.request_date and to_datetime(record.request_date)) or None
+                        $((t and datestr(t)) or "-")
+                    </td>
+                    <td class="path" valign="top">
+                        $ t = (record.completion_date and to_datetime(record.completion_date)) or None
+                        $((t and datestr(t)) or "-")
+                    </td>
                     <td class="path" valign="top">$record.scan_status</td>
                  </tr>
-
-                <tr style="height:33px;">
-                </tr>
-
         </table>
 
 <br /><br /><br /><br /><br /><br /><br /><br />
