@@ -5,7 +5,7 @@ import stopword
 from infogami import utils
 from infogami.utils import delegate
 from infogami.utils import view, template
-from infogami import tdb, config
+from infogami import config
 import re
 import solr_client
 import time
