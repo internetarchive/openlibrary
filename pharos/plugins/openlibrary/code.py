@@ -80,8 +80,17 @@ class blurb(delegate.page):
         i = web.input()        
         callback = i.pop('callback', None)
         author = web.ctx.site.get('/' +path)
-        bio = author and author.bio or ""
-        result = dict(body=web.utf8(bio), media_type="text/html", text_encoding="utf-8")
+        body = ''
+        if author.birth_date or author.death_date:
+            body = "%s - %s" % (author.birth_date, author.death_date)
+        else:
+            body = "%s" % author.date
+
+        body += "<br/>"
+        if author.bio:
+            body += web.utf8(author.bio)
+
+        result = dict(body=body, media_type="text/html", text_encoding="utf-8")
         d = dict(status="200 OK", code="/api/status/ok", result=result)
         if callback:
             print '%s(%s)' % (callback, simplejson.dumps(d))
