@@ -19,15 +19,6 @@ import showmarc
 public(zip)
 web.template.Template.globals['NEWLINE'] = "\n"
 
-def new_key(seq, pattern):
-    # repeat until a non-existing key is found.
-    # This is required to prevent error in cases where an object with the next key is already created.
-    while True:
-        value = web.query("SELECT NEXTVAL($seq) as value", vars=locals())[0].value
-        key = pattern % value
-        if web.ctx.site.get(key) is None:
-            return key
-    
 class addbook(delegate.page):
     def GET(self):
         page = web.ctx.site.new("", {'type': web.ctx.site.get('/type/edition')})
@@ -35,7 +26,7 @@ class addbook(delegate.page):
         
     def POST(self):
         from infogami.core.code import edit
-        key = new_key('book_key_seq', '/b/OL%dM')
+        key = web.ctx.site.new_key('/type/edition')
         web.ctx.path = key
         return edit().POST(key)
 
@@ -44,7 +35,7 @@ class addauthor(delegate.page):
         i = web.input("name")
         if len(i.name) < 2:
             return web.badrequest()
-        key = new_key('author_key_seq', '/a/OL%dA')
+        key = web.ctx.site.new_key('/type/author')
         web.ctx.path = key
         web.ctx.site.write({'create': 'unless_exists', 'key': key, 'name': i.name, 'type': dict(key='/type/author')}, comment='New Author')
         print key
@@ -242,10 +233,9 @@ class new:
         else:
             type = query['type']
         
-        if type == '/type/edition':
-            query['key'] = new_key('book_key_seq', '/b/OL%dM')
-        elif type == '/type/author':
-            query['key'] = new_key('author_key_seq', '/a/OL%dA')
+        
+        if type == '/type/edition' or type == '/type/author':
+            query['key'] = web.ctx.site.new_key(type)
         else:
             result = {'status': 'fail', 'message': 'Invalid type %s. Expected /type/edition or /type/author.' % repr(query['type'])}
             return simplejson.dumps(result)
