@@ -9,7 +9,7 @@ urls = (
 
 base_url = "http://0.0.0.0:9020/"
 
-done = set(['marc_western_washington_univ'])
+done = set(['marc_western_washington_univ', 'marc_miami_univ_ohio'])
 
 files = eval(open('files').read())
 
@@ -22,7 +22,7 @@ def progress(archive, part, pos):
     for f, size in files[archive]:
         cur = archive + '/' + f
         if size is None:
-            return 'n/a'
+            return (None, None)
         size = int(size)
         if cur == part or part == f:
             pass_cur = True
@@ -30,7 +30,7 @@ def progress(archive, part, pos):
             pos += size
         total += size
     assert pass_cur
-    return '%.2f%%' % (float(pos * 100) / total)
+    return (pos, total)
 
 class index:
     def GET(self): # yes, this is a bit of a mess
@@ -43,9 +43,11 @@ class index:
         print "<table>"
         print "<tr><th>Archive ID</th><th>import</th><th>loaded</th><th>input<br>(rec/sec)</th>"
         print "<th>no match<br>(%)</th>"
-        print "<th>load (rec/sec)</th>"
+        print "<th>load<br>(rec/sec)</th>"
         print "<th>last update<br>(secs)</th><th>running<br>(hours)</th>"
-        print "<th>progress</th></tr>"
+        print "<th>progress</th>"
+        print "<th>remaining<br>(hours)</th>"
+        print "</tr>"
         cur_time = time()
         total_recs = 0
         total_t = 0
@@ -95,7 +97,19 @@ class index:
                 print '<td align="right">%.2f</td>' % t1
                 hours = q['t1'] / 3600.0
                 print '<td align="right">%.2f</td>' % hours
-                print '<td align="right">%s</td>' % progress(k, q['part'], q['pos'])
+                (pos, total) = progress(k, q['part'], q['pos'])
+                if pos:
+                    print '<td align="right">%.2f%%</td>' % (float(pos * 100) / total)
+                else:
+                    print '<td align="right">n/a</td>'
+                if 'bytes_per_sec_total' in q and total is not None and pos:
+                    remaining_bytes = total - pos
+                    sec = remaining_bytes / q['bytes_per_sec_total']
+                    hours = sec / 3600
+                    print '<td align="right">%.2f</td>' % hours
+                else:
+                    print '<td></td>'
+
             print '</tr>'
         print '<tr><td>Total</td><td></td><td></td><td align="right">%.2f</td>' % total_rec_per_sec
         if total_recs:
