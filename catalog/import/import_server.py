@@ -4,17 +4,10 @@ import cjson
 from catalog.load import add_keys
 from copy import deepcopy
 from catalog.merge.index import *
+from urllib import urlopen, urlencode
 import psycopg2
 
-web.config.db_parameters = dict(dbn='postgres', db='infobase_production', user='', pw='', host='pharosdb.us.archive.org')
-web.load()
-web.ctx.ip = '127.0.0.1'
-
-from infogami.infobase.infobase import Infobase, NotFound
-import infogami.infobase.writequery as writequery
-site = Infobase().get_site('openlibrary.org')
-
-path = '/1/pharos/edward/index/'
+path = '/1/pharos/edward/index/2/'
 dbm_fields = ('lccn', 'oclc', 'isbn', 'title')
 dbm = dict((i, dbhash.open(path + i + '.dbm', flag='w')) for i in dbm_fields)
 
@@ -43,12 +36,10 @@ def build_pool(index_fields):
                 raise
             if v not in dbm[field]:
                 continue
-            found = [int(i) for i in dbm[field][v].split(' ')]
-            pool.setdefault(field, set()).update(found)
+            pool.setdefault(field, set()).update(dbm[field][v].split(' '))
     return dict((k, sorted(v)) for k, v in pool.iteritems())
 
-def add_to_indexes(record, id, dbm):
-    id = str(id)
+def add_to_indexes(record, dbm):
     if 'title' not in record or record['title'] is None:
         return
     if 'subtitle' in record and record['subtitle'] is not None:
@@ -58,10 +49,10 @@ def add_to_indexes(record, id, dbm):
     st = str(short_title(title))
 #    if st in dbm['title'] and id in dbm['title'][st].split(' '):
 #        return # already done
-    add_to_index(dbm['title'], st, id)
+    add_to_index(dbm['title'], st, record['key'])
     if 'title_prefix' in record and record['title_prefix'] is not None:
         title2 = short_title(record['title_prefix'] + title)
-        add_to_index(dbm['title'], title2, id)
+        add_to_index(dbm['title'], title2, record['key'])
 
     fields = [
         ('lccn', 'lccn', clean_lccn),
@@ -77,20 +68,7 @@ def add_to_indexes(record, id, dbm):
                 continue
             if clean:
                 v = clean(v)
-            add_to_index(dbm[b], v, id)
-
-def add_to_database(orig, loc):
-    # login as ImportBot
-    site.get_account_manager().set_auth_token(site.withKey('/user/ImportBot'))
-
-    while True: # keep trying until there is no error
-        q = deepcopy(orig)
-        add_keys(web, q)
-        try:
-            site.write(q, comment='initial import', machine_comment=loc)
-            return q['key']
-        except psycopg2.IntegrityError:
-            pass
+            add_to_index(dbm[b], v, record['key'])
 
 class index:
     def GET(self):
@@ -101,11 +79,8 @@ class index:
         print cjson.encode({'fields': fields, 'pool': pool})
     def POST(self):
         q = cjson.decode(web.data())
-        loc = q.pop('loc')
-        key = add_to_database(q, loc)
-        id = site.withKey(key).id
-        add_to_indexes(q, id, dbm)
-        print key,
+        add_to_indexes(q, dbm)
+        print 'success',
         
 class store:
     def GET(self, key):
