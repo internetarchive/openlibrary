@@ -83,6 +83,11 @@ class scan_review(delegate.mode):
         return render.scan_inprogress(book)
         
 class scan_book_notfound(delegate.mode):
+    def is_scan_user(self):
+        usergroup = web.ctx.site.get('/usergroup/scan')
+        user = web.ctx.site.get_user()
+        return user and usergroup and user.key in (m.key for m in usergroup.members)
+
     def POST(self, path):
         if not self.is_scan_user():
             return permission_denied('Permission denied.')
