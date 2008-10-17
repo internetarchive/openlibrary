@@ -92,7 +92,7 @@ class scan_book_notfound(delegate.mode):
         if not self.is_scan_user():
             return permission_denied('Permission denied.')
 
-        book = get_book(path, check_scanned=False)
+        book = web.ctx.site.get(path)
         i = web.input(scan_status, _comment=None)
 
         q = {
