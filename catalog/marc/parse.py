@@ -361,11 +361,13 @@ def find_toc(r, edition): # table of contents
         return
     toc2 = []
     for i in toc:
-        if len(i) > 2048:
-            i = t.split('  ')
-            for j in i:
+        if len(i) < 2048:
+            toc2.append(i)
+        else:
+            split_item = i.split('  ')
+            for j in split_item:
                 assert len(j) < 2048
-        toc2.append(i)
+            toc2.extend(split_item)
     edition['table_of_contents'] = toc2
 
 def find_notes(r, edition):
@@ -466,7 +468,6 @@ def find_location(r, edition):
         f_loc = f.contents['a']
         if not f_loc:
             continue
-        assert len(f_loc) == 1
         loc += f_loc
     if loc:
         edition['location'] = loc
@@ -501,7 +502,7 @@ def read_edition(r, edition):
     find_url(r, edition)
     find_location(r, edition)
 
-    if len(r.get_fields('008')) > 1:
+    if len(r.get_fields('008')) != 1:
         return False
     f = r.get_field('008')
     publish_date = str(f)[7:11]

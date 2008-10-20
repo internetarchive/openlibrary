@@ -156,6 +156,30 @@ def match_marc_name(marc1, marc2, last_name_only_ok):
         return True
     return False
 
+# try different combinations looking for a match
+def match_name2(name1, name2):
+    if name1 == name2:
+        return True
+    n1_normalized = normalize(name1)
+    n2_normalized = normalize(name2)
+    if n1_normalized == n2_normalized:
+        return True
+    n1_parts = split_parts(name1)
+    n2_parts = split_parts(name2)
+    if compare_parts(n1_parts, n2_parts):
+        return True
+    if match_seq(n1_parts, n2_parts):
+        return True
+    if marc_title(n1_parts, n2_parts):
+        return True
+    if marc_title(n2_parts, n1_parts):
+        return True
+    if amazon_title(n1_parts, n2_parts):
+        return True
+    if amazon_title(n2_parts, n1_parts):
+        return True
+    return False
+
 def match_surname(surname, name):
     if name.endswith(' ' + surname) or name.endswith('.' + surname):
         return True

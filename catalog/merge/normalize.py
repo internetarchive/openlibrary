@@ -1,4 +1,4 @@
-import re
+import re, unicodedata 
 
 #re_brace = re.compile('{[^{}]+?}')
 re_normalize = re.compile('[^\w ]')
@@ -6,7 +6,7 @@ re_whitespace = re.compile('[-\s,;.]+')
 
 def normalize(s):
     if isinstance(s, unicode):
-        s = s.replace(u'\u0142', u'l')
+        s = unicodedata.normalize('NFC', s.replace(u'\u0142', u'l'))
     s = s.replace(' & ', ' and ')
     # remove {mlrhring} and friends
     # see http://www.loc.gov/marc/mnemonics.html
