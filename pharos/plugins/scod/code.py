@@ -81,6 +81,43 @@ class scan_review(delegate.mode):
             web.sendmail(config.from_address, to, message.subject.strip(), message)
     
         return render.scan_inprogress(book)
+        
+class scan_book_notfound(delegate.mode):
+    def is_scan_user(self):
+        usergroup = web.ctx.site.get('/usergroup/scan')
+        user = web.ctx.site.get_user()
+        return user and usergroup and user.key in (m.key for m in usergroup.members)
+
+    def POST(self, path):
+        if not self.is_scan_user():
+            return permission_denied('Permission denied.')
+
+        book = web.ctx.site.get(path)
+        i = web.input("scan_status", _comment=None)
+
+        q = {
+            'key': '/scan_record' + path,
+            'scan_status': {
+                'connect': 'update',
+                'value': i.scan_status
+            }
+        }
+        web.ctx.site.write(q, i._comment)
+
+        def get_email(user):
+            try:
+                delegate.admin_login()
+                return web.utf8(web.ctx.site.get_user_email(user.key).email)
+            finally:
+                web.ctx.headers = []
+
+        scan_record = get_scan_record(path)
+        to = scan_record.sponsor and get_email(scan_record.sponsor)
+        cc = getattr(config, 'scan_email_recipients', [])
+        if to:
+            message = render.scan_book_notfound_email(book, scan_record, i._comment)
+            web.sendmail(config.from_address, to, message.subject.strip(), str(message), cc=cc)
+        web.seeother(web.changequery(query={}))
 
 class scan_complete(delegate.mode):
     def is_scan_user(self):
@@ -160,7 +197,7 @@ class scan_complete(delegate.mode):
         to = scan_record.sponsor and get_email(scan_record.sponsor)
         cc = getattr(config, 'scan_email_recipients', [])
         if to:
-            message = render.scan_complete_email(book, scan_record)
+            message = render.scan_complete_email(book, scan_record, i._comment)
             web.sendmail(config.from_address, to, message.subject.strip(), str(message), cc=cc)
 
         web.seeother(web.changequery(query={}))
