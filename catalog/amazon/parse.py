@@ -1,11 +1,11 @@
-import re, sys
+import re, sys, htmlentitydefs
 from warnings import warn
 from math import floor
 
 re_product_description = re.compile("""
     <hr\ noshade="true"\ size="1"\ class="bucketDivider"\ />\s+
     <div\ class="bucket"\ id="productDescription">\s+
-    <b\ class="h1">Editorial\ Reviews</b><br\ />\s+
+    <h2>Editorial\ Reviews</h2>\s+
     .*?
     <b>From\ the\ Publisher</b><br\ />\s+
     (.*?)\s+
@@ -29,7 +29,7 @@ def parse_tags(m, edition):
 
 re_plog = re.compile(r'''(<div\ id="plog"\ class="plog">\s*.*?</li>)''', re.DOTALL)
 re_plog2 = re.compile(r'''
-<div\ id="plog"\ class="plog">\s*
+<div\ id="plog"\ class="plog">\n*
 <hr\ noshade="noshade"\ size="1"\ class="bucketDivider"\ style=".*?
 <b\ class="h1">\s*(.*?)\ latest\ blog\ posts\s*</b>.*?
 <div\ class="plogLeftCol">\s*
@@ -38,6 +38,17 @@ re_plog2 = re.compile(r'''
 <li\ class="carat">
 <a\ href="/gp/blog/(.*)">\1\ Blog</a></li>
 ''', re.DOTALL | re.X)
+
+#re_plog2 = re.compile(r'''
+#<div\ id="plog"\ class="plog">\n*
+#<hr\ noshade="noshade"\ size="1"\ class="bucketDivider"\ style=".*?
+#<b class="h1">\s*(.*?)\ latest\ blog\ posts\s*</b>.*?
+#<div\ class="plogLeftCol">\s*
+#<img\ src="(.*?)".*?>.*
+#<ul\ class="profileLink">\s*
+#<li\ class="carat">
+#<a\ href="/gp/blog/(.*)">\1\ Blog</a></li>
+#''', re.DOTALL | re.X)
 
 def parse_plog(m, edition):
     m = re_plog2.search(m.group(1))
@@ -71,6 +82,80 @@ re_citing_li2 = re.compile('^<a href="http://.*?/dp/([0-9A-Z]{10})">(.*?)</a>\s*
 
 re_page_list = re.compile('<a href=".*?">(.*?)</a>')
 
+re_prodImageCell = re.compile(' id="prodImage"[^>]* alt="([^"]+)"')
+
+re_entity = re.compile("&(\w+?);")
+
+def descape_entity(m, defs=htmlentitydefs.entitydefs):
+    # callback: translate one entity to its ISO Latin value
+    try:
+        return defs[m.group(1)]
+    except KeyError:
+        return m.group(0) # use as is
+
+def descape(string):
+    return re_entity.sub(descape_entity, string)
+
+re_div_title = re.compile("""
+    (?:\ \[([^a-z]+)\]\ )? # flags
+    \ 
+    \(([^()]+|[^()]*\(.*\)[^()]*)\)</span></h1> # binding
+    \s*
+    <span\ >
+    \s*by\ (.*?) # authors
+    \s*</span>\s*</div>""", re.MULTILINE | re.X)
+
+re_div_title = re.compile("""by (.*?)""")
+
+re_author = re.compile('<a href="(?:[^"]*)">(.*?)</a>(?: \(([^)]+)\))?')
+
+class amazon_record:
+    def __init__(self, html):
+        self.html = html
+        self.basic_parse()
+
+    def basic_parse(self):
+        m = re_title.search(self.html)
+        self.html_title = descape(m.group(1))
+        m = re_prodImageCell.search(self.html)
+        title = descape(m.group(1))
+        expect_str = '<div class="buying"><h1 class="parseasinTitle"><span id="btAsinTitle" style="">'
+        title_pos = self.html.find(expect_str + title)
+        assert title_pos != -1
+
+        re_div_title = re.compile('<div class="buying"><h1 class="parseasinTitle"><span id="btAsinTitle" style="">(.*?)</div>', re.MULTILINE | re.S)
+        m = re_div_title.search(self.html)
+        title_div = m.group(1)
+        assert title_div.startswith(title)
+        title_div = title_div[len(title):]
+
+        re_div_title2 = re.compile('^(?: \[([^a-z]+)\] )? \(([^)]+)\)</span></h1>\n*<span >\n*(?:by ([^\n]+?))?\n*(?:(?:<br />)?<span class="tiny">.*)?</span>\n$', re.S)
+        m = re_div_title2.match(title_div)
+        if not m:
+            print `title_div`
+        assert m
+        (flag, binding, authors) = m.groups()
+        self.flag = flag
+        self.binding = binding
+        expect_html_title = "Amazon.com: " + title
+        if authors:
+            print `authors`
+            author_names = re_author.findall(authors)
+            print author_names
+            assert all(i[1] != '' for i in author_names)
+            expect_html_title += ": " + ', '.join(i[0] for i in author_names)
+            self.authors = [x for x in author_names if x[0] != '']
+        else:
+            self.authors = []
+        print self.html_title
+        print expect_html_title
+        assert self.html_title.startswith(expect_html_title + ": Books")
+        m = re_split_title.match(title)
+        self.full_title = title
+        (self.title, self.subtitle) = m.groups()
+        m = re_prod_image.search(self.html)
+        self.has_cover_img = m.group(1).find("no-image-avail") == -1
+
 def parse_citing_li(html):
     for m in re_citing_li.finditer(html): 
         if not m.group(1).startswith('<'): # empty cite
@@ -102,10 +187,12 @@ def parse_citing(html, edition):
 re_price_block = re.compile('<div class="buying" id="priceBlock">\s*(.*?)\s*</div>',re.DOTALL)
 re_price_block_table = re.compile('<table class="product">\s*(.*)\s*</table>',re.DOTALL)
 re_price_block_tr = re.compile('<tr>\s*(.*?)\s*</tr>', re.DOTALL)
-re_price_block_tr2 = re.compile('<td class="productLabel">(.*?)</td>\s*(<td.*?</td>)', re.DOTALL)
+# <td class="priceBlockLabel">List Price:</td>\n    <td>$72.20 </td>'
+
+re_price_block_tr2 = re.compile('<td class="priceBlockLabel(.*)">(.*?)</td>\s*(<td.*?</td>)', re.DOTALL)
 
 re_list_price = re.compile('<td(?: class="listprice")?>\$([\d,]+)\.(\d\d) </td>')
-re_amazon_price = re.compile('<td><b class="price">\$([\d,]+)\.(\d\d)</b>')
+re_amazon_price = re.compile('<td><b class="price(?:Large)?">\$([\d,]+)\.(\d\d)</b>')
 re_you_save = re.compile('<td class="price">\$([\d,]+)\.(\d\d)\s*\((\d+)%\)\s*</td>')
 
 def dollars_and_cents(dollars, cents):
@@ -119,7 +206,7 @@ def parse_price_block(m, edition):
         if m.group(1).startswith('<td></td>'):
             continue
         m = re_price_block_tr2.match(m.group(1))
-        (heading, value) = m.groups()
+        (name, heading, value) = m.groups()
         if heading == 'List Price:':
             m = re_list_price.match(value)
             list_price = dollars_and_cents(m.group(1), m.group(2))
@@ -153,7 +240,7 @@ def parse_used_and_new(m, edition):
     edition["new_and_used_count"] = int(m.group(1))
     edition["new_and_used_price"] = dollars_and_cents(m.group(2), m.group(3))
 
-re_other_editions = re.compile('<table border="0" cellspacing="0" cellpadding="0" class="otherEditions">\s*(.*?)\s*</table>', re.DOTALL)
+re_other_editions = re.compile('<table border="0" cellspacing="0" cellpadding="0" class="otherEditions" id="oeTable">\s*(.*?)\s*</table>', re.DOTALL)
 
 re_other_editions_tr = re.compile('<tr bgcolor= #ffffff >\s*(.*?)\s*</tr>', re.DOTALL)
 re_other_editions_see_all = re.compile('See all (\d+) editions and formats')
@@ -177,15 +264,14 @@ def parse_other_editions(m, edition):
     if other_editions:
         edition['other_editions'] = other_editions
 
-def parse_title(html, edition, prev_end):
-    # parse title
-    #expect_div_title_str = '<div class="buying"><b class="sans">' + edition["title"]
-    expect_div_title_str = '<div class="buying"><h1 class="parseasinTitle"><span id="btAsinTitle" style="">' + edition["title"]
+def parse_title(html, edition):
+    expect_div_title_str = '<div class="buying"><h1 class="parseasinTitle"><span id="btAsinTitle" style="">'
+    assert html.find(expect_div_title_str) != -1
+    expect_div_title_str += edition["title"]
+    assert html.find(expect_div_title_str) != -1
     if 'subtitle' in edition:
         expect_div_title_str += ': ' + edition['subtitle']
-    pos = html[prev_end:].find(expect_div_title_str)
-    assert pos != -1
-    return pos + prev_end + len(expect_div_title_str)
+    assert html.find(expect_div_title_str) != -1
 
 re_div_title = re.compile("""
     (?:\ \[([^a-z]+)\]\ )? # flags
@@ -199,9 +285,8 @@ re_div_title = re.compile("""
 
 author_re = re.compile('<a href="(?:[^"]*)">(.*?)</a>(?: \(([^)]+)\))?')
 
-def parse_div_title(html, edition, prev_end):
-    m = re_div_title.match(html, prev_end)
-    assert prev_end < m.pos + m.end()
+def parse_div_title(html, edition):
+    m = re_div_title.search(html)
     
     (flag, binding, authors) = m.groups()
     if flag:
@@ -217,7 +302,6 @@ def parse_div_title(html, edition, prev_end):
     else:
         assert not edition['desc_author']
     del edition['desc_author']
-    return m.end()
 
 #re_pop_cat_row = re.compile('<tr valign="top"><td align="right"><nobr>#(\d+) in </nobr></td><td align="left">&nbsp;<a href="/gp/bestsellers/books">Books</a>( &gt; <a href="/gp/bestsellers/books/\d+">(.*)</a>)+ <b><a href="/gp/bestsellers/books/\d+">(.+)</a></b></td></tr>')
 re_pop_cat_row = re.compile('<tr valign="top"><td align="right"><nobr>#(\d+) in </nobr></td><td align="left">&nbsp;<a href="/gp/bestsellers/(.*?)">(.*?)</a>((?: &gt; <a href="/gp/bestsellers/books/\d+">.*?</a>)*) &gt; <b><a href="/gp/bestsellers/books/\d+">(.+?)</a></b></td></tr>')
@@ -235,7 +319,7 @@ def popular_cat(html):
 
 re_product_details = re.compile("""
     ^<a\ name="productDetails"\ id="productDetails"></a>.*?
-    <b\ class="h1">Product\ Details</b><br\ />\s+
+    <h2>Product\ Details</h2>\s+
     <div\ class="content">\s+(.+?)</ul>""", re.MULTILINE | re.DOTALL | re.X)
     
 def parse_details(m, edition):
@@ -243,8 +327,8 @@ def parse_details(m, edition):
     if details[0][0] == "Reading level":
         edition["reading_level"] = reading_level_re.match(details.pop(0)[1]).group(1)
     (binding2, pages) = details.pop(0)
-    if edition["binding"] != binding2:
-        warn("binding mismatch: " + edition["binding"] + " != " + binding2)
+#    if edition["binding"] != binding2:
+#        warn("binding mismatch: " + edition["binding"] + " != " + binding2)
     if pages:
         m = pages_re.match(pages)
         if m:
@@ -299,16 +383,19 @@ def parse_publisher(edition):
             edition["publisher"] = m.group(1)
             edition["edition"] = m.group(2)
 
-re_inside_this_book = re.compile('<b class="h1">Inside This Book</b>.*?<strong>First Sentence:</strong><br />\s*(.+?)&nbsp;<a href="[^"]+">Read the first page</a>.*?', re.DOTALL)
+re_inside_this_book = re.compile('<h2>Inside This Book</h2>.*?<strong>First Sentence:</strong><br />\s*(.+?)&nbsp;<a href="[^"]+">Read the first page</a>.*?', re.DOTALL)
+re_inside_this_book = re.compile('<b class="h1">Inside This Book</b>(.*?)Read the first page</a>.*?', re.DOTALL)
+re_inside_this_book2 = re.compile('<strong>First Sentence:</strong><br />\n*(.*?)&nbsp;', re.DOTALL)
 re_sip = re.compile('<a name="sipbody"><strong>Key Phrases - Statistically Improbable Phrases \(SIPs\):</strong></a>.*?<br />\s*(.+?)<div class="spacer"></div>\s*', re.DOTALL)
 re_cap = re.compile('<a name="capbody"><strong>Key Phrases - Capitalized Phrases \(CAPs\):</strong></a>.*?<br />\s*(.+?)<div class="spacer"></div>\s*', re.DOTALL)
 
 def parse_inside_this_book(m, edition):
+    m = re_inside_this_book2.search(m.group(1))
     edition["first_sentence"] = m.group(1)
 
 re_category = re.compile("""
     ^<div\ class="bucket">\s+
-    <b\ class="h1">Look\ for\ Similar\ Items\ by\ Category</b><br\ />\s+
+    <h2>Look\ for\ Similar\ Items\ by\ Category</h2>\s+
     <div\ class="content">\s+<ul>\s+(.*?)\s*</ul>""", re.MULTILINE | re.DOTALL | re.X)
 re_category_li = re.compile('<li>(.+?)</li>', re.MULTILINE | re.DOTALL)
 
@@ -332,7 +419,7 @@ def parse_category(m, edition):
 
 re_subject = re.compile("""
     <div\ class="bucket">\s+
-    <b\ class="h1">Look\ for\ Similar\ Items\ by\ Subject</b>\s+
+    <h2>Look\ for\ Similar\ Items\ by\ Subject</h2>\s+
     <div\ class="content">\s+(.*?)\s*</div>""", re.X | re.MULTILINE | re.DOTALL)
 re_subject_item = re.compile("""
     <input\ type="checkbox"\ name="field\+keywords"\ value="(?:.*)"\ />\ 
@@ -344,15 +431,21 @@ def parse_subject(m, edition):
 trans = { 'amp': '&', 'lt': '<', 'gt': '>', 'quot': '"', }
 re_html_entity = re.compile('&(amp|lt|gt|quot);')
 
-re_div_class_buying = re.compile('<div class="buying">.*?<b>Availability:</b>\s*(.*?)\s*(?:<br /><br />)?</div>', re.DOTALL)
+re_div_class_buying = re.compile('<span class="avail(Red|Orange|Green)">(.*?)</span>(.*?)</div>', re.DOTALL)
 
 def parse_avail(m, edition):
-    avail = m.group(1)
-    edition['gift_wrap'] = avail.endswith(" Gift-wrap available.")
-    edition['amazon_availability'] = avail[0:avail.find('.')]
+    (color, avail, rest) = m.groups()
+    edition['avail_color'] = color
+    edition['amazon_availability'] = avail
+    edition['gift_wrap'] = rest.find(" Gift-wrap available.") != -1
+    print edition
 
 re_title = re.compile("<title>(.*)</title>", re.S)
 re_meta_desc = re.compile('<meta name="description" content="Amazon.com: (.*?)" />', re.S)
+re_split_title = re.compile(r'''^
+    (.+?(?:\ \(.+\))?)
+    (?::\ (\ *[^:]+))?$
+''', re.X)
 re_meta_desc2 = re.compile(r"""
     (.+?(?:\ \(.+\))?)
     (?::\ (\ *[^:]+))?
@@ -371,15 +464,16 @@ def parse_head(html, edition):
         return
     m = re_meta_desc.search(html)
     assert m
-    prev_end = m.end()
     description = re_html_entity.sub(lambda m: trans[m.group(1)], m.group(1))
     if description.find(": Book") == -1:
         return
+    print `description`
     m = re_meta_desc2.match(description)
     try:
         assert m
     except AssertionError:
         raise
+    print m.groups()
     (title, subtitle, product_type, desc_author) = m.groups()
 
     check_title(html_title, title, subtitle, product_type, desc_author)
@@ -396,7 +490,6 @@ def parse_head(html, edition):
 
     if subtitle:
         edition['subtitle'] = subtitle
-    return prev_end
 
 def check_title(html_title, title, subtitle, product_type, desc_author):
     expect_title = ["Amazon.com", title]
@@ -412,10 +505,9 @@ def check_title(html_title, title, subtitle, product_type, desc_author):
 
 re_prod_image = re.compile('<td id="prodImageCell" .*<img.*src="(.*?)" id="prodImage"')
 
-def parse_prod_image(html, edition, prev_end):
-    m = re_prod_image.search(html, prev_end)
+def parse_prod_image(html, edition):
+    m = re_prod_image.search(html)
     edition["has_cover_img"] = m.group(1).find("no-image-avail") == -1
-    return m.end()
 
 re_series = re.compile('^<ul class="linkBullets">\s*(.*?)\s*</ul>$', re.MULTILINE | re.DOTALL)
 li_re = re.compile('^<li(?: id="SalesRank")?>\n?<b>\s*(.+?):?\s*</b>\s*(.*?)\s*</li>', re.MULTILINE | re.DOTALL)
@@ -430,7 +522,7 @@ def parse_series(m, edition):
     edition["series"] = series
     edition["series_id"] = series_id
 
-def parse_product_description(html, edition, prev_end):
+def parse_product_description(html, edition):
     m = re_product_description.search(html)
     if m:
         print filename
@@ -450,12 +542,12 @@ def parse_sip(m, edition):
 def parse_cap(m, edition):
     edition['cap'] = parse_phrase(m)
 
-citing_re = re.compile("<a href='#citing'>This book cites (\d+) book(?:s)?</a>")
+citing_re = re.compile("<a name='citing' ></a><b>\nThis book cites (\d+) \nbook(?:s)?:")
 
 def parse_cite_this(m, edition):
     edition["cite_this"] = m.group(1)
 
-cited_re = re.compile("<a href='#cited'>(\d+) book(?:s)? that cite this book")
+re_cited = re.compile("<a name='cited' ></a><b>\n(\d+) \nbook(?:s)? \ncite this book:")
 
 def parse_this_cites(m, edition):
     edition["this_cites"] = m.group(1)
@@ -466,48 +558,51 @@ re_sim2 = re.compile('<td valign="top" width="20%" id="sims.purchase.(?P<isbn>\d
 def parse_sim(m, edition):
     edition["related"] = [m.groupdict() for m in re_sim2.finditer(m.group(1))]
 
-def parse_sections(html, edition, prev_end):
-    sections = [
-        ('price_block',     parse_price_block,     re_price_block,     0),
-        ('avail',           parse_avail,           re_div_class_buying,1),
-        ('used_and_new',    parse_used_and_new,    re_used_and_new,    0),
-        ('other_editions',  parse_other_editions,  re_other_editions,  0),
-        ('sim',             parse_sim,             re_sim,             0),
-        ('details',         parse_details,         re_product_details, 1),
-        ('series',          parse_series,          re_series,          1),
-        ('plog',            parse_plog,            re_plog,            0),
-        ('cite_this',       parse_cite_this,       citing_re,          0),
-        ('this_cites',      parse_this_cites,      cited_re,           0),
-        ('inside_this_book',parse_inside_this_book,re_inside_this_book,0),
-        ('sip',             parse_sip,             re_sip,             0),
-        ('cap',             parse_cap,             re_cap,             0),
-        ('tags',            parse_tags,            re_tag_cols,        0),
-        ('category',        parse_category,        re_category,        0),
-        ('subject',         parse_subject,         re_subject,         0),
-    ]
+sections = [
+    ('price_block', parse_price_block, re_price_block, False),
+    ('avail', parse_avail, re_div_class_buying,True),
+    ('used_and_new', parse_used_and_new, re_used_and_new, False),
+    ('other_editions', parse_other_editions, re_other_editions, False),
+    ('sim', parse_sim, re_sim, False),
+    ('details', parse_details, re_product_details, True),
+    ('series', parse_series, re_series, True),
+    ('plog', parse_plog, re_plog, False),
+    ('cite_this', parse_cite_this, citing_re, False),
+    ('this_cites', parse_this_cites, re_cited, False),
+    ('inside_this_book', parse_inside_this_book,re_inside_this_book, False),
+    ('sip', parse_sip, re_sip, False),
+    ('cap', parse_cap, re_cap, False),
+    ('tags', parse_tags, re_tag_cols, False),
+    ('category', parse_category, re_category, False),
+    ('subject', parse_subject, re_subject, False),
+]
 
-    endings = []
+not_found = set(i[0] for i in sections)
+
+def parse_sections(html, edition):
+    global not_found
+    # set(['inside_this_book', 'this_cites', 'used_and_new', 'cite_this', 'other_editions'])
     for name, func, re_section, required in sections:
-        m = re_section.search(html, prev_end)
-        if not m:
+        m = re_section.search(html)
+        if m:
+            if name in not_found:
+                not_found.remove(name)
+            func(m, edition)
+        else:
             assert not required
-            continue
-#        assert prev_end < m.pos + m.end()
-        prev_end = m.end()
-        endings.append((prev_end, name))
-        func(m, edition)
-#    if endings != sorted(endings):
-#        print sorted(endings)
 
 def parse_edition(html):
     edition = {}
-    prev_end = parse_head(html, edition)
+    parse_head(html, edition)
 
     if not edition:
         return {}
 
-    prev_end = parse_prod_image(html, edition, prev_end)
-    prev_end = parse_title(html, edition, prev_end)
-    parse_div_title(html, edition, prev_end)
-    parse_sections(html, edition, prev_end)
+    parse_prod_image(html, edition)
+    print edition
+    parse_title(html, edition)
+    parse_div_title(html, edition)
+    parse_sections(html, edition)
     return edition
+
+
