@@ -17,6 +17,7 @@ php_location = "/petabox/setup.inc"
 # connections, etc.
 
 solr_server_addr = ('pharosdb.us.archive.org', 8983)
+solr_server_addr = ('h02.us.archive.org', 8993)
 # solr_server_addr = ('127.0.0.1', 8983)
 
 default_facet_list = ('has_fulltext', 
@@ -161,6 +162,9 @@ class Solr_client(object):
         
         query = self._prefix_query('fulltext', query)
         result_list = self.raw_search(query, rows, start)
+
+        # print >> web.debug, ('result', result_list) # @@
+
         e = ElementTree()
         try:
             e.parse(StringIO(result_list))
@@ -177,6 +181,8 @@ class Solr_client(object):
                             xid = xid[4:]
                         elif xid.endswith('.txt'):
                             xid = xid.split('/')[-1].split('_')[0]
+                        elif xid.endswith('_ZZ'):
+                            xid = xid[:-3]
                         out.append(xid)
                         break
         return out
@@ -222,8 +228,10 @@ class Solr_client(object):
         # of building an in-memory structure for the whole response before
         # counting the facets.
         try:
+            # print >> web.debug, '*** parsing result_set=', result_set
             h1 = simplejson.loads(result_set)
         except SyntaxError, e:   # we got a solr stack dump
+            # print >> web.debug, '*** syntax error result_set=(%r)'% result_set
             raise SolrError, (e, result_set)
 
         docs = h1['response']['docs']
