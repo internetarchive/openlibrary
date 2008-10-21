@@ -13,7 +13,10 @@ def translate(data):
         ustr = mnemonics.read(data.decode('utf8'))
     except UnicodeDecodeError:
         ustr = marc8.translate(mnemonics.read(data))
-    return normalize('NFC', ustr)
+    if type(data) == unicode:
+        return normalize('NFC', ustr)
+    else:
+        return ustr
 
 re_question = re.compile('^\?+$')
 re_lccn = re.compile('(...\d+).*')
@@ -190,9 +193,11 @@ def index_fields(data, want):
             if seen_008: # dup
                 return None
             seen_008 = True
+            continue
         if tag == '260': 
             if line.find('\x1fh[sound') != -1: # sound recording
                 return None
+            continue
 
         if tag in author:
             if 'author' in edition:

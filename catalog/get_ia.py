@@ -3,15 +3,19 @@ import catalog.marc.read_xml as read_xml
 import xml.etree.ElementTree as et
 import xml.parsers.expat
 import urllib2
+import os.path
+from time import sleep
 
 base = "http://archive.org/download/"
 
+xml_path = '/home/edward/get_new_books/xml'
+
 def urlopen_keep_trying(url):
-    while True:
+    for i in range(3):
         try:
             f = urllib2.urlopen(url)
         except urllib2.HTTPError, error:
-            if error == 404:
+            if error.code == 404:
                 raise
             pass
         except urllib2.URLError:
@@ -19,22 +23,28 @@ def urlopen_keep_trying(url):
         else:
             return f
         print url, "failed"
-        sleep(5)
+        sleep(2)
         print "trying again"
 
 def get_ia(ia):
     # read MARC record of scanned book from archive.org
     # try the XML first because it has better character encoding
     # if there is a problem with the XML switch to the binary MARC
-    try:
-        loc = ia + "/" + ia + "_marc.xml"
-        url = base + loc
-        f = urlopen_keep_trying(url)
-        return loc, read_xml.read_edition(f)
-    except read_xml.BadXML:
-        pass
+    xml_file = ia + "_marc.xml"
+    loc = ia + "/" + xml_file
+    if os.path.exists(xml_path + xml_file):
+        f = open(xml_path + xml_file)
+    else:
+        f = urlopen_keep_trying(base + loc)
+    if f:
+        try:
+            return loc, read_xml.read_edition(f)
+        except read_xml.BadXML:
+            pass
     url = base + ia + "/" + ia + "_meta.mrc"
     f = urlopen_keep_trying(url)
+    if not f:
+        return None, None
     data = f.read()
     length = data[0:5]
     loc = ia + "/" + ia + "_meta.mrc:0:" + length
@@ -70,7 +80,7 @@ def get_from_archive(locator):
     assert 0 < length < 100000
 
     ureq = urllib2.Request(url, None, {'Range':'bytes=%d-%d'% (r0, r1)},)
-    return urllib2.urlopen(ureq).read(100000)
+    return urlopen_keep_trying(ureq).read(100000)
 
 def read_marc_file(part, f, pos=0):
     buf = None

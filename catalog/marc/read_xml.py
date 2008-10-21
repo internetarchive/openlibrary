@@ -2,6 +2,7 @@ import xml.etree.ElementTree as et
 import xml.parsers.expat
 from pprint import pprint
 import re
+from time import sleep
 
 re_question = re.compile('^\?+$')
 re_lccn = re.compile('(...\d+).*')

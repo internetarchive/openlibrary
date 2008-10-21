@@ -2,14 +2,17 @@ from normalize import normalize
 from time import time
 import re
 
-def add_to_index(dbm, key, thing_id):
+def add_to_index(dbm, key, edition_key):
     if not key:
         return
-    key = str(key)
+    try:
+        key = str(key)
+    except UnicodeEncodeError:
+        return
     if key in dbm:
-        dbm[key] += ' ' + thing_id
+        dbm[key] += ' ' + edition_key
     else:
-        dbm[key] = thing_id
+        dbm[key] = edition_key
 
 def short_title(s):
     return normalize(s)[:25]
@@ -26,11 +29,11 @@ def read_record(record, dbm):
         title = record['title'] + ' ' + record['subtitle']
     else:
         title = record['title']
-    thing_id = `record['id']`
-    add_to_index(dbm['title'], short_title(title), thing_id)
+    key = record['key']
+    add_to_index(dbm['title'], short_title(title), key)
     if 'title_prefix' in record and record['title_prefix'] is not None:
         title2 = short_title(record['title_prefix'] + title)
-        add_to_index(dbm['title'], title2, thing_id)
+        add_to_index(dbm['title'], title2, key)
 
     fields = [
         ('lccn', 'lccn', clean_lccn),
@@ -46,7 +49,7 @@ def read_record(record, dbm):
                 continue
             if clean:
                 v = clean(v)
-            add_to_index(dbm[b], v, thing_id)
+            add_to_index(dbm[b], v, key)
 
 def test_read_record():
     def empty_dbm():

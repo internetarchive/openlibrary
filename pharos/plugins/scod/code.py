@@ -93,7 +93,7 @@ class scan_book_notfound(delegate.mode):
             return permission_denied('Permission denied.')
 
         book = web.ctx.site.get(path)
-        i = web.input(scan_status, _comment=None)
+        i = web.input("scan_status", _comment=None)
 
         q = {
             'key': '/scan_record' + path,
@@ -103,6 +103,13 @@ class scan_book_notfound(delegate.mode):
             }
         }
         web.ctx.site.write(q, i._comment)
+
+        def get_email(user):
+            try:
+                delegate.admin_login()
+                return web.utf8(web.ctx.site.get_user_email(user.key).email)
+            finally:
+                web.ctx.headers = []
 
         scan_record = get_scan_record(path)
         to = scan_record.sponsor and get_email(scan_record.sponsor)
