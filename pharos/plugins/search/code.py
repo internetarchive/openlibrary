@@ -11,12 +11,14 @@ import solr_client
 import time
 import simplejson
 from functools import partial
+from gzip import open as gzopen
+import cPickle
 
 render = template.render
 
 solr_server_address = getattr(config, 'solr_server_address', None)
 solr_fulltext_address = getattr(config, 'solr_fulltext_address',
-                                ('ia301443', 8983))
+                                ('zenodotus', 7983))
 
 if solr_fulltext_address is not None:
     solr_pagetext_address = getattr(config,
@@ -34,12 +36,7 @@ solr_pagetext = solr_client.Solr_client(solr_pagetext_address)
 def trans():
     # this should only happen once (or once per long-running thread)
     print >> web.debug, 'loading ocaid translations...'
-    with open('id_map') as f:
-        d = {}
-        for i,x in enumerate(f):
-            g = re.match('^([^:]+)_meta.mrc:\d+:\d+ (/b/OL\d+M)$', x)
-            a,b = g.group(1,2)
-            d[a] = b
+    d = cPickle.load(gzopen('oca_pickle.gz'))
     print >> web.debug, len(d), 'translations'
     return d
 
@@ -215,6 +212,7 @@ class search(delegate.page):
             errortext = 'Sorry, there was an error in your search.'
             if i.get('safe')=='false':
                 errortext +=  '(%r)' % (e.args,)
+                errortext += '<p>' + traceback.format_exc()
 
         # print >> web.debug, 'basic search: about to advanced search (%r)'% \
         #     list((i.get('q', ''),
