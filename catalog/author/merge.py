@@ -1,9 +1,6 @@
 from catalog.db_read import withKey, get_things
-import web
+import web, sys
 from catalog.olwrite import Infogami
-
-infogami = Infogami('pharosdb.us.archive.org:7070')
-infogami.login('ImportBot', 'eephae6D')
 
 def key_int(rec):
     return int(web.numify(rec['key']))
@@ -11,7 +8,8 @@ def key_int(rec):
 def copy_fields(from_author, to_author, name):
     new_fields = { 'name': name, 'personal_name': name }
     for k, v in from_author.iteritems():
-        if k in ('name', 'key'):
+        print k
+        if k in ('name', 'key', 'last_modified', 'type', 'id', 'revision'):
             continue
         if k in author:
             assert v == to_author[k]
@@ -23,7 +21,9 @@ def update_author(key, new):
     q = { 'key': key, }
     for k, v in new.iteritems():
         q[k] = { 'connect': 'update', 'value': v }
+    print q
     print infogami.write(q, comment='merge author')
+    print
 
 def switch_author(old, new):
     q = { 'authors': old['key'], 'type': '/type/edition', }
@@ -41,7 +41,7 @@ def switch_author(old, new):
             'key': key,
             'authors': { 'connect': 'update_list', 'value': authors }
         }
-        infogami.write(q, comment='merge authors')
+        print infogami.write(q, comment='merge authors')
 
 def make_redirect(old, new):
     q = {
@@ -50,8 +50,9 @@ def make_redirect(old, new):
         'type': {'connect': 'update', 'value': '/type/redirect' },
     }
     for k in old.iterkeys():
-        if k != 'key':
+        if k not in ('key', 'last_modified', 'type', 'id', 'revision'):
             q[str(k)] = { 'connect': 'update', 'value': None }
+    print q
     print infogami.write(q, comment='replace with redirect')
 
 def merge_authors(author, merge_with, new_name):
@@ -76,3 +77,18 @@ def merge_authors(author, merge_with, new_name):
     print
 
 
+q = { 'name': 'Delia Smith', 'type': '/type/author' }
+for key in get_things(q):
+    print key
+
+q = { 'title': 'OBE', 'type': '/type/author' }
+for key in get_things(q):
+    print key
+
+author = withKey(sys.argv[1])
+merge_with = withKey(sys.argv[2])
+
+print author
+#print merge_with
+
+#merge_authors(author, merge_with, "Delia Smith")
