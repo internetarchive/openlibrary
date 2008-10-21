@@ -12,7 +12,7 @@ class index:
     def GET(self):
         web.header('Content-Type','text/html; charset=utf-8', unique=True)
         input = web.input()
-        print "<html>\n<head><title>Whatever</title></head><body>"
+        print "<html>\n<head><title>Author merge</title></head><body>"
         print '<form name="main" method="get">'
         print '<table>'
         print '<tr><td>Authors</td>'
