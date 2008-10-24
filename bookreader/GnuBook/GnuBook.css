@@ -1,0 +1,128 @@
+#GnuBook {
+ border:1px solid black;
+ position:absolute;
+}
+
+#GBtoolbar {
+    height:25px;
+    width:100%;
+    background-color: rgb(241, 239, 237);    
+}
+
+#GBcontainer {
+    /*height:95%;*/
+    top:25px;
+    bottom:0px;
+    width:100%;
+    overflow-x:auto;
+    overflow-y:scroll;    
+    /*text-align: center;*/
+    background-color: #625E25;
+    position:absolute;
+}
+
+.GBpagediv1up {
+    background-color: #ccc;
+    overflow:hidden;
+    border-right:3px solid #333;
+    border-bottom:3px solid #333;    
+}
+
+.GBpagediv2up {
+    background-color: rgb(234, 226, 205);
+    overflow:hidden;
+}
+
+/* search sidebar */
+#GnuBookSearch {
+    border:1px solid black;
+    position:absolute;
+    background-color: #625E25;    
+}
+
+#GnuBookSearchResults {
+    background-color: #f8f8f8;  
+    top: 25px;
+    bottom: 0px;
+    overflow:auto;    
+    position: absolute;
+    left: 0px;
+    right: 0px;    
+    font-size: 0.85em; 
+    padding: 2px;
+}
+
+.GnuBookSearchHilite {
+    opacity: 0.20; 
+    filter: alpha(opacity = 20);
+    background-color: #00f;
+    position:absolute;
+}
+
+.GBpageform {
+    float: right; 
+}
+
+.GBicon {
+    width: 24px;
+    height: 24px;
+    vertical-align: middle;
+}
+
+/* footer stuff, from Rebecca's demo */
+#GBfooter { 
+    position:absolute;
+    bottom: 1px;        /* ensure no vertical scroll bar in FF */
+    left: 0px;
+    /*width: 100%;*/    /* this causes horizontal scroll bar in FF */
+    right: 0px;
+    clear: both; 
+    color: #FFF; 
+    padding: 0px 0px 0px 10px; 
+    background: #625E25; 
+    height: 2em; 
+    line-height: 25px; 
+    vertical-align: middle; 
+    font-size: 12px; 
+}
+
+.GBlogotype {
+    float:left;
+    font-weight: bold; 
+    height: 25px; 
+    line-height: 25px; 
+    vertical-align: middle; 
+}
+
+a.GBwhite 			{ color: #fff }
+a.GBwhite:hover 		{ text-decoration: none; }
+a.GBwhite:visited		{ color: #fff }
+
+.GBnavlinks {
+    float:right; 
+    padding: 0px 20px 0px 0px; 
+    margin: 0px; 
+    height: 25px; 
+    line-height: 25px; 
+    vertical-align: middle;
+}
+
+/* thumnail view, from Rebecca's demo */
+.GBpdstatus-footer {
+    position:absolute;
+    height: 65px;
+    bottom: 25px;
+    width: 100%;
+    background-color: #f8f8f8;
+    border-top: 1px solid #ccc; 
+    text-align: right; 
+    padding: 0px 0px 0px 0px; 
+}
+
+.GBwidgetlabel { 
+    color: #919070; 
+    padding: 8px 8px 4px 8px; 
+    font-family: verdana, arial, helvetica, sans-serif; 
+    font-size: 10px; 
+    float: left; 
+}
