@@ -188,6 +188,8 @@ class cover:
                 serve_file(filename)
         elif config.default_image and i.default.lower() != "false":
             serve_file(config.default_image)
+        elif i.default.startswith('http://'):
+            web.seeother(i.default)
         else:
             web.notfound()
             web.ctx.output = ""
