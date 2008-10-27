@@ -15,6 +15,8 @@ This file is part of GnuBook.
 
     You should have received a copy of the GNU Affero General Public License
     along with GnuBook.  If not, see <http://www.gnu.org/licenses/>.
+    
+archive.org cvs $Revision: 1.57 $ $Date: 2008-10-27 05:47:40 $
 */
 
 // GnuBook()
@@ -39,7 +41,9 @@ function GnuBook() {
     this.timer     = null;
     this.animating = false;
     this.auto      = false;
-    
+    this.autoTimer = null;
+    this.flipSpeed = 'fast';
+
     this.twoPagePopUp = null;
     this.leafEdgeTmp  = null;
     
@@ -58,8 +62,8 @@ GnuBook.prototype.init = function() {
     if (this.bookTitle.length>50) title += '...';
     
     $("#GnuBook").empty();
-    $("#GnuBook").append("<div id='GBtoolbar'><span style='float:left;'><img class='GBicon' src='http://www-rkumar.us.archive.org/GnuBook/images/zoom_out.png' onclick='gb.zoom1up(-1); return false;'> <img class='GBicon' src='http://www-rkumar.us.archive.org/GnuBook/images/zoom_in.png' onclick='gb.zoom1up(1); return false;'> zoom: <span id='GBzoom'>25</span>% <img class='GBicon' src='http://www-rkumar.us.archive.org/GnuBook/images/script.png' onclick='gb.switchMode(1); return false;'> <img class='GBicon' src='http://www-rkumar.us.archive.org/GnuBook/images/book_open.png' onclick='gb.switchMode(2); return false;'>  &nbsp;&nbsp; <a href='"+this.bookUrl+"'>"+title+"</a></span></div>");
-    $("#GBtoolbar").append("<form class='GBpageform' action='javascript:' onsubmit='gb.jumpToPage(this.elements[0].value)'>page:<input id='GBpagenum' type='text' size='3'></input> <img class='GBicon' src='http://www-rkumar.us.archive.org/GnuBook/images/book_previous.png' onclick='gb.prev(); return false;'> <img class='GBicon' src='http://www-rkumar.us.archive.org/GnuBook/images/book_next.png' onclick='gb.next(); return false;'></form>");
+    $("#GnuBook").append("<div id='GBtoolbar'><span style='float:left;'><img class='GBicon' src='http://www.us.archive.org/GnuBook/images/zoom_out.png' onclick='gb.zoom1up(-1); return false;'> <img class='GBicon' src='http://www.us.archive.org/GnuBook/images/zoom_in.png' onclick='gb.zoom1up(1); return false;'> zoom: <span id='GBzoom'>25</span>% <img class='GBicon' src='http://www.us.archive.org/GnuBook/images/script.png' onclick='gb.switchMode(1); return false;'> <img class='GBicon' src='http://www.us.archive.org/GnuBook/images/book_open.png' onclick='gb.switchMode(2); return false;'>  &nbsp;&nbsp; <a href='"+this.bookUrl+"' target='_blank'>"+title+"</a></span></div>");
+    $("#GBtoolbar").append("<form class='GBpageform' action='javascript:' onsubmit='gb.jumpToPage(this.elements[0].value)'><img class='GBicon' src='http://www.us.archive.org/GnuBook/images/page_code.png' onclick='gb.showEmbedCode(); return false;'> page:<input id='GBpagenum' type='text' size='3' onfocus='gb.autoStop();'></input> <img class='GBicon' src='http://www.us.archive.org/GnuBook/images/book_previous.png' onclick='gb.prev(); return false;'> <img class='GBicon' src='http://www.us.archive.org/GnuBook/images/book_next.png' onclick='gb.next(); return false;'> <img class='GBicon' id='autoImg' src='http://www.us.archive.org/GnuBook/images/control_play_blue.png' onclick='gb.autoToggle(); return false;'></form>");
     $("#GnuBook").append("<div id='GBcontainer'></div>");
     $("#GBcontainer").append("<div id='GBpageview'></div>");
 
@@ -390,13 +394,13 @@ GnuBook.prototype.centerPageView = function() {
 // jumpToPage()
 //______________________________________________________________________________
 GnuBook.prototype.jumpToPage = function(pageNum) {
-    if (2 == this.mode) return;
+    //if (2 == this.mode) return;
     
     var i;
     var foundPage = false;
     var foundLeaf = null;
     for (i=0; i<this.numLeafs; i++) {
-        if (this.pageNums[i] == pageNum) {
+        if (this.getPageNum(i) == pageNum) {
             foundPage = true;
             foundLeaf = i;
             break;
@@ -406,10 +410,7 @@ GnuBook.prototype.jumpToPage = function(pageNum) {
     if (foundPage) {
         var leafTop = 0;
         var h;
-        for (i=0; i<foundLeaf; i++) {
-            h = parseInt(this.getPageHeight(i)/this.reduce); 
-            leafTop += h + this.padding;
-        }
+        this.jumpToIndex(foundLeaf);
         $('#GBcontainer').attr('scrollTop', leafTop);
     } else {
         alert('Page not found. This book might not have pageNumbers in scandata.');
@@ -420,6 +421,7 @@ GnuBook.prototype.jumpToPage = function(pageNum) {
 //______________________________________________________________________________
 GnuBook.prototype.jumpToIndex = function(index) {
     if (2 == this.mode) {
+        this.autoStop();
         if (index<this.currentLeafL) {
             if ('L' == this.getPageSide(index)) {
                 this.flipBackToIndex(index);
@@ -454,6 +456,7 @@ GnuBook.prototype.jumpToIndex = function(index) {
 GnuBook.prototype.switchMode = function(mode) {
     if (mode == this.mode) return;
 
+    this.autoStop();
     this.removeSearchHilites();
 
     this.mode = mode;
@@ -551,7 +554,7 @@ GnuBook.prototype.prepareTwoPageView = function() {
         borderStyle: 'solid solid solid none',
         borderColor: 'rgb(51, 51, 34)',
         borderWidth: '1px 1px 1px 0px',
-        background: 'transparent url(http://www-rkumar.us.archive.org/GnuBook/images/right-edges.png) repeat scroll 0% 0%',
+        background: 'transparent url(http://www.us.archive.org/GnuBook/images/right-edges.png) repeat scroll 0% 0%',
         width: leafEdgeWidthR + 'px',
         height: this.twoPageH-1 + 'px',
         /*right: '10px',*/
@@ -565,7 +568,7 @@ GnuBook.prototype.prepareTwoPageView = function() {
         borderStyle: 'solid none solid solid',
         borderColor: 'rgb(51, 51, 34)',
         borderWidth: '1px 0px 1px 1px',
-        background: 'transparent url(http://www-rkumar.us.archive.org/GnuBook/images/left-edges.png) repeat scroll 0% 0%',
+        background: 'transparent url(http://www.us.archive.org/GnuBook/images/left-edges.png) repeat scroll 0% 0%',
         width: leafEdgeWidthL + 'px',
         height: this.twoPageH-1 + 'px',
         left: divLeft+10+'px',
@@ -635,6 +638,7 @@ GnuBook.prototype.prepareTwoPagePopUp = function() {
     });
 
     $(this.leafEdgeL).bind('click', this, function(e) { 
+        e.data.autoStop();
         var jumpIndex = e.data.currentLeafL - ($(e.data.leafEdgeL).offset().left + $(e.data.leafEdgeL).width() - e.pageX) * 10;
         jumpIndex = Math.max(jumpIndex, 0);
         e.data.flipBackToIndex(jumpIndex);
@@ -642,6 +646,7 @@ GnuBook.prototype.prepareTwoPagePopUp = function() {
     });
 
     $(this.leafEdgeR).bind('click', this, function(e) { 
+        e.data.autoStop();
         var jumpIndex = e.data.currentLeafR + (e.pageX - $(e.data.leafEdgeR).offset().left) * 10;
         jumpIndex = Math.max(jumpIndex, 0);
         e.data.flipFwdToIndex(jumpIndex);
@@ -655,7 +660,7 @@ GnuBook.prototype.prepareTwoPagePopUp = function() {
         $(e.data.twoPagePopUp).text('View Leaf '+jumpLeaf);
         
         $(e.data.twoPagePopUp).css({
-            left: e.pageX + 'px',
+            left: e.pageX +5+ 'px',
             top: e.pageY-$('#GBcontainer').offset().top+ 'px'
         });
     });
@@ -727,6 +732,7 @@ GnuBook.prototype.calculateSpreadSize = function() {
 //______________________________________________________________________________
 GnuBook.prototype.next = function() {
     if (2 == this.mode) {
+        this.autoStop();
         this.flipFwdToIndex(null);
     } else {
         if (this.firstIndex <= (this.numLeafs - 2)) {
@@ -739,6 +745,7 @@ GnuBook.prototype.next = function() {
 //______________________________________________________________________________
 GnuBook.prototype.prev = function() {
     if (2 == this.mode) {
+        this.autoStop();
         this.flipBackToIndex(null);
     } else {
         if (this.firstIndex >= 1) {
@@ -795,7 +802,7 @@ GnuBook.prototype.flipBackToIndex = function(index) {
         borderStyle: 'solid none solid solid',
         borderColor: 'rgb(51, 51, 34)',
         borderWidth: '1px 0px 1px 1px',
-        background: 'transparent url(http://www-rkumar.us.archive.org/GnuBook/images/left-edges.png) repeat scroll 0% 0%',
+        background: 'transparent url(http://www.us.archive.org/GnuBook/images/left-edges.png) repeat scroll 0% 0%',
         width: leafEdgeTmpW + 'px',
         height: this.twoPageH-1 + 'px',
         left: gutter-scaledWL+10+newLeafEdgeWidthL+'px',
@@ -811,7 +818,7 @@ GnuBook.prototype.flipBackToIndex = function(index) {
     });   
 
     var left = $(this.prefetchedImgs[leftLeaf]).offset().left;
-    var right = $('#GBcontainer').width()-left-$(this.prefetchedImgs[leftLeaf]).width()+9+'px';
+    var right = $('#GBcontainer').width()-left-$(this.prefetchedImgs[leftLeaf]).width()+$('#GBcontainer').offset().left-2+'px';
     $(this.prefetchedImgs[leftLeaf]).css({
         right: right,
         left: null
@@ -820,7 +827,7 @@ GnuBook.prototype.flipBackToIndex = function(index) {
      left = $(this.prefetchedImgs[leftLeaf]).offset().left - $('#book_div_1').offset().left;
      right = left+$(this.prefetchedImgs[leftLeaf]).width()+'px';
 
-    $(this.leafEdgeTmp).animate({left: gutter}, 'fast', 'easeInSine');    
+    $(this.leafEdgeTmp).animate({left: gutter}, this.flipSpeed, 'easeInSine');    
     //$(this.prefetchedImgs[leftLeaf]).animate({width: '0px'}, 'slow', 'easeInSine');
 
     var scaledWR = this.getPageWidth2UP(prevR);
@@ -829,9 +836,9 @@ GnuBook.prototype.flipBackToIndex = function(index) {
 
     this.removeSearchHilites();
 
-    $(this.prefetchedImgs[leftLeaf]).animate({width: '0px'}, 'fast', 'easeInSine', function() {
-        $(self.leafEdgeTmp).animate({left: gutter+scaledWR+'px'}, 'fast', 'easeOutSine');    
-        $(self.prefetchedImgs[prevR]).animate({width: scaledWR+'px'}, 'fast', 'easeOutSine', function() {
+    $(this.prefetchedImgs[leftLeaf]).animate({width: '0px'}, self.flipSpeed, 'easeInSine', function() {
+        $(self.leafEdgeTmp).animate({left: gutter+scaledWR+'px'}, self.flipSpeed, 'easeOutSine');    
+        $(self.prefetchedImgs[prevR]).animate({width: scaledWR+'px'}, self.flipSpeed, 'easeOutSine', function() {
             $(self.prefetchedImgs[prevL]).css('zIndex', 2);
 
             $(self.leafEdgeR).css({
@@ -916,7 +923,7 @@ GnuBook.prototype.flipFwdToIndex = function(index) {
         borderStyle: 'solid none solid solid',
         borderColor: 'rgb(51, 51, 34)',
         borderWidth: '1px 0px 1px 1px',
-        background: 'transparent url(http://www-rkumar.us.archive.org/GnuBook/images/left-edges.png) repeat scroll 0% 0%',
+        background: 'transparent url(http://www.us.archive.org/GnuBook/images/left-edges.png) repeat scroll 0% 0%',
         width: leafEdgeTmpW + 'px',
         height: this.twoPageH-1 + 'px',
         left: currGutter+scaledW+'px',
@@ -932,7 +939,7 @@ GnuBook.prototype.flipFwdToIndex = function(index) {
     
     var self = this;
 
-    var speed = 'fast';
+    var speed = this.flipSpeed;
 
     this.removeSearchHilites();
     
@@ -977,10 +984,12 @@ GnuBook.prototype.setClickHandlers = function() {
     var self = this;
     $(this.prefetchedImgs[this.currentLeafL]).click(function() {
         //self.prevPage();
+        self.autoStop();
         self.flipBackToIndex(null);
     });
     $(this.prefetchedImgs[this.currentLeafR]).click(function() {
-        //self.nextPage();
+        //self.nextPage();'
+        self.autoStop();
         self.flipFwdToIndex(null);        
     });
 }
@@ -1323,5 +1332,68 @@ GnuBook.prototype.removeSearchHilites = function() {
             $(this.searchResults[key].div).remove();
             this.searchResults[key].div=null;
         }        
+    }
+}
+
+// showEmbedCode()
+//______________________________________________________________________________
+GnuBook.prototype.showEmbedCode = function() {
+    this.autoStop();
+    var overlay = document.createElement("div");
+    $(overlay).css({
+        position: 'absolute',
+        top:      '20px',
+        left:     ($('#GBcontainer').width()-400)/2 + 'px',
+        width:    '400px',
+        padding:  "20px",
+        border:   "3px double #999999",
+        zIndex:   3,
+        backgroundColor: "#fff",
+    }).appendTo('#GnuBook');
+
+    htmlStr =  '<p style="text-align:center;"><b>Embed Bookreader in your blog!</b></p>';
+    htmlStr += '<p><b>Note:</b> The bookreader is still in beta testing. URLs may change in the future, breaking embedded books. This feature is just for testing!</b></p>';
+    htmlStr += '<p>The bookreader uses iframes for embedding. It will not work on web hosts that block iframes. The embed feature has been tested on blogspot.com blogs as well as self-hosted Wordpress blogs. This feature will NOT work on wordpress.com blogs.</p>';
+    htmlStr += '<p>Embed Code: <input type="text" size="40" value="<iframe src=\'http://www.us.archive.org/GnuBook/GnuBookEmbed.php?id='+this.bookId+'\' width=\'430px\' height=\'430px\'></iframe>"></p>';
+    htmlStr += '<p style="text-align:center;"><a href="" onclick="$(this.parentNode.parentNode).remove(); return false;">Close popup</a></p>';    
+
+    overlay.innerHTML = htmlStr;    
+}
+
+// autoToggle()
+//______________________________________________________________________________
+GnuBook.prototype.autoToggle = function() {
+    if (2 != this.mode) {
+        this.switchMode(2);
+    }
+
+    var self = this;
+    if (null == this.autoTimer) {
+        this.flipSpeed = 2000;
+        this.flipFwdToIndex();
+
+        $('#autoImg').attr('src', 'http://www.us.archive.org/GnuBook/images/control_pause_blue.png');
+        this.autoTimer=setInterval(function(){
+            if (self.animating) {return;}
+
+            if (self.currentLeafR >= self.numLeafs-5) {
+                self.flipBackToIndex(1);
+            } else {
+                self.flipFwdToIndex();
+            }
+        },5000);
+    } else {
+        this.autoStop();
+    }
+}
+
+// autoStop()
+//______________________________________________________________________________
+GnuBook.prototype.autoStop = function() {
+    if (null != this.autoTimer) {
+        clearInterval(this.autoTimer);
+        this.flipSpeed = 'fast';
+        $('#autoImg').attr('src', 'http://www.us.archive.org/GnuBook/images/control_play_blue.png');
+        this.autoTimer = null;
     }
 }
