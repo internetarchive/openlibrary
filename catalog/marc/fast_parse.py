@@ -74,6 +74,9 @@ def get_raw_subfields(line, want):
         if i and i[0] in want:
             yield i[0], i[1:]
 
+def get_all_subfields(line):
+    return ((i[0], translate(i[1:])) for i in line[3:-1].split('\x1f') if i)
+
 def get_subfields(line, want):
     want = set(want)
     #assert line[2] == '\x1f'
@@ -104,7 +107,7 @@ def get_tag_line(data, line):
         length += data[last:].find('\x1e')
 
     tag_line = data[offset + 1:offset + length + 1]
-    if not tag.startswith('00'):
+    if not line.startswith('00'):
         # marc_western_washington_univ/wwu_bibs.mrc_revrev.mrc:636441290:1277
         if tag_line[1:8] == '{llig}\x1f':
             tag_line = tag_line[0] + u'\uFE20' + tag_line[7:]
@@ -219,8 +222,8 @@ def index_fields(data, want):
             edition.setdefault(key, []).extend(found)
     if not seen_008:
         return None
-    if 'title' not in edition:
-        return None
+#    if 'title' not in edition:
+#        return None
     return edition
 
 def read_edition(data, accept_electronic = False):
