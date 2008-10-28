@@ -81,8 +81,7 @@ def get_subfields(line, want):
         if i and i[0] in want:
             yield i[0], translate(i[1:])
 
-def get_tag_lines(data, want):
-    want = set(want)
+def read_directory(data):
     dir_end = data.find('\x1e')
     directory = data[24:dir_end]
     if len(directory) % 12 != 0:
@@ -90,32 +89,37 @@ def get_tag_lines(data, want):
         # sometimes the leader includes some utf-8 by mistake
         directory = data[:dir_end].decode('utf-8')[24:]
         assert len(directory) % 12 == 0
+    iter_dir = (directory[i*12:(i+1)*12] for i in range(len(directory) / 12))
+    return dir_end, iter_dir
+
+def get_tag_line(data, line):
+    length = int(line[3:7])
+    offset = int(line[7:12])
+
+    # handle off-by-one errors in MARC records
+    if data[offset] != '\x1e':
+        offset += data[offset:].find('\x1e')
+    last = offset+length
+    if data[last] != '\x1e':
+        length += data[last:].find('\x1e')
+
+    tag_line = data[offset + 1:offset + length + 1]
+    if not tag.startswith('00'):
+        # marc_western_washington_univ/wwu_bibs.mrc_revrev.mrc:636441290:1277
+        if tag_line[1:8] == '{llig}\x1f':
+            tag_line = tag_line[0] + u'\uFE20' + tag_line[7:]
+    return tag_line
+
+def get_all_tag_lines(data):
+    dir_end, iter_dir = read_directory(data)
     data = data[dir_end:]
+    return [(line[:3], get_tag_line(data, line)) for line in iter_dir]
 
-    fields = []
-
-    for i in range(len(directory) / 12):
-        line = directory[i*12:(i+1)*12]
-        tag = line[:3]
-        if tag not in want:
-            continue
-        length = int(line[3:7])
-        offset = int(line[7:12])
-
-        # handle off-by-one errors in MARC records
-        if data[offset] != '\x1e':
-            offset += data[offset:].find('\x1e')
-        last = offset+length
-        if data[last] != '\x1e':
-            length += data[last:].find('\x1e')
-
-        tag_line = data[offset + 1:offset + length + 1]
-        if not tag.startswith('00'):
-            # marc_western_washington_univ/wwu_bibs.mrc_revrev.mrc:636441290:1277
-            if tag_line[1:8] == '{llig}\x1f':
-                tag_line = tag_line[0] + u'\uFE20' + tag_line[7:]
-        fields.append((tag, tag_line))
-    return fields
+def get_tag_lines(data, want):
+    want = set(want)
+    dir_end, iter_dir = read_directory(data)
+    data = data[dir_end:]
+    return [(line[:3], get_tag_line(data, line)) for line in iter_dir if line[:3] in want]
 
 def read_lccn(line):
     found = []
