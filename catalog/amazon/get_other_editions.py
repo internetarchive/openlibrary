@@ -10,7 +10,7 @@ dir = sys.argv[1]
 
 chunk = 10
 t0 = time()
-isbn_iter = web.query('select value from edition_str where key_id=30 limit 20')
+isbn_iter = web.query('select value from edition_str where key_id=30')
 for i, row in enumerate(isbn_iter):
     isbn = row.value
     dest = dir + '/' + isbn
