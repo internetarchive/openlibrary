@@ -1,37 +1,26 @@
-#!/usr/local/bin/python2.5
-import sys
-import web
+#!/usr/bin/env python
+
 import infogami
+import ol
 
-# Database parameters.
-# ** EDIT THIS **
-infogami.config.db_parameters = dict(dbn='postgres', db="pharos", user='yourname', pw='')
+## your db parameters
+infogami.config.infobase_parameters = dict(type='local', dbn='postgres', db="openlibrary", user='anand', pw='')
 
+infogami.config.db_printing = True
+
+## site name 
 infogami.config.site = 'openlibrary.org'
 infogami.config.admin_password = "admin123"
 
-infogami.config.cache_templates = True
-infogami.config.db_printing = False
+infogami.config.login_cookie_name = "ol_session"
 
 infogami.config.plugin_path += ['plugins']
-infogami.config.plugins += ['openlibrary']
+infogami.config.plugins += ['openlibrary', "upload", "i18n", 'api', 'books']
 
-#@@ other openlibrary plugins
-#infogami.config.plugins += ['search']
-#infogami.config.solr_server_address = ('pharosdb.us.archive.org', 8983)
-
-def createsite():
-    import web
-    from infogami.infobase.infobase import Infobase
-    web.config.db_parameters = infogami.config.db_parameters
-    web.config.db_printing = True
-    web.load()
-    Infobase().create_site(infogami.config.site, infogami.config.admin_password)
 
 if __name__ == "__main__":
     import sys
-    if '--createsite' in sys.argv:
-        createsite()
+    if '--create' in sys.argv:
+        ol.create()
     else:
-        infogami.run()
-
+        ol.run()
