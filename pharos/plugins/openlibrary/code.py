@@ -20,6 +20,67 @@ public(zip)
 public(tuple)
 web.template.Template.globals['NEWLINE'] = "\n"
 
+@infogami.action
+def sampledump():
+    """Creates a dump of objects from OL database for creating a sample database."""
+    def expand_keys(keys):
+        result = []
+        for k in keys:
+            if isinstance(k, dict):
+                result += web.ctx.site.things(k)
+            elif k.endswith('*'):
+                result += web.ctx.site.things({'key~': k})
+            else:
+                result.append(k)
+        return result
+        
+    def get_references(thing):
+        from infogami.infobase.client import Thing
+        result = []
+        for key in thing.keys():
+            val = thing[key]
+            if isinstance(val, list):
+                if val and isinstance(val[0], Thing):
+                    result += [v.key for v in val]
+            elif isinstance(val, Thing):
+                result.append(val.key)
+        return result
+            
+    def visit(key):
+        if key in visited:
+            return
+
+        visited.add(key)
+
+        thing = web.ctx.site.get(key)
+        if not thing: 
+            return
+
+        thing._data.pop('permission', None)
+        thing._data.pop('child_permission', None)
+
+        for ref in get_references(thing):
+            visit(ref)
+            
+        d = thing.dict()
+        d.pop('latest_revision')
+        print simplejson.dumps(d)
+
+    keys = [
+        '/', 
+        '/.*', 
+        '/about', 
+        '/about.*', 
+        {'type': '/type/type'}, 
+        {'type': '/type/template'},
+        {'type': '/type/edition', 'sort': 'created', 'limit': 1000}
+    ]
+    keys = expand_keys(keys)
+    visited = set()
+
+    for k in keys:
+        visit(k)
+
 class addbook(delegate.page):
     def GET(self):
         page = web.ctx.site.new("", {'type': web.ctx.site.get('/type/edition')})

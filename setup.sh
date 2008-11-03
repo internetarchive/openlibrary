@@ -3,7 +3,7 @@
 function base() {
     set $* $PWD
     root=$1
-    if [ -d $1/.hg ]
+    if [ -d $1/.git ]
     then 
         echo $1
     else
@@ -11,55 +11,33 @@ function base() {
     fi
 }
 
-hgroot=`base`
-
-function version_compare() {
-    python -c "f = lambda s: map(int, s.split('.')); print cmp(f('$1'), f('$2'))"
-}
-
-function get_hg_version() {
-    hg --version | head -1 | sed 's/[^0-9.]//g'
-}
-
-function ensure_hg_version() {
-    v1="0.9.4"
-    v2=`get_hg_version`
-    cmp=`version_compare $v1 $v2`
-    if [ $cmp -gt 0 ]
-    then
-        echo "Require hg version >= $v1" 1>&2
-        exit 1
-    fi
-}
+gitroot=`base`
 
 function setup_infogami() {
     echo "** updating infogami repository **"
 
-    ensure_hg_version
-
-    if [ -d $hgroot/infogami.new ]
+    if [ -d $gitroot/infogami ]
     then
-       cd $hgroot/infogami.new && hg pull
+       cd $gitroot/infogami && git pull
     else
-        cd $hgroot && hg clone http://infogami.org/src/infogami.new $hgroot/infogami.new
+        cd $gitroot && git clone git://github.com/infogami/infogami $gitroot/infogami
     fi
-    cd $hgroot/infogami.new && hg update -C default
 }
 
 function setup_webpy() {
-    if [ ! -d $hgroot/webpy ]
+    if [ ! -d $gitroot/webpy ]
     then
         echo "** fetching web.py**"
 
-        cd $hgroot && wget http://webpy.org/static/web.py-0.23.tar.gz
-        cd $hgroot && tar xzf web.py-0.23.tar.gz
+        cd $gitroot && wget http://webpy.org/static/web.py-0.23.tar.gz
+        cd $gitroot && tar xzf web.py-0.23.tar.gz
     fi
 }
 
 function setup_symlinks() {
     echo "**creating symlinks**"
-    cd $hgroot/pharos
-    ln -fs ../infogami.new/infogami .
+    cd $gitroot/pharos
+    ln -fs ../infogami/infogami .
     ln -fs ../webpy/web .
 }
 
