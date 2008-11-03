@@ -58,17 +58,20 @@ def sampledump():
 
         thing._data.pop('permission', None)
         thing._data.pop('child_permission', None)
+        thing._data.pop('books', None) # remove author.books back-reference
+        thing._data.pop('scan_records', None) # remove editon.scan_records back-reference
+        thing._data.pop('volumes', None) # remove editon.volumes back-reference
+        thing._data.pop('latest_revision', None)
 
         for ref in get_references(thing):
             visit(ref)
             
         d = thing.dict()
-        d.pop('latest_revision')
         print simplejson.dumps(d)
 
     keys = [
         '/', 
-        '/.*', 
+        '/index.*', 
         '/about', 
         '/about.*', 
         {'type': '/type/type'}, 
@@ -80,6 +83,48 @@ def sampledump():
 
     for k in keys:
         visit(k)
+        
+@infogami.action
+def sampleload(filename="sampledump.txt.gz"):
+    if filename.endswith('.gz'):
+        import gzip
+        f = gzip.open(filename)
+    else:
+        f = open(filename)
+        
+    q1 = []
+    queries = []
+    
+    # some hacks to break circular dependency and some work-arounds to overcome other limitations
+    
+    for line in f:
+        q = simplejson.loads(line)
+        q.pop('id', None)
+        q['create'] = 'unless_exists'
+        if q['type']['key'] == '/type/type':
+            q1.append({'create': 'unless_exists', 'key': q['key'], 'type': q['type']})
+            
+            def process(v):
+                if v == '\\N':
+                    return None
+                if isinstance(v, dict):
+                    v['connect'] = 'update'
+                    return v
+                elif isinstance(v, list):
+                    return {'connect': 'update_list', 'value': v}
+                else:
+                    return {'connect': 'update', 'value': v}
+            for k, v in q.items():
+                if k not in ['key', 'type', 'create']:
+                    q[k] = process(v)
+        elif q['type']['key'] == '/type/i18n_page':
+            q = {'key': q['key'], 'type': q['type'], 'create': 'unless_exists'} # strip everything else
+            
+        queries.append(q)
+    
+    q = [dict(simplejson.loads(line), create='unless_exists') for line in f]
+    result = web.ctx.site.write(q1 + queries)
+    print result
 
 class addbook(delegate.page):
     def GET(self):
