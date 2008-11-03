@@ -72,8 +72,8 @@ def sampledump():
     keys = [
         '/', 
         '/index.*', 
-        '/about', 
-        '/about.*', 
+        '/about*', 
+        '/dev*', 
         {'type': '/type/type'}, 
         {'type': '/type/template'},
         {'type': '/type/edition', 'sort': 'created', 'limit': 1000}
