@@ -74,8 +74,9 @@ def sampledump():
         '/index.*', 
         '/about*', 
         '/dev*', 
+        '/templates*', 
+        '/macros*', 
         {'type': '/type/type'}, 
-        {'type': '/type/template'},
         {'type': '/type/edition', 'sort': 'created', 'limit': 1000}
     ]
     keys = expand_keys(keys)
