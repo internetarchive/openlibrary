@@ -10,6 +10,16 @@ re_date = map (re.compile, [
 
 re_ad_bc = re.compile(r'\b(B\.C\.?|A\.D\.?)')
 re_date_fl = re.compile('^fl[., ]')
+re_number_dot = re.compile('\d{3,}\.$')
+
+def remove_trailing_number_dot(date):
+    m = re_number_dot.search(date)
+    if m:
+        return date[:-1]
+    else:
+        return date
+
+
 
 def parse_date(date):
     if re_date_fl.match(date):
