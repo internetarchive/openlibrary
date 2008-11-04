@@ -1,5 +1,6 @@
 #! /bin/bash
 
+
 function base() {
     set $* $PWD
     root=$1
