@@ -144,6 +144,20 @@ def get_tag_line(data, line):
             tag_line = tag_line[0] + u'\uFE20' + tag_line[7:]
     return tag_line
 
+def get_contents(line, want):
+    contents = {}
+    for k, v in get_subfields(line, want):
+        contents.setdefault(k, []).append(v)
+    return contents
+
+def get_lower_subfields(line):
+    if len(line) < 4: 
+        return [] # http://openlibrary.org/show-marc/marc_university_of_toronto/uoft.marc:2479215:693
+    return [translate(i[1:]) for i in line[3:-1].split('\x1f') if i and i[0].islower()]
+
+def get_subfield_values(line, want):
+    return [v for k, v in get_subfields(line, want)]
+
 def get_all_tag_lines(data):
     dir_end, iter_dir = read_directory(data)
     data = data[dir_end:]
