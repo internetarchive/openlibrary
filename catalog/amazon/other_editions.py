@@ -1,10 +1,9 @@
-import os, re, sys
+import re
 from BeautifulSoup import BeautifulSoup
 
 # http://amazon.com/other-editions/dp/0312153325 has:
 # http://www.amazon.com/gp/product/0312247869
 re_link = re.compile('^http://www\.amazon\.com/(?:(.*)/dp|gp/product)/(\d{9}[\dX]|B[A-Z0-9]+)$')
-
 
 def read_bucket_table(f):
     html = ''
@@ -22,7 +21,7 @@ def read_bucket_table(f):
                 break
     return html
 
-def parse(html, filename):
+def parse_html(html, filename):
     soup = BeautifulSoup(html)
     for tr in soup('tr')[2:]:
         td = tr('td')
@@ -34,19 +33,11 @@ def parse(html, filename):
         assert nl == '\n'
         href = link['href']
         if href.startswith("http://www.amazon.com:80/gp/redirect.html"):
-            # audio book
+            # audio book, skip for now
             continue
         m = re_link.match(link['href'])
         if not m:
             print filename
             print td0
             print link['href']
-        print `m.groups(), desc.strip()`
-
-dir = sys.argv[1]
-for filename in os.listdir(dir):
-    if not filename[0].isdigit():
-        continue
-    html = read_bucket_table(open(dir + "/" + filename))
-    if html:
-        parse(html, filename)
+        yield m.group(2), desc.strip()
