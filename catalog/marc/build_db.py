@@ -22,15 +22,16 @@ def progress_update(rec_no, t):
     else:
         print "%.3f minutes left" % mins
 
+fields = ['isbn', 'oclc', 'lccn', 'call_number', 'title']
+
 def process_record(file_id, pos, length, data):
     rec = index_fields(data, ['001', '010', '020', '035', '245'], check_author = False)
     if not rec:
-        continue
-    web.query("begin")
-    web.query('insert into rec (marc_file, pos, len) values (%d, %d, %d)' % (file_id, pos, length))
-    (row,) = list(web.query("select currval('rec_id_seq')"))
-    rec_id = row[0]
-    web.query("commit")
+        return
+    extra = dict((f, rec[f][0]) for f in 'title', 'lccn', 'call_number' if f in rec)
+    rec_id = web.insert('rec', marc_file = file_id, pos=pos, len=length, **extra)
+    for v in (rec[f] for f in 'isbn', 'oclc' if f in rec):
+        web.insert('isbn', rec=rec_id, value=v)
 
 t_prev = time()
 rec_no = 0
@@ -40,11 +41,7 @@ total = 32856039
 for ia, name in sources():
     print ia, name
     for part, size in files(ia):
-        web.query("begin")
-        web.query("insert into files (ia, part) values ('%s', '%s')" % (ia, part))
-        (row,) = list(web.query("select currval('files_id_seq')"))
-        file_id = row[0]
-        web.query("commit")
+        file_id = web.insert('files', ia=ia, part=part)
         print part, size
         full_part = ia + "/" + part
         filename = rc['marc_path'] + full_part
