@@ -1,6 +1,11 @@
 from catalog.db_read import withKey, get_things
-import web, sys
 from catalog.olwrite import Infogami
+from catalog.read_rc import read_rc
+import web, sys
+
+rc = read_rc()
+infogami = Infogami(rc['infogami'])
+infogami.login('EdwardBot', rc['EdwardBot'])
 
 def key_int(rec):
     return int(web.numify(rec['key']))
@@ -87,8 +92,21 @@ for key in get_things(q):
 
 author = withKey(sys.argv[1])
 merge_with = withKey(sys.argv[2])
+print sys.argv[2], merge_with
 
 print author
-#print merge_with
+print merge_with
 
-#merge_authors(author, merge_with, "Delia Smith")
+print sys.argv
+if len(sys.argv) > 3:
+    name = sys.argv[3]
+else:
+    assert author['name'] == merge_with['name']
+    name = author['name']
+
+assert not name.startswith('/')
+
+assert author['type']['key'] == '/type/author'
+assert merge_with['type']['key'] == '/type/author'
+
+merge_authors(author, merge_with, name)
