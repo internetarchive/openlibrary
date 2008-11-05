@@ -32,19 +32,6 @@ def get_things(q):
     assert ret['status'] == 'ok'
     return [i.replace('\/', '/') for i in ret['result']]
 
-def get_data(loc):
-    try:
-        filename, p, l = loc.split(':')
-    except ValueError:
-        return None
-    if not os.path.exists(marc_path + filename):
-        return None
-    f = open(marc_path + filename)
-    f.seek(int(p))
-    buf = f.read(int(l))
-    f.close()
-    return buf
-
 threshold = 875
 
 t0 = time()

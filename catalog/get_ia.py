@@ -2,9 +2,11 @@ import catalog.marc.fast_parse as fast_parse
 import catalog.marc.read_xml as read_xml
 import xml.etree.ElementTree as et
 import xml.parsers.expat
-import urllib2
-import os.path
+import urllib2, os.path
+from catalog.read_rc import read_rc
 from time import sleep
+
+rc = read_rc()
 
 base = "http://archive.org/download/"
 
@@ -68,6 +70,19 @@ def files(archive_id):
                 yield name, int(size.text)
             else:
                 yield name, None
+
+def get_data(loc):
+    try:
+        filename, p, l = loc.split(':')
+    except ValueError:
+        return None
+    if not os.path.exists(rc['marc_path'] + filename):
+        return None
+    f = open(rc['marc_path'] + filename)
+    f.seek(int(p))
+    buf = f.read(int(l))
+    f.close()
+    return buf
 
 def get_from_archive(locator):
     (file, offset, length) = locator.split (":")

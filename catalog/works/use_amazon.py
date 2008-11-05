@@ -2,6 +2,7 @@ import os, re, sys, codecs, dbhash
 from catalog.amazon.other_editions import read_bucket_table, parse_html
 from catalog.infostore import get_site
 from catalog.read_rc import read_rc
+from catalog.get_ia import get_data
 
 sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
 rc = read_rc()
@@ -31,6 +32,7 @@ for filename in os.listdir(dir):
         if filename in db:
             for i in db[filename].split(' '):
                 print '  marc:', i
+                print `get_data(i)`
     for asin, extra in l:
         print asin, extra
         things = site.things({'isbn_10': asin, 'type': '/type/edition'})
@@ -44,4 +46,5 @@ for filename in os.listdir(dir):
         if asin in db:
             for i in db[asin].split(' '):
                 print '  marc:', i
+                print `get_data(i)`
     print
