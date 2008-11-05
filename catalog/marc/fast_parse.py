@@ -36,6 +36,37 @@ def normalize_str(s):
 # no monograph should be longer than 50,000 pages
 max_number_of_pages = 50000
 
+def read_file(f):
+    buf = None
+    while 1:
+        if buf:
+            length = buf[:5]
+            int_length = int(length)
+        else:
+            length = f.read(5)
+            buf = length
+        if length == "":
+            break
+        try:
+            assert length.isdigit()
+        except AssertionError:
+            print `length`
+            raise
+        int_length = int(length)
+        data = buf + f.read(int_length - len(buf))
+        buf = None
+        if data.find('\x1d') == -1:
+            data += f.read(40)
+            int_length = data.find('\x1d') + 1
+            print `data[-40:]`
+            assert int_length
+            buf = data[int_length:]
+            data = data[:int_length]
+        assert data.endswith("\x1e\x1d")
+        if len(data) < int_length:
+            break
+        yield (data, int_length)
+
 def read_author_person(line):
     name = []
     name_and_date = []

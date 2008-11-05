@@ -83,34 +83,7 @@ def get_from_archive(locator):
     return urlopen_keep_trying(ureq).read(100000)
 
 def read_marc_file(part, f, pos=0):
-    buf = None
-    while 1:
-        if buf:
-            length = buf[:5]
-            int_length = int(length)
-        else:
-            length = f.read(5)
-            buf = length
-        if length == "":
-            break
-        try:
-            assert length.isdigit()
-        except AssertionError:
-            print `length`
-            raise
-        int_length = int(length)
-        data = buf + f.read(int_length - len(buf))
-        buf = None
-        if data.find('\x1d') == -1:
-            data += f.read(40)
-            int_length = data.find('\x1d') + 1
-            print `data[-40:]`
-            assert int_length
-            buf = data[int_length:]
-            data = data[:int_length]
-        assert data.endswith("\x1e\x1d")
-        if len(data) < int_length:
-            break
+    for data, int_length in fast_parse.read_file(f):
         loc = "%s:%d:%d" % (part, pos, int_length)
         pos += int_length
         yield (pos, loc, data)

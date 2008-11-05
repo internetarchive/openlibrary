@@ -2,10 +2,11 @@ from catalog.get_ia import *
 from catalog.read_rc import read_rc
 from sources import sources
 from time import time
+from catalog.marc.fast_parse import index_fields
 import dbhash
 
 rc = read_rc()
-db = dbhash.open(rc['marc_index'] + 'isbn_to_marc.dbm', 'w')
+db = dbhash.open(rc['index_path'] + 'isbn_to_marc.dbm', 'w')
 
 def add_to_db(isbn, loc):
     if isbn in db:
