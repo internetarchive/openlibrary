@@ -1,6 +1,7 @@
 from catalog.get_ia import *
 from catalog.read_rc import read_rc
 from sources import sources
+from time import time
 
 rc = read_rc()
 
