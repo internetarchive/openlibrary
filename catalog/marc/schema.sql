@@ -6,7 +6,7 @@ create table files (
 
 create table rec (
     id serial primary key,
-    marc_file integer references files(id),
+    marc_file integer,
     pos integer,
     len integer,
     title char(25),

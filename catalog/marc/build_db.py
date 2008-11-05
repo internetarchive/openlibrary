@@ -5,10 +5,11 @@ from catalog.read_rc import read_rc
 from time import time
 import os, web
 
-web.config.db_parameters = dict(dbn='postgres', db=rc['db'], user=rc['user'], pw=rc['pw'], host=rc['host'])
-web.config.db_printing = False
-
 rc = read_rc()
+
+web.config.db_parameters = dict(dbn='postgres', db='marc_records', user=rc['user'], pw=rc['pw'], host=rc['host'])
+web.config.db_printing = False
+web.load()
 
 def progress_update(rec_no, t):
     remaining = total - rec_no
@@ -28,10 +29,11 @@ def process_record(file_id, pos, length, data):
     rec = index_fields(data, ['001', '010', '020', '035', '245'], check_author = False)
     if not rec:
         return
-    extra = dict((f, rec[f][0]) for f in 'title', 'lccn', 'call_number' if f in rec)
+    extra = dict((f, rec[f][0]) for f in ('title', 'lccn', 'call_number') if f in rec)
     rec_id = web.insert('rec', marc_file = file_id, pos=pos, len=length, **extra)
-    for v in (rec[f] for f in 'isbn', 'oclc' if f in rec):
-        web.insert('isbn', rec=rec_id, value=v)
+    for f in (f for f in ('isbn', 'oclc') if f in rec):
+        for v in rec[f]:
+            web.insert(f, seqname=False, rec=rec_id, value=v)
 
 t_prev = time()
 rec_no = 0
