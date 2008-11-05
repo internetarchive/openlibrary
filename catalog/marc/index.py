@@ -30,7 +30,7 @@ def progress_update(rec_no, t):
     remaining = total - rec_no
     rec_per_sec = chunk / t
     mins = (float((t/chunk) * remaining) / 60)
-    print "isbn %d %d %.3f rec/sec" % (rec_no, good, rec_per_sec),
+    print "isbn %d %.3f rec/sec" % (rec_no, rec_per_sec),
     if mins > 1440:
         print "%.3f days left" % (mins / 1440)
     elif mins > 60:
@@ -40,7 +40,6 @@ def progress_update(rec_no, t):
 
 t_prev = time()
 rec_no = 0
-good = 0
 chunk = 1000
 total = 32856039
 

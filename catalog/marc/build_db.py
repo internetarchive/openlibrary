@@ -1,12 +1,20 @@
 from sources import sources
 from catalog.marc.fast_parse import index_fields, read_file
 from catalog.get_ia import files
+from catalog.read_rc import read_rc
+from time import time
+import os, web
+
+web.config.db_parameters = dict(dbn='postgres', db=rc['db'], user=rc['user'], pw=rc['pw'], host=rc['host'])
+web.config.db_printing = False
+
+rc = read_rc()
 
 def progress_update(rec_no, t):
     remaining = total - rec_no
     rec_per_sec = chunk / t
     mins = (float((t/chunk) * remaining) / 60)
-    print "isbn %d %d %.3f rec/sec" % (rec_no, good, rec_per_sec),
+    print "%d %.3f rec/sec" % (rec_no, rec_per_sec),
     if mins > 1440:
         print "%.3f days left" % (mins / 1440)
     elif mins > 60:
@@ -14,14 +22,29 @@ def progress_update(rec_no, t):
     else:
         print "%.3f minutes left" % mins
 
-def process_record(pos, length, data):
-    rec = index_fields(data, ['001', '010', '020', '035', '245'])
-    print pos, length
-    print rec
+def process_record(file_id, pos, length, data):
+    rec = index_fields(data, ['001', '010', '020', '035', '245'], check_author = False)
+    if not rec:
+        continue
+    web.query("begin")
+    web.query('insert into rec (marc_file, pos, len) values (%d, %d, %d)' % (file_id, pos, length))
+    (row,) = list(web.query("select currval('rec_id_seq')"))
+    rec_id = row[0]
+    web.query("commit")
+
+t_prev = time()
+rec_no = 0
+chunk = 1000
+total = 32856039
 
 for ia, name in sources():
     print ia, name
     for part, size in files(ia):
+        web.query("begin")
+        web.query("insert into files (ia, part) values ('%s', '%s')" % (ia, part))
+        (row,) = list(web.query("select currval('files_id_seq')"))
+        file_id = row[0]
+        web.query("commit")
         print part, size
         full_part = ia + "/" + part
         filename = rc['marc_path'] + full_part
@@ -35,4 +58,6 @@ for ia, name in sources():
                 t = time() - t_prev
                 progress_update(rec_no, t)
                 t_prev = time()
-            process_record(pos, length, data)
+            process_record(file_id, pos, length, data)
+
+print rec_no

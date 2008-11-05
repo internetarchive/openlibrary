@@ -155,6 +155,9 @@ def get_tag_lines(data, want):
     data = data[dir_end:]
     return [(line[:3], get_tag_line(data, line)) for line in iter_dir if line[:3] in want]
 
+def read_call_number(line):
+    return [line[:-1]]
+
 def read_lccn(line):
     found = []
     for k, v in get_raw_subfields(line, ['a']):
@@ -201,7 +204,7 @@ def read_author_event(line):
     name = " ".join(v.strip(' /,;:') for k, v in get_subfields(line, ['a', 'b', 'd', 'n']))
     return [{ 'name': name, 'db_name': name, }]
 
-def index_fields(data, want):
+def index_fields(data, want, check_author = True):
     if str(data)[6:8] != 'am': # only want books
         return None
     edition = {}
@@ -212,8 +215,11 @@ def index_fields(data, want):
         '111': 'even',
     }
 
-    fields = get_tag_lines(data, ['006', '008', '260'] + want + author.keys())
+    if check_author:
+        want += author.keys()
+    fields = get_tag_lines(data, ['006', '008', '260'] + want)
     read_tag = {
+        '001': (read_call_number, 'call_number'),
         '010': (read_lccn, 'lccn'),
         '020': (read_isbn, 'isbn'),
         '035': (read_oclc, 'oclc'),
