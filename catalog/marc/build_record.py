@@ -196,7 +196,7 @@ def read_lc_classification(fields):
         elif 'a' in contents:
             found += contents['a']
     if found:
-        return {'lc_classifications': found}
+        return {'lc_classifications': [i.strip() for i in found]}
     else:
         return {}
 
@@ -450,14 +450,14 @@ def read_url(fields):
         found += get_subfield_values(line, ['u'])
     return { 'url': found } if found else {}
 
-def build_record(loc, data):
+def build_record(data):
     fields = {}
     for tag, line in get_tag_lines(data, want):
         fields.setdefault(tag, []).append(line)
 
     edition = {}
     if len(fields['008']) != 1:
-        warn("There should be a single '008' field, %s has %d." % (loc, len(fields['008'])))
+        warn("There should be a single '008' field.")
         return {}
     f = fields['008'][0]
     publish_date = str(f)[7:11]
