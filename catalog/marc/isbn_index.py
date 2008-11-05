@@ -5,6 +5,8 @@ from time import time
 from catalog.marc.fast_parse import index_fields
 import dbhash
 
+# build an index of ISBN to MARC records
+
 rc = read_rc()
 db = dbhash.open(rc['index_path'] + 'isbn_to_marc.dbm', 'w')
 

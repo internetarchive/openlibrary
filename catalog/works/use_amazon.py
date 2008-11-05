@@ -1,9 +1,11 @@
 import os, re, sys, codecs, dbhash
 from catalog.amazon.other_editions import read_bucket_table, parse_html
 from catalog.infostore import get_site
+from catalog.read_rc import read_rc
 
 sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
-db = dbhash.open("/2/pharos/isbn/isbn_to_marc.dbm", 'r')
+rc = read_rc()
+db = dbhash.open(rc['index_path'] + 'isbn_to_marc.dbm', 'r')
 
 site = get_site()
 
@@ -19,13 +21,18 @@ for filename in os.listdir(dir):
     l = [i for i in parse_html(html, filename) if not i[0].startswith('B') and i[1] not in desc_skip]
     if not l:
         continue
+    print filename
     for k in site.things({'isbn_10': filename, 'type': '/type/edition'}):
         t = site.withKey(k)
         num = len(t.isbn_10)
         if num == 1:
             num = ''
-        print filename, k, t.title, num
+        print '  OL:', k, t.title, num
+        if filename in db:
+            for i in db[filename].split(' '):
+                print '  marc:', i
     for asin, extra in l:
+        print asin, extra
         things = site.things({'isbn_10': asin, 'type': '/type/edition'})
         if things:
             for k in things:
@@ -33,8 +40,8 @@ for filename in os.listdir(dir):
                 num = len(t.isbn_10)
                 if num == 1:
                     num = ''
-                print asin, k, t.title, extra, num
-        else:
-            print asin, extra
-
+                print '  OL:', k, t.title, num
+        if asin in db:
+            for i in db[asin].split(' '):
+                print '  marc:', i
     print

@@ -40,4 +40,4 @@ def parse_html(html, filename):
             print filename
             print td0
             print link['href']
-        yield m.group(2), desc.strip()
+        yield str(m.group(2)), desc.strip()
