@@ -2,6 +2,7 @@ from catalog.get_ia import *
 from catalog.read_rc import read_rc
 from sources import sources
 from time import time
+import dbhash
 
 rc = read_rc()
 db = dbhash.open(rc['marc_index'] + 'isbn_to_marc.dbm', 'w')
@@ -23,7 +24,6 @@ def process_record(pos, loc, data):
             raise
         except:
             pass
-
 
 def progress_update(rec_no, t):
     remaining = total - rec_no
