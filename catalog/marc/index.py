@@ -4,9 +4,26 @@ from sources import sources
 from time import time
 
 rc = read_rc()
+db = dbhash.open(rc['marc_index'] + 'isbn_to_marc.dbm', 'w')
+
+def add_to_db(isbn, loc):
+    if isbn in db:
+        db[isbn] += ' ' + loc
+    else:
+        db[isbn] = loc
 
 def process_record(pos, loc, data):
-    pass
+    rec = index_fields(data, ['020'])
+    if not rec or 'isbn' not in rec:
+        return
+    for isbn in rec['isbn']:
+        try:
+            add_to_db(str(isbn), loc)
+        except (KeyboardInterrupt, NameError):
+            raise
+        except:
+            pass
+
 
 def progress_update(rec_no, t):
     remaining = total - rec_no
@@ -43,4 +60,4 @@ for ia, name in sources():
                 t_prev = time()
             process_record(pos, loc, data)
 
-
+db.close()
