@@ -13,14 +13,20 @@ def key_int(rec):
 def copy_fields(from_author, to_author, name):
     new_fields = { 'name': name, 'personal_name': name }
     for k, v in from_author.iteritems():
-        print k
-        if k in ('name', 'key', 'last_modified', 'type', 'id', 'revision'):
+        if k in ('name', 'personal_name', 'key', 'last_modified', 'type', 'id', 'revision'):
             continue
-        if k in author:
+        if k in to_author:
             assert v == to_author[k]
         else:
             new_fields[k] = v
     return new_fields
+
+def test_copy_fields():
+    f = {'name': 'Sheila K. McCullagh', 'personal_name': 'Sheila K. McCullagh', 'last_modified': {'type': '/type/datetime', 'value': '2008-08-30 20:40:41.784992'}, 'key': '/a/OL4340365A', 'birth_date': '1920', 'type': {'key': '/type/author'}, 'id': 18087251, 'revision': 1}
+    t = {'name': 'Sheila K. McCullagh', 'last_modified': {'type': '/type/datetime', 'value': '2008-04-29 13:35:46.87638'}, 'key': '/a/OL2622088A', 'type': {'key': '/type/author'}, 'id': 9890186, 'revision': 1}
+
+    assert copy_fields(f, t, 'Sheila K. McCullagh') == {'birth_date': '1920', 'name': 'Sheila K. McCullagh', 'personal_name': 'Sheila K. McCullagh'}
+
 
 def update_author(key, new):
     q = { 'key': key, }
@@ -81,18 +87,8 @@ def merge_authors(author, merge_with, new_name):
         make_redirect(author, merge_with)
     print
 
-
-q = { 'name': 'Delia Smith', 'type': '/type/author' }
-for key in get_things(q):
-    print key
-
-q = { 'title': 'OBE', 'type': '/type/author' }
-for key in get_things(q):
-    print key
-
 author = withKey(sys.argv[1])
 merge_with = withKey(sys.argv[2])
-print sys.argv[2], merge_with
 
 print author
 print merge_with
