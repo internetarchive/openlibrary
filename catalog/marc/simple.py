@@ -1,5 +1,4 @@
 #!/usr/bin/python2.5
-from catalog.read_rc import read_rc
 from catalog.marc.fast_parse import *
 import sys
 
