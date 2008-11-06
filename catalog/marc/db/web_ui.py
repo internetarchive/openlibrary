@@ -85,12 +85,12 @@ td { padding: 5px; background: #eee }
 </style>'''
 
         print '</head><body><a name="top">'
-        print '<form name="main" method="get">'
+        print '<form name="main" method="get"> ISBN:'
         if isbn:
             print '<input type="text" name="isbn" value="%s">' % web.htmlquote(isbn)
         else:
             print '<input type="text" name="isbn">'
-        print '<input type="submit">'
+        print '<input type="submit" value="find">'
         print '</form><br>'
         if isbn:
             search(isbn)
