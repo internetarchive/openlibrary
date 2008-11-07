@@ -2,7 +2,7 @@ import web, dbhash
 from catalog.read_rc import read_rc
 from catalog.get_ia import get_data
 from catalog.marc.build_record import build_record
-from catalog.marc.fast_parse import get_all_subfields, get_tag_lines, get_first_tag
+from catalog.marc.fast_parse import get_all_subfields, get_tag_lines, get_first_tag, read_full_title
 from pprint import pprint
 import re, sys, os.path, random
 from catalog.marc.sources import sources
@@ -53,13 +53,23 @@ srcs = dict(sources())
 def src_list(loc):
     return '; '.join(srcs[l[:l.find('/')]] for l in loc)
 
+data_cache = {}
+def marc_data(loc):
+    if loc not in data_cache:
+        data_cache[loc] = get_data(loc)
+    return data_cache[loc]
+
 def list_works(this_isbn):
     works = find_others(this_isbn, rc['amazon_other_editions'])
     print '<h2>Other editions of the same work</h2>'
     print '<table>'
     for isbn, note in works:
-        num = len(db[isbn].split(' ')) if isbn in db else 0
-        print '<tr><td><a href="/?isbn=%s">%s</a></td><td>%s</td><td>%d</td></tr>' % (isbn, isbn, note, num)
+        if note.find('udio') != -1:
+            continue
+        locs = db[isbn].split(' ') if isbn in db else []
+        titles = [read_full_title(get_first_tag(marc_data(i), set(['245'])), accept_sound = True) for i in locs]
+        num = len(locs)
+        print '<tr><td><a href="/?isbn=%s">%s</a></td><td>%s</td><td>%d</td><td>%s</td></tr>' % (isbn, isbn, note, len(locs), list_to_html(titles))
     print '</table>'
 
 def search(isbn):
@@ -68,8 +78,8 @@ def search(isbn):
         return
 
     locs = db[isbn].split(' ')
-    rec_data = dict((loc, get_data(loc)) for loc in locs)
-    recs = [(loc, build_record(rec_data[loc])) for loc in locs]
+#    rec_data = dict((loc, get_data(loc)) for loc in locs)
+    recs = [(loc, build_record(marc_data(loc))) for loc in locs]
     keys = set()
     print "records found from %d libraries<br>" % len(recs)
     print '<ul>'
@@ -99,7 +109,7 @@ def search(isbn):
         print '<tr><th>%s</th><td>' % k
         if any(isinstance(i, list) or isinstance(i, dict) for i, loc in v):
             if k == 'authors': # easiest to switch to raw MARC display
-                v = [(marc_authors(rec_data[loc]), loc) for i, loc in v ]
+                v = [(marc_authors(marc_data(loc)), loc) for i, loc in v ]
             else:
                 v = [ (list_to_html(i), loc) if i else (None, loc) for i, loc in v]
         else:

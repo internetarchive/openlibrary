@@ -159,7 +159,7 @@ def read_title(fields):
 #   http://openlibrary.org/show-marc/marc_western_washington_univ/wwu_bibs.mrc_revrev.mrc:516779055:1304
     if 'a' in contents:
         title = ' '.join(x.strip(' /,;:') for x in contents['a'])
-    elif 'b' in contents:
+    elif 'b' in contents: # handle broken records
         title = contents['b'][0].strip(' /,;:')
         del contents['b'][0]
     edition['title'] = title

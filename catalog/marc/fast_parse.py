@@ -83,9 +83,9 @@ def read_author_person(line):
 class SoundRecording:
     pass
 
-def read_full_title(line):
+def read_full_title(line, accept_sound = False):
     for k, v in get_subfields(line, ['h']):
-        if v.lower().startswith("[sound"):
+        if not accept_sound and v.lower().startswith("[sound"):
             raise SoundRecording
     title = [v.strip(' /,;:') for k, v in get_subfields(line, ['a', 'b'])]
     return ' '.join([t for t in title if t])
@@ -96,6 +96,21 @@ def read_short_title(line):
         return [title]
     else:
         return []
+
+def read_title_and_subtitle(data): # not currently used
+    line = get_first_tag(data, set(['245']))
+    contents = get_contents(line, ['a', 'b', 'c', 'h'])
+
+    title = None
+    if 'a' in contents:
+        title = ' '.join(x.strip(' /,;:') for x in contents['a'])
+    elif 'b' in contents:
+        title = contents['b'][0].strip(' /,;:')
+        del contents['b'][0]
+    subtitle = None
+    if 'b' in contents and contents['b']:
+        subtitle = ' : '.join([x.strip(' /,;:') for x in contents['b']])
+    return (title, subtitle)
 
 def get_raw_subfields(line, want):
     # no translate
