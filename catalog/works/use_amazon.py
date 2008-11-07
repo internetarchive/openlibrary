@@ -1,5 +1,5 @@
 import os, re, sys, codecs, dbhash
-from catalog.amazon.other_editions import read_bucket_table, parse_html
+from catalog.amazon.other_editions import find_others
 from catalog.infostore import get_site
 from catalog.read_rc import read_rc
 from catalog.get_ia import get_data
@@ -11,8 +11,6 @@ rc = read_rc()
 db = dbhash.open(rc['index_path'] + 'isbn_to_marc.dbm', 'r')
 
 site = get_site()
-
-desc_skip = set(['(Bargain Price)', '(Kindle Book)'])
 
 def get_records_from_marc(isbn):
     if isbn not in db:
@@ -50,10 +48,7 @@ dir = sys.argv[1]
 for filename in os.listdir(dir):
     if not filename[0].isdigit():
         continue
-    html = read_bucket_table(open(dir + "/" + filename))
-    if not html:
-        continue
-    l = [i for i in parse_html(html, filename) if not i[0].startswith('B') and i[1] not in desc_skip]
+    l = find_others(filename, dir)
     if not l:
         continue
     print filename

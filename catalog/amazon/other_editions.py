@@ -1,9 +1,11 @@
-import re
+import re, os.path, urllib2
 from BeautifulSoup import BeautifulSoup
 
 # http://amazon.com/other-editions/dp/0312153325 has:
 # http://www.amazon.com/gp/product/0312247869
 re_link = re.compile('^http://www\.amazon\.com/(?:(.*)/dp|gp/product)/(\d{9}[\dX]|B[A-Z0-9]+)$')
+
+desc_skip = set(['(Bargain Price)', '(Kindle Book)'])
 
 def read_bucket_table(f):
     html = ''
@@ -21,7 +23,7 @@ def read_bucket_table(f):
                 break
     return html
 
-def parse_html(html, filename):
+def parse_html(html):
     soup = BeautifulSoup(html)
     for tr in soup('tr')[2:]:
         td = tr('td')
@@ -36,8 +38,25 @@ def parse_html(html, filename):
             # audio book, skip for now
             continue
         m = re_link.match(link['href'])
-        if not m:
-            print filename
-            print td0
-            print link['href']
         yield str(m.group(2)), desc.strip()
+
+def get_from_amazon(isbn):
+    url = 'http://www.amazon.com/dp/other-editions/' + isbn
+    try:
+        return urllib2.urlopen(url).read()
+    except urllib2.HTTPError, error:
+        if error.code != 404:
+            raise
+        return ''
+
+def find_others(isbn, dir):
+    filename = dir + "/" + isbn
+    if len(isbn) != 10:
+        return []
+    if not os.path.exists(filename):
+        open(filename, 'w').write(get_from_amazon(isbn))
+    html = read_bucket_table(open(dir + "/" + isbn))
+    if not html:
+        return []
+    l = [i for i in parse_html(html) if not i[0].startswith('B') and i[1] not in desc_skip]
+    return l

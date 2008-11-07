@@ -6,6 +6,9 @@ from catalog.marc.fast_parse import get_all_subfields, get_tag_lines, get_first_
 from pprint import pprint
 import re, sys, os.path, random
 from catalog.marc.sources import sources
+from catalog.amazon.other_editions import find_others
+
+rc = read_rc()
 
 trans = {'&':'amp','<':'lt','>':'gt'}
 re_html_replace = re.compile('([&<>])')
@@ -43,13 +46,21 @@ def esc(s):
         return s
     return re_html_replace.sub(lambda m: "&%s;" % trans[m.group(1)], s.encode('utf8')).replace('\n', '<br>')
 
-rc = read_rc()
 db = dbhash.open(rc['index_path'] + 'isbn_to_marc.dbm', 'r')
 
 srcs = dict(sources())
 
 def src_list(loc):
     return '; '.join(srcs[l[:l.find('/')]] for l in loc)
+
+def list_works(this_isbn):
+    works = find_others(this_isbn, rc['amazon_other_editions'])
+    print '<h2>Other editions of the same work</h2>'
+    print '<table>'
+    for isbn, note in works:
+        num = len(db[isbn].split(' ')) if isbn in db else 0
+        print '<tr><td><a href="/?isbn=%s">%s</a></td><td>%s</td><td>%d</td></tr>' % (isbn, isbn, note, num)
+    print '</table>'
 
 def search(isbn):
     if isbn not in db:
@@ -101,10 +112,11 @@ def search(isbn):
         s = sorted(count.iteritems(), cmp=lambda x,y: cmp(len(y[1]), len(x[1]) ))
         print sep.join('<b>%d</b>: <span title="%s">%s</span>' % (len(loc), src_list(loc), value if value else '<em>empty</em>') for value, loc in s)
         if first_key:
-            print '<td valign="top" rowspan="%d"><img src="http://covers.openlibrary.org/b/isbn/%s-L.jpg">' % (len(keys), isbn)
+            print '<td valign="top" rowspan="%d"><img src="http://covers.openlibrary.org/b/isbn/%s-L.jpg">' % (len(first) + len(keys), isbn)
             first_key = False
         print '</td></tr>'
     print '</table>'
+    list_works(isbn)
 
 urls = (
     '/random', 'rand',
