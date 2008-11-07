@@ -15,7 +15,7 @@ dir = os.path.dirname(__file__)
 root = os.path.join(dir, "../../..")
 sys.path.append(root)
 
-from catalog.marc.MARC21 import MARC21Record, MARC21HtmlPrint, MARC21Exn
+from catalog.marc.html import html_record
 
 class show_ia(delegate.page):
     path = "/show-marc/ia:(.*)"
@@ -58,8 +58,8 @@ class show_marc(delegate.page):
             return "ERROR:" + str(e)
 
         try:
-            record = MARC21Record(result)
-        except (ValueError,MARC21Exn), e:
+            record = html_record(result)
+        except ValueError:
             record = None
 
         return render.showmarc(record, filename, offset, length)

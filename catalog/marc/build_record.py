@@ -440,7 +440,7 @@ def read_url(fields):
     found = []
     for line in fields['856']:
         found += get_subfield_values(line, ['u'])
-    return { 'url': found } if found else {}
+    return { 'uri': found } if found else {}
 
 def build_record(data):
     fields = {}
