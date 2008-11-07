@@ -72,6 +72,7 @@ def test_match_with_bad_chars():
         [u'Soi\ufe20u\ufe21z khudozhnikov SSSR.',
          u'Soi?u?z khudozhnikov SSSR.',
          u'Soi\u0361uz khudozhnikov SSSR.'],
+        [u'Andrzej Weronski', 'Andrzej Weroński', 'Andrzej Weroński'],
     ]
     for a, b in samples:
         assert match_with_bad_chars(a, b)
