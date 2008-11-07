@@ -52,13 +52,17 @@ class CacheProcessor(ConnectionProcessor):
         return response
         
     def write(self, super, sitename, data):
-        response = super.write(sitename, data)
+        import simplejson
+        response_str = super.write(sitename, data)
+        
+        response = simplejson.loads(response_str)
         if response['status'] == 'ok':
+            result = response['result']
             modified = result['created'] + result['updated']
             for k in modified:
-                if cacheable(k):
-                    del self.cache[key]
-        return response
+                if self.cachable(k):
+                    del self.cache[k]
+        return response_str
         
     def cachable(self, key):
         """Tests if key is cacheable."""
