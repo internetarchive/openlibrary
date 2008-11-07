@@ -52,15 +52,17 @@ def search(isbn):
         s = srcs[loc[:loc.find('/')]]
         print '<li><a href="http://openlibrary.org/show-marc/%s">%s</a>' % (loc, s)
         keys.update([k for k in rec.keys()])
-        for f in 'uri', 'languages':
+        for f in 'uri':
             if f in rec:
                 del rec[f]
     print '</ul>'
-    keys -= set(['languages', 'uri'])
+    keys -= set(['uri'])
     print '<table>'
     first_key = True
     for k in keys:
         v = [(rec.get(k, None), loc) for loc, rec in recs]
+        if k == 'languages':
+            v = [([ i['key'][3:] for i in l ], loc) for l, loc in v]
         if all(i is None or (isinstance(i, list) and len(i) == 1) for i, loc in v):
             v = [ (i[0], loc) if i else (None, loc) for i, loc in v]
 
