@@ -7,11 +7,8 @@ from pprint import pprint
 import re, sys, os.path, random
 from catalog.marc.sources import sources
 
-trans = {'&':'amp','<':'lt','>':'gt','\n':'<br>'}
+trans = {'&':'amp','<':'lt','>':'gt'}
 re_html_replace = re.compile('([&<>])')
-
-def esc(s):
-    return re_html_replace.sub(lambda m: "&%s;" % trans[m.group(1)], s.encode('utf8'))
 
 def marc_authors(data):
     line = get_first_tag(data, set(['100', '110', '111']))
@@ -42,7 +39,9 @@ def random_isbn():
     return isbn
 
 def esc(s):
-    return re_html_replace.sub(lambda m: "&%s;" % trans[m.group(1)], s.encode('utf8'))
+    if not isinstance(s, basestring):
+        return s
+    return re_html_replace.sub(lambda m: "&%s;" % trans[m.group(1)], s.encode('utf8')).replace('\n', '<br>')
 
 rc = read_rc()
 db = dbhash.open(rc['index_path'] + 'isbn_to_marc.dbm', 'r')
@@ -82,27 +81,25 @@ def search(isbn):
     for k in first + list(keys):
         v = [(rec.get(k, None), loc) for loc, rec in recs]
         if k == 'languages':
-            v = [([ i['key'][3:] for i in l ], loc) for l, loc in v]
+            v = [([ i['key'][3:] for i in l ] if l else None, loc) for l, loc in v]
         if all(i is None or (isinstance(i, list) and len(i) == 1) for i, loc in v):
-            v = [ (i[0], loc) if i else (None, loc) for i, loc in v]
+            v = [ (i[0] if i else None, loc) for i, loc in v]
 
         print '<tr><th>%s</th><td>' % k
         if any(isinstance(i, list) or isinstance(i, dict) for i, loc in v):
-            if k == 'authors':
+            if k == 'authors': # easiest to switch to raw MARC display
                 v = [(marc_authors(rec_data[loc]), loc) for i, loc in v ]
-#                print `v`, '</td></tr>'
-#                continue
             else:
                 v = [ (list_to_html(i), loc) if i else (None, loc) for i, loc in v]
+        else:
+            v = [ (esc(i), loc) for i, loc in v]
         count = {}
         lens = [len(i) for i, loc in v if i and isinstance(i, basestring)]
         sep = '<br>' if lens and max(lens) > 20 else ' '
         for i, loc in v:
-            if isinstance(i, basestring):
-                i = i.rstrip('. ;:')
             count.setdefault(i, []).append(loc)
         s = sorted(count.iteritems(), cmp=lambda x,y: cmp(len(y[1]), len(x[1]) ))
-        print sep.join('<b>%d</b>: <span title="%s">%s</span>' % (len(loc), src_list(loc), value or '<em>empty</em>') for value, loc in s)
+        print sep.join('<b>%d</b>: <span title="%s">%s</span>' % (len(loc), src_list(loc), value if value else '<em>empty</em>') for value, loc in s)
         if first_key:
             print '<td valign="top" rowspan="%d"><img src="http://covers.openlibrary.org/b/isbn/%s-L.jpg">' % (len(keys), isbn)
             first_key = False
