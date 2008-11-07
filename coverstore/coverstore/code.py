@@ -186,7 +186,7 @@ class cover:
             filename = _cache.get_image(id, size)
             if filename:
                 serve_file(filename)
-        elif config.default_image and i.default.lower() != "false":
+        elif config.default_image and i.default.lower() != "false" and not i.default.startswith('http://'):
             serve_file(config.default_image)
         elif i.default.startswith('http://'):
             web.seeother(i.default)
