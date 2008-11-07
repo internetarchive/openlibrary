@@ -2,12 +2,20 @@ import web, dbhash
 from catalog.read_rc import read_rc
 from catalog.get_ia import get_data
 from catalog.marc.build_record import build_record
+from catalog.marc.fast_parse import get_all_subfields, get_tag_lines, get_first_tag
 from pprint import pprint
 import re, sys, os.path, random
 from catalog.marc.sources import sources
 
 trans = {'&':'amp','<':'lt','>':'gt','\n':'<br>'}
-re_html_replace = re.compile('([ &<>])')
+re_html_replace = re.compile('([&<>])')
+
+def esc(s):
+    return re_html_replace.sub(lambda m: "&%s;" % trans[m.group(1)], s.encode('utf8'))
+
+def marc_authors(data):
+    line = get_first_tag(data, set(['100', '110', '111']))
+    return ''.join("<b>$%s</b>%s" % (esc(k), esc(v)) for k, v in get_all_subfields(line)) if line else None
 
 def find_isbn_file():
     for p in sys.path:
@@ -17,6 +25,11 @@ def find_isbn_file():
 
 isbn_file = find_isbn_file()
 isbn_count = os.path.getsize(isbn_file) / 11
+
+def list_to_html(l):
+    def blue(s):
+        return ' <span style="color:blue; font-weight:bold">%s</span> ' % s
+    return blue('[') + blue('|').join(l) + blue(']')
 
 def random_isbn():
     f = open(isbn_file)
@@ -44,7 +57,9 @@ def search(isbn):
         print isbn, ' not found'
         return
 
-    recs = [(loc, build_record(get_data(loc))) for loc in db[isbn].split(' ')]
+    locs = db[isbn].split(' ')
+    rec_data = dict((loc, get_data(loc)) for loc in locs)
+    recs = [(loc, build_record(rec_data[loc])) for loc in locs]
     keys = set()
     print "records found from %d libraries<br>" % len(recs)
     print '<ul>'
@@ -59,16 +74,26 @@ def search(isbn):
     keys -= set(['uri'])
     print '<table>'
     first_key = True
-    for k in keys:
+    first = []
+    for f in ['title', 'subtitle', 'by_statement', 'authors', 'contributions']:
+        if f in keys:
+            first += [f]
+            keys -= set([f])
+    for k in first + list(keys):
         v = [(rec.get(k, None), loc) for loc, rec in recs]
         if k == 'languages':
             v = [([ i['key'][3:] for i in l ], loc) for l, loc in v]
         if all(i is None or (isinstance(i, list) and len(i) == 1) for i, loc in v):
             v = [ (i[0], loc) if i else (None, loc) for i, loc in v]
 
-        if any(isinstance(i, list) or isinstance(i, dict) for i, loc in v):
-            continue
         print '<tr><th>%s</th><td>' % k
+        if any(isinstance(i, list) or isinstance(i, dict) for i, loc in v):
+            if k == 'authors':
+                v = [(marc_authors(rec_data[loc]), loc) for i, loc in v ]
+#                print `v`, '</td></tr>'
+#                continue
+            else:
+                v = [ (list_to_html(i), loc) if i else (None, loc) for i, loc in v]
         count = {}
         lens = [len(i) for i, loc in v if i and isinstance(i, basestring)]
         sep = '<br>' if lens and max(lens) > 20 else ' '
@@ -85,8 +110,14 @@ def search(isbn):
     print '</table>'
 
 urls = (
+    '/random', 'rand',
     '/', 'index'
 )
+
+class rand():
+    def GET(self):
+        isbn = random_isbn()
+        web.redirect('/?isbn=' + isbn)
 
 class index():
     def GET(self):
@@ -114,7 +145,7 @@ td { padding: 5px; background: #eee }
         else:
             print '<input type="text" name="isbn">'
         print '<input type="submit" value="find">'
-        print '</form> or <a href="?isbn=random">random</a><br>'
+        print '</form> or <a href="/random">random</a><br>'
         if isbn:
             search(isbn)
         print "<body><html>"

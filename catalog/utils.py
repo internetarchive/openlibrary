@@ -1,4 +1,5 @@
 import re
+# -*- coding: utf-8 -*-
 
 re_date = map (re.compile, [
     '(?P<birth_date>\d+\??)-(?P<death_date>\d+\??)',
@@ -18,8 +19,6 @@ def remove_trailing_number_dot(date):
         return date[:-1]
     else:
         return date
-
-
 
 def parse_date(date):
     if re_date_fl.match(date):
@@ -58,3 +57,22 @@ def pick_first_date(dates):
 
 def test_date():
     assert pick_first_date(["Mrs.", "1839-"]) == {'birth_date': '1839'}
+
+def test_match_with_bad_chars():
+    samples = [
+        [u'Humanitas Publica\xe7\xf5es', 'Humanitas Publicac?o?es'],
+        [u'A pesquisa ling\xfc\xedstica no Brasil',
+          'A pesquisa lingu?i?stica no Brasil'],
+        [u'S\xe3o Paulo', 'Sa?o Paulo'],
+        [u'Diccionario espa\xf1ol-ingl\xe9s de bienes ra\xedces',
+         u'Diccionario Espan\u0303ol-Ingle\u0301s de bienes rai\u0301lces'],
+        [u'Konfliktunterdru?ckung in O?sterreich seit 1918',
+         u'Konfliktunterdru\u0308ckung in O\u0308sterreich seit 1918',
+         u'Konfliktunterdr\xfcckung in \xd6sterreich seit 1918'],
+        [u'Soi\ufe20u\ufe21z khudozhnikov SSSR.',
+         u'Soi?u?z khudozhnikov SSSR.',
+         u'Soi\u0361uz khudozhnikov SSSR.'],
+    ]
+    for a, b in samples:
+        assert match_with_bad_chars(a, b)
+        assert match_with_bad_chars(b, a)

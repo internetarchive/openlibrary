@@ -163,6 +163,13 @@ def get_all_tag_lines(data):
     data = data[dir_end:]
     return [(line[:3], get_tag_line(data, line)) for line in iter_dir]
 
+def get_first_tag(data, want): # return first line of wanted tag
+    dir_end, iter_dir = read_directory(data)
+    data = data[dir_end:]
+    for line in iter_dir:
+        if line[:3] in want:
+            return get_tag_line(data, line)
+
 def get_tag_lines(data, want):
     want = set(want)
     dir_end, iter_dir = read_directory(data)
