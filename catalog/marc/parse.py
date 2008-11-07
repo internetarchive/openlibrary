@@ -1,5 +1,3 @@
-from catalog.marc.MARC21Biblio import *
-import catalog.marc.MARC21
 from catalog.merge.names import flip_marc_name
 
 import sys, re

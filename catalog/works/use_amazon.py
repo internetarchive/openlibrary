@@ -17,27 +17,27 @@ desc_skip = set(['(Bargain Price)', '(Kindle Book)'])
 def get_records_from_marc(isbn):
     if isbn not in db:
         return
-    for loc in db[isbn].split(' '):
-        data = get_data(loc)
-        print loc
-        want = ['100', '110', '111', '240', '245', '260'] + [str(i) for i in range(500,600) if i not in (505, 520)]
-        for tag, line in get_tag_lines(data, set(want)):
-            sub = list(get_all_subfields(line))
-            if tag.startswith('5'):
-                assert len(sub) == 1 and sub[0][0] == 'a'
-                note = sub[0][1]
-                if note.find('ublish') != -1 or note.find('riginal') != -1:
-                    print '  note:', note
-                continue
-            print '  ', tag, sub
-        print
-    return
+#    for loc in db[isbn].split(' '):
+#        data = get_data(loc)
+#        print loc
+#        want = ['100', '110', '111', '240', '245', '260'] + [str(i) for i in range(500,600) if i not in (505, 520)]
+#        for tag, line in get_tag_lines(data, set(want)):
+#            sub = list(get_all_subfields(line))
+#            if tag.startswith('5'):
+#                assert len(sub) == 1 and sub[0][0] == 'a'
+#                note = sub[0][1]
+#                if note.find('ublish') != -1 or note.find('riginal') != -1:
+#                    print '  note:', note
+#                continue
+#            print '  ', tag, sub
+#        print
     recs = [(loc, build_record(get_data(loc))) for loc in db[isbn].split(' ')]
     keys = set()
     print
     for loc, rec in recs:
         print '  ', loc
-        keys.update([k for k in rec.keys() if k.find('title') != -1 or k in ('authors', 'title', 'contributions', 'work_title')])
+#        keys.update([k for k in rec.keys() if k.find('title') != -1 or k in ('authors', 'title', 'contributions', 'work_title')])
+        keys.update(rec.keys())
     print
     for k in keys:
         print k

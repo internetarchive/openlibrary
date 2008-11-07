@@ -3,11 +3,30 @@ from catalog.read_rc import read_rc
 from catalog.get_ia import get_data
 from catalog.marc.build_record import build_record
 from pprint import pprint
-import re
+import re, sys, os.path, random
 from catalog.marc.sources import sources
 
 trans = {'&':'amp','<':'lt','>':'gt','\n':'<br>'}
 re_html_replace = re.compile('([ &<>])')
+
+def find_isbn_file():
+    for p in sys.path:
+        f = p + "/catalog/isbn"
+        if os.path.exists(f):
+            return f
+
+isbn_file = find_isbn_file()
+isbn_count = os.path.getsize(isbn_file) / 11
+
+def random_isbn():
+    f = open(isbn_file)
+    while 1:
+        f.seek(random.randrange(isbn_count) * 11)
+        isbn = f.read(10)
+        if isbn in db and len(db[isbn].split(' ')) > 1:
+            break
+    f.close()
+    return isbn
 
 def esc(s):
     return re_html_replace.sub(lambda m: "&%s;" % trans[m.group(1)], s.encode('utf8'))
@@ -73,6 +92,8 @@ class index():
         input = web.input()
         if 'isbn' in input:
             isbn = input.isbn
+            if isbn == 'random':
+                isbn = random_isbn()
             title = 'MARC lookup: ' + isbn
         else:
             isbn = None
@@ -91,7 +112,7 @@ td { padding: 5px; background: #eee }
         else:
             print '<input type="text" name="isbn">'
         print '<input type="submit" value="find">'
-        print '</form><br>'
+        print '</form> or <a href="?isbn=random">random</a><br>'
         if isbn:
             search(isbn)
         print "<body><html>"
