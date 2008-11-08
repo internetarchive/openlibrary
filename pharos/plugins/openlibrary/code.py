@@ -257,7 +257,7 @@ def pull_templates():
     get_macros()
     get_i18n()
 
-class bookreader(delegate.page):
+class flipbook(delegate.page):
     path = "/details/([a-zA-Z0-9_-]*)(?:/leaf(\d+))?"
 
     SCRIPT_PATH = "/petabox/sw/bin/find_item.php"
@@ -280,7 +280,7 @@ class bookreader(delegate.page):
                 params['leaf'] = leaf
             import urllib
             url = "http://%s/flipbook/flipbook.php?%s" % (server, urllib.urlencode(params))     
-            print render.bookreader(url, title)
+            print render.flipbook(url, title)
 
     def find_location_from_archive(self, identifier):
         """Use archive.org to get the location.
@@ -305,6 +305,12 @@ class bookreader(delegate.page):
             return data.split(':', 1)
         else:
             return None, None
+
+class bookreader(delegate.page):
+    path = "/bookreader/(.*)"
+
+    def GET(self, id):
+        print render.bookreader(id)
 
 class robotstxt(delegate.page):
     path = "/robots.txt"
