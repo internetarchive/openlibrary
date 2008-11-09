@@ -2,7 +2,7 @@ import web, dbhash
 from catalog.read_rc import read_rc
 from catalog.get_ia import get_data
 from catalog.marc.build_record import build_record
-from catalog.marc.fast_parse import get_all_subfields, get_tag_lines, get_first_tag, read_full_title
+from catalog.marc.fast_parse import get_all_subfields, get_tag_lines, get_first_tag, get_subfields
 from pprint import pprint
 import re, sys, os.path, random
 from catalog.marc.sources import sources
@@ -16,6 +16,10 @@ re_html_replace = re.compile('([&<>])')
 def marc_authors(data):
     line = get_first_tag(data, set(['100', '110', '111']))
     return ''.join("<b>$%s</b>%s" % (esc(k), esc(v)) for k, v in get_all_subfields(line)) if line else None
+
+def marc_title(data):
+    line = get_first_tag(data, set(['245']))
+    return ''.join("<b>$%s</b>%s" % (esc(k), esc(v)) for k, v in get_subfields(line, set(['a', 'b']))) if line else None
 
 def find_isbn_file():
     for p in sys.path:
@@ -59,17 +63,34 @@ def marc_data(loc):
         data_cache[loc] = get_data(loc)
     return data_cache[loc]
 
+def counts_html(v):
+    count = {}
+    lens = [len(i) for i, loc in v if i and isinstance(i, basestring)]
+    sep = '<br>' if lens and max(lens) > 20 else ' '
+    for i, loc in v:
+        count.setdefault(i, []).append(loc)
+    s = sorted(count.iteritems(), cmp=lambda x,y: cmp(len(y[1]), len(x[1]) ))
+    return sep.join('<b>%d</b>: <span title="%s">%s</span>' % (len(loc), src_list(loc), value if value else '<em>empty</em>') for value, loc in s)
+
 def list_works(this_isbn):
     works = find_others(this_isbn, rc['amazon_other_editions'])
+    print '<a name="work">'
     print '<h2>Other editions of the same work</h2>'
+    if not works:
+        print 'no work found'
+        return
     print '<table>'
+    print '<tr><th>ISBN</th><th>Amazon edition</th><th></th><th>MARC titles</th></tr>'
     for isbn, note in works:
-        if note.find('udio') != -1:
+        if note.lower().find('audio') != -1:
             continue
         locs = db[isbn].split(' ') if isbn in db else []
-        titles = [read_full_title(get_first_tag(marc_data(i), set(['245'])), accept_sound = True) for i in locs]
+#        titles = [read_full_title(get_first_tag(marc_data(i), set(['245'])), accept_sound = True) for i in locs]
+        titles = [(marc_title(marc_data(i)), i) for i in locs]
+        titles = counts_html(titles)
         num = len(locs)
-        print '<tr><td><a href="/?isbn=%s">%s</a></td><td>%s</td><td>%d</td><td>%s</td></tr>' % (isbn, isbn, note, len(locs), list_to_html(titles))
+        #print '<tr><td><a href="/?isbn=%s">%s</a></td><td>%s</td><td>%d</td><td>%s</td></tr>' % (isbn, isbn, note, len(locs), list_to_html(titles))
+        print '<tr><td><a href="/?isbn=%s">%s</a></td><td>%s</td><td>%d</td><td>%s</td></tr>' % (isbn, isbn, note, len(locs), titles)
     print '</table>'
 
 def search(isbn):
@@ -110,17 +131,13 @@ def search(isbn):
         if any(isinstance(i, list) or isinstance(i, dict) for i, loc in v):
             if k == 'authors': # easiest to switch to raw MARC display
                 v = [(marc_authors(marc_data(loc)), loc) for i, loc in v ]
+            elif k == 'isbn_10':
+                v = [ (list_to_html(sorted(i)), loc) if i else (None, loc) for i, loc in v]
             else:
                 v = [ (list_to_html(i), loc) if i else (None, loc) for i, loc in v]
         else:
             v = [ (esc(i), loc) for i, loc in v]
-        count = {}
-        lens = [len(i) for i, loc in v if i and isinstance(i, basestring)]
-        sep = '<br>' if lens and max(lens) > 20 else ' '
-        for i, loc in v:
-            count.setdefault(i, []).append(loc)
-        s = sorted(count.iteritems(), cmp=lambda x,y: cmp(len(y[1]), len(x[1]) ))
-        print sep.join('<b>%d</b>: <span title="%s">%s</span>' % (len(loc), src_list(loc), value if value else '<em>empty</em>') for value, loc in s)
+        print counts_html(v)
         if first_key:
             print '<td valign="top" rowspan="%d"><img src="http://covers.openlibrary.org/b/isbn/%s-L.jpg">' % (len(first) + len(keys), isbn)
             first_key = False

@@ -11,6 +11,9 @@ re_oclc = re.compile ('^\(OCoLC\).*?0*(\d+)')
 re_int = re.compile ('\d{2,}')
 re_number_dot = re.compile('\d{3,}\.$')
 
+re_translation1 = re.compile(r'^(.{,6})\btranslation of\b', re.I)
+re_translation2 = re.compile(r'^([\'"]?).*?\btranslation of\b[ :,;]*(.*)\1', re.I)
+
 # no monograph should be longer than 50,000 pages
 max_number_of_pages = 50000
 
@@ -329,6 +332,21 @@ def read_genres(fields):
             found += get_subfield_values(line, ['v'])
     return { 'genres': remove_duplicates(found) } if found else {}
 
+def read_translation(fields):
+    tag = '500'
+    if tag not in fields:
+        return {}
+    for line in fields[tag]:
+        for value in get_subfield_values(line, ['a']):
+            value = value.strip()
+            if not re_translation1.match(value):
+                continue
+            if value.startswith("Translation of the author's thesis"):
+                continue # not interested
+            m = re_translation2.match(value)
+            return { 'translation_of': m.group(2) }
+    return {}
+
 def read_notes(fields):
     found = []
     for tag in range(500,600):
@@ -481,5 +499,6 @@ def build_record(data):
     edition.update(read_url(fields))
     edition.update(read_toc(fields))
     edition.update(read_notes(fields))
+    edition.update(read_translation(fields))
     edition.update(read_description(fields))
     return edition
