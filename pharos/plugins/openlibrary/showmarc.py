@@ -15,8 +15,6 @@ dir = os.path.dirname(__file__)
 root = os.path.join(dir, "../../..")
 sys.path.append(root)
 
-from catalog.marc.html import html_record
-
 class show_ia(delegate.page):
     path = "/show-marc/ia:(.*)"
 
@@ -56,6 +54,8 @@ class show_marc(delegate.page):
             result = urllib2.urlopen(ureq).read(100000)
         except urllib2.HTTPError, e:
             return "ERROR:" + str(e)
+
+        from catalog.marc.html import html_record
 
         try:
             record = html_record(result)
