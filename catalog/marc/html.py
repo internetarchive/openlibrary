@@ -1,13 +1,13 @@
 from catalog.marc.fast_parse import get_all_tag_lines, get_all_subfields
 import re
 
-trans = {'&':'amp','<':'lt','>':'gt','\n':'<br>'}
-re_html_replace = re.compile('([&<>])')
+trans = {'&':'&amp;','<':'&lt;','>':'&gt;','\n':'<br>'}
+re_html_replace = re.compile('([&<>\n])')
 
 re_subtag = re.compile('\x1f(.?)')
 
 def esc(s):
-    return re_html_replace.sub(lambda m: "&%s;" % trans[m.group(1)], s.encode('utf8'))
+    return re_html_replace.sub(lambda m: trans[m.group(1)], s.encode('utf8'))
 
 def esc_sp(s):
     return esc(s).replace(' ', '&nbsp;')

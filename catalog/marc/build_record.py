@@ -32,7 +32,7 @@ want = [
     '260', # publisher
     '300', # pagination
     '440', '490', '830' # series
-    ] + [str(i) for i in range(500,600)] + [ # notes + toc + description
+    ] + map(str, range(500,590)) + [ # notes + toc + description
     '600', '610', '630', '650', '651', # subjects + genre
     '700', '710', '711', # contributions
     '246', '730', '740', # other titles
@@ -90,10 +90,13 @@ def read_oclc(fields):
 
     found = []
     for line in fields['035']:
-        for k, v in get_subfields(line, ['a']):
+        for v in get_subfield_values(line, ['a']):
             m = re_oclc.match(v)
-            if m:
-                found.append(m.group(1))
+            if not m:
+                continue
+            oclc = m.group(1)
+            if oclc not in found:
+                found.append(oclc)
     return {'oclc_number': found } if found else {}
 
 def read_author_person(line):
@@ -349,7 +352,7 @@ def read_translation(fields):
 
 def read_notes(fields):
     found = []
-    for tag in range(500,600):
+    for tag in range(500,590):
         if tag in (505, 520) or str(tag) not in fields:
             continue
         tag = str(tag)
