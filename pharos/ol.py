@@ -76,6 +76,12 @@ class ConnectionProxy(client.Connection):
     def __init__(self, conn, processor):
         self.conn = conn
         self.processor = processor
+
+    def get_auth_token(self):
+        return self.conn.get_auth_token()
+
+    def set_auth_token(self, token):
+        self.conn.set_auth_token(token)
         
     def request(self, sitename, path, method='GET', data=None):
         class Super:
@@ -122,6 +128,12 @@ class OLConnection(client.Connection):
                 
     def request(self, sitename, path, method='GET', data=None):
         return self.conn.request(sitename, path, method, data)
+
+    def get_auth_token(self):
+        return self.conn.get_auth_token()
+
+    def set_auth_token(self, token):
+        self.conn.set_auth_token(token)
         
 client._connection_types['ol'] = OLConnection
 
