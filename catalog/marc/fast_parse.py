@@ -347,3 +347,31 @@ def read_edition(data, accept_electronic = False):
                         or max_page_num > edition['number_of_pages']:
                     edition['number_of_pages'] = max_page_num
     return edition
+
+def handle_wrapped_lines(iter):
+    cur_lines = []
+    cur_tag = None
+    maybe_wrap = False
+    for t, l in iter:
+        if len(l) > 500 and l.endswith('++\x1e'):
+            assert not cur_tag or cur_tag == t
+            cur_tag = t
+            cur_lines.append(l)
+            continue
+        if cur_lines:
+            yield cur_tag, cur_lines[0][:-3] + ''.join(i[2:-3] for i in cur_lines[1:]) + l[2:]
+            cur_tag = None
+            cur_lines = []
+            continue
+        yield t, l
+    assert not cur_lines
+
+def test_wrapped_lines():
+    data = open('test_data/wrapped_lines').read()
+    ret = list(handle_wrapped_lines(get_tag_lines(data, ['520'])))
+    assert len(ret) == 2
+    a, b = ret
+    assert a[0] == '520' and b[0] == '520'
+    assert len(a[1]) == 2295
+    assert len(b[1]) == 248
+
