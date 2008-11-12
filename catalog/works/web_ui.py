@@ -1,29 +1,55 @@
 import web, re
+from catalog.read_rc import read_rc
 from catalog.infostore import get_site
 #from catalog.db_read import get_things, withKey
 from pprint import pprint
+from catalog.amazon.other_editions import find_others
 
-re_translation_of = re.compile('^Translation of\b[: ]*(.*)$', re.I, re.M)
+rc = read_rc()
+
+re_translation_of = re.compile('^Translation of\b[: ]*([^\n]*)$', re.I, re.M)
 
 site = get_site()
 
 def search(title, author):
-    q = { 'type': '/type/edition', 'title': title }
-#    print site.things(q)
     q = { 'type': '/type/author', 'name': author }
     authors = site.things(q)
-    pool = []
+    pool = set()
     for a in authors:
         q = { 'type': '/type/edition', 'authors': a, 'title': title }
-        pool += site.things(q)
+        pool += set(site.things(q))
     if not pool:
         return
+    titles_set = set()
+    isbn_set = set()
     for key in pool:
         e = site.withKey(key)
-        print key, e.title, e.work_titles, '<br>'
+        translation_of = None
         if e.notes:
-            print e.notes.replace('\n', '<br>'), '<p>'
-        print '<hr>'
+            m = re_translation_of.search(e.notes)
+            if m:
+                translation_of = m.group(1)
+                titles.add(translation_of)
+        print '<a href="http://openlibrary.org%s">%s</a>' % (key, key), \
+                e.publish_date, ','.join(e.publishers), '<br>'
+        if e.isbn_10:
+            isbn_set += set(e.isbn_10)
+        if e.work_titles:
+            titles_set += set(e.work_titles)
+        if e.other_titles:
+            titles_set += set(e.other_titles)
+    titles_set.remove(title)
+    print 'other titles:', titles_set, '<br>'
+
+    extra_isbn = set()
+    for this_isbn in isbn_set:
+        for isbn, note in find_others(this_isbn, rc['amazon_other_editions']):
+            if note.lower().find('audio') != -1:
+                continue
+            if isbn not in isbn_set:
+                extra_isbn.add(isbn)
+
+    print 'more ISBN found:', extra_isbn, '<br>'
 
 urls = (
     '/', 'index'
