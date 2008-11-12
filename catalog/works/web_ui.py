@@ -1,19 +1,29 @@
-import web
-#from catalog.infostore import get_site
-from catalog.db_read import get_things, withKey
+import web, re
+from catalog.infostore import get_site
+#from catalog.db_read import get_things, withKey
 from pprint import pprint
 
-#site = get_site()
+re_translation_of = re.compile('^Translation of\b[: ]*(.*)$', re.I, re.M)
+
+site = get_site()
 
 def search(title, author):
+    q = { 'type': '/type/edition', 'title': title }
+#    print site.things(q)
     q = { 'type': '/type/author', 'name': author }
-    authors = get_things(q)
-    print '<pre>'
+    authors = site.things(q)
+    pool = []
     for a in authors:
-        pprint(withKey(a))
-        q = { 'type': '/type/edition', 'authors': a }
-        print get_things(q)
-    print '</pre>'
+        q = { 'type': '/type/edition', 'authors': a, 'title': title }
+        pool += site.things(q)
+    if not pool:
+        return
+    for key in pool:
+        e = site.withKey(key)
+        print key, e.title, e.work_titles, '<br>'
+        if e.notes:
+            print e.notes.replace('\n', '<br>'), '<p>'
+        print '<hr>'
 
 urls = (
     '/', 'index'
@@ -21,9 +31,9 @@ urls = (
 
 def textbox(name, input):
     if name in input:
-        return '<input type="text" name="%s" value="%s">' % (name, web.htmlquote(input[name]))
+        return '<input type="text" name="%s" value="%s" width="60">' % (name, web.htmlquote(input[name]))
     else:
-        return '<input type="text" name="%s">' % (name)
+        return '<input type="text" name="%s" width="60">' % (name)
 
 class index:
     def GET(self):
@@ -35,8 +45,8 @@ class index:
             title = input.title
         if 'author' in input:
             author = input.author
-        title = 'Work finder'
-        print "<html>\n<head>\n<title>%s</title>" % title
+        html_title = 'Work finder'
+        print "<html>\n<head>\n<title>%s</title>" % html_title
         print '''
 <style>
 th { text-align: left }
