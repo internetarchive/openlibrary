@@ -46,7 +46,9 @@ class CacheProcessor(ConnectionProcessor):
             response = self.cache.get(key)
             if not response:
                 response = super.get(sitename, data)
-                self.cache[key] = response
+                # update cache only on success
+                if '"status": "ok"' in response:
+                    self.cache[key] = response
         else:
             response = super.get(sitename, data)
         return response
