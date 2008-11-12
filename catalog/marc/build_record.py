@@ -208,16 +208,22 @@ def read_dewey(fields):
         found += get_subfield_values(line, ['a'])
     return {'dewey_decimal_class': found }
 
+def join_subfield_values(line, subfields):
+    return ' '.join(get_subfield_values(line, subfields))
+
 def read_work_titles(fields):
     found = []
     if '240' in fields:
         for line in fields['240']:
-            title = get_subfield_values(line, ['a', 'm', 'n', 'p', 'r'])
-            found.append(' '.join(title))
+            title = join_subfield_values(line, ['a', 'm', 'n', 'p', 'r'])
+            if title not in found:
+                found.append(title)
 
     if '130' in fields:
         for line in fields['130']:
-            found.append(' '.join(get_lower_subfields(line)))
+            title = ' '.join(get_lower_subfields(line))
+            if title not in found:
+                found.append(title)
 
     return { 'work_titles': found } if found else {}
 
@@ -301,7 +307,7 @@ def read_contributions(fields):
         if tag not in fields:
             continue
         for line in fields[tag]:
-            found.append(' '.join(get_subfield_values(line, subfields)))
+            found.append(join_subfield_values(line, subfields))
     return { 'contributions': found } if found else {}
 
 def remove_duplicates(seq):
@@ -439,18 +445,21 @@ def read_other_titles(fields):
     
     if '246' in fields:
         for line in fields['246']:
-            title = ' '.join(get_subfield_values(line, ['a']))
-            found.append(title)
+            title = join_subfield_values(line, ['a'])
+            if title not in found:
+                found.append(title)
 
     if '730' in fields:
         for line in fields['730']:
             title = ' '.join(get_lower_subfields(line))
-            found.append(title)
+            if title not in found:
+                found.append(title)
 
     if '740' in fields:
         for line in fields['740']:
-            title = ' '.join(get_subfield_values(line, ['a', 'p', 'n']))
-            found.append(title)
+            title = join_subfield_values(line, ['a', 'p', 'n'])
+            if title not in found:
+                found.append(title)
 
     return {"other_titles": found} if found else {}
 
