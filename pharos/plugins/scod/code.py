@@ -18,13 +18,13 @@ def error(message):
     print 'ERROR:', message
     raise StopIteration
 
-def get_book(path, check_scanned=True):
+def get_book(path, check_scanned=True, check_ocaid=True):
     page = web.ctx.site.get(path)
     if not page:
         error('Invalid book: ' + page)
     elif page.type.key != '/type/edition':
         error(path + ' is not a book')
-    elif page.ocaid:
+    elif check_ocaid and page.ocaid:
         error('This book is already scanned')
     elif check_scanned and get_scan_status(path) != 'NOT_SCANNED':
         error(path + ' is not scannable.')
@@ -129,14 +129,14 @@ class scan_complete(delegate.mode):
         if not self.is_scan_user():
             return permission_denied('Permission denied.')
 
-        book = get_book(path, check_scanned=False)
+        book = get_book(path, check_scanned=False, check_ocaid=False)
         return render.scan_complete(book)
         
     def POST(self, path):
         if not self.is_scan_user():
             return permission_denied('Permission denied.')
 
-        book = get_book(path, check_scanned=False)
+        book = get_book(path, check_scanned=False, check_ocaid=False)
         i = web.input("ocaid", volumes=None, multivolume_work=None, _comment=None)
         
         q = [
