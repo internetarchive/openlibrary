@@ -374,4 +374,3 @@ def test_wrapped_lines():
     assert a[0] == '520' and b[0] == '520'
     assert len(a[1]) == 2295
     assert len(b[1]) == 248
-

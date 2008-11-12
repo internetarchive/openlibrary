@@ -40,6 +40,8 @@ want = [
     '856' # URL
 ]
 
+re_series = re.compile('^(.*) series$', re.I)
+
 def read_lccn(fields):
     if '010' not in fields:
         return {}
@@ -276,10 +278,15 @@ def read_series(fields):
                     this.append(v)
                     continue
                 v = v.rstrip('.,; ')
+                m = re_series.match(v)
+                if m:
+                    v = m.group(1)
                 if v:
                     this.append(v)
             if this:
-                found += [' -- '.join(this)]
+                s = ' -- '.join(this)
+                if s not in found:
+                    found.append(s)
     return {'series': found} if found else {}
                 
 def read_contributions(fields):
@@ -465,7 +472,7 @@ def read_url(fields):
 
 def build_record(data):
     fields = {}
-    for tag, line in get_tag_lines(data, want):
+    for tag, line in handle_wrapped_lines(get_tag_lines(data, want)):
         fields.setdefault(tag, []).append(line)
 
     edition = {}
@@ -505,3 +512,19 @@ def build_record(data):
     edition.update(read_translation(fields))
     edition.update(read_description(fields))
     return edition
+
+def test_candide_by_voltaire():
+    bpl = open('test_data/bpl_0486266893').read()
+    lc = open('test_data/lc_1416500308').read()
+
+    fields = {}
+    want = [ '41', '490', '830' ]
+    for tag, line in handle_wrapped_lines(get_tag_lines(lc, want)):
+        fields.setdefault(tag, []).append(line)
+    assert read_series(fields) == {'series': [u'Enriched classics']}
+
+    fields = {}
+    want = [ '41', '490', '830' ]
+    for tag, line in handle_wrapped_lines(get_tag_lines(bpl, want)):
+        fields.setdefault(tag, []).append(line)
+    assert read_series(fields) == {'series': [u'Dover thrift editions']}
