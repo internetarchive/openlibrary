@@ -7,49 +7,102 @@ from catalog.amazon.other_editions import find_others
 
 rc = read_rc()
 
-re_translation_of = re.compile('^Translation of\b[: ]*([^\n]*)$', re.I, re.M)
+re_translation_of = re.compile('^Translation of\b[: ]*([^\n]*?)\.?$', re.I | re.M)
 
 site = get_site()
+
+def isbn_link(i):
+    return '<a href="http://wiki-beta.us.archive.org:8081/?isbn=%s">%s</a> (<a href="http://amazon.com/dp/%s">Amazon.com</a>)' % (i, i, i)
 
 def search(title, author):
     q = { 'type': '/type/author', 'name': author }
     authors = site.things(q)
+    seen = set()
     pool = set()
-    for a in authors:
-        q = { 'type': '/type/edition', 'authors': a, 'title': title }
-        pool += set(site.things(q))
-    if not pool:
+#    for a in authors:
+#        q = { 'type': '/type/edition', 'authors': a, 'title': title }
+#        pool.update(site.things(q))
+    found_titles = {}
+    found_isbn = {}
+    author_keys = ','.join("'%s'" % a for a in authors)
+
+    iter = web.query("select id, key from thing where thing.id in (select thing_id from edition_ref, thing where edition_ref.key_id=11 and edition_ref.value = thing.id and thing.key in (" + author_keys + "))")
+    key_to_id = {}
+    id_to_key = {}
+    for row in iter:
+        key_to_id[row.key] = row.id
+        id_to_key[row.id] = row.key
+
+    iter = web.query("select thing_id, edition_str.value as title from edition_str where key_id=3 and thing_id in (select thing_id from edition_ref, thing where edition_ref.key_id=11 and edition_ref.value = thing.id and thing.key in (" + author_keys + "))")
+    id_to_title = {}
+    title_to_key = {}
+    for row in iter:
+        t = row.title.lower().strip('.')
+        id_to_title[row.thing_id] = row.title
+        title_to_key.setdefault(t, []).append(id_to_key[row.thing_id])
+
+    if title.lower() not in title_to_key:
+        print 'title not found'
         return
-    titles_set = set()
-    isbn_set = set()
-    for key in pool:
+
+    pool = set(title_to_key[title.lower()])
+
+    print '<table>'
+    while pool:
+        key = pool.pop()
+        seen.add(key)
         e = site.withKey(key)
         translation_of = None
         if e.notes:
             m = re_translation_of.search(e.notes)
             if m:
-                translation_of = m.group(1)
-                titles.add(translation_of)
-        print '<a href="http://openlibrary.org%s">%s</a>' % (key, key), \
-                e.publish_date, ','.join(e.publishers), '<br>'
+                translation_of = m.group(1).lower()
+                pool.update(k for k in title_to_key[translation_of] if k not in seen)
+                found_titles.setdefault(translation_of, []).append(key)
         if e.isbn_10:
-            isbn_set += set(e.isbn_10)
+            for i in e.isbn_10:
+                found_isbn.setdefault(i, []).append(key)
+            join_isbn = ', '.join(map(isbn_link, e.isbn_10))
+        else:
+            join_isbn = ''
+        print '<tr>'
+        print '<td><a href="http://openlibrary.org%s">%s</a></td>' % (key, key)
+        print '<td>', e.publish_date, '</td><td>', ', '.join([p.encode('utf-8') for p in (e.publishers or [])]), '</td>'
+        print '<td>', join_isbn, '</td>'
+        print '</tr>'
         if e.work_titles:
-            titles_set += set(e.work_titles)
+            for t in e.work_titles:
+                t=t.strip('.')
+                pool.update(k for k in title_to_key.get(t.lower(), []) if k not in seen)
+                found_titles.setdefault(t, []).append(key)
         if e.other_titles:
-            titles_set += set(e.other_titles)
-    titles_set.remove(title)
-    print 'other titles:', titles_set, '<br>'
+            for t in e.other_titles:
+                t=t.strip('.')
+                pool.update(k for k in title_to_key.get(t.lower(), []) if k not in seen)
+                found_titles.setdefault(t, []).append(key)
+    print '</table>'
 
-    extra_isbn = set()
-    for this_isbn in isbn_set:
-        for isbn, note in find_others(this_isbn, rc['amazon_other_editions']):
+    if found_titles:
+        print '<h2>Other titles</h2>'
+        print '<ul>'
+        for k, v in found_titles.iteritems():
+            print '<li><a href="/?title=%s&author=%s">%s</a>' % (k, author, k)
+        print '</ul>'
+
+    extra_isbn = {}
+    for k, v in found_isbn.iteritems():
+        for isbn, note in find_others(k, rc['amazon_other_editions']):
             if note.lower().find('audio') != -1:
                 continue
-            if isbn not in isbn_set:
-                extra_isbn.add(isbn)
+            if isbn not in found_isbn:
+                extra_isbn.setdefault(isbn, []).append(k)
 
-    print 'more ISBN found:', extra_isbn, '<br>'
+    if extra_isbn:
+        print '<h2>Other ISBN</h2>'
+        print '<ul>'
+        for k, v in extra_isbn.iteritems():
+            print '<li>', isbn_link(k)
+        print '</ul>'
 
 urls = (
     '/', 'index'
@@ -57,9 +110,9 @@ urls = (
 
 def textbox(name, input):
     if name in input:
-        return '<input type="text" name="%s" value="%s" width="60">' % (name, web.htmlquote(input[name]))
+        return '<input type="text" name="%s" value="%s" size="60">' % (name, web.htmlquote(input[name]))
     else:
-        return '<input type="text" name="%s" width="60">' % (name)
+        return '<input type="text" name="%s" size="60">' % (name)
 
 class index:
     def GET(self):
