@@ -129,7 +129,14 @@ def sampleload(filename="sampledump.txt.gz"):
 
 class addbook(delegate.page):
     def GET(self):
-        page = web.ctx.site.new("", {'type': web.ctx.site.get('/type/edition')})
+        d = {'type': web.ctx.site.get('/type/edition')}
+
+        i = web.input()
+        author = i.get('author') and web.ctx.site.get(i.author)
+        if author:
+            d['authors'] = [author]
+        
+        page = web.ctx.site.new("", d)
         return render.edit(page, '/addbook', 'Add Book')
         
     def POST(self):
