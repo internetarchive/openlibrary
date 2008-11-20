@@ -33,6 +33,10 @@ class SolrError(Exception): pass
 
 import traceback                        # @@
 
+def ocaid_to_olid(ocaid):
+    return web.ctx.site.things(type='/type/edition',
+                               ocaid=ocaid)
+
 class Solr_result(object):
     def __init__(self, result_xml):
         et = ElementTree()
@@ -158,7 +162,8 @@ class Solr_client(object):
 
     def fulltext_search(self, query, rows=None, start=None):
         """Does an advanced search on fulltext:blah.
-        You get back a list of identifiers like ["foo", "bar", etc.]"""
+        You get back a pair (x,y) where x is the total # of hits
+        and y is a list of identifiers like ["foo", "bar", etc.]"""
         
         query = self._prefix_query('fulltext', query)
         result_list = self.raw_search(query, rows, start)
@@ -171,6 +176,9 @@ class Solr_client(object):
         except SyntaxError, e:
             raise SolrError, e
         
+        total_nbr_text = e.find('info/range_info/total_nbr').text
+        total_nbr = int(total_nbr_text) if total_nbr_text else 0
+
         out = []
         for r in e.getiterator('hit'):
             for d in r.find('metadata'):
@@ -185,7 +193,7 @@ class Solr_client(object):
                             xid = xid[:-3]
                         out.append(xid)
                         break
-        return out
+        return (total_nbr, out)
                     
 
     def pagetext_search(self, locator, query, rows=None, start=None):

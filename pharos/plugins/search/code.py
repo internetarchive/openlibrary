@@ -53,7 +53,18 @@ class fullsearch(delegate.page):
     def POST(self):
         errortext = None
         out = []
-        q = web.input(q=None).q
+
+        i = web.input(q = None,
+                      rows = 20,
+                      offset = 0,
+                      )
+
+        class Result_nums: pass
+        nums = Result_nums()
+        
+        nums.offset = int(i.get('offset', '0') or 0)
+        nums.rows = int(i.get('rows', '0') or 20)
+        q = i.q
 
         if not q:
             errortext='you need to enter some search terms'
@@ -61,7 +72,10 @@ class fullsearch(delegate.page):
 
         try:
             q = re.sub('[\r\n]+', ' ', q).strip()
-            results = solr_fulltext.fulltext_search(q)
+            nums.total_nbr, results = \
+                       solr_fulltext.fulltext_search(q,
+                                                     start=nums.offset,
+                                                     rows=nums.rows)
             for ocaid in results:
                 try:
                     pts = solr_pagetext.pagetext_search(ocaid, q)
@@ -80,7 +94,7 @@ class fullsearch(delegate.page):
             errortext = 'fulltext search is temporarily unavailable (%s)' % \
                         str(e)
 
-        return render.fullsearch(q, out, errortext=errortext)
+        return render.fullsearch(q, out, nums, errortext=errortext)
 
     GET = POST
 
