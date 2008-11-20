@@ -61,9 +61,9 @@ class CacheProcessor(ConnectionProcessor):
         if response['status'] == 'ok':
             result = response['result']
             modified = result['created'] + result['updated']
-            for k in modified:
-                if self.cachable(k):
-                    del self.cache[k]
+            keys = [k for k in modified if self.cachable(k)]
+            self.cache.delete_many(keys)
+
         return response_str
         
     def cachable(self, key):
@@ -178,7 +178,7 @@ def run_server():
     server._infobase = get_infobase()
 
     if '--create' in sys.argv:
-        server._infobase.create()
+        server._infobase.create('openlibrary.org')
     else:
         server.run()
     
@@ -194,7 +194,7 @@ def run_standalone():
     server._infobase = get_infobase()
     
     if '--create' in sys.argv:
-        server._infobase.create()
+        server._infobase.create('openlibrary.org')
     else:
         infogami.run()
 
