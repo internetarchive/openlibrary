@@ -4,13 +4,14 @@ import schema
 
 import infogami
 from infogami.infobase import client, lru
+from infogami.infobase.logger import Logger
 import web
 
 config = web.storage(
     db_parameters = None,
     infobase_server = None,
-    writelog = None,
-    booklog = None,
+    writelog = 'log',
+    booklog = 'booklog',
     errorlog = None,
     memcache_servers = None,
     cache_prefixes = ['/type/', '/l/', '/index.', '/about'], # objects with key starting with these prefixes will be cached locally.
@@ -41,7 +42,7 @@ class CacheProcessor(ConnectionProcessor):
     def get(self, super, sitename, data):
         key = data.get('key')
         revision = data.get('revision')
-        
+
         if revision is None and self.cachable(key):
             response = self.cache.get(key)
             if not response:
@@ -152,8 +153,58 @@ def get_infobase():
     store = dbstore.DBStore(schema.get_schema())
 
     ib = infobase.Infobase(store, infobase.config.secret_key)
+
+    if config.writelog:
+        ib.add_event_listener(Logger(config.writelog))
+
+    ol = ib.get('openlibrary.org')
+    if ol and config.booklog:
+        global booklogger
+        booklogger = Logger(config.booklog)
+        ol.add_trigger('/type/edition', write_booklog)
+        ol.add_trigger('/type/author', write_booklog2)
+
     return ib
     
+def get_object_data(site, thing):
+    """Return expanded data of specified object."""
+    def expand(value):
+        if isinstance(value, list):
+            return [expand(v) for v in value]
+        elif isinstance(value, dict) and 'key' in value:
+            t = site.get(value['key'])
+            return t and t._get_data()
+        else:
+            return value
+
+    d = thing._get_data()
+    for k, v in d.iteritems():
+        # save some space by not expanding type
+        if k != 'type':
+            d[k] = expand(v)
+    return d
+
+booklogger = None
+
+def write_booklog(site, old, new):
+    """Log modifications to book records."""
+    sitename = site.sitename
+    if new.type.key == '/type/edition':
+        booklogger.write('book', sitename, new.last_modified, get_object_data(site, new))
+    else:
+        booklogger.write('delete', sitename, new.last_modified, {'key': new.key})
+        
+def write_booklog2(site, old, new):
+    """This function is called when any author object is changed.
+    to log all books of the author if name is changed.
+    """
+    sitename = site.sitename
+    if old and old.type.key == new.type.key == '/type/author' and old.name != new.name:
+        query = {'type': '/type/edition', 'authors': new.key}
+        for key in site.things(query):
+            book = site.get(key)
+            booklogger.write('book', sitename, new.last_modified, get_object_data(site, book))
+            
 def run():
     import infogami.infobase.server
     infogami.infobase.server._infobase = get_infobase()
