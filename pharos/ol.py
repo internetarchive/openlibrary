@@ -1,21 +1,50 @@
 #!/usr/bin/env python
 import sys
-import schema
+import os
+import datetime
 
 import infogami
 from infogami.infobase import client, lru
 from infogami.infobase.logger import Logger
 import web
 
+import schema
+
 config = web.storage(
     db_parameters = None,
     infobase_server = None,
     writelog = 'log',
     booklog = 'booklog',
-    errorlog = None,
+    errorlog = 'errors',
     memcache_servers = None,
     cache_prefixes = ['/type/', '/l/', '/index.', '/about'], # objects with key starting with these prefixes will be cached locally.
 )
+
+def write(path, data):
+    dir = os.path.dirname(path)
+    if not os.path.exists(dir):
+        os.makedirs(dir)
+    f = open(path, 'w')
+    f.write(data)
+    f.close()
+    
+def save_error(dir, prefix):
+    try:
+        import traceback
+        traceback.print_exc()
+
+        error = web.djangoerror()
+        now = datetime.datetime.utcnow()
+        path = '%s/%d-%d-%d/%s-%d%d%d.%d.html' % (dir, \
+            now.year, now.month, now.day, prefix,
+            now.hour, now.minute, now.second, now.microsecond)
+        print >> web.debug, 'Error saved to', path
+        write(path, error)
+    except:
+        import traceback
+        traceback.print_exc()
+    
+infogami.infobase.common.record_exception = lambda: save_error(config.errorlog, 'infobase')
 
 class ConnectionProcessor:
     """Wrapper over Infobase connection to add additional functionality."""
