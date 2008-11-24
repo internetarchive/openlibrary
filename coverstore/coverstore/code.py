@@ -209,6 +209,8 @@ class query:
         else:
             def process(r):
                 return {
+                    'id': r.id,
+                    'olid': r.olid,
                     'created': r.created.isoformat(),
                     'last_modified': r.last_modified.isoformat(),
                     'source_url': r.source_url
