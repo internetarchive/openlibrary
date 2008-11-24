@@ -196,7 +196,10 @@ class cover:
 
 class query:
     def GET(self, category):
-        i = web.input(olid='', offset=0, limit=10, callback=None)
+        i = web.input(olid=None, offset=0, limit=10, callback=None)
+        if i.limit > 100:
+            i.limit = 100
+
         offset = safeint(i.offset, 0)
         limit = safeint(i.limit, 10)
         result = db.query(category, i.olid, offset=offset, limit=limit)

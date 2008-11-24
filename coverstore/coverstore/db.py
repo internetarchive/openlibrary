@@ -20,6 +20,8 @@ def query(category, olid, offset=0, limit=10):
     if isinstance(olid, list):
         where = web.reparam('category_id = $category_id AND', locals()) \
                 + web.sqlors('olid=', olid)
+    elif olid is None:
+        where = web.reparam('category_id=$category_id', locals())
     else:
         where = web.reparam('category_id=$category_id AND olid=$olid', locals())
     
