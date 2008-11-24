@@ -16,13 +16,19 @@ def new(category, olid, filename, author, ip, source_url):
     
 def query(category, olid, offset=0, limit=10):
     category_id = get_category_id(category)
+    
+    if isinstance(olid, list):
+        where = web.reparam('category_id = $category_id AND', locals()) \
+                + web.sqlors('olid=', olid)
+    else:
+        where = web.reparam('category_id=$category_id AND olid=$olid', locals())
+    
     result = web.select('cover', 
         what='id',
-        where='category_id=$category_id AND olid=$olid', 
+        where= where,
         order='last_modified desc', 
         offset=offset,
-        limit=limit,
-        vars=locals())
+        limit=limit)
     return [r.id for r in result]
     
 def touch(id):

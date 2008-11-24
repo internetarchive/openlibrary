@@ -49,7 +49,7 @@ def ol_things(key, value):
         'type': '/type/edition',
         key: value, 
         'sort': 'last_modified',
-        'limit': 1
+        'limit': 10
     }
     try:
         d = dict(query=simplejson.dumps(query))
@@ -80,7 +80,7 @@ def _query(category, key, value):
                 key = 'oclc_numbers'
             olids = ol_things(key, value)
             if olids:
-                return _query(category, 'olid', olids[0])
+                return _query(category, 'olid', olids)
     return None
 
 def download(url):
