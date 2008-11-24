@@ -26,12 +26,12 @@ def query(category, olid, offset=0, limit=10):
         where = web.reparam('category_id=$category_id AND olid=$olid', locals())
     
     result = web.select('cover', 
-        what='id',
+        what='*',
         where= where,
         order='last_modified desc', 
         offset=offset,
         limit=limit)
-    return [r.id for r in result]
+    return result.list()
     
 def touch(id):
     """Sets the last_modified of the specified cover to the current timestamp.

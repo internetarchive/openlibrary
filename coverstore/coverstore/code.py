@@ -196,12 +196,25 @@ class cover:
 
 class query:
     def GET(self, category):
-        i = web.input(olid=None, offset=0, limit=10, callback=None)
+        i = web.input(olid=None, offset=0, limit=10, callback=None, details="false")
         offset = safeint(i.offset, 0)
         limit = safeint(i.limit, 10)
+        details = i.details.lower() == "true"
+        
         if limit > 100:
             limit = 100
         result = db.query(category, i.olid, offset=offset, limit=limit)
+        if not details:
+            result = [r.id for r in result]
+        else:
+            def process(r):
+                return {
+                    'created': r.created.isoformat(),
+                    'last_modified': r.last_modified.isoformat(),
+                    'source_url': r.source_url
+                }
+            result = [process(r) for r in result]
+                        
         json = simplejson.dumps(result)
         web.header('Content-Type', 'text/javascript')
         if i.callback:
