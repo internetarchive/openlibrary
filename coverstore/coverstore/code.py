@@ -68,7 +68,7 @@ def _query(category, key, value):
         return safeint(value)
     elif key == 'olid':
         result = db.query(category, value, limit=1)
-        return result and result[0] or None
+        return result and result[0].id or None
     else:
         if category == 'b' and key in ['isbn', 'lccn', 'oclc', 'ocaid']:
             if key == 'isbn':
