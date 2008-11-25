@@ -235,3 +235,15 @@ class touch:
             web.seeother(redirect_url)
         else:
             print 'no such id: %s' % id
+
+class delete:
+    def POST(self, category):
+        i = web.input(id=None, redirect_url=None)
+        redirect_url = i.redirect_url or web.ctx.get('HTTP_REFERRER')
+
+        id = i.id and safeint(i.id, None)
+        if id:
+            db.delete(id)
+            web.seeother(redirect_url)
+        else:
+            print 'no such id: %s' % id

@@ -39,6 +39,9 @@ def touch(id):
     """
     web.query("UPDATE cover SET last_modified=(current_timestamp at time zone 'utc') where id=$id", vars=locals())
 
+def delete(id):
+    web.query('UPDATE cover set deleted=true WHERE id=$id', vars=locals())
+
 def get_filename(id):
     d = web.select('cover', what='filename', where='id=$id',vars=locals())
     return d and d[0].filename or None

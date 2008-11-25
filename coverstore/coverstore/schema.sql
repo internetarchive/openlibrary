@@ -15,6 +15,7 @@ create table cover (
     source text,
     isbn text,
     archived boolean,
+    deleted boolean default false,
     created timestamp default(current_timestamp at time zone 'utc'),
     last_modified timestamp default(current_timestamp at time zone 'utc')
 );
