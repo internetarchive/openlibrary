@@ -33,19 +33,10 @@ else:
 solr_fulltext = solr_client.Solr_client(solr_fulltext_address)
 solr_pagetext = solr_client.Solr_client(solr_pagetext_address)
 
-def trans():
-    # this should only happen once (or once per long-running thread)
-    print >> web.debug, 'loading ocaid translations...'
-    d = cPickle.load(gzopen('oca_pickle.gz'))
-    print >> web.debug, len(d), 'translations'
-    return d
-
-id_trans = trans()
-
-
 def lookup_ocaid(ocaid):
-    ocat = id_trans.get(ocaid)
-    w = web.ctx.site.get(ocat) if ocat is not None else None
+    ocat = web.ctx.site.things(dict(type='/type/edition', ocaid=ocaid))
+    assert type(ocat)==list, (ocaid,ocat)
+    w = web.ctx.site.get(ocat[0]) if ocat else None
     return w
 
 from collapse import collapse_groups
