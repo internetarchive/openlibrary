@@ -12,6 +12,7 @@ urls = (
     '/([^ /]*)/([a-zA-Z]*)/(.*)-([SML]).jpg', 'cover',
     '/([^ /]*)/query', 'query',
     '/([^ /]*)/touch', 'touch',
+    '/([^ /]*)/delete', 'delete',
 )
 
 _cache = None
@@ -239,11 +240,14 @@ class touch:
 class delete:
     def POST(self, category):
         i = web.input(id=None, redirect_url=None)
-        redirect_url = i.redirect_url or web.ctx.get('HTTP_REFERRER')
+        redirect_url = i.redirect_url
 
         id = i.id and safeint(i.id, None)
         if id:
             db.delete(id)
-            web.seeother(redirect_url)
+            if redirect_url:
+                web.seeother(redirect_url)
+            else:
+                print 'cover has been deleted successfully.' 
         else:
             print 'no such id: %s' % id

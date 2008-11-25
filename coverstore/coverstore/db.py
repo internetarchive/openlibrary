@@ -18,14 +18,14 @@ def query(category, olid, offset=0, limit=10):
     category_id = get_category_id(category)
     
     if isinstance(olid, list):
-        where = web.reparam('category_id = $category_id AND ', locals()) \
+        where = web.reparam('deleted=false AND category_id = $category_id AND ', locals()) \
                 + web.sqlors('olid=', olid)
     elif olid is None:
-        where = web.reparam('category_id=$category_id', locals())
+        where = web.reparam('deleted=false AND category_id=$category_id', locals())
     else:
-        where = web.reparam('category_id=$category_id AND olid=$olid', locals())
+        where = web.reparam('deleted=false AND category_id=$category_id AND olid=$olid', locals())
     
-    result = web.select('cover', 
+    result = web.select('cover',
         what='*',
         where= where,
         order='last_modified desc', 

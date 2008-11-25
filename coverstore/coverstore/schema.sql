@@ -22,4 +22,6 @@ create table cover (
 
 create index cover_olid_idx ON cover (olid);
 create index cover_last_modified_idx ON cover (last_modified);
-
+create index cover_created_idx ON cover (created);
+create index cover_deleted_idx ON cover(deleted);
+create index cover_archived_idx ON cover(archived);
