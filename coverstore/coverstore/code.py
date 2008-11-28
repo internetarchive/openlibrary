@@ -111,7 +111,8 @@ def is_valid_image(data):
     import Image
     from cStringIO import StringIO
     try:
-        Image.open(StringIO(data))
+        a = Image.open(StringIO(data))
+        a.load()
     except IOError:
         return False
     return True
