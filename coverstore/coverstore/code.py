@@ -107,15 +107,12 @@ def changequery(url, **kw):
     params.update(kw)
     return base + '?' + urllib.urlencode(params)
 
-def is_valid_image(data):
+def load_image(data):
     import Image
     from cStringIO import StringIO
-    try:
-        a = Image.open(StringIO(data))
-        a.load()
-    except IOError:
-        return False
-    return True
+    a = Image.open(StringIO(data))
+    a.load()
+    return a
 
 ERROR_EMPTY = 1, "No image found"
 ERROR_INVALID_URL = 2, "Invalid URL"
@@ -146,7 +143,10 @@ class upload:
 
         if not data:
             error(ERROR_EMPTY)
-        elif not is_valid_image(data):
+
+        try:
+            img = load_image(data)
+        except IOError:
             error(ERROR_BAD_IMAGE)
 
         d = {
@@ -155,6 +155,7 @@ class upload:
             'author': i.author,
             'source_url': source_url,
         }
+        d['width'], d['height'] = img.size
 
         filename = _disk.write(data, d)
         d['ip'] = web.ctx.ip
@@ -215,7 +216,9 @@ class query:
                     'olid': r.olid,
                     'created': r.created.isoformat(),
                     'last_modified': r.last_modified.isoformat(),
-                    'source_url': r.source_url
+                    'source_url': r.source_url,
+                    'width': r.width,
+                    'height': r.height
                 }
             result = [process(r) for r in result]
                         

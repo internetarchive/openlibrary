@@ -10,9 +10,11 @@ def get_category_id(category):
             _categories[c.name] = c.id
     return _categories.get(category)
     
-def new(category, olid, filename, author, ip, source_url):
+def new(category, olid, filename, author, ip, source_url, width, height):
     category_id = get_category_id(category)
-    return web.insert('cover', category_id=category_id, olid=olid, filename=filename, author=author, ip=ip, source_url=source_url)
+    return web.insert('cover', category_id=category_id, 
+        olid=olid, filename=filename, author=author, ip=ip,
+        source_url=source_url, width=width, height=height)
     
 def query(category, olid, offset=0, limit=10):
     category_id = get_category_id(category)

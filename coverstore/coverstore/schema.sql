@@ -14,6 +14,8 @@ create table cover (
     source_url text,
     source text,
     isbn text,
+    width int,
+    height int,
     archived boolean,
     deleted boolean default false,
     created timestamp default(current_timestamp at time zone 'utc'),
