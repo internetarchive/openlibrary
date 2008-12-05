@@ -13,6 +13,7 @@ class index:
         web.header('Content-Type','text/html; charset=utf-8', unique=True)
         input = web.input()
         print "<html>\n<head><title>Author merge</title></head><body>"
+        print "<h1>Author merge</h1>"
         print '<form name="main" method="get">'
         print '<table>'
         print '<tr><td>Authors</td>'

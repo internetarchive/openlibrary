@@ -85,7 +85,7 @@ def list_works(this_isbn):
     for isbn, note in works:
         if note.lower().find('audio') != -1:
             continue
-        locs = db_isbn[isbn].split(' ') if isbn in db else []
+        locs = db_isbn[isbn].split(' ') if isbn in db_isbn else []
 #        titles = [read_full_title(get_first_tag(marc_data(i), set(['245'])), accept_sound = True) for i in locs]
         titles = [(marc_title(marc_data(i)), i) for i in locs]
         num = len(locs)
