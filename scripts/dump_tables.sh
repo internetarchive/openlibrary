@@ -12,7 +12,7 @@ tables="thing datum edition_str"
 for t in $tables
 do
     echo `date` -- dumping $t
-    pql $db -c "copy $t to stdout" | gzip -c > $dir/_$t.txt.gz
+    psql $db -c "copy $t to stdout" | gzip -c > $dir/_$t.txt.gz
     mv _$t.txt.gz $t.txt.gz
 done
 
