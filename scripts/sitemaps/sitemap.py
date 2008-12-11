@@ -36,7 +36,7 @@ def read(filename):
     for line in open(filename).xreadlines():
         tokens = line.strip().split("\t")
         t = web.storage(zip(headers, tokens))
-	t.last_modified = t.last_modified.replace(' ', 'T')
+	t.last_modified = t.last_modified.replace(' ', 'T') + 'Z'
 	yield t
         
 def group(things, n=50000):
@@ -62,7 +62,8 @@ def make_siteindex(filename):
     for i, x in enumerate(groups):
         write("sitemaps/sitemap_%04d.xml.gz" % i, sitemap(x))
     names = ["%04d" % j for j in range(i)]
-    index = siteindex(names, datetime.datetime.utcnow().isoformat())
+    timestamp = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S') + 'Z'
+    index = siteindex(names, timestamp)
     write("sitemaps/siteindex.xml.gz", index)
         
 if __name__ == "__main__":
