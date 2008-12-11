@@ -10,6 +10,9 @@ import web
 
 import schema
 
+if not hasattr(web, 'load'):
+    web.load = lambda: None
+
 config = web.storage(
     db_parameters = None,
     infobase_server = None,
