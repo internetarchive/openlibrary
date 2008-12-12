@@ -2,12 +2,14 @@ import web, cjson
 import urllib2
 from pprint import pformat
 from time import time
+from read_rc import read_rc
 
 urls = (
     '/', 'index'
 )
 
 base_url = "http://0.0.0.0:9020/"
+rc = read_rc()
 
 def commify(n):
     """
@@ -35,7 +37,7 @@ Add commas to an integer `n`.
 done = ['marc_western_washington_univ', 'marc_miami_univ_ohio', 'bcl_marc', 'marc_loc_updates', 'marc_oregon_summit_records', 'CollingswoodLibraryMarcDump10-27-2008', 'hollis_marc', 'marc_laurentian', 'marc_ithaca_college', 'marc_cca']
 
 def read_book_count():
-    lines = list(open('/home/edward/book_count'))
+    lines = list(open(rc['book_count']))
     t0, count0 = [int(i) for i in lines[0].split()]
     t, count = [int(i) for i in lines[-1].split()]
     t_delta = time() - t0
@@ -76,12 +78,13 @@ class index:
         print "<b>Done:</b>", 
         print ', '.join('<a href="http://archive.org/details/%s">%s</a>' % (ia, ia) for ia in done), '<br>'
         print "<table>"
-        print "<tr><th>Archive ID</th><th>import</th><th>loaded</th><th>input<br>(rec/sec)</th>"
+        print "<tr><th>Archive ID</th><th>input<br>(rec/sec)</th>"
         print "<th>no match<br>(%)</th>"
         print "<th>load<br>(rec/sec)</th>"
-        print "<th>last update<br>(secs)</th><th>running<br>(hours)</th>"
+#        print "<th>last update<br>(secs)</th><th>running<br>(hours)</th>"
         print "<th>progress</th>"
         print "<th>remaining<br>(hours)</th>"
+        print "<th>remaining<br>(records)</th>"
         print "</tr>"
         cur_time = time()
         total_recs = 0
@@ -89,8 +92,11 @@ class index:
         total_load = 0
         total_rec_per_sec = 0
         total_load_per_sec = 0
+        total_future_load = 0
         for k in server_read('keys'):
             if k.endswith('2'):
+                continue
+            if k in done:
                 continue
 
             broken = False
@@ -118,12 +124,12 @@ class index:
                 total_load += load_count
                 total_t += q['t1']
             print '<td><a href="http://archive.org/details/%s">%s</a></td>' % (k.rstrip('2'), k)
-            print '<td><a href="http://openlibrary.org/show-marc/%s">current record</a></td>' % q['cur']
-            if 'last_key' in q and q['last_key']:
-                last_key = q['last_key']
-                print '<td><a href="http://openlibrary.org%s">%s</a></td>' % (last_key, last_key[3:])
-            else:
-                print '<td>No key</td>'
+#            print '<td><a href="http://openlibrary.org/show-marc/%s">current record</a></td>' % q['cur']
+#            if 'last_key' in q and q['last_key']:
+#                last_key = q['last_key']
+#                print '<td><a href="http://openlibrary.org%s">%s</a></td>' % (last_key, last_key[3:])
+#            else:
+#                print '<td>No key</td>'
             if k in done:
                 for i in range(5):
                     print '<td></td>'
@@ -163,11 +169,19 @@ class index:
         print '<td align="right">%.2f</td>' % total_load_per_sec
         print '<td></td>' * 3, '<td align="right">%s</td>' % commify(int(total_future_load))
         print '</tr></table>'
-        print "<table>"
-        print '<tr><td align="right">loading:</td><td align="right">%.1f</td><td>rec/day</td></tr>' % (total_load_per_sec * (60 * 60 * 24))
-        if total_load_per_sec:
-            print '<tr><td>one million records takes:</td><td align="right">%.1f</td><td>days</td></tr>' % ((1000000 / total_load_per_sec) / (60 * 60 * 24))
-        print "</table>"
+#        print "<table>"
+#        print '<tr><td align="right">loading:</td><td align="right">%.1f</td><td>rec/hour</td></tr>' % (total_load_per_sec * (60 * 60))
+#        print '<tr><td align="right">loading:</td><td align="right">%.1f</td><td>rec/day</td></tr>' % (total_load_per_sec * (60 * 60 * 24))
+#        if total_load_per_sec:
+#            print '<tr><td>one million records takes:</td><td align="right">%.1f</td><td>hours</td></tr>' % ((1000000 / total_load_per_sec) / (60 * 60))
+#            print '<tr><td>one million records takes:</td><td align="right">%.1f</td><td>days</td></tr>' % ((1000000 / total_load_per_sec) / (60 * 60 * 24))
+#        print "</table>"
+        rec_per_sec, count = read_book_count()
+        print "Total records per second: %.2f<br>" % rec_per_sec
+        day = commify(int(rec_per_sec * (60 * 60 * 24)))
+        print "Total records per day: %s<br>" % day
+
+        print "Books in Open Library: ", commify(count), "<br>"
         print '</body>\n<html>'
 
 web.webapi.internalerror = web.debugerror
