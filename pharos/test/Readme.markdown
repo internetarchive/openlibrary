@@ -1,12 +1,12 @@
 # Open Library test suite
 
-The testsuite expects a config file `~/.oltestrc' with username and password of the test user. Here is a sample file.
+The testsuite expects a config file `~/.oltestrc~ with username and password of the test user. Here is a sample file.
 
     [account]
     username = testuser
     password = test123
 
-Test the production site:
+Test the production server:
     
     $ python test/test_all.py
 

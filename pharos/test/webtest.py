@@ -13,7 +13,9 @@ web.browser.DEBUG = '-v' in sys.argv
 class Browser(web.Browser):
     def __init__(self):
         web.Browser.__init__(self)
-        if '--staging' in sys.argv:
+        if '--url' in sys.argv:
+            self.url = sys.argv[1 + sys.argv.index('--url')]
+        elif '--staging' in sys.argv:
             self.url = 'http://openlibrary.org:8080/'
         else:
             self.url = 'http://openlibrary.org/'
