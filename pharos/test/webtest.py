@@ -8,6 +8,8 @@ sys.path.insert(0, '.')
 from web.test import *
 import web
 
+web.browser.DEBUG = '-v' in sys.argv
+
 class Browser(web.Browser):
     def __init__(self):
         web.Browser.__init__(self)
