@@ -94,7 +94,7 @@ class scan_book_notfound(delegate.mode):
 
         book = web.ctx.site.get(path)
         i = web.input("scan_status", _comment=None)
-
+        
         q = {
             'key': '/scan_record' + path,
             'scan_status': {
@@ -115,9 +115,15 @@ class scan_book_notfound(delegate.mode):
         to = scan_record.sponsor and get_email(scan_record.sponsor)
         cc = getattr(config, 'scan_email_recipients', [])
         if to:
-            message = render.scan_book_notfound_email(book, scan_record, i._comment)
+            if i.scan_status == 'SCAN_IN_PROGRESS':
+                message = render.scan_inprogress_email(book, scan_record, i._comment)
+            else:    
+                message = render.scan_book_notfound_email(book, scan_record, i._comment)
             web.sendmail(config.from_address, to, message.subject.strip(), str(message), cc=cc)
         web.seeother(web.changequery(query={}))
+        
+class scan_inprogress(scan_book_notfound):
+    pass
 
 class scan_complete(delegate.mode):
     def is_scan_user(self):
