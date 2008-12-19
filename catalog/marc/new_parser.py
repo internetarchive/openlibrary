@@ -1,7 +1,7 @@
 from catalog.marc.fast_parse import get_subfields, get_tag_lines, translate, handle_wrapped_lines
 import re
 from warnings import warn
-from catalog.utils import pick_first_date
+from catalog.utils import pick_first_date, tidy_isbn
 
 re_question = re.compile('^\?+$')
 re_lccn = re.compile('(...\d+).*')
@@ -72,32 +72,13 @@ def read_isbn(fields):
                 found.append(m.group(1))
     ret = {}
     seen = set()
-    for i in found:
-        i = i.replace('-', '')
+
+    for i in tidy_isbn(found):
         if i in seen: # avoid dups
             continue
         seen.add(i)
-        if len(i) == 10:
-            ret.setdefault('isbn_10', []).append(i)
-        elif len(i) == 13:
+        if len(i) == 13:
             ret.setdefault('isbn_13', []).append(i)
-        elif len(i) == 20 and all(c.isdigit() for c in i):
-            ret.setdefault('isbn_10', []).extend([i[:10], i[10:]])
-        elif len(i) == 21 and i[10] == ';':
-            ret.setdefault('isbn_10', []).extend([i[:10], i[11:]])
-        elif i.find(';') != -1:
-            no_semicolon = i.replace(';', '')
-            if len(no_semicolon) == 10:
-                ret.setdefault('isbn_10', []).append(no_semicolon)
-            if len(no_semicolon) == 13:
-                ret.setdefault('isbn_13', []).append(no_semicolon)
-            split = i.split(';')
-            if all(len(j) in (10, 13) for j in split):
-                for j in split:
-                    if len(j) == 10:
-                        ret.setdefault('isbn_10', []).append(j)
-                    else:
-                        ret.setdefault('isbn_13', []).append(j)
         else:
             assert len(i) <= 16
             ret.setdefault('isbn_10', []).append(i)
@@ -545,6 +526,7 @@ def test_read_isbn():
         ('8424917820(pbk.)', ['8424917820']),
         ('84249;17820(pbk.)', ['8424917820']),
         ('8424917820;8424917812(pbk.)', ['8424917820', '8424917812']),
+        ('1111111111;1111111111(pbk.)', ['1111111111']),
     ]
     for input, expect in data:
         ret = read_isbn({'020': ['  \x1fa' + input + '\x1e']})

@@ -1,5 +1,6 @@
-import re
 # -*- coding: utf-8 -*-
+import re
+from unicodedata import normalize
 
 re_date = map (re.compile, [
     '(?P<birth_date>\d+\??)-(?P<death_date>\d+\??)',
@@ -58,6 +59,30 @@ def pick_first_date(dates):
 def test_date():
     assert pick_first_date(["Mrs.", "1839-"]) == {'birth_date': '1839'}
 
+def strip_accents(s):
+    return normalize('NFKD', unicode(s)).encode('ASCII', 'ignore')
+
+def combinations(items, n):
+    if n==0:
+        yield []
+    else:
+        for i in xrange(len(items)):
+            for cc in combinations(items[i+1:], n-1):
+                yield [items[i]]+cc
+
+def match_with_bad_chars(a, b):
+    if unicode(a) == unicode(b):
+        return True
+    a = normalize('NFKD', unicode(a))
+    b = normalize('NFKD', unicode(b))
+    if a == b:
+        return True
+    a = a.encode('ASCII', 'ignore')
+    b = b.encode('ASCII', 'ignore')
+    if a == b:
+        return True
+    return a.replace('?', '') == a.replace('?', '')
+
 def test_match_with_bad_chars():
     samples = [
         [u'Humanitas Publica\xe7\xf5es', 'Humanitas Publicac?o?es'],
@@ -72,8 +97,36 @@ def test_match_with_bad_chars():
         [u'Soi\ufe20u\ufe21z khudozhnikov SSSR.',
          u'Soi?u?z khudozhnikov SSSR.',
          u'Soi\u0361uz khudozhnikov SSSR.'],
-        [u'Andrzej Weronski', 'Andrzej Weroński', 'Andrzej Weroński'],
+        [u'Andrzej Weronski', u'Andrzej Wero\u0144ski', u'Andrzej Weron\u0301ski'],
     ]
-    for a, b in samples:
-        assert match_with_bad_chars(a, b)
-        assert match_with_bad_chars(b, a)
+    for l in samples:
+        for a, b in combinations(l, 2):
+#            print a, len(a)
+#            print b, len(b)
+            assert match_with_bad_chars(a, b)
+
+def tidy_isbn(input):
+    output = []
+    for i in input:
+        i = i.replace('-', '')
+        if len(i) in (10, 13):
+            output.append(i)
+            continue
+        if len(i) == 20 and all(c.isdigit() for c in i):
+            output.extend([i[:10], i[10:]])
+            continue
+        if len(i) == 21 and not i[10].isdigit():
+            output.extend([i[:10], i[11:]])
+            continue
+        if i.find(';') != -1:
+            no_semicolon = i.replace(';', '')
+            if len(no_semicolon) in (10, 13):
+                output.append(no_semicolon)
+                continue
+            split = i.split(';')
+            if all(len(j) in (10, 13) for j in split):
+                output.extend(split)
+                continue
+        assert len(i) <= 16
+        output.append(i)
+    return output

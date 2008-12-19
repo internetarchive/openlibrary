@@ -4,19 +4,27 @@ import re
 from pymarc import MARC8ToUnicode
 import catalog.marc.mnemonics as mnemonics
 from unicodedata import normalize
+from catalog.utils import tidy_isbn
 
 marc8 = MARC8ToUnicode(quiet=True)
+
 def translate(data):
+    data = mnemonics.read(data)
     if type(data) == unicode:
-        return normalize('NFC', mnemonics.read(data))
+        return normalize('NFC', data)
     try:
-        ustr = mnemonics.read(data.decode('utf8'))
+        data = data.decode('utf8')
+        is_utf8 = True
     except UnicodeDecodeError:
-        ustr = marc8.translate(mnemonics.read(data))
+        is_utf8 = False
+    if not is_utf8:
+        ustr = marc8.translate(data)
+        print
+        print `ustr`
     if type(data) == unicode:
-        return normalize('NFC', ustr)
+        return normalize('NFC', data)
     else:
-        return ustr
+        return data
 
 re_question = re.compile('^\?+$')
 re_lccn = re.compile('(...\d+).*')
@@ -218,8 +226,8 @@ def read_isbn(line):
     else:
         m = re_isbn.match(line[3:-1])
         if m:
-            return [m.group(1)]
-    return [str(i.replace('-', '')) for i in found]
+            found = [m.group(1)]
+    return map(str, tidy_isbn(found))
 
 def read_oclc(line):
     found = []
