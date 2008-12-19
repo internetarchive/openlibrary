@@ -4,6 +4,12 @@ import simplejson, re
 from normalize import normalize
 from time import time
 
+re_escape = re.compile(r'[\n\r\t\0\\]')
+trans = { '\n': '\\n', '\r': '\\r', '\t': '\\t', '\\': '\\\\', '\0': '', }
+
+def esc_group(m):
+    return trans[m.group(0)]
+def esc(str): return re_escape.sub(esc_group, str)
 
 def add_to_index(fh, value, key):
     if not value:
@@ -12,15 +18,19 @@ def add_to_index(fh, value, key):
         value = str(value)
     except UnicodeEncodeError:
         return
-    print >> fh, "\t".join(key, value)
+    print >> fh, "\t".join([key, esc(value)])
 
 def short_title(s):
     return normalize(s)[:25]
 
 re_letters = re.compile('[A-Za-z]')
+re_dash_or_space = re.compile('[- ]')
 
 def clean_lccn(lccn):
     return re_letters.sub('', lccn).strip()
+
+def clean_isbn(isbn):
+    return re_dash_or_space.sub('', isbn)
 
 def load_record(record, f):
     if 'title' not in record or record['title'] is None:
@@ -38,8 +48,8 @@ def load_record(record, f):
     fields = [
         ('lccn', 'lccn', clean_lccn),
         ('oclc_numbers', 'oclc', None),
-        ('isbn_10', 'isbn', None),
-        ('isbn_13', 'isbn', None),
+        ('isbn_10', 'isbn', clean_isbn),
+        ('isbn_13', 'isbn', clean_isbn),
     ]
     for a, b, clean in fields:
         if a not in record:
@@ -51,13 +61,18 @@ def load_record(record, f):
                 v = clean(v)
             add_to_index(f[b], v, key)
 
-total = -1 # FIXME
+total = 29107946 # FIXME
 
-path = '/1/edward/index'
+path = '/1/edward/index/'
 index_fields = ('lccn', 'oclc', 'isbn', 'title')
-files = dict((i, open(path + i)) for i in index_fields)
+files = dict((i, open(path + i, 'w')) for i in index_fields)
 
 rec_no = 0
+chunk = 10000
+t0 = time()
+t_prev = time()
+
+filename = '/1/anand/bsddb/json.txt'
 for line in open(filename):
     rec_no += 1
 
