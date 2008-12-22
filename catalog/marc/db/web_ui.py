@@ -20,6 +20,10 @@ def marc_authors(data):
     line = get_first_tag(data, set(['100', '110', '111']))
     return ''.join("<b>$%s</b>%s" % (esc(k), esc(v)) for k, v in get_all_subfields(line)) if line else None
 
+def marc_publisher(data):
+    line = get_first_tag(data, set(['260']))
+    return ''.join("<b>$%s</b>%s" % (esc(k), esc(v)) for k, v in get_all_subfie
+
 def marc_title(data):
     line = get_first_tag(data, set(['245']))
     return ''.join("<b>$%s</b>%s" % (esc(k), esc(v)) for k, v in get_subfields(line, set(['a', 'b']))) if line else None
