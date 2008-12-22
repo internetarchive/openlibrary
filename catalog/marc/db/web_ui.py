@@ -7,6 +7,9 @@ from pprint import pprint
 import re, sys, os.path, random
 from catalog.marc.sources import sources
 from catalog.amazon.other_editions import find_others
+from catalog.infostore import get_site
+
+site = get_site()
 
 rc = read_rc()
 
@@ -143,6 +146,7 @@ def show_locs(locs, isbn):
                 v = [ (list_to_html(i), loc) if i else (None, loc) for i, loc in v]
         else:
             v = [ (esc(i), loc) for i, loc in v]
+#        print `[i[0] for i in v]`, '<br>'
         print counts_html(v)
         if isbn and first_key:
             print '<td valign="top" rowspan="%d"><img src="http://covers.openlibrary.org/b/isbn/%s-L.jpg">' % (len(first) + len(keys), isbn)
@@ -157,6 +161,10 @@ def search_lccn(lccn):
     show_locs(db_lccn[lccn].split(' '), None)
 
 def search_isbn(isbn):
+    things = site.things({'type': '/type/edition', 'isbn_10': isbn})
+    if things:
+        print ', '.join('<a href="http://openlibrary.org%s">%s</a>' % (k, k) for k in things), '<br>'
+        
     if isbn not in db_isbn:
         print isbn, ' not found'
         return
