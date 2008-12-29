@@ -1,4 +1,4 @@
-import web, dbhash
+import web
 from catalog.read_rc import read_rc
 from catalog.get_ia import get_data
 from catalog.marc.build_record import build_record
@@ -7,11 +7,13 @@ from pprint import pprint
 import re, sys, os.path, random
 from catalog.marc.sources import sources
 from catalog.amazon.other_editions import find_others
-from catalog.infostore import get_site
-
-site = get_site()
+#from catalog.infostore import get_site
 
 rc = read_rc()
+
+web.config.db_parameters = dict(dbn='postgres', db=rc['db'], user=rc['user'], pw=rc['pw'], host=rc['host'])
+web.config.db_printing = False
+web.load()
 
 trans = {'&':'amp','<':'lt','>':'gt'}
 re_html_replace = re.compile('([&<>])')
@@ -165,9 +167,9 @@ def search_lccn(lccn):
     show_locs(db_lccn[lccn].split(' '), None)
 
 def search_isbn(isbn):
-    things = site.things({'type': '/type/edition', 'isbn_10': isbn})
-    if things:
-        print ', '.join('<a href="http://openlibrary.org%s">%s</a>' % (k, k) for k in things), '<br>'
+#    things = site.things({'type': '/type/edition', 'isbn_10': isbn})
+#    if things:
+#        print ', '.join('<a href="http://openlibrary.org%s">%s</a>' % (k, k) for k in things), '<br>'
         
     if isbn not in db_isbn:
         print isbn, ' not found'
@@ -179,7 +181,7 @@ def search_isbn(isbn):
 #    rec_data = dict((loc, get_data(loc)) for loc in locs)
 
 urls = (
-    '/random', 'rand',
+#    '/random', 'rand',
     '/', 'index'
 )
 
