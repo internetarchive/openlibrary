@@ -1,4 +1,4 @@
-import web, dbhash
+import web #, dbhash
 from catalog.read_rc import read_rc
 from catalog.get_ia import get_data
 from catalog.marc.build_record import build_record
@@ -7,11 +7,11 @@ from pprint import pprint
 import re, sys, os.path, random
 from catalog.marc.sources import sources
 from catalog.amazon.other_editions import find_others
-from catalog.infostore import get_site
-
-site = get_site()
 
 rc = read_rc()
+web.config.db_parameters = dict(dbn='postgres', db='ol_merge', user=rc['user'], pw=rc['pw'], host=rc['host'])
+web.config.db_printing = False
+web.load()
 
 trans = {'&':'amp','<':'lt','>':'gt'}
 re_html_replace = re.compile('([&<>])')
@@ -22,7 +22,7 @@ def marc_authors(data):
 
 def marc_publisher(data):
     line = get_first_tag(data, set(['260']))
-    return ''.join("<b>$%s</b>%s" % (esc(k), esc(v)) for k, v in get_all_subfie
+    return ''.join("<b>$%s</b>%s" % (esc(k), esc(v)) for k, v in get_all_subfield)
 
 def marc_title(data):
     line = get_first_tag(data, set(['245']))
@@ -43,22 +43,16 @@ def list_to_html(l):
     return blue('[') + blue('|').join(l) + blue(']')
 
 def random_isbn():
-    f = open(isbn_file)
-    while 1:
-        f.seek(random.randrange(isbn_count) * 11)
-        isbn = f.read(10)
-        if isbn in db_isbn and len(db_isbn[isbn].split(' ')) > 1:
-            break
-    f.close()
-    return isbn
+    sql = "select value from isbn order by random() limit 1"
+    return list(web.query(sql))[0].value
 
 def esc(s):
     if not isinstance(s, basestring):
         return s
     return re_html_replace.sub(lambda m: "&%s;" % trans[m.group(1)], s.encode('utf8')).replace('\n', '<br>')
 
-db_isbn = dbhash.open(rc['index_path'] + 'isbn_to_marc.dbm', 'r')
-db_lccn = dbhash.open(rc['index_path'] + 'lccn.dbm', 'r')
+#db_isbn = dbhash.open(rc['index_path'] + 'isbn_to_marc.dbm', 'r')
+#db_lccn = dbhash.open(rc['index_path'] + 'lccn.dbm', 'r')
 
 srcs = dict(sources())
 
@@ -158,24 +152,44 @@ def show_locs(locs, isbn):
         print '</td></tr>'
     print '</table>'
 
+def search_oclc(oclc):
+    locs = []
+    for i in web.query('select archive_id, filename, pos, len from marc_file, marc_rec, marc_oclc, marc_source where marc_source.id=marc_file.marc_source and marc_oclc.marc_rec=marc_rec.id and marc_rec.marc_file=marc_file.id and value=$value', vars={'value': oclc}):
+        l = i.archive_id + '/' + ':'.join([i.filename, str(i.pos), str(i.len)])
+        locs.append(l)
+    if not locs:
+        print oclc, ' not found'
+        return
+
+    show_locs(locs, None)
+
 def search_lccn(lccn):
-    if lccn not in db_lccn:
+    locs = []
+    for i in web.query('select archive_id, filename, pos, len from marc_file, marc_rec, marc_lccn, marc_source where marc_source.id=marc_file.marc_source and marc_lccn.marc_rec=marc_rec.id and marc_rec.marc_file=marc_file.id and value=$value', vars={'value': lccn}):
+        l = i.archive_id + '/' + ':'.join([i.filename, str(i.pos), str(i.len)])
+        locs.append(l)
+    if not locs:
         print lccn, ' not found'
         return
-    show_locs(db_lccn[lccn].split(' '), None)
+
+    show_locs(locs, None)
 
 def search_isbn(isbn):
     things = site.things({'type': '/type/edition', 'isbn_10': isbn})
     if things:
         print ', '.join('<a href="http://openlibrary.org%s">%s</a>' % (k, k) for k in things), '<br>'
         
-    if isbn not in db_isbn:
+    locs = []
+    for i in web.query('select archive_id, filename, pos, len from marc_file, marc_rec, marc_isbn, marc_source where marc_source.id=marc_file.marc_source and marc_isbn.marc_rec=marc_rec.id and marc_rec.marc_file=marc_file.id and value=$value', vars={'value': isbn}):
+        l = i.archive_id + '/' + ':'.join([i.filename, str(i.pos), str(i.len)])
+        locs.append(l)
+    if not locs:
         print isbn, ' not found'
         return
 
     print '<a href="#work">skip to other editions of the same work</a><br>'
-    show_locs(db_isbn[isbn].split(' '), isbn)
-    list_works(isbn)
+    show_locs(locs, isbn)
+#    list_works(isbn)
 #    rec_data = dict((loc, get_data(loc)) for loc in locs)
 
 urls = (
@@ -193,6 +207,7 @@ class index():
         web.header('Content-Type','text/html; charset=utf-8', unique=True)
         input = web.input()
         lccn = None
+        oclc = None
         isbn = None
         title = 'MARC lookup'
         if 'isbn' in input and input.isbn:
@@ -203,6 +218,9 @@ class index():
         if 'lccn' in input and input.lccn:
             lccn = input.lccn
             title = 'MARC lookup: lccn=' + lccn
+        if 'oclc' in input and input.oclc:
+            oclc = input.oclc
+            title = 'MARC lookup: oclc=' + oclc
         print "<html>\n<head>\n<title>%s</title>" % title
         print '''
 <style>
@@ -222,6 +240,11 @@ td { padding: 5px; background: #eee }
             print '<input type="text" name="lccn" value="%s">' % web.htmlquote(lccn)
         else:
             print '<input type="text" name="lccn">'
+        print '</td></tr><tr><td align="right">OCLC</td><td>'
+        if oclc:
+            print '<input type="text" name="oclc" value="%s">' % web.htmlquote(oclc)
+        else:
+            print '<input type="text" name="oclc">'
         print '</td></tr>',
         print '<tr><td></td><td><input type="submit" value="find"></td></tr>'
         print '</table>'
@@ -230,6 +253,8 @@ td { padding: 5px; background: #eee }
             search_isbn(isbn)
         elif lccn:
             search_lccn(lccn)
+        elif oclc:
+            search_oclc(oclc)
         print "<body><html>"
 
 if __name__ == "__main__": web.run(urls, globals(), web.reloader)
