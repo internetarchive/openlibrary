@@ -1,6 +1,6 @@
 from urllib2 import urlopen, Request
 import cjson, web
-from catalog.merge.merge_index import add_to_indexes(record)
+from catalog.merge.merge_index import add_to_indexes
 
 # need to use multiple databases
 # use psycopg2 to until open library is upgraded to web 3.0
@@ -16,7 +16,7 @@ index_path = '/1/pharos/edward/index/2/'
 
 pool_url = 'http://wiki-beta.us.archive.org:9020/'
 
-db_field = ('isbn', 'title', 'oclc', 'lccn')
+db_fields = ('isbn', 'title', 'oclc', 'lccn')
 
 def pool_build(fields):
     params = dict((k, '_'.join(v)) for k, v in fields.iteritems() if k != 'author')
@@ -38,13 +38,25 @@ def build(index_fields):
             if field == 'isbn' and len(v) < 10:
                 continue
             cur.execute('select key from ' + field + ' where value=%(v)s', {'v': v})
-            pool.setdefault(field, set()).update(i.key for i in cur.fetchall())
+            pool.setdefault(field, set()).update(i[0] for i in cur.fetchall())
     return dict((k, sorted(v)) for k, v in pool.iteritems())
 
 def update(key, q):
-    for field, value in merge_index(q):
-        sql = 'insert into ' + field + ' (key, value) values (%(key)s, %(value)s)'
-        cur.execute(sql, {'key': key, 'value': value })
+    seen = set()
+    for field, value in add_to_indexes(q):
+        vars = {'key': key, 'value': value }
+        if (field, value) in seen:
+            print (key, field, value)
+            print seen
+            print q
+        assert (field, value) not in seen
+        seen.add((field, value))
+#        cur.execute('select * from ' + field + ' where key=%(key)s and value=%(value)s', vars)
+#        if len(cur.fetchall()) != 0:
+#            print "key dup: key=%s, value=%s" % (key, value)
+#            print q
+#            continue
+        cur.execute('insert into ' + field + ' (key, value) values (%(key)s, %(value)s)', vars)
     q['key']
 
 def post_progress(archive_id, q):
