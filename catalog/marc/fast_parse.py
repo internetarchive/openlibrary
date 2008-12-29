@@ -18,9 +18,7 @@ def translate(data):
     except UnicodeDecodeError:
         is_utf8 = False
     if not is_utf8:
-        ustr = marc8.translate(data)
-        print
-        print `ustr`
+        data = marc8.translate(data)
     if type(data) == unicode:
         return normalize('NFC', data)
     else:
@@ -86,7 +84,7 @@ def read_author_person(line):
     if not name:
         return []
 
-    return [{ 'db_name': ' '.join(name_and_date), 'name': ' '.join(name), }]
+    return [{ 'db_name': u' '.join(name_and_date), 'name': u' '.join(name), }]
 
 class SoundRecording:
     pass
@@ -382,3 +380,9 @@ def test_wrapped_lines():
     assert a[0] == '520' and b[0] == '520'
     assert len(a[1]) == 2295
     assert len(b[1]) == 248
+
+def test_translate():
+    assert translate('Vieira, Claudio Bara\xe2una,') == u'Vieira, Claudio Bara\xfana,'
+
+def test_record():
+    assert read_edition(open('test_data/lc_0444897283').read())
