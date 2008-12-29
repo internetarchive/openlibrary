@@ -9,6 +9,7 @@ from catalog.marc.sources import sources
 from catalog.amazon.other_editions import find_others
 
 rc = read_rc()
+
 web.config.db_parameters = dict(dbn='postgres', db='ol_merge', user=rc['user'], pw=rc['pw'], host=rc['host'])
 web.config.db_printing = False
 web.load()
