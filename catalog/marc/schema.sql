@@ -1,11 +1,11 @@
 create table files (
-    id serial primary key,
+    id serial,
     ia char(32),
     part char(32)
 );
 
 create table rec (
-    id serial primary key,
+    id serial,
     marc_file integer,
     pos integer,
     len integer,
@@ -16,12 +16,10 @@ create table rec (
     
 create table isbn (
     value char(16),
-    rec integer,
-    primary key(value, rec)
+    rec integer
 );
 
 create table oclc (
     value char(32),
-    rec integer,
-    primary key(value, rec)
+    rec integer
 );

@@ -18,10 +18,12 @@ def add_to_indexes(record):
         title = record['title'] + ' ' + record['subtitle']
     else:
         title = record['title']
-    yield 'title', short_title(title)
+    title1 = short_title(title)
+    yield 'title', title1
     if 'title_prefix' in record and record['title_prefix'] is not None:
         title2 = short_title(record['title_prefix'] + title)
-        yield f['title'], title2
+        if title1 != title2:
+            yield 'title', title2
 
     fields = [
         ('lccn', 'lccn', clean_lccn),
@@ -37,4 +39,4 @@ def add_to_indexes(record):
                 continue
             if clean:
                 v = clean(v)
-            yield f[b], v
+            yield b, v
