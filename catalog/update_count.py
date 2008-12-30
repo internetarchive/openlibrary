@@ -2,6 +2,7 @@ from olwrite import Infogami, add_to_database
 import web, dbhash
 from read_rc import read_rc
 import cjson, re, sys
+from time import time
 
 def commify(n):
     """
@@ -44,12 +45,15 @@ web.config.db_printing = False
 web.ctx.ip = '127.0.0.1'
 web.load()
 
+book_count = count_books()
+open('/home/edward/book_count', 'a').write("%d %d\n" % (time(), book_count))
+
 infogami = Infogami(rc['infogami'])
 infogami.login('edward', rc['edward'])
 
 macro = get_macro()
 re_books = re.compile(r'books = "<strong>[\d,]+</strong>"')
-books = commify(count_books())
+books = commify(book_count)
 macro = re_books.sub('books = "<strong>' + books + '</strong>"', macro)
 
 # full text count is disabled so that the number stays about 1 million
