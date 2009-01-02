@@ -130,3 +130,28 @@ def tidy_isbn(input):
         assert len(i) <= 16
         output.append(i)
     return output
+
+def strip_count(counts):
+    foo = {}
+    for i, j in counts:
+        foo.setdefault(i.rstrip('.'), []).append((i, j))
+    ret = {}
+    for k, v in foo.iteritems():
+        m = max(v, key=lambda x: len(x[1]))[0]
+        bar = []
+        for i, j in v:
+            bar.extend(j)
+        ret[m] = bar
+    return sorted(ret.iteritems(), cmp=lambda x,y: cmp(len(y[1]), len(x[1]) ))
+
+def test_strip_count():
+    input = [
+        ('Side by side', [ u'a', u'b', u'c', u'd' ]),
+        ('Side by side.', [ u'e', u'f', u'g' ]),
+        ('Other.', [ u'h', u'i' ]),
+    ]
+    expect = [
+        ('Side by side', [ u'a', u'b', u'c', u'd', u'e', u'f', u'g' ]),
+        ('Other.', [ u'h', u'i' ]),
+    ]
+    assert strip_count(input) == expect
