@@ -1,6 +1,6 @@
 from catalog.get_ia import *
 from catalog.read_rc import read_rc
-from sources import sources
+from catalog.marc.sources import sources
 from time import time
 from catalog.marc.fast_parse import index_fields
 import dbhash
@@ -8,21 +8,30 @@ import dbhash
 # build an index of ISBN to MARC records
 
 rc = read_rc()
-db = dbhash.open(rc['index_path'] + 'isbn_to_marc.dbm', 'w')
+#db = dbhash.open(rc['index_path'] + 'isbn_to_marc.dbm', 'w')
+oclc_db = dbhash.open(rc['index_path'] + 'oclc.dbm', 'w')
+title_db = dbhash.open(rc['index_path'] + 'title.dbm', 'w')
 
-def add_to_db(isbn, loc):
+def add_to_db(db, isbn, loc):
     if isbn in db:
         db[isbn] += ' ' + loc
     else:
         db[isbn] = loc
 
 def process_record(pos, loc, data):
-    rec = index_fields(data, ['020'])
-    if not rec or 'isbn' not in rec:
+    rec = index_fields(data, ['010'])
+    if not rec:
         return
-    for isbn in rec['isbn']:
+    for isbn in rec.get('oclc', []):
         try:
-            add_to_db(str(isbn), loc)
+            add_to_db(oclc_db, str(isbn), loc)
+        except (KeyboardInterrupt, NameError):
+            raise
+        except:
+            pass
+    for isbn in rec.get('title', []):
+        try:
+            add_to_db(title_db, str(isbn), loc)
         except (KeyboardInterrupt, NameError):
             raise
         except:
@@ -62,4 +71,5 @@ for ia, name in sources():
                 t_prev = time()
             process_record(pos, loc, data)
 
-db.close()
+title_db.close()
+oclc_db.close()

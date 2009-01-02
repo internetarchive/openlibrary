@@ -26,7 +26,11 @@ def build_amazon(edition, authors):
 
     amazon['isbn'] = edition['isbn_10']
     if 'publish_date' in edition:
-        amazon['publish_date'] = amazon_year(edition['publish_date'])
+        try:
+            amazon['publish_date'] = amazon_year(edition['publish_date'])
+        except:
+            print edition['isbn_10'], edition['publish_date']
+            raise
     if authors:
         amazon['authors'] = authors
     else:

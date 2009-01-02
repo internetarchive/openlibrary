@@ -127,7 +127,6 @@ def tidy_isbn(input):
             if all(len(j) in (10, 13) for j in split):
                 output.extend(split)
                 continue
-        assert len(i) <= 16
         output.append(i)
     return output
 

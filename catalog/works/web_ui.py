@@ -14,6 +14,9 @@ site = get_site()
 def isbn_link(i):
     return '<a href="http://wiki-beta.us.archive.org:8081/?isbn=%s">%s</a> (<a href="http://amazon.com/dp/%s">Amazon.com</a>)' % (i, i, i)
 
+def ol_link(key):
+    return '<a href="http://openlibrary.org%s">%s</a></td>' % (key, key)
+
 def search(title, author):
     q = { 'type': '/type/author', 'name': author }
     authors = site.things(q)
@@ -47,7 +50,7 @@ def search(title, author):
 
     pool = set(title_to_key[title.lower()])
 
-    print '<table>'
+    editions = []
     while pool:
         key = pool.pop()
         seen.add(key)
@@ -65,11 +68,14 @@ def search(title, author):
             join_isbn = ', '.join(map(isbn_link, e.isbn_10))
         else:
             join_isbn = ''
-        print '<tr>'
-        print '<td><a href="http://openlibrary.org%s">%s</a></td>' % (key, key)
-        print '<td>', e.publish_date, '</td><td>', ', '.join([p.encode('utf-8') for p in (e.publishers or [])]), '</td>'
-        print '<td>', join_isbn, '</td>'
-        print '</tr>'
+        rec = {
+            'key': key,
+            'publish_date': e.publish_date,
+            'publishers': ', '.join(p.encode('utf-8') for p in (e.publishers or [])),
+            'isbn': join_isbn,
+        }
+        editions.append(rec)
+
         if e.work_titles:
             for t in e.work_titles:
                 t=t.strip('.')
@@ -80,13 +86,24 @@ def search(title, author):
                 t=t.strip('.')
                 pool.update(k for k in title_to_key.get(t.lower(), []) if k not in seen)
                 found_titles.setdefault(t, []).append(key)
+
+    print '<table>'
+    for e in sorted(editions, key=lambda e: e['publish_date'] and e['publish_date'][-4:]):
+        print '<tr>'
+        print '<td>', ol_link(e['key'])
+        print '<td>', e['publish_date'], '</td><td>', e['publishers'], '</td>'
+        print '<td>', e['isbn'], '</td>'
+        print '</tr>'
     print '</table>'
 
     if found_titles:
         print '<h2>Other titles</h2>'
         print '<ul>'
         for k, v in found_titles.iteritems():
-            print '<li><a href="/?title=%s&author=%s">%s</a>' % (k, author, k)
+            if k == title:
+                continue
+            print '<li><a href="/?title=%s&author=%s">%s</a>' % (k, author, k),
+            print 'from', ', '.join(ol_link(i) for i in v)
         print '</ul>'
 
     extra_isbn = {}
@@ -95,13 +112,14 @@ def search(title, author):
             if note.lower().find('audio') != -1:
                 continue
             if isbn not in found_isbn:
-                extra_isbn.setdefault(isbn, []).append(k)
+                extra_isbn.setdefault(isbn, []).extend(v)
 
     if extra_isbn:
         print '<h2>Other ISBN</h2>'
         print '<ul>'
-        for k, v in extra_isbn.iteritems():
-            print '<li>', isbn_link(k)
+        for k in sorted(extra_isbn):
+            print '<li>', isbn_link(k),
+            print 'from', ', '.join(ol_link(i) for i in extra_isbn[k])
         print '</ul>'
 
 urls = (
