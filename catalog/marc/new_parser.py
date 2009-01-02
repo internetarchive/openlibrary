@@ -1,5 +1,5 @@
 from catalog.marc.fast_parse import get_subfields, get_tag_lines, translate, handle_wrapped_lines
-import re
+import re, sys
 from warnings import warn
 from catalog.utils import pick_first_date, tidy_isbn
 
@@ -94,7 +94,9 @@ def read_oclc(fields):
         for k, v in get_subfields(line, ['a']):
             m = re_oclc.match(v)
             if m:
-                found.append(m.group(1))
+                oclc = m.group(1)
+                if oclc not in found:
+                    found.append(oclc)
     return {'oclc_number': found } if found else {}
 
 def get_contents(line, want):
@@ -532,3 +534,7 @@ def test_read_isbn():
         ret = read_isbn({'020': ['  \x1fa' + input + '\x1e']})
         assert 'isbn_10' in ret
         assert ret['isbn_10'] == expect
+
+def test_double_oclc():
+    data = open('test_data/1972montanaeconomicindivo1no2montrich_meta.mrc').read()
+    assert read_edition('', data)['oclc_number'] == [u'3231315']

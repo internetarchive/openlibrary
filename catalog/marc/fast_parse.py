@@ -386,3 +386,6 @@ def test_translate():
 
 def test_record():
     assert read_edition(open('test_data/lc_0444897283').read())
+
+def test_empty():
+    assert read_edition('') == {}
