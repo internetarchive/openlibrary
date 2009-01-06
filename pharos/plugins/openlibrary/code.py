@@ -334,7 +334,32 @@ class change_cover(delegate.mode):
         if page is None or page.type.key not in  ['/type/edition', '/type/author']:
             return web.seeother(key)
         return render.change_cover(page)
-        
+
+class bookpage(delegate.page):
+    path = r"/(isbn|oclc|lccn|ISBN|OCLC|LCCN)/([^.]*)(\.rdf|\.json|)"
+
+    def GET(self, key, value, ext=None):
+        key = key.lower()
+        if key == "isbn":
+            if len(value) == 13:
+                key = "isbn_13"
+            else:
+                key = "isbn_10"
+        elif key == "oclc":
+            key = "oclc_numbers"
+
+        value = value.replace('_', ' ')
+
+        q = {"type": "/type/edition", key: value}
+        try:
+            result = web.ctx.site.things(q)
+            if result:
+                return web.seeother(result[0] + ext)
+            else:
+                return web.notfound()
+        except:
+            return web.notfound()
+
 class create:
     """API hook for creating books and authors."""
     def POST(self):
