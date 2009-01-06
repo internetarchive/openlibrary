@@ -360,6 +360,22 @@ class bookpage(delegate.page):
         except:
             return web.notfound()
 
+class rdf(delegate.page):
+    path = r"(.*)\.rdf"
+
+    def GET(self, key):
+        page = web.ctx.site.get(key)
+        if not page:
+            return web.notfound()
+        else:
+            from infogami.utils import template
+
+            try:
+                result = template.typetemplate('rdf')(page)
+            except:
+                return web.notfound()
+            raise web.HTTPError("200 OK", {}, result)
+
 class create:
     """API hook for creating books and authors."""
     def POST(self):
