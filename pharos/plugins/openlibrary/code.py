@@ -162,7 +162,7 @@ class clonebook(delegate.page):
         i = web.input("key")
         page = web.ctx.site.get(i.key)
         if page is None:
-            web.seeother(i.key)
+            raise web.seeother(i.key)
         else:
             d =page._getdata()
             for k in ['isbn_10', 'isbn_13', 'lccn', "oclc"]:
@@ -279,7 +279,7 @@ class flipbook(delegate.page):
             server, path = self.find_location_from_archive(identifier)
 
         if  not server:
-            return web.notfound()
+            raise web.notfound()
         else:
             title = identifier
             
@@ -327,13 +327,13 @@ class robotstxt(delegate.page):
         try:
             print open('static/robots.txt').read()
         except:
-            return web.notfound()
+            raise web.notfound()
 
 class change_cover(delegate.mode):
     def GET(self, key):
         page = web.ctx.site.get(key)
         if page is None or page.type.key not in  ['/type/edition', '/type/author']:
-            return web.seeother(key)
+            raise web.seeother(key)
         return render.change_cover(page)
 
 class bookpage(delegate.page):
@@ -355,11 +355,11 @@ class bookpage(delegate.page):
         try:
             result = web.ctx.site.things(q)
             if result:
-                return web.seeother(result[0] + ext)
+                raise web.seeother(result[0] + ext)
             else:
-                return web.notfound()
+                raise web.notfound()
         except:
-            return web.notfound()
+            raise web.notfound()
 
 class rdf(delegate.page):
     path = r"(.*)\.rdf"
@@ -367,14 +367,14 @@ class rdf(delegate.page):
     def GET(self, key):
         page = web.ctx.site.get(key)
         if not page:
-            return web.notfound()
+            raise web.notfound()
         else:
             from infogami.utils import template
 
             try:
                 result = template.typetemplate('rdf')(page)
             except:
-                return web.notfound()
+                raise web.notfound()
             raise web.HTTPError("200 OK", {}, result)
 
 class create:
