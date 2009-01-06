@@ -355,7 +355,6 @@ class search_api:
 # add search API if api plugin is enabled.
 if 'api' in delegate.get_plugins():
     from infogami.plugins.api import code as api
-    print "*** adding search api hook"
     api.add_hook('search', search_api)
 
 if __name__ == '__main__':
