@@ -47,7 +47,8 @@ class fullsearch(delegate.page):
 
         i = web.input(q = None,
                       rows = 20,
-                      offset = 0,
+                      offset = 0, 
+                      _unicode=False
                       )
 
         class Result_nums: pass
@@ -113,6 +114,7 @@ class search(delegate.page):
                       pfulltext='',
                       ftokens=[],
                       q='',
+                      _unicode=False
                       )
         timings = Timestamp()
         results = []
@@ -294,7 +296,8 @@ class search_api:
                       offset = 0,
                       format = None,
                       callback = None,
-                      prettyprint=False)
+                      prettyprint=False,
+                      _unicode=False)
 
         offset = int(i.get('offset', '0') or 0)
         rows = int(i.get('rows', '0') or 20)
