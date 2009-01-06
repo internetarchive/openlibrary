@@ -71,15 +71,16 @@ def sampledump():
 
     keys = [
         '/', 
+        '/RecentChanges',
         '/index.*', 
         '/about*', 
         '/dev*', 
-        '/templates*', 
-        '/macros*', 
+        {'type': '/type/template', 'key~': '/templates*'},
+        {'type': '/type/macro', 'key~': '/macros*'},
         {'type': '/type/type'}, 
-        {'type': '/type/edition', 'sort': 'created', 'limit': 1000}
+        {'type': '/type/scan_record', 'limit': 10},
     ]
-    keys = expand_keys(keys)
+    keys = expand_keys(keys) + ['/b/OL%dM' % i for i in range(1, 101)]
     visited = set()
 
     for k in keys:
