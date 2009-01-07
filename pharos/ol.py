@@ -42,7 +42,7 @@ def save_error(dir, prefix):
             now.year, now.month, now.day, prefix,
             now.hour, now.minute, now.second, now.microsecond)
         print >> web.debug, 'Error saved to', path
-        write(path, error)
+        write(path, web.safestr(error))
     except:
         import traceback
         traceback.print_exc()

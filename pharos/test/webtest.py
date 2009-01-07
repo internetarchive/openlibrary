@@ -17,6 +17,8 @@ class Browser(web.Browser):
             self.url = sys.argv[1 + sys.argv.index('--url')]
         elif '--staging' in sys.argv:
             self.url = 'http://openlibrary.org:8080/'
+        elif '--local' in sys.argv:
+            self.url = 'http://0.0.0.0:8080'
         else:
             self.url = 'http://openlibrary.org/'
 

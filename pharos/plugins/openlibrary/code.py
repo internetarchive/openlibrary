@@ -71,15 +71,16 @@ def sampledump():
 
     keys = [
         '/', 
+        '/RecentChanges',
         '/index.*', 
         '/about*', 
         '/dev*', 
-        '/templates*', 
-        '/macros*', 
+        {'type': '/type/template', 'key~': '/templates*'},
+        {'type': '/type/macro', 'key~': '/macros*'},
         {'type': '/type/type'}, 
-        {'type': '/type/edition', 'sort': 'created', 'limit': 1000}
+        {'type': '/type/scan_record', 'limit': 10},
     ]
-    keys = expand_keys(keys)
+    keys = expand_keys(keys) + ['/b/OL%dM' % i for i in range(1, 101)]
     visited = set()
 
     for k in keys:
@@ -334,7 +335,48 @@ class change_cover(delegate.mode):
         if page is None or page.type.key not in  ['/type/edition', '/type/author']:
             return web.seeother(key)
         return render.change_cover(page)
-        
+
+class bookpage(delegate.page):
+    path = r"/(isbn|oclc|lccn|ISBN|OCLC|LCCN)/([^.]*)(\.rdf|\.json|)"
+
+    def GET(self, key, value, ext=None):
+        key = key.lower()
+        if key == "isbn":
+            if len(value) == 13:
+                key = "isbn_13"
+            else:
+                key = "isbn_10"
+        elif key == "oclc":
+            key = "oclc_numbers"
+
+        value = value.replace('_', ' ')
+
+        q = {"type": "/type/edition", key: value}
+        try:
+            result = web.ctx.site.things(q)
+            if result:
+                return web.seeother(result[0] + ext)
+            else:
+                return web.notfound()
+        except:
+            return web.notfound()
+
+class rdf(delegate.page):
+    path = r"(.*)\.rdf"
+
+    def GET(self, key):
+        page = web.ctx.site.get(key)
+        if not page:
+            return web.notfound()
+        else:
+            from infogami.utils import template
+
+            try:
+                result = template.typetemplate('rdf')(page)
+            except:
+                return web.notfound()
+            raise web.HTTPError("200 OK", {}, result)
+
 class create:
     """API hook for creating books and authors."""
     def POST(self):
