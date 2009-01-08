@@ -110,6 +110,8 @@ def compare_author_fields(e1_authors, e2_authors):
         for j in e2_authors:
             if normalize(i['db_name']) == normalize(j['db_name']):
                 return True
+            if normalize(i['name']).strip('.') == normalize(j['name']).strip('.'):
+                return True
     return False
 
 def compare_author_keywords(e1_authors, e2_authors):
