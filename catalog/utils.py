@@ -133,7 +133,7 @@ def tidy_isbn(input):
 def strip_count(counts):
     foo = {}
     for i, j in counts:
-        foo.setdefault(i.rstrip('.'), []).append((i, j))
+        foo.setdefault(i.rstrip('.').lower() if isinstance(i, basestring) else i, []).append((i, j))
     ret = {}
     for k, v in foo.iteritems():
         m = max(v, key=lambda x: len(x[1]))[0]

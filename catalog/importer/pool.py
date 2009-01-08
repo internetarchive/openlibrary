@@ -3,7 +3,7 @@ import cjson, web
 from catalog.merge.merge_index import add_to_indexes
 
 # need to use multiple databases
-# use psycopg2 to until open library is upgraded to web 3.0
+# use psycopg2 until open library is upgraded to web 3.0
 
 import psycopg2
 from catalog.read_rc import read_rc
