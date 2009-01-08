@@ -13,7 +13,7 @@ infogami.login('EdwardBot', rc['EdwardBot'])
 re_marc_name = re.compile('^(.*), (.*)$')
 re_end_dot = re.compile('[^ ][^ ]\.$', re.UNICODE)
 
-out = open('author_replace', 'w')
+out = open('author_replace3', 'w')
 
 # find books with matching ISBN and fix them to use better author record
 
@@ -35,6 +35,8 @@ author_fields = ('key', 'name', 'title', 'birth_date', 'death_date', 'personal_n
 sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
 for line in open('dups'):
     isbn, num = eval(line)
+    if isbn < '0273314165':
+        continue
     cur.execute('select key from isbn where value=%(v)s', {'v':isbn})
     found = []
     names = {}
@@ -42,8 +44,10 @@ for line in open('dups'):
         key = i[0]
         e = site.withKey(key)
         author_list = e.authors or []
-        authors = [dict(((k, v) for k, v in a._get_data().items() if k in author_fields)) for a in author_list]
+        authors = [dict(((k, v) for k, v in a._get_data().items() if k in author_fields)) for a in author_list if a]
         for a in authors:
+            if 'name' not in a:
+                continue
             name = a['name']
             if name.find(', ') != -1:
                 name = flip_name(name)
