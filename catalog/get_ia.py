@@ -61,6 +61,9 @@ def get_ia(ia):
             return loc, read_xml.read_edition(f)
         except read_xml.BadXML:
             pass
+        except xml.parsers.expat.ExpatError:
+            print 'XML parse error:', base + loc
+            pass
     url = base + ia + "/" + ia + "_meta.mrc"
     f = urlopen_keep_trying(url)
     if not f:
@@ -68,7 +71,17 @@ def get_ia(ia):
     data = f.read()
     length = data[0:5]
     loc = ia + "/" + ia + "_meta.mrc:0:" + length
-    return ia, fast_parse.read_edition(data, accept_electronic = True)
+    if len(data) == 0:
+        print 'zero length MARC for', url
+        return None, None
+    if data.startswith('<html><head>\n <title>Internet Archive: Error</title>\n'):
+        print 'internet archive error for', url
+        return None, None
+    try:
+        return ia, fast_parse.read_edition(data, accept_electronic = True)
+    except (ValueError, AssertionError):
+        print `data`
+        raise
 
 def files(archive_id):
     url = base + archive_id + "/" + archive_id + "_files.xml"
