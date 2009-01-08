@@ -1,9 +1,11 @@
 import web, re
+from time import time
 from catalog.read_rc import read_rc
 from catalog.infostore import get_site
 #from catalog.db_read import get_things, withKey
 from pprint import pprint
 from catalog.amazon.other_editions import find_others
+from catalog.merge.normalize import normalize
 
 rc = read_rc()
 
@@ -17,52 +19,60 @@ def isbn_link(i):
 def ol_link(key):
     return '<a href="http://openlibrary.org%s">%s</a></td>' % (key, key)
 
-def search(title, author):
-    q = { 'type': '/type/author', 'name': author }
-    authors = site.things(q)
-    seen = set()
-    pool = set()
-#    for a in authors:
-#        q = { 'type': '/type/edition', 'authors': a, 'title': title }
-#        pool.update(site.things(q))
-    found_titles = {}
-    found_isbn = {}
-    author_keys = ','.join("'%s'" % a for a in authors)
+def get_author_keys(name):
+    authors = site.things({ 'type': '/type/author', 'name': name })
+    if authors:
+        return ','.join("'%s'" % a for a in authors)
+    else:
+        return None
 
-    iter = web.query("select id, key from thing where thing.id in (select thing_id from edition_ref, thing where edition_ref.key_id=11 and edition_ref.value = thing.id and thing.key in (" + author_keys + "))")
-    key_to_id = {}
-    id_to_key = {}
-    for row in iter:
-        key_to_id[row.key] = row.id
-        id_to_key[row.id] = row.key
+def get_title_to_key(author):
+    # get id to key mapping of all editions by author
+    author_keys = get_author_keys(author)
+    if not author_keys:
+        return {}
 
-    iter = web.query("select thing_id, edition_str.value as title from edition_str where key_id=3 and thing_id in (select thing_id from edition_ref, thing where edition_ref.key_id=11 and edition_ref.value = thing.id and thing.key in (" + author_keys + "))")
-    id_to_title = {}
+    # get title to key mapping of all editions by author
+    t0 = time()
+    sql = "select key, value as title from thing, edition_str " \
+        + "where thing.id = thing_id and key_id=3 and thing_id in (" \
+        + "select thing_id from edition_ref, thing " \
+        + "where edition_ref.key_id=11 and edition_ref.value = thing.id and thing.key in (" + author_keys + "))"
+    print sql
+    return {}
     title_to_key = {}
-    for row in iter:
-        t = row.title.lower().strip('.')
-        id_to_title[row.thing_id] = row.title
-        title_to_key.setdefault(t, []).append(id_to_key[row.thing_id])
+    for r in web.query(sql):
+        t = normalize(r.title).strip('.')
+        title_to_key.setdefault(t, []).append(r.key)
+    return title_to_key
 
-    if title.lower() not in title_to_key:
+def search(title, author):
+
+    title_to_key = get_title_to_key(author)
+    norm_title = normalize(title).strip('.')
+
+    if norm_title not in title_to_key:
         print 'title not found'
         return
 
-    pool = set(title_to_key[title.lower()])
+    pool = set(title_to_key[norm_title])
 
     editions = []
+    seen = set()
+    found_titles = {}
+    found_isbn = {}
     while pool:
         key = pool.pop()
         seen.add(key)
         e = site.withKey(key)
         translation_of = None
-        if e.notes:
+        if False and e.notes:
             m = re_translation_of.search(e.notes)
             if m:
                 translation_of = m.group(1).lower()
                 pool.update(k for k in title_to_key[translation_of] if k not in seen)
                 found_titles.setdefault(translation_of, []).append(key)
-        if e.isbn_10:
+        if False and e.isbn_10:
             for i in e.isbn_10:
                 found_isbn.setdefault(i, []).append(key)
             join_isbn = ', '.join(map(isbn_link, e.isbn_10))
