@@ -1,7 +1,8 @@
+# coding=utf-8
 from catalog.get_ia import read_marc_file
 from catalog.read_rc import read_rc
 from time import time
-from catalog.marc.fast_parse import index_fields, get_tag_lines
+from catalog.marc.fast_parse import index_fields, get_tag_lines, get_first_tag, get_all_subfields
 import web, os, os.path, re, sys
 
 titles = [ "Accolade", "Adi", "Aetheling", "Aga Khan", "Ajaw", "Ali'i", 
@@ -32,15 +33,29 @@ web.load()
 def sources():
     return ((i.id, i.archive_id, i.name) for i in web.select('marc_source'))
 
-def process_record(pos, loc, data, file_id):
-    line = get_first_tag(data, set(['100', '110', '111']))
-    print list(get_all_subfields(line))
-    line = get_first_tag(data, set(['700', '710', '711']))
-    print list(get_all_subfields(line))
+def process_record(pos, loc, data):
+    for tag in '100', '700':
+        line = get_first_tag(data, set([tag]))
+        if line:
+            fields = list(get_all_subfields(line))
+            if any(k == 'c' for k, v in fields):
+                print (loc, fields)
+
+def files(ia):
+    endings = ['.mrc', '.marc', '.out', '.dat', '.records.utf8']
+    def good(filename):
+        return any(filename.endswith(e) for e in endings)
+
+    dir = rc['marc_path'] + ia
+    dir_len = len(dir) + 1
+    files = []
+    for dirpath, dirnames, filenames in os.walk(dir):
+        files.extend(dirpath + "/" + f for f in sorted(filenames))
+    return [(i[dir_len:], os.path.getsize(i)) for i in files if good(i)]
+
+rec_no = 0
 
 for source_id, ia, name in sources():
-    print
-    print source_id, ia, name
     for part, size in files(ia):
         full_part = ia + "/" + part
         filename = rc['marc_path'] + full_part
