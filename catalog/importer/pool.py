@@ -49,7 +49,8 @@ def update(key, q):
             print (key, field, value)
             print seen
             print q
-        assert (field, value) not in seen
+        if (field, value) in seen:
+            continue
         seen.add((field, value))
 #        cur.execute('select * from ' + field + ' where key=%(key)s and value=%(value)s', vars)
 #        if len(cur.fetchall()) != 0:
