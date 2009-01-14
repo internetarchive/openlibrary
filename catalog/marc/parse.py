@@ -403,7 +403,9 @@ def find_oclc(r, edition):
         for a in f.contents['a']:
             m = re_oclc.match(f.contents['a'][0])
             if m:
-                oclc.append(m.group(1))
+                v = m.group(1)
+                if v not in oclc:
+                    oclc.append(v)
     if oclc:
         edition['oclc_numbers'] = oclc
 

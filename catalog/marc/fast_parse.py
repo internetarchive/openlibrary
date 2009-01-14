@@ -236,7 +236,7 @@ def read_oclc(line):
     return found
 
 def read_publisher(line):
-    return [v.strip(' /,;:') for k, v in get_subfields(line, ['b'])]
+    return [i for i in (v.strip(' /,;:') for k, v in get_subfields(line, ['b'])) if i]
 
 def read_author_org(line):
     name = " ".join(v.strip(' /,;:') for k, v in get_subfields(line, ['a', 'b']))
@@ -328,8 +328,9 @@ def read_edition(data, accept_electronic = False):
             if not accept_electronic and line[0] == 'm':
                 return None
             continue
-        if tag == '008':
-            edition['publish_date'] = line[7:11]
+        if tag == '008': # not interested in '19uu' for merge
+            if line[7].isdigit(): 
+                edition['publish_date'] = line[7:11]
             edition['publish_country'] = line[15:18]
             continue
         for t, proc, key in read_tag:
