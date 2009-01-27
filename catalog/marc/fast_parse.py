@@ -5,8 +5,10 @@ from pymarc import MARC8ToUnicode
 import catalog.marc.mnemonics as mnemonics
 from unicodedata import normalize
 from catalog.utils import tidy_isbn
+import sys, codecs
 
 marc8 = MARC8ToUnicode(quiet=True)
+
 
 def translate(data):
     data = mnemonics.read(data)
@@ -97,7 +99,7 @@ def read_full_title(line, accept_sound = False):
     return ' '.join([t for t in title if t])
 
 def read_short_title(line):
-    title = normalize_str(read_full_title(line))[:25]
+    title = normalize_str(read_full_title(line))[:25].rstrip()
     if title:
         return [title]
     else:
@@ -164,6 +166,16 @@ def get_tag_line(data, line):
         if tag_line[1:8] == '{llig}\x1f':
             tag_line = tag_line[0] + u'\uFE20' + tag_line[7:]
     return tag_line
+
+re_dates = re.compile('^\(?(\d+-\d*|\d*-\d+)\)?$')
+
+def get_person_content(line):
+    contents = {}
+    for k, v in get_subfields(line, ['a', 'b', 'c', 'd', 'q']):
+        if k != 'd' and re_dates.match(v): # wrong subtag
+            k = 'd'
+        contents.setdefault(k, []).append(v)
+    return contents
 
 def get_contents(line, want):
     contents = {}
@@ -329,7 +341,8 @@ def read_edition(data, accept_electronic = False):
                 return None
             continue
         if tag == '008': # not interested in '19uu' for merge
-            if line[7].isdigit(): 
+            #assert len(line) == 41 usually
+            if line[7:11].isdigit(): 
                 edition['publish_date'] = line[7:11]
             edition['publish_country'] = line[15:18]
             continue
@@ -373,6 +386,31 @@ def handle_wrapped_lines(iter):
         yield t, l
     assert not cur_lines
 
+def split_line(s):
+    pos = -1
+    marks = []
+    while 1:
+        pos = s.find('\x1f', pos + 1)
+        if pos == -1:
+            break
+        marks.append(pos)
+    if not marks:
+        return [('v', s)]
+
+    ret = []
+    if s[:marks[0]]:
+        ret.append(('v', s[:marks[0]]))
+    for i in range(len(marks)):
+        m = marks[i]
+        ret.append(('k', s[m+1:m+2]))
+        if len(marks) == i+1:
+            if s[m+2:]:
+                ret.append(('v', s[m+2:]))
+        else:
+            if s[m+2:marks[i+1]]:
+                ret.append(('v', s[m+2:marks[i+1]]))
+    return ret
+
 def test_wrapped_lines():
     data = open('test_data/wrapped_lines').read()
     ret = list(handle_wrapped_lines(get_tag_lines(data, ['520'])))
@@ -390,3 +428,4 @@ def test_record():
 
 def test_empty():
     assert read_edition('') == {}
+
