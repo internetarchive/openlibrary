@@ -16,7 +16,7 @@ archive_url = "http://archive.org/download/"
 rc = read_rc()
 
 infogami = Infogami('pharosdb.us.archive.org:7070')
-infogami.login('ImportBot', rc['eephae6D'])
+infogami.login('ImportBot', rc['ImportBot'])
 
 conn = MySQLdb.connect(host=rc['ia_db_host'], user=rc['ia_db_user'], \
         passwd=rc['ia_db_pass'], db='archive')
