@@ -1,11 +1,15 @@
 import xml.etree.ElementTree as et
 import xml.parsers.expat
 from parse import read_edition
+from unicodedata import normalize
 
 data_tag = '{http://www.loc.gov/MARC21/slim}datafield'
 control_tag = '{http://www.loc.gov/MARC21/slim}controlfield'
 subfield_tag = '{http://www.loc.gov/MARC21/slim}subfield'
 leader_tag = '{http://www.loc.gov/MARC21/slim}leader'
+
+def norm(s):
+    return normalize('NFC', s)
 
 class BadSubtag:
     pass
@@ -19,7 +23,7 @@ class datafield:
         self.indicator2 = element.attrib['ind2']
         for i in element:
             assert i.tag == subfield_tag
-            text = i.text if i.text else ''
+            text = norm(i.text) if i.text else u''
             if i.attrib['code'] == '':
                 raise BadSubtag
             self.contents.setdefault(i.attrib['code'], []).append(text)
@@ -40,7 +44,7 @@ class xml_rec:
     def leader(self):
         leader = self.tree.getroot()[0]
         assert leader.tag == leader_tag
-        return leader.text
+        return norm(leader.text)
 
     def fields(self):
         return self.dataFields.keys()
@@ -51,7 +55,7 @@ class xml_rec:
         assert len(self.dataFields[tag]) == 1
         element = self.dataFields[tag][0]
         if element.tag == control_tag:
-            return element.text if element.text else ''
+            return norm(element.text) if element.text else u''
         if element.tag == data_tag:
             return datafield(element)
         return default
@@ -60,7 +64,7 @@ class xml_rec:
         if tag not in self.dataFields:
             return []
         if self.dataFields[tag][0].tag == control_tag:
-            return [i.text if i.text else '' for i in self.dataFields[tag]]
+            return [norm(i.text) if i.text else u'' for i in self.dataFields[tag]]
         if self.dataFields[tag][0].tag == data_tag:
             return [datafield(i) for i in self.dataFields[tag]]
         return []
