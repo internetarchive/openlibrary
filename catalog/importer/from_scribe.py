@@ -3,6 +3,7 @@ from catalog.read_rc import read_rc
 import catalog.marc.fast_parse as fast_parse
 import catalog.marc.parse_xml as parse_xml
 from lang import add_lang
+from olwrite import Infogami
 from load import build_query
 from merge import try_merge
 from db_read import get_things
