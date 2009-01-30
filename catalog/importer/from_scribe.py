@@ -2,6 +2,7 @@ import MySQLdb
 from catalog.read_rc import read_rc
 import catalog.marc.fast_parse as fast_parse
 import catalog.marc.parse_xml as parse_xml
+from time import time
 from lang import add_lang
 from olwrite import Infogami
 from load import build_query
@@ -9,14 +10,14 @@ from merge import try_merge
 from db_read import get_things
 from catalog.get_ia import get_ia, urlopen_keep_trying
 from catalog.merge.merge_marc import build_marc
-import pool
+import pool, sys
 
 archive_url = "http://archive.org/download/"
 
 rc = read_rc()
 
 infogami = Infogami('pharosdb.us.archive.org:7070')
-infogami.login('ImportBot', rc['eephae6D'])
+infogami.login('ImportBot', rc['ImportBot'])
 
 conn = MySQLdb.connect(host=rc['ia_db_host'], user=rc['ia_db_user'], \
         passwd=rc['ia_db_pass'], db='archive')
@@ -57,7 +58,8 @@ def write_edition(loc, edition):
 def load():
     global rec_no, t_prev
     skipping = False
-    cur.execute("select identifier from metadata where collection='%(c)s'", {'c': collection})
+    cur.execute("select identifier from metadata where collection=%(c)s", {'c': collection})
+    #for ia in ['nybc200715']:
     for ia, in cur.fetchall():
         rec_no += 1
         if rec_no % chunk == 0:
@@ -72,7 +74,6 @@ def load():
             hours = sec / 3600
             print "%6.3f hours" % hours
 
-        ia = line[:-1]
         print ia
         if get_things({'type': '/type/edition', 'ocaid': ia}):
             print 'already loaded'

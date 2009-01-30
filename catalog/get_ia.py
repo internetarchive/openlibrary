@@ -21,6 +21,7 @@ def urlopen_keep_trying(url):
             f = urllib2.urlopen(url)
         except urllib2.HTTPError, error:
             if error.code == 404:
+                print "404 for '%s'" % url
                 raise
             pass
         except urllib2.URLError:
@@ -52,20 +53,25 @@ def get_ia(ia):
     # if there is a problem with the XML switch to the binary MARC
     xml_file = ia + "_marc.xml"
     loc = ia + "/" + xml_file
-    if os.path.exists(xml_path + xml_file):
-        f = open(xml_path + xml_file)
-    else:
-        f = urlopen_keep_trying(base + loc)
-    if f:
-        try:
-            return loc, read_xml.read_edition(f)
-        except read_xml.BadXML:
-            pass
-        except xml.parsers.expat.ExpatError:
-            print 'XML parse error:', base + loc
-            pass
+    for attempt in range(3):
+        if os.path.exists(xml_path + xml_file):
+            f = open(xml_path + xml_file)
+        else:
+            f = urlopen_keep_trying(base + loc)
+        if f:
+            try:
+                return loc, read_xml.read_edition(f)
+            except read_xml.BadXML:
+                pass
+            except xml.parsers.expat.ExpatError:
+                print 'XML parse error:', base + loc
+                pass
+        sleep(2)
     url = base + ia + "/" + ia + "_meta.mrc"
-    f = urlopen_keep_trying(url)
+    try:
+        f = urlopen_keep_trying(url)
+    except urllib2.URLError:
+        pass
     if not f:
         return None, None
     data = f.read()

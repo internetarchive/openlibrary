@@ -9,7 +9,7 @@ subfield_tag = '{http://www.loc.gov/MARC21/slim}subfield'
 leader_tag = '{http://www.loc.gov/MARC21/slim}leader'
 
 def norm(s):
-    return normalize('NFC', s)
+    return normalize('NFC', unicode(s))
 
 class BadSubtag:
     pass
