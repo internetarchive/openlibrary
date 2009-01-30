@@ -7,11 +7,11 @@ from catalog.read_rc import read_rc
 from time import sleep
 from subprocess import Popen, PIPE
 
-rc = read_rc()
-
 base = "http://archive.org/download/"
 
 xml_path = '/home/edward/get_new_books/xml'
+
+rc = None
 
 re_loc = re.compile('^(ia\d+\.us\.archive\.org):(/\d/items/(.*))$')
 
@@ -108,6 +108,9 @@ def files(archive_id):
                 yield name, None
 
 def get_data(loc):
+    global rc
+    if not rc:
+        rc = read_rc()
     try:
         filename, p, l = loc.split(':')
     except ValueError:
