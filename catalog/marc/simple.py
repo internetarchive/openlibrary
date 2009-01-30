@@ -1,16 +1,17 @@
 #!/usr/bin/python2.5
 from catalog.marc.fast_parse import *
-import sys
+import sys, codecs, re
 from getopt import getopt
-import re
 
-re_subtag = re.compile('\x1f(.?)')
+sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
+
+re_subtag = re.compile('\x1f(.)([^\x1f]*)')
 
 def fmt_subfields(line):
     def bold(s):
         return ''.join(c + "\b" + c for c in s)
     assert line[-1] == '\x1e'
-    return re_subtag.sub(lambda m: " " + bold("$%s" % m.group(1)), line[2:-1])
+    return ''.join(bold("$" + m.group(1)) + translate(m.group(2)) for m in re_subtag.finditer(line[2:-1]))
 
 show_non_books = False
 verbose = False
@@ -39,13 +40,13 @@ def show_book(data):
         if tag.startswith('00'):
             print tag, line[:-1]
         else:
-            print tag, line[0:2] + fmt_subfields(line)
+            print tag, line[0:2], fmt_subfields(line)
 
 total, sound_rec, not_book, book = 0, 0, 0, 0
 for data, length in read_file(open(files[0])):
     total += 1
-#    if show_field:
-#        get_first_tag(data, set([show_field]))
+    if show_field:
+        get_first_tag(data, set([show_field]))
     if verbose:
         show_book(data)
         print
