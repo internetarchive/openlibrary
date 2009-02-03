@@ -19,14 +19,14 @@ $add_javascript("/static/js/jquery/freebase.suggest.js")
 
 <script type="text/javascript">
 <!--
-    function new_author(name) {
+    function new_author(name, id) {
         \$.post(
             '/addauthor', 
             {name: name}, 
             function(data, status) {
                 if (status == "success") {
-                    \$(document.getElementById("key_$name")).attr("value", data);
-                    \$(document.getElementById("saved_name_$name")).attr("value", name);
+                    \$(document.getElementById("key_" + id)).attr("value", data);
+                    \$(document.getElementById("saved_name_" + id)).attr("value", name);
                      alert("Author added.");
                 }
                 else {
@@ -39,6 +39,14 @@ $add_javascript("/static/js/jquery/freebase.suggest.js")
     
     function setup_freebase_suggest(e) {
         var name = \$(e).attr("ac_name");
+        var elem = document.getElementById("name_" + name);
+
+        // For some reason, this function is getting called twice. Hack to stop that.
+        if (\$(elem).attr("xxx_name") == name)
+            return;
+        else 
+            \$(elem).attr("xxx_name", name);
+
         \$(document.getElementById("name_" + name))
             .freebaseSuggest({
                 soft: false, 
@@ -53,7 +61,8 @@ $add_javascript("/static/js/jquery/freebase.suggest.js")
                 \$(document.getElementById("saved_name_" + name)).attr("value", data.name);
             })
             .bind("fb-select-new", function(e, data) {
-                new_author(data.name);
+                var name = \$(this).attr("ac_name");
+                new_author(data.name, name);
             })
             .bind("change", function() {
                 var name = \$(this).attr("ac_name");
