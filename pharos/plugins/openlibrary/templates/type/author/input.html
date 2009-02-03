@@ -1,6 +1,8 @@
-$def with (author, name)
+$def with (author, property)
 
-$ _t = _.get_namespace('/type/edition')
+$ name = property.name
+
+$ _t = i18n.get_namespace('/type/edition')
 
 $add_stylesheet("/static/css/freebase-controls.css")
 $add_javascript("/static/js/jquery/freebase.suggest.js")
@@ -10,13 +12,10 @@ $add_javascript("/static/js/jquery/freebase.suggest.js")
 <input id="saved_name_$name" type="hidden" name="_saved_name_$name" value="$author.name"/>
 
 <div class="fberror" style="display: none;">
-    <div class="fberror">$_t.author_dropdown</div><br>
-<span id="hideerror"></div>
+    <div>$_t.author_dropdown</div><br/>
+    <span id="hideerror"></span>
 </div>
 
-<div id="msg">
-
-</div>
 
 <script type="text/javascript">
 <!--
@@ -66,15 +65,15 @@ $add_javascript("/static/js/jquery/freebase.suggest.js")
 
         \$(document.getElementById('key_' + name)).parents('form')
             .bind("submit", function(e, data) {
-                var v1 = \$(document.getElementById("saved_name" + name)).val();
+                var v1 = \$(document.getElementById("saved_name_" + name)).val();
                 var v2 = \$(document.getElementById("name_" + name)).val();
 
                 if (v1 != v2) {
-                    \$(document.getElementById(".fberror", \$(document.getElementById("name_" + name)).parent())).show()
+                    \$(".fberror", \$(document.getElementById("name_" + name)).parent()).show()
                     \$(document.getElementById("name_" + name)).focus();
                     return false;
                 }
-                return True;
+                return true;
             });
     }
 

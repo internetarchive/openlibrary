@@ -1,11 +1,13 @@
 [
     {
         'key': '/type/author',
-        'type': '/type/type'
+        'type': '/type/type',
+        'kind': 'regular'
     }, 
     {
         'key': '/type/language',
         'type': '/type/type',
+        'kind': 'regular',
         'properties': [
             property('name', '/type/string', True),
             property('code', '/type/string', True),
@@ -14,6 +16,7 @@
     {
         'key': '/type/edition',
         'type': '/type/type',
+        'kind': 'regular',
         'properties': [
             property('title', '/type/string', True),
             property('title_prefix', '/type/string', True),
@@ -59,6 +62,7 @@
     {
         'key': '/type/author',
         'type': '/type/type',
+        'kind': 'regular',
         'properties': [
             property('name', '/type/string', True),
             property('alternate_names', '/type/string', False),

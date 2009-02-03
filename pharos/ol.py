@@ -56,6 +56,10 @@ class ConnectionProcessor:
             return self.get(super, sitename, data)
         elif path == '/write':
             return self.write(super, sitename, data)
+        elif path == '/save':
+            return self.save(super, sitename, data)
+        elif path == '/save_many':
+            return self.save_many(super, sitename, data)
         else:
             return super.request(sitename, path, method, data)
             
@@ -64,6 +68,12 @@ class ConnectionProcessor:
         
     def write(self, super, sitename, data):
         return super.write(sitename, data)
+
+    def save(self, super, sitename, data):
+        return super.save(sitename, data)
+
+    def save_many(self, super, sitename, data):
+        return super.save_many(sitename, data)
         
 class CacheProcessor(ConnectionProcessor):
     """Connection Processor to provide local cache."""
@@ -98,6 +108,27 @@ class CacheProcessor(ConnectionProcessor):
             self.cache.delete_many(keys)
 
         return response_str
+
+    def save(self, super, sitename, data):
+        import simplejson
+        response_str = super.save(sitename, data)
+        response = simplejson.loads(response_str)
+        if response['status'] == 'ok':
+            result = response['result']
+            if result:
+                self.cache.delete(result['key'])
+
+        return response_str
+
+    def save_many(self, super, sitename, data):
+        import simplejson
+        response_str = super.save_many(sitename, data)
+        response = simplejson.loads(response_str)
+        if response['status'] == 'ok':
+            result = response['result']
+            keys = [r['key'] for r in result]
+            self.cache.delete_many(keys)
+        return response_str
         
     def cachable(self, key):
         """Tests if key is cacheable."""
@@ -128,6 +159,12 @@ class ConnectionProxy(client.Connection):
 
             def write(self, sitename, data):
                 return conn.request(sitename, '/write', 'POST', data=data)
+
+            def save(self, sitename, data):
+                return conn.request(sitename, '/save', 'POST', data=data)
+
+            def save_many(self, sitename, data):
+                return conn.request(sitename, '/save_many', 'POST', data=data)
                 
         conn = self.conn
         super = Super()

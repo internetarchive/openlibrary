@@ -6,7 +6,7 @@ $ title = page.title or page.key
 $if title.startswith("i18n::") and title.count(':') == 3:
     $ namespace = title.split(':')[2]
     $ key = title.split(':')[3]
-    $ title = _.get(namespace, key)
+    $ title = i18n.get(namespace, key)
 
 $var title: $title
 

@@ -1,6 +1,6 @@
 $def with (page)
 
-$ lang = _.get_locale() or 'en'
+$ lang = i18n.get_locale() or 'en'
 
 $var title: $page.title
 
@@ -11,9 +11,7 @@ $var title: $page.title
 </style>
 
 $add_stylesheet("/static/css/doc-styles.css")
-$add_stylesheet("/static/css/thickbox.css")
 $add_javascript("/static/js/jquery.js")
-$add_javascript("/static/js/thickbox.js")
 
 <blockquote class="text">
     <div id="book-art"></div>

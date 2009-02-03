@@ -94,38 +94,8 @@ def sampleload(filename="sampledump.txt.gz"):
     else:
         f = open(filename)
         
-    q1 = []
-    queries = []
-    
-    # some hacks to break circular dependency and some work-arounds to overcome other limitations
-    
-    for line in f:
-        q = simplejson.loads(line)
-        q.pop('id', None)
-        q['create'] = 'unless_exists'
-        if q['type']['key'] == '/type/type':
-            q1.append({'create': 'unless_exists', 'key': q['key'], 'type': q['type']})
-            
-            def process(v):
-                if v == '\\N':
-                    return None
-                if isinstance(v, dict):
-                    v['connect'] = 'update'
-                    return v
-                elif isinstance(v, list):
-                    return {'connect': 'update_list', 'value': v}
-                else:
-                    return {'connect': 'update', 'value': v}
-            for k, v in q.items():
-                if k not in ['key', 'type', 'create']:
-                    q[k] = process(v)
-        elif q['type']['key'] == '/type/i18n_page':
-            q = {'key': q['key'], 'type': q['type'], 'create': 'unless_exists'} # strip everything else
-            
-        queries.append(q)
-    
-    q = [dict(simplejson.loads(line), create='unless_exists') for line in f]
-    result = web.ctx.site.write(q1 + queries)
+    queries = [simplejson.loads(line) for  line in f]
+    result = web.ctx.site.save_many(queries)
     print result
 
 class addbook(delegate.page):
@@ -154,7 +124,7 @@ class addauthor(delegate.page):
         key = web.ctx.site.new_key('/type/author')
         web.ctx.path = key
         web.ctx.site.write({'create': 'unless_exists', 'key': key, 'name': i.name, 'type': dict(key='/type/author')}, comment='New Author')
-        print key
+        raise web.HTTPError("200 OK", {}, key)
 
 class clonebook(delegate.page):
     def GET(self):
@@ -186,9 +156,10 @@ class search(delegate.page):
         d = dict(status="200 OK", query=dict(i, escape='html'), code='/api/status/ok', result=result)
 
         if callback:
-            print '%s(%s)' % (callback, simplejson.dumps(d))
+            data = '%s(%s)' % (callback, simplejson.dumps(d))
         else:
-            print simplejson.dumps(d)
+            data = simplejson.dumps(d)
+        raise web.HTTPError('200 OK', {}, data)
         
 class blurb(delegate.page):
     path = "/suggest/blurb/(.*)"
@@ -209,9 +180,11 @@ class blurb(delegate.page):
         result = dict(body=body, media_type="text/html", text_encoding="utf-8")
         d = dict(status="200 OK", code="/api/status/ok", result=result)
         if callback:
-            print '%s(%s)' % (callback, simplejson.dumps(d))
+            data = '%s(%s)' % (callback, simplejson.dumps(d))
         else:
-            print simplejson.dumps(d)
+            data = simplejson.dumps(d)
+
+        raise web.HTTPError('200 OK', {}, data)
 
 class thumbnail(delegate.page):
     path = "/suggest/thumbnail"
@@ -226,7 +199,6 @@ def get_property_type(type, name):
 def save(filename, text):
     root = os.path.dirname(__file__)
     path = root + filename
-    print 'saving', path
     dir = os.path.dirname(path)
     if not os.path.exists(dir):
         os.makedirs(dir)
@@ -288,7 +260,8 @@ class flipbook(delegate.page):
                 params['leaf'] = leaf
             import urllib
             url = "http://%s/flipbook/flipbook.php?%s" % (server, urllib.urlencode(params))     
-            print render.flipbook(url, title)
+            data = render.flipbook(url, title)
+            raise web.HTTPError("200 OK", {}, web.safestr(data))
 
     def find_location_from_archive(self, identifier):
         """Use archive.org to get the location.
@@ -318,15 +291,17 @@ class bookreader(delegate.page):
     path = "/bookreader/(.*)"
 
     def GET(self, id):
-        print render.bookreader(id)
+        data = render.bookreader(id)
+        raise web.HTTPError("200 OK", {}, data)
 
 class robotstxt(delegate.page):
     path = "/robots.txt"
     def GET(self):
         web.header('Content-Type', 'text/plain')
         try:
-            print open('static/robots.txt').read()
-        except:
+            data = open('static/robots.txt').read()
+            raise web.HTTPError("200 OK", {}, data)
+        except IOError:
             raise web.notfound()
 
 class change_cover(delegate.mode):

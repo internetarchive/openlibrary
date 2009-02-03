@@ -1,8 +1,10 @@
-$ _ = _.get_namespace('/mode/edit')
+$ _ = i18n.get_namespace('/mode/edit')
 
 <br /><br />
 $:_.edit_summary<br />
 <input type="text" name="_comment" style="width: 100%;" value="" />
+
+<p>You irrevocably agree to place your contributions in the public domain.</p>
 
 <div style="float: left; padding-top: 6px;">
        <button class="edit" type="submit"  value="$_.save"  name="_save" title="$_.save">$_.save</button>

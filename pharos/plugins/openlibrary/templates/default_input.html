@@ -1,6 +1,19 @@
-$def with (thing, name)
+$def with (thing, property)
 
-$if thing.is_primitive:
-    <input type="text" id="input_$name" name="$name" value="$thing.value" width="100%">
+$ kind = property.expected_type.kind
+
+$if kind == "primitive" or kind == "basic":
+    $if property.get('options'):
+        $:Dropdown(property.name, property.options, value=thing.value).render()
+    $else:
+        <input type="text" id="input_$property.name" name="$property.name" value="$thing.value" style="width: 100%"/>
+$elif kind == 'embeddable':
+    <table>
+    $for p in property.expected_type.properties:
+        <tr>
+            <td>$p.name</td>
+            <td>$:thinginput(p.expected_type, property.name + '.' + p.name, thing[p.name])</td>
+        </tr>
+    </table>
 $else:
-    $:macros.ThingReference(thing.type, name, thing)
+    $:macros.ThingReference(thing.type, property.name, thing)

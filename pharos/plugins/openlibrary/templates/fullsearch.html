@@ -1,8 +1,22 @@
-$def with (q, results, errortext=None)
+$def with (q, results, nums, errortext=None)
 
 $add_stylesheet('/static/css/search.css')
 
-$var title: Search Results
+$ total_nbr = nums.total_nbr
+$ offset = nums.offset
+$ rows = nums.rows
+
+$ npages = ((total_nbr + rows - 1) / rows)
+$ this_page = (offset / rows) + 1
+
+$var title: Fulltext Search Results
+<!--
+<table><tr bgcolor=yellow><td>nbr: $total_nbr <br>
+offset: $offset <br> 
+rows: $rows <br>
+this_page: $this_page
+</td></tr></table>
+-->
 
 <div id="databar"></div>
 <div id="header-fullpage">
@@ -28,3 +42,9 @@ $:macros.SearchResults(results, fulltext=True)
 $if errortext: <div id="error">Error: $errortext</div>
 
 </div></div>
+
+$if npages > 1: <i>Page $this_page of $npages</i><br>
+
+$if this_page > 1: <a href=$changequery(q=q, offset=offset - rows)><img src="/static/images/arrow_left.gif" alt=prev>prev</a>
+
+$if (offset + rows) < total_nbr: <a href=$changequery(q=q, offset=offset + rows)>&nbsp; <img src="/static/images/arrow_right.gif">next</a><br/>

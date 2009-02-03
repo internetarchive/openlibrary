@@ -1,8 +1,8 @@
 $def with (page)
 
-$ lang = _.get_locale() or 'en'
-$ _t = _.get_namespace('/type/doc')
-$ _ = _.get_namespace('/mode/edit')
+$ lang = i18n.get_locale() or 'en'
+$ _t = i18n.get_namespace('/type/doc')
+$ _ = i18n.get_namespace('/mode/edit')
 
 $var title: $_.edit_title(page.key)
 

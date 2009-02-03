@@ -1,7 +1,7 @@
 $def with (page)
 
-$ _t = _.get_namespace('/type/user')
-$ _ = _.get_namespace('/mode/edit')
+$ _t = i18n.get_namespace('/type/user')
+$ _ = i18n.get_namespace('/mode/edit')
  
 $var title: Editing $page.displayname
 
@@ -71,7 +71,7 @@ function add_row(name) {
             
         <!-- edit summary and buttons -->
 
-             $:macros.EditButtons(page)
+             $:macros.EditButtons()
 
     </div>
 </form>

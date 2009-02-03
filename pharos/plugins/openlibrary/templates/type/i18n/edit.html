@@ -3,6 +3,19 @@ $def with (page)
 $ lang = page.key.split('.')[-1]
 $ namespace = find_i18n_namespace(page.key)
 
+<style type="text/css">
+
+#strings_table .i18n-value {
+    width: 100%; 
+    padding-left: 20px;
+}
+
+#strings_table td input {
+    width: 100%;
+}
+
+</style>
+
 <script>
 function change_ns(ns) {
 	document.forms['i18n']['ns'].value = ns;
@@ -21,10 +34,26 @@ function add_key() {
 	var cell1 = row.insertCell(0);
 	var cell2 = row.insertCell(1);
 	cell1.innerHTML = key;
-        cell2.innerHTML = '<input type="text" name="string_' + key + '" value=""/ style="width: 100%">';
-        \$("table#strings_table tr:last td:first").attr("class", "formheader")
+        cell2.innerHTML = '<input type="text" name="string_' + key + '" value="" />';
+        \$("table#strings_table tr:last td:first").attr("class", "formheader-i18n");
+        \$("table#strings_table tr:last td:last").attr("class", "i18n-value");
+
+        \$("#newkey").val("");
+        \$("#strings_table input:last").focus();
+
+
 	return false;
 }
+
+
+\$(document).ready(function() {
+    \$("#newkey").bind("keypress", function(e) { 
+        if (e.keyCode == 13) { 
+            \$("#button_addkey").click(); 
+            return false; 
+        }
+    });
+});
 
 </script>
 
@@ -70,11 +99,11 @@ $for ns in _.get_namespaces():
     <br /><br />
     <span class="green"><span class="formheader">
         $_.get('/type/i18n', 'add_new_key') <input type="text" name="_newkey" id="newkey"/></span>
-        <button type="button" onclick="add_key()" name="_addkey" value="$_.get('/type/i18n', 'add')" class="addkey-small" />Add</button>
+        <button type="button" id="button_addkey" onclick="add_key()" name="_addkey" value="$_.get('/type/i18n', 'add')" class="addkey-small" />Add</button>
     </span>
 
 <br/>
-      $:macros.EditButtons(page)
+      $:macros.Editi18nButtons(page)
     
 </td>
 </tr>

@@ -1,6 +1,6 @@
 $def with (page)
 
-$ lang = _.get_locale() or 'en'
+$ lang = i18n.get_locale() or 'en'
 
 $var title: $page.title
 
@@ -15,8 +15,11 @@ $var title: $page.title
 <div id="book-art-home" style="clear: both"></div>
 
 <div id="header">
-     <p><a href="/about">&larr; $_.back_to_ol</a></p> 
-     <span id="title">$page.title</span> <br />
+
+    $if not page.key.startswith("/about."):
+        <p><a href="/about">&larr; $_.back_to_ol</a></p>
+
+    <span id="title">$page.title</span> <br />
 </div>
 
 <div class="contenttext">
@@ -24,7 +27,7 @@ $var title: $page.title
 $:format(page.body)
 
 </div>
-
-     <p style="padding-left: 30px;"><a href="/about">&larr; $_.back_to_ol</a></p> 
+    $if not page.key.startswith("/about."):
+        <p style="padding-left: 30px;"><a href="/about">&larr; $_.back_to_ol</a></p> 
 
 $:macros.SeeLanguage()
