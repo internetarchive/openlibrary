@@ -1,6 +1,5 @@
 #! /bin/bash
 
-
 function base() {
     set $* $PWD
     root=$1
@@ -30,8 +29,8 @@ function setup_webpy() {
     then
         echo "** fetching web.py**"
 
-        cd $gitroot && wget http://webpy.org/static/web.py-0.23.tar.gz
-        cd $gitroot && tar xzf web.py-0.23.tar.gz
+        cd $gitroot && wget http://webpy.org/static/web.py-0.31.tar.gz
+        cd $gitroot && tar xzf web.py-0.31.tar.gz
     fi
 }
 
