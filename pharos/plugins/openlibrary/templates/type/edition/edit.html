@@ -43,9 +43,8 @@ function next(key) {
 
 function add_row(name) {
     var tbody = \$("#tbody_" + name);
-    var n = tbody.children().length;
-
-    var row = \$("tr:last", tbody);
+    
+    var row = \$("#tbody_links").children().select(":last");
     var newrow = row.clone();
     tbody.append(newrow);
 
@@ -120,7 +119,7 @@ jQuery(function(\$) {
                     $:macros.EditionEditRow(page, 'languages', False)
                     $:macros.EditionEditRow(page, 'work_titles', False)
                     $:macros.EditionEditRow(page, 'collections', False)
-                    $:macros.EditionEditRow(page, 'uris', False)
+                    $:macros.EditionEditRow(page, 'links', False)
 
                     <tr><td valign="top" colspan="3" height="22"></td></tr>
                     </table>
