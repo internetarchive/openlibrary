@@ -44,7 +44,8 @@ function next(key) {
 function add_row(name) {
     var tbody = \$("#tbody_" + name);
     
-    var row = \$("#tbody_links").children().select(":last");
+    var rows = tbody.children();
+    var row = \$(rows[rows.length-1]);
     var newrow = row.clone();
     tbody.append(newrow);
 

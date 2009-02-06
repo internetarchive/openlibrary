@@ -2,7 +2,7 @@ $def with (thing, property)
 
 $ kind = property.expected_type.kind
 
-$if kind == "primitive" or kind == "basic":
+$if kind == "primitive":
     $if property.get('options'):
         $:Dropdown(property.name, property.options, value=thing.value).render()
     $else:
@@ -17,4 +17,3 @@ $elif kind == 'embeddable':
     </table>
 $else:
     $:macros.ThingReference(thing.type, property.name, thing)
-
