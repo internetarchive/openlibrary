@@ -53,8 +53,28 @@ def get_details(page):
     authors = [get_author(a['key']) for a in authors]
     
     by_statement = page.get('by_statement') or ''
+
+    contributors = page.get('contributors') or ''
+    publish_places = page.get('publish_places') or []
+    publish_country = page.get('publish_country') or ''
+    isbn_10 = page.get('isbn_10', [])
+    isbn_13 = page.get('isbn_13', [])
+    lccn = page.get('lccn', [])
+    oclc_numbers = page.get('oclc_numbers', [])
     
-    return dict(key=key, title=title, publishers=publishers, authors=authors, by_statement=by_statement)
+    return dict(key=key, 
+        title=title, 
+        authors=authors, 
+        contributors=contributors,
+        by_statement=by_statement,
+        publishers=publishers, 
+        publish_places=publish_places,
+        publish_country=publish_country,
+        isbn_10=isbn_10,
+        isbn_13=isbn_13,
+        lccn=lccn,
+        oclc_numbers=oclc_numbers,
+    )
 
 def make_data(bib_key, key, details=False):
     page = api_get(key)
