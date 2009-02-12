@@ -50,7 +50,7 @@ def get_details(page):
     publishers = page.get('publishers') or []
     
     authors = page.get('authors') or []
-    authors = [get_author(a['key']) for a in authors]
+    authors = [get_author(a) for a in authors]
     
     by_statement = page.get('by_statement') or ''
 
