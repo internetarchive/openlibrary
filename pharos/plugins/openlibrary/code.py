@@ -24,49 +24,56 @@ web.template.Template.globals['NEWLINE'] = "\n"
 def sampledump():
     """Creates a dump of objects from OL database for creating a sample database."""
     def expand_keys(keys):
+        def f(k):
+            if isinstance(k, dict):
+                return web.ctx.site.things(k)
+            elif k.endswith('*'):
+                return web.ctx.site.things({'key~': k})
+            else:
+                return [k]
         result = []
         for k in keys:
-            if isinstance(k, dict):
-                result += web.ctx.site.things(k)
-            elif k.endswith('*'):
-                result += web.ctx.site.things({'key~': k})
-            else:
-                result.append(k)
+            d = f(k)
+            result += d
         return result
         
-    def get_references(thing):
-        from infogami.infobase.client import Thing
-        result = []
-        for key in thing.keys():
-            val = thing[key]
-            if isinstance(val, list):
-                if val and isinstance(val[0], Thing):
-                    result += [v.key for v in val]
-            elif isinstance(val, Thing):
-                result.append(val.key)
-        return result
+    def get_references(data, result=None):
+        if result is None:
+            result = []
             
+        if isinstance(data, dict):
+            if 'key' in data:
+                result.append(data['key'])
+            else:
+                get_references(data.values(), result)
+        elif isinstance(data, list):
+            for v in data:
+                get_references(v, result)
+        return result
+        
+    visiting = {}
+    visited = set()
+    
     def visit(key):
         if key in visited:
             return
-
-        visited.add(key)
-
+        elif key in visiting:
+            # This is a case of circular-dependency. Add a stub object to break it.
+            print simplejson.dumps({'key': key, 'type': visiting[key]['type']})
+            visited.add(key)
+            return
+        
         thing = web.ctx.site.get(key)
-        if not thing: 
+        if not thing:
             return
 
-        thing._data.pop('permission', None)
-        thing._data.pop('child_permission', None)
-        thing._data.pop('books', None) # remove author.books back-reference
-        thing._data.pop('scan_records', None) # remove editon.scan_records back-reference
-        thing._data.pop('volumes', None) # remove editon.volumes back-reference
-        thing._data.pop('latest_revision', None)
-
-        for ref in get_references(thing):
-            visit(ref)
-            
         d = thing.dict()
+        
+        visiting[key] = d
+        for ref in get_references(d.values()):
+            visit(ref)
+        visited.add(key)
+                
         print simplejson.dumps(d)
 
     keys = [
@@ -80,12 +87,12 @@ def sampledump():
         {'type': '/type/type'}, 
         {'type': '/type/scan_record', 'limit': 10},
     ]
-    keys = expand_keys(keys) + ['/b/OL%dM' % i for i in range(1, 101)]
+    keys = expand_keys(keys) + ['/b/OL%dM' % i for i in range(1, 100)]
     visited = set()
 
     for k in keys:
         visit(k)
-        
+    
 @infogami.action
 def sampleload(filename="sampledump.txt.gz"):
     if filename.endswith('.gz'):
@@ -95,8 +102,7 @@ def sampleload(filename="sampledump.txt.gz"):
         f = open(filename)
         
     queries = [simplejson.loads(line) for  line in f]
-    result = web.ctx.site.save_many(queries)
-    print result
+    print web.ctx.site.save_many(queries)
 
 class addbook(delegate.page):
     def GET(self):
