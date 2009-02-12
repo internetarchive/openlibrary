@@ -1,7 +1,7 @@
 $def with (page=None)
 
-$ _s = _.get_namespace('/advanced_search')
-$ _ = _.get_namespace('/mode/view')
+$ _s = i18n.get_namespace('/advanced_search')
+$ _ = i18n.get_namespace('/mode/view')
 
 <div id="databar">
     $if page:
@@ -16,5 +16,3 @@ $ _ = _.get_namespace('/mode/view')
         </form>
     </div>
 </div>
-
-$:macros.AlertChanges()

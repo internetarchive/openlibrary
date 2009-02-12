@@ -1,7 +1,7 @@
 $def with (a, b)
 
-$ _t = _.get_namespace(a.type.key)
-$ _ = _.get_namespace('/mode/diff')
+$ _t = i18n.get_namespace(a.type.key)
+$ _ = i18n.get_namespace('/mode/diff')
 
 $add_stylesheet('/static/diff.css')
 
@@ -32,7 +32,15 @@ $:macros.databarDiff()
 	
         $for p in set(a.keys() + b.keys()):
             $ label = _t[p]
-            $:thingdiff(get_expected_type(a, p), label, a[p], b[p])    
+            $# quick hack to display images in diff
+            $if (p in ["coverimage", "photograph"]) and (a[p] != b[p]):
+                <tr>
+                    <td class="diff-header-side" valign="top">$label</td>
+                    <td class="diff-body" valign="top"><img width="180" src="$a[p]"/></td>
+                    <td class="diff-body" valign="top"><img width="180" src="$b[p]"/></td>
+                </tr> 
+            $else:
+                $:thingdiff(get_expected_type(a, p), label, a[p], b[p])
         </tbody>
     </table>
        

@@ -1,6 +1,6 @@
 $def with (q, qresults, results, facets, ftokens, ft_pairs, timings, errortext)
 
-$ _ = _.get_namespace('/search')
+$ _ = i18n.get_namespace('/search')
 
 $var title: $_.search_results
 
@@ -18,8 +18,6 @@ $for token, tpair in ft_pairs:
 $else: (none)
 </div>
 </div>
-
-$:macros.AlertChanges()
 
 <!-- Timings (for debugging): $timings -->
 
@@ -43,10 +41,11 @@ $if 'mhsncqbxgkup' in ftokens:
 </tr><tr>
 <td colspan="2">
 <span class="copyright">
-<span class="attention-emphasis"><input tabindex="9" type="checkbox" value="mhsncqbxgkup" name="ftokens" $want_fulltext> $_.scanned_books_only </span>
+<span class="attention-emphasis"><input tabindex="9" type="checkbox" value="mhsncqbxgkup" name="ftokens" $want_fulltext /> $_.scanned_books_only </span>
                     <img src="/static/images/arrow.red.png" alt="$_.arrow" />
                     <a href="/advanced" style="text-decoration: underline">$_.advanced_search</a><br />
-$if facets: $_.showing $qresults.begin - $(qresults.begin + 20) of $qresults.total_results
+$if facets:
+    $_.showing $(qresults.begin + 1) - $min((qresults.begin + 20), qresults.total_results) of $qresults.total_results
 </span>
 </td>
 </tr></table></form>
@@ -55,14 +54,12 @@ $if facets: $_.showing $qresults.begin - $(qresults.begin + 20) of $qresults.tot
 $if errortext:
     <br /><br /><br /><br />
 $else:
-$if facets: <p style="font-family: georgia; font-size: 18px;  margin-left: 30px;">$_.contain_words <span style="color: #6F320D;">$q</span>:</p>
+    $if facets:
+        <p style="font-family: georgia; font-size: 18px;  margin-left: 30px;">$_.contain_words <span style="color: #6F320D;">$q</span>:</p>
 
 <div style="padding-left: 45px;"> 
 $:macros.SearchResults(results)
- </div>   
-    
-
- 
+</div> 
 
 <!-- BEGIN FACETS --> 
 
@@ -71,20 +68,20 @@ $:macros.SearchResults(results)
 $if errortext:
     <br /><div id="error"><span class="errorhead">$_.error:</span> $errortext</div>
 $else:
-$if facets: <div id="search-nav"><div id="search-options"><div class="search-outer"><div style="width: 100%; text-align: center; font-weight: bold; padding-bottom: 8px">$_.refine_results</div>  
+    $if facets: <div id="search-nav"><div id="search-options"><div class="search-outer"><div style="width: 100%; text-align: center; font-weight: bold; padding-bottom: 8px">$_.refine_results</div>  
 
-   $for facet in facets:
-       $ fname = facet[0]
-       $ fn1 = _[fname]
-       $ fentries = facet[1]
-       <div class="search-inner"><span class="refinesearch">$fn1:</span>
-       <div class="refineindent">
-       $for fentry in fentries[slice(5)]:
-           $ fval = fentry[0]
-           $ fcount = fentry[1]
-           $ ftoken = facet_token(fname, fval)
-           <a class="datalink" href="$changequery(ftokens=ftokens + ',' + ftoken, offset='0', remove='')">$:macros.HasFulltext(fname, fval)</a> ($fcount)<br />
-       </div></div>
+    $for facet in facets:
+        $ fname = facet[0]
+        $ fn1 = _[fname]
+        $ fentries = facet[1]
+        <div class="search-inner"><span class="refinesearch">$fn1:</span>
+        <div class="refineindent">
+        $for fentry in fentries[slice(5)]:
+            $ fval = fentry[0]
+            $ fcount = fentry[1]
+            $ ftoken = facet_token(fname, fval)
+            <a class="datalink" href="$changequery(ftokens=ftokens + ',' + ftoken, offset='0', remove='')">$:macros.HasFulltext(fname, fval)</a> ($fcount)<br />
+        </div></div>
 
 
 </div></div></div>        
@@ -92,7 +89,7 @@ $if facets: <div id="search-nav"><div id="search-options"><div class="search-out
     
 
 
-  <div class="pagination">
+<div class="pagination">
 $if facets: <div class="moreresults"><strong>$_.more_results:</strong></div>
     <div class="paginate">
     $if (qresults.begin - 1000) > 0: ...
@@ -100,16 +97,14 @@ $if facets: <div class="moreresults"><strong>$_.more_results:</strong></div>
         $if (n >= 0) and (n <= qresults.total_results):
             $if n == qresults.begin:
                 $if n != 0: | 
-                $if facets: <strong>$n - $(n + 20)</strong>
+                $if facets: <strong>$(n + 1) - $(n + 20)</strong>
             $else:
                 $if n != 0: | 
-                <a href="$changequery(offset=n)">$n - $(n + 20)</a>
+                <a href="$changequery(offset=n)">$(n + 1) - $(n + 20)</a>
     $if (qresults.begin + 1000) < qresults.total_results: | ...
 
 
-<div style="padding-left: 20px; text-align: right"><br />$_.cant_find&nbsp;&nbsp;<div><a href="http://demo.openlibrary.org:8080/addbook">$_.add_a_book</a> &rarr;</div><br /><br /></div>
-
-
+<div style="padding-left: 20px; text-align: right"><br />$_.cant_find&nbsp;&nbsp;<div><a href="/addbook">$_.add_a_book</a> &rarr;</div><br /><br /></div>
 
         </div>
 

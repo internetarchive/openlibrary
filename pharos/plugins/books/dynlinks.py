@@ -14,22 +14,11 @@ def api_things(key, value):
         'type': '/type/edition',
         key: value
     }
-    try:
-        d = urllib.urlopen(get_site() + '/api/things?' + urllib.urlencode(dict(query=simplejson.dumps(query))))
-        data = simplejson.loads(d.read())
-        if data['status'] == 'ok':
-            return data['result']
-    except:
-        import traceback
-        traceback.print_exc()
-        return []
+    return web.ctx.site.things(query)
 
 def api_get(key):
     try:
-        d = urllib.urlopen(get_site() + '/api/get?' + urllib.urlencode(dict(key=key)))
-        data = simplejson.loads(d.read())
-        if data['status'] == 'ok':
-            return data['result']
+        return web.ctx.site._get(key)
     except:
         return {}
 

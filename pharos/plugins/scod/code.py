@@ -15,8 +15,7 @@ def get_scan_record(key):
     return  web.ctx.site.get(key)
 
 def error(message):
-    print 'ERROR:', message
-    raise StopIteration
+    raise web.HTTPError("200 OK", {}, "ERROR: " + message)
 
 def get_book(path, check_scanned=True, check_ocaid=True):
     page = web.ctx.site.get(path)
@@ -120,7 +119,7 @@ class scan_book_notfound(delegate.mode):
             else:    
                 message = render.scan_book_notfound_email(book, scan_record, i._comment)
             web.sendmail(config.from_address, to, message.subject.strip(), str(message), cc=cc)
-        web.seeother(web.changequery(query={}))
+        raise web.seeother(web.changequery(query={}))
         
 class scan_inprogress(scan_book_notfound):
     pass
@@ -206,7 +205,7 @@ class scan_complete(delegate.mode):
             message = render.scan_complete_email(book, scan_record, i._comment)
             web.sendmail(config.from_address, to, message.subject.strip(), str(message), cc=cc)
 
-        web.seeother(web.changequery(query={}))
+        raise web.seeother(web.changequery(query={}))
 
 def get_scan_queue(scan_status, limit=None, offset=None):
     q = {
@@ -249,7 +248,7 @@ class scan_queue(delegate.page):
         i = web.input(status="WAITING_FOR_BOOK", p=None)
         options = ["NOT_SCANNED", "WAITING_FOR_BOOK", "BOOK_NOT_SCANNED", "SCAN_IN_PROGRESS", "SCAN_COMPLETE"]
         if i.status not in options:
-            return web.seeother(web.changequery({}))
+            raise web.seeother(web.changequery({}))
             
         offset = safeint(i.p, 0) * 50
             
