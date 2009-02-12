@@ -68,17 +68,19 @@ def sampledump():
             return
 
         d = thing.dict()
+        d.pop('permission', None)
+        d.pop('child_permission', None)
         
         visiting[key] = d
         for ref in get_references(d.values()):
             visit(ref)
         visited.add(key)
-                
+        
         print simplejson.dumps(d)
 
     keys = [
         '/', 
-        '/RecentChanges',
+        '/recentchanges',
         '/index.*', 
         '/about*', 
         '/dev*', 
@@ -100,7 +102,7 @@ def sampleload(filename="sampledump.txt.gz"):
         f = gzip.open(filename)
     else:
         f = open(filename)
-        
+    
     queries = [simplejson.loads(line) for  line in f]
     print web.ctx.site.save_many(queries)
 
