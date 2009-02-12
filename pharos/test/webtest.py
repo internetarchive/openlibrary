@@ -15,12 +15,12 @@ class Browser(web.Browser):
         web.Browser.__init__(self)
         if '--url' in sys.argv:
             self.url = sys.argv[1 + sys.argv.index('--url')]
-        elif '--staging' in sys.argv:
-            self.url = 'http://openlibrary.org:8080/'
-        elif '--local' in sys.argv:
-            self.url = 'http://0.0.0.0:8080'
-        else:
+        elif '--production' in sys.argv:
             self.url = 'http://openlibrary.org/'
+        elif '--staging' in sys.argv:
+            self.url = 'http://openlibrary.org:8000/'
+        else:
+            self.url = 'http://0.0.0.0:8080'
 
     def check_errors(self):
         errors = [self.get_text(e) for e in self.get_soup().findAll(attrs={'id': 'error'})]
