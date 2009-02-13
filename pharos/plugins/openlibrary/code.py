@@ -348,21 +348,22 @@ class bookpage(delegate.page):
         except:
             raise web.notfound()
 
-class rdf(delegate.page):
-    path = r"(.*)\.rdf"
+class rdf(delegate.mode):
+    name = 'view'
+    encoding = 'rdf'
 
     def GET(self, key):
         page = web.ctx.site.get(key)
         if not page:
-            raise web.notfound()
+            raise web.notfound("")
         else:
             from infogami.utils import template
-
             try:
                 result = template.typetemplate('rdf')(page)
             except:
-                raise web.notfound()
-            raise web.HTTPError("200 OK", {}, result)
+                raise web.notfound("")
+            else:
+                return delegate.RawText(result, content_type="application/rdf+xml; charset=utf-8")
 
 class create:
     """API hook for creating books and authors."""
