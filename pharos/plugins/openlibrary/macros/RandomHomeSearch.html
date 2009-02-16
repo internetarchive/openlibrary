@@ -1,6 +1,6 @@
 $def with (page)
 
-$ _t = _.get_namespace('/advanced_search')
+$ _t = i18n.get_namespace('/advanced_search')
 
 <form method="get" action="/search">
     <table cellpadding="0" cellspacing="0" border="0">
@@ -26,7 +26,7 @@ $ _t = _.get_namespace('/advanced_search')
         </tr>
         <tr>
             <td style="padding-top: 18px;">
-                $:page.stats
+                $:format(page.stats)
             </td>
         </tr>
     </table>      

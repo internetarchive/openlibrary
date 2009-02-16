@@ -12,7 +12,7 @@ re_date = map (re.compile, [
 
 re_ad_bc = re.compile(r'\b(B\.C\.?|A\.D\.?)')
 re_date_fl = re.compile('^fl[., ]')
-re_number_dot = re.compile('\d{3,}\.$')
+re_number_dot = re.compile('\d{2,}[- ]*\.$')
 
 def remove_trailing_number_dot(date):
     m = re_number_dot.search(date)
@@ -24,6 +24,7 @@ def remove_trailing_number_dot(date):
 def parse_date(date):
     if re_date_fl.match(date):
         return {}
+    date = remove_trailing_number_dot(date)
     if date.find('-') == -1:
         for r in re_date:
             m = r.search(date)

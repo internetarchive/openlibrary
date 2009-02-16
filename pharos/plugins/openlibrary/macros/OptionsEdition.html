@@ -2,16 +2,19 @@ $def with (page)
 
 $ booksense = "http://booksense.com/product/info.jsp?isbn=XXX"
 $ amazon = "http://www.amazon.com/gp/product/XXX?tag=openlibr-20"
-$ abebooks = "http://www.dpbolvw.net/click-2017500-7134912?url=http%3A%2F%2Fwww.abebooks.com%2Fservlet%2FSearchResults%3Fbi%3D0%26bx%3Doff%26ds%3D30%26isbn%3D;XXX%26sortby%3D2%26x%3D21%26y%3D20&cm_mmc=CJ-_-1074909-_-885608-_-Abebooks-Book%20Redirection%20Allowed"
-$ alibris = "http://www.alibris.com/search/search.cfm?S&#61;R&#38;qisbn&#61;XXX"
-$ barnesandnoble = "http://search.barnesandnoble.com/booksearch/isbninquiry.asp?ISBN&#61;XXX&#38;pdf&#61;y"
-$ powells = "http://www.powells.com/biblio/XXX"
+$ abebooks = "http://clickserve.cc-dt.com/link/tplclick?lid=41000000024660875&pubid=21000000000172077&isbn=XXX"
+$ alibris = " http://click.linksynergy.com/fs-bin/click?id=eSmaWuUpnDY&offerid=99238.122856000&type=2&subid=0&tmpid=939&RD_PARM1=http%253A%252F%252Fwww.alibris.com/booksearch%253Fqsort%253Dp%2526isbn%253DXXX"
+$ barnesandnoble = "http://search.barnesandnoble.com/booksearch/isbninquiry.asp?ISBN=XXXafsrc=1&lkid=J14933426&pubid=K172077"
+$ powells = "http://www.powells.com/partner/33286/biblio/XXX"
 
 $ worldcat = "http://worldcat.org/isbn/XXX"
-$ bookmooch = "http://www.bookmooch.com/m/mooch_choice?asin&#61;XXX"
+$ worldcatoclc = "http://worldcat.org/oclc/XXX"
+$ bookmooch = "http://www.bookmooch.com/m/mooch_choice?asin=XXX"
 $ titletrader = "http://www.titletrader.com/invinfo/XXX.html"
 
+$ readbook = "http://read.books.theinfo.org/XXX/"
 $ viewbook = "http://www.openlibrary.org/details/XXX"
+$ detailbook = "http://www.archive.org/details/XXX"
 $ downloadbook = "http://www.archive.org/download/XXX/XXX.pdf"
 $ djvu = "http://www.archive.org/stream/XXX/XXX.djvu"
 $ djvutxt = "http://www.archive.org/download/XXX/XXX_djvu.txt"
@@ -28,14 +31,14 @@ $ google = ""
 <span class="navheader">Buy</span> <br />
 
 $ isbn_10 = (page.isbn_10 and page.isbn_10[0]) or ""
+$ oclc_numbers = (page.oclc_numbers and page.oclc_numbers[0]) or ""
 
 $if isbn_10:
     <div class="navsubheader">
-    <a href="$booksense.replace('XXX', isbn_10)" class="datalink">Booksense</a><br />
     <a href="$amazon.replace('XXX', isbn_10)" class="datalink">Amazon</a><br />
-    <a href="$abebooks.replace('XXX', isbn_10)" class="datalink">AbeBooks</a><br />
-    <a href="$barnesandnoble.replace('XXX', isbn_10)" class="datalink">Barnes and Noble</a><br />
+    <a href="$abebooks.replace('XXX', isbn_10)" class="datalink">Abebooks</a><br />
     <a href="$alibris.replace('XXX', isbn_10)" class="datalink">Alibris</a><br />
+    <a href="$barnesandnoble.replace('XXX', isbn_10)" class="datalink">Barnes and Noble</a><br />
     <a href="$powells.replace('XXX', isbn_10)" class="datalink">Powells</a>
     </div>
 $else:
@@ -49,6 +52,10 @@ $if isbn_10:
     <a href="$bookmooch.replace('XXX', isbn_10)" class="datalink">BookMooch</a><br />
     <a href="$titletrader.replace('XXX', isbn_10)" class="datalink">Title Trader</a><br />
     </div>
+$elif oclc_numbers:
+    <div class="navsubheader">
+    <a href="$worldcatoclc.replace('XXX', oclc_numbers)" class="datalink">Your local library</a><br />
+    </div>
 $else:
     <div class="navsubheader"><em>Not available for this book.</em></div>
 
@@ -56,9 +63,15 @@ $else:
 
         <span class="navheader">Browse</span>
 <div class="navsubheader">
-$if page.get('ocaid'):
+$if page.volumes:
+    <em>Internet Archive:</em><br />
+    $for v in page.volumes:
+        $if v.ia_id != "-":
+            <span class="navtext">- <a href="$viewbook.replace('XXX', v.ia_id)">View Volume $v.volume_number</a></span><br />
+$elif page.get('ocaid'):
     <em>Internet Archive:</em><br />
     <span class="navtext">- <a href="$viewbook.replace('XXX', page.ocaid)">View</a></span><br />
+    <span class="navtext">- <a href="$detailbook.replace('XXX', page.ocaid)">Details</a></span><br />
     <span class="navtext">- <a href="$downloadbook.replace('XXX', page.ocaid)">Download</a></span><br /><br />
     <span id="gbs_placeholder"></span><br />
 $else:

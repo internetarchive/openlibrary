@@ -1,6 +1,6 @@
 $def with (page, h)
 
-$ _ = _.get_namespace('/mode/history')
+$ _ = i18n.get_namespace('/mode/history')
 
 $var title: $page.name
 
@@ -36,7 +36,9 @@ $:macros.databar(page)
                         <td class="history"><a href="$homepath()$v.author.key">$v.author.displayname</a></td>
                     $else:
                         <td class="history">$v.ip</td>
-                    <td class="comment">$v.comment</td>
+                    <td class="comment">$v.comment
+					$if v.machine_comment: (<a href="/show-marc/$v.machine_comment">view MARC</a>)
+					</td>
                     <td class="history"><a href="$changequery(m=None, v=v.revision)">$datestr(v.created)</a></td>
                 </tr>
         </table>
@@ -60,3 +62,13 @@ $:macros.databar(page)
             b.checked = true;
         </script>
     </div>
+
+
+<div class="copyright-footer">
+$ page = safeint(query_param("page", "0"))
+$if page != 0:
+    &larr; <a href="$:changequery(page=page - 1)" rel="nofollow">$_.prev</a>
+
+$if len(h) == 20:
+    ... <a href="$:changequery(page=page + 1)" rel="nofollow">$_.next</a> &rarr;
+<div>

@@ -1,31 +1,26 @@
-# 1. create /type/scanning_center
-# 2. create /type/scan_record
-# 3. add back-referece `books` to /type/scanning_center
 [
     {
-        'create': 'unless_exists',
         'key': '/type/scanning_center',
         'type': '/type/type',
-        'properties': [
-            property("/type/scanning_center", "name", "/type/string", True)
-        ]
     },
     {
-        'create': 'unless_exists',
         'key': '/type/scan_record',
         'type': '/type/type',
         'properties': [
-            property("/type/scan_record", "edition", "/type/edition", True),
-            property("/type/scan_record", "scan_status", "/type/string", True),
-            property("/type/scan_record", "locations", "/type/scanning_center", False),
-            property("/type/scan_record", "sponsor", "/type/user", True),
+            property("edition", "/type/edition", True),
+            property("scan_status", "/type/string", True),
+            property("locations", "/type/scanning_center", False),
+            property("sponsor", "/type/user", True),
         ]
     },
     {
         'key': '/type/scanning_center',
-        'backreferences': {
-            'connect': 'update_list',
-            'value': [backreference('/type/scanning_center', 'books', '/type/scan_record', 'locations')]
-        }
+        'type': '/type/type',
+        'properties': [
+            property("name", "/type/string", True)
+        ],
+        'backreferences': [
+            backreference('books', '/type/scan_record', 'locations')
+        ]
     },
 ]

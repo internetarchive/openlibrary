@@ -1,6 +1,6 @@
 $def with (f)
 
-$ _ = _.get_namespace('/account/register')
+$ _ = i18n.get_namespace('/account/register')
 
 $var title: $_.create_new_account
 
@@ -20,8 +20,8 @@ $var title: $_.create_new_account
             <form name="register" method="post">
                 $:f.render()
                     <div class="button-border"><img src="/static/images/flourish.left.gif"  alt="[" />
-                       <button value="$_.register" type="submit"  name="submit" title="$._register" class="action">
-                        $._register
+                       <button value="$_.register" type="submit"  name="submit" title="$_.register" class="action">
+                        $_.register
                        </button><img src="/static/images/flourish.gif"  alt="]" />
             </form>
         </div></div>

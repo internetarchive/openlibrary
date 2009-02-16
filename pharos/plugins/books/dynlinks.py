@@ -14,22 +14,11 @@ def api_things(key, value):
         'type': '/type/edition',
         key: value
     }
-    try:
-        d = urllib.urlopen(get_site() + '/api/things?' + urllib.urlencode(dict(query=simplejson.dumps(query))))
-        data = simplejson.loads(d.read())
-        if data['status'] == 'ok':
-            return data['result']
-    except:
-        import traceback
-        traceback.print_exc()
-        return []
+    return web.ctx.site.things(query)
 
 def api_get(key):
     try:
-        d = urllib.urlopen(get_site() + '/api/get?' + urllib.urlencode(dict(key=key)))
-        data = simplejson.loads(d.read())
-        if data['status'] == 'ok':
-            return data['result']
+        return web.ctx.site._get(key)
     except:
         return {}
 
@@ -61,11 +50,31 @@ def get_details(page):
     publishers = page.get('publishers') or []
     
     authors = page.get('authors') or []
-    authors = [get_author(a['key']) for a in authors]
+    authors = [get_author(a) for a in authors]
     
     by_statement = page.get('by_statement') or ''
+
+    contributors = page.get('contributors') or ''
+    publish_places = page.get('publish_places') or []
+    publish_country = page.get('publish_country') or ''
+    isbn_10 = page.get('isbn_10', [])
+    isbn_13 = page.get('isbn_13', [])
+    lccn = page.get('lccn', [])
+    oclc_numbers = page.get('oclc_numbers', [])
     
-    return dict(key=key, title=title, publishers=publishers, authors=authors, by_statement=by_statement)
+    return dict(key=key, 
+        title=title, 
+        authors=authors, 
+        contributors=contributors,
+        by_statement=by_statement,
+        publishers=publishers, 
+        publish_places=publish_places,
+        publish_country=publish_country,
+        isbn_10=isbn_10,
+        isbn_13=isbn_13,
+        lccn=lccn,
+        oclc_numbers=oclc_numbers,
+    )
 
 def make_data(bib_key, key, details=False):
     page = api_get(key)

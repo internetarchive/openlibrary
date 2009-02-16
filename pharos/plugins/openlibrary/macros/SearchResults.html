@@ -1,6 +1,6 @@
 $def with (results, fulltext=False)
 
-$ _ = _.get_namespace('/search')
+$ _ = i18n.get_namespace('/search')
 <table border="0" cellpadding="0" cellspacing="0" width="100%" class="result-item">
 
 $for b in results:
@@ -13,13 +13,8 @@ $for b in results:
         $ ocaid = None
     <tr>
     <td class="cover">
-            $if book.coverimage:
-                $ cover = book.coverimage
-            $elif book.isbn_10 and len(book.isbn_10[0]) == 10:
-                $ cover = "/static/bookcovers/thumb/" + book.isbn_10[0][0] + "/" + book.isbn_10[0][1] + "/" + book.isbn_10[0] + ".jpg"
-            $else:
-                $ cover = "/static/images/book.trans.gif"
-            <a href="$book.key"><img src="$cover" height="58" alt="$_.cover_image" onError="this.src='/static/images/book.trans.gif';"/></a>
+        $ olid = book.key.split('/')[-1]
+        <a href="$book.key"><img src="http://covers.openlibrary.org/b/olid/$olid-S.jpg" height="58"/></a>
     </td>
     <td class="result-text" valign="top">
         <a href="$book.key" class="result">$book.title_prefix $book.title</a>

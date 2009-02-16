@@ -1,7 +1,7 @@
 $def with (page, action=None, title=None)
 
-$ _t = _.get_namespace('/type/edition')
-$ _ = _.get_namespace('/mode/edit')
+$ _t = i18n.get_namespace('/type/edition')
+$ _ = i18n.get_namespace('/mode/edit')
 
 $ title = title or safeadd(_.editing, ' ', page.title)
  
@@ -10,6 +10,7 @@ $var title: $title
 $add_javascript('/static/js/jquery/jquery.js')
 
 $add_javascript('/static/js/jquery/freebase.suggest.js')
+
 $add_javascript('/static/js/jquery/freebase.controls.js')
 $add_javascript('/static/js/jquery/freebase.select.js')
 
@@ -42,9 +43,9 @@ function next(key) {
 
 function add_row(name) {
     var tbody = \$("#tbody_" + name);
-    var n = tbody.children().length;
-
-    var row = \$("tr:last", tbody);
+    
+    var rows = tbody.children();
+    var row = \$(rows[rows.length-1]);
     var newrow = row.clone();
     tbody.append(newrow);
 
@@ -71,6 +72,7 @@ function add_row(name) {
 jQuery(function(\$) {
     \$("#table_toc button.plus").bind("click", function(e) {
         \$("div#log").append(this + "<br/>");
+
     });
 });
 -->
@@ -103,7 +105,7 @@ jQuery(function(\$) {
                     $:macros.EditionEditRow(page, 'title_prefix', True)
                     $:macros.EditionEditRow(page, 'title', True)
                     $:macros.EditionEditRow(page, 'subtitle', True)
-                    $:macros.EditionEditRow(page, 'by_statements', True)
+                    $:macros.EditionEditRow(page, 'by_statement', True)
                     $:macros.EditionEditRow(page, 'authors', False)
                     $:macros.EditionEditRow(page, 'contributions', False)
 
@@ -117,6 +119,8 @@ jQuery(function(\$) {
                     $:macros.EditionEditRow(page, 'edition_name', True)
                     $:macros.EditionEditRow(page, 'languages', False)
                     $:macros.EditionEditRow(page, 'work_titles', False)
+                    $:macros.EditionEditRow(page, 'collections', False)
+                    $:macros.EditionEditRow(page, 'uris', False)
 
                     <tr><td valign="top" colspan="3" height="22"></td></tr>
                     </table>
@@ -169,9 +173,18 @@ jQuery(function(\$) {
             </td>
             <td valign="top" class="form-margin">
                 <br />
-                $:macros.ImageUploader(page.key.replace('/b/', ''), 'coverimage', page['coverimage'])
+                $ olid = page.key.split('/')[-1]
+                <div style="padding: 8px; border: solid 1px #ccc; background-color: #fff; width: 180px"><img width="180" src="http://covers.openlibrary.org/b/olid/$olid-M.jpg"/></div>
+
+<script type="text/javascript">
+function change_cover() {
+    window.location.href = "$:changequery(m='change_cover')";
+}
+</script>
+
+<div class="button-border" style="padding-top: 8px; margin-left: 0px; padding-left: 0px;"><img src="/static/images/flourish.left.gif"  alt="[" /><button onclick=" change_cover();" class="action" style="width: 165px;" type="button">Change Cover</button><img src="/static/images/flourish.gif"  alt="]" /></div>
                 <br />
- 
+
                <!-- begin right table -->
                 <table cellspacing="0" cellpadding="0" border="0">
                     <tr>
@@ -181,7 +194,7 @@ jQuery(function(\$) {
                             </td>
                     </tr>
 
-                    $:macros.EditionEditRow(page, "dewry_decimal_class", unique=False, right=True)
+                    $:macros.EditionEditRow(page, "dewey_decimal_class", unique=False, right=True)
                     $:macros.EditionEditRow(page, "lc_classifications", unique=False, right=True)
                     $:macros.EditionEditRow(page, "isbn_10", unique=False, right=True)
                     $:macros.EditionEditRow(page, "isbn_13", unique=False, right=True)
@@ -203,7 +216,7 @@ jQuery(function(\$) {
             
         <!-- edit summary and buttons -->
                  <div style="padding-left: 10px;">
-                    $:macros.EditButtons(page)
+                    $:macros.EditButtons()
                  </div>
 
     </div>

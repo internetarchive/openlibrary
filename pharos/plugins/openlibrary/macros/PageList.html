@@ -1,4 +1,4 @@
-$def with (path="", limit=50)
+$def with (path="", limit=50, use_repr=False)
 
 $ page = safeint(query_param("page", "0"))
 $ pages = list_pages(path, limit=limit, offset=page * limit)
@@ -8,7 +8,11 @@ $ pages = list_pages(path, limit=limit, offset=page * limit)
 <div class="contenttext">
 <ul>
 $for p in pages:
-    <li><a href="$homepath()$p.key">$p.key</a></li>
+    $if p.type.key != '/type/delete':
+        $if use_repr:
+            <li>$:thingrepr(p)</li>
+        $else:
+            <li><a href="$homepath()$p.key">$p.key</a></li>
 </ul>
 </div>
 

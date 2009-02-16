@@ -1,7 +1,7 @@
 $def with (page)
 
-$ _t = _.get_namespace('/type/macro')
-$ _ = _.get_namespace('/mode/edit')
+$ _t = i18n.get_namespace('/type/macro')
+$ _ = i18n.get_namespace('/mode/edit')
 
 $var title: $_.edit_title(page.key)
 
@@ -21,11 +21,12 @@ $var title: $_.edit_title(page.key)
     <div id="metadata-body">
 
             <strong>$_t.description</strong>
-            <input type="text" name="description" style="width: 100%" value="$page.description" /><br />
+            <input type="text" name="description" style="width: 100%" value="$page.description"/><br/>
             <br/>
             <textarea name="macro" rows="40" cols="80" style="font-family: monospace;">$page.macro</textarea>
             $:macros.EditButtons()
-        </form>
         $:macros.HelpFormatting()
     </div>
 </div>
+
+</form>
