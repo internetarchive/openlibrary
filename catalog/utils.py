@@ -12,14 +12,14 @@ re_date = map (re.compile, [
 
 re_ad_bc = re.compile(r'\b(B\.C\.?|A\.D\.?)')
 re_date_fl = re.compile('^fl[., ]')
-re_number_dot = re.compile('\d{2,}[- ]*\.$')
+re_number_dot = re.compile('\d{2,}[- ]*(\.+)$')
 re_l_in_date = re.compile('(l\d|\dl)')
 re_end_dot = re.compile('[^ .][^ .]\.$', re.UNICODE)
 
 def remove_trailing_number_dot(date):
     m = re_number_dot.search(date)
     if m:
-        return date[:-1]
+        return date[:-len(m.group(1))]
     else:
         return date
 
@@ -75,6 +75,7 @@ def pick_first_date(dates):
 def test_date():
     assert pick_first_date(["Mrs.", "1839-"]) == {'birth_date': '1839'}
     assert pick_first_date(["1882-."]) == {'birth_date': '1882'}
+    assert pick_first_date(["1900-1990.."]) == {'birth_date': u'1900', 'death_date': u'1990'}
 
 def strip_accents(s):
     return normalize('NFKD', unicode(s)).encode('ASCII', 'ignore')
