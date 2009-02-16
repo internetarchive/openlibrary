@@ -16,8 +16,10 @@ show_non_books = False
 verbose = False
 build_rec = False
 show_field = None
+show_leader = True
+show_leader = False
 
-opts, files = getopt(sys.argv[1:], 'v', ['verbose', 'show-non-books', 'build-record', 'show-field='])
+opts, files = getopt(sys.argv[1:], 'vl', ['verbose', 'show-non-books', 'build-record', 'show-field='])
 
 for o, a in opts:
     if o == '--show-non-books':
@@ -30,6 +32,8 @@ for o, a in opts:
         build_rec = True
     elif o == '--show-field':
         show_field = a
+    elif o == '-l':
+        show_leader = True
 
 # simple parse of a MARC binary, just counts types of items
 
@@ -42,10 +46,13 @@ def show_book(data):
             print tag, line[0:2] + fmt_subfields(line)
 
 total, sound_rec, not_book, book = 0, 0, 0, 0
-for data, length in read_file(open(files[0])):
+f = open(files[0])
+for data, length in read_file(f):
     total += 1
 #    if show_field:
 #        get_first_tag(data, set([show_field]))
+    if show_leader:
+        print data[:24]
     if verbose:
         show_book(data)
         print
@@ -64,6 +71,7 @@ for data, length in read_file(open(files[0])):
         not_book += 1
     else:
         book += 1
+f.close()
 
 print "total records:", total
 print "sound recordings:", sound_rec
