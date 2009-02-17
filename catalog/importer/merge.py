@@ -1,7 +1,7 @@
 from catalog.merge.merge_marc import *
 import catalog.merge.amazon as amazon
 from catalog.get_ia import *
-from db_read import withKey, get_mc
+from catalog.importer.db_read import withKey, get_mc
 import catalog.marc.fast_parse as fast_parse
 import xml.parsers.expat
 import dbhash
