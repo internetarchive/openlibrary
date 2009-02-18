@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import re
+import re, web
 from unicodedata import normalize
 
 re_date = map (re.compile, [
@@ -12,14 +12,60 @@ re_date = map (re.compile, [
 
 re_ad_bc = re.compile(r'\b(B\.C\.?|A\.D\.?)')
 re_date_fl = re.compile('^fl[., ]')
-re_number_dot = re.compile('\d{2,}[- ]*\.$')
+re_number_dot = re.compile('\d{2,}[- ]*(\.+)$')
+re_l_in_date = re.compile('(l\d|\dl)')
+re_end_dot = re.compile('[^ .][^ .]\.$', re.UNICODE)
+re_marc_name = re.compile('^(.*), (.*)$')
+re_year = re.compile(r'\b(\d{4})\b')
+
+def key_int(rec):
+    # extract the number from a key like /a/OL1234A
+    return int(web.numify(rec['key']))
+
+def author_dates_match(a, b):
+    # check if the dates of two authors
+    for k in ['birth_date', 'death_date', 'date']:
+        if k not in a or k not in b:
+            continue
+        if a[k] == b[k] or a[k].startswith(b[k]) or b[k].startswith(a[k]):
+            continue
+        m1 = re_year.search(a[k])
+        if not m1:
+            return False
+        m2 = re_year.search(b[k])
+        if m2 and m1.group(1) == m2.group(1):
+            continue
+        return False
+    return True
+
+def flip_name(name):
+    # strip end dots like this: "Smith, John." but not like this: "Smith, J."
+    m = re_end_dot.search(name)
+    if m:
+        name = name[:-1]
+
+    if name.find(', ') == -1:
+        return name
+    m = re_marc_name.match(name)
+    return m.group(2) + ' ' + m.group(1)
 
 def remove_trailing_number_dot(date):
     m = re_number_dot.search(date)
     if m:
-        return date[:-1]
+        return date[:-len(m.group(1))]
     else:
         return date
+
+def remove_trailing_dot(s):
+    m = re_end_dot.search(s)
+    if m:
+        s = s[:-1]
+    return s
+
+def fix_l_in_date(date):
+    if not 'l' in date:
+        return date
+    return re_l_in_date.sub(lambda m:m.group(1).replace('l', '1'), date)
 
 def parse_date(date):
     if re_date_fl.match(date):
@@ -29,7 +75,7 @@ def parse_date(date):
         for r in re_date:
             m = r.search(date)
             if m:
-                return m.groupdict()
+                return dict((k, fix_l_in_date(v)) for k, v in m.groupdict().items())
         return {}
 
     parts = date.split('-')
@@ -37,11 +83,13 @@ def parse_date(date):
     if len(parts) == 2:
         parts[1] = parts[1].strip()
         if parts[1]:
-            i['death_date'] = parts[1]
+            i['death_date'] = fix_l_in_date(parts[1])
             if not re_ad_bc.search(i['birth_date']):
                 m = re_ad_bc.search(i['death_date'])
                 if m:
                     i['birth_date'] += ' ' + m.group(1)
+    if 'birth_date' in i and 'l' in i['birth_date']:
+        i['birth_date'] = fix_l_in_date(i['birth_date'])
     return i
 
 def pick_first_date(dates):
@@ -55,10 +103,12 @@ def pick_first_date(dates):
         if result != {}:
             return result
 
-    return { 'date': ' '.join([remove_trailing_number_dot(d) for d in dates]) }
+    return { 'date': fix_l_in_date(' '.join([remove_trailing_number_dot(d) for d in dates])) }
 
 def test_date():
     assert pick_first_date(["Mrs.", "1839-"]) == {'birth_date': '1839'}
+    assert pick_first_date(["1882-."]) == {'birth_date': '1882'}
+    assert pick_first_date(["1900-1990.."]) == {'birth_date': u'1900', 'death_date': u'1990'}
 
 def strip_accents(s):
     return normalize('NFKD', unicode(s)).encode('ASCII', 'ignore')
@@ -155,3 +205,14 @@ def test_strip_count():
         ('Other.', [ u'h', u'i' ]),
     ]
     assert strip_count(input) == expect
+
+def test_remove_trailing_dot():
+    data = [
+        ('Test', 'Test'),
+        ('Test.', 'Test'),
+        ('Test J.', 'Test J.'),
+        ('Test...', 'Test...')
+    ]
+    for input, expect in data:
+        output = remove_trailing_dot(input)
+        assert output == expect

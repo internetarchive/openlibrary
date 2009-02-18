@@ -1,14 +1,13 @@
 from catalog.db_read import withKey, get_things
 from catalog.olwrite import Infogami
 from catalog.read_rc import read_rc
-import web, sys
+from catalog.utils import key_int
+import web, re, sys, codecs
+sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
 
 rc = read_rc()
 infogami = Infogami(rc['infogami'])
 infogami.login('EdwardBot', rc['EdwardBot'])
-
-def key_int(rec):
-    return int(web.numify(rec['key']))
 
 def copy_fields(from_author, to_author, name):
     new_fields = { 'name': name, 'personal_name': name }
@@ -68,20 +67,20 @@ def make_redirect(old, new):
 
 def merge_authors(author, merge_with, new_name):
     print 'merge author %s:"%s" and %s:"%s"' % (author['key'], author['name'], merge_with['key'], merge_with['name'])
-    print 'becomes: "%s"' % new_name
+    print 'becomes: "%s"' % `new_name`
     if key_int(author) < key_int(merge_with):
         new_key = author['key']
         print "copy fields from merge_with to", new_key
-        new = copy_fields(merge_with, author, new_name)
-        update_author(new_key, new)
+#        new = copy_fields(merge_with, author, new_name)
+#        update_author(new_key, new)
         switch_author(merge_with, author)
 #        print "delete merge_with"
         make_redirect(merge_with, author)
     else:
         new_key = merge_with['key']
         print "copy fields from author to", new_key
-        new = copy_fields(merge_with, author, new_name)
-        update_author(new_key, new)
+#        new = copy_fields(merge_with, author, new_name)
+#        update_author(new_key, new)
         switch_author(author, merge_with)
 #        print "delete author"
         make_redirect(author, merge_with)
@@ -95,7 +94,7 @@ print merge_with
 
 print sys.argv
 if len(sys.argv) > 3:
-    name = sys.argv[3]
+    name = sys.argv[3].decode('utf8')
 else:
     assert author['name'] == merge_with['name']
     name = author['name']

@@ -1,22 +1,9 @@
 import web, re
 from db_read import get_things, withKey
-
-re_end_dot = re.compile('[^ ][^ ]\.$', re.UNICODE)
-re_marc_name = re.compile('^(.*), (.*)$')
-re_year = re.compile(r'\b(\d{4})\b')
-
-def flip_name(name):
-    # strip end dots like this: "Smith, John." but not like this: "Smith, J."
-    m = re_end_dot.search(name)
-    if m:
-        name = name[:-1]
-
-    if name.find(', ') == -1:
-        return name
-    m = re_marc_name.match(name)
-    return m.group(2) + ' ' + m.group(1)
+from catalog.utils import flip_name, author_dates_match, key_int
 
 def do_flip(author):
+    # given an author name flip it in place
     if 'personal_name' not in author:
         return
     if author['personal_name'] != author['name']:
@@ -35,24 +22,6 @@ def do_flip(author):
     author['name'] = name
     author['personal_name'] = name
 
-def author_dates_match(a, b):
-    for k in ['birth_date', 'death_date', 'date']:
-        if k not in a or k not in b:
-            continue
-        if a[k] == b[k] or a[k].startswith(b[k]) or b[k].startswith(a[k]):
-            continue
-        m1 = re_year.search(a[k])
-        if not m1:
-            return False
-        m2 = re_year.search(b[k])
-        if m2 and m1.group(1) == m2.group(1):
-            continue
-        return False
-    return True
-
-def key_int(rec):
-    return int(web.numify(rec['key']))
-
 def pick_from_matches(author, match):
     maybe = []
     if 'birth_date' in author and 'death_date' in author:
@@ -67,15 +36,15 @@ def pick_from_matches(author, match):
 
 def find_entity(author):
     name = author['name']
-    things = get_things({'name': name, 'type': '/type/author'})
+    things = find_author(name)
     if author['entity_type'] != 'person':
         return withKey(things[0]) if things else None
-    if name.find(', ') != -1:
-        flipped = flip_name(name)
-        things += get_things({'name': flipped, 'type': '/type/author'})
+    if ', ' in name:
+        things += find_author(flip_name(name))
     match = []
     for key in things:
         db_entity = withKey(key)
+        assert db_entity['type']['key'] == '/type/author'
         if 'birth_date' in author and 'birth_date' not in db_entity:
             continue
         if 'birth_date' not in author and 'birth_date' in db_entity:
@@ -99,6 +68,10 @@ def import_author(author, eastern=False):
     if existing:
         existing['key'] = existing['key'].replace('\/', '/')
         existing['type']['key'] = existing['type']['key'].replace('\/', '/')
+        if existing['type']['key'] != '/type/author':
+            print author
+            print existing
+        assert existing['type']['key'] == '/type/author'
         for k in 'last_modified', 'id', 'revision', 'created':
             if k in existing:
                 del existing[k]
