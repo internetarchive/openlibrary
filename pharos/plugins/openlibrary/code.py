@@ -348,6 +348,7 @@ class bookpage(delegate.page):
         except:
             raise web.notfound()
 
+delegate.media_types['application/rdf+xml'] = 'rdf'
 class rdf(delegate.mode):
     name = 'view'
     encoding = 'rdf'
