@@ -7,6 +7,8 @@ re_question = re.compile('^\?+$')
 re_lccn = re.compile('(...\d+).*')
 re_letters = re.compile('[A-Za-z]')
 re_isbn = re.compile('([^ ()]+[\dX])(?: \((?:v\. (\d+)(?: : )?)?(.*)\))?')
+# handle ISBN like: 1402563884c$26.95
+re_isbn_and_price = re.compile('^([-\d]+X?)c\$[\d.]+$')
 re_oclc = re.compile ('^\(OCoLC\).*?0*(\d+)')
 re_int = re.compile ('\d{2,}')
 re_number_dot = re.compile('\d{3,}\.$')
@@ -61,11 +63,15 @@ def read_isbn(fields):
 
     found = []
     for line in fields['020']:
-        if line.find('\x1f') != -1:
+        if '\x1f' in line:
             for k, v in get_subfields(line, ['a', 'z']):
-                m = re_isbn.match(v)
+                m = re_isbn_and_price.match(v)
                 if m:
                     found.append(m.group(1))
+                else:
+                    m = re_isbn.match(v)
+                    if m:
+                        found.append(m.group(1))
         else:
             m = re_isbn.match(line[3:-1])
             if m:
@@ -80,7 +86,11 @@ def read_isbn(fields):
         if len(i) == 13:
             ret.setdefault('isbn_13', []).append(i)
         else:
-            assert len(i) <= 16
+            try:
+                assert len(i) <= 16
+            except:
+                print i
+                raise
             ret.setdefault('isbn_10', []).append(i)
 
     return ret
@@ -501,7 +511,11 @@ def read_edition(loc, data):
     if lang not in ('   ', '|||'):
         edition["languages"] = [{ 'key': '/l/' + lang }]
     edition.update(read_lccn(fields))
-    edition.update(read_isbn(fields))
+    try:
+        edition.update(read_isbn(fields))
+    except:
+        print loc
+        raise
     edition.update(read_oclc(fields))
     edition.update(read_lc_classification(fields))
     edition.update(read_dewey(fields))
