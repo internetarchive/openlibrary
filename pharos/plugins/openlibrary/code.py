@@ -324,9 +324,9 @@ class change_cover(delegate.mode):
         return render.change_cover(page)
 
 class bookpage(delegate.page):
-    path = r"/(isbn|oclc|lccn|ISBN|OCLC|LCCN)/([^.]*)(\.rdf|\.json|)"
+    path = r"/(isbn|oclc|lccn|ISBN|OCLC|LCCN)/([^.]*)"
 
-    def GET(self, key, value, ext=None):
+    def GET(self, key, value):
         key = key.lower()
         if key == "isbn":
             if len(value) == 13:
@@ -338,6 +338,11 @@ class bookpage(delegate.page):
 
         value = value.replace('_', ' ')
 
+        if web.ctx.encoding and web.ctx.path.endswith("." + web.ctx.encoding): 
+            ext = "." + web.ctx.encoding
+        else:
+            ext = ""
+
         q = {"type": "/type/edition", key: value}
         try:
             result = web.ctx.site.things(q)
@@ -345,6 +350,8 @@ class bookpage(delegate.page):
                 raise web.seeother(result[0] + ext)
             else:
                 raise web.notfound()
+        except web.HTTPError:
+            pass
         except:
             raise web.notfound()
 
