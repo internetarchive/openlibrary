@@ -80,12 +80,19 @@ class SR2(Solr_result):
 class Solr_client(object):
     def __init__(self,
                  server_addr = solr_server_addr,
+                 shards = 1,
                  pool_size = 1):
         self.server_addr = server_addr
+        self.shards = shards
 
-    def __query_fmt(self, query, rows=None, start=None, wt=None):
-        d = {'rows': rows, 'start': start, 'wt': wt}
-        q = [quote_plus(query)] + ['%s=%s'%(k, v) \
+    def __query_fmt(self, query,
+                    rows=None, start=None, wt=None, sort=None):
+        def fshards(shards):
+            if shards is None: return None
+            return ','.join('%s:%s/solr'%(host,port) for host,port in shards)
+        d = {'rows': rows, 'start': start, 'wt': wt, 'sort': sort, 
+             'shards': fshards(self.shards)}
+        q = [quote_plus(query)] + ['%s=%s'%(k, quote_plus(str(v))) \
                        for k,v in d.items() if v is not None]
         r = '&'.join(q)
         # print >> web.debug, "* query fmt: returning (%r)"% r
@@ -109,7 +116,6 @@ class Solr_client(object):
     def Xfacet_token_inverse(self,
                             token,
                             facet_list = default_facet_list):
-        import web # @@
         from facet_hash import facet_token
 
         # for now, just pull this straight from the SE
@@ -120,7 +126,6 @@ class Solr_client(object):
         m = simplejson.loads(self.raw_search('facet_tokens:%s'% token,
                                              rows=1, wt='json'))
         facet_set = set(facet_list)
-
         for d in m['response']['docs']:
             for k,vx in d.iteritems():
                 kfs = k in facet_set
@@ -167,9 +172,6 @@ class Solr_client(object):
         
         query = self._prefix_query('fulltext', query)
         result_list = self.raw_search(query, rows, start)
-
-        # print >> web.debug, ('result', result_list) # @@
-
         e = ElementTree()
         try:
             e.parse(StringIO(result_list))
