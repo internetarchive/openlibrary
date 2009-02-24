@@ -16,9 +16,10 @@ import cPickle
 
 render = template.render
 
+solr_fulltext_shards = getattr(config, 'solr_fulltext_shards', None)
 solr_server_address = getattr(config, 'solr_server_address', None)
 solr_fulltext_address = getattr(config, 'solr_fulltext_address',
-                                ('zenodotus', 7983))
+                                solr_fulltext_shards[0])
 
 if solr_fulltext_address is not None:
     solr_pagetext_address = getattr(config,
@@ -30,8 +31,10 @@ if solr_server_address:
 else:
     solr = None
 
-solr_fulltext = solr_client.Solr_client(solr_fulltext_address)
-solr_pagetext = solr_client.Solr_client(solr_pagetext_address)
+solr_fulltext = solr_client.Solr_client(solr_fulltext_address,
+                                        shards=solr_fulltext_shards)
+solr_pagetext = solr_client.Solr_client(solr_pagetext_address,
+                                        shards=solr_fulltext_shards)
 
 def lookup_ocaid(ocaid):
     ocat = web.ctx.site.things(dict(type='/type/edition', ocaid=ocaid))
