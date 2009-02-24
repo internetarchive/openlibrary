@@ -80,7 +80,7 @@ class SR2(Solr_result):
 class Solr_client(object):
     def __init__(self,
                  server_addr = solr_server_addr,
-                 shards = 1,
+                 shards = None,
                  pool_size = 1):
         self.server_addr = server_addr
         self.shards = shards
