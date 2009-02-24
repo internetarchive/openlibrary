@@ -448,7 +448,9 @@ def readable_url_processor(handler):
             return web.ctx.path
             
     readable_path = get_readable_path()
-    if readable_path != web.ctx.path:
+    #@@ should't this be done by the web server/flup/web.py?
+    path = urllib.unquote(web.ctx.path.encode('utf-8')).decode('utf-8')
+    if readable_path != path:
         raise web.seeother(readable_path + web.ctx.query)
 
     web.ctx.readable_path = readable_path
