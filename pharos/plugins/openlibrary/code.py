@@ -435,7 +435,8 @@ def readable_url_processor(handler):
             if web.re_compile('^' + pat + '$').match(path):
                 thing = web.ctx.site.get(path)
                 if thing is not None and thing.type.key == type and thing[property]:
-                    return path + '/' + thing[property].replace(' ', '-')
+                    title = thing[property].replace(' ', '-').encode('utf-8')
+                    return path + '/' + urllib.quote(title)
         return web.ctx.path
     
     def get_real_path():
@@ -443,15 +444,18 @@ def readable_url_processor(handler):
         rx = web.re_compile(pat)
         m = rx.match(web.ctx.path)
         if m:
+            path = m.group(1)
             return m.group(1)
         else:
             return web.ctx.path
             
     readable_path = get_readable_path()
-    #@@ should't this be done by the web server/flup/web.py?
-    path = urllib.unquote(web.ctx.path.encode('utf-8')).decode('utf-8')
-    if readable_path != path:
-        raise web.seeother(readable_path + web.ctx.query)
+
+    #@@ web.ctx.path is either quoted or unquoted depends on whether the application is running
+    #@@ using builtin-server or lighttpd. Thats probably a bug in web.py. 
+    #@@ take care of that case here till that is fixed.
+    if readable_path != web.ctx.path and readable_path != urllib.quote(web.utf8(web.ctx.path)):
+        raise web.seeother(readable_path + web.ctx.query.encode('utf-8'))
 
     web.ctx.readable_path = readable_path
     web.ctx.path = get_real_path()
