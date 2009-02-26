@@ -6,26 +6,18 @@ import os
 
 debug = True
 
-def get_site():
-    return web.ctx.home
-
-def api_things(key, value):
+def api_things(key, value, details=False):
     query = {
         'type': '/type/edition',
-        key: value
+        key: value,
+        '*': None,
     }
-    return web.ctx.site.things(query)
+    # all book info is anyway requred to check if that book has fulltext available or not.
+    # Request for author names only when details are true.
+    if details:
+        query['authors'] = {'name': None}
+    return web.ctx.site.things(query, details=True)
 
-def api_get(key):
-    try:
-        return web.ctx.site._get(key)
-    except:
-        return {}
-
-def cond(p, c, a=None):
-    if p: return c
-    else: return a
-    
 def get_thumbnail_url(key):
     olid = key.split('/')[-1]
     try:
@@ -34,72 +26,7 @@ def get_thumbnail_url(key):
     except (urllib2.HTTPError, ValueError):
         ids = []
     if ids:
-        return 'http://covers.openlibrary.org/b/olid/%s-S.jpg' % olid
-        
-def get_details(page):
-    def get_author(key):
-        return {'key': key, 'name': api_get(key).get('name', '')}
-    
-    key = page['key']
-    
-    title_prefix = page.get('title_prefix') or ''
-    title = page.get('title') or ''
-    if title_prefix:
-        title = title_prefix + ' ' + title
-    
-    publishers = page.get('publishers') or []
-    
-    authors = page.get('authors') or []
-    authors = [get_author(a) for a in authors]
-    
-    by_statement = page.get('by_statement') or ''
-
-    contributors = page.get('contributors') or ''
-    publish_places = page.get('publish_places') or []
-    publish_country = page.get('publish_country') or ''
-    isbn_10 = page.get('isbn_10', [])
-    isbn_13 = page.get('isbn_13', [])
-    lccn = page.get('lccn', [])
-    oclc_numbers = page.get('oclc_numbers', [])
-    
-    return dict(key=key, 
-        title=title, 
-        authors=authors, 
-        contributors=contributors,
-        by_statement=by_statement,
-        publishers=publishers, 
-        publish_places=publish_places,
-        publish_country=publish_country,
-        isbn_10=isbn_10,
-        isbn_13=isbn_13,
-        lccn=lccn,
-        oclc_numbers=oclc_numbers,
-    )
-
-def make_data(bib_key, key, details=False):
-    page = api_get(key)
-    if 'ocaid' in page:
-        preview = 'full'
-        preview_url = 'http://openlibrary.org/details/' + page['ocaid']
-    else:
-        preview = 'noview'
-        preview_url = 'http://openlibrary.org' + key
-        
-    thumbnail_url = get_thumbnail_url(key)
-    
-    d = {
-        'bib_key': bib_key,
-        'info_url': 'http://openlibrary.org' + key,
-        'preview': preview,
-        'preview_url': preview_url,
-    }
-    if thumbnail_url:
-        d['thumbnail_url'] = thumbnail_url
-        
-    if details:
-        d['details'] = get_details(page)
-        
-    return d
+        return 'http://covers.openlibrary.org/b/id/%s-S.jpg' % ids[0]
 
 def split_key(bib_key):
     """
@@ -160,19 +87,70 @@ def split_key(bib_key):
         value = '/b/' + value.upper()
 
     return key, value
+    
+def process_result(bib_key, page, details):
+    key = page['key']
+    
+    if 'ocaid' in page:
+        preview = 'full'
+        preview_url = 'http://openlibrary.org/details/' + page['ocaid']
+    else:
+        preview = 'noview'
+        preview_url = 'http://openlibrary.org' + key
         
-def get(bibkey, details=False):
-    key, value = split_key(bibkey)
-    things = key and api_things(key, value)
-    return things and {bibkey: make_data(bibkey, things[0], details=details)}
+    thumbnail_url = get_thumbnail_url(key)
+    
+    d = {
+        'bib_key': bib_key,
+        'info_url': 'http://openlibrary.org' + key,
+        'preview': preview,
+        'preview_url': preview_url,
+    }
+    if thumbnail_url:
+        d['thumbnail_url'] = thumbnail_url
+    
+    if details:
+        d['details'] = page
+    return d
+    
+def find_olns(bib_keys, details):
+    """Returns OLN for each of the bib_keys. Returns a dict with mapping from bib_key to OLN."""
+    
+    # find the key and value to query
+    d = {}
+    for bib_key in bib_keys:
+        k, v = split_key(bib_key)
+        if k is None:
+            continue
+        d[bib_key] = k, v
+    
+    # prepare queries
+    queries = {}
+    for k, v in d.values():
+        queries.setdefault(k, []).append(v)
+
+    # run queries and accumulate the result
+    result = {}
+    for k, q in queries.items():
+        for thing in api_things(k, q, details):
+            print >> web.debug, q, thing
+            value = thing[k]
+            if isinstance(value, list):
+                for v in value:
+                    result[k, v] = thing
+            else:
+                result[k, value] = thing
+        
+    # assign result to respective bib_key
+    mapping = {}    
+    for bib_key, (k, v) in d.items():
+        if (k, v) in result:
+            mapping[bib_key] = process_result(bib_key, result[k, v], details)
+    return mapping
 
 def get_multi(bib_keys, details=False):
     try:
-        result = {}
-        for bib_key in bib_keys:
-            d = get(bib_key, details=details)
-            d and result.update(d)
-        return result
+        return find_olns(bib_keys, details)
     except:
         # this should never happen, but to protect from unexpected errors
         return {}
