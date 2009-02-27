@@ -4,6 +4,8 @@ Open Library Plugin.
 import web
 import simplejson
 import os
+import re
+import urllib
 
 import infogami
 from infogami.utils import types, delegate
@@ -324,9 +326,9 @@ class change_cover(delegate.mode):
         return render.change_cover(page)
 
 class bookpage(delegate.page):
-    path = r"/(isbn|oclc|lccn|ISBN|OCLC|LCCN)/([^.]*)(\.rdf|\.json|)"
+    path = r"/(isbn|oclc|lccn|ISBN|OCLC|LCCN)/([^.]*)"
 
-    def GET(self, key, value, ext=None):
+    def GET(self, key, value):
         key = key.lower()
         if key == "isbn":
             if len(value) == 13:
@@ -338,6 +340,11 @@ class bookpage(delegate.page):
 
         value = value.replace('_', ' ')
 
+        if web.ctx.encoding and web.ctx.path.endswith("." + web.ctx.encoding): 
+            ext = "." + web.ctx.encoding
+        else:
+            ext = ""
+
         q = {"type": "/type/edition", key: value}
         try:
             result = web.ctx.site.things(q)
@@ -345,24 +352,28 @@ class bookpage(delegate.page):
                 raise web.seeother(result[0] + ext)
             else:
                 raise web.notfound()
+        except web.HTTPError:
+            pass
         except:
             raise web.notfound()
 
-class rdf(delegate.page):
-    path = r"(.*)\.rdf"
+delegate.media_types['application/rdf+xml'] = 'rdf'
+class rdf(delegate.mode):
+    name = 'view'
+    encoding = 'rdf'
 
     def GET(self, key):
         page = web.ctx.site.get(key)
         if not page:
-            raise web.notfound()
+            raise web.notfound("")
         else:
             from infogami.utils import template
-
             try:
                 result = template.typetemplate('rdf')(page)
             except:
-                raise web.notfound()
-            raise web.HTTPError("200 OK", {}, result)
+                raise web.notfound("")
+            else:
+                return delegate.RawText(result, content_type="application/rdf+xml; charset=utf-8")
 
 class create:
     """API hook for creating books and authors."""
@@ -402,23 +413,70 @@ class new:
             dict(query=simplejson.dumps(query), comment=i.comment, machine_comment=i.machine_comment))
         return simplejson.dumps(result)
 
-class write:
-    """Hack to support push and pull of templates.
-    Works only from the localhost.
-    """
-    def POST(self):
-        assert_localhost(web.ctx.ip)
-        
-        i = web.input("query", comment=None)
-        query = simplejson.loads(i.query)
-        result = web.ctx.site.write(query, i.comment)
-        return simplejson.dumps(dict(status='ok', result=dict(result)))
-
 # add search API if api plugin is enabled.
 if 'api' in delegate.get_plugins():
     from infogami.plugins.api import code as api
-    api.add_hook('write', write)
     api.add_hook('new', new)
+    
+    
+def readable_url_processor(handler):
+    patterns = [
+        (r'/b/OL\d+M', '/type/edition', 'title'),
+        (r'/a/OL\d+A', '/type/author', 'name'),
+        (r'/w/OL\d+W', '/type/work', 'title'),
+        (r'/s/OL\d+S', '/type/series', 'title'),
+    ]
+    def get_readable_path():
+        path = get_real_path()
+        if web.ctx.get('encoding') is not None:
+            return web.ctx.path
+        
+        for pat, type, property in patterns:
+            if web.re_compile('^' + pat + '$').match(path):
+                thing = web.ctx.site.get(path)
+                if thing is not None and thing.type.key == type and thing[property]:
+                    title = thing[property].replace(' ', '-').encode('utf-8')
+                    return path + '/' + urllib.quote(title)
+        return web.ctx.path
+    
+    def get_real_path():
+        pat = '^(' + '|'.join(p[0] for p in patterns) + ')(?:/.*)?'
+        rx = web.re_compile(pat)
+        m = rx.match(web.ctx.path)
+        if m:
+            path = m.group(1)
+            return m.group(1)
+        else:
+            return web.ctx.path
+            
+    readable_path = get_readable_path()
+
+    #@@ web.ctx.path is either quoted or unquoted depends on whether the application is running
+    #@@ using builtin-server or lighttpd. Thats probably a bug in web.py. 
+    #@@ take care of that case here till that is fixed.
+    if readable_path != web.ctx.path and readable_path != urllib.quote(web.utf8(web.ctx.path)):
+        raise web.seeother(readable_path + web.ctx.query.encode('utf-8'))
+
+    web.ctx.readable_path = readable_path
+    web.ctx.path = get_real_path()
+    web.ctx.fullpath = web.ctx.path + web.ctx.query
+    return handler()
+
+@public
+def changequery(query=None, **kw):
+    if query is None:
+        query = web.input(_method='get')
+    for k, v in kw.iteritems():
+        if v is None:
+            query.pop(k, None)
+        else:
+            query[k] = v
+    out = web.ctx.readable_path
+    if query:
+        out += '?' + urllib.urlencode(query)
+    return out
+
+delegate.app.add_processor(readable_url_processor)
 
 if __name__ == "__main__":
     main()
