@@ -10,6 +10,7 @@ import urllib
 import infogami
 from infogami.utils import types, delegate
 from infogami.utils.view import render, public
+from infogami.infobase import client
 
 types.register_type('^/a/[^/]*$', '/type/author')
 types.register_type('^/b/[^/]*$', '/type/edition')
@@ -375,50 +376,80 @@ class rdf(delegate.mode):
             else:
                 return delegate.RawText(result, content_type="application/rdf+xml; charset=utf-8")
 
-class create:
-    """API hook for creating books and authors."""
-    def POST(self):
-        ip = web.ctx.ip
-        assert ip in ['127.0.0.1', '207.241.226.140']
-        pass
-        
-def assert_localhost(ip):
-    import socket
-    local_ip = socket.gethostbyname(socket.gethostname())
-    localhost = '127.0.0.1'
-    assert ip in [localhost, local_ip]
-    
+def can_write():
+    user = delegate.context.user and delegate.context.user.key
+    usergroup = web.ctx.site.get('/usergroup/api')
+    return usergroup and user in [u.key for u in usergroup.members]
+
+class Forbidden(web.HTTPError):
+    def __init__(self, msg=""):
+        web.HTTPError.__init__(self, "403 Forbidden", {}, msg)
+
+class BadRequest(web.HTTPError):
+    def __init__(self, msg=""):
+        web.HTTPError.__init__(self, "400 Bad Request", {}, msg)
+
+def get_special_header(name):
+    header_prefix = infogami.config.get('http_header_prefix', 'infogami').upper()
+    return web.ctx.env.get('HTTP_X_%s_%s' % (header_prefix, name.upper()))
+
 class new:
-    """API Hook to support book import.
-    Key the new object being created is automatically computed based on the type.
-    Works only from the localhost.    
+    """API to create new author/edition/work/publisher/series.
     """
-    def POST(self):
-        assert_localhost(web.ctx.ip)
-        i = web.input("query", comment=None, machine_comment=None)
-        query = simplejson.loads(i.query)
-        
-        if isinstance(query['type'], dict):
-            type = query['type']['key']
+    def prepare_query(self, query):
+        """Add key to query and returns the key.
+        If query is a list multiple queries are returned.
+        """
+        if isinstance(query, list):
+            return [self.prepare_query(q) for q in query]
         else:
             type = query['type']
-        
-        
-        if type == '/type/edition' or type == '/type/author':
+            if isinstance(type, dict):
+                type = type['key']
             query['key'] = web.ctx.site.new_key(type)
+            return query['key']
+            
+    def verify_types(self, query):
+        if isinstance(query, list):
+            for q in query:
+                self.verify_types(q)
         else:
-            result = {'status': 'fail', 'message': 'Invalid type %s. Expected /type/edition or /type/author.' % repr(query['type'])}
-            return simplejson.dumps(result)
-        result = web.ctx.site._conn.request(web.ctx.site.name, '/write', 'POST',
-            dict(query=simplejson.dumps(query), comment=i.comment, machine_comment=i.machine_comment))
-        return simplejson.dumps(result)
+            if 'type' not in query:
+                raise BadRequest("Missing type")
+            type = query['type']
+            if isinstance(type, dict):
+                if 'key' not in type:
+                    raise BadRequest("Bad Type: " + simplejson.dumps(type))
+                type = type['key']
+                
+            if type not in ['/type/author', '/type/edition', '/type/work', '/type/series', '/type/publisher']:
+                raise BadRequest("Bad Type: " + simplejson.dumps(type))
+ 
+    def POST(self):
+        if not can_write():
+            raise Forbidden("Permission Denied.")
+            
+        try:
+            query = simplejson.loads(web.data())
+            comment = get_special_header('comment')
+            action = get_special_header('action')
+        except Exception, e:
+            raise BadRequest(str(e))
+            
+        self.verify_types(query)
+        keys = self.prepare_query(query)
+        
+        try:
+            if not isinstance(query, list):
+                query = [query]
+            web.ctx.site.save_many(query, comment=comment, action=action)
+        except client.ClientException, e:
+            raise BadRequest(str(e))
+        return simplejson.dumps(keys)
+        
+from infogami.plugins.api import code as api
+api.add_hook('new', new)
 
-# add search API if api plugin is enabled.
-if 'api' in delegate.get_plugins():
-    from infogami.plugins.api import code as api
-    api.add_hook('new', new)
-    
-    
 def readable_url_processor(handler):
     patterns = [
         (r'/b/OL\d+M', '/type/edition', 'title'),
