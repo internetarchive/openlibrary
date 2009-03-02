@@ -66,10 +66,11 @@ def ol_things(key, value):
         
 def _query(category, key, value):
     if key == 'id':
-        return safeint(value)
+        result = db.details(safeint(value))
+        return result and result[0] or None
     elif key == 'olid':
         result = db.query(category, value, limit=1)
-        return result and result[0].id or None
+        return result and result[0] or None
     else:
         if category == 'b' and key in ['isbn', 'lccn', 'oclc', 'ocaid']:
             if key == 'isbn':
@@ -169,7 +170,6 @@ def filesize(path):
     except:
         return 0
 
-
 def serve_file(path):
     # when xsendfile is enabled, lighttpd takes X-LIGHTTPD-Send-file header from response and serves that file.
     if os.getenv('XSENDFILE') == 'true':
@@ -183,10 +183,15 @@ class cover:
         i = web.input(default="true")
         key = key.lower()
         
-        id = _query(category, key, value)
-        if id:
+        d = _query(category, key, value)
+        if d:
+            if key == 'id':
+                web.lastmodified(d.created)
+                web.header('Cache-Control', 'public')
+                web.expires(100 * 365 * 24 * 3600) # this image is not going to expire in next 100 years.
+                
             web.header('Content-Type', 'image/jpeg')
-            filename = _cache.get_image(id, size)
+            filename = _cache.get_image(d.id, size)
             if filename:
                 serve_file(filename)
         elif config.default_image and i.default.lower() != "false" and not i.default.startswith('http://'):
@@ -228,7 +233,7 @@ class query:
             print "%s(%s);" % (i.callback, json)
         else:
             print json
-        
+
 class touch:
     def POST(self, category):
         i = web.input(id=None, redirect_url=None)
