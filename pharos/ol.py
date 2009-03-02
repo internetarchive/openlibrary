@@ -332,6 +332,6 @@ def setup_infogami_config():
     infogami.config.plugins += ['openlibrary', 'i18n', 'api', 'sync', 'books', 'scod', 'search']
 
     infogami.config.infobase_parameters = dict(type='ol')
-    infogami.config.http_header_prefix = "ol"
+    infogami.config.http_ext_header_uri = "http://openlibrary.org/dev/docs/api"
 
 setup_infogami_config()

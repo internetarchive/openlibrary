@@ -12,6 +12,11 @@ from infogami.utils import types, delegate
 from infogami.utils.view import render, public
 from infogami.infobase import client
 
+try:
+    from infogami.plugins.api import code as api
+except:
+    api = None
+
 types.register_type('^/a/[^/]*$', '/type/author')
 types.register_type('^/b/[^/]*$', '/type/edition')
 
@@ -389,10 +394,6 @@ class BadRequest(web.HTTPError):
     def __init__(self, msg=""):
         web.HTTPError.__init__(self, "400 Bad Request", {}, msg)
 
-def get_special_header(name):
-    header_prefix = infogami.config.get('http_header_prefix', 'infogami').upper()
-    return web.ctx.env.get('HTTP_X_%s_%s' % (header_prefix, name.upper()))
-
 class new:
     """API to create new author/edition/work/publisher/series.
     """
@@ -431,8 +432,9 @@ class new:
             
         try:
             query = simplejson.loads(web.data())
-            comment = get_special_header('comment')
-            action = get_special_header('action')
+            h = get_custom_headers()
+            comment = h.get('comment')
+            action = h.get('action')
         except Exception, e:
             raise BadRequest(str(e))
             
@@ -447,8 +449,7 @@ class new:
             raise BadRequest(str(e))
         return simplejson.dumps(keys)
         
-from infogami.plugins.api import code as api
-api.add_hook('new', new)
+api and api.add_hook('new', new)
 
 def readable_url_processor(handler):
     patterns = [
