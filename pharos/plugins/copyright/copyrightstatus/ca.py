@@ -58,17 +58,21 @@ def copyright_status(edition):
     ydeath, ybirth = y(author, 'death_date'), y(author, 'birth_date')
     aname = author.name
 
-    if ydeath:
-      death_year = ydeath
-      assume("We're assuming author (%s) died in %d."% (aname, ydeath))
-    elif ybirth:
-      death_year = ybirth + OLDEST_PERSON_EVER_IN_CANADA
-      assume("We're assuming author (%s) was born in %d."% (aname, ybirth))
-    elif pubyear:
-      death_year = pubyear + OLDEST_PERSON_EVER_IN_CANADA
-      assume("We're assuming author (%s) was born at the time of publication, since we don't have a known birthdate."% (aname,))
+    death_year = None
+    if aname == 'Crown':
+      """We don't set death_year for Crown authorship because items with sole Crown authorship will default to pdyear = death_year + 50,
+      and items with joint Crown and non-Crown authorship are determined by the other authors' information."""
+      assume("We're assuming this item is under Crown copyright. Non-Crown authors, if any, render this irrelevant.")
     else:
-      death_year = None
+      if ydeath:
+        death_year = ydeath
+        assume("We're assuming author (%s) died in %d."% (aname, ydeath))
+      elif ybirth:
+        death_year = ybirth + OLDEST_PERSON_EVER_IN_CANADA
+        assume("We're assuming author (%s) was born in %d."% (aname, ybirth))
+      elif pubyear:
+        death_year = pubyear + OLDEST_PERSON_EVER_IN_CANADA
+        assume("We're assuming author (%s) was born at the time of publication, since we don't have a known birthdate."% (aname,))
 
     if death_year is not None and ydeath is None:
       if death_year < current_year:
