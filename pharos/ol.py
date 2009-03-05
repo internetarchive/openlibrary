@@ -100,34 +100,28 @@ class CacheProcessor(ConnectionProcessor):
         import simplejson
         response_str = super.write(sitename, data)
         
-        response = simplejson.loads(response_str)
-        if response['status'] == 'ok':
-            result = response['result']
-            modified = result['created'] + result['updated']
-            keys = [k for k in modified if self.cachable(k)]
-            self.cache.delete_many(keys)
+        result = simplejson.loads(response_str)
+        modified = result['created'] + result['updated']
+        keys = [k for k in modified if self.cachable(k)]
+        self.cache.delete_many(keys)
 
         return response_str
 
     def save(self, super, sitename, data):
         import simplejson
         response_str = super.save(sitename, data)
-        response = simplejson.loads(response_str)
-        if response['status'] == 'ok':
-            result = response['result']
-            if result:
-                self.cache.delete(result['key'])
+        result = simplejson.loads(response_str)
+        if result:
+            self.cache.delete(result['key'])
 
         return response_str
 
     def save_many(self, super, sitename, data):
         import simplejson
         response_str = super.save_many(sitename, data)
-        response = simplejson.loads(response_str)
-        if response['status'] == 'ok':
-            result = response['result']
-            keys = [r['key'] for r in result]
-            self.cache.delete_many(keys)
+        result = simplejson.loads(response_str)
+        keys = [r['key'] for r in result]
+        self.cache.delete_many(keys)
         return response_str
         
     def cachable(self, key):
@@ -338,5 +332,6 @@ def setup_infogami_config():
     infogami.config.plugins += ['openlibrary', 'i18n', 'api', 'sync', 'books', 'scod', 'search']
 
     infogami.config.infobase_parameters = dict(type='ol')
+    infogami.config.http_ext_header_uri = "http://openlibrary.org/dev/docs/api"
 
 setup_infogami_config()

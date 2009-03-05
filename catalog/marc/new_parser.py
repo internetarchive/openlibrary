@@ -504,6 +504,8 @@ def read_edition(loc, data):
     publish_date = str(f)[7:11]
     if publish_date.isdigit():
         edition["publish_date"] = publish_date
+    if str(f)[6] == 't':
+        edition["copyright_date"] = str(f)[11:15]
     publish_country = str(f)[15:18]
     if publish_country not in ('|||', '   '):
         edition["publish_country"] = publish_country

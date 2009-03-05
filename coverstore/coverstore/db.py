@@ -15,7 +15,7 @@ def new(category, olid, filename, author, ip, source_url, width, height):
     return web.insert('cover', category_id=category_id, 
         olid=olid, filename=filename, author=author, ip=ip,
         source_url=source_url, width=width, height=height)
-    
+        
 def query(category, olid, offset=0, limit=10):
     category_id = get_category_id(category)
     
@@ -34,6 +34,9 @@ def query(category, olid, offset=0, limit=10):
         offset=offset,
         limit=limit)
     return result.list()
+
+def details(id):
+    return web.select('cover', what='*', where="id=$id", vars=locals()).list()
     
 def touch(id):
     """Sets the last_modified of the specified cover to the current timestamp.

@@ -4,10 +4,18 @@ Open Library Plugin.
 import web
 import simplejson
 import os
+import re
+import urllib
 
 import infogami
 from infogami.utils import types, delegate
 from infogami.utils.view import render, public
+from infogami.infobase import client
+
+try:
+    from infogami.plugins.api import code as api
+except:
+    api = None
 
 types.register_type('^/a/[^/]*$', '/type/author')
 types.register_type('^/b/[^/]*$', '/type/edition')
@@ -324,9 +332,9 @@ class change_cover(delegate.mode):
         return render.change_cover(page)
 
 class bookpage(delegate.page):
-    path = r"/(isbn|oclc|lccn|ISBN|OCLC|LCCN)/([^.]*)(\.rdf|\.json|)"
+    path = r"/(isbn|oclc|lccn|ISBN|OCLC|LCCN)/([^.]*)"
 
-    def GET(self, key, value, ext=None):
+    def GET(self, key, value):
         key = key.lower()
         if key == "isbn":
             if len(value) == 13:
@@ -338,6 +346,11 @@ class bookpage(delegate.page):
 
         value = value.replace('_', ' ')
 
+        if web.ctx.encoding and web.ctx.path.endswith("." + web.ctx.encoding): 
+            ext = "." + web.ctx.encoding
+        else:
+            ext = ""
+
         q = {"type": "/type/edition", key: value}
         try:
             result = web.ctx.site.things(q)
@@ -345,80 +358,171 @@ class bookpage(delegate.page):
                 raise web.seeother(result[0] + ext)
             else:
                 raise web.notfound()
+        except web.HTTPError:
+            pass
         except:
             raise web.notfound()
 
-class rdf(delegate.page):
-    path = r"(.*)\.rdf"
+delegate.media_types['application/rdf+xml'] = 'rdf'
+class rdf(delegate.mode):
+    name = 'view'
+    encoding = 'rdf'
 
     def GET(self, key):
         page = web.ctx.site.get(key)
         if not page:
-            raise web.notfound()
+            raise web.notfound("")
         else:
             from infogami.utils import template
-
             try:
                 result = template.typetemplate('rdf')(page)
             except:
-                raise web.notfound()
-            raise web.HTTPError("200 OK", {}, result)
+                raise web.notfound("")
+            else:
+                return delegate.RawText(result, content_type="application/rdf+xml; charset=utf-8")
 
-class create:
-    """API hook for creating books and authors."""
-    def POST(self):
-        ip = web.ctx.ip
-        assert ip in ['127.0.0.1', '207.241.226.140']
-        pass
-        
-def assert_localhost(ip):
-    import socket
-    local_ip = socket.gethostbyname(socket.gethostname())
-    localhost = '127.0.0.1'
-    assert ip in [localhost, local_ip]
-    
+def can_write():
+    user = delegate.context.user and delegate.context.user.key
+    usergroup = web.ctx.site.get('/usergroup/api')
+    return usergroup and user in [u.key for u in usergroup.members]
+
+class Forbidden(web.HTTPError):
+    def __init__(self, msg=""):
+        web.HTTPError.__init__(self, "403 Forbidden", {}, msg)
+
+class BadRequest(web.HTTPError):
+    def __init__(self, msg=""):
+        web.HTTPError.__init__(self, "400 Bad Request", {}, msg)
+
 class new:
-    """API Hook to support book import.
-    Key the new object being created is automatically computed based on the type.
-    Works only from the localhost.    
+    """API to create new author/edition/work/publisher/series.
     """
-    def POST(self):
-        assert_localhost(web.ctx.ip)
-        i = web.input("query", comment=None, machine_comment=None)
-        query = simplejson.loads(i.query)
-        
-        if isinstance(query['type'], dict):
-            type = query['type']['key']
+    def prepare_query(self, query):
+        """Add key to query and returns the key.
+        If query is a list multiple queries are returned.
+        """
+        if isinstance(query, list):
+            return [self.prepare_query(q) for q in query]
         else:
             type = query['type']
-        
-        
-        if type == '/type/edition' or type == '/type/author':
+            if isinstance(type, dict):
+                type = type['key']
             query['key'] = web.ctx.site.new_key(type)
+            return query['key']
+            
+    def verify_types(self, query):
+        if isinstance(query, list):
+            for q in query:
+                self.verify_types(q)
         else:
-            result = {'status': 'fail', 'message': 'Invalid type %s. Expected /type/edition or /type/author.' % repr(query['type'])}
-            return simplejson.dumps(result)
-        result = web.ctx.site._conn.request(web.ctx.site.name, '/write', 'POST',
-            dict(query=simplejson.dumps(query), comment=i.comment, machine_comment=i.machine_comment))
-        return simplejson.dumps(result)
-
-class write:
-    """Hack to support push and pull of templates.
-    Works only from the localhost.
-    """
+            if 'type' not in query:
+                raise BadRequest("Missing type")
+            type = query['type']
+            if isinstance(type, dict):
+                if 'key' not in type:
+                    raise BadRequest("Bad Type: " + simplejson.dumps(type))
+                type = type['key']
+                
+            if type not in ['/type/author', '/type/edition', '/type/work', '/type/series', '/type/publisher']:
+                raise BadRequest("Bad Type: " + simplejson.dumps(type))
+ 
     def POST(self):
-        assert_localhost(web.ctx.ip)
+        if not can_write():
+            raise Forbidden("Permission Denied.")
+            
+        try:
+            query = simplejson.loads(web.data())
+            h = get_custom_headers()
+            comment = h.get('comment')
+            action = h.get('action')
+        except Exception, e:
+            raise BadRequest(str(e))
+            
+        self.verify_types(query)
+        keys = self.prepare_query(query)
         
-        i = web.input("query", comment=None)
-        query = simplejson.loads(i.query)
-        result = web.ctx.site.write(query, i.comment)
-        return simplejson.dumps(dict(status='ok', result=dict(result)))
+        try:
+            if not isinstance(query, list):
+                query = [query]
+            web.ctx.site.save_many(query, comment=comment, action=action)
+        except client.ClientException, e:
+            raise BadRequest(str(e))
+        return simplejson.dumps(keys)
+        
+api and api.add_hook('new', new)
 
-# add search API if api plugin is enabled.
-if 'api' in delegate.get_plugins():
-    from infogami.plugins.api import code as api
-    api.add_hook('write', write)
-    api.add_hook('new', new)
+def readable_url_processor(handler):
+    patterns = [
+        (r'/b/OL\d+M', '/type/edition', 'title'),
+        (r'/a/OL\d+A', '/type/author', 'name'),
+        (r'/w/OL\d+W', '/type/work', 'title'),
+        (r'/s/OL\d+S', '/type/series', 'title'),
+    ]
+    def get_readable_path():
+        path = get_real_path()
+        if web.ctx.get('encoding') is not None:
+            return web.ctx.path
+        
+        for pat, type, property in patterns:
+            if web.re_compile('^' + pat + '$').match(path):
+                thing = web.ctx.site.get(path)
+                if thing is not None and thing.type.key == type and thing[property]:
+                    title = thing[property].replace(' ', '-').encode('utf-8')
+                    return path + '/' + urllib.quote(title)
+        return web.ctx.path
+    
+    def get_real_path():
+        pat = '^(' + '|'.join(p[0] for p in patterns) + ')(?:/.*)?'
+        rx = web.re_compile(pat)
+        m = rx.match(web.ctx.path)
+        if m:
+            path = m.group(1)
+            return m.group(1)
+        else:
+            return web.ctx.path
+            
+    readable_path = get_readable_path()
+
+    #@@ web.ctx.path is either quoted or unquoted depends on whether the application is running
+    #@@ using builtin-server or lighttpd. Thats probably a bug in web.py. 
+    #@@ take care of that case here till that is fixed.
+    if readable_path != web.ctx.path and readable_path != urllib.quote(web.utf8(web.ctx.path)):
+        raise web.seeother(readable_path + web.ctx.query.encode('utf-8'))
+
+    web.ctx.readable_path = readable_path
+    web.ctx.path = get_real_path()
+    web.ctx.fullpath = web.ctx.path + web.ctx.query
+    return handler()
+
+@public
+def changequery(query=None, **kw):
+    if query is None:
+        query = web.input(_method='get')
+    for k, v in kw.iteritems():
+        if v is None:
+            query.pop(k, None)
+        else:
+            query[k] = v
+    out = web.ctx.readable_path
+    if query:
+        out += '?' + urllib.urlencode(query)
+    return out
+    
+def wget(url):
+    try:
+        return urllib.urlopen(url).read()
+    except:
+        return ""
+    
+@public
+def get_cover_id(key):
+    try:
+        _, cat, oln = key.split('/')
+        return simplejson.loads(wget('http://covers.openlibrary.org/%s/query?olid=%s&limit=1' % (cat, oln)))[0]
+    except (ValueError, IndexError, TypeError):
+        return None
+
+delegate.app.add_processor(readable_url_processor)
 
 if __name__ == "__main__":
     main()
