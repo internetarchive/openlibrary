@@ -507,6 +507,20 @@ def changequery(query=None, **kw):
     if query:
         out += '?' + urllib.urlencode(query)
     return out
+    
+def wget(url):
+    try:
+        return urllib.urlopen(url).read()
+    except:
+        return ""
+    
+@public
+def get_cover_id(key):
+    try:
+        _, cat, oln = key.split('/')
+        return simplejson.loads(wget('http://covers.openlibrary.org/%s/query?olid=%s&limit=1' % (cat, oln)))[0]
+    except (ValueError, IndexError, TypeError):
+        return None
 
 delegate.app.add_processor(readable_url_processor)
 
