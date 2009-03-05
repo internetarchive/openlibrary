@@ -13,6 +13,7 @@ import simplejson
 from functools import partial
 from gzip import open as gzopen
 import cPickle
+from collections import defaultdict
 
 render = template.render
 
@@ -25,7 +26,7 @@ if solr_fulltext_address is not None:
     solr_pagetext_address = getattr(config,
                                     'solr_pagetext_address',
                                     solr_fulltext_address)
-    
+
 if solr_server_address:
     solr = solr_client.Solr_client(solr_server_address)
 else:
@@ -50,13 +51,13 @@ class fullsearch(delegate.page):
 
         i = web.input(q = None,
                       rows = 20,
-                      offset = 0, 
+                      offset = 0,
                       _unicode=False
                       )
 
         class Result_nums: pass
         nums = Result_nums()
-        
+
         nums.offset = int(i.get('offset', '0') or 0)
         nums.rows = int(i.get('rows', '0') or 20)
         q = i.q
@@ -152,7 +153,7 @@ class search(delegate.page):
             # @@
             # @@ need to unpack date range field and sort order here
             # @@
-        
+
         # print >> web.debug, '** i.q=(%s), q0=(%s)'%(i.q, q0)
 
         # get list of facet tokens by splitting out comma separated
@@ -174,7 +175,7 @@ class search(delegate.page):
                                    (i.get('remove'),))
         # reassemble ftokens string in case it had duplicates
         i.ftokens = ','.join(ft_list)
-        
+
         # don't throw a backtrace if there's junk tokens.  Robots have
         # been sending them, so just throw away any invalid ones.
         # assert all(re.match('^[a-z]{5,}$', a) for a in ft_list), \
@@ -215,7 +216,16 @@ class search(delegate.page):
             facets = solr.facets(bquery, maxrows=5000)
             timings.update("done faceting")
             results = munch_qresults(qresults.result_list)
+            results = filter(bool, results)
             timings.update("done expanding, %d results"% len(results))
+            results, works_groups = collect_works(results)
+            timings.update("done finding works, (%d,%d) results"%
+                           (len(results), len(works_groups)))
+
+            # print >> web.debug, ('works result',
+            #                    timings.ts,
+            #                    (len(results),results),
+            #                    (len(works_groups),works_groups))
 
         except (solr_client.SolrError, Exception), e:
             import traceback
@@ -227,17 +237,15 @@ class search(delegate.page):
         # print >> web.debug, 'basic search: about to advanced search (%r)'% \
         #     list((i.get('q', ''),
         #           qresults,
-        #           results, 
+        #           results,
         #           facets,
         #           i.ftokens,
         #           ft_pairs))
 
-
-        results = filter(bool, results)
-
         return render.advanced_search(i.get('q', ''),
                                       qresults,
-                                      results, 
+                                      results,
+                                      works_groups,
                                       facets,
                                       i.ftokens,
                                       ft_pairs,
@@ -245,6 +253,25 @@ class search(delegate.page):
                                       errortext=errortext)
 
     GET = POST
+
+def collect_works(result_list):
+    wds = defaultdict(list)
+    rs = []
+    # split result_list into two lists, those editions that have been assigned
+    # to a work and those that have not.
+    for r in result_list:
+        ws = r.get('works')
+        if ws:
+            for w in ws:
+                wds[w['key']].append(r)
+        else:
+            rs.append(r)
+
+    # print >> web.debug, ('collect works', rs,wds)
+
+    s_works = sorted(wds.items(), key=lambda (a,b): len(b), reverse=True)
+    return rs, [(web.ctx.site.get(a), b) for a,b in s_works]
+
 
 # somehow the leading / got stripped off the book identifiers during some
 # part of the search import process.  figure out where that happened and
@@ -283,12 +310,12 @@ class search_api:
                        not re.match('[a-z][a-z0-9\.]*$', callback, re.I):
                     val = self.error_val
                     callback = None
-                    
+
             if prettyprint:
                 json = simplejson.dumps(val, indent = 4)
             else:
                 json = simplejson.dumps(val)
-            
+
             if callback is None:
                 return json
             else:
@@ -311,7 +338,7 @@ class search_api:
             return format(self.error_val, i.prettyprint, i.callback)
 
         dval = dict()
-        
+
         if type(query) == list:
             qval = list(self._lookup(i, q, offset, rows) for q in query)
             dval["result_list"] = qval
@@ -319,7 +346,7 @@ class search_api:
             dval = self._lookup(i, query, offset, rows)
 
         return format(dval, i.prettyprint, i.callback)
-        
+
     def _lookup(self, *args):
         try:
             return self._lookup_1(*args)
@@ -349,7 +376,7 @@ class search_api:
                         akd = ak.dict()
                         del akd['books']
                         a["expanded"] = akd
-                    
+
             dval["expanded_result"] = eresult
         else:
             dval["result"] = result
