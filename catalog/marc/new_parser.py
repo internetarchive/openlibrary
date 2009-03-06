@@ -502,7 +502,7 @@ def read_edition(loc, data):
         return {}
     f = fields['008'][0]
     publish_date = str(f)[7:11]
-    if publish_date.isdigit():
+    if publish_date.isdigit() and publish_date != '0000':
         edition["publish_date"] = publish_date
     if str(f)[6] == 't':
         edition["copyright_date"] = str(f)[11:15]
