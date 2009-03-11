@@ -74,10 +74,13 @@ class fullsearch(delegate.page):
                                                      start=nums.offset,
                                                      rows=nums.rows)
             timings.update('fulltext done')
+            t_ocaid = 0.0
             for ocaid in results:
                 try:
                     pts = solr_pagetext.pagetext_search(ocaid, q)
+                    t_temp = time.time()
                     oln_thing = lookup_ocaid(ocaid)
+                    t_ocaid += time.time() - t_temp
                     if oln_thing is None:
                         # print >> web.debug, 'No oln_thing found for', ocaid
                         pass
@@ -88,7 +91,7 @@ class fullsearch(delegate.page):
                 except IndexError, e:
                     print >> web.debug, ('fullsearch index error', e, e.args)
                     pass
-            timings.update('pagetext done')
+            timings.update('pagetext done (oca lookups: %.4f sec)'% t_ocaid)
         except IOError, e:
             errortext = 'fulltext search is temporarily unavailable (%s)' % \
                         str(e)
