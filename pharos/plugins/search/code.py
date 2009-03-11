@@ -57,6 +57,7 @@ class fullsearch(delegate.page):
 
         class Result_nums: pass
         nums = Result_nums()
+        timings = Timestamp()
 
         nums.offset = int(i.get('offset', '0') or 0)
         nums.rows = int(i.get('rows', '0') or 20)
@@ -72,6 +73,7 @@ class fullsearch(delegate.page):
                        solr_fulltext.fulltext_search(q,
                                                      start=nums.offset,
                                                      rows=nums.rows)
+            timings.update('fulltext done')
             for ocaid in results:
                 try:
                     pts = solr_pagetext.pagetext_search(ocaid, q)
@@ -86,11 +88,16 @@ class fullsearch(delegate.page):
                 except IndexError, e:
                     print >> web.debug, ('fullsearch index error', e, e.args)
                     pass
+            timings.update('pagetext done')
         except IOError, e:
             errortext = 'fulltext search is temporarily unavailable (%s)' % \
                         str(e)
 
-        return render.fullsearch(q, out, nums, errortext=errortext)
+        return render.fullsearch(q,
+                                 out,
+                                 nums,
+                                 timings.results(),
+                                 errortext=errortext)
 
     GET = POST
 
