@@ -1,13 +1,33 @@
-from catalog.infostore import get_site
+#!/usr/local/bin/python2.5
 import catalog.merge.normalize as merge
 import sys, codecs, re
 from catalog.get_ia import get_from_archive
 from collections import defaultdict
 from pprint import pprint
+import urllib
+import simplejson as json
 
 sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
 
-site = get_site()
+base_url = "http://openlibrary.org:8080/"
+query_url = base_url + "query.json?query="
+
+def query(q):
+    url = query_url + urllib.quote(json.dumps(q))
+    return json.loads(urllib.urlopen(url).read())
+
+def query_iter(q, limit=500, offset=0):
+    q['limit'] = limit
+    q['offset'] = offset
+    while 1:
+        ret = query(q)
+        if not ret:
+            return
+        for i in query(q):
+            yield i
+        q['offset'] += limit
+
+sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
 
 re_brackets = re.compile('^(.*)\[.*?\]$')
 
@@ -27,59 +47,52 @@ def freq_dict_top(d):
     return sorted(d.keys(), reverse=True, key=lambda i:d[i])[0]
 
 def get_books(akey):
-    limit = 500
-    offset = 0
+    q = {
+        'type':'/type/edition',
+        'authors': akey,
+        '*': None
+    }
+    for num, e in enumerate(query_iter(q)):
+#        print num, e['key'], e['title']
 
-    while 1:
-        q = {
-            'type':'/type/edition',
-            'authors': akey,
-            'offset': offset,
-            'limit':limit
+        if 'title' not in e and not e['title']:
+            continue
+        if 'works' in e:
+            continue
+        if 'title_prefix' in e and e['title_prefix']:
+            prefix = e['title_prefix']
+            if prefix[-1] != ' ':
+                prefix += ' '
+            title = prefix + e['title']
+        else:
+            title = e['title']
+
+        if title.strip('. ') in ['Publications', 'Works', 'Report', \
+                'Letters', 'Calendar', 'Bulletin']:
+            continue
+
+        n = mk_norm(title)
+
+        book = {
+            'title': title,
+            'norm_title': n,
+            'key': e['key'],
         }
-        editions = site.things(q)
-        if not editions:
-            break
-        offset += limit
-        for e_key in editions:
-            e = site.withKey(e_key)
 
-            if not e.title:
-                continue
-            if e.title_prefix:
-                prefix = e.title_prefix
-                if prefix[-1] != ' ':
-                    prefix += ' '
-                title = prefix + e.title
-            else:
-                title = e.title
+        if 'languages' in e:
+            book['lang'] = [l['key'][3:] for l in e['languages']]
 
-            if title.strip('. ') in ['Publications', 'Works', 'Report', \
-                    'Letters', 'Calendar', 'Bulletin']:
-                continue
-
-            n = mk_norm(title)
-
-            book = {
-                'title': title,
-                'norm_title': n,
-                'key': e_key,
-            }
-
-            if e.languages:
-                book['lang'] = [l.key[3:] for l in e.languages]
-
-            if not e.work_titles:
-                yield book
-                continue
-            wt = e.work_titles[0].strip('. ')
-            if wt in ('Works', 'Selections'):
-                yield book
-                continue
-            n_wt = mk_norm(wt)
-            book['work_title'] = wt
-            book['norm_wt'] = n_wt
+        if 'work_titles' not in e:
             yield book
+            continue
+        wt = e['work_titles'][0].strip('. ')
+        if wt in ('Works', 'Selections'):
+            yield book
+            continue
+        n_wt = mk_norm(wt)
+        book['work_title'] = wt
+        book['norm_wt'] = n_wt
+        yield book
 
 def build_work_title_map(equiv, norm_titles):
     title_to_work_title = defaultdict(set)
@@ -154,23 +167,13 @@ def print_works(works):
     for title, keys in works:
         print len(keys), title
 
-limit = 500
-offset = 0
-while 1:
-    q = {
-        'type':'/type/author',
-        'offset': offset,
-        'limit':limit
-    }
-    authors = site.things(q)
-    if not authors:
-        break
-    offset += limit
-    for akey in authors:
-        a = site.withKey(akey)
-        works = [i for i in find_works(akey) if i[1] > 5]
-        if works:
-            open('found/' + akey[3:], 'w').write(`works`)
-            print 'akey:', akey, a.name
-            print_works(works)
-            print
+q = { 'type':'/type/author', 'name': None }
+for a in query_iter(q):
+    akey = a['key']
+#    print akey, a['name']
+    works = [i for i in find_works(akey) if i[1] > 3]
+    if works:
+        open('found/' + akey[3:], 'w').write(`works`)
+        print akey, a['name']
+        print_works(works)
+        print
