@@ -228,7 +228,14 @@ class search(delegate.page):
             results = munch_qresults(qresults.result_list)
             results = filter(bool, results)
             timings.update("done expanding, %d results"% len(results))
-            results, works_groups = collect_works(results)
+
+            if 0:
+                # temporarily disable computing works, per
+                # launchpad bug # 325843
+                results, works_groups = collect_works(results)
+            else:
+                works_groups = []
+
             timings.update("done finding works, (%d,%d) results"%
                            (len(results), len(works_groups)))
 
