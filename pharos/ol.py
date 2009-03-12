@@ -263,9 +263,9 @@ def write_booklog2(site, old, new):
     """
     sitename = site.sitename
     if old and old.type.key == new.type.key == '/type/author' and old.name != new.name:
-        query = {'type': '/type/edition', 'authors': new.key}
-        for key in site.things(query):
-            book = site.get(key)
+        query = {'type': '/type/edition', 'authors': new.key, 'limit': 1000}
+        for d in site.things(query):
+            book = site.get(d['key'])
             booklogger.write('book', sitename, new.last_modified, get_object_data(site, book))
             
 def run():
