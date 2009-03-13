@@ -65,7 +65,7 @@ class fullsearch(delegate.page):
 
         if not q:
             errortext='you need to enter some search terms'
-            return render.fullsearch(q, out, nums, errortext)
+            return render.fullsearch(q, out, nums, [], errortext)
 
         try:
             q = re.sub('[\r\n]+', ' ', q).strip()
