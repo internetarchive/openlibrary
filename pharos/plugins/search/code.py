@@ -61,11 +61,15 @@ class fullsearch(delegate.page):
 
         nums.offset = int(i.get('offset', '0') or 0)
         nums.rows = int(i.get('rows', '0') or 20)
+        nums.total_nbr = 0
         q = i.q
 
         if not q:
             errortext='you need to enter some search terms'
-            return render.fullsearch(q, out, nums, [], errortext)
+            return render.fullsearch(q, out,
+                                     nums,
+                                     [], # timings
+                                     errortext=errortext)
 
         try:
             q = re.sub('[\r\n]+', ' ', q).strip()
