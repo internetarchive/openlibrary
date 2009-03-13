@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import re, web
 from unicodedata import normalize
+import catalog.merge.normalize as merge
 
 re_date = map (re.compile, [
     '(?P<birth_date>\d+\??)-(?P<death_date>\d+\??)',
@@ -17,6 +18,8 @@ re_l_in_date = re.compile('(l\d|\dl)')
 re_end_dot = re.compile('[^ .][^ .]\.$', re.UNICODE)
 re_marc_name = re.compile('^(.*), (.*)$')
 re_year = re.compile(r'\b(\d{4})\b')
+
+re_brackets = re.compile('^(.*)\[.*?\]$')
 
 def key_int(rec):
     # extract the number from a key like /a/OL1234A
@@ -216,3 +219,30 @@ def test_remove_trailing_dot():
     for input, expect in data:
         output = remove_trailing_dot(input)
         assert output == expect
+
+def fmt_author(a):
+    if 'birth_date' in a or 'death_date' in a:
+        return "%s (%s-%s)" % ( a['name'], a.get('birth_date', ''), a.get('death_date', '') )
+    return a['name']
+
+def get_title(e):
+    if e.get('title_prefix', None) is not None:
+        prefix = e['title_prefix']
+        if prefix[-1] != ' ':
+            prefix += ' '
+        title = prefix + e['title']
+    else:
+        title = e['title']
+    return title
+
+def mk_norm(title):
+    m = re_brackets.match(title)
+    if m:
+        title = m.group(1)
+    norm = merge.normalize(title).strip(' ')
+    norm = norm.replace(' and ', ' ')
+    if norm.startswith('the '):
+        norm = norm[4:]
+    elif norm.startswith('a '):
+        norm = norm[2:]
+    return norm.replace('-', '').replace(' ', '')
