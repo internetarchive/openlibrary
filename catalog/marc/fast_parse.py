@@ -63,6 +63,12 @@ def read_file(f):
         int_length = int(length)
         data = buf + f.read(int_length - len(buf))
         buf = None
+        if not data.endswith("\x1e\x1d"):
+            # skip bad record, should warn somehow
+            end = data.rfind('\x1e\x1d') + 2
+            yield (data[:end], end)
+            buf = data[end:]
+            continue
         if data.find('\x1d') == -1:
             data += f.read(40)
             int_length = data.find('\x1d') + 1
@@ -88,7 +94,11 @@ def read_author_person(line):
 
     return [{ 'db_name': u' '.join(name_and_date), 'name': u' '.join(name), }]
 
+# exceptions:
 class SoundRecording:
+    pass
+
+class BadDictionary:
     pass
 
 def read_full_title(line, accept_sound = False):
@@ -145,7 +155,8 @@ def read_directory(data):
         # directory is the wrong size
         # sometimes the leader includes some utf-8 by mistake
         directory = data[:dir_end].decode('utf-8')[24:]
-        assert len(directory) % 12 == 0
+        if len(directory) % 12 != 0:
+            raise BadDictionary
     iter_dir = (directory[i*12:(i+1)*12] for i in range(len(directory) / 12))
     return dir_end, iter_dir
 

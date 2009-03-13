@@ -15,16 +15,19 @@ def fmt_subfields(line):
 
 show_non_books = False
 verbose = False
+show_pos = False
 build_rec = False
 show_field = None
 show_leader = True
 show_leader = False
 
-opts, files = getopt(sys.argv[1:], 'vl', ['verbose', 'show-non-books', 'build-record', 'show-field='])
+opts, files = getopt(sys.argv[1:], 'vl', ['verbose', 'show-pos', 'show-non-books', 'build-record', 'show-field='])
 
 for o, a in opts:
-    if o == '--show-non-books':
-        show_non_books = Tru
+    if o == '--show-pos':
+        show_pos = True
+    elif o == '--show-non-books':
+        show_non_books = True
     elif o in ('-v', '--verbose'):
         verbose = True
     elif o == '--build-record':
@@ -46,14 +49,21 @@ def show_book(data):
         else:
             print tag, line[0:2], fmt_subfields(line)
 
-total, sound_rec, not_book, book = 0, 0, 0, 0
+total, bad_dict, sound_rec, not_book, book = 0, 0, 0, 0, 0
 f = open(files[0])
+next = 0
 for data, length in read_file(f):
+    pos = next
+    next += length
     total += 1
+    if pos < 107550000:
+        continue
     if show_field:
         get_first_tag(data, set([show_field]))
     if show_leader:
         print data[:24]
+    if show_pos:
+        print pos
     if verbose:
         show_book(data)
         print
@@ -64,6 +74,9 @@ for data, length in read_file(f):
         rec = read_edition(data)
     except SoundRecording:
         sound_rec += 1
+        continue
+    except BadDictionary:
+        bad_dict += 1
         continue
     if not rec:
         if show_non_books:
@@ -76,5 +89,6 @@ f.close()
 
 print "total records:", total
 print "sound recordings:", sound_rec
+print "records with bad dictionary:", bad_dict
 print "not books:", not_book
 print "books:", book
