@@ -12,7 +12,8 @@ def base_url():
 def query_url():
     return base_url() + "/query.json?query="
 
-def set_staging(i)
+def set_staging(i):
+    global staging
     staging = i
 
 def query(q):
@@ -29,6 +30,7 @@ def query(q):
         return json.loads(ret)
     except:
         print ret
+        print url
         raise
 
 def query_iter(q, limit=500, offset=0):
@@ -43,7 +45,7 @@ def query_iter(q, limit=500, offset=0):
         q['offset'] += limit
 
 def withKey(key):
-    ret = urllib.urlopen(base_url + key + '.json').read()
+    ret = urllib.urlopen(base_url() + key + '.json').read()
     return json.loads(ret)
 
 
