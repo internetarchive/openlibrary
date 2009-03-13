@@ -213,6 +213,7 @@ class search(delegate.page):
                                           errortext=errortext)
 
         out = []
+        works_groups = []
         i.q = ' '.join(q0)
         try:
             # work around bug in PHP module that makes queries
@@ -233,8 +234,6 @@ class search(delegate.page):
                 # temporarily disable computing works, per
                 # launchpad bug # 325843
                 results, works_groups = collect_works(results)
-            else:
-                works_groups = []
 
             timings.update("done finding works, (%d,%d) results"%
                            (len(results), len(works_groups)))
