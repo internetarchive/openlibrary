@@ -94,7 +94,7 @@ def add_fields():
     comment = 'add fields to works'
     queue = []
     seen = set()
-    fields = ['genres', 'first_sentence', 'dewey_number', 'lc_classifications']
+    fields = ['genres', 'first_sentence', 'dewey_number', 'lc_classifications', 'publish_date']
     for w in iter_works(fields + ['title']):
         if w['key'] in seen or all(w.get(f, None) for f in fields):
             continue
@@ -107,6 +107,20 @@ def add_fields():
 
         for f in fields:
             if not w.get(f, None):
+                if f == 'publish_date':
+                    years = defaultdict(list)
+                    for e in editions:
+                        date = e.get(f, None)
+                        if not date or date == '0000':
+                            continue
+                        m = re_year.match(date)
+                        if not m:
+                            continue
+                        year = int(m.group(1))
+                        years[year].append(e['key'])
+                    if years:
+                        found[f] = min(years.keys())
+                    continue
                 if f == 'genres':
                     found_list = [[g.strip('.') for g in e[f]] for e in editions \
                         if e.get(f, None) and not any('ranslation' in i for i in e[f])]
@@ -127,7 +141,9 @@ def add_fields():
         for f in fields:
             if not f in found:
                 continue
-            if f == 'first_sentence':
+            if f == 'publish_date':
+                q['first_publish_date'] = { 'connect': 'update', 'value': found[f]}
+            elif f == 'first_sentence':
                 q[f] = { 'connect': 'update', 'value': found[f]}
             else:
                 q[f] = { 'connect': 'update_list', 'value': found[f]}
