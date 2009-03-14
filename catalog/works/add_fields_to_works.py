@@ -1,5 +1,5 @@
 #!/usr/local/bin/python2.5
-import sys, urllib, re
+import sys, urllib, re, codecs
 sys.path.append('/home/edward/src/olapi')
 from olapi import OpenLibrary
 import simplejson as json
@@ -8,6 +8,7 @@ from catalog.read_rc import read_rc
 from catalog.utils.query import query, query_iter, set_staging, base_url
 from catalog.utils import mk_norm, get_title
 
+sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
 set_staging(True)
 
 rc = read_rc()
@@ -97,7 +98,7 @@ def genres():
         if w.get(f, None):
             continue
         q = { 'type':'/type/edition', 'works': w['key'], f: None }
-        editions = [[g.strip('.') for g in e['genres']] for e in query_iter(q) \
+        editions = [[g.strip('.') for g in e[f]] for e in query_iter(q) \
             if e.get(f, None) and not any('ranslation' in i for i in e[f])]
         if not editions:
             continue
@@ -116,4 +117,31 @@ def genres():
             queue = []
     print ol.write(queue, comment='add genre')
 
-genres()
+def first_sentence():
+    f = 'first_sentence'
+    comment = 'add ' + f.replace('_', ' ')
+    queue = []
+    for w in iter_works([f, 'title']):
+        if w.get(f, None):
+            continue
+        q = { 'type':'/type/edition', 'works': w['key'], f: None }
+        editions = [e[f] for e in query_iter(q) if e.get(f, None)]
+        if not editions:
+            continue
+        first = editions[0]
+        if any(e != first for e in editions):
+            continue
+        print len(queue) + 1, w['key'], len(editions), w['title']
+        print first['value']
+        q = {
+            'key': w['key'],
+            f: { 'connect': 'update', 'value': first}
+        }
+        queue.append(q)
+        if len(queue) == 200:
+            print ol.write(queue, comment=comment)
+            queue = []
+    print ol.write(queue, comment=comment)
+
+first_sentence()
+#genres()
