@@ -119,7 +119,7 @@ def add_fields():
                         year = int(m.group(1))
                         years[year].append(e['key'])
                     if years:
-                        found[f] = min(years.keys())
+                        found[f] = str(min(years.keys()))
                     continue
                 if f == 'genres':
                     found_list = [[g.strip('.') for g in e[f]] for e in editions \
