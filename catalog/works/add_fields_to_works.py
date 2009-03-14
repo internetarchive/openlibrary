@@ -22,8 +22,7 @@ queue = []
 
 def iter_works(fields):
     q = { 'type':'/type/work', 'key': None }
-    for f in fields:
-        q[f] = None
+    for f in fields: q[f] = None
     return query_iter(q)
 
 def dates():
@@ -91,57 +90,54 @@ def lang():
             queue = []
     print ol.write(queue, comment='add original language')
 
-def genres():
-    f = 'genres'
+def genres_and_first_sentence():
+    comment = 'add fields to works'
     queue = []
-    for w in iter_works([f, 'title']):
-        if w.get(f, None):
+    seen = set()
+    fields = ['genres', 'first_sentence']
+    for w in iter_works(fields + ['title']):
+        if w['key'] in seen or all(w.get(f, None) for f in fields):
             continue
-        q = { 'type':'/type/edition', 'works': w['key'], f: None }
-        editions = [[g.strip('.') for g in e[f]] for e in query_iter(q) \
-            if e.get(f, None) and not any('ranslation' in i for i in e[f])]
-        if not editions:
-            continue
-        first = editions[0]
-        assert 'ranslation' not in first
-        if any(e != first for e in editions):
-            continue
-        print len(queue) + 1, w['key'], `w['title']`, first, len(editions)
-        q = {
-            'key': w['key'],
-            f: { 'connect': 'update_list', 'value': first}
-        }
-        queue.append(q)
-        if len(queue) == 200:
-            print ol.write(queue, comment='add genre')
-            queue = []
-    print ol.write(queue, comment='add genre')
+        seen.add(w['key'])
+        q = { 'type':'/type/edition', 'works': w['key']}
+        for f in fields: q[f] = None
+        editions = list(query_iter(q))
 
-def first_sentence():
-    f = 'first_sentence'
-    comment = 'add ' + f.replace('_', ' ')
-    queue = []
-    for w in iter_works([f, 'title']):
-        if w.get(f, None):
+        found = {}
+
+        f = 'genres'
+        if not w.get(f, None):
+            found_list = [[g.strip('.') for g in e[f]] for e in editions \
+                if e.get(f, None) and not any('ranslation' in i for i in e[f])]
+            if found_list:
+                first = found_list[0]
+                if all(i == first for i in found_list):
+                    found[f] = first
+
+        f = 'first_sentence'
+        if not w.get(f, None):
+            found_list = [e[f] for e in query_iter(q) if e.get(f, None)]
+            if found_list:
+                first = found_list[0]
+                if all(i == first for i in found_list):
+                    found[f] = first
+
+        if not found:
             continue
-        q = { 'type':'/type/edition', 'works': w['key'], f: None }
-        editions = [e[f] for e in query_iter(q) if e.get(f, None)]
-        if not editions:
-            continue
-        first = editions[0]
-        if any(e != first for e in editions):
-            continue
+
         print len(queue) + 1, w['key'], len(editions), w['title']
-        print first['value']
+        print found
         q = {
             'key': w['key'],
-            f: { 'connect': 'update', 'value': first}
         }
+        if 'first_sentence' in found:
+            q['first_sentence'] = { 'connect': 'update', 'value': found['first_sentence']}
+        if 'genres' in found:
+            q['genres'] = { 'connect': 'update_list', 'value': found['genres']}
         queue.append(q)
         if len(queue) == 200:
             print ol.write(queue, comment=comment)
             queue = []
     print ol.write(queue, comment=comment)
 
-first_sentence()
-#genres()
+genres_and_first_sentence()
