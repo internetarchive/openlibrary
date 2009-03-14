@@ -90,11 +90,11 @@ def lang():
             queue = []
     print ol.write(queue, comment='add original language')
 
-def genres_and_first_sentence():
+def add_fields():
     comment = 'add fields to works'
     queue = []
     seen = set()
-    fields = ['genres', 'first_sentence']
+    fields = ['genres', 'first_sentence', 'dewey_number', 'lc_classifications']
     for w in iter_works(fields + ['title']):
         if w['key'] in seen or all(w.get(f, None) for f in fields):
             continue
@@ -105,39 +105,36 @@ def genres_and_first_sentence():
 
         found = {}
 
-        f = 'genres'
-        if not w.get(f, None):
-            found_list = [[g.strip('.') for g in e[f]] for e in editions \
-                if e.get(f, None) and not any('ranslation' in i for i in e[f])]
-            if found_list:
-                first = found_list[0]
-                if all(i == first for i in found_list):
-                    found[f] = first
-
-        f = 'first_sentence'
-        if not w.get(f, None):
-            found_list = [e[f] for e in query_iter(q) if e.get(f, None)]
-            if found_list:
-                first = found_list[0]
-                if all(i == first for i in found_list):
-                    found[f] = first
+        for f in fields:
+            if not w.get(f, None):
+                if f == 'genres':
+                    found_list = [[g.strip('.') for g in e[f]] for e in editions \
+                        if e.get(f, None) and not any('ranslation' in i for i in e[f])]
+                else:
+                    found_list = [e[f] for e in query_iter(q) if e.get(f, None)]
+                if found_list:
+                    first = found_list[0]
+                    if all(i == first for i in found_list):
+                        found[f] = first
 
         if not found:
             continue
 
         print len(queue) + 1, w['key'], len(editions), w['title']
         print found
-        q = {
-            'key': w['key'],
-        }
-        if 'first_sentence' in found:
-            q['first_sentence'] = { 'connect': 'update', 'value': found['first_sentence']}
-        if 'genres' in found:
-            q['genres'] = { 'connect': 'update_list', 'value': found['genres']}
+
+        q = { 'key': w['key'], }
+        for f in fields:
+            if not f in found:
+                continue
+            if f == 'first_sentence':
+                q[f] = { 'connect': 'update', 'value': found[f]}
+            else:
+                q[f] = { 'connect': 'update_list', 'value': found[f]}
         queue.append(q)
         if len(queue) == 200:
             print ol.write(queue, comment=comment)
             queue = []
     print ol.write(queue, comment=comment)
 
-genres_and_first_sentence()
+add_fields()
