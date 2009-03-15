@@ -497,12 +497,14 @@ def readable_url_processor(handler):
 @public
 def changequery(query=None, **kw):
     if query is None:
-        query = web.input(_method='get')
+        query = web.input(_method='get', _unicode=False)
     for k, v in kw.iteritems():
         if v is None:
             query.pop(k, None)
         else:
             query[k] = v
+
+    query = dict((k, web.safestr(v)) for k, v in query.items())
     out = web.ctx.readable_path
     if query:
         out += '?' + urllib.urlencode(query)
