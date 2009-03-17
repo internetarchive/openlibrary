@@ -316,7 +316,7 @@ def munch_qresults(qlist):
 
     # this is supposed to be faster than calling site.get separately
     # for each result
-    return web.ctx.site.get_all(map(restore_slash, results))
+    return web.ctx.site.get_many(map(restore_slash, results))
 
 # disable the above function by redefining it as a do-nothing.
 # This replaces a version that removed all punctuation from the
