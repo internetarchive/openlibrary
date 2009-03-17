@@ -20,7 +20,7 @@ config = web.storage(
     booklog = 'booklog',
     errorlog = 'errors',
     memcache_servers = None,
-    cache_prefixes = ['/type/', '/l/', '/index.', '/about'], # objects with key starting with these prefixes will be cached locally.
+    cache_prefixes = ['/type/', '/l/', '/index.', '/about', '/css/', '/js/'], # objects with key starting with these prefixes will be cached locally.
 )
 
 def write(path, data):
