@@ -332,4 +332,7 @@ def setup_infogami_config():
     infogami.config.infobase_parameters = dict(type='ol')
     infogami.config.http_ext_header_uri = "http://openlibrary.org/dev/docs/api"
 
+    from infogami.infobase import dbstore
+    dbstore.use_machine_comment = True
+
 setup_infogami_config()
