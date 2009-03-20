@@ -56,8 +56,8 @@ class ConnectionProcessor:
             return self.get(super, sitename, data)
         elif path == '/write':
             return self.write(super, sitename, data)
-        elif path == '/save':
-            return self.save(super, sitename, data)
+        elif path.startswith('/save/'):
+            return self.save(super, sitename, path, data)
         elif path == '/save_many':
             return self.save_many(super, sitename, data)
         else:
@@ -69,8 +69,8 @@ class ConnectionProcessor:
     def write(self, super, sitename, data):
         return super.write(sitename, data)
 
-    def save(self, super, sitename, data):
-        return super.save(sitename, data)
+    def save(self, super, sitename, path, data):
+        return super.save(sitename, path, data)
 
     def save_many(self, super, sitename, data):
         return super.save_many(sitename, data)
@@ -105,9 +105,9 @@ class CacheProcessor(ConnectionProcessor):
 
         return response_str
 
-    def save(self, super, sitename, data):
+    def save(self, super, sitename, path, data):
         import simplejson
-        response_str = super.save(sitename, data)
+        response_str = super.save(sitename, path, data)
         result = simplejson.loads(response_str)
         if result:
             self.cache.delete(result['key'])
@@ -152,8 +152,8 @@ class ConnectionProxy(client.Connection):
             def write(self, sitename, data):
                 return conn.request(sitename, '/write', 'POST', data=data)
 
-            def save(self, sitename, data):
-                return conn.request(sitename, '/save', 'POST', data=data)
+            def save(self, sitename, path, data):
+                return conn.request(sitename, path, 'POST', data=data)
 
             def save_many(self, sitename, data):
                 return conn.request(sitename, '/save_many', 'POST', data=data)
