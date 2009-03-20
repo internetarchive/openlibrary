@@ -23,8 +23,8 @@ def test_login():
     # try with bad account
     b.open('/account/login')   
     b.select_form(name="login")
-    b['username'] = 'joe'
-    b['password'] = 'secret'
+    b['username'] = 'baduser'
+    b['password'] = 'badpassword'
 
     try:
         b.submit() 
@@ -54,3 +54,4 @@ def test_notfound():
 
 def test_bookreader():
     b.open('/details/openlibrary')
+

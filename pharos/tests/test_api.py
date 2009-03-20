@@ -83,11 +83,11 @@ def setup_module(module):
     b = ol.app.browser()
     b.open('/account/register')
     b.select_form(name='register')
-    b['username'] = 'joe'
-    b['displayname'] = 'Joe'
+    b['username'] = 'apiuser'
+    b['displayname'] = 'API User'
     b['password'] = 'secret'
     b['password2'] = 'secret'
-    b['email'] = 'joe@example.com'
+    b['email'] = 'apiuser@example.com'
     b.submit()
 
     from infogami.plugins.api import code as api
@@ -105,7 +105,7 @@ def test_write_with_embeddable_types():
            {'type': '/type/toc_item', 'title': 'chapter 2'}
        ]},
     }
-    olapi.login('joe', 'secret')
+    olapi.login('apiuser', 'secret')
     olapi.write(q, comment="update toc")
 
     d = olapi.get('/b/OL1M')
@@ -123,7 +123,7 @@ def test_write_with_embeddable_types2():
            {'title': 'chapter 2'}
        ]},
     }
-    olapi.login('joe', 'secret')
+    olapi.login('apiuser', 'secret')
     olapi.write(q, comment="update toc")
 
     d = olapi.get('/b/OL1M')

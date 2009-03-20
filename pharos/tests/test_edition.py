@@ -7,14 +7,14 @@ def _test_edit(key, property):
 
     b.follow_link(text='Edit')
     b.select_form(name="edit")
-    b[property] += ' _test_edit'
-    b['_comment'] = '_test_edit comment'
+    b[property] += 'XXX test-edit'
+    b['_comment'] = 'test_edit comment'
     b.submit(name='_save')
 
-    assert '_test_edit' in b.data
+    assert 'XXX test-edit' in b.data
 
     b.follow_link(text='History')
-    assert '_test_edit comment' in b.data
+    assert 'test_edit comment' in b.data
 
 def test_edition():
     _test_edit('/b/OL1M', 'title')
@@ -34,3 +34,7 @@ def test_addbook():
 
     assert 'Test Book' in b.data
     assert b.get_links(url_regex='/a/OL1A/')
+
+def test_edit_about():
+    _test_edit("/about/tech", "body")
+
