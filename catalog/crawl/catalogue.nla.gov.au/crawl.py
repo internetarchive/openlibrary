@@ -1,13 +1,14 @@
-import re, sys
+import re
 from urllib2 import urlopen
-from time import sleep
 from os.path import exists
 
 # crawl catalogue.nla.gov.au
 
 re_th = re.compile('^<th nowrap align="RIGHT" valign="TOP">(\d{3})</th>$', re.I)
 re_td = re.compile('^<td(?: VALIGN="TOP")?>(.*)</td>$')
-re_span = re.compile('<span class="subfield"><strong>\|(.)</strong>(.+?)</span>')
+re_span = re.compile('<span class="subfield"><strong>\|(.|&(?:gt|lt|amp);)</strong>(.*?)</span>')
+
+trans = dict(lt='<', gt='>', amp='&')
 
 def read_row(tag, row):
     assert len(row) == 3
@@ -20,7 +21,10 @@ def read_row(tag, row):
         while end != len(row[2]):
             m = re_span.match(row[2], end)
             end = m.end()
-            subfields.append(m.groups())
+            (k, v) = m.groups()
+            if len(k) != 1:
+                k = trans[k[1:-1]]
+            subfields.append((k, v))
         assert all(len(i) == 1 for i in row[0:1])
         return (tag, row[0], row[1], subfields)
 
@@ -69,12 +73,10 @@ def extract_marc(f):
             continue
     return lines
 
-dest_dir = sys.argv[1]
-
 i = 1
 while 1:
     i+=1
-    filename = dest_dir + '/%d' % i
+    filename = 'marc/%d' % i
     if exists(filename):
         continue
     print i, 
@@ -89,10 +91,14 @@ while 1:
     if not web_input:
         break
 
-    out = open(filename, 'w')
-    marc = extract_marc(web_input)
+    out = open('marc/%d' % i, 'w')
+    try:
+        marc = extract_marc(web_input)
+    except:
+        print url
+        raise
     print len(marc)
     for line in marc:
         print >> out, line
     out.close()
-    sleep(0.5)
+    #sleep(0.5)
