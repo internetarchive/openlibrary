@@ -143,7 +143,7 @@ class addauthor(delegate.page):
             return web.badrequest()
         key = web.ctx.site.new_key('/type/author')
         web.ctx.path = key
-        web.ctx.site.write({'create': 'unless_exists', 'key': key, 'name': i.name, 'type': dict(key='/type/author')}, comment='New Author')
+        web.ctx.site.save({'key': key, 'name': i.name, 'type': dict(key='/type/author')}, comment='New Author')
         raise web.HTTPError("200 OK", {}, key)
 
 class clonebook(delegate.page):
