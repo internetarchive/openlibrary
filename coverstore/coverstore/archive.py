@@ -29,7 +29,13 @@ def move(cover, localdisk, warcdisk):
 def archive(localdisk, warcdisk):
     covers = web.select('cover', where='archived=false', order='id')
     for cover in covers:
-        move(cover, localdisk, warcdisk)
-        path = os.path.join(localdisk.root, cover.filename)
-        os.remove(path)
+        try:
+            move(cover, localdisk, warcdisk)
+            path = os.path.join(localdisk.root, cover.filename)
+            os.remove(path)
+        except:
+            print "failed to move", cover.filename
+            import traceback
+            traceback.print_exc()
+
 
