@@ -79,37 +79,37 @@ def within(a, b, distance):
 
 def compare_date(e1, e2):
     if 'publish_date' not in e1 or 'publish_date' not in e2:
-        return ('date', 'value missing', 0)
+        return ('publish_date', 'value missing', 0)
     if e1['publish_date'] == e2['publish_date']:
-        return ('date', 'exact match', 200)
+        return ('publish_date', 'exact match', 200)
     try:
         e1_pub = int(e1['publish_date'])
         e2_pub = int(e2['publish_date'])
         if within(e1_pub, e2_pub, 1):
-            return ('date', 'within 1 year', 100)
+            return ('publish_date', 'within 1 year', 100)
         elif within(e1_pub, e2_pub, 2):
-            return ('date', '+/-2 years', -25)
+            return ('publish_date', '+/-2 years', -25)
         else:
-            return ('date', 'mismatch', -250)
+            return ('publish_date', 'mismatch', -250)
     except ValueError, TypeError:
-        return ('date', 'mismatch', -250)
+        return ('publish_date', 'mismatch', -250)
 
 def compare_isbn10(e1, e2):
     if len(e1['isbn']) == 0 or len(e2['isbn']) == 0:
-        return ('ISBN', 'missing', 0)
+        return ('isbn', 'missing', 0)
     for i in e1['isbn']:
         for j in e2['isbn']:
             if i == j:
-                return ('ISBN', 'match', isbn_match)
+                return ('isbn', 'match', isbn_match)
 
     return ('ISBN', 'mismatch', -225)
 
 def level1_merge(e1, e2):
     score = []
     if e1['short_title'] == e2['short_title']:
-        score.append(('short-title', 'match', 450))
+        score.append(('short_title', 'match', 450))
     else:
-        score.append(('short-title', 'mismatch', 0))
+        score.append(('short_title', 'mismatch', 0))
 
     score.append(compare_date(e1, e2))
     score.append(compare_isbn10(e1, e2))
@@ -117,17 +117,17 @@ def level1_merge(e1, e2):
 
 def compare_authors(amazon, marc):
     if len(amazon['authors']) == 0 and 'authors' not in marc:
-        return ('main', 'no authors', 75)
+        return ('authors', 'no authors', 75)
     if len(amazon['authors']) == 0:
-        return ('main', 'field missing from one record', -25)
+        return ('authors', 'field missing from one record', -25)
 
     for name in amazon['authors']:
         if 'authors' in marc and match_name(name, marc['authors'][0]['name']):
-            return ('main', 'exact match', 125)
+            return ('authors', 'exact match', 125)
         if 'by_statement' in marc and marc['by_statement'].find(name) != -1:
-            return ('main', 'exact match', 125)
+            return ('authors', 'exact match', 125)
     if 'authors' not in marc:
-        return ('main', 'field missing from one record', -25)
+        return ('authors', 'field missing from one record', -25)
 
     max_score = 0
     for a in amazon['authors']:
@@ -139,9 +139,9 @@ def compare_authors(amazon, marc):
             if score > max_score:
                 max_score = score
     if max_score:
-        return ('main', 'keyword match', max_score)
+        return ('authors', 'keyword match', max_score)
     else:
-        return ('main', 'mismatch', -200)
+        return ('authors', 'mismatch', -200)
 
 def title_replace_amp(amazon):
     return normalize(amazon['full-title'].replace(" & ", " and ")).lower()
@@ -175,14 +175,14 @@ def compare_title(amazon, marc):
         for a in amazon['titles']:
             for m in marc['titles']:
                 if a.lower() == m.lower():
-                    return ('full-title', 'exact match', 600)
+                    return ('full_title', 'exact match', 600)
                 if strip_and_compare(a, m):
-                    return ('full-title', 'exact match', 600)
+                    return ('full_title', 'exact match', 600)
 
         for a in amazon['titles']:
             for m in marc['titles']:
                 if substr_match(a.lower(), m.lower()):
-                    return ('full-title', 'containted within other title', 350)
+                    return ('full_title', 'contained within other title', 350)
 
     max_score = 0
     for a in amazon['titles']:
@@ -194,11 +194,11 @@ def compare_title(amazon, marc):
             if score and score > max_score:
                 max_score = score
     if max_score:
-        return ('full-title', 'keyword match', max_score)
+        return ('full_title', 'keyword match', max_score)
     elif short:
-        return ('full-title', 'shorter than 9 characters', 0)
+        return ('full_title', 'shorter than 9 characters', 0)
     else:
-        return ('full-title', 'mismatch', -600)
+        return ('full_title', 'mismatch', -600)
 
 def compare_number_of_pages(amazon, marc):
     if 'number_of_pages' not in amazon or 'number_of_pages' not in marc:
@@ -207,16 +207,16 @@ def compare_number_of_pages(amazon, marc):
     marc_pages = marc['number_of_pages']
     if amazon_pages == marc_pages:
         if amazon_pages > 10:
-            return ('pagination', 'match exactly and > 10', 100)
+            return ('number_of_pages', 'match exactly and > 10', 100)
         else:
-            return ('pagination', 'match exactly and < 10', 50)
+            return ('number_of_pages', 'match exactly and < 10', 50)
     elif within(amazon_pages, marc_pages, 10):
         if amazon_pages > 10 and marc_pages > 10:
-            return ('pagination', 'match within 10 and both are > 10', 50)
+            return ('number_of_pages', 'match within 10 and both are > 10', 50)
         else:
-            return ('pagination', 'match within 10 and either are < 10', 20)
+            return ('number_of_pages', 'match within 10 and either are < 10', 20)
     else:
-        return ('pagination', 'non-match (by more than 10)', -225)
+        return ('number_of_pages', 'non-match (by more than 10)', -225)
 
 def short_part_publisher_match(p1, p2):
     pub1 = p1.split()
@@ -235,17 +235,17 @@ def compare_publisher(amazon, marc):
             for marc_pub in marc['publishers']:
                 norm_marc = normalize(marc_pub)
                 if norm_amazon == norm_marc:
-                    return ('publisher', 'match', 100)
+                    return ('publishers', 'match', 100)
                 elif substr_match(norm_amazon, norm_marc):
-                    return ('publisher', 'occur within the other', 100)
+                    return ('publishers', 'occur within the other', 100)
                 elif substr_match(norm_amazon.replace(' ', ''), norm_marc.replace(' ', '')):
-                    return ('publisher', 'occur within the other', 100)
+                    return ('publishers', 'occur within the other', 100)
                 elif short_part_publisher_match(norm_amazon, norm_marc):
-                    return ('publisher', 'match', 100)
-            return ('publisher', 'mismatch', -25)
+                    return ('publishers', 'match', 100)
+            return ('publishers', 'mismatch', -25)
 
     if 'publishers' not in amazon or 'publishers' not in marc:
-        return ('publisher', 'either missing', 0)
+        return ('publishers', 'either missing', 0)
 
 def level2_merge(amazon, marc):
     score = []
@@ -352,7 +352,7 @@ def test_merge5():
 def test_compare_authors():
     amazon = {'authors': [(u'Alistair Smith', u'Author')]}
     marc = {'authors': [{'db_name': u'National Gallery (Great Britain)', 'name': u'National Gallery (Great Britain)', 'entity_type': 'org'}], 'by_statement': 'Alistair Smith.'}
-    assert compare_authors(amazon, marc) == ('main', 'exact match', 125)
+    assert compare_authors(amazon, marc) == ('authors', 'exact match', 125)
 
 def test_merge6():
     amazon = {'publishers': [u'Fount'], 'isbn_10': ['0002176157'], 'number_of_pages': 224, 'short_title': u'basil hume', 'normalized_title': u'basil hume', 'full_title': u'Basil Hume', 'titles': [u'Basil Hume', u'basil hume'], 'publish_date': u'1986', 'authors': [(u'Tony Castle', u'Editor')]}
