@@ -37,13 +37,13 @@ class hooks(client.hook):
             comment = page['description']
             data = {}
             data['comment_author'] = page['displayname']
-            data['comment_author_email'] = page
             if page.website:
                 data['comment_author_url'] = page.website[0]
             self.checkspam(comment, data)
     
     def checkspam(self, comment, data):
-        data['user_ip'] = web.ctx.env.get('ip', '127.0.0.1')
+        data['user_ip'] = web.ctx.get('ip', '127.0.0.1')
+
         data['user_agent'] = web.ctx.env.get('HTTP_USER_AGENT', 'Mozilla/5.0')
         data['referrer'] = web.ctx.env.get('HTTP_REFERER', 'unknown')
         data['SERVER_ADDR'] = web.ctx.env.get('SERVER_ADDR', '')
