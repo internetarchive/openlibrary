@@ -4,7 +4,7 @@ import os
 import datetime
 
 import infogami
-from infogami.infobase import client, lru
+from infogami.infobase import client, lru, common
 from infogami.infobase.logger import Logger
 import web
 
@@ -232,8 +232,8 @@ def get_object_data(site, thing):
     def expand(value):
         if isinstance(value, list):
             return [expand(v) for v in value]
-        elif isinstance(value, dict) and 'key' in value:
-            t = site.get(value['key'])
+        elif isinstance(value, common.Reference):
+            t = site.get(value)
             return t and t._get_data()
         else:
             return value
