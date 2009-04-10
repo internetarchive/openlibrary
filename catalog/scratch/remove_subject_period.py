@@ -20,7 +20,7 @@ q = { 'type': '/type/edition', 'table_of_contents': None, 'subjects': None }
 queue = []
 count = 0
 for e in query_iter(q):
-    if not e.get('subjects', None) or any(has_dot(s) for s in e['subjects']):
+    if not e.get('subjects', None) or not any(has_dot(s) for s in e['subjects']):
         continue
     subjects = [s[:-1] if has_dot(s) else s for s in e['subjects']]
     q = {
