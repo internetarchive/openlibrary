@@ -79,8 +79,13 @@ class CacheProcessor(ConnectionProcessor):
     """Connection Processor to provide local cache."""
     def __init__(self, cache_prefixes, cache_size=10000):
         self.cache_prefixes = cache_prefixes
-        self.cache = lru.LRU(cache_size)
-        
+        self.cache = cache = lru.LRU(cache_size)
+
+        class hook(client.hook):
+            def on_new_version(self, page):
+                if page.key in cache:
+                    cache.delete(page.key)
+    
     def get(self, super, sitename, data):
         key = data.get('key')
         revision = data.get('revision')

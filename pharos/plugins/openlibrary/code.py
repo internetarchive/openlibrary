@@ -6,6 +6,7 @@ import simplejson
 import os
 import re
 import urllib
+import socket
 
 import infogami
 from infogami.utils import types, delegate
@@ -78,6 +79,7 @@ def sampledump():
         d = thing.dict()
         d.pop('permission', None)
         d.pop('child_permission', None)
+        d.pop('table_of_contents', None)
         
         visiting[key] = d
         for ref in get_references(d.values()):
@@ -523,6 +525,22 @@ def get_cover_id(key):
         return simplejson.loads(wget('http://covers.openlibrary.org/%s/query?olid=%s&limit=1' % (cat, oln)))[0]
     except (ValueError, IndexError, TypeError):
         return None
+
+local_ip = None
+class invalidate(delegate.page):
+    path = "/system/invalidate"
+    def POST(self):
+        global local_ip
+        if local_ip is None:
+            local_ip = socket.gethostbyname(socket.gethostname())
+
+        if web.ctx.ip != "127.0.0.1" and web.ctx.ip.rsplit(".", 1)[0] != local_ip.rsplit(".", 1)[0]:
+            raise Forbidden("Allowed only in the local network.")
+
+        data = simplejson.loads(web.data())
+        for k in data:
+            thing = client.Thing(web.ctx.site, k, client.storify(data[k]))
+            client._run_hooks('on_new_version', thing)        
 
 delegate.app.add_processor(readable_url_processor)
 
