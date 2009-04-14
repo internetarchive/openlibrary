@@ -31,10 +31,13 @@ def proxy(env, start_response):
 
 def main():
     import sys
-    args = sys.argv[1:] or ["8080"]
-    port = int(args[0])
-    print "fcgi multiplexer is running at http://localhost:%d" % port
-    return WSGIServer(proxy, bindAddress=("localhost", port)).run()
+    args = sys.argv[1:] 
+
+    if args:
+        bindAddress = ("localhost", int(args[0]))
+    else:
+        bindAddress = None
+    return WSGIServer(proxy, bindAddress=bindAddress).run()
 
 if __name__ == "__main__":
     main()
