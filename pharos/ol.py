@@ -2,6 +2,7 @@
 import sys
 import os
 import datetime
+import urllib
 
 import infogami
 from infogami.infobase import client, lru, common
@@ -21,6 +22,7 @@ config = web.storage(
     errorlog = 'errors',
     memcache_servers = None,
     cache_prefixes = ['/type/', '/l/', '/index.', '/about', '/css/', '/js/'], # objects with key starting with these prefixes will be cached locally.
+    http_listeners=[],
 )
 
 def write(path, data):
@@ -229,6 +231,7 @@ def get_infobase():
         booklogger = Logger(config.booklog)
         ol.add_trigger('/type/edition', write_booklog)
         ol.add_trigger('/type/author', write_booklog2)
+        ol.add_trigger(None, http_notify)
 
     return ib
     
@@ -270,7 +273,17 @@ def write_booklog2(site, old, new):
         for d in site.things(query):
             book = site.get(d['key'])
             booklogger.write('book', sitename, new.last_modified, get_object_data(site, book))
-            
+
+def http_notify(site, old, new):
+    """Notify listeners over http."""
+    for url in config.http_listeners:
+        try:
+            urllib.urlopen(url, new._get_data())
+        except:
+            print >> web.debug, "failed to send http_notify", url, new.key
+            import traceback
+            traceback.print_exc()
+
 def run():
     import infogami.infobase.server
     infogami.infobase.server._infobase = get_infobase()
