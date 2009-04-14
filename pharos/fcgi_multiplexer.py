@@ -5,6 +5,7 @@ Request to /host1:port1/path is redirected to fastcgi://host1:port1/path.
 """
 from flup.client.fcgi_app import FCGIApp
 from flup.server.fcgi import WSGIServer
+import socket
 import sys, re
 
 stderr = sys.stderr
@@ -20,14 +21,19 @@ def proxy(env, start_response):
 
     host, port, env['PATH_INFO'] = m.groups()
     env['REQUEST_URI'] = env['REQUEST_URI'][len('/%s:%s' % (host, port)):]
-
-    app = FCGIApp(connect=(host, int(port)))
-    return app(env, start_response)
+    
+    try:
+        app = FCGIApp(connect=(host, int(port)))
+        return app(env, start_response)
+    except socket.error:
+        start_response("503 Service not available", [])
+        return "Service not available"
 
 def main():
     import sys
     args = sys.argv[1:] or ["8080"]
     port = int(args[0])
+    print "fcgi multiplexer is running at http://localhost:%d" % port
     return WSGIServer(proxy, bindAddress=("localhost", port)).run()
 
 if __name__ == "__main__":
