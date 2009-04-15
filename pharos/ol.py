@@ -277,7 +277,7 @@ def write_booklog2(site, old, new):
 
 def http_notify(site, old, new):
     """Notify listeners over http."""
-    data = simplejson.dumps(new._get_data())
+    data = simplejson.dumps(new.format_data())
     for url in config.http_listeners:
         try:
             urllib.urlopen(url, data)
