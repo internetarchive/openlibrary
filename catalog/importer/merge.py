@@ -11,21 +11,6 @@ index_path = '/1/pharos/edward/index/2/'
 key_to_mc = dbhash.open(index_path + "key_to_mc.dbm", flag='r')
 amazon.set_isbn_match(225)
 
-marc_path = '/2/pharos/marc/'
-
-def get_data(loc):
-    try:
-        filename, p, l = loc.split(':')
-    except ValueError:
-        return None
-    if not os.path.exists(marc_path + filename):
-        return None
-    f = open(marc_path + filename)
-    f.seek(int(p))
-    buf = f.read(int(l))
-    f.close()
-    return buf
-
 def try_amazon(thing):
     if 'isbn_10' not in thing:
         return None
@@ -91,7 +76,7 @@ def try_merge(e1, edition_key):
                 print thing['key']
                 raise
         try:
-            data = get_data(mc)
+            data = get_from_local(mc)
             if not data:
                 return True
             rec2 = fast_parse.read_edition(data)
