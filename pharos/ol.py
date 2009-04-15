@@ -3,6 +3,7 @@ import sys
 import os
 import datetime
 import urllib
+import simplejson
 
 import infogami
 from infogami.infobase import client, lru, common
@@ -276,9 +277,10 @@ def write_booklog2(site, old, new):
 
 def http_notify(site, old, new):
     """Notify listeners over http."""
+    data = simplejson.dumps(new._get_data())
     for url in config.http_listeners:
         try:
-            urllib.urlopen(url, new._get_data())
+            urllib.urlopen(url, data)
         except:
             print >> web.debug, "failed to send http_notify", url, new.key
             import traceback
