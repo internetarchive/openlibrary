@@ -228,24 +228,28 @@ def short_part_publisher_match(p1, p2):
             return False
     return True
 
-def compare_publisher(amazon, marc):
-    if 'publishers' in amazon and 'publishers' in marc:
-        for amazon_pub in amazon['publishers']:
-            norm_amazon = normalize(amazon_pub)
-            for marc_pub in marc['publishers']:
-                norm_marc = normalize(marc_pub)
-                if norm_amazon == norm_marc:
-                    return ('publishers', 'match', 100)
-                elif substr_match(norm_amazon, norm_marc):
-                    return ('publishers', 'occur within the other', 100)
-                elif substr_match(norm_amazon.replace(' ', ''), norm_marc.replace(' ', '')):
-                    return ('publishers', 'occur within the other', 100)
-                elif short_part_publisher_match(norm_amazon, norm_marc):
-                    return ('publishers', 'match', 100)
-            return ('publishers', 'mismatch', -25)
+re_press = re.compile(' press$')
 
+def compare_publisher(amazon, marc):
     if 'publishers' not in amazon or 'publishers' not in marc:
         return ('publishers', 'either missing', 0)
+
+    assert 'publishers' in amazon and 'publishers' in marc
+    for amazon_pub in amazon['publishers']:
+        norm_amazon = normalize(amazon_pub)
+        for marc_pub in marc['publishers']:
+            norm_marc = normalize(marc_pub)
+            if norm_amazon == norm_marc:
+                return ('publishers', 'match', 100)
+#            if re_press.sub('', norm_amazon) == re_press.sub('', norm_marc):
+#                return ('publishers', 'match', 100)
+            if substr_match(norm_amazon, norm_marc):
+                return ('publishers', 'occur within the other', 100)
+            if substr_match(norm_amazon.replace(' ', ''), norm_marc.replace(' ', '')):
+                return ('publishers', 'occur within the other', 100)
+            if short_part_publisher_match(norm_amazon, norm_marc):
+                return ('publishers', 'match', 100)
+    return ('publishers', 'mismatch', -25)
 
 def level2_merge(amazon, marc):
     score = []
