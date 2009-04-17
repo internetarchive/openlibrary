@@ -49,7 +49,11 @@ def read_file(f):
     while 1:
         if buf:
             length = buf[:5]
-            int_length = int(length)
+            try:
+                int_length = int(length)
+            except:
+                print `buf`
+                raise
         else:
             length = f.read(5)
             buf = length
@@ -58,21 +62,21 @@ def read_file(f):
         try:
             assert length.isdigit()
         except AssertionError:
-            print `length`
             raise
         int_length = int(length)
         data = buf + f.read(int_length - len(buf))
         buf = None
         if not data.endswith("\x1e\x1d"):
             # skip bad record, should warn somehow
-            end = data.rfind('\x1e\x1d') + 2
-            yield (data[:end], end)
-            buf = data[end:]
-            continue
+            end_index = data.rfind('\x1e\x1d')
+            if end_index != -1:
+                end = end_index + 2
+                yield (data[:end], end)
+                buf = data[end:]
+                continue
         if data.find('\x1d') == -1:
             data += f.read(40)
             int_length = data.find('\x1d') + 1
-            print `data[-40:]`
             assert int_length
             buf = data[int_length:]
             data = data[:int_length]
