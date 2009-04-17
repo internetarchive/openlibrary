@@ -340,6 +340,11 @@ def remove_duplicates(seq):
             u.append(x)
     return u
 
+re_skip = re.compile('\b([A-Z]|Co|Dr|Jr|Capt|Mr|Mrs|Ms|Prof|Rev|Revd|Hon)\.$')
+
+def has_dot(s):
+    return s.endswith('.') and not re_skip.search(s)
+
 def read_subjects(fields):
     want = [
         ('600', 'abcd'),
@@ -358,8 +363,7 @@ def read_subjects(fields):
         for line in fields[tag]:
             a = get_subfield_values(line, subdivision)
             b = " -- ".join(get_subfield_values(line, subfields) + a)
-            found.append(b)
-    
+            found.append(b[:-1] if has_dot(b) else b) # strip dots
     return {'subjects': found} if found else {}
     
 def read_genres(fields):
@@ -369,6 +373,7 @@ def read_genres(fields):
             continue
         for line in fields[tag]:
             found += get_subfield_values(line, ['v'])
+    found = [i[:-1] if has_dot(i) else i for i in found] # strip dots
     return { 'genres': remove_duplicates(found) } if found else {}
 
 def read_notes(fields):

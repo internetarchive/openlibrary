@@ -1,5 +1,6 @@
 from urllib2 import urlopen, Request
-import cjson, web
+import simplejson as json
+import web
 from catalog.merge.merge_index import add_to_indexes
 
 # need to use multiple databases
@@ -8,23 +9,22 @@ from catalog.merge.merge_index import add_to_indexes
 import psycopg2
 from catalog.read_rc import read_rc
 rc = read_rc()
-conn = psycopg2.connect("dbname='%s' user='%s' host='%s' password='%s'" \
-        % ('ol_merge', rc['user'], rc['host'], rc['pw']));
+conn = psycopg2.connect("dbname='marc_index'")
 cur = conn.cursor()
 
-index_path = '/1/pharos/edward/index/2/'
+index_path = '/1/edward/marc_index/'
 
-pool_url = 'http://wiki-beta.us.archive.org:9020/'
+pool_url = 'http://0.0.0.0:9020/'
 
 db_fields = ('isbn', 'title', 'oclc', 'lccn')
 
-def pool_build(fields):
+def pool_build(fields): # unused
     params = dict((k, '_'.join(v)) for k, v in fields.iteritems() if k != 'author')
     url = pool_url + "?" + web.http.urlencode(params)
     ret = cjson.decode(urlopen(url).read())
     return ret['pool']
 
-def pool_update(key, q):
+def pool_update(key, q): # unused
     q['key'] = key
     req = Request(pool_url, cjson.encode(q))
     urlopen(req).read()
@@ -37,7 +37,7 @@ def build(index_fields):
         for v in index_fields[field]:
             if field == 'isbn' and len(v) < 10:
                 continue
-            cur.execute('select key from ' + field + ' where value=%(v)s', {'v': v})
+            cur.execute('select k from ' + field + ' where v=%(v)s', {'v': v})
             pool.setdefault(field, set()).update(i[0] for i in cur.fetchall())
     return dict((k, sorted(v)) for k, v in pool.iteritems())
 
@@ -57,15 +57,14 @@ def update(key, q):
 #            print "key dup: key=%s, value=%s" % (key, value)
 #            print q
 #            continue
-        cur.execute('insert into ' + field + ' (key, value) values (%(key)s, %(value)s)', vars)
-    q['key']
+        cur.execute('insert into ' + field + ' (k, v) values ($(key)s, %(value)s)', vars)
 
 def post_progress(archive_id, q):
     url = pool_url + "store/" + archive_id
-    req = Request(url, cjson.encode(q))
+    req = Request(url, json.dumps(q))
     urlopen(req).read()
 
 def get_start(archive_id):
     url = pool_url + "store/" + archive_id
     data = urlopen(url).read()
-    return cjson.decode(data)
+    return json.loads(data)

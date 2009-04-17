@@ -1,23 +1,35 @@
-import web, cjson
+import web
+import simplejson as json
 from urllib import urlopen, urlencode
 from time import sleep
-import catalog.infostore
+from catalog.read_rc import read_rc
 
 staging = False
 
-def find_author(name):
+db = web.database(dbn='postgres', db='marc_index')
+db.printing = False
+
+def find_author(name): # unused
     iter = web.query('select key from thing, author_str where thing_id = id and key_id = 1 and value = $name', {'name': name })
     return [row.key for row in iter]
 
 def read_from_url(url):
+    print url
+    data = urlopen(url).read()
+    try:
+        ret = json.loads(data)
+    except:
+        open('error.html', 'w').write(data)
+        raise
+    if ret['status'] == 'fail' and ret['message'].startswith('Not Found: '):
+        return None
+    assert ret['status'] == 'ok'
+    return ret['result']
     for i in range(50):
         data = urlopen(url).read()
-        try:
-            ret = cjson.decode(data)
-            if ret['status'] == 'ok':
-                return ret['result']
-        except cjson.DecodeError:
-            pass
+        ret = json.loads(data)
+        if ret['status'] == 'ok':
+            return ret['result']
         sleep(10)
     print url
     print data
@@ -34,28 +46,17 @@ def api_versions(): return api_url() + "versions?"
 def api_things(): return api_url() + "things?"
 def api_get(): return api_url() + "get?key="
 
-def get_versions(q):
-    url = api_versions() + urlencode({'query': cjson.encode(q)})
+def get_versions(q): # unused
+    url = api_versions() + urlencode({'query': json.dumps(q)})
     return read_from_url(url)
 
 def get_things(q):
-    url = api_things() + urlencode({'query': cjson.encode(q)})
-    return [i.replace('\/', '/') for i in read_from_url(url)]
+    url = api_things() + urlencode({'query': json.dumps(q)})
+    return read_from_url(url)
 
-def get_mc(edition_key):
-    v = get_versions({ 'key': edition_key })
-    comments = [i['machine_comment'] for i in v if 'machine_comment' in i and i['machine_comment'] is not None ]
-    if len(comments) == 0:
-        return None
-    if len(set(comments)) != 1:
-        print id
-        print versions
-    assert len(set(comments)) == 1
-    if comments[0] == 'initial import':
-        return None
-    return comments[0]
+def get_mc(key):
+    found = list(db.query('select v from machine_comment where k=$key', {'key': key}))
+    return found[0].v if found else None
 
 def withKey(key):
     return read_from_url(api_get() + key)
-
-

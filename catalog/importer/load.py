@@ -1,6 +1,11 @@
 import web, re
 from db_read import get_things, withKey
 from catalog.utils import flip_name, author_dates_match, key_int
+from catalog.utils.query import query_iter
+
+def find_author(name):
+    q = {'type': '/type/author', 'name': name}
+    return [a['key'] for a in query_iter(q)]
 
 def do_flip(author):
     # given an author name flip it in place
@@ -38,13 +43,35 @@ def find_entity(author):
     name = author['name']
     things = find_author(name)
     if author['entity_type'] != 'person':
-        return withKey(things[0]) if things else None
+        if not things:
+            return None
+        db_entity = withKey(things[0])
+        if db_entity['type']['key'] == '/type/redirect':
+            db_entity = withKey(db_entity['location'])
+        assert db_entity['type']['key'] == '/type/author'
+        return db_entity
     if ', ' in name:
         things += find_author(flip_name(name))
     match = []
+    seen = set()
     for key in things:
+        if key in seen:
+            continue
+        seen.add(key)
         db_entity = withKey(key)
-        assert db_entity['type']['key'] == '/type/author'
+        if db_entity['type']['key'] == '/type/redirect':
+            key = db_entity['location']
+            if key in seen:
+                continue
+            seen.add(key)
+            db_entity = withKey(key)
+        if db_entity['type']['key'] == '/type/delete':
+            continue
+        try:
+            assert db_entity['type']['key'] == '/type/author'
+        except:
+            print name, key, db_entity
+            raise
         if 'birth_date' in author and 'birth_date' not in db_entity:
             continue
         if 'birth_date' not in author and 'birth_date' in db_entity:
@@ -115,7 +142,7 @@ def east_in_by_statement(rec):
         return False
     return rec['by_statement'].find(name) != -1
 
-def check_if_loaded(loc):
+def check_if_loaded(loc): # unused
     return bool(get_versions({'machine_comment': loc}))
 
 def build_query(loc, rec):
@@ -146,7 +173,7 @@ def build_query(loc, rec):
     assert 'title' in book
     return book
 
-def add_keys(q):
+def add_keys(q): # unused
     if 'authors' in q:
         for a in q['authors']:
             a.setdefault('key', '/a/OL%dA' % (get_author_num(web) + 1))

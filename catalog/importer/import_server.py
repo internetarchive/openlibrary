@@ -1,25 +1,26 @@
 #!/usr/local/bin/python2.5
 import web, dbhash, sys
-import cjson
+import simplejson as json
 from catalog.load import add_keys
 from copy import deepcopy
 from catalog.merge.index import *
 from urllib import urlopen, urlencode
-import psycopg2
 
-path = '/1/pharos/edward/index/2/'
-dbm_fields = ('lccn', 'oclc', 'isbn', 'title')
-dbm = dict((i, dbhash.open(path + i + '.dbm', flag='w')) for i in dbm_fields)
+path = '/1/edward/marc_index/'
+#dbm_fields = ('lccn', 'oclc', 'isbn', 'title')
+#dbm = dict((i, dbhash.open(path + i + '.dbm', flag='w')) for i in dbm_fields)
 
 store_db = dbhash.open(path + "store.dbm", flag='w')
 
 urls = (
-    '/', 'index',
+#    '/', 'index',
     '/store/(.*)', 'store',
     '/keys', 'keys',
 )
 
-def build_pool(index_fields):
+app = web.application(urls, globals())
+
+def build_pool(index_fields): # unused
     pool = {}
     for field in dbm_fields:
         if not field in index_fields:
@@ -39,7 +40,7 @@ def build_pool(index_fields):
             pool.setdefault(field, set()).update(dbm[field][v].split(' '))
     return dict((k, sorted(v)) for k, v in pool.iteritems())
 
-def add_to_indexes(record, dbm):
+def add_to_indexes(record, dbm): # unused
     if 'title' not in record or record['title'] is None:
         return
     if 'subtitle' in record and record['subtitle'] is not None:
@@ -70,7 +71,7 @@ def add_to_indexes(record, dbm):
                 v = clean(v)
             add_to_index(dbm[b], v, record['key'])
 
-class index:
+class index: # unused
     def GET(self):
         web.header('Content-Type','application/json; charset=utf-8', unique=True)
         q = web.input()
@@ -85,26 +86,29 @@ class index:
 class store:
     def GET(self, key):
         web.header('Content-Type','application/json; charset=utf-8', unique=True)
+        key = str(key)
         if key in store_db:
-            print store_db[key]
+            return store_db[key]
         else:
-            print cjson.encode({'error': key + " not found", 'keys': store_db.keys() })
+            error = {'error': key + " not found", 'keys': store_db.keys() }
+            return json.dumps(error)
     def POST(self, key):
+        key = str(key)
         store_db[key] = web.data()
-        print "saved"
+        return "saved"
 
 class keys:
     def GET(self):
         web.header('Content-Type','application/json; charset=utf-8', unique=True)
-        print cjson.encode(store_db.keys())
+        return json.dumps(store_db.keys())
 
 if __name__ == '__main__':
     try:
-        web.run(urls, globals(), web.reloader)
+        app.run()
     except:
         print "closing dbm files"
-        for v in dbm.itervalues():
-            v.close()
+#        for v in dbm.itervalues():
+#            v.close()
         store_db.close()
         print "closed"
         raise
