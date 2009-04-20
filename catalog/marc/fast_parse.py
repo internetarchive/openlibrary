@@ -224,7 +224,8 @@ def get_tag_lines(data, want):
     data = data[dir_end:]
     return [(line[:3], get_tag_line(data, line)) for line in iter_dir if line[:3] in want]
 
-def read_call_number(line):
+def read_control_number(line):
+    assert line[-1] == '\x1e'
     return [line[:-1]]
 
 def read_lccn(line):
@@ -284,11 +285,12 @@ def index_fields(data, want, check_author = True):
         '111': 'even',
     }
 
+
     if check_author:
         want += author.keys()
     fields = get_tag_lines(data, ['006', '008', '260'] + want)
     read_tag = {
-        '001': (read_call_number, 'call_number'),
+        '001': (read_control_number, 'control_number'),
         '010': (read_lccn, 'lccn'),
         '020': (read_isbn, 'isbn'),
         '035': (read_oclc, 'oclc'),
@@ -296,8 +298,13 @@ def index_fields(data, want, check_author = True):
     }
 
     seen_008 = False
+    oclc_001 = False
 
     for tag, line in fields:
+        if tag == '003': # control number identifier
+            if line.lower().startswith('ocolc'):
+                oclc_001 = True
+            continue
         if tag == '006':
             if line[0] == 'm': # don't want electronic resources
                 return None
@@ -326,6 +333,9 @@ def index_fields(data, want, check_author = True):
             return None
         if found:
             edition.setdefault(key, []).extend(found)
+    if oclc_001:
+        edition['oclc'] = edition.get('oclc', []) + edition['control_number']
+    edition.pop('control_number')
     if not seen_008:
         return None
 #    if 'title' not in edition:
@@ -334,10 +344,11 @@ def index_fields(data, want, check_author = True):
 
 def read_edition(data, accept_electronic = False):
     edition = {}
-    want = ['006', '008', '010', '020', '035', \
+    want = ['001', '003', '006', '008', '010', '020', '035', \
             '100', '110', '111', '700', '710', '711', '245', '260', '300']
     fields = get_tag_lines(data, want)
     read_tag = [
+        ('001', read_control_number, 'control_number'),
         ('010', read_lccn, 'lccn'),
         ('020', read_isbn, 'isbn'),
         ('035', read_oclc, 'oclc'),
@@ -350,7 +361,12 @@ def read_edition(data, accept_electronic = False):
         ('260', read_publisher, 'publishers'),
     ]
 
+    oclc_001 = False
     for tag, line in fields:
+        if tag == '003': # control number identifier
+            if line.lower().startswith('ocolc'):
+                oclc_001 = True
+            continue
         if tag == '006':
             if not accept_electronic and line[0] == 'm':
                 return None
@@ -381,6 +397,9 @@ def read_edition(data, accept_electronic = False):
                 if 'number_of_pages' not in edition \
                         or max_page_num > edition['number_of_pages']:
                     edition['number_of_pages'] = max_page_num
+    if oclc_001:
+        edition['oclc'] = edition.get('oclc', []) + edition['control_number']
+    edition.pop('control_number')
     return edition
 
 def handle_wrapped_lines(iter):
@@ -438,9 +457,17 @@ def test_wrapped_lines():
 def test_translate():
     assert translate('Vieira, Claudio Bara\xe2una,') == u'Vieira, Claudio Bara\xfana,'
 
+def test_read_oclc():
+    from pprint import pprint
+    for f in ('oregon_27194315',):
+        data = open('test_data/' + f).read()
+        i = index_fields(data, ['001', '003', '010', '020', '035', '245'])
+        assert 'oclc' in i
+        e = read_edition(data)
+        assert 'oclc' in e
+
 def test_record():
     assert read_edition(open('test_data/lc_0444897283').read())
 
 def test_empty():
     assert read_edition('') == {}
-
