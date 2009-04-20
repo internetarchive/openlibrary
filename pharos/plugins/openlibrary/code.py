@@ -280,7 +280,6 @@ class flipbook(delegate.page):
             params = dict(identifier=identifier, dataserver=server, datapath=path)
             if leaf:
                 params['leaf'] = leaf
-            import urllib
             url = "http://%s/flipbook/flipbook.php?%s" % (server, urllib.urlencode(params))     
             data = render.flipbook(url, title)
             raise web.HTTPError("200 OK", {}, web.safestr(data))
@@ -288,7 +287,6 @@ class flipbook(delegate.page):
     def find_location_from_archive(self, identifier):
         """Use archive.org to get the location.
         """
-        import urllib, re
         from xml.dom import minidom
 
         base_url = "http://www.archive.org/services/find_file.php?loconly=1&file="
@@ -434,7 +432,7 @@ class new:
             
         try:
             query = simplejson.loads(web.data())
-            h = get_custom_headers()
+            h = api.get_custom_headers()
             comment = h.get('comment')
             action = h.get('action')
         except Exception, e:
@@ -542,6 +540,3 @@ class invalidate(delegate.page):
         client._run_hooks('on_new_version', thing)        
 
 delegate.app.add_processor(readable_url_processor)
-
-if __name__ == "__main__":
-    main()
