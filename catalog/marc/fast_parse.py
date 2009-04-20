@@ -335,7 +335,8 @@ def index_fields(data, want, check_author = True):
             edition.setdefault(key, []).extend(found)
     if oclc_001:
         edition['oclc'] = edition.get('oclc', []) + edition['control_number']
-    edition.pop('control_number')
+    if 'control_number' in edition:
+        del edition['control_number']
     if not seen_008:
         return None
 #    if 'title' not in edition:
@@ -399,7 +400,8 @@ def read_edition(data, accept_electronic = False):
                     edition['number_of_pages'] = max_page_num
     if oclc_001:
         edition['oclc'] = edition.get('oclc', []) + edition['control_number']
-    edition.pop('control_number')
+    if 'control_number' in edition:
+        del edition['control_number']
     return edition
 
 def handle_wrapped_lines(iter):
