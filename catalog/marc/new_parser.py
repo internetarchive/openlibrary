@@ -96,18 +96,19 @@ def read_isbn(fields):
     return ret
 
 def read_oclc(fields):
-    if '035' not in fields:
-        return {}
-
     found = []
-    for line in fields['035']:
+    if '003' in fields and '001' in fields \
+            and fields['003'][0] == 'OCoLC':
+        found.append(fields['001'][0])
+
+    for line in fields.get('035', []):
         for k, v in get_subfields(line, ['a']):
             m = re_oclc.match(v)
             if m:
                 oclc = m.group(1)
                 if oclc not in found:
                     found.append(oclc)
-    return {'oclc_number': found } if found else {}
+    return {'oclc_number': remove_duplicates(found) } if found else {}
 
 def get_contents(line, want):
     contents = {}

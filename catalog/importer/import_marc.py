@@ -197,6 +197,10 @@ def write(q):
 def write_edition(loc, edition):
     add_lang(edition)
     q = build_query(loc, edition)
+    authors = []
+    for a in q['authors']
+        if 'key' in a:
+            authors.append(a['key'])
     q['source_records'] = ['marc:' + loc]
 
     ret = write(q)

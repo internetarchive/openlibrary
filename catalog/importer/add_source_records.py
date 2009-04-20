@@ -11,7 +11,7 @@ from catalog.get_ia import files, read_marc_file
 from catalog.merge.merge_marc import build_marc
 from catalog.importer.db_read import get_mc, withKey
 sys.path.append('/home/edward/src/olapi')
-from olapi import OpenLibrary
+from olapi import OpenLibrary, Text
 
 from catalog.read_rc import read_rc
 
@@ -79,15 +79,9 @@ def fix_toc(e):
     toc = e.get('table_of_contents', None)
     if not toc:
         return
-    print 'toc:', toc
     if isinstance(toc[0], dict) and toc[0]['type'] == '/type/toc_item':
         return
-    if isinstance(toc[0], basestring):
-        assert all(isinstance(i, basestring) for i in toc)
-        return [{'title': i, 'type': '/type/toc_item'} for i in toc if i != u'']
-    else:
-        assert all(i['type'] == '/type/text' for i in toc)
-        return [{'title': i['value'], 'type': '/type/toc_item'} for i in toc if i['value'] != u'']
+    return [{'title': unicode(i), 'type': '/type/toc_item'} for i in toc if i != u'']
 
 re_skip = re.compile('\b([A-Z]|Co|Dr|Jr|Capt|Mr|Mrs|Ms|Prof|Rev|Revd|Hon)\.$')
 
@@ -95,42 +89,35 @@ def has_dot(s):
     return s.endswith('.') and not re_skip.search(s)
 
 def add_source_records(key, new, thing):
+    new = 'marc:' + new
     sr = None
+    e = ol.get(key)
     if 'source_records' in e:
-        sr = e['source_records']
+        if new in e['source_records']:
+            return
+        e['source_records'].append(new)
     else:
         existing = get_mc(key)
         amazon = 'amazon:'
         if existing.startswith(amazon):
-            print 'amazon:', existing
             sr = amazon_source_records(existing[len(amazon):]) or [existing]
         else:
             m = re_meta_mrc.match(existing)
             sr = ['marc:' + existing if not m else 'ia:' + m.group(1)]
-    sr += ['marc:' + new]
-    q = {
-        'key': key,
-        'source_records': { 'connect': 'update_list', 'value': sr }
-    }
+        e['source_records'] = sr + [new]
 
     # fix other bits of the record as well
     new_toc = fix_toc(e)
     if new_toc:
-        q['table_of_contents'] = {'connect': 'update_list', 'value': new_toc }
+        e['table_of_contents'] = new_toc
     if e.get('subjects', None) and any(has_dot(s) for s in e['subjects']):
         subjects = [s[:-1] if has_dot(s) else s for s in e['subjects']]
-        q['subjects'] = {'connect': 'update_list', 'value': subjects }
-    print ol.write(q, 'found a matching MARC record')
+        e['subjects'] = subjects
+    print ol.save(key, e, 'found a matching MARC record')
     if new_toc:
         new_edition = ol.get(key)
-        print new_toc
-        print q
-        print new_edition['table_of_contents']
         # [{u'type': <ref: u'/type/toc_item'>}, ...]
         assert 'title' in new_edition['table_of_contents'][0]
-        sys.exit(0)
-
-
 
 def load_part(archive_id, part, start_pos=0):
     print 'load_part:', archive_id, part
@@ -167,8 +154,12 @@ def load_part(archive_id, part, start_pos=0):
         e1 = build_marc(rec)
 
         match = False
+        seen = set()
         for k, v in edition_pool.iteritems():
             for edition_key in v:
+                if edition_key in seen:
+                    continue
+                seen.add(edition_key)
                 thing = withKey(edition_key)
                 assert thing
                 if try_merge(e1, edition_key, thing):
