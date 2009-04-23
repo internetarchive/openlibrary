@@ -5,9 +5,14 @@ from catalog.get_ia import *
 from catalog.importer.db_read import withKey, get_mc
 import catalog.marc.fast_parse as fast_parse
 import xml.parsers.expat
-import web
+import web, sys
+sys.path.append('/home/edward/src/olapi')
+from olapi import OpenLibrary
 
 rc = read_rc()
+
+ol = OpenLibrary("http://openlibrary.org")
+ol.login('ImportBot', rc['ImportBot']) 
 
 ia_db = web.database(dbn='mysql', db='archive', user=rc['ia_db_user'], pw=rc['ia_db_pass'], host=rc['ia_db_host'])
 ia_db.printing = False
@@ -29,9 +34,12 @@ def try_amazon(thing):
         authors = []
     return amazon.build_amazon(thing, authors)
 
-def is_dark(ia):
-    iter = ia_db.query('select curatestate from metadata where identifier=$ia', { 'ia': ia })
+def is_dark_or_bad(ia):
+    vars = { 'ia': ia }
+    iter = ia_db.query('select curatestate from metadata where identifier=$ia', vars)
     rows = list(iter)
+    if len(rows) == 0:
+        return True
     assert len(rows) == 1
     return rows[0].curatestate == 'dark'
 
@@ -71,6 +79,23 @@ def amazon_match(e1, thing):
         print thing['key']
         raise
 
+def fix_source_records(key, thing):
+    if 'source_records' not in thing:
+        return False
+    src_rec = thing['source_records']
+    marc_ia = 'marc:ia:'
+    if not any(i.startswith(marc_ia) for i in src_rec):
+        return False
+    e = ol.get(key)
+    new = [i[5:] if i.startswith(marc_ia) else i for i in e['source_records']]
+    e['source_records'] = new
+    print e['ocaid']
+    print e['source_records']
+    assert 'ocaid' in e and ('ia:' + e['ocaid'] in e['source_records'])
+    print 'fix source records'
+    print ol.save(key, e, 'fix bad source records')
+    return True
+
 def source_records_match(e1, thing):
     marc = 'marc:'
     amazon = 'amazon:'
@@ -99,6 +124,8 @@ def try_merge(e1, edition_key, thing):
     assert thing_type == '/type/edition'
 
     if 'source_records' in thing:
+        if fix_source_records(edition_key, thing):
+            thing = withKey(edition_key) # reload
         return source_records_match(e1, thing)
 
     ia = thing.get('ocaid', None)
@@ -115,7 +142,7 @@ def try_merge(e1, edition_key, thing):
             ia = thing['ocaid']
     rec2 = None
     if ia:
-        if is_dark(ia):
+        if is_dark_or_bad(ia):
             return False
         try:
             loc2, rec2 = get_ia(ia)
@@ -129,7 +156,7 @@ def try_merge(e1, edition_key, thing):
     if not rec2:
         if not mc:
             mc = get_mc(thing['key'])
-        if not mc:
+        if not mc or mc == 'initial import':
             return False
         if mc.startswith('amazon:'):
             try:
@@ -148,7 +175,9 @@ def try_merge(e1, edition_key, thing):
                 print e1
                 print thing['key']
                 raise
+        print 'mc:', mc
         try:
+            assert not mc.startswith('ia:')
             data = get_from_local(mc)
             if not data:
                 return True

@@ -57,7 +57,7 @@ def update(key, q):
 #            print "key dup: key=%s, value=%s" % (key, value)
 #            print q
 #            continue
-        cur.execute('insert into ' + field + ' (k, v) values ($(key)s, %(value)s)', vars)
+        cur.execute('insert into ' + field + ' (k, v) values (%(key)s, %(value)s)', vars)
 
 def post_progress(archive_id, q):
     url = pool_url + "store/" + archive_id

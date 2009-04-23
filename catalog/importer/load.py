@@ -103,7 +103,7 @@ def import_author(author, eastern=False):
             if k in existing:
                 del existing[k]
         new = existing
-        new["create"] = "unless_exists"
+#        new["create"] = "unless_exists"
         if 'death_date' in author and 'death_date' not in existing:
             new['death_date'] = {
                 'connect': 'update',
@@ -114,7 +114,7 @@ def import_author(author, eastern=False):
         if not eastern:
             do_flip(author)
         a = {
-            'create': 'unless_exists',
+#            'create': 'unless_exists',
             'type': { 'key': '/type/author' },
             'name': author['name']
         }
@@ -149,7 +149,6 @@ def build_query(loc, rec):
     if 'table_of_contents' in rec:
         assert not isinstance(rec['table_of_contents'][0], list)
     book = {
-        'create': 'unless_exists',
         'type': { 'key': '/type/edition'},
     }
 

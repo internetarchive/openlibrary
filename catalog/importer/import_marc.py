@@ -1,18 +1,19 @@
 #!/usr/bin/python2.5
 from time import time, sleep
 import catalog.marc.fast_parse as fast_parse
-import web, sys, codecs, re
+import web, sys, codecs, re, urllib2
 import catalog.importer.pool as pool
+import simplejson as json
 from catalog.utils.query import query_iter
 from catalog.importer.merge import try_merge
 from catalog.marc.new_parser import read_edition
-from catalog.importer.load import build_query
+from catalog.importer.load import build_query, east_in_by_statement, import_author
 from catalog.importer.lang import add_lang
 from catalog.get_ia import files, read_marc_file
 from catalog.merge.merge_marc import build_marc
 from catalog.importer.db_read import get_mc, withKey
 sys.path.append('/home/edward/src/olapi')
-from olapi import OpenLibrary
+from olapi import OpenLibrary, unmarshal
 
 from catalog.read_rc import read_rc
 
@@ -35,14 +36,12 @@ rec_no = 0
 chunk = 50
 load_count = 0
 
-archive_url = "http://archive.org/download/"
-
 archive_id = sys.argv[1]
 
 def percent(a, b):
     return float(a * 100.0) / b
 
-def progress(archive_id, rec_no, loc, start_pos, pos):
+def progress(archive_id, rec_no, start_pos, pos):
     global t_prev, load_count
     cur_time = time()
     t = cur_time - t_prev
@@ -52,7 +51,6 @@ def progress(archive_id, rec_no, loc, start_pos, pos):
     bytes_per_sec_total = (pos - start_pos) / t1
 
     q = {
-        'cur': loc,
         'chunk': chunk,
         'rec_no': rec_no,
         't': t,
@@ -66,10 +64,12 @@ def progress(archive_id, rec_no, loc, start_pos, pos):
     pool.post_progress(archive_id, q)
 
 def is_loaded(loc):
-    db_iter = marc_index.query('select * from machine_comment where v=$loc', {'loc': loc})
+    assert loc.startswith('marc:')
+    vars = {'loc': loc[5:]}
+    db_iter = marc_index.query('select * from machine_comment where v=$loc', vars)
     if list(db_iter):
         return True
-    iter = query_iter({'type': '/type/edition', 'source_records': 'marc:' + loc})
+    iter = query_iter({'type': '/type/edition', 'source_records': loc})
     return bool(list(iter))
 
 re_meta_mrc = re.compile('^([^/]*)_meta.mrc:0:\d+$')
@@ -84,61 +84,99 @@ def fix_toc(e):
         return
     if isinstance(toc[0], dict) and toc[0]['type'] == '/type/toc_item':
         return
-    if isinstance(toc[0], basestring):
-        assert all(isinstance(i, basestring) for i in toc)
-        return [{'title': i, 'type': '/type/toc_item'} for i in toc]
-    else:
-        assert all(i['type'] == '/type/text' for i in toc)
-        return [{'title': i['value'], 'type': '/type/toc_item'} for i in toc]
+    return [{'title': unicode(i), 'type': '/type/toc_item'} for i in toc if i != u'']
 
 re_skip = re.compile('\b([A-Z]|Co|Dr|Jr|Capt|Mr|Mrs|Ms|Prof|Rev|Revd|Hon)\.$')
 
 def has_dot(s):
     return s.endswith('.') and not re_skip.search(s)
 
-def add_source_records(key, new, e):
+def author_from_data(loc, data):
+    edition = read_edition(loc, data)
+    assert 'authors' in edition
+    east = east_in_by_statement(edition)
+    assert len(edition['authors']) == 1
+    print `edition['authors'][0]`
+    a = import_author(edition['authors'][0], eastern=east)
+    if 'key' in a:
+        return {'key': a['key']}
+    ret = ol.new(a, comment='new author')
+    print 'ret:', ret
+    assert isinstance(ret, basestring)
+    return {'key': ret}
+
+def undelete_authors(key):
+    a = ol.get(key)
+    if a['type'] == '/type/author':
+        return
+    assert a['type'] == '/type/delete'
+    url = 'http://openlibrary.org' + key + '.json?v=' + str(a['revision'] - 1)
+    prev = unmarshal(json.load(urllib2.urlopen(url)))
+    assert prev['type'] == '/type/author'
+    ol.save(key, prev, 'undelete author')
+
+def add_source_records(key, new, thing, data):
     sr = None
+    e = ol.get(key)
     if 'source_records' in e:
-        sr = e['source_records']
+        if new in e['source_records']:
+            return
+        e['source_records'].append(new)
     else:
         existing = get_mc(key)
         amazon = 'amazon:'
-        if existing.startswith(amazon):
-            print 'amazon:', existing
+        if existing.startswith('ia:'):
+            sr = [existing]
+        elif existing.startswith(amazon):
             sr = amazon_source_records(existing[len(amazon):]) or [existing]
         else:
             m = re_meta_mrc.match(existing)
             sr = ['marc:' + existing if not m else 'ia:' + m.group(1)]
-    sr += ['marc:' + new]
-    q = {
-        'key': key,
-        'source_records': { 'connect': 'update_list', 'value': sr }
-    }
+        assert new not in sr
+        e['source_records'] = sr + [new]
 
     # fix other bits of the record as well
     new_toc = fix_toc(e)
     if new_toc:
-        q['table_of_contents'] = {'connect': 'update_list', 'value': new_toc }
+        e['table_of_contents'] = new_toc
     if e.get('subjects', None) and any(has_dot(s) for s in e['subjects']):
         subjects = [s[:-1] if has_dot(s) else s for s in e['subjects']]
-        q['subjects'] = {'connect': 'update_list', 'value': subjects }
-    print ol.write(q, 'found a matching MARC record')
+        e['subjects'] = subjects
+    if 'authors' in e:
+        if any(a=='None' for a in e['authors']):
+            assert len(e['authors']) == 1
+            new_author = author_from_data(new, data)
+            e['authors'] = [new_author]
+        else:
+            for a in e['authors']:
+                undelete_authors(a)
+    try:
+        print ol.save(key, e, 'found a matching MARC record')
+    except:
+        print e
+        raise
+    if new_toc:
+        new_edition = ol.get(key)
+        # [{u'type': <ref: u'/type/toc_item'>}, ...]
+        assert 'title' in new_edition['table_of_contents'][0]
 
 def load_part(archive_id, part, start_pos=0):
+    print 'load_part:', archive_id, part
     global rec_no, t_prev, load_count
     full_part = archive_id + "/" + part
-    f = open(rc['marc_path'] + full_part)
+    f = open(rc['marc_path'] + "/" + full_part)
     if start_pos:
         f.seek(start_pos)
     for pos, loc, data in read_marc_file(full_part, f, pos=start_pos):
         rec_no += 1
         if rec_no % chunk == 0:
-            progress(archive_id, rec_no, loc, start_pos, pos)
+            progress(archive_id, rec_no, start_pos, pos)
 
         if is_loaded(loc):
             continue
+        want = ['001', '003', '010', '020', '035', '245']
         try:
-            index_fields = fast_parse.index_fields(data, ['010', '020', '035', '245'])
+            index_fields = fast_parse.index_fields(data, want)
         except KeyError:
             print loc
             print fast_parse.get_tag_lines(data, ['245'])
@@ -159,12 +197,16 @@ def load_part(archive_id, part, start_pos=0):
         e1 = build_marc(rec)
 
         match = False
+        seen = set()
         for k, v in edition_pool.iteritems():
             for edition_key in v:
+                if edition_key in seen:
+                    continue
+                seen.add(edition_key)
                 thing = withKey(edition_key)
                 assert thing
                 if try_merge(e1, edition_key, thing):
-                    add_source_records(edition_key, loc, thing)
+                    add_source_records(edition_key, loc, thing, data)
                     match = True
                     break
             if match:
@@ -178,7 +220,7 @@ go = 'part' not in start
 
 print archive_id
 
-def write(q):
+def write(q): # unused
     if 0:
         for i in range(10):
             try:
@@ -198,18 +240,36 @@ def write_edition(loc, edition):
     add_lang(edition)
     q = build_query(loc, edition)
     authors = []
-    for a in q['authors']
+    for a in q.get('authors', []):
         if 'key' in a:
-            authors.append(a['key'])
-    q['source_records'] = ['marc:' + loc]
+            authors.append({'key': a['key']})
+        else:
+            try:
+                ret = ol.new(a, comment='new author')
+            except:
+                print a
+                raise
+            print 'ret:', ret
+            assert isinstance(ret, basestring)
+#            assert ret['status'] == 'ok'
+#            assert 'created' in ret and len(ret['created']) == 1
+            authors.append({'key': ret})
+    q['source_records'] = [loc]
+    if authors:
+        q['authors'] = authors
 
-    ret = write(q)
-    print ret
-    assert ret['status'] == 'ok'
-    assert 'created' in ret
-    editions = [i for i in ret['created'] if i.startswith('/b/OL')]
-    assert len(editions) == 1
-    key = editions[0]
+    try:
+        ret = ol.new(q, comment='initial import')
+    except:
+        print q
+        raise
+    print 'ret:', ret
+    assert isinstance(ret, basestring)
+#    assert ret['status'] == 'ok'
+#    assert 'created' in ret
+#    editions = [i for i in ret['created'] if i.startswith('/b/OL')]
+#    assert len(editions) == 1
+    key = ret
     # get key from return
     pool.update(key, q)
 

@@ -11,7 +11,7 @@ from catalog.get_ia import files, read_marc_file
 from catalog.merge.merge_marc import build_marc
 from catalog.importer.db_read import get_mc, withKey
 sys.path.append('/home/edward/src/olapi')
-from olapi import OpenLibrary, Text
+from olapi import OpenLibrary
 
 from catalog.read_rc import read_rc
 
@@ -39,7 +39,7 @@ archive_id = sys.argv[1]
 def percent(a, b):
     return float(a * 100.0) / b
 
-def progress(archive_id, rec_no, loc, start_pos, pos):
+def progress(archive_id, rec_no, start_pos, pos):
     global t_prev, load_count
     cur_time = time()
     t = cur_time - t_prev
@@ -49,7 +49,6 @@ def progress(archive_id, rec_no, loc, start_pos, pos):
     bytes_per_sec_total = (pos - start_pos) / t1
 
     q = {
-        'cur': loc,
         'chunk': chunk,
         'rec_no': rec_no,
         't': t,
@@ -63,10 +62,12 @@ def progress(archive_id, rec_no, loc, start_pos, pos):
     pool.post_progress(archive_id, q)
 
 def is_loaded(loc):
-    db_iter = marc_index.query('select * from machine_comment where v=$loc', {'loc': loc})
+    assert loc.startswith('marc:')
+    vars = {'loc': loc[5:]}
+    db_iter = marc_index.query('select * from machine_comment where v=$loc', vars)
     if list(db_iter):
         return True
-    iter = query_iter({'type': '/type/edition', 'source_records': 'marc:' + loc})
+    iter = query_iter({'type': '/type/edition', 'source_records': loc})
     return bool(list(iter))
 
 re_meta_mrc = re.compile('^([^/]*)_meta.mrc:0:\d+$')
@@ -89,7 +90,6 @@ def has_dot(s):
     return s.endswith('.') and not re_skip.search(s)
 
 def add_source_records(key, new, thing):
-    new = 'marc:' + new
     sr = None
     e = ol.get(key)
     if 'source_records' in e:
@@ -104,6 +104,7 @@ def add_source_records(key, new, thing):
         else:
             m = re_meta_mrc.match(existing)
             sr = ['marc:' + existing if not m else 'ia:' + m.group(1)]
+        assert new not in sr
         e['source_records'] = sr + [new]
 
     # fix other bits of the record as well
@@ -129,12 +130,13 @@ def load_part(archive_id, part, start_pos=0):
     for pos, loc, data in read_marc_file(full_part, f, pos=start_pos):
         rec_no += 1
         if rec_no % chunk == 0:
-            progress(archive_id, rec_no, loc, start_pos, pos)
+            progress(archive_id, rec_no, start_pos, pos)
 
         if is_loaded(loc):
             continue
+        want = ['001', '003', '010', '020', '035', '245']
         try:
-            index_fields = fast_parse.index_fields(data, ['010', '020', '035', '245'])
+            index_fields = fast_parse.index_fields(data, want)
         except KeyError:
             print loc
             print fast_parse.get_tag_lines(data, ['245'])
@@ -164,6 +166,10 @@ def load_part(archive_id, part, start_pos=0):
                 assert thing
                 if try_merge(e1, edition_key, thing):
                     add_source_records(edition_key, loc, thing)
+                    match = True
+
+        if not match:
+            yield loc, data
 
 start = pool.get_start(archive_id)
 go = 'part' not in start
