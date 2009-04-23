@@ -22,7 +22,19 @@ re_letters = re.compile('[A-Za-z]')
 def clean_lccn(lccn):
     return re_letters.sub('', lccn).strip()
 
-def read_record(record, dbm):
+re_isbn = re.compile('([-0-9X]{10,})')
+
+def clean_isbn(isbn):
+    m = re_isbn.search(isbn)
+    if m:
+        return m.group(1).replace('-', '')
+
+def record_to_dbm(record, dbm):
+    def callback(field, value, key):
+        add_to_index(dbm[field], value, key)
+    read_record(record, callback)
+
+def read_record(record, callback):
     if 'title' not in record or record['title'] is None:
         return
     if 'subtitle' in record and record['subtitle'] is not None:
@@ -30,15 +42,15 @@ def read_record(record, dbm):
     else:
         title = record['title']
     key = record['key']
-    add_to_index(dbm['title'], short_title(title), key)
+    callback('title', short_title(title), key)
     if 'title_prefix' in record and record['title_prefix'] is not None:
         title2 = short_title(record['title_prefix'] + title)
-        add_to_index(dbm['title'], title2, key)
+        callback('title', title2, key)
 
     fields = [
         ('lccn', 'lccn', clean_lccn),
         ('oclc_numbers', 'oclc', None),
-        ('isbn_10', 'isbn', None),
+        ('isbn_10', 'isbn', clean_isbn),
         ('isbn_13', 'isbn', None),
     ]
     for a, b, clean in fields:
@@ -49,7 +61,9 @@ def read_record(record, dbm):
                 continue
             if clean:
                 v = clean(v)
-            add_to_index(dbm[b], v, key)
+                if not v:
+                    continue
+            callback(b, v, key)
 
 def test_read_record():
     def empty_dbm():
