@@ -1,5 +1,7 @@
+import web
+web.config.db_printing = False
 from infogami.infobase import cache
-import infogami, sys, web
+import infogami
 from read_rc import read_rc
 
 def get_infobase(rc):
@@ -7,7 +9,6 @@ def get_infobase(rc):
     import web
     web.config.db_parameters = infogami.config.db_parameters
     web.config.db_printing = False
-    web.load()
 
     schema = dbstore.Schema()
     schema.add_table_group('type', '/type/type')
@@ -29,12 +30,16 @@ def get_infobase(rc):
     secret_key = rc['secret_key']
     return infobase.Infobase(store, secret_key)
 
-def get_site():
+def get_site(staging=False):
     if 'site' in web.ctx:
         return web.ctx.site
     rc = read_rc()
 
-    infogami.config.db_parameters = dict(dbn='postgres', db=rc['db'], user=rc['user'], pw=rc['pw'], host=rc['host'])
+    param = dict((k, rc['staging_' + k if staging else k]) for k in ('db', 'user', 'pw', 'host'))
+    print param
+    param['dbn'] = 'postgres'
+
+    infogami.config.db_parameters = param
     infogami.config.db_printing = False
 
     ib = get_infobase(rc)

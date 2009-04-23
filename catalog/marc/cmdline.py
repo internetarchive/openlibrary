@@ -11,7 +11,6 @@ def fmt_subfields(line):
     def bold(s):
         return ''.join(c + "\b" + c for c in s)
     assert line[-1] == '\x1e'
-    print `line`
     return ''.join(bold('$' + m.group(1)) + translate(m.group(2)) for m in re_subtag.finditer(line[2:-1]))
 
 def show_book(data):
@@ -22,6 +21,7 @@ def show_book(data):
         else:
             print tag, line[0:2], fmt_subfields(line)
 
-source = sys.argv[1]
-data = get_from_archive(source)
-show_book(data)
+if __name__ == '__main__':
+    source = sys.argv[1]
+    data = get_from_archive(source)
+    show_book(data)

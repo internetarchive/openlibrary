@@ -274,6 +274,13 @@ def read_author_event(line):
     name = " ".join(v.strip(' /,;:') for k, v in get_subfields(line, ['a', 'b', 'd', 'n']))
     return [{ 'name': name, 'db_name': name, }]
 
+def add_oclc(edition):
+    if 'control_numer' not in edition:
+        return
+    oclc = edition['control_number'][0]
+    assert oclc.isdigit()
+    edition.setdefault('oclc', []).append(oclc)
+
 def index_fields(data, want, check_author = True):
     if str(data)[6:8] != 'am': # only want books
         return None
@@ -334,7 +341,7 @@ def index_fields(data, want, check_author = True):
         if found:
             edition.setdefault(key, []).extend(found)
     if oclc_001:
-        edition['oclc'] = edition.get('oclc', []) + edition['control_number']
+        add_oclc(edition)
     if 'control_number' in edition:
         del edition['control_number']
     if not seen_008:
@@ -399,7 +406,7 @@ def read_edition(data, accept_electronic = False):
                         or max_page_num > edition['number_of_pages']:
                     edition['number_of_pages'] = max_page_num
     if oclc_001:
-        edition['oclc'] = edition.get('oclc', []) + edition['control_number']
+        add_oclc(edition)
     if 'control_number' in edition:
         del edition['control_number']
     return edition

@@ -99,7 +99,9 @@ def read_oclc(fields):
     found = []
     if '003' in fields and '001' in fields \
             and fields['003'][0] == 'OCoLC':
-        found.append(fields['001'][0])
+        oclc = fields['001'][0]
+        assert oclc.isdigit()
+        found.append(oclc)
 
     for line in fields.get('035', []):
         for k, v in get_subfields(line, ['a']):
@@ -433,7 +435,7 @@ def read_toc(fields):
             found.extend(i)
         else:
             found.append(i)
-    return { 'table_of_contents': found }
+    return { 'table_of_contents': [{'title': i, 'type': '/type/toc_item'} for i in found] }
 
 def read_description(fields):
     if '520' not in fields:

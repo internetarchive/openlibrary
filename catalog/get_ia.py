@@ -13,8 +13,6 @@ xml_path = '/home/edward/get_new_books/xml'
 
 rc = None
 
-marc_path = '/1/edward/marc'
-
 re_loc = re.compile('^(ia\d+\.us\.archive\.org):(/\d/items/(.*))$')
 
 def urlopen_keep_trying(url):
@@ -145,18 +143,26 @@ def get_from_archive(locator):
     return urlopen_keep_trying(ureq).read(100000)
 
 def get_from_local(locator):
-    file, offset, length = locator.split(':')
-    f = open(marc_path + file)
+    try:
+        file, offset, length = locator.split(':')
+    except:
+        print 'locator:', `locator`
+        raise
+    f = open(rc['marc_path'] + file)
     f.seek(int(offset))
     buf = f.read(int(length))
     f.close()
     return buf
 
 def read_marc_file(part, f, pos=0):
-    for data, int_length in fast_parse.read_file(f):
-        loc = "%s:%d:%d" % (part, pos, int_length)
-        pos += int_length
-        yield (pos, loc, data)
+    try:
+        for data, int_length in fast_parse.read_file(f):
+            loc = "marc:%s:%d:%d" % (part, pos, int_length)
+            pos += int_length
+            yield (pos, loc, data)
+    except ValueError:
+        print f
+        raise
 
 def test_get_ia():
     ia = "poeticalworksoft00grayiala"
