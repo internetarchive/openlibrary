@@ -12,7 +12,7 @@ def get_scan_status(key):
 def get_scan_record(key):
     key = "/scan_record" + key
     record = web.ctx.site.get(key)
-    if record.type.key == '/type/scan_record':
+    if record and record.type and record.type.key == '/type/scan_record':
         return record
     else:
         return None
