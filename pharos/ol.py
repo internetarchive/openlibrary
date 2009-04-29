@@ -103,7 +103,6 @@ class CacheProcessor(ConnectionProcessor):
         return response
         
     def write(self, super, sitename, data):
-        import simplejson
         response_str = super.write(sitename, data)
         
         result = simplejson.loads(response_str)
@@ -114,7 +113,6 @@ class CacheProcessor(ConnectionProcessor):
         return response_str
 
     def save(self, super, sitename, path, data):
-        import simplejson
         response_str = super.save(sitename, path, data)
         result = simplejson.loads(response_str)
         if result:
@@ -123,7 +121,6 @@ class CacheProcessor(ConnectionProcessor):
         return response_str
 
     def save_many(self, super, sitename, data):
-        import simplejson
         response_str = super.save_many(sitename, data)
         result = simplejson.loads(response_str)
         keys = [r['key'] for r in result]
@@ -232,7 +229,9 @@ def get_infobase():
         booklogger = Logger(config.booklog)
         ol.add_trigger('/type/edition', write_booklog)
         ol.add_trigger('/type/author', write_booklog2)
-        ol.add_trigger(None, http_notify)
+
+    if ol and config.http_listeners:
+        ol.add_event_listener(None, http_notify)
 
     return ib
     
@@ -351,8 +350,5 @@ def setup_infogami_config():
 
     infogami.config.infobase_parameters = dict(type='ol')
     infogami.config.http_ext_header_uri = "http://openlibrary.org/dev/docs/api"
-
-    from infogami.infobase import dbstore
-    dbstore.use_machine_comment = True
 
 setup_infogami_config()
