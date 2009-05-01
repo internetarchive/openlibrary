@@ -536,7 +536,10 @@ class invalidate(delegate.page):
             raise Forbidden("Allowed only in the local network.")
 
         data = simplejson.loads(web.data())
-        thing = client.Thing(web.ctx.site, data['key'], client.storify(data))
-        client._run_hooks('on_new_version', thing)        
+        if not isinstance(data, list):
+            data = [data]
+        for d in data:
+            thing = client.Thing(web.ctx.site, d['key'], client.storify(d))
+            client._run_hooks('on_new_version', thing)
 
 delegate.app.add_processor(readable_url_processor)

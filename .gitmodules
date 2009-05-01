@@ -1,0 +1,6 @@
+[submodule "webpy"]
+	path = webpy
+	url = git://github.com/webpy/webpy.git
+[submodule "infogami"]
+	path = infogami
+	url = git://github.com/infogami/infogami.git
