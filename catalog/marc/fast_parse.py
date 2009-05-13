@@ -423,6 +423,7 @@ def handle_wrapped_lines(iter):
     assert not cur_lines
 
 def split_line(s):
+    # TODO: document this function
     pos = -1
     marks = []
     while 1:
