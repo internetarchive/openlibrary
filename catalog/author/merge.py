@@ -1,13 +1,16 @@
-from catalog.db_read import withKey, get_things
-from catalog.olwrite import Infogami
+from catalog.importer.db_read import withKey, get_things
 from catalog.read_rc import read_rc
 from catalog.utils import key_int
+from unicodedata import normalize
 import web, re, sys, codecs
+sys.path.append('/home/edward/src/olapi')
+from olapi import OpenLibrary, unmarshal
+
 sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
 
 rc = read_rc()
-infogami = Infogami(rc['infogami'])
-infogami.login('EdwardBot', rc['EdwardBot'])
+ol = OpenLibrary("http://openlibrary.org")
+ol.login('EdwardBot', rc['EdwardBot']) 
 
 def copy_fields(from_author, to_author, name):
     new_fields = { 'name': name, 'personal_name': name }
@@ -32,7 +35,7 @@ def update_author(key, new):
     for k, v in new.iteritems():
         q[k] = { 'connect': 'update', 'value': v }
     print q
-    print infogami.write(q, comment='merge author')
+    print ol.write(q, comment='merge author')
     print
 
 def switch_author(old, new):
@@ -51,7 +54,7 @@ def switch_author(old, new):
             'key': key,
             'authors': { 'connect': 'update_list', 'value': authors }
         }
-        print infogami.write(q, comment='merge authors')
+        print ol.write(q, comment='merge authors')
 
 def make_redirect(old, new):
     q = {
@@ -63,9 +66,25 @@ def make_redirect(old, new):
         if k not in ('key', 'last_modified', 'type', 'id', 'revision'):
             q[str(k)] = { 'connect': 'update', 'value': None }
     print q
-    print infogami.write(q, comment='replace with redirect')
+    print ol.write(q, comment='replace with redirect')
+
+def do_normalize(author, new_name):
+    a = ol.get(author['key'])
+    need_update = False
+    if a['name'] != new_name:
+        a['name'] = new_name
+        need_update = True
+    for k, v in a.items():
+        if isinstance(v, unicode) and v != norm(v):
+            a[k] = norm(v)
+            need_update = True
+    if not need_update:
+        return
+    print a
+    print ol.save(author['key'], a, 'merge authors')
 
 def merge_authors(author, merge_with, new_name):
+    new_name = norm(new_name)
     print 'merge author %s:"%s" and %s:"%s"' % (author['key'], author['name'], merge_with['key'], merge_with['name'])
     print 'becomes: "%s"' % `new_name`
     if key_int(author) < key_int(merge_with):
@@ -73,6 +92,7 @@ def merge_authors(author, merge_with, new_name):
         print "copy fields from merge_with to", new_key
 #        new = copy_fields(merge_with, author, new_name)
 #        update_author(new_key, new)
+        do_normalize(author, new_name)
         switch_author(merge_with, author)
 #        print "delete merge_with"
         make_redirect(merge_with, author)
@@ -81,6 +101,7 @@ def merge_authors(author, merge_with, new_name):
         print "copy fields from author to", new_key
 #        new = copy_fields(merge_with, author, new_name)
 #        update_author(new_key, new)
+        do_normalize(merge_with, new_name)
         switch_author(author, merge_with)
 #        print "delete author"
         make_redirect(author, merge_with)
@@ -92,12 +113,18 @@ merge_with = withKey(sys.argv[2])
 print author
 print merge_with
 
+def norm(s):
+    return normalize('NFC', s)
+
+name1 = author['name']
+name2 = merge_with['name']
+
 print sys.argv
 if len(sys.argv) > 3:
-    name = sys.argv[3].decode('utf8')
+    name = norm(sys.argv[3].decode('utf8'))
 else:
-    assert author['name'] == merge_with['name']
-    name = author['name']
+    assert name1 == name2 or norm(name1) == norm(name2)
+    name = norm(name1)
 
 assert not name.startswith('/')
 

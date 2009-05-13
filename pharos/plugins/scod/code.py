@@ -6,13 +6,16 @@ import datetime
 
 @public
 def get_scan_status(key):
-    key = "/scan_record" + key
-    record = web.ctx.site.get(key)
+    record = get_scan_record(key)
     return record and record.scan_status
 
 def get_scan_record(key):
     key = "/scan_record" + key
-    return  web.ctx.site.get(key)
+    record = web.ctx.site.get(key)
+    if record and record.type and record.type.key == '/type/scan_record':
+        return record
+    else:
+        return None
 
 def error(message):
     raise web.HTTPError("200 OK", {}, "ERROR: " + message)

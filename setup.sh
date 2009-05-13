@@ -1,46 +1,22 @@
 #! /bin/bash
 
-function base() {
-    set $* $PWD
-    root=$1
-    if [ -d $1/.git ]
-    then 
-        echo $1
-    else
-        base `dirname $1`
-    fi
-}
+root=`dirname $0`
 
-gitroot=`base`
-
-function setup_infogami() {
-    echo "** updating infogami repository **"
-
-    if [ -d $gitroot/infogami ]
-    then
-       cd $gitroot/infogami && git pull
-    else
-        cd $gitroot && git clone git://github.com/infogami/infogami $gitroot/infogami
-    fi
-}
-
-function setup_webpy() {
-    if [ ! -d $gitroot/webpy ]
-    then
-        echo "** fetching web.py**"
-
-        cd $gitroot && wget http://webpy.org/static/web.py-0.31.tar.gz
-        cd $gitroot && tar xzf web.py-0.31.tar.gz
-    fi
-}
-
-function setup_symlinks() {
-    echo "**creating symlinks**"
-    cd $gitroot/pharos
-    ln -fs ../infogami/infogami .
-    ln -fs ../webpy/web .
-}
-
-setup_infogami
-setup_webpy
-setup_symlinks
+# run git submodule commands only when the working copy is a git repository 
+# otherwise download tarballs of submodules
+if [ -d $root/.git ];
+then
+    git submodule init
+    git submodule update
+else
+    function get_tarball() {
+        name=$1
+        tag=$2
+        wget http://github.com/$name/$name/tarball/$tag -O $name.tgz
+        tar xvzf $name.tgz
+        rm -rf $name
+        mv $name-$name-* $name
+    }
+    get_tarball infogami master
+    get_tarball webpy webpy-0.31
+fi

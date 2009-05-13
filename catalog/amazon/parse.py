@@ -266,6 +266,7 @@ def parse_other_editions(m, edition):
 
 def parse_title(html, edition):
     expect_div_title_str = '<div class="buying"><h1 class="parseasinTitle"><span id="btAsinTitle" style="">'
+    expect_div_title_str = '<div class="buying"><b class="sans">'
     assert html.find(expect_div_title_str) != -1
     expect_div_title_str += edition["title"]
     assert html.find(expect_div_title_str) != -1
@@ -588,8 +589,8 @@ def parse_sections(html, edition):
             if name in not_found:
                 not_found.remove(name)
             func(m, edition)
-        else:
-            assert not required
+#        else:
+#            assert not required
 
 def parse_edition(html):
     edition = {}
