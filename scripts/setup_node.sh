@@ -2,14 +2,14 @@
 # script to install all required software on OL nodes
 
 # create OL folders
-print "creating folders..."
+echo "creating folders..."
 
 OL_FOLDERS="/0/pharos /1/pharos /2/pharos /3/pharos"
 mkdir -p $OL_FOLDERS
 chgrp  pharos $OL_FOLDERS
 chmod g+w $OL_FOLDERS
 
-print "installing apt-get packages..."
+echo "installing apt-get packages..."
 aptitude install         \
     git-core            \
     sqlite3             \
@@ -21,13 +21,13 @@ aptitude install         \
     python-psycopg2     \
     python-mysqldb
 
-print "installing python packages..."
+echo "installing python packages..."
 easy_install -Z \
     simplejson  \
     pymarc
 
 # setup code
-print "getting openlibrary code..."
+echo "getting openlibrary code..."
 dirs="/0/pharos/code /0/pharos/scripts /0/pharos/services /0/pharos/etc"
 mkdir -p $dirs
 chmod g+w $dirss
