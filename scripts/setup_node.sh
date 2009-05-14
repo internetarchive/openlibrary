@@ -30,15 +30,15 @@ easy_install -Z \
 echo "getting openlibrary code..."
 dirs="/0/pharos/code /0/pharos/scripts /0/pharos/services /0/pharos/etc"
 mkdir -p $dirs
-chmod g+w $dirss
+chmod g+w $dirs
 cd /0/pharos/code
 git clone git://github.com/openlibrary/openlibrary.git
 
-# fix lighttpd-angel hack used done by petabox
+# fix lighttpd-angel hack used by petabox
 
-# sudo lighttpd-disable-mod petabox
-# sed 's,/petabox/sw/lighttpd/lighttpd-angel,/usr/sbin/lighttpd,' /etc/init.d/lighttpd > /tmp/lighttpd.$$
-# rm /etc/init.d/lighttpd # remove symlink to petabox
-# mv /tmp/lighttpd.$$ /etc/init.d/lighttpd
-# chmod +x /etc/init.d/lighttpd
+sudo lighttpd-disable-mod petabox
+sed 's,/petabox/sw/lighttpd/lighttpd-angel,/usr/sbin/lighttpd,' /etc/init.d/lighttpd > /tmp/lighttpd.$$
+rm /etc/init.d/lighttpd # remove symlink to petabox
+mv /tmp/lighttpd.$$ /etc/init.d/lighttpd
+chmod +x /etc/init.d/lighttpd
 
