@@ -11,22 +11,34 @@ chmod g+w $OL_FOLDERS
 
 print "installing apt-get packages..."
 aptitude install         \
-    python-setuptools   \
-    python-dev          \
-    python2.5-psycopg2  \
-    python-imaging      \
     git-core            \
-    sqlite3
+    sqlite3             \
+    python-dev          \
+    python-setuptools   \
+    python-imaging      \
+    python-webpy        \
+    python-flup         \
+    python-psycopg2     \
+    python-mysqldb
 
 print "installing python packages..."
 easy_install -Z \
-    web.py      \
-    flup        \
     simplejson  \
     pymarc
+
 # setup code
 print "getting openlibrary code..."
-mkdir -p /0/pharos/code /0/pharos/scripts /0/pharos/services /0/pharos/etc
+dirs="/0/pharos/code /0/pharos/scripts /0/pharos/services /0/pharos/etc"
+mkdir -p $dirs
+chmod g+w $dirss
 cd /0/pharos/code
 git clone git://github.com/openlibrary/openlibrary.git
+
+# fix lighttpd-angel hack used done by petabox
+
+# sudo lighttpd-disable-mod petabox
+# sed 's,/petabox/sw/lighttpd/lighttpd-angel,/usr/sbin/lighttpd,' /etc/init.d/lighttpd > /tmp/lighttpd.$$
+# rm /etc/init.d/lighttpd # remove symlink to petabox
+# mv /tmp/lighttpd.$$ /etc/init.d/lighttpd
+# chmod +x /etc/init.d/lighttpd
 
