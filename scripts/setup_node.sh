@@ -19,7 +19,8 @@ aptitude install         \
     python-webpy        \
     python-flup         \
     python-psycopg2     \
-    python-mysqldb
+    python-mysqldb      \
+    python-yaml
 
 echo "installing python packages..."
 easy_install -Z \
