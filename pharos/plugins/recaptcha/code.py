@@ -4,5 +4,13 @@ from infogami import config
 
 import recaptcha
 
+if 'plugin_recaptcha' in config:
+    public_key = config.plugin_recaptcha.public_key
+    private_key = config.plugin_recaptcha.private_key
+else:
+    public_key = config.recaptcha_public_key
+    private_key = config.recaptcha_private_key
+
 register.inputs = list(register.inputs)
-register.inputs.append(recaptcha.Recapcha(config.recaptcha_public_key, config.recaptcha_private_key))
+register.inputs.append(recaptcha.Recapcha(public_key, private_key))
+
