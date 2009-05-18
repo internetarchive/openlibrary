@@ -13,7 +13,7 @@ import web
 from infogami import config
 from infogami.infobase import client
 
-if 'plugin_akismet' in config:
+if config.get('plugin_akismet') is not None:
     api_key = config.plugin_akismet.api_key
     spamlog = config.plugin_akismet.get('log')
     baseurl = config.plugin_akismet.get('baseurl')

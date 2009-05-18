@@ -77,7 +77,7 @@ class scan_review(delegate.mode):
             web.ctx.headers = []
 
         def get_to():
-            if 'plugin_scod' in config:
+            if config.get('plugin_scod') is not None:
                 return config.plugin_scod.get('email_recipients', [])
             else:
                 return config.get('scan_email_recipients', [])

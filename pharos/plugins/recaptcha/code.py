@@ -4,7 +4,7 @@ from infogami import config
 
 import recaptcha
 
-if 'plugin_recaptcha' in config:
+if config.get('plugin_recaptcha') is not None:
     public_key = config.plugin_recaptcha.public_key
     private_key = config.plugin_recaptcha.private_key
 else:
