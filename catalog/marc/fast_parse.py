@@ -176,7 +176,7 @@ def get_tag_line(data, line):
         length += data[last:].find('\x1e')
 
     tag_line = data[offset + 1:offset + length + 1]
-    if not line.startswith('00'):
+    if not line[0:2] == '00':
         # marc_western_washington_univ/wwu_bibs.mrc_revrev.mrc:636441290:1277
         if tag_line[1:8] == '{llig}\x1f':
             tag_line = tag_line[0] + u'\uFE20' + tag_line[7:]
