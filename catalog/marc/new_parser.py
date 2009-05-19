@@ -85,14 +85,8 @@ def read_isbn(fields):
         seen.add(i)
         if len(i) == 13:
             ret.setdefault('isbn_13', []).append(i)
-        else:
-            try:
-                assert len(i) <= 16
-            except:
-                print i
-                raise
+        elif len(i) <= 16:
             ret.setdefault('isbn_10', []).append(i)
-
     return ret
 
 def read_oclc(fields):
@@ -163,7 +157,9 @@ def read_authors(fields):
         return {}
     if len(author) != 1:
         for tag in ('100', '110', '111'):
-            print tag, fields[tag]
+            if tag in fields:
+                print tag, fields[tag]
+        print
     assert len(author) == 1
     if '100' in fields:
         line = fields['100'][0]
