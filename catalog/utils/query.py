@@ -18,6 +18,7 @@ def set_staging(i):
 
 def query(q):
     url = query_url() + urllib.quote(json.dumps(q))
+    ret = None
     for i in range(5):
         try:
             ret = urllib.urlopen(url).read()
@@ -36,9 +37,21 @@ def query(q):
 def query_iter(q, limit=500, offset=0):
     q['limit'] = limit
     q['offset'] = offset
-    while 1:
+    while True:
         ret = query(q)
         if not ret:
+            return
+        for i in ret:
+            yield i
+        q['offset'] += limit
+
+def version_iter(q, limit=500, offset=0):
+    q['limit'] = limit
+    q['offset'] = offset
+    while True:
+        url = base_url() + '/version'
+        v = json.load(urllib.urlopen(url))
+        if not v:
             return
         for i in query(q):
             yield i
