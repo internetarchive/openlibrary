@@ -18,6 +18,14 @@ try:
 except:
     api = None
 
+# http header extension for OL API
+infogami.config.http_ext_header_uri = "http://openlibrary.org/dev/docs/api"
+
+# setup special connection with caching support
+import connection
+client._connection_types['ol'] = connection.OLConnection
+infogami.config.infobase_parameters = dict(type="ol")
+
 types.register_type('^/a/[^/]*$', '/type/author')
 types.register_type('^/b/[^/]*$', '/type/edition')
 

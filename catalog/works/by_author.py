@@ -2,46 +2,56 @@
 import catalog.merge.normalize as merge
 import sys, codecs, re
 from catalog.get_ia import get_from_archive
+from catalog.utils.query import query_iter, set_staging, query
+from catalog.utils import mk_norm
+from catalog.read_rc import read_rc
 from collections import defaultdict
-from pprint import pprint
+from pprint import pprint, pformat
 import urllib
-import simplejson as json
+sys.path.append('/home/edward/src/olapi')
+from olapi import OpenLibrary, Reference
+import olapi
+
+rc = read_rc()
+
+ol = OpenLibrary("http://dev.openlibtrary.org")
+ol.login('EdwardBot', rc['EdwardBot'])
 
 sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
 
-base_url = "http://openlibrary.org:8080/"
-query_url = base_url + "query.json?query="
+base_url = "http://dev.openlibrary.org"
+query_url = base_url + "/query.json?query="
 
-def query(q):
-    url = query_url + urllib.quote(json.dumps(q))
-    return json.loads(urllib.urlopen(url).read())
+work_num = 165618
 
-def query_iter(q, limit=500, offset=0):
-    q['limit'] = limit
-    q['offset'] = offset
+set_staging(True)
+
+def withKey(key):
+    url = base_url + key + ".json"
+    return urllib.urlopen(url).read()
+
+def find_new_work_key():
+    global work_num
     while 1:
-        ret = query(q)
-        if not ret:
-            return
-        for i in query(q):
-            yield i
-        q['offset'] += limit
+        key = "/w/OL%dW" % work_num
+        ret = withKey(key)
+        if ret.startswith("Not Found:"):
+            return work_num
+        work_num += 1
 
-sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
+def next_work_key():
+    global work_num
+    key = "/w/OL%dW" % work_num
+    ret = withKey(key)
+    while not ret.startswith("Not Found:"):
+        work_num += 1
+        key = "/w/OL%dW" % work_num
+        ret = withKey(key)
+    work_num += 1
+    return key
 
-re_brackets = re.compile('^(.*)\[.*?\]$')
-
-def mk_norm(title):
-    m = re_brackets.match(title)
-    if m:
-        title = m.group(1)
-    norm = merge.normalize(title).strip(' ')
-    norm = norm.replace(' and ', ' ')
-    if norm.startswith('the '):
-        norm = norm[4:]
-    elif norm.startswith('a '):
-        norm = norm[2:]
-    return norm.replace('-', '').replace(' ', '')
+# sample title: The Dollar Hen (Illustrated Edition) (Dodo Press)
+re_parens = re.compile('^(.*?)(?: \(.+ (?:Edition|Press)\))+$')
 
 def freq_dict_top(d):
     return sorted(d.keys(), reverse=True, key=lambda i:d[i])[0]
@@ -52,13 +62,13 @@ def get_books(akey):
         'authors': akey,
         '*': None
     }
-    for num, e in enumerate(query_iter(q)):
-#        print num, e['key'], e['title']
-
-        if 'title' not in e and not e['title']:
+    for e in query_iter(q):
+        if not e.get('title', None):
             continue
-        if 'works' in e:
+        if len(e.get('authors', [])) != 1:
             continue
+#        if 'works' in e:
+#            continue
         if 'title_prefix' in e and e['title_prefix']:
             prefix = e['title_prefix']
             if prefix[-1] != ' ':
@@ -68,8 +78,12 @@ def get_books(akey):
             title = e['title']
 
         if title.strip('. ') in ['Publications', 'Works', 'Report', \
-                'Letters', 'Calendar', 'Bulletin']:
+                'Letters', 'Calendar', 'Bulletin', 'Plays', 'Sermons', 'Correspondence']:
             continue
+
+        m = re_parens.match(title)
+        if m:
+            title = m.group(1)
 
         n = mk_norm(title)
 
@@ -82,7 +96,15 @@ def get_books(akey):
         if 'languages' in e:
             book['lang'] = [l['key'][3:] for l in e['languages']]
 
-        if 'work_titles' not in e:
+        if e.get('table_of_contents', None):
+            if isinstance(e['table_of_contents'][0], basestring):
+                book['table_of_contents'] = e['table_of_contents']
+            else:
+                assert isinstance(e['table_of_contents'][0], dict)
+                if e['table_of_contents'][0]['type'] == '/type/text':
+                    book['table_of_contents'] = [i['value'] for i in e['table_of_contents']]
+
+        if not e.get('work_titles', None):
             yield book
             continue
         wt = e['work_titles'][0].strip('. ')
@@ -147,7 +169,7 @@ def find_works(akey):
     works = sorted([(sum(map(len, w.values() + [work_titles[n]])), n, w) for n, w in works.items()])
 
     for work_count, norm, w in works:
-        if work_count < 3:
+        if work_count < 2:
             continue
         first = sorted(w.items(), reverse=True, key=lambda i:len(i[1]))[0][0]
         titles = defaultdict(int)
@@ -161,19 +183,108 @@ def find_works(akey):
             keys += values
         assert work_count == len(keys)
         title = max(titles.keys(), key=lambda i:titles[i])
-        yield first, keys
+        toc = [(k, books_by_key[k].get('table_of_contents', None)) for k in keys]
+        yield {'title': first, 'editions': keys, 'toc': dict((k, v) for k, v in toc if v)}
 
 def print_works(works):
-    for title, keys in works:
-        print len(keys), title
+    for w in works:
+        print len(w['editions']), w['title']
 
-q = { 'type':'/type/author', 'name': None }
-for a in query_iter(q):
-    akey = a['key']
-#    print akey, a['name']
-    works = [i for i in find_works(akey) if i[1] > 3]
-    if works:
-        open('found/' + akey[3:], 'w').write(`works`)
-        print akey, a['name']
-        print_works(works)
-        print
+def toc_items(toc_list):
+    return [{'title': unicode(item), 'type': Reference('/type/toc_item')} for item in toc_list] 
+
+def add_works(akey, works):
+    queue = []
+    for w in works:
+        w['key'] = next_work_key()
+        q = {
+            'authors': [akey],
+            'create': 'unless_exists',
+            'type': '/type/work',
+            'key': w['key'],
+            'title': w['title']
+        }
+        #queue.append(q)
+        print ol.write(q, comment='create work')
+        for ekey in w['editions']:
+            e = ol.get(ekey)
+            e['works'] = [Reference(w['key'])]
+            toc = e.get('table_of_contents', None)
+            if toc:
+                if isinstance(toc[0], basestring):
+                    e['table_of_contents'] = toc_items(toc)
+                else:
+                    assert isinstance(toc[0], dict)
+                    if toc[0]['type'] == '/type/text':
+                        e['table_of_contents'] = toc_items([i['value'] for i in toc])
+                    else:
+                        assert toc[0]['type']['key'] == '/type/toc_item'
+            try:
+                ol.save(ekey, e, 'found a work')
+            except olapi.OLError:
+                print ekey
+                print e
+                raise
+            if toc:
+                e = ol.get(ekey)
+                print ekey
+                print e['table_of_contents']
+            continue
+
+            q = {
+                'key': e,
+                'works': {'connect': 'update_list', 'value': [w['key']] },
+            }
+            if e in w['toc']:
+                toc_list = w['toc'][e]
+                if toc_list[-1] == '':
+                    toc_list.pop()
+                q['table_of_contents'] = {
+                    'connect': 'update_list',
+                    'value': [{'title': item, 'type': {'key': '/type/toc_item'}} for item in toc_list]
+                }
+            queue.append(q)
+#    print ol.write(queue, comment='found works')
+
+def by_authors():
+    find_new_work_key()
+
+    skipping = False
+    skipping = True
+    q = { 'type':'/type/author', 'name': None, 'works': None }
+    for a in query_iter(q, offset=215000):
+        akey = a['key']
+        if skipping:
+            print 'skipping:', akey, a['name']
+            if akey == '/a/OL218496A':
+                skipping = False
+            continue
+
+        q = {
+            'type':'/type/work',
+            'authors': akey,
+        }
+        if query(q):
+            print akey, `a['name']`, 'has works'
+            continue
+
+    #    print akey, a['name']
+        found = find_works(akey)
+        works = [i for i in found if len(i['editions']) > 2]
+        if works:
+            #open('found/' + akey[3:], 'w').write(`works`)
+            print akey, `a['name']`
+            #pprint(works)
+            #print_works(works)
+            add_works(akey, works)
+            print
+
+by_authors()
+sys.exit(0)
+akey = '/a/OL27695A'
+akey = '/a/OL2527041A'
+akey = '/a/OL17005A'
+akey = '/a/OL117645A'
+print akey
+works = list(find_works(akey))
+pprint(works)
