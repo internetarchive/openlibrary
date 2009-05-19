@@ -75,8 +75,14 @@ class scan_review(delegate.mode):
             web.ctx.site.write(q)
         finally:
             web.ctx.headers = []
+
+        def get_to():
+            if config.get('plugin_scod') is not None:
+                return config.plugin_scod.get('email_recipients', [])
+            else:
+                return config.get('scan_email_recipients', [])
         
-        to = getattr(config, 'scan_email_recipients', [])
+        to = get_to()
         if to:
             scan_record = get_scan_record(path)
             message = render.scan_request_email(book, scan_record)

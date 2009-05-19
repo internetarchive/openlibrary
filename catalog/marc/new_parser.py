@@ -18,6 +18,7 @@ max_number_of_pages = 50000
 
 want = [
     '001',
+    '003', # for OCLC
     '008', # publish date, country and language
     '010', # lccn
     '020', # isbn
