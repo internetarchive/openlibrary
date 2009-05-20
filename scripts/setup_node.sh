@@ -16,16 +16,19 @@ aptitude install         \
     python-dev          \
     python-setuptools   \
     python-imaging      \
-    python-webpy        \
-    python-flup         \
     python-psycopg2     \
     python-mysqldb      \
     python-yaml
 
+echo "removing troublesome modules"
+aptitude remove yaz
+
 echo "installing python packages..."
 easy_install -Z \
     simplejson  \
-    pymarc
+    pymarc      \
+    web.py      \
+    flup
 
 # setup code
 echo "getting openlibrary code..."
