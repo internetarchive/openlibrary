@@ -11,7 +11,7 @@ import socket
 import infogami
 from infogami.utils import types, delegate
 from infogami.utils.view import render, public
-from infogami.infobase import client
+from infogami.infobase import client, dbstore
 
 try:
     from infogami.plugins.api import code as api
@@ -28,6 +28,10 @@ infogami.config.infobase_parameters = dict(type="ol")
 
 types.register_type('^/a/[^/]*$', '/type/author')
 types.register_type('^/b/[^/]*$', '/type/edition')
+
+# set up infobase schema. required when running in standalone mode.
+import schema
+dbstore.default_schema = schema.get_schema()
 
 # this adds /show-marc/xxx page to infogami
 import showmarc
