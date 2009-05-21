@@ -518,6 +518,17 @@ def changequery(query=None, **kw):
     if query:
         out += '?' + urllib.urlencode(query)
     return out
+
+# Hack to limit recent changes offset.
+# Large offsets are blowing up the database.
+
+from infogami.core.db import get_recent_changes as _get_recentchanges
+@public
+def get_recent_changes(*a, **kw):
+    if 'offset' in kw and kw['offset'] > 5000:
+        return []
+    else:
+        return _get_recentchanges(*a, **kw)
     
 def wget(url):
     try:
