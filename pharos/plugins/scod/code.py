@@ -9,6 +9,13 @@ def get_scan_status(key):
     record = get_scan_record(key)
     return record and record.scan_status
 
+def get_email(user):
+    try:
+        delegate.admin_login()
+        return web.utf8(web.ctx.site.get_user_email(user.key).email)
+    finally:
+        web.ctx.headers = []
+
 def get_scan_record(key):
     key = "/scan_record" + key
     record = web.ctx.site.get(key)
@@ -87,7 +94,10 @@ class scan_review(delegate.mode):
             scan_record = get_scan_record(path)
             message = render.scan_request_email(book, scan_record)
             web.sendmail(config.from_address, to, message.subject.strip(), message)
-    
+
+        to = get_email(user)
+        message = render.scan_waiting_email(book, scan_record)
+        web.sendmail(config.from_address, to, message.subject.strip(), message)
         return render.scan_inprogress(book)
         
 class scan_book_notfound(delegate.mode):
@@ -199,13 +209,6 @@ class scan_complete(delegate.mode):
             }
 
         web.ctx.site.write(q, i._comment)
-
-        def get_email(user):
-            try:
-                delegate.admin_login()
-                return web.utf8(web.ctx.site.get_user_email(user.key).email)
-            finally:
-                web.ctx.headers = []
 
         scan_record = get_scan_record(path)
         to = scan_record.sponsor and get_email(scan_record.sponsor)
