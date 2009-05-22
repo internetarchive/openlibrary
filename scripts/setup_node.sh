@@ -10,7 +10,8 @@ chgrp  pharos $OL_FOLDERS
 chmod g+w $OL_FOLDERS
 
 echo "installing apt-get packages..."
-aptitude install         \
+aptitude install        \
+    postgresql-client   \
     git-core            \
     sqlite3             \
     python-dev          \
@@ -59,4 +60,10 @@ oldirs=                         \
 
 mkdir $oldirs
 chown openlibrary:openlibrary $oldirs
+
+# setup shmmax to 2GB
+echo 2147483648 > /proc/sys/kernel/shmmax
+echo 2147483648 > /proc/sys/kernel/shmall
+
+ln -s /olsystem/etc/sysctl.d/60-shm /etc/sysctl.d/
 
