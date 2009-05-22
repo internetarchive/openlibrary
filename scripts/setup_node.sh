@@ -28,7 +28,8 @@ easy_install -Z \
     simplejson  \
     pymarc      \
     web.py      \
-    flup
+    flup        \
+    subcommand
 
 # setup code
 echo "getting openlibrary code..."
@@ -45,4 +46,17 @@ sed 's,/petabox/sw/lighttpd/lighttpd-angel,/usr/sbin/lighttpd,' /etc/init.d/ligh
 rm /etc/init.d/lighttpd # remove symlink to petabox
 mv /tmp/lighttpd.$$ /etc/init.d/lighttpd
 chmod +x /etc/init.d/lighttpd
+
+mv /etc/lighttpd /etc/lighttpd.orig
+ln -s /olsystem/etc/lighttpd /etc/lighttpd
+
+# setup oldirs
+
+oldirs=                         \
+    /var/cache/openlibrary      \
+    /0/pharos/data              \
+    /1/pharos/data
+
+mkdir $oldirs
+chown openlibrary:openlibrary $oldirs
 
