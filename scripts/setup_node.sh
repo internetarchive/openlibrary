@@ -19,7 +19,8 @@ aptitude install        \
     python-imaging      \
     python-psycopg2     \
     python-mysqldb      \
-    python-yaml
+    python-yaml         \
+    python-profiler
 
 echo "removing troublesome modules"
 aptitude remove yaz
@@ -30,6 +31,7 @@ easy_install -Z \
     pymarc      \
     web.py      \
     flup        \
+    DBUtils     \
     subcommand
 
 # setup code
