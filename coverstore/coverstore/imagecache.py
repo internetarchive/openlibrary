@@ -46,7 +46,7 @@ class ImageCache:
     def populate_cache(self, id):
         """Populates cache with images of the given id."""
         def write(path, data):
-            print >> web.debug, 'write', path
+            #print >> web.debug, 'write', path
             f = open(path, 'w')
             f.write(data)
             f.close()
@@ -157,7 +157,7 @@ class PIL:
 
     def thumbnail(self, src_file, dest_file, size):
         """Converts src image to thumnail of specified size."""
-        print >> web.debug, 'thumbnail', src_file, dest_file
+        #print >> web.debug, 'thumbnail', src_file, dest_file
         import Image
         image = Image.open(src_file)
         if image.mode != 'RGB':

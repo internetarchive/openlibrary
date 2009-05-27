@@ -168,6 +168,12 @@ class WARCHeader:
         a = " ".join([str(p) for p in params]) 
         b = "".join(["%s: %s\r\n" % (k, v) for k, v in self.headers.items()])
         return a + CRLF + b + CRLF
+
+    def dict(self):
+        d = dict(self.headers)
+        for k in ["warc_id", "data_length", "record_type", "subject_uri", "creation_date", "record_id", "content_type"]:
+            d[k] = getattr(self, k)
+        return d
         
     def __repr__(self):
         return "<header: %s>" % repr(str(self))

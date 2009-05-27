@@ -3,6 +3,8 @@
 from infogami import config
 from infogami.infobase import client, lru
 
+import simplejson
+
 default_cache_prefixes = ["/type/", "/l/", "/index.", "/about", "/css/", "/js/"]
 
 class ConnectionProcessor:

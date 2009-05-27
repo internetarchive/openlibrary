@@ -11,7 +11,7 @@ import socket
 import infogami
 from infogami.utils import types, delegate
 from infogami.utils.view import render, public
-from infogami.infobase import client
+from infogami.infobase import client, dbstore
 
 try:
     from infogami.plugins.api import code as api
@@ -28,6 +28,10 @@ infogami.config.infobase_parameters = dict(type="ol")
 
 types.register_type('^/a/[^/]*$', '/type/author')
 types.register_type('^/b/[^/]*$', '/type/edition')
+
+# set up infobase schema. required when running in standalone mode.
+import schema
+dbstore.default_schema = schema.get_schema()
 
 # this adds /show-marc/xxx page to infogami
 import showmarc
@@ -494,7 +498,8 @@ def readable_url_processor(handler):
     #@@ web.ctx.path is either quoted or unquoted depends on whether the application is running
     #@@ using builtin-server or lighttpd. Thats probably a bug in web.py. 
     #@@ take care of that case here till that is fixed.
-    if readable_path != web.ctx.path and readable_path != urllib.quote(web.utf8(web.ctx.path)):
+    # @@ Also, the redirection must be done only for GET requests.
+    if readable_path != web.ctx.path and readable_path != urllib.quote(web.utf8(web.ctx.path)) and web.ctx.method == "GET":
         raise web.seeother(readable_path + web.ctx.query.encode('utf-8'))
 
     web.ctx.readable_path = readable_path
@@ -517,6 +522,17 @@ def changequery(query=None, **kw):
     if query:
         out += '?' + urllib.urlencode(query)
     return out
+
+# Hack to limit recent changes offset.
+# Large offsets are blowing up the database.
+
+from infogami.core.db import get_recent_changes as _get_recentchanges
+@public
+def get_recent_changes(*a, **kw):
+    if 'offset' in kw and kw['offset'] > 5000:
+        return []
+    else:
+        return _get_recentchanges(*a, **kw)
     
 def wget(url):
     try:

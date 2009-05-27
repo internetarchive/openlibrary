@@ -10,22 +10,27 @@ chgrp  pharos $OL_FOLDERS
 chmod g+w $OL_FOLDERS
 
 echo "installing apt-get packages..."
-aptitude install         \
+aptitude install        \
+    postgresql-client   \
     git-core            \
     sqlite3             \
     python-dev          \
     python-setuptools   \
     python-imaging      \
-    python-webpy        \
-    python-flup         \
     python-psycopg2     \
     python-mysqldb      \
     python-yaml
 
+echo "removing troublesome modules"
+aptitude remove yaz
+
 echo "installing python packages..."
 easy_install -Z \
     simplejson  \
-    pymarc
+    pymarc      \
+    web.py      \
+    flup        \
+    subcommand
 
 # setup code
 echo "getting openlibrary code..."
@@ -42,4 +47,23 @@ sed 's,/petabox/sw/lighttpd/lighttpd-angel,/usr/sbin/lighttpd,' /etc/init.d/ligh
 rm /etc/init.d/lighttpd # remove symlink to petabox
 mv /tmp/lighttpd.$$ /etc/init.d/lighttpd
 chmod +x /etc/init.d/lighttpd
+
+mv /etc/lighttpd /etc/lighttpd.orig
+ln -s /olsystem/etc/lighttpd /etc/lighttpd
+
+# setup oldirs
+
+oldirs=                         \
+    /var/cache/openlibrary      \
+    /0/pharos/data              \
+    /1/pharos/data
+
+mkdir $oldirs
+chown openlibrary:openlibrary $oldirs
+
+# setup shmmax to 2GB
+echo 2147483648 > /proc/sys/kernel/shmmax
+echo 2147483648 > /proc/sys/kernel/shmall
+
+ln -s /olsystem/etc/sysctl.d/60-shm /etc/sysctl.d/
 

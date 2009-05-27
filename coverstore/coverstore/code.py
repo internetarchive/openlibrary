@@ -14,6 +14,7 @@ urls = (
     '/([^ /]*)/touch', 'touch',
     '/([^ /]*)/delete', 'delete',
 )
+app = web.application(urls, locals())
 
 _cache = None
 _disk = None
@@ -30,7 +31,7 @@ def run():
     _disk = config.disk
     assert config.disk is not None
     _cache = imagecache.ImageCache(config.cache_dir, _disk)
-    web.run(urls, globals())
+    app.run()
 
 def safeint(value, default=None):
     """
@@ -127,8 +128,7 @@ class upload:
         failure_url = i.failure_url or web.ctx.get('HTTP_REFERRER') or web.ctx.fullpath
         def error((code, msg)):
             url = changequery(failure_url, errcode=code, errmsg=msg)
-            web.seeother(url)
-            raise StopIteration
+            raise web.seeother(url)
         
         if i.source_url:
             try:
@@ -162,7 +162,7 @@ class upload:
         d['ip'] = web.ctx.ip
         d['filename'] = filename
         db.new(**d)
-        return web.seeother(success_url)
+        raise web.seeother(success_url)
 
 def filesize(path):
     try:
@@ -176,7 +176,7 @@ def serve_file(path):
         web.header('X-LIGHTTPD-Send-file', os.path.abspath(path))
         web.header('Content-Length', filesize(path))
     else:
-        print open(path).read()
+        return open(path).read()
         
 class cover:
     def GET(self, category, key, value, size):
@@ -193,14 +193,13 @@ class cover:
             web.header('Content-Type', 'image/jpeg')
             filename = _cache.get_image(d.id, size)
             if filename:
-                serve_file(filename)
+                return serve_file(filename)
         elif config.default_image and i.default.lower() != "false" and not i.default.startswith('http://'):
-            serve_file(config.default_image)
+            return serve_file(config.default_image)
         elif i.default.startswith('http://'):
-            web.seeother(i.default)
+            raise web.seeother(i.default)
         else:
-            web.notfound()
-            web.ctx.output = ""
+            raise web.notfound("")
 
 class query:
     def GET(self, category):
@@ -230,9 +229,9 @@ class query:
         json = simplejson.dumps(result)
         web.header('Content-Type', 'text/javascript')
         if i.callback:
-            print "%s(%s);" % (i.callback, json)
+            return "%s(%s);" % (i.callback, json)
         else:
-            print json
+           return json
 
 class touch:
     def POST(self, category):
@@ -242,9 +241,9 @@ class touch:
         id = i.id and safeint(i.id, None)
         if id:
             db.touch(id)
-            web.seeother(redirect_url)
+            raise web.seeother(redirect_url)
         else:
-            print 'no such id: %s' % id
+            return 'no such id: %s' % id
 
 class delete:
     def POST(self, category):
@@ -255,8 +254,8 @@ class delete:
         if id:
             db.delete(id)
             if redirect_url:
-                web.seeother(redirect_url)
+                raise web.seeother(redirect_url)
             else:
-                print 'cover has been deleted successfully.' 
+                return 'cover has been deleted successfully.' 
         else:
-            print 'no such id: %s' % id
+            return 'no such id: %s' % id
