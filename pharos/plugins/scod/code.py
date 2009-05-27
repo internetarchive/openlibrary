@@ -231,8 +231,17 @@ def get_scan_queue(scan_status, limit=None, offset=None):
     if offset:
         q['offset'] = offset
         
-    result = web.ctx.site.things(q)
-    return [web.ctx.site.get(key) for key in result]
+    keys = web.ctx.site.things(q)
+    result = web.ctx.site.get_many(keys)
+
+    # prefetch editions
+    web.ctx.site.get_many([web.lstrips(key, '/scan_record') for key in keys])
+
+    # prefetch scanning centers
+    scanning_centers = set(r.locations[0].key for r in result if r.locations)
+    web.ctx.site.get_many(list(scanning_centers))
+
+    return result
 
 @public
 def to_datetime(iso_date_string):
