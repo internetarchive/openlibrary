@@ -1,7 +1,7 @@
 #!/usr/bin/python2.5
 from time import time, sleep
 import catalog.marc.fast_parse as fast_parse
-import web, sys, codecs, re, urllib2
+import web, sys, codecs, re, urllib2, httplib
 import catalog.importer.pool as pool
 import simplejson as json
 from catalog.utils.query import query_iter
@@ -105,15 +105,21 @@ def author_from_data(loc, data):
     assert isinstance(ret, basestring)
     return {'key': ret}
 
-def undelete_authors(key):
-    a = ol.get(key)
-    if a['type'] == '/type/author':
-        return
+def undelete_author(a):
+    key = a['key']
     assert a['type'] == '/type/delete'
     url = 'http://openlibrary.org' + key + '.json?v=' + str(a['revision'] - 1)
     prev = unmarshal(json.load(urllib2.urlopen(url)))
     assert prev['type'] == '/type/author'
     ol.save(key, prev, 'undelete author')
+
+def undelete_authors(authors):
+    for a in authors:
+        if a['type'] == '/type/delete':
+            undelete_author(a)
+        else:
+            print a
+            assert a['type'] == '/type/author'
 
 def add_source_records(key, new, thing, data):
     sr = None
@@ -148,8 +154,12 @@ def add_source_records(key, new, thing, data):
             new_author = author_from_data(new, data)
             e['authors'] = [new_author]
         else:
-            for a in e['authors']:
-                undelete_authors(a)
+            print e['authors']
+            authors = [ol.get(akey) for akey in e['authors']]
+            authors = [ol.get(a['location']) if a['type'] == '/type/redirect' else a \
+                    for a in authors]
+            e['authors'] = [a['key'] for a in authors]
+            undelete_authors(authors)
     try:
         print ol.save(key, e, 'found a matching MARC record')
     except:
@@ -202,9 +212,14 @@ def load_part(archive_id, part, start_pos=0):
             for edition_key in v:
                 if edition_key in seen:
                     continue
-                seen.add(edition_key)
-                thing = withKey(edition_key)
-                assert thing
+                thing = None
+                while not thing or thing['type']['key'] == '/type/redirect':
+                    seen.add(edition_key)
+                    thing = withKey(edition_key)
+                    assert thing
+                    if thing['type']['key'] == '/type/redirect':
+                        print 'following redirect %s => %s' % (edition_key, thing['location'])
+                        edition_key = thing['location']
                 if try_merge(e1, edition_key, thing):
                     add_source_records(edition_key, loc, thing, data)
                     match = True
@@ -258,11 +273,18 @@ def write_edition(loc, edition):
     if authors:
         q['authors'] = authors
 
-    try:
-        ret = ol.new(q, comment='initial import')
-    except:
-        print q
-        raise
+    for attempt in range(5):
+        if attempt > 0:
+            print 'retrying'
+        try:
+            ret = ol.new(q, comment='initial import')
+        except httplib.BadStatusLine:
+            sleep(10)
+            continue
+        except: # httplib.BadStatusLine
+            print q
+            raise
+        break
     print 'ret:', ret
     assert isinstance(ret, basestring)
 #    assert ret['status'] == 'ok'
