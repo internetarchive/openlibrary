@@ -585,4 +585,4 @@ def test_read_toc():
     for i in toc:
         print i
 
-test_read_toc()
+#test_read_toc()
