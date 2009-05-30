@@ -1,8 +1,9 @@
 import xml.etree.ElementTree as et
 import xml.parsers.expat
 from pprint import pprint
-import re
+import re, sys, codecs
 from time import sleep
+from unicodedata import normalize
 
 re_question = re.compile('^\?+$')
 re_lccn = re.compile('(...\d+).*')
@@ -178,3 +179,12 @@ def test_parse():
     }
 
     assert read_edition("humanefficiencyl00godduoft") == expect
+
+def test_xml():
+    f = open('test_data/nybc200247_marc.xml')
+    lines = get_tag_lines(f, ['245'])
+    for tag, line in lines:
+        title = list(get_subfields(line, ['a']))[0][1]
+        print title
+        print normalize('NFC', title)
+#    print read_edition(open('test_data/nybc200247_marc.xml'))['full_title']
