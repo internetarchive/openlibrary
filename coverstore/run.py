@@ -37,7 +37,6 @@ def main(configfile, *args):
 if __name__ == "__main__":
     if "--archive" in sys.argv:
         from coverstore  import archive
-        web.load()
         load_config(sys.argv[1])
         archive.archive(config.disks[0], config.disks[1])
     else:
