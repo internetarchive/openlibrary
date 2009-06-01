@@ -1,8 +1,9 @@
 import xml.etree.ElementTree as et
 import xml.parsers.expat
 from pprint import pprint
-import re
+import re, sys, codecs
 from time import sleep
+from unicodedata import normalize
 
 re_question = re.compile('^\?+$')
 re_lccn = re.compile('(...\d+).*')
@@ -14,6 +15,7 @@ re_oclc = re.compile ('^\(OCoLC\).*?0*(\d+)')
 # no monograph should be longer than 50,000 pages
 max_number_of_pages = 50000
 
+leader_tag = '{http://www.loc.gov/MARC21/slim}leader'
 data_tag = '{http://www.loc.gov/MARC21/slim}datafield'
 control_tag = '{http://www.loc.gov/MARC21/slim}controlfield'
 subfield_tag = '{http://www.loc.gov/MARC21/slim}subfield'
@@ -83,6 +85,8 @@ def get_tag_lines(f, want):
     tree = et.parse(f)
     fields = []
     for i in tree.getroot():
+        if i.tag == leader_tag and i.text[6:8] != 'am': # only want books:
+            return []
         if i.tag != data_tag and i.tag != control_tag:
             continue
         tag = i.attrib['tag']
@@ -178,3 +182,12 @@ def test_parse():
     }
 
     assert read_edition("humanefficiencyl00godduoft") == expect
+
+def test_xml():
+    f = open('test_data/nybc200247_marc.xml')
+    lines = get_tag_lines(f, ['245'])
+    for tag, line in lines:
+        title = list(get_subfields(line, ['a']))[0][1]
+        print title
+        print normalize('NFC', title)
+#    print read_edition(open('test_data/nybc200247_marc.xml'))['full_title']
