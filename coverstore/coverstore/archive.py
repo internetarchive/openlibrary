@@ -4,10 +4,12 @@ Script to archive covers from local disk to warc disk.
 import web
 import os
 
+import db
+
 _cagegories = {}
 def get_category(id):
     if id not in _cagegories:
-        _cagegories[id] = web.select('category', where='id=$id', vars=locals())[0].name
+        _cagegories[id] = db.getdb().select('category', where='id=$id', vars=locals())[0].name
     return _cagegories[id]
         
 def move(cover, localdisk, warcdisk):
@@ -24,10 +26,10 @@ def move(cover, localdisk, warcdisk):
     }
     filename = warcdisk.write(data, params)
     print 'filename', filename
-    web.update('cover', where='id=$cover.id', archived=True, filename=filename, vars=locals())
+    db.getdb().update('cover', where='id=$cover.id', archived=True, filename=filename, vars=locals())
 
 def archive(localdisk, warcdisk):
-    covers = web.select('cover', where='archived=false', order='id')
+    covers = db.getdb().select('cover', where='archived=false', order='id')
     for cover in covers:
         try:
             move(cover, localdisk, warcdisk)
