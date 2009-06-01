@@ -35,4 +35,10 @@ def main(configfile, *args):
     code.run()
     
 if __name__ == "__main__":
-    main(*sys.argv[1:])
+    if "--archive" in sys.argv:
+        from coverstore  import archive
+        web.load()
+        load_config(sys.argv[1])
+        archive.archive(config.disks[0], config.disks[1])
+    else:
+        main(*sys.argv[1:])
