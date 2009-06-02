@@ -86,14 +86,8 @@ def read_isbn(fields):
         seen.add(i)
         if len(i) == 13:
             ret.setdefault('isbn_13', []).append(i)
-        else:
-            try:
-                assert len(i) <= 16
-            except:
-                print i
-                raise
+        elif len(i) <= 16:
             ret.setdefault('isbn_10', []).append(i)
-
     return ret
 
 def read_oclc(fields):
@@ -164,7 +158,9 @@ def read_authors(fields):
         return {}
     if len(author) != 1:
         for tag in ('100', '110', '111'):
-            print tag, fields[tag]
+            if tag in fields:
+                print tag, fields[tag]
+        print
     assert len(author) == 1
     if '100' in fields:
         line = fields['100'][0]
@@ -423,6 +419,8 @@ def read_toc(fields):
                     toc.append(' -- '.join(toc_line))
                 if (len(v) > 2048):
                     toc_line = [i.strip() for i in v.strip('/').split('--')]
+                else:
+                    toc_line = [v.strip('/')]
                 continue
             toc_line.append(v.strip(' -'))
         if toc_line:
@@ -563,3 +561,28 @@ def test_read_isbn():
 def test_double_oclc():
     data = open('test_data/1972montanaeconomicindivo1no2montrich_meta.mrc').read()
     assert read_edition('', data)['oclc_number'] == [u'3231315']
+
+def test_read_toc():
+#    data = open('test_data/uoft_NYPN05-B10353').read()
+#    toc = read_edition('marc_university_of_toronto/uoft.marc:5442685230:3818', data)['table_of_contents']
+#    for i in toc:
+#        print i
+
+    data = open('test_data/uoft_4351105_1626').read()
+    toc = read_edition('marc_university_of_toronto/uoft.marc:4351105:1626', data)['table_of_contents']
+    for i in toc:
+        print i
+
+    return
+
+    data = open('test_data/ocm00400866').read()
+    toc = read_edition('marc_miami_univ_ohio/allbibs0036.out:3918815:7321', data)['table_of_contents']
+    for i in toc:
+        print i
+
+    data = open('test_data/wwu_51323556').read()
+    toc = read_edition('marc_western_washington_univ/wwu_bibs.mrc_revrev.mrc:938969487:3862', data)['table_of_contents']
+    for i in toc:
+        print i
+
+#test_read_toc()

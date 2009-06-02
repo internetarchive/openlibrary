@@ -28,7 +28,7 @@ def translate(data):
 
 re_question = re.compile('^\?+$')
 re_lccn = re.compile('(...\d+).*')
-re_letters = re.compile('[A-Za-z]')
+re_letters_and_bad = re.compile('[A-Za-z\x80-\xff]')
 re_int = re.compile ('\d{2,}')
 re_isbn = re.compile('([^ ()]+[\dX])(?: \((?:v\. (\d+)(?: : )?)?(.*)\))?')
 re_oclc = re.compile ('^\(OCoLC\).*?0*(\d+)')
@@ -176,7 +176,7 @@ def get_tag_line(data, line):
         length += data[last:].find('\x1e')
 
     tag_line = data[offset + 1:offset + length + 1]
-    if not line.startswith('00'):
+    if not line[0:2] == '00':
         # marc_western_washington_univ/wwu_bibs.mrc_revrev.mrc:636441290:1277
         if tag_line[1:8] == '{llig}\x1f':
             tag_line = tag_line[0] + u'\uFE20' + tag_line[7:]
@@ -237,7 +237,8 @@ def read_lccn(line):
         m = re_lccn.search(lccn)
         if not m:
             continue
-        lccn = re_letters.sub('', m.group(1)).strip()
+        # remove letters and bad chars
+        lccn = re_letters_and_bad.sub('', m.group(1)).strip()
         if lccn:
             found.append(lccn)
     return found
@@ -481,3 +482,8 @@ def test_record():
 
 def test_empty():
     assert read_edition('') == {}
+
+def test_index_fields():
+    data = open('test_data/ithaca_college_75002321').read()
+    lccn = index_fields(data, ['010'])['lccn'][0]
+    assert lccn == '75002321'

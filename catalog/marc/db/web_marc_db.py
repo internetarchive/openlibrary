@@ -4,25 +4,15 @@ from catalog.get_ia import get_data
 from catalog.marc.build_record import build_record
 from catalog.marc.fast_parse import get_all_subfields, get_tag_lines, get_first_tag, get_subfields
 from pprint import pprint
-import re, sys, os.path
-from catalog.amazon.other_editions import find_others
+import re, sys, os.path, web
+#from catalog.amazon.other_editions import find_others
 from catalog.utils import strip_count
 
-# use psycopg2 until open library is upgraded to web 3.0
-
-import psycopg2
-from catalog.read_rc import read_rc
-rc = read_rc()
-conn = psycopg2.connect("dbname='%s' user='%s' host='%s' password='%s'" \
-        % ('ol_merge', rc['user'], rc['host'], rc['pw']));
-cur = conn.cursor()
+db = web.database(dbn='postgres', db='marc_lookup')
+db.printing = False
 
 trans = {'&':'amp','<':'lt','>':'gt'}
 re_html_replace = re.compile('([&<>])')
-
-def sources():
-    cur.execute('select archive_id, name from marc_source')
-    return cur.fetchall()
 
 def marc_authors(data):
     line = get_first_tag(data, set(['100', '110', '111']))
@@ -42,8 +32,8 @@ def find_isbn_file():
         if os.path.exists(f):
             return f
 
-isbn_file = find_isbn_file()
-isbn_count = os.path.getsize(isbn_file) / 11
+#isbn_file = find_isbn_file()
+#isbn_count = os.path.getsize(isbn_file) / 11
 
 def list_to_html(l):
     def blue(s):
@@ -54,11 +44,6 @@ def esc(s):
     if not isinstance(s, basestring):
         return s
     return re_html_replace.sub(lambda m: "&%s;" % trans[m.group(1)], s.encode('utf8')).replace('\n', '<br>')
-
-srcs = dict(sources())
-
-def src_list(loc):
-    return '; '.join(srcs[l[:l.find('/')]] for l in loc)
 
 data_cache = {}
 def marc_data(loc):
@@ -74,7 +59,7 @@ def counts_html(v):
         count.setdefault(i, []).append(loc)
     s = sorted(count.iteritems(), cmp=lambda x,y: cmp(len(y[1]), len(x[1]) ))
     s = strip_count(s)
-    return sep.join('<b>%d</b>: <span title="%s">%s</span>' % (len(loc), src_list(loc), value if value else '<em>empty</em>') for value, loc in s)
+    return sep.join('<b>%d</b>: <span title="%s">%s</span>' % (len(loc), `loc`, value if value else '<em>empty</em>') for value, loc in s)
 
 def list_works(this_isbn):
     works = find_others(this_isbn, rc['amazon_other_editions'])
@@ -109,18 +94,18 @@ def most_freq_isbn(input):
 def show_locs(locs, isbn):
     recs = [(loc, build_record(marc_data(loc))) for loc in locs]
     keys = set()
-    print "records found from %d libraries<br>" % len(recs)
-    print '<ul>'
+    ret = "records found from %d libraries<br>" % len(recs)
+    ret += '<ul>'
     for loc, rec in recs:
-        s = srcs[loc[:loc.find('/')]]
-        print '<li><a href="http://openlibrary.org/show-marc/%s">%s</a>' % (loc, s)
+        s = loc[:loc.find('/')]
+        ret += '<li><a href="http://openlibrary.org/show-marc/%s">%s</a>' % (loc, s)
         keys.update([k for k in rec.keys()])
         for f in 'uri':
             if f in rec:
                 del rec[f]
-    print '</ul>'
+    ret += '</ul>'
     keys -= set(['uri'])
-    print '<table>'
+    ret += '<table>'
     first_key = True
     first = []
     for f in ['isbn_10', 'title', 'subtitle', 'by_statement', 'authors', 'contributions']:
@@ -136,7 +121,7 @@ def show_locs(locs, isbn):
         if all(i is None or (isinstance(i, list) and len(i) == 1) for i, loc in v):
             v = [ (i[0] if i else None, loc) for i, loc in v]
 
-        print '<tr><th valign="top">%s</th><td>' % k
+        ret += '<tr><th valign="top">%s</th><td>' % k
         if any(isinstance(i, list) or isinstance(i, dict) for i, loc in v):
             if k == 'authors': # easiest to switch to raw MARC display
                 v = [(marc_authors(marc_data(loc)), loc) for i, loc in v ]
@@ -147,16 +132,17 @@ def show_locs(locs, isbn):
         else:
             v = [ (esc(i), loc) for i, loc in v]
 #        print `[i[0] for i in v]`, '<br>'
-        print counts_html(v)
+        ret += counts_html(v)
         if isbn and first_key:
-            print '<td valign="top" rowspan="%d"><img src="http://covers.openlibrary.org/b/isbn/%s-L.jpg">' % (len(first) + len(keys), isbn)
+            ret += '<td valign="top" rowspan="%d"><img src="http://covers.openlibrary.org/b/isbn/%s-L.jpg">' % (len(first) + len(keys), isbn)
             first_key = False
-        print '</td></tr>'
-    print '</table>'
+        ret += '</td></tr>'
+    ret += '</table>'
+    return ret
 
 def search_query(field, value):
-    sql = 'select archive_id, filename, pos, len ' \
-        + 'from marc_file, marc_rec, marc_' + field + ', marc_source ' \
-        + 'where marc_source.id=marc_file.marc_source and marc_' + field + '.marc_rec=marc_rec.id and marc_rec.marc_file=marc_file.id and value=%(v)s'
-    cur.execute(sql, {'v': value})
-    return [i[0] + '/' + ':'.join([i[1], str(i[2]), str(i[3])]) for i in cur.fetchall()]
+    sql = 'select part, pos, len ' \
+        + 'from files, recs, ' + field \
+        + ' where ' + field + '.rec=recs.id and recs.marc_file=files.id and value=$v'
+    iter = db.query(sql, {'v': value})
+    return [':'.join([i.part.strip(), str(i.pos), str(i.len)]) for i in iter]

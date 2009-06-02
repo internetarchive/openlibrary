@@ -13,15 +13,20 @@ import web
 from infogami import config
 from infogami.infobase import client
 
+if config.get('plugin_akismet') is not None:
+    api_key = config.plugin_akismet.api_key
+    spamlog = config.plugin_akismet.get('log')
+    baseurl = config.plugin_akismet.get('baseurl')
+else:
+    api_key = config.akismet_api_key
+    spamlog = config.get('akismet_log')
+    baseurl = config.get('akismet_baseurl')
+
 blog_url = 'http://' + config.site
-key = config.akismet_api_key
+if baseurl:
+    Akismet.antispam_baseurl = baseurl
 
-if hasattr(config, 'akismet_baseurl'):
-    Akismet.antispam_baseurl = config.antispam_baseurl
-
-spamlog = getattr(config, "akismet_log", None)
-
-api = Akismet(key=key, blog_url=blog_url, agent='OpenLibrary')
+api = Akismet(key=api_key, blog_url=blog_url, agent='OpenLibrary')
 
 class hooks(client.hook):
     def before_register(self, d):

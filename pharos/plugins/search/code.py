@@ -309,6 +309,19 @@ def exact_facet_count(query, facet_name, facet_value):
     print >> web.debug, ('*** efc', query, r, t1)
     return r
 
+def get_books(keys):
+    """Get all books specified by the keys in a single query and also prefetch all the author records.
+    """
+    books = web.ctx.site.get_many(keys)
+    author_keys = set()
+    for b in books:
+        for a in b.authors:
+            author_keys.add(a.key)
+    
+    # prefetch authors. These will be cached by web.ctx.site for later use.
+    web.ctx.site.get_many(list(author_keys))
+    return books
+
 def munch_qresults(qlist):
     results = []
     rset = set()
@@ -324,7 +337,7 @@ def munch_qresults(qlist):
 
     # this is supposed to be faster than calling site.get separately
     # for each result
-    return web.ctx.site.get_many(map(restore_slash, results))
+    return get_books(map(restore_slash, results))
 
 # disable the above function by redefining it as a do-nothing.
 # This replaces a version that removed all punctuation from the

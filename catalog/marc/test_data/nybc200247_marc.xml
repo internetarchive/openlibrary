@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<record xmlns="http://www.loc.gov/MARC21/slim">
+    <leader>02259 am a22004454a 4500</leader>
+    <controlfield tag="001">vtls000011252</controlfield>
+    <controlfield tag="003">MShNYB</controlfield>
+    <controlfield tag="005">20041014115900.0</controlfield>
+    <controlfield tag="007">cu||||||||||||</controlfield>
+    <controlfield tag="008">020212s1961    nyuach  s     000 0byid d</controlfield>
+    <datafield tag="039" ind1=" " ind2="9">
+      <subfield code="a">200410141159</subfield>
+      <subfield code="b">staff</subfield>
+      <subfield code="c">200407280814</subfield>
+      <subfield code="d">VLOAD</subfield>
+      <subfield code="c">200304141019</subfield>
+      <subfield code="d">VLOAD</subfield>
+      <subfield code="c">200303250755</subfield>
+      <subfield code="d">VLOAD</subfield>
+      <subfield code="y">200112031344</subfield>
+      <subfield code="z">load</subfield>
+    </datafield>
+    <datafield tag="040" ind1=" " ind2=" ">
+      <subfield code="a">MShNYB</subfield>
+      <subfield code="c">MShNYB</subfield>
+    </datafield>
+    <datafield tag="060" ind1=" " ind2=" ">
+      <subfield code="c">(2</subfield>
+    </datafield>
+    <datafield tag="084" ind1=" " ind2=" ">
+      <subfield code="a">200247</subfield>
+    </datafield>
+    <datafield tag="100" ind1="1" ind2=" ">
+      <subfield code="6"/>
+      <subfield code="a">Dubnow, Simon,</subfield>
+      <subfield code="d">1860-1941.</subfield>
+    </datafield>
+    <datafield tag="245" ind1="1" ind2="0">
+      <subfield code="6"/>
+      <subfield code="a">Tsum hundertsṭn geboyrnṭog fun Shimon Dubnoṿ</subfield>
+      <subfield code="h"/>
+      <subfield code="b">zamlung /</subfield>
+      <subfield code="c">tsunoyfgesh.telṭ un redaḳṭirṭ fun Naḥman Mayzil.</subfield>
+    </datafield>
+    <datafield tag="246" ind1="1" ind2="5">
+      <subfield code="i">Title on t.p. verso:</subfield>
+      <subfield code="a">Tzum hundertstn geboirntog fun Shimen Dubnow</subfield>
+    </datafield>
+    <datafield tag="246" ind1="1" ind2="5">
+      <subfield code="i">On verso of t.p.:</subfield>
+      <subfield code="a">Centennial of the historian Shimen Dubnow</subfield>
+    </datafield>
+    <datafield tag="260" ind1=" " ind2=" ">
+      <subfield code="a">Nyu-Yorḳ :</subfield>
+      <subfield code="b">Iḳuf,</subfield>
+      <subfield code="c">1961.</subfield>
+    </datafield>
+    <datafield tag="300" ind1=" " ind2=" ">
+      <subfield code="a">92 p. :</subfield>
+      <subfield code="b">ill., facsims., ports. ;</subfield>
+      <subfield code="c">23 cm.</subfield>
+    </datafield>
+    <datafield tag="440" ind1=" " ind2=" ">
+      <subfield code="a">Steven Spielberg digital Yiddish library ;</subfield>
+      <subfield code="v">no. 00247</subfield>
+    </datafield>
+    <datafield tag="505" ind1="0" ind2=" ">
+      <subfield code="a">Arṭiḳlen vegn Shimen Dubnov -- Ophandlungen un arṭiḳlen fun Shimen Dubnov -- Briv fun Sh. Dubnov.</subfield>
+    </datafield>
+    <datafield tag="533" ind1=" " ind2=" ">
+      <subfield code="a">Electronic reproduction.</subfield>
+      <subfield code="b">Amherst :</subfield>
+      <subfield code="c">National Yiddish Book Center,</subfield>
+      <subfield code="d">1999.</subfield>
+    </datafield>
+    <datafield tag="590" ind1=" " ind2=" ">
+      <subfield code="a">This item is offered for sale by the National Yiddish Book Center. Internet: www.yiddishbooks.org; email: orders@bikher.org; phone: 413.256.4900; fax: 413.256.4700</subfield>
+    </datafield>
+    <datafield tag="600" ind1="1" ind2="0">
+      <subfield code="a">Dubnow, Simon,</subfield>
+      <subfield code="d">1860-1941.</subfield>
+    </datafield>
+    <datafield tag="650" ind1=" " ind2="0">
+      <subfield code="a">Jews</subfield>
+      <subfield code="x">History</subfield>
+      <subfield code="x">Philosophy.</subfield>
+    </datafield>
+    <datafield tag="690" ind1=" " ind2="4">
+      <subfield code="a">Non-fiction</subfield>
+    </datafield>
+    <datafield tag="690" ind1=" " ind2="4">
+      <subfield code="a">History and Historiography</subfield>
+    </datafield>
+    <datafield tag="690" ind1=" " ind2="4">
+      <subfield code="a">Biography, Autobiography, Memoirs</subfield>
+    </datafield>
+    <datafield tag="690" ind1=" " ind2="4">
+      <subfield code="a">BC.</subfield>
+    </datafield>
+    <datafield tag="690" ind1=" " ind2="4">
+      <subfield code="a">CC.</subfield>
+    </datafield>
+    <datafield tag="690" ind1=" " ind2="4">
+      <subfield code="a">Digital Reprint edition (added 4/99)</subfield>
+    </datafield>
+    <datafield tag="690" ind1=" " ind2="4">
+      <subfield code="a">Baker Bibliography</subfield>
+    </datafield>
+    <datafield tag="700" ind1="1" ind2=" ">
+      <subfield code="a">Mayzel, Nachman,</subfield>
+      <subfield code="d">1887-1966.</subfield>
+    </datafield>
+    <datafield tag="880" ind1=" " ind2=" ">
+      <subfield code="6">100-01 /(2/r</subfield>
+      <subfield code="a">דובנאוו, שמעון.</subfield>
+    </datafield>
+    <datafield tag="880" ind1=" " ind2=" ">
+      <subfield code="6">245-02 /(2/r</subfield>
+      <subfield code="a">צום הונדערטסטן געבוירנטאג פון שמעון דובנאוו :</subfield>
+      <subfield code="b">זאמלונג /</subfield>
+      <subfield code="c">צונויפגעשטעלט און רעדאקטירט פון נחמן מייזיל.</subfield>
+    </datafield>
+    <datafield tag="949" ind1=" " ind2=" ">
+      <subfield code="a">1000012254</subfield>
+      <subfield code="b">000100</subfield>
+      <subfield code="c">0-657-00247-X</subfield>
+    </datafield>
+    <datafield tag="950" ind1=" " ind2=" ">
+      <subfield code="a">DLM</subfield>
+      <subfield code="b">Digital Library Main</subfield>
+    </datafield>
+    <datafield tag="999" ind1=" " ind2=" ">
+      <subfield code="a">VIRTUA10</subfield>
+    </datafield>
+    <datafield tag="999" ind1=" " ind2=" ">
+      <subfield code="a">VTLSSORT0080*0400*0600*0840*1000*2450*2460*2461*2600*3000*4400*5000*5050*5900*6000*6500*6900*6901*6902*6903*6904*6905*6906*7000*8800*8801*9490*9500*9991</subfield>
+    </datafield>
+  </record>
