@@ -301,6 +301,14 @@ def restore_slash(book):
     if not book.startswith('/'): return '/'+book
     return book
 
+@view.public
+def exact_facet_count(query, facet_name, facet_value):
+    t0 = time.time()
+    r = solr.exact_facet_count(query, facet_name, facet_value)
+    t1 = time.time()-t0
+    print >> web.debug, ('*** efc', query, r, t1)
+    return r
+
 def munch_qresults(qlist):
     results = []
     rset = set()
