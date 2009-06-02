@@ -8,6 +8,7 @@ from collections import defaultdict
 import cgi
 import web
 import simplejson
+from facet_hash import facet_token
 
 php_location = "/petabox/setup.inc"
 
@@ -116,8 +117,6 @@ class Solr_client(object):
     def Xfacet_token_inverse(self,
                             token,
                             facet_list = default_facet_list):
-        from facet_hash import facet_token
-
         # for now, just pull this straight from the SE
         # need to add an LRU cache for performance.  @@
 
@@ -224,6 +223,16 @@ class Solr_client(object):
         page_ids = list(e.text for e in XML.getiterator('identifier'))
         return [extract(x)[1] for x in page_ids]
 
+    def exact_facet_count(self, query, facet_name, facet_value):
+        ftoken = facet_token(facet_name, facet_value)
+        result_json = self.raw_search(
+            '%s facet_tokens:%s'% (query, ftoken),
+            rows=0,
+            wt='json')
+        result = simplejson.loads(result_json)
+        n = result['response']['numFound']
+        return n
+
     def facets(self,
                query,
                facet_list = default_facet_list,
@@ -250,9 +259,8 @@ class Solr_client(object):
 
     def raw_search(self, query, rows=None, start=None, wt=None):
         # raw search: directly post a Solr search which uses fieldnames etc.
-        # return the raw xml result that comes from solr
+        # return the raw xml or json result that comes from solr
         # need to refactor this class to combine some of these methods @@
-        # may also wish to read and parse JSON or Python output instead of XML.
         assert type(query) == str
 
         server_url = 'http://%s:%d/solr/select' % self.server_addr
