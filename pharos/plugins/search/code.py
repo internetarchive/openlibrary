@@ -319,8 +319,9 @@ def get_books(keys):
     # have a key, since this seems to happen sometimes.
     author_keys = set(getattr(a, 'key', None)
                       for b in books for a in b.authors)
-    
-    # prefetch authors. These will be cached by web.ctx.site for later use.
+
+    # actually retrieve the authors and don't do anything with them.
+    # this is just to get them into cache.
     web.ctx.site.get_many(filter(bool, author_keys))
     return books
 
