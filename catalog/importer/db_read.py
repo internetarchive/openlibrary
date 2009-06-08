@@ -14,7 +14,6 @@ def find_author(name): # unused
     return [row.key for row in iter]
 
 def read_from_url(url):
-    print url
     data = urlopen(url).read()
     try:
         ret = json.loads(data)
@@ -31,7 +30,6 @@ def read_from_url(url):
         if ret['status'] == 'ok':
             return ret['result']
         sleep(10)
-    print url
     print data
     return None
 
