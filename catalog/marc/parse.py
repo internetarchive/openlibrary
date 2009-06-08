@@ -366,7 +366,7 @@ def find_toc(r, edition): # table of contents
             for j in split_item:
                 assert len(j) < 2048
             toc2.extend(split_item)
-    edition['table_of_contents'] = toc2
+    edition['table_of_contents'] = [{'title': i, 'type': '/type/toc_item'} for i in toc2]
 
 def find_notes(r, edition):
     notes = []
