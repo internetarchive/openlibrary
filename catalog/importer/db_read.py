@@ -14,7 +14,6 @@ def find_author(name): # unused
     return [row.key for row in iter]
 
 def read_from_url(url):
-    print url
     for i in range(50):
         try:
             data = urlopen(url).read()
@@ -38,8 +37,6 @@ def read_from_url(url):
         if ret['status'] == 'ok':
             return ret['result']
         sleep(10)
-    print url
-    print data
     return None
 
 def set_staging(v):

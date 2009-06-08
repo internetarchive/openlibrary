@@ -1,16 +1,25 @@
-from catalog.importer.db_read import withKey, get_things
+# -*- coding: utf-8 -*-
+from catalog.importer.db_read import withKey, get_things, get_mc
 from catalog.read_rc import read_rc
-from catalog.utils import key_int
+from catalog.utils import key_int, match_with_bad_chars, pick_best_author, remove_trailing_number_dot
 from unicodedata import normalize
-import web, re, sys, codecs
+import web, re, sys, codecs, urllib
 sys.path.append('/home/edward/src/olapi')
 from olapi import OpenLibrary, unmarshal
+from catalog.utils.edit import get_and_fix_edition
+from catalog.utils.query import query_iter
 
 sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
 
 rc = read_rc()
 ol = OpenLibrary("http://openlibrary.org")
 ol.login('EdwardBot', rc['EdwardBot']) 
+
+def urlread(url):
+    return urllib.urlopen(url).read()
+
+def norm(s):
+    return normalize('NFC', s)
 
 def copy_fields(from_author, to_author, name):
     new_fields = { 'name': name, 'personal_name': name }
@@ -34,101 +43,133 @@ def update_author(key, new):
     q = { 'key': key, }
     for k, v in new.iteritems():
         q[k] = { 'connect': 'update', 'value': v }
-    print q
     print ol.write(q, comment='merge author')
-    print
 
-def switch_author(old, new):
-    q = { 'authors': old['key'], 'type': '/type/edition', }
-    for key in get_things(q):
-        edition = withKey(key)
-        authors = []
-        for author in edition['authors']:
-            if author['key'] == old['key']:
-                author_key = new['key']
-            else:
-                author_key = author['key']
-            authors.append({ 'key': author_key })
+def update_edition(key, old, new):
+    e = ol.get(key)
+    get_and_fix_edition(key, e)
+    authors = []
+    for cur in e['authors']:
+        print old, cur in old
+        a = new if cur in old else cur
+        print cur, '->', a
+        if a not in authors:
+            authors.append(a)
+    e['authors'] = authors
 
-        q = {
-            'key': key,
-            'authors': { 'connect': 'update_list', 'value': authors }
-        }
-        print ol.write(q, comment='merge authors')
+    try:
+        print ol.save(key, e, 'merge authors')
+    except:
+        print e
+        raise
+    new_edition = ol.get(key)
+    if 'table_of_contents' in new_edition:
+        # [{u'type': <ref: u'/type/toc_item'>}, ...]
+        print key, new_edition['table_of_contents']
+        #assert 'title' in new_edition['table_of_contents'][0]
+    assert all(cur not in old for cur in e['authors'])
+
+def switch_author(old, new, other):
+    q = { 'authors': old, 'type': '/type/edition', }
+    for e in query_iter(q):
+        update_edition(e['key'], other, new)
 
 def make_redirect(old, new):
-    q = {
-        'key': old['key'],
-        'location': {'connect': 'update', 'value': new['key'] },
-        'type': {'connect': 'update', 'value': '/type/redirect' },
-    }
-    for k in old.iterkeys():
-        if k not in ('key', 'last_modified', 'type', 'id', 'revision'):
-            q[str(k)] = { 'connect': 'update', 'value': None }
-    print q
-    print ol.write(q, comment='replace with redirect')
+    r = {'type': {'key': '/type/redirect'}, 'location': new}
+    ol.save(old, r, 'replace with redirect')
 
-def do_normalize(author, new_name):
-    a = ol.get(author['key'])
+re_number_dot = re.compile('\d{2,}[- ]*(\.+)$')
+
+def do_normalize(author_key, best_key, authors):
+    #print "do_normalize(%s, %s, %s)" % (author_key, best_key, authors)
     need_update = False
-    if a['name'] != new_name:
-        a['name'] = new_name
-        need_update = True
-    for k, v in a.items():
-        if isinstance(v, unicode) and v != norm(v):
-            a[k] = norm(v)
+    a = ol.get(author_key)
+    if author_key == best_key:
+        for k, v in a.items():
+            if 'date' in k:
+                m = re_number_dot.search(v)
+                if m:
+                    need_update = True
+                    v = v[:-len(m.group(1))]
+            if not isinstance(v, unicode):
+                continue
+            norm_v = norm(v)
+            if v == norm_v:
+                continue
+            a[k] = norm_v
             need_update = True
+    else:
+        best = ol.get(best_key)
+        author_keys = set(k for k in a.keys() + best.keys() if k not in ('key', 'last_modified', 'type', 'id', 'revision'))
+        for k in author_keys:
+            if k not in best:
+                v = a[k]
+                if not isinstance(v, unicode):
+                    continue
+                norm_v = norm(v)
+                if v == norm_v:
+                    continue
+                a[k] = norm_v
+                need_update = True
+                continue
+            v = best[k]
+            if 'date' in k:
+                v = remove_trailing_number_dot(v)
+            if isinstance(v, unicode):
+                v = norm(v)
+            if k not in a or v != a[k]:
+                a[k] = v
+                need_update = True
     if not need_update:
         return
-    print a
-    print ol.save(author['key'], a, 'merge authors')
+    #print 'save(%s, %s)' % (author_key, `a`)
+    ol.save(author_key, a, 'merge authors')
 
-def merge_authors(author, merge_with, new_name):
-    new_name = norm(new_name)
-    print 'merge author %s:"%s" and %s:"%s"' % (author['key'], author['name'], merge_with['key'], merge_with['name'])
-    print 'becomes: "%s"' % `new_name`
-    if key_int(author) < key_int(merge_with):
-        new_key = author['key']
-        print "copy fields from merge_with to", new_key
-#        new = copy_fields(merge_with, author, new_name)
-#        update_author(new_key, new)
-        do_normalize(author, new_name)
-        switch_author(merge_with, author)
-#        print "delete merge_with"
-        make_redirect(merge_with, author)
+def has_image(key):
+    url = 'http://covers.openlibrary.org/a/query?olid=' + key[3:]
+    ret = urlread(url).strip()
+    return ret != '[]'
+
+def merge_authors(keys):
+#    print 'merge author %s:"%s" and %s:"%s"' % (author['key'], author['name'], merge_with['key'], merge_with['name'])
+#    print 'becomes: "%s"' % `new_name`
+    authors = [a for a in (withKey(k) for k in keys) if a['type']['key'] != '/type/redirect']
+    not_redirect = set(a['key'] for a in authors)
+    for a in authors:
+        print a
+
+    assert all(a['type']['key'] == '/type/author' for a in authors)
+    name1 = authors[0]['name']
+    assert all(match_with_bad_chars(a['name'], name1) for a in authors[1:])
+
+    best_key = pick_best_author(authors)['key']
+
+    imgs = [a['key'] for a in authors if has_image(a['key'])]
+    if len(imgs) == 1:
+        new_key = imgs[0]
     else:
-        new_key = merge_with['key']
-        print "copy fields from author to", new_key
-#        new = copy_fields(merge_with, author, new_name)
-#        update_author(new_key, new)
-        do_normalize(merge_with, new_name)
-        switch_author(author, merge_with)
-#        print "delete author"
-        make_redirect(author, merge_with)
-    print
+        new_key = "/a/OL%dA" % min(key_int(a) for a in authors)
+        # Molière and O. J. O. Ferreira
+        if len(imgs) != 0:
+            print 'imgs:', imgs
+            return # skip
+        if not (imgs == [u'/a/OL21848A', u'/a/OL4280680A'] \
+                or imgs == [u'/a/OL325189A', u'/a/OL266422A'] \
+                or imgs == [u'/a/OL5160945A', u'/a/OL5776228A']):
+            print imgs
+            assert len(imgs) == 0
 
-author = withKey(sys.argv[1])
-merge_with = withKey(sys.argv[2])
-
-print author
-print merge_with
-
-def norm(s):
-    return normalize('NFC', s)
-
-name1 = author['name']
-name2 = merge_with['name']
-
-print sys.argv
-if len(sys.argv) > 3:
-    name = norm(sys.argv[3].decode('utf8'))
-else:
-    assert name1 == name2 or norm(name1) == norm(name2)
-    name = norm(name1)
-
-assert not name.startswith('/')
-
-assert author['type']['key'] == '/type/author'
-assert merge_with['type']['key'] == '/type/author'
-
-merge_authors(author, merge_with, name)
+    do_normalize(new_key, best_key, authors)
+    old_keys = set(k for k in keys if k != new_key) 
+    for old in old_keys:
+        switch_author(old, new_key, old_keys)
+        if old in not_redirect:
+            make_redirect(old, new_key)
+        q = { 'authors': old, 'type': '/type/edition', }
+#        if list(get_things(q)) != []:
+#            switch_author(old, new_key, old_keys)
+        assert list(query_iter(q)) == []
+    
+if __name__ == '__main__':
+    assert len(sys.argv) > 2
+    merge_authors(sys.argv[1:])
