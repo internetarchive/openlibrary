@@ -14,6 +14,7 @@ re_oclc = re.compile ('^\(OCoLC\).*?0*(\d+)')
 # no monograph should be longer than 50,000 pages
 max_number_of_pages = 50000
 
+leader_tag = '{http://www.loc.gov/MARC21/slim}leader'
 data_tag = '{http://www.loc.gov/MARC21/slim}datafield'
 control_tag = '{http://www.loc.gov/MARC21/slim}controlfield'
 subfield_tag = '{http://www.loc.gov/MARC21/slim}subfield'
@@ -83,6 +84,8 @@ def get_tag_lines(f, want):
     tree = et.parse(f)
     fields = []
     for i in tree.getroot():
+        if i.tag == leader_tag and i.text[6:8] != 'am': # only want books:
+            return []
         if i.tag != data_tag and i.tag != control_tag:
             continue
         tag = i.attrib['tag']
