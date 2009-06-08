@@ -1,4 +1,5 @@
 import web, re, httplib, sys, urllib2
+import simplejson as json
 import catalog.importer.pool as pool
 from catalog.merge.merge_marc import build_marc
 from catalog.read_rc import read_rc
@@ -7,8 +8,9 @@ from catalog.utils.query import query, withKey
 from catalog.importer.merge import try_merge
 from catalog.importer.lang import add_lang
 from catalog.get_ia import get_ia, urlopen_keep_trying
+from catalog.importer.db_read import get_mc
 import catalog.marc.parse_xml as parse_xml
-from time import time
+from time import time, sleep
 import catalog.marc.fast_parse as fast_parse
 sys.path.append('/home/edward/src/olapi')
 from olapi import OpenLibrary, unmarshal
@@ -17,19 +19,24 @@ rc = read_rc()
 ol = OpenLibrary("http://openlibrary.org")
 ol.login('ImportBot', rc['ImportBot']) 
 
+db_amazon = web.database(dbn='postgres', db='amazon')
+db_amazon.printing = False
 
 db = web.database(dbn='mysql', host=rc['ia_db_host'], user=rc['ia_db_user'], \
         passwd=rc['ia_db_pass'], db='archive')
 db.printing = False
 
 #iter = db.query("select identifier from metadata where scanner is not null and scanner != 'google' and noindex is null and mediatype='texts' and curatestate='approved' order by curatedate limit 10")
-iter = db.query("select identifier from metadata where scanner is not null and scanner != 'google' and noindex is null and mediatype='texts' and curatestate='approved'")
+#iter = db.query("select identifier from metadata where scanner is not null and scanner != 'google' and noindex is null and mediatype='texts' and curatestate='approved' and identifier >= 'talesothmetrical00soutrich'")
+iter = db.query("select identifier from metadata where noindex is null and mediatype='texts' and scanner='google'")
 
 t0 = time()
 t_prev = time()
 rec_no = 0
 chunk = 50
 load_count = 0
+
+re_meta_mrc = re.compile('^([^/]*)_meta.mrc:0:\d+$')
 
 def amazon_source_records(asin):
     iter = db_amazon.select('amazon', where='asin = $asin', vars={'asin':asin})
@@ -86,8 +93,8 @@ def add_source_records(key, ia):
         else:
             m = re_meta_mrc.match(existing)
             sr = ['marc:' + existing if not m else 'ia:' + m.group(1)]
-        assert new not in sr
-        e['source_records'] = sr + [new]
+        if new not in sr:
+            e['source_records'] = sr + [new]
 
     # fix other bits of the record as well
     new_toc = fix_toc(e)
@@ -186,16 +193,20 @@ def write_edition(loc, edition):
     pool.update(key, q)
 
 skip = True
+skip = False
 
 for i in iter:
     ia = i.identifier
     if skip:
-        if ia == 'bostoncityhospit12hugh':
+        if ia == 'documentsrelatin28newjuoft':
             skip = False
         else:
             continue
     print ia
     if query({'type': '/type/edition', 'ocaid': ia}):
+        print 'already loaded'
+        continue
+    if query({'type': '/type/edition', 'source_records': 'ia:' + ia}):
         print 'already loaded'
         continue
     try:
