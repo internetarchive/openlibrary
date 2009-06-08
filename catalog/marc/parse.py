@@ -239,9 +239,11 @@ def find_pagination(r, edition):
         edition["pagination"] = ' '.join(pagination)
         num = []
         for x in pagination:
-            num += [ int(i) for i in re_int.findall(x)]
-        if num:
-            edition["number_of_pages"] = max([i for i in num if i < max_number_of_pages])
+            num += [ int(i) for i in re_int.findall(x.replace(',',''))]
+            num += [ int(i) for i in re_int.findall(x) ]
+        valid = [i for i in num if i < max_number_of_pages]
+        if valid:
+            edition["number_of_pages"] = max(valid)
 
 def find_dewey_number(r, edition):
     # dewey_number

@@ -146,14 +146,12 @@ class OLConnection(client.Connection):
             self.conn = ConnectionProxy(self.conn, p)
     
     def create_connection(self):
-        if config.infobase_server:
-            if config.infobase_server is None:
-                raise Exception("infobase_server is not specified in the configuration")
+        if config.get('infobase_server'):
             return client.connect(type='remote', base_url=config.infobase_server)
-        else:
-            if config.db_parameters is None:
-                raise Exception("db_parameters are not specified in the configuration")
+        elif config.get('db_parameters'):
             return client.connect(type='local', **config.db_parameters)
+        else:
+            raise Exception("db_parameters are not specified in the configuration")
                 
     def request(self, sitename, path, method='GET', data=None):
         return self.conn.request(sitename, path, method, data)

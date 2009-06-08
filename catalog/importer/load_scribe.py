@@ -190,7 +190,6 @@ skip = True
 for i in iter:
     ia = i.identifier
     if skip:
-        if ia == 'blackrobe02coll':
             skip = False
         else:
             continue
@@ -204,7 +203,7 @@ for i in iter:
         raise
     except urllib2.HTTPError:
         continue
-    if loc is None:
+    if loc is None or rec is None:
         continue
     print loc, rec
 
