@@ -15,7 +15,14 @@ def find_author(name): # unused
 
 def read_from_url(url):
     print url
-    data = urlopen(url).read()
+    for i in range(50):
+        try:
+            data = urlopen(url).read()
+            if data:
+                break
+            print 'data == None'
+        except IOError:
+            print 'IOError'
     try:
         ret = json.loads(data)
     except:
