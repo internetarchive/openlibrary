@@ -5,7 +5,6 @@ from pymarc import MARC8ToUnicode
 import catalog.marc.mnemonics as mnemonics
 from unicodedata import normalize
 from catalog.utils import tidy_isbn
-import sys, codecs
 
 marc8 = MARC8ToUnicode(quiet=True)
 
@@ -143,7 +142,10 @@ def get_raw_subfields(line, want):
             yield i[0], i[1:]
 
 def get_all_subfields(line):
-    return ((i[0], translate(i[1:])) for i in line[3:-1].split('\x1f') if i)
+    for i in line[3:-1].split('\x1f'):
+        if i:
+            j = translate(i)
+            yield j[0], j[1:]
 
 def get_subfields(line, want):
     want = set(want)
@@ -481,3 +483,7 @@ def test_record():
 
 def test_empty():
     assert read_edition('') == {}
+
+def bad_marc_line():
+    line = '0 \x1f\xe2aEtude objective des ph\xe2enom\xe1enes neuro-psychiques;\x1e'
+    assert list(get_all_subfields(line)) == [(u'\xe1', u'Etude objective des ph\xe9nom\xe8nes neuro-psychiques;')]
