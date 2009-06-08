@@ -156,8 +156,9 @@ def add_source_records(key, new, thing, data):
         else:
             print e['authors']
             authors = [ol.get(akey) for akey in e['authors']]
-            authors = [ol.get(a['location']) if a['type'] == '/type/redirect' else a \
-                    for a in authors]
+            while any(a['type'] == '/type/redirect' for a in authors):
+                print 'following redirects'
+                authors = [ol.get(a['location']) if a['type'] == '/type/redirect' else a for a in authors]
             e['authors'] = [a['key'] for a in authors]
             undelete_authors(authors)
     try:
@@ -197,6 +198,7 @@ def load_part(archive_id, part, start_pos=0):
         if not index_fields or 'title' not in index_fields:
             continue
 
+        print loc
         edition_pool = pool.build(index_fields)
 
         if not edition_pool:
