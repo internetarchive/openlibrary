@@ -1,5 +1,6 @@
 import urllib
 import simplejson as json
+from time import sleep
 
 staging = False
 
@@ -24,15 +25,16 @@ def query(q):
             ret = urllib.urlopen(url).read()
             while ret.startswith('canceling statement due to statement timeout'):
                 ret = urllib.urlopen(url).read()
+            return json.loads(ret)
             break
         except IOError:
             pass
-    try:
-        return json.loads(ret)
-    except:
-        print ret
-        print url
-        raise
+        except TypeError:
+            pass
+        except:
+            print ret
+            print url
+            raise
 
 def query_iter(q, limit=500, offset=0):
     q['limit'] = limit
@@ -58,7 +60,15 @@ def version_iter(q, limit=500, offset=0):
         q['offset'] += limit
 
 def withKey(key):
-    ret = urllib.urlopen(base_url() + key + '.json').read()
+    for i in range(5):
+        try:
+            ret = urllib.urlopen(base_url() + key + '.json').read()
+            if ret:
+                break
+            sleep(10)
+        except IOError:
+            print 'IOError'
+            sleep(10)
     return json.loads(ret)
 
 def get_mc(key): # get machine comment
