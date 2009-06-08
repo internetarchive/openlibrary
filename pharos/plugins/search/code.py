@@ -301,17 +301,28 @@ def restore_slash(book):
     if not book.startswith('/'): return '/'+book
     return book
 
+@view.public
+def exact_facet_count(query, facet_name, facet_value):
+    t0 = time.time()
+    r = solr.exact_facet_count(query, facet_name, facet_value)
+    t1 = time.time()-t0
+    print >> web.debug, ('*** efc', query, r, t1)
+    return r
+
 def get_books(keys):
     """Get all books specified by the keys in a single query and also prefetch all the author records.
     """
     books = web.ctx.site.get_many(keys)
-    author_keys = set()
-    for b in books:
-        for a in b.authors:
-            author_keys.add(a.key)
-    
-    # prefetch authors. These will be cached by web.ctx.site for later use.
-    web.ctx.site.get_many(list(author_keys))
+
+    # prefetch the authors so they will be cached by web.ctx.site for
+    # later use.  Avoid trapping in case some author record doesn't
+    # have a key, since this seems to happen sometimes.
+    author_keys = set(getattr(a, 'key', None)
+                      for b in books for a in b.authors)
+
+    # actually retrieve the authors and don't do anything with them.
+    # this is just to get them into cache.
+    web.ctx.site.get_many(filter(bool, author_keys))
     return books
 
 def munch_qresults(qlist):
@@ -324,8 +335,6 @@ def munch_qresults(qlist):
         if res not in rset:
             rset.add(res)
             results.append(res)
-
-    # return [web.ctx.site.get(restore_slash(r)) for r in results]
 
     # this is supposed to be faster than calling site.get separately
     # for each result

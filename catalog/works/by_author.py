@@ -14,7 +14,7 @@ import olapi
 
 rc = read_rc()
 
-ol = OpenLibrary("http://dev.openlibtrary.org")
+ol = OpenLibrary("http://dev.openlibrary.org")
 ol.login('EdwardBot', rc['EdwardBot'])
 
 sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
@@ -22,7 +22,7 @@ sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
 base_url = "http://dev.openlibrary.org"
 query_url = base_url + "/query.json?query="
 
-work_num = 165618
+work_num = 184076
 
 set_staging(True)
 

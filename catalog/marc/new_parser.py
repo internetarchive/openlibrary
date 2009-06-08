@@ -584,5 +584,3 @@ def test_read_toc():
     toc = read_edition('marc_western_washington_univ/wwu_bibs.mrc_revrev.mrc:938969487:3862', data)['table_of_contents']
     for i in toc:
         print i
-
-#test_read_toc()

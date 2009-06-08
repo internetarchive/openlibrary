@@ -1,5 +1,6 @@
 import urllib
 import simplejson as json
+from time import sleep
 
 staging = False
 
@@ -19,14 +20,17 @@ def set_staging(i):
 def query(q):
     url = query_url() + urllib.quote(json.dumps(q))
     ret = None
-    for i in range(5):
+    for i in range(20):
         try:
             ret = urllib.urlopen(url).read()
             while ret.startswith('canceling statement due to statement timeout'):
                 ret = urllib.urlopen(url).read()
-            break
+            if ret:
+                break
+            print 'ret == None'
         except IOError:
             pass
+        sleep(20)
     try:
         return json.loads(ret)
     except:
@@ -58,8 +62,14 @@ def version_iter(q, limit=500, offset=0):
         q['offset'] += limit
 
 def withKey(key):
-    ret = urllib.urlopen(base_url() + key + '.json').read()
-    return json.loads(ret)
+    for i in range(20):
+        try:
+            ret = urllib.urlopen(base_url() + key + '.json').read()
+            return json.loads(ret)
+        except:
+            pass
+        print 'retry'
+        sleep(10)
 
 def get_mc(key): # get machine comment
     url = base_url() + key + '.json?m=history'

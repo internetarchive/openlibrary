@@ -27,7 +27,7 @@ def translate(data):
 
 re_question = re.compile('^\?+$')
 re_lccn = re.compile('(...\d+).*')
-re_letters = re.compile('[A-Za-z]')
+re_letters_and_bad = re.compile('[A-Za-z\x80-\xff]')
 re_int = re.compile ('\d{2,}')
 re_isbn = re.compile('([^ ()]+[\dX])(?: \((?:v\. (\d+)(?: : )?)?(.*)\))?')
 re_oclc = re.compile ('^\(OCoLC\).*?0*(\d+)')
@@ -239,7 +239,8 @@ def read_lccn(line):
         m = re_lccn.search(lccn)
         if not m:
             continue
-        lccn = re_letters.sub('', m.group(1)).strip()
+        # remove letters and bad chars
+        lccn = re_letters_and_bad.sub('', m.group(1)).strip()
         if lccn:
             found.append(lccn)
     return found
@@ -487,3 +488,8 @@ def test_empty():
 def bad_marc_line():
     line = '0 \x1f\xe2aEtude objective des ph\xe2enom\xe1enes neuro-psychiques;\x1e'
     assert list(get_all_subfields(line)) == [(u'\xe1', u'Etude objective des ph\xe9nom\xe8nes neuro-psychiques;')]
+
+def test_index_fields():
+    data = open('test_data/ithaca_college_75002321').read()
+    lccn = index_fields(data, ['010'])['lccn'][0]
+    assert lccn == '75002321'
