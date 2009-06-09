@@ -172,8 +172,11 @@ def get_tag_line(data, line):
     if data[offset] != '\x1e':
         offset += data[offset:].find('\x1e')
     last = offset+length
-    if data[last] != '\x1e':
-        length += data[last:].find('\x1e')
+    try:
+        if data[last] != '\x1e':
+            length += data[last:].find('\x1e')
+    except IndexError:
+        pass
 
     tag_line = data[offset + 1:offset + length + 1]
     if not line[0:2] == '00':
