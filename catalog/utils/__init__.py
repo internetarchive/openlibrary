@@ -28,7 +28,7 @@ def key_int(rec):
 def author_dates_match(a, b):
     # check if the dates of two authors
     for k in ['birth_date', 'death_date', 'date']:
-        if k not in a or k not in b:
+        if k not in a or a[k] is None or k not in b or b[k] is None:
             continue
         if a[k] == b[k] or a[k].startswith(b[k]) or b[k].startswith(a[k]):
             continue
@@ -70,10 +70,13 @@ def fix_l_in_date(date):
         return date
     return re_l_in_date.sub(lambda m:m.group(1).replace('l', '1'), date)
 
+re_ca = re.compile('ca\.([^ ])')
+
 def parse_date(date):
     if re_date_fl.match(date):
         return {}
     date = remove_trailing_number_dot(date)
+    date = re_ca.sub(lambda m:'ca. ' + m.group(1), date)
     if date.find('-') == -1:
         for r in re_date:
             m = r.search(date)
@@ -95,11 +98,17 @@ def parse_date(date):
         i['birth_date'] = fix_l_in_date(i['birth_date'])
     return i
 
+re_cent = re.compile('^[\dl][^-]+ cent\.$')
+
 def pick_first_date(dates):
     # this is to handle this case:
     # 100: $aLogan, Olive (Logan), $cSikes, $dMrs., $d1839-
     # see http://archive.org/download/gettheebehindmes00logaiala/gettheebehindmes00logaiala_meta.mrc
     # or http://pharosdb.us.archive.org:9090/show-marc?record=gettheebehindmes00logaiala/gettheebehindmes00logaiala_meta.mrc:0:521
+
+    dates = list(dates)
+    if len(dates) == 1 and re_cent.match(dates[0]):
+        return { 'date': fix_l_in_date(dates[0]) }
 
     for date in dates:
         result = parse_date(date)
@@ -112,6 +121,7 @@ def test_date():
     assert pick_first_date(["Mrs.", "1839-"]) == {'birth_date': '1839'}
     assert pick_first_date(["1882-."]) == {'birth_date': '1882'}
     assert pick_first_date(["1900-1990.."]) == {'birth_date': u'1900', 'death_date': u'1990'}
+    assert pick_first_date(["4th/5th cent."]) == {'date': '4th/5th cent.'}
 
 def strip_accents(s):
     return normalize('NFKD', unicode(s)).encode('ASCII', 'ignore')
@@ -136,6 +146,41 @@ def match_with_bad_chars(a, b):
     if a == b:
         return True
     return a.replace('?', '') == a.replace('?', '')
+
+def accent_count(s):
+    return len([c for c in norm(s) if ord(c) > 127])
+
+def norm(s):
+    return normalize('NFC', s) if isinstance(s, unicode) else s
+
+def pick_best_name(names):
+    names = [norm(n) for n in names]
+    n1 = names[0]
+    assert all(match_with_bad_chars(n1, n2) for n2 in names[1:])
+    names.sort(key=lambda n:accent_count(n), reverse=True)
+    assert '?' not in names[0]
+    return names[0]
+
+def pick_best_author(authors):
+    n1 = authors[0]['name']
+    assert all(match_with_bad_chars(n1, a['name']) for a in authors[1:])
+    authors.sort(key=lambda a:accent_count(a['name']), reverse=True)
+    assert '?' not in authors[0]['name']
+    return authors[0]
+
+def test_pick_best_name():
+    names = [u'Andre\u0301 Joa\u0303o Antonil', u'Andr\xe9 Jo\xe3o Antonil', 'Andre? Joa?o Antonil']
+    best = names[1]
+    assert pick_best_name(names) == best
+
+    names = [u'Antonio Carvalho da Costa', u'Anto\u0301nio Carvalho da Costa', u'Ant\xf3nio Carvalho da Costa']
+    best = names[2]
+    assert pick_best_name(names) == best
+
+def test_pick_best_author():
+    a1 = {u'name': u'Bretteville, Etienne Dubois abb\xe9 de', u'death_date': u'1688', 'key': u'/a/OL6398452A', u'birth_date': u'1650', u'title': u'abb\xe9 de', u'personal_name': u'Bretteville, Etienne Dubois', u'type': {u'key': u'/type/author'}, }
+    a2 = {u'name': u'Bretteville, \xc9tienne Dubois abb\xe9 de', u'death_date': u'1688', u'key': u'/a/OL4953701A', u'birth_date': u'1650', u'title': u'abb\xe9 de', u'personal_name': u'Bretteville, \xc9tienne Dubois', u'type': {u'key': u'/type/author'}, }
+    assert pick_best_author([a1, a2])['key'] == a2['key']
 
 def test_match_with_bad_chars():
     samples = [
