@@ -195,7 +195,6 @@ class search(delegate.page):
         # assert all(re.match('^[a-z]{5,}$', a) for a in ft_list), \
         #       ('invalid facet token(s) in',ft_list)
 
-
         ft_list = filter(partial(re.match, '^[a-z]{5,}$'), ft_list)
 
         qtokens = ' facet_tokens:(%s)'%(' '.join(ft_list)) if ft_list else ''
@@ -302,11 +301,13 @@ def restore_slash(book):
     return book
 
 @view.public
-def exact_facet_count(query, facet_name, facet_value):
+def exact_facet_count(query, selected_facets, facet_name, facet_value):
     t0 = time.time()
-    r = solr.exact_facet_count(query, facet_name, facet_value)
+    r = solr.exact_facet_count(query, selected_facets,
+                               facet_name, facet_value)
     t1 = time.time()-t0
-    print >> web.debug, ('*** efc', query, r, t1)
+    qfn = (query, facet_name, facet_value)
+    print >> web.debug, ('*** efc', qfn, r, t1)
     return r
 
 def get_books(keys):
@@ -319,10 +320,11 @@ def get_books(keys):
     # have a key, since this seems to happen sometimes.
     author_keys = set(getattr(a, 'key', None)
                       for b in books for a in b.authors)
+    author_keys.discard(None)
 
     # actually retrieve the authors and don't do anything with them.
     # this is just to get them into cache.
-    web.ctx.site.get_many(filter(bool, author_keys))
+    web.ctx.site.get_many(list(author_keys))
     return books
 
 def munch_qresults(qlist):
