@@ -35,8 +35,7 @@ md5sum apache-solr-1.3.0.tgz |
            exit 1 ;
   fi
 rm apache-solr-1.3.0.downloaded-md5
-mkdir -p /usr/local/solr-1.3.0
-cd /usr/local/solr-1.3.0
+cd /usr/local
 tar xfz /tmp/apache-solr-1.3.0.tgz
 rm /tmp/apache-solr-1.3.0.tgz
 cd ..
