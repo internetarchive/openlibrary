@@ -1,0 +1,22 @@
+#review_form textarea {
+    width: 38em; 
+    height: 40em;
+}
+#review_form label {
+    display: none;
+} 
+.review h1 {
+    margin-bottom: 0.1em;
+    padding-bottom: 0em;
+}
+.review .details {
+    padding-top: 0.1em;
+    margin-top: 0em;
+    color: gray;
+}
+.review_text {
+    font-size: 1em;
+}
+.review .navigation {
+    padding-top: 3em;
+}
