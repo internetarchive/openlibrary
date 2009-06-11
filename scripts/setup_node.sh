@@ -22,6 +22,25 @@ aptitude install        \
     python-yaml         \
     python-profiler
 
+echo "installing solr..."
+pushd /tmp
+# temporary mirror location because archive.org homeserver is down
+# use archive.org mirror once that situation is fixed @@
+wget http://www.mirrorgeek.com/apache.org/lucene/solr/1.3.0/apache-solr-1.3.0.tgz
+md5sum apache-solr-1.3.0.tgz > apache-solr-1.3.0.downloaded-md5
+md5sum apache-solr-1.3.0.tgz |
+  if cmp -s - apache-solr-1.3.0.expected-md5 ;
+      then echo "solr md5 check ok" ;
+      else echo "solr md5 checksum fails" ;
+           exit 1 ;
+  fi
+rm apache-solr-1.3.0.downloaded-md5
+cd /usr/local
+tar xfz /tmp/apache-solr-1.3.0.tgz
+rm /tmp/apache-solr-1.3.0.tgz
+cd ..
+ln -lf apache-solr-1.3.0 
+
 echo "removing troublesome modules"
 aptitude remove yaz
 

@@ -27,6 +27,7 @@ default_facet_list = ('has_fulltext',
                       'facet_year',
                       'language',
                       'language_code',
+                      'languages',
                       'publishers',
                       )
 
@@ -223,10 +224,13 @@ class Solr_client(object):
         page_ids = list(e.text for e in XML.getiterator('identifier'))
         return [extract(x)[1] for x in page_ids]
 
-    def exact_facet_count(self, query, facet_name, facet_value):
+    def exact_facet_count(self, query, selected_facets,
+                          facet_name, facet_value):
         ftoken = facet_token(facet_name, facet_value)
+        sf = list(s for s in selected_facets if re.match('^[a-z]{12}$', s))
+        fs = ' '.join(sf+[ftoken])
         result_json = self.raw_search(
-            '%s facet_tokens:%s'% (query, ftoken),
+            '%s facet_tokens:(%s)'% (self.basic_query(query), fs),
             rows=0,
             wt='json')
         result = simplejson.loads(result_json)
