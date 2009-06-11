@@ -1,7 +1,9 @@
-import re, web
+import re, web, sys
 from catalog.importer.db_read import get_mc
+sys.path.append('/home/edward/src/olapi')
+from olapi import unmarshal
 
-re_meta_mrc = re.compile('^([^/]*)_meta.mrc:0:\d+$')
+re_meta_mrc = re.compile('([^/]+)_(meta|marc).(mrc|xml)')
 re_skip = re.compile('\b([A-Z]|Co|Dr|Jr|Capt|Mr|Mrs|Ms|Prof|Rev|Revd|Hon)\.$')
 
 db_amazon = web.database(dbn='postgres', db='amazon')
@@ -30,7 +32,32 @@ def fix_subject(e):
         subjects = [s[:-1] if has_dot(s) else s for s in e['subjects']]
         e['subjects'] = subjects
 
-def get_and_fix_edition(key, e):
+def undelete_author(a, ol):
+    key = a['key']
+    assert a['type'] == '/type/delete'
+    url = 'http://openlibrary.org' + key + '.json?v=' + str(a['revision'] - 1)
+    prev = unmarshal(json.load(urllib2.urlopen(url)))
+    assert prev['type'] == '/type/author'
+    ol.save(key, prev, 'undelete author')
+
+def undelete_authors(authors, ol):
+    for a in authors:
+        if a['type'] == '/type/delete':
+            undelete_author(a, ol)
+        else:
+            assert a['type'] == '/type/author'
+
+def fix_authors(e, ol):
+    if 'authors' not in e:
+        return
+    authors = [ol.get(akey) for akey in e['authors']]
+    while any(a['type'] == '/type/redirect' for a in authors):
+        print 'following redirects'
+        authors = [ol.get(a['location']) if a['type'] == '/type/redirect' else a for a in authors]
+    e['authors'] = [{'key': a['key']} for a in authors]
+    undelete_authors(authors, ol)
+
+def fix_edition(key, e, ol):
     existing = get_mc(key)
     if 'source_records' not in e and existing:
         amazon = 'amazon:'
@@ -39,10 +66,18 @@ def get_and_fix_edition(key, e):
         elif existing.startswith(amazon):
             sr = amazon_source_records(existing[len(amazon):]) or [existing]
         else:
-            m = re_meta_mrc.match(existing)
+            print 'existing:', existing
+            m = re_meta_mrc.search(existing)
             sr = ['marc:' + existing if not m else 'ia:' + m.group(1)]
         e['source_records'] = sr
+    if 'ocaid' in e:
+        ia = 'ia:' + e['ocaid']
+        if 'source_records' not in e:
+            e['source_records'] = [ia]
+        elif ia not in e['source_records']:
+            e['source_records'].append(ia)
 
     fix_toc(e)
     fix_subject(e)
+    fix_authors(e, ol)
     return e
