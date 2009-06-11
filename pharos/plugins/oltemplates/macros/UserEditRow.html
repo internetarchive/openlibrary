@@ -1,0 +1,29 @@
+$def with (page, name, unique=True, right=False)
+
+$ label = i18n.get('/type/user', name)
+$ value = page[name]
+
+
+$ class_label = (right and "formheader-data-left") or "formheader"
+$ class_input = (right and "formheader-data-left") or "formfield"
+
+<tbody id="tbody_$name">
+$if unique:
+    <tr>
+        <td valign="middle" class="$class_label">$label</td>
+        <td valign="top" class="$class_input"><input type="text" name="$name" value="$value" style=" width: 100%" /></td>
+        <td valign="top" class="formbuttons"></td>
+    </tr>
+$else:
+    $ value = value or [""]
+    $for i, v in enumerate(value):
+        <tr>
+            <td valign="middle" class="$class_label">$label</td>
+            <td valign="top" class="$class_input"><input type="text" name="$name#$i" value="$v" style=" width: 100%" /></td>
+            <td valign="top" class="formbuttons-identifier">
+                $if i == len(value) - 1:
+                    <button class="control" onClick="add_row('$name')" type="button"><img src="/static/images/+.gif" alt="+" width="18" height="18" /></button>
+            </td>
+        </tr>
+        $ label = ""
+</tbody>

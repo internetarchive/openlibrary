@@ -1,0 +1,133 @@
+$def with (page)
+
+
+$ _t = i18n.get_namespace(page.type.key)
+$ _ = i18n.get_namespace('/mode/view')
+
+$var title: $page.title
+
+<div id="header" style="padding-left: 30px">           
+        <div><div id="title">$page.title</div> $:macros.FlourishButton("edit this work", changequery(m='edit'), "right", "edition")</div>
+            $if page.get('subtitle'): <div class="subtitle" style="margin-top: -4px;">$page.subtitle<br /></div>
+        <div id="statement" style="padding-left: 0px;">
+            $if page.authors: by <span class="datalink">$:thingrepr(page.authors)</span><br />
+        </div>
+</div>
+
+
+
+$if page.description: <div class="contenttext" style="margin-bottom: 20px; margin-left: 30px;">$page.description</div>
+
+$ s = "other_titles", "translated_titles", "genres", "first_publish_date", "notes", "subjects", "subject_places", "original_languages", "first_sentence", "dewey_number", "lc_classifications", "links",
+
+<div style="padding: 0px 30px 20px 30px; margin-right: 30px;">
+<table border="0" cellpadding="0" cellspacing="0">
+$ rule = "-top"
+    $for name in s:
+        $if page[name]:
+            <tr>
+                <td class="formheader-rule" style="padding-left: 0px;">$_t[name]:</td>
+            $if name == "links":
+                <td class="formfield-rule" width="100%">
+                <ul>
+                    $for link in page[name]:
+                        <li><a href="$link.url">$link.title</a>
+                </ul>
+                </td>
+            $elif name == "translated_titles":
+                <td class="formfield-rule" width="100%" style="padding-left: 0px;">
+                <table>
+                    $for t in page[name]:
+                        <tr><td>$t.language.name:</td><td>$t.text</td></tr>
+                </table>
+                </td>
+            $elif name == "subjects":
+                <td class="formfield-rule" width="100%" style="padding-left: 0px;">
+                    $for subject in page[name]:
+                        $ subject_label = subject.strip('.')
+                        <a href="/search?ftokens=$:utf8(facet_token('subjects', thingrepr(subject).strip()))">$:utf8(thingrepr(subject_label)).replace('--', '&mdash;')</a><br />
+                </td>
+            $else:
+                    <td class="formfield-rule" width="100%">$:thingrepr(page[name])</td>
+                </tr>
+</table>
+
+<div class="toc-header" style="padding-top: 35px;">
+    <b>$_t.table_of_contents</b>
+
+</div>
+
+        $if page.table_of_contents:
+                <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                    $ first = "first"
+                    $for toc in page.table_of_contents:
+                        <tr>
+                            <td class="toc-number rule $first">$loop.index&nbsp;&nbsp;</td>
+                            <td class="toc rule $first" width="100%">$toc.title</td>
+                            <td class="toc-link-end rule $first" align="center">&nbsp;&nbsp;</td>
+                        </tr>
+                        $ first = ""
+                </table>
+        $else:
+            <p><em><span class="copyright">No table of contents available</span> <img src="/static/images/arrow.red.png" alt="Disclosure Arrow" /> <a href="$changequery(m='edit')"  style="text-decoration: underline">Add it!</a></em></p>
+
+
+    </div>
+</div>
+
+</div>
+
+<div id="bibliography">
+    <div id="browse-rule"></div>
+    <div id="biblio-form-body">
+
+
+$if page.editions:
+    <table border="0" cellspacing="5" cellpadding="0" border="0">
+    $ col = 0
+    $for book in page.editions:
+        $if col == 0: <tr>
+        <td class="cover">
+             $ olid = book.key.split('/')[-1]
+             <div style="padding: 5px; border: solid 1px #ccc; background-color: #fff; text-align: center; height: 60px;"><a href="$book.key"><img src="http://covers.openlibrary.org/b/olid/$olid-M.jpg?default=http://wiki-beta.us.archive.org/static/images/blank.book.png" height="58"/></a></div>
+        </td>
+        <td style="vertical-align: top; padding-top: 4px;">
+             <span class="book-details-italic" style="color: #000">
+             <a href="$book.key" class="result" style="text-decoration: underline;">$book.title_prefix $book.title</a>
+             $if book.ocaid:
+                 <a href="/bookreader/$book.ocaid" style="color: #900; text-decoration: none; background-color: #fff; font-size: 11px; border: 1px solid #bebe7c; font-weight: bold">&nbsp;$_.fulltext&nbsp;</a>
+             <br />
+             $if book.subtitle: $book.subtitle<br />
+               
+             $if book.get('publish_date'): $book.publish_date, 
+             $if book.get('publishers'): $:thingrepr(book.publishers)
+             $if book.get('publish_places'): ($:thingrepr(book.publish_places).strip())
+             <br /></span><span style="color: #666">
+             $ edition_and_lang = ''
+             $if book.edition_name:
+                 $ edition_and_lang += book.edition_name
+             $if book.languages:
+                 $ edition_and_lang += ', '.join([l.name for l in book.languages])
+             $if edition_and_lang and book.number_of_pages:
+                 $ edition_and_lang += ', '
+             $edition_and_lang
+             $if book.number_of_pages:
+                 $book.number_of_pages pages
+         </span></td>
+         $ col += 1
+         $if col == 2:
+             </tr>
+             $ col = 0
+    $if col != 0: </tr>
+    </table>
+</div>
+
+
+<div class="copyright-footer">
+    $ editions_page = safeint(query_param('editions_page', '0'))
+    $if editions_page != 0:
+        &larr; <a href="$:changequery(editions_page=editions_page - 1)" class="datalink" rel="nofollow">prev</a>
+    
+    $if len(page.editions) == 20:
+        ... <a href="$:changequery(editions_page=editions_page + 1)" class="datalink" rel="nofollow">next</a> &rarr;
+</div>

@@ -1,0 +1,90 @@
+$def with (page)
+
+$ lang = i18n.get_locale() or 'en'
+$ _t = i18n.get_namespace('/type/home')
+$ _ = i18n.get_namespace('/mode/view')
+
+$var title: $page.title
+
+<style type="text/css">
+<!--
+#book-art-home { width: 205px; height: 300px; text-align: center; float: left; padding-top: 21px; margin-top: 4px; padding-left: 13px; padding-right: 14px; background: #fff url(/static/logos/logo-${lang}.png) top center no-repeat; }
+-->
+</style>
+
+<div id="violator"><a href="/beta"><img src="/static/images/beta.png" alt="Beta Site" border="0" /></a></div>
+
+
+<div id="contentcolumn">
+
+    <div id="book-art-home" style="clear: both">
+    </div>
+
+<table border="0" cellpadding="0" cellspacing="0"><tr><td valign="top">
+    <div id="header" style="padding-top: 52px;">
+        <span id="title" style="margin-left: -12px;">$page.title</span>
+    </div>
+
+    <div id="searchtext" style="margin-top: -20px;">
+        $:format(page.body or "")
+        $:macros.RandomHomeSearch(page)
+    </div>
+
+</td><td valign="top">
+
+        <div id="nav-home">
+            <div id="options">
+                <div class="navouter">
+                    <img src="/static/images/nav.top.png" alt="" border="0" />
+                    <div class="navinner">
+                        <div class="navinner-padding">
+                            <div class="homenav">
+                                $:page.news
+                            </div>
+                        </div>
+                    </div>
+                    <img src="/static/images/nav.bot.png" alt="" border="0" />
+                </div>
+            </div>
+        </div>
+</td></tr></table>
+
+<div id="bibliography" style="margin-top: -30px;">
+    <div id="browse-rule"></div>
+    <div id="biblio-form-body">
+        <table border="0" cellpadding="8" cellspacing="0">
+        <tr><td valign="top">
+            <table border="0" width="100%" cellpadding="6" cellspacing="0">
+            <tr>
+                <td valign="top">
+                    <div class="homeheader">$_t.find_books</div>
+                    <br clear="left" />     
+                    <div class="result-text-home"><img src="/static/images/arrow.red.png" alt="$_t.arrow" /> <a href="/bpl" class='datalink'>Request scan</a></div>
+                    <div class="result-text-home"><img src="/static/images/arrow.red.png" alt="$_t.arrow" /> <a href="/recentchanges" class='datalink'>$_t.recent_changes</a></div> 
+                    <div class="result-text-home"><img src="/static/images/arrow.red.png" alt="$_t.arrow" /> <a href="/search?q=tom+sawyer" class="datalink">$_t.example_search</a></div>
+                    <div class="result-text-home"><img src="/static/images/arrow.red.png" alt="$_t.arrow" /> <a href="/addbook" class='datalink'>$_t.add_a_book</a></div>
+                    <div class="result-text-home"><img src="/static/images/arrow.red.png" alt="$_t.arrow" /> <a href="/index/index.html" class='datalink'>Index of books</a></div>
+                </td>
+                <td valign="top">
+                    <div class="homeheader">$_t.build_library</div><br clear="left" />     
+                    <div class="result-text-home"> <img src="/static/images/arrow.red.png" alt="$_t.arrow" /> <a href="/about" class="datalink">$_t.about_project</a></div>
+                    <div class="result-text-home"> <img src="/static/images/arrow.red.png" alt="$_t.arrow" /> <a href="/about/tech" class="datalink">$_t.about_tech</a></div>
+                    <div class="result-text-home"> <img src="/static/images/arrow.red.png" alt="$_t.arrow" /> <a href="/about/lib" class="datalink">$_t.about_lib</a></div>
+                    <div class="result-text-home"> <img src="/static/images/arrow.red.png" alt="$_t.arrow" /> <a href="/tour" class="datalink">$_t.guided_tour</a></div>
+                </td>
+                <td valign="top">
+                    <div class="homeheader">$_t.develop_site</div><br clear="left" />     
+                    <div class="result-text-home"><img src="/static/images/arrow.red.png" alt="$_t.arrow" /> <a href="https://bugs.launchpad.net/openlibrary/" class="datalink">$_t.bug_tracking</a></div>
+                    <div class="result-text-home"> <img src="/static/images/arrow.red.png" alt="$_t.arrow" /> <a href="http://github.com/openlibrary/openlibrary" class="datalink">$_t.code_repo</a> (<a href="http://github.com/infogami/infogami" class="datalink">infogami</a>)	</div>
+                    <div class="result-text-home"> <img src="/static/images/arrow.red.png" alt="$_t.arrow" /> <a href="/dev/docs" class="datalink">$_t.documentation</a></div>
+                    <div class="result-text-home"> <img src="/static/images/arrow.red.png" alt="$_t.arrow" /> <a href="/i18n" class="datalink">$_t.i18n</a></div>
+            </td>
+        </tr>
+        </table>
+        <br />
+        </td>
+        </tr>
+        </table>
+    </div>
+</div>
+</div>

@@ -1,0 +1,33 @@
+$def with (page)
+
+$ _t = i18n.get_namespace('/advanced_search')
+
+<form method="get" action="/search">
+    <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+            <td>
+                <div class="simple-search-form">
+                    <input style="background-color: #f8f8f8; font-family: georgia; font-size: 18px; color: #6F320D; border: 1px solid #ccc; padding-left: 4px; width: 100%" type="text" name="q" value="" title="$_t.type_search." />
+                </div>
+            </td>
+            <td>
+                <div class="button-border"><button class="go" type="submit">$_t.go</button><img src="/static/images/flourish.gif"  alt="$_t.go" /></div>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2" style="padding-top: 3px;">
+                <span class="copyright">
+                    <input tabindex="9" type="checkbox" value="mhsncqbxgkup" name="ftokens">
+                    $_t.fulltext_items_only
+                    <img src="/static/images/arrow.red.png" alt="$_t.arrow" />
+                    <a href="/advanced" style="text-decoration: underline">$_t.advanced_search</a>
+                </span>
+            </td>
+        </tr>
+        <tr>
+            <td style="padding-top: 18px;">
+                $:format(page.stats)
+            </td>
+        </tr>
+    </table>      
+</form>

@@ -1,0 +1,15 @@
+$def with (page, preview=False)
+
+$ edit = thingedit(page)
+$var title: $:edit.title
+    
+$:macros.databarEdit(page)
+
+$if preview:
+    <div id="preview">
+    $:thingview(page)
+    </div>
+
+<div id="edit">
+$:edit
+</div>

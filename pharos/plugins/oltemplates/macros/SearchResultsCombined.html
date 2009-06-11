@@ -1,0 +1,40 @@
+$def with (results, fulltext=False)
+
+$ _ = i18n.get_namespace('/search')
+<table border="0" cellpadding="0" cellspacing="0" width="100%" class="result-item">
+
+$for b in results:
+    $if fulltext:
+        $ book = b[0]
+        $ ocaid = b[1]
+        $ pages = b[2]
+    $else:
+        $ book = b
+        $ ocaid = None
+    <tr>
+    <td class="cover">
+        $ olid = book.key.split('/')[-1]
+        <a href="$book.key"><img src="http://covers.openlibrary.org/b/olid/$olid-S.jpg?default=http://wiki-beta.us.archive.org/static/images/blank.book.png" height="58"/></a>
+    </td>
+    <td class="result-text" valign="top">
+        <a href="$book.key/$book.title.replace(' ', '-')" class="result">$book.title_prefix $book.title</a>
+        <span class="result-small">$_.by 
+        $for author in book.authors:
+            $:thingrepr(author)
+        </span>
+        <div class="result-small">
+            $if book.publishers:
+                ($(', '.join(book.publishers)), $book.publish_date)
+            $else:
+                ($book.publish_date)
+            $book.physical_format
+            $if book.ocaid: &nbsp;&nbsp;<a href="/bookreader/$book.ocaid"><div class="small-button fulltext">$_.fulltext</div></a>
+        </div>
+        $if fulltext:
+            <p>
+            $for pn, pg in pages:
+                <a href="http://openlibrary.org/bookreader/$ocaid/leaf$(pn / 2)">$pg</a>
+            </p>
+    </td></tr>
+
+</table>

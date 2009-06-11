@@ -1,0 +1,15 @@
+$def with (fname, fval)
+ $ _ = i18n.get_namespace('/search')
+$if fname == 'has_fulltext':
+    $ f = int(fval)
+    $if f == 1: $_.available
+    $elif f == 0: $_.not_available
+    $elif f == 5: $_.scannable
+$elif fname == 'facet_year':
+    $if fval == 'pre1920': $_.pre1920
+    $elif fval == '2000': $_.after2000
+    $elif fval == 'unknown': $_.unknown
+    $else:
+         $ y = int(fval[slice(4)])
+         $(y)-$(y + 19)
+$else: $fval

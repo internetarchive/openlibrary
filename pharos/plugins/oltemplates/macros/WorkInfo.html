@@ -1,0 +1,37 @@
+$def with (page)
+
+$ _t = i18n.get_namespace(page.type.key)
+$ _ = i18n.get_namespace('/mode/view')
+
+$ s = "other_titles", "translated_titles", "genres", "first_publish_date", "subject_places", "original_languages", "dewey_number", "lc_classifications", "links"
+
+<div id="nav" style="margin-left: 0px; clear: both;">
+<div id="options">
+<div class="navouter">
+<img src="/static/images/nav.top.png" alt="Options" border="0" />
+<div class="navinner">
+<div class="navinner-padding">
+<span class="navheader">About this Work</span><br /><br />
+
+$for name in s:
+    $if page[name]:
+        <span class="navheader" style="text-transform: none; letter-spacing: .0em; font-weight: bold; color: #333;">$_t[name]:</span> 
+        <div style="padding: 0px 15px 8px 25px; border-top: 0px solid #fff;">
+            $if name == "other_titles":
+                $:'<br />'.join(thingrepr(i) for i in page[name])
+            $elif name == "translated_titles":
+                $for t in page[name]: <span style="font-style: italic;">$t.language.name -</span> $t.text<br />
+            $elif name == "links":
+                $for link in page[name]: <a href="$link.url">$link.title</a><br />
+            $else:
+                $:thingrepr(page[name])<br />
+        </div>
+
+</div>
+</div>
+
+<img src="/static/images/nav.bot.png" alt="" border="0" />
+
+</div>
+</div>
+</div>

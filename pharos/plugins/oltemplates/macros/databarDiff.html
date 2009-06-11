@@ -1,0 +1,17 @@
+$def with ()
+
+$ _ = i18n.get_namespace('/mode/diff')
+
+<div id="databar">
+<div class="widgetlabel">
+    [<a href="$changequery(m=None)">$_.view</a>]
+    [<a href="$changequery(m='history')">$_.history</a>]
+</div>
+
+<div class="simplesearch">
+    <form method="get" action="/search">
+        <input type="text" name="q" value="" size="19" title="$_.type_search" />
+        <button type="submit" class="go-small">$_.go</button>
+    </form>
+</div>
+</div>

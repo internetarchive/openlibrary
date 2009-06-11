@@ -1,0 +1,20 @@
+$def with (book)
+
+$var title: $book.title
+
+<div id="header">
+    <span id="title">Scan Complete: $book.title</span><br />
+</div>
+
+<div class="content"> 
+
+<p>
+Please provide the identifier of the archive item containing the scanned copy of this book to update this book record.
+</p>
+
+<form method="POST">
+	Archive ID <input type="text" name="ocaid" value=""><br/><br/>
+	<button type="submit" name="_update" value="Update">Update</button>
+</form>
+
+</div>

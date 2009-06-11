@@ -1,0 +1,13 @@
+$def with (page)
+
+$ i18n_page = get_i18n_page(page)
+
+$if i18n_page:
+    $ view = thingview(i18n_page)
+    $ title = view.title
+    $:view
+$else:
+    $ title = page.key
+    No translations found.
+
+$var title: $title

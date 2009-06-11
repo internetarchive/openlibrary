@@ -1,0 +1,18 @@
+$def with ()
+
+$ _ = i18n.get_namespace('/macros/RecentChanges')
+
+$var title: $_.recent_changes
+
+<div id="databar"></div>
+
+<div id="header">
+    <div style="float:left;padding-left:10px;padding-right:15px;"></div>
+    <span class="pretitle"></span>
+    <div id="title">$_.recent_changes</div>
+</div>
+
+$ type = query_param('type', None)
+$ author = query_param('author', None)
+
+$:macros.RecentChanges(author=author, type=type)

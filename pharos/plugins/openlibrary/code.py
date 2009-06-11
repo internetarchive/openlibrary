@@ -251,26 +251,6 @@ def get_pages(type, processor):
     for p in pages:
         processor(web.ctx.site.get(p))
 
-def get_templates():
-    get_pages('/type/template', lambda page: save(change_ext(page.key,'.html'), page.body))
-
-def get_macros():
-    get_pages('/type/macro', lambda page: save(change_ext(page.key, '.html'), page.macro))
-
-def get_i18n():
-    from infogami.plugins.i18n.code import unstringify
-    def process(page):
-        text = "\n".join("%s = %s" % (k, repr(v)) for k, v in unstringify(page.dict()).items())
-        save(page.key, text)
-    get_pages('/type/i18n', process)
-
-@infogami.action
-def pull_templates():
-    """Pull templates, macros and i18n strings to checkin them repository."""
-    get_templates()
-    get_macros()
-    get_i18n()
-
 class flipbook(delegate.page):
     path = "/details/([a-zA-Z0-9_-]*)(?:/leaf(\d+))?"
 
