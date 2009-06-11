@@ -17,8 +17,9 @@ ol.login('ImportBot', rc['ImportBot'])
 ia_db = web.database(dbn='mysql', db='archive', user=rc['ia_db_user'], pw=rc['ia_db_pass'], host=rc['ia_db_host'])
 ia_db.printing = False
 
+re_meta_marc = re.compile('([^/]+)_(meta|marc)\.(mrc|xml)')
+
 threshold = 875
-index_path = '/1/pharos/edward/index/2/'
 amazon.set_isbn_match(225)
 
 def try_amazon(thing):
@@ -27,7 +28,14 @@ def try_amazon(thing):
     if 'authors' in thing:
         authors = []
         for a in thing['authors']:
-            author_thing = withKey(a['key'])
+            # this is a hack
+            # the type of thing['authors'] should all be the same type
+            if isinstance(a, dict):
+                akey = a['key']
+            else:
+                assert isinstance(a, basestring)
+                akey = a
+            author_thing = withKey(akey)
             if 'name' in author_thing:
                 authors.append(author_thing['name'])
     else:
@@ -53,7 +61,12 @@ def marc_match(e1, loc):
     return attempt_merge(e1, e2, threshold, debug=False)
 
 def ia_match(e1, ia):
-    loc, rec = get_ia(ia)
+    try:
+        loc, rec = get_ia(ia)
+    except urllib2.HTTPError:
+        return False
+    if rec is None or 'full_title' not in rec:
+        return False
     try:
         e2 = build_marc(rec)
     except TypeError:
@@ -102,6 +115,10 @@ def source_records_match(e1, thing):
     ia = 'ia:'
     match = False
     for src in thing['source_records']:
+        # hippocrates01hippuoft/hippocrates01hippuoft_marc.xml
+        m = re_meta_marc.search(src)
+        if m:
+            src = 'ia:' + m.group(1)
         if src.startswith(marc):
             if marc_match(e1, src[len(marc):]):
                 match = True
@@ -119,6 +136,8 @@ def source_records_match(e1, thing):
 
 def try_merge(e1, edition_key, thing):
     thing_type = thing['type']['key']
+    if thing_type != '/type/edition':
+        print thing['key'], 'is', thing['type']['key']
     if thing_type == '/type/delete': # 
         return False
     assert thing_type == '/type/edition'

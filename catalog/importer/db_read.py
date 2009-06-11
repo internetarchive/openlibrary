@@ -14,7 +14,8 @@ def find_author(name): # unused
     return [row.key for row in iter]
 
 def read_from_url(url):
-    for i in range(50):
+    data = None
+    for i in range(20):
         try:
             data = urlopen(url).read()
             if data:
@@ -22,22 +23,15 @@ def read_from_url(url):
             print 'data == None'
         except IOError:
             print 'IOError'
-    try:
-        ret = json.loads(data)
-    except:
-        open('error.html', 'w').write(data)
-        raise
+            print url
+        sleep(10)
+    if not data:
+        return None
+    ret = json.loads(data)
     if ret['status'] == 'fail' and ret['message'].startswith('Not Found: '):
         return None
     assert ret['status'] == 'ok'
     return ret['result']
-    for i in range(50):
-        data = urlopen(url).read()
-        ret = json.loads(data)
-        if ret['status'] == 'ok':
-            return ret['result']
-        sleep(10)
-    return None
 
 def set_staging(v):
     global staging

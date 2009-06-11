@@ -27,8 +27,8 @@ db = web.database(dbn='mysql', host=rc['ia_db_host'], user=rc['ia_db_user'], \
 db.printing = False
 
 #iter = db.query("select identifier from metadata where scanner is not null and scanner != 'google' and noindex is null and mediatype='texts' and curatestate='approved' order by curatedate limit 10")
-#iter = db.query("select identifier from metadata where scanner is not null and scanner != 'google' and noindex is null and mediatype='texts' and curatestate='approved' and identifier >= 'talesothmetrical00soutrich'")
-iter = db.query("select identifier from metadata where noindex is null and mediatype='texts' and scanner='google'")
+#iter = db.query("select identifier from metadata where scanner is not null and scanner != 'google' and noindex is null and mediatype='texts' and identifier >= 'lastsongsfromvag00carmrich'")
+iter = db.query("select identifier from metadata where noindex is null and mediatype='texts' and scanner='google' and identifier >= 'britishreviewan05unkngoog'")
 
 t0 = time()
 t_prev = time()
@@ -109,7 +109,7 @@ def add_source_records(key, ia):
         authors = [ol.get(akey) for akey in e['authors']]
         authors = [ol.get(a['location']) if a['type'] == '/type/redirect' else a \
                 for a in authors]
-        e['authors'] = [a['key'] for a in authors]
+        e['authors'] = [{'key': a['key']} for a in authors]
         undelete_authors(authors)
     try:
         print ol.save(key, e, 'found a matching MARC record')

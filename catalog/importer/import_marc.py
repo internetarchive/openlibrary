@@ -159,7 +159,7 @@ def add_source_records(key, new, thing, data):
             while any(a['type'] == '/type/redirect' for a in authors):
                 print 'following redirects'
                 authors = [ol.get(a['location']) if a['type'] == '/type/redirect' else a for a in authors]
-            e['authors'] = [a['key'] for a in authors]
+            e['authors'] = [{'key': a['key']} for a in authors]
             undelete_authors(authors)
     try:
         print ol.save(key, e, 'found a matching MARC record')

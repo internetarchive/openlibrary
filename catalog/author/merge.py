@@ -6,7 +6,7 @@ from unicodedata import normalize
 import web, re, sys, codecs, urllib
 sys.path.append('/home/edward/src/olapi')
 from olapi import OpenLibrary, unmarshal
-from catalog.utils.edit import get_and_fix_edition
+from catalog.utils.edit import fix_edition
 from catalog.utils.query import query_iter
 
 sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
@@ -46,15 +46,20 @@ def update_author(key, new):
     print ol.write(q, comment='merge author')
 
 def update_edition(key, old, new):
+    print 'key:', key
+    print 'old:', old
+    print 'new:', new
     e = ol.get(key)
-    get_and_fix_edition(key, e)
+    fix_edition(key, e, ol)
     authors = []
+    print 'current authors:', e['authors']
     for cur in e['authors']:
         print old, cur in old
         a = new if cur in old else cur
         print cur, '->', a
         if a not in authors:
-            authors.append(a)
+            authors.append({'key': a})
+    print 'authors:', authors
     e['authors'] = authors
 
     try:
@@ -67,11 +72,12 @@ def update_edition(key, old, new):
         # [{u'type': <ref: u'/type/toc_item'>}, ...]
         print key, new_edition['table_of_contents']
         #assert 'title' in new_edition['table_of_contents'][0]
-    assert all(cur not in old for cur in e['authors'])
+#    assert all(cur not in old for cur in e['authors'])
 
 def switch_author(old, new, other):
     q = { 'authors': old, 'type': '/type/edition', }
     for e in query_iter(q):
+        print 'switch author:', e['key']
         update_edition(e['key'], other, new)
 
 def make_redirect(old, new):
@@ -161,14 +167,18 @@ def merge_authors(keys):
 
     do_normalize(new_key, best_key, authors)
     old_keys = set(k for k in keys if k != new_key) 
+    print 'old keys:', old_keys
     for old in old_keys:
+        # /b/OL21291659M
         switch_author(old, new_key, old_keys)
         if old in not_redirect:
             make_redirect(old, new_key)
         q = { 'authors': old, 'type': '/type/edition', }
-#        if list(get_things(q)) != []:
-#            switch_author(old, new_key, old_keys)
-        assert list(query_iter(q)) == []
+        if list(get_things(q)) != []:
+            switch_author(old, new_key, old_keys)
+        l = list(query_iter(q))
+        print old, l
+        assert l == []
     
 if __name__ == '__main__':
     assert len(sys.argv) > 2
