@@ -7,6 +7,7 @@ from catalog.utils import mk_norm
 from catalog.read_rc import read_rc
 from collections import defaultdict
 from pprint import pprint, pformat
+from catalog.utils.edit import fix_edition
 import urllib
 sys.path.append('/home/edward/src/olapi')
 from olapi import OpenLibrary, Reference
@@ -208,43 +209,14 @@ def add_works(akey, works):
         print ol.write(q, comment='create work')
         for ekey in w['editions']:
             e = ol.get(ekey)
+            fix_edition(ekey, e, ol)
             e['works'] = [Reference(w['key'])]
-            toc = e.get('table_of_contents', None)
-            if toc:
-                if isinstance(toc[0], basestring):
-                    e['table_of_contents'] = toc_items(toc)
-                else:
-                    assert isinstance(toc[0], dict)
-                    if toc[0]['type'] == '/type/text':
-                        e['table_of_contents'] = toc_items([i['value'] for i in toc])
-                    else:
-                        assert toc[0]['type']['key'] == '/type/toc_item'
             try:
                 ol.save(ekey, e, 'found a work')
             except olapi.OLError:
                 print ekey
                 print e
                 raise
-            if toc:
-                e = ol.get(ekey)
-                print ekey
-                print e['table_of_contents']
-            continue
-
-            q = {
-                'key': e,
-                'works': {'connect': 'update_list', 'value': [w['key']] },
-            }
-            if e in w['toc']:
-                toc_list = w['toc'][e]
-                if toc_list[-1] == '':
-                    toc_list.pop()
-                q['table_of_contents'] = {
-                    'connect': 'update_list',
-                    'value': [{'title': item, 'type': {'key': '/type/toc_item'}} for item in toc_list]
-                }
-            queue.append(q)
-#    print ol.write(queue, comment='found works')
 
 def by_authors():
     find_new_work_key()
