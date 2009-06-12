@@ -24,7 +24,7 @@ $var title: $_.edit_title(page.key)
             <input type="text" name="title" value="$page.title" style="width:100%" />
             <br/><br/>
             <textarea name="body" rows="15" cols="80">$page.body</textarea>
-            $:macros.EditButtons()
+            $:macros.EditButtons(comment=page.comment_)
         $:macros.HelpFormatting()
     </div>
 </div>

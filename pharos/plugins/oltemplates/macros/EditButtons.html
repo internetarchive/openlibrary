@@ -1,8 +1,10 @@
+$def with (comment=None)
+
 $ _ = i18n.get_namespace('/mode/edit')
 
 <br /><br />
 $:_.edit_summary<br />
-<input type="text" name="_comment" style="width: 100%;" value="" />
+<input type="text" name="_comment" style="width: 100%;" value="$comment" />
 
 <p>You irrevocably agree to place your contributions in the public domain.</p>
 

@@ -32,7 +32,7 @@ $var title: $_.edit_title(page.key)
             <textarea name="stats" rows="4" cols="80">$page.stats</textarea>
 
 
-            $:macros.EditButtons()
+            $:macros.EditButtons(comment=page.comment_)
         </form>
         $:macros.HelpFormatting()
     </div>
