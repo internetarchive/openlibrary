@@ -1,7 +1,9 @@
 $def with (results, fulltext=False)
 
 $ _ = i18n.get_namespace('/search')
-<table border="0" cellpadding="0" cellspacing="0" width="100%" class="result-item">
+
+<div style="margin-left: 30px; margin-right: 30px;">
+<table border="0" cellpadding="10" cellspacing="0" width="100%">
 
 $for b in results:
     $if fulltext:
@@ -12,30 +14,33 @@ $for b in results:
         $ book = b
         $ ocaid = None
     <tr>
-    <td class="cover" style="padding-left: 10px;">
+    <td style="padding-left: 0px; padding-right: 0px; text-align: center; vertical-align: top; border-bottom: 1px solid #ccc;">
         $ olid = book.key.split('/')[-1]
-        <a href="$book.key"><img src="http://covers.openlibrary.org/b/olid/$olid-S.jpg?default=http://openlibrary.org/static/images/blank.book.png" height="58"/></a>
+        <a href="$book.key"><img src="http://covers.openlibrary.org/b/olid/$olid-S.jpg?default=http://openlibrary.org/static/images/blank.book.png" height="58" /></a>
     </td>
-    <td class="result-text" valign="top">
-        <a href="$book.key/$book.title.replace(' ', '-')" class="result">$book.title_prefix$book.title</a>
+    <td valign="middle" width="100%" style="padding-left: 10px; border-bottom: 1px solid #ccc;">
+        <a href="$book.key/$book.title.replace(' ', '-')" class="result">$book.title_prefix $book.title</a>
         $if book.get('authors', None):
-            <span class="result-small">$_.by 
-            $for author in book.authors:
-                $:thingrepr(author)
+            <span class="result-small">$_.by
+            $ authorlist = ', '.join([thingrepr(author).rstrip() for author in book.authors])
+            <!-- $authorlist -->
+            $:authorlist
             </span>
+        $if book.ocaid: &nbsp;&nbsp;<a href="http://www.archive.org/stream/$book.ocaid" class="ReadNow">$_.fulltext</a>
         <div class="result-small">
             $if book.publishers:
-                ($(', '.join(book.publishers)), $book.publish_date)
+                $(', '.join(book.publishers)), $book.publish_date
             $else:
-                ($book.publish_date)
+                $book.publish_date
             $book.physical_format
-            $if book.ocaid: &nbsp;&nbsp;<a href="/details/$book.ocaid"><div class="small-button fulltext">$_.fulltext</div></a>
         </div>
         $if fulltext:
-            <p>
+            <p>Pages:
+            $ a = []
             $for pn, pg in pages:
-                <a href="http://openlibrary.org/details/$ocaid/leaf$(pn / 2)">$pg</a>
+                $ a.append('<a href="http://www.archive.org/stream/%s#page/n%s/mode/1up">%s</a>'% (book.ocaid, pn-1, pg))
+            $:(',&nbsp;&nbsp;'.join(a))
             </p>
     </td></tr>
-
 </table>
+</div>

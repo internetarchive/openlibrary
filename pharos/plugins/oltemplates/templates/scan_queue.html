@@ -39,7 +39,8 @@ $ status = query_param("status", "WAITING_FOR_BOOK")
                 <td class="historyheader">Scan Record</td>
                 <td class="historyheader">Scanning Center</td>
                 <td class="historyheader" style="white-space: nowrap">Request Date</td>
-                <td class="historyheader" style="white-space: nowrap">Completion Date</td>
+                $if status == "SCAN_COMPLETE":
+                    <td class="historyheader" style="white-space: nowrap">Completion Date</td>
                 <td class="historyheader">Scan Status</td>
             </tr>
             $for record in records:
@@ -64,8 +65,6 @@ $ status = query_param("status", "WAITING_FOR_BOOK")
                             $ t = (record.completion_date and to_datetime(record.completion_date)) or None
                             $((t and datestr(t)) or "-")
                         </td>
-                    $else:
-                        <td class="path" valign="top"></td>
                     <td class="path" valign="top">$record.scan_status</td>
                  </tr>
         </table>

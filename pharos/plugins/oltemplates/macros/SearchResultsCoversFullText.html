@@ -1,0 +1,13 @@
+$def with (results, fulltext=True)
+
+$ _ = i18n.get_namespace('/search')
+
+
+$for b in results:
+        $ book = b[0]
+        $ authorlist = ', '.join([str(author) for author in book.authors])
+        $if book.ocaid:
+            $ authorlist = authorlist + ' (' + str(_.fulltext) + ')'
+        <a href="$book.key" title="$book.title_prefix $book.title $_.by $:authorlist">
+            $:macros.SRPCoverImageFullText(book)
+        </a>

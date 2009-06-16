@@ -1,9 +1,9 @@
 $def with (page)
 
-$ _t = i18n.get_namespace('/type/edition')
+$ _t = i18n.get_namespace('/type/author')
 $ _ = i18n.get_namespace('/mode/view')
 
-$ s = "other_titles", "translated_titles", "genres", "first_publish_date", "subject_places", "original_languages", "dewey_number", "lc_classifications"
+$ s = "birth_date", "birth_place", "death_date", "death_place", "wikipedia"
 
 <div id="nav" style="margin-left: 0px; clear: both;">
 <div id="options">
@@ -11,7 +11,7 @@ $ s = "other_titles", "translated_titles", "genres", "first_publish_date", "subj
 <img src="/static/images/nav.top.png" alt="Options" border="0" />
 <div class="navinner">
 <div class="navinner-padding">
-<span class="navheader">About this Work</span><br /><br />
+<span class="navheader">About this Author</span><br /><br />
 
 $for name in s:
     $if page[name]:

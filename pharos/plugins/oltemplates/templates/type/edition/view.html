@@ -44,7 +44,6 @@ td.toc-link-end { font-style: bold; padding-bottom: 0px;}
 $ lccn = page["lccn"] and page["lccn"][0] and ("http://lccn.loc.gov/" + page["lccn"][0])
 $ oclc = page["oclc_numbers"] and page["oclc_numbers"][0] and ("http://www.worldcat.org/oclc/" + page["oclc_numbers"][0] + "?tab=details")
 
-
 <table border="0" cellpadding="0" cellspacing="0" width="100%" style="clear:both">
 <tr><td valign="top" width="100%">
 <blockquote class="text">
@@ -70,16 +69,15 @@ $ oclc = page["oclc_numbers"] and page["oclc_numbers"][0] and ("http://www.world
             </div>
 
             $if page.ocaid:
-                <div class="editbutton" style="width: 163px; margin-bottom: 10px;">
-                    <a href="http://openlibrary.org/details/$page.ocaid" style="text-decoration:none">$_.full_text</a>
+                <div class="editbutton" style="width: 163px;">
+                    <a href="http://www.archive.org/stream/$page.ocaid" style="text-decoration:none">$_.full_text</a>
                 </div>
             $if 'scod' in get_plugins():
-    		$ scan_status = get_scan_status(page.key)
-    		        
-                $if scan_status == "NOT_SCANNED":
-    		    <div class="editbutton" style="width: 163px; margin-bottom: 20px;"><a href="$page.key?m=scan_review" title="Open Library Scan On Demand">Scan This Book</a></div><br/>
+                $ scan_status = get_scan_status(page.key)
+    		$if scan_status == "NOT_SCANNED":
+    		    <div class="editbutton" style="width: 163px;"><a href="$page.key?m=scan_review" title="Open Library Scan On Demand">Request Scan</a></div><br/>
     		$elif (scan_status == "SCAN_IN_PROGRESS") or (scan_status == "WAITING_FOR_BOOK"):
-    		    <div style="margin-top: 10px; margin-bottom: 20px;"><span class="book-details-italic">Scan Progress <a href="/scan_record$page.key">(details)</a></span></div>
+    		    <div style="margin-top: 10px;"><span class="book-details-italic">Scan Progress <a href="/scan_record$page.key">(details)</a></span></div>
         </div>
     </div>
 
@@ -88,7 +86,7 @@ $ oclc = page["oclc_numbers"] and page["oclc_numbers"][0] and ("http://www.world
 
             <table border="0" cellpadding="0" cellspacing="0">
 
-                $ s1 = ["contributions", "other_titles", "work_titles", "works", "by_statement", "series", "copyright_date", "languages", "edition_name", "physical_format", "physical_dimensions", "pagination", "weight"]
+                $ s1 = ["contributions", "other_titles", "work_titles", "works", "by_statement", "series", "copyright_date", "languages", "translated_from", "edition_name", "physical_format", "physical_dimensions", "pagination", "weight"]
                 $ s2 = ["isbn_10", "isbn_13", "lccn", "dewey_decimal_class", "lc_classifications", "oclc_numbers"]
                 $ s3 = ["genres", "subjects"]
                 $ s4 = ["download_url", "purchase_url"]
@@ -129,11 +127,15 @@ $ oclc = page["oclc_numbers"] and page["oclc_numbers"][0] and ("http://www.world
       $:macros.OptionsEdition(page)
 </td></tr></table>
 
-<br/>
 
-<blockquote class="text" style="margin-left: 20px;">
+$if page.ocaid: <blockquote class="text" style="margin-left: 32px; margin-top: 60px;">
+$if 'scod' in get_plugins(): 
+     $ scan_status = get_scan_status(page.key)
+     $if (scan_status == "SCAN_IN_PROGRESS") or (scan_status == "WAITING_FOR_BOOK"): <blockquote class="text" style="margin-left: 32px; margin-top: 50px;">
+$if not page.ocaid: <blockquote class="text" style="margin-left: 32px; margin-right: 20px;">
 
-            <div class="toc-header" style="border-bottom: 1px solid #ccc; margin-top: 60px;">
+
+            <div class="toc-header" style="border-bottom: 1px solid #ccc">
                 <b>$_.description</b>
 
 $:macros.FlourishButton("edit", changequery(m='edit'), "right", "edition")
@@ -178,7 +180,7 @@ $:macros.FlourishButton("edit", changequery(m='edit'), "right", "edition")
                 <table border="0" cellpadding="0" cellspacing="0" width="100%">
                     $ first = "first"
                     $ table_of_contents = page.table_of_contents
-                    $if isinstance(table_of_contents[0], (str, unicode)):
+                    $if isinstance(table_of_contents[0], unicode):
                         $ table_of_contents = [{'class': 'section', 'label': '', 'title': x, 'pagenum': ''} for x in table_of_contents]
                     $for i, toc in enumerate(table_of_contents):
                         <tr class="toc-$toc['class']">
@@ -200,6 +202,7 @@ $:macros.FlourishButton("edit", changequery(m='edit'), "right", "edition")
 
 <br /><br />
 
+<!-- source_records: $page.get('source_records', []) -->
 
 $ keys = []
 $for isbn in page.get('isbn_10', []) + page.get("isbn_13", []):

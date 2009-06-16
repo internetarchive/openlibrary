@@ -7,14 +7,14 @@ $ pages = list_pages(path, limit=limit, offset=page * limit)
 <!--islist-->
 
 <div class="contenttext">
-<ol>
+<ul>
 $for p in pages:
     $if p.type.key != '/type/delete':
         $if use_repr:
             <li>$:thingrepr(p)</li>
         $else:
             <li><a href="$homepath()$p.key">$p.key</a></li>
-</ol>
+</ul>
 </div>
 
 <div class="copyright-footer">

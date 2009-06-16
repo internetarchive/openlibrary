@@ -1,0 +1,14 @@
+$def with (fname, displayed_entries, selected_tokens)
+$ fnew = []
+$ n = len(displayed_entries)
+$for i in range(n):
+    $ d = displayed_entries[i]
+    $if fname == 'has_fulltext':
+        $ pull = (int(d[0]) == 1)
+    $else:
+        $ pull = (facet_token(fname, d[0]) in selected_tokens)
+    $if pull:
+        $ fnew.append(d)
+        $ displayed_entries[i] = None
+$ displayed_entries[slice(0,n)] = fnew + filter(bool, displayed_entries)
+$''

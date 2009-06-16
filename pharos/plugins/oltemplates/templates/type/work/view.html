@@ -1,13 +1,15 @@
 $def with (page)
 
 
-$ _t = i18n.get_namespace(page.type.key)
+$ _t = i18n.get_namespace('/type/edition')
 $ _ = i18n.get_namespace('/mode/view')
 
 $var title: $page.title
 
+<table border="0" cellpadding="0" cellspacing="0" width="100%" style="clear:both"><tr><td valign="top" width="100%">
+
 <div id="header" style="padding-left: 30px">           
-        <div><div id="title">$page.title</div> $:macros.FlourishButton("edit this work", changequery(m='edit'), "right", "edition")</div>
+     <div id="title">$page.title</div>
             $if page.get('subtitle'): <div class="subtitle" style="margin-top: -4px;">$page.subtitle<br /></div>
         <div id="statement" style="padding-left: 0px;">
             $if page.authors: by <span class="datalink">$:thingrepr(page.authors)</span><br />
@@ -15,47 +17,39 @@ $var title: $page.title
 </div>
 
 
+$ s = "subjects", "first_sentence",
 
-$if page.description: <div class="contenttext" style="margin-bottom: 20px; margin-left: 30px;">$page.description</div>
-
-$ s = "other_titles", "translated_titles", "genres", "first_publish_date", "notes", "subjects", "subject_places", "original_languages", "first_sentence", "dewey_number", "lc_classifications", "links",
-
-<div style="padding: 0px 30px 20px 30px; margin-right: 30px;">
+<div style="padding: 0px 0px 20px 30px; margin-right: 20px;">
 <table border="0" cellpadding="0" cellspacing="0">
-$ rule = "-top"
+    $if page.description:
+        <tr><td valign="top" class="formheader contenttext" style="padding-left: 0px;">
+        $_t.description:
+        </td><td class="formfield contenttext">$page.description</td></tr>
     $for name in s:
         $if page[name]:
-            <tr>
-                <td class="formheader-rule" style="padding-left: 0px;">$_t[name]:</td>
-            $if name == "links":
-                <td class="formfield-rule" width="100%">
-                <ul>
-                    $for link in page[name]:
-                        <li><a href="$link.url">$link.title</a>
-                </ul>
-                </td>
-            $elif name == "translated_titles":
-                <td class="formfield-rule" width="100%" style="padding-left: 0px;">
-                <table>
-                    $for t in page[name]:
-                        <tr><td>$t.language.name:</td><td>$t.text</td></tr>
-                </table>
-                </td>
-            $elif name == "subjects":
-                <td class="formfield-rule" width="100%" style="padding-left: 0px;">
+            <tr><td valign="top" class="formheader contenttext" style="padding-left: 0px;">$_t[name]:</td>
+            $if name == "subjects":
+                <td valign="top" class="formfield contenttext" style="padding-left: 0px;">
                     $for subject in page[name]:
                         $ subject_label = subject.strip('.')
                         <a href="/search?ftokens=$:utf8(facet_token('subjects', thingrepr(subject).strip()))">$:utf8(thingrepr(subject_label)).replace('--', '&mdash;')</a><br />
                 </td>
             $else:
-                    <td class="formfield-rule" width="100%">$:thingrepr(page[name])</td>
-                </tr>
+                <td valign="top" class="formfield contenttext">$:thingrepr(page[name])</td>
+            </tr>
+$if page.notes:
+    <td valign="top" class="formheader contenttext" style="padding-left: 0px; padding-bottom: 24px; border-bottom: 1px solid #ccc;">$_t['notes']:</td>
+    <td valign="top" class="formfield contenttext" width="100%" style="padding-bottom: 24px; border-bottom: 1px solid #ccc;">$:thingrepr(page.notes)</td>
+<tr>
 </table>
 
-<div class="toc-header" style="padding-top: 35px;">
+$if page.table_of_contents:
+    <div class="toc-header" style="padding-top: 35px;">
     <b>$_t.table_of_contents</b>
 
-</div>
+    $#:macros.FlourishButton("edit", changequery(m='edit'), "right", "edition")
+
+    </div>
 
         $if page.table_of_contents:
                 <table border="0" cellpadding="0" cellspacing="0" width="100%">
@@ -68,30 +62,22 @@ $ rule = "-top"
                         </tr>
                         $ first = ""
                 </table>
-        $else:
-            <p><em><span class="copyright">No table of contents available</span> <img src="/static/images/arrow.red.png" alt="Disclosure Arrow" /> <a href="$changequery(m='edit')"  style="text-decoration: underline">Add it!</a></em></p>
+        $#else:
+        $#    <p><em><span class="copyright">No table of contents available</span> <img src="/static/images/arrow.red.png" alt="Disclosure Arrow" /> <a href="$changequery(m='edit')"  style="text-decoration: underline">Add it!</a></em></p>
 
 
-    </div>
-</div>
-
-</div>
-
-<div id="bibliography">
-    <div id="browse-rule"></div>
-    <div id="biblio-form-body">
-
+<div style="padding-left: 30px;">
 
 $if page.editions:
-    <table border="0" cellspacing="5" cellpadding="0" border="0">
+    <table border="0" cellspacing="5" cellpadding="0" border="0" width="100%">
     $ col = 0
     $for book in page.editions:
         $if col == 0: <tr>
-        <td class="cover">
+        <td class="cover" style="vertical-align: top; padding-bottom: 4px;">
              $ olid = book.key.split('/')[-1]
-             <div style="padding: 5px; border: solid 1px #ccc; background-color: #fff; text-align: center; height: 60px;"><a href="$book.key"><img src="http://covers.openlibrary.org/b/olid/$olid-M.jpg?default=http://wiki-beta.us.archive.org/static/images/blank.book.png" height="58"/></a></div>
+             <a href="$book.key">$:macros.CoverImage(book, size="S")</a>
         </td>
-        <td style="vertical-align: top; padding-top: 4px;">
+        <td style="vertical-align: top; padding-bottom: 4px; width="50%">
              <span class="book-details-italic" style="color: #000">
              <a href="$book.key" class="result" style="text-decoration: underline;">$book.title_prefix $book.title</a>
              $if book.ocaid:
@@ -120,8 +106,14 @@ $if page.editions:
              $ col = 0
     $if col != 0: </tr>
     </table>
+
 </div>
 
+</td><td valign="top">
+    $:macros.WorkInfo(page)
+</td></tr></table>
+
+<br /><br />
 
 <div class="copyright-footer">
     $ editions_page = safeint(query_param('editions_page', '0'))

@@ -36,11 +36,11 @@ $ _t = i18n.get_namespace('/advanced_search')
 
      <tr>
 
+<!--
       <td class="search-form-title">$_t.description</td>
 
       <td colspan="2" width="100%"><input tabindex="6" type="text" name="wdescription" value="" size="25"  style="width: 100%" /></td>
      </tr>
-<!--
      <tr>
      <td class="search-form-title">$_t.sort_by</td>
       <td width="100%">
@@ -98,7 +98,8 @@ $ _t = i18n.get_namespace('/advanced_search')
 <div id="metadata-body">
 
 <table width="100%" border="0" cellspacing="6" cellpadding="0" class="adv-search-form">
-<form method="post" action="/fullsearch">
+<form method="get" action="/fullsearch">
+<input type="hidden" name="safe" value="false">
 </td>
      </tr>
      <tr>
