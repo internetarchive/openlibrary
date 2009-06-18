@@ -14,4 +14,6 @@ $for b in results:
         $ authorlist = ', '.join([author.name for author in book.authors])
         $if book.ocaid:
             $ authorlist = authorlist + ' (' + str(_.fulltext) + ')'
-        <a href="$book.key" title="$book.title_prefix $book.title $_.by $:authorlist">$:macros.SRPCoverImage(book)</a>
+        <a href="$book.key" title="$book.title_prefix $book.title $_.by $:authorlist">
+            $:macros.SRPCoverImage(book)
+        </a>

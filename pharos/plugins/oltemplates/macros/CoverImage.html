@@ -10,10 +10,10 @@ $if size == "M":
         <div class="default-cover-$size.lower()" id="default-cover-$olid" style="display: none;">
             <div id="book-title">
                 $ author_names = ", ".join(a.name for a in book.authors) or book.by_statement
-                $title
+                $:macros.TruncateString(title, 70)
                 <div id="author-names">$author_names</div>
             </div>
         </div>
     </div>
 $else:
-    <img src="http://covers.openlibrary.org/b/olid/$olid-S.jpg?default=http://wiki-beta.us.archive.org/static/images/blank.book.png" height="58"/>
+    <img src="http://covers.openlibrary.org/b/olid/$olid-S.jpg?default=http://openlibrary.org/static/images/blank.book.png" height="58"/>

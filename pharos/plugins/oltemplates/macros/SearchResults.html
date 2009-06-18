@@ -16,14 +16,13 @@ $for b in results:
     <tr>
     <td style="padding-left: 0px; padding-right: 0px; text-align: center; vertical-align: top; border-bottom: 1px solid #ccc;">
         $ olid = book.key.split('/')[-1]
-        <a href="$book.key"><img src="http://covers.openlibrary.org/b/olid/$olid-S.jpg?default=http://openlibrary.org/static/images/blank.book.png" height="58" /></a>
+        <a href="$book.key"><img src="http://covers.openlibrary.org/b/olid/$olid-S.jpg?default=http://openlibrary.org/static/images/blank.book.png" height="60" /></a>
     </td>
     <td valign="middle" width="100%" style="padding-left: 10px; border-bottom: 1px solid #ccc;">
         <a href="$book.key/$book.title.replace(' ', '-')" class="result">$book.title_prefix $book.title</a>
         $if book.get('authors', None):
             <span class="result-small">$_.by
             $ authorlist = ', '.join([thingrepr(author).rstrip() for author in book.authors])
-            <!-- $authorlist -->
             $:authorlist
             </span>
         $if book.ocaid: &nbsp;&nbsp;<a href="http://www.archive.org/stream/$book.ocaid" class="ReadNow">$_.fulltext</a>
@@ -36,6 +35,7 @@ $for b in results:
         </div>
         $if fulltext:
             <p>Pages:
+            $if len(pages)==0: <i>Unknown</i>
             $ a = []
             $for pn, pg in pages:
                 $ a.append('<a href="http://www.archive.org/stream/%s#page/n%s/mode/1up">%s</a>'% (book.ocaid, pn-1, pg))

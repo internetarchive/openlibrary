@@ -58,8 +58,10 @@ this_page: $this_page
     <button class="go" type="submit">go</button>&nbsp;&nbsp;<span class="Switch">&nbsp;&nbsp;<a href="/advanced">More search options</a></span>
     </div>
   </form>
+
   
-  $if errortext: <div id="error">Error: $errortext</div>  
+  $if errortext: 
+      <div id="error">Error: $errortext</div>  
   $if not errortext:
       <h2 class="Match">There are $total_nbr matching records.
         $if query_param('view')=='covers':

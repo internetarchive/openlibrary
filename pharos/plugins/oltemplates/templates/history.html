@@ -33,9 +33,11 @@ $:macros.databar(page)
                     <td class="compare"><input type="radio" id="b$v.revision" name="b" value="$v.revision"></td>
                     <td class="history"><a href="$changequery(m='edit', v=v.revision)">$_.edit</a></td>
                     $if v.author:
-                        <td class="history"><a href="$homepath()$v.author.key">$v.author.displayname</a></td>
+                        <td class="displayname" valign="top"><div class="truncatedisplayname"><a href="$homepath()$v.author.key" class="truncate" title="$v.author.displayname">$v.author.displayname</a></div></td>
+                    $elif v.ip and v.ip != '127.0.0.1':
+                        <td class="history" valign="top"><a href="/recentchanges?ip=$v.ip">$v.ip</a></td>
                     $else:
-                        <td class="history">$v.ip</td>
+                        <td class="history" valign="top">$v.ip</td>
                     <td class="comment">$v.comment
 					$if v.machine_comment: (<a href="/show-marc/$v.machine_comment">view MARC</a>)
 					</td>
