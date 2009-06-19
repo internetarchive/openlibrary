@@ -41,6 +41,12 @@ public(zip)
 public(tuple)
 web.template.Template.globals['NEWLINE'] = "\n"
 
+# Remove movefiles install hook. openlibrary manages its own files.
+print infogami._install_hooks
+infogami._install_hooks = [h for h in infogami._install_hooks if h.__name__ != "movefiles"]
+print infogami._install_hooks
+
+
 @infogami.action
 def sampledump():
     """Creates a dump of objects from OL database for creating a sample database."""
@@ -507,6 +513,24 @@ def readable_url_processor(handler):
     web.ctx.fullpath = web.ctx.path + web.ctx.query
     return handler()
 
+def profile_processor(handler):
+    i = web.input(_method="GET", _profile="")
+    if i._profile.lower() == "true":
+        out, result = web.profile(handler)()
+        if isinstance(out, web.template.TemplateResult):
+            out.__body__ = out.get('__body__', '') + '<pre>' + web.websafe(result) + '</pre>'
+            return out
+        elif isinstance(out, basestring):
+            return out + '<pre>' + web.websafe(result) + '</pre>'
+        else:
+            # don't know how to handle this.
+            return out
+    else:
+        return handler()
+
+delegate.app.add_processor(readable_url_processor)
+delegate.app.add_processor(profile_processor)
+
 @public
 def changequery(query=None, **kw):
     if query is None:
@@ -566,4 +590,3 @@ class invalidate(delegate.page):
             thing = client.Thing(web.ctx.site, d['key'], client.storify(d))
             client._run_hooks('on_new_version', thing)
 
-delegate.app.add_processor(readable_url_processor)
