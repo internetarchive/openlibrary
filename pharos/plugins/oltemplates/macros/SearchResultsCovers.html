@@ -2,6 +2,13 @@ $def with (results, fulltext=False)
 
 $ _ = i18n.get_namespace('/search')
 
+$code:
+    def aname(a):
+        if isinstance(a, basestring):
+            return a
+        else:
+            return a.name
+
 $for b in results:
         $if fulltext:
             $ book = b[0]
@@ -11,7 +18,7 @@ $for b in results:
             $ book = b
             $ ocaid = None
         $ olid = book.key.split('/')[-1]
-        $ authorlist = ', '.join([author.name for author in book.authors])
+        $ authorlist = ', '.join([aname(author) for author in book.authors])
         $if book.ocaid:
             $ authorlist = authorlist + ' (' + str(_.fulltext) + ')'
         <a href="$book.key" title="$book.title_prefix $book.title $_.by $:authorlist">

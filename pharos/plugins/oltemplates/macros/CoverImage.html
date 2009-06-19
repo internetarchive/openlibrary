@@ -4,12 +4,19 @@ $ title = book.title_prefix + " " + book.title
 
 $ olid = book.key.split("/")[2]
 
+$code:
+    def aname(a):
+        if isinstance(a, basestring):
+            return a
+        else:
+            return a.name
+
 $if size == "M":
     <div class="cover-wrapper">
         <img src="http://covers.openlibrary.org/b/olid/$olid-M.jpg?default=false" onerror="\$(this).hide(); \$('#default-cover-$olid').show();" width="173"/>
         <div class="default-cover-$size.lower()" id="default-cover-$olid" style="display: none;">
             <div id="book-title">
-                $ author_names = ", ".join(a.name for a in book.authors) or book.by_statement
+                $ author_names = ", ".join(aname(a) for a in book.authors) or book.by_statement
                 $:macros.TruncateString(title, 70)
                 <div id="author-names">$author_names</div>
             </div>

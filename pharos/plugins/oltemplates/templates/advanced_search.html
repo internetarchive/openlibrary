@@ -97,14 +97,14 @@ $if query_param('view')=='covers':
     $:macros.SearchResultsCovers(results)
 $else:
     $:macros.SearchResults(results)  
-    $if facets and qresults.total_results > 20:
-	<br clear="all" /><br clear="all" />
-	<div class="Pages">
-	$ last_page = (qresults.total_results + 19) / 20
-	$ first_page = 1
-	$ this_page = qresults.begin / 20 + 1
-	$:macros.SearchPagination(q, first_page, last_page, this_page, 20)
-        </div>
+$if qresults.total_results > 20:
+    <br clear="all" /><br clear="all" />
+    <div class="Pages">
+    $ last_page = (qresults.total_results + 19) / 20
+    $ first_page = 1
+    $ this_page = qresults.begin / 20 + 1
+    $:macros.SearchPagination(q, first_page, last_page, this_page, 20)
+    </div>
 </td>
 </tr>
 </table>
