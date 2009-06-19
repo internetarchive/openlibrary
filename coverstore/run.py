@@ -31,13 +31,18 @@ def load_config(configfile):
 
 def main(configfile, *args):
     load_config(configfile)
-    sys.argv = args
+    sys.argv = [sys.argv[0]] + list(args)
     code.run()
+
+def archive(configfile):
+    from coverstore import archive
+    load_config(configfile)
+    disks = config.disk.disks
+    archive.archive(disks[0], disks[1])
     
 if __name__ == "__main__":
     if "--archive" in sys.argv:
-        from coverstore  import archive
-        load_config(sys.argv[1])
-        archive.archive(config.disks[0], config.disks[1])
+        sys.argv.remove('--archive')
+        archive(sys.argv[1])
     else:
         main(*sys.argv[1:])
