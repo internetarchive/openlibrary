@@ -1,0 +1,22 @@
+$def with (type, usetable=0)
+
+$ _ = i18n.get_namespace('/mode/edit')
+
+<script>
+function changeTemplate() {
+    var t = document.edit['type.key'].value;
+    document.location.href += '&t=' + t;
+}
+</script>
+
+$if usetable:
+    <tr>
+        <td>$_.page_type</td>
+        <td>
+            $:thinginput(type, name="type.key", expected_type="/type/type", kind="regular")        
+            <input type="button" onclick="changeTemplate()" value="$_.change"/>
+        </td>
+    </tr>
+$else:
+    <strong>$_.page_type</strong>  $:thinginput(type, name="type.key", expected_type="/type/type", kind="regular")
+    <input type="button" onclick="changeTemplate()" value="$_.change"/><br /><br />

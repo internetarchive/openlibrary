@@ -1,0 +1,127 @@
+$ _t = i18n.get_namespace('/advanced_search')
+
+<style type="text/css"></style>
+<link href='/static/css/search.css' rel="stylesheet" type="text/css" />
+
+<div id="form-border" style="margin-top: -10px;">
+<div id="metadata-body">
+
+<div id="search-form-center">
+    <table width="100%" border="0" cellspacing="6" cellpadding="0" class="adv-search-form">
+<form method="get" action="/search">
+
+     <tr>
+      <td colspan="2" align="left" valign="middle"><div class="homeheader">$_t.search_catalog</div></td>
+     </tr>
+     <tr>
+      <td class="search-form-title">$_t.title</td>
+      <td width="100%"><input tabindex="1" type="text" name="wtitle" value="" size="30" style="width: 100%" /></td>
+     </tr>
+     <tr>
+      <td class="search-form-title">$_t.author</td>
+      <td width="100%"><input tabindex="2" type="text" name="wauthor" value="" size="30" style="width: 100%" /></td>
+     </tr>
+     <tr>
+      <td class="search-form-title">$_t.subject</td>
+      <td width="100%"><input tabindex="3" type="text" name="wtopic" value="" size="30"  style="width: 100%" /></td>
+     </tr>
+     <tr>
+      <td class="search-form-title">$_t.isbn</td>
+      <td width="100%"><input tabindex="4" type="text" name="wisbn" value="" size="15" maxlength="15" /></td>
+     </tr>
+     <tr>
+      <td class="search-form-title">$_t.publisher</td>
+      <td colspan="2" width="100%"><input tabindex="5" type="text" name="wpublisher" value="" size="25"  style="width: 100%"/></td>
+     </tr>
+
+     <tr>
+
+<!--
+      <td class="search-form-title">$_t.description</td>
+
+      <td colspan="2" width="100%"><input tabindex="6" type="text" name="wdescription" value="" size="25"  style="width: 100%" /></td>
+     </tr>
+     <tr>
+     <td class="search-form-title">$_t.sort_by</td>
+      <td width="100%">
+
+       <select tabindex="7" size="1" name="psort_order">
+        <option value="None" selected="selected"></option>
+        <option value="TitleAsc">$_t.title (A-Z)</option>
+        <option value="TitleDesc">$_t.title (Z-A)</option>
+        <option value="AuthorAsc">$_t.author (A-Z)</option>
+        <option value="AuthorDesc">$_t.author (Z-A)</option>
+        <option value="DateAsc">$_.date ($_t.oldest_first)</option>
+
+        <option value="DateDesc">$_.date ($_.newest_first)</option>
+        <option value="PublisherAsc">$_t.publisher (A-Z)</option>
+        <option value="PublisherDesc">$_t.publisher (Z-A)</option>
+       </select>
+      </td>
+
+     </tr>
+-->
+     <tr>
+
+      <td colspan="3" align="left" valign="middle"><br /><div class="homeheader">$_t.narrow_criteria</div></td>
+     </tr>
+
+     <tr>
+      <td class="search-form-title" valign="top">$_t.date_range</td>
+      <td colspan="2" class="search-form-result">
+       <select tabindex="8" size="1" name="ftokens">
+        <option value="" selected="selected"></option>
+	<option value="tepxelncbajj">2000-$_t.now</option>
+	<option value="qyffflovnvfj">1980-1999</option>
+	<option	value="nhkjevftnnlv">1960-1979</option>
+	<option	value="qtkcmjdbwajt">1940-1959</option>
+	<option value="tsvxedbxltrb">1920-1939</option>
+	<option value="unmegbwqwbia">$_t.before 1920</option>
+       </select>
+
+ <input tabindex="9" type="checkbox" value="1" name="pfulltext"> $_t.fulltext_items_only
+
+</td>
+     </tr><tr>
+      <td colspan="3" align="right" valign="middle">
+<div class="button-border"><img src="/static/images/flourish.left.gif"  alt="[" /><button class="action" type="submit"  value="$_t.go"  name="_save" title="$_t.go">$_t.go</button><img src="/static/images/flourish.gif"  alt="]" /></div>
+<br /><br />
+</form>
+</td>
+     </tr>
+     </table>
+
+</div></div>
+</div>
+
+<div id="form-border">
+<div id="metadata-body">
+
+<table width="100%" border="0" cellspacing="6" cellpadding="0" class="adv-search-form">
+<form method="get" action="/fullsearch">
+<input type="hidden" name="safe" value="false">
+</td>
+     </tr>
+     <tr>
+      <td colspan="3">
+<div class="homeheader" style="padding-bottom: 10px;">$_t.search_fulltext</div>
+<textarea style="width: 100%; height: 50px" name="q" style="height: 3em"></textarea></td>
+     </tr>
+     <tr>
+       <td/>
+       <td align="right"><div class="button-border"><img src="/static/images/flourish.left.gif"  alt="[" /><button class="action" type="submit"  value="$_t.go"  name="_save" title="$_t.go">$_.go</button><img src="/static/images/flourish.gif"  alt="]" /></div>
+<br /><br /></td>
+     </tr>
+
+</form>
+
+     </table>
+
+
+
+</div>
+
+</form>
+
+</div>
+</div>

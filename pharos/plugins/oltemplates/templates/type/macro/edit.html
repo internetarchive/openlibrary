@@ -1,0 +1,32 @@
+$def with (page)
+
+$ _t = i18n.get_namespace('/type/macro')
+$ _ = i18n.get_namespace('/mode/edit')
+
+$var title: $_.edit_title(page.key)
+
+<form name="edit" method="post" action="">
+
+<div id="slickbox" style="overflow: hidden">
+    $:macros.TypeChanger(page.type)
+</div>
+
+<div id="header">
+    <div style="float:left;padding-left:10px;padding-right:15px;"></div>
+    <span class="pretitle">$_.edit_pretitle:<br /></span>
+    <div id="title"> $page.desciption</div>
+</div>
+
+<div id="form-border">
+    <div id="metadata-body">
+
+            <strong>$_t.description</strong>
+            <input type="text" name="description" style="width: 100%" value="$page.description"/><br/>
+            <br/>
+            <textarea name="macro" rows="40" cols="80" style="font-family: monospace;">$page.macro</textarea>
+            $:macros.EditButtons()
+        $:macros.HelpFormatting()
+    </div>
+</div>
+
+</form>

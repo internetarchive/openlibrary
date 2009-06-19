@@ -1,0 +1,83 @@
+$def with (records)
+
+$var title: Scan Queue
+
+<style type="text/css">
+<!--
+tr.delayed  { background: #e2e09a; }
+-->
+</style>
+
+
+$ status = query_param("status", "WAITING_FOR_BOOK")
+
+<div style="float: right; clear: right; padding-top: 40px; padding-right: 20px;">
+<form name="form_scan_status" action="$:changequery({})" method="GET">
+    $ options = ["NOT_SCANNED", "WAITING_FOR_BOOK", "BOOK_NOT_SCANNED", "SCAN_IN_PROGRESS", "SCAN_COMPLETE"]
+    <span class="green"><span class="formheader">
+    Scan Status: $:Dropdown("status", options, value=status, id="scan_status").render()
+    <script>
+        \$("#scan_status").change(function() { document.forms["form_scan_status"].submit(); });
+    </script>
+    </span></span>
+</form>
+</div>
+
+<div id="header">
+    <div style="float:left;padding-left:10px;padding-right:15px;"></div>
+    <span class="pretitle">Open Library Scan on Demand:<br /></span>
+    <div id="title">Scan Queue</div>   
+</div>
+
+<div id="bibliography">
+    <div id="browse-rule"></div>
+    <div id="biblio-form-body">
+
+        <table cellpadding="0" cellspacing="0" border="0" width="100%">
+            <tr>
+                <td class="historyheader">Shelf No.</td>
+                <td class="historyheader">Scan Record</td>
+                <td class="historyheader">Scanning Center</td>
+                <td class="historyheader" style="white-space: nowrap">Request Date</td>
+                $if status == "SCAN_COMPLETE":
+                    <td class="historyheader" style="white-space: nowrap">Completion Date</td>
+                <td class="historyheader">Scan Status</td>
+            </tr>
+            $for record in records:
+                $ t = (record.request_date and to_datetime(record.request_date)) or None
+                $if t and ((t.utcnow() - t).days > 7):
+                    $ delayed = "delayed"
+                $else:
+                    $ delayed = ""
+                <tr style="height:33px;" class="$record.scan_status.lower() $delayed">
+                    <td class="number" valign="top" style="white-space: nowrap">$record.shelf</td>
+                    <td class="path" valign="top"><a href="/scan_record$record.edition.key" style="text-decoration: underline">$record.edition.title</a> (<a href="$record.edition.key">edition</a>)</td>
+                    <td class="path" valign="top"><a href="$record.locations[0].key">$record.locations[0].name</a></td>
+                    <td class="path" valign="top">
+                        $ t = (record.request_date and to_datetime(record.request_date)) or None
+                        $if t:
+                            ${(t.utcnow() - t).days} days ago
+                        $else:
+                            -
+                    </td>
+                    $if record.scan_status == "SCAN_COMPLETE":
+                        <td class="path" valign="top">
+                            $ t = (record.completion_date and to_datetime(record.completion_date)) or None
+                            $((t and datestr(t)) or "-")
+                        </td>
+                    <td class="path" valign="top">$record.scan_status</td>
+                 </tr>
+        </table>
+    </div>
+</div>
+
+$ page = safeint(query_param('p', '0'))
+$ limit = 50
+
+<div class="copyright-footer">
+$if page != 0:
+    &larr; <a href="$:changequery(p=page - 1)" rel="nofollow">$_.prev</a>
+
+$if len(records) == limit:
+    ... <a href="$:changequery(p=page + 1)" rel="nofollow">$_.next</a> &rarr;
+<div>

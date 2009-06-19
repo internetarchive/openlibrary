@@ -1,0 +1,34 @@
+$def with (objectname, name, value)
+
+$ _ = i18n.get_namespace('/mode/edit')
+
+<div id="image_$name" style="background: transparent url(/static/images/book.upload.gif) top left no-repeat; height: 266px; width: 180px;">
+    <!-- $value, $repr(value) -->
+    $if value:
+        <img id="img_$name" width="180" height="266" src="$value"/>
+    $else:
+        <img id="img_$name" width="180" height="266" src="/static/images/book.trans.gif"/>
+
+    <input type="hidden" id="id_$name" name="$name" value="$value" />
+
+    <script type="text/javascript">
+    var onload_$name = function(frame) {
+        var d = window.frames["iframe_$name"].document;
+        var path = d.getElementById("path").value;
+        if (path == "")
+            path = "/static/images/book.trans.gif";
+        document.getElementById("img_$name").src = path;
+        document.getElementById("id_$name").value = path;
+    };
+    </script>
+    <br/>
+</div>
+
+
+    <div id="div_iframe_$name" style="height: 50px;">
+    <iframe name="iframe_$name" id="iframe_$name" src="/upload?name=${objectname}_$name&file=$value" onload="onload_${name}(this)" frameborder="0" style="margin-top: -266px; height: 325px;" allowtransparency="true">
+    </iframe>
+
+<div class="formheader" style="margin-top: -15px; font-weight: normal">$:_.add_image</div>
+
+    </div>

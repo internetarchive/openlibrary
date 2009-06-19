@@ -1,0 +1,18 @@
+$def with (records)
+
+$for record in records:
+    <tr style="height:33px;" class="$record.scan_status.lower()">
+        <td class="number" valign="top" style="white-space: nowrap">$record.shelf</td>
+        <td class="path" valign="top"><a href="/scan_record$record.edition.key" style="text-decoration: underline">$record.edition.title</a> (<a href="$record.edition.key">edition</a>)</td>
+        <td class="path" valign="top" style="white-space: nowrap"><a href="$record.sponsor.key">$record.sponsor.displayname</a></td>
+        <td class="path" valign="top"><a href="$record.locations[0].key">$record.locations[0].name</a></td>
+        <td class="path" valign="top">
+            $ t = (record.request_date and to_datetime(record.request_date)) or None
+            $((t and datestr(t)) or "-")
+        </td>
+        <td class="path" valign="top">
+            $ t = (record.completion_date and to_datetime(record.completion_date)) or None
+            $((t and datestr(t)) or "-")
+        </td>
+        <td class="path" valign="top">$record.scan_status</td>
+     </tr>

@@ -1,0 +1,17 @@
+$def with (p)
+
+$var title: Permission of $p.key
+
+<div id="header">
+    <div style="float:left;padding-left:10px;padding-right:15px;"></div>
+    <span class="pretitle"></span>
+    <div id="title">Permission of $p.key</div>
+</div>
+
+<div class="contenttext">
+<form method="POST">
+    Permission: $:thinginput(p.permission, expected_type="/type/permission", name="permission")<br/>
+    Child Permission: $:thinginput(p.child_permission, expected_type="/type/permission", name="child_permission")<br/>
+    <input type="submit" value="Save"/>
+</form>
+</div>

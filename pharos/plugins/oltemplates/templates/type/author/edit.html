@@ -1,0 +1,100 @@
+$def with (page)
+
+$ _t = i18n.get_namespace('/type/author')
+$ _ = i18n.get_namespace('/mode/edit')
+ 
+$var title: Editing $page.name
+
+<script>
+function add_row(name) {
+    var tbody = \$("#tbody_" + name);
+    var n = tbody.children().length;
+
+    var row = \$("tr:last", tbody);
+    var newrow = row.clone();
+
+    tbody.append(newrow);
+
+    \$("td:last", row).html("");
+
+    \$("td:first", newrow).html("");
+    \$("input", newrow).attr("name", name + "#" + n);
+    \$("input", newrow).attr("value", "");
+}
+</script>
+
+
+$ up = '<button class="control" name="up" title="up"><img src="/static/images/arrow.up.gif" alt="up" width="18" height="18" /></button>'
+$ down = '<button class="control" name="down" title="down"><img src="/static/images/arrow.down.gif" alt="up" width="18" height="18" /></button>'
+$ plus = '<button class="control" name="+" title="+"><img src="/static/images/+.gif" alt="up" width="18" height="18" /></button>'
+
+<form method="POST" name="edit">
+<div id="slickbox" style="overflow: hidden">
+    $:macros.TypeChanger(page.type)
+</div>
+
+    <!-- WIKI EDIT SECTION -->
+    <div id="biblio-form-body">    
+        <table cellspacing="0" cellpadding="0" border="0" width="100%">
+        <tr>
+            <td valign="top">
+                <div id="header">               
+                    <span class="pretitle">$_.pretitle:<br /></span>             
+                    <div id="title">$page.name</div>            
+                </div>
+                
+                <!-- begin left table -->
+                <table cellspacing="0" cellpadding="0" border="0" width="100%">
+                    <tr><td valign="top" colspan="3" height="8"></td></tr>
+                    
+                    $:macros.AuthorEditRow(page, 'name', True)
+                    $:macros.AuthorEditRow(page, 'alternate_names', False)
+                    $:macros.AuthorEditRow(page, 'entity_type', True)
+                    $:macros.AuthorEditRow(page, 'personal_name', True)
+                    $:macros.AuthorEditRow(page, 'numeration', True)
+                    $:macros.AuthorEditRow(page, 'title', True)
+                    $:macros.AuthorEditRow(page, 'fuller_name', True)
+                    $:macros.AuthorEditRow(page, 'website', True)
+                    $:macros.AuthorEditRow(page, 'location', True)
+                    $:macros.AuthorEditRow(page, 'birth_date', True)
+                    $:macros.AuthorEditRow(page, 'death_date', True)
+                    $:macros.AuthorEditRow(page, 'date', True)
+                    $:macros.AuthorEditRow(page, 'wikipedia', True)
+
+                    <!-- ADDITIONAL METADATA -->
+                    <tr><td valign="top" colspan="3" height="22"></td></tr>
+
+                    <!-- description -->
+                    <tr><td valign="top" colspan="3" class="formheader-top">$_t.bio</td></tr>
+                    <tr><td valign="top" colspan="3" class="formheader" width="100%"><textarea name="bio" rows="6" cols="">$page.bio</textarea></td></tr>                    
+                
+                </table> <!-- end left table -->
+            </td>
+            <td valign="top" class="form-margin">
+                <br />
+                $ olid = page.key.split('/')[-1]
+                <div style="padding: 8px; border: solid 1px #ccc; background-color: #fff; width: 180px"><img width="180" src="http://covers.openlibrary.org/a/olid/$olid-M.jpg"/></div>
+        <div class="button-border" style="padding-top: 8px; margin-left: 0px; padding-left: 0px;"><img src="/static/images/flourish.left.gif"  alt="[" /><button  onclick="window.location.href = '$:changequery(m='change_cover')'" class="action" style="width: 165px;">Change Photo</button><img src="/static/images/flourish.gif"  alt="]" /></div>
+                <br />
+
+                <!-- begin right table -->
+                <table cellspacing="0" cellpadding="0" border="0">
+                    <tr>
+                        <td valign="top" colspan="3" width="100%" class="vertspace9">
+                    		<br /><br /><br />
+                            </td>
+                    </tr>
+                </table>
+                <!-- end right table -->
+
+                <br />
+            </td>
+        </tr>
+        </table>
+            
+        <!-- edit summary and buttons -->
+
+             $:macros.EditButtons(comment=page.comment_)
+
+    </div>
+</form>

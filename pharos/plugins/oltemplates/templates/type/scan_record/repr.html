@@ -1,0 +1,24 @@
+$def with (p)
+
+$if p.scan_status == 'SCAN_IN_PROGRESS':
+     <td class="path" valign="top"><a href="$p.edition.key" style="text-decoration: underline">$p.edition.title</a></td>
+     $if p.edition.authors:  <td class="path" valign="top"><span class="datalink">$:thingrepr(p.edition.authors)</span></td>
+     $else: <td class="path" valign="top">&nbsp;</td>
+     <td class="path" valign="top" style="white-space: nowrap"><a href="$p.key" class="sidebar">In Progress</a></td>
+$elif p.scan_status == 'SCAN_COMPLETE':
+     <td class="path" valign="top"><a href="$p.edition.key" style="text-decoration: underline">$p.edition.title</a></td>
+     $if p.edition.authors:  <td class="path" valign="top"><span class="datalink">$:thingrepr(p.edition.authors)</span></td>
+     $else: <td class="path" valign="top">&nbsp;</td>
+     <td class="path" valign="top" style="white-space: nowrap"><a href="$p.key" class="sidebar">Scan Complete</a></td>
+$elif p.scan_status == 'WAITING_FOR_BOOK':
+     <td class="path" valign="top"><a href="$p.edition.key" style="text-decoration: underline">$p.edition.title</a></td>
+     $if p.edition.authors:  <td class="path" valign="top"><span class="datalink">$:thingrepr(p.edition.authors)</span></td>
+     $else: <td class="path" valign="top">&nbsp;</td>
+     <td class="path" valign="top" style="white-space: nowrap"><a href="$p.key" class="sidebar">In Progress</a></td>
+$elif p.scan_status == 'NOT_SCANNED':
+     <td class="path" valign="top"><a href="$p.edition.key" style="text-decoration: underline">$p.edition.title</a></td>
+     $if p.edition.authors:  <td class="path" valign="top"><span class="datalink">$:thingrepr(p.edition.authors)</span></td>
+     $else: <td class="path" valign="top">&nbsp;</td>
+     <td class="path" valign="top" style="white-space: nowrap"><a href="$p.edition.key" class="datalink" style="text-decoration: underline">Scannable</a></td>
+$elif p.scan_status == 'BOOK_NOT_FOUND':
+    &nbsp;

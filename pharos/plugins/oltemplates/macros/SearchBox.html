@@ -1,0 +1,8 @@
+$def with (kw)
+
+<form action="/search" method="GET">
+    $for k, v in kw.items():
+        <input type="hidden" name="ftokens" value="$facet_token(k, v)"/>
+    <input type="text" name="q" value=""/>
+    <input type="submit" name="btn" value="Go"/>
+</form>

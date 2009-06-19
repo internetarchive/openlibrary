@@ -1,0 +1,22 @@
+$def with (page)
+
+$ ctx.setdefault("links", [])
+$ ctx.links.append('<link rel="alternate" type="application/json" href="http://openlibrary.org' + page.key + '.json"/>')
+$ ctx.links.append('<link rel="alternate" type="application/rdf+xml" href="http://openlibrary.org' + page.key + '.rdf"/>')
+
+$if (page.type.key == '/type/home') or (page.key == "/"):
+    $:macros.MostRecent()    
+$else:
+    $:macros.databar(page)
+
+$ view = thingview(page)
+
+$var title: $:view.title
+
+$if 'content_type' in view:
+    $var content_type = view.content_type
+
+$if 'rawtext' in view:
+    $var rawtext = view.rawtext
+
+$:view

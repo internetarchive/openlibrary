@@ -1,0 +1,26 @@
+$def with (results, fulltext=False)
+
+$ _ = i18n.get_namespace('/search')
+
+$code:
+    def aname(a):
+        if isinstance(a, basestring):
+            return a
+        else:
+            return a.name
+
+$for b in results:
+        $if fulltext:
+            $ book = b[0]
+            $ ocaid = b[1]
+            $ pages = b[2]
+        $else:
+            $ book = b
+            $ ocaid = None
+        $ olid = book.key.split('/')[-1]
+        $ authorlist = ', '.join([aname(author) for author in book.authors])
+        $if book.ocaid:
+            $ authorlist = authorlist + ' (' + str(_.fulltext) + ')'
+        <a href="$book.key" title="$book.title_prefix $book.title $_.by $:authorlist">
+            $:macros.SRPCoverImage(book)
+        </a>

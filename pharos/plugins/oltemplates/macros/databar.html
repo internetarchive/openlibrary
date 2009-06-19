@@ -1,0 +1,18 @@
+$def with (page=None)
+
+$ _s = i18n.get_namespace('/advanced_search')
+$ _ = i18n.get_namespace('/mode/view')
+
+<div id="databar">
+    $if page:
+        <div class="widgetlabel">
+            [<a href="$changequery(m='edit')" accesskey="e">$_.edit</a>][<a href="$changequery(m='history')">$_.history</a>]
+            $_.last_modified $(page.last_modified and datestr(page.last_modified))  
+        </div>
+    <div class="simplesearch">
+        <form method="get" action="/search">
+            <input type="text" name="q" value="" size="19" title="$_s.type_search." />
+            <button type="submit" class="go-small">$_s.go</button>
+        </form>
+    </div>
+</div>
