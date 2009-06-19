@@ -92,9 +92,14 @@ def get_ol(server):
 
 def olput(server, key, filename, comment):
     print "olput", server, repr(key), repr(comment)
+    def get(key):
+        try:
+            return ol.get(key)
+        except olapi.OLError:
+            return None
 
     ol = get_ol(server)
-    d = update_thing(ol.get(key), filename)
+    d = update_thing(get(key), filename)
     print ol.save(key, d, comment=comment)
 
 def find_files(dir):
@@ -154,8 +159,7 @@ def pullall(options, *args):
     --server server : server address (default: http://openlibrary.org)
     -O --output output: output directory (default: .)
     """
-    # pages = get_templates(options.server) + get_macros(options.server) + get_css(options.server)
-    pages = get_css(options.server)
+    pages = get_templates(options.server) + get_macros(options.server) + get_css(options.server)
 
     for d in pages:
         path = os.path.join(options.output, to_local_path(d['key']))
@@ -181,7 +185,7 @@ def pushall(options, *args):
     --server server : server address (default: http://openlibrary.org)
     -m [--message] message: commit message (default: push templates and macros)
     """
-    pages = get_templates(options.server) + get_macros(options.server)
+    pages = get_templates(options.server) + get_macros(options.server) + get_css(options.server)
     pages = olapi.unmarshal(pages)
     pages = dict((to_local_path(p['key']), p) for p in pages)
 
@@ -232,7 +236,6 @@ def diffall(options, *args):
     Options:
     --server server : server address (default: http://openlibrary.org)
     """
-    pages = get_templates(options.server) + get_macros(options.server)
     output = options.server.replace('http://', '/tmp/')
 
     pullall(['--server', options.server, '--output', output])
