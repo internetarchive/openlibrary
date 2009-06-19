@@ -1,6 +1,6 @@
 /* 
    OPEN LIBRARY DEFAULT STYLES - BETA 
-   Comment date: 03.19.08
+   Comment date: 03.02.09
    -------------------------------
    Please email me with any suggested improvements: webchick@invisible.net
 */
@@ -23,16 +23,16 @@
 	.navlinks a:visited { color: white; text-decoration: underline; }	
 
 	#title { font-size: 28px; color: #919070; padding-bottom: 8px; line-height: 32px; }
-	.title-pad { padding-left: 22px; }
+	.title-pad { padding-left: 12px; }
 	.pretitle { font-size: 18px; line-height: 24px; color: #666; }
 	.posttitle { font-size: 18px; line-height: 8px; color: #666; }
-	.subtitle { font-size: 18px; line-height: 22px; color: #999; font-style: italic; padding-left: 24px; padding-bottom: 12px; }
+	.subtitle { font-size: 18px; line-height: 22px; color: #999; font-style: italic; padding-left: 12px; padding-bottom: 12px; }
 
 	.content { margin: 0px 0px 34px 24px; font-size:14px; line-height:20px; }
 	.content-bottom { margin: 0px 0px 34px 24px; font-size:14px; line-height:20px; }
 	p.maintext { padding-left: 30px; }
-	.statement { font-size: 18px; line-height: 24px; color: #666; margin-bottom: -16px; }
-	#statement { font-size: 18px; line-height: 24px; color: #666; margin-bottom: -16px; padding-left: 24px; }
+	.statement { font-size: 18px; line-height: 24px; color: #666; }
+	#statement { font-size: 18px; line-height: 24px; color: #666; padding-left: 12px; }
 	#error {  color: #900; font-size: 14px; line-height: 19px; margin-right: 30px; background:#FFF8F1; padding: 10px; border: 1px dotted #990000; position: absolute; top: 190px; left: 30px; }
 	.wrong {  color: #900; font-size: 14px; line-height: 19px; background:#FFF8F1; padding: 10px; border: 1px dotted #990000; font-weight: normal; }
 	.errorhead    { color: #900; font-weight: bold; font-family: helvetica, arial, sans-serif;  }				
@@ -48,7 +48,7 @@
 	td {color: #000; background-color: transparent; }
 	td.rule {border-bottom: 1px #fff solid; line-height: 22px; }
 
-	hr { border: 0; text-align: center; color: #999; background: #fff url(/static/images/rule.png) no-repeat scroll left; height: 40px; }
+	hr { border: 0; text-align: center; background: #fff url(/static/images/rule.png) no-repeat scroll left; height: 40px; }
 	hr:after { content: ""; }
 
 	img { border: none }
@@ -57,7 +57,7 @@
 
 	h2 { color: #625E25; font-size: 22px; font-weight: normal;  margin-left: 0px }
 	h2.api { color: #336699; font-size: 22px; font-weight: normal;  margin-left: 0px }
-	h3 { color: #666666; font-size: 16px; line-height: 16px; text-transform: uppercase; }
+	h3 { color: #666666; font-size: 16px; line-height: 16px; text-transform: uppercase; text-transform: inherit; }
 	h4 { color: #999; font-size: 14px; margin-left: 35px; }
 	
 	strong { color: #625E25; }
@@ -69,9 +69,9 @@
 	a:visited 			{ color: #6F320D; text-decoration: none; }	
 	a:hover 			{ text-decoration: underline; }
 
-	a.datalink 			{ color: #6F320D; text-decoration: underline; }
-	a.datalink:visited 	{ color: #6F320D; text-decoration: underline; }	
-	a.datalink:hover 		{ text-decoration: underline; }
+	a.datalink 			{ color: #6F320D;  }
+	a.datalink:visited 	{ color: #6F320D; }	
+	a.datalink:hover 		{ }
 
 	a.truncate 			{ color: #6F320D; float:left; white-space: nowrap; }
 	a.truncate:visited 	{ color: #6F320D; }	
@@ -91,6 +91,8 @@
 
 	a.button 			{ text-decoration: none; }
 	a.button:hover 		{ text-decoration: none; }
+
+	a.linkbutton:hover 		{ color: #fff; }
 
 
 /*GLOBAL PAGE (VIEW) ELEMENTS*/
@@ -139,7 +141,7 @@
 
 	#options { width: 210px; min-height: 190px; margin: 0px 0px 10px 10px; font-size: 12px; }
 
-	#viewthisbook-oln { position: absolute; margin-left: 45px; top: 455px; left: 0px; }
+	#viewthisbook-oln { margin-left: -5px; }
 
 	.logotype { float:left; font-weight: bold; height: 25px; line-height: 25px; vertical-align: middle; }
 
@@ -181,7 +183,7 @@
 	input:focus { background-color: #eee; border-color: #900; }
 	textarea:focus { background-color: #eee; border-color: #900; }
 	select, option, textarea { font-family: georgia, times new roman, times, serif; font-size: 12px; }
-	textarea { width: 100%; margin-top: 0px;  background-color: #fff; border: 1px solid #ccc; }
+	textarea { width: 100%; margin-top: 0px;  margin-bottom: 10px; background-color: #fff; border: 1px solid #ccc; }
 
 	.simplesearch { float: right; margin-top: 4px; height: 28px; font-family: verdana, arial, helvetica, sans-serif; font-size: 10px; }
 
@@ -223,6 +225,8 @@
 	button.addkey-small { background-color: #625E25; color: #fff; height: 18px; }			
 	.addkey-small { background-color: #625E25; color: #fff; height: 18px; }			
 	button.action { background-color: #fff; color: #919070; }
+	button.repeat { border: none; padding: 0px; margin: 0px; }
+	button.repeat:hover { background-color: transparent; }
 
 	.edit-button { 	
 			background-color: #F9F8D0; border: 1px solid #B9B7A1;
@@ -271,6 +275,20 @@
 		font-weight: normal;
 	} 
 
+	.coverbutton { 	
+			background-color: #F9F8D0; border: 1px solid #B9B7A1;
+			font-family: georgia; font-size: 12px; color: #6F320D;
+			text-transform: uppercase;
+			font-weight: bold;
+			letter-spacing: .05em;
+			line-height: 28px;			
+			height: 26px;
+			margin: 6px 0px 0px 10px;
+			padding: 0px 0px 0px 0px;
+			width: 180px;
+			text-decoration: none;
+	} 
+
 
 
 /*ALERT STYLES*/
@@ -293,8 +311,9 @@
 
 	.query {  line-height: 16px; background:#EBF6FF; padding: 10px; border: 1px dotted #336699; color: #336699; margin: 0px 10px 0px 10px; font-size: 13px; text-align: left; }
 	.response {  line-height: 16px;	background:#ccffcc; padding: 10px; border: 1px dotted #336600; color: #336600; margin: 0px 10px 0px 10px; font-size: 13px; text-align: left; }
+	.samplecode { background-color:#F0F0F0; border:1px solid #CCCBBA; padding: 10px 10px 10px 20px; }
 	td.arrow { color: #336600; font-size: 32px; padding-top: 30px; }
-	code { background-color: #ffffcc; color: #900; }
+	code {  background: inherit; color: inherit; }
 	.api a { color: #900; text-decoration: none; padding-left: 18px; line-height: 20px; }
 	.api a:before { content: "- "; }
 	
@@ -317,7 +336,6 @@
 
 	.truncatedisplayname { 
 		width: 10em;            /* constrain width try 20em */
-	    line-height:1em;        /* to be adjusted */
 	    overflow: hidden;       /* hide excess */
 	    position:relative;      /* Fix IE missing overflow bug of r.p. span */
 	    background: #F9F8D0;     
@@ -325,7 +343,6 @@
 
 	.truncatepath { 
 		width: 20em;            /* constrain width try 20em */
-	    line-height:1em;        /* to be adjusted */
 	    overflow: hidden;       /* hide excess */
 	    position:relative;      /* Fix IE missing overflow bug of r.p. span */
 	    background: #F9F8D0;     
@@ -363,6 +380,7 @@
 	#tempmetadata { padding-top: 12px; font-style: italic; height: 24px; margin-bottom: -6px; }
 	.tempmetatitle { float: left; padding-right: 3px; }
 
+	#book { height: 250px; }
 	.book { margin-left: 70px; float: right; width: 300px; text-align: right; border: 0px solid #666; background-color: trasparent; }
 	.book-temp { margin-left: 70px; float: right; width: 300px; text-align: right; padding-right: 1px; border: 0px solid #666 }
 
@@ -401,5 +419,66 @@
 
 
 
+
+/*MISCELLANY*/
+
 b.i18n { color: #919070; font-family: courier, monospaced; }
 
+/* styles for default_input.tmpl */
+td.inputrow {
+    width: 100%; 
+    padding-right: 10px;    
+}
+
+th.inputrow {
+    padding-top: 4px; 
+    font-weight: normal;
+    font-style: italic; 
+    text-align: left;
+}
+
+td.inputrow-2 { width: 50%; }
+td.inputrow-3 { width: 33%; }
+td.inputrow-4 { width: 25%; }
+td.inputrow-5 { width: 20%; }
+
+/* styles for embeddable types */
+
+td.translated_string-language { width: 30%; }
+td.translated_string-text { width: 70%; }
+
+td.toc_item-class { width: 10%; } 
+td.toc_item-label { width: 10%; } 
+td.toc_item-title { width: 70%; } 
+td.toc_item-pagenum { width: 10%; }
+
+td.link-title { width: 30%; }
+td.link-url { width: 70%; }
+
+img.plus { src: url("/static/images/+.png"); }
+img.minus { src: url("/static/images/-.png"); }
+img.moveup { src: url("/static/images/arrowup.png"); }
+img.movedown { src: url("/static/images/arrowdown.png"); }
+button[disabled] img.moveup { src: url("/static/images/arrowup-disabled.png"); }
+button[disabled] img.movedown { src: url("/static/images/arrowdown-disabled.png"); }
+
+td.rawtext-body textarea { height: 400px; font-family: courier,monospaced;}
+
+pre.linenumbers { background-color: #eeeeee; color: #999999; padding-right: 5px; margin-right: 5px;}
+
+.default-cover-m { width: 170px; height: 254px; text-align: center; padding-right: 14px; clear: both; background: transparent url("/static/images/blank.book.new.png") 0px 3px no-repeat;}
+
+.default-cover-m > #book-title { color: #f9f8d0; width: 180px; height: 250px; vertical-align: middle; display: table-cell; padding-left: 8px; }
+#author-names { color: #fff; font-style: italic; font-size: 12px; line-height: 15px; padding-right: 4px; padding-left: 4px; }
+
+.default-cover-s { width: 40px; height: 58px; text-align: center; padding-right: 14px; clear: both; background: transparent url("/static/covers/cover-blue-s.png") 0px 3px no-repeat; font-size: 0.7em; }
+.default-cover-s > #book-title { color: #f9f8d0; width: 40px; height: 50px; vertical-align: middle; display: table-cell; padding-left: 4px; text-overflow:ellipsis;}
+
+
+td.cover {text-align: center; padding-left: 0px; width: 72px; }
+
+
+
+/*IMPORTED FROM TOC*/
+
+.toc-header { color: #666666; font-size: 16px; line-height: 16px; text-transform: uppercase; font-style: bold; padding-top: 0px; padding-bottom: 10px; }
