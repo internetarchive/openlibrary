@@ -1,4 +1,4 @@
-import urllib
+import urllib, web
 import simplejson as json
 from time import sleep
 
@@ -12,6 +12,22 @@ def base_url():
 
 def query_url():
     return base_url() + "/query.json?query="
+
+def get_all_ia():
+    print 'c'
+    q = {'source_records~': 'ia:*', 'type': '/type/edition'}
+    limit = 10
+    q['limit'] = limit
+    q['offset'] = 0
+
+    while True:
+        url = base_url() + "/api/things?query=" + web.urlquote(json.dumps(q))
+        ret = json.load(urllib.urlopen(url))['result']
+        for i in ret:
+            yield i
+        if not ret:
+            return
+        q['offset'] += limit
 
 def set_staging(i):
     global staging
