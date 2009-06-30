@@ -8,6 +8,7 @@ import imagecache
 import config
 
 urls = (
+    '/', 'index',
     '/([^ /]*)/upload', 'upload',
     '/([^ /]*)/([a-zA-Z]*)/(.*)-([SML]).jpg', 'cover',
     '/([^ /]*)/query', 'query',
@@ -119,6 +120,10 @@ def load_image(data):
 ERROR_EMPTY = 1, "No image found"
 ERROR_INVALID_URL = 2, "Invalid URL"
 ERROR_BAD_IMAGE = 3, "Invalid Image"
+
+class index:
+    def GET(self):
+        return '<h1>Open Library Book Covers Repository</h1><div>See <a href="http://openlibrary.org/dev/docs/api/covers">Open Library Covers API</a> for details.</div>'
         
 class upload:
     def POST(self, category):
