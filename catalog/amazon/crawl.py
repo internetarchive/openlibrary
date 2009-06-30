@@ -63,10 +63,10 @@ def read_books(params, root):
         if all(a is not None for a in book_links):
             break
         sleep(2)
-        print 'retry:', url
+        print 'retry:', params
         root = get_url(params)
 
-    return [re_product_title.search(a.attrib['href']).group(1) for a in book_links]
+    return [re_product_title.search(a.attrib['href']).group(1) for a in book_links if a is not None]
 
 def get_cats(root):
     cats = []
@@ -174,7 +174,7 @@ def write_books(cur_date, books):
     index.close()
 
 one_day = timedelta(days=1)
-cur = date(2009, 06, 06)
+cur = date(2009, 05, 31)
 while True:
     print cur
     total, books, cats = read_page(cur)
