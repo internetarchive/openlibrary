@@ -1,341 +1,259 @@
-import re, sys, htmlentitydefs
+from lxml.html import parse, tostring
+import re, os, sys
 from warnings import warn
 from math import floor
+from pprint import pprint
 
-re_product_description = re.compile("""
-    <hr\ noshade="true"\ size="1"\ class="bucketDivider"\ />\s+
-    <div\ class="bucket"\ id="productDescription">\s+
-    <h2>Editorial\ Reviews</h2>\s+
-    .*?
-    <b>From\ the\ Publisher</b><br\ />\s+
-    (.*?)\s+
-    (?:<a\ href=".*?">See\ all\ Editorial\ Reviews</a>)?
-    </div>
-#""", re.DOTALL | re.X)
+role_re = re.compile("^ \(([^)]+)\)")
 
-sales_rank_re = re.compile('^#([0-9,]+) in Books(?:.*<table .*?>(.*)</table>)?')
-reading_level_re = re.compile('^(.*)<br />$')
-pages_re = re.compile('^(\d+)(?:\.0)? pages$')
-shipping_weight_re = re.compile('^(\d+(?:\.\d)? (?:pounds|ounces))(?: \(<a href="[^"]+">View shipping rates and policies</a>\))?$')
-pub_date_re = re.compile("^(.*) \((.*\d{4})\)$")
-pub_edition_re = re.compile("^(.*); (.*)$")
-
-re_tag_cols = re.compile('''<table class="tag-cols"(.*?)</table>''', re.DOTALL)
-
-re_tag_row = re.compile('<div class="tag-row" tag="([^"]*?)">')
-
-def parse_tags(m, edition):
-    edition["tags"] = re_tag_row.findall(m.group(1))
-
-re_plog = re.compile(r'''(<div\ id="plog"\ class="plog">\s*.*?</li>)''', re.DOTALL)
-re_plog2 = re.compile(r'''
-<div\ id="plog"\ class="plog">\n*
-<hr\ noshade="noshade"\ size="1"\ class="bucketDivider"\ style=".*?
-<b\ class="h1">\s*(.*?)\ latest\ blog\ posts\s*</b>.*?
-<div\ class="plogLeftCol">\s*
-<img\ src="(.*?)".*?>.*
-<ul\ class="profileLink">\s*
-<li\ class="carat">
-<a\ href="/gp/blog/(.*)">\1\ Blog</a></li>
-''', re.DOTALL | re.X)
-
-#re_plog2 = re.compile(r'''
-#<div\ id="plog"\ class="plog">\n*
-#<hr\ noshade="noshade"\ size="1"\ class="bucketDivider"\ style=".*?
-#<b class="h1">\s*(.*?)\ latest\ blog\ posts\s*</b>.*?
-#<div\ class="plogLeftCol">\s*
-#<img\ src="(.*?)".*?>.*
-#<ul\ class="profileLink">\s*
-#<li\ class="carat">
-#<a\ href="/gp/blog/(.*)">\1\ Blog</a></li>
-#''', re.DOTALL | re.X)
-
-def parse_plog(m, edition):
-    m = re_plog2.search(m.group(1))
-    assert m
-    plog_name = m.group(1)
-    if plog_name.endswith("'s"):
-        edition["plog_name"] = plog_name[:len(plog_name)-2]
-    else:
-        assert plog_name.endswith("s'")
-        edition["plog_name"] = plog_name[:len(plog_name)-1]
-    edition["plog_img"] = m.group(2).replace(".T.", ".L.")
-    edition["plog_id"] = m.group(3)
-
-re_citing0 = re.compile("<a name='citing' >(.*?)</div></div></div>", re.DOTALL)
-
-re_citing = re.compile('''<a name='citing' ></a><b>
-This book cites (\d+)\s*
-books?:\s*
-</b><br /><ul style="margin-bottom: 20px;">(?:(.*?)<div class="spacer">&nbsp;</div>
-<a name='cited' ></a><b>
-(\d+)\s*\n(?:books\s*\ncite this book|book\s*\ncites this book:)
-</b><br /><ul style="margin-bottom: 20px;">(.*?)</ul>.*?)?</div></div></div>''', re.DOTALL)
-
-re_citing = re.compile('''<a name='citing' ></a><b>
-This book cites (\d+)\s*
-books?:\s*
-</b><br /><ul style="margin-bottom: 20px;">(.*?)<div class="spacer">&nbsp;</div>''', re.DOTALL)
-
-re_citing_li = re.compile('<li>\s*(.*?)\s*</li>', re.DOTALL)
-re_citing_li2 = re.compile('^<a href="http://.*?/dp/([0-9A-Z]{10})">(.*?)</a>\s*by (.*?)\s*(?:on|in)\s*(.*)$', re.DOTALL)
-
-re_page_list = re.compile('<a href=".*?">(.*?)</a>')
-
-re_prodImageCell = re.compile(' id="prodImage"[^>]* alt="([^"]+)"')
-
-re_entity = re.compile("&(\w+?);")
-
-def descape_entity(m, defs=htmlentitydefs.entitydefs):
-    # callback: translate one entity to its ISO Latin value
-    try:
-        return defs[m.group(1)]
-    except KeyError:
-        return m.group(0) # use as is
-
-def descape(string):
-    return re_entity.sub(descape_entity, string)
-
-re_div_title = re.compile("""
+re_title = re.compile("""
     (?:\ \[([^a-z]+)\]\ )? # flags
     \ 
-    \(([^()]+|[^()]*\(.*\)[^()]*)\)</span></h1> # binding
-    \s*
-    <span\ >
-    \s*by\ (.*?) # authors
-    \s*</span>\s*</div>""", re.MULTILINE | re.X)
+    \(([^()]+|[^()]*\(.*\)[^()]*)\)
+    """, re.MULTILINE | re.X)
 
-re_div_title = re.compile("""by (.*?)""")
+re_split_title = re.compile(r'''^
+    (.+?(?:\ \(.+\))?)
+    (?::\ (\ *[^:]+))?$
+''', re.X)
 
-re_author = re.compile('<a href="(?:[^"]*)">(.*?)</a>(?: \(([^)]+)\))?')
+re_list_price = re.compile('^\$([\d,]+)\.(\d\d) $')
+re_amazon_price = re.compile('^\$([\d,]+)\.(\d\d)$')
+# '$0.04\n      \n    '
+re_you_save = re.compile('^\$([\d,]+)\.(\d\d)\s*\((\d+)%\)\s*$')
 
-class amazon_record:
-    def __init__(self, html):
-        self.html = html
-        self.basic_parse()
+re_pages = re.compile('^\s*(\d+)(?:\.0)? pages\s*$')
+re_sales_rank = re.compile('^ #([0-9,]+) in Books')
 
-    def basic_parse(self):
-        m = re_title.search(self.html)
-        self.html_title = descape(m.group(1))
-        m = re_prodImageCell.search(self.html)
-        title = descape(m.group(1))
-        expect_str = '<div class="buying"><h1 class="parseasinTitle"><span id="btAsinTitle" style="">'
-        title_pos = self.html.find(expect_str + title)
-        assert title_pos != -1
+def to_dict(k, v):
+    return {k: v} if v else None
 
-        re_div_title = re.compile('<div class="buying"><h1 class="parseasinTitle"><span id="btAsinTitle" style="">(.*?)</div>', re.MULTILINE | re.S)
-        m = re_div_title.search(self.html)
-        title_div = m.group(1)
-        assert title_div.startswith(title)
-        title_div = title_div[len(title):]
-
-        re_div_title2 = re.compile('^(?: \[([^a-z]+)\] )? \(([^)]+)\)</span></h1>\n*<span >\n*(?:by ([^\n]+?))?\n*(?:(?:<br />)?<span class="tiny">.*)?</span>\n$', re.S)
-        m = re_div_title2.match(title_div)
-        if not m:
-            print `title_div`
-        assert m
-        (flag, binding, authors) = m.groups()
-        self.flag = flag
-        self.binding = binding
-        expect_html_title = "Amazon.com: " + title
-        if authors:
-            print `authors`
-            author_names = re_author.findall(authors)
-            print author_names
-            assert all(i[1] != '' for i in author_names)
-            expect_html_title += ": " + ', '.join(i[0] for i in author_names)
-            self.authors = [x for x in author_names if x[0] != '']
+def read_authors(by_span):
+    authors = []
+    assert by_span.text == '\n\nby '
+    expect_end = False
+    for e in by_span:
+        if expect_end:
+            assert e.tag in ('br', 'span')
+            break
+        assert e.tag == 'a'
+        if e.tail.endswith('\n\n'):
+            expect_end = True
         else:
-            self.authors = []
-        print self.html_title
-        print expect_html_title
-        assert self.html_title.startswith(expect_html_title + ": Books")
-        m = re_split_title.match(title)
-        self.full_title = title
-        (self.title, self.subtitle) = m.groups()
-        m = re_prod_image.search(self.html)
-        self.has_cover_img = m.group(1).find("no-image-avail") == -1
+            assert e.tail.endswith(', ')
+        m = role_re.match(e.tail)
+        if m:
+            authors.append({ 'name': e.text, 'role': m.group(1) })
+        else:
+            authors.append({ 'name': e.text })
+    return authors
 
-def parse_citing_li(html):
-    for m in re_citing_li.finditer(html): 
-        if not m.group(1).startswith('<'): # empty cite
-            continue
-        m = re_citing_li2.match(m.group(1))
-        print m.groups()
-        print re_page_list.findall(m.group(4))
+def get_title_and_authors(doc):
+    prodImage = doc.get_element_by_id('prodImage')
+    full_title = prodImage.attrib['alt']
 
-def parse_citing(html, edition):
-    if html.find("<a name='citing' >") == -1:
-        return
-    m = re_citing0.search(html)
-    print m.group(1)
-    m = re_citing.search(html)
-    (this_cites_count, this_cites, cite_this_count, cite_this) = m.groups()
-#    print this_cites_count, cite_this_count
-    parse_citing_li(this_cites)
-    parse_citing_li(cite_this)
-    return
-    for m in re_citing_li.finditer(m.group(1)): 
-        if m.group(1).startswith('on'): # empty cite
-            continue
-        print m.group(1)
-        m = re_citing_li2.match(m.group(1))
-        assert m
-        print m.groups()
-        print re_page_list.findall(m.group(4))
+    m = re_split_title.match(full_title)
+    (title, subtitle) = m.groups()
+    # maybe need to descape title
+    title_id = doc.get_element_by_id('btAsinTitle')
+    assert title_id.tag == 'span'
+    assert title_id.getparent().tag == 'h1'
+    assert title_id.getparent().attrib['class'] == 'parseasinTitle'
+    buying_div = title_id.getparent().getparent()
+    assert buying_div.tag == 'div'
+    assert buying_div.attrib['class'] == 'buying'
+    by_span = buying_div[1]
+    assert by_span.tag == 'span'
 
-re_price_block = re.compile('<div class="buying" id="priceBlock">\s*(.*?)\s*</div>',re.DOTALL)
-re_price_block_table = re.compile('<table class="product">\s*(.*)\s*</table>',re.DOTALL)
-re_price_block_tr = re.compile('<tr>\s*(.*?)\s*</tr>', re.DOTALL)
-# <td class="priceBlockLabel">List Price:</td>\n    <td>$72.20 </td>'
+    book = {
+        'full_title': full_title,
+        'title': title,
+        'has_cover_img': "no-image-avail" not in prodImage.attrib['src']
+    }
 
-re_price_block_tr2 = re.compile('<td class="priceBlockLabel(.*)">(.*?)</td>\s*(<td.*?</td>)', re.DOTALL)
+    authors = []
+    if len(by_span) and by_span[0].tag == 'a':
+        #print len(by_span), [e.tag for e in by_span]
+        book['authors'] = read_authors(by_span)
+    assert title_id.text.startswith(full_title)
+    btAsinTitle = title_id.text[len(full_title):]
+    m = re_title.match(btAsinTitle)
+    (flag, book['binding']) = m.groups()
+    if flag:
+        book['flag'] = flag
+    if subtitle:
+        book['subtitle'] = subtitle
 
-re_list_price = re.compile('<td(?: class="listprice")?>\$([\d,]+)\.(\d\d) </td>')
-re_amazon_price = re.compile('<td><b class="price(?:Large)?">\$([\d,]+)\.(\d\d)</b>')
-re_you_save = re.compile('<td class="price">\$([\d,]+)\.(\d\d)\s*\((\d+)%\)\s*</td>')
+    return book
 
 def dollars_and_cents(dollars, cents):
     # input: dollars and cents as strings
     # output: value in cents as an int
     return int(dollars.replace(',', '')) * 100 + int(cents)
 
-def parse_price_block(m, edition):
-    m = re_price_block_table.search(m.group(1))
-    for m in re_price_block_tr.finditer(m.group(1)):
-        if m.group(1).startswith('<td></td>'):
-            continue
-        m = re_price_block_tr2.match(m.group(1))
-        (name, heading, value) = m.groups()
+def read_price_block(doc):
+    price_block = doc.get_element_by_id('priceBlock', None)
+    book = {}
+    if price_block is None:
+        return
+    assert price_block.tag == 'div' and price_block.attrib['class'] == 'buying'
+    table = price_block[0]
+    assert table.tag == 'table' and table.attrib['class'] == 'product'
+    for tr in table:
+        assert tr.tag == 'tr' and len(tr) == 2
+        assert all(td.tag == 'td' for td in tr)
+        heading = tr[0].text
+        value = tr[1].text
+
         if heading == 'List Price:':
-            m = re_list_price.match(value)
+            m = re_list_price.match(tr[1].text)
             list_price = dollars_and_cents(m.group(1), m.group(2))
-            edition["list_price"] = list_price
+            book["list_price"] = list_price
         elif heading == "Price:":
-            m = re_amazon_price.match(value)
+            b = tr[1][0]
+            assert b.tag == 'b' and b.attrib['class'] == 'priceLarge'
+            m = re_amazon_price.match(b.text)
             amazon_price = dollars_and_cents(m.group(1), m.group(2))
-            edition["amazon_price"] = amazon_price
+            book["amazon_price"] = amazon_price
         elif heading == 'You Save:':
+            continue # don't need to check
+            # fails for 057124954X: '$0.04\n      \n    '
             m = re_you_save.match(value)
             you_save = dollars_and_cents(m.group(1), m.group(2))
             assert list_price - amazon_price == you_save
             assert floor(float(you_save * 100) / list_price + 0.5) == int(m.group(3))
         elif heading == 'Value Priced at:':
+            continue # skip
             m = re_amazon_price.match(value)
-            edition["value_priced_at"] = dollars_and_cents(m.group(1), m.group(2))
+            book["value_priced_at"] = dollars_and_cents(m.group(1), m.group(2))
         elif heading == 'Import List Price:':
             pass
 
-#    print edition
+    return book
 
-re_used_and_new = re.compile('<div class="buying" id="primaryUsedAndNew">\s*(.*?)\s*</div>', re.DOTALL)
-
-re_used_and_new2 = re.compile('<a href="(?:.*?)" class="buyAction">\n(\d+) used & new</a> available from <span class="price">\$([\d,]+)\.(\d\d)</span><br />');
-
-def parse_used_and_new(m, edition):
-    if m.group(1) == '':
-        return
-
-    m = re_used_and_new2.match(m.group(1))
-    edition["new_and_used_count"] = int(m.group(1))
-    edition["new_and_used_price"] = dollars_and_cents(m.group(2), m.group(3))
-
-re_other_editions = re.compile('<table border="0" cellspacing="0" cellpadding="0" class="otherEditions" id="oeTable">\s*(.*?)\s*</table>', re.DOTALL)
-
-re_other_editions_tr = re.compile('<tr bgcolor= #ffffff >\s*(.*?)\s*</tr>', re.DOTALL)
-re_other_editions_see_all = re.compile('See all (\d+) editions and formats')
-re_other_editions2 = re.compile('^<td  class="tiny"  >\s*<a href="http://www.amazon.com(?::80.*?|(?:/.*?/dp/|/gp/product/)([0-9A-Z]{10}).*?)">(.*?)</a>\s*(?:\((.*?)\))?\s*</td>')
-re_other_edition_url = re.compile('/dp/(\d{9}[\dX])')
-re_other_edition_empty = re.compile('<td\s*class="tiny"\s*>\s*</td>\s*<td\s*class="tiny"\s*>\s*</td>\s*<td class="tinyprice"></td>')
-
-def parse_other_editions(m, edition):
-    m2 = re_other_editions_see_all.search(m.group(1))
-    if m2:
-        other_edition_count = int(m2.group(1))
-        assert other_edition_count > 4
-        edition['other_edition_count'] = other_edition_count
-
-    other_editions = []
-    for m in re_other_editions_tr.finditer(m.group(1)):
-        if re_other_edition_empty.match(m.group(1)):
+def find_avail_span(doc):
+    for div in doc.find_class('buying'):
+        if div.tag != 'div' or not len(div):
             continue
-        m = re_other_editions2.match(m.group(1))
-        other_editions.append(m.groups())
-    if other_editions:
-        edition['other_editions'] = other_editions
-
-def parse_title(html, edition):
-    expect_div_title_str = '<div class="buying"><h1 class="parseasinTitle"><span id="btAsinTitle" style="">'
-    expect_div_title_str = '<div class="buying"><b class="sans">'
-    assert html.find(expect_div_title_str) != -1
-    expect_div_title_str += edition["title"]
-    assert html.find(expect_div_title_str) != -1
-    if 'subtitle' in edition:
-        expect_div_title_str += ': ' + edition['subtitle']
-    assert html.find(expect_div_title_str) != -1
-
-re_div_title = re.compile("""
-    (?:\ \[([^a-z]+)\]\ )? # flags
-    \ 
-    \(([^()]+|[^()]*\(.*\)[^()]*)\) # binding
-    (?:\ ?<!--aoeui-->|\ )?
-    </b><br\ />
-    (.*?) # authors
-    (?:<br\ />)?
-    (?:<span\ class="tiny">)?$""", re.MULTILINE | re.X)
-
-author_re = re.compile('<a href="(?:[^"]*)">(.*?)</a>(?: \(([^)]+)\))?')
-
-def parse_div_title(html, edition):
-    m = re_div_title.search(html)
-    
-    (flag, binding, authors) = m.groups()
-    if flag:
-        edition['flag'] = flag
-    edition['binding'] = binding
-    if authors:
-        assert authors.startswith("by ")
-        author_names = author_re.findall(authors[3:])
-
-        expect_author = ','.join([x[0].replace('\\', '') for x in author_names])
-        assert edition['desc_author'] == expect_author
-        edition['authors'] = [x for x in author_names if x != '']
-    else:
-        assert not edition['desc_author']
-    del edition['desc_author']
-
-#re_pop_cat_row = re.compile('<tr valign="top"><td align="right"><nobr>#(\d+) in </nobr></td><td align="left">&nbsp;<a href="/gp/bestsellers/books">Books</a>( &gt; <a href="/gp/bestsellers/books/\d+">(.*)</a>)+ <b><a href="/gp/bestsellers/books/\d+">(.+)</a></b></td></tr>')
-re_pop_cat_row = re.compile('<tr valign="top"><td align="right"><nobr>#(\d+) in </nobr></td><td align="left">&nbsp;<a href="/gp/bestsellers/(.*?)">(.*?)</a>((?: &gt; <a href="/gp/bestsellers/books/\d+">.*?</a>)*) &gt; <b><a href="/gp/bestsellers/books/\d+">(.+?)</a></b></td></tr>')
-re_pop_cat2 = re.compile(' &gt; <a href="/gp/bestsellers/books/\d+">(.*?)</a>')
-
-def popular_cat(html):
-    pop = []
-    for m in re_pop_cat_row.finditer(html):
-        assert m.group(2) == 'books'
-        assert m.group(3) == 'Books'
-        cat = [x.group(1) for x in re_pop_cat2.finditer(m.group(4))]
-        cat.append(m.group(5))
-        pop.append({ 'num': int(m.group(1)), 'cat': cat })
-    return pop
-
-re_product_details = re.compile("""
-    ^<a\ name="productDetails"\ id="productDetails"></a>.*?
-    <h2>Product\ Details</h2>\s+
-    <div\ class="content">\s+(.+?)</ul>""", re.MULTILINE | re.DOTALL | re.X)
-    
-def parse_details(m, edition):
-    details = li_re.findall(m.group(1))
-    if details[0][0] == "Reading level":
-        edition["reading_level"] = reading_level_re.match(details.pop(0)[1]).group(1)
-    (binding2, pages) = details.pop(0)
-#    if edition["binding"] != binding2:
-#        warn("binding mismatch: " + edition["binding"] + " != " + binding2)
-    if pages:
-        m = pages_re.match(pages)
-        if m:
-            edition['number_of_pages'] = int(m.group(1))
+        if div[0].tag == 'span':
+            span = div[0]
+        elif div[0].tag == 'br' and div[1].tag == 'b' and div[2].tag == 'span':
+            span = div[2]
         else:
-            warn("can't parse number_of_pages: " + pages)
+            continue
+        if span.attrib['class'].startswith('avail'):
+            return span
+
+def read_avail(doc):
+    traffic_signals = set(['Red', 'Orange', 'Green'])
+    span = find_avail_span(doc)
+    color = span.attrib['class'][5:]
+    assert color in traffic_signals
+    gift_wrap = span.getnext().getnext().tail
+    book = {
+        'avail_color': color,
+        'amazon_availability': span.text,
+        'gift_wrap': bool(gift_wrap) and 'Gift-wrap available' in gift_wrap
+    }
+    return book
+
+def read_other_editions(doc):
+    oe = doc.get_element_by_id('oeTable', None)
+    if oe is None:
+        return
+    assert oe.tag == 'table' and oe.attrib['class'] == 'otherEditions'
+    assert len(oe) == 2 and len(oe[0]) == 2 and len(oe[1]) == 2
+    assert oe[0][0][0].tag == 'a'
+    oe = oe[0][0][1]
+    assert oe.tag == 'table'
+    other_editions = []
+    for tr in oe[1:]:
+        assert tr.tag == 'tr'
+        if 'bgcolor' in tr.attrib:
+            assert tr.attrib['bgcolor'] == '#ffffff'
+        else:
+            assert tr[0].attrib['id'] == 'oeShowMore'
+            break
+        assert tr[0].attrib['class'] == 'tiny'
+        a = tr[0][0]
+        assert a.tag == 'a'
+        row = [a.attrib['href'][-10:], a.text, a.tail.strip()]
+        other_editions.append(row)
+    return {'other_editions': other_editions }
+
+def read_sims(doc):
+    sims = doc.find_class('sims-faceouts')
+    if len(sims) == 0:
+        return
+    assert len(sims) == 1
+    sims = sims[0]
+    assert sims.tag == 'table'
+    found = []
+    if sims[0].tag == 'tbody':
+        tr = sims[0][0]
+    else:
+        assert sims[0].tag == 'tr'
+        tr = sims[0]
+    for td in tr:
+        assert td.tag == 'td'
+        a = td[1][0]
+        assert a.tag == 'a'
+        found.append({'asin': a.attrib['href'][-10:], 'title': a.text})
+    return to_dict('sims', found)
+
+def find_product_details_ul(doc):
+    a = doc.get_element_by_id('productDetails', None)
+    if a is None:
+        return
+    try:
+        assert a.tag == 'a' and a.attrib['name'] == 'productDetails'
+    except:
+        print tostring(a)
+        raise
+    hr = a.getnext()
+    assert hr.tag == 'hr' and hr.attrib['class'] == 'bucketDivider'
+    table = hr.getnext()
+    td = table[0][0]
+    assert td.tag == 'td' and td.attrib['class'] == 'bucket'
+    h2 = td[0]
+    assert h2.tag == 'h2' and h2.text == 'Product Details'
+    div = td[1]
+    assert div.tag == 'div' and div.attrib['class'] == 'content'
+    ul = div[0]
+    assert ul.tag == 'ul'
+    assert ul[-1].tag == 'div' and ul[-2].tag == 'p'
+    return ul
+
+def read_li(li):
+    assert li.tag == 'li'
+    b = li[0]
+    assert b.tag == 'b'
+    return b
+
+re_series = re.compile('^<li>(?:This is item <b>(\d+)</b> in|This item is part of) <a href="?/gp/series/(\d+).*?><b>The <i>(.+?)</i> Series</b></a>\.</li>')
+
+def read_series(doc):
+    ul = doc.find_class('linkBullets')
+    if len(ul) == 0:
+        return
+    assert len(ul) == 1
+    ul = ul[0]
+    if len(ul) == 0:
+        return
+    li = ul[0]
+    assert li.tag == 'li'
+    (series_num, series_id, series) = re_series.match(tostring(li)).groups()
+    found = {}
+    if series_num:
+        found["series_num"] = int(series_num)
+    found["series"] = series
+    found["series_id"] = series_id
+    return found
+
+def read_product_details(doc):
+    ul = find_product_details_ul(doc)
+    if ul is None:
+        return
 
     headings = {
         'Publisher': 'publisher',
@@ -347,263 +265,291 @@ def parse_details(m, edition):
         'Shipping Weight': 'shipping_weight',
     }
 
-    seen_average_customer_review = 0
-    for (h, v) in details:
-#        if h in 'Also Available in':
-#            parse_aai(v, edition)
+    found = {}
+    ul_start = 0
+    if 'Reading level' in ul[0][0].text:
+        ul_start = 1
+        li = ul[0]
+        b = read_li(li)
+        found['reading_level'] = b.tail.strip()
+
+    li = ul[ul_start]
+    b = read_li(li)
+    (binding, pages) = (b.text, b.tail)
+    if pages:
+        m = re_pages.match(pages)
+        if m:
+            found['number_of_pages'] = int(m.group(1))
+        else:
+            warn("can't parse number_of_pages: " + pages)
+
+    seen_average_customer_review = False
+    for li in ul[ul_start + 1:-2 if ul[-3].tag != 'br' else -3]:
+#        if li.tag == 'p' and len(li) == 0:
+#            continue
+        b = read_li(li)
+        h = b.text.strip(': \n')
         if h in ('Also Available in', 'In-Print Editions'):
-#            print v
             break
         if seen_average_customer_review:
             break
         if h == 'Amazon.com Sales Rank':
-            m = sales_rank_re.match(v)
-            edition['sales_rank'] = int(m.group(1).replace(",", ""))
-            if m.group(2):
-                edition['popular_cat'] = popular_cat(m.group(2))
+            m = re_sales_rank.match(b.tail)
+            found['sales_rank'] = int(m.group(1).replace(",", ""))
             break
         if h in ('Shipping Information', 'Note', 'Shipping'):
             continue
         if h == 'Average Customer Review':
-            seen_average_customer_review = 1
+            seen_average_customer_review = True
             continue
         if h == 'Shipping Weight':
-            v = shipping_weight_re.match(v).group(1)
+            found['shipping_weight'] = b.tail.strip('( ')
+            continue
         heading = headings[h]
-        edition[heading] = v
-    parse_publisher(edition)
+        found[heading] = b.tail.strip()
+    return found
+
+re_pub_date = re.compile("^(.*) \((.*\d{4})\)$")
+re_pub_edition = re.compile("^(.*); (.*)$")
 
 def parse_publisher(edition):
     if 'publisher' in edition:
-        m = pub_date_re.match(edition["publisher"])
+        m = re_pub_date.match(edition["publisher"])
         if m:
             edition["publisher"] = m.group(1)
             edition["publish_date"] = m.group(2)
-        m = pub_edition_re.match(edition["publisher"])
+        m = re_pub_edition.match(edition["publisher"])
         if m:
             edition["publisher"] = m.group(1)
             edition["edition"] = m.group(2)
 
-re_inside_this_book = re.compile('<h2>Inside This Book</h2>.*?<strong>First Sentence:</strong><br />\s*(.+?)&nbsp;<a href="[^"]+">Read the first page</a>.*?', re.DOTALL)
-re_inside_this_book = re.compile('<b class="h1">Inside This Book</b>(.*?)Read the first page</a>.*?', re.DOTALL)
-re_inside_this_book2 = re.compile('<strong>First Sentence:</strong><br />\n*(.*?)&nbsp;', re.DOTALL)
-re_sip = re.compile('<a name="sipbody"><strong>Key Phrases - Statistically Improbable Phrases \(SIPs\):</strong></a>.*?<br />\s*(.+?)<div class="spacer"></div>\s*', re.DOTALL)
-re_cap = re.compile('<a name="capbody"><strong>Key Phrases - Capitalized Phrases \(CAPs\):</strong></a>.*?<br />\s*(.+?)<div class="spacer"></div>\s*', re.DOTALL)
+re_latest_blog_posts = re.compile('\s*(.*?) latest blog posts')
+re_plog_link = re.compile('^/gp/blog/([A-Z0-9]+)$')
 
-def parse_inside_this_book(m, edition):
-    m = re_inside_this_book2.search(m.group(1))
-    edition["first_sentence"] = m.group(1)
+def read_plog(doc):
+    div = doc.get_element_by_id('plog', None)
+    if div is None:
+        return
+    assert div.tag == 'div' and div.attrib['class'] == 'plog'
+    table = div[1]
+    b = table[0][0][0]
+    assert b.tag == 'b' and b.attrib['class'] == 'h1'
+    m = re_latest_blog_posts.match(b.text)
+    name = m.group(1)
+    found = {}
+    if name.endswith("'s"):
+        found["plog_name"] = name[:-2]
+    else:
+        assert name.endswith("s'")
+        found["plog_name"] = name[:-1]
+    div = table[2][1][0]
+    found["plog_img"] = div[0].attrib['src'].replace(".T.", ".L.")
+    ul = div[-1]
+    assert ul.tag == 'ul' and ul.attrib['class'] == 'profileLink'
+    li = ul[0]
+    assert li.tag == 'li' and li.attrib['class'] == 'carat'
+    assert li[0].tag == 'a'
 
-re_category = re.compile("""
-    ^<div\ class="bucket">\s+
-    <h2>Look\ for\ Similar\ Items\ by\ Category</h2>\s+
-    <div\ class="content">\s+<ul>\s+(.*?)\s*</ul>""", re.MULTILINE | re.DOTALL | re.X)
-re_category_li = re.compile('<li>(.+?)</li>', re.MULTILINE | re.DOTALL)
+    href = li[0].attrib['href']
+    m = re_plog_link.match(href)
+    found["plog_id"] = m.group(1)
 
-re_link = re.compile('<a href="http://www.amazon.com/.*">(.*)</a>')
-re_phrase_link = re.compile('\s*<a href="/phrase/.*" >(.*)</a>')
+    return found
 
-def parse_category(m, edition):
-    category = []
-    for x in re_category_li.findall(m.group(1)):
-        cat = [re_link.match(y).group(1) for y in x.split(' &gt; ')]
-        if cat[0] == 'Amazon Upgrade':
-            continue
+re_cite = {
+    'citing': re.compile('\nThis book cites (\d+) \nbook(?:s)?:'),
+    'cited': re.compile('\n(\d+) \nbook(?:s)? \ncites? this book:')
+}
+    
+def read_citing(doc):
+    div = doc.get_element_by_id('bookCitations', None)
+    found = {}
+    if div is None:
+        return
+    content = div[0][2]
+    assert content.tag == 'div' and content.attrib['class'] == 'content'
+    a = content[0]
+    assert a.tag == 'a'
+    b = content[1]
+    name = a.attrib['name']
+    assert name in ('citing', 'cited')
+    found[name] = b.text
+    if len(content) > 7:
+        print len(content)
+        for num, i in enumerate(content):
+            print num, i.tag, i.attrib
+        a = content[8]
+        assert a.tag == 'a'
+        b = content[9]
+        assert a.attrib['name'] == 'cited'
+        found['cited'] = b.text
+    for k, v in found.items():
+        m = re_cite[k].match(v)
+        found[k] = int(m.group(1))
+    return found
+
+def find_inside_this_book(doc):
+    for b in doc.find_class('h1'):
+        if b.text == 'Inside This Book':
+            assert b.tag == 'b'
+            return b.getparent()
+    return None
+
+def read_first_sentence(inside):
+    if len(inside) == 4:
+        assert inside[2].tag == 'span'
+        assert inside[2].attrib['class'] == 'tiny'
+        assert inside[2][0].tail.strip() == 'Browse and search another edition of this book.'
+        div = inside[3]
+    else:
+        assert len(inside) == 3
+        div = inside[2]
+    assert div.tag == 'div' and div.attrib['class'] == 'content'
+    if div[0].tag in ('a', 'b'):
+        assert div[0].text != 'First Sentence:'
+        return
+    assert div[0].tag == 'strong'
+    assert div[0].text == 'First Sentence:'
+    assert div[1].tag == 'br'
+    return div[1].tail.strip(u"\n \xa0")
+
+def find_bucket(doc, text):
+    for div in doc.find_class('bucket'):
+        h2 = div[0]
+        if h2.tag == 'h2' and h2.text == text:
+            return div
+    return None
+
+# New & Used Textbooks
+
+def read_subject(doc):
+    div = find_bucket(doc, 'Look for Similar Items by Subject')
+    if div is None:
+        return
+    assert div.tag == 'div'
+    form = div[1][0]
+    assert form.tag == 'form'
+    input = form[0]
+    assert input.tag == 'input' and input.attrib['type'] == 'hidden' \
+        and input.attrib['name'] == 'index' \
+        and input.attrib['value'] == 'books'
+    found = []
+    for input in form[1:-4:3]:
+        a = input.getnext()
+        assert a.tag == 'a'
+        found_text = a.text if len(a) == 0 else a[0].text
+        assert found_text is not None
+        found.append(found_text)
+    return to_dict('subjects', found)
+
+def read_category(doc):
+    div = find_bucket(doc, 'Look for Similar Items by Category')
+    if div is None:
+        return
+    assert div.tag == 'div'
+    ul = div[1][0]
+    assert ul.tag == 'ul'
+    found = []
+    for li in ul:
+        assert all(a.tail == ' > ' for a in li[:-1])
+        cat = [a.text for a in li]
         if cat[-1] == 'All Titles':
             cat.pop()
-        category.append(tuple(cat))
-        e = [c for c in cat]
-        if 'Series' in e:
-            edition["series2"] = e
+        found.append(tuple(cat))
+#        if 'Series' in cat:
+#            edition["series2"] = cat
+    # maybe strip 'Books' from start of category
+    found = [i[1:] if i[0] == 'Books' else i for i in found]
+    return to_dict('category', found)
 
-    edition["category"] = category
-
-re_subject = re.compile("""
-    <div\ class="bucket">\s+
-    <h2>Look\ for\ Similar\ Items\ by\ Subject</h2>\s+
-    <div\ class="content">\s+(.*?)\s*</div>""", re.X | re.MULTILINE | re.DOTALL)
-re_subject_item = re.compile("""
-    <input\ type="checkbox"\ name="field\+keywords"\ value="(?:.*)"\ />\ 
-    <a\ href="(?:.*)">(.*)</a><br\ />""", re.X)
-
-def parse_subject(m, edition):
-    edition["subject"] = [x for x in re_subject_item.findall(m.group(1))]
-
-trans = { 'amp': '&', 'lt': '<', 'gt': '>', 'quot': '"', }
-re_html_entity = re.compile('&(amp|lt|gt|quot);')
-
-re_div_class_buying = re.compile('<span class="avail(Red|Orange|Green)">(.*?)</span>(.*?)</div>', re.DOTALL)
-
-def parse_avail(m, edition):
-    (color, avail, rest) = m.groups()
-    edition['avail_color'] = color
-    edition['amazon_availability'] = avail
-    edition['gift_wrap'] = rest.find(" Gift-wrap available.") != -1
-    print edition
-
-re_title = re.compile("<title>(.*)</title>", re.S)
-re_meta_desc = re.compile('<meta name="description" content="Amazon.com: (.*?)" />', re.S)
-re_split_title = re.compile(r'''^
-    (.+?(?:\ \(.+\))?)
-    (?::\ (\ *[^:]+))?$
-''', re.X)
-re_meta_desc2 = re.compile(r"""
-    (.+?(?:\ \(.+\))?)
-    (?::\ (\ *[^:]+))?
-    :\ (Books|Video|DVD|Music)
-    (?::\ (.*)\ by\ \4)?$
-""", re.X)
-
-def parse_head(html, edition):
-    m = re_title.search(html)
-    html_title = m.group(1)
-    if html_title == "404 - Document Not Found":
-        warn("404: " + html_title)
+def read_tags(doc):
+    table = doc.find_class('tag-cols')
+    if len(table) == 0:
         return
-    if html_title.startswith("Amazon.com: :"):
-        warn("no title: " + html_title)
-        return
-    m = re_meta_desc.search(html)
-    assert m
-    description = re_html_entity.sub(lambda m: trans[m.group(1)], m.group(1))
-    if description.find(": Book") == -1:
-        return
-    print `description`
-    m = re_meta_desc2.match(description)
-    try:
-        assert m
-    except AssertionError:
-        raise
-    print m.groups()
-    (title, subtitle, product_type, desc_author) = m.groups()
+    assert len(table) == 1
+    table = table[0]
+    assert len(table) == 1
+    tr = table[0]
 
-    check_title(html_title, title, subtitle, product_type, desc_author)
-
-    if product_type != 'Books':
-        warn("can't handle type: '" + product_type + "': " + title)
-        return
-    if title == '':
-        warn("empty title: " + html_title)
-        return
-
-    edition['title'] = title
-    edition['desc_author'] = desc_author
-
-    if subtitle:
-        edition['subtitle'] = subtitle
-
-def check_title(html_title, title, subtitle, product_type, desc_author):
-    expect_title = ["Amazon.com", title]
-    if subtitle:
-        expect_title.append(subtitle)
-    expect_title.append(product_type)
-    if desc_author:
-        expect_title.append(desc_author)
-    try:
-        assert html_title == ': '.join(expect_title)
-    except AssertionError:
-        raise
-
-re_prod_image = re.compile('<td id="prodImageCell" .*<img.*src="(.*?)" id="prodImage"')
-
-def parse_prod_image(html, edition):
-    m = re_prod_image.search(html)
-    edition["has_cover_img"] = m.group(1).find("no-image-avail") == -1
-
-re_series = re.compile('^<ul class="linkBullets">\s*(.*?)\s*</ul>$', re.MULTILINE | re.DOTALL)
-li_re = re.compile('^<li(?: id="SalesRank")?>\n?<b>\s*(.+?):?\s*</b>\s*(.*?)\s*</li>', re.MULTILINE | re.DOTALL)
-re_series2 = re.compile('^<li>(?:This is item <b>(\d+)</b> in|This item is part of) <a href=/gp/series/(\d+).*?><b>The <i>(.+?)</i> Series</b></a>\.</li>$')
-
-def parse_series(m, edition):
-    if not m.group(1):
-        return
-    (series_num, series_id, series) = re_series2.match(m.group(1)).groups()
-    if series_num:
-        edition["series_num"] = int(series_num)
-    edition["series"] = series
-    edition["series_id"] = series_id
-
-def parse_product_description(html, edition):
-    m = re_product_description.search(html)
-    if m:
-        print filename
-        print m.group(1)
-
-def parse_phrase(m):
-    phrases = m.group(1).split(', ')
-    if phrases[0][0] != '<':
-        for p in phrases[1:]:
-            assert p[0] != '<'
-        return phrases
-    return [re_phrase_link.match(p).group(1).replace('&nbsp;', ' ') for p in phrases]
-
-def parse_sip(m, edition):
-    edition['sip'] = parse_phrase(m)
-
-def parse_cap(m, edition):
-    edition['cap'] = parse_phrase(m)
-
-citing_re = re.compile("<a name='citing' ></a><b>\nThis book cites (\d+) \nbook(?:s)?:")
-
-def parse_cite_this(m, edition):
-    edition["cite_this"] = m.group(1)
-
-re_cited = re.compile("<a name='cited' ></a><b>\n(\d+) \nbook(?:s)? \ncite this book:")
-
-def parse_this_cites(m, edition):
-    edition["this_cites"] = m.group(1)
-
-re_sim = re.compile('^<table class="sims-faceouts"> <tr>\n( *<td.*?</td>\n)</tr>', re.MULTILINE | re.DOTALL)
-re_sim2 = re.compile('<td valign="top" width="20%" id="sims.purchase.(?P<isbn>\d{9}[0-9X])">.*?<a href="http://www.amazon.com/[^"]*?">(?P<title>[^<].+?)</a>', re.MULTILINE | re.DOTALL)
-
-def parse_sim(m, edition):
-    edition["related"] = [m.groupdict() for m in re_sim2.finditer(m.group(1))]
-
-sections = [
-    ('price_block', parse_price_block, re_price_block, False),
-    ('avail', parse_avail, re_div_class_buying,True),
-    ('used_and_new', parse_used_and_new, re_used_and_new, False),
-    ('other_editions', parse_other_editions, re_other_editions, False),
-    ('sim', parse_sim, re_sim, False),
-    ('details', parse_details, re_product_details, True),
-    ('series', parse_series, re_series, True),
-    ('plog', parse_plog, re_plog, False),
-    ('cite_this', parse_cite_this, citing_re, False),
-    ('this_cites', parse_this_cites, re_cited, False),
-    ('inside_this_book', parse_inside_this_book,re_inside_this_book, False),
-    ('sip', parse_sip, re_sip, False),
-    ('cap', parse_cap, re_cap, False),
-    ('tags', parse_tags, re_tag_cols, False),
-    ('category', parse_category, re_category, False),
-    ('subject', parse_subject, re_subject, False),
-]
-
-not_found = set(i[0] for i in sections)
-
-def parse_sections(html, edition):
-    global not_found
-    # set(['inside_this_book', 'this_cites', 'used_and_new', 'cite_this', 'other_editions'])
-    for name, func, re_section, required in sections:
-        m = re_section.search(html)
-        if m:
-            if name in not_found:
-                not_found.remove(name)
-            func(m, edition)
-#        else:
-#            assert not required
-
-def parse_edition(html):
+def read_edition(doc):
     edition = {}
-    parse_head(html, edition)
+    book = get_title_and_authors(doc)
+    edition.update(book)
 
-    if not edition:
-        return {}
-
-    parse_prod_image(html, edition)
-    print edition
-    parse_title(html, edition)
-    parse_div_title(html, edition)
-    parse_sections(html, edition)
+    ret = read_price_block(doc)
+    if ret:
+        edition.update(ret)
+    inside = find_inside_this_book(doc)
+    if inside is not None:
+        sentence = read_first_sentence(inside)
+        if sentence:
+            edition['first_sentence'] = sentence
+    func = [
+        #read_citing,
+        read_plog,
+        read_series,
+        #read_avail,
+        read_product_details,
+        read_other_editions,
+        read_sims,
+        read_subject,
+        read_category,
+    ]
+    for f in func:
+        ret = f(doc)
+        if ret:
+            edition.update(ret)
+    parse_publisher(edition)
+    if 'isbn_10' not in edition and 'asin' not in edition:
+        return None
     return edition
 
+# ['subtitle', 'binding', 'shipping_weight', 'category', 'first_sentence',  'title', 'full_title', 'authors', 'dimensions', 'publisher', 'language', 'number_of_pages', 'isbn_13', 'isbn_10', 'publish_date']
+def edition_to_ol(edition):
+    ol = {}
+    fields = ['title', 'subtitle', 'publish_date', 'number_of_pages', 'first_sentence']
+    for f in fields:
+        if f in edition:
+            ol[f] = edition[f]
+    if 'isbn_10' in edition:
+        ol['isbn_10'] = [edition['isbn_10']]
+    if 'isbn_13' in edition:
+        ol['isbn_13'] = [edition['isbn_13'].replace('-','')]
+    if 'category' in edition:
+        ol['subjects'] = [' -- '.join(i) for i in edition['category']]
+    if 'binding' in edition:
+        ol['physical_format'] = edition['binding']
+    if 'dimensions' in edition:
+        ol['physical_dimensions'] = edition['dimensions']
+    if 'shipping_weight' in edition:
+        ol['weight'] = edition['shipping_weight']
+    if 'authors' in edition:
+        ol['authors'] = edition['authors']
 
+    for k, v in ol.iteritems():
+        if isinstance(v, basestring) and v[-1] == '(':
+            pprint(ol)
+            print 'ends with "(":', `k, v`
+            sys.exit(0)
+
+    return ol
+
+if __name__ == '__main__':
+    #for dir in ('/2008/sample/', 'pages/'):
+    page_dir = sys.argv[1]
+    for filename in os.listdir(page_dir):
+        #if '1435438671' not in filename:
+        #    continue
+        if filename.endswith('.swp'):
+            continue
+        print filename
+        print '2009' in filename
+        if '2009-02' in filename:
+            print 'skip'
+            continue
+        edition = {}
+        doc = parse(page_dir + '/' + filename).getroot()
+        assert doc is not None
+        edition = read_edition(doc)
+        ol = edition_to_ol(edition)
+        pprint (ol)
