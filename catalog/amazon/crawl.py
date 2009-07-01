@@ -167,14 +167,21 @@ def write_books(cur_date, books):
     for asin in books:
         i+= 1
         print i, asin
-        page = urlopen('http://amazon.com/dp/' + asin).read()
+        for attempt in range(5):
+            try:
+                page = urlopen('http://amazon.com/dp/' + asin).read()
+                break
+            except:
+                pass
+            print 'retry'
+            sleep(5)
         print >> index, asin, out.tell(), len(page)
         out.write("%10s,%d:%s" % (asin, len(page), page))
     out.close()
     index.close()
 
 one_day = timedelta(days=1)
-cur = date(2009, 05, 31)
+cur = date(2009, 05, 19)
 while True:
     print cur
     total, books, cats = read_page(cur)
