@@ -5,6 +5,12 @@ from math import floor
 from pprint import pprint
 import htmlentitydefs
 
+class BrokenTitle:
+    pass
+
+class IncompletePage:
+    pass
+
 role_re = re.compile("^ \(([^)]+)\)")
 
 re_title = re.compile("""
@@ -25,7 +31,7 @@ re_you_save = re.compile('^\$([\d,]+)\.(\d\d)\s*\((\d+)%\)\s*$')
 
 re_pages = re.compile('^\s*(\d+)(?:\.0)? pages\s*$')
 re_sales_rank = re.compile('^ #([0-9,]+) in Books')
-re_html_italic = re.compile('</?I>')
+re_html_in_title = re.compile('</?(i|em|br)>', re.I)
 
 def unescape(text):
     def fixup(m):
@@ -72,9 +78,12 @@ def read_authors(by_span):
     return authors
 
 def get_title_and_authors(doc):
-    prodImage = doc.get_element_by_id('prodImage')
+    try:
+        prodImage = doc.get_element_by_id('prodImage')
+    except KeyError:
+        raise IncompletePage
     full_title = unescape(prodImage.attrib['alt']) # double quoted
-    full_title = re_html_italic.sub('', full_title)
+    full_title = re_html_in_title.sub('', full_title).replace('&apos;', "'")
 
     m = re_split_title.match(full_title)
     (title, subtitle) = m.groups()
@@ -100,8 +109,10 @@ def get_title_and_authors(doc):
         #print len(by_span), [e.tag for e in by_span]
         book['authors'] = read_authors(by_span)
     title_text = title_id.text_content()
-    assert title_text.startswith(full_title)
-    #assert title_id.text.startswith(full_title)
+    if not title_text.startswith(full_title):
+        print 'alt:', `prodImage.attrib['alt']`
+        print 'title mistmach:', `full_title`, '!=', `title_text`
+        raise BrokenTitle
     btAsinTitle = title_text[len(full_title):]
     m = re_title.match(btAsinTitle)
     (flag, book['binding']) = m.groups()
@@ -246,6 +257,8 @@ def find_product_details_ul(doc):
     div = td[1]
     assert div.tag == 'div' and div.attrib['class'] == 'content'
     ul = div[0]
+    if div[0].tag == 'table':
+        ul = div[1]
     assert ul.tag == 'ul'
     assert ul[-1].tag == 'div' and ul[-2].tag == 'p'
     return ul
