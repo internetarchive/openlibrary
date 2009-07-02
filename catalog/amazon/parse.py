@@ -1,8 +1,9 @@
 from lxml.html import parse, tostring
-import re, os, sys
+import re, os, sys, web
 from warnings import warn
 from math import floor
 from pprint import pprint
+import htmlentitydefs
 
 role_re = re.compile("^ \(([^)]+)\)")
 
@@ -24,6 +25,28 @@ re_you_save = re.compile('^\$([\d,]+)\.(\d\d)\s*\((\d+)%\)\s*$')
 
 re_pages = re.compile('^\s*(\d+)(?:\.0)? pages\s*$')
 re_sales_rank = re.compile('^ #([0-9,]+) in Books')
+re_html_italic = re.compile('</?I>')
+
+def unescape(text):
+    def fixup(m):
+        text = m.group(0)
+        if text[:2] == "&#":
+            # character reference
+            try:
+                if text[:3] == "&#x":
+                    return unichr(int(text[3:-1], 16))
+                else:
+                    return unichr(int(text[2:-1]))
+            except ValueError:
+                pass
+        else:
+            # named entity
+            try:
+                text = unichr(htmlentitydefs.name2codepoint[text[1:-1]])
+            except KeyError:
+                pass
+        return text # leave as is
+    return re.sub("&#?\w+;", fixup, text)
 
 def to_dict(k, v):
     return {k: v} if v else None
@@ -50,7 +73,8 @@ def read_authors(by_span):
 
 def get_title_and_authors(doc):
     prodImage = doc.get_element_by_id('prodImage')
-    full_title = prodImage.attrib['alt']
+    full_title = unescape(prodImage.attrib['alt']) # double quoted
+    full_title = re_html_italic.sub('', full_title)
 
     m = re_split_title.match(full_title)
     (title, subtitle) = m.groups()
@@ -75,8 +99,10 @@ def get_title_and_authors(doc):
     if len(by_span) and by_span[0].tag == 'a':
         #print len(by_span), [e.tag for e in by_span]
         book['authors'] = read_authors(by_span)
-    assert title_id.text.startswith(full_title)
-    btAsinTitle = title_id.text[len(full_title):]
+    title_text = title_id.text_content()
+    assert title_text.startswith(full_title)
+    #assert title_id.text.startswith(full_title)
+    btAsinTitle = title_text[len(full_title):]
     m = re_title.match(btAsinTitle)
     (flag, book['binding']) = m.groups()
     if flag:
@@ -541,11 +567,6 @@ if __name__ == '__main__':
         #if '1435438671' not in filename:
         #    continue
         if filename.endswith('.swp'):
-            continue
-        print filename
-        print '2009' in filename
-        if '2009-02' in filename:
-            print 'skip'
             continue
         edition = {}
         doc = parse(page_dir + '/' + filename).getroot()
