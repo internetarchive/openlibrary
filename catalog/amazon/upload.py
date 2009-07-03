@@ -1,5 +1,6 @@
 from catalog.read_rc import read_rc
 import httplib, web, time, sys
+from datetime import date, timedelta
 
 rc = read_rc()
 accesskey = rc['s3_accesskey']
@@ -29,6 +30,7 @@ def put_file(con, ia, filename, headers):
     print 'uploading %s' % filename
     headers['authorization'] = "LOW " + accesskey + ':' + secret
     url = 'http://s3.us.archive.org/' + ia + '/' + filename
+    print url
     data = open(crawl_dir + '/' + filename).read()
     con.request('PUT', url, data, headers)
     res = con.getresponse()
