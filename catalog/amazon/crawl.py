@@ -7,6 +7,8 @@ from os.path import exists
 from datetime import date, timedelta
 import codecs
 
+re_expect_end = re.compile('</div>\n</body>\n</html>[ \n]*$')
+
 def percent(a, b):
     return float(a * 100.0) / b
 
@@ -160,6 +162,7 @@ def write_books(cur_date, books):
         print >> out, b
     out.close()
     i = 0
+    error_count = 0
 
     out = open(out_dir + '/amazon.' + cur_date, 'w')
     index = open(out_dir + '/index.' + cur_date, 'w')
@@ -170,7 +173,14 @@ def write_books(cur_date, books):
         for attempt in range(5):
             try:
                 page = urlopen('http://amazon.com/dp/' + asin).read()
-                break
+                if re_expect_end.search(page):
+                    break
+                print 'bad page ending'
+                error_count += 1
+                if error_count == 50:
+                    print 'too many bad endings'
+                    print 'http://amazon.com/dp/' + asin
+                    sys.exit(0)
             except:
                 pass
             print 'retry'
