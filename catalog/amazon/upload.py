@@ -22,9 +22,12 @@ def wait_for_upload(ia):
         rows = list(db.select('catalog', where='identifier = $ia', vars={'ia': ia}))
         if len(rows) == 0:
             return
-        print "\r", len(rows), 'tasks still running'
+        print "\r", len(rows), 'tasks still running',
         time.sleep(5)
-    print 'done'
+    print '\ndone'
+
+no_bucket_error = '<Code>NoSuchBucket</Code>'
+internal_error = '<Code>InternalError</Code>'
 
 def put_file(con, ia, filename, headers):
     print 'uploading %s' % filename
@@ -32,13 +35,19 @@ def put_file(con, ia, filename, headers):
     url = 'http://s3.us.archive.org/' + ia + '/' + filename
     print url
     data = open(crawl_dir + '/' + filename).read()
-    con.request('PUT', url, data, headers)
-    res = con.getresponse()
-    body = res.read()
-    if '<Error>' in body:
+    for attempt in range(5):
+        con.request('PUT', url, data, headers)
+        res = con.getresponse()
+        body = res.read()
+        if '<Error>' not in body:
+            return
         print 'error'
         print body
-        sys.exit(0)
+        if no_bucket_error not in body and internal_error not in body:
+            sys.exit(0)
+        print 'retry'
+        time.sleep(5)
+    print 'too many failed attempts'
 
 def create_item(con, ia, cur_date):
     headers = {
@@ -47,9 +56,9 @@ def create_item(con, ia, cur_date):
         'x-archive-meta-mediatype': mediatype,
         'x-archive-meta-language': 'eng',
         'x-archive-meta-title': 'Amazon crawl ' + cur_date,
-        'x-archive-description': 'Crawl of Amazon. Books published on ' + cur_date + '.',
-        'x-archive-year': cur_date[:4],
-        'x-archive-date': cur_date.replace('-', ''),
+        'x-archive-meta-description': 'Crawl of Amazon. Books published on ' + cur_date + '.',
+        'x-archive-meta-year': cur_date[:4],
+        'x-archive-meta-date': cur_date.replace('-', ''),
     }
 
     filename =  'index.' + cur_date
@@ -67,7 +76,7 @@ def upload_index(con, cur_date):
     put_file(con, ia, 'list.' + cur_date, {})
 
 one_day = timedelta(days=1)
-cur = date(2009, 05, 15)
+cur = date(2009, 4, 26) # start from
 while True:
     print cur
     upload_index(con, str(cur))
