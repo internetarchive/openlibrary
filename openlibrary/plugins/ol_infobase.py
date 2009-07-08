@@ -7,8 +7,10 @@ import urllib
 import simplejson
 
 import web
-import schema
 from infogami.infobase import config, common
+
+# relative import
+from openlibrary import schema
 
 def init_plugin():
     """Initialize infobase plugin."""

@@ -18,5 +18,4 @@ else
         mv $name-$name-* $name
     }
     get_tarball infogami master
-    get_tarball webpy webpy-0.31
 fi
