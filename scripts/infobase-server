@@ -1,0 +1,26 @@
+#! /usr/bin/env python
+"""Script to run infobase.
+
+USAGE:
+
+* Run Infobase http server at port 7070.
+
+    $ python ./script/infobase_server infobase.yaml 7070
+
+* Run Infobase as fastcgi server at port 7070
+
+    $ python ./script/infobase_server infobase.yaml fastcgi 7070
+"""
+import sys
+import _init_path
+from infogami.infobase import server
+
+def main(args):
+    if len(args) < 1 or args[0] in ['-h', '--help']:
+        print >> sys.stderr, "USAGE: %s configfile [port]" % (sys.argv[0])
+        sys.exit(1)
+        
+    server.start(*args)
+
+if __name__ == "__main__":
+    main(sys.argv[1:])
