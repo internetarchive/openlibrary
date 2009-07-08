@@ -2,15 +2,17 @@
 """Run coverstore server.
 
 Usage:
-    python run.py coverstore.yml 8080
-    python run.py covestore.yml fastcgi 7070
+    scripts/coverstore-server coverstore.yml 8080
+    scripts/coverstore-scripts coverstore.yml fastcgi 7070
 """
 
 import sys
 import yaml
 import web
 
-from coverstore import config, disk, code
+import _init_path
+
+from openlibrary.coverstore import config, disk, code
 
 _disks = {
     'local': disk.Disk,

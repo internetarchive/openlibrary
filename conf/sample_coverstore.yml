@@ -2,18 +2,18 @@
 
 db_parameters:
     dbn: "postgres"
-    db: "coverstore_test"
+    db: "coverstore"
     user: "anand"
     pw: ""
 
 disks:
     - type: "local"
-      root: "localdisk"
+      root: "/tmp/localdisk"
 
     - type: "archive"
-      root: "covers"
+      root: "/tmp/covers"
       prefix: "covers"
 
-cache_dir: "cache"
+cache_dir: "/tmp/cache"
 
-default_image: "default.gif"
+default_image: "static/images/empty.gif"
