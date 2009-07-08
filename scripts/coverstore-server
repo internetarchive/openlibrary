@@ -2,11 +2,12 @@
 """Run coverstore server.
 
 Usage:
-    scripts/coverstore-server coverstore.yml 8080
-    scripts/coverstore-scripts coverstore.yml fastcgi 7070
+    ./scripts/coverstore-server coverstore.yml 8080
+    ./scripts/coverstore-server coverstore.yml fastcgi 7070
 """
 
 import sys
+import os
 import yaml
 import web
 
@@ -41,10 +42,18 @@ def archive(configfile):
     load_config(configfile)
     disks = config.disk.disks
     archive.archive(disks[0], disks[1])
+
+def setup_env():
+    # make sure PYTHON_EGG_CACHE is writable
+    os.environ['PYTHON_EGG_CACHE'] = "/tmp/.python-eggs"
+
+    # required when run as fastcgi
+    os.environ['REAL_SCRIPT_NAME'] = ""
     
 if __name__ == "__main__":
     if "--archive" in sys.argv:
         sys.argv.remove('--archive')
         archive(sys.argv[1])
     else:
+        setup_env()
         main(*sys.argv[1:])
