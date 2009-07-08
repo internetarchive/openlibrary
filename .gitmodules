@@ -1,9 +1,3 @@
-[submodule "webpy"]
-	path = webpy
-	url = git://github.com/webpy/webpy.git
-[submodule "infogami"]
-	path = infogami
+[submodule "vendor/infogami"]
+	path = vendor/infogami
 	url = git://github.com/infogami/infogami.git
-[submodule "solrconfig"]
-	path = solrconfig
-	url = git://github.com/openlibrary/solrconfig.git
