@@ -29,7 +29,7 @@ class Disk:
             os.makedirs(root)
 
     def write(self, data, params={}):
-        prefix = params.get('olid')
+        prefix = params.get('olid', '')
         filename = self.make_filename(prefix)
         path = os.path.join(self.root, filename)
         f = open(path, 'w')
@@ -224,7 +224,7 @@ class ArchiveDisk(WARCDisk):
             return vals and vals[0]
         except Exception:
             return None
-            
+  
 class LayeredDisk:
     """Disk interface over multiple disks.
     Write always happens to the first disk and 

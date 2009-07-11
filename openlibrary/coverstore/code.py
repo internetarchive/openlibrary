@@ -2,70 +2,27 @@ import web
 import simplejson
 import urllib
 import os
+from cStringIO import StringIO
+import Image
 
 import db
 import imagecache
 import config
+from utils import safeint, rm_f, random_string
+
 
 urls = (
     '/', 'index',
     '/([^ /]*)/upload', 'upload',
     '/([^ /]*)/([a-zA-Z]*)/(.*)-([SML]).jpg', 'cover',
+    '/([^ /]*)/([a-zA-Z]*)/(.*)().jpg', 'cover',
+    '/([^ /]*)/([a-zA-Z]*)/(.*).json', 'cover_details',
     '/([^ /]*)/query', 'query',
     '/([^ /]*)/touch', 'touch',
     '/([^ /]*)/delete', 'delete',
 )
 app = web.application(urls, locals())
 
-_cache = None
-_disk = None
-
-class AppURLopener(urllib.FancyURLopener):
-    version = "Mozilla/5.0 (Compatible; coverstore downloader http://covers.openlibrary.org)"
-
-urllib._urlopener = AppURLopener()
-
-def run():
-    global _cache
-    global _disk
-    
-    _disk = config.disk
-    assert config.disk is not None
-    _cache = imagecache.ImageCache(config.cache_dir, _disk)
-    app.run()
-
-def safeint(value, default=None):
-    """
-        >>> safeint('1')
-        1
-        >>> safeint('x')
-        >>> safeint('x', 0)
-        0
-    """
-    try:
-        return int(value)
-    except:
-        return default
-
-def ol_things(key, value):
-    query = {
-        'type': '/type/edition',
-        key: value, 
-        'sort': 'last_modified',
-        'limit': 10
-    }
-    try:
-        d = dict(query=simplejson.dumps(query))
-        result = urllib.urlopen('http://openlibrary.org/api/things?' + urllib.urlencode(d)).read()
-        result = simplejson.loads(result)
-        olids = result['result']
-        return [olid.split('/')[-1] for olid in olids]
-    except:
-        import traceback
-        traceback.print_exc()
-
-        return []
-        
 def _query(category, key, value):
     if key == 'id':
         result = db.details(safeint(value))
@@ -87,36 +44,33 @@ def _query(category, key, value):
                 return _query(category, 'olid', olids)
     return None
 
-def download(url):
-    r = urllib.urlopen(url)
-    return r.read()
+def write_image(data, prefix):
+    path_prefix = find_image_path(prefix)
+    try:
+        # save original image
+        f = open(path_prefix + '.jpg', 'w')
+        f.write(data)
+        f.close()
+        
+        img = Image.open(StringIO(data))
+        if img.mode != 'RGB':
+            img = img.convert('RGB')
+    
+        for name, size in config.image_sizes.items():
+            path = "%s-%s.jpg" % (path_prefix, name)
+            img.resize(size, resample=Image.ANTIALIAS).save(path)
+        return img
+    except IOError, e:
+        print 'ERROR:', str(e)
+        
+        # cleanup
+        rm_f(prefix + '.jpg')
+        rm_f(prefix + '-S.jpg')
+        rm_f(prefix + '-M.jpg')
+        rm_f(prefix + '-L.jpg')
 
-def urldecode(url):
-    """
-        >>> urldecode('http://google.com/search?q=bar&x=y')
-        ('http://google.com/search', {'q': 'bar', 'x': 'y'})
-    """
-    base, query = urllib.splitquery(url)
-    items = [item.split('=', 1) for item in query.split('&') if '=' in item]
-    d = dict((urllib.unquote(k), urllib.unquote_plus(v)) for (k, v) in items)
-    return base, d
-
-def changequery(url, **kw):
-    """
-        >>> changequery('http://google.com/search?q=foo', q='bar', x='y')
-        'http://google.com/search?q=bar&x=y'
-    """
-    base, params = urldecode(url)
-    params.update(kw)
-    return base + '?' + urllib.urlencode(params)
-
-def load_image(data):
-    import Image
-    from cStringIO import StringIO
-    a = Image.open(StringIO(data))
-    a.load()
-    return a
-
+        return None
+    
 ERROR_EMPTY = 1, "No image found"
 ERROR_INVALID_URL = 2, "Invalid URL"
 ERROR_BAD_IMAGE = 3, "Invalid Image"
@@ -129,8 +83,8 @@ class upload:
     def POST(self, category):
         i = web.input('olid', author=None, file={}, source_url=None, success_url=None, failure_url=None)
 
-        success_url = i.success_url or web.ctx.get('HTTP_REFERRER') or web.ctx.fullpath
-        failure_url = i.failure_url or web.ctx.get('HTTP_REFERRER') or web.ctx.fullpath
+        success_url = i.success_url or web.ctx.get('HTTP_REFERRER') or '/'
+        failure_url = i.failure_url or web.ctx.get('HTTP_REFERRER') or '/'
         def error((code, msg)):
             url = changequery(failure_url, errcode=code, errmsg=msg)
             raise web.seeother(url)
@@ -150,9 +104,10 @@ class upload:
         if not data:
             error(ERROR_EMPTY)
 
-        try:
-            img = load_image(data)
-        except IOError:
+        prefix = i.olid + '-' + random_string(5)
+        
+        img = write_image(data, prefix)
+        if img is None:
             error(ERROR_BAD_IMAGE)
 
         d = {
@@ -163,26 +118,44 @@ class upload:
         }
         d['width'], d['height'] = img.size
 
-        filename = _disk.write(data, d)
+        filename = prefix + '.jpg'
         d['ip'] = web.ctx.ip
         d['filename'] = filename
+        d['filename_s'] = prefix + '-S.jpg'
+        d['filename_m'] = prefix + '-M.jpg'
+        d['filename_l'] = prefix + '-L.jpg'
         db.new(**d)
         raise web.seeother(success_url)
 
-def filesize(path):
-    try:
-        return os.stat(path).st_size
-    except:
-        return 0
-
 def serve_file(path):
-    # when xsendfile is enabled, lighttpd takes X-LIGHTTPD-Send-file header from response and serves that file.
-    if os.getenv('XSENDFILE') == 'true':
-        web.header('X-LIGHTTPD-Send-file', os.path.abspath(path))
-        web.header('Content-Length', filesize(path))
+    if ':' in path:
+        path, offset, size = path.rsplit(':', 2)
+        offset = int(offset)
+        size = int(size)
+        f = open(path)
+        f.seek(offset)
+        data = f.read(size)
+        f.close()
     else:
-        return open(path).read()
-        
+        f = open(path)
+        data = f.read()
+        f.close()
+    return data
+
+def serve_image(d, size):
+    if size:
+        filename = d['filename_' + size.lower()]
+    else:
+        filename = d.filename
+    path = find_image_path(filename)
+    return serve_file(path)
+    
+def find_image_path(filename):
+    if ':' in filename: 
+        return os.path.join(config.data_root,'items', filename.rsplit('_', 1)[0], filename)
+    else:
+        return os.path.join(config.data_root, 'localdisk', filename)
+
 class cover:
     def GET(self, category, key, value, size):
         i = web.input(default="true")
@@ -196,15 +169,19 @@ class cover:
                 web.expires(100 * 365 * 24 * 3600) # this image is not going to expire in next 100 years.
                 
             web.header('Content-Type', 'image/jpeg')
-            filename = _cache.get_image(d.id, size)
-            if filename:
-                return serve_file(filename)
+            return serve_image(d, size)
         elif config.default_image and i.default.lower() != "false" and not i.default.startswith('http://'):
             return serve_file(config.default_image)
         elif i.default.startswith('http://'):
             raise web.seeother(i.default)
         else:
             raise web.notfound("")
+            
+class cover_details:
+    def GET(self, category, key, value):
+        d = _query(category, key, value)
+        web.header('Content-Type', 'application/json')
+        return simplejson.dumps(d)
 
 class query:
     def GET(self, category):
