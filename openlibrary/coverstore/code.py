@@ -181,7 +181,10 @@ class cover_details:
     def GET(self, category, key, value):
         d = _query(category, key, value)
         web.header('Content-Type', 'application/json')
-        return simplejson.dumps(d)
+        if d:
+            return simplejson.dumps(d)
+        else:
+            raise web.notfound("")
 
 class query:
     def GET(self, category):

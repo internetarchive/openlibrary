@@ -19,7 +19,7 @@ def setup_dirs(root):
     os.mkdir(root.join('items').strpath)
     os.mkdir(root.join('localdisk').strpath)
     
-def setup_db(root):
+def setup_db(mod, root):
     dbfile = root.join('coverstore.db').strpath
     
     config.db_parameters = dict(dbn='sqlite', db=dbfile)
@@ -35,6 +35,7 @@ def setup_db(root):
     for q in db_schema.split(';'):
         db.query(q)
     db.insert('category', name='b')
+    mod.db = db
     t.commit()
 
 def setup_module(mod, db=False):
@@ -44,7 +45,7 @@ def setup_module(mod, db=False):
     setup_dirs(mod.root)
     
     if db:
-        setup_db(mod.root)
+        setup_db(mod, mod.root)
     
 def teardown_module(mod):
     mod.root.remove(rec=True)

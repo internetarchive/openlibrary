@@ -1,5 +1,6 @@
 import web
 import config
+import datetime
 
 _categories = None
 _db = None
@@ -53,10 +54,12 @@ def touch(id):
     """Sets the last_modified of the specified cover to the current timestamp.
     By doing so, this cover become comes in the top in query because the results are ordered by last_modified.
     """
-    getdb().query("UPDATE cover SET last_modified=(current_timestamp at time zone 'utc') where id=$id", vars=locals())
+    now = datetime.datetime.utcnow()
+    getdb().query("UPDATE cover SET last_modified=$now where id=$id", vars=locals())
 
 def delete(id):
-    getdb().query('UPDATE cover set deleted=true WHERE id=$id', vars=locals())
+    t = True
+    getdb().query('UPDATE cover set deleted=$t WHERE id=$id', vars=locals())
 
 def get_filename(id):
     d = getdb().select('cover', what='filename', where='id=$id',vars=locals())

@@ -3,10 +3,10 @@ import os.path
 import web
 
 from openlibrary.coverstore import config, disk, schema, code, utils
-import setup
+import _setup
 
 def setup_module(mod):
-    setup.setup_module(mod, db=False)
+    _setup.setup_module(mod, db=False)
     
     mod.root.mkdir('items', 'covers_0000')
     mod.root.mkdir('items', 's_covers_0000')
@@ -14,9 +14,10 @@ def setup_module(mod):
     mod.root.mkdir('items', 'l_covers_0000')
     
 def teardown_module(mod):
-    setup.teardown_module(mod)
+    _setup.teardown_module(mod)
 
 def test_write_image():
+    """Test writing jpg, gif and png images"""
     yield _test_write_image, 'a', static_dir + '/images/ajaxImage.jpg'
     yield _test_write_image, 'b', static_dir + '/logos/logo-en.gif'
     yield _test_write_image, 'c', static_dir + '/logos/logo-en.png'
@@ -71,6 +72,7 @@ def test_server_image():
         assert serve_image(d, 'm') == 'M image'
         assert serve_image(d, 'l') == 'L image'
         
+    # test with regular images
     write('localdisk/a.jpg', 'main image')
     write('localdisk/a-S.jpg', 'S image')
     write('localdisk/a-M.jpg', 'M image')
@@ -79,6 +81,7 @@ def test_server_image():
     d = web.storage(filename='a.jpg', filename_s='a-S.jpg', filename_m='a-M.jpg', filename_l='a-L.jpg')
     do_test(d)
     
+    # test with offsets
     write('items/covers_0000/covers_0000_00.tar', 'xxmain imagexx')
     write('items/s_covers_0000/s_covers_0000_00.tar', 'xxS imagexx')
     write('items/m_covers_0000/m_covers_0000_00.tar', 'xxM imagexx')
