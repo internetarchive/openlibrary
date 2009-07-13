@@ -9,6 +9,7 @@ def getdb():
     global _db
     if _db is None:
         _db = web.database(**config.db_parameters)
+        print '*** created database'
     return _db
 
 def get_category_id(category):
@@ -22,10 +23,12 @@ def get_category_id(category):
 def new(category, olid, filename, filename_s, filename_m, filename_l,
     author, ip, source_url, width, height):
     category_id = get_category_id(category)
+    now=datetime.datetime.utcnow()
     return getdb().insert('cover', category_id=category_id, 
         filename=filename, filename_s=filename_s, filename_m=filename_m, filename_l=filename_l,
         olid=olid, author=author, ip=ip,
-        source_url=source_url, width=width, height=height, deleted=False)
+        source_url=source_url, width=width, height=height, 
+        created=now, last_modified=now, deleted=False, archived=False)
         
 def query(category, olid, offset=0, limit=10):
     category_id = get_category_id(category)

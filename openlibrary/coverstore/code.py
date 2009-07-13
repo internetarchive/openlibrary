@@ -4,9 +4,9 @@ import urllib
 import os
 from cStringIO import StringIO
 import Image
+import datetime
 
 import db
-import imagecache
 import config
 from utils import safeint, rm_f, random_string
 
@@ -182,6 +182,9 @@ class cover_details:
         d = _query(category, key, value)
         web.header('Content-Type', 'application/json')
         if d:
+            if isinstance(d['created'], datetime.datetime):
+                d['created'] = d['created'].isoformat()
+                d['last_modified'] = d['last_modified'].isoformat()
             return simplejson.dumps(d)
         else:
             raise web.notfound("")

@@ -20,9 +20,18 @@ def setup_dirs(root):
     os.mkdir(root.join('localdisk').strpath)
     
 def setup_db(mod, root):
-    dbfile = root.join('coverstore.db').strpath
+    os.system('dropdb coverstore_test; createdb coverstore_test;')
+    user = os.getenv('USER')
+    config.db_parameters = dict(dbn='postgres', db="coverstore_test", user=user, pw='')
+    db_schema = schema.get_schema('postgres')
+    db = web.database(**config.db_parameters)
+    db.query(db_schema)
+    db.insert('category', name='b')    
+    mod.db = db
     
-    config.db_parameters = dict(dbn='sqlite', db=dbfile)
+def _setup_db(mod, root):
+    dbfile = root.join('coverstore.db').strpath
+    config.db_parameters = dict(dbn='sqlite', db="dbfile")
 
     # get schema for sqlite
     db_schema = schema.get_schema('sqlite')

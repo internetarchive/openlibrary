@@ -5,7 +5,7 @@ import simplejson
 import time
 import urllib
 
-from openlibrary.coverstore import config, disk, schema, code, utils
+from openlibrary.coverstore import config, disk, schema, code, utils, archive
 import _setup
 
 def setup_module(mod):
@@ -48,6 +48,8 @@ class TestWebapp:
         id1 = self.upload('OL1M', 'logos/logo-en.png')
         time.sleep(1)
         id2 = self.upload('OL1M', 'logos/logo-it.png')
+        
+        assert id1 < id2
 
         assert b.open('/b/olid/OL1M.jpg').read() == open(static_dir + '/logos/logo-it.png').read()
 
@@ -75,7 +77,6 @@ class TestWebapp:
         assert b.path == '/'
 
         b.open('/b/olid/OL1234M.json')
-        print b.data
 
         response = b.open('/b/olid/OL1234M.jpg')
         assert b.status == 200
@@ -90,3 +91,29 @@ class TestWebapp:
 
         b.open('/b/olid/OL1234M-L.jpg')
         assert b.status == 200
+        
+    def test_archive_status(self):
+        id = self.upload('OL1M', 'logos/logo-en.png')
+        d = self.jsonget('/b/id/%d.json' % id)
+        assert d['archived'] == False
+        assert d['deleted'] == False
+
+    def test_archive(self):
+        b = self.browser
+        
+        f1 = web.storage(olid='OL1M', filename='logos/logo-en.png')
+        f2 = web.storage(olid='OL2M', filename='logos/logo-it.png')
+        files = [f1, f2]
+        
+        for f in files:
+            f.id = self.upload(f.olid, f.filename)
+            f.path = os.path.join(static_dir, f.filename)
+            assert b.open('/b/id/%d.jpg' % f.id).read() == open(f.path).read()
+        
+        archive.archive()
+        
+        for f in files:
+            d = self.jsonget('/b/id/%d.json' % f.id)
+            print f.id, d
+            assert 'tar:' in d['filename']
+            assert b.open('/b/id/%d.jpg' % f.id).read() == open(f.path).read()
