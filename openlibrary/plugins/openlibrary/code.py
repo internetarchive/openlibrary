@@ -478,19 +478,23 @@ def readable_url_processor(handler):
             return m.group(1)
         else:
             return web.ctx.path
-            
-    readable_path = get_readable_path()
 
-    #@@ web.ctx.path is either quoted or unquoted depends on whether the application is running
-    #@@ using builtin-server or lighttpd. Thats probably a bug in web.py. 
-    #@@ take care of that case here till that is fixed.
-    # @@ Also, the redirection must be done only for GET requests.
-    if readable_path != web.ctx.path and readable_path != urllib.quote(web.utf8(web.ctx.path)) and web.ctx.method == "GET":
-        raise web.seeother(readable_path + web.ctx.query.encode('utf-8'))
+    # simple hack to avoid readable_url_processor interfering with the API
+    if web.ctx.path.endswith(".json"):
+        web.ctx.readable_path = web.ctx.path
+    else:
+        readable_path = get_readable_path()
 
-    web.ctx.readable_path = readable_path
-    web.ctx.path = get_real_path()
-    web.ctx.fullpath = web.ctx.path + web.ctx.query
+        #@@ web.ctx.path is either quoted or unquoted depends on whether the application is running
+        #@@ using builtin-server or lighttpd. Thats probably a bug in web.py. 
+        #@@ take care of that case here till that is fixed.
+        # @@ Also, the redirection must be done only for GET requests.
+        if readable_path != web.ctx.path and readable_path != urllib.quote(web.utf8(web.ctx.path)) and web.ctx.method == "GET":
+            raise web.seeother(readable_path.encode('utf-8') + web.ctx.query.encode('utf-8'))
+
+        web.ctx.readable_path = readable_path
+        web.ctx.path = get_real_path()
+        web.ctx.fullpath = web.ctx.path + web.ctx.query
     return handler()
 
 def profile_processor(handler):
@@ -522,7 +526,7 @@ def changequery(query=None, **kw):
             query[k] = v
 
     query = dict((k, web.safestr(v)) for k, v in query.items())
-    out = web.ctx.readable_path
+    out = web.ctx.get('readable_path', web.ctx.path)
     if query:
         out += '?' + urllib.urlencode(query)
     return out
