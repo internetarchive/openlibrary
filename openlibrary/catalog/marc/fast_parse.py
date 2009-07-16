@@ -2,9 +2,9 @@
 
 import re
 from pymarc import MARC8ToUnicode
-import catalog.marc.mnemonics as mnemonics
+import openlibrary.catalog.marc.mnemonics as mnemonics
 from unicodedata import normalize
-from catalog.utils import tidy_isbn
+from openlibrary.catalog.utils import tidy_isbn
 
 marc8 = MARC8ToUnicode(quiet=True)
 

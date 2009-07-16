@@ -1,13 +1,13 @@
 from urllib2 import urlopen, Request
 import simplejson as json
 import web
-from catalog.merge.merge_index import add_to_indexes
+from openlibrary.catalog.merge.merge_index import add_to_indexes
 
 # need to use multiple databases
 # use psycopg2 until open library is upgraded to web 3.0
 
 import psycopg2
-from catalog.read_rc import read_rc
+from openlibrary.catalog.read_rc import read_rc
 rc = read_rc()
 conn = psycopg2.connect("dbname='marc_index'")
 cur = conn.cursor()

@@ -1,7 +1,7 @@
 import web, re
 from db_read import get_things, withKey
-from catalog.utils import flip_name, author_dates_match, key_int
-from catalog.utils.query import query_iter
+from openlibrary.catalog.utils import flip_name, author_dates_match, key_int
+from openlibrary.catalog.utils.query import query_iter
 
 def find_author(name):
     q = {'type': '/type/author', 'name': name}
