@@ -1,0 +1,14 @@
+
+db_parameters:
+    engine: "postgres"
+    database: "openlibrary3"
+    username: "anand"
+    password: ""
+
+plugins:
+    - openlibrary
+#    - search
+    - links
+    - wikitemplates
+    - i18n
+    
