@@ -7,7 +7,7 @@ import urllib
 import simplejson
 
 import web
-from infogami.infobase import config, common
+from infogami.infobase import config, common, server
 
 # relative import
 from openlibrary import schema
@@ -35,6 +35,47 @@ def init_plugin():
             ol.add_trigger('/type/edition', write_booklog)
             ol.add_trigger('/type/author', write_booklog2)
     
+    # hook to add count functionality
+    server.app.add_mapping("/([^/]*)/count_editions_by_author", __name__ + ".count_editions_by_author")
+    server.app.add_mapping("/([^/]*)/count_editions_by_work", __name__ + ".count_editions_by_work")
+    print server.app.mapping
+    
+def get_db():
+    site = server.get_site('openlibrary.org')
+    return site.store.db
+    
+@web.memoize
+def get_property_id(type, name):
+    db = get_db()
+    type_id = get_thing_id(type)
+    return db.where('property', type=type_id, name=name)[0].id
+    
+def get_thing_id(key):
+    try:
+        return get_db().where('thing', key=key)[0].id
+    except IndexError:
+        return None
+
+def count(table, type, key, value):
+    pid = get_property_id(type, key)
+
+    value_id = get_thing_id(value)
+    if value_id is None:
+        return 0                
+    return get_db().query("SELECT count(*) FROM " + table + " WHERE key_id=$pid AND value=$value_id", vars=locals())[0].count
+        
+class count_editions_by_author:
+    @server.jsonify
+    def GET(self, sitename):
+        i = server.input('key')
+        return count('edition_ref', '/type/edition', 'authors', i.key)
+        
+class count_editions_by_work:
+    @server.jsonify
+    def GET(self, sitename):
+        i = server.input('key')
+        return count('work_ref', '/type/work', 'editions', i.key)
+        
 def write(path, data):
     dir = os.path.dirname(path)
     if not os.path.exists(dir):

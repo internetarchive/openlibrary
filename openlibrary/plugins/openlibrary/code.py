@@ -13,6 +13,10 @@ from infogami.utils import types, delegate
 from infogami.utils.view import render, public
 from infogami.infobase import client, dbstore
 
+# setup infobase hooks for OL
+from openlibrary.plugins import ol_infobase
+ol_infobase.init_plugin()
+
 try:
     from infogami.plugins.api import code as api
 except:
@@ -42,10 +46,32 @@ public(tuple)
 web.template.Template.globals['NEWLINE'] = "\n"
 
 # Remove movefiles install hook. openlibrary manages its own files.
-print infogami._install_hooks
 infogami._install_hooks = [h for h in infogami._install_hooks if h.__name__ != "movefiles"]
-print infogami._install_hooks
 
+class Author(client.Thing):
+    def get_edition_count(self):
+        return web.ctx.site._request('/count_editions_by_author', data={'key': self.key})
+    edition_count = property(get_edition_count)
+    
+class Edition(client.Thing):
+    def full_title(self):
+        if self.title_prefix:
+            return self.title_prefix + ' ' + self.title
+        else:
+            return self.title
+            
+    def __repr__(self):
+        return "<Edition: %s>" % repr(self.full_title())
+    __str__ = __repr__
+
+class Work(client.Thing):
+    def get_edition_count(self):
+        return web.ctx.site._request('/count_editions_by_work', data={'key': self.key})
+    edition_count = property(get_edition_count)
+    
+client.register_thing_class('/type/author', Author)
+client.register_thing_class('/type/edition', Edition)
+client.register_thing_class('/type/work', Work)
 
 @infogami.action
 def sampledump():
