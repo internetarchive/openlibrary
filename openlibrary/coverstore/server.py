@@ -5,7 +5,7 @@
 import sys
 import yaml
 
-from openlibrary.coverstore import config, code, achive
+from openlibrary.coverstore import config, code, archive
 
 def load_config(configfile):
     d = yaml.load(open(configfile))
