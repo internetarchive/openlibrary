@@ -105,7 +105,7 @@ function add_row(name) {
     \$("td:last", row).html("");
     \$("td:first", newrow).html("");
 
-    \$("input", newrow).map(function() { 
+    \$("input,select", newrow).map(function() { 
         \$(this).attr('id', next(\$(this).attr('id'))); 
         \$(this).attr('name', next(\$(this).attr('name'))); 
         \$(this).attr('ac_name', next(\$(this).attr('ac_name')));
