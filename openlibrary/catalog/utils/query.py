@@ -41,18 +41,17 @@ def query(q):
             ret = urllib.urlopen(url).read()
             while ret.startswith('canceling statement due to statement timeout'):
                 ret = urllib.urlopen(url).read()
-            if ret:
-                break
-            print 'ret == None'
+            if not ret:
+                print 'ret == None'
         except IOError:
             pass
+        if ret:
+            try:
+                return json.loads(ret)
+            except:
+                print ret
+                print url
         sleep(20)
-    try:
-        return json.loads(ret)
-    except:
-        print ret
-        print url
-        raise
 
 def query_iter(q, limit=500, offset=0):
     q['limit'] = limit

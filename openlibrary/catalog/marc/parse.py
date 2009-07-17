@@ -1,4 +1,4 @@
-from catalog.merge.names import flip_marc_name
+from openlibrary.catalog.merge.names import flip_marc_name
 
 import sys, re
 

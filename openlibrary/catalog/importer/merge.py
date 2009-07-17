@@ -1,9 +1,9 @@
-from catalog.merge.merge_marc import *
-from catalog.read_rc import read_rc
-import catalog.merge.amazon as amazon
-from catalog.get_ia import *
-from catalog.importer.db_read import withKey, get_mc
-import catalog.marc.fast_parse as fast_parse
+from openlibrary.catalog.merge.merge_marc import *
+from openlibrary.catalog.read_rc import read_rc
+import openlibrary.catalog.merge.amazon as amazon
+from openlibrary.catalog.get_ia import *
+from openlibrary.catalog.importer.db_read import withKey, get_mc
+import openlibrary.catalog.marc.fast_parse as fast_parse
 import xml.parsers.expat
 import web, sys
 sys.path.append('/home/edward/src/olapi')
