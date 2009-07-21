@@ -21,7 +21,7 @@ def test_write_image():
     yield _test_write_image, 'a', static_dir + '/images/ajaxImage.jpg'
     yield _test_write_image, 'b', static_dir + '/logos/logo-en.gif'
     yield _test_write_image, 'c', static_dir + '/logos/logo-en.png'
-        
+    
 def _test_write_image(prefix, path):
     data = open(path).read()
     assert code.write_image(data, prefix) != None
@@ -42,6 +42,23 @@ def test_bad_image():
 
     prefix = config.data_root + '/bad'
     assert code.write_image('not an image', prefix) == None
+    
+def test_resize_image_aspect_ratio():
+    """make sure the aspect-ratio is maintained"""
+    import Image
+    img = Image.new('RGB', (100, 200))
+    
+    img2 = utils.resize_image(img, (40, 40))
+    assert img2.size == (20, 40)
+
+    img2 = utils.resize_image(img, (400, 400))
+    assert img2.size == (100, 200)
+    
+    img2 = utils.resize_image(img, (75, 100))
+    assert img2.size == (50, 100)
+    
+    img2 = utils.resize_image(img, (75, 200))
+    assert img2.size == (75, 150)
 
 def test_serve_file():
     path = static_dir + "/logos/logo-en.png"
