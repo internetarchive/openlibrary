@@ -32,8 +32,11 @@ import connection
 client._connection_types['ol'] = connection.OLConnection
 infogami.config.infobase_parameters = dict(type="ol")
 
-types.register_type('^/a/[^/]*$', '/type/author')
-types.register_type('^/b/[^/]*$', '/type/edition')
+types.register_type('^/authors/[^/]*$', '/type/author')
+types.register_type('^/books/[^/]*$', '/type/edition')
+types.register_type('^/works/[^/]*$', '/type/work')
+types.register_type('^/subjects/[^/]*$', '/type/subject')
+types.register_type('^/publishers/[^/]*$', '/type/publisher')
 
 # set up infobase schema. required when running in standalone mode.
 import schema
@@ -167,6 +170,7 @@ def sampleload(filename="sampledump.txt.gz"):
     print web.ctx.site.save_many(queries)
 
 class addbook(delegate.page):
+    path = "/books/add"
     def GET(self):
         d = {'type': web.ctx.site.get('/type/edition')}
 
@@ -176,7 +180,7 @@ class addbook(delegate.page):
             d['authors'] = [author]
         
         page = web.ctx.site.new("", d)
-        return render.edit(page, '/addbook', 'Add Book')
+        return render.edit(page, '/books/add', 'Add Book')
         
     def POST(self):
         from infogami.core.code import edit
@@ -185,6 +189,8 @@ class addbook(delegate.page):
         return edit().POST(key)
 
 class addauthor(delegate.page):
+    path = "/authors/add"
+        
     def POST(self):
         i = web.input("name")
         if len(i.name) < 2:
@@ -350,12 +356,16 @@ class robotstxt(delegate.page):
         except IOError:
             raise web.notfound()
 
-class change_cover(delegate.mode):
+class change_cover(delegate.page):
+    path = "(/books/OL\d+M)/cover"
     def GET(self, key):
         page = web.ctx.site.get(key)
         if page is None or page.type.key not in  ['/type/edition', '/type/author']:
             raise web.seeother(key)
         return render.change_cover(page)
+        
+class change_photo(change_cover):
+    path = "(/authors/OL\d+A)/photo"
 
 class bookpage(delegate.page):
     path = r"/(isbn|oclc|lccn|ISBN|OCLC|LCCN)/([^.]*)"
@@ -477,24 +487,40 @@ class new:
         
 api and api.add_hook('new', new)
 
-def readable_url_processor(handler):
+def get_object(key):
+    return web.ctx.site.get(key)
+    
+def _find_readable_path(path):
+    """Returns real path and readable path."""
+    pass
+    
+def readable_url_processor(handler, get_object=get_object):
     patterns = [
-        (r'/b/OL\d+M', '/type/edition', 'title'),
-        (r'/a/OL\d+A', '/type/author', 'name'),
-        (r'/w/OL\d+W', '/type/work', 'title'),
-        (r'/s/OL\d+S', '/type/series', 'title'),
+        (r'/books/OL\d+M', '/type/edition', 'title', 'untitled'),
+        (r'/authors/OL\d+A', '/type/author', 'name', 'noname'),
+        (r'/works/OL\d+W', '/type/work', 'title', 'untitled')
     ]
+    
+    def get_suffix():
+        # handle urls like /books/OLxxM/my-book/cover
+        if web.ctx.path.count('/') >= 4:
+            return '/' + web.ctx.path.split('/', 4)[-1]
+        else:
+            return ''
+        
     def get_readable_path():
         path = get_real_path()
+                
         if web.ctx.get('encoding') is not None:
             return web.ctx.path
         
-        for pat, type, property in patterns:
+        for pat, type, property, default_title in patterns:
             if web.re_compile('^' + pat + '$').match(path):
-                thing = web.ctx.site.get(path)
+                thing = get_object(path)
                 if thing is not None and thing.type.key == type and thing[property]:
-                    title = thing[property].replace(' ', '-').encode('utf-8')
-                    return path + '/' + urllib.quote(title)
+                    title = thing[property].strip() or default_title
+                    title = thing[property].replace(' ', '_').replace('/', '_').encode('utf-8')
+                    return path + '/' + urllib.quote(title) + get_suffix()
         return web.ctx.path
     
     def get_real_path():
@@ -503,9 +529,9 @@ def readable_url_processor(handler):
         m = rx.match(web.ctx.path)
         if m:
             path = m.group(1)
-            return m.group(1)
+            return m.group(1) + get_suffix()
         else:
-            return web.ctx.path
+            return web.ctx.path + get_suffix()
 
     # simple hack to avoid readable_url_processor interfering with the API
     if web.ctx.path.endswith(".json"):
@@ -520,6 +546,7 @@ def readable_url_processor(handler):
         if readable_path != web.ctx.path and readable_path != urllib.quote(web.utf8(web.ctx.path)) and web.ctx.method == "GET":
             raise web.seeother(readable_path.encode('utf-8') + web.ctx.query.encode('utf-8'))
 
+        print >> web.debug, readable_path, get_real_path()
         web.ctx.readable_path = readable_path
         web.ctx.path = get_real_path()
         web.ctx.fullpath = web.ctx.path + web.ctx.query
