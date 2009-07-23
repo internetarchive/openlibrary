@@ -531,7 +531,7 @@ def readable_url_processor(handler, get_object=get_object):
             path = m.group(1)
             return m.group(1) + get_suffix()
         else:
-            return web.ctx.path + get_suffix()
+            return web.ctx.path
 
     # simple hack to avoid readable_url_processor interfering with the API
     if web.ctx.path.endswith(".json"):
