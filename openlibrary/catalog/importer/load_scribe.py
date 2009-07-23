@@ -1,17 +1,18 @@
 import web, re, httplib, sys, urllib2
 import simplejson as json
-import catalog.importer.pool as pool
-from catalog.merge.merge_marc import build_marc
-from catalog.read_rc import read_rc
-from catalog.importer.load import build_query, east_in_by_statement, import_author
-from catalog.utils.query import query, withKey
-from catalog.importer.merge import try_merge
-from catalog.importer.lang import add_lang
-from catalog.get_ia import get_ia, urlopen_keep_trying
-from catalog.importer.db_read import get_mc
-import catalog.marc.parse_xml as parse_xml
+import openlibrary.catalog.importer.pool as pool
+from openlibrary.catalog.merge.merge_marc import build_marc
+from openlibrary.catalog.read_rc import read_rc
+from openlibrary.catalog.importer.load import build_query, east_in_by_statement, import_author
+from openlibrary.catalog.utils.query import query, withKey
+from openlibrary.catalog.importer.merge import try_merge
+from openlibrary.catalog.importer.lang import add_lang
+from openlibrary.catalog.importer.update import add_source_records
+from openlibrary.catalog.get_ia import get_ia, urlopen_keep_trying
+from openlibrary.catalog.importer.db_read import get_mc
+import openlibrary.catalog.marc.parse_xml as parse_xml
 from time import time, sleep
-import catalog.marc.fast_parse as fast_parse
+import openlibrary.catalog.marc.fast_parse as fast_parse
 sys.path.append('/home/edward/src/olapi')
 from olapi import OpenLibrary, unmarshal
 
@@ -26,102 +27,13 @@ db = web.database(dbn='mysql', host=rc['ia_db_host'], user=rc['ia_db_user'], \
         passwd=rc['ia_db_pass'], db='archive')
 db.printing = False
 
-#iter = db.query("select identifier from metadata where scanner is not null and scanner != 'google' and noindex is null and mediatype='texts' and curatestate='approved' order by curatedate limit 10")
-#iter = db.query("select identifier from metadata where scanner is not null and scanner != 'google' and noindex is null and mediatype='texts' and identifier >= 'lastsongsfromvag00carmrich'")
-iter = db.query("select identifier from metadata where noindex is null and mediatype='texts' and scanner='google' and identifier >= 'britishreviewan05unkngoog'")
+iter = db.query("select identifier, updated from metadata where scanner is not null and noindex is null and mediatype='texts' and (curatestate='approved' or curatestate is null) and scandate is not null and updated > '2009-07-14 08:26:16' order by updated")
 
 t0 = time()
 t_prev = time()
 rec_no = 0
 chunk = 50
 load_count = 0
-
-re_meta_mrc = re.compile('^([^/]*)_meta.mrc:0:\d+$')
-
-def amazon_source_records(asin):
-    iter = db_amazon.select('amazon', where='asin = $asin', vars={'asin':asin})
-    return ["amazon:%s:%s:%d:%d" % (asin, r.seg, r.start, r.length) for r in iter]
-
-def fix_toc(e):
-    toc = e.get('table_of_contents', None)
-    if not toc:
-        return
-    if isinstance(toc[0], dict) and toc[0]['type'] == '/type/toc_item':
-        return
-    return [{'title': unicode(i), 'type': '/type/toc_item'} for i in toc if i != u'']
-
-re_skip = re.compile('\b([A-Z]|Co|Dr|Jr|Capt|Mr|Mrs|Ms|Prof|Rev|Revd|Hon)\.$')
-
-def has_dot(s):
-    return s.endswith('.') and not re_skip.search(s)
-
-def undelete_author(a):
-    key = a['key']
-    assert a['type'] == '/type/delete'
-    url = 'http://openlibrary.org' + key + '.json?v=' + str(a['revision'] - 1)
-    prev = unmarshal(json.load(urllib2.urlopen(url)))
-    assert prev['type'] == '/type/author'
-    ol.save(key, prev, 'undelete author')
-
-def undelete_authors(authors):
-    for a in authors:
-        if a['type'] == '/type/delete':
-            undelete_author(a)
-        else:
-            print a
-            assert a['type'] == '/type/author'
-
-def add_source_records(key, ia):
-    new = 'ia:' + ia
-    sr = None
-    e = ol.get(key)
-    need_update = False
-    if 'ocaid' not in e:
-        need_update = True
-        e['ocaid'] = ia
-    if 'source_records' in e:
-        if new in e['source_records'] and not need_update:
-            return
-        e['source_records'].append(new)
-    else:
-        existing = get_mc(key)
-        amazon = 'amazon:'
-        if existing.startswith('ia:'):
-            sr = [existing]
-        elif existing.startswith(amazon):
-            sr = amazon_source_records(existing[len(amazon):]) or [existing]
-        else:
-            m = re_meta_mrc.match(existing)
-            sr = ['marc:' + existing if not m else 'ia:' + m.group(1)]
-        if new not in sr:
-            e['source_records'] = sr + [new]
-
-    # fix other bits of the record as well
-    new_toc = fix_toc(e)
-    if new_toc:
-        e['table_of_contents'] = new_toc
-    if e.get('subjects', None) and any(has_dot(s) for s in e['subjects']):
-        subjects = [s[:-1] if has_dot(s) else s for s in e['subjects']]
-        e['subjects'] = subjects
-    if 'authors' in e:
-        assert not any(a=='None' for a in e['authors'])
-        print e['authors']
-        authors = [ol.get(akey) for akey in e['authors']]
-        authors = [ol.get(a['location']) if a['type'] == '/type/redirect' else a \
-                for a in authors]
-        e['authors'] = [{'key': a['key']} for a in authors]
-        undelete_authors(authors)
-    try:
-        print ol.save(key, e, 'found a matching MARC record')
-    except:
-        print e
-        raise
-    if new_toc:
-        new_edition = ol.get(key)
-        # [{u'type': <ref: u'/type/toc_item'>}, ...]
-        assert 'title' in new_edition['table_of_contents'][0]
-
-
 
 def read_short_title(title):
     return str(fast_parse.normalize_str(title)[:25])
@@ -202,7 +114,7 @@ for i in iter:
             skip = False
         else:
             continue
-    print ia
+    print ia, i.updated
     if query({'type': '/type/edition', 'ocaid': ia}):
         print 'already loaded'
         continue

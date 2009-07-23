@@ -33,7 +33,7 @@ width: 50px;
 $def display_toc():
     $ toc = page.table_of_contents or [""]
     $if toc and not hasattr(toc[0], '__setitem__'):
-        $ toc = [{'class': 'section', 'label': '', 'title': x, 'pagenum': ''} for x in toc]
+        $ toc = [{'class': 'chapter', 'label': '', 'title': x, 'pagenum': ''} for x in toc]
     <tbody>
     <tr>
         <td valign="middle" class="formheader" style="padding-top: 3px;">$_t.table_of_contents</td>
@@ -105,11 +105,19 @@ function add_row(name) {
     \$("td:last", row).html("");
     \$("td:first", newrow).html("");
 
-    \$("input", newrow).map(function() { 
+    // Looks like jquery has a bug.
+    // clone on select is not setting the correct value.
+    \$("select", newrow).val(\$("select", row).val());
+
+    \$("input,select", newrow).map(function() { 
         \$(this).attr('id', next(\$(this).attr('id'))); 
         \$(this).attr('name', next(\$(this).attr('name'))); 
         \$(this).attr('ac_name', next(\$(this).attr('ac_name')));
-        \$(this).attr('value', ''); 
+
+         // clear value of all input elements and retain the previous value of class
+        if (this.tagName.toLowerCase() != "select") {
+            \$(this).val(""); 
+        }
     });
     
     // auto complete is not working for newly added rows.
@@ -243,7 +251,7 @@ function change_cover() {
                     <tr>
                         <td valign="top" colspan="4" width="100%" class="vertspace9">
 
-                    		<br /><br /><br />
+                            <br /><br /><br />
                             </td>
                     </tr>
 
