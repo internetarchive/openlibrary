@@ -1,9 +1,9 @@
-import catalog.marc.fast_parse as fast_parse
-import catalog.marc.read_xml as read_xml
+import openlibrary.catalog.marc.fast_parse as fast_parse
+import openlibrary.catalog.marc.read_xml as read_xml
 import xml.etree.ElementTree as et
 import xml.parsers.expat
 import urllib2, os.path, re
-from catalog.read_rc import read_rc
+from openlibrary.catalog.read_rc import read_rc
 from time import sleep
 from subprocess import Popen, PIPE
 

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import re, web
 from unicodedata import normalize
-import catalog.merge.normalize as merge
+import openlibrary.catalog.merge.normalize as merge
 
 re_date = map (re.compile, [
     '(?P<birth_date>\d+\??)-(?P<death_date>\d+\??)',

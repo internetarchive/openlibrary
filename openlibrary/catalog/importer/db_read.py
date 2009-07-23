@@ -2,7 +2,7 @@ import web
 import simplejson as json
 from urllib import urlopen, urlencode
 from time import sleep
-from catalog.read_rc import read_rc
+from openlibrary.catalog.read_rc import read_rc
 
 staging = False
 
