@@ -15,7 +15,9 @@ from infogami.infobase import client, dbstore
 
 # setup infobase hooks for OL
 from openlibrary.plugins import ol_infobase
-ol_infobase.init_plugin()
+
+if infogami.config.get('infobase_server') is None:
+    ol_infobase.init_plugin()
 
 try:
     from infogami.plugins.api import code as api
