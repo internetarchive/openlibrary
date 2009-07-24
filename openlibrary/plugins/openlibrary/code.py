@@ -494,81 +494,8 @@ def _find_readable_path(path):
     """Returns real path and readable path."""
     pass
     
-def readable_url_processor(handler, get_object=get_object):
-    patterns = [
-        (r'/books/OL\d+M', '/type/edition', 'title', 'untitled'),
-        (r'/authors/OL\d+A', '/type/author', 'name', 'noname'),
-        (r'/works/OL\d+W', '/type/work', 'title', 'untitled')
-    ]
-    
-    def get_suffix():
-        # handle urls like /books/OLxxM/my-book/cover
-        if web.ctx.path.count('/') >= 4:
-            return '/' + web.ctx.path.split('/', 4)[-1]
-        else:
-            return ''
-        
-    def get_readable_path():
-        path = get_real_path()
-                
-        if web.ctx.get('encoding') is not None:
-            return web.ctx.path
-        
-        for pat, type, property, default_title in patterns:
-            if web.re_compile('^' + pat + '$').match(path):
-                thing = get_object(path)
-                if thing is not None and thing.type.key == type and thing[property]:
-                    title = thing[property].strip() or default_title
-                    title = thing[property].replace(' ', '_').replace('/', '_').encode('utf-8')
-                    return path + '/' + urllib.quote(title) + get_suffix()
-        return web.ctx.path
-    
-    def get_real_path():
-        pat = '^(' + '|'.join(p[0] for p in patterns) + ')(?:/.*)?'
-        rx = web.re_compile(pat)
-        m = rx.match(web.ctx.path)
-        if m:
-            path = m.group(1)
-            return m.group(1) + get_suffix()
-        else:
-            return web.ctx.path
-
-    # simple hack to avoid readable_url_processor interfering with the API
-    if web.ctx.path.endswith(".json"):
-        web.ctx.readable_path = web.ctx.path
-    else:
-        readable_path = get_readable_path()
-
-        #@@ web.ctx.path is either quoted or unquoted depends on whether the application is running
-        #@@ using builtin-server or lighttpd. Thats probably a bug in web.py. 
-        #@@ take care of that case here till that is fixed.
-        # @@ Also, the redirection must be done only for GET requests.
-        if readable_path != web.ctx.path and readable_path != urllib.quote(web.utf8(web.ctx.path)) and web.ctx.method == "GET":
-            raise web.seeother(readable_path.encode('utf-8') + web.ctx.query.encode('utf-8'))
-
-        print >> web.debug, readable_path, get_real_path()
-        web.ctx.readable_path = readable_path
-        web.ctx.path = get_real_path()
-        web.ctx.fullpath = web.ctx.path + web.ctx.query
-    return handler()
-
-def profile_processor(handler):
-    i = web.input(_method="GET", _profile="")
-    if i._profile.lower() == "true":
-        out, result = web.profile(handler)()
-        if isinstance(out, web.template.TemplateResult):
-            out.__body__ = out.get('__body__', '') + '<pre>' + web.websafe(result) + '</pre>'
-            return out
-        elif isinstance(out, basestring):
-            return out + '<pre>' + web.websafe(result) + '</pre>'
-        else:
-            # don't know how to handle this.
-            return out
-    else:
-        return handler()
-
-delegate.app.add_processor(readable_url_processor)
-delegate.app.add_processor(profile_processor)
+delegate.app.add_processor(processors.ReadableUrlProcessor())
+delegate.app.add_processor(processors.ProfileProcessor())
 
 @public
 def changequery(query=None, **kw):
