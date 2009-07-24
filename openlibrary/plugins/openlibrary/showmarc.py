@@ -10,11 +10,6 @@ from time import time
 import os.path
 import sys
 
-# add OL root to sys.path
-dir = os.path.dirname(__file__)
-root = os.path.join(dir, "../../..")
-sys.path.append(root)
-
 class show_ia(delegate.page):
     path = "/show-marc/ia:(.*)"
 
@@ -55,7 +50,7 @@ class show_marc(delegate.page):
         except urllib2.HTTPError, e:
             return "ERROR:" + str(e)
 
-        from catalog.marc.html import html_record
+        from openlibrary.catalog.marc.html import html_record
 
         try:
             record = html_record(result)
