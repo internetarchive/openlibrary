@@ -1,0 +1,61 @@
+{
+    "kind": "embeddable", 
+    "name": "Table of Contents Item", 
+    "created": {
+        "type": "/type/datetime", 
+        "value": "2009-02-23T14:04:30.043163"
+    }, 
+    "id": 33623826, 
+    "last_modified": {
+        "type": "/type/datetime", 
+        "value": "2009-02-23T14:04:47.199545"
+    }, 
+    "latest_revision": 2, 
+    "key": "/type/toc_item", 
+    "type": {
+        "key": "/type/type"
+    }, 
+    "properties": [
+        {
+            "expected_type": {
+                "key": "/type/string"
+            }, 
+            "unique": True, 
+            "type": {
+                "key": "/type/property"
+            }, 
+            "name": "class"
+        }, 
+        {
+            "expected_type": {
+                "key": "/type/string"
+            }, 
+            "unique": True, 
+            "type": {
+                "key": "/type/property"
+            }, 
+            "name": "label"
+        }, 
+        {
+            "expected_type": {
+                "key": "/type/string"
+            }, 
+            "unique": True, 
+            "type": {
+                "key": "/type/property"
+            }, 
+            "name": "title"
+        }, 
+        {
+            "expected_type": {
+                "key": "/type/string"
+            }, 
+            "unique": True, 
+            "type": {
+                "key": "/type/property"
+            }, 
+            "name": "pagenum"
+        }
+    ], 
+    "revision": 2
+}

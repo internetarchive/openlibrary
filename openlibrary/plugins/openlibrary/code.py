@@ -13,6 +13,11 @@ from infogami.utils import types, delegate
 from infogami.utils.view import render, public
 from infogami.infobase import client, dbstore
 
+import processors
+
+delegate.app.add_processor(processors.ReadableUrlProcessor())
+delegate.app.add_processor(processors.ProfileProcessor())
+
 # setup infobase hooks for OL
 from openlibrary.plugins import ol_infobase
 
@@ -486,16 +491,6 @@ class new:
         return simplejson.dumps(keys)
         
 api and api.add_hook('new', new)
-
-def get_object(key):
-    return web.ctx.site.get(key)
-    
-def _find_readable_path(path):
-    """Returns real path and readable path."""
-    pass
-    
-delegate.app.add_processor(processors.ReadableUrlProcessor())
-delegate.app.add_processor(processors.ProfileProcessor())
 
 @public
 def changequery(query=None, **kw):

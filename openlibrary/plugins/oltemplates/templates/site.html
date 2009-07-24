@@ -17,7 +17,7 @@ $def with (page)
     $for s in ctx.stylesheets:
         <link rel="stylesheet" type="text/css" href="$s" />
 
-    <link href="/css/master.css?format=raw" rel="stylesheet" type="text/css" />
+    <link href="/static/css/master.css" rel="stylesheet" type="text/css" />
 
     $for url in ctx.javascripts:
         <script src="$url" type="text/javascript"></script>

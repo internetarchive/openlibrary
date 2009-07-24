@@ -1,6 +1,7 @@
 """web.py application processors for Open Library.
 """
 import web
+import urllib
 
 class ReadableUrlProcessor:
     """Open Library code works with urls like /books/OL1M and /books/OL1M/cover.
@@ -33,7 +34,7 @@ class ReadableUrlProcessor:
         return web.ctx.site.get(key)
 
     def _split(self, path):
-        """Splits the path as required by the get_readable_urls.
+        """Splits the path as required by the get_readable_path.
         
             >>> _split = ReadableUrlProcessor()._split
 
@@ -57,7 +58,7 @@ class ReadableUrlProcessor:
 
         return prefix, middle, suffix
         
-    def get_readable_urls(self, path, get_object=get_object, encoding=None):
+    def get_readable_path(self, path, get_object=None, encoding=None):
         """ Returns (real_url, readable_url) for the given url.
 
             >>> fakes = {}
@@ -65,24 +66,24 @@ class ReadableUrlProcessor:
             >>> fakes['/authors/OL1A'] = web.storage(title='fake', name='fake', type=web.storage(key='/type/author'))
             >>> def fake_get_object(key): return fakes[key]
             ...
-            >>> get_readable_urls = ReadableUrlProcessor().get_readable_urls
+            >>> get_readable_path = ReadableUrlProcessor().get_readable_path
 
-            >>> get_readable_urls('/books/OL1M', get_object=fake_get_object)
+            >>> get_readable_path('/books/OL1M', get_object=fake_get_object)
             ('/books/OL1M', '/books/OL1M/fake')
-            >>> get_readable_urls('/books/OL1M/foo', get_object=fake_get_object)
+            >>> get_readable_path('/books/OL1M/foo', get_object=fake_get_object)
             ('/books/OL1M', '/books/OL1M/fake')
-            >>> get_readable_urls('/books/OL1M/fake', get_object=fake_get_object)
+            >>> get_readable_path('/books/OL1M/fake', get_object=fake_get_object)
             ('/books/OL1M', '/books/OL1M/fake')
 
-            >>> get_readable_urls('/books/OL1M/foo/cover', get_object=fake_get_object)
+            >>> get_readable_path('/books/OL1M/foo/cover', get_object=fake_get_object)
             ('/books/OL1M/cover', '/books/OL1M/fake/cover')
 
-            >>> get_readable_urls('/authors/OL1A/foo/cover', get_object=fake_get_object)
+            >>> get_readable_path('/authors/OL1A/foo/cover', get_object=fake_get_object)
             ('/authors/OL1A/cover', '/authors/OL1A/fake/cover')
 
         When requested for .json nothing should be changed.
 
-            >>> get_readable_urls('/books/OL1M.json')
+            >>> get_readable_path('/books/OL1M.json')
             ('/books/OL1M.json', '/books/OL1M.json')
         """
         def match(path):    
@@ -99,6 +100,7 @@ class ReadableUrlProcessor:
             return (path, path)
 
         prefix, middle, suffix = self._split(path)
+        get_object = get_object or self.get_object
         thing = get_object(prefix)
 
         if not thing or thing.type.key != type:
