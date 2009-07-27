@@ -8,11 +8,21 @@ $ changes = get_recent_changes(author=author, limit=limit)
 <div class="widgetlabel">
 $if changes:
     $ v = changes[0]
-    
-    <b>$_.whats_new:</b> $datestr(v.created) - <a href="$homepath()$v.key">$v.key</a>
     $if v.author:
-        $_.updated_by <a href="$homepath()$v.author.key">$v.author.displayname</a> 
+        $ who = v.author.displayname or v.author.key
+    $else:
+        $ who = v.ip
+    $if v.thing.type.key == '/type/edition':
+        $ what = v.thing.title
+    $elif v.thing.type.key == '/type/author':
+        $ what = v.thing.name
+    $else:
+        $ what = v.key
+    $ when = datestr(v.created)
     $if v.comment:
-        ($v.comment[slice(0, 50)])
+        $ comment = ": " + v.comment[0:50]
+    $else:
+        $ comment = ""
+    <b>$_.whats_new:</b> $who updated $what $when $comment
 </div>
 </div>
