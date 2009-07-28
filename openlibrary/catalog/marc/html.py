@@ -1,4 +1,4 @@
-from catalog.marc.fast_parse import get_all_tag_lines, translate, split_line
+from openlibrary.catalog.marc.fast_parse import get_all_tag_lines, translate, split_line
 import re
 
 trans = {'&':'&amp;','<':'&lt;','>':'&gt;','\n':'<br>'}
