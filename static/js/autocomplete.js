@@ -130,3 +130,11 @@ function setup_freebase_suggest(e) {
    _log("END setup_freebase_suggest: " + e.id);
     
 }
+
+// Freebase urls are of the for /view/$key where as OL urls are just $key. 
+// This is a monkey-patch to fix that.
+window.freebase.controls.suggest.prototype.freebase_url = function(id, options) {
+    //var url = options.service_url + "/view" + this.quote_id(id);
+    var url = options.service_url + this.quote_id(id);
+    return url;
+};
