@@ -6,7 +6,7 @@ import web
 import os
 import time
 
-from openlibrary.coverstore import config, db
+from openlibrary.coverstore import config, db, code
 
 #logfile = open('log.txt', 'a')
 
@@ -89,6 +89,8 @@ def archive():
             'filename_m': web.storage(name=id + '-M.jpg', filename=cover.filename_m),
             'filename_l': web.storage(name=id + '-L.jpg', filename=cover.filename_l),
         }
+        # required until is coverstore is completely migrated to new code.
+        code.ensure_thumbnail_created(cover.id, code.find_image_path(cover.filename))
         
         for d in files.values():
             d.path = os.path.join(config.data_root, "localdisk", d.filename)

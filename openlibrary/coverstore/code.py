@@ -148,8 +148,32 @@ def serve_image(d, size):
     else:
         filename = d.filename
     path = find_image_path(filename)
+    ensure_thumnnail_created(d.id, path)
     return serve_file(path)
     
+def ensure_thumnnail_created(id, path):
+    """Temporary hack during migration to make sure thumbnails are created."""
+    if os.path.exists(path):
+        return
+
+    path_o = path.rsplit('-', 1)[0]
+    # original file is not present. Can't create thumbnails.
+    if os.path.exists(path_o):
+        return
+        
+    prefix = os.path.basename(path_o)
+    assert not prefix.endswith('.jpg')
+    
+    write_image(open(path_o).read(), prefix)
+
+    # write_image also writes the original image to a new file. Delete it as we already have the original image.
+    os.remove(path_o + '.jpg')
+    db.getdb().update('cover', where='id=$id', vars=locals(),
+        filename_s=prefix + '-S.jpg', 
+        filename_m=prefix + '-M.jpg', 
+        filename_l=prefix + '-L.jpg', 
+    )
+
 def find_image_path(filename):
     if ':' in filename: 
         return os.path.join(config.data_root,'items', filename.rsplit('_', 1)[0], filename)

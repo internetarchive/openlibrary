@@ -9,7 +9,6 @@ def getdb():
     global _db
     if _db is None:
         _db = web.database(**config.db_parameters)
-        print '*** created database'
     return _db
 
 def get_category_id(category):
