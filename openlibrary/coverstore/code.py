@@ -8,7 +8,7 @@ import datetime
 
 import db
 import config
-from utils import safeint, rm_f, random_string, resize_image, ol_things
+from utils import safeint, rm_f, random_string, resize_image, ol_things, changequery
 
 
 urls = (
@@ -153,7 +153,7 @@ def serve_image(d, size):
     
 def ensure_thumnnail_created(id, path):
     """Temporary hack during migration to make sure thumbnails are created."""
-    if ':' in path or os.path.exists(path + '-S.jpg'):
+    if ':' in path or path.endswith('.jpg') or os.path.exists(path + '-S.jpg'):
         return
 
     # original file is not present. Can't create thumbnails.
