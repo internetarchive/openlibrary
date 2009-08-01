@@ -8,40 +8,9 @@ Usage:
 
 import sys
 import os
-import yaml
-import web
-
 import _init_path
 
-from openlibrary.coverstore import config, disk, code
-
-_disks = {
-    'local': disk.Disk,
-    'warc': disk.WARCDisk,
-    'archive': disk.ArchiveDisk
-}
-
-def make_disk(type, **kw):
-    return _disks[type](**kw)
-
-def load_config(configfile):
-    d = yaml.load(open(configfile))
-
-    for k, v in d.items():
-        setattr(config, k, v)
-
-    config.disk = disk.LayeredDisk([make_disk(**kw) for kw in d['disks']])
-
-def main(configfile, *args):
-    load_config(configfile)
-    sys.argv = [sys.argv[0]] + list(args)
-    code.run()
-
-def archive(configfile):
-    from coverstore import archive
-    load_config(configfile)
-    disks = config.disk.disks
-    archive.archive(disks[0], disks[1])
+from openlibrary.coverstore import server
 
 def setup_env():
     # make sure PYTHON_EGG_CACHE is writable
@@ -51,9 +20,5 @@ def setup_env():
     os.environ['REAL_SCRIPT_NAME'] = ""
     
 if __name__ == "__main__":
-    if "--archive" in sys.argv:
-        sys.argv.remove('--archive')
-        archive(sys.argv[1])
-    else:
-        setup_env()
-        main(*sys.argv[1:])
+    setup_env()
+    server.main(*sys.argv[1:])

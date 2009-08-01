@@ -6,14 +6,5 @@ db_parameters:
     user: "anand"
     pw: ""
 
-disks:
-    - type: "local"
-      root: "/tmp/localdisk"
-
-    - type: "archive"
-      root: "/tmp/covers"
-      prefix: "covers"
-
-cache_dir: "/tmp/cache"
-
+data_root: "coverstore"
 default_image: "static/images/empty.gif"
