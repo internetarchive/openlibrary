@@ -5,6 +5,7 @@ import socket
 import os
 import mimetypes
 import Image
+import simplejson
 
 import random
 import string
