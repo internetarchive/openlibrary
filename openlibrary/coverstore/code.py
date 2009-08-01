@@ -8,7 +8,7 @@ import datetime
 
 import db
 import config
-from utils import safeint, rm_f, random_string, resize_image
+from utils import safeint, rm_f, random_string, resize_image, ol_things
 
 
 urls = (
