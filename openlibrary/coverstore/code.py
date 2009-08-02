@@ -8,8 +8,7 @@ import datetime
 
 import db
 import config
-from utils import safeint, rm_f, random_string, resize_image, ol_things, changequery
-
+from utils import safeint, rm_f, random_string, resize_image, ol_things, changequery, download
 
 urls = (
     '/', 'index',
@@ -86,6 +85,7 @@ class upload:
         success_url = i.success_url or web.ctx.get('HTTP_REFERRER') or '/'
         failure_url = i.failure_url or web.ctx.get('HTTP_REFERRER') or '/'
         def error((code, msg)):
+            print >> web.debug, "ERROR: upload failed, ", i.olid, code, repr(msg)
             url = changequery(failure_url, errcode=code, errmsg=msg)
             raise web.seeother(url)
         
