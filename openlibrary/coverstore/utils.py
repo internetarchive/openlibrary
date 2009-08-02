@@ -5,7 +5,6 @@ import socket
 import os
 import mimetypes
 import Image
-import simplejson
 
 import random
 import string
@@ -64,8 +63,11 @@ def urldecode(url):
     """
         >>> urldecode('http://google.com/search?q=bar&x=y')
         ('http://google.com/search', {'q': 'bar', 'x': 'y'})
+        >>> urldecode('http://google.com/')
+        ('http://google.com/', {})
     """
     base, query = urllib.splitquery(url)
+    query = query or ""
     items = [item.split('=', 1) for item in query.split('&') if '=' in item]
     d = dict((urllib.unquote(k), urllib.unquote_plus(v)) for (k, v) in items)
     return base, d
