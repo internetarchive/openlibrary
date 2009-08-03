@@ -143,7 +143,7 @@ def serve_file(path):
     return data
 
 def serve_image(d, size):
-    ensure_thumnnail_created(d.id, find_image_path(d.filename))
+    ensure_thumbnail_created(d.id, find_image_path(d.filename))
     if size:
         filename = d['filename_' + size.lower()] or d.filename + "-%s.jpg" % size.upper()
     else:
@@ -151,7 +151,7 @@ def serve_image(d, size):
     path = find_image_path(filename)
     return serve_file(path)
     
-def ensure_thumnnail_created(id, path):
+def ensure_thumbnail_created(id, path):
     """Temporary hack during migration to make sure thumbnails are created."""
     if ':' in path or path.endswith('.jpg') or os.path.exists(path + '-S.jpg'):
         return
