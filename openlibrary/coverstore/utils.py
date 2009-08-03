@@ -5,9 +5,12 @@ import socket
 import os
 import mimetypes
 import Image
+import simplejson
 
 import random
 import string
+
+import config
 
 class AppURLopener(urllib.FancyURLopener):
     version = "Mozilla/5.0 (Compatible; coverstore downloader http://covers.openlibrary.org)"
@@ -37,7 +40,7 @@ def ol_things(key, value):
     }
     try:
         d = dict(query=simplejson.dumps(query))
-        result = urllib.urlopen('http://openlibrary.org/api/things?' + urllib.urlencode(d)).read()
+        result = urllib.urlopen(config.things_api_url + '?' + urllib.urlencode(d)).read()
         result = simplejson.loads(result)
         olids = result['result']
         return [olid.split('/')[-1] for olid in olids]

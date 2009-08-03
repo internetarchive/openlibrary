@@ -4,6 +4,7 @@ import web
 import simplejson
 import time
 import urllib
+import unittest
 
 from openlibrary.coverstore import config, disk, schema, code, utils, archive
 import _setup
@@ -14,12 +15,12 @@ def setup_module(mod):
     
 def teardown_module(mod):
     _setup.teardown_module(mod)
-
-class TestWebapp:
-    def setup_class(self):
+    
+class WebTestCase(unittest.TestCase):
+    def setUp(self):
         db.delete('cover', where='1=1')
         self.browser = app.browser()
-        
+
     def jsonget(self, path):
         self.browser.open(path)
         return simplejson.loads(self.browser.data)
@@ -27,21 +28,25 @@ class TestWebapp:
     def upload(self, olid, path):
         """Uploads an image in static dir"""
         b = self.browser
-        
+
         path = os.path.join(static_dir, path)
         content_type, data = utils.urlencode({'olid': olid, 'file': open(path), 'failure_url': '/failed'}) 
         b.open('/b/upload', data, {'Content-Type': content_type})
         return self.jsonget('/b/olid/%s.json' % olid)['id']
-        
+
     def delete(self, id, redirect_url=None):
         b = self.browser
-        
+
         params = {'id': id}
         if redirect_url:
             params['redirect_url'] = redirect_url
         b.open('/b/delete', urllib.urlencode(params))
         return b.data
-        
+    
+    def static_path(self, path):
+        return os.path.join(static_dir, path)
+
+class TestWebapp(WebTestCase):        
     def test_touch(self):    
         b = self.browser
 
@@ -117,3 +122,48 @@ class TestWebapp:
             print f.id, d
             assert 'tar:' in d['filename']
             assert b.open('/b/id/%d.jpg' % f.id).read() == open(f.path).read()
+        
+class TestAppWithHTTP(WebTestCase):
+    def setUp(self):
+        WebTestCase.setUp(self)
+        
+        from openlibrary.utils import httpserver
+        self.server = httpserver.HTTPServer(port=8090)
+        print 'setup', self.server
+        
+    def tearDown(self):
+        WebTestCase.tearDown(self)
+        self.server.stop()
+        
+    def test_download(self):        
+        data = open(static_dir + '/logos/logo-en.png').read()
+        self.server.request('/a.png').should_return(data, headers={'Content-Type': 'image/png'})
+        print self.server.mappings, self.server.t, self.server.port
+        
+        assert utils.download('http://0.0.0.0:8090/a.png') == data
+        
+    def test_upload_from_url(self):
+        return
+        data = open(static_dir + '/logos/logo-en.png').read()
+        self.server.request('/a.png').should_return(data, headers={'Content-Type': 'image/png'})
+        
+        query = urllib.urlencode({'source_url': 'http://0.0.0.0:8090/a.png', 'olid': 'OL1M'})
+        self.browser.open('/b/upload', query)
+        
+        assert self.browser.open('/b/olid/OL1M.jpg').read() == data
+
+        d = self.jsonget('/b/olid/OL1M.json')
+        assert d['source_url'] == 'http://0.0.0.0:8090/a.png'
+
+    def test_isbn(self):
+        config.things_api_url = "http://127.0.0.1:8090/api/things"
+        from openlibrary.utils import httpserver
+
+        q = {'type': '/type/edition', 'isbn_10': '1234567890', 'sort': 'last_modified', 'limit': 10}
+        self.server.request('/api/things', method='GET', query={'query': simplejson.dumps(q)}).should_return('{"result":["/b/OL1M"]}')
+
+        id = self.upload('OL1M', 'logos/logo-en.png')
+
+        b = self.browser
+        assert b.open('/b/isbn/1234567890.jpg').read() == open(os.path.join(static_dir, 'logos/logo-en.png')).read()
+        

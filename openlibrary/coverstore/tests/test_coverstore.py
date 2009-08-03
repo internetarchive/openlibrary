@@ -95,7 +95,7 @@ def test_server_image():
     write('localdisk/a-M.jpg', 'M image')
     write('localdisk/a-L.jpg', 'L image')
     
-    d = web.storage(filename='a.jpg', filename_s='a-S.jpg', filename_m='a-M.jpg', filename_l='a-L.jpg')
+    d = web.storage(id=1, filename='a.jpg', filename_s='a-S.jpg', filename_m='a-M.jpg', filename_l='a-L.jpg')
     do_test(d)
     
     # test with offsets
@@ -105,6 +105,7 @@ def test_server_image():
     write('items/l_covers_0000/l_covers_0000_00.tar', 'xxL imagexx')
 
     d = web.storage(
+        id=1,
         filename='covers_0000_00.tar:2:10', 
         filename_s='s_covers_0000_00.tar:2:7', 
         filename_m='m_covers_0000_00.tar:2:7',
@@ -114,3 +115,4 @@ def test_server_image():
 def test_image_path():
     assert code.find_image_path('a.jpg') == config.data_root + '/localdisk/a.jpg'
     assert code.find_image_path('covers_0000_00.tar:1234:10') == config.data_root + '/items/covers_0000/covers_0000_00.tar:1234:10'
+
