@@ -48,16 +48,7 @@ def ol_things(key, value):
         import traceback
         traceback.print_exc()
         return []
-        
-def resize_image(image, size):
-    # from PIL
-    x, y = image.size
-    if x > size[0]: y = max(y * size[0] / x, 1); x = size[0]
-    if y > size[1]: x = max(x * size[1] / y, 1); y = size[1]
-    size = x, y
-    
-    return image.resize(size, Image.ANTIALIAS)
-        
+                
 def download(url):
     r = urllib.urlopen(url)
     return r.read()

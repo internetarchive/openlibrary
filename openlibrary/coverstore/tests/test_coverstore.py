@@ -1,8 +1,9 @@
 import py.test
 import os.path
 import web
+import unittest
 
-from openlibrary.coverstore import config, disk, schema, code, utils
+from openlibrary.coverstore import config, coverlib, disk, schema, utils
 import _setup
 
 def setup_module(mod):
@@ -24,49 +25,49 @@ def test_write_image():
     
 def _test_write_image(prefix, path):
     data = open(path).read()
-    assert code.write_image(data, prefix) != None
+    assert coverlib.write_image(data, prefix) != None
     
     def exists(filename):
-        return os.path.exists(code.find_image_path(filename))
+        return os.path.exists(coverlib.find_image_path(filename))
     
     assert exists(prefix + '.jpg')
     assert exists(prefix + '-S.jpg')
     assert exists(prefix + '-M.jpg')
     assert exists(prefix + '-L.jpg')
     
-    assert open(code.find_image_path(prefix + '.jpg')).read() == data
+    assert open(coverlib.find_image_path(prefix + '.jpg')).read() == data
 
 def test_bad_image():
     prefix = config.data_root + '/bad'
-    assert code.write_image('', prefix) == None
+    assert coverlib.write_image('', prefix) == None
 
     prefix = config.data_root + '/bad'
-    assert code.write_image('not an image', prefix) == None
+    assert coverlib.write_image('not an image', prefix) == None
     
 def test_resize_image_aspect_ratio():
     """make sure the aspect-ratio is maintained"""
     import Image
     img = Image.new('RGB', (100, 200))
     
-    img2 = utils.resize_image(img, (40, 40))
+    img2 = coverlib.resize_image(img, (40, 40))
     assert img2.size == (20, 40)
 
-    img2 = utils.resize_image(img, (400, 400))
+    img2 = coverlib.resize_image(img, (400, 400))
     assert img2.size == (100, 200)
     
-    img2 = utils.resize_image(img, (75, 100))
+    img2 = coverlib.resize_image(img, (75, 100))
     assert img2.size == (50, 100)
     
-    img2 = utils.resize_image(img, (75, 200))
+    img2 = coverlib.resize_image(img, (75, 200))
     assert img2.size == (75, 150)
 
 def test_serve_file():
     path = static_dir + "/logos/logo-en.png"
         
-    assert code.serve_file('/dev/null') == ''
-    assert code.serve_file(path) == open(path).read()
+    assert coverlib.read_file('/dev/null') == ''
+    assert coverlib.read_file(path) == open(path).read()
 
-    assert code.serve_file(path + ":10:20") == open(path).read()[10:10+20] 
+    assert coverlib.read_file(path + ":10:20") == open(path).read()[10:10+20] 
     
 def test_server_image():
     def write(filename, data):
@@ -76,7 +77,7 @@ def test_server_image():
 
     def do_test(d):
         def serve_image(d, size):
-            return "".join(code.serve_image(d, size))
+            return "".join(coverlib.read_image(d, size))
 
         assert serve_image(d, '') == 'main image'
         assert serve_image(d, None) == 'main image'    
@@ -113,6 +114,5 @@ def test_server_image():
     do_test(d)
 
 def test_image_path():
-    assert code.find_image_path('a.jpg') == config.data_root + '/localdisk/a.jpg'
-    assert code.find_image_path('covers_0000_00.tar:1234:10') == config.data_root + '/items/covers_0000/covers_0000_00.tar:1234:10'
-
+    assert coverlib.find_image_path('a.jpg') == config.data_root + '/localdisk/a.jpg'
+    assert coverlib.find_image_path('covers_0000_00.tar:1234:10') == config.data_root + '/items/covers_0000/covers_0000_00.tar:1234:10'

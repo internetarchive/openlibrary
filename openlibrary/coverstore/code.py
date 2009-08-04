@@ -2,13 +2,14 @@ import web
 import simplejson
 import urllib
 import os
-from cStringIO import StringIO
 import Image
 import datetime
 
 import db
 import config
-from utils import safeint, rm_f, random_string, resize_image, ol_things, changequery, download
+from utils import safeint, rm_f, random_string, ol_things, changequery, download
+
+from coverlib import save_image, read_image, read_file
 
 urls = (
     '/', 'index',
@@ -43,33 +44,6 @@ def _query(category, key, value):
                 return _query(category, 'olid', olids)
     return None
 
-def write_image(data, prefix):
-    path_prefix = find_image_path(prefix)
-    try:
-        # save original image
-        f = open(path_prefix + '.jpg', 'w')
-        f.write(data)
-        f.close()
-        
-        img = Image.open(StringIO(data))
-        if img.mode != 'RGB':
-            img = img.convert('RGB')
-    
-        for name, size in config.image_sizes.items():
-            path = "%s-%s.jpg" % (path_prefix, name)
-            resize_image(img, size).save(path)
-        return img
-    except IOError, e:
-        print 'ERROR:', str(e)
-        
-        # cleanup
-        rm_f(prefix + '.jpg')
-        rm_f(prefix + '-S.jpg')
-        rm_f(prefix + '-M.jpg')
-        rm_f(prefix + '-L.jpg')
-
-        return None
-    
 ERROR_EMPTY = 1, "No image found"
 ERROR_INVALID_URL = 2, "Invalid URL"
 ERROR_BAD_IMAGE = 3, "Invalid Image"
@@ -104,81 +78,12 @@ class upload:
         if not data:
             error(ERROR_EMPTY)
 
-        prefix = i.olid + '-' + random_string(5)
-        
-        img = write_image(data, prefix)
-        if img is None:
+        try:
+            save_image(data, category=category, olid=i.olid, author=i.author, source_url=i.source_url, ip=web.ctx.ip)
+        except ValueError:
             error(ERROR_BAD_IMAGE)
-
-        d = {
-            'category': category,
-            'olid': i.olid,
-            'author': i.author,
-            'source_url': source_url,
-        }
-        d['width'], d['height'] = img.size
-
-        filename = prefix + '.jpg'
-        d['ip'] = web.ctx.ip
-        d['filename'] = filename
-        d['filename_s'] = prefix + '-S.jpg'
-        d['filename_m'] = prefix + '-M.jpg'
-        d['filename_l'] = prefix + '-L.jpg'
-        db.new(**d)
         raise web.seeother(success_url)
-
-def serve_file(path):
-    if ':' in path:
-        path, offset, size = path.rsplit(':', 2)
-        offset = int(offset)
-        size = int(size)
-        f = open(path)
-        f.seek(offset)
-        data = f.read(size)
-        f.close()
-    else:
-        f = open(path)
-        data = f.read()
-        f.close()
-    return data
-
-def serve_image(d, size):
-    ensure_thumbnail_created(d.id, find_image_path(d.filename))
-    if size:
-        filename = d['filename_' + size.lower()] or d.filename + "-%s.jpg" % size.upper()
-    else:
-        filename = d.filename
-    path = find_image_path(filename)
-    return serve_file(path)
     
-def ensure_thumbnail_created(id, path):
-    """Temporary hack during migration to make sure thumbnails are created."""
-    if ':' in path or path.endswith('.jpg') or os.path.exists(path + '-S.jpg'):
-        return
-
-    # original file is not present. Can't create thumbnails.
-    if not os.path.exists(path):
-        return
-        
-    prefix = os.path.basename(path)
-    assert not prefix.endswith('.jpg')
-    
-    write_image(open(path).read(), prefix)
-
-    # write_image also writes the original image to a new file. Delete it as we already have the original image.
-    os.remove(path + '.jpg')
-    db.getdb().update('cover', where='id=$id', vars=locals(),
-        filename_s=prefix + '-S.jpg', 
-        filename_m=prefix + '-M.jpg', 
-        filename_l=prefix + '-L.jpg', 
-    )
-
-def find_image_path(filename):
-    if ':' in filename: 
-        return os.path.join(config.data_root,'items', filename.rsplit('_', 1)[0], filename)
-    else:
-        return os.path.join(config.data_root, 'localdisk', filename)
-
 class cover:
     def GET(self, category, key, value, size):
         i = web.input(default="true")
@@ -192,9 +97,9 @@ class cover:
                 web.expires(100 * 365 * 24 * 3600) # this image is not going to expire in next 100 years.
                 
             web.header('Content-Type', 'image/jpeg')
-            return serve_image(d, size)
+            return read_image(d, size)
         elif config.default_image and i.default.lower() != "false" and not i.default.startswith('http://'):
-            return serve_file(config.default_image)
+            return read_file(config.default_image)
         elif i.default.startswith('http://'):
             raise web.seeother(i.default)
         else:

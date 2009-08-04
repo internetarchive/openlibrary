@@ -6,7 +6,8 @@ import web
 import os
 import time
 
-from openlibrary.coverstore import config, db, code
+from openlibrary.coverstore import config, db
+from openlibrary.coverstore.coverlib import ensure_thumbnail_created, find_image_path
 
 #logfile = open('log.txt', 'a')
 
@@ -19,10 +20,10 @@ def log(*args):
 class TarManager:
     def __init__(self):
         self.tarfiles = {}
-        self.tarfiles[''] = (None, None)
-        self.tarfiles['S'] = (None, None)
-        self.tarfiles['M'] = (None, None)
-        self.tarfiles['L'] = (None, None)
+        self.tarfiles[''] = (None, None, None)
+        self.tarfiles['S'] = (None, None, None)
+        self.tarfiles['M'] = (None, None, None)
+        self.tarfiles['L'] = (None, None, None)
 
     def get_tarfile(self, name):
         id = web.numify(name)
@@ -35,14 +36,14 @@ class TarManager:
         else:
             size = ""
         
-        _tarname, _tarfile = self.tarfiles[size.upper()]
+        _tarname, _tarfile, _indexfile = self.tarfiles[size.upper()]
         if _tarname != tarname:
             _tarname and _tarfile.close()
-            _tarfile = self.open_tarfile(tarname)
-            self.tarfiles[size.upper()] = tarname, _tarfile
+            _tarfile, _indexfile = self.open_tarfile(tarname)
+            self.tarfiles[size.upper()] = tarname, _tarfile, _indexfile
             log('writing', tarname)
 
-        return _tarfile
+        return _tarfile, _indexfile
 
     def open_tarfile(self, name):
         path = os.path.join(config.data_root, "items", name[:-len("_XX.tar")], name)
@@ -50,28 +51,34 @@ class TarManager:
         if not os.path.exists(dir):
             os.makedirs(dir)
             
+        indexpath = path.replace('.tar', '.index')
+            
         if os.path.exists(path):
-            return tarfile.TarFile(path, 'a')
+            return tarfile.TarFile(path, 'a'), open(indexpath, 'a')
         else:
-            return tarfile.TarFile(path, 'w')
+            return tarfile.TarFile(path, 'w'), open(indexpath, 'w')
 
     def add_file(self, name, fileobj, mtime):
         tarinfo = tarfile.TarInfo(name)
         tarinfo.mtime = mtime
         tarinfo.size = os.stat(fileobj.name).st_size
         
-        tar = self.get_tarfile(name)
+        tar, index = self.get_tarfile(name)
         # tar.offset is current size of tar file. 
         # Adding 512 bytes for header gives us the starting offset of next file.
         offset = tar.offset + 512
         
         tar.addfile(tarinfo, fileobj=fileobj)
-        return "%s:%s:%s" % (os.path.basename(tar.name), offset, tarinfo.size)
+        info = (os.path.basename(tar.name), offset, tarinfo.size)
+        
+        index.write('%s\t%s\t%s\n' % info)
+        return "%s:%s:%s" % info
 
     def close(self):
-        for name, _tarfile in self.tarfiles.values():
+        for name, _tarfile, _indexfile in self.tarfiles.values():
             if name:
                 _tarfile.close()
+                _indexfile.close()
 idx = id
 def archive():
     """Move files from local disk to tar files and update the paths in the db."""
@@ -90,7 +97,7 @@ def archive():
             'filename_l': web.storage(name=id + '-L.jpg', filename=cover.filename_l),
         }
         # required until is coverstore is completely migrated to new code.
-        code.ensure_thumbnail_created(cover.id, code.find_image_path(cover.filename))
+        ensure_thumbnail_created(cover.id, find_image_path(cover.filename))
         
         for d in files.values():
             d.path = os.path.join(config.data_root, "localdisk", d.filename)

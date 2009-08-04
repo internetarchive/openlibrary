@@ -6,7 +6,7 @@ import time
 import urllib
 import unittest
 
-from openlibrary.coverstore import config, disk, schema, code, utils, archive
+from openlibrary.coverstore import config, disk, schema, code, coverlib, utils, archive
 import _setup
 
 def setup_module(mod):
@@ -45,9 +45,23 @@ class WebTestCase(unittest.TestCase):
     
     def static_path(self, path):
         return os.path.join(static_dir, path)
+        
+        
+class DBTest:
+    def setUp(self):
+        db.delete('cover', where='1=1')
 
-class TestWebapp(WebTestCase):        
-    def test_touch(self):    
+    def test_write(self):
+        path = static_dir + "/logos/logo-en.png"
+        data = open(path).read()
+        d = coverlib.save_image(data, category='b', olid='OL1M')
+        
+        assert 'OL1M' in d.filename
+        path = config.data_root + '/localdisk/' + d.filename
+        assert open(path).read() == data
+
+class TestWebapp(WebTestCase):
+    def test_touch(self):
         b = self.browser
 
         id1 = self.upload('OL1M', 'logos/logo-en.png')
@@ -129,7 +143,6 @@ class TestAppWithHTTP(WebTestCase):
         
         from openlibrary.utils import httpserver
         self.server = httpserver.HTTPServer(port=8090)
-        print 'setup', self.server
         
     def tearDown(self):
         WebTestCase.tearDown(self)
