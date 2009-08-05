@@ -15,4 +15,4 @@
 # listening to the update log until you kill the process.
 
 import _init_path
-import solr
+from openlibrary import solr
