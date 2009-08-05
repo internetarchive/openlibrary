@@ -2,6 +2,13 @@
 # -*- Python -*-
 from __future__ import with_statement
 
+# warning -- this script is in a half-mangled state right now.
+# it basically works as described in ../solr-update.py but other
+# stuff in it is only partly implemented, or is dregs of half-removed
+# stuff that's no longer used, etc.  It is checked into the repo to help
+# with populating test solrs, but the code is not currently fit for 
+# general consumption.
+
 import infogami
 from infogami.infobase.logreader import LogReader,RsyncLogFile, LogFile
 from datetime import datetime,date,timedelta
