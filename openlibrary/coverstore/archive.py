@@ -69,10 +69,9 @@ class TarManager:
         offset = tar.offset + 512
         
         tar.addfile(tarinfo, fileobj=fileobj)
-        info = (os.path.basename(tar.name), offset, tarinfo.size)
         
-        index.write('%s\t%s\t%s\n' % info)
-        return "%s:%s:%s" % info
+        index.write('%s\t%s\t%s\n' % (name, offset, tarinfo.size))
+        return "%s:%s:%s" % (os.path.basename(tar.name), offset, tarinfo.size)
 
     def close(self):
         for name, _tarfile, _indexfile in self.tarfiles.values():
