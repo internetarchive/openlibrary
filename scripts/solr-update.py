@@ -2,6 +2,17 @@
 
 # Solr loading script. 
 
+# Things that you might not expect:
+#
+# 1. When you run this script, it takes about 1 minute before any posts to
+#    solr actually happen.
+# 2. After you finish importing a json dump, the script sleeps for 5 minutes
+#    before exiting
+#
+# There are implementation reasons for the above.  I should get around
+# to fixing them, but in the normal case, importing a dump takes 12+
+# hours, so a few more minutes doesn't make much difference.
+
 # To import a json dump:
 #   ./solr-update.py --dump=dumpfile.json --solr=localhost:8012
 
