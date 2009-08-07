@@ -5,9 +5,12 @@ import socket
 import os
 import mimetypes
 import Image
+import simplejson
 
 import random
 import string
+
+import config
 
 class AppURLopener(urllib.FancyURLopener):
     version = "Mozilla/5.0 (Compatible; coverstore downloader http://covers.openlibrary.org)"
@@ -37,7 +40,7 @@ def ol_things(key, value):
     }
     try:
         d = dict(query=simplejson.dumps(query))
-        result = urllib.urlopen('http://openlibrary.org/api/things?' + urllib.urlencode(d)).read()
+        result = urllib.urlopen(config.things_api_url + '?' + urllib.urlencode(d)).read()
         result = simplejson.loads(result)
         olids = result['result']
         return [olid.split('/')[-1] for olid in olids]
@@ -45,16 +48,7 @@ def ol_things(key, value):
         import traceback
         traceback.print_exc()
         return []
-        
-def resize_image(image, size):
-    # from PIL
-    x, y = image.size
-    if x > size[0]: y = max(y * size[0] / x, 1); x = size[0]
-    if y > size[1]: x = max(x * size[1] / y, 1); y = size[1]
-    size = x, y
-    
-    return image.resize(size, Image.ANTIALIAS)
-        
+                
 def download(url):
     r = urllib.urlopen(url)
     return r.read()
@@ -63,8 +57,11 @@ def urldecode(url):
     """
         >>> urldecode('http://google.com/search?q=bar&x=y')
         ('http://google.com/search', {'q': 'bar', 'x': 'y'})
+        >>> urldecode('http://google.com/')
+        ('http://google.com/', {})
     """
     base, query = urllib.splitquery(url)
+    query = query or ""
     items = [item.split('=', 1) for item in query.split('&') if '=' in item]
     d = dict((urllib.unquote(k), urllib.unquote_plus(v)) for (k, v) in items)
     return base, d
