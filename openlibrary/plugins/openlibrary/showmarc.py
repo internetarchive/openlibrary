@@ -24,6 +24,12 @@ class show_ia(delegate.page):
             return "ERROR:" + str(e)
 
         return render.showia(record, filename)
+        
+class show_amazon(delegate.page):
+    path = "/show-marc/amazon:(.*)"
+    
+    def GET(self, asin):
+        return render.showamazon(asin)
 
 class show_marc(delegate.page):
     path = "/show-marc/(.*):(\d+):(\d+)"
