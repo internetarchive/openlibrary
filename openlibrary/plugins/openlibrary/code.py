@@ -358,7 +358,7 @@ class change_cover(delegate.mode):
         return render.change_cover(page)
 
 class bookpage(delegate.page):
-    path = r"/(isbn|oclc|lccn|ISBN|OCLC|LCCN)/([^.]*)"
+    path = r"/(isbn|oclc|lccn|ia|ISBN|OCLC|LCCN|IA)/([^.]*)"
 
     def GET(self, key, value):
         key = key.lower()
@@ -369,6 +369,8 @@ class bookpage(delegate.page):
                 key = "isbn_10"
         elif key == "oclc":
             key = "oclc_numbers"
+        elif key == "ia":
+            key = "ocaid"
 
         value = value.replace('_', ' ')
 
@@ -383,11 +385,13 @@ class bookpage(delegate.page):
             if result:
                 raise web.seeother(result[0] + ext)
             else:
-                raise web.notfound()
+                web.ctx.status = "404 Not Found"
+                return render.notfound(web.ctx.path, create=False)
         except web.HTTPError:
-            pass
+            raise
         except:
-            raise web.notfound()
+            web.ctx.status = "404 Not Found"
+            return render.notfound(web.ctx.path, create=False)
 
 delegate.media_types['application/rdf+xml'] = 'rdf'
 class rdf(delegate.mode):
