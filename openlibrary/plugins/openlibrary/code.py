@@ -42,6 +42,7 @@ types.register_type('^/books/[^/]*$', '/type/edition')
 types.register_type('^/works/[^/]*$', '/type/work')
 types.register_type('^/subjects/[^/]*$', '/type/subject')
 types.register_type('^/publishers/[^/]*$', '/type/publisher')
+types.register_type('^/languages/[^/]*$', '/type/language')
 
 # set up infobase schema. required when running in standalone mode.
 import schema
