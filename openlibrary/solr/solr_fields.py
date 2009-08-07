@@ -2,7 +2,6 @@
 from xml.etree.ElementTree import ElementTree as ET
 from os.path import abspath, dirname
 
-# _schema_file = ET().parse('/home/phr/petabox/solr/example/solr/conf/schema.xml')
 current_dir = abspath(dirname(__file__))
 
 schema_filename = '%s/../../conf/solr-biblio/conf/schema.xml'% current_dir
