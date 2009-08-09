@@ -6,7 +6,7 @@ $ pages = list_pages(path, limit=limit, offset=page * limit)
 
 <!--islist-->
 
-<div class="contenttext">
+
 <ul>
 $for p in pages:
     $if p.type.key != '/type/delete':
@@ -15,12 +15,4 @@ $for p in pages:
         $else:
             <li><a href="$homepath()$p.key">$p.key</a></li>
 </ul>
-</div>
 
-<div class="copyright-footer">
-$if page != 0:
-    &larr; <a href="$:changequery(page=page - 1)" rel="nofollow">$_.prev</a>
-
-$if len(pages) == limit:
-    ... <a href="$:changequery(page=page + 1)" rel="nofollow">$_.next</a> &rarr;
-<div>
