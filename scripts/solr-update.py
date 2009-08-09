@@ -16,6 +16,8 @@
 # To import a json dump:
 #   ./solr-update.py --dump=dumpfile.json --solr=localhost:8012
 # substituting your own dump filename and solr host/port of course.
+# Note that your dump can be a .gz file and the script will filter
+# it through decompression automatically during processing.
 #
 # To import solr update log starting 3 days ago:
 #   ../solr-update.py --rsync --days=3  --solr=localhost:8012
