@@ -421,10 +421,10 @@ class rdf(delegate.mode):
             else:
                 return delegate.RawText(result, content_type="application/rdf+xml; charset=utf-8")
 
-delegate.media_types['text/x-yaml'] = 'yaml'
+delegate.media_types['text/x-yaml'] = 'yml'
 class _yaml(delegate.mode):
     name = "view"
-    encoding = "yaml"
+    encoding = "yml"
 
     def GET(self, key):
         i = web.input(v=None)
