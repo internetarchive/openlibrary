@@ -11,7 +11,8 @@ $:_.edit_summary<br />
 <div style="float: left; padding-top: 6px;">
        <button class="edit" type="submit"  value="$_.save"  name="_save" title="$_.save">$_.save</button>
        <button class="edit" type="submit"  value="$_.preview" name="_preview" title="$_.preview">$_.preview</button>
-       <button class="edit-delete" type="submit"  value="$_.delete" name="_delete" title="$_.delete">$_.delete</button>
+       $if ctx.user and ctx.user.is_admin():
+           <button class="edit-delete" type="submit"  value="$_.delete" name="_delete" title="$_.delete">$_.delete</button>
 </div>
 
 
