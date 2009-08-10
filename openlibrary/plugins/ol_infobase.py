@@ -116,7 +116,7 @@ def save_error(dir, prefix):
 
         error = web.djangoerror()
         now = datetime.datetime.utcnow()
-        path = '%s/%d-%d-%d/%s-%d%d%d.%d.html' % (dir, \
+        path = '%s/%04d-%02d-%02d/%s-%02d%02d%02d.%06d.html' % (dir, \
             now.year, now.month, now.day, prefix,
             now.hour, now.minute, now.second, now.microsecond)
         print >> web.debug, 'Error saved to', path
