@@ -238,8 +238,10 @@ class LazyWARCRecord(WARCRecord):
         
     def get_data(self):
         if self._data is None:
+            offset = self.file.tell()
             self.file.seek(int(self.offset))
             self._data = self.file.read(int(self.header.data_length))
+            self.file.seek(offset)
         return self._data
 
 class WARCWriter:

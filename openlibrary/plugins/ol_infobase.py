@@ -25,6 +25,8 @@ def init_plugin():
 
     if config.get('writelog'):
         ib.add_event_listener(logger.Logger(config.writelog))
+        
+    ib.add_event_listener(invalidate_most_recent_change)
 
     if ol:
         if config.get('http_listeners'):
@@ -38,7 +40,8 @@ def init_plugin():
     # hook to add count functionality
     server.app.add_mapping("/([^/]*)/count_editions_by_author", __name__ + ".count_editions_by_author")
     server.app.add_mapping("/([^/]*)/count_editions_by_work", __name__ + ".count_editions_by_work")
-    print server.app.mapping
+    server.app.add_mapping("/([^/]*)/most_recent", __name__ + ".most_recent")
+    server.app.add_mapping("/([^/]*)/clear_cache", __name__ + ".clear_cache")
     
 def get_db():
     site = server.get_site('openlibrary.org')
@@ -75,7 +78,29 @@ class count_editions_by_work:
     def GET(self, sitename):
         i = server.input('key')
         return count('work_ref', '/type/work', 'editions', i.key)
+
+most_recent_change = None
+
+def invalidate_most_recent_change(event):
+    global most_recent_change
+    most_recent_change = None
+
+class most_recent:
+    @server.jsonify
+    def GET(self, sitename):
+        global most_recent_change
+        if most_recent_change is None:
+            site = server.get_site('openlibrary.org')
+            most_recent_change = site.versions({'limit': 1})[0]
+        return most_recent_change
         
+class clear_cache:
+    @server.jsonify
+    def POST(self, sitename):
+        from infogami.infobase import cache
+        cache.global_cache.clear()
+        return {'done': True}
+
 def write(path, data):
     dir = os.path.dirname(path)
     if not os.path.exists(dir):
@@ -149,4 +174,3 @@ def http_notify(site, old, new):
             print >> web.debug, "failed to send http_notify", url, new.key
             import traceback
             traceback.print_exc()
-
