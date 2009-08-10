@@ -10,7 +10,7 @@ import socket
 
 import infogami
 from infogami.utils import types, delegate
-from infogami.utils.view import render, public
+from infogami.utils.view import render, public, safeint
 from infogami.infobase import client, dbstore
 
 # setup infobase hooks for OL
@@ -70,10 +70,20 @@ class Work(client.Thing):
     def get_edition_count(self):
         return web.ctx.site._request('/count_editions_by_work', data={'key': self.key})
     edition_count = property(get_edition_count)
+
+class User(client.Thing):
+    def get_usergroups(self):
+        keys = web.ctx.site.things({'type': '/type/usergroup', 'members': {'key': self.key}})
+        return web.ctx.site.get_many(keys)
+    usergroups = property(get_usergroups)
+
+    def is_admin(self):
+        return '/usergroup/admin' in [g.key for g in self.usergroups]
     
 client.register_thing_class('/type/author', Author)
 client.register_thing_class('/type/edition', Edition)
 client.register_thing_class('/type/work', Work)
+client.register_thing_class('/type/user', User)
 
 @infogami.action
 def sampledump():
@@ -411,6 +421,22 @@ class rdf(delegate.mode):
             else:
                 return delegate.RawText(result, content_type="application/rdf+xml; charset=utf-8")
 
+delegate.media_types['text/x-yaml'] = 'yml'
+class _yaml(delegate.mode):
+    name = "view"
+    encoding = "yml"
+
+    def GET(self, key):
+        i = web.input(v=None)
+        v = safeint(i.v, None)
+        data = dict(key=key, revision=v)
+        d = api.request('/get', data=data)
+        d = simplejson.loads(d)
+        
+        web.header('Content-Type', 'text/x-yaml')
+        import yaml
+        raise web.ok(yaml.dump(d))
+
 def can_write():
     user = delegate.context.user and delegate.context.user.key
     usergroup = web.ctx.site.get('/usergroup/api')
@@ -573,6 +599,20 @@ def get_recent_changes(*a, **kw):
         return []
     else:
         return _get_recentchanges(*a, **kw)
+
+if infogami.config.get('features') is None:
+    infogami.config.features = []
+        
+@public
+def most_recent_change():
+    if 'cache_most_recent' in infogami.config.features:
+        v = web.ctx.site._request('/most_recent')
+        v.thing = web.ctx.site.get(v.key)
+        v.author = v.author_id and web.ctx.site.get(v.author_id)
+        v.created = client.parse_datetime(v.created)
+        return v
+    else:
+        return get_recent_changes(limit=1)[0]
     
 def wget(url):
     try:

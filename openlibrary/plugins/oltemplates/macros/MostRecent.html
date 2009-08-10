@@ -1,13 +1,11 @@
-$def with (author=None, limit=1)
+$def with (**kw)
 
 $ _ = i18n.get_namespace('/mode/view')
 
-$ changes = get_recent_changes(author=author, limit=limit)
+$ v = most_recent_change()
 
 <div id="databar">
 <div class="widgetlabel">
-$if changes:
-    $ v = changes[0]
     $if v.author:
         $ who = '<a href="%s" rel="nofollow">%s</a>' % (v.author.key, v.author.displayname or v.author.key)
     $else:
