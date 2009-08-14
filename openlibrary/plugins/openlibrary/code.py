@@ -394,7 +394,7 @@ class bookpage(delegate.page):
             result = web.ctx.site.things(q)
             if result:
                 raise web.seeother(result[0] + ext)
-            elif key =='ia':
+            elif key == "ocaid":
                 q = {"type": "/type/edition", 'source_records': 'ia:' + value}
                 result = web.ctx.site.things(q)
                 if result:
