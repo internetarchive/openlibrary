@@ -382,7 +382,8 @@ class bookpage(delegate.page):
         elif key == "ia":
             key = "ocaid"
 
-        value = value.replace('_', ' ')
+        if key != 'ocaid': # example: MN41558ucmf_6
+            value = value.replace('_', ' ')
 
         if web.ctx.encoding and web.ctx.path.endswith("." + web.ctx.encoding): 
             ext = "." + web.ctx.encoding
