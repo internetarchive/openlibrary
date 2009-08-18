@@ -54,7 +54,7 @@ function setup_autocomplete(id) {
  */ 
 function new_author(name, id) {
     $.post(
-        '/authors/add', 
+        '/addauthor', 
         {name: name}, 
         function(data, status) {
             if (status == "success") {

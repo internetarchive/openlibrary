@@ -65,7 +65,7 @@ $ oclc = page["oclc_numbers"] and page["oclc_numbers"][0] and ("http://www.world
         <div id="book-art" class="datalink" style="clear: both">
             $:macros.CoverImage(page)
             <div class="editbutton" style="margin-bottom: 6px; margin-top: 6px; width: 163px;">
-                <a href="$:changequery({})/cover" style="text-decoration: none">Change Cover</a>
+                <a href="$:page.cover_url()" style="text-decoration: none">Change Cover</a>
             </div>
 
             $if page.ocaid:

@@ -1,5 +1,6 @@
 """OpenLibrary schema."""
 from infogami.infobase import dbstore
+from infogami import config
 
 def get_schema():
     schema = dbstore.Schema()
@@ -19,10 +20,15 @@ def get_schema():
     schema.add_table_group('publisher', '/type/publisher')
     schema.add_table_group('subject', '/type/subject')
 
-    schema.add_seq('/type/edition', '/books/OL%dM')
-    schema.add_seq('/type/author', '/authors/OL%dA')
-    schema.add_seq('/type/work', '/works/OL%dW')
-    schema.add_seq('/type/publisher', '/publishers/OL%dP')
+    if 'upstream' in config.features:        
+        schema.add_seq('/type/edition', '/books/OL%dM')
+        schema.add_seq('/type/author', '/authors/OL%dA')
+        schema.add_seq('/type/work', '/works/OL%dW')
+        schema.add_seq('/type/publisher', '/publishers/OL%dP')
+    else:
+        schema.add_seq('/type/edition', '/b/OL%dM')
+        schema.add_seq('/type/author', '/a/OL%dA')
+    
     return schema
 
 if __name__ == "__main__":
