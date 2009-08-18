@@ -1,3 +1,0 @@
-"""
-dump plugin.
-"""
