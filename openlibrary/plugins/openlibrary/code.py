@@ -14,15 +14,13 @@ import infogami
 if not hasattr(infogami.config, 'features'):
     infogami.config.features = []
     
-upstream = 'upstream' in infogami.config.features
-
 from infogami.utils import types, delegate
 from infogami.utils.view import render, public, safeint
 from infogami.infobase import client, dbstore
 
 import processors
 
-delegate.app.add_processor(processors.ReadableUrlProcessor(upstream=upstream))
+delegate.app.add_processor(processors.ReadableUrlProcessor())
 delegate.app.add_processor(processors.ProfileProcessor())
 
 # setup infobase hooks for OL
@@ -44,18 +42,15 @@ import connection
 client._connection_types['ol'] = connection.OLConnection
 infogami.config.infobase_parameters = dict(type="ol")
 
-if upstream:
-    types.register_type('^/authors/[^/]*$', '/type/author')
-    types.register_type('^/books/[^/]*$', '/type/edition')
-    types.register_type('^/languages/[^/]*$', '/type/language')
-else:
-    types.register_type('^/a/[^/]*$', '/type/author')
-    types.register_type('^/b/[^/]*$', '/type/edition')
-    types.register_type('^/l/[^/]*$', '/type/language')
+types.register_type('^/a/[^/]*$', '/type/author')
+types.register_type('^/b/[^/]*$', '/type/edition')
+types.register_type('^/l/[^/]*$', '/type/language')
 
 types.register_type('^/works/[^/]*$', '/type/work')
 types.register_type('^/subjects/[^/]*$', '/type/subject')
 types.register_type('^/publishers/[^/]*$', '/type/publisher')
+
+types.register_type('^/(css|js)/[^/]*$', '/type/rawtext')
 
 # set up infobase schema. required when running in standalone mode.
 import schema
@@ -73,6 +68,8 @@ web.template.Template.globals['NEWLINE'] = "\n"
 infogami._install_hooks = [h for h in infogami._install_hooks if h.__name__ != "movefiles"]
 
 class Author(client.Thing):
+    photo_url_pattern = "%s?m=change_cover"
+    
     def get_edition_count(self):
         return web.ctx.site._request('/count_editions_by_author', data={'key': self.key})
     edition_count = property(get_edition_count)
@@ -80,13 +77,11 @@ class Author(client.Thing):
     def photo_url(self):
         p = processors.ReadableUrlProcessor()
         _, path = p.get_readable_path(self.key)
-        
-        if upstream:
-            return  path + '/photo'
-        else:
-            return path + "?m=change_cover"
+        return self.photo_url_pattern % path
     
 class Edition(client.Thing):
+    cover_url_pattern = "%s?m=change_cover"
+    
     def full_title(self):
         if self.title_prefix:
             return self.title_prefix + ' ' + self.title
@@ -96,11 +91,7 @@ class Edition(client.Thing):
     def cover_url(self):
         p = processors.ReadableUrlProcessor()
         _, path = p.get_readable_path(self.key)
-
-        if upstream:
-            return  path + '/cover'
-        else:
-            return path + "?m=change_cover"
+        return self.cover_url_pattern % path
         
     def __repr__(self):
         return "<Edition: %s>" % repr(self.full_title())
@@ -217,11 +208,8 @@ def sampleload(filename="sampledump.txt.gz"):
     print web.ctx.site.save_many(queries)
 
 class addbook(delegate.page):
-    if upstream:
-        path = '/books/add'
-    else:
-        path = '/addbook'
-        
+    path = "/addbook"
+    
     def GET(self):
         d = {'type': web.ctx.site.get('/type/edition')}
 
@@ -250,11 +238,6 @@ class addauthor(delegate.page):
         web.ctx.path = key
         web.ctx.site.save({'key': key, 'name': i.name, 'type': dict(key='/type/author')}, comment='New Author')
         raise web.HTTPError("200 OK", {}, key)
-
-#@@ temp fix for upstream:
-if upstream:
-    class addauthor2(addauthor):
-        path = '/authors/add'
 
 class clonebook(delegate.page):
     def GET(self):
@@ -411,26 +394,14 @@ class robotstxt(delegate.page):
             raise web.HTTPError("200 OK", {}, data)
         except IOError:
             raise web.notfound()
-
-if upstream:
-    class change_cover(delegate.page):
-        path = "(/books/OL\d+M)/cover"
-        def GET(self, key):
-            page = web.ctx.site.get(key)
-            if page is None or page.type.key not in  ['/type/edition', '/type/author']:
-                raise web.seeother(key)
-            return render.change_cover(page)
+            
+class change_cover(delegate.mode):
+    def GET(self, key):
+        page = web.ctx.site.get(key)
+        if page is None or page.type.key not in  ['/type/edition', '/type/author']:
+            raise web.seeother(key)
+        return render.change_cover(page)
         
-    class change_photo(change_cover):
-        path = "(/authors/OL\d+A)/photo"
-else:
-    class change_cover(delegate.mode):
-        def GET(self, key):
-            page = web.ctx.site.get(key)
-            if page is None or page.type.key not in  ['/type/edition', '/type/author']:
-                raise web.seeother(key)
-            return render.change_cover(page)
-
 class bookpage(delegate.page):
     path = r"/(isbn|oclc|lccn|ia|ISBN|OCLC|LCCN|IA)/([^.]*)"
 
@@ -602,9 +573,6 @@ def get_recent_changes(*a, **kw):
         return []
     else:
         return _get_recentchanges(*a, **kw)
-
-if infogami.config.get('features') is None:
-    infogami.config.features = []
         
 @public
 def most_recent_change():

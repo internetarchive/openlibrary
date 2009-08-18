@@ -4,27 +4,18 @@ import web
 import urllib
 
 class ReadableUrlProcessor:
-    """Open Library code works with urls like /books/OL1M and /books/OL1M/cover.
-    This processor seemlessly changes the urls to /books/OL1M/title and /books/OL1M/title/cover.
+    """Open Library code works with urls like /b/OL1M and /b/OL1M/cover.
+    This processor seemlessly changes the urls to /b/OL1M/title and /b/OL1M/title/cover.
     
     The changequery function is also customized to support this.    
     """
     
-    def __init__(self, upstream=True):
-        if upstream:    
-            self.patterns = [
-                (r'/books/OL\d+M', '/type/edition', 'title', 'untitled'),
-                (r'/authors/OL\d+A', '/type/author', 'name', 'noname'),
-                (r'/works/OL\d+W', '/type/work', 'title', 'untitled')
-            ]
-        else:
-            self.patterns = [
-                (r'/b/OL\d+M', '/type/edition', 'title', 'untitled'),
-                (r'/a/OL\d+A', '/type/author', 'name', 'noname'),
-                (r'/works/OL\d+W', '/type/work', 'title', 'untitled')
-            ]
+    patterns = [
+        (r'/b/OL\d+M', '/type/edition', 'title', 'untitled'),
+        (r'/a/OL\d+A', '/type/author', 'name', 'noname'),
+        (r'/works/OL\d+W', '/type/work', 'title', 'untitled')
+    ]
         
-    
     def __call__(self, handler):
         real_path, readable_path = self.get_readable_path(web.ctx.path, encoding=web.ctx.encoding)
 
@@ -48,14 +39,14 @@ class ReadableUrlProcessor:
         
             >>> _split = ReadableUrlProcessor()._split
 
-            >>> _split('/books/OL1M')
-            ('/books/OL1M', '', '')
-            >>> _split('/books/OL1M/foo')
-            ('/books/OL1M', 'foo', '')
-            >>> _split('/books/OL1M/foo/cover')
-            ('/books/OL1M', 'foo', '/cover')
-            >>> _split('/books/OL1M/foo/cover/bar')
-            ('/books/OL1M', 'foo', '/cover/bar')
+            >>> _split('/b/OL1M')
+            ('/b/OL1M', '', '')
+            >>> _split('/b/OL1M/foo')
+            ('/b/OL1M', 'foo', '')
+            >>> _split('/b/OL1M/foo/cover')
+            ('/b/OL1M', 'foo', '/cover')
+            >>> _split('/b/OL1M/foo/cover/bar')
+            ('/b/OL1M', 'foo', '/cover/bar')
         """
         tokens = path.split('/', 4)
 
@@ -72,29 +63,29 @@ class ReadableUrlProcessor:
         """ Returns (real_url, readable_url) for the given url.
 
             >>> fakes = {}
-            >>> fakes['/books/OL1M'] = web.storage(title='fake', name='fake', type=web.storage(key='/type/edition'))
-            >>> fakes['/authors/OL1A'] = web.storage(title='fake', name='fake', type=web.storage(key='/type/author'))
+            >>> fakes['/b/OL1M'] = web.storage(title='fake', name='fake', type=web.storage(key='/type/edition'))
+            >>> fakes['/a/OL1A'] = web.storage(title='fake', name='fake', type=web.storage(key='/type/author'))
             >>> def fake_get_object(key): return fakes[key]
             ...
             >>> get_readable_path = ReadableUrlProcessor().get_readable_path
 
-            >>> get_readable_path('/books/OL1M', get_object=fake_get_object)
-            ('/books/OL1M', '/books/OL1M/fake')
-            >>> get_readable_path('/books/OL1M/foo', get_object=fake_get_object)
-            ('/books/OL1M', '/books/OL1M/fake')
-            >>> get_readable_path('/books/OL1M/fake', get_object=fake_get_object)
-            ('/books/OL1M', '/books/OL1M/fake')
+            >>> get_readable_path('/b/OL1M', get_object=fake_get_object)
+            ('/b/OL1M', '/b/OL1M/fake')
+            >>> get_readable_path('/b/OL1M/foo', get_object=fake_get_object)
+            ('/b/OL1M', '/b/OL1M/fake')
+            >>> get_readable_path('/b/OL1M/fake', get_object=fake_get_object)
+            ('/b/OL1M', '/b/OL1M/fake')
 
-            >>> get_readable_path('/books/OL1M/foo/cover', get_object=fake_get_object)
-            ('/books/OL1M/cover', '/books/OL1M/fake/cover')
+            >>> get_readable_path('/b/OL1M/foo/cover', get_object=fake_get_object)
+            ('/b/OL1M/cover', '/b/OL1M/fake/cover')
 
-            >>> get_readable_path('/authors/OL1A/foo/cover', get_object=fake_get_object)
-            ('/authors/OL1A/cover', '/authors/OL1A/fake/cover')
+            >>> get_readable_path('/a/OL1A/foo/cover', get_object=fake_get_object)
+            ('/a/OL1A/cover', '/a/OL1A/fake/cover')
 
         When requested for .json nothing should be changed.
 
-            >>> get_readable_path('/books/OL1M.json')
-            ('/books/OL1M.json', '/books/OL1M.json')
+            >>> get_readable_path('/b/OL1M.json')
+            ('/b/OL1M.json', '/b/OL1M.json')
         """
         def match(path):    
             for pat, type, property, default_title in self.patterns:
