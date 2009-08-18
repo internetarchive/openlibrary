@@ -454,9 +454,13 @@ class bookpage(delegate.page):
             result = web.ctx.site.things(q)
             if result:
                 raise web.seeother(result[0] + ext)
-            else:
-                web.ctx.status = "404 Not Found"
-                return render.notfound(web.ctx.path, create=False)
+            elif key =='ia':
+                q = {"type": "/type/edition", 'source_records': 'ia:' + value}
+                result = web.ctx.site.things(q)
+                if result:
+                    raise web.seeother(result[0] + ext)
+            web.ctx.status = "404 Not Found"
+            return render.notfound(web.ctx.path, create=False)
         except web.HTTPError:
             raise
         except:
