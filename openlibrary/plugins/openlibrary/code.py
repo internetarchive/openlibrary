@@ -461,6 +461,25 @@ class rdf(delegate.mode):
             else:
                 return delegate.RawText(result, content_type="application/rdf+xml; charset=utf-8")
 
+delegate.media_types['application/marcxml+xml'] = 'marcxml'
+class marcxml(delegate.mode):
+    name = 'view'
+    encoding = 'marcxml'
+    
+    def GET(self, key):
+        page = web.ctx.site.get(key)
+        
+        if page is None or page.type.key != '/type/edition':
+            raise web.notfound("")
+        else:
+            from infogami.utils import template
+            try:
+                result = template.typetemplate('marcxml')(page)
+            except:
+                raise web.notfound("")
+            else:
+                return delegate.RawText(result, content_type="application/marcxml+xml; charset=utf-8")
+
 delegate.media_types['text/x-yaml'] = 'yml'
 class _yaml(delegate.mode):
     name = "view"
