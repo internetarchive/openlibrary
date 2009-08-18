@@ -13,6 +13,8 @@ import infogami
 # make sure infogami.config.features is set
 if not hasattr(infogami.config, 'features'):
     infogami.config.features = []
+    
+upstream = 'upstream' in infogami.config.features
 
 from infogami.utils import types, delegate
 from infogami.utils.view import render, public, safeint
@@ -20,7 +22,7 @@ from infogami.infobase import client, dbstore
 
 import processors
 
-delegate.app.add_processor(processors.ReadableUrlProcessor())
+delegate.app.add_processor(processors.ReadableUrlProcessor(upstream=upstream))
 delegate.app.add_processor(processors.ProfileProcessor())
 
 # setup infobase hooks for OL
@@ -42,16 +44,18 @@ import connection
 client._connection_types['ol'] = connection.OLConnection
 infogami.config.infobase_parameters = dict(type="ol")
 
-if 'upstream' in infogami.config.features:
+if upstream:
     types.register_type('^/authors/[^/]*$', '/type/author')
     types.register_type('^/books/[^/]*$', '/type/edition')
-    types.register_type('^/works/[^/]*$', '/type/work')
-    types.register_type('^/subjects/[^/]*$', '/type/subject')
-    types.register_type('^/publishers/[^/]*$', '/type/publisher')
     types.register_type('^/languages/[^/]*$', '/type/language')
 else:
     types.register_type('^/a/[^/]*$', '/type/author')
     types.register_type('^/b/[^/]*$', '/type/edition')
+    types.register_type('^/l/[^/]*$', '/type/language')
+
+types.register_type('^/works/[^/]*$', '/type/work')
+types.register_type('^/subjects/[^/]*$', '/type/subject')
+types.register_type('^/publishers/[^/]*$', '/type/publisher')
 
 # set up infobase schema. required when running in standalone mode.
 import schema
@@ -77,7 +81,7 @@ class Author(client.Thing):
         p = processors.ReadableUrlProcessor()
         _, path = p.get_readable_path(self.key)
         
-        if 'upstream' in infogami.config.features:
+        if upstream:
             return  path + '/photo'
         else:
             return path + "?m=change_cover"
@@ -93,7 +97,7 @@ class Edition(client.Thing):
         p = processors.ReadableUrlProcessor()
         _, path = p.get_readable_path(self.key)
 
-        if 'upstream' in infogami.config.features:
+        if upstream:
             return  path + '/cover'
         else:
             return path + "?m=change_cover"
@@ -213,7 +217,7 @@ def sampleload(filename="sampledump.txt.gz"):
     print web.ctx.site.save_many(queries)
 
 class addbook(delegate.page):
-    if 'upstream' in infogami.config.features:
+    if upstream:
         path = '/books/add'
     else:
         path = '/addbook'
@@ -248,7 +252,7 @@ class addauthor(delegate.page):
         raise web.HTTPError("200 OK", {}, key)
 
 #@@ temp fix for upstream:
-if 'upstream' in infogami.config.features:
+if upstream:
     class addauthor2(addauthor):
         path = '/authors/add'
 
@@ -408,7 +412,7 @@ class robotstxt(delegate.page):
         except IOError:
             raise web.notfound()
 
-if 'upstream' in infogami.config.features:
+if upstream:
     class change_cover(delegate.page):
         path = "(/books/OL\d+M)/cover"
         def GET(self, key):

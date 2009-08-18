@@ -9,11 +9,21 @@ class ReadableUrlProcessor:
     
     The changequery function is also customized to support this.    
     """
-    patterns = [
-        (r'/books/OL\d+M', '/type/edition', 'title', 'untitled'),
-        (r'/authors/OL\d+A', '/type/author', 'name', 'noname'),
-        (r'/works/OL\d+W', '/type/work', 'title', 'untitled')
-    ]
+    
+    def __init__(self, upstream=True):
+        if upstream:    
+            self.patterns = [
+                (r'/books/OL\d+M', '/type/edition', 'title', 'untitled'),
+                (r'/authors/OL\d+A', '/type/author', 'name', 'noname'),
+                (r'/works/OL\d+W', '/type/work', 'title', 'untitled')
+            ]
+        else:
+            self.patterns = [
+                (r'/b/OL\d+M', '/type/edition', 'title', 'untitled'),
+                (r'/a/OL\d+A', '/type/author', 'name', 'noname'),
+                (r'/works/OL\d+W', '/type/work', 'title', 'untitled')
+            ]
+        
     
     def __call__(self, handler):
         real_path, readable_path = self.get_readable_path(web.ctx.path, encoding=web.ctx.encoding)
