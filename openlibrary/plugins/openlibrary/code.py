@@ -9,9 +9,19 @@ import urllib
 import socket
 
 import infogami
+
+# make sure infogami.config.features is set
+if not hasattr(infogami.config, 'features'):
+    infogami.config.features = []
+
 from infogami.utils import types, delegate
 from infogami.utils.view import render, public, safeint
 from infogami.infobase import client, dbstore
+
+import processors
+
+delegate.app.add_processor(processors.ReadableUrlProcessor())
+delegate.app.add_processor(processors.ProfileProcessor())
 
 # setup infobase hooks for OL
 from openlibrary.plugins import ol_infobase
@@ -32,8 +42,16 @@ import connection
 client._connection_types['ol'] = connection.OLConnection
 infogami.config.infobase_parameters = dict(type="ol")
 
-types.register_type('^/a/[^/]*$', '/type/author')
-types.register_type('^/b/[^/]*$', '/type/edition')
+if 'upstream' in infogami.config.features:
+    types.register_type('^/authors/[^/]*$', '/type/author')
+    types.register_type('^/books/[^/]*$', '/type/edition')
+    types.register_type('^/works/[^/]*$', '/type/work')
+    types.register_type('^/subjects/[^/]*$', '/type/subject')
+    types.register_type('^/publishers/[^/]*$', '/type/publisher')
+    types.register_type('^/languages/[^/]*$', '/type/language')
+else:
+    types.register_type('^/a/[^/]*$', '/type/author')
+    types.register_type('^/b/[^/]*$', '/type/edition')
 
 # set up infobase schema. required when running in standalone mode.
 import schema
@@ -55,6 +73,15 @@ class Author(client.Thing):
         return web.ctx.site._request('/count_editions_by_author', data={'key': self.key})
     edition_count = property(get_edition_count)
     
+    def photo_url(self):
+        p = processors.ReadableUrlProcessor()
+        _, path = p.get_readable_path(self.key)
+        
+        if 'upstream' in infogami.config.features:
+            return  path + '/photo'
+        else:
+            return path + "?m=change_cover"
+    
 class Edition(client.Thing):
     def full_title(self):
         if self.title_prefix:
@@ -62,6 +89,15 @@ class Edition(client.Thing):
         else:
             return self.title
             
+    def cover_url(self):
+        p = processors.ReadableUrlProcessor()
+        _, path = p.get_readable_path(self.key)
+
+        if 'upstream' in infogami.config.features:
+            return  path + '/cover'
+        else:
+            return path + "?m=change_cover"
+        
     def __repr__(self):
         return "<Edition: %s>" % repr(self.full_title())
     __str__ = __repr__
@@ -177,6 +213,11 @@ def sampleload(filename="sampledump.txt.gz"):
     print web.ctx.site.save_many(queries)
 
 class addbook(delegate.page):
+    if 'upstream' in infogami.config.features:
+        path = '/books/add'
+    else:
+        path = '/addbook'
+        
     def GET(self):
         d = {'type': web.ctx.site.get('/type/edition')}
 
@@ -186,7 +227,7 @@ class addbook(delegate.page):
             d['authors'] = [author]
         
         page = web.ctx.site.new("", d)
-        return render.edit(page, '/addbook', 'Add Book')
+        return render.edit(page, self.path, 'Add Book')
         
     def POST(self):
         from infogami.core.code import edit
@@ -195,6 +236,8 @@ class addbook(delegate.page):
         return edit().POST(key)
 
 class addauthor(delegate.page):
+    path = '/addauthor'
+        
     def POST(self):
         i = web.input("name")
         if len(i.name) < 2:
@@ -203,6 +246,11 @@ class addauthor(delegate.page):
         web.ctx.path = key
         web.ctx.site.save({'key': key, 'name': i.name, 'type': dict(key='/type/author')}, comment='New Author')
         raise web.HTTPError("200 OK", {}, key)
+
+#@@ temp fix for upstream:
+if 'upstream' in infogami.config.features:
+    class addauthor2(addauthor):
+        path = '/authors/add'
 
 class clonebook(delegate.page):
     def GET(self):
@@ -360,12 +408,24 @@ class robotstxt(delegate.page):
         except IOError:
             raise web.notfound()
 
-class change_cover(delegate.mode):
-    def GET(self, key):
-        page = web.ctx.site.get(key)
-        if page is None or page.type.key not in  ['/type/edition', '/type/author']:
-            raise web.seeother(key)
-        return render.change_cover(page)
+if 'upstream' in infogami.config.features:
+    class change_cover(delegate.page):
+        path = "(/books/OL\d+M)/cover"
+        def GET(self, key):
+            page = web.ctx.site.get(key)
+            if page is None or page.type.key not in  ['/type/edition', '/type/author']:
+                raise web.seeother(key)
+            return render.change_cover(page)
+        
+    class change_photo(change_cover):
+        path = "(/authors/OL\d+A)/photo"
+else:
+    class change_cover(delegate.mode):
+        def GET(self, key):
+            page = web.ctx.site.get(key)
+            if page is None or page.type.key not in  ['/type/edition', '/type/author']:
+                raise web.seeother(key)
+            return render.change_cover(page)
 
 class bookpage(delegate.page):
     path = r"/(isbn|oclc|lccn|ia|ISBN|OCLC|LCCN|IA)/([^.]*)"
@@ -395,7 +455,7 @@ class bookpage(delegate.page):
             result = web.ctx.site.things(q)
             if result:
                 raise web.seeother(result[0] + ext)
-            elif key == "ocaid":
+            elif key =='ia':
                 q = {"type": "/type/edition", 'source_records': 'ia:' + value}
                 result = web.ctx.site.things(q)
                 if result:
@@ -511,72 +571,6 @@ class new:
         return simplejson.dumps(keys)
         
 api and api.add_hook('new', new)
-
-def readable_url_processor(handler):
-    patterns = [
-        (r'/b/OL\d+M', '/type/edition', 'title'),
-        (r'/a/OL\d+A', '/type/author', 'name'),
-        (r'/w/OL\d+W', '/type/work', 'title'),
-        (r'/s/OL\d+S', '/type/series', 'title'),
-    ]
-    def get_readable_path():
-        path = get_real_path()
-        if web.ctx.get('encoding') is not None:
-            return web.ctx.path
-        
-        for pat, type, property in patterns:
-            if web.re_compile('^' + pat + '$').match(path):
-                thing = web.ctx.site.get(path)
-                if thing is not None and thing.type.key == type and thing[property]:
-                    title = thing[property].replace(' ', '-').encode('utf-8')
-                    return path + '/' + urllib.quote(title)
-        return web.ctx.path
-    
-    def get_real_path():
-        pat = '^(' + '|'.join(p[0] for p in patterns) + ')(?:/.*)?'
-        rx = web.re_compile(pat)
-        m = rx.match(web.ctx.path)
-        if m:
-            path = m.group(1)
-            return m.group(1)
-        else:
-            return web.ctx.path
-
-    # simple hack to avoid readable_url_processor interfering with the API
-    if web.ctx.path.endswith(".json"):
-        web.ctx.readable_path = web.ctx.path
-    else:
-        readable_path = get_readable_path()
-
-        #@@ web.ctx.path is either quoted or unquoted depends on whether the application is running
-        #@@ using builtin-server or lighttpd. Thats probably a bug in web.py. 
-        #@@ take care of that case here till that is fixed.
-        # @@ Also, the redirection must be done only for GET requests.
-        if readable_path != web.ctx.path and readable_path != urllib.quote(web.utf8(web.ctx.path)) and web.ctx.method == "GET":
-            raise web.seeother(readable_path.encode('utf-8') + web.ctx.query.encode('utf-8'))
-
-        web.ctx.readable_path = readable_path
-        web.ctx.path = get_real_path()
-        web.ctx.fullpath = web.ctx.path + web.ctx.query
-    return handler()
-
-def profile_processor(handler):
-    i = web.input(_method="GET", _profile="")
-    if i._profile.lower() == "true":
-        out, result = web.profile(handler)()
-        if isinstance(out, web.template.TemplateResult):
-            out.__body__ = out.get('__body__', '') + '<pre>' + web.websafe(result) + '</pre>'
-            return out
-        elif isinstance(out, basestring):
-            return out + '<pre>' + web.websafe(result) + '</pre>'
-        else:
-            # don't know how to handle this.
-            return out
-    else:
-        return handler()
-
-delegate.app.add_processor(readable_url_processor)
-delegate.app.add_processor(profile_processor)
 
 @public
 def changequery(query=None, **kw):

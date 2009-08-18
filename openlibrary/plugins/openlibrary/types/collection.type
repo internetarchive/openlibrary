@@ -1,0 +1,45 @@
+{
+    "kind": "regular", 
+    "description": "", 
+    "name": "", 
+    "created": {
+        "type": "/type/datetime", 
+        "value": "2008-10-02T16:02:29.409332"
+    }, 
+    "backreferences": [
+        {
+            "expected_type": {
+                "key": "/type/edition"
+            }, 
+            "type": {
+                "key": "/type/backreference"
+            }, 
+            "name": "edition", 
+            "property_name": "collections"
+        }
+    ], 
+    "id": 27281646, 
+    "last_modified": {
+        "type": "/type/datetime", 
+        "value": "2009-02-05T09:02:27.029868"
+    }, 
+    "latest_revision": 5, 
+    "key": "/type/collection", 
+    "type": {
+        "key": "/type/type"
+    }, 
+    "properties": [
+        {
+            "expected_type": {
+                "key": "/type/string"
+            }, 
+            "unique": True, 
+            "type": {
+                "key": "/type/property"
+            }, 
+            "description": "", 
+            "name": "name"
+        }
+    ], 
+    "revision": 5
+}

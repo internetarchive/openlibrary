@@ -37,7 +37,7 @@ $ olid = page.key.split('/')[-1]
                 <img src="http://covers.openlibrary.org/a/olid/$olid-M.jpg?default=http://openlibrary.org/static/images/quill.png" height="125" />
             </div>
         </div>
-            <div class="coverviewbutton" style="margin-left: 0px; width: 92px; margin-bottom: 30px;"><a href="$:changequery(m='change_cover')">Add Photo</a></div>
+            <div class="coverviewbutton" style="margin-left: 0px; width: 92px; margin-bottom: 30px;"><a href="$:page.photo_url()">Add Photo</a></div>
     </div>
     <div id="title">
         $page.name
