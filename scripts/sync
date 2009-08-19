@@ -150,6 +150,9 @@ class RemoteSource:
                 return d[key]['value']
             else:
                 return ''
+
+        if thing['latest_revision'] == 1:
+            return None
         
         if type == '/type/template':
             return get(thing, 'body')
@@ -257,7 +260,7 @@ def parse_args(args):
     return cmd, options, args
     
 def main(args):
-    if '-h' or '--help' in args:
+    if '-h' in args or '--help' in args:
         print __doc__
     else:
         cmd, options, paths = parse_args(args)
