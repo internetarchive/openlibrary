@@ -72,3 +72,8 @@ class addauthor(ol_code.addauthor):
 del delegate.pages['/addbook']
 # templates still refers to /addauthor.
 #del delegate.pages['/addauthor'] 
+
+from openlibrary import i18n
+
+web.template.Template.globals['gettext'] = i18n.gettext
+web.template.Template.globals['_'] = i18n.gettext
