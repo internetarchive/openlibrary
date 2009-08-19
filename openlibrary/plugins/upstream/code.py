@@ -101,6 +101,13 @@ class account_password_forgot(delegate.page):
         
     def POST(self):
         return "Not yet implemented"
+
+class account_password_reset(delegate.page):
+    def GET(self):
+        return render['account/password/reset']()
+        
+    def POST(self):
+        return "Not yet implemented"
         
 class account_email(delegate.page):
     @require_login
