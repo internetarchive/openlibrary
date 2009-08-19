@@ -86,7 +86,7 @@ def compile_translations():
 
 def update_translations():
     for locale in get_locales():
-        
+        pass
     
 @web.memoize
 def load_translations(lang):
@@ -99,7 +99,6 @@ def load_translations(lang):
 class GetText:
     def __call__(self, string, *a, **kw):
         """Translate a given string to the language of the current locale."""
-        print 'gettext', repr(string)
         translations = load_translations(web.ctx.lang)
         value = translations.ugettext(string) or string
         
