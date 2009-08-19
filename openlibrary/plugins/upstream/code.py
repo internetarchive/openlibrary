@@ -4,6 +4,7 @@ import web
 
 from infogami.core.code import view, edit
 from infogami.utils import delegate, app, types
+from infogami.utils.view import require_login
 
 from openlibrary.plugins.openlibrary.processors import ReadableUrlProcessor
 from openlibrary.plugins.openlibrary import code as ol_code
@@ -77,3 +78,44 @@ from openlibrary import i18n
 
 web.template.Template.globals['gettext'] = i18n.gettext
 web.template.Template.globals['_'] = i18n.gettext
+
+
+# account
+        
+class account_verify(delegate.page):
+    def GET(self):
+        return render['account/verify']()
+
+class account_password(delegate.page):
+    @require_login
+    def GET(self):
+        return render['account/password']()
+        
+    @require_login
+    def POST(self):
+        return "Not yet implemented"
+        
+class account_password_forgot(delegate.page):
+    def GET(self):
+        return render['account/password/forgot']()
+        
+    def POST(self):
+        return "Not yet implemented"
+        
+class account_email(delegate.page):
+    @require_login
+    def GET(self):
+        return render['account/email']()
+    
+    @require_login
+    def POST(self):
+        return "Not yet implemented"
+        
+class account_delete(delegate.page):
+    @require_login
+    def GET(self):
+        return render['account/delete']()
+    
+    @require_login
+    def POST(self):
+        return "Not yet implemented"
