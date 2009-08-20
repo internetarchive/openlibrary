@@ -50,6 +50,7 @@ by gettext system.
 
 import web
 import os
+from StringIO import StringIO
 
 from babel.support import Translations
 from babel.messages import Catalog
@@ -77,7 +78,7 @@ def extract_templetor(fileobj, keywords, comment_tags, options):
     """Extract i18n messages from web.py templates.
     """
     code = web.template.Template.generate_code(fileobj.read(), fileobj.name)
-    f = StringIO.StringIO(code)
+    f = StringIO(code)
     f.name = fileobj.name
     return extract_python(f, keywords, comment_tags, options)    
     

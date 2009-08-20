@@ -20,7 +20,7 @@ def help():
     
 def main(cmd):
     if cmd == 'extract':
-        i18n.extract_messages(["openlibrary/plugins/upstram"])
+        i18n.extract_messages(["openlibrary/plugins/upstream"])
     elif cmd == 'compile':
         i18n.compile_translations()
     elif cmd == 'update':
