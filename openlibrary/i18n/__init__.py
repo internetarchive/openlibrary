@@ -100,7 +100,7 @@ class GetText:
     def __call__(self, string, *a, **kw):
         """Translate a given string to the language of the current locale."""
         translations = load_translations(web.ctx.lang)
-        value = translations.ugettext(string) or string
+        value = (translations and translations.ugettext(string)) or string
         
         if a:
             value = value % a
