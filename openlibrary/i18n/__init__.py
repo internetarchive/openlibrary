@@ -11,7 +11,7 @@ abbreviated as _.
 
 The messages in the the templates and macros are extracted and .pot file is created.
 
-    $ ./script/extract-messages
+    $ ./scripts/i18n-messages extract
     created openlibrary/i18n/messages.pot
     $ cat openlibrary/i18n/messages.pot
     ...
@@ -34,10 +34,9 @@ openlibrary/i18n/$locale/messages.po.
     $ # edit openlibrary/i18n/te/messages.po and fill the translations
 
 The .po files needs to be compiled to .mo files to be able to use them
-by gettext system. That is achieved by running
-./script/compile-translations script.
-    
-    $ ./scripts/compile-translations
+by gettext system. 
+
+    $ ./scripts/i18n-messages compile
     compiling openlibrary/i18n/te/messages.po
     compiling openlibrary/i18n/it/messages.po
     ...
@@ -53,15 +52,13 @@ import web
 import os
 
 from babel.support import Translations
-from babel.messages.pofile import read_po
+from babel.messages import Catalog
+from babel.messages.pofile import read_po, write_po
 from babel.messages.mofile import write_mo
-
+from babel.messages.extract import extract_from_dir, extract_python
 
 root = os.path.dirname(__file__)
 
-def i18n_processor(self):
-    pass
-    
 def _compile_translation(po, mo):
     try:
         catalog = read_po(open(po))
@@ -75,6 +72,37 @@ def _compile_translation(po, mo):
 
 def get_locales():
     return [d for d in os.listdir(root) if os.path.isdir(os.path.join(root, d))]
+    
+def extract_templetor(fileobj, keywords, comment_tags, options):
+    """Extract i18n messages from web.py templates.
+    """
+    code = web.template.Template.generate_code(fileobj.read(), fileobj.name)
+    f = StringIO.StringIO(code)
+    f.name = fileobj.name
+    return extract_python(f, keywords, comment_tags, options)    
+    
+def extract_messages(dirs):
+    catalog = Catalog(
+        project='Open Library',
+        copyright_holder='Internet Archive'
+    )
+    METHODS = [
+        ("**.py", "python"),
+        ("**.html", "openlibrary.i18n:extract_templetor")
+    ]
+    COMMENT_TAGS = ["NOTE:"]
+
+    for d in dirs:
+        extracted = extract_from_dir(d, METHODS, comment_tags=COMMENT_TAGS, strip_comment_tags=True)
+        for filename, lineno, message, comments in extracted:
+            catalog.add(message, None, [(filename, lineno)], auto_comments=comments)
+
+    path = os.path.join(root, 'messages.pot')
+    f = open(path, 'w')
+    write_po(f, catalog)
+    f.close()
+
+    print 'wrote template to', path
 
 def compile_translations():
     for locale in get_locales():
@@ -85,8 +113,23 @@ def compile_translations():
             _compile_translation(po_path, mo_path)
 
 def update_translations():
+    pot_path = os.path.join(root, 'messages.pot')
+    template = read_po(open(pot_path))
+    
     for locale in get_locales():
-        pass
+        po_path = os.path.join(root, locale, 'messages.po')
+        mo_path = os.path.join(root, locale, 'messages.mo')
+
+        if os.path.exists(po_path):
+            catalog = read_po(open(po_path))
+            catalog.update(template)
+            
+            f = open(po_path, 'w')
+            write_po(f, catalog)
+            f.close()
+            print 'updated', po_path
+            
+    compile_translations()
     
 @web.memoize
 def load_translations(lang):
@@ -101,6 +144,7 @@ class GetText:
         """Translate a given string to the language of the current locale."""
         translations = load_translations(web.ctx.lang)
         value = (translations and translations.ugettext(string)) or string
+        print 'gettext', repr(string), web.ctx.lang, repr(value)
         
         if a:
             value = value % a
