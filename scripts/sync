@@ -114,8 +114,8 @@ class LocalSource:
                 os.makedirs(dir)
                 
             if text is None:
-                print 'deleting', path
-                if os.path.exists(path):
+                if os.path.exists(path) and os.path.isfile(path):
+                    print 'deleting', path
                     os.remove(path)
             else:
                 print 'writing', path
