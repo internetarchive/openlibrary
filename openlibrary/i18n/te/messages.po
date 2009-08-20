@@ -1,0 +1,169 @@
+# Translations template for Open Library.
+# Copyright (C) 2009 Internet Archive
+# This file is distributed under the same license as the Open Library
+# project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2009.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Open Library VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2009-08-19 18:06+0530\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: Anand <anandology@gmail.com>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 0.9.4\n"
+
+#: templates/site.html:29
+msgid "Open Library"
+msgstr "సార్వత్రిక గ్రంధాలయం"
+
+#: templates/site.html:52
+msgid "Search"
+msgstr "వెతుకు"
+
+#: templates/site.html:54
+msgid "More search options"
+msgstr "మరిన్ని శోధనావిధానాలు"
+
+#: templates/site.html:55
+msgid "Scanned books only?"
+msgstr "పూర్తి పాఠం ఉన్న పుస్తకాలు మాత్రమే"
+
+#: templates/site.html:59
+msgid "Title:"
+msgstr "శీర్షిక:"
+
+#: templates/site.html:64
+msgid "Author:"
+msgstr "రచన:"
+
+#: templates/site.html:68
+msgid "Subject:"
+msgstr "సబ్జక్టు:"
+
+#: templates/site.html:77
+msgid "Publisher:"
+msgstr "ప్రచురణ:"
+
+#: templates/site.html:82
+msgid "Description:"
+msgstr "వివరణ:"
+
+#: templates/site.html:86
+msgid "Sort By:"
+msgstr ""
+
+#: templates/site.html:88
+msgid "Alphabetical"
+msgstr ""
+
+#: templates/site.html:89
+msgid "Title (A-Z)"
+msgstr "శీర్షిక (A-Z)"
+
+#: templates/site.html:90
+msgid "Title (Z-A)"
+msgstr "శీర్షిక (Z-A)"
+
+#: templates/site.html:91
+msgid "Author (A-Z)"
+msgstr "రచయిత (A-Z)"
+
+#: templates/site.html:92
+msgid "Author (Z-A)"
+msgstr "రచయిత (Z-A)"
+
+#: templates/site.html:93
+msgid "Date (Oldest First)"
+msgstr "ప్రచురణాకాలం (పాతది ముందు)"
+
+#: templates/site.html:94
+msgid "Date (Newest First)"
+msgstr "ప్రచురణాకాలం (క్రొత్తది ముందు)"
+
+#: templates/site.html:95
+msgid "Publisher (A-Z)"
+msgstr "ప్రచురణ (A-Z)"
+
+#: templates/site.html:96
+msgid "Publisher (Z-A)"
+msgstr "ప్రచురణ (Z-A)"
+
+#: templates/site.html:100
+msgid "Date Range:"
+msgstr "ప్రచురణాకాలం"
+
+#: templates/site.html:102
+msgid "Select from below"
+msgstr "క్రింది వాటి నుండి ఎంచుకోండి"
+
+#: templates/site.html:118
+msgid "Search text within works instead"
+msgstr ""
+
+#: templates/site.html:126
+msgid "Search within text of available works"
+msgstr ""
+
+#: templates/site.html:141
+msgid "Subjects"
+msgstr "సబ్జక్టులు"
+
+#: templates/site.html:145
+msgid "Authors"
+msgstr "రచయితలు"
+
+#: templates/site.html:146
+msgid "Add a Book"
+msgstr "పుస్తకం చేర్చు"
+
+#: templates/site.html:149
+msgid "Lists"
+msgstr ""
+
+#: templates/site.html:150
+msgid "Recently"
+msgstr "ఇటీవలి"
+
+#: templates/site.html:152
+msgid "About Us"
+msgstr "మా గురించి"
+
+#: templates/site.html:157
+msgid "A page on the web for every book."
+msgstr "ప్రతి పుస్తకానికి ఒక వెబ్ పేజి"
+
+#: templates/site.html:168
+#, python-format
+msgid "Welcome %(user)s"
+msgstr "నమస్కారం %(user)s"
+
+#: templates/site.html:169
+msgid "Preferences"
+msgstr "అభిరుచులు"
+
+#: templates/site.html:170
+msgid "Logout"
+msgstr "లాగౌట్"
+
+#: templates/site.html:172
+msgid "Login"
+msgstr "లాగిన్"
+
+#: templates/site.html:174
+msgid "Sign Up"
+msgstr "సైన్ అప్"
+
+#: templates/site.html:340
+msgid "Terms of Use"
+msgstr ""
+
+#: templates/site.html:343
+msgid "Report abuse"
+msgstr ""
+
