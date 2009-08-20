@@ -4,7 +4,7 @@ import web
 
 from infogami.core.code import view, edit
 from infogami.utils import delegate, app, types
-from infogami.utils.view import require_login
+from infogami.utils.view import require_login, render
 
 from openlibrary.plugins.openlibrary.processors import ReadableUrlProcessor
 from openlibrary.plugins.openlibrary import code as ol_code
@@ -83,12 +83,14 @@ web.template.Template.globals['_'] = i18n.gettext
 # account
         
 class account_verify(delegate.page):
+    path = "/account/verify"
     def GET(self):
         return render['account/verify']()
 
 class account_password(delegate.page):
-    @require_login
+    path = "/account/password"
     def GET(self):
+        print render['account/password']
         return render['account/password']()
         
     @require_login
@@ -96,6 +98,7 @@ class account_password(delegate.page):
         return "Not yet implemented"
         
 class account_password_forgot(delegate.page):
+    path = "/account/password/forgot"
     def GET(self):
         return render['account/password/forgot']()
         
@@ -103,6 +106,7 @@ class account_password_forgot(delegate.page):
         return "Not yet implemented"
 
 class account_password_reset(delegate.page):
+    path = "/account/password/reset"
     def GET(self):
         return render['account/password/reset']()
         
@@ -110,6 +114,7 @@ class account_password_reset(delegate.page):
         return "Not yet implemented"
         
 class account_email(delegate.page):
+    path = "/account/email"
     @require_login
     def GET(self):
         return render['account/email']()
@@ -119,6 +124,7 @@ class account_email(delegate.page):
         return "Not yet implemented"
         
 class account_delete(delegate.page):
+    path = "/account/delete"
     @require_login
     def GET(self):
         return render['account/delete']()
