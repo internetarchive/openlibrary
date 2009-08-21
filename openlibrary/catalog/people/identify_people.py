@@ -4,7 +4,9 @@ from openlibrary.catalog.utils import remove_trailing_dot, remove_trailing_numbe
 import openlibrary.catalog.utils.authority as authority
 from openlibrary.catalog.merge.normalize import normalize
 from collections import defaultdict
-import re
+import re, codecs, sys
+
+sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
 
 def strip_death(date):
     return date[:date.rfind('-')+1]
@@ -204,7 +206,13 @@ def missing_subtag(found, marc_alt):
         name1 = ' '.join(v.strip() for k, v in p1)
         name2 = ' '.join(v.strip() for k, v in p2)
 
-        if normalize(name1) != normalize(name2):
+        print 'p1:', name1.encode('utf-8')
+        print 'p1:', `name1`
+        print 'p2:', name2.encode('utf-8')
+        print 'p2:', `name2`
+
+        print 'match:', match_with_bad_chars(name1, name2)
+        if not match_with_bad_chars(name1, name2) and normalize(name1) != normalize(name2):
             if normalize(remove_bad_marc_subtag(name1)) != normalize(remove_bad_marc_subtag(name2)):
                 continue
 
@@ -527,3 +535,15 @@ def test_q_should_be_c():
         ['10\x1faLafayette, Marie Joseph Paul Yves Roch Gilbert Du Motier,\x1fqmarquis de,\x1fd1757-1834.\x1e']
     ]
     a, b = read_people(lines)
+
+def test_date_in_a():
+    lines = [
+        ['10\x1faMachiavelli, Niccol\xe1o,\x1fd1469-1527\x1fxFiction.\x1e', '10\x1faBorgia, Cesare,\x1fd1476?-1507\x1fxFiction.\x1e'],
+        [' 0\x1faBorgia, Cesare, 1476?-1507\x1fxFiction.\x1e', ' 0\x1faMachiavelli, Niccolo, 1469-1527\x1fxFiction.\x1e'],
+        ['10\x1faMachiavelli, Niccol\xe1o,\x1fd1469-1527\x1fxFiction.\x1e', '10\x1faBorgia, Cesare,\x1fd1476?-1507\x1fxFiction.\x1e'],
+        ['10\x1faMachiavelli, Niccol\xe1o,\x1fd1469-1527\x1fxFiction.\x1e', '10\x1faBorgia, Cesare,\x1fd1476?-1507\x1fxFiction.\x1e'], ['10\x1faMachiavelli, Niccol\xe1o,\x1fd1469-1527\x1fxFiction.\x1e', '10\x1faBorgia, Cesare,\x1fd1476?-1507\x1fxFiction.\x1e'], ['10\x1faMachiavelli, Niccol\xe1o,\x1fd1469-1527\x1fxFiction\x1e', '10\x1faBorgia, Cesare,\x1fd1476?-1507\x1fxFiction\x1e'],
+        ['10\x1faMachiavelli, Niccol\xe1o,\x1fd1469-1527\x1fxFiction.\x1e', '10\x1faBorgia, Cesare,\x1fd1476?-1507\x1fxFiction.\x1e']
+    ]
+    a, b = read_people(lines)
+    print a
+    assert a == {(('a', u'Borgia, Cesare'), ('d', u'1476?-1507')): 7, (('a', u'Machiavelli, Niccol\xf2'), ('d', u'1469-1527')): 7}
