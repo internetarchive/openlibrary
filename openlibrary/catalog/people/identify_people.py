@@ -165,7 +165,6 @@ def subtag_should_be_c(found, marc_alt):
         found[a] += found.pop(b)
         marc_alt[b] = a
 
-
 def merge_question_date(found, marc_alt):
     merge = []
     for p1, p2 in combinations(found, 2):
@@ -555,3 +554,25 @@ def test_king_asoka():
         (('a', u'Maurya family'),): 2,
         (('a', u'Asoka'), ('c', u'King of Magadha'), ('d', u'ca. 274-232 B.C.')): 1
     }
+
+def test_name_lookup():
+    lines = [
+        ['10\x1faBellini, Giovanni,\x1fd1516.\x1e'],
+        ['10\x1faBellini, Giovanni,\x1fdd. 1516\x1e']
+    ]
+    a, b = read_people(lines)
+    assert a == {}
+
+def test_cleopatra():
+    lines = [
+        ['00\x1faCleopatra,\x1fcQueen of Egypt,\x1fdd. 30 B.C\x1fxFiction.\x1e'],
+        ['00\x1faCleopatra,\x1fcQueen of Egypt,\x1fdd. 30 B.C.\x1fxFiction\x1e'],
+        [' 0\x1faCleopatra, Queen of Egypt, d. 30 B.C.\x1fxFiction.\x1e'],
+        ['00\x1faCleopatra,\x1fcQueen of Egypt,\x1fdd. 30 B.C.\x1fxFiction\x1e'],
+        ['00\x1faCleopatra,\x1fcqueen of Egypt,\x1fdd. B.C. 30\x1fxFiction\x1e'],
+        ['00\x1faCleopatra,\x1fcQueen of Egypt,\x1fdd. 30 B.C.\x1fxFiction\x1e'],
+        ['00\x1faCleopatra,\x1fcQueen of Egypt,\x1fdd. 30 B.C.\x1fvFiction.\x1e'],
+        ['00\x1faCleopatra,\x1fcQueen of Egypt,\x1fdd. 30 B.C.\x1fxFiction.\x1e']
+    ]
+    a, b = read_people(lines)
+    assert a == {}
