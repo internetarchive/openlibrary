@@ -4,9 +4,7 @@ from openlibrary.catalog.utils import remove_trailing_dot, remove_trailing_numbe
 import openlibrary.catalog.utils.authority as authority
 from openlibrary.catalog.merge.normalize import normalize
 from collections import defaultdict
-import re, codecs, sys
-
-sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
+import re
 
 def strip_death(date):
     return date[:date.rfind('-')+1]
@@ -104,13 +102,11 @@ def build_name_and_birth(found):
     return name_and_birth
 
 def authority_lookup(to_check, found, marc_alt):
-    print dict(to_check)
     found_matches = False
     for person_key, match in to_check.items():
         if len(match) == 1:
             continue
         name = ' '.join(v.strip() for k, v in person_key if k != 'd')
-        print 'search:', `name`
         search_results = authority.search(name)
         match_dates = dict((get_marc_date(p), p) for p in match)
         norm_name = normalize(name)
@@ -206,18 +202,9 @@ def missing_subtag(found, marc_alt):
         name1 = ' '.join(v.strip() for k, v in p1)
         name2 = ' '.join(v.strip() for k, v in p2)
 
-        print 'p1:', name1.encode('utf-8')
-        print 'p1:', `name1`
-        print 'p2:', name2.encode('utf-8')
-        print 'p2:', `name2`
-
-        print 'match:', match_with_bad_chars(name1, name2)
         if not match_with_bad_chars(name1, name2) and normalize(name1) != normalize(name2):
             if normalize(remove_bad_marc_subtag(name1)) != normalize(remove_bad_marc_subtag(name2)):
                 continue
-
-        print '1:', p1
-        print '2:', p2
         assert len(subtag1) != len(subtag2)
 
         if len(subtag1) > len(subtag2):
@@ -547,3 +534,24 @@ def test_date_in_a():
     a, b = read_people(lines)
     print a
     assert a == {(('a', u'Borgia, Cesare'), ('d', u'1476?-1507')): 7, (('a', u'Machiavelli, Niccol\xf2'), ('d', u'1469-1527')): 7}
+
+def test_king_asoka():
+    lines = [
+        ['00\x1faA\xe2soka,\x1fcKing of Magadha,\x1fdfl. 259 B.C.\x1e'],
+        ['00\x1faA{acute}soka,\x1fcKing of Magadha\x1fdfl. 259 B.C.\x1e'],
+        ['00\x1faAsoka,\x1fcKing of Magadha,\x1fdfl. 259 B.C..\x1e', '30\x1faMaurya family.\x1e'],
+        ['04\x1faAs\xcc\x81oka,\x1fcKing of Magadha,\x1fdca. 274-232 B.C.\x1e'],
+        ['00\x1faA\xe2soka,\x1fcKing of Magadha,\x1fdfl. 259 B.C.\x1e', '30\x1faMaurya dynasty.\x1e'],
+        ['04\x1faAsoka,\x1fcKing of Magadha,\x1fdca. 274-232 B.C.\x1e'],
+        ['00\x1faA\xe2soka,\x1fcKing of Magadha,\x1fdfl. 259 B.C\x1e', '30\x1faMaurya dynasty\x1e'],
+        ['00\x1faAs\xcc\x81oka,\x1fcKing of Magadha,\x1fdfl. 259 B.C.\x1e', '30\x1faMaurya family.\x1e']
+    ]
+    a, b = read_people(lines)
+    print a
+    # (('a', u'Asoka'), ('c', u'King of Magadha'), ('d', u'fl. 259 B.C..')): 1
+    assert a == {
+        (('a', u'A\u015boka'), ('c', u'King of Magadha'), ('d', u'fl. 259 B.C.')): 7,
+        (('a', u'Maurya dynasty'),): 2,
+        (('a', u'Maurya family'),): 2,
+        (('a', u'Asoka'), ('c', u'King of Magadha'), ('d', u'ca. 274-232 B.C.')): 1
+    }
