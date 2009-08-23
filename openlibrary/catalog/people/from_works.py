@@ -9,9 +9,12 @@ import sys
 from collections import defaultdict
 sys.path.append('/home/edward/src/olapi')
 from olapi import OpenLibrary, unmarshal
+from openlibrary.catalog.read_rc import read_rc
 
-#ol = OpenLibrary("http://dev.openlibrary.org")
-#ol.login('EdwardBot', rc['EdwardBot']) 
+rc = read_rc()
+
+ol = OpenLibrary("http://dev.openlibrary.org")
+ol.login('edward', rc['edward']) 
 
 set_staging(True)
 
@@ -35,10 +38,10 @@ def build_person_object(p, marc_alt):
     if d:
         person = pick_first_date(d)
     person['name'] = name
-    person['sort_name'] = ' '.join(v for k, v in p if k == 'a')
+    person['sort'] = ' '.join(v for k, v in p if k == 'a')
 
     if any(k=='b' for k, v in p):
-        person['numeration'] = ' '.join(v for k, v in p if k == 'b')
+        person['enumeration'] = ' '.join(v for k, v in p if k == 'b')
 
     if c:
         person['title'] = c
@@ -48,7 +51,13 @@ def build_person_object(p, marc_alt):
 
 def work_and_marc():
     i = 0
+    skip = True
     for w in query_iter({'type': '/type/work', 'title': None}):
+        if skip:
+            if w['key'] == '/w/OL56814W':
+                skip = False
+            else:
+                continue
         marc = set()
         q = {'type': '/type/edition', 'works': w['key'], 'title': None, 'source_records': None}
         for e in query_iter(q):
@@ -59,6 +68,8 @@ def work_and_marc():
                 marc.add(mc)
         if marc:
             yield w, marc
+        else:
+            print 'no marc:', w
 
 
 def read_works():
@@ -66,7 +77,7 @@ def read_works():
     pages = {}
     page_marc = {}
 
-    for w, marc in work_and_marc():
+    for work, marc in work_and_marc():
         lines = []
         for loc in marc:
             data = get_data(loc)
@@ -77,32 +88,35 @@ def read_works():
                 lines.append((loc, found))
         if not lines:
             continue
-        w['lines'] = lines
+        work['lines'] = lines
         i += 1
-        print i, w['key'], w['title']
+        print i, work['key'], work['title']
 
         try:
             people, marc_alt = read_people(j[1] for j in lines)
         except AssertionError:
-            print w['lines']
+            print work['lines']
+            continue
+        except KeyError:
+            print work['lines']
             continue
 
         marc_alt_reverse = defaultdict(set)
         for k, v in marc_alt.items():
             marc_alt_reverse[v].add(k)
 
-        w = ol.get(w['key'])
+        w = ol.get(work['key'])
         w['subject_people'] = []
         for p, num in people.iteritems():
             print '  %2d %s' % (num, ' '.join("%s: %s" % (k, v) for k, v in p))
             print '     ', p
             if p in page_marc:
-                w['subject_people'].append('/subjects/people/' + page_marc[p])
+                w['subject_people'].append({'key': '/subjects/people/' + page_marc[p]})
                 continue
             obj = build_person_object(p, marc_alt_reverse.get(p, []))
             key = obj['name'].replace(' ', '_')
             full_key = '/subjects/people/' + key
-            w['subject_people'].append(full_key)
+            w['subject_people'].append({'key': full_key})
 
             if key in pages:
                 print key
@@ -116,8 +130,10 @@ def read_works():
             obj_for_db = obj.copy()
             del obj_for_db['marc']
             obj_for_db['key'] = full_key
-            print ol.save(full_key, obj_for_db, 'create a new person page')
+            obj_for_db['type'] = '/type/person'
+            print ol.save(full_key.encode('utf-8'), obj_for_db, 'create a new person page')
 
+        print w
         print ol.save(w['key'], w, 'add links to people that this work is about')
 
 def from_sample():
@@ -148,4 +164,5 @@ def from_sample():
                 pages[key] = obj
                 pprint(obj)
 
-from_sample()
+#from_sample()
+read_works()
