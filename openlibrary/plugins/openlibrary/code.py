@@ -592,13 +592,13 @@ def get_recent_changes(*a, **kw):
         return []
     else:
         return _get_recentchanges(*a, **kw)
-        
+
 @public
 def most_recent_change():
     if 'cache_most_recent' in infogami.config.features:
         v = web.ctx.site._request('/most_recent')
         v.thing = web.ctx.site.get(v.key)
-        v.author = v.author_id and web.ctx.site.get(v.author_id)
+        v.author = v.author and web.ctx.site.get(v.author)
         v.created = client.parse_datetime(v.created)
         return v
     else:
