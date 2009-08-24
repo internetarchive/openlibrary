@@ -20,14 +20,15 @@ def get_schema():
     schema.add_table_group('publisher', '/type/publisher')
     schema.add_table_group('subject', '/type/subject')
 
-    if 'upstream' in config.features:        
+    if 'upstream' in config.get('features', []):
         schema.add_seq('/type/edition', '/books/OL%dM')
         schema.add_seq('/type/author', '/authors/OL%dA')
-        schema.add_seq('/type/work', '/works/OL%dW')
-        schema.add_seq('/type/publisher', '/publishers/OL%dP')
     else:
         schema.add_seq('/type/edition', '/b/OL%dM')
         schema.add_seq('/type/author', '/a/OL%dA')
+
+    schema.add_seq('/type/work', '/works/OL%dW')
+    schema.add_seq('/type/publisher', '/publishers/OL%dP')
     
     return schema
 
