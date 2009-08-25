@@ -134,18 +134,22 @@ def combinations(items, n):
             for cc in combinations(items[i+1:], n-1):
                 yield [items[i]]+cc
 
+re_drop = re.compile('[?,]')
+
 def match_with_bad_chars(a, b):
     if unicode(a) == unicode(b):
         return True
-    a = normalize('NFKD', unicode(a))
-    b = normalize('NFKD', unicode(b))
+    a = normalize('NFKD', unicode(a)).lower()
+    b = normalize('NFKD', unicode(b)).lower()
     if a == b:
         return True
     a = a.encode('ASCII', 'ignore')
     b = b.encode('ASCII', 'ignore')
     if a == b:
         return True
-    return a.replace('?', '') == a.replace('?', '')
+    def drop(s):
+        return re_drop.sub('', s)
+    return drop(a) == drop(b)
 
 def accent_count(s):
     return len([c for c in norm(s) if ord(c) > 127])
@@ -184,6 +188,7 @@ def test_pick_best_author():
 
 def test_match_with_bad_chars():
     samples = [
+        [u'Machiavelli, Niccolo, 1469-1527', u'Machiavelli, Niccol\xf2 1469-1527'],
         [u'Humanitas Publica\xe7\xf5es', 'Humanitas Publicac?o?es'],
         [u'A pesquisa ling\xfc\xedstica no Brasil',
           'A pesquisa lingu?i?stica no Brasil'],
