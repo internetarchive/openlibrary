@@ -28,6 +28,8 @@ import traceback, pdb
 from optparse import OptionParser
 import math
 
+global user_options
+
 last_post_time = time()
 
 def gzopen(*a):
@@ -114,6 +116,7 @@ sys.excepthook = info
 
 def main():
     global solr
+    global user_options
 
     # logstream = lambda: logstream_incr(hours=1)
     parser = OptionParser()
@@ -171,13 +174,24 @@ def main():
                       action='store_true',
                       dest="optimize",
                       )
+
+    # option to make debugging trace files.  If you set trace=frob then each
+    # xml post will also make a gzipped file named frob-<timestamp>.gz.
+    # You probably do NOT want to make these for a full json dump since
+    # you will end up with an awful lot of them and they are large.
+    parser.add_option('--trace',
+                      action='store',
+                      type="str",
+                      dest="trace",
+                      )
+
     args = ['-j3',
             '--days=3',
             '--rsync=json.dump',
             '--solr=localhost:1234',
             '-O']
-    # ps = parser.parse_args(args)[0]
-    ps = parser.parse_args(sys.argv)[0]
+    # user_options = parser.parse_args(args)[0]
+    user_options = parser.parse_args(sys.argv)[0]
 
     class Usage(Exception): pass
 
@@ -185,33 +199,36 @@ def main():
         return len(filter(bool, args))
 
     try:
-        if num_set(ps.rsync, ps.dump) != 1:
+        if num_set(user_options.rsync, user_options.dump) != 1:
             raise Usage, 'use exactly one of --dump and --rsync'
 
-        time_args = dict((k,getattr(ps,k)) \
+        time_args = dict((k,getattr(user_options,k)) \
                          for k in ('days','hours','minutes') \
-                         if getattr(ps,k) is not None)
-        if ps.rsync:
+                         if getattr(user_options,k) is not None)
+        if user_options.rsync:
             if len(time_args) != 1:
                 raise Usage, \
                     'for rsync you must specify a duration like days=3'
             else:
                 logstream = lambda: \
-                              logstream_incr(ps.rsync,
+                              logstream_incr(user_options.rsync,
                                              **time_args)
-        elif ps.dump:
+        elif user_options.dump:
             if len(time_args) != 0:
                 raise Usage, 'use duration arg only for --rsync, not --dump'
             else:
-                logstream = lambda: logstream_dump(ps.dump)
+                logstream = lambda: logstream_dump(user_options.dump)
 
-        if getattr(ps, 'solr', None):
-            g = re.match('([^:]+):(\d+)$', ps.solr)
-            if not g:
-                raise Usage, \
-                    'invalid solr target, use --solr=hostname:portnum'
-            host, portstr = g.group(1,2)
-            solr = (host, int(portstr)) # set global !!
+        if getattr(user_options, 'solr', None):
+            if user_options.solr == 'None':
+                solr = None
+            else:
+                g = re.match('([^:]+):(\d+)$', user_options.solr)
+                if not g:
+                    raise Usage, \
+                        'invalid solr target, use --solr=hostname:portnum|None'
+                host, portstr = g.group(1,2)
+                solr = (host, int(portstr)) # set global !!
         else:
             raise Usage, 'you must specify a solr target'
             
@@ -232,13 +249,50 @@ def classify_logrec(entry):
 def chunk_logrecs(logstream):
     for k,gs in groupby(logstream, classify_logrec):
         for gs1 in iter(lambda: list(islice(gs, 1000)), []):
-            yield (k, gs1)
+            if k is not None:
+                yield (k, gs1)
 
+
+class Fixup_error(Exception): pass
+
+class Record(object):
+    def __init__(self, jdict):
+        self.jdict = jdict
+    def fixup(self):
+        raise NotImplementedError
+    def emit(self):
+        raise NotImplementedError
+
+class Book(Record): 
+    def fixup(self):
+        try:
+            return fixup_dict(self.jdict)
+        except KeyError, e:
+            raise Fixup_error('fixup_dict keyerror', entry, e, e.args)
+
+    def emit(self):
+        return emit1(self.jdict)
+            
+class Author(Record):
+    def fixup(self): pass
+
+class Delete(Record):
+    def fixup(self): pass
+    def emit(self):
+        key = self.jdict['key'].encode('utf-8')
+        return '<delete><identifier>%s</identifier></delete>'% key
+        
+def action_class(action):
+    fdict = { 'book':   Book,
+              'delete': Delete,
+              'author': Author, }
+    return fdict.get(action)
+    
 def main2(logstream):
     global gg, non_books
     non_book_entries = 0
 
-    # pdb.set_trace()
+    pdb.set_trace()
 
     sys.stdout.flush()
     sys.stdout = os.fdopen(1, 'wb', 0)  # autoflush stdout after each write
@@ -251,38 +305,15 @@ def main2(logstream):
 
     print ('start',ctime())
 
-    for action, chunk in chunk_logrecs(logstream):
-        func = getattr(Solr_expand, action)
-        if func is not None:
-            xchunk = imap(func, chunk)
-            if xchunk is not None:
-                solr_queue.put(Solr_expand.wrap(action, xchunk))
-        
-class Solr_expand(object):
-    @staticmethod
-    def book(rec):
-        try:
-            return fixup_dict(rec)
-        except KeyError, e:
-            print 'fixup_dict keyerror', (entry, e, e.args)
-
-    @staticmethod
-    def author(rec):
-        pass
-    @staticmethod
-    def delete(rec):
-        pass
-
-    @staticmethod
-    def wrap(action, xchunk):
-        pass
+    for action, recs in chunk_logrecs(logstream):
+        func = action_class(action)
+        output_blob = ''.join(func(r).emit() for r in recs)
+        solr_queue.put(output_blob)
 
 def main1(logstream):
     import pdb
     global gg, non_books
     non_book_entries = 0
-
-    # pdb.set_trace()
 
     sys.stdout.flush()
     sys.stdout = os.fdopen(1, 'wb', 0)  # autoflush stdout after each write
@@ -295,7 +326,7 @@ def main1(logstream):
     logpost.setDaemon(True)
     logpost.start()
     
-    for entry in logstream():
+    for i,entry in enumerate(logstream()):
         if entry is None:
             print (('null entry',))
             continue
@@ -324,9 +355,6 @@ def main1(logstream):
             print 'fixup_dict keyerror', (entry, e, e.args)
             continue
 
-        if False and 'ocaid' in book:
-            fulltext_import(book)
-        
         # @@ for development, save book in an external variable
         # and break out of loop
         # print sj.dumps(book,indent=1)   # @@
@@ -406,14 +434,15 @@ def solr_post_thread(q):
 
         timestamp = '%.2f'% time()
 
-        if 0:
+        if user_options.trace:
             # debug/tracing output @@
             print 'save frob...'
-            with gzopen('frob-%s.gz'% timestamp, 'w') as fo:
+            with gzopen('%s-%s.gz'% (user_options.trace, timestamp), 'w') as fo:
                 fo.write(xml)
         
         # submit xml to search engine and remember to commit it later
-        solr_submit (solr, xml)
+        if solr is not None:
+            solr_submit (solr, xml)
         commit_flag.add(1)
 
         def get_ident(doc):
@@ -473,6 +502,8 @@ def solr_submit(solr, xml):
     sock = socket.socket()
     c = count().next
     t0s = [time()]
+
+    # print a diagnostic message to show progress of posting a buffer to solr.
     def d(*msg):
         if msg:
             t1=time()
@@ -520,34 +551,6 @@ def solr_submit(solr, xml):
         d()
         return response
 
-def fulltext_import(book, frob=[]):
-    # stub @@
-
-    # fulltext index strategy:
-    # 1. read and index fulltext from extend('djvu.txt')
-    # 2. read pagetext from extend('djvu.xml') and convert to
-    #    solrizable docs and index
-    # 3. do this in a separate process so that is killed after a
-    #    timeout, since retrieving the cluster url's can hang.
-    #    urllib and urllib2 don't support timeouts directly and
-    #    it's difficult to kill a thread, so use a process and
-    #    SIGALRM or a remote kill.
-
-    ocaid = 'jeffersonthomas10lipsrich'
-
-    def extend(suffix):
-        return 'http://www.archive.org/download/%s/%s_%s'%(
-            ocaid,
-            ocaid,
-            suffix)
-
-    if not frob:
-        mxml = urllib.urlopen(extend('meta.xml')).read()
-        print 'read %d bytes of meta xml: (%s)'%(
-            len(mxml)
-            , mxml)
-        frob.append(1)
-
 def fixup_dict(entry):
     # convert the infogami storage object to a regular python dict,
     # for more familiar processing.
@@ -569,50 +572,12 @@ def fixup_dict(entry):
                ):
         maybe_del(k)
 
-    # utility functions
-    def attr_from_dlist(book, dlist_name, attr_list):
-        """pull a single attribute from a list of dictionaries
-        book[dlist_name] is a list of dictionaries
-        attr_list is a list of attributes to find in the dictionaries
-        in the list.
-        book[dlist_name] is then replaced with a list of string values
-        found on those attributes.
-        """
-        
-        # the filter below is because there are some lists like [None]
-        # in the data.
-        dlist = filter(bool, book.get(dlist_name, []))
-
-        def wrap(x):
-            # wrap x in a list if it's not already one
-            return x if type(x) == list else [x]
-
-        # throw all relevant strings into a set to get rid of duplicates
-        xs = set(chain(*(wrap(d.get(a)) for d in dlist for a in attr_list if a in d)))
-        if xs:
-            # if anything found, convert it to a a list and put it into the book object
-            book[dlist_name] = list(xs)
-        elif dlist_name in book:
-            del book[dlist_name]
-
     # get rid of all fields whose value is None
     p = list(k for k,v in book.iteritems() if v is None)
     for k in p:
         # print "deleting book['%s']==None"% k
         del book[k]
 
-    # languages field now contains a list of language objects.
-    # Just extract the language key.  We convert to the language
-    # name on output.  The key should be something like "/1/eng".
-    # !! actually since there is a language name field, let's use it.
-    # maybe should use key instead, since the name probably burns
-    # a little more stored field space, but let's try this for now.
-    attr_from_dlist(book, 'languages', ['name'])
-
-    # for book authors, get several name fields per Anand's advice
-    attr_from_dlist(book, 'authors', ['personal_name',
-                                      'name',
-                                      'alternate_names'])
 
     # run additional mutations from external module
     # some of the ones above here should also be moved there.
@@ -649,6 +614,10 @@ def emit1(book,
             elif vt is None and 'key' in v:
                 v = v['key']
                 tv = type(v)
+            elif vt is None and name == 'table_of_contents':
+                # many (all?) of these toc items are missing keys.
+                v = v.get('title','')
+                tv = type(v)
             elif type(vt)==dict:
                 vk = vt.get('key')
                 if vk == u'/type/language':
@@ -676,9 +645,15 @@ def emit1(book,
         # in some of the fields, so we map those to blanks.
         v = v.translate(_translate_ctrl)
 
+        if not v:
+            # print ('empty v', (name,v), book)
+            return ''
+
         # print 'y(%r:%r)'%((name,v),(type(name),type(v)))
-        return '  <field name="%s">%s</field>\n'% \
+        titleboost = ' boost="5"' if name=='title' else ''
+        return '  <field name="%s"%s>%s</field>\n'% \
                (name.encode('utf-8'),
+                titleboost,
                 cgi.escape(v).encode('utf-8'))
 
     boost = compute_boost(book)
