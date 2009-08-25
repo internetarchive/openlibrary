@@ -2,12 +2,16 @@
 
 import web
 
+from infogami import config
 from infogami.core.code import view, edit
 from infogami.utils import delegate, app, types
-from infogami.utils.view import require_login, render
+from infogami.utils.view import require_login, render, add_flash_message
+from infogami.infobase.client import ClientException
 
 from openlibrary.plugins.openlibrary.processors import ReadableUrlProcessor
 from openlibrary.plugins.openlibrary import code as ol_code
+
+from openlibrary.i18n import gettext as _
 
 class static(delegate.page):
     path = "/(?:images|css|js)/.*"
@@ -74,11 +78,8 @@ del delegate.pages['/addbook']
 # templates still refers to /addauthor.
 #del delegate.pages['/addauthor'] 
 
-from openlibrary import i18n
-
-web.template.Template.globals['gettext'] = i18n.gettext
-web.template.Template.globals['_'] = i18n.gettext
-
+web.template.Template.globals['gettext'] = _
+web.template.Template.globals['_'] = _
 
 # account
         
@@ -89,19 +90,12 @@ class account_verify(delegate.page):
 
 class account_password(delegate.page):
     path = "/account/password"
+
+    @require_login
     def GET(self):
-        print render['account/password']
         return render['account/password']()
         
     @require_login
-    def POST(self):
-        return "Not yet implemented"
-        
-class account_password_forgot(delegate.page):
-    path = "/account/password/forgot"
-    def GET(self):
-        return render['account/password/forgot']()
-        
     def POST(self):
         return "Not yet implemented"
 
@@ -122,7 +116,7 @@ class account_email(delegate.page):
     @require_login
     def POST(self):
         return "Not yet implemented"
-        
+    
 class account_delete(delegate.page):
     path = "/account/delete"
     @require_login
@@ -132,3 +126,68 @@ class account_delete(delegate.page):
     @require_login
     def POST(self):
         return "Not yet implemented"
+
+class account_password_forgot(delegate.page):
+    path = "/account/password/forgot"
+
+    def GET(self):
+        i = web.input(email='')
+        return render['account/password/forgot'](i)
+        
+    def POST(self):
+        i = web.input(email='')        
+        try:
+            d = get_user_code(i.email)
+        except ClientException, e:
+            add_flash_message('error', _('No user registered with the specified email address.'))
+            return self.GET()
+        
+        msg = render['email/password/reminder'](d.username, d.code)
+        sendmail(i.email, msg)
+        
+        return render['account/password/sent'](i.email)
+
+class account_password_reset(delegate.page):
+    path = "/account/password/reset"
+
+    def GET(self):
+        i = web.input()
+        return render['account/password/reset'](i)
+        
+    def POST(self):
+        i = web.input("code", "username", 'password')
+        
+        try:
+            reset_password(i.username, i.code, i.password)
+            web.ctx.site.login(i.username, i.password, False)
+            add_flash_message('info', _("Your password has been updated successfully."))
+            raise web.seeother('/')
+        except Exception, e:
+            add_flash_message('error', "Failed to reset password.<br/><br/> Reason: "  + str(e))
+            return self.GET()
+
+def sendmail(to, msg, cc=None):
+    cc = cc or []
+    web.sendmail(config.from_address, to, subject=msg.subject.strip(), message=web.safestr(msg), cc=cc)
+    
+def as_admin(f):
+    """Infobase allows some requests only from admin user. This decorator logs in as admin, executes the function and clears the admin credentials."""
+    def g(*a, **kw):
+        try:
+            delegate.admin_login()
+            return f(*a, **kw)
+        finally:
+            web.ctx.headers = []
+    return g
+
+@as_admin
+def get_user_code(email):
+    return web.ctx.site.get_reset_code(email)
+
+@as_admin
+def get_user_email(username):
+    return web.ctx.site.get_user_email(username)
+
+@as_admin
+def reset_password(username, code, password):
+    return web.ctx.site.reset_password(username, code, password)
