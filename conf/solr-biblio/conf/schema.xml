@@ -272,13 +272,15 @@
 <field name="scanningcentre"    type="textIA"   indexed="true" stored="true"/>
 <field name="type"              type="textBar"  indexed="true" stored="true"/>
 <field name="year"              type="sint"     indexed="true" stored="true"/>
+<field name="title"             type="textIA"   indexed="true" stored="true"/>
+<field name="publish_date"      type="textIA"   indexed="true" stored="true"/>
+<field name="physical_format"   type="textIA"   indexed="true" stored="true"/>
 
 <!-- single instance fields that should NOT be returned in SE results -->
 <field name="nav_order"         type="sint"     indexed="true" stored="false"/>
   <!-- these are sortable versions of 'title' and (first seen) 'creator' -->
 <field name="titleSorter"       type="string"   indexed="true" stored="false"/>
 <field name="creatorSorter"     type="string"   indexed="true" stored="false"/>
-<field name="title"             type="textIA"   indexed="true" stored="false"/>
 <field name="description"       type="textIA"   indexed="true" stored="false"/>
 <field name="source"            type="textIA"   indexed="true" stored="false"/>
 
@@ -303,7 +305,6 @@
 <field name="publishers"   type="textIA"   indexed="true" stored="true" multiValued="true"/>
 <field name="languages"    type="textIA"   indexed="true" stored="true" multiValued="true"/>
 <field name="format"      type="textBar"  indexed="true" stored="true" multiValued="true"/>
-
 <field name="facet_year"  type="textIA"  indexed="true" stored="true" multiValued="true"/>
    
 <!-- stored field(s) for faceting -->
@@ -316,6 +317,11 @@
     to the "language" field. -->
 <field name="language_code" type="textIA"   indexed="true" stored="true" multiValued="true"/>
 
+
+<!-- fields stored in solr but not indexed.  -->
+<field name="author_keys"   type="text"   indexed="false" stored="true" multiValued="true"/>
+<field name="author_names"   type="text"   indexed="false" stored="true" multiValued="true"/>
+<field name="ocaid"   type="text"   indexed="false" stored="true" multiValued="false"/>
 
    <!-- Dynamic field definitions.  If a field name is not found, dynamicFields
         will be used if the name matches any of the patterns.
