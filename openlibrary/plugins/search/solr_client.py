@@ -9,6 +9,7 @@ import cgi
 import web
 import simplejson
 from facet_hash import facet_token
+import pdb
 
 php_location = "/petabox/setup.inc"
 
@@ -70,9 +71,10 @@ class SR2(Solr_result):
             r = e['response']
             self.total_results = r['numFound']
             self.begin = r['start']
-            self.end = self.begin + len(r['docs']) - 1
+            self.end = self.begin + len(r['docs'])
             self.contained_in_this_set = len(r['docs'])
             self.result_list = list(d['identifier'] for d in r['docs'])
+            self.raw_results = r['docs']
         except Exception, e:
             ptb = traceback.extract_stack()
             raise SolrError, (e, result_json, traceback.format_list(ptb))
@@ -82,22 +84,23 @@ class SR2(Solr_result):
 class Solr_client(object):
     def __init__(self,
                  server_addr = solr_server_addr,
-                 shards = None,
+                 shards = [],
                  pool_size = 1):
         self.server_addr = server_addr
         self.shards = shards
 
-    def __query_fmt(self, query,
-                    rows=None, start=None, wt=None, sort=None):
-        def fshards(shards):
-            if shards is None: return None
-            return ','.join('%s:%s/solr'%(host,port) for host,port in shards)
-        d = {'rows': rows, 'start': start, 'wt': wt, 'sort': sort, 
-             'shards': fshards(self.shards)}
+    def __query_fmt(self, query, **attribs):
+        # rows=None, start=None, wt=None, sort=None):
+        fshards = ','.join('%s:%s/solr'%(host,port)
+                           for host,port in self.shards)
+        ax = list((k,v) for k,v in attribs.items() if v is not None)
+        if fshards:
+            ax.append(('shards', fshards))
+
         q = [quote_plus(query)] + ['%s=%s'%(k, quote_plus(str(v))) \
-                       for k,v in d.items() if v is not None]
+                       for k,v in ax]
         r = '&'.join(q)
-        # print >> web.debug, "* query fmt: returning (%r)"% r
+        print >> web.debug, "* query fmt: returning (%r)"% r
         return r
     
     @staticmethod
@@ -132,7 +135,6 @@ class Solr_client(object):
                 # if not kfs: continue
                 vvx = {str:(vx,), list:vx}.get(type(vx),())
                 for v in map(unicode, vvx):
-                    ft = facet_token(k,v)
                     if facet_token(k,v) == token:
                         return (k,v)
         return None
@@ -147,16 +149,17 @@ class Solr_client(object):
                 if not y.startswith('OCA/'):
                     yield y
                     
-    def search(self, query, rows=None, start=None):
+    def search(self, query, **params):
         # advanced search: directly post a Solr search which uses fieldnames etc.        
         # return list of document id's
         assert type(query) == str
 
         server_url = 'http://%s:%d/solr/select' % self.server_addr
-        query_url = '%s?q=%s'% (server_url, self.__query_fmt(query, rows, start))
+        query_url = '%s?q=%s&wt=json&fl=*'% \
+            (server_url, self.__query_fmt(query, **params))
 
         try:
-            ru = urlopen(query_url+'&wt=json')
+            ru = urlopen(query_url)
             py = ru.read()
             ru.close()
         except IOError:
@@ -171,14 +174,15 @@ class Solr_client(object):
         and y is a list of identifiers like ["foo", "bar", etc.]"""
         
         query = self._prefix_query('fulltext', query)
-        result_list = self.raw_search(query, rows, start)
+        result_list = self.raw_search(query, rows=rows, start=start)
         e = ElementTree()
         try:
             e.parse(StringIO(result_list))
         except SyntaxError, e:
             raise SolrError, e
-        
+
         total_nbr_text = e.find('info/range_info/total_nbr').text
+        # total_nbr_text = e.find('result').get('numFound')  # for raw xml
         total_nbr = int(total_nbr_text) if total_nbr_text else 0
 
         out = []
@@ -214,8 +218,13 @@ class Solr_client(object):
             a,b = g.group(1,2)
             return a, int(b)
         
-        query = self._prefix_query('pagetext', query)        
-        page_hits = self.raw_search('locator:' + locator + ' ' + query, rows, start)
+        # try using qf= parameter here and see if it gives a speedup. @@
+        # pdb.set_trace()
+        query = self._prefix_query('pagetext', query)
+        page_hits = self.raw_search(query,
+                                    fq='locator:' + locator,
+                                    rows=rows,
+                                    start=start)
         XML = ElementTree()
         try:
             XML.parse(StringIO(page_hits))            
@@ -227,10 +236,20 @@ class Solr_client(object):
     def exact_facet_count(self, query, selected_facets,
                           facet_name, facet_value):
         ftoken = facet_token(facet_name, facet_value)
+
+
+        # this function is temporarily broken because of how facets are handled
+        # under dismax.  @@
+        # well, ok, the use of dismax is temporarily backed out, but leave
+        # this signal here to verify that we're not actually using exact
+        # counts right now.
+        raise NotImplementedError
+
         sf = list(s for s in selected_facets if re.match('^[a-z]{12}$', s))
         fs = ' '.join(sf+[ftoken])
         result_json = self.raw_search(
-            '%s facet_tokens:(%s)'% (self.basic_query(query), fs),
+            self.basic_query(query),
+            fq='facet_tokens:(%s)'% fs,
             rows=0,
             wt='json')
         result = simplejson.loads(result_json)
@@ -261,19 +280,24 @@ class Solr_client(object):
         r = facet_counts(docs, facet_list)
         return r
 
-    def raw_search(self, query, rows=None, start=None, wt=None):
+    def raw_search(self, query, **params):
         # raw search: directly post a Solr search which uses fieldnames etc.
         # return the raw xml or json result that comes from solr
         # need to refactor this class to combine some of these methods @@
         assert type(query) == str
 
         server_url = 'http://%s:%d/solr/select' % self.server_addr
-        ru = urlopen('%s?q=%s'% (server_url, self.__query_fmt(query, rows, start, wt)))
+        query_url = '%s?q=%s'% (server_url, self.__query_fmt(query, **params))
+        # print >> web.debug, ('raw_search', ((query,params),query_url))
+        ru = urlopen(query_url)
         return ru.read()
 
     # translate a basic query into an advanced query, by launching PHP
     # script, passing query to it, and getting result back.
-    def basic_query(self, query):
+    def basic_query(self, query, _cache={}):
+        if query in _cache:
+            return _cache[query]
+
         # this hex conversion is to defeat attempts at shell or PHP code injection
         # by including escape characters, quotes, etc. in the query.
         qhex = query.encode('hex')
@@ -284,6 +308,7 @@ class Solr_client(object):
                                  array("title"=>100,
                                        # "description"=>0.000,
                                        "authors"=>15,
+                                       "subjects"=>10,
                                        "language"=>10,
                                        "text"=>1,
                                        "fulltext"=>1));'""" %
@@ -291,9 +316,10 @@ class Solr_client(object):
         aq = f.read()
         if aq and aq[0] == '\n':
             raise SolrError, ('invalid response from basic query conversion', aq, php_location)
+        _cache[query] = aq
         return aq
 
-    def basic_search(self, query, rows=None, start=None):
+    def basic_search(self, query, **params):
         # basic search: use archive.org PHP script to transform the basic
         # search query into an advanced (i.e. expanded) query.  "Basic" searches
         # can actually use complicated syntax that the PHP script transforms
