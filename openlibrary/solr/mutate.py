@@ -72,7 +72,7 @@ def mutate_title(book):
     
 @mutate
 def mutate_author_keys(book):
-    authors = book.get('authors')
+    authors = book.get('authors', [])
     def get(attr):
         ks = list(a.get(attr) for a in authors)
         return filter(bool, ks)
