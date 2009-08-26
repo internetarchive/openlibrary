@@ -72,7 +72,16 @@ def mutate_title(book):
     
 @mutate
 def mutate_author_keys(book):
-    authors = book.get('authors', [])
+    def fix_author(author):
+        # work around an infogami data validation bug, some authors
+        # have gotten into the db as '/a/OL1234A' instead of
+        # {'key':'/a/OL1234A'}
+        if type(author) == str:
+            assert author.startswith('/a/OL'), (book,author)
+            return {'key': author}
+        return author
+
+    authors = map(fix_author,(book.get('authors', [])))
     def get(attr):
         ks = list(a.get(attr) for a in authors)
         return filter(bool, ks)
