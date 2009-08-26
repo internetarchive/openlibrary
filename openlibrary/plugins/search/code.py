@@ -324,7 +324,7 @@ def munch_qresults_stored(qresults):
             return a
         da, dak = dget('authors'), dget('author_keys')
         # print >> web.debug, ('da,dak',da,dak)
-        d['authors'] = map(mk_author, da, dak)
+        d['authors'] = list(mk_author(a,k) for a,k in zip(da,dak) if k is not None)
         return web.storage(**d)
     return map(mk_book, qresults.raw_results)
     

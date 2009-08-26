@@ -1,6 +1,7 @@
 from solr_fields import excluded_fields
 from facet_hash import facet_token
 from traceback import print_exc
+from itertools import chain
 import re
 import pdb
 
@@ -38,6 +39,13 @@ def rm_description(book):
 def mutate_catchall(book):
     kset = set(book.keys()) - excluded_fields
     kset.remove('identifier')
+
+    # remove title and authors to get better dismax ranking.
+    # I'm not sure what bad effects this might have in other ways.
+    # they were originally in the catchall for a reason, but that
+    # reason is no longer so clear.
+    kset -= set(['title','authors','subjects'])
+    
     text = []
     seen = set()
     def bt(b):
@@ -59,9 +67,68 @@ def mutate_catchall(book):
 
 @mutate
 def mutate_title(book):
-    tpl = int(book.get('title_prefix_len', 0))
-    book['titleSorter'] = book.get('title','')[tpl:]
+    t = book.get('title_prefix','') + book.get('title','')
+    book['title'] = t if t else None
     
+@mutate
+def mutate_author_keys(book):
+    authors = book.get('authors', [])
+    def get(attr):
+        ks = list(a.get(attr) for a in authors)
+        return filter(bool, ks)
+
+    # insert a list of author keys into the record so they can be
+    # retrieved as a stored field for purpose of linking author names
+    # in the search results
+    book['author_keys'] = get('key')
+
+    # insert a field containing the primary name ("name") of each
+    # author, as opposed to alternate names (J.K.Rowling -> "Jo" Rowling etc)
+    # hmm, jsonized authors have been removed. 
+    book['author_names'] = get('name')
+
+def attr_from_dlist(book, dlist_name, attr_list):
+    """pull a single attribute from a list of dictionaries
+    book[dlist_name] is a list of dictionaries
+    attr_list is a list of attributes to find in the dictionaries
+    in the list.
+    book[dlist_name] is then replaced with a list of string values
+    found on those attributes.
+    """
+        
+    # the filter below is because there are some lists like [None]
+    # in the data.
+    dlist = filter(bool, book.get(dlist_name, []))
+
+    def wrap(x):
+        # wrap x in a list if it's not already one
+        return x if type(x) == list else [x]
+
+    # throw all relevant strings into a set to get rid of duplicates
+    xs = set(chain(*(wrap(d.get(a)) for d in dlist for a in attr_list if a in d)))
+    if xs:
+        # if anything found, convert it to a a list and put it into the book object
+        book[dlist_name] = list(xs)
+    elif dlist_name in book:
+        del book[dlist_name]
+
+@mutate
+def mutate_languages(book):
+    # languages field now contains a list of language objects.
+    # Just extract the language key.  We convert to the language
+    # name on output.  The key should be something like "/1/eng".
+    # !! actually since there is a language name field, let's use it.
+    # maybe should use key instead, since the name probably burns
+    # a little more stored field space, but let's try this for now.
+    attr_from_dlist(book, 'languages', ['name'])
+
+@mutate
+def mutate_author_names(book):
+    # for book authors, get several name fields per Anand's advice
+    attr_from_dlist(book, 'authors', ['personal_name',
+                                      'name',
+                                      'alternate_names'])
+
 @mutate
 def mutate_date(book):
     pd = book.get('publish_date')
