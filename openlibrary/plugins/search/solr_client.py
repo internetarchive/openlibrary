@@ -328,7 +328,7 @@ class Solr_client(object):
 
         bquery = self.basic_query(query)
         # print >> web.debug, '* basic search: query=(%r)'% bquery
-        return self.advanced_search(bquery, rows, start)
+        return self.advanced_search(bquery, **params)
 
 # get second element of a tuple
 def snd((a,b)): return b
