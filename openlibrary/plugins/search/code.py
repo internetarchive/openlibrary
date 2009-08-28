@@ -382,8 +382,6 @@ def get_books(keys):
     return books
 
 def munch_qresults(qlist):
-    raise NotImplementedError   # make sure we're not using this func
-
     results = []
     rset = set()
 
