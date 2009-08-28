@@ -314,7 +314,7 @@ def munch_qresults_stored(qresults):
         assert type(d)==dict
         d['key'] = d['identifier']
         for x in ['title_prefix', 'ocaid','publish_date',
-                  'physical_format']:
+                  'publishers', 'physical_format']:
             if x not in d:
                 d[x] = ''
 
