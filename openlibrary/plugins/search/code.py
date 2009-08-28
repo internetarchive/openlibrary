@@ -4,6 +4,7 @@ import stopword
 
 from infogami import utils
 from infogami.utils import delegate
+from infogami.infobase.client import Thing
 from infogami.utils import view, template
 from infogami import config
 import re
@@ -20,7 +21,8 @@ render = template.render
 solr_fulltext_shards = getattr(config, 'solr_fulltext_shards', None)
 solr_server_address = getattr(config, 'solr_server_address', None)
 solr_fulltext_address = getattr(config, 'solr_fulltext_address',
-                                solr_fulltext_shards[0])
+                                solr_fulltext_shards[0] if solr_fulltext_shards \
+                                    else None)
 
 if solr_fulltext_address is not None:
     solr_pagetext_address = getattr(config,
@@ -120,6 +122,19 @@ class Timestamp(object):
     def results(self):
         return (time.ctime(self.t0), self.ts)
 
+# this is in progress, not used yet.
+class Timestamp1(object):
+    def __init__(self, key=None):
+        self.td = defaultdict(float)
+        self.last_t = time.time()
+        self.key = key
+        self.switch(key)
+    def switch(self, key):
+        t = time.time()
+        self.td[self.key] += self.last_t - t
+        self.last_t = t
+        self.key = key
+        
 class search(delegate.page):
     def POST(self):
         i = web.input(wtitle='',
@@ -142,7 +157,6 @@ class search(delegate.page):
 
         if solr is None:
             errortext = 'Solr is not configured.'
-
         if i.q:
             q0 = [clean_punctuation(i.q)]
         else:
@@ -226,11 +240,13 @@ class search(delegate.page):
             bquery = solr.basic_query(query)
             offset = int(i.get('offset', '0') or 0)
             qresults = solr.advanced_search(bquery, start=offset)
+            # print >> web.debug,('qresults',qresults.__dict__)
             # qresults = solr.basic_search(query, start=offset)
             timings.update("begin faceting")
             facets = solr.facets(bquery, maxrows=5000)
             timings.update("done faceting")
-            results = munch_qresults(qresults.result_list)
+            # results = munch_qresults(qresults.result_list)
+            results = munch_qresults_stored(qresults)
             results = filter(bool, results)
             timings.update("done expanding, %d results"% len(results))
 
@@ -238,6 +254,7 @@ class search(delegate.page):
                 # temporarily disable computing works, per
                 # launchpad bug # 325843
                 results, works_groups = collect_works(results)
+                print >> web.debug, ('works', results, works_groups)
 
             timings.update("done finding works, (%d,%d) results"%
                            (len(results), len(works_groups)))
@@ -274,6 +291,42 @@ class search(delegate.page):
 
     GET = POST
 
+import pdb
+
+def munch_qresults_stored(qresults):
+    def mk_author(a,ak):
+        class Pseudo_thing(Thing):
+            def _get(self, key, revision=None):
+                return self
+            def __setattr__(self, a, v):
+                self.__dict__[a] = v
+
+        authortype = Thing(web.ctx.site,u'/type/author')
+        d = Pseudo_thing(web.ctx.site, unicode(ak))
+        d.name = a
+        d.type = authortype
+        # print >> web.debug, ('mk_author made', d)
+        # experimentally try db retrieval to compare with our test object
+        # dba = web.ctx.site.get(ak)
+        # print >> web.debug, ('mk_author db retrieval', dba)
+        return d
+    def mk_book(d):
+        assert type(d)==dict
+        d['key'] = d['identifier']
+        for x in ['title_prefix', 'ocaid','publish_date',
+                  'publishers', 'physical_format']:
+            if x not in d:
+                d[x] = ''
+
+        def dget(attr):
+            a = d.get(attr, [])
+            a = [] if a is None else a
+            return a
+        # print >> web.debug, ('da,dak',da,dak)
+        d['authors'] = list(mk_author(a,k) for a,k in zip(da,dak) if k is not None)
+        return web.storage(**d)
+    return map(mk_book, qresults.raw_results)
+    
 def collect_works(result_list):
     wds = defaultdict(list)
     rs = []
@@ -423,7 +476,8 @@ class search_api:
                     ak = web.ctx.site.get(a["key"])
                     if ak:
                         akd = ak.dict()
-                        del akd['books']
+                        if 'books' in akd:
+                            del akd['books']
                         a["expanded"] = akd
 
             dval["expanded_result"] = eresult
