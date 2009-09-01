@@ -336,47 +336,13 @@ class flipbook(delegate.page):
     SCRIPT_PATH = "/petabox/sw/bin/find_item.php"
 
     def GET(self, identifier, leaf):
-        import os
-
-        if os.path.exists(self.SCRIPT_PATH):
-            server, path = self.find_location(identifier)
+        if leaf:
+            hash = '#page/n%s' % leaf
         else:
-            server, path = self.find_location_from_archive(identifier)
-
-        if  not server:
-            raise web.notfound()
-        else:
-            title = identifier
-            
-            params = dict(identifier=identifier, dataserver=server, datapath=path)
-            if leaf:
-                params['leaf'] = leaf
-            url = "http://%s/flipbook/flipbook.php?%s" % (server, urllib.urlencode(params))     
-            data = render.flipbook(url, title)
-            raise web.HTTPError("200 OK", {}, web.safestr(data))
-
-    def find_location_from_archive(self, identifier):
-        """Use archive.org to get the location.
-        """
-        from xml.dom import minidom
-
-        base_url = "http://www.archive.org/services/find_file.php?loconly=1&file="
-
-        try:
-            data= urllib.urlopen(base_url + identifier).read()
-            doc = minidom.parseString(data)
-            vals = [(e.getAttribute('host'), e.getAttribute('dir')) for e in doc.getElementsByTagName('location')]
-            return vals and vals[0]
-        except Exception:
-            return None, None
-            
-    def find_location(self, identifier):
-        import os
-        data = os.popen(self.SCRIPT_PATH + ' ' + identifier).read().strip()
-        if ':' in data:
-            return data.split(':', 1)
-        else:
-            return None, None
+            hash = ""
+        
+        url = "http://www.archive.org/stream/%s%s" % (identifier, hash)
+        raise web.seeother(url)
 
 class bookreader(delegate.page):
     path = "/bookreader/(.*)"
