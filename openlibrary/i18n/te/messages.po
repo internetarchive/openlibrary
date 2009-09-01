@@ -11,7 +11,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
 "POT-Creation-Date: 2009-08-19 18:06+0530\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: Anand <anandology@gmail.com>\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
@@ -141,7 +141,7 @@ msgstr "ప్రతి పుస్తకానికి ఒక వెబ్ �
 #: templates/site.html:168
 #, python-format
 msgid "Welcome %(user)s"
-msgstr "నమస్కారం %(user)s"
+msgstr "స్వాగతం %(user)s"
 
 #: templates/site.html:169
 msgid "Preferences"
@@ -159,11 +159,52 @@ msgstr "లాగిన్"
 msgid "Sign Up"
 msgstr "సైన్ అప్"
 
-#: templates/site.html:340
+#: templates/site.html:344
 msgid "Terms of Use"
+msgstr "సేవా నిబంధనలు"
+
+#: templates/site.html:347
+msgid "Report abuse"
 msgstr ""
 
-#: templates/site.html:343
-msgid "Report abuse"
+#: templates/account/password.html:4
+msgid "Change Your Password"
+msgstr "మీ సంకేత పదం మార్చుకోండి"
+
+#: templates/account/password.html:7
+msgid ""
+"Provide your existing password (to verify that it's you) and select a new"
+" password to replace it."
+msgstr ""
+
+#: templates/account/password.html:13
+msgid "Your Current Password"
+msgstr ""
+
+#: templates/account/password.html:19
+msgid "Choose a New Password"
+msgstr ""
+
+#: templates/account/password.html:30 templates/account/password/forgot.html:24
+msgid "Send It"
+msgstr "పంపించు"
+
+#: templates/account/password.html:32 templates/account/password/forgot.html:26
+msgid "Cancel"
+msgstr "రద్్ుచేయి"
+
+#: templates/account/password/forgot.html:2
+#: templates/account/password/forgot.html:6
+msgid "Password Reminder"
+msgstr ""
+
+#: templates/account/password/forgot.html:9
+msgid ""
+"Please provide the email address you used to originally sign-up, and "
+"we'll send you instructions to change your Open Library password."
+msgstr ""
+
+#: templates/account/password/forgot.html:15
+msgid "Your Email Address"
 msgstr ""
 
