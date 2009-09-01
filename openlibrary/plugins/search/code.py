@@ -314,7 +314,7 @@ def munch_qresults_stored(qresults):
         assert type(d)==dict
         d['key'] = d['identifier']
         for x in ['title_prefix', 'ocaid','publish_date',
-                  'physical_format']:
+                  'publishers', 'physical_format']:
             if x not in d:
                 d[x] = ''
 
@@ -324,7 +324,7 @@ def munch_qresults_stored(qresults):
             return a
         da, dak = dget('authors'), dget('author_keys')
         # print >> web.debug, ('da,dak',da,dak)
-        d['authors'] = map(mk_author, da, dak)
+        d['authors'] = list(mk_author(a,k) for a,k in zip(da,dak) if k is not None)
         return web.storage(**d)
     return map(mk_book, qresults.raw_results)
     
@@ -479,7 +479,8 @@ class search_api:
                     ak = web.ctx.site.get(a["key"])
                     if ak:
                         akd = ak.dict()
-                        del akd['books']
+                        if 'books' in akd:
+                            del akd['books']
                         a["expanded"] = akd
 
             dval["expanded_result"] = eresult
