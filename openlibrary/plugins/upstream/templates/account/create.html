@@ -1,0 +1,56 @@
+$def with ()
+
+$var title: $_("Create an Account")
+
+<div id="contentHead">
+    <div class="head">
+        <h1>$_("Create an Account")</h1>
+    </div>
+    <p class="instruct">$_("Complete the form below to create your new Open Library account.")
+    <span class="attn"><span class="remind">$_("Each field is required")</span>, $_("and you'll need to verify your email address.")</span></p>
+</div>
+            
+<div id="contentBody">
+            
+    <form id="register" class="olform create" name="register" method="post">
+
+        <div class="formElement">
+            <div class="label"><label for="email">$_("Your Email Address")</label></div>
+            <div class="input">
+                <input type="text" name="email" id="email" class="required email"/>
+            </div>
+            <div id="emailLoading"><img src="images/waiting.gif" alt="$_('Just a sec...')" width="16" height="16"/></div>
+            <div id="emailResult"></div>
+        </div>
+            
+        <div class="formElement">
+            <div class="label"><label for="username">$_("Choose a Username")</label> <span class="smaller lighter">$_("Only letters and numbers, please, and at least 3 characters.")</span></div>
+            <div class="input">
+                <input type="text" name="username" id="username" class="required" minlength="3"/>
+                <div id="usernameLoading"><img src="images/waiting.gif" alt="$_('Just a sec...')" width="16" height="16"/></div>
+                <div id="usernameResult"></div>
+            </div>
+        </div>
+
+        <div class="formElement">
+            <div class="label"><label for="password">$_('Choose a Password')</label></div>
+            <div class="input">
+                <input type="password" name="password" id="password" class="required"/>
+            </div>
+            <div class="input">
+                <p id="showpass" class="smaller"></p>
+            </div>
+        </div>
+
+        <div class="formElement bottom">
+            <div class="input">
+                <br/>
+                <input value="Sign Up" type="submit" name="submit" title="$_('Sign Up')"/>
+                &nbsp;
+                <a href="javascript:history.go(-1);" class="smaller attn">$_("Cancel")</a>
+            </div>
+        </div>
+    </form> 
+
+</div>
+

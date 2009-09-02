@@ -1,0 +1,13 @@
+$def with (username)
+
+$var title: $_("Email Verification Successful")
+
+<div id="contentHead">
+    <div class="head">
+        <h1>$_("Hi, %(user)s!", user=username)</h1>
+    </div>
+</div>
+    
+<div id="contentBody">
+    <p class="instruct">Your email address has been verified successfully. Please <a href="/account/login">Login</a> to continue.</p>
+</div>

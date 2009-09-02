@@ -82,11 +82,54 @@ web.template.Template.globals['gettext'] = _
 web.template.Template.globals['_'] = _
 
 # account
+
+import random, hmac
+
+def _generate_salted_hash(key, text, salt=None):
+    salt = salt or hmac.HMAC(key, str(random.random())).hexdigest()[:5]
+    hash = hmac.HMAC(key, salt + web.utf8(text)).hexdigest()
+    return '%s$%s' % (salt, hash)
+    
+def _verify_salted_hash(key, text, hash):
+    salt = hash.split('$', 1)[0]
+    return _generate_salted_hash(key, text, salt) == hash
+
+def get_secret_key():    
+    return config.infobase['secret_key']
+    
+class account_create(delegate.page):
+    path = "/account/create"
+    
+    def GET(self):
+        return render['account/create']()
+    
+    def POST(self):
+        i = web.input('email', 'password', 'username')
+        i.displayname = i.get('displayname') or i.username
         
+        try:
+            web.ctx.site.register(i.username, i.displayname, i.email, i.password)
+        except ClientException, e:
+            add_flash_message('error', str(e))
+            return self.GET()
+        
+        code = _generate_salted_hash(get_secret_key(), i.username + ',' + i.email)
+        msg = render['email/account/verify'](username=i.username, email=i.email, password=i.password, code=code)
+        sendmail(i.email, msg)
+        
+        return render['account/verify'](username=i.username, email=i.email)
+    
 class account_verify(delegate.page):
     path = "/account/verify"
     def GET(self):
-        return render['account/verify']()
+        i = web.input(username="", email="", code="")
+        verified = _verify_salted_hash(get_secret_key(), i.username + ',' + i.email, i.code)
+        
+        if verified:
+            web.ctx.site.update_user_details(i.username, verified=True)
+            return render['account/verify/success'](i.username)
+        else:
+            return render['account/verify/failed']()
 
 class account_password(delegate.page):
     path = "/account/password"
