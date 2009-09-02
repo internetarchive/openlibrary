@@ -43,10 +43,13 @@ class Input:
     def get_type(self):
         raise NotImplementedError
         
+    def is_hidden(self):
+        return False
+        
     def render(self):
         attrs = self.attrs.copy()
         
-        attrs['type'] = 'text'
+        attrs['type'] = self.get_type()
         attrs['name'] = self.name
         attrs['value'] = self.value or ''
             
@@ -92,6 +95,9 @@ class Checkbox(Input):
 class Hidden(Input):
     """Hidden input.
     """
+    def is_hidden(self):
+        return True
+
     def get_type(self):
         return "hidden"
 
@@ -110,7 +116,7 @@ class Form:
         for i in self.inputs:
             id = i.id or i.name
             
-            if i.hidden:
+            if i.is_hidden():
                 yield i.render()
             else:
                 yield '<div class="formElement">'
@@ -151,6 +157,7 @@ class Validator:
         try: 
             return self.test(value)
         except: 
+            raise
             return False
             
     def __repr__(self):

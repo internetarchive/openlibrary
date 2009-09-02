@@ -8,7 +8,7 @@ Login = Form(
     Password('password', label=_('Password'), klass='required')
 )
 
-email_not_already_used = Validator(_("Email already used"), lambda email: web.cyx.site.find_user_by_email(email) is None)
+email_not_already_used = Validator(_("Email already used"), lambda email: web.ctx.site.find_user_by_email(email) is None)
 username_validator = Validator(_("Username already used"), lambda username: web.ctx.site.get('/user/' + username) is None)
 
 vlogin = RegexpValidator(r"^[A-Za-z0-9-_]{3,20}$", 'must be between 3 and 20 letters and numbers') 
