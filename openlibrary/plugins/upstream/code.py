@@ -1,13 +1,22 @@
 """Upstream customizations."""
 
 import web
+import urllib
+import random
+import hmac
 
+from infogami import config
 from infogami.core.code import view, edit
 from infogami.utils import delegate, app, types
-from infogami.utils.view import require_login, render
+from infogami.utils.view import require_login, render, add_flash_message
+from infogami.infobase.client import ClientException
 
 from openlibrary.plugins.openlibrary.processors import ReadableUrlProcessor
 from openlibrary.plugins.openlibrary import code as ol_code
+
+from openlibrary.i18n import gettext as _
+
+import forms
 
 class static(delegate.page):
     path = "/(?:images|css|js)/.*"
@@ -74,36 +83,89 @@ del delegate.pages['/addbook']
 # templates still refers to /addauthor.
 #del delegate.pages['/addauthor'] 
 
-from openlibrary import i18n
-
-web.template.Template.globals['gettext'] = i18n.gettext
-web.template.Template.globals['_'] = i18n.gettext
-
+web.template.Template.globals['gettext'] = _
+web.template.Template.globals['_'] = _
 
 # account
+
+def _generate_salted_hash(key, text, salt=None):
+    salt = salt or hmac.HMAC(key, str(random.random())).hexdigest()[:5]
+    hash = hmac.HMAC(key, salt + web.utf8(text)).hexdigest()
+    return '%s$%s' % (salt, hash)
+    
+def _verify_salted_hash(key, text, hash):
+    salt = hash.split('$', 1)[0]
+    return _generate_salted_hash(key, text, salt) == hash
+
+def get_secret_key():    
+    return config.infobase['secret_key']
+    
+class account_create(delegate.page):
+    path = "/account/create"
+    
+    def GET(self):
+        f = forms.Register()
+        return render['account/create'](f)
+    
+    def POST(self):
+        i = web.input('email', 'password', 'username')
+        i.displayname = i.get('displayname') or i.username
         
+        f = forms.Register()
+        
+        if not f.validates(i):
+            return render['account/create'](f)
+        
+        try:
+            web.ctx.site.register(i.username, i.displayname, i.email, i.password)
+        except ClientException, e:
+            f.note = str(e)
+            return render['account/create'](f)
+        
+        code = _generate_salted_hash(get_secret_key(), i.username + ',' + i.email)
+        link = web.ctx.home + "/account/verify" + urllib.urlencode({'username': i.username, 'email': i.email, 'code': code})
+        
+        msg = render['email/account/verify'](username=i.username, email=i.email, password=i.password, link=link)
+        sendmail(i.email, msg)
+        
+        return render['account/verify'](username=i.username, email=i.email)
+    
 class account_verify(delegate.page):
     path = "/account/verify"
     def GET(self):
-        return render['account/verify']()
+        i = web.input(username="", email="", code="")
+        verified = _verify_salted_hash(get_secret_key(), i.username + ',' + i.email, i.code)
+        
+        if verified:
+            web.ctx.site.update_user_details(i.username, verified=True)
+            return render['account/verify/success'](i.username)
+        else:
+            return render['account/verify/failed']()
 
 class account_password(delegate.page):
     path = "/account/password"
+
+    @require_login
     def GET(self):
-        print render['account/password']
-        return render['account/password']()
+        f = forms.ChangePassword()
+        return render['account/password'](f)
         
     @require_login
     def POST(self):
-        return "Not yet implemented"
+        f = forms.ChangePassword()
+        i = web.input()
         
-class account_password_forgot(delegate.page):
-    path = "/account/password/forgot"
-    def GET(self):
-        return render['account/password/forgot']()
-        
-    def POST(self):
-        return "Not yet implemented"
+        if not f.validates(i):
+            return render['account/password'](f)
+
+        try:
+            user = web.ctx.site.update_user(i.password, i.new_password, None)
+        except ClientException, e:
+            f.note = str(e)
+            return render['account/password'](f)
+            
+        add_flash_message('note', _('Your password has been updated successfully.'))
+        web.seeother('/')
 
 class account_password_reset(delegate.page):
     path = "/account/password/reset"
@@ -122,7 +184,7 @@ class account_email(delegate.page):
     @require_login
     def POST(self):
         return "Not yet implemented"
-        
+    
 class account_delete(delegate.page):
     path = "/account/delete"
     @require_login
@@ -132,3 +194,68 @@ class account_delete(delegate.page):
     @require_login
     def POST(self):
         return "Not yet implemented"
+
+class account_password_forgot(delegate.page):
+    path = "/account/password/forgot"
+
+    def GET(self):
+        i = web.input(email='')
+        return render['account/password/forgot'](i)
+        
+    def POST(self):
+        i = web.input(email='')        
+        try:
+            d = get_user_code(i.email)
+        except ClientException, e:
+            add_flash_message('error', _('No user registered with the specified email address.'))
+            return self.GET()
+        
+        msg = render['email/password/reminder'](d.username, d.code)
+        sendmail(i.email, msg)
+        
+        return render['account/password/sent'](i.email)
+
+class account_password_reset(delegate.page):
+    path = "/account/password/reset"
+
+    def GET(self):
+        i = web.input()
+        return render['account/password/reset'](i)
+        
+    def POST(self):
+        i = web.input("code", "username", 'password')
+        
+        try:
+            reset_password(i.username, i.code, i.password)
+            web.ctx.site.login(i.username, i.password, False)
+            add_flash_message('info', _("Your password has been updated successfully."))
+            raise web.seeother('/')
+        except Exception, e:
+            add_flash_message('error', "Failed to reset password.<br/><br/> Reason: "  + str(e))
+            return self.GET()
+
+def sendmail(to, msg, cc=None):
+    cc = cc or []
+    web.sendmail(config.from_address, to, subject=msg.subject.strip(), message=web.safestr(msg), cc=cc)
+    
+def as_admin(f):
+    """Infobase allows some requests only from admin user. This decorator logs in as admin, executes the function and clears the admin credentials."""
+    def g(*a, **kw):
+        try:
+            delegate.admin_login()
+            return f(*a, **kw)
+        finally:
+            web.ctx.headers = []
+    return g
+
+@as_admin
+def get_user_code(email):
+    return web.ctx.site.get_reset_code(email)
+
+@as_admin
+def get_user_email(username):
+    return web.ctx.site.get_user_email(username)
+
+@as_admin
+def reset_password(username, code, password):
+    return web.ctx.site.reset_password(username, code, password)

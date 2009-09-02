@@ -1,0 +1,30 @@
+$def with (form)
+
+$var title: $_("Create an Account")
+
+<div id="contentHead">
+    <div class="head">
+        <h1>$_("Create an Account")</h1>
+    </div>
+    <p class="instruct">$_("Complete the form below to create your new Open Library account.")
+    <span class="attn"><span class="remind">$_("Each field is required, and you'll need to verify your email address.")</span></span></p>
+</div>
+            
+<div id="contentBody">
+            
+    <form id="register" class="olform create" name="register" method="post">
+
+        $:form.render()
+        
+        <div class="formElement bottom">
+            <div class="input">
+                <br/>
+                <input value="Sign Up" type="submit" name="submit" title="$_('Sign Up')"/>
+                &nbsp;
+                <a href="javascript:history.go(-1);" class="smaller attn">$_("Cancel")</a>
+            </div>
+        </div>
+    </form> 
+
+</div>
+
