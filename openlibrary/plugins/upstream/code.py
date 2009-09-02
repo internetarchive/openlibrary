@@ -1,6 +1,9 @@
 """Upstream customizations."""
 
 import web
+import urllib
+import random
+import hmac
 
 from infogami import config
 from infogami.core.code import view, edit
@@ -12,6 +15,8 @@ from openlibrary.plugins.openlibrary.processors import ReadableUrlProcessor
 from openlibrary.plugins.openlibrary import code as ol_code
 
 from openlibrary.i18n import gettext as _
+
+import forms
 
 class static(delegate.page):
     path = "/(?:images|css|js)/.*"
@@ -83,8 +88,6 @@ web.template.Template.globals['_'] = _
 
 # account
 
-import random, hmac
-
 def _generate_salted_hash(key, text, salt=None):
     salt = salt or hmac.HMAC(key, str(random.random())).hexdigest()[:5]
     hash = hmac.HMAC(key, salt + web.utf8(text)).hexdigest()
@@ -101,20 +104,28 @@ class account_create(delegate.page):
     path = "/account/create"
     
     def GET(self):
-        return render['account/create']()
+        f = forms.Register()
+        return render['account/create'](f)
     
     def POST(self):
         i = web.input('email', 'password', 'username')
         i.displayname = i.get('displayname') or i.username
         
+        f = forms.Register()
+        
+        if not f.validates(i):
+            return render['account/create'](f)
+        
         try:
             web.ctx.site.register(i.username, i.displayname, i.email, i.password)
         except ClientException, e:
-            add_flash_message('error', str(e))
-            return self.GET()
+            f.note = str(e)
+            return render['account/create'](f)
         
         code = _generate_salted_hash(get_secret_key(), i.username + ',' + i.email)
-        msg = render['email/account/verify'](username=i.username, email=i.email, password=i.password, code=code)
+        link = web.ctx.home + "/account/verify" + urllib.urlencode({'username': i.username, 'email': i.email, 'code': code})
+        
+        msg = render['email/account/verify'](username=i.username, email=i.email, password=i.password, link=link)
         sendmail(i.email, msg)
         
         return render['account/verify'](username=i.username, email=i.email)

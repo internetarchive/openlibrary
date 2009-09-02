@@ -147,7 +147,7 @@ def load_translations(lang):
 class GetText:
     def __call__(self, string, *args, **kwargs):
         """Translate a given string to the language of the current locale."""
-        translations = load_translations(web.ctx.lang)
+        translations = load_translations(web.ctx.get('lang', 'en'))
         value = (translations and translations.ugettext(string)) or string
         
         if args:
@@ -161,6 +161,28 @@ class GetText:
         from infogami.utils.i18n import strings
         # for backward-compatability
         return strings.get('', key)
+        
+class LazyGetText:
+    def __call__(self, string, *args, **kwargs):
+        """Translate a given string lazily."""
+        return LazyObject(lambda: GetText()(string, *args, **kwargs))
+
+class LazyObject:
+    def __init__(self, creator):
+        self._creator = creator
+        
+    def __str__(self):
+        return str(self._creator())
+        
+    def __repr__(self):
+        return repr(self._creator())
+        
+    def __add__(self, other):
+        return self._creator() + other
+        
+    def __radd__(self, other):
+        return other + self._creator()
     
 gettext = GetText()
+lgettext = LazyGetText()
 _ = gettext
