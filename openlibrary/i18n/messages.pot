@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2009-08-19 18:06+0530\n"
+"POT-Creation-Date: 2009-09-02 17:15+0530\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -24,31 +24,31 @@ msgstr ""
 
 #: code.py:217
 msgid "Your password has been updated successfully."
-msgstr "మీ సంకేతపదం విజయవంతంగా మార్చబడింది."
+msgstr ""
 
 #: forms.py:7
 msgid "Username"
-msgstr "సభ్యనామము"
+msgstr ""
 
 #: forms.py:8
 msgid "Password"
-msgstr "సంకేతపదము"
+msgstr ""
 
 #: forms.py:11
 msgid "Email already used"
-msgstr "ఈమెయిలు ఇప్పటికే వాడబడింది"
+msgstr ""
 
 #: forms.py:12
 msgid "Username already used"
-msgstr "సభ్యనామము ఇప్పటికే వాడబడింది"
+msgstr ""
 
 #: forms.py:19 templates/account/password/forgot.html:16
 msgid "Your Email Address"
-msgstr "మీ ఈమెయిలు చిరునామా"
+msgstr ""
 
 #: forms.py:20
 msgid "Choose a Username"
-msgstr "ఒక సభ్యనామము ఎంచుకోండి"
+msgstr ""
 
 #: forms.py:20
 msgid "Only letters and numbers, please, and at least 3 characters."
@@ -56,43 +56,43 @@ msgstr ""
 
 #: forms.py:22 templates/account/password/reset.html:15
 msgid "Choose a Password"
-msgstr "ఒక సంకేతపదం ఎంచుకోండి"
+msgstr ""
 
 #: templates/site.html:29
 msgid "Open Library"
-msgstr "సార్వత్రిక గ్రంధాలయం"
+msgstr ""
 
 #: templates/site.html:52
 msgid "Search"
-msgstr "వెతుకు"
+msgstr ""
 
 #: templates/site.html:54
 msgid "More search options"
-msgstr "మరిన్ని శోధనావిధానాలు"
+msgstr ""
 
 #: templates/site.html:55
 msgid "Scanned books only?"
-msgstr "పూర్తి పాఠం ఉన్న పుస్తకాలు మాత్రమే"
+msgstr ""
 
 #: templates/site.html:59
 msgid "Title:"
-msgstr "శీర్షిక:"
+msgstr ""
 
 #: templates/site.html:64
 msgid "Author:"
-msgstr "రచన:"
+msgstr ""
 
 #: templates/site.html:68
 msgid "Subject:"
-msgstr "సబ్జక్టు:"
+msgstr ""
 
 #: templates/site.html:77
 msgid "Publisher:"
-msgstr "ప్రచురణ:"
+msgstr ""
 
 #: templates/site.html:82
 msgid "Description:"
-msgstr "వివరణ:"
+msgstr ""
 
 #: templates/site.html:86
 msgid "Sort By:"
@@ -104,43 +104,43 @@ msgstr ""
 
 #: templates/site.html:89
 msgid "Title (A-Z)"
-msgstr "శీర్షిక (A-Z)"
+msgstr ""
 
 #: templates/site.html:90
 msgid "Title (Z-A)"
-msgstr "శీర్షిక (Z-A)"
+msgstr ""
 
 #: templates/site.html:91
 msgid "Author (A-Z)"
-msgstr "రచయిత (A-Z)"
+msgstr ""
 
 #: templates/site.html:92
 msgid "Author (Z-A)"
-msgstr "రచయిత (Z-A)"
+msgstr ""
 
 #: templates/site.html:93
 msgid "Date (Oldest First)"
-msgstr "ప్రచురణాకాలం (పాతది ముందు)"
+msgstr ""
 
 #: templates/site.html:94
 msgid "Date (Newest First)"
-msgstr "ప్రచురణాకాలం (క్రొత్తది ముందు)"
+msgstr ""
 
 #: templates/site.html:95
 msgid "Publisher (A-Z)"
-msgstr "ప్రచురణ (A-Z)"
+msgstr ""
 
 #: templates/site.html:96
 msgid "Publisher (Z-A)"
-msgstr "ప్రచురణ (Z-A)"
+msgstr ""
 
 #: templates/site.html:100
 msgid "Date Range:"
-msgstr "ప్రచురణాకాలం"
+msgstr ""
 
 #: templates/site.html:102
 msgid "Select from below"
-msgstr "క్రింది వాటి నుండి ఎంచుకోండి"
+msgstr ""
 
 #: templates/site.html:118
 msgid "Search text within works instead"
@@ -152,15 +152,15 @@ msgstr ""
 
 #: templates/site.html:141
 msgid "Subjects"
-msgstr "సబ్జక్టులు"
+msgstr ""
 
 #: templates/site.html:145
 msgid "Authors"
-msgstr "రచయితలు"
+msgstr ""
 
 #: templates/site.html:146
 msgid "Add a Book"
-msgstr "పుస్తకం చేర్చు"
+msgstr ""
 
 #: templates/site.html:149
 msgid "Lists"
@@ -168,40 +168,40 @@ msgstr ""
 
 #: templates/site.html:150
 msgid "Recently"
-msgstr "ఇటీవలి"
+msgstr ""
 
 #: templates/site.html:152
 msgid "About Us"
-msgstr "మా గురించి"
+msgstr ""
 
 #: templates/site.html:157
 msgid "A page on the web for every book."
-msgstr "ప్రతి పుస్తకానికి ఒక వెబ్ పేజి"
+msgstr ""
 
 #: templates/site.html:168
 #, python-format
 msgid "Welcome %(user)s"
-msgstr "స్వాగతం %(user)s"
+msgstr ""
 
 #: templates/site.html:169
 msgid "Preferences"
-msgstr "అభిరుచులు"
+msgstr ""
 
 #: templates/site.html:170
 msgid "Logout"
-msgstr "లాగౌట్"
+msgstr ""
 
 #: templates/site.html:172
 msgid "Login"
-msgstr "లాగిన్"
+msgstr ""
 
 #: templates/site.html:174 templates/account/create.html:22
 msgid "Sign Up"
-msgstr "సైన్ అప్"
+msgstr ""
 
 #: templates/site.html:336
 msgid "Terms of Use"
-msgstr "సేవా నిబంధనలు"
+msgstr ""
 
 #: templates/site.html:339
 msgid "Report abuse"
@@ -209,53 +209,51 @@ msgstr ""
 
 #: templates/account/create.html:3 templates/account/create.html:7
 msgid "Create an Account"
-msgstr "ఒక ఖాతా సృష్టించండి"
+msgstr ""
 
 #: templates/account/create.html:9
 msgid "Complete the form below to create your new Open Library account."
-msgstr "మీ క్రొత్త  సార్వత్రిక గ్రంధాలయ ఖాతా సృష్టించటానికి ఈ క్రింది ఫామ్ నింపండి."
+msgstr ""
 
 #: templates/account/create.html:10
 msgid "Each field is required, and you'll need to verify your email address."
-msgstr "ప్రతి ఫీల్డ్ అవసరమే, మరియు మీరు మీ ఈమెయిలు చిరునామాను దృవీకరించవలసి ఉంటంది."
+msgstr ""
 
 #: templates/account/create.html:24 templates/account/password.html:32
 #: templates/account/password/forgot.html:27
 msgid "Cancel"
-msgstr "రద్దుచేయి"
+msgstr ""
 
 #: templates/account/password.html:4
 msgid "Change Your Password"
-msgstr "మీ సంకేత పదం మార్చుకోండి"
+msgstr ""
 
 #: templates/account/password.html:7
 msgid ""
 "Provide your existing password (to verify that it's you) and select a new"
 " password to replace it."
 msgstr ""
-"మీ ప్రస్తుత సంకేతపదానన్ని ఇచ్చి (ఇది మీరేని దృవీకరించుకోవటానికి) దాని "
-"స్థానంలో మరొక క్రొత్త సంకేతపదాన్ని ఎంచుకోండి"
 
 #: templates/account/password.html:13
 msgid "Your Current Password"
-msgstr "మీ ప్రస్తుత సంకేతపదం"
+msgstr ""
 
 #: templates/account/password.html:19
 msgid "Choose a New Password"
-msgstr "ఒక క్రొత్త సంకేతపదం ఎంచుకోండి"
+msgstr ""
 
 #: templates/account/password.html:30 templates/account/password/forgot.html:25
 msgid "Send It"
-msgstr "పంపించు"
+msgstr ""
 
 #: templates/account/verify.html:3
 msgid "Verification email sent"
-msgstr "దృవీకరణ ఈమెయిలు పంపబడింది"
+msgstr ""
 
 #: templates/account/verify.html:6 templates/account/verify/success.html:7
-#, fuzzy, python-format
+#, python-format
 msgid "Hi, %(user)s!"
-msgstr "స్వాగతం %(user)s"
+msgstr ""
 
 #: templates/account/verify.html:11
 #, python-format
@@ -302,10 +300,4 @@ msgstr ""
 #: templates/account/verify/success.html:3
 msgid "Email Verification Successful"
 msgstr ""
-
-#~ msgid "Each field is required"
-#~ msgstr ""
-
-#~ msgid "and you'll need to verify your email address."
-#~ msgstr ""
 
