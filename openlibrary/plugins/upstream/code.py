@@ -147,11 +147,25 @@ class account_password(delegate.page):
 
     @require_login
     def GET(self):
-        return render['account/password']()
+        f = forms.ChangePassword()
+        return render['account/password'](f)
         
     @require_login
     def POST(self):
-        return "Not yet implemented"
+        f = forms.ChangePassword()
+        i = web.input()
+        
+        if not f.validates(i):
+            return render['account/password'](f)
+
+        try:
+            user = web.ctx.site.update_user(i.password, i.new_password, None)
+        except ClientException, e:
+            f.note = str(e)
+            return render['account/password'](f)
+            
+        add_flash_message('note', _('Your password has been updated successfully.'))
+        web.seeother('/')
 
 class account_password_reset(delegate.page):
     path = "/account/password/reset"

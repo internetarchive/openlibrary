@@ -23,9 +23,9 @@ class AttributeList(dict):
         return '<attrs: %s>' % repr(str(self))
 
 class Input:
-    def __init__(self, name, label, value=None, **kw):
+    def __init__(self, name, label=None, value=None, **kw):
         self.name = name
-        self.label = label
+        self.label = label or ""
         self.value = value
         self.validators = kw.pop('validators', [])
         
