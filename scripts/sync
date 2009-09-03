@@ -192,6 +192,8 @@ class RemoteSource:
     def write(self, data):
         def process(name, text):
             key = '/' + name
+            if text is None:
+                return {'key': key, 'type': {'key': '/type/delete'}}
             if key.startswith('/templates/'):
                 return {'key': key, 'body': {'value': text, 'type': '/type/text'}, 'type': {'key': '/type/template'}}
             elif key.startswith('/macros/'):
@@ -226,6 +228,9 @@ class Server:
     def push(self, paths):
         self.remote.write(self.local.read(paths))
 
+    def delete(self, paths):
+        self.remote.write([(name, None) for name, value in self.remote.read(paths)])
+
 def parse_args(args):
     """Parses the args and returns command, server and paths.
     
@@ -251,7 +256,7 @@ def parse_args(args):
     options, args = parser.parse_args()
     server = options.server
     
-    if cmd not in ['push', 'pull', 'diff']:
+    if cmd not in ['push', 'pull', 'diff', 'delete']:
         parser.error('Unknown command: %s' % repr(cmd))
         
     if 'upstream' in options.server:
