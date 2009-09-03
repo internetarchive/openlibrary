@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2009-09-02 17:15+0530\n"
+"POT-Creation-Date: 2009-09-03 16:41+0530\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,192 +18,306 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 0.9.4\n"
 
-#: code.py:196
-msgid "No user registered with the specified email address."
+#: code.py:223
+#, python-format
+msgid "Hi %(user)s"
 msgstr ""
 
-#: code.py:217
+#: code.py:224
+#, python-format
+msgid ""
+"We've sent an email to %(email)s. You'll need to read that and click on "
+"the verification link to update your email."
+msgstr ""
+
+#: code.py:236
+msgid "Email address is already used."
+msgstr ""
+
+#: code.py:237
+msgid ""
+"Your email address couldn't be updated. The specified email address is "
+"already used."
+msgstr ""
+
+#: code.py:240
+msgid "Email verification successful."
+msgstr ""
+
+#: code.py:241
+msgid ""
+"Your email address has been successfully verified and updated in your "
+"account."
+msgstr ""
+
+#: code.py:243
+msgid "Email address couldn't be verified."
+msgstr ""
+
+#: code.py:244
+msgid ""
+"Your email address couldn't be verified. The verification link seems "
+"invalid."
+msgstr ""
+
+#: code.py:280 code.py:341
 msgid "Your password has been updated successfully."
 msgstr ""
 
-#: forms.py:7
-msgid "Username"
+#: code.py:316 code.py:329
+msgid "Password reset failed."
+msgstr ""
+
+#: code.py:368
+msgid "Notification preferences have been updated successfully."
 msgstr ""
 
 #: forms.py:8
+msgid "Username"
+msgstr ""
+
+#: forms.py:9
 msgid "Password"
 msgstr ""
 
-#: forms.py:11
+#: forms.py:13
+msgid "No user registered with this email address"
+msgstr ""
+
+#: forms.py:14
 msgid "Email already used"
 msgstr ""
 
-#: forms.py:12
+#: forms.py:15
 msgid "Username already used"
 msgstr ""
 
-#: forms.py:19 templates/account/password/forgot.html:16
+#: forms.py:17
+msgid "must be between 3 and 20 letters and numbers"
+msgstr ""
+
+#: forms.py:18
+msgid "must be between 3 and 20 characters"
+msgstr ""
+
+#: forms.py:19
+msgid "must be a valid email address"
+msgstr ""
+
+#: forms.py:22 forms.py:53
 msgid "Your Email Address"
 msgstr ""
 
-#: forms.py:20
+#: forms.py:23
 msgid "Choose a Username"
 msgstr ""
 
-#: forms.py:20
+#: forms.py:23
 msgid "Only letters and numbers, please, and at least 3 characters."
 msgstr ""
 
-#: forms.py:22 templates/account/password/reset.html:15
+#: forms.py:25 forms.py:57
 msgid "Choose a Password"
 msgstr ""
 
-#: templates/site.html:29
+#: forms.py:41
+msgid "Invaid password"
+msgstr ""
+
+#: forms.py:44
+msgid "Current Password"
+msgstr ""
+
+#: forms.py:45
+msgid "Choose a New Password"
+msgstr ""
+
+#: forms.py:49
+msgid "Your New Email Address"
+msgstr ""
+
+#: templates/account.html:3 templates/account.html:7
+msgid "Your Account"
+msgstr ""
+
+#: templates/account.html:13
+msgid "Change Password"
+msgstr ""
+
+#: templates/account.html:14
+msgid "Update Email Address"
+msgstr ""
+
+#: templates/account.html:15
+msgid "Your Notifications"
+msgstr ""
+
+#: templates/account.html:16
+msgid "View"
+msgstr ""
+
+#: templates/account.html:16
+msgid "or"
+msgstr ""
+
+#: templates/account.html:16
+msgid "Edit"
+msgstr ""
+
+#: templates/account.html:16
+msgid "Your Profile Page"
+msgstr ""
+
+#: templates/account.html:21
+msgid "Delete Your Account"
+msgstr ""
+
+#: templates/site.html:24
 msgid "Open Library"
 msgstr ""
 
-#: templates/site.html:52
+#: templates/site.html:43
 msgid "Search"
 msgstr ""
 
-#: templates/site.html:54
+#: templates/site.html:45
 msgid "More search options"
 msgstr ""
 
-#: templates/site.html:55
+#: templates/site.html:46
 msgid "Scanned books only?"
 msgstr ""
 
-#: templates/site.html:59
+#: templates/site.html:50
 msgid "Title:"
 msgstr ""
 
-#: templates/site.html:64
+#: templates/site.html:55
 msgid "Author:"
 msgstr ""
 
-#: templates/site.html:68
+#: templates/site.html:59
 msgid "Subject:"
 msgstr ""
 
-#: templates/site.html:77
+#: templates/site.html:68
 msgid "Publisher:"
 msgstr ""
 
-#: templates/site.html:82
+#: templates/site.html:73
 msgid "Description:"
 msgstr ""
 
-#: templates/site.html:86
+#: templates/site.html:77
 msgid "Sort By:"
 msgstr ""
 
-#: templates/site.html:88
+#: templates/site.html:79
 msgid "Alphabetical"
 msgstr ""
 
-#: templates/site.html:89
+#: templates/site.html:80
 msgid "Title (A-Z)"
 msgstr ""
 
-#: templates/site.html:90
+#: templates/site.html:81
 msgid "Title (Z-A)"
 msgstr ""
 
-#: templates/site.html:91
+#: templates/site.html:82
 msgid "Author (A-Z)"
 msgstr ""
 
-#: templates/site.html:92
+#: templates/site.html:83
 msgid "Author (Z-A)"
 msgstr ""
 
-#: templates/site.html:93
+#: templates/site.html:84
 msgid "Date (Oldest First)"
 msgstr ""
 
-#: templates/site.html:94
+#: templates/site.html:85
 msgid "Date (Newest First)"
 msgstr ""
 
-#: templates/site.html:95
+#: templates/site.html:86
 msgid "Publisher (A-Z)"
 msgstr ""
 
-#: templates/site.html:96
+#: templates/site.html:87
 msgid "Publisher (Z-A)"
 msgstr ""
 
-#: templates/site.html:100
+#: templates/site.html:91
 msgid "Date Range:"
 msgstr ""
 
-#: templates/site.html:102
+#: templates/site.html:93
 msgid "Select from below"
 msgstr ""
 
-#: templates/site.html:118
+#: templates/site.html:109
 msgid "Search text within works instead"
 msgstr ""
 
-#: templates/site.html:126
+#: templates/site.html:117
 msgid "Search within text of available works"
 msgstr ""
 
-#: templates/site.html:141
+#: templates/site.html:132
 msgid "Subjects"
 msgstr ""
 
-#: templates/site.html:145
+#: templates/site.html:136
 msgid "Authors"
 msgstr ""
 
-#: templates/site.html:146
+#: templates/site.html:137
 msgid "Add a Book"
 msgstr ""
 
-#: templates/site.html:149
+#: templates/site.html:140
 msgid "Lists"
 msgstr ""
 
-#: templates/site.html:150
+#: templates/site.html:141
 msgid "Recently"
 msgstr ""
 
-#: templates/site.html:152
+#: templates/site.html:143
 msgid "About Us"
 msgstr ""
 
-#: templates/site.html:157
+#: templates/site.html:148
 msgid "A page on the web for every book."
 msgstr ""
 
-#: templates/site.html:168
+#: templates/site.html:159
 #, python-format
 msgid "Welcome %(user)s"
 msgstr ""
 
-#: templates/site.html:169
+#: templates/site.html:160
 msgid "Preferences"
 msgstr ""
 
-#: templates/site.html:170
+#: templates/site.html:161
 msgid "Logout"
 msgstr ""
 
-#: templates/site.html:172
+#: templates/site.html:163
 msgid "Login"
 msgstr ""
 
-#: templates/site.html:174 templates/account/create.html:22
+#: templates/site.html:165 templates/account/create.html:22
 msgid "Sign Up"
 msgstr ""
 
-#: templates/site.html:336
+#: templates/site.html:327
 msgid "Terms of Use"
 msgstr ""
 
-#: templates/site.html:339
+#: templates/site.html:330
 msgid "Report abuse"
 msgstr ""
 
@@ -219,30 +333,102 @@ msgstr ""
 msgid "Each field is required, and you'll need to verify your email address."
 msgstr ""
 
-#: templates/account/create.html:24 templates/account/password.html:32
-#: templates/account/password/forgot.html:27
+#: templates/account/create.html:24 templates/account/email.html:20
+#: templates/account/notifications.html:96 templates/account/password.html:21
+#: templates/account/password/forgot.html:23
 msgid "Cancel"
 msgstr ""
 
-#: templates/account/password.html:4
+#: templates/account/email.html:5
+msgid "Change Your Email Address"
+msgstr ""
+
+#: templates/account/email.html:11
+msgid "Your current email address is"
+msgstr ""
+
+#: templates/account/email.html:18
+msgid "Change It"
+msgstr ""
+
+#: templates/account/notifications.html:3
+#: templates/account/notifications.html:7
+msgid "Notifications from Open Library"
+msgstr ""
+
+#: templates/account/notifications.html:10
+msgid "Update your email address?"
+msgstr ""
+
+#: templates/account/notifications.html:11
+#, python-format
+msgid "We have %(email)s for you at the moment."
+msgstr ""
+
+#: templates/account/notifications.html:24
+msgid ""
+"Notifications are connected to Lists at the moment. If one of the books "
+"on your list gets edited, or a new book comes into the catalog, we'll let"
+" you know, if you want."
+msgstr ""
+
+#: templates/account/notifications.html:29
+msgid "How would you like to receive List updates?"
+msgstr ""
+
+#: templates/account/notifications.html:37
+msgid "A weekly email, but only if something's changed"
+msgstr ""
+
+#: templates/account/notifications.html:44
+msgid "A daily email, but only if something's changed"
+msgstr ""
+
+#: templates/account/notifications.html:51
+msgid "An email, pretty soon after any update"
+msgstr ""
+
+#: templates/account/notifications.html:57
+msgid "Send me a Twitter"
+msgstr ""
+
+#: templates/account/notifications.html:66
+msgid "Just pop a note on my Open Library home page"
+msgstr ""
+
+#: templates/account/notifications.html:71
+msgid "I don't want to be notified, thank you"
+msgstr ""
+
+#: templates/account/notifications.html:76
+msgid ""
+"Would you like to receive remarkably low traffic update-style emails from"
+" Open Library?"
+msgstr ""
+
+#: templates/account/notifications.html:82
+msgid "No, thank you"
+msgstr ""
+
+#: templates/account/notifications.html:88
+msgid "Yes! Please!"
+msgstr ""
+
+#: templates/account/notifications.html:94
+msgid "Save"
+msgstr ""
+
+#: templates/account/password.html:5
 msgid "Change Your Password"
 msgstr ""
 
-#: templates/account/password.html:7
+#: templates/account/password.html:8
 msgid ""
 "Provide your existing password (to verify that it's you) and select a new"
 " password to replace it."
 msgstr ""
 
-#: templates/account/password.html:13
-msgid "Your Current Password"
-msgstr ""
-
-#: templates/account/password.html:19
-msgid "Choose a New Password"
-msgstr ""
-
-#: templates/account/password.html:30 templates/account/password/forgot.html:25
+#: templates/account/password.html:19 templates/account/password/forgot.html:21
 msgid "Send It"
 msgstr ""
 
@@ -280,7 +466,7 @@ msgstr ""
 msgid "Reset Password"
 msgstr ""
 
-#: templates/account/password/reset.html:24
+#: templates/account/password/reset.html:19
 msgid "Reset"
 msgstr ""
 
