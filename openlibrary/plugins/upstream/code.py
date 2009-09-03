@@ -10,6 +10,7 @@ from infogami.core.code import view, edit
 from infogami.utils import delegate, app, types
 from infogami.utils.view import require_login, render, add_flash_message
 from infogami.infobase.client import ClientException
+from infogami.utils.context import context
 
 from openlibrary.plugins.openlibrary.processors import ReadableUrlProcessor
 from openlibrary.plugins.openlibrary import code as ol_code
@@ -99,6 +100,45 @@ def _verify_salted_hash(key, text, hash):
 
 def get_secret_key():    
     return config.infobase['secret_key']
+
+def sendmail(to, msg, cc=None):
+    cc = cc or []
+    if config.get('dummy_sendmail'):
+        print 'To:', to
+        print 'From:', config.from_address
+        print 'Subject:', msg.subject
+        print
+        print web.safestr(msg)
+    else:
+        web.sendmail(config.from_address, to, subject=msg.subject.strip(), message=web.safestr(msg), cc=cc)
+    
+def as_admin(f):
+    """Infobase allows some requests only from admin user. This decorator logs in as admin, executes the function and clears the admin credentials."""
+    def g(*a, **kw):
+        try:
+            delegate.admin_login()
+            return f(*a, **kw)
+        finally:
+            web.ctx.headers = []
+    return g
+
+@as_admin
+def get_user_code(email):
+    return web.ctx.site.get_reset_code(email)
+
+@as_admin
+def get_user_email(username):
+    return web.ctx.site.get_user_email(username).email
+
+@as_admin
+def reset_password(username, code, password):
+    return web.ctx.site.reset_password(username, code, password)
+    
+class account(delegate.page):
+    @require_login
+    def GET(self):
+        user = web.ctx.site.get_user()
+        return render.account(user)
     
 class account_create(delegate.page):
     path = "/account/create"
@@ -294,35 +334,26 @@ class account_password_reset(delegate.page):
             add_flash_message('error', "Failed to reset password.<br/><br/> Reason: "  + str(e))
             return self.GET()
 
-def sendmail(to, msg, cc=None):
-    cc = cc or []
-    if config.get('dummy_sendmail'):
-        print 'To:', to
-        print 'From:', config.from_address
-        print 'Subject:', msg.subject
-        print
-        print web.safestr(msg)
-    else:
-        web.sendmail(config.from_address, to, subject=msg.subject.strip(), message=web.safestr(msg), cc=cc)
+class account_notifications(delegate.page):
+    path = "/account/notifications"
     
-def as_admin(f):
-    """Infobase allows some requests only from admin user. This decorator logs in as admin, executes the function and clears the admin credentials."""
-    def g(*a, **kw):
-        try:
-            delegate.admin_login()
-            return f(*a, **kw)
-        finally:
-            web.ctx.headers = []
-    return g
-
-@as_admin
-def get_user_code(email):
-    return web.ctx.site.get_reset_code(email)
-
-@as_admin
-def get_user_email(username):
-    return web.ctx.site.get_user_email(username).email
-
-@as_admin
-def reset_password(username, code, password):
-    return web.ctx.site.reset_password(username, code, password)
+    @require_login
+    def GET(self):
+        prefs = web.ctx.site.get(context.user.key + "/preferences")
+        d = (prefs and prefs.get('notifications')) or {}
+        email = get_user_email(context.user.key)
+        return render['account/notifications'](d, email)
+        
+    @require_login
+    def POST(self):
+        key = context.user.key + '/preferences'
+        prefs = web.ctx.site.get(key)
+        
+        d = (prefs and prefs.dict()) or {'key': key, 'type': {'key': '/type/object'}}
+        
+        d['notifications'] = web.input()
+        
+        web.ctx.site.save(d, 'save notifications')
+        
+        add_flash_message('note', _("Notification preferences have been updated successfully."))
+        web.seeother("/account")

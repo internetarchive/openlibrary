@@ -19,14 +19,11 @@ $def with (page)
     -->
 
     $add_javascript('/js/jquery-1.3.2.min.js?format=raw')
-    $add_javascript('/js/jquery.slicker.js?format=raw')
+    $add_javascript('/js/jquery.validate.min.js?format=raw')
+    $add_javascript('/js/jquery.sfx.js?format=raw')
 
-    $add_javascript('/js/jquery/jquery.sfx.js?format=raw')
-    $add_javascript('/js/jquery/jquery.ol.js?format=raw')
-
-    $add_javascript('/js/jquery/jquery.validate.min.js?format=raw')
-    $add_javascript('/js/signup.validate.js?format=raw')
-
+    $add_javascript('/js/ol.js?format=raw')
+    
     <title>$:page.title ($_("Open Library"))</title>
 
     $for link in ctx.get("links", []):
