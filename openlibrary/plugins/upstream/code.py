@@ -1,14 +1,16 @@
 """Upstream customizations."""
 
+import os.path
 import web
 import urllib
 import random
 import hmac
+import md5
 
 from infogami import config
 from infogami.core.code import view, edit
 from infogami.utils import delegate, app, types
-from infogami.utils.view import require_login, render, add_flash_message
+from infogami.utils.view import require_login, render, add_flash_message, public
 from infogami.infobase.client import ClientException
 from infogami.utils.context import context
 
@@ -86,6 +88,14 @@ del delegate.pages['/addbook']
 
 web.template.Template.globals['gettext'] = _
 web.template.Template.globals['_'] = _
+
+@web.memoize
+@public
+def vendor_js():
+    pardir = os.path.pardir 
+    path = os.path.abspath(os.path.join(__file__, pardir, pardir, pardir, pardir, 'static', 'upstream', 'js', 'vendor.js'))
+    digest = md5.md5(open(path).read()).hexdigest()
+    return '/js/vendor.js?v=' + digest
 
 # account
 
