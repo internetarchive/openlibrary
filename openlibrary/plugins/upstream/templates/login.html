@@ -1,44 +1,24 @@
-$def with (f)
+$def with (form)
 
-$ _ = i18n.get_namespace('/account/login')
-
-$var title: $_.login
-
-$add_javascript('/js/jquery/jquery.validate.min.js?format=raw')
-$add_javascript('/js/jquery/login.validate.js?format=raw')
+$var title: $("Log In")
 
 <div id="contentHead">
-                <div class="head">
-                    <h1>Log In</h1>
-
-                </div>
-            </div>
-
-<div id="contentBody">
-<form id="register" class="login" name="register" method="post">
-
-            <div class="formElement">
-                <div class="label"><label for="username">Username</label></div>
-                <div class="input">
-                    <input type="text" name="username" id="username" class="required" minlength="3"/>
-
-                </div>
-            </div>
-            <div class="formElement">
-                <div class="label"><label for="password">Password</label></div>
-                <div class="input">
-                    <input type="password" name="password" id="password" class="required"/>
-                </div>
-            </div>
-
-            <div class="formElement bottom">
-            <br/>
-                <input value="Log In" type="submit" name="submit" title="Log In"/>
-                &nbsp;
-                <a href="javascript:;" onclick="history.go(-1);" class="smaller attn">Cancel</a>
-            </div>
-
-</form>
+    <div class="head">
+        <h1>$_("Log In")</h1>
+    </div>
 </div>
 
-<br /><br />
+<div id="contentBody">
+    <form id="register" class="login" name="register" method="post">
+
+        $:form.render()
+
+        <div class="formElement bottom">
+            <br/>
+            <input value="Log In" type="submit" name="submit" title="Log In"/>
+            &nbsp;
+            <a href="javascript:;" onclick="history.go(-1);" class="smaller attn">Cancel</a>
+        </div>
+    </form>
+</div>
+

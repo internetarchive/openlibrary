@@ -1,5 +1,6 @@
 import web
 from infogami.infobase.client import ClientException
+from infogami.core import forms
 
 from openlibrary.i18n import lgettext as _
 from openlibrary.utils.form import Form, Textbox, Password, Hidden, Validator, RegexpValidator
@@ -9,6 +10,7 @@ Login = Form(
     Password('password', label=_('Password'), klass='required'),
     Hidden('redirect')
 )
+forms.login = Login
 
 email_already_used = Validator(_("No user registered with this email address"), lambda email: web.ctx.site.find_user_by_email(email) is not None)
 email_not_already_used = Validator(_("Email already used"), lambda email: web.ctx.site.find_user_by_email(email) is None)

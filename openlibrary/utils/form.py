@@ -105,17 +105,29 @@ class Form:
     def __init__(self, *inputs, **kw):
         self.inputs = inputs
         self.validators = kw.pop('validators', [])
+        self.note = None
         
     def __call__(self):
         return copy.deepcopy(self)
         
     def __str__(self):
         return web.safestr(self.render())
+        
+    def __getitem__(self, key):
+        for i in self.inputs:
+            if i.name == key:
+                return i
+        raise KeyError, key
 
     def render(self):
         return "\n".join(self._render())
         
     def _render(self):
+        print "_render", self.note
+        
+        if self.note:
+            yield '<div class="note">%s</div>' % web.websafe(self.note)
+                    
         for i in self.inputs:
             id = i.id or i.name
             
@@ -140,6 +152,8 @@ class Form:
         valid = self._validate(source) and valid
         self.valid = valid
         return valid
+        
+    fill = validates
         
     def _validate(self, value):
         for v in self.validators:
