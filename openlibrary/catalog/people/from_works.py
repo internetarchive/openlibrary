@@ -1,53 +1,14 @@
 from openlibrary.catalog.utils.query import query_iter, set_staging, get_mc
-from openlibrary.catalog.utils import flip_name, pick_first_date
 from openlibrary.catalog.get_ia import get_data
 from openlibrary.catalog.marc.fast_parse import get_tag_lines, get_all_subfields, get_subfields
 
 from pprint import pprint
 from identify_people import read_people
+from build_object import build_person_object
 import sys
 from collections import defaultdict
-sys.path.append('/home/edward/src/olapi')
-from olapi import OpenLibrary, unmarshal
-from openlibrary.catalog.read_rc import read_rc
-
-rc = read_rc()
-
-ol = OpenLibrary("http://dev.openlibrary.org")
-ol.login('edward', rc['edward']) 
 
 set_staging(True)
-
-def build_person_object(p, marc_alt):
-    ab = [(k, v.strip(' /,;:')) for k, v in p if k in 'ab']
-
-    name = ' '.join(flip_name(v) if k == 'a' else v for k, v in ab)
-    c = ' '.join(v for k, v in p if k == 'c')
-    of_count = c.count('of ')
-    if of_count == 1 and 'of the ' not in c and 'Emperor of ' not in c:
-        name += ' ' + c[c.find('of '):]
-    elif ' ' not in name and of_count > 1:
-        name += ', ' + c
-    elif c.endswith(' of') or c.endswith(' de') and any(k == 'a' and ', ' in v for k, v in p):
-        name = ' '.join(v for k, v in ab)
-        c += ' ' + name[:name.find(', ')]
-        name = name[name.find(', ') + 2:] + ', ' + c
-
-    person = {}
-    d = [v for k, v in p if k =='d']
-    if d:
-        person = pick_first_date(d)
-    person['name'] = name
-    person['sort'] = ' '.join(v for k, v in p if k == 'a')
-
-    if any(k=='b' for k, v in p):
-        person['enumeration'] = ' '.join(v for k, v in p if k == 'b')
-
-    if c:
-        person['title'] = c
-    person['marc'] = [p] + list(marc_alt)
-
-    return person
 
 def work_and_marc():
     i = 0
@@ -140,12 +101,16 @@ def from_sample():
     i = 0
     pages = {}
     page_marc = {}
-    for line in open('sample'):
+    for line in open('work_and_marc5'):
         i += 1
         w = eval(line)
-        #print i, w['key'], w['title']
-        people, marc_alt = read_people(j[1] for j in w['lines'])
-
+#        print i, w['key'], w['title']
+#        print w['lines']
+        try:
+            people, marc_alt = read_people(j[1] for j in w['lines'])
+        except AssertionError:
+            print [j[1] for j in w['lines']]
+            raise
         marc_alt_reverse = defaultdict(set)
         for k, v in marc_alt.items():
             marc_alt_reverse[v].add(k)
@@ -158,11 +123,20 @@ def from_sample():
             for m in obj['marc']:
                 page_marc[m] = key
             if key in pages:
-                print key
+#                print key
+#                print p
+#                for m in pages[key]['marc']:
+#                    print m
+#                print
                 pages[key]['marc'].append(p)
             else:
                 pages[key] = obj
-                pprint(obj)
+#                pprint(obj)
+#                continue
+                if obj['name'][1].isdigit():
+                    print [j[1] for j in w['lines']]
+                    pprint(obj)
+#                assert not obj['name'][1].isdigit()
 
-#from_sample()
-read_works()
+from_sample()
+#read_works()

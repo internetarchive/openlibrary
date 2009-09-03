@@ -47,7 +47,6 @@ def read_serp(fh):
         (param, a, row_num, bib_records, heading, type_of_heading) = m.groups()
         assert str(cur_row) == row_num
         yield {
-            'param': param,
             'a': a,
             'bib_records': bib_records,
             'heading': heading,
