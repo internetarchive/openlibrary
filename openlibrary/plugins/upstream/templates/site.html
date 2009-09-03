@@ -30,6 +30,10 @@ $def with (page)
         <link rel="stylesheet" type="text/css" href="$s" />
 
     <link href="/css/master.css?format=raw" rel="stylesheet" type="text/css" />
+    
+    <script type="text/javascript">
+        \$().ready(setupSearch);
+    </script>
 </head>
 
 <body id="user">
@@ -42,7 +46,7 @@ $def with (page)
             <input type="text" name="q" class="query" value="" title="type_search."/>
             <input type="submit" value="$_('Search')"/>
 
-            <div class="right"><a href="javascript:;" id="searchHead">$_("More search options")</a></div>
+            <div class="right"><a href="javascript:;" id="searchHead" text2="$_('Hide options')">$_("More search options")</a></div>
             <div class="searchFilter"><input type="checkbox" value="mhsncqbxgkup" id="ftokenstop" name="ftokens" checked="checked"/> <label for="ftokenstop">$_("Scanned books only?")</label></div>
 
             <div id="topOptions" class="searchOptions hidden">
@@ -106,7 +110,7 @@ $def with (page)
             <form method="get" action="/fullsearch" class="siteSearchText">
             <input type="hidden" name="safe" value="false"/>
                 <div class="formElement special">
-                <label for="textSearch1"><a href="javascript:;" class="fullText">$_("Search text within works instead")</a></label>
+                <label for="textSearch1"><a href="javascript:;" class="fullText" text2="$_('Search book info only')">$_("Search text within works instead")</a></label>
                 </div>
                 <div class="searchText hidden">
 
@@ -229,7 +233,7 @@ $def with (page)
                 <form method="get" action="/fullsearch" class="siteSearchText">
                     <input type="hidden" name="safe" value="false"/>
                     <div class="formElement">
-                        <label for="textSearch1"><a href="javascript:;" class="fullText">Search text within works instead</a></label>
+                        <label for="textSearch1"><a href="javascript:;" class="fullText" text2="Search book info only">Search text within works instead</a></label>
                     </div>
 
                     <div class="searchText hidden">

@@ -8,6 +8,5 @@ JS_OBJECTS=$(JS_SOURCES:%=js/%)
 
 default: js/vendor.js
     
-js/vendor.js: $(JS_OBJECTS)
+js/vendor.js: $(JS_OBJECTS) Makefile
 	cat $(JS_OBJECTS) > $@
-	echo "$@?`md5sum $@`" | awk '{print $$1;}'
