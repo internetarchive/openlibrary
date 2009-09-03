@@ -1,4 +1,4 @@
-$def with (d={})
+$def with (form)
 
 $var title: $_("Reset Password")
 
@@ -10,13 +10,8 @@ $var title: $_("Reset Password")
             
 <div id="contentBody">
     <form id="register" class="reminder" name="reset" method="post">
-        <div class="formElement">
-            <div class="input">
-                <div class="label"><label for="password">$_("Choose a Password")</label></div>
-
-                <input type="password" name="password" id="password" class="required password" value="$d.get('password')"/>
-            </div>
-        </div>
+        
+        $:form.render()
 
         <div class="formElement bottom">
             <div class="input">

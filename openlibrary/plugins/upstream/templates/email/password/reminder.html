@@ -1,4 +1,4 @@
-$def with (username, code)
+$def with (username, link)
 
 $var subject: You've forgotten your password?
 
@@ -8,7 +8,7 @@ We were informed that you've forgotten the password on your Open Library account
 
 Just click on the link below - that will take you to the reset page:
 
-http://openlibrary.org/account/password/reset?username=$username&code=$code
+$:link
 
 If you didn't request to reset your password, you can disregard this email, and apologies for the interruption.
 

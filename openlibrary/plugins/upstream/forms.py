@@ -10,6 +10,7 @@ Login = Form(
     Hidden('redirect')
 )
 
+email_already_used = Validator(_("No user registered with this email address"), lambda email: web.ctx.site.find_user_by_email(email) is not None)
 email_not_already_used = Validator(_("Email already used"), lambda email: web.ctx.site.find_user_by_email(email) is None)
 username_validator = Validator(_("Username already used"), lambda username: web.ctx.site.get('/user/' + username) is None)
 
@@ -46,4 +47,12 @@ ChangePassword= Form(
 
 ChangeEmail = Form(
     Textbox('email', label=_("Your New Email Address"), validators=[vemail, email_not_already_used])
+)
+
+ForgotPassword = Form(
+    Textbox('email', label=_("Your Email Address"), validators=[vemail, email_already_used])
+)
+
+ResetPassword = Form(
+    Password('password', label=_("Choose a Password"), validators=[vpass])
 )

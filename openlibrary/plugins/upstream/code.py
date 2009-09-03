@@ -234,18 +234,22 @@ class account_password_forgot(delegate.page):
     path = "/account/password/forgot"
 
     def GET(self):
-        i = web.input(email='')
-        return render['account/password/forgot'](i)
+        f = forms.ForgotPassword()
+        return render['account/password/forgot'](f)
         
     def POST(self):
-        i = web.input(email='')        
-        try:
-            d = get_user_code(i.email)
-        except ClientException, e:
-            add_flash_message('error', _('No user registered with the specified email address.'))
-            return self.GET()
+        i = web.input(email='')
         
-        msg = render['email/password/reminder'](d.username, d.code)
+        f = forms.ForgotPassword()
+        
+        if not f.validates(i):
+            return render['account/password/forgot'](f)
+        
+        d = get_user_code(i.email)
+        
+        link = web.ctx.home + '/account/password/reset' + '?' + urllib.urlencode({'code': d.code, 'username': d.username})
+        
+        msg = render['email/password/reminder'](d.username, link)
         sendmail(i.email, msg)
         
         return render['account/password/sent'](i.email)
@@ -254,12 +258,33 @@ class account_password_reset(delegate.page):
     path = "/account/password/reset"
 
     def GET(self):
-        i = web.input()
-        return render['account/password/reset'](i)
-        
+        i = web.input(username='', code='')
+    
+        try:
+            web.ctx.site.check_reset_code(i.username, i.code)
+        except ClientException, e:
+            title = _("Password reset failed.")
+            message = web.safestr(e)
+            return render.message(title, message)
+            
+        f = forms.ResetPassword()
+        return render['account/password/reset'](f)
+            
     def POST(self):
-        i = web.input("code", "username", 'password')
+        i = web.input(username='', code='')
+
+        try:
+            web.ctx.site.check_reset_code(i.username, i.code)
+        except ClientException, e:
+            title = _("Password reset failed.")
+            message = web.safestr(e)
+            return render.message(title, message)
         
+        f = forms.ResetPassword()
+        
+        if not f.validates(i):
+            return render['account/password/reset'](f)
+            
         try:
             reset_password(i.username, i.code, i.password)
             web.ctx.site.login(i.username, i.password, False)

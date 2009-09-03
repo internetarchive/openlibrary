@@ -108,6 +108,9 @@ class Form:
         
     def __call__(self):
         return copy.deepcopy(self)
+        
+    def __str__(self):
+        return web.safestr(self.render())
 
     def render(self):
         return "\n".join(self._render())
