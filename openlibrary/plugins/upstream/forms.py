@@ -43,3 +43,7 @@ ChangePassword= Form(
     Password('password', label=_("Current Password"), validators=[validate_password]),
     Password('new_password', label=_("Choose a New Password"))
 )
+
+ChangeEmail = Form(
+    Textbox('email', label=_("Your New Email Address"), validators=[vemail, email_not_already_used])
+)

@@ -142,6 +142,69 @@ class account_verify(delegate.page):
         else:
             return render['account/verify/failed']()
 
+class account_email(delegate.page):
+    path = "/account/email"
+    
+    def get_email(self):
+        username = web.ctx.site.get_user().key
+        return get_user_email(username)
+    
+    @require_login
+    def GET(self):
+        f = forms.ChangeEmail()
+        return render['account/email'](self.get_email(), f)
+    
+    @require_login
+    def POST(self):
+        f = forms.ChangeEmail()
+        i = web.input()
+        
+        if not f.validates(i):
+            return render['account/email'](self.get_email(), f)
+        else:
+            username = web.ctx.site.get_user().key.split('/')[-1]
+            
+            code = _generate_salted_hash(get_secret_key(), username + ',' + i.email)
+            link = web.ctx.home + '/account/email/verify' + '?' + urllib.urlencode({"username": username, 'email': i.email, 'code': code})
+
+            msg = render['email/email/verify'](username=username, email=i.email, link=link)
+            sendmail(i.email, msg)
+            
+            title = _("Hi %(user)s", user=username)
+            message = _("We've sent an email to %(email)s. You'll need to read that and click on the verification link to update your email.", email=i.email)
+            return render.message(title, message)
+            
+class account_email_verify(delegate.page):
+    path = "/account/email/verify"
+    
+    def GET(self):
+        i = web.input(username='', email='', code='')
+        
+        verified = _verify_salted_hash(get_secret_key(), i.username + ',' + i.email, i.code)
+        if verified:
+            if web.ctx.site.find_user_by_email(i.email) is not None:
+                title = _("Email address is already used.")
+                message = _("Your email address couldn't be updated. The specified email address is already used.")
+            else:
+                web.ctx.site.update_user_details(i.username, email=i.email)
+                title = _("Email verification successful.")
+                message = _('Your email address has been successfully verified and updated in your account.')
+        else:
+            title = _("Email address couldn't be verified.")
+            message = _("Your email address couldn't be verified. The verification link seems invalid.")
+            
+        return render.message(title, message)
+    
+class account_delete(delegate.page):
+    path = "/account/delete"
+    @require_login
+    def GET(self):
+        return render['account/delete']()
+    
+    @require_login
+    def POST(self):
+        return "Not yet implemented"
+
 class account_password(delegate.page):
     path = "/account/password"
 
@@ -166,35 +229,7 @@ class account_password(delegate.page):
             
         add_flash_message('note', _('Your password has been updated successfully.'))
         web.seeother('/')
-
-class account_password_reset(delegate.page):
-    path = "/account/password/reset"
-    def GET(self):
-        return render['account/password/reset']()
         
-    def POST(self):
-        return "Not yet implemented"
-        
-class account_email(delegate.page):
-    path = "/account/email"
-    @require_login
-    def GET(self):
-        return render['account/email']()
-    
-    @require_login
-    def POST(self):
-        return "Not yet implemented"
-    
-class account_delete(delegate.page):
-    path = "/account/delete"
-    @require_login
-    def GET(self):
-        return render['account/delete']()
-    
-    @require_login
-    def POST(self):
-        return "Not yet implemented"
-
 class account_password_forgot(delegate.page):
     path = "/account/password/forgot"
 
@@ -236,7 +271,14 @@ class account_password_reset(delegate.page):
 
 def sendmail(to, msg, cc=None):
     cc = cc or []
-    web.sendmail(config.from_address, to, subject=msg.subject.strip(), message=web.safestr(msg), cc=cc)
+    if config.get('dummy_sendmail'):
+        print 'To:', to
+        print 'From:', config.from_address
+        print 'Subject:', msg.subject
+        print
+        print web.safestr(msg)
+    else:
+        web.sendmail(config.from_address, to, subject=msg.subject.strip(), message=web.safestr(msg), cc=cc)
     
 def as_admin(f):
     """Infobase allows some requests only from admin user. This decorator logs in as admin, executes the function and clears the admin credentials."""
@@ -254,7 +296,7 @@ def get_user_code(email):
 
 @as_admin
 def get_user_email(username):
-    return web.ctx.site.get_user_email(username)
+    return web.ctx.site.get_user_email(username).email
 
 @as_admin
 def reset_password(username, code, password):
