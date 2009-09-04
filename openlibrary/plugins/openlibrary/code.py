@@ -612,10 +612,6 @@ class invalidate(delegate.page):
             thing = client.Thing(web.ctx.site, d['key'], client.storify(d))
             client._run_hooks('on_new_version', thing)
             
-class doom(delegate.page):
-    def GET(self):
-        failed
-
 def save_error():
     t = datetime.datetime.utcnow()
     name = '%04d-%02d-%02d/%02d%02d%02d%06d' % (t.year, t.month, t.day, t.hour, t.minute, t.second, t.microsecond)
