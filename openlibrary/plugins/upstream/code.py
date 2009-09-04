@@ -173,7 +173,7 @@ class account_create(delegate.page):
             return render['account/create'](f)
         
         code = _generate_salted_hash(get_secret_key(), i.username + ',' + i.email)
-        link = web.ctx.home + "/account/verify" + urllib.urlencode({'username': i.username, 'email': i.email, 'code': code})
+        link = web.ctx.home + "/account/verify?" + urllib.urlencode({'username': i.username, 'email': i.email, 'code': code})
         
         msg = render['email/account/verify'](username=i.username, email=i.email, password=i.password, link=link)
         sendmail(i.email, msg)
