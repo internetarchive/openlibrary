@@ -7,6 +7,7 @@ import os
 import re
 import urllib
 import socket
+import datetime
 
 import infogami
 
@@ -610,4 +611,32 @@ class invalidate(delegate.page):
         for d in data:
             thing = client.Thing(web.ctx.site, d['key'], client.storify(d))
             client._run_hooks('on_new_version', thing)
+            
+class doom(delegate.page):
+    def GET(self):
+        failed
 
+def save_error():
+    t = datetime.datetime.utcnow()
+    name = '%04d-%02d-%02d/%02d%02d%02d%06d' % (t.year, t.month, t.day, t.hour, t.minute, t.second, t.microsecond)
+    
+    path = infogami.config.get('errorlog', 'errors') + '/'+ name + '.html'
+    dir = os.path.dirname(path)
+    if not os.path.exists(dir):
+        os.makedirs(dir)
+    
+    error = web.safestr(web.djangoerror())
+    f = open(path, 'w')
+    f.write(error)
+    f.close()
+    
+    print >> web.debug, 'error saved to', path
+    
+    return name
+
+def internalerror():
+    name = save_error()
+    msg = render.site(render.internalerror(name))
+    raise web.internalerror(web.safestr(msg))
+    
+delegate.app.internalerror = internalerror
