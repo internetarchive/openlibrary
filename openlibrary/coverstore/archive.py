@@ -89,6 +89,8 @@ def archive():
         covers = _db.select('cover', where='archived=$f', order='id', vars={'f': False})
         for cover in covers:
             id = "%010d" % cover.id
+
+            print 'archiving', cover
             
             files = {
                 'filename': web.storage(name=id + '.jpg', filename=cover.filename),
@@ -103,7 +105,7 @@ def archive():
                 d.path = os.path.join(config.data_root, "localdisk", d.filename)
                     
             if any(not os.path.exists(d.path) for d in files.values()):
-                print "Missing image file for %010d" % cover.id
+                print >> web.debug, "Missing image file for %010d" % cover.id
                 continue
             
             if isinstance(cover.created, basestring):
