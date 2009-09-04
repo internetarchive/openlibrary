@@ -17,6 +17,7 @@ if not hasattr(infogami.config, 'features'):
 from infogami.utils import types, delegate
 from infogami.utils.view import render, public, safeint
 from infogami.infobase import client, dbstore
+from infogami.core.db import ValidationException
 
 import processors
 
@@ -115,6 +116,14 @@ client.register_thing_class('/type/author', Author)
 client.register_thing_class('/type/edition', Edition)
 client.register_thing_class('/type/work', Work)
 client.register_thing_class('/type/user', User)
+
+class hooks(client.hook):
+    def before_new_version(self, page):
+        if page.key.startswith('/a/') or page.key.startswith('/authors/'):
+            if page.type.key == '/type/delete' and page.books != []:
+                raise ValidationException("Deleting author pages is not allowed.")
+            elif page.type.key != '/type/author' and page.books != []:
+                raise ValidationException("Changing type of author pages is not allowed.")
 
 @infogami.action
 def sampledump():
