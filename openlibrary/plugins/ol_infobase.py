@@ -42,7 +42,7 @@ def init_plugin():
     server.app.add_mapping("/([^/]*)/count_editions_by_work", __name__ + ".count_editions_by_work")
     server.app.add_mapping("/([^/]*)/most_recent", __name__ + ".most_recent")
     server.app.add_mapping("/([^/]*)/clear_cache", __name__ + ".clear_cache")
-    
+        
 def get_db():
     site = server.get_site('openlibrary.org')
     return site.store.db
@@ -167,6 +167,15 @@ def write_booklog2(site, old, new):
 def http_notify(site, old, new):
     """Notify listeners over http."""
     data = simplejson.dumps(new.format_data())
+    key = data['key']
+
+    # optimize the most common case. 
+    # The following prefixes are never cached at the client. Avoid cache invalidation in that case.
+    not_cached = ['/b/', '/a/', '/books/', '/authors/', '/works/', '/subjects/', '/publishers/']
+    for prefix in not_cached:
+        if key.startswith(prefix):
+            return
+                    
     for url in config.http_listeners:
         try:
             urllib.urlopen(url, data)
@@ -174,3 +183,4 @@ def http_notify(site, old, new):
             print >> web.debug, "failed to send http_notify", url, new.key
             import traceback
             traceback.print_exc()
+
