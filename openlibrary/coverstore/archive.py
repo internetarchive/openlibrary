@@ -84,48 +84,51 @@ def archive():
     tar_manager = TarManager()
     
     _db = db.getdb()
-    
-    covers = _db.select('cover', where='archived=$f', order='id', vars={'f': False})
-    for cover in covers:
-        id = "%010d" % cover.id
-        
-        files = {
-            'filename': web.storage(name=id + '.jpg', filename=cover.filename),
-            'filename_s': web.storage(name=id + '-S.jpg', filename=cover.filename_s),
-            'filename_m': web.storage(name=id + '-M.jpg', filename=cover.filename_m),
-            'filename_l': web.storage(name=id + '-L.jpg', filename=cover.filename_l),
-        }
-        # required until is coverstore is completely migrated to new code.
-        ensure_thumbnail_created(cover.id, find_image_path(cover.filename))
-        
-        for d in files.values():
-            d.path = os.path.join(config.data_root, "localdisk", d.filename)
+
+    try:
+        covers = _db.select('cover', where='archived=$f', order='id', vars={'f': False})
+        for cover in covers:
+            id = "%010d" % cover.id
+
+            print 'archiving', cover
+            
+            files = {
+                'filename': web.storage(name=id + '.jpg', filename=cover.filename),
+                'filename_s': web.storage(name=id + '-S.jpg', filename=cover.filename_s),
+                'filename_m': web.storage(name=id + '-M.jpg', filename=cover.filename_m),
+                'filename_l': web.storage(name=id + '-L.jpg', filename=cover.filename_l),
+            }
+            # required until is coverstore is completely migrated to new code.
+            ensure_thumbnail_created(cover.id, find_image_path(cover.filename))
+            
+            for d in files.values():
+                d.path = os.path.join(config.data_root, "localdisk", d.filename)
+                    
+            if any(not os.path.exists(d.path) for d in files.values()):
+                print >> web.debug, "Missing image file for %010d" % cover.id
+                continue
+            
+            if isinstance(cover.created, basestring):
+                from infogami.infobase import utils
+                cover.created = utils.parse_datetime(cover.created)    
+            
+            timestamp = time.mktime(cover.created.timetuple())
                 
-        if any(not os.path.exists(d.path) for d in files.values()):
-            print "Missing image file for %010d" % cover.id
-            continue
+            for d in files.values():
+                d.newname = tar_manager.add_file(d.name, open(d.path), timestamp)
+                
+            _db.update('cover', where="id=$cover.id",
+                archived=True, 
+                filename=files['filename'].newname,
+                filename_s=files['filename_s'].newname,
+                filename_m=files['filename_m'].newname,
+                filename_l=files['filename_l'].newname,
+                vars=locals()
+            )
         
-        if isinstance(cover.created, basestring):
-            from infogami.infobase import utils
-            cover.created = utils.parse_datetime(cover.created)    
-        
-        timestamp = time.mktime(cover.created.timetuple())
-            
-        for d in files.values():
-            d.newname = tar_manager.add_file(d.name, open(d.path), timestamp)
-            
-        _db.update('cover', where="id=$cover.id",
-            archived=True, 
-            filename=files['filename'].newname,
-            filename_s=files['filename_s'].newname,
-            filename_m=files['filename_m'].newname,
-            filename_l=files['filename_l'].newname,
-            vars=locals()
-        )
-    
-        for d in files.values():
-            print 'removing', d.path            
-            os.remove(d.path)
-    
-    #logfile.close()
-    tar_manager.close()
+            for d in files.values():
+                print 'removing', d.path            
+                os.remove(d.path)
+    finally:
+        #logfile.close()
+        tar_manager.close()

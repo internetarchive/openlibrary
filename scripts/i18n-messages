@@ -1,0 +1,39 @@
+#! /usr/bin/env python
+"""Utility script to extract all translatable messages from templates and 
+macros and write to openlibrary/i18n/messages.pot file.
+"""
+import _init_path
+
+import sys
+from openlibrary import i18n
+
+def help():
+    print "utility to manage i18n messages"
+    print 
+    print "USAGE: %s [extract|compile|update]" % sys.argv[0]
+    print 
+    print "Available Commands:"
+    print "  compile - compile the message files (.po) to .mo"
+    print "  extract - extract i18n messages from templates and macros"
+    print "  update  - update the existing translations by adding newly added string to it."
+    print "  help    - display this help message"
+    
+def main(cmd):
+    if cmd == 'extract':
+        i18n.extract_messages(["openlibrary/plugins/upstream"])
+    elif cmd == 'compile':
+        i18n.compile_translations()
+    elif cmd == 'update':
+        i18n.update_translations()
+    elif cmd == 'help':
+        help()
+    else:
+        print >> sys.stderr, "unknown command: %s" % repr(cmd)
+        sys.exit(2)
+
+if __name__ == "__main__":
+    if len(sys.argv) == 2:
+        main(sys.argv[1])
+    else:
+        help()
+        sys.exit(1)

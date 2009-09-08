@@ -7,6 +7,7 @@ $if lang:
     $ lang = "lang-" + lang
 
 $def splitlines(text):
+    $ text = text.rstrip()
     $ n = text.count("\n") + 1
     <table>
     <tr>

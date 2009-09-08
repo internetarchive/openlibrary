@@ -1,0 +1,13 @@
+$def with (email)
+
+$var title: $_("Password Reminder")
+
+<div id="contentHead">
+    <div class="head">
+        <h1>$_("Password Reminder")</h1>
+    </div>
+</div>
+ 
+<div id="contentBody">
+    $:_("We have sent an email to %(email)s with instructions to reset password. Please check your email and follow the instructions to reset your password.", email='<b>' + email + '</b>')
+</div>

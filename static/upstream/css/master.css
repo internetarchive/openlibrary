@@ -1,0 +1,516 @@
+/* RESET EVERYTHING */
+
+body,div,dl,dt,dd,ul,ol,li,h1,h2,h3,h4,h5,h6,pre,code,form,fieldset,legend,input,textarea,p,blockquote,th,td{margin:0;padding:0;}table{border-collapse:collapse;border-spacing:0;}fieldset,img{border:0;}address,caption,cite,code,dfn,em,strong,th,var{font-style:normal;font-weight:normal;}li{list-style:none;}caption,th{text-align:left;}h1,h2,h3,h4,h5,h6{font-size:100%;font-weight:normal;}q:before,q:after{content:'';}abbr,acronym{border:0;font-variant:normal;}
+/*SET FONT SIZES AS em, DIVIDING YOUR PIXEL SIZE by 16 (i.e. 12px = 12/16 or 0.7em)*/
+
+/* DEFINE SOME DEFAULTS */
+
+b,strong{font-weight:700;}
+i,em{font-style:italic;}
+ol{margin-left:1.5em;}
+ol li{list-style:decimal!important;}
+
+/* SITE DEFAULTS */
+
+body {text-align:center;font-size:100%;line-height:1.0em;}
+a{color:#036daa;text-decoration:underline;}
+a.on,a:hover.on,a:visited.on {color:#000;cursor:default;text-decoration:none;}
+a:hover {color: #35672e;}
+a:visited {color: #036;}
+.smaller{font-size:75%!important;}
+.smallest{font-size:50%!important;}
+.reduce{font-size: 50%;}
+.larger{font-size:1.0em;}
+.largest{font-size:1.125em;}
+.hidden{display:none;}
+.attn{color:#e44028;}
+.right{float:right;margin:0 0 8px 8px;}
+.left{float:left;margin:0 8px 8px 0;}
+.uppercase {text-transform: uppercase!important;}
+.lowercase {text-transform: lowercase!important;}
+.lighter {color:#666;}
+.sansserif {font-family:"Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif!important;}
+.serif {font-family: "Palatino Linotype", "Book Antiqua", Palatino, Georgia, serif!important;}
+.clearfix:after {content:".";display:block;height:0;clear:both;visibility:hidden;}
+    
+/* TYPOGRAPHY */
+
+div.head {}
+div.unordered {margin-top:10px;line-height:150%;}
+h1,h2,h3,h4,h5,h6 {display:inline;font-family:"News Gothic MT","Arial Rounded MT",Geneva,Helvetica,sans-serif;color:#00636a;font-weight:600;padding-right:8px;line-height:normal;}
+h1 {font-size: 1.875em;} /*30px (30/16=1.875)*/
+h2 {font-size: 1.375em;} /*24px (24/16=1.375)*/
+h3 {font-size: 1.125em;} /*18px (18/16=1.125)*/
+h4 {font-size: 1.0em;} /*16px (16/16=1)*/
+h5 {font-size: 0.875em;font-family:"Palatino Linotype", "Book Antiqua", Palatino, Georgia,serif!important;font-weight:normal!important;} /*14px (14/16=.875)*/
+h6 {font-size: 0.75em;} /*12px (12/16=.75)*/
+span.link {font-size: 0.6875em;color: #929292;font-family:"Lucida Grande",Verdana,Geneva,Helvetica, sans-serif;white-space: nowrap;}
+span.tools {font-size: 0.6875em;color: #333;font-weight: normal;font-family:"Lucida Grande",Verdana,Geneva,Helvetica,sans-serif;}
+span.title {font-size: 0.875em;font-family: "News Gothic MT","Arial Rounded MT",Helvetica,Geneva,sans-serif;font-weight: 700;}
+span.tag {font-size: 0.875em;font-family: "Palatino Linotype", "Book Antiqua", Palatino, Georgia, serif;color:#666;}
+span.count {font-size: 0.6875em!important;font-family: "Lucida Grande",Verdana,Helvetica,Geneva,sans-serif;color: #615132;white-space: nowrap;}
+h2 span.count {font-size: 0.8125em!important;}
+span.caption {float:right;font-size:0.5625em;font-family:"Lucida Grande",Verdana,Helvetica,Geneva,sans-serif;font-weight:600;color:#999;text-transform:uppercase;}
+
+p{font-size:1.0em;line-height:1.375em;margin:10px 0;}
+body {font-family:"Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;}
+div#content{font-family:"Palatino Linotype", "Book Antiqua", Palatino, Georgia,"Times New Roman",serif;}
+input[type=text],select,textarea{font-family:"Lucida Grande",Verdana,Geneva,Helvetica,sans-serif;color:#454545;}
+input,select,textarea{font-size:0.875em;}
+input[type=submit]{font-size:0.6875em;}
+#content input[type=submit]{font-size:1.125em;}
+p.instruct {font-family:"Lucida Grande",Verdana,Geneva,Helvetica,sans-serif;font-size:0.875em;}
+.related {margin-top: 10px;}
+
+
+/* LAYOUT */
+
+div#placement {width:960px;margin:0 auto;text-align:left;clear:both;}
+div#position {width:960px;float:left;position:relative;}
+div#content,div#footer{clear:both;float:left;}
+div#header{width:960px;clear:both;}
+div#content{width:958px;min-height:580px;border:1px solid #d3ccb0;background-color:#fff;}
+div#footer{width:960px;height:150px;position:relative;}
+div#bottom{width:100%;clear:both;margin-top:30px;float:left;}
+body#user div#bottom {background-color: #cbc4a7;}
+body#admin div#bottom {background-color: #b9b9b9;}
+div#legal{width:905px;margin:0 auto;padding:0 10px;text-align:left;}
+
+/* PALETTE */
+
+body#user {background-color: #e2dcc5;}
+body#admin {background-color: #d3d3d3;}
+
+/* FORMS */
+div.formElement {
+    padding-bottom: 8px;
+}
+div.formElement.bottom {
+    padding-bottom: 20px;
+}
+div.formElement label {
+    font-size: 0.6875em;
+}
+div.formElement .input label {
+    font-size: 1.0em;
+}
+
+/* SIGN UP FORM */
+form#register,
+form#notifications {
+  font-family: "Lucida Grande", "Trebuchet MS", Geneva, Helvetica, sans-serif;
+}
+form#register .label {
+    width: 838px;
+    padding: 10px 0 5px;
+}
+form#register .label label {
+    font-size: 1.0em;
+    font-family: "Lucida Grande", "Trebuchet MS", Geneva, Helvetica, Arial, sans-serif;
+    font-weight: 700;
+}
+form#register .label span {
+    font-weight: normal;
+}
+form#register input[type=text],
+form#register input[type=password] {
+    width: 475px;
+    font-size: 1.125em;
+    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+    padding: 3px;
+}
+form#register .input {
+    width: 838px;
+}
+form#notifications input[type=radio] {
+  margin: 0 10px 0 20px;
+}
+div.invalid,
+div.valid,
+div#emailLoading,
+div#emailResult,
+div#usernameLoading,
+div#usernameResult {
+    float: left;
+    font-size: 1.0em!important;
+    font-family: "News Gothic MT","Trebuchet MS",Geneva,Helvetica,sans-serif;
+    height: 23px;
+	padding: 5px 0 0 8px;
+}
+.invalid {
+    color: #e44028;
+/*	background: url("http://home.us.archive.org/~larthur/images/icons/icon_alert.png") 0 0 no-repeat; */
+}
+.valid {
+    color: #35672e;
+	padding: 5px 0 0 29px!important;
+	background: url("http://home.us.archive.org/~larthur/images/icons/icon_check.png") 0 0 no-repeat;
+}
+input.highlight {
+    background-color: #fffdcd;
+}
+form#register .formElement,
+form#register .label,
+form#register .input,
+form#register input[type=text],
+form#register input[type=password] {
+    float: left;
+}
+div#recaptcha_image {
+    margin-bottom: 5px;
+}
+
+/* SEARCH FORMS */
+.optionsScript {display:none;}
+div#headerSearch,
+div#footerSearch {
+    position: absolute;
+    z-index: 1000;
+    right: 0;
+    width: 285px;
+    overflow: visible;
+    padding: 9px;
+    padding-bottom: 0;
+    -moz-border-radius: 8px;
+    -webkit-border-radius: 8px;
+    border-radius: 8px;
+}
+div#headerSearch {
+    top: 75px;
+}
+div#footerSearch {
+    bottom: 80px;
+}
+div#headerSearch.darker,
+div#footerSearch.darker {
+	-moz-box-shadow: 1px 1px 10px #333;
+ 	-webkit-box-shadow: 1px 1px 10px #333;
+ 	box-shadow: 1px 1px 10px #333;
+}
+body#user div#headerSearch.darker,
+body#user div#footerSearch.darker {
+    background-color: #d3ccb0;
+}
+body#admin div#headerSearch.darker,
+body#admin div#footerSearch.darker {
+    background-color: #c1c1c1;
+}
+div#bottomText {
+    width: 285px;
+    border-bottom: 1px dotted #fff;
+}
+div#bottomText div.formElement.special {
+    padding: 9px 15px 8px;
+    border-bottom: 1px dotted #fff;
+}
+div.searchFilter,
+div#headerSearch div.right,
+div#footerSearch div.right {
+    padding: 10px 0 0 5px;
+    font-size: 0.6875em;
+} 
+input.query {
+    width: 205px;
+    margin-right: 3px;
+}
+div.searchOptions {
+    padding-top: 8px;
+    width: 285px;
+}
+div.searchOptions input[type=text] {
+    width: 210px;
+}
+div.searchText textarea {
+    width: 275px;
+}
+div.searchOptions .formElement {
+    padding: 0 2px 8px 2px;
+}
+div.searchOptions div.formElement.special {
+    padding: 9px 0 8px;
+    border-top: 1px dotted #fff;
+}
+
+/* PAGE TOOLS (ICONS) */
+div#tools {float:right;margin:-10px 0 20px;}
+div#tools a {display:block;float:left;margin-left:30px;width:32px;height:10px;padding-top:32px;text-align:center;font-size:0.5em;font-family:"Lucida Grande", Geneva, Helvetica, sans-serif;color:#666;text-decoration:none;background-repeat:no-repeat;background-image:url(http://home.us.archive.org/~larthur/images/icons/icons_sprite.png);}
+div#tools a:hover {color:#000;}
+div#tools a.edit {background-position:0 0;}
+div#tools a.edit:hover {background-position:-32px 0;}
+div#tools a.listAdd {background-position:-64px 0;}
+div#tools a.listAdd:hover {background-position:-96px 0;}
+div#tools a.read {background-position:-128px 0;}
+div#tools a.read:hover {background-position:-160px 0;}
+div#tools a.download {background-position: -192px 0;}
+div#tools a.download:hover {background-position: -224px 0;}
+div#tools a.buy {background-position: -320px 0;}
+div#tools a.buy:hover {background-position: -352px 0;}
+div#abuse {float:right;margin-top:-20px;}
+div#abuse a {display:block;text-align:center;font-size:0.5em;font-family:"Lucida Grande", Geneva, Helvetica, sans-serif;color:#666;text-decoration:none;white-space:nowrap;}
+div#abuse a span {display:block;margin:0 auto 3px;width:32px;height:32px;background-repeat:no-repeat;background-image:url(http://home.us.archive.org/~larthur/images/icons/icons_sprite.png);background-position: -576px 0;}
+div#abuse a:hover {color:#000;}
+div#abuse a:hover span {background-position: -608px 0;}
+
+
+/* MESSAGING */
+div.alert, div.verify {
+    font: 1.25em "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+}
+div.alert span, div.verify span {
+    margin: 0 auto;
+    min-height: 25px;
+    padding: 5px 0 5px 32px;
+}
+div.alert span {background: url("http://home.us.archive.org/~larthur/images/icons/icon_alert.png") no-repeat;}
+div.verify span {background: url("http://home.us.archive.org/~larthur/images/icons/icon_check.png") no-repeat;}
+
+/* HEADER */
+
+div#headerNav {
+    position: relative;
+    float: left;
+    width: 370px;
+    height: 150px;
+}
+div#headerNav ul.links {
+    position: absolute;
+    left: 1px;
+    clear: left;
+    float: left;
+    width: 369px;
+}
+div#headerNav ul.links.first {
+    bottom: 66px;
+}
+div#headerNav ul.links.second {
+    bottom: 33px;
+}
+div#headerNav ul.links.third {
+    bottom: 0;
+}
+div#headerNav ul.links li {
+    display: block;
+    float: left;
+    width: 90px;
+    color: #000;
+    margin-right: 10px;
+}
+body#user div#headerNav ul.links li {
+    border-top: 1px solid #d3ccb0;
+}
+body#admin div#headerNav ul.links li {
+    border-top: 1px solid #c1c1c1;
+}
+div#headerNav ul.links li a,
+div#headerNav ul.links li span {
+    display: block;
+    width: 80px;
+    height: 22px;
+    padding: 10px 0 0 10px;
+    font-family: "News Gothic MT", "Trebuchet MS", Geneva, Helvetica, sans-serif;
+    font-size: 0.6875em;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #000;
+    text-decoration: none;
+}
+div#headerNav ul.links li a:hover {
+    background-color: #0e5a98;
+    color: #fff;
+}
+
+div#headerLogo {
+    position: relative;
+    float: left;
+    width: 220px;
+    height: 140px;
+    margin-top: 10px;
+}
+div#headerLogo span.title {position:absolute;top:-1000px;}
+div#headerLogo p.tagline {position:absolute;left:0;top:108px;width:220px;text-align:center;font-family:"News Gothic MT","Trebuchet MS",Geneva,Helvetica,sans-serif;font-size:0.6875em;color:#333;}
+div#headerLogo p.tagline a {color:#333;text-decoration:none;}
+
+div#headerTools {
+    float: left;
+    width: 360px;
+    padding-right: 10px;
+    min-height: 150px;
+}
+div#headerLogin {
+    text-align: right;
+    font-size: 0.6875em;
+    padding-top: 20px;
+    color: #999;
+}
+
+/* FOOTER */
+
+div.footerNav {
+    min-width: 110px;
+    float: left;
+    margin-left: 1px;
+    margin-right: 9px;
+}
+div.footerNav li {
+    width: 110px;
+}
+body#user div.footerNav li {
+    border-bottom: 1px solid #d3ccb0;
+}
+body#admin div.footerNav li {
+    border-bottom: 1px solid #c1c1c1;
+}
+div.footerNav li a {
+    display: block;
+    width: 100px;
+    height: 22px;
+    padding: 10px 0 0 10px;
+    font-family: "News Gothic MT", "Trebuchet MS", Geneva, Helvetica, sans-serif;
+    font-size: 0.6875em;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #000;
+    text-decoration: none;
+}
+div.footerNav li a:hover {
+    background-color: #0e5a98;
+    color: #fff;
+}
+
+div#bottom div#legal {
+    padding: 20px 0 100px 35px;
+    background: url("http://home.us.archive.org/~larthur/images/logo_IA-sm.png") no-repeat 0 20px;
+    
+}
+div#bottom div#legal p {
+    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+    font-size: 0.6875em;
+    color: #666;
+    margin: 0 0 20px 0;
+}
+
+
+
+/* CONTENT */
+
+
+div#contentMsg {
+    background-color: #fffdcd;
+    padding: 12px 0;
+    text-align: center;
+    display: none;
+}
+div#contentHead {
+    width: 918px;
+    padding: 30px 20px 20px;
+}
+div#contentBody {
+    width: 918px;
+    padding: 0 20px 20px;
+}
+div#content div#contentLists {
+    position: relative;
+    border-top: 1px solid #dcdcdc;
+    padding-top: 10px;
+    margin-top: 5px;
+    background: #fff url("http://home.us.archive.org/~larthur/images/back_results.png") repeat-x;
+}
+div.contentLeft {
+    float: left;
+    clear: left;
+    width: 439px;
+    padding-right: 20px;
+}
+div.contentRight {
+    float: left;
+    clear: right;
+    width: 439px;
+    padding-left: 20px;
+}
+div#contentMeta {
+    width: 918px;
+    float: left;
+    padding: 10px 20px 20px;
+}
+div#contentMeta div.spacer {
+    float: left;
+    width: 30px;
+    min-height: 10px;
+}
+div#resultsAuthors,
+div#resultsHistory {
+    width: 444px;
+    min-height: 100px;
+    margin-top: 30px;
+    float: left;
+}
+div#resultsAbout {
+    width: 918px;
+    margin-top: 30px;
+}
+
+/* RESULTS */
+
+div#resultsLists {
+    float: left;
+    margin-top: 20px;
+}
+div.list {
+    float: left;
+    width: 207px;
+    padding-top: 10px;
+}
+div.list .cover {
+    float: left;
+    width: 42px;
+    padding-right: 10px;
+}
+div.list img {
+  width: 42px;
+}
+div.list .copy {
+    float: left;
+    width: 155px;
+}
+div.list h5 {
+    font-family: "Palatino Linotype", "Book Antiqua", Palatino, Georgia, serif;
+    font-weight: normal;
+    color: #333;
+    margin-bottom: 5px;
+}
+div.list h5 span {
+    font-family: "Lucida Grande", Arial, Geneva, Helvetica, sans-serif;
+    font-size: 80%;
+}
+div.list .tags {
+    font-size: 0.75em;
+    line-height: 1.125em;
+    color: #666;
+    font-style: italic;
+    margin-bottom: 5px;
+}
+div.list .owner {
+    font-family: "Lucida Grande", Arial, Geneva, Helvetica, sans-serif;
+    font-size: 0.6875em;
+    color: #666;
+    text-align: right;
+}
+
+div.info {
+    border: 1px solid #FCEFA1;
+    background: #FBF9EE;
+    margin: 5px;
+    padding: 5px;
+}
+
+div.error {
+    border:1px solid #CD0A0A;
+    background: #FEF1EC;
+    color: #CD0A0A;
+    margin: 5px;
+    padding: 5px;
+}
+
+form .note {
+    color: red;
+}

@@ -1,0 +1,24 @@
+$def with (email, form)
+
+<div id="contentHead">
+    <div class="head">
+        <h1>$_("Change Your Email Address")</h1>
+    </div>
+</div>
+
+<div id="contentBody">
+    <form id="register" class="olform email" name="register" method="post">
+        <p class="instruct">$_("Your current email address is"): $email</p>
+
+        $:form.render()
+        
+        <div class="formElement bottom">
+            <div class="input">
+                <br/>
+                <input value="$_('Change It')" type="submit" name="submit" title="$_('Change It')"/>
+                &nbsp;
+                <a href="javascript:history.go(-1);" class="smaller attn">$_("Cancel")</a>
+            </div>
+        </div>
+    </form>
+</div>

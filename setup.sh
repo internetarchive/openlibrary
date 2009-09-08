@@ -19,3 +19,6 @@ else
     }
     get_tarball infogami master
 fi
+
+cd $root
+./scripts/i18n-messages compile

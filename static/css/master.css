@@ -482,3 +482,19 @@ td.cover {text-align: center; padding-left: 0px; width: 72px; }
 /*IMPORTED FROM TOC*/
 
 .toc-header { color: #666666; font-size: 16px; line-height: 16px; text-transform: uppercase; font-style: bold; padding-top: 0px; padding-bottom: 10px; }
+
+
+div.info {
+    border: 1px solid #FCEFA1;
+    background: #FBF9EE;
+    margin: 5px;
+    padding: 5px;
+}
+
+div.error {
+    border:1px solid #CD0A0A;
+    background: #FEF1EC;
+    color: #CD0A0A;
+    margin: 5px;
+    padding: 5px;
+}

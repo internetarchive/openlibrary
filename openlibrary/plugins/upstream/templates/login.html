@@ -1,0 +1,24 @@
+$def with (form)
+
+$var title: $("Log In")
+
+<div id="contentHead">
+    <div class="head">
+        <h1>$_("Log In")</h1>
+    </div>
+</div>
+
+<div id="contentBody">
+    <form id="register" class="login" name="register" method="post">
+
+        $:form.render()
+
+        <div class="formElement bottom">
+            <br/>
+            <input value="Log In" type="submit" name="submit" title="Log In"/>
+            &nbsp;
+            <a href="javascript:;" onclick="history.go(-1);" class="smaller attn">Cancel</a>
+        </div>
+    </form>
+</div>
+

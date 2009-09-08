@@ -7,11 +7,23 @@ import os
 import re
 import urllib
 import socket
+import datetime
 
 import infogami
+
+# make sure infogami.config.features is set
+if not hasattr(infogami.config, 'features'):
+    infogami.config.features = []
+    
 from infogami.utils import types, delegate
 from infogami.utils.view import render, public, safeint
 from infogami.infobase import client, dbstore
+from infogami.core.db import ValidationException
+
+import processors
+
+delegate.app.add_processor(processors.ReadableUrlProcessor())
+delegate.app.add_processor(processors.ProfileProcessor())
 
 # setup infobase hooks for OL
 from openlibrary.plugins import ol_infobase
@@ -34,6 +46,13 @@ infogami.config.infobase_parameters = dict(type="ol")
 
 types.register_type('^/a/[^/]*$', '/type/author')
 types.register_type('^/b/[^/]*$', '/type/edition')
+types.register_type('^/l/[^/]*$', '/type/language')
+
+types.register_type('^/works/[^/]*$', '/type/work')
+types.register_type('^/subjects/[^/]*$', '/type/subject')
+types.register_type('^/publishers/[^/]*$', '/type/publisher')
+
+types.register_type('^/(css|js)/[^/]*$', '/type/rawtext')
 
 # set up infobase schema. required when running in standalone mode.
 import schema
@@ -51,17 +70,31 @@ web.template.Template.globals['NEWLINE'] = "\n"
 infogami._install_hooks = [h for h in infogami._install_hooks if h.__name__ != "movefiles"]
 
 class Author(client.Thing):
+    photo_url_pattern = "%s?m=change_cover"
+    
     def get_edition_count(self):
         return web.ctx.site._request('/count_editions_by_author', data={'key': self.key})
     edition_count = property(get_edition_count)
     
+    def photo_url(self):
+        p = processors.ReadableUrlProcessor()
+        _, path = p.get_readable_path(self.key)
+        return self.photo_url_pattern % path
+    
 class Edition(client.Thing):
+    cover_url_pattern = "%s?m=change_cover"
+    
     def full_title(self):
         if self.title_prefix:
             return self.title_prefix + ' ' + self.title
         else:
             return self.title
             
+    def cover_url(self):
+        p = processors.ReadableUrlProcessor()
+        _, path = p.get_readable_path(self.key)
+        return self.cover_url_pattern % path
+        
     def __repr__(self):
         return "<Edition: %s>" % repr(self.full_title())
     __str__ = __repr__
@@ -84,6 +117,14 @@ client.register_thing_class('/type/author', Author)
 client.register_thing_class('/type/edition', Edition)
 client.register_thing_class('/type/work', Work)
 client.register_thing_class('/type/user', User)
+
+class hooks(client.hook):
+    def before_new_version(self, page):
+        if page.key.startswith('/a/') or page.key.startswith('/authors/'):
+            if page.type.key == '/type/delete' and page.books != []:
+                raise ValidationException("Deleting author pages is not allowed.")
+            elif page.type.key != '/type/author' and page.books != []:
+                raise ValidationException("Changing type of author pages is not allowed.")
 
 @infogami.action
 def sampledump():
@@ -177,6 +218,8 @@ def sampleload(filename="sampledump.txt.gz"):
     print web.ctx.site.save_many(queries)
 
 class addbook(delegate.page):
+    path = "/addbook"
+    
     def GET(self):
         d = {'type': web.ctx.site.get('/type/edition')}
 
@@ -186,7 +229,7 @@ class addbook(delegate.page):
             d['authors'] = [author]
         
         page = web.ctx.site.new("", d)
-        return render.edit(page, '/addbook', 'Add Book')
+        return render.edit(page, self.path, 'Add Book')
         
     def POST(self):
         from infogami.core.code import edit
@@ -195,6 +238,8 @@ class addbook(delegate.page):
         return edit().POST(key)
 
 class addauthor(delegate.page):
+    path = '/addauthor'
+        
     def POST(self):
         i = web.input("name")
         if len(i.name) < 2:
@@ -301,47 +346,13 @@ class flipbook(delegate.page):
     SCRIPT_PATH = "/petabox/sw/bin/find_item.php"
 
     def GET(self, identifier, leaf):
-        import os
-
-        if os.path.exists(self.SCRIPT_PATH):
-            server, path = self.find_location(identifier)
+        if leaf:
+            hash = '#page/n%s' % leaf
         else:
-            server, path = self.find_location_from_archive(identifier)
-
-        if  not server:
-            raise web.notfound()
-        else:
-            title = identifier
-            
-            params = dict(identifier=identifier, dataserver=server, datapath=path)
-            if leaf:
-                params['leaf'] = leaf
-            url = "http://%s/flipbook/flipbook.php?%s" % (server, urllib.urlencode(params))     
-            data = render.flipbook(url, title)
-            raise web.HTTPError("200 OK", {}, web.safestr(data))
-
-    def find_location_from_archive(self, identifier):
-        """Use archive.org to get the location.
-        """
-        from xml.dom import minidom
-
-        base_url = "http://www.archive.org/services/find_file.php?loconly=1&file="
-
-        try:
-            data= urllib.urlopen(base_url + identifier).read()
-            doc = minidom.parseString(data)
-            vals = [(e.getAttribute('host'), e.getAttribute('dir')) for e in doc.getElementsByTagName('location')]
-            return vals and vals[0]
-        except Exception:
-            return None, None
-            
-    def find_location(self, identifier):
-        import os
-        data = os.popen(self.SCRIPT_PATH + ' ' + identifier).read().strip()
-        if ':' in data:
-            return data.split(':', 1)
-        else:
-            return None, None
+            hash = ""
+        
+        url = "http://www.archive.org/stream/%s%s" % (identifier, hash)
+        raise web.seeother(url)
 
 class bookreader(delegate.page):
     path = "/bookreader/(.*)"
@@ -359,14 +370,14 @@ class robotstxt(delegate.page):
             raise web.HTTPError("200 OK", {}, data)
         except IOError:
             raise web.notfound()
-
+            
 class change_cover(delegate.mode):
     def GET(self, key):
         page = web.ctx.site.get(key)
         if page is None or page.type.key not in  ['/type/edition', '/type/author']:
             raise web.seeother(key)
         return render.change_cover(page)
-
+        
 class bookpage(delegate.page):
     path = r"/(isbn|oclc|lccn|ia|ISBN|OCLC|LCCN|IA)/([^.]*)"
 
@@ -395,7 +406,7 @@ class bookpage(delegate.page):
             result = web.ctx.site.things(q)
             if result:
                 raise web.seeother(result[0] + ext)
-            elif key == "ocaid":
+            elif key =='ia':
                 q = {"type": "/type/edition", 'source_records': 'ia:' + value}
                 result = web.ctx.site.things(q)
                 if result:
@@ -425,6 +436,25 @@ class rdf(delegate.mode):
                 raise web.notfound("")
             else:
                 return delegate.RawText(result, content_type="application/rdf+xml; charset=utf-8")
+
+delegate.media_types['application/marcxml+xml'] = 'marcxml'
+class marcxml(delegate.mode):
+    name = 'view'
+    encoding = 'marcxml'
+    
+    def GET(self, key):
+        page = web.ctx.site.get(key)
+        
+        if page is None or page.type.key != '/type/edition':
+            raise web.notfound("")
+        else:
+            from infogami.utils import template
+            try:
+                result = template.typetemplate('marcxml')(page)
+            except:
+                raise web.notfound("")
+            else:
+                return delegate.RawText(result, content_type="application/marcxml+xml; charset=utf-8")
 
 delegate.media_types['text/x-yaml'] = 'yml'
 class _yaml(delegate.mode):
@@ -512,72 +542,6 @@ class new:
         
 api and api.add_hook('new', new)
 
-def readable_url_processor(handler):
-    patterns = [
-        (r'/b/OL\d+M', '/type/edition', 'title'),
-        (r'/a/OL\d+A', '/type/author', 'name'),
-        (r'/w/OL\d+W', '/type/work', 'title'),
-        (r'/s/OL\d+S', '/type/series', 'title'),
-    ]
-    def get_readable_path():
-        path = get_real_path()
-        if web.ctx.get('encoding') is not None:
-            return web.ctx.path
-        
-        for pat, type, property in patterns:
-            if web.re_compile('^' + pat + '$').match(path):
-                thing = web.ctx.site.get(path)
-                if thing is not None and thing.type.key == type and thing[property]:
-                    title = thing[property].replace(' ', '-').encode('utf-8')
-                    return path + '/' + urllib.quote(title)
-        return web.ctx.path
-    
-    def get_real_path():
-        pat = '^(' + '|'.join(p[0] for p in patterns) + ')(?:/.*)?'
-        rx = web.re_compile(pat)
-        m = rx.match(web.ctx.path)
-        if m:
-            path = m.group(1)
-            return m.group(1)
-        else:
-            return web.ctx.path
-
-    # simple hack to avoid readable_url_processor interfering with the API
-    if web.ctx.path.endswith(".json"):
-        web.ctx.readable_path = web.ctx.path
-    else:
-        readable_path = get_readable_path()
-
-        #@@ web.ctx.path is either quoted or unquoted depends on whether the application is running
-        #@@ using builtin-server or lighttpd. Thats probably a bug in web.py. 
-        #@@ take care of that case here till that is fixed.
-        # @@ Also, the redirection must be done only for GET requests.
-        if readable_path != web.ctx.path and readable_path != urllib.quote(web.utf8(web.ctx.path)) and web.ctx.method == "GET":
-            raise web.seeother(readable_path.encode('utf-8') + web.ctx.query.encode('utf-8'))
-
-        web.ctx.readable_path = readable_path
-        web.ctx.path = get_real_path()
-        web.ctx.fullpath = web.ctx.path + web.ctx.query
-    return handler()
-
-def profile_processor(handler):
-    i = web.input(_method="GET", _profile="")
-    if i._profile.lower() == "true":
-        out, result = web.profile(handler)()
-        if isinstance(out, web.template.TemplateResult):
-            out.__body__ = out.get('__body__', '') + '<pre>' + web.websafe(result) + '</pre>'
-            return out
-        elif isinstance(out, basestring):
-            return out + '<pre>' + web.websafe(result) + '</pre>'
-        else:
-            # don't know how to handle this.
-            return out
-    else:
-        return handler()
-
-delegate.app.add_processor(readable_url_processor)
-delegate.app.add_processor(profile_processor)
-
 @public
 def changequery(query=None, **kw):
     if query is None:
@@ -605,15 +569,12 @@ def get_recent_changes(*a, **kw):
     else:
         return _get_recentchanges(*a, **kw)
 
-if infogami.config.get('features') is None:
-    infogami.config.features = []
-        
 @public
 def most_recent_change():
     if 'cache_most_recent' in infogami.config.features:
         v = web.ctx.site._request('/most_recent')
         v.thing = web.ctx.site.get(v.key)
-        v.author = v.author_id and web.ctx.site.get(v.author_id)
+        v.author = v.author and web.ctx.site.get(v.author)
         v.created = client.parse_datetime(v.created)
         return v
     else:
@@ -650,4 +611,28 @@ class invalidate(delegate.page):
         for d in data:
             thing = client.Thing(web.ctx.site, d['key'], client.storify(d))
             client._run_hooks('on_new_version', thing)
+            
+def save_error():
+    t = datetime.datetime.utcnow()
+    name = '%04d-%02d-%02d/%02d%02d%02d%06d' % (t.year, t.month, t.day, t.hour, t.minute, t.second, t.microsecond)
+    
+    path = infogami.config.get('errorlog', 'errors') + '/'+ name + '.html'
+    dir = os.path.dirname(path)
+    if not os.path.exists(dir):
+        os.makedirs(dir)
+    
+    error = web.safestr(web.djangoerror())
+    f = open(path, 'w')
+    f.write(error)
+    f.close()
+    
+    print >> web.debug, 'error saved to', path
+    
+    return name
 
+def internalerror():
+    name = save_error()
+    msg = render.site(render.internalerror(name))
+    raise web.internalerror(web.safestr(msg))
+    
+delegate.app.internalerror = internalerror

@@ -1,0 +1,55 @@
+{
+    "kind": "regular", 
+    "description": "", 
+    "name": "", 
+    "created": {
+        "type": "/type/datetime", 
+        "value": "2008-09-11T15:58:43.665950"
+    }, 
+    "id": 18966984, 
+    "last_modified": {
+        "type": "/type/datetime", 
+        "value": "2009-02-05T09:02:27.029868"
+    }, 
+    "latest_revision": 3, 
+    "key": "/type/volume", 
+    "type": {
+        "key": "/type/type"
+    }, 
+    "properties": [
+        {
+            "expected_type": {
+                "key": "/type/edition"
+            }, 
+            "unique": True, 
+            "type": {
+                "key": "/type/property"
+            }, 
+            "description": "", 
+            "name": "edition"
+        }, 
+        {
+            "expected_type": {
+                "key": "/type/string"
+            }, 
+            "unique": True, 
+            "type": {
+                "key": "/type/property"
+            }, 
+            "description": "", 
+            "name": "ia_id"
+        }, 
+        {
+            "expected_type": {
+                "key": "/type/int"
+            }, 
+            "unique": True, 
+            "type": {
+                "key": "/type/property"
+            }, 
+            "description": "", 
+            "name": "volume_number"
+        }
+    ], 
+    "revision": 3
+}
