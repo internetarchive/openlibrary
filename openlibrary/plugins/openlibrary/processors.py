@@ -107,8 +107,8 @@ class ReadableUrlProcessor:
         if not thing or thing.type.key != type:
             return (path,path)
 
-        title = thing.get(property).strip() or default_title
-        middle = '/' + title.replace(' ', '_').replace('/', '_')
+        title = thing.get(property) or default_title
+        middle = '/' + title.strip().replace(' ', '_').replace('/', '_')
         
         prefix = web.safeunicode(prefix)
         middle = web.safeunicode(middle)
