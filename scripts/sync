@@ -37,6 +37,7 @@ import _init_path
 import sys
 import os
 import glob
+import shutil
 import urllib, urllib2
 import simplejson
 from optparse import OptionParser
@@ -230,6 +231,19 @@ class Server:
 
     def delete(self, paths):
         self.remote.write([(name, None) for name, value in self.remote.read(paths)])
+
+    def diff(self, paths):
+        import tempfile
+        root = tempfile.mkdtemp('-remote')
+        local = LocalSource(root, root)
+        local.write(self.remote.read(paths))
+
+        for path in paths:
+            if path.endswith('*'):
+                path = path[:-1]
+            os.system('diff -u %s %s' % (local.get_path(path), self.local.get_path(path)))
+
+        shutil.rmtree(root)
 
 def parse_args(args):
     """Parses the args and returns command, server and paths.
