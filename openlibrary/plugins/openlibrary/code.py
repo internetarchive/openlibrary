@@ -631,8 +631,13 @@ def save_error():
     return name
 
 def internalerror():
+    i = web.input(_method='GET', debug='false')
     name = save_error()
-    msg = render.site(render.internalerror(name))
-    raise web.internalerror(web.safestr(msg))
+    
+    if i.debug.lower() == 'true':
+        raise web.debugerror()
+    else:
+        msg = render.site(render.internalerror(name))
+        raise web.internalerror(web.safestr(msg))
     
 delegate.app.internalerror = internalerror
