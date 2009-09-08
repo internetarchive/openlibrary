@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2009-09-03 16:41+0530\n"
+"POT-Creation-Date: 2009-09-03 18:52+0530\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -72,67 +72,67 @@ msgstr ""
 msgid "Notification preferences have been updated successfully."
 msgstr ""
 
-#: forms.py:8
+#: forms.py:9
 msgid "Username"
 msgstr ""
 
-#: forms.py:9
+#: forms.py:10
 msgid "Password"
 msgstr ""
 
-#: forms.py:13
+#: forms.py:15
 msgid "No user registered with this email address"
 msgstr ""
 
-#: forms.py:14
+#: forms.py:16
 msgid "Email already used"
 msgstr ""
 
-#: forms.py:15
+#: forms.py:17
 msgid "Username already used"
 msgstr ""
 
-#: forms.py:17
+#: forms.py:19
 msgid "must be between 3 and 20 letters and numbers"
 msgstr ""
 
-#: forms.py:18
+#: forms.py:20
 msgid "must be between 3 and 20 characters"
 msgstr ""
 
-#: forms.py:19
+#: forms.py:21
 msgid "must be a valid email address"
 msgstr ""
 
-#: forms.py:22 forms.py:53
+#: forms.py:24 forms.py:55
 msgid "Your Email Address"
 msgstr ""
 
-#: forms.py:23
+#: forms.py:25
 msgid "Choose a Username"
 msgstr ""
 
-#: forms.py:23
+#: forms.py:25
 msgid "Only letters and numbers, please, and at least 3 characters."
 msgstr ""
 
-#: forms.py:25 forms.py:57
+#: forms.py:27 forms.py:59
 msgid "Choose a Password"
 msgstr ""
 
-#: forms.py:41
+#: forms.py:43
 msgid "Invaid password"
 msgstr ""
 
-#: forms.py:44
+#: forms.py:46
 msgid "Current Password"
 msgstr ""
 
-#: forms.py:45
+#: forms.py:47
 msgid "Choose a New Password"
 msgstr ""
 
-#: forms.py:49
+#: forms.py:51
 msgid "Your New Email Address"
 msgstr ""
 
@@ -172,152 +172,160 @@ msgstr ""
 msgid "Delete Your Account"
 msgstr ""
 
+#: templates/login.html:7
+msgid "Log In"
+msgstr ""
+
 #: templates/site.html:24
 msgid "Open Library"
 msgstr ""
 
-#: templates/site.html:43
+#: templates/site.html:47
 msgid "Search"
 msgstr ""
 
-#: templates/site.html:45
+#: templates/site.html:49
+msgid "Hide options"
+msgstr ""
+
+#: templates/site.html:49
 msgid "More search options"
 msgstr ""
 
-#: templates/site.html:46
+#: templates/site.html:50
 msgid "Scanned books only?"
 msgstr ""
 
-#: templates/site.html:50
+#: templates/site.html:54
 msgid "Title:"
 msgstr ""
 
-#: templates/site.html:55
+#: templates/site.html:59
 msgid "Author:"
 msgstr ""
 
-#: templates/site.html:59
+#: templates/site.html:63
 msgid "Subject:"
 msgstr ""
 
-#: templates/site.html:68
+#: templates/site.html:72
 msgid "Publisher:"
 msgstr ""
 
-#: templates/site.html:73
+#: templates/site.html:77
 msgid "Description:"
 msgstr ""
 
-#: templates/site.html:77
+#: templates/site.html:81
 msgid "Sort By:"
 msgstr ""
 
-#: templates/site.html:79
+#: templates/site.html:83
 msgid "Alphabetical"
 msgstr ""
 
-#: templates/site.html:80
+#: templates/site.html:84
 msgid "Title (A-Z)"
 msgstr ""
 
-#: templates/site.html:81
+#: templates/site.html:85
 msgid "Title (Z-A)"
 msgstr ""
 
-#: templates/site.html:82
+#: templates/site.html:86
 msgid "Author (A-Z)"
 msgstr ""
 
-#: templates/site.html:83
+#: templates/site.html:87
 msgid "Author (Z-A)"
 msgstr ""
 
-#: templates/site.html:84
+#: templates/site.html:88
 msgid "Date (Oldest First)"
 msgstr ""
 
-#: templates/site.html:85
+#: templates/site.html:89
 msgid "Date (Newest First)"
 msgstr ""
 
-#: templates/site.html:86
+#: templates/site.html:90
 msgid "Publisher (A-Z)"
 msgstr ""
 
-#: templates/site.html:87
+#: templates/site.html:91
 msgid "Publisher (Z-A)"
 msgstr ""
 
-#: templates/site.html:91
+#: templates/site.html:95
 msgid "Date Range:"
 msgstr ""
 
-#: templates/site.html:93
+#: templates/site.html:97
 msgid "Select from below"
 msgstr ""
 
-#: templates/site.html:109
+#: templates/site.html:113
+msgid "Search book info only"
+msgstr ""
+
+#: templates/site.html:113
 msgid "Search text within works instead"
 msgstr ""
 
-#: templates/site.html:117
+#: templates/site.html:121
 msgid "Search within text of available works"
 msgstr ""
 
-#: templates/site.html:132
+#: templates/site.html:136
 msgid "Subjects"
 msgstr ""
 
-#: templates/site.html:136
+#: templates/site.html:140
 msgid "Authors"
 msgstr ""
 
-#: templates/site.html:137
+#: templates/site.html:141
 msgid "Add a Book"
 msgstr ""
 
-#: templates/site.html:140
+#: templates/site.html:144
 msgid "Lists"
 msgstr ""
 
-#: templates/site.html:141
+#: templates/site.html:145
 msgid "Recently"
 msgstr ""
 
-#: templates/site.html:143
+#: templates/site.html:147
 msgid "About Us"
 msgstr ""
 
-#: templates/site.html:148
+#: templates/site.html:152
 msgid "A page on the web for every book."
 msgstr ""
 
-#: templates/site.html:159
+#: templates/site.html:163
 #, python-format
 msgid "Welcome %(user)s"
 msgstr ""
 
-#: templates/site.html:160
+#: templates/site.html:164
 msgid "Preferences"
 msgstr ""
 
-#: templates/site.html:161
+#: templates/site.html:165
 msgid "Logout"
 msgstr ""
 
-#: templates/site.html:163
+#: templates/site.html:167
 msgid "Login"
 msgstr ""
 
-#: templates/site.html:165 templates/account/create.html:22
+#: templates/site.html:169 templates/account/create.html:22
 msgid "Sign Up"
 msgstr ""
 
-#: templates/site.html:327
-msgid "Terms of Use"
-msgstr ""
-
-#: templates/site.html:330
+#: templates/site.html:331
 msgid "Report abuse"
 msgstr ""
 

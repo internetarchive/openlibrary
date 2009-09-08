@@ -77,73 +77,72 @@ msgstr ""
 msgid "Notification preferences have been updated successfully."
 msgstr "మీ సంకేతపదం విజయవంతంగా మార్చబడింది."
 
-#: forms.py:8
+#: forms.py:9
 msgid "Username"
 msgstr "సభ్యనామము"
 
-#: forms.py:9
+#: forms.py:10
 msgid "Password"
 msgstr "సంకేతపదము"
 
-#: forms.py:13
+#: forms.py:15
 #, fuzzy
 msgid "No user registered with this email address"
 msgstr "ఇచ్చిన ఈమెయిలు చిరునామాతో ఏ సభ్యడూ నమోదు కాలేదు."
 
-#: forms.py:14
+#: forms.py:16
 msgid "Email already used"
 msgstr "ఈమెయిలు ఇప్పటికే వాడబడింది"
 
-#: forms.py:15
+#: forms.py:17
 msgid "Username already used"
 msgstr "సభ్యనామము ఇప్పటికే వాడబడింది"
 
-#: forms.py:17
+#: forms.py:19
 msgid "must be between 3 and 20 letters and numbers"
 msgstr ""
 
-#: forms.py:18
+#: forms.py:20
 msgid "must be between 3 and 20 characters"
 msgstr ""
 
-#: forms.py:19
+#: forms.py:21
 msgid "must be a valid email address"
 msgstr ""
 
-#: forms.py:22 forms.py:53
+#: forms.py:24 forms.py:55
 msgid "Your Email Address"
 msgstr "మీ ఈమెయిలు చిరునామా"
 
-#: forms.py:23
+#: forms.py:25
 msgid "Choose a Username"
 msgstr "ఒక సభ్యనామము ఎంచుకోండి"
 
-#: forms.py:23
+#: forms.py:25
 msgid "Only letters and numbers, please, and at least 3 characters."
 msgstr ""
 
-#: forms.py:25 forms.py:57
+#: forms.py:27 forms.py:59
 msgid "Choose a Password"
 msgstr "ఒక సంకేతపదం ఎంచుకోండి"
 
-#: forms.py:41
+#: forms.py:43
 #, fuzzy
 msgid "Invaid password"
 msgstr "సంకేతపదము"
 
-#: forms.py:44
+#: forms.py:46
 #, fuzzy
 msgid "Current Password"
 msgstr "మీ ప్రస్తుత సంకేతపదం"
 
-#: forms.py:45
+#: forms.py:47
 msgid "Choose a New Password"
 msgstr "ఒక క్రొత్త సంకేతపదం ఎంచుకోండి"
 
-#: forms.py:49
-#, fuzzy
+#: forms.py:51
 msgid "Your New Email Address"
-msgstr "మీ ఈమెయిలు చిరునామా"
+msgstr "మీ క్రొత్త ఈమెయిలు చిరునామా"
 
 #: templates/account.html:3 templates/account.html:7
 msgid "Your Account"
@@ -180,154 +179,162 @@ msgstr ""
 #: templates/account.html:21
 #, fuzzy
 msgid "Delete Your Account"
-msgstr "ఒక ఖాతా సృష్టించండి"
+msgstr "మీ ఖాతా తొలగించండి"
+
+#: templates/login.html:7
+msgid "Log In"
+msgstr "లాగిన్"
 
 #: templates/site.html:24
 msgid "Open Library"
 msgstr "సార్వత్రిక గ్రంధాలయం"
 
-#: templates/site.html:43
+#: templates/site.html:47
 msgid "Search"
 msgstr "వెతుకు"
 
-#: templates/site.html:45
+#: templates/site.html:49
+msgid "Hide options"
+msgstr ""
+
+#: templates/site.html:49
 msgid "More search options"
 msgstr "మరిన్ని శోధనావిధానాలు"
 
-#: templates/site.html:46
+#: templates/site.html:50
 msgid "Scanned books only?"
 msgstr "పూర్తి పాఠం ఉన్న పుస్తకాలు మాత్రమే"
 
-#: templates/site.html:50
+#: templates/site.html:54
 msgid "Title:"
 msgstr "శీర్షిక:"
 
-#: templates/site.html:55
+#: templates/site.html:59
 msgid "Author:"
 msgstr "రచన:"
 
-#: templates/site.html:59
+#: templates/site.html:63
 msgid "Subject:"
 msgstr "సబ్జక్టు:"
 
-#: templates/site.html:68
+#: templates/site.html:72
 msgid "Publisher:"
 msgstr "ప్రచురణ:"
 
-#: templates/site.html:73
+#: templates/site.html:77
 msgid "Description:"
 msgstr "వివరణ:"
 
-#: templates/site.html:77
+#: templates/site.html:81
 msgid "Sort By:"
 msgstr ""
 
-#: templates/site.html:79
+#: templates/site.html:83
 msgid "Alphabetical"
 msgstr ""
 
-#: templates/site.html:80
+#: templates/site.html:84
 msgid "Title (A-Z)"
 msgstr "శీర్షిక (A-Z)"
 
-#: templates/site.html:81
+#: templates/site.html:85
 msgid "Title (Z-A)"
 msgstr "శీర్షిక (Z-A)"
 
-#: templates/site.html:82
+#: templates/site.html:86
 msgid "Author (A-Z)"
 msgstr "రచయిత (A-Z)"
 
-#: templates/site.html:83
+#: templates/site.html:87
 msgid "Author (Z-A)"
 msgstr "రచయిత (Z-A)"
 
-#: templates/site.html:84
+#: templates/site.html:88
 msgid "Date (Oldest First)"
 msgstr "ప్రచురణాకాలం (పాతది ముందు)"
 
-#: templates/site.html:85
+#: templates/site.html:89
 msgid "Date (Newest First)"
 msgstr "ప్రచురణాకాలం (క్రొత్తది ముందు)"
 
-#: templates/site.html:86
+#: templates/site.html:90
 msgid "Publisher (A-Z)"
 msgstr "ప్రచురణ (A-Z)"
 
-#: templates/site.html:87
+#: templates/site.html:91
 msgid "Publisher (Z-A)"
 msgstr "ప్రచురణ (Z-A)"
 
-#: templates/site.html:91
+#: templates/site.html:95
 msgid "Date Range:"
 msgstr "ప్రచురణాకాలం"
 
-#: templates/site.html:93
+#: templates/site.html:97
 msgid "Select from below"
 msgstr "క్రింది వాటి నుండి ఎంచుకోండి"
 
-#: templates/site.html:109
+#: templates/site.html:113
+msgid "Search book info only"
+msgstr ""
+
+#: templates/site.html:113
 msgid "Search text within works instead"
 msgstr ""
 
-#: templates/site.html:117
+#: templates/site.html:121
 msgid "Search within text of available works"
 msgstr ""
 
-#: templates/site.html:132
+#: templates/site.html:136
 msgid "Subjects"
 msgstr "సబ్జక్టులు"
 
-#: templates/site.html:136
+#: templates/site.html:140
 msgid "Authors"
 msgstr "రచయితలు"
 
-#: templates/site.html:137
+#: templates/site.html:141
 msgid "Add a Book"
 msgstr "పుస్తకం చేర్చు"
 
-#: templates/site.html:140
+#: templates/site.html:144
 msgid "Lists"
 msgstr ""
 
-#: templates/site.html:141
+#: templates/site.html:145
 msgid "Recently"
 msgstr "ఇటీవలి"
 
-#: templates/site.html:143
+#: templates/site.html:147
 msgid "About Us"
 msgstr "మా గురించి"
 
-#: templates/site.html:148
+#: templates/site.html:152
 msgid "A page on the web for every book."
 msgstr "ప్రతి పుస్తకానికి ఒక వెబ్ పేజి"
 
-#: templates/site.html:159
+#: templates/site.html:163
 #, python-format
 msgid "Welcome %(user)s"
 msgstr "స్వాగతం %(user)s"
 
-#: templates/site.html:160
+#: templates/site.html:164
 msgid "Preferences"
 msgstr "అభిరుచులు"
 
-#: templates/site.html:161
+#: templates/site.html:165
 msgid "Logout"
 msgstr "లాగౌట్"
 
-#: templates/site.html:163
+#: templates/site.html:167
 msgid "Login"
 msgstr "లాగిన్"
 
-#: templates/site.html:165 templates/account/create.html:22
+#: templates/site.html:169 templates/account/create.html:22
 msgid "Sign Up"
 msgstr "సైన్ అప్"
 
-#: templates/site.html:327
-msgid "Terms of Use"
-msgstr "సేవా నిబంధనలు"
-
-#: templates/site.html:330
+#: templates/site.html:331
 msgid "Report abuse"
 msgstr ""
 
@@ -354,18 +361,16 @@ msgid "Cancel"
 msgstr "రద్దుచేయి"
 
 #: templates/account/email.html:5
-#, fuzzy
 msgid "Change Your Email Address"
-msgstr "మీ ఈమెయిలు చిరునామా"
+msgstr "మీ ఈమెయిలు చిరునామా మార్చుకోండి"
 
 #: templates/account/email.html:11
-#, fuzzy
 msgid "Your current email address is"
-msgstr "మీ ఈమెయిలు చిరునామా"
+msgstr "మీ ప్రస్తుత ఈమెయిలు చిరునామా"
 
 #: templates/account/email.html:18
 msgid "Change It"
-msgstr ""
+msgstr "మార్చండి"
 
 #: templates/account/notifications.html:3
 #: templates/account/notifications.html:7
@@ -373,9 +378,8 @@ msgid "Notifications from Open Library"
 msgstr ""
 
 #: templates/account/notifications.html:10
-#, fuzzy
 msgid "Update your email address?"
-msgstr "మీ ఈమెయిలు చిరునామా"
+msgstr "మీ ఈమెయిలు చిరునామా మార్చాలా?"
 
 #: templates/account/notifications.html:11
 #, python-format
@@ -456,7 +460,7 @@ msgid "Verification email sent"
 msgstr "దృవీకరణ ఈమెయిలు పంపబడింది"
 
 #: templates/account/verify.html:6 templates/account/verify/success.html:7
-#, fuzzy, python-format
+#, python-format
 msgid "Hi, %(user)s!"
 msgstr "స్వాగతం %(user)s"
 
@@ -509,4 +513,7 @@ msgstr ""
 #: templates/account/verify/success.html:3
 msgid "Email Verification Successful"
 msgstr "ఈమెయిలు దృవీకరణ విజయవంతం"
+
+#~ msgid "Terms of Use"
+#~ msgstr "సేవా నిబంధనలు"
 
