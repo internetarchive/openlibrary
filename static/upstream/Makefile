@@ -1,8 +1,9 @@
 
 JS_SOURCES=			\
     jquery-1.3.2.min.js		\
-    jquery.sfx.js		\
-    jquery.validate.min.js
+    jquery.showpassword.min.js	\
+    jquery.validate.min.js	\
+    jquery.sfx.js
 
 JS_OBJECTS=$(JS_SOURCES:%=js/%)
 
