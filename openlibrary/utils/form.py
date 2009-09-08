@@ -6,6 +6,8 @@ import web
 import copy
 import re
 
+from infogami.utils.view import render
+
 class AttributeList(dict):
     """List of atributes of input.
     
@@ -120,28 +122,8 @@ class Form:
         raise KeyError, key
 
     def render(self):
-        return "\n".join(self._render())
+        return render.form(self)
         
-    def _render(self):
-        print "_render", self.note
-        
-        if self.note:
-            yield '<div class="note">%s</div>' % web.websafe(self.note)
-                    
-        for i in self.inputs:
-            id = i.id or i.name
-            
-            if i.is_hidden():
-                yield i.render()
-            else:
-                yield '<div class="formElement">'
-                yield '  <div class="label"><label for="%s">%s</label> <span class="smaller lighter">%s</span></div>' % (web.websafe(id), web.websafe(i.label), web.websafe(i.description))
-                yield '  <div class="input">'
-                yield '    ' + i.render()
-                yield '    <div class="invalid" htmlfor="%s">%s</div>' % (web.websafe(id), web.websafe(i.note))
-                yield '  </div>'
-                yield '</div>'
-            
     def validates(self, source):
         valid = True
         
