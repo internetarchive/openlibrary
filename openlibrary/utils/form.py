@@ -32,7 +32,7 @@ class Input:
         self.description = kw.pop('description', None)
         self.note = kw.pop('note', None)
         
-        self.id = None
+        self.id = kw.pop('id', name)
         self.__dict__.update(kw)
         
         if 'klass' in kw:
@@ -48,7 +48,7 @@ class Input:
         
     def render(self):
         attrs = self.attrs.copy()
-        
+        attrs['id'] = self.id
         attrs['type'] = self.get_type()
         attrs['name'] = self.name
         attrs['value'] = self.value or ''
@@ -68,11 +68,11 @@ class Textbox(Input):
     
     >>> t = Textbox("name", label='Name', value='joe')
     >>> t.render()
-    '<input type="text" name="name" value="joe" />'
+    '<input type="text" id="name" value="joe" name="name" />'
 
     >>> t = Textbox("name", label='Name', value='joe', id='name', klass='input', size=10)
     >>> t.render()
-    '<input name="name" value="joe" id="name" type="text" class="input" size="10" />'
+    '<input name="name" value="joe" class="input" type="text" id="name" size="10" />'
     """
     def get_type(self):
         return "text"
@@ -81,7 +81,7 @@ class Password(Input):
     """Password input.
     
         >>> Password("password", label='Password', value='secret').render()
-        <input type="password" value="secret" />
+        '<input type="password" id="password" value="secret" name="password" />'
     """
     def get_type(self):
         return "password"
