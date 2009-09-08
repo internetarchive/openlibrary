@@ -1,9 +1,12 @@
 
 JS_SOURCES=			\
     jquery-1.3.2.min.js		\
+    jquery.others.js		\
+    jquery.colorbox-min.js	\
+    jquery.jcarousel.pack.js 	\
     jquery.showpassword.min.js	\
     jquery.validate.min.js	\
-    jquery.sfx.js
+    jquery.tooltip.pack.js
 
 JS_OBJECTS=$(JS_SOURCES:%=js/%)
 
