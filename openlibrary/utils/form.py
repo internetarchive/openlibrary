@@ -6,6 +6,8 @@ import web
 import copy
 import re
 
+from infogami.utils.view import render
+
 class AttributeList(dict):
     """List of atributes of input.
     
@@ -32,7 +34,7 @@ class Input:
         self.description = kw.pop('description', None)
         self.note = kw.pop('note', None)
         
-        self.id = None
+        self.id = kw.pop('id', name)
         self.__dict__.update(kw)
         
         if 'klass' in kw:
@@ -48,7 +50,7 @@ class Input:
         
     def render(self):
         attrs = self.attrs.copy()
-        
+        attrs['id'] = self.id
         attrs['type'] = self.get_type()
         attrs['name'] = self.name
         attrs['value'] = self.value or ''
@@ -68,11 +70,11 @@ class Textbox(Input):
     
     >>> t = Textbox("name", label='Name', value='joe')
     >>> t.render()
-    '<input type="text" name="name" value="joe" />'
+    '<input type="text" id="name" value="joe" name="name" />'
 
     >>> t = Textbox("name", label='Name', value='joe', id='name', klass='input', size=10)
     >>> t.render()
-    '<input name="name" value="joe" id="name" type="text" class="input" size="10" />'
+    '<input name="name" value="joe" class="input" type="text" id="name" size="10" />'
     """
     def get_type(self):
         return "text"
@@ -81,7 +83,7 @@ class Password(Input):
     """Password input.
     
         >>> Password("password", label='Password', value='secret').render()
-        <input type="password" value="secret" />
+        '<input type="password" id="password" value="secret" name="password" />'
     """
     def get_type(self):
         return "password"
@@ -120,28 +122,8 @@ class Form:
         raise KeyError, key
 
     def render(self):
-        return "\n".join(self._render())
+        return render.form(self)
         
-    def _render(self):
-        print "_render", self.note
-        
-        if self.note:
-            yield '<div class="note">%s</div>' % web.websafe(self.note)
-                    
-        for i in self.inputs:
-            id = i.id or i.name
-            
-            if i.is_hidden():
-                yield i.render()
-            else:
-                yield '<div class="formElement">'
-                yield '  <div class="label"><label for="%s">%s</label> <span class="smaller lighter">%s</span></div>' % (web.websafe(id), web.websafe(i.label), web.websafe(i.description))
-                yield '  <div class="input">'
-                yield '    ' + i.render()
-                yield '    <div class="invalid" htmlfor="%s">%s</div>' % (web.websafe(id), web.websafe(i.note))
-                yield '  </div>'
-                yield '</div>'
-            
     def validates(self, source):
         valid = True
         
