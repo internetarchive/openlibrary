@@ -1,6 +1,7 @@
 from __future__ import with_statement
 import web
 import stopword
+import pdb
 
 from infogami import utils
 from infogami.utils import delegate
@@ -18,26 +19,36 @@ from collections import defaultdict
 
 render = template.render
 
-solr_fulltext_shards = getattr(config, 'solr_fulltext_shards', None)
-solr_server_address = getattr(config, 'solr_server_address', None)
-solr_fulltext_address = getattr(config, 'solr_fulltext_address',
-                                solr_fulltext_shards[0] if solr_fulltext_shards \
-                                    else None)
+sconfig = config.plugin_search
+
+def parse_host(host_and_port):
+    """
+    >>> print parse_host('alice:1234')
+    ('alice', 1234)
+    """
+    h,p = host_and_port.split(':')
+    return (h, int(p))
+
+solr_server_address = parse_host(sconfig.solr)
+solr_fulltext_address = parse_host(sconfig.fulltext_solr)
+solr_fulltext_shards = map(parse_host, sconfig.fulltext_shards)
 
 if solr_fulltext_address is not None:
-    solr_pagetext_address = getattr(config,
-                                    'solr_pagetext_address',
-                                    solr_fulltext_address)
+    if hasattr(sconfig, 'solr_pagetext_address'):
+        solr_pagetext_address = parse_host(sconfig.solr_pagetext_address)
+    else:
+        solr_pagetext_address = solr_fulltext_address
 
 if solr_server_address:
     solr = solr_client.Solr_client(solr_server_address)
 else:
     solr = None
 
-solr_fulltext = solr_client.Solr_client(solr_fulltext_address,
-                                        shards=solr_fulltext_shards)
-solr_pagetext = solr_client.Solr_client(solr_pagetext_address,
-                                        shards=solr_fulltext_shards)
+if solr_fulltext_address:
+    solr_fulltext = solr_client.Solr_client(solr_fulltext_address,
+                                            shards=solr_fulltext_shards)
+    solr_pagetext = solr_client.Solr_client(solr_pagetext_address,
+                                            shards=solr_fulltext_shards)
 
 def lookup_ocaid(ocaid):
     ocat = web.ctx.site.things(dict(type='/type/edition', ocaid=ocaid))
@@ -290,8 +301,6 @@ class search(delegate.page):
                                       errortext=errortext)
 
     GET = POST
-
-import pdb
 
 def munch_qresults_stored(qresults):
     def mk_author(a,ak):
