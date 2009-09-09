@@ -2,6 +2,7 @@
 """
 import web
 import urllib
+import re
 
 class ReadableUrlProcessor:
     """Open Library code works with urls like /b/OL1M and /b/OL1M/cover.
@@ -108,13 +109,29 @@ class ReadableUrlProcessor:
             return (path,path)
 
         title = thing.get(property) or default_title
-        middle = '/' + title.strip().replace(' ', '_').replace('/', '_')
+        middle = '/' + self.safepath(title.strip())
         
         prefix = web.safeunicode(prefix)
         middle = web.safeunicode(middle)
         suffix = web.safeunicode(suffix)
         
         return (prefix + suffix, prefix + middle + suffix)
+        
+    def safepath(self, path):
+        """Replaces unsafe chars with underscores in the path."""
+        return get_safepath_re().sub('_', path) 
+
+@web.memoize        
+def get_safepath_re():
+    """Make regular expression that matches all unsafe chars."""
+    # unsafe chars according to RFC 2396
+    reserved = ";/?:@&=+$,"
+    delims = '<>#%"'
+    unwise = "{}|\\^[]`"
+    space = ' \n\r'
+    
+    unsafe = reserved + delims + unwise + space
+    return re.compile("|".join(re.escape(c) for c in unsafe))
 
 class ProfileProcessor:
     """Processor to profile the webpage when ?profile=true is added to the url.
