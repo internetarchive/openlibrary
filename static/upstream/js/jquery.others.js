@@ -43,3 +43,38 @@
 jQuery.fn.fadeToggle = function(speed, easing, callback) { 
     return this.animate({opacity: 'toggle'}, speed, easing, callback); 
 };
+//AUTODATE
+var myMonths=new Array("January","February","March","April","May","June","July","August","September","October","November","December");
+var myDays= new Array("Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday");
+today=new Date();
+thisDay=myDays[today.getDay()]
+thisMonth=myMonths[today.getMonth()]
+thisYear=today.getFullYear()
+thisDate=today.getDate()
+switch (thisDate) {
+case 1:
+dateSuffix="st"
+break
+case 21:
+dateSuffix="st"
+break
+case 31:
+dateSuffix="st"
+break    
+case 2:  
+dateSuffix="nd"  
+break    
+case 22:
+dateSuffix="nd"
+break;   
+case 3:
+dateSuffix="rd"  
+break     
+case 23:
+dateSuffix="rd"  
+break      
+default:   
+dateSuffix="th"
+}
+todaysDate=thisDay+", "+thisMonth+" "+thisDate+"<sup>"+dateSuffix+"</sup> "+thisYear
+document.write(todaysDate)
