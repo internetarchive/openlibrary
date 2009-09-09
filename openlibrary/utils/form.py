@@ -13,7 +13,7 @@ class AttributeList(dict):
     
     >>> a = AttributeList(type='text', name='x', value=20)
     >>> a
-    <attrs: 'type="text" name="x" value="20"'>
+    <attrs: 'type="text" name="x" value="20"'>x
     """
     def copy(self):
         return AttributeList(self)
@@ -25,13 +25,13 @@ class AttributeList(dict):
         return '<attrs: %s>' % repr(str(self))
 
 class Input:
-    def __init__(self, name, label=None, value=None, **kw):
+    def __init__(self, name, description=None, value=None, **kw):
         self.name = name
-        self.label = label or ""
+        self.description = description or ""
         self.value = value
         self.validators = kw.pop('validators', [])
         
-        self.description = kw.pop('description', None)
+        self.help = kw.pop('help', None)
         self.note = kw.pop('note', None)
         
         self.id = kw.pop('id', name)
@@ -68,11 +68,11 @@ class Input:
 class Textbox(Input):
     """Textbox input.
     
-    >>> t = Textbox("name", label='Name', value='joe')
+    >>> t = Textbox("name", description='Name', value='joe')
     >>> t.render()
     '<input type="text" id="name" value="joe" name="name" />'
 
-    >>> t = Textbox("name", label='Name', value='joe', id='name', klass='input', size=10)
+    >>> t = Textbox("name", description='Name', value='joe', id='name', klass='input', size=10)
     >>> t.render()
     '<input name="name" value="joe" class="input" type="text" id="name" size="10" />'
     """
@@ -82,7 +82,7 @@ class Textbox(Input):
 class Password(Input):
     """Password input.
     
-        >>> Password("password", label='Password', value='secret').render()
+        >>> Password("password", description='Password', value='secret').render()
         '<input type="password" id="password" value="secret" name="password" />'
     """
     def get_type(self):

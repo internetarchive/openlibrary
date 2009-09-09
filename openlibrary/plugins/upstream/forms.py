@@ -6,8 +6,8 @@ from openlibrary.i18n import lgettext as _
 from openlibrary.utils.form import Form, Textbox, Password, Hidden, Validator, RegexpValidator
 
 Login = Form(
-    Textbox('username', label=_('Username'), klass='required'),
-    Password('password', label=_('Password'), klass='required'),
+    Textbox('username', description=_('Username'), klass='required'),
+    Password('password', description=_('Password'), klass='required'),
     Hidden('redirect')
 )
 forms.login = Login
@@ -21,10 +21,10 @@ vpass = RegexpValidator(r".{3,20}", _('must be between 3 and 20 characters'))
 vemail = RegexpValidator(r".*@.*", _("must be a valid email address"))
 
 Register = Form(
-    Textbox('email', label=_('Your Email Address'), klass='required', validators=[vemail, email_not_already_used]),
-    Textbox('username', label=_('Choose a Username'), klass='required', description=_("Only letters and numbers, please, and at least 3 characters."), 
+    Textbox('email', description=_('Your Email Address'), klass='required', validators=[vemail, email_not_already_used]),
+    Textbox('username', description=_('Choose a Username'), klass='required', help=_("Only letters and numbers, please, and at least 3 characters."), 
         validators=[vlogin, username_validator]),
-    Password('password', label=_('Choose a Password'), klass='required', validators=[vpass])
+    Password('password', description=_('Choose a Password'), klass='required', validators=[vpass])
 )
 
 def verify_password(password):
@@ -43,18 +43,18 @@ def verify_password(password):
 validate_password = Validator(_("Invaid password"), verify_password)
 
 ChangePassword= Form(
-    Password('password', label=_("Current Password"), validators=[validate_password]),
-    Password('new_password', label=_("Choose a New Password"))
+    Password('password', description=_("Current Password"), validators=[validate_password]),
+    Password('new_password', description=_("Choose a New Password"))
 )
 
 ChangeEmail = Form(
-    Textbox('email', label=_("Your New Email Address"), validators=[vemail, email_not_already_used])
+    Textbox('email', description=_("Your New Email Address"), validators=[vemail, email_not_already_used])
 )
 
 ForgotPassword = Form(
-    Textbox('email', label=_("Your Email Address"), validators=[vemail, email_already_used])
+    Textbox('email', description=_("Your Email Address"), validators=[vemail, email_already_used])
 )
 
 ResetPassword = Form(
-    Password('password', label=_("Choose a Password"), validators=[vpass])
+    Password('password', description=_("Choose a Password"), validators=[vpass])
 )

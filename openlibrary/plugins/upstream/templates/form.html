@@ -6,10 +6,10 @@ $if form.note:
 $for i in form.inputs:
     $ id = i.id or i.name
     $if i.is_hidden():
-        $i.render()
+        $:i.render()
     $else:
         <div class="formElement">
-            <div class="label"><label for="$i.id">$i.label</label> <span class="smaller lighter">$i.description</span></div>
+            <div class="label"><label for="$i.id">$i.description</label> <span class="smaller lighter">$i.help</span></div>
             <div class="input">
                 $:i.render()
                 <div class="invalid" htmlfor="$i.id">$i.note</div>
