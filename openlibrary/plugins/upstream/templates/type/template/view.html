@@ -1,0 +1,15 @@
+$def with (page)
+
+$ title = page.title or page.key
+
+$var title: $title
+
+<div id="contentHead">
+    <div class="head">
+        <h1>$title</h1>
+    </div>
+</div>
+
+<div id="contentBody">
+    $:macros.DisplayCode(page.body, lang="html")
+</div>

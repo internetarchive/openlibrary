@@ -77,9 +77,13 @@ def get_locales():
 def extract_templetor(fileobj, keywords, comment_tags, options):
     """Extract i18n messages from web.py templates.
     """
-    code = web.template.Template.generate_code(fileobj.read(), fileobj.name)
-    f = StringIO(code)
-    f.name = fileobj.name
+    try:
+        code = web.template.Template.generate_code(fileobj.read(), fileobj.name)
+        f = StringIO(code)
+        f.name = fileobj.name
+    except Exception, e:
+        print >> web.debug, fileobj.name + ':', str(e)
+        return []
     return extract_python(f, keywords, comment_tags, options)    
     
 def extract_messages(dirs):
@@ -141,16 +145,15 @@ def load_translations(lang):
         return Translations(open(mo_path))
 
 class GetText:
-    def __call__(self, string, *a, **kw):
+    def __call__(self, string, *args, **kwargs):
         """Translate a given string to the language of the current locale."""
-        translations = load_translations(web.ctx.lang)
+        translations = load_translations(web.ctx.get('lang', 'en'))
         value = (translations and translations.ugettext(string)) or string
-        print 'gettext', repr(string), web.ctx.lang, repr(value)
         
-        if a:
-            value = value % a
-        elif kw:
-            value = value % kw
+        if args:
+            value = value % args
+        elif kwargs:
+            value = value % kwargs
         
         return value
         
@@ -158,6 +161,28 @@ class GetText:
         from infogami.utils.i18n import strings
         # for backward-compatability
         return strings.get('', key)
+        
+class LazyGetText:
+    def __call__(self, string, *args, **kwargs):
+        """Translate a given string lazily."""
+        return LazyObject(lambda: GetText()(string, *args, **kwargs))
+
+class LazyObject:
+    def __init__(self, creator):
+        self._creator = creator
+        
+    def __str__(self):
+        return web.safestr(self._creator())
+        
+    def __repr__(self):
+        return repr(self._creator())
+        
+    def __add__(self, other):
+        return self._creator() + other
+        
+    def __radd__(self, other):
+        return other + self._creator()
     
 gettext = GetText()
+lgettext = LazyGetText()
 _ = gettext

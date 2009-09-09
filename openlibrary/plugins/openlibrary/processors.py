@@ -24,7 +24,7 @@ class ReadableUrlProcessor:
         #@@ take care of that case here till that is fixed.
         # @@ Also, the redirection must be done only for GET requests.
         if readable_path != web.ctx.path and readable_path != urllib.quote(web.utf8(web.ctx.path)) and web.ctx.method == "GET":
-            raise web.seeother(readable_path.encode('utf-8') + web.ctx.query.encode('utf-8'))
+            raise web.seeother(web.safeunicode(readable_path) + web.safeunicode(web.ctx.query))
 
         web.ctx.readable_path = readable_path
         web.ctx.path = real_path
@@ -107,8 +107,13 @@ class ReadableUrlProcessor:
         if not thing or thing.type.key != type:
             return (path,path)
 
-        title = thing.get(property).strip() or default_title
-        middle = '/' + title.replace(' ', '_').replace('/', '_').encode('utf-8')
+        title = thing.get(property) or default_title
+        middle = '/' + title.strip().replace(' ', '_').replace('/', '_')
+        
+        prefix = web.safeunicode(prefix)
+        middle = web.safeunicode(middle)
+        suffix = web.safeunicode(suffix)
+        
         return (prefix + suffix, prefix + middle + suffix)
 
 class ProfileProcessor:

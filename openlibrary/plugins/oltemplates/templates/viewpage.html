@@ -19,4 +19,11 @@ $if 'content_type' in view:
 $if 'rawtext' in view:
     $var rawtext = view.rawtext
 
+$ flash_messages = get_flash_messages()
+$if flash_messages:
+    <div id="flash_messages">
+        $for flash in flash_messages:
+            <div class="$flash.type">$flash.message</div>
+    </div>
+
 $:view

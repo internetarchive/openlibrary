@@ -1,3 +1,5 @@
+$def with (form)
+
 $var title: $_("Password Reminder")
 
 <div id="contentHead">
@@ -10,12 +12,8 @@ $var title: $_("Password Reminder")
             
 <div id="contentBody">
     <form id="register" class="reminder" name="register" method="post">
-        <div class="formElement">
-            <div class="label"><label for="email">$_("Your Email Address")</label></div>
-            <div class="input">
-                <input type="text" name="email" id="email" class="required email"/>
-            </div>
-        </div>
+        
+        $:form.render()
 
         <div class="formElement bottom">
             <div class="input">

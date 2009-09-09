@@ -11,159 +11,509 @@ msgstr ""
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
 "POT-Creation-Date: 2009-08-19 18:06+0530\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: Anand <anandology@gmail.com>\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 0.9.4\n"
 
-#: templates/site.html:29
+#: code.py:223
+#, fuzzy, python-format
+msgid "Hi %(user)s"
+msgstr "స్వాగతం %(user)s"
+
+#: code.py:224
+#, fuzzy, python-format
+msgid ""
+"We've sent an email to %(email)s. You'll need to read that and click on "
+"the verification link to update your email."
+msgstr ""
+"మేము %(email)s కు ఈమెయిలు పంపాము. మీ ఖాతా సృష్టి పూర్తవటానికి \"\n"
+"\"మీరు దానిని చదివి అందులో ఉన్న దృవీకరణ లంకెను నొక్కండి."
+
+#: code.py:236
+#, fuzzy
+msgid "Email address is already used."
+msgstr "ఈమెయిలు ఇప్పటికే వాడబడింది"
+
+#: code.py:237
+msgid ""
+"Your email address couldn't be updated. The specified email address is "
+"already used."
+msgstr ""
+
+#: code.py:240
+#, fuzzy
+msgid "Email verification successful."
+msgstr "ఈమెయిలు దృవీకరణ విజయవంతం"
+
+#: code.py:241
+msgid ""
+"Your email address has been successfully verified and updated in your "
+"account."
+msgstr ""
+
+#: code.py:243
+msgid "Email address couldn't be verified."
+msgstr "ఈమెయిలు చిరునామా దృవీకరించబడలేదు."
+
+#: code.py:244
+msgid ""
+"Your email address couldn't be verified. The verification link seems "
+"invalid."
+msgstr "మీ ఈమెయిలు చిరునామా దృవీకరించబడలేదు. దృవీకరణ లంకె తప్పుగా ఉన్నట్లుంది."
+
+#: code.py:280 code.py:341
+msgid "Your password has been updated successfully."
+msgstr "మీ సంకేతపదం విజయవంతంగా మార్చబడింది."
+
+#: code.py:316 code.py:329
+msgid "Password reset failed."
+msgstr ""
+
+#: code.py:368
+#, fuzzy
+msgid "Notification preferences have been updated successfully."
+msgstr "మీ సంకేతపదం విజయవంతంగా మార్చబడింది."
+
+#: forms.py:9
+msgid "Username"
+msgstr "సభ్యనామము"
+
+#: forms.py:10
+msgid "Password"
+msgstr "సంకేతపదము"
+
+#: forms.py:15
+#, fuzzy
+msgid "No user registered with this email address"
+msgstr "ఇచ్చిన ఈమెయిలు చిరునామాతో ఏ సభ్యడూ నమోదు కాలేదు."
+
+#: forms.py:16
+msgid "Email already used"
+msgstr "ఈమెయిలు ఇప్పటికే వాడబడింది"
+
+#: forms.py:17
+msgid "Username already used"
+msgstr "సభ్యనామము ఇప్పటికే వాడబడింది"
+
+#: forms.py:19
+msgid "must be between 3 and 20 letters and numbers"
+msgstr ""
+
+#: forms.py:20
+msgid "must be between 3 and 20 characters"
+msgstr ""
+
+#: forms.py:21
+msgid "must be a valid email address"
+msgstr ""
+
+#: forms.py:24 forms.py:55
+msgid "Your Email Address"
+msgstr "మీ ఈమెయిలు చిరునామా"
+
+#: forms.py:25
+msgid "Choose a Username"
+msgstr "ఒక సభ్యనామము ఎంచుకోండి"
+
+#: forms.py:25
+msgid "Only letters and numbers, please, and at least 3 characters."
+msgstr ""
+
+#: forms.py:27 forms.py:59
+msgid "Choose a Password"
+msgstr "ఒక సంకేతపదం ఎంచుకోండి"
+
+#: forms.py:43
+#, fuzzy
+msgid "Invaid password"
+msgstr "సంకేతపదము"
+
+#: forms.py:46
+#, fuzzy
+msgid "Current Password"
+msgstr "మీ ప్రస్తుత సంకేతపదం"
+
+#: forms.py:47
+msgid "Choose a New Password"
+msgstr "ఒక క్రొత్త సంకేతపదం ఎంచుకోండి"
+
+#: forms.py:51
+msgid "Your New Email Address"
+msgstr "మీ క్రొత్త ఈమెయిలు చిరునామా"
+
+#: templates/account.html:3 templates/account.html:7
+msgid "Your Account"
+msgstr "మీ ఖాతా"
+
+#: templates/account.html:13
+msgid "Change Password"
+msgstr "మీ సంకేత పదం మార్చుకోండి"
+
+#: templates/account.html:14
+msgid "Update Email Address"
+msgstr "ఈమెయిలు చిరునామా మార్చుకోండి"
+
+#: templates/account.html:15
+msgid "Your Notifications"
+msgstr ""
+
+#: templates/account.html:16
+msgid "View"
+msgstr "చూడు"
+
+#: templates/account.html:16
+msgid "or"
+msgstr "లేదా"
+
+#: templates/account.html:16
+msgid "Edit"
+msgstr "మార్చు"
+
+#: templates/account.html:16
+msgid "Your Profile Page"
+msgstr ""
+
+#: templates/account.html:21
+#, fuzzy
+msgid "Delete Your Account"
+msgstr "మీ ఖాతా తొలగించండి"
+
+#: templates/login.html:7
+msgid "Log In"
+msgstr "లాగిన్"
+
+#: templates/site.html:24
 msgid "Open Library"
 msgstr "సార్వత్రిక గ్రంధాలయం"
 
-#: templates/site.html:52
+#: templates/site.html:47
 msgid "Search"
 msgstr "వెతుకు"
 
-#: templates/site.html:54
+#: templates/site.html:49
+msgid "Hide options"
+msgstr ""
+
+#: templates/site.html:49
 msgid "More search options"
 msgstr "మరిన్ని శోధనావిధానాలు"
 
-#: templates/site.html:55
+#: templates/site.html:50
 msgid "Scanned books only?"
 msgstr "పూర్తి పాఠం ఉన్న పుస్తకాలు మాత్రమే"
 
-#: templates/site.html:59
+#: templates/site.html:54
 msgid "Title:"
 msgstr "శీర్షిక:"
 
-#: templates/site.html:64
+#: templates/site.html:59
 msgid "Author:"
 msgstr "రచన:"
 
-#: templates/site.html:68
+#: templates/site.html:63
 msgid "Subject:"
 msgstr "సబ్జక్టు:"
 
-#: templates/site.html:77
+#: templates/site.html:72
 msgid "Publisher:"
 msgstr "ప్రచురణ:"
 
-#: templates/site.html:82
+#: templates/site.html:77
 msgid "Description:"
 msgstr "వివరణ:"
 
-#: templates/site.html:86
+#: templates/site.html:81
 msgid "Sort By:"
 msgstr ""
 
-#: templates/site.html:88
+#: templates/site.html:83
 msgid "Alphabetical"
 msgstr ""
 
-#: templates/site.html:89
+#: templates/site.html:84
 msgid "Title (A-Z)"
 msgstr "శీర్షిక (A-Z)"
 
-#: templates/site.html:90
+#: templates/site.html:85
 msgid "Title (Z-A)"
 msgstr "శీర్షిక (Z-A)"
 
-#: templates/site.html:91
+#: templates/site.html:86
 msgid "Author (A-Z)"
 msgstr "రచయిత (A-Z)"
 
-#: templates/site.html:92
+#: templates/site.html:87
 msgid "Author (Z-A)"
 msgstr "రచయిత (Z-A)"
 
-#: templates/site.html:93
+#: templates/site.html:88
 msgid "Date (Oldest First)"
 msgstr "ప్రచురణాకాలం (పాతది ముందు)"
 
-#: templates/site.html:94
+#: templates/site.html:89
 msgid "Date (Newest First)"
 msgstr "ప్రచురణాకాలం (క్రొత్తది ముందు)"
 
-#: templates/site.html:95
+#: templates/site.html:90
 msgid "Publisher (A-Z)"
 msgstr "ప్రచురణ (A-Z)"
 
-#: templates/site.html:96
+#: templates/site.html:91
 msgid "Publisher (Z-A)"
 msgstr "ప్రచురణ (Z-A)"
 
-#: templates/site.html:100
+#: templates/site.html:95
 msgid "Date Range:"
 msgstr "ప్రచురణాకాలం"
 
-#: templates/site.html:102
+#: templates/site.html:97
 msgid "Select from below"
 msgstr "క్రింది వాటి నుండి ఎంచుకోండి"
 
-#: templates/site.html:118
+#: templates/site.html:113
+msgid "Search book info only"
+msgstr ""
+
+#: templates/site.html:113
 msgid "Search text within works instead"
 msgstr ""
 
-#: templates/site.html:126
+#: templates/site.html:121
 msgid "Search within text of available works"
 msgstr ""
 
-#: templates/site.html:141
+#: templates/site.html:136
 msgid "Subjects"
 msgstr "సబ్జక్టులు"
 
-#: templates/site.html:145
+#: templates/site.html:140
 msgid "Authors"
 msgstr "రచయితలు"
 
-#: templates/site.html:146
+#: templates/site.html:141
 msgid "Add a Book"
 msgstr "పుస్తకం చేర్చు"
 
-#: templates/site.html:149
+#: templates/site.html:144
 msgid "Lists"
 msgstr ""
 
-#: templates/site.html:150
+#: templates/site.html:145
 msgid "Recently"
 msgstr "ఇటీవలి"
 
-#: templates/site.html:152
+#: templates/site.html:147
 msgid "About Us"
 msgstr "మా గురించి"
 
-#: templates/site.html:157
+#: templates/site.html:152
 msgid "A page on the web for every book."
 msgstr "ప్రతి పుస్తకానికి ఒక వెబ్ పేజి"
 
-#: templates/site.html:168
+#: templates/site.html:163
 #, python-format
 msgid "Welcome %(user)s"
-msgstr "నమస్కారం %(user)s"
+msgstr "స్వాగతం %(user)s"
 
-#: templates/site.html:169
+#: templates/site.html:164
 msgid "Preferences"
 msgstr "అభిరుచులు"
 
-#: templates/site.html:170
+#: templates/site.html:165
 msgid "Logout"
 msgstr "లాగౌట్"
 
-#: templates/site.html:172
+#: templates/site.html:167
 msgid "Login"
 msgstr "లాగిన్"
 
-#: templates/site.html:174
+#: templates/site.html:169 templates/account/create.html:22
 msgid "Sign Up"
 msgstr "సైన్ అప్"
 
-#: templates/site.html:340
-msgid "Terms of Use"
-msgstr ""
-
-#: templates/site.html:343
+#: templates/site.html:331
 msgid "Report abuse"
 msgstr ""
+
+#: templates/account/create.html:3 templates/account/create.html:7
+msgid "Create an Account"
+msgstr "క్రొత్త ఖాతా సృష్టించండి"
+
+#: templates/account/create.html:9
+msgid "Complete the form below to create your new Open Library account."
+msgstr ""
+"మీ క్రొత్త  సార్వత్రిక గ్రంధాలయ ఖాతా సృష్టించటానికి ఈ క్రింది ఫామ్ "
+"నింపండి."
+
+#: templates/account/create.html:10
+msgid "Each field is required, and you'll need to verify your email address."
+msgstr ""
+"ప్రతి ఫీల్డ్ అవసరమే, మరియు మీరు మీ ఈమెయిలు చిరునామాను దృవీకరించవలసి "
+"ఉంటంది."
+
+#: templates/account/create.html:24 templates/account/email.html:20
+#: templates/account/notifications.html:96 templates/account/password.html:21
+#: templates/account/password/forgot.html:23
+msgid "Cancel"
+msgstr "రద్దుచేయి"
+
+#: templates/account/email.html:5
+msgid "Change Your Email Address"
+msgstr "మీ ఈమెయిలు చిరునామా మార్చుకోండి"
+
+#: templates/account/email.html:11
+msgid "Your current email address is"
+msgstr "మీ ప్రస్తుత ఈమెయిలు చిరునామా"
+
+#: templates/account/email.html:18
+msgid "Change It"
+msgstr "మార్చండి"
+
+#: templates/account/notifications.html:3
+#: templates/account/notifications.html:7
+msgid "Notifications from Open Library"
+msgstr ""
+
+#: templates/account/notifications.html:10
+msgid "Update your email address?"
+msgstr "మీ ఈమెయిలు చిరునామా మార్చాలా?"
+
+#: templates/account/notifications.html:11
+#, python-format
+msgid "We have %(email)s for you at the moment."
+msgstr "మా దగ్గర ఇప్పుడు %(email)s ఉంది."
+
+#: templates/account/notifications.html:24
+msgid ""
+"Notifications are connected to Lists at the moment. If one of the books "
+"on your list gets edited, or a new book comes into the catalog, we'll let"
+" you know, if you want."
+msgstr ""
+
+#: templates/account/notifications.html:29
+msgid "How would you like to receive List updates?"
+msgstr "లిష్టు మార్పులు మీరు ఎలా పొందాలనుకుంటున్నారు?"
+
+#: templates/account/notifications.html:37
+msgid "A weekly email, but only if something's changed"
+msgstr "వారానికొక ఈమెయిలు, కానీ ఏదైనా మారితే మాత్రమే"
+
+#: templates/account/notifications.html:44
+msgid "A daily email, but only if something's changed"
+msgstr "రోజుకొక ఈమెయిలు, కానీ ఏదైనా మారితే మాత్రమే"
+
+#: templates/account/notifications.html:51
+msgid "An email, pretty soon after any update"
+msgstr "ఏదైనా మారిన వెంటనే ఒక ఈమెయిలు"
+
+#: templates/account/notifications.html:57
+msgid "Send me a Twitter"
+msgstr "నాకు ట్విట్టర్ పంపు"
+
+#: templates/account/notifications.html:66
+msgid "Just pop a note on my Open Library home page"
+msgstr "నా సార్వత్రిక గ్రంధాలయ హోంపేజిలో ఒక నోటు చూపించు"
+
+#: templates/account/notifications.html:71
+msgid "I don't want to be notified, thank you"
+msgstr ""
+
+#: templates/account/notifications.html:76
+msgid ""
+"Would you like to receive remarkably low traffic update-style emails from"
+" Open Library?"
+msgstr ""
+
+#: templates/account/notifications.html:82
+msgid "No, thank you"
+msgstr "వద్దండి, ఫరవాలేదు"
+
+#: templates/account/notifications.html:88
+msgid "Yes! Please!"
+msgstr "ఓ! తప్పకుండా!"
+
+#: templates/account/notifications.html:94
+msgid "Save"
+msgstr "భద్రపరచు"
+
+#: templates/account/password.html:5
+msgid "Change Your Password"
+msgstr "మీ సంకేత పదం మార్చుకోండి"
+
+#: templates/account/password.html:8
+msgid ""
+"Provide your existing password (to verify that it's you) and select a new"
+" password to replace it."
+msgstr ""
+"మీ ప్రస్తుత సంకేతపదానన్ని ఇచ్చి (ఇది మీరేని దృవీకరించుకోవటానికి) దాని "
+"స్థానంలో మరొక క్రొత్త సంకేతపదాన్ని ఎంచుకోండి"
+
+#: templates/account/password.html:19 templates/account/password/forgot.html:21
+msgid "Send It"
+msgstr "పంపించు"
+
+#: templates/account/verify.html:3
+msgid "Verification email sent"
+msgstr "దృవీకరణ ఈమెయిలు పంపబడింది"
+
+#: templates/account/verify.html:6 templates/account/verify/success.html:7
+#, python-format
+msgid "Hi, %(user)s!"
+msgstr "స్వాగతం %(user)s"
+
+#: templates/account/verify.html:11
+#, python-format
+msgid ""
+"We've sent an email to %(email)s. You'll need to read that and click on "
+"the verification link to finish creating your account."
+msgstr ""
+"మేము %(email)s కు ఈమెయిలు పంపాము. మీ ఖాతా సృష్టి పూర్తవటానికి \"\n"
+"\"మీరు దానిని చదివి అందులో ఉన్న దృవీకరణ లంకెను నొక్కండి."
+
+#: templates/account/password/forgot.html:3
+#: templates/account/password/forgot.html:7
+#: templates/account/password/sent.html:3
+#: templates/account/password/sent.html:7
+msgid "Password Reminder"
+msgstr ""
+
+#: templates/account/password/forgot.html:10
+msgid ""
+"Please provide the email address you used to originally sign-up, and "
+"we'll send you instructions to change your Open Library password."
+msgstr ""
+
+#: templates/account/password/reset.html:3
+#: templates/account/password/reset.html:7
+msgid "Reset Password"
+msgstr ""
+
+#: templates/account/password/reset.html:19
+msgid "Reset"
+msgstr ""
+
+#: templates/account/password/sent.html:12
+#, python-format
+msgid ""
+"We have sent an email to %(email)s with instructions to reset password. "
+"Please check your email and follow the instructions to reset your "
+"password."
+msgstr ""
+"సంకేతపదం మార్చుకోవటానికి సూచనలను %(email)sకు ఈమెయిలు పంపాము.\"\n"
+"\"దయచేసి మీ ఈమెయిలు చూసుకొని అందులోని సూచనలను పాటించండి."
+
+#: templates/account/verify/failed.html:3
+#: templates/account/verify/failed.html:7
+msgid "Email Verification Failed"
+msgstr ""
+
+#: templates/account/verify/success.html:3
+msgid "Email Verification Successful"
+msgstr "ఈమెయిలు దృవీకరణ విజయవంతం"
+
+#~ msgid "Terms of Use"
+#~ msgstr "సేవా నిబంధనలు"
 

@@ -7,6 +7,7 @@ import os
 import re
 import urllib
 import socket
+import datetime
 
 import infogami
 
@@ -17,6 +18,7 @@ if not hasattr(infogami.config, 'features'):
 from infogami.utils import types, delegate
 from infogami.utils.view import render, public, safeint
 from infogami.infobase import client, dbstore
+from infogami.core.db import ValidationException
 
 import processors
 
@@ -115,6 +117,14 @@ client.register_thing_class('/type/author', Author)
 client.register_thing_class('/type/edition', Edition)
 client.register_thing_class('/type/work', Work)
 client.register_thing_class('/type/user', User)
+
+class hooks(client.hook):
+    def before_new_version(self, page):
+        if page.key.startswith('/a/') or page.key.startswith('/authors/'):
+            if page.type.key == '/type/delete' and page.books != []:
+                raise ValidationException("Deleting author pages is not allowed.")
+            elif page.type.key != '/type/author' and page.books != []:
+                raise ValidationException("Changing type of author pages is not allowed.")
 
 @infogami.action
 def sampledump():
@@ -336,47 +346,13 @@ class flipbook(delegate.page):
     SCRIPT_PATH = "/petabox/sw/bin/find_item.php"
 
     def GET(self, identifier, leaf):
-        import os
-
-        if os.path.exists(self.SCRIPT_PATH):
-            server, path = self.find_location(identifier)
+        if leaf:
+            hash = '#page/n%s' % leaf
         else:
-            server, path = self.find_location_from_archive(identifier)
-
-        if  not server:
-            raise web.notfound()
-        else:
-            title = identifier
-            
-            params = dict(identifier=identifier, dataserver=server, datapath=path)
-            if leaf:
-                params['leaf'] = leaf
-            url = "http://%s/flipbook/flipbook.php?%s" % (server, urllib.urlencode(params))     
-            data = render.flipbook(url, title)
-            raise web.HTTPError("200 OK", {}, web.safestr(data))
-
-    def find_location_from_archive(self, identifier):
-        """Use archive.org to get the location.
-        """
-        from xml.dom import minidom
-
-        base_url = "http://www.archive.org/services/find_file.php?loconly=1&file="
-
-        try:
-            data= urllib.urlopen(base_url + identifier).read()
-            doc = minidom.parseString(data)
-            vals = [(e.getAttribute('host'), e.getAttribute('dir')) for e in doc.getElementsByTagName('location')]
-            return vals and vals[0]
-        except Exception:
-            return None, None
-            
-    def find_location(self, identifier):
-        import os
-        data = os.popen(self.SCRIPT_PATH + ' ' + identifier).read().strip()
-        if ':' in data:
-            return data.split(':', 1)
-        else:
-            return None, None
+            hash = ""
+        
+        url = "http://www.archive.org/stream/%s%s" % (identifier, hash)
+        raise web.seeother(url)
 
 class bookreader(delegate.page):
     path = "/bookreader/(.*)"
@@ -592,13 +568,13 @@ def get_recent_changes(*a, **kw):
         return []
     else:
         return _get_recentchanges(*a, **kw)
-        
+
 @public
 def most_recent_change():
     if 'cache_most_recent' in infogami.config.features:
         v = web.ctx.site._request('/most_recent')
         v.thing = web.ctx.site.get(v.key)
-        v.author = v.author_id and web.ctx.site.get(v.author_id)
+        v.author = v.author and web.ctx.site.get(v.author)
         v.created = client.parse_datetime(v.created)
         return v
     else:
@@ -635,4 +611,33 @@ class invalidate(delegate.page):
         for d in data:
             thing = client.Thing(web.ctx.site, d['key'], client.storify(d))
             client._run_hooks('on_new_version', thing)
+            
+def save_error():
+    t = datetime.datetime.utcnow()
+    name = '%04d-%02d-%02d/%02d%02d%02d%06d' % (t.year, t.month, t.day, t.hour, t.minute, t.second, t.microsecond)
+    
+    path = infogami.config.get('errorlog', 'errors') + '/'+ name + '.html'
+    dir = os.path.dirname(path)
+    if not os.path.exists(dir):
+        os.makedirs(dir)
+    
+    error = web.safestr(web.djangoerror())
+    f = open(path, 'w')
+    f.write(error)
+    f.close()
+    
+    print >> web.debug, 'error saved to', path
+    
+    return name
 
+def internalerror():
+    i = web.input(_method='GET', debug='false')
+    name = save_error()
+    
+    if i.debug.lower() == 'true':
+        raise web.debugerror()
+    else:
+        msg = render.site(render.internalerror(name))
+        raise web.internalerror(web.safestr(msg))
+    
+delegate.app.internalerror = internalerror
