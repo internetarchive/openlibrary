@@ -24,7 +24,7 @@ Register = Form(
     Textbox('email', description=_('Your Email Address'), klass='required', validators=[vemail, email_not_already_used]),
     Textbox('username', description=_('Choose a Username'), klass='required', help=_("Only letters and numbers, please, and at least 3 characters."), 
         validators=[vlogin, username_validator]),
-    Password('password', description=_('Choose a Password'), klass='required', validators=[vpass])
+    Password('password', description=_('Choose a Password'), klass='required', help=_('<span id="showpass" class="smaller"></span>'), validators=[vpass])
 )
 
 def verify_password(password):
