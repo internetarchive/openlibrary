@@ -35,10 +35,15 @@ class ConnectionProcessor:
         
 class CacheProcessor(ConnectionProcessor):
     """Connection Processor to provide local cache."""
-    def __init__(self, cache_prefixes, cache_size=10000):
+    def __init__(self, cache_prefixes, cache_size=10000, memcache_servers=None):
         self.cache_prefixes = cache_prefixes
         self.cache = cache = lru.LRU(cache_size)
-
+        
+        if memcache_servers:
+            self.memcache = memcache.Client(memcache_servers)
+        else:
+            self.memcache = {}
+        
         class hook(client.hook):
             def on_new_version(self, page):
                 if page.key in cache:
@@ -49,7 +54,7 @@ class CacheProcessor(ConnectionProcessor):
         revision = data.get('revision')
 
         if revision is None and self.cachable(key):
-            response = self.cache.get(key)
+            response = self.cache.get(key) or self.memcache.get(key)
             if not response:
                 response = super.get(sitename, data)
                 self.cache[key] = response
@@ -127,7 +132,7 @@ def get_processors():
     def f():
         cache_prefixes = config.get("cache_prefixes", default_cache_prefixes)
         if cache_prefixes :
-            yield CacheProcessor(cache_prefixes)
+            yield CacheProcessor(cache_prefixes, memcache_servers=config.get('memcache_servers'))
         
     global conn_processors
     if conn_processors is None:
