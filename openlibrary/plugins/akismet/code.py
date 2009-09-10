@@ -61,7 +61,7 @@ class hooks(client.hook):
 
         data = dict((web.safestr(k), web.safestr(v)) for k, v in data.items())
 
-        spam = api.comment_check(comment, data)
+        spam = api.comment_check(web.safestr(comment), data)
         if spamlog:
             f = open(spamlog, 'a')
             print >> f, spam, data
