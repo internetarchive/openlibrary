@@ -119,7 +119,7 @@ class ReadableUrlProcessor:
         
     def safepath(self, path):
         """Replaces unsafe chars with underscores in the path."""
-        return get_safepath_re().sub('_', path) 
+        return get_safepath_re().sub('_', path).strip('_')
 
 @web.memoize        
 def get_safepath_re():
@@ -131,7 +131,8 @@ def get_safepath_re():
     space = ' \n\r'
     
     unsafe = reserved + delims + unwise + space
-    return re.compile("|".join(re.escape(c) for c in unsafe))
+    pattern = '[%s]+' % "".join(re.escape(c) for c in unsafe)
+    return re.compile(pattern)
 
 class ProfileProcessor:
     """Processor to profile the webpage when ?profile=true is added to the url.
