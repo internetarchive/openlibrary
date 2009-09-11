@@ -53,9 +53,9 @@ $:macros.databar(page)
         </form>
 
         <script>
-            var a = document.getElementById("a${page.latest_revision - 1}");
-            var a2 = document.getElementById("a$page.latest_revision");
-            var b = document.getElementById("b$page.latest_revision");
+            var a = document.getElementById("a${page.revision - 1}");
+            var a2 = document.getElementById("a$page.revision");
+            var b = document.getElementById("b$page.revision");
 
             if (a) 
                 a.checked = true;
