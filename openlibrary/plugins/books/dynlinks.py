@@ -74,7 +74,7 @@ def split_key(bib_key):
     
     # decide isbn_10 or isbn_13 based on length.
     if key == 'isbn':
-        if len(value) == 13:
+        if len(value.replace('-', '')) == 13:
             key = 'isbn_13'
         else:
             key = 'isbn_10'
