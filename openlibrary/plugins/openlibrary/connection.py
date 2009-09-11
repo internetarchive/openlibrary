@@ -2,7 +2,7 @@
 """
 from infogami import config
 from infogami.infobase import client, lru
-
+import web
 import simplejson
 
 default_cache_prefixes = ["/type/", "/l/", "/index.", "/about", "/css/", "/js/"]
@@ -40,6 +40,7 @@ class CacheProcessor(ConnectionProcessor):
         self.cache = cache = lru.LRU(cache_size)
         
         if memcache_servers:
+            import memcache
             self.memcache = memcache.Client(memcache_servers)
         else:
             self.memcache = {}
@@ -54,7 +55,7 @@ class CacheProcessor(ConnectionProcessor):
         revision = data.get('revision')
 
         if revision is None and self.cachable(key):
-            response = self.cache.get(key) or self.memcache.get(key)
+            response = self.cache.get(key) or self.memcache.get(web.safestr(key))
             if not response:
                 response = super.get(sitename, data)
                 self.cache[key] = response
