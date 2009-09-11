@@ -148,7 +148,7 @@ class RemoteSource:
         
         def get(d, key):
             if key in d:
-                return d[key]['value']
+                return d[key]['value'].replace('\r\n', '\n').replace('\r', '\n')
             else:
                 return ''
 
