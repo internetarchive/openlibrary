@@ -43,6 +43,22 @@
 jQuery.fn.fadeToggle = function(speed, easing, callback) { 
     return this.animate({opacity: 'toggle'}, speed, easing, callback); 
 };
+// ADD TEXT TOGGLE 
+jQuery.fn.toggleText = function(a, b) {
+	return this.each(function() {
+		jQuery(this).text(jQuery(this).text() == a ? b : a);
+	});
+};
+// ZEBRA STRIPE TABLES 
+function stripeTableOdd() {
+    $(".stripeOdd tbody tr:nth-child(odd)").addClass("odd");
+};
+function stripeTableEven() {
+    $(".stripeEven tbody tr:nth-child(even)").addClass("even");
+};
+function bookCovers(){
+$.fn.fixBroken=function(){return this.each(function(){$(this).error(function(){$(this).parent().parent().hide();$(this).parent().parent().next(".SRPCoverBlank").show();});});};
+};
 //AUTODATE
 var myMonths=new Array("January","February","March","April","May","June","July","August","September","October","November","December");
 var myDays= new Array("Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday");
