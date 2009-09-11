@@ -33,7 +33,7 @@ def _query(category, key, value):
     else:
         if category == 'b' and key in ['isbn', 'lccn', 'oclc', 'ocaid']:
             if key == 'isbn':
-                if len(value) == 13:
+                if len(value.replace('-', '')) == 13:
                     key = 'isbn_13'
                 else:
                     key = 'isbn_10'
