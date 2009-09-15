@@ -118,6 +118,7 @@ def get_books(akey):
         yield book
 
 def build_work_title_map(equiv, norm_titles):
+    # map of book titles to work titles
     title_to_work_title = defaultdict(set)
     for (norm_title, norm_wt), v in equiv.items():
         if v != 1:
@@ -137,8 +138,8 @@ def build_work_title_map(equiv, norm_titles):
     return title_map
 
 def find_works(akey):
-    equiv = defaultdict(int)
-    norm_titles = defaultdict(int)
+    equiv = defaultdict(int) # title and work title pairs
+    norm_titles = defaultdict(int) # frequency of titles
     books_by_key = {}
     books = []
     rev_wt = defaultdict(lambda: defaultdict(int))
