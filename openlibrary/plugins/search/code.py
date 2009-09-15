@@ -428,7 +428,6 @@ def clean_punctuation(s,field=None):
         return x
     ws = map(clean1, s.split())
     r = ' '.join(filter(bool,ws))
-    print >> web.debug, ('clean punctuation', (field, s, r))
     return r
 
 class search_api:
