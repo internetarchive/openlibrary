@@ -411,9 +411,25 @@ def munch_qresults(qlist):
 # This replaces a version that removed all punctuation from the
 # query (see change history, 2008-05-01).  Something a bit smarter
 # than this is probably better.
-def clean_punctuation(s):
-    ws = [w.lstrip(':') for w in s.split()]
-    return ' '.join(filter(bool,ws))
+
+# additionally: if term is 10 or 13 digits with some hyphens,
+# treat it as an ISBN and strip the hyphens, since they are
+# indexed with no hyphens.  LP #375277.
+
+# hmm, this should be done only for unqualified and isbn-specific
+# fields, not other named fields.  test like this for now. @@
+def clean_punctuation(s,field=None):
+    def clean1(w):
+        x = w.lstrip(':')
+        # return x                # actually don't compress ISBN for now.
+        maybe_isbn = list(c for c in x if c != '-')
+        if len(maybe_isbn) in [10,13] and all(str.isdigit(c) for c in maybe_isbn):
+            x = ''.join(maybe_isbn)
+        return x
+    ws = map(clean1, s.split())
+    r = ' '.join(filter(bool,ws))
+    print >> web.debug, ('clean punctuation', (field, s, r))
+    return r
 
 class search_api:
     error_val = {'status':'error'}
