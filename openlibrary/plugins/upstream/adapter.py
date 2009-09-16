@@ -25,7 +25,15 @@ app = web.application(urls, globals())
 convertions = {
     '/people/': '/user/',
     '/books/': '/b/',
-    '/authors/': '/a/'
+    '/authors/': '/a/',
+    '/templates/': '/upstream/templates/',
+    '/macros/': '/upstream/macros/',
+    '/js/': '/upstream/js/',
+    '/css/': '/upstream/css/',
+    '/old/templates/': '/templates/',
+    '/old/macros/': '/macros/',
+    '/old/js/': '/js/',
+    '/old/css/': '/css/',
 }
 
 # inverse of convertions
@@ -132,8 +140,13 @@ class get(proxy):
         
 class things(proxy):
     def before_request(self):
-        for k, v in self.input.items():
-            self.input[k] = convert_key(v)
+        if 'query' in self.input:
+            q = self.input.query
+            q = simplejson.loads(q)
+            for k, v in q.items():
+                if isinstance(v, basestring):
+                    q[k] = convert_key(v)
+            self.input.query = simplejson.dumps(q)
             
     def after_request(self):
         if self.output:
