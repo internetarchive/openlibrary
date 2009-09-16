@@ -148,13 +148,16 @@ class RemoteSource:
         
         def get(d, key):
             if key in d:
-                return d[key]['value'].replace('\r\n', '\n').replace('\r', '\n')
+                value = d[key]
+                if isinstance(value, dict) and 'value' in value:
+                    value = value['value']
+                return value.replace('\r\n', '\n').replace('\r', '\n')
             else:
                 return ''
 
         if thing['latest_revision'] == 1:
             return None
-        
+            
         if type == '/type/template':
             return get(thing, 'body')
         elif type == '/type/macro':
