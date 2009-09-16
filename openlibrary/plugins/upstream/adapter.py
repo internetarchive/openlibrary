@@ -101,6 +101,8 @@ def convert_key(key, mapping=convertions):
         >>> convert_key("/authors/OL1A", {'/authors/': '/a/'})
         '/a/OL1A'
     """
+    if key == '/':
+        return '/upstream'
     for new, old in mapping.items():
         if key.startswith(new):
             key2 = old + key[len(new):]
@@ -124,6 +126,8 @@ def convert_dict(d, mapping=convertions):
         return d
 
 def unconvert_key(key):
+    if key == '/upstream':
+        return '/'
     return convert_key(key, iconversions)
 
 def unconvert_dict(d):
