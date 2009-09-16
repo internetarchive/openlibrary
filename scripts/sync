@@ -64,7 +64,10 @@ class LocalSource:
         if path.startswith('templates/'):
             return self.root + '/' + path.replace('.tmpl', '.html')
         elif path.startswith('macros/'):
-            return self.root + '/' + path + '.html'
+            newpath = self.root + '/' + path
+            if not newpath.endswith('*'):
+                newpath += '.html'
+            return newpath
         elif path.startswith('css/') or path.startswith('js/'):
             return self.static + '/' + path
         else:
