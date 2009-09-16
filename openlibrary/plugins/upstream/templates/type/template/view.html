@@ -2,12 +2,19 @@ $def with (page)
 
 $ title = page.title or page.key
 
+$ _x = ctx.setdefault("bodyid", "edit")
+
 $var title: $title
+
+$:macros.databarView(page)
 
 <div id="contentHead">
     <div class="head">
-        <h1>$title</h1>
+        <h2>$title</h2>
     </div>
+    <p class="small">
+        $_.last_modified $(page.last_modified and datestr(page.last_modified))
+    </p>
 </div>
 
 <div id="contentBody">
