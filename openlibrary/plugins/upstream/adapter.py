@@ -14,6 +14,7 @@ import web
 
 urls = (
     '/([^/]*)/get', 'get',
+    '/([^/]*)/get_many', 'get_many',
     '/([^/]*)/things', 'things',
     '/([^/]*)/versions', 'versions',
     '/([^/]*)/new_key', 'new_key',
@@ -126,19 +127,27 @@ def unconvert_key(key):
     return convert_key(key, iconversions)
 
 def unconvert_dict(d):
-    return convert_dict(d, iconversions)    
+    return convert_dict(d, iconversions)
         
 class get(proxy):
     def before_request(self):
         i = self.input
         if 'key' in i:
             i.key = convert_key(i.key)
+                            
+class get_many(proxy):
+    def before_request(self):
+        if 'keys' in self.input:
+            keys = self.input['keys']
+            keys = simplejson.loads(keys)
+            keys = [convert_key(k) for k in keys]
+            self.input['keys'] = simplejson.dumps(keys)
                     
     def after_request(self):
         d = simplejson.loads(self.output)
-        d = unconvert_dict(d)
+        d = dict((unconvert_key(k), unconvert_dict(v)) for k, v in d.items())
         self.output = simplejson.dumps(d)
-        
+                    
 class things(proxy):
     def before_request(self):
         if 'query' in self.input:
