@@ -250,7 +250,6 @@ function validateLogin() {
   		required: ""
   	}
   });
-  $('#password').showPassword("#showpass");
 };
 function validatePassword() {
 	$("form.password").validate({
