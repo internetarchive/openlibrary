@@ -18,6 +18,7 @@ urls = (
     '/([^/]*)/versions', 'versions',
     '/([^/]*)/new_key', 'new_key',
     '/([^/]*)/save(/.*)', 'save',
+    '/([^/]*)/save_many', 'save_many',
     '/.*', 'proxy'
 )
 app = web.application(urls, globals())
@@ -152,7 +153,7 @@ class things(proxy):
         if self.output:
             d = simplejson.loads(self.output)
 
-            if self.input.get('details'):
+            if self.input.get('details', '').lower() == 'true':
                 d = unconvert_dict(d)
             else:
                 d = [unconvert_key(key) for key in d]
