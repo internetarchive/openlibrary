@@ -286,8 +286,6 @@ function validatePassword() {
   		required: ""
   	}
   });
-//  $('#masker').append('<input type="checkbox" name="showpass" id="showpass"/> <label for="showpass">Display passwords?</label>');
-//  $('.pwmask').showPasswords('#showpass');
 };
 function validateReminder() {
 	$("form.reminder").validate({
