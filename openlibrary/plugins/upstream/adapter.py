@@ -207,8 +207,9 @@ class save_many(proxy):
             self.data = urllib.urlencode(i)
 
 if __name__ == '__main__':
-    import sys
+    import sys, os
     web.config.infobase_server = sys.argv[1].rstrip('/')
+    os.environ['REAL_SCRIPT_NAME'] = ''
     
     sys.argv[1:] = sys.argv[2:]
     app.run() 
