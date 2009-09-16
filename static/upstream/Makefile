@@ -6,7 +6,14 @@ JS_SOURCES=			\
     jquery.jcarousel.pack.js 	\
     jquery.showpassword.min.js	\
     jquery.validate.min.js	\
-    jquery.tooltip.pack.js
+    jquery.tooltip.pack.js  \
+    jquery.twitterfeed.js   \
+    jquery.flickrfeed.js    \
+    jquery.flot.js  \
+    jquery.sparklines.js    \
+    jquery.markitup.js  \
+    jquery.ccopy.js
+    
 
 JS_OBJECTS=$(JS_SOURCES:%=js/%)
 
