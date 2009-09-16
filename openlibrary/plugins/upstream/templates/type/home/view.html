@@ -1,0 +1,9 @@
+$def with (page)
+
+$ lang = i18n.get_locale() or 'en'
+$ _t = i18n.get_namespace('/type/home')
+$ _ = i18n.get_namespace('/mode/view')
+
+$var title: $page.title
+
+$:macros.databar()
