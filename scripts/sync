@@ -247,7 +247,7 @@ class Server:
         for path in paths:
             if path.endswith('*'):
                 path = path[:-1]
-            os.system('diff -u %s %s' % (local.get_path(path), self.local.get_path(path)))
+            os.system('diff --strip-trailing-cr -u %s %s' % (local.get_path(path), self.local.get_path(path)))
 
         shutil.rmtree(root)
 
