@@ -16,15 +16,15 @@ email_already_used = Validator(_("No user registered with this email address"), 
 email_not_already_used = Validator(_("Email already used"), lambda email: web.ctx.site.find_user_by_email(email) is None)
 username_validator = Validator(_("Username already used"), lambda username: web.ctx.site.get('/user/' + username) is None)
 
-vlogin = RegexpValidator(r"^[A-Za-z0-9-_]{3,20}$", _('must be between 3 and 20 letters and numbers')) 
-vpass = RegexpValidator(r".{3,20}", _('must be between 3 and 20 characters'))
-vemail = RegexpValidator(r".*@.*", _("must be a valid email address"))
+vlogin = RegexpValidator(r"^[A-Za-z0-9-_]{3,20}$", _('Must be between 3 and 20 letters and numbers')) 
+vpass = RegexpValidator(r".{3,20}", _('Must be between 3 and 20 characters'))
+vemail = RegexpValidator(r".*@.*", _("Must be a valid email address"))
 
 Register = Form(
     Textbox('email', description=_('Your Email Address'), klass='required', validators=[vemail, email_not_already_used]),
     Textbox('username', description=_('Choose a Username'), klass='required', help=_("Only letters and numbers, please, and at least 3 characters."), 
         validators=[vlogin, username_validator]),
-    Password('password', description=_('Choose a Password'), klass='required', help=_('<span id="showpass" class="smaller"></span>'), validators=[vpass])
+    Password('password', description=_('Choose a Password'), klass='required', validators=[vpass])
 )
 
 def verify_password(password):
@@ -40,7 +40,7 @@ def verify_password(password):
         
     return True
     
-validate_password = Validator(_("Invaid password"), verify_password)
+validate_password = Validator(_("Invalid password"), verify_password)
 
 ChangePassword= Form(
     Password('password', description=_("Current Password"), validators=[validate_password]),

@@ -250,7 +250,6 @@ function validateLogin() {
   		required: ""
   	}
   });
-  $('#password').showPassword("#showpass");
 };
 function validatePassword() {
 	$("form.password").validate({
@@ -287,8 +286,6 @@ function validatePassword() {
   		required: ""
   	}
   });
-//  $('#masker').append('<input type="checkbox" name="showpass" id="showpass"/> <label for="showpass">Display passwords?</label>');
-//  $('.pwmask').showPasswords('#showpass');
 };
 function validateReminder() {
 	$("form.reminder").validate({
