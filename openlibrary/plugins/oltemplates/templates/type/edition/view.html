@@ -44,8 +44,8 @@ td.toc-link-end { font-style: bold; padding-bottom: 0px;}
 $ lccn = page["lccn"] and page["lccn"][0] and ("http://lccn.loc.gov/" + page["lccn"][0])
 $ oclc = page["oclc_numbers"] and page["oclc_numbers"][0] and ("http://www.worldcat.org/oclc/" + page["oclc_numbers"][0] + "?tab=details")
 
-$if 'scod' in get_plugins():
-    $ scan_status = get_scan_status(page.key)
+$if page.scan_records:
+    $ scan_status = page.scan_records[0].scan_status
 $else:
     $ scan_status = None
 
