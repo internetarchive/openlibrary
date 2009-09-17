@@ -155,7 +155,7 @@ class OpenLibrary:
                     yield r
                 if len(result) < 1000:
                     break
-                kw['offset'] += len(result)
+                q['offset'] += len(result)
 
         if 'limit' in q and q['limit'] == False:
             return unlimited_query(q)
