@@ -1,4 +1,5 @@
 import os, re, sys, codecs
+from openlibrary.catalog.read_rc import read_rc
 from openlibrary.catalog.importer.db_read import get_mc
 
 sys.path.append('/home/edward/src/olapi')
@@ -14,11 +15,13 @@ re_edition = re.compile('^/b/OL\d+M$')
 
 re_meta_mrc = re.compile('^([^/]*)_meta.mrc:0:\d+$')
 
-out = open('source_records', 'w')
+#out = open('source_records', 'w')
 for f in os.listdir(test_dir):
     key = f.replace('_', '/')
     if not re_edition.match(key):
         continue
+    print key
+    continue
     mc = get_mc(key)
     print key, mc
     if not mc:
@@ -32,4 +35,4 @@ for f in os.listdir(test_dir):
     e['source_records'] = [sr]
     print >> out, (key, sr)
     print ol.save(key, e, 'add source record')
-out.close()
+#out.close()
