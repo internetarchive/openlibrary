@@ -367,3 +367,10 @@ class account_notifications(delegate.page):
         
         add_flash_message('note', _("Notification preferences have been updated successfully."))
         web.seeother("/account")
+
+class redirects:
+    path = "/(a|b|user)/(.*)"
+    def GET(self, prefix, path):
+        d = dict(a="authors", b="books", user="people")
+        raise web.redirect("/%s/%s" % (d[prefix], path))
+

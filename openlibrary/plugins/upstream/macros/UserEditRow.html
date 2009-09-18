@@ -1,0 +1,29 @@
+$def with (page, name, unique=True, right=False)
+
+$ label = i18n.get('/type/user', name)
+$ value = page[name]
+
+
+$ class_label = (right and "formheader-data-left") or "formheader"
+$ class_input = (right and "formheader-data-left") or "formfield"
+
+<div class="formElement">
+$if unique:
+    <div class="label">
+        <label for="$name">$label</label>
+    </div>
+    <div class="input">
+        <input type="text" name="$name" id="$name" value="$value"/>
+    </div>
+$else:
+    $ value = value or [""]
+    $for i, v in enumerate(value):
+        <div class="label">
+            <label for="$name">$label</label>
+        </div>
+        <div class="input">
+            <input type="text" name="$name" id="$name" class="cloneThis" value="$v"/>
+            <button type="button" id="websiteAdd" class="addAnother helptip" title="Add another website to your profile"></button>
+        </div>
+        $ label = ""
+</div>

@@ -1,0 +1,65 @@
+$def with (page)
+
+$ _t = i18n.get_namespace('/type/page')
+$ _ = i18n.get_namespace('/mode/edit')
+
+$var title: $_.edit_title(page.key)
+
+<form name="edit" class="olform" method="post" action="">
+
+<div id="contentHead">
+    <div class="head">
+        <span class="tools">$_.edit_pretitle:</span>
+        <h2>$page.title</h2>
+    </div>
+</div>
+
+<div id="contentBody">
+<script type="text/javascript">
+\$().ready(textareaExpand);
+</script>
+
+$:macros.TypeChanger(page.type)
+
+    <div class="formElement">
+        <div class="label">
+            <label for="title">$_t.title</label>
+        </div>
+        <div class="input">
+            <input type="text" name="title" id="title" value="$page.title" />
+        </div>
+    </div>
+
+    <div class="formElement">
+        <div class="label">
+            <label for="body">$_t.body</label>        
+        </div>
+        <div class="input">
+            <textarea name="body" id="body" class="resize" rows="8" cols="80">$page.body</textarea>
+        </div>
+    </div>
+
+    <div class="formElement">
+        <div class="label">
+            <label for="news">$_t.news</label>
+        </div>
+        <div class="input">
+            <textarea name="news" id="news" class="resize" rows="15" cols="80">$page.news</textarea>
+        </div>
+    </div>
+
+    <div class="formElement">
+        <div class="label">
+            <label for="stats">$_t.stats</label>
+        </div>
+        <div class="input">
+            <textarea name="stats" id="stats" class="resize" rows="4" cols="80">$page.stats</textarea>
+        </div>
+    </div>
+
+
+        $:macros.EditButtons(comment=page.comment_)
+        </form>
+        $:macros.HelpFormatting()
+
+</div>

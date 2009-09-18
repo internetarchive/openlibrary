@@ -1,0 +1,12 @@
+$def with (page=None)
+
+$if ctx.user and ctx.user.is_admin():
+    <div id="databar">
+        $if page:
+        $_("Last modified") $(page.last_modified and datestr(page.last_modified))
+    </div>
+    <div id="tools">
+        $if page:
+            <a class="edit" href="$changequery(m='edit')" accesskey="e" title="$_('Edit this page\'s template')">$_("Edit")</a> 
+            <a class="history" href="$changequery(m='history')" title="$_('View the edit history of this page')">$_("History")</a> 
+    </div>

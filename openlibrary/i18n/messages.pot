@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2009-09-03 18:52+0530\n"
+"POT-Creation-Date: 2009-09-16 12:06+0530\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -120,6 +120,10 @@ msgstr ""
 msgid "Choose a Password"
 msgstr ""
 
+#: forms.py:27
+msgid "<span id=\"showpass\" class=\"smaller\"></span>"
+msgstr ""
+
 #: forms.py:43
 msgid "Invaid password"
 msgstr ""
@@ -134,6 +138,115 @@ msgstr ""
 
 #: forms.py:51
 msgid "Your New Email Address"
+msgstr ""
+
+#: macros/EditButtons.html:5
+msgid "Edit Summary (briefly describe the changes you have made):"
+msgstr ""
+
+#: macros/EditButtons.html:13
+msgid ""
+"Except where otherwise noted, content on this site is licensed under a <a"
+" href=>Creative Commons CC0 License"
+msgstr ""
+
+#: macros/EditButtons.html:15 templates/account/notifications.html:95
+msgid "Save"
+msgstr ""
+
+#: macros/EditButtons.html:17
+msgid "Preview"
+msgstr ""
+
+#: macros/EditButtons.html:19 templates/account/create.html:61
+#: templates/account/email.html:23 templates/account/notifications.html:97
+#: templates/account/password.html:25 templates/account/password/forgot.html:23
+msgid "Cancel"
+msgstr ""
+
+#: macros/EditButtons.html:21
+msgid "Delete"
+msgstr ""
+
+#: macros/HelpFormatting.html:2
+#, python-format
+msgid ""
+"Learn more about the formatting language used in our wiki at <a "
+"href=\"%(url)s\">Markdown Basics</a>"
+msgstr ""
+
+#: macros/RecentChanges.html:15 templates/history.html:27
+msgid "When"
+msgstr ""
+
+#: macros/RecentChanges.html:16
+msgid "Path"
+msgstr ""
+
+#: macros/RecentChanges.html:17 templates/history.html:25
+msgid "Who"
+msgstr ""
+
+#: macros/RecentChanges.html:18 templates/history.html:26
+msgid "What"
+msgstr ""
+
+#: macros/RecentChanges.html:19
+msgid "Actions"
+msgstr ""
+
+#: macros/RecentChanges.html:44
+msgid "view"
+msgstr ""
+
+#: macros/RecentChanges.html:45
+msgid "edit"
+msgstr ""
+
+#: macros/RecentChanges.html:46
+msgid "diff"
+msgstr ""
+
+#: macros/RecentChanges.html:55
+msgid "Newer"
+msgstr ""
+
+#: macros/RecentChanges.html:58
+msgid "Older"
+msgstr ""
+
+#: macros/TypeChanger.html:14
+msgid "Page Type"
+msgstr ""
+
+#: macros/TypeChanger.html:18
+msgid "change"
+msgstr ""
+
+#: macros/databar.html:6 templates/history.html:15
+msgid "Last modified"
+msgstr ""
+
+#: macros/databar.html:10
+msgid "Edit this page's template"
+msgstr ""
+
+#: macros/databar.html:10 macros/databarView.html:4 templates/account.html:16
+#: templates/history.html:7 templates/history.html:37
+msgid "Edit"
+msgstr ""
+
+#: macros/databar.html:11
+msgid "View the edit history of this page"
+msgstr ""
+
+#: macros/databar.html:11 macros/databarEdit.html:5 macros/databarView.html:5
+#: templates/history.html:8
+msgid "History"
+msgstr ""
+
+#: macros/databarEdit.html:4 templates/account.html:16
+msgid "View"
 msgstr ""
 
 #: templates/account.html:3 templates/account.html:7
@@ -153,15 +266,7 @@ msgid "Your Notifications"
 msgstr ""
 
 #: templates/account.html:16
-msgid "View"
-msgstr ""
-
-#: templates/account.html:16
 msgid "or"
-msgstr ""
-
-#: templates/account.html:16
-msgid "Edit"
 msgstr ""
 
 #: templates/account.html:16
@@ -172,160 +277,234 @@ msgstr ""
 msgid "Delete Your Account"
 msgstr ""
 
+#: templates/diff.html:3
+#, python-format
+msgid "Differences of %(title)s"
+msgstr ""
+
+#: templates/diff.html:9
+msgid "Currently viewing differences for"
+msgstr ""
+
+#: templates/diff.html:17
+msgid "Differences"
+msgstr ""
+
+#: templates/diff.html:29 templates/diff.html:30 templates/history.html:23
+msgid "Revision"
+msgstr ""
+
+#: templates/diff.html:48
+msgid "Legend"
+msgstr ""
+
+#: templates/diff.html:50
+msgid "Unmodified"
+msgstr ""
+
+#: templates/diff.html:51
+msgid "Added"
+msgstr ""
+
+#: templates/diff.html:52
+msgid "Removed"
+msgstr ""
+
+#: templates/diff.html:53
+msgid "Modified"
+msgstr ""
+
+#: templates/history.html:7
+msgid "Edit this template"
+msgstr ""
+
+#: templates/history.html:8
+msgid "View this template's edit history"
+msgstr ""
+
+#: templates/history.html:11
+msgid "Currently viewing the history for"
+msgstr ""
+
+#: templates/history.html:45
+msgid "View MARC"
+msgstr ""
+
+#: templates/history.html:54
+msgid "Compare"
+msgstr ""
+
+#: templates/history.html:73
+msgid "Prev"
+msgstr ""
+
+#: templates/history.html:75
+msgid "Next"
+msgstr ""
+
 #: templates/login.html:7
 msgid "Log In"
 msgstr ""
 
-#: templates/site.html:24
+#: templates/recentchanges.html:4 templates/recentchanges.html:8
+msgid "Recent Changes"
+msgstr ""
+
+#: templates/site.html:31 templates/template.html:24
 msgid "Open Library"
 msgstr ""
 
-#: templates/site.html:47
+#: templates/site.html:54 templates/template.html:47
 msgid "Search"
 msgstr ""
 
-#: templates/site.html:49
+#: templates/site.html:56 templates/template.html:49
 msgid "Hide options"
 msgstr ""
 
-#: templates/site.html:49
+#: templates/site.html:56 templates/template.html:49
 msgid "More search options"
 msgstr ""
 
-#: templates/site.html:50
+#: templates/site.html:57 templates/template.html:50
 msgid "Scanned books only?"
 msgstr ""
 
-#: templates/site.html:54
+#: templates/site.html:61 templates/template.html:54
 msgid "Title:"
 msgstr ""
 
-#: templates/site.html:59
+#: templates/site.html:66 templates/template.html:59
 msgid "Author:"
 msgstr ""
 
-#: templates/site.html:63
+#: templates/site.html:70 templates/template.html:63
 msgid "Subject:"
 msgstr ""
 
-#: templates/site.html:72
+#: templates/site.html:79 templates/template.html:72
 msgid "Publisher:"
 msgstr ""
 
-#: templates/site.html:77
+#: templates/site.html:84 templates/template.html:77
 msgid "Description:"
 msgstr ""
 
-#: templates/site.html:81
+#: templates/site.html:88 templates/template.html:81
 msgid "Sort By:"
 msgstr ""
 
-#: templates/site.html:83
+#: templates/site.html:90 templates/template.html:83
 msgid "Alphabetical"
 msgstr ""
 
-#: templates/site.html:84
+#: templates/site.html:91 templates/template.html:84
 msgid "Title (A-Z)"
 msgstr ""
 
-#: templates/site.html:85
+#: templates/site.html:92 templates/template.html:85
 msgid "Title (Z-A)"
 msgstr ""
 
-#: templates/site.html:86
+#: templates/site.html:93 templates/template.html:86
 msgid "Author (A-Z)"
 msgstr ""
 
-#: templates/site.html:87
+#: templates/site.html:94 templates/template.html:87
 msgid "Author (Z-A)"
 msgstr ""
 
-#: templates/site.html:88
+#: templates/site.html:95 templates/template.html:88
 msgid "Date (Oldest First)"
 msgstr ""
 
-#: templates/site.html:89
+#: templates/site.html:96 templates/template.html:89
 msgid "Date (Newest First)"
 msgstr ""
 
-#: templates/site.html:90
+#: templates/site.html:97 templates/template.html:90
 msgid "Publisher (A-Z)"
 msgstr ""
 
-#: templates/site.html:91
+#: templates/site.html:98 templates/template.html:91
 msgid "Publisher (Z-A)"
 msgstr ""
 
-#: templates/site.html:95
+#: templates/site.html:102 templates/template.html:95
 msgid "Date Range:"
 msgstr ""
 
-#: templates/site.html:97
+#: templates/site.html:104 templates/template.html:97
 msgid "Select from below"
 msgstr ""
 
-#: templates/site.html:113
+#: templates/site.html:120 templates/template.html:113
 msgid "Search book info only"
 msgstr ""
 
-#: templates/site.html:113
+#: templates/site.html:120 templates/template.html:113
 msgid "Search text within works instead"
 msgstr ""
 
-#: templates/site.html:121
+#: templates/site.html:128 templates/template.html:121
 msgid "Search within text of available works"
 msgstr ""
 
-#: templates/site.html:136
+#: templates/site.html:143 templates/template.html:136
 msgid "Subjects"
 msgstr ""
 
-#: templates/site.html:140
+#: templates/site.html:147 templates/template.html:140
 msgid "Authors"
 msgstr ""
 
-#: templates/site.html:141
+#: templates/site.html:148 templates/template.html:141
 msgid "Add a Book"
 msgstr ""
 
-#: templates/site.html:144
+#: templates/site.html:151 templates/template.html:144
 msgid "Lists"
 msgstr ""
 
-#: templates/site.html:145
+#: templates/site.html:152 templates/template.html:145
 msgid "Recently"
 msgstr ""
 
-#: templates/site.html:147
+#: templates/site.html:154 templates/template.html:147
 msgid "About Us"
 msgstr ""
 
-#: templates/site.html:152
+#: templates/site.html:159 templates/template.html:152
 msgid "A page on the web for every book."
 msgstr ""
 
-#: templates/site.html:163
+#: templates/site.html:170 templates/template.html:163
 #, python-format
 msgid "Welcome %(user)s"
 msgstr ""
 
-#: templates/site.html:164
+#: templates/site.html:171 templates/template.html:164
 msgid "Preferences"
 msgstr ""
 
-#: templates/site.html:165
+#: templates/site.html:172 templates/template.html:165
 msgid "Logout"
 msgstr ""
 
-#: templates/site.html:167
+#: templates/site.html:174 templates/template.html:167
 msgid "Login"
 msgstr ""
 
-#: templates/site.html:169 templates/account/create.html:22
+#: templates/site.html:176 templates/template.html:169
+#: templates/account/create.html:59
 msgid "Sign Up"
 msgstr ""
 
-#: templates/site.html:331
+#: templates/site.html:341
+msgid "Spam?"
+msgstr ""
+
+#: templates/template.html:331
 msgid "Report abuse"
 msgstr ""
 
@@ -341,21 +520,15 @@ msgstr ""
 msgid "Each field is required, and you'll need to verify your email address."
 msgstr ""
 
-#: templates/account/create.html:24 templates/account/email.html:20
-#: templates/account/notifications.html:96 templates/account/password.html:21
-#: templates/account/password/forgot.html:23
-msgid "Cancel"
-msgstr ""
-
 #: templates/account/email.html:5
 msgid "Change Your Email Address"
 msgstr ""
 
-#: templates/account/email.html:11
+#: templates/account/email.html:14
 msgid "Your current email address is"
 msgstr ""
 
-#: templates/account/email.html:18
+#: templates/account/email.html:21
 msgid "Change It"
 msgstr ""
 
@@ -414,16 +587,12 @@ msgid ""
 " Open Library?"
 msgstr ""
 
-#: templates/account/notifications.html:82
+#: templates/account/notifications.html:83
 msgid "No, thank you"
 msgstr ""
 
-#: templates/account/notifications.html:88
+#: templates/account/notifications.html:89
 msgid "Yes! Please!"
-msgstr ""
-
-#: templates/account/notifications.html:94
-msgid "Save"
 msgstr ""
 
 #: templates/account/password.html:5
@@ -436,7 +605,7 @@ msgid ""
 " password to replace it."
 msgstr ""
 
-#: templates/account/password.html:19 templates/account/password/forgot.html:21
+#: templates/account/password.html:23 templates/account/password/forgot.html:21
 msgid "Send It"
 msgstr ""
 
@@ -493,5 +662,18 @@ msgstr ""
 
 #: templates/account/verify/success.html:3
 msgid "Email Verification Successful"
+msgstr ""
+
+#: templates/type/page/edit.html:3 templates/type/template/edit.html:5
+#, python-format
+msgid "Edit %(title)s"
+msgstr ""
+
+#: templates/type/page/edit.html:17 templates/type/template/edit.html:19
+msgid "Title"
+msgstr ""
+
+#: templates/type/template/edit.html:9
+msgid "Currently Editing:"
 msgstr ""
 

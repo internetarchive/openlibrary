@@ -13,10 +13,14 @@ r"""Open Library API Client.
 __version__ = "0.1"
 __author__ = "Anand Chitipothu <anandology@gmail.com>"
 
+
+import os
+import re
+import datetime
+from ConfigParser import ConfigParser
 import urllib, urllib2
 import simplejson
-import datetime
-import re
+
 
 class OLError(Exception):
     def __init__(self, http_error):
@@ -24,9 +28,10 @@ class OLError(Exception):
         msg = http_error.msg + ": " + http_error.read()
         Exception.__init__(self, msg)
 
+
 class OpenLibrary:
     def __init__(self, base_url="http://openlibrary.org"):
-        self.base_url = base_url
+        self.base_url = base_url.rstrip('/')
         self.cookie = None
 
     def _request(self, path, method='GET', data=None, headers=None):
@@ -42,6 +47,33 @@ class OpenLibrary:
             return urllib2.urlopen(req)
         except urllib2.HTTPError, e:
             raise OLError(e)
+
+    def autologin(self):
+        """Login to Open Library with credentials taken from ~/.olrc file.
+
+        The ~/.olrc file must be in ini format (format readable by
+        ConfigParser module) and there should be a section with the
+        server name. A sample configuration file may look like this:
+
+            [openlibrary.org]
+            username = joe
+            password = secret
+
+            [0.0.0.0:8080]
+            username = joe
+            password = joe123
+        """
+        config = ConfigParser()
+        config.read(os.path.expanduser('~/.olrc'))
+
+        section = self.base_url.replace('http://', '')
+
+        if not config.has_section(section):
+            raise OLError("No section found with name %s in ~/.olrc" % repr(section))
+
+        username = config.get(section, 'username')
+        password = config.get(section, 'password')
+        return self.login(username, password)
 
     def login(self, username, password):
         """Login to Open Library with given credentials.
@@ -95,6 +127,44 @@ class OpenLibrary:
     def new(self, query, comment=None, action=None):
         return self._call_write('new', query, comment, action)
 
+    def query(self, q=None, **kw):
+        """Query Open Library.
+
+        Open Library always limits the result to 1000 items due to
+        performance issues. Pass limit=False to fetch all matching
+        results by making multiple requests to the server. Please note
+        the an iterator is returned insted of list when limit=False is
+        passed.
+
+        >>> ol.query({'type': '/type/type', 'limit': 2}) #doctest: +SKIP
+        [{'key': '/type/property'}, {'key': '/type/type'}]
+
+        >>> ol.query(type='/type/type', limit=2) #doctest: +SKIP
+        [{'key': '/type/property'}, {'key': '/type/type'}]
+        """
+        q = dict(q or {})
+        q.update(kw)
+        def unlimited_query(q):
+            q['limit'] = 1000
+            q.setdefault('offset', 0)
+            q.setdefault('sort', 'key')
+
+            while True:
+                result = self.query(q)
+                for r in result:
+                    yield r
+                if len(result) < 1000:
+                    break
+                q['offset'] += len(result)
+
+        if 'limit' in q and q['limit'] == False:
+            return unlimited_query(q)
+        else:
+            q = simplejson.dumps(q)
+            response = self._request("/query.json?" + urllib.urlencode(dict(query=q)))
+            return unmarshal(simplejson.loads(response.read()))
+
+
 def marshal(data):
     """Serializes the specified data in the format required by OL.
 
@@ -113,6 +183,7 @@ def marshal(data):
         return {"key": unicode(data)}
     else:
         return data
+
 
 def unmarshal(d):
     u"""Converts OL serialized objects to python.
@@ -139,8 +210,9 @@ def unmarshal(d):
     else:
         return d
 
+
 def parse_datetime(value):
-    """Parses ISO datetime formatted string.
+    """Parses ISO datetime formatted strinb.
 
         >>> parse_datetime("2009-01-02T03:04:05.006789")
         datetime.datetime(2009, 1, 2, 3, 4, 5, 6789)
@@ -151,9 +223,11 @@ def parse_datetime(value):
         tokens = re.split('-|T|:|\.| ', value)
         return datetime.datetime(*map(int, tokens))
 
+
 class Text(unicode):
     def __repr__(self):
         return "<text: %s>" % unicode.__repr__(self)
+
 
 class Reference(unicode):
     def __repr__(self):

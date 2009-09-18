@@ -187,15 +187,9 @@ class scan_complete(delegate.mode):
         if i.multivolume_work:
             def volume(index, ia_id):
                 return {
-                    'create': 'unless_exists', 
-                    'key': '%s/v%d' % (path, index),
                     'type': {'key': '/type/volume'},
-                    'edition': {'key': path}, 
                     'volume_number': index,
-                    'ia_id': {
-                        'connect': 'update',
-                        'value': ia_id,
-                    }
+                    'ia_id': ia_id
                 }
                     
             volumes = i.volumes and i.volumes.split() or []
@@ -205,7 +199,7 @@ class scan_complete(delegate.mode):
             }
             q[0]['ocaid'] = {
                 'connect': 'update',
-                'value': '' 
+                'value': ''
             }
 
         web.ctx.site.write(q, i._comment)

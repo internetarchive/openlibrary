@@ -9,9 +9,15 @@ $var title: $("Log In")
 </div>
 
 <div id="contentBody">
-    <form id="register" class="login" name="register" method="post">
+<script type="text/javascript">
+\$().ready(validateLogin);
+\$().ready(passwordMask);
+</script>
+    <form id="register" class="login olform" name="register" method="post">
 
         $:form.render()
+
+        <div id="showpass" class="smaller"></div>
 
         <div class="formElement bottom">
             <br/>
@@ -19,6 +25,11 @@ $var title: $("Log In")
             &nbsp;
             <a href="javascript:;" onclick="history.go(-1);" class="smaller attn">Cancel</a>
         </div>
+        <div class="formElement">
+            <div class="label"></div>
+            <div class="input smaller">Did you <a href="/account/password/forgot">forget your password</a>?
+            <br/><br/>
+            Not a member of Open Library? <a href="/account/create">Sign up now</a>.</div>
+            </div>
     </form>
 </div>
-
