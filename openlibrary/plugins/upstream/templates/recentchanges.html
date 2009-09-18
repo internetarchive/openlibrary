@@ -1,0 +1,17 @@
+$def with ()
+
+
+$var title: $_("Recent Changes")
+
+        <div id="contentHead">
+            <div class="head">
+                <h1>$_("Recent Changes")</h1>
+            </div>
+        </div>
+
+        <div id="contentBody">
+            $ type = query_param('type', None)
+            $ author = query_param('author', None)
+
+            $:macros.RecentChanges(author=author, type=type)
+        </div>

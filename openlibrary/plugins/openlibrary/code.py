@@ -465,12 +465,23 @@ class _yaml(delegate.mode):
         i = web.input(v=None)
         v = safeint(i.v, None)
         data = dict(key=key, revision=v)
-        d = api.request('/get', data=data)
+        try:
+            d = api.request('/get', data=data)
+        except client.ClientException, e:
+            if e.json:
+                msg = self.dump(simplejson.loads(e.json))
+            else:
+                msg = e.message
+            raise web.HTTPError(e.status, data=msg)
+    
         d = simplejson.loads(d)
-        
+                
         web.header('Content-Type', 'text/x-yaml')
+        raise web.ok(self.dump(d))
+        
+    def dump(self, d):
         import yaml
-        raise web.ok(yaml.dump(d))
+        return yaml.safe_dump(d, indent=4, allow_unicode=True, default_flow_style=False)
 
 def can_write():
     user = delegate.context.user and delegate.context.user.key

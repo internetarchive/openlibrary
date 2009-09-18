@@ -1,0 +1,25 @@
+$def with (page)
+
+$var title: $_("Edit %(title)s", title=page.title or page.key)
+
+<div id="contentHead">
+    <div class="head">
+        <h1>$page.title</h1>
+    </div>
+</div>
+            
+<div id="contentBody">
+    <form name="edit" method="post" action="">
+        <div id="slickbox" style="overflow: hidden">
+            $:macros.TypeChanger(page.type)
+        </div>
+
+        <strong>$_("Title")</strong>
+        <input type="text" name="title" value="$page.title" style="width:100%" />
+        <br/><br/>
+        <textarea name="body" rows="15" cols="80">$page.body</textarea>
+        
+        $:macros.EditButtons(comment=page.comment_)
+        $:macros.HelpFormatting()
+    </form>
+</div>

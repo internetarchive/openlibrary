@@ -15,11 +15,13 @@ re_edition = re.compile('^/b/OL\d+M$')
 
 re_meta_mrc = re.compile('^([^/]*)_meta.mrc:0:\d+$')
 
-out = open('source_records', 'a')
-#for f in os.listdir(test_dir):
-for key in open('/home/edward/edition_work_sample'):
-    key = key[:-1]
-    assert re_edition.match(key)
+#out = open('source_records', 'w')
+for f in os.listdir(test_dir):
+    key = f.replace('_', '/')
+    if not re_edition.match(key):
+        continue
+    print key
+    continue
     mc = get_mc(key)
     print key, mc
     if not mc:
@@ -35,4 +37,4 @@ for key in open('/home/edward/edition_work_sample'):
     e['source_records'] = [sr]
     print >> out, (key, sr)
     print ol.save(key, e, 'add source record')
-out.close()
+#out.close()

@@ -1,0 +1,39 @@
+$def with (page)
+
+$ _t = i18n.get_namespace('/type/macro')
+$ _ = i18n.get_namespace('/mode/edit')
+
+$ _x = ctx.setdefault('bodyid', 'edit')
+
+$var title: $_.edit_title(page.key)
+
+<form name="edit" method="post" action="">
+
+<div id="contentHead">
+    <div class="head">
+        <span class="tools">$_.edit_pretitle:</span>
+        <h2>$page.description</h2>
+    </div>
+</div>
+<div id="contentBody">
+    $:macros.TypeChanger(page.type)
+    <div class="formElement">
+        <div class="label"><label for="description">$_t.description</label></div>
+        <div class="input">
+            <input type="text" name="description" style="width: 100%" value="$page.description"/>
+        </div>
+    </div>
+    <div class="formElement">
+        <div class="label"><label for="macro">Macro</labal></div>
+        <div class="input">
+            <textarea name="macro" id="macro" rows="40" cols="80">$page.macro</textarea>
+        </div>
+    </div>
+
+    <div class="formElement">
+        $:macros.EditButtons()
+        $:macros.HelpFormatting()
+    </div>
+</div>
+
+</form>

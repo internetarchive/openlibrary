@@ -1,10 +1,10 @@
 #!/usr/local/bin/python2.5
-import catalog.merge.normalize as merge
-import sys, codecs, re
-from catalog.get_ia import get_from_archive
-from catalog.utils.query import query_iter, set_staging, query
-from catalog.utils import mk_norm
-from catalog.read_rc import read_rc
+import re, sys, codecs, web
+from openlibrary.catalog.get_ia import get_from_archive
+from openlibrary.catalog.marc.fast_parse import get_subfield_values, get_first_tag, get_tag_lines, get_subfields
+from openlibrary.catalog.utils.query import query_iter, set_staging, query
+from openlibrary.catalog.utils import mk_norm
+from openlibrary.catalog.read_rc import read_rc
 from collections import defaultdict
 from pprint import pprint, pformat
 from catalog.utils.edit import fix_edition
@@ -19,6 +19,7 @@ ol = OpenLibrary("http://dev.openlibrary.org")
 ol.login('EdwardBot', rc['EdwardBot'])
 
 sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
+re_skip = re.compile('\b([A-Z]|Co|Dr|Jr|Capt|Mr|Mrs|Ms|Prof|Rev|Revd|Hon|etc)\.$')
 
 base_url = "http://dev.openlibrary.org"
 query_url = base_url + "/query.json?query="
@@ -54,16 +55,36 @@ def next_work_key():
 # sample title: The Dollar Hen (Illustrated Edition) (Dodo Press)
 re_parens = re.compile('^(.*?)(?: \(.+ (?:Edition|Press)\))+$')
 
-def freq_dict_top(d):
-    return sorted(d.keys(), reverse=True, key=lambda i:d[i])[0]
+def top_rev_wt(d):
+    d_sorted = sorted(d.keys(), cmp=lambda i, j: cmp(d[j], d[i]) or cmp(len(j), len(i)))
+    return d_sorted[0]
 
-def get_books(akey):
+def books_query(akey): # live version
     q = {
         'type':'/type/edition',
         'authors': akey,
         '*': None
     }
-    for e in query_iter(q):
+    return query_iter(q)
+
+def freq_dict_top(d):
+    return sorted(d.keys(), reverse=True, key=lambda i:d[i])[0]
+
+
+def get_work_title(e):
+    if e['key'] not in marc:
+        assert not e.get('work_titles', [])
+        return
+#    assert e.get('work_titles', [])
+    data = marc[e['key']][1]
+    line = get_first_tag(data, set(['240']))
+    if not line:
+        assert not e.get('work_titles', [])
+        return
+    return ' '.join(get_subfield_values(line, ['a'])).strip('. ')
+
+def get_books(akey):
+    for e in books_query(akey):
         if not e.get('title', None):
             continue
         if len(e.get('authors', [])) != 1:
@@ -78,6 +99,9 @@ def get_books(akey):
         else:
             title = e['title']
 
+        title = title.strip(' ')
+        if has_dot(title):
+            title = title[:-1]
         if title.strip('. ') in ['Publications', 'Works', 'Report', \
                 'Letters', 'Calendar', 'Bulletin', 'Plays', 'Sermons', 'Correspondence']:
             continue
@@ -105,10 +129,10 @@ def get_books(akey):
                 if e['table_of_contents'][0]['type'] == '/type/text':
                     book['table_of_contents'] = [i['value'] for i in e['table_of_contents']]
 
-        if not e.get('work_titles', None):
+        wt = get_work_title(e)
+        if not wt:
             yield book
             continue
-        wt = e['work_titles'][0].strip('. ')
         if wt in ('Works', 'Selections'):
             yield book
             continue
@@ -118,6 +142,7 @@ def get_books(akey):
         yield book
 
 def build_work_title_map(equiv, norm_titles):
+    # map of book titles to work titles
     title_to_work_title = defaultdict(set)
     for (norm_title, norm_wt), v in equiv.items():
         if v != 1:
@@ -137,8 +162,8 @@ def build_work_title_map(equiv, norm_titles):
     return title_map
 
 def find_works(akey):
-    equiv = defaultdict(int)
-    norm_titles = defaultdict(int)
+    equiv = defaultdict(int) # title and work title pairs
+    norm_titles = defaultdict(int) # frequency of titles
     books_by_key = {}
     books = []
     rev_wt = defaultdict(lambda: defaultdict(int))
@@ -164,7 +189,7 @@ def find_works(akey):
         title = b['title']
         if n in title_map:
             n = title_map[n]
-            title = freq_dict_top(rev_wt[n])
+            title = top_rev_wt(rev_wt[n])
         works[n][title].append(b['key'])
 
     works = sorted([(sum(map(len, w.values() + [work_titles[n]])), n, w) for n, w in works.items()])

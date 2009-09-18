@@ -2,7 +2,7 @@ $def with (form)
 
 $if form.note:
     <div class="note">$form.note</div>
-                    
+
 $for i in form.inputs:
     $ id = i.id or i.name
     $if i.is_hidden():
@@ -12,6 +12,6 @@ $for i in form.inputs:
             <div class="label"><label for="$i.id">$i.description</label> <span class="smaller lighter">$i.help</span></div>
             <div class="input">
                 $:i.render()
-                <div class="invalid" htmlfor="$i.id">$i.note</div>
             </div>
+            <div class="invalid clearfix" htmlfor="$i.id">$i.note</div>
         </div>
