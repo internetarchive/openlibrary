@@ -196,9 +196,8 @@ class account_email(delegate.page):
     path = "/account/email"
     
     def get_email(self):
-        username = web.ctx.site.get_user().key
-        return get_user_email(username)
-    
+        return context.user.email
+        
     @require_login
     def GET(self):
         f = forms.ChangeEmail()
@@ -351,7 +350,7 @@ class account_notifications(delegate.page):
     def GET(self):
         prefs = web.ctx.site.get(context.user.key + "/preferences")
         d = (prefs and prefs.get('notifications')) or {}
-        email = get_user_email(context.user.key)
+        email = context.user.email
         return render['account/notifications'](d, email)
         
     @require_login
