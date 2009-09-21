@@ -60,6 +60,7 @@ function bookCovers(){
 $.fn.fixBroken=function(){return this.each(function(){$(this).error(function(){$(this).parent().parent().hide();$(this).parent().parent().next(".SRPCoverBlank").show();});});};
 };
 //AUTODATE
+function autoDate() {
 var myMonths=new Array("January","February","March","April","May","June","July","August","September","October","November","December");
 var myDays= new Array("Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday");
 today=new Date();
@@ -94,3 +95,4 @@ dateSuffix="th"
 }
 todaysDate=thisDay+", "+thisMonth+" "+thisDate+"<sup>"+dateSuffix+"</sup> "+thisYear
 document.write(todaysDate)
+};
