@@ -21,11 +21,18 @@ render = template.render
 
 sconfig = config.plugin_search
 
+sconfig.setdefault('solr', None)
+sconfig.setdefault('fulltext_solr', None)
+sconfig.setdefault('fulltext_shards', [])
+
+
 def parse_host(host_and_port):
     """
     >>> print parse_host('alice:1234')
     ('alice', 1234)
     """
+    if host_and_port is None:
+        return (None, None)
     h,p = host_and_port.split(':')
     return (h, int(p))
 

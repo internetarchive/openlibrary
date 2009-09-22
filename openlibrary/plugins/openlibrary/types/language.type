@@ -1,60 +1,41 @@
 {
-    "kind": "regular", 
-    "created": {
-        "type": "/type/datetime", 
-        "value": "2008-03-19T16:44:24.216334"
-    }, 
-    "backreferences": [
-        {
-            "expected_type": {
-                "key": "/type/work"
-            }, 
-            "type": {
-                "key": "/type/backreference"
-            }, 
-            "name": "works", 
-            "property_name": "original_languages"
+    'backreferences': [{
+        'expected_type': {
+            'key': '/type/work'
+        },
+        'name': 'works',
+        'property_name': 'original_languages',
+        'type': {
+            'key': '/type/backreference'
         }
-    ], 
-    "last_modified": {
-        "type": "/type/datetime", 
-        "value": "2009-03-06T16:43:50.229158"
-    }, 
-    "latest_revision": 5, 
-    "properties": [
-        {
-            "expected_type": {
-                "key": "/type/string"
-            }, 
-            "unique": True, 
-            "type": {
-                "key": "/type/property"
-            }, 
-            "name": "name"
-        }, 
-        {
-            "expected_type": {
-                "key": "/type/string"
-            }, 
-            "unique": True, 
-            "type": {
-                "key": "/type/property"
-            }, 
-            "name": "code"
-        }
-    ], 
-    "key": "/type/language", 
-    "property": [
-        {
-            "key": "/type/language/name"
-        }, 
-        {
-            "key": "/type/language/code"
-        }
-    ], 
-    "type": {
-        "key": "/type/type"
-    }, 
-    "id": 75, 
-    "revision": 5
+    }],
+    'key': '/type/language',
+    'kind': 'regular',
+    'properties': [{
+        'expected_type': {
+            'key': '/type/string'
+        },
+        'name': 'name',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': True
+    }, {
+        'expected_type': {
+            'key': '/type/string'
+        },
+        'name': 'code',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': True
+    }],
+    'property': [{
+        'key': '/type/language/name'
+    }, {
+        'key': '/type/language/code'
+    }],
+    'type': {
+        'key': '/type/type'
+    }
 }

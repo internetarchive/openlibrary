@@ -1,20 +1,21 @@
 {
-    'key': '/type/volume',
+    'key': '/type/link',
     'kind': 'embeddable',
+    'name': 'Link',
     'properties': [{
         'expected_type': {
             'key': '/type/string'
         },
-        'name': 'ia_id',
+        'name': 'title',
         'type': {
             'key': '/type/property'
         },
         'unique': True
     }, {
         'expected_type': {
-            'key': '/type/int'
+            'key': '/type/string'
         },
-        'name': 'volume_number',
+        'name': 'url',
         'type': {
             'key': '/type/property'
         },

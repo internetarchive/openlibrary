@@ -1,24 +1,24 @@
 {
-    'key': '/type/volume',
-    'kind': 'embeddable',
+    'key': '/type/usergroup',
+    'kind': 'regular',
     'properties': [{
         'expected_type': {
-            'key': '/type/string'
+            'key': '/type/text'
         },
-        'name': 'ia_id',
+        'name': 'description',
         'type': {
             'key': '/type/property'
         },
         'unique': True
     }, {
         'expected_type': {
-            'key': '/type/int'
+            'key': '/type/user'
         },
-        'name': 'volume_number',
+        'name': 'members',
         'type': {
             'key': '/type/property'
         },
-        'unique': True
+        'unique': False
     }],
     'type': {
         'key': '/type/type'

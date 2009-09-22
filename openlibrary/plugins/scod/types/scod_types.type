@@ -1,21 +1,23 @@
 [
     {
-        'key': '/type/scanning_center',
+        'key': '/type/scan_location',
         'type': '/type/type',
     },
     {
         'key': '/type/scan_record',
         'type': '/type/type',
+        'kind': 'regular',
         'properties': [
             property("edition", "/type/edition", True),
             property("scan_status", "/type/string", True),
-            property("locations", "/type/scanning_center", False),
+            property("locations", "/type/scan_location", False),
             property("sponsor", "/type/user", True),
         ]
     },
     {
-        'key': '/type/scanning_center',
+        'key': '/type/scan_location',
         'type': '/type/type',
+        'kind': 'regular',
         'properties': [
             property("name", "/type/string", True)
         ],

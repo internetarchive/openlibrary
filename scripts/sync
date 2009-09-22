@@ -49,6 +49,7 @@ class LocalSource:
     def __init__(self, root, static):
         self.root = root
         self.static = static
+        self.type_root = "openlibrary/plugins/openlibrary"
         
     def get_path(self, path):
         """Find the path in the filesystem for the specified resource path.
@@ -61,7 +62,13 @@ class LocalSource:
             >>> s.get_path('css/master.css')
             'static/css/master.css'
         """
-        if path.startswith('templates/'):
+        if path.startswith('type/'):
+            path = path.replace('type/', 'types/')
+            if path.endswith('*'):
+                return self.type_root + '/' + path
+            else:
+                return self.type_root + '/' + path + '.type'
+        elif path.startswith('templates/'):
             return self.root + '/' + path.replace('.tmpl', '.html')
         elif path.startswith('macros/'):
             newpath = self.root + '/' + path
@@ -97,8 +104,10 @@ class LocalSource:
             path = path[len(self.root)+1:]
         elif  path.startswith(self.static):
             path = path[len(self.static)+1:]
-            
-        if path.startswith('templates/'):
+
+        if path.startswith('type/'):
+            path = path.replace('.type', '')
+        elif path.startswith('templates/'):
             path = path.replace('.html', '.tmpl')
         elif path.startswith('macros/'):
             path = path.replace('.html', '')
@@ -113,15 +122,15 @@ class LocalSource:
         for name, text in data:
             path = self.get_path(name)
 
-            dir = os.path.dirname(path)
-            if not os.path.exists(dir):
-                os.makedirs(dir)
-                
             if text is None:
                 if os.path.exists(path) and os.path.isfile(path):
                     print 'deleting', path
                     os.remove(path)
             else:
+                dir = os.path.dirname(path)
+                if not os.path.exists(dir):
+                    os.makedirs(dir)
+
                 print 'writing', path
                 f = open(path, 'w')
                 f.write(text)
@@ -134,7 +143,13 @@ class RemoteSource:
             self.server = server[-1:]
         
     def find(self, prefix):
-        paths = urllib.urlopen(self.server + '/query.json?' + urllib.urlencode({'key~': prefix, 'limit': 1000})).read()
+        q = {'key~': prefix, 'limit': 1000}
+        
+        # until all properties and backreferences are deleted on production server
+        if prefix == '/type':
+            q['type'] = '/type/type'
+            
+        paths = urllib.urlopen(self.server + '/query.json?' + urllib.urlencode(q)).read()
         return [x['key'] for x in simplejson.loads(paths)]
         
     def expand(self, paths):
@@ -158,9 +173,20 @@ class RemoteSource:
             else:
                 return ''
 
-        if thing['latest_revision'] == 1:
-            return None
-            
+        #@@ why is this?
+        if thing.get('latest_revision') == 1:
+            return None 
+        
+        if type == '/type/type':
+            for k in ['id', 'latest_revision', 'revision', 'last_modified', 'created', 'permission', 'child_permission']:
+                thing.pop(k, None)
+                
+            # no need to sync primitive types
+            if thing.get('kind') == 'primitive':
+                return None
+                
+            from infogami.infobase.common import prepr
+            return prepr(thing)
         if type == '/type/template':
             return get(thing, 'body')
         elif type == '/type/macro':
@@ -201,6 +227,8 @@ class RemoteSource:
             key = '/' + name
             if text is None:
                 return {'key': key, 'type': {'key': '/type/delete'}}
+            if key.startswith('/type/'):
+                return eval(data)
             if key.startswith('/templates/'):
                 return {'key': key, 'body': {'value': text, 'type': '/type/text'}, 'type': {'key': '/type/template'}}
             elif key.startswith('/macros/'):

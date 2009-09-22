@@ -161,7 +161,7 @@ def sampledump():
     visited = set()
     
     def visit(key):
-        if key in visited:
+        if key in visited or key.startswith('/type/'):
             return
         elif key in visiting:
             # This is a case of circular-dependency. Add a stub object to break it.
@@ -186,18 +186,8 @@ def sampledump():
         print simplejson.dumps(d)
 
     keys = [
-        '/', 
-        '/recentchanges',
-        '/index.*', 
-        '/about*', 
-        '/dev*', 
-        '/css*',
-        '/js*',
         '/scan_record',
         '/scanning_center',
-        {'type': '/type/template', 'key~': '/templates*'},
-        {'type': '/type/macro', 'key~': '/macros*'},
-        {'type': '/type/type'}, 
         {'type': '/type/scan_record', 'limit': 10},
     ]
     keys = expand_keys(keys) + ['/b/OL%dM' % i for i in range(1, 100)]

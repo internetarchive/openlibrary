@@ -9,6 +9,7 @@
     {"type": "/type/type", "key": "/type/toc_item"},
     {"type": "/type/type", "key": "/type/language"},
     {"type": "/type/type", "key": "/type/volume"},
+    {"type": "/type/type", "key": "/type/link"},
 ]
 
 

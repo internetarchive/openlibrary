@@ -1,20 +1,21 @@
 {
-    'key': '/type/volume',
+    'key': '/type/contribution',
     'kind': 'embeddable',
+    'name': 'Contribution',
     'properties': [{
         'expected_type': {
             'key': '/type/string'
         },
-        'name': 'ia_id',
+        'name': 'role',
         'type': {
             'key': '/type/property'
         },
         'unique': True
     }, {
         'expected_type': {
-            'key': '/type/int'
+            'key': '/type/string'
         },
-        'name': 'volume_number',
+        'name': 'contributor',
         'type': {
             'key': '/type/property'
         },

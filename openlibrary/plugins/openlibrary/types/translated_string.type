@@ -1,20 +1,20 @@
 {
-    'key': '/type/volume',
+    'key': '/type/translated_string',
     'kind': 'embeddable',
     'properties': [{
         'expected_type': {
-            'key': '/type/string'
+            'key': '/type/language'
         },
-        'name': 'ia_id',
+        'name': 'language',
         'type': {
             'key': '/type/property'
         },
         'unique': True
     }, {
         'expected_type': {
-            'key': '/type/int'
+            'key': '/type/string'
         },
-        'name': 'volume_number',
+        'name': 'text',
         'type': {
             'key': '/type/property'
         },

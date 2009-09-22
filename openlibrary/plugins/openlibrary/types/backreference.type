@@ -1,39 +1,30 @@
 {
-    'key': '/type/home',
-    'kind': 'regular',
+    'key': '/type/backreference',
+    'kind': 'embeddable',
+    'name': 'Back Reference',
     'properties': [{
         'expected_type': {
             'key': '/type/string'
         },
-        'name': 'title',
+        'name': 'name',
         'type': {
             'key': '/type/property'
         },
         'unique': True
     }, {
         'expected_type': {
-            'key': '/type/text'
+            'key': '/type/type'
         },
-        'name': 'body',
+        'name': 'expected_type',
         'type': {
             'key': '/type/property'
         },
         'unique': True
     }, {
         'expected_type': {
-            'key': '/type/text'
+            'key': '/type/string'
         },
-        'name': 'news',
-        'type': {
-            'key': '/type/property'
-        },
-        'unique': True
-    }, {
-        'description': '',
-        'expected_type': {
-            'key': '/type/text'
-        },
-        'name': 'stats',
+        'name': 'property_name',
         'type': {
             'key': '/type/property'
         },

@@ -1,0 +1,90 @@
+{
+    'key': '/type/series',
+    'kind': 'regular',
+    'name': 'Book series',
+    'properties': [{
+        'expected_type': {
+            'key': '/type/string'
+        },
+        'name': 'title',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': True
+    }, {
+        'expected_type': {
+            'key': '/type/language'
+        },
+        'name': 'original_language',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': True
+    }, {
+        'expected_type': {
+            'key': '/type/string'
+        },
+        'name': 'subjects',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': False
+    }, {
+        'expected_type': {
+            'key': '/type/string'
+        },
+        'name': 'subject_places',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': False
+    }, {
+        'expected_type': {
+            'key': '/type/string'
+        },
+        'name': 'subject_times',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': False
+    }, {
+        'expected_type': {
+            'key': '/type/string'
+        },
+        'name': 'genres',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': False
+    }, {
+        'expected_type': {
+            'key': '/type/text'
+        },
+        'name': 'description',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': True
+    }, {
+        'expected_type': {
+            'key': '/type/work'
+        },
+        'name': 'works',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': False
+    }, {
+        'expected_type': {
+            'key': '/type/link'
+        },
+        'name': 'links',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': False
+    }],
+    'type': {
+        'key': '/type/type'
+    }
+}

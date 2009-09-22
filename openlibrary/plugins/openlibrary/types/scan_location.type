@@ -1,16 +1,16 @@
 {
     'backreferences': [{
         'expected_type': {
-            'key': '/type/edition'
+            'key': '/type/scan_record'
         },
-        'name': 'edition',
-        'property_name': 'collections',
+        'name': 'available_books',
+        'property_name': 'locations',
         'type': {
             'key': '/type/backreference'
         }
     }],
     'description': '',
-    'key': '/type/collection',
+    'key': '/type/scan_location',
     'kind': 'regular',
     'name': '',
     'properties': [{

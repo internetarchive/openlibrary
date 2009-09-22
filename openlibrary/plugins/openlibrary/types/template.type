@@ -1,6 +1,7 @@
 {
-    'key': '/type/home',
+    'key': '/type/template',
     'kind': 'regular',
+    'name': 'Template',
     'properties': [{
         'expected_type': {
             'key': '/type/string'
@@ -15,25 +16,6 @@
             'key': '/type/text'
         },
         'name': 'body',
-        'type': {
-            'key': '/type/property'
-        },
-        'unique': True
-    }, {
-        'expected_type': {
-            'key': '/type/text'
-        },
-        'name': 'news',
-        'type': {
-            'key': '/type/property'
-        },
-        'unique': True
-    }, {
-        'description': '',
-        'expected_type': {
-            'key': '/type/text'
-        },
-        'name': 'stats',
         'type': {
             'key': '/type/property'
         },

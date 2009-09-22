@@ -1,20 +1,21 @@
 {
-    'key': '/type/volume',
-    'kind': 'embeddable',
+    'key': '/type/macro',
+    'kind': 'regular',
+    'name': 'Macro',
     'properties': [{
         'expected_type': {
-            'key': '/type/string'
+            'key': '/type/text'
         },
-        'name': 'ia_id',
+        'name': 'macro',
         'type': {
             'key': '/type/property'
         },
         'unique': True
     }, {
         'expected_type': {
-            'key': '/type/int'
+            'key': '/type/string'
         },
-        'name': 'volume_number',
+        'name': 'description',
         'type': {
             'key': '/type/property'
         },
