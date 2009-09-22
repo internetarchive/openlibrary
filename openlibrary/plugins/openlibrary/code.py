@@ -16,7 +16,7 @@ if not hasattr(infogami.config, 'features'):
     infogami.config.features = []
     
 from infogami.utils import types, delegate
-from infogami.utils.view import render, public, safeint
+from infogami.utils.view import render, public, safeint, add_flash_message
 from infogami.infobase import client, dbstore
 from infogami.core.db import ValidationException
 
@@ -452,6 +452,11 @@ class _yaml(delegate.mode):
     encoding = "yml"
 
     def GET(self, key):
+        d = self.get_data(key)
+        web.header('Content-Type', 'text/x-yaml')
+        raise web.ok(self.dump(d))
+        
+    def get_data(self, key):
         i = web.input(v=None)
         v = safeint(i.v, None)
         data = dict(key=key, revision=v)
@@ -464,14 +469,54 @@ class _yaml(delegate.mode):
                 msg = e.message
             raise web.HTTPError(e.status, data=msg)
     
-        d = simplejson.loads(d)
-                
-        web.header('Content-Type', 'text/x-yaml')
-        raise web.ok(self.dump(d))
+        return simplejson.loads(d)
         
     def dump(self, d):
         import yaml
         return yaml.safe_dump(d, indent=4, allow_unicode=True, default_flow_style=False)
+        
+    def load(self, data):
+        import yaml
+        return yaml.safe_load(data)
+
+class _yaml_edit(_yaml):
+    name = "edit"
+    encoding = "yml"
+    
+    def is_admin(self):
+        return delegate.context.user and delegate.context.user.is_admin()
+    
+    def GET(self, key):
+        # only allow admin users to edit yaml
+        if not self.is_admin():
+            return render.permission_denied(key, 'Permission Denied')
+            
+        d = self.get_data(key)
+        return render.edit_yaml(key, self.dump(d))
+        
+    def POST(self, key):
+        # only allow admin users to edit yaml
+        if not self.is_admin():
+            return render.permission_denied(key, 'Permission Denied')
+            
+        i = web.input(body='', _comment=None)
+        p = web.ctx.site.get(key) or web.ctx.site.new(key, {})
+        
+        if '_save' in i:
+            d = self.load(i.body)
+            p.update(d)
+            try:
+                p._save(i._comment)
+            except (ClientException, db.ValidationException), e:            
+                add_flash_message('error', str(e))
+                return render.edit_yaml(key, i.body)                
+            raise web.seeother(key + '.yml')
+        elif '_preview' in i:
+            add_flash_message('Preview not supported')
+            return render.edit_yaml(key, i.body)
+        else:
+            add_flash_message('unknown action')
+            return render.edit_yaml(key, i.body)        
 
 def can_write():
     user = delegate.context.user and delegate.context.user.key
