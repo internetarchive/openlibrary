@@ -54,7 +54,7 @@ class gitpull:
         root = os.path.join(os.path.dirname(openlibrary.__file__), os.path.pardir)
         root = os.path.normpath(root)
         
-        p = subprocess.Popen('cd %s && git pull' % root, shell=True, stdout=subprocess.PIPE)
+        p = subprocess.Popen('cd %s && git pull' % root, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         out = p.stdout.read()
         p.wait()
         return '<pre>' + web.websafe(out) + '</pre>'
