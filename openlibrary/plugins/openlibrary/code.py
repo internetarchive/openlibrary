@@ -453,12 +453,16 @@ class _yaml(delegate.mode):
 
     def GET(self, key):
         d = self.get_data(key)
+<<<<<<< HEAD:openlibrary/plugins/openlibrary/code.py
         
         if web.input(text="false").text.lower() == "true":
             web.header('Content-Type', 'text/plain')
         else:
             web.header('Content-Type', 'text/x-yaml')
             
+=======
+        web.header('Content-Type', 'text/x-yaml')
+>>>>>>> 2bd63b058b516caddd70389563a30cbce82f84fd:openlibrary/plugins/openlibrary/code.py
         raise web.ok(self.dump(d))
         
     def get_data(self, key):
