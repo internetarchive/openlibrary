@@ -363,10 +363,6 @@
     <!-- default values for query parameters -->
     <lst name="defaults">
      <str name="echoParams">explicit</str>
-
-     <!-- by default do XSLT (server side) on output results -->
-     <str name="wt">xslt</str>
-     <str name="tr">archive.xsl</str>
      
      <int name="rows">20</int>
      <str name="fl">score,
@@ -417,13 +413,11 @@
     <lst name="defaults">
      <str name="defType">dismax</str>
      <str name="echoParams">explicit</str>
-
-     <!-- by default do XSLT (server side) on output results -->
-     <str name="wt">xslt</str>
-     <str name="tr">archive.xsl</str>
      
      <int name="rows">20</int>
      <str name="fl">score,
+                    author,
+                    authors,
                     avg_rating,
                     collection,           
                     contributor,
@@ -446,6 +440,7 @@
                     scanningcentre,
                     source,
                     subject,
+                    subjects,
                     title,
                     type,
                     visits,
