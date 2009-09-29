@@ -160,6 +160,8 @@ class things(proxy):
             for k, v in q.items():
                 if isinstance(v, basestring):
                     q[k] = convert_key(v)
+                elif isinstance(v, list):
+                    q[k] = [convert_key(x) for x in v]
             self.input.query = simplejson.dumps(q)
             
     def after_request(self):
@@ -209,11 +211,14 @@ class save_many(proxy):
             q = convert_dict(q)
             i['query'] = simplejson.dumps(q)
             self.data = urllib.urlencode(i)
-
-if __name__ == '__main__':
+            
+def main():
     import sys, os
     web.config.infobase_server = sys.argv[1].rstrip('/')
     os.environ['REAL_SCRIPT_NAME'] = ''
     
     sys.argv[1:] = sys.argv[2:]
     app.run() 
+
+if __name__ == '__main__':
+    main()
