@@ -140,7 +140,7 @@ class RemoteSource:
     def __init__(self, server):
         self.server = server
         if self.server.endswith('/'):
-            self.server = server[-1:]
+            self.server = server[:-1]
         
     def find(self, prefix):
         q = {'key~': prefix, 'limit': 1000}
@@ -211,15 +211,7 @@ class RemoteSource:
         config.read(os.path.expanduser('~/.olrc'))
 
         ol = olapi.OpenLibrary(self.server)
-        
-        section = self.server.replace('http://', '')
-        # for backward-compatability
-        if not config.has_section(section):
-            section = 'account'
-            
-        username = config.get(section, 'username')
-        password = config.get(section, 'password')
-        ol.login(username, password)
+        ol.autologin()
         return ol
         
     def write(self, data):
