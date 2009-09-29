@@ -37,7 +37,7 @@ def withKey(key):
 def find_new_work_key():
     global work_num
     while True:
-        key = "/w/OL%dW" % work_num
+        key = "/works/OL%dW" % work_num
         ret = withKey(key)
         if ret.startswith("Not Found:"):
             return work_num
@@ -45,11 +45,11 @@ def find_new_work_key():
 
 def next_work_key():
     global work_num
-    key = "/w/OL%dW" % work_num
+    key = "/works/OL%dW" % work_num
     ret = withKey(key)
     while not ret.startswith("Not Found:"):
         work_num += 1
-        key = "/w/OL%dW" % work_num
+        key = "/works/OL%dW" % work_num
         ret = withKey(key)
     work_num += 1
     return key
@@ -74,6 +74,8 @@ def freq_dict_top(d):
 
 def get_marc_src(e):
     mc = get_mc(e['key'])
+    if mc and (mc.startswith('amazon:') or mc.startswith('ia:')):
+        mc = None
     if mc:
         yield mc
     if 'source_records' not in e:
@@ -86,6 +88,7 @@ def get_work_title(e):
     # use first work title we find in source MARC records
     line = None
     for src in get_marc_src(e):
+        print 'src:', src
         data = get_from_archive(src)
         line = get_first_tag(data, set(['240']))
         if line:
