@@ -36,7 +36,6 @@ class OpenLibrary:
 
     def _request(self, path, method='GET', data=None, headers=None):
         url = self.base_url + path
-        
         headers = headers or {}
         if self.cookie:
             headers['Cookie'] = self.cookie
@@ -65,11 +64,11 @@ class OpenLibrary:
         """
         config = ConfigParser()
         config.read(os.path.expanduser('~/.olrc'))
-
+        
         section = self.base_url.replace('http://', '')
 
         if not config.has_section(section):
-            raise OLError("No section found with name %s in ~/.olrc" % repr(section))
+            raise Exception("No section found with name %s in ~/.olrc" % repr(section))
 
         username = config.get(section, 'username')
         password = config.get(section, 'password')
