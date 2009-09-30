@@ -61,6 +61,7 @@ def read_file(f):
         try:
             assert length.isdigit()
         except AssertionError:
+            print 'not a digit:', `length`
             raise
         int_length = int(length)
         data = buf + f.read(int_length - len(buf))
