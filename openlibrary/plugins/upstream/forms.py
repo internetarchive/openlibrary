@@ -7,7 +7,8 @@ from openlibrary.utils.form import Form, Textbox, Password, Hidden, Validator, R
 
 Login = Form(
     Textbox('username', description=_('Username'), klass='required'),
-    Password('password', description=_('Password'), klass='required')
+    Password('password', description=_('Password'), klass='required'),
+    Hidden('redirect')
 )
 forms.login = Login
 
