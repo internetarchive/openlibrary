@@ -8,6 +8,7 @@ import xml.parsers.expat
 import web, sys
 sys.path.append('/home/edward/src/olapi')
 from olapi import OpenLibrary
+from time import sleep
 
 rc = read_rc()
 
@@ -44,8 +45,17 @@ def try_amazon(thing):
 
 def is_dark_or_bad(ia):
     vars = { 'ia': ia }
-    iter = ia_db.query('select curatestate from metadata where identifier=$ia', vars)
-    rows = list(iter)
+    db_iter = None
+    for attempt in range(5):
+        try:
+            db_iter = ia_db.query('select curatestate from metadata where identifier=$ia', vars)
+            break
+        except:
+            print 'retry, attempt', attempt
+            sleep(10)
+    if db_iter is None:
+        return False
+    rows = list(db_iter)
     if len(rows) == 0:
         return True
     assert len(rows) == 1
@@ -63,6 +73,8 @@ def marc_match(e1, loc):
 def ia_match(e1, ia):
     try:
         loc, rec = get_ia(ia)
+    except NoMARCXML:
+        return False
     except urllib2.HTTPError:
         return False
     if rec is None or 'full_title' not in rec:
@@ -115,6 +127,8 @@ def source_records_match(e1, thing):
     ia = 'ia:'
     match = False
     for src in thing['source_records']:
+        if src == 'marc:initial import':
+            continue
         # hippocrates01hippuoft/hippocrates01hippuoft_marc.xml
         m = re_meta_marc.search(src)
         if m:
@@ -167,6 +181,9 @@ def try_merge(e1, edition_key, thing):
             loc2, rec2 = get_ia(ia)
         except xml.parsers.expat.ExpatError:
             return False
+        except NoMARCXML:
+            print 'no MARCXML'
+            pass
         except urllib2.HTTPError, error:
             print error.code
             assert error.code in (404, 403)
