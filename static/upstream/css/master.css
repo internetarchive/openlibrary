@@ -53,7 +53,7 @@ div.head.rel {position:relative;}
 h1,h2,h3,h4,h5,h6 {display:inline;font-family:"News Gothic MT","Arial Rounded MT",Geneva,Helvetica,sans-serif;color:#00636a;font-weight:600;padding-right:8px;line-height:normal;}
 h1 {font-size: 1.875em;} /*30px (30/16=1.875)*/
 h2 {font-size: 1.375em;} /*24px (24/16=1.375)*/
-h2.author {color:#000;font-size:1.125em;font-family:"News Gothic MT","Trebuchet MS",Helvetica,sans-serif;line-height:1.0em;font-weight:normal;}
+h2.author {color:#000;font-size:1.125em;font-family:"News Gothic MT","Trebuchet MS",Helvetica,sans-serif;line-height:1.0em;font-weight:normal;display:block;}
 h3 {font-size: 1.125em;} /*18px (18/16=1.125)*/
 h4 {font-size: 1.0em;} /*16px (16/16=1)*/
 h5 {font-size: 0.875em;font-family:"Palatino Linotype", "Book Antiqua", Palatino, Georgia,serif!important;font-weight:normal!important;} /*14px (14/16=.875)*/
@@ -72,7 +72,7 @@ span.caption {position:absolute;right:0;bottom:2px;}
 a.toggle {text-decoration:none;color:#fff!important;background-color:#748d36!important;padding:3px;-webkit-border-radius:3px;-moz-border-radius:3px;border-radius:3px;}
 a.toggle:hover{background-color:#036daa!important;color:#fff!important;}
 
-a.editCTA{font-size:0.75em;font-style:italic;color:#000;text-decoration:none;padding:5px 0 5px 20px;height:18px;overflow:hidden;background-image:url("/static/images/icons/icon_edit-sm.png");background-position:0 0;background-repeat:no-repeat;}
+a.editCTA{font-size:0.75em;font-style:italic;color:#000;text-decoration:none;padding:5px 0 5px 20px;height:18px;overflow:hidden;background-image:url("/images/icons/icon_edit-sm.png");background-position:0 0;background-repeat:no-repeat;}
 a:hover.editCTA{background-position:0 -36px;}
 a.editCTA strong{font-style:italic;font-weight:700;color:#036daa;text-decoration:underline;}
 
@@ -83,8 +83,9 @@ body#admin div#content,body#edit div#content{font-family:"News Gothic MT","Arial
 input[type=text],select,textarea{font-family:"Lucida Grande",Verdana,Geneva,Helvetica,sans-serif;color:#454545;}
 input,select,textarea{font-size:0.875em;}
 input[type=submit]{font-size:0.6875em;}
-#content input[type=submit]{font-size:1.125em;}
-p.instruct {font-family:"Lucida Grande",Verdana,Geneva,Helvetica,sans-serif;font-size:0.875em;}
+input[type=text]{margin:0 10px 5px 0;}
+#contentBody input[type=submit]{font-size:1.125em!important;}
+p.instruct {font-family:"Lucida Grande",Verdana,Geneva,Helvetica,sans-serif;font-size:0.875em;margin-bottom:0;}
 .section {margin-bottom:25px;}
 
 
@@ -153,7 +154,7 @@ body#edit .label span {
 body#edit .input {
     width: 100%;
 }
-body#edit textarea#body {
+body#edit textarea {
     width: 100%;
     height: 500px;
     padding: 3px;
@@ -236,7 +237,7 @@ div#usernameResult {
 }
 .invalid {
     color: #e44028;
-/*	background: url("/static/images/icons/icon_alert.png") 0 0 no-repeat; */
+/*	background: url("/images/icons/icon_alert.png") 0 0 no-repeat; */
 }
 input.invalid {
     border: 1px solid #e44028;
@@ -248,7 +249,7 @@ label.invalid {
 .valid {
     color: #35672e;
 	padding: 5px 0 0 29px!important;
-/*	background: url("/static/images/icons/icon_check.png") 0 0 no-repeat; */
+/*	background: url("/images/icons/icon_check.png") 0 0 no-repeat; */
 }
 input.highlight {
     background-color: #fffdcd;
@@ -335,10 +336,43 @@ div.searchOptions div.formElement.special {
     border-top: 1px dotted #fff;
 }
 
+/* EDIT/ADD FORMS */
+form.oledit {
+  font-family: "Lucida Grande", "Trebuchet MS", Geneva, Helvetica, sans-serif;
+}
+form.oledit .label {
+    width: 838px;
+    padding: 10px 0 5px;
+}
+form.oledit .label label {
+    font-size: 1.0em;
+    font-family: "Lucida Grande", "Trebuchet MS", Geneva, Helvetica, Arial, sans-serif;
+    font-weight: 700;
+}
+form.oledit .label span {
+    font-weight: normal;
+}
+form.oledit input[type=text],
+form.oledit input[type=password],
+form.oledit textarea {
+    width: 475px;
+    font-size: 1.125em;
+    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+    padding: 3px;
+}
+form.oledit .input {
+    width: 838px;
+}
+form.oledit select {
+    font-size: 1.125em;
+    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+    padding: 3px;
+}
+
 /* PAGE TOOLS (ICONS) */
-div#tools {float:right;margin:0 0 20px;}
+div#tools {float:right;margin:0 0 20px;position:relative;}
 div#tools.edit {position:absolute;right:30px;top:20px;}
-div#tools a {display:block;float:left;margin-left:30px;width:32px;height:10px;padding-top:38px;text-align:center;font-size:0.625em;font-family:"Lucida Grande", Verdana, Geneva, Helvetica, sans-serif;color:#615132;text-decoration:none;background-repeat:no-repeat;background-image:url(/static/images/icons/icons_sprite.png);font-weight:600;white-space:nowrap;}
+div#tools a {display:block;float:left;margin-left:30px;width:32px;height:10px;padding-top:38px;text-align:center;font-size:0.625em;font-family:"Lucida Grande", Verdana, Geneva, Helvetica, sans-serif;color:#615132;text-decoration:none;background-repeat:no-repeat;background-image:url(/images/icons/icons_sprite.png);font-weight:600;white-space:nowrap;}
 div#tools a:hover {color:#000;}
 div#tools a.edit {background-position:0 0;}
 div#tools a.edit:hover {background-position:-32px 0;}
@@ -354,9 +388,11 @@ div#tools a.history {background-position: -384px 0;}
 div#tools a.history:hover {background-position: -416px 0;}
 div#tools a.view {background-position: -448px 0;}
 div#tools a.view:hover {background-position: -480px 0;}
+div#tools a.borrow {background-position: -512px 0;}
+div#tools a.borrow:hover {background-position: -544px 0;}
 div#abuse {float:right;text-align:right;margin:-20px 10px 0 0;}
 div#abuse a {display:block;width:70px;overflow:visible;text-align:center;font-size:0.625em;font-family:"Lucida Grande", Verdana, Geneva, Helvetica, sans-serif;color:#615132;text-decoration:none;white-space:nowrap;font-weight:600;}
-div#abuse a span {display:block;margin:0 auto 8px;width:32px;height:32px;background-repeat:no-repeat;background-image:url(/static/images/icons/icons_sprite.png);background-position: -576px 0;}
+div#abuse a span {display:block;margin:0 auto 8px;width:32px;height:32px;background-repeat:no-repeat;background-image:url(/images/icons/icons_sprite.png);background-position: -576px 0;}
 div#abuse a:hover {color:#000;}
 div#abuse a:hover span {background-position: -608px 0;}
 #tooltip{position:absolute;z-index:3000;text-align:left;opacity:0.9;background-color:#fffdcd;border:1px solid #d3ccb0;width:250px;padding:8px;-moz-border-radius:8px;-webkit-border-radius:8px;border-radius:8px;-moz-box-shadow: 1px 1px 10px #333;-webkit-box-shadow: 1px 1px 10px #333;box-shadow: 1px 1px 10px #333;}
@@ -364,8 +400,11 @@ div#abuse a:hover span {background-position: -608px 0;}
 #tooltip div.body{font-size:11px;font-family:"Lucida Grande", Verdana, Geneva, Helvetica, sans-serif;color:#333;}
 a.helptip:hover,a.shorttip:hover{color:#036daa;}
 a.helptip,a.helptip:visited,a.shorttip,a.shorttip:visited {color: #35672e;}
-a.helptipIcon {width:16px;height:16px;position:relative;background:url("/static/images/icons/icon_help.png") no-repeat;}
+a.helptipIcon {width:16px;height:16px;position:relative;background:url("/images/icons/icon_help.png") no-repeat;}
 a.helptipIcon span {position:absolute;top:-1000px;}
+
+div#editionBorrow, div#editionBuy {position:absolute;top:38px;right:0;padding:15px;background-color:#fff;border:1px solid #d3ccb0;-webkit-border-radius:8px;-moz-border-radius:8px;border-radius:8px;-moz-box-shadow: 1px 1px 10px #333;-webkit-box-shadow: 1px 1px 10px #333;box-shadow: 1px 1px 10px #333;}
+div#editionBorrow a, div#editionBuy a {background-image:none!important;float:none!important;margin-left:0!important;width:auto!important;height:auto!important;padding-top:0;text-align:left;font-size:0.75em;line-height:150%;font-weight:normal;color:#036daa;text-decoration:underline;}
 
 
 /* MESSAGING */
@@ -377,8 +416,8 @@ div.alert span, div.verify span {
     min-height: 25px;
     padding: 5px 0 5px 32px;
 }
-div.alert span {background: url("/static/images/icons/icon_alert.png") no-repeat;}
-div.verify span {background: url("/static/images/icons/icon_check.png") no-repeat;}
+div.alert span {background: url("/images/icons/icon_alert.png") no-repeat;}
+div.verify span {background: url("/images/icons/icon_check.png") no-repeat;}
 
 /* HEADER */
 
@@ -495,7 +534,7 @@ div.footerNav li a:hover {
 
 div#bottom div#legal {
     padding: 20px 0 100px 35px;
-    background: url("/static/images/logo_IA-sm.png") no-repeat 0 20px;
+    background: url("/images/logo_IA-sm.png") no-repeat 0 20px;
     
 }
 div#bottom div#legal p {
@@ -563,7 +602,7 @@ div#contentBody {
 div#content div#contentLists {
     position: relative;
     border-top: 1px solid #dcdcdc;
-    background: #fff url("/static/images/back_results.png") repeat-x;
+    background: #fff url("/images/back_results.png") repeat-x;
 }
 div#resultsAuthors,
 div#resultsHistory {
@@ -629,30 +668,27 @@ div.list .owner {
 
 /* BOOKS */
 
-.illustration .SRPCoverBlank {position:relative;width:208px;height:285px;text-align:center;background:transparent url("/static/images/icons/avatar_book-lg.png") 0 0 no-repeat;font-size:1.0em;display:none;}
+.illustration .SRPCoverBlank {position:relative;width:208px;height:285px;text-align:center;background:transparent url("/images/icons/avatar_book-lg.png") 0 0 no-repeat;font-size:1.0em;display:none;}
 .illustration .BookTitle {position:absolute;top:50%;left:50%;width:148px;margin-left:-74px;height:100px;margin-top:-50px;color:#333;}
 .illustration .Author {color:#666;font-style:italic;line-height:15px;padding:4px 4px 0;}
 .illustration .edition {font-size:0.6875em;font-family:"Lucida Grande",Verdana,Geneva,Helvetica,sans-serif;margin:10px auto;}
 div.books {float:left;padding-top:20px;width:818px;}
 div.books .SRPCover {margin: 0 5px 20px 0;float:left;height:115px;vertical-align:middle;}
 div.books .SRPCover img {height:115px;}
-div.books .SRPCoverBlank {position:relative;width:84px;height:115px;margin:0 5px 20px 0;text-align:center;float:left;background:url("/static/images/icons/avatar_book-sm.png") 0 0 no-repeat;font-size:0.75em;cursor:pointer;display:none;}
+div.books .SRPCoverBlank {position:relative;width:84px;height:115px;margin:0 5px 20px 0;text-align:center;float:left;background:url("/images/icons/avatar_book-sm.png") 0 0 no-repeat;font-size:0.75em;cursor:pointer;display:none;}
 div.books .BookTitle {position:absolute;top:50%;left:50%;width:64px;margin-left:-32px;height:96px;margin-top:-48px;vertical-align:middle;color:#333;}
 div.books .Author {color:#666;font-style:italic;line-height:15px;padding:4px 4px 0;}
 form.recordsAdd {margin-bottom:30px;}
 form.recordsAdd input[type=text] {font-size: 0.875em;font-family: "Palatino Linotype", "Book Antiqua", Palatino, Georgia, serif;color:#333;padding:3px;}
 form.recordsAdd input[type=text].wide {width:500px;}
 form.recordsAdd textarea {font-size:1.0em;font-family: "Palatino Linotype", "Book Antiqua", Palatino, Georgia, serif;line-height:1.375em;margin:10px 0 20px;color:#333;width:500px;height:80px;padding:3px;}
-input[type=text].cloneThis {
-    margin: 0 10px 10px 0;
-}
 button.addAnother {
     width: 32px;
     height: 32px;
     border: none;
     vertical-align: middle;
     cursor: pointer;
-    background-image: url("/static/images/icons/icon_add.png");
+    background-image: url("/images/icons/icon_add.png");
     background-position: 0 0;
     background-color: transparent;
 }
@@ -660,7 +696,7 @@ button.addAnother:hover {
     background-position: -32px 0;
 }
 div.pingList {
-  background: url("/static/images/icons/icon_radar.gif") 20px 0 no-repeat;
+  background: url("/images/icons/icon_radar.gif") 20px 0 no-repeat;
 }
 div.pingList p {
     font-family: "News Gothic MT", "Trebuchet MS", Geneva, Helvetica, sans-serif;
@@ -757,7 +793,7 @@ table.history tr.reveal td {padding: 10px;}
     width: 30px;
     height: 60px;
     cursor: pointer;
-    background: transparent url("/static/images/carousel_next.png") no-repeat 0 0;
+    background: transparent url("/images/carousel_next.png") no-repeat 0 0;
 }
 .jcarousel-prev-horizontal {
     position: absolute;
@@ -766,7 +802,7 @@ table.history tr.reveal td {padding: 10px;}
     width: 30px;
     height: 60px;
     cursor: pointer;
-    background: transparent url("/static/images/carousel_prev.png") no-repeat 0 0;
+    background: transparent url("/images/carousel_prev.png") no-repeat 0 0;
 }
 .jcarousel-next-vertical {
     position: absolute;
@@ -775,7 +811,7 @@ table.history tr.reveal td {padding: 10px;}
     width: 30px;
     height: 60px;
     cursor: pointer;
-    background: transparent url("/static/images/carousel_down.png") no-repeat 0 0;
+    background: transparent url("/images/carousel_down.png") no-repeat 0 0;
 }
 .jcarousel-prev-vertical {
     position: absolute;
@@ -784,7 +820,7 @@ table.history tr.reveal td {padding: 10px;}
     width: 30px;
     height: 60px;
     cursor: pointer;
-    background: transparent url("/static/images/carousel_up.png") no-repeat 0 0;
+    background: transparent url("/images/carousel_up.png") no-repeat 0 0;
 }
 .jcarousel-next-horizontal:hover,
 .jcarousel-prev-horizontal:hover {
@@ -846,11 +882,11 @@ table.history tr.reveal td {padding: 10px;}
     border-bottom: 1px dotted #ccc;
 }
 div#resultsCovers a {text-decoration: none;}
-#contentLists.results .SRPCover {margin: 0 15px 20px 0;float:left;height:185px;vertical-align:middle;}
+#contentLists.results .SRPCover {margin:0 15px 20px 0;float:left;height:185px;vertical-align:middle;}
 .SRPCover img {height:185px;}
-#contentLists.results .SRPCoverBlank {position:relative;width:135px;height:185px;margin:0 15px 20px 0;text-align:center;float:left;background:transparent url("/static/images/icons/avatar_book.png") 0 0 no-repeat;font-size:0.875em;cursor:pointer;display:none;}
-.BookTitle {position:absolute;top:50%;left:50%;width:105px;margin-left:-52px;height:100px;margin-top:-50px;vertical-align:middle;color:#333;}
-.Author {color:#666;font-style:italic;line-height:15px;padding:4px 4px 0;}
+#contentLists.results .SRPCoverBlank {position:relative;width:135px;height:185px;margin:0 15px 20px 0;text-align:center;float:left;background:transparent url("/images/icons/avatar_book.png") 0 0 no-repeat;font-size:0.875em;cursor:pointer;display:none;}
+.BookTitle {position:absolute;top:50%;left:50%;width:105px;margin-left:-52px;height:110px;margin-top:-55px;vertical-align:middle;color:#333;}
+.Author {color:#666;font-style:italic;line-height:normal;padding:4px 4px 0;}
 
 
 div#resultsList li span.bookcover,
@@ -867,7 +903,7 @@ div#editionsList li img {
     height: 60px;
 }
 div.resultTitle {
-    margin-top: 1.0em;    
+    margin-top: 0;
 }
 div.resultTitle span.booktitle {
     font-size: 0.875em;
@@ -908,220 +944,72 @@ div.resultPublisher {
 
 div#editionsCovers a {text-decoration: none;}
 #contentLists.editions .coverMagic {float:left;max-width:225px;min-height:245px;text-align:center;}
-#contentLists.editions .SRPCover {margin: 0 20px 5px 0;vertical-align:middle;}
-#contentLists.editions .SRPCoverBlank {position:relative;width:135px;height:185px;margin:0 20px 5px 0;text-align:center;background:transparent url("/static/images/icons/avatar_book.png") 0 0 no-repeat;font-size:0.875em;cursor:pointer;display:none;}
-.bookMeta {max-width:125px;padding:0 5px;margin:0 auto;font-family:"Lucida Grande", Verdana, Helvetica, sans-serif;text-align:center;}
+#contentLists.editions .SRPCover {margin:0 15px 5px 0;vertical-align:middle;}
+#contentLists.editions .SRPCoverBlank {position:relative;width:135px;height:185px;margin:0 15px 5px 0;text-align:center;background:transparent url("/images/icons/avatar_book.png") 0 0 no-repeat;font-size:0.875em;cursor:pointer;display:none;}
+.bookMeta {max-width:135px;height:45px;max-height:45px;margin:0 15px 5px 0;font-family:"Lucida Grande", Verdana, Helvetica, sans-serif;text-align:center;}
 .Publisher{font-size:0.6875em;color:#000;line-height:100%;}
 .Year{font-size:0.5em;color:#615132;line-height:100%;}
 
-/* TEXTAREA MARKDOWN STYLES */
-.markItUp * {
-	margin:0px; padding:0px;
-	outline:none;
-}
-.markItUp a:link,
-.markItUp a:visited {
-	color:#000;
-	text-decoration:none;
-}
-.markItUp  {
-	width:700px;
-	margin:5px 0 5px 0;
-}
-.markItUpContainer  {
-	font:11px Verdana, Arial, Helvetica, sans-serif;
-}
-.markItUpEditor {
-	font:12px 'Courier New', Courier, monospace;
-	padding:5px;
-	width:690px;
-	height:320px;
-	clear:both; display:block;
-	line-height:18px;
-	overflow:auto;
-}
-.markItUpPreviewFrame	{
-	overflow:auto;
-	background-color:#FFF;
-	width:475px;
-	height:300px;
-	margin:5px 0;
-}
-.markItUpFooter {
-	width:100%;
-}
-.markItUpResizeHandle {
-	overflow:hidden;
-	width:22px; height:5px;
-	margin-left:auto;
-	margin-right:auto;
-	background-image:url("/static/images/markdown/handle.png");
-	cursor:n-resize;
-}
-/***************************************************************************************/
-/* first row of buttons */
-.markItUpHeader ul li	{
-	list-style:none;
-	float:left;
-	position:relative;
-}
-.markItUpHeader ul li:hover > ul{
-	display:block;
-}
-.markItUpHeader ul .markItUpDropMenu {
-	background:transparent url("/static/images/markdown/menu.png") no-repeat 115% 50%;
-	margin-right:5px;
-}
-.markItUpHeader ul .markItUpDropMenu li {
-	margin-right:0px;
-}
-/* next rows of buttons */
-.markItUpHeader ul ul {
-	display:none;
-	position:absolute;
-	top:18px; left:0px;	
-	background:#FFF;
-	border:1px solid #000;
-}
-.markItUpHeader ul ul li {
-	float:none;
-	border-bottom:1px solid #000;
-}
-.markItUpHeader ul ul .markItUpDropMenu {
-	background:#fff url("/static/images/markdown/submenu.png") no-repeat 100% 50%;
-}
-.markItUpHeader ul .markItUpSeparator {
-	margin:0 10px;
-	width:1px;
-	height:16px;
-	overflow:hidden;
-	background-color:#CCC;
-}
-.markItUpHeader ul ul .markItUpSeparator {
-	width:auto; height:1px;
-	margin:0px;
-}
-/* next rows of buttons */
-.markItUpHeader ul ul ul {
-	position:absolute;
-	top:-1px; left:150px; 
-}
-.markItUpHeader ul ul ul li {
-	float:none;
-}
-.markItUpHeader ul a {
-	display:block;
-	width:16px; height:16px;
-	text-indent:-10000px;
-	background-repeat:no-repeat;
-	padding:3px;
-	margin:0px;
-}
-.markItUpHeader ul ul a {
-	display:block;
-	padding-left:0px;
-	text-indent:0;
-	width:120px; 
-	padding:5px 5px 5px 25px;
-	background-position:2px 50%;
-}
-.markItUpHeader ul ul a:hover  {
-	color:#FFF;
-	background-color:#000;
-}
-
-/* -------------------------------------------------------------------
-// markItUp!
-// By Jay Salvat - http://markitup.jaysalvat.com/
-// ------------------------------------------------------------------*/
-.markdown .markItUpButton1 a {
-	background-image:url("/static/images/markdown/h1.png"); 
-}
-.markdown .markItUpButton2 a {
-	background-image:url("/static/images/markdown/h2.png"); 
-}
-.markdown .markItUpButton3 a {
-	background-image:url("/static/images/markdown/h3.png"); 
-}
-.markdown .markItUpButton4 a {
-	background-image:url("/static/images/markdown/h4.png"); 
-}
-.markdown .markItUpButton5 a {
-	background-image:url("/static/images/markdown/h5.png"); 
-}
-.markdown .markItUpButton6 a {
-	background-image:url("/static/images/markdown/h6.png"); 
-}
-
-.markdown .markItUpButton7 a {
-	background-image:url("/static/images/markdown/bold.png");
-}
-.markdown .markItUpButton8 a {
-	background-image:url("/static/images/markdown/italic.png");
-}
-
-.markdown .markItUpButton9 a {
-	background-image:url("/static/images/markdown/list-bullet.png");
-}
-.markdown .markItUpButton10 a {
-	background-image:url("/static/images/markdown/list-numeric.png");
-}
-
-.markdown .markItUpButton11 a {
-	background-image:url("/static/images/markdown/picture.png"); 
-}
-.markdown .markItUpButton12 a {
-	background-image:url("/static/images/markdown/link.png");
-}
-
-.markdown .markItUpButton13 a {
-	background-image:url("/static/images/markdown/quotes.png");
-}
-.markdown .markItUpButton14 a {
-	background-image:url("/static/images/markdown/code.png");
-}
-
-.markdown .preview a {
-	background-image:url("/static/images/markdown/preview.png");
-}
-
-
 /* COLORBOX POP-UP */
+/*
+    ColorBox Core Style
+    The following rules are the styles that are consistant between themes.
+    Avoid changing this area to maintain compatability with future versions of ColorBox.
+*/
 #colorbox, #cboxOverlay, #cboxWrapper{position:absolute; top:0; left:0; z-index:9999; overflow:hidden;}
 #cboxOverlay{position:fixed; width:100%; height:100%;}
 #cboxMiddleLeft, #cboxBottomLeft{clear:left;}
-#cboxContent{position:relative; overflow:visible;}
+#cboxContent{position:relative; overflow:hidden;}
 #cboxLoadedContent{overflow:auto;}
 #cboxLoadedContent iframe{display:block; width:100%; height:100%; border:0;}
 #cboxTitle{margin:0;}
 #cboxLoadingOverlay, #cboxLoadingGraphic{position:absolute; top:0; left:0; width:100%;}
 #cboxPrevious, #cboxNext, #cboxClose, #cboxSlideshow{cursor:pointer;}
 
+/* 
+    ColorBox example user style
+    The following rules are ordered and tabbed in a way that represents the
+    order/nesting of the generated HTML, so that the structure easier to understand.
+*/
 #cboxOverlay{background:#fff;}
 
-#colorbox{}
-	#cboxContent{margin-top:32px;}
-		#cboxLoadedContent{background:#333;padding:1px;}
-                #cboxLoadingGraphic{background:url("/static/images/ajax-loader.gif") center center no-repeat;}
-                #cboxLoadingOverlay{background:#000;}
-                #cboxTitle{position:absolute;top:-22px;left:0; color:#000;font-size:0.6875em;}
-                #cboxCurrent{position:absolute;top:-22px;right:205px;text-indent:-9999px;}
-                
-                #cboxSlideshow, #cboxPrevious, #cboxNext, #cboxClose{text-indent:-9999px; width:16px; height:16px; position:absolute; top:-22px; background:url("/static/images/colorbox_controls.png") 0 0 no-repeat;}
+#colorBox{}
+    #cboxTopLeft{width:25px; height:25px; background:url(images/border1.png) 0 0 no-repeat;}
+    #cboxTopCenter{height:25px; background:url(images/border1.png) 0 -50px repeat-x;}
+    #cboxTopRight{width:25px; height:25px; background:url(images/border1.png) -25px 0 no-repeat;}
+    #cboxBottomLeft{width:25px; height:25px; background:url(images/border1.png) 0 -25px no-repeat;}
+    #cboxBottomCenter{height:25px; background:url(images/border1.png) 0 -75px repeat-x;}
+    #cboxBottomRight{width:25px; height:25px; background:url(images/border1.png) -25px -25px no-repeat;}
+    #cboxMiddleLeft{width:25px; background:url(images/border2.png) 0 0 repeat-y;}
+    #cboxMiddleRight{width:25px; background:url(images/border2.png) -25px 0 repeat-y;}
+    #cboxContent{background:#fff;}
+        #cboxLoadedContent{margin-bottom:20px;}
+        #cboxTitle{position:absolute; bottom:0px; left:0; text-align:center; width:100%; color:#999;}
+        #cboxCurrent{position:absolute; bottom:0px; left:100px; color:#999;}
+        #cboxSlideshow{position:absolute; bottom:0px; right:42px; color:#444;}
+        #cboxPrevious{position:absolute; bottom:0px; left:0; color:#444;}
+        #cboxNext{position:absolute; bottom:0px; left:63px; color:#444;}
+        #cboxLoadingOverlay{background:url(images/loading.gif) 5px 5px no-repeat #fff;}
+        #cboxClose{position:absolute; bottom:0; right:0; display:block; color:#444;}
 
-                #cboxPrevious{background-position:0 0;right:44px;}
-                #cboxPrevious.hover{background-position:0 -16px;}
-                #cboxNext{background-position:-16px 0; right:22px;}
-                #cboxNext.hover{background-position:-16px -16px;}
-        		#cboxClose{background-position:-32px 0; right:0;}
-		        #cboxClose.hover{background-position:-32px -16px;}
-
-                .cboxSlideshow_on #cboxPrevious, .cboxSlideshow_off #cboxPrevious{right:66px;}
-
-                .cboxSlideshow_on #cboxSlideshow{background-position:-48px -16px; right:44px;}
-                .cboxSlideshow_on #cboxSlideshow.hover{background-position:-64px -16px;}
-                .cboxSlideshow_off #cboxSlideshow{background-position:-64px 0; right:44px;}
-                .cboxSlideshow_off #cboxSlideshow.hover{background-position:-48px -16px;}
+/*
+    The following fixes png-transparency for IE6.  
+    It is also necessary for png-transparency in IE7 & IE8 to avoid 'black halos' with the fade transition
+    
+    Since this method does not support CSS background-positioning, it is incompatible with CSS sprites.
+    Colorbox preloads navigation hover classes to account for this.
+    
+    !! Important Note: AlphaImageLoader src paths are relative to the HTML document,
+    while regular CSS background images are relative to the CSS document.
+*/
+.cboxIE #cboxTopLeft{background:transparent; filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src=images/internet_explorer/borderTopLeft.png, sizingMethod='scale');}
+.cboxIE #cboxTopCenter{background:transparent; filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src=images/internet_explorer/borderTopCenter.png, sizingMethod='scale');}
+.cboxIE #cboxTopRight{background:transparent; filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src=images/internet_explorer/borderTopRight.png, sizingMethod='scale');}
+.cboxIE #cboxBottomLeft{background:transparent; filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src=images/internet_explorer/borderBottomLeft.png, sizingMethod='scale');}
+.cboxIE #cboxBottomCenter{background:transparent; filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src=images/internet_explorer/borderBottomCenter.png, sizingMethod='scale');}
+.cboxIE #cboxBottomRight{background:transparent; filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src=images/internet_explorer/borderBottomRight.png, sizingMethod='scale');}
+.cboxIE #cboxMiddleLeft{background:transparent; filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src=images/internet_explorer/borderMiddleLeft.png, sizingMethod='scale');}
+.cboxIE #cboxMiddleRight{background:transparent; filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src=images/internet_explorer/borderMiddleRight.png, sizingMethod='scale');}
 
 /* ADMIN */
 body#admin div#contentHead {
@@ -1252,13 +1140,13 @@ div#adminTwitter div.tweet_avatar{width:35px;}
 div#adminTwitter div.tweet_copy{width:265px;}
 
 /* TWITTER FEED */
-div#adminTwitter {float:left;font-size:0.75em;padding-top:45px;background:url("/static/images/logo_twitter-sm.png") 0 15px no-repeat;}
+div#adminTwitter {float:left;font-size:0.75em;padding-top:45px;background:url("/images/logo_twitter-sm.png") 0 15px no-repeat;}
 div.tweet_cell{float:left;padding-bottom:20px;}
 span.tweet_user {font-weight:700;}
 div.tweet_avatar,div.tweet_copy {float:left;}
 div.tweet_date a {color:#999;text-decoration:none;}
 /* FLICKR FEED */
-div.flickrs {float:left;background:url("/static/images/logo_flickr-sm.png") no-repeat;}
+div.flickrs {float:left;background:url("/images/logo_flickr-sm.png") no-repeat;}
 div.flickrs ul {margin-top: 45px;}
 div.flickrs ul li {display: block;float: left;margin: 0 10px 20px 0;}
 div.flickrs ul li img {height: 100px;}
