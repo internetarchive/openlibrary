@@ -1,7 +1,7 @@
 #!/usr/local/bin/python2.5
 import re, sys, codecs, web
 from openlibrary.catalog.get_ia import get_from_archive
-from openlibrary.catalog.marc.fast_parse import get_subfield_values, get_first_tag, get_tag_lines, get_subfields
+from openlibrary.catalog.marc.fast_parse import get_subfield_values, get_first_tag, get_tag_lines, get_subfields, BadDictionary
 from openlibrary.catalog.utils.query import query_iter, set_staging, query
 from openlibrary.catalog.utils import mk_norm
 from openlibrary.catalog.read_rc import read_rc
@@ -9,50 +9,34 @@ from collections import defaultdict
 from pprint import pprint, pformat
 from openlibrary.catalog.utils.edit import fix_edition
 from openlibrary.catalog.importer.db_read import get_mc
-import urllib
+import urllib2
 from openlibrary.api import OpenLibrary, Reference
+from lxml import etree
+from time import sleep, time
 
 rc = read_rc()
 
 ol = OpenLibrary("http://openlibrary.org")
 ol.login('WorkBot', rc['WorkBot'])
+#ol.login('EdwardBot', rc['EdwardBot'])
+fh_log = open('/1/edward/logs/WorkBot', 'a')
+
+def write_log(cat, key, title):
+    print >> fh_log, (("%.2f" % time()), cat, key, title)
 
 sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
 re_skip = re.compile('\b([A-Z]|Co|Dr|Jr|Capt|Mr|Mrs|Ms|Prof|Rev|Revd|Hon|etc)\.$')
 
+re_ia_marc = re.compile('^(?:.*/)?([^/]+)_(marc\.xml|meta\.mrc)(:0:\d+)?$')
+
+ns = '{http://www.loc.gov/MARC21/slim}'
+ns_leader = ns + 'leader'
+ns_data = ns + 'datafield'
+
 def has_dot(s):
     return s.endswith('.') and not re_skip.search(s)
 
-base_url = "http://openlibrary.org"
-query_url = base_url + "/query.json?query="
-
-work_num = 10001
-
-set_staging(True)
-
-def withKey(key):
-    url = base_url + key + ".json"
-    return urllib.urlopen(url).read()
-
-def find_new_work_key():
-    global work_num
-    while True:
-        key = "/works/OL%dW" % work_num
-        ret = withKey(key)
-        if ret.startswith("Not Found:"):
-            return work_num
-        work_num += 1
-
-def next_work_key():
-    global work_num
-    key = "/works/OL%dW" % work_num
-    ret = withKey(key)
-    while not ret.startswith("Not Found:"):
-        work_num += 1
-        key = "/works/OL%dW" % work_num
-        ret = withKey(key)
-    work_num += 1
-    return key
+#set_staging(True)
 
 # sample title: The Dollar Hen (Illustrated Edition) (Dodo Press)
 re_parens = re.compile('^(.*?)(?: \(.+ (?:Edition|Press)\))+$')
@@ -74,29 +58,81 @@ def freq_dict_top(d):
 
 def get_marc_src(e):
     mc = get_mc(e['key'])
-    if mc and (mc.startswith('amazon:') or mc.startswith('ia:')):
+    if mc and mc.startswith('amazon:'):
         mc = None
-    if mc:
-        yield mc
+    if mc and mc.startswith('ia:'):
+        yield 'ia', mc[3:]
+    elif mc:
+        m = re_ia_marc.match(mc)
+        if m:
+            #print 'IA marc match:', m.group(1)
+            yield 'ia', m.group(1)
+        else:
+            yield 'marc', mc
     if 'source_records' not in e:
         return
     for src in e['source_records']:
-        if src.startswith('marc:') and src != 'marc:' + mc:
-            yield src[5:]
+        if src.startswith('ia:'):
+            if not mc or src != mc:
+                yield 'ia', src[3:]
+            continue
+        if src.startswith('marc:'):
+            if not mc or src != 'marc:' + mc:
+                yield 'marc', src[5:]
+            continue
+
+def get_ia_work_title(ia):
+    url = 'http://www.archive.org/download/' + ia + '/' + ia + '_marc.xml'
+    try:
+        root = etree.parse(urllib2.urlopen(url)).getroot()
+    except KeyboardInterrupt:
+        raise
+    except:
+        print 'bad XML', ia
+        print url
+        return
+    #print etree.tostring(root)
+    e = root.find(ns_data + "[@tag='240']")
+    if e is None:
+        return
+    #print e.tag
+    wt = ' '.join(s.text for s in e if s.attrib['code'] == 'a' and s.text)
+    return wt
 
 def get_work_title(e):
     # use first work title we find in source MARC records
-    line = None
-    for src in get_marc_src(e):
-        print 'src:', src
-        data = get_from_archive(src)
-        line = get_first_tag(data, set(['240']))
+    wt = None
+    for src_type, src in get_marc_src(e):
+        if src_type == 'ia':
+            wt = get_ia_work_title(src)
+            if wt:
+                break
+            continue
+        assert src_type == 'marc'
+        try:
+            data = get_from_archive(src)
+        except ValueError:
+            print 'bad record source:', src
+            print 'http://openlibrary.org' + e['key']
+            continue
+        if not data:
+            continue
+        try:
+            line = get_first_tag(data, set(['240']))
+        except BadDictionary:
+            print 'bad dictionary:', src
+            print 'http://openlibrary.org' + e['key']
+            continue
         if line:
+            wt = ' '.join(get_subfield_values(line, ['a'])).strip('. ')
             break
-    if not line:
-        assert not e.get('work_titles', [])
+    if wt:
+        return wt
+    if not e.get('work_titles', []):
         return
-    return ' '.join(get_subfield_values(line, ['a'])).strip('. ')
+    print 'work title in MARC, but not in OL'
+    print 'http://openlibrary.org' + e['key']
+    return e['work_titles'][0]
 
 def get_books(akey):
     for e in books_query(akey):
@@ -234,57 +270,57 @@ def print_works(works):
 def toc_items(toc_list):
     return [{'title': unicode(item), 'type': Reference('/type/toc_item')} for item in toc_list] 
 
-def add_works(akey, works):
-    queue = []
-    for w in works:
-        w['key'] = next_work_key()
-        q = {
-            'authors': [akey],
-            'create': 'unless_exists',
-            'type': '/type/work',
-            'key': w['key'],
-            'title': w['title']
-        }
-        #queue.append(q)
-        print ol.write(q, comment='create work')
-        for ekey in w['editions']:
-            e = ol.get(ekey)
-            fix_edition(ekey, e, ol)
-            e['works'] = [Reference(w['key'])]
-            try:
-                print ol.save(ekey, e, 'found a work')
-            except olapi.OLError:
-                print ekey
-                print e
-                raise
+def add_work(akey, w):
+    q = {
+        'authors': [{'author': Reference(akey)}],
+        'type': '/type/work',
+        'title': w['title']
+    }
+    try:
+        wkey = ol.new(q, comment='create work page')
+    except:
+        print q
+        raise
+    write_log('work', wkey, w['title'])
+    assert isinstance(wkey, basestring)
+    for ekey in w['editions']:
+        e = ol.get(ekey)
+        fix_edition(ekey, e, ol)
+        #assert 'works' not in e
+        write_log('edition', ekey, e.get('title', 'title missing'))
+        e['works'] = [Reference(wkey)]
+        yield e
+
+def save_editions(queue):
+    print 'saving'
+    print ol.save_many(queue, 'add edition to work page')
+    print 'saved'
 
 def by_authors():
-    find_new_work_key()
-
-    skipping = False
     q = { 'type':'/type/author', 'name': None, 'works': None }
-    for a in query_iter(q, offset=215000):
+    for a in query_iter(q):
         akey = a['key']
-        if skipping:
-            print 'skipping:', akey, a['name']
-            if akey == '/a/OL218496A':
-                skipping = False
-            continue
-
+        write_log('author', akey, a.get('name', 'name missing'))
         q = {
             'type':'/type/work',
             'authors': akey,
         }
-        if query(q):
-            print akey, `a['name']`, 'has works'
-            continue
 
-    #    print akey, a['name']
-        found = find_works(akey)
-        works = [i for i in found if len(i['editions']) > 1]
-        if works:
-            print akey, `a['name']`
-            #add_works(akey, works)
-            print
+        works = find_works(akey)
+        print akey, `a['name']`
+        for w in works:
+            print 'work:', `w['title']`
+            for e in add_work(akey, w):
+                yield e
 
-by_authors()
+queue = []
+for e in by_authors():
+    print e['key'], `e['title']`
+    queue.append(e)
+    if len(queue) > 1000:
+        save_editions(queue)
+        queue = []
+        sleep(5)
+save_editions(queue)
+
+fh_log.close()
