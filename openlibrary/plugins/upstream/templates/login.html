@@ -8,16 +8,16 @@ $var title: $("Log In")
     </div>
 </div>
 
-<div id="contentBody">
 <script type="text/javascript">
-\$().ready(validateLogin);
 \$().ready(passwordMask);
+\$().ready(validateForms);
+\$().ready(validateLogin);
 </script>
+
+<div id="contentBody">
     <form id="register" class="login olform" name="register" method="post">
 
         $:form.render()
-
-        <div id="showpass" class="smaller"></div>
 
         <div class="formElement bottom">
             <br/>
@@ -30,6 +30,6 @@ $var title: $("Log In")
             <div class="input smaller">Did you <a href="/account/password/forgot">forget your password</a>?
             <br/><br/>
             Not a member of Open Library? <a href="/account/create">Sign up now</a>.</div>
-            </div>
+        </div>
     </form>
 </div>

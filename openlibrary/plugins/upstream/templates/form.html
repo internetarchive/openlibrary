@@ -13,5 +13,9 @@ $for i in form.inputs:
             <div class="input">
                 $:i.render()
             </div>
+            $if "password" == i.id:
+                <div class="input"><span id="showpass" class="smaller"></span></div>
+            $if "new_password" == i.id:
+                <div class="input"><span id="masker" class="smaller"></span></div>
             <div class="invalid clearfix" htmlfor="$i.id">$i.note</div>
         </div>

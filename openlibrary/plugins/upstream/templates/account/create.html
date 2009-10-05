@@ -11,16 +11,17 @@ $var title: $_("Create an Account")
 </div>
             
 <div id="contentBody">
+
 <script type="text/javascript">
-\$().ready(setup_account_create);
 \$().ready(passwordMask);
+\$().ready(validateForms);
+\$().ready(setup_account_create);
 </script>
+
     <form id="signup" class="olform create" name="signup" method="post">
 
         $:form.render()
         
-        <div id="showpass" class="smaller"></div>
-
             <div class="formElement" id="recaptcha_widget" style="display:none;">
 
                 <div class="label">
