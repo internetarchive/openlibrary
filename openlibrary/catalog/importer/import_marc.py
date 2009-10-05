@@ -1,21 +1,21 @@
 #!/usr/bin/python2.5
 from time import time, sleep
-import catalog.marc.fast_parse as fast_parse
+import openlibrary.catalog.marc.fast_parse as fast_parse
 import web, sys, codecs, re, urllib2, httplib
-import catalog.importer.pool as pool
+import openlibrary.catalog.importer.pool as pool
 import simplejson as json
-from catalog.utils.query import query_iter
-from catalog.importer.merge import try_merge
-from catalog.marc.new_parser import read_edition
-from catalog.importer.load import build_query, east_in_by_statement, import_author
-from catalog.importer.lang import add_lang
-from catalog.get_ia import files, read_marc_file
-from catalog.merge.merge_marc import build_marc
-from catalog.importer.db_read import get_mc, withKey
+from openlibrary.catalog.utils.query import query_iter
+from openlibrary.catalog.importer.merge import try_merge
+from openlibrary.catalog.marc.new_parser import read_edition
+from openlibrary.catalog.importer.load import build_query, east_in_by_statement, import_author
+from openlibrary.catalog.importer.lang import add_lang
+from openlibrary.catalog.get_ia import files, read_marc_file
+from openlibrary.catalog.merge.merge_marc import build_marc
+from openlibrary.catalog.importer.db_read import get_mc, withKey
 sys.path.append('/home/edward/src/olapi')
 from olapi import OpenLibrary, unmarshal
 
-from catalog.read_rc import read_rc
+from openlibrary.catalog.read_rc import read_rc
 
 rc = read_rc()
 
@@ -37,6 +37,29 @@ chunk = 50
 load_count = 0
 
 archive_id = sys.argv[1]
+
+def get_with_retry(key):
+    for i in range(3):
+        try:
+            return ol.get(key)
+        except urllib2.HTTPError, error:
+            if error.code != 500:
+                raise
+        print 'retry save'
+        sleep(10)
+    return ol.get(key)
+
+def save_with_retry(key, data, comment):
+    for i in range(3):
+        try:
+            return ol.save(key, data, comment)
+        except urllib2.HTTPError, error:
+            if error.code != 500:
+                raise
+        print 'retry save'
+        sleep(10)
+
+# urllib2.HTTPError: HTTP Error 500: Internal Server Error
 
 def percent(a, b):
     return float(a * 100.0) / b
@@ -111,7 +134,7 @@ def undelete_author(a):
     url = 'http://openlibrary.org' + key + '.json?v=' + str(a['revision'] - 1)
     prev = unmarshal(json.load(urllib2.urlopen(url)))
     assert prev['type'] == '/type/author'
-    ol.save(key, prev, 'undelete author')
+    save_with_retry(key, prev, 'undelete author')
 
 def undelete_authors(authors):
     for a in authors:
@@ -123,7 +146,7 @@ def undelete_authors(authors):
 
 def add_source_records(key, new, thing, data):
     sr = None
-    e = ol.get(key)
+    e = get_with_retry(key)
     if 'source_records' in e:
         if new in e['source_records']:
             return
@@ -155,14 +178,14 @@ def add_source_records(key, new, thing, data):
             e['authors'] = [new_author]
         else:
             print e['authors']
-            authors = [ol.get(akey) for akey in e['authors']]
+            authors = [get_with_retry(akey) for akey in e['authors']]
             while any(a['type'] == '/type/redirect' for a in authors):
                 print 'following redirects'
                 authors = [ol.get(a['location']) if a['type'] == '/type/redirect' else a for a in authors]
             e['authors'] = [{'key': a['key']} for a in authors]
             undelete_authors(authors)
     try:
-        print ol.save(key, e, 'found a matching MARC record')
+        print save_with_retry(key, e, 'found a matching MARC record')
     except:
         print e
         raise
@@ -328,5 +351,6 @@ for part, size in files(archive_id):
         if load_count % 100 == 0:
             print "load count", load_count
         write_edition(loc, edition)
+        sleep(2)
 
 print "finished"

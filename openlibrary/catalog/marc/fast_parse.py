@@ -8,8 +8,11 @@ from openlibrary.catalog.utils import tidy_isbn
 
 marc8 = MARC8ToUnicode(quiet=True)
 
-
-def translate(data):
+def translate(data, bad_ia_charset=False):
+    if bad_ia_charset:
+        data = data.decode('utf-8')
+        data = marc8.translate(data)
+        return normalize('NFC', data)
     data = mnemonics.read(data)
     if type(data) == unicode:
         return normalize('NFC', data)
@@ -61,6 +64,7 @@ def read_file(f):
         try:
             assert length.isdigit()
         except AssertionError:
+            print 'not a digit:', `length`
             raise
         int_length = int(length)
         data = buf + f.read(int_length - len(buf))
@@ -141,10 +145,10 @@ def get_raw_subfields(line, want):
         if i and i[0] in want:
             yield i[0], i[1:]
 
-def get_all_subfields(line):
+def get_all_subfields(line, ia_bad_charset=False):
     for i in line[3:-1].split('\x1f'):
         if i:
-            j = translate(i)
+            j = translate(i, ia_bad_charset)
             yield j[0], j[1:]
 
 def get_subfields(line, want):
@@ -158,6 +162,7 @@ def read_directory(data):
     dir_end = data.find('\x1e')
     directory = data[24:dir_end]
     if len(directory) % 12 != 0:
+        print 'directory is the wrong size'
         # directory is the wrong size
         # sometimes the leader includes some utf-8 by mistake
         directory = data[:dir_end].decode('utf-8')[24:]
@@ -214,7 +219,9 @@ def get_subfield_values(line, want):
 def get_all_tag_lines(data):
     dir_end, iter_dir = read_directory(data)
     data = data[dir_end:]
-    return [(line[:3], get_tag_line(data, line)) for line in iter_dir]
+    for line in iter_dir:
+        yield (line[:3], get_tag_line(data, line))
+    #return [(line[:3], get_tag_line(data, line)) for line in iter_dir]
 
 def get_first_tag(data, want): # return first line of wanted tag
     dir_end, iter_dir = read_directory(data)
@@ -496,3 +503,10 @@ def test_index_fields():
     data = open('test_data/ithaca_college_75002321').read()
     lccn = index_fields(data, ['010'])['lccn'][0]
     assert lccn == '75002321'
+
+def test_ia_charset():
+    data = open('test_data/histoirereligieu05cr_meta.mrc').read()
+    line = list(get_tag_lines(data, set(['100'])))[0][1]
+    a = list(get_all_subfields(line, ia_bad_charset=True))[0][1]
+    expect = u'Cr\xe9tineau-Joly, J.'
+    assert a == expect
