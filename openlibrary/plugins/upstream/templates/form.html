@@ -9,13 +9,40 @@ $for i in form.inputs:
         $:i.render()
     $else:
         <div class="formElement">
-            <div class="label"><label for="$i.id">$i.description</label> <span class="smaller lighter">$i.help</span></div>
-            <div class="input">
-                $:i.render()
-            </div>
-            $if "password" == i.id:
-                <div class="input"><span id="showpass" class="smaller"></span></div>
-            $if "new_password" == i.id:
-                <div class="input"><span id="masker" class="smaller"></span></div>
+            $if "recaptcha" == i.name:
+                <div class="label">
+                    <label for="recaptcha_response_field"> 
+                        <span class="recaptcha_only_if_image"><strong>$_("What are these two words?")</strong></span>
+                        <span class="recaptcha_only_if_audio"><strong>$_("What numbers do you hear?")</strong></span>
+                    </label>
+                    <span class="smaller">&nbsp;&nbsp;
+                        <span class="recaptcha_only_if_image"><a href="javascript:Recaptcha.switch_type('audio')">$_("Get an audio file")</a>?</span>
+                        <span class="recaptcha_only_if_audio"><a href="javascript:Recaptcha.switch_type('image')">$_("Get a text image")</a>?</span>
+                        | <a href="javascript:Recaptcha.reload()">$_("Reload")</a>
+                        | <a href="javascript:Recaptcha.showhelp()">$_("Help")</a>
+                    </span>
+                </div>
+                <div class="input">
+                     <div id="recaptcha_image"></div>
+                     <div class="recaptcha_only_if_incorrect_sol attn">$_("Incorrect, please try again.")</div>
+                     <input type="text" id="recaptcha_response_field" name="recaptcha_response_field" value="$i.value" class="required"/>
+                     <script type="text/javascript" src="http://api.recaptcha.net/challenge?k=$i.public_key&error=$i.error"></script>
+                     <noscript>
+                         <iframe src="http://api.recaptcha.net/noscript?k=$i.public_key" 
+                            height="300" width="500" frameborder="0"></iframe>
+                         <br/>
+                         <textarea name="recaptcha_challenge_field" rows="3" cols="40"></textarea>
+                         <input type="hidden" name="recaptcha_response_field" value="manual_challenge"/>
+                    </noscript>
+                </div>
+            $else:
+                <div class="label"><label for="$i.id">$i.description</label> <span class="smaller lighter">$i.help</span></div>
+                <div class="input">
+                    $:i.render()
+                </div>
+                $if "password" == i.id:
+                    <div class="input"><span id="showpass" class="smaller"></span></div>
+                $elif "new_password" == i.id:
+                    <div class="input"><span id="masker" class="smaller"></span></div>
             <div class="invalid clearfix" htmlfor="$i.id">$i.note</div>
         </div>

@@ -179,6 +179,8 @@ class account_create(delegate.page):
         sendmail(i.email, msg)
         
         return render['account/verify'](username=i.username, email=i.email)
+        
+del delegate.pages['/account/register']
     
 class account_verify(delegate.page):
     path = "/account/verify"
@@ -366,8 +368,8 @@ class account_notifications(delegate.page):
         
         add_flash_message('note', _("Notification preferences have been updated successfully."))
         web.seeother("/account")
-
-class redirects:
+        
+class redirects(delegate.page):
     path = "/(a|b|user)/(.*)"
     def GET(self, prefix, path):
         d = dict(a="authors", b="books", user="people")

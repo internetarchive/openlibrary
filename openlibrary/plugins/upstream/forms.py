@@ -27,6 +27,8 @@ Register = Form(
     Password('password', description=_('Choose a Password'), klass='required', validators=[vpass])
 )
 
+forms.register = Register
+
 def verify_password(password):
     user = web.ctx.site.get_user()
     if user is None:
