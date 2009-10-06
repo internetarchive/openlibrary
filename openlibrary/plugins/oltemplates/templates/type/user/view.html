@@ -13,30 +13,7 @@ $ _ = i18n.get_namespace('/mode/view')
 
 <div class="contenttext">
 
-<p>
-$if page.get('website'):
-    $for url in page.website: <a href="$url">$url</a><br />
-</p>
-
-$if page.get('description'):
-    $ desc = page.description.lower()
-    $if (desc.count('http://') > 3 and '<img' in desc) or ('document.location' in desc) or ('document.write' in desc) or ('window.location' in desc):
-        <b>This page is detected as spam.</b>
-    $else:
-        $:format(page.description)
-
-$if page.get('reviews'):
-    <h2>$_t.book_reviews</h2>
-    $for review in page.reviews:
-        <a href="/$review.name">$review.title</a> (<a href="/$review.book.name">$review.book.title</a>)<br />
-
-<div>
-$if page.sponsored_books:
-    <h2>$_t.sponsored_books</h2>
-    $for record in page.sponsored_books:
-        $ book = record.edition
-        <a href="$book.key">$book.title</a> by ($:thingrepr(book.authors))
-</div>
+$:sanitize(format(page.description))
 
 </div>
 
