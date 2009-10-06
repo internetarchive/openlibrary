@@ -1,6 +1,7 @@
 
 User-agent: *
 Disallow: /nothing---please-crawl-us--
+Disallow: /user
 
 Sitemap: http://openlibrary/sitemap.xml.gz
 
