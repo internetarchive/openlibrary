@@ -8,6 +8,8 @@ from infogami.utils import delegate
 from infogami.infobase.client import Thing
 from infogami.utils import view, template
 from infogami import config
+from infogami.plugins.api.code import jsonapi
+
 import re
 import solr_client
 import time
@@ -430,7 +432,7 @@ def clean_punctuation(s,field=None):
         x = w.lstrip(':')
         # return x                # actually don't compress ISBN for now.
         maybe_isbn = list(c for c in x if c != '-')
-        if len(maybe_isbn) in [10,13] and all(str.isdigit(c) for c in maybe_isbn):
+        if len(maybe_isbn) in [10,13] and all(c.isdigit() for c in maybe_isbn):
             x = ''.join(maybe_isbn)
         return x
     ws = map(clean1, s.split())
@@ -521,6 +523,90 @@ class search_api:
         dval["status"] = "ok"
         return dval
 
+class SearchProcessor:
+    def _process_query(self, query):
+        """Process a query dictionary and returns a query string."""
+        query = dict(query)
+        q = query.pop('q', None)
+        
+        parts = []
+        if q:
+            parts.append(self.normalize(q))
+                
+        for k, v in query.items():
+            k = k.lower()
+            v = self.normalize(v)
+            if k == 'isbn':
+                part = '(isbn_10:(%s) OR isbn_13:(%s))' % (v, v)
+            else:
+                part = '%s:(%s)' % (k, v)
+            parts.append(part)
+        return " ".join(parts)
+        
+    def normalize(self, value):
+        """Normalize string value by remove unnecessary punctuation."""
+        return clean_punctuation(value)
+        
+    def _solr_query(self, q):
+        """Takes a query string and expands it"""
+        return solr.basic_query(q)
+        
+    def _process_doc(self, doc):
+        d = {
+            'key': doc['identifier'],
+            'type': {'key': '/type/edition'},
+            'title': doc.get('title', '')
+        }
+        
+        if 'authors' in doc and 'author_keys' in doc:
+            d['authors'] = [{'key': key, 'name': name} for key, name in zip(doc['author_keys'], doc['authors'])]
+            
+        keys = ['title', 'publishers', 'languages', 'subjects']
+        for k in keys:
+            if k in doc:
+                d[k] = doc[k]
+                
+        return d
+        
+    def search(self, query):
+        """Constructs solr query from given query dict, executes it and returns the results.
+
+        Sample queries:
+
+            {'q': 'Tom Sawyer'}
+            {'authors': ['Mark Twain']}
+            {'title': 'Tom Sawyer'}
+            {'title': 'Tom Sawyer', 'authors': 'Mark Twain', 'lccn': '49049011'}
+        """
+        query = dict(query)
+        offset = query.pop('offset', 0)
+
+        query_string = self._process_query(query)
+        solr_query = self._solr_query(query_string)
+        result = solr.advanced_search(solr_query, start=offset)
+        return {
+            'matches': result.total_results,
+            'offset': result.begin,
+            'docs': [self._process_doc(d) for d in result.raw_results]
+        }
+
+        
+        
+class search_json(delegate.page):
+    path = "/search"
+    encoding = "json"
+    
+    @jsonapi
+    def GET(self):
+        i = web.input(q='', query=None)
+        # query can be either specified as json with parameter query or just query parameters
+        query = i.pop('query')
+        if query:
+            query = simplejson.loads(i.query)
+        else:
+            query = i
+        result = SearchProcessor().search(i)
+        return simplejson.dumps(result)
 
 # add search API if api plugin is enabled.
 if 'api' in delegate.get_plugins():
