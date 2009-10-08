@@ -1,6 +1,6 @@
 import re, web, sys
 import simplejson as json
-from urllib2 import urlopen
+from urllib2 import urlopen, URLError
 from openlibrary.catalog.read_rc import read_rc
 from openlibrary.catalog.importer.db_read import get_mc
 from time import sleep
@@ -100,12 +100,20 @@ def add_source_records(key, ia):
         undelete_authors(authors)
     print 'saving', key
     print marshal(e)
-    sleep(5)
-    try:
-        print ol.save(key, e, 'found a matching MARC record')
-    except:
-        print e
-        raise
+    for attempt in range(50):
+        try:
+            print ol.save(key, e, 'found a matching MARC record')
+            break
+        except KeyboardInterrupt:
+            raise
+        except URLError:
+            if attempt == 49:
+                raise
+        except:
+            print e
+            raise
+        print 'attempt %d failed' % attempt
+        sleep(30)
     if new_toc:
         new_edition = ol.get(key)
         # [{u'type': <ref: u'/type/toc_item'>}, ...]

@@ -4,6 +4,16 @@ from time import sleep
 
 staging = False
 
+def jsonload(url):
+    return json.load(urllib.urlopen(url))
+
+def urlread(url):
+    return urllib.urlopen(url).read()
+
+def has_cover(key):
+    url = 'http://covers.openlibrary.org/' + key[1] + '/query?olid=' + key[3:]
+    return urlread(url).strip() != '[]'
+
 def base_url():
     host = 'openlibrary.org'
     if staging:
@@ -22,7 +32,7 @@ def get_all_ia():
 
     while True:
         url = base_url() + "/api/things?query=" + web.urlquote(json.dumps(q))
-        ret = json.load(urllib.urlopen(url))['result']
+        ret = jsonload(url)['result']
         for i in ret:
             yield i
         if not ret:
@@ -38,9 +48,9 @@ def query(q):
     ret = None
     for i in range(20):
         try:
-            ret = urllib.urlopen(url).read()
+            ret = urlread(url)
             while ret.startswith('canceling statement due to statement timeout'):
-                ret = urllib.urlopen(url).read()
+                ret = urlread(url)
             if not ret:
                 print 'ret == None'
         except IOError:
@@ -64,12 +74,23 @@ def query_iter(q, limit=500, offset=0):
             yield i
         q['offset'] += limit
 
+def get_editions_with_covers_by_author(author, count):
+    q = {'type': '/type/edition', 'title_prefix': None, 'subtitle': None, 'title': None, 'authors': author}
+    with_covers = []
+    for e in query_iter(q, limit=count):
+        if not has_cover(e['key']):
+            continue
+        with_covers.append(e)
+        if len(with_covers) == count:
+            return with_covers
+    return with_covers
+
 def version_iter(q, limit=500, offset=0):
     q['limit'] = limit
     q['offset'] = offset
     while True:
         url = base_url() + '/version'
-        v = json.load(urllib.urlopen(url))
+        v = jsonload(url)
         if not v:
             return
         for i in query(q):
@@ -79,24 +100,31 @@ def version_iter(q, limit=500, offset=0):
 def withKey(key):
     for i in range(20):
         try:
-            ret = urllib.urlopen(base_url() + key + '.json').read()
-            return json.loads(ret)
+            return jsonload(base_url() + key + '.json')
         except:
             pass
         print 'retry'
         sleep(10)
 
-def get_mc(key): # get machine comment
-    url = base_url() + key + '.json?m=history'
-    ret = urllib.urlopen(url).read()
-    v = json.loads(ret)
+def get_marc_src(e):
+    mc = get_mc(e['key'])
+    if mc:
+        yield mc
+    if not e.get('source_records', []):
+        return
+    for src in e['source_records']:
+        if src.startswith('marc:') and src != 'marc:' + mc:
+            yield src[5:]
 
-    comments = [i['machine_comment'] for i in v if 'machine_comment' in i and i['machine_comment'] is not None ]
+def get_mc(key): # get machine comment
+    v = jsonload(base_url() + key + '.json?m=history')
+
+    comments = [i['machine_comment'] for i in v if i.get('machine_comment', None) and ':' in i['machine_comment']]
     if len(comments) == 0:
         return None
     if len(set(comments)) != 1:
-        print id
-        print versions
+        print key
+        print comments
     assert len(set(comments)) == 1
     if comments[0] == 'initial import':
         return None

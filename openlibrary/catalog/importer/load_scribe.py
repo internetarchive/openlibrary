@@ -27,7 +27,7 @@ db = web.database(dbn='mysql', host=rc['ia_db_host'], user=rc['ia_db_user'], \
         passwd=rc['ia_db_pass'], db='archive')
 db.printing = False
 
-start = '2009-09-24 05:56:56'
+start = '2009-10-07 11:01:43'
 fh_log = open('/1/edward/logs/load_scribe', 'a')
 
 t0 = time()
@@ -88,13 +88,13 @@ def write_edition(loc, edition):
     if authors:
         q['authors'] = authors
 
-    for attempt in range(5):
+    for attempt in range(50):
         if attempt > 0:
             print 'retrying'
         try:
             ret = ol.new(q, comment='initial import')
         except httplib.BadStatusLine:
-            sleep(10)
+            sleep(30)
             continue
         except: # httplib.BadStatusLine
             print q

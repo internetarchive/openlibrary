@@ -15,6 +15,9 @@ rc = read_rc()
 
 re_loc = re.compile('^(ia\d+\.us\.archive\.org):(/\d/items/(.*))$')
 
+class NoMARCXML:
+    pass
+
 def urlopen_keep_trying(url):
     for i in range(3):
         try:
@@ -49,26 +52,35 @@ def find_item(ia):
     return (ia_host, ia_path)
 
 def get_ia(ia):
+    ia = ia.strip() # 'cyclopdiaofedu00kidd '
     # read MARC record of scanned book from archive.org
     # try the XML first because it has better character encoding
     # if there is a problem with the XML switch to the binary MARC
     xml_file = ia + "_marc.xml"
     loc = ia + "/" + xml_file
-    for attempt in range(3):
-        if os.path.exists(xml_path + xml_file):
-            f = open(xml_path + xml_file)
-        else:
+    if os.path.exists(xml_path + xml_file):
+        f = open(xml_path + xml_file)
+    else:
+        try:
             f = urlopen_keep_trying(base + loc)
-        if f:
-            try:
-                return loc, read_xml.read_edition(f)
-            except read_xml.BadXML:
-                pass
-            except xml.parsers.expat.ExpatError:
-                print 'XML parse error:', base + loc
-                pass
-        sleep(2)
+        except urllib2.HTTPError, error:
+            if error.code == 404:
+                raise NoMARCXML
+            else:
+                raise
+    if f:
+        try:
+            return loc, read_xml.read_edition(f)
+        except read_xml.BadXML:
+            pass
+        except xml.parsers.expat.ExpatError:
+            print 'IA:', `ia`
+            print 'XML parse error:', base + loc
+            pass
+    if '<title>Internet Archive: Page Not Found</title>' in urllib2.urlopen(base + loc).read(200):
+        raise NoMARCXML
     url = base + ia + "/" + ia + "_meta.mrc"
+    print url
     try:
         f = urlopen_keep_trying(url)
     except urllib2.URLError:
@@ -140,7 +152,9 @@ def get_from_archive(locator):
     assert 0 < length < 100000
 
     ureq = urllib2.Request(url, None, {'Range':'bytes=%d-%d'% (r0, r1)},)
-    return urlopen_keep_trying(ureq).read(100000)
+    f = urlopen_keep_trying(ureq)
+    if f:
+        return f.read(100000)
 
 def get_from_local(locator):
     try:
