@@ -13,8 +13,9 @@ JS_SOURCES=			\
     jquery.flickrfeed.js    \
     jquery.flot.js  \
     jquery.sparklines.js    \
-    jquery.markitup.js  \
-    jquery.ccopy.js
+    jquery.ccopy.js		\
+    wmd-setup.js		\
+    wmd.js
     
 
 JS_OBJECTS=$(JS_SOURCES:%=js/%)

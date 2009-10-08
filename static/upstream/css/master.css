@@ -28,6 +28,15 @@ a:visited {color: #036;}
 .attn,.neg{color:#e44028!important;}
 .pos{color:#35672e!important;}
 .black{color:#000!important;}
+.highlight {background-color: #fffdcd;}
+.orange {color: #ffa337;}
+.brown {color: #615132;}
+.teal {color: #00636a;}
+.darkgreen {color: #35672e;}
+.lightgreen {color: #748d36;}
+.blue {color: #036daa;}
+.red {color: #e44028;}
+.yellow {color: #fffdcd;}
 a.plain {text-decoration:none!important;}
 .right{float:right;margin:0 0 8px 8px;}
 .left{float:left;margin:0 8px 8px 0;}
@@ -125,6 +134,22 @@ div.formElement label {
 div.formElement .input label {
     font-size: 1.0em;
 }
+div.formElement .tip {
+    font-size:0.6875em;
+    color:#666;
+    font-family:"Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif!important;
+}
+div.formElement .footnote {
+    border-top: 1px solid #ccc;
+    padding: 5px;
+}
+div.formElement blockquote {
+    font-family: "Palatino Linotype", "Book Antiqua", Palatino, Georgia, serif;
+    font-size: 0.875em;
+    margin: 1em 40px;
+    line-height: 1.5em;
+}
+
 
 /* EDITING */
 body#edit div#placement,body#edit div#position,body#edit div#header,body#edit div#content {width:100%;}
@@ -368,6 +393,42 @@ form.oledit select {
     font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
     padding: 3px;
 }
+
+/* EDIT/ADD BOOK */
+form.olform.books .input,
+form.olform.books .label {
+    width: auto!important;
+}
+.TitleAuthor {
+	margin: 30px auto 61px;
+	width: 875px;
+}
+.TitleAuthor input#work-title {
+    font-size: 1.875em; width: 500px; margin: 10px 0 0 0;
+}
+.TitleAuthor input#author {
+    font-size: 1.875em; width: 300px; margin: 10px 0 0 0;
+}
+#tabsAddbook {
+    margin-bottom: 30px;
+}
+fieldset {position:relative;padding:20px 0; margin:10px 0;}
+fieldset.minor {display:block;float:left;width:400px;margin-top:40px;}
+fieldset.major legend {
+    padding:5px 0;font-family:"News Gothic MT","Arial Rounded MT",Geneva,Helvetica,sans-serif;color:#00636a;font-weight:600;font-size:1.375em;
+}
+fieldset.minor legend {
+    font-family:"News Gothic MT","Arial Rounded MT",Geneva,Helvetica,sans-serif;color:#00636a;font-weight:600;font-size:1.125em;
+}
+.formBack {float:left;padding:10px;background-color:#f5f5f5;}
+div.formDivider {float:left;width:30px;min-height:200px;}
+.identifiers td {
+	color: #333333;
+	border-bottom: 1px solid #ddd;
+	background-color: #f3f3f3;
+	padding: 5px;
+}
+#cover {position:absolute;top:50px;right:20px;border:2px solid #615132;background:#fff;width:120px;height:180px;text-align:center;line-height:1.5em;}
 
 /* PAGE TOOLS (ICONS) */
 div#tools {float:right;margin:0 0 20px;position:relative;}
@@ -721,6 +782,20 @@ ul.urlList span.date {
     font-size: 0.6875em;
     color: #999;
 }
+.formElement ul.authorlinks {
+    margin-left: 20px;
+}
+.formElement ul.authorlinks li {
+    list-style-type: disc;
+    width: 475px; 
+    border: 1px solid #fff;
+    padding: 3px;
+}
+.formElement ul.authorlinks li:hover {
+    cursor: pointer;
+    color: #036daa;
+}
+
 
 /* HISTORY */
 
@@ -956,14 +1031,14 @@ div#editionsCovers a {text-decoration: none;}
     The following rules are the styles that are consistant between themes.
     Avoid changing this area to maintain compatability with future versions of ColorBox.
 */
-#colorbox, #cboxOverlay, #cboxWrapper{position:absolute; top:0; left:0; z-index:9999; overflow:hidden;}
+#colorbox, #cboxOverlay, #cboxWrapper{position:absolute; top:0; left:0; z-index:9999;}
 #cboxOverlay{position:fixed; width:100%; height:100%;}
 #cboxMiddleLeft, #cboxBottomLeft{clear:left;}
-#cboxContent{position:relative; overflow:hidden;}
-#cboxLoadedContent{overflow:auto;}
+#cboxContent{position:relative;}
+#cboxLoadedContent{overflow:visible;}
 #cboxLoadedContent iframe{display:block; width:100%; height:100%; border:0;}
 #cboxTitle{margin:0;}
-#cboxLoadingOverlay, #cboxLoadingGraphic{position:absolute; top:0; left:0; width:100%;}
+#cboxLoadingOverlay, #cboxLoadingGraphic{position:absolute; top:25px; left:25px; width:100%;}
 #cboxPrevious, #cboxNext, #cboxClose, #cboxSlideshow{cursor:pointer;}
 
 /* 
@@ -971,26 +1046,22 @@ div#editionsCovers a {text-decoration: none;}
     The following rules are ordered and tabbed in a way that represents the
     order/nesting of the generated HTML, so that the structure easier to understand.
 */
-#cboxOverlay{background:#fff;}
+#cboxOverlay{background:#000;}
 
 #colorBox{}
-    #cboxTopLeft{width:25px; height:25px; background:url(images/border1.png) 0 0 no-repeat;}
-    #cboxTopCenter{height:25px; background:url(images/border1.png) 0 -50px repeat-x;}
-    #cboxTopRight{width:25px; height:25px; background:url(images/border1.png) -25px 0 no-repeat;}
-    #cboxBottomLeft{width:25px; height:25px; background:url(images/border1.png) 0 -25px no-repeat;}
-    #cboxBottomCenter{height:25px; background:url(images/border1.png) 0 -75px repeat-x;}
-    #cboxBottomRight{width:25px; height:25px; background:url(images/border1.png) -25px -25px no-repeat;}
-    #cboxMiddleLeft{width:25px; background:url(images/border2.png) 0 0 repeat-y;}
-    #cboxMiddleRight{width:25px; background:url(images/border2.png) -25px 0 repeat-y;}
+    #cboxTopLeft{width:25px; height:25px; background:url(/images/border1.png) 0 0 no-repeat;}
+    #cboxTopCenter{height:25px; background:url(/images/border1.png) 0 -50px repeat-x;}
+    #cboxTopRight{width:25px; height:25px; background:url(/images/border1.png) -25px 0 no-repeat;}
+    #cboxBottomLeft{width:25px; height:25px; background:url(/images/border1.png) 0 -25px no-repeat;}
+    #cboxBottomCenter{height:25px; background:url(/images/border1.png) 0 -75px repeat-x;}
+    #cboxBottomRight{width:25px; height:25px; background:url(/images/border1.png) -25px -25px no-repeat;}
+    #cboxMiddleLeft{width:25px; background:url(/images/border2.png) 0 0 repeat-y;}
+    #cboxMiddleRight{width:25px; background:url(/images/border2.png) -25px 0 repeat-y;}
     #cboxContent{background:#fff;}
-        #cboxLoadedContent{margin-bottom:20px;}
-        #cboxTitle{position:absolute; bottom:0px; left:0; text-align:center; width:100%; color:#999;}
-        #cboxCurrent{position:absolute; bottom:0px; left:100px; color:#999;}
-        #cboxSlideshow{position:absolute; bottom:0px; right:42px; color:#444;}
-        #cboxPrevious{position:absolute; bottom:0px; left:0; color:#444;}
-        #cboxNext{position:absolute; bottom:0px; left:63px; color:#444;}
-        #cboxLoadingOverlay{background:url(images/loading.gif) 5px 5px no-repeat #fff;}
-        #cboxClose{position:absolute; bottom:0; right:0; display:block; color:#444;}
+        #cboxLoadedContent{background:#fff;margin:0;}
+        #cboxLoadingOverlay{background:#fff;}
+        #cboxClose{position:absolute;top:20px;right:20px;display:block;width:32px;height:32px;background-image:url(/images/icons/icon_close-pop.png);background-position:0 0;background-repeat:no-repeat;}
+        #cboxClose:hover{background-position:0 -32px;}
 
 /*
     The following fixes png-transparency for IE6.  
@@ -1002,14 +1073,57 @@ div#editionsCovers a {text-decoration: none;}
     !! Important Note: AlphaImageLoader src paths are relative to the HTML document,
     while regular CSS background images are relative to the CSS document.
 */
-.cboxIE #cboxTopLeft{background:transparent; filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src=images/internet_explorer/borderTopLeft.png, sizingMethod='scale');}
-.cboxIE #cboxTopCenter{background:transparent; filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src=images/internet_explorer/borderTopCenter.png, sizingMethod='scale');}
-.cboxIE #cboxTopRight{background:transparent; filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src=images/internet_explorer/borderTopRight.png, sizingMethod='scale');}
-.cboxIE #cboxBottomLeft{background:transparent; filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src=images/internet_explorer/borderBottomLeft.png, sizingMethod='scale');}
-.cboxIE #cboxBottomCenter{background:transparent; filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src=images/internet_explorer/borderBottomCenter.png, sizingMethod='scale');}
-.cboxIE #cboxBottomRight{background:transparent; filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src=images/internet_explorer/borderBottomRight.png, sizingMethod='scale');}
-.cboxIE #cboxMiddleLeft{background:transparent; filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src=images/internet_explorer/borderMiddleLeft.png, sizingMethod='scale');}
-.cboxIE #cboxMiddleRight{background:transparent; filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src=images/internet_explorer/borderMiddleRight.png, sizingMethod='scale');}
+.cboxIE #cboxTopLeft{background:transparent; filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src=/images/internet_explorer/borderTopLeft.png, sizingMethod='scale');}
+.cboxIE #cboxTopCenter{background:transparent; filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src=/images/internet_explorer/borderTopCenter.png, sizingMethod='scale');}
+.cboxIE #cboxTopRight{background:transparent; filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src=/images/internet_explorer/borderTopRight.png, sizingMethod='scale');}
+.cboxIE #cboxBottomLeft{background:transparent; filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src=/images/internet_explorer/borderBottomLeft.png, sizingMethod='scale');}
+.cboxIE #cboxBottomCenter{background:transparent; filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src=/images/internet_explorer/borderBottomCenter.png, sizingMethod='scale');}
+.cboxIE #cboxBottomRight{background:transparent; filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src=/images/internet_explorer/borderBottomRight.png, sizingMethod='scale');}
+.cboxIE #cboxMiddleLeft{background:transparent; filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src=/images/internet_explorer/borderMiddleLeft.png, sizingMethod='scale');}
+.cboxIE #cboxMiddleRight{background:transparent; filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src=/images/internet_explorer/borderMiddleRight.png, sizingMethod='scale');}
+
+
+div.floater {
+    position: relative;
+    font-family: "News Gothic MT","Arial Rounded MT",Geneva,Helvetica,sans-serif;
+    width: 640px;
+    height: 480px;
+    background: #fff;
+    text-align: left;
+}
+div.floaterAlert {
+    position: absolute;
+    width: 580px;
+    height: 0;
+    top: -12px;
+    left: 30px;
+    background: #e44028 url(/images/icons/icon_alert-pop.png) no-repeat 12px 12px;
+    -webkit-border-top-right-radius: 15px;
+    -webkit-border-top-left-radius: 15px;
+    -moz-border-radius-topright: 15px;
+    -moz-border-radius-topleft: 15px;
+    border-top-right-radius: 15px;
+    border-top-left-radius: 15px;
+	-moz-box-shadow: 0 -1px 5px #333;
+ 	-webkit-box-shadow: 0 -1px 5px #333;
+ 	box-shadow: 0 -1px 5px #333;
+    font-size: 0.875em;
+    color: #fff;
+    text-align: center;
+}
+div.floater a#coverShut {position:absolute;top:10px;right:10px;display:block;width:32px;height:32px;background-image:url(/images/icons/icon_close-pop.png);background-position:0 0;background-repeat:no-repeat;}
+div.floater a#coverShut:hover {background-position:0 -32px;}
+div.floater h2 {position:absolute;top:50px;left:50px;}
+div#addCover div#coverIntro {position:absolute;top:83px;left:50px;font-size:0.875em;}
+div#addCover label#coverBrowse {position:absolute;top:118px;left:50px;font-weight:700;}
+div#addCover input#coverFile {position:absolute;top:157px;left:78px;font-size:1.125em;}
+div#addCover label#coverWeb {position:absolute;top:210px;left:50px;font-weight: 700;}
+div#addCover input#coverUrl {position:absolute;top:256px;left:78px;font-size:1.0em;width:350px;padding:2px;}
+div#addCover button#coverUpload {position:absolute;top:322px;left:78px;font-size:1.125em;}
+div#addCover a#coverClose {position:absolute;top:327px;left:180px;font-size:1.0em;color:#e44028;}
+div#addCover div#coverLegal {position:absolute;bottom:20px;left:20px;font-size:0.6875em;text-transform:uppercase;color:#615132;line-height:normal;font-weight:700;width:600px;}
+
+
 
 /* ADMIN */
 body#admin div#contentHead {
@@ -1166,7 +1280,10 @@ div.moduleSide h4 {
     text-transform: uppercase;
     margin-bottom: 5px;
 }
-div.moduleSide a.link {
+div.moduleSide p {
+    margin: 0!important;
+}
+div.moduleSide a {
     display: block;
     font-family: "News Gothic MT","Trebuchet MS",Helvetica,sans-serif;
     font-size: 0.875em;
@@ -1209,3 +1326,144 @@ div#publicTwitter div.tweet_avatar{width:35px;}
 div#publicTwitter div.tweet_copy{width:170px;}
 div#publicTwitter div.tweet_cell {float:left;font-size:0.75em;}
 div#publicTwitter a.tweetFeed {font-size:0.75em;}
+
+.wmd-panel
+{
+	margin-left: 25%;
+	margin-right: 25%;
+	width: 50%;
+	min-width: 500px;
+}
+
+#wmd-editor
+{
+	background-color: Aquamarine;
+}
+
+#wmd-button-bar 
+{
+	width: 100%;
+	background-color: Silver; 
+}
+
+#wmd-input 
+{ 
+	height: 500px;
+	width: 100%;
+	background-color: Gainsboro;
+	border: 1px solid DarkGray;
+}
+
+#wmd-preview 
+{ 
+	background-color: LightSkyBlue; 
+}
+
+#wmd-output 
+{ 
+	background-color: Pink;
+}
+
+#wmd-button-row 
+{
+	position: relative; 
+	margin-left: 5px;
+	margin-right: 5px;
+	margin-bottom: 5px;
+	margin-top: 10px;
+	padding: 0px;  
+	height: 20px;
+}
+
+.wmd-spacer
+{
+	width: 1px; 
+	height: 20px; 
+	margin-left: 14px;
+	
+	position: absolute;
+	background-color: Silver;
+	display: inline-block; 
+	list-style: none;
+}
+
+.wmd-button
+{
+	width: 20px; 
+	height: 20px; 
+	margin-left: 5px;
+	margin-right: 5px;
+	
+	position: absolute;
+	background-image: url(images/wmd-buttons.png);
+	background-repeat: no-repeat;
+	background-position: 0px 0px;
+	display: inline-block; 
+	list-style: none;
+}
+
+.wmd-button > a
+{
+	width: 20px; 
+	height: 20px; 
+	margin-left: 5px;
+	margin-right: 5px;
+	
+	position: absolute;
+	display: inline-block; 
+}
+
+
+/* sprite button slicing style information */
+#wmd-button-bar #wmd-bold-button    {left: 0px;   background-position: 0px 0;}
+#wmd-button-bar #wmd-italic-button  {left: 25px;  background-position: -20px 0;}
+#wmd-button-bar #wmd-spacer1        {left: 50px;}
+#wmd-button-bar #wmd-link-button    {left: 75px;  background-position: -40px 0;}
+#wmd-button-bar #wmd-quote-button   {left: 100px;  background-position: -60px 0;}
+#wmd-button-bar #wmd-code-button    {left: 125px;  background-position: -80px 0;}
+#wmd-button-bar #wmd-image-button   {left: 150px;  background-position: -100px 0;}
+#wmd-button-bar #wmd-spacer2        {left: 175px;}
+#wmd-button-bar #wmd-olist-button   {left: 200px;  background-position: -120px 0;}
+#wmd-button-bar #wmd-ulist-button   {left: 225px; background-position: -140px 0;}
+#wmd-button-bar #wmd-heading-button {left: 250px; background-position: -160px 0;}
+#wmd-button-bar #wmd-hr-button      {left: 275px; background-position: -180px 0;}
+#wmd-button-bar #wmd-spacer3        {left: 300px;}
+#wmd-button-bar #wmd-undo-button    {left: 325px; background-position: -200px 0;}
+#wmd-button-bar #wmd-redo-button    {left: 350px; background-position: -220px 0;}
+#wmd-button-bar #wmd-help-button    {right: 0px; background-position: -240px 0;}
+
+
+.wmd-prompt-background
+{
+	background-color: Black;
+}
+
+.wmd-prompt-dialog
+{
+	border: 1px solid #999999;
+	background-color: #F5F5F5;
+}
+
+.wmd-prompt-dialog > div {
+	font-size: 0.8em;
+	font-family: arial, helvetica, sans-serif;
+}
+
+
+.wmd-prompt-dialog > form > input[type="text"] {
+	border: 1px solid #999999;
+	color: black;
+}
+
+.wmd-prompt-dialog > form > input[type="button"]{
+	border: 1px solid #888888;
+	font-family: trebuchet MS, helvetica, sans-serif;
+	font-size: 0.8em;
+	font-weight: bold;
+}
+
+#wmd-input { background: white; }
+#wmd-button-bar { background: white; }
+.wmd-button {
+	background-image: url(/images/wmd-buttons.png);
+}

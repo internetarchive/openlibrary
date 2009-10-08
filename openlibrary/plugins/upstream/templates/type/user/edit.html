@@ -1,51 +1,50 @@
 $def with (page)
 
-$ _t = i18n.get_namespace('/type/user')
-$ _ = i18n.get_namespace('/mode/edit')
- 
 $var title: Editing $page.displayname
 
+<script type="text/javascript">
+\$().ready(setup_wmd);
+</script>
+
+ 
 <script type="text/javascript">
 \$().ready(cloneURLs);
 </script>
 
 
-    $:macros.RowButtons(page.type)
+$:macros.RowButtons(page.type)
 
 <div id="contentHead">
     <div class="head">
-        <span class="tools">$_.pretitle:</span>
+        <span class="tools">$_("Currently Editing:")</span>
         <h1>$page.displayname</h1>
     </div>
 </div>
 
 <div id="contentBody">
-
-<div id="slickbox" style="overflow: hidden">
-    $:macros.TypeChanger(page.type)
-</div>
-
-<form method="POST" class="olform">
-
-    <input type="hidden" name="type.key" id="type.key" value="/type/user"/>
-
-    <!-- WIKI EDIT SECTION -->
-    $:macros.UserEditRow(page, 'displayname', True)
-    $:macros.UserEditRow(page, 'website', False)
-
-<script type="text/javascript">
-\$().ready(textareaExpand);
-</script>
-    <div class="formElement">
-        <div class="label"><label for="description">$_t.description</label></div>
-        <div class="input">
-            <textarea name="description" id="description" class="resize" rows="6" cols="40">$page.description</textarea>
-        </div>
+    <div id="slickbox" style="overflow: hidden">
+        $:macros.TypeChanger(page.type)
     </div>
+
+    <form method="POST" class="olform">
+        <input type="hidden" name="type.key" id="type.key" value="/type/user"/>
+
+        <!-- WIKI EDIT SECTION -->
+        $:macros.UserEditRow(page, 'displayname', True)
+        $:macros.UserEditRow(page, 'website', False)
+
+        <script type="text/javascript">
+        \$().ready(textareaExpand);
+        </script>
+        
+        <div class="formElement">
+            <div class="label"><label for="description">$_("Description")</label></div>
+            <div class="input">
+                <textarea name="description" id="wmd-input" class="resize" rows="6" cols="40">$page.description</textarea>
+            </div>
+        </div>
+        
         <!-- edit summary and buttons -->
-
-             $:macros.EditButtons(comment=page.comment_)
-
-</form>
-
+        $:macros.EditButtons(comment=page.comment_)
+    </form>
 </div>

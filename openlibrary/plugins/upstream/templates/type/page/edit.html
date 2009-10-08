@@ -17,9 +17,14 @@ $var title: $_("Edit %(title)s", title=page.title or page.key)
         <strong>$_("Title")</strong>
         <input type="text" name="title" value="$page.title" style="width:100%" />
         <br/><br/>
-        <textarea name="body" rows="15" cols="80">$page.body</textarea>
+
+        <textarea id="wmd-input" name="body" rows="15" cols="80">$page.body</textarea>
         
         $:macros.EditButtons(comment=page.comment_)
         $:macros.HelpFormatting()
     </form>
 </div>
+
+<script>
+\$().ready(setup_wmd);
+</script>

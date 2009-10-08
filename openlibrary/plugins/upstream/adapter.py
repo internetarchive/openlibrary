@@ -56,6 +56,7 @@ class proxy:
         
         self.before_request()
         try:
+            print 'request', self.path, self.input
             server = web.config.infobase_server
             req = urllib2.Request(server + self.path + '?' + urllib.urlencode(self.input), self.data, headers=headers)
             response = urllib2.urlopen(req)
@@ -177,10 +178,13 @@ class things(proxy):
         
 class versions(proxy):
     def before_request(self):
-        i = self.input
-        if 'key' in i:
-            i.key = convert_key(i.key)
-            
+        if 'query' in self.input:
+            q = self.input.query
+            q = simplejson.loads(q)
+            if 'key' in q:
+                q['key'] = convert_key(q['key'])
+                self.input.query = simplejson.dumps(q)
+
     def after_request(self):
         if self.output:
             d = simplejson.loads(self.output)
