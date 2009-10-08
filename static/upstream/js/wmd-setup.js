@@ -1,10 +1,12 @@
 
+wmd_options = {"autostart": false};
+
 // WMD setup for OpenLibrary. This script should be loaded before loading wmd.js
 
 function setup_wmd() {
     Attacklab.panels = new Attacklab.PanelCollection();
     
-    //$("#wmd-input").prepend("<div id='wmd-button-bar'></div>");
+    $("<div id='wmd-button-bar'></div>").insertBefore("#wmd-input");
 
     var previewMgr = new Attacklab.previewManager();
     var edit = new Attacklab.editor(previewMgr.refresh);
