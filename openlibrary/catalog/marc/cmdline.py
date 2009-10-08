@@ -23,5 +23,8 @@ def show_book(data):
 
 if __name__ == '__main__':
     source = sys.argv[1]
-    data = get_from_archive(source)
+    if ':' in source:
+        data = get_from_archive(source)
+    else:
+        data = open(source).read()
     show_book(data)

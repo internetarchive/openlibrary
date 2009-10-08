@@ -9,6 +9,12 @@ import urllib
 import socket
 import datetime
 
+try:
+    import genshi
+    import genshi.filters
+except ImportError:
+    genshi = None
+
 import infogami
 
 # make sure infogami.config.features is set
@@ -692,3 +698,13 @@ def internalerror():
         raise web.internalerror(web.safestr(msg))
     
 delegate.app.internalerror = internalerror
+
+@public
+def sanitize(html):
+    """Remove unsafe tags and attributes from html and add rel="nofollow" attribute to all links."""
+    # Can't sanitize unless genshi module is available
+    if genshi is None:
+        return html
+    
+    stream = genshi.HTML(html) | genshi.filters.HTMLSanitizer() | genshi.filters.Transformer("a").attr("rel", "nofollow") 
+    return stream.render()

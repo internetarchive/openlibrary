@@ -106,6 +106,16 @@ def withKey(key):
         print 'retry'
         sleep(10)
 
+def get_marc_src(e):
+    mc = get_mc(e['key'])
+    if mc:
+        yield mc
+    if not e.get('source_records', []):
+        return
+    for src in e['source_records']:
+        if src.startswith('marc:') and src != 'marc:' + mc:
+            yield src[5:]
+
 def get_mc(key): # get machine comment
     v = jsonload(base_url() + key + '.json?m=history')
 

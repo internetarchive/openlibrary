@@ -7,7 +7,8 @@ from openlibrary.utils.form import Form, Textbox, Password, Hidden, Validator, R
 
 Login = Form(
     Textbox('username', description=_('Username'), klass='required'),
-    Password('password', description=_('Password'), klass='required')
+    Password('password', description=_('Password'), klass='required'),
+    Hidden('redirect')
 )
 forms.login = Login
 
@@ -25,6 +26,8 @@ Register = Form(
         validators=[vlogin, username_validator]),
     Password('password', description=_('Choose a Password'), klass='required', validators=[vpass])
 )
+
+forms.register = Register
 
 def verify_password(password):
     user = web.ctx.site.get_user()

@@ -11,47 +11,16 @@ $var title: $_("Create an Account")
 </div>
             
 <div id="contentBody">
+
 <script type="text/javascript">
-\$().ready(setup_account_create);
 \$().ready(passwordMask);
+\$().ready(validateForms);
+\$().ready(setup_account_create);
 </script>
+
     <form id="signup" class="olform create" name="signup" method="post">
 
         $:form.render()
-        
-        <div id="showpass" class="smaller"></div>
-
-            <div class="formElement" id="recaptcha_widget" style="display:none;">
-
-                <div class="label">
-                    <label for="recaptcha_response_field"> 
-                    <span class="recaptcha_only_if_image"><strong>What are these two words?</strong></span>
-                    <span class="recaptcha_only_if_audio"><strong>What numbers do you hear?</strong></span>
-                    </label>
-                    <span class="smaller">&nbsp;&nbsp;
-                            <span class="recaptcha_only_if_image"><a href="javascript:Recaptcha.switch_type('audio')">Get an audio file</a>?</span>
-                            <span class="recaptcha_only_if_audio"><a href="javascript:Recaptcha.switch_type('image')">Get a text image</a>?</span>
-                            |
-                            <a href="javascript:Recaptcha.reload()">Reload</a>
-                            |
-                            <a href="javascript:Recaptcha.showhelp()">Help</a>
-                        </span>
-                </div>
-
-                <div class="input">
-                        <div id="recaptcha_image"></div>
-                        <div class="recaptcha_only_if_incorrect_sol attn">Incorrect, please try again.</div>
-                        <input type="text" id="recaptcha_response_field" name="recaptcha_response_field" class="required"/>
-                    <script type="text/javascript" src="http://api.recaptcha.net/challenge?k=6Lcj4AQAAAAAAJZ333NGjQaMXi_JByqatT9fyEhF"></script>
-                        <noscript>
-                       <iframe src="http://api.recaptcha.net/noscript?k=6Lcj4AQAAAAAAJZ333NGjQaMXi_JByqatT9fyEhF"
-       height="300" width="500" frameborder="0"></iframe><br>
-                       <textarea name="recaptcha_challenge_field" rows="3" cols="40"></textarea>
-                       <input type="hidden" name="recaptcha_response_field" value="manual_challenge"/>
-                        </noscript>
-                </div>
-
-            </div>
 
         <div class="formElement bottom">
             <div class="input">

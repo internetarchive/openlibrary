@@ -54,7 +54,7 @@ $def with (page)
             <input type="submit" value="$_('Search')"/>
 
             <div class="right"><a href="javascript:;" id="searchHead" text2="$_('Hide options')">$_("More search options")</a></div>
-            <div class="searchFilter"><input type="checkbox" value="mhsncqbxgkup" id="ftokenstop" name="ftokens" checked="checked"/> <label for="ftokenstop">$_("Scanned books only?")</label></div>
+            <div class="searchFilter"><input type="checkbox" value="mhsncqbxgkup" id="ftokenstop" name="ftokens" checked="checked"/> <label for="ftokenstop">$_("Search inside books")</label></div>
 
             <div id="topOptions" class="searchOptions hidden">
                 <div class="formElement">
@@ -114,23 +114,6 @@ $def with (page)
                 </div>
             </form>
 
-            <form method="get" action="/fullsearch" class="siteSearchText">
-            <input type="hidden" name="safe" value="false"/>
-                <div class="formElement special">
-                <label for="textSearch1"><a href="javascript:;" class="fullText" text2="$_('Search book info only')">$_("Search text within works instead")</a></label>
-                </div>
-                <div class="searchText hidden">
-
-                    <div class="formElement">
-                    <textarea cols="55" rows="5" id="textSearch1" name="q"></textarea>
-                    </div>
-                    <div class="formElement">
-                    <input type="submit" value="Search Text Only" name="_save" title="$_('Search within text of available works')"/>
-                    </div>
-                </div>
-            </form>
-
-    
             </div>
             
         </div>
@@ -169,9 +152,9 @@ $def with (page)
                     </div>
                     $:_("Welcome %(user)s", user='<a href="%s">%s</a>' % (ctx.user.key, ctx.user.displayname))
                     | <a href="$homepath()/account">$_("Preferences")</a>
-                    | <a href="#" onclick="document.forms['logout'].submit()">$_("Logout")</a>
+                    | <a href="#" onclick="document.forms['logout'].submit()">$_("Log out")</a>
                 $else:
-                    <a href="/account/login" class="white">$_("Login")</a>
+                    <a href="/account/login" class="white">$_("Log in")</a>
                     /
                     <a href="/account/create">$_("Sign Up")</a>
                 </div>
@@ -236,25 +219,6 @@ $def with (page)
 <!-- BOTTOM SEARCH -->
             <div id="footerSearch">
 
-                <div id="bottomText" class="hidden">
-                <form method="get" action="/fullsearch" class="siteSearchText">
-                    <input type="hidden" name="safe" value="false"/>
-                    <div class="formElement">
-                        <label for="textSearch1"><a href="javascript:;" class="fullText" text2="Search book info only">Search text within works instead</a></label>
-                    </div>
-
-                    <div class="searchText hidden">
-                        <div class="formElement">
-                            <textarea cols="55" rows="5" id="textSearch1" name="q"></textarea>
-                        </div>
-                        <div class="formElement">
-                            <input type="submit" value="Search Text Only" name="_save" title="Search within text of available works"/>
-                        </div>
-                    </div>
-
-                </form>
-                </div>
-
             <form method="get" action="/search" class="siteSearch">
 
                 <div id="bottomOptions" class="searchOptions hidden">
@@ -317,8 +281,8 @@ $def with (page)
             
                 <input type="text" name="q" class="query" value="" title="type_search."/>
                 <input type="submit" value="Search"/>
-                    <div class="right"><a href="javascript:;" id="searchFoot">More search options</a></div>
-                <div class="searchFilter"><input type="checkbox" value="mhsncqbxgkup" id="ftokensbtm" name="ftokens" checked="checked"/> <label for="ftokensbtm">Scanned books only?</label></div>
+                    <div class="right"><a href="javascript:;" id="searchFoot">$_("More search options")</a></div>
+                <div class="searchFilter"><input type="checkbox" value="mhsncqbxgkup" id="ftokensbtm" name="ftokens" checked="checked"/> <label for="ftokensbtm">$_("Search inside books")</label></div>
             </form>
 
             </div>

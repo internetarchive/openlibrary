@@ -250,6 +250,7 @@ function validateLogin() {
   		required: ""
   	}
   });
+  $('#password').showPassword("#showpass");
 };
 function validatePassword() {
 	$("form.password").validate({
@@ -274,18 +275,20 @@ function validatePassword() {
                     .addClass(errorClass);
     }
   });
-  $("#passwordold").rules("add",{
-  	required: true,
-  	messages: {
-  		required: ""
-  	}
-  });
   $("#password").rules("add",{
   	required: true,
   	messages: {
   		required: ""
   	}
   });
+  $("#new_password").rules("add",{
+  	required: true,
+  	messages: {
+  		required: ""
+  	}
+  });
+  $('#masker').append('<input type="checkbox" name="showpass" id="showpass"/> <label for="showpass">Unmask passwords?</label>');
+  $('.pwmask').showPasswords('#showpass');
 };
 function validateReminder() {
 	$("form.reminder").validate({
@@ -431,6 +434,26 @@ function cloneAuthors() {
 function cloneURLs() {
   $('#websiteAdd').ccopy('website');
 };
+function copyEditionFields() {
+    $('#authorsAdd').ccopy('authors');
+    $('#contributionsAdd').ccopy('contributions');
+    $('#publishersAdd').ccopy('publishers');
+    $('#publish_placesAdd').ccopy('publish_places');
+    $('#seriesAdd').ccopy('series');
+    $('#languagesAdd').ccopy('languages');
+    $('#work_titlesAdd').ccopy('work_titles');
+    $('#collectionsAdd').ccopy('collections');
+    $('#urisAdd').ccopy('uris');
+    $('#worksAdd').ccopy('works');
+    $('#dewey_decimal_classAdd').ccopy('dewey_decimal_class');
+    $('#lc_classificationsAdd').ccopy('lc_classifications');
+    $('#isbn_10Add').ccopy('isbn_10');
+    $('#isbn_13Add').ccopy('isbn_13');
+    $('#lccnAdd').ccopy('lccn');
+    $('#oclc_numbersAdd').ccopy('oclc_numbers');
+    $('#subjectsAdd').ccopy('subjects');
+    $('#genresAdd').ccopy('genres');
+};
 
 function flickrBuild(){$(".flickrs").flickr({callback:colorboxCallback});};
 function colorboxCallback(){$('a.flickrpic').colorbox({photo:true,preloading:true,opacity:'0.70'});};
@@ -477,5 +500,54 @@ function textareaExpand() {
     },
     animateDuration : 300,
     extraSpace : 40
+  });
+};
+
+// HISTORY REVEAL
+function tableShow() {
+    $('a.showmore').click(function(){
+        $(this).parent().parent().parent().find('tr.reveal').hide();
+        $(this).parent().parent().parent().find('tr.hidden').customFadeIn();
+    });
+};
+// BOOK COVERS
+function bookCovers(){
+$.fn.fixBroken=function(){return this.each(function(){$(this).error(function(){$(this).parent().parent().hide();$(this).parent().parent().next(".SRPCoverBlank").show();});});};
+// SET-UP COVERS CAROUSEL
+  $('#coversCarousel').jcarousel({
+    visible: 1,
+    scroll: 1
+  });
+// SET-UP COVERS LIST
+  $('#listCarousel').jcarousel({
+    vertical: true,
+    visible: 6,
+    scroll: 6
+  });
+// SWITCH COVERS ON ERROR
+    $('img.cover').fixBroken();  
+// SWITCH RESULTS VIEW
+  $("#resultsList").hide()
+  $("a#booksList").click(function(){
+    $('span.tools a').toggleClass('on');
+    $('#resultsList').customFadeIn();
+    $('#resultsCovers').hide();
+  });
+  $("a#booksCovers").click(function(){
+    $('span.tools a').toggleClass('on');
+    $('#resultsList').hide();
+    $('#resultsCovers').customFadeIn();
+  });
+// SWITCH EDITIONS VIEW
+  $("#editionsList").hide()
+  $("a#edsList").click(function(){
+    $('span.tools a').toggleClass('on');
+    $('#editionsList').customFadeIn();
+    $('#editionsCovers').hide();
+  });
+  $("a#edsCovers").click(function(){
+    $('span.tools a').toggleClass('on');
+    $('#editionsList').hide();
+    $('#editionsCovers').customFadeIn();
   });
 };
