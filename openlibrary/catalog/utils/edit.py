@@ -1,5 +1,5 @@
 import re, web, sys
-from catalog.importer.db_read import get_mc
+from openlibrary.catalog.importer.db_read import get_mc
 sys.path.append('/home/edward/src/olapi')
 from olapi import unmarshal
 
