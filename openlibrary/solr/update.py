@@ -10,13 +10,13 @@ from __future__ import with_statement
 # general consumption.
 
 import infogami
-from infogami.infobase.logreader import LogReader,RsyncLogFile, LogFile
-from datetime import datetime,date,timedelta
+from infogami.infobase.logreader import LogReader, RsyncLogFile, LogFile
+from datetime import datetime, date, timedelta
 import simplejson as json 
-from time import time,ctime,sleep
-from itertools import count, imap,islice
+from time import time, ctime, sleep
+from itertools import count, islice
 import threading
-import os,sys,cgi
+import os, sys, cgi
 import socket
 import mutate
 from Queue import Queue, Empty
@@ -49,7 +49,7 @@ del solr                                # get it from command line!
 global gg
 
 # interested in last of three fields joined by tabs
-re_dump_fmt =re.compile(r'^\S+\t\S+\t(.*)$')):
+re_dump_fmt =re.compile(r'^\S+\t\S+\t(.*)$')
                         
 def logstream_dump(dumpfile, start=0,stop=None):
     t0 = time()
@@ -71,8 +71,8 @@ def logstream_dump(dumpfile, start=0,stop=None):
     print ('nseen', nseen, time()-t0)
 
     for line in xs:
-        m = re_dump_fmt.match(rec)
-        yield json.loads(m.group(1) if m else rec)
+        m = re_dump_fmt.match(line)
+        yield json.loads(m.group(1) if m else line)
         
 def logstream_incr(rsync_source, **delta):
     if not delta: delta = dict(hours=12) # default
