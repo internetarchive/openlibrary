@@ -21,6 +21,9 @@ from openlibrary.i18n import gettext as _
 
 import forms
 
+def render_template(name, *a, **kw):
+    return render[name](*a, **kw)
+
 class static(delegate.page):
     path = "/(?:images|css|js)/.*"
     def GET(self):
@@ -76,8 +79,16 @@ del delegate.modes['change_cover']     # delete change_cover mode added by openl
 
 # fix addbook urls
 
-class addbook(ol_code.addbook):
+class addbook(delegate.page):
     path = "/books/add"
+    
+    def GET(self):
+        return render_template('books/add1')
+        
+    def POST(self):
+        i = web.input(title='')
+        page = web.ctx.site.new('/books/new', {'key': '/books/new', 'type': '/type/edition', 'title': ''})
+        return render_template('books/add2', page)
     
 class addauthor(ol_code.addauthor):
     path = "/authors/add"    

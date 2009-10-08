@@ -1,0 +1,790 @@
+$def with (page)
+
+$var title: $page.title
+
+<script type="text/javascript">
+\$().ready(Tabs);
+\$().ready(function(){\$("#tabsAddbook").tabs({fx:{opacity:'toggle'}});});
+\$().ready(boxPop);
+\$().ready(function(){\$("#coverPop").colorbox({inline:true, href:"#addCover"});});
+\$().ready(function(){\$("#tocPop").colorbox({inline:true, href:"#addTOC"});});
+\$().ready(wysiwyg);
+
+function limitChars(textid, limit, infodiv) {
+    var text = \$('#'+textid).val(); 
+    var textlength = text.length;
+    if(textlength > limit) {
+        \$('#'+infodiv).html('Maximum length is '+limit+' characters');
+        \$('#'+textid).val(text.substr(0,limit));
+        return false;
+    } else {
+        \$('#'+infodiv).html('You have '+ (limit - textlength) +' characters left');
+        return true;
+    }
+};
+\$().ready(function(){\$('#excerpt').keyup(function(){limitChars('excerpt', 2000, 'charLimit');});});
+\$().ready(function(){
+    \$('a#libraryMode').click(function(){
+        \$('.librarian').toggle();
+        \$(this).parent().find('#modeToggle').toggleText("Turn on","Exit");
+    });
+});
+</script>
+<div id="contentHead">
+    <div class="head">
+        <h1>$_("Add a little more?")</h1>
+    </div>
+    <p class="instruct">$_("OK. That's the very beginning of a new record saved. The Open Library can hold a lot more detail about books though, so if you're interested, please help us fill in the gaps!")</p>
+</div>
+
+<div id="contentBody">
+    <div class="TitleAuthor sansserif">
+        <input name="work-title" type="text" id="work-title" value="The Death of Bunny Munro"/>
+        <strong>&nbsp;by&nbsp; </strong>
+        <input name="author" type="text" id="author" value="Nick Cave"/>
+    </div>
+    
+
+    <div id="tabsAddbook">
+        <ul>
+            <li><a href="#about">$_("What's It About?")</a></li>
+            <li><a href="#excerpts">$_("Add Excerpts")</a></li>
+            <li><a href="#web">$("Web Resources")</a></li>
+            <li><a href="#edition">$_("Your Edition, 1995")</a></li>
+        </ul>
+
+        <form method="post" id="addWork" class="olform books" name="edit" action="/addbook">
+
+            <!-- START ABOUT WORK -->
+    
+            <div id="about">
+        
+                <fieldset class="major">
+
+                    <div class="formElement">
+                        <div class="label">
+                            <label for="">$_("How would you describe this book?")</label> 
+                            <span class="tip">$_("There's no wrong answer here.")</span>
+                        </div>
+                        <div class="input">
+                            <textarea name="bookAbout" id="bookAbout" class="markdown" cols="55" rows="5"></textarea>
+                            <div class="wmd-preview"></div>
+                        </div>
+                    </div>
+                    <div class="formElement">
+                        <div class="label">
+                            <label for="">$_("Some tags perhaps?")</label> 
+                            <span class="tip"><span class="highlight">$_("Please separate with commas.")</span> $_("For example:") <i><a href="[SUBJECT LINK]">cheese</a>, <a href="[SUBJECT LINK]">Roman Empire</a>, <a href="[SUBJECT LINK]">psychology</a></i></span>
+                        </div>
+                        <div class="input">
+                            <input type="text" name="" id="" value=""/>
+                        </div>
+                    </div>
+    
+                    <div class="formElement">
+                        <div class="label">
+                            <label for="">$_("Does it mention any places?")</label> 
+                            <span class="tip">$_("For example:") <i><a href="[SUBJECT LINK]">London</a>, <a href="[SUBJECT   LINK]">Atlantis</a>, <a href="[SUBJECT LINK]">Omaha</a></i></span>
+                        </div>
+                        <div class="input">
+                            <input type="text" name="" id="" value=""/>
+                        </div>
+                    </div>
+    
+                    <div class="formElement">
+                        <div class="label">
+                            <label for="">$_("Is it about a certain person? Or, people?")</label> 
+                            <span class="tip">$_("For example:") <i><a href="[SUBJECT LINK]">Theodore Roosevelt</a>, <a href="[SUBJECT   LINK]">Julian of Norwich</a>, <a href="[SUBJECT LINK]">Tintin</a></i></span>
+                        </div>
+                        <div class="input">
+                            <input type="text" name="" id="" value=""/>
+                        </div>
+                    </div>
+    
+                    <div class="formElement">
+                        <div class="label">
+                            <label for="">$_("When is it set or about?")</label> 
+                            <span class="tip">$_("For example:") <i><a href="[SUBJECT LINK]">1984</a>, <a href="[SUBJECT LINK]">The Middle Ages</a>, <a href="[SUBJECT LINK]">1810-1890</a></i></span>
+                        </div>
+                        <div class="input">
+                            <input type="text" name="" id="" value=""/>
+                        </div>
+                    </div>
+    
+                    <div class="formElement bottom">
+                        <div class="input">
+                            <input type="submit" value="Save" name="submit" id="submit"/>
+                            &nbsp;
+                            <a href="javascript:history.go(-1);" class="larger attn">$_("Cancel")</a>
+                        </div>
+                    </div>
+    
+                    <div class="formElement">
+                        <div class="tip footnote">
+                            <strong>$_("Note:") </strong>$:_('Any tags, places, people or time periods you add here will be transformed into what we call "<a href="/subjects">Subjects</a>".')
+                        </div>
+                    </div>
+    
+                </fieldset>
+
+            </div>
+
+            <!-- /ABOUT -->
+
+            <!-- START EXCERPTS FOR WORK -->        
+
+            <div id="excerpts">
+        
+                <fieldset class="major">
+
+                    <div class="formElement">
+                        <div>$_("If there are particular (short) passages you feel represent the book well, please feel free to transcribe them here.")</div>
+                    </div>
+
+                    <div class="formElement">
+                        <div class="label">
+                            <label for="">$_("Page number?")</label>
+                            <span class="tip">$_("For example:") <i>23, xi or 433-434</i></span>
+                        </div>
+                        <div class="input">
+                            <input type="text" name="" id="" value="" class="xsmall"/>
+                        </div>
+                    </div>
+
+                    <div class="formElement">
+                        <div class="label">
+                            <label for="excerpt">$_("Transcribe the excerpt")</label>
+                            <span class="tip highlight" id="charLimit">$_("Maximum length is 2000 characters")</span>
+                        </div>
+                        <div class="input">
+                            <textarea name="excerpt" id="excerpt" rows="5" cols="50"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="formElement">
+                        <div class="label">
+                            <label for="">$_("Why did you choose this excerpt?")</label>
+                            <span class="tip">$_("Add a note about why you chose this. (Optional)")</span>
+                        </div>
+                        <div class="input">
+                            <textarea name="" id="" rows="3" cols="50"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="formElement bottom">
+                        <div class="input">
+                            <input type="submit" value="$_('Save')" name="submit" id="submit"/>
+                            &nbsp;
+                            <a href="javascript:history.go(-1);" class="larger attn">$_("Cancel")</a>
+                        </div>
+                    </div>
+
+                    <div class="formElement">
+                        <div class="label"><h3>$_("Excerpts so far...")</h3></div>
+                        <div class="input formBack">
+                            <div><strong>From Page 25:</strong></div>
+                            <blockquote>
+                            If you don't pay attention to your bandwidth you might not ever know you're uploading extremely large images, because Flickr automatically resizes them to a number of different standard sizes. For example, all photos in your photostream will be displayed at a maximum of 240 pixels wide (or high, depending on their orientation), allowing people to view many of your photos at once.
+                            </blockquote>
+                            <div><strong><a href="[USER URL]">george08</a> noted:</strong> "I needed a bit of copy for a mock- up."</div>
+                            <br/>
+                        </div>
+                    </div>
+
+                    <div class="formElement">
+                        <div class="tip footnote">
+                            <strong>Note: </strong>If you like the idea of excerpts, you might enjoy the &quot;<a href="http://www.google.com/search?q=blog+all+dog-eared+pages">Blog All Dog-Eared Pages</a>&quot; concept.
+                        </div>
+                    </div>
+    
+                </fieldset>
+
+            </div>
+
+            <!-- /EXCERPTS -->
+
+            <!-- START WEB LINKS FOR WORK -->
+        
+            <div id="web">
+        
+                <fieldset class="major">
+
+                    <div class="formElement">
+                        Please help connect our records to as many <u>good</u><span class="orange">*</span> online resources as you can find.
+                    </div>
+        
+                    <div class="formElement">
+                        <div class="label">
+                            <label for="">URL</label> 
+                            <span class="tip"></span>
+                        </div>
+                        <div class="input">
+                            <input type="text" name="" id="" value="http://"/>
+                        </div>
+                    </div>
+
+                    <div class="formElement">
+                        <div class="label">
+                            <label for="">Give your link a label</label> 
+                            <span class="tip">For example: <i>Podcast about the book on The Guardian</i></span>
+                        </div>
+                        <div class="input">
+                            <input type="text" name="" id="" value=""/>
+                            <input type="button" value="Add Link"></button>
+                        </div>
+                    </div>
+    
+                    <div class="formElement">
+                        <div class="input">
+                            <ul class="booklinks">
+                                <li><a href="[URL]">The Author's Homepage</a><br/><span class="link">http://rogerramjet.com</   span></li
+                                <li><a href="[URL]">Interesting Critique of the 3rd chapter</a><br/><span class="link">http://omgwtf.com/chapter3-is-rad</span></li>
+                            </ul>
+                        </div>
+                    </div>
+    
+                    <div class="formElement bottom">
+                        <div class="input">
+                            <input type="submit" value="Save" name="submit" id="submit"/>
+                            &nbsp;
+                            <a href="javascript:history.go(-1);" class="larger attn">Cancel</a>
+                        </div>
+                    </div>
+    
+                </fieldset>
+
+                <div class="formElement pingList">
+                    <p>We're also pinging the web to see who knows what...</p>
+                    <ul class="urlList">
+                        <li>
+                            <span class="url">* <a href="[URL]">Wikipedia</a></span>
+                            <span class="quote">One Flew Over the Cuckoo's Nest was a direct product of Kesey's time working the graveyard shift as an orderly at a mental...</span>
+                            <span class="date"></span>
+                        </li>
+                        <li>
+                            <span class="url">* <a href="[URL]">GoodReads</a></span>
+                            <span class="quote">31,435 member reviews; in 25 groups; on 35 lists</span>
+                            <span class="date"></span>
+                        </li>
+                        <li>
+                            <span class="url">* <a href="[URL]">The Guardian</a></span>
+                            <span class="quote">"The book that changed my life" -</span>
+                            <span class="date">Tuesday, May 26, 2009</span>
+                        </li>
+                        <li>
+                            <span class="url">* <a href="[URL]">Amazon</a></span>
+                            <span class="quote">\$10.20, available for Kindle</span>
+                            <span class="date"></span>
+                        </li>
+                        <li>
+                            <span class="url">* <a href="[URL]">Library of Congress</a></span>
+                            <span class="quote"></li>
+                            <span class="date"></span>
+                        <li>
+                            <span class="url">* <a href="[URL]">BBC</a></span>
+                            <span class="quote">One Flew Over the Cuckoo's Nest is playing a major national tour this year and Shane Richie is starring as Randle P. McMurphy...</span>
+                            <span class="date"></span>
+                        </li>
+                        <li>
+                            <span class="url">* <a href="[URL]">The New York Times</a></span>
+                            <span class="quote">"'One Flew Over the Cuckoo's Nest' is still fresh at 25" -</span> 
+                            <span class="date">Monday, August 17, 2009</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="formElement">
+                    <div class="tip footnote"><span class="orange">*</span> "Good" means no spammy links, please. Keep them relevant to the book. Irrelevant sites may be removed. Blatant spam will be deleted without remorse.</div>
+                </div>
+    
+            </div>
+        
+        </form>
+    
+        <!-- /WEB LINKS -->
+
+        <!-- START EDITION -->    
+
+        <form method="post" id="addEdition" class="olform books" name="edit" action="/addbook">
+        
+            <div id="edition">
+        
+                <fieldset class="major">
+                    <div class="small" style="color:#615132;position:absolute;top:15px;right:20px;">
+	                  <span id="modeToggle">Turn on</span> <a title="Expose another 20 fields about the edition" href="javascript:;" id="libraryMode">Librarian Mode</a>?
+	                </div>
+                    <legend>Publishing Info</legend>
+
+                    <div class="formBack">
+    
+                        <div class="formElement">
+                            <div class="label">
+                                <label for="">Who is the publisher?</label> 
+                                <span class="tip">For example: <em>Oxford University Press; Penguin; W.W. Norton</em></span>
+                            </div>
+                            <div class="input">
+                                <input type="text" name="" id="" value=""/>
+                            </div>
+                        </div>
+    
+                        <div class="formElement">
+                            <div class="label">
+                                <label for="">When was it published?</label> 
+                                <span class="tip">You should be able to find this in the first few pages of the book.</span>
+                            </div>
+                            <div class="input">
+                                <input type="text" name="" id="" value="" size="6" maxlength="5" style="width:70px!important;"/>
+                            </div>
+                        </div>
+    
+                        <div class="formElement">
+                            <div class="label">
+                                <label for="">Where was the book published?</label>
+                                <span class="tip">City, Country please. For example: <i>New York, USA; Sydney, Australia</i></span>
+                            </div>
+                            <div class="input">
+                                <input type="text" name="" id="" value=""/>
+                            </div>
+                        </div>
+    
+                        <div class="formElement librarian hidden">
+                            <div class="label">
+                                <label for="">Is there a copyright date?</label>
+                                <span class="tip">The year following the copyright statement.</span>
+                            </div>
+                            <div class="input">
+                                <input type="text" name="" id="" value=""/>
+                            </div>
+                        </div>
+    
+                        <div class="formElement librarian hidden">
+                            <div class="label">
+                                <label for="">Is the book part of a series?</label> 
+                                <span class="tip">The name of the publisher's series. For example: <i>The Story of Civilization, Part III</i></span>
+                            </div>
+                            <div class="input">
+                                <input type="text" name="" id="" value=""/>
+                            </div>
+                        </div>
+    
+                        <div class="formElement librarian hidden">
+                            <div class="label">
+                                <label for="">Is it a volume in a collection?</label>
+                                <span class="tip">What collection does it belong to?</span>
+                            </div>
+                            <div class="input">
+                                <input type="text" name="" id="" value=""/>
+                                <div class="tip">e.g. <i>The <strong>Pocket Atlas of Anatomy</strong> collection consists of Vol I: Head and Neck, Vol. II: Thorax, Heart, Abdomen and Pelvis & Vol. III: Spines Extremities and Joints</i></div>
+                            </div>
+                        </div>
+    
+                    </div>
+                </fieldset>
+
+                <fieldset class="major">
+                    <legend>This Edition</legend>
+                    <div class="formBack">
+    
+                        <div id="cover">
+                            <p>&nbsp;</p>
+                            <p><a href="javascript:;" id="coverPop">Add a<br />cover image</p></a>
+                        </div>
+        
+                        <div class="formElement">
+                            <div class="label">
+                                <label for="">Title</label> 
+                                <span class="tip">There are occasionally title variants amongst editions.</span>
+                            </div>
+                            <div class="input">
+                                <input type="text" name="" id="" value=""/>
+                            </div>
+                        </div>
+    
+                        <div class="formElement">
+                            <div class="label"><label for="">Subtitle</label> <span class="tip">Usually distinguished by different or smaller type. For example: <i>envisioning the next 50 years</i></span></div>
+                            <div class="input">
+                                <input type="text" name="" id="" value=""/>
+                            </div>
+                        </div>
+    
+                        <div class="formElement librarian hidden">
+                            <div class="label">
+                                <label for="">Is it known by any other titles?</label> 
+                                <span class="tip">Perhaps in another language?</span>
+                            </div>
+                            <div class="input">
+                                <input type="text" name="" id="" value=""/>
+                                <div class="tip">For example: <i>Der Zauberberg</i> is an alternate title for <i>The Magic Mountain</i>.</div>
+                            </div>
+                        </div>
+    
+                        <div class="formElement librarian hidden">
+                            <div class="label">
+                                <label for="">Does this edition have a specific name?</label> 
+                                <span class="tip">For example: <i>Centennial edition</i>; <i>First edition</i></span>
+                            </div>
+                            <div class="input">
+                                <input type="text" name="" id="" value=""/>
+                            </div>
+                        </div>
+    
+                        <div class="formElement librarian hidden">
+                            <div class="label">
+                                <label for="">Any notes about this specific edition?</label> 
+                            <span class="tip">Anything about the book that may be of interest. For example: <i>A Plume Book</i>.</span>
+                            </div>
+                            <div class="input">
+                                <textarea name="" id="" rows="3" cols="50"></textarea>
+                            </div>
+                        </div>
+        
+                        <div class="formElement">
+                            <div class="input">
+                                <ul class="booklinks">
+                                    <li>Add the <a href="javascript:;" id="tocPop">Table of Contents</a></li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="hidden">
+                            <div class="floater" id="addTOC">
+                                <div id="popThisUp" class="floaterAlert hidden"></div>
+                                <a id="coverShut" href="javascript:;" onclick="\$.fn.colorbox.close();"></a>
+                                <h2>Table of Contents</h2>
+                            </div>
+                        </div>
+
+                        <fieldset class="minor">
+                            <legend>Contributors</legend>
+        
+                            <div class="formElement">
+                                <div class="label">
+                                    <label for="">List the people involved</label>
+                                    <span class="tip"></span>
+                                </div>
+                                <div class="input">
+                                    <table class="identifiers">
+                                        <tr>
+                                            <td width="15%" align="right">
+                                                <select name="IDtype" id="" style="font-family: Lucida Grande;  font-size: 14px; padding: 4px; name="idtype="IDtype">
+                                                    <option selected="selected">Select role</option>
+                                                    <option>Author</option>
+                                                    <option>Contributor</option>
+                                                    <option>Cover artist</option>
+                                                    <option>Designer</option>
+                                                    <option>Editor</option>
+                                                    <option>Foreword</option>
+                                                    <option>Illustrator</option>
+                                                    <option>Introduction</option>
+                                                    <option>Photographer</option>
+                                                    <option>Translator</option>
+                                                    <option>---</option>
+                                                    <option>Add a new role</option>
+                                                </select>
+                                            </td>
+                                            <td width="85%"><br />
+                                                <input type="text" name="IDnumber2" id="IDnumber2" style="width:190px!important;"/>
+                                                <input type="submit" name="add2" id="add2" value="Add" />
+                                                <br />
+                                                &nbsp;
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td width="15%" align="right">
+                                                <strong>Author</strong>
+                                            </td>
+                                            <td width="85%">
+                                                Nick Cave
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <div class="formElement librarian hidden">
+                                <div class="label">
+                                    <label for="">Is there a By Statement?</label>
+                                    <span class="tip">For example: <em>edited by David Anderson</em></span>
+                                </div>
+                                <div class="input">
+                                    <input name="work-desc17" type="text" id="work-desc17" value=""/>
+                                </div>
+                            </div>
+        
+                        </fieldset>
+    
+                        <div class="formDivider"></div>
+
+                        <fieldset class="minor">
+
+                            <legend>Languages</legend>
+        
+                            <div class="formElement">
+                                <div class="label">
+                                    <label for="">What language is this edition written in?</label>
+                                    <span class="tip"></span>
+                                </div>
+                                <div class="input">
+                                    <select name="language" id="language">
+                                        <option selected="selected">Select language</option>
+                                        <option>Alphabetical List of languages</option>
+                                        <option>---</option>
+                                        <option>Add a new language</option>
+                                    </select>
+                                </div>
+                            </div>
+        
+                            <div class="formElement librarian hidden">
+                                <div class="label">
+                                    <label for="">Is it a translation of another book?</label>
+                                    <span class="tip"></span>
+                                </div>
+                                <div class="input">
+                                    <br/>
+                                    <input type="radio" name="is-translation" id="is-translation" value="no" checked="checked"  onclick="\$('.transYes').customFadeOut();"/>
+                                    <label for="is-translation">No</label>
+                                </div>
+                                <div class="input">
+                                    <input type="radio" name="is-translation" id="is-translation2" value="yes" onclick="\$('.transYes').customFadeIn();" />
+                                    <label for="is-translation2">Yes, it's a translation</label>
+                                </div>
+                            </div>
+        
+                            <div class="formElement hidden transYes">
+                                <div class="label">
+                                    <span class="tip">What's the original book?</span>
+                                </div>
+                                <div class="input">
+                                    <input name="translation-of" type="text" id="translation-of" style="width:300px!important;"/>
+                                </div>
+                            </div>
+
+                            <div class="formElement hidden transYes">
+                                <div class="label">
+                                    <span class="tip">What language was the original written in?</span>
+                                </div>
+                                <div class="input">
+                                    <select name="translated-from" id="translated-from" style="width:300px!important;"/>
+                                        <option selected="selected">Select</option>
+                                        <option>Alphabetical List of languages</option>
+                                        <option>---</option>
+                                        <option>Add a new language</option>
+                                    </select>
+                                </div>
+                            </div>
+    
+                        </fieldset>
+
+                    </div>
+
+                </fieldset>
+
+                <fieldset class="major">
+                    <legend>ID Numbers</legend>
+                    <div class="formBack">
+    
+                        <div class="formElement">
+                            <div class="label">
+                                <label for="">Do you know any identifiers for this edition?</label>
+                                <span class="tip">Like, ISBN?</span>
+                            </div>
+                            <div class="input">
+                                <select name="IDtype2" id="IDtype">    
+                                    <option value="">Select one of many...</option>
+                                    <option>ISBN</option>
+                                    <option>Good Reads</option>
+                                    <option>Library Thing</option>
+                                    <option>Paperback Swap</option>
+                                    <option>Zotero</option>
+                                    <option>Book Mooch</option>
+                                    <option value="IA">Internet Archive</option>
+                                    <option>Amazon</option>
+                                    <option>Google</option>
+                                    <option value="Dewey">Dewey Decimal</option>
+                                    <option value="LC">Library of Congress</option>
+                                    <option value="LCCN">LC Control Number </option>
+                                    <option value="OCLC">OCLC</option>
+                                    <option>---</option>
+                                    <option>Add a new ID type</option>
+                                </select>
+
+                                <input type="text" name="IDnumber" id="IDnumber" size="20" style="width:365px!important;"/>
+                                <input type="submit" name="add" id="add" value="Add" />
+    
+                            </div>
+                            <br/>
+                            <div class="input">
+                                <table class="identifiers">
+                                    <tr>
+                                        <td width="15%" align="right"><strong>ISBN</strong></td>
+                                        <td width="85%">0-596-10245-3</td>
+                                    </tr>
+                                    <tr>
+                                        <td align="right"><strong>Google</strong></td>
+                                        <td><a href="google page">pSChQAAACAAJ</a></td>
+                                    </tr>
+                                    <tr>
+                                        <td align="right"><strong>Amazon</strong></td>
+                                        <td><a href="amazon">xyz342</a></td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+
+                <fieldset class="major">
+                    <legend>The Physical Object</legend>
+                    <div class="formBack">
+    
+                        <fieldset class="minor">
+                            <div class="formElement">
+                                <div class="label">
+                                    <label for="">What sort of book is it?</label>
+                                    <span class="tip">Paperback; Hardcover, etc.</span>
+                                </div>
+                                <div class="input">
+                                    <input name="work-desc7" type="text" id="work-desc7" style="width:365px;" value="" />
+                                </div>
+                            </div>
+                            <div class="formElement">
+                                <div class="label">
+                                    <label for="">How many pages?</label>
+                                    <span class="tip"></span>
+                                </div>
+                                <div class="input">
+                                    <input name="work-desc8" type="text" id="work-desc8" style="width: 365px;" value="" />
+                                </div>
+                            </div>
+                            <div class="formElement">
+                                <div class="label">
+                                    <label for="">Pagination?</label>
+                                    <span class="tip">Note the highest number in each pagination pattern.</span>
+                                </div>
+                                <div class="input">
+                                    <input name="work-desc9" type="text" id="work-desc9" style="width:365px;" value="" />
+                                    <div class="tip">For example: <em>xii, 346p.</em></div>
+                                </div>
+                            </div>
+                            <div class="formElement">
+                                <div class="label">
+                                    <label for="">How much does the book weigh?</label>
+                                    <span class="tip"></span>
+                                </div>
+                                <div class="input">
+                                    <input name="work-desc18" type="text" id="work-desc18" style="width:70px!important;" value="" size="6" />
+                                    <span class="tip">
+                                        <input name="unit" type="radio" id="units2" value="grams" checked="checked" />
+                                        <label for="units2">grams</label>
+                                        &nbsp;&nbsp;
+                                        <input type="radio" name="unit" id="unit2" value="kilos" />
+                                        <label for="unit2">kilograms</label>
+                                        &nbsp;&nbsp;
+                                        <input type="radio" name="unit" id="unit3" value="ounces" />
+                                        <label for="unit3">ounces</label>
+                                        &nbsp;&nbsp;
+                                        <input type="radio" name="unit" id="unit4" value="pounds" />
+                                        <label for="unit4">pounds</label>
+                                    </span>
+                                </div>
+                            </div>
+                        </fieldset>
+    
+                        <div class="formDivider"></div>
+    
+                        <fieldset class="minor">
+                            <legend>Dimensions</legend>
+                            <div class="formElement">
+                                <div class="input">
+                                    <table cellspacing="0" cellpadding="1">
+                                        <tr>
+                                            <td rowspan="3"><img src="/images/dimensions.png" alt="dimensions" width="92" height="75" align="left" style="margin:0 5px;" /></td>
+                                            <td><span class="tip"> <label for="">Depth:</label> </span></td>
+                                            <td><input name="work-desc4" type="text" id="work-desc4" style="width:70px!important;" size="6" maxlength="5" /></td>
+                                        </tr>
+                                        <tr>
+                                            <td><span class="tip"> <label for="">Height:</label> </span></td>
+                                            <td><input name="work-desc5" type="text" id="work-desc5" style="width:70px!important;" size="6" maxlength="5" />
+                                                <span class="tip">
+                                                    <input name="heightunit" type="radio" id="heightunit1" value="centimeters" checked="checked" />
+                                                    <label for="heightunit1">centimeters</label>&nbsp;&nbsp;
+                                                    <input name="heightunit" type="radio" id="heightunit2" value="inches" />
+                                                    <label for="heightunit2">inches</label>
+                                                </span>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td><span class="tip"> <label for="">Width:</label> </span></td>
+                                            <td><input name="work-desc6" type="text" id="work-desc6" style="width:70px!important;" size="6" maxlength="5" /></td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </fieldset>
+                    </div>
+                    <div class="formElement bottom">
+                        <div class="input">
+                            <input type="submit" value="Save" name="submit" id="submit"/>
+                            &nbsp;
+                            <a href="javascript:history.go(-1);" class="larger attn">Cancel</a>
+                        </div>
+                    </div>
+
+                </fieldset>
+
+            </div>
+
+        </div>
+
+    </form>
+    
+
+    <div class="hidden">
+        <div class="floater" id="addCover">
+            <form class="olform books" id="bookcover" name="bookcover">
+                <div id="popThisUp" class="floaterAlert hidden"><strong>Ahem.</strong> You appear not to have specified an image. Please choose one?</div>
+                <a id="coverShut" href="javascript:;" onclick="\$.fn.colorbox.close();"></a>
+                <h2>Add a Cover Image</h2>
+                <div id="coverIntro">There are two ways to get a cover image on Open Library:</div>
+                <label id="coverBrowse" for="coverFile">Either browse to an image file on your computer,</label>
+                <input type="file" name="coverFile" id="coverFile"/>
+                <label id="coverWeb" for="coverUrl"><span class="highlight"><u>Or</u></span>, paste in a URL to an image if it's on the web.</label>
+                <input type="text" name="coverUrl" id="coverUrl" value="http://"/>
+                <!-- THE BUTTON BELOW IS A SIMPLE SUBMIT, BUT IF PRESSED W/O ANY INPUT, FIRE THE ONCLICK -->
+                <button type="button" name="coverUpload" id="coverUpload" value="Upload" style="width:auto!important;" onclick="\$('#popThisUp').show().css('padding-top','13px').animate({top:'-52px',height:'27px'});">Upload</button>
+                <a id="coverClose" href="javascript:;" onclick="\$.fn.colorbox.close();">Cancel</a>
+                <div id="coverLegal"><span class="black">Note:</span><br/>We need some crystal clear language in here about the copyright palava about covers. We know people are going to steal them from all over.</div>
+            </form>
+        </div>
+    </div>
+    
+
+
+    <div id="resultsAbout">
+    
+        <div class="head">
+            <h2>
+                $_("History")
+            </h2>
+            <span class="link"><a href="[THING HISTORY PAGE]">$_("Read all")</a></span>
+        </div>
+
+        <table class="history">
+            <tbody>
+                <tr class="first">
+                    <td class="timestamp">A moment ago</td>
+                    <td class="detail">
+                        <!-- SOURCE -->
+                        <a href="[URL]">george08</a>
+                        <!-- /SOURCE --> 
+                        created the record.
+                        <!-- EDITION -->
+                        <!-- /EDITION --> 
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+    </div>
+
+</div>
