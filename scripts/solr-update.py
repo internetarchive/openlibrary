@@ -32,4 +32,4 @@
 
 import _init_path
 from openlibrary import solr
-solr.update3.main()
+solr.update.main()
