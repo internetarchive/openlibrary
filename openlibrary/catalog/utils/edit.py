@@ -1,7 +1,6 @@
 import re, web, sys
-from catalog.importer.db_read import get_mc
-sys.path.append('/home/edward/src/olapi')
-from olapi import unmarshal
+from openlibrary.catalog.importer.db_read import get_mc
+from openlibrary.api import unmarshal
 
 re_meta_mrc = re.compile('([^/]+)_(meta|marc).(mrc|xml)')
 re_skip = re.compile('\b([A-Z]|Co|Dr|Jr|Capt|Mr|Mrs|Ms|Prof|Rev|Revd|Hon)\.$')
