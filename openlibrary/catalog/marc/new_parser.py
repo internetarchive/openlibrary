@@ -1,7 +1,7 @@
-from catalog.marc.fast_parse import get_subfields, get_tag_lines, translate, handle_wrapped_lines
+from openlibrary.catalog.marc.fast_parse import get_subfields, get_tag_lines, translate, handle_wrapped_lines
 import re, sys
 from warnings import warn
-from catalog.utils import pick_first_date, tidy_isbn
+from openlibrary.catalog.utils import pick_first_date, tidy_isbn
 
 re_question = re.compile('^\?+$')
 re_lccn = re.compile('(...\d+).*')
@@ -508,11 +508,18 @@ def read_edition(loc, data):
         warn("There should be a single '008' field, %s has %d." % (loc, len(fields['008'])))
         return {}
     f = fields['008'][0]
+    if not f:
+        warn("'008' field must not be blank in %s" % (loc)) 
+        return {}
     publish_date = str(f)[7:11]
     if publish_date.isdigit() and publish_date != '0000':
         edition["publish_date"] = publish_date
-    if str(f)[6] == 't':
-        edition["copyright_date"] = str(f)[11:15]
+    try:
+        if str(f)[6] == 't':
+            edition["copyright_date"] = str(f)[11:15]
+    except:
+        print loc
+        raise
     publish_country = str(f)[15:18]
     if publish_country not in ('|||', '   '):
         edition["publish_country"] = publish_country
