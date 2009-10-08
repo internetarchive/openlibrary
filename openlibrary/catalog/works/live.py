@@ -1,4 +1,7 @@
-#!/usr/local/bin/python2.5
+#!/usr/bin/python
+
+# find works and create pages on production
+
 import re, sys, codecs, web
 from openlibrary.catalog.get_ia import get_from_archive
 from openlibrary.catalog.marc.fast_parse import get_subfield_values, get_first_tag, get_tag_lines, get_subfields, BadDictionary
@@ -18,7 +21,6 @@ rc = read_rc()
 
 ol = OpenLibrary("http://openlibrary.org")
 ol.login('WorkBot', rc['WorkBot'])
-#ol.login('EdwardBot', rc['EdwardBot'])
 fh_log = open('/1/edward/logs/WorkBot', 'a')
 
 def write_log(cat, key, title):
@@ -140,8 +142,8 @@ def get_books(akey):
             continue
         if len(e.get('authors', [])) != 1:
             continue
-#        if 'works' in e:
-#            continue
+        if 'works' in e:
+            continue
         if 'title_prefix' in e and e['title_prefix']:
             prefix = e['title_prefix']
             if prefix[-1] != ' ':
@@ -270,6 +272,19 @@ def print_works(works):
 def toc_items(toc_list):
     return [{'title': unicode(item), 'type': Reference('/type/toc_item')} for item in toc_list] 
 
+def add_works(works):
+    q = [
+    {
+        'authors': [{'author': Reference(w['author'])}],
+        'type': '/type/work',
+        'title': w['title']
+    } for w in works]
+    try:
+        return ol.new(q, comment='create work page')
+    except:
+        print q
+        raise
+
 def add_work(akey, w):
     q = {
         'authors': [{'author': Reference(akey)}],
@@ -296,6 +311,21 @@ def save_editions(queue):
     print ol.save_many(queue, 'add edition to work page')
     print 'saved'
 
+work_queue = []
+
+def run_queue(queue):
+    work_keys = add_works(queue)
+    for w, wkey in zip(queue, work_keys):
+        w['key'] = wkey
+        write_log('work', wkey, w['title'])
+    for ekey in w['editions']:
+        e = ol.get(ekey)
+        fix_edition(ekey, e, ol)
+        #assert 'works' not in e
+        write_log('edition', ekey, e.get('title', 'title missing'))
+        e['works'] = [Reference(w['key'])]
+        yield e
+
 def by_authors():
     q = { 'type':'/type/author', 'name': None, 'works': None }
     for a in query_iter(q):
@@ -309,18 +339,23 @@ def by_authors():
         works = find_works(akey)
         print akey, `a['name']`
         for w in works:
-            print 'work:', `w['title']`
-            for e in add_work(akey, w):
-                yield e
+            w['author'] = akey
+            work_queue.append(w)
+            if len(work_queue) > 1000:
+                for e in run_queue(work_queue):
+                    yield e
+                work_queue = []
+    for e in run_queue(work_queue):
+        yield e
 
-queue = []
+edition_queue = []
 for e in by_authors():
     print e['key'], `e['title']`
-    queue.append(e)
-    if len(queue) > 1000:
-        save_editions(queue)
-        queue = []
+    edition_queue.append(e)
+    if len(edition_queue) > 1000:
+        save_editions(edition_queue)
+        edition_queue = []
         sleep(5)
-save_editions(queue)
+save_editions(edition_queue)
 
 fh_log.close()
