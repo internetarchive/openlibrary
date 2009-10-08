@@ -13,7 +13,6 @@ JS_SOURCES=			\
     jquery.flickrfeed.js    \
     jquery.flot.js  \
     jquery.sparklines.js    \
-    jquery.ccopy.js		\
     wmd-setup.js		\
     wmd.js
     
