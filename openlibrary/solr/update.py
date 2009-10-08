@@ -12,9 +12,9 @@ from __future__ import with_statement
 import infogami
 from infogami.infobase.logreader import LogReader,RsyncLogFile, LogFile
 from datetime import datetime,date,timedelta
-import simplejson as sj
+import simplejson as json 
 from time import time,ctime,sleep
-from itertools import count, imap,islice,chain
+from itertools import count, imap,islice
 import threading
 import os,sys,cgi
 import socket
@@ -47,6 +47,9 @@ solr = ('ia331511', 7983)               # dev server
 del solr                                # get it from command line!
 
 global gg
+
+# interested in last of three fields joined by tabs
+re_dump_fmt =re.compile(r'^\S+\t\S+\t(.*)$')):
                         
 def logstream_dump(dumpfile, start=0,stop=None):
     t0 = time()
@@ -66,27 +69,11 @@ def logstream_dump(dumpfile, start=0,stop=None):
         
     nseen += sum(1 for x in islice(xs, start - nseen))
     print ('nseen', nseen, time()-t0)
-    def unjson(rec, pat=re.compile(r'\S+\t\S+\t(.*)$')):
-        g = pat.match(rec)
-        json = g.group(1) if g else rec
-        return sj.loads(json)
 
-    # pdb.set_trace()
-    return imap(unjson, xs)
+    for line in xs:
+        m = re_dump_fmt.match(rec)
+        yield json.loads(m.group(1) if m else rec)
         
-def logstream_scandump():
-    xs = open('../scanrec/scan.dump')
-    return imap(sj.loads, xs)
-    
-def logstream_scanrec():
-    """import older scanrec format, not used now.  5/2009"""
-    import hack_scans
-    for (scanrec,bookrec) in hack_scans.scanrec_stream():
-        g = scanrec.get('scan_status')
-        if g:
-            bookrec['scan_status'] = g
-        yield bookrec
-
 def logstream_incr(rsync_source, **delta):
     if not delta: delta = dict(hours=12) # default
     # r = LogReader(RsyncLogFile('ia331526::pharos_0/code/openlibrary/pharos/booklog', 'log'))
@@ -357,7 +344,7 @@ def main1(logstream):
 
         # @@ for development, save book in an external variable
         # and break out of loop
-        # print sj.dumps(book,indent=1)   # @@
+        # print json.dumps(book,indent=1)   # @@
         gg = book
 
         # generate XML output
@@ -682,5 +669,5 @@ def compute_boost(book):
         boost += 3.3            # log2(10)
     return boost
 
-# print fixup_dict(sj.load(open('bogobook.json'))['data'])
+# print fixup_dict(json.load(open('bogobook.json'))['data'])
 # main()
