@@ -1,9 +1,9 @@
 #!/usr/local/bin/python2.5
 import web, dbhash, sys
 import simplejson as json
-from catalog.load import add_keys
+from openlibrary.catalog.load import add_keys
 from copy import deepcopy
-from catalog.merge.index import *
+from openlibrary.catalog.merge.index import *
 from urllib import urlopen, urlencode
 
 path = '/1/edward/marc_index/'

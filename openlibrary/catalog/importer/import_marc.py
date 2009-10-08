@@ -341,6 +341,8 @@ for part, size in files(archive_id):
         except AssertionError:
             print loc
             raise
+        if not edition:
+            continue
         if edition['title'] == 'See.':
             print 'See.', edition
             continue

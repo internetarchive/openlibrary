@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
-from catalog.importer.db_read import withKey, get_things, get_mc
-from catalog.read_rc import read_rc
-from catalog.utils import key_int, match_with_bad_chars, pick_best_author, remove_trailing_number_dot
+from openlibrary.catalog.importer.db_read import withKey, get_things, get_mc
+from openlibrary.catalog.read_rc import read_rc
+from openlibrary.catalog.utils import key_int, match_with_bad_chars, pick_best_author, remove_trailing_number_dot
 from unicodedata import normalize
 import web, re, sys, codecs, urllib
 sys.path.append('/home/edward/src/olapi')
 from olapi import OpenLibrary, unmarshal
-from catalog.utils.edit import fix_edition
-from catalog.utils.query import query_iter
+from openlibrary.catalog.utils.edit import fix_edition
+from openlibrary.catalog.utils.query import query_iter
 
 sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
 
@@ -54,6 +54,7 @@ def update_edition(key, old, new):
     authors = []
     print 'current authors:', e['authors']
     for cur in e['authors']:
+        cur = cur['key']
         print old, cur in old
         a = new if cur in old else cur
         print cur, '->', a
