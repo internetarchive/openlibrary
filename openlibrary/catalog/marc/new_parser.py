@@ -1,7 +1,7 @@
-from catalog.marc.fast_parse import get_subfields, get_tag_lines, translate, handle_wrapped_lines
+from openlibrary.catalog.marc.fast_parse import get_subfields, get_tag_lines, translate, handle_wrapped_lines
 import re, sys
 from warnings import warn
-from catalog.utils import pick_first_date, tidy_isbn
+from openlibrary.catalog.utils import pick_first_date, tidy_isbn
 
 re_question = re.compile('^\?+$')
 re_lccn = re.compile('(...\d+).*')
