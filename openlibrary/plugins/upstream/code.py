@@ -25,27 +25,32 @@ import forms
 
 class SubjectPlace(client.Thing):
     def _get_solr_result(self):
-        if not hasattr(self, '_solr_result'):
+        if not self._solr_result:
             name = self.name or ""
-            q = {'subjects': name, "facets": true}
+            q = {'subjects': name, "facets": True}
             self._solr_result = SearchProcessor().search(q)
+            print '_get_solr_result', q, self._solr_result['time_taken']
         return self._solr_result
         
-    def get_related_subjects():
+    def get_related_subjects(self):
         # dummy subjects
         return [web.storage(name='France', key='/subjects/places/France'), web.storage(name='Travel', key='/subjects/Travel')]
     
     def get_edition_count(self):
-        d = self._solr_result
+        d = self._get_solr_result()
         return d['matches']
         
     def get_author_count(self):
-        d = self._solr_result
+        d = self._get_solr_result()
         return len(d['facets']['authors'])
         
     def get_authors(self):
-        d = self._solr_result
+        d = self._get_solr_result()
         return [web.storage(name=a, key='/authors/OL1A', count=count) for a, count in d['facets']['authors']]
+    
+    def get_publishers(self):
+        d = self._get_solr_result()
+        return [web.storage(name=p, count=count) for p, count in d['facets']['publishers']]
     
 client.register_thing_class('/type/place', SubjectPlace)
 
