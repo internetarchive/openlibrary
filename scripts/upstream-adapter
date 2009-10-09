@@ -1,0 +1,7 @@
+#! /usr/bin/env python
+
+import _init_path
+from openlibrary.plugins.upstream import adapter
+
+if __name__ == "__main__":
+    adapter.main()
