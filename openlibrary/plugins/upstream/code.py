@@ -11,15 +11,43 @@ from infogami import config
 from infogami.core.code import view, edit
 from infogami.utils import delegate, app, types
 from infogami.utils.view import require_login, render, add_flash_message, public
+from infogami.infobase import client
 from infogami.infobase.client import ClientException
 from infogami.utils.context import context
 
 from openlibrary.plugins.openlibrary.processors import ReadableUrlProcessor
 from openlibrary.plugins.openlibrary import code as ol_code
+from openlibrary.plugins.search.code import SearchProcessor
 
 from openlibrary.i18n import gettext as _
 
 import forms
+
+class SubjectPlace(client.Thing):
+    def _get_solr_result(self):
+        if not hasattr(self, '_solr_result'):
+            name = self.name or ""
+            q = {'subjects': name, "facets": true}
+            self._solr_result = SearchProcessor().search(q)
+        return self._solr_result
+        
+    def get_related_subjects():
+        # dummy subjects
+        return [web.storage(name='France', key='/subjects/places/France'), web.storage(name='Travel', key='/subjects/Travel')]
+    
+    def get_edition_count(self):
+        d = self._solr_result
+        return d['matches']
+        
+    def get_author_count(self):
+        d = self._solr_result
+        return len(d['facets']['authors'])
+        
+    def get_authors(self):
+        d = self._solr_result
+        return [web.storage(name=a, key='/authors/OL1A', count=count) for a, count in d['facets']['authors']]
+    
+client.register_thing_class('/type/place', SubjectPlace)
 
 @public
 def render_template(name, *a, **kw):
