@@ -567,6 +567,15 @@ class SearchProcessor:
                 d[k] = doc[k]
                 
         return d
+
+    def _process_result(self, result, facets=None):
+        out = {
+            'matches': result.total_results,
+            'docs': [self._process_doc(d) for d in result.raw_results]
+        } 
+        if facets is not None:
+            out['facets'] = facets
+        return out
         
     def search(self, query):
         """Constructs solr query from given query dict, executes it and returns the results.
@@ -574,23 +583,39 @@ class SearchProcessor:
         Sample queries:
 
             {'q': 'Tom Sawyer'}
-            {'authors': ['Mark Twain']}
+            {'authors': 'Mark Twain'}
+            {'q': 'Tom Sawyer'}
             {'title': 'Tom Sawyer'}
             {'title': 'Tom Sawyer', 'authors': 'Mark Twain', 'lccn': '49049011'}
+            {'title': 'Tom Sawyer', 'authors': 'Mark Twain', 'publisher': '49049011'}
         """
         query = dict(query)
         offset = query.pop('offset', 0)
+        try:
+            limit = int(query.pop('limit', 20))
+        except ValueError:
+            limit = 20
+            
+        if limit > 1000:
+            limit = 1000
+        
+        facets = str(query.pop('facets', 'false')).lower() == 'true'
 
         query_string = self._process_query(query)
         solr_query = self._solr_query(query_string)
-        result = solr.advanced_search(solr_query, start=offset)
-        return {
-            'matches': result.total_results,
-            'offset': result.begin,
-            'docs': [self._process_doc(d) for d in result.raw_results]
-        }
 
-        
+        if facets:
+            # what if offset it more than 5000?
+            
+            # query for 5000 rows and take the required part from the results to avoid another request
+            result = solr.advanced_search(solr_query, start=offset, rows=5000)
+            facet_counts = solr_client.facet_counts(result.raw_results, solr_client.default_facet_list)
+            result.raw_results = result.raw_results[offset:offset+limit]
+
+            return self._process_result(result, dict(facet_counts))
+        else:
+            result = solr.advanced_search(solr_query, start=offset, rows=limit)
+            return self._process_result(result)
         
 class search_json(delegate.page):
     path = "/search"
@@ -605,6 +630,7 @@ class search_json(delegate.page):
             query = simplejson.loads(i.query)
         else:
             query = i
+        
         result = SearchProcessor().search(i)
         return simplejson.dumps(result)
 
