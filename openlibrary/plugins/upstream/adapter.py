@@ -44,9 +44,9 @@ iconversions = dict((v, k) for k, v in convertions.items())
 class proxy:
     def delegate(self, *args):
         self.args = args
-        self.input = web.input(_method='GET')
+        self.input = web.input(_method='GET', _unicode=False)
         self.path = web.ctx.path
-        
+                
         if web.ctx.method in ['POST', 'PUT']:
             self.data = web.data()
         else:
@@ -56,7 +56,6 @@ class proxy:
         
         self.before_request()
         try:
-            print 'request', self.path, self.input
             server = web.config.infobase_server
             req = urllib2.Request(server + self.path + '?' + urllib.urlencode(self.input), self.data, headers=headers)
             response = urllib2.urlopen(req)
