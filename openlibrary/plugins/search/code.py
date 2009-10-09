@@ -589,6 +589,8 @@ class SearchProcessor:
             {'title': 'Tom Sawyer', 'authors': 'Mark Twain', 'lccn': '49049011'}
             {'title': 'Tom Sawyer', 'authors': 'Mark Twain', 'publisher': '49049011'}
         """
+        t1 = time.time()
+
         query = dict(query)
         offset = query.pop('offset', 0)
         try:
@@ -612,10 +614,14 @@ class SearchProcessor:
             facet_counts = solr_client.facet_counts(result.raw_results, solr_client.default_facet_list)
             result.raw_results = result.raw_results[offset:offset+limit]
 
-            return self._process_result(result, dict(facet_counts))
+            d = self._process_result(result, dict(facet_counts))
         else:
             result = solr.advanced_search(solr_query, start=offset, rows=limit)
-            return self._process_result(result)
+            d = self._process_result(result)
+            
+        t2 = time.time()
+        d['time_taken'] = t2-t1
+        return d
         
 class search_json(delegate.page):
     path = "/search"
