@@ -21,6 +21,7 @@ from openlibrary.i18n import gettext as _
 
 import forms
 
+@public
 def render_template(name, *a, **kw):
     return render[name](*a, **kw)
 
