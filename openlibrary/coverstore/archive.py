@@ -104,7 +104,7 @@ def archive():
             for d in files.values():
                 d.path = d.filename and os.path.join(config.data_root, "localdisk", d.filename)
                     
-            if any(path is None or not os.path.exists(d.path) for d in files.values()):
+            if any(d.path is None or not os.path.exists(d.path) for d in files.values()):
                 print >> web.debug, "Missing image file for %010d" % cover.id
                 continue
             
