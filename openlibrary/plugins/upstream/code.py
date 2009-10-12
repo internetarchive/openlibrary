@@ -95,6 +95,9 @@ types.register_type('^/authors/[^/]*$', '/type/author')
 types.register_type('^/books/[^/]*$', '/type/edition')
 types.register_type('^/languages/[^/]*$', '/type/language')
 
+types.register_type('^/subjects/places/[^/]*$', '/type/place')
+types.register_type('^/subjects/people/[^/]*$', '/type/person')
+
 # fix photo/cover url pattern
 ol_code.Author.photo_url_patten = "%s/photo"
 ol_code.Edition.cover_url_patten = "%s/cover"
