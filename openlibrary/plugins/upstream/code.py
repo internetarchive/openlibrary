@@ -96,6 +96,10 @@ client.register_thing_class('/type/place', SubjectPlace)
 @public
 def render_template(name, *a, **kw):
     return render[name](*a, **kw)
+    
+@public
+def json_encode(d):
+    return simplejson.dumps(d)
 
 class static(delegate.page):
     path = "/(?:images|css|js)/.*"
