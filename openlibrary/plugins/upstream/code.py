@@ -54,16 +54,16 @@ class SubjectPlace(client.Thing):
             cover_ids = {}
             
         def make_cover(edition):
-            edition = dict(edition)
-            edition.pop('type', None)
-            edition.pop('subjects', None)
-            edition.pop('languages', None)
+            cover = {}
+            cover['key'] = edition['key']
+            cover['title'] = edition['title']
+            cover['authors'] = [a.get('name') for a in edition.get('authors', [])]
             
-            olid = edition['key'].split('/')[-1]
+            olid = cover['key'].split('/')[-1]
             if olid in cover_ids:
-                edition['cover_id'] = cover_ids[olid]
+                cover['cover_id'] = cover_ids[olid]
             
-            return edition
+            return cover
             
         return [make_cover(e) for e in editions]
     
