@@ -2,10 +2,11 @@
 
 import os.path
 import web
-import urllib
+import urllib, urllib2
 import random
 import hmac
 import md5
+import simplejson
 
 from infogami import config
 from infogami.core.code import view, edit
@@ -15,6 +16,8 @@ from infogami.infobase import client
 from infogami.infobase.client import ClientException
 from infogami.utils.context import context
 
+from infogami.plugins.api.code import jsonapi
+
 from openlibrary.plugins.openlibrary.processors import ReadableUrlProcessor
 from openlibrary.plugins.openlibrary import code as ol_code
 from openlibrary.plugins.search.code import SearchProcessor
@@ -23,22 +26,58 @@ from openlibrary.i18n import gettext as _
 
 import forms
 
+if not config.get('coverstore_url'):
+    config.coverstore_url = "http://covers.openlibrary.org"
+
 class SubjectPlace(client.Thing):
     def _get_solr_result(self):
         if not self._solr_result:
             name = self.name or ""
             q = {'subjects': name, "facets": True}
             self._solr_result = SearchProcessor().search(q)
-            print '_get_solr_result', q, self._solr_result['time_taken']
         return self._solr_result
         
     def get_related_subjects(self):
         # dummy subjects
         return [web.storage(name='France', key='/subjects/places/France'), web.storage(name='Travel', key='/subjects/Travel')]
+        
+    def get_covers(self, offset=0, limit=20):
+        editions = self.get_editions(offset, limit)
+        olids = [e['key'].split('/')[-1] for e in editions]
+        
+        try:
+            url = '%s/b/query?cmd=ids&olid=%s' % (config.coverstore_url, ",".join(olids))
+            data = urllib2.urlopen(url).read()
+            cover_ids = simplejson.loads(data)
+        except IOError, e:
+            print >> web.debug, 'ERROR in getting cover_ids', str(e) 
+            cover_ids = {}
+            
+        def make_cover(edition):
+            edition = dict(edition)
+            edition.pop('type', None)
+            edition.pop('subjects', None)
+            edition.pop('languages', None)
+            
+            olid = edition['key'].split('/')[-1]
+            if olid in cover_ids:
+                edition['cover_id'] = cover_ids[olid]
+            
+            return edition
+            
+        return [make_cover(e) for e in editions]
     
     def get_edition_count(self):
         d = self._get_solr_result()
         return d['matches']
+        
+    def get_editions(self, offset, limit=20):
+        if self._solr_result and offset+limit < len(self._solr_result):
+            result = self._solr_result[offset:offset+limit]
+        else:
+            name = self.name or ""
+            result = SearchProcessor().search({"subjects": name, 'offset': offset, 'limit': limit})
+        return result['docs']
         
     def get_author_count(self):
         d = self._get_solr_result()
@@ -113,6 +152,24 @@ class change_photo(change_cover):
     path = "(/authors/OL\d+A)/photo"
 
 del delegate.modes['change_cover']     # delete change_cover mode added by openlibrary plugin
+
+class subject_covers(delegate.page):
+    path = "(/subjects/places/[^/]*)/covers"
+    encoding = "json"
+    
+    @jsonapi
+    def GET(self, key):
+        page = web.ctx.site.get(key)
+        if page is None:
+            raise web.notfound("")
+        else:
+            i = web.input(offset=0, limit=20)
+            try:
+                offset = int(i.offset)
+                limit = int(i.limit)
+            except ValueError:
+                return []
+            return page.get_covers(offset, limit)
 
 # fix addbook urls
 
@@ -416,6 +473,12 @@ class account_notifications(delegate.page):
         
         add_flash_message('note', _("Notification preferences have been updated successfully."))
         web.seeother("/account")
+
+class account_others(delegate.page):
+    path = "/account/.*"
+
+    def GET(self):
+        return render.notfound(create=False)
         
 class redirects(delegate.page):
     path = "/(a|b|user)/(.*)"
