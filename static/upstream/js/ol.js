@@ -405,56 +405,6 @@ function finishAjaxEmail(id, response) {
 } 
 //finishAjax */
 };
-function validateAddbook2() {
-    $("div#contentMsg").show().fadeTo(3000, 1).slideUp();
-    $(".bookType").click(function(){
-//IF FICTION
-        if ($("#bookTypeFiction").attr('checked')) {
-            $("#fiction").customFadeIn();
-            $("#nonfiction").hide();
-// IF NON-FICTION
-        } else if ($("#bookTypeNonfic").attr('checked')) {
-  		    $("#nonfiction").customFadeIn();
-  		    $("#fiction").hide();
-        }
-    });
-};
-// CLONING 
-function copyBookFields() {
-  $('#bookSiteAdd').ccopy('bookSite');
-  $.fn.ccopy.set('bookSiteAdd','http://');
-  $('#bookLangAdd').ccopy('bookLang');
-  $('#bookSeriesAdd').ccopy('bookSeries');
-};
-function cloneAuthors() {
-  $("#authorAdd").cloneField($("input#author"),({
-    after: '<div id="authorLoading" class="hidden"><img src="images/waiting.gif" alt="Just a sec..." width="16" height="16"/></div><div id="authorResult"></div>'
-  }));
-};
-function cloneURLs() {
-  $('#websiteAdd').ccopy('website');
-};
-function copyEditionFields() {
-    $('#authorsAdd').ccopy('authors');
-    $('#contributionsAdd').ccopy('contributions');
-    $('#publishersAdd').ccopy('publishers');
-    $('#publish_placesAdd').ccopy('publish_places');
-    $('#seriesAdd').ccopy('series');
-    $('#languagesAdd').ccopy('languages');
-    $('#work_titlesAdd').ccopy('work_titles');
-    $('#collectionsAdd').ccopy('collections');
-    $('#urisAdd').ccopy('uris');
-    $('#worksAdd').ccopy('works');
-    $('#dewey_decimal_classAdd').ccopy('dewey_decimal_class');
-    $('#lc_classificationsAdd').ccopy('lc_classifications');
-    $('#isbn_10Add').ccopy('isbn_10');
-    $('#isbn_13Add').ccopy('isbn_13');
-    $('#lccnAdd').ccopy('lccn');
-    $('#oclc_numbersAdd').ccopy('oclc_numbers');
-    $('#subjectsAdd').ccopy('subjects');
-    $('#genresAdd').ccopy('genres');
-};
-
 function flickrBuild(){$(".flickrs").flickr({callback:colorboxCallback});};
 function colorboxCallback(){$('a.flickrpic').colorbox({photo:true,preloading:true,opacity:'0.70'});};
 
@@ -510,10 +460,8 @@ function tableShow() {
         $(this).parent().parent().parent().find('tr.hidden').customFadeIn();
     });
 };
-// BOOK COVERS
-function bookCovers(){
-$.fn.fixBroken=function(){return this.each(function(){$(this).error(function(){$(this).parent().parent().hide();$(this).parent().parent().next(".SRPCoverBlank").show();});});};
-// SET-UP COVERS CAROUSEL
+// BUILD CAROUSEL 
+function carouselSetup() {
   $('#coversCarousel').jcarousel({
     visible: 1,
     scroll: 1
@@ -524,8 +472,6 @@ $.fn.fixBroken=function(){return this.each(function(){$(this).error(function(){$
     visible: 6,
     scroll: 6
   });
-// SWITCH COVERS ON ERROR
-    $('img.cover').fixBroken();  
 // SWITCH RESULTS VIEW
   $("#resultsList").hide()
   $("a#booksList").click(function(){
@@ -551,3 +497,24 @@ $.fn.fixBroken=function(){return this.each(function(){$(this).error(function(){$
     $('#editionsCovers').customFadeIn();
   });
 };
+// BOOK COVERS
+function bookCovers(){
+    $.fn.fixBroken=function(){return this.each(function(){$(this).error(function(){$(this).parent().parent().hide();$(this).parent().parent().next(".SRPCoverBlank").show();});});};
+    $('img.cover').fixBroken();  
+};
+
+function get_subject_covers(key, pagenumber) {
+    // will implement it later.
+    var covers = [];
+    for (var i=0; i<20; i++)
+        covers[i] = pagenumber * 20 + i;
+    return covers;
+}
+
+function get_work_covers(key, pagenumber) {
+    // will implement it later.
+    var covers = [];
+    for (var i=0; i<20; i++)
+        covers[i] = pagenumber * 20 + i;
+    return covers;
+}
