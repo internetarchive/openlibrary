@@ -119,15 +119,21 @@ class cover_details:
 
 class query:
     def GET(self, category):
-        i = web.input(olid=None, offset=0, limit=10, callback=None, details="false")
+        i = web.input(olid=None, offset=0, limit=10, callback=None, details="false", cmd=None)
         offset = safeint(i.offset, 0)
         limit = safeint(i.limit, 10)
         details = i.details.lower() == "true"
         
         if limit > 100:
             limit = 100
+            
+        if i.olid and ',' in i.olid:
+            i.olid = i.olid.split(',')
         result = db.query(category, i.olid, offset=offset, limit=limit)
-        if not details:
+        
+        if i.cmd == "ids":
+            result = dict((r.olid, r.id) for r in result)
+        elif not details:
             result = [r.id for r in result]
         else:
             def process(r):
@@ -148,7 +154,7 @@ class query:
             return "%s(%s);" % (i.callback, json)
         else:
            return json
-
+           
 class touch:
     def POST(self, category):
         i = web.input(id=None, redirect_url=None)
