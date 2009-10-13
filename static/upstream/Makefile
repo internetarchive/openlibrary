@@ -14,7 +14,8 @@ JS_SOURCES=			\
     jquery.flot.js  \
     jquery.sparklines.js    \
     wmd-setup.js		\
-    wmd.js
+    wmd.js			\
+    sjt.js
     
 
 JS_OBJECTS=$(JS_SOURCES:%=js/%)
