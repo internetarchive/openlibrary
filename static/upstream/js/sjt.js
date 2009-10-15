@@ -37,8 +37,8 @@ function Template(tmpl_text) {
     var g = function(env) {
         return f(s, env);
     };
-    g.toString = function() { return tmpl_text; }
-    g.toCode = function() { return f.toString(); }
+    g.toString = function() { return tmpl_text; };
+    g.toCode = function() { return f.toString(); };
     return g;
 }
 
