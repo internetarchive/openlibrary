@@ -2963,7 +2963,7 @@ if(!Attacklab.wmd)
 // Inspired by http://ejohn.org/blog/javascript-micro-templating/
 function Template(tmpl_text) {
     var s = [];
-    var js = ["var p=[];", "with(env) {"]
+    var js = ["var p=[];", "with(env) {"];
 
     function addCode(text) {
         js.push(text);
@@ -2980,13 +2980,14 @@ function Template(tmpl_text) {
 
     addText(tokens[0]);
     for (var i=1; i < tokens.length; i++) {
-        var t = tokens[i].split('%>')
+        var t = tokens[i].split('%>');
         
-        if (t[0][0] == "=")
+        if (t[0][0] == "=") {
             addExpr(t[0].substr(1));
-        else
+        }
+        else {
             addCode(t[0]);
-
+        }
         addText(t[1]);
     }
     js.push("}", "return p.join('');");
@@ -2994,8 +2995,10 @@ function Template(tmpl_text) {
     var f = Function(["__s", "env"], js.join("\n"));
     var g = function(env) {
         return f(s, env);
-    }
+    };
     g.toString = function() { return tmpl_text; }
     g.toCode = function() { return f.toString(); }
     return g;
 }
+
+
