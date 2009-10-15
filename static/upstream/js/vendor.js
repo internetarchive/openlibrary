@@ -2992,7 +2992,7 @@ function Template(tmpl_text) {
     }
     js.push("}", "return p.join('');");
 
-    var f = Function(["__s", "env"], js.join("\n"));
+    var f = new Function(["__s", "env"], js.join("\n"));
     var g = function(env) {
         return f(s, env);
     };
