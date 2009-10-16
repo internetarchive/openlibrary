@@ -2,6 +2,8 @@ $def with (page, h)
 
 $ _ = i18n.get_namespace('/mode/history')
 
+$ __x = ctx.setdefault("robots", "noindex,nofollow")
+
 $var title: $page.name
 
 $:macros.databar(page)
@@ -39,7 +41,7 @@ $:macros.databar(page)
                     $else:
                         <td class="history" valign="top">$v.ip</td>
                     <td class="comment">$v.comment
-					$if v.machine_comment: (<a href="/show-marc/$v.machine_comment">view MARC</a>)
+					$if v.get('machine_comment'): (<a href="/show-marc/$v.machine_comment">view MARC</a>)
 					</td>
                     <td class="history"><a href="$changequery(m=None, v=v.revision)">$datestr(v.created)</a></td>
                 </tr>

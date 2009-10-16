@@ -2,6 +2,8 @@ $def with (page, preview=False)
 
 $ edit = thingedit(page)
 $var title: $:edit.title
+
+$ __x = ctx.setdefault("robots", "noindex,nofollow")
     
 $:macros.databarEdit(page)
 

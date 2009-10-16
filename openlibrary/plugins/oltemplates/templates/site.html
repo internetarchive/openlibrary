@@ -4,7 +4,9 @@ $def with (page)
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <meta name="msvalidate.01" content="9CE699F8BF78FBC38E82E28B2F9293E1" />
+
+    $if ctx.get("robots"):
+        <meta name="robots" content="$ctx.robots" />
 
     $add_javascript('/static/js/jquery/jquery.js')
     $add_javascript('/static/js/jquery/jquery.slicker.js')

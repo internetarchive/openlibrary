@@ -4,6 +4,9 @@ $ ctx.setdefault("links", [])
 $ ctx.links.append('<link rel="alternate" type="application/json" href="http://openlibrary.org' + page.key + '.json"/>')
 $ ctx.links.append('<link rel="alternate" type="application/rdf+xml" href="http://openlibrary.org' + page.key + '.rdf"/>')
 
+$if query_param("v"):
+    $ __x = ctx.setdefault("robots", "noindex,nofollow")
+
 $if (page.type.key == '/type/home') or (page.key == "/"):
     $:macros.MostRecent()    
 $else:
