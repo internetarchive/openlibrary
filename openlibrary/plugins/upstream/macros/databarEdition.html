@@ -1,0 +1,60 @@
+$def with (page)
+
+$ booksense = "http://booksense.com/product/info.jsp?isbn=XXX"
+$ amazon = "http://www.amazon.com/gp/product/XXX?tag=openlibr-20"
+$ abebooks = "http://clickserve.cc-dt.com/link/tplclick?lid=41000000024660875&pubid=21000000000172077&isbn=XXX"
+$ alibris = " http://click.linksynergy.com/fs-bin/click?id=eSmaWuUpnDY&offerid=99238.122856000&type=2&subid=0&tmpid=939&RD_PARM1=http%253A%252F%252Fwww.alibris.com/booksearch%253Fqsort%253Dp%2526isbn%253DXXX"
+$ barnesandnoble = "http://search.barnesandnoble.com/booksearch/isbninquiry.asp?ISBN=XXXafsrc=1&lkid=J14933426&pubid=K172077"
+$ powells = "http://www.powells.com/partner/33286/biblio/XXX"
+
+$ worldcat = "http://worldcat.org/isbn/XXX"
+$ worldcatoclc = "http://worldcat.org/oclc/XXX"
+$ bookmooch = "http://www.bookmooch.com/m/mooch_choice?asin=XXX"
+$ titletrader = "http://www.titletrader.com/invinfo/XXX.html"
+
+$ viewbook = "http://www.archive.org/stream/XXX"
+$ detailbook = "http://www.archive.org/details/XXX"
+$ downloadbook = "http://www.archive.org/download/XXX/XXX.pdf"
+$ djvu = "http://www.archive.org/stream/XXX/XXX.djvu"
+$ djvutxt = "http://www.archive.org/download/XXX/XXX_djvu.txt"
+$ seeall = "http://www.archive.org/download/XXX"
+$ google = ""
+
+
+$ isbn_10 = (page.isbn_10 and page.isbn_10[0]) or ""
+$ oclc_numbers = (page.oclc_numbers and page.oclc_numbers[0]) or ""
+
+<div id="tools">
+    $if page:
+        <a class="edit" href="$changequery(m='edit')" accesskey="e" title="$_('Edit the information about') $page.title">$_("Edit")</a> 
+        <a class="listAdd" href="[LIST ADD]" title="$_('Add') $page.title $_('to your lists')">$_("Collect")</a> 
+        $if page.volumes:
+            $for v in page.volumes:
+                $if v.ia_id != "-":
+                    <span class="navtext"><a href="$viewbook.replace('XXX', v.ia_id)">View Volume $v.volume_number</a></span><br />
+        $elif page.get('ocaid'):
+            <a class="read" href="$viewbook.replace('XXX', page.ocaid)" title="$_('Read') $page.title $_('online')">Read</a>
+            <a class="download" href="$downloadbook.replace('XXX', page.ocaid)" title="$_('Download a PDF version of') $page.title">Download</a>
+
+        $if isbn_10:
+            <a class="buy" href="javascript:;" onclick="\$('#editionBuy').fadeToggle();" title="$_('Purchase') $page.title">Buy</a>
+                <div class="hidden" id="editionBuy">
+                Buy $page.title at:<br/>
+                <a href="$amazon.replace('XXX', isbn_10)">Amazon</a>
+                <a href="$abebooks.replace('XXX', isbn_10)">Abebooks</a>
+                <a href="$alibris.replace('XXX', isbn_10)" >Alibris</a>
+                <a href="$barnesandnoble.replace('XXX', isbn_10)">Barnes and Noble</a>
+                <a href="$powells.replace('XXX', isbn_10)">Powells</a>
+                </div>
+            <a class="borrow" href="javascript:;" onclick="\$('#editionBorrow').fadeToggle();" title="$_('Borrow') $page.title">Borrow</a>
+                <div class="hidden" id="editionBorrow">
+                Borrow $page.title from:
+                    $if isbn_10:
+                        <a href="$worldcat.replace('XXX', isbn_10)">Your local library</a>
+                        <a href="$bookmooch.replace('XXX', isbn_10)">BookMooch</a>
+                        <a href="$titletrader.replace('XXX', isbn_10)">Title Trader</a>
+                    $elif oclc_numbers:
+                        <a href="$worldcatoclc.replace('XXX', oclc_numbers)">Your local library</a>
+                </div>
+
+</div>

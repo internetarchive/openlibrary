@@ -1,0 +1,28 @@
+$def with(book, size="M")
+
+$ title = book.title_prefix + " " + book.title
+
+$ olid = book.key.split("/")[2]
+
+$code:
+    def aname(a):
+        if isinstance(a, basestring):
+            return a
+        else:
+            return a.name
+
+$ author_names = ", ".join(aname(a) for a in book.authors) or book.get('by_statement','')
+
+$if size == "M":
+    <div class="bookCover">
+        <span><img src="http://covers.openlibrary.org/b/olid/$olid-M.jpg?default=false" class="cover" alt="$title $_.by $author_names"/></span>
+    </div>
+    <div class="SRPCoverBlank">
+        <div class="innerBorder">
+            <div class="BookTitle">$title
+                <div class="Author">$author_names</div>
+            </div>
+        </div>
+    </div>
+$else:
+    <img src="http://covers.openlibrary.org/b/olid/$olid-S.jpg?default=http://upstream.openlibrary.org/images/icons/avatar_book-sm.png" height="58"/>

@@ -1,0 +1,49 @@
+$def with (results, fulltext=False)
+
+$ _ = i18n.get_namespace('/search')
+
+<ul>
+
+$for b in results:
+    $if fulltext:
+        $ book = b[0]
+        $ ocaid = b[1]
+        $ pages = b[2]
+    $else:
+        $ book = b
+        $ ocaid = None
+    <li>
+    <span class="bookcover">
+        $ olid = book.key.split('/')[-1]
+        <a href="$book.key"><img src="http://covers.openlibrary.org/b/olid/$olid-S.jpg?default=http://upstream.openlibrary.org/images/icons/avatar_book-sm.png" height="60"/></a>
+    </span>
+    <div class="resultTitle">
+        $ title = book.title
+        $if isinstance(title, list): $# handle bad data
+            $ title = title[0]
+        <span class="booktitle"><a href="$book.key/$title.replace(' ', '-')" class="result">$book.title_prefix $title</a></span>
+        $if book.get('authors', None):
+            <span class="bookauthor">$_.by
+            $ authorlist = ', '.join([thingrepr(author).rstrip() for author in book.authors])
+            $:authorlist
+            </span>
+        $if book.ocaid: 
+            <span class="sansserif smaller"><a href="http://www.archive.org/stream/$book.ocaid" class="orange">$_.fulltext</a></span>
+        <div class="resultPublisher">
+            $if book.publishers:
+                $(', '.join(book.publishers)), $book.publish_date
+            $else:
+                $book.publish_date
+            $book.physical_format
+        </div>
+        $if fulltext:
+            <div class="small sansserif">Pages:
+            $if len(pages)==0: <i>Unknown</i>
+            $ a = []
+            $for pn, pg in pages:
+                $ a.append('<a href="http://www.archive.org/stream/%s#page/n%s/mode/1up">%s</a>'% (book.ocaid, pn-1, pg))
+            $:(',&nbsp;&nbsp;'.join(a))
+            </div>
+    </div>
+    </li>
+</ul>
