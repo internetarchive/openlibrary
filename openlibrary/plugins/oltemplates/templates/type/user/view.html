@@ -13,6 +13,11 @@ $ _ = i18n.get_namespace('/mode/view')
 
 <div class="contenttext">
 
+<p>
+$if page.get('website'):
+    $for url in page.website: <a href="$url">$url</a><br />
+</p>
+
 $:sanitize(format(page.description))
 
 </div>
@@ -20,4 +25,4 @@ $:sanitize(format(page.description))
 <br clear="all" />
 <span class="subhead-emphasis" style="padding-left: 45px;">$_t.users_activity(page.displayname):</span>
 
-$:macros.RecentChanges(author=page, limit=10)
+$:macros.RecentChanges(author=page, limit=50)
