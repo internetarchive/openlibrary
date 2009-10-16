@@ -1,0 +1,17 @@
+$def with (path, create=None)
+
+$var title: $_("%s is not found", path)
+
+$if create is None:
+    $ create = not path.startswith('/authors') and not path.startswith('/books')
+
+<div id="contentHead">
+    <div class="head"
+        <h1>$_("Not Found")</h1>
+    </div>
+</div>
+
+<div id="contentBody">
+    $_("%s does not exists", path)
+    $if create: (<a href="$:changequery(m='edit')">$_("Create it")</a>)
+</div>

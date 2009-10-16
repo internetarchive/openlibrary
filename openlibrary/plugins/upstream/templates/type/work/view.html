@@ -1,0 +1,313 @@
+$def with (page)
+
+$ _t = i18n.get_namespace('/type/edition')
+$ _ = i18n.get_namespace('/mode/view')
+
+$var title: $page.title
+
+<div id="contentHead">
+
+    $:macros.databarView(page)
+
+    <div class="head">
+        <h1>$page.title</h1>
+        <div class="clearfix"></div>
+        $if page.get('subtitle'):
+            <span class="subtitle">$page.subtitle</span>
+            <div class="clearfix"></div>
+        $if page.authors:
+            $ author_list = ', '.join('<a href="%s">%s</a>' % (a.author.key, a.author.name) for a in page.authors)
+            <h2 class="author">by $:author_list</h2>
+    </div>
+</div>
+<div class="clearfix"></div>
+
+<script type="text/javascript">
+\$().ready(bookCovers);
+\$().ready(carousels);
+\$().ready(carouselSetup);
+\$().ready(bigCharts);
+\$().ready(tableShow);
+\$().ready(slidePanels);
+</script>
+
+$ s = "subjects", "first_sentence",
+
+<div id="contentBody">
+
+    $:macros.databarWork(page)
+
+    <div id="workDetails">
+
+    <div class="illustration right">
+        $:macros.CoverImageWork(page)
+    </div>
+
+$if page.description:
+    <p>$page.description</p>
+
+
+    $for name in s:
+        $if page[name]:
+            <div class="section"><span class="title">$_t[name]:</span>
+            $if name == "subjects":
+                <span class="tag">
+                    $for subject in page[name]:
+                        $ subject_label = subject.strip('.')
+                        <a href="/search?ftokens=$:utf8(facet_token('subjects', thingrepr(subject).strip()))">$:utf8(thingrepr(subject_label)).replace('--', '&mdash;')</a>&nbsp;
+                </span>
+            $else:
+                <span class="tag">$:thingrepr(page[name])</span>
+            </div>
+
+$if page.notes:
+    <div class="section">
+        <span class="title">$_t['notes']:</span>
+        <span class="tag">$:thingrepr(page.notes)</span>
+    </div>
+
+    $:macros.WorkInfo(page)
+
+
+    <div class="head">
+        <h3>Reviews from around the web</h3>
+    </div>
+    <p class="smaller">
+    </p>
+
+    </div>
+
+    <div class="clearfix"></div>
+
+
+    <div class="head">
+        <h2>Versions we know about</h2><br/>
+        <span class="count"><strong>### editions</strong> available in # languages</span>
+    </div>
+
+</div>
+
+
+<div id="contentLists" class="editions">
+$if page.editions:
+    <div id="editionsCovers" class="covers">
+        <ul id="coversCarousel" class="jcarousel-skin-OL">
+        $ col = 0
+            $for book in page.editions:
+                $code:
+                    def aname(a):
+                        if isinstance(a, basestring):
+                            return a
+                        else:
+                            return a.name
+                $ title = book.title_prefix + " " + book.title
+                $ olid = book.key.split("/")[2]
+                $if col == 0: <li>
+                    <div class="coverMagic">
+	                <div class="SRPCover">
+                            <a href="$book.key" title="$book.title_prefix $book.title">
+	                    <img src="http://covers.openlibrary.org/b/olid/$olid-M.jpg?default=false" class="cover" alt="$title"/>
+                            </a>
+	                </div>
+                        <div class="SRPCoverBlank" onClick="document.location.href='$book.key';" title="$title">
+                            <div class="innerBorder">
+                                <div class="BookTitle">$title
+                                    <div class="Author">$:author_list</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bookMeta">
+                            <div class="Publisher">Printed for $:thingrepr(book.publishers)</div>
+                            <div class="Year">in $book.publish_date</div>
+                        </div>
+                    </div>
+                $ col += 1
+                $if col == 12: 
+                    </li>
+                    $ col = 0
+        $if col != 0: </li>
+        </ul>
+    </div>
+    <div id="editionsList" class="covers">
+        <ul id="listCarousel" class="jcarousel-skin-OL">
+            $for book in page.editions:
+                <li>
+                    <span class="bookcover"><a href="$book.key">$:macros.CoverImage(book, size="S")</a></span>
+                    <div class="resultTitle">
+                        <span class="booktitle"><a href="$book.key">$book.title</a></span>
+                        $if book.subtitle: $book.subtitle
+                        <span class="bookauthor">$:author_list</span>
+                        $if book.ocaid:
+                            <span class="sansserif">&nbsp;<a href="/bookreader/$book.ocaid" class="small orange">Read Online</a>&nbsp;</span>
+                    </div>
+                    <div class="resultPublisher">
+                    $if book.get('publishers'): $:thingrepr(book.publishers) 
+                    $if book.get('publish_places'): ($:thingrepr(book.publish_places).strip()) 
+                    $if book.get('publish_date'): $book.publish_date &nbsp;
+                    $ edition_and_lang = ''
+                    $if book.edition_name:
+                        $ edition_and_lang += book.edition_name 
+                    $if book.languages:
+                        $ edition_and_lang += ', '.join([l.name for l in book.languages])
+                    $if edition_and_lang and book.number_of_pages:
+                        $ edition_and_lang += ', '
+                    $edition_and_lang
+                    $if book.number_of_pages:
+                        $book.number_of_pages pages
+                    </div>
+                </li>
+        </ul>
+    </div>
+    <div class="jcarousel-toolbar">
+        <span class="tools"><span class="label">Display:</span> <span class="list"><a class="on" href="javascript:;" id="edsCovers">Covers</a> / <a href="javascript:;" id="edsList">List</a></span></span>
+    </div>
+                
+    <div class="editThis">
+        <a class="editCTA" href="[EDIT]" title="Add editions related to this work">
+        Do you know <strong>an edition we're missing</strong>?
+        </a>
+    </div>
+</div>
+
+<div class="clearfix"></div>
+
+<div id="contentMeta">
+
+    <div id="resultsLists">
+        <div class="head">
+            <h2>Possibly related...</h2>
+            <a class="editCTA" href="" title="Add books related to this work">
+            Do you know <strong>a book that's related</strong>?
+            </a>
+        </div>
+
+        <div class="books">
+            $:macros.SRPCoverImage(page)
+        </div>
+
+    </div>
+
+    <div class="clearfix"></div>
+
+    <div class="section">
+        <span class="title">Potentially related subjects:</span>
+        <span class="tag"><a href="">Tag or Subject</a></span>
+    </div>
+
+    <div class="clearfix"></div>
+
+    <div id="resultsAbout">
+        <div class="head">
+            <h2>History</h2>
+            <span class="link"><a href="$changequery(m='history')">Read all</a></span>
+        </div>
+
+                    <table class="history">
+                        <tbody>
+                            <tr>
+                                <td class="timestamp">1 hour ago</td>
+                                <td class="detail">
+                                    <!-- SOURCE -->
+                                    <a href="[URL]">Powells</a>
+                                    <!-- /SOURCE --> 
+                                    told us they sell the
+                                    <!-- EDITION -->
+                                    <a href="[BOOK PAGE]">1983 Bantam edition</a>.
+                                    <!-- /EDITION --> 
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="timestamp">3 days ago</td>
+                                <td class="detail">
+                                    We discovered a
+                                    <!-- SCAN TYPE -->
+                                    <a href="[SCANNED URL]">full-text digital version</a>
+                                    <!-- /SCAN TYPE -->
+                                    of the
+                                    <!-- EDITION -->
+                                    1963 Penguin edition
+                                    <!-- /EDITION -->
+                                    is available on
+                                    <!-- SOURCE -->
+                                    <a href="[SCAN LINK]">Google</a>.
+                                    <!-- /SOURCE -->
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="timestamp">A week ago</td>
+                                <td class="detail">
+                                    <!-- ACTION -->
+                                    A new edition
+                                    <!-- /ACTION -->
+                                    was added by
+                                    <!-- MEMBER -->
+                                    <a href="[PROFILE]">Sonny</a>,
+                                    <!-- /MEMBER -->
+                                    on Open Library:
+                                    <!-- EDITION -->
+                                    <a href="[BOOK PAGE]">1983, Bantam</a>.
+                                </td>
+                            </tr>
+                            <tr class="reveal">
+                                <td class="timestamp">&nbsp;</td>
+                                <td class="detail"><a href="javascript:;" class="showmore">See more history</a></td>
+                            </tr>
+                            <tr class="hidden">
+                                <td class="timestamp">Time stamp</td>
+                                <td class="detail">Here's what happened!</td>
+                            </tr>
+                            <tr class="hidden">
+                                <td class="timestamp">Time stamp</td>
+                                <td class="detail">Here's what happened!</td>
+                            </tr>
+                            <tr class="hidden">
+                                <td class="timestamp">Time stamp</td>
+                                <td class="detail">Here's what happened!</td>
+                            </tr>
+                            <tr class="hidden">
+                                <td class="timestamp">Time stamp</td>
+                                <td class="detail">Here's what happened!</td>
+                            </tr>
+                            <tr class="hidden">
+                                <td class="timestamp">Time stamp</td>
+                                <td class="detail">Here's what happened!</td>
+                            </tr>
+                            <tr class="hidden">
+                                <td class="timestamp">Time stamp</td>
+                                <td class="detail">Here's what happened!</td>
+                            </tr>
+                            <tr class="hidden">
+                                <td class="timestamp">Time stamp</td>
+                                <td class="detail">Here's what happened!</td>
+                            </tr>
+                            <tr>
+                                <td class="timestamp">Last month</td>
+                                <td class="detail">
+                                    Turned up on
+                                    <!-- MEMBER -->
+                                    <a href="[PROFILE]">Estelle Getty</a>'s
+                                    <!-- /MEMBER -->
+                                    <!-- LIST -->
+                                    <a href="[LIST URL]">Snaks for Important People</a> list.
+                                    <!-- /LIST -->
+                                </td>
+                            </tr>
+                            <tr class="first">
+                                <td class="timestamp">12 Nov 08</td>
+                                <td class="detail">
+                                    <!-- ACTION -->
+                                    We imported the original source record from
+                                    <!-- /ACTION -->
+                                    <!-- SOURCE -->
+                                    <a href="[SOURCE URL]"><strong>Library of Congress</strong></a>:
+                                    <!-- /SOURCE -->
+                                    <!-- EDITION -->
+                                    <a href="[BOOK URL]">1962, Penguin, paperback</a>.
+                                    <!-- /EDITION -->
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+    </div>
+</div>

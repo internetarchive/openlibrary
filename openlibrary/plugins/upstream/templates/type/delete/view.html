@@ -1,0 +1,18 @@
+$def with (page)
+
+$var title: $page.key
+
+<div id="contentHead">
+    <div class="head">
+        <h1>This page has been deleted</h1>
+    </div>
+</div>
+
+<div id="contentBody">
+    <p><strong>What would you like to do?</strong></p>
+
+    <p><a href="$url(v=page.revision - 1)">View previous version</a><br/>
+    <a href="$url(m='edit', v=page.revision - 1)">Recreate it</a><br/>
+    <a href="$url(m='history')">See a page history</a><br/>
+    <a href="javascript:;" onclick="history.go(-1);">Go back where I came from</a></p>
+</div>

@@ -1,0 +1,91 @@
+$def with (page)
+
+$ _s = i18n.get_namespace('/search')
+$ _t = i18n.get_namespace('/type/author')
+$ _ = i18n.get_namespace('/mode/view')
+
+$var title: $page.name
+
+$ olid = page.key.split('/')[-1]
+
+<div id="contentHead">
+
+    $:macros.databarView(page)
+
+    <div class="head">
+        <h1>$page.name</h1>
+    </div>
+    <br/>
+    <h3>
+        $if page.birth_date or page.death_date:
+            $page.birth_date - $page.death_date
+        $else:
+            $if page.date:
+                $page.date
+    </h3>
+</div>
+
+<script type="text/javascript">
+\$().ready(bookCovers);
+</script>
+
+<div id="contentBody">
+
+    <div class="illustration right">
+        <div class="bookCover">
+            <span><img src="http://covers.openlibrary.org/a/olid/$olid-M.jpg?default=false" class="cover"/></span>
+        </div>
+        <div class="SRPCoverBlank author">
+            <div class="BookTitle">$page.name
+                <div class="Author"></div>
+            </div>
+        </div> 
+        <div class="smaller sansserif"><br/><a href="$:changequery(m='change_cover')">Add Photo</a></div>
+    </div>
+
+    $:format(page.get('bio', ''))
+
+    $if page.website:
+        <div class="section"><span class="title">$_t.website:</span> <span class="tag"><a href="$page.website" class="datalink">$page.website</a></span></div>
+            
+    $if page.location:
+        <div class="section"><span class="title">$_t.location:</span> <span class="tag">$page.location</span></div>
+
+    $if page.alternate_names:
+        <div class="section"><span class="title">$_t.alternate_names:</span> <span class="tag">$", ".join(page.alternate_names)</span></div>
+ 	 	
+    $if page.wikipedia and page.wikipedia.startswith("http"):
+        <div class="section"><span class="title"></span><span class="tag">Read about $page.name at <a href="$page.wikipedia" class="sidebar">Wikipedia</a></span></div>
+
+<!-- BEGIN SEARCH -->
+    <div class="clearfix"></div>
+    <div class="section">
+        <a name="editions"></a>
+        <div class="head">
+            <h2>$_t.by_author</h2>
+
+                $ books_page = safeint(query_param('books_page', '0'))
+                <span class="tools">
+                $if books_page != 0:
+                    <a href="$:changequery(books_page=books_page - 1)" class="sansserif" rel="nofollow">$_.prev</a>
+        
+                $if len(page.books) == 20:
+                    ... <a href="$:changequery(books_page=books_page + 1)" class="sansserif" rel="nofollow">$_.next</a>
+                </span>
+        </div>
+        <br/>
+
+        $if page.books:
+            <div id="searchResults" class="wide">
+                $:macros.SearchResults(page.books)
+                <p class="sansserif">
+                $if books_page != 0:
+                    <a href="$:changequery(books_page=books_page - 1)" class="sansserif" rel="nofollow">$_.prev</a>
+        
+                $if len(page.books) == 20:
+                    ... <a href="$:changequery(books_page=books_page + 1)" class="sansserif" rel="nofollow">$_.next</a>
+                </p>
+            </div>
+    </div>
+
+</div>
