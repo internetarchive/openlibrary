@@ -1,6 +1,14 @@
 $def with (page)
 
-<div id="tools" class="edit">
-    <a class="edit" href="$changequery(m='edit')" title="Edit this template" accesskey="e">$_("Edit")</a>
-    <a class="history" href="$changequery(m='history')" title="View this template's edit history">$_("History")</a>
+<div id="editTools" class="edit">
+    <div id="editHistory">
+        <button onClick="parent.location='$changequery(m='history')'" title="View this template's edit history">$_("History")</button>
+    </div>
+    <div id="editButton">
+        <button onClick="parent.location='$changequery(m='edit')'" title="Edit this template" accesskey="e">$_("Edit")</button>
+    </div>
+    <div id="editInfo">
+        <div class="brown smaller sansserif">$_("Last modified")</div>
+        <div class="smallest gray sansserif">$(page.last_modified and datestr(page.last_modified))</div>
+    </div>
 </div>

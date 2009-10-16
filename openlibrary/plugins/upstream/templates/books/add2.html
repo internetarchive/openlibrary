@@ -8,7 +8,7 @@ $var title: $page.title
 \$().ready(boxPop);
 \$().ready(function(){\$("#coverPop").colorbox({inline:true, href:"#addCover"});});
 \$().ready(function(){\$("#tocPop").colorbox({inline:true, href:"#addTOC"});});
-\$().ready(wysiwyg);
+\$().ready(setup_wmd);
 
 function limitChars(textid, limit, infodiv) {
     var text = \$('#'+textid).val(); 
@@ -63,7 +63,7 @@ function limitChars(textid, limit, infodiv) {
 
                     <div class="formElement">
                         <div class="label">
-                            <label for="">$_("How would you describe this book?")</label> 
+                            <label for="bookAbout">$_("How would you describe this book?")</label> 
                             <span class="tip">$_("There's no wrong answer here.")</span>
                         </div>
                         <div class="input">
@@ -143,11 +143,11 @@ function limitChars(textid, limit, infodiv) {
 
                     <div class="formElement">
                         <div class="label">
-                            <label for="">$_("Page number?")</label>
+                            <label for="excerpt_pages">$_("Page number?")</label>
                             <span class="tip">$_("For example:") <i>23, xi or 433-434</i></span>
                         </div>
                         <div class="input">
-                            <input type="text" name="" id="" value="" class="xsmall"/>
+                            <input type="text" name="excerpt_pages" id="excerpt_pages" value="" class="xsmall"/>
                         </div>
                     </div>
 
@@ -163,11 +163,11 @@ function limitChars(textid, limit, infodiv) {
 
                     <div class="formElement">
                         <div class="label">
-                            <label for="">$_("Why did you choose this excerpt?")</label>
+                            <label for="excerpt_describe">$_("Why did you choose this excerpt?")</label>
                             <span class="tip">$_("Add a note about why you chose this. (Optional)")</span>
                         </div>
                         <div class="input">
-                            <textarea name="" id="" rows="3" cols="50"></textarea>
+                            <textarea name="excerpt_describe" id="excerpt_describe" rows="3" cols="50"></textarea>
                         </div>
                     </div>
 
@@ -215,21 +215,21 @@ function limitChars(textid, limit, infodiv) {
         
                     <div class="formElement">
                         <div class="label">
-                            <label for="">URL</label> 
+                            <label for="work_url">URL</label> 
                             <span class="tip"></span>
                         </div>
                         <div class="input">
-                            <input type="text" name="" id="" value="http://"/>
+                            <input type="text" name="work_url" id="work_url" value="http://"/>
                         </div>
                     </div>
 
                     <div class="formElement">
                         <div class="label">
-                            <label for="">Give your link a label</label> 
+                            <label for="work_url_label">Give your link a label</label> 
                             <span class="tip">For example: <i>Podcast about the book on The Guardian</i></span>
                         </div>
                         <div class="input">
-                            <input type="text" name="" id="" value=""/>
+                            <input type="text" name="work_url_label" id="work_url_label" value=""/>
                             <input type="button" value="Add Link"></button>
                         </div>
                     </div>
@@ -308,72 +308,72 @@ function limitChars(textid, limit, infodiv) {
         <form method="post" id="addEdition" class="olform books" name="edit" action="/addbook">
         
             <div id="edition">
+                <div class="small" style="color:#615132;position:absolute;top:15px;right:20px;">
+                    <span id="modeToggle">Turn on</span> <a title="Expose another 20 fields about the edition" href="javascript:;" id="libraryMode">Librarian Mode</a>?
+	        </div>
         
                 <fieldset class="major">
-                    <div class="small" style="color:#615132;position:absolute;top:15px;right:20px;">
-	                  <span id="modeToggle">Turn on</span> <a title="Expose another 20 fields about the edition" href="javascript:;" id="libraryMode">Librarian Mode</a>?
-	                </div>
                     <legend>Publishing Info</legend>
 
                     <div class="formBack">
     
                         <div class="formElement">
                             <div class="label">
-                                <label for="">Who is the publisher?</label> 
+                                <label for="publishers">Who is the publisher?</label> 
                                 <span class="tip">For example: <em>Oxford University Press; Penguin; W.W. Norton</em></span>
                             </div>
                             <div class="input">
-                                <input type="text" name="" id="" value=""/>
+                                <input type="text" name="publishers" id="publishers" value=""/>
                             </div>
                         </div>
     
                         <div class="formElement">
                             <div class="label">
-                                <label for="">When was it published?</label> 
+                                <label for="publish_date">When was it published?</label> 
                                 <span class="tip">You should be able to find this in the first few pages of the book.</span>
                             </div>
                             <div class="input">
-                                <input type="text" name="" id="" value="" size="6" maxlength="5" style="width:70px!important;"/>
+                                <input type="text" name="publish_date" id="publish_date" value="" size="6" maxlength="5" style="width:70px!important;"/>
                             </div>
                         </div>
     
                         <div class="formElement">
                             <div class="label">
-                                <label for="">Where was the book published?</label>
+                                <label for="publish_place">Where was the book published?</label>
                                 <span class="tip">City, Country please. For example: <i>New York, USA; Sydney, Australia</i></span>
                             </div>
                             <div class="input">
-                                <input type="text" name="" id="" value=""/>
+                                <input type="text" name="publish_place" id="publish_place" value=""/>
                             </div>
                         </div>
     
                         <div class="formElement librarian hidden">
                             <div class="label">
-                                <label for="">Is there a copyright date?</label>
+                                <label for="copyright_date">Is there a copyright date?</label>
                                 <span class="tip">The year following the copyright statement.</span>
                             </div>
                             <div class="input">
-                                <input type="text" name="" id="" value=""/>
+                                <input type="text" name="copyright_date" id="copyright_date" value=""/>
                             </div>
                         </div>
     
                         <div class="formElement librarian hidden">
                             <div class="label">
-                                <label for="">Is the book part of a series?</label> 
+                                <label for="series">Is the book part of a series?</label> 
                                 <span class="tip">The name of the publisher's series. For example: <i>The Story of Civilization, Part III</i></span>
                             </div>
                             <div class="input">
-                                <input type="text" name="" id="" value=""/>
+                                <input type="text" name="series" id="series" value=""/>
                             </div>
                         </div>
     
                         <div class="formElement librarian hidden">
                             <div class="label">
-                                <label for="">Is it a volume in a collection?</label>
+                                <label for="collections">Is it a volume in a collection?</label>
                                 <span class="tip">What collection does it belong to?</span>
                             </div>
                             <div class="input">
-                                <input type="text" name="" id="" value=""/>
+                                <input type="text" name="collections" id="collections" value=""/>
                                 <div class="tip">e.g. <i>The <strong>Pocket Atlas of Anatomy</strong> collection consists of Vol I: Head and Neck, Vol. II: Thorax, Heart, Abdomen and Pelvis & Vol. III: Spines Extremities and Joints</i></div>
                             </div>
                         </div>
@@ -392,49 +392,49 @@ function limitChars(textid, limit, infodiv) {
         
                         <div class="formElement">
                             <div class="label">
-                                <label for="">Title</label> 
+                                <label for="title">Title</label> 
                                 <span class="tip">There are occasionally title variants amongst editions.</span>
                             </div>
                             <div class="input">
-                                <input type="text" name="" id="" value=""/>
+                                <input type="text" name="title" id="title" value=""/>
                             </div>
                         </div>
     
                         <div class="formElement">
-                            <div class="label"><label for="">Subtitle</label> <span class="tip">Usually distinguished by different or smaller type. For example: <i>envisioning the next 50 years</i></span></div>
+                            <div class="label"><label for="subtitle">Subtitle</label> <span class="tip">Usually distinguished by different or smaller type. For example: <i>envisioning the next 50 years</i></span></div>
                             <div class="input">
-                                <input type="text" name="" id="" value=""/>
+                                <input type="text" name="subtitle" id="" value="subtitle"/>
                             </div>
                         </div>
     
                         <div class="formElement librarian hidden">
                             <div class="label">
-                                <label for="">Is it known by any other titles?</label> 
+                                <label for="title_other">Is it known by any other titles?</label> 
                                 <span class="tip">Perhaps in another language?</span>
                             </div>
                             <div class="input">
-                                <input type="text" name="" id="" value=""/>
+                                <input type="text" name="title_other" id="title_other" value=""/>
                                 <div class="tip">For example: <i>Der Zauberberg</i> is an alternate title for <i>The Magic Mountain</i>.</div>
                             </div>
                         </div>
     
                         <div class="formElement librarian hidden">
                             <div class="label">
-                                <label for="">Does this edition have a specific name?</label> 
+                                <label for="edition">Does this edition have a specific name?</label> 
                                 <span class="tip">For example: <i>Centennial edition</i>; <i>First edition</i></span>
                             </div>
                             <div class="input">
-                                <input type="text" name="" id="" value=""/>
+                                <input type="text" name="edition" id="edition" value=""/>
                             </div>
                         </div>
     
                         <div class="formElement librarian hidden">
                             <div class="label">
-                                <label for="">Any notes about this specific edition?</label> 
+                                <label for="edition_notes">Any notes about this specific edition?</label> 
                             <span class="tip">Anything about the book that may be of interest. For example: <i>A Plume Book</i>.</span>
                             </div>
                             <div class="input">
-                                <textarea name="" id="" rows="3" cols="50"></textarea>
+                                <textarea name="edition_notes" id="edition_notes" rows="3" cols="50"></textarea>
                             </div>
                         </div>
         
@@ -459,14 +459,14 @@ function limitChars(textid, limit, infodiv) {
         
                             <div class="formElement">
                                 <div class="label">
-                                    <label for="">List the people involved</label>
+                                    <label for="IDtype">List the people involved</label>
                                     <span class="tip"></span>
                                 </div>
                                 <div class="input">
                                     <table class="identifiers">
                                         <tr>
                                             <td width="15%" align="right">
-                                                <select name="IDtype" id="" style="font-family: Lucida Grande;  font-size: 14px; padding: 4px; name="idtype="IDtype">
+                                                <select name="IDtype" id="IDtype" style="font-family: Lucida Grande;  font-size: 14px; padding: 4px; name="idtype="IDtype">
                                                     <option selected="selected">Select role</option>
                                                     <option>Author</option>
                                                     <option>Contributor</option>
@@ -503,7 +503,7 @@ function limitChars(textid, limit, infodiv) {
 
                             <div class="formElement librarian hidden">
                                 <div class="label">
-                                    <label for="">Is there a By Statement?</label>
+                                    <label for="work_desc17">Is there a By Statement?</label>
                                     <span class="tip">For example: <em>edited by David Anderson</em></span>
                                 </div>
                                 <div class="input">
@@ -521,7 +521,7 @@ function limitChars(textid, limit, infodiv) {
         
                             <div class="formElement">
                                 <div class="label">
-                                    <label for="">What language is this edition written in?</label>
+                                    <label for="language">What language is this edition written in?</label>
                                     <span class="tip"></span>
                                 </div>
                                 <div class="input">
@@ -536,7 +536,7 @@ function limitChars(textid, limit, infodiv) {
         
                             <div class="formElement librarian hidden">
                                 <div class="label">
-                                    <label for="">Is it a translation of another book?</label>
+                                    <label for="translation">Is it a translation of another book?</label>
                                     <span class="tip"></span>
                                 </div>
                                 <div class="input">
@@ -585,7 +585,7 @@ function limitChars(textid, limit, infodiv) {
     
                         <div class="formElement">
                             <div class="label">
-                                <label for="">Do you know any identifiers for this edition?</label>
+                                <label for="IDtype2">Do you know any identifiers for this edition?</label>
                                 <span class="tip">Like, ISBN?</span>
                             </div>
                             <div class="input">
@@ -640,7 +640,7 @@ function limitChars(textid, limit, infodiv) {
                         <fieldset class="minor">
                             <div class="formElement">
                                 <div class="label">
-                                    <label for="">What sort of book is it?</label>
+                                    <label for="work-desc7">What sort of book is it?</label>
                                     <span class="tip">Paperback; Hardcover, etc.</span>
                                 </div>
                                 <div class="input">
@@ -649,7 +649,7 @@ function limitChars(textid, limit, infodiv) {
                             </div>
                             <div class="formElement">
                                 <div class="label">
-                                    <label for="">How many pages?</label>
+                                    <label for="work-desc8">How many pages?</label>
                                     <span class="tip"></span>
                                 </div>
                                 <div class="input">
@@ -658,7 +658,7 @@ function limitChars(textid, limit, infodiv) {
                             </div>
                             <div class="formElement">
                                 <div class="label">
-                                    <label for="">Pagination?</label>
+                                    <label for="work-desc9">Pagination?</label>
                                     <span class="tip">Note the highest number in each pagination pattern.</span>
                                 </div>
                                 <div class="input">
@@ -668,7 +668,7 @@ function limitChars(textid, limit, infodiv) {
                             </div>
                             <div class="formElement">
                                 <div class="label">
-                                    <label for="">How much does the book weigh?</label>
+                                    <label for="work-desc18">How much does the book weigh?</label>
                                     <span class="tip"></span>
                                 </div>
                                 <div class="input">
@@ -699,11 +699,11 @@ function limitChars(textid, limit, infodiv) {
                                     <table cellspacing="0" cellpadding="1">
                                         <tr>
                                             <td rowspan="3"><img src="/images/dimensions.png" alt="dimensions" width="92" height="75" align="left" style="margin:0 5px;" /></td>
-                                            <td><span class="tip"> <label for="">Depth:</label> </span></td>
+                                            <td><span class="tip"> <label for="work-desc4">Depth:</label> </span></td>
                                             <td><input name="work-desc4" type="text" id="work-desc4" style="width:70px!important;" size="6" maxlength="5" /></td>
                                         </tr>
                                         <tr>
-                                            <td><span class="tip"> <label for="">Height:</label> </span></td>
+                                            <td><span class="tip"> <label for="work-desc5">Height:</label> </span></td>
                                             <td><input name="work-desc5" type="text" id="work-desc5" style="width:70px!important;" size="6" maxlength="5" />
                                                 <span class="tip">
                                                     <input name="heightunit" type="radio" id="heightunit1" value="centimeters" checked="checked" />
@@ -714,7 +714,7 @@ function limitChars(textid, limit, infodiv) {
                                             </td>
                                         </tr>
                                         <tr>
-                                            <td><span class="tip"> <label for="">Width:</label> </span></td>
+                                            <td><span class="tip"> <label for="work-desc6">Width:</label> </span></td>
                                             <td><input name="work-desc6" type="text" id="work-desc6" style="width:70px!important;" size="6" maxlength="5" /></td>
                                         </tr>
                                     </table>

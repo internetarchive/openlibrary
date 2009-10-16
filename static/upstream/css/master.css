@@ -9,7 +9,7 @@ b,strong{font-weight:700;}
 i,em{font-style:italic;}
 ol{margin-left:1.5em;}
 ol li{list-style:decimal!important;}
-ul li{line-height:normal;}
+pre, code {font-family:"Lucida Console","Courier New",monospace;font-size:0.875em;}
 
 /* SITE DEFAULTS */
 
@@ -37,6 +37,7 @@ a:visited {color: #036;}
 .blue {color: #036daa;}
 .red {color: #e44028;}
 .yellow {color: #fffdcd;}
+.gray {color:#999;}
 a.plain {text-decoration:none!important;}
 .right{float:right;margin:0 0 8px 8px;}
 .left{float:left;margin:0 8px 8px 0;}
@@ -48,21 +49,26 @@ a.plain {text-decoration:none!important;}
 .serif {font-family: "Palatino Linotype", "Book Antiqua", Palatino, Georgia, serif!important;}
 .clearfix{width:100%;clear:both;}
 .clearfix:after {content:".";display:block;height:0;clear:both;visibility:hidden;}
-.right.illustration {margin:0 0 20px 30px;}
-.left.illustration {margin:0 30px 20px 0;}
+.right.illustration {margin:0 0 30px 30px;text-align:center;}
+.left.illustration {margin:0 30px 30px 0;}
 button.plainText {border:none;font-family:"Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;font-size:0.75em;color:#e44028;background-color: #fff;cursor:pointer;}
 button.plainText:hover {color:#35672e;}
 tr.odd,tr.even{background-color:#ececec;}
 #tooltip{position:absolute;display:none;border:1px solid #dedede;padding:4px;background-color:#fff;font-size:0.75em;opacity:0.80}
+.pagination {float:left;font-family:"Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;font-size:0.75em;margin:90px 0 30px;}
+.pagination a {display:block;float:left;text-decoration:none;padding:7px;border:1px solid #ddd;margin-right:10px;}
+.pagination a:hover {background:#036daa;color:#fff;display:block;float:left;text-decoration:none;padding:7px;border:1px solid #ddd;margin-right:10px;}
+.pagination span.this {display:block;float:left;color:#000;padding:7px;border:1px solid #ddd;margin-right:10px;}
+.pagination span.ellipsis {display:block;float:left;color:#000;padding:8px;margin-right:10px;}
     
 /* TYPOGRAPHY */
 
 div.unordered {margin-top:10px;line-height:150%;}
 div.head.rel {position:relative;}
 h1,h2,h3,h4,h5,h6 {display:inline;font-family:"News Gothic MT","Arial Rounded MT",Geneva,Helvetica,sans-serif;color:#00636a;font-weight:600;padding-right:8px;line-height:normal;}
-h1 {font-size: 1.875em;} /*30px (30/16=1.875)*/
-h2 {font-size: 1.375em;} /*24px (24/16=1.375)*/
-h2.author {color:#000;font-size:1.125em;font-family:"News Gothic MT","Trebuchet MS",Helvetica,sans-serif;line-height:1.0em;font-weight:normal;display:block;}
+h1 {font-size: 1.875em;letter-spacing:-1px;} /*30px (30/16=1.875)*/
+h2 {font-size: 1.375em;letter-spacing: -1px;} /*24px (24/16=1.375)*/
+h2.author {color:#000;font-size:1.125em;letter-spacing:0!important;font-family:"News Gothic MT","Trebuchet MS",Helvetica,sans-serif;line-height:1.0em;font-weight:normal;}
 h3 {font-size: 1.125em;} /*18px (18/16=1.125)*/
 h4 {font-size: 1.0em;} /*16px (16/16=1)*/
 h5 {font-size: 0.875em;font-family:"Palatino Linotype", "Book Antiqua", Palatino, Georgia,serif!important;font-weight:normal!important;} /*14px (14/16=.875)*/
@@ -90,9 +96,9 @@ body {font-family:"Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif
 body#user div#content{font-family:"Palatino Linotype", "Book Antiqua", Palatino, Georgia,"Times New Roman",serif;}
 body#admin div#content,body#edit div#content{font-family:"News Gothic MT","Arial Rounded MT",Helvetica,Geneva,sans-serif;}
 input[type=text],select,textarea{font-family:"Lucida Grande",Verdana,Geneva,Helvetica,sans-serif;color:#454545;}
-input,select,textarea{font-size:0.875em;}
-input[type=submit]{font-size:0.6875em;}
-input[type=text]{margin:0 10px 5px 0;}
+input,select,textarea{font-size:0.75em;}
+input[type=submit]{font-size:0.75em;}
+input[type=text]{margin: 0 10px 5px 0;}
 #contentBody input[type=submit]{font-size:1.125em!important;}
 p.instruct {font-family:"Lucida Grande",Verdana,Geneva,Helvetica,sans-serif;font-size:0.875em;margin-bottom:0;}
 .section {margin-bottom:25px;}
@@ -125,7 +131,6 @@ div.formElement {
     padding-bottom: 8px;
 }
 div.formElement.bottom {
-    width: 900px;
     padding-bottom: 20px;
 }
 div.formElement label {
@@ -139,6 +144,10 @@ div.formElement .tip {
     color:#666;
     font-family:"Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif!important;
 }
+div.formElement p.tip {
+    border-top: 1px solid #ccc;
+    padding:5px;
+}
 div.formElement .footnote {
     border-top: 1px solid #ccc;
     padding: 5px;
@@ -149,7 +158,16 @@ div.formElement blockquote {
     margin: 1em 40px;
     line-height: 1.5em;
 }
-
+fieldset {position:relative;padding:20px 0;margin:10px 0;}
+fieldset.minor {display:block;float:left;width:400px;margin-top:40px;}
+fieldset.major legend {
+    padding:5px 0;font-family:"News Gothic MT","Arial Rounded MT",Geneva,Helvetica,sans-serif;color:#00636a;font-weight:600;font-size:1.375em;
+}
+fieldset.minor legend {
+    font-family:"News Gothic MT","Arial Rounded MT",Geneva,Helvetica,sans-serif;color:#00636a;font-weight:600;font-size:1.125em;
+}
+.formBack {float:left;width:830px;padding:10px;background-color:#f5f5f5;}
+div.formDivider {float:left;width:30px;min-height:200px;}
 
 /* EDITING */
 body#edit div#placement,body#edit div#position,body#edit div#header,body#edit div#content {width:100%;}
@@ -188,7 +206,9 @@ body#edit textarea {
 }
 body#edit .formElement input[type=text] {
     width: 100%;
-    font-size: 0.875em;font-family: "Palatino Linotype", "Book Antiqua", Palatino, Georgia, serif;color:#333;padding:3px;
+    font-size: 0.875em;font-family: Lucida Grande", "Trebuchet MS", Geneva, Helvetica, sans-serif;
+    color:#333;
+    padding:3px;
 }
 body#edit table.code {
     border: 1px solid #e7e7e7;
@@ -216,7 +236,7 @@ form.olform {
 }
 form.olform .label {
     width: 838px;
-    padding: 10px 0 5px;
+    padding: 10px 0 2px;
 }
 form.olform .label label {
     font-size: 1.0em;
@@ -236,6 +256,12 @@ form.olform textarea {
     font-size: 1.125em;
     font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
     padding: 3px;
+}
+form.olform.books input[type=text],
+form.olform.books input[type=password],
+form.olform.books textarea {
+    width: 75%!important;
+    font-size: 0.875em!important;
 }
 form.olform .input {
     width: 838px;
@@ -292,180 +318,143 @@ div#recaptcha_image {
 
 /* SEARCH FORMS */
 .optionsScript {display:none;}
-div#headerSearch,
-div#footerSearch {
+div.siteSearch {
     position: absolute;
     z-index: 1000;
     right: 0;
-    width: 285px;
     overflow: visible;
-    padding: 9px;
-    padding-bottom: 0;
     -moz-border-radius: 8px;
     -webkit-border-radius: 8px;
     border-radius: 8px;
+    width: 285px;
 }
 div#headerSearch {
-    top: 84px;
+    top: 86px;
+    padding: 9px;
 }
 div#footerSearch {
     bottom: 80px;
+    padding: 0 9px 30px;
 }
-div#headerSearch.darker,
-div#footerSearch.darker {
-	-moz-box-shadow: 1px 1px 10px #333;
- 	-webkit-box-shadow: 1px 1px 10px #333;
- 	box-shadow: 1px 1px 10px #333;
+div.siteSearch input[type=submit] {
+    float: right;
+    vertical-align: middle;
+    font-size: 0.75em;
 }
-body#user div#headerSearch.darker,
-body#user div#footerSearch.darker {
+div.siteSearch input[type=text] {
+    width: 210px;
+    padding: 2px;
+}
+
+div.siteSearch.darker {
+    -moz-box-shadow: 1px 1px 10px #333;
+    -webkit-box-shadow: 1px 1px 10px #333;
+    box-shadow: 1px 1px 10px #333;
+}
+body#user div.siteSearch.darker {
     background-color: #d3ccb0;
 }
-body#admin div#headerSearch.darker,
-body#admin div#footerSearch.darker {
+body#admin div.siteSearch.darker {
     background-color: #c1c1c1;
 }
-div#bottomText {
+
+div.searchPlacement {
+    position: absolute;
+    left: 0;
     width: 285px;
-    border-bottom: 1px dotted #fff;
+    height: 24px;
 }
-div#bottomText div.formElement.special {
-    padding: 9px 15px 8px;
-    border-bottom: 1px dotted #fff;
+div#headerSearch div.searchPlacement {
+    top: 34px;
 }
-div.searchFilter,
-div#headerSearch div.right,
-div#footerSearch div.right {
-    padding: 10px 0 0 5px;
-    font-size: 0.6875em;
+div#footerSearch div.searchPlacement {
+    bottom: 9px;
+}
+div.searchFilter {
+    position: relative;
+    width: 285px;
+    height: 24px;
 } 
+div.searchFilter .searchOpener {
+    position: absolute;
+    right: -5px;
+    bottom: 0;
+    font-size: 0.6875em;
+}
+div.searchFilter .searchCheckbox {
+    position: absolute;
+    left: 10px;
+    bottom: 0;
+    font-size: 0.6875em;
+}
 input.query {
     width: 205px;
     margin-right: 3px;
 }
 div.searchOptions {
-    padding-top: 8px;
+    display: none;
     width: 285px;
 }
-div.searchOptions input[type=text] {
-    width: 210px;
+div#topOptions {
+    padding-top: 30px;
 }
-div.searchText textarea {
-    width: 275px;
+div#bottomOptions {
+    padding-top: 15px;
 }
 div.searchOptions .formElement {
     padding: 0 2px 8px 2px;
 }
-div.searchOptions div.formElement.special {
-    padding: 9px 0 8px;
-    border-top: 1px dotted #fff;
-}
 
-/* EDIT/ADD FORMS */
-form.oledit {
-  font-family: "Lucida Grande", "Trebuchet MS", Geneva, Helvetica, sans-serif;
-}
-form.oledit .label {
-    width: 838px;
-    padding: 10px 0 5px;
-}
-form.oledit .label label {
-    font-size: 1.0em;
-    font-family: "Lucida Grande", "Trebuchet MS", Geneva, Helvetica, Arial, sans-serif;
-    font-weight: 700;
-}
-form.oledit .label span {
-    font-weight: normal;
-}
-form.oledit input[type=text],
-form.oledit input[type=password],
-form.oledit textarea {
-    width: 475px;
-    font-size: 1.125em;
-    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
-    padding: 3px;
-}
-form.oledit .input {
-    width: 838px;
-}
-form.oledit select {
-    font-size: 1.125em;
-    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
-    padding: 3px;
-}
-
-/* EDIT/ADD BOOK */
-form.olform.books .input,
-form.olform.books .label {
-    width: auto!important;
-}
-.TitleAuthor {
-	margin: 30px auto 61px;
-	width: 875px;
-}
-.TitleAuthor input#work-title {
-    font-size: 1.875em; width: 500px; margin: 10px 0 0 0;
-}
-.TitleAuthor input#author {
-    font-size: 1.875em; width: 300px; margin: 10px 0 0 0;
-}
-#tabsAddbook {
-    margin-bottom: 30px;
-}
-fieldset {position:relative;padding:20px 0; margin:10px 0;}
-fieldset.minor {display:block;float:left;width:400px;margin-top:40px;}
-fieldset.major legend {
-    padding:5px 0;font-family:"News Gothic MT","Arial Rounded MT",Geneva,Helvetica,sans-serif;color:#00636a;font-weight:600;font-size:1.375em;
-}
-fieldset.minor legend {
-    font-family:"News Gothic MT","Arial Rounded MT",Geneva,Helvetica,sans-serif;color:#00636a;font-weight:600;font-size:1.125em;
-}
-.formBack {float:left;padding:10px;background-color:#f5f5f5;}
-div.formDivider {float:left;width:30px;min-height:200px;}
-.identifiers td {
-	color: #333333;
-	border-bottom: 1px solid #ddd;
-	background-color: #f3f3f3;
-	padding: 5px;
-}
-#cover {position:absolute;top:50px;right:20px;border:2px solid #615132;background:#fff;width:120px;height:180px;text-align:center;line-height:1.5em;}
-
-/* PAGE TOOLS (ICONS) */
-div#tools {float:right;margin:0 0 20px;position:relative;}
-div#tools.edit {position:absolute;right:30px;top:20px;}
-div#tools a {display:block;float:left;margin-left:30px;width:32px;height:10px;padding-top:38px;text-align:center;font-size:0.625em;font-family:"Lucida Grande", Verdana, Geneva, Helvetica, sans-serif;color:#615132;text-decoration:none;background-repeat:no-repeat;background-image:url(/images/icons/icons_sprite.png);font-weight:600;white-space:nowrap;}
-div#tools a:hover {color:#000;}
-div#tools a.edit {background-position:0 0;}
-div#tools a.edit:hover {background-position:-32px 0;}
-div#tools a.listAdd {background-position:-64px 0;}
-div#tools a.listAdd:hover {background-position:-96px 0;}
-div#tools a.read {background-position:-128px 0;}
-div#tools a.read:hover {background-position:-160px 0;}
-div#tools a.download {background-position: -256px 0;}
-div#tools a.download:hover {background-position: -288px 0;}
-div#tools a.buy {background-position: -320px 0;}
-div#tools a.buy:hover {background-position: -352px 0;}
-div#tools a.history {background-position: -384px 0;}
-div#tools a.history:hover {background-position: -416px 0;}
-div#tools a.view {background-position: -448px 0;}
-div#tools a.view:hover {background-position: -480px 0;}
-div#tools a.borrow {background-position: -512px 0;}
-div#tools a.borrow:hover {background-position: -544px 0;}
 div#abuse {float:right;text-align:right;margin:-20px 10px 0 0;}
 div#abuse a {display:block;width:70px;overflow:visible;text-align:center;font-size:0.625em;font-family:"Lucida Grande", Verdana, Geneva, Helvetica, sans-serif;color:#615132;text-decoration:none;white-space:nowrap;font-weight:600;}
 div#abuse a span {display:block;margin:0 auto 8px;width:32px;height:32px;background-repeat:no-repeat;background-image:url(/images/icons/icons_sprite.png);background-position: -576px 0;}
 div#abuse a:hover {color:#000;}
 div#abuse a:hover span {background-position: -608px 0;}
-#tooltip{position:absolute;z-index:3000;text-align:left;opacity:0.9;background-color:#fffdcd;border:1px solid #d3ccb0;width:250px;padding:8px;-moz-border-radius:8px;-webkit-border-radius:8px;border-radius:8px;-moz-box-shadow: 1px 1px 10px #333;-webkit-box-shadow: 1px 1px 10px #333;box-shadow: 1px 1px 10px #333;}
-#tooltip h3{font-weight:600;font-size:16px;font-family:"News Gothic MT","Arial Rounded MT",Geneva,Helvetica,sans-serif;color:#00636a;line-height:150%;}
-#tooltip div.body{font-size:11px;font-family:"Lucida Grande", Verdana, Geneva, Helvetica, sans-serif;color:#333;}
-a.helptip:hover,a.shorttip:hover{color:#036daa;}
-a.helptip,a.helptip:visited,a.shorttip,a.shorttip:visited {color: #35672e;}
-a.helptipIcon {width:16px;height:16px;position:relative;background:url("/images/icons/icon_help.png") no-repeat;}
-a.helptipIcon span {position:absolute;top:-1000px;}
 
 div#editionBorrow, div#editionBuy {position:absolute;top:38px;right:0;padding:15px;background-color:#fff;border:1px solid #d3ccb0;-webkit-border-radius:8px;-moz-border-radius:8px;border-radius:8px;-moz-box-shadow: 1px 1px 10px #333;-webkit-box-shadow: 1px 1px 10px #333;box-shadow: 1px 1px 10px #333;}
 div#editionBorrow a, div#editionBuy a {background-image:none!important;float:none!important;margin-left:0!important;width:auto!important;height:auto!important;padding-top:0;text-align:left;font-size:0.75em;line-height:150%;font-weight:normal;color:#036daa;text-decoration:underline;}
+
+/* TOOLS ACCORDION */
+
+div#editTools,div#editButton,div#editHistory {float:right;margin:0 0 0 20px;}
+body#user div#editHistory {display: none;}
+div#editTools.edit {position:absolute;right:30px;top:20px;}
+div#editButton button,div#editHistory button {font-size:1.125em;}
+div#editInfo {float:right;white-space:nowrap;text-align:right;}
+
+div#Tools {float:right;width:220px;min-height:200px;margin-top:-30px;}
+div#Tools h3 {display:block;float:left;font-size:100%;min-height:32px;width:220px;font-family:"Lucida Grande",Verdana,Geneva,Helvetica,Arial,sans-serif!important;font-weight:normal;outline:0;cursor:pointer;position:relative;margin-top:30px;zoom:1;}
+div#Tools h3.closed {cursor:default!important;}
+div#Tools h3 a {text-decoration:none;}
+div#Tools h3 a:visited {color:#036daa;}
+div#Tools h3 span.icon {display:block;width:32px;height:32px;float:left;background-image:url("/images/icons/icons_sprite.png");background-repeat:no-repeat;}
+div#Tools h3 span.icon.list {background-position:- 0;}
+div#Tools h3:hover span.icon.list {background-position:-32px 0;}
+div#Tools h3 span.icon.listinact {background-position:-64px 0;}
+div#Tools h3 span.icon.read {background-position:-96px 0;}
+div#Tools h3:hover span.icon.read {background-position:-128px 0;}
+div#Tools h3 span.icon.readinact {background-position:-160px 0;}
+div#Tools h3 span.icon.download {background-position: -192px 0;}
+div#Tools h3:hover span.icon.download {background-position: -224px 0;}
+div#Tools h3 span.icon.downloadinact {background-position: -256px 0;}
+div#Tools h3 span.icon.buy {background-position: -288px 0;}
+div#Tools h3:hover span.icon.buy {background-position: -320px 0;}
+div#Tools h3 span.icon.buyinact {background-position: -352px 0;}
+div#Tools h3 span.icon.borrow {background-position: -384px 0;}
+div#Tools h3:hover span.icon.borrow {background-position: -416px 0;}
+div#Tools h3 span.icon.borrowinact {background-position: -448px 0;}
+div#Tools h3 span.icon.browse {background-position: -512px 0;}
+div#Tools h3:hover span.icon.browse {background-position: -544px 0;}
+div#Tools h3 span.head {float:left;display:block;width:178px;padding-left:10px;font-size:1.125em;font-weight:700;color:#036daa;}
+div#Tools h3:hover span.head {color:#000;}
+div#Tools h3.closed span.head {color:#999;}
+div#Tools h3 span.subhead {float:left;display:block;width:178px;padding-left:10px;font-size:0.6875em;color:#969696;}
+div#Tools div.panel {float:left;width:220px;background-color:#fff;padding-top:10px;}
+div#Tools table {width:220px;}
+div#Tools table td {font-size:11px;font-family:"Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;}
+div#Tools table td.vendor {padding:3px 10px 0 42px;}
+div#Tools table td.price {padding:3px 0 0 0;text-align:right;}
+div#Tools p {font-size:11px;font-family:"Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;padding-left:42px;margin-bottom:0!important;}
 
 
 /* MESSAGING */
@@ -543,7 +532,7 @@ div#headerLogo {
     margin-top: 10px;
 }
 div#headerLogo span.title {position:absolute;top:-1000px;}
-div#headerLogo p.tagline {position:absolute;left:0;top:117px;width:220px;text-align:center;font-family:"News Gothic MT","Trebuchet MS",Geneva,Helvetica,sans-serif;font-size:0.6875em;color:#333;}
+div#headerLogo p.tagline {position:absolute;left:0;top:118px;width:220px;text-align:center;font-family:"News Gothic MT","Trebuchet MS",Geneva,Helvetica,sans-serif;font-size:0.6875em;color:#333;}
 div#headerLogo p.tagline a {color:#333;text-decoration:none;}
 
 div#headerTools {
@@ -654,6 +643,7 @@ div#contentMsg {
     display: none;
 }
 div#contentHead {
+    width: 918px;
     padding: 20px;
 }
 div#contentBody {
@@ -679,6 +669,56 @@ div#resultsAbout {
 div.editThis {
     margin-left: 20px;
 }
+
+/* SEARCH RESULTS */
+
+div#searchResults,
+div#searchResults ul {
+    float: left;
+    width: 660px;
+}
+div#searchResults li {
+    float: left;
+    display: block;
+    width: 660px;
+    clear: both;
+    padding-bottom: 20px;
+}
+div#searchResults li img {
+    height: 60px;
+    max-width: 75px;
+}
+div#searchResults.wide ul,div#searchResults wide li {
+    width: 920px;
+}
+
+
+/* SEARCH FACETS */
+
+div#searchFacets {
+    float: left;
+    width: 220px;
+    padding-right: 20px;
+}
+div.facet {
+    margin-bottom: 20px;
+}
+div.facetHead {
+    font-family: "News Gothic MT","Trebuchet MS",Helvetica,sans-serif;
+    font-size: 0.6875em;
+    font-weight: 700;
+    color: #000;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+}
+div.facetEntry {
+    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+    margin-bottom: 5px;
+}
+div.facetEntry a {
+    text-decoration: none!important;
+}
+
 
 /* RESULTS */
 
@@ -729,8 +769,13 @@ div.list .owner {
 
 /* BOOKS */
 
-.illustration .SRPCoverBlank {position:relative;width:208px;height:285px;text-align:center;background:transparent url("/images/icons/avatar_book-lg.png") 0 0 no-repeat;font-size:1.0em;display:none;}
+div#workDetails {float:left;width:680px;}
+.illustration img {max-width:220px!important;}
+.illustration .SRPCoverBlank {position:relative;width:178px;height:255px;padding:15px;text-align:center;background:#dedede;font-size:1.0em;display:none;}
+.illustration .SRPCoverBlank .innerBorder {border:2px solid #fff;width:174px;height:251px;}
+.illustration .SRPCoverBlank.author {position:relative;width:131px;height:180px;text-align:center;background:transparent url("/images/icons/avatar_author-lg.png") 0 0 no-repeat;font-size:1.0em;display:none;}
 .illustration .BookTitle {position:absolute;top:50%;left:50%;width:148px;margin-left:-74px;height:100px;margin-top:-50px;color:#333;}
+.illustration .author .BookTitle {position:absolute;top:90%;left:50%;width:108px;margin-left:-54px;height:80px;margin-top:-40px;color:#000;}
 .illustration .Author {color:#666;font-style:italic;line-height:15px;padding:4px 4px 0;}
 .illustration .edition {font-size:0.6875em;font-family:"Lucida Grande",Verdana,Geneva,Helvetica,sans-serif;margin:10px auto;}
 div.books {float:left;padding-top:20px;width:818px;}
@@ -757,7 +802,7 @@ button.addAnother:hover {
     background-position: -32px 0;
 }
 div.pingList {
-  background: url("/images/icons/icon_radar.gif") 20px 0 no-repeat;
+  background: url("/images/icons/icon_radar.gif") no-repeat;
 }
 div.pingList p {
     font-family: "News Gothic MT", "Trebuchet MS", Geneva, Helvetica, sans-serif;
@@ -782,19 +827,36 @@ ul.urlList span.date {
     font-size: 0.6875em;
     color: #999;
 }
-.formElement ul.authorlinks {
-    margin-left: 20px;
+form.olform.books .input,
+form.olform.books .label {
+    width: auto!important;
 }
-.formElement ul.authorlinks li {
-    list-style-type: disc;
-    width: 475px; 
-    border: 1px solid #fff;
-    padding: 3px;
+
+.TitleAuthor {
+	margin: 30px auto 61px;
+	width: 875px;
 }
-.formElement ul.authorlinks li:hover {
-    cursor: pointer;
-    color: #036daa;
+.TitleAuthor input#work-title {
+    font-size: 1.875em; width: 500px; margin: 10px 0 0 0;
 }
+.TitleAuthor input#author {
+    font-size: 1.875em; width: 300px; margin: 10px 0 0 0;
+}
+#tabsAddbook {
+    margin-bottom: 30px;
+}
+
+#cover {position:absolute;top:50px;right:20px;border:2px solid #615132;background:#fff;width:120px;height:180px;text-align:center;line-height:1.5em;}
+
+
+.identifiers td {
+	color: #333333;
+	border-bottom: 1px solid #ddd;
+	background-color: #f3f3f3;
+	padding: 5px;
+}
+ul.booklinks li {list-style-type:disc;margin:0 0 10px 1.5em;}
+ul.booklinks li span {display:block;padding-top:10px;}
 
 
 /* HISTORY */
@@ -954,42 +1016,48 @@ table.history tr.reveal td {padding: 10px;}
     margin-top: 3px;
     padding-bottom: 3px;
     overflow: hidden;
-    border-bottom: 1px dotted #ccc;
+    border-bottom: 1px dotted #fff;
 }
 div#resultsCovers a {text-decoration: none;}
-#contentLists.results .SRPCover {margin:0 15px 20px 0;float:left;height:185px;vertical-align:middle;}
+#contentLists.results .SRPCover {margin: 0 15px 20px 0;float:left;height:185px;vertical-align:middle;}
 .SRPCover img {height:185px;}
-#contentLists.results .SRPCoverBlank {position:relative;width:135px;height:185px;margin:0 15px 20px 0;text-align:center;float:left;background:transparent url("/images/icons/avatar_book.png") 0 0 no-repeat;font-size:0.875em;cursor:pointer;display:none;}
-.BookTitle {position:absolute;top:50%;left:50%;width:105px;margin-left:-52px;height:110px;margin-top:-55px;vertical-align:middle;color:#333;}
-.Author {color:#666;font-style:italic;line-height:normal;padding:4px 4px 0;}
+#contentLists.results .SRPCoverBlank {position:relative;width:115px;height:165px;padding:10px;margin:0 15px 20px 0;text-align:center;float:left;background:#dedede;font-size:0.875em;cursor:pointer;display:none;}
+#contentLists.results .SRPCoverBlank .innerBorder {float:left;width:113px;height:163px;border:1px solid #fff;}
+.BookTitle {position:absolute;top:50%;left:50%;width:105px;margin-left:-52px;height:100px;margin-top:-50px;vertical-align:middle;color:#333;}
+.Author {color:#666;font-style:italic;line-height:15px;padding:4px 4px 0;}
 
 
-div#resultsList li span.bookcover,
-div#editionsList li span.bookcover {
+li span.bookcover {
     display: block;
     float: left;
     height: 60px;
     width: 75px;
-    margin-right: 5px;
+    margin-right: 10px;
+    text-align: right;
     overflow: hidden;
 }
 div#resultsList li img,
 div#editionsList li img {
     height: 60px;
+    max-width: 75px;
 }
 div.resultTitle {
-    margin-top: 0;
+    margin: 0!important;
+    font-family: "News Gothic MT","Trebuchet MS",Helvetica,sans-serif;
+    color: #999;
 }
 div.resultTitle span.booktitle {
-    font-size: 0.875em;
+    font-size: 1.375em;
+    font-weight: 700;
 }
 div.resultTitle span.bookauthor {
-    font-size: 0.75em;
+    color: #8f8f8f;
+    font-size: 0.875em;
 }
 div.resultPublisher {
     font-size: 0.6875em;
     font-family: "Lucida Grande", Verdana, Geneva, Helvetica, sans-serif;
-    color: #666;
+    color: #8f8f8f;
 }
 
 /* RESULTS CAROUSEL SKIN */
@@ -1014,16 +1082,19 @@ div.resultPublisher {
     margin-top: 3px;
     padding-bottom: 3px;
     overflow: hidden;
-    border-bottom: 1px dotted #ccc;
+    border-bottom: 1px dotted #fff;
 }
 
 div#editionsCovers a {text-decoration: none;}
 #contentLists.editions .coverMagic {float:left;max-width:225px;min-height:245px;text-align:center;}
-#contentLists.editions .SRPCover {margin:0 15px 5px 0;vertical-align:middle;}
-#contentLists.editions .SRPCoverBlank {position:relative;width:135px;height:185px;margin:0 15px 5px 0;text-align:center;background:transparent url("/images/icons/avatar_book.png") 0 0 no-repeat;font-size:0.875em;cursor:pointer;display:none;}
-.bookMeta {max-width:135px;height:45px;max-height:45px;margin:0 15px 5px 0;font-family:"Lucida Grande", Verdana, Helvetica, sans-serif;text-align:center;}
+#contentLists.editions .SRPCover {margin: 0 20px 5px 0;vertical-align:middle;}
+#contentLists.editions .SRPCoverBlank {position:relative;width:115px;height:165px;padding:10px;margin:0 20px 5px 0;text-align:center;background:#dedede;font-size:0.875em;cursor:pointer;display:none;}
+#contentLists.editions .SRPCoverBlank .innerBorder {width:113px;height:163px;border:1px solid #fff;}
+.bookMeta {max-width:125px;padding:0 5px;margin:0 auto;font-family:"Lucida Grande", Verdana, Helvetica, sans-serif;text-align:center;}
 .Publisher{font-size:0.6875em;color:#000;line-height:100%;}
 .Year{font-size:0.5em;color:#615132;line-height:100%;}
+
+
 
 /* COLORBOX POP-UP */
 /*
@@ -1124,6 +1195,119 @@ div#addCover a#coverClose {position:absolute;top:327px;left:180px;font-size:1.0e
 div#addCover div#coverLegal {position:absolute;bottom:20px;left:20px;font-size:0.6875em;text-transform:uppercase;color:#615132;line-height:normal;font-weight:700;width:600px;}
 
 
+/* TABS */
+
+/* Caution! Ensure accessibility in print and other media types... */
+@media projection, screen { /* Use class for showing/hiding tab content, so that visibility can be better controlled in different media types... */
+    .ui-tabs-hide {
+        display: none;
+    }
+}
+
+/* Hide useless elements in print layouts... */
+@media print {
+    .ui-tabs-nav {
+        display: none;
+    }
+}
+
+/* Skin */
+.ui-tabs-nav, .ui-tabs-panel {
+	font-family:"News Gothic MT","Arial Rounded MT",Geneva,Helvetica,sans-serif;
+}
+.ui-tabs-nav {
+    list-style: none;
+    margin-bottom: -11px;
+    padding: 0 0 0 15px;
+}
+.ui-tabs-nav:after { /* clearing without presentational markup, IE gets extra treatment */
+    display: block;
+    clear: both;
+    content: " ";
+}
+.ui-tabs-nav li {
+    float: left;
+    margin: 0 0 0 1px;
+    min-width: 84px; /* be nice to Opera */
+}
+.ui-tabs-nav a, .ui-tabs-nav a span {
+    display: block;
+    font-weight: 600;
+    background-color: #f1f1f1;
+}
+.ui-tabs-nav a {
+    margin: 1px 0 0; /* position: relative makes opacity fail for disabled tab in IE */
+	font-size:.6875em;
+	background:#efefef;
+	padding:4px 8px 3px;
+	margin:0 3px;
+	text-decoration:none;
+	text-transform:uppercase;
+    white-space: nowrap; /* required in IE 6 */    
+    outline: 0; /* prevent dotted border in Firefox */
+}
+.ui-tabs-nav .ui-tabs-selected a {
+    position: relative;
+    top: -8px;
+    padding:3px 11px;
+    z-index: 2;
+}
+.ui-tabs-nav a span {
+    width: 64px; /* IE 6 treats width as min-width */
+    min-width: 64px;
+    height: 18px; /* IE 6 treats height as min-height */
+    min-height: 18px;
+    padding-top: 0;
+    padding-right: 0;
+}
+*>.ui-tabs-nav a span { /* hide from IE 6 */
+    width: auto;
+    height: auto;
+}
+.ui-tabs-nav .ui-tabs-selected a span {
+    padding-bottom: 3px;
+}
+.ui-tabs-nav .ui-tabs-selected a:link, 
+.ui-tabs-nav .ui-tabs-selected a:visited, 
+.ui-tabs-nav .ui-tabs-disabled a:link, 
+.ui-tabs-nav .ui-tabs-disabled a:visited { /* @ Opera, use pseudo classes otherwise it confuses cursor... */
+	background:#fff;
+	padding:8px 11px 3px;
+	border:1px solid #efefef;
+	border-bottom:3px solid #fff;
+	color: #35672e;
+	text-transform: capitalize!important;
+	font-size: 1.125em!important;
+	margin:0 3px;    
+    cursor: default;
+}
+.ui-tabs-nav a:hover, .ui-tabs-nav a:focus, .ui-tabs-nav a:active,
+.ui-tabs-nav .ui-tabs-deselectable a:hover, .ui-tabs-nav .ui-tabs-deselectable a:focus, .ui-tabs-nav .ui-tabs-deselectable a:active { /* @ Opera, we need to be explicit again here now... */
+    cursor: pointer;
+}
+.ui-tabs-disabled {
+    opacity: .4;
+    filter: alpha(opacity=40);
+}
+.ui-tabs-panel {
+    position: relative;
+    border: 3px solid #efefef;
+    padding: 15px 30px 20px 30px!important;
+    background: #fff; /* declare background color for container to avoid distorted fonts in IE while fading */
+}
+.ui-tabs-loading em {
+    padding: 0 0 0 20px;
+    background: url(loading.gif) no-repeat 0 50%;
+}
+
+/* Additional IE specific bug fixes... */
+* html .ui-tabs-nav { /* auto clear, @ IE 6 & IE 7 Quirks Mode */
+    display: inline-block;
+}
+*:first-child+html .ui-tabs-nav  { /* @ IE 7 Standards Mode - do not group selectors, otherwise IE 6 will ignore complete rule (because of the unknown + combinator)... */
+    display: inline-block;
+}
+
 
 /* ADMIN */
 body#admin div#contentHead {
@@ -1208,6 +1392,7 @@ div#topEdits a {
 div#uniqueIps {
     float: left;
     width: 918px;
+    margin: 20px 0 30px;
 }
 div.measurements, div.measurements div {
     float: left;
@@ -1222,32 +1407,33 @@ div.measurements .measure {
 div.measurements .large {
     font-size: 1.125em!important;
 }
-div#uniqueIps {
-    margin: 20px 0 30px;
-}
+/* PAGE HISTORY */
+
 table#pageHistory, table#changeHistory {
-    width: 100%;
-    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
-    border-left: 1px solid #e7e7e7;
-    border-right: 1px solid #e7e7e7;
-    background-color: #f7f7f7;
-    margin: 40px 0;
+    width:100%;
+    border-top:1px solid #cbc4a7;
+    margin-top:10px;
+    font-family:"Lucida Grande", Verdana, Geneva, Helvetica, sans-serif;
+    margin: 40px 0 20px;
 }
 table#pageHistory th, table#changeHistory th {
-    background-color: #e7e7e7;
-    color: #666;
+    background-color: #fffdcd;
+    border-bottom: 1px solid #cbc4a7;
+    color: #615132;
     font-size: 0.8675em;
     font-weight: 700;
-    padding: 5px;
+    padding: 10px;
 }
 table#pageHistory td, table#changeHistory td {
-    border-bottom: 1px solid #e7e7e7;
-    padding: 5px;
+    border-bottom: 1px solid #cbc4a7;
+    padding: 10px;
     font-size: 0.75em;
 }
 table#pageHistory td.number {
     text-align: right;
 }
+
+
 div#adminFlickr {width:582px;}
 div#adminTwitter, div#adminTwitter div.tweet_cell{width:300px;}
 div#adminTwitter div.tweet_avatar{width:35px;}
@@ -1281,12 +1467,12 @@ div.moduleSide h4 {
     margin-bottom: 5px;
 }
 div.moduleSide p {
-    margin: 0!important;
-}
-div.moduleSide a {
-    display: block;
     font-family: "News Gothic MT","Trebuchet MS",Helvetica,sans-serif;
     font-size: 0.875em;
+    margin: 0;
+}
+div.moduleSide a {
+    display: block!important;
 }
 
 div#resultBlog div.item, div#resultScanned div.item {
@@ -1326,6 +1512,8 @@ div#publicTwitter div.tweet_avatar{width:35px;}
 div#publicTwitter div.tweet_copy{width:170px;}
 div#publicTwitter div.tweet_cell {float:left;font-size:0.75em;}
 div#publicTwitter a.tweetFeed {font-size:0.75em;}
+
+/* WMD TEXTAREA WYSIWYG */
 
 .wmd-panel
 {

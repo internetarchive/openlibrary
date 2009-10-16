@@ -461,25 +461,31 @@ function tableShow() {
     });
 };
 // BUILD CAROUSEL 
-function carouselSetup() {
+function carouselSetup(loadCovers, loadLists) {
   $('#coversCarousel').jcarousel({
     visible: 1,
-    scroll: 1
+    scroll: 1,
+    itemLoadCallback: loadCovers
   });
 // SET-UP COVERS LIST
   $('#listCarousel').jcarousel({
     vertical: true,
     visible: 6,
-    scroll: 6
+    scroll: 6,
+    itemLoadCallback: loadLists
   });
 // SWITCH RESULTS VIEW
   $("#resultsList").hide()
   $("a#booksList").click(function(){
+    //page.listCarousel.scroll(1+page.pos);
+    
     $('span.tools a').toggleClass('on');
     $('#resultsList').customFadeIn();
     $('#resultsCovers').hide();
   });
   $("a#booksCovers").click(function(){
+    //page.coverCarousel.scroll(1+page.pos/12);
+    
     $('span.tools a').toggleClass('on');
     $('#resultsList').hide();
     $('#resultsCovers').customFadeIn();
@@ -502,6 +508,18 @@ function bookCovers(){
     $.fn.fixBroken=function(){return this.each(function(){$(this).error(function(){$(this).parent().parent().hide();$(this).parent().parent().next(".SRPCoverBlank").show();});});};
     $('img.cover').fixBroken();  
 };
+// SLIDING PANELS 
+function slidePanels(){
+    $("#Tools .panel").hide();
+    $("#Tools h3.header").click(function(){
+        $("#Tools .panel").slideUp();
+        if ($(this).parent().find(".panel").is(":hidden")) {
+            $(this).parent().find(".panel").slideDown();
+        } else {
+            $(this).parent().find(".panel").slideUp();
+        }
+    });
+}
 
 function get_subject_covers(key, pagenumber) {
     // will implement it later.
@@ -517,4 +535,33 @@ function get_work_covers(key, pagenumber) {
     for (var i=0; i<20; i++)
         covers[i] = pagenumber * 20 + i;
     return covers;
+}
+
+function Place(key) {
+    this.key = key;
+    this.covers = {};
+    this.bookCount = 0;
+}
+
+/**
+ * Gets the covers using AJAX call and calls the callback with covers as argument. 
+ * AJAX call is avoided if the cover data is already present. 
+ */
+Place.prototype.getCovers = function(pagenum, callback) {
+    var offset = pagenum * 12;
+    var limit = 12;
+    
+    if (offset > this.bookCount)
+        return [];
+    
+    if (this.covers[pagenum]) {
+        callback(this.covers[pagenum]);
+    }
+    else {
+        var page = this;
+        $.getJSON(this.key + "/covers.json?limit=12&offset=" + offset, function(data) {
+            page.covers[pagenum] = data;
+            callback(data);
+        });
+    }
 }

@@ -5,7 +5,6 @@ $var title: $page.name
 <div id="contentHead">
     <div id="tools">
         <a class="edit" href="$changequery(m='edit')" title="$_('Edit this template')" accesskey="e">$_("Edit")</a>
-        <a class="history" href="$changequery(m='history')" title="$_('View this template\'s edit history')">$_("History")</a>
     </div>
     <div class="head">
         <span class="tools">$_("Currently viewing the history for"):</span>
@@ -13,7 +12,8 @@ $var title: $page.name
     </div>
     <p class="small sansserif">
         $_("Last modified") $(page.last_modified and datestr(page.last_modified))
-    </p></div>
+    </p>
+</div>
 
 <div id="contentBody">
         <form>
@@ -28,7 +28,6 @@ $var title: $page.name
             </tr>
         </thead>
         <tbody>
-            <tr>
             $for v in h:
                 <tr>
                     <td class="number">$v.revision</td>
@@ -42,8 +41,8 @@ $var title: $page.name
                     $else:
                         <td class="history" valign="top">$v.ip</td>
                     <td class="comment">$v.comment
-					$if v.machine_comment: (<a href="/show-marc/$v.machine_comment">$_("View MARC")</a>)
-					</td>
+		        $if v.machine_comment: (<a href="/show-marc/$v.machine_comment">$_("View MARC")</a>)
+		    </td>
                     <td class="history"><a href="$changequery(m=None, v=v.revision)">$datestr(v.created)</a></td>
                 </tr>
         </tbody>

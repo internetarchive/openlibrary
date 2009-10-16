@@ -48,13 +48,22 @@ $def with (page)
     <div id="placement">
     <div id="position">
 
-<div id="headerSearch">
-            <form method="get" action="/search" class="siteSearch">
-            <input type="text" name="q" class="query" value="" title="type_search."/>
+    <div class="siteSearch" id="headerSearch">
+         <form method="get" action="/search" class="siteSearch">
             <input type="submit" value="$_('Search')"/>
+            <input type="text" name="q" class="query" value="" title="type_search."/>
 
-            <div class="right"><a href="javascript:;" id="searchHead" text2="$_('Hide options')">$_("More search options")</a></div>
-            <div class="searchFilter"><input type="checkbox" value="mhsncqbxgkup" id="ftokenstop" name="ftokens" checked="checked"/> <label for="ftokenstop">$_("Search inside books")</label></div>
+            <div class="searchPlacement">
+                <div class="searchFilter">
+                    <div class="searchOpener">
+                        <a href="javascript:;" id="searchHead" text2="$_('Hide options')">$_("More search options")</a>
+                    </div>
+                    <div class="searchCheckbox">
+                        <input type="checkbox" value="mhsncqbxgkup" id="ftokenstop" name="ftokens" checked="checked"/> 
+                        <label for="ftokenstop">$_("Search inside books")</label>
+                    </div>
+                </div>
+            </div>
 
             <div id="topOptions" class="searchOptions hidden">
                 <div class="formElement">
@@ -128,7 +137,7 @@ $def with (page)
 
                 <ul class="links second">
                     <li><a class="" href="/authors">$_("Authors")</a></li>
-                    <li><a class="" href="/addabook">$_("Add a Book")</a></li>
+                    <li><a class="" href="/books/add">$_("Add a Book")</a></li>
                 </ul>
                 <ul class="links third">
                     <li><a class="" href="/lists">$_("Lists")</a></li>
@@ -217,7 +226,7 @@ $def with (page)
             </div>
 
 <!-- BOTTOM SEARCH -->
-            <div id="footerSearch">
+            <div class="siteSearch" id="footerSearch">
 
             <form method="get" action="/search" class="siteSearch">
 
@@ -279,10 +288,21 @@ $def with (page)
                     </div>
                 </div>
             
-                <input type="text" name="q" class="query" value="" title="type_search."/>
                 <input type="submit" value="Search"/>
-                    <div class="right"><a href="javascript:;" id="searchFoot">$_("More search options")</a></div>
-                <div class="searchFilter"><input type="checkbox" value="mhsncqbxgkup" id="ftokensbtm" name="ftokens" checked="checked"/> <label for="ftokensbtm">$_("Search inside books")</label></div>
+                <input type="text" name="q" class="query" value="" title="type_search."/>
+
+            <div class="searchPlacement">
+                <div class="searchFilter">
+                    <div class="searchOpener">
+                        <a href="javascript:;" id="searchFoot" text2="$_('Hide options')">$_("More search options")</a>
+                    </div>
+                    <div class="searchCheckbox">
+                        <input type="checkbox" value="mhsncqbxgkup" id="ftokenstop" name="ftokens" checked="checked"/> 
+                        <label for="ftokenstop">$_("Search inside books")</label>
+                    </div>
+                </div>
+            </div>
+
             </form>
 
             </div>

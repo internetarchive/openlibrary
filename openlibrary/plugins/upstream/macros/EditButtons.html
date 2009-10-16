@@ -5,19 +5,20 @@ $def with (comment=None)
         <label for="comment">$_("Edit Summary (briefly describe the changes you have made):")</label>
     </div>
     <div class="input">
-        <input type="text" name="_comment" id="comment" value="$comment"/>
+        <input type="text" name="_comment" id="comment" value="$comment" style="width:100%;"/>
     </div>
 </div>
 
 <div class="formElement bottom">
-    <p><span class="tools">$:_('Except where otherwise noted, content on this site is licensed under a <a href="http://creativecommons.org/choose/zero">Creative Commons CC0 License')</a>.</span></p>
     <div class="input">
         <input type="submit" value="$_('Save')" name="_save" title="$_('Save')"/>
         &nbsp;
         <input type="submit" value="$_('Preview')" name="_preview" title="$_('Preview')"/>
         &nbsp;
-        <a href="javascript:history.go(-1);" class="smaller attn plain">$_('Cancel')</a>
+        <a href="javascript:history.go(-1);" class="small attn plain">$_('Cancel')</a>
         &nbsp;&nbsp;&nbsp;&nbsp;
         <button class="plainText smaller" type="submit" value="$_('Delete')" name="_delete" title="$_('Delete')">$_("Delete")</button>
     </div>
+    <br/>
+    <p><span class="tools">$:_('Except where otherwise noted, content on this site is licensed under a <a href="http://creativecommons.org/choose/zero">Creative Commons CC0 License')</a>.</span></p>
 </div>

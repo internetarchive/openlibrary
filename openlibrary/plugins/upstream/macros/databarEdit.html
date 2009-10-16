@@ -1,6 +1,10 @@
 $def with (page)
 
-<div id="tools" class="edit">
-    <a class="view" href="$changequery(m=None)" title="View this page template (exit Edit mode)">$_("View")</a>
-    <a class="history" href="$changequery(m='history')" title="View the editing history of this page">$_("History")</a>
+<div id="editTools" class="edit">
+    <div id="editHistory">
+        <button onClick="parent.location='$changequery(m='history')'" title="View the editing history of this page">$_("History")</button>
+    </div>
+    <div id="editButton">
+        <button onClick="parent.location='$changequery(m=None)'" title="View this page template (exit Edit mode)">$_("View")</button>
+    </div>
 </div>
