@@ -57,7 +57,8 @@ h5 { font-size: 13px; font-variant: small-caps; margin-top: 10px; margin-bottom:
 $if errortext:
     <br /><div id="ErrorMsg"><span class="errorhead">$_.error:</span> $errortext</div>
 $else:
-  <h2 class="Match">There are $qresults.total_results matching records. 
+    <h2 class="Match">
+    $if q or ftokens: There are $qresults.total_results matching records. 
     $if qresults.total_results > 0:
         $if query_param('view')=='covers':
           <span class="Switch">Show: <a href="$changequery(view='list')">List</a> / <b>Covers</b></span>
@@ -87,6 +88,9 @@ $if facets:
 	    $if cancel:
                 <span class="Chosen"><a class="datalink" href="$changequery(ftokens=ftokens + ',' + ftoken, offset='0', remove='')">$:macros.HasFulltext(fname, fval)</a>&nbsp;&nbsp;<a href="$changequery(remove=ftoken, ftokens=ftokens)" title="Click this to remove"><span class="ClearX">[x]</span></a></span>
             $else:
+                $# ignore "scannable facet value
+                $if fname == "has_fulltext" and fval == 5:
+                    $continue
 	        <a class="datalink" href="$changequery(ftokens=ftokens + ',' + ftoken, offset='0', remove='')">$:macros.HasFulltext(fname, fval)</a>&nbsp;&nbsp;<span style="color: #666; font-family: Verdana, Arial; font-size: 9px;">$fcount</span>
 	    <br />
     </td>    
