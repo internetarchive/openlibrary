@@ -29,7 +29,7 @@ import forms
 if not config.get('coverstore_url'):
     config.coverstore_url = "http://covers.openlibrary.org"
 
-class SubjectPlace(client.Thing):
+class Subject(client.Thing):
     def _get_solr_result(self):
         if not self._solr_result:
             name = self.name or ""
@@ -90,7 +90,11 @@ class SubjectPlace(client.Thing):
     def get_publishers(self):
         d = self._get_solr_result()
         return [web.storage(name=p, count=count) for p, count in d['facets']['publishers']]
+
+class SubjectPlace(Subject):
+    pass
     
+client.register_thing_class('/type/subject', Subject)
 client.register_thing_class('/type/place', SubjectPlace)
 
 @public
