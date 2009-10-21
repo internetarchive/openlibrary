@@ -53,16 +53,22 @@ class CacheProcessor(ConnectionProcessor):
     def get(self, super, sitename, data):
         key = data.get('key')
         revision = data.get('revision')
-
-        if revision is None and self.cachable(key):
-            response = self.cache.get(key) or self.memcache.get(web.safestr(key))
-            if not response:
-                response = super.get(sitename, data)
-                self.cache[key] = response
+        
+        def _get():
+            return self.memcache.get(web.safestr(key)) or super.get(sitename, data)
+        
+        if revision is None:
+            if self.cachable(key):
+                response = self.cache.get(key)
+                if not response:
+                    response = _get()
+                    self.cache[key] = response
+            else:
+                response = _get()
         else:
             response = super.get(sitename, data)
         return response
-        
+                
     def write(self, super, sitename, data):
         response_str = super.write(sitename, data)
         
