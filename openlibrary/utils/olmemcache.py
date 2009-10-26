@@ -30,6 +30,9 @@ class Client:
         mapping = dict((web.safestr(k), self.compress(v)) for k, v in mapping.items())
         return self._client.set_multi(mapping, time=time)
         
+    def add(self, key, val, time=0):
+        return self._client.add(web.safestr(key), self.compress(val), time=time)
+
     def delete(self, key, time=0):
         key = web.safestr(key)
         return self._client.delete(key, time=time)
