@@ -7,7 +7,7 @@ import urllib
 import simplejson
 
 import web
-from infogami.infobase import config, common, server
+from infogami.infobase import config, common, server, cache
 
 # relative import
 from openlibrary import schema
@@ -175,7 +175,7 @@ def http_notify(site, old, new):
     for prefix in not_cached:
         if key.startswith(prefix):
             return
-                    
+    
     for url in config.http_listeners:
         try:
             urllib.urlopen(url, data)
@@ -183,4 +183,14 @@ def http_notify(site, old, new):
             print >> web.debug, "failed to send http_notify", url, new.key
             import traceback
             traceback.print_exc()
+            
+# openlibrary.utils can't be imported directly because 
+# openlibrary.plugins.openlibrary masks openlibrary module
+olmemcache = __import__("openlibrary.utils.olmemcache", None, None, ['x'])
 
+def MemcachedDict(servers=[]):
+    """Cache implementation with OL customized memcache client."""
+    client = olmemcache.Client(servers)
+    return cache.MemcachedDict(memcache_client=client)
+
+cache.register_cache('memcache', MemcachedDict)

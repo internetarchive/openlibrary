@@ -51,15 +51,15 @@ class MemcacheMiddleware(ConnectionMiddleware):
     def __init__(self, conn, memcache_servers):
         ConnectionMiddleware.__init__(self, conn)
         
-        import memcache
-        self.memcache = memcache.Client(memcache_servers)
+        from openlibrary.utils import olmemcache
+        self.memcache = olmemcache.Client(memcache_servers)
 
     def get(self, sitename, data):
         key = data.get('key')
         revision = data.get('revision')
         
         if revision is None:
-            result = self.memcache.get(web.safestr(key)) 
+            result = self.memcache.get(key) 
         else:
             result = None
             
