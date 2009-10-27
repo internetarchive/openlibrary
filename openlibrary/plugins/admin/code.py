@@ -59,4 +59,11 @@ class gitpull:
         p.wait()
         return '<pre>' + web.websafe(out) + '</pre>'
 
+class reload:
+    def GET(self):
+        from infogami.plugins.wikitemplates import code
+        code.load_all()
+        return delegate.RawText('done')
+
 register_admin_page('/admin/git-pull', gitpull, label='git-pull')
+register_admin_page('/admin/reload', reload, label='Reload Templates')
