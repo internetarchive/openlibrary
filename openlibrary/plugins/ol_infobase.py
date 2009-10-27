@@ -166,7 +166,8 @@ def write_booklog2(site, old, new):
 
 def http_notify(site, old, new):
     """Notify listeners over http."""
-    data = simplejson.dumps(new.format_data())
+    data = new.format_data()
+    json = simplejson.dumps(data)
     key = data['key']
 
     # optimize the most common case. 
@@ -178,7 +179,7 @@ def http_notify(site, old, new):
     
     for url in config.http_listeners:
         try:
-            urllib.urlopen(url, data)
+            urllib.urlopen(url, json)
         except:
             print >> web.debug, "failed to send http_notify", url, new.key
             import traceback
