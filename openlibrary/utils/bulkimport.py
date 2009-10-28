@@ -20,9 +20,12 @@ class Database:
         return ['/works/OL%dW' % i for i in self.incr_seq('type_work_seq', n)]
         
     def incr_seq(self, seqname, n):
-        """Increment a sequence by n and returns the latest value of that sequence and returns list of n numbers.
+        """Increment a sequence by n and returns the latest value of
+        that sequence and returns list of n numbers.
         """
-        rows = self.db.query("SELECT setval($seqname,  $n + (select last_value from %s)) as value" % seqname, vars=locals())
+        rows = self.db.query(
+            "SELECT setval($seqname, $n + (select last_value from %s)) as value" % seqname, 
+            vars=locals())
         end = rows[0].value + 1 # lastval is inclusive
         begin = end - n
         return range(begin, end)
@@ -51,6 +54,13 @@ class Database:
         author_id = author and self.get_thing_id(author)
 
         type_ids = self.get_thing_ids(doc['type']['key'] for doc in documents)
+
+        created = {'type': '/type/datetime', "value": timestamp.isoformat()}
+        for doc in documents:
+            doc['created'] = created
+            doc['last_modified'] = created
+            doc['revision'] = 1
+            doc['latest_revision'] = 1
 
         t = self.db.transaction()
         try:
@@ -90,8 +100,8 @@ class Database:
         pass
 
     def reindex(self, keys):
-        """Existing entries are deleted and new entries are added to
-        xxx_str, xxx_ref .. tables for the records specified by keys.
+        """Delete existing entries and add new entries to xxx_str,
+        xxx_ref .. tables for the documents specified by keys.
         """
         pass
 
