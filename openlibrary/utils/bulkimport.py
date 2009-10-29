@@ -291,7 +291,7 @@ class _Reindexer:
             return
         elif isinstance(value, list):
             for i, v in enumerate(value):
-                self.prepare_insert(data, thing_id, type_id, name, v, ordering=i)
+                self.prepare_insert(rows, thing_id, type_id, name, v, ordering=i)
         else:
             rows.append(
                 dict(thing_id=thing_id,
