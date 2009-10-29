@@ -47,11 +47,9 @@ class Database:
             try:
                 value = f(self, *a, **kw)
             except:
-                print 'rollback'
                 t.rollback()
                 raise
             else:
-                print 'commit'
                 t.commit()
             return value
         return g
