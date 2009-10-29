@@ -6,6 +6,7 @@ import os
 import web
 import datetime
 import simplejson
+from collections import defaultdict
 
 class Database:
     def __init__(self, **params):
@@ -149,6 +150,8 @@ class Database:
                 'key': '/a/OL1A', 
                 'links': ['http://en.wikipedia.org/wiki/Foo', 'http://de.wikipedia.org/wiki/Foo']
             }, comment="add german wikipedia links")
+
+        WARNING: This function should not be used to change the "type" property of documents.
         """
         return self._bulk_update(documents, author, comment)
 
@@ -189,19 +192,175 @@ class Database:
         documents = [prepare(doc) for doc in documents]
         return self._insert_data(documents, author=author, timestamp=timestamp, comment=comment)
 
+
     def reindex(self, keys):
         """Delete existing entries and add new entries to xxx_str,
         xxx_ref .. tables for the documents specified by keys.
         """
-        pass
+        return _Reindexer(self.db).reindex(keys)
 
+    # this is not required anymore
     del _with_transaction
+
+class _Reindexer:
+    """Utility to reindex documents."""
+    def __init__(self, db):
+        self.db = db
+
+        import openlibrary.plugins.openlibrary.schema
+        self.schema = openlibrary.plugins.openlibrary.schema.get_schema()
+        self.noindex = set(["id", "key", "type", "type_id",
+                       "revision", "latest_revision", 
+                       "created", "last_modified", 
+                       "permission", "child_permission"])
+        self._property_cache = {}
+
+    def reindex(self, keys):
+        t = self.db.transaction()
+        
+        try:
+            documents = self.get_documents(keys)
+            self.delete_earlier_index(documents)
+            self.create_new_index(documents)
+        except:
+            t.rollback()
+            raise
+        else:
+            t.commit()
+
+    def get_documents(self, keys):
+        """Get documents with given keys from database and add "id" and "type_id" to them.
+        """
+        rows = self.db.query("SELECT thing.id, thing.type, data.data" + 
+                             " FROM thing, data" +
+                             " WHERE data.thing_id=thing.id AND data.revision=thing.latest_revision and thing.key in $keys",
+                             vars=locals())
+
+        documents = [dict(simplejson.loads(row.data), 
+                          id=row.id,
+                          type_id=row.type)
+                     for row in rows]
+        return documents
+
+    def delete_earlier_index(self, documents):
+        """Remove all prevous entries corresponding to the given documents"""
+        all_tables = set(r.relname for r in self.db.query(
+                "SELECT relname FROM pg_class WHERE relkind='r'"))
+
+        data = defaultdict(list)
+        for doc in documents:
+            for table in self.schema.find_tables(doc['type']['key']):
+                if table in all_tables:
+                    data[table].append(doc['id'])
+
+        for table, thing_ids in data.items():
+            self.db.delete(table, where="thing_id IN $thing_ids", vars=locals())
+    
+    def create_new_index(self, documents):
+        """Insert data in to index tables for the specified documents."""
+        data = defaultdict(list)
+
+        for doc in documents:
+            for name, value in doc.items():
+                datatype = self._find_datatype(value)
+                table = datatype and self.schema.find_table(doc['type']['key'], datatype, name)
+                if table:
+                    self.prepare_insert(data[table], doc['id'], doc['type_id'], name, value)
+
+        # replace keys with thing ids in xxx_ref tables
+        self.process_refs(data)
+
+        # insert the data
+        for table, rows in data.items():
+            self.db.multiple_insert(table, rows, seqname=False)
+
+
+    def get_property_id(self, type_id, name):
+        if (type_id, name) not in self._property_cache:
+            self._property_cache[type_id, name] = self._get_property_id(type_id, name)
+        return self._property_cache[type_id, name]
+
+    def _get_property_id(self, type_id, name):
+        d = self.db.select('property', where='name=$name AND type=$type_id', vars=locals())
+        if d:
+            return d[0].id
+        else:
+            return self.db.insert('property', type=type_id, name=name)
+
+    def prepare_insert(self, rows, thing_id, type_id, name, value, ordering=None):
+        """Add data to be inserted to rows list."""
+        if name in self.noindex:
+            return
+        elif isinstance(value, list):
+            for i, v in enumerate(value):
+                self.prepare_insert(data, thing_id, type_id, name, v, ordering=i)
+        else:
+            rows.append(
+                dict(thing_id=thing_id,
+                     key_id=self.get_property_id(type_id, name),
+                     value=value, 
+                     ordering=ordering))
+
+    def process_refs(self, data):
+        """Convert key values to thing ids for xxx_ref tables."""
+        keys = []
+        for table, rows in data.items():
+            if table.endswith('_ref'):
+                keys += [r['value']['key'] for r in rows]
+
+        if not keys:
+            return
+
+        thing_ids = dict((r.key, r.id) for r in self.db.query(
+                "SELECT id, key FROM thing WHERE key in $keys", 
+                vars=locals()))
+
+        for table, rows in data.items():
+            if table.endswith('_ref'):
+                for r in rows:
+                    r['value'] = thing_ids[r['value']['key']]
+
+    def _find_datatype(self, value):
+        """Find datatype of given value.
+
+        >>> _find_datatype = Reindexer(None)._find_datatype
+        >>> _find_datatype(1)
+        'int'
+        >>> _find_datatype('hello')
+        'str'
+        >>> _find_datatype({'key': '/a/OL1A'})
+        'ref'
+        >>> _find_datatype([{'key': '/a/OL1A'}])
+        'ref'
+        >>> _find_datatype({'type': '/type/text', 'value': 'foo'})
+        >>> _find_datatype({'type': '/type/datetime', 'value': '2009-10-10'})
+        'datetime'
+        """
+        if isinstance(value, int):
+            return 'int'
+        elif isinstance(value, basestring):
+            return 'str'
+        elif isinstance(value, dict):
+            if 'key' in value:
+                return 'ref'
+            elif 'type' in value:
+                return {
+                    '/type/int': 'int',
+                    '/type/string': 'str',
+                    '/type/datetime': 'datetime'
+                }.get(value['type'])
+        elif isinstance(value, list):
+            return value and self._find_datatype(value[0])
+        else:
+             return None
 
 def _test():
     db = Database(db='openlibrary')
-    print db.bulk_new([dict(key="/b/OL%dM" % i, title="book %d" % i, type={"key": "/type/edition"}) for i in range(1, 101)], comment="add books")
-    print db.bulk_new([dict(key="/a/OL%dA" % i, name="author %d" % i, type={"key": "/type/author"}) for i in range(1, 101)], comment="add authors")
-    print db.bulk_update([dict(key="/b/OL%dM" % i, authors=[{"key": "/a/OL%dA" % i}]) for i in range(1, 101)], comment="link authors")
+
+    #print db.bulk_new([dict(key="/b/OL%dM" % i, title="book %d" % i, type={"key": "/type/edition"}) for i in range(1, 101)], comment="add books")
+    #print db.bulk_new([dict(key="/a/OL%dA" % i, name="author %d" % i, type={"key": "/type/author"}) for i in range(1, 101)], comment="add authors")
+    #print db.bulk_update([dict(key="/b/OL%dM" % i, authors=[{"key": "/a/OL%dA" % i}]) for i in range(1, 101)], comment="link authors")
+    db.reindex(["/a/OL%dA" % i for i in range(1, 101)])
 
     """
     print db.bulk_new([dict(key=key, 
