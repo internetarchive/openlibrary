@@ -1,65 +1,90 @@
 """Script to load works fast."""
-import sys
+import sys, os
 import time
 import simplejson
 import web
+
+import _init_path
 from openlibrary.utils.bulkimport import DocumentLoader, Reindexer
 
 class WorkLoader:
     def __init__(self, **dbparams):
         self.loader = DocumentLoader(**dbparams)
+        self.tmpdir = "/tmp"
 
-        type_edition_id = self.loader.get_thing_id("/type/edition")
-        self.key_id_works = Reindexer(self.loader.db).get_property_id(type_edition_id, "works")
+        # a bug in web.group has been fixed in 0.33
+        assert web.__version__ == "0.33"
 
-    def load(self, filename, author="/user/ImportBot"):
+    def load_works(self, filename, author="/user/ImportBot"):
         self.author = author
+        
+        root = os.path.dirname(filename)
+        editions_file = open(os.path.join(root, 'editions.txt'), 'a')
+        
+        try:
+            for i, lines in enumerate(web.group(open(filename), 1000)):
+                t0 = time.time()
+                self.load_works_chunk(lines, editions_file)
+                t1 = time.time()
+                log(i, "%.3f sec" % (t1-t0))
+        finally:
+            editions_file.close()
 
-        for i, lines in enumerate(web.group(open(filename), 1000)):
-            if i <= 20:
-                continue
-            if i == 30:  
-                break
-            t0 = time.time()
-            self.load_chunk(lines)
-            t1 = time.time()
-            log(i, "%.3f sec" % (t1-t0))
-
-    def load_chunk(self, lines):
+    def load_works_chunk(self, lines, editions_file):
         works = [eval(line) for line in lines]
         keys = self.loader.new_work_keys(len(works))
 
-        editions = []
+        editions = {}
         for work, key in zip(works, keys):
             work['key'] = key
             work['type'] = {'key': "/type/work"}
             work['authors'] = [dict(author=a, type='/type/author_role') for a in work['authors']]
-            for e in work.pop('editions'):
-                if int(web.numify(e)) < 22 * 1000000:
-                    editions.append(dict(key=e, works=[{"key": key}]))
+            editions[key] = work.pop('editions')
+            
+        result = self.loader.bulk_new(works, comment="add works page", author=self.author)
 
-        t = self.loader.db.transaction()
+        def process(result):
+            for r in result:
+                for e in editions[r['key']]:
+                    yield "\t".join([e, r['key'], str(r['id'])]) + "\n"
+        
+        editions_file.writelines(process(result))
+        
+    def update_editions(self, filename, author="/user/ImportBot"):
+        self.author = author
+        
+        root = os.path.dirname(filename)
+        index_file = open(os.path.join(root, 'edition_ref.txt'), 'a')
+            
+        type_edition_id = self.loader.get_thing_id("/type/edition")
+        keyid = Reindexer(self.loader.db).get_property_id(type_edition_id, "works")
+        
+        log("begin")
         try:
-            modified = []
-            log("adding works...")
-            r_works = self.loader.bulk_new(works, comment="add works page", author=self.author)
-            #log("reindexing works")
-            #self.loader.reindex([d['key'] for d in modified])
+            for i, lines in enumerate(web.group(open(filename), 1000)):
+                t0 = time.time()
+                self.update_editions_chunk(lines, index_file, keyid)
+                t1 = time.time()
+                log(i, "%.3f sec" % (t1-t0))
+        finally:
+            index_file.close()
 
-            log("linking works...")
-            r_editions = self.loader.bulk_update(editions, comment="link works", author=self.author)
-
-            log("adding index...")
-            key2id = dict((d['key'], d['id']) for d in r_works + r_editions)
-            self.add_index(editions, key2id)
-
-            log("done")
-        except:
-            t.rollback()
-            raise
-        else:
-            t.commit()
-
+        log("end")
+    
+    def update_editions_chunk(self, lines, index_file, keyid):
+        data = [line.strip().split("\t") for line in lines]
+        editions = [{"key": e, "works": [{"key": w}]} for e, w, wid in data]
+        result = self.loader.bulk_update(editions, comment="link works", author=self.author)
+    
+        def process():
+            edition_map = dict((row[0], row) for row in data)
+            for row in result:
+                eid = row['id']
+                wid = edition_map[row['key']]
+                ordering = 0
+                yield "\t".join(map(str, [eid, keyid, wid, ordering])) + "\n"
+        index_file.writelines(process())    
+        
     def add_index(self, editions, keys2id):
         rows = []
         for e in editions:
@@ -79,7 +104,9 @@ def make_documents(lines):
 
 def main(filename):
     loader = WorkLoader(db="staging", host="ia331525")
-    loader.load(filename)
+    loader.loader.db.printing = True
+    #loader.load_works(filename)
+    loader.update_editions(filename)
 
 def log(*args):
     args = [time.asctime()] + list(args)
