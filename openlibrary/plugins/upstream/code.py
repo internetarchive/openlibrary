@@ -7,6 +7,7 @@ import random
 import hmac
 import md5
 import simplejson
+import random
 
 from infogami import config
 from infogami.core.code import view, edit
@@ -23,7 +24,6 @@ from openlibrary.plugins.openlibrary import code as ol_code
 from openlibrary.plugins.search.code import SearchProcessor
 
 from openlibrary.i18n import gettext as _
-
 import forms
 
 if not config.get('coverstore_url'):
@@ -201,6 +201,7 @@ del delegate.pages['/addbook']
 
 web.template.Template.globals['gettext'] = _
 web.template.Template.globals['_'] = _
+web.template.Template.globals['random'] = random.Random()
 
 @web.memoize
 @public
