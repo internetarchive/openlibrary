@@ -19,7 +19,11 @@ def main():
                 break
             t1 = time.time()
             for r in result:
-                m.add(r.key, r.data)
+                try:
+                    m.add(r.key, r.data)
+                except:
+                    print >> web.debug, 'failed to add to memcached', repr(r.key)
+
             t2 = time.time()
             print >> web.debug, "%.3f" % (t2-t1), i, "adding memcache records"
     finally:
