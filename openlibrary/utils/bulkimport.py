@@ -8,7 +8,7 @@ import datetime
 import simplejson
 from collections import defaultdict
 
-class Database:
+class DocumentLoader:
     def __init__(self, **params):
         params = params.copy()
         params.setdefault('dbn', 'postgres')
@@ -104,10 +104,11 @@ class Database:
 
         # add an entry in the transaction table
         txn_id = self.db.insert('transaction',
-                                 action="import",
-                                 author_id=author_id,
-                                 created=timestamp,
-                                 ip=ip)
+                                action="import",
+                                comment=comment,
+                                author_id=author_id,
+                                created=timestamp,
+                                ip=ip)
 
         # add versions
         versions = [dict(transaction_id=txn_id,
@@ -116,14 +117,15 @@ class Database:
                     for doc in documents]
         self.db.multiple_insert('version', versions, seqname=False)
 
+        result = [{'key': doc['key'], 'revision': doc['revision'], 'id': doc['id']} for doc in documents]
+
         # insert data
         data = [dict(thing_id=doc.pop('id'),
                      revision=doc['revision'], 
                      data=simplejson.dumps(doc))
                 for doc in documents]
         self.db.multiple_insert('data', data, seqname=False)
-
-        return [{'key': doc['key'], 'revision': doc['revision']} for doc in documents]
+        return result
         
     def bulk_update(self, documents, author='/user/ImportBot', comment=None):
         """Update existing documents in the database. 
@@ -191,16 +193,18 @@ class Database:
         return self._insert_data(documents, author=author, timestamp=timestamp, comment=comment)
 
 
-    def reindex(self, keys):
+    def reindex(self, keys, tables=None):
         """Delete existing entries and add new entries to xxx_str,
         xxx_ref .. tables for the documents specified by keys.
+
+        If optional tables argument is specified then reindex is done only for values in those tables.
         """
-        return _Reindexer(self.db).reindex(keys)
+        return Reindexer(self.db).reindex(keys, tables)
 
     # this is not required anymore
     del _with_transaction
 
-class _Reindexer:
+class Reindexer:
     """Utility to reindex documents."""
     def __init__(self, db):
         self.db = db
@@ -213,13 +217,17 @@ class _Reindexer:
                        "permission", "child_permission"])
         self._property_cache = {}
 
-    def reindex(self, keys):
+    def reindex(self, keys, tables=None):
+        """Reindex documents specified by the keys.
+
+        If tables is specified, index is recomputed only for those tables and other tables are ignored.
+        """
         t = self.db.transaction()
         
         try:
             documents = self.get_documents(keys)
-            self.delete_earlier_index(documents)
-            self.create_new_index(documents)
+            self.delete_earlier_index(documents, tables)
+            self.create_new_index(documents, tables)
         except:
             t.rollback()
             raise
@@ -240,9 +248,9 @@ class _Reindexer:
                      for row in rows]
         return documents
 
-    def delete_earlier_index(self, documents):
+    def delete_earlier_index(self, documents, tables=None):
         """Remove all prevous entries corresponding to the given documents"""
-        all_tables = set(r.relname for r in self.db.query(
+        all_tables = tables or set(r.relname for r in self.db.query(
                 "SELECT relname FROM pg_class WHERE relkind='r'"))
 
         data = defaultdict(list)
@@ -254,7 +262,7 @@ class _Reindexer:
         for table, thing_ids in data.items():
             self.db.delete(table, where="thing_id IN $thing_ids", vars=locals())
     
-    def create_new_index(self, documents):
+    def create_new_index(self, documents, tables=None):
         """Insert data in to index tables for the specified documents."""
         data = defaultdict(list)
 
@@ -262,6 +270,9 @@ class _Reindexer:
             for name, value in doc.items():
                 datatype = self._find_datatype(value)
                 table = datatype and self.schema.find_table(doc['type']['key'], datatype, name)
+                # when asked to index only some tables
+                if tables and table not in tables:
+                    continue
                 if table:
                     self.prepare_insert(data[table], doc['id'], doc['type_id'], name, value)
 
@@ -353,12 +364,12 @@ class _Reindexer:
              return None
 
 def _test():
-    db = Database(db='openlibrary')
+    loader = DocumentLoader(db='openlibrary')
 
     #print db.bulk_new([dict(key="/b/OL%dM" % i, title="book %d" % i, type={"key": "/type/edition"}) for i in range(1, 101)], comment="add books")
     #print db.bulk_new([dict(key="/a/OL%dA" % i, name="author %d" % i, type={"key": "/type/author"}) for i in range(1, 101)], comment="add authors")
     #print db.bulk_update([dict(key="/b/OL%dM" % i, authors=[{"key": "/a/OL%dA" % i}]) for i in range(1, 101)], comment="link authors")
-    db.reindex(["/a/OL%dA" % i for i in range(1, 101)])
+    loader.reindex(["/a/OL%dA" % i for i in range(1, 101)])
 
     """
     print db.bulk_new([dict(key=key, 
