@@ -16,6 +16,7 @@ from infogami.utils.view import require_login, render, add_flash_message, public
 from infogami.infobase import client
 from infogami.infobase.client import ClientException
 from infogami.utils.context import context
+from infogami.utils.macro import macro
 
 from infogami.plugins.api.code import jsonapi
 
@@ -97,8 +98,11 @@ class SubjectPlace(Subject):
 client.register_thing_class('/type/subject', Subject)
 client.register_thing_class('/type/place', SubjectPlace)
 
+@macro
 @public
 def render_template(name, *a, **kw):
+    if "." in name:
+        name = name.rsplit(".", 1)[0]
     return render[name](*a, **kw)
     
 @public
@@ -495,3 +499,17 @@ class redirects(delegate.page):
         d = dict(a="authors", b="books", user="people")
         raise web.redirect("/%s/%s" % (d[prefix], path))
 
+@public
+def get_history(page):
+    h = web.storage(revision=page.revision)
+    if h.revision < 5:
+        h.recent = web.ctx.site.versions({"key": page.key, "limit": 5})
+        h.initial = []
+    else:
+        h.initial = web.ctx.site.versions({"key": page.key, "limit": 2, "offset": h.revision-2})
+        h.recent = web.ctx.site.versions({"key": page.key, "limit": 3})
+    return h
+
+@public
+def get_document(key):
+    return web.ctx.site.get(key)

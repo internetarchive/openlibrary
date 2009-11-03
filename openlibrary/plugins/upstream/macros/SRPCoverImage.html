@@ -2,6 +2,16 @@ $def with(book, size="M")
 
 $ olid = book.key.split('/')[2]
 $ title = book.title
+
+$code:
+    def aname(a):
+        if isinstance(a, basestring):
+            return a
+        elif a.get('author'):
+            return a.author.name
+        else:
+            return a.name
+
 $ authorlist = ', '.join([aname(author) for author in book.authors])
 
 $if size == "M":

@@ -1,0 +1,23 @@
+$def with (page)
+
+$ h = get_history(page)
+
+<table class="history">
+    <tbody>
+        $for v in h.recent:
+            <tr>
+                <td class="timestamp">$datestr(v.created)</td>
+                <td class="detail">$v.comment</td>
+            </tr>
+        $if h.initial:
+            <tr class="reveal">
+                <td class="timestamp">&nbsp;</td>
+                <td class="detail"><a href="$page.key?m=history" class="showmore">$_("See more history")</a></td>
+            </tr>
+            $for v in h.initial:
+                <tr>
+                    <td class="timestamp">$datestr(v.created)</td>
+                    <td class="detail">$v.comment</td>
+                </tr>
+    </tbody>
+</table>

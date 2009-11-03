@@ -94,12 +94,6 @@ $if page.editions:
         <ul id="coversCarousel" class="jcarousel-skin-OL">
         $ col = 0
             $for book in page.editions:
-                $code:
-                    def aname(a):
-                        if isinstance(a, basestring):
-                            return a
-                        else:
-                            return a.name
                 $ title = book.title_prefix + " " + book.title
                 $ olid = book.key.split("/")[2]
                 $if col == 0: <li>
@@ -201,113 +195,6 @@ $if page.editions:
             <h2>History</h2>
             <span class="link"><a href="$changequery(m='history')">Read all</a></span>
         </div>
-
-                    <table class="history">
-                        <tbody>
-                            <tr>
-                                <td class="timestamp">1 hour ago</td>
-                                <td class="detail">
-                                    <!-- SOURCE -->
-                                    <a href="[URL]">Powells</a>
-                                    <!-- /SOURCE --> 
-                                    told us they sell the
-                                    <!-- EDITION -->
-                                    <a href="[BOOK PAGE]">1983 Bantam edition</a>.
-                                    <!-- /EDITION --> 
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="timestamp">3 days ago</td>
-                                <td class="detail">
-                                    We discovered a
-                                    <!-- SCAN TYPE -->
-                                    <a href="[SCANNED URL]">full-text digital version</a>
-                                    <!-- /SCAN TYPE -->
-                                    of the
-                                    <!-- EDITION -->
-                                    1963 Penguin edition
-                                    <!-- /EDITION -->
-                                    is available on
-                                    <!-- SOURCE -->
-                                    <a href="[SCAN LINK]">Google</a>.
-                                    <!-- /SOURCE -->
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="timestamp">A week ago</td>
-                                <td class="detail">
-                                    <!-- ACTION -->
-                                    A new edition
-                                    <!-- /ACTION -->
-                                    was added by
-                                    <!-- MEMBER -->
-                                    <a href="[PROFILE]">Sonny</a>,
-                                    <!-- /MEMBER -->
-                                    on Open Library:
-                                    <!-- EDITION -->
-                                    <a href="[BOOK PAGE]">1983, Bantam</a>.
-                                </td>
-                            </tr>
-                            <tr class="reveal">
-                                <td class="timestamp">&nbsp;</td>
-                                <td class="detail"><a href="javascript:;" class="showmore">See more history</a></td>
-                            </tr>
-                            <tr class="hidden">
-                                <td class="timestamp">Time stamp</td>
-                                <td class="detail">Here's what happened!</td>
-                            </tr>
-                            <tr class="hidden">
-                                <td class="timestamp">Time stamp</td>
-                                <td class="detail">Here's what happened!</td>
-                            </tr>
-                            <tr class="hidden">
-                                <td class="timestamp">Time stamp</td>
-                                <td class="detail">Here's what happened!</td>
-                            </tr>
-                            <tr class="hidden">
-                                <td class="timestamp">Time stamp</td>
-                                <td class="detail">Here's what happened!</td>
-                            </tr>
-                            <tr class="hidden">
-                                <td class="timestamp">Time stamp</td>
-                                <td class="detail">Here's what happened!</td>
-                            </tr>
-                            <tr class="hidden">
-                                <td class="timestamp">Time stamp</td>
-                                <td class="detail">Here's what happened!</td>
-                            </tr>
-                            <tr class="hidden">
-                                <td class="timestamp">Time stamp</td>
-                                <td class="detail">Here's what happened!</td>
-                            </tr>
-                            <tr>
-                                <td class="timestamp">Last month</td>
-                                <td class="detail">
-                                    Turned up on
-                                    <!-- MEMBER -->
-                                    <a href="[PROFILE]">Estelle Getty</a>'s
-                                    <!-- /MEMBER -->
-                                    <!-- LIST -->
-                                    <a href="[LIST URL]">Snaks for Important People</a> list.
-                                    <!-- /LIST -->
-                                </td>
-                            </tr>
-                            <tr class="first">
-                                <td class="timestamp">12 Nov 08</td>
-                                <td class="detail">
-                                    <!-- ACTION -->
-                                    We imported the original source record from
-                                    <!-- /ACTION -->
-                                    <!-- SOURCE -->
-                                    <a href="[SOURCE URL]"><strong>Library of Congress</strong></a>:
-                                    <!-- /SOURCE -->
-                                    <!-- EDITION -->
-                                    <a href="[BOOK URL]">1962, Penguin, paperback</a>.
-                                    <!-- /EDITION -->
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-
+        $:render_template("lib/history", page)
     </div>
 </div>
