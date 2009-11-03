@@ -1,23 +1,25 @@
 $def with(book, size="M")
 
+$ olid = book.key.split('/')[2]
 $ title = book.title
-$ olid = book.key.split("/")[2]
-$ author_names = ', '.join(a.author.name for a in book.authors)
+$ authorlist = ', '.join([aname(author) for author in book.authors])
 
 $if size == "M":
     <div class="coverMagic">
         <div class="SRPCover">
-            <a href="$book.key" title="$book.title_prefix $book.title">
-	        <img src="http://covers.openlibrary.org/b/olid/$olid-M.jpg?default=false" class="cover" alt="$title"/>
+            <a href="$book.key" title="$book.title_prefix $book.title $_.by $:authorlist">
+                <img src="http://covers.openlibrary.org/b/olid/$olid-M.jpg?default=false" class="cover" alt="$book.title_prefix $book.title $_.by $:authorlist"/>
             </a>
         </div>
-        <div class="SRPCoverBlank" onClick="document.location.href='$book.key';" title="$title">
-            <div class="BookTitle">$title
-                <div class="Author">$author_names</div>
+        <div class="SRPCoverBlank" onClick="document.location.href='$book.key';" title="$book.title_prefix $book.title $_.by $:authorlist">
+            <div class="innerBorder">
+                <div class="BookTitle">$:macros.TruncateString(title, 70)
+                    <div class="Author">$:authorlist</div>
+                </div>
             </div>
         </div>
     </div>
 $else:
     <a href="$book.key" title="$title">
-    <img src="http://covers.openlibrary.org/b/olid/$olid-S.jpg?default=http://upstream.openlibrary.org/images/icons/avatar_book-sm.png" alt="$title"/>
+        <img src="http://covers.openlibrary.org/b/olid/$olid-S.jpg?default=http://upstream.openlibrary.org/images/icons/avatar_book-sm.png" alt="$title"/>
     </a>

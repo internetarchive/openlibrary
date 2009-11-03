@@ -2,14 +2,23 @@ $def with (page)
 
 $ title = page.title or page.key
 
-$var title: $title
+$if title.startswith("i18n::") and title.count(':') == 3:
+    $ namespace = title.split(':')[2]
+    $ key = title.split(':')[3]
+    $ title = i18n.get(namespace, key)
 
-<div id="contentHead">
-    <div class="head">
-        <h1>$title</h1>
+$var title: $title
+        
+$if '<!--suppress-title-->' not in page.body:
+    <div id="contentHead">
+        $:macros.databarView(page)
+        <div class="head">
+            <h1>$title</h1>
+        </div>
     </div>
-</div>
+
+$ text = format(page.body)
 
 <div id="contentBody">
-    $:format(page.body)
+    $:text
 </div>

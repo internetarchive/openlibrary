@@ -43,12 +43,12 @@ $def with (page)
     </script>
 </head>
 
-<body id="$ctx.get('bodyid', 'user')">
+<body id="$ctx.get('bodyid', 'user')" tabindex="0">
 
     <div id="placement">
     <div id="position">
 
-    <div class="siteSearch" id="headerSearch">
+    <div class="siteSearch" id="headerSearch" tabindex="1000">
          <form method="get" action="/search" class="siteSearch">
             <input type="submit" value="$_('Search')"/>
             <input type="text" name="q" class="query" value="" title="type_search."/>
@@ -59,8 +59,8 @@ $def with (page)
                         <a href="javascript:;" id="searchHead" text2="$_('Hide options')">$_("More search options")</a>
                     </div>
                     <div class="searchCheckbox">
-                        <input type="checkbox" value="mhsncqbxgkup" id="ftokenstop" name="ftokens" checked="checked"/> 
-                        <label for="ftokenstop">$_("Search inside books")</label>
+                        <input type="checkbox" value="mhsncqbxgkup" id="ftokenstop" name="ftokens"/> 
+                        <label for="ftokenstop">$_("Only show eBooks")</label>
                     </div>
                 </div>
             </div>
@@ -78,7 +78,6 @@ $def with (page)
                 <div class="formElement">
                 <label for="subject1">$_("Subject:")</label><br/>
                 <input id="subject1" type="text" name="wtopic" value="" size="35"/>
-
                 </div>
                 <div class="formElement">
                 <label for="isbn1">ISBN:</label><br/>
@@ -87,26 +86,7 @@ $def with (page)
                 <div class="formElement">
                 <label for="publisher1">$_("Publisher:")</label><br/>
                 <input id="publisher1" type="text" name="wpublisher" value="" size="35"/>
-
                 </div>
-                <!-- <div class="formElement">
-                <label for="description1">$_("Description:")</label>
-                <input id="description1" type="text" name="wdescription" value="" size="35"/>
-                </div>
-                <div class="formElement">
-                <label for="sort1">$_("Sort By:")</label> 
-                <select id="sort1" size="1" name="psort_order">
-                <option value="None" selected="selected">$_("Alphabetical")</option>
-                <option value="TitleAsc">$_("Title (A-Z)")</option>
-                <option value="TitleDesc">$_("Title (Z-A)")</option>
-                <option value="AuthorAsc">$_("Author (A-Z)")</option>
-                <option value="AuthorDesc">$_("Author (Z-A)")</option>
-                <option value="DateAsc">$_("Date (Oldest First)")</option>
-                <option value="DateDesc">$_("Date (Newest First)")</option>
-                <option value="PublisherAsc">$_("Publisher (A-Z)")</option>
-                <option value="PublisherDesc">$_("Publisher (Z-A)")</option>
-                </select>
-                </div> -->
                 <div class="formElement">
                 <label for="date1">$_("Date Range:")</label>
                 <select id="date1" size="1" name="ftokens">
@@ -132,18 +112,18 @@ $def with (page)
 
             <div id="headerNav">
                 <ul class="links first">
-                    <li><a class="" href="/subjects">$_("Subjects")</a></li>
+                    <li><a href="/subjects">$_("Subjects")</a></li>
                 </ul>
 
                 <ul class="links second">
-                    <li><a class="" href="/authors">$_("Authors")</a></li>
-                    <li><a class="" href="/books/add">$_("Add a Book")</a></li>
+                    <li><a href="/authors">$_("Authors")</a></li>
+                    <li><a href="/books/add">$_("Add a Book")</a></li>
                 </ul>
                 <ul class="links third">
-                    <li><a class="" href="/lists">$_("Lists")</a></li>
-                    <li><a class="" href="/recentchanges">$_("Recently")</a></li>
+                    <li><a href="/lists">$_("Lists")</a></li>
+                    <li><a href="/recentchanges">$_("Recently")</a></li>
 
-                    <li><a class="" href="/about">$_("About Us")</a></li>
+                    <li><a href="/about">$_("About Us")</a></li>
                 </ul>
             </div>
 
@@ -174,59 +154,19 @@ $def with (page)
         <div id="content">
             <div class="flash-messages">
             $for flash in get_flash_messages():
-                <div class="$flash.type">$flash.message</div>
-            </div>
-            <div id="contentMsg">
-                <div class="alert attn"><span></span></div>
+                <div class="$flash.type"><span>$flash.message</span></div>
             </div>
 
-    
             $:page
+
         </div>
     
         <div id="footer">
-        
-            <div class="footerNav">
-                <ul>
-                    <li><a href="/">Home</a></li>
-                    <li><a href="/subjects">Subjects</a></li>
-                    <li><a href="/authors">Authors</a></li>
-                    <li><a href="/lists">Lists</a></li>
-                </ul>
-            </div>
-            
-            <div class="footerNav">
-                <ul>
-                    <li><a href="/addabook">Add a Book</a></li>
-                    <li><a href="/recentchanges">Recently</a></li>
-                </ul>
-            </div>
-            
-            <div class="footerNav">
-                <ul>
-                    <li><a href="/about">About Us</a></li>
-                    <li><a href="/help/contact">Contact</a></li>
-                    <li><a href="http://blog.openlibrary.org/">Blog</a></li>
-                </ul>
-            </div>
-            
-            <div class="footerNav">
-                <ul>
-                    <li><a href="/developers">Developers</a></li>
-                    <li><a href="/developers/docs">Docs</a></li>
-                    <li><a href="/data">Data</a></li>
-                </ul>
-            </div>
-            
-            <div class="footerNav">
-                <ul>
-                    <li><a href="/help">Help</a></li>
-                    <li><a href="/help/faq">FAQ</a></li>
-                </ul>
-            </div>
+                    
+        <div id="footerPosition">
 
 <!-- BOTTOM SEARCH -->
-            <div class="siteSearch" id="footerSearch">
+            <div class="siteSearch" id="footerSearch" tabindex="1001">
 
             <form method="get" action="/search" class="siteSearch">
 
@@ -243,7 +183,6 @@ $def with (page)
                     <div class="formElement">
                     <label for="subject2">Subject:</label><br/>
                     <input id="subject2" type="text" name="wtopic" value="" size="35"/>
-
                     </div>
                     <div class="formElement">
                     <label for="isbn2">ISBN:</label><br/>
@@ -252,26 +191,7 @@ $def with (page)
                     <div class="formElement">
                     <label for="publisher2">Publisher:</label><br/>
                     <input id="publisher2" type="text" name="wpublisher" value="" size="35"/>
-
                     </div>
-                    <!-- <div class="formElement">
-                    <label for="description2">Description:</label>
-                    <input id="description2" type="text" name="wdescription" value="" size="35"/>
-                    </div>
-                    <div class="formElement">
-                    <label for="sort2">Sort By:</label> 
-                    <select size="1" name="psort_order">
-                    <option value="None" selected="selected">Alphabetical</option>
-                    <option value="TitleAsc">Title (A-Z)</option>
-                    <option value="TitleDesc">Title (Z-A)</option>
-                    <option value="AuthorAsc">Author (A-Z)</option>
-                    <option value="AuthorDesc">Author (Z-A)</option>
-                    <option value="DateAsc">Date (Oldest First)</option>
-                    <option value="DateDesc">Date (Newest First)</option>
-                    <option value="PublisherAsc">Publisher (A-Z)</option>
-                    <option value="PublisherDesc">Publisher (Z-A)</option>
-                    </select>
-                    </div> -->
                     <div class="formElement">
                     <label for="date2">Date Range:</label>
                     <select id="date2" size="1" name="ftokens">
@@ -297,8 +217,8 @@ $def with (page)
                         <a href="javascript:;" id="searchFoot" text2="$_('Hide options')">$_("More search options")</a>
                     </div>
                     <div class="searchCheckbox">
-                        <input type="checkbox" value="mhsncqbxgkup" id="ftokenstop" name="ftokens" checked="checked"/> 
-                        <label for="ftokenstop">$_("Search inside books")</label>
+                        <input type="checkbox" value="mhsncqbxgkup" id="ftokenstop" name="ftokens"/> 
+                        <label for="ftokenstop">$_("Only show eBooks")</label>
                     </div>
                 </div>
             </div>
@@ -307,6 +227,39 @@ $def with (page)
 
             </div>
 <!-- /BOTTOM SEARCH -->
+
+            <div class="footerNav">
+                <ul>
+                    <li><a href="#top" title="Go to the top of this page">Top</a></li>
+                    <li>|</li>
+                    <li><a href="/" title="Go home">Home</a></li>
+                    <li><strong>&middot;</strong></li>
+                    <li><a href="/books/add" title="Add a new book to Open Library">$_("Add a Book")</a></li>
+                    <li><strong>&middot;</strong></li>
+                    <li><a href="/subjects" title="Explore subjects">$_("Subjects")</a></li>
+                    <li>|</li>
+                    <li><li><a href="/authors" title="Explore authors">$_("Authors")</a></li>
+                    <li>|</li>
+                    <li><a href="/lists" title="Manage your lists">$_("Lists")</a></li>
+                    <li><strong>&middot;</strong></li>
+                    <li><a href="/about" title="About the Open Library staff">$_("About Us")</a></li>
+                    <li>|</li>
+                    <li><a href="/help" title="Get help">$_("Help")</a></li>
+                    <li><strong>&middot;</strong></li>
+                    <li><a href="/developers" title="Visit the Developers Center">$_("Developers")</a></li>
+                </ul>
+            </div>
+
+        </div>
+
+            <div id="footerHistory">
+                <h4>Around<br/>The Library</h4>
+                $:macros.MostRecent()
+                <div id="abuse">
+                    <a href="[ABUSE]"><span></span>$_("Report spam")</a>
+                </div>
+            </div>
+
 
         </div>
             
@@ -321,15 +274,13 @@ $def with (page)
         Other projects include the <a href="http://web.archive.org/collections/web.html">Wayback Machine</a>, <a href="http://www.archive.org/">archive.org</a>, <a href="http://www.nasaimages.org/">nasaimages.org</a>, <a href="http://www.archive-it.org">archive-it.org</a>.</p>
         <p>Your use of the Open Library is subject to the Internet Archive's <a href="http://www.archive.org/about/terms.php">Terms of Use</a>.</p>
 
-    <div id="abuse">
-        <a href="[ABUSE]"><span></span>$_("Spam?")</a>
-    </div>
 
         <!--[if lt IE 7]>
         <p style="background:#ffc;border:1px solid red;margin-top:20px;font:11px Verdana;padding:10px;">The Open Library website has not been optimized for Internet Explorer 6, so some features and graphic elements may not appear correctly. Please consider upgrading to <a href="http://www.microsoft.com/windows/internet-explorer/ie7/default.aspx">Internet Explorer 7</a>, <a href="http://www.microsoft.com/windows/internet-explorer/default.aspx">Internet Explorer 8</a> (the most recent version) or <a href="http://www.mozilla.com/firefox/">Firefox 3</a> to use this and other web sites to your fullest advantage.</p>
         <![endif]-->
         </div>
     </div>
+
 
 </body>
 </html>

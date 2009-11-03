@@ -5,6 +5,7 @@ $ lang = i18n.get_locale() or 'en'
 $var title: $page.title
 
 <div id="contentHead">
+    $:macros.databarView(page)
     <div class="head">
     <h1>$page.title</h1>
     </div>
@@ -16,8 +17,6 @@ $:format(page.body)
 
     $if not page.key.startswith("/about."):
         <p class="smaller sansserif"><a href="/about">$_.back_to_ol</a></p> 
-
-$:macros.SeeLanguage()
 
 <script>
 \$().ready(setup_wmd);

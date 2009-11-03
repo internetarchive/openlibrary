@@ -4,11 +4,7 @@ $ _ = i18n.get_namespace('/search')
 
 <!-- Timings (for debugging): $timings -->
 
-$# check for the presence of a facet token corresponding to a fulltext search selection facet
-$# this is kludgy and maybe it should be done some other way, like with another plugin function
-$ want_fulltext = ''
-$if 'mhsncqbxgkup' in ftokens:
-    $ want_fulltext = 'checked'
+<script type="text/javascript">\$().ready(bookCovers);</script>
 
 <div id="contentHead">
   <div class="head">
@@ -75,10 +71,9 @@ $if facets:
     $if query_param('view')=='covers':
         $:macros.SearchResultsCovers(results)
     $else:
-        $:macros.SearchResults(results)  
+        $:macros.SearchResults(results)
 
-    <p class="small sansserif">$_.cant_find&nbsp;<a href="/addbook">$_.add_a_book</a>.</p>
-
+        <div class="clearfix"></div>
     $if qresults.total_results > 20:
         <div class="clearfix"></div>
         <div class="pagination">
@@ -87,7 +82,8 @@ $if facets:
         $ this_page = qresults.begin / 20 + 1
         $:macros.SearchPagination(q, first_page, last_page, this_page, 20)
         </div>
-    </div>
 
+    </div>
+    <p class="small sansserif">$_.cant_find&nbsp;<a href="/addbook">$_.add_a_book</a>.</p>
 
 </div>

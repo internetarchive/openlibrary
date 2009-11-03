@@ -3,6 +3,8 @@ $def with (page)
 $ _t = i18n.get_namespace('/type/page')
 $ _ = i18n.get_namespace('/mode/edit')
 
+$ _x = ctx.setdefault('bodyid', 'edit')
+
 $var title: $_.edit_title(page.key)
 
 <form name="edit" class="olform" method="post" action="">
@@ -15,11 +17,8 @@ $var title: $_.edit_title(page.key)
 </div>
 
 <div id="contentBody">
-<script type="text/javascript">
-\$().ready(textareaExpand);
-</script>
 
-$:macros.TypeChanger(page.type)
+    $:macros.TypeChanger(page.type)
 
     <div class="formElement">
         <div class="label">

@@ -8,8 +8,7 @@ $ show_users = (query_param('show_users', 'false').lower() == 'true')
 
 <!--islist-->
 
-<div id="bibliography">
-        <table id="changeHistory">
+    <table id="changeHistory">
         <thead>
             <tr>
                 <th>$_("When")</th>
@@ -18,12 +17,12 @@ $ show_users = (query_param('show_users', 'false').lower() == 'true')
                 <th>$_("What")</th>
                 <th>$_("Actions")</th>
             </tr>
-            </thead>
-            <tbody>
-            $for v in changes:
-                $# ignore user registrations
-                $if show_users or not v.key.startswith('/user/'):
-                    <tr>
+        </thead>
+        <tbody>
+        $for v in changes:
+            $# ignore user registrations
+            $if show_users or not v.key.startswith('/user/'):
+                <tr>
                     <td class="time">$datestr(v.created)</td>
                     $# show book title/author name instead of key
                     $if v.thing.type.key == '/type/edition':
@@ -40,20 +39,19 @@ $ show_users = (query_param('show_users', 'false').lower() == 'true')
                     $else:
                         <td class="history">$v.ip</td>
                     <td class="comment">$v.comment</td>
-                    <td class="buttons">
+                    <td class="buttons" nowrap="nowrap">
                         <a href="$homepath()$v.key?m=view&v=$v.revision">$_("view")</a> -
                         <a href="$homepath()$v.key?m=edit&v=$v.revision">$_("edit")</a> - 
                         <a href="$homepath()$v.key?m=diff&b=$v.revision">$_("diff")</a>
                     </td>
-                    </tr>
+                </tr>
         </tbody>
-        </table>
-</div>
+    </table>
 
-<div class="copyright-footer small sansserif">
-$if page != 0:
-    <a href="$:changequery(page=page - 1)" class="datalink" rel="nofollow">$_("Newer")</a>
+    <div class="small sansserif">
+    $if page != 0:
+        <a href="$:changequery(page=page - 1)" rel="nofollow">$_("Newer")</a>
     
-$if len(changes) == limit:
-    &nbsp; <a href="$:changequery(page=page + 1)" class="datalink" rel="nofollow">$_("Older")</a>
-</div>
+    $if len(changes) == limit:
+        &nbsp; <a href="$:changequery(page=page + 1)" rel="nofollow">$_("Older")</a>
+    </div>

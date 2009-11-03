@@ -4,6 +4,8 @@ $ _t = i18n.get_namespace('/type/edition')
 $ _ = i18n.get_namespace('/mode/edit')
 
 $ title = title or safeadd(_.editing, ' ', page.title)
+
+$ _x = ctx.setdefault('bodyid', 'edit')
  
 $var title: $title
 
@@ -40,7 +42,7 @@ function next(key) {
 -->
 </script>
 
-<form method="POST" name="edit" class="oledit" action="$(action or '')">
+<form method="POST" name="edit" class="oledit olform" action="$(action or '')">
 
     <div id="contentHead">
         <div class="head">
@@ -49,14 +51,6 @@ function next(key) {
         </div>
     </div>
 
-<script type="text/javascript">
-<!--
-\$().ready(poptip);
-//MUST COME LAST!
-\$().ready(formCopier);
-\$().ready(copyEditionFields);
-//-->
-</script>
 
     <div id="contentBody">
         $:macros.TypeChanger(page.type)

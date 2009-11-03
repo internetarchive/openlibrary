@@ -2,26 +2,23 @@ $def with (page)
 
 $var title: $page.displayname
 
-$:macros.databarView(page)
-
 <div id="contentHead">
+    $:macros.databarView(page)
     <div class="head"
         <h1>$page.displayname</h1>
     </div>
 </div>
 
 <div id="contentBody">
-    <div>
         $for url in page.website:
-            <a href="$url">$url</a><br/>
-    </div>
+            <p><a href="$url">$url</a></p>
 
     $:sanitize(format(page.description))
-</div>
 
-<div class="head">
-    <h3>$_("%s's Activity", page.displayname):</h3>
-</div>
-$:macros.RecentChanges(author=page, limit=10)
+    <div class="head">
+        <h3>$_("%s's Activity", page.displayname):</h3>
+    </div>
+
+    $:macros.RecentChanges(author=page, limit=10)
 
 </div>

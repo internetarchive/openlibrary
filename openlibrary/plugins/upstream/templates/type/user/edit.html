@@ -1,16 +1,8 @@
 $def with (page)
 
+$ _x = ctx.setdefault('bodyid', 'edit')
+
 $var title: Editing $page.displayname
-
-<script type="text/javascript">
-\$().ready(setup_wmd);
-</script>
-
- 
-<script type="text/javascript">
-\$().ready(cloneURLs);
-</script>
-
 
 $:macros.RowButtons(page.type)
 
@@ -22,9 +14,8 @@ $:macros.RowButtons(page.type)
 </div>
 
 <div id="contentBody">
-    <div id="slickbox" style="overflow: hidden">
+    
         $:macros.TypeChanger(page.type)
-    </div>
 
     <form method="POST" class="olform">
         <input type="hidden" name="type.key" id="type.key" value="/type/user"/>
@@ -33,10 +24,6 @@ $:macros.RowButtons(page.type)
         $:macros.UserEditRow(page, 'displayname', True)
         $:macros.UserEditRow(page, 'website', False)
 
-        <script type="text/javascript">
-        \$().ready(textareaExpand);
-        </script>
-        
         <div class="formElement">
             <div class="label"><label for="description">$_("Description")</label></div>
             <div class="input">
@@ -48,3 +35,7 @@ $:macros.RowButtons(page.type)
         $:macros.EditButtons(comment=page.comment_)
     </form>
 </div>
+
+<script type="text/javascript">
+\$().ready(setup_wmd);
+</script>

@@ -1,5 +1,7 @@
 $def with (page)
 
+$ _x = ctx.setdefault('bodyid', 'edit')
+
 $var title: $_("Edit %(title)s", title=page.title or page.key)
 
 <div id="contentHead">
@@ -9,19 +11,31 @@ $var title: $_("Edit %(title)s", title=page.title or page.key)
 </div>
             
 <div id="contentBody">
-    <form name="edit" method="post" action="">
-        <div id="slickbox" style="overflow: hidden">
-            $:macros.TypeChanger(page.type)
+
+    <form name="edit" method="post" action="" class="olform">
+
+    $:macros.TypeChanger(page.type)
+
+    <div class="formElement">
+        <div class="label"><label for="title">$_("Title"):</label></div>
+        <div class="input">
+            <input type="text" name="title" value="$page.title" style="width:100%" />
         </div>
+    </div>
 
-        <strong>$_("Title")</strong>
-        <input type="text" name="title" value="$page.title" style="width:100%" />
-        <br/><br/>
+    <div class="formElement">
+        <div class="label"><label for="body">Document Body:</label></div>
+        <div class="input">
+            <textarea id="wmd-input" name="body" rows="15" cols="80">$page.body</textarea>
+        </div>
+    </div>
 
-        <textarea id="wmd-input" name="body" rows="15" cols="80">$page.body</textarea>
-        
+
+    <div class="formElement">        
         $:macros.EditButtons(comment=page.comment_)
         $:macros.HelpFormatting()
+    </div>
+
     </form>
 </div>
 

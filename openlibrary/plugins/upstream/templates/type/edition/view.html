@@ -16,16 +16,17 @@ $ oclc = page["oclc_numbers"] and page["oclc_numbers"][0] and ("http://www.world
     $:macros.databarView(page)
 
     <div class="head">
-        <h1>$title</h1>
-            $if page.get('subtitle'): <br/><h3 class="subtitle">$page.subtitle</h3>
-            $if page.authors: <br/><h2 class="author">by $:thingrepr(page.authors)</h2>
+        <span class="sansserif">
+        $if page.works: $:thingrepr(page.works)
+        $if page.authors: by $:thingrepr(page.authors)
+        </span><br/>
+        <h1>
+            $if page.get('publish_date'): $page.publish_date 
+            $if page.get('publishers'): $:thingrepr(page.publishers)
+            $if page.get('publish_places'): ($:thingrepr(page.publish_places).strip())
+        </h1>
+        
     </div>
-    <br/>
-    <div class="sansserif">
-        $if page.get('publish_date'): $_.published_in $page.publish_date, 
-        $if page.get('publishers'): by $:thingrepr(page.publishers)
-        $if page.get('publish_places'): ($:thingrepr(page.publish_places).strip())
-    </div> 
 </div>
 
 <script type="text/javascript">
@@ -40,13 +41,20 @@ $ oclc = page["oclc_numbers"] and page["oclc_numbers"][0] and ("http://www.world
 
     <div id="workDetails">
 
-
     <div class="illustration right">
         $:macros.CoverImage(page)
         <div class="smaller sansserif"><a href="$:page.cover_url()">Change Cover</a></div>
     </div>
 
-    $ s1 = ["contributions", "other_titles", "work_titles", "works", "by_statement", "series", "copyright_date", "source_records", "languages", "translated_from", "edition_name", "physical_format", "physical_dimensions", "pagination", "weight"]
+    <div class="section">
+        <span class="title">Edition Title:</span> 
+        <span class="tag">
+            $title
+            $if page.get('subtitle'): $page.subtitle
+        </span>
+    </div>
+
+    $ s1 = ["contributions", "other_titles", "by_statement", "series", "copyright_date", "source_records", "languages", "translated_from", "edition_name", "physical_format", "physical_dimensions", "pagination", "weight"]
     $ s2 = ["isbn_10", "isbn_13", "lccn", "dewey_decimal_class", "lc_classifications", "oclc_numbers"]
     $ s3 = ["genres", "subjects"]
     $ s4 = ["download_url", "purchase_url"]

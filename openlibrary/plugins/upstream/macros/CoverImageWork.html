@@ -3,18 +3,19 @@ $def with(book, size="M")
 $ olid = book.key.split("/")[2]
 $ author_names = ', '.join(a.author.name for a in book.authors)
 
-    <div class="bookCover">
-        <span><img src="http://covers.openlibrary.org/b/olid/$olid-M.jpg?default=false" class="cover" alt="$book.title $_.by $author_names"/></span>
-    </div>
-    <div class="SRPCoverBlank">
-        <div class="innerBorder">
-            <div class="BookTitle">$book.title
-                <div class="Author">$author_names</div>
-            </div>
+<div class="bookCover">
+    <img src="http://covers.openlibrary.org/b/olid/$olid-M.jpg?default=false" class="cover" alt="$book.title $_.by $author_names"/>
+</div>
+<div class="SRPCoverBlank">
+    <div class="innerBorder">
+        <div class="BookTitle">$book.title
+            <div class="Author">$author_names</div>
         </div>
     </div>
-    $if book.publishers:
-        <div class="edition">
-            Cover image for the<br/>
-            <a href="$book.key" title="$book.title">$book.publish_date $:thingrepr(book.publishers) ($:thingrepr(book.publish_places).strip()) edition</a>     
-        </div>
+</div>
+
+$if book.publishers:
+    <div class="edition">
+        Cover image for the<br/>
+        <a href="$book.key" title="$book.title">$book.publish_date $:thingrepr(book.publishers) ($:thingrepr(book.publish_places).strip()) edition</a>     
+    </div>

@@ -19,8 +19,6 @@ $for b in results:
     </span>
     <div class="resultTitle">
         $ title = book.title
-        $if isinstance(title, list): $# handle bad data
-            $ title = title[0]
         <span class="booktitle"><a href="$book.key/$title.replace(' ', '-')" class="result">$book.title_prefix $title</a></span>
         $if book.get('authors', None):
             <span class="bookauthor">$_.by
