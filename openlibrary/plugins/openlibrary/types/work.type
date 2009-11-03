@@ -31,7 +31,7 @@
         'unique': True
     }, {
         'expected_type': {
-            'key': '/type/author'
+            'key': '/type/author_role'
         },
         'name': 'authors',
         'type': {
@@ -49,7 +49,7 @@
         'unique': False
     }, {
         'expected_type': {
-            'key': '/type/string'
+            'key': '/type/subject'
         },
         'name': 'subjects',
         'type': {
