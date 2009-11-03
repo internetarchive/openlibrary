@@ -82,6 +82,8 @@ class LocalSource:
     
     def expand(self, paths):
         for p in paths:
+            if p is None:
+                continue
             if '*' in p:
                 for dirpath, dirnames, filenames in os.walk(p[:-1]):
                     for f in filenames:
@@ -96,17 +98,21 @@ class LocalSource:
             >>> s.get_name('openlibrary/plugins/oltemplates/templates/site.html')
             'templates/site.tmpl'
             >>> s.get_name('openlibrary/plugins/oltemplates/macros/RecentChanges')
-            'macros/RecentChanges.html'
+            'macros/RecentChanges'
             >>> s.get_name('static/css/master.css')
             'css/master.css'
+            >>> s.get_name('openlibrary/plugins/openlibrary/types/page.type')
+            'type/page'
         """
         if path.startswith(self.root):
             path = path[len(self.root)+1:]
+        elif path.startswith(self.type_root):
+            path = path[len(self.type_root)+1:]
         elif  path.startswith(self.static):
             path = path[len(self.static)+1:]
 
-        if path.startswith('type/'):
-            path = path.replace('.type', '')
+        if path.endswith('.type'):
+            path = 'type/' + os.path.basename(path.replace('.type', ''))
         elif path.startswith('templates/'):
             path = path.replace('.html', '.tmpl')
         elif path.startswith('macros/'):
@@ -220,7 +226,7 @@ class RemoteSource:
             if text is None:
                 return {'key': key, 'type': {'key': '/type/delete'}}
             if key.startswith('/type/'):
-                return eval(data)
+                return eval(text)
             if key.startswith('/templates/'):
                 return {'key': key, 'body': {'value': text, 'type': '/type/text'}, 'type': {'key': '/type/template'}}
             elif key.startswith('/macros/'):
@@ -296,7 +302,7 @@ def parse_args(args):
     options, args = parser.parse_args()
     server = options.server
     
-    if cmd not in ['push', 'pull', 'diff', 'delete']:
+    if cmd not in ['push', 'pull', 'diff', 'delete', 'test']:
         parser.error('Unknown command: %s' % repr(cmd))
         
     if 'upstream' in options.server:
@@ -309,8 +315,12 @@ def main(args):
         print __doc__
     else:
         cmd, options, paths = parse_args(args)
-        server = Server(options.server, options.upstream)
-        return server.run(cmd, paths)
+        if cmd == "test":
+            import doctest
+            doctest.testmod()
+        else:
+            server = Server(options.server, options.upstream)
+            return server.run(cmd, paths)
     
 if __name__ == "__main__":
     main(sys.argv)
