@@ -18,9 +18,9 @@ def group(items, size):
         else:
             break
 
-def main(filename):
+def main(dbname, filename):
     server = couchdb.Server("http://localhost:5984/")
-    db = server["openlibrary"]
+    db = server[dbname]
     
     t0 = time.time()
     for i, chunk in enumerate(group(open(filename), 1000)):
@@ -28,13 +28,15 @@ def main(filename):
             t1 = time.time()
             print i, "%.3f" % (t1-t0)
             t0 = t1
-            
+
         json = '{"docs": [' + ",".join(chunk) +']}'
-        db.resource.post('_bulk_docs', content=json)
+        print db.resource.post('_bulk_docs', content=json)
+
+    print 'done'
     
 if __name__ == '__main__':
     if len(sys.argv) == 1:
         import doctest
         doctest.testmod()
     else:
-        main(sys.argv[1])
+        main(sys.argv[1], sys.argv[2])
