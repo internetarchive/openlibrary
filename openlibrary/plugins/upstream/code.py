@@ -181,7 +181,8 @@ class subject_covers(delegate.page):
                 limit = int(i.limit)
             except ValueError:
                 return []
-            return page.get_covers(offset, limit)
+            data = page.get_covers(offset, limit)
+            return simplejson.dumps(data)
 
 # fix addbook urls
 
