@@ -47,12 +47,20 @@ class ConnectionMiddleware:
     def save_many(self, sitename, data):
         return self.conn.request(sitename, '/save_many', 'POST', data)
         
+        
+_memcache = None
+        
 class MemcacheMiddleware(ConnectionMiddleware):
     def __init__(self, conn, memcache_servers):
         ConnectionMiddleware.__init__(self, conn)
+        self.memcache = self.get_memcache()
         
-        from openlibrary.utils import olmemcache
-        self.memcache = olmemcache.Client(memcache_servers)
+    def get_memcache(self):
+        global _memcache
+        if _memcache is None:
+            from openlibrary.utils import olmemcache
+            _memcache = olmemcache.Client(memcache_servers)
+        return _memcache
 
     def get(self, sitename, data):
         key = data.get('key')
@@ -81,17 +89,27 @@ class MemcacheMiddleware(ConnectionMiddleware):
                 result[k] = simplejson.loads(result[k])
                 
         return simplejson.dumps(result)
+
+
+_cache = None
         
 class LocalCacheMiddleware(ConnectionMiddleware):
     def __init__(self, conn, cache_prefixes, cache_size=10000):
         ConnectionMiddleware.__init__(self, conn)
         self.cache_prefixes = cache_prefixes
-        self.cache = cache = lru.LRU(cache_size)
+        self.cache = self.get_cache(cache_size)
         
-        class hook(client.hook):
-            def on_new_version(self, page):
-                if page.key in cache:
-                    cache.delete(page.key)
+    def get_cache(self, cache_size):
+        global _cache
+        if _cache is None:
+            _cache = lru.LRU(cache_size)
+
+            class hook(client.hook):
+                def on_new_version(self, page):
+                    if page.key in _cache:
+                        _cache.delete(page.key)
+            
+        return _cache
     
     def get(self, sitename, data):
         key = data.get('key')
