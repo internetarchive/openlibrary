@@ -53,9 +53,9 @@ _memcache = None
 class MemcacheMiddleware(ConnectionMiddleware):
     def __init__(self, conn, memcache_servers):
         ConnectionMiddleware.__init__(self, conn)
-        self.memcache = self.get_memcache()
+        self.memcache = self.get_memcache(memcache_servers)
         
-    def get_memcache(self):
+    def get_memcache(self, memcache_servers):
         global _memcache
         if _memcache is None:
             from openlibrary.utils import olmemcache
