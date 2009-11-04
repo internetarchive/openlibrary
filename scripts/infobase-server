@@ -14,6 +14,9 @@ USAGE:
 import sys
 import os
 import _init_path
+import web
+web.config.debug = False
+
 from infogami.infobase import server
 
 def setup_env():

@@ -9,6 +9,8 @@ Usage:
 import sys
 import os
 import _init_path
+import web
+web.config.debug = False
 
 from openlibrary.coverstore import server
 
