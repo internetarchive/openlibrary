@@ -89,6 +89,9 @@ class Solr_client(object):
         self.server_addr = server_addr
         self.shards = shards
 
+        # for caching expanded query strings
+        self._cache = {} 
+
     def __query_fmt(self, query, **attribs):
         # rows=None, start=None, wt=None, sort=None):
         fshards = ','.join('%s:%s/solr'%(host,port)
@@ -294,9 +297,9 @@ class Solr_client(object):
 
     # translate a basic query into an advanced query, by launching PHP
     # script, passing query to it, and getting result back.
-    def basic_query(self, query, _cache={}):
-        if query in _cache:
-            return _cache[query]
+    def basic_query(self, query):
+        if query in self._cache:
+            return self._cache[query]
 
         # this hex conversion is to defeat attempts at shell or PHP code injection
         # by including escape characters, quotes, etc. in the query.
@@ -316,7 +319,7 @@ class Solr_client(object):
         aq = f.read()
         if aq and aq[0] == '\n':
             raise SolrError, ('invalid response from basic query conversion', aq, php_location)
-        _cache[query] = aq
+        self._cache[query] = aq
         return aq
 
     def basic_search(self, query, **params):
