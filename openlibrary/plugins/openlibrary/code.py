@@ -668,6 +668,7 @@ class invalidate(delegate.page):
         for d in data:
             thing = client.Thing(web.ctx.site, d['key'], client.storify(d))
             client._run_hooks('on_new_version', thing)
+        return delegate.RawText("ok")
             
 def save_error():
     t = datetime.datetime.utcnow()
