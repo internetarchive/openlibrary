@@ -708,3 +708,12 @@ def sanitize(html):
     
     stream = genshi.HTML(html) | genshi.filters.HTMLSanitizer() | genshi.filters.Transformer("a").attr("rel", "nofollow") 
     return stream.render()
+
+class memory(delegate.page):
+    path = "/debug/memory"
+
+    def GET(self):
+        import guppy
+        h = guppy.hpy()
+        return delegate.RawText(str(h.heap()))
+
