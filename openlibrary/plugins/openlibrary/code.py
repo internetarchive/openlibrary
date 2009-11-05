@@ -718,3 +718,13 @@ class memory(delegate.page):
         h = guppy.hpy()
         return delegate.RawText(str(h.heap()))
 
+class backdoor(delegate.page):
+    path = "/debug/backdoor"
+    
+    def GET(self):
+        import backdoor
+        reload(backdoor)
+        result = backdoor.inspect()
+        if isinstance(result, basestring):
+            result = delegate.RawText(result)
+        return result
