@@ -31,16 +31,17 @@ class WorkLoader:
             editions_file.close()
 
     def load_works_chunk(self, lines, editions_file):
-        works = [eval(line) for line in lines]
+        authors = [eval(line) for line in lines]
         keys = self.loader.new_work_keys(len(works))
 
         editions = {}
-        for work, key in zip(works, keys):
-            work['key'] = key
-            work['type'] = {'key': "/type/work"}
-            work['authors'] = [dict(author=a, type='/type/author_role') for a in work['authors']]
-            editions[key] = work.pop('editions')
-            
+        for akey, works in authors:
+            for work, key in zip(works, keys):
+                work['key'] = key
+                work['type'] = {'key': "/type/work"}
+                work['authors'] = [{'author': {'key': akey}, 'type': '/type/author_role')}]
+                editions[key] = work.pop('editions')
+                
         result = self.loader.bulk_new(works, comment="add works page", author=self.author)
 
         def process(result):
@@ -105,8 +106,8 @@ def make_documents(lines):
 def main(filename):
     loader = WorkLoader(db="staging", host="ia331525")
     loader.loader.db.printing = True
-    #loader.load_works(filename)
-    loader.update_editions(filename)
+    loader.load_works(filename)
+    #loader.update_editions(filename)
 
 def log(*args):
     args = [time.asctime()] + list(args)
