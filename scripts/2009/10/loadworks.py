@@ -39,7 +39,7 @@ class WorkLoader:
             for work, key in zip(works, keys):
                 work['key'] = key
                 work['type'] = {'key': "/type/work"}
-                work['authors'] = [{'author': {'key': akey}, 'type': '/type/author_role')}]
+                work['authors'] = [{'author': {'key': akey}, 'type': '/type/author_role'}]
                 editions[key] = work.pop('editions')
                 
         result = self.loader.bulk_new(works, comment="add works page", author=self.author)
