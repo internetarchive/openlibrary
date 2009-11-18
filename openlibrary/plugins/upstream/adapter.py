@@ -182,7 +182,9 @@ class versions(proxy):
             q = simplejson.loads(q)
             if 'key' in q:
                 q['key'] = convert_key(q['key'])
-                self.input.query = simplejson.dumps(q)
+            if 'author' in q:
+                q['author'] = convert_key(q['author'])
+            self.input.query = simplejson.dumps(q)
 
     def after_request(self):
         if self.output:
