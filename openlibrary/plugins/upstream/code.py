@@ -95,8 +95,12 @@ class Subject(client.Thing):
 class SubjectPlace(Subject):
     pass
     
+class SubjectPerson(Subject):
+    pass
+    
 client.register_thing_class('/type/subject', Subject)
 client.register_thing_class('/type/place', SubjectPlace)
+client.register_thing_class('/type/person', SubjectPerson)
 
 @macro
 @public
@@ -148,6 +152,7 @@ types.register_type('^/languages/[^/]*$', '/type/language')
 
 types.register_type('^/subjects/places/[^/]*$', '/type/place')
 types.register_type('^/subjects/people/[^/]*$', '/type/person')
+types.register_type('^/subjects/[^/]*$', '/type/subject')
 
 # fix photo/cover url pattern
 ol_code.Author.photo_url_patten = "%s/photo"
@@ -166,7 +171,7 @@ class change_photo(change_cover):
 del delegate.modes['change_cover']     # delete change_cover mode added by openlibrary plugin
 
 class subject_covers(delegate.page):
-    path = "(/subjects/places/[^/]*)/covers"
+    path = "(/subjects(?:/places|/people|)/[^/]*)/covers"
     encoding = "json"
     
     @jsonapi
