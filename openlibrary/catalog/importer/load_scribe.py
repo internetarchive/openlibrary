@@ -10,6 +10,7 @@ from openlibrary.catalog.importer.lang import add_lang
 from openlibrary.catalog.importer.update import add_source_records
 from openlibrary.catalog.get_ia import get_ia, urlopen_keep_trying, NoMARCXML
 from openlibrary.catalog.importer.db_read import get_mc
+from openlibrary.catalog.title_page_img.load import add_cover_image
 import openlibrary.catalog.marc.parse_xml as parse_xml
 from time import time, sleep
 import openlibrary.catalog.marc.fast_parse as fast_parse
@@ -27,7 +28,7 @@ db = web.database(dbn='mysql', host=rc['ia_db_host'], user=rc['ia_db_user'], \
         passwd=rc['ia_db_pass'], db='archive')
 db.printing = False
 
-start = '2009-10-07 11:01:43'
+start = '2009-10-25 20:20:51'
 fh_log = open('/1/edward/logs/load_scribe', 'a')
 
 t0 = time()
@@ -66,9 +67,10 @@ def load(loc, ia):
     if 'title' not in edition:
         return
     edition['ocaid'] = ia
-    write_edition("ia:" + ia, edition)
+    write_edition(ia, edition)
 
-def write_edition(loc, edition):
+def write_edition(ia, edition):
+    loc = 'ia:' + ia
     add_lang(edition)
     q = build_query(loc, edition)
     authors = []
@@ -104,6 +106,9 @@ def write_edition(loc, edition):
     assert isinstance(ret, basestring)
     key = ret
     pool.update(key, q)
+
+    print 'add_cover_image'
+    add_cover_image(key, ia)
 
 def write_log(ia, when, msg):
     print >> fh_log, (ia, when, msg)

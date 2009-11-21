@@ -7,8 +7,7 @@ from subprocess import Popen, PIPE
 re_loc = re.compile('^(ia\d+\.us\.archive\.org):(/\d/items/(.*))$')
 re_remove_xmlns = re.compile(' xmlns="[^"]+"')
 
-def parse_scandata_xml(f):
-    xml = f.read()
+def parse_scandata_xml(xml):
     xml = re_remove_xmlns.sub('', xml)
     tree = et.fromstring(xml)
     leaf = None
@@ -39,29 +38,6 @@ def zip_test(ia_host, ia_path, ia, zip_type):
         raise
     return r1.status
 
-def scandata_url(ia_host, ia_path, item_id):
-    conn = httplib.HTTPConnection(ia_host)
-    conn.request('HEAD', ia_path + "/scandata.zip")
-    r = conn.getresponse()
-    try:
-        assert r.status in (200, 403, 404)
-    except AssertionError:
-        print r.status, r.reason
-        raise
-    if r.status == 200:
-        return "http://" + ia_host + "/zipview.php?zip=" + ia_path + "/scandata.zip&file=scandata.xml"
-    conn = httplib.HTTPConnection(ia_host)
-    path = ia_path + "/" + item_id + "_scandata.xml"
-    conn.request('HEAD', path)
-    r = conn.getresponse()
-    try:
-        assert r.status in (200, 403, 404)
-    except AssertionError:
-        print ia_host, path
-        print r.status, r.reason
-        raise
-    return 'http://' + ia_host + path if r.status == 200 else None
-
 def find_item(ia):
     ia = ia.strip()
     ret = Popen(["/petabox/sw/bin/find_item.php", ia], stdout=PIPE, stderr=None).communicate()[0]
@@ -77,13 +53,8 @@ def find_item(ia):
 
     return (ia_host, ia_path)
 
-def find_title_leaf_et(ia_host, ia_path, url):
-    f = urllib.urlopen(url)
-    try:
-        return parse_scandata_xml(f)
-    except xml.parsers.expat.ExpatError:
-        print url
-        return (None, None)
+def find_title_leaf_et(ia_host, ia_path, scandata):
+    return parse_scandata_xml(scandata)
 
 def find_img(item_id):
     (ia_host, ia_path) = find_item(item_id)
@@ -91,8 +62,16 @@ def find_img(item_id):
     if not ia_host:
         print 'no host', item_id, ia_host
         return
-    url = scandata_url(ia_host, ia_path, item_id)
-    assert url
+    url = 'http://' + ia_host + ia_path + "/" + item_id + "_scandata.xml"
+    scandata = None
+    try:
+        scandata = urllib.urlopen(url).read()
+    except:
+        pass
+    if not scandata or '<book>' not in scandata[:100]:
+        url = "http://" + ia_host + "/zipview.php?zip=" + ia_path + "/scandata.zip&file=scandata.xml"
+        scandata = urllib.urlopen(url).read()
+    assert scandata
 
     zip_type = 'tif' if item_id.endswith('goog') else 'jp2'
     try:
@@ -105,7 +84,7 @@ def find_img(item_id):
         print zip_type, ' not found:', (ol, item_id)
         return
 
-    (cover, title) = find_title_leaf_et(ia_host, ia_path, url)
+    (cover, title) = parse_scandata_xml(scandata)
     return {
         'item_id': item_id,
         'ia_host': ia_host, 
@@ -120,3 +99,10 @@ def test_find_img():
     assert ret['item_id'] == 'flatlandromanceo00abbouoft'
     assert ret['cover'] == 1 
     assert ret['title'] == 7
+
+def test_find_img():
+    item_id = 'cu31924000331631'
+    ret = find_img(item_id)
+    assert ret['item_id'] == item_id
+    assert ret['cover'] is None
+    assert ret['title'] == 0
