@@ -50,6 +50,7 @@ if solr_fulltext_address is not None:
 
 if solr_server_address:
     solr = solr_client.Solr_client(solr_server_address)
+    solr.query_processor = solr_client.create_query_processor(sconfig.get('query_processor'))
 else:
     solr = None
 

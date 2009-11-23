@@ -31,6 +31,60 @@ default_facet_list = ('has_fulltext',
                       'languages',
                       'publishers',
                       )
+                      
+class PetaboxQueryProcessor:
+    """Utility to expand search query using petabox php script."""
+    def __init__(self):
+        self.cache = {}
+        
+    def process(self, query):
+        if query in self.cache:
+            return self.cache[query]
+
+        # this hex conversion is to defeat attempts at shell or PHP code injection
+        # by including escape characters, quotes, etc. in the query.
+        qhex = query.encode('hex')
+
+        f = os.popen("""php -r 'require_once("%s");
+                                 echo Search::querySolr(pack("H*", "%s"),
+                                 false,
+                                 array("title"=>100,
+                                       # "description"=>0.000,
+                                       "authors"=>15,
+                                       "subjects"=>10,
+                                       "language"=>10,
+                                       "text"=>1,
+                                       "fulltext"=>1));'""" %
+                     (php_location, qhex))
+        aq = f.read()
+        if aq and aq[0] == '\n':
+            raise SolrError, ('invalid response from basic query conversion', aq, php_location)
+            
+        self.cache[query] = aq
+        return aq
+        
+class SimpleQueryProcessor:
+    """Alternate query processor to be used when petabox php script is unavailable. To be used in development.
+    
+        >>> SimpleQueryProcessor().process("hello")
+        '(title:hello^100 OR authors:hello^15 OR subjects:hello^10 OR language:hello^10 OR text:hello^1 OR fulltext:hello^1)'
+        >>> SimpleQueryProcessor().process("hello world") #doctest: +NORMALIZE_WHITESPACE
+        '(title:hello^100 OR authors:hello^15 OR subjects:hello^10 OR language:hello^10 OR text:hello^1 OR fulltext:hello^1)
+         (title:world^100 OR authors:world^15 OR subjects:world^10 OR language:world^10 OR text:world^1 OR fulltext:world^1)'
+    """
+    def process(self, query):
+        query = web.utf8(query)
+        tokens = query.split(' ')
+        return " ".join(self.process_token(t) for t in tokens)
+        
+    def process_token(self, token):
+        return '(title:%s^100 OR authors:%s^15 OR subjects:%s^10 OR language:%s^10 OR text:%s^1 OR fulltext:%s^1)' % (token, token, token, token, token, token)
+
+def create_query_processor(type):
+    if type == 'simple':
+        return SimpleQueryProcessor()
+    else:
+        return PetaboxQueryProcessor()
 
 class SolrError(Exception): pass
 
@@ -88,6 +142,8 @@ class Solr_client(object):
                  pool_size = 1):
         self.server_addr = server_addr
         self.shards = shards
+        
+        self.query_processor = PetaboxQueryProcessor()
 
         # for caching expanded query strings
         self._cache = {} 
@@ -298,29 +354,7 @@ class Solr_client(object):
     # translate a basic query into an advanced query, by launching PHP
     # script, passing query to it, and getting result back.
     def basic_query(self, query):
-        if query in self._cache:
-            return self._cache[query]
-
-        # this hex conversion is to defeat attempts at shell or PHP code injection
-        # by including escape characters, quotes, etc. in the query.
-        qhex = query.encode('hex')
-
-        f = os.popen("""php -r 'require_once("%s");
-                                 echo Search::querySolr(pack("H*", "%s"),
-                                 false,
-                                 array("title"=>100,
-                                       # "description"=>0.000,
-                                       "authors"=>15,
-                                       "subjects"=>10,
-                                       "language"=>10,
-                                       "text"=>1,
-                                       "fulltext"=>1));'""" %
-                     (php_location, qhex))
-        aq = f.read()
-        if aq and aq[0] == '\n':
-            raise SolrError, ('invalid response from basic query conversion', aq, php_location)
-        self._cache[query] = aq
-        return aq
+        return self.query_processor.process(query)
 
     def basic_search(self, query, **params):
         # basic search: use archive.org PHP script to transform the basic
@@ -382,26 +416,6 @@ def facet_counts(result_list, facet_fields):
                                    key=lambda (a,b): (-b,a)))
                         for f in facet_fields))
 
-if False and __name__ == '__main__':
-    def test(q='random'):
-        global z
-        s = Solr_client()
-        z = s.search('fulltext:'+q)
-    #    print z
-
-    # cache-hostile search engine speed test: send search words to
-    # solr in random order
-
-    import random
-    # words is a dictionary wordlist, often /usr/share/dict/words
-    words = [w.strip() for w in open('words')]
-    print len(words),'words'
-    rq = filter(bool,words)  # remove empty lines
-    random.shuffle(rq)
-
-    from time import time
-    t0=time()
-    for n,q in enumerate(rq):
-        if n%100==0: print n, time()-t0
-        test(q)
-    print time()-t0
+if __name__ == '__main__':
+    import doctest
+    doctest.testmod()
