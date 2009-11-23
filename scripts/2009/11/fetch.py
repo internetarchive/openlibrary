@@ -1,3 +1,4 @@
+#! /usr/bin/env python
 """Fetch a document and its references recursively upto specified depth from Open Library website.
 
 USAGE: 
