@@ -2,12 +2,11 @@
 
 import os.path
 import web
-import urllib, urllib2
+import urllib
 import random
 import hmac
 import md5
 import simplejson
-import random
 
 from infogami import config
 from infogami.core.code import view, edit
