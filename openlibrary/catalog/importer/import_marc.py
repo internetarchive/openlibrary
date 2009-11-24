@@ -218,6 +218,8 @@ def load_part(archive_id, part, start_pos=0):
         except AssertionError:
             print loc
             raise
+        except fast_parse.NotBook:
+            continue
         if not index_fields or 'title' not in index_fields:
             continue
 
