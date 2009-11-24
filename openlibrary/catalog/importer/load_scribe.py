@@ -28,7 +28,7 @@ db = web.database(dbn='mysql', host=rc['ia_db_host'], user=rc['ia_db_user'], \
         passwd=rc['ia_db_pass'], db='archive')
 db.printing = False
 
-start = '2009-10-25 20:20:51'
+start = '2009-11-24 00:37:59'
 fh_log = open('/1/edward/logs/load_scribe', 'a')
 
 t0 = time()
@@ -143,6 +143,10 @@ while True:
         if rec is None:
             write_log(ia, when, "error: no rec")
             continue
+        if 'physical_format' in rec:
+            format = rec['physical_format'].lower()
+            if format.startswith('[graphic') or format.startswith('[cartograph'):
+                continue
         print loc, rec
 
         if not loc.endswith('.xml'):

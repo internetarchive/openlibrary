@@ -193,7 +193,7 @@ def read_data_table(path):
         ['JSON\t1-1\n']
     
     """
-    xthing_id = 1 # assuming that thing_id starts from 1 to simplify the code
+    xthing_id = None
     xrev = 0
     xjson = ""
 
@@ -201,6 +201,10 @@ def read_data_table(path):
         thing_id, rev, json = line.split("\t")
         thing_id = int(thing_id)
         rev = int(rev)
+        if not xthing_id:
+            xthing_id = thing_id
+            xrev = rev
+            xjson = json
         if xthing_id == thing_id:
             # take the json with higher rev.
             if rev > xrev:
@@ -232,7 +236,11 @@ def read_json(file):
     """
     for json in xopen(file):
         d = simplejson.loads(json)        
-        yield d['key'], d['type']['key'], json
+        ret = (d['key'], d['type']['key'], json)
+        if not all(isinstance(i, basestring) for i in ret):
+            print 'not all strings:'
+            print josn
+        yield ret
 
 def xopen(file):
     if isinstance(file, str):

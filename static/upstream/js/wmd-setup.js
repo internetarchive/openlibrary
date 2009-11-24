@@ -14,6 +14,6 @@ function setup_wmd() {
 	
     // change title and url of help link.
     $("#wmd-help-button a")
-        .attr("href", "/help/markdown")
+        .attr("href", "http://daringfireball.net/projects/markdown/basics/")
         .attr('title', "Markdown Help");
 }

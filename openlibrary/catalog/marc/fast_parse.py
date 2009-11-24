@@ -105,6 +105,9 @@ def read_author_person(line):
 class SoundRecording:
     pass
 
+class NotBook:
+    pass
+
 class BadDictionary:
     pass
 
@@ -112,6 +115,8 @@ def read_full_title(line, accept_sound = False):
     for k, v in get_subfields(line, ['h']):
         if not accept_sound and v.lower().startswith("[sound"):
             raise SoundRecording
+        if v.lower().startswith("[graphic") or v.lower().startswith("[cartographic"):
+            raise NotBook
     title = [v.strip(' /,;:') for k, v in get_subfields(line, ['a', 'b'])]
     return ' '.join([t for t in title if t])
 
