@@ -9,13 +9,13 @@ class addbook(delegate.page):
     path = "/books/add"
     
     def GET(self):
-        return render_template('books/add1')
+        return render_template('books/add')
         
     def POST(self):
         i = web.input(title='')
         print i
         page = web.ctx.site.new('/books/new', {'key': '/books/new', 'type': '/type/edition', 'title': ''})
-        return render_template('books/add2', page)
+        return render_template('books/edit', page)
 
 class addauthor(ol_code.addauthor):
     path = "/authors/add"    
@@ -39,7 +39,7 @@ class book_edit(delegate.page):
         if page is None:
             raise web.notfound()
             
-        return render_template('books/add2', page)
+        return render_template('books/edit', page)
         
     def POST(self, key):
         book = web.ctx.site.get(key)
