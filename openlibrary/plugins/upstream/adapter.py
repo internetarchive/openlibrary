@@ -58,6 +58,7 @@ class proxy:
         try:
             server = web.config.infobase_server
             req = urllib2.Request(server + self.path + '?' + urllib.urlencode(self.input), self.data, headers=headers)
+            req.get_method = lambda: web.ctx.method
             response = urllib2.urlopen(req)
         except urllib2.HTTPError, e:
             response = e
