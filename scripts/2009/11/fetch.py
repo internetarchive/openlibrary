@@ -1,3 +1,4 @@
+#! /usr/bin/env python
 """Fetch a document and its references recursively upto specified depth from Open Library website.
 
 USAGE: 
@@ -11,6 +12,7 @@ USAGE:
     $ python fetch.py --load
 
 """
+import _init_path
 import urllib
 import simplejson
 import os

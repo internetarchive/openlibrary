@@ -71,22 +71,30 @@ class ReadableUrlProcessor:
             >>> get_readable_path = ReadableUrlProcessor().get_readable_path
 
             >>> get_readable_path('/b/OL1M', get_object=fake_get_object)
-            ('/b/OL1M', '/b/OL1M/fake')
+            (u'/b/OL1M', u'/b/OL1M/fake')
             >>> get_readable_path('/b/OL1M/foo', get_object=fake_get_object)
-            ('/b/OL1M', '/b/OL1M/fake')
+            (u'/b/OL1M', u'/b/OL1M/fake')
             >>> get_readable_path('/b/OL1M/fake', get_object=fake_get_object)
-            ('/b/OL1M', '/b/OL1M/fake')
+            (u'/b/OL1M', u'/b/OL1M/fake')
 
             >>> get_readable_path('/b/OL1M/foo/cover', get_object=fake_get_object)
-            ('/b/OL1M/cover', '/b/OL1M/fake/cover')
+            (u'/b/OL1M/cover', u'/b/OL1M/fake/cover')
 
             >>> get_readable_path('/a/OL1A/foo/cover', get_object=fake_get_object)
-            ('/a/OL1A/cover', '/a/OL1A/fake/cover')
+            (u'/a/OL1A/cover', u'/a/OL1A/fake/cover')
 
         When requested for .json nothing should be changed.
 
             >>> get_readable_path('/b/OL1M.json')
-            ('/b/OL1M.json', '/b/OL1M.json')
+            (u'/b/OL1M.json', u'/b/OL1M.json')
+        
+        For deleted pages, the readable_path must be same as the real path. 
+            
+            >>> fakes['/a/OL2A'] = web.storage(title='fake', name='fake', type=web.storage(key='/type/delete'))
+            >>> get_readable_path('/a/OL2A', get_object=fake_get_object)
+            (u'/a/OL2A', u'/a/OL2A')
+            >>> get_readable_path('/a/OL2A/foo', get_object=fake_get_object)
+            (u'/a/OL2A', u'/a/OL2A')
         """
         def match(path):    
             for pat, type, property, default_title in self.patterns:
@@ -99,17 +107,18 @@ class ReadableUrlProcessor:
         if not type \
            or encoding is not None \
            or path.endswith(".json"):
+            path = web.safeunicode(path)
             return (path, path)
 
         prefix, middle, suffix = self._split(path)
         get_object = get_object or self.get_object
         thing = get_object(prefix)
 
-        if not thing or thing.type.key != type:
-            return (path,path)
-
-        title = thing.get(property) or default_title
-        middle = '/' + self.safepath(title.strip())
+        if thing and thing.type.key == type:
+            title = thing.get(property) or default_title
+            middle = '/' + self.safepath(title.strip())
+        else:
+            middle = ""
         
         prefix = web.safeunicode(prefix)
         middle = web.safeunicode(middle)
@@ -121,7 +130,7 @@ class ReadableUrlProcessor:
         """Replaces unsafe chars with underscores in the path."""
         return get_safepath_re().sub('_', path).strip('_')
 
-@web.memoize        
+@web.memoize
 def get_safepath_re():
     """Make regular expression that matches all unsafe chars."""
     # unsafe chars according to RFC 2396

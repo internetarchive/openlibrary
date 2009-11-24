@@ -30,7 +30,7 @@ To generate bookdump:
     * Generate rawdump using the above procedure.
     * split types to group the dump by type. This command created type/authors.txt, type/editions.txt etc.
     
-        $ ./scripts/jsondump.py split_types
+        $ ./scripts/jsondump.py split_types rawdump.txt
 
     * generate bookdump. (This operation is highly memory intensive).
     
