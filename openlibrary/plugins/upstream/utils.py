@@ -4,6 +4,8 @@ from infogami.infobase import client
 from infogami.utils.view import render, public
 from infogami.utils.macro import macro
 
+from openlibrary.plugins.search.code import SearchProcessor
+
 class Subject(client.Thing):
     def _get_solr_result(self):
         if not self._solr_result:

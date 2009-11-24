@@ -20,7 +20,6 @@ from infogami.plugins.api.code import jsonapi
 
 from openlibrary.plugins.openlibrary.processors import ReadableUrlProcessor
 from openlibrary.plugins.openlibrary import code as ol_code
-from openlibrary.plugins.search.code import SearchProcessor
 
 from openlibrary.i18n import gettext as _
 import forms
