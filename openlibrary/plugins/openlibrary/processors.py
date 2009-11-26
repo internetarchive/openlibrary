@@ -116,7 +116,7 @@ class ReadableUrlProcessor:
 
         if thing and thing.type.key == type:
             title = thing.get(property) or default_title
-            middle = '/' + self.safepath(title.strip())
+            middle = '/' + _safepath(title.strip())
         else:
             middle = ""
         
@@ -125,10 +125,9 @@ class ReadableUrlProcessor:
         suffix = web.safeunicode(suffix)
         
         return (prefix + suffix, prefix + middle + suffix)
-        
-    def safepath(self, path):
-        """Replaces unsafe chars with underscores in the path."""
-        return get_safepath_re().sub('_', path).strip('_')
+                
+def _safepath(path):
+    return get_safepath_re().sub('_', path).strip('_')
 
 @web.memoize
 def get_safepath_re():

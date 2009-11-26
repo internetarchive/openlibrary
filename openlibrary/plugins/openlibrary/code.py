@@ -86,6 +86,12 @@ class Author(client.Thing):
         p = processors.ReadableUrlProcessor()
         _, path = p.get_readable_path(self.key)
         return self.photo_url_pattern % path
+        
+    def url(self, suffix="", **params):
+        u = self.key + "/" + processors._safepath(self.name) + suffix
+        if params:
+            u += '?' + urllib.urlencode(params)
+        return u
     
 class Edition(client.Thing):
     cover_url_pattern = "%s?m=change_cover"
@@ -101,6 +107,12 @@ class Edition(client.Thing):
         _, path = p.get_readable_path(self.key)
         return self.cover_url_pattern % path
         
+    def url(self, suffix="", **params):
+        u = self.key + "/" + processors._safepath(self.title or "untitled") + suffix
+        if params:
+            u += '?' + urllib.urlencode(params)
+        return u
+                
     def __repr__(self):
         return "<Edition: %s>" % repr(self.full_title())
     __str__ = __repr__
@@ -109,6 +121,12 @@ class Work(client.Thing):
     def get_edition_count(self):
         return web.ctx.site._request('/count_editions_by_work', data={'key': self.key})
     edition_count = property(get_edition_count)
+
+    def url(self, suffix="", **params):
+        u = self.key + "/" + processors._safepath(self.title or "untitled") + suffix
+        if params:
+            u += '?' + urllib.urlencode(params)
+        return u
 
 class User(client.Thing):
     def get_usergroups(self):
