@@ -27,7 +27,7 @@ class Subject(client.Thing):
         olids = [e['key'].split('/')[-1] for e in editions]
         
         try:
-            url = '%s/b/query?cmd=ids&olid=%s' % (config.coverstore_url, ",".join(olids))
+            url = '%s/b/query?cmd=ids&olid=%s' % (get_coverstore_url(), ",".join(olids))
             data = urllib2.urlopen(url).read()
             cover_ids = simplejson.loads(data)
         except IOError, e:
@@ -145,7 +145,9 @@ def radio_list(name, args, value):
             label = arg
         html.append(radio_input())
         
-    
+@public
+def get_coverstore_url():
+    return config.get('coverstore_url', 'http://covers.openlibrary.org').rstrip('/')
 
 if __name__ == '__main__':
     import doctest
