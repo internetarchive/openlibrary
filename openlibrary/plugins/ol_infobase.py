@@ -51,7 +51,10 @@ def get_db():
 def get_property_id(type, name):
     db = get_db()
     type_id = get_thing_id(type)
-    return db.where('property', type=type_id, name=name)[0].id
+    try:
+        return db.where('property', type=type_id, name=name)[0].id
+    except IndexError:
+        return None
     
 def get_thing_id(key):
     try:
@@ -77,8 +80,8 @@ class count_editions_by_work:
     @server.jsonify
     def GET(self, sitename):
         i = server.input('key')
-        return count('work_ref', '/type/work', 'editions', i.key)
-
+        return count('edition_ref', '/type/edition', 'works', i.key)
+        
 most_recent_change = None
 
 def invalidate_most_recent_change(event):
