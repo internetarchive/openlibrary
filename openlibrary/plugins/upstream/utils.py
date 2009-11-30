@@ -9,6 +9,33 @@ from infogami.utils.view import render, public
 from infogami.utils.macro import macro
 
 from openlibrary.plugins.search.code import SearchProcessor
+from openlibrary.plugins.openlibrary import code as ol_code
+
+class Edition(ol_code.Edition):
+    def get_cover_url(self, size):
+		coverid = self.get_coverid()
+        if coverid:
+            return get_coverstore_url() + "/b/id/%s-%s.jpg" % (coverid, size)
+        else:
+            return None
+
+	def get_coverid(self):
+        if self.coverid:
+			return self.coverid
+		else:
+            try:
+                url = get_coverstore_url() + '/b/query.json?olid=%s' % self.key.split('/')[-1]
+                json = urllib2.urlopen(url).read()
+                d = simplejson.loads(json)
+                return d and d[0] or None
+            except IOError:
+                return None
+    
+class Author(ol_code.Author):
+    pass
+    
+class Work(ol_code.Work):
+    pass
 
 class Subject(client.Thing):
     def _get_solr_result(self):
@@ -77,7 +104,11 @@ class SubjectPlace(Subject):
     
 class SubjectPerson(Subject):
     pass
-    
+
+client.register_thing_class('/type/edition', Edition)
+client.register_thing_class('/type/author', Author)
+client.register_thing_class('/type/work', Work)
+
 client.register_thing_class('/type/subject', Subject)
 client.register_thing_class('/type/place', SubjectPlace)
 client.register_thing_class('/type/person', SubjectPerson)

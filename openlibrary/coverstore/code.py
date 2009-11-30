@@ -14,6 +14,7 @@ from coverlib import save_image, read_image, read_file
 urls = (
     '/', 'index',
     '/([^ /]*)/upload', 'upload',
+    '/([^ /]*)/upload2', 'upload2',
     '/([^ /]*)/([a-zA-Z]*)/(.*)-([SML]).jpg', 'cover',
     '/([^ /]*)/([a-zA-Z]*)/(.*)().jpg', 'cover',
     '/([^ /]*)/([a-zA-Z]*)/(.*).json', 'cover_details',
@@ -83,6 +84,35 @@ class upload:
         except ValueError:
             error(ERROR_BAD_IMAGE)
         raise web.seeother(success_url)
+        
+class upload2:
+	"""Temporary upload handler for handling upstream.openlibrary.org cover upload.
+	"""
+    def POST(self, category):
+        i = web.input(olid=None, author=None, data=None, source_url=None, ip=None, _unicode=False)
+        def error((code, msg)):
+            e = web.badrequest()
+            e.data = simplejson.dumps({"code": code, "message": msg})
+            raise e
+            
+        source_url = i.source_url
+        data = i.data
+            
+        if source_url:
+            try:
+                data = download(source_url)
+            except:
+                error(ERROR_INVALID_URL)
+            
+        if not data:
+            error(ERROR_EMPTY)
+
+        try:
+            d = save_image(data, category=category, olid=i.olid, author=i.author, source_url=i.source_url, ip=i.ip)
+        except ValueError:
+            error(ERROR_BAD_IMAGE)
+        
+        return simplejson.dumps({"ok": "true", "id": d.id})
     
 class cover:
     def GET(self, category, key, value, size):

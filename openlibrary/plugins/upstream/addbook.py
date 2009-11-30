@@ -1,6 +1,7 @@
 """Handlers for adding and editing books."""
 
 import web
+import urllib, urllib2
 from infogami.utils import delegate
 from infogami import config
 
@@ -84,3 +85,29 @@ class work_edit(delegate.page):
             raise web.notfound()
         return render_template('books/edit', work)
 
+class uploadcover(delegate.page):
+    def POST(self):
+        user = web.ctx.site.get_user()
+        i = web.input(file={}, url=None, key="")
+        
+        olid = i.key and i.key.split("/")[-1]
+        
+        if i.file is not None:
+            data = i.file.value
+        else:
+            data = None
+            
+        if i.url and i.url.strip() == "http://":
+            i.url = ""
+
+        upload_url = config.get('coverstore_url', 'http://covers.openlibrary.org') + '/b/upload2'
+        params = dict(author=user and user.key, data=data, source_url=i.url, olid=olid, ip=web.ctx.ip)
+        try:
+            response = urllib2.urlopen(upload_url, urllib.urlencode(params))
+            out = response.read()
+        except urllib2.HTTPError, e:
+            out = e.read()
+            
+        web.header("Content-Type", "text/javascript")
+        return delegate.RawText(out)
+        
