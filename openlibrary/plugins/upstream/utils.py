@@ -24,7 +24,7 @@ class Edition(ol_code.Edition):
             return self.coverid
         else:
             try:
-                url = get_coverstore_url() + '/b/query.json?olid=%s' % self.key.split('/')[-1]
+                url = get_coverstore_url() + '/b/query?olid=%s' % self.key.split('/')[-1]
                 json = urllib2.urlopen(url).read()
                 d = simplejson.loads(json)
                 return d and d[0] or None
