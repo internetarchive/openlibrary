@@ -13,16 +13,16 @@ from openlibrary.plugins.openlibrary import code as ol_code
 
 class Edition(ol_code.Edition):
     def get_cover_url(self, size):
-		coverid = self.get_coverid()
-        if coverid:
-            return get_coverstore_url() + "/b/id/%s-%s.jpg" % (coverid, size)
-        else:
-            return None
+            coverid = self.get_coverid()
+            if coverid:
+                return get_coverstore_url() + "/b/id/%s-%s.jpg" % (coverid, size)
+            else:
+                return None
 
-	def get_coverid(self):
+    def get_coverid(self):
         if self.coverid:
-			return self.coverid
-		else:
+            return self.coverid
+        else:
             try:
                 url = get_coverstore_url() + '/b/query.json?olid=%s' % self.key.split('/')[-1]
                 json = urllib2.urlopen(url).read()
