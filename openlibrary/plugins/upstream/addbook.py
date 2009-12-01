@@ -30,14 +30,39 @@ del delegate.pages['/addbook']
 # templates still refers to /addauthor.
 #del delegate.pages['/addauthor'] 
 
-
-def strip_values(values):
+def trim_value(value):
+    """Trim strings, lists and dictionaries to remove empty/None values.
+    
+        >>> trim_value("hello ")
+        'hello'
+        >>> trim_value("")
+        >>> trim_value([1, 2, ""])
+        [1, 2]
+        >>> trim_value({'x': 'a', 'y': ''})
+        {'x': 'a'}
+        >>> trim_value({'x': [""]})
+        None
     """
-        >>> strip_values(["a ", "", " b "])
-        ["a", "b"]
+    if isinstance(value, basestring):
+        value = value.strip()
+        return value or None        
+    elif isinstance(value, list):
+        value = [v2 for v in value
+                    for v2 in [trim_value(v)]
+                    if v2 is not None]
+        return value or None
+    elif isinstance(value, dict):
+        value = dict((k, v2) for k, v in value.items()
+                             for v2 in [trim_value(v)]
+                             if v2 is not None)
+        return value or None
+    else:
+        return value
+        
+def trim_doc(doc):
+    """Replace empty values in the document with Nones.
     """
-    return [v.strip() for v in values if v.strip()]
-
+    return web.storage((k, trim_value(v)) for k, v in doc.items())
 
 class book_edit(delegate.page):
     path = "(/books/OL\d+M)/edit"
@@ -63,14 +88,27 @@ class book_edit(delegate.page):
         raise web.seeother(key)
         
     def process_input(self, i):
+        # input has keys like "edition--title" for edition values and keys like "work--title" for work values.
+        # The unflatten function converts them into a dictionary.
         i = unflatten(i)
         
         book = i.edition
-        book.publishers = strip_values(i.get('publishers', '').split(';'))
-        book.publish_places = strip_values(i.get('publish_places', '').split(';'))
+        book.publishers = book.get('publishers', '').split(';')
+        book.publish_places = book.get('publish_places', '').split(';')
+        i.edition = self.trim_edition(book)
         
         return i
-    
+        
+    def trim_edition(self, book):
+        book = trim_doc(book)
+        
+        if 'dimensions' in book and book.dimensions.keys() == ['units']:
+            book.dimensions = None
+
+        if 'bookweight' in book and book.bookweight.keys() == ['unit']:
+            book.bookweight = None
+        return book
+            
     def save_book(self, book, i):
         book.update(i.edition)
         book._save(comment=i.get('_comment'))
@@ -110,3 +148,7 @@ class uploadcover(delegate.page):
         web.header("Content-Type", "text/javascript")
         return delegate.RawText(out)
         
+        
+def setup():
+    """Do required setup."""
+    pass
