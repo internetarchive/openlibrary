@@ -18,7 +18,6 @@ class addbook(delegate.page):
         
     def POST(self):
         i = web.input(title='')
-        print i
         work = web.ctx.site.new('/works/new', {'key': '/works/new', 'type': '/type/work', 'title': ''})
         edition = web.ctx.site.new('/books/new', {'key': '/books/new', 'type': '/type/edition', 'title': ''})
         return render_template('books/edit', work, edition)
@@ -50,7 +49,7 @@ class book_edit(delegate.page):
             
         work = edition.works and edition.works[0]
         # HACK: create dummy work when work is not available to make edit form work
-        work = work or web.ctx.site.new('/works/new', '/type/work', {'title': edition.title})
+        work = work or web.ctx.site.new('/works/new', {'key': '/works/new', 'type': '/type/work', 'title': edition.title})
         return render_template('books/edit', work, edition)
         
     def POST(self, key):
