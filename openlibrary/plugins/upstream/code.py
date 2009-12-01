@@ -20,11 +20,11 @@ from infogami.plugins.api.code import jsonapi
 from openlibrary.plugins.openlibrary.processors import ReadableUrlProcessor
 from openlibrary.plugins.openlibrary import code as ol_code
 
-from openlibrary.i18n import gettext as _
 import forms
 
 import utils
 import addbook
+import models
 
 if not config.get('coverstore_url'):
     config.coverstore_url = "http://covers.openlibrary.org"
@@ -53,26 +53,6 @@ class static(delegate.page):
             raise web.nomethod(method)
         else:
             return getattr(cls(), method)(*args)
-
-# overwrite ReadableUrlProcessor patterns for upstream
-ReadableUrlProcessor.patterns = [
-    (r'/books/OL\d+M', '/type/edition', 'title', 'untitled'),
-    (r'/authors/OL\d+A', '/type/author', 'name', 'noname'),
-    (r'/works/OL\d+W', '/type/work', 'title', 'untitled')
-]
-
-# Types for upstream paths
-types.register_type('^/authors/[^/]*$', '/type/author')
-types.register_type('^/books/[^/]*$', '/type/edition')
-types.register_type('^/languages/[^/]*$', '/type/language')
-
-types.register_type('^/subjects/places/[^/]*$', '/type/place')
-types.register_type('^/subjects/people/[^/]*$', '/type/person')
-types.register_type('^/subjects/[^/]*$', '/type/subject')
-
-# fix photo/cover url pattern
-ol_code.Author.photo_url_patten = "%s/photo"
-ol_code.Edition.cover_url_patten = "%s/cover"
 
 # handlers for change photo and change cover
 
@@ -104,10 +84,6 @@ class subject_covers(delegate.page):
                 return []
             data = page.get_covers(offset, limit)
             return simplejson.dumps(data)
-
-web.template.Template.globals['gettext'] = _
-web.template.Template.globals['_'] = _
-web.template.Template.globals['random'] = random.Random()
 
 @web.memoize
 @public
@@ -403,16 +379,39 @@ class redirects(delegate.page):
         raise web.redirect("/%s/%s" % (d[prefix], path))
 
 @public
-def get_history(page):
-    h = web.storage(revision=page.revision)
-    if h.revision < 5:
-        h.recent = web.ctx.site.versions({"key": page.key, "limit": 5})
-        h.initial = []
-    else:
-        h.initial = web.ctx.site.versions({"key": page.key, "limit": 2, "offset": h.revision-2})
-        h.recent = web.ctx.site.versions({"key": page.key, "limit": 3})
-    return h
-
-@public
 def get_document(key):
     return web.ctx.site.get(key)
+
+def setup():
+    """Setup for upstream plugin"""
+    models.setup()
+    addbook.setup()
+
+    # overwrite ReadableUrlProcessor patterns for upstream
+    ReadableUrlProcessor.patterns = [
+        (r'/books/OL\d+M', '/type/edition', 'title', 'untitled'),
+        (r'/authors/OL\d+A', '/type/author', 'name', 'noname'),
+        (r'/works/OL\d+W', '/type/work', 'title', 'untitled')
+    ]
+
+    # Types for upstream paths
+    types.register_type('^/authors/[^/]*$', '/type/author')
+    types.register_type('^/books/[^/]*$', '/type/edition')
+    types.register_type('^/languages/[^/]*$', '/type/language')
+
+    types.register_type('^/subjects/places/[^/]*$', '/type/place')
+    types.register_type('^/subjects/people/[^/]*$', '/type/person')
+    types.register_type('^/subjects/[^/]*$', '/type/subject')
+
+    # fix photo/cover url pattern
+    ol_code.Author.photo_url_patten = "%s/photo"
+    ol_code.Edition.cover_url_patten = "%s/cover"
+
+    # setup template globals
+    from openlibrary.i18n import gettext as _
+        
+    web.template.Template.globals['gettext'] = _
+    web.template.Template.globals['_'] = _
+    web.template.Template.globals['random'] = random.Random()
+    
+setup()
