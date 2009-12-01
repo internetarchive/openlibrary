@@ -89,6 +89,12 @@ def get_history(page):
         h.recent = web.ctx.site.versions({"key": page.key, "limit": 3})
     return h
 
+@public
+def get_recent_author(doc):
+    versions = web.ctx.site.versions({'key': doc.key, 'limit': 1})
+    if versions:
+        return versions[0].author
+        
 if __name__ == '__main__':
     import doctest
     doctest.testmod()
