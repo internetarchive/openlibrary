@@ -1,0 +1,6 @@
+$def with (person)
+
+$var title: $person.displayname
+
+<h2>$_("Edit History")</h2>
+$:render_template("admin/history", person.get_edit_history())

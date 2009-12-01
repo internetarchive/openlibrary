@@ -9,6 +9,12 @@ import subprocess
 import web
 import os
 
+
+def render_template(name, *a, **kw):
+    if "." in name:
+        name = name.rsplit(".", 1)[0]
+    return render[name](*a, **kw)
+
 admin_tasks = []
 
 def register_admin_page(path, cls, label=None, visible=True):
@@ -24,17 +30,18 @@ class admin(delegate.page):
             return self.handle(admin_index)
             
         for t in admin_tasks:
-            if t.path == web.ctx.path:
-                return self.handle(t.cls)
+            m = web.re_compile('^' + t.path + '$').match(web.ctx.path)
+            if m:
+                return self.handle(t.cls, m.groups())
         raise web.notfound()
         
-    def handle(self, cls):
+    def handle(self, cls, args=()):
         m = getattr(cls(), web.ctx.method, None)
         if not m:
             raise web.nomethod(cls=cls)
         else:
             if self.is_admin():
-                return m()
+                return m(*args)
             else:
                 return render.permission_denied(web.ctx.path, "Permission denied.")
         
@@ -47,7 +54,7 @@ class admin(delegate.page):
 
 class admin_index:
     def GET(self):
-        return render.admin(admin_tasks)
+        return render_template("admin/index")
         
 class gitpull:
     def GET(self):
@@ -64,6 +71,45 @@ class reload:
         from infogami.plugins.wikitemplates import code
         code.load_all()
         return delegate.RawText('done')
+        
+class any:
+    def GET(self):
+        path = web.ctx.path
 
-register_admin_page('/admin/git-pull', gitpull, label='git-pull')
-register_admin_page('/admin/reload', reload, label='Reload Templates')
+class people:
+    def GET(self):
+        return render_template("admin/people/index")
+
+class people_view:
+    def GET(self, key):
+        user = web.ctx.site.get(key)
+        if user:
+            return render_template('admin/people/view', user)
+        else:
+            raise web.notfound()
+            
+class ipaddress:
+    def GET(self):
+        return render_template('admin/ip/index')
+        
+class ipaddress_view:
+    def GET(self, ip):
+        ip = IPAddress(ip)
+        return render_template('admin/ip/view', ip)
+
+def setup():
+    register_admin_page('/admin/git-pull', gitpull, label='git-pull')
+    register_admin_page('/admin/reload', reload, label='Reload Templates')
+    register_admin_page('/admin/people', people, label='People')
+    register_admin_page('/admin(/people/.*)', people_view, label='View People')
+    register_admin_page('/admin/ip', ipaddress, label='IP')
+    register_admin_page('/admin/ip/(.*)', ipaddress_view, label='View IP')
+    
+class IPAddress:
+    def __init__(self, ip):
+        self.ip = ip
+
+    def get_edit_history(self, limit=10, offset=0):
+        return web.ctx.site.versions({"ip": self.ip, "limit": limit, "offset": offset})
+
+setup()

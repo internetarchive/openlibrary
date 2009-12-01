@@ -1,0 +1,6 @@
+$def with (ip)
+
+$var title: $ip.ip
+
+<h2>$_("Edit History")</h2>
+$:render_template("admin/history", ip.get_edit_history())
