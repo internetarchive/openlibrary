@@ -108,6 +108,9 @@ class SubjectPlace(Subject):
 class SubjectPerson(Subject):
     pass
 
+class User(client.Thing):
+    def get_edit_history(self, limit=10, offset=0):
+        return web.ctx.site.versions({"author": self.key, "limit": limit, "offset": offset})
 
 def setup():
     client.register_thing_class('/type/edition', Edition)
@@ -117,4 +120,4 @@ def setup():
     client.register_thing_class('/type/subject', Subject)
     client.register_thing_class('/type/place', SubjectPlace)
     client.register_thing_class('/type/person', SubjectPerson)
-
+    client.register_thing_class('/type/user', User)
