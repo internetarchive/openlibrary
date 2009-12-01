@@ -8,7 +8,6 @@ JS_SOURCES=			\
     jquery.showpassword.min.js	\
     jquery.validate.min.js	\
     jquery.form.js  \
-    jquery.tooltip.pack.js  \
     jquery.twitterfeed.js   \
     jquery.flickrfeed.js    \
     jquery.flot.js  \
