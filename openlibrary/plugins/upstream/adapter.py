@@ -20,6 +20,7 @@ urls = (
     '/([^/]*)/new_key', 'new_key',
     '/([^/]*)/save(/.*)', 'save',
     '/([^/]*)/save_many', 'save_many',
+    '/([^/]*)/account/(.*)', 'account',
     '/.*', 'proxy'
 )
 app = web.application(urls, globals())
@@ -218,6 +219,13 @@ class save_many(proxy):
             i['query'] = simplejson.dumps(q)
             self.data = urllib.urlencode(i)
             
+
+class account(proxy):
+    def before_request(self):
+        i = self.input
+        if 'username' in i and i.username.startswith('/'):
+            i.username = convert_key(i.username)
+    
 def main():
     import sys, os
     web.config.infobase_server = sys.argv[1].rstrip('/')
