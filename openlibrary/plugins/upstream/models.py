@@ -7,6 +7,7 @@ from openlibrary.plugins.search.code import SearchProcessor
 from openlibrary.plugins.openlibrary import code as ol_code
 
 from utils import get_coverstore_url
+import account
 
 
 class Edition(ol_code.Edition):
@@ -111,6 +112,16 @@ class SubjectPerson(Subject):
 class User(client.Thing):
     def get_edit_history(self, limit=10, offset=0):
         return web.ctx.site.versions({"author": self.key, "limit": limit, "offset": offset})
+        
+    def get_email(self):
+        if web.ctx.path.startswith("/admin"):
+            return account.get_user_email(self.key)
+            
+    def get_creation_info(self):
+        if web.ctx.path.startswith("/admin"):
+            d = web.ctx.site.versions({'key': self.key, "sort": "-created", "limit": 1})[0]
+            return web.storage({"ip": d.ip, "member_since": d.created})
+        
 
 def setup():
     client.register_thing_class('/type/edition', Edition)
