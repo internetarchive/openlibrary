@@ -1,0 +1,22 @@
+$def with (history)
+
+<table border="0" cellpadding="10" cellspacing="0">
+    <tr>
+        <td bgcolor="#CCCCCC"><strong>Date</strong></td>
+        <td bgcolor="#CCCCCC"><strong>Who</strong></td>
+        <td bgcolor="#CCCCCC"><strong>Page</strong></td>
+        <td colspan="3" bgcolor="#CCCCCC"><strong>Comment</strong></td>
+    </tr>
+    $for v in history:
+        <tr>
+            <td>$datestr(v.created)</td>
+            <td>
+                $if v.author:
+                    <a href="/admin/$v.author.key">$v.author.displayname</a>
+                @<a href="/admin/ip/$v.ip">$v.ip</a>
+            </td>
+            <td><a href="$v.key">$v.key</a></td>
+            <td>$v.comment</td>
+        </tr>
+</table>
+
