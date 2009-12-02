@@ -5,6 +5,10 @@ from infogami import config
 from infogami.utils.view import render, public
 from infogami.utils.macro import macro
 
+def setup():
+    """Do required initialization"""
+    pass
+    
 @macro
 @public
 def render_template(name, *a, **kw):
