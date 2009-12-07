@@ -21,6 +21,7 @@ urls = (
     '/([^/]*)/save(/.*)', 'save',
     '/([^/]*)/save_many', 'save_many',
     '/([^/]*)/account/(.*)', 'account',
+    '/([^/]*)/count_edits_by_user', 'count_edits_by_user',
     '/.*', 'proxy'
 )
 app = web.application(urls, globals())
@@ -225,7 +226,13 @@ class account(proxy):
         i = self.input
         if 'username' in i and i.username.startswith('/'):
             i.username = convert_key(i.username)
-    
+            
+class count_edits_by_user(proxy):
+    def before_request(self):
+        i = self.input
+        if 'key' in i:
+            i.key = convert_key(i.key)
+
 def main():
     import sys, os
     web.config.infobase_server = sys.argv[1].rstrip('/')
