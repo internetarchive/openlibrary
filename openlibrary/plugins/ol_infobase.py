@@ -40,8 +40,10 @@ def init_plugin():
     # hook to add count functionality
     server.app.add_mapping("/([^/]*)/count_editions_by_author", __name__ + ".count_editions_by_author")
     server.app.add_mapping("/([^/]*)/count_editions_by_work", __name__ + ".count_editions_by_work")
+    server.app.add_mapping("/([^/]*)/count_edits_by_user", __name__ + ".count_edits_by_user")
     server.app.add_mapping("/([^/]*)/most_recent", __name__ + ".most_recent")
     server.app.add_mapping("/([^/]*)/clear_cache", __name__ + ".clear_cache")
+    server.app.add_mapping("/([^/]*)/stats/(\d\d\d\d-\d\d-\d\d)", __name__ + ".stats")
         
 def get_db():
     site = server.get_site('openlibrary.org')
@@ -82,6 +84,57 @@ class count_editions_by_work:
         i = server.input('key')
         return count('edition_ref', '/type/edition', 'works', i.key)
         
+class count_edits_by_user:
+    @server.jsonify
+    def GET(self, sitename):
+        i = server.input('key')
+        author_id = get_thing_id(i.key)
+        return get_db().query("SELECT count(*) as count FROM transaction WHERE author_id=$author_id", vars=locals())[0].count
+        
+    
+class stats:
+    @server.jsonify
+    def GET(self, sitename, today):
+        return dict(self.stats(today))
+        
+    def stats(self, today):
+        tomorrow = self.nextday(today)
+        yield 'edits', self.edits(today, tomorrow)
+        yield 'edits_by_bots', self.edits(today, tomorrow, bots=True)
+        yield 'new_accounts', self.new_accounts(today, tomorrow)
+        
+    def nextday(self, today):
+        return get_db().query("SELECT date($today) + 1 AS value", vars=locals())[0].value
+
+    def edits(self, today, tomorrow, bots=False):
+        tables = 'version v, transaction t'
+        where = 'v.transaction_id=t.id AND t.created >= date($today) AND t.created < date($tomorrow)'
+
+        if bots:
+            bot_users = ["/user/EdwardBot", "/user/ImportBot", "/user/WorkBot", "/user/AnandBot", "/user/StatsBot"]
+            where += " AND t.author_id IN (SELECT id FROM thing WHERE key IN $bot_users)"
+
+        return self.count(tables=tables, where=where, vars=locals())
+        
+    def new_accounts(self, today, tomorrow):
+        type_user = get_thing_id('/type/user')
+        return self.count(
+            'thing', 
+            'type=$type_user AND created >= date($today) AND created < date($tomorrow)',
+            vars=locals())
+    
+    def total_accounts(self):
+        type_user = get_thing_id('/type/user')
+        return self.count(tables='thing', where='type=$type_user', vars=locals())
+        
+    def count(self, tables, where, vars):
+        return get_db().select(
+            what="count(*) as value",
+            tables=tables,
+            where=where,
+            vars=vars
+        )[0].value
+    
 most_recent_change = None
 
 def invalidate_most_recent_change(event):
