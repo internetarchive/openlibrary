@@ -1,14 +1,15 @@
 """Plugin to provide admin interface.
 """
+import os
+import web
+import subprocess
+import datetime
+
 from infogami.utils import delegate
-from infogami.utils.view import render
+from infogami.utils.view import render, public
 from infogami.utils.context import context
 
 import openlibrary
-import subprocess
-import web
-import os
-
 
 def render_template(name, *a, **kw):
     if "." in name:
@@ -96,6 +97,76 @@ class ipaddress_view:
     def GET(self, ip):
         ip = IPAddress(ip)
         return render_template('admin/ip/view', ip)
+        
+class stats:
+    def GET(self, today):
+        json = web.ctx.site._conn.request(web.ctx.site.name, '/get', 'GET', {'key': '/admin/stats/' + today})
+        return delegate.RawText(json)
+        
+    def POST(self, today):
+        """Update stats for today."""
+        
+        stats = web.ctx.site._request("/stats/" + today)
+        
+        key = '/admin/stats/' + today
+        doc = web.ctx.site.new(key, {
+            'key': key,
+            'type': {'key': '/type/object'}
+        })
+        doc.edits = {
+            'human': stats.edits - stats.edits_by_bots,
+            'bot': stats.edits_by_bots,
+            'total': stats.edits
+        }
+        doc.members = stats.new_accounts
+        doc._save()
+        raise web.seeother(web.ctx.path)
+        
+def daterange(date, *slice):
+    return [date + datetime.timedelta(i) for i in range(*slice)]
+    
+def storify(d):
+    if isinstance(d, dict):
+        return web.storage((k, storify(v)) for k, v in d.items())
+    elif isinstance(d, list):
+        return [storify(v) for v in d]
+    else:
+        return d
+
+def get_admin_stats():
+    def f(dates):
+        keys = ["/admin/stats/" + date.isoformat() for date in dates]
+        docs = web.ctx.site.get_many(keys)
+        return {
+            'edits': {
+                'human': sum(doc['edits']['human'] for doc in docs),
+                'bot': sum(doc['edits']['bot'] for doc in docs),
+                'total': sum(doc['edits']['total'] for doc in docs),
+            },
+            'members': sum(doc['members'] for doc in docs)
+        }
+    date = datetime.datetime.utcnow().date()
+    
+    today = f([date])
+    yesterday = f(daterange(date, -1, 0, 1))
+    thisweek = f(daterange(date, 0, -7, -1))
+    thismonth = f(daterange(date, 0, -30, -1))
+    
+    stats = {
+        'edits': {
+            'today': today['edits'],
+            'yesterday': yesterday['edits'],
+            'thisweek': thisweek['edits'],
+            'thismonth': thismonth['edits']
+        },
+        'members': {
+            'today': today['members'],
+            'yesterday': yesterday['members'],
+            'thisweek': thisweek['members'],
+            'thismonth': thismonth['members'] 
+        }
+    }
+    return storify(stats)
 
 def setup():
     register_admin_page('/admin/git-pull', gitpull, label='git-pull')
@@ -104,6 +175,9 @@ def setup():
     register_admin_page('/admin(/people/.*)', people_view, label='View People')
     register_admin_page('/admin/ip', ipaddress, label='IP')
     register_admin_page('/admin/ip/(.*)', ipaddress_view, label='View IP')
+    register_admin_page('/admin/stats/(\d\d\d\d-\d\d-\d\d)', stats, label='Stats JSON')
+    
+    public(get_admin_stats)
     
 class IPAddress:
     def __init__(self, ip):
