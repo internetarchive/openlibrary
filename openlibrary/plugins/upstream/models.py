@@ -109,6 +109,7 @@ class SubjectPlace(Subject):
 class SubjectPerson(Subject):
     pass
 
+
 class User(client.Thing):
     def get_edit_history(self, limit=10, offset=0):
         return web.ctx.site.versions({"author": self.key, "limit": limit, "offset": offset})
@@ -121,7 +122,12 @@ class User(client.Thing):
         if web.ctx.path.startswith("/admin"):
             d = web.ctx.site.versions({'key': self.key, "sort": "-created", "limit": 1})[0]
             return web.storage({"ip": d.ip, "member_since": d.created})
-        
+            
+    def get_edit_count(self):
+        if web.ctx.path.startswith("/admin"):
+            return web.ctx.site._request('/count_edits_by_user', data={"key": self.key})
+        else:
+            return 0
 
 def setup():
     client.register_thing_class('/type/edition', Edition)

@@ -63,6 +63,70 @@ def trim_doc(doc):
     """Replace empty values in the document with Nones.
     """
     return web.storage((k, trim_value(v)) for k, v in doc.items())
+    
+class SaveBookHelper:
+    """Helper to save edition and work using the form data coming from edition edit and work edit pages.
+    
+    This does the required trimming and processing of input data before saving.
+    """
+    def __init__(self, work, edition):
+        self.work = work
+        self.edition = edition
+    
+    def save(self, formdata):
+        """Update work and edition documents according to the specified formdata."""
+        work_data, edition_data = self.process_input(formdata)
+        
+        print "* work", work_data
+        
+        if work_data:
+            self.work.update(work_data)
+            print '*', self.work._save()
+        
+        if self.edition and edition_data:
+            self.edition.update(edition_data)
+            self.edition._save()
+    
+    def process_input(self, i):
+        i = unflatten(i)
+        
+        if 'edition' in i:
+            edition = self.process_edition(i.edition)
+        else:
+            edition = None
+            
+        if 'work' in i:
+            work = self.process_work(i.work)
+        else:
+            work = None
+            
+        return work, edition
+    
+    def process_edition(self, edition):
+        """Process input data for edition."""
+        edition.publishers = edition.get('publishers', '').split(';')
+        edition.publish_places = edition.get('publish_places', '').split(';')
+        
+        edition = trim_doc(edition)
+
+        if edition.get('dimensions') and edition.dimensions.keys() == ['units']:
+            edition.dimensions = None
+
+        if edition.get('editionweight') and edition.editionweight.keys() == ['unit']:
+            edition.editionweight = None
+            
+        return edition
+        
+    def process_work(self, work):
+        """Process input data for work."""
+        work.subject_places = work.get('subject_places', '').split(',')
+        work.subject_times = work.get('subject_times', '').split(',')
+        work.subject_people = work.get('subject_people', '').split(',')
+        
+        work = trim_doc(work)
+        
+        return work
+        
 
 class book_edit(delegate.page):
     path = "(/books/OL\d+M)/edit"
@@ -78,40 +142,21 @@ class book_edit(delegate.page):
         return render_template('books/edit', work, edition)
         
     def POST(self, key):
-        book = web.ctx.site.get(key)
-        if book is None:
+        edition = web.ctx.site.get(key)
+        if edition is None:
             raise web.notfound()
+        
+        if book.works:
+            work = book.works[0]
+        else:
+            work_key = web.ctx.site.new_key("/type/work")
+            work = web.ctx.site.new(work_key, {"key": work_key, "title": edition.title, "authors": edition.authors})
+            work.save()
+            edition.works = [work]
             
-        i = web.input()
-        i = self.process_input(i)
-        self.save_book(book, i)
-        raise web.seeother(key)
-        
-    def process_input(self, i):
-        # input has keys like "edition--title" for edition values and keys like "work--title" for work values.
-        # The unflatten function converts them into a dictionary.
-        i = unflatten(i)
-        
-        book = i.edition
-        book.publishers = book.get('publishers', '').split(';')
-        book.publish_places = book.get('publish_places', '').split(';')
-        i.edition = self.trim_edition(book)
-        
-        return i
-        
-    def trim_edition(self, book):
-        book = trim_doc(book)
-        
-        if 'dimensions' in book and book.dimensions.keys() == ['units']:
-            book.dimensions = None
-
-        if 'bookweight' in book and book.bookweight.keys() == ['unit']:
-            book.bookweight = None
-        return book
-            
-    def save_book(self, book, i):
-        book.update(i.edition)
-        book._save(comment=i.get('_comment'))
+        helper = SaveBookHelper(work, edition)
+        helper.save(web.input())
+        raise web.seeother(edition.url())
 
 class work_edit(delegate.page):
     path = "(/works/OL\d+W)/edit"
@@ -121,6 +166,15 @@ class work_edit(delegate.page):
         if work is None:
             raise web.notfound()
         return render_template('books/edit', work)
+        
+    def POST(self, key):
+        work = web.ctx.site.get(key)
+        if work is None:
+            raise web.notfound()
+            
+        helper = SaveBookHelper(work, None)
+        helper.save(web.input())
+        raise web.seeother(work.url())
 
 class uploadcover(delegate.page):
     def POST(self):

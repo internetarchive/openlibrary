@@ -98,7 +98,12 @@ def get_recent_author(doc):
     versions = web.ctx.site.versions({'key': doc.key, 'limit': 1})
     if versions:
         return versions[0].author
-        
+
+@public
+def get_recent_accounts(limit=5, offset=0):
+    versions = web.ctx.site.versions({'type': '/type/user', 'revision': 1, 'limit': limit, 'offset': offset})
+    return web.ctx.site.get_many([v.key for v in versions])
+
 if __name__ == '__main__':
     import doctest
     doctest.testmod()

@@ -47,7 +47,7 @@ class OpenLibrary:
         except urllib2.HTTPError, e:
             raise OLError(e)
 
-    def autologin(self):
+    def autologin(self, section=None):
         """Login to Open Library with credentials taken from ~/.olrc file.
 
         The ~/.olrc file must be in ini format (format readable by
@@ -61,11 +61,13 @@ class OpenLibrary:
             [0.0.0.0:8080]
             username = joe
             password = joe123
+            
+        Optionally section name can be passed as argument to force using a different section name.
         """
         config = ConfigParser()
         config.read(os.path.expanduser('~/.olrc'))
         
-        section = self.base_url.replace('http://', '')
+        section = section or self.base_url.replace('http://', '')
 
         if not config.has_section(section):
             raise Exception("No section found with name %s in ~/.olrc" % repr(section))
