@@ -128,5 +128,6 @@ def setup():
     web.template.Template.globals['gettext'] = _
     web.template.Template.globals['_'] = _
     web.template.Template.globals['random'] = random.Random()
+    web.template.Template.globals['commify'] = web.commify
     
 setup()
