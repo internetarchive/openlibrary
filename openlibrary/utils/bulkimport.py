@@ -230,6 +230,7 @@ class Reindexer:
         
         try:
             documents = self.get_documents(keys)
+            print keys, documents
             self.delete_earlier_index(documents, tables)
             self.create_new_index(documents, tables)
         except:
@@ -269,16 +270,31 @@ class Reindexer:
     def create_new_index(self, documents, tables=None):
         """Insert data in to index tables for the specified documents."""
         data = defaultdict(list)
-
-        for doc in documents:
-            for name, value in doc.items():
+        
+        def insert(doc, name, value, ordering=None):
+            # these are present in thing table. No need to index these keys
+            if name in ["id", "type", "created", "last_modified", "permission", "child_permission"]:
+                return
+            if isinstance(value, list):
+                for i, v in enumerate(value):
+                    insert(doc, name, v, ordering=i)
+            elif isinstance(value, dict) and 'key' not in value:
+                for k, v in value.items():
+                    if k == "type": # no need to index type
+                        continue
+                    insert(doc, name + '.' + k, v, ordering=ordering)
+            else:
                 datatype = self._find_datatype(value)
                 table = datatype and self.schema.find_table(doc['type']['key'], datatype, name)
                 # when asked to index only some tables
                 if tables and table not in tables:
-                    continue
+                    return
                 if table:
-                    self.prepare_insert(data[table], doc['id'], doc['type_id'], name, value)
+                    self.prepare_insert(data[table], doc['id'], doc['type_id'], name, value, ordering=ordering)
+
+        for doc in documents:
+            for name, value in doc.items():
+                insert(doc, name, value)
 
         # replace keys with thing ids in xxx_ref tables
         self.process_refs(data)
@@ -368,21 +384,20 @@ class Reindexer:
              return None
 
 def _test():
-    loader = DocumentLoader(db='openlibrary')
-
-    #print db.bulk_new([dict(key="/b/OL%dM" % i, title="book %d" % i, type={"key": "/type/edition"}) for i in range(1, 101)], comment="add books")
-    #print db.bulk_new([dict(key="/a/OL%dA" % i, name="author %d" % i, type={"key": "/type/author"}) for i in range(1, 101)], comment="add authors")
-    #print db.bulk_update([dict(key="/b/OL%dM" % i, authors=[{"key": "/a/OL%dA" % i}]) for i in range(1, 101)], comment="link authors")
-    loader.reindex(["/a/OL%dA" % i for i in range(1, 101)])
-
-    """
-    print db.bulk_new([dict(key=key, 
-                            type={'key': '/type/work'}, 
-                            title='Tom Sawyer', 
-                            authors=[dict(key='/a/OL1A', type={'key': '/type/author_role'})])
-                       for key in db.new_work_keys(10000)])
-   """
+    loader = DocumentLoader(db='ol')
+    loader.db.printing = True
     
+    n = 2
 
+    print loader.bulk_new([dict(
+                key="/b/OL%dM" % i, 
+                title="book %d" % i, 
+                type={"key": "/type/edition"}, 
+                table_of_contents=[{"type": {"key": "/type/toc_item"}, "class": "part", "label": "test", "title": "test", "pagenum": "10"}])
+            for i in range(1, n+1)], 
+        comment="add books")
+    
+    loader.reindex(["/b/OL%dM" % i for i in range(1, n+1)])
+    
 if __name__ == "__main__":
     _test()
