@@ -105,7 +105,11 @@ class stats:
         
     def POST(self, today):
         """Update stats for today."""
-        
+        doc = self.get_stats()
+        doc._save()
+        raise web.seeother(web.ctx.path)
+
+    def get_stats(self, today):
         stats = web.ctx.site._request("/stats/" + today)
         
         key = '/admin/stats/' + today
@@ -119,8 +123,7 @@ class stats:
             'total': stats.edits
         }
         doc.members = stats.new_accounts
-        doc._save()
-        raise web.seeother(web.ctx.path)
+        return doc
         
 def daterange(date, *slice):
     return [date + datetime.timedelta(i) for i in range(*slice)]
@@ -137,6 +140,9 @@ def get_admin_stats():
     def f(dates):
         keys = ["/admin/stats/" + date.isoformat() for date in dates]
         docs = web.ctx.site.get_many(keys)
+        return g(docs)
+
+    def g(docs):
         return {
             'edits': {
                 'human': sum(doc['edits']['human'] for doc in docs),
@@ -147,12 +153,12 @@ def get_admin_stats():
         }
     date = datetime.datetime.utcnow().date()
     
-    today = f([date])
+    today = g([stats().get_stats(date.isoformat())])
     yesterday = f(daterange(date, -1, 0, 1))
     thisweek = f(daterange(date, 0, -7, -1))
     thismonth = f(daterange(date, 0, -30, -1))
     
-    stats = {
+    xstats = {
         'edits': {
             'today': today['edits'],
             'yesterday': yesterday['edits'],
@@ -166,7 +172,7 @@ def get_admin_stats():
             'thismonth': thismonth['members'] 
         }
     }
-    return storify(stats)
+    return storify(xstats)
 
 def setup():
     register_admin_page('/admin/git-pull', gitpull, label='git-pull')

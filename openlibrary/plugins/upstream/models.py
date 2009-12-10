@@ -36,7 +36,13 @@ class Author(ol_code.Author):
     
 
 class Work(ol_code.Work):
-    pass
+    def get_subjects(self):
+        """Return subject strings."""
+        subjects = self.subjects
+                
+        if subjects and not isinstance(subjects[0], basestring):
+            subjects = [s.name for s in subjects]
+        return subjects
 
 
 class Subject(client.Thing):
