@@ -4,7 +4,7 @@
  * Version: 0.1
  */
 (function($){    
-    $.fn.repeat = function() {
+    $.fn.repeat = function(options) {
         var id = "#" + this.attr("id");
         var elems = {
             'this': this,
@@ -39,8 +39,7 @@
             var data = formdata();
             data.index = index;
             
-            if (window.console)
-                window.console.log(data);
+            $.extend(data, options.vars || {});
             
             var newid = elems.this.attr("id") + "--" + index;
             elems.template
