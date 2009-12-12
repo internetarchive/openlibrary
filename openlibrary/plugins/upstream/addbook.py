@@ -77,11 +77,8 @@ class SaveBookHelper:
         """Update work and edition documents according to the specified formdata."""
         work_data, edition_data = self.process_input(formdata)
         
-        print "* work", work_data
-        
         if work_data:
             self.work.update(work_data)
-            print '*', self.work._save()
         
         if self.edition and edition_data:
             self.edition.update(edition_data)
@@ -119,6 +116,7 @@ class SaveBookHelper:
         
     def process_work(self, work):
         """Process input data for work."""
+        work.subjects = work.get('subjects', '').split(',')
         work.subject_places = work.get('subject_places', '').split(',')
         work.subject_times = work.get('subject_times', '').split(',')
         work.subject_people = work.get('subject_people', '').split(',')
@@ -146,8 +144,8 @@ class book_edit(delegate.page):
         if edition is None:
             raise web.notfound()
         
-        if book.works:
-            work = book.works[0]
+        if edition.works:
+            work = edition.works[0]
         else:
             work_key = web.ctx.site.new_key("/type/work")
             work = web.ctx.site.new(work_key, {"key": work_key, "title": edition.title, "authors": edition.authors})

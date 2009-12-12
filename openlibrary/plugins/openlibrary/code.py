@@ -130,7 +130,7 @@ class Work(client.Thing):
 
 class User(client.Thing):
     def get_usergroups(self):
-        keys = web.ctx.site.things({'type': '/type/usergroup', 'members': {'key': self.key}})
+        keys = web.ctx.site.things({'type': '/type/usergroup', 'members': self.key})
         return web.ctx.site.get_many(keys)
     usergroups = property(get_usergroups)
 
