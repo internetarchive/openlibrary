@@ -5,8 +5,10 @@ import web
 import random
 import simplejson
 import md5
+import datetime 
 
 from infogami import config
+from infogami.infobase import client
 from infogami.utils import delegate, app, types
 from infogami.utils.view import public
 
@@ -85,6 +87,96 @@ def vendor_js():
     path = os.path.abspath(os.path.join(__file__, pardir, pardir, pardir, pardir, 'static', 'upstream', 'js', 'vendor.js'))
     digest = md5.md5(open(path).read()).hexdigest()
     return '/js/vendor.js?v=' + digest
+    
+class DynamicDocument:
+    """Dynamic document is created by concatinating various rawtext documents in the DB.
+    Used to generate combined js/css using multiple js/css files in the system.
+    """
+    def __init__(self, root):
+        self.root = web.rstrips(root, '/')
+        self.docs = None 
+        self._text = None
+        self.last_modified = None
+        
+    def update(self):
+        keys = web.ctx.site.things({'type': '/type/rawtext', 'key~': self.root + '/*'})
+        docs = web.ctx.site.get_many(keys)
+        print 'update', keys, docs
+        if docs:
+            self.last_modified = min(doc.last_modified for doc in docs)
+            self._text = "".join(doc.body for doc in docs)
+        else:
+            self.last_modified = datetime.datetime.utcnow()
+            self._text = ""
+        
+    def get_text(self):
+        """Returns text of the combined documents"""
+        if self._text is None:
+            self.update()
+        return self._text
+        
+    def md5(self):
+        """Returns md5 checksum of the combined documents"""
+        return md5.md5(self.get_text()).hexdigest()
+
+def create_dynamic_document(url, prefix):
+    """Creates a handler for `url` for servering combined js/css for `prefix/*` pages"""
+    doc = DynamicDocument(prefix)
+    
+    if url.endswith('.js'):
+        content_type = "text/javascript"
+    elif url.endswith(".css"):
+        content_type = "text/css"
+    else:
+        content_type = "text/plain"
+    
+    class page(delegate.page):
+        """Handler for serving the combined content."""
+        path = "__registered_later_without_using_this__"
+        def GET(self):
+            i = web.input(v=None)
+            v = doc.md5()
+            if v != i.v:
+                raise web.seeother(web.changequery(v=v))
+                
+            if web.modified(etag=v):
+                oneyear = 365 * 24 * 3600
+                web.header("Content-Type", content_type)
+                web.header("Cache-Control", "Public, max-age=%d" % oneyear)
+                web.lastmodified(doc.last_modified)
+                web.expires(oneyear)
+                return delegate.RawText(doc.get_text())
+                
+        def url(self):
+            return url + "?v=" + doc.md5()
+            
+    class hook(client.hook):
+        """Hook to update the DynamicDocument when any of the source pages is updated."""
+        def on_new_version(self, page):
+            if page.key.startswith(doc.root):
+                doc.update()
+
+    # register the special page
+    delegate.pages[url] = {}
+    delegate.pages[url][None] = page
+    return page
+            
+all_js = create_dynamic_document("/js/all.js", "/js")
+web.template.Template.globals['all_js'] = all_js()
+
+all_css = create_dynamic_document("/css/all.css", "/css")
+web.template.Template.globals['all_css'] = all_css()
+
+def setup_jquery_urls():
+    if config.get('use_google_cdn', 'true').lower() == "false":
+        jquery_url = "/static/upstream/js/jquery-1.3.2.min.js" 
+        jqueryui_url = "/static/upstream/js/jquery-ui-1.7.2.min.js" 
+    else:
+        jquery_url = "http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"
+        jqueryui_url = "http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.2/jquery-ui.min.js"
+        
+    web.template.Template.globals['jquery_url'] = jquery_url
+    web.template.Template.globals['jqueryui_url'] = jquery_url
 
 class redirects(delegate.page):
     path = "/(a|b|user)/(.*)"
@@ -129,5 +221,7 @@ def setup():
     web.template.Template.globals['_'] = _
     web.template.Template.globals['random'] = random.Random()
     web.template.Template.globals['commify'] = web.commify
+    
+    setup_jquery_urls()
     
 setup()
