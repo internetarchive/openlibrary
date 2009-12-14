@@ -1,0 +1,54 @@
+body {
+  background-color: #008D99;
+  color: #fff;
+  font-size: 11pt;
+  font-family: arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  text-align: center; }
+  body .container {
+    padding: 2em;
+    width: 32em;
+    margin: 0 auto;
+    text-align: left; }
+    body .container h1 {
+      font-size: 240%;
+      margin-bottom: -.5em; }
+    body .container h2, body .container p, body .container ul, body .container code {
+      margin-bottom: 1em; }
+    body .container h2 a {
+      color: #fff; }
+    body .container h3 {
+      font-size: 140%;
+      margin-bottom: .4em; }
+    body .container ul {
+      padding-left: 2em; }
+      body .container ul li {
+        list-style-type: square; 
+        margin-left: 0;}
+    body .container a {
+      color: #8ADEE2; }
+    body .container code {
+      margin-left: 1em;
+      padding: .5em;
+      display: block;
+    }
+    body .container code, body .container .code {
+      background-color: #0C717A;
+      color: #fff;
+      font-size: 85%;
+      font-family: courier, monospace; }
+      body .container code a, body .container .code a {
+        color: #fff; }
+    body .container .copyright {
+      font-family: verdana, sans-serif;
+      font-size: 75%;
+      margin-top: 8em; }
+      body .container .copyright span {
+        color: #8ADEE2; }
+    body .container .download h4 {
+      font-size: 120%;
+      margin-top: -.5em;
+      color: #8ADEE2; }
+    body .container .twoot {
+      padding-top: 3em; }
