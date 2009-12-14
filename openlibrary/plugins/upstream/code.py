@@ -101,7 +101,6 @@ class DynamicDocument:
     def update(self):
         keys = web.ctx.site.things({'type': '/type/rawtext', 'key~': self.root + '/*'})
         docs = web.ctx.site.get_many(keys)
-        print 'update', keys, docs
         if docs:
             self.last_modified = min(doc.last_modified for doc in docs)
             self._text = "".join(doc.body for doc in docs)
@@ -176,7 +175,7 @@ def setup_jquery_urls():
         jqueryui_url = "/static/upstream/js/jquery-ui-1.7.2.min.js" 
         
     web.template.Template.globals['jquery_url'] = jquery_url
-    web.template.Template.globals['jqueryui_url'] = jquery_url
+    web.template.Template.globals['jqueryui_url'] = jqueryui_url
 
 class redirects(delegate.page):
     path = "/(a|b|user)/(.*)"
