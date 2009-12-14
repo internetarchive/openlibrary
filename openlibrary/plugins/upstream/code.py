@@ -168,12 +168,12 @@ all_css = create_dynamic_document("/css/all.css", "/css")
 web.template.Template.globals['all_css'] = all_css()
 
 def setup_jquery_urls():
-    if config.get('use_google_cdn', 'true').lower() == "false":
-        jquery_url = "/static/upstream/js/jquery-1.3.2.min.js" 
-        jqueryui_url = "/static/upstream/js/jquery-ui-1.7.2.min.js" 
-    else:
+    if config.get('use_google_cdn', True):
         jquery_url = "http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"
         jqueryui_url = "http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.2/jquery-ui.min.js"
+    else:
+        jquery_url = "/static/upstream/js/jquery-1.3.2.min.js" 
+        jqueryui_url = "/static/upstream/js/jquery-ui-1.7.2.min.js" 
         
     web.template.Template.globals['jquery_url'] = jquery_url
     web.template.Template.globals['jqueryui_url'] = jquery_url
