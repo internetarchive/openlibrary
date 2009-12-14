@@ -86,7 +86,7 @@ def vendor_js():
     pardir = os.path.pardir 
     path = os.path.abspath(os.path.join(__file__, pardir, pardir, pardir, pardir, 'static', 'upstream', 'js', 'vendor.js'))
     digest = md5.md5(open(path).read()).hexdigest()
-    return '/js/vendor.js?v=' + digest
+    return '/static/upstream/js/vendor.js?v=' + digest
     
 class DynamicDocument:
     """Dynamic document is created by concatinating various rawtext documents in the DB.
