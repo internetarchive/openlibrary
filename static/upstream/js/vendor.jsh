@@ -17,10 +17,11 @@ cat $VENDORJS/jquery-validate/jquery.validate.min.js
 cat $VENDORJS/jquery-flickr/jquery.flickr-1.0-min.js
 cat $VENDORJS/jquery-tweet/jquery.tweet.js | $JSMIN
 
-cat $DIR/sjt.js | $JSMIN
-cat $DIR/jquery.repeat.js | $JSMIN
-
 cat $VENDORJS/wmd/jquery.wmd.min.js 
+
+cat $VENDORJS/flot/jquery.flot.min.js
+cat $VENDORJS/flot/jquery.flot.selection.min.js
+cat $VENDORJS/flot/jquery.flot.crosshair.min.js
 
 # for backward compatability
 cat <<END
