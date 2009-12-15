@@ -105,7 +105,7 @@ class stats:
         
     def POST(self, today):
         """Update stats for today."""
-        doc = self.get_stats()
+        doc = self.get_stats(today)
         doc._save()
         raise web.seeother(web.ctx.path)
 
