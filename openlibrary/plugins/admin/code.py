@@ -142,6 +142,9 @@ def get_admin_stats():
         docs = web.ctx.site.get_many(keys)
         return g(docs)
 
+    def has_doc(date):
+        return bool(web.ctx.site.get('/admin/stats/' + date.isoformat())
+
     def g(docs):
         return {
             'edits': {
@@ -153,7 +156,10 @@ def get_admin_stats():
         }
     date = datetime.datetime.utcnow().date()
     
-    today = g([stats().get_stats(date.isoformat())])
+    if has_doc(date):
+        today = f([date])
+    else:
+        today =  g([stats().get_stats(date.isoformat())])
     yesterday = f(daterange(date, -1, 0, 1))
     thisweek = f(daterange(date, 0, -7, -1))
     thismonth = f(daterange(date, 0, -30, -1))
