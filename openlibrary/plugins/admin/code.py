@@ -143,7 +143,7 @@ def get_admin_stats():
         return g(docs)
 
     def has_doc(date):
-        return bool(web.ctx.site.get('/admin/stats/' + date.isoformat())
+        return bool(web.ctx.site.get('/admin/stats/' + date.isoformat()))
 
     def g(docs):
         return {
