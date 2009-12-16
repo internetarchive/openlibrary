@@ -4,6 +4,7 @@ import os
 import web
 import subprocess
 import datetime
+import urllib
 
 from infogami.utils import delegate
 from infogami.utils.view import render, public
@@ -124,6 +125,12 @@ class stats:
         }
         doc.members = stats.new_accounts
         return doc
+
+class ipstats:
+    def GET(self):
+        web.header('Content-Type', 'application/json')
+        json = urllib.urlopen("http://www.archive.org/download/stats/numUniqueIPsOL.json").read()
+        return delegate.RawText(json)
         
 def daterange(date, *slice):
     return [date + datetime.timedelta(i) for i in range(*slice)]
@@ -188,6 +195,7 @@ def setup():
     register_admin_page('/admin/ip', ipaddress, label='IP')
     register_admin_page('/admin/ip/(.*)', ipaddress_view, label='View IP')
     register_admin_page('/admin/stats/(\d\d\d\d-\d\d-\d\d)', stats, label='Stats JSON')
+    register_admin_page('/admin/ipstats', ipstats, label='IP Stats JSON')
     
     public(get_admin_stats)
     
