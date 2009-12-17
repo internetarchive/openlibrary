@@ -124,6 +124,13 @@ def datestr(then, now=None):
         return _("%d " + message) % int(t)
     else:
         return babel.dates.format_date(then, format="long", locale=get_locale())    
+ 
+@public     
+def truncate(text, limit):
+    """Truncate text and add ellipses if it longer than specified limit."""
+    if len(text) < limit:
+        return text
+    return text[:limit] + "..."
 
 if __name__ == '__main__':
     import doctest

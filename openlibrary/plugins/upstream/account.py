@@ -8,6 +8,7 @@ from infogami import config
 from infogami.utils.view import require_login, render, add_flash_message
 from infogami.infobase.client import ClientException
 from infogami.utils.context import context
+import infogami.core.code as core
 
 from openlibrary.i18n import gettext as _
 import forms
@@ -307,3 +308,14 @@ class account_others(delegate.page):
 
     def GET(self):
         return render.notfound(create=False)
+
+class user_preferences(delegate.page):
+    path = "(/people/[^/]*/preferences)"
+    
+    def GET(self, path):
+        print 'user_preferences', path, web.ctx.site.can_write(path), context.user
+        # only people who can modify the preferences should be able to see them
+        if web.ctx.site.can_write(path):
+            return core.view().GET(path)
+        else:
+            return render.permission_denied(path, "Permission Denied.")
