@@ -84,7 +84,8 @@ class proxy:
     GET = POST = PUT = DELETE = delegate
     
     def before_request(self):
-        pass
+        if 'key' in self.input:
+            self.input.key = convert_key(self.input.key)
         
     def after_request(self):
         if self.output:
@@ -226,12 +227,6 @@ class account(proxy):
         i = self.input
         if 'username' in i and i.username.startswith('/'):
             i.username = convert_key(i.username)
-            
-class count_edits_by_user(proxy):
-    def before_request(self):
-        i = self.input
-        if 'key' in i:
-            i.key = convert_key(i.key)
 
 def main():
     import sys, os

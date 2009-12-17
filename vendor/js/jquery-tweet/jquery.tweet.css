@@ -1,0 +1,22 @@
+.tweet {
+  font-family: Georgia, serif;
+  font-size: 120%;
+  color: #085258; }
+  .tweet .tweet_list {
+    -webkit-border-radius: .5em;
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    background-color: #8ADEE2; }
+    .tweet .tweet_list li {
+      overflow: auto;
+      padding: .5em; }
+      .tweet .tweet_list li a {
+        color: #0C717A; }
+    .tweet .tweet_list .tweet_even {
+      background-color: #91E5E7; }
+    .tweet .tweet_list .tweet_avatar {
+      padding-right: .5em;
+      float: left; }
+      .tweet .tweet_list .tweet_avatar img {
+        vertical-align: middle; }

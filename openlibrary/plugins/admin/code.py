@@ -4,6 +4,7 @@ import os
 import web
 import subprocess
 import datetime
+import urllib
 
 from infogami.utils import delegate
 from infogami.utils.view import render, public
@@ -105,7 +106,7 @@ class stats:
         
     def POST(self, today):
         """Update stats for today."""
-        doc = self.get_stats()
+        doc = self.get_stats(today)
         doc._save()
         raise web.seeother(web.ctx.path)
 
@@ -124,6 +125,12 @@ class stats:
         }
         doc.members = stats.new_accounts
         return doc
+
+class ipstats:
+    def GET(self):
+        web.header('Content-Type', 'application/json')
+        json = urllib.urlopen("http://www.archive.org/download/stats/numUniqueIPsOL.json").read()
+        return delegate.RawText(json)
         
 def daterange(date, *slice):
     return [date + datetime.timedelta(i) for i in range(*slice)]
@@ -142,6 +149,9 @@ def get_admin_stats():
         docs = web.ctx.site.get_many(keys)
         return g(docs)
 
+    def has_doc(date):
+        return bool(web.ctx.site.get('/admin/stats/' + date.isoformat()))
+
     def g(docs):
         return {
             'edits': {
@@ -153,7 +163,10 @@ def get_admin_stats():
         }
     date = datetime.datetime.utcnow().date()
     
-    today = g([stats().get_stats(date.isoformat())])
+    if has_doc(date):
+        today = f([date])
+    else:
+        today =  g([stats().get_stats(date.isoformat())])
     yesterday = f(daterange(date, -1, 0, 1))
     thisweek = f(daterange(date, 0, -7, -1))
     thismonth = f(daterange(date, 0, -30, -1))
@@ -182,6 +195,7 @@ def setup():
     register_admin_page('/admin/ip', ipaddress, label='IP')
     register_admin_page('/admin/ip/(.*)', ipaddress_view, label='View IP')
     register_admin_page('/admin/stats/(\d\d\d\d-\d\d-\d\d)', stats, label='Stats JSON')
+    register_admin_page('/admin/ipstats', ipstats, label='IP Stats JSON')
     
     public(get_admin_stats)
     

@@ -1,0 +1,479 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us">
+<head>
+<title>jCarousel - Riding carousels with jQuery</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link href="style.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+<div id="wrap">
+  <h1>jCarousel</h1>
+  <h2>Riding carousels with jQuery</h2>
+  <p><strong>Author:</strong> <a href="http://sorgalla.com">Jan Sorgalla</a><br />
+    <strong>Version:</strong> 0.2.3 (<a href="changelog.html">Changelog</a>)<br />
+    <strong>Download:</strong> <a href="http://sorgalla.com/projects/download.php?jcarousel">jcarousel.tar.gz</a> or <a href="http://sorgalla.com/projects/download-zip.php?jcarousel">jcarousel.zip</a><br />
+    <strong>Licence:</strong> Dual licensed under the <a href="http://www.opensource.org/licenses/mit-license.php">MIT</a>
+    and <a href="http://www.opensource.org/licenses/gpl-license.php">GPL</a> licenses.</p>
+
+  <a name="Contents"></a>
+  <h3>Contents</h3>
+    <ol>
+    <li><a href="#Introduction">Introduction</a></li>
+    <li><a href="#Examples">Examples</a></li>
+    <li><a href="#Getting-Started">Getting started</a></li>
+    <li><a href="#Dynamic-Content-Loading">Dynamic content loading</a></li>
+    <li><a href="#Configuration">Configuration</a></li>
+    <li><a href="#Compatibility">Compatibility</a></li>
+    <li><a href="#Credits">Credits</a></li>
+  </ol>
+
+  <a name="Introduction"></a>
+  <h3>Introduction</h3>
+  <p>jCarousel is a <a href="http://jquery.com">jQuery</a> plugin for controlling
+    a list of items in horizontal or vertical order. The items, which can be static
+    HTML content or loaded with (or without) AJAX, can be scrolled back and forth
+    (with or without animation).</p>
+
+  <a name="Examples"></a>
+    <h3>Examples</h3>
+  <p>The following examples illustrate the possibilities of jCarousel:</p>
+  <noscript>
+  <p style="color:red">You need JavaScript enabled to see the carousel</p>
+  </noscript>
+  <ul>
+    <li><strong>Static Examples</strong>
+      <ul>
+        <li><a href="examples/static_simple.html">Simple carousel</a></li>
+        <li><a href="examples/static_vertical.html">Vertical carousel</a> </li>
+        <li><a href="examples/static_auto.html">Carousel with autoscrolling</a></li>
+        <li><a href="examples/static_callbacks.html">Carousel illustrating the
+          callback functions</a></li>
+        <li><a href="examples/static_controls.html">Carousel with external controls</a></li>
+        <li><a href="examples/static_start.html">Carousel with custom start position</a></li>
+        <li><a href="examples/static_multiple.html">Multiple carousels on one page</a></li>
+      </ul>
+    </li>
+    <li><strong>Dynamic Examples</strong>
+      <ul>
+        <li><a href="examples/dynamic_javascript.html">Carousel with dynamic content
+          loading via JavaScript</a></li>
+        <li><a href="examples/dynamic_ajax.html">Carousel with dynamic content
+          loading via Ajax</a></li>
+        <li><a href="examples/dynamic_ajax_php.html">Carousel with dynamic content
+          loading via Ajax from a PHP script</a></li>
+        <li><a href="examples/dynamic_flickr_feed.html">Carousel with dynamic
+          content loading via Ajax from the Flickr photo stream</a></li>
+        <li><a href="examples/dynamic_flickr_api.html">Carousel with dynamic content
+          loading via Ajax from the Flickr API</a></li>
+      </ul>
+    </li>
+    <li><strong>Special Examples</strong>
+      <ul>
+        <li><a href="examples/special_circular.html">Circular carousel</a></li>
+        <li><a href="examples/special_textscroller.html">Using jCarousel as a
+          Textscroller</a></li>
+        <li><a href="examples/special_flexible.html">Flexible carousel</a></li>
+        <li><a href="examples/special_thickbox.html">jCarousel and Thickbox 3</a></li>
+        <li><a href="examples/special_easing.html">Carousel with custom animation
+          effect</a></li>
+      </ul>
+    </li>
+  </ul>
+
+  <a name="Getting-Started"></a>
+  <h3>Getting started</h3>
+  <p>To use the jCarousel component, include the <a href="http://jquery.com">jQuery</a>
+    library, the jCarousel source file, the jCarousel core stylesheet file and
+      a jCarousel skin stylesheet file inside the <code>&lt;head&gt;</code> tag
+    of your HTML document:</p>
+  <pre>
+&lt;script type=&quot;text/javascript&quot; src=&quot;/path/to/jquery-1.2.1.pack.js&quot;&gt;&lt;/script&gt;
+&lt;script type=&quot;text/javascript&quot; src=&quot;/path/to/lib/jquery.jcarousel.pack.js&quot;&gt;&lt;/script&gt;
+&lt;link rel=&quot;stylesheet&quot; type=&quot;text/css&quot; href=&quot;/path/to/lib/jquery.jcarousel.css&quot; /&gt;
+&lt;link rel=&quot;stylesheet&quot; type=&quot;text/css&quot; href=&quot;/path/to/skin/skin.css&quot; /&gt;
+</pre>
+  <p>The download package contains some example skin packages. Feel free to build your own skins based on it.</p>
+	<p>jCarousel expects a very basic HTML markup structure inside your HTML document:</p>
+  <pre>
+&lt;ul id=&quot;mycarousel&quot; class=&quot;jcarousel-skin-<em>name</em>&quot;&gt
+   &lt;!-- The content goes in here --&gt;
+&lt;/ul&gt;
+</pre>
+  <p>jCarousel automatically wraps the required HTML markup around the list. The
+    class attribute applies the jCarousel skin <em>&quot;name&quot;</em> to the
+    carousel.</p>
+    <p> To setup jCarousel, add the following code inside the <code>&lt;head&gt;</code>
+    tag of your HTML document:</p>
+    <pre>
+&lt;script type=&quot;text/javascript&quot;&gt;
+jQuery(document).ready(function() {
+    jQuery('#mycarousel').jcarousel({
+        // Configuration goes here
+    });
+});
+&lt;/script&gt;
+</pre>
+    <p> jCarousel accepts a lot of configuration options, see chapter "<a href="#Configuration">Configuration</a>"
+    for further informations.</p>
+    <p>After jCarousel has been initialised, the fully created markup in
+    the DOM is:</p>
+    <pre>
+&lt;div class=&quot;jcarousel-skin-<em>name</em>&quot;&gt;
+  &lt;div class=&quot;jcarousel-container&quot;&gt;
+    &lt;div disabled=&quot;disabled&quot; class=&quot;jcarousel-prev jcarousel-prev-disabled&quot;&gt;&lt;/div&gt;
+    &lt;div class=&quot;jcarousel-next&quot;&gt;&lt;/div&gt;
+    &lt;div class=&quot;jcarousel-clip&quot;&gt;
+      &lt;ul class=&quot;jcarousel-list&quot;&gt;
+        &lt;li class=&quot;jcarousel-item-1&quot;&gt;First item&lt;/li&gt;
+        &lt;li class=&quot;jcarousel-item-2&quot;&gt;Second item&lt;/li&gt;
+      &lt;/ul&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+</pre>
+
+  <p>As you can see, there are some elements added which have assigned classes
+    (in addition to the classes you may have already assigned manually). Feel
+    free to design your carousel with the classes you can see above.</p>
+    <h4>Note:</h4>
+  <ul>
+    <li>The skin class &quot;jcarousel-skin-<em>name&quot;</em> has been moved
+      from the <code>&lt;ul&gt;</code> to the top <code>&lt;div&gt;</code> element.</li>
+    <li>The&nbsp;first nested <code>&lt;div&gt;</code> under <code>&lt;div class=&quot;jcarousel-container&quot;&gt;</code>
+        illustrates a disabled button, the second an enabled one. The disabled
+        button has
+        the
+        attribute
+      <code>disabled</code> (which actually makes no sense for <code>&lt;div&gt;</code>
+      elements, but you can also use <code>&lt;button&gt;</code> elements or
+      whatever  you want) as well as the additional class <code>jcarousel-prev-disabled</code>
+      (or <code>jcarousel-next-disabled</code>).</li>
+    <li>All <code>&lt;li&gt;</code> elements of the list have the class <code></code><code>jcarousel-item-<em>n</em></code>
+      assigned where <code><em>n</em></code> represents the position in the list.</li>
+    <li>Not shown here is, that all classes are followed by additional classes with a suffix
+      dependent on the orientation of the carousel, ie. <code>&lt;ul class=&quot;jcarousel-list
+      jcarousel-list-horizontal&quot;&gt;</code> for a horizontal carousel.</li>
+  </ul>
+
+  <a name="Dynamic-Content-Loading"></a>
+  <h3>Dynamic content loading</h3>
+  <p>By passing the callback function <code>itemLoadCallback</code> as configuration
+    option, you are able to dynamically create <code>&lt;li&gt;</code> items for the content.</p>
+  <pre>
+&lt;script type=&quot;text/javascript&quot;&gt;
+jQuery(document).ready(function() {
+    jQuery('#mycarousel').jcarousel({
+        itemLoadCallback: itemLoadCallbackFunction
+    });
+});
+&lt;/script&gt;</pre>
+  <p><code>itemLoadCallbackFunction</code> is a JavaScript function that is called
+    when the carousel requests a set of items to be loaded. Two parameters are
+    passed: The instance of the requesting carousel and a flag which indicates
+    the current state of the carousel ('init', 'prev' or 'next').</p>
+    <pre>
+&lt;script type=&quot;text/javascript&quot;&gt;
+function itemLoadCallbackFunction(carousel, state)
+{
+    for (var i = carousel.first; i &lt;= carousel.last; i++) {
+        // Check if the item already exists
+        if (!carousel.has(i)) {
+            // Add the item
+            carousel.add(i, &quot;I'm item #&quot; + i);
+        }
+    }
+};
+&lt;/script&gt;</pre>
+    <p>jCarousel contains a convenience method <code>add()</code> that can be
+      passed the index of the item to create and the innerHTML string of the
+      item to be
+    created. If the item already exists, it just updates the innerHTML. You can
+      access the index of the first and last visible element by the public variables <code>carousel.first</code> and <code>carousel.last</code>.
+  </p>
+    <a name="Configuration"></a>
+        <h3>Configuration</h3>
+  <p> jCarousel accepts a list of options to control the appearance and behaviour
+    of the carousel. Here is the list of options you may set: </p>
+  <table>
+    <thead>
+      <tr>
+        <th>Property</th>
+        <th>Type</th>
+        <th>Default</th>
+        <th>Description</th>
+      </tr>
+      <tr>
+        <td>vertical</td>
+        <td>bool</td>
+        <td>false</td>
+        <td>Specifies wether the carousel appears in horizontal or vertical orientation.
+          Changes the carousel from a left/right style to a up/down style carousel.</td>
+      </tr>
+      <tr>
+        <td>start</td>
+        <td>integer</td>
+        <td>1</td>
+        <td>The index of the item to start with.</td>
+      </tr>
+      <tr>
+        <td>offset</td>
+        <td>integer</td>
+        <td>1</td>
+        <td>The index of the first available item at initialisation.</td>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>size</td>
+        <td>integer</td>
+        <td><em>Number of existing &lt;li&gt; elements if size is not passed explicitly</em></td>
+        <td>The number of total items.</td>
+      </tr>
+      <tr>
+        <td>scroll</td>
+        <td>integer</td>
+        <td>3</td>
+        <td>The number of items to scroll by.</td>
+      </tr>
+      <tr>
+        <td>visible</td>
+        <td>integer</td>
+        <td>null</td>
+        <td>If passed, the width/height of the items will be calculated and set
+          depending on the width/height of the clipping, so that exactly that
+          number of items will be visible.</td>
+      </tr>
+      <tr>
+        <td>animation</td>
+        <td>mixed</td>
+        <td>&quot;fast&quot;</td>
+        <td>The speed of the scroll animation as string in jQuery terms (<code>&quot;slow&quot;</code>
+          or <code>&quot;fast&quot;</code>) or milliseconds as integer
+           (See <a href="http://docs.jquery.com/effects/animate">jQuery Documentation</a>).
+            If set to 0, animation is turned off.</td>
+      </tr>
+      <tr>
+        <td>easing</td>
+        <td>string</td>
+        <td>null</td>
+        <td>The name of the easing effect that you want to use (See <a href="http://docs.jquery.com/effects/animate">jQuery
+          Documentation</a>).</td>
+      </tr>
+      <tr>
+        <td>auto</td>
+        <td>integer</td>
+        <td>0</td>
+        <td>Specifies how many seconds to periodically autoscroll the content.
+          If set to <code>0</code> (default) then autoscrolling is turned off.
+        </td>
+      </tr>
+      <tr>
+        <td>wrap</td>
+        <td>string</td>
+        <td>null</td>
+        <td>Specifies whether to wrap at the first/last item (or both) and jump
+          back to the start/end. Options are <code>&quot;first&quot;</code>, <code>&quot;last&quot;</code>
+          or <code>&quot;both&quot;</code> as string. If set to <code>null</code>,
+          wrapping is turned off (default). You can also pass <code>&quot;circular&quot;</code>
+          as option to enable support for circular carousels. See the example
+          <a href="examples/special_circular.html">Circular carousel</a> on how
+          to implement it.</td>
+      </tr>
+      <tr>
+        <td>initCallback</td>
+        <td>function</td>
+        <td>null</td>
+        <td>JavaScript function that is called right after initialisation of the
+          carousel. Two parameters are passed: The instance of the requesting
+          carousel and the state of the carousel initialisation (init, reset or
+          reload)</td>
+      </tr>
+      <tr>
+        <td>itemLoadCallback</td>
+        <td>function</td>
+        <td>null</td>
+        <td>JavaScript function that is called when the carousel requests a set
+          of items to be loaded. Two parameters are passed: The instance of the
+          requesting carousel and the state of the carousel action (prev, next
+          or init). Alternatively, you can pass a hash of one or two functions
+          which are triggered before and/or after animation:
+          <pre>
+itemLoadCallback: {
+  onBeforeAnimation: callback1,
+  onAfterAnimation: callback2
+}</pre> </td>
+      </tr>
+      <tr>
+        <td>itemFirstInCallback </td>
+        <td>function</td>
+        <td>null</td>
+        <td>JavaScript function that is called (after the scroll animation) when
+          an item becomes the first one in the visible range of the carousel.
+          Four parameters are passed: The instance of the requesting carousel
+          and the <code>&lt;li&gt;</code> object itself, the index which indicates
+          the position of the item in the list and the state of the carousel action
+          (prev, next or init). Alternatively, you can pass a hash of one or two
+          functions which are triggered before and/or after animation:
+          <pre>
+itemFirstInCallback: {
+  onBeforeAnimation: callback1,
+  onAfterAnimation: callback2
+}</pre> </td>
+      </tr>
+      <tr>
+        <td>itemFirstOutCallback</td>
+        <td>function</td>
+        <td>null</td>
+        <td>JavaScript function that is called (after the scroll animation) when
+          an item isn't longer the first one in the visible range of the carousel.
+          Four parameters are passed: The instance of the requesting carousel
+          and the <code>&lt;li&gt;</code> object itself, the index which indicates
+          the position of the item in the list and the state of the carousel action
+          (prev, next or init). Alternatively, you can pass a hash of one or two
+          functions which are triggered before and/or after animation:
+          <pre>
+itemFirstOutCallback: {
+  onBeforeAnimation: callback1,
+  onAfterAnimation: callback2
+}</pre> </td>
+      </tr>
+      <tr>
+        <td>itemLastInCallback</td>
+        <td>function</td>
+        <td>null</td>
+        <td>JavaScript function that is called (after the scroll animation) when
+          an item becomes the last one in the visible range of the carousel. Four
+          parameters are passed: The instance of the requesting carousel and the
+          <code>&lt;li&gt;</code> object itself, the index which indicates the
+          position of the item in the list and the state of the carousel action
+          (prev, next or init). Alternatively, you can pass a hash of one or two
+          functions which are triggered before and/or after animation:
+          <pre>
+itemLastInCallback: {
+  onBeforeAnimation: callback1,
+  onAfterAnimation: callback2
+}</pre> </td>
+      </tr>
+      <tr>
+        <td>itemLastOutCallback</td>
+        <td>function</td>
+        <td>null</td>
+        <td>JavaScript function that is called when an item isn't longer the last
+          one in the visible range of the carousel. Four parameters are passed:
+          The instance of the requesting carousel and the <code>&lt;li&gt;</code>
+          object itself, the index which indicates the position of the item in
+          the list and the state of the carousel action (prev, next or init).
+          Alternatively, you can pass a hash of one or two functions which are
+          triggered before and/or after animation:
+          <pre>
+itemLastOutCallback: {
+  onBeforeAnimation: callback1,
+  onAfterAnimation: callback2
+}</pre> </td>
+      </tr>
+      <tr>
+        <td>itemVisibleInCallback</td>
+        <td>function</td>
+        <td>null</td>
+        <td>JavaScript function that is called (after the scroll animation) when
+          an item is in the visible range of the carousel. Four parameters are
+          passed: The instance of the requesting carousel and the <code>&lt;li&gt;</code>
+          object itself, the index which indicates the position of the item in
+          the list and the state of the carousel action (prev, next or init).
+          Alternatively, you can pass a hash of one or two functions which are
+          triggered before and/or after animation:
+          <pre>
+itemVisibleInCallback: {
+  onBeforeAnimation: callback1,
+  onAfterAnimation: callback2
+}</pre> </td>
+      </tr>
+      <tr>
+        <td>itemVisibleOutCallback</td>
+        <td>function</td>
+        <td>null</td>
+        <td>JavaScript function that is called (after the scroll animation) when
+          an item isn't longer in the visible range of the carousel. Four parameters
+          are passed: The instance of the requesting carousel and the <code>&lt;li&gt;</code>
+          object itself, the index which indicates the position of the item in
+          the list and the state of the carousel action (prev, next or init).
+          Alternatively, you can pass a hash of one or two functions which are
+          triggered before and/or after animation:
+          <pre>
+itemVisibleOutCallback: {
+  onBeforeAnimation: callback1,
+  onAfterAnimation: callback2
+}</pre> </td>
+      </tr>
+      <tr>
+        <td>buttonNextCallback</td>
+        <td>function</td>
+        <td>null</td>
+        <td>JavaScript function that is called when the state of the 'next' control
+          is changing. The responsibility of this method is to enable or disable
+          the 'next' control. Three parameters are passed: The instance of the
+          requesting carousel, the control element and a flag indicating whether
+          the button should be enabled or disabled.</td>
+      </tr>
+      <tr>
+        <td>buttonPrevCallback</td>
+        <td>function</td>
+        <td>null</td>
+        <td>JavaScript function that is called when the state of the 'previous'
+          control is changing. The responsibility of this method is to enable
+          or disable the 'previous' control. Three parameters are passed: The
+          instance of the requesting carousel, the control element and a flag
+          indicating whether the button should be enabled or disabled.</td>
+      </tr>
+      <tr>
+        <td>buttonNextHTML</td>
+        <td>string</td>
+        <td><code>&lt;div&gt;&lt;/div&gt;</code></td>
+        <td>The HTML markup for the auto-generated next button. If set to <code>null</code>,
+          no next-button is created.</td>
+      </tr>
+      <tr>
+        <td>buttonPrevHTML</td>
+        <td>string</td>
+        <td><code>&lt;div&gt;&lt;/div&gt;</code></td>
+        <td>The HTML markup for the auto-generated prev button. If set to <code>null</code>,
+          no prev-button is created.</td>
+      </tr>
+      <tr>
+        <td>buttonNextEvent</td>
+        <td>string</td>
+        <td>&quot;click&quot;</td>
+        <td>Specifies the event which triggers the next scroll.</td>
+      </tr>
+      <tr>
+        <td>buttonPrevEvent</td>
+        <td>string</td>
+        <td>&quot;click&quot;</td>
+        <td>Specifies the event which triggers the prev scroll.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <a name="Compatibility"></a>
+  <h3>Compatibility</h3>
+    <p>jCarousel has been tested and works on the following browsers:</p>
+    <ul>
+    <li>Internet Explorer 6 (PC)</li>
+    <li>Internet Explorer 7 (PC)</li>
+    <li>FireFox 1.5.0.6 (PC/Mac/Linux)</li>
+    <li>Opera 9.01 (PC/Mac)</li>
+    <li>Safari 2.0.4 (Mac)</li>
+    <li>Safari 3.1.0 (PC)</li>
+    <li>Konqueror 3.4.0 (Linux)</li>
+  </ul>
+
+  <a name="Credits"></a>
+  <h3>Credits</h3>
+  <p>Thanks to <a href="http://ejohn.org">John Resig</a> for his fantastic <a href="http://jquery.com">jQuery</a>
+    library. <br>
+    jCarousel is inspired by the <a href="http://billwscott.com/carousel/">Carousel
+    Component</a> written by <a href="http://looksgoodworkswell.com">Bill Scott</a>.</p>
+</div>
+</body>
+</html>

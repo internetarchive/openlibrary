@@ -1,9 +1,14 @@
+import string
 import web
 import simplejson
+import babel, babel.core, babel.dates
 
 from infogami import config
 from infogami.utils.view import render, public
 from infogami.utils.macro import macro
+
+from openlibrary.i18n import gettext as _
+
 
 def setup():
     """Do required initialization"""
@@ -103,6 +108,22 @@ def get_recent_author(doc):
 def get_recent_accounts(limit=5, offset=0):
     versions = web.ctx.site.versions({'type': '/type/user', 'revision': 1, 'limit': limit, 'offset': offset})
     return web.ctx.site.get_many([v.key for v in versions])
+
+def get_locale():
+    try:
+        return babel.Locale(web.ctx.get("lang") or "en")
+    except babel.core.UnknownLocaleError:
+        return babel.Locale("en")
+    
+@public
+def datestr(then, now=None):
+    """Internationalized version of web.datestr."""
+    result = web.datestr(then, now)
+    if result[0] in string.digits: # eg: 2 milliseconds ago
+        t, message = result.split(' ', 1)
+        return _("%d " + message) % int(t)
+    else:
+        return babel.dates.format_date(then, format="long", locale=get_locale())    
 
 if __name__ == '__main__':
     import doctest
