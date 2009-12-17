@@ -62,7 +62,7 @@ def trim_value(value):
 def trim_doc(doc):
     """Replace empty values in the document with Nones.
     """
-    return web.storage((k, trim_value(v)) for k, v in doc.items())
+    return web.storage((k, trim_value(v)) for k, v in doc.items() if not k.startswith('_'))
     
 class SaveBookHelper:
     """Helper to save edition and work using the form data coming from edition edit and work edit pages.
@@ -79,7 +79,8 @@ class SaveBookHelper:
         
         if work_data:
             self.work.update(work_data)
-        
+            self.work._save()
+            
         if self.edition and edition_data:
             self.edition.update(edition_data)
             self.edition._save()
@@ -148,8 +149,13 @@ class book_edit(delegate.page):
             work = edition.works[0]
         else:
             work_key = web.ctx.site.new_key("/type/work")
-            work = web.ctx.site.new(work_key, {"key": work_key, "title": edition.title, "authors": edition.authors})
-            work.save()
+            work = web.ctx.site.new(work_key, {
+                "key": work_key, 
+                "type": {'key': '/type/work'},
+                "title": edition.title, 
+                "authors": [{"author": a, "type": {"key": "/type/author_role"}} for a in edition.authors]
+            })
+            work._save()
             edition.works = [work]
             
         helper = SaveBookHelper(work, edition)
