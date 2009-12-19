@@ -143,6 +143,13 @@ def process_version(v):
                 v.machine_comment = marc[len("marc:"):]
     return v
 
+@public
+def cond(pred, true_value, false_value=""):
+    if pred:
+        return true_value
+    else:
+        return false_value
+
 if __name__ == '__main__':
     import doctest
     doctest.testmod()
