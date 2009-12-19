@@ -131,6 +131,16 @@ def truncate(text, limit):
     if len(text) < limit:
         return text
     return text[:limit] + "..."
+    
+@public
+def get_view_marc_path(v):
+    """Looks at the version and determines the "View MARC" path."""
+    if (v.author and v.author.key == "/people/ImportBot" and v.key.startswith('/books/')):
+        thing = v.get('thing') or web.ctx.site.get(v.key, v.revision)
+        if v.revision == 1 or (v.comment and v.comment.lower() == "found a matching marc record") and thing.source_records:
+            marc = thing.source_records[-1]
+            if marc.startswith('marc:'):
+                return marc[len("marc:"):]
 
 if __name__ == '__main__':
     import doctest
