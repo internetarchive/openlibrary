@@ -6,8 +6,8 @@ solr_dir = 'apache-solr-1.4.0'
 url = 'http://www.apache.org/dist/lucene/solr/1.4.0/' + filename
 
 def cp_file(src, dst):
-    if not os.path.exists(dst):
-        shutil.copy(src, dst)
+    print "copy '%s' to '%s'" % (src, dst)
+    shutil.copy(src, dst)
 
 os.chdir('vendor')
 if not os.path.exists(filename):
@@ -29,8 +29,17 @@ f = 'start.jar'
 cp_file(solr_dir + '/example/' + f, 'solr/' + f)
 
 f = 'solr.xml'
-cp_file('../conf/solr.xml', 'solr/solr/' + f)
+cp_file('../conf/solr-biblio/solr.xml', 'solr/solr/' + f)
 
 for t in 'authors', 'publishers', 'works':
-    if not os.path.exists('solr/solr/conf/' + t):
+    if not os.path.exists('solr/solr/' + t + '/conf'):
         shutil.copytree(solr_dir + '/example/solr/conf', 'solr/solr/' + t + '/conf')
+    cp_file('../conf/solr-biblio/' + t + '.xml', 'solr/solr/' + t + '/conf/schema.xml')
+    f = 'solr/solr/' + t + '/conf/solrconfig.xml'
+    print "writing '%s'" % f
+    out = open(f, 'w')
+    for line in open(solr_dir + '/example/solr/conf/solrconfig.xml'):
+        if '<dataDir>' in line:
+            line = '  <dataDir>${solr.data.dir:./solr/%s/data}</dataDir>\n' % t
+        out.write(line)
+    out.close()
