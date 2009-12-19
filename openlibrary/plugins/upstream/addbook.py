@@ -62,7 +62,7 @@ def trim_value(value):
 def trim_doc(doc):
     """Replace empty values in the document with Nones.
     """
-    return web.storage((k, trim_value(v)) for k, v in doc.items() if not k.startswith('_'))
+    return web.storage((k, trim_value(v)) for k, v in doc.items() if k[:1] not in "_{")
     
 class SaveBookHelper:
     """Helper to save edition and work using the form data coming from edition edit and work edit pages.
@@ -180,6 +180,38 @@ class work_edit(delegate.page):
         helper.save(web.input())
         raise web.seeother(work.url())
 
+        
+class author_edit(delegate.page):
+    path = "(/authors/OL\d+A)/edit"
+    
+    def GET(self, key):
+        author = web.ctx.site.get(key)
+        if author is None:
+            raise web.notfound()
+        return render_template("type/author/edit", author)
+        
+    def POST(self, key):
+        author = web.ctx.site.get(key)
+        if author is None:
+            raise web.notfound()
+            
+        i = web.input(_comment=None)
+        
+        formdata = self.process_input(i)
+        if formdata:
+            author.update(formdata)
+            author._save(comment=i._comment)
+            raise web.seeother(key)
+        else:
+            raise web.badrequest()
+    
+    def process_input(self, i):
+        i = unflatten(i)
+        if 'author' in i:
+            author = trim_doc(i.author)
+            author.alternate_names = [name.strip() for name in author.get('alternate_names', '').split(';')]
+            return author
+        
 class uploadcover(delegate.page):
     def POST(self):
         user = web.ctx.site.get_user()
