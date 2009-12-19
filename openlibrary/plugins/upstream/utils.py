@@ -131,6 +131,17 @@ def truncate(text, limit):
     if len(text) < limit:
         return text
     return text[:limit] + "..."
+    
+@public
+def process_version(v):
+    """Looks at the version and adds machine_comment required for showing "View MARC" link."""
+    if v.author and v.author.key == "/people/ImportBot" and v.key.startswith('/books/') and not v.get('machine_comment'):
+        thing = v.get('thing') or web.ctx.site.get(v.key, v.revision)
+        if thing.source_records and v.revision == 1 or (v.comment and v.comment.lower() == "found a matching marc record"):
+            marc = thing.source_records[-1]
+            if marc.startswith('marc:'):
+                v.machine_comment = marc[len("marc:"):]
+    return v
 
 if __name__ == '__main__':
     import doctest
