@@ -2,8 +2,10 @@
 
 import web
 import urllib, urllib2
-from infogami.utils import delegate
+
 from infogami import config
+from infogami.core import code as core
+from infogami.utils import delegate
 
 from openlibrary.plugins.openlibrary import code as ol_code
 
@@ -211,6 +213,17 @@ class author_edit(delegate.page):
             author = trim_doc(i.author)
             author.alternate_names = [name.strip() for name in author.get('alternate_names', '').split(';')]
             return author
+            
+class edit(core.edit):
+    """Overwrite ?m=edit behaviour for author, book and work pages"""
+    def GET(self, key):
+        page = web.ctx.site.get(key)
+
+        # first token is always empty string. second token is what we want.
+        if key.split("/")[1] in ["authors", "books", "works"]:
+            raise web.seeother(page.url(suffix="/edit"))
+        else:
+            return core.edit.GET(self, key)
         
 class uploadcover(delegate.page):
     def POST(self):
