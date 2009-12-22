@@ -29,7 +29,7 @@ class Edition(ol_code.Edition):
                 return d and d[0] or None
             except IOError:
                 return None
-    
+
 
 class Author(ol_code.Author):
     pass
@@ -116,7 +116,7 @@ class SubjectPerson(Subject):
     pass
 
 
-class User(client.Thing):
+class User(ol_code.User):
     def get_edit_history(self, limit=10, offset=0):
         return web.ctx.site.versions({"author": self.key, "limit": limit, "offset": offset})
         

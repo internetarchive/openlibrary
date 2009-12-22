@@ -513,7 +513,8 @@ class _yaml_edit(_yaml):
     encoding = "yml"
     
     def is_admin(self):
-        return delegate.context.user and delegate.context.user.is_admin()
+        u = delegate.context.user
+        return u and u.is_admin()
     
     def GET(self, key):
         # only allow admin users to edit yaml
@@ -529,11 +530,10 @@ class _yaml_edit(_yaml):
             return render.permission_denied(key, 'Permission Denied')
             
         i = web.input(body='', _comment=None)
-        p = web.ctx.site.get(key) or web.ctx.site.new(key, {})
         
         if '_save' in i:
             d = self.load(i.body)
-            p.update(d)
+            p = web.ctx.site.new(key, d)
             try:
                 p._save(i._comment)
             except (ClientException, db.ValidationException), e:            
