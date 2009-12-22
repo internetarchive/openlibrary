@@ -84,6 +84,9 @@ class SaveBookHelper:
             self.work._save()
             
         if self.edition and edition_data:
+            identifiers = edition_data.pop('identifiers', [])
+            self.edition.set_identifiers(identifiers)
+            
             self.edition.update(edition_data)
             self.edition._save()
     

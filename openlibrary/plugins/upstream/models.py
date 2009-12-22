@@ -29,12 +29,46 @@ class Edition(ol_code.Edition):
                 return d and d[0] or None
             except IOError:
                 return None
+                
+    def get_identifiers(self):
+        """Returns (name, value) pairs of all available identifiers."""
+        names = ['isbn_10', 'isbn_13', 'lccn', 'oclc_numbers', 'ocaid', 'dewey_decimal_class', 'lc_classifications']
+        
+        for name in names:
+            value = self[name]
+            if value:
+                if not isinstance(value, list):
+                    value = [value]
+                for v in value:
+                    yield web.storage(name=name, value=v)
+                    
+    def set_identifiers(self, identifiers):
+        """Updates the edition from identifiers specified as (name, value) pairs."""
+        names = ['isbn_10', 'isbn_13', 'lccn', 'oclc_numbers', 'ocaid', 'dewey_decimal_class', 'lc_classifications']
+        
+        d = {}
+        for id in identifiers:
+            name, value = id['name'], id['value']
+            # ignore other identifiers for now
+            if name in names:
+                d.setdefault(name, []).append(value)
+        
+        # clear existing value first        
+        for name in names:
+           self._getdata().pop(name, None)
+            
+        for name, value in d.items():
+            # ocaid is not a list
+            if name == 'ocaid':
+                self.ocaid = value[0]
+            else:
+                self[name] = value
 
 
 class Author(ol_code.Author):
     pass
-    
 
+    
 class Work(ol_code.Work):
     def get_subjects(self):
         """Return subject strings."""
