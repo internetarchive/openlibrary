@@ -220,6 +220,7 @@ def setup():
     web.template.Template.globals['_'] = _
     web.template.Template.globals['random'] = random.Random()
     web.template.Template.globals['commify'] = web.commify
+    web.template.Template.globals['group'] = web.group
     
     setup_jquery_urls()
     
