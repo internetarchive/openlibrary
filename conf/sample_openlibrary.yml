@@ -8,6 +8,7 @@ db_parameters:
 plugins:
     - openlibrary
 #    - search
+#    - worksearch
     - links
     - wikitemplates
     - i18n
