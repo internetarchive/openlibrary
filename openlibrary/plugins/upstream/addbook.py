@@ -87,6 +87,9 @@ class SaveBookHelper:
             identifiers = edition_data.pop('identifiers', [])
             self.edition.set_identifiers(identifiers)
             
+            self.edition.set_physical_dimensions(edition_data.pop('physical_dimensions'))
+            self.edition.set_weight(edition_data.pop('weight'))
+            
             self.edition.update(edition_data)
             self.edition._save()
     
@@ -112,11 +115,11 @@ class SaveBookHelper:
         
         edition = trim_doc(edition)
 
-        if edition.get('dimensions') and edition.dimensions.keys() == ['units']:
-            edition.dimensions = None
+        if edition.get('physical_dimensions') and edition.physical_dimensions.keys() == ['units']:
+            edition.physical_dimensions = None
 
-        if edition.get('editionweight') and edition.editionweight.keys() == ['unit']:
-            edition.editionweight = None
+        if edition.get('weight') and edition.weight.keys() == ['units']:
+            edition.weight = None
             
         return edition
         

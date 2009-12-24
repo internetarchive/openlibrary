@@ -63,7 +63,26 @@ class Edition(ol_code.Edition):
                 self.ocaid = value[0]
             else:
                 self[name] = value
-
+                
+    def get_weight(self):
+        """returns weight as a storage object with value and units fields."""
+        w = self.weight
+        return w and UnitParser(["value"]).parse(w)
+        
+    def set_weight(self, w):
+        self.weight = w and UnitParser(["value"]).format(w)
+        
+    def get_physical_dimensions(self):
+        d = self.physical_dimensions
+        return d and UnitParser(["height", "width", "depth"]).parse(d)
+    
+    def set_physical_dimensions(self, d):
+        self.physical_dimensions = d and UnitParser(["height", "width", "depth"]).format(d)
+        
+    def get_links(self):
+        links1 = [web.storage(url=url, title=title) for url, title in zip(self.uris, self.uri_descriptions)] 
+        links2 = list(self.links)
+        return links1 + links2
 
 class Author(ol_code.Author):
     pass
@@ -168,6 +187,28 @@ class User(ol_code.User):
             return web.ctx.site._request('/count_edits_by_user', data={"key": self.key})
         else:
             return 0
+            
+class UnitParser:
+    """Parsers values like dimentions and weight.
+
+        >>> p = UnitParser(["height", "width", "depth"])
+        >>> p.parse("9 x 3 x 2 inches")
+        <Storage {'units': 'inches', 'width': '3', 'depth': '2', 'height': '9'}>
+        >>> p.format({"height": "9", "width": 3, "depth": 2, "units": "inches"})
+        '9 x 3 x 2 inches'
+    """
+    def __init__(self, fields):
+        self.fields = fields
+
+    def format(self, d):
+        return " x ".join(str(d[k]) for k in self.fields) + ' ' + d['units']
+
+    def parse(self, s):
+        """Parse the string and return storage object with specified fields and units."""
+        pattern = "^" + " *x *".join("([0-9.]+)" for f in self.fields) + " *(.*)$"
+        rx = web.re_compile(pattern)
+        m = rx.match(s)
+        return m and web.storage(zip(self.fields + ["units"], m.groups()))
 
 def setup():
     client.register_thing_class('/type/edition', Edition)
