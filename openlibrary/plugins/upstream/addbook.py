@@ -2,8 +2,10 @@
 
 import web
 import urllib, urllib2
-from infogami.utils import delegate
+
 from infogami import config
+from infogami.core import code as core
+from infogami.utils import delegate
 
 from openlibrary.plugins.openlibrary import code as ol_code
 
@@ -62,7 +64,7 @@ def trim_value(value):
 def trim_doc(doc):
     """Replace empty values in the document with Nones.
     """
-    return web.storage((k, trim_value(v)) for k, v in doc.items() if not k.startswith('_'))
+    return web.storage((k, trim_value(v)) for k, v in doc.items() if k[:1] not in "_{")
     
 class SaveBookHelper:
     """Helper to save edition and work using the form data coming from edition edit and work edit pages.
@@ -82,6 +84,12 @@ class SaveBookHelper:
             self.work._save()
             
         if self.edition and edition_data:
+            identifiers = edition_data.pop('identifiers', [])
+            self.edition.set_identifiers(identifiers)
+            
+            self.edition.set_physical_dimensions(edition_data.pop('physical_dimensions'))
+            self.edition.set_weight(edition_data.pop('weight'))
+            
             self.edition.update(edition_data)
             self.edition._save()
     
@@ -107,11 +115,11 @@ class SaveBookHelper:
         
         edition = trim_doc(edition)
 
-        if edition.get('dimensions') and edition.dimensions.keys() == ['units']:
-            edition.dimensions = None
+        if edition.get('physical_dimensions') and edition.physical_dimensions.keys() == ['units']:
+            edition.physical_dimensions = None
 
-        if edition.get('editionweight') and edition.editionweight.keys() == ['unit']:
-            edition.editionweight = None
+        if edition.get('weight') and edition.weight.keys() == ['units']:
+            edition.weight = None
             
         return edition
         
@@ -180,6 +188,49 @@ class work_edit(delegate.page):
         helper.save(web.input())
         raise web.seeother(work.url())
 
+        
+class author_edit(delegate.page):
+    path = "(/authors/OL\d+A)/edit"
+    
+    def GET(self, key):
+        author = web.ctx.site.get(key)
+        if author is None:
+            raise web.notfound()
+        return render_template("type/author/edit", author)
+        
+    def POST(self, key):
+        author = web.ctx.site.get(key)
+        if author is None:
+            raise web.notfound()
+            
+        i = web.input(_comment=None)
+        
+        formdata = self.process_input(i)
+        if formdata:
+            author.update(formdata)
+            author._save(comment=i._comment)
+            raise web.seeother(key)
+        else:
+            raise web.badrequest()
+    
+    def process_input(self, i):
+        i = unflatten(i)
+        if 'author' in i:
+            author = trim_doc(i.author)
+            author.alternate_names = [name.strip() for name in author.get('alternate_names', '').split(';')]
+            return author
+            
+class edit(core.edit):
+    """Overwrite ?m=edit behaviour for author, book and work pages"""
+    def GET(self, key):
+        page = web.ctx.site.get(key)
+
+        # first token is always empty string. second token is what we want.
+        if key.split("/")[1] in ["authors", "books", "works"]:
+            raise web.seeother(page.url(suffix="/edit"))
+        else:
+            return core.edit.GET(self, key)
+        
 class uploadcover(delegate.page):
     def POST(self):
         user = web.ctx.site.get_user()

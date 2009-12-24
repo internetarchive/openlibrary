@@ -166,9 +166,10 @@ def search(param = {}, facets=True, rows=50, merge=False, show_total=True):
         header_map = {
             'language': 'Language',
             'author_facet': 'Author',
+            'publisher_facet': 'Publisher',
         }
         for header, counts in facet_counts.items():
-            if header in ('has_fulltext', 'publisher_facet'):
+            if header == 'has_fulltext':
                 continue
             label = header_map.get(header, header)
             if header == 'author_facet':

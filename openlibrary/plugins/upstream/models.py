@@ -29,12 +29,65 @@ class Edition(ol_code.Edition):
                 return d and d[0] or None
             except IOError:
                 return None
+                
+    def get_identifiers(self):
+        """Returns (name, value) pairs of all available identifiers."""
+        names = ['isbn_10', 'isbn_13', 'lccn', 'oclc_numbers', 'ocaid', 'dewey_decimal_class', 'lc_classifications']
+        
+        for name in names:
+            value = self[name]
+            if value:
+                if not isinstance(value, list):
+                    value = [value]
+                for v in value:
+                    yield web.storage(name=name, value=v)
+                    
+    def set_identifiers(self, identifiers):
+        """Updates the edition from identifiers specified as (name, value) pairs."""
+        names = ['isbn_10', 'isbn_13', 'lccn', 'oclc_numbers', 'ocaid', 'dewey_decimal_class', 'lc_classifications']
+        
+        d = {}
+        for id in identifiers:
+            name, value = id['name'], id['value']
+            # ignore other identifiers for now
+            if name in names:
+                d.setdefault(name, []).append(value)
+        
+        # clear existing value first        
+        for name in names:
+           self._getdata().pop(name, None)
+            
+        for name, value in d.items():
+            # ocaid is not a list
+            if name == 'ocaid':
+                self.ocaid = value[0]
+            else:
+                self[name] = value
+                
+    def get_weight(self):
+        """returns weight as a storage object with value and units fields."""
+        w = self.weight
+        return w and UnitParser(["value"]).parse(w)
+        
+    def set_weight(self, w):
+        self.weight = w and UnitParser(["value"]).format(w)
+        
+    def get_physical_dimensions(self):
+        d = self.physical_dimensions
+        return d and UnitParser(["height", "width", "depth"]).parse(d)
     
+    def set_physical_dimensions(self, d):
+        self.physical_dimensions = d and UnitParser(["height", "width", "depth"]).format(d)
+        
+    def get_links(self):
+        links1 = [web.storage(url=url, title=title) for url, title in zip(self.uris, self.uri_descriptions)] 
+        links2 = list(self.links)
+        return links1 + links2
 
 class Author(ol_code.Author):
     pass
-    
 
+    
 class Work(ol_code.Work):
     def get_subjects(self):
         """Return subject strings."""
@@ -116,7 +169,7 @@ class SubjectPerson(Subject):
     pass
 
 
-class User(client.Thing):
+class User(ol_code.User):
     def get_edit_history(self, limit=10, offset=0):
         return web.ctx.site.versions({"author": self.key, "limit": limit, "offset": offset})
         
@@ -134,6 +187,28 @@ class User(client.Thing):
             return web.ctx.site._request('/count_edits_by_user', data={"key": self.key})
         else:
             return 0
+            
+class UnitParser:
+    """Parsers values like dimentions and weight.
+
+        >>> p = UnitParser(["height", "width", "depth"])
+        >>> p.parse("9 x 3 x 2 inches")
+        <Storage {'units': 'inches', 'width': '3', 'depth': '2', 'height': '9'}>
+        >>> p.format({"height": "9", "width": 3, "depth": 2, "units": "inches"})
+        '9 x 3 x 2 inches'
+    """
+    def __init__(self, fields):
+        self.fields = fields
+
+    def format(self, d):
+        return " x ".join(str(d[k]) for k in self.fields) + ' ' + d['units']
+
+    def parse(self, s):
+        """Parse the string and return storage object with specified fields and units."""
+        pattern = "^" + " *x *".join("([0-9.]+)" for f in self.fields) + " *(.*)$"
+        rx = web.re_compile(pattern)
+        m = rx.match(s)
+        return m and web.storage(zip(self.fields + ["units"], m.groups()))
 
 def setup():
     client.register_thing_class('/type/edition', Edition)
