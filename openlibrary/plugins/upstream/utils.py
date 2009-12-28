@@ -1,19 +1,18 @@
-import string
+import string, re
 import web
 import simplejson
 import babel, babel.core, babel.dates
 
 from infogami import config
-from infogami.utils.view import render, public
+from infogami.utils import view
+from infogami.utils.view import render, public, _format
 from infogami.utils.macro import macro
+from infogami.utils.markdown import markdown
+from infogami.infobase.client import Thing
 
 from openlibrary.i18n import gettext as _
+from openlibrary.plugins.openlibrary.code import sanitize
 
-
-def setup():
-    """Do required initialization"""
-    pass
-    
 @macro
 @public
 def render_template(name, *a, **kw):
@@ -30,6 +29,9 @@ def unflatten(d, seperator="--"):
     
         >>> unflatten({"a": 1, "b--x": 2, "b--y": 3, "c--0": 4, "c--1": 5})
         {'a': 1, 'c': [4, 5], 'b': {'y': 3, 'x': 2}}
+        >>> unflatten({"a--0--x": 1, "a--0--y": 2, "a--1--x": 3, "a--1--y": 4})
+        {'a': [{'x': 1, 'y': 2}, {'x': 3, 'y': 4}]}
+        
     """
     def isint(k):
         try:
@@ -150,6 +152,70 @@ def cond(pred, true_value, false_value=""):
     else:
         return false_value
 
+@public
+def is_thing(t):
+    return isinstance(t, Thing)
+    
+
+# regexp to match urls and emails. 
+# Adopted from github-flavored-markdown (BSD-style open source license)
+# http://github.com/github/github-flavored-markdown/blob/gh-pages/scripts/showdown.js#L158
+AUTOLINK_RE = r'''(^|\s)(https?\:\/\/[^"\s<>]*[^.,;'">\:\s\<\>\)\]\!]|[a-z0-9_\-+=.]+@[a-z0-9\-]+(?:\.[a-z0-9-]+)+)'''
+
+class LineBreaksPreprocessor(markdown.Preprocessor):
+    def run(self, lines) :
+        for i in range(len(lines)-1):
+            # append <br/> to all lines expect blank lines and the line before blankline.
+            if lines[i].strip() and lines[i+1].strip() and not markdown.RE.regExp['tabbed'].match(lines[i]):
+                lines[i] += "<br />"
+        return lines
+
+LINE_BREAKS_PREPROCESSOR = LineBreaksPreprocessor()
+
+class AutolinkPreprocessor(markdown.Preprocessor):
+    rx = re.compile(AUTOLINK_RE)
+    def run(self, lines):
+        for i in range(len(lines)):
+            if not markdown.RE.regExp['tabbed'].match(lines[i]):
+                lines[i] = self.rx.sub(r'\1<\2>', lines[i])
+        return lines
+
+AUTOLINK_PREPROCESSOR = AutolinkPreprocessor()
+    
+class OLMarkdown(markdown.Markdown):
+    """Open Library flavored Markdown, inspired by [Github Flavored Markdown][GFM].
+    
+    GFM: http://github.github.com/github-flavored-markdown/
+
+    Differences from traditional Markdown:
+    * new lines in paragraph are treated as line breaks
+    * URLs are autolinked
+    * generated HTML is sanitized    
+    """
+    def __init__(self, *a, **kw):
+        markdown.Markdown.__init__(self, *a, **kw)
+        self._patch()
+        
+    def _patch(self):
+        p = self.preprocessors
+        p[p.index(markdown.LINE_BREAKS_PREPROCESSOR)] = LINE_BREAKS_PREPROCESSOR
+        p.append(AUTOLINK_PREPROCESSOR)
+        
+    def convert(self):
+        html = markdown.Markdown.convert(self)
+        return sanitize(html)
+        
+def get_markdown(text, safe_mode=False):
+    md = OLMarkdown(source=text, safe_mode=safe_mode)
+    view._register_mdx_extensions(md)
+    md.postprocessors += view.wiki_processors
+    return md
+
+def setup():
+    """Do required initialization"""
+    # monkey-patch get_markdown to use OL Flavored Markdown
+    view.get_markdown = get_markdown
+    
 if __name__ == '__main__':
     import doctest
     doctest.testmod()
