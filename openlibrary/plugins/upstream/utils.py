@@ -8,6 +8,7 @@ from infogami.utils import view
 from infogami.utils.view import render, public, _format
 from infogami.utils.macro import macro
 from infogami.utils.markdown import markdown
+from infogami.utils.context import context
 from infogami.infobase.client import Thing
 
 from openlibrary.i18n import gettext as _
@@ -156,7 +157,12 @@ def cond(pred, true_value, false_value=""):
 def is_thing(t):
     return isinstance(t, Thing)
     
-
+@public
+def putctx(key, value):
+    """Save a value in the context."""
+    context[key] = value
+    return ""
+    
 # regexp to match urls and emails. 
 # Adopted from github-flavored-markdown (BSD-style open source license)
 # http://github.com/github/github-flavored-markdown/blob/gh-pages/scripts/showdown.js#L158

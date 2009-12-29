@@ -9,27 +9,44 @@ from openlibrary.plugins.openlibrary import code as ol_code
 from utils import get_coverstore_url
 import account
 
+class Image:
+    def __init__(self, category, id):
+        self.category = category
+        self.id = id
+    
+    def url(self, size="M"):
+        return "%s/%s/id/%s-%s.jpg" % (get_coverstore_url(), self.category, self.id, size.upper())
+        
+    def __repr__(self):
+        return "<image: %s/%d>" % (self.category, self.id)
+
+def query_coverstore(category, **kw):
+    url = "%s/%s/query?%s" % (get_coverstore_url(), category, urllib.urlencode(kw))
+    json = urllib.urlopen(url).read()
+    return simplejson.loads(json)
 
 class Edition(ol_code.Edition):
+    def get_title(self):
+        if self.title_prefix:
+            return self.title_prefix + ' ' + self['title']
+        else:
+            return self['title']
+            
+    # let title be title_prefix + title
+    title = property(get_title)
+        
+    def get_covers(self):
+        covers = self.covers or self.query_coverstore('a', olid=self.get_olid())
+        return [Image('b', c) for c in covers]
+        
+    def get_cover(self):
+        covers = self.get_covers()
+        return covers and covers[0] or None
+        
     def get_cover_url(self, size):
-        coverid = self.get_coverid()
-        if coverid:
-            return get_coverstore_url() + "/b/id/%s-%s.jpg" % (coverid, size)
-        else:
-            return None
+        cover = self.get_cover()
+        return cover and cover.url(size)
 
-    def get_coverid(self):
-        if self.coverid:
-            return self.coverid
-        else:
-            try:
-                url = get_coverstore_url() + '/b/query?olid=%s' % self.key.split('/')[-1]
-                json = urllib2.urlopen(url).read()
-                d = simplejson.loads(json)
-                return d and d[0] or None
-            except IOError:
-                return None
-                
     def get_identifiers(self):
         """Returns (name, value) pairs of all available identifiers."""
         names = ['isbn_10', 'isbn_13', 'lccn', 'oclc_numbers', 'ocaid', 'dewey_decimal_class', 'lc_classifications']
@@ -83,11 +100,26 @@ class Edition(ol_code.Edition):
         links1 = [web.storage(url=url, title=title) for url, title in zip(self.uris, self.uri_descriptions)] 
         links2 = list(self.links)
         return links1 + links2
-
+        
+    def get_olid(self):
+        return self.key.split('/')[-1]
+        
 class Author(ol_code.Author):
-    pass
-
+    def get_photos(self):
+        photos = self.photos or self.query_coverstore('a', olid=self.get_olid())
+        return [Image("a", id) for id in photos]
+        
+    def get_photo(self):
+        photos = self.get_photos()
+        return photos and photos[0] or None
+        
+    def get_photo_url(self, size):
+        photo = self.get_photo()
+        return photo and photo.url(size)
     
+    def get_olid(self):
+        return self.key.split('/')[-1]    
+
 class Work(ol_code.Work):
     def get_subjects(self):
         """Return subject strings."""
