@@ -1,5 +1,5 @@
 import web
-import urllib2
+import urllib, urllib2
 import simplejson
 
 from infogami.infobase import client
@@ -27,16 +27,20 @@ def query_coverstore(category, **kw):
 
 class Edition(ol_code.Edition):
     def get_title(self):
-        if self.title_prefix:
-            return self.title_prefix + ' ' + self['title']
+        if self['title_prefix']:
+            return self['title_prefix'] + ' ' + self['title']
         else:
             return self['title']
             
+    def get_title_prefix(self):
+        return ''
+
     # let title be title_prefix + title
     title = property(get_title)
+    title_prefix = property(get_title_prefix)
         
     def get_covers(self):
-        covers = self.covers or self.query_coverstore('a', olid=self.get_olid())
+        covers = self.covers or query_coverstore('b', olid=self.get_olid())
         return [Image('b', c) for c in covers]
         
     def get_cover(self):
@@ -106,7 +110,7 @@ class Edition(ol_code.Edition):
         
 class Author(ol_code.Author):
     def get_photos(self):
-        photos = self.photos or self.query_coverstore('a', olid=self.get_olid())
+        photos = self.photos or query_coverstore('a', olid=self.get_olid())
         return [Image("a", id) for id in photos]
         
     def get_photo(self):
