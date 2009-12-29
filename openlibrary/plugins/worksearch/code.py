@@ -72,6 +72,10 @@ def read_facets(root):
         facets[name] = [(e.attrib['name'], e.text) for e in e_lst]
     return facets
 
+def get_language_name(code):
+    l = web.ctx.site.get('/l/' + code)
+    return l.name if l else "'%s' unknown" % code
+
 def search(param = {}, facets=True, rows=50, merge=False, show_total=True):
     q_title = param.get('title', None)
     q_author = param.get('author', None)
@@ -182,10 +186,11 @@ def search(param = {}, facets=True, rows=50, merge=False, show_total=True):
                 if count == '0':
                     continue
                 if header == 'language':
+                    language_name = get_language_name(k)
                     if k in q_language:
-                        ret += '<tr><td colspan="2">%s <a href="%s">x</a></td><td align="right">%s</td>' % (k, search_url(query_params, set([('language', k)])), count)
+                        ret += '<tr><td colspan="2">%s <a href="%s">x</a></td><td align="right">%s</td>' % (language_name, search_url(query_params, set([('language', k)])), count)
                     else:
-                        ret += '<tr><td colspan="2"><a href="%s&language=%s">%s</a></td><td align="right">%s</td>' % (search_url(query_params), k, k, count)
+                        ret += '<tr><td colspan="2"><a href="%s&language=%s">%s</a></td><td align="right">%s</td>' % (search_url(query_params), k, language_name, count)
                 elif header == 'author_facet':
                     akey, aname = eval(k)
                     if akey in q_author_facet:
@@ -193,9 +198,9 @@ def search(param = {}, facets=True, rows=50, merge=False, show_total=True):
                     else:
                         ret += '<tr><td><a href="%s&author_facet=%s">%s</a></td><td><a href="http://upstream.openlibrary.org/authors/%s">#</a></td><td align="right">%s</td>' % (search_url(query_params), akey, tidy_name(aname), akey[3:], count)
                 else:
-                    ret += '<tr><td>%s</td><td>%s</td>' % (esc(k), count)
+                    ret += '<tr><td>%s</td><td></td><td align="right">%s</td>' % (esc(k), count)
         ret += '</table>'
-        ret += '</td><td valign="top">'
+        ret += '</td><td>&nbsp;</td><td valign="top">'
 
 #    ret += '<br>' + solr_select + '<br>'
     if show_total:
