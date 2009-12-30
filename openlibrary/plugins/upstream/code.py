@@ -218,12 +218,16 @@ def setup():
     # setup template globals
     from openlibrary.i18n import gettext as _
         
-    web.template.Template.globals['gettext'] = _
-    web.template.Template.globals['_'] = _
-    web.template.Template.globals['random'] = random.Random()
-    web.template.Template.globals['commify'] = web.commify
-    web.template.Template.globals['group'] = web.group
-    web.template.Template.globals['storage'] = web.storage
+    web.template.Template.globals.update({
+        "gettext": _,
+        "_": _,
+        "random": random.Random(),
+        "commify": web.commify,
+        "group": web.group,
+        "storage": web.storage,
+        "all": all,
+        "any": any
+    });
     
     setup_jquery_urls()
     

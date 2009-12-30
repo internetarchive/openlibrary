@@ -6,7 +6,7 @@ from infogami.infobase import client
 from openlibrary.plugins.search.code import SearchProcessor
 from openlibrary.plugins.openlibrary import code as ol_code
 
-from utils import get_coverstore_url
+from utils import get_coverstore_url, MultiDict
 import account
 
 class Image:
@@ -53,16 +53,34 @@ class Edition(ol_code.Edition):
 
     def get_identifiers(self):
         """Returns (name, value) pairs of all available identifiers."""
-        names = ['isbn_10', 'isbn_13', 'lccn', 'oclc_numbers', 'ocaid', 'dewey_decimal_class', 'lc_classifications']
+        ids = []
+        def addid(name, label, url_format=''):
+            ids.append(web.storage(name=name, label=label, url_format=url_format))
         
-        for name in names:
-            value = self[name]
+        addid('isbn_10', 'ISBN 10')
+        addid('isbn_13', 'ISBN 13')
+        addid('lccn', 'LC Control Number', 'http://lccn.loc.gov/%(value)s')
+        addid('oclc_numbers', 'OCLC', 'http://www.worldcat.org/oclc/%(value)s?tab=details')
+        #addid('dewey_decimal_class', 'Dewey Decimal Class')
+        #addid('lc_classifications', 'Library of Congress')
+        
+        d = MultiDict()
+        d['olid'] = web.storage(name='olid', label='Open Library', value=self.key.split('/')[-1], url='', readonly=True)
+        return self._prepare_identifiers(ids, d)
+        
+    def _prepare_identifiers(self, ids, d=None):
+        d = d or MultiDict()
+        
+        for id in ids:
+            value = self[id.name]
             if value:
                 if not isinstance(value, list):
                     value = [value]
                 for v in value:
-                    yield web.storage(name=name, value=v)
+                    d[id.name] = web.storage(name=id.name, label=id.label, value=v, url=id.url_format % {'value': v}, readonly=False)
                     
+        return d
+    
     def set_identifiers(self, identifiers):
         """Updates the edition from identifiers specified as (name, value) pairs."""
         names = ['isbn_10', 'isbn_13', 'lccn', 'oclc_numbers', 'ocaid', 'dewey_decimal_class', 'lc_classifications']
@@ -84,6 +102,17 @@ class Edition(ol_code.Edition):
                 self.ocaid = value[0]
             else:
                 self[name] = value
+
+    def get_classifications(self):
+        ids = []
+        def addid(name, label, url_format=''):
+            ids.append(web.storage(name=name, label=label, url_format=url_format))
+        
+        addid('dewey_decimal_class', 'Dewey Decimal Class')
+        addid('lc_classifications', 'Library of Congress')
+        d = self._prepare_identifiers(ids)
+        print 'get_classifications', d
+        return d
                 
     def get_weight(self):
         """returns weight as a storage object with value and units fields."""

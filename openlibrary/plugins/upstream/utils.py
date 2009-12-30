@@ -2,6 +2,7 @@ import string, re
 import web
 import simplejson
 import babel, babel.core, babel.dates
+from UserDict import DictMixin
 
 from infogami import config
 from infogami.utils import view
@@ -14,6 +15,72 @@ from infogami.infobase.client import Thing
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.openlibrary.code import sanitize
 
+class MultiDict(DictMixin):
+    """Ordered Dictionary that can store multiple values.
+    
+        >>> d = MultiDict()
+        >>> d['x'] = 1
+        >>> d['x'] = 2
+        >>> d['y'] = 3
+        >>> d['x']
+        2
+        >>> d['y']
+        3
+        >>> d['z']
+        Traceback (most recent call last):
+            ...
+        KeyError: 'z'
+        >>> d.keys()
+        ['x', 'x', 'y']
+        >>> d.items()
+        [('x', 1), ('x', 2), ('y', 3)]
+        >>> d.multi_items()
+        [('x', [1, 2]), ('y', [3])]
+    """
+    def __init__(self, items=(), **kw):
+        self._items = []
+        
+        for k, v in items:
+            self[k] = v
+        self.update(kw)
+    
+    def __getitem__(self, key):
+        values = self.getall(key)
+        if values:
+            return values[-1]
+        else:
+            raise KeyError, key
+    
+    def __setitem__(self, key, value):
+        self._items.append((key, value))
+        
+    def __delitem__(self, key):
+        self._items = [(k, v) for k, v in self._items if k != key]
+        
+    def getall(self, key):
+        return [v for k, v in self._items if k == key]
+        
+    def keys(self):
+        return [k for k, v in self._items]
+        
+    def values(self):
+        return [v for k, v in self._items]
+        
+    def items(self):
+        return self._items[:]
+        
+    def multi_items(self):
+        """Returns items as tuple of key and a list of values."""
+        items = []
+        d = {}
+        
+        for k, v in self._items:
+            if k not in d:
+                d[k] = []
+                items.append((k, d[k]))
+            d[k].append(v)
+        return items
+        
 @macro
 @public
 def render_template(name, *a, **kw):
