@@ -87,8 +87,8 @@ class SaveBookHelper:
             identifiers = edition_data.pop('identifiers', [])
             self.edition.set_identifiers(identifiers)
             
-            self.edition.set_physical_dimensions(edition_data.pop('physical_dimensions'))
-            self.edition.set_weight(edition_data.pop('weight'))
+            self.edition.set_physical_dimensions(edition_data.pop('physical_dimensions', None))
+            self.edition.set_weight(edition_data.pop('weight', None))
             
             self.edition.update(edition_data)
             self.edition._save()
@@ -230,33 +230,6 @@ class edit(core.edit):
             raise web.seeother(page.url(suffix="/edit"))
         else:
             return core.edit.GET(self, key)
-        
-class uploadcover(delegate.page):
-    def POST(self):
-        user = web.ctx.site.get_user()
-        i = web.input(file={}, url=None, key="")
-        
-        olid = i.key and i.key.split("/")[-1]
-        
-        if i.file is not None:
-            data = i.file.value
-        else:
-            data = None
-            
-        if i.url and i.url.strip() == "http://":
-            i.url = ""
-
-        upload_url = config.get('coverstore_url', 'http://covers.openlibrary.org') + '/b/upload2'
-        params = dict(author=user and user.key, data=data, source_url=i.url, olid=olid, ip=web.ctx.ip)
-        try:
-            response = urllib2.urlopen(upload_url, urllib.urlencode(params))
-            out = response.read()
-        except urllib2.HTTPError, e:
-            out = e.read()
-            
-        web.header("Content-Type", "text/javascript")
-        return delegate.RawText(out)
-        
         
 def setup():
     """Do required setup."""
