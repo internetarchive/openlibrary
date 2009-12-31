@@ -20,6 +20,7 @@ from openlibrary.plugins.openlibrary import code as ol_code
 import utils
 import addbook
 import models
+import covers
 
 if not config.get('coverstore_url'):
     config.coverstore_url = "http://covers.openlibrary.org"
@@ -192,7 +193,8 @@ def setup():
     models.setup()
     utils.setup()
     addbook.setup()
-
+    covers.setup()
+    
     # overwrite ReadableUrlProcessor patterns for upstream
     ReadableUrlProcessor.patterns = [
         (r'/books/OL\d+M', '/type/edition', 'title', 'untitled'),
@@ -216,10 +218,16 @@ def setup():
     # setup template globals
     from openlibrary.i18n import gettext as _
         
-    web.template.Template.globals['gettext'] = _
-    web.template.Template.globals['_'] = _
-    web.template.Template.globals['random'] = random.Random()
-    web.template.Template.globals['commify'] = web.commify
+    web.template.Template.globals.update({
+        "gettext": _,
+        "_": _,
+        "random": random.Random(),
+        "commify": web.commify,
+        "group": web.group,
+        "storage": web.storage,
+        "all": all,
+        "any": any
+    });
     
     setup_jquery_urls()
     

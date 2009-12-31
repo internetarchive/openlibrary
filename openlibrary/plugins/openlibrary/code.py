@@ -5,7 +5,7 @@ import web
 import simplejson
 import os
 import re
-import urllib
+import urllib, urlparse
 import socket
 import datetime
 
@@ -513,7 +513,8 @@ class _yaml_edit(_yaml):
     encoding = "yml"
     
     def is_admin(self):
-        return delegate.context.user and delegate.context.user.is_admin()
+        u = delegate.context.user
+        return u and u.is_admin()
     
     def GET(self, key):
         # only allow admin users to edit yaml
@@ -529,11 +530,10 @@ class _yaml_edit(_yaml):
             return render.permission_denied(key, 'Permission Denied')
             
         i = web.input(body='', _comment=None)
-        p = web.ctx.site.get(key) or web.ctx.site.new(key, {})
         
         if '_save' in i:
             d = self.load(i.body)
-            p.update(d)
+            p = web.ctx.site.new(key, d)
             try:
                 p._save(i._comment)
             except (ClientException, db.ValidationException), e:            
@@ -724,10 +724,20 @@ def sanitize(html):
     # Can't sanitize unless genshi module is available
     if genshi is None:
         return html
-    
-    stream = genshi.HTML(html) | genshi.filters.HTMLSanitizer() | genshi.filters.Transformer("a").attr("rel", "nofollow") 
-    return stream.render()
+        
+    def get_nofollow(name, event):
+        attrs = event[1][1]
+        href = attrs.get('href', '')
 
+        if href:
+            # add rel=nofollow to all absolute links
+            _, host, _, _, _ = urlparse.urlsplit(href)
+            if host:
+                return 'nofollow'
+
+    stream = genshi.HTML(html) | genshi.filters.HTMLSanitizer() | genshi.filters.Transformer("//a").attr("rel", get_nofollow)
+    return stream.render()                                                                                   
+        
 class memory(delegate.page):
     path = "/debug/memory"
 

@@ -84,6 +84,12 @@ class SaveBookHelper:
             self.work._save()
             
         if self.edition and edition_data:
+            identifiers = edition_data.pop('identifiers', [])
+            self.edition.set_identifiers(identifiers)
+            
+            self.edition.set_physical_dimensions(edition_data.pop('physical_dimensions', None))
+            self.edition.set_weight(edition_data.pop('weight', None))
+            
             self.edition.update(edition_data)
             self.edition._save()
     
@@ -109,11 +115,11 @@ class SaveBookHelper:
         
         edition = trim_doc(edition)
 
-        if edition.get('dimensions') and edition.dimensions.keys() == ['units']:
-            edition.dimensions = None
+        if edition.get('physical_dimensions') and edition.physical_dimensions.keys() == ['units']:
+            edition.physical_dimensions = None
 
-        if edition.get('editionweight') and edition.editionweight.keys() == ['unit']:
-            edition.editionweight = None
+        if edition.get('weight') and edition.weight.keys() == ['units']:
+            edition.weight = None
             
         return edition
         
@@ -224,33 +230,6 @@ class edit(core.edit):
             raise web.seeother(page.url(suffix="/edit"))
         else:
             return core.edit.GET(self, key)
-        
-class uploadcover(delegate.page):
-    def POST(self):
-        user = web.ctx.site.get_user()
-        i = web.input(file={}, url=None, key="")
-        
-        olid = i.key and i.key.split("/")[-1]
-        
-        if i.file is not None:
-            data = i.file.value
-        else:
-            data = None
-            
-        if i.url and i.url.strip() == "http://":
-            i.url = ""
-
-        upload_url = config.get('coverstore_url', 'http://covers.openlibrary.org') + '/b/upload2'
-        params = dict(author=user and user.key, data=data, source_url=i.url, olid=olid, ip=web.ctx.ip)
-        try:
-            response = urllib2.urlopen(upload_url, urllib.urlencode(params))
-            out = response.read()
-        except urllib2.HTTPError, e:
-            out = e.read()
-            
-        web.header("Content-Type", "text/javascript")
-        return delegate.RawText(out)
-        
         
 def setup():
     """Do required setup."""
