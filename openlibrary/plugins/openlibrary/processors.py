@@ -128,6 +128,9 @@ class ReadableUrlProcessor:
                 
 def _safepath(path):
     return get_safepath_re().sub('_', path).strip('_')
+    
+def urlsafe(path):
+    return _safepath(path)
 
 @web.memoize
 def get_safepath_re():
