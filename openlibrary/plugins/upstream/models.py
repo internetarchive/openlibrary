@@ -111,7 +111,6 @@ class Edition(ol_code.Edition):
         addid('dewey_decimal_class', 'Dewey Decimal Class')
         addid('lc_classifications', 'Library of Congress')
         d = self._prepare_identifiers(ids)
-        print 'get_classifications', d
         return d
                 
     def get_weight(self):

@@ -2,12 +2,14 @@
 
 import web
 import urllib, urllib2
+import simplejson
 
 from infogami import config
 from infogami.core import code as core
 from infogami.utils import delegate
 
 from openlibrary.plugins.openlibrary import code as ol_code
+from openlibrary.plugins.openlibrary.processors import urlsafe
 
 from utils import render_template, unflatten
 
@@ -230,6 +232,25 @@ class edit(core.edit):
             raise web.seeother(page.url(suffix="/edit"))
         else:
             return core.edit.GET(self, key)
+            
+class similar_authors(delegate.page):
+    path = "/similar/authors"
+    
+    def GET(self):
+        i = web.input(name="")
+        
+        def subject(name):
+            return web.storage(name=name, url='/subjects/' + urlsafe(name))
+            
+        if i.name.lower() == 'none':
+            d = []
+        else:
+            d = [
+                web.storage(name="Mark Twain", url="/authors/OL18319A", subjects=[subject("Fiction"), subject("Tom Sawyer")]),
+                web.storage(name="Margaret Mahy", url="/authors/OL4398065A", subjects=[subject("Fiction")])
+            ]
+        web.header('Content-Type', 'application/json')
+        return delegate.RawText(simplejson.dumps(d))
         
 def setup():
     """Do required setup."""
