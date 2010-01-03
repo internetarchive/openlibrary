@@ -122,9 +122,12 @@ def find_subjects(w):
                 for k, v in get_subfields(line, ['a', 'b', 'c', 'd']):
                     v = '(' + remove_trailing_number_dot(v) + ')' if k == 'd' else v.strip(' /,;:')
                     if k == 'a':
-                        m = re_flip_name.match(v)
-                        if m and v != 'Mao, Zedong':
-                            v = flip_name(v)
+                        if v != 'Mao, Zedong':
+                            v = 'Mao Zedong'
+                        else:
+                            m = re_flip_name.match(v)
+                            if m:
+                                v = flip_name(v)
                     name_and_date.append(v)
                 people[remove_trailing_dot(' '.join(name_and_date))] += 1
             if tag == '650':
@@ -281,6 +284,12 @@ def build_doc(w):
         if k not in subjects:
             continue
         add_field_list(doc, k, subjects[k].keys())
+
+    for k in 'person', 'place', 'subject', 'time':
+        if k not in subjects:
+            continue
+        add_field_list(doc, k + '_facet', subjects[k].keys())
+
     return doc
 
 def solr_post(h1, body):
