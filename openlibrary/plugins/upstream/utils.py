@@ -235,11 +235,15 @@ def putctx(key, value):
 # http://github.com/github/github-flavored-markdown/blob/gh-pages/scripts/showdown.js#L158
 AUTOLINK_RE = r'''(^|\s)(https?\:\/\/[^"\s<>]*[^.,;'">\:\s\<\>\)\]\!]|[a-z0-9_\-+=.]+@[a-z0-9\-]+(?:\.[a-z0-9-]+)+)'''
 
+LINK_REFERENCE_RE = re.compile(r' *\[[^\[\] ]*\] *:')
+
 class LineBreaksPreprocessor(markdown.Preprocessor):
     def run(self, lines) :
         for i in range(len(lines)-1):
             # append <br/> to all lines expect blank lines and the line before blankline.
-            if lines[i].strip() and lines[i+1].strip() and not markdown.RE.regExp['tabbed'].match(lines[i]):
+            if (lines[i].strip() and lines[i+1].strip()
+                and not markdown.RE.regExp['tabbed'].match(lines[i])
+                and not LINK_REFERENCE_RE.match(lines[i])):
                 lines[i] += "<br />"
         return lines
 
