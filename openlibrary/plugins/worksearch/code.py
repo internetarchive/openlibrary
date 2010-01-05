@@ -14,7 +14,7 @@ search_fields = ["key", "redirects", "title", "subtitle", "alternative_title", "
 
 all_fields = search_fields + ["has_fulltext", "title_suggest", "edition_count", "publish_year", "language", "number_of_pages", "ia_count", "publisher_facet", "author_facet", "fiction", "first_publish_year"] 
 
-facet_fields = ["has_fulltext", "author_facet", "language", "first_publish_year", "publisher_facet", "fiction", "subject", "person", "place", "time"]
+facet_fields = ["has_fulltext", "author_facet", "language", "first_publish_year", "publisher_facet", "fiction", "subject_facet", "person_facet", "place_facet", "time_facet"]
 
 facet_list_fields = [i for i in facet_fields if i not in ("has_fulltext", "fiction")]
 
@@ -191,6 +191,6 @@ def get_doc(doc):
 
 class work_search(delegate.page):
     def GET(self):
-        input = web.input(author_key=[], language=[], first_publish_year=[], publisher_facet=[], subject=[], person=[], place=[], time=[])
+        input = web.input(author_key=[], language=[], first_publish_year=[], publisher_facet=[], subject_facet=[], person_facet=[], place_facet=[], time_facet=[])
 
         return render.work_search(input, do_search, get_doc)
