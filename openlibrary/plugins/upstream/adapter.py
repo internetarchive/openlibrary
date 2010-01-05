@@ -30,6 +30,7 @@ convertions = {
     '/people/': '/user/',
     '/books/': '/b/',
     '/authors/': '/a/',
+    '/languages/': '/l/',
     '/templates/': '/upstream/templates/',
     '/macros/': '/upstream/macros/',
     '/js/': '/upstream/js/',
