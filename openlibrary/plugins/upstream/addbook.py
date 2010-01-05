@@ -91,6 +91,7 @@ class SaveBookHelper:
             
             self.edition.set_physical_dimensions(edition_data.pop('physical_dimensions', None))
             self.edition.set_weight(edition_data.pop('weight', None))
+            self.edition.set_toc_text(edition_data.pop('table_of_contents', ''))
             
             self.edition.update(edition_data)
             self.edition._save()

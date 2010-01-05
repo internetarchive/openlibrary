@@ -3,10 +3,12 @@ import urllib, urllib2
 import simplejson
 
 from infogami.infobase import client
+from infogami.utils.view import safeint
+
 from openlibrary.plugins.search.code import SearchProcessor
 from openlibrary.plugins.openlibrary import code as ol_code
 
-from utils import get_coverstore_url, MultiDict
+from utils import get_coverstore_url, MultiDict, parse_toc
 import account
 
 class Image:
@@ -128,6 +130,27 @@ class Edition(ol_code.Edition):
     def set_physical_dimensions(self, d):
         self.physical_dimensions = d and UnitParser(["height", "width", "depth"]).format(d)
         
+    def get_toc_text(self):
+        def row(r):
+            if isinstance(r, basestring):
+                # there might be some legacy docs in the system with table-of-contents
+                # represented as list of strings.
+                level = 0
+                label = ""
+                title = r
+                page = ""
+            else:
+                level = safeint(r.get('level', '0'), 0)
+                label = r.get('label', '')
+                title = r.get('title', '')
+                page = r.get('pagenum', '')
+            return "*" * level + " " + " | ".join([label, title, page])
+            
+        return "\n".join(row(r) for r in self.table_of_contents)
+
+    def set_toc_text(self, text):
+        self.table_of_contents = parse_toc(text)
+        
     def get_links(self):
         links1 = [web.storage(url=url, title=title) for url, title in zip(self.uris, self.uri_descriptions)] 
         links2 = list(self.links)
@@ -150,8 +173,8 @@ class Author(ol_code.Author):
         return photo and photo.url(size)
     
     def get_olid(self):
-        return self.key.split('/')[-1]    
-
+        return self.key.split('/')[-1]
+        
 class Work(ol_code.Work):
     def get_subjects(self):
         """Return subject strings."""
