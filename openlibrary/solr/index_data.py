@@ -3,8 +3,8 @@ import simplejson as json
 from collections import defaultdict
 from lxml.etree import tostring, Element 
 
-def index_publishers():
-    dir = 'data/b/'
+def index_publishers(data_dir):
+    dir = data_dir + '/b/'
     publishers = defaultdict(int)
     for f in os.listdir(dir):
         d = json.load(open(dir + f))
@@ -12,8 +12,8 @@ def index_publishers():
             publishers[p] += 1
     return publishers.items()
 
-def index_authors():
-    dir = 'data/a/'
+def index_authors(data_dir):
+    dir = data_dir + '/a/'
     authors = {}
     for f in os.listdir(dir):
         d = json.load(open(dir + f))
@@ -31,19 +31,17 @@ def add_field(doc, name, value):
     field.text = unicode(value)
     doc.append(field)
 
-def load_indexes(solr_port):
-    authors = index_authors()
-    
+def load_indexes(data_dir, solr_port):
     add = {}
     add['publishers'] = Element('add')
-    for k, v in index_publishers():
+    for k, v in index_publishers(data_dir):
         doc = Element("doc")
         add_field(doc, 'name', k)
         add_field(doc, 'count', v)
         add['publishers'].append(doc)
 
     add['authors'] = Element('add')
-    for key, a in index_authors():
+    for key, a in index_authors(data_dir):
         doc = Element("doc")
         add_field(doc, 'key', key)
         for k, v in a.items():
@@ -74,6 +72,7 @@ def load_indexes(solr_port):
         solr_post(h2, solr_url, '<optimize />')
         h2.close()
 
-solr_port = int(sys.argv[1])
+data_dir = sys.argv[1]
+solr_port = int(sys.argv[2])
 assert solr_port > 1024
-load_indexes(solr_port)
+load_indexes(data_dir, solr_port)
