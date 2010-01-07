@@ -19,7 +19,7 @@ facet_fields = ["has_fulltext", "author_facet", "language", "first_publish_year"
 facet_list_fields = [i for i in facet_fields if i not in ("has_fulltext", "fiction")]
 
 def get_language_name(code):
-    l = web.ctx.site.get('/l/' + code)
+    l = web.ctx.site.get('/languages/' + code)
     return l.name if l else "'%s' unknown" % code
 
 def read_facets(root):
