@@ -205,7 +205,8 @@ def truncate(text, limit):
 @public
 def process_version(v):
     """Looks at the version and adds machine_comment required for showing "View MARC" link."""
-    if v.author and v.author.key == "/people/ImportBot" and v.key.startswith('/books/') and not v.get('machine_comment'):
+    importers = ['/people/ImportBot', '/people/EdwardBot']
+    if v.author and v.author.key in importers and v.key.startswith('/books/') and not v.get('machine_comment'):
         thing = v.get('thing') or web.ctx.site.get(v.key, v.revision)
         if thing.source_records and v.revision == 1 or (v.comment and v.comment.lower() == "found a matching marc record"):
             marc = thing.source_records[-1]
