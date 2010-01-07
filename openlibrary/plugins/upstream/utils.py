@@ -274,6 +274,16 @@ def parse_toc(text):
     """Parses each line of toc"""
     return [parse_toc_row(line) for line in text.splitlines() if line.strip()]
     
+
+_languages = None
+    
+@public
+def get_languages():
+    global _languages
+    if _languages is None:
+        keys = web.ctx.site.things({"type": "/type/language", "key~": "/languages/*", "limit": 1000})
+        _languages = [web.storage(name=d.name, code=d.code) for d in web.ctx.site.get_many(keys)]
+    return _languages
     
 # regexp to match urls and emails. 
 # Adopted from github-flavored-markdown (BSD-style open source license)
