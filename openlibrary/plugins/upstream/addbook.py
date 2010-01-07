@@ -220,7 +220,8 @@ class author_edit(delegate.page):
         i = unflatten(i)
         if 'author' in i:
             author = trim_doc(i.author)
-            author.alternate_names = [name.strip() for name in author.get('alternate_names', '').split(';')]
+            alternate_names = author.get('alternate_names', None) or ''
+            author.alternate_names = [name.strip() for name in alternate_names.split(';')]
             return author
             
 class edit(core.edit):
