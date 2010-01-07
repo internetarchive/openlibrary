@@ -211,6 +211,8 @@ def process_version(v):
             marc = thing.source_records[-1]
             if marc.startswith('marc:'):
                 v.machine_comment = marc[len("marc:"):]
+            else:
+                v.machine_comment = marc
     return v
 
 @public
