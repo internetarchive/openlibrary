@@ -1,47 +1,88 @@
 import web
-import urllib2
+import urllib, urllib2
 import simplejson
 
 from infogami.infobase import client
+from infogami.utils.view import safeint
+
 from openlibrary.plugins.search.code import SearchProcessor
 from openlibrary.plugins.openlibrary import code as ol_code
 
-from utils import get_coverstore_url
+from utils import get_coverstore_url, MultiDict, parse_toc
 import account
 
+class Image:
+    def __init__(self, category, id):
+        self.category = category
+        self.id = id
+    
+    def url(self, size="M"):
+        return "%s/%s/id/%s-%s.jpg" % (get_coverstore_url(), self.category, self.id, size.upper())
+        
+    def __repr__(self):
+        return "<image: %s/%d>" % (self.category, self.id)
+
+def query_coverstore(category, **kw):
+    url = "%s/%s/query?%s" % (get_coverstore_url(), category, urllib.urlencode(kw))
+    json = urllib.urlopen(url).read()
+    return simplejson.loads(json)
 
 class Edition(ol_code.Edition):
-    def get_cover_url(self, size):
-        coverid = self.get_coverid()
-        if coverid:
-            return get_coverstore_url() + "/b/id/%s-%s.jpg" % (coverid, size)
+    def get_title(self):
+        if self['title_prefix']:
+            return self['title_prefix'] + ' ' + self['title']
         else:
-            return None
+            return self['title']
+            
+    def get_title_prefix(self):
+        return ''
 
-    def get_coverid(self):
-        if self.coverid:
-            return self.coverid
-        else:
-            try:
-                url = get_coverstore_url() + '/b/query?olid=%s' % self.key.split('/')[-1]
-                json = urllib2.urlopen(url).read()
-                d = simplejson.loads(json)
-                return d and d[0] or None
-            except IOError:
-                return None
-                
+    # let title be title_prefix + title
+    title = property(get_title)
+    title_prefix = property(get_title_prefix)
+        
+    def get_covers(self):
+        covers = self.covers or query_coverstore('b', olid=self.get_olid())
+        return [Image('b', c) for c in covers]
+        
+    def get_cover(self):
+        covers = self.get_covers()
+        return covers and covers[0] or None
+        
+    def get_cover_url(self, size):
+        cover = self.get_cover()
+        return cover and cover.url(size)
+
     def get_identifiers(self):
         """Returns (name, value) pairs of all available identifiers."""
-        names = ['isbn_10', 'isbn_13', 'lccn', 'oclc_numbers', 'ocaid', 'dewey_decimal_class', 'lc_classifications']
+        ids = []
+        def addid(name, label, url_format=''):
+            ids.append(web.storage(name=name, label=label, url_format=url_format))
         
-        for name in names:
-            value = self[name]
+        addid('isbn_10', 'ISBN 10')
+        addid('isbn_13', 'ISBN 13')
+        addid('lccn', 'LC Control Number', 'http://lccn.loc.gov/%(value)s')
+        addid('oclc_numbers', 'OCLC', 'http://www.worldcat.org/oclc/%(value)s?tab=details')
+        #addid('dewey_decimal_class', 'Dewey Decimal Class')
+        #addid('lc_classifications', 'Library of Congress')
+        
+        d = MultiDict()
+        d['olid'] = web.storage(name='olid', label='Open Library', value=self.key.split('/')[-1], url='', readonly=True)
+        return self._prepare_identifiers(ids, d)
+        
+    def _prepare_identifiers(self, ids, d=None):
+        d = d or MultiDict()
+        
+        for id in ids:
+            value = self[id.name]
             if value:
                 if not isinstance(value, list):
                     value = [value]
                 for v in value:
-                    yield web.storage(name=name, value=v)
+                    d[id.name] = web.storage(name=id.name, label=id.label, value=v, url=id.url_format % {'value': v}, readonly=False)
                     
+        return d
+    
     def set_identifiers(self, identifiers):
         """Updates the edition from identifiers specified as (name, value) pairs."""
         names = ['isbn_10', 'isbn_13', 'lccn', 'oclc_numbers', 'ocaid', 'dewey_decimal_class', 'lc_classifications']
@@ -63,6 +104,16 @@ class Edition(ol_code.Edition):
                 self.ocaid = value[0]
             else:
                 self[name] = value
+
+    def get_classifications(self):
+        ids = []
+        def addid(name, label, url_format=''):
+            ids.append(web.storage(name=name, label=label, url_format=url_format))
+        
+        addid('dewey_decimal_class', 'Dewey Decimal Class')
+        addid('lc_classifications', 'Library of Congress')
+        d = self._prepare_identifiers(ids)
+        return d
                 
     def get_weight(self):
         """returns weight as a storage object with value and units fields."""
@@ -79,15 +130,51 @@ class Edition(ol_code.Edition):
     def set_physical_dimensions(self, d):
         self.physical_dimensions = d and UnitParser(["height", "width", "depth"]).format(d)
         
+    def get_toc_text(self):
+        def row(r):
+            if isinstance(r, basestring):
+                # there might be some legacy docs in the system with table-of-contents
+                # represented as list of strings.
+                level = 0
+                label = ""
+                title = r
+                page = ""
+            else:
+                level = safeint(r.get('level', '0'), 0)
+                label = r.get('label', '')
+                title = r.get('title', '')
+                page = r.get('pagenum', '')
+            return "*" * level + " " + " | ".join([label, title, page])
+            
+        return "\n".join(row(r) for r in self.table_of_contents)
+
+    def set_toc_text(self, text):
+        self.table_of_contents = parse_toc(text)
+        
     def get_links(self):
         links1 = [web.storage(url=url, title=title) for url, title in zip(self.uris, self.uri_descriptions)] 
         links2 = list(self.links)
         return links1 + links2
-
+        
+    def get_olid(self):
+        return self.key.split('/')[-1]
+        
 class Author(ol_code.Author):
-    pass
-
+    def get_photos(self):
+        photos = self.photos or query_coverstore('a', olid=self.get_olid())
+        return [Image("a", id) for id in photos]
+        
+    def get_photo(self):
+        photos = self.get_photos()
+        return photos and photos[0] or None
+        
+    def get_photo_url(self, size):
+        photo = self.get_photo()
+        return photo and photo.url(size)
     
+    def get_olid(self):
+        return self.key.split('/')[-1]
+        
 class Work(ol_code.Work):
     def get_subjects(self):
         """Return subject strings."""

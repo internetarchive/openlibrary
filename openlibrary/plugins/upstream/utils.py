@@ -1,19 +1,86 @@
-import string
+import string, re
 import web
 import simplejson
 import babel, babel.core, babel.dates
+from UserDict import DictMixin
 
 from infogami import config
-from infogami.utils.view import render, public
+from infogami.utils import view
+from infogami.utils.view import render, public, _format
 from infogami.utils.macro import macro
+from infogami.utils.markdown import markdown
+from infogami.utils.context import context
+from infogami.infobase.client import Thing
 
 from openlibrary.i18n import gettext as _
+from openlibrary.plugins.openlibrary.code import sanitize
 
-
-def setup():
-    """Do required initialization"""
-    pass
+class MultiDict(DictMixin):
+    """Ordered Dictionary that can store multiple values.
     
+        >>> d = MultiDict()
+        >>> d['x'] = 1
+        >>> d['x'] = 2
+        >>> d['y'] = 3
+        >>> d['x']
+        2
+        >>> d['y']
+        3
+        >>> d['z']
+        Traceback (most recent call last):
+            ...
+        KeyError: 'z'
+        >>> d.keys()
+        ['x', 'x', 'y']
+        >>> d.items()
+        [('x', 1), ('x', 2), ('y', 3)]
+        >>> d.multi_items()
+        [('x', [1, 2]), ('y', [3])]
+    """
+    def __init__(self, items=(), **kw):
+        self._items = []
+        
+        for k, v in items:
+            self[k] = v
+        self.update(kw)
+    
+    def __getitem__(self, key):
+        values = self.getall(key)
+        if values:
+            return values[-1]
+        else:
+            raise KeyError, key
+    
+    def __setitem__(self, key, value):
+        self._items.append((key, value))
+        
+    def __delitem__(self, key):
+        self._items = [(k, v) for k, v in self._items if k != key]
+        
+    def getall(self, key):
+        return [v for k, v in self._items if k == key]
+        
+    def keys(self):
+        return [k for k, v in self._items]
+        
+    def values(self):
+        return [v for k, v in self._items]
+        
+    def items(self):
+        return self._items[:]
+        
+    def multi_items(self):
+        """Returns items as tuple of key and a list of values."""
+        items = []
+        d = {}
+        
+        for k, v in self._items:
+            if k not in d:
+                d[k] = []
+                items.append((k, d[k]))
+            d[k].append(v)
+        return items
+        
 @macro
 @public
 def render_template(name, *a, **kw):
@@ -30,6 +97,9 @@ def unflatten(d, seperator="--"):
     
         >>> unflatten({"a": 1, "b--x": 2, "b--y": 3, "c--0": 4, "c--1": 5})
         {'a': 1, 'c': [4, 5], 'b': {'y': 3, 'x': 2}}
+        >>> unflatten({"a--0--x": 1, "a--0--y": 2, "a--1--x": 3, "a--1--y": 4})
+        {'a': [{'x': 1, 'y': 2}, {'x': 3, 'y': 4}]}
+        
     """
     def isint(k):
         try:
@@ -150,6 +220,134 @@ def cond(pred, true_value, false_value=""):
     else:
         return false_value
 
+@public
+def is_thing(t):
+    return isinstance(t, Thing)
+    
+@public
+def putctx(key, value):
+    """Save a value in the context."""
+    context[key] = value
+    return ""
+    
+def pad(seq, size, e=None):
+    """
+        >>> pad([1, 2], 4, 0)
+        [1, 2, 0, 0]
+    """
+    seq = seq[:]
+    while len(seq) < size:
+        seq.append(e)
+    return seq
+
+def parse_toc_row(line):
+    """Parse one row of table of contents.
+
+        >>> def f(text):
+        ...     d = parse_toc_row(text)
+        ...     return (d['level'], d['label'], d['title'], d['pagenum'])
+        ...
+        >>> f("* chapter 1 | Welcome to the real world! | 2")
+        (1, 'chapter 1', 'Welcome to the real world!', '2')
+        >>> f("Welcome to the real world!")
+        (0, '', 'Welcome to the real world!', '')
+        >>> f("** | Welcome to the real world! | 2")
+        (2, '', 'Welcome to the real world!', '2')
+        >>> f("|Preface | 1")
+        (0, '', 'Preface', '1')
+        >>> f("1.1 | Apple")
+        (0, '1.1', 'Apple', '')
+    """
+    RE_LEVEL = web.re_compile("(\**)(.*)")
+    level, text = RE_LEVEL.match(line.strip()).groups()
+
+    if "|" in text:
+        tokens = text.split("|", 2)
+        label, title, page = pad(tokens, 3, '')
+    else:
+        title = text
+        label = page = ""
+
+    return web.storage(level=len(level), label=label.strip(), title=title.strip(), pagenum=page.strip())
+
+def parse_toc(text):
+    """Parses each line of toc"""
+    return [parse_toc_row(line) for line in text.splitlines() if line.strip()]
+    
+
+_languages = None
+    
+@public
+def get_languages():
+    global _languages
+    if _languages is None:
+        keys = web.ctx.site.things({"type": "/type/language", "key~": "/languages/*", "limit": 1000})
+        _languages = [web.storage(name=d.name, code=d.code) for d in web.ctx.site.get_many(keys)]
+    return _languages
+    
+# regexp to match urls and emails. 
+# Adopted from github-flavored-markdown (BSD-style open source license)
+# http://github.com/github/github-flavored-markdown/blob/gh-pages/scripts/showdown.js#L158
+AUTOLINK_RE = r'''(^|\s)(https?\:\/\/[^"\s<>]*[^.,;'">\:\s\<\>\)\]\!]|[a-z0-9_\-+=.]+@[a-z0-9\-]+(?:\.[a-z0-9-]+)+)'''
+
+LINK_REFERENCE_RE = re.compile(r' *\[[^\[\] ]*\] *:')
+
+class LineBreaksPreprocessor(markdown.Preprocessor):
+    def run(self, lines) :
+        for i in range(len(lines)-1):
+            # append <br/> to all lines expect blank lines and the line before blankline.
+            if (lines[i].strip() and lines[i+1].strip()
+                and not markdown.RE.regExp['tabbed'].match(lines[i])
+                and not LINK_REFERENCE_RE.match(lines[i])):
+                lines[i] += "<br />"
+        return lines
+
+LINE_BREAKS_PREPROCESSOR = LineBreaksPreprocessor()
+
+class AutolinkPreprocessor(markdown.Preprocessor):
+    rx = re.compile(AUTOLINK_RE)
+    def run(self, lines):
+        for i in range(len(lines)):
+            if not markdown.RE.regExp['tabbed'].match(lines[i]):
+                lines[i] = self.rx.sub(r'\1<\2>', lines[i])
+        return lines
+
+AUTOLINK_PREPROCESSOR = AutolinkPreprocessor()
+    
+class OLMarkdown(markdown.Markdown):
+    """Open Library flavored Markdown, inspired by [Github Flavored Markdown][GFM].
+    
+    GFM: http://github.github.com/github-flavored-markdown/
+
+    Differences from traditional Markdown:
+    * new lines in paragraph are treated as line breaks
+    * URLs are autolinked
+    * generated HTML is sanitized    
+    """
+    def __init__(self, *a, **kw):
+        markdown.Markdown.__init__(self, *a, **kw)
+        self._patch()
+        
+    def _patch(self):
+        p = self.preprocessors
+        p[p.index(markdown.LINE_BREAKS_PREPROCESSOR)] = LINE_BREAKS_PREPROCESSOR
+        p.append(AUTOLINK_PREPROCESSOR)
+        
+    def convert(self):
+        html = markdown.Markdown.convert(self)
+        return sanitize(html)
+        
+def get_markdown(text, safe_mode=False):
+    md = OLMarkdown(source=text, safe_mode=safe_mode)
+    view._register_mdx_extensions(md)
+    md.postprocessors += view.wiki_processors
+    return md
+
+def setup():
+    """Do required initialization"""
+    # monkey-patch get_markdown to use OL Flavored Markdown
+    view.get_markdown = get_markdown
+    
 if __name__ == '__main__':
     import doctest
     doctest.testmod()

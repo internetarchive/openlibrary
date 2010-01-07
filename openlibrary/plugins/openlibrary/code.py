@@ -5,7 +5,7 @@ import web
 import simplejson
 import os
 import re
-import urllib
+import urllib, urlparse
 import socket
 import datetime
 
@@ -724,10 +724,20 @@ def sanitize(html):
     # Can't sanitize unless genshi module is available
     if genshi is None:
         return html
-    
-    stream = genshi.HTML(html) | genshi.filters.HTMLSanitizer() | genshi.filters.Transformer("a").attr("rel", "nofollow") 
-    return stream.render()
+        
+    def get_nofollow(name, event):
+        attrs = event[1][1]
+        href = attrs.get('href', '')
 
+        if href:
+            # add rel=nofollow to all absolute links
+            _, host, _, _, _ = urlparse.urlsplit(href)
+            if host:
+                return 'nofollow'
+
+    stream = genshi.HTML(html) | genshi.filters.HTMLSanitizer() | genshi.filters.Transformer("//a").attr("rel", get_nofollow)
+    return stream.render()                                                                                   
+        
 class memory(delegate.page):
     path = "/debug/memory"
 

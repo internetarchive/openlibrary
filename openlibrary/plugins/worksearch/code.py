@@ -3,29 +3,74 @@ from lxml.etree import parse, tostring
 from infogami.utils import delegate
 from infogami import config
 from openlibrary.catalog.utils import flip_name
+from infogami.utils import view, template
 
 solr_host = config.plugin_worksearch.get('solr')
 solr_select_url = "http://" + solr_host + "/solr/works/select"
 
-trans = {'&':'amp','<':'lt','>':'gt', '"': 'quot'}
-re_html_replace = re.compile('([&<>"])')
+render = template.render
 
-def esc(s):
-    if not isinstance(s, basestring):
-        return s
-    return re_html_replace.sub(lambda m: "&%s;" % trans[m.group(1)], s)
+search_fields = ["key", "redirects", "title", "subtitle", "alternative_title", "alternative_subtitle", "edition_key", "by_statement", "publish_date", "lccn", "ia", "oclc", "isbn", "contributor", "publish_place", "publisher", "first_sentence", "author_key", "author_name", "author_alternative_name", "subject", "person", "place", "time"]
 
-def search_url(params, exclude = set()):
-    url = []
-    for k, v in params.items():
-        if isinstance(v, list):
-            for i in v:
-                if (k, i) not in exclude:
-                    url.append(k + "=" + i)
+all_fields = search_fields + ["has_fulltext", "title_suggest", "edition_count", "publish_year", "language", "number_of_pages", "ia_count", "publisher_facet", "author_facet", "fiction", "first_publish_year"] 
+
+facet_fields = ["has_fulltext", "author_facet", "language", "first_publish_year", "publisher_facet", "fiction", "subject_facet", "person_facet", "place_facet", "time_facet"]
+
+facet_list_fields = [i for i in facet_fields if i not in ("has_fulltext", "fiction")]
+
+def get_language_name(code):
+    l = web.ctx.site.get('/l/' + code)
+    return l.name if l else "'%s' unknown" % code
+
+def read_facets(root):
+    bool_map = dict(true='yes', false='no')
+    e_facet_counts = root.find("lst[@name='facet_counts']")
+    e_facet_fields = e_facet_counts.find("lst[@name='facet_fields']")
+    facets = {}
+    for e_lst in e_facet_fields:
+        assert e_lst.tag == 'lst'
+        name = e_lst.attrib['name']
+        if name == 'author_facet':
+            name = 'author_key'
+        if name in ('fiction', 'has_fulltext'): # boolean facets
+            true_count = e_lst.find("int[@name='true']").text
+            false_count = e_lst.find("int[@name='false']").text
+            facets[name] = [
+                ('true', 'yes', true_count),
+                ('false', 'no', false_count),
+            ]
             continue
-        if (k, v) not in exclude:
-            url.append(k + "=" + v)
-    return '?' + '&'.join(url)
+        facets[name] = []
+        for e in e_lst:
+            if e.text == '0':
+                continue
+            k = e.attrib['name']
+            if name == 'author_key':
+                k, display = eval(k)
+                k = k[3:] # /a/OL123A -> OL123A
+            elif name == 'language':
+                display = get_language_name(k)
+            else:
+                display = k
+            facets[name].append((k, display, e.text))
+    return facets
+
+def get_search_url(params, exclude = None):
+    assert params
+    print 'params:', params
+    def process(exclude = None):
+        url = []
+        for k, v in params.items():
+            for i in v if isinstance(v, list) else [v]:
+                if exclude and (k, i) == exclude:
+                    continue
+                url.append(k + "=" + i)
+        ret = '?' + '&'.join(url)
+        if exclude:
+            print exclude
+            print ret
+        return ret
+    return process
 
 def url_quote(s):
     if not s:
@@ -62,216 +107,90 @@ def read_highlight(root):
         highlight_titles[work_key] = e_str.text.replace('em>','b>')
     return highlight_titles
 
-def read_facets(root):
-    e_facet_counts = root.find("lst[@name='facet_counts']")
-    e_facet_fields = e_facet_counts.find("lst[@name='facet_fields']")
-    facets = {}
-    for e_lst in e_facet_fields:
-        assert e_lst.tag == 'lst'
-        name = e_lst.attrib['name']
-        facets[name] = [(e.attrib['name'], e.text) for e in e_lst]
-    return facets
+re_fields = re.compile('(' + '|'.join(all_fields) + r'):', re.L)
+re_author_key = re.compile(r'(OL\d+A)')
 
-def search(param = {}, facets=True, rows=50, merge=False, show_total=True):
-    q_title = param.get('title', None)
-    q_author = param.get('author', None)
-    q_all = not param or (not q_author and q_title == '*')
-    q_language = param.get('language', [])
-    q_author_facet = param.get('author_facet', [])
-    q_work_key = param.get('key', None)
-    q_author_key = param.get('author_key', None)
-    page = int(param.get('page', 1))
-    sort = param.get('sort', None)
-    if 'has_fulltext' in param:
-        q_has_fulltext = param['has_fulltext'].lower()
-        if q_has_fulltext not in ('true', 'false'):
-            q_has_fulltext = None
-    else:
-        q_has_fulltext = None
-    
-    query_params = {
-        'title': url_quote(q_title),
-        'author': url_quote(q_author),
-    }
-
+def run_solr_query(param = {}, facets=True, rows=100, page=1, sort_by_edition_count=True):
     q_list = []
-    if q_title:
-        q_list.append('title:(' + q_title + ')')
-    if q_author:
-        q_list.append('(author_name:(' + q_author + ') OR author_key:(' + q_author + '))')
-    if q_work_key:
-        q_list.append('key:(' + q_work_key + ')')
-    if q_author_key:
-        q_list.append('author_key:(' + q_author_key + ')')
+    q_param = param.get('q', None)
     offset = rows * (page - 1)
-    q = url_quote(' AND '.join(q_list)) if not q_all else '*:*'
+    query_params = dict((k, url_quote(param[k])) for k in ('title', 'publisher', 'isbn', 'oclc', 'lccn', 'first_sentence', 'contribtor', 'author') if k in param)
+    if q_param:
+        if q_param == '*:*' or re_fields.match(q_param):
+            q_list.append(q_param)
+        else:
+            q_list.append('(' + ' OR '.join('%s:(%s)' % (f, q_param) for f in search_fields) + ')')
+        query_params['q'] = url_quote(q_param)
+    else:
+        if 'author' in param:
+            v = param['author'].strip()
+            m = re_author_key.search(v)
+            if m: # FIXME: 'OL123A OR OL234A'
+                q_list.append('author_key:(' + m.group(1) + ')')
+            else:
+                q_list.append('author_name:(' + v + ')')
+
+        q_list += ['%s:(%s)' % (k, param[k]) for k in 'title', 'publisher', 'isbn', 'oclc', 'lccn', 'first_sentence', 'contribtor' if k in param]
+    q_list += ['%s:(%s)' % (k, param[k]) for k in 'has_fulltext', 'fiction' if k in param]
+
+    q = url_quote(' AND '.join(q_list))
 
     solr_select = solr_select_url + "?indent=on&version=2.2&q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=*%%2Cscore&qt=standard&wt=standard&explainOther=&hl=on&hl.fl=title" % (q, offset, rows)
     if facets:
-        solr_select += "&facet=true&facet.field=has_fulltext&facet.field=author_facet&facet.field=language&facet.field=publisher_facet"
-    if q_has_fulltext:
-        query_params['has_fulltext'] = q_has_fulltext
-        solr_select += '&fq=has_fulltext:%s' % q_has_fulltext
-    if q_language:
-        query_params['language'] = q_language
-        solr_select += ''.join('&fq=language:%s' % l for l in q_language)
-    if q_author_facet:
-        query_params['author_facet'] = q_author_facet
-        solr_select += ''.join('&fq=author_key:"%s"' % a for a in q_author_facet)
+        solr_select += "&facet=true&" + '&'.join("facet.field=" + f for f in facet_fields)
 
-    ret = 'Sort by: '
-    sort_url = search_url(query_params) # first page
-    if sort == 'score':
-        ret += '<a href="%s">number of editions</a> OR <b>relevance</b>' % sort_url
-    else:
+    for k in 'has_fulltext', 'fiction':
+        if k not in param:
+            continue
+        v = param[k].lower()
+        if v not in ('true', 'false'):
+            del param[k]
+        param[k] == v
+        query_params[k] = url_quote(v)
+        solr_select += '&fq=%s:%s' % (k, v)
+
+    for k in facet_list_fields:
+        if k == 'author_facet':
+            k = 'author_key'
+        if k not in param:
+            continue
+        v = param[k]
+        query_params[k] = [url_quote(i) for i in v]
+        solr_select += ''.join('&fq=%s:"%s"' % (k, l) for l in v if l)
+    if sort_by_edition_count:
         solr_select += "&sort=edition_count+desc"
-        ret += '<b>number of editions</b> OR <a href="%s&sort=score">relevance</a>' % sort_url
-
-    ret += '<p>\n'
-
-    # FIXME: merge
-    # if len(param.get('author_facet', [])) == 1 and not merge:
-    #    ret += '<a href="/merge%s">merge works</a><p>' % search_url(query_params)
-
-    if merge:
-        ret += '<form>'
-        ret += '<input type="submit" value="Merge"><p>'
-
-    if 'debug' in param:
-        ret += esc(solr_select) + '<br>\n'
-
-
     reply = urllib.urlopen(solr_select)
-    root = parse(reply).getroot()
-    result = root.find('result')
-    if result is None:
-        return esc(solr_select) + '<br>no results found'
-    num_found = int(result.attrib['numFound'])
+    search_url = get_search_url(query_params)
+    return (parse(reply).getroot(), search_url, solr_select)
 
-    highlight_titles = read_highlight(root)
-    if facets:
-        facet_counts = read_facets(root)
+def do_search(param, sort, page=1, rows=100):
+    (root, search_url, solr_select) = run_solr_query(param, True, rows, page, sort != 'score')
+    docs = root.find('result')
+    return web.storage(
+        highlight = read_highlight(root),
+        facet_counts = read_facets(root),
+        docs = docs,
+        num_found = (int(docs.attrib['numFound']) if docs else None),
+        search_url = search_url,
+        solr_select = solr_select,
+    )
 
-        ebook_facet = dict(facet_counts['has_fulltext'])
-    if facets:
-        ret += '<table><tr><td valign="top">'
-        ret += '<table>'
-        ret += '<tr><td colspan="3"><b>eBook?</b></td></tr>'
-        if q_has_fulltext == 'true':
-            ret += '<tr><td colspan="2">yes <a href="%s">x</a></td><td align="right">%s</td>' % (search_url(query_params) + "&has_fulltext=true", ebook_facet.get('true', '0'))
-        else:
-            ret += '<tr><td colspan="2"><a href="%s">yes</a></td><td align="right">%s</td>' % (search_url(query_params) + "&has_fulltext=true", ebook_facet.get('true', '0'))
+def get_doc(doc):
+    e_ia = doc.find("arr[@name='ia']")
 
-        ret += '<tr><td colspan="2"><a href="%s">no</a></td><td align="right">%s</td>' % (search_url(query_params) + "&has_fulltext=false", ebook_facet.get('false', '0'))
-        header_map = {
-            'language': 'Language',
-            'author_facet': 'Author',
-            'publisher_facet': 'Publisher',
-        }
-        for header, counts in facet_counts.items():
-            if header == 'has_fulltext':
-                continue
-            label = header_map.get(header, header)
-            if header == 'author_facet':
-                ret += '<tr><td colspan="3"><b>Author</b></td></tr>'
-                # FIXME: merge
-                # ret += '<tr><td colspan="3"><b>Author</b> - <a href="/author_merge?k=%s">(merge authors)</a></td></tr>' % keys
-            else:
-                ret += '<tr><td colspan="3"><b>%s</b></td></tr>' % label
-            for k, count in counts[:10]:
-                if count == '0':
-                    continue
-                if header == 'language':
-                    if k in q_language:
-                        ret += '<tr><td colspan="2">%s <a href="%s">x</a></td><td align="right">%s</td>' % (k, search_url(query_params, set([('language', k)])), count)
-                    else:
-                        ret += '<tr><td colspan="2"><a href="%s&language=%s">%s</a></td><td align="right">%s</td>' % (search_url(query_params), k, k, count)
-                elif header == 'author_facet':
-                    akey, aname = eval(k)
-                    if akey in q_author_facet:
-                        ret += '<tr><td>%s</td><td> <a href="%s">x</a> <a href="http://upstream.openlibrary.org/authors/%s">#</a></td><td align="right">%s</td>' % (tidy_name(aname), search_url(query_params, set([('author_facet', akey)])), akey[3:], count)
-                    else:
-                        ret += '<tr><td><a href="%s&author_facet=%s">%s</a></td><td><a href="http://upstream.openlibrary.org/authors/%s">#</a></td><td align="right">%s</td>' % (search_url(query_params), akey, tidy_name(aname), akey[3:], count)
-                else:
-                    ret += '<tr><td>%s</td><td>%s</td>' % (esc(k), count)
-        ret += '</table>'
-        ret += '</td><td valign="top">'
+    ak = [e.text for e in doc.find("arr[@name='author_key']")]
+    an = [e.text for e in doc.find("arr[@name='author_name']")]
 
-#    ret += '<br>' + solr_select + '<br>'
-    if show_total:
-        ret += 'Number found: %d<br>' % num_found
-    ret += '<table>'
-    if facets and ebook_facet.get('true', None) != '0':
-        ret += '<tr><td colspan="4" align="right">eBook?</td></tr>'
-    for doc in result:
-        work_key = doc.find("str[@name='key']").text
-        title = doc.find("str[@name='title']").text
-        e_fs = doc.find("arr[@name='first_sentence']")
-        first_sentences = [e.text for e in (e_fs if e_fs is not None else [])]
-        fulltext = doc.find("bool[@name='has_fulltext']").text == 'true'
-        edition_count = int(doc.find("int[@name='edition_count']").text)
-        e_ia = doc.find("arr[@name='ia']")
-        ia_list = [e.text for e in (e_ia if e_ia is not None else [])]
-        author_key = []
-        author_name = []
-        for e_str in doc.find("arr[@name='author_key']"):
-            assert e_str.tag == 'str'
-            author_key.append(e_str.text)
-        for e_str in doc.find("arr[@name='author_name']"):
-            assert e_str.tag == 'str'
-            author_name.append(e_str.text)
-        #authors = ', '.join('<a href="http://upstream.openlibrary.org%s">%s</a> (<a href="?author=&quot;%s&quot;">search</a>)' % (i, tidy_name(j), j) for i, j in zip(author_key, author_name))
-        authors = ', '.join('<a href="http://upstream.openlibrary.org%s">%s</a> (<a href="?author=&quot;%s&quot;">search</a>)' % (i, j, j) for i, j in zip(author_key, author_name))
-        ret += '<tr>'
-        if merge:
-            ret += '<td><input type="checkbox" name="merge" value="%s"></td>' % work_key[7:]
-        ret += u'<td><a href="http://upstream.openlibrary.org%s">%s</a>' % (work_key, highlight_titles.get(work_key, title))
-        ret += '</td>'
-        ret += '<td>by %s</td>' % authors
-        ret += '<td align="right">%d&nbsp;editions</td>' % edition_count
-        if fulltext:
-            # FIXME: scanned books
-            # ret += '<td align="right"><a href="%s">%d&nbsp;eBook%s</td>' % (work_key, len(ia_list), "s" if len(ia_list) != 1 else "")
-            ret += '<td align="right">%d&nbsp;eBook%s</td>' % (len(ia_list), "s" if len(ia_list) != 1 else "")
-        ret += '</tr>'
-        if first_sentences:
-            ret += '<tr>'
-            if merge:
-                ret += '<td></td>'
-            ret += u'<td colspan="2">%s</td></tr>' % '<br>'.join(esc(i) for i in first_sentences)
-    ret += '</table>'
-    if merge:
-        ret += '<input type="submit" value="Merge"><p>'
-        ret += '</form>'
-    if facets:
-        ret += '</td></tr></table>'
-
-    if page * rows < num_found:
-        next_page_url = search_url(query_params) + '&page=%d' % (page + 1,)
-
-        ret += '<br><a href="%s">Next page</a>' % esc(next_page_url)
-
-    return ret
-
-def textfield(i, name):
-    if i.get(name, None):
-        return '<input name="%s" value="%s" size="30">' % (name, esc(i.get(name)))
-    else:
-        return '<input name="%s" size="30">' % name
+    return web.storage(
+        key = doc.find("str[@name='key']").text,
+        title = doc.find("str[@name='title']").text,
+        edition_count = int(doc.find("int[@name='edition_count']").text),
+        ia = [e.text for e in (e_ia if e_ia is not None else [])],
+        authors = [(i, tidy_name(j)) for i, j in zip(ak, an)],
+    )
 
 class work_search(delegate.page):
     def GET(self):
-        i = web.input(language=[], author_facet=[])
-        param = {}
-        for p in 'title', 'author', 'page', 'sort', 'has_fulltext', 'language', 'author_facet', 'debug':
-            if i.get(p, None):
-                param[p] = i.get(p)
+        input = web.input(author_key=[], language=[], first_publish_year=[], publisher_facet=[], subject_facet=[], person_facet=[], place_facet=[], time_facet=[])
 
-        ret = '<a name="top"></a>'
-        ret += '<form><table>'
-        ret += '<tr><td>Title</td><td>' + textfield(i, 'title') + '</td></tr>\n'
-        ret += '<tr><td>Author</td><td>' + textfield(i, 'author') + '</td></tr>\n'
-        ret += '<tr><td></td><td><input type="submit" value="Search"></td></table></form>'
-        if param.get('title', None) or param.get('author', None) or 'author_facet' in param:
-            ret += search(param, facets=True)
-        return ret
+        return render.work_search(input, do_search, get_doc)
