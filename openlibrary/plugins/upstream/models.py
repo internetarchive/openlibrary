@@ -288,7 +288,7 @@ class UnitParser:
         self.fields = fields
 
     def format(self, d):
-        return " x ".join(str(d[k]) for k in self.fields) + ' ' + d['units']
+        return " x ".join(str(d[k]) for k in self.fields) + ' ' + d.get('units', '')
 
     def parse(self, s):
         """Parse the string and return storage object with specified fields and units."""
