@@ -275,6 +275,8 @@ def parse_toc_row(line):
 
 def parse_toc(text):
     """Parses each line of toc"""
+    if text is None:
+        return []
     return [parse_toc_row(line) for line in text.splitlines() if line.strip()]
     
 
