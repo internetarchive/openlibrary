@@ -12,6 +12,8 @@ from infogami.utils.markdown import markdown
 from infogami.utils.context import context
 from infogami.infobase.client import Thing
 
+from infogami.infobase.utils import parse_datetime
+
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.openlibrary.code import sanitize
 
@@ -159,13 +161,14 @@ def get_history(page):
     If the page has more than 5 revisions, first 2 and recent 3 changes are returned. 
     If the page has 5 or less than 
     """
-    h = web.storage(revision=page.revision)
+    h = web.storage(revision=page.revision, lastest_revision=page.revision, created=page.created)
     if h.revision < 5:
         h.recent = web.ctx.site.versions({"key": page.key, "limit": 5})
-        h.initial = []
+        h.initial = h.recent[-1:]
+        h.recent = h.recent[:-1]
     else:
-        h.initial = web.ctx.site.versions({"key": page.key, "limit": 2, "offset": h.revision-2})
-        h.recent = web.ctx.site.versions({"key": page.key, "limit": 3})
+        h.initial = web.ctx.site.versions({"key": page.key, "limit": 1, "offset": h.revision-1})
+        h.recent = web.ctx.site.versions({"key": page.key, "limit": 4})
     return h
 
 @public
@@ -193,8 +196,12 @@ def datestr(then, now=None):
         t, message = result.split(' ', 1)
         return _("%d " + message) % int(t)
     else:
-        return babel.dates.format_date(then, format="long", locale=get_locale())    
- 
+        return babel.dates.format_date(then, format="long", locale=get_locale())
+        
+@public
+def format_date(date):
+    return babel.dates.format_date(date, format="long", locale=get_locale())
+
 @public     
 def truncate(text, limit):
     """Truncate text and add ellipses if it longer than specified limit."""
@@ -289,6 +296,14 @@ def get_languages():
         keys = web.ctx.site.things({"type": "/type/language", "key~": "/languages/*", "limit": 1000})
         _languages = [web.storage(name=d.name, code=d.code) for d in web.ctx.site.get_many(keys)]
     return _languages
+    
+@public
+def get_edition_config():
+    thing = web.ctx.site.get('/config/edition')
+    classifications = [web.storage(t.dict()) for t in thing.classifications]
+    identifiers = [web.storage(t.dict()) for t in thing.identifiers]
+    roles = thing.roles
+    return web.storage(classifications=classifications, identifiers=identifiers, roles=roles)
     
 # regexp to match urls and emails. 
 # Adopted from github-flavored-markdown (BSD-style open source license)

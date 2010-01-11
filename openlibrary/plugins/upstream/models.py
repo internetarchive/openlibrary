@@ -8,14 +8,30 @@ from infogami.utils.view import safeint
 from openlibrary.plugins.search.code import SearchProcessor
 from openlibrary.plugins.openlibrary import code as ol_code
 
-from utils import get_coverstore_url, MultiDict, parse_toc
+from utils import get_coverstore_url, MultiDict, parse_toc, parse_datetime
 import account
 
 class Image:
     def __init__(self, category, id):
         self.category = category
         self.id = id
-    
+        
+    def info(self):
+        url = '%s/%s/id/%s.json' % (get_coverstore_url(), self.category, self.id)
+        try:
+            d = simplejson.loads(urllib2.urlopen(url).read())
+            print d
+            d['created'] = parse_datetime(d['created'])
+            if d['author'] == 'None':
+                d['author'] = None
+            d['author'] = d['author'] and web.ctx.site.get(d['author'])
+            print d
+            
+            return web.storage(d)
+        except IOError:
+            # coverstore is down
+            return None
+                
     def url(self, size="M"):
         return "%s/%s/id/%s-%s.jpg" % (get_coverstore_url(), self.category, self.id, size.upper())
         
@@ -24,7 +40,7 @@ class Image:
 
 def query_coverstore(category, **kw):
     url = "%s/%s/query?%s" % (get_coverstore_url(), category, urllib.urlencode(kw))
-    json = urllib.urlopen(url).read()
+    json = urllib2.urlopen(url).read()
     return simplejson.loads(json)
 
 class Edition(ol_code.Edition):
@@ -257,6 +273,11 @@ class SubjectPerson(Subject):
 
 
 class User(ol_code.User):
+    
+    def get_name(self):
+        return self.displayname or self.key.split('/')[-1]
+    name = property(get_name)
+    
     def get_edit_history(self, limit=10, offset=0):
         return web.ctx.site.versions({"author": self.key, "limit": limit, "offset": offset})
         

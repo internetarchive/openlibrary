@@ -116,6 +116,7 @@ class SaveBookHelper:
         """Process input data for edition."""
         edition.publishers = edition.get('publishers', '').split(';')
         edition.publish_places = edition.get('publish_places', '').split(';')
+        edition.distributors = edition.get('distributors', '').split(';')
         
         edition = trim_doc(edition)
 

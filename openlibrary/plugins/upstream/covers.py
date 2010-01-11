@@ -26,7 +26,6 @@ class add_cover(delegate.page):
 
         i = web.input(file={}, url="")
         user = web.ctx.site.get_user()
-        print i.file.filename, i.url, len(i.file.value)
         
         if i.file is not None:
             data = i.file.value
@@ -91,7 +90,7 @@ class manage_covers(delegate.page):
         if '-' in images:
             images = [int(id) for id in images[:images.index('-')]]
             self.save_images(book, images)
-            return render_template("covers/saved", self.get_image(book))
+            return render_template("covers/saved", self.get_image(book), showinfo=False)
         else:
             # ERROR
             pass
