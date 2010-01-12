@@ -20,6 +20,7 @@ urls = (
     '/([^/]*)/new_key', 'new_key',
     '/([^/]*)/save(/.*)', 'save',
     '/([^/]*)/save_many', 'save_many',
+    '/([^/]*)/reindex', 'reindex',    
     '/([^/]*)/account/(.*)', 'account',
     '/([^/]*)/count_edits_by_user', 'count_edits_by_user',
     '/.*', 'proxy'
@@ -30,6 +31,7 @@ convertions = {
     '/people/': '/user/',
     '/books/': '/b/',
     '/authors/': '/a/',
+    '/languages/': '/l/',
     '/templates/': '/upstream/templates/',
     '/macros/': '/upstream/macros/',
     '/js/': '/upstream/js/',
@@ -220,7 +222,14 @@ class save_many(proxy):
             q = convert_dict(q)
             i['query'] = simplejson.dumps(q)
             self.data = urllib.urlencode(i)
-            
+
+class reindex(proxy):
+    def before_request(self):
+        i = web.input(_method="POST")
+        if 'keys' in i:
+            keys = [convert_key(k) for k in simplejson.loads(i['keys'])]
+            i['keys'] = simplejson.dumps(keys)
+            self.data = urllib.urlencode(i)
 
 class account(proxy):
     def before_request(self):

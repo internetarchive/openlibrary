@@ -23,6 +23,8 @@ xcat $VENDORJS/jquery-validate/jquery.validate.min.js
 xcat $VENDORJS/jquery-flickr/jquery.flickr-1.0-min.js
 xcat $VENDORJS/jquery-tweet/jquery.tweet.js | $JSMIN
 
+xcat $VENDORJS/jquery-autocomplete/jquery.autocomplete-modified.js | $JSMIN
+
 xcat $VENDORJS/wmd/jquery.wmd.min.js 
 
 xcat $VENDORJS/flot/jquery.flot.min.js

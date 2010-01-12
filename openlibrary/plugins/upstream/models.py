@@ -3,17 +3,35 @@ import urllib, urllib2
 import simplejson
 
 from infogami.infobase import client
+from infogami.utils.view import safeint
+
 from openlibrary.plugins.search.code import SearchProcessor
 from openlibrary.plugins.openlibrary import code as ol_code
 
-from utils import get_coverstore_url, MultiDict
+from utils import get_coverstore_url, MultiDict, parse_toc, parse_datetime
 import account
 
 class Image:
     def __init__(self, category, id):
         self.category = category
         self.id = id
-    
+        
+    def info(self):
+        url = '%s/%s/id/%s.json' % (get_coverstore_url(), self.category, self.id)
+        try:
+            d = simplejson.loads(urllib2.urlopen(url).read())
+            print d
+            d['created'] = parse_datetime(d['created'])
+            if d['author'] == 'None':
+                d['author'] = None
+            d['author'] = d['author'] and web.ctx.site.get(d['author'])
+            print d
+            
+            return web.storage(d)
+        except IOError:
+            # coverstore is down
+            return None
+                
     def url(self, size="M"):
         return "%s/%s/id/%s-%s.jpg" % (get_coverstore_url(), self.category, self.id, size.upper())
         
@@ -22,7 +40,7 @@ class Image:
 
 def query_coverstore(category, **kw):
     url = "%s/%s/query?%s" % (get_coverstore_url(), category, urllib.urlencode(kw))
-    json = urllib.urlopen(url).read()
+    json = urllib2.urlopen(url).read()
     return simplejson.loads(json)
 
 class Edition(ol_code.Edition):
@@ -128,6 +146,27 @@ class Edition(ol_code.Edition):
     def set_physical_dimensions(self, d):
         self.physical_dimensions = d and UnitParser(["height", "width", "depth"]).format(d)
         
+    def get_toc_text(self):
+        def row(r):
+            if isinstance(r, basestring):
+                # there might be some legacy docs in the system with table-of-contents
+                # represented as list of strings.
+                level = 0
+                label = ""
+                title = r
+                page = ""
+            else:
+                level = safeint(r.get('level', '0'), 0)
+                label = r.get('label', '')
+                title = r.get('title', '')
+                page = r.get('pagenum', '')
+            return "*" * level + " " + " | ".join([label, title, page])
+            
+        return "\n".join(row(r) for r in self.table_of_contents)
+
+    def set_toc_text(self, text):
+        self.table_of_contents = parse_toc(text)
+        
     def get_links(self):
         links1 = [web.storage(url=url, title=title) for url, title in zip(self.uris, self.uri_descriptions)] 
         links2 = list(self.links)
@@ -150,8 +189,8 @@ class Author(ol_code.Author):
         return photo and photo.url(size)
     
     def get_olid(self):
-        return self.key.split('/')[-1]    
-
+        return self.key.split('/')[-1]
+        
 class Work(ol_code.Work):
     def get_subjects(self):
         """Return subject strings."""
@@ -234,6 +273,11 @@ class SubjectPerson(Subject):
 
 
 class User(ol_code.User):
+    
+    def get_name(self):
+        return self.displayname or self.key.split('/')[-1]
+    name = property(get_name)
+    
     def get_edit_history(self, limit=10, offset=0):
         return web.ctx.site.versions({"author": self.key, "limit": limit, "offset": offset})
         
@@ -265,7 +309,7 @@ class UnitParser:
         self.fields = fields
 
     def format(self, d):
-        return " x ".join(str(d[k]) for k in self.fields) + ' ' + d['units']
+        return " x ".join(str(d[k]) for k in self.fields) + ' ' + d.get('units', '')
 
     def parse(self, s):
         """Parse the string and return storage object with specified fields and units."""

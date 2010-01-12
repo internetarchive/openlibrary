@@ -79,11 +79,12 @@ class SaveBookHelper:
     
     def save(self, formdata):
         """Update work and edition documents according to the specified formdata."""
+        comment = formdata.pop('_comment', '')
         work_data, edition_data = self.process_input(formdata)
         
         if work_data:
             self.work.update(work_data)
-            self.work._save()
+            self.work._save(comment=comment)
             
         if self.edition and edition_data:
             identifiers = edition_data.pop('identifiers', [])
@@ -91,9 +92,10 @@ class SaveBookHelper:
             
             self.edition.set_physical_dimensions(edition_data.pop('physical_dimensions', None))
             self.edition.set_weight(edition_data.pop('weight', None))
+            self.edition.set_toc_text(edition_data.pop('table_of_contents', ''))
             
             self.edition.update(edition_data)
-            self.edition._save()
+            self.edition._save(comment=comment)
     
     def process_input(self, i):
         i = unflatten(i)
@@ -114,6 +116,7 @@ class SaveBookHelper:
         """Process input data for edition."""
         edition.publishers = edition.get('publishers', '').split(';')
         edition.publish_places = edition.get('publish_places', '').split(';')
+        edition.distributors = edition.get('distributors', '').split(';')
         
         edition = trim_doc(edition)
 
@@ -219,7 +222,8 @@ class author_edit(delegate.page):
         i = unflatten(i)
         if 'author' in i:
             author = trim_doc(i.author)
-            author.alternate_names = [name.strip() for name in author.get('alternate_names', '').split(';')]
+            alternate_names = author.get('alternate_names', None) or ''
+            author.alternate_names = [name.strip() for name in alternate_names.split(';')]
             return author
             
 class edit(core.edit):
