@@ -51,7 +51,7 @@ class add_cover(delegate.page):
         return render_template("covers/saved", cover)
         
     def save(self, book, coverid):
-        book.covers = book.covers or []
+        book.covers = [cover.id for cover in book.get_covers()]
         book.covers.append(coverid)
         book._save("Added new cover")
 
