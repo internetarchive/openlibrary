@@ -94,7 +94,7 @@ def parse_error(path):
     # strip common prefixes
     code = web.re_compile(".*/(?:staging|production)/(openlibrary|infogami|web)").sub(r'\1', code)
     
-    m = web.re_compile('(\d\d)(\d\d)(\d\d)(\d{6})\..*').match(os.path.basename(path))
+    m = web.re_compile('(\d\d)(\d\d)(\d\d)(\d{6})').match(web.numify(os.path.basename(path)))
     hh, mm, ss, microsec = m.groups()
     
     return web.storage(url=url, message=message, code=code, time="%s:%s:%s" % (hh, mm, ss))
