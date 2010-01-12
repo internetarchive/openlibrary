@@ -207,7 +207,7 @@ class subjects(delegate.page):
         m = re_subject_types.match(path_info)
         if m:
             subject_type = subject_types[m.group(1)]
-            q = '%s_key:"%s"' % (subject_type, str_to_key(m.group(2)).lower().replace('_', ' '))
+            q = '%s_key:"%s"' % (subject_type, url_quote(str_to_key(m.group(2)).lower().replace('_', ' ')))
         else:
             subject_type = 'subject'
             q = 'subject_key:"%s"' % url_quote(str_to_key(path_info).lower().replace('_', ' '))
