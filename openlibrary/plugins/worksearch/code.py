@@ -207,10 +207,10 @@ class subjects(delegate.page):
         m = re_subject_types.match(path_info)
         if m:
             subject_type = subject_types[m.group(1)]
-            q = '%s_key:"%s"' % (subject_type, m.group(2))
+            q = '%s_key:"%s"' % (subject_type, str_to_key(m.group(2)).lower().replace('_', ' '))
         else:
             subject_type = 'subject'
-            q = 'subject_key:"%s"' % url_quote(path_info.lower().replace('_', ' '))
+            q = 'subject_key:"%s"' % url_quote(str_to_key(path_info).lower().replace('_', ' '))
         # q = ' AND '.join('subject_key:"%s"' % url_quote(key.lower().replace('_', ' ')) for key in path_info.split('+'))
         solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=key,author_name,author_key,title,edition_count,ia&qt=standard&wt=json" % (q, offset, rows)
         facet_fields = ["author_facet", "language", "publish_year", "publisher_facet", "subject_facet", "person_facet", "place_facet", "time_facet"]
