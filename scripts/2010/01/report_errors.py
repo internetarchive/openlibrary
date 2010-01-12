@@ -10,11 +10,11 @@ from optparse import OptionParser
 
 
 TEMPLATE = """\
-$def with (dir, errors)
+$def with (hostname, date, dir, errors)
 $var subject: $dir: daily update
 
 $ error_places = group(errors, lambda e: (e.message, e.code))
-$hostname: $len(errors) errors at $len(error_places) places
+$hostname.split('.')[0]/$date: $len(errors) errors at $len(error_places) places
 $ newline = ""
 
 $for (msg, code), elist in error_places[:10]:
@@ -45,7 +45,6 @@ def group(items, key):
 web.template.Template.globals.update({
     "sum": sum,
     "group": group,
-    "hostname": hostname
 })
 t = web.template.Template(TEMPLATE)
 
@@ -80,7 +79,7 @@ def process_errors(dir, date):
     else:
         errors = []
     
-    return t(dir, errors)
+    return t(hostname, date, dir, errors)
     
 def parse_error(path):
     html = open(path).read(10000)
