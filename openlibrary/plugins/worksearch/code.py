@@ -144,7 +144,7 @@ def run_solr_query(param = {}, facets=True, rows=100, page=1, sort_by_edition_co
     return (parse(reply).getroot(), search_url, solr_select, q_list)
 
 def do_search(param, sort, page=1, rows=100):
-    (root, search_url, solr_select) = run_solr_query(param, True, rows, page, sort != 'score')
+    (root, search_url, solr_select, q_list) = run_solr_query(param, True, rows, page, sort != 'score')
     docs = root.find('result')
     return web.storage(
         facet_counts = read_facets(root),
