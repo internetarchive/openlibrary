@@ -197,11 +197,11 @@ class subjects(delegate.page):
         offset = 0
         if not path_info:
             return 'subjects page goes here'
-        q = 'subject_key:' + url_quote(path_info.lower())
+        q = 'subject_key:"%s"' % url_quote(path_info.lower().replace('_', ' '))
         solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=key,author_name,author_key,title,edition_count,ia&qt=standard&wt=json" % (q, offset, rows)
         facet_fields = ["author_facet", "language", "publish_year", "publisher_facet", "subject_facet", "person_facet", "place_facet", "time_facet"]
         solr_select += "&sort=edition_count+desc"
-        solr_select += "&facet=true&facet.mincount=1&f.author_facet.facet.limit=-1&f.publish_year.facet.limit=-1&facet.limit=6&" + '&'.join("facet.field=" + f for f in facet_fields)
+        solr_select += "&facet=true&facet.mincount=1&f.author_facet.facet.sort=count&f.author_facet.facet.limit=-1&f.publish_year.facet.limit=-1&facet.limit=6&" + '&'.join("facet.field=" + f for f in facet_fields)
         reply = json.load(urllib.urlopen(solr_select))
         facets = reply['facet_counts']['facet_fields']
         def get_facet(f, limit=None):
@@ -228,7 +228,7 @@ class subjects(delegate.page):
             author_count = len(facets['author_facet']) / 2,
             publishers = (web.storage(name=k, count=v) for k, v in get_facet('publisher_facet')),
             years = [(int(k), v) for k, v in get_facet('publish_year')],
-            subjects = (web.storage(key='/subjects/' + str_to_key(s), name=s, count=c) for s, c in subjects[1:]),
+            subjects = (web.storage(key='/subjects/' + str_to_key(s).replace(' ', '_'), name=s, count=c) for s, c in subjects[1:]),
         )
         return render.subjects(page)
 
