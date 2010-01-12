@@ -103,7 +103,7 @@ def read_isbn(s):
 re_fields = re.compile('(' + '|'.join(all_fields) + r'):', re.L)
 re_author_key = re.compile(r'(OL\d+A)')
 
-def run_solr_query(param = {}, rows=100, page=1, sort_by_edition_count=True):
+def run_solr_query(param = {}, rows=100, page=1, sort=None):
     q_list = []
     if 'q' in param:
         q_param = param['q'].strip()
@@ -156,15 +156,15 @@ def run_solr_query(param = {}, rows=100, page=1, sort_by_edition_count=True):
         v = param[k]
         query_params[k] = [url_quote(i) for i in v]
         solr_select += ''.join('&fq=%s:"%s"' % (k, l) for l in v if l)
-    if sort_by_edition_count:
-        solr_select += "&sort=edition_count+desc"
+    if sort:
+        solr_select += "&sort=" + url_quote(sort)
     reply = urllib.urlopen(solr_select)
     print solr_select
     search_url = get_search_url(query_params)
     return (parse(reply).getroot(), search_url, solr_select, q_list)
 
 def do_search(param, sort, page=1, rows=100):
-    (root, search_url, solr_select, q_list) = run_solr_query(param, rows, page, sort != 'score')
+    (root, search_url, solr_select, q_list) = run_solr_query(param, rows, page, sort)
     docs = root.find('result')
     return web.storage(
         facet_counts = read_facets(root),
