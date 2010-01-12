@@ -4,9 +4,16 @@ from infogami.utils import delegate
 from infogami import config
 from openlibrary.catalog.utils import flip_name
 from infogami.utils import view, template
+import simplejson as json
+from pprint import pformat
 
 solr_host = config.plugin_worksearch.get('solr')
 solr_select_url = "http://" + solr_host + "/solr/works/select"
+
+to_drop = set('''!*"'();:@&=+$,/?%#[]''')
+
+def str_to_key(s):
+    return ''.join(c for c in s.lower() if c not in to_drop)
 
 render = template.render
 
@@ -128,7 +135,7 @@ def run_solr_query(param = {}, rows=100, page=1, sort_by_edition_count=True):
 
     q = url_quote(' AND '.join(q_list))
 
-    solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=key,doc.author_name,doc.author_key,title,edition_count,ia&qt=standard&wt=standard" % (q, offset, rows)
+    solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=key,author_name,author_key,title,edition_count,ia&qt=standard&wt=standard" % (q, offset, rows)
     solr_select += "&facet=true&" + '&'.join("facet.field=" + f for f in facet_fields)
 
     for k in 'has_fulltext', 'fiction':
@@ -152,16 +159,17 @@ def run_solr_query(param = {}, rows=100, page=1, sort_by_edition_count=True):
     if sort_by_edition_count:
         solr_select += "&sort=edition_count+desc"
     reply = urllib.urlopen(solr_select)
+    print solr_select
     search_url = get_search_url(query_params)
     return (parse(reply).getroot(), search_url, solr_select, q_list)
 
 def do_search(param, sort, page=1, rows=100):
-    (root, search_url, solr_select, q_list) = run_solr_query(param, True, rows, page, sort != 'score')
+    (root, search_url, solr_select, q_list) = run_solr_query(param, rows, page, sort != 'score')
     docs = root.find('result')
     return web.storage(
         facet_counts = read_facets(root),
         docs = docs,
-        is_advanced = bool(param[q]),
+        is_advanced = bool(param['q']),
         num_found = (int(docs.attrib['numFound']) if docs is not None else None),
         search_url = search_url,
         solr_select = solr_select,
@@ -181,6 +189,48 @@ def get_doc(doc):
         ia = [e.text for e in (e_ia if e_ia is not None else [])],
         authors = [(i, tidy_name(j)) for i, j in zip(ak, an)],
     )
+
+class subjects(delegate.page):
+    path = '/subjects/(.+)'
+    def GET(self, path_info):
+        rows = 10
+        offset = 0
+        if not path_info:
+            return 'subjects page goes here'
+        q = 'subject_key:' + url_quote(path_info.lower())
+        solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=key,author_name,author_key,title,edition_count,ia&qt=standard&wt=json" % (q, offset, rows)
+        facet_fields = ["author_facet", "language", "publish_year", "publisher_facet", "subject_facet", "person_facet", "place_facet", "time_facet"]
+        solr_select += "&sort=edition_count+desc"
+        solr_select += "&facet=true&facet.mincount=1&f.author_facet.facet.limit=-1&f.publish_year.facet.limit=-1&facet.limit=6&" + '&'.join("facet.field=" + f for f in facet_fields)
+        reply = json.load(urllib.urlopen(solr_select))
+        facets = reply['facet_counts']['facet_fields']
+        def get_facet(f, limit=None):
+            return list(web.group(facets[f][:limit * 2] if limit else facets[f], 2))
+        subjects = get_facet('subject_facet')
+        def get_author(a, c):
+            k, n = eval(a)
+            return web.storage(key='/authors/' + k, name=n, count=c)
+
+        def work_object(w):
+            return web.storage(
+                authors = [web.storage(key='/authors/' + k, name=n) for k, n in zip(w['author_key'], w['author_name'])],
+                edition_count = w['edition_count'],
+                key = '/works/' + w['key'],
+                title = w['title'],
+                ia = w.get('ia', [])
+            )
+
+        page = web.storage(
+            name = subjects[0][0],
+            work_count = subjects[0][1],
+            works = [work_object(w) for w in reply['response']['docs']],
+            authors = [get_author(a, c) for a, c in get_facet('author_facet', limit=5)],
+            author_count = len(facets['author_facet']) / 2,
+            publishers = (web.storage(name=k, count=v) for k, v in get_facet('publisher_facet')),
+            years = [(int(k), v) for k, v in get_facet('publish_year')],
+            subjects = (web.storage(key='/subjects/' + str_to_key(s), name=s, count=c) for s, c in subjects[1:]),
+        )
+        return render.subjects(page)
 
 class search(delegate.page):
     def GET(self):
