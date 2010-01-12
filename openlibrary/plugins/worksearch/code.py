@@ -47,7 +47,6 @@ def read_facets(root):
             k = e.attrib['name']
             if name == 'author_key':
                 k, display = eval(k)
-                k = k[3:] # /a/OL123A -> OL123A
             elif name == 'language':
                 display = get_language_name(k)
             else:
@@ -57,7 +56,6 @@ def read_facets(root):
 
 def get_search_url(params, exclude = None):
     assert params
-    print 'params:', params
     def process(exclude = None):
         url = []
         for k, v in params.items():
@@ -66,9 +64,6 @@ def get_search_url(params, exclude = None):
                     continue
                 url.append(k + "=" + i)
         ret = '?' + '&'.join(url)
-        if exclude:
-            print exclude
-            print ret
         return ret
     return process
 
@@ -92,34 +87,32 @@ def tidy_name(s):
         s = s[:-4]
     return flip_name(s)
 
-def read_highlight(root):
-    e_highlight = root.find("lst[@name='highlighting']")
-    highlight_titles = {}
-    for e_lst in e_highlight:
-        if len(e_lst) == 0:
-            continue
-        e_arr = e_lst[0]
-        e_str = e_arr[0]
-        assert e_lst.tag == 'lst' and len(e_lst) == 1 \
-            and e_arr.tag == 'arr' and e_arr.attrib['name'] == 'title' and len(e_arr) == 1 \
-            and e_str.tag == 'str'
-        work_key = e_lst.attrib['name']
-        highlight_titles[work_key] = e_str.text.replace('em>','b>')
-    return highlight_titles
+re_isbn = re.compile('^([0-9]{9}[0-9X]|[0-9]{13})$')
+
+def read_isbn(s):
+    s = s.replace('-', '')
+    return s if re_isbn.match(s) else None
 
 re_fields = re.compile('(' + '|'.join(all_fields) + r'):', re.L)
 re_author_key = re.compile(r'(OL\d+A)')
 
 def run_solr_query(param = {}, facets=True, rows=100, page=1, sort_by_edition_count=True):
     q_list = []
-    q_param = param.get('q', None)
+    if 'q' in param:
+        q_param = param['q'].strip()
+    else:
+        q_param = None
     offset = rows * (page - 1)
     query_params = dict((k, url_quote(param[k])) for k in ('title', 'publisher', 'isbn', 'oclc', 'lccn', 'first_sentence', 'contribtor', 'author') if k in param)
     if q_param:
         if q_param == '*:*' or re_fields.match(q_param):
             q_list.append(q_param)
         else:
-            q_list.append('(' + ' OR '.join('%s:(%s)' % (f, q_param) for f in search_fields) + ')')
+            isbn = read_isbn(q_param)
+            if isbn:
+                q_list.append('isbn:(%s)' % isbn)
+            else:
+                q_list.append('(' + ' OR '.join('%s:(%s)' % (f, q_param) for f in search_fields) + ')')
         query_params['q'] = url_quote(q_param)
     else:
         if 'author' in param:
@@ -161,18 +154,18 @@ def run_solr_query(param = {}, facets=True, rows=100, page=1, sort_by_edition_co
         solr_select += "&sort=edition_count+desc"
     reply = urllib.urlopen(solr_select)
     search_url = get_search_url(query_params)
-    return (parse(reply).getroot(), search_url, solr_select)
+    return (parse(reply).getroot(), search_url, solr_select, q_list)
 
 def do_search(param, sort, page=1, rows=100):
-    (root, search_url, solr_select) = run_solr_query(param, True, rows, page, sort != 'score')
+    (root, search_url, solr_select, q_list) = run_solr_query(param, True, rows, page, sort != 'score')
     docs = root.find('result')
     return web.storage(
-        highlight = read_highlight(root),
         facet_counts = read_facets(root),
         docs = docs,
-        num_found = (int(docs.attrib['numFound']) if docs else None),
+        num_found = (int(docs.attrib['numFound']) if docs is not None else None),
         search_url = search_url,
         solr_select = solr_select,
+        q_list = q_list,
     )
 
 def get_doc(doc):
@@ -189,7 +182,7 @@ def get_doc(doc):
         authors = [(i, tidy_name(j)) for i, j in zip(ak, an)],
     )
 
-class work_search(delegate.page):
+class search(delegate.page):
     def GET(self):
         input = web.input(author_key=[], language=[], first_publish_year=[], publisher_facet=[], subject_facet=[], person_facet=[], place_facet=[], time_facet=[])
 

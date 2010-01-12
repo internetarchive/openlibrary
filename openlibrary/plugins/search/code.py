@@ -68,6 +68,7 @@ def lookup_ocaid(ocaid):
 
 from collapse import collapse_groups
 class fullsearch(delegate.page):
+    path = '/search/edition'
     def POST(self):
         errortext = None
         out = []
