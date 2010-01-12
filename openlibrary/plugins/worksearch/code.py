@@ -87,19 +87,32 @@ def tidy_name(s):
         s = s[:-4]
     return flip_name(s)
 
+re_isbn = re.compile('^([0-9]{9}[0-9X]|[0-9]{13})$')
+
+def read_isbn(s):
+    s = s.replace('-', '')
+    return s if re_isbn.match(s) else None
+
 re_fields = re.compile('(' + '|'.join(all_fields) + r'):', re.L)
 re_author_key = re.compile(r'(OL\d+A)')
 
 def run_solr_query(param = {}, facets=True, rows=100, page=1, sort_by_edition_count=True):
     q_list = []
-    q_param = param.get('q', None)
+    if 'q' in param:
+        q_param = param['q'].strip()
+    else:
+        q_param = None
     offset = rows * (page - 1)
     query_params = dict((k, url_quote(param[k])) for k in ('title', 'publisher', 'isbn', 'oclc', 'lccn', 'first_sentence', 'contribtor', 'author') if k in param)
     if q_param:
         if q_param == '*:*' or re_fields.match(q_param):
             q_list.append(q_param)
         else:
-            q_list.append('(' + ' OR '.join('%s:(%s)' % (f, q_param) for f in search_fields) + ')')
+            isbn = read_isbn(q_param)
+            if isbn:
+                q_list.append('isbn:(%s)' % isbn)
+            else:
+                q_list.append('(' + ' OR '.join('%s:(%s)' % (f, q_param) for f in search_fields) + ')')
         query_params['q'] = url_quote(q_param)
     else:
         if 'author' in param:
@@ -149,7 +162,7 @@ def do_search(param, sort, page=1, rows=100):
     return web.storage(
         facet_counts = read_facets(root),
         docs = docs,
-        num_found = (int(docs.attrib['numFound']) if docs else None),
+        num_found = (int(docs.attrib['numFound']) if docs is not None else None),
         search_url = search_url,
         solr_select = solr_select,
         q_list = q_list,
