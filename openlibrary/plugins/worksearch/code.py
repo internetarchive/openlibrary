@@ -92,25 +92,10 @@ def tidy_name(s):
         s = s[:-4]
     return flip_name(s)
 
-def read_highlight(root):
-    e_highlight = root.find("lst[@name='highlighting']")
-    highlight_titles = {}
-    for e_lst in e_highlight:
-        if len(e_lst) == 0:
-            continue
-        e_arr = e_lst[0]
-        e_str = e_arr[0]
-        assert e_lst.tag == 'lst' and len(e_lst) == 1 \
-            and e_arr.tag == 'arr' and e_arr.attrib['name'] == 'title' and len(e_arr) == 1 \
-            and e_str.tag == 'str'
-        work_key = e_lst.attrib['name']
-        highlight_titles[work_key] = e_str.text.replace('em>','b>')
-    return highlight_titles
-
 re_fields = re.compile('(' + '|'.join(all_fields) + r'):', re.L)
 re_author_key = re.compile(r'(OL\d+A)')
 
-def run_solr_query(param = {}, facets=True, rows=100, page=1, sort_by_edition_count=True):
+def run_solr_query(param = {}, rows=100, page=1, sort_by_edition_count=True):
     q_list = []
     q_param = param.get('q', None)
     offset = rows * (page - 1)
@@ -135,9 +120,8 @@ def run_solr_query(param = {}, facets=True, rows=100, page=1, sort_by_edition_co
 
     q = url_quote(' AND '.join(q_list))
 
-    solr_select = solr_select_url + "?indent=on&version=2.2&q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=*%%2Cscore&qt=standard&wt=standard&explainOther=&hl=on&hl.fl=title" % (q, offset, rows)
-    if facets:
-        solr_select += "&facet=true&" + '&'.join("facet.field=" + f for f in facet_fields)
+    solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=key,doc.author_name,doc.author_key,title,edition_count,ia&qt=standard&wt=standard" % (q, offset, rows)
+    solr_select += "&facet=true&" + '&'.join("facet.field=" + f for f in facet_fields)
 
     for k in 'has_fulltext', 'fiction':
         if k not in param:
@@ -164,12 +148,12 @@ def run_solr_query(param = {}, facets=True, rows=100, page=1, sort_by_edition_co
     return (parse(reply).getroot(), search_url, solr_select)
 
 def do_search(param, sort, page=1, rows=100):
-    (root, search_url, solr_select) = run_solr_query(param, True, rows, page, sort != 'score')
+    (root, search_url, solr_select) = run_solr_query(param, rows, page, sort != 'score')
     docs = root.find('result')
     return web.storage(
-        highlight = read_highlight(root),
         facet_counts = read_facets(root),
         docs = docs,
+        is_advanced = bool(param[q]),
         num_found = (int(docs.attrib['numFound']) if docs else None),
         search_url = search_url,
         solr_select = solr_select,
@@ -189,7 +173,7 @@ def get_doc(doc):
         authors = [(i, tidy_name(j)) for i, j in zip(ak, an)],
     )
 
-class work_search(delegate.page):
+class search(delegate.page):
     def GET(self):
         input = web.input(author_key=[], language=[], first_publish_year=[], publisher_facet=[], subject_facet=[], person_facet=[], place_facet=[], time_facet=[])
 
