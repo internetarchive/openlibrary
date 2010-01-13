@@ -215,13 +215,12 @@ class subjects(delegate.page):
         solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=key,author_name,author_key,title,edition_count,ia&qt=standard&wt=json" % (q, offset, rows)
         facet_fields = ["author_facet", "language", "publish_year", "publisher_facet", "subject_facet", "person_facet", "place_facet", "time_facet"]
         solr_select += "&sort=edition_count+desc"
-        solr_select += "&facet=true&facet.mincount=1&f.author_facet.facet.sort=count&f.author_facet.facet.limit=-1&f.publish_year.facet.limit=-1&facet.limit=6&" + '&'.join("facet.field=" + f for f in facet_fields)
+        solr_select += "&facet=true&facet.mincount=1&f.author_facet.facet.sort=count&f.publish_year.facet.limit=-1&facet.limit=20&" + '&'.join("facet.field=" + f for f in facet_fields)
         print solr_select
         reply = json.load(urllib.urlopen(solr_select))
         facets = reply['facet_counts']['facet_fields']
         def get_facet(f, limit=None):
             return list(web.group(facets[f][:limit * 2] if limit else facets[f], 2))
-        subjects = get_facet('subject_facet')
         def get_author(a, c):
             k, n = eval(a)
             return web.storage(key='/authors/' + k, name=n, count=c)
@@ -235,18 +234,26 @@ class subjects(delegate.page):
                 ia = w.get('ia', [])
             )
         name, count = facets[subject_type + '_facet'][0:2]
-        if subject_type == 'subject':
-            subjects = subjects[1:]
+
+        def get_authors(limit=10):
+            return (get_author(a, c) for a, c in get_facet('author_facet', limit=limit))
+
+        def get_subjects(limit=10):
+            if subject_type == 'subject':
+                subjects = get_facet('subject_facet', limit=limit+1)[1:]
+            else:
+                subjects = get_facet('subject_facet', limit=limit)
+            return (web.storage(key='/subjects/' + str_to_key(s).replace(' ', '_'), name=s, count=c) for s, c in subjects)
 
         page = web.storage(
             name = name,
             work_count = count,
             works = [work_object(w) for w in reply['response']['docs']],
-            authors = [get_author(a, c) for a, c in get_facet('author_facet', limit=5)],
-            author_count = len(facets['author_facet']) / 2,
+            authors = get_authors,
+            author_count = None,
             publishers = (web.storage(name=k, count=v) for k, v in get_facet('publisher_facet')),
             years = [(int(k), v) for k, v in get_facet('publish_year')],
-            subjects = (web.storage(key='/subjects/' + str_to_key(s).replace(' ', '_'), name=s, count=c) for s, c in subjects),
+            subjects = get_subjects,
         )
         return render.subjects(page)
 
