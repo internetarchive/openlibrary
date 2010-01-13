@@ -177,6 +177,7 @@ def do_search(param, sort, page=1, rows=100):
 
 def get_doc(doc):
     e_ia = doc.find("arr[@name='ia']")
+    e_first_pub = doc.find("int[@name='first_publish_year']")
 
     ak = [e.text for e in doc.find("arr[@name='author_key']")]
     an = [e.text for e in doc.find("arr[@name='author_name']")]
@@ -187,6 +188,7 @@ def get_doc(doc):
         edition_count = int(doc.find("int[@name='edition_count']").text),
         ia = [e.text for e in (e_ia if e_ia is not None else [])],
         authors = [(i, tidy_name(j)) for i, j in zip(ak, an)],
+        first_publish_year = (e_first_pub.text if e_first_pub else None),
     )
 
 class work_search(delegate.page):
