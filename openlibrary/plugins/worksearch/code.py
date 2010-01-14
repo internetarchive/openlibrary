@@ -212,10 +212,12 @@ class subjects(delegate.page):
         m = re_subject_types.match(path_info)
         if m:
             subject_type = subject_types[m.group(1)]
-            q = '%s_key:"%s"' % (subject_type, url_quote(str_to_key(m.group(2)).lower().replace('_', ' ')))
+            key = str_to_key(m.group(2)).lower().replace('_', ' ')
+            q = '%s_key:"%s"' % (subject_type, url_quote(key))
         else:
             subject_type = 'subject'
-            q = 'subject_key:"%s"' % url_quote(str_to_key(path_info).lower().replace('_', ' '))
+            key = str_to_key(path_info).lower().replace('_', ' ')
+            q = 'subject_key:"%s"' % url_quote(key)
         # q = ' AND '.join('subject_key:"%s"' % url_quote(key.lower().replace('_', ' ')) for key in path_info.split('+'))
         solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=key,author_name,author_key,title,edition_count,ia&qt=standard&wt=json" % (q, offset, rows)
         facet_fields = ["author_facet", "language", "publish_year", "publisher_facet", "subject_facet", "person_facet", "place_facet", "time_facet"]
@@ -238,14 +240,28 @@ class subjects(delegate.page):
                 title = w['title'],
                 ia = w.get('ia', [])
             )
-        name, count = facets[subject_type + '_facet'][0:2]
+
+        def find_name_index (facets, key, subject_type):
+            i = 0
+            for name, count in web.group(facets[subject_type + '_facet'], 2):
+                if str_to_key(name) == key:
+                    return i, name, count
+                i += 1
 
         def get_authors(limit=10):
             return (get_author(a, c) for a, c in get_facet('author_facet', limit=limit))
 
+        name_index, name, count = find_name_index(facets, key, subject_type)
+
         def get_subjects(limit=10):
             if subject_type == 'subject':
-                subjects = get_facet('subject_facet', limit=limit+1)[1:]
+                subjects = []
+                num == 0
+                for s in get_facet('subject_facet', limit=limit+1)
+                    if num == name_index:
+                        continue
+                    subjects.append(s)
+                    num += 1
             else:
                 subjects = get_facet('subject_facet', limit=limit)
             return (web.storage(key='/subjects/' + str_to_key(s).replace(' ', '_'), name=s, count=c) for s, c in subjects)
