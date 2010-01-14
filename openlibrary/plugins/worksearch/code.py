@@ -222,7 +222,7 @@ class subjects(delegate.page):
         solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=key,author_name,author_key,title,edition_count,ia&qt=standard&wt=json" % (q, offset, rows)
         facet_fields = ["author_facet", "language", "publish_year", "publisher_facet", "subject_facet", "person_facet", "place_facet", "time_facet"]
         solr_select += "&sort=edition_count+desc"
-        solr_select += "&facet=true&facet.mincount=1&f.author_facet.facet.sort=count&f.publish_year.facet.limit=-1&facet.limit=20&" + '&'.join("facet.field=" + f for f in facet_fields)
+        solr_select += "&facet=true&facet.mincount=1&f.author_facet.facet.sort=count&f.publish_year.facet.limit=-1&facet.limit=25&" + '&'.join("facet.field=" + f for f in facet_fields)
         print solr_select
         reply = json.load(urllib.urlopen(solr_select))
         facets = reply['facet_counts']['facet_fields']
@@ -253,18 +253,21 @@ class subjects(delegate.page):
 
         name_index, name, count = find_name_index(facets, key, subject_type)
 
-        def get_subjects(limit=10):
-            if subject_type == 'subject':
+        def get_subject_facet(facet=='subject', limit=10):
+            if subject_type == facet:
                 subjects = []
-                num == 0
-                for s in get_facet('subject_facet', limit=limit+1)
+                num = 0
+                for s in get_facet(facet + '_facet', limit=limit+1):
                     if num == name_index:
                         continue
                     subjects.append(s)
                     num += 1
             else:
-                subjects = get_facet('subject_facet', limit=limit)
-            return (web.storage(key='/subjects/' + str_to_key(s).replace(' ', '_'), name=s, count=c) for s, c in subjects)
+                subjects = get_facet(facet + '_facet', limit=limit)
+            start = '/subjects/'
+            if facet != 'subject':
+                start += facet + '/'
+            return (web.storage(key=start + str_to_key(s).replace(' ', '_'), name=s, count=c) for s, c in subjects)
 
         page = web.storage(
             name = name,
@@ -274,7 +277,7 @@ class subjects(delegate.page):
             author_count = None,
             publishers = (web.storage(name=k, count=v) for k, v in get_facet('publisher_facet')),
             years = [(int(k), v) for k, v in get_facet('publish_year')],
-            subjects = get_subjects,
+            subjects = get_subject_facets,
         )
         return render.subjects(page)
 
