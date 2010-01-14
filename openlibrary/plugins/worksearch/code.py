@@ -179,7 +179,7 @@ def do_search(param, sort, page=1, rows=100):
 def get_doc(doc):
     e_ia = doc.find("arr[@name='ia']")
     first_pub = None
-    e_first_pub = doc.find("int[@name='first_publish_year']")
+    e_first_pub = doc.find("arr[@name='first_publish_year']")
     if e_first_pub is not None and len(e_first_pub) == 1:
         first_pub = e_first_pub[0].text
 
