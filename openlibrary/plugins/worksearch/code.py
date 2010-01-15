@@ -223,7 +223,7 @@ class subjects(delegate.page):
             full_key = '/subjects/' + key
             q = 'subject_key:"%s"' % url_quote(key)
         # q = ' AND '.join('subject_key:"%s"' % url_quote(key.lower().replace('_', ' ')) for key in path_info.split('+'))
-        solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=key,author_name,author_key,title,edition_count,ia&qt=standard&wt=json" % (q, offset, rows)
+        solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=key,author_name,author_key,title,edition_count,ia,cover_edition_key&qt=standard&wt=json" % (q, offset, rows)
         facet_fields = ["author_facet", "language", "publish_year", "publisher_facet", "subject_facet", "person_facet", "place_facet", "time_facet"]
         solr_select += "&sort=edition_count+desc"
         solr_select += "&facet=true&facet.mincount=1&f.author_facet.facet.sort=count&f.publish_year.facet.limit=-1&facet.limit=25&" + '&'.join("facet.field=" + f for f in facet_fields)
