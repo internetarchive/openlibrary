@@ -215,10 +215,12 @@ class subjects(delegate.page):
         if m:
             subject_type = subject_types[m.group(1)]
             key = str_to_key(m.group(2)).lower().replace('_', ' ')
+            full_key = '/subjects/%s/%s' % (m.group(1), key)
             q = '%s_key:"%s"' % (subject_type, url_quote(key))
         else:
             subject_type = 'subject'
             key = str_to_key(path_info).lower().replace('_', ' ')
+            full_key = '/subjects/' + key
             q = 'subject_key:"%s"' % url_quote(key)
         # q = ' AND '.join('subject_key:"%s"' % url_quote(key.lower().replace('_', ' ')) for key in path_info.split('+'))
         solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=key,author_name,author_key,title,edition_count,ia&qt=standard&wt=json" % (q, offset, rows)
@@ -278,10 +280,12 @@ class subjects(delegate.page):
             return (web.storage(key=start + str_to_key(s).replace(' ', '_'), name=s, count=c) for s, c in subjects)
 
         page = web.storage(
+            key = full_key,
             name = name,
             work_count = count,
             works = works,
             get_covers = get_covers,
+            subject_type = subject_type,
             authors = get_authors,
             author_count = None,
             publishers = (web.storage(name=k, count=v) for k, v in get_facet('publisher_facet')),
