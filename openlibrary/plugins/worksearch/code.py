@@ -242,6 +242,7 @@ class subjects(delegate.page):
                 edition_count = w['edition_count'],
                 key = '/works/' + w['key'],
                 title = w['title'],
+                cover_edition_key = w.get('cover_edition_key', None),
                 ia = w.get('ia', [])
             )
 
@@ -258,8 +259,17 @@ class subjects(delegate.page):
         works = [work_object(w) for w in reply['response']['docs']]
 
         def get_covers(limit=20):
-            src = works if limit is None else works[:limit]
-            return [{ 'key': w.key, 'title': w.title, 'authors': [dict(a) for a in w.authors] } for w in src]
+            collect = []
+            for w in works if limit is None else works[:limit]
+                i = {
+                    'key': w.key,
+                    'title': w.title,
+                    'authors': [dict(a) for a in w.authors],
+                } 
+                if w.get('cover_edition_key', None):
+                    i['cover_edition_key'] = w.cover_edition_key
+                collect.append(i)
+            return collect
 
         name_index, name, count = find_name_index(facets, key, subject_type)
 
