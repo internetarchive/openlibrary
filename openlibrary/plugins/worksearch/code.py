@@ -207,7 +207,7 @@ subject_types = {
 class subjects(delegate.page):
     path = '/subjects/(.+)'
     def GET(self, path_info):
-        rows = 10
+        rows = 12 * 3
         offset = 0
         if not path_info:
             return 'subjects page goes here'
