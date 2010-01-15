@@ -91,6 +91,24 @@ def render_template(name, *a, **kw):
     return render[name](*a, **kw)
     
 @public
+def list_recent_pages(path, limit=100, offset=0):
+    """Lists all pages with name path/* in the order of last_modified."""
+    q = {}
+        
+    q['key~' ] = path + '/*'
+    # don't show /type/delete and /type/redirect
+    q['a:type!='] = '/type/delete'
+    q['b:type!='] = '/type/redirect'
+    
+    q['sort'] = 'key'
+    q['limit'] = limit
+    q['offset'] = offset
+    q['sort'] = '-last_modified'
+    # queries are very slow with != conditions
+    # q['type'] != '/type/delete'
+    return web.ctx.site.get_many(web.ctx.site.things(q))
+        
+@public
 def json_encode(d):
     return simplejson.dumps(d)
     
