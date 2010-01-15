@@ -260,7 +260,7 @@ class subjects(delegate.page):
 
         def get_covers(limit=20):
             collect = []
-            for w in works if limit is None else works[:limit]
+            for w in works if limit is None else works[:limit]:
                 i = {
                     'key': w.key,
                     'title': w.title,
