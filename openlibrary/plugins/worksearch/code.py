@@ -6,6 +6,7 @@ from openlibrary.catalog.utils import flip_name
 from infogami.utils import view, template
 import simplejson as json
 from pprint import pformat
+from openlibrary.plugins.upstream.utils import get_coverstore_url
 
 solr_host = config.plugin_worksearch.get('solr')
 solr_select_url = "http://" + solr_host + "/solr/works/select"
@@ -200,6 +201,7 @@ subject_types = {
     'places': 'place',
     'times': 'time',
     'people': 'person',
+    'subjects': 'subject',
 }
 
 class subjects(delegate.page):
@@ -251,33 +253,40 @@ class subjects(delegate.page):
         def get_authors(limit=10):
             return (get_author(a, c) for a, c in get_facet('author_facet', limit=limit))
 
+        works = [work_object(w) for w in reply['response']['docs']]
+
+        def get_covers(limit=20):
+            src = works if limit is None else works[:limit]
+            return [{ 'key': w.key, 'title': w.title, 'authors': [dict(a) for a in w.authors] } for w in src]
+
         name_index, name, count = find_name_index(facets, key, subject_type)
 
-        def get_subject_facet(facet=='subject', limit=10):
-            if subject_type == facet:
-                subjects = []
+        def get_subject_facet(facet='subjects', limit=10):
+            subjects = []
+            i = subject_types[facet]
+            if subject_type == i:
                 num = 0
-                for s in get_facet(facet + '_facet', limit=limit+1):
-                    if num == name_index:
-                        continue
-                    subjects.append(s)
+                for s in get_facet(i + '_facet', limit=limit+1):
+                    if num != name_index:
+                        subjects.append(s)
                     num += 1
             else:
-                subjects = get_facet(facet + '_facet', limit=limit)
+                subjects = get_facet(i + '_facet', limit=limit)
             start = '/subjects/'
-            if facet != 'subject':
+            if facet != 'subjects':
                 start += facet + '/'
             return (web.storage(key=start + str_to_key(s).replace(' ', '_'), name=s, count=c) for s, c in subjects)
 
         page = web.storage(
             name = name,
             work_count = count,
-            works = [work_object(w) for w in reply['response']['docs']],
+            works = works,
+            get_covers = get_covers,
             authors = get_authors,
             author_count = None,
             publishers = (web.storage(name=k, count=v) for k, v in get_facet('publisher_facet')),
             years = [(int(k), v) for k, v in get_facet('publish_year')],
-            subjects = get_subject_facets,
+            subjects = get_subject_facet,
         )
         return render.subjects(page)
 
