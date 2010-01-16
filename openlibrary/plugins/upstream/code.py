@@ -26,29 +26,9 @@ if not config.get('coverstore_url'):
     config.coverstore_url = "http://covers.openlibrary.org"
 
 class static(delegate.page):
-    path = "/(?:images|css|js)/.*"
+    path = "/images/.*"
     def GET(self):
-        page = web.ctx.site.get(web.ctx.path)
-        if page and page.type.key != '/type/delete':
-            return self.delegate()
-        elif web.input(m=None).m is not None:
-            return self.delegate()
-        else:
-            raise web.seeother('/static/upstream' + web.ctx.path)
-
-    def POST(self):
-        return self.delegate()
-
-    def delegate(self):
-        cls, args = app.find_mode()
-        method = web.ctx.method
-
-        if cls is None:
-            raise web.seeother(web.changequery(m=None))
-        elif not hasattr(cls, method):
-            raise web.nomethod(method)
-        else:
-            return getattr(cls(), method)(*args)
+        raise web.seeother('/static/upstream' + web.ctx.path)
 
 # handlers for change photo and change cover
 

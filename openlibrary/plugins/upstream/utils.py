@@ -318,8 +318,8 @@ def get_languages():
 @public
 def get_edition_config():
     thing = web.ctx.site.get('/config/edition')
-    classifications = [web.storage(t.dict()) for t in thing.classifications]
-    identifiers = [web.storage(t.dict()) for t in thing.identifiers]
+    classifications = [web.storage(t.dict()) for t in thing.classifications if 'name' in t]
+    identifiers = [web.storage(t.dict()) for t in thing.identifiers if 'name' in t]
     roles = thing.roles
     return web.storage(classifications=classifications, identifiers=identifiers, roles=roles)
     
