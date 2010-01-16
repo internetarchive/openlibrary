@@ -10,7 +10,7 @@ import datetime
 from infogami import config
 from infogami.infobase import client
 from infogami.utils import delegate, app, types
-from infogami.utils.view import public
+from infogami.utils.view import public, safeint, render
 
 from infogami.plugins.api.code import jsonapi
 
@@ -187,6 +187,17 @@ class redirects(delegate.page):
 @public
 def get_document(key):
     return web.ctx.site.get(key)
+    
+class revert(delegate.mode):
+    def POST(self, key):
+        i = web.input("v", _comment=None)
+        v = i.v and safeint(i.v, None)
+        if v is None:
+            raise web.badrequest()
+            
+        comment = i._comment or "reverted to revision %d" % v
+        web.ctx.site.get(key, i.v)._save(comment)
+        raise web.seeother(key)
 
 def setup():
     """Setup for upstream plugin"""
