@@ -6,6 +6,7 @@ from openlibrary.catalog.utils import flip_name
 from infogami.utils import view, template
 import simplejson as json
 from pprint import pformat
+from openlibrary.plugins.upstream.utils import get_coverstore_url
 
 solr_host = config.plugin_worksearch.get('solr')
 solr_select_url = "http://" + solr_host + "/solr/works/select"
@@ -200,12 +201,13 @@ subject_types = {
     'places': 'place',
     'times': 'time',
     'people': 'person',
+    'subjects': 'subject',
 }
 
 class subjects(delegate.page):
     path = '/subjects/(.+)'
     def GET(self, path_info):
-        rows = 10
+        rows = 12 * 3
         offset = 0
         if not path_info:
             return 'subjects page goes here'
@@ -213,13 +215,15 @@ class subjects(delegate.page):
         if m:
             subject_type = subject_types[m.group(1)]
             key = str_to_key(m.group(2)).lower().replace('_', ' ')
+            full_key = '/subjects/%s/%s' % (m.group(1), key)
             q = '%s_key:"%s"' % (subject_type, url_quote(key))
         else:
             subject_type = 'subject'
             key = str_to_key(path_info).lower().replace('_', ' ')
+            full_key = '/subjects/' + key
             q = 'subject_key:"%s"' % url_quote(key)
         # q = ' AND '.join('subject_key:"%s"' % url_quote(key.lower().replace('_', ' ')) for key in path_info.split('+'))
-        solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=key,author_name,author_key,title,edition_count,ia&qt=standard&wt=json" % (q, offset, rows)
+        solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=key,author_name,author_key,title,edition_count,ia,cover_edition_key&qt=standard&wt=json" % (q, offset, rows)
         facet_fields = ["author_facet", "language", "publish_year", "publisher_facet", "subject_facet", "person_facet", "place_facet", "time_facet"]
         solr_select += "&sort=edition_count+desc"
         solr_select += "&facet=true&facet.mincount=1&f.author_facet.facet.sort=count&f.publish_year.facet.limit=-1&facet.limit=25&" + '&'.join("facet.field=" + f for f in facet_fields)
@@ -238,6 +242,7 @@ class subjects(delegate.page):
                 edition_count = w['edition_count'],
                 key = '/works/' + w['key'],
                 title = w['title'],
+                cover_edition_key = w.get('cover_edition_key', None),
                 ia = w.get('ia', [])
             )
 
@@ -251,33 +256,51 @@ class subjects(delegate.page):
         def get_authors(limit=10):
             return (get_author(a, c) for a, c in get_facet('author_facet', limit=limit))
 
+        works = [work_object(w) for w in reply['response']['docs']]
+
+        def get_covers(limit=20):
+            collect = []
+            for w in works if limit is None else works[:limit]:
+                i = {
+                    'key': w.key,
+                    'title': w.title,
+                    'authors': [dict(a) for a in w.authors],
+                } 
+                if w.get('cover_edition_key', None):
+                    i['cover_edition_key'] = w.cover_edition_key
+                collect.append(i)
+            return collect
+
         name_index, name, count = find_name_index(facets, key, subject_type)
 
-        def get_subject_facet(facet=='subject', limit=10):
-            if subject_type == facet:
-                subjects = []
+        def get_subject_facet(facet='subjects', limit=10):
+            subjects = []
+            i = subject_types[facet]
+            if subject_type == i:
                 num = 0
-                for s in get_facet(facet + '_facet', limit=limit+1):
-                    if num == name_index:
-                        continue
-                    subjects.append(s)
+                for s in get_facet(i + '_facet', limit=limit+1):
+                    if num != name_index:
+                        subjects.append(s)
                     num += 1
             else:
-                subjects = get_facet(facet + '_facet', limit=limit)
+                subjects = get_facet(i + '_facet', limit=limit)
             start = '/subjects/'
-            if facet != 'subject':
+            if facet != 'subjects':
                 start += facet + '/'
             return (web.storage(key=start + str_to_key(s).replace(' ', '_'), name=s, count=c) for s, c in subjects)
 
         page = web.storage(
+            key = full_key,
             name = name,
             work_count = count,
-            works = [work_object(w) for w in reply['response']['docs']],
+            works = works,
+            get_covers = get_covers,
+            subject_type = subject_type,
             authors = get_authors,
             author_count = None,
             publishers = (web.storage(name=k, count=v) for k, v in get_facet('publisher_facet')),
             years = [(int(k), v) for k, v in get_facet('publish_year')],
-            subjects = get_subject_facets,
+            subjects = get_subject_facet,
         )
         return render.subjects(page)
 
