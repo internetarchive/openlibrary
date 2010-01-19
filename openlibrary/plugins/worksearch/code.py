@@ -123,16 +123,13 @@ def run_solr_query(param = {}, rows=100, page=1, sort=None):
 
         check_params = ['title', 'publisher', 'isbn', 'oclc', 'lccn', 'contribtor']
         q_list += ['%s:(%s)' % (k, param[k]) for k in check_params if k in param]
-    if 'has_fulltext' in param:
-        q_list.append('has_fulltext:%s' % param['has_fulltext'])
-    q_list += ['%s:"%s"' % (k, param[k]) for k in facet_fields if k in param]
 
     q = url_quote(' AND '.join(q_list))
 
-    solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=key,author_name,author_key,title,edition_count,ia&qt=standard&wt=standard" % (q, offset, rows)
+    solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&start=%d&rows=%d&fl=key,author_name,author_key,title,edition_count,ia&qt=standard&wt=standard" % (q, offset, rows)
     solr_select += "&facet=true&" + '&'.join("facet.field=" + f for f in facet_fields)
 
-    for k in 'has_fulltext', 'fiction':
+    for k in 'has_fulltext':
         if k not in param:
             continue
         v = param[k].lower()
