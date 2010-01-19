@@ -157,7 +157,7 @@ def do_search(param, sort, page=1, rows=100):
     return web.storage(
         facet_counts = read_facets(root),
         docs = docs,
-        is_advanced = bool(param['q']),
+        is_advanced = bool(param.get('q', 'None')),
         num_found = (int(docs.attrib['numFound']) if docs is not None else None),
         solr_select = solr_select,
         q_list = q_list,
@@ -335,6 +335,31 @@ class subjects(delegate.page):
 
 class search(delegate.page):
     def GET(self):
-        input = web.input(author_key=[], language=[], first_publish_year=[], publisher_facet=[], subject_facet=[], person_facet=[], place_facet=[], time_facet=[])
+        i = web.input(author_key=[], language=[], first_publish_year=[], publisher_facet=[], subject_facet=[], person_facet=[], place_facet=[], time_facet=[])
+        print dict(i)
 
-        return render.work_search(input, do_search, get_doc)
+        params = {}
+        need_redirect = False
+        for k, v in i.items():
+            print k, v
+            if isinstance(v, list):
+                if v == []:
+                    continue
+                clean = [b.strip() for b in v]
+                if clean != v:
+                    need_redirect = True
+                if len(clean) == 1 and clean[0] == u'':
+                    clean = None
+            else:
+                clean = v.strip()
+                if clean == '':
+                    need_redirect = True
+                    clean = None
+                if clean != v:
+                    need_redirect = True
+            params[k] = clean
+        if need_redirect:
+            print params
+            raise web.seeother(web.changequery(**params))
+
+        return render.work_search(i, do_search, get_doc)
