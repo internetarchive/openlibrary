@@ -38,9 +38,12 @@ class Image:
         return "<image: %s/%d>" % (self.category, self.id)
 
 def query_coverstore(category, **kw):
-    url = "%s/%s/query?%s" % (get_coverstore_url(), category, urllib.urlencode(kw))
-    json = urllib2.urlopen(url).read()
-    return simplejson.loads(json)
+    try:
+        url = "%s/%s/query?%s" % (get_coverstore_url(), category, urllib.urlencode(kw))
+        json = urllib2.urlopen(url).read()
+        return simplejson.loads(json)
+    except IOError:
+        return []
 
 class Edition(ol_code.Edition):
     def get_title(self):
