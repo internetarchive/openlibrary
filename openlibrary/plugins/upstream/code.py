@@ -42,25 +42,6 @@ class change_photo(change_cover):
 
 del delegate.modes['change_cover']     # delete change_cover mode added by openlibrary plugin
 
-class subject_covers(delegate.page):
-    path = "(/subjects(?:/places|/people|)/[^/]*)/covers"
-    encoding = "json"
-    
-    @jsonapi
-    def GET(self, key):
-        page = web.ctx.site.get(key)
-        if page is None:
-            raise web.notfound("")
-        else:
-            i = web.input(offset=0, limit=20)
-            try:
-                offset = int(i.offset)
-                limit = int(i.limit)
-            except ValueError:
-                return []
-            data = page.get_covers(offset, limit)
-            return simplejson.dumps(data)
-
 @web.memoize
 @public
 def vendor_js():

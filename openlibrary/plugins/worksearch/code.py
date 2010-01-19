@@ -204,6 +204,50 @@ subject_types = {
     'subjects': 'subject',
 }
 
+def read_subject(path_info):
+    m = re_subject_types.match(path_info)
+    if m:
+        subject_type = subject_types[m.group(1)]
+        key = str_to_key(m.group(2)).lower().replace('_', ' ')
+        full_key = '/subjects/%s/%s' % (m.group(1), key)
+        q = '%s_key:"%s"' % (subject_type, url_quote(key))
+    else:
+        subject_type = 'subject'
+        key = str_to_key(path_info).lower().replace('_', ' ')
+        full_key = '/subjects/' + key
+        q = 'subject_key:"%s"' % url_quote(key)
+    return (subject_type, key, full_key, q)
+
+class subjects_covers(delegate.page):
+    path = '/subjects/(.+)/covers'
+    encoding = "json"
+
+    @jsonapi
+    def GET(self, path_info):
+        i = web.input(offset=0, limit=12)
+        try:
+            offset = int(i.offset)
+            limit = int(i.limit)
+        except ValueError:
+            return []
+
+        (subject_type, key, full_key, q) = read_subject(path_info)
+        solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=key,author_name,author_key,title,edition_count,ia,cover_edition_key&qt=standard&wt=json" % (q, offset, rows)
+        solr_select += "&sort=edition_count+desc"
+        reply = json.load(urllib.urlopen(solr_select))
+
+        works = []
+        for doc in reply['response']['docs']:
+            w = {
+                'key': '/works/' + w['key'],
+                'edition_count': w['edition_count'],
+                'title': w['title'],
+                'authors': [{'key': '/authors/' + k, 'name': n} for k, n in zip(w['author_key'], w['author_name'])],
+            } 
+            if 'cover_edition_key' in doc:
+                w['cover_edition_key'] = doc['cover_edition_key']
+        return json.dumps(works)
+
 class subjects(delegate.page):
     path = '/subjects/(.+)'
     def GET(self, path_info):
@@ -211,23 +255,12 @@ class subjects(delegate.page):
         offset = 0
         if not path_info:
             return 'subjects page goes here'
-        m = re_subject_types.match(path_info)
-        if m:
-            subject_type = subject_types[m.group(1)]
-            key = str_to_key(m.group(2)).lower().replace('_', ' ')
-            full_key = '/subjects/%s/%s' % (m.group(1), key)
-            q = '%s_key:"%s"' % (subject_type, url_quote(key))
-        else:
-            subject_type = 'subject'
-            key = str_to_key(path_info).lower().replace('_', ' ')
-            full_key = '/subjects/' + key
-            q = 'subject_key:"%s"' % url_quote(key)
+        (subject_type, key, full_key, q) = read_subject(path_info)
         # q = ' AND '.join('subject_key:"%s"' % url_quote(key.lower().replace('_', ' ')) for key in path_info.split('+'))
         solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=key,author_name,author_key,title,edition_count,ia,cover_edition_key&qt=standard&wt=json" % (q, offset, rows)
         facet_fields = ["author_facet", "language", "publish_year", "publisher_facet", "subject_facet", "person_facet", "place_facet", "time_facet"]
         solr_select += "&sort=edition_count+desc"
         solr_select += "&facet=true&facet.mincount=1&f.author_facet.facet.sort=count&f.publish_year.facet.limit=-1&facet.limit=25&" + '&'.join("facet.field=" + f for f in facet_fields)
-        print solr_select
         reply = json.load(urllib.urlopen(solr_select))
         facets = reply['facet_counts']['facet_fields']
         def get_facet(f, limit=None):
