@@ -10,15 +10,17 @@ def get_schema():
     schema.add_table_group('user', '/type/user')
     schema.add_table_group('user', '/type/usergroup')
     schema.add_table_group('user', '/type/permission')
+    
+    datatypes = ["str", "int", "ref", "boolean"]
+    
+    schema.add_table_group('edition', '/type/edition', datatypes)
+    schema.add_table_group('author', '/type/author', datatypes)
+    schema.add_table_group('scan', '/type/scan_location', datatypes)
+    schema.add_table_group('scan', '/type/scan_record', datatypes)
 
-    schema.add_table_group('edition', '/type/edition')
-    schema.add_table_group('author', '/type/author')
-    schema.add_table_group('scan', '/type/scan_location')
-    schema.add_table_group('scan', '/type/scan_record')
-
-    schema.add_table_group('work', '/type/work')
-    schema.add_table_group('publisher', '/type/publisher')
-    schema.add_table_group('subject', '/type/subject')
+    schema.add_table_group('work', '/type/work', datatypes) 
+    schema.add_table_group('publisher', '/type/publisher', datatypes)
+    schema.add_table_group('subject', '/type/subject', datatypes)
 
     if 'upstream' in config.get('features', []):
         schema.add_seq('/type/edition', '/books/OL%dM')
