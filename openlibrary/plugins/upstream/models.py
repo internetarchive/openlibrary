@@ -1,6 +1,7 @@
 import web
 import urllib, urllib2
 import simplejson
+from collections import defaultdict
 
 from infogami.infobase import client
 from infogami.utils.view import safeint
@@ -8,14 +9,28 @@ from infogami.utils.view import safeint
 from openlibrary.plugins.search.code import SearchProcessor
 from openlibrary.plugins.openlibrary import code as ol_code
 
-from utils import get_coverstore_url, MultiDict, parse_toc
+from utils import get_coverstore_url, MultiDict, parse_toc, parse_datetime, get_edition_config
 import account
 
 class Image:
     def __init__(self, category, id):
         self.category = category
         self.id = id
-    
+        
+    def info(self):
+        url = '%s/%s/id/%s.json' % (get_coverstore_url(), self.category, self.id)
+        try:
+            d = simplejson.loads(urllib2.urlopen(url).read())
+            d['created'] = parse_datetime(d['created'])
+            if d['author'] == 'None':
+                d['author'] = None
+            d['author'] = d['author'] and web.ctx.site.get(d['author'])
+            
+            return web.storage(d)
+        except IOError:
+            # coverstore is down
+            return None
+                
     def url(self, size="M"):
         return "%s/%s/id/%s-%s.jpg" % (get_coverstore_url(), self.category, self.id, size.upper())
         
@@ -23,9 +38,12 @@ class Image:
         return "<image: %s/%d>" % (self.category, self.id)
 
 def query_coverstore(category, **kw):
-    url = "%s/%s/query?%s" % (get_coverstore_url(), category, urllib.urlencode(kw))
-    json = urllib.urlopen(url).read()
-    return simplejson.loads(json)
+    try:
+        url = "%s/%s/query?%s" % (get_coverstore_url(), category, urllib.urlencode(kw))
+        json = urllib2.urlopen(url).read()
+        return simplejson.loads(json)
+    except IOError:
+        return []
 
 class Edition(ol_code.Edition):
     def get_title(self):
@@ -55,32 +73,37 @@ class Edition(ol_code.Edition):
 
     def get_identifiers(self):
         """Returns (name, value) pairs of all available identifiers."""
-        ids = []
-        def addid(name, label, url_format=''):
-            ids.append(web.storage(name=name, label=label, url_format=url_format))
+        names = ['isbn_10', 'isbn_13', 'lccn', 'oclc_numbers', 'ocaid']
+        return self._process_identifiers(get_edition_config().identifiers, names, self.identifiers)
         
-        addid('isbn_10', 'ISBN 10')
-        addid('isbn_13', 'ISBN 13')
-        addid('lccn', 'LC Control Number', 'http://lccn.loc.gov/%(value)s')
-        addid('oclc_numbers', 'OCLC', 'http://www.worldcat.org/oclc/%(value)s?tab=details')
-        #addid('dewey_decimal_class', 'Dewey Decimal Class')
-        #addid('lc_classifications', 'Library of Congress')
+    def _process_identifiers(self, config, names, values):
+        id_map = {}
+        for id in config:
+            id_map[id.name] = id
+            id.setdefault("label", id.name)
+            id.setdefault("url_format", None)
         
         d = MultiDict()
-        d['olid'] = web.storage(name='olid', label='Open Library', value=self.key.split('/')[-1], url='', readonly=True)
-        return self._prepare_identifiers(ids, d)
         
-    def _prepare_identifiers(self, ids, d=None):
-        d = d or MultiDict()
-        
-        for id in ids:
-            value = self[id.name]
+        def process(name, value):
             if value:
                 if not isinstance(value, list):
                     value = [value]
-                for v in value:
-                    d[id.name] = web.storage(name=id.name, label=id.label, value=v, url=id.url_format % {'value': v}, readonly=False)
                     
+                id = id_map.get(name) or web.storage(name=name, label=name, url_format=None)
+                for v in value:
+                    d[id.name] = web.storage(
+                        name=id.name, 
+                        label=id.label, 
+                        value=v, 
+                        url=id.url_format)
+                
+        for name in names:
+            process(name, self[name])
+            
+        for name in values:
+            process(name, values[name])
+            
         return d
     
     def set_identifiers(self, identifiers):
@@ -89,32 +112,49 @@ class Edition(ol_code.Edition):
         
         d = {}
         for id in identifiers:
+            # ignore bad values
+            if 'name' not in id or 'value' not in id:
+                continue
             name, value = id['name'], id['value']
-            # ignore other identifiers for now
-            if name in names:
-                d.setdefault(name, []).append(value)
+            d.setdefault(name, []).append(value)
         
         # clear existing value first        
         for name in names:
            self._getdata().pop(name, None)
+           
+        self.identifiers = {}
             
         for name, value in d.items():
             # ocaid is not a list
             if name == 'ocaid':
                 self.ocaid = value[0]
-            else:
+            elif name in names:
                 self[name] = value
+            else:
+                self.identifiers[name] = value
 
     def get_classifications(self):
-        ids = []
-        def addid(name, label, url_format=''):
-            ids.append(web.storage(name=name, label=label, url_format=url_format))
+        names = ["dewey_decimal_class", "lc_classifications"]
+        return self._process_identifiers(get_edition_config().classifications, names, self.classifications)
         
-        addid('dewey_decimal_class', 'Dewey Decimal Class')
-        addid('lc_classifications', 'Library of Congress')
-        d = self._prepare_identifiers(ids)
-        return d
-                
+    def set_classifications(self, classifications):
+        names = ["dewey_decimal_class", "lc_classifications"]
+        d = defaultdict(list)
+        for c in classifications:
+            if 'name' not in c or 'value' not in c or not web.re_compile("[a-z0-9_]*").match(c['name']):
+                continue
+            d[c['name']].append(c['value'])
+            
+        for name in names:
+            self._getdata().pop(name, None)
+        self.classifications = {}
+        
+        for name, value in d.items():
+            if name in names:
+                self[name] = value
+            else:
+                self.classifications[name] = value
+            
     def get_weight(self):
         """returns weight as a storage object with value and units fields."""
         w = self.weight
@@ -257,6 +297,11 @@ class SubjectPerson(Subject):
 
 
 class User(ol_code.User):
+    
+    def get_name(self):
+        return self.displayname or self.key.split('/')[-1]
+    name = property(get_name)
+    
     def get_edit_history(self, limit=10, offset=0):
         return web.ctx.site.versions({"author": self.key, "limit": limit, "offset": offset})
         
@@ -288,11 +333,11 @@ class UnitParser:
         self.fields = fields
 
     def format(self, d):
-        return " x ".join(str(d[k]) for k in self.fields) + ' ' + d['units']
+        return " x ".join(str(d.get(k, '')) for k in self.fields) + ' ' + d.get('units', '')
 
     def parse(self, s):
         """Parse the string and return storage object with specified fields and units."""
-        pattern = "^" + " *x *".join("([0-9.]+)" for f in self.fields) + " *(.*)$"
+        pattern = "^" + " *x *".join("([0-9.]*)" for f in self.fields) + " *(.*)$"
         rx = web.re_compile(pattern)
         m = rx.match(s)
         return m and web.storage(zip(self.fields + ["units"], m.groups()))

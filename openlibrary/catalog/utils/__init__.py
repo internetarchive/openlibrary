@@ -16,10 +16,10 @@ re_date_fl = re.compile('^fl[., ]')
 re_number_dot = re.compile('\d{2,}[- ]*(\.+)$')
 re_l_in_date = re.compile('(l\d|\dl)')
 re_end_dot = re.compile('[^ .][^ .]\.$', re.UNICODE)
-re_marc_name = re.compile('^(.*), (.*)$')
+re_marc_name = re.compile('^(.*?),+ (.*)$')
 re_year = re.compile(r'\b(\d{4})\b')
 
-re_brackets = re.compile('^(.*)\[.*?\]$')
+re_brackets = re.compile('^(.+)\[.*?\]$')
 
 def key_int(rec):
     # extract the number from a key like /a/OL1234A

@@ -10,9 +10,7 @@ import datetime
 from infogami import config
 from infogami.infobase import client
 from infogami.utils import delegate, app, types
-from infogami.utils.view import public
-
-from infogami.plugins.api.code import jsonapi
+from infogami.utils.view import public, safeint, render
 
 from openlibrary.plugins.openlibrary.processors import ReadableUrlProcessor
 from openlibrary.plugins.openlibrary import code as ol_code
@@ -26,29 +24,9 @@ if not config.get('coverstore_url'):
     config.coverstore_url = "http://covers.openlibrary.org"
 
 class static(delegate.page):
-    path = "/(?:images|css|js)/.*"
+    path = "/images/.*"
     def GET(self):
-        page = web.ctx.site.get(web.ctx.path)
-        if page and page.type.key != '/type/delete':
-            return self.delegate()
-        elif web.input(m=None).m is not None:
-            return self.delegate()
-        else:
-            raise web.seeother('/static/upstream' + web.ctx.path)
-
-    def POST(self):
-        return self.delegate()
-
-    def delegate(self):
-        cls, args = app.find_mode()
-        method = web.ctx.method
-
-        if cls is None:
-            raise web.seeother(web.changequery(m=None))
-        elif not hasattr(cls, method):
-            raise web.nomethod(method)
-        else:
-            return getattr(cls(), method)(*args)
+        raise web.seeother('/static/upstream' + web.ctx.path)
 
 # handlers for change photo and change cover
 
@@ -61,25 +39,6 @@ class change_photo(change_cover):
     path = "(/authors/OL\d+A)/photo"
 
 del delegate.modes['change_cover']     # delete change_cover mode added by openlibrary plugin
-
-class subject_covers(delegate.page):
-    path = "(/subjects(?:/places|/people|)/[^/]*)/covers"
-    encoding = "json"
-    
-    @jsonapi
-    def GET(self, key):
-        page = web.ctx.site.get(key)
-        if page is None:
-            raise web.notfound("")
-        else:
-            i = web.input(offset=0, limit=20)
-            try:
-                offset = int(i.offset)
-                limit = int(i.limit)
-            except ValueError:
-                return []
-            data = page.get_covers(offset, limit)
-            return simplejson.dumps(data)
 
 @web.memoize
 @public
@@ -187,6 +146,17 @@ class redirects(delegate.page):
 @public
 def get_document(key):
     return web.ctx.site.get(key)
+    
+class revert(delegate.mode):
+    def POST(self, key):
+        i = web.input("v", _comment=None)
+        v = i.v and safeint(i.v, None)
+        if v is None:
+            raise web.badrequest()
+            
+        comment = i._comment or "reverted to revision %d" % v
+        web.ctx.site.get(key, i.v)._save(comment)
+        raise web.seeother(key)
 
 def setup():
     """Setup for upstream plugin"""

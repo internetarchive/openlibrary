@@ -11,8 +11,8 @@ from infogami.utils import delegate
 from openlibrary.plugins.openlibrary import code as ol_code
 from openlibrary.plugins.openlibrary.processors import urlsafe
 
-from utils import render_template, unflatten
-
+from utils import render_template, unflatten, get_edition_config
+from account import as_admin
 
 class addbook(delegate.page):
     path = "/books/add"
@@ -79,22 +79,67 @@ class SaveBookHelper:
     
     def save(self, formdata):
         """Update work and edition documents according to the specified formdata."""
+        comment = formdata.pop('_comment', '')
         work_data, edition_data = self.process_input(formdata)
+        
+        self.process_new_fields(formdata)
         
         if work_data:
             self.work.update(work_data)
-            self.work._save()
+            self.work._save(comment=comment)
             
         if self.edition and edition_data:
             identifiers = edition_data.pop('identifiers', [])
             self.edition.set_identifiers(identifiers)
             
+            classifications = edition_data.pop('classifications', [])
+            self.edition.set_classifications(classifications)
+            
             self.edition.set_physical_dimensions(edition_data.pop('physical_dimensions', None))
             self.edition.set_weight(edition_data.pop('weight', None))
             self.edition.set_toc_text(edition_data.pop('table_of_contents', ''))
             
+            if edition_data.pop('translation', None) != 'yes':
+                edition_data.translation_of = None
+                edition_data.translated_from = None
+            
             self.edition.update(edition_data)
-            self.edition._save()
+            self.edition._save(comment=comment)
+            
+    def process_new_fields(self, formdata):
+        def f(name):
+            val = formdata.get(name)
+            return val and simplejson.loads(val)
+            
+        new_roles = f('select-role-json')
+        new_ids = f('select-id-json')
+        new_classifications = f('select-classification-json')
+        
+        if new_roles or new_ids or new_classifications:
+            edition_config = web.ctx.site.get('/config/edition')
+            
+            #TODO: take care of duplicate names
+            
+            if new_roles:
+                edition_config.roles += [d.get('value') or '' for d in new_roles]
+                
+            if new_ids:
+                edition_config.identifiers += [{
+                        "name": d.get('value') or '', 
+                        "label": d.get('label') or '', 
+                        "website": d.get("website") or '', 
+                        "notes": d.get("notes") or ''} 
+                    for d in new_ids]
+                
+            if new_classifications:
+                edition_config.classifications += [{
+                        "name": d.get('value') or '', 
+                        "label": d.get('label') or '', 
+                        "website": d.get("website") or '', 
+                        "notes": d.get("notes") or ''}
+                    for d in new_classifications]
+                    
+            as_admin(edition_config._save)("add new fields")
     
     def process_input(self, i):
         i = unflatten(i)
@@ -115,6 +160,7 @@ class SaveBookHelper:
         """Process input data for edition."""
         edition.publishers = edition.get('publishers', '').split(';')
         edition.publish_places = edition.get('publish_places', '').split(';')
+        edition.distributors = edition.get('distributors', '').split(';')
         
         edition = trim_doc(edition)
 
@@ -220,7 +266,8 @@ class author_edit(delegate.page):
         i = unflatten(i)
         if 'author' in i:
             author = trim_doc(i.author)
-            author.alternate_names = [name.strip() for name in author.get('alternate_names', '').split(';')]
+            alternate_names = author.get('alternate_names', None) or ''
+            author.alternate_names = [name.strip() for name in alternate_names.split(';')]
             return author
             
 class edit(core.edit):

@@ -12,6 +12,8 @@ from infogami.utils.markdown import markdown
 from infogami.utils.context import context
 from infogami.infobase.client import Thing
 
+from infogami.infobase.utils import parse_datetime
+
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.openlibrary.code import sanitize
 
@@ -89,6 +91,24 @@ def render_template(name, *a, **kw):
     return render[name](*a, **kw)
     
 @public
+def list_recent_pages(path, limit=100, offset=0):
+    """Lists all pages with name path/* in the order of last_modified."""
+    q = {}
+        
+    q['key~' ] = path + '/*'
+    # don't show /type/delete and /type/redirect
+    q['a:type!='] = '/type/delete'
+    q['b:type!='] = '/type/redirect'
+    
+    q['sort'] = 'key'
+    q['limit'] = limit
+    q['offset'] = offset
+    q['sort'] = '-last_modified'
+    # queries are very slow with != conditions
+    # q['type'] != '/type/delete'
+    return web.ctx.site.get_many(web.ctx.site.things(q))
+        
+@public
 def json_encode(d):
     return simplejson.dumps(d)
     
@@ -159,13 +179,14 @@ def get_history(page):
     If the page has more than 5 revisions, first 2 and recent 3 changes are returned. 
     If the page has 5 or less than 
     """
-    h = web.storage(revision=page.revision)
+    h = web.storage(revision=page.revision, lastest_revision=page.revision, created=page.created)
     if h.revision < 5:
         h.recent = web.ctx.site.versions({"key": page.key, "limit": 5})
-        h.initial = []
+        h.initial = h.recent[-1:]
+        h.recent = h.recent[:-1]
     else:
-        h.initial = web.ctx.site.versions({"key": page.key, "limit": 2, "offset": h.revision-2})
-        h.recent = web.ctx.site.versions({"key": page.key, "limit": 3})
+        h.initial = web.ctx.site.versions({"key": page.key, "limit": 1, "offset": h.revision-1})
+        h.recent = web.ctx.site.versions({"key": page.key, "limit": 4})
     return h
 
 @public
@@ -193,8 +214,12 @@ def datestr(then, now=None):
         t, message = result.split(' ', 1)
         return _("%d " + message) % int(t)
     else:
-        return babel.dates.format_date(then, format="long", locale=get_locale())    
- 
+        return babel.dates.format_date(then, format="long", locale=get_locale())
+        
+@public
+def format_date(date):
+    return babel.dates.format_date(date, format="long", locale=get_locale())
+
 @public     
 def truncate(text, limit):
     """Truncate text and add ellipses if it longer than specified limit."""
@@ -205,12 +230,15 @@ def truncate(text, limit):
 @public
 def process_version(v):
     """Looks at the version and adds machine_comment required for showing "View MARC" link."""
-    if v.author and v.author.key == "/people/ImportBot" and v.key.startswith('/books/') and not v.get('machine_comment'):
+    importers = ['/people/ImportBot', '/people/EdwardBot']
+    if v.author and v.author.key in importers and v.key.startswith('/books/') and not v.get('machine_comment'):
         thing = v.get('thing') or web.ctx.site.get(v.key, v.revision)
         if thing.source_records and v.revision == 1 or (v.comment and v.comment.lower() == "found a matching marc record"):
             marc = thing.source_records[-1]
             if marc.startswith('marc:'):
                 v.machine_comment = marc[len("marc:"):]
+            else:
+                v.machine_comment = marc
     return v
 
 @public
@@ -272,6 +300,8 @@ def parse_toc_row(line):
 
 def parse_toc(text):
     """Parses each line of toc"""
+    if text is None:
+        return []
     return [parse_toc_row(line) for line in text.splitlines() if line.strip()]
     
 
@@ -284,6 +314,14 @@ def get_languages():
         keys = web.ctx.site.things({"type": "/type/language", "key~": "/languages/*", "limit": 1000})
         _languages = [web.storage(name=d.name, code=d.code) for d in web.ctx.site.get_many(keys)]
     return _languages
+    
+@public
+def get_edition_config():
+    thing = web.ctx.site.get('/config/edition')
+    classifications = [web.storage(t.dict()) for t in thing.classifications if 'name' in t]
+    identifiers = [web.storage(t.dict()) for t in thing.identifiers if 'name' in t]
+    roles = thing.roles
+    return web.storage(classifications=classifications, identifiers=identifiers, roles=roles)
     
 # regexp to match urls and emails. 
 # Adopted from github-flavored-markdown (BSD-style open source license)
