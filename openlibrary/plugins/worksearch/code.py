@@ -121,7 +121,7 @@ def run_solr_query(param = {}, rows=100, page=1, sort=None):
             else:
                 q_list.append('author_name:(' + v + ')')
 
-        check_params = ['title', 'publisher', 'isbn', 'oclc', 'lccn', 'contribtor']
+        check_params = ['title', 'publisher', 'isbn', 'oclc', 'lccn', 'contribtor', 'subject', 'place', 'person', 'time']
         q_list += ['%s:(%s)' % (k, param[k]) for k in check_params if k in param]
 
     q = url_quote(' AND '.join(q_list))
@@ -336,12 +336,10 @@ class subjects(delegate.page):
 class search(delegate.page):
     def GET(self):
         i = web.input(author_key=[], language=[], first_publish_year=[], publisher_facet=[], subject_facet=[], person_facet=[], place_facet=[], time_facet=[])
-        print dict(i)
 
         params = {}
         need_redirect = False
         for k, v in i.items():
-            print k, v
             if isinstance(v, list):
                 if v == []:
                     continue
@@ -359,7 +357,6 @@ class search(delegate.page):
                     need_redirect = True
             params[k] = clean
         if need_redirect:
-            print params
             raise web.seeother(web.changequery(**params))
 
         return render.work_search(i, do_search, get_doc)
