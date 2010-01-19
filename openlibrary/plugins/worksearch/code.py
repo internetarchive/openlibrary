@@ -103,7 +103,6 @@ def run_solr_query(param = {}, rows=100, page=1, sort=None):
     else:
         q_param = None
     offset = rows * (page - 1)
-    query_params = dict((k, url_quote(param[k])) for k in ('title', 'publisher', 'isbn', 'oclc', 'lccn', 'first_sentence', 'contribtor', 'author') if k in param)
     if q_param:
         if q_param == '*:*' or re_fields.match(q_param):
             q_list.append(q_param)
@@ -113,7 +112,6 @@ def run_solr_query(param = {}, rows=100, page=1, sort=None):
                 q_list.append('isbn:(%s)' % isbn)
             else:
                 q_list.append('(' + ' OR '.join('%s:(%s)' % (f, q_param) for f in search_fields) + ')')
-        query_params['q'] = url_quote(q_param)
     else:
         if 'author' in param:
             v = param['author'].strip()
@@ -123,7 +121,8 @@ def run_solr_query(param = {}, rows=100, page=1, sort=None):
             else:
                 q_list.append('author_name:(' + v + ')')
 
-        q_list += ['%s:(%s)' % (k, param[k]) for k in 'title', 'publisher', 'isbn', 'oclc', 'lccn', 'first_sentence', 'contribtor' if k in param]
+        check_params = ['title', 'publisher', 'isbn', 'oclc', 'lccn', 'contribtor'] + facet_fields
+        q_list += ['%s:(%s)' % (k, param[k]) for k in check_params if k in param]
     q_list += ['%s:(%s)' % (k, param[k]) for k in 'has_fulltext', 'fiction' if k in param]
 
     q = url_quote(' AND '.join(q_list))
@@ -138,7 +137,6 @@ def run_solr_query(param = {}, rows=100, page=1, sort=None):
         if v not in ('true', 'false'):
             del param[k]
         param[k] == v
-        query_params[k] = url_quote(v)
         solr_select += '&fq=%s:%s' % (k, v)
 
     for k in facet_list_fields:
@@ -147,7 +145,6 @@ def run_solr_query(param = {}, rows=100, page=1, sort=None):
         if k not in param:
             continue
         v = param[k]
-        query_params[k] = [url_quote(i) for i in v]
         solr_select += ''.join('&fq=%s:"%s"' % (k, l) for l in v if l)
     if sort:
         solr_select += "&sort=" + url_quote(sort)
