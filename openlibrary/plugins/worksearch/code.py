@@ -265,6 +265,7 @@ class subjects(delegate.page):
                     'key': w.key,
                     'title': w.title,
                     'authors': [dict(a) for a in w.authors],
+                    'edition_count': w.edition_count,
                 } 
                 if w.get('cover_edition_key', None):
                     i['cover_edition_key'] = w.cover_edition_key
