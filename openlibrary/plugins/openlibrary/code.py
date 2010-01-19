@@ -627,10 +627,10 @@ def changequery(query=None, **kw):
         else:
             query[k] = v
 
-    query = dict((k, web.safestr(v)) for k, v in query.items())
+    query = dict((k, (map(web.safestr, v) if isinstance(v, list) else web.safestr(v))) for k, v in query.items())
     out = web.ctx.get('readable_path', web.ctx.path)
     if query:
-        out += '?' + urllib.urlencode(query)
+        out += '?' + urllib.urlencode(query, doseq=True)
     return out
 
 # Hack to limit recent changes offset.
