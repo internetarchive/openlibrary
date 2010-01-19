@@ -218,7 +218,7 @@ def subjects_covers(path_info):
         return []
 
     (subject_type, key, full_key, q) = read_subject(path_info)
-    solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=key,author_name,author_key,title,edition_count,ia,cover_edition_key,has_fulltext&qt=standard&wt=json" % (q, offset, rows)
+    solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=key,author_name,author_key,title,edition_count,ia,cover_edition_key,has_fulltext&qt=standard&wt=json" % (q, offset, limit)
     solr_select += "&sort=edition_count+desc"
     reply = json.load(urllib.urlopen(solr_select))
 
@@ -244,13 +244,13 @@ class subjects(delegate.page):
         m = re_covers_json.match(path_info)
         if m:
             return subjects_covers(m.group(1))
-        rows = 12 * 3
+        limit = 12 * 3
         offset = 0
         if not path_info:
             return 'subjects page goes here'
         (subject_type, key, full_key, q) = read_subject(path_info)
         # q = ' AND '.join('subject_key:"%s"' % url_quote(key.lower().replace('_', ' ')) for key in path_info.split('+'))
-        solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=key,author_name,author_key,title,edition_count,ia,cover_edition_key&qt=standard&wt=json" % (q, offset, rows)
+        solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=key,author_name,author_key,title,edition_count,ia,cover_edition_key,has_fulltext&qt=standard&wt=json" % (q, offset, limit)
         facet_fields = ["author_facet", "language", "publish_year", "publisher_facet", "subject_facet", "person_facet", "place_facet", "time_facet"]
         solr_select += "&sort=edition_count+desc"
         solr_select += "&facet=true&facet.mincount=1&f.author_facet.facet.sort=count&f.publish_year.facet.limit=-1&facet.limit=25&" + '&'.join("facet.field=" + f for f in facet_fields)
