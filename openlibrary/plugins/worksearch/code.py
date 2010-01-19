@@ -121,9 +121,11 @@ def run_solr_query(param = {}, rows=100, page=1, sort=None):
             else:
                 q_list.append('author_name:(' + v + ')')
 
-        check_params = ['title', 'publisher', 'isbn', 'oclc', 'lccn', 'contribtor'] + facet_fields
+        check_params = ['title', 'publisher', 'isbn', 'oclc', 'lccn', 'contribtor']
         q_list += ['%s:(%s)' % (k, param[k]) for k in check_params if k in param]
-    q_list += ['%s:(%s)' % (k, param[k]) for k in 'has_fulltext', 'fiction' if k in param]
+    if 'has_fulltext' in param:
+        q_list.append('has_fulltext:%s' % param['has_fulltext'])
+    q_list += ['%s:"%s"' % (k, param[k]) for k in facet_fields if k in param]
 
     q = url_quote(' AND '.join(q_list))
 
