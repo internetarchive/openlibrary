@@ -7,7 +7,7 @@ from infogami.utils import view, template
 import simplejson as json
 from pprint import pformat
 from openlibrary.plugins.upstream.utils import get_coverstore_url
-from openlibrary.plugins.search import search as _edition_search
+from openlibrary.plugins.search.code import search as _edition_search
 from infogami.plugins.api.code import jsonapi
 
 class edition_search(_edition_search):
@@ -240,22 +240,23 @@ def subjects_covers(path_info):
     works = []
     for doc in reply['response']['docs']:
         w = {
-            'key': '/works/' + w['key'],
-            'edition_count': w['edition_count'],
-            'title': w['title'],
-            'authors': [{'key': '/authors/' + k, 'name': n} for k, n in zip(w['author_key'], w['author_name'])],
+            'key': '/works/' + doc['key'],
+            'edition_count': doc['edition_count'],
+            'title': doc['title'],
+            'authors': [{'key': '/authors/' + k, 'name': n} for k, n in zip(doc['author_key'], doc['author_name'])],
         } 
         if 'cover_edition_key' in doc:
             w['cover_edition_key'] = doc['cover_edition_key']
+        works.append(w)
     return json.dumps(works)
 
-re_covers_json = re.compile('^(.+)/covers.json$')
+re_covers_json = re.compile('^(.+)/covers$')
 class subjects(delegate.page):
     path = '/subjects/(.+)'
     def GET(self, path_info):
         m = re_covers_json.match(path_info)
         if m:
-            return subject_covers(m.group(1))
+            return subjects_covers(m.group(1))
         rows = 12 * 3
         offset = 0
         if not path_info:
