@@ -43,12 +43,14 @@ class add_cover(delegate.page):
         except urllib2.HTTPError, e:
             out = e.read()
         
-        data = simplejson.loads(out)
+        data = web.storage(simplejson.loads(out))
         coverid = data.get('id')
         if coverid:
             self.save(book, coverid)
-        cover = Image("b", coverid)
-        return render_template("covers/saved", cover)
+            cover = Image("b", coverid)
+            return render_template("covers/saved", cover)
+        else:
+            return render_template("covers/add", book, {'url': i.url}, data)
         
     def save(self, book, coverid):
         book.covers = [cover.id for cover in book.get_covers()]
