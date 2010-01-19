@@ -7,6 +7,11 @@ from infogami.utils import view, template
 import simplejson as json
 from pprint import pformat
 from openlibrary.plugins.upstream.utils import get_coverstore_url
+from openlibrary.plugins.search import search as _edition_search
+from infogami.plugins.api.code import jsonapi
+
+class edition_search(_edition_search):
+    path = "/search/edition"
 
 solr_host = config.plugin_worksearch.get('solr')
 solr_select_url = "http://" + solr_host + "/solr/works/select"
