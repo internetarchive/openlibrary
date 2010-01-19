@@ -295,8 +295,8 @@ class subjects(delegate.page):
                 } 
                 if w.get('cover_edition_key', None):
                     i['cover_edition_key'] = w.cover_edition_key
-                if doc.get('has_fulltext', None) == 'true':
-                    w['has_fulltext'] = 'true'
+                if w.get('has_fulltext', None) == 'true':
+                    i['has_fulltext'] = 'true'
                 collect.append(i)
             return collect
 
