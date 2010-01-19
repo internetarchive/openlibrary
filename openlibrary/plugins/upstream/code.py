@@ -12,8 +12,6 @@ from infogami.infobase import client
 from infogami.utils import delegate, app, types
 from infogami.utils.view import public, safeint, render
 
-from infogami.plugins.api.code import jsonapi
-
 from openlibrary.plugins.openlibrary.processors import ReadableUrlProcessor
 from openlibrary.plugins.openlibrary import code as ol_code
 
@@ -41,25 +39,6 @@ class change_photo(change_cover):
     path = "(/authors/OL\d+A)/photo"
 
 del delegate.modes['change_cover']     # delete change_cover mode added by openlibrary plugin
-
-class subject_covers(delegate.page):
-    path = "(/subjects(?:/places|/people|)/[^/]*)/covers"
-    encoding = "json"
-    
-    @jsonapi
-    def GET(self, key):
-        page = web.ctx.site.get(key)
-        if page is None:
-            raise web.notfound("")
-        else:
-            i = web.input(offset=0, limit=20)
-            try:
-                offset = int(i.offset)
-                limit = int(i.limit)
-            except ValueError:
-                return []
-            data = page.get_covers(offset, limit)
-            return simplejson.dumps(data)
 
 @web.memoize
 @public
