@@ -126,7 +126,7 @@ def run_solr_query(param = {}, rows=100, page=1, sort=None):
 
     q = url_quote(' AND '.join(q_list))
 
-    solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&start=%d&rows=%d&fl=key,author_name,author_key,title,edition_count,ia&qt=standard&wt=standard" % (q, offset, rows)
+    solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&start=%d&rows=%d&fl=key,author_name,author_key,title,edition_count,ia,has_fulltext,first_publish_year,cover_edition_key&qt=standard&wt=standard" % (q, offset, rows)
     solr_select += "&facet=true&" + '&'.join("facet.field=" + f for f in facet_fields)
 
     for k in 'has_fulltext':
@@ -172,6 +172,9 @@ def get_doc(doc):
 
     ak = [e.text for e in doc.find("arr[@name='author_key']")]
     an = [e.text for e in doc.find("arr[@name='author_name']")]
+    cover = doc.find("str[@name='cover_edition_key']")
+    if cover is not None:
+        print cover.text
 
     return web.storage(
         key = doc.find("str[@name='key']").text,
@@ -180,6 +183,7 @@ def get_doc(doc):
         ia = [e.text for e in (e_ia if e_ia is not None else [])],
         authors = [(i, tidy_name(j)) for i, j in zip(ak, an)],
         first_publish_year = first_pub,
+        cover_edition_key = (cover.text if cover is not None else None),
     )
 
 re_subject_types = re.compile('^(places|times|people)/(.*)')
