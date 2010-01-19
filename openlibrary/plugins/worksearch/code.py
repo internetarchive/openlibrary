@@ -67,19 +67,6 @@ def read_facets(root):
             facets[name].append((k, display, e.text))
     return facets
 
-def get_search_url(params, exclude = None):
-    assert params
-    def process(exclude = None):
-        url = []
-        for k, v in params.items():
-            for i in v if isinstance(v, list) else [v]:
-                if exclude and (k, i) == exclude:
-                    continue
-                url.append(k + "=" + i)
-        ret = '?' + '&'.join(url)
-        return ret
-    return process
-
 def url_quote(s):
     if not s:
         return ''
@@ -166,18 +153,16 @@ def run_solr_query(param = {}, rows=100, page=1, sort=None):
         solr_select += "&sort=" + url_quote(sort)
     reply = urllib.urlopen(solr_select)
     print solr_select
-    search_url = get_search_url(query_params)
-    return (parse(reply).getroot(), search_url, solr_select, q_list)
+    return (parse(reply).getroot(), solr_select, q_list)
 
 def do_search(param, sort, page=1, rows=100):
-    (root, search_url, solr_select, q_list) = run_solr_query(param, rows, page, sort)
+    (root, solr_select, q_list) = run_solr_query(param, rows, page, sort)
     docs = root.find('result')
     return web.storage(
         facet_counts = read_facets(root),
         docs = docs,
         is_advanced = bool(param['q']),
         num_found = (int(docs.attrib['numFound']) if docs is not None else None),
-        search_url = search_url,
         solr_select = solr_select,
         q_list = q_list,
     )
@@ -233,7 +218,7 @@ def subjects_covers(path_info):
         return []
 
     (subject_type, key, full_key, q) = read_subject(path_info)
-    solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=key,author_name,author_key,title,edition_count,ia,cover_edition_key&qt=standard&wt=json" % (q, offset, rows)
+    solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=key,author_name,author_key,title,edition_count,ia,cover_edition_key,has_fulltext&qt=standard&wt=json" % (q, offset, rows)
     solr_select += "&sort=edition_count+desc"
     reply = json.load(urllib.urlopen(solr_select))
 
@@ -247,6 +232,8 @@ def subjects_covers(path_info):
         } 
         if 'cover_edition_key' in doc:
             w['cover_edition_key'] = doc['cover_edition_key']
+        if doc.get('has_fulltext', None) == 'true':
+            w['has_fulltext'] = 'true'
         works.append(w)
     return json.dumps(works)
 
@@ -308,6 +295,8 @@ class subjects(delegate.page):
                 } 
                 if w.get('cover_edition_key', None):
                     i['cover_edition_key'] = w.cover_edition_key
+                if doc.get('has_fulltext', None) == 'true':
+                    w['has_fulltext'] = 'true'
                 collect.append(i)
             return collect
 
