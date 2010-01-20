@@ -42,10 +42,6 @@ def has_dot(s):
 # sample title: The Dollar Hen (Illustrated Edition) (Dodo Press)
 re_parens = re.compile('^(.*?)(?: \(.+ (?:Edition|Press|Print|Novels|Mysteries|Book Series|Classics Library|Classics|Books)\))+$', re.I)
 
-def key_int(key):
-    # extract the number from a key like /a/OL1234A
-    return int(web.numify(key))
-
 def top_rev_wt(d):
     d_sorted = sorted(d.keys(), cmp=lambda i, j: cmp(d[j], d[i]) or cmp(len(j), len(i)))
     return d_sorted[0]

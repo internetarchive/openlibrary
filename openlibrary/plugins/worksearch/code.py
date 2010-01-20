@@ -121,18 +121,15 @@ def run_solr_query(param = {}, rows=100, page=1, sort=None):
             else:
                 q_list.append('author_name:(' + v + ')')
 
-        check_params = ['title', 'publisher', 'isbn', 'oclc', 'lccn', 'contribtor']
+        check_params = ['title', 'publisher', 'isbn', 'oclc', 'lccn', 'contribtor', 'subject', 'place', 'person', 'time']
         q_list += ['%s:(%s)' % (k, param[k]) for k in check_params if k in param]
-    if 'has_fulltext' in param:
-        q_list.append('has_fulltext:%s' % param['has_fulltext'])
-    q_list += ['%s:"%s"' % (k, param[k]) for k in facet_fields if k in param]
 
     q = url_quote(' AND '.join(q_list))
 
-    solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=key,author_name,author_key,title,edition_count,ia&qt=standard&wt=standard" % (q, offset, rows)
+    solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&start=%d&rows=%d&fl=key,author_name,author_key,title,edition_count,ia,has_fulltext,first_publish_year,cover_edition_key&qt=standard&wt=standard" % (q, offset, rows)
     solr_select += "&facet=true&" + '&'.join("facet.field=" + f for f in facet_fields)
 
-    for k in 'has_fulltext', 'fiction':
+    for k in 'has_fulltext':
         if k not in param:
             continue
         v = param[k].lower()
@@ -147,7 +144,7 @@ def run_solr_query(param = {}, rows=100, page=1, sort=None):
         if k not in param:
             continue
         v = param[k]
-        solr_select += ''.join('&fq=%s:"%s"' % (k, l) for l in v if l)
+        solr_select += ''.join('&fq=%s:"%s"' % (k, url_quote(l)) for l in v if l)
     if sort:
         solr_select += "&sort=" + url_quote(sort)
     reply = urllib.urlopen(solr_select)
@@ -160,7 +157,7 @@ def do_search(param, sort, page=1, rows=100):
     return web.storage(
         facet_counts = read_facets(root),
         docs = docs,
-        is_advanced = bool(param['q']),
+        is_advanced = bool(param.get('q', 'None')),
         num_found = (int(docs.attrib['numFound']) if docs is not None else None),
         solr_select = solr_select,
         q_list = q_list,
@@ -175,6 +172,9 @@ def get_doc(doc):
 
     ak = [e.text for e in doc.find("arr[@name='author_key']")]
     an = [e.text for e in doc.find("arr[@name='author_name']")]
+    cover = doc.find("str[@name='cover_edition_key']")
+    if cover is not None:
+        print cover.text
 
     return web.storage(
         key = doc.find("str[@name='key']").text,
@@ -183,6 +183,7 @@ def get_doc(doc):
         ia = [e.text for e in (e_ia if e_ia is not None else [])],
         authors = [(i, tidy_name(j)) for i, j in zip(ak, an)],
         first_publish_year = first_pub,
+        cover_edition_key = (cover.text if cover is not None else None),
     )
 
 re_subject_types = re.compile('^(places|times|people)/(.*)')
@@ -334,6 +335,28 @@ class subjects(delegate.page):
 
 class search(delegate.page):
     def GET(self):
-        input = web.input(author_key=[], language=[], first_publish_year=[], publisher_facet=[], subject_facet=[], person_facet=[], place_facet=[], time_facet=[])
+        i = web.input(author_key=[], language=[], first_publish_year=[], publisher_facet=[], subject_facet=[], person_facet=[], place_facet=[], time_facet=[])
 
-        return render.work_search(input, do_search, get_doc)
+        params = {}
+        need_redirect = False
+        for k, v in i.items():
+            if isinstance(v, list):
+                if v == []:
+                    continue
+                clean = [b.strip() for b in v]
+                if clean != v:
+                    need_redirect = True
+                if len(clean) == 1 and clean[0] == u'':
+                    clean = None
+            else:
+                clean = v.strip()
+                if clean == '':
+                    need_redirect = True
+                    clean = None
+                if clean != v:
+                    need_redirect = True
+            params[k] = clean
+        if need_redirect:
+            raise web.seeother(web.changequery(**params))
+
+        return render.work_search(i, do_search, get_doc)
