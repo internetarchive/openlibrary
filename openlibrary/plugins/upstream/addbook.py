@@ -7,11 +7,14 @@ import simplejson
 from infogami import config
 from infogami.core import code as core
 from infogami.utils import delegate
+from infogami.utils.view import safeint
 
 from openlibrary.plugins.openlibrary import code as ol_code
 from openlibrary.plugins.openlibrary.processors import urlsafe
 
-from utils import render_template, unflatten, get_edition_config
+import utils
+from utils import render_template
+
 from account import as_admin
 
 class addbook(delegate.page):
@@ -142,7 +145,7 @@ class SaveBookHelper:
             as_admin(edition_config._save)("add new fields")
     
     def process_input(self, i):
-        i = unflatten(i)
+        i = utils.unflatten(i)
         
         if 'edition' in i:
             edition = self.process_edition(i.edition)
@@ -263,7 +266,7 @@ class author_edit(delegate.page):
             raise web.badrequest()
     
     def process_input(self, i):
-        i = unflatten(i)
+        i = utils.unflatten(i)
         if 'author' in i:
             author = trim_doc(i.author)
             alternate_names = author.get('alternate_names', None) or ''
@@ -300,6 +303,37 @@ class similar_authors(delegate.page):
         web.header('Content-Type', 'application/json')
         return delegate.RawText(simplejson.dumps(d))
         
+def to_json(d):
+    web.header('Content-Type', 'application/json')    
+    return delegate.RawText(simplejson.dumps(d))
+
+class languages_autocomplete(delegate.page):
+    path = "/languages/_autocomplete"
+    
+    def GET(self):
+        i = web.input(q="", limit=5)
+        i.limit = safeint(i.limit, 5)
+        
+        languages = [lang for lang in utils.get_languages() if lang.name.lower().startswith(i.q.lower())]
+        return to_json(languages[:i.limit])
+        
+class authors_autocomplete(delegate.page):
+    path = "/authors/_autocomplete"
+    
+    def GET(self):
+        i = web.input(q="", limit=5)
+        i.limit = safeint(i.limit, 5)
+        
+        if i.q.lower().startswith('m'):
+            d = [
+                dict(name="Mark Twain", key="/authors/OL18319A", subjects=["Fiction", "Tom Sawyer"], works=["a"]),
+                dict(name="Margaret Mahy", key="/authors/OL4398065A", subjects=["Fiction"], works=["b"])
+            ]
+        else:
+            d = []
+        return to_json(d)
+        
+                
 def setup():
     """Do required setup."""
     pass

@@ -312,7 +312,7 @@ def get_languages():
     global _languages
     if _languages is None:
         keys = web.ctx.site.things({"type": "/type/language", "key~": "/languages/*", "limit": 1000})
-        _languages = [web.storage(name=d.name, code=d.code) for d in web.ctx.site.get_many(keys)]
+        _languages = sorted([web.storage(name=d.name, code=d.code, key=d.key) for d in web.ctx.site.get_many(keys)], key=lambda d: d.name.lower())
     return _languages
     
 @public
