@@ -96,14 +96,14 @@ class Edition(ol_code.Edition):
                         name=id.name, 
                         label=id.label, 
                         value=v, 
-                        url=id.url_format)
+                        url=id.get('url') and id.url.replace('@@@', v))
                 
         for name in names:
             process(name, self[name])
             
         for name in values:
             process(name, values[name])
-            
+        
         return d
     
     def set_identifiers(self, identifiers):
