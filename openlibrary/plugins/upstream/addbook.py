@@ -283,25 +283,6 @@ class edit(core.edit):
             raise web.seeother(page.url(suffix="/edit"))
         else:
             return core.edit.GET(self, key)
-            
-class similar_authors(delegate.page):
-    path = "/similar/authors"
-    
-    def GET(self):
-        i = web.input(name="")
-        
-        def subject(name):
-            return web.storage(name=name, url='/subjects/' + urlsafe(name))
-            
-        if i.name.lower() == 'none':
-            d = []
-        else:
-            d = [
-                web.storage(name="Mark Twain", url="/authors/OL18319A", subjects=[subject("Fiction"), subject("Tom Sawyer")]),
-                web.storage(name="Margaret Mahy", url="/authors/OL4398065A", subjects=[subject("Fiction")])
-            ]
-        web.header('Content-Type', 'application/json')
-        return delegate.RawText(simplejson.dumps(d))
         
 def to_json(d):
     web.header('Content-Type', 'application/json')    
@@ -324,15 +305,14 @@ class authors_autocomplete(delegate.page):
         i = web.input(q="", limit=5)
         i.limit = safeint(i.limit, 5)
         
-        if i.q.lower().startswith('m'):
-            d = [
-                dict(name="Mark Twain", key="/authors/OL18319A", subjects=["Fiction", "Tom Sawyer"], works=["a"]),
-                dict(name="Margaret Mahy", key="/authors/OL4398065A", subjects=["Fiction"], works=["b"])
-            ]
-        else:
-            d = []
+        d = []
+        if "mark twain".startswith(i.q):
+            d.append(dict(name="Mark Twain", key="/authors/OL18319A", subjects=["Fiction", "Tom Sawyer"], works=["a"]))
+            
+        if "margaret mahy".startswith(i.q):
+            d.append(dict(name="Margaret Mahy", key="/authors/OL4398065A", subjects=["Fiction"], works=["b"]))
+
         return to_json(d)
-        
                 
 def setup():
     """Do required setup."""
