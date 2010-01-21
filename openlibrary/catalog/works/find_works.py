@@ -3,9 +3,11 @@
 # find works and create pages on production
 
 import re, sys, codecs, web
+from openlibrary.solr.add_covers import add_cover_to_work
+from openlibrary.solr.update_work import update_work, solr_update
 from openlibrary.catalog.get_ia import get_from_archive, get_data
 from openlibrary.catalog.marc.fast_parse import get_subfield_values, get_first_tag, get_tag_lines, get_subfields, BadDictionary
-from openlibrary.catalog.utils.query import query_iter, set_staging, query
+from openlibrary.catalog.utils.query import query_iter, withKey
 from openlibrary.catalog.utils import mk_norm
 from openlibrary.catalog.read_rc import read_rc
 from collections import defaultdict
@@ -16,9 +18,15 @@ import urllib2
 from openlibrary.api import OpenLibrary, Reference
 from lxml import etree
 from time import sleep, time
+from openlibrary.api import OpenLibrary, unmarshal, Reference
+
+rc = read_rc()
+ol = OpenLibrary("http://openlibrary.org")
+ol.login('WorkBot', rc['WorkBot']) 
 
 sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
 re_skip = re.compile('\b([A-Z]|Co|Dr|Jr|Capt|Mr|Mrs|Ms|Prof|Rev|Revd|Hon|etc)\.$')
+re_work_key = re.compile('^/works/OL(\d+)W$')
 
 re_ia_marc = re.compile('^(?:.*/)?([^/]+)_(marc\.xml|meta\.mrc)(:0:\d+)?$')
 
@@ -32,11 +40,7 @@ def has_dot(s):
 #set_staging(True)
 
 # sample title: The Dollar Hen (Illustrated Edition) (Dodo Press)
-re_parens = re.compile('^(.*?)(?: \(.+ (?:Edition|Press|Print|Novels|Mysteries)\))+$')
-
-def key_int(key):
-    # extract the number from a key like /a/OL1234A
-    return int(web.numify(key))
+re_parens = re.compile('^(.*?)(?: \(.+ (?:Edition|Press|Print|Novels|Mysteries|Book Series|Classics Library|Classics|Books)\))+$', re.I)
 
 def top_rev_wt(d):
     d_sorted = sorted(d.keys(), cmp=lambda i, j: cmp(d[j], d[i]) or cmp(len(j), len(i)))
@@ -49,6 +53,7 @@ def books_query(akey): # live version
         'source_records': None,
         'title': None,
         'work_title': None,
+        'table_of_contents': None,
         'languages': None,
         'title_prefix': None,
         'subtitle': None,
@@ -267,8 +272,12 @@ def find_works(akey, book_iter):
             keys += values
         assert work_count == len(keys)
         title = max(titles.keys(), key=lambda i:titles[i])
-        toc = [(k, books_by_key[k].get('table_of_contents', None)) for k in keys]
-        yield {'title': first, 'editions': keys, 'toc': dict((k, v) for k, v in toc if v)}
+        toc_iter = ((k, books_by_key[k].get('table_of_contents', None)) for k in keys)
+        toc = dict((k, v) for k, v in toc_iter if v)
+        w = {'title': first, 'editions': keys }
+        if toc:
+            w['toc'] = toc
+        yield w
 
 def print_works(works):
     for w in works:
@@ -285,10 +294,108 @@ if __name__ == '__main__':
 #        print >> out, b
 #    out.close()
 #    sys.exit(0)
-    #works = find_works(akey, get_books(akey, books_query(akey)))
-    works = find_works(akey, get_books(akey, books_from_cache()))
+    works = find_works(akey, get_books(akey, books_query(akey)))
+    #works = find_works(akey, get_books(akey, books_from_cache()))
 
+    do_updates = False
+
+    while True: # until redirects repaired
+        q = {'type':'/type/edition', 'authors':akey, 'works': None}
+        work_to_edition = defaultdict(set)
+        edition_to_work = defaultdict(set)
+        for e in query_iter(q):
+            if e.get('works', None):
+                for w in e['works']:
+                    work_to_edition[w['key']].add(e['key'])
+                    edition_to_work[e['key']].add(w['key'])
+
+        work_title = {}
+        fix_redirects = []
+        for k, editions in work_to_edition.items():
+            w = withKey(k)
+            if w['type']['key'] == '/type/redirect':
+                print 'redirect found'
+                wkey = w['location']
+                assert re_work_key.match(wkey)
+                for ekey in editions:
+                    e = withKey(ekey)
+                    e['works'] = [Reference(wkey)]
+                    fix_redirects.append(e)
+                continue
+            work_title[k] = w['title']
+        if not fix_redirects:
+            print 'no redirects left'
+            break
+        print 'save redirects'
+        ol.save_many(fix_redirects, "merge works")
+
+    all_existing = set()
+    work_keys = []
     for w in works:
-        print len(w['editions']), w['title']
-#        for e in w['editions']:
-#            print '  ', e
+        existing = set()
+        for e in w['editions']:
+            existing.update(edition_to_work[e])
+        if not existing: # editions have no existing work
+            if do_updates:
+                wkey = ol.new({'title': w['title'], 'type': '/type/work'})
+            print 'new work:', wkey, `w['title']`
+            #print 'new work:', `w['title']`
+            update = []
+            for ekey in w['editions']:
+                e = ol.get(ekey)
+                if do_updates:
+                    e['works'] = [Reference(wkey)]
+                update.append(e)
+            if do_updates:
+                ol.save_many(update, "add editions to new work")
+            work_keys.append(wkey)
+        elif len(existing) == 1:
+            key = list(existing)[0]
+            work_keys.append(key)
+            if work_title[key] == w['title']:
+                print 'no change:', key, `w['title']`
+            else:
+                print 'new title:', key, `work_title[key]`, '->', `w['title']`
+                print sorted(work_to_edition[key])
+                print w['editions']
+                existing_work = ol.get(key)
+                existing_work['title'] = w['title']
+                if do_updates:
+                    ol.save(key, existing_work, 'update work title')
+        else:
+            use_key = min(existing, key=lambda i: int(re_work_key.match(i).group(1)))
+            work_keys.append(use_key)
+            print 'merge work:', key, `w['title']`, 'to', use_key
+            update = [{'type': '/type/redirect', 'location': use_key, 'key': wkey} for wkey in existing if wkey != use_key]
+            for wkey in existing:
+                for ekey in work_to_edition[wkey]:
+                    e = ol.get(ekey)
+                    e['works'] = [Reference(use_key)]
+                    update.append(e)
+            if work_title[use_key] != w['title']:
+                print 'update work title', `work_title[use_key]`, '->', `w['title']`
+                existing_work = ol.get(use_key)
+                existing_work['title'] = w['title']
+                update.append(existing_work)
+            if do_updates:
+                ol.save_many(update, 'merge works')
+        all_existing.update(existing)
+        for wkey in existing:
+            cur = work_title[wkey]
+            print '  ', wkey, cur == w['title'], `cur`
+
+    print len(work_to_edition), len(all_existing)
+    assert len(work_to_edition) == len(all_existing)
+
+    if not do_updates:
+        sys.exit(0)
+
+    for key in work_keys:
+        w = ol.get(key)
+        add_cover_to_work(w)
+        if 'cover_edition' not in w:
+            print 'no cover found'
+        update_work(withKey(key), debug=True)
+
+    requests = ['<commit />']
+    solr_update(requests, debug=True)
