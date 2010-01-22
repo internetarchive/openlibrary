@@ -386,4 +386,5 @@ def works_by_author(akey, sort='editions', offset=0, limit=1000):
         works = works,
         years = [(int(k), v) for k, v in get_facet('publish_year')],
         get_facet = get_facet,
+        sort = sort,
     )
