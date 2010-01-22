@@ -717,6 +717,7 @@ def internalerror():
         raise web.internalerror(web.safestr(msg))
     
 delegate.app.internalerror = internalerror
+delegate.add_exception_hook(save_error)
 
 @public
 def sanitize(html):
