@@ -217,7 +217,8 @@ class Author(ol_code.Author):
         return self.key.split('/')[-1]
 
     def get_books(self, sort='editions', offset=0, limit=1000):
-        return works_by_author(self.get_olid(), sort, offset, limit)
+        i = web.input(sort='editions')
+        return works_by_author(self.get_olid(), i.sort, offset, limit)
         
 class Work(ol_code.Work):
     def get_subjects(self):
