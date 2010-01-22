@@ -148,7 +148,6 @@ def run_solr_query(param = {}, rows=100, page=1, sort=None):
     if sort:
         solr_select += "&sort=" + url_quote(sort)
     reply = urllib.urlopen(solr_select)
-    print solr_select
     return (parse(reply).getroot(), solr_select, q_list)
 
 def do_search(param, sort, page=1, rows=100):
@@ -370,9 +369,11 @@ def works_by_author(akey, sort='editions', offset=0, limit=1000):
     q='author_key:' + akey
     solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=key,author_name,author_key,title,edition_count,ia,cover_edition_key,has_fulltext,first_publish_year&qt=standard&wt=json" % (q, offset, limit)
     facet_fields = ["author_facet", "language", "publish_year", "publisher_facet", "subject_facet", "person_facet", "place_facet", "time_facet"]
-    solr_select += "&sort=edition_count+desc"
+    if sort == 'editions':
+        solr_select += '&sort=edition_count+desc'
+    elif sort.startswith('old'):
+        solr_select += '&sort=first_publish_year+asc'
     solr_select += "&facet=true&facet.mincount=1&f.author_facet.facet.sort=count&f.publish_year.facet.limit=-1&facet.limit=25&" + '&'.join("facet.field=" + f for f in facet_fields)
-    print solr_select
     reply = json.load(urllib.urlopen(solr_select))
     facets = reply['facet_counts']['facet_fields']
     works = [work_object(w) for w in reply['response']['docs']]
