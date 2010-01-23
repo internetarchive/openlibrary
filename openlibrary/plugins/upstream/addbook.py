@@ -277,6 +277,9 @@ class edit(core.edit):
     """Overwrite ?m=edit behaviour for author, book and work pages"""
     def GET(self, key):
         page = web.ctx.site.get(key)
+        
+        if page is None:
+            raise web.seeother(key)
 
         # first token is always empty string. second token is what we want.
         if key.split("/")[1] in ["authors", "books", "works"]:
