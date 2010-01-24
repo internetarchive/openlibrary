@@ -147,6 +147,7 @@ def run_solr_query(param = {}, rows=100, page=1, sort=None):
         solr_select += ''.join('&fq=%s:"%s"' % (k, url_quote(l)) for l in v if l)
     if sort:
         solr_select += "&sort=" + url_quote(sort)
+    print solr_select
     reply = urllib.urlopen(solr_select)
     return (parse(reply).getroot(), solr_select, q_list)
 
