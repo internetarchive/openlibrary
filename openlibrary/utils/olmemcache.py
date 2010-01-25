@@ -15,7 +15,11 @@ class Client:
         self.decompress = compressor.decompress
         
     def get(self, key):
-        value = self._client.get(web.safestr(key))
+        try:
+            value = self._client.get(web.safestr(key))
+        except memcache.Client.MemcachedKeyError:
+            return None
+        
         return value and self.decompress(value)
         
     def get_multi(self, keys):
