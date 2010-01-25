@@ -173,6 +173,9 @@ class SaveBookHelper:
         if edition.get('weight') and edition.weight.keys() == ['units']:
             edition.weight = None
             
+        for k in ['roles', 'identifiers', 'classifications']:
+            edition[k] = edition.get(k) or []
+            
         return edition
         
     def process_work(self, work):
@@ -181,6 +184,9 @@ class SaveBookHelper:
         work.subject_places = work.get('subject_places', '').split(',')
         work.subject_times = work.get('subject_times', '').split(',')
         work.subject_people = work.get('subject_people', '').split(',')
+        
+        for k in ['excerpts', 'links']:
+            work[k] = work.get(k) or []
         
         work = trim_doc(work)
         
@@ -271,6 +277,7 @@ class author_edit(delegate.page):
             author = trim_doc(i.author)
             alternate_names = author.get('alternate_names', None) or ''
             author.alternate_names = [name.strip() for name in alternate_names.split(';')]
+            author.links = author.get('links') or []
             return author
             
 class edit(core.edit):
@@ -278,12 +285,12 @@ class edit(core.edit):
     def GET(self, key):
         page = web.ctx.site.get(key)
         
-        if page is None:
-            raise web.seeother(key)
-
         # first token is always empty string. second token is what we want.
         if key.split("/")[1] in ["authors", "books", "works"]:
-            raise web.seeother(page.url(suffix="/edit"))
+            if page is None:
+                raise web.seeother(key)
+            else:
+                raise web.seeother(page.url(suffix="/edit"))
         else:
             return core.edit.GET(self, key)
         
