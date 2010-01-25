@@ -8,6 +8,7 @@ from infogami.utils.view import safeint
 
 from openlibrary.plugins.search.code import SearchProcessor
 from openlibrary.plugins.openlibrary import code as ol_code
+from openlibrary.plugins.worksearch.code import works_by_author
 
 from utils import get_coverstore_url, MultiDict, parse_toc, parse_datetime, get_edition_config
 import account
@@ -214,6 +215,10 @@ class Author(ol_code.Author):
     
     def get_olid(self):
         return self.key.split('/')[-1]
+
+    def get_books(self, sort='editions', offset=0, limit=1000):
+        i = web.input(sort='editions')
+        return works_by_author(self.get_olid(), i.sort, offset, limit)
         
 class Work(ol_code.Work):
     def get_subjects(self):
