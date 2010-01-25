@@ -88,7 +88,6 @@ class account_create(delegate.page):
         f = forms.Register()
         
         if not f.validates(i):
-            print 'validation failed', f.render()
             return render['account/create'](f)
         
         try:
@@ -304,10 +303,11 @@ class account_notifications(delegate.page):
 
 
 class account_others(delegate.page):
-    path = "/account/.*"
+    path = "(/account/.*)"
 
-    def GET(self):
-        return render.notfound(create=False)
+    def GET(self, path):
+        print "account_others", path
+        return render.notfound(path, create=False)
 
 class user_preferences(delegate.page):
     path = "(/people/[^/]*/preferences)"
