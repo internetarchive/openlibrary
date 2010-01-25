@@ -231,8 +231,8 @@ def subjects_covers(path_info):
         } 
         if 'cover_edition_key' in doc:
             w['cover_edition_key'] = doc['cover_edition_key']
-        if doc.get('has_fulltext', None) == 'true':
-            w['has_fulltext'] = 'true'
+        if doc.get('has_fulltext', None):
+            w['has_fulltext'] = doc['has_fulltext']
         works.append(w)
     return json.dumps(works)
 
