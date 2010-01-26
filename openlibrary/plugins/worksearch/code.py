@@ -129,9 +129,8 @@ def run_solr_query(param = {}, rows=100, page=1, sort=None):
     solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&start=%d&rows=%d&fl=key,author_name,author_key,title,edition_count,ia,has_fulltext,first_publish_year,cover_edition_key&qt=standard&wt=standard" % (q, offset, rows)
     solr_select += "&facet=true&" + '&'.join("facet.field=" + f for f in facet_fields)
 
-    for k in 'has_fulltext':
-        if k not in param:
-            continue
+    k = 'has_fulltext'
+    if k in param:
         v = param[k].lower()
         if v not in ('true', 'false'):
             del param[k]
@@ -232,13 +231,13 @@ def subjects_covers(path_info):
         } 
         if 'cover_edition_key' in doc:
             w['cover_edition_key'] = doc['cover_edition_key']
-        if doc.get('has_fulltext', None) == 'true':
-            w['has_fulltext'] = 'true'
+        if doc.get('has_fulltext', None):
+            w['has_fulltext'] = doc['has_fulltext']
         works.append(w)
     return json.dumps(works)
 
 def work_object(w):
-    return web.storage(
+    obj = dict(
         authors = [web.storage(key='/authors/' + k, name=n) for k, n in zip(w['author_key'], w['author_name'])],
         edition_count = w['edition_count'],
         key = '/works/' + w['key'],
@@ -247,7 +246,9 @@ def work_object(w):
         first_publish_year = (w['first_publish_year'][0] if 'first_publish_year' in w else None),
         ia = w.get('ia', [])
     )
-
+    if w.get('has_fulltext', None):
+        obj['has_fulltext'] = w['has_fulltext']
+    return web.storage(obj)
 
 def get_facet(facets, f, limit=None):
     return list(web.group(facets[f][:limit * 2] if limit else facets[f], 2))
@@ -287,6 +288,7 @@ class subjects(delegate.page):
         facet_fields = ["author_facet", "language", "publish_year", "publisher_facet", "subject_facet", "person_facet", "place_facet", "time_facet"]
         solr_select += "&sort=edition_count+desc"
         solr_select += "&facet=true&facet.mincount=1&f.author_facet.facet.sort=count&f.publish_year.facet.limit=-1&facet.limit=25&" + '&'.join("facet.field=" + f for f in facet_fields)
+        print solr_select
         reply = json.load(urllib.urlopen(solr_select))
         facets = reply['facet_counts']['facet_fields']
         def get_author(a, c):
@@ -316,8 +318,8 @@ class subjects(delegate.page):
                 } 
                 if w.get('cover_edition_key', None):
                     i['cover_edition_key'] = w.cover_edition_key
-                if w.get('has_fulltext', None) == 'true':
-                    i['has_fulltext'] = 'true'
+                if w.get('has_fulltext', None):
+                    i['has_fulltext'] = w['has_fulltext']
                 collect.append(i)
             return collect
 
@@ -389,3 +391,19 @@ def works_by_author(akey, sort='editions', offset=0, limit=1000):
         get_facet = get_facet,
         sort = sort,
     )
+
+class merge_authors(delegate.page):
+    path = '/merge/authors'
+    def GET(self):
+        i = web.input(key=[])
+        keys = []
+        for key in i.key:
+            if key not in keys:
+                keys.append(key)
+        master = i.get('master', None)
+        errors = []
+        if master == '':
+            errors += ['you must select a master author record']
+        if not keys:
+            errors += ['no authors selected']
+        return `keys`
