@@ -113,6 +113,10 @@ class upload2:
             error(ERROR_BAD_IMAGE)
         
         return simplejson.dumps({"ok": "true", "id": d.id})
+
+def trim_microsecond(date):
+    # ignore microseconds
+    return datetime.datetime(*date.timetuple()[:6])
     
 class cover:
     def GET(self, category, key, value, size):
@@ -122,7 +126,9 @@ class cover:
         d = _query(category, key, value)
         if d:
             if key == 'id':
-                web.lastmodified(d.created)
+                etag = "%s-%s" % (d.id, size.lower())
+                if not web.modified(trim_microsecond(d.created), etag=etag):
+                    raise web.notmodified()
                 web.header('Cache-Control', 'public')
                 web.expires(100 * 365 * 24 * 3600) # this image is not going to expire in next 100 years.
                 

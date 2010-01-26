@@ -521,7 +521,13 @@ class _yaml_edit(_yaml):
         if not self.is_admin():
             return render.permission_denied(key, 'Permission Denied')
             
-        d = self.get_data(key)
+        try:
+            d = self.get_data(key)
+        except web.HTTPError, e:
+            if web.ctx.status.lower() == "404 not found":
+                d = {"key": key}
+            else:
+                raise
         return render.edit_yaml(key, self.dump(d))
         
     def POST(self, key):
