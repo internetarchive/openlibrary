@@ -392,18 +392,51 @@ def works_by_author(akey, sort='editions', offset=0, limit=1000):
         sort = sort,
     )
 
+def simple_search(q, offset=0, rows=20, sort=None):
+    solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=*                             %%2Cscore&qt=standard&wt=json" % (q, offset, rows)
+    if sort:
+        solr_select += "&sort=" + url_quote(sort)
+
+    return json.load(urllib.urlopen(solr_select))
+
+def top_books_from_author(akey, rows=5, offset=0):
+    q = 'author_key:(' + akey + ')'
+    solr_select = solr_select_url + "?indent=on&version=2.2&q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=*                             %%2Cscore&qt=standard&wt=standard&explainOther=&hl=on&hl.fl=title" % (q, offset, rows)
+    solr_select += "&sort=edition_count+desc"
+
+    reply = urllib.urlopen(solr_select)
+    root = parse(reply).getroot()
+    result = root.find('result')
+    if result is None:
+        return []
+
+    return [web.storage(
+        key=doc.find("str[@name='key']").text,
+        title=doc.find("str[@name='title']").text,
+        edition_count=int(doc.find("int[@name='edition_count']").text),
+    ) for doc in result]
+
+def do_merge():
+    return
+
 class merge_authors(delegate.page):
     path = '/merge/authors'
     def GET(self):
-        i = web.input(key=[])
+        i = web.input(key=[], master=None)
         keys = []
         for key in i.key:
             if key not in keys:
                 keys.append(key)
-        master = i.get('master', None)
         errors = []
-        if master == '':
+        if i.master == '':
             errors += ['you must select a master author record']
         if not keys:
             errors += ['no authors selected']
-        return `keys`
+        return render.merge_authors(errors, i.master, keys, top_books_from_author, do_merge)
+
+class improve_search(delegate.page):
+    def GET(self):
+        i = web.input(q=None)
+        boost = dict((f, i[f]) for f in search_fields if f in i)
+        return render.improve_search(search_fields, boost, i.q, simple_search)
+
