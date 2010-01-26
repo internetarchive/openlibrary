@@ -375,7 +375,11 @@ def works_by_author(akey, sort='editions', offset=0, limit=1000):
     if sort == 'editions':
         solr_select += '&sort=edition_count+desc'
     elif sort.startswith('old'):
-        solr_select += '&sort=first_publish_year+asc'
+        solr_select += '&sort=first_publish_year'
+    elif sort.startswith('new'):
+        solr_select += '&sort=first_publish_year+desc'
+    elif sort.startswith('title'):
+        solr_select += '&sort=title'
     solr_select += "&facet=true&facet.mincount=1&f.author_facet.facet.sort=count&f.publish_year.facet.limit=-1&facet.limit=25&" + '&'.join("facet.field=" + f for f in facet_fields)
     reply = json.load(urllib.urlopen(solr_select))
     facets = reply['facet_counts']['facet_fields']
