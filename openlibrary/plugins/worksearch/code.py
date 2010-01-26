@@ -393,9 +393,9 @@ def works_by_author(akey, sort='editions', offset=0, limit=1000):
     )
 
 def simple_search(q, offset=0, rows=20, sort=None):
-    solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=*                             %%2Cscore&qt=standard&wt=json" % (q, offset, rows)
+    solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=*%%2Cscore&qt=standard&wt=json" % (web.urlquote(q), offset, rows)
     if sort:
-        solr_select += "&sort=" + url_quote(sort)
+        solr_select += "&sort=" + web.urlquote(sort)
 
     return json.load(urllib.urlopen(solr_select))
 
