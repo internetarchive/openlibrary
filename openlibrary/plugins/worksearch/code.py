@@ -232,8 +232,9 @@ def subjects_covers(path_info):
         } 
         if 'cover_edition_key' in doc:
             w['cover_edition_key'] = doc['cover_edition_key']
-        if doc.get('has_fulltext', None) == 'true':
-            w['has_fulltext'] = 'true'
+        if doc.get('has_fulltext', None):
+            w['has_fulltext'] = true
+            w['ia'] = doc['ia'][0]
         works.append(w)
     return json.dumps(works)
 
@@ -316,8 +317,9 @@ class subjects(delegate.page):
                 } 
                 if w.get('cover_edition_key', None):
                     i['cover_edition_key'] = w.cover_edition_key
-                if w.get('has_fulltext', None) == 'true':
-                    i['has_fulltext'] = 'true'
+                if w.get('has_fulltext', None):
+                    i['has_fulltext'] = w['has_fulltext']
+                    i['ia'] = w['ia'][0]
                 collect.append(i)
             return collect
 
