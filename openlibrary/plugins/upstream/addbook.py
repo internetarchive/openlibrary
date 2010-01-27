@@ -134,6 +134,7 @@ class SaveBookHelper:
             "authors": [{"author": a, "type": {"key": "/type/author_role"}} for a in edition.authors]
         })
         work._save()
+        return work
 
     def delete(self, key, comment=""):
         doc = web.ctx.site.new(key, {
