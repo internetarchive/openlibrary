@@ -196,7 +196,8 @@ def setup():
         "group": web.group,
         "storage": web.storage,
         "all": all,
-        "any": any
+        "any": any,
+        "locals": locals
     });
     
     setup_jquery_urls()
