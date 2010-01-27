@@ -521,7 +521,13 @@ class _yaml_edit(_yaml):
         if not self.is_admin():
             return render.permission_denied(key, 'Permission Denied')
             
-        d = self.get_data(key)
+        try:
+            d = self.get_data(key)
+        except web.HTTPError, e:
+            if web.ctx.status.lower() == "404 not found":
+                d = {"key": key}
+            else:
+                raise
         return render.edit_yaml(key, self.dump(d))
         
     def POST(self, key):
@@ -536,7 +542,7 @@ class _yaml_edit(_yaml):
             p = web.ctx.site.new(key, d)
             try:
                 p._save(i._comment)
-            except (ClientException, db.ValidationException), e:            
+            except (client.ClientException, ValidationException), e:            
                 add_flash_message('error', str(e))
                 return render.edit_yaml(key, i.body)                
             raise web.seeother(key + '.yml')

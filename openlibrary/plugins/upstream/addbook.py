@@ -6,8 +6,10 @@ import simplejson
 
 from infogami import config
 from infogami.core import code as core
+from infogami.core.db import ValidationException
 from infogami.utils import delegate
-from infogami.utils.view import safeint
+from infogami.utils.view import safeint, add_flash_message
+from infogami.infobase.client import ClientException
 
 from openlibrary.plugins.openlibrary import code as ol_code
 from openlibrary.plugins.openlibrary.processors import urlsafe
@@ -79,15 +81,30 @@ class SaveBookHelper:
     def __init__(self, work, edition):
         self.work = work
         self.edition = edition
-    
+        
     def save(self, formdata):
         """Update work and edition documents according to the specified formdata."""
         comment = formdata.pop('_comment', '')
+
+        user = web.ctx.site.get_user()
+        delete = user and user.is_admin() and formdata.pop('_delete', '')
+        
         work_data, edition_data = self.process_input(formdata)
         
         self.process_new_fields(formdata)
         
-        if work_data:
+        if delete:
+            if self.edition:
+                self.delete(self.edition.key, comment=comment)
+            
+            if self.work and self.work.edition_count == 0:
+                self.delete(self.work.key, comment=comment)
+            return
+        
+        if work_data and not delete:
+            if self.work is None:
+                self.work = self.new_work(self.edition)
+                self.edition.works = [{'key': self.work.key}]
             self.work.update(work_data)
             self.work._save(comment=comment)
             
@@ -108,7 +125,25 @@ class SaveBookHelper:
             
             self.edition.update(edition_data)
             self.edition._save(comment=comment)
-            
+    
+    def new_work(self, edition):
+        work_key = web.ctx.site.new_key("/type/work")
+        work = web.ctx.site.new(work_key, {
+            "key": work_key, 
+            "type": {'key': '/type/work'},
+            "title": edition.title or "", 
+            "authors": [{"author": a, "type": {"key": "/type/author_role"}} for a in edition.authors]
+        })
+        work._save()
+        return work
+
+    def delete(self, key, comment=""):
+        doc = web.ctx.site.new(key, {
+            "key": key,
+            "type": {"key": "/type/delete"}
+        })
+        doc._save(comment=comment)
+        
     def process_new_fields(self, formdata):
         def f(name):
             val = formdata.get(name)
@@ -173,6 +208,9 @@ class SaveBookHelper:
         if edition.get('weight') and edition.weight.keys() == ['units']:
             edition.weight = None
             
+        for k in ['roles', 'identifiers', 'classifications']:
+            edition[k] = edition.get(k) or []
+            
         return edition
         
     def process_work(self, work):
@@ -181,6 +219,9 @@ class SaveBookHelper:
         work.subject_places = work.get('subject_places', '').split(',')
         work.subject_times = work.get('subject_times', '').split(',')
         work.subject_people = work.get('subject_people', '').split(',')
+        
+        for k in ['excerpts', 'links']:
+            work[k] = work.get(k) or []
         
         work = trim_doc(work)
         
@@ -204,23 +245,18 @@ class book_edit(delegate.page):
         edition = web.ctx.site.get(key)
         if edition is None:
             raise web.notfound()
-        
         if edition.works:
             work = edition.works[0]
         else:
-            work_key = web.ctx.site.new_key("/type/work")
-            work = web.ctx.site.new(work_key, {
-                "key": work_key, 
-                "type": {'key': '/type/work'},
-                "title": edition.title, 
-                "authors": [{"author": a, "type": {"key": "/type/author_role"}} for a in edition.authors]
-            })
-            work._save()
-            edition.works = [work]
+            work = None
             
-        helper = SaveBookHelper(work, edition)
-        helper.save(web.input())
-        raise web.seeother(edition.url())
+        try:    
+            helper = SaveBookHelper(work, edition)
+            helper.save(web.input())
+            raise web.seeother(edition.url())
+        except (ClientException, ValidationException), e:
+            add_flash_message('error', str(e))
+            return self.GET(key)
 
 class work_edit(delegate.page):
     path = "(/works/OL\d+W)/edit"
@@ -235,11 +271,14 @@ class work_edit(delegate.page):
         work = web.ctx.site.get(key)
         if work is None:
             raise web.notfound()
-            
-        helper = SaveBookHelper(work, None)
-        helper.save(web.input())
-        raise web.seeother(work.url())
 
+        try:
+            helper = SaveBookHelper(work, None)
+            helper.save(web.input())
+            raise web.seeother(work.url())
+        except (ClientException, ValidationException), e:
+            add_flash_message('error', str(e))
+            return self.GET(key)
         
 class author_edit(delegate.page):
     path = "(/authors/OL\d+A)/edit"
@@ -256,31 +295,44 @@ class author_edit(delegate.page):
             raise web.notfound()
             
         i = web.input(_comment=None)
-        
         formdata = self.process_input(i)
-        if formdata:
+        try:
+            if not formdata:
+                raise web.badrequest()
+            elif "_save" in i:
+                author.update(formdata)
+                author._save(comment=i._comment)
+                raise web.seeother(key)
+            elif "_delete" in i:
+                author = web.ctx.site.new(key, {"key": key, "type": {"key": "/type/delete"}})
+                author._save(comment=i._comment)
+                raise web.seeother(key)
+        except (ClientException, ValidationException), e:
+            add_flash_message('error', str(e))
             author.update(formdata)
-            author._save(comment=i._comment)
-            raise web.seeother(key)
-        else:
-            raise web.badrequest()
+            author['comment_'] = i._comment
+            return render_template("type/author/edit", author)
     
     def process_input(self, i):
         i = utils.unflatten(i)
         if 'author' in i:
             author = trim_doc(i.author)
             alternate_names = author.get('alternate_names', None) or ''
-            author.alternate_names = [name.strip() for name in alternate_names.split(';')]
+            author.alternate_names = [name.strip() for name in alternate_names.replace("\n", ";").split(';')]
+            author.links = author.get('links') or []
             return author
             
 class edit(core.edit):
     """Overwrite ?m=edit behaviour for author, book and work pages"""
     def GET(self, key):
         page = web.ctx.site.get(key)
-
+        
         # first token is always empty string. second token is what we want.
         if key.split("/")[1] in ["authors", "books", "works"]:
-            raise web.seeother(page.url(suffix="/edit"))
+            if page is None:
+                raise web.seeother(key)
+            else:
+                raise web.seeother(page.url(suffix="/edit"))
         else:
             return core.edit.GET(self, key)
         
