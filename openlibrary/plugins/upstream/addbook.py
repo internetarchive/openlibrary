@@ -9,6 +9,7 @@ from infogami.core import code as core
 from infogami.core.db import ValidationException
 from infogami.utils import delegate
 from infogami.utils.view import safeint, add_flash_message
+from infogami.infobase.client import ClientException
 
 from openlibrary.plugins.openlibrary import code as ol_code
 from openlibrary.plugins.openlibrary.processors import urlsafe
@@ -248,9 +249,14 @@ class book_edit(delegate.page):
             work = edition.works[0]
         else:
             work = None
-        helper = SaveBookHelper(work, edition)
-        helper.save(web.input())
-        raise web.seeother(edition.url())
+            
+        try:    
+            helper = SaveBookHelper(work, edition)
+            helper.save(web.input())
+            raise web.seeother(edition.url())
+        except (ClientException, ValidationException), e:
+            add_flash_message('error', str(e))
+            return self.GET(key)
 
 class work_edit(delegate.page):
     path = "(/works/OL\d+W)/edit"
@@ -265,11 +271,14 @@ class work_edit(delegate.page):
         work = web.ctx.site.get(key)
         if work is None:
             raise web.notfound()
-            
-        helper = SaveBookHelper(work, None)
-        helper.save(web.input())
-        raise web.seeother(work.url())
 
+        try:
+            helper = SaveBookHelper(work, None)
+            helper.save(web.input())
+            raise web.seeother(work.url())
+        except (ClientException, ValidationException), e:
+            add_flash_message('error', str(e))
+            return self.GET(key)
         
 class author_edit(delegate.page):
     path = "(/authors/OL\d+A)/edit"
@@ -298,7 +307,7 @@ class author_edit(delegate.page):
                 author = web.ctx.site.new(key, {"key": key, "type": {"key": "/type/delete"}})
                 author._save(comment=i._comment)
                 raise web.seeother(key)
-        except ValidationException, e:
+        except (ClientException, ValidationException), e:
             add_flash_message('error', str(e))
             author.update(formdata)
             author['comment_'] = i._comment
@@ -309,7 +318,7 @@ class author_edit(delegate.page):
         if 'author' in i:
             author = trim_doc(i.author)
             alternate_names = author.get('alternate_names', None) or ''
-            author.alternate_names = [name.strip() for name in alternate_names.split(';')]
+            author.alternate_names = [name.strip() for name in alternate_names.replace("\n", ";").split(';')]
             author.links = author.get('links') or []
             return author
             
