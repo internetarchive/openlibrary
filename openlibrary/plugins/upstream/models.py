@@ -1,6 +1,7 @@
 import web
 import urllib, urllib2
 import simplejson
+import re
 from collections import defaultdict
 
 from infogami.infobase import client
@@ -219,6 +220,8 @@ class Author(ol_code.Author):
     def get_books(self, sort='editions', offset=0, limit=1000):
         i = web.input(sort='editions')
         return works_by_author(self.get_olid(), i.sort, offset, limit)
+
+re_year = re.compile(r'(\d{4})$')
         
 class Work(ol_code.Work):
     def get_subjects(self):
@@ -228,7 +231,19 @@ class Work(ol_code.Work):
         if subjects and not isinstance(subjects[0], basestring):
             subjects = [s.name for s in subjects]
         return subjects
+    def get_sorted_editions(self, reverse=False):
+        """Return a list of works sorted by publish date"""
+        def get_pub_year(e):
+            k = 'publish_date'
+            if k not in e:
+                return None
+            m = re_year.search(e[k])
+            if m:
+                return m.group(1)
 
+        q = {'type': '/type/edition', 'works': self.key, 'limit': 10000}
+        editions = [web.ctx.site.get(key) for key in web.ctx.site.things(q)]
+        return sorted(editions, key=get_pub_year, reverse=reverse)
 
 class Subject(client.Thing):
     def _get_solr_result(self):
