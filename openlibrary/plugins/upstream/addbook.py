@@ -100,7 +100,13 @@ class SaveBookHelper:
             if self.work and self.work.edition_count == 0:
                 self.delete(self.work.key, comment=comment)
             return
-        
+            
+        for author in work_data.get("authors", []):
+            if author['author']['key'] == "__new__":
+                a = self.new_author(formdata['author'])
+                a._save("New author")
+                author['author']['key'] = a.key
+            
         if work_data and not delete:
             if self.work is None:
                 self.work = self.new_work(self.edition)
@@ -131,11 +137,16 @@ class SaveBookHelper:
         work = web.ctx.site.new(work_key, {
             "key": work_key, 
             "type": {'key': '/type/work'},
-            "title": edition.title or "", 
-            "authors": [{"author": a, "type": {"key": "/type/author_role"}} for a in edition.authors]
         })
-        work._save()
         return work
+        
+    def new_author(self, name):
+        key =  web.ctx.site.new_key("/type/author")
+        return web.ctx.site.new(key, {
+            "key": key,
+            "type": {"key": "/type/author"},
+            "name": name
+        })
 
     def delete(self, key, comment=""):
         doc = web.ctx.site.new(key, {
@@ -255,6 +266,7 @@ class book_edit(delegate.page):
             helper.save(web.input())
             raise web.seeother(edition.url())
         except (ClientException, ValidationException), e:
+            raise
             add_flash_message('error', str(e))
             return self.GET(key)
 
