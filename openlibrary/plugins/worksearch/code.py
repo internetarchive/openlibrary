@@ -444,3 +444,8 @@ class improve_search(delegate.page):
         boost = dict((f, i[f]) for f in search_fields if f in i)
         return render.improve_search(search_fields, boost, i.q, simple_search)
 
+class merge_author_works(delegate.page):
+    path = "/authors/(OL\d+A)/merge-works"
+    def GET(self, key):
+        works = works_by_author(key)
+    
