@@ -327,8 +327,7 @@ class edit(core.edit):
     def GET(self, key):
         page = web.ctx.site.get(key)
         
-        # first token is always empty string. second token is what we want.
-        if key.split("/")[1] in ["authors", "books", "works"]:
+        if web.re_compile('/(authors|books|works)/OL.*').match(key):
             if page is None:
                 raise web.seeother(key)
             else:
@@ -357,14 +356,18 @@ class authors_autocomplete(delegate.page):
         i = web.input(q="", limit=5)
         i.limit = safeint(i.limit, 5)
         
-        d = []
-        if "mark twain".startswith(i.q):
-            d.append(dict(name="Mark Twain", key="/authors/OL18319A", subjects=["Fiction", "Tom Sawyer"], works=["a"]))
-            
-        if "margaret mahy".startswith(i.q):
-            d.append(dict(name="Margaret Mahy", key="/authors/OL4398065A", subjects=["Fiction"], works=["b"]))
-
-        return to_json(d)
+        # temporary implementation until author solr is ready
+        data = web.ctx.site.things(
+                {"type": "/type/author", "name~": i.q.title() + "*", "sort": "name", "name": None, "limit": i.limit}, 
+                details=True)
+        for d in data:
+            d.subjects = []
+            d.works = [w.title for w in 
+                        web.ctx.site.things(
+                            {"type": "/type/work", "authors": {"author": {"key": d.key}}, "title": None, "limit": 2}, 
+                            details=False)]
+        
+        return to_json(data)
                 
 def setup():
     """Do required setup."""
