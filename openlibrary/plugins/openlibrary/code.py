@@ -14,6 +14,11 @@ try:
     import genshi.filters
 except ImportError:
     genshi = None
+    
+try:
+    from BeautifulSoup import BeautifulSoup
+except ImportError:
+    BeautifulSoup = None
 
 import infogami
 
@@ -542,7 +547,7 @@ class _yaml_edit(_yaml):
             p = web.ctx.site.new(key, d)
             try:
                 p._save(i._comment)
-            except (ClientException, db.ValidationException), e:            
+            except (client.ClientException, ValidationException), e:            
                 add_flash_message('error', str(e))
                 return render.edit_yaml(key, i.body)                
             raise web.seeother(key + '.yml')
@@ -741,8 +746,19 @@ def sanitize(html):
             _, host, _, _, _ = urlparse.urlsplit(href)
             if host:
                 return 'nofollow'
+                
 
-    stream = genshi.HTML(html) | genshi.filters.HTMLSanitizer() | genshi.filters.Transformer("//a").attr("rel", get_nofollow)
+    try:
+        html = genshi.HTML(html)
+    except genshi.ParseError:
+        if BeautifulSoup:
+            # Bad html. Tidy it up using BeautifulSoup
+            html = str(BeautifulSoup(html))
+            html = genshi.HTML(html)
+        else:
+            raise
+
+    stream = html | genshi.filters.HTMLSanitizer() | genshi.filters.Transformer("//a").attr("rel", get_nofollow)
     return stream.render()                                                                                   
         
 class memory(delegate.page):

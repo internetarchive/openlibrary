@@ -93,6 +93,9 @@ class OpenLibrary:
     def get(self, key):
         data = self._request(key + '.json').read()
         return unmarshal(simplejson.loads(data))
+        
+    def get_many(self, keys):
+        return self.query({"key": keys, "*": None})
 
     def save(self, key, data, comment=None):
         headers = {'Content-Type': 'application/json'}

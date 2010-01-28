@@ -9,6 +9,7 @@ from infogami.core import code as core
 from infogami.core.db import ValidationException
 from infogami.utils import delegate
 from infogami.utils.view import safeint, add_flash_message
+from infogami.infobase.client import ClientException
 
 from openlibrary.plugins.openlibrary import code as ol_code
 from openlibrary.plugins.openlibrary.processors import urlsafe
@@ -99,7 +100,13 @@ class SaveBookHelper:
             if self.work and self.work.edition_count == 0:
                 self.delete(self.work.key, comment=comment)
             return
-        
+            
+        for author in work_data.get("authors", []):
+            if author['author']['key'] == "__new__":
+                a = self.new_author(formdata['author'])
+                a._save("New author")
+                author['author']['key'] = a.key
+            
         if work_data and not delete:
             if self.work is None:
                 self.work = self.new_work(self.edition)
@@ -130,10 +137,16 @@ class SaveBookHelper:
         work = web.ctx.site.new(work_key, {
             "key": work_key, 
             "type": {'key': '/type/work'},
-            "title": edition.title or "", 
-            "authors": [{"author": a, "type": {"key": "/type/author_role"}} for a in edition.authors]
         })
-        work._save()
+        return work
+        
+    def new_author(self, name):
+        key =  web.ctx.site.new_key("/type/author")
+        return web.ctx.site.new(key, {
+            "key": key,
+            "type": {"key": "/type/author"},
+            "name": name
+        })
 
     def delete(self, key, comment=""):
         doc = web.ctx.site.new(key, {
@@ -247,9 +260,15 @@ class book_edit(delegate.page):
             work = edition.works[0]
         else:
             work = None
-        helper = SaveBookHelper(work, edition)
-        helper.save(web.input())
-        raise web.seeother(edition.url())
+            
+        try:    
+            helper = SaveBookHelper(work, edition)
+            helper.save(web.input())
+            raise web.seeother(edition.url())
+        except (ClientException, ValidationException), e:
+            raise
+            add_flash_message('error', str(e))
+            return self.GET(key)
 
 class work_edit(delegate.page):
     path = "(/works/OL\d+W)/edit"
@@ -264,11 +283,14 @@ class work_edit(delegate.page):
         work = web.ctx.site.get(key)
         if work is None:
             raise web.notfound()
-            
-        helper = SaveBookHelper(work, None)
-        helper.save(web.input())
-        raise web.seeother(work.url())
 
+        try:
+            helper = SaveBookHelper(work, None)
+            helper.save(web.input())
+            raise web.seeother(work.url())
+        except (ClientException, ValidationException), e:
+            add_flash_message('error', str(e))
+            return self.GET(key)
         
 class author_edit(delegate.page):
     path = "(/authors/OL\d+A)/edit"
@@ -297,7 +319,7 @@ class author_edit(delegate.page):
                 author = web.ctx.site.new(key, {"key": key, "type": {"key": "/type/delete"}})
                 author._save(comment=i._comment)
                 raise web.seeother(key)
-        except ValidationException, e:
+        except (ClientException, ValidationException), e:
             add_flash_message('error', str(e))
             author.update(formdata)
             author['comment_'] = i._comment
@@ -308,7 +330,7 @@ class author_edit(delegate.page):
         if 'author' in i:
             author = trim_doc(i.author)
             alternate_names = author.get('alternate_names', None) or ''
-            author.alternate_names = [name.strip() for name in alternate_names.split(';')]
+            author.alternate_names = [name.strip() for name in alternate_names.replace("\n", ";").split(';')]
             author.links = author.get('links') or []
             return author
             
@@ -317,8 +339,7 @@ class edit(core.edit):
     def GET(self, key):
         page = web.ctx.site.get(key)
         
-        # first token is always empty string. second token is what we want.
-        if key.split("/")[1] in ["authors", "books", "works"]:
+        if web.re_compile('/(authors|books|works)/OL.*').match(key):
             if page is None:
                 raise web.seeother(key)
             else:
@@ -347,14 +368,18 @@ class authors_autocomplete(delegate.page):
         i = web.input(q="", limit=5)
         i.limit = safeint(i.limit, 5)
         
-        d = []
-        if "mark twain".startswith(i.q):
-            d.append(dict(name="Mark Twain", key="/authors/OL18319A", subjects=["Fiction", "Tom Sawyer"], works=["a"]))
-            
-        if "margaret mahy".startswith(i.q):
-            d.append(dict(name="Margaret Mahy", key="/authors/OL4398065A", subjects=["Fiction"], works=["b"]))
-
-        return to_json(d)
+        # temporary implementation until author solr is ready
+        data = web.ctx.site.things(
+                {"type": "/type/author", "name~": i.q.title() + "*", "sort": "name", "name": None, "limit": i.limit}, 
+                details=True)
+        for d in data:
+            d.subjects = []
+            d.works = [w.title for w in 
+                        web.ctx.site.things(
+                            {"type": "/type/work", "authors": {"author": {"key": d.key}}, "title": None, "limit": 2}, 
+                            details=True)]
+        
+        return to_json(data)
                 
 def setup():
     """Do required setup."""

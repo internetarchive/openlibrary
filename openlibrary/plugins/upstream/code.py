@@ -136,6 +136,7 @@ def setup_jquery_urls():
         
     web.template.Template.globals['jquery_url'] = jquery_url
     web.template.Template.globals['jqueryui_url'] = jqueryui_url
+    web.template.Template.globals['use_google_cdn'] = config.get('use_google_cdn', True)
 
 class redirects(delegate.page):
     path = "/(a|b|user)/(.*)"
@@ -196,7 +197,8 @@ def setup():
         "group": web.group,
         "storage": web.storage,
         "all": all,
-        "any": any
+        "any": any,
+        "locals": locals
     });
     
     setup_jquery_urls()

@@ -189,6 +189,22 @@ class Edition(ol_code.Edition):
             return "*" * level + " " + " | ".join([label, title, page])
             
         return "\n".join(row(r) for r in self.table_of_contents)
+        
+    def get_table_of_contents(self):
+        def row(r):
+            if isinstance(r, basestring):
+                level = 0
+                label = ""
+                title = r
+                pagenum = ""
+            else:
+                level = safeint(r.get('level', '0'), 0)
+                label = r.get('label', '')
+                title = r.get('title', '')
+                pagenum = r.get('pagenum', '')
+            return web.storage(level=level, label=label, title=title, pagenum=pagenum)
+
+        return [row(r) for r in self.table_of_contents]
 
     def set_toc_text(self, text):
         self.table_of_contents = parse_toc(text)
