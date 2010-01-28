@@ -6,7 +6,7 @@ from openlibrary.catalog.utils import flip_name
 from infogami.utils import view, template
 import simplejson as json
 from pprint import pformat
-from openlibrary.plugins.upstream.utils import get_coverstore_url
+from openlibrary.plugins.upstream.utils import get_coverstore_url, render_template
 from openlibrary.plugins.search.code import search as _edition_search
 from infogami.plugins.api.code import jsonapi
 
@@ -15,6 +15,9 @@ class edition_search(_edition_search):
 
 solr_host = config.plugin_worksearch.get('solr')
 solr_select_url = "http://" + solr_host + "/solr/works/select"
+
+solr_subject_host = config.plugin_worksearch.get('subject_solr')
+solr_subject_select_url = "http://" + solr_subject_host + "/solr/subjects/select"
 
 to_drop = set('''!*"'();:@&=+$,/?%#[]''')
 
@@ -451,3 +454,11 @@ class merge_author_works(delegate.page):
     def GET(self, key):
         works = works_by_author(key)
     
+class subject_search(delegate.page):
+    path = '/search/subjects'
+    def GET(self):
+        i = web.input(q=None)
+        def get_results(q, offset=0, limit=100):
+            solr_select = solr_subject_select_url + "?q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=name,type,count&qt=standard&wt=json" % (i.q, offset, limit)
+            return json.loads(urllib.urlopen(solr_select).read())
+        return render_template('search/subjects.tmpl', get_results)
