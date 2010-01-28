@@ -91,6 +91,22 @@ def render_template(name, *a, **kw):
     return render[name](*a, **kw)
     
 @public
+def get_error(name, *args):
+    """For the sake of convenience, all the error messages are put in a template. 
+    This function extracts the error message from the template and replaces the occurances `%s` with passed arguments.
+    
+    """
+    errors = render.errors().get('errors', {})
+    msg = errors.get(name) or name.lower().replace('_', ' ')
+    
+    print 'get_error', (name, msg)
+    
+    if msg and args:
+        return msg % args
+    else:
+        return msg
+    
+@public
 def list_recent_pages(path, limit=100, offset=0):
     """Lists all pages with name path/* in the order of last_modified."""
     q = {}
@@ -312,7 +328,7 @@ def get_languages():
     global _languages
     if _languages is None:
         keys = web.ctx.site.things({"type": "/type/language", "key~": "/languages/*", "limit": 1000})
-        _languages = [web.storage(name=d.name, code=d.code) for d in web.ctx.site.get_many(keys)]
+        _languages = sorted([web.storage(name=d.name, code=d.code, key=d.key) for d in web.ctx.site.get_many(keys)], key=lambda d: d.name.lower())
     return _languages
     
 @public
@@ -381,10 +397,35 @@ def get_markdown(text, safe_mode=False):
     md.postprocessors += view.wiki_processors
     return md
 
+
+class HTML(unicode):
+    def __init__(self, html):
+        unicode.__init__(self, web.safeunicode(html))
+        
+    def __repr__(self):
+        return "<html: %s>" % unicode.__repr__(self)
+
+_websafe = web.websafe
+def websafe(text):
+    if isinstance(text, HTML):
+        print 'websafe %r %r' % (text, _websafe(text))
+        #return _websafe(text.html)
+        return text
+    elif isinstance(text, web.template.TemplateResult):
+        return web.safestr(text)
+    else:
+        return _websafe(text)
+        
+web.websafe = websafe
+
 def setup():
     """Do required initialization"""
     # monkey-patch get_markdown to use OL Flavored Markdown
     view.get_markdown = get_markdown
+    
+    web.template.Template.globals.update({
+        'HTML': HTML
+    })
     
 if __name__ == '__main__':
     import doctest

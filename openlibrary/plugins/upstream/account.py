@@ -12,7 +12,7 @@ import infogami.core.code as core
 
 from openlibrary.i18n import gettext as _
 import forms
-
+import utils
 
 def _generate_salted_hash(key, text, salt=None):
     salt = salt or hmac.HMAC(key, str(random.random())).hexdigest()[:5]
@@ -72,7 +72,41 @@ class account(delegate.page):
     def GET(self):
         user = web.ctx.site.get_user()
         return render.account(user)
+
+class account_login(delegate.page):
+    path = "/account/login"
     
+    def GET(self):
+        referer = web.ctx.env.get('HTTP_REFERER', '/')
+        i = web.input(redirect=referer)
+        f = forms.Login()
+        f['redirect'].value = i.redirect 
+        return render.login(f)
+
+    def POST(self):
+        i = web.input(remember=False, redirect='/')
+        
+        def error(name):
+            f = forms.Login()
+            f.fill(i)
+            f.note = utils.get_error(name)
+            print "error: %r %r" % (f.note, web.websafe(f.note))
+            return render.login(f)
+        
+        if web.ctx.site.get('/people/' + i.username) is None:
+            return error('account_user_notfound')
+        
+        try:
+            web.ctx.site.login(i.username, i.password, i.remember)
+        except ClientException, e:
+            return error("account_incorrect_password")
+
+        if i.redirect == "/account/login" or i.redirect == "":
+            i.redirect = "/"
+
+        expires = (i.remember and 3600*24*7) or ""
+        web.setcookie(config.login_cookie_name, web.ctx.conn.get_auth_token(), expires=expires)
+        raise web.seeother(i.redirect)
 
 class account_create(delegate.page):
     path = "/account/create"
@@ -88,7 +122,6 @@ class account_create(delegate.page):
         f = forms.Register()
         
         if not f.validates(i):
-            print 'validation failed', f.render()
             return render['account/create'](f)
         
         try:
@@ -304,10 +337,11 @@ class account_notifications(delegate.page):
 
 
 class account_others(delegate.page):
-    path = "/account/.*"
+    path = "(/account/.*)"
 
-    def GET(self):
-        return render.notfound(create=False)
+    def GET(self, path):
+        print "account_others", path
+        return render.notfound(path, create=False)
 
 class user_preferences(delegate.page):
     path = "(/people/[^/]*/preferences)"

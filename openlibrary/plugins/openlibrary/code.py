@@ -14,6 +14,11 @@ try:
     import genshi.filters
 except ImportError:
     genshi = None
+    
+try:
+    from BeautifulSoup import BeautifulSoup
+except ImportError:
+    BeautifulSoup = None
 
 import infogami
 
@@ -521,7 +526,13 @@ class _yaml_edit(_yaml):
         if not self.is_admin():
             return render.permission_denied(key, 'Permission Denied')
             
-        d = self.get_data(key)
+        try:
+            d = self.get_data(key)
+        except web.HTTPError, e:
+            if web.ctx.status.lower() == "404 not found":
+                d = {"key": key}
+            else:
+                raise
         return render.edit_yaml(key, self.dump(d))
         
     def POST(self, key):
@@ -536,7 +547,7 @@ class _yaml_edit(_yaml):
             p = web.ctx.site.new(key, d)
             try:
                 p._save(i._comment)
-            except (ClientException, db.ValidationException), e:            
+            except (client.ClientException, ValidationException), e:            
                 add_flash_message('error', str(e))
                 return render.edit_yaml(key, i.body)                
             raise web.seeother(key + '.yml')
@@ -627,10 +638,10 @@ def changequery(query=None, **kw):
         else:
             query[k] = v
 
-    query = dict((k, web.safestr(v)) for k, v in query.items())
+    query = dict((k, (map(web.safestr, v) if isinstance(v, list) else web.safestr(v))) for k, v in query.items())
     out = web.ctx.get('readable_path', web.ctx.path)
     if query:
-        out += '?' + urllib.urlencode(query)
+        out += '?' + urllib.urlencode(query, doseq=True)
     return out
 
 # Hack to limit recent changes offset.
@@ -717,6 +728,7 @@ def internalerror():
         raise web.internalerror(web.safestr(msg))
     
 delegate.app.internalerror = internalerror
+delegate.add_exception_hook(save_error)
 
 @public
 def sanitize(html):
@@ -734,8 +746,19 @@ def sanitize(html):
             _, host, _, _, _ = urlparse.urlsplit(href)
             if host:
                 return 'nofollow'
+                
 
-    stream = genshi.HTML(html) | genshi.filters.HTMLSanitizer() | genshi.filters.Transformer("//a").attr("rel", get_nofollow)
+    try:
+        html = genshi.HTML(html)
+    except genshi.ParseError:
+        if BeautifulSoup:
+            # Bad html. Tidy it up using BeautifulSoup
+            html = str(BeautifulSoup(html))
+            html = genshi.HTML(html)
+        else:
+            raise
+
+    stream = html | genshi.filters.HTMLSanitizer() | genshi.filters.Transformer("//a").attr("rel", get_nofollow)
     return stream.render()                                                                                   
         
 class memory(delegate.page):

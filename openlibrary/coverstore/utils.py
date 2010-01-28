@@ -1,6 +1,6 @@
 """Utilities for coverstore"""
 
-import urllib
+import urllib, urllib2
 import socket
 import os
 import mimetypes
@@ -48,9 +48,11 @@ def ol_things(key, value):
         import traceback
         traceback.print_exc()
         return []
-                
+
+USER_AGENT = "Mozilla/5.0 (Compatible; coverstore downloader http://covers.openlibrary.org)"
 def download(url):
-    r = urllib.urlopen(url)
+    req = urllib2.Request(url, headers={'User-Agent': USER_AGENT})
+    r = urllib2.urlopen(req)
     return r.read()
 
 def urldecode(url):
