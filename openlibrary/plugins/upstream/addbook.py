@@ -377,7 +377,7 @@ class authors_autocomplete(delegate.page):
             d.works = [w.title for w in 
                         web.ctx.site.things(
                             {"type": "/type/work", "authors": {"author": {"key": d.key}}, "title": None, "limit": 2}, 
-                            details=False)]
+                            details=True)]
         
         return to_json(data)
                 
