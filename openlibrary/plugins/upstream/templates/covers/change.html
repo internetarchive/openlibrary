@@ -1,0 +1,110 @@
+$def with (doc, cover_selector=".bookCover img")
+
+$if doc.type.key == '/type/author':
+    $ add_url = doc.url('/add-photo')
+    $ manage_url = doc.url('/manage-photos')
+    $ title = "Author Photos"
+    $if doc.get_photo():
+        $ change = "Manage Author Photos"
+    $else:
+        $ change = "Add Author Photo"
+$else:
+    $ add_url = doc.url('/add-cover')
+    $ manage_url = doc.url('/manage-covers')
+    $ title = "Book Covers"
+    
+    $if doc.get_cover():
+        $ change = "Manage Covers"
+    $else:
+        $ change = "Add Cover Image"
+    
+<script type="text/javascript">
+\$().ready(function(){
+    if(jQuery.support.opacity){
+        \$("#tabsImages").tabs({fx:{opacity:'toggle'}});
+    } else {
+        \$("#tabsImages").tabs();
+    };
+});
+
+function update_image(image) {
+    var url;
+    
+    $if doc.type.key == "/type/edition":
+        if (image) {
+            url = "$get_coverstore_url()/b/id/" + image + "-M.jpg";
+            // XXX-Anand: Fix this hack
+            // set url and show SRPCover  and hide SRPCoverBlank 
+            \$("$cover_selector").attr('src', url)
+                .parent().show()
+                .next().hide();
+        }
+        else {
+            // hide SRPCover and show SRPCoverBlank
+            \$("$cover_selector")
+                .parent().hide()
+                .next().show();
+        }
+    $else:
+        if (image) {
+            url = "$get_coverstore_url()/a/id/" + image + "-M.jpg";
+        }
+        else {
+            url = "/images/icons/avatar_author-lg.png";
+        }
+        \$("$cover_selector").attr('src', url);
+}
+
+\$().ready(function(){
+    function add_iframe(selector, src) {
+        \$(selector)
+            .html('<iframe frameborder="0" height="330" width="580" marginheight="0" marginwidth="0" scrolling="auto"></iframe>')
+            .find('iframe')
+            .attr("src", src);
+    }
+    
+    // Add iframes lazily when the popup is loaded.
+    // This avoids fetching the iframes along with main page.
+    \$("#coverPop").colorbox({inline: true, href: "#addImage"})
+        .bind("cbox_load", function() {
+            setTimeout(function() {
+                // add iframe to add images
+                add_iframe("#imagesAdd", "$:add_url");
+
+                // add iframe to manage images
+                add_iframe("#imagesManage", "$:manage_url");
+            }, 0);
+        })
+        .bind('cbox_cleanup', function(){
+            \$("#imagesAdd").html("");
+            \$("#imagesManage").html("");
+        });
+});
+</script>
+
+<div class="smaller sansserif"><a href="javascript:;" id="coverPop">$change</a></div>
+
+<div class="hidden">
+    <div class="floater" id="addImage">
+    
+        <div class="floaterHead">
+            <h2>$title</h2>
+            <a class="floaterShut" href="javascript:;" onclick="\$.fn.colorbox.close();"></a>
+        </div>
+
+        <div id="tabsImages" class="tabs tabsPop">
+            <ul>
+                <li><a href="#imagesAdd">Add</a></li>
+                <li><a href="#imagesManage">Manage</a></li>
+            </ul>
+
+            <div id="imagesAdd">
+                $# add image iframe is added here when the popup is loaded
+            </div>
+
+            <div id="imagesManage">
+                $# manage images iframe is added here when the popup is loaded
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,12 @@
+$def with(author, size="M")
+
+$if size == 'M':
+    $ url = author.get_photo_url(size) or "/images/icons/avatar_author-lg.png"
+$else:
+    $ url = author.get_photo_url(size) or "/images/icons/avatar_author-sm.png"
+
+<div class="author coverMagic">
+    <div class="SRPCover bookCover">
+        <img src="$url" class="cover" alt="$author.name"/>
+    </div>
+</div>

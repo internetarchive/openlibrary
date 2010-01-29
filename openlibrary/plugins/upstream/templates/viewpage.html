@@ -1,5 +1,17 @@
 $def with (page)
 
+$ v = query_param("v", None)
+
+$if v:
+    <script type="text/javascript">
+    \$("#headerSearch").hide();
+    </script>
+    <div class="revert notice">
+        <form name="revert" method="POST" action="$changequery(m='revert')">
+            <button type="submit">$_("Revert to this revision?")</button>
+        <form>
+    </div>
+    $putctx("robots", "noindex,nofollow")
 
 $ view = thingview(page)
 

@@ -1,0 +1,86 @@
+$def with (doc, data={}, status=None)
+
+$putctx('bodyid', 'form')
+
+$if doc.type.key == "/type/author":
+    $ intro = _("There are two ways to place an author's image on Open Library")
+    $ action = doc.url('/add-photo')
+$else:
+    $ intro = _("There are two ways to get a cover image on Open Library")
+    $ action = doc.url('/add-cover')
+    
+<div class="popAlert" id="errors" style="display: $('block' if status else 'none')">
+$if status:
+    $if status.code == 1: $_("Please provide a valid image.")
+    $elif status.code == 2: $_("Please provide an image URL.")
+    $elif status.code == 3: $_("Please provide a valid image.")
+</div>
+
+<script type="text/javascript">
+\$(function() {
+   \$("#form.addcover-form").submit(function(event) {
+       
+       \$.log([this, "submit"]);
+       
+       function val(selector) {
+           return \$.trim(\$(selector).val());
+       }
+       function error(message) {
+           \$("#errors").show().html(message);
+           event.preventDefault();
+       }
+       var file = val("#coverFile");
+       var url = val("#imageUrl");
+       
+       if (file == "" && (url == "" || url == "http://")) {
+           return error("Please choose an image or provide a URL.");
+       }
+       
+       function test_url(url) {
+           var obj = {
+               optional: function() { return false; }
+           }
+           return \$.validator.url.apply(obj, [url, null]);           
+       }
+       
+       if (url != "" && url != "http://" && !test_url(url)) {
+           return error("Please provide a valid URL.");
+       }       
+   });
+});
+
+</script>
+
+<div class="imageIntro">$intro</div>
+
+<form class="floatform" id="addcover-form" name="bookcover" method="post" enctype="multipart/form-data" action="$action">
+
+    <div align="center" style="width:100%;">
+        <div class="centerIt">
+
+            <div class="formElement">
+                <div class="label">
+                    <label id="imageBrowse" for="imageFile">$_("Either choose a JPG, GIF or PNG on your computer,")</label>
+                </div>
+                <div class="input">
+                    <input type="file" name="file" id="coverFile" value=""/>
+                </div>
+            </div>
+                    
+            <div class="formElement">
+                <div class="label">
+                    <label id="imageWeb" for="imageUrl"><span class="highlight">$:_("<u>Or</u></span>, paste in the image URL if it's on the web.")</label>
+                </div>
+                <div class="input">
+                    <input type="text" name="url" id="imageUrl" value="$data.get('url', 'http://')" onClick="if(!this._haschanged && this.value == 'http://'){this.value=''};this._haschanged=true;"/>
+                </div>
+            </div>
+                    
+            <div class="formElement" style="margin: 50px 0px 0px 30px;">
+                <button type="submit" name="upload" id="imageUpload" value="Upload" class="largest">$_("Upload")</button>
+                <a class="close-popup floaterClose" href="javascript:;" onclick="parent.\$.fn.colorbox.close();">$_("Cancel")</a>
+            </div>
+                    
+        </div>
+    </div>                
+</form>

@@ -1,0 +1,32 @@
+$def with (record, filename, begin, length)
+
+$var title: $_("MARC details of") $filename:$begin:$length
+
+$ end = begin + length - 1
+
+<div id="contentHead">
+    <h1>$_("MARC details of") $filename:$begin:$length</h1>
+</div>
+
+<div id="contentBody">
+
+    <p>$_("Record Locator:") $filename</p>
+
+    $if not record:
+        <p>$_("Invalid MARC record.")</p>
+    $else:
+        <p><b>LEADER:</b> <code>$record.leader</code><br/>
+        $:record.html()</p>
+
+    <p>
+    $_("In order to retrieve the exact bytes of this MARC record, perform a HTTP GET on the url")
+    <pre>http://www.archive.org/download/$filename</pre> 
+    $_("and include the HTTP header")
+    <pre>Range: bytes=$begin-$end</pre>
+    </p>
+
+    <p>
+    $:_('You will need to do this with a special purpose web client such as <a href=http://curl.haxx.se>curl</a>, not a browser. The curl command you\'d use is:')
+    <pre>curl -L -r $begin-$end 'http://www.archive.org/download/$filename'</pre>
+    </p>
+</div>

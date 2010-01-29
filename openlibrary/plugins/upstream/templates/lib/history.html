@@ -2,22 +2,49 @@ $def with (page)
 
 $ h = get_history(page)
 
-<table class="history">
-    <tbody>
-        $for v in h.recent:
-            <tr>
-                <td class="timestamp">$datestr(v.created)</td>
-                <td class="detail">$v.comment</td>
-            </tr>
-        $if h.initial:
-            <tr class="reveal">
-                <td class="timestamp">&nbsp;</td>
-                <td class="detail"><a href="$page.key?m=history" class="showmore">$_("See more history")</a></td>
-            </tr>
-            $for v in h.initial:
+<div class="section collapse">
+    <div class="head">
+        <h2>
+        $_("History")
+        
+        $if page.url:
+            $ url = page.url(m='history')
+        $else:
+            $ url = changequery(m='history')
+        
+        <span class="link">&nbsp;<a href="$url">$_("Read all")</a></span>
+        </h2>
+    </div>
+
+    <table class="history">
+        <tbody>
+            $for v in h.recent:
                 <tr>
-                    <td class="timestamp">$datestr(v.created)</td>
-                    <td class="detail">$v.comment</td>
+                    <td class="timestamp"><a href="$v.key?v=$v.revision" title="$_('View revision %s', v.revision)">$datestr(v.created)</a></td>
+                    $if v.author:
+                        <td class="timestamp"><div class="truncatedisplayname">Edited by <a href="$v.author.key" class="truncate" title="$v.author.displayname">$v.author.displayname</a></div></td>
+                    $elif v.ip and v.ip != '127.0.0.1':
+                        <td class="timestamp">Edited by <a href="/recentchanges?ip=$v.ip" title="$_('An anonymous user')">$v.ip</a></td>
+                    $else:
+                        <td class="timestamp"><span title="$_('An anonymous user')">$v.ip</span></td>
+                    $if v.comment:
+                        <td class="detail">$v.comment
+                            $ marc = v.get('machine_comment')
+		            $if marc: (<a href="/show-marc/$marc">$_("View MARC")</a>)
+                        </td>
+                    $else:
+                        <td class="detail"><em>$_("Edited without comment")</em></td>
                 </tr>
-    </tbody>
-</table>
+            $if h.initial:
+                $for v in h.initial:
+                    <tr class="first">
+                        <td class="timestamp"><a href="$v.key?v=$v.revision" title="$_('View revision %s', v.revision)">$datestr(v.created)</a></td>
+                        <td class="timestamp">&nbsp;</td>
+                    $if v.comment:
+                        <td class="detail">$v.comment</td>
+                    $else:
+                        <td class="detail"><em>$_("Page initiated")</em></td>
+                    </tr>
+        </tbody>
+    </table>
+</div>

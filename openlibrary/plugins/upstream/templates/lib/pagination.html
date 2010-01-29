@@ -1,0 +1,28 @@
+$def with (pagecount, index, url_template)
+
+$if isinstance(url_template, basestring):
+    $ url = lambda i: url_template % {"page": i}
+$else:
+    $ url = url_template
+
+$ index = int(index)
+
+$ r = 3
+
+$ start = max(1, min(index - r, pagecount - 2*r))
+$ end = min(pagecount, max(index + r, 1 + 2*r))
+
+$if pagecount > 1:
+    <div class="pagination">
+        $if index > 1: <a href="$url(index-1)">&larr; $_("Previous")</a>
+        $if start > 1: <a href="$url(1)">1</a>
+        $if start > 2: <span class="ellipsis">...</span>
+        $for i in range(start, end+1):
+            $if i == index: 
+                <span class="this">$i</span>
+            $else: 
+                <a href="$url(i)">$i</a>
+        $if end < pagecount-1: <span class="ellipsis">...</span>
+        $if end < pagecount: <a href="$url(pagecount)" class="ChoosePage">$pagecount</a>
+        $if index < pagecount: <a href="$url(index+1)" class="ChoosePage">$_("Next") &rarr;</a>
+    </div>
