@@ -395,10 +395,20 @@ msgstr "ప్రచురణ"
 msgid "First published"
 msgstr "ముదటి ప్రచురణ"
 
+#: templates/advanced_search.html:11
+#, fuzzy
+msgid "Fiction?"
+msgstr "చర్యలు"
+
 #: templates/advanced_search.html:12 templates/lib/search_foot.html:47
 #: templates/lib/search_head.html:60
 msgid "Language"
 msgstr "భాష"
+
+#: templates/advanced_search.html:42
+#, python-format
+msgid "We found <strong>%s results</strong> that match your query."
+msgstr "మీ శోధను సరిపడే <strong>%s ఫలితాలు</strong> లభించాయి"
 
 #: templates/diff.html:10
 msgid "Added"
@@ -441,7 +451,9 @@ msgstr ""
 msgid ""
 "The username you entered isn't in the Open Library system. Please try "
 "again?"
-msgstr "మీరు ఇచ్చిన సభ్యనామము సార్వత్రిక గ్రంధాలయ వ్యవస్తలో లేదు. మళ్ళీ ప్రయత్నిస్తారా?"
+msgstr ""
+"మీరు ఇచ్చిన సభ్యనామము సార్వత్రిక గ్రంధాలయ వ్యవస్తలో లేదు. మళ్ళీ "
+"ప్రయత్నిస్తారా?"
 
 #: templates/errors.html:4
 msgid ""
@@ -1594,7 +1606,7 @@ msgstr ""
 
 #: templates/lib/history.html:15
 msgid "Read all"
-msgstr "అన్నీ చదవండి"
+msgstr "అన్నీ చూడండి"
 
 #: templates/lib/history.html:27 templates/lib/history.html:29
 msgid "An anonymous user"
@@ -2020,7 +2032,7 @@ msgstr ""
 #: templates/type/rawtext/edit.html:5 templates/type/template/edit.html:5
 #, python-format
 msgid "Edit %(title)s"
-msgstr %(title)s ని మార్చు"
+msgstr "(title)s ని మార్చు"
 
 #: templates/type/home/edit.html:16
 msgid ""
@@ -2156,68 +2168,4 @@ msgstr "లంకెలు"
 #: templates/type/work/view.html:144
 msgid "(outside Open Library)"
 msgstr ""
-
-#~ msgid "Admin Tasks"
-#~ msgstr ""
-
-#~ msgid "Edit this template"
-#~ msgstr ""
-
-#~ msgid "Title:"
-#~ msgstr "శీర్షిక:"
-
-#~ msgid "Author:"
-#~ msgstr "రచన:"
-
-#~ msgid "Subject:"
-#~ msgstr "సబ్జక్టు:"
-
-#~ msgid "Date Range:"
-#~ msgstr "ప్రచురణాకాలం"
-
-#~ msgid "Create an Account"
-#~ msgstr "క్రొత్త ఖాతా సృష్టించండి"
-
-#~ msgid "Verification email sent"
-#~ msgstr "దృవీకరణ ఈమెయిలు పంపబడింది"
-
-#~ msgid ""
-#~ "We've sent an email to %(email)s. "
-#~ "You'll need to read that and click"
-#~ " on the verification link to finish"
-#~ " creating your account."
-#~ msgstr ""
-#~ "మేము %(email)s కు ఈమెయిలు పంపాము. మీ ఖాతా సృష్టి పూర్తవటానికి \"\n"
-#~ "\"మీరు దానిని చదివి అందులో ఉన్న దృవీకరణ లంకెను నొక్కండి."
-
-#~ msgid ""
-#~ "Please provide the email address you "
-#~ "used to originally sign-up, and "
-#~ "we'll send you instructions to change"
-#~ " your Open Library password."
-#~ msgstr ""
-
-#~ msgid "Just a sec..."
-#~ msgstr ""
-
-#~ msgid "Oxford University Press; Penguin; W.W. Norton"
-#~ msgstr ""
-
-#~ msgid "New York, USA; Sydney, Australia"
-#~ msgstr ""
-
-#~ msgid "See more history"
-#~ msgstr ""
-
-#~ msgid "Authors who write about %s"
-#~ msgstr ""
-
-#~ msgid "See all"
-#~ msgstr ""
-
-#~ msgid "Prominent publishers"
-#~ msgstr ""
-
-#~ msgid "%s's Activity"
-#~ msgstr ""
 
