@@ -436,6 +436,7 @@
     <field name="alternative_subtitle" type="text" stored="false" multiValued="true"/>
     <field name="edition_count" type="int"/>
     <field name="edition_key" type="string" multiValued="true"/>
+    <field name="cover_edition_key" type="string"/>
     <field name="by_statement" type="text" stored="false" multiValued="true"/>
     <field name="publish_date" type="text" multiValued="true"/>
     <field name="publish_year" type="int" multiValued="true"/>
@@ -464,8 +465,11 @@
     <field name="subject_facet" type="string" stored="false" multiValued="true"/>
     <field name="place_facet" type="string" stored="false" multiValued="true"/>
     <field name="person_facet" type="string" stored="false" multiValued="true"/>
-    <field name="time_facet" type="string" stored="false" multiValued="true"/>
-t
+    <field name="time_key" type="string" stored="false" multiValued="true"/>
+    <field name="subject_key" type="string" stored="false" multiValued="true"/>
+    <field name="place_key" type="string" stored="false" multiValued="true"/>
+    <field name="person_key" type="string" stored="false" multiValued="true"/>
+
    <!--
    <field name="timestamp" type="date" indexed="true" stored="true" default="NOW" multiValued="false"/>
      -->
