@@ -1,0 +1,22 @@
+$def with (record, filename)
+
+$var title: $_("MARC XML details of") $filename
+
+<div id="contentHead">
+    <h1>$_("MARC XML details of") $filename</h1>
+</div>
+
+<div id="contentBody">
+    <p>$_("Record Locator:") $filename</p>
+
+    $if not record:
+        <p>$_("Invalid MARC XML record.")</p>
+    $else:
+        <pre>$record</pre>
+
+    <p>
+    $_("In order to retrieve the exact bytes of this MARC record, perform a HTTP GET on the url")
+    <pre>http://www.archive.org/download/$filename</pre> 
+    </p>
+
+</div>

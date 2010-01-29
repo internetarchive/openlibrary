@@ -23,14 +23,43 @@ class addbook(delegate.page):
     path = "/books/add"
     
     def GET(self):
-        return render_template('books/add')
+        i = web.input(work=None)
+        work = i.work and web.ctx.site.get(i.work)        
+        return render_template('books/add', work)
         
     def POST(self):
-        i = web.input(title='')
-        work = web.ctx.site.new('/works/new', {'key': '/works/new', 'type': {'key': '/type/work'}, 'title': ''})
-        edition = web.ctx.site.new('/books/new', {'key': '/books/new', 'type': {'key': '/type/edition'}, 'title': ''})
-        return render_template('books/edit', work, edition)
-
+        i = web.input()
+        work = i.get('work') and web.ctx.site.get(i.work)        
+        edition = i.get('edition') and web.ctx.site.get(i.edition)
+        
+        if work and edition:
+            return self.work_edition_match()
+        elif work and not edition:
+            return self.work_match(work, i)
+        else:
+            return self.multiple_matches()
+    
+    def work_match(self, work, i):
+        key = web.ctx.site.new_key("/type/edition")
+        edition = web.ctx.site.new(key, {
+            "key": key,
+            "type": {"key": "/type/edition"},
+            "works": [{"key": work.key}],
+            "publishers": [i.get("publisher")],
+            "publish_date": i.get("publish_date"),
+            'title': i.get('title') or work.title            
+        })
+        if i.get("id_name") and i.get("id_value"):
+            edition.set_identifiers([dict(name=i.id_name, value=i.id_value)])
+            
+        edition._save("new edition")        
+        raise web.seeother(edition.url("/edit"))
+        
+    def work_edition_match(self):
+        return "Not yet implemented"
+        
+    def multiple_matches(self):
+        return "Not yet implemented"
 
 class addauthor(ol_code.addauthor):
     path = "/authors/add"    
@@ -101,7 +130,7 @@ class SaveBookHelper:
                 self.delete(self.work.key, comment=comment)
             return
             
-        for author in work_data.get("authors", []):
+        for author in work_data.get("authors") or []:
             if author['author']['key'] == "__new__":
                 a = self.new_author(formdata['author'])
                 a._save("New author")
@@ -249,7 +278,7 @@ class book_edit(delegate.page):
             
         work = edition.works and edition.works[0]
         # HACK: create dummy work when work is not available to make edit form work
-        work = work or web.ctx.site.new('/works/new', {'key': '/works/new', 'type': {'key': '/type/work'}, 'title': edition.title})
+        work = work or web.ctx.site.new('', {'key': '', 'type': {'key': '/type/work'}, 'title': edition.title})
         return render_template('books/edit', work, edition)
         
     def POST(self, key):
@@ -277,6 +306,7 @@ class work_edit(delegate.page):
         work = web.ctx.site.get(key)
         if work is None:
             raise web.notfound()
+        
         return render_template('books/edit', work)
         
     def POST(self, key):

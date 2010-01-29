@@ -20,5 +20,9 @@ $if '<!--suppress-title-->' not in page.body:
 $ text = format(page.body)
 
 <div id="contentBody">
+
     $:text
+
+    <div class="clearfix"></div>
+    $:render_template("lib/history", page)
 </div>

@@ -4,17 +4,12 @@ $ _x = ctx.setdefault('bodyid', 'edit')
 
 $var title: $_("Edit %(title)s", title=page.key)
 
-<div id="contentHead">
-    <div class="head">
-        <span class="tools">$_("Currently Editing:")</span>
-        <h2>$(page.title or page.key)</h2>
-    </div>
-</div>
+$:render_template("lib/edit_head", page)
+
 <div id="contentBody">
     <form name="edit" method="post" action="">
-        $:macros.TypeChanger(page.type)
-        
-        <div class="formElement">
+
+        <div class="formElement title">
             <div class="label">
                 <label for="title">$_("Title")</label>
             </div>
@@ -23,18 +18,30 @@ $var title: $_("Edit %(title)s", title=page.key)
             </div>
         </div>
         
+        $:macros.TypeChanger(page.type)
+        
+        <div class="clearfix"></div>
+
         <div class="formElement">
             <div class="label">
                 <label for="body">$_("Document Body")</label>
             </div>
             <div class="input">
                 <textarea name="body" id="body" rows="40" cols="80">$page.body</textarea>
+
+                $if page.key.endswith(".css"):
+                    $ ctype = "text/css"
+                $elif page.key.endswith(".js"):
+                    $ ctype = "text/javascript"
+                $elif page.key.endswith(".html"):
+                    $ ctype = "text/html"
+                $else:
+                    $ ctype = "text/plain"
+                <input type="hidden" name="content_type" value="$ctype"/>
             </div>
         </div>
 
-        <div class="formElement">
-            $:macros.EditButtons(comment=page.comment_)
-            $:macros.HelpFormatting()
-        </div>
+        $:macros.EditButtonsMacros(comment=page.comment_)
+
     </form>
 </div>

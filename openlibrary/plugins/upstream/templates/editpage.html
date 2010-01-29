@@ -1,14 +1,17 @@
 $def with (page, preview=False)
 
+$putctx("robots", "noindex,nofollow")
+
 $ edit = thingedit(page)
 $var title: $:edit.title
-    
-$:macros.databarEdit(page)
 
 $if preview:
+    <div class="clearfix"></div>
     <div id="preview">
+        <h2>$_("Preview")</h2>
     $:thingview(page)
     </div>
+    <div class="clearfix"></div>
 
 <div id="edit">
 $:edit

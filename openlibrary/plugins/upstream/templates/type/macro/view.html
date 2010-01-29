@@ -2,18 +2,12 @@ $def with (page)
 
 $var title: $page.title
 
-$:macros.databarView(page)
+$:macros.databarTemplate(page)
 
 $ _x = ctx.setdefault('bodyid', 'edit')
  
-<div id="contentHead">
-    <div class="head">
-        <span class="pretitle">Currently viewing:</span>
-        <h2>$page.description</h2>
-    </div>
-    <p class="small">
-        $_.last_modified $(page.last_modified and datestr(page.last_modified))
-    </p></div>
+$:render_template("lib/view_head", page)
+
 <div id="contentBody">
 $:macros.DisplayCode(page.macro)
 </div>

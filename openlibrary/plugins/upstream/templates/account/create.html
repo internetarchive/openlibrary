@@ -1,15 +1,15 @@
 $def with (form)
 
-$var title: $_("Create an Account")
+$var title: $_("Sign Up to Open Library")
 
 <div id="contentHead">
     <div class="head">
-        <h1>$_("Create an Account")</h1>
+        <h1>$_("Sign Up")</h1>
     </div>
     <p class="instruct">$_("Complete the form below to create your new Open Library account.")
     <span class="attn"><span class="remind">$_("Each field is required, and you'll need to verify your email address.")</span></span></p>
 </div>
-            
+
 <div id="contentBody">
 
 <script type="text/javascript">
@@ -19,8 +19,51 @@ $var title: $_("Create an Account")
 </script>
 
     <form id="signup" class="olform create" name="signup" method="post">
+        
+        $if form.note:
+            <div class="note">$form.note</div>        
 
-        $:form.render()
+        <div class="formElement">
+            <div class="label">
+                <label for="email">$("Your Email Address")</label>
+                <span class="smaller lighter"></span>
+            </div>
+            <div class="input">
+                <input type="text" class="required" name="email" id="email"  value="$form.email.value"/>
+                <span class="invalid clearfix" htmlfor="email">$form.email.note</span>
+            </div>
+
+        </div>
+        
+        <div class="formElement">
+            <div class="label">
+                <label for="username">$_("Choose a Username")</label>
+                <span class="smaller lighter">$_("Letters and numbers only please, and at least 3 characters.")</span>
+            </div>
+            <div class="input">
+                <input type="text" class="required" name="username" id="username" value="$form.username.value" />
+                <span class="invalid clearfix" htmlfor="username">$form.username.note</span>
+            </div>
+        </div>
+        
+        <div class="formElement">
+            <div class="label">
+                <label for="password">$("Choose a Password")</label>
+                <span class="smaller lighter"></span></div>
+            <div class="input">
+                <input value="" type="password" class="required" name="password" id="password" />
+                <span class="invalid clearfix" htmlfor="password">$form.password.note</span>
+                <span id="showpass" class="smaller"></span>
+            </div>
+        </div>
+
+        <div class="formElement fixthis">
+            <div class="label">
+                <input type="checkbox" id="agreement" name="agreement"/> <label for="agreement" class="smaller">$:_("I acknowledge that my use of Open Library is subject to the Internet Archive's <a href='http://www.archive.org/about/terms.php' target='_new' title='Read the Terms of Use in a new browser.'>Terms of Use</a>.")</label>
+            </div>
+            <div class="input">
+            </div>
+        </div>
 
         <div class="formElement bottom">
             <div class="input">

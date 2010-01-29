@@ -1,9 +1,7 @@
 $def with (email, form)
 
 <div id="contentHead">
-    <div class="head">
-        <h1>$_("Change Your Email Address")</h1>
-    </div>
+    <h1>$_("Change Your Email Address")</h1>
 </div>
 
 <script type="text/javascript">
@@ -14,8 +12,18 @@ $def with (email, form)
 <div id="contentBody">
     <form id="register" class="olform email" name="register" method="post">
         <p class="instruct">$_("Your current email address is"): $email</p>
+        
+        $if form.note:
+            <div class="note">$form.note</div>
 
-        $:form.render()
+        <div class="formElement">
+            <div class="label"><label for="email">$_("Your New Email Address")</label> <span class="smaller lighter"></span></div>
+            <div class="input">
+                <input type="text" id="email" value="$form.email.value" name="email" />
+
+                <span class="invalid clearfix" htmlfor="email">$form.email.note</span>
+            </div>
+        </div>
         
         <div class="formElement bottom">
             <div class="input">

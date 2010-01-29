@@ -8,14 +8,16 @@ $:macros.RowButtons(page.type)
 
 <div id="contentHead">
     <div class="head">
-        <span class="tools">$_("Currently Editing:")</span>
-        <h1>$page.displayname</h1>
+        <h1>
+            <span class="tools">$_("Currently Editing:")</span>
+            $page.displayname
+        </h1>
     </div>
 </div>
 
 <div id="contentBody">
     
-        $:macros.TypeChanger(page.type)
+    $:macros.TypeChanger(page.type)
 
     <form method="POST" class="olform">
         <input type="hidden" name="type.key" id="type.key" value="/type/user"/>
