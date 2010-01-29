@@ -130,7 +130,7 @@ class SaveBookHelper:
                 self.delete(self.work.key, comment=comment)
             return
             
-        for author in work_data.get("authors", []):
+        for author in work_data.get("authors") or []:
             if author['author']['key'] == "__new__":
                 a = self.new_author(formdata['author'])
                 a._save("New author")
