@@ -1,0 +1,28 @@
+$def with (get_results)
+
+$ q = query_param('q')
+$ url_map = { 'person': 'people/', 'place': 'places/', 'time': 'times/' }
+
+<form>
+<input name="q" size="60" value="$q">
+<input type="submit" value="search">
+</form>
+<style>td { padding:3px }</style>
+
+$if q:
+    $ results = get_results(q)
+    $ response = results['response']
+    $response['numFound'] result(s) found
+    <table>
+    <tr><td><b>Name</b><td><b>type</b></td><td><b>count</b></td></tr>
+    $for doc in response['docs']:
+        $ n = doc['name']
+        $ key = '/subjects/' + url_map.get(doc['type'], '') + n.replace(' ', '_')
+        <tr>
+            <td><a href="$key">$n</a></td>
+            <td>$doc['type']</td>
+            <td align="right">$doc['count']</td>
+            $if doc['type'] == 'work':
+                <td><a href="http://en.wikipedia.org/wiki/$n">Wikipedia</a></td>
+        </tr>
+    </table>

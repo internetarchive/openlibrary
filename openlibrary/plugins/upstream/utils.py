@@ -3,6 +3,7 @@ import web
 import simplejson
 import babel, babel.core, babel.dates
 from UserDict import DictMixin
+from babel.numbers import format_number
 
 from infogami import config
 from infogami.utils import view
@@ -416,12 +417,23 @@ def websafe(text):
     else:
         return _websafe(text)
         
-web.websafe = websafe
+
+def commify(number):
+    """localized version of web.commify"""
+    try:
+        return format_number(int(number), web.ctx.lang or "en")
+    except:
+        return number
+
 
 def setup():
     """Do required initialization"""
     # monkey-patch get_markdown to use OL Flavored Markdown
     view.get_markdown = get_markdown
+
+    # Provide alternate implementations for websafe and commify
+    web.websafe = websafe
+    web.commify = commify
     
     web.template.Template.globals.update({
         'HTML': HTML

@@ -1,0 +1,70 @@
+$def with (page)
+
+$def textfield(name, size=35):
+    <input type="text" name="$name" size="$size"/>
+
+$def checkbox(name):
+    <input name="$name" type="checkbox" value="true" id="ftokenstop"/>
+
+$def language_menu():
+    <select name="language">
+    <option value="">$_('any')</option>
+    <option value="eng">$_('English')</option>
+    <option value="ger">$_('German')</option>
+    <option value="fre">$_('French')</option>
+    <option value="spa">$_('Spanish')</option>
+    <option value="rus">$_('Russian')</option>
+    <option value="ita">$_('Italian')</option>
+    <option value="chi">$_('Chinese')</option>
+    <option value="ara">$_('Arabic')</option>
+    <option value="jpn">$_('Japanese')</option>
+    <option value="por">$_('Portuguese')</option>
+    <option value="pol">$_('Polish')</option>
+    </select>
+
+$ advanced = (
+$    ('title', '_("Title")'),
+$    ('author', '_("Author")'),
+$    ('isbn', 'ISBN'),
+$    ('subject', '_("Subject")'),
+$    ('place', '_("Place")'),
+$    ('person', '_("Person")'),
+$    ('publisher', '_("Publisher")'),
+$ )
+
+            <div class="siteSearch" id="footerSearch">
+
+            <form method="get" action="/search" class="siteSearch">
+
+                <div id="bottomOptions" class="searchOptions hidden">
+
+                $for name, label in advanced:
+                    <div class="formElement">
+                    <label for="title1">$label</label><br/>
+                    $:textfield(name)
+                    </div>
+                <div class="formElement fixthis">
+                <label for="title1">$_("Language")</label><br/>
+                $:language_menu()
+                </div>
+
+                </div>
+            
+                <input type="submit" value="Search"/>
+                $:textfield('q')
+
+                <div class="searchPlacement">
+                    <div class="searchFilter">
+                        <div class="searchOpener">
+                            <a href="javascript:;" id="searchFoot" text2="$_('Hide options')">$_("More search options")</a>
+                        </div>
+                        <div class="searchCheckbox">
+                            $:checkbox('has_fulltext') 
+                            <label for="ftokensbtm">$_("Only show eBooks")</label>
+                        </div>
+                    </div>
+                </div>
+
+            </form>
+
+            </div>

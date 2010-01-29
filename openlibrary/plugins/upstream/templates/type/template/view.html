@@ -6,16 +6,9 @@ $ _x = ctx.setdefault("bodyid", "edit")
 
 $var title: $title
 
-$:macros.databarView(page)
+$:macros.databarTemplate(page)
 
-<div id="contentHead">
-    <div class="head">
-        <h2>$title</h2>
-    </div>
-    <p class="small">
-        $_.last_modified $(page.last_modified and datestr(page.last_modified))
-    </p>
-</div>
+$:render_template("lib/view_head", page)
 
 <div id="contentBody">
     $:macros.DisplayCode(page.body, lang="html")

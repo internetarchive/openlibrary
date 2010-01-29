@@ -1,0 +1,54 @@
+$def with (a, b)
+
+$var title: $_.diff_title(a.key)
+
+<div id="contentHead">
+    $:macros.databarDiff()
+    <h2 class="collapse">$a.key</h2>            
+    <div id="legend">
+       <dl>
+           <dd class="add">$_("Added")</dd>
+           <dd class="mod">$_("Modified")</dd>
+           <dd class="rem">$_("Removed")</dd>
+           <dd class="unmod">$_("Unmodified")</dd>
+       </dl>
+    </div>
+</div>
+
+<div id="contentBody" class="diff">
+
+
+    <table class="sidebyside" summary="$_('Differences')">
+        <colgroup class="l"><col class="lineno" /><col class="content" /></colgroup>
+        <colgroup class="r"><col class="lineno" /><col class="content" /></colgroup>
+        <thead>
+            <tr> 
+                <th></th>
+                <th class="diff-header-top">$_("Revision %d", a.revision)</th> 
+                <th class="diff-header-top">$_("Revision %d",  b.revision)</th>
+            </tr>
+        </thead>
+        <tbody>
+	
+        $for p in set(a.keys() + b.keys()):
+            $ label = p
+            $# quick hack to display images in diff
+            $if (p in ["covers", "photos"]) and (a[p] != b[p]):
+                <tr>
+                    <td class="diff-header-side" valign="top">$label</td>
+                    <td class="diff-body" valign="top">
+                        $for img in a[p]:
+                            <img src="$get_coverstore_url()/b/id/$img-S.jpg"/>
+                    </td>
+                    <td class="diff-body" valign="top">
+                        $for img in b[p]:
+                            <img src="$get_coverstore_url()/b/id/$img-S.jpg"/>
+                    </td>
+                </tr>
+            $else:
+                $:thingdiff(get_expected_type(a, p), label, a[p], b[p])
+        </tbody>
+    </table>
+       
+
+</div>

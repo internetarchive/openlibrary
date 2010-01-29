@@ -436,11 +436,13 @@
     <field name="alternative_subtitle" type="text" stored="false" multiValued="true"/>
     <field name="edition_count" type="int"/>
     <field name="edition_key" type="string" multiValued="true"/>
-    <field name="cover_edition_key" type="string"/>
+    <field name="cover_edition_key" type="string" indexed="false"/>
     <field name="by_statement" type="text" stored="false" multiValued="true"/>
     <field name="publish_date" type="text" multiValued="true"/>
     <field name="publish_year" type="int" multiValued="true"/>
-    <field name="first_publish_year" type="int" multiValued="true"/>
+    <field name="first_publish_year" type="int"/>
+    <field name="first_edition" type="string" indexed="false"/>
+    <field name="first_publisher" type="string" indexed="false"/>
     <field name="language" type="string" multiValued="true"/>
     <field name="number_of_pages" type="int" multiValued="true"/>
     <field name="lccn" type="textgen" multiValued="true"/>
@@ -459,16 +461,17 @@
     <field name="author_facet" type="string" stored="false" multiValued="true"/>
     <field name="fiction" type="boolean"/>
     <field name="subject" type="text" stored="false" multiValued="true"/>
-    <field name="place" type="textgen" stored="false" multiValued="true"/>
-    <field name="person" type="textgen" stored="false" multiValued="true"/>
-    <field name="time" type="text" stored="false" multiValued="true"/>
     <field name="subject_facet" type="string" stored="false" multiValued="true"/>
-    <field name="place_facet" type="string" stored="false" multiValued="true"/>
-    <field name="person_facet" type="string" stored="false" multiValued="true"/>
-    <field name="time_key" type="string" stored="false" multiValued="true"/>
     <field name="subject_key" type="string" stored="false" multiValued="true"/>
+    <field name="place" type="textgen" stored="false" multiValued="true"/>
+    <field name="place_facet" type="string" stored="false" multiValued="true"/>
     <field name="place_key" type="string" stored="false" multiValued="true"/>
+    <field name="person" type="textgen" stored="false" multiValued="true"/>
+    <field name="person_facet" type="string" stored="false" multiValued="true"/>
     <field name="person_key" type="string" stored="false" multiValued="true"/>
+    <field name="time" type="text" stored="false" multiValued="true"/>
+    <field name="time_facet" type="string" stored="false" multiValued="true"/>
+    <field name="time_key" type="string" stored="false" multiValued="true"/>
 
    <!--
    <field name="timestamp" type="date" indexed="true" stored="true" default="NOW" multiValued="false"/>

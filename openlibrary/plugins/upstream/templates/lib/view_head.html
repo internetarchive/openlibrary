@@ -1,0 +1,13 @@
+$def with (page)
+
+<div id="editHead">
+    <h2>    
+        $page.title
+        $page.description
+    </h2>
+$ author = get_recent_author(page)
+$if author:
+    <p>$_("This doc was last edited by") <a href="$author.key" rel="nofollow">$author.displayname</a> $(page.last_modified and datestr(page.last_modified)).</p>
+$else:
+    <p>$_("This doc was last edited anonymously") $(page.last_modified and datestr(page.last_modified)).</p>    
+</div>

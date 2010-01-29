@@ -4,36 +4,35 @@ $ lang = i18n.get_locale() or 'en'
 $ _t = i18n.get_namespace('/type/content')
 $ _ = i18n.get_namespace('/mode/edit')
 
-$ _x = ctx.setdefault('bodyid', 'edit')
-
 $var title: $_.edit_title(page.key)
 
-<div id="contentHead">
-    <div class="head">
-        <span class="tools">$_.edit_pretitle:</span>
-        <h2>$page.title</h2>
-    </div>
-</div>
+$ _x = ctx.setdefault('bodyid', 'edit')
+
+$:render_template("lib/edit_head", page)
 
 <div id="contentBody">
     <form name="edit" class="olform" method="post" action="">
+        <div class="formElement title">
+            <div class="label">
+                <label for="title" style="text-transform:capitalize;">$_t.title</label>
+            </div>
+            <div class="input">
+                <input type="text" name="title" id="title" value="$page.title"/>
+            </div>
+        </div>
+
         $:macros.TypeChanger(page.type)
-            <div class="formElement">
-                <div class="label" style="text-transform:capitalize;"><label for="title">$_t.title</label></div>
-                <div class="input">
-                    <input type="text" name="title" id="title" value="$page.title"/>
-                </div>
+        <div class="clearfix"></div>
+
+        <div class="formElement">
+            <div class="label"><label for="wmd-input"">$_("Document Body")</label></div>
+            <div class="input">
+                <textarea name="body" id="wmd-input"" rows="25" cols="80">$page.body</textarea>
             </div>
-            <div class="formElement">
-                <div class="label"><label for="wmd-input">Document Body</label></div>
-                <div class="input">
-                    <textarea name="body" id="wmd-input" rows="25" cols="80" style="width:100%;font:0.75em monospace;">$page.body</textarea>
-                </div>
-            </div>
-            <div class="formElement">
-                $:macros.EditButtons()
-                $:macros.HelpFormatting()
-            </div>
+        </div>
+        <div class="formElement">
+            $:macros.EditButtons()
+        </div>
     </form>
 </div>
 <script type="text/javascript">

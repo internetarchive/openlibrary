@@ -1,0 +1,35 @@
+$def with ()
+
+$ changes = get_recent_changes(bot=False, limit=50)
+$ changes = random.sample(changes, 4)
+
+<ul>
+$for v in changes:
+    $if v.author:
+        $ who = '<a href="%s" rel="nofollow">%s</a>' % (v.author.key, v.author.displayname or v.author.key)
+    $else:
+        $ who = None
+    $if v.thing.type.key in ['/type/edition', '/type/work']:
+        $ what = v.thing.title or v.key
+    $elif v.thing.type.key == '/type/author':
+        $ what = v.thing.name or v.key
+    $else:
+        $ what = v.key
+    $ what = '<a href="%s" rel="nofollow">%s</a>' % (v.key, what)
+    $ when = datestr(v.created)
+    <li class="history">
+        $if v.revision == 1:
+            $ action = "created"
+        $else:
+            $ action = "updated"
+            
+        $if v.revision == 1 and v.author and v.author.key == v.key:
+            $:who $_('opened a new Open Library account!')
+        $elif who:
+            $:who $action $:what
+        $else:
+            $:what was $action anonymously
+        <span class="timestamp">$when</span>
+    </li>
+<li class="history around-the-library-link"><a href="/recentchanges" title="$_('View all recent changes')">$_("Around the Library")</a> &rarr;</li>
+</ul>

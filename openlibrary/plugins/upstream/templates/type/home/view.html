@@ -1,9 +1,51 @@
 $def with (page)
 
-$ lang = i18n.get_locale() or 'en'
-$ _t = i18n.get_namespace('/type/home')
-$ _ = i18n.get_namespace('/mode/view')
-
 $var title: $page.title
 
-$:macros.databar()
+$ text = format(page.body)
+$ text = format(page.title)
+
+<script type="text/javascript">
+\$().ready(function(){
+    \$("#footerHistory").hide();
+    \$("#contentHead").hide();
+});
+</script>
+
+<meta name="google-site-verification" content="KrqcZD4l5BLNVyjzSi2sjZBiwgmkJ1W7n6w7ThD7A74" />
+        
+<div id="homeSplash">
+    <div id="homeBlurb">
+$:format(page.intro)
+    </div>
+</div>
+<div id="homeStatement">
+$:format(page.statement)
+</div>
+
+<div id="contentBody">
+
+
+    <div class="contentQuarter home" id="homeBookAdd">
+        $:format(page.stats)
+    </div>
+
+    <div class="contentSpacer"></div>
+
+    <div class="contentQuarter home" id="homeSubjectBrowse">
+        $:format(page.news)
+    </div>
+
+    <div class="contentSpacer"></div>
+
+    <div class="contentQuarter home" id="homeAccountBlog">
+        $:format(page.body)
+    </div>
+
+    <div class="contentSpacer"></div>
+
+    <div class="contentQuarter home" id="homeRecent">
+        <h3>Recently...</h3> 
+        $:render_template("site/around_the_library")
+    </div>
+</div>

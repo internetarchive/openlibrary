@@ -1,0 +1,29 @@
+$def with(book, size="M")
+
+$code:
+    def aname(a):
+        if isinstance(a, basestring):
+            return a
+        else:
+            return a.name
+
+$ title = book.title
+$ author_names = ", ".join(aname(a) for a in book.authors) or book.get('by_statement','')
+
+$ cover_url = book.get_cover_url(size)
+
+$if size == "M":
+    <div class="coverMagic">
+            <div class="SRPCover bookCover" style="display: $cond(cover_url, 'block', 'none');">
+                <img src="$cover_url" class="cover" alt="$title $_('by') $author_names"/>
+            </div>
+            <div class="SRPCoverBlank" style="display: $cond(not cover_url, 'block', 'none');">
+                <div class="innerBorder">
+                    <div class="BookTitle">$:macros.TruncateString(title, 70)
+                        <div class="Author">$:macros.TruncateString(author_names, 30)</div>
+                    </div>
+                </div>
+            </div>
+    </div>
+$else:
+    <img src="$(cover_url or '/images/icons/avatar_book-sm.png')" height="58" title="$title" alt="$title"/>

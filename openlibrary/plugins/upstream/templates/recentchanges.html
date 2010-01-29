@@ -13,5 +13,5 @@ $var title: $_("Recent Changes")
             $ type = query_param('type', None)
             $ author = query_param('author', None)
 
-            $:macros.RecentChanges(author=author, type=type)
+            $:macros.RecentChanges(author=author, type=type, limit=50)
         </div>
