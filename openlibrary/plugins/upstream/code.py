@@ -11,6 +11,7 @@ from infogami import config
 from infogami.infobase import client
 from infogami.utils import delegate, app, types
 from infogami.utils.view import public, safeint, render
+from utils import render_template
 
 from openlibrary.plugins.openlibrary.processors import ReadableUrlProcessor
 from openlibrary.plugins.openlibrary import code as ol_code
@@ -158,6 +159,20 @@ class revert(delegate.mode):
         comment = i._comment or "reverted to revision %d" % v
         web.ctx.site.get(key, i.v)._save(comment)
         raise web.seeother(key)
+
+class report_spam(delegate.page):
+    path = '/report_spam'
+    def POST(self):
+        i = web.input(email='', irl='', comment='')
+        fields = web.storage({
+            'email': i.email,
+            'irl': i.irl,
+            'comment': i.comment,
+            'sent': datetime.datetime.utcnow(),
+        })
+        msg = render_template('email/spam_report', fields)
+        web.sendmail(config.from_address, config.report_spam_address, 'Open Library spam report', str(msg))
+        raise web.seeother('/contact/spam/sent')
 
 def setup():
     """Setup for upstream plugin"""
