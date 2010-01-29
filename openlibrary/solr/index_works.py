@@ -1,34 +1,21 @@
-from lxml.etree import tostring, Element
 import sys, httplib, re
 from time import time
-import re, urllib2
-
-from openlibrary.catalog.importer.db_read import get_mc
-from openlibrary.catalog.get_ia import get_data
-from openlibrary.catalog.marc.fast_parse import get_tag_lines, get_all_subfields, get_subfield_values, get_subfields, BadDictionary
-from openlibrary.catalog.utils import remove_trailing_dot, remove_trailing_number_dot, flip_name
-from collections import defaultdict
+from lxml.etree import tostring, Element
+from openlibrary.solr.work_subject import find_subjects
 
 t0 = time
-total = 13900000
+total = 13844390
 
 re_year = re.compile(r'(\d{4})$')
 re_edition_key = re.compile('^/b(?:ooks)?/(OL\d+M)$')
-re_author_key = re.compile('^/a(?:uthors)?/(OL\d+A)$')
 re_work_key = re.compile('^/works/(OL\d+W)$')
 
 solr_host = 'localhost:' + sys.argv[1]
 update_url = 'http://' + solr_host + '/solr/works/update'
+print update_url
 def chunk_works(filename, size=2000):
     queue = []
-#    num = 0
     for line in open(filename):
-#        num += 1
-#        if num % 10000 == 0:
-#            percent = (float(num) * 100.0) / total
-#            print "%d %.2f%%" % (num, percent)
-#        if num < 1540000:
-#            continue
         if len(line) > 100000000:
             print 'skipping long line:', len(line)
             continue
@@ -53,126 +40,31 @@ def add_field_list(doc, name, field_list):
     for value in field_list:
         add_field(doc, name, value)
 
-re_ia_marc = re.compile('^(?:.*/)?([^/]+)_(marc\.xml|meta\.mrc)(:0:\d+)?$')
-def get_marc_source(w):
-    found = set()
-    for e in w['editions']:
-        sr = e.get('source_record', [])
-        if sr:
-            found.update(i[5:] for i in sr if i.startswith('marc:'))
-        else:
-            mc = get_mc(e['key'])
-            if mc and not mc.startswith('amazon:') and not re_ia_marc.match(mc):
-                found.add(mc)
-    return found
+to_drop = set('''!*"'();:@&=+$,/?%#[]''')
 
-subject_fields = set(['600', '610', '611', '630', '648', '650', '651', '662'])
+def str_to_key(s):
+    return ''.join(c for c in s.lower() if c not in to_drop)
 
-def get_marc_subjects(w):
-    for src in get_marc_source(w):
-        data = None
-        try:
-            data = get_data(src)
-        except ValueError:
-            print 'bad record source:', src
-            print 'http://openlibrary.org' + w['key']
-            continue
-        except urllib2.HTTPError, error:
-            print 'HTTP error:', error.code, error.msg
-            print 'http://openlibrary.org' + w['key']
-        if not data:
-            continue
-        try:
-            lines = list(get_tag_lines(data, subject_fields))
-        except BadDictionary:
-            print 'bad dictionary:', src
-            print 'http://openlibrary.org' + w['key']
-            continue
-        yield lines
-
-# 'Rhodes, Dan (Fictitious character)'
-re_fictitious_character = re.compile('^(.+), (.+)( \(Fictitious character\))$')
-
-def tidy_subject(s):
-    s = remove_trailing_dot(s)
-    m = re_fictitious_character.match(s)
-    return m.group(2) + ' ' + m.group(1) + m.group(3) if m else s
-
-re_comma = re.compile('^(.+), (.+)$')
-def flip_place(s):
-    s = remove_trailing_dot(s)
-    m = re_comma.match(s)
-    return m.group(2) + ' ' + m.group(1) if m else s
-
-# 'Ram Singh, guru of Kuka Sikhs'
-re_flip_name = re.compile('^(.+), ([A-Z].+)$')
-
-def find_subjects(w):
-
-    people = defaultdict(int)
-    genres = defaultdict(int)
-    when = defaultdict(int)
-    place = defaultdict(int)
-    subject = defaultdict(int)
-    fiction = False
-    for lines in get_marc_subjects(w):
-        for tag, line in lines:
-            if tag == '600':
-                name_and_date = []
-                for k, v in get_subfields(line, ['a', 'b', 'c', 'd']):
-                    v = '(' + remove_trailing_number_dot(v) + ')' if k == 'd' else v.strip(' /,;:')
-                    if k == 'a':
-                        if v != 'Mao, Zedong':
-                            v = 'Mao Zedong'
-                        else:
-                            m = re_flip_name.match(v)
-                            if m:
-                                v = flip_name(v)
-                    name_and_date.append(v)
-                people[remove_trailing_dot(' '.join(name_and_date))] += 1
-            if tag == '650':
-                for v in get_subfield_values(line, ['a']):
-                    subject[tidy_subject(v)] += 1
-            if tag == '651':
-                for v in get_subfield_values(line, ['a']):
-                    place[flip_place(v)] += 1
-
-            for v in get_subfield_values(line, ['y']):
-                when[remove_trailing_dot(v)] += 1
-            for v in get_subfield_values(line, ['v']):
-                subject[remove_trailing_dot(v)] += 1
-            for v in get_subfield_values(line, ['z']):
-                place[flip_place(v)] += 1
-            for v in get_subfield_values(line, ['x']):
-                subject[tidy_subject(v)] += 1
-
-            v_and_x = get_subfield_values(line, ['v', 'x'])
-            if 'Fiction' in v_and_x or 'Fiction.' in v_and_x:
-                fiction = True
-    if 'Fiction' in subject:
-        del subject['Fiction']
-    ret = {
-        'fiction': fiction,
-    }
-    if people:
-        ret['person'] = dict(people)
-    if when:
-        ret['time'] = dict(when)
-    if place:
-        ret['place'] = dict(place)
-    if subject:
-        ret['subject'] = dict(subject)
-    return ret
+re_not_az = re.compile('[^a-zA-Z]')
+def is_sine_nomine(pub):
+    return re_not_az.sub('', pub).lower() == 'sn'
 
 def build_doc(w):
     editions = w['editions']
     if len(editions) > 300:
         print `w['title'], len(editions)`
-    authors = [eval(a) for a in w['author'] if a is not None]
-    if not authors:
-        return
+    authors = []
+    if 'authors' not in w:
+        print 'no authors'
+    for a in w['authors']:
+        if a is None:
+            continue
+        cur = {'key': a['key'], 'name': a.get('name', '')}
+        if a.get('alternate_names', None):
+            cur['alternate_names'] = a['alternate_names']
+        authors.append(cur)
 
-    subjects = find_subjects(w)
+    subjects = find_subjects(w, marc_subjects=w['subjects']) if 'subjects' in w else {}
 
     doc = Element("doc")
 
@@ -222,9 +114,14 @@ def build_doc(w):
     fs = set( e[k]['value'] if isinstance(e[k], dict) else e[k] for e in editions if e.get(k, None))
     add_field_list(doc, k, fs)
 
+    publishers = set()
+    for e in editions:
+        publishers.update('Sine nomine' if is_sine_nomine(i) else i for i in e.get('publishers', []))
+    add_field_list(doc, 'publisher', publishers)
+    add_field_list(doc, 'publisher_facet', publishers)
+
     field_map = [
         ('lccn', 'lccn'),
-        ('publishers', 'publisher'),
         ('publish_places', 'publish_place'),
         ('oclc_numbers', 'oclc'),
         ('contributions', 'contributor'),
@@ -237,8 +134,6 @@ def build_doc(w):
                 continue
             v.update(e[db_key])
         add_field_list(doc, search_key, v)
-        if db_key == 'publishers':
-            add_field_list(doc, search_key + '_facet', v)
 
     isbn = set()
     for e in editions:
@@ -257,27 +152,21 @@ def build_doc(w):
 
     v = set( e['ocaid'].strip() for e in editions if 'ocaid' in e)
     add_field_list(doc, 'ia', v)
-
     author_keys = [a['key'] for a in authors]
+    assert not any(ak.startswith('/a/') for ak in author_keys)
     author_names = [a.get('name', '') for a in authors]
+    assert not any('\t' in n for n in author_names)
 
-    for akey in author_keys:
-        m = re_author_key.match(akey)
-        if not m:
-            print 'bad author key:', akey
-            continue
-        add_field(doc, 'author_key', m.group(1))
-
+    add_field_list(doc, 'author_key', author_keys)
     add_field_list(doc, 'author_name', author_names)
 
     alt_names = set()
     for a in authors:
-        if 'alternate_names' not in a:
-            continue
-        alt_names.update(a['alternate_names'])
+        if 'alternate_names' in a:
+            alt_names.update(a['alternate_names'])
 
     add_field_list(doc, 'author_alternative_name', alt_names)
-    add_field_list(doc, 'author_facet', (`v` for v in zip(author_keys, author_names)))
+    add_field_list(doc, 'author_facet', (k + '\t' + n for k, n in zip(author_keys, author_names)))
     add_field(doc, 'fiction', subjects['fiction'])
 
     for k in 'person', 'place', 'subject', 'time':
@@ -290,10 +179,15 @@ def build_doc(w):
             continue
         add_field_list(doc, k + '_facet', subjects[k].keys())
 
+    for k in 'person', 'place', 'subject', 'time':
+        if k not in subjects:
+            continue
+        add_field_list(doc, k + '_key', (str_to_key(s) for s in subjects[k].keys()))
+
     return doc
 
 def solr_post(h1, body):
-    h1.request('POST', update_url, body, { 'Content-type': 'text/xml;charset=utf-8'})
+    h1.request('POST', update_url, body.encode('utf-8'), { 'Content-type': 'text/xml;charset=utf-8'})
     return h1.getresponse()
 
 def post_queue(h1, queue):
@@ -306,8 +200,9 @@ def post_queue(h1, queue):
         except:
             print w
             raise
-    add_xml = tostring(add, pretty_print=True).encode('utf-8')
+    add_xml = tostring(add)
     del add
+    print add_xml[:60]
     return solr_post(h1, add_xml)
 
 connect = True
@@ -339,9 +234,9 @@ for queue in chunk_works(filename):
     remain = total - num
     sec_left = float(remain) / rec_per_sec
     if connect:
-        print "%d %.2f%%" % (num, percent), response.reason, 'rec/sec=%.2f  %.2f hours left' % (rec_per_sec, sec_left / 3600)
+        print "%d / %d %.2f%%" % (num, total, percent), response.reason, 'rec/sec=%.2f  %.2f hours left' % (rec_per_sec, sec_left / 3600)
     else:
-        print "%d %.2f%%" % (num, percent), 'rec/sec=%.2f  %.2f mins left' % (rec_per_sec, sec_left / 60)
+        print "%d / %d %.2f%%" % (num, total, percent), 'rec/sec=%.2f  %.2f mins left' % (rec_per_sec, sec_left / 60)
 
     if num % 50000 == 0:
         if connect:
