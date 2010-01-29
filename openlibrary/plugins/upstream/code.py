@@ -159,6 +159,13 @@ class revert(delegate.mode):
         web.ctx.site.get(key, i.v)._save(comment)
         raise web.seeother(key)
 
+class report_spam(delegate.mode):
+    def POST(self):
+        i = web.input()
+        msg = render_template('email/spam_report', i)
+        web.sendmail(config.from_address, config.report_spam_address, 'Open Library spam report', str(msg))
+        raise web.seeother('/contact/spam/sent')
+
 def setup():
     """Setup for upstream plugin"""
     models.setup()
