@@ -421,7 +421,7 @@ def websafe(text):
 def commify(number):
     """localized version of web.commify"""
     try:
-        return format_number(number, web.ctx.lang or "en")
+        return format_number(int(number), web.ctx.lang or "en")
     except:
         return number
 
