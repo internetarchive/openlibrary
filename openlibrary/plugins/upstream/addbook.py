@@ -13,11 +13,35 @@ from infogami.infobase.client import ClientException
 
 from openlibrary.plugins.openlibrary import code as ol_code
 from openlibrary.plugins.openlibrary.processors import urlsafe
+from openlibrary.utils.solr import Solr
 
 import utils
 from utils import render_template
 
 from account import as_admin
+
+def get_works_solr():
+    base_url = "http://%s/solr/works" % config.plugin_worksearch.get('solr')
+    return Solr(base_url)
+    
+def make_work(doc):
+    w = web.storage(doc)
+    w.key = "/works/" + w.key
+    
+    def make_author(key, name):
+        key = "/authors/" + key
+        return web.ctx.site.new(key, {
+            "key": key,
+            "type": {"key": "/type/author"},
+            "name": name
+        })
+    
+    w.authors = [make_author(key, name) for key, name in zip(doc['author_key'], doc['author_name'])]
+    w.cover_url="/images/icons/avatar_book-sm.png"
+    
+    w.setdefault('ia', [])
+    w.setdefault('first_publish_year', None)
+    return w
 
 class addbook(delegate.page):
     path = "/books/add"
@@ -28,7 +52,7 @@ class addbook(delegate.page):
         return render_template('books/add', work)
         
     def POST(self):
-        i = web.input()
+        i = web.input(title="", author_key="")
         work = i.get('work') and web.ctx.site.get(i.work)        
         edition = i.get('edition') and web.ctx.site.get(i.edition)
         
@@ -37,6 +61,10 @@ class addbook(delegate.page):
         elif work and not edition:
             return self.work_match(work, i)
         else:
+            solr = get_works_solr()
+            result = solr.select({'title': i.title, 'author_name': i.author}, doc_wrapper=make_work)
+            if len(result.docs) > 1:
+                return render_template("books/check", i.title, i.author, result.docs)
             return self.multiple_matches()
     
     def work_match(self, work, i):
