@@ -42,6 +42,12 @@ def make_work(doc):
     w.setdefault('ia', [])
     w.setdefault('first_publish_year', None)
     return w
+    
+def new_doc(type, **data):
+    key = web.ctx.site.new_key(type)
+    data['key'] = key
+    data['type'] = {"key": type}
+    return web.ctx.site.new(key, data)
 
 class addbook(delegate.page):
     path = "/books/add"
@@ -52,42 +58,89 @@ class addbook(delegate.page):
         return render_template('books/add', work)
         
     def POST(self):
-        i = web.input(title="", author_key="")
-        work = i.get('work') and web.ctx.site.get(i.work)        
-        edition = i.get('edition') and web.ctx.site.get(i.edition)
+        i = web.input(title="", author="", author_key="")
+        match = self.find_matches(i)
         
-        if work and edition:
+        if match is None:
+            # no match
+            return self.no_match(i)
+
+        elif isinstance(match, list):
+            # multiple matches
+            return render_template("books/check", i.title, i.author, result.docs)
+
+        elif match.key.startswith('/books'):
+            # work match and edition match
             return self.work_edition_match()
-        elif work and not edition:
+
+        elif match.key.startswith('/works'):
+            # work match but not edition
+            work = match
             return self.work_match(work, i)
+                        
+    def find_matches(self, i):
+        """Tries to find an edition or a work or multiple works that match the given input data.
+        
+        Case#1: No match. None is returned.
+        Case#2: Work match but not editon. Work is returned.
+        Case#3: Work match and edition match. Edition is returned
+        Case#4: Multiple work match. List of works is returned. 
+        """
+        work = i.get('work') and web.ctx.site.get(i.work)
+        if work:
+            # check for edition
+            return work
+        
+        solr = get_works_solr()
+        result = solr.select({'title': i.title, 'author_key': i.author_key}, doc_wrapper=make_work)
+        
+        if i.author_key == "__new__":
+            a = new_doc("/type/author", name=i.author)
+            a._save("New author")
+            i.author_key = a.key
+            # since new author is created it must be a new record
+            return None
+        
+        if result.num_found == 0:
+            return None
+        elif result.num_found == 1:
+            return work
         else:
-            solr = get_works_solr()
-            result = solr.select({'title': i.title, 'author_name': i.author}, doc_wrapper=make_work)
-            if len(result.docs) > 1:
-                return render_template("books/check", i.title, i.author, result.docs)
-            return self.multiple_matches()
+            return result.docs
     
     def work_match(self, work, i):
-        key = web.ctx.site.new_key("/type/edition")
-        edition = web.ctx.site.new(key, {
-            "key": key,
-            "type": {"key": "/type/edition"},
-            "works": [{"key": work.key}],
-            "publishers": [i.get("publisher")],
-            "publish_date": i.get("publish_date"),
-            'title': i.get('title') or work.title            
-        })
+        edition = self._make_edition(work, i)            
+        edition._save("New edition")        
+        raise web.seeother(edition.url("/edit"))
+        
+    def _make_edition(self, work, i):
+        edition = new_doc("/type/edition", 
+            works=[{"key": work.key}],
+            title=i.title,
+            publishers=[i.publisher],
+            publish_date=i.publish_date,
+        )
         if i.get("id_name") and i.get("id_value"):
             edition.set_identifiers([dict(name=i.id_name, value=i.id_value)])
-            
-        edition._save("new edition")        
-        raise web.seeother(edition.url("/edit"))
+        return edition
         
     def work_edition_match(self):
         return "Not yet implemented"
         
     def multiple_matches(self):
         return "Not yet implemented"
+        
+    def no_match(self, i):
+        # TODO: Handle add-new-author
+        work = new_doc("/type/work",
+            title=i.title,
+            authors=[{"author": {"key": i.author_key}}]
+        )
+        work._save("New work")
+        
+        edition = self._make_edition(work, i)
+        edition._save("New edition")
+        raise web.seeother(edition.url("/edit"))
 
 class addauthor(ol_code.addauthor):
     path = "/authors/add"    
