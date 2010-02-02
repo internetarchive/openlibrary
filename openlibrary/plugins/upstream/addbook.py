@@ -3,6 +3,7 @@
 import web
 import urllib, urllib2
 import simplejson
+from collections import defaultdict
 
 from infogami import config
 from infogami.core import code as core
@@ -16,7 +17,7 @@ from openlibrary.plugins.openlibrary.processors import urlsafe
 from openlibrary.utils.solr import Solr
 
 import utils
-from utils import render_template
+from utils import render_template, fuzzy_find
 
 from account import as_admin
 
@@ -58,7 +59,7 @@ class addbook(delegate.page):
         return render_template('books/add', work)
         
     def POST(self):
-        i = web.input(title="", author="", author_key="")
+        i = web.input(title="", author="", author_key="", publisher="", publish_date="", id_name="", id_value="")
         match = self.find_matches(i)
         
         if match is None:
@@ -67,11 +68,11 @@ class addbook(delegate.page):
 
         elif isinstance(match, list):
             # multiple matches
-            return render_template("books/check", i.title, i.author, result.docs)
+            return render_template("books/check", i.title, i.author, match)
 
         elif match.key.startswith('/books'):
             # work match and edition match
-            return self.work_edition_match()
+            return self.work_edition_match(match)
 
         elif match.key.startswith('/works'):
             # work match but not edition
@@ -86,13 +87,14 @@ class addbook(delegate.page):
         Case#3: Work match and edition match. Edition is returned
         Case#4: Multiple work match. List of works is returned. 
         """
+        i.publish_year = i.publish_date and self.extract_year(i.publish_date)
+        
         work = i.get('work') and web.ctx.site.get(i.work)
         if work:
-            # check for edition
-            return work
-        
-        solr = get_works_solr()
-        result = solr.select({'title': i.title, 'author_key': i.author_key}, doc_wrapper=make_work)
+            edition = self.try_edition_match(work=work, 
+                publisher=i.publisher, publish_year=i.publish_year, 
+                id_name=i.id_name, id_value=i.id_value)
+            return edition or work
         
         if i.author_key == "__new__":
             a = new_doc("/type/author", name=i.author)
@@ -100,6 +102,21 @@ class addbook(delegate.page):
             i.author_key = a.key
             # since new author is created it must be a new record
             return None
+            
+        edition = self.try_edition_match(
+            title=i.title, 
+            author_key=i.author_key,
+            publisher=i.publisher,
+            publish_year=i.publish_year,
+            id_name=i.id_name,
+            id_value=i.id_value)
+            
+        if edition:
+            return edition
+
+        solr = get_works_solr()
+        author_key = i.author_key and i.author_key.split("/")[-1]
+        result = solr.select({'title': i.title, 'author_key': author_key}, doc_wrapper=make_work)
         
         if result.num_found == 0:
             return None
@@ -107,7 +124,54 @@ class addbook(delegate.page):
             return work
         else:
             return result.docs
-    
+            
+    def extract_year(self, value):
+        m = web.re_compile(r"(\d\d\d\d)").search(value)
+        return m and m.group(1)
+            
+    def try_edition_match(self, 
+        work=None, title=None, author_key=None,
+        publisher=None, publish_year=None, id_name=None, id_value=None):
+        
+        q = {}
+        work and q.setdefault('key', work.key.split("/")[-1])
+        title and q.setdefault('title', title)
+        author_key and q.setdefault('author_key', author_key.split('/')[-1])
+        publisher and q.setdefault('publisher', publisher)
+        # There are some errors indexing of publish_year. Use publish_date until it is fixed
+        publish_year and q.setdefault('publish_date', publish_year) 
+        
+        mapping = {
+            'isbn_10': 'isbn',
+            'isbn_13': 'isbn_13',
+            'lccn': 'lccn',
+            'oclc_numbers': 'oclc',
+            'ocaid': 'ia'
+        }
+        if id_value and id_name in mapping:
+            q[mapping[id_name]] = id_value
+                
+        solr = get_works_solr()
+        result = solr.select(q, doc_wrapper=make_work)
+        if result.docs:
+            # found one edition match
+            work = result.docs[0]
+            publisher = publisher and fuzzy_find(publisher, work.publisher, stopwords=["publisher", "publishers", "and"])
+            
+            editions = web.ctx.site.get_many(["/books/" + key for key in work.edition_key])
+            for e in editions:
+                d = {}
+                if publisher:
+                    if not e.publishers or e.publishers[0] != publisher:
+                        continue
+                if publish_year:
+                    if not e.publish_date or publish_year != self.extract_year(e.publish_date):
+                        continue
+                if id_value and id_name in mapping:
+                    if not id_name in e or e[id_name] != id_value:
+                        continue
+                return e
+                
     def work_match(self, work, i):
         edition = self._make_edition(work, i)            
         edition._save("New edition")        
@@ -124,8 +188,8 @@ class addbook(delegate.page):
             edition.set_identifiers([dict(name=i.id_name, value=i.id_value)])
         return edition
         
-    def work_edition_match(self):
-        return "Not yet implemented"
+    def work_edition_match(self, edition):
+        raise web.seeother(edition.url("/edit?from=add#about"))
         
     def multiple_matches(self):
         return "Not yet implemented"
@@ -140,7 +204,7 @@ class addbook(delegate.page):
         
         edition = self._make_edition(work, i)
         edition._save("New edition")
-        raise web.seeother(edition.url("/edit"))
+        raise web.seeother(edition.url("/edit#about"))
 
 class addauthor(ol_code.addauthor):
     path = "/authors/add"    
