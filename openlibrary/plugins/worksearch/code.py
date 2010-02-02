@@ -162,7 +162,7 @@ def do_search(param, sort, page=1, rows=100):
         is_bad = True
     if not is_bad:
         try:
-            root = XML(reply).getroot()
+            root = XML(reply)
         except XMLSyntaxError:
             is_bad = True
     if is_bad:
@@ -173,8 +173,8 @@ def do_search(param, sort, page=1, rows=100):
             is_advanced = bool(param.get('q', 'None')),
             num_found = None,
             solr_select = solr_select,
-            q_list = qlist,
-            error = m.group(1) if m else reply,
+            q_list = q_list,
+            error = (web.htmlunquote(m.group(1)) if m else reply),
         )
 
     docs = root.find('result')
@@ -185,6 +185,7 @@ def do_search(param, sort, page=1, rows=100):
         num_found = (int(docs.attrib['numFound']) if docs is not None else None),
         solr_select = solr_select,
         q_list = q_list,
+        error = None,
     )
 
 def get_doc(doc):
