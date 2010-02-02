@@ -485,3 +485,22 @@ class subject_search(delegate.page):
             solr_select += '&sort=count+desc'
             return json.loads(urllib.urlopen(solr_select).read())
         return render_template('search/subjects.tmpl', get_results)
+
+class search_json(delegate.page):
+    path = "/search"
+    encoding = "json"
+    
+    def GET(self):
+        i = web.input()
+        if 'query' in i:
+            query = simplejson.loads(i.query)
+        else:
+            query = i
+        
+        from openlibrary.utils.solr import Solr
+        import simplejson
+        
+        solr = Solr("http://%s/solr/works" % solr_host)
+        result = solr.select(query)
+        web.header('Content-Type', 'application/json')
+        return delegate.RawText(simplejson.dumps(result, indent=True))
