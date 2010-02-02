@@ -1,5 +1,5 @@
 import web, re, urllib
-from lxml.etree import parse, tostring
+from lxml.etree import parse, tostring, XML, XMLSyntaxError
 from infogami.utils import delegate
 from infogami import config
 from openlibrary.catalog.utils import flip_name
@@ -150,11 +150,33 @@ def run_solr_query(param = {}, rows=100, page=1, sort=None):
     if sort:
         solr_select += "&sort=" + url_quote(sort)
     print solr_select
-    reply = urllib.urlopen(solr_select)
-    return (parse(reply).getroot(), solr_select, q_list)
+    reply = urllib.urlopen(solr_select).read()
+    return (reply, solr_select, q_list)
+
+re_pre = re.compile(r'<pre>(.*)</pre>', re.S)
 
 def do_search(param, sort, page=1, rows=100):
-    (root, solr_select, q_list) = run_solr_query(param, rows, page, sort)
+    (reply, solr_select, q_list) = run_solr_query(param, rows, page, sort)
+    is_bad = False
+    if reply.startswith('<html'):
+        is_bad = True
+    if not is_bad:
+        try:
+            root = XML(reply)
+        except XMLSyntaxError:
+            is_bad = True
+    if is_bad:
+        m = re_pre.search(reply)
+        return web.storage(
+            facet_counts = None,
+            docs = [],
+            is_advanced = bool(param.get('q', 'None')),
+            num_found = None,
+            solr_select = solr_select,
+            q_list = q_list,
+            error = (web.htmlunquote(m.group(1)) if m else reply),
+        )
+
     docs = root.find('result')
     return web.storage(
         facet_counts = read_facets(root),
@@ -163,6 +185,7 @@ def do_search(param, sort, page=1, rows=100):
         num_found = (int(docs.attrib['numFound']) if docs is not None else None),
         solr_select = solr_select,
         q_list = q_list,
+        error = None,
     )
 
 def get_doc(doc):
@@ -457,8 +480,8 @@ class merge_author_works(delegate.page):
 class subject_search(delegate.page):
     path = '/search/subjects'
     def GET(self):
-        i = web.input(q=None)
         def get_results(q, offset=0, limit=100):
-            solr_select = solr_subject_select_url + "?q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=name,type,count&qt=standard&wt=json" % (i.q, offset, limit)
+            solr_select = solr_subject_select_url + "?q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=name,type,count&qt=standard&wt=json" % (web.urlquote(q), offset, limit)
+            solr_select += '&sort=count+desc'
             return json.loads(urllib.urlopen(solr_select).read())
         return render_template('search/subjects.tmpl', get_results)
