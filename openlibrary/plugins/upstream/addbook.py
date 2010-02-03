@@ -15,6 +15,7 @@ from infogami.infobase.client import ClientException
 from openlibrary.plugins.openlibrary import code as ol_code
 from openlibrary.plugins.openlibrary.processors import urlsafe
 from openlibrary.utils.solr import Solr
+from openlibrary.i18n import gettext as _
 
 import utils
 from utils import render_template, fuzzy_find
@@ -443,9 +444,17 @@ class book_edit(delegate.page):
         else:
             work = None
             
+        add = (edition.revision == 1 and work and work.revision == 1 and work.edition_count == 1)
+            
         try:    
             helper = SaveBookHelper(work, edition)
             helper.save(web.input())
+            
+            if add:
+                add_flash_message("info", _("Thank you very much for adding that new book!"))
+            else:
+                add_flash_message("info", _("Thank you very much for improving that record!"))
+            
             raise web.seeother(edition.url())
         except (ClientException, ValidationException), e:
             raise
@@ -470,6 +479,7 @@ class work_edit(delegate.page):
         try:
             helper = SaveBookHelper(work, None)
             helper.save(web.input())
+            add_flash_message("info", _("Thank you very much for improving that record!"))            
             raise web.seeother(work.url())
         except (ClientException, ValidationException), e:
             add_flash_message('error', str(e))
