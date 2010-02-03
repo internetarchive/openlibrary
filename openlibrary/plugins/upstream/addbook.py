@@ -122,7 +122,7 @@ class addbook(delegate.page):
         if result.num_found == 0:
             return None
         elif result.num_found == 1:
-            return work
+            return result.docs[0]
         else:
             return result.docs
             
