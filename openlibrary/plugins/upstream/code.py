@@ -61,10 +61,10 @@ class DynamicDocument:
         
     def update(self):
         keys = web.ctx.site.things({'type': '/type/rawtext', 'key~': self.root + '/*'})
-        docs = web.ctx.site.get_many(keys)
+        docs = sorted(web.ctx.site.get_many(keys), key=lambda doc: doc.key) 
         if docs:
             self.last_modified = min(doc.last_modified for doc in docs)
-            self._text = "".join(doc.body for doc in docs)
+            self._text = "\n\n".join(doc.get('body', '') for doc in docs)
         else:
             self.last_modified = datetime.datetime.utcnow()
             self._text = ""
@@ -144,7 +144,7 @@ class redirects(delegate.page):
     def GET(self, prefix, path):
         d = dict(a="authors", b="books", user="people")
         raise web.redirect("/%s/%s" % (d[prefix], path))
-
+        
 @public
 def get_document(key):
     return web.ctx.site.get(key)
@@ -203,7 +203,7 @@ def setup():
 
     # setup template globals
     from openlibrary.i18n import gettext as _
-        
+            
     web.template.Template.globals.update({
         "gettext": _,
         "_": _,
