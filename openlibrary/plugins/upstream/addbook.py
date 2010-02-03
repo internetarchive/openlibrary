@@ -54,30 +54,30 @@ class addbook(delegate.page):
     path = "/books/add"
     
     def GET(self):
-        i = web.input(work=None)
-        work = i.work and web.ctx.site.get(i.work)        
-        return render_template('books/add', work)
+        i = web.input(work=None, author=None)
+        work = i.work and web.ctx.site.get(i.work)
+        author = i.author and web.ctx.site.get(i.author)     
+        return render_template('books/add', work=work, author=author)
         
     def POST(self):
-        i = web.input(title="", author="", author_key="", publisher="", publish_date="", id_name="", id_value="")
+        i = web.input(title="", author_name="", author_key="", publisher="", publish_date="", id_name="", id_value="")
         match = self.find_matches(i)
         
-        if match is None:
-            # no match
-            return self.no_match(i)
-
-        elif isinstance(match, list):
+        if isinstance(match, list):
             # multiple matches
-            return render_template("books/check", i.title, i.author, match)
+            return render_template("books/check", i, match)
 
-        elif match.key.startswith('/books'):
+        elif match and match.key.startswith('/books'):
             # work match and edition match
             return self.work_edition_match(match)
 
-        elif match.key.startswith('/works'):
+        elif match and match.key.startswith('/works'):
             # work match but not edition
             work = match
             return self.work_match(work, i)
+        else:
+            # no match
+            return self.no_match(i)
                         
     def find_matches(self, i):
         """Tries to find an edition or a work or multiple works that match the given input data.
@@ -85,6 +85,7 @@ class addbook(delegate.page):
         Case#1: No match. None is returned.
         Case#2: Work match but not editon. Work is returned.
         Case#3: Work match and edition match. Edition is returned
+        Case#3A: Work match and multiple edition match. List of works is returned
         Case#4: Multiple work match. List of works is returned. 
         """
         i.publish_year = i.publish_date and self.extract_year(i.publish_date)
@@ -97,7 +98,7 @@ class addbook(delegate.page):
             return edition or work
         
         if i.author_key == "__new__":
-            a = new_doc("/type/author", name=i.author)
+            a = new_doc("/type/author", name=i.author_name)
             a._save("New author")
             i.author_key = a.key
             # since new author is created it must be a new record
@@ -133,6 +134,10 @@ class addbook(delegate.page):
         work=None, title=None, author_key=None,
         publisher=None, publish_year=None, id_name=None, id_value=None):
         
+        # insufficient data
+        if not publisher and not publish_year and not id_value:
+            return
+        
         q = {}
         work and q.setdefault('key', work.key.split("/")[-1])
         title and q.setdefault('title', title)
@@ -153,7 +158,10 @@ class addbook(delegate.page):
                 
         solr = get_works_solr()
         result = solr.select(q, doc_wrapper=make_work)
-        if result.docs:
+        
+        if len(result.docs) > 1:
+            return result.docs
+        elif len(result.docs) == 1:
             # found one edition match
             work = result.docs[0]
             publisher = publisher and fuzzy_find(publisher, work.publisher, stopwords=["publisher", "publishers", "and"])
