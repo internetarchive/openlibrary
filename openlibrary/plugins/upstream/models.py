@@ -244,11 +244,17 @@ class Author(ol_code.Author):
 re_year = re.compile(r'(\d{4})$')
         
 class Work(ol_code.Work):
+    
+    def get_covers(self):
+        return [Image("w", id) for id in self.covers]
+    
     def get_cover(self):
-        return self.cover_edition and self.cover_edition.get_cover()
+        covers = self.get_covers()
+        return covers and covers[0] or None
     
     def get_cover_url(self, size):
-        return self.cover_edition and self.cover_edition.get_cover_url(size)
+        cover = self.get_cover()
+        return cover and cover.url(size)
         
     def get_authors(self):
         return [a.author for a in self.authors]
@@ -274,6 +280,12 @@ class Work(ol_code.Work):
         q = {'type': '/type/edition', 'works': self.key, 'limit': 10000}
         editions = [web.ctx.site.get(key) for key in web.ctx.site.things(q)]
         return sorted(editions, key=get_pub_year, reverse=reverse)
+        
+    def get_edition_covers(self):
+        editions = web.ctx.site.get_many(web.ctx.site.things({"type": "/type/edition", "works": self.key, "limit": 1000}))
+        exisiting = set(int(c.id) for c in self.get_covers())
+        covers = [e.get_cover() for e in editions]
+        return [c for c in covers if c and int(c.id) not in exisiting]
 
 class Subject(client.Thing):
     def _get_solr_result(self):
