@@ -60,10 +60,14 @@ class Edition(ol_code.Edition):
     # let title be title_prefix + title
     title = property(get_title)
     title_prefix = property(get_title_prefix)
+    
+    def get_authors(self):
+        """Added to provide same interface for work and edition"""
+        return self.authors
         
     def get_covers(self):
         covers = self.covers or query_coverstore('b', olid=self.get_olid())
-        return [Image('b', c) for c in covers]
+        return [Image('b', c) for c in covers if c > 0]
         
     def get_cover(self):
         covers = self.get_covers()
@@ -220,7 +224,7 @@ class Edition(ol_code.Edition):
 class Author(ol_code.Author):
     def get_photos(self):
         photos = self.photos or query_coverstore('a', olid=self.get_olid())
-        return [Image("a", id) for id in photos]
+        return [Image("a", id) for id in photos if id > 0]
         
     def get_photo(self):
         photos = self.get_photos()
@@ -240,6 +244,15 @@ class Author(ol_code.Author):
 re_year = re.compile(r'(\d{4})$')
         
 class Work(ol_code.Work):
+    def get_cover(self):
+        return self.cover_edition and self.cover_edition.get_cover()
+    
+    def get_cover_url(self, size):
+        return self.cover_edition and self.cover_edition.get_cover_url(size)
+        
+    def get_authors(self):
+        return [a.author for a in self.authors]
+    
     def get_subjects(self):
         """Return subject strings."""
         subjects = self.subjects
@@ -247,6 +260,7 @@ class Work(ol_code.Work):
         if subjects and not isinstance(subjects[0], basestring):
             subjects = [s.name for s in subjects]
         return subjects
+        
     def get_sorted_editions(self, reverse=False):
         """Return a list of works sorted by publish date"""
         def get_pub_year(e):
