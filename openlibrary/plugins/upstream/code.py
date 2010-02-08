@@ -11,6 +11,8 @@ from infogami import config
 from infogami.infobase import client
 from infogami.utils import delegate, app, types
 from infogami.utils.view import public, safeint, render
+from infogami.utils.context import context
+
 from utils import render_template
 
 from openlibrary.plugins.openlibrary.processors import ReadableUrlProcessor
@@ -163,7 +165,9 @@ class revert(delegate.mode):
 class report_spam(delegate.page):
     path = '/contact/spam'
     def GET(self):
-        return render_template("contact/spam")
+        i = web.input(path=None)
+        email = context.user and context.user.email
+        return render_template("contact/spam", email=email, irl=i.path)
 
     def POST(self):
         i = web.input(email='', irl='', comment='')
