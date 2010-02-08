@@ -161,7 +161,10 @@ class revert(delegate.mode):
         raise web.seeother(key)
 
 class report_spam(delegate.page):
-    path = '/report_spam'
+    path = '/contact/spam'
+    def GET(self):
+        return render_template("contact/spam")
+
     def POST(self):
         i = web.input(email='', irl='', comment='')
         fields = web.storage({
@@ -172,7 +175,7 @@ class report_spam(delegate.page):
         })
         msg = render_template('email/spam_report', fields)
         web.sendmail(config.from_address, config.report_spam_address, 'Open Library spam report', str(msg))
-        raise web.seeother('/contact/spam/sent')
+        return render_template("contact/spam/sent")
 
 def setup():
     """Setup for upstream plugin"""
