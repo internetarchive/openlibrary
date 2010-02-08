@@ -61,8 +61,14 @@ class addbook(delegate.page):
         return render_template('books/add', work=work, author=author)
         
     def POST(self):
-        i = web.input(title="", author_name="", author_key="", publisher="", publish_date="", id_name="", id_value="")
+        i = web.input(title="", author_name="", author_key="", publisher="", publish_date="", id_name="", id_value="", _test="false")
         match = self.find_matches(i)
+
+        if i._test == "true" and not isinstance(match, list):
+            if match:
+                return 'Matched <a href="%s">%s</a>' % (match.key, match.key)
+            else:
+                return 'No match found'
         
         if isinstance(match, list):
             # multiple matches
