@@ -156,10 +156,53 @@ class revert(delegate.mode):
         i = web.input("v", _comment=None)
         v = i.v and safeint(i.v, None)
         if v is None:
-            raise web.badrequest()
+            raise web.seeother(web.changequery({}))
+        
+        thing = web.ctx.site.get(key, i.v)
+        
+        if not thing:
+            raise web.notfound()
             
+        def revert(thing):
+            if thing.type.key == "/type/delete" and thing.revision > 1:
+                prev = web.ctx.site.get(thing.key, thing.revision-1)
+                if prev.type.key in ["/type/delete", "/type/redirect"]:
+                    return revert(prev)
+                else:
+                    prev._save("revert to revision %d" % prev.revision)
+                    return prev
+            elif thing.type.key == "/type/redirect":
+                redirect = web.ctx.site.get(thing.location)
+                if redirect and redirect.type.key not in ["/type/delete", "/type/redirect"]:
+                    return redirect
+                else:
+                    # bad redirect. Try the previous revision
+                    prev = web.ctx.site.get(thing.key, thing.revision-1)
+                    return revert(prev)
+            else:
+                return thing
+                
+        def process(value):
+            if isinstance(value, list):
+                return [process(v) for v in value]
+            elif isinstance(value, client.Thing):
+                if value.key:
+                    if value.type.key in ['/type/delete', '/type/revert']:
+                        return revert(value)
+                    else:
+                        return value
+                else:
+                    for k in value.keys():
+                        value[k] = process(value[k])
+                    return value
+            else:
+                return value
+            
+        for k in thing.keys():
+            thing[k] = process(thing[k])
+                    
         comment = i._comment or "reverted to revision %d" % v
-        web.ctx.site.get(key, i.v)._save(comment)
+        thing._save(comment)
         raise web.seeother(key)
 
 class report_spam(delegate.page):
