@@ -234,6 +234,13 @@ def get_history(page):
         h.initial = web.ctx.site.versions({"key": page.key, "limit": 1, "offset": h.revision-1})
         h.recent = web.ctx.site.versions({"key": page.key, "limit": 4})
     return h
+    
+@public
+def get_version(key, revision):
+    try:
+        return web.ctx.site.versions({"key": key, "revision": revision, "limit": 1})[0]
+    except IndexError:
+        return None
 
 @public
 def get_recent_author(doc):
