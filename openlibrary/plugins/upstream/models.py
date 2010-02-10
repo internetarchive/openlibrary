@@ -177,22 +177,10 @@ class Edition(ol_code.Edition):
         self.physical_dimensions = d and UnitParser(["height", "width", "depth"]).format(d)
         
     def get_toc_text(self):
-        def row(r):
-            if isinstance(r, basestring):
-                # there might be some legacy docs in the system with table-of-contents
-                # represented as list of strings.
-                level = 0
-                label = ""
-                title = r
-                page = ""
-            else:
-                level = safeint(r.get('level', '0'), 0)
-                label = r.get('label', '')
-                title = r.get('title', '')
-                page = r.get('pagenum', '')
-            return "*" * level + " " + " | ".join([label, title, page])
+        def format_row(r):
+            return "*" * r.level + " " + " | ".join([r.label, r.title, r.pagenum])
             
-        return "\n".join(row(r) for r in self.table_of_contents)
+        return "\n".join(format_row(r) for r in self.get_table_of_contents())
         
     def get_table_of_contents(self):
         def row(r):
@@ -206,9 +194,12 @@ class Edition(ol_code.Edition):
                 label = r.get('label', '')
                 title = r.get('title', '')
                 pagenum = r.get('pagenum', '')
-            return web.storage(level=level, label=label, title=title, pagenum=pagenum)
-
-        return [row(r) for r in self.table_of_contents]
+                
+            r = web.storage(level=level, label=label, title=title, pagenum=pagenum)
+            return r
+            
+        d = [row(r) for r in self.table_of_contents]
+        return [row for row in d if any(row.values())]
 
     def set_toc_text(self, text):
         self.table_of_contents = parse_toc(text)
