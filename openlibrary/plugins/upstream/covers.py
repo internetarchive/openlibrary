@@ -80,7 +80,7 @@ class add_photo(add_cover):
     cover_category = "a"
     
     def save(self, author, photoid):
-        author.photos = [photoid] + [photo.id for photo in book.get_photos()]
+        author.photos = [photoid] + [photo.id for photo in author.get_photos()]
         author._save("Added new photo")
 
 class manage_covers(delegate.page):
