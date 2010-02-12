@@ -631,7 +631,7 @@ class search_json(delegate.page):
     
     @jsonapi
     def GET(self):
-        i = web.input(q='', query=None)
+        i = web.input(q='', query=None, _unicode=False)
         # query can be either specified as json with parameter query or just query parameters
         query = i.pop('query')
         if query:

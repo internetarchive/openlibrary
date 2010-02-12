@@ -4,6 +4,7 @@ import simplejson
 import babel, babel.core, babel.dates
 from UserDict import DictMixin
 from babel.numbers import format_number
+from collections import defaultdict
 
 from infogami import config
 from infogami.utils import view
@@ -166,6 +167,34 @@ def unflatten(d, seperator="--"):
     for k, v in d.items():
         setvalue(d2, k, v)
     return makelist(d2)
+
+def fuzzy_find(value, options, stopwords=[]):
+    """Try find the option nearest to the value.
+    
+        >>> fuzzy_find("O'Reilly", ["O'Reilly Inc", "Addison-Wesley"])
+        "O'Reilly Inc"
+    """
+    if not options:
+        return value
+        
+    rx = web.re_compile("[-_\.&, ]+")
+    
+    # build word frequency
+    d = defaultdict(list)
+    for option in options:
+        for t in rx.split(option):
+            d[t].append(option)
+    
+    # find score for each option
+    score = defaultdict(lambda: 0)
+    for t in rx.split(value):
+        if t in stopwords:
+            continue
+        for option in d[t]:
+            score[option] += 1
+    
+    # take the option with maximum score
+    return max(options, key=score.__getitem__)
     
 @public
 def radio_input(checked=False, **params):
@@ -205,6 +234,13 @@ def get_history(page):
         h.initial = web.ctx.site.versions({"key": page.key, "limit": 1, "offset": h.revision-1})
         h.recent = web.ctx.site.versions({"key": page.key, "limit": 4})
     return h
+    
+@public
+def get_version(key, revision):
+    try:
+        return web.ctx.site.versions({"key": key, "revision": revision, "limit": 1})[0]
+    except IndexError:
+        return None
 
 @public
 def get_recent_author(doc):
@@ -319,7 +355,7 @@ def parse_toc(text):
     """Parses each line of toc"""
     if text is None:
         return []
-    return [parse_toc_row(line) for line in text.splitlines() if line.strip()]
+    return [parse_toc_row(line) for line in text.splitlines() if line.strip(" |")]
     
 
 _languages = None
