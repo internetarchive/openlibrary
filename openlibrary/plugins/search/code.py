@@ -10,7 +10,7 @@ from infogami.utils import view, template
 from infogami import config
 from infogami.plugins.api.code import jsonapi
 
-import re
+import re, web
 import solr_client
 import time
 import simplejson
@@ -21,12 +21,13 @@ from collections import defaultdict
 
 render = template.render
 
-sconfig = config.plugin_search
+sconfig = web.storage()
+if hasattr(config, 'plugin_search'):
+    sconfig = config.plugin_search
 
 sconfig.setdefault('solr', None)
 sconfig.setdefault('fulltext_solr', None)
 sconfig.setdefault('fulltext_shards', [])
-
 
 def parse_host(host_and_port):
     """
