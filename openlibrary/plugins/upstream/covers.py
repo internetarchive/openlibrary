@@ -27,8 +27,12 @@ class add_cover(delegate.page):
             
         i = web.input(file={}, url="")
         
+        # remove references to field storage objects
+        web.ctx.pop("_fieldstorage", None)
+        
         data = self.upload(key, i)
         coverid = data.get('id')
+        
         if coverid:
             self.save(book, coverid)
             cover = Image("b", coverid)
