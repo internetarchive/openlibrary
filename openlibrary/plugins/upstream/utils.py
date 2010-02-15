@@ -5,9 +5,10 @@ import babel, babel.core, babel.dates
 from UserDict import DictMixin
 from babel.numbers import format_number
 from collections import defaultdict
+import random
 
 from infogami import config
-from infogami.utils import view
+from infogami.utils import view, delegate
 from infogami.utils.view import render, public, _format
 from infogami.utils.macro import macro
 from infogami.utils.markdown import markdown
@@ -461,6 +462,74 @@ def commify(number):
     except:
         return number
 
+from openlibrary.utils.olcompress import OLCompressor
+from openlibrary.utils import olmemcache
+import adapter
+import memcache
+
+class UpstreamMemcacheClient:
+    """Wrapper to memcache Client to handle upstream specific conversion and OL specific compression.
+    Compatible with memcache Client API.
+    """
+    def __init__(self, servers):
+        self._client = memcache.Client(servers)
+        compressor = OLCompressor()
+        self.compress = compressor.compress
+        def decompress(*args, **kw):
+            d = simplejson.loads(compressor.decompress(*args, **kw))
+            return simplejson.dumps(adapter.unconvert_dict(d))
+        self.decompress = decompress
+
+    def get(self, key):
+        key = adapter.convert_key(key)
+        if key is None:
+            return None
+        
+        try:
+            value = self._client.get(web.safestr(key))
+        except memcache.Client.MemcachedKeyError:
+            return None
+
+        return value and self.decompress(value)
+
+    def get_multi(self, keys):
+        keys = [adapter.convert_key(k) for k in keys]
+        keys = [web.safestr(k) for k in keys]
+        
+        d = self._client.get_multi(keys)
+        return dict((web.safeunicode(adapter.unconvert_key(k)), self.decompress(v)) for k, v in d.items())
+
+if config.get('upstream_memcache_servers'):
+    olmemcache.Client = UpstreamMemcacheClient
+    # set config.memcache_servers only after olmemcache.Client is updated
+    config.memcache_servers = config.upstream_memcache_servers
+    
+def _get_recent_changes():
+    site = web.ctx.get('site') or delegate.create_site()
+    web.ctx.setdefault("ip", "127.0.0.1")
+    
+    q = {"bot": False, "limit": 50}
+    result = site.versions(q)
+    
+    def process_thing(thing):
+        t = web.storage()
+        for k in ["key", "title", "name", "displayname"]:
+            t[k] = thing[k]
+        t['type'] = web.storage(key=thing.type.key)
+        return t
+    
+    for r in result:
+        r.author = r.author and process_thing(r.author)
+        r.thing = process_thing(site.get(r.key, r.revision))
+        
+    return result
+    
+_get_recent_changes = web.memoize(_get_recent_changes, expires=5*60, background=True)
+
+@public
+def get_random_recent_changes(n):
+    changes = _get_recent_changes()
+    return random.sample(changes, n)    
 
 def setup():
     """Do required initialization"""
