@@ -21,7 +21,7 @@ $ end = min(len(objects), page*50)
 $for i, obj in enumerate(objects[begin:end]):
     <tr>
         <td>$i</td>
-        <td><a href="/memory/id/$obj.get_id()">$obj.get_id()</a></td>
+        <td><a href="/admin/memory/id/$obj.get_id()">$obj.get_id()</a></td>
         <td>$obj.repr()</td>
     </tr>
 </table>
