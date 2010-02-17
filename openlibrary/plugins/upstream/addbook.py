@@ -106,7 +106,8 @@ class addbook(delegate.page):
         
         if i.author_key == "__new__":
             a = new_doc("/type/author", name=i.author_name)
-            a._save("New author")
+            comment = utils.get_message("comment_new_author")
+            a._save(comment)
             i.author_key = a.key
             # since new author is created it must be a new record
             return None
@@ -189,7 +190,8 @@ class addbook(delegate.page):
                 
     def work_match(self, work, i):
         edition = self._make_edition(work, i)            
-        edition._save("New edition")        
+        comment = utils.get_message("comment_new_edition")
+        edition._save(comment)
         raise web.seeother(edition.url("/edit"))
         
     def _make_edition(self, work, i):
@@ -206,27 +208,23 @@ class addbook(delegate.page):
     def work_edition_match(self, edition):
         raise web.seeother(edition.url("/edit?from=add#about"))
         
-    def multiple_matches(self):
-        return "Not yet implemented"
-        
     def no_match(self, i):
         # TODO: Handle add-new-author
         work = new_doc("/type/work",
             title=i.title,
             authors=[{"author": {"key": i.author_key}}]
         )
-        work._save("New work")
+        comment = utils.get_message("comment_new_work")
+        work._save(comment)
         
         edition = self._make_edition(work, i)
-        edition._save("New edition")
+        comment = utils.get_message("comment_new_edition")
+        edition._save(comment)
         raise web.seeother(edition.url("/edit#about"))
 
-class addauthor(ol_code.addauthor):
-    path = "/authors/add"    
 
 del delegate.pages['/addbook']
-# templates still refers to /addauthor.
-#del delegate.pages['/addauthor'] 
+del delegate.pages['/addauthor'] 
 
 def trim_value(value):
     """Trim strings, lists and dictionaries to remove empty/None values.
@@ -293,7 +291,7 @@ class SaveBookHelper:
         for author in work_data.get("authors") or []:
             if author['author']['key'] == "__new__":
                 a = self.new_author(formdata['author'])
-                a._save("New author")
+                a._save(utils.get_message("comment_new_author"))
                 author['author']['key'] = a.key
             
         if work_data and not delete:
@@ -457,9 +455,9 @@ class book_edit(delegate.page):
             helper.save(web.input())
             
             if add:
-                add_flash_message("info", _("Thank you very much for adding that new book!"))
+                add_flash_message("info", utils.get_message("flash_book_added"))
             else:
-                add_flash_message("info", _("Thank you very much for improving that record!"))
+                add_flash_message("info", utils.get_message("flash_book_updated"))
             
             raise web.seeother(edition.url())
         except (ClientException, ValidationException), e:
@@ -485,7 +483,7 @@ class work_edit(delegate.page):
         try:
             helper = SaveBookHelper(work, None)
             helper.save(web.input())
-            add_flash_message("info", _("Thank you very much for improving that record!"))            
+            add_flash_message("info", utils.get_message("flash_work_updated"))
             raise web.seeother(work.url())
         except (ClientException, ValidationException), e:
             add_flash_message('error', str(e))

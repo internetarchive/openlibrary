@@ -95,14 +95,17 @@ def render_template(name, *a, **kw):
     
 @public
 def get_error(name, *args):
-    """For the sake of convenience, all the error messages are put in a template. 
-    This function extracts the error message from the template and replaces the occurances `%s` with passed arguments.
+    """Return error with the given name from errors.tmpl template."""
+    return get_message_from_template("errors", name, args)
+        
+@public        
+def get_message(name, *args):
+    """Return message with given name from messages.tmpl template"""
+    reutrn get_message_from_template("messages", name, *args)
     
-    """
-    errors = render.errors().get('errors', {})
-    msg = errors.get(name) or name.lower().replace('_', ' ')
-    
-    print 'get_error', (name, msg)
+def get_message_from_template(template_name, name, *args):
+    d = render_template(name).get("messages", {})
+    msg = d.get(name) or name.lower().replace("_", " ")
     
     if msg and args:
         return msg % args
