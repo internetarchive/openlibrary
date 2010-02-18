@@ -104,7 +104,7 @@ def get_message(name, *args):
     return get_message_from_template("messages", name, *args)
     
 def get_message_from_template(template_name, name, *args):
-    d = render_template(name).get("messages", {})
+    d = render_template(template_name).get("messages", {})
     msg = d.get(name) or name.lower().replace("_", " ")
     
     if msg and args:
