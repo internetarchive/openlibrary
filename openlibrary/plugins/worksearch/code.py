@@ -334,6 +334,9 @@ class subjects(delegate.page):
         solr_select += "&facet=true&facet.mincount=1&f.author_facet.facet.sort=count&f.publish_year.facet.limit=-1&facet.limit=25&" + '&'.join("facet.field=" + f for f in facet_fields)
         print solr_select
         reply = json.load(urllib.urlopen(solr_select))
+        num_found = int(reply['response']['numFound'])
+        if num_found == 0:
+            return render_template('subjects/notfound.tmpl', path_info)
         facets = reply['facet_counts']['facet_fields']
         def get_author(a, c):
             k, n = eval(a)
