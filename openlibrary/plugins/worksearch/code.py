@@ -23,8 +23,8 @@ if hasattr(config, 'plugin_worksearch'):
     solr_subject_host = config.plugin_worksearch.get('subject_solr')
     solr_subject_select_url = "http://" + solr_subject_host + "/solr/subjects/select"
 
-solr_author_host = config.plugin_worksearch.get('author_solr')
-solr_author_select_url = "http://" + solr_author_host + "/solr/authors/select"
+    solr_author_host = config.plugin_worksearch.get('author_solr')
+    solr_author_select_url = "http://" + solr_author_host + "/solr/authors/select"
 
 to_drop = set('''!*"'();:@&=+$,/?%#[]''')
 
@@ -410,7 +410,7 @@ class search(delegate.page):
 
     def GET(self):
         i = web.input(author_key=[], language=[], first_publish_year=[], publisher_facet=[], subject_facet=[], person_facet=[], place_facet=[], time_facet=[])
-        params = clean_input(i)
+        params = self.clean_inputs(i)
 
         if params:
             raise web.seeother(web.changequery(**params))
