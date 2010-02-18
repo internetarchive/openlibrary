@@ -93,7 +93,7 @@ class Author(client.Thing):
         return self.photo_url_pattern % path
         
     def url(self, suffix="", **params):
-        u = self.key + "/" + processors._safepath(self.name) + suffix
+        u = self.key + "/" + processors._safepath(self.get('name', 'no name')) + suffix
         if params:
             u += '?' + urllib.urlencode(params)
         return u

@@ -197,6 +197,11 @@ def setup():
     register_admin_page('/admin/stats/(\d\d\d\d-\d\d-\d\d)', stats, label='Stats JSON')
     register_admin_page('/admin/ipstats', ipstats, label='IP Stats JSON')
     
+    import mem
+
+    for p in [mem._memory, mem._memory_type, mem._memory_id]:
+        register_admin_page('/admin' + p.path, p)
+
     public(get_admin_stats)
     
 class IPAddress:
