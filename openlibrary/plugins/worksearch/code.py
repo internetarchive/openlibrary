@@ -6,18 +6,22 @@ from openlibrary.catalog.utils import flip_name
 from infogami.utils import view, template
 import simplejson as json
 from pprint import pformat
-from openlibrary.plugins.upstream.utils import get_coverstore_url, render_template
+try:
+    from openlibrary.plugins.upstream.utils import get_coverstore_url, render_template
+except AttributeError:
+    pass # unittest
 from openlibrary.plugins.search.code import search as _edition_search
 from infogami.plugins.api.code import jsonapi
 
 class edition_search(_edition_search):
     path = "/search/edition"
 
-solr_host = config.plugin_worksearch.get('solr')
-solr_select_url = "http://" + solr_host + "/solr/works/select"
+if hasattr(config, 'plugin_worksearch'):
+    solr_host = config.plugin_worksearch.get('solr')
+    solr_select_url = "http://" + solr_host + "/solr/works/select"
 
-solr_subject_host = config.plugin_worksearch.get('subject_solr')
-solr_subject_select_url = "http://" + solr_subject_host + "/solr/subjects/select"
+    solr_subject_host = config.plugin_worksearch.get('subject_solr')
+    solr_subject_select_url = "http://" + solr_subject_host + "/solr/subjects/select"
 
 solr_author_host = config.plugin_worksearch.get('author_solr')
 solr_author_select_url = "http://" + solr_author_host + "/solr/authors/select"
@@ -92,6 +96,16 @@ def tidy_name(s):
     elif s.endswith(' Sir'):
         s = s[:-4]
     return flip_name(s)
+
+def advanced_to_simple(params):
+    q_list = []
+    q = params.get('q', None)
+    if q and q != '*:*':
+        q_list.append(params['q'])
+    for k in 'title', 'author':
+        if k in params:
+            q_list.append("%s:(%s)" % (k, params[k]))
+    return ' '.join(q_list)
 
 re_isbn = re.compile('^([0-9]{9}[0-9X]|[0-9]{13})$')
 
@@ -372,9 +386,7 @@ class subjects(delegate.page):
         return render.subjects(page)
 
 class search(delegate.page):
-    def GET(self):
-        i = web.input(author_key=[], language=[], first_publish_year=[], publisher_facet=[], subject_facet=[], person_facet=[], place_facet=[], time_facet=[])
-
+    def clean_inputs(self, i):
         params = {}
         need_redirect = False
         for k, v in i.items():
@@ -394,7 +406,13 @@ class search(delegate.page):
                 if clean != v:
                     need_redirect = True
             params[k] = clean
-        if need_redirect:
+        return params if need_redirect else None
+
+    def GET(self):
+        i = web.input(author_key=[], language=[], first_publish_year=[], publisher_facet=[], subject_facet=[], person_facet=[], place_facet=[], time_facet=[])
+        params = clean_input(i)
+
+        if params:
             raise web.seeother(web.changequery(**params))
 
         return render.work_search(i, do_search, get_doc)
