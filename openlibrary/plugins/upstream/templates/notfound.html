@@ -3,12 +3,10 @@ $def with (path, create=None)
 $var title: $_("%s is not found", path)
 
 $if create is None:
-    $ create = not path.startswith('/authors') and not path.startswith('/books')
+    $ create = not path.startswith('/authors') and not path.startswith('/books') and not path.startswith("/works")
 
 <div id="contentHead">
-    <div class="head"
-        <h1>$_("Not Found")</h1>
-    </div>
+    <h1>$_("Not Found")</h1>
 </div>
 
 <div id="contentBody">

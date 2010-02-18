@@ -1,20 +1,30 @@
 import web, re, urllib
-from lxml.etree import parse, tostring
+from lxml.etree import parse, tostring, XML, XMLSyntaxError
 from infogami.utils import delegate
 from infogami import config
 from openlibrary.catalog.utils import flip_name
 from infogami.utils import view, template
 import simplejson as json
 from pprint import pformat
-from openlibrary.plugins.upstream.utils import get_coverstore_url
+try:
+    from openlibrary.plugins.upstream.utils import get_coverstore_url, render_template
+except AttributeError:
+    pass # unittest
 from openlibrary.plugins.search.code import search as _edition_search
 from infogami.plugins.api.code import jsonapi
 
 class edition_search(_edition_search):
     path = "/search/edition"
 
-solr_host = config.plugin_worksearch.get('solr')
-solr_select_url = "http://" + solr_host + "/solr/works/select"
+if hasattr(config, 'plugin_worksearch'):
+    solr_host = config.plugin_worksearch.get('solr')
+    solr_select_url = "http://" + solr_host + "/solr/works/select"
+
+    solr_subject_host = config.plugin_worksearch.get('subject_solr')
+    solr_subject_select_url = "http://" + solr_subject_host + "/solr/subjects/select"
+
+solr_author_host = config.plugin_worksearch.get('author_solr')
+solr_author_select_url = "http://" + solr_author_host + "/solr/authors/select"
 
 to_drop = set('''!*"'();:@&=+$,/?%#[]''')
 
@@ -87,6 +97,16 @@ def tidy_name(s):
         s = s[:-4]
     return flip_name(s)
 
+def advanced_to_simple(params):
+    q_list = []
+    q = params.get('q', None)
+    if q and q != '*:*':
+        q_list.append(params['q'])
+    for k in 'title', 'author':
+        if k in params:
+            q_list.append("%s:(%s)" % (k, params[k]))
+    return ' '.join(q_list)
+
 re_isbn = re.compile('^([0-9]{9}[0-9X]|[0-9]{13})$')
 
 def read_isbn(s):
@@ -147,11 +167,33 @@ def run_solr_query(param = {}, rows=100, page=1, sort=None):
     if sort:
         solr_select += "&sort=" + url_quote(sort)
     print solr_select
-    reply = urllib.urlopen(solr_select)
-    return (parse(reply).getroot(), solr_select, q_list)
+    reply = urllib.urlopen(solr_select).read()
+    return (reply, solr_select, q_list)
+
+re_pre = re.compile(r'<pre>(.*)</pre>', re.S)
 
 def do_search(param, sort, page=1, rows=100):
-    (root, solr_select, q_list) = run_solr_query(param, rows, page, sort)
+    (reply, solr_select, q_list) = run_solr_query(param, rows, page, sort)
+    is_bad = False
+    if reply.startswith('<html'):
+        is_bad = True
+    if not is_bad:
+        try:
+            root = XML(reply)
+        except XMLSyntaxError:
+            is_bad = True
+    if is_bad:
+        m = re_pre.search(reply)
+        return web.storage(
+            facet_counts = None,
+            docs = [],
+            is_advanced = bool(param.get('q', 'None')),
+            num_found = None,
+            solr_select = solr_select,
+            q_list = q_list,
+            error = (web.htmlunquote(m.group(1)) if m else reply),
+        )
+
     docs = root.find('result')
     return web.storage(
         facet_counts = read_facets(root),
@@ -160,6 +202,7 @@ def do_search(param, sort, page=1, rows=100):
         num_found = (int(docs.attrib['numFound']) if docs is not None else None),
         solr_select = solr_select,
         q_list = q_list,
+        error = None,
     )
 
 def get_doc(doc):
@@ -343,9 +386,7 @@ class subjects(delegate.page):
         return render.subjects(page)
 
 class search(delegate.page):
-    def GET(self):
-        i = web.input(author_key=[], language=[], first_publish_year=[], publisher_facet=[], subject_facet=[], person_facet=[], place_facet=[], time_facet=[])
-
+    def clean_inputs(self, i):
         params = {}
         need_redirect = False
         for k, v in i.items():
@@ -365,7 +406,13 @@ class search(delegate.page):
                 if clean != v:
                     need_redirect = True
             params[k] = clean
-        if need_redirect:
+        return params if need_redirect else None
+
+    def GET(self):
+        i = web.input(author_key=[], language=[], first_publish_year=[], publisher_facet=[], subject_facet=[], person_facet=[], place_facet=[], time_facet=[])
+        params = clean_input(i)
+
+        if params:
             raise web.seeother(web.changequery(**params))
 
         return render.work_search(i, do_search, get_doc)
@@ -446,3 +493,43 @@ class improve_search(delegate.page):
         boost = dict((f, i[f]) for f in search_fields if f in i)
         return render.improve_search(search_fields, boost, i.q, simple_search)
 
+class merge_author_works(delegate.page):
+    path = "/authors/(OL\d+A)/merge-works"
+    def GET(self, key):
+        works = works_by_author(key)
+    
+class subject_search(delegate.page):
+    path = '/search/subjects'
+    def GET(self):
+        def get_results(q, offset=0, limit=100):
+            solr_select = solr_subject_select_url + "?q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=name,type,count&qt=standard&wt=json" % (web.urlquote(q), offset, limit)
+            solr_select += '&sort=count+desc'
+            return json.loads(urllib.urlopen(solr_select).read())
+        return render_template('search/subjects.tmpl', get_results)
+
+class author_search(delegate.page):
+    path = '/search/authors'
+    def GET(self):
+        def get_results(q, offset=0, limit=100):
+            solr_select = solr_author_select_url + "?q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=*&qt=standard&wt=json" % (web.urlquote(q), offset, limit)
+            return json.loads(urllib.urlopen(solr_select).read())
+        return render_template('search/authors.tmpl', get_results)
+
+class search_json(delegate.page):
+    path = "/search"
+    encoding = "json"
+    
+    def GET(self):
+        i = web.input()
+        if 'query' in i:
+            query = simplejson.loads(i.query)
+        else:
+            query = i
+        
+        from openlibrary.utils.solr import Solr
+        import simplejson
+        
+        solr = Solr("http://%s/solr/works" % solr_host)
+        result = solr.select(query)
+        web.header('Content-Type', 'application/json')
+        return delegate.RawText(simplejson.dumps(result, indent=True))

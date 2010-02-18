@@ -1,10 +1,7 @@
 $def with (page)
 
-$ _s = i18n.get_namespace('/search')
-$ _t = i18n.get_namespace('/type/author')
-$ _ = i18n.get_namespace('/mode/view')
-
 $var title: $page.name
+$var history: $page.history
 
 $ olid = page.key.split('/')[-1]
 
@@ -13,80 +10,144 @@ $ olid = page.key.split('/')[-1]
     $:macros.databarView(page)
 
     <div class="head">
-        <h1>$page.name</h1>
-    </div>
-    <br/>
-    <h3>
+        <h1 class="collapse">$page.name</h1>
+        <div class="clearfix"></div>
+        <h2 class="author collapse">
         $if page.birth_date or page.death_date:
             $page.birth_date - $page.death_date
         $else:
             $if page.date:
                 $page.date
-    </h3>
+        </h2>
+    </div>
+
 </div>
 
 <script type="text/javascript">
-\$().ready(bookCovers);
+\$().ready(function(){\$("#coverPop").colorbox({inline:true, href:"#addImage"});});
 </script>
 
-<div id="contentBody">
+<div id="contentMeta">
 
-    <div class="illustration right">
-        <div class="bookCover">
-            <span><img src="http://covers.openlibrary.org/a/olid/$olid-M.jpg?default=false" class="cover"/></span>
-        </div>
-        <div class="SRPCoverBlank author">
-            <div class="BookTitle">$page.name
-                <div class="Author"></div>
+    <div class="contentTwothird">
+
+        $:format(page.get('bio', ''))
+
+        $if page.website:
+            <div class="section">
+                <h6 class="collapse black uppercase">$_("Website")</h6> 
+                <a href="$page.website" class="datalink">$page.website</a>
             </div>
+
+        $if page.location:
+            <div class="section hidden">
+                <h6 class="collapse black uppercase">$_("Location")</h6>
+                $page.location
+            </div>
+
+        $if page.alternate_names:
+            <div class="section">
+                <h6 class="collapse black uppercase">$_("Alternate names")</h6> 
+                $", ".join(page.alternate_names)
+            </div>
+
+        $ books = page.get_books()
+
+        <div class="clearfix"></div>
+        <div class="section">
+            <a name="editions"></a>
+                <h2 class="collapse">$_("Books by this Author") <span class="count">$commify(books.num_found) book$("s" if books.num_found != 1 else "") &nbsp; <a href="/books/add" class="fixthis" title="Need to pre-populate the author field">Add another</a>?</span></h2>
+                <a name="books"></a>
+                <p><span class="tools">
+                $if books.num_found > 1:
+                    <img src="/images/icons/icon_sort.png" alt="Sorting by" width="9" height="11" style="margin-right:10px;"/>Sorting by: 
+                    $if books.sort == 'editions':
+                        <strong class="lightgreen">Most Editions</strong> | <a href="$changequery(sort='old')">First Published</a> | <a href="$changequery(sort='new')">Most Recent</a> | <a href="$changequery(sort='title')">Title</a>
+                    $elif books.sort == 'old':
+                        <a href="$changequery(sort=None)">Most Editions</a> | <strong class="lightgreen">First Published</strong> | <a href="$changequery(sort='new')">Most Recent</a> | <a href="$changequery(sort='title')">Title</a>
+                    $elif books.sort == 'new':
+                        <a href="$changequery(sort=None)">Most Editions</a> |  <a href="$changequery(sort='old')">First Published</a> | <strong class="lightgreen">Most Recent</strong> | <a href="$changequery(sort='title')">Title</a>
+                    $elif books.sort == 'title':
+                        <a href="$changequery(sort=None)">Most Editions</a> |  <a href="$changequery(sort='old')">First Published</a> | <a href="$changequery(sort='new')">Most Recent</a> | <strong class="lightgreen">Title</strong>
+                </span></p>
+
+                <div id="searchResults" class="narrow">
+                    <ul id="siteSearch">
+                    $for doc in books.works:
+                        $ key = doc.key
+                        <li>
+                        <span class="bookcover">
+                        $ cover = "http://covers.openlibrary.org/b/olid/%s-M.jpg" % doc.cover_edition_key if doc.cover_edition_key else "http://upstream.openlibrary.org/images/icons/avatar_book-sm.png"
+                        <a href="$key"><img src="$cover" height="70"/></a>
+                        </span>
+                        <span class="details">
+                            <span class="resultTitle">
+                                <span class="booktitle"><a href="http://upstream.openlibrary.org$doc.key">$doc.title</a></span>
+                                <span class="resultPublisher">$commify(doc.edition_count) edition$("s" if doc.edition_count != 1 else "")
+                                $if doc.first_publish_year:
+                                    - first published in $doc.first_publish_year
+                                </span>
+                            </span>
+                        </span>
+                        $if len(doc.ia):
+                            <span class="actions read">
+                                <a href="http://www.archive.org/stream/$doc.ia[0]" title="Read an online eBook">
+                                    <span class="image"></span>
+                                    <span class="label">Read</span>
+                                </a>
+                            </span>
+                        </span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+    </div>
+    <div class="contentOnethird">
+
+        <div class="illustration">
+            $:render_template("covers/author_photo", page) 
+            $:render_template("covers/change", page, ".bookCover img")
+        </div>
+
+        $def render_subjects(label, subjects, extra):
+            $if subjects:
+                <div class="section">
+                    <h6 class="collapse black uppercase">$label</h6>
+                    <div class="sansserif">
+                    $for subject, count in subjects:
+                        <a href="/subjects/$extra$subject.replace(' ', '_')">$subject</a>$cond(not loop.last, ",", "")
+                    </div>
+                </div>
+
+        <!-- SUBJECTS DISPLAY -->
+        <div class="section">
+            <h3>Related...</h3>
+            $:render_subjects("Subjects", books.get_facet('subject_facet'), '')
+            $:render_subjects("Places", books.get_facet('place_facet'), 'places/')
+            $:render_subjects("People", books.get_facet('person_facet'), 'people/')
+            $:render_subjects("Time", books.get_facet('time_facet'), 'times/')
+        </div>
+        <!-- /SUBJECTS -->
+
+        <div class="section">
+            <h3>Links <span class="gray small sansserif">(outside Open Library)</span></h3>
+
+            $if page.links or (page.wikipedia and page.wikipedia.startswith("http")):
+                <ul class="booklinks sansserif">
+                $if page.wikipedia and page.wikipedia.startswith("http"):
+                    <li><a href="$page.wikipedia" class="sidebar">Wikipedia</a></li>
+                $for link in page.links:
+                    <li><a href="$link.url">$link.title</a></li>
+                </ul>
+            $else:
+                <p>No links found. <a href="$page.url('/edit')#web">Add one</a>.</p>
+
         </div> 
-        <div class="smaller sansserif"><br/><a href="$:changequery(m='change_cover')">Add Photo</a></div>
-    </div>
-
-    $:format(page.get('bio', ''))
-
-    $if page.website:
-        <div class="section"><span class="title">$_t.website:</span> <span class="tag"><a href="$page.website" class="datalink">$page.website</a></span></div>
-            
-    $if page.location:
-        <div class="section"><span class="title">$_t.location:</span> <span class="tag">$page.location</span></div>
-
-    $if page.alternate_names:
-        <div class="section"><span class="title">$_t.alternate_names:</span> <span class="tag">$", ".join(page.alternate_names)</span></div>
- 	 	
-    $if page.wikipedia and page.wikipedia.startswith("http"):
-        <div class="section"><span class="title"></span><span class="tag">Read about $page.name at <a href="$page.wikipedia" class="sidebar">Wikipedia</a></span></div>
-
-<!-- BEGIN SEARCH -->
-    <div class="clearfix"></div>
-    <div class="section">
-        <a name="editions"></a>
-        <div class="head">
-            <h2>$_t.by_author</h2>
-
-                $ books_page = safeint(query_param('books_page', '0'))
-                <span class="tools">
-                $if books_page != 0:
-                    <a href="$:changequery(books_page=books_page - 1)" class="sansserif" rel="nofollow">$_.prev</a>
-        
-                $if len(page.books) == 20:
-                    ... <a href="$:changequery(books_page=books_page + 1)" class="sansserif" rel="nofollow">$_.next</a>
-                </span>
-        </div>
-        <br/>
-
-        $if page.books:
-            <div id="searchResults" class="wide">
-                $:macros.SearchResults(page.books)
-                <p class="sansserif">
-                $if books_page != 0:
-                    <a href="$:changequery(books_page=books_page - 1)" class="sansserif" rel="nofollow">$_.prev</a>
-        
-                $if len(page.books) == 20:
-                    ... <a href="$:changequery(books_page=books_page + 1)" class="sansserif" rel="nofollow">$_.next</a>
-                </p>
-            </div>
 
     </div>
 
+</div>
+<div id="contentBody">
+    $:render_template("lib/history", page)
 </div>

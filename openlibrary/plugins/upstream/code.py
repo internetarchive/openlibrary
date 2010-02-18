@@ -11,6 +11,9 @@ from infogami import config
 from infogami.infobase import client
 from infogami.utils import delegate, app, types
 from infogami.utils.view import public, safeint, render
+from infogami.utils.context import context
+
+from utils import render_template
 
 from openlibrary.plugins.openlibrary.processors import ReadableUrlProcessor
 from openlibrary.plugins.openlibrary import code as ol_code
@@ -60,10 +63,10 @@ class DynamicDocument:
         
     def update(self):
         keys = web.ctx.site.things({'type': '/type/rawtext', 'key~': self.root + '/*'})
-        docs = web.ctx.site.get_many(keys)
+        docs = sorted(web.ctx.site.get_many(keys), key=lambda doc: doc.key) 
         if docs:
             self.last_modified = min(doc.last_modified for doc in docs)
-            self._text = "".join(doc.body for doc in docs)
+            self._text = "\n\n".join(doc.get('body', '') for doc in docs)
         else:
             self.last_modified = datetime.datetime.utcnow()
             self._text = ""
@@ -143,7 +146,7 @@ class redirects(delegate.page):
     def GET(self, prefix, path):
         d = dict(a="authors", b="books", user="people")
         raise web.redirect("/%s/%s" % (d[prefix], path))
-
+        
 @public
 def get_document(key):
     return web.ctx.site.get(key)
@@ -153,11 +156,73 @@ class revert(delegate.mode):
         i = web.input("v", _comment=None)
         v = i.v and safeint(i.v, None)
         if v is None:
-            raise web.badrequest()
+            raise web.seeother(web.changequery({}))
+        
+        thing = web.ctx.site.get(key, i.v)
+        
+        if not thing:
+            raise web.notfound()
             
+        def revert(thing):
+            if thing.type.key == "/type/delete" and thing.revision > 1:
+                prev = web.ctx.site.get(thing.key, thing.revision-1)
+                if prev.type.key in ["/type/delete", "/type/redirect"]:
+                    return revert(prev)
+                else:
+                    prev._save("revert to revision %d" % prev.revision)
+                    return prev
+            elif thing.type.key == "/type/redirect":
+                redirect = web.ctx.site.get(thing.location)
+                if redirect and redirect.type.key not in ["/type/delete", "/type/redirect"]:
+                    return redirect
+                else:
+                    # bad redirect. Try the previous revision
+                    prev = web.ctx.site.get(thing.key, thing.revision-1)
+                    return revert(prev)
+            else:
+                return thing
+                
+        def process(value):
+            if isinstance(value, list):
+                return [process(v) for v in value]
+            elif isinstance(value, client.Thing):
+                if value.key:
+                    if value.type.key in ['/type/delete', '/type/revert']:
+                        return revert(value)
+                    else:
+                        return value
+                else:
+                    for k in value.keys():
+                        value[k] = process(value[k])
+                    return value
+            else:
+                return value
+            
+        for k in thing.keys():
+            thing[k] = process(thing[k])
+                    
         comment = i._comment or "reverted to revision %d" % v
-        web.ctx.site.get(key, i.v)._save(comment)
+        thing._save(comment)
         raise web.seeother(key)
+
+class report_spam(delegate.page):
+    path = '/contact/spam'
+    def GET(self):
+        i = web.input(path=None)
+        email = context.user and context.user.email
+        return render_template("contact/spam", email=email, irl=i.path)
+
+    def POST(self):
+        i = web.input(email='', irl='', comment='')
+        fields = web.storage({
+            'email': i.email,
+            'irl': i.irl,
+            'comment': i.comment,
+            'sent': datetime.datetime.utcnow(),
+        })
+        msg = render_template('email/spam_report', fields)
+        web.sendmail(config.from_address, config.report_spam_address, 'Open Library spam report', str(msg))
+        return render_template("contact/spam/sent")
 
 def setup():
     """Setup for upstream plugin"""
@@ -188,7 +253,7 @@ def setup():
 
     # setup template globals
     from openlibrary.i18n import gettext as _
-        
+            
     web.template.Template.globals.update({
         "gettext": _,
         "_": _,

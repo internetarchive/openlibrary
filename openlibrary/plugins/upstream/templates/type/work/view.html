@@ -1,8 +1,5 @@
 $def with (page)
 
-$ _t = i18n.get_namespace('/type/edition')
-$ _ = i18n.get_namespace('/mode/view')
-
 $var title: $page.title
 
 <div id="contentHead">
@@ -10,191 +7,152 @@ $var title: $page.title
     $:macros.databarView(page)
 
     <div class="head">
-        <h1>$page.title</h1>
+        <h1 class="collapse">$page.title</h1>
         <div class="clearfix"></div>
         $if page.get('subtitle'):
             <span class="subtitle">$page.subtitle</span>
             <div class="clearfix"></div>
         $if page.authors:
-            $ author_list = ', '.join('<a href="%s">%s</a>' % (a.author.key, a.author.name) for a in page.authors)
-            <h2 class="author">by $:author_list</h2>
+            $ author_list = ', '.join('<a href="%s">%s</a>' % (a.author.url(), a.author.name) for a in page.authors)
+            <div class="work"><span class="editions">$_("By") $:author_list</span></div>
     </div>
 </div>
+
 <div class="clearfix"></div>
 
 <script type="text/javascript">
-\$().ready(bookCovers);
-\$().ready(carousels);
-\$().ready(carouselSetup);
-\$().ready(bigCharts);
-\$().ready(tableShow);
-\$().ready(slidePanels);
+\$().ready(function(){\$("#coverPop").colorbox({inline:true, href:"#addImage"});});
 </script>
 
-$ s = "subjects", "first_sentence",
 
 <div id="contentBody">
 
-    $:macros.databarWork(page)
+    <div id="workCover">
 
-    <div id="workDetails">
+        <div class="illustration">
+            $:render_template('covers/book_cover', page.cover_edition)
+            $:render_template("covers/change", page.cover_edition, ".bookCover img")
+        </div>
 
-    <div class="illustration right">
-        $:macros.CoverImageWork(page)
     </div>
 
-$if page.description:
-    <p>$page.description</p>
+    $if not (page.description or page.first_sentence or page.subjects or page.excerpts or page.links):
+        <div id="workHelp" class="brown sansserif">
+            Well, gosh. The library knows practically nothing about this book. Can you <a href="$page.url('/edit')#about/about">help describe it</a>?
+        </div>
 
+    <div id="workAbout">
 
-    $for name in s:
-        $if page[name]:
-            <div class="section"><span class="title">$_t[name]:</span>
-            $if name == "subjects":
-                <span class="tag">
-                    $for subject in page[name]:
-                        $ subject_label = subject.strip('.')
-                        <a href="/search?ftokens=$:utf8(facet_token('subjects', thingrepr(subject).strip()))">$:utf8(thingrepr(subject_label)).replace('--', '&mdash;')</a>&nbsp;
+    $if page.description:
+        $:sanitize(format(page.description))
+
+    $if page.lc_classifications:
+        <b>LC</b>: $thingrepr(page.lc_classifications)<br>
+
+    $if page.dewey_number:
+        <b>Dewey</b>: $thingrepr(page.dewey_number)<br>
+    $if page.first_sentence:
+        <b>$_("First sentence")</b>: $page.first_sentence<br>
+
+    $if page.editions:
+        <div class="head">
+
+            <h2>
+                $page.edition_count edition$("s" if page.edition_count != 1 else "")
+                $if page.first_publish_date:
+                    <span class="count">$_("First published in") $page.first_publish_date</span>
+                <div class="small sansserif brown">
+                    <a href="$page.url('/edit')#edition" class="fixthis" title="$_('Add another edition of') $page.title">$_("Add another")</a>?</div>
+            </h2>
+
+<!--
+            <h2>$_("Versions we know about")</h2>
+            <p class="sansserif">
+                <span class="small brown">
+                    <a href="#" class="fixthis"><strong>$page.edition_count</strong></a> 
+                    $_("available in") 
+                    <a href="#" class="fixthis"># $_("languages")</a>
                 </span>
-            $else:
-                <span class="tag">$:thingrepr(page[name])</span>
+                &nbsp;&nbsp;
+                <span class="smaller fixthis" title="Sorting results doesn't work">
+                    $_("Sort"): 
+                    $_("First published")
+                    /
+                    <a href="#">$_("Latest edition")</a>
+                </span>
+            </p>
+-->
+
+        </div>
+        <div id="searchResults" class="narrow">
+            <ul>
+            $for book in page.editions:
+                <li>$:render_template("books/works-show", book)</li>
+            </ul>
+            $ pagecount = (page.edition_count+19)/20
+            $ pageindex = safeint(query_param("editions_page", 0)) + 1
+            $ page_url = lambda i: changequery(editions_page=i-1)
+            $:render_template("lib/pagination", pagecount, pageindex, page_url)
+        </div>
+
+<!--
+        <div class="small sansserif brown">Add <a href="$page.url('/edit')#edition" title="$_('Add another edition of this book')">another edition</a> of this book?</div>
+-->
+
+
+    </div>
+    
+    <div id="workTools">
+
+        $def render_subjects(label, subjects):
+            $if subjects:
+                <div class="section">
+                    <h6 class="collapse black uppercase">$label</h6>
+                    <div class="sansserif">
+                    $for subject in subjects:
+                        $ lc = label.lower()
+                        $ start = '/subjects'
+                        $if lc != 'subjects':
+                            $ start = start + '/' + lc
+                        <a href="$start/$:utf8(subject.lower().replace(' ', '_'))">$subject</a>$cond(not loop.last,",","")
+                    </div>
+                </div>
+        $:render_subjects("Subjects", page.subjects)
+        $:render_subjects("People", page.subject_people)
+        $:render_subjects("Places", page.subject_places)
+        $:render_subjects("Times", page.subject_times)
+
+        $if page.excerpts:
+            <div class="section">
+                <h3>$_("Excerpts")</h3>
+                $for excerpt in page.excerpts:
+                    <div class="excerpt">
+                        <div class="text">$excerpt.excerpt</div>
+                        <div class="attribution">
+                            $if excerpt.pages:
+                                $_("Page") $excerpt.pages,
+                            $if excerpt.author:
+                                $_("added by") <a href="$excerpt.author.key">$excerpt.author.displayname</a>.
+                            $else:
+                                $_("added anonymously").
+                        </div>
+                    </div>
             </div>
 
-$if page.notes:
-    <div class="section">
-        <span class="title">$_t['notes']:</span>
-        <span class="tag">$:thingrepr(page.notes)</span>
-    </div>
-
-    $:macros.WorkInfo(page)
-
-
-    <div class="head">
-        <h3>Reviews from around the web</h3>
-    </div>
-    <p class="smaller">
-    </p>
+        $if page.links or (page.wikipedia and page.wikipedia.startswith("http")):
+            <div class="section">
+                <h3>$_("Links") <span class="gray small sansserif">$_("(outside Open Library)")</span></h3>
+                <ul class="booklinks sansserif">
+                $if page.wikipedia and page.wikipedia.startswith("http"):
+                    <li><a href="$page.wikipedia" class="sidebar">Wikipedia</a></li>
+                $for link in page.links:
+                    <li><a href="$link.url">$link.title</a></li>
+                </ul>
+            </div>
 
     </div>
 
     <div class="clearfix"></div>
 
-
-    <div class="head">
-        <h2>Versions we know about</h2><br/>
-        <span class="count"><strong>### editions</strong> available in # languages</span>
-    </div>
-
-</div>
-
-
-<div id="contentLists" class="editions">
-$if page.editions:
-    <div id="editionsCovers" class="covers">
-        <ul id="coversCarousel" class="jcarousel-skin-OL">
-        $ col = 0
-            $for book in page.editions:
-                $ title = book.title_prefix + " " + book.title
-                $ olid = book.key.split("/")[2]
-                $if col == 0: <li>
-                    <div class="coverMagic">
-	                <div class="SRPCover">
-                            <a href="$book.key" title="$book.title_prefix $book.title">
-	                    <img src="http://covers.openlibrary.org/b/olid/$olid-M.jpg?default=false" class="cover" alt="$title"/>
-                            </a>
-	                </div>
-                        <div class="SRPCoverBlank" onClick="document.location.href='$book.key';" title="$title">
-                            <div class="innerBorder">
-                                <div class="BookTitle">$title
-                                    <div class="Author">$:author_list</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="bookMeta">
-                            <div class="Publisher">Printed for $:thingrepr(book.publishers)</div>
-                            <div class="Year">in $book.publish_date</div>
-                        </div>
-                    </div>
-                $ col += 1
-                $if col == 12: 
-                    </li>
-                    $ col = 0
-        $if col != 0: </li>
-        </ul>
-    </div>
-    <div id="editionsList" class="covers">
-        <ul id="listCarousel" class="jcarousel-skin-OL">
-            $for book in page.editions:
-                <li>
-                    <span class="bookcover"><a href="$book.key">$:macros.CoverImage(book, size="S")</a></span>
-                    <div class="resultTitle">
-                        <span class="booktitle"><a href="$book.key">$book.title</a></span>
-                        $if book.subtitle: $book.subtitle
-                        <span class="bookauthor">$:author_list</span>
-                        $if book.ocaid:
-                            <span class="sansserif">&nbsp;<a href="/bookreader/$book.ocaid" class="small orange">Read Online</a>&nbsp;</span>
-                    </div>
-                    <div class="resultPublisher">
-                    $if book.get('publishers'): $:thingrepr(book.publishers) 
-                    $if book.get('publish_places'): ($:thingrepr(book.publish_places).strip()) 
-                    $if book.get('publish_date'): $book.publish_date &nbsp;
-                    $ edition_and_lang = ''
-                    $if book.edition_name:
-                        $ edition_and_lang += book.edition_name 
-                    $if book.languages:
-                        $ edition_and_lang += ', '.join([l.name for l in book.languages])
-                    $if edition_and_lang and book.number_of_pages:
-                        $ edition_and_lang += ', '
-                    $edition_and_lang
-                    $if book.number_of_pages:
-                        $book.number_of_pages pages
-                    </div>
-                </li>
-        </ul>
-    </div>
-    <div class="jcarousel-toolbar">
-        <span class="tools"><span class="label">Display:</span> <span class="list"><a class="on" href="javascript:;" id="edsCovers">Covers</a> / <a href="javascript:;" id="edsList">List</a></span></span>
-    </div>
-                
-    <div class="editThis">
-        <a class="editCTA" href="[EDIT]" title="Add editions related to this work">
-        Do you know <strong>an edition we're missing</strong>?
-        </a>
-    </div>
-</div>
-
-<div class="clearfix"></div>
-
-<div id="contentMeta">
-
-    <div id="resultsLists">
-        <div class="head">
-            <h2>Possibly related...</h2>
-            <a class="editCTA" href="" title="Add books related to this work">
-            Do you know <strong>a book that's related</strong>?
-            </a>
-        </div>
-
-        <div class="books">
-            $:macros.SRPCoverImage(page)
-        </div>
-
-    </div>
-
-    <div class="clearfix"></div>
-
-    <div class="section">
-        <span class="title">Potentially related subjects:</span>
-        <span class="tag"><a href="">Tag or Subject</a></span>
-    </div>
-
-    <div class="clearfix"></div>
-
-    <div id="resultsAbout">
-        <div class="head">
-            <h2>History</h2>
-            <span class="link"><a href="$changequery(m='history')">Read all</a></span>
-        </div>
-        $:render_template("lib/history", page)
-    </div>
+    $:render_template("lib/history", page)
 </div>

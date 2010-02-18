@@ -3,9 +3,12 @@ import web
 import simplejson
 import babel, babel.core, babel.dates
 from UserDict import DictMixin
+from babel.numbers import format_number
+from collections import defaultdict
+import random
 
 from infogami import config
-from infogami.utils import view
+from infogami.utils import view, delegate
 from infogami.utils.view import render, public, _format
 from infogami.utils.macro import macro
 from infogami.utils.markdown import markdown
@@ -92,14 +95,17 @@ def render_template(name, *a, **kw):
     
 @public
 def get_error(name, *args):
-    """For the sake of convenience, all the error messages are put in a template. 
-    This function extracts the error message from the template and replaces the occurances `%s` with passed arguments.
+    """Return error with the given name from errors.tmpl template."""
+    return get_message_from_template("errors", name, args)
+        
+@public        
+def get_message(name, *args):
+    """Return message with given name from messages.tmpl template"""
+    return get_message_from_template("messages", name, *args)
     
-    """
-    errors = render.errors().get('errors', {})
-    msg = errors.get(name) or name.lower().replace('_', ' ')
-    
-    print 'get_error', (name, msg)
+def get_message_from_template(template_name, name, *args):
+    d = render_template(template_name).get("messages", {})
+    msg = d.get(name) or name.lower().replace("_", " ")
     
     if msg and args:
         return msg % args
@@ -165,6 +171,34 @@ def unflatten(d, seperator="--"):
     for k, v in d.items():
         setvalue(d2, k, v)
     return makelist(d2)
+
+def fuzzy_find(value, options, stopwords=[]):
+    """Try find the option nearest to the value.
+    
+        >>> fuzzy_find("O'Reilly", ["O'Reilly Inc", "Addison-Wesley"])
+        "O'Reilly Inc"
+    """
+    if not options:
+        return value
+        
+    rx = web.re_compile("[-_\.&, ]+")
+    
+    # build word frequency
+    d = defaultdict(list)
+    for option in options:
+        for t in rx.split(option):
+            d[t].append(option)
+    
+    # find score for each option
+    score = defaultdict(lambda: 0)
+    for t in rx.split(value):
+        if t in stopwords:
+            continue
+        for option in d[t]:
+            score[option] += 1
+    
+    # take the option with maximum score
+    return max(options, key=score.__getitem__)
     
 @public
 def radio_input(checked=False, **params):
@@ -204,6 +238,13 @@ def get_history(page):
         h.initial = web.ctx.site.versions({"key": page.key, "limit": 1, "offset": h.revision-1})
         h.recent = web.ctx.site.versions({"key": page.key, "limit": 4})
     return h
+    
+@public
+def get_version(key, revision):
+    try:
+        return web.ctx.site.versions({"key": key, "revision": revision, "limit": 1})[0]
+    except IndexError:
+        return None
 
 @public
 def get_recent_author(doc):
@@ -318,7 +359,7 @@ def parse_toc(text):
     """Parses each line of toc"""
     if text is None:
         return []
-    return [parse_toc_row(line) for line in text.splitlines() if line.strip()]
+    return [parse_toc_row(line) for line in text.splitlines() if line.strip(" |")]
     
 
 _languages = None
@@ -416,12 +457,91 @@ def websafe(text):
     else:
         return _websafe(text)
         
-web.websafe = websafe
+
+def commify(number):
+    """localized version of web.commify"""
+    try:
+        return format_number(int(number), web.ctx.lang or "en")
+    except:
+        return number
+
+from openlibrary.utils.olcompress import OLCompressor
+from openlibrary.utils import olmemcache
+import adapter
+import memcache
+
+class UpstreamMemcacheClient:
+    """Wrapper to memcache Client to handle upstream specific conversion and OL specific compression.
+    Compatible with memcache Client API.
+    """
+    def __init__(self, servers):
+        self._client = memcache.Client(servers)
+        compressor = OLCompressor()
+        self.compress = compressor.compress
+        def decompress(*args, **kw):
+            d = simplejson.loads(compressor.decompress(*args, **kw))
+            return simplejson.dumps(adapter.unconvert_dict(d))
+        self.decompress = decompress
+
+    def get(self, key):
+        key = adapter.convert_key(key)
+        if key is None:
+            return None
+        
+        try:
+            value = self._client.get(web.safestr(key))
+        except memcache.Client.MemcachedKeyError:
+            return None
+
+        return value and self.decompress(value)
+
+    def get_multi(self, keys):
+        keys = [adapter.convert_key(k) for k in keys]
+        keys = [web.safestr(k) for k in keys]
+        
+        d = self._client.get_multi(keys)
+        return dict((web.safeunicode(adapter.unconvert_key(k)), self.decompress(v)) for k, v in d.items())
+
+if config.get('upstream_memcache_servers'):
+    olmemcache.Client = UpstreamMemcacheClient
+    # set config.memcache_servers only after olmemcache.Client is updated
+    config.memcache_servers = config.upstream_memcache_servers
+    
+def _get_recent_changes():
+    site = web.ctx.get('site') or delegate.create_site()
+    web.ctx.setdefault("ip", "127.0.0.1")
+    
+    q = {"bot": False, "limit": 50}
+    result = site.versions(q)
+    
+    def process_thing(thing):
+        t = web.storage()
+        for k in ["key", "title", "name", "displayname"]:
+            t[k] = thing[k]
+        t['type'] = web.storage(key=thing.type.key)
+        return t
+    
+    for r in result:
+        r.author = r.author and process_thing(r.author)
+        r.thing = process_thing(site.get(r.key, r.revision))
+        
+    return result
+    
+_get_recent_changes = web.memoize(_get_recent_changes, expires=5*60, background=True)
+
+@public
+def get_random_recent_changes(n):
+    changes = _get_recent_changes()
+    return random.sample(changes, n)    
 
 def setup():
     """Do required initialization"""
     # monkey-patch get_markdown to use OL Flavored Markdown
     view.get_markdown = get_markdown
+
+    # Provide alternate implementations for websafe and commify
+    web.websafe = websafe
+    web.commify = commify
     
     web.template.Template.globals.update({
         'HTML': HTML
