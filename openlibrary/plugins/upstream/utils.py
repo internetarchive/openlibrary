@@ -101,7 +101,7 @@ def get_error(name, *args):
 @public        
 def get_message(name, *args):
     """Return message with given name from messages.tmpl template"""
-    reutrn get_message_from_template("messages", name, *args)
+    return get_message_from_template("messages", name, *args)
     
 def get_message_from_template(template_name, name, *args):
     d = render_template(name).get("messages", {})
