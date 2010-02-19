@@ -64,10 +64,36 @@ class Solr:
         
     def _prepare_select(self, query):
         def escape(v):
-            return v.replace('"', r'\"')
-            
+            # TODO: improve this
+            return v.replace('"', r'\"').replace("(", " ").replace(")", " ")
+        
+        op = query.pop("_op", "AND")
+        if op.upper() != "OR":
+            op = "AND"
+        op = " " + op + " "
         if isinstance(query, dict):
-            q = " AND ".join('%s:"%s"' % (k, escape(v)) for k, v in query.items())
+            q = op.join('%s:(%s)' % (k, escape(v)) for k, v in query.items())
         else:
             q = query
         return q
+
+if __name__ == '__main__':
+    solr = Solr("http://localhost:8986/solr/works")
+    
+    d = solr.select({
+        "title": "Jam", 
+        "author_name": "Margaret Mahy", 
+        "publisher_facet": "Everyman Ltd"
+    })
+    
+    print "num_found", d.num_found
+    print
+    for doc in d.docs:
+        print doc
+        print
+    print
+    
+    for name, facets in d.get('facets', {}).items():
+        print name
+        for f in facets:
+            print "    ", f.value, f.count

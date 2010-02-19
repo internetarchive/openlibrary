@@ -26,6 +26,10 @@ def get_works_solr():
     base_url = "http://%s/solr/works" % config.plugin_worksearch.get('solr')
     return Solr(base_url)
     
+def get_authors_solr():
+    base_url = "http://%s/solr/authors" % config.plugin_worksearch.get('author_solr')
+    return Solr(base_url)
+    
 def make_work(doc):
     w = web.storage(doc)
     w.key = "/works/" + w.key
@@ -430,7 +434,9 @@ class book_edit(delegate.page):
     path = "(/books/OL\d+M)/edit"
     
     def GET(self, key):
-        edition = web.ctx.site.get(key)
+        i = web.input(v=None)
+        v = i.v and safeint(i.v, None)
+        edition = web.ctx.site.get(key, v)
         if edition is None:
             raise web.notfound()
             
@@ -440,7 +446,10 @@ class book_edit(delegate.page):
         return render_template('books/edit', work, edition)
         
     def POST(self, key):
-        edition = web.ctx.site.get(key)
+        i = web.input(v=None, _method="GET")
+        v = i.v and safeint(i.v, None)
+        edition = web.ctx.site.get(key, v)
+        
         if edition is None:
             raise web.notfound()
         if edition.works:
@@ -469,14 +478,20 @@ class work_edit(delegate.page):
     path = "(/works/OL\d+W)/edit"
     
     def GET(self, key):
-        work = web.ctx.site.get(key)
+        i = web.input(v=None, _method="GET")
+        v = i.v and safeint(i.v, None) 
+               
+        work = web.ctx.site.get(key, v)
         if work is None:
             raise web.notfound()
         
         return render_template('books/edit', work)
         
     def POST(self, key):
-        work = web.ctx.site.get(key)
+        i = web.input(v=None, _method="GET")
+        v = i.v and safeint(i.v, None)
+        
+        work = web.ctx.site.get(key, v)
         if work is None:
             raise web.notfound()
 
@@ -565,18 +580,16 @@ class authors_autocomplete(delegate.page):
         i = web.input(q="", limit=5)
         i.limit = safeint(i.limit, 5)
         
-        # temporary implementation until author solr is ready
-        data = web.ctx.site.things(
-                {"type": "/type/author", "name~": i.q.title() + "*", "sort": "name", "name": None, "limit": i.limit}, 
-                details=True)
-        for d in data:
-            d.subjects = []
-            d.works = [w.title for w in 
-                        web.ctx.site.things(
-                            {"type": "/type/work", "authors": {"author": {"key": d.key}}, "title": None, "limit": 2}, 
-                            details=True)]
-        
-        return to_json(data)
+        solr = get_authors_solr()
+        q = i.q.lower() + '*'
+        data = solr.select({"name": q, "alternate_names": q, "_op": "OR"})
+        docs = data['docs']
+        for d in docs:
+            if 'top_work' in d:
+                d['works'] = [d['top_work']]
+            else:
+                d['works'] = []
+        return to_json(docs)
                 
 def setup():
     """Do required setup."""
