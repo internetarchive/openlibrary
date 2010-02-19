@@ -579,17 +579,32 @@ class authors_autocomplete(delegate.page):
     def GET(self):
         i = web.input(q="", limit=5)
         i.limit = safeint(i.limit, 5)
+
+        if False:
+            solr = get_authors_solr()
+            q = i.q.lower() + '*'
+            data = solr.select({"name": q, "alternate_names": q, "_op": "OR"})
+            docs = data['docs']
+            for d in docs:
+                if 'top_work' in d:
+                    d['works'] = [d['top_work']]
+                else:
+                    d['works'] = []
+            return to_json(docs)
         
-        solr = get_authors_solr()
-        q = i.q.lower() + '*'
-        data = solr.select({"name": q, "alternate_names": q, "_op": "OR"})
-        docs = data['docs']
-        for d in docs:
-            if 'top_work' in d:
-                d['works'] = [d['top_work']]
-            else:
-                d['works'] = []
-        return to_json(docs)
+        # temporary implementation until author solr is ready
+        data = web.ctx.site.things(
+                {"type": "/type/author", "name~": i.q.title() + "*", "sort": "name", "name": None, "limit": i.limit}, 
+                details=True)
+                
+        for d in data:
+            d.subjects = []
+            d.works = [w.title for w in 
+                        web.ctx.site.things(
+                            {"type": "/type/work", "authors": {"author": {"key": d.key}}, "title": None, "limit": 2}, 
+                            details=True)]
+        
+        return to_json(data)
                 
 def setup():
     """Do required setup."""
