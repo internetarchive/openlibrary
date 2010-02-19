@@ -515,6 +515,7 @@ class author_search(delegate.page):
     def GET(self):
         def get_results(q, offset=0, limit=100):
             solr_select = solr_author_select_url + "?q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=*&qt=standard&wt=json" % (web.urlquote(q), offset, limit)
+            solr_select += '&sort=work_count+desc'
             return json.loads(urllib.urlopen(solr_select).read())
         return render_template('search/authors.tmpl', get_results)
 
