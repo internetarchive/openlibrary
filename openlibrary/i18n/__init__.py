@@ -182,7 +182,18 @@ class LazyObject:
         
     def __radd__(self, other):
         return other + self._creator()
-    
+
+def ungettext(s1, s2, n):
+    value = load_translations().ungettext(s1, s2, n)
+    if value:
+        return value
+    else:
+        # fallback when translation is not provided
+        if n == 1:
+            return s1
+        else:
+            return s2
+
 gettext = GetText()
 lgettext = LazyGetText()
 _ = gettext
