@@ -534,6 +534,14 @@ def get_random_recent_changes(n):
     changes = _get_recent_changes()
     return random.sample(changes, n)    
 
+@public
+def sprintf(s, *a, **kw):
+    args = kw or a
+    if args:
+        return s % args
+    else:
+        return s
+
 def setup():
     """Do required initialization"""
     # monkey-patch get_markdown to use OL Flavored Markdown

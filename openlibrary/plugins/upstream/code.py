@@ -252,11 +252,13 @@ def setup():
     ol_code.Edition.cover_url_patten = "%s/cover"
 
     # setup template globals
-    from openlibrary.i18n import gettext as _
+    from openlibrary.i18n import ugettext, ungettext
             
     web.template.Template.globals.update({
-        "gettext": _,
+        "gettext": ugettext,
+        "ugettext": ugettext,
         "_": _,
+        "ungettext": "ungettext",
         "random": random.Random(),
         "commify": web.commify,
         "group": web.group,
