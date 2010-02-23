@@ -329,7 +329,7 @@ class subjects(delegate.page):
         (subject_type, key, full_key, q) = read_subject(path_info)
         # q = ' AND '.join('subject_key:"%s"' % url_quote(key.lower().replace('_', ' ')) for key in path_info.split('+'))
         solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=key,author_name,author_key,title,edition_count,ia,cover_edition_key,has_fulltext,first_publish_year&qt=standard&wt=json" % (q, offset, limit)
-        facet_fields = ["author_facet", "language", "publish_year", "publisher_facet", "subject_facet", "person_facet", "place_facet", "time_facet"]
+        facet_fields = ["author_facet", "language", "publish_year", "publisher_facet", "subject_facet", "person_facet", "place_facet", "time_facet", "has_fulltext"]
         solr_select += "&sort=edition_count+desc"
         solr_select += "&facet=true&facet.mincount=1&f.author_facet.facet.sort=count&f.publish_year.facet.limit=-1&facet.limit=25&" + '&'.join("facet.field=" + f for f in facet_fields)
         print solr_select
@@ -372,11 +372,14 @@ class subjects(delegate.page):
             return collect
 
         name_index, name, count = find_name_index(facets, key, subject_type)
+        
+        ebook_count = dict(web.group(facets["has_fulltext"], 2)).get("true", 0)
 
         page = web.storage(
             key = full_key,
             name = name,
             work_count = count,
+            ebook_count = ebook_count,
             works = works,
             get_covers = get_covers,
             subject_type = subject_type,
