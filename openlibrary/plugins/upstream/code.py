@@ -257,7 +257,7 @@ def setup():
     web.template.Template.globals.update({
         "gettext": ugettext,
         "ugettext": ugettext,
-        "_": _,
+        "_": ugettext,
         "ungettext": "ungettext",
         "random": random.Random(),
         "commify": web.commify,

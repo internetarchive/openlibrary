@@ -195,5 +195,6 @@ def ungettext(s1, s2, n):
             return s2
 
 gettext = GetText()
+ugettext = gettext
 lgettext = LazyGetText()
 _ = gettext
