@@ -1,4 +1,4 @@
-// ColorBox v1.3.3 - a full featured, light-weight, customizable lightbox based on jQuery 1.3
+// ColorBox v1.3.6 - a full featured, light-weight, customizable lightbox based on jQuery 1.3
 // c) 2009 Jack Moore - www.colorpowered.com - jack@colorpowered.com
 // Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 
@@ -13,7 +13,6 @@
 	isIE6 = isIE && !window.XMLHttpRequest,
 
 	// Event Strings (to increase compression)
-	cbox_click = 'click.colorbox',
 	cbox_open = 'cbox_open',
 	cbox_load = 'cbox_load',
 	cbox_complete = 'cbox_complete',
@@ -33,6 +32,7 @@
 	$related,
 	$window,
 	$loaded,
+	$loadingBay,
 	$loadingOverlay,
 	$loadingGraphic,
 	$title,
@@ -48,11 +48,11 @@
 	loadedHeight,
 	loadedWidth,
 	element,
+	bookmark,
 	index,
 	settings,
 	open,
 	active,
-	callback,
 	
 	// ColorBox Default Settings.	
 	// See http://colorpowered.com/colorbox for details.
@@ -84,37 +84,131 @@
 		close: "close",
 		open: FALSE,
 		overlayClose: TRUE,
+		
 		slideshow: FALSE,
 		slideshowAuto: TRUE,
 		slideshowSpeed: 2500,
 		slideshowStart: "start slideshow",
 		slideshowStop: "stop slideshow",
-		preloadIMG: TRUE
+		
+		onOpen: FALSE,
+		onLoad: FALSE,
+		onComplete: FALSE,
+		onCleanup: FALSE,
+		onClosed: FALSE
 	};
-
+	
 	// ****************
 	// HELPER FUNCTIONS
 	// ****************
 		
 	// Convert % values to pixels
-	function setSize (size, dimension) {
-		dimension = dimension === 'x' ? document.documentElement.clientWidth : document.documentElement.clientHeight;
+	function setSize(size, dimension) {
+		dimension = dimension === 'x' ? $window.width() : $window.height();//document.documentElement.clientWidth : document.documentElement.clientHeight;
 		return (typeof size === 'string') ? Math.round((size.match(/%/) ? (dimension / 100) * parseInt(size, 10) : parseInt(size, 10))) : size;
 	}
 
 	// Checks an href to see if it is a photo.
 	// There is a force photo option (photo: true) for hrefs that cannot be matched by this regex.
-	function isImage (url) {
+	function isImage(url) {
+		url = $.isFunction(url) ? url.call(element) : url;
 		return settings.photo || url.match(/\.(gif|png|jpg|jpeg|bmp)(?:\?([^#]*))?(?:#(\.*))?$/i);
 	}
 	
 	// Assigns functions results to their respective settings.  This allows functions to be used to set ColorBox options.
-	function process () {
+	function process() {
 		for (var i in settings) {
-			if (typeof(settings[i]) === 'function') {
+			if ($.isFunction(settings[i]) && i.substring(0, 2) !== 'on') { // checks to make sure the function isn't one of the callbacks, they will be handled at the appropriate time.
 			    settings[i] = settings[i].call(element);
 			}
 		}
+		settings.rel = settings.rel || element.rel;
+		settings.href = settings.href || element.href;
+		settings.title = settings.title || element.title;
+	}
+
+	function launch(elem) {
+		
+		element = elem;
+		
+		settings = $(element).data(colorbox);
+		
+		process(); // Convert functions to their returned values.
+		
+		if (settings.rel && settings.rel !== 'nofollow') {
+			$related = $('.cboxElement').filter(function () {
+				var relRelated = $(this).data(colorbox).rel || this.rel;
+				return (relRelated === settings.rel);
+			});
+			index = $related.index(element);
+			
+			// Check direct calls to ColorBox.
+			if (index < 0) {
+				$related = $related.add(element);
+				index = $related.length - 1;
+			}
+		} else {
+			$related = $(element);
+			index = 0;
+		}
+		
+		if (!open) {
+			open = TRUE;
+			
+			active = TRUE; // Prevents the page-change action from queuing up if the visitor holds down the left or right keys.
+			
+			bookmark = element;
+			
+			bookmark.blur(); // Remove the focus from the calling element.
+			
+			// Set Navigation Key Bindings
+			$(document).bind("keydown.cbox_close", function (e) {
+				if (e.keyCode === 27) {
+					e.preventDefault();
+					cboxPublic.close();
+				}
+			}).bind("keydown.cbox_arrows", function (e) {
+				if ($related.length > 1) {
+					if (e.keyCode === 37) {
+						e.preventDefault();
+						$prev.click();
+					} else if (e.keyCode === 39) {
+						e.preventDefault();
+						$next.click();
+					}
+				}
+			});
+			
+			if (settings.overlayClose) {
+				$overlay.css({"cursor": "pointer"}).one('click', cboxPublic.close);
+			}
+			
+			$.event.trigger(cbox_open);
+			if (settings.onOpen) {
+				settings.onOpen.call(element);
+			}
+			
+			$overlay.css({"opacity": settings.opacity}).show();
+			
+			// Opens inital empty ColorBox prior to content being loaded.
+			settings.w = setSize(settings.initialWidth, 'x');
+			settings.h = setSize(settings.initialHeight, 'y');
+			cboxPublic.position(0);
+			
+			if (isIE6) {
+				$window.bind('resize.cboxie6 scroll.cboxie6', function () {
+					$overlay.css({width: $window.width(), height: $window.height(), top: $window.scrollTop(), left: $window.scrollLeft()});
+				}).trigger("scroll.cboxie6");
+			}
+		}
+		
+		$current.add($prev).add($next).add($slideshow).add($title).hide();
+		
+		$close.html(settings.close).show();
+		
+		cboxPublic.slideshow();
+		
+		cboxPublic.load();
 	}
 
 	// ****************
@@ -123,103 +217,30 @@
 	// Usage from within an iframe: parent.$.fn.colorbox.close();
 	// ****************
 	
-	cboxPublic = $.fn.colorbox = function (options, custom_callback) {
+	cboxPublic = $.fn.colorbox = function (options, callback) {
+		var $this = this;
 		
-		if (this.length) {
-			this.each(function () {
-				var data = $(this).data(colorbox) ? $.extend({},
-					$(this).data(colorbox), options) : $.extend({}, defaults, options);
-				$(this).data(colorbox, data).addClass("cboxelement");
-			});
-		} else {
-			$(this).data(colorbox, $.extend({}, defaults, options));
+		if (!$this.length) {
+			if ($this.selector === '') { // empty selector means a direct call, ie: $.fn.colorbox();
+				$this = $('<a/>');
+				options.open = TRUE;
+			} else { // else the selector didn't match anything, and colorbox should go ahead and return.
+				return this;
+			}
 		}
 		
-		$(this).unbind(cbox_click).bind(cbox_click, function (e) {
+		$this.each(function () {
+			var data = $.extend({}, $(this).data(colorbox) ? $(this).data(colorbox) : defaults, options);
 			
-			element = this;
+			$(this).data(colorbox, data).addClass("cboxElement");
 			
-			settings = $(element).data(colorbox);
-			
-			// Convert functions to their returned values.
-			process();
-			
-			callback = custom_callback || FALSE;
-			
-			var rel = settings.rel || element.rel;
-			
-			if (rel && rel !== 'nofollow') {
-				$related = $('.cboxelement').filter(function () {
-					var relRelated = $(this).data(colorbox).rel || this.rel;
-					return (relRelated === rel);
-				});
-				index = $related.index(element);
-				
-				// Check direct calls to ColorBox.
-				if (index < 0) { 
-					$related = $related.add(element);
-					index = $related.length - 1;
-				}
-			
-			} else {
-				$related = $(element);
-				index = 0;
+			if (callback) {
+				$(this).data(colorbox).onComplete = callback;
 			}
-			if (!open) {
-				open = TRUE;
-				
-				active = TRUE; // Prevents the page-change action from queuing up if the visitor holds down the left or right keys.
-				
-				// Set Navigation Key Bindings
-				$().bind("keydown.cbox_close", function (e) {
-					if (e.keyCode === 27) {
-						e.preventDefault();
-						cboxPublic.close();
-					}
-				}).bind("keydown.cbox_arrows", function(e) {
-					if (e.keyCode === 37) {
-						e.preventDefault();
-						$prev.click();
-					} else if (e.keyCode === 39) {
-						e.preventDefault();
-						$next.click();
-					}
-				});
-				
-				if (settings.overlayClose) {
-					$overlay.css({"cursor": "pointer"}).one('click', cboxPublic.close);
-				}
-				
-				// Remove the focus from the anchor to prevent accidentally calling
-				// ColorBox multiple times (by pressing the 'Enter' key after colorbox has opened, but before the user has clicked on anything else)
-				element.blur();
-				
-				$.event.trigger(cbox_open);
-				
-				$close.html(settings.close);
-				
-				$overlay.css({"opacity": settings.opacity}).show();
-				
-				// Opens inital empty ColorBox prior to content being loaded.
-				settings.w = setSize(settings.initialWidth, 'x');
-				settings.h = setSize(settings.initialHeight, 'y');
-				cboxPublic.position(0);
-				
-				if (isIE6) {
-					$window.bind('resize.cboxie6 scroll.cboxie6', function () {
-						$overlay.css({width: $window.width(), height: $window.height(), top: $window.scrollTop(), left: $window.scrollLeft()});
-					}).trigger("scroll.cboxie6");
-				}
-			}
-			cboxPublic.slideshow();
-			
-			cboxPublic.load();
-			
-			e.preventDefault();
 		});
 		
 		if (options && options.open) {
-			$(this).triggerHandler(cbox_click);
+			launch($this);
 		}
 		
 		return this;
@@ -268,7 +289,10 @@
 				$div("BottomRight")
 			)
 		).children().children().css({'float': 'left'});
-		$('body').prepend($overlay, $cbox.append($wrap));
+		
+		$loadingBay = $("<div style='position:absolute; top:0; left:0; width:9999px; height:0;'/>");
+		
+		$('body').prepend($overlay, $cbox.append($wrap, $loadingBay));
 				
 		if (isIE) {
 			$cbox.addClass('cboxIE');
@@ -279,10 +303,9 @@
 		
 		// Add rollover event to navigation elements
 		$content.children()
-		.addClass(hover)
-		.mouseover(function () { $(this).addClass(hover); })
-		.mouseout(function () { $(this).removeClass(hover); })
-		.hide();
+		.bind('mouseover mouseout', function(){
+			$(this).toggleClass(hover);
+		}).addClass(hover);
 		
 		// Cache values needed for size calculations
 		interfaceHeight = $topBorder.height() + $bottomBorder.height() + $content.outerHeight(TRUE) - $content.height();//Subtraction needed for IE6
@@ -301,12 +324,21 @@
 		// Adding the 'hover' class allowed the browser to load the hover-state
 		// background graphics.  The class can now can be removed.
 		$content.children().removeClass(hover);
+		
+		$('.cboxElement').live('click', function (e) {
+			if (e.button !== 0 && typeof e.button !== 'undefined') {// checks to see if it was a non-left mouse-click.
+				return TRUE;
+			} else {
+				launch(this);			
+				return FALSE;
+			}
+		});
 	};
 
 	cboxPublic.position = function (speed, loadedCallback) {
 		var
 		animate_speed,
-		winHeight = document.documentElement.clientHeight,
+		winHeight = $window.height(),
 		// keeps the top and left positions within the browser's viewport.
 		posTop = Math.max(winHeight - settings.h - loadedHeight - interfaceHeight,0)/2 + $window.scrollTop(),
 		posLeft = Math.max(document.documentElement.clientWidth - settings.w - loadedWidth - interfaceWidth,0)/2 + $window.scrollLeft();
@@ -373,15 +405,17 @@
 		
 		function getWidth(){
 			settings.w = settings.w || $loaded.width();
+			settings.w = settings.mw && settings.mw < settings.w ? settings.mw : settings.w;
 			return settings.w;
 		}
 		function getHeight(){
 			settings.h = settings.h || $loaded.height();
+			settings.h = settings.mh && settings.mh < settings.h ? settings.mh : settings.h;
 			return settings.h;
 		}
 		
 		$loaded.hide()
-		.appendTo($overlay)// content has to be appended to the DOM for accurate size calculations.  Appended to an absolutely positioned element, rather than BODY, which avoids an extremely brief display of the vertical scrollbar in Firefox that can occur for a small minority of websites.
+		.appendTo($loadingBay)// content has to be appended to the DOM for accurate size calculations.  Appended to an absolutely positioned element, rather than BODY, which avoids an extremely brief display of the vertical scrollbar in Firefox that can occur for a small minority of websites.
 		.css({width:getWidth(), overflow:settings.scrolling ? 'auto' : 'hidden'})
 		.css({height:getHeight()})// sets the height independently from the width in case the new width influences the value of height.
 		.prependTo($content);
@@ -408,38 +442,32 @@
 					$cbox[0].style.removeAttribute("filter");
 				}
 				
-				$content.children().show();
-				
 				//Waited until the iframe is added to the DOM & it is visible before setting the src.
 				//This increases compatability with pages using DOM dependent JavaScript.
 				if(settings.iframe){
-					$loaded.append("<iframe id='cboxIframe'" + (settings.scrolling ? " " : "scrolling='no'") + " name='iframe_"+new Date().getTime()+"' frameborder=0 src='"+(settings.href || element.href)+"' />");
+					$loaded.append("<iframe id='cboxIframe'" + (settings.scrolling ? " " : "scrolling='no'") + " name='iframe_"+new Date().getTime()+"' frameborder=0 src='"+settings.href+"' " + (isIE ? "allowtransparency='true'" : '') + " />");
 				}
 				
-				$loadingOverlay.hide();
-				$loadingGraphic.hide();
-				$slideshow.hide();
+				$loaded.show();
+				
+				$title.show().html(settings.title);
 				
 				if ($related.length>1) {
-					$current.html(settings.current.replace(/\{current\}/, index+1).replace(/\{total\}/, $related.length));
-					$next.html(settings.next);
-					$prev.html(settings.previous);
+					$current.html(settings.current.replace(/\{current\}/, index+1).replace(/\{total\}/, $related.length)).show();
+					$next.html(settings.next).show();
+					$prev.html(settings.previous).show();
 					
 					if(settings.slideshow){
 						$slideshow.show();
 					}
-				} else {
-					$current.hide();
-					$next.hide();
-					$prev.hide();
 				}
 				
-				$title.html(settings.title || element.title);
+				$loadingOverlay.hide();
+				$loadingGraphic.hide();
 				
 				$.event.trigger(cbox_complete);
-				
-				if (callback) {
-					callback.call(element);
+				if (settings.onComplete) {
+					settings.onComplete.call(element);
 				}
 				
 				if (settings.transition === 'fade'){
@@ -478,6 +506,14 @@
 		
 		active = TRUE;
 		
+		/*
+		 
+		// I decided to comment this out because I can see it causing problems as users
+		// really should just set the dimensions on their IMG elements instead,
+		// but I'm leaving the code in as it may be useful to someone.
+		// To use, uncomment the function and change 'if(textStatus === "success"){ resize(this); }'
+		// to 'if(textStatus === "success"){ preload(this); }'
+		
 		// Preload loops through the HTML to find IMG elements and loads their sources.
 		// This allows the resize method to accurately estimate the dimensions of the new content.
 		function preload(html){
@@ -489,7 +525,7 @@
 			function loadloop(){
 				var img = new Image();
 				x = x-1;
-				if(x >= 0 && settings.preloadIMG){
+				if(x >= 0){
 					img.onload = loadloop;
 					img.src = $imgs[x].src;
 				} else {
@@ -499,6 +535,7 @@
 			
 			loadloop();
 		}
+		*/
 		
 		element = $related[index];
 		
@@ -508,6 +545,9 @@
 		process();
 		
 		$.event.trigger(cbox_load);
+		if (settings.onLoad) {
+			settings.onLoad.call(element);
+		}
 		
 		// Evaluate the height based on the optional height and width settings.
 		settings.h = settings.height ?
@@ -536,12 +576,11 @@
 			settings.mh = settings.h && settings.h < settings.mh ? settings.h : settings.mh;
 		}
 		
-		href = settings.href || $(element).attr("href");
+		href = settings.href;
 		
 		$loadingOverlay.show();
 		$loadingGraphic.show();
-		$close.show();
-				
+		
 		if (settings.inline) {
 			// Inserts an empty placeholder where inline content is being pulled from.
 			// An event is bound to put inline content back when ColorBox closes or loads new content.
@@ -554,7 +593,7 @@
 			// to avoid problems with DOM-ready JS that might be trying to run in that iframe.
 			resize(" ");
 		} else if (settings.html) {
-			preload(settings.html);
+			resize(settings.html);
 		} else if (isImage(href)){
 			img = new Image();
 			img.onload = function(){
@@ -597,9 +636,9 @@
 			};
 			img.src = href;
 		} else {
-			$('<div />').load(href, function(data, textStatus){
+			$('<div />').appendTo($loadingBay).load(href, function(data, textStatus){
 				if(textStatus === "success"){
-					preload(this);
+					resize(this);
 				} else {
 					resize($("<p>Request unsuccessful.</p>"));
 				}
@@ -670,19 +709,34 @@
 
 	// Note: to use this within an iframe use the following format: parent.$.fn.colorbox.close();
 	cboxPublic.close = function () {
+		
 		$.event.trigger(cbox_cleanup);
+		if (settings.onCleanup) {
+			settings.onCleanup.call(element);
+		}
+		
 		open = FALSE;
-		$().unbind("keydown.cbox_close keydown.cbox_arrows");
+		$(document).unbind("keydown.cbox_close keydown.cbox_arrows");
 		$window.unbind(cbox_resize+' resize.cboxie6 scroll.cboxie6');
 		$overlay.css({cursor: 'auto'}).fadeOut('fast');
 		
 		$cbox
 		.stop(TRUE, FALSE)
 		.fadeOut('fast', function () {
+			$('#colorbox iframe').attr('src', 'about:blank');
 			$loaded.remove();
 			$cbox.css({'opacity': 1});
-			$content.children().hide();
+			
+			try{
+				bookmark.focus();
+			} catch (er){
+				// do nothing
+			}
+			
 			$.event.trigger(cbox_closed);
+			if (settings.onClosed) {
+				settings.onClosed.call(element);
+			}
 		});
 	};
 
