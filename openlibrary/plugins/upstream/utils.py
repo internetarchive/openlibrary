@@ -192,11 +192,11 @@ def fuzzy_find(value, options, stopwords=[]):
     # find score for each option
     score = defaultdict(lambda: 0)
     for t in rx.split(value):
-        if t in stopwords:
+        if t.lower() in stopwords:
             continue
         for option in d[t]:
             score[option] += 1
-    
+            
     # take the option with maximum score
     return max(options, key=score.__getitem__)
     
