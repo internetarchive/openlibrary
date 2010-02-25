@@ -250,10 +250,10 @@ def read_subject(path_info):
         key = str_to_key(path_info).lower().replace('_', ' ')
         full_key = '/subjects/' + key
         q = 'subject_key:"%s"' % url_quote(key)
-    i = web.inputs()
+    i = web.input()
     if 'published_in' in i:
         pub = i.published_in.strip()
-        if len(pub) == 4 and pub.is_digit():
+        if len(pub) == 4 and pub.isdigit():
             q += ' AND publish_year:%s' % pub
         else:
             m = re_year_range.match(pub)
