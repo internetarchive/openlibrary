@@ -236,6 +236,8 @@ subject_types = {
     'subjects': 'subject',
 }
 
+re_year_range = re.compile('^(\d{4})-(\d{4})$')
+
 def read_subject(path_info):
     m = re_subject_types.match(path_info)
     if m:
@@ -248,6 +250,15 @@ def read_subject(path_info):
         key = str_to_key(path_info).lower().replace('_', ' ')
         full_key = '/subjects/' + key
         q = 'subject_key:"%s"' % url_quote(key)
+    i = web.inputs()
+    if 'published_in' in i:
+        pub = i.published_in.strip()
+        if len(pub) == 4 and pub.is_digit():
+            q += ' AND publish_year:%s' % pub
+        else:
+            m = re_year_range.match(pub)
+            if m:
+                q += ' AND publish_year:[%s TO %s]' % m.groups()
     return (subject_type, key, full_key, q)
 
 @jsonapi
