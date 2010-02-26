@@ -160,12 +160,14 @@ class addbook(delegate.page):
         
         mapping = {
             'isbn_10': 'isbn',
-            'isbn_13': 'isbn_13',
+            'isbn_13': 'isbn',
             'lccn': 'lccn',
             'oclc_numbers': 'oclc',
             'ocaid': 'ia'
         }
         if id_value and id_name in mapping:
+            if id_name.startswith('isbn'):
+                id_value = id_value.replace('-', '')
             q[mapping[id_name]] = id_value
                 
         solr = get_works_solr()
