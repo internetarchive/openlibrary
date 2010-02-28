@@ -4,6 +4,7 @@ from infogami.utils import delegate
 from infogami import config
 from openlibrary.catalog.utils import flip_name
 from infogami.utils import view, template
+from infogami.utils.view import safeint
 import simplejson as json
 from pprint import pformat
 try:
@@ -325,11 +326,188 @@ def build_get_subject_facet(facets, subject_type, name_index):
             start += facet + '/'
         return (web.storage(key=start + str_to_key(s).replace(' ', '_'), name=s, count=c) for s, c in subjects)
     return get_subject_facet
+    
+SUBJECT_FACET_MAPPING = {
+    "subject_facet": "/subjects/", 
+    "person_facet": "/subjects/people/",
+    "place_facet": "/subjects/places/",
+    "time_facet": "/subjects/times/",
+}
 
+SUBJECT_KEY_MAPPING = {
+    "places": "place_key",
+    "people": "person_key",
+    "times": "time_key",
+    "": "subject_key",
+}
+
+def first(seq):
+    try:
+        return iter(seq).next()
+    except:
+        return None
+
+def get_subject(key, details=False, offset=0, limit=12, **filters):
+    """Returns data related to a subject.
+
+    By default, it returns a storage object with key, name, work_count and works. 
+    The offset and limit arguments are used to get the works.
+        
+        >>> get_subject("/subjects/Love") #doctest: +SKIP
+        {
+            "key": "/subjects/Love", 
+            "name": "Love",
+            "work_count": 5129, 
+            "works": [...]
+        }
+        
+    When details=True, facets and ebook_count are additionally added to the result.
+
+    >>> get_subject("/subjects/Love", details=True) #doctest: +SKIP
+    {
+        "key": "/subjects/Love", 
+        "name": "Love",
+        "work_count": 5129, 
+        "works": [...],
+        "ebook_count": 94, 
+        "authors": [
+            {
+                "count": 11, 
+                "name": "Plato.", 
+                "key": "/authors/OL12823A"
+            }, 
+            ...
+        ],
+        "subjects": [
+            {
+                "count": 1168,
+                "name": "Religious aspects", 
+                "key": "/subjects/religious aspects"
+            }, 
+            ...
+        ],
+        "times": [...],
+        "places": [...],
+        "people": [...],
+        "publishing_history": [[1492, 1], [1516, 1], ...],
+        "publishers": [
+            {
+                "count": 57, 
+                "name": "Sine nomine"        
+            },
+            ...
+        ]
+    }
+    
+    Optional arguments limit and offset can be passed to limit the number of works returned and starting offset.
+    
+    Optional arguments has_fulltext and published_in can be passed to filter the results.
+    """    
+    m = web.re_compile(r'/subjects/(places/|times/|people/|)(.+)').match(key)
+    if m:
+        subject_type = m.group(1)[:-1] # strip trailing /
+        path = m.group(2)
+    else:
+        return None
+    
+    k = SUBJECT_KEY_MAPPING[subject_type]
+    q = {k: path.lower()}
+
+    name = path.replace("_", " ")
+
+    def facet_wrapper(facet, value, count):
+        if facet == "publish_year":
+            return [int(value), count]
+        elif facet == "publisher_facet":
+            return web.storage(name=value, count=count)
+        elif facet == "author_facet":
+            author = eval(value) # eval is Evil. use JSON instead.
+            return web.storage(name=author[1], key="/authors/" + author[0], count=count)
+        elif facet in ["subject_facet", "person_facet", "place_facet", "time_facet"]:
+            return web.storage(key=SUBJECT_FACET_MAPPING[facet] + str_to_key(value), name=value, count=count)
+        elif facet == "has_fulltext":
+            return [value, count]
+        else:
+            return web.storage(name=value, count=count)
+
+    # search for works
+    from search import work_search
+    kw = {} 
+    if details:
+        kw['facets'] = [
+            {"name": "author_facet", "sort": "count"},
+            "language", 
+            "publisher_facet", 
+            {"name": "publish_year", "limit": -1}, 
+            "subject_facet", "person_facet", "place_facet", "time_facet", 
+            "has_fulltext"]        
+        kw['facet.mincount'] = 1
+        kw['facet.limit'] = 25
+        kw['facet_wrapper'] = facet_wrapper
+
+    if filters:
+        if filters.get("has_fulltext") == "true":
+            q['has_fulltext'] = "true"
+        if filters.get("publish_year"):
+            q['publish_year'] = filters['publish_year']
+
+    result = work_search(q, offset=offset, limit=limit, sort="edition_count desc", **kw)
+    for w in result.docs:
+        w.ia = w.ia and w.ia[0] or None
+
+    subject = web.storage(
+        key=key,
+        name=name,
+        work_count = result['num_found'],
+        works=result['docs']
+    )
+
+    if details:
+        subject.ebook_count = dict(result.facets["has_fulltext"]).get("true", 0)
+
+        subject.subjects = result.facets["subject_facet"]
+        subject.places = result.facets["place_facet"]
+        subject.people = result.facets["person_facet"]
+        subject.times = result.facets["time_facet"]
+
+        subject.authors = result.facets["author_facet"]        
+        subject.publishers = result.facets["publisher_facet"]
+        subject.publishing_history = result.facets["publish_year"]
+
+        # facet = SUBJECT_KEY_MAPPING[subject_type].replace("_key", "_facet")
+        # subject.name = first(f.name for f in result.facets[facet] if f.name.lower() == name.lower()) or name
+
+    return subject
+
+class subjects_json(delegate.page):
+    path = '/subjects/(.+)'
+    encoding = "json"
+
+    @jsonapi
+    def GET(self, path):
+        key = "/subjects/" + path
+
+        i = web.input(offset=0, limit=12, details="false", has_fulltext="false")
+
+        filters = {}
+        if i.get("has_fulltext") == "true":
+            filters["has_fulltext"] = "true"
+        if i.get("publish_year"):
+            y = safeint(i.publish_year)
+            if y:
+                filters[i.publish_year] = y
+
+        i.limit = safeint(i.limit, 12)
+        i.offset = safeint(i.offset, 0)
+
+        subject = get_subject(key, offset=i.offset, limit=i.limit, details=i.details.lower() == "true", **filters)
+        return json.dumps(subject)
+    
 re_covers_json = re.compile('^(.+)/covers$')
 class subjects(delegate.page):
     path = '/subjects/(.+)'
-    def GET(self, path_info):
+    
+    def GET(self, path_info):        
         m = re_covers_json.match(path_info)
         if m:
             return subjects_covers(m.group(1))
