@@ -5,6 +5,27 @@ import urllib, urllib2
 import web
 import simplejson
 
+def urlencode(d, doseq=False):
+    """There is a bug in urllib when used with unicode data.
+
+        >>> d = {"q": u"\u0C05"}
+        >>> urllib.urlencode(d)
+        'q=%E0%B0%85'
+        >>> urllib.urlencode(d, doseq=True)
+        'q=%3F'
+        
+    This function encodes all the unicode strings in utf-8 before passing them to urllib.
+    """
+    def utf8(d):
+        if isinstance(d, dict):
+            return dict((utf8(k), utf8(v)) for k, v in d.iteritems())
+        elif isinstance(d, list):
+            return [utf8(v) for v in d]
+        else:
+            return web.safestr(d)
+            
+    return urllib.urlencode(utf8(d), doseq=doseq)
+
 class Solr:
     def __init__(self, base_url):
         self.base_url = base_url
@@ -26,7 +47,7 @@ class Solr:
             params[k.replace('_', '.')] = v
         
         params['q'] = self._prepare_select(query)
-        
+            
         if rows is not None:
             params['rows'] = rows
         params['start'] = start or 0
@@ -47,7 +68,7 @@ class Solr:
                     name = f
                 params['facet.field'].append(name)
             
-        url = self.base_url + "/select?" + urllib.urlencode(params, doseq=True)
+        url = self.base_url + "/select?" + urlencode(params, doseq=True)
         print url
         data = urllib2.urlopen(url).read()
         return self._parse_solr_result(
