@@ -129,7 +129,7 @@ class addbook(delegate.page):
 
         solr = get_works_solr()
         author_key = i.author_key and i.author_key.split("/")[-1]
-        result = solr.select({'title': i.title, 'author_key': author_key}, doc_wrapper=make_work)
+        result = solr.select({'title': i.title, 'author_key': author_key}, doc_wrapper=make_work, q_op="AND")
         
         if result.num_found == 0:
             return None
@@ -171,7 +171,7 @@ class addbook(delegate.page):
             q[mapping[id_name]] = id_value
                 
         solr = get_works_solr()
-        result = solr.select(q, doc_wrapper=make_work)
+        result = solr.select(q, doc_wrapper=make_work, q_op="AND")
         
         if len(result.docs) > 1:
             return result.docs
