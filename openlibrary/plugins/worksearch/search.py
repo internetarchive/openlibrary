@@ -62,7 +62,7 @@ def work_wrapper(w):
     elif "cover_edition_key" in w:
         book = web.ctx.site.get("/books/" + w["cover_edition_key"])
         cover = book and book.get_cover()
-        d.cover_id = cover and cover.id
+        d.cover_id = cover and cover.id or None
         d.cover_edition_key = w['cover_edition_key']
     else:
         d.cover_id = None
