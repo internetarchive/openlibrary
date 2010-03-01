@@ -184,7 +184,8 @@ class LazyObject:
         return other + self._creator()
 
 def ungettext(s1, s2, n):
-    value = load_translations().ungettext(s1, s2, n)
+    translations = load_translations(web.ctx.get('lang', 'en'))
+    value = (translations and translations.ungettext(s1, s2, n))
     if value:
         return value
     else:
