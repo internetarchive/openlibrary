@@ -327,19 +327,23 @@ def build_get_subject_facet(facets, subject_type, name_index):
         return (web.storage(key=start + str_to_key(s).replace(' ', '_'), name=s, count=c) for s, c in subjects)
     return get_subject_facet
     
-SUBJECT_FACET_MAPPING = {
-    "subject_facet": "/subjects/", 
-    "person_facet": "/subjects/people/",
-    "place_facet": "/subjects/places/",
-    "time_facet": "/subjects/times/",
-}
+SUBJECTS = [
+    web.storage(name="subject", key="subjects", prefix="/subjects/", facet="subject_facet", facet_key="subject_key"),
+    web.storage(name="person", key="people", prefix="/subjects/people/", facet="person_facet", facet_key="person_key"),
+    web.storage(name="place", key="places", prefix="/subjects/places/", facet="place_facet", facet_key="place_key"),
+    web.storage(name="time", key="times", prefix="/subjects/times/", facet="time_facet", facet_key="time_key"),
+]
 
-SUBJECT_KEY_MAPPING = {
-    "places": "place_key",
-    "people": "person_key",
-    "times": "time_key",
-    "": "subject_key",
-}
+def finddict(dicts, **filters):
+    """Find a dictionary that matches given filter conditions.
+    
+        >>> dicts = [{"x": 1, "y": 2}, {"x": 3, "y": 4}]
+        >>> finddict(dicts, x=1)
+        {'x': 1, 'y': 2}
+    """
+    for d in dicts:
+        if (all(d.get(k) == v for k, v in filters.iteritems())):
+            return d            
 
 def first(seq):
     try:
@@ -402,16 +406,18 @@ def get_subject(key, details=False, offset=0, limit=12, **filters):
     Optional arguments limit and offset can be passed to limit the number of works returned and starting offset.
     
     Optional arguments has_fulltext and published_in can be passed to filter the results.
-    """    
+    """
     m = web.re_compile(r'/subjects/(places/|times/|people/|)(.+)').match(key)
     if m:
-        subject_type = m.group(1)[:-1] # strip trailing /
+        prefix = "/subjects/" + m.group(1)
         path = m.group(2)
     else:
         return None
+        
+    meta = finddict(SUBJECTS, prefix=prefix)
     
-    k = SUBJECT_KEY_MAPPING[subject_type]
-    q = {k: path.lower()}
+    q = {meta.facet_key: str_to_key(path).lower().replace('_', ' ')}
+    subject_type = meta.name
 
     name = path.replace("_", " ")
 
@@ -424,7 +430,7 @@ def get_subject(key, details=False, offset=0, limit=12, **filters):
             author = eval(value) # eval is Evil. use JSON instead.
             return web.storage(name=author[1], key="/authors/" + author[0], count=count)
         elif facet in ["subject_facet", "person_facet", "place_facet", "time_facet"]:
-            return web.storage(key=SUBJECT_FACET_MAPPING[facet] + str_to_key(value), name=value, count=count)
+            return web.storage(key=finddict(SUBJECTS, facet=facet).prefix + str_to_key(value).replace(" ", "_"), name=value, count=count)
         elif facet == "has_fulltext":
             return [value, count]
         else:
@@ -458,6 +464,7 @@ def get_subject(key, details=False, offset=0, limit=12, **filters):
     subject = web.storage(
         key=key,
         name=name,
+        subject_type=subject_type,
         work_count = result['num_found'],
         works=result['docs']
     )
@@ -472,10 +479,15 @@ def get_subject(key, details=False, offset=0, limit=12, **filters):
 
         subject.authors = result.facets["author_facet"]        
         subject.publishers = result.facets["publisher_facet"]
-        subject.publishing_history = result.facets["publish_year"]
-
-        # facet = SUBJECT_KEY_MAPPING[subject_type].replace("_key", "_facet")
-        # subject.name = first(f.name for f in result.facets[facet] if f.name.lower() == name.lower()) or name
+        
+        subject.publishing_history = [[year, count] for year, count in result.facets["publish_year"] if year > 1000]
+        
+        # strip self from subjects and use that to find exact name
+        for i, s in enumerate(subject[meta.key]):
+            if s.key.lower() == key.lower():
+                subject.name = s.name;
+                subject[meta.key].pop(i)
+                break
 
     return subject
 
@@ -492,10 +504,17 @@ class subjects_json(delegate.page):
         filters = {}
         if i.get("has_fulltext") == "true":
             filters["has_fulltext"] = "true"
-        if i.get("publish_year"):
-            y = safeint(i.publish_year)
-            if y:
-                filters[i.publish_year] = y
+            
+        if i.get("published_in"):
+            if "-" in i.published_in:
+                begin, end = i.published_in.split("-", 1)
+                
+                if safeint(begin, None) is not None and safeint(end, None) is not None:
+                    filters["publish_year"] = [begin, end]
+            else:
+                y = safeint(i.published_in, None)
+                if y is not None:
+                    filters["publish_year"] = i.published_in
 
         i.limit = safeint(i.limit, 12)
         i.offset = safeint(i.offset, 0)
@@ -507,7 +526,10 @@ re_covers_json = re.compile('^(.+)/covers$')
 class subjects(delegate.page):
     path = '/subjects/(.+)'
     
-    def GET(self, path_info):        
+    def GET(self, path_info):
+        page = get_subject("/subjects/" + path_info, details=True)
+        return render_template("subjects", page)
+        
         m = re_covers_json.match(path_info)
         if m:
             return subjects_covers(m.group(1))
