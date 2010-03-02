@@ -23,8 +23,8 @@ if hasattr(config, 'plugin_worksearch'):
     solr_subject_host = config.plugin_worksearch.get('subject_solr')
     solr_subject_select_url = "http://" + solr_subject_host + "/solr/subjects/select"
 
-solr_author_host = config.plugin_worksearch.get('author_solr')
-solr_author_select_url = "http://" + solr_author_host + "/solr/authors/select"
+    solr_author_host = config.plugin_worksearch.get('author_solr')
+    solr_author_select_url = "http://" + solr_author_host + "/solr/authors/select"
 
 to_drop = set('''!*"'();:@&=+$,/?%#[]''')
 
