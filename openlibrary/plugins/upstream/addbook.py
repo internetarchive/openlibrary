@@ -582,31 +582,20 @@ class authors_autocomplete(delegate.page):
         i = web.input(q="", limit=5)
         i.limit = safeint(i.limit, 5)
 
-        if False:
-            solr = get_authors_solr()
-            q = i.q.lower() + '*'
-            data = solr.select({"name": q, "alternate_names": q, "_op": "OR"})
-            docs = data['docs']
-            for d in docs:
-                if 'top_work' in d:
-                    d['works'] = [d['top_work']]
-                else:
-                    d['works'] = []
-            return to_json(docs)
+        solr = get_authors_solr()
         
-        # temporary implementation until author solr is ready
-        data = web.ctx.site.things(
-                {"type": "/type/author", "name~": i.q.title() + "*", "sort": "name", "name": None, "limit": i.limit}, 
-                details=True)
-                
-        for d in data:
-            d.subjects = []
-            d.works = [w.title for w in 
-                        web.ctx.site.things(
-                            {"type": "/type/work", "authors": {"author": {"key": d.key}}, "title": None, "limit": 2}, 
-                            details=True)]
-        
-        return to_json(data)
+        name = i.q + "*"
+        q = 'name:(%s) OR alternate_names:(%s)' % (name, name)
+        data = solr.select(q, q_op="AND", sort="work_count desc")
+        docs = data['docs']
+        for d in docs:
+            d.key = "/authors/" + d.key
+            if 'top_work' in d:
+                d['works'] = [d.pop('top_work')]
+            else:
+                d['works'] = []
+            d['subjects'] = d.pop('top_subjects', [])
+        return to_json(docs)
                 
 def setup():
     """Do required setup."""
