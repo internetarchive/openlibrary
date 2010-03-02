@@ -115,7 +115,7 @@ class Solr:
             op = "AND"
         op = " " + op + " "
         if isinstance(query, dict):
-            q = op.join('%s:%s' % (k, ('"%s"' % escape(v)) if v.endswith('_key') else escape_value(v)) for k, v in query.items())
+            q = op.join('%s:%s' % (k, ('"%s"' % escape(v)) if k.endswith('_key') else escape_value(v)) for k, v in query.items())
         else:
             q = query
         return q
