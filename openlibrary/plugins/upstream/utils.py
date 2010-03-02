@@ -513,7 +513,18 @@ def _get_recent_changes():
     
     q = {"bot": False, "limit": 50}
     result = site.versions(q)
-    
+
+    # The recentchanges can have multiple revisions for a document if it has been modified more than once. 
+    # Take only the most recent revision in that case.
+    visited = set()
+    def is_visited(key):
+        if key in visited:
+            return True
+        else:
+            visited.add(key)
+            return False
+    result = [r for r in result if not is_visited(r.key)]
+
     def process_thing(thing):
         t = web.storage()
         for k in ["key", "title", "name", "displayname"]:
