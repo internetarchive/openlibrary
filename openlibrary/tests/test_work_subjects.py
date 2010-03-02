@@ -12,3 +12,11 @@ class TestWorkSubjects(unittest.TestCase):
         }
         self.assertEqual(four_types(input), expect)
 
+        input = {
+            'event': { 'Party': 1 },
+        }
+        expect = {
+            'subject': { 'Party': 1 },
+        }
+        self.assertEqual(four_types(input), expect)
+
