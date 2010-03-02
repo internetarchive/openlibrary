@@ -108,14 +108,15 @@ class Solr:
             if isinstance(v, list): # hack for supporting range
                 return "[%s TO %s]" % (escape(v[0]), escape(v[1]))
             else:
-                return "(%s)" % escape(v)
+                return '"%s"' % escape(v)
         
-        op = query.pop("_op", "AND")
-        if op.upper() != "OR":
-            op = "AND"
-        op = " " + op + " "
         if isinstance(query, dict):
-            q = op.join('%s:%s' % (k, ('"%s"' % escape(v)) if k.endswith('_key') else escape_value(v)) for k, v in query.items())
+            op = query.pop("_op", "AND")
+            if op.upper() != "OR":
+                op = "AND"
+            op = " " + op + " "
+            
+            q = op.join('%s:%s' % (k, escape_value(v)) for k, v in query.items())
         else:
             q = query
         return q
