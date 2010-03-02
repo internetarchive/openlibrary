@@ -4,6 +4,7 @@ from infogami.utils import delegate
 from infogami import config
 from openlibrary.catalog.utils import flip_name
 from infogami.utils import view, template
+from infogami.utils.view import safeint
 import simplejson as json
 from pprint import pformat
 try:
@@ -69,7 +70,7 @@ def read_facets(root):
                 continue
             k = e.attrib['name']
             if name == 'author_key':
-                k, display = eval(k)
+                k, display = k.split('\t')
             elif name == 'language':
                 display = get_language_name(k)
             else:
@@ -236,6 +237,8 @@ subject_types = {
     'subjects': 'subject',
 }
 
+re_year_range = re.compile('^(\d{4})-(\d{4})$')
+
 def read_subject(path_info):
     m = re_subject_types.match(path_info)
     if m:
@@ -248,6 +251,15 @@ def read_subject(path_info):
         key = str_to_key(path_info).lower().replace('_', ' ')
         full_key = '/subjects/' + key
         q = 'subject_key:"%s"' % url_quote(key)
+    i = web.input()
+    if 'published_in' in i:
+        pub = i.published_in.strip()
+        if len(pub) == 4 and pub.isdigit():
+            q += ' AND publish_year:%s' % pub
+        else:
+            m = re_year_range.match(pub)
+            if m:
+                q += ' AND publish_year:[%s TO %s]' % m.groups()
     return (subject_type, key, full_key, q)
 
 @jsonapi
@@ -314,11 +326,210 @@ def build_get_subject_facet(facets, subject_type, name_index):
             start += facet + '/'
         return (web.storage(key=start + str_to_key(s).replace(' ', '_'), name=s, count=c) for s, c in subjects)
     return get_subject_facet
+    
+SUBJECTS = [
+    web.storage(name="subject", key="subjects", prefix="/subjects/", facet="subject_facet", facet_key="subject_key"),
+    web.storage(name="person", key="people", prefix="/subjects/people/", facet="person_facet", facet_key="person_key"),
+    web.storage(name="place", key="places", prefix="/subjects/places/", facet="place_facet", facet_key="place_key"),
+    web.storage(name="time", key="times", prefix="/subjects/times/", facet="time_facet", facet_key="time_key"),
+]
 
+def finddict(dicts, **filters):
+    """Find a dictionary that matches given filter conditions.
+    
+        >>> dicts = [{"x": 1, "y": 2}, {"x": 3, "y": 4}]
+        >>> finddict(dicts, x=1)
+        {'x': 1, 'y': 2}
+    """
+    for d in dicts:
+        if (all(d.get(k) == v for k, v in filters.iteritems())):
+            return d            
+
+def first(seq):
+    try:
+        return iter(seq).next()
+    except:
+        return None
+
+def get_subject(key, details=False, offset=0, limit=12, **filters):
+    """Returns data related to a subject.
+
+    By default, it returns a storage object with key, name, work_count and works. 
+    The offset and limit arguments are used to get the works.
+        
+        >>> get_subject("/subjects/Love") #doctest: +SKIP
+        {
+            "key": "/subjects/Love", 
+            "name": "Love",
+            "work_count": 5129, 
+            "works": [...]
+        }
+        
+    When details=True, facets and ebook_count are additionally added to the result.
+
+    >>> get_subject("/subjects/Love", details=True) #doctest: +SKIP
+    {
+        "key": "/subjects/Love", 
+        "name": "Love",
+        "work_count": 5129, 
+        "works": [...],
+        "ebook_count": 94, 
+        "authors": [
+            {
+                "count": 11, 
+                "name": "Plato.", 
+                "key": "/authors/OL12823A"
+            }, 
+            ...
+        ],
+        "subjects": [
+            {
+                "count": 1168,
+                "name": "Religious aspects", 
+                "key": "/subjects/religious aspects"
+            }, 
+            ...
+        ],
+        "times": [...],
+        "places": [...],
+        "people": [...],
+        "publishing_history": [[1492, 1], [1516, 1], ...],
+        "publishers": [
+            {
+                "count": 57, 
+                "name": "Sine nomine"        
+            },
+            ...
+        ]
+    }
+    
+    Optional arguments limit and offset can be passed to limit the number of works returned and starting offset.
+    
+    Optional arguments has_fulltext and published_in can be passed to filter the results.
+    """
+    m = web.re_compile(r'/subjects/(places/|times/|people/|)(.+)').match(key)
+    if m:
+        prefix = "/subjects/" + m.group(1)
+        path = m.group(2)
+    else:
+        return None
+        
+    meta = finddict(SUBJECTS, prefix=prefix)
+    
+    q = {meta.facet_key: str_to_key(path).lower().replace('_', ' ')}
+    subject_type = meta.name
+
+    name = path.replace("_", " ")
+
+    def facet_wrapper(facet, value, count):
+        if facet == "publish_year":
+            return [int(value), count]
+        elif facet == "publisher_facet":
+            return web.storage(name=value, count=count)
+        elif facet == "author_facet":
+            author = value.split('\t')
+            return web.storage(name=author[1], key="/authors/" + author[0], count=count)
+        elif facet in ["subject_facet", "person_facet", "place_facet", "time_facet"]:
+            return web.storage(key=finddict(SUBJECTS, facet=facet).prefix + str_to_key(value).replace(" ", "_"), name=value, count=count)
+        elif facet == "has_fulltext":
+            return [value, count]
+        else:
+            return web.storage(name=value, count=count)
+
+    # search for works
+    from search import work_search
+    kw = {} 
+    if details:
+        kw['facets'] = [
+            {"name": "author_facet", "sort": "count"},
+            "language", 
+            "publisher_facet", 
+            {"name": "publish_year", "limit": -1}, 
+            "subject_facet", "person_facet", "place_facet", "time_facet", 
+            "has_fulltext"]        
+        kw['facet.mincount'] = 1
+        kw['facet.limit'] = 25
+        kw['facet_wrapper'] = facet_wrapper
+
+    if filters:
+        if filters.get("has_fulltext") == "true":
+            q['has_fulltext'] = "true"
+        if filters.get("publish_year"):
+            q['publish_year'] = filters['publish_year']
+
+    result = work_search(q, offset=offset, limit=limit, sort="edition_count desc", **kw)
+    for w in result.docs:
+        w.ia = w.ia and w.ia[0] or None
+
+    subject = web.storage(
+        key=key,
+        name=name,
+        subject_type=subject_type,
+        work_count = result['num_found'],
+        works=result['docs']
+    )
+
+    if details:
+        subject.ebook_count = dict(result.facets["has_fulltext"]).get("true", 0)
+
+        subject.subjects = result.facets["subject_facet"]
+        subject.places = result.facets["place_facet"]
+        subject.people = result.facets["person_facet"]
+        subject.times = result.facets["time_facet"]
+
+        subject.authors = result.facets["author_facet"]        
+        subject.publishers = result.facets["publisher_facet"]
+        
+        subject.publishing_history = [[year, count] for year, count in result.facets["publish_year"] if year > 1000]
+        
+        # strip self from subjects and use that to find exact name
+        for i, s in enumerate(subject[meta.key]):
+            if s.key.lower() == key.lower():
+                subject.name = s.name;
+                subject[meta.key].pop(i)
+                break
+
+    return subject
+
+class subjects_json(delegate.page):
+    path = '/subjects/(.+)'
+    encoding = "json"
+
+    @jsonapi
+    def GET(self, path):
+        key = "/subjects/" + path
+
+        i = web.input(offset=0, limit=12, details="false", has_fulltext="false")
+
+        filters = {}
+        if i.get("has_fulltext") == "true":
+            filters["has_fulltext"] = "true"
+            
+        if i.get("published_in"):
+            if "-" in i.published_in:
+                begin, end = i.published_in.split("-", 1)
+                
+                if safeint(begin, None) is not None and safeint(end, None) is not None:
+                    filters["publish_year"] = [begin, end]
+            else:
+                y = safeint(i.published_in, None)
+                if y is not None:
+                    filters["publish_year"] = i.published_in
+
+        i.limit = safeint(i.limit, 12)
+        i.offset = safeint(i.offset, 0)
+
+        subject = get_subject(key, offset=i.offset, limit=i.limit, details=i.details.lower() == "true", **filters)
+        return json.dumps(subject)
+    
 re_covers_json = re.compile('^(.+)/covers$')
 class subjects(delegate.page):
     path = '/subjects/(.+)'
+    
     def GET(self, path_info):
+        page = get_subject("/subjects/" + path_info, details=True)
+        return render_template("subjects", page)
+        
         m = re_covers_json.match(path_info)
         if m:
             return subjects_covers(m.group(1))
@@ -329,14 +540,17 @@ class subjects(delegate.page):
         (subject_type, key, full_key, q) = read_subject(path_info)
         # q = ' AND '.join('subject_key:"%s"' % url_quote(key.lower().replace('_', ' ')) for key in path_info.split('+'))
         solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=key,author_name,author_key,title,edition_count,ia,cover_edition_key,has_fulltext,first_publish_year&qt=standard&wt=json" % (q, offset, limit)
-        facet_fields = ["author_facet", "language", "publish_year", "publisher_facet", "subject_facet", "person_facet", "place_facet", "time_facet"]
+        facet_fields = ["author_facet", "language", "publish_year", "publisher_facet", "subject_facet", "person_facet", "place_facet", "time_facet", "has_fulltext"]
         solr_select += "&sort=edition_count+desc"
         solr_select += "&facet=true&facet.mincount=1&f.author_facet.facet.sort=count&f.publish_year.facet.limit=-1&facet.limit=25&" + '&'.join("facet.field=" + f for f in facet_fields)
         print solr_select
         reply = json.load(urllib.urlopen(solr_select))
+        num_found = int(reply['response']['numFound'])
+        if num_found == 0:
+            return render_template('subjects/notfound.tmpl', path_info)
         facets = reply['facet_counts']['facet_fields']
         def get_author(a, c):
-            k, n = eval(a)
+            k, n = a.split('\t')
             return web.storage(key='/authors/' + k, name=n, count=c)
 
         def find_name_index (facets, key, subject_type):
@@ -369,11 +583,14 @@ class subjects(delegate.page):
             return collect
 
         name_index, name, count = find_name_index(facets, key, subject_type)
+        
+        ebook_count = dict(web.group(facets["has_fulltext"], 2)).get("true", 0)
 
         page = web.storage(
             key = full_key,
             name = name,
             work_count = count,
+            ebook_count = ebook_count,
             works = works,
             get_covers = get_covers,
             subject_type = subject_type,
@@ -410,7 +627,7 @@ class search(delegate.page):
 
     def GET(self):
         i = web.input(author_key=[], language=[], first_publish_year=[], publisher_facet=[], subject_facet=[], person_facet=[], place_facet=[], time_facet=[])
-        params = clean_input(i)
+        params = self.clean_inputs(i)
 
         if params:
             raise web.seeother(web.changequery(**params))
@@ -512,6 +729,7 @@ class author_search(delegate.page):
     def GET(self):
         def get_results(q, offset=0, limit=100):
             solr_select = solr_author_select_url + "?q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=*&qt=standard&wt=json" % (web.urlquote(q), offset, limit)
+            solr_select += '&sort=work_count+desc'
             return json.loads(urllib.urlopen(solr_select).read())
         return render_template('search/authors.tmpl', get_results)
 

@@ -101,10 +101,10 @@ def get_error(name, *args):
 @public        
 def get_message(name, *args):
     """Return message with given name from messages.tmpl template"""
-    return get_message_from_template("messages", name, *args)
+    return get_message_from_template("messages", name, args)
     
-def get_message_from_template(template_name, name, *args):
-    d = render_template(name).get("messages", {})
+def get_message_from_template(template_name, name, args):
+    d = render_template(template_name).get("messages", {})
     msg = d.get(name) or name.lower().replace("_", " ")
     
     if msg and args:
@@ -192,11 +192,11 @@ def fuzzy_find(value, options, stopwords=[]):
     # find score for each option
     score = defaultdict(lambda: 0)
     for t in rx.split(value):
-        if t in stopwords:
+        if t.lower() in stopwords:
             continue
         for option in d[t]:
             score[option] += 1
-    
+            
     # take the option with maximum score
     return max(options, key=score.__getitem__)
     
@@ -513,7 +513,18 @@ def _get_recent_changes():
     
     q = {"bot": False, "limit": 50}
     result = site.versions(q)
-    
+
+    # The recentchanges can have multiple revisions for a document if it has been modified more than once. 
+    # Take only the most recent revision in that case.
+    visited = set()
+    def is_visited(key):
+        if key in visited:
+            return True
+        else:
+            visited.add(key)
+            return False
+    result = [r for r in result if not is_visited(r.key)]
+
     def process_thing(thing):
         t = web.storage()
         for k in ["key", "title", "name", "displayname"]:
@@ -533,6 +544,14 @@ _get_recent_changes = web.memoize(_get_recent_changes, expires=5*60, background=
 def get_random_recent_changes(n):
     changes = _get_recent_changes()
     return random.sample(changes, n)    
+
+@public
+def sprintf(s, *a, **kw):
+    args = kw or a
+    if args:
+        return s % args
+    else:
+        return s
 
 def setup():
     """Do required initialization"""

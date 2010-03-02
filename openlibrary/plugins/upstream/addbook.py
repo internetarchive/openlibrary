@@ -26,6 +26,10 @@ def get_works_solr():
     base_url = "http://%s/solr/works" % config.plugin_worksearch.get('solr')
     return Solr(base_url)
     
+def get_authors_solr():
+    base_url = "http://%s/solr/authors" % config.plugin_worksearch.get('author_solr')
+    return Solr(base_url)
+    
 def make_work(doc):
     w = web.storage(doc)
     w.key = "/works/" + w.key
@@ -125,7 +129,7 @@ class addbook(delegate.page):
 
         solr = get_works_solr()
         author_key = i.author_key and i.author_key.split("/")[-1]
-        result = solr.select({'title': i.title, 'author_key': author_key}, doc_wrapper=make_work)
+        result = solr.select({'title': i.title, 'author_key': author_key}, doc_wrapper=make_work, q_op="AND")
         
         if result.num_found == 0:
             return None
@@ -156,16 +160,18 @@ class addbook(delegate.page):
         
         mapping = {
             'isbn_10': 'isbn',
-            'isbn_13': 'isbn_13',
+            'isbn_13': 'isbn',
             'lccn': 'lccn',
             'oclc_numbers': 'oclc',
             'ocaid': 'ia'
         }
         if id_value and id_name in mapping:
+            if id_name.startswith('isbn'):
+                id_value = id_value.replace('-', '')
             q[mapping[id_name]] = id_value
                 
         solr = get_works_solr()
-        result = solr.select(q, doc_wrapper=make_work)
+        result = solr.select(q, doc_wrapper=make_work, q_op="AND")
         
         if len(result.docs) > 1:
             return result.docs
@@ -430,7 +436,9 @@ class book_edit(delegate.page):
     path = "(/books/OL\d+M)/edit"
     
     def GET(self, key):
-        edition = web.ctx.site.get(key)
+        i = web.input(v=None)
+        v = i.v and safeint(i.v, None)
+        edition = web.ctx.site.get(key, v)
         if edition is None:
             raise web.notfound()
             
@@ -440,7 +448,10 @@ class book_edit(delegate.page):
         return render_template('books/edit', work, edition)
         
     def POST(self, key):
-        edition = web.ctx.site.get(key)
+        i = web.input(v=None, _method="GET")
+        v = i.v and safeint(i.v, None)
+        edition = web.ctx.site.get(key, v)
+        
         if edition is None:
             raise web.notfound()
         if edition.works:
@@ -469,14 +480,20 @@ class work_edit(delegate.page):
     path = "(/works/OL\d+W)/edit"
     
     def GET(self, key):
-        work = web.ctx.site.get(key)
+        i = web.input(v=None, _method="GET")
+        v = i.v and safeint(i.v, None) 
+               
+        work = web.ctx.site.get(key, v)
         if work is None:
             raise web.notfound()
         
         return render_template('books/edit', work)
         
     def POST(self, key):
-        work = web.ctx.site.get(key)
+        i = web.input(v=None, _method="GET")
+        v = i.v and safeint(i.v, None)
+        
+        work = web.ctx.site.get(key, v)
         if work is None:
             raise web.notfound()
 
@@ -564,19 +581,21 @@ class authors_autocomplete(delegate.page):
     def GET(self):
         i = web.input(q="", limit=5)
         i.limit = safeint(i.limit, 5)
+
+        solr = get_authors_solr()
         
-        # temporary implementation until author solr is ready
-        data = web.ctx.site.things(
-                {"type": "/type/author", "name~": i.q.title() + "*", "sort": "name", "name": None, "limit": i.limit}, 
-                details=True)
-        for d in data:
-            d.subjects = []
-            d.works = [w.title for w in 
-                        web.ctx.site.things(
-                            {"type": "/type/work", "authors": {"author": {"key": d.key}}, "title": None, "limit": 2}, 
-                            details=True)]
-        
-        return to_json(data)
+        name = i.q + "*"
+        q = 'name:(%s) OR alternate_names:(%s)' % (name, name)
+        data = solr.select(q, q_op="AND", sort="work_count desc")
+        docs = data['docs']
+        for d in docs:
+            d.key = "/authors/" + d.key
+            if 'top_work' in d:
+                d['works'] = [d.pop('top_work')]
+            else:
+                d['works'] = []
+            d['subjects'] = d.pop('top_subjects', [])
+        return to_json(docs)
                 
 def setup():
     """Do required setup."""

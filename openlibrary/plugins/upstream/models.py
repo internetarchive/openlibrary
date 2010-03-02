@@ -237,7 +237,7 @@ re_year = re.compile(r'(\d{4})$')
 class Work(ol_code.Work):
     
     def get_covers(self):
-        return [Image("w", id) for id in self.covers]
+        return [Image("w", id) for id in self.covers if id > 0]
     
     def get_cover(self):
         covers = self.get_covers()
