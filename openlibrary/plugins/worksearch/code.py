@@ -416,7 +416,7 @@ def get_subject(key, details=False, offset=0, limit=12, **filters):
         
     meta = finddict(SUBJECTS, prefix=prefix)
     
-    q = {meta.facet_key: '"' + str_to_key(path).lower().replace('_', ' ') + '"'}
+    q = {meta.facet_key: str_to_key(path).lower().replace('_', ' ')}
     subject_type = meta.name
 
     name = path.replace("_", " ")
