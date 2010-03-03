@@ -239,59 +239,6 @@ subject_types = {
 
 re_year_range = re.compile('^(\d{4})-(\d{4})$')
 
-def read_subject(path_info):
-    m = re_subject_types.match(path_info)
-    if m:
-        subject_type = subject_types[m.group(1)]
-        key = str_to_key(m.group(2)).lower().replace('_', ' ')
-        full_key = '/subjects/%s/%s' % (m.group(1), key)
-        q = '%s_key:"%s"' % (subject_type, url_quote(key))
-    else:
-        subject_type = 'subject'
-        key = str_to_key(path_info).lower().replace('_', ' ')
-        full_key = '/subjects/' + key
-        q = 'subject_key:"%s"' % url_quote(key)
-    i = web.input()
-    if 'published_in' in i:
-        pub = i.published_in.strip()
-        if len(pub) == 4 and pub.isdigit():
-            q += ' AND publish_year:%s' % pub
-        else:
-            m = re_year_range.match(pub)
-            if m:
-                q += ' AND publish_year:[%s TO %s]' % m.groups()
-    return (subject_type, key, full_key, q)
-
-@jsonapi
-def subjects_covers(path_info):
-    i = web.input(offset=0, limit=12)
-    try:
-        offset = int(i.offset)
-        limit = int(i.limit)
-    except ValueError:
-        return []
-
-    (subject_type, key, full_key, q) = read_subject(path_info)
-    solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=key,author_name,author_key,title,edition_count,ia,cover_edition_key,has_fulltext&qt=standard&wt=json" % (q, offset, limit)
-    solr_select += "&sort=edition_count+desc"
-    reply = json.load(urllib.urlopen(solr_select))
-
-    works = []
-    for doc in reply['response']['docs']:
-        w = {
-            'key': '/works/' + doc['key'],
-            'edition_count': doc['edition_count'],
-            'title': doc['title'],
-            'authors': [{'key': '/authors/' + k, 'name': n} for k, n in zip(doc['author_key'], doc['author_name'])],
-        } 
-        if 'cover_edition_key' in doc:
-            w['cover_edition_key'] = doc['cover_edition_key']
-        if doc.get('has_fulltext', None):
-            w['has_fulltext'] = doc['has_fulltext']
-            w['ia'] = doc['ia'][0]
-        works.append(w)
-    return json.dumps(works)
-
 def work_object(w):
     obj = dict(
         authors = [web.storage(key='/authors/' + k, name=n) for k, n in zip(w['author_key'], w['author_name'])],
@@ -308,24 +255,6 @@ def work_object(w):
 
 def get_facet(facets, f, limit=None):
     return list(web.group(facets[f][:limit * 2] if limit else facets[f], 2))
-
-def build_get_subject_facet(facets, subject_type, name_index):
-    def get_subject_facet(facet='subjects', limit=10):
-        subjects = []
-        i = subject_types[facet]
-        if subject_type == i:
-            num = 0
-            for s in get_facet(facets, i + '_facet', limit=limit+1):
-                if num != name_index:
-                    subjects.append(s)
-                num += 1
-        else:
-            subjects = get_facet(facets, i + '_facet', limit=limit)
-        start = '/subjects/'
-        if facet != 'subjects':
-            start += facet + '/'
-        return (web.storage(key=start + str_to_key(s).replace(' ', '_'), name=s, count=c) for s, c in subjects)
-    return get_subject_facet
     
 SUBJECTS = [
     web.storage(name="subject", key="subjects", prefix="/subjects/", facet="subject_facet", facet_key="subject_key"),
@@ -492,12 +421,13 @@ def get_subject(key, details=False, offset=0, limit=12, **filters):
     return subject
 
 class subjects_json(delegate.page):
-    path = '/subjects/(.+)'
+    path = '(/subjects/.+)'
     encoding = "json"
 
     @jsonapi
-    def GET(self, path):
-        key = "/subjects/" + path
+    def GET(self, key):
+        if key.lower() != key:
+            raise web.seeother(key.lower())
 
         i = web.input(offset=0, limit=12, details="false", has_fulltext="false")
 
@@ -522,86 +452,16 @@ class subjects_json(delegate.page):
         subject = get_subject(key, offset=i.offset, limit=i.limit, details=i.details.lower() == "true", **filters)
         return json.dumps(subject)
     
-re_covers_json = re.compile('^(.+)/covers$')
 class subjects(delegate.page):
-    path = '/subjects/(.+)'
+    path = '(/subjects/.+)'
     
-    def GET(self, path_info):
-        page = get_subject("/subjects/" + path_info, details=True)
+    def GET(self, key):
+        if key.lower() != key:
+            raise web.seeother(key.lower())
+            
+        page = get_subject(key, details=True)
         return render_template("subjects", page)
         
-        m = re_covers_json.match(path_info)
-        if m:
-            return subjects_covers(m.group(1))
-        limit = 12 * 3
-        offset = 0
-        if not path_info:
-            return 'subjects page goes here'
-        (subject_type, key, full_key, q) = read_subject(path_info)
-        # q = ' AND '.join('subject_key:"%s"' % url_quote(key.lower().replace('_', ' ')) for key in path_info.split('+'))
-        solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=key,author_name,author_key,title,edition_count,ia,cover_edition_key,has_fulltext,first_publish_year&qt=standard&wt=json" % (q, offset, limit)
-        facet_fields = ["author_facet", "language", "publish_year", "publisher_facet", "subject_facet", "person_facet", "place_facet", "time_facet", "has_fulltext"]
-        solr_select += "&sort=edition_count+desc"
-        solr_select += "&facet=true&facet.mincount=1&f.author_facet.facet.sort=count&f.publish_year.facet.limit=-1&facet.limit=25&" + '&'.join("facet.field=" + f for f in facet_fields)
-        print solr_select
-        reply = json.load(urllib.urlopen(solr_select))
-        num_found = int(reply['response']['numFound'])
-        if num_found == 0:
-            return render_template('subjects/notfound.tmpl', path_info)
-        facets = reply['facet_counts']['facet_fields']
-        def get_author(a, c):
-            k, n = eval(a) # FIXME
-            return web.storage(key='/authors/' + k, name=n, count=c)
-
-        def find_name_index (facets, key, subject_type):
-            i = 0
-            for name, count in web.group(facets[subject_type + '_facet'], 2):
-                if str_to_key(name) == key:
-                    return i, name, count
-                i += 1
-
-        def get_authors(limit=10):
-            return (get_author(a, c) for a, c in get_facet(facets, 'author_facet', limit=limit))
-
-        works = [work_object(w) for w in reply['response']['docs']]
-
-        def get_covers(limit=20):
-            collect = []
-            for w in works if limit is None else works[:limit]:
-                i = {
-                    'key': w.key,
-                    'title': w.title,
-                    'authors': [dict(a) for a in w.authors],
-                    'edition_count': w.edition_count,
-                } 
-                if w.get('cover_edition_key', None):
-                    i['cover_edition_key'] = w.cover_edition_key
-                if w.get('has_fulltext', None):
-                    i['has_fulltext'] = w['has_fulltext']
-                    i['ia'] = w['ia'][0]
-                collect.append(i)
-            return collect
-
-        name_index, name, count = find_name_index(facets, key, subject_type)
-        
-        ebook_count = dict(web.group(facets["has_fulltext"], 2)).get("true", 0)
-
-        page = web.storage(
-            key = full_key,
-            name = name,
-            work_count = count,
-            ebook_count = ebook_count,
-            works = works,
-            get_covers = get_covers,
-            subject_type = subject_type,
-            authors = get_authors,
-            author_count = None,
-            publishers = (web.storage(name=k, count=v) for k, v in get_facet(facets, 'publisher_facet')),
-            years = [(int(k), v) for k, v in get_facet(facets, 'publish_year')],
-            subjects = build_get_subject_facet(facets, subject_type, name_index),
-        )
-        return render.subjects(page)
-
 class search(delegate.page):
     def clean_inputs(self, i):
         params = {}
