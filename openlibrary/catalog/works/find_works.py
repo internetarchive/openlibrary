@@ -14,11 +14,12 @@ from collections import defaultdict
 from pprint import pprint, pformat
 from openlibrary.catalog.utils.edit import fix_edition
 from openlibrary.catalog.importer.db_read import get_mc
-import urllib2
+from urllib import urlopen
 from openlibrary.api import OpenLibrary, Reference
 from lxml import etree
 from time import sleep, time
 from openlibrary.api import OpenLibrary, unmarshal, Reference
+import simplejson as json
 
 rc = read_rc()
 ol = OpenLibrary("http://openlibrary.org")
@@ -92,16 +93,18 @@ def get_marc_src(e):
 def get_ia_work_title(ia):
     url = 'http://www.archive.org/download/' + ia + '/' + ia + '_marc.xml'
     try:
-        root = etree.parse(urllib2.urlopen(url)).getroot()
+        root = etree.parse(urlopen(url)).getroot()
     except KeyboardInterrupt:
         raise
     except:
-        #print 'bad XML', ia
-        #print url
+        print 'bad XML', ia
+        print url
         return
     #print etree.tostring(root)
     e = root.find(ns_data + "[@tag='240']")
     if e is None:
+        print 'no work title', ia
+        print url
         return
     #print e.tag
     wt = ' '.join(s.text for s in e if s.attrib['code'] == 'a' and s.text)
@@ -113,6 +116,8 @@ def get_work_title(e):
     for src_type, src in get_marc_src(e):
         if src_type == 'ia':
             wt = get_ia_work_title(src)
+            if wt:
+                wt = wt.strip('. ')
             if wt:
                 break
             continue
@@ -143,9 +148,14 @@ def get_work_title(e):
         return wt
     if not e.get('work_titles', []):
         return
-    print 'work title in MARC, but not in OL'
+    print 'work title in OL, but not in MARC'
     print 'http://openlibrary.org' + e['key']
-    return e['work_titles'][0]
+    return e['work_titles'][0].strip('. ')
+
+# don't use any of these as work titles
+bad_titles = ['Publications', 'Works', 'Report', \
+    'Letters', 'Calendar', 'Bulletin', 'Plays', \
+    'Sermons', 'Correspondence', 'Bills']
 
 def get_books(akey, query):
     for e in query:
@@ -164,8 +174,12 @@ def get_books(akey, query):
         title = title.strip(' ')
         if has_dot(title):
             title = title[:-1]
-        if title.strip('. ') in ['Publications', 'Works', 'Report', \
-                'Letters', 'Calendar', 'Bulletin', 'Plays', 'Sermons', 'Correspondence']:
+        title_and_subtitle = title
+        if e.get('subtitle', None):
+            title_and_subtitle += ' ' + e['subtitle']
+        if title_and_subtitle in ['Publications', 'Works', 'Report', \
+                'Letters', 'Calendar', 'Bulletin', 'Plays', \
+                'Sermons', 'Correspondence', 'Bills']:
             continue
 
         m = re_parens.match(title)
@@ -191,12 +205,14 @@ def get_books(akey, query):
                 assert isinstance(e['table_of_contents'][0], dict)
                 if e['table_of_contents'][0]['type'] == '/type/text':
                     book['table_of_contents'] = [i['value'] for i in e['table_of_contents']]
+        if 'subtitle' in e:
+            book['subtitle'] = e['subtitle']
 
         wt = get_work_title(e)
         if not wt:
             yield book
             continue
-        if wt in ('Works', 'Selections'):
+        if wt in bad_titles:
             yield book
             continue
         n_wt = mk_norm(wt)
@@ -205,7 +221,7 @@ def get_books(akey, query):
         yield book
 
 def build_work_title_map(equiv, norm_titles):
-    # map of book titles to work titles
+    # map of normalized book titles to normalized work titles
     title_to_work_title = defaultdict(set)
     for (norm_title, norm_wt), v in equiv.items():
         if v != 1:
@@ -224,11 +240,43 @@ def build_work_title_map(equiv, norm_titles):
                 title_map[i] = most_common_title
     return title_map
 
-def find_works(akey, book_iter):
-    equiv = defaultdict(int) # title and work title pairs
+def get_first_version(key):
+    return json.load(urlopen('http://openlibrary.org' + key + '.json?v=1'))
+
+def get_existing_works(akey):
+    q = {
+        'type':'/type/work',
+        'authors': {'author': {'key': akey}},
+        'limit': 500,
+    }
+    seen = set()
+    for wkey in ol.query(q):
+        if wkey in seen:
+            continue # skip dups
+        w = ol.get(wkey)
+        if w['type'] == '/type/redirect':
+            continue
+        yield w
+
+def find_title_redirects(akey):
+    title_redirects = {}
+    for w in get_existing_works(akey):
+        norm_wt = mk_norm(w['title'])
+        q = {'type':'/type/redirect', 'location': str(w['key']), 'limit': 500}
+        for r in map(get_first_version, ol.query(q)):
+            if mk_norm(r['title']) == norm_wt:
+                continue
+            if r['title'] in title_redirects:
+                assert title_redirects[r['title']] == w['title']
+            title_redirects[r['title']] = w['title']
+    return title_redirects
+
+def find_works(akey, book_iter, existing={}):
+    equiv = defaultdict(int) # normalized title and work title pairs
     norm_titles = defaultdict(int) # frequency of titles
     books_by_key = {}
     books = []
+    # normalized work title to regular title
     rev_wt = defaultdict(lambda: defaultdict(int))
 
     for book in book_iter:
@@ -241,6 +289,12 @@ def find_works(akey, book_iter):
         books.append(book)
 
     title_map = build_work_title_map(equiv, norm_titles)
+
+    for a, b in existing.items():
+        norm_a = mk_norm(a)
+        norm_b = mk_norm(b)
+        rev_wt[norm_b][norm_a] +=1
+        title_map[norm_a] = norm_b
 
     works = defaultdict(lambda: defaultdict(list))
     work_titles = defaultdict(list)
@@ -258,8 +312,6 @@ def find_works(akey, book_iter):
     works = sorted([(sum(map(len, w.values() + [work_titles[n]])), n, w) for n, w in works.items()])
 
     for work_count, norm, w in works:
-#        if work_count < 2:
-#            continue
         first = sorted(w.items(), reverse=True, key=lambda i:len(i[1]))[0][0]
         titles = defaultdict(int)
         for key_list in w.values():
@@ -274,7 +326,7 @@ def find_works(akey, book_iter):
         title = max(titles.keys(), key=lambda i:titles[i])
         toc_iter = ((k, books_by_key[k].get('table_of_contents', None)) for k in keys)
         toc = dict((k, v) for k, v in toc_iter if v)
-        w = {'title': first, 'editions': keys }
+        w = {'title': first, 'editions': [books_by_key[k] for k in keys]}
         if toc:
             w['toc'] = toc
         yield w
@@ -294,47 +346,51 @@ if __name__ == '__main__':
 #        print >> out, b
 #    out.close()
 #    sys.exit(0)
-    works = find_works(akey, get_books(akey, books_query(akey)))
+    title_redirects = find_title_redirects('/a/' + akey)
+    works = find_works(akey, get_books(akey, books_query(akey)), existing=title_redirects)
     #works = find_works(akey, get_books(akey, books_from_cache()))
 
     do_updates = False
 
-    while True: # until redirects repaired
-        q = {'type':'/type/edition', 'authors':akey, 'works': None}
-        work_to_edition = defaultdict(set)
-        edition_to_work = defaultdict(set)
-        for e in query_iter(q):
-            if e.get('works', None):
-                for w in e['works']:
-                    work_to_edition[w['key']].add(e['key'])
-                    edition_to_work[e['key']].add(w['key'])
+    # we can now look up all works by an author   
+#    while True: # until redirects repaired
+#        q = {'type':'/type/edition', 'authors':akey, 'works': None}
+#        work_to_edition = defaultdict(set)
+#        edition_to_work = defaultdict(set)
+#        for e in query_iter(q):
+#            if e.get('works', None):
+#                for w in e['works']:
+#                    work_to_edition[w['key']].add(e['key'])
+#                    edition_to_work[e['key']].add(w['key'])
+#
+#        work_title = {}
+#        fix_redirects = []
+#        for k, editions in work_to_edition.items():
+#            w = withKey(k)
+#            if w['type']['key'] == '/type/redirect':
+#                print 'redirect found'
+#                wkey = w['location']
+#                assert re_work_key.match(wkey)
+#                for ekey in editions:
+#                    e = withKey(ekey)
+#                    e['works'] = [Reference(wkey)]
+#                    fix_redirects.append(e)
+#                continue
+#            work_title[k] = w['title']
+#        if not fix_redirects:
+#            print 'no redirects left'
+#            break
+#        print 'save redirects'
+#        ol.save_many(fix_redirects, "merge works")
 
-        work_title = {}
-        fix_redirects = []
-        for k, editions in work_to_edition.items():
-            w = withKey(k)
-            if w['type']['key'] == '/type/redirect':
-                print 'redirect found'
-                wkey = w['location']
-                assert re_work_key.match(wkey)
-                for ekey in editions:
-                    e = withKey(ekey)
-                    e['works'] = [Reference(wkey)]
-                    fix_redirects.append(e)
-                continue
-            work_title[k] = w['title']
-        if not fix_redirects:
-            print 'no redirects left'
-            break
-        print 'save redirects'
-        ol.save_many(fix_redirects, "merge works")
+    
 
     all_existing = set()
     work_keys = []
     for w in works:
         existing = set()
         for e in w['editions']:
-            existing.update(edition_to_work[e])
+            existing.update(edition_to_work[e['key']])
         if not existing: # editions have no existing work
             if do_updates:
                 wkey = ol.new({'title': w['title'], 'type': '/type/work'})

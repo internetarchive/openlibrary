@@ -258,7 +258,7 @@ def setup():
         "gettext": ugettext,
         "ugettext": ugettext,
         "_": ugettext,
-        "ungettext": "ungettext",
+        "ungettext": ungettext,
         "random": random.Random(),
         "commify": web.commify,
         "group": web.group,
