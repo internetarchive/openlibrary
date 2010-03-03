@@ -70,7 +70,7 @@ def read_facets(root):
                 continue
             k = e.attrib['name']
             if name == 'author_key':
-                k, display = k.split('\t')
+                k, display = eval(k) # FIXME
             elif name == 'language':
                 display = get_language_name(k)
             else:
@@ -427,7 +427,7 @@ def get_subject(key, details=False, offset=0, limit=12, **filters):
         elif facet == "publisher_facet":
             return web.storage(name=value, count=count)
         elif facet == "author_facet":
-            author = value.split('\t')
+            author = eval(value) # FIXME
             return web.storage(name=author[1], key="/authors/" + author[0], count=count)
         elif facet in ["subject_facet", "person_facet", "place_facet", "time_facet"]:
             return web.storage(key=finddict(SUBJECTS, facet=facet).prefix + str_to_key(value).replace(" ", "_"), name=value, count=count)
@@ -550,7 +550,7 @@ class subjects(delegate.page):
             return render_template('subjects/notfound.tmpl', path_info)
         facets = reply['facet_counts']['facet_fields']
         def get_author(a, c):
-            k, n = a.split('\t')
+            k, n = eval(a) # FIXME
             return web.storage(key='/authors/' + k, name=n, count=c)
 
         def find_name_index (facets, key, subject_type):
