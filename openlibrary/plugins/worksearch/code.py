@@ -427,7 +427,7 @@ class subjects_json(delegate.page):
     @jsonapi
     def GET(self, key):
         if key.lower() != key:
-            raise web.seeother(key.lower())
+            raise web.redirect(key.lower())
 
         i = web.input(offset=0, limit=12, details="false", has_fulltext="false")
 
@@ -457,7 +457,7 @@ class subjects(delegate.page):
     
     def GET(self, key):
         if key.lower() != key:
-            raise web.seeother(key.lower())
+            raise web.redirect(key.lower())
             
         page = get_subject(key, details=True)
         return render_template("subjects", page)
