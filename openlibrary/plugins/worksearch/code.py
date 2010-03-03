@@ -32,6 +32,9 @@ to_drop = set('''!*"'();:@&=+$,/?%#[]''')
 def str_to_key(s):
     return ''.join(c for c in s.lower() if c not in to_drop)
 
+def read_author_facet(af):
+    return af.split('\t')
+
 render = template.render
 
 search_fields = ["key", "redirects", "title", "subtitle", "alternative_title", "alternative_subtitle", "edition_key", "by_statement", "publish_date", "lccn", "ia", "oclc", "isbn", "contributor", "publish_place", "publisher", "first_sentence", "author_key", "author_name", "author_alternative_name", "subject", "person", "place", "time"]
@@ -70,7 +73,7 @@ def read_facets(root):
                 continue
             k = e.attrib['name']
             if name == 'author_key':
-                k, display = eval(k) # FIXME
+                k, display = read_author_facet(k) # FIXME
             elif name == 'language':
                 display = get_language_name(k)
             else:
@@ -356,7 +359,7 @@ def get_subject(key, details=False, offset=0, limit=12, **filters):
         elif facet == "publisher_facet":
             return web.storage(name=value, count=count)
         elif facet == "author_facet":
-            author = eval(value) # FIXME
+            author = read_author_facet(value) # FIXME
             return web.storage(name=author[1], key="/authors/" + author[0], count=count)
         elif facet in ["subject_facet", "person_facet", "place_facet", "time_facet"]:
             return web.storage(key=finddict(SUBJECTS, facet=facet).prefix + str_to_key(value).replace(" ", "_"), name=value, count=count)
