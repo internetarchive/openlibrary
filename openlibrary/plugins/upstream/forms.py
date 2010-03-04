@@ -14,7 +14,7 @@ forms.login = Login
 
 email_already_used = Validator(_("No user registered with this email address"), lambda email: web.ctx.site.find_user_by_email(email) is not None)
 email_not_already_used = Validator(_("Email already used"), lambda email: web.ctx.site.find_user_by_email(email) is None)
-username_validator = Validator(_("Username already used"), lambda username: web.ctx.site.get('/user/' + username) is None)
+username_validator = Validator(_("Username already used"), lambda username: not web.ctx.site._request("/has_user", data={"username": username}))
 
 vlogin = RegexpValidator(r"^[A-Za-z0-9-_]{3,20}$", _('Must be between 3 and 20 letters and numbers')) 
 vpass = RegexpValidator(r".{3,20}", _('Must be between 3 and 20 characters'))

@@ -44,6 +44,7 @@ def init_plugin():
     server.app.add_mapping("/([^/]*)/most_recent", __name__ + ".most_recent")
     server.app.add_mapping("/([^/]*)/clear_cache", __name__ + ".clear_cache")
     server.app.add_mapping("/([^/]*)/stats/(\d\d\d\d-\d\d-\d\d)", __name__ + ".stats")
+    server.app.add_mapping("/([^/]*)/has_user", __name__ + ".has_user")
         
 def get_db():
     site = server.get_site('openlibrary.org')
@@ -90,7 +91,15 @@ class count_edits_by_user:
         i = server.input('key')
         author_id = get_thing_id(i.key)
         return get_db().query("SELECT count(*) as count FROM transaction WHERE author_id=$author_id", vars=locals())[0].count
-        
+
+class has_user:
+    @server.jsonify
+    def GET(self, sitename):
+        i = server.input("username")
+        key = "/user/" + i.username.lower()
+        type_user = get_thing_id("/type/user")
+        d = get_db().query("SELECT * from thing WHERE lower(key) = $key AND type=$type_user", vars=locals())
+        return bool(d)
     
 class stats:
     @server.jsonify
@@ -156,7 +165,7 @@ class clear_cache:
         from infogami.infobase import cache
         cache.global_cache.clear()
         return {'done': True}
-
+        
 def write(path, data):
     dir = os.path.dirname(path)
     if not os.path.exists(dir):
