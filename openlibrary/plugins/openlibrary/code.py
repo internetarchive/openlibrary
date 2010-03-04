@@ -124,7 +124,10 @@ class Edition(client.Thing):
 
 class Work(client.Thing):
     def get_edition_count(self):
-        return web.ctx.site._request('/count_editions_by_work', data={'key': self.key})
+        if '_editon_count' not in self.__dict__:
+            self.__dict__['_editon_count'] = web.ctx.site._request('/count_editions_by_work', data={'key': self.key})
+        return self.__dict__['_editon_count']
+        
     edition_count = property(get_edition_count)
 
     def url(self, suffix="", **params):
@@ -779,3 +782,4 @@ class backdoor(delegate.page):
         if isinstance(result, basestring):
             result = delegate.RawText(result)
         return result
+        
