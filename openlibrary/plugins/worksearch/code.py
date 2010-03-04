@@ -32,18 +32,22 @@ to_drop = set('''!*"'();:@&=+$,/?%#[]''')
 def str_to_key(s):
     return ''.join(c for c in s.lower() if c not in to_drop)
 
+re_author_facet = re.compile('^(OL\d+A) (.*)$')
 def read_author_facet(af):
-    return af.split('\t')
+    if '\t' in af:
+        return af.split('\t')
+    else:
+        return re_author_facet.match(af).groups()
 
 render = template.render
 
 search_fields = ["key", "redirects", "title", "subtitle", "alternative_title", "alternative_subtitle", "edition_key", "by_statement", "publish_date", "lccn", "ia", "oclc", "isbn", "contributor", "publish_place", "publisher", "first_sentence", "author_key", "author_name", "author_alternative_name", "subject", "person", "place", "time"]
 
-all_fields = search_fields + ["has_fulltext", "title_suggest", "edition_count", "publish_year", "language", "number_of_pages", "ia_count", "publisher_facet", "author_facet", "fiction", "first_publish_year"] 
+all_fields = search_fields + ["has_fulltext", "title_suggest", "edition_count", "publish_year", "language", "number_of_pages", "ia_count", "publisher_facet", "author_facet", "first_publish_year"] 
 
-facet_fields = ["has_fulltext", "author_facet", "language", "first_publish_year", "publisher_facet", "fiction", "subject_facet", "person_facet", "place_facet", "time_facet"]
+facet_fields = ["has_fulltext", "author_facet", "language", "first_publish_year", "publisher_facet", "subject_facet", "person_facet", "place_facet", "time_facet"]
 
-facet_list_fields = [i for i in facet_fields if i not in ("has_fulltext", "fiction")]
+facet_list_fields = [i for i in facet_fields if i not in ("has_fulltext")]
 
 def get_language_name(code):
     l = web.ctx.site.get('/languages/' + code)
@@ -59,9 +63,11 @@ def read_facets(root):
         name = e_lst.attrib['name']
         if name == 'author_facet':
             name = 'author_key'
-        if name in ('fiction', 'has_fulltext'): # boolean facets
-            true_count = e_lst.find("int[@name='true']").text
-            false_count = e_lst.find("int[@name='false']").text
+        if name == 'has_fulltext': # boolean facets
+            e_true = e_lst.find("int[@name='true']")
+            true_count = e_true.text if e_true else 0
+            e_false = e_lst.find("int[@name='false']")
+            false_count = e_false.text if e_false else 0
             facets[name] = [
                 ('true', 'yes', true_count),
                 ('false', 'no', false_count),
@@ -249,7 +255,7 @@ def work_object(w):
         key = '/works/' + w['key'],
         title = w['title'],
         cover_edition_key = w.get('cover_edition_key', None),
-        first_publish_year = (w['first_publish_year'][0] if 'first_publish_year' in w else None),
+        first_publish_year = (w['first_publish_year'] if 'first_publish_year' in w else None),
         ia = w.get('ia', [])
     )
     if w.get('has_fulltext', None):
@@ -504,11 +510,11 @@ def works_by_author(akey, sort='editions', offset=0, limit=1000):
     if sort == 'editions':
         solr_select += '&sort=edition_count+desc'
     elif sort.startswith('old'):
-        solr_select += '&sort=first_publish_year'
+        solr_select += '&sort=first_publish_year+asc'
     elif sort.startswith('new'):
         solr_select += '&sort=first_publish_year+desc'
     elif sort.startswith('title'):
-        solr_select += '&sort=title'
+        solr_select += '&sort=title+asc'
     solr_select += "&facet=true&facet.mincount=1&f.author_facet.facet.sort=count&f.publish_year.facet.limit=-1&facet.limit=25&" + '&'.join("facet.field=" + f for f in facet_fields)
     reply = json.load(urllib.urlopen(solr_select))
     facets = reply['facet_counts']['facet_fields']
