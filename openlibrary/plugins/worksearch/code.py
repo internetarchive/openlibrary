@@ -65,9 +65,9 @@ def read_facets(root):
             name = 'author_key'
         if name == 'has_fulltext': # boolean facets
             e_true = e_lst.find("int[@name='true']")
-            true_count = e_true.text if e_true else 0
+            true_count = e_true.text if e_true is not None else 0
             e_false = e_lst.find("int[@name='false']")
-            false_count = e_false.text if e_false else 0
+            false_count = e_false.text if e_false is not None else 0
             facets[name] = [
                 ('true', 'yes', true_count),
                 ('false', 'no', false_count),
