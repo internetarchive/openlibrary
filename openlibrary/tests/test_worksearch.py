@@ -1,5 +1,6 @@
 import unittest
-from openlibrary.plugins.worksearch.code import search, advanced_to_simple
+from openlibrary.plugins.worksearch.code import search, advanced_to_simple, read_facets
+from lxml.etree import fromstring
 
 class TestWorkSearch(unittest.TestCase):
     def setUp(self):
@@ -25,4 +26,17 @@ class TestWorkSearch(unittest.TestCase):
         expect = 'title:(Test title)'
         self.assertEqual(advanced_to_simple(params), expect)
 
+    def test_read_facet(self):
+        xml = '''<response>
+            <lst name="facet_counts">
+                <lst name="facet_fields">
+                    <lst name="has_fulltext">
+                        <int name="false">46</int>
+                        <int name="true">2</int>
+                    </lst>
+                </lst>
+            </lst>
+        </response>'''
 
+        expect = {'has_fulltext': [('true', 'yes', '2'), ('false', 'no', '46')]}
+        self.assertEqual(read_facets(fromstring(xml)), expect)

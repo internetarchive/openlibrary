@@ -240,6 +240,9 @@ def four_types(i):
     ret = dict((k, i[k]) for k in want if k in i)
     for j in (j for j in i.keys() if j not in want):
         for k, v in i[j].items():
-            ret['subject'][k] = ret['subject'].get(k, 0) + v
+            if 'subject' in ret:
+                ret['subject'][k] = ret['subject'].get(k, 0) + v
+            else:
+                ret['subject'] = {k: v}
     return ret
 

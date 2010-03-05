@@ -124,7 +124,10 @@ class Edition(client.Thing):
 
 class Work(client.Thing):
     def get_edition_count(self):
-        return web.ctx.site._request('/count_editions_by_work', data={'key': self.key})
+        if '_editon_count' not in self.__dict__:
+            self.__dict__['_editon_count'] = web.ctx.site._request('/count_editions_by_work', data={'key': self.key})
+        return self.__dict__['_editon_count']
+        
     edition_count = property(get_edition_count)
 
     def url(self, suffix="", **params):
@@ -779,3 +782,9 @@ class backdoor(delegate.page):
         if isinstance(result, basestring):
             result = delegate.RawText(result)
         return result
+        
+# monkey-patch to check for lowercase usernames on register
+from infogami.core.forms import register
+username_validator = web.form.Validator("Username already used", lambda username: not web.ctx.site._request("/has_user", data={"username": username}))
+register.username.validators = list(register.username.validators) + [username_validator]
+
