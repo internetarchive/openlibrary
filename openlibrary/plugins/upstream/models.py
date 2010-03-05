@@ -76,7 +76,7 @@ class Edition(ol_code.Edition):
             return
         if i + 1 == len(editions):
             return
-        return i + 1
+        return editions[i + 1]
 
     def get_prev(self):
         """Previous edition of work"""
@@ -89,7 +89,7 @@ class Edition(ol_code.Edition):
             return
         if i == 0:
             return
-        return i - 1
+        return editions[i - 1]
  
     def get_covers(self):
         covers = self.covers or query_coverstore('b', olid=self.get_olid())
