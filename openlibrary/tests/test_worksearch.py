@@ -1,5 +1,5 @@
 import unittest
-from openlibrary.plugins.worksearch.code import search, advanced_to_simple, read_facets
+from openlibrary.plugins.worksearch.code import search, advanced_to_simple, read_facets, sorted_work_editions
 from lxml.etree import fromstring
 
 class TestWorkSearch(unittest.TestCase):
@@ -40,3 +40,21 @@ class TestWorkSearch(unittest.TestCase):
 
         expect = {'has_fulltext': [('true', 'yes', '2'), ('false', 'no', '46')]}
         self.assertEqual(read_facets(fromstring(xml)), expect)
+
+    def test_sorted_work_editions(self):
+        json_data = '''{
+ "responseHeader":{
+  "status":0,
+  "QTime":1,
+  "params":{
+    "fl":"edition_key",
+    "indent":"on",
+    "wt":"json",
+    "q":"key:OL100000W"}},
+ "response":{"numFound":1,"start":0,"docs":[
+    {
+     "edition_key":["OL7536692M","OL7825368M","OL3026366M"]}]
+ }}'''
+        expect = ["OL7536692M","OL7825368M","OL3026366M"]
+        self.assertEqual(sorted_work_editions('OL100000W', json_data=json_data), expect)
+        

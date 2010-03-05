@@ -9,7 +9,7 @@ from infogami.utils.view import safeint
 
 from openlibrary.plugins.search.code import SearchProcessor
 from openlibrary.plugins.openlibrary import code as ol_code
-from openlibrary.plugins.worksearch.code import works_by_author
+from openlibrary.plugins.worksearch.code import works_by_author, sorted_work_editions
 
 from utils import get_coverstore_url, MultiDict, parse_toc, parse_datetime, get_edition_config
 import account
@@ -64,7 +64,33 @@ class Edition(ol_code.Edition):
     def get_authors(self):
         """Added to provide same interface for work and edition"""
         return self.authors
-        
+
+    def get_next(self):
+        """Next edition of work"""
+        if len(self.get('works', [])) != 1:
+            return
+        editions = sorted_work_editions(self.works[0].get_olid())
+        try:
+            i = editions.index(self.get_olid())
+        except ValueError:
+            return
+        if i + 1 == len(editions):
+            return
+        return i + 1
+
+    def get_prev(self):
+        """Previous edition of work"""
+        if len(self.get('works', [])) != 1:
+            return
+        editions = sorted_work_editions(self.works[0].get_olid())
+        try:
+            i = editions.index(self.get_olid())
+        except ValueError:
+            return
+        if i == 0:
+            return
+        return i - 1
+ 
     def get_covers(self):
         covers = self.covers or query_coverstore('b', olid=self.get_olid())
         return [Image('b', c) for c in covers if c > 0]
@@ -235,7 +261,9 @@ class Author(ol_code.Author):
 re_year = re.compile(r'(\d{4})$')
         
 class Work(ol_code.Work):
-    
+    def get_olid(self):
+        return self.key.split('/')[-1]
+
     def get_covers(self):
         return [Image("w", id) for id in self.covers if id > 0]
     
@@ -258,19 +286,9 @@ class Work(ol_code.Work):
             subjects = [s.name for s in subjects]
         return subjects
         
-    def get_sorted_editions(self, reverse=False):
+    def get_sorted_editions(self):
         """Return a list of works sorted by publish date"""
-        def get_pub_year(e):
-            k = 'publish_date'
-            if k not in e:
-                return None
-            m = re_year.search(e[k])
-            if m:
-                return m.group(1)
-
-        q = {'type': '/type/edition', 'works': self.key, 'limit': 10000}
-        editions = [web.ctx.site.get(key) for key in web.ctx.site.things(q)]
-        return sorted(editions, key=get_pub_year, reverse=reverse)
+        return sorted_work_editions(self.get_olid())
         
     def get_edition_covers(self):
         editions = web.ctx.site.get_many(web.ctx.site.things({"type": "/type/edition", "works": self.key, "limit": 1000}))
