@@ -52,6 +52,11 @@ ERROR_BAD_IMAGE = 3, "Invalid Image"
 class index:
     def GET(self):
         return '<h1>Open Library Book Covers Repository</h1><div>See <a href="http://openlibrary.org/dev/docs/api/covers">Open Library Covers API</a> for details.</div>'
+
+def _cleanup():
+    web.ctx.pop("_fieldstorage", None)
+    web.ctx.pop("_data", None)
+    web.ctx.env = {}
         
 class upload:
     def POST(self, category):
@@ -59,8 +64,10 @@ class upload:
 
         success_url = i.success_url or web.ctx.get('HTTP_REFERRER') or '/'
         failure_url = i.failure_url or web.ctx.get('HTTP_REFERRER') or '/'
+        
         def error((code, msg)):
             print >> web.debug, "ERROR: upload failed, ", i.olid, code, repr(msg)
+            _cleanup()
             url = changequery(failure_url, errcode=code, errmsg=msg)
             raise web.seeother(url)
         
@@ -83,6 +90,8 @@ class upload:
             save_image(data, category=category, olid=i.olid, author=i.author, source_url=i.source_url, ip=web.ctx.ip)
         except ValueError:
             error(ERROR_BAD_IMAGE)
+
+        _cleanup()
         raise web.seeother(success_url)
         
 class upload2:
@@ -90,7 +99,12 @@ class upload2:
     """
     def POST(self, category):
         i = web.input(olid=None, author=None, data=None, source_url=None, ip=None, _unicode=False)
+
+        web.ctx.pop("_fieldstorage", None)
+        web.ctx.pop("_data", None)
+        
         def error((code, msg)):
+            _cleanup()            
             e = web.badrequest()
             e.data = simplejson.dumps({"code": code, "message": msg})
             raise e
@@ -112,6 +126,7 @@ class upload2:
         except ValueError:
             error(ERROR_BAD_IMAGE)
         
+        _cleanup()
         return simplejson.dumps({"ok": "true", "id": d.id})
 
 def trim_microsecond(date):
