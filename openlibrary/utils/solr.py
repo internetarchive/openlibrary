@@ -2,6 +2,7 @@
 """
 import urlparse
 import urllib, urllib2
+import re
 import web
 import simplejson
 
@@ -30,6 +31,17 @@ class Solr:
     def __init__(self, base_url):
         self.base_url = base_url
         self.host = urlparse.urlsplit(self.base_url)[1]
+        
+    def escape(self, query):
+        r"""Escape special characters in the query string
+        
+            >>> solr = Solr("")
+            >>> solr.escape("a[b]c")
+            'a\\[b\\]c'
+        """
+        chars = r'+-!(){}[]^"~*?:\\'
+        pattern = "([%s])" % re.escape(chars)
+        return web.re_compile(pattern).sub(r'\\\1', query)
         
     def select(self, query, fields=None, facets=None, 
                rows=None, start=None, 
@@ -122,24 +134,5 @@ class Solr:
         return q
 
 if __name__ == '__main__':
-    solr = Solr("http://localhost:8986/solr/works")
-    
-    d = solr.select(
-        {"subject_key": "love"}, 
-        facets=[
-            "has_fulltext", {"name": "author_facet", "sort": "count"}, 
-            "publisher_facet", 
-            {"name": "publish_year", "limit": -1}, 
-        ], facet_mincount=1, facet_limit=25)
-    
-    print "num_found", d.num_found
-    print
-    for doc in d.docs:
-        print doc
-        print
-    print
-    
-    for name, facets in d.get('facets', {}).items():
-        print name
-        for f in facets:
-            print "    ", f.value, f.count
+    import doctest
+    doctest.testmod()

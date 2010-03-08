@@ -584,7 +584,7 @@ class authors_autocomplete(delegate.page):
 
         solr = get_authors_solr()
         
-        name = i.q + "*"
+        name = solr.escape(i.q) + "*"
         q = 'name:(%s) OR alternate_names:(%s)' % (name, name)
         data = solr.select(q, q_op="AND", sort="work_count desc")
         docs = data['docs']
