@@ -44,11 +44,12 @@ http://github.com/anandology/notebook/tree/master/2010/03/jsdef/
 """
 
 __author__ = "Anand Chitipothu <anandology@gmail.com>"
-__version__ = "0.1"
+__version__ = "0.2"
 
 """change notes:
 
-0.1: first public release
+0.1: first release
+0.2: python to javascript conversion for "and", "or" and "not" keywords
 """
 
 import simplejson
@@ -122,15 +123,15 @@ class JSNode:
     
     def jsemit_ExpressionNode(self, node, indent):
         if node.escape:
-            return "websafe(%s)" % node.value
+            return "websafe(%s)" % py2js(node.value)
         else:
-            return node.value
+            return py2js(node.value)
 
     def jsemit_AssignmentNode(self, node, indent):
-        return indent + "var " + node.code + ";\n"
+        return indent + "var " + py2js(node.code) + ";\n"
         
     def jsemit_StatementNode(self, node, indent):
-        return indent + node.stmt + ";\n"
+        return indent + py2js(node.stmt) + ";\n"
                 
     def jsemit_BlockNode(self, node, indent):
         text = ""
@@ -145,10 +146,10 @@ class JSNode:
         expr = node.stmt[len(name):].strip(": ")        
         expr = expr and "(" + expr + ")"
         
-        text += indent + "%s %s {\n" % (name, expr)
+        text += indent + "%s %s {\n" % (name, py2js(expr))
         text += self.jsemit(node.suite, indent + INDENT)
         text += indent + "}\n"
-        return text    
+        return text
         
     jsemit_IfNode = jsemit_BlockNode
     jsemit_ElseNode = jsemit_BlockNode
@@ -163,7 +164,7 @@ class JSNode:
         b = web.re_compile("loop.setup\((.*)\)").match(b).group(1)
 
         text = ""
-        text += indent + "foreach(%s, loop, function(loop, %s) {\n" % (b, a)
+        text += indent + "foreach(%s, loop, function(loop, %s) {\n" % (py2js(b), a)
         text += self.jsemit(node.suite, indent + INDENT)
         text += indent + "});\n"
         return text
@@ -181,6 +182,67 @@ class JSNode:
         text += "</script>\n"
         return text
         
+def tokenize(code):
+    """Tokenize python code.
+    
+        >>> list(tokenize("x + y"))
+        ['x', ' ', '+', ' ', 'y']
+    """
+    end = 0
+    tok = PythonTokenizer(code)
+    try:
+        while True:
+            x = tok.next()
+            begin = x.begin[1]
+            if begin > end:
+                yield ' ' * (begin - end)
+            if x.value:
+                yield x.value
+            end = x.end[1]
+    except StopIteration:
+        pass
+            
+def py2js(expr):
+    """Converts a python expression to javascript.
+    
+        >>> py2js("x + y")
+        'x + y'
+        >>> py2js("x and y")
+        'x && y'
+        >>> py2js("x or not y")
+        'x || ! y'
+    """
+    d = {"and": "&&", "or": "||", "not": "!"}
+    def f(tokens):
+       for t in tokens:
+           yield d.get(t, t) 
+         
+    return "".join(f(tokenize(expr)))
+    
+def _testrun(code):
+    parser = extension(web.template.Parser())
+    root = parser.parse(code)
+    node = root.suite.sections[0]
+    jnode = JSNode(node)
+    return jnode.jsemit(node, "")    
+    
+def _test():
+    r"""
+        >>> t = _testrun
+        >>> t("$x")
+        'self.push(websafe(x));\n'
+        >>> t("$:x")
+        'self.push(x);\n'
+        >>> t("$ x = 1")
+        'var x = 1;\n'
+        >>> t("$ x = a and b")
+        'var x = a && b;\n'
+        >>> t("$if a or not b: $a")
+        u'if (a || ! b) {\n    self.push(websafe(a));\n}\n'
+        >>> t("$for i in a and a.data or []: $i")
+        u'foreach(a && a.data || [], loop, function(loop, i) {\n    self.push(websafe(i));\n});\n'
+    """
+    
 if __name__ == "__main__":
     import doctest
     doctest.testmod()
