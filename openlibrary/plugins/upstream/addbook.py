@@ -282,6 +282,7 @@ class SaveBookHelper:
         user = web.ctx.site.get_user()
         delete = user and user.is_admin() and formdata.pop('_delete', '')
         
+        formdata = utils.unflatten(formdata)
         work_data, edition_data = self.process_input(formdata)
         
         self.process_new_fields(formdata)
@@ -294,9 +295,9 @@ class SaveBookHelper:
                 self.delete(self.work.key, comment=comment)
             return
             
-        for author in work_data.get("authors") or []:
+        for i, author in enumerate(work_data.get("authors") or []):
             if author['author']['key'] == "__new__":
-                a = self.new_author(formdata['author'])
+                a = self.new_author(formdata['authors'][i])
                 a._save(utils.get_message("comment_new_author"))
                 author['author']['key'] = a.key
             
@@ -384,8 +385,6 @@ class SaveBookHelper:
             as_admin(edition_config._save)("add new fields")
     
     def process_input(self, i):
-        i = utils.unflatten(i)
-        
         if 'edition' in i:
             edition = self.process_edition(i.edition)
         else:
@@ -584,7 +583,7 @@ class authors_autocomplete(delegate.page):
 
         solr = get_authors_solr()
         
-        name = i.q + "*"
+        name = solr.escape(i.q) + "*"
         q = 'name:(%s) OR alternate_names:(%s)' % (name, name)
         data = solr.select(q, q_op="AND", sort="work_count desc")
         docs = data['docs']

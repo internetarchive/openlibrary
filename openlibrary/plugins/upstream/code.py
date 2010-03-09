@@ -268,6 +268,9 @@ def setup():
         "locals": locals
     });
     
+    import jsdef
+    web.template.STATEMENT_NODES["jsdef"] = jsdef.JSDefNode
+    
     setup_jquery_urls()
     
 setup()
