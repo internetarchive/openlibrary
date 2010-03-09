@@ -304,9 +304,15 @@ class Work(ol_code.Work):
     def get_subjects(self):
         """Return subject strings."""
         subjects = self.subjects
+        
+        def flip(name):
+            if name.count(",") == 1:
+                a, b = name.split(",")
+                return b.strip() + " " + a.strip()
+            return name
                 
         if subjects and not isinstance(subjects[0], basestring):
-            subjects = [s.name for s in subjects]
+            subjects = [flip(s.name) for s in subjects]
         return subjects
         
     def get_sorted_editions(self):
