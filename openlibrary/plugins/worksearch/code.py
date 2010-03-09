@@ -537,7 +537,10 @@ def sorted_work_editions(wkey, json_data=None):
         solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&rows=10&fl=edition_key&qt=standard&wt=json" % q
         json_data = urllib.urlopen(solr_select).read()
     reply = json.loads(json_data)
-    return reply["response"]['docs'][0]['edition_key']
+
+    if reply['response']['numFound'] == '0':
+        return []
+    return reply["response"]['docs'][0].get('edition_key', [])
 
 def simple_search(q, offset=0, rows=20, sort=None):
     solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=*%%2Cscore&qt=standard&wt=json" % (web.urlquote(q), offset, rows)
