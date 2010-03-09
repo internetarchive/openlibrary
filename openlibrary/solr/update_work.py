@@ -1,7 +1,7 @@
 import httplib, re, sys
 from openlibrary.catalog.utils.query import query_iter, withKey
 from lxml.etree import tostring, Element
-from openlibrary.solr.work_subject import find_subjects
+from openlibrary.solr.work_subject import find_subjects, four_types, get_marc_subjects
 from pprint import pprint
 
 re_bad_char = re.compile('[\x1a-\x1e]')
@@ -33,19 +33,33 @@ def build_doc(w):
     wkey = w['key']
     assert w['type']['key'] == '/type/work'
 
-    if 'editions' in w:
-        editions = w['editions']
-    else:
+    def get_pub_year(e):
+        pub_date = e.get('publish_date', None)
+        if pub_date:
+            m = re_year.search(pub_date)
+            if m:
+                return m.group(1)
+
+    if 'editions' not in w:
         q = { 'type':'/type/edition', 'works': wkey, '*': None }
-        editions = list(query_iter(q))
-        w['editions'] = editions
+        w['editions'] = list(query_iter(q))
+
+    editions = []
+    for e in w['editions']:
+        pub_year = get_pub_year(e)
+        if pub_year:
+            e['pub_year'] = pub_year
+        editions.append(e)
+
+    editions.sort(key=lambda e: e.get('pub_year', None))
 
     print len(w['editions']), 'editions found'
 
     author_keys = [a['author']['key'][3:] for a in w.get('authors', [])]
     authors = [withKey(a['author']['key']) for a in w.get('authors', [])]
 
-    subjects = find_subjects(w)
+    subjects = four_types(find_subjects(get_marc_subjects(w)))
+    print subjects
 
     doc = Element("doc")
 
@@ -85,7 +99,7 @@ def build_doc(w):
     k = 'publish_date'
     pub_dates = set(e[k] for e in editions if e.get(k, None))
     add_field_list(doc, k, pub_dates)
-    pub_years = set(m.group(1) for m in (re_year.match(i) for i in pub_dates) if m)
+    pub_years = set(m.group(1) for m in (re_year.search(i) for i in pub_dates) if m)
     if pub_years:
         add_field_list(doc, 'publish_year', pub_years)
         add_field(doc, 'first_publish_year', min(int(i) for i in pub_years))
@@ -130,8 +144,17 @@ def build_doc(w):
     if lang:
         add_field_list(doc, 'language', lang)
 
-    v = set( e['ocaid'].strip() for e in editions if 'ocaid' in e)
-    add_field_list(doc, 'ia', v)
+    goog = set() # google
+    non_goog = set()
+    for e in editions:
+        if 'ocaid' in e:
+            assert isinstance(e['ocaid'], basestring)
+            i = e['ocaid'].strip()
+            if i.endswith('goog'):
+                goog.add(i)
+            else:
+                non_goog.add(i)
+    add_field_list(doc, 'ia', list(non_goog) + list(goog))
     author_keys = [a['key'][3:] for a in authors]
     author_names = [a.get('name', '') for a in authors]
     add_field_list(doc, 'author_key', author_keys)
@@ -143,41 +166,22 @@ def build_doc(w):
             alt_names.update(a['alternate_names'])
 
     add_field_list(doc, 'author_alternative_name', alt_names)
-    add_field_list(doc, 'author_facet', (`v` for v in zip(author_keys, author_names)))
+    add_field_list(doc, 'author_facet', (' '.join(v) for v in zip(author_keys, author_names)))
     #if subjects:
     #    add_field(doc, 'fiction', subjects['fiction'])
 
-    facet_map = {
-        'person': 'people',
-        'place': 'places',
-        'subject': 'subjects',
-        'time': 'times',
-    }
     for k in 'person', 'place', 'subject', 'time':
-        k2 = facet_map[k]
-        if k2 not in subjects:
+        if k not in subjects:
             continue
-        add_field_list(doc, k, subjects[k2].keys())
-
-    for k in 'person', 'place', 'subject', 'time':
-        k2 = facet_map[k]
-        if k2 not in subjects:
-            continue
-        add_field_list(doc, k + '_facet', subjects[k2].keys())
-
-    for k in 'person', 'place', 'subject', 'time':
-        k2 = facet_map[k]
-        if k2 not in subjects:
-            print k2, 'not in', subjects.keys()
-            continue
-        subject_keys = [str_to_key(s) for s in subjects[k2].keys()]
-        print 'subject keys:', subject_keys
+        add_field_list(doc, k, subjects[k].keys())
+        add_field_list(doc, k + '_facet', subjects[k].keys())
+        subject_keys = [str_to_key(s) for s in subjects[k].keys()]
         add_field_list(doc, k + '_key', subject_keys)
 
     return doc
 
 def solr_update(requests, debug=False):
-    solr_host = 'localhost:8986'
+    solr_host = 'ia331507:8984'
     h1 = httplib.HTTPConnection(solr_host)
     h1.connect()
     for r in requests:
@@ -191,7 +195,6 @@ def solr_update(requests, debug=False):
 #            print response_body
 #            print response.getheaders()
     h1.close()
-
 
 def update_work(w, debug=False):
     wkey = w['key']
