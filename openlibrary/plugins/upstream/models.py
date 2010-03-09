@@ -304,14 +304,20 @@ class Work(ol_code.Work):
     def get_subjects(self):
         """Return subject strings."""
         subjects = self.subjects
+        
+        def flip(name):
+            if name.count(",") == 1:
+                a, b = name.split(",")
+                return b.strip() + " " + a.strip()
+            return name
                 
         if subjects and not isinstance(subjects[0], basestring):
-            subjects = [s.name for s in subjects]
+            subjects = [flip(s.name) for s in subjects]
         return subjects
         
     def get_sorted_editions(self):
         """Return a list of works sorted by publish date"""
-        return sorted_work_editions(self.get_olid())
+        return web.ctx.site.get_many(["/books/" + olid for olid in sorted_work_editions(self.get_olid())])
         
     def get_edition_covers(self):
         editions = web.ctx.site.get_many(web.ctx.site.things({"type": "/type/edition", "works": self.key, "limit": 1000}))
