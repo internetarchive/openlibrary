@@ -342,15 +342,14 @@ def find_works(akey, book_iter, existing={}):
         #print len(editions), first
         use_subtitle = None
         for k, v in subtitles.iteritems():
-            if k.strip(' .').lower() in ('', 'roman'):
+            lc_k = k.strip(' .').lower()
+            if lc_k in ('', 'roman') or 'edition' in lc_k:
                 continue
             num = sum(v.values())
             overall = float(num) / float(edition_count)
             ratio = float(num) / float(with_subtitle_count)
-            if ratio > 0.5:
+            if overall > 0.2 and ratio > 0.5:
                 use_subtitle = freq_dict_top(v)
-                #use_subtitle = dict(v)
-            #print '  ', k, overall, ratio, num, dict(v)
         w = {'title': first, 'editions': editions}
         if use_subtitle:
             w['subtitle'] = use_subtitle
@@ -367,9 +366,7 @@ def books_from_cache():
     for line in open('book_cache'):
         yield eval(line)
 
-def update_works(akey, do_updates = False)
-    title_redirects = find_title_redirects(akey)
-    works = find_works(akey, get_books(akey, books_query(akey)), existing=title_redirects)
+def update_works(akey, works, do_updates = False):
 
     # we can now look up all works by an author   
     while True: # until redirects repaired
@@ -485,4 +482,7 @@ def update_works(akey, do_updates = False)
 if __name__ == '__main__':
     akey = '/a/' + sys.argv[1]
 
-    update_works(akey, do_updates=False)
+    title_redirects = find_title_redirects(akey)
+    works = find_works(akey, get_books(akey, books_query(akey)), existing=title_redirects)
+    print_works(works)
+    #update_works(akey, works, do_updates=False)
