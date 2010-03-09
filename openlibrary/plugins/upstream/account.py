@@ -116,12 +116,16 @@ class account_create(delegate.page):
         return render['account/create'](f)
     
     def POST(self):
-        i = web.input('email', 'password', 'username')
+        i = web.input('email', 'password', 'username', agreement="no")
         i.displayname = i.get('displayname') or i.username
         
         f = forms.Register()
         
         if not f.validates(i):
+            return render['account/create'](f)
+            
+        if i.agreement != "yes":
+            f.note = utils.get_error("account_create_tos_not_selected")
             return render['account/create'](f)
         
         try:
