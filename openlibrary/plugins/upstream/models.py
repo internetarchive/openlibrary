@@ -317,7 +317,7 @@ class Work(ol_code.Work):
         
     def get_sorted_editions(self):
         """Return a list of works sorted by publish date"""
-        return sorted_work_editions(self.get_olid())
+        return web.ctx.site.get_many(["/books/" + olid for olid in sorted_work_editions(self.get_olid())])
         
     def get_edition_covers(self):
         editions = web.ctx.site.get_many(web.ctx.site.things({"type": "/type/edition", "works": self.key, "limit": 1000}))
