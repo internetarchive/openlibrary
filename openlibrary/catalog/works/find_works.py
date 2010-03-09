@@ -367,26 +367,13 @@ def books_from_cache():
     for line in open('book_cache'):
         yield eval(line)
 
-if __name__ == '__main__':
-    akey = sys.argv[1]
-#    out = open('book_cache', 'w')
-#    for b in books_query(akey):
-#        print >> out, b
-#    out.close()
-#    sys.exit(0)
-    title_redirects = find_title_redirects('/a/' + akey)
-    print `title_redirects`
-    works = find_works(akey, get_books(akey, books_query('/a/' + akey)), existing=title_redirects)
-    #works = find_works(akey, get_books(akey, books_from_cache()))
-
-    print_works(works)
-
-    do_updates = False
-    sys.exit(0)
+def update_works(akey, do_updates = False)
+    title_redirects = find_title_redirects(akey)
+    works = find_works(akey, get_books(akey, books_query(akey)), existing=title_redirects)
 
     # we can now look up all works by an author   
     while True: # until redirects repaired
-        q = {'type':'/type/edition', 'authors':'/a/' + akey, 'works': None}
+        q = {'type':'/type/edition', 'authors': akey, 'works': None}
         work_to_edition = defaultdict(set)
         edition_to_work = defaultdict(set)
         for e in query_iter(q):
@@ -483,7 +470,7 @@ if __name__ == '__main__':
     assert len(work_to_edition) == len(all_existing)
 
     if not do_updates:
-        sys.exit(0)
+        return
 
     for key in work_keys:
         w = ol.get(key)
@@ -494,3 +481,8 @@ if __name__ == '__main__':
 
     requests = ['<commit />']
     solr_update(requests, debug=True)
+
+if __name__ == '__main__':
+    akey = '/a/' + sys.argv[1]
+
+    update_works(akey, do_updates=False)
