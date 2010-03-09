@@ -4,12 +4,14 @@ import simplejson
 import re
 from collections import defaultdict
 
+from infogami import config
 from infogami.infobase import client
 from infogami.utils.view import safeint
 
 from openlibrary.plugins.search.code import SearchProcessor
 from openlibrary.plugins.openlibrary import code as ol_code
 from openlibrary.plugins.worksearch.code import works_by_author, sorted_work_editions
+from openlibrary.utils.solr import Solr
 
 from utils import get_coverstore_url, MultiDict, parse_toc, parse_datetime, get_edition_config
 import account
@@ -259,13 +261,34 @@ class Author(ol_code.Author):
         return works_by_author(self.get_olid(), i.sort, offset, limit)
 
 re_year = re.compile(r'(\d{4})$')
+
+def get_works_solr():
+    base_url = "http://%s/solr/works" % config.plugin_worksearch.get('solr')
+    return Solr(base_url)
         
 class Work(ol_code.Work):
     def get_olid(self):
         return self.key.split('/')[-1]
 
     def get_covers(self):
-        return [Image("w", id) for id in self.covers if id > 0]
+        if self.covers:
+            return [Image("w", id) for id in self.covers if id > 0]
+        else:
+            return self.get_covers_from_solr()
+            
+    def get_covers_from_solr(self):
+        solr = get_works_solr()
+        d = solr.select({"key": self.key.split("/")[-1]}, fields=["cover_edition_key", "cover_id"])
+        if d.num_found > 0:
+            w = d.docs[0]
+            if 'cover_id' in w:
+                return [Image("w", int(w['cover_id']))]
+            elif 'cover_edition_key' in w:
+                cover_edition = web.ctx.site.get("/books/" + w['cover_edition_key'])
+                cover = cover_edition and cover_edition.get_cover()
+                if cover:
+                    return [cover]
+        return []
     
     def get_cover(self):
         covers = self.get_covers()
