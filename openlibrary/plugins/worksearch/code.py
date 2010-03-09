@@ -538,7 +538,7 @@ def sorted_work_editions(wkey, json_data=None):
         json_data = urllib.urlopen(solr_select).read()
     reply = json.loads(json_data)
 
-    if reply['response']['numFound'] == '0':
+    if reply['response']['numFound'] == 0:
         return []
     return reply["response"]['docs'][0].get('edition_key', [])
 
