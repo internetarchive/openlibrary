@@ -6,20 +6,18 @@ $ _x = ctx.setdefault('usergroup', 'admin')
 $var title: [Admin Center] People
 
 <div id="contentBody">
-<div class="head">
-        <h1><a href="/admin/">Admin</a> / People</h1>
+    <h1><a href="/admin/">Admin</a> / People</h1>
 
-</div>
-
-<table id="adminHistory" style="width: 70%; clear: both;">
+<table id="adminHistory">
     <thead>
     <tr>
         <th>$_("Date/Time")</th>
         <th>$_("Name")</th>
         <th>$_("email")</th>
-        <th>$_("#edits")</th>
+        <th>$_("Edits")</th>
     </tr>
     </thead>
+    <tbody>
     $for a in get_recent_accounts(limit=50):
         <tr>
             <td class="time">$datestr(a.created)</td>
@@ -27,9 +25,12 @@ $var title: [Admin Center] People
             <td class="displayname">$a.get_email()</td>
             <td class="comment">$a.get_edit_count()</td>
         </tr>
+    </tbody>
     </table>
 
-<h2>$_("Edit History")</h2>
+<div class="head">
+    <h2>$_("Edit History")</h2>
+</div>
 $:render_template("admin/history", get_recent_changes(limit=5))
 
 </div>

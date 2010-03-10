@@ -15,7 +15,7 @@ $var title: $name
 
 <div id="contentHead">
     $:macros.databarHistory(page)
-    <span class="tools">$_("Currently viewing the history for")</span>
+    <span class="lightgreen smallest sansserif">$_("History of edits to")</span>
     <h1><a href="$page.key">$name</a></h1>
 </div>
 
@@ -28,12 +28,11 @@ $var title: $name
                 <th class="historyheader">$_("When")</th>
                 <th class="historyheader">$_("Who")</th>
                 <th class="historyheader">$_("¿Qué?")</th>
-                <th class="historyheader" colspan="2" style="text-align:center;">$_("Compare")</th>
+                <th class="historyheader" colspan="2" style="text-align:center;">$_("Diff")</th>
             </tr>
         </thead>
         <tbody>
             $for v in h:
-                $ v = process_version(v)
                 <tr>
                     <td class="number">$v.revision</td>
                     <td class="history"><a href="$changequery(m=None, v=v.revision)" title="$_('View revision %s', v.revision)">$datestr(v.created)</a></td>
@@ -43,19 +42,17 @@ $var title: $name
                         <td class="history" valign="top"><a href="/recentchanges?ip=$v.ip">$v.ip</a></td>
                     $else:
                         <td class="history" valign="top">$v.ip</td>
-                    <td class="comment">$v.comment
-                        $ marc = v.get('machine_comment')
-                        $if marc: (<a href="/show-marc/$marc">$_("View MARC")</a>)
-                    </td>
+                    <td class="comment">$:render_template("history/comment", v)</td>
                     <td class="compare" style="text-align:center;">
                         <input type="radio" id="a$v.revision" name="a" value="$v.revision">
+                        &nbsp;&nbsp;&nbsp;
                         <input type="radio" id="b$v.revision" name="b" value="$v.revision">
                     </td>
                 </tr>
             <tr>
                 <td colspan="4"></td>
                 <td colspan="1" style="text-align:center;">
-                    <input type="submit" value="$_('Compare')"  name="_compare" title="$_('Compare')"/>
+                    <input type="submit" value="$_('Compare')"  name="_compare" title="$_('See Diff')"/>
                 </td>
             </tr>
         </tbody>
@@ -65,9 +62,10 @@ $var title: $name
         </form>
 
         <script>
-            var a = document.getElementById("a${page.latest_revision - 1}");
-            var a2 = document.getElementById("a$page.latest_revision");
-            var b = document.getElementById("b$page.latest_revision");
+            $ rev = page.latest_revision or page.revision
+            var a = document.getElementById("a${rev - 1}");
+            var a2 = document.getElementById("a$rev");
+            var b = document.getElementById("b$rev");
 
             if (a) 
                 a.checked = true;

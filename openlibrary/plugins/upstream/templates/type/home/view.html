@@ -7,18 +7,18 @@ $ text = format(page.title)
 
 <script type="text/javascript">
 \$().ready(function(){
-    \$("#footerHistory").hide();
     \$("#contentHead").hide();
 });
 </script>
-
 <meta name="google-site-verification" content="KrqcZD4l5BLNVyjzSi2sjZBiwgmkJ1W7n6w7ThD7A74" />
+<style type="text/css">#content{min-height:0!important;}</style>
         
 <div id="homeSplash">
     <div id="homeBlurb">
 $:format(page.intro)
     </div>
 </div>
+
 <div id="homeStatement">
 $:format(page.statement)
 </div>
@@ -45,7 +45,9 @@ $:format(page.statement)
     <div class="contentSpacer"></div>
 
     <div class="contentQuarter home" id="homeRecent">
-        <h3>Recently...</h3> 
-        $:render_template("site/around_the_library")
+        <h3><a href="http://blog.openlibrary.org">blog.openlibrary.org</a></h3>
+        <i>Posts...</i>
+        <div id="olBlog">
+        </div>
     </div>
 </div>

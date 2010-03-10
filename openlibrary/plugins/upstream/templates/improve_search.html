@@ -19,6 +19,8 @@ $for cols in group(search_fields, 3):
 $if q:
     <table>
     $for line in q.split('\r\n'):
+        $if not line:
+            $continue
         $ line = line.strip()
         $ q_param = ' OR '.join('%s:(%s)^%s' % (f, line, boost[f]) for f in search_fields)
         $ result = search(q_param)

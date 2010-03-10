@@ -3,9 +3,7 @@ $def with (form)
 $var title: $("Log In")
 
 <div id="contentHead">
-    <div class="head">
-        <h1>$_("Log In")</h1>
-    </div>
+    <h1>$_("Log In")</h1>
 </div>
 
 <script type="text/javascript">
@@ -36,7 +34,14 @@ $var title: $("Log In")
                 <span class="invalid clearfix" htmlfor="password">$form.password.note</span>
             </div>
         </div>
-        <input type="hidden" id="redirect" value="/" name="redirect" />
+
+        <div class="formElement">
+            <div class="input">
+                <input name="remember" type="checkbox" id="remember" />
+                <label for="remember" class="small">Remember me</label>
+            </div>
+        </div>
+        <input type="hidden" id="redirect" value="$form.redirect.value" name="redirect" />
 
         <div class="clearfix"></div>
 

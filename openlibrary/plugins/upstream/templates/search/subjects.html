@@ -2,27 +2,53 @@ $def with (get_results)
 
 $ q = query_param('q')
 $ url_map = { 'person': 'people/', 'place': 'places/', 'time': 'times/' }
+$ bad = set(['org', 'event', 'work'])
+$ bad = set()
 
-<form>
-<input name="q" size="60" value="$q">
-<input type="submit" value="search">
-</form>
-<style>td { padding:3px }</style>
+<style>
+.subjectList ul {margin-top: 30px;}
+.subjectList li {line-height: 1.875em;}
+</style>
+
+<div id="contentHead">
+    <h1>
+        $_("Subject Search")
+    </h1>
 
 $if q:
     $ results = get_results(q)
     $ response = results['response']
-    $response['numFound'] result(s) found
-    <table>
-    <tr><td><b>Name</b><td><b>type</b></td><td><b>count</b></td></tr>
+    <p class="sansserif darkgreen collapse"><strong>$commify(response['numFound']) hit$("s" if response['numFound'] != 1 else "")</strong></p>
+</div>
+    
+<div id="contentMeta">
+    
+    <div class="section">
+    
+    <form class="siteSearch olform">
+        <input type="text" class="larger" name="q" size="100" style="width: 505px;" value="$q"/>
+        <input type="submit"  class="large" value="$_('Search')"/>
+    </form>
+    
+    </div>
+    
+$if q:
+    <ul class="subjectList">
     $for doc in response['docs']:
         $ n = doc['name']
         $ key = '/subjects/' + url_map.get(doc['type'], '') + n.replace(' ', '_')
-        <tr>
-            <td><a href="$key">$n</a></td>
-            <td>$doc['type']</td>
-            <td align="right">$doc['count']</td>
+        
+        <li>
+            $if doc['type'] in bad:
+                <span class="fixthis" title="coming soon">$n</span>
+            $else:
+                <a href="$key">$n</a> 
+            <span class="count">&nbsp;&nbsp;<b>$commify(doc['count']) book$("s" if doc['count'] != 1 else "")</b>, $doc['type']</span>
             $if doc['type'] == 'work':
-                <td><a href="http://en.wikipedia.org/wiki/$n">Wikipedia</a></td>
-        </tr>
-    </table>
+                 $if ' (' in n:
+                     $ n = n[:n.find(' (')]
+                 <span class="sansserif smaller">- <a href="http://en.wikipedia.org/wiki/$n">Wikipedia</a></span>
+        </li>
+    </ul>
+    
+</div>
