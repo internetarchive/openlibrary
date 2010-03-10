@@ -523,7 +523,17 @@ def update_works(akey, works, do_updates=False):
     assert len(work_to_edition) == len(all_existing)
 
     if not do_updates:
-        return
+        return []
+
+    return work_keys
+
+if __name__ == '__main__':
+    akey = '/a/' + sys.argv[1]
+
+    title_redirects = find_title_redirects(akey)
+    works = find_works(akey, get_books(akey, books_query(akey)), existing=title_redirects)
+    #print_works(works)
+    work_keys = update_works(akey, works, do_updates=True)
 
     for key in work_keys:
         w = ol.get(key)
@@ -532,13 +542,6 @@ def update_works(akey, works, do_updates=False):
             print 'no cover found'
         update_work(withKey(key), debug=True)
 
-    requests = ['<commit />']
-    solr_update(requests, debug=True)
-
-if __name__ == '__main__':
-    akey = '/a/' + sys.argv[1]
-
-    title_redirects = find_title_redirects(akey)
-    works = find_works(akey, get_books(akey, books_query(akey)), existing=title_redirects)
-    #print_works(works)
-    update_works(akey, works, do_updates=True)
+    if work_keys:
+        requests = ['<commit />']
+        solr_update(requests, debug=True)
