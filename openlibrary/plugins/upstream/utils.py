@@ -552,6 +552,11 @@ def sprintf(s, *a, **kw):
         return s % args
     else:
         return s
+        
+class Request:
+    path = property(lambda: web.ctx.path)
+    home = property(lambda: web.ctx.home)
+    domain = property(lambda: web.ctx.host)
 
 def setup():
     """Do required initialization"""
@@ -563,7 +568,8 @@ def setup():
     web.commify = commify
     
     web.template.Template.globals.update({
-        'HTML': HTML
+        'HTML': HTML,
+        'request': Request()
     })
     
 if __name__ == '__main__':
