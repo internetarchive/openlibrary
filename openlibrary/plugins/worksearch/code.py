@@ -1,3 +1,4 @@
+
 import web, re, urllib
 from lxml.etree import parse, tostring, XML, XMLSyntaxError
 from infogami.utils import delegate
@@ -469,6 +470,10 @@ class subjects(delegate.page):
             raise web.redirect(key.lower())
             
         page = get_subject(key, details=True)
+        
+        if page.work_count == 0:
+            return render_template('subjects/notfound.tmpl', key)
+        
         return render_template("subjects", page)
         
 class search(delegate.page):
