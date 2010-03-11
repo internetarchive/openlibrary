@@ -554,9 +554,9 @@ def sprintf(s, *a, **kw):
         return s
         
 class Request:
-    path = property(lambda: web.ctx.path)
-    home = property(lambda: web.ctx.home)
-    domain = property(lambda: web.ctx.host)
+    path = property(lambda self: web.ctx.path)
+    home = property(lambda self: web.ctx.home)
+    domain = property(lambda self: web.ctx.host)
 
 def setup():
     """Do required initialization"""
