@@ -219,9 +219,14 @@ def do_search(param, sort, page=1, rows=100):
 def get_doc(doc):
     e_ia = doc.find("arr[@name='ia']")
     first_pub = None
-    e_first_pub = doc.find("arr[@name='first_publish_year']")
-    if e_first_pub is not None and len(e_first_pub) == 1:
-        first_pub = e_first_pub[0].text
+    e_first_pub = doc.find("int[@name='first_publish_year']")
+    if e_first_pub is not None:
+        first_pub = e_first_pub.text
+
+    work_subtitle = None
+    e_subtitle = doc.find("str[@name='subtitle']")
+    if e_subtitle is not None:
+        work_subtitle = e_subtitle.text
 
     ak = [e.text for e in doc.find("arr[@name='author_key']")]
     an = [e.text for e in doc.find("arr[@name='author_name']")]
@@ -236,6 +241,7 @@ def get_doc(doc):
         ia = [e.text for e in (e_ia if e_ia is not None else [])],
         authors = [(i, tidy_name(j)) for i, j in zip(ak, an)],
         first_publish_year = first_pub,
+        subtitle = work_subtitle,
         cover_edition_key = (cover.text if cover is not None else None),
     )
 
@@ -259,8 +265,9 @@ def work_object(w):
         first_publish_year = (w['first_publish_year'] if 'first_publish_year' in w else None),
         ia = w.get('ia', [])
     )
-    if w.get('has_fulltext', None):
-        obj['has_fulltext'] = w['has_fulltext']
+    for f in 'has_fulltext', 'subtitle':
+        if w.get(f, None):
+            obj[f] = w[f]
     return web.storage(obj)
 
 def get_facet(facets, f, limit=None):
@@ -510,7 +517,7 @@ class search(delegate.page):
 
 def works_by_author(akey, sort='editions', offset=0, limit=1000):
     q='author_key:' + akey
-    solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=key,author_name,author_key,title,edition_count,ia,cover_edition_key,has_fulltext,first_publish_year&qt=standard&wt=json" % (q, offset, limit)
+    solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=key,author_name,author_key,title,subtitle,edition_count,ia,cover_edition_key,has_fulltext,first_publish_year&qt=standard&wt=json" % (q, offset, limit)
     facet_fields = ["author_facet", "language", "publish_year", "publisher_facet", "subject_facet", "person_facet", "place_facet", "time_facet"]
     if sort == 'editions':
         solr_select += '&sort=edition_count+desc'
