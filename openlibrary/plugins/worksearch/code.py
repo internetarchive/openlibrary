@@ -126,6 +126,7 @@ def read_isbn(s):
 
 re_fields = re.compile('(' + '|'.join(all_fields) + r'):', re.L)
 re_author_key = re.compile(r'(OL\d+A)')
+re_special_char = re.compile('[-(":]')
 
 def run_solr_query(param = {}, rows=100, page=1, sort=None):
     q_list = []
@@ -142,7 +143,12 @@ def run_solr_query(param = {}, rows=100, page=1, sort=None):
             if isbn:
                 q_list.append('isbn:(%s)' % isbn)
             else:
-                q_list.append('(' + ' OR '.join('%s:(%s)' % (f, q_param) for f in search_fields) + ')')
+                m = re_special_char.search(q_param)
+                if m:
+                    q_list.append('(' + ' OR '.join('%s:(%s)' % (f, q_param) for f in search_fields) + ')')
+                else:
+                    terms = q_param.split(' ')
+                    q_list.extend('(' + ' OR '.join('%s:(%s)' % (f, t) for f in search_fields) + ')' for t in terms)
     else:
         if 'author' in param:
             v = param['author'].strip()
