@@ -151,7 +151,7 @@ def run_solr_query(param = {}, rows=100, page=1, sort=None):
                     q_list.append('(' + ' OR '.join('%s:(%s)' % (f, q_param) for f in search_fields) + ')')
                 else:
                     terms = q_param.split(' ')
-                    q_list.extend('(' + ' OR '.join('%s:(%s)' % (f, t) for f in non_key_fields) + ')' for t.lower() in terms if t not in stop)
+                    q_list.extend('(' + ' OR '.join('%s:(%s)' % (f, t.lower()) for f in non_key_fields) + ')' for t in terms if t.lower() not in stop)
     else:
         if 'author' in param:
             v = param['author'].strip()
