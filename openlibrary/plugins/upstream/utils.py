@@ -515,9 +515,6 @@ def _get_recent_changes():
     site = web.ctx.get('site') or delegate.create_site()
     web.ctx.setdefault("ip", "127.0.0.1")
     
-    q = {"bot": False, "limit": 50}
-    result = site.versions(q)
-
     # The recentchanges can have multiple revisions for a document if it has been modified more than once. 
     # Take only the most recent revision in that case.
     visited = set()
@@ -527,7 +524,17 @@ def _get_recent_changes():
         else:
             visited.add(key)
             return False
-    result = [r for r in result if not is_visited(r.key)]
+       
+    # ignore reverts
+    re_revert = web.re_compile("reverted to revision \d+")
+    def is_revert(r):
+        return re_revert.match(r.comment)
+
+    # take the 100 recent changes, filter them and take the first 50
+    q = {"bot": False, "limit": 100}
+    result = site.versions(q)
+    result = [r for r in result if not is_visited(r.key) and not is_revert(r)]
+    result = result[:50]
 
     def process_thing(thing):
         t = web.storage()
