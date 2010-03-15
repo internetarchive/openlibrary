@@ -45,6 +45,7 @@ render = template.render
 search_fields = ["key", "redirects", "title", "subtitle", "alternative_title", "alternative_subtitle", "edition_key", "by_statement", "publish_date", "lccn", "ia", "oclc", "isbn", "contributor", "publish_place", "publisher", "first_sentence", "author_key", "author_name", "author_alternative_name", "subject", "person", "place", "time"]
 
 non_key_fields = [i for i in search_fields if i != 'redirects' and 'key' not in i]
+stop = set(['the', 'of'])
 
 all_fields = search_fields + ["has_fulltext", "title_suggest", "edition_count", "publish_year", "language", "number_of_pages", "ia_count", "publisher_facet", "author_facet", "first_publish_year"] 
 
@@ -147,10 +148,10 @@ def run_solr_query(param = {}, rows=100, page=1, sort=None):
             else:
                 m = re_special_char.search(q_param)
                 if m:
-                    q_list.append('(' + ' OR '.join('%s:(%s)' % (f, q_param) for f in non_key_fields) + ')')
+                    q_list.append('(' + ' OR '.join('%s:(%s)' % (f, q_param) for f in search_fields) + ')')
                 else:
                     terms = q_param.split(' ')
-                    q_list.extend('(' + ' OR '.join('%s:(%s)' % (f, t) for f in search_fields) + ')' for t in terms)
+                    q_list.extend('(' + ' OR '.join('%s:(%s)' % (f, t) for f in non_key_fields) + ')' for t.lower() in terms if t not in stop)
     else:
         if 'author' in param:
             v = param['author'].strip()
