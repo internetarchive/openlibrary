@@ -45,7 +45,7 @@ render = template.render
 search_fields = ["key", "redirects", "title", "subtitle", "alternative_title", "alternative_subtitle", "edition_key", "by_statement", "publish_date", "lccn", "ia", "oclc", "isbn", "contributor", "publish_place", "publisher", "first_sentence", "author_key", "author_name", "author_alternative_name", "subject", "person", "place", "time"]
 
 non_key_fields = [i for i in search_fields if i != 'redirects' and 'key' not in i]
-stop = set(['the', 'of'])
+stop = set(['the', 'of', 'by'])
 
 all_fields = search_fields + ["has_fulltext", "title_suggest", "edition_count", "publish_year", "language", "number_of_pages", "ia_count", "publisher_facet", "author_facet", "first_publish_year"] 
 
