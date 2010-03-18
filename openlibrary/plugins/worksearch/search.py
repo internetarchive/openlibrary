@@ -68,8 +68,8 @@ def work_wrapper(w):
         d.cover_id = None
 
     # special care to handle missing author_key/author_name in the solr record
-    w.set_default('author_key', [])
-    w.set_default('author_name', [])
+    w.setdefault('author_key', [])
+    w.setdefault('author_name', [])
     
     d.authors = [web.storage(key='/authors/' + k, name=n)
                  for k, n in zip(w['author_key'], w['author_name'])]
