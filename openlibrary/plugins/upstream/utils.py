@@ -6,6 +6,8 @@ from UserDict import DictMixin
 from babel.numbers import format_number
 from collections import defaultdict
 import random
+import urllib
+import xml.etree.ElementTree as etree
 
 from infogami import config
 from infogami.utils import view, delegate
@@ -564,6 +566,23 @@ def sprintf(s, *a, **kw):
     else:
         return s
         
+def _get_blog_feeds():
+    url = "http://blog.openlibrary.org/feed/"
+    tree = etree.parse(urllib.urlopen(url))
+    
+    def parse_item(item):
+        return web.storage(
+            title=item.find("title").text,
+            link=item.find("link").text
+        )
+    return [parse_item(item) for item in tree.findall("//item")]
+    
+_get_blog_feeds = web.memoize(_get_blog_feeds, expires=5*60, background=True)
+
+@public
+def get_blog_feeds():
+    return _get_blog_feeds()
+
 class Request:
     path = property(lambda self: web.ctx.path)
     home = property(lambda self: web.ctx.home)

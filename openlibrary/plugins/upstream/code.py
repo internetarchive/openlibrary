@@ -206,7 +206,7 @@ class revert(delegate.mode):
         raise web.seeother(key)
 
 class report_spam(delegate.page):
-    path = '/contact/spam'
+    path = '/contact'
     def GET(self):
         i = web.input(path=None)
         email = context.user and context.user.email
@@ -221,7 +221,7 @@ class report_spam(delegate.page):
             'sent': datetime.datetime.utcnow(),
         })
         msg = render_template('email/spam_report', fields)
-        web.sendmail(config.from_address, config.report_spam_address, 'Open Library spam report', str(msg))
+        web.sendmail(config.from_address, config.report_spam_address, msg.subject, str(msg))
         return render_template("contact/spam/sent")
 
 def setup():
