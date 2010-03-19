@@ -61,7 +61,7 @@ def run_update():
         solr_update(requests + ['<commit/>'], index='authors', debug=True)
     authors_to_update = set()
     works_to_update = set()
-    print >> open(statefile, 'w'), offset
+    print >> open(state_file, 'w'), offset
 
 while True:
     url = base + offset
