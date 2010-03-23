@@ -214,15 +214,15 @@ def do_search(param, sort, page=1, rows=100):
             error = (web.htmlunquote(m.group(1)) if m else reply),
         )
 
-    suggestions = root.find("lst[@name='spellcheck']").find("lst[@name='suggestions']")
+    spellcheck = root.find("lst[@name='spellcheck']")
     spell_map = {}
-    for e in suggestions:
-        print e.tag
-        assert e.tag == 'lst'
-        a = e.attrib['name']
-        if a in spell_map:
-            continue
-        spell_map[a] = e.find("arr[@name='suggestion']")[0].text
+    if spellcheck:
+        for e in spellcheck.find("lst[@name='suggestions']"):
+            assert e.tag == 'lst'
+            a = e.attrib['name']
+            if a in spell_map:
+                continue
+            spell_map[a] = e.find("arr[@name='suggestion']")[0].text
 
     docs = root.find('result')
     return web.storage(
