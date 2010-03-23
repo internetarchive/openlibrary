@@ -42,12 +42,35 @@ class Image:
         return "<image: %s/%d>" % (self.category, self.id)
 
 def query_coverstore(category, **kw):
+    # Optimization to speedup work pages by avoiding the multiple requests to coverstore
+    try:
+        if kw.keys() == ["olid"]:
+            return web.ctx['coverstore_cache'][kw['olid']]
+    except KeyError:
+        pass
+        
     try:
         url = "%s/%s/query?%s" % (get_coverstore_url(), category, urllib.urlencode(kw))
         json = urllib2.urlopen(url).read()
         return simplejson.loads(json)
     except IOError:
         return []
+        
+def populate_coverstore_cache(olids):
+    try:
+        url = "%s/b/query?cmd=ids&olid=%s"% (get_coverstore_url(), ",".join(olids))
+        d = simplejson.loads(urllib2.urlopen(url).read())
+        
+        cache = {}
+        for olid in olids:
+            if olid in d:
+                v = [d[olid]]
+            else:
+                v = []
+            cache[olid] = v
+        web.ctx.coverstore_cache = cache
+    except IOError:
+        pass
 
 class Edition(ol_code.Edition):
     def get_title(self):
@@ -336,6 +359,9 @@ class Work(ol_code.Work):
         editions = w and w.get('edition_key')
         
         if editions:
+            # pre-fetch the cover ids to avoid multiple requests to coverstore
+            populate_coverstore_cache(editions)
+            
             return web.ctx.site.get_many(["/books/" + olid for olid in editions])
         else:
             return []
