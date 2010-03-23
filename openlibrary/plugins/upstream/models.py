@@ -57,6 +57,10 @@ def query_coverstore(category, **kw):
         return []
         
 def populate_coverstore_cache(olids):
+    # This single combined query is running slower that N individual queries.
+    # Don't try that until it is fixed.
+    return
+    
     try:
         url = "%s/b/query?cmd=ids&olid=%s"% (get_coverstore_url(), ",".join(olids))
         d = simplejson.loads(urllib2.urlopen(url).read())
