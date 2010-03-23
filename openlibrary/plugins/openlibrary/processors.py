@@ -153,10 +153,10 @@ class ProfileProcessor:
         if i._profile.lower() == "true":
             out, result = web.profile(handler)()
             if isinstance(out, web.template.TemplateResult):
-                out.__body__ = out.get('__body__', '') + '<pre>' + web.websafe(result) + '</pre>'
+                out.__body__ = out.get('__body__', '') + '<pre class="profile">' + web.websafe(result) + '</pre>'
                 return out
             elif isinstance(out, basestring):
-                return out + '<pre>' + web.websafe(result) + '</pre>'
+                return out + br + '<pre class="profile">' + web.websafe(result) + '</pre>'
             else:
                 # don't know how to handle this.
                 return out
