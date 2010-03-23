@@ -277,10 +277,8 @@ class Work(ol_code.Work):
             return self.get_covers_from_solr()
             
     def get_covers_from_solr(self):
-        solr = get_works_solr()
-        d = solr.select({"key": self.key.split("/")[-1]}, fields=["cover_edition_key", "cover_id"])
-        if d.num_found > 0:
-            w = d.docs[0]
+        w = self._solr_data
+        if w:
             if 'cover_id' in w:
                 return [Image("w", int(w['cover_id']))]
             elif 'cover_edition_key' in w:
@@ -289,6 +287,23 @@ class Work(ol_code.Work):
                 if cover:
                     return [cover]
         return []
+        
+    def _get_solr_data(self):
+        key = self.get_olid()
+        fields = ["cover_edition_key", "cover_id", "edition_key"]
+        
+        solr = get_works_solr()
+        d = solr.select({"key": key}, fields=fields)
+        if d.num_found > 0:
+            w = d.docs[0]
+        else:
+            w = None
+        
+        # Replace _solr_data property with the attribute
+        self.__dict__['_solr_data'] = w
+        return w
+        
+    _solr_data = property(_get_solr_data)
     
     def get_cover(self):
         covers = self.get_covers()
@@ -317,7 +332,13 @@ class Work(ol_code.Work):
         
     def get_sorted_editions(self):
         """Return a list of works sorted by publish date"""
-        return web.ctx.site.get_many(["/books/" + olid for olid in sorted_work_editions(self.get_olid())])
+        w = self._solr_data
+        editions = w and w.get('edition_key')
+        
+        if editions:
+            return web.ctx.site.get_many(["/books/" + olid for olid in editions])
+        else:
+            return []
         
     def get_edition_covers(self):
         editions = web.ctx.site.get_many(web.ctx.site.things({"type": "/type/edition", "works": self.key, "limit": 1000}))
