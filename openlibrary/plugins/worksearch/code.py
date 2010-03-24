@@ -30,7 +30,7 @@ if hasattr(config, 'plugin_worksearch'):
 
     spellcheck_count = config.plugin_worksearch.get('spellcheck_count', 10)
 
-to_drop = set('''!*"'();:@&=+$,/?%#[]''')
+to_drop = set(''';/?:@&=+$,<>#%"{}|\\^[]`\n\r''')
 
 def str_to_key(s):
     return ''.join(c if c != ' ' else ' ' for c in s.lower() if c not in to_drop)
