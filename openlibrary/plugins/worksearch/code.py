@@ -166,7 +166,7 @@ def run_solr_query(param = {}, rows=100, page=1, sort=None):
 
     q = url_quote(' AND '.join(q_list))
 
-    solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&start=%d&rows=%d&fl=key,author_name,author_key,title,subtitle,edition_count,ia,has_fulltext,first_publish_year,cover_edition_key&qt=standard&wt=standard" % (q, offset, rows)
+    solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&start=%d&rows=%d&fl=key,author_name,author_key,title,subtitle,edition_count,ia,has_fulltext,first_publish_year,cover_edition_key&qt=standard&wt=standard&spellcheck=true" % (q, offset, rows)
     solr_select += "&facet=true&" + '&'.join("facet.field=" + f for f in facet_fields)
 
     k = 'has_fulltext'
@@ -214,6 +214,16 @@ def do_search(param, sort, page=1, rows=100):
             error = (web.htmlunquote(m.group(1)) if m else reply),
         )
 
+    spellcheck = root.find("lst[@name='spellcheck']")
+    spell_map = {}
+    if spellcheck:
+        for e in spellcheck.find("lst[@name='suggestions']"):
+            assert e.tag == 'lst'
+            a = e.attrib['name']
+            if a in spell_map:
+                continue
+            spell_map[a] = e.find("arr[@name='suggestion']")[0].text
+
     docs = root.find('result')
     return web.storage(
         facet_counts = read_facets(root),
@@ -223,6 +233,7 @@ def do_search(param, sort, page=1, rows=100):
         solr_select = solr_select,
         q_list = q_list,
         error = None,
+        spellcheck = spell_map,
     )
 
 def get_doc(doc):
@@ -603,7 +614,8 @@ class merge_authors(delegate.page):
             errors += ['you must select a master author record']
         if not keys:
             errors += ['no authors selected']
-        return render.merge_authors(errors, i.master, keys, top_books_from_author, do_merge)
+        return render['merge/authors.tmpl'](errors, i.master, keys, \
+            top_books_from_author, do_merge)
 
 class improve_search(delegate.page):
     def GET(self):
