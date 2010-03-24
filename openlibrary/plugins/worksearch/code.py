@@ -28,10 +28,12 @@ if hasattr(config, 'plugin_worksearch'):
     solr_author_host = config.plugin_worksearch.get('author_solr')
     solr_author_select_url = "http://" + solr_author_host + "/solr/authors/select"
 
+    spellcheck_count = config.plugin_worksearch.get('spellcheck_count', 10)
+
 to_drop = set('''!*"'();:@&=+$,/?%#[]''')
 
 def str_to_key(s):
-    return ''.join(c for c in s.lower() if c not in to_drop)
+    return ''.join(c if c != ' ' else ' ' for c in s.lower() if c not in to_drop)
 
 re_author_facet = re.compile('^(OL\d+A) (.*)$')
 def read_author_facet(af):
@@ -43,9 +45,6 @@ def read_author_facet(af):
 render = template.render
 
 search_fields = ["key", "redirects", "title", "subtitle", "alternative_title", "alternative_subtitle", "edition_key", "by_statement", "publish_date", "lccn", "ia", "oclc", "isbn", "contributor", "publish_place", "publisher", "first_sentence", "author_key", "author_name", "author_alternative_name", "subject", "person", "place", "time"]
-
-non_key_fields = [i for i in search_fields if i != 'redirects' and 'key' not in i]
-stop = set(['the', 'of', 'by', 'in'])
 
 all_fields = search_fields + ["has_fulltext", "title_suggest", "edition_count", "publish_year", "language", "number_of_pages", "ia_count", "publisher_facet", "author_facet", "first_publish_year"] 
 
@@ -129,7 +128,6 @@ def read_isbn(s):
 
 re_fields = re.compile('(' + '|'.join(all_fields) + r'):', re.L)
 re_author_key = re.compile(r'(OL\d+A)')
-re_special_char = re.compile('[-(":]')
 
 def run_solr_query(param = {}, rows=100, page=1, sort=None):
     q_list = []
@@ -146,12 +144,7 @@ def run_solr_query(param = {}, rows=100, page=1, sort=None):
             if isbn:
                 q_list.append('isbn:(%s)' % isbn)
             else:
-                m = re_special_char.search(q_param)
-                if m:
-                    q_list.append('(' + ' OR '.join('%s:(%s)' % (f, q_param) for f in search_fields) + ')')
-                else:
-                    terms = q_param.split(' ')
-                    q_list.extend('(' + ' OR '.join('%s:(%s)' % (f, t.lower()) for f in non_key_fields) + ')' for t in terms if t.lower() not in stop)
+                q_list.append('(%s)' % q_param)
     else:
         if 'author' in param:
             v = param['author'].strip()
@@ -166,7 +159,7 @@ def run_solr_query(param = {}, rows=100, page=1, sort=None):
 
     q = url_quote(' AND '.join(q_list))
 
-    solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&start=%d&rows=%d&fl=key,author_name,author_key,title,subtitle,edition_count,ia,has_fulltext,first_publish_year,cover_edition_key&qt=standard&wt=standard&spellcheck=true" % (q, offset, rows)
+    solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&start=%d&rows=%d&fl=key,author_name,author_key,title,subtitle,edition_count,ia,has_fulltext,first_publish_year,cover_edition_key&qt=standard&wt=standard&spellcheck=true&spellcheck.count=%d" % (q, offset, rows, spellcheck_count)
     solr_select += "&facet=true&" + '&'.join("facet.field=" + f for f in facet_fields)
 
     k = 'has_fulltext'
@@ -222,7 +215,7 @@ def do_search(param, sort, page=1, rows=100):
             a = e.attrib['name']
             if a in spell_map:
                 continue
-            spell_map[a] = e.find("arr[@name='suggestion']")[0].text
+            spell_map[a] = [i.text for i in e.find("arr[@name='suggestion']")]
 
     docs = root.find('result')
     return web.storage(
@@ -382,7 +375,7 @@ def get_subject(key, details=False, offset=0, limit=12, **filters):
         
     meta = finddict(SUBJECTS, prefix=prefix)
     
-    q = {meta.facet_key: str_to_key(path).lower().replace('_', ' ')}
+    q = {meta.facet_key: str_to_key(path).lower()}
     subject_type = meta.name
 
     name = path.replace("_", " ")
@@ -614,6 +607,18 @@ class merge_authors(delegate.page):
             errors += ['you must select a master author record']
         if not keys:
             errors += ['no authors selected']
+
+        if not errors and i.master:
+            master_key = '/authors/' + i.master
+            assert web.ctx.site.get(master_key)['type']['key'] == '/type/author'
+            old_keys = set(k for k in keys if k != i.master) 
+            for old in old_keys:
+                q = {'type': '/type/work', 'authors': {'author': '/authors/' + old}}
+                print 'author:', old
+                work_keys = web.ctx.site.things(q)
+
+            return 'merged'
+
         return render['merge/authors.tmpl'](errors, i.master, keys, \
             top_books_from_author, do_merge)
 
