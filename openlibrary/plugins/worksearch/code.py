@@ -28,7 +28,7 @@ if hasattr(config, 'plugin_worksearch'):
     solr_author_host = config.plugin_worksearch.get('author_solr')
     solr_author_select_url = "http://" + solr_author_host + "/solr/authors/select"
 
-    spellcheck_count = config.plugin_worksearch.get('spellcheck_count', 10)
+    default_spellcheck_count = config.plugin_worksearch.get('spellcheck_count', 10)
 
 to_drop = set(''';/?:@&=+$,<>#%"{}|\\^[]`\n\r''')
 
@@ -129,7 +129,9 @@ def read_isbn(s):
 re_fields = re.compile('(' + '|'.join(all_fields) + r'):', re.L)
 re_author_key = re.compile(r'(OL\d+A)')
 
-def run_solr_query(param = {}, rows=100, page=1, sort=None):
+def run_solr_query(param = {}, rows=100, page=1, sort=None, spellcheck_count=None):
+    if spellcheck_count == None:
+        spellcheck_count = default_spellcheck_count
     q_list = []
     if 'q' in param:
         q_param = param['q'].strip()
@@ -185,8 +187,8 @@ def run_solr_query(param = {}, rows=100, page=1, sort=None):
 
 re_pre = re.compile(r'<pre>(.*)</pre>', re.S)
 
-def do_search(param, sort, page=1, rows=100):
-    (reply, solr_select, q_list) = run_solr_query(param, rows, page, sort)
+def do_search(param, sort, page=1, rows=100, spellcheck_count=None):
+    (reply, solr_select, q_list) = run_solr_query(param, rows, page, sort, spellcheck_count)
     is_bad = False
     if reply.startswith('<html'):
         is_bad = True
