@@ -34,8 +34,9 @@ def query(category, olid, offset=0, limit=10):
     deleted = False
     
     if isinstance(olid, list):
-        where = web.reparam('deleted=$deleted AND category_id = $category_id AND ', locals()) \
-                + web.sqlors('olid=', olid)
+        if len(olid) == 0:
+            olid = [-1]
+        where = web.reparam('deleted=$deleted AND category_id = $category_id AND olid IN $olid', locals())
     elif olid is None:
         where = web.reparam('deleted=$deleted AND category_id=$category_id', locals())
     else:
