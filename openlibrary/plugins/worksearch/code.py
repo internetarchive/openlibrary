@@ -7,7 +7,7 @@ from openlibrary.catalog.utils import flip_name
 from infogami.utils import view, template
 from infogami.utils.view import safeint
 import simplejson as json
-from pprint import pformat
+
 try:
     from openlibrary.plugins.upstream.utils import get_coverstore_url, render_template
 except AttributeError:
@@ -181,7 +181,6 @@ def run_solr_query(param = {}, rows=100, page=1, sort=None, spellcheck_count=Non
         solr_select += ''.join('&fq=%s:"%s"' % (k, url_quote(l)) for l in v if l)
     if sort:
         solr_select += "&sort=" + url_quote(sort)
-    print solr_select
     reply = urllib.urlopen(solr_select).read()
     return (reply, solr_select, q_list)
 
@@ -246,8 +245,6 @@ def get_doc(doc):
     ak = [e.text for e in doc.find("arr[@name='author_key']")]
     an = [e.text for e in doc.find("arr[@name='author_name']")]
     cover = doc.find("str[@name='cover_edition_key']")
-    if cover is not None:
-        print cover.text
 
     return web.storage(
         key = doc.find("str[@name='key']").text,
@@ -616,7 +613,6 @@ class merge_authors(delegate.page):
             old_keys = set(k for k in keys if k != i.master) 
             for old in old_keys:
                 q = {'type': '/type/work', 'authors': {'author': '/authors/' + old}}
-                print 'author:', old
                 work_keys = web.ctx.site.things(q)
 
             return 'merged'
