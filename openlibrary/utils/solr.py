@@ -114,7 +114,7 @@ class Solr:
     def _prepare_select(self, query):
         def escape(v):
             # TODO: improve this
-            return v.replace('"', r'\"').replace("(", " ").replace(")", " ")
+            return v.replace('"', r'\"').replace("(", "\\(").replace(")", "\\)")
             
         def escape_value(v):
             if isinstance(v, list): # hack for supporting range
