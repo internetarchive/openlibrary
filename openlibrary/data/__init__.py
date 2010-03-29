@@ -10,7 +10,7 @@ def parse_data_table(filename):
     for line in open(filename):
         thing_id, revision, json = pgdecode(line).strip().split("\t")
         d = simplejson.loads(json)
-        yield d['key'], d['type']['key'], d['revision'], json
+        yield d['key'], d['type']['key'], str(d['revision']), json
 
 def _make_sub(d):
     """Make substituter.
