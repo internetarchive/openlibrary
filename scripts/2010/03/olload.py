@@ -1,8 +1,8 @@
 """Script to load Open Library data into various databases.
 
 USAGE:
-    python olload.py bsddb ol.db data.txt
-    python olload.py memcache localhost:11211 data.txt
+    python olload.py bsddb ol.db ol_cdump.txt
+    python olload.py memcache localhost:11211 ol_cdump.txt
 """
 import _init_path
 from openlibrary.data import parse_data_table
@@ -33,10 +33,11 @@ def load_dummy(arg1, data):
 def parse(filename, chunk_size=10000):
     t0 = time.time()
     i = 0
-    for chunk in web.group(parse_data_table(filename), chunk_size):
+    for chunk in web.group(open(filename), chunk_size):
         print i, time.time() - t0
         d = {}
-        for key, type, revision, json in chunk:
+        for line in chunk:
+            key, type, revision, json = line.strip().split("\t")
             d["%s@@%s" % (key, revision)] = json
 
         i += len(d)
