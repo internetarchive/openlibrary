@@ -242,8 +242,14 @@ def get_doc(doc):
     if e_subtitle is not None:
         work_subtitle = e_subtitle.text
 
-    ak = [e.text for e in doc.find("arr[@name='author_key']")]
-    an = [e.text for e in doc.find("arr[@name='author_name']")]
+    if doc.find("arr[@name='author_key']") is None:
+        assert doc.find("arr[@name='author_name']") is None
+        authors = []
+
+    else:
+        ak = [e.text for e in doc.find("arr[@name='author_key']")]
+        an = [e.text for e in doc.find("arr[@name='author_name']")]
+        authors = [(i, tidy_name(j)) for i, j in zip(ak, an)],
     cover = doc.find("str[@name='cover_edition_key']")
 
     return web.storage(
@@ -251,7 +257,7 @@ def get_doc(doc):
         title = doc.find("str[@name='title']").text,
         edition_count = int(doc.find("int[@name='edition_count']").text),
         ia = [e.text for e in (e_ia if e_ia is not None else [])],
-        authors = [(i, tidy_name(j)) for i, j in zip(ak, an)],
+        authors = authors,
         first_publish_year = first_pub,
         subtitle = work_subtitle,
         cover_edition_key = (cover.text if cover is not None else None),
