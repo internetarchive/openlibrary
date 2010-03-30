@@ -26,6 +26,14 @@ def load_bsddb(filename, data):
 
     db.sync()
 
+def load_couchdb(url, data):
+    import urllib
+
+    for chunk in data:
+        docs = ('{"_id": "%s", ' % k + v[1:] for k, v in chunk.iteritems())
+        json = '{"docs": [\n%s\n]}' % ',\n'.join(docs)
+        urllib.urlopen(url + "/_bulk_docs", json).read()
+
 def load_dummy(arg1, data):
     for chunk in data:
         pass
