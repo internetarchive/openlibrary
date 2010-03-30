@@ -26,6 +26,13 @@ def load_bsddb(filename, data):
 
     db.sync()
 
+def load_redis(server, data):
+    import redis
+    host, port = server.split(":")
+    r = redis.Redis(host=host, port=int(port))
+    for chunk in data:
+        r.mset(chunk)
+
 def load_couchdb(url, data):
     import urllib
 
