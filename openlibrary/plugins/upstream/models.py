@@ -283,9 +283,13 @@ class Author(ol_code.Author):
     def get_olid(self):
         return self.key.split('/')[-1]
 
-    def get_books(self, sort='editions', offset=0, limit=1000):
-        i = web.input(sort='editions')
-        return works_by_author(self.get_olid(), i.sort, offset, limit)
+    def get_books(self):
+        i = web.input(sort='editions', page=1)
+        try:
+            page = int(i.page)
+        except ValueError:
+            page = 1
+        return works_by_author(self.get_olid(), sort=i.sort, page=page, rows=100)
 
 re_year = re.compile(r'(\d{4})$')
 
