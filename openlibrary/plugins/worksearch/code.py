@@ -120,6 +120,22 @@ def advanced_to_simple(params):
             q_list.append("%s:(%s)" % (k, params[k]))
     return ' '.join(q_list)
 
+re_paren = re.compile('[()]')
+
+def parse_query(params):
+    q_list = []
+    for k, v in params:
+        v = v.strip()
+        if k == 'q':
+            q_list.append(v)
+        if k == 'title':
+            v = re_paren.sub(r'\\\1', v)
+            q_list.append('title:(%s)' % v)
+        if k == 'author':
+            v = re_paren.sub(r'\\\1', v)
+            q_list.append('author_name:(%s)' % v)
+    return ' '.join(q_list)
+
 re_isbn = re.compile('^([0-9]{9}[0-9X]|[0-9]{13})$')
 
 def read_isbn(s):
@@ -161,7 +177,7 @@ def run_solr_query(param = {}, rows=100, page=1, sort=None, spellcheck_count=Non
 
     q = url_quote(' AND '.join(q_list))
 
-    solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&start=%d&rows=%d&fl=key,author_name,author_key,title,subtitle,edition_count,ia,has_fulltext,first_publish_year,cover_edition_key&qt=standard&wt=standard&spellcheck=true&spellcheck.count=%d" % (q, offset, rows, spellcheck_count)
+    solr_select = solr_select_url + "?version=2.2&defType=dismax&q.op=AND&q=%s&qf=text+title+author_name&bf=sqrt(edition_count)&start=%d&rows=%d&fl=key,author_name,author_key,title,subtitle,edition_count,ia,has_fulltext,first_publish_year,cover_edition_key&qt=standard&wt=standard&spellcheck=true&spellcheck.count=%d" % (q, offset, rows, spellcheck_count)
     solr_select += "&facet=true&" + '&'.join("facet.field=" + f for f in facet_fields)
 
     k = 'has_fulltext'

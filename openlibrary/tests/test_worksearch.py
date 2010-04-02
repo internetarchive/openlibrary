@@ -1,5 +1,5 @@
 import unittest
-from openlibrary.plugins.worksearch.code import search, advanced_to_simple, read_facets, sorted_work_editions
+from openlibrary.plugins.worksearch.code import search, advanced_to_simple, read_facets, sorted_work_editions, parse_query
 from lxml.etree import fromstring
 
 class TestWorkSearch(unittest.TestCase):
@@ -58,3 +58,15 @@ class TestWorkSearch(unittest.TestCase):
         expect = ["OL7536692M","OL7825368M","OL3026366M"]
         self.assertEqual(sorted_work_editions('OL100000W', json_data=json_data), expect)
         
+    def test_query_parser(self):
+        params = [('title', 'food rules'), ('author', 'pollan')]
+        expect = 'title:(food rules) author_name:(pollan)'
+        self.assertEqual(parse_query(params), expect)
+
+        params = [('title', '"food rules"'), ('author', 'pollan')]
+        expect = 'title:("food rules") author_name:(pollan)'
+        self.assertEqual(parse_query(params), expect)
+
+        params = [('q', 'query here'), ('title', 'food rules'), ('author', 'pollan')]
+        expect = 'query here title:(food rules) author_name:(pollan)'
+        self.assertEqual(parse_query(params), expect)
