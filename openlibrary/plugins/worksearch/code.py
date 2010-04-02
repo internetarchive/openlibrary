@@ -175,9 +175,12 @@ def run_solr_query(param = {}, rows=100, page=1, sort=None, spellcheck_count=Non
         check_params = ['title', 'publisher', 'isbn', 'oclc', 'lccn', 'contribtor', 'subject', 'place', 'person', 'time']
         q_list += ['%s:(%s)' % (k, param[k]) for k in check_params if k in param]
 
-    q = url_quote(' AND '.join(q_list))
-
-    solr_select = solr_select_url + "?version=2.2&defType=dismax&q.op=AND&q=%s&qf=text+title+author_name&bf=sqrt(edition_count)&start=%d&rows=%d&fl=key,author_name,author_key,title,subtitle,edition_count,ia,has_fulltext,first_publish_year,cover_edition_key&qt=standard&wt=standard&spellcheck=true&spellcheck.count=%d" % (q, offset, rows, spellcheck_count)
+    if ':' in q:
+        q = web.urlquote(' '.join(q_list + ['_val_:"sqrt(edition_count)^10"']))
+        solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&start=%d&rows=%d&fl=key,author_name,author_key,title,subtitle,edition_count,ia,has_fulltext,first_publish_year,cover_edition_key&qt=standard&wt=standard&spellcheck=true&spellcheck.count=%d" % (q, offset, rows, spellcheck_count)
+    else:
+        q = web.urlquote(' '.join(q_list))
+        solr_select = solr_select_url + "?version=2.2&defType=dismax&q.op=AND&q=%s&qf=text+title^0.75+author_name^0.75&bf=sqrt(edition_count)^10&start=%d&rows=%d&fl=key,author_name,author_key,title,subtitle,edition_count,ia,has_fulltext,first_publish_year,cover_edition_key&qt=standard&wt=standard&spellcheck=true&spellcheck.count=%d" % (q, offset, rows, spellcheck_count)
     solr_select += "&facet=true&" + '&'.join("facet.field=" + f for f in facet_fields)
 
     k = 'has_fulltext'
