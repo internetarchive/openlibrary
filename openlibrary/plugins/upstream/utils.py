@@ -8,6 +8,7 @@ from collections import defaultdict
 import random
 import urllib
 import xml.etree.ElementTree as etree
+import datetime
 
 from infogami import config
 from infogami.utils import view, delegate
@@ -571,9 +572,11 @@ def _get_blog_feeds():
     tree = etree.parse(urllib.urlopen(url))
     
     def parse_item(item):
+        pubdate = datetime.datetime.strptime(item.find("pubDate").text, '%a, %d %b %Y %H:%M:%S +0000')
         return web.storage(
             title=item.find("title").text,
-            link=item.find("link").text
+            link=item.find("link").text,
+            pubdate=pubdate
         )
     return [parse_item(item) for item in tree.findall("//item")]
     
