@@ -530,7 +530,7 @@ def _get_recent_changes():
     # ignore reverts
     re_revert = web.re_compile("reverted to revision \d+")
     def is_revert(r):
-        return re_revert.match(r.comment)
+        return re_revert.match(r.comment or "")
 
     # take the 100 recent changes, filter them and take the first 50
     q = {"bot": False, "limit": 100}
