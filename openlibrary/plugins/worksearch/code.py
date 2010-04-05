@@ -603,7 +603,7 @@ def simple_search(q, offset=0, rows=20, sort=None):
 
 def top_books_from_author(akey, rows=5, offset=0):
     q = 'author_key:(' + akey + ')'
-    solr_select = solr_select_url + "?indent=on&version=2.2&q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=*                        %%2Cscore&qt=standard&wt=standard&explainOther=&hl=on&hl.fl=title" % (q, offset, rows)
+    solr_select = solr_select_url + "?indent=on&version=2.2&q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=*%%2Cscore&qt=standard&wt=standard&explainOther=&hl=on&hl.fl=title" % (q, offset, rows)
     solr_select += "&sort=edition_count+desc"
 
     reply = urllib.urlopen(solr_select)
@@ -612,11 +612,13 @@ def top_books_from_author(akey, rows=5, offset=0):
     if result is None:
         return []
 
-    return [web.storage(
+    books = [web.storage(
         key=doc.find("str[@name='key']").text,
         title=doc.find("str[@name='title']").text,
         edition_count=int(doc.find("int[@name='edition_count']").text),
     ) for doc in result]
+
+    return { 'books': books, 'total': int(result.attrib['numFound']) }
 
 def do_merge():
     return
@@ -645,7 +647,7 @@ class merge_authors(delegate.page):
 
             return 'merged'
 
-        return render['merge/authors.tmpl'](errors, i.master, keys, \
+        return render['merge/authors'](errors, i.master, keys, \
             top_books_from_author, do_merge)
 
 class improve_search(delegate.page):
