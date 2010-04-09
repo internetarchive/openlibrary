@@ -143,7 +143,26 @@ def read_isbn(s):
     return s if re_isbn.match(s) else None
 
 re_fields = re.compile('(' + '|'.join(all_fields) + r'):', re.L)
+re_field = re.compile('([a-zA-Z]+):')
 re_author_key = re.compile(r'(OL\d+A)')
+
+field_name_map = {'author': 'author_name'}
+
+def parse_query_fields(q):
+    found = [(m.start(), m.end()) for m in re_field.finditer(q)]
+    first = q[:found[0][0]].strip()
+    if first:
+        yield 'text', q[:found[0][0]].strip()
+    for field_num in range(len(found)):
+        f = found[field_num]
+        field_name = q[f[0]:f[1]-1].lower()
+        if field_name in field_name_map:
+            field_name = field_name_map[field_name]
+        if field_num == len(found)-1:
+            value = q[f[1]:]
+        else:
+            value = q[f[1]:found[field_num+1][0]]
+        yield field_name, value.strip()
 
 def run_solr_query(param = {}, rows=100, page=1, sort=None, spellcheck_count=None):
     if spellcheck_count == None:
@@ -156,14 +175,16 @@ def run_solr_query(param = {}, rows=100, page=1, sort=None, spellcheck_count=Non
     offset = rows * (page - 1)
     use_dismax = False
     if q_param:
-        if q_param == '*:*' or re_fields.match(q_param):
+        if q_param == '*:*':
             q_list.append(q_param)
+        elif re_field.search(q_param):
+            q_list.extend('%s:(%s)' % i for i in parse_query_fields(q_param))
         else:
             isbn = read_isbn(q_param)
             if isbn:
                 q_list.append('isbn:(%s)' % isbn)
             else:
-                q_list.append('(%s)' % q_param)
+                q_list.append(q_param)
                 use_dismax = True
     else:
         if 'author' in param:
@@ -552,7 +573,15 @@ class search(delegate.page):
         if params:
             raise web.seeother(web.changequery(**params))
 
-        return render.work_search(i, do_search, get_doc)
+        q_list = []
+        q = i.get('q', '').strip()
+        if q:
+            q_list.append(q)
+        for k in ('title', 'author', 'isbn', 'subject', 'place', 'person', 'publisher'):
+            if k in i:
+                q_list.append(k + ':' + i[k].replace(':', '\\:').strip())
+
+        return render.work_search(i, ' '.join(q_list), do_search, get_doc)
 
 def works_by_author(akey, sort='editions', page=1, rows=100):
     q='author_key:' + akey
