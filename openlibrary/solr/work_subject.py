@@ -13,7 +13,7 @@ re_ia_marc = re.compile('^(?:.*/)?([^/]+)_(marc\.xml|meta\.mrc)(:0:\d+)?$')
 def get_marc_source(w):
     found = set()
     for e in w['editions']:
-        sr = e.get('source_record', [])
+        sr = e.get('source_records', [])
         if sr:
             found.update(i[5:] for i in sr if i.startswith('marc:'))
         else:

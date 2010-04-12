@@ -30,4 +30,8 @@ $if page.backreferences:
         <li><b>$p.name</b> <span class="smaller" style="display: inline;">from</span> <a href="$p.expected_type.key">$p.expected_type.key</a>.$p.property_name</li>
     </ul>
 
+    <div class="clearfix"></div>
+
+    $:render_template("lib/history", page)
+
 </div>

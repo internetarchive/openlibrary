@@ -19,6 +19,7 @@ from openlibrary.api import OpenLibrary, Reference
 from lxml import etree
 from time import sleep, time
 from openlibrary.api import OpenLibrary, unmarshal, Reference
+from openlibrary.solr.work_subject import find_subjects, get_marc_subjects, four_types
 import simplejson as json
 
 rc = read_rc()
@@ -208,6 +209,9 @@ def get_books(akey, query):
         if 'subtitle' in e:
             book['subtitle'] = e['subtitle']
 
+        if 'source_records' in e:
+            book['source_records'] = e['source_records']
+
         wt = get_work_title(e)
         if not wt:
             yield book
@@ -279,6 +283,8 @@ def find_works(akey, book_iter, existing={}):
     # normalized work title to regular title
     rev_wt = defaultdict(lambda: defaultdict(int))
 
+    print 'find_works'
+
     for book in book_iter:
         if 'norm_wt' in book:
             pair = (book['norm_title'], book['norm_wt'])
@@ -326,98 +332,164 @@ def find_works(akey, book_iter, existing={}):
         title = max(titles.keys(), key=lambda i:titles[i])
         toc_iter = ((k, books_by_key[k].get('table_of_contents', None)) for k in keys)
         toc = dict((k, v) for k, v in toc_iter if v)
-        w = {'title': first, 'editions': [books_by_key[k] for k in keys]}
+        editions = [books_by_key[k] for k in keys]
+        subtitles = defaultdict(lambda: defaultdict(int))
+        edition_count = 0
+        with_subtitle_count = 0
+        for e in editions:
+            edition_count += 1
+            subtitle = e['subtitle'] or ''
+            if subtitle != '':
+                with_subtitle_count += 1
+            norm_subtitle = mk_norm(subtitle)
+            if norm_subtitle != norm:
+                subtitles[norm_subtitle][subtitle] += 1
+        #print len(editions), first
+        use_subtitle = None
+        for k, v in subtitles.iteritems():
+            lc_k = k.strip(' .').lower()
+            if lc_k in ('', 'roman') or 'edition' in lc_k:
+                continue
+            num = sum(v.values())
+            overall = float(num) / float(edition_count)
+            ratio = float(num) / float(with_subtitle_count)
+            if overall > 0.2 and ratio > 0.5:
+                use_subtitle = freq_dict_top(v)
+        w = {'title': first, 'editions': editions}
+        if use_subtitle:
+            w['subtitle'] = use_subtitle
         if toc:
             w['toc'] = toc
+        subjects = four_types(find_subjects(get_marc_subjects(w)))
+        if subjects:
+            w['subjects'] = subjects
         yield w
 
 def print_works(works):
     for w in works:
         print len(w['editions']), w['title']
+        print '   ', w.get('subtitle', None)
+        print '   ', w.get('subjects', None)
+
 
 def books_from_cache():
     for line in open('book_cache'):
         yield eval(line)
 
-if __name__ == '__main__':
-    akey = sys.argv[1]
-#    out = open('book_cache', 'w')
-#    for b in books_query(akey):
-#        print >> out, b
-#    out.close()
-#    sys.exit(0)
-    title_redirects = find_title_redirects('/a/' + akey)
-    works = find_works(akey, get_books(akey, books_query(akey)), existing=title_redirects)
-    #works = find_works(akey, get_books(akey, books_from_cache()))
+def add_subjects_to_work(subjects, w):
+    mapping = {
+        'subject': 'subjects',
+        'place': 'subject_places',
+        'time': 'subject_times',
+        'person': 'subject_people',
+    }
+    for k, v in subjects.items():
+        k = mapping[k]
+        w[k] = [i[0] for i in sorted(v.items(), key=lambda i:i[1], reverse=True) if i != '']
+        try:
+            assert all(i != '' and not i.endswith(' ') for i in w[k])
+        except AssertionError:
+            print 'subjects end with space'
+            print w
+            print subjects
+            raise
 
-    do_updates = False
+def add_detail_to_work(i, j):
+    if 'subtitle' in i:
+        j['subtitle'] = i['subtitle']
+    if 'subjects' in i:
+        add_subjects_to_work(i['subjects'], j)
 
+
+
+def update_works(akey, works, do_updates=False):
     # we can now look up all works by an author   
-#    while True: # until redirects repaired
-#        q = {'type':'/type/edition', 'authors':akey, 'works': None}
-#        work_to_edition = defaultdict(set)
-#        edition_to_work = defaultdict(set)
-#        for e in query_iter(q):
-#            if e.get('works', None):
-#                for w in e['works']:
-#                    work_to_edition[w['key']].add(e['key'])
-#                    edition_to_work[e['key']].add(w['key'])
-#
-#        work_title = {}
-#        fix_redirects = []
-#        for k, editions in work_to_edition.items():
-#            w = withKey(k)
-#            if w['type']['key'] == '/type/redirect':
-#                print 'redirect found'
-#                wkey = w['location']
-#                assert re_work_key.match(wkey)
-#                for ekey in editions:
-#                    e = withKey(ekey)
-#                    e['works'] = [Reference(wkey)]
-#                    fix_redirects.append(e)
-#                continue
-#            work_title[k] = w['title']
-#        if not fix_redirects:
-#            print 'no redirects left'
-#            break
-#        print 'save redirects'
-#        ol.save_many(fix_redirects, "merge works")
+    while True: # until redirects repaired
+        q = {'type':'/type/edition', 'authors': akey, 'works': None}
+        work_to_edition = defaultdict(set)
+        edition_to_work = defaultdict(set)
+        for e in query_iter(q):
+            if e.get('works', None):
+                for w in e['works']:
+                    work_to_edition[w['key']].add(e['key'])
+                    edition_to_work[e['key']].add(w['key'])
 
-    
+        work_by_key = {}
+        fix_redirects = []
+        for k, editions in work_to_edition.items():
+            w = withKey(k)
+            if w['type']['key'] == '/type/redirect':
+                print 'redirect found'
+                wkey = w['location']
+                assert re_work_key.match(wkey)
+                for ekey in editions:
+                    e = withKey(ekey)
+                    e['works'] = [Reference(wkey)]
+                    fix_redirects.append(e)
+                continue
+            work_by_key[k] = w
+        if not fix_redirects:
+            print 'no redirects left'
+            break
+        print 'save redirects'
+        ol.save_many(fix_redirects, "merge works")
+
+#    open('OL32983A_works', 'w').write(`list(works)`)
 
     all_existing = set()
     work_keys = []
+    print 'edition_to_work'
+    for k, v in edition_to_work.iteritems():
+        print '  %s: %s' % (k, v)
     for w in works:
+        print
+        print w['title'], len(w['editions'])
         existing = set()
         for e in w['editions']:
             existing.update(edition_to_work[e['key']])
+        print 'existing:', existing
         if not existing: # editions have no existing work
+            ol_work = {
+                'title': w['title'],
+                'type': '/type/work',
+                'authors': [{'type':'/type/author_role', 'author': akey}],
+            }
+            add_detail_to_work(w, ol_work)
+            print ol_work
             if do_updates:
-                wkey = ol.new({'title': w['title'], 'type': '/type/work'})
-            print 'new work:', wkey, `w['title']`
-            #print 'new work:', `w['title']`
+                wkey = ol.new(ol_work, comment='work found')
+                work_keys.append(wkey)
+                print 'new work:', wkey, `w['title']`
+            else:
+                print 'new work:', `w['title']`
             update = []
-            for ekey in w['editions']:
-                e = ol.get(ekey)
+            for e in w['editions']:
+                e = ol.get(e['key'])
                 if do_updates:
                     e['works'] = [Reference(wkey)]
                 update.append(e)
             if do_updates:
                 ol.save_many(update, "add editions to new work")
-            work_keys.append(wkey)
         elif len(existing) == 1:
             key = list(existing)[0]
             work_keys.append(key)
-            if work_title[key] == w['title']:
-                print 'no change:', key, `w['title']`
-            else:
-                print 'new title:', key, `work_title[key]`, '->', `w['title']`
-                print sorted(work_to_edition[key])
-                print w['editions']
+            cur_work = work_by_key[key]
+            if cur_work['title'] != w['title'] \
+                    or ('subtitle' in w and 'subtitle' not in cur_work) \
+                    or ('subjects' in w and 'subjects' not in cur_work):
+                if cur_work['title'] != w['title']:
+                    print 'new title:', key, `cur_work['title']`, '->', `w['title']`
+                #print sorted(work_to_edition[key])
+                #print w['editions']
                 existing_work = ol.get(key)
                 existing_work['title'] = w['title']
+                add_detail_to_work(w, existing_work)
+                print 'existing:', existing_work
+                print 'subtitle:', existing_work.get('subtitle', 'n/a')
                 if do_updates:
-                    ol.save(key, existing_work, 'update work title')
+                    ol.save(key, existing_work, 'update details')
+            else:
+                print 'no change:', key, `w['title']`
         else:
             use_key = min(existing, key=lambda i: int(re_work_key.match(i).group(1)))
             work_keys.append(use_key)
@@ -428,30 +500,48 @@ if __name__ == '__main__':
                     e = ol.get(ekey)
                     e['works'] = [Reference(use_key)]
                     update.append(e)
-            if work_title[use_key] != w['title']:
-                print 'update work title', `work_title[use_key]`, '->', `w['title']`
+            cur_work = work_by_key[use_key]
+            if cur_work['title'] != w['title'] \
+                    or ('subtitle' in w and 'subtitle' not in cur_work) \
+                    or ('subjects' in w and 'subjects' not in cur_work):
+                if cur_work['title'] != w['title']:
+                    print 'update work title:', key, `cur_work['title']`, '->', `w['title']`
                 existing_work = ol.get(use_key)
                 existing_work['title'] = w['title']
+                add_detail_to_work(w, existing_work)
+                print 'existing:', existing_work
+                print 'subtitle:', existing_work.get('subtitle', 'n/a')
                 update.append(existing_work)
             if do_updates:
                 ol.save_many(update, 'merge works')
         all_existing.update(existing)
         for wkey in existing:
-            cur = work_title[wkey]
+            cur = work_by_key[wkey]['title']
             print '  ', wkey, cur == w['title'], `cur`
 
     print len(work_to_edition), len(all_existing)
     assert len(work_to_edition) == len(all_existing)
 
     if not do_updates:
-        sys.exit(0)
+        return []
+
+    return work_keys
+
+if __name__ == '__main__':
+    akey = '/a/' + sys.argv[1]
+
+    title_redirects = find_title_redirects(akey)
+    works = find_works(akey, get_books(akey, books_query(akey)), existing=title_redirects)
+    #print_works(works)
+    work_keys = update_works(akey, works, do_updates=True)
 
     for key in work_keys:
         w = ol.get(key)
-        add_cover_to_work(w)
+        #add_cover_to_work(w)
         if 'cover_edition' not in w:
             print 'no cover found'
         update_work(withKey(key), debug=True)
 
-    requests = ['<commit />']
-    solr_update(requests, debug=True)
+    if work_keys:
+        requests = ['<commit />']
+        solr_update(requests, debug=True)

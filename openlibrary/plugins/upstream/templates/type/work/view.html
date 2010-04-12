@@ -6,107 +6,74 @@ $var title: $page.title
 
     $:macros.databarView(page)
 
-    <div class="head">
-        <h1 class="collapse">$page.title</h1>
-        <div class="clearfix"></div>
-        $if page.get('subtitle'):
-            <span class="subtitle">$page.subtitle</span>
-            <div class="clearfix"></div>
-        $if page.authors:
-            $ author_list = ', '.join('<a href="%s">%s</a>' % (a.author.url(), a.author.name) for a in page.authors)
-            <div class="work"><span class="editions">$_("By") $:author_list</span></div>
-    </div>
+    <h1 class="collapse">
+        $page.title
+        $if page.editions:
+            <span class="tools" style="white-space:nowrap;">
+            $if page.edition_count == 1:
+                $for book in page.editions:
+                    <a href="$book.key" title="View this edition">1 edition</a>
+            $else:
+                <a href="#editions" class="plain brown">$page.edition_count editions</a>
+            </span>
+    </h1>
+    <div class="clearfix"></div>
+    $if page.authors:
+        $ author_list = ', '.join('<a href="%s">%s</a>' % (a.author.url(), a.author.name) for a in page.authors)
+        <div class="work"><span class="editions">$_("By") $:author_list</span></div>
+    $else:
+        <div class="work"><span class="editions">$:_("By <em>unknown author</em>")</span></div>
 </div>
 
 <div class="clearfix"></div>
 
 <script type="text/javascript">
-\$().ready(function(){\$("#coverPop").colorbox({inline:true, href:"#addImage"});});
+\$().ready(function(){
+    var back = history.length; 
+    \$().bind('cbox_closed', function(){ 
+        var page = back - history.length;
+        if (page < 0){ 
+            history.go(page); 
+        } 
+    });
+});
 </script>
 
 
 <div id="contentBody">
 
-    <div id="workCover">
-
-        <div class="illustration">
-            $:render_template('covers/book_cover', page.cover_edition)
-            $:render_template("covers/change", page.cover_edition, ".bookCover img")
+    <div class="workCover">
+        <div class="illustration" id="work">
+            $:render_template('covers/book_cover_work', page)
+            $:render_template("covers/change", page, ".bookCover img")
         </div>
-
     </div>
 
-    $if not (page.description or page.first_sentence or page.subjects or page.excerpts or page.links):
-        <div id="workHelp" class="brown sansserif">
-            Well, gosh. The library knows practically nothing about this book. Can you <a href="$page.url('/edit')#about/about">help describe it</a>?
-        </div>
+    <div class="workAbout">
 
-    <div id="workAbout">
+        $if not (page.description or page.excerpts):
+            $if page.edition_count == 1:
+                <div class="workHelp brown sansserif">
+                    $ exclaim = random.choice(["Well, gosh.", "Dang.", "Darn it.", "Oy vey.","¡Ay, caramba!", "Uh oh.","Sheesh.", "Ack!", "D'oh.","Oh, pooh.", "What the..?", "Cor blimey.",   "Jeepers.", "Heavens to Betsy!", "Oh! The humanity!", "Alack!", "Alas...", "Zut alors!","Drat!","Fiddlesticks.", "Good grief.", "Rats.", "Yikes!", "Crikey!"])
+                    <span id="curses">$exclaim</span> The library doesn't know what this book is <strong>about</strong>. <br />Can you <b><a href="$page.url('/edit')#about/about">help describe it</a></b>?
+                </div>
+            $elif page.edition_count > 1:
+                <div class="workHelp brown sansserif">
+                    $ exclaim = random.choice(["Well, gosh.", "Dang.", "Darn it.", "Oy vey.","¡Ay, caramba!", "Uh oh.","Sheesh.", "Ack!", "D'oh.","Oh, pooh.", "What the..?", "Cor blimey.",   "Jeepers.", "Heavens to Betsy!", "Oh! The humanity!", "Alack!", "Alas...", "Zut alors!","Drat!","Fiddlesticks.", "Good grief.", "Rats.", "Yikes!", "Crikey!"])
+                    <span id="curses">$exclaim</span> The library knows practically nothing about this book. <br />Can you <b><a href="$page.url('/edit')#about/about">help describe it</a></b>?
+                </div>
 
-    $if page.description:
-        $:sanitize(format(page.description))
+        $if not page.excerpts and page.first_sentence:
+            <div class="sansserif smallest brown">First Sentence</div>
+            <p class="largest" style="margin-bottom: 20px;"><em>$page.first_sentence</em></p>
 
-    $if page.lc_classifications:
-        <b>LC</b>: $thingrepr(page.lc_classifications)<br>
-
-    $if page.dewey_number:
-        <b>Dewey</b>: $thingrepr(page.dewey_number)<br>
-    $if page.first_sentence:
-        <b>$_("First sentence")</b>: $page.first_sentence<br>
-
-    $if page.editions:
-        <div class="head">
-
-            <h2>
-                $page.edition_count edition$("s" if page.edition_count != 1 else "")
-                $if page.first_publish_date:
-                    <span class="count">$_("First published in") $page.first_publish_date</span>
-                <div class="small sansserif brown">
-                    <a href="$page.url('/edit')#edition" class="fixthis" title="$_('Add another edition of') $page.title">$_("Add another")</a>?</div>
-            </h2>
-
-<!--
-            <h2>$_("Versions we know about")</h2>
-            <p class="sansserif">
-                <span class="small brown">
-                    <a href="#" class="fixthis"><strong>$page.edition_count</strong></a> 
-                    $_("available in") 
-                    <a href="#" class="fixthis"># $_("languages")</a>
-                </span>
-                &nbsp;&nbsp;
-                <span class="smaller fixthis" title="Sorting results doesn't work">
-                    $_("Sort"): 
-                    $_("First published")
-                    /
-                    <a href="#">$_("Latest edition")</a>
-                </span>
-            </p>
--->
-
-        </div>
-        <div id="searchResults" class="narrow">
-            <ul>
-            $for book in page.editions:
-                <li>$:render_template("books/works-show", book)</li>
-            </ul>
-            $ pagecount = (page.edition_count+19)/20
-            $ pageindex = safeint(query_param("editions_page", 0)) + 1
-            $ page_url = lambda i: changequery(editions_page=i-1)
-            $:render_template("lib/pagination", pagecount, pageindex, page_url)
-        </div>
-
-<!--
-        <div class="small sansserif brown">Add <a href="$page.url('/edit')#edition" title="$_('Add another edition of this book')">another edition</a> of this book?</div>
--->
-
-
-    </div>
-    
-    <div id="workTools">
+        $if page.description:
+            <div class="sansserif smallest brown">About the Book</div>
+            $:sanitize(format(page.description))
 
         $def render_subjects(label, subjects):
             $if subjects:
-                <div class="section">
+                <div class="section" style="margin-bottom:15px;">
                     <h6 class="collapse black uppercase">$label</h6>
                     <div class="sansserif">
                     $for subject in subjects:
@@ -114,10 +81,11 @@ $var title: $page.title
                         $ start = '/subjects'
                         $if lc != 'subjects':
                             $ start = start + '/' + lc
-                        <a href="$start/$:utf8(subject.lower().replace(' ', '_'))">$subject</a>$cond(not loop.last,",","")
+                        <a href="$start/$:utf8(subject.lower().replace(' ', '_').replace(',',''))">$subject</a>$cond(not loop.last,",","")
                     </div>
                 </div>
-        $:render_subjects("Subjects", page.subjects)
+
+        $:render_subjects("Subjects", page.get_subjects())
         $:render_subjects("People", page.subject_people)
         $:render_subjects("Places", page.subject_places)
         $:render_subjects("Times", page.subject_times)
@@ -127,7 +95,10 @@ $var title: $page.title
                 <h3>$_("Excerpts")</h3>
                 $for excerpt in page.excerpts:
                     <div class="excerpt">
-                        <div class="text">$excerpt.excerpt</div>
+                        <div class="text">
+                            $for line in excerpt.excerpt.split('\n'):
+                                $line<br/>
+                        </div>
                         <div class="attribution">
                             $if excerpt.pages:
                                 $_("Page") $excerpt.pages,
@@ -135,6 +106,8 @@ $var title: $page.title
                                 $_("added by") <a href="$excerpt.author.key">$excerpt.author.displayname</a>.
                             $else:
                                 $_("added anonymously").
+                            $if excerpt.comment:
+                                "<em>$excerpt.comment</em>"
                         </div>
                     </div>
             </div>
@@ -149,10 +122,89 @@ $var title: $page.title
                     <li><a href="$link.url">$link.title</a></li>
                 </ul>
             </div>
+        $if page.edition_count > 1:
+            $if (page.lc_classifications or page.dewey_number):
+                <div class="section">
+                    <h3>$_("Classifications")</h3>
+                    <table class="meta"><tbody>
+                    $if page.lc_classifications:
+                        <tr><td class="title"><span class="title">Library of Congress</span></td>
+                        <td class="tag"><span class="object">$thingrepr(page.lc_classifications)</span></td></tr>
+                    $if page.dewey_number:
+                        <tr><td class="title"><span class="title">Dewey</span></td>
+                        <td class="tag"><span class="object">$thingrepr(page.dewey_number)</span></td></tr>
+                    </tbody></table>
+                </div>
 
     </div>
 
-    <div class="clearfix"></div>
+    <a name="editions"></a>
+
+
+    $if page.edition_count > 1:
+        <div class="clearfix"></div>
+        <div class="head">
+            <h2>
+            $commify(page.edition_count) editions
+            $if page.first_publish_date:
+                <span class="count">$_("First published in") $page.first_publish_date</span>
+            <div class="small sansserif brown"  style="position:relative;z-index:1000;">
+                <a href="/books/add?work=$page.key" title="$_('Add another edition of') $page.title">$_("Add another")</a>?</div>
+            </h2>
+        </div>
+
+    $if page.edition_count == 1:
+        $for book in page.editions:
+            $:render_template("books/edition-show", book)
+
+    $if page.edition_count > 1:
+        <script type="text/javascript">
+        function showThis(){\$(this).show();}
+        function hideThis(){\$(this).customFadeOut();}
+        function showThat(){\$(this).parent().find(".float").customFadeIn();}
+        \$().ready(function(){
+            \$("div.icon").hoverIntent({
+                sensitivity: 1, 
+                interval: 200, 
+                over: showThat, 
+                timeout: 0,
+                out: showThis
+            });
+            \$(".float").hoverIntent({
+                sensitivity: 7, 
+                interval: 0, 
+                over: showThis, 
+                timeout: 0,
+                out: hideThis
+            });
+            \$('#editions').dataTable({
+                "aaSorting": [ [2,'asc'] ],
+                "sPaginationType": "full_numbers",
+                "bAutoWidth": false
+            });
+            $if page.edition_count < 11:
+                \$(".dataTables_info").hide();
+                \$(".dataTables_paginate").hide();
+                \$("#tableSpacer").show();
+        });
+        </script>
+        <table id="editions">
+            <thead>
+            <tr>
+                <th class="invisible cover">Date</th>
+                <th class="invisible title">Title</th>
+                <th class="icon">Read</th>
+                <th class="icon">Download</th>
+                <th class="icon">Buy</th>
+                <th class="icon">Borrow</th>
+            </tr>
+            </thead>
+            <tbody>
+                $for book in page.get_sorted_editions():
+                    <tr>$:render_template("books/edition-sort", book)</tr>
+            </tbody>
+        </table>
+        <div id="tableSpacer" class="hidden" style="float:left;height:40px;width:100%;"></div>
 
     $:render_template("lib/history", page)
 </div>

@@ -1,7 +1,6 @@
 $def with ()
 
-$ changes = get_recent_changes(bot=False, limit=50)
-$ changes = random.sample(changes, 4)
+$ changes = get_random_recent_changes(4)
 
 <ul>
 $for v in changes:

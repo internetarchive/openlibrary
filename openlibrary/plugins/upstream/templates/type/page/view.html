@@ -12,9 +12,7 @@ $var title: $title
 $if '<!--suppress-title-->' not in page.body:
     <div id="contentHead">
         $:macros.databarView(page)
-        <div class="head">
-            <h1>$title</h1>
-        </div>
+        <h1>$title</h1>
     </div>
 
 $ text = format(page.body)
@@ -23,6 +21,6 @@ $ text = format(page.body)
 
     $:text
 
-    <div class="clearfix"></div>
     $:render_template("lib/history", page)
+
 </div>

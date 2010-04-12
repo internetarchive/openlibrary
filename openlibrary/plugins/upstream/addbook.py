@@ -212,7 +212,7 @@ class addbook(delegate.page):
         return edition
         
     def work_edition_match(self, edition):
-        raise web.seeother(edition.url("/edit?from=add#about"))
+        raise web.seeother(edition.url("/edit?from=add"))
         
     def no_match(self, i):
         # TODO: Handle add-new-author
@@ -226,7 +226,7 @@ class addbook(delegate.page):
         edition = self._make_edition(work, i)
         comment = utils.get_message("comment_new_edition")
         edition._save(comment)
-        raise web.seeother(edition.url("/edit#about"))
+        raise web.seeother(edition.url("/edit"))
 
 
 del delegate.pages['/addbook']

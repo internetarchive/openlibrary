@@ -1,6 +1,6 @@
 $def with (page)
 
-$var title: $page.name
+$var title: $page.get('name', 'name missing')
 $var history: $page.history
 
 $ olid = page.key.split('/')[-1]
@@ -9,25 +9,22 @@ $ olid = page.key.split('/')[-1]
 
     $:macros.databarView(page)
 
-    <div class="head">
-        <h1 class="collapse">$page.name</h1>
-        <div class="clearfix"></div>
-        <h2 class="author collapse">
-        $if page.birth_date or page.death_date:
-            $page.birth_date - $page.death_date
-        $else:
-            $if page.date:
-                $page.date
-        </h2>
-    </div>
-
+    <h1 class="collapse">$page.get('name', 'name missing')</h1>
+    <div class="clearfix"></div>
+    <h2 class="author collapse">
+    $if page.birth_date or page.death_date:
+        $page.birth_date - $page.death_date
+    $else:
+        $if page.date:
+            $page.date
+    </h2>
 </div>
 
 <script type="text/javascript">
 \$().ready(function(){\$("#coverPop").colorbox({inline:true, href:"#addImage"});});
 </script>
 
-<div id="contentMeta">
+<div id="contentBody">
 
     <div class="contentTwothird">
 
@@ -46,27 +43,34 @@ $ olid = page.key.split('/')[-1]
             </div>
 
         $if page.alternate_names:
-            <div class="section">
-                <h6 class="collapse black uppercase">$_("Alternate names")</h6> 
-                $", ".join(page.alternate_names)
-            </div>
+            $if page.alternate_names != [""]:
+                <div class="section">
+                    <h6 class="collapse black uppercase">$_("Alternate names")</h6> 
+                    $", ".join(page.alternate_names)
+                </div>
 
         $ books = page.get_books()
 
         <div class="clearfix"></div>
         <div class="section">
             <a name="editions"></a>
-                <h2 class="collapse">$_("Books by this Author") <span class="count">$commify(books.num_found) book$("s" if books.num_found != 1 else "") &nbsp; <a href="/books/add" class="fixthis" title="Need to pre-populate the author field">Add another</a>?</span></h2>
+                <h2 class="collapse">
+                    $_("Books by this Author")
+                    <span class="count">
+                        $commify(books.num_found) book$("s" if books.num_found != 1 else "") &nbsp;
+                        <a href="/books/add?author=$page.key">Add another</a>?
+                    </span>
+                </h2>
                 <a name="books"></a>
                 <p><span class="tools">
                 $if books.num_found > 1:
                     <img src="/images/icons/icon_sort.png" alt="Sorting by" width="9" height="11" style="margin-right:10px;"/>Sorting by: 
                     $if books.sort == 'editions':
-                        <strong class="lightgreen">Most Editions</strong> | <a href="$changequery(sort='old')">First Published</a> | <a href="$changequery(sort='new')">Most Recent</a> | <a href="$changequery(sort='title')">Title</a>
+                        <strong class="lightgreen">Most Editions</strong> | <a href="$changequery(sort='old')">First Published</a> | <a href="$changequery(sort='new')">Most Recent</a> 
                     $elif books.sort == 'old':
-                        <a href="$changequery(sort=None)">Most Editions</a> | <strong class="lightgreen">First Published</strong> | <a href="$changequery(sort='new')">Most Recent</a> | <a href="$changequery(sort='title')">Title</a>
+                        <a href="$changequery(sort=None)">Most Editions</a> | <strong class="lightgreen">First Published</strong> | <a href="$changequery(sort='new')">Most Recent</a> 
                     $elif books.sort == 'new':
-                        <a href="$changequery(sort=None)">Most Editions</a> |  <a href="$changequery(sort='old')">First Published</a> | <strong class="lightgreen">Most Recent</strong> | <a href="$changequery(sort='title')">Title</a>
+                        <a href="$changequery(sort=None)">Most Editions</a> |  <a href="$changequery(sort='old')">First Published</a> | <strong class="lightgreen">Most Recent</strong> 
                     $elif books.sort == 'title':
                         <a href="$changequery(sort=None)">Most Editions</a> |  <a href="$changequery(sort='old')">First Published</a> | <a href="$changequery(sort='new')">Most Recent</a> | <strong class="lightgreen">Title</strong>
                 </span></p>
@@ -147,7 +151,5 @@ $ olid = page.key.split('/')[-1]
 
     </div>
 
-</div>
-<div id="contentBody">
     $:render_template("lib/history", page)
 </div>

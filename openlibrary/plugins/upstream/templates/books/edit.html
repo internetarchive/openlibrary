@@ -31,73 +31,129 @@ function limitChars(textid, limit, infodiv) {
 
 \$().ready(function() {
     var hash = document.location.hash || "#edition";
-    var fieldname = hash.replace('/', '-');
-    var link = "#" + "link_" + hash.substr(1).split("/")[0];
+    var tab = hash.split("/")[0]
+    var link = "#" + "link_" + tab.substr(1);
+    var fieldname = ":input" + hash.replace('/', '-');
     
     \$(link).click();
         
     // input field is enabled only after the tab is selected and that takes some time after clicking the link.
     // wait for 1 sec after clicking the link and focus the input field
     setTimeout(function() {
-        \$(fieldname).focus();
+        // scroll such that top of the content is visible    
+        if (\$(fieldname).length != 0) {
+            \$(fieldname).focus();   
+        }
+        else {
+            \$("#tabsAddbook > div:visible :input:first").focus();
+        }
+        \$(window).scrollTop(\$("#contentHead").offset().top);        
     }, 1000);
 });
 
-\$().ready(function() {
-    \$("textarea.markdown").wmd();
+</script>
+
+<div id="contentHead">
+    $code: 
+        def find_mode():
+            if query_param("from") == "add":
+                return "existing_record"
+            elif edition and edition.revision == 1:
+                if work.key and work.revision == 1 and work.edition_count == 1:
+                    return "new_work"
+                else:
+                    return "new_edition"
+            else:
+                return "other"
+        mode = find_mode()
+        if mode == "new_work":
+            title = _("Add a little more?")
+            note = "Thank you for adding that book! Any more information you could provide would be wonderful!"
+        elif mode == "new_edition":
+            title = _("Add a little more?")
+            note = _("We already have a record for <b>%s</b>, but we didn't know about the <b>%s %s edition</b>. " + 
+                    "Thank you! You can click on the tabs below to tell Open Library more about this book.",
+                    work.title, edition.publish_date, "; ".join(edition.publishers))
+        elif mode == "existing_record":
+            title = _("Add a little more?")
+            note = _("There's already a record for the <b>%s %s edition</b> of <b>%s</b>, " + 
+                    "but you're very welcome to add more information to the record!", 
+                    edition.publish_date, "; ".join(edition.publishers), work.title)
+        else:
+            title = _("Edit %s", work.title)
+            note = ""
+            
+    <h1>$:title</h1>
+    <p class="instruct">$:note</p>
+</div>
+
+<script type="text/javascript">
+\$(function() {
+    function update_visible() {
+        if (\$("#authors div.input").length > 1) {
+            \$("#authors a.remove").show();
+        }
+        else {
+            \$("#authors a.remove").hide();
+        }
+
+        \$("#authors a.add:not(:last)").hide();
+        \$("#authors a.add:last").show();
+    }
+    
+    update_visible();
+    
+    \$("#authors a.remove").live("click", function() {
+        if (\$("#authors div.input").length > 1) {
+            \$(this).closest("div.input").remove();
+            update_visible();
+        }
+    });
+
+    \$("#authors a.add").live("click", function(event) {
+        event.preventDefault();
+        
+        var n = \$("#authors div.input:last").attr("id").substr("author-input-".length);
+        n = parseInt(n);
+        
+        \$("#authors").append(render_author(n+1, {key:"", name: ""}));
+        \$("#authors input.author-autocomplete:last").author_autocomplete();
+        update_visible();
+    });
+    
 });
 </script>
-<div id="contentHead">
-    $if work.revision == 1:
-        <div class="head">
-            <h1>$_("Add a little more?")</h1>
-        </div>
-        <p class="instruct">$_("OK. That's the very beginning of a new record saved. The Open Library can hold a lot more detail about books though, so if you're interested, please help us fill in the gaps!")</p>
-    $else:
-        <div class="head">
-            <h1>$_("Edit %s", work.title)</h1>
-        </div>
-    
-</div>
+
+$jsdef render_author(i, author):
+    <div class="input" id="author-input-$i">
+        <input name="authors--$i" class="required author author-autocomplete" type="text" id="author-$i" value="$author.name" />
+        <input name="work--authors--$i--author--key" type="hidden" id="author-$i-key" value="$author.key" />
+        <a href="javascript:;" class="remove red plain hidden" title="$_('Remove this author')">[x]</a>&nbsp;
+        <a href="javscript:;" class="add hidden">Add another author?</a>
+    </div>
 
 <div id="contentBody">
     <form method="post" id="addWork" class="olform books" name="edit">
         <div class="TitleAuthor sansserif">
-            <div class="titleFloat">
+            <div class="label">
                 <label for="work-title">Title</label>
+            </div>
+            <div class="input">
                 <input name="work--title" type="text" id="work-title" value="$work.title"/>
             </div>
-            <div class="titleFloat middle">
-                <strong>by</strong>
+            <div class="label">
+                <label for="author-$0">Author</label>
             </div>
-            <div class="titleFloat fixthis">
-                <label for="author">Author</label>
-                $ author = work.authors and work.authors[0].author
-                $ author_name = author and author.name
-                <input name="author" class="required author author-autocomplete" type="text" id="author" value="$author_name" />
-                <input name="work--authors--0--author--key" type="hidden" id="author-key" value="$(author and author.key)" />
-                $for i, a in enumerate(work.authors):
-                    $if i > 0:
-                        <input name="work--authors--$i--author--key" type="hidden" id="author-key" value="$(a.author.key)" />
+            $ authors = work.authors and [a.author for a in work.authors]            
+            <div id="authors">
+                $if authors:
+                    $for i, author in enumerate(authors):
+                        $:render_author(i, author)
+                $else:
+                    $:render_author(0, storage(name="", key=""))
             </div>
         </div>
         
-<script type="text/javascript">
-function find_matching_authors(name) {
-    // dummy name for testing no records found
-    if (name == "newauthor")
-        return [];
-        
-    // return dummy data for now
-    return [
-        {"key": "/authors/OL1A", "name": name}, 
-        {"key": "/authors/OL2A", "name": name + '_1'}, 
-        {"key": "/authors/OL3A", "name": name + '_2'}, 
-        {"key": "/authors/OL4A", "name": name + '_3'}, 
-    ]
-}
-</script>
-
         <div id="tabsAddbook">
             <ul>
                 <li><a href="#about" id="link_about">$_("What's It About?")</a></li>
@@ -129,7 +185,7 @@ function find_matching_authors(name) {
         
             $if edition:
                 <div id="edition">
-                    $:render_template("books/edit/edition", edition)
+                    $:render_template("books/edit/edition", work, edition)
                 </div>
         </div>
 
@@ -138,7 +194,5 @@ function find_matching_authors(name) {
 
     $if edition:
         $:render_template("books/edit/addfield", edition)
-
-    $:render_template("lib/history", work)
 
 </div>

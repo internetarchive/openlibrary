@@ -3,7 +3,7 @@ $def with (work, prefix="")
 <div id="link-errors" class="note hidden">
 </div>
 
-<fieldset class="major" id="links">
+<fieldset class="major collapse" id="links">
     <div id="links-form">
         <div class="formElement">
             $:_('Please help connect our records to as many <u>good</u><span class="orange">*</span> online resources as you can find.')
@@ -35,7 +35,7 @@ $def with (work, prefix="")
         <div class="input">
             <ul class="booklinks" id="links-display">
                 <li id="links-template" style="display: none;" class="repeat-item">
-                    <div style="float:right;"><a href="javascript:;" class="repeat-remove red plain">[x]</a></div>
+                    <div class="linkRemove"><a href="javascript:;" class="repeat-remove red plain" title="$_('Remove this link')">[x]</a></div>
                     <a href="{{url}}">{{title}}</a>
                     <span class="link">{{url}}</span>
                     <input type="hidden" name="{{prefix}}links--{{index}}--title" value="{{title}}"/>
@@ -44,7 +44,7 @@ $def with (work, prefix="")
                 
                 $for index, link in enumerate(work.links):
                     <li class="repeat-item">
-                        <div style="float:right;"><a href="javascript:;" class="repeat-remove red plain">[x]</a></div>
+                        <div class="linkRemove"><a href="javascript:;" class="repeat-remove red plain" title="$_('Remove this link')">[x]</a></div>
                         <a href="$link.url">$link.title</a><span class="link">$link.url</span>
                         <input type="hidden" name="${prefix}links--${index}--title" value="$link.title"/>
                         <input type="hidden" name="${prefix}links--${index}--url" value="$link.url"/>

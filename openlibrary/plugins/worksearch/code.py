@@ -1,3 +1,4 @@
+
 import web, re, urllib
 from lxml.etree import parse, tostring, XML, XMLSyntaxError
 from infogami.utils import delegate
@@ -6,7 +7,7 @@ from openlibrary.catalog.utils import flip_name
 from infogami.utils import view, template
 from infogami.utils.view import safeint
 import simplejson as json
-from pprint import pformat
+
 try:
     from openlibrary.plugins.upstream.utils import get_coverstore_url, render_template
 except AttributeError:
@@ -27,10 +28,12 @@ if hasattr(config, 'plugin_worksearch'):
     solr_author_host = config.plugin_worksearch.get('author_solr')
     solr_author_select_url = "http://" + solr_author_host + "/solr/authors/select"
 
-to_drop = set('''!*"'();:@&=+$,/?%#[]''')
+    default_spellcheck_count = config.plugin_worksearch.get('spellcheck_count', 10)
+
+to_drop = set(''';/?:@&=+$,<>#%"{}|\\^[]`\n\r''')
 
 def str_to_key(s):
-    return ''.join(c for c in s.lower() if c not in to_drop)
+    return ''.join(c if c != ' ' else ' ' for c in s.lower() if c not in to_drop)
 
 re_author_facet = re.compile('^(OL\d+A) (.*)$')
 def read_author_facet(af):
@@ -43,7 +46,7 @@ render = template.render
 
 search_fields = ["key", "redirects", "title", "subtitle", "alternative_title", "alternative_subtitle", "edition_key", "by_statement", "publish_date", "lccn", "ia", "oclc", "isbn", "contributor", "publish_place", "publisher", "first_sentence", "author_key", "author_name", "author_alternative_name", "subject", "person", "place", "time"]
 
-all_fields = search_fields + ["has_fulltext", "title_suggest", "edition_count", "publish_year", "language", "number_of_pages", "ia_count", "publisher_facet", "author_facet", "first_publish_year"] 
+all_fields = search_fields + ["has_fulltext", "title_suggest", "edition_count", "publish_year", "language", "number_of_pages", "ia_count", "publisher_facet", "author_facet", "first_publish_year"] + ['%s_key' % f for f in ('subject', 'person', 'place', 'time')]
 
 facet_fields = ["has_fulltext", "author_facet", "language", "first_publish_year", "publisher_facet", "subject_facet", "person_facet", "place_facet", "time_facet"]
 
@@ -117,6 +120,22 @@ def advanced_to_simple(params):
             q_list.append("%s:(%s)" % (k, params[k]))
     return ' '.join(q_list)
 
+re_paren = re.compile('[()]')
+
+def parse_query(params):
+    q_list = []
+    for k, v in params:
+        v = v.strip()
+        if k == 'q':
+            q_list.append(v)
+        if k == 'title':
+            v = re_paren.sub(r'\\\1', v)
+            q_list.append('title:(%s)' % v)
+        if k == 'author':
+            v = re_paren.sub(r'\\\1', v)
+            q_list.append('author_name:(%s)' % v)
+    return ' '.join(q_list)
+
 re_isbn = re.compile('^([0-9]{9}[0-9X]|[0-9]{13})$')
 
 def read_isbn(s):
@@ -124,24 +143,49 @@ def read_isbn(s):
     return s if re_isbn.match(s) else None
 
 re_fields = re.compile('(' + '|'.join(all_fields) + r'):', re.L)
+re_field = re.compile('([a-zA-Z]+):')
 re_author_key = re.compile(r'(OL\d+A)')
 
-def run_solr_query(param = {}, rows=100, page=1, sort=None):
+field_name_map = {'author': 'author_name'}
+
+def parse_query_fields(q):
+    found = [(m.start(), m.end()) for m in re_field.finditer(q)]
+    first = q[:found[0][0]].strip()
+    if first:
+        yield 'text', q[:found[0][0]].strip()
+    for field_num in range(len(found)):
+        f = found[field_num]
+        field_name = q[f[0]:f[1]-1].lower()
+        if field_name in field_name_map:
+            field_name = field_name_map[field_name]
+        if field_num == len(found)-1:
+            value = q[f[1]:]
+        else:
+            value = q[f[1]:found[field_num+1][0]]
+        yield field_name, value.strip()
+
+def run_solr_query(param = {}, rows=100, page=1, sort=None, spellcheck_count=None):
+    if spellcheck_count == None:
+        spellcheck_count = default_spellcheck_count
     q_list = []
     if 'q' in param:
         q_param = param['q'].strip()
     else:
         q_param = None
     offset = rows * (page - 1)
+    use_dismax = False
     if q_param:
-        if q_param == '*:*' or re_fields.match(q_param):
+        if q_param == '*:*':
             q_list.append(q_param)
+        elif re_field.search(q_param):
+            q_list.extend('%s:(%s)' % i for i in parse_query_fields(q_param))
         else:
             isbn = read_isbn(q_param)
             if isbn:
                 q_list.append('isbn:(%s)' % isbn)
             else:
-                q_list.append('(' + ' OR '.join('%s:(%s)' % (f, q_param) for f in search_fields) + ')')
+                q_list.append(q_param)
+                use_dismax = True
     else:
         if 'author' in param:
             v = param['author'].strip()
@@ -149,14 +193,17 @@ def run_solr_query(param = {}, rows=100, page=1, sort=None):
             if m: # FIXME: 'OL123A OR OL234A'
                 q_list.append('author_key:(' + m.group(1) + ')')
             else:
-                q_list.append('author_name:(' + v + ')')
+                q_list.append('(author_name:(' + v + ') OR author_alternative_name:(' + v + '))')
 
         check_params = ['title', 'publisher', 'isbn', 'oclc', 'lccn', 'contribtor', 'subject', 'place', 'person', 'time']
         q_list += ['%s:(%s)' % (k, param[k]) for k in check_params if k in param]
 
-    q = url_quote(' AND '.join(q_list))
-
-    solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&start=%d&rows=%d&fl=key,author_name,author_key,title,edition_count,ia,has_fulltext,first_publish_year,cover_edition_key&qt=standard&wt=standard" % (q, offset, rows)
+    if use_dismax:
+        q = web.urlquote(' '.join(q_list))
+        solr_select = solr_select_url + "?version=2.2&defType=dismax&q.op=AND&q=%s&qf=text+title^5+author_name^5&bf=sqrt(edition_count)^10&start=%d&rows=%d&fl=key,author_name,author_key,title,subtitle,edition_count,ia,has_fulltext,first_publish_year,cover_edition_key&qt=standard&wt=standard&spellcheck=true&spellcheck.count=%d" % (q, offset, rows, spellcheck_count)
+    else:
+        q = web.urlquote(' '.join(q_list + ['_val_:"sqrt(edition_count)"^10']))
+        solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&start=%d&rows=%d&fl=key,author_name,author_key,title,subtitle,edition_count,ia,has_fulltext,first_publish_year,cover_edition_key&qt=standard&wt=standard" % (q, offset, rows)
     solr_select += "&facet=true&" + '&'.join("facet.field=" + f for f in facet_fields)
 
     k = 'has_fulltext'
@@ -176,14 +223,13 @@ def run_solr_query(param = {}, rows=100, page=1, sort=None):
         solr_select += ''.join('&fq=%s:"%s"' % (k, url_quote(l)) for l in v if l)
     if sort:
         solr_select += "&sort=" + url_quote(sort)
-    print solr_select
     reply = urllib.urlopen(solr_select).read()
     return (reply, solr_select, q_list)
 
 re_pre = re.compile(r'<pre>(.*)</pre>', re.S)
 
-def do_search(param, sort, page=1, rows=100):
-    (reply, solr_select, q_list) = run_solr_query(param, rows, page, sort)
+def do_search(param, sort, page=1, rows=100, spellcheck_count=None):
+    (reply, solr_select, q_list) = run_solr_query(param, rows, page, sort, spellcheck_count)
     is_bad = False
     if reply.startswith('<html'):
         is_bad = True
@@ -204,6 +250,16 @@ def do_search(param, sort, page=1, rows=100):
             error = (web.htmlunquote(m.group(1)) if m else reply),
         )
 
+    spellcheck = root.find("lst[@name='spellcheck']")
+    spell_map = {}
+    if spellcheck is not None and len(spellcheck):
+        for e in spellcheck.find("lst[@name='suggestions']"):
+            assert e.tag == 'lst'
+            a = e.attrib['name']
+            if a in spell_map:
+                continue
+            spell_map[a] = [i.text for i in e.find("arr[@name='suggestion']")]
+
     docs = root.find('result')
     return web.storage(
         facet_counts = read_facets(root),
@@ -213,28 +269,39 @@ def do_search(param, sort, page=1, rows=100):
         solr_select = solr_select,
         q_list = q_list,
         error = None,
+        spellcheck = spell_map,
     )
 
 def get_doc(doc):
     e_ia = doc.find("arr[@name='ia']")
     first_pub = None
-    e_first_pub = doc.find("arr[@name='first_publish_year']")
-    if e_first_pub is not None and len(e_first_pub) == 1:
-        first_pub = e_first_pub[0].text
+    e_first_pub = doc.find("int[@name='first_publish_year']")
+    if e_first_pub is not None:
+        first_pub = e_first_pub.text
 
-    ak = [e.text for e in doc.find("arr[@name='author_key']")]
-    an = [e.text for e in doc.find("arr[@name='author_name']")]
+    work_subtitle = None
+    e_subtitle = doc.find("str[@name='subtitle']")
+    if e_subtitle is not None:
+        work_subtitle = e_subtitle.text
+
+    if doc.find("arr[@name='author_key']") is None:
+        assert doc.find("arr[@name='author_name']") is None
+        authors = []
+
+    else:
+        ak = [e.text for e in doc.find("arr[@name='author_key']")]
+        an = [e.text for e in doc.find("arr[@name='author_name']")]
+        authors = [(i, tidy_name(j)) for i, j in zip(ak, an)]
     cover = doc.find("str[@name='cover_edition_key']")
-    if cover is not None:
-        print cover.text
 
     return web.storage(
         key = doc.find("str[@name='key']").text,
         title = doc.find("str[@name='title']").text,
         edition_count = int(doc.find("int[@name='edition_count']").text),
         ia = [e.text for e in (e_ia if e_ia is not None else [])],
-        authors = [(i, tidy_name(j)) for i, j in zip(ak, an)],
+        authors = authors,
         first_publish_year = first_pub,
+        subtitle = work_subtitle,
         cover_edition_key = (cover.text if cover is not None else None),
     )
 
@@ -258,8 +325,9 @@ def work_object(w):
         first_publish_year = (w['first_publish_year'] if 'first_publish_year' in w else None),
         ia = w.get('ia', [])
     )
-    if w.get('has_fulltext', None):
-        obj['has_fulltext'] = w['has_fulltext']
+    for f in 'has_fulltext', 'subtitle':
+        if w.get(f, None):
+            obj[f] = w[f]
     return web.storage(obj)
 
 def get_facet(facets, f, limit=None):
@@ -354,7 +422,7 @@ def get_subject(key, details=False, offset=0, limit=12, **filters):
         
     meta = finddict(SUBJECTS, prefix=prefix)
     
-    q = {meta.facet_key: str_to_key(path).lower().replace('_', ' ')}
+    q = {meta.facet_key: str_to_key(path).lower()}
     subject_type = meta.name
 
     name = path.replace("_", " ")
@@ -469,6 +537,10 @@ class subjects(delegate.page):
             raise web.redirect(key.lower())
             
         page = get_subject(key, details=True)
+        
+        if page.work_count == 0:
+            return render_template('subjects/notfound.tmpl', key)
+        
         return render_template("subjects", page)
         
 class search(delegate.page):
@@ -501,11 +573,20 @@ class search(delegate.page):
         if params:
             raise web.seeother(web.changequery(**params))
 
-        return render.work_search(i, do_search, get_doc)
+        q_list = []
+        q = i.get('q', '').strip()
+        if q:
+            q_list.append(q)
+        for k in ('title', 'author', 'isbn', 'subject', 'place', 'person', 'publisher'):
+            if k in i:
+                q_list.append(k + ':' + i[k].replace(':', '\\:').strip())
 
-def works_by_author(akey, sort='editions', offset=0, limit=1000):
+        return render.work_search(i, ' '.join(q_list), do_search, get_doc)
+
+def works_by_author(akey, sort='editions', page=1, rows=100):
     q='author_key:' + akey
-    solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=key,author_name,author_key,title,edition_count,ia,cover_edition_key,has_fulltext,first_publish_year&qt=standard&wt=json" % (q, offset, limit)
+    offset = rows * (page - 1)
+    solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=key,author_name,author_key,title,subtitle,edition_count,ia,cover_edition_key,has_fulltext,first_publish_year&qt=standard&wt=json" % (q, offset, rows)
     facet_fields = ["author_facet", "language", "publish_year", "publisher_facet", "subject_facet", "person_facet", "place_facet", "time_facet"]
     if sort == 'editions':
         solr_select += '&sort=edition_count+desc'
@@ -551,7 +632,7 @@ def simple_search(q, offset=0, rows=20, sort=None):
 
 def top_books_from_author(akey, rows=5, offset=0):
     q = 'author_key:(' + akey + ')'
-    solr_select = solr_select_url + "?indent=on&version=2.2&q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=*                             %%2Cscore&qt=standard&wt=standard&explainOther=&hl=on&hl.fl=title" % (q, offset, rows)
+    solr_select = solr_select_url + "?indent=on&version=2.2&q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=*%%2Cscore&qt=standard&wt=standard&explainOther=&hl=on&hl.fl=title" % (q, offset, rows)
     solr_select += "&sort=edition_count+desc"
 
     reply = urllib.urlopen(solr_select)
@@ -560,11 +641,13 @@ def top_books_from_author(akey, rows=5, offset=0):
     if result is None:
         return []
 
-    return [web.storage(
+    books = [web.storage(
         key=doc.find("str[@name='key']").text,
         title=doc.find("str[@name='title']").text,
         edition_count=int(doc.find("int[@name='edition_count']").text),
     ) for doc in result]
+
+    return { 'books': books, 'total': int(result.attrib['numFound']) }
 
 def do_merge():
     return
@@ -582,7 +665,19 @@ class merge_authors(delegate.page):
             errors += ['you must select a master author record']
         if not keys:
             errors += ['no authors selected']
-        return render.merge_authors(errors, i.master, keys, top_books_from_author, do_merge)
+
+        if not errors and i.master:
+            master_key = '/authors/' + i.master
+            assert web.ctx.site.get(master_key)['type']['key'] == '/type/author'
+            old_keys = set(k for k in keys if k != i.master) 
+            for old in old_keys:
+                q = {'type': '/type/work', 'authors': {'author': '/authors/' + old}}
+                work_keys = web.ctx.site.things(q)
+
+            return 'merged'
+
+        return render['merge/authors'](errors, i.master, keys, \
+            top_books_from_author, do_merge)
 
 class improve_search(delegate.page):
     def GET(self):

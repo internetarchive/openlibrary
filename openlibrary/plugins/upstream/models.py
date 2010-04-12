@@ -42,12 +42,39 @@ class Image:
         return "<image: %s/%d>" % (self.category, self.id)
 
 def query_coverstore(category, **kw):
+    # Optimization to speedup work pages by avoiding the multiple requests to coverstore
+    try:
+        if kw.keys() == ["olid"]:
+            return web.ctx['coverstore_cache'][kw['olid']]
+    except KeyError:
+        pass
+        
     try:
         url = "%s/%s/query?%s" % (get_coverstore_url(), category, urllib.urlencode(kw))
         json = urllib2.urlopen(url).read()
         return simplejson.loads(json)
     except IOError:
         return []
+        
+def populate_coverstore_cache(olids):
+    # This single combined query is running slower that N individual queries.
+    # Don't try that until it is fixed.
+    return
+    
+    try:
+        url = "%s/b/query?cmd=ids&olid=%s"% (get_coverstore_url(), ",".join(olids))
+        d = simplejson.loads(urllib2.urlopen(url).read())
+        
+        cache = {}
+        for olid in olids:
+            if olid in d:
+                v = [d[olid]]
+            else:
+                v = []
+            cache[olid] = v
+        web.ctx.coverstore_cache = cache
+    except IOError:
+        pass
 
 class Edition(ol_code.Edition):
     def get_title(self):
@@ -256,9 +283,13 @@ class Author(ol_code.Author):
     def get_olid(self):
         return self.key.split('/')[-1]
 
-    def get_books(self, sort='editions', offset=0, limit=1000):
-        i = web.input(sort='editions')
-        return works_by_author(self.get_olid(), i.sort, offset, limit)
+    def get_books(self):
+        i = web.input(sort='editions', page=1)
+        try:
+            page = int(i.page)
+        except ValueError:
+            page = 1
+        return works_by_author(self.get_olid(), sort=i.sort, page=page, rows=100)
 
 re_year = re.compile(r'(\d{4})$')
 
@@ -277,10 +308,8 @@ class Work(ol_code.Work):
             return self.get_covers_from_solr()
             
     def get_covers_from_solr(self):
-        solr = get_works_solr()
-        d = solr.select({"key": self.key.split("/")[-1]}, fields=["cover_edition_key", "cover_id"])
-        if d.num_found > 0:
-            w = d.docs[0]
+        w = self._solr_data
+        if w:
             if 'cover_id' in w:
                 return [Image("w", int(w['cover_id']))]
             elif 'cover_edition_key' in w:
@@ -289,6 +318,23 @@ class Work(ol_code.Work):
                 if cover:
                     return [cover]
         return []
+        
+    def _get_solr_data(self):
+        key = self.get_olid()
+        fields = ["cover_edition_key", "cover_id", "edition_key"]
+        
+        solr = get_works_solr()
+        d = solr.select({"key": key}, fields=fields)
+        if d.num_found > 0:
+            w = d.docs[0]
+        else:
+            w = None
+        
+        # Replace _solr_data property with the attribute
+        self.__dict__['_solr_data'] = w
+        return w
+        
+    _solr_data = property(_get_solr_data)
     
     def get_cover(self):
         covers = self.get_covers()
@@ -304,14 +350,29 @@ class Work(ol_code.Work):
     def get_subjects(self):
         """Return subject strings."""
         subjects = self.subjects
+        
+        def flip(name):
+            if name.count(",") == 1:
+                a, b = name.split(",")
+                return b.strip() + " " + a.strip()
+            return name
                 
         if subjects and not isinstance(subjects[0], basestring):
-            subjects = [s.name for s in subjects]
+            subjects = [flip(s.name) for s in subjects]
         return subjects
         
     def get_sorted_editions(self):
         """Return a list of works sorted by publish date"""
-        return sorted_work_editions(self.get_olid())
+        w = self._solr_data
+        editions = w and w.get('edition_key')
+        
+        if editions:
+            # pre-fetch the cover ids to avoid multiple requests to coverstore
+            populate_coverstore_cache(editions)
+            
+            return web.ctx.site.get_many(["/books/" + olid for olid in editions])
+        else:
+            return []
         
     def get_edition_covers(self):
         editions = web.ctx.site.get_many(web.ctx.site.things({"type": "/type/edition", "works": self.key, "limit": 1000}))

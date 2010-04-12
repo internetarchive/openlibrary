@@ -7,14 +7,15 @@ $# _ = i18n.get_namespace('/mode/view')
 
 <div id="contentHead">
     $:macros.databarView(page)
-    <div class="head">
-        <h1>$page.displayname</h1>
-    </div>
+    <h1>$page.displayname</h1>
 </div>
 
 <div id="contentBody">
+    $if page.website:
+        <p>
         $for url in page.website:
-            <p><a href="$url">$url</a></p>
+            <a href="$url">$url</a><br/>
+        </p>
 
     $:sanitize(format(page.description))
 

@@ -1,4 +1,4 @@
-$def with (book)
+$def with (work, book)
 
 $ edition_config = get_edition_config()
 
@@ -208,6 +208,14 @@ $def radiobuttons(name, options, value):
                                 </td>
                                 <td width="100%"><a href="javascript:;" class="repeat-remove red plain" title="$_('Remove this contributor')">[x]</a></td>
                             </tr>
+                            $ work = book.works[0]
+                            $for i, a in enumerate(work.get_authors()):
+                                <tr class="repeat-item">
+                                    <td align="right"><strong>Author</strong></td>
+                                    <td width="170">$a.name</td>
+                                    </td>
+                                    <td width="100%"></td>
+                                </tr>
                             $for i, c in enumerate(book.contributors):
                                 <tr class="repeat-item">
                                     <td align="right"><strong>$c.role</strong></td>
@@ -241,7 +249,7 @@ $def radiobuttons(name, options, value):
             <legend>Languages</legend>
 
             <div class="formElement">
-                <div class="label fixthis">
+                <div class="label">
                     <label for="edition-language">$_("What language is this edition written in?")</label>
                     <span class="tip"></span>
                 </div>
@@ -285,7 +293,7 @@ $def radiobuttons(name, options, value):
                 </div>
 
                 <div class="$trans_class">
-                    <div class="label fixthis">
+                    <div class="label">
                         <label for="edition-translated_from"><span class="tip">$_("What language was the original written in?")</span></label>
                     </div>
                     <div class="input">
@@ -309,7 +317,7 @@ $def radiobuttons(name, options, value):
     
         <div id="id-errors" class="note hidden"></div>
         <div class="formElement">
-            <div class="label fixthis">
+            <div class="label">
                 <label for="select-id">$_("Do you know any identifiers for this edition?")</label>
                 <span class="tip">$_("Like, ISBN?")</span>
             </div>
@@ -369,7 +377,7 @@ $def radiobuttons(name, options, value):
 
         <div id="classification-errors" class="note hidden"></div>
         <div class="formElement">
-            <div class="label fixthis">
+            <div class="label">
                 <label for="select-classification">$_("Do you know any classifications of this edition?")</label>
                 <span class="tip">$_("Like, Dewey Decimal?")</span>
             </div>

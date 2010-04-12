@@ -5,9 +5,16 @@ $putctx('bodyid', 'form')
 $if doc.type.key == "/type/author":
     $ intro = _("There are two ways to place an author's image on Open Library")
     $ action = doc.url('/add-photo')
+$elif doc.type.key == "/type/edition":
+    $ intro = _("There are two ways to get a cover image on Open Library")
+    $ action = doc.url('/add-cover')
+$elif doc.get_edition_covers:
+    $ intro = _("There are three ways to get a cover image on Open Library")
+    $ action = doc.url('/add-cover')
 $else:
     $ intro = _("There are two ways to get a cover image on Open Library")
     $ action = doc.url('/add-cover')
+
     
 <div class="popAlert" id="errors" style="display: $('block' if status else 'none')">
 $if status:
@@ -17,11 +24,12 @@ $if status:
 </div>
 
 <script type="text/javascript">
+\$().ready(carousels);
+\$().ready(function(){\$('#popcovers').jcarousel();});
 \$(function() {
-   \$("#form.addcover-form").submit(function(event) {
-       
-       \$.log([this, "submit"]);
-       
+    parent.closeThrobber();
+    \$("#form.addcover-form").submit(function(event) {
+              
        function val(selector) {
            return \$.trim(\$(selector).val());
        }
@@ -31,8 +39,9 @@ $if status:
        }
        var file = val("#coverFile");
        var url = val("#imageUrl");
+       var coverid = val("#coverid");
        
-       if (file == "" && (url == "" || url == "http://")) {
+       if (file == "" && (url == "" || url == "http://" ) && coverid == "") {
            return error("Please choose an image or provide a URL.");
        }
        
@@ -58,9 +67,34 @@ $if status:
     <div align="center" style="width:100%;">
         <div class="centerIt">
 
+            $if doc.type.key == "/type/work":
+                $if doc.get_edition_covers():
+                    <div class="formElement">
+                        <div class="label">
+                            <label>$:_("<strong>Pick one</strong> from the existing covers,")</label>
+                        </div>
+                        <div id="covers">
+                            <ul id="popcovers">
+                            $for cover in doc.get_edition_covers():
+                                <li class="edition-cover" id="cover-$cover.id"><img src="$cover.url(size='M')"/></li>
+                            </ul>
+                        </div>
+                        <input type="hidden" id="coverid" name="coverid" value=""/>
+                        <script type="text/javascript">
+                        \$("#popcovers > li").click(function() {
+                            \$(this).toggleClass("selected").siblings().removeClass("selected");
+                            var coverid = "";
+                            if (\$(this).hasClass("selected")) {
+                                coverid = \$(this).attr("id").split("-")[1];
+                            }
+                            \$("#coverid").val(coverid);
+                        });
+                        </script>
+                    </div>
+                    
             <div class="formElement">
                 <div class="label">
-                    <label id="imageBrowse" for="imageFile">$_("Either choose a JPG, GIF or PNG on your computer,")</label>
+                    <label id="imageBrowse" for="coverFile">$_("Choose a JPG, GIF or PNG on your computer,")</label>
                 </div>
                 <div class="input">
                     <input type="file" name="file" id="coverFile" value=""/>
@@ -75,9 +109,9 @@ $if status:
                     <input type="text" name="url" id="imageUrl" value="$data.get('url', 'http://')" onClick="if(!this._haschanged && this.value == 'http://'){this.value=''};this._haschanged=true;"/>
                 </div>
             </div>
-                    
-            <div class="formElement" style="margin: 50px 0px 0px 30px;">
-                <button type="submit" name="upload" id="imageUpload" value="Upload" class="largest">$_("Upload")</button>
+            
+            <div class="formElement" style="margin: $('15px 0px 0px 15px;' if doc.type.key == "/type/work" else '50px 0px 0px 30px;')">
+                <button type="submit" name="upload" id="imageUpload" value="$_('Submit')" class="largest">$_("Submit")</button>
                 <a class="close-popup floaterClose" href="javascript:;" onclick="parent.\$.fn.colorbox.close();">$_("Cancel")</a>
             </div>
                     

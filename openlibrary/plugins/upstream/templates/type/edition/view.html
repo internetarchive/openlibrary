@@ -10,13 +10,13 @@ $def display_value(label, value):
     $if value:
         <tr>
             <td class="title"><span class="title">$label</span></td>
-            <td class="tag"><span class="tag">$:thingrepr(value)</span></td>
+            <td class="tag"><span class="object">$:thingrepr(value)</span></td>
         </tr>
 
 $def display_identifiers(label, ids):
     <tr>
         <td class="title"><span class="title">$label</span></td>
-        <td class="tag"><span class="object">
+        <td class="object"><span class="object">
             $for id in ids:
                 $ sep = cond(loop.last, "", ", ")
                 $if id.url:
@@ -28,62 +28,82 @@ $def display_identifiers(label, ids):
 
 $def display_contributor(c):
     <li><span>$c.role</span><br />$c.name </li>
+    
+$ work = page.works and page.works[0] or None    
 
 <div id="contentHead">
     
     $:macros.databarView(page)
 
     <div class="head">
-        <h1 class="collapse">$:thingrepr(page.works)</h1>
-        <div class="clearfix"></div>
-        <div class="work">
+        <div style="float:left;margin:0 10px 10px 0;clear:left;">
+            $:render_template('covers/book_cover_small', page.works[0])
+        </div>
         $if page.works:
-            $ work = page.works[0]
-            $if work.authors:
-                $ author_list = ', '.join('<a href="%s">%s</a>' % (a.author.url(), a.author.name) for a in work.authors)
-                <span class="editions">$_("By") $:author_list</span>
-            $else:
-                <span class="editions">$:_("By <em>unknown author</em>")</span>
+            <h1 class="collapse">$:thingrepr(page.works)</h1>
+        $else:
+            <h1 class="collapse">$page.title</h1>
+        <div class="work">
+        
+        $ authors = cond(work, work and work.get_authors(), page.get_authors())
+        
+        $if authors:
+            $ author_list = ', '.join('<a href="%s">%s</a>' % (a.url(), a.name) for a in authors)
+            <span class="editions">$_("By") $:author_list</span>
+        $else:
+            <span class="editions">$:_("By <em>unknown author</em>")</span>
         </div>   
     </div>
-    <div class="small lightgreen sansserif" style="margin-top:10px;margin-bottom: 20px;">
-        $page.works[0].edition_count edition$("s" if page.works[0].edition_count != 1 else ""): 
-        <span class="small brown sansserif" style="margin-top:10px;">
+
+    <div class="small lightgreen sansserif" style="margin-bottom: 20px;">
+        $if page.works:
+            <b>$page.works[0].edition_count edition$("s" if page.works[0].edition_count != 1 else ""):</b> 
+            <span class="brown">
                 You're looking at 
-                $page.publish_date
-                $:thingrepr(page.publishers)
-                <strong>$page.title</strong>.
-        </span>
+                $if page.publish_date or page.publishers:
+                     the <i>$page.publish_date $:thingrepr(page.publishers)</i> edition.
+            </span>
             <br />
-        <a href="Previous" class="fixthis" title="PUBLISH DATE, PUBLISHER">&larr; $_("Previous")</a> 
-        &bull;
-        <a href="Next" class="fixthis" title="PUBLISH DATE, PUBLISHER">$_("Next") &rarr;</a> 
+            $ prev = page.get_prev()
+            $ next = page.get_next()
+            $if prev:
+                <a href="/books/$prev" class="fixthis" title="PUBLISH DATE, PUBLISHER">&larr; $_("Previous")</a> 
+            $if prev and next:
+                &bull;
+            $if next:
+                <a href="/books/$next" class="fixthis" title="PUBLISH DATE, PUBLISHER">$_("Next") &rarr;</a> 
+        $else:
+            <span class="brown">
+                $:_('Open Library only knows about this edition of %s.', page.title) <a href="/books/add?work=$page.key" title="$_('Add another edition of') $page.title">$_("Add another")</a>?
+          </span>
     </div>
 
 </div>
 
 <div id="contentBody">
 
-    <div id="workDetails">
+    <div class="workDetails">
 
-        <div id="editionCover">
+        <div class="editionCover">
 
-            <div class="illustration">
+            <div class="illustration edition-cover">
                 $:render_template('covers/book_cover', page)
-                $:render_template('covers/change', page, ".bookCover img")
+                $:render_template('covers/change', page, ".edition-cover .bookCover img")
             </div>
+            
+        $ contributors = [storage(role='Author', name=a.name) for a in work and work.get_authors() or []] + page.get('contributors', [])
 
-        $if page.contributors:
+        $if contributors:
             <div class="section">
                 <h3 class="collapse">$_("Contributors")</h3>
                 <ul class="contributors">
-                    $for c in page.contributors:
+                    $for c in contributors:
                         $:display_contributor(c)
                 </ul>
             </div>
         </div>
 
-        <div id="editionAbout">
+        <div class="editionAbout">
 
         $if page.description:
             <h3 class="collapse">$_("About the Book")</h3>
@@ -122,8 +142,6 @@ $def display_contributor(c):
                     $:display_value(_("Publisher"), page.publishers)
                     $:display_value(_("Publish Date"), page.publish_date)
                     $:display_value(_("Published in"), page.publish_places)
-                    $:display_value(_("Translation Of"), page.translation_of)
-                    $:display_value(_("Translated From"), page.translated_from)
                     $:display_value(_("Series"), page.series)
                     $:display_value(_("Volume"), page.volume)
                     $:display_value(_("Genre"), page.genres)
@@ -131,6 +149,8 @@ $def display_contributor(c):
                     $:display_value(_("By Statement"), page.by_statement)
                     $:display_value(_("Copyright Date"), page.copyright_date)
                     $:display_value(_("Written in"), page.languages) 
+                    $:display_value(_("Translation Of"), page.translation_of)
+                    $:display_value(_("Translated From"), page.translated_from)
                 </tbody>
             </table>
         </div>
@@ -144,7 +164,6 @@ $def display_contributor(c):
                 $:display_identifiers("Open Library", [storage(url=None, value=page.key.split("/")[-1])])
                 $for name, values in page.get_identifiers().multi_items():
                     $:display_identifiers(values[0].label, values)
-                <tr id="gbs_placeholder"></tr>
             </tbody>
             </table>
         </div>
@@ -179,17 +198,8 @@ $def display_contributor(c):
 
         </div>
 
-        <div id="editionTools">
+        <div class="editionTools">
             $:macros.databarWork(page)
-
-            <div class="section fixthis" title="$_('Other Works by author not available via Edition records')>
-            $if page.authors: 
-                <h6 class="collapse uppercase">$_("More by") $:thingrepr(page.authors)</h6>
-            $else:
-                <h6 class="collapse uppercase">$_("More by this author")</h6>
-
-                <span class="tools"><a href="#">## $_("books")</a></span><br/>
-            </div>
 
             $ links = page.get_links()
             $if links:
@@ -204,28 +214,7 @@ $def display_contributor(c):
 
     </div>
 
-    <div class="clearfix"></div>
-
     $:render_template("lib/history", page)
 </div>
 
 <!-- source_records: $page.get('source_records', []) -->
-
-$ keys = []
-$for isbn in page.get('isbn_10', []) + page.get("isbn_13", []):
-    $ keys.append("ISBN:" + isbn)
-$for lccn in page.get('lccn', []):
-    $ keys.append("LCCN:" + lccn)
-$for oclc in page.get('oclc', []):
-    $ keys.append("OCLC:" + oclc)
-
-$if keys:
-    <script type="text/javascript">
-    function gbs_callback(d) {
-        for (var k in d) {
-            \$('#gbs_placeholder').html('<td class="title"><span class="title">Google</span></td><td class="tag"><span class="object"><a href="' + d[k]['info_url'] + '">$_("Book Search")</a></span></td>');
-            break;
-        }
-    }
-    </script>
-    <script src="http://books.google.com/books?bibkeys=$(",".join(keys))&jscmd=viewapi&callback=gbs_callback" type="text/javascript"></script>

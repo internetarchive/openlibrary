@@ -10,6 +10,7 @@ from infogami.utils import delegate
 from infogami.utils.view import render, public
 from infogami.utils.context import context
 
+from infogami.utils.view import add_flash_message
 import openlibrary
 
 def render_template(name, *a, **kw):
@@ -132,6 +133,34 @@ class ipstats:
         json = urllib.urlopen("http://www.archive.org/download/stats/numUniqueIPsOL.json").read()
         return delegate.RawText(json)
         
+class block:
+    def GET(self):
+        page = web.ctx.site.get("/admin/block") or web.storage(ips=[web.storage(ip="127.0.0.1", duration="1 week", since="1 day")])
+        return render_template("admin/block", page)
+    
+    def POST(self):
+        from openlibrary.plugins.upstream.utils import unflatten
+        i = unflatten(web.input())
+        
+        page = web.ctx.get("/admin/block") or web.ctx.site.new("/admin/block", {"key": "/admin/block", "type": "/type/object"})
+        ips = [d for d in i.ips if d.get('ip')]
+        page.ips = ips
+        page._save("update blocked IPs")
+        add_flash_message("info", "Saved!")
+        raise web.seeother("/admin/block")
+        
+def get_blocked_ips():
+    return [d.ip for d in web.ctx.site.get("/admin/block").ips]
+    
+def block_ip_processor(handler):
+    if not web.ctx.path.startswith("/admin") \
+        and (web.ctx.method == "POST" or web.ctx.path.endswith("/edit")) \
+        and web.ctx.ip in get_blocked_ips():
+        
+        return render_template("permission_denied", web.ctx.path, "Your IP address is blocked.")
+    else:
+        return handler()
+        
 def daterange(date, *slice):
     return [date + datetime.timedelta(i) for i in range(*slice)]
     
@@ -186,7 +215,7 @@ def get_admin_stats():
         }
     }
     return storify(xstats)
-
+    
 def setup():
     register_admin_page('/admin/git-pull', gitpull, label='git-pull')
     register_admin_page('/admin/reload', reload, label='Reload Templates')
@@ -196,6 +225,7 @@ def setup():
     register_admin_page('/admin/ip/(.*)', ipaddress_view, label='View IP')
     register_admin_page('/admin/stats/(\d\d\d\d-\d\d-\d\d)', stats, label='Stats JSON')
     register_admin_page('/admin/ipstats', ipstats, label='IP Stats JSON')
+    register_admin_page('/admin/block', block, label='')
     
     import mem
 
@@ -203,6 +233,8 @@ def setup():
         register_admin_page('/admin' + p.path, p)
 
     public(get_admin_stats)
+    
+    delegate.app.add_processor(block_ip_processor)
     
 class IPAddress:
     def __init__(self, ip):

@@ -153,9 +153,14 @@ client.register_thing_class('/type/user', User)
 class hooks(client.hook):
     def before_new_version(self, page):
         if page.key.startswith('/a/') or page.key.startswith('/authors/'):
-            if page.type.key == '/type/delete' and page.books != []:
+            if page.type.key == '/type/author':
+                return
+                
+            books = web.ctx.site.things({"type": "/type/edition", "authors": page.key})
+            books = books or web.ctx.site.things({"type": "/type/work", "authors": {"author": {"key": page.key}}})
+            if page.type.key == '/type/delete' and books:
                 raise ValidationException("Deleting author pages is not allowed.")
-            elif page.type.key != '/type/author' and page.books != []:
+            elif page.type.key != '/type/author' and books:
                 raise ValidationException("Changing type of author pages is not allowed.")
 
 @infogami.action

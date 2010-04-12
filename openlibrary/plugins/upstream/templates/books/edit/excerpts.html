@@ -3,7 +3,7 @@ $def with (work)
 <div id="excerpts-errors" class="note hidden">
 </div>
         
-<fieldset class="major" id="excerpts">
+<fieldset class="major collapse" id="excerpts">
     <div id="excerpts-form">
         <div class="formElement">
             <div>$_("If there are particular (short) passages you feel represent the book well, please feel free to transcribe them here.")</div>
@@ -72,7 +72,8 @@ $def with (work)
                     <input type="hidden" name="work--excerpts--$i--author--key" value="$(excerpt.author and excerpt.author.key)"/>
                     <div style="float:right;"><a href="javascript:;" class="repeat-remove red plain">[x]</a></div>                   
                     <blockquote>
-                        $excerpt.excerpt
+                        $for line in excerpt.excerpt.split('\n'):
+                            $line<br/>
                         <br />
                         <i>
                             $if excerpt.pages:

@@ -9,9 +9,7 @@ $var title: $page.name
         / <a href="/languages">languages</a> / $page.code
     </span>
     
-    <div class="head">
-        <h1>$page.name</h1> 
-    </div>
+    <h1>$page.name</h1> 
 </div>
 
 <div id="contentBody">
@@ -25,5 +23,7 @@ $var title: $page.name
        <span class="title">$_("Name")</span>
        <span class="tag">$page.name</span>
     </div>
+
+    $:render_template("lib/history", page)
 
 </div>

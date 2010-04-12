@@ -14,7 +14,7 @@ $ stats = get_admin_stats()
                         <div class="label">Total Records</div></td>
                     <td><div class="amount">$:macros.FullTextCount()</div>
                         <div class="label">Full Text</div></td>
-                    <td><div class="amount">xxx $:macros.UniqueIPcount()</div>
+                    <td><div class="amount">$:macros.UniqueIPcount()</div>
                         <div class="label">Unique IP<span class="lowercase">s</span> Yesterday</div></td>
                 </tr>
             </table>
@@ -28,50 +28,6 @@ $ stats = get_admin_stats()
         </div>
         <div class="chartHolder">
             <div class="chartDisplay">
-                <div class="chart"> <span class="chartEditsTotal">
-                    <canvas height="60" width="70" style="display: inline-block; width: 70px; height: 60px; vertical-align: top;"></canvas>
-                    </span> </div>
-                <div class="chart"> <span class="chartEditsTotal">
-                    <canvas height="60" width="70" style="display: inline-block; width: 70px; height: 60px; vertical-align: top;"></canvas>
-                    </span> </div>
-                <div class="chart"> <span class="chartEditsTotal">
-                    <canvas height="60" width="70" style="display: inline-block; width: 70px; height: 60px; vertical-align: top;"></canvas>
-                    </span> </div>
-                <div class="chart"> <span class="chartEditsTotal">
-                    <canvas height="60" width="70" style="display: inline-block; width: 70px; height: 60px; vertical-align: top;"></canvas>
-                    </span> </div>
-                <div class="chart"> <span class="chartEditsTotal">
-                    <canvas height="60" width="70" style="display: inline-block; width: 70px; height: 60px; vertical-align: top;"></canvas>
-                    </span> </div>
-                <div class="chart"> <span class="chartEditsTotal">
-                    <canvas height="60" width="70" style="display: inline-block; width: 70px; height: 60px; vertical-align: top;"></canvas>
-                    </span> </div>
-                <div class="chart"> <span class="chartEditsTotal">
-                    <canvas height="60" width="70" style="display: inline-block; width: 70px; height: 60px; vertical-align: top;"></canvas>
-                    </span> </div>
-            </div>
-            <div class="chartDisplay">
-                <div class="chart"> <span class="chartEditsBot">
-                    <canvas height="60" width="70" style="display: inline-block; width: 70px; height: 60px; vertical-align: top;"></canvas>
-                    </span> </div>
-                <div class="chart"> <span class="chartEditsBot">
-                    <canvas height="60" width="70" style="display: inline-block; width: 70px; height: 60px; vertical-align: top;"></canvas>
-                    </span> </div>
-                <div class="chart"> <span class="chartEditsBot">
-                    <canvas height="60" width="70" style="display: inline-block; width: 70px; height: 60px; vertical-align: top;"></canvas>
-                    </span> </div>
-                <div class="chart"> <span class="chartEditsBot">
-                    <canvas height="60" width="70" style="display: inline-block; width: 70px; height: 60px; vertical-align: top;"></canvas>
-                    </span> </div>
-                <div class="chart"> <span class="chartEditsBot">
-                    <canvas height="60" width="70" style="display: inline-block; width: 70px; height: 60px; vertical-align: top;"></canvas>
-                    </span> </div>
-                <div class="chart"> <span class="chartEditsBot">
-                    <canvas height="60" width="70" style="display: inline-block; width: 70px; height: 60px; vertical-align: top;"></canvas>
-                    </span> </div>
-                <div class="chart"> <span class="chartEditsBot">
-                    <canvas height="60" width="70" style="display: inline-block; width: 70px; height: 60px; vertical-align: top;"></canvas>
-                    </span> </div>
             </div>
         </div>
         <table class="measurements stripeEven" id="edits">
@@ -140,27 +96,6 @@ $ stats = get_admin_stats()
         </div>
         <div class="chartHolder">
             <div class="chartDisplay">
-                <div class="chart"> <span class="chartMembers">
-                    <canvas height="60" width="70" style="display: inline-block; width: 70px; height: 60px; vertical-align: top;"></canvas>
-                    </span> </div>
-                <div class="chart"> <span class="chartMembers">
-                    <canvas height="60" width="70" style="display: inline-block; width: 70px; height: 60px; vertical-align: top;"></canvas>
-                    </span> </div>
-                <div class="chart"> <span class="chartMembers">
-                    <canvas height="60" width="70" style="display: inline-block; width: 70px; height: 60px; vertical-align: top;"></canvas>
-                    </span> </div>
-                <div class="chart"> <span class="chartMembers">
-                    <canvas height="60" width="70" style="display: inline-block; width: 70px; height: 60px; vertical-align: top;"></canvas>
-                    </span> </div>
-                <div class="chart"> <span class="chartMembers">
-                    <canvas height="60" width="70" style="display: inline-block; width: 70px; height: 60px; vertical-align: top;"></canvas>
-                    </span> </div>
-                <div class="chart"> <span class="chartMembers">
-                    <canvas height="60" width="70" style="display: inline-block; width: 70px; height: 60px; vertical-align: top;"></canvas>
-                    </span> </div>
-                <div class="chart"> <span class="chartMembers">
-                    <canvas height="60" width="70" style="display: inline-block; width: 70px; height: 60px; vertical-align: top;"></canvas>
-                    </span> </div>
             </div>
         </div>
         <table class="measurements stripeEven" id="members">
@@ -211,7 +146,7 @@ $ stats = get_admin_stats()
 
         <h3>Unique IPs</h3>
             <div class="caption">Yesterday</div>
-            <div class="measure large"><strong>xxx</strong></div>
+            <div class="measure large"><strong>$:macros.UniqueIPcount()</strong></div>
             <div class="caption">Day</div>
             <div class="measure large">xxx</div>
             <div class="caption">Day</div>
@@ -219,7 +154,7 @@ $ stats = get_admin_stats()
             <div class="caption">Day</div>
             <div class="measure">xxx</div>
         </div>
-        <div class="chart" style="border-bottom: none">
+        <div style="float:left;">
             <div id="placeholder" style="width:680px;height:300px;"></div>
             <div id="overview" style="margin-left:50px;margin-top:20px;width:400px;height:50px"></div>
         </div>

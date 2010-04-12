@@ -1,13 +1,8 @@
 $def with (page)
 
-$ covers = page.get_covers(limit=12*3)
-
 <script type="text/javascript">
-var page = new Place("$page.key");
-page.bookCount = $page.work_count;
-page.covers[0] = $:json_encode(covers[:12]);
-page.covers[1] = $:json_encode(covers[12:24]);
-page.covers[2] = $:json_encode(covers[24:36]);
+
+//var page = new Subject(page);
 
 function createTemplate(selector) {
     var code = \$(selector).html()
@@ -17,32 +12,35 @@ function createTemplate(selector) {
 }
 
 page.displayCovers = function(pagenum) {
-    page.getCovers(0, function(covers) {
-        \$("#coversCarousel").empty().html(page.renderCovers({'covers': covers}));
+    page.loadPage(pagenum, function(data) {
+        \$("#coversCarousel").empty().html(page.renderCovers(data));
     });
 };
 
 function loadCoverCarousels(carousel, state) {
     if (!page.coverCarousel) {
         page.coverCarousel = carousel;
+        page.coverCarousel.size(page.getPageCount());
     }
     var index = carousel.first;
     page.pos = (index-1)*12;
-    
+
+    if (window.set_hash) {
+         var _p = (index == 1) ? null : index;
+        set_hash({"page": _p});
+    }
+
     if (carousel.has(index)) {
         return;
     }
-    //console.log("load", index);
-    //carousel.size(10);
-    carousel.add(index, "Finding more books...");
-    page.getCovers(index-1, function(covers) {
-        //console.log("load callback", index, covers);
-        carousel.add(index, page.renderCovers({'covers': covers}));
+    carousel.add(index, "<h3>Loading books...</h3>");
+    page.loadPage(index-1, function(data) {
+        carousel.add(index, page.renderCovers(data));
     });
 }
 
 \$().ready(function() {
-    page.renderCovers = createTemplate("#covers-tmpl");    
+    page.renderCovers = createTemplate("#covers-tmpl");
     page.displayCovers(0);
 });
 
@@ -53,38 +51,67 @@ function loadCoverCarousels(carousel, state) {
 </script>
 
 <script type="text/html" class="jstemplate" id="covers-tmpl">
-<% for (var i=0; i<covers.length; i++) { %>
+<% for (var i=0; i<works.length; i++) { %>
     <% 
-        var cover = covers[i]; 
+        var cover = works[i]; 
+        if (!cover) {
+            continue;
+        }
         var authors = [];
-        for (var j in cover.authors)
+        for (var j in cover.authors) {
             authors.push(cover.authors[j].name);
+        }
     %>
     <div class="coverMagic">
-        <% if (cover.cover_edition_key) { %>
+        <% if (cover.cover_id) { %>
             <div class="SRPCover">
-                <a href="{{cover.key}}" title="{{cover.title}}, {{cover.edition_count}} editions"><img src="http://covers.openlibrary.org/b/olid/{{cover.cover_edition_key}}-M.jpg" alt="{{cover.title}}" class="cover"/></a>
+                <a href="{{cover.key}}" title="{{cover.title}}, {{cover.edition_count}} editions"><img src="http://covers.openlibrary.org/b/id/{{cover.cover_id}}-M.jpg" alt="{{cover.title}}" class="cover"/></a>
             </div>
         <% } else { %>
-            <div class="SRPCoverBlank" onclick="document.location.href='{{cover.key}}';" title="{{cover.title}}, {{cover.edition_count}} editions" style="display:block;">
+            <a href="{{cover.key}}">
+            <div class="SRPCoverBlank" title="{{cover.title}}, {{cover.edition_count}} editions" style="display:block;">
                 <div class="innerBorder">
                     <div class="BookTitle">{{truncate(cover.title, 40)}}
                         <div class="Author">{{truncate(authors.join(", "), 40)}}</div>
                     </div>
                 </div>
             </div>
+            </a>
         <% } %>
         <% if (cover.has_fulltext) { %>
-            <div class="coverEbook" onclick="document.location.href='http://archive.org/stream/{{cover.ia}}';" title="Read online"></div>
+            <div class="coverEbook"><a href="http://www.archive.org/stream/{{cover.ia}}" title="Read online"><img src="/images/icons/icon_ebook-avail.png" border="0" width="32" height="33" alt="Read online"/></a></div>
         <% } %>
     </div>
 <% } %>
 </script>
 
+$def render_page(page):
+    $for w in page.works[:12]:
+        <div class="coverMagic">
+            $if w.cover_id:
+                <div class="SRPCover">
+                    <a href="$w.key" title="$w.title, $w.edition_count editions"><img src="http://covers.openlibrary.org/b/id/$w.cover_id-M.jpg" alt="$w.title" class="cover"/></a>                
+                </div>
+            $else:
+                <a href="$w.key">
+                    <div class="SRPCoverBlank" title="$w.title, $w.edition_count editions" style="display:block;">
+                        <div class="innerBorder">
+                            <div class="BookTitle">$truncate(w.title, 40)
+                                <div class="Author">$truncate(", ".join(a.name for a in w.authors), 40)</div>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            $if w.has_fulltext:
+                <div class="coverEbook"><a href="http://www.archive.org/stream/$w.ia" title="$_('Read online')"><img src="/images/icons/icon_ebook-avail.png" border="0" width="32" height="33" alt="$_('Read online')"/></a></div>
+        </div>
+
 <div id="contentLists" class="results">
     <div class="covers" id="resultsCovers">
         <ul id="coversCarousel" class="jcarousel-skin-OL">
+            <li>$:render_page(page)</li>
         </ul>
+        <div id="coversLoading" class="hidden"><h3>Loading books...</h3></div>
     </div>
 </div>
 

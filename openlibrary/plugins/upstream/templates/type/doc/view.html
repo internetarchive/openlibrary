@@ -5,10 +5,10 @@ $ lang = i18n.get_locale() or 'en'
 $var title: $page.title
 
 <div id="contentHead">
-    <div class="head">
-        <h1>$page.title</h1>
-    </div>
+    $:macros.databarView(page)
+    <h1>$page.title</h1>
 </div>
 <div id="contentBody">
     $:format(page.body)
+    $:render_template("lib/history", page)
 </div>

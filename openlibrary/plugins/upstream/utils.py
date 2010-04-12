@@ -6,6 +6,9 @@ from UserDict import DictMixin
 from babel.numbers import format_number
 from collections import defaultdict
 import random
+import urllib
+import xml.etree.ElementTree as etree
+import datetime
 
 from infogami import config
 from infogami.utils import view, delegate
@@ -288,9 +291,13 @@ def truncate(text, limit):
 def process_version(v):
     """Looks at the version and adds machine_comment required for showing "View MARC" link."""
     importers = ['/people/ImportBot', '/people/EdwardBot']
+    comments = [
+        "found a matching marc record",
+        "add publisher and source",
+    ]
     if v.author and v.author.key in importers and v.key.startswith('/books/') and not v.get('machine_comment'):
         thing = v.get('thing') or web.ctx.site.get(v.key, v.revision)
-        if thing.source_records and v.revision == 1 or (v.comment and v.comment.lower() == "found a matching marc record"):
+        if thing.source_records and v.revision == 1 or (v.comment and v.comment.lower() in comments):
             marc = thing.source_records[-1]
             if marc.startswith('marc:'):
                 v.machine_comment = marc[len("marc:"):]
@@ -511,9 +518,6 @@ def _get_recent_changes():
     site = web.ctx.get('site') or delegate.create_site()
     web.ctx.setdefault("ip", "127.0.0.1")
     
-    q = {"bot": False, "limit": 50}
-    result = site.versions(q)
-
     # The recentchanges can have multiple revisions for a document if it has been modified more than once. 
     # Take only the most recent revision in that case.
     visited = set()
@@ -523,7 +527,17 @@ def _get_recent_changes():
         else:
             visited.add(key)
             return False
-    result = [r for r in result if not is_visited(r.key)]
+       
+    # ignore reverts
+    re_revert = web.re_compile("reverted to revision \d+")
+    def is_revert(r):
+        return re_revert.match(r.comment or "")
+
+    # take the 100 recent changes, filter them and take the first 50
+    q = {"bot": False, "limit": 100}
+    result = site.versions(q)
+    result = [r for r in result if not is_visited(r.key) and not is_revert(r)]
+    result = result[:50]
 
     def process_thing(thing):
         t = web.storage()
@@ -552,6 +566,30 @@ def sprintf(s, *a, **kw):
         return s % args
     else:
         return s
+        
+def _get_blog_feeds():
+    url = "http://blog.openlibrary.org/feed/"
+    tree = etree.parse(urllib.urlopen(url))
+    
+    def parse_item(item):
+        pubdate = datetime.datetime.strptime(item.find("pubDate").text, '%a, %d %b %Y %H:%M:%S +0000')
+        return web.storage(
+            title=item.find("title").text,
+            link=item.find("link").text,
+            pubdate=pubdate
+        )
+    return [parse_item(item) for item in tree.findall("//item")]
+    
+_get_blog_feeds = web.memoize(_get_blog_feeds, expires=5*60, background=True)
+
+@public
+def get_blog_feeds():
+    return _get_blog_feeds()
+
+class Request:
+    path = property(lambda self: web.ctx.path)
+    home = property(lambda self: web.ctx.home)
+    domain = property(lambda self: web.ctx.host)
 
 def setup():
     """Do required initialization"""
@@ -563,7 +601,8 @@ def setup():
     web.commify = commify
     
     web.template.Template.globals.update({
-        'HTML': HTML
+        'HTML': HTML,
+        'request': Request()
     })
     
 if __name__ == '__main__':

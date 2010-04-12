@@ -2,49 +2,48 @@ $def with (page)
 
 $ h = get_history(page)
 
-<div class="section collapse">
+$ versions = h.recent + h.initial
+
+<div class="clearfix"></div>
+<div id="pageHistory">
     <div class="head">
         <h2>
         $_("History")
-        
+    
+        <span class="title">$_("Created %s", datestr(h.initial[0].created)) &bull; </span>
         $if page.url:
             $ url = page.url(m='history')
         $else:
             $ url = changequery(m='history')
-        
-        <span class="link">&nbsp;<a href="$url">$_("Read all")</a></span>
+            
+        $ latest = versions[0]
+        <span class="link"><a href="$url">$latest.revision $_("revision")$("s" if latest.revision != 1 else "")</a></span>
         </h2>
     </div>
 
     <table class="history">
         <tbody>
+            $def render_row(v,):
+                <td class="timestamp"><a href="$v.key?v=$v.revision" title="$_('View revision %s', v.revision)">$datestr(v.created)</a></td>
+                <td class="timestamp">
+                    $if v.author: 
+                        $ author_link = '<a href="%s" class="truncate" title="%s">%s</a>' % (v.author.key, v.author.displayname, v.author.displayname)
+                    $elif v.ip and v.ip != "127.0.0.1":
+                        $ author_link = '<a href="/recentchanges?ip=%s" title="%s">%s</a>' % (v.ip, _('an anonymous user'), v.ip)
+                    $else:
+                        $ author_link = '<span>%s</span>' % (_('an anonymous user'))
+                    $if v.revision == 1:
+                        $:_("Created by %s", author_link)
+                    $else:
+                        $:_("Edited by %s", author_link)
+                </td>
+                <td class="detail">$:render_template("history/comment", v)</td>
+            
             $for v in h.recent:
-                <tr>
-                    <td class="timestamp"><a href="$v.key?v=$v.revision" title="$_('View revision %s', v.revision)">$datestr(v.created)</a></td>
-                    $if v.author:
-                        <td class="timestamp"><div class="truncatedisplayname">Edited by <a href="$v.author.key" class="truncate" title="$v.author.displayname">$v.author.displayname</a></div></td>
-                    $elif v.ip and v.ip != '127.0.0.1':
-                        <td class="timestamp">Edited by <a href="/recentchanges?ip=$v.ip" title="$_('An anonymous user')">$v.ip</a></td>
-                    $else:
-                        <td class="timestamp"><span title="$_('An anonymous user')">$v.ip</span></td>
-                    $if v.comment:
-                        <td class="detail">$v.comment
-                            $ marc = v.get('machine_comment')
-		            $if marc: (<a href="/show-marc/$marc">$_("View MARC")</a>)
-                        </td>
-                    $else:
-                        <td class="detail"><em>$_("Edited without comment")</em></td>
-                </tr>
+                <tr>$:render_row(v)</tr>
             $if h.initial:
                 $for v in h.initial:
-                    <tr class="first">
-                        <td class="timestamp"><a href="$v.key?v=$v.revision" title="$_('View revision %s', v.revision)">$datestr(v.created)</a></td>
-                        <td class="timestamp">&nbsp;</td>
-                    $if v.comment:
-                        <td class="detail">$v.comment</td>
-                    $else:
-                        <td class="detail"><em>$_("Page initiated")</em></td>
-                    </tr>
+                    <tr class="first" style="background: #eee;">$:render_row(v)</tr>
         </tbody>
     </table>
 </div>

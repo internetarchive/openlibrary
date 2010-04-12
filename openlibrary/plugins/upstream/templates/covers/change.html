@@ -30,19 +30,19 @@ $else:
 function update_image(image) {
     var url;
     
-    $if doc.type.key == "/type/edition":
+    $if doc.type.key in ["/type/edition", "/type/work"]:
         if (image) {
             url = "$get_coverstore_url()/b/id/" + image + "-M.jpg";
             // XXX-Anand: Fix this hack
             // set url and show SRPCover  and hide SRPCoverBlank 
             \$("$cover_selector").attr('src', url)
-                .parent().show()
+                .parents("div:first").show()
                 .next().hide();
         }
         else {
             // hide SRPCover and show SRPCoverBlank
             \$("$cover_selector")
-                .parent().hide()
+                .parents("div:first").hide()
                 .next().show();
         }
     $else:
@@ -58,35 +58,38 @@ function update_image(image) {
 \$().ready(function(){
     function add_iframe(selector, src) {
         \$(selector)
-            .html('<iframe frameborder="0" height="330" width="580" marginheight="0" marginwidth="0" scrolling="auto"></iframe>')
+            .append('<iframe frameborder="0" height="490" width="580" marginheight="0" marginwidth="0" scrolling="auto"></iframe>')
             .find('iframe')
             .attr("src", src);
     }
     
     // Add iframes lazily when the popup is loaded.
     // This avoids fetching the iframes along with main page.
-    \$("#coverPop").colorbox({inline: true, href: "#addImage"})
-        .bind("cbox_load", function() {
+    \$(".coverPop").colorbox({inline: true, href: "#addImage"})
+        .bind("click", function() {
+            $if doc.type.key == "/type/work":
+                $if doc.get_edition_covers():
+                    \$('#imagesAdd').prepend('<div id="throbber"><h3>$_("One sec, we\'re searching for covers...")</h3></div>');
             setTimeout(function() {
                 // add iframe to add images
                 add_iframe("#imagesAdd", "$:add_url");
-
                 // add iframe to manage images
                 add_iframe("#imagesManage", "$:manage_url");
             }, 0);
         })
-        .bind('cbox_cleanup', function(){
+        .bind("cbox_cleanup", function(){
             \$("#imagesAdd").html("");
             \$("#imagesManage").html("");
         });
+    // Add function to close throbber
+    closeThrobber = function() {\$("#throbber").customFadeOut();}; 
 });
 </script>
 
-<div class="smaller sansserif"><a href="javascript:;" id="coverPop">$change</a></div>
+<div class="smaller sansserif"><a href="javascript:;" class="coverPop">$change</a></div>
 
 <div class="hidden">
     <div class="floater" id="addImage">
-    
         <div class="floaterHead">
             <h2>$title</h2>
             <a class="floaterShut" href="javascript:;" onclick="\$.fn.colorbox.close();"></a>

@@ -2,325 +2,6 @@ $def with (page)
 
 $var title: $page.name
 
-<script type="text/javascript">
-// ANAND This is a new Flot script.
-/*
-Flot plugin for selecting regions.
-
-The plugin defines the following options:
-
-  selection: {
-    mode: null or "x" or "y" or "xy",
-    color: color
-  }
-
-You enable selection support by setting the mode to one of "x", "y" or
-"xy". In "x" mode, the user will only be able to specify the x range,
-similarly for "y" mode. For "xy", the selection becomes a rectangle
-where both ranges can be specified. "color" is color of the selection.
-
-When selection support is enabled, a "plotselected" event will be emitted
-on the DOM element you passed into the plot function. The event
-handler gets one extra parameter with the ranges selected on the axes,
-like this:
-
-  placeholder.bind("plotselected", function(event, ranges) {
-    alert("You selected " + ranges.xaxis.from + " to " + ranges.xaxis.to)
-    // similar for yaxis, secondary axes are in x2axis
-    // and y2axis if present
-  });
-
-The "plotselected" event is only fired when the user has finished
-making the selection. A "plotselecting" event is fired during the
-process with the same parameters as the "plotselected" event, in case
-you want to know what's happening while it's happening,
-
-A "plotunselected" event with no arguments is emitted when the user
-clicks the mouse to remove the selection.
-
-The plugin allso adds the following methods to the plot object:
-
-- setSelection(ranges, preventEvent)
-
-  Set the selection rectangle. The passed in ranges is on the same
-  form as returned in the "plotselected" event. If the selection
-  mode is "x", you should put in either an xaxis (or x2axis) object,
-  if the mode is "y" you need to put in an yaxis (or y2axis) object
-  and both xaxis/x2axis and yaxis/y2axis if the selection mode is
-  "xy", like this:
-
-    setSelection({ xaxis: { from: 0, to: 10 }, yaxis: { from: 40, to: 60 } });
-
-  setSelection will trigger the "plotselected" event when called. If
-  you don't want that to happen, e.g. if you're inside a
-  "plotselected" handler, pass true as the second parameter.
-  
-- clearSelection(preventEvent)
-
-  Clear the selection rectangle. Pass in true to avoid getting a
-  "plotunselected" event.
-
-- getSelection()
-
-  Returns the current selection in the same format as the
-  "plotselected" event. If there's currently no selection, the
-  function returns null.
-
-*/
-
-\$().ready(function() {
-    function init(plot) {
-        var selection = {
-                first: { x: -1, y: -1}, second: { x: -1, y: -1},
-                show: false,
-                active: false,
-                color: "#fffdcd"
-            };
-
-        // FIXME: The drag handling implemented here should be
-        // abstracted out, there's some similar code from a library in
-        // the navigation plugin, this should be massaged a bit to fit
-        // the Flot cases here better and reused. Doing this would
-        // make this plugin much slimmer.
-        var savedhandlers = {};
-
-        function onMouseMove(e) {
-            if (selection.active) {
-                plot.getPlaceholder().trigger("plotselecting", [ getSelection() ]);
-
-                updateSelection(e);
-            }
-        }
-
-        function onMouseDown(e) {
-            if (e.which != 1)  // only accept left-click
-                return;
-            
-            // cancel out any text selections
-            document.body.focus();
-
-            // prevent text selection and drag in old-school browsers
-            if (document.onselectstart !== undefined && savedhandlers.onselectstart == null) {
-                savedhandlers.onselectstart = document.onselectstart;
-                document.onselectstart = function () { return false; };
-            }
-            if (document.ondrag !== undefined && savedhandlers.ondrag == null) {
-                savedhandlers.ondrag = document.ondrag;
-                document.ondrag = function () { return false; };
-            }
-
-            setSelectionPos(selection.first, e);
-
-            selection.active = true;
-            
-            \$(document).one("mouseup", onMouseUp);
-        }
-
-        function onMouseUp(e) {
-            // revert drag stuff for old-school browsers
-            if (document.onselectstart !== undefined)
-                document.onselectstart = savedhandlers.onselectstart;
-            if (document.ondrag !== undefined)
-                document.ondrag = savedhandlers.ondrag;
-
-            // no more draggy-dee-drag
-            selection.active = false;
-            updateSelection(e);
-
-            if (selectionIsSane())
-                triggerSelectedEvent();
-            else {
-                // this counts as a clear
-                plot.getPlaceholder().trigger("plotunselected", [ ]);
-                plot.getPlaceholder().trigger("plotselecting", [ null ]);
-            }
-
-            return false;
-        }
-
-        function getSelection() {
-            if (!selectionIsSane())
-                return null;
-
-            var x1 = Math.min(selection.first.x, selection.second.x),
-                x2 = Math.max(selection.first.x, selection.second.x),
-                y1 = Math.max(selection.first.y, selection.second.y),
-                y2 = Math.min(selection.first.y, selection.second.y);
-
-            var r = {};
-            var axes = plot.getAxes();
-            if (axes.xaxis.used)
-                r.xaxis = { from: axes.xaxis.c2p(x1), to: axes.xaxis.c2p(x2) };
-            if (axes.x2axis.used)
-                r.x2axis = { from: axes.x2axis.c2p(x1), to: axes.x2axis.c2p(x2) };
-            if (axes.yaxis.used)
-                r.yaxis = { from: axes.yaxis.c2p(y1), to: axes.yaxis.c2p(y2) };
-            if (axes.y2axis.used)
-                r.y2axis = { from: axes.y2axis.c2p(y1), to: axes.y2axis.c2p(y2) };
-            return r;
-        }
-
-        function triggerSelectedEvent() {
-            var r = getSelection();
-
-            plot.getPlaceholder().trigger("plotselected", [ r ]);
-
-            // backwards-compat stuff, to be removed in future
-            var axes = plot.getAxes();
-            if (axes.xaxis.used && axes.yaxis.used)
-                plot.getPlaceholder().trigger("selected", [ { x1: r.xaxis.from, y1: r.yaxis.from, x2: r.xaxis.to, y2: r.yaxis.to } ]);
-        }
-
-        function clamp(min, value, max) {
-            return value < min? min: (value > max? max: value);
-        }
-
-        function setSelectionPos(pos, e) {
-            var o = plot.getOptions();
-            var offset = plot.getPlaceholder().offset();
-            var plotOffset = plot.getPlotOffset();
-            pos.x = clamp(0, e.pageX - offset.left - plotOffset.left, plot.width());
-            pos.y = clamp(0, e.pageY - offset.top - plotOffset.top, plot.height());
-
-            if (o.selection.mode == "y")
-                pos.x = pos == selection.first? 0: plot.width();
-
-            if (o.selection.mode == "x")
-                pos.y = pos == selection.first? 0: plot.height();
-        }
-
-        function updateSelection(pos) {
-            if (pos.pageX == null)
-                return;
-
-            setSelectionPos(selection.second, pos);
-            if (selectionIsSane()) {
-                selection.show = true;
-                plot.triggerRedrawOverlay();
-            }
-            else
-                clearSelection(true);
-        }
-
-        function clearSelection(preventEvent) {
-            if (selection.show) {
-                selection.show = false;
-                plot.triggerRedrawOverlay();
-                if (!preventEvent)
-                    plot.getPlaceholder().trigger("plotunselected", [ ]);
-            }
-        }
-
-        function setSelection(ranges, preventEvent) {
-            var axis, range, axes = plot.getAxes();
-            var o = plot.getOptions();
-
-            if (o.selection.mode == "y") {
-                selection.first.x = 0;
-                selection.second.x = plot.width();
-            }
-            else {
-                axis = ranges["xaxis"]? axes["xaxis"]: (ranges["x2axis"]? axes["x2axis"]: axes["xaxis"]);
-                range = ranges["xaxis"] || ranges["x2axis"] || { from:ranges["x1"], to:ranges["x2"] }
-                selection.first.x = axis.p2c(Math.min(range.from, range.to));
-                selection.second.x = axis.p2c(Math.max(range.from, range.to));
-            }
-
-            if (o.selection.mode == "x") {
-                selection.first.y = 0;
-                selection.second.y = plot.height();
-            }
-            else {
-                axis = ranges["yaxis"]? axes["yaxis"]: (ranges["y2axis"]? axes["y2axis"]: axes["yaxis"]);
-                range = ranges["yaxis"] || ranges["y2axis"] || { from:ranges["y1"], to:ranges["y2"] }
-                selection.first.y = axis.p2c(Math.min(range.from, range.to));
-                selection.second.y = axis.p2c(Math.max(range.from, range.to));
-            }
-
-            selection.show = true;
-            plot.triggerRedrawOverlay();
-            if (!preventEvent)
-                triggerSelectedEvent();
-        }
-
-        function selectionIsSane() {
-            var minSize = 5;
-            return Math.abs(selection.second.x - selection.first.x) >= minSize &&
-                Math.abs(selection.second.y - selection.first.y) >= minSize;
-        }
-
-        plot.clearSelection = clearSelection;
-        plot.setSelection = setSelection;
-        plot.getSelection = getSelection;
-
-        plot.hooks.bindEvents.push(function(plot, eventHolder) {
-            var o = plot.getOptions();
-            if (o.selection.mode != null)
-                eventHolder.mousemove(onMouseMove);
-
-            if (o.selection.mode != null)
-                eventHolder.mousedown(onMouseDown);
-        });
-
-
-        plot.hooks.drawOverlay.push(function (plot, ctx) {
-            // draw selection
-            if (selection.show && selectionIsSane()) {
-                var plotOffset = plot.getPlotOffset();
-                var o = plot.getOptions();
-
-                ctx.save();
-                ctx.translate(plotOffset.left, plotOffset.top);
-
-                var c = \$.color.parse(o.selection.color);
-
-                ctx.strokeStyle = c.scale('a', 0.8).toString();
-                ctx.lineWidth = 1;
-                ctx.lineJoin = "round";
-                ctx.fillStyle = c.scale('a', 0.4).toString();
-
-                var x = Math.min(selection.first.x, selection.second.x),
-                    y = Math.min(selection.first.y, selection.second.y),
-                    w = Math.abs(selection.second.x - selection.first.x),
-                    h = Math.abs(selection.second.y - selection.first.y);
-
-                ctx.fillRect(x, y, w, h);
-                ctx.strokeRect(x, y, w, h);
-
-                ctx.restore();
-            }
-        });
-    }
-
-    \$.plot.plugins.push({
-        init: init,
-        options: {
-            selection: {
-                mode: null, // one of null, "x", "y" or "xy"
-                color: "#e8cfac"
-            }
-        },
-        name: 'selection',
-        version: '1.0'
-    });
-})(jQuery);
-</script> 
-
-<script type="text/javascript">
-// ANAND This is another jQuery plugin for directly scrolling to a page point.
-/**
- * jQuery.ScrollTo - Easy element scrolling using jQuery.
- * Copyright (c) 2007-2009 Ariel Flesler - aflesler(at)gmail(dot)com | http://flesler.blogspot.com
- * Dual licensed under MIT and GPL.
- * Date: 5/25/2009
- * @author Ariel Flesler
- * @version 1.4.2
- *
- * http://flesler.blogspot.com/2007/10/jqueryscrollto.html
- */
-;(function(d){var k=d.scrollTo=function(a,i,e){d(window).scrollTo(a,i,e)};k.defaults={axis:'xy',duration:parseFloat(d.fn.jquery)>=1.3?0:1};k.window=function(a){return d(window)._scrollable()};d.fn._scrollable=function(){return this.map(function(){var a=this,i=!a.nodeName||d.inArray(a.nodeName.toLowerCase(),['iframe','#document','html','body'])!=-1;if(!i)return a;var e=(a.contentWindow||a).document||a.ownerDocument||a;return d.browser.safari||e.compatMode=='BackCompat'?e.body:e.documentElement})};d.fn.scrollTo=function(n,j,b){if(typeof j=='object'){b=j;j=0}if(typeof b=='function')b={onAfter:b};if(n=='max')n=9e9;b=d.extend({},k.defaults,b);j=j||b.speed||b.duration;b.queue=b.queue&&b.axis.length>1;if(b.queue)j/=2;b.offset=p(b.offset);b.over=p(b.over);return this._scrollable().each(function(){var q=this,r=d(q),f=n,s,g={},u=r.is('html,body');switch(typeof f){case'number':case'string':if(/^([+-]=)?\d+(\.\d+)?(px|%)?\$/.test(f)){f=p(f);break}f=d(f,this);case'object':if(f.is||f.style)s=(f=d(f)).offset()}d.each(b.axis.split(''),function(a,i){var e=i=='x'?'Left':'Top',h=e.toLowerCase(),c='scroll'+e,l=q[c],m=k.max(q,i);if(s){g[c]=s[h]+(u?0:l-r.offset()[h]);if(b.margin){g[c]-=parseInt(f.css('margin'+e))||0;g[c]-=parseInt(f.css('border'+e+'Width'))||0}g[c]+=b.offset[h]||0;if(b.over[h])g[c]+=f[i=='x'?'width':'height']()*b.over[h]}else{var o=f[h];g[c]=o.slice&&o.slice(-1)=='%'?parseFloat(o)/100*m:o}if(/^\d+\$/.test(g[c]))g[c]=g[c]<=0?0:Math.min(g[c],m);if(!a&&b.queue){if(l!=g[c])t(b.onAfterFirst);delete g[c]}});t(b.onAfter);function t(a){r.animate(g,j,b.easing,a&&function(){a.call(this,n,b)})}}).end()};k.max=function(a,i){var e=i=='x'?'Width':'Height',h='scroll'+e;if(!d(a).is('html,body'))return a[h]-d(a)[e.toLowerCase()]();var c='client'+e,l=a.ownerDocument.documentElement,m=a.ownerDocument.body;return Math.max(l[h],m[h])-Math.min(l[c],m[c])};function p(a){return typeof a=='object'?a:{top:a,left:a}}})(jQuery);
-</script>
-
 $ subject_list = [('subjects', 20), ('places', 20), ('people', 10), ('times', 10)]
 
 <div id="scrollHere"></div>
@@ -328,30 +9,44 @@ $ subject_list = [('subjects', 20), ('places', 20), ('people', 10), ('times', 10
 <div id="contentHead">
     <h1>
         $page.name
-        <span class="count"><strong><span id="clickbooks">$commify(page.work_count) $_("book")$("s" if page.work_count != 1 else "")</span></strong> <span id="clickdata"></span></span>
+        <span class="count" id="coversCount">
+            <strong><span>$sprintf(ungettext("%s book", "%s books", page.work_count), commify(page.work_count))</span></strong>
+            / <a href="javascript:;" class="ebookcount"><span id="ebooks">$sprintf(ungettext("%s ebook", "%s ebooks", page.ebook_count), commify(page.ebook_count))</span></a>
+            <span id="clickdata"></span>
+        </span>
+        
+        <span class="count hidden smaller chartZoom"><a href="javascript:;" class="resetSelection small">$_("Show all")</a></span>
     </h1>
 </div>
+
+<script type="text/javascript">
+
+var page = new Subject($:json_encode(page));
+
+</script>
+
 
 $:render_template("lib/covers", page)
 
 <div id="contentMeta" style="padding-top:0;">
 
-        <div class="head">
-            <h2 class="collapse" style="margin-bottom:10px!important;">
-                $_("Publishing History")
-                $:_('<span class="count hidden" id="chartZoom">&nbsp;<a href="javascript:;" id="resetSelection" class="small">Reset chart</a> or continue zooming in.</span>')
-                $:_('<span class="count" id="chartUnzoom">&nbsp;This graph is interactive. Click and drag to select a range, or click a single year and <span class="fixthis">we\'ll load the books above</span></a>.</span>')
-            </h2>
-        </div>
-
+	<div class="head">
+	    <h2 style="margin-bottom:0px!important;">
+	        $_("Publishing History")
+	        <span class="count hidden chartZoom">&nbsp;<a href="javascript:;" class="resetSelection small">$_("Reset chart")</a> $_("or continue zooming in.")</span>
+	        <span class="count chartUnzoom">&nbsp;$_("This graph is interactive. Click and drag to select a range, or click a single year and we'll load the books above.")</span>
+	    </h2>
+	</div>
+	
 <script type="text/javascript">
-\$().ready(function() {
-    var data = [{data: [$', '.join("[%d, %d]" % row for row in page.years if row[0] > 1000)]}];
+
+\$().ready(function() {    
+    var data = [{data: page.publishing_history}];
     var options = { 
        series: {
             bars: { 
                 show: true, 
-                fill: 0.8, 
+                fill: 0.6, 
                 color: "#ffa337", 
                 align: "center"
             },
@@ -374,9 +69,11 @@ $:render_template("lib/covers", page)
         selection: { mode: "xy", color: "#00636a" },
         crosshair: {
             mode: "xy",
-            color: "rgba(000, 099, 106, 0.4)"
+            color: "rgba(000, 099, 106, 0.4)",
+            lineWidth: 1
         }
     };
+        
     var placeholder = \$("#chartPubHistory");
     function showTooltip(x, y, contents) {
         \$('<div id="chartLabel">' + contents + '</div>').css( {
@@ -408,8 +105,8 @@ $:render_template("lib/covers", page)
                 } else {
                     showTooltip(item.pageX, item.pageY,
                                 y + " $_('books in') " + x);
-                };
-            }
+                };            
+			}
         }
         else {
             \$("#chartLabel").remove();
@@ -417,20 +114,24 @@ $:render_template("lib/covers", page)
         }
     });
     placeholder.bind("plotclick", function (event, pos, item) {
+        \$.scrollTo( \$('#scrollHere'), 800);
+        \$("#coversLoading").show();
+        \$(".jcarousel-prev").hide();
+        \$(".jcarousel-next").hide();
+        
         if (item) {
+            plot.unhighlight();
             var x = item.datapoint[0].toFixed(0),
                 y = item.datapoint[1].toFixed(0);
-            if (y == 1) {
-                \$("#clickbooks").text(item.datapoint[1] + " $_('book')")
-            } else {
-                \$("#clickbooks").text(item.datapoint[1] + " $_('books')")
-            };
-            \$("#clickdata").text("$_('published in') " + item.datapoint[0]);
-            \$.scrollTo( \$('#scrollHere'), 800);
-            \$("#chartUnzoom").hide();
-            \$("#chartZoom").show();
+            page.addFilter({"published_in": item.datapoint[0]}, reset);            
+            plot.highlight(item.series,item.datapoint);
+        } 
+        else {
+            page.addFilter({"published_in": page._published_in}, reset);
+            plot.unhighlight();
         }
     });
+
     placeholder.bind("plotselected", function (event, ranges) {
         plot = \$.plot(placeholder, data,
             \$.extend(true, {}, options, {
@@ -438,27 +139,131 @@ $:render_template("lib/covers", page)
                 yaxis: { min: ranges.yaxis.from, max: ranges.yaxis.to }
             })
         );
-        \$.scrollTo( \$('#scrollHere'), 800);
+
         var yearFrom = ranges.xaxis.from.toFixed(0);
         var yearTo = ranges.xaxis.to.toFixed(0);
-        \$("#clickdata").text("$_('published between') " + yearFrom + "-" + yearTo);
-        \$("#chartUnzoom").hide();
-        \$("#chartZoom").show();
+        \$.scrollTo( \$('#scrollHere'), 800);
+        \$("#coversLoading").show();
+        \$(".jcarousel-prev").hide();
+        \$(".jcarousel-next").hide();
+		page.addFilter({"published_in": yearFrom + "-" + yearTo}, reset);
     });
     var plot = \$.plot(placeholder, data, options);
     var dateFrom = plot.getAxes().xaxis.min.toFixed(0);
     var dateTo = plot.getAxes().xaxis.max.toFixed(0);
-    \$("#resetSelection").click(function(){
+
+    \$(".resetSelection").click(function(){
         \$.plot(placeholder, data, options);
-        if (dateFrom == (dateTo - 1)) {
-            \$("#clickdata").text("$_('published in') " + dateFrom);
-        } else {
-            \$("#clickdata").text("$_('published between') " + dateFrom + "-" + dateTo);
-        };
-        \$("#clickbooks").text('$commify(page.work_count) $_('book')$("s" if page.work_count != 1 else "")');
-        \$("#chartZoom").hide();
-        \$("#chartUnzoom").show();
+		\$("#coversLoading").show();
+                \$(".jcarousel-prev").hide();
+                \$(".jcarousel-next").hide();
+		page.reset(reset);
     });
+
+	//var renderPublishers = createTemplate("#publishers-template");
+	//var renderAuthors = createTemplate("#authors-template");
+	//var renderSubjects = createTemplate("#subjects-template");
+	
+    page._published_in = null;	
+    
+    function resetAndReplot() {
+        \$.plot(placeholder, [{data: page.publishing_history}], options);
+        reset();
+    }
+    
+    function resetCounts() {
+        var hash = {};
+        var counts = \$("<span></span>");
+        
+        var x = sprintf(ungettext("%s book", "%s books", page.work_count), commify(page.work_count));
+        var y = sprintf(ungettext("%s ebook", "%s ebooks", page.ebook_count), commify(page.ebook_count));
+        
+        if (page.has_fulltext == "true") {
+            counts.append('<a class="bookcount" href="javascript:;"></a>').find("a:last").text(x);
+            counts.append(" / ");            
+            counts.append('<strong></strong>').find("strong:last").text(y);
+            
+            hash.ebooks = "true";
+        }
+        else {
+            counts.append('<strong></strong>').find("strong:last").text(x);
+            counts.append(" / ");            
+            counts.append('<a class="ebookcount" href="javascript:;"></a>').find("a:last").text(y);
+            hash.ebooks = null;
+        }
+        counts.append("&nbsp;");
+        counts.append('<span id="clickdata"></span>');
+        
+		var yearFrom, yearTo;		
+		if (page.filter.published_in) {
+			var y = "" + page.filter.published_in;
+			if (y.indexOf("-") > 0) {
+				var tokens = y.split("-");
+				yearFrom = tokens[0];
+				yearTo = tokens[1];
+				page._published_in = page.filter.published_in;
+			}
+			else {
+				yearFrom = yearTo = y;
+			}
+
+			hash.published_in = y;
+	
+	        \$(".chartUnzoom").hide();
+            \$(".chartZoom").show();		
+		}
+		else {
+		    page._published_in = null;
+		    
+			yearFrom = page.publishing_history[0][0];
+			yearTo = page.publishing_history[page.publishing_history.length-1][0];
+			
+            hash.published_in = null;
+	
+            \$(".chartZoom").hide();
+            \$(".chartUnzoom").show();		
+		}
+		
+		\$("#coversCount").html(counts.html());
+
+		if (yearFrom == yearTo) {
+	        \$("#clickdata").text(sprintf(_("published in %s."), yearFrom));
+		}
+		else {
+	        \$("#clickdata").text(sprintf(_("published between %s & %s."), yearFrom, yearTo));
+		}
+		
+		set_hash(hash);
+    }
+    
+    function resetCarousel() {
+		\$("#coversCarousel").html("");
+		page.coverCarousel.scroll(1, false);
+	    page.coverCarousel.size(page.getPageCount());
+		page.coverCarousel.reload();
+    }
+    
+    function resetFacets() {
+		\$("#resultsPublishers div.unordered").html(renderPublishers(page.publishers));
+		\$("#resultsAuthors div.unordered").html(renderAuthors(page.authors));
+		
+		$for s, limit in subject_list:
+			\$("#subjects-$s").html(renderSubjects(page.${s}.slice(0, $limit))); 
+    }
+    
+    window.resetCarousel = resetCarousel;
+    window.resetCounts = resetCounts;
+	
+	function reset() {
+	    resetCarousel();
+	    resetCounts();
+	    resetFacets();
+		
+        \$("#coversLoading").customFadeOut();
+        \$(".jcarousel-prev").customFadeIn();
+        \$(".jcarousel-next").customFadeIn();
+        \$("#coversCount").animate({backgroundColor:'#ffa337'},500).animate({backgroundColor:'#fff'},2000);
+	}
 
     if (jQuery.support.opacity) {
         \$(".chartYaxis").css({'top' : '70px', 'left' : '-60px'})
@@ -466,16 +271,120 @@ $:render_template("lib/covers", page)
         \$(".chartYaxis").css({'top' : '0', 'left' : '0'})
     };
 
-    \$.scrollTo( 0 );
     if (dateFrom == (dateTo - 1)) {
         \$("#clickdata").text("$_('published in') " + dateFrom);
     } else {
-        \$("#clickdata").text("$_('published between') " + dateFrom + "-" + dateTo);
+        \$("#clickdata").text("$_('published between') " + dateFrom + " & " + dateTo + ".");
     };
+    
+    // ebooks
+    
+    \$("a.ebookcount").live("click", function() {
+        page.setFulltext("true");
+        resetCarousel();
+        resetCounts();
+        \$("#coversCount strong").animate({backgroundColor:'#ffa337'},500).animate({backgroundColor:'#fff'},2000);
+    })
+
+    \$("a.bookcount").live("click", function() {
+        page.setFulltext("false");
+        resetCarousel();
+        resetCounts();
+        \$("#coversCount strong").animate({backgroundColor:'#ffa337'},500).animate({backgroundColor:'#fff'},2000);
+    })
+
+    // handle hash
+    
+    function handle_ebooks(hash) {
+        if (hash.ebooks == "true") {
+            page.setFulltext("true");
+            resetCarousel();
+            resetCounts();
+        }
+    }
+    
+    function handle_page(hash) {
+    	var index = parseInt(hash.page);
+    	if(index && index > 0) {
+    		page.coverCarousel.scroll(index, false);
+    	}
+    }
+	
+	function handle_published_in(hash) {
+    	if (!hash.published_in) 
+    	    return;
+    	    
+	    var yearFrom, yearTo;
+    
+		var y = hash.published_in;
+		if (y.indexOf("-") > 0) {
+			var tokens = y.split("-");
+			yearFrom = tokens[0];
+			yearTo = tokens[1];
+			
+			var _options = \$.extend({}, options, {
+			    xaxis: {min: yearFrom, max: yearTo}
+			});
+		}
+		else {
+			yearFrom = yearTo = y;
+			var _options = options;
+		}
+		
+		if (parseInt(yearFrom) && parseInt(yearTo)) {
+		    page.addFilter({"published_in": hash.published_in}, function() {
+		        reset();
+		        handle_page();
+                var plot = \$.plot(placeholder, data, _options);
+		    });
+		}
+	}
+	
+	handle_ebooks(_hash);
+	handle_published_in(_hash);
+	handle_page(_hash);
 });
+
+function parse_hash() {
+	var hash = document.location.hash || "#";
+	var tokens = hash.substr(1).split("&");
+	var d = {};
+	for (var i in tokens) {
+		if (tokens[i]) {
+			var kv = tokens[i].split("=");
+			d[kv[0]] = kv[1];
+	    }
+	}
+	return d;
+}
+
+function set_hash(data) {
+	var d = parse_hash();	
+	
+	for (var k in data) {
+		if (data[k])
+			d[k] = data[k];
+		else
+			delete d[k];
+	}
+	
+	var tokens = [];
+	for (var k in d) {
+		tokens[tokens.length] = k + "=" + d[k];
+	}
+	
+    var hash = "#" + tokens.join("&");
+    var current_hash = document.location.hash || "#";
+    
+    if (hash == current_hash)
+        return;
+	document.location.hash = hash;
+}
+
+var _hash = parse_hash();
 </script>
 
-    <div class="chart">
+    <div class="chart" style="width:898px;height:140px;">
         <div id="chartPubHistory" class="thisChart" style="width:898px;height:140px;">
             <noscript>$_("You need to have JavaScript turned on to see the nifty chart!")</noscript>
         </div>
@@ -486,25 +395,36 @@ $:render_template("lib/covers", page)
 
         <div class="head">
             <h2>$_("Related...")</h2>
-        </div>    
+        </div>
 
+	$jsdef renderSubjects(subjects):
+	    $if len(subjects) > 0:
+	        <span class="subject">
+	        $for s in subjects:
+	            <a href="$s.key">$s.name</a>$cond(loop.last, '', ',')
+	        </span>
+	    $else:
+	        <span class="title"><em>$_("None found.")</em></span>
+	
     $for s, limit in subject_list:
         <div class="contentQuarter">
             <h6 class="black collapse uppercase">$s</h6>
-            $ found = list(page.subjects(facet=s, limit=limit))
-            $if found:
-                <span class="subject">
-                $for s in list(page.subjects(facet=s, limit=limit)):
-                    <a href="$s.key">$s.name</a>$('' if loop.last else ',')
-                </span>
-            $else:
-                <span class="title"><em>$_("None found.")</em></span>
+			<div id="subjects-$s">
+				$:renderSubjects(page[s][:limit])
+			</div>
         </div>
         $if s != 'times':
             <div class="contentSpacer"></div>
             
-
     <div class="clearfix"></div>
+    
+    $jsdef renderAuthors(authors):
+        $for a in page.authors:
+            <span class="tag">
+                <a href="$a.key" title="$_('See more books by, and learn about, this author')">$a.name</a>,
+            </span> 
+            <span class="count">$sprintf(ungettext("%s book", "%s books", a.count), a.count)</span>
+            <br/>
 
     <div id="resultsAuthors">
         <div class="head">
@@ -514,20 +434,25 @@ $:render_template("lib/covers", page)
             </h3> 
         </div>
         <div class="unordered">
-            $for a in page.authors(limit=20):
-                <span class="tag">
-                    <a href="$a.key" title="$_('See more books by, and learn about, this author')">$a.name</a>,
-                </span> 
-                <span class="count">$a.count book$("s" if a.count != 1 else "")</span>
-                $if loop.last:
-                    <span class="count">- <a href="[AUTHORS]" class="fixthis" title="Need accurate link">See all</a></span>
-                $else:
-                    <br/>
+            $:renderAuthors(page.authors)
         </div>
     </div>
-                
-
+    
     <div class="spacer"></div>
+    
+    <script type="text/javascript">
+        $ page_key = page.key[page.key.rindex('/')+1:]
+        var page_key = "$page_key";
+    </script>
+    
+    $jsdef renderPublishers(publishers):
+        $for p in publishers:
+            <span class="tag">
+                <a href="/search?q=${page.subject_type}_key:&quot;$page_key&quot;&amp;publisher_facet=$p.name.replace('"', '\\"')" title="$_('Get more information about this publisher')">$p.name</a>,
+            </span>
+            <span class="count">$sprintf(ungettext("%s book", "%s books", p.count), p.count)</span>
+            <br/>
+        </div>
 
     <div id="resultsPublishers">
         <div class="head">
@@ -537,13 +462,7 @@ $:render_template("lib/covers", page)
             </h3>
         </div>
         <div class="unordered">
-        $for p in page.publishers:
-            <span class="tag">
-                $ key = page.key[page.key.rindex('/')+1:]
-                <a href="/search?q=${page.subject_type}_key:&quot;$key&quot;&amp;publisher_facet=$p.name.replace('"', '\\"')" title="$_('Get more information about this publisher')">$p.name</a>,
-            </span>
-            <span class="count">$p.count book$("s" if p.count != 1 else "")</span>
-            <br/>
+            $:renderPublishers(page.publishers[:20])
         </div>
     </div>                
                 

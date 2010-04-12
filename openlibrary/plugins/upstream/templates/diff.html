@@ -1,52 +1,82 @@
 $def with (a, b)
 
-$var title: $_.diff_title(a.key)
+$var title: $_("Diff on %s", a.key)
 
 <div id="contentHead">
-    $:macros.databarDiff()
-    <h2 class="collapse">$a.key</h2>            
+
+    $:macros.databarDiff() 
+
+    <h2 class="collapse"><a href="$a.key">$a.key</a> &rarr; Diff</h2>  
+
     <div id="legend">
        <dl>
            <dd class="add">$_("Added")</dd>
            <dd class="mod">$_("Modified")</dd>
            <dd class="rem">$_("Removed")</dd>
-           <dd class="unmod">$_("Unmodified")</dd>
+           <dd class="unmod">$_("Not changed")</dd>
        </dl>
     </div>
+          
 </div>
+
+$def display_revision(page):
+    <span class="heading">$_("Revision %d", page.revision)</span><br />
+    $ v = get_version(page.key, page.revision)
+    $if v.author:
+        <span class="smallest brown sansserif">$:_('By <a href="%s">%s</a> %s', v.author.key, v.author.displayname, datestr(v.created))</span>
+    $else:
+        <span class="smallest brown sansserif">$:_('By Anonymous %s', datestr(v.created))</span>
+
+$def diff_covers(p, a, b):
+    $if a[p] != b[p]:
+        <tr>
+            <td class="diff-header-side">$label</td>
+            <td class="diff-body">
+                $for img in a[p]:
+                    <img src="$get_coverstore_url()/b/id/$img-S.jpg"/>
+            </td>
+            <td class="diff-body">
+                $for img in b[p]:
+                    <img src="$get_coverstore_url()/b/id/$img-S.jpg"/>
+            </td>
+        </tr>
 
 <div id="contentBody" class="diff">
 
-
-    <table class="sidebyside" summary="$_('Differences')">
-        <colgroup class="l"><col class="lineno" /><col class="content" /></colgroup>
-        <colgroup class="r"><col class="lineno" /><col class="content" /></colgroup>
+    <table class="revisions" summary="$_('Differences')">
+        <colgroup class="l"><col class="line" /><col class="content" /></colgroup>
+        <colgroup class="r"><col class="line" /><col class="content" /></colgroup>
         <thead>
             <tr> 
                 <th></th>
-                <th class="diff-header-top">$_("Revision %d", a.revision)</th> 
-                <th class="diff-header-top">$_("Revision %d",  b.revision)</th>
+                <th style="width: 40%">$:display_revision(a)</th>
+                <th style="width: 40%">$:display_revision(b)</th>
             </tr>
         </thead>
         <tbody>
+        
+        $ diff_count = 0
 	
         $for p in set(a.keys() + b.keys()):
             $ label = p
             $# quick hack to display images in diff
-            $if (p in ["covers", "photos"]) and (a[p] != b[p]):
-                <tr>
-                    <td class="diff-header-side" valign="top">$label</td>
-                    <td class="diff-body" valign="top">
-                        $for img in a[p]:
-                            <img src="$get_coverstore_url()/b/id/$img-S.jpg"/>
-                    </td>
-                    <td class="diff-body" valign="top">
-                        $for img in b[p]:
-                            <img src="$get_coverstore_url()/b/id/$img-S.jpg"/>
-                    </td>
-                </tr>
+            $if p in ["covers", "photos"]:
+                $ diff = diff_covers(p, a, b)
+            $elif p == "table_of_contents":
+                $ diff = thingdiff("/type/text", "table_of_contents", a.get_toc_text(), b.get_toc_text())
+            $elif p == "title_prefix":
+                $ diff = thingdiff("/type/string", "title_prefix", a[p].strip(), b[p].strip())
             $else:
-                $:thingdiff(get_expected_type(a, p), label, a[p], b[p])
+                $ diff = thingdiff(get_expected_type(a, p), label, a[p], b[p])
+                
+            $ diff = diff and diff.strip()
+            $if diff:
+                $:diff
+                $ diff_count += 1
+        $if diff_count == 0:
+            <tr>
+                <td colspan="3" style="text-align: center;">$_("Both the revisions are identical.")</td>
+            </tr>
         </tbody>
     </table>
        
