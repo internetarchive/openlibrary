@@ -120,8 +120,7 @@ class stats:
         where = 'v.transaction_id=t.id AND t.created >= date($today) AND t.created < date($tomorrow)'
 
         if bots:
-            bot_users = ["/user/EdwardBot", "/user/ImportBot", "/user/WorkBot", "/user/AnandBot", "/user/StatsBot"]
-            where += " AND t.author_id IN (SELECT id FROM thing WHERE key IN $bot_users)"
+            where += " AND t.author_id IN (SELECT thing_id FROM account WHERE bot == 't')"
 
         return self.count(tables=tables, where=where, vars=locals())
         
