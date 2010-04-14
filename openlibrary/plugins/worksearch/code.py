@@ -143,7 +143,7 @@ def read_isbn(s):
     return s if re_isbn.match(s) else None
 
 re_fields = re.compile('(' + '|'.join(all_fields) + r'):', re.L)
-re_field = re.compile('([a-zA-Z]+):')
+re_field = re.compile('([a-zA-Z_]+):')
 re_author_key = re.compile(r'(OL\d+A)')
 
 field_name_map = {'author': 'author_name'}
