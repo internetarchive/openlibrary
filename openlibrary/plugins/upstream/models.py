@@ -331,9 +331,6 @@ class Work(ol_code.Work):
         editions = w and w.get('edition_key')
         
         if editions:
-            # pre-fetch the cover ids to avoid multiple requests to coverstore
-            populate_coverstore_cache(editions)
-            
             return web.ctx.site.get_many(["/books/" + olid for olid in editions])
         else:
             return []
