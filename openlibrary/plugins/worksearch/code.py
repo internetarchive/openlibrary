@@ -257,7 +257,7 @@ def do_search(param, sort, page=1, rows=100, spellcheck_count=None):
         for e in spellcheck.find("lst[@name='suggestions']"):
             assert e.tag == 'lst'
             a = e.attrib['name']
-            if a in spell_map:
+            if a in spell_map or a in ('sqrt', 'edition_count'):
                 continue
             spell_map[a] = [i.text for i in e.find("arr[@name='suggestion']")]
 
