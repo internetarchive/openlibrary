@@ -669,7 +669,7 @@ class merge_authors(delegate.page):
             edition_keys.update(web.ctx.site.things(q))
             q = {
                 'type': '/type/work',
-                'authors': {'author': {'key': '/authors/' + old}}
+                'authors': {'author': {'key': old}}
             }
             work_keys.update(web.ctx.site.things(q))
             r = {
@@ -697,19 +697,19 @@ class merge_authors(delegate.page):
                     authors.append(a)
 
             w['authors'] = [{'type': '/type/author_role', 'author': {'key': a}} for a in authors]
-            updates.append(w)
+            updates.append(w.dict())
 
         for ekey in edition_keys:
             e = web.ctx.site.get(ekey)
             authors = []
-            for cur in w['authors']:
+            for cur in e['authors']:
                 cur = cur['key']
                 a = master if cur in old_keys else cur
                 if a not in authors:
                     authors.append(a)
 
             e['authors'] = [{'key': a} for a in authors]
-            updates.append(e)
+            updates.append(e.dict())
 
         web.ctx.site.save_many(updates, comment='merge authors', action="merge-authors")
 
