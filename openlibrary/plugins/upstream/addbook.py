@@ -198,7 +198,7 @@ class addbook(delegate.page):
         edition = self._make_edition(work, i)            
         comment = utils.get_message("comment_new_edition")
         edition._save(comment)
-        raise web.seeother(edition.url("/edit"))
+        raise web.seeother(edition.url("/edit?mode=add-book"))
         
     def _make_edition(self, work, i):
         edition = new_doc("/type/edition", 
@@ -212,7 +212,7 @@ class addbook(delegate.page):
         return edition
         
     def work_edition_match(self, edition):
-        raise web.seeother(edition.url("/edit?from=add"))
+        raise web.seeother(edition.url("/edit?mode=found"))
         
     def no_match(self, i):
         # TODO: Handle add-new-author
@@ -225,8 +225,8 @@ class addbook(delegate.page):
         
         edition = self._make_edition(work, i)
         comment = utils.get_message("comment_new_edition")
-        edition._save(comment)
-        raise web.seeother(edition.url("/edit"))
+        edition._save(comment)        
+        raise web.seeother(edition.url("/edit?mode=add-work"))
 
 
 del delegate.pages['/addbook']
