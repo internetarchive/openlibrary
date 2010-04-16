@@ -280,6 +280,7 @@ def get_doc(doc):
     if e_first_pub is not None:
         first_pub = e_first_pub.text
     e_first_edition = doc.find("str[@name='first_edition']")
+    first_edition = None
     if e_first_edition is not None:
         first_edition = e_first_edition.text
 
