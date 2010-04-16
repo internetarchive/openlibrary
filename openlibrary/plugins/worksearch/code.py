@@ -654,7 +654,65 @@ def do_merge():
     return
 
 class merge_authors(delegate.page):
-    path = '/merge/authors'
+    path = '/authors/merge'
+
+    def do_merge(self, master, old_keys):
+        assert web.ctx.site.get(master)['type']['key'] == '/type/author'
+        edition_keys = set()
+        work_keys = set()
+        updates = []
+        for old in old_keys:
+            q = {
+                'type': '/type/edition',
+                'authors': {'key': old}
+            }
+            edition_keys.update(web.ctx.site.things(q))
+            q = {
+                'type': '/type/work',
+                'authors': {'author': {'key': old}}
+            }
+            work_keys.update(web.ctx.site.things(q))
+            r = {
+                'key': old,
+                'type': {'key': '/type/redirect'},
+                'location': master,
+            }
+            updates.append(r)
+
+        for wkey in work_keys:
+            q = {
+                'type': '/type/edition',
+                'works': {'key': wkey}
+            }
+            edition_keys.update(web.ctx.site.things(q))
+
+            w = web.ctx.site.get(wkey)
+            authors = []
+            for cur in w['authors']:
+                assert cur['type'] == '/type/author_role'
+                assert len(cur.keys()) == 2
+                cur = cur['author']['key']
+                a = master if cur in old_keys else cur
+                if a not in authors:
+                    authors.append(a)
+
+            w['authors'] = [{'type': '/type/author_role', 'author': {'key': a}} for a in authors]
+            updates.append(w.dict())
+
+        for ekey in edition_keys:
+            e = web.ctx.site.get(ekey)
+            authors = []
+            for cur in e['authors']:
+                cur = cur['key']
+                a = master if cur in old_keys else cur
+                if a not in authors:
+                    authors.append(a)
+
+            e['authors'] = [{'key': a} for a in authors]
+            updates.append(e.dict())
+
+        web.ctx.site.save_many(updates, comment='merge authors', action="merge-authors")
+
     def GET(self):
         i = web.input(key=[], master=None)
         keys = []
@@ -668,13 +726,8 @@ class merge_authors(delegate.page):
             errors += ['no authors selected']
 
         if not errors and i.master:
-            master_key = '/authors/' + i.master
-            assert web.ctx.site.get(master_key)['type']['key'] == '/type/author'
-            old_keys = set(k for k in keys if k != i.master) 
-            for old in old_keys:
-                q = {'type': '/type/work', 'authors': {'author': '/authors/' + old}}
-                work_keys = web.ctx.site.things(q)
-
+            old_keys = set('/authors/' + k for k in keys if k != i.master) 
+            self.do_merge('/authors/' + i.master, old_keys)
             return 'merged'
 
         return render['merge/authors'](errors, i.master, keys, \
