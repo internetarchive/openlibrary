@@ -279,6 +279,9 @@ def get_doc(doc):
     e_first_pub = doc.find("int[@name='first_publish_year']")
     if e_first_pub is not None:
         first_pub = e_first_pub.text
+    e_first_edition = doc.find("str[@name='first_edition']")
+    if e_first_edition is not None:
+        first_edition = e_first_edition.text
 
     work_subtitle = None
     e_subtitle = doc.find("str[@name='subtitle']")
@@ -302,6 +305,7 @@ def get_doc(doc):
         ia = [e.text for e in (e_ia if e_ia is not None else [])],
         authors = authors,
         first_publish_year = first_pub,
+        first_edition = first_edition,
         subtitle = work_subtitle,
         cover_edition_key = (cover.text if cover is not None else None),
     )
