@@ -548,6 +548,9 @@ class subjects(delegate.page):
             return render_template('subjects/notfound.tmpl', key)
         
         return render_template("subjects", page)
+
+re_olid = re.compile('^OL\d+([AMW])$')
+olid_urls = {'A': 'authors', 'M': 'editions', 'W': 'works'}
         
 class search(delegate.page):
     def clean_inputs(self, i):
@@ -582,6 +585,9 @@ class search(delegate.page):
         q_list = []
         q = i.get('q', '').strip()
         if q:
+            m = re_olid.match(q)
+            if m:
+                raise web.seeother('/%s/%s' % (olid_urls[m.group(1)], q))
             q_list.append(q)
         for k in ('title', 'author', 'isbn', 'subject', 'place', 'person', 'publisher'):
             if k in i:
