@@ -711,7 +711,7 @@ class merge_authors(delegate.page):
             w = web.ctx.site.get(wkey)
             authors = []
             for cur in w['authors']:
-                assert cur['type'] == '/type/author_role'
+                assert cur['type'] == '/type/author_role' or cur['type']['key'] == '/type/author_role'
                 assert len(cur.keys()) == 2
                 cur = cur['author']['key']
                 a = master if cur in old_keys else cur
