@@ -172,14 +172,14 @@ def run_solr_query(param = {}, rows=100, page=1, sort=None, spellcheck_count=Non
     if q_param:
         if q_param == '*:*':
             q_list.append(q_param)
-        elif re_field.search(q_param):
+        elif re_fields.search(q_param):
             q_list.extend('%s:(%s)' % i for i in parse_query_fields(q_param))
         else:
             isbn = read_isbn(q_param)
             if isbn:
                 q_list.append('isbn:(%s)' % isbn)
             else:
-                q_list.append(q_param)
+                q_list.append(q_param.strip().replace(':', '\:'))
                 use_dismax = True
     else:
         if 'author' in param:
