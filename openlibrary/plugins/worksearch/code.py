@@ -551,12 +551,17 @@ class subjects(delegate.page):
 
 re_olid = re.compile('^OL\d+([AMW])$')
 olid_urls = {'A': 'authors', 'M': 'editions', 'W': 'works'}
+
+plurals = dict((f + 's', f) for f in ('publisher', 'author'))
         
 class search(delegate.page):
     def clean_inputs(self, i):
         params = {}
         need_redirect = False
         for k, v in i.items():
+            if k in plurals:
+                k = plurals[k]
+                need_redirect = True
             if isinstance(v, list):
                 if v == []:
                     continue
