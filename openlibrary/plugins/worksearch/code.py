@@ -122,28 +122,13 @@ def advanced_to_simple(params):
 
 re_paren = re.compile('[()]')
 
-def parse_query(params):
-    q_list = []
-    for k, v in params:
-        v = v.strip()
-        if k == 'q':
-            q_list.append(v)
-        if k == 'title':
-            v = re_paren.sub(r'\\\1', v)
-            q_list.append('title:(%s)' % v)
-        if k == 'author':
-            v = re_paren.sub(r'\\\1', v)
-            q_list.append('author_name:(%s)' % v)
-    return ' '.join(q_list)
-
 re_isbn = re.compile('^([0-9]{9}[0-9X]|[0-9]{13})$')
 
 def read_isbn(s):
     s = s.replace('-', '')
     return s if re_isbn.match(s) else None
 
-re_fields = re.compile('(' + '|'.join(all_fields) + r'):', re.L)
-re_field = re.compile('([a-zA-Z_]+):')
+#re_field = re.compile('([a-zA-Z_]+):')
 re_author_key = re.compile(r'(OL\d+A)')
 
 field_name_map = {
@@ -153,13 +138,16 @@ field_name_map = {
     'publishers': 'publisher',
 }
 
+all_fields += field_name_map.keys()
+re_fields = re.compile('(' + '|'.join(all_fields) + r'):', re.I)
+
 plurals = dict((f + 's', f) for f in ('publisher', 'author'))
         
 def parse_query_fields(q):
-    found = [(m.start(), m.end()) for m in re_field.finditer(q)]
-    first = q[:found[0][0]].strip()
+    found = [(m.start(), m.end()) for m in re_fields.finditer(q)]
+    first = q[:found[0][0]].strip() if found else q.strip()
     if first:
-        yield 'text', q[:found[0][0]].strip()
+        yield 'text', first.replace(':', '\:')
     for field_num in range(len(found)):
         f = found[field_num]
         field_name = q[f[0]:f[1]-1].lower()
@@ -169,7 +157,7 @@ def parse_query_fields(q):
             value = q[f[1]:]
         else:
             value = q[f[1]:found[field_num+1][0]]
-        yield field_name, value.strip()
+        yield field_name, value.strip().replace(':', '\:')
 
 def run_solr_query(param = {}, rows=100, page=1, sort=None, spellcheck_count=None):
     if spellcheck_count == None:

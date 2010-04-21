@@ -1,5 +1,5 @@
 import unittest
-from openlibrary.plugins.worksearch.code import search, advanced_to_simple, read_facets, sorted_work_editions, parse_query
+from openlibrary.plugins.worksearch.code import search, advanced_to_simple, read_facets, sorted_work_editions, parse_query_fields
 from lxml.etree import fromstring
 
 class TestWorkSearch(unittest.TestCase):
@@ -58,15 +58,37 @@ class TestWorkSearch(unittest.TestCase):
         expect = ["OL7536692M","OL7825368M","OL3026366M"]
         self.assertEqual(sorted_work_editions('OL100000W', json_data=json_data), expect)
         
-    def test_query_parser(self):
-        params = [('title', 'food rules'), ('author', 'pollan')]
-        expect = 'title:(food rules) author_name:(pollan)'
-        self.assertEqual(parse_query(params), expect)
+    def test_query_parser_fields(self):
+        func = parse_query_fields
 
-        params = [('title', '"food rules"'), ('author', 'pollan')]
-        expect = 'title:("food rules") author_name:(pollan)'
-        self.assertEqual(parse_query(params), expect)
+        expect = [('text', 'query here')]
+        q = 'query here'
+        print q
+        self.assertEqual(list(func(q)), expect)
 
-        params = [('q', 'query here'), ('title', 'food rules'), ('author', 'pollan')]
-        expect = 'query here title:(food rules) author_name:(pollan)'
-        self.assertEqual(parse_query(params), expect)
+        expect = [('title', 'food rules'), ('author_name', 'pollan')]
+
+        q = 'title:food rules author:pollan'
+        self.assertEqual(list(func(q)), expect)
+
+        q = 'title:food rules by:pollan'
+        self.assertEqual(list(func(q)), expect)
+
+        q = 'Title:food rules By:pollan'
+        self.assertEqual(list(func(q)), expect)
+
+        expect = [('title', '"food rules"'), ('author_name', 'pollan')]
+        q = 'title:"food rules" author:pollan'
+        self.assertEqual(list(func(q)), expect)
+
+        expect = [('text', 'query here'), ('title', 'food rules'), ('author_name', 'pollan')]
+        q = 'query here title:food rules author:pollan'
+        self.assertEqual(list(func(q)), expect)
+
+        expect = [('text', 'flatland\:a romance of many dimensions')]
+        q = 'flatland:a romance of many dimensions'
+        self.assertEqual(list(func(q)), expect)
+
+        expect = [('title', 'flatland\:a romance of many dimensions')]
+        q = 'title:flatland:a romance of many dimensions'
+        self.assertEqual(list(func(q)), expect)
