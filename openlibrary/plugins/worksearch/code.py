@@ -146,8 +146,14 @@ re_fields = re.compile('(' + '|'.join(all_fields) + r'):', re.L)
 re_field = re.compile('([a-zA-Z_]+):')
 re_author_key = re.compile(r'(OL\d+A)')
 
-field_name_map = {'author': 'author_name'}
+field_name_map = {
+    'author': 'author_name',
+    'authors': 'author_name'
+    'publishers': 'publisher',
+}
 
+plurals = dict((f + 's', f) for f in ('publisher', 'author'))
+        
 def parse_query_fields(q):
     found = [(m.start(), m.end()) for m in re_field.finditer(q)]
     first = q[:found[0][0]].strip()
@@ -552,14 +558,13 @@ class subjects(delegate.page):
 re_olid = re.compile('^OL\d+([AMW])$')
 olid_urls = {'A': 'authors', 'M': 'editions', 'W': 'works'}
 
-plurals = dict((f + 's', f) for f in ('publisher', 'author'))
-        
 class search(delegate.page):
     def clean_inputs(self, i):
         params = {}
         need_redirect = False
         for k, v in i.items():
             if k in plurals:
+                params[k] = None
                 k = plurals[k]
                 need_redirect = True
             if isinstance(v, list):
