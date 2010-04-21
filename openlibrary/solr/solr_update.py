@@ -1,7 +1,7 @@
 from urllib2 import urlopen
 import simplejson
 from time import time, sleep
-from openlibrary.catalog.utils.query import withKey, query_iter
+from openlibrary.catalog.utils.query import withKey
 from openlibrary.solr.update_work import update_work, solr_update, update_author, AuthorRedirect
 from openlibrary.api import OpenLibrary, Reference
 from openlibrary.catalog.read_rc import read_rc
@@ -82,7 +82,7 @@ while True:
         if action == 'new_account':
             continue
         author = i['data'].get('author', None) if 'data' in i else None
-        if author in ('/user/ImportBot', '/user/WorkBot', '/user/AccountBot'):
+        if author in ('/user/AccountBot',):
             if action not in ('save', 'save_many'):
                 print action, author, key, i.keys()
                 print i['data']
@@ -90,8 +90,11 @@ while True:
             continue
         if action == 'save' and key.startswith('/a/'):
             authors_to_update.add(key)
-            q = {'type':'/type/work', 'authors':{'author':key}}
-            works_to_update.update(w['key'] for w in query_iter(q))
+            q = {
+                'type':'/type/work',
+                'authors':{'author':{'key': key}}
+            }
+            works_to_update.update(ol.query(q))
         elif action == 'save' and key.startswith('/works/'):
             works_to_update.add(key)
             print i

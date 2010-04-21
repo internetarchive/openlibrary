@@ -94,6 +94,7 @@ def find_aspects(line):
         return
     a, x = cur[0][1], cur[1][1]
     x = x.strip('. ')
+    a = a.strip('. ')
     if not re_aspects.search(x):
         return
     if a == 'Body, Human':
