@@ -148,7 +148,8 @@ re_author_key = re.compile(r'(OL\d+A)')
 
 field_name_map = {
     'author': 'author_name',
-    'authors': 'author_name'
+    'authors': 'author_name',
+    'by': 'author_name',
     'publishers': 'publisher',
 }
 
