@@ -64,7 +64,10 @@ class Edition(ol_code.Edition):
         """Next edition of work"""
         if len(self.get('works', [])) != 1:
             return
-        editions = sorted_work_editions(self.works[0].get_olid())
+        wkey = self.works[0].get_olid()
+        if not wkey:
+            return
+        editions = sorted_work_editions(wkey)
         try:
             i = editions.index(self.get_olid())
         except ValueError:
@@ -77,7 +80,10 @@ class Edition(ol_code.Edition):
         """Previous edition of work"""
         if len(self.get('works', [])) != 1:
             return
-        editions = sorted_work_editions(self.works[0].get_olid())
+        wkey = self.works[0].get_olid()
+        if not wkey:
+            return
+        editions = sorted_work_editions(wkey)
         try:
             i = editions.index(self.get_olid())
         except ValueError:
