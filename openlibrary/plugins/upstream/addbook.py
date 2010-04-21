@@ -422,6 +422,8 @@ class SaveBookHelper:
         work.subject_places = work.get('subject_places', '').split(',')
         work.subject_times = work.get('subject_times', '').split(',')
         work.subject_people = work.get('subject_people', '').split(',')
+        if ': ' in work.title:
+            work.title, work.subtitle = work.title.split(': ', 1)
         
         for k in ['excerpts', 'links']:
             work[k] = work.get(k) or []
