@@ -285,7 +285,7 @@ class Work(ol_code.Work):
         
     def _get_solr_data(self):
         key = self.get_olid()
-        fields = ["cover_edition_key", "cover_id", "edition_key"]
+        fields = ["cover_edition_key", "cover_id", "edition_key", "first_publish_year"]
         
         solr = get_works_solr()
         d = solr.select({"key": key}, fields=fields)
@@ -293,7 +293,7 @@ class Work(ol_code.Work):
             w = d.docs[0]
         else:
             w = None
-        
+                
         # Replace _solr_data property with the attribute
         self.__dict__['_solr_data'] = w
         return w
@@ -334,6 +334,8 @@ class Work(ol_code.Work):
             return web.ctx.site.get_many(["/books/" + olid for olid in editions])
         else:
             return []
+
+    first_publish_year = property(lambda self: self._solr_data.get("first_publish_year"))
         
     def get_edition_covers(self):
         editions = web.ctx.site.get_many(web.ctx.site.things({"type": "/type/edition", "works": self.key, "limit": 1000}))
