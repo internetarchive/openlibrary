@@ -428,6 +428,8 @@
 
     <field name="key" type="string" required="true" omitnorms="true"/>
     <field name="title" type="text" required="true" /> 
+    <field name="title_prefix" type="text" />
+    <field name="title_without_prefix" type="text" />
     <field name="subtitle" type="text" /> 
     <field name="author_key" type="string" multiValued="true" /> 
     <field name="author_name" type="textgen" multiValued="true" /> 
