@@ -561,6 +561,17 @@ class edit(core.edit):
                 raise web.seeother(page.url(suffix="/edit"))
         else:
             return core.edit.GET(self, key)
+
+class daisy(delegate.page):
+    path = "(/books/OL\d+M)/daisy"
+
+    def GET(sef, key):
+        page = web.ctx.site.get(key)
+
+        if not page:
+            raise web.notfound()
+
+        return render_template("books/daisy", page)
         
 def to_json(d):
     web.header('Content-Type', 'application/json')    
