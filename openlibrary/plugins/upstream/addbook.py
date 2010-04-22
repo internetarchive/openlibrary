@@ -198,7 +198,7 @@ class addbook(delegate.page):
         edition = self._make_edition(work, i)            
         comment = utils.get_message("comment_new_edition")
         edition._save(comment)
-        raise web.seeother(edition.url("/edit"))
+        raise web.seeother(edition.url("/edit?mode=add-book"))
         
     def _make_edition(self, work, i):
         edition = new_doc("/type/edition", 
@@ -212,7 +212,7 @@ class addbook(delegate.page):
         return edition
         
     def work_edition_match(self, edition):
-        raise web.seeother(edition.url("/edit?from=add"))
+        raise web.seeother(edition.url("/edit?mode=found"))
         
     def no_match(self, i):
         # TODO: Handle add-new-author
@@ -225,8 +225,8 @@ class addbook(delegate.page):
         
         edition = self._make_edition(work, i)
         comment = utils.get_message("comment_new_edition")
-        edition._save(comment)
-        raise web.seeother(edition.url("/edit"))
+        edition._save(comment)        
+        raise web.seeother(edition.url("/edit?mode=add-work"))
 
 
 del delegate.pages['/addbook']
@@ -422,6 +422,8 @@ class SaveBookHelper:
         work.subject_places = work.get('subject_places', '').split(',')
         work.subject_times = work.get('subject_times', '').split(',')
         work.subject_people = work.get('subject_people', '').split(',')
+        if ': ' in work.title:
+            work.title, work.subtitle = work.title.split(': ', 1)
         
         for k in ['excerpts', 'links']:
             work[k] = work.get(k) or []
@@ -559,6 +561,17 @@ class edit(core.edit):
                 raise web.seeother(page.url(suffix="/edit"))
         else:
             return core.edit.GET(self, key)
+
+class daisy(delegate.page):
+    path = "(/books/OL\d+M)/daisy"
+
+    def GET(sef, key):
+        page = web.ctx.site.get(key)
+
+        if not page:
+            raise web.notfound()
+
+        return render_template("books/daisy", page)
         
 def to_json(d):
     web.header('Content-Type', 'application/json')    

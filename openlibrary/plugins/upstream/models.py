@@ -1,3 +1,4 @@
+
 import web
 import urllib, urllib2
 import simplejson
@@ -41,41 +42,6 @@ class Image:
     def __repr__(self):
         return "<image: %s/%d>" % (self.category, self.id)
 
-def query_coverstore(category, **kw):
-    # Optimization to speedup work pages by avoiding the multiple requests to coverstore
-    try:
-        if kw.keys() == ["olid"]:
-            return web.ctx['coverstore_cache'][kw['olid']]
-    except KeyError:
-        pass
-        
-    try:
-        url = "%s/%s/query?%s" % (get_coverstore_url(), category, urllib.urlencode(kw))
-        json = urllib2.urlopen(url).read()
-        return simplejson.loads(json)
-    except IOError:
-        return []
-        
-def populate_coverstore_cache(olids):
-    # This single combined query is running slower that N individual queries.
-    # Don't try that until it is fixed.
-    return
-    
-    try:
-        url = "%s/b/query?cmd=ids&olid=%s"% (get_coverstore_url(), ",".join(olids))
-        d = simplejson.loads(urllib2.urlopen(url).read())
-        
-        cache = {}
-        for olid in olids:
-            if olid in d:
-                v = [d[olid]]
-            else:
-                v = []
-            cache[olid] = v
-        web.ctx.coverstore_cache = cache
-    except IOError:
-        pass
-
 class Edition(ol_code.Edition):
     def get_title(self):
         if self['title_prefix']:
@@ -98,7 +64,10 @@ class Edition(ol_code.Edition):
         """Next edition of work"""
         if len(self.get('works', [])) != 1:
             return
-        editions = sorted_work_editions(self.works[0].get_olid())
+        wkey = self.works[0].get_olid()
+        if not wkey:
+            return
+        editions = sorted_work_editions(wkey)
         try:
             i = editions.index(self.get_olid())
         except ValueError:
@@ -111,7 +80,10 @@ class Edition(ol_code.Edition):
         """Previous edition of work"""
         if len(self.get('works', [])) != 1:
             return
-        editions = sorted_work_editions(self.works[0].get_olid())
+        wkey = self.works[0].get_olid()
+        if not wkey:
+            return
+        editions = sorted_work_editions(wkey)
         try:
             i = editions.index(self.get_olid())
         except ValueError:
@@ -121,8 +93,7 @@ class Edition(ol_code.Edition):
         return editions[i - 1]
  
     def get_covers(self):
-        covers = self.covers or query_coverstore('b', olid=self.get_olid())
-        return [Image('b', c) for c in covers if c > 0]
+        return [Image('b', c) for c in self.covers if c > 0]
         
     def get_cover(self):
         covers = self.get_covers()
@@ -269,8 +240,7 @@ class Edition(ol_code.Edition):
         
 class Author(ol_code.Author):
     def get_photos(self):
-        photos = self.photos or query_coverstore('a', olid=self.get_olid())
-        return [Image("a", id) for id in photos if id > 0]
+        return [Image("a", id) for id in self.photos if id > 0]
         
     def get_photo(self):
         photos = self.get_photos()
@@ -321,7 +291,7 @@ class Work(ol_code.Work):
         
     def _get_solr_data(self):
         key = self.get_olid()
-        fields = ["cover_edition_key", "cover_id", "edition_key"]
+        fields = ["cover_edition_key", "cover_id", "edition_key", "first_publish_year"]
         
         solr = get_works_solr()
         d = solr.select({"key": key}, fields=fields)
@@ -329,7 +299,7 @@ class Work(ol_code.Work):
             w = d.docs[0]
         else:
             w = None
-        
+                
         # Replace _solr_data property with the attribute
         self.__dict__['_solr_data'] = w
         return w
@@ -367,12 +337,11 @@ class Work(ol_code.Work):
         editions = w and w.get('edition_key')
         
         if editions:
-            # pre-fetch the cover ids to avoid multiple requests to coverstore
-            populate_coverstore_cache(editions)
-            
             return web.ctx.site.get_many(["/books/" + olid for olid in editions])
         else:
             return []
+
+    first_publish_year = property(lambda self: self._solr_data.get("first_publish_year"))
         
     def get_edition_covers(self):
         editions = web.ctx.site.get_many(web.ctx.site.things({"type": "/type/edition", "works": self.key, "limit": 1000}))

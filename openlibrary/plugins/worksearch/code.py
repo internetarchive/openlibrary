@@ -122,37 +122,32 @@ def advanced_to_simple(params):
 
 re_paren = re.compile('[()]')
 
-def parse_query(params):
-    q_list = []
-    for k, v in params:
-        v = v.strip()
-        if k == 'q':
-            q_list.append(v)
-        if k == 'title':
-            v = re_paren.sub(r'\\\1', v)
-            q_list.append('title:(%s)' % v)
-        if k == 'author':
-            v = re_paren.sub(r'\\\1', v)
-            q_list.append('author_name:(%s)' % v)
-    return ' '.join(q_list)
-
 re_isbn = re.compile('^([0-9]{9}[0-9X]|[0-9]{13})$')
 
 def read_isbn(s):
     s = s.replace('-', '')
     return s if re_isbn.match(s) else None
 
-re_fields = re.compile('(' + '|'.join(all_fields) + r'):', re.L)
-re_field = re.compile('([a-zA-Z]+):')
+#re_field = re.compile('([a-zA-Z_]+):')
 re_author_key = re.compile(r'(OL\d+A)')
 
-field_name_map = {'author': 'author_name'}
+field_name_map = {
+    'author': 'author_name',
+    'authors': 'author_name',
+    'by': 'author_name',
+    'publishers': 'publisher',
+}
 
+all_fields += field_name_map.keys()
+re_fields = re.compile('(' + '|'.join(all_fields) + r'):', re.I)
+
+plurals = dict((f + 's', f) for f in ('publisher', 'author'))
+        
 def parse_query_fields(q):
-    found = [(m.start(), m.end()) for m in re_field.finditer(q)]
-    first = q[:found[0][0]].strip()
+    found = [(m.start(), m.end()) for m in re_fields.finditer(q)]
+    first = q[:found[0][0]].strip() if found else q.strip()
     if first:
-        yield 'text', q[:found[0][0]].strip()
+        yield 'text', first.replace(':', '\:')
     for field_num in range(len(found)):
         f = found[field_num]
         field_name = q[f[0]:f[1]-1].lower()
@@ -162,7 +157,7 @@ def parse_query_fields(q):
             value = q[f[1]:]
         else:
             value = q[f[1]:found[field_num+1][0]]
-        yield field_name, value.strip()
+        yield field_name, value.strip().replace(':', '\:')
 
 def run_solr_query(param = {}, rows=100, page=1, sort=None, spellcheck_count=None):
     if spellcheck_count == None:
@@ -177,14 +172,14 @@ def run_solr_query(param = {}, rows=100, page=1, sort=None, spellcheck_count=Non
     if q_param:
         if q_param == '*:*':
             q_list.append(q_param)
-        elif re_field.search(q_param):
+        elif re_fields.search(q_param):
             q_list.extend('%s:(%s)' % i for i in parse_query_fields(q_param))
         else:
             isbn = read_isbn(q_param)
             if isbn:
                 q_list.append('isbn:(%s)' % isbn)
             else:
-                q_list.append(q_param)
+                q_list.append(q_param.strip().replace(':', '\:'))
                 use_dismax = True
     else:
         if 'author' in param:
@@ -200,10 +195,11 @@ def run_solr_query(param = {}, rows=100, page=1, sort=None, spellcheck_count=Non
 
     if use_dismax:
         q = web.urlquote(' '.join(q_list))
-        solr_select = solr_select_url + "?version=2.2&defType=dismax&q.op=AND&q=%s&qf=text+title^5+author_name^5&bf=sqrt(edition_count)^10&start=%d&rows=%d&fl=key,author_name,author_key,title,subtitle,edition_count,ia,has_fulltext,first_publish_year,cover_edition_key&qt=standard&wt=standard&spellcheck=true&spellcheck.count=%d" % (q, offset, rows, spellcheck_count)
+        solr_select = solr_select_url + "?version=2.2&defType=dismax&q.op=AND&q=%s&qf=text+title^5+author_name^5&bf=sqrt(edition_count)^10&start=%d&rows=%d&fl=key,author_name,author_key,title,subtitle,edition_count,ia,has_fulltext,first_publish_year,cover_edition_key&qt=standard&wt=standard" % (q, offset, rows)
     else:
         q = web.urlquote(' '.join(q_list + ['_val_:"sqrt(edition_count)"^10']))
         solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&start=%d&rows=%d&fl=key,author_name,author_key,title,subtitle,edition_count,ia,has_fulltext,first_publish_year,cover_edition_key&qt=standard&wt=standard" % (q, offset, rows)
+    solr_select += '&spellcheck=true&spellcheck.count=%d' % spellcheck_count
     solr_select += "&facet=true&" + '&'.join("facet.field=" + f for f in facet_fields)
 
     k = 'has_fulltext'
@@ -256,7 +252,7 @@ def do_search(param, sort, page=1, rows=100, spellcheck_count=None):
         for e in spellcheck.find("lst[@name='suggestions']"):
             assert e.tag == 'lst'
             a = e.attrib['name']
-            if a in spell_map:
+            if a in spell_map or a in ('sqrt', 'edition_count'):
                 continue
             spell_map[a] = [i.text for i in e.find("arr[@name='suggestion']")]
 
@@ -278,6 +274,10 @@ def get_doc(doc):
     e_first_pub = doc.find("int[@name='first_publish_year']")
     if e_first_pub is not None:
         first_pub = e_first_pub.text
+    e_first_edition = doc.find("str[@name='first_edition']")
+    first_edition = None
+    if e_first_edition is not None:
+        first_edition = e_first_edition.text
 
     work_subtitle = None
     e_subtitle = doc.find("str[@name='subtitle']")
@@ -301,6 +301,7 @@ def get_doc(doc):
         ia = [e.text for e in (e_ia if e_ia is not None else [])],
         authors = authors,
         first_publish_year = first_pub,
+        first_edition = first_edition,
         subtitle = work_subtitle,
         cover_edition_key = (cover.text if cover is not None else None),
     )
@@ -335,9 +336,9 @@ def get_facet(facets, f, limit=None):
     
 SUBJECTS = [
     web.storage(name="subject", key="subjects", prefix="/subjects/", facet="subject_facet", facet_key="subject_key"),
-    web.storage(name="person", key="people", prefix="/subjects/people/", facet="person_facet", facet_key="person_key"),
-    web.storage(name="place", key="places", prefix="/subjects/places/", facet="place_facet", facet_key="place_key"),
-    web.storage(name="time", key="times", prefix="/subjects/times/", facet="time_facet", facet_key="time_key"),
+    web.storage(name="person", key="people", prefix="/subjects/person:", facet="person_facet", facet_key="person_key"),
+    web.storage(name="place", key="places", prefix="/subjects/place:", facet="place_facet", facet_key="place_key"),
+    web.storage(name="time", key="times", prefix="/subjects/time:", facet="time_facet", facet_key="time_key"),
 ]
 
 def finddict(dicts, **filters):
@@ -413,7 +414,7 @@ def get_subject(key, details=False, offset=0, limit=12, **filters):
     
     Optional arguments has_fulltext and published_in can be passed to filter the results.
     """
-    m = web.re_compile(r'/subjects/(places/|times/|people/|)(.+)').match(key)
+    m = web.re_compile(r'/subjects/(place:|time:|person:|)(.+)').match(key)
     if m:
         prefix = "/subjects/" + m.group(1)
         path = m.group(2)
@@ -528,7 +529,7 @@ class subjects_json(delegate.page):
 
         subject = get_subject(key, offset=i.offset, limit=i.limit, details=i.details.lower() == "true", **filters)
         return json.dumps(subject)
-    
+        
 class subjects(delegate.page):
     path = '(/subjects/.+)'
     
@@ -536,18 +537,34 @@ class subjects(delegate.page):
         if key.lower() != key:
             raise web.redirect(key.lower())
             
+        # temporary code to handle url change from /people/ to /person:
+        if key.count("/") == 3:
+            key2 = key
+            key2 = key2.replace("/people/", "/person:")
+            key2 = key2.replace("/places/", "/place:")
+            key2 = key2.replace("/times/", "/time:")
+            if key2 != key:
+                raise web.seeother(key2)
+            
         page = get_subject(key, details=True)
         
         if page.work_count == 0:
             return render_template('subjects/notfound.tmpl', key)
         
         return render_template("subjects", page)
-        
+
+re_olid = re.compile('^OL\d+([AMW])$')
+olid_urls = {'A': 'authors', 'M': 'editions', 'W': 'works'}
+
 class search(delegate.page):
     def clean_inputs(self, i):
         params = {}
         need_redirect = False
         for k, v in i.items():
+            if k in plurals:
+                params[k] = None
+                k = plurals[k]
+                need_redirect = True
             if isinstance(v, list):
                 if v == []:
                     continue
@@ -576,6 +593,9 @@ class search(delegate.page):
         q_list = []
         q = i.get('q', '').strip()
         if q:
+            m = re_olid.match(q)
+            if m:
+                raise web.seeother('/%s/%s' % (olid_urls[m.group(1)], q))
             q_list.append(q)
         for k in ('title', 'author', 'isbn', 'subject', 'place', 'person', 'publisher'):
             if k in i:
@@ -653,7 +673,65 @@ def do_merge():
     return
 
 class merge_authors(delegate.page):
-    path = '/merge/authors'
+    path = '/authors/merge'
+
+    def do_merge(self, master, old_keys):
+        assert web.ctx.site.get(master)['type']['key'] == '/type/author'
+        edition_keys = set()
+        work_keys = set()
+        updates = []
+        for old in old_keys:
+            q = {
+                'type': '/type/edition',
+                'authors': {'key': old}
+            }
+            edition_keys.update(web.ctx.site.things(q))
+            q = {
+                'type': '/type/work',
+                'authors': {'author': {'key': old}}
+            }
+            work_keys.update(web.ctx.site.things(q))
+            r = {
+                'key': old,
+                'type': {'key': '/type/redirect'},
+                'location': master,
+            }
+            updates.append(r)
+
+        for wkey in work_keys:
+            q = {
+                'type': '/type/edition',
+                'works': {'key': wkey}
+            }
+            edition_keys.update(web.ctx.site.things(q))
+
+            w = web.ctx.site.get(wkey)
+            authors = []
+            for cur in w['authors']:
+                assert cur['type'] == '/type/author_role' or cur['type']['key'] == '/type/author_role'
+                assert len(cur.keys()) == 2
+                cur = cur['author']['key']
+                a = master if cur in old_keys else cur
+                if a not in authors:
+                    authors.append(a)
+
+            w['authors'] = [{'type': '/type/author_role', 'author': {'key': a}} for a in authors]
+            updates.append(w.dict())
+
+        for ekey in edition_keys:
+            e = web.ctx.site.get(ekey)
+            authors = []
+            for cur in e['authors']:
+                cur = cur['key']
+                a = master if cur in old_keys else cur
+                if a not in authors:
+                    authors.append(a)
+
+            e['authors'] = [{'key': a} for a in authors]
+            updates.append(e.dict())
+
+        web.ctx.site.save_many(updates, comment='merge authors', action="merge-authors")
+
     def GET(self):
         i = web.input(key=[], master=None)
         keys = []
@@ -667,13 +745,8 @@ class merge_authors(delegate.page):
             errors += ['no authors selected']
 
         if not errors and i.master:
-            master_key = '/authors/' + i.master
-            assert web.ctx.site.get(master_key)['type']['key'] == '/type/author'
-            old_keys = set(k for k in keys if k != i.master) 
-            for old in old_keys:
-                q = {'type': '/type/work', 'authors': {'author': '/authors/' + old}}
-                work_keys = web.ctx.site.things(q)
-
+            old_keys = set('/authors/' + k for k in keys if k != i.master) 
+            self.do_merge('/authors/' + i.master, old_keys)
             return 'merged'
 
         return render['merge/authors'](errors, i.master, keys, \

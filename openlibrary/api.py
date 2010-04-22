@@ -90,8 +90,8 @@ class OpenLibrary:
             cookies = response.headers['Set-Cookie'].split(',')
             self.cookie =  ';'.join([c.split(';')[0] for c in cookies])
 
-    def get(self, key):
-        data = self._request(key + '.json').read()
+    def get(self, key, v=None):
+        data = self._request(key + '.json' + ('?v=%d' % v if v else '')).read()
         return unmarshal(simplejson.loads(data))
         
     def get_many(self, keys):
