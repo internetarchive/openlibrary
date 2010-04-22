@@ -336,9 +336,9 @@ def get_facet(facets, f, limit=None):
     
 SUBJECTS = [
     web.storage(name="subject", key="subjects", prefix="/subjects/", facet="subject_facet", facet_key="subject_key"),
-    web.storage(name="person", key="people", prefix="/subjects/people/", facet="person_facet", facet_key="person_key"),
-    web.storage(name="place", key="places", prefix="/subjects/places/", facet="place_facet", facet_key="place_key"),
-    web.storage(name="time", key="times", prefix="/subjects/times/", facet="time_facet", facet_key="time_key"),
+    web.storage(name="person", key="people", prefix="/subjects/person:", facet="person_facet", facet_key="person_key"),
+    web.storage(name="place", key="places", prefix="/subjects/place:", facet="place_facet", facet_key="place_key"),
+    web.storage(name="time", key="times", prefix="/subjects/time:", facet="time_facet", facet_key="time_key"),
 ]
 
 def finddict(dicts, **filters):
@@ -414,7 +414,7 @@ def get_subject(key, details=False, offset=0, limit=12, **filters):
     
     Optional arguments has_fulltext and published_in can be passed to filter the results.
     """
-    m = web.re_compile(r'/subjects/(places/|times/|people/|)(.+)').match(key)
+    m = web.re_compile(r'/subjects/(place:|time:|person:|)(.+)').match(key)
     if m:
         prefix = "/subjects/" + m.group(1)
         path = m.group(2)
@@ -529,13 +529,22 @@ class subjects_json(delegate.page):
 
         subject = get_subject(key, offset=i.offset, limit=i.limit, details=i.details.lower() == "true", **filters)
         return json.dumps(subject)
-    
+        
 class subjects(delegate.page):
     path = '(/subjects/.+)'
     
     def GET(self, key):
         if key.lower() != key:
             raise web.redirect(key.lower())
+            
+        # temporary code to handle url change from /people/ to /person:
+        if key.count("/") == 3:
+            key2 = key
+            key2 = key2.replace("/people/", "/person:")
+            key2 = key2.replace("/places/", "/place:")
+            key2 = key2.replace("/times/", "/time:")
+            if key2 != key:
+                raise web.seeother(key2)
             
         page = get_subject(key, details=True)
         
