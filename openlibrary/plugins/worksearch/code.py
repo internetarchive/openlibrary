@@ -781,6 +781,14 @@ class author_search(delegate.page):
             return json.loads(urllib.urlopen(solr_select).read())
         return render_template('search/authors.tmpl', get_results)
 
+class edition_search(delegate.page):
+    path = '/search/editions'
+    def GET(self):
+        def get_results(q, offset=0, limit=100):
+            solr_select = solr_author_select_url + "?q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=*&qt=standard&wt=json" % (web.urlquote(q), offset, limit)
+            return json.loads(urllib.urlopen(solr_select).read())
+        return render_template('search/editions.tmpl', get_results)
+
 class search_json(delegate.page):
     path = "/search"
     encoding = "json"
