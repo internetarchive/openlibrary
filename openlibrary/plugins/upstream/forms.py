@@ -21,6 +21,7 @@ vpass = RegexpValidator(r".{3,20}", _('Must be between 3 and 20 characters'))
 vemail = RegexpValidator(r".*@.*", _("Must be a valid email address"))
 
 Register = Form(
+    Textbox("displayname", description=_("Your Full Name")),
     Textbox('email', description=_('Your Email Address'), klass='required', validators=[vemail, email_not_already_used]),
     Textbox('username', description=_('Choose a Username'), klass='required', help=_("Only letters and numbers, please, and at least 3 characters."), 
         validators=[vlogin, username_validator]),

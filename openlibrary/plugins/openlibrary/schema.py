@@ -36,4 +36,8 @@ def get_schema():
 
 if __name__ == "__main__":
     print get_schema().sql()
-
+    print """
+    CREATE OR REPLACE FUNCTION get_olid(text) RETURNS text AS $$
+        select split_part($1, '/', 3) where $1 ~ '.*/OL[0-9]+[A-Z]';
+    $$ LANGUAGE SQL IMMUTABLE;    
+    """
