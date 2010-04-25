@@ -96,6 +96,11 @@ class has_user:
     @server.jsonify
     def GET(self, sitename):
         i = server.input("username")
+        
+        # Don't allows OLIDs to be usernames
+        if web.re_compile(r"OL\d+[A-Z]").match(i.username.upper()):
+            return True
+        
         key = "/user/" + i.username.lower()
         type_user = get_thing_id("/type/user")
         d = get_db().query("SELECT * from thing WHERE lower(key) = $key AND type=$type_user", vars=locals())
