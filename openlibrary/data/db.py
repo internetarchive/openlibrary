@@ -101,6 +101,8 @@ def _fill_data(docs):
     """Add `data` to all docs by querying memcache/database.
     """
     def get(keys):
+        if not keys:
+            return []
         return db.query("SELECT thing.id, thing.key, data.revision, data.data"
             + " FROM thing, data"
             + " WHERE thing.id = data.thing_id"
