@@ -12,9 +12,9 @@ class ReadableUrlProcessor:
     """
     
     patterns = [
-        (r'/b/OL\d+M', '/type/edition', 'title', 'untitled'),
-        (r'/a/OL\d+A', '/type/author', 'name', 'noname'),
-        (r'/works/OL\d+W', '/type/work', 'title', 'untitled')
+        (r'/\w+/OL\d+M', '/type/edition', 'title', 'untitled'),
+        (r'/\w+/OL\d+A', '/type/author', 'name', 'noname'),
+        (r'/\w+/OL\d+W', '/type/work', 'title', 'untitled')
     ]
         
     def __call__(self, handler):
@@ -33,7 +33,11 @@ class ReadableUrlProcessor:
         return handler()
 
     def get_object(self, key):
-        return web.ctx.site.get(key)
+        obj = web.ctx.site.get(key)
+        if obj is None:
+            key = web.ctx.site._request("/olid_to_key?olid=" + key.split("/")[-1]).key
+            obj = key and web.ctx.site.get(key)
+        return obj
 
     def _split(self, path):
         """Splits the path as required by the get_readable_path.
@@ -113,6 +117,10 @@ class ReadableUrlProcessor:
         prefix, middle, suffix = self._split(path)
         get_object = get_object or self.get_object
         thing = get_object(prefix)
+        
+        # get_object may handle redirections.
+        if thing:
+            prefix = thing.key
 
         if thing and thing.type.key == type:
             title = thing.get(property) or default_title
@@ -162,7 +170,7 @@ class ProfileProcessor:
                 return out
         else:
             return handler()
-
+    
 if __name__ == "__main__":
     import doctest
     doctest.testmod()

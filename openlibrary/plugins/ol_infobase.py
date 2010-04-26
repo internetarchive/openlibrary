@@ -45,6 +45,7 @@ def init_plugin():
     server.app.add_mapping("/([^/]*)/clear_cache", __name__ + ".clear_cache")
     server.app.add_mapping("/([^/]*)/stats/(\d\d\d\d-\d\d-\d\d)", __name__ + ".stats")
     server.app.add_mapping("/([^/]*)/has_user", __name__ + ".has_user")
+    server.app.add_mapping("/([^/]*)/olid_to_key", __name__ + ".olid_to_key")
         
 def get_db():
     site = server.get_site('openlibrary.org')
@@ -169,6 +170,14 @@ class clear_cache:
         from infogami.infobase import cache
         cache.global_cache.clear()
         return {'done': True}
+        
+class olid_to_key:
+    @server.jsonify
+    def GET(self, sitename):
+        i = server.input("olid")
+        d = get_db().query("SELECT key FROM thing WHERE get_olid(key) = $i.olid", vars=locals())
+        key = d and d[0].key or None
+        return {"olid": i.olid, "key": key}
         
 def write(path, data):
     dir = os.path.dirname(path)
