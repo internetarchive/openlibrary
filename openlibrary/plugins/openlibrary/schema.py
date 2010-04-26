@@ -1,6 +1,7 @@
 """OpenLibrary schema."""
 from infogami.infobase import dbstore
 from infogami import config
+import web
 
 def get_schema():
     schema = dbstore.Schema()
@@ -32,12 +33,17 @@ def get_schema():
     schema.add_seq('/type/work', '/works/OL%dW')
     schema.add_seq('/type/publisher', '/publishers/OL%dP')
     
+    _sql = schema.sql
+    more_sql = """
+    CREATE OR REPLACE FUNCTION get_olid(text) RETURNS text AS $$
+        select split_part($1, '/', 3) where $1 ~ '^/[^/]*/OL[0-9]+[A-Z]$';
+    $$ LANGUAGE SQL IMMUTABLE;
+    
+    CREATE INDEX thing_olid_idx ON thing(get_olid(key));
+    """
+        
+    schema.sql = lambda: web.safestr(_sql()) + more_sql    
     return schema
 
 if __name__ == "__main__":
     print get_schema().sql()
-    print """
-    CREATE OR REPLACE FUNCTION get_olid(text) RETURNS text AS $$
-        select split_part($1, '/', 3) where $1 ~ '.*/OL[0-9]+[A-Z]';
-    $$ LANGUAGE SQL IMMUTABLE;    
-    """
