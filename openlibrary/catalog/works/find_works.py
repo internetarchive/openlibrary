@@ -461,6 +461,44 @@ def new_work(akey, w, do_updates, fh_log):
         except:
             pprint(update)
             raise
+        return [wkey]
+    return []
+
+def update_work_with_best_match(akey, w, work_to_edition, do_updates, fh_log):
+    work_updated = []
+    best = w['best_match']['key']
+    update = []
+    for wkey in w['existing_works'].iterkeys():
+        if wkey != best:
+            update.append({'type': '/type/redirect', 'location': best, 'key': wkey})
+            work_updated.append(wkey)
+
+    for wkey in w['existing_works'].iterkeys():
+        for ekey in work_to_edition[wkey]:
+            e = ol.get(ekey)
+            e['works'] = [{'key': best}]
+            update.append(e)
+
+    cur_work = w['best_match']
+    need_save = fix_up_authors(cur_work, akey, w['editions']) 
+    if need_save or cur_work['title'] != w['title'] \
+            or ('subtitle' in w and 'subtitle' not in cur_work) \
+            or ('subjects' in w and 'subjects' not in cur_work):
+        if cur_work['title'] != w['title']:
+            print 'update work title:', best, `cur_work['title']`, '->', `w['title']`
+        existing_work = ol.get(best)
+        if existing_work['type'] != '/type/work':
+            pprint(existing_work)
+        assert existing_work['type'] == '/type/work'
+        existing_work['title'] = w['title']
+        add_detail_to_work(w, existing_work)
+        print >> fh_log, 'existing:', existing_work
+        print >> fh_log, 'subtitle:', existing_work.get('subtitle', 'n/a')
+        update.append(existing_work)
+        work_updated.append(best)
+    if do_updates:
+        ol.save_many(update, 'merge works')
+    return work_updated
 
 def update_works(akey, works, do_updates=False):
     # we can now look up all works by an author   
@@ -518,147 +556,93 @@ def update_works(akey, works, do_updates=False):
     print >> fh_log, `work_to_edition`
     print >> fh_log
 
-    works_updated_this_session = set()
-    matched_works = defaultdict(list)
-
-    print >> fh_log, 'start updating works'
-    for w in works:
-        print >> fh_log
-        print >> fh_log, `w['title']`, len(w['editions'])
-        for e in w['editions']:
-            print >> fh_log, e
-        print >> fh_log, 'works updated this session:', list(works_updated_this_session)
-        existing = defaultdict(int)
+    work_title_match = {}
+    works_by_title = {}
+    for w in works: # 1st pass
         for e in w['editions']:
             ekey = e['key'] if isinstance(e, dict) else e
-            for wkey in edition_to_work[ekey]:
-                existing[wkey] += 1
-        print >> fh_log, 'existing works:', existing
+            for wkey in edition_to_work.get(ekey, []):
+                wtitle = work_by_key[wkey]['title']
+                if wtitle == w['title']:
+                    work_title_match[wkey] = w['title']
 
-        if not existing: # editions have no existing work
-            new_work(akey, w, do_updates, fh_log)
+    wkey_to_new_title = defaultdict(set)
 
-        elif len(existing) == 1:
-            key = list(existing)[0]
-            work_keys.append(key)
-            cur_work = work_by_key[key]
-            w['need_save'] = fix_up_authors(cur_work, akey, w['editions'])
-            if cur_work['title'] != w['title'] \
-                    or ('subtitle' in w and 'subtitle' not in cur_work) \
-                    or ('subjects' in w and 'subjects' not in cur_work):
-                w['need_save'] = True
-            matched_works[key].append(w)
-        else:
-            use_key = max(existing.iteritems(), key=lambda i:i[1])[0]
-            #use_key = min(existing, key=lambda i: int(re_work_key.match(i).group(1)))
-            print use_key, len(w['editions']), w['title'],
-            if use_key in works_updated_this_session:
-                print 'already seen'
-            print
-            assert use_key not in works_updated_this_session
-            works_updated_this_session.add(use_key)
-            work_keys.append(use_key)
-            print >> fh_log, 'merge works:', `w['title']`, 'to', use_key
-            update = [{'type': '/type/redirect', 'location': use_key, 'key': wkey} for wkey in existing if wkey != use_key]
-            for wkey in existing:
-                for ekey in work_to_edition[wkey]:
-                    e = ol.get(ekey)
-                    e['works'] = [{'key': use_key}]
-                    update.append(e)
-            cur_work = work_by_key[use_key]
-            need_save = fix_up_authors(cur_work, akey, w['editions']) 
-            if need_save or cur_work['title'] != w['title'] \
-                    or ('subtitle' in w and 'subtitle' not in cur_work) \
-                    or ('subjects' in w and 'subjects' not in cur_work):
-                if cur_work['title'] != w['title']:
-                    print 'update work title:', use_key, `cur_work['title']`, '->', `w['title']`
-                existing_work = ol.get(use_key)
-                if existing_work['type'] != '/type/work':
-                    pprint(existing_work)
-                assert existing_work['type'] == '/type/work'
-                existing_work['title'] = w['title']
-                add_detail_to_work(w, existing_work)
-                print >> fh_log, 'existing:', existing_work
-                print >> fh_log, 'subtitle:', existing_work.get('subtitle', 'n/a')
-                update.append(existing_work)
-            if do_updates:
-                ol.save_many(update, 'merge works')
+    for w in works: # 2nd pass
+        works_by_title[w['title']] = w
+        w['existing_works'] = defaultdict(int)
+        for e in w['editions']:
+            ekey = e['key'] if isinstance(e, dict) else e
+            for wkey in edition_to_work.get(ekey, []):
+                if wkey in work_title_match and work_title_match[wkey] != w['title']:
+                    continue
+                wtitle = work_by_key[wkey]['title']
+                w['existing_works'][wkey] += 1
+                wkey_to_new_title[wkey].add(w['title'])
 
-        all_existing.update(existing)
-        for wkey in existing:
-            cur = work_by_key[wkey].get('title', None)
-            print >> fh_log, '  ', wkey, cur == w['title'], `cur`
+    existing_work_with_conflict = defaultdict(set)
 
-    print >> fh_log, len(work_to_edition), len(all_existing)
-    if len(work_to_edition) != len(all_existing):
-        print >> fh_log, 'work count mismatch !!!!'
-        work_set = set(work_to_edition.iterkeys())
-        print >> fh_log, 'diff:', work_set - all_existing
-        print >> fh_log, 'diff:', all_existing - work_set
-    #assert len(work_to_edition) == len(all_existing)
+    for w in works: # 3rd pass
+        for wkey, v in w['existing_works'].iteritems():
+            if any(title != w['title'] for title in wkey_to_new_title[wkey]):
+                w['has_conflict'] = True
+                existing_work_with_conflict[wkey].add(w['title'])
+                break
 
-    assert matched_works
-
-    pprint(dict(matched_works), fh_log)
-
-    for key, works_matched_existing in matched_works.iteritems():
-        if len(works_matched_existing) == 1:
-            for w in works_matched_existing:
-                w['key'] = key
-            continue
-        cur_work = work_by_key[key]
+    for wkey, v in existing_work_with_conflict.iteritems():
+        cur_work = work_by_key[wkey]
         existing_titles = defaultdict(int)
-        for ekey in work_to_edition[key]:
+        for ekey in work_to_edition[wkey]:
             e = withKey(ekey)
             title = e['title']
             if e.get('title_prefix', None):
                 title = e['title_prefix'].strip() + ' ' + e['title']
             existing_titles[title] += 1
+        best_match = max(v, key=lambda wt: existing_titles[wt])
+        works_by_title[best_match]['best_match'] = work_by_key[wkey]
+        for wtitle in v:
+            del works_by_title[wtitle]['has_conflict']
+            if wtitle != best_match:
+                works_by_title[wtitle]['existing_works'] = {}
 
-        best_match = None
-        for w in works_matched_existing:
-            if cur_work['title'] == w['title']:
-                best_match = w
-                break
-        if not best_match:
-            best_match = max(works_matched_existing, key=lambda w:existing_titles[w['title']])
-        best_match['key'] = key
+    def other_matches(w, existing_wkey):
+        return [title for title in wkey_to_new_title[existing_wkey] if title != w['title']]
 
-    for works_matched_existing in matched_works.itervalues():
-        for w in works_matched_existing:
-            print "%10s %s" % (w.get('key', 'new'), w['title'])
-            if 'key' in w:
-                assert w['key'] not in works_updated_this_session
-                works_updated_this_session.add(w['key'])
+    works_updated_this_session = set()
 
-    return
+    for w in works: # 4th pass
+        if 'has_conflict' in w:
+            pprint(w)
+        assert 'has_conflict' not in w
+        if len(w['existing_works']) == 1:
+            existing_wkey = w['existing_works'].keys()[0]
+            if not other_matches(w, existing_wkey):
+                w['best_match'] = work_by_key[existing_wkey]
+        if 'best_match' in w:
+            updated = update_work_with_best_match(akey, w, work_to_edition, do_updates, fh_log)
+            for wkey in updated:
+                assert wkey not in works_updated_this_session
+                works_updated_this_session.update(updated)
+            continue
+        if not w['existing_works']:
+            updated = new_work(akey, w, do_updates, fh_log)
+            for wkey in updated:
+                assert wkey not in works_updated_this_session
+                works_updated_this_session.update(updated)
+            continue
 
-    for key, works_matched_existing in matched_works.iteritems():
-        for w in works_matched_existing:
-            if not w['need_save']:
-                print >> fh_log, 'no change:', key, `w['title']`
-                continue
-            cur_work = work_by_key[key]
-            if cur_work.get('title', None) != w.get('title', None):
-                print >> fh_log, 'new title:', key, `cur_work.get('title', None)`, '->', `w['title']`
-            existing_work = ol.get(key)
-            existing_work['title'] = w['title']
-            add_detail_to_work(w, existing_work)
-            print >> fh_log, 'existing:', existing_work
-            print >> fh_log, 'subtitle:', `existing_work.get('subtitle', 'n/a')`
-            if key in works_updated_this_session:
-                print >> fh_log, key, 'already updated this session'
-                print >> fh_log, list(works_updated_this_session)
+        assert not any(other_matches(w, wkey) for wkey in w['existing_works'].iterkeys())
+        best_match = max(w['existing_works'].iteritems(), key=lambda i:i[1])[0]
+        w['best_match'] = work_by_key[best_match]
+        updated = update_work_with_best_match(akey, w, work_to_edition, do_updates, fh_log)
+        for wkey in updated:
+            assert wkey not in works_updated_this_session
+        works_updated_this_session.update(updated)
 
-            assert key not in works_updated_this_session
-            if do_updates:
-                ol.save(key, existing_work, 'update details')
-            works_updated_this_session.add(key)
+    #if not do_updates:
+    #    return []
 
-    if not do_updates:
-        return []
-
-    return [withKey(key) for key in work_keys]
+    return [withKey(key) for key in works_updated_this_session]
 
 if __name__ == '__main__':
     akey = '/a/' + sys.argv[1]
