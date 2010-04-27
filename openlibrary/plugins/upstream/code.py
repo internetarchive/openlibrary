@@ -231,13 +231,6 @@ def setup():
     addbook.setup()
     covers.setup()
     
-    # overwrite ReadableUrlProcessor patterns for upstream
-    ReadableUrlProcessor.patterns = [
-        (r'/books/OL\d+M', '/type/edition', 'title', 'untitled'),
-        (r'/authors/OL\d+A', '/type/author', 'name', 'noname'),
-        (r'/works/OL\d+W', '/type/work', 'title', 'untitled')
-    ]
-
     # Types for upstream paths
     types.register_type('^/authors/[^/]*$', '/type/author')
     types.register_type('^/books/[^/]*$', '/type/edition')
