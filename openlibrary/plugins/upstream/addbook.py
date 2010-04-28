@@ -16,6 +16,8 @@ from openlibrary.plugins.openlibrary import code as ol_code
 from openlibrary.plugins.openlibrary.processors import urlsafe
 from openlibrary.utils.solr import Solr
 from openlibrary.i18n import gettext as _
+from StringIO import StringIO
+import csv
 
 import utils
 from utils import render_template, fuzzy_find
@@ -418,10 +420,12 @@ class SaveBookHelper:
         
     def process_work(self, work):
         """Process input data for work."""
-        work.subjects = work.get('subjects', '').split(',')
-        work.subject_places = work.get('subject_places', '').split(',')
-        work.subject_times = work.get('subject_times', '').split(',')
-        work.subject_people = work.get('subject_people', '').split(',')
+        def read_subject(subjects):
+            return csv.reader(StringIO(subjects)).next() if subjects else []
+        work.subjects = read_subject(work.get('subjects', ''))
+        work.subject_places = read_subject(work.get('subject_places', ''))
+        work.subject_times = read_subject(work.get('subject_times', ''))
+        work.subject_people = read_subject(work.get('subject_people', ''))
         if ': ' in work.title:
             work.title, work.subtitle = work.title.split(': ', 1)
         
