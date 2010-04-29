@@ -677,32 +677,47 @@ class merge_authors(delegate.page):
     path = '/authors/merge'
 
     def do_merge(self, master, old_keys):
-        assert web.ctx.site.get(master)['type']['key'] == '/type/author'
+        master_author = web.ctx.site.get(master)
+        master_author['type']['key'] == '/type/author'
         edition_keys = set()
         work_keys = set()
         updates = []
+        master_needs_save = False
         for old in old_keys:
             q = {
                 'type': '/type/edition',
-                'authors': {'key': old}
+                'authors': {'key': old},
+                'works': None,
+                'limit': 10000,
             }
-            edition_keys.update(web.ctx.site.things(q))
+            editions = web.ctx.site.things(q)
+            edition_keys.update(e['key'] for e in editions)
+            for e in editions:
+                work_keys.update(w['key'] for w in e.get('works', []))
             q = {
                 'type': '/type/work',
-                'authors': {'author': {'key': old}}
+                'authors': {'author': {'key': old}},
+                'limit': 10000,
             }
             work_keys.update(web.ctx.site.things(q))
+            old_author = web.ctx.site.get(old)
+            if old_author.get('name', ''):
+                if old_author['name'] not in master_author.setdefault('alternate_names', []):
+                    master_needs_save = True
+                    master_author['alternate_names'].append(old_author['name'])
             r = {
                 'key': old,
                 'type': {'key': '/type/redirect'},
                 'location': master,
+                'limit': 10000,
             }
             updates.append(r)
 
         for wkey in work_keys:
             q = {
                 'type': '/type/edition',
-                'works': {'key': wkey}
+                'works': {'key': wkey},
+                'limit': 10000,
             }
             edition_keys.update(web.ctx.site.things(q))
 
@@ -731,6 +746,8 @@ class merge_authors(delegate.page):
             e['authors'] = [{'key': a} for a in authors]
             updates.append(e.dict())
 
+        if master_needs_save:
+            updates.append(master)
         web.ctx.site.save_many(updates, comment='merge authors', action="merge-authors")
 
     def GET(self):
@@ -748,7 +765,8 @@ class merge_authors(delegate.page):
         if not errors and i.master:
             old_keys = set('/authors/' + k for k in keys if k != i.master) 
             self.do_merge('/authors/' + i.master, old_keys)
-            return 'merged'
+            add_flash_message("info", 'authors merged, search should be updated within 5 minutes')
+            raise web.seeother('/authors/' + i.master)
 
         return render['merge/authors'](errors, i.master, keys, \
             top_books_from_author, do_merge)
