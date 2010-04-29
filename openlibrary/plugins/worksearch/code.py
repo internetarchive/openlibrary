@@ -691,8 +691,9 @@ class merge_authors(delegate.page):
                 'limit': 10000,
             }
             editions = web.ctx.site.things(q)
-            edition_keys.update(e['key'] for e in editions)
-            for e in editions:
+            edition_keys.update(editions)
+            for ekey in editions:
+                e = web.ctx.site.get(ekey)
                 work_keys.update(w['key'] for w in e.get('works', []))
             q = {
                 'type': '/type/work',
