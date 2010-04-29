@@ -5,7 +5,7 @@ from infogami.utils import delegate
 from infogami import config
 from openlibrary.catalog.utils import flip_name
 from infogami.utils import view, template
-from infogami.utils.view import safeint
+from infogami.utils.view import safeint, add_flash_message
 import simplejson as json
 
 try:
