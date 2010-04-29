@@ -424,7 +424,7 @@ class SaveBookHelper:
             if not subjects:
                 return []
             f = StringIO(subjects.encode('utf-8')) # no unicode in csv module
-            return [s.decode('utf-8') for s in csv.reader(f).next()]
+            return [s.decode('utf-8') for s in csv.reader(f, dialect='excel', skipinitialspace=True).next()]
         work.subjects = read_subject(work.get('subjects', ''))
         work.subject_places = read_subject(work.get('subject_places', ''))
         work.subject_times = read_subject(work.get('subject_times', ''))
