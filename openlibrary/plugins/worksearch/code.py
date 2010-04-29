@@ -748,7 +748,7 @@ class merge_authors(delegate.page):
             updates.append(e.dict())
 
         if master_needs_save:
-            updates.append(master_author)
+            updates.append(master_author.dict())
         web.ctx.site.save_many(updates, comment='merge authors', action="merge-authors")
 
     def GET(self):
