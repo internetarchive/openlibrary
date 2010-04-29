@@ -677,7 +677,7 @@ class merge_authors(delegate.page):
     path = '/authors/merge'
 
     def do_merge(self, master, old_keys):
-        master_author = web.ctx.site.get(master)
+        master_author = web.ctx.site.get(master).dict()
         master_author['type']['key'] == '/type/author'
         edition_keys = set()
         work_keys = set()
@@ -703,9 +703,9 @@ class merge_authors(delegate.page):
             work_keys.update(web.ctx.site.things(q))
             old_author = web.ctx.site.get(old)
             if old_author.get('name', ''):
-                if old_author['name'] not in master_author.setdefault('alternate_names', []):
+                if old_author.name not in master_author.setdefault('alternate_names', []):
                     master_needs_save = True
-                    master_author['alternate_names'].append(old_author['name'])
+                    master_author['alternate_names'].append(old_author.name)
             r = {
                 'key': old,
                 'type': {'key': '/type/redirect'},
@@ -748,7 +748,7 @@ class merge_authors(delegate.page):
             updates.append(e.dict())
 
         if master_needs_save:
-            updates.append(master_author.dict())
+            updates.append(master_author)
         web.ctx.site.save_many(updates, comment='merge authors', action="merge-authors")
 
     def GET(self):
