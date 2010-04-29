@@ -421,7 +421,10 @@ class SaveBookHelper:
     def process_work(self, work):
         """Process input data for work."""
         def read_subject(subjects):
-            return csv.reader(StringIO(subjects)).next() if subjects else []
+            if not subjects:
+                return []
+            f = StringIO(subjects.encode('utf-8')) # no unicode in csv module
+            return [s.decode('utf-8') for s in csv.reader(StringIO(f)).next()]
         work.subjects = read_subject(work.get('subjects', ''))
         work.subject_places = read_subject(work.get('subject_places', ''))
         work.subject_times = read_subject(work.get('subject_times', ''))
