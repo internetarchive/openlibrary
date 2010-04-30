@@ -107,7 +107,15 @@ class Edition(ol_code.Edition):
         """Returns (name, value) pairs of all available identifiers."""
         names = ['isbn_10', 'isbn_13', 'lccn', 'oclc_numbers', 'ocaid']
         return self._process_identifiers(get_edition_config().identifiers, names, self.identifiers)
-        
+
+    def is_daisy_encrypted(self):
+        if not self.get('ocaid', None):
+            return
+        ia = self.ocaid
+        url = 'http://www.archive.org/download/%s/%s_meta.xml' % (ia, ia)
+        look_for = '<collection>printdisabled</collection>'
+        return any(i.strip().lower() == look_for for i in urllib2.urlopen(url))
+
     def _process_identifiers(self, config, names, values):
         id_map = {}
         for id in config:
