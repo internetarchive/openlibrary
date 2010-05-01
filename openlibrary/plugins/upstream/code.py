@@ -140,12 +140,6 @@ def setup_jquery_urls():
     web.template.Template.globals['jquery_url'] = jquery_url
     web.template.Template.globals['jqueryui_url'] = jqueryui_url
     web.template.Template.globals['use_google_cdn'] = config.get('use_google_cdn', True)
-
-class redirects(delegate.page):
-    path = "/(a|b|user)/(.*)"
-    def GET(self, prefix, path):
-        d = dict(a="authors", b="books", user="people")
-        raise web.redirect("/%s/%s" % (d[prefix], path))
         
 @public
 def get_document(key):
@@ -231,13 +225,6 @@ def setup():
     addbook.setup()
     covers.setup()
     
-    # overwrite ReadableUrlProcessor patterns for upstream
-    ReadableUrlProcessor.patterns = [
-        (r'/books/OL\d+M', '/type/edition', 'title', 'untitled'),
-        (r'/authors/OL\d+A', '/type/author', 'name', 'noname'),
-        (r'/works/OL\d+W', '/type/work', 'title', 'untitled')
-    ]
-
     # Types for upstream paths
     types.register_type('^/authors/[^/]*$', '/type/author')
     types.register_type('^/books/[^/]*$', '/type/edition')
@@ -272,5 +259,5 @@ def setup():
     web.template.STATEMENT_NODES["jsdef"] = jsdef.JSDefNode
     
     setup_jquery_urls()
-    
 setup()
+

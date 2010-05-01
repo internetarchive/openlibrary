@@ -156,6 +156,61 @@ class LocalCacheMiddleware(ConnectionMiddleware):
             if key.startswith(prefix):
                 return True
         return False
+        
+class MigrationMiddleware(ConnectionMiddleware):
+    """Temporary middleware to handle upstream to www migration."""
+    changes = [
+        "/user/", "/people/",
+        "/l/", "/languages/",
+        "/a/", "/authors/",
+        "/b/", "/books/"
+    ]
+    def _process_key(self, key):
+        for old, new in web.group(self.changes, 2):
+            if key.startswith(old):
+                if self.exists(key):
+                    return key
+                elif self.exists(key.replace(old, new)):
+                    return key.replace(old, new)
+            elif key.startswith(new): # for upstream
+                if self.exists(key):
+                    return key
+                elif self.exists(key.replace(new, old)):
+                    return key.replace(new, old)
+        return key
+    
+    def exists(self, key):
+        try:
+            d = ConnectionMiddleware.get(self, "openlibrary.org", {"key": key})
+            return True
+        except client.ClientException, e:
+            return False
+        
+    def _process(self, data):
+        if isinstance(data, list):
+            return [self._process(d) for d in data]
+        elif isinstance(data, dict):
+            if data.keys() == ["key"]:
+                key = self._process_key(data['key'])
+                return {"key": key}
+            else:
+                return dict((k, self._process(v)) for k, v in data.iteritems())
+        else:
+            return data
+    
+    def get(self, sitename, data):
+        response = ConnectionMiddleware.get(self, sitename, data)
+        if response:
+            data = simplejson.loads(response)
+            response = simplejson.dumps(self._process(data))
+        return response
+        
+    def get_many(self, sitename, data):
+        response = ConnectionMiddleware.get_many(self, sitename, data)
+        if response:
+            data = simplejson.loads(response)
+            response = simplejson.dumps(self._process(data))
+        return response
 
 def OLConnection():
     """Create a connection to Open Library infobase server."""
@@ -175,6 +230,9 @@ def OLConnection():
 
     if config.get('memcache_servers'):
         conn = MemcacheMiddleware(conn, config.get('memcache_servers'))
+    
+    if config.get('upstream_to_www_migration'):
+        conn = MigrationMiddleware(conn)
 
     return conn
 

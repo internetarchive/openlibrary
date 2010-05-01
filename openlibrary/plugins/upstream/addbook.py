@@ -16,6 +16,8 @@ from openlibrary.plugins.openlibrary import code as ol_code
 from openlibrary.plugins.openlibrary.processors import urlsafe
 from openlibrary.utils.solr import Solr
 from openlibrary.i18n import gettext as _
+from StringIO import StringIO
+import csv
 
 import utils
 from utils import render_template, fuzzy_find
@@ -418,10 +420,15 @@ class SaveBookHelper:
         
     def process_work(self, work):
         """Process input data for work."""
-        work.subjects = work.get('subjects', '').split(',')
-        work.subject_places = work.get('subject_places', '').split(',')
-        work.subject_times = work.get('subject_times', '').split(',')
-        work.subject_people = work.get('subject_people', '').split(',')
+        def read_subject(subjects):
+            if not subjects:
+                return []
+            f = StringIO(subjects.encode('utf-8')) # no unicode in csv module
+            return [s.decode('utf-8') for s in csv.reader(f, dialect='excel', skipinitialspace=True).next()]
+        work.subjects = read_subject(work.get('subjects', ''))
+        work.subject_places = read_subject(work.get('subject_places', ''))
+        work.subject_times = read_subject(work.get('subject_times', ''))
+        work.subject_people = read_subject(work.get('subject_people', ''))
         if ': ' in work.title:
             work.title, work.subtitle = work.title.split(': ', 1)
         
@@ -602,6 +609,10 @@ class authors_autocomplete(delegate.page):
         docs = data['docs']
         for d in docs:
             d.key = "/authors/" + d.key
+            
+            # Temp fix until upstream-to-www migration is done
+            d.key = web.ctx.site._request("/olid_to_key?olid=" + d.key.split("/")[-1]).key
+            
             if 'top_work' in d:
                 d['works'] = [d.pop('top_work')]
             else:

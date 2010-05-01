@@ -793,3 +793,27 @@ from infogami.core.forms import register
 username_validator = web.form.Validator("Username already used", lambda username: not web.ctx.site._request("/has_user", data={"username": username}))
 register.username.validators = list(register.username.validators) + [username_validator]
 
+
+    
+# temp hack to handle DB migration
+_request = client.Site._request
+def request(self, path, method="GET", data=None):
+    print "request", method, path, data
+    if path == "/get":
+        try:
+            return _request(self, path, method, data)
+        except client.ClientException:
+            key = data['key']
+            if key.startswith("/languages/") and web.ctx.path != key:
+                key = key.replace("/languages/", "/l/")
+            elif key.startswith("/authors") and not web.ctx.path.startswith(key):
+                key = key.replace("/authors/", "/a/")
+            else:
+                raise
+            data['key'] = key
+            return _request(self, path, method, data)
+    else:
+        return _request(self, path, method, data)
+client.Site._request = request
+print "hack", _request, client.Site._request
+
