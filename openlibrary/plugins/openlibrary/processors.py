@@ -3,6 +3,7 @@
 import web
 import urllib
 import re
+import os
 
 class ReadableUrlProcessor:
     """Open Library code works with urls like /b/OL1M and /b/OL1M/cover.
@@ -110,7 +111,13 @@ class ReadableUrlProcessor:
 
         if not type \
            or encoding is not None \
-           or path.endswith(".json"):
+           or path.endswith(".json") or path.endswith(".yml") or path.endswith(".rdf"):
+            key, ext = os.path.splitext(path)
+            
+            get_object = get_object or self.get_object
+            thing = get_object(key)
+            if thing:
+                path = thing.key + ext
             path = web.safeunicode(path)
             return (path, path)
 

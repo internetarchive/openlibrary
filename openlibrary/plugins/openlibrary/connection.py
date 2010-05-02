@@ -162,17 +162,21 @@ class MigrationMiddleware(ConnectionMiddleware):
     changes = [
         "/user/", "/people/",
         "/l/", "/languages/",
-        "/a/", "/authors/",
-        "/b/", "/books/"
     ]
     def _process_key(self, key):
+        # Generic handling for authors books and works.
+        if web.re_compile(r'.*/OL\d+[A-Z]').match(key):
+            olid = key.split("/")[-1]
+            key2 = web.ctx.site._request("/olid_to_key?olid=" + olid).key
+            return key2 or key
+            
         for old, new in web.group(self.changes, 2):
             if key.startswith(old):
                 if self.exists(key):
                     return key
                 elif self.exists(key.replace(old, new)):
                     return key.replace(old, new)
-            elif key.startswith(new): # for upstream
+            elif key.startswith(new):
                 if self.exists(key):
                     return key
                 elif self.exists(key.replace(new, old)):
@@ -185,16 +189,14 @@ class MigrationMiddleware(ConnectionMiddleware):
             return True
         except client.ClientException, e:
             return False
-        
+    
     def _process(self, data):
         if isinstance(data, list):
             return [self._process(d) for d in data]
         elif isinstance(data, dict):
-            if data.keys() == ["key"]:
-                key = self._process_key(data['key'])
-                return {"key": key}
-            else:
-                return dict((k, self._process(v)) for k, v in data.iteritems())
+            if 'key' in data:
+                data['key'] = self._process_key(data['key'])
+            return dict((k, self._process(v)) for k, v in data.iteritems())
         else:
             return data
     
