@@ -72,7 +72,7 @@ class MemcacheMiddleware(ConnectionMiddleware):
             result = None
             
         return result or ConnectionMiddleware.get(self, sitename, data)
-        
+    
     def get_many(self, sitename, data):
         keys = simplejson.loads(data['keys'])
         result = self.memcache.get_multi(keys)
@@ -159,28 +159,20 @@ class LocalCacheMiddleware(ConnectionMiddleware):
         
 class MigrationMiddleware(ConnectionMiddleware):
     """Temporary middleware to handle upstream to www migration."""
-    changes = [
-        "/user/", "/people/",
-        "/l/", "/languages/",
-    ]
     def _process_key(self, key):
-        # Generic handling for authors books and works.
-        if web.re_compile(r'.*/OL\d+[A-Z]').match(key):
-            olid = key.split("/")[-1]
-            key2 = web.ctx.site._request("/olid_to_key?olid=" + olid).key
-            return key2 or key
+        # migration of authors and languages is complete
+        if key.startswith("/a/"):
+            return "/authors/" + key[len("/a/"):]
+        if key.startswith("/l/"):
+            return "/languages/" + key[len("/l/"):]
             
-        for old, new in web.group(self.changes, 2):
-            if key.startswith(old):
-                if self.exists(key):
-                    return key
-                elif self.exists(key.replace(old, new)):
-                    return key.replace(old, new)
-            elif key.startswith(new):
-                if self.exists(key):
-                    return key
-                elif self.exists(key.replace(new, old)):
-                    return key.replace(new, old)
+        # migration of users and books is still in progress
+        if key.startswith("/user/") and not self.exists(key):
+            return key.replace("/user/", "/people/")
+
+        if key.startswith("/b/") and not self.exists(key):
+            return key.replace("/b/", "/books/")
+            
         return key
     
     def exists(self, key):
