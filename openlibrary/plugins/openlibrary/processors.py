@@ -19,15 +19,6 @@ class ReadableUrlProcessor:
     ]
         
     def __call__(self, handler):
-        # temp hack to handle languages and users during upstream-to-www migration
-        if web.ctx.path.startswith("/l/"):
-            if not web.ctx.site.get(web.ctx.path):
-                raise web.seeother("/languages/" + web.ctx.path[len("/l/"):])
-                
-        if web.ctx.path.startswith("/user/"):
-            if not web.ctx.site.get(web.ctx.path):
-                raise web.seeother("/people/" + web.ctx.path[len("/user/"):])
-        
         real_path, readable_path = self.get_readable_path(web.ctx.path, encoding=web.ctx.encoding)
 
         #@@ web.ctx.path is either quoted or unquoted depends on whether the application is running
@@ -117,9 +108,11 @@ class ReadableUrlProcessor:
             return None, None, None
 
         type, property, default_title = match(path)
+        if type is None:
+            path = web.safeunicode(path)
+            return (path, path)
 
-        if not type \
-           or encoding is not None \
+        if encoding is not None \
            or path.endswith(".json") or path.endswith(".yml") or path.endswith(".rdf"):
             key, ext = os.path.splitext(path)
             
