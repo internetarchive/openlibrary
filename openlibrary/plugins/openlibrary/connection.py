@@ -167,11 +167,15 @@ class MigrationMiddleware(ConnectionMiddleware):
             return "/languages/" + key[len("/l/"):]
             
         # migration of users and books is still in progress
-        if key.startswith("/user/") and not self.exists(key):
-            return key.replace("/user/", "/people/")
-
-        if key.startswith("/b/") and not self.exists(key):
-            return key.replace("/b/", "/books/")
+        if key.startswith("/user/"):
+            key2 = key.replace("/user/", "/people/")
+            if self.exists(key2):
+                return key2
+                
+        if key.startswith("/b/"):
+            key2 = key.replace("/b/", "/books/")
+            if self.exists(key2):
+                return key2
             
         return key
     
