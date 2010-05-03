@@ -27,6 +27,8 @@ ol.login('WorkBot', rc['WorkBot'])
 
 re_skip = re.compile('\b([A-Z]|Co|Dr|Jr|Capt|Mr|Mrs|Ms|Prof|Rev|Revd|Hon|etc)\.$')
 re_work_key = re.compile('^/works/OL(\d+)W$')
+re_lang_key = re.compile('^/(?:l|languages)/([a-z]{3})$')
+re_author_key = re.compile('^/(?:a|authors)/(OL\d+A)$')
 
 re_ia_marc = re.compile('^(?:.*/)?([^/]+)_(marc\.xml|meta\.mrc)(:0:\d+)?$')
 
@@ -146,12 +148,16 @@ def get_work_title(e):
 # don't use any of these as work titles
 bad_titles = ['Publications', 'Works. English', 'Works', 'Report', \
     'Letters', 'Calendar', 'Bulletin', 'Plays', \
-    'Sermons', 'Correspondence', 'Bills', 'Selections', 'Selected works', 'Selected works. English']
+    'Sermons', 'Correspondence', 'Bill', 'Bills', 'Selections', 'Selected works', 'Selected works. English', 'Laws, etc']
 
 def get_books(akey, query):
     for e in query:
-        if not e.get('title', None):
-            continue
+        print e
+        try:
+            if not e.get('title', None):
+                continue
+        except:
+            print e
 #        if len(e.get('authors', [])) != 1:
 #            continue
         if 'title_prefix' in e and e['title_prefix']:
@@ -187,7 +193,7 @@ def get_books(akey, query):
 
         lang = e.get('languages', [])
         if lang:
-            book['lang'] = [l['key'][3:] for l in lang]
+            book['lang'] = [re_lang_key.match(l['key']).group(1) for l in lang]
 
         if e.get('table_of_contents', None):
             if isinstance(e['table_of_contents'][0], basestring):
@@ -399,11 +405,16 @@ def add_detail_to_work(i, j):
 def fix_up_authors(w, akey, editions):
     seen_akey = False
     need_save = False
+    print 'fix_up_authors'
     for a in w.get('authors', []):
+        print a
         obj = withKey(a['author']['key'])
         if obj['type']['key'] == '/type/redirect':
             a['author']['key'] = obj['location']
+            a['author']['key'] = '/authors/' + re_author_key.match(a['author']['key']).group(1)
+            print 'getting:', a['author']['key']
             obj = withKey(a['author']['key'])
+            print 'found:', obj
             assert obj['type']['key'] == '/type/author'
             need_save = True
         if akey == a['author']['key']:
@@ -439,8 +450,14 @@ def new_work(akey, w, do_updates, fh_log):
     add_detail_to_work(w, ol_work)
     print >> fh_log, ol_work
     if do_updates:
-        wkey = ol.new(ol_work, comment='work found')
-        work_keys.append(wkey)
+        for attempt in range(5):
+            try:
+                wkey = ol.new(ol_work, comment='work found')
+                break
+            except:
+                if attempt == 4:
+                    raise
+                print 'retrying: %d attempt' % attempt
         print >> fh_log, 'new work:', wkey, `w['title']`
     else:
         print >> fh_log, 'new work:', `w['title']`
@@ -460,7 +477,7 @@ def new_work(akey, w, do_updates, fh_log):
             print >> fh_log, ol.save_many(update, "add editions to new work")
         except:
             pprint(update)
-            raise
+            # raise # ignore errors
         return [wkey]
     return []
 
@@ -493,11 +510,11 @@ def update_work_with_best_match(akey, w, work_to_edition, do_updates, fh_log):
         existing_work['title'] = w['title']
         add_detail_to_work(w, existing_work)
         print >> fh_log, 'existing:', existing_work
-        print >> fh_log, 'subtitle:', existing_work.get('subtitle', 'n/a')
+        print >> fh_log, 'subtitle:', `existing_work['subtitle']` if 'subtitle' in existing_work else 'n/a'
         update.append(existing_work)
         work_updated.append(best)
     if do_updates:
-        ol.save_many(update, 'merge works')
+        print >> fh_log, ol.save_many(update, 'merge works')
     return work_updated
 
 def update_works(akey, works, do_updates=False):
@@ -517,8 +534,6 @@ def update_works(akey, works, do_updates=False):
                 continue
             if e.get('works', None):
                 for w in e['works']:
-#                    if w['key'] in ('/works/OL52404W', '/works/OL52412W'):
-#                        continue
                     work_to_edition[w['key']].add(e['key'])
                     edition_to_work[e['key']].add(w['key'])
 
@@ -550,11 +565,15 @@ def update_works(akey, works, do_updates=False):
     all_existing = set()
     work_keys = []
     print >> fh_log, 'edition_to_work:'
-    print >> fh_log, `edition_to_work`
+    print >> fh_log, `dict(edition_to_work)`
     print >> fh_log
     print >> fh_log, 'work_to_edition'
-    print >> fh_log, `work_to_edition`
+    print >> fh_log, `dict(work_to_edition)`
     print >> fh_log
+
+#    open('edition_to_work', 'w').write(`dict(edition_to_work)`)
+#    open('work_to_edition', 'w').write(`dict(work_to_edition)`)
+#    open('work_by_key', 'w').write(`dict(work_by_key)`)
 
     work_title_match = {}
     works_by_title = {}
@@ -621,7 +640,9 @@ def update_works(akey, works, do_updates=False):
         if 'best_match' in w:
             updated = update_work_with_best_match(akey, w, work_to_edition, do_updates, fh_log)
             for wkey in updated:
-                assert wkey not in works_updated_this_session
+                if wkey in works_updated_this_session:
+                    print >> fh_log, wkey, 'already updated!'
+                    print wkey, 'already updated!'
                 works_updated_this_session.update(updated)
             continue
         if not w['existing_works']:
@@ -636,7 +657,9 @@ def update_works(akey, works, do_updates=False):
         w['best_match'] = work_by_key[best_match]
         updated = update_work_with_best_match(akey, w, work_to_edition, do_updates, fh_log)
         for wkey in updated:
-            assert wkey not in works_updated_this_session
+            if wkey in works_updated_this_session:
+                print >> fh_log, wkey, 'already updated!'
+                print wkey, 'already updated!'
         works_updated_this_session.update(updated)
 
     #if not do_updates:
@@ -645,7 +668,7 @@ def update_works(akey, works, do_updates=False):
     return [withKey(key) for key in works_updated_this_session]
 
 if __name__ == '__main__':
-    akey = '/a/' + sys.argv[1]
+    akey = '/authors/' + sys.argv[1]
 
     title_redirects = find_title_redirects(akey)
     works = find_works(akey, get_books(akey, books_query(akey)), existing=title_redirects)

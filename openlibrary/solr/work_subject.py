@@ -9,6 +9,8 @@ subject_fields = set(['600', '610', '611', '630', '648', '650', '651', '662'])
 
 re_large_book = re.compile('large.*book', re.I)
 
+re_edition_key = re.compile(r'^/(?:b|books)/(OL\d+M)$')
+
 re_ia_marc = re.compile('^(?:.*/)?([^/]+)_(marc\.xml|meta\.mrc)(:0:\d+)?$')
 def get_marc_source(w):
     found = set()
@@ -17,6 +19,7 @@ def get_marc_source(w):
         if sr:
             found.update(i[5:] for i in sr if i.startswith('marc:'))
         else:
+            assert re_edition_key.match(e['key'])
             mc = get_mc(e['key'])
             if mc and not mc.startswith('amazon:') and not re_ia_marc.match(mc):
                 found.add(mc)
@@ -61,7 +64,7 @@ def flip_place(s):
 re_fictitious_character = re.compile('^(.+), (.+)( \(.* character\))$')
 re_etc = re.compile('^(.+?)[, .]+etc[, .]?$', re.I)
 re_aspects = re.compile(' [Aa]spects$')
-re_comma = re.compile('^([A-Z])([A-Za-z ]+?), ([A-Z][A-Z a-z]+)$')
+re_comma = re.compile('^([A-Z])([A-Za-z ]+?) *, ([A-Z][A-Z a-z]+)$')
 
 def tidy_subject(s):
     s = s.strip()

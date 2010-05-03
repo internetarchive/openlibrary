@@ -3,11 +3,10 @@ from openlibrary.catalog.read_rc import read_rc
 import openlibrary.catalog.merge.amazon as amazon
 from openlibrary.catalog.get_ia import *
 from openlibrary.catalog.importer.db_read import withKey, get_mc
+from openlibrary.api import OpenLibrary
 import openlibrary.catalog.marc.fast_parse as fast_parse
 import xml.parsers.expat
 import web, sys
-sys.path.append('/home/edward/src/olapi')
-from olapi import OpenLibrary
 from time import sleep
 
 rc = read_rc()
@@ -171,7 +170,9 @@ def try_merge(e1, edition_key, thing):
         elif mc.endswith('.xml') or mc.endswith('.mrc'):
             ia = mc[:mc.find('/')]
         if '_meta.mrc:' in mc:
-            assert 'ocaid' in thing
+            print thing
+            if 'ocaid' not in thing:
+                return False
             ia = thing['ocaid']
     rec2 = None
     if ia:

@@ -6,6 +6,10 @@ from pprint import pprint
 from urllib import urlopen
 import simplejson as json
 
+re_lang_key = re.compile(r'^/(?:l|languages)/([a-z]{3})$')
+re_author_key = re.compile(r'^/(?:a|authors)/(OL\d+A)$')
+re_edition_key = re.compile(r'^/(?:b|books)/(OL\d+M)$')
+
 solr_host = {
     'works': 'ia331507:8983',
     'authors': 'ia331507:8984'
@@ -86,7 +90,7 @@ def build_doc(w):
 
     try:
         work_authors = [a['author']['key'] for a in w.get('authors', []) if 'author' in a]
-        author_keys = [akey[3:] for akey in work_authors]
+        author_keys = [re_author_key.match(akey).group(1) for akey in work_authors]
         authors = [withKey(akey) for akey in work_authors]
     except KeyError:
         print w['key']
@@ -100,6 +104,28 @@ def build_doc(w):
 
     subjects = four_types(find_subjects(get_marc_subjects(w)))
     print subjects
+    field_map = {
+        'subjects': 'subject',
+        'subject_places': 'place',
+        'subject_times': 'time',
+        'subject_people': 'people',
+    }
+
+    print subjects
+    for db_field, solr_field in field_map.iteritems():
+        if not w.get(db_field, None):
+            continue
+        cur = subjects.setdefault(solr_field, {})
+        for v in w[db_field]:
+            try:
+                if isinstance(v, dict):
+                    if 'value' not in v:
+                        continue
+                    v = v['value']
+                cur[v] = cur.get(v, 0) + 1
+            except:
+                print 'v:', v
+                raise
 
     doc = Element("doc")
 
@@ -129,7 +155,7 @@ def build_doc(w):
 
     add_field(doc, 'edition_count', len(editions))
     for e in editions:
-        add_field(doc, 'edition_key', e['key'][3:])
+        add_field(doc, 'edition_key', re_edition_key.match(e['key']).group(1))
 
     cover_edition = None
     if 'cover_edition' in w:
@@ -137,7 +163,7 @@ def build_doc(w):
     else:
         cover_edition = pick_cover(editions)
     if cover_edition:
-        add_field(doc, 'cover_edition_key', cover_edition[3:])
+        add_field(doc, 'cover_edition_key', re_edition_key.match(cover_edition).group(1))
 
     k = 'by_statement'
     add_field_list(doc, k, set( e[k] for e in editions if e.get(k, None)))
@@ -185,8 +211,8 @@ def build_doc(w):
     lang = set()
     for e in editions:
         for l in e.get('languages', []):
-            assert l['key'].startswith('/l/') and len(l['key']) == 6
-            lang.add(l['key'][3:])
+            m = re_lang_key.match(l['key'])
+            lang.add(m.group(1))
     if lang:
         add_field_list(doc, 'language', lang)
 
@@ -201,7 +227,7 @@ def build_doc(w):
             else:
                 non_goog.add(i)
     add_field_list(doc, 'ia', list(non_goog) + list(goog))
-    author_keys = [a['key'][3:] for a in authors]
+    author_keys = [re_author_key.match(a['key']).group(1) for a in authors]
     author_names = [a.get('name', '') for a in authors]
     add_field_list(doc, 'author_key', author_keys)
     add_field_list(doc, 'author_name', author_names)
@@ -273,8 +299,9 @@ def update_work(w):
 def update_author(akey):
     # http://ia331507.us.archive.org:8984/solr/works/select?indent=on&q=author_key:OL22098A&facet=true&rows=1&sort=edition_count%20desc&fl=title&facet.field=subject_facet&facet.mincount=1
     a = withKey(akey)
+    author_id = re_author_key.match(akey).group(1)
     if a['type']['key'] in ('/type/redirect', '/type/delete') or not a.get('name', None):
-        return ['<delete><query>key:%s</query></delete>' % akey[3:]] 
+        return ['<delete><query>key:%s</query></delete>' % author_id] 
     try:
         assert a['type']['key'] == '/type/author'
     except AssertionError:
@@ -282,7 +309,8 @@ def update_author(akey):
         raise
 
     facet_fields = ['subject', 'time', 'person', 'place']
-    url = 'http://' + solr_host['works'] + '/solr/works/select?wt=json&json.nl=arrarr&q=author_key:%s&sort=edition_count+desc&rows=1&fl=title,subtitle&facet=true&facet.mincount=1' % akey[3:]
+
+    url = 'http://' + solr_host['works'] + '/solr/works/select?wt=json&json.nl=arrarr&q=author_key:%s&sort=edition_count+desc&rows=1&fl=title,subtitle&facet=true&facet.mincount=1' % author_id
     url += ''.join('&facet.field=%s_facet' % f for f in facet_fields)
     print url
     reply = json.load(urlopen(url))
@@ -302,7 +330,7 @@ def update_author(akey):
 
     add = Element("add")
     doc = SubElement(add, "doc")
-    add_field(doc, 'key', akey[3:])
+    add_field(doc, 'key', author_id)
     if a.get('name', None):
         add_field(doc, 'name', a['name'])
     for f in 'birth_date', 'death_date', 'date':
@@ -314,7 +342,7 @@ def update_author(akey):
     add_field_list(doc, 'top_subjects', top_subjects)
 
     q = {'type': '/type/redirect', 'location': akey}
-    redirects = ''.join('<query>key:%s</query>' % r['key'][3:] for r in query_iter(q))
+    redirects = ''.join('<query>key:%s</query>' % re_author_key.match(r['key']).match(1) for r in query_iter(q))
     requests = []
     if redirects:
         requests.append('<delete>' + redirects + '</delete>')

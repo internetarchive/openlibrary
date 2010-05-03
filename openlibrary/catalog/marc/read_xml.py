@@ -15,10 +15,13 @@ re_oclc = re.compile ('^\(OCoLC\).*?0*(\d+)')
 # no monograph should be longer than 50,000 pages
 max_number_of_pages = 50000
 
-leader_tag = '{http://www.loc.gov/MARC21/slim}leader'
-data_tag = '{http://www.loc.gov/MARC21/slim}datafield'
-control_tag = '{http://www.loc.gov/MARC21/slim}controlfield'
-subfield_tag = '{http://www.loc.gov/MARC21/slim}subfield'
+slim = '{http://www.loc.gov/MARC21/slim}'
+leader_tag = slim + 'leader'
+data_tag = slim + 'datafield'
+control_tag = slim + 'controlfield'
+subfield_tag = slim + 'subfield'
+collection_tag = slim + 'collection'
+record_tag = slim + 'record'
 
 class BadXML:
     pass
@@ -83,8 +86,12 @@ def read_author_event(line):
 
 def get_tag_lines(f, want):
     tree = et.parse(f)
+    root = tree.getroot()
+    if root.tag == collection_tag:
+        root = root[0]
+    assert root.tag == record_tag
     fields = []
-    for i in tree.getroot():
+    for i in root:
         if i.tag == leader_tag and i.text[6:8] != 'am': # only want books:
             return []
         if i.tag != data_tag and i.tag != control_tag:
@@ -139,10 +146,10 @@ def read_edition(f):
         #        return None
         #    continue
         if tag == '008':
-            publish_date = str(line)[7:11]
+            publish_date = unicode(line)[7:11]
             if publish_date.isdigit():
                 edition["publish_date"] = publish_date
-            publish_country = str(line)[15:18]
+            publish_country = unicode(line)[15:18]
             if publish_country not in ('|||', '   '):
                 edition["publish_country"] = publish_country
             continue
@@ -191,3 +198,10 @@ def test_xml():
         print title
         print normalize('NFC', title)
 #    print read_edition(open('test_data/nybc200247_marc.xml'))['full_title']
+
+def test_yale_xml():
+    f = open('test_data/39002054008678.yale.edu_marc.xml')
+    read_edition(f)
+    f.close()
+
+#test_yale_xml()

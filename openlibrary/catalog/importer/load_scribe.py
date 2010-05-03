@@ -12,7 +12,7 @@ from openlibrary.catalog.get_ia import get_ia, urlopen_keep_trying, NoMARCXML
 from openlibrary.catalog.importer.db_read import get_mc
 from openlibrary.catalog.title_page_img.load import add_cover_image
 from openlibrary.solr.update_work import update_work, solr_update
-import openlibrary.catalog.marc.parse_xml as parse_xml
+from openlibrary.catalog.marc import parse_xml 
 from time import time, sleep
 import openlibrary.catalog.marc.fast_parse as fast_parse
 from openlibrary.api import OpenLibrary, unmarshal
@@ -108,9 +108,13 @@ def write_log(ia, when, msg):
 def hide_books(start):
     mend = []
     fix_works = set()
-    db_iter = db.query("select identifier, updated from metadata where (noindex is not null or curatestate='dark') and mediatype='texts' and scandate is not null and updated > $start order by updated", {'start': start})
+    db_iter = db.query("select identifier, collection, updated from metadata where (noindex is not null or curatestate='dark') and mediatype='texts' and scandate is not null and updated > $start order by updated", {'start': start})
     for row in db_iter:
         ia = row.identifier
+        if row.collection:
+            collections = set(i.lower().strip() for i in row.collection.split(';'))
+            if 'printdisabled' in collections:
+                continue
         print `ia`, row.updated
         for eq in query({'type': '/type/edition', 'ocaid': ia}):
             print eq['key']
@@ -141,12 +145,21 @@ if __name__ == '__main__':
 
         hide_books(start)
 
-        db_iter = db.query("select identifier, updated from metadata where scanner is not null and noindex is null and mediatype='texts' and (curatestate='approved' or curatestate is null) and scandate is not null and updated > $start order by updated", {'start': start})
+        db_iter = db.query("select identifier, updated, noindex, collection from metadata where scanner is not null and mediatype='texts' and (not curatestate='dark' or curatestate is null) and scandate is not null and updated > $start order by updated", {'start': start})
         t_start = time()
         for row in db_iter:
+            if row.noindex:
+                if not row.collection:
+                    continue
+                collections = set(i.lower().strip() for i in row.collection.split(';'))
+                if 'printdisabled' not in collections:
+                    continue
             ia = row.identifier
             if re_census.match(ia):
                 print 'skip census for now:', ia
+                continue
+            if 'passportapplicat' in ia:
+                print 'skip passport applications for now:', ia
                 continue
             print `ia`, row.updated
             when = str(row.updated)
