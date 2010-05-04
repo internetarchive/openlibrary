@@ -197,6 +197,9 @@ class MigrationMiddleware(ConnectionMiddleware):
             return data
     
     def get(self, sitename, data):
+        if web.ctx.path == "/api/get" and 'key' in data:
+            data['key'] = self._process_key(data['key'])
+            
         response = ConnectionMiddleware.get(self, sitename, data)
         if response:
             data = simplejson.loads(response)
