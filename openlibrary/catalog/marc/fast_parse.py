@@ -102,13 +102,13 @@ def read_author_person(line):
     return [{ 'db_name': u' '.join(name_and_date), 'name': u' '.join(name), }]
 
 # exceptions:
-class SoundRecording:
+class SoundRecording(Exception):
     pass
 
-class NotBook:
+class NotBook(Exception):
     pass
 
-class BadDictionary:
+class BadDictionary(Exception):
     pass
 
 def read_full_title(line, accept_sound = False):
@@ -165,6 +165,8 @@ def get_subfields(line, want):
 
 def read_directory(data):
     dir_end = data.find('\x1e')
+    if dir_end == -1:
+        raise BadDictionary
     directory = data[24:dir_end]
     if len(directory) % 12 != 0:
         print 'directory is the wrong size'
@@ -172,6 +174,7 @@ def read_directory(data):
         # sometimes the leader includes some utf-8 by mistake
         directory = data[:dir_end].decode('utf-8')[24:]
         if len(directory) % 12 != 0:
+            print len(directory) / 12
             raise BadDictionary
     iter_dir = (directory[i*12:(i+1)*12] for i in range(len(directory) / 12))
     return dir_end, iter_dir
@@ -181,10 +184,10 @@ def get_tag_line(data, line):
     offset = int(line[7:12])
 
     # handle off-by-one errors in MARC records
-    if data[offset] != '\x1e':
-        offset += data[offset:].find('\x1e')
-    last = offset+length
     try:
+        if data[offset] != '\x1e':
+            offset += data[offset:].find('\x1e')
+        last = offset+length
         if data[last] != '\x1e':
             length += data[last:].find('\x1e')
     except IndexError:

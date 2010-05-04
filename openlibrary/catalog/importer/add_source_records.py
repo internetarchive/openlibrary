@@ -10,8 +10,7 @@ from catalog.importer.load import build_query
 from catalog.get_ia import files, read_marc_file
 from catalog.merge.merge_marc import build_marc
 from catalog.importer.db_read import get_mc, withKey
-sys.path.append('/home/edward/src/olapi')
-from olapi import OpenLibrary
+from openlibrary.api import OpenLibrary
 
 from catalog.read_rc import read_rc
 

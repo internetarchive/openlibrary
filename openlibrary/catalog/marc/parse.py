@@ -21,6 +21,9 @@ re_ad_bc = re.compile(r'\b(B\.C\.?|A\.D\.?)')
 re_number_dot = re.compile('\d{3,}\.$')
 re_date_fl = re.compile('^fl[., ]')
 
+class BigToc:
+    pass
+
 def specific_subtags(f, subtags):
     return [j for i, j in f.subfield_sequence if i in subtags]
 
@@ -364,9 +367,12 @@ def find_toc(r, edition): # table of contents
         if len(i) < 2048:
             toc2.append(i)
         else:
-            split_item = i.split('  ')
+            sep_counts = [(i.count(sep), sep) for sep in '  ', ' - ']
+            split_item = i.split(max(sep_counts)[1])
+            # FIXME: omaggiodantealig00romauoft
             for j in split_item:
-                assert len(j) < 2048
+                if len(j) >= 2048:
+                    raise BigToc
             toc2.extend(split_item)
     edition['table_of_contents'] = [{'title': i, 'type': '/type/toc_item'} for i in toc2]
 
@@ -392,7 +398,9 @@ def find_lc_classification(r, edition):
                 lc += [' '.join([a, b]) for a in f.contents['a']]
             else:
                 lc += [b]
-        else:
+        elif 'a' in f.contents:
+            # zeitschriftfrd17beseuoft
+            # 050  4 $d\Hammond\
             lc += f.contents['a']
     if lc:
         edition["lc_classifications"] = lc

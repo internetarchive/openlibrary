@@ -447,7 +447,9 @@ def read_description(fields):
             print `fields['520']`
             print `line`
             print len(this)
-        assert len(this) == 1
+        # multiple 'a' subfields
+        # marc_loc_updates/v37.i47.records.utf8:5325207:1062
+        # 520: $aManpower policy;$aNusa Tenggara Barat Province
         found += this
         if line[-3:-1] == '++':
             wrap = True

@@ -13,7 +13,7 @@ xml_path = '/home/edward/get_new_books/xml'
 
 rc = read_rc()
 
-re_loc = re.compile('^(ia\d+\.us\.archive\.org):(/\d/items/(.*))$')
+re_loc = re.compile('^(ia\d+\.us\.archive\.org):(/\d+/items/(.*))$')
 
 class NoMARCXML:
     pass
@@ -26,6 +26,8 @@ def urlopen_keep_trying(url):
             if error.code == 404:
                 print "404 for '%s'" % url
                 raise
+            else:
+                print 'error:', error.code, error.msg
             pass
         except urllib2.URLError:
             pass
@@ -43,12 +45,12 @@ def find_item(ia):
     assert ret[-1] == '\n'
     loc = ret[:-1]
     m = re_loc.match(loc)
+    if not m:
+        print loc
     assert m
     ia_host = m.group(1)
     ia_path = m.group(2)
     assert m.group(3) == ia
-    filename = ia + "_meta.xml"
-    url = "http://" + ia_host + ia_path + "/" + filename
     return (ia_host, ia_path)
 
 def get_ia(ia):
@@ -67,6 +69,7 @@ def get_ia(ia):
             if error.code == 404:
                 raise NoMARCXML
             else:
+                print 'error:', error.code, error.msg
                 raise
     if f:
         try:
@@ -74,8 +77,8 @@ def get_ia(ia):
         except read_xml.BadXML:
             pass
         except xml.parsers.expat.ExpatError:
-            print 'IA:', `ia`
-            print 'XML parse error:', base + loc
+            #print 'IA:', `ia`
+            #print 'XML parse error:', base + loc
             pass
     if '<title>Internet Archive: Page Not Found</title>' in urllib2.urlopen(base + loc).read(200):
         raise NoMARCXML
@@ -96,9 +99,12 @@ def get_ia(ia):
     if 'Internet Archive: Error' in data:
         print 'internet archive error for', url
         return None, None
+    if data.startswith('<html>\n<head>'):
+        print 'internet archive error for', url
+        return None, None
     try:
         return ia, fast_parse.read_edition(data, accept_electronic = True)
-    except (ValueError, AssertionError):
+    except (ValueError, AssertionError, fast_parse.BadDictionary):
         print `data`
         raise
 
@@ -119,6 +125,7 @@ def files(archive_id):
     for i in tree.getroot():
         assert i.tag == 'file'
         name = i.attrib['name']
+        print 'name:', name
         if name == 'wfm_bk_marc' or name.endswith('.mrc') or name.endswith('.marc') or name.endswith('.out') or name.endswith('.dat') or name.endswith('.records.utf8'):
             size = i.find('size')
             if size is not None:
@@ -152,9 +159,25 @@ def get_from_archive(locator):
     assert 0 < length < 100000
 
     ureq = urllib2.Request(url, None, {'Range':'bytes=%d-%d'% (r0, r1)},)
-    f = urlopen_keep_trying(ureq)
+
+    f = None
+    for i in range(3):
+        try:
+            f = urllib2.urlopen(ureq)
+        except urllib2.HTTPError, error:
+            if error.code == 416:
+                raise
+            elif error.code == 404:
+                print "404 for '%s'" % url
+                raise
+            else:
+                print 'error:', error.code, error.msg
+        except urllib2.URLError:
+            pass
     if f:
         return f.read(100000)
+    else:
+        print locator, url, 'failed'
 
 def get_from_local(locator):
     try:
