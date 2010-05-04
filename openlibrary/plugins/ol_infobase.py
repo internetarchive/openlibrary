@@ -7,7 +7,7 @@ import urllib
 import simplejson
 
 import web
-from infogami.infobase import config, common, server, cache
+from infogami.infobase import config, common, server, cache, dbstore
 
 # relative import
 from openlibrary import schema
@@ -274,3 +274,35 @@ def MemcachedDict(servers=[]):
     return cache.MemcachedDict(memcache_client=client)
 
 cache.register_cache('memcache', MemcachedDict)
+
+def _process_key(key):
+    mapping = (
+        "/l/", "/languages/",
+        "/a/", "/authors/",
+        "/b/", "/books/",
+        "/user/", "/people/"
+    )
+    for old, new in web.group(mapping, 2):
+        if key.startswith(old):
+            return new + key[len(old):]
+    return key
+
+def _process_data(data):
+    if isinstance(data, list):
+        return [_process_data(d) for d in data]
+    elif isinstance(data, dict):
+        if 'key' in data:
+            data['key'] = _process_key(data['key'])
+        return dict((k, _process_data(v)) for k, v in data.iteritems())
+    else:
+        return data
+
+def process_json(key, json):
+    base = key[1:].split("/")[0]
+    if base in ['authors', 'books', 'works', 'people', 'usergroup', 'permission']:
+        data = simplejson.loads(json)
+        data = _process_data(data)
+        json = simplejson.dumps(data)
+    return json
+    
+dbstore.process_json = process_json
