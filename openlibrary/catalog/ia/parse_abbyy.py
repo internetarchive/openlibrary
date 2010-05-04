@@ -14,7 +14,7 @@ charParams_tag = ns + 'charParams'
 
 re_page_num = re.compile(r'^\[?\d+\]?$')
 
-def abbey_to_par(f, debug=False):
+def abbyy_to_par(f, debug=False):
     prev = ''
     page_count = 0
     for event, element in iterparse(f):

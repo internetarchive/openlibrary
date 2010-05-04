@@ -57,4 +57,13 @@ def get_mc(key):
     return found[0].v if found else None
 
 def withKey(key):
-    return read_from_url(api_get() + key)
+    def process(key):
+        return read_from_url(api_get() + key)
+
+    for attempt in range(5):
+        try:
+            return process(key)
+        except ValueError:
+            pass
+        sleep(10)
+    return process(key)

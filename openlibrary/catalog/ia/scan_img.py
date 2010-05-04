@@ -4,7 +4,7 @@ import xml.parsers.expat, socket # for exceptions
 import re, urllib
 from subprocess import Popen, PIPE
 
-re_loc = re.compile('^(ia\d+\.us\.archive\.org):(/\d/items/(.*))$')
+re_loc = re.compile('^(ia\d+\.us\.archive\.org):(/\d+/items/(.*))$')
 re_remove_xmlns = re.compile(' xmlns="[^"]+"')
 
 def parse_scandata_xml(xml):
@@ -46,6 +46,7 @@ def find_item(ia):
     assert ret[-1] == '\n'
     loc = ret[:-1]
     m = re_loc.match(loc)
+    print loc
     assert m
     ia_host = m.group(1)
     ia_path = m.group(2)
@@ -71,7 +72,8 @@ def find_img(item_id):
     if not scandata or '<book>' not in scandata[:100]:
         url = "http://" + ia_host + "/zipview.php?zip=" + ia_path + "/scandata.zip&file=scandata.xml"
         scandata = urllib.urlopen(url).read()
-    assert scandata
+    if not scandata or '<book>' not in scandata:
+        return {}
 
     zip_type = 'tif' if item_id.endswith('goog') else 'jp2'
     try:
@@ -81,7 +83,7 @@ def find_img(item_id):
         bad_hosts.add(ia_host)
         return
     if status in (403, 404):
-        print zip_type, ' not found:', (ol, item_id)
+        print zip_type, ' not found:', item_id
         return
 
     (cover, title) = parse_scandata_xml(scandata)
@@ -100,9 +102,13 @@ def test_find_img():
     assert ret['cover'] == 1 
     assert ret['title'] == 7
 
-def test_find_img():
+def test_find_img2():
     item_id = 'cu31924000331631'
     ret = find_img(item_id)
     assert ret['item_id'] == item_id
     assert ret['cover'] is None
     assert ret['title'] == 0
+
+def test_no_full_text():
+    item_id = 'histoirepopulair02cabeuoft'
+    print find_img(item_id)

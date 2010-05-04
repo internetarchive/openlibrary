@@ -1,7 +1,12 @@
 from openlibrary.catalog.ia.scan_img import find_img
 from openlibrary.catalog.utils.query import has_cover_retry
 from openlibrary.catalog.read_rc import read_rc
+from openlibrary.api import OpenLibrary
 import web, urllib, socket, httplib
+
+rc = read_rc()
+ol = OpenLibrary("http://upstream.openlibrary.org/")
+ol.login('ImportBot', rc['ImportBot']) 
 
 def urlread(url):
     return urllib.urlopen(url).read()
@@ -21,7 +26,8 @@ def post(key, ia, from_ia):
     title = from_ia['title']
     cover = from_ia['cover']
     if title is None:
-        assert cover is not None
+        if cover is None:
+            return
         use_cover = True
     leaf = cover if use_cover else title
     zip_type = 'tif' if ia.endswith('goog') else 'jp2'
@@ -52,8 +58,18 @@ def post(key, ia, from_ia):
 def add_cover_image(key, ia):
     if has_cover_retry(key):
         print key, 'has_cover'
+        return
+    cover_url = 'http://www.archive.org/download/' + ia + '/page/' + ia + '_preview.jpg'
+    post_data = urllib.urlencode({"url": cover_url})
+    if key.startswith('/b/'):
+        key = '/books/' + key[3:]
+    ol._request(key + "/add-cover.json", method="POST", data=post_data)
+    return
+
     ret = find_img(ia)
 
+    if not ret:
+        return
     print 'cover image:', ret
     post(key, ia, ret)
 
