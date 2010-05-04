@@ -123,10 +123,10 @@ def create_dynamic_document(url, prefix):
     delegate.pages[url][None] = page
     return page
             
-all_js = create_dynamic_document("/js/all.js", "/js")
+all_js = create_dynamic_document("/js/all.js", config.get("js_root", "/js"))
 web.template.Template.globals['all_js'] = all_js()
 
-all_css = create_dynamic_document("/css/all.css", "/css")
+all_css = create_dynamic_document("/css/all.css", config.get("css_root", "/css"))
 web.template.Template.globals['all_css'] = all_css()
 
 def setup_jquery_urls():
