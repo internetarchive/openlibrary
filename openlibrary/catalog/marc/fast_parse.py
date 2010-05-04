@@ -327,7 +327,9 @@ def index_fields(data, want, check_author = True):
 
     seen_008 = False
     oclc_001 = False
+    is_pbk = False
 
+    tag_006_says_electric = False
     for tag, line in fields:
         if tag == '003': # control number identifier
             if line.lower().startswith('ocolc'):
@@ -335,13 +337,15 @@ def index_fields(data, want, check_author = True):
             continue
         if tag == '006':
             if line[0] == 'm': # don't want electronic resources
-                return None
+                tag_006_says_electric = True
             continue
         if tag == '008':
             if seen_008: # dup
                 return None
             seen_008 = True
             continue
+        if tag == '020' and 'pbk' in line:
+            is_pbk = True
         if tag == '260': 
             if line.find('\x1fh[sound') != -1: # sound recording
                 return None
@@ -369,6 +373,8 @@ def index_fields(data, want, check_author = True):
         return None
 #    if 'title' not in edition:
 #        return None
+    if tag_006_says_electric and not is_pbk:
+        return None
     return edition
 
 def read_edition(data, accept_electronic = False):
