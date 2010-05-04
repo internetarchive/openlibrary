@@ -391,14 +391,16 @@ def read_edition(data, accept_electronic = False):
     ]
 
     oclc_001 = False
+    tag_006_says_electric = False
+    is_pbk = False
     for tag, line in fields:
         if tag == '003': # control number identifier
             if line.lower().startswith('ocolc'):
                 oclc_001 = True
             continue
         if tag == '006':
-            if not accept_electronic and line[0] == 'm':
-                return None
+            if line[0] == 'm':
+                tag_006_says_electric = True
             continue
         if tag == '008': # not interested in '19uu' for merge
             #assert len(line) == 41 usually
@@ -406,6 +408,8 @@ def read_edition(data, accept_electronic = False):
                 edition['publish_date'] = line[7:11]
             edition['publish_country'] = line[15:18]
             continue
+        if tag == '020' and 'pbk' in line:
+            is_pbk = True
         for t, proc, key in read_tag:
             if t != tag:
                 continue
@@ -430,6 +434,10 @@ def read_edition(data, accept_electronic = False):
         add_oclc(edition)
     if 'control_number' in edition:
         del edition['control_number']
+    if not accept_electronic and tag_006_says_electric and not is_pbk:
+        print 'electronic resources'
+        return None
+
     return edition
 
 def handle_wrapped_lines(iter):
