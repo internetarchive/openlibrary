@@ -160,23 +160,15 @@ class LocalCacheMiddleware(ConnectionMiddleware):
 class MigrationMiddleware(ConnectionMiddleware):
     """Temporary middleware to handle upstream to www migration."""
     def _process_key(self, key):
-        # migration of authors and languages is complete
-        if key.startswith("/a/"):
-            return "/authors/" + key[len("/a/"):]
-        if key.startswith("/l/"):
-            return "/languages/" + key[len("/l/"):]
-            
-        # migration of users and books is still in progress
-        if key.startswith("/user/"):
-            key2 = key.replace("/user/", "/people/")
-            if self.exists(key2):
-                return key2
-                
-        if key.startswith("/b/"):
-            key2 = key.replace("/b/", "/books/")
-            if self.exists(key2):
-                return key2
-            
+        mapping = (
+            "/l/", "/languages/",
+            "/a/", "/authors/",
+            "/b/", "/books/",
+            "/user/", "/people/"
+        )
+        for old, new in web.group(mapping, 2):
+            if key.startswith(old):
+                return new + key[len(old):]
         return key
     
     def exists(self, key):
@@ -197,7 +189,7 @@ class MigrationMiddleware(ConnectionMiddleware):
             return data
     
     def get(self, sitename, data):
-        if web.ctx.path == "/api/get" and 'key' in data:
+        if web.ctx.get('path') == "/api/get" and 'key' in data:
             data['key'] = self._process_key(data['key'])
             
         response = ConnectionMiddleware.get(self, sitename, data)
