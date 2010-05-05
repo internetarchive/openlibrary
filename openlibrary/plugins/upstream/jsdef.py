@@ -171,7 +171,7 @@ class JSNode:
         
     def jsemit_JSDefNode(self, node, indent):
         text = ""
-        text += '<script type="text/javascript">\n'
+        text += '<script type="text/javascript"><!--\n'
         
         text += node.stmt.replace("def ", "function ").strip(": ") + "{\n"
         text += '    var self = [], loop;\n'
@@ -179,7 +179,7 @@ class JSNode:
         text += '    return self.join("");\n' 
         text += "}\n"
         
-        text += "</script>\n"
+        text += "//--></script>\n"
         return text
         
 def tokenize(code):
