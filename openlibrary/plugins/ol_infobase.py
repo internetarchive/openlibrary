@@ -298,6 +298,8 @@ def _process_data(data):
         return data
 
 def process_json(key, json):
+    if key is None or json is None:
+        return None
     base = key[1:].split("/")[0]
     if base in ['authors', 'books', 'works', 'people', 'usergroup', 'permission']:
         data = simplejson.loads(json)

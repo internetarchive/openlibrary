@@ -3,6 +3,7 @@ import urllib
 import simplejson
 import web
 import os
+import traceback
 
 debug = True
 
@@ -18,15 +19,9 @@ def api_things(key, value, details=False):
         query['authors'] = {'name': None}
     return web.ctx.site.things(query, details=True)
 
-def get_thumbnail_url(key):
-    olid = key.split('/')[-1]
-    try:
-        result = urllib2.urlopen('http://covers.openlibrary.org/b/query?limit=1&olid=' + olid).read()
-        ids = simplejson.loads(result)
-    except (urllib2.HTTPError, ValueError):
-        ids = []
-    if ids:
-        return 'http://covers.openlibrary.org/b/id/%s-S.jpg' % ids[0]
+def get_thumbnail_url(page):
+    if page.get('covers'):
+        return 'http://covers.openlibrary.org/b/id/%s-S.jpg' % page["covers"][0]
 
 def split_key(bib_key):
     """
@@ -84,7 +79,7 @@ def split_key(bib_key):
         
     if key == 'olid':
         key = 'key'
-        value = '/b/' + value.upper()
+        value = '/books/' + value.upper()
 
     return key, value
     
@@ -98,7 +93,7 @@ def process_result(bib_key, page, details):
         preview = 'noview'
         preview_url = 'http://openlibrary.org' + key
         
-    thumbnail_url = get_thumbnail_url(key)
+    thumbnail_url = get_thumbnail_url(page)
     
     d = {
         'bib_key': bib_key,
@@ -133,7 +128,6 @@ def find_olns(bib_keys, details):
     result = {}
     for k, q in queries.items():
         for thing in api_things(k, q, details):
-            print >> web.debug, q, thing
             value = thing[k]
             if isinstance(value, list):
                 for v in value:
@@ -146,11 +140,13 @@ def find_olns(bib_keys, details):
     for bib_key, (k, v) in d.items():
         if (k, v) in result:
             mapping[bib_key] = process_result(bib_key, result[k, v], details)
+            
     return mapping
 
 def get_multi(bib_keys, details=False):
     try:
         return find_olns(bib_keys, details)
     except:
+        traceback.print_exc()
         # this should never happen, but to protect from unexpected errors
         return {}

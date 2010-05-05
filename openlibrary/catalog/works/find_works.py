@@ -152,7 +152,6 @@ bad_titles = ['Publications', 'Works. English', 'Works', 'Report', \
 
 def get_books(akey, query):
     for e in query:
-        print e
         try:
             if not e.get('title', None):
                 continue
@@ -247,9 +246,10 @@ def get_existing_works(akey):
     q = {
         'type':'/type/work',
         'authors': {'author': {'key': akey}},
-        'limit': 500,
+        'limit': 0,
     }
     seen = set()
+    print q
     for wkey in ol.query(q):
         if wkey in seen:
             continue # skip dups
