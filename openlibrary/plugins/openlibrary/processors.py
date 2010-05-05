@@ -43,6 +43,14 @@ class ReadableUrlProcessor:
 
     def get_object(self, key):
         obj = web.ctx.site.get(key)
+        if obj is None and key.startswith("/a/"):
+            key = "/authors/" + key[len("/a/"):]
+            obj = key and web.ctx.site.get(key)
+            
+        if obj is None and key.startswith("/b/"):
+            key = "/books/" + key[len("/b/"):]
+            obj = key and web.ctx.site.get(key)
+        
         if obj is None and web.re_compile(r"/.*/OL\d+[A-Z]"):
             key = web.ctx.site._request("/olid_to_key?olid=" + key.split("/")[-1]).key
             obj = key and web.ctx.site.get(key)
