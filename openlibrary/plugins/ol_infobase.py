@@ -250,7 +250,7 @@ def http_notify(site, old, new):
 
     # optimize the most common case. 
     # The following prefixes are never cached at the client. Avoid cache invalidation in that case.
-    not_cached = ['/b/', '/a/', '/books/', '/authors/', '/works/', '/subjects/', '/publishers/', '/upstream/']
+    not_cached = ['/b/', '/a/', '/books/', '/authors/', '/works/', '/subjects/', '/publishers/', '/user/', '/usergroup/', '/people/']
     for prefix in not_cached:
         if key.startswith(prefix):
             return
