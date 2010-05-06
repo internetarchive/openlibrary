@@ -300,6 +300,7 @@ def get_doc(doc):
         title = doc.find("str[@name='title']").text,
         edition_count = int(doc.find("int[@name='edition_count']").text),
         ia = [e.text for e in (e_ia if e_ia is not None else [])],
+        has_fulltext = doc.find("bool[@name='has_fulltext']") == 'true',
         authors = authors,
         first_publish_year = first_pub,
         first_edition = first_edition,
