@@ -16,15 +16,25 @@ import web
 
 import db
 
-
 def print_dump(json_records):
     """Print the given json_records in the dump format.
     """
     for json in json_records:
         d = simplejson.loads(json)
         d.pop('id', None)
-        json = simplejson.dumps(_process_data(d))
-        print "\t".join([d['type']['key'], web.safestr(d['key']), str(d['revision']), d['last_modified']['value'], json])
+        d = _process_data(d)
+        
+        
+        key = web.safestr(d['key'])
+        type = d['type']['key']
+        timestamp = d['last_modified']['value']
+        json = simplejson.dumps(d)
+        
+        # skip user and admin pages
+        if key.startswith("/people/") or key.startswith("/admin/"):
+            continue
+            
+        print "\t".join([type, key, str(d['revision']), timestamp, json])
 
 def generate_cdump(data_file):
     """Generates cdump from a copy of data table.
