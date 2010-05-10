@@ -213,6 +213,7 @@ class report_spam(delegate.page):
             'irl': i.irl,
             'comment': i.comment,
             'sent': datetime.datetime.utcnow(),
+            'browser': web.ctx.env.get('HTTP_USER_AGENT', '')
         })
         msg = render_template('email/spam_report', fields)
         web.sendmail(config.from_address, config.report_spam_address, msg.subject, str(msg))
