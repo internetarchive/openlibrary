@@ -216,7 +216,7 @@ class report_spam(delegate.page):
             'browser': web.ctx.env.get('HTTP_USER_AGENT', '')
         })
         msg = render_template('email/spam_report', fields)
-        web.sendmail(config.from_address, config.report_spam_address, msg.subject, str(msg))
+        web.sendmail(i.email, config.report_spam_address, msg.subject, str(msg))
         return render_template("contact/spam/sent")
 
 def setup():
