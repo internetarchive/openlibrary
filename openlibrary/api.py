@@ -95,7 +95,7 @@ class OpenLibrary:
         return unmarshal(simplejson.loads(data))
         
     def get_many(self, keys):
-        return self.query({"key": keys, "*": None})
+        return self.query({"key": keys, "*": None, "limit": len(keys)})
 
     def save(self, key, data, comment=None):
         headers = {'Content-Type': 'application/json'}
