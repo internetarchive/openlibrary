@@ -125,7 +125,7 @@ re_paren = re.compile('[()]')
 
 re_isbn = re.compile('^([0-9]{9}[0-9Xx]|[0-9]{13})$')
 
-re_isbn_field = re.compile('^\s*(?:isbn[:\s]*)([-0-9X]{9,})\s*$', re.I)
+re_isbn_field = re.compile('^\s*(?:isbn[:\s]*)?([-0-9X]{9,})\s*$', re.I)
 
 def read_isbn(s):
     s = s.replace('-', '')
@@ -605,7 +605,7 @@ class search(delegate.page):
         if params:
             raise web.seeother(web.changequery(**params))
 
-        if 'isbn' in i and all(not v for v in i.values()):
+        if 'isbn' in i and all(not v for k, v in i.items() if k != 'isbn'):
             self.isbn_redirect(i.isbn)
 
         q_list = []
