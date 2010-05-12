@@ -427,12 +427,14 @@
    -->
 
     <field name="key" type="string" required="true" omitnorms="true"/>
-    <field name="title" type="text" required="true" /> 
+    <field name="has_fulltext" type="boolean"/>
+    <field name="title" type="text" />
     <field name="title_prefix" type="text" />
     <field name="title_without_prefix" type="text" />
     <field name="subtitle" type="text" /> 
     <field name="author_key" type="string" multiValued="true" /> 
     <field name="author_name" type="textgen" multiValued="true" /> 
+    <field name="author_alternative_name" type="textgen" multiValued="true"/>
     <field name="by_statement" type="text" />
     <field name="publish_date" type="text" />
     <field name="publish_year" type="int" />
@@ -446,11 +448,11 @@
     <field name="table_of_content" type="text" multiValued="true"/>
     <field name="work_title" type="text" multiValued="true"/>
     <field name="work" type="string" multiValued="true"/>
-    <field name="serie" type="text" multiValued="true"/>
+    <field name="series" type="text" multiValued="true"/>
     <field name="physical_dimensions" type="text" />
     <field name="physical_format" type="text" />
     <field name="number_of_pages" type="int" />
-    <field name="subject" type="text" />
+    <field name="subject" type="text" multiValued="true"/>
     <field name="pagination" type="text" />
     <field name="lccn" type="text" multiValued="true"/>
     <field name="ia" type="string" />
@@ -464,7 +466,9 @@
     <field name="publisher" type="text" multiValued="true"/>
     <field name="first_sentence" type="text" />
     <field name="weight" type="text" />
-    <field name="volume_count" type="ia" />
+    <field name="volume_count" type="int" />
+
+    <field name="text" type="text" multiValued="true"/>
 
    <!-- Dynamic field definitions.  If a field name is not found, dynamicFields
         will be used if the name matches any of the patterns.
@@ -507,10 +511,10 @@
  <!-- Field to use to determine and enforce document uniqueness. 
       Unless this field is marked with required="false", it will be a required field
    -->
- <uniqueKey>name</uniqueKey>
+ <uniqueKey>key</uniqueKey>
 
  <!-- field for the QueryParser to use when an explicit fieldname is absent -->
- <defaultSearchField>name</defaultSearchField>
+ <defaultSearchField>title</defaultSearchField>
 
  <!-- SolrQueryParser configuration: defaultOperator="AND|OR" -->
  <!-- <solrQueryParser defaultOperator="OR"/> -->
@@ -518,5 +522,29 @@
   <!-- copyField commands copy one field to another at the time a document
         is added to the index.  It's used either to index the same field differently,
         or to add multiple fields to the same field for easier/faster searching.  -->
+
+   <copyField source="key" dest="text"/>
+   <copyField source="title" dest="text"/>
+   <copyField source="subtitle" dest="text"/>
+   <copyField source="by_statement" dest="text"/>
+   <copyField source="edition_name" dest="text"/>
+   <copyField source="description" dest="text"/>
+   <copyField source="work_title" dest="text"/>
+   <copyField source="series" dest="text"/>
+   <copyField source="physical_format" dest="text"/>
+   <copyField source="notes" dest="text"/>
+   <copyField source="lccn" dest="text"/>
+   <copyField source="ia" dest="text"/>
+   <copyField source="oclc" dest="text"/>
+   <copyField source="isbn" dest="text"/>
+   <copyField source="dewey_decimal_class" dest="text"/>
+   <copyField source="lc_classification" dest="text"/>
+   <copyField source="contributor" dest="text"/>
+   <copyField source="publisher" dest="text"/>
+   <copyField source="first_sentence" dest="text"/>
+   <copyField source="author_key" dest="text"/>
+   <copyField source="author_name" dest="text"/>
+   <copyField source="author_alternative_name" dest="text"/>
+   <copyField source="subject" dest="text"/>
 
 </schema>
