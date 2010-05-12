@@ -1,0 +1,15 @@
+$def with (page, first_page, last_page, this_page, per_page)
+$ bracket_radius = 3
+$ start_bracket = max(first_page, min(this_page - bracket_radius, last_page - 2*bracket_radius))
+$ end_bracket = min(last_page, max(this_page + bracket_radius, first_page + 2*bracket_radius))
+
+    $if this_page > first_page: <a href="$changequery(results=results,offset=(this_page-first_page-1)*per_page)" class="ChoosePage">&lt;&nbsp;Previous</a>
+    $if start_bracket > first_page: <a href="$changequery(offset=0)" class="ChoosePage">$first_page</a>
+    $if start_bracket > first_page+1: <span class="ellipsis">...</span>
+    $for i in range(start_bracket, end_bracket+1):
+	$if i == this_page: <span class="this">$i</span>
+	$else: <a href="$changequery(offset=(i-1)*per_page)" class="ChoosePage">$i</a>
+    $if end_bracket < last_page - 1: <span class="ellipsis">...</span>
+    $if end_bracket < last_page:
+       <a href="$changequery(offset=(last_page-1)*per_page)" class="ChoosePage">$last_page</a>
+    $if this_page < last_page: <a href="$changequery(offset=(this_page-first_page+1)*per_page)" class="ChoosePage">Next&nbsp;&gt;</a>

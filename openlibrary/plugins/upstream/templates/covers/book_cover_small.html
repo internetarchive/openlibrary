@@ -1,0 +1,18 @@
+$def with(book, size="S")
+
+$ title = book.title
+$ author_names = ", ".join(a.get("name", "Name missing") for a in book.get_authors()) or book.get('by_statement','')
+
+$ cover_url = book.get_cover_url(size)
+
+$if size == "S":
+    <div class="coverMagic">
+            <div class="SRPCover bookCover" style="display: $cond(cover_url, 'block', 'none');">
+                <a href="$book.key" title="Go to the main page for $title"><img src="$cover_url" class="cover" alt="$title $_('by') $author_names"/></a>
+            </div>
+            <div class="SRPCoverBlank" style="display: $cond(not cover_url, 'block', 'none');clear:left;">
+                <a href="$book.key" title="Go to the main page for $title"><img src="/images/icons/avatar_book-sm.png" height="58" title="$title" alt="$title"/></a>
+            </div>
+    </div>
+$else:
+    <img src="$(cover_url or '/images/icons/avatar_book-sm.png')" height="58" title="Go to the main page for $title" alt="$title"/>

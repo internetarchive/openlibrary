@@ -1,0 +1,259 @@
+$def with (page)
+
+$ lang = i18n.get_locale() or 'en'
+$ _t = i18n.get_namespace('/type/edition')
+$ _ = i18n.get_namespace('/mode/view')
+
+$ title = page.title_prefix + ' ' + page.title
+
+$var title: $title
+
+$ lccn = page["lccn"] and page["lccn"][0] and ("http://lccn.loc.gov/" + page["lccn"][0])
+$ oclc = page["oclc_numbers"] and page["oclc_numbers"][0] and ("http://www.worldcat.org/oclc/" + page["oclc_numbers"][0] + "?tab=details")
+$ key = page.key
+$ detailbook = "http://www.archive.org/details/XXX"
+
+$ ids = ["isbn_10", "isbn_13", "lccn", "dewey_decimal_class", "lc_classifications", "oclc_numbers"]
+$ object = ["physical_format", "pagination", "physical_dimensions","weight"]
+$ contributors = ["contributions"]
+$ subjects = ["subjects"]
+$ ednotes = ["edition_name", "translated_from", "series", "volume", "genres", "other_titles", "by_statement", "copyright_date", "source_records", "languages"]
+$ web = ["download_url", "purchase_url"]
+
+<div id="contentHead">
+    
+    $:macros.databarView(page)
+
+    <div class="work">
+
+    $if page.works: <span class="work">$:thingrepr(page.works)</span>
+
+    $if page.authors: 
+        <span class="author">by $:thingrepr(page.authors)</span>
+    $else:
+        <span class="author">by <em>unknown author</em></span>
+
+    $# if page.books: 
+        <span class="editions fixthis" title="Need editions from related work">/ # <a href="#">editions</a> /</span>
+
+    </div>
+
+    <h1 class="publisher">
+
+        $ pub_and_date = ''
+
+        $if page.get('publishers'):
+            $ pub_and_date = '<a href="[PUBLISHER]" class="fixthis" title="Need publisher page for link">' + thingrepr(page.publishers) + '</a>'
+        $else:
+            $ pub_and_date = '<em>Publisher unknown</em>'
+
+        $if page.get('publish_date'):
+            $ pub_and_date += ', ' + page.publish_date
+        $:pub_and_date 
+    </h1>
+        
+</div>
+
+<script type="text/javascript">
+\$().ready(slidePanels);
+</script>
+
+<div id="contentBody">
+
+    <div id="workDetails">
+
+        <div id="editionCover">
+
+        <div class="illustration">
+            $:macros.CoverImage(page)
+            <div class="smaller sansserif"><a href="javascript:;" id="coverPop">Change Cover</a></div>
+        </div>
+
+    $if ids:
+        <div class="section">
+        <table class="meta">
+        <tbody>
+        <tr><td colspan="2"><h6 class="uppercase collapse">ID Numbers</h6></td></tr>
+        $if key:
+            <tr><td class="descrip"><span class="title">Open Library</span></td>
+            <td class="tag"><span class="object">$key[key.rfind('/')+1:]</span></td></tr>
+        $if page.get('ocaid'):
+            <tr><td class="descrip"><span class="title">Internet Archive</span></td>
+            <td class="tag"><span class="object"><a href="$detailbook.replace('XXX', page.ocaid)">$page.ocaid</a></span></td></tr>
+        $for name in ids:
+            $if page[name]:
+                <tr><td class="descrip"><span class="title">$_t[name]</span></td>
+                $if name == "lccn":
+                    $if lccn: <td class="tag"><span class="object"><a href="$lccn">$:thingrepr(page[name])</a></span></td></tr>
+                $elif name == "oclc_numbers":
+                    $if oclc: <td class="tag"><span class="object"><a href="$oclc">$:thingrepr(page[name])</a></span></td></tr>
+                $else:
+                    <td class="tag"><span class="object">$:thingrepr(page[name])</span></td></tr>
+        </tbody>
+        </table>
+        </div>
+
+    $if object:
+        <div class="section">
+        <table class="meta">
+        <tbody>
+        <tr><td colspan="2"><h6 class="uppercase collapse">The Physical Object</h6></td></tr>
+        $for name in object:
+            $if page[name]:
+                <tr><td class="descrip"><span class="title">$_t[name]</span></td>
+                <td class="tag"><span class="object">$:thingrepr(page[name])</span></td></tr>
+        </tbody>
+        </table>
+        </div>
+
+        </div>
+
+        <div id="editionAbout">
+
+    $if page.description: <h4 class="collapse">About the Book</h4>$:format(page.description)
+
+    $if page.first_sentence: <h4 class="collapse">First Sentence</h4><p>$page.first_sentence</p>
+
+    $if contributors:
+        <div class="section">
+        <h4 class="collapse">Contributors</h4>
+        <table class="meta"><tbody><tr><td class="tag"><span class="tag">
+        $for name in page.contributions:
+            $if page[name]:
+                $:thingrepr(page[name])
+        </span></td></tr></tbody></table>
+        </div>
+
+    $if subjects:
+        <div class="section">
+        <h4 class="collapse">Subjects</h4>
+        <table class="meta"><tbody><tr><td class="tag"><span class="subject">
+        $for name in subjects:
+            $for subject in page[name]:
+                <a href="/search?ftokens=$:utf8(facet_token('subjects', subject.strip()))">$:utf8(thingrepr(subject)).replace(' -- ', '/')</a>,
+        </span></td></tr></tbody></table>
+        </div>
+
+    $if page.notes:
+        <div class="section">
+        <h4 class="collapse">Edition Notes</h4>
+        <table class="meta"><tbody><tr><td class="tag"><span class="subject">
+            $page.notes
+        </span></td></tr></tbody></table>
+        </div>
+
+    $if ednotes:
+        <div class="section">
+        <table class="meta">
+        <tbody>
+        $for name in ednotes:
+            $if page[name]:
+                <tr><td class="title"><span class="title uppercase">$_t[name]</span></td>
+                $if name == 'source_records':
+                    $for src in page[name]:
+                        $if src.startswith('marc:'):
+                            <td class="tag"><span class="tag"><a href="http://openlibrary.org/show-marc/$src[5:]">Library MARC record</a></span></td></tr>
+                        $elif src.startswith('amazon:'):
+                            <td class="tag"><span class="tag"><a href="http://amazon.com/dp/$src[7:17]">Amazon.com</a></span></td></tr>
+                        $elif src.startswith('ia:'):
+                            <td class="tag"><span class="tag"><a href="http://www.archive.org/details/$src[3:]">Internet Archive</a></span></td></tr>
+                        $else:
+                            <td class="tag"><span class="tag">$:thingrepr(src)</span></td></tr>
+                $else:
+                    <td class="tag"><span class="tag">$:thingrepr(page[name])</span></td></tr>
+        </tbody>
+        </table>
+        </div>
+
+    $if page.uris:
+        <div class="section">
+        <h4 class="collapse">External Links</h4>
+        $for num in range(len(page['uris'])):
+            $if num < len(page['uri_descriptions']):
+                $ desc = page.uri_descriptions[num]
+            $else:
+                $ desc = page.uris[num]
+                    <table class="meta">
+                    <tbody>
+                        <tr>
+                            <td class="title"><span class="title">$desc</span></td>
+                            <td class="tag"><span class="tag"><a href="$page.uris[num]">$page.uris[num]</a></span></td>
+                        </tr>
+                    </tbody>
+                    </table>
+        </div>
+
+        </div>
+
+        <div id="editionTools">
+            $:macros.databarWork(page)
+
+            <div class="section fixthis" title="Additional editions not available via Edition records">
+                <h6 class="collapse uppercase">More Editions</h6>
+                <span class="tools"><a href="#">## total</a></span><br/>
+            </div>
+
+            <div class="section fixthis" title="Other Works by author not available via Edition records">
+                <h6 class="collapse uppercase">More by (Author)</h6>
+                <span class="tools"><a href="#">## books</a></span><br/>
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="clearfix"></div>
+
+            <div class="head" style="background-color:pink;">
+                <h2>
+                $_t.table_of_contents
+                $:macros.FlourishButton("edit", changequery(m='edit'))
+                </h2>
+            </div>
+
+            $if page.table_of_contents:
+                <table>
+                    $ first = "first"
+                    $ table_of_contents = page.table_of_contents
+                    $if isinstance(table_of_contents[0], unicode):
+                        $ table_of_contents = [{'class': 'section', 'label': '', 'title': x, 'pagenum': ''} for x in table_of_contents]
+                    $for i, toc in enumerate(table_of_contents):
+                        <tr class="toc-$toc['class']">
+                            <td class="toc-number rule $first"><b>$toc['label']</b>&nbsp;&nbsp;</td>
+                            <td class="toc rule $first" style="white-space: nowrap">$toc['title']</td>
+                            <td class="toc-ellipsis rule $first" style="width: 100%"></td>
+                            <td class="toc-link-end rule $first" align="center">$toc['pagenum']&nbsp;&nbsp;</td>
+                        </tr>
+                        $ first = ""
+                </table>
+            $else:
+                <p><em>No table of contents available.</em> <a href="$changequery(m='edit')" >Add it!</a></p>
+
+    <div class="clearfix"></div>
+    <div class="section">
+        <div class="head">
+            <h2>
+            History
+            <span class="link">&nbsp;<a href="$changequery(m='history')">Read all</a></span>
+            </h2>
+        </div>
+        $:render_template("lib/history", page)
+    </div>
+
+    $:render_template("lib/change_cover", page)
+
+</div>
+</div>
+
+<!-- source_records: $page.get('source_records', []) -->
+
+$ keys = []
+$for isbn in page.get('isbn_10', []) + page.get("isbn_13", []):
+    $ keys.append("ISBN:" + isbn)
+$for lccn in page.get('lccn', []):
+    $ keys.append("LCCN:" + lccn)
+$for oclc in page.get('oclc', []):
+    $ keys.append("OCLC:" + oclc)
+
+$if keys:
+    <script src="http://books.google.com/books?bibkeys=$(",".join(keys))&amp;jscmd=viewapi&amp;callback=gbs_callback" type="text/javascript"></script>

@@ -1,9 +1,12 @@
 $def with (work, edition=None)
 
-$var title: $work.title
+$ this_title = work.title + ': ' + work.subtitle if work.get('subtitle', None) else work.title
+
+$var title: $this_title
 $putctx("robots", "noindex,nofollow")
 
 <script type="text/javascript">
+<!--
 \$().ready(Tabs);
 \$().ready(function(){
     if(jQuery.support.opacity){
@@ -50,44 +53,43 @@ function limitChars(textid, limit, infodiv) {
         \$(window).scrollTop(\$("#contentHead").offset().top);        
     }, 1000);
 });
-
+//-->
 </script>
 
 <div id="contentHead">
     $code: 
         def find_mode():
-            if query_param("from") == "add":
-                return "existing_record"
-            elif edition and edition.revision == 1:
-                if work.key and work.revision == 1 and work.edition_count == 1:
-                    return "new_work"
-                else:
-                    return "new_edition"
-            else:
+            mode = query_param("mode")
+            if not edition or not work.key:
                 return "other"
+            if mode == "found":
+                return "existing_record"
+            if mode == "add-work" and work.revision == 1 and work.edition_count == 1 and edition.revision == 1:
+                return "new_work"
+            if mode == "add-book" and edition.revision == 1:
+                return "new_edition"
+            return "other"
+            
         mode = find_mode()
         if mode == "new_work":
             title = _("Add a little more?")
-            note = "Thank you for adding that book! Any more information you could provide would be wonderful!"
+            note = _('<p class="alert thanks">Thank you for adding that book! Any more information you could provide would be wonderful!</p>')
         elif mode == "new_edition":
             title = _("Add a little more?")
-            note = _("We already have a record for <b>%s</b>, but we didn't know about the <b>%s %s edition</b>. " + 
-                    "Thank you! You can click on the tabs below to tell Open Library more about this book.",
-                    work.title, edition.publish_date, "; ".join(edition.publishers))
+            note = _('<p class="alert thanks">We already know about <b>%s</b>, but not the <b>%s %s edition</b>. Thanks! Do you know any more about this edition?</p>', work.title, edition.publish_date, "; ".join(edition.publishers))
         elif mode == "existing_record":
             title = _("Add a little more?")
-            note = _("There's already a record for the <b>%s %s edition</b> of <b>%s</b>, " + 
-                    "but you're very welcome to add more information to the record!", 
-                    edition.publish_date, "; ".join(edition.publishers), work.title)
+            note = _('<p class="alert info">We already know about the <b>%s %s edition</b> of <b>%s</b>, but please, tell us more!</p>', edition.publish_date, "; ".join(edition.publishers), work.title)
         else:
-            title = _("Edit %s", work.title)
+            title = _("Editing...")
             note = ""
             
     <h1>$:title</h1>
-    <p class="instruct">$:note</p>
+    $:note
 </div>
 
 <script type="text/javascript">
+<!--
 \$(function() {
     function update_visible() {
         if (\$("#authors div.input").length > 1) {
@@ -122,24 +124,25 @@ function limitChars(textid, limit, infodiv) {
     });
     
 });
+//-->
 </script>
 
 $jsdef render_author(i, author):
     <div class="input" id="author-input-$i">
-        <input name="authors--$i" class="required author author-autocomplete" type="text" id="author-$i" value="$author.name" />
+        <input name="authors--$i" class="required author author-autocomplete" type="text" id="author-$i" value="$author.name" tabindex="0"/>
         <input name="work--authors--$i--author--key" type="hidden" id="author-$i-key" value="$author.key" />
         <a href="javascript:;" class="remove red plain hidden" title="$_('Remove this author')">[x]</a>&nbsp;
-        <a href="javscript:;" class="add hidden">Add another author?</a>
+        <a href="javascript:;" class="add hidden">Add another author?</a>
     </div>
 
 <div id="contentBody">
-    <form method="post" id="addWork" class="olform books" name="edit">
+    <form method="post" id="addWork" class="olform books" name="edit" action="">
         <div class="TitleAuthor sansserif">
             <div class="label">
-                <label for="work-title">Title</label>
+                <label for="work-title">Title</label> <span class="tip">Use <b><i>Title: Subtitle</i></b> to add a subtitle.</span> 
             </div>
             <div class="input">
-                <input name="work--title" type="text" id="work-title" value="$work.title"/>
+                <input name="work--title" type="text" id="work-title" value="$this_title" tabindex="0"/>
             </div>
             <div class="label">
                 <label for="author-$0">Author</label>

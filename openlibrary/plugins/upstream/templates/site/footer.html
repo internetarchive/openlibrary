@@ -1,0 +1,16 @@
+$def with (page=None)
+
+$ bodyid = ctx.get('bodyid', 'user')
+
+$if bodyid == 'user' or 'admin':
+    $:render_template("lib/nav_foot", page)
+
+        </div><!-- /position -->
+        </div><!-- /placement -->
+
+    </div><!-- /background -->
+
+$if bodyid == 'user' or 'admin':
+    $:render_template("lib/site_legal", page)
+</body>
+</html>

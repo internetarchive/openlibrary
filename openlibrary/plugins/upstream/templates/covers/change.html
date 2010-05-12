@@ -19,6 +19,7 @@ $else:
         $ change = "Add Cover Image"
     
 <script type="text/javascript">
+<!--
 \$().ready(function(){
     if(jQuery.support.opacity){
         \$("#tabsImages").tabs({fx:{opacity:'toggle'}});
@@ -30,7 +31,7 @@ $else:
 function update_image(image) {
     var url;
     
-    $if doc.type.key in ["/type/edition", "/type/work"]:
+    $if doc.type.key in ["/type/edition", "/type/work", "/edit"]:
         if (image) {
             url = "$get_coverstore_url()/b/id/" + image + "-M.jpg";
             // XXX-Anand: Fix this hack
@@ -68,8 +69,7 @@ function update_image(image) {
     \$(".coverPop").colorbox({inline: true, href: "#addImage"})
         .bind("click", function() {
             $if doc.type.key == "/type/work":
-                $if doc.get_edition_covers():
-                    \$('#imagesAdd').prepend('<div id="throbber"><h3>$_("One sec, we\'re searching for covers...")</h3></div>');
+                \$('#imagesAdd').prepend('<div id="throbber"><h3>$_("One sec, we\'re searching for covers...")</h3></div>');
             setTimeout(function() {
                 // add iframe to add images
                 add_iframe("#imagesAdd", "$:add_url");
@@ -82,11 +82,14 @@ function update_image(image) {
             \$("#imagesManage").html("");
         });
     // Add function to close throbber
-    closeThrobber = function() {\$("#throbber").customFadeOut();}; 
+    closeThrobber = function() {\$("#throbber").customFadeOut();};
+    // Open larger cover image
+    \$(".coverLook").colorbox({inline: true, href: "#seeImage"});
 });
+//-->
 </script>
 
-<div class="smaller sansserif"><a href="javascript:;" class="coverPop">$change</a></div>
+<div class="smallest sansserif" style="margin-top:5px;"><a href="#addImage" class="coverPop">$change</a></div>
 
 <div class="hidden">
     <div class="floater" id="addImage">

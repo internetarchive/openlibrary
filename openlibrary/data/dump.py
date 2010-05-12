@@ -10,10 +10,10 @@ Glossary:
 import sys
 import web
 import re
+import time
 import simplejson
 
 import db
-
 
 def print_dump(json_records, filter=None):
     """Print the given json_records in the dump format.
@@ -32,6 +32,10 @@ def print_dump(json_records, filter=None):
         if key.startswith("/people/") or key.startswith("/admin/"):
             continue
         
+        # skip obsolete pages. Obsolete pages include volumes, scan_records and users marked as spam.
+        if key.startswith("/b/") or key.startswith("/scan") or key.startswith("/old/") or not key.startswith("/"):
+            continue
+        
         if filter and filter(d) is False:
             continue
             
@@ -41,7 +45,16 @@ def read_data_file(filename):
     for line in open(filename):
         thing_id, revision, json = line.strip().split("\t")
         yield pgdecode(json)
+        
+def log(*args):
+    print >> sys.stderr, time.asctime(), " ".join(str(a) for a in args)
 
+def parse_tsv(filename):
+    log("parsing", filename)
+    for i, line in enumerate(open(filename)):
+        if i % 1000000 == 0:
+            log(i)
+        yield line.strip().split("\t")
 
 def generate_cdump(data_file, date=None):
     """Generates cdump from a copy of data table.
@@ -86,6 +99,44 @@ def generate_idump(day, **db_parameters):
         + " ORDER BY transaction.created",
         vars=locals())
     print_dump(row.data for chunk in rows for row in chunk)
+    
+def split_dump(dump_file):
+    """Split dump into authors, editions and works."""
+    types = ["/type/edition", "/type/author", "/type/work"]
+    files = {}
+    for t in types:
+        tname = "dump_" + t.split("/")[-1] + "s"
+        files[t] = open(dump_file.replace("dump", tname), "w")
+        
+    for i, line in enumerate(open(dump_file)):
+        if i % 1000000 == 0:
+            log(i)
+        type, rest = line.split("\t", 1)
+        if type in files:
+            files[type].write(line)
+            
+    for f in files.values():
+        f.close()
+    
+def make_index(dump_file):
+    """Make index with "path", "title", "created" and "last_modified" columns."""
+    
+    from openlibrary.plugins.openlibrary.processors import urlsafe
+            
+    for type, key, revision, timestamp, json in parse_tsv(dump_file):
+        data = simplejson.loads(json)
+        if type == '/type/edition' or type == '/type/work':
+            title = data.get('title', 'untitled')
+            path = key + '/' + urlsafe(title)
+        elif type == '/type/author':
+            title = data.get('name', 'unnamed')
+            path = key + '/' + urlsafe(title)
+        else:
+            title = data.get('title', key)
+            path = key
+            
+        print "\t".join([web.safestr(path), web.safestr(title), data['created']['value'], data['last_modified']['value']])
+        
     
 def read_tsv(file):
     """Read a tab seperated file and return an iterator over rows."""
@@ -176,6 +227,10 @@ def main(cmd, args):
         generate_dump(*args, **kwargs)
     elif cmd == 'idump':
         generate_idump(*args, **kwargs)
+    elif cmd == 'split':
+        split_dump(*args, **kwargs)
+    elif cmd == 'index':
+        make_index(*args, **kwargs)
     else:
         print >> sys.stderr, "Unknown command:", cmd
 

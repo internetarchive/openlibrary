@@ -28,11 +28,7 @@ $:render_template("lib/edit_head", page)
         </div>
     </div>
 
-    <div class="formElement">
-        $:macros.EditButtons(comment=page.comment_)
-    </div>
+    $:macros.EditButtons(comment=page.comment_)
 
     </form>
 </div>
-
-</script>

@@ -150,7 +150,11 @@ class block:
         raise web.seeother("/admin/block")
         
 def get_blocked_ips():
-    return [d.ip for d in web.ctx.site.get("/admin/block").ips]
+    doc = web.ctx.site.get("/admin/block")
+    if doc:
+        return [d.ip for d in doc.ips]
+    else:
+        return []
     
 def block_ip_processor(handler):
     if not web.ctx.path.startswith("/admin") \

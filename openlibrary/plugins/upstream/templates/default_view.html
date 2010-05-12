@@ -1,0 +1,50 @@
+$def with (page)
+
+
+$ _t = i18n.get_namespace(page.type.key)
+$ _ = i18n.get_namespace('/mode/view')
+
+$var title: $page.key
+
+<div id="contentHead"> 
+    $:macros.databarView(page)	 	
+    <h1>$page.key</h1> 		
+</div>
+
+<div id="contentBody">
+
+<table style="width:100%;">
+    <thead>
+
+        <tr>
+          <th>$_.name</td>
+          <th>$_.type</td>
+        </tr>
+    </thead>
+    <tbody>
+
+$for p in page.type.properties:
+    $ label = _t[p.name]
+    $if p.unique:
+        <tr>
+            <td>$label</td>
+            <td>$:thingrepr(page[p.name], p.expected_type)</td>
+        </tr>
+    $else:
+        $for x in page[p.name]:
+            <tr>
+                <td>$label</td>
+                <td>$:thingrepr(x, p.expected_type)</td>
+            </tr>
+
+$for p in page.type.backreferences:
+    $ label = _t[p.name]
+    $for x in page[p.name]:
+        <tr>
+            <td>$label</td>
+            <td>$:thingrepr(x, p.expected_type)</td>
+        </tr>
+</tbody>
+</table>
+
+</div>

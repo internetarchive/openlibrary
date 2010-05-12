@@ -2,14 +2,13 @@ $def with (page, h)
 
 $putctx("robots", "noindex,nofollow")
 
-$for v in h:
-    $# show book title/author name instead of key
-    $if v.thing.type.key in ['/type/edition' or '/type/work']:
-        $ name = v.thing.title or 'Title unknown'
-    $elif v.thing.type.key == '/type/author':
-        $ name = v.thing.name or 'Author name unknown'
-    $else:
-        $ name = v.key
+$# show book title/author name instead of key
+$if page.type.key in ['/type/edition' or '/type/work']:
+    $ name = page.title or 'Title unknown'
+$elif page.type.key == '/type/author':
+    $ name = page.name or 'Author name unknown'
+$else:
+    $ name = page.key
 
 $var title: $name
 
@@ -20,7 +19,7 @@ $var title: $name
 </div>
 
 <div id="contentBody">
-        <form>
+        <form action="">
         <table id="pageHistory">
         <thead>
             <tr>
@@ -44,9 +43,9 @@ $var title: $name
                         <td class="history" valign="top">$v.ip</td>
                     <td class="comment">$:render_template("history/comment", v)</td>
                     <td class="compare" style="text-align:center;">
-                        <input type="radio" id="a$v.revision" name="a" value="$v.revision">
+                        <input type="radio" id="a$v.revision" name="a" value="$v.revision"/>
                         &nbsp;&nbsp;&nbsp;
-                        <input type="radio" id="b$v.revision" name="b" value="$v.revision">
+                        <input type="radio" id="b$v.revision" name="b" value="$v.revision"/>
                     </td>
                 </tr>
             <tr>
@@ -61,7 +60,7 @@ $var title: $name
 
         </form>
 
-        <script>
+        <script type="text/javascript">
             $ rev = page.latest_revision or page.revision
             var a = document.getElementById("a${rev - 1}");
             var a2 = document.getElementById("a$rev");

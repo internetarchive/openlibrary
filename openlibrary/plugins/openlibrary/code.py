@@ -63,6 +63,9 @@ types.register_type('^/works/[^/]*$', '/type/work')
 types.register_type('^/subjects/[^/]*$', '/type/subject')
 types.register_type('^/publishers/[^/]*$', '/type/publisher')
 
+types.register_type('^/usergroup/[^/]*$', '/type/usergroup')
+types.register_type('^/permission/[^/]*$', '/type/permision')
+
 types.register_type('^/(css|js)/[^/]*$', '/type/rawtext')
 
 # set up infobase schema. required when running in standalone mode.

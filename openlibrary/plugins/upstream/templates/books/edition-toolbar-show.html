@@ -1,0 +1,14 @@
+$def with (book)
+
+        <div class="editionTools">
+            $:macros.databarWork(book)
+            $ links = book.get_links()
+            $if links:
+                <div class="section">
+                   <h3>Links <span class="gray small sansserif">($_("that leave Open Library"))</span></h3>
+                   <ul class="booklinks sansserif">
+                   $for link in links:
+                       <li><a href="$link.url">$link.title</a></li>
+                   </ul>
+                </div>
+        </div>

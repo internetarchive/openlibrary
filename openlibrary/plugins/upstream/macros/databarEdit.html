@@ -1,18 +1,11 @@
 $def with (page)
 
-<script type="text/javascript">
-\$().ready(function(){
-    \$(".linkButton").click(function(){
-        window.location = \$(this).attr("url");
-    });
-});
-</script>
 
 <div id="editTools" class="edit">
     <div id="editHistory">
-        <button class="linkButton" url="$changequery(m='history')" title="View the editing history of this page">$_("History")</button>
+        <button class="linkButton" name="$page.key?m=history" title="View the editing history of this page">$_("History")</button>
     </div>
     <div id="editButton">
-        <button class="linkButton" url="$changequery(m=None)" title="View this page template (exit Edit mode)">$_("View")</button>
+        <a href="$page.key" title="View this page (exit Edit mode)" class="cancel">$_("Cancel")</a>
     </div>
 </div>

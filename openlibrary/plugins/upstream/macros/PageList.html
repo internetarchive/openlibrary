@@ -1,0 +1,16 @@
+$def with (path="", limit=500, use_repr=False)
+
+$ path = query_param("path", path)
+$ page = safeint(query_param("page", "0"))
+$ pages = list_pages(path, limit=limit, offset=page * limit)
+
+<!--islist-->
+
+<ul>
+$for p in pages:
+    $if p.type.key != '/type/delete':
+        $if use_repr:
+            <li>$:thingrepr(p)</li>
+        $else:
+            <li><a href="$homepath()$p.key">$p.key</a></li>
+</ul>

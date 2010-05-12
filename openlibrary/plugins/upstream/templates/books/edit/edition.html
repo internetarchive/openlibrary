@@ -5,7 +5,7 @@ $ edition_config = get_edition_config()
 $def radiobuttons(name, options, value):
     $for v in options:
         $ id = name + '--' + v.replace(' ', '-')
-        $ checked = cond(v == value, "checked=checked", "")
+        $ checked = cond(v == value, 'checked="checked"', '')
         <input name="$name" type="radio" id="$id" value="$v" $checked />
         <label for="$id">$v</label>
         &nbsp;&nbsp;
@@ -77,8 +77,8 @@ $def radiobuttons(name, options, value):
                 <span class="tip">$_("What collection does it belong to?")</span>
             </div>
             <div class="input">
-                <input type="text" name="edition--collections--0" id="edition-collections" value=""/>
-                <div class="tip">$:_("i.e. <i>The <strong>Pocket Atlas of Anatomy</strong> collection consists of Vol I: Head and Neck, Vol. II: Thorax, Heart, Abdomen and Pelvis & Vol. III: Spines Extremities and Joints</i>")</div>
+                <input type="text" name="edition-collections-0" id="edition-collections" value=""/>
+                <div class="tip">$:_("i.e. <i>The <strong>Pocket Atlas of Anatomy</strong> collection consists of Vol I: Head and Neck, Vol. II: Thorax, Heart, Abdomen and Pelvis &amp; Vol. III: Spines Extremities and Joints</i>")</div>
             </div>
         </div>
         -->
@@ -113,12 +113,11 @@ $def radiobuttons(name, options, value):
         <div class="formElement" style="width: 650px;">
             <div class="label">
                 <label for="edition-toc">Table of Contents</label> 
-                <span class="tip">$:_('Use a "|" to add a column, and a line break between lines. Like this:')<br/><br/>
-<pre> INTRODUCTION |  | 10
+                <span class="tip">$:_('Use a "|" to add a column, and a line break between lines. Like this:')</span><br/><br/>
+<pre class="smaller gray"> INTRODUCTION |  | 10
  Chapter I. | The rights and involved duties of mankind considered | 19
  Chapter II. | The prevailing opinion of a sexual character discusses | 31</pre>
 <br/>
-                </span>
             </div>
             <div class="input">
                 <textarea name="edition--table_of_contents" id="edition-toc" rows="5" cols="50" style="width: 100%;min-height:250px;">$book.get_toc_text()</textarea>
@@ -182,9 +181,10 @@ $def radiobuttons(name, options, value):
                 <div class="input">
                     <div id="role-errors" class="note hidden"></div>
                     <table class="identifiers">
+                    <tbody>
                         <tr id="roles-form">
-                            <td align="right">
-                                <select name="role" id="select-role" style="font-family:'Lucida Grande',sans-serif;font-size:14px;padding:4px;">
+                            <td align="right" style="width:138px;">
+                                <select name="role" id="select-role" style="font-family:'Lucida Grande',sans-serif;font-size:14px;padding:4px;width:130px;">
                                     <option value="" selected="selected">$_("Select role")</option>
                                     $for role in edition_config.roles:
                                         <option>$role</option>
@@ -192,38 +192,40 @@ $def radiobuttons(name, options, value):
                                     <option value="__add__">$_("Add a new role")</option>
                                 </select>
                             </td>
-                            <td width="170">
+                            <td style="width:170px;">
                                 <input type="text" id="role-name" name="name" style="width:160px!important;"/>
                             </td>
-                            <td width="100%">
-                                <input type="button" name="submit" class="repeat-add" value="Add" />
+                            <td>
+                                <input type="button" name="submit" class="repeat-add" value="Add"/>
                             </td>
                         </tr>
+                    </tbody>
+                    </table>
+                    <table class="identifiers">
                         <tbody id="roles-display">
                             <tr id="roles-template" class="repeat-item" style="display: none;">
-                                <td align="right"><strong>{{role}}</strong></td>
-                                <td width="170">{{name}}
+                                <td align="right" style="width:138px;"><strong>{{role}}</strong></td>
+                                <td style="width:170px;">{{name}}
                                     <input type="hidden" name="{{prefix}}contributors--{{index}}--role" value="{{role}}"/>
                                     <input type="hidden" name="{{prefix}}contributors--{{index}}--name" value="{{name}}"/>
                                 </td>
-                                <td width="100%"><a href="javascript:;" class="repeat-remove red plain" title="$_('Remove this contributor')">[x]</a></td>
+                                <td><a href="javascript:;" class="repeat-remove red plain" title="$_('Remove this contributor')">[x]</a></td>
                             </tr>
                             $ work = book.works[0]
                             $for i, a in enumerate(work.get_authors()):
                                 <tr class="repeat-item">
-                                    <td align="right"><strong>Author</strong></td>
-                                    <td width="170">$a.name</td>
-                                    </td>
-                                    <td width="100%"></td>
+                                    <td align="right" style="width:138px;"><strong>Author</strong></td>
+                                    <td style="width:170px;">$a.name</td>
+                                    <td></td>
                                 </tr>
                             $for i, c in enumerate(book.contributors):
                                 <tr class="repeat-item">
-                                    <td align="right"><strong>$c.role</strong></td>
-                                    <td width="170">$c.name
+                                    <td align="right" style="width:138px;"><strong>$c.role</strong></td>
+                                    <td style="width:170px;">$c.name
                                         <input type="hidden" name="edition--contributors--${i}--role" value="$c.role"/>
                                         <input type="hidden" name="edition--contributors--${i}--name" value="$c.name"/>
                                     </td>
-                                    <td width="100%"><a href="javascript:;" class="repeat-remove red plain" title="$_('Remove this contributor')">[x]</a></td>
+                                    <td><a href="javascript:;" class="repeat-remove red plain" title="$_('Remove this contributor')">[x]</a></td>
                                 </tr>
                         </tbody>
                     </table>
@@ -266,8 +268,8 @@ $def radiobuttons(name, options, value):
                     <span class="tip"></span>
                 </div>
                 $ translation = book.translation_of or book.translated_from
-                $ checked_yes = cond(translation, 'checked="checked"', "")
-                $ checked_no = cond(not translation, 'checked="checked"', "")
+                $ checked_yes = cond(translation, 'checked="checked"', '')
+                $ checked_no = cond(not translation, 'checked="checked"', '')
                 $if translation:
                     $ trans_class = "transYes"
                 $else:
@@ -279,7 +281,7 @@ $def radiobuttons(name, options, value):
                     <label for="is-translation">$_("No")</label>
                 </div>
                 <div class="input">
-                    <input type="radio" name="edition--translation" id="is-translation2" value="yes" $checked_yes onclick="\$('.transYes').customFadeIn();" />
+                    <input type="radio" name="edition--translation" id="is-translation2" value="yes" $checked_yes onclick="\$('.transYes').customFadeIn();"/>
                     <label for="is-translation2">$_("Yes, it's a translation")</label>
                 </div>
 
@@ -306,6 +308,17 @@ $def radiobuttons(name, options, value):
             
 
         </fieldset>
+
+        <div class="clearfix"></div>
+
+        <div class="formElement">
+            <div class="label">
+                <label for="edition-description">$_("Does this edition need a unique description?")</label> 
+            </div>
+            <div class="input">
+                <textarea name="edition--description" id="edition-description" rows="3" cols="50">$book.description</textarea>
+            </div>
+        </div>
 
     </div>
 
@@ -427,7 +440,7 @@ $def radiobuttons(name, options, value):
 </fieldset>
 
 
-<fieldset class="major">
+<fieldset class="major" style="padding:0;">
     <legend>$_("The Physical Object")</legend>
     <div class="formBack">
 
@@ -438,7 +451,7 @@ $def radiobuttons(name, options, value):
                     <span class="tip">$_("Paperback; Hardcover, etc.")</span>
                 </div>
                 <div class="input">
-                    <input name="edition--physical_format" type="text" id="edition--physical_format" style="width:365px;" value="$book.physical_format" />
+                    <input name="edition--physical_format" type="text" id="edition--physical_format" style="width:365px;" value="$book.physical_format"/>
                 </div>
             </div>
             <div class="formElement">
@@ -447,7 +460,7 @@ $def radiobuttons(name, options, value):
                     <span class="tip"></span>
                 </div>
                 <div class="input">
-                    <input name="edition--number_of_pages" type="text" id="edition--number_of_pages" style="width: 365px;" value="$book.number_of_pages" />
+                    <input name="edition--number_of_pages" type="text" id="edition--number_of_pages" style="width: 365px;" value="$book.number_of_pages"/>
                 </div>
             </div>
             <div class="formElement">
@@ -456,7 +469,7 @@ $def radiobuttons(name, options, value):
                     <span class="tip">$_("Note the highest number in each pagination pattern.")</span>
                 </div>
                 <div class="input">
-                    <input name="edition--pagination" type="text" id="edition--pagination" style="width:365px;" value="$book.pagination" />
+                    <input name="edition--pagination" type="text" id="edition--pagination" style="width:365px;" value="$book.pagination"/>
                     <div class="tip">$_("For example:") <em>xii, 346p.</em></div>
                 </div>
             </div>
@@ -468,7 +481,7 @@ $def radiobuttons(name, options, value):
                 </div>
                 <div class="input">
                     $ weight = book.get_weight() or storage(value="", units="grams")
-                    <input name="edition--weight--value" type="text" id="edition--weight--value" style="width:70px!important;" value="$weight.value" size="6" />
+                    <input name="edition--weight--value" type="text" id="edition--weight--value" style="width:70px!important;" value="$weight.value" size="6"/>
                     <span class="tip">
                         $:radiobuttons("edition--weight--units", ["grams", "kilos", "ounces", "pounds"], weight.units)
                     </span>
@@ -511,7 +524,9 @@ $def radiobuttons(name, options, value):
 
 </fieldset>
 
+
 <script type="text/javascript">
+<!--
     \$().ready(function() {
         function error(errordiv, input, message) {
             \$(errordiv).show().html(message);
@@ -577,4 +592,5 @@ $def radiobuttons(name, options, value):
           \$(this).parent().find('#modeToggle').toggleText("Turn on","Exit");
        });
     });
+//-->
 </script>

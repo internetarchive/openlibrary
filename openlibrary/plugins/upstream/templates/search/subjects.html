@@ -2,13 +2,6 @@ $def with (get_results)
 
 $ q = query_param('q')
 $ url_map = { 'person': 'people/', 'place': 'places/', 'time': 'times/' }
-$ bad = set(['org', 'event', 'work'])
-$ bad = set()
-
-<style>
-.subjectList ul {margin-top: 30px;}
-.subjectList li {line-height: 1.875em;}
-</style>
 
 <div id="contentHead">
     <h1>
@@ -25,7 +18,7 @@ $if q:
     
     <div class="section">
     
-    <form class="siteSearch olform">
+    <form class="siteSearch olform" action="">
         <input type="text" class="larger" name="q" size="100" style="width: 505px;" value="$q"/>
         <input type="submit"  class="large" value="$_('Search')"/>
     </form>
@@ -39,15 +32,48 @@ $if q:
         $ key = '/subjects/' + url_map.get(doc['type'], '') + n.replace(' ', '_')
         
         <li>
-            $if doc['type'] in bad:
-                <span class="fixthis" title="coming soon">$n</span>
-            $else:
-                <a href="$key">$n</a> 
-            <span class="count">&nbsp;&nbsp;<b>$commify(doc['count']) book$("s" if doc['count'] != 1 else "")</b>, $doc['type']</span>
+            <a href="$key">$n</a>
+            $code: 
+                def find_type():
+                    if doc['type'] == 'time':
+                        return "type_time"
+                    elif doc['type'] == 'subject':
+                        return "type_subject"
+                    elif doc['type'] == 'place':
+                        return "type_place"
+                    elif doc['type'] == 'org':
+                        return "type_org"
+                    elif doc['type'] == 'event':
+                        return "type_event"
+                    elif doc['type'] == 'person':
+                        return "type_person"
+                    elif doc['type'] == 'work':
+                        return "type_work"
+                    else:
+                        return "other"
+                type = find_type()
+                if type == "type_time":
+                    note = _('<span class="teal">time</span>')
+                elif type == "type_subject":
+                    note = _('<span class="darkgreen">subject</span>')
+                elif type == "type_place":
+                    note = _('<span class="orange">place</span>')
+                elif type == "type_org":
+                    note = _('<span class="blue">org</span>')
+                elif type == "type_event":
+                    note = _('<span class="grey">event</span>')
+                elif type == "type_person":
+                    note = _('<span class="red">person</span>')
+                elif type == "type_work":
+                    note = _('<span class="black">work</span>')
+                else:
+                    note = doc['type']
+            <span class="count">&nbsp;&nbsp;<b>$commify(doc['count']) book$("s" if doc['count'] != 1 else "")</b>, $:note</span>
             $if doc['type'] == 'work':
                  $if ' (' in n:
                      $ n = n[:n.find(' (')]
-                 <span class="sansserif smaller">- <a href="http://en.wikipedia.org/wiki/$n">Wikipedia</a></span>
+                 <span class="sansserif smaller"><a href="http://en.wikipedia.org/wiki/$n">Wikipedia</a></span>
+
         </li>
     </ul>
     

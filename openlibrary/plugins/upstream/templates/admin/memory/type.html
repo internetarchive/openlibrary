@@ -1,0 +1,29 @@
+$def with (type, objects, page)
+
+$var title: $type
+
+<div id="contentHead">
+    <div class="head">
+        <h1>$type</h1>
+    </div>
+</div>
+
+<div id="contentBody">
+
+<div>
+$len(objects) objects found.
+</div>
+
+$ begin = max(0, page * 50 - 50)
+$ end = min(len(objects), page*50)
+
+<table>
+$for i, obj in enumerate(objects[begin:end]):
+    <tr>
+        <td>$i</td>
+        <td><a href="/admin/memory/id/$obj.get_id()">$obj.get_id()</a></td>
+        <td>$obj.repr()</td>
+    </tr>
+</table>
+
+</div>

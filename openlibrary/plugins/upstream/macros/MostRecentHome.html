@@ -1,0 +1,30 @@
+$def with (author=None, limit=4)
+
+$ _ = i18n.get_namespace('/mode/view')
+
+$ changes = get_recent_changes(author=author, limit=limit)
+
+<ul>
+
+$for v in changes[:4]:
+    $if v.author:
+        $ who = '<a href="%s" rel="nofollow">%s</a>' % (v.author.key, v.author.displayname or v.author.key)
+    $else:
+        $ who = None
+    $if v.thing.type.key == '/type/edition':
+        $ what = v.thing.title
+    $elif v.thing.type.key == '/type/author':
+        $ what = v.thing.name
+    $else:
+        $ what = v.key
+    $ what = '<a href="%s" rel="nofollow">%s</a>' % (v.key, what)
+    $ when = datestr(v.created)
+    <li class="history">
+        $if who:
+            $:who updated $:what <span class="timestamp">$when</span>
+        $else:
+            $:what was updated anonymously <span class="timestamp">$when</span>
+    </li>
+
+    <li class="history"><a href="/recentchanges" title="View all recent changes">Around the Library</a> &raquo;</li>
+</ul>
