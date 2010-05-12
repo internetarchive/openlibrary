@@ -123,7 +123,9 @@ def advanced_to_simple(params):
 
 re_paren = re.compile('[()]')
 
-re_isbn = re.compile('^([0-9]{9}[0-9X]|[0-9]{13})$')
+re_isbn = re.compile('^([0-9]{9}[0-9Xx]|[0-9]{13})$')
+
+re_isbn_field = re.compile('^\s*(?:isbn[:\s]*)?([-0-9X]{9,})\s*$', re.I)
 
 def read_isbn(s):
     s = s.replace('-', '')
@@ -585,6 +587,17 @@ class search(delegate.page):
             params[k] = clean
         return params if need_redirect else None
 
+    def isbn_redirect(self, isbn_param):
+        isbn = read_isbn(isbn_param)
+        if not isbn:
+            return
+        editions = []
+        for f in 'isbn_10', 'isbn_13':
+            q = {'type': '/type/edition', f: isbn}
+            editions += web.ctx.site.things(q)
+        if len(editions) == 1:
+            raise web.seeother(editions[0])
+
     def GET(self):
         i = web.input(author_key=[], language=[], first_publish_year=[], publisher_facet=[], subject_facet=[], person_facet=[], place_facet=[], time_facet=[])
         params = self.clean_inputs(i)
@@ -592,12 +605,18 @@ class search(delegate.page):
         if params:
             raise web.seeother(web.changequery(**params))
 
+        if 'isbn' in i and all(not v for k, v in i.items() if k != 'isbn'):
+            self.isbn_redirect(i.isbn)
+
         q_list = []
         q = i.get('q', '').strip()
         if q:
             m = re_olid.match(q)
             if m:
                 raise web.seeother('/%s/%s' % (olid_urls[m.group(1)], q))
+            m = re_isbn_field.match(q)
+            if m:
+                self.isbn_redirect(m.group(1))
             q_list.append(q)
         for k in ('title', 'author', 'isbn', 'subject', 'place', 'person', 'publisher'):
             if k in i:
