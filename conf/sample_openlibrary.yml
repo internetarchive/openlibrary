@@ -5,12 +5,31 @@ db_parameters:
     username: "anand"
     password: ""
 
+infobase:
+    secret_key: "xxx"
+    user_root: "/people"
+
+# print the mail instead of sending it really.
+dummy_sendmail: True
+
 plugins:
     - openlibrary
-#    - search
-#    - worksearch
     - links
     - wikitemplates
-    - i18n
+    - search
     - oltemplates
+    - worksearch
+    - upstream
+    - admin
+    - api
     
+plugin_worksearch:
+    solr: "localhost:8983"
+    subject_solr: "localhost:8984"
+    author_solr: "localhost:8984"
+    spellcheck_count: 3
+
+default_template_root: /upstream
+css_root: /upstream/css
+js_root: /upstream/js
+
