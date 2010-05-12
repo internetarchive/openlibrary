@@ -125,7 +125,7 @@ re_paren = re.compile('[()]')
 
 re_isbn = re.compile('^([0-9]{9}[0-9Xx]|[0-9]{13})$')
 
-re_isbn_field = re.compile('^\s*isbn[:\s]*([-0-9X]{9,})\s*$', re.I)
+re_isbn_field = re.compile('^\s*(?:isbn[:\s]*)([-0-9X]{9,})\s*$', re.I)
 
 def read_isbn(s):
     s = s.replace('-', '')
@@ -587,7 +587,7 @@ class search(delegate.page):
             params[k] = clean
         return params if need_redirect else None
 
-    def isbn_redirect(isbn_param):
+    def isbn_redirect(self, isbn_param):
         isbn = read_isbn(isbn_param)
         if not isbn:
             return
@@ -605,8 +605,8 @@ class search(delegate.page):
         if params:
             raise web.seeother(web.changequery(**params))
 
-        if i.keys() == ['isbn']:
-            isbn_redirect(i.isbn)
+        if 'isbn' in i and all(not v for v in i.values()):
+            self.isbn_redirect(i.isbn)
 
         q_list = []
         q = i.get('q', '').strip()
@@ -616,7 +616,7 @@ class search(delegate.page):
                 raise web.seeother('/%s/%s' % (olid_urls[m.group(1)], q))
             m = re_isbn_field.match(q)
             if m:
-                isbn_redirect(m.group(1))
+                self.isbn_redirect(m.group(1))
             q_list.append(q)
         for k in ('title', 'author', 'isbn', 'subject', 'place', 'person', 'publisher'):
             if k in i:
