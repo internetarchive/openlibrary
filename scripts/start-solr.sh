@@ -2,4 +2,4 @@
 
 cd /opt/openlibrary/production/vendor/solr
 
-java -Xms2g -Xmx5g -jar start.jar >> /var/log/openlibrary/solr.log
+java -Xms2g -Xmx5g -jar start.jar 2>> /var/log/openlibrary/solr.log
