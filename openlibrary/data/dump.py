@@ -18,7 +18,9 @@ import db
 def print_dump(json_records, filter=None):
     """Print the given json_records in the dump format.
     """
-    for json in json_records:
+    for i, json in enumerate(json_records):
+        if i % 1000000 == 0:
+            log(i)
         d = simplejson.loads(json)
         d.pop('id', None)
         d = _process_data(d)
@@ -231,6 +233,9 @@ def main(cmd, args):
         split_dump(*args, **kwargs)
     elif cmd == 'index':
         make_index(*args, **kwargs)
+    elif cmd == 'sitemaps':
+        from sitemap import generate_sitemaps
+        generate_sitemaps(*args, **kwargs)
     else:
         print >> sys.stderr, "Unknown command:", cmd
 
