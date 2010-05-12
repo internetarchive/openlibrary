@@ -31,7 +31,7 @@ cp_file(solr_dir + '/example/' + f, 'solr/' + f)
 f = 'solr.xml'
 cp_file('../conf/solr-biblio/solr.xml', 'solr/solr/' + f)
 
-for t in types
+for t in types:
     if not os.path.exists('solr/solr/' + t + '/conf'):
         shutil.copytree(solr_dir + '/example/solr/conf', 'solr/solr/' + t + '/conf')
     cp_file('../conf/solr-biblio/' + t + '.xml', 'solr/solr/' + t + '/conf/schema.xml')
