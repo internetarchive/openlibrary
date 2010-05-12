@@ -605,8 +605,8 @@ class search(delegate.page):
         if params:
             raise web.seeother(web.changequery(**params))
 
-        if len(params.keys()) == ['isbn']:
-            isbn_redirect(params['isbn'])
+        if i.keys() == ['isbn']:
+            isbn_redirect(i.isbn)
 
         q_list = []
         q = i.get('q', '').strip()
