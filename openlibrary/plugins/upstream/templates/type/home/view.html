@@ -1,53 +1,61 @@
 $def with (page)
 
-$var title: $page.title
+$var title: $page.title2
 
 $ text = format(page.body)
 $ text = format(page.title)
 
 <script type="text/javascript">
+<!--
 \$().ready(function(){
     \$("#contentHead").hide();
+    \$('<meta name="google-site-verification" content="KrqcZD4l5BLNVyjzSi2sjZBiwgmkJ1W7n6w7ThD7A74" />').appendTo('head');
 });
+//-->
 </script>
-<meta name="google-site-verification" content="KrqcZD4l5BLNVyjzSi2sjZBiwgmkJ1W7n6w7ThD7A74" />
-<style type="text/css">#content{min-height:0!important;}</style>
+
+<div class="shift">Welcome to Open Library!<br/>For a list of accessible books in the DAISY format available now, <a href="/subjects/accessible_book">click here</a>.</div>
         
-<div id="homeSplash">
+<div id="homeSplash" title="Photo by Simon Chetrit">
     <div id="homeBlurb">
-$:format(page.intro)
+        $:format(page.intro)
     </div>
 </div>
 
 <div id="homeStatement">
-$:format(page.statement)
+    $:format(page.statement)
 </div>
 
 <div id="contentBody">
 
-
     <div class="contentQuarter home" id="homeBookAdd">
-        $:format(page.stats)
+        $:page.column_1
     </div>
 
     <div class="contentSpacer"></div>
 
     <div class="contentQuarter home" id="homeSubjectBrowse">
-        $:format(page.news)
+        $:format(page.column_2)
     </div>
 
     <div class="contentSpacer"></div>
 
     <div class="contentQuarter home" id="homeAccountBlog">
-        $:format(page.body)
+        $:format(page.column_3)
     </div>
 
     <div class="contentSpacer"></div>
 
     <div class="contentQuarter home" id="homeRecent">
         <h3><a href="http://blog.openlibrary.org">blog.openlibrary.org</a></h3>
-        <i>Posts...</i>
-        <div id="olBlog">
-        </div>
+        <ul id="olBlog" style="font-size: 13px;">
+            $for post in get_blog_feeds()[:2]:
+                <li><a href="$post.link">$post.title</a> - <em>$datestr(post.pubdate)</em></li>
+        </ul>
     </div>
+
+    $if page.notice:
+        <div class="clearfix"></div>
+        <p class="small collapse">$:format(page.notice)</p>
+
 </div>

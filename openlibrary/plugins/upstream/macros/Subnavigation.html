@@ -1,0 +1,44 @@
+$def with (page)
+
+$if page.key in ["/developers","/data","/developers/api","/developers/licensing","/developers/ol","/developers/docs"]:
+    <div class="subNav sansserif">
+        <ul class="collapse">
+            <li>
+            $if page.key in ["/developers"]:
+                <strong>Developers</strong>
+            $else:
+                <a href="/developers" rel="nofollow">Developers</a>
+            <span>|</span>
+            </li>
+            <li>
+            $if page.key in ["/developers/api"]:
+                <strong>API</strong>
+            $else:
+                <a href="/developers/api" rel="nofollow">API</a>
+            <span>|</span>
+            </li>
+            <li>
+            $if page.key in ["/data"]:
+                <strong>Data</strong>
+            $else:
+                <a href="/data" rel="nofollow">Data</a>
+            <span>|</span>
+            </li>
+            <li>
+            $if page.key in ["/developers/licensing"]:
+                <strong>Licensing</strong>
+            $else:
+                <a href="/developers/licensing">Licensing</a>
+            <span>&bull;</span>
+            </li>
+            <li><a href="http://bugs.launchpad.net/openlibrary" rel="nofollow">Bugs</a><span>|</span></li>
+            <li><a href="http://github.com/openlibrary" rel="nofollow">Source Code</a><span>|</span></li>
+            <li>
+            $if page.key in ["/developers/ol"]:
+                <strong>OL Development</strong>
+            $else:
+                <a href="/developers/ol">OL Development</a>
+            </li>
+        </ul>
+    </div>
+    <br style="clear: both;"/>

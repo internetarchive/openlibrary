@@ -19,6 +19,8 @@ $ text = format(page.body)
 
 <div id="contentBody">
 
+    $:macros.Subnavigation(page)
+
     $:text
 
     $:render_template("lib/history", page)

@@ -6,24 +6,16 @@ $def with (page)
 
             $:render_template("lib/search_foot", page)
 
-            <div class="footerNav">
+            <div class="footerNav" title="Main Navigation">
                 <ul>
-                    <li><a href="#top" title="Go to the top of this page">Top</a></li>
-                    <li>|</li>
-                    <li><a href="/" title="$_('Go home')">$_("Home")</a></li>
-                    <li><strong>&middot;</strong></li>
-                    <li><a href="/books/add" title="$_('Add a new book to Open Library')">$_("Add a Book")</a></li>
-                    <li><strong>&middot;</strong></li>
-                    <li><a href="/subjects" title="$_('Explore subjects')">$_("Subjects")</a></li>
-                    <li>|</li>
-                    <li><a href="/authors" title="$_('Explore authors')">$_("Authors")</a></li>
-                    <li>|</li>
-                    <li><a href="/lists" title="$_('Manage your lists')">$_("Lists")</a></li>
-                    <li><strong>&middot;</strong></li>
-                    <li><a href="/about" title="$_('About the Open Library staff')">$_("About Us")</a></li>
-                    <li>|</li>
-                    <li><a href="/help" title="$_('Get help')">$_("Help")</a></li>
-                    <li><strong>&middot;</strong></li>
+                    <li><a href="#top" title="Go to the top of this page">Top</a><span>|</span></li>
+                    <li><a href="/" title="$_('Go home')">$_("Home")</a><span>&bull;</span></li>
+                    <li><a href="/books/add" title="$_('Add a new book to Open Library')">$_("Add a Book")</a><span>&bull;</span></li>
+                    <li><a href="/subjects" title="$_('Explore subjects')">$_("Subjects")</a><span>|</span></li>
+                    <li><a href="/authors" title="$_('Explore authors')">$_("Authors")</a><span>|</span></li>
+                    <li><a href="/lists" title="$_('Manage your lists')">$_("Lists")</a><span>&bull;</span></li>
+                    <li><a href="/about" title="$_('About the Open Library staff')">$_("About Us")</a><span>|</span></li>
+                    <li><a href="/help" title="$_('Get help')">$_("Help")</a><span>&bull;</span></li>
                     <li><a href="/developers" title="$_('Visit the Developers Center')">$_("Developers")</a></li>
                 </ul>
             </div>
@@ -36,7 +28,7 @@ $def with (page)
                 </h4>
                 $:render_template("site/around_the_library")
                 <div id="abuse" title="$_('Report this page or content as spam')">
-                    <a href="/contact/spam"><span></span>$_("Problem?")</a>
+                    <a href="/contact?path=$request.path"><span></span>$_("Problem?")</a>
                 </div>
             </div>
 

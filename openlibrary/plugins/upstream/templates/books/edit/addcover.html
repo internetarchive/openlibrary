@@ -35,6 +35,7 @@ $def with (book)
     </div>
 </div>    
 <script type="text/javascript">
+<!--
 function submit_cover(response, status) {
     if (response.id) {
         var url = "$get_coverstore_url()" + "/b/id/" + response.id + "-S.jpg";
@@ -43,9 +44,7 @@ function submit_cover(response, status) {
         \$.fn.colorbox.close();
     }
 }
-</script>
 
-<script type="text/javascript">
 \$().ready(function() { 
     //Forms(); 
 });
@@ -58,5 +57,5 @@ var html = [
     ''
     
 ].join("\n");
-
+//-->
 </script>

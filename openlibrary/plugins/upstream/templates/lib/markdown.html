@@ -1,0 +1,78 @@
+<span class="small brown">Need <a href="javascript:;" id="markdownPop">help with formatting</a>?</span>
+<script type="text/javascript">
+\$().ready(function(){\$("#markdownPop").colorbox({inline:true, href:"#markdown"});});
+</script>
+<div class="hidden">
+    <div class="floater" id="markdown">
+        <div class="floaterHead">
+            <h2>Formatting Help</h2>
+            <a class="floaterShut" href="javascript:;" onclick="\$.fn.colorbox.close();"></a>
+        </div>
+        <div class="floaterBody">
+
+        <p>$_("We use a system called Markdown to format the text in your edits on Open Library. Some HTML formatting is also accepted. Paragraphs are automatically generated from any hard-break returns (blank lines) within your text. You can preview your work in real time below the editing field.")</p>
+        <p>$_("Formatting marks should envelope the effected text, for example:") 
+        &lt;strong&gt;<strong>This text is bold</strong>&lt;strong&gt; OR **<strong>This text is also bold</strong>**</p>
+        <table class="help" id="format">
+            <thead>
+                <tr>
+                    <th>The format</th>
+                    <th class="teal">HTML</th>
+                    <th class="blue">Markdown</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><em>Italic</em></td>
+                    <td><span class="teal">&lt;em&gt; &lt;/em&gt;</span> (preferred) or <span class="teal">&lt;i&gt; &lt;/i&gt;</span></td>
+                    <td><span class="blue">* *</span> or <span class="blue">_ _</span> (single underscores)</td>
+                </tr>
+                <tr>
+                    <td><strong>Bold</strong></td>
+                    <td><span class="teal">&lt;strong&gt; &lt;/strong&gt;</span> (preferred) or <span class="teal">&lt;b&gt; &lt;/b&gt;</span></td>
+                    <td><span class="blue">** **</span> or <span class="blue">__ __</span> (double underscores)</td>
+                </tr>
+                <tr>
+                    <td>Line<br/>Break</td>
+                    <td><span class="teal">&lt;br/&gt;</span></td>
+                    <td>Insert two spaces at the end of the line.</td>
+                </tr>
+                <tr>
+                    <td><blockquote>Blockquote</blockquote></td>
+                    <td><span class="teal">&lt;blockquote&gt; &lt;/blockquote&gt;</span></td>
+                    <td>Preceed copy with <span class="blue">&gt;</span> </td>
+                </tr>
+                <tr>
+                    <td><h3 class="collapse">Headers</h3></td>
+                    <td><span class="teal">&lt;h1&gt;</span>Enormous Headline<span class="teal">&lt;/h1&gt;</span><br/><span class="teal">&lt;h2&gt;</span>Big Headline<span class="teal">&lt;/h2&gt;</span><br/><span class="teal">&lt;h3&gt;</span>Average Headline<span class="teal">&lt;/h3&gt;</span> etc. to<br/><span class="teal">&lt;h6&gt;</span>Small Headline<span class="teal">&lt;/h6&gt;</span></td>
+                    <td><span class="blue">#</span>Enormous Headline<br/><span class="blue">##</span> Big Headline<br/><span class="blue">###</span> Average Headline, etc. to<br/><span class="blue">######</span> Small Headline</td>
+                </tr>
+                <tr>
+                    <td><ol><li>Ordered (Numbered) List</li></ol></td>
+                    <td><span class="teal">&lt;ol&gt;<br/>&lt;li&gt;</span>Item One<span class="teal">&lt;/li&gt;<br/>&lt;li&gt;</span>Item Two<span class="teal">&lt;/li&gt;<br/>&lt;/ol&gt;</span></td>
+                    <td><span class="blue">1.</span> Item One<br/><span class="blue">2.</span> Item Two</td>
+                </tr>
+                <tr>
+                    <td><ul><li>Unordered List</li></ul></td>
+                    <td><span class="teal">&lt;ul&gt;<br/>&lt;li&gt;</span>First bullet<span class="teal">&lt;/li&gt;<br/>&lt;li&gt;</span>Second bullet<span class="teal">&lt;/li&gt;<br/>&lt;/ul&gt;</span></td>
+                    <td><span class="blue">*</span> First bullet<br/><span class="blue">*</span> Second bullet</td>
+                </tr>
+                <tr>
+                    <td><a href="javascript:;">Links</a></td>
+                    <td>This is <span class="teal">&lt;a href="http://example.com/" title="Title"&gt;</span>an example<span class="teal">&lt;/a&gt;</span> inline link.</u></td>
+                    <td>This is <span class="blue">[an example](http://example.com/ "Title")</span> inline link.</td>
+                </tr>
+                <tr>
+                    <td>Images</td>
+                    <td><span class="teal">&lt;img src="/path/to/img.jpg" title="Title" alt="Alternate label" /&gt;</span></td>
+                    <td><span class="blue">![Alt text](/path/to/img.jpg "Optional title")</span></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <p>$_('To "escape" any Markdown tags (i.e. use an asterisk as an asterisk rather than emphasizing text) place a backslash \ prior to the character.')</p>
+        <div class="small"><a href="javascript:;" onclick="\$.fn.colorbox.close();" class="red">Close</a></div>
+
+        </div>
+    </div>
+</div>

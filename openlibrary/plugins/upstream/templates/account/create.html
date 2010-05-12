@@ -12,9 +12,14 @@ $var title: $_("Sign Up to Open Library")
 <div id="contentBody">
 
 <script type="text/javascript">
-\$().ready(passwordMask);
 \$().ready(validateForms);
 \$().ready(setup_account_create);
+\$().ready(function(){
+    \$('#username').keyup(function(){
+        var value = \$(this).val();
+        \$('#userUrl').addClass('darkgreen').text(value).css('font-weight','700');
+    });
+});
 </script>
 
 $if ctx.user:
@@ -23,15 +28,15 @@ $if ctx.user:
 $else:
     <form id="signup" class="olform create" name="signup" method="post">        
         $if form.note:
-            <div class="note">$form.note</div>        
+            <div class="note">$form.note</div>
         <div class="formElement">
             <div class="label">
-                <label for="email">$("Your Email Address")</label>
-                <span class="smaller lighter"></span>
+                <label for="displayname">$_("Your Full Name")</label>
+                <span class="smaller lighter">$_("This is how your additions and edits will be credited on the site.")</span>
             </div>
             <div class="input">
-                <input type="text" class="required" name="email" id="email"  value="$form.email.value"/>
-                <span class="invalid clearfix" htmlfor="email">$form.email.note</span>
+                <input type="text" name="displayname" id="displayname" value="$form.displayname.value"/>
+                <span class="invalid clearfix" htmlfor="username">$form.displayname.note</span>
             </div>
         </div>
         <div class="formElement">
@@ -40,8 +45,9 @@ $else:
                 <span class="smaller lighter">$_("Letters and numbers only please, and at least 3 characters.")</span>
             </div>
             <div class="input">
-                <input type="text" class="required" name="username" id="username" value="$form.username.value" />
+                <input type="text" class="required" name="username" id="username" value="$form.username.value"/>
                 <span class="invalid clearfix" htmlfor="username">$form.username.note</span>
+                <div class="sansserif smaller lighter">Your URL: http://openlibrary.org/people/<span id="userUrl">username</span></div>
             </div>
         </div>
         <div class="formElement">
@@ -49,9 +55,18 @@ $else:
                 <label for="password">$("Choose a Password")</label>
                 <span class="smaller lighter"></span></div>
             <div class="input">
-                <input value="" type="password" class="required" name="password" id="password" />
+                <input value="" type="password" class="required" name="password" id="password"/>
                 <span class="invalid clearfix" htmlfor="password">$form.password.note</span>
-                <span id="showpass" class="smaller"></span>
+            </div>
+        </div>
+        <div class="formElement">
+            <div class="label">
+                <label for="email">$("Your Email Address")</label>
+                <span class="smaller lighter"></span>
+            </div>
+            <div class="input">
+                <input type="text" class="required" name="email" id="email" value="$form.email.value"/>
+                <span class="invalid clearfix" htmlfor="email">$form.email.note</span>
             </div>
         </div>
         <div class="formElement">

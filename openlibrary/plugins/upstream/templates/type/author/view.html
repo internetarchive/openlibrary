@@ -21,12 +21,14 @@ $ olid = page.key.split('/')[-1]
 </div>
 
 <script type="text/javascript">
+<!--
 \$().ready(function(){\$("#coverPop").colorbox({inline:true, href:"#addImage"});});
+//-->
 </script>
 
 <div id="contentBody">
 
-    <div class="contentTwothird">
+    <div class="contentTwothird" style="margin-bottom:0;">
 
         $:format(page.get('bio', ''))
 
@@ -42,13 +44,6 @@ $ olid = page.key.split('/')[-1]
                 $page.location
             </div>
 
-        $if page.alternate_names:
-            $if page.alternate_names != [""]:
-                <div class="section">
-                    <h6 class="collapse black uppercase">$_("Alternate names")</h6> 
-                    $", ".join(page.alternate_names)
-                </div>
-
         $ books = page.get_books()
 
         <div class="clearfix"></div>
@@ -58,53 +53,53 @@ $ olid = page.key.split('/')[-1]
                     $_("Books by this Author")
                     <span class="count">
                         $commify(books.num_found) book$("s" if books.num_found != 1 else "") &nbsp;
-                        <a href="/books/add?author=$page.key">Add another</a>?
+                        <span class="smaller"><a href="/books/add?author=$page.key">Add another</a>? <a href="#" title="This doesn't work yet" class="fixthis">Merge duplicates</a>?</span>
                     </span>
                 </h2>
                 <a name="books"></a>
                 <p><span class="tools">
                 $if books.num_found > 1:
-                    <img src="/images/icons/icon_sort.png" alt="Sorting by" width="9" height="11" style="margin-right:10px;"/>Sorting by: 
+                    <img src="/images/icons/icon_sort.png" alt="Sorting by" width="9" height="11" style="margin-right:10px;"/> 
                     $if books.sort == 'editions':
-                        <strong class="lightgreen">Most Editions</strong> | <a href="$changequery(sort='old')">First Published</a> | <a href="$changequery(sort='new')">Most Recent</a> 
+                        <strong class="lightgreen">Most Editions</strong> | <a href="$changequery(sort='old')#editions">First Published</a> | <a href="$changequery(sort='new')#editions">Most Recent</a> 
                     $elif books.sort == 'old':
-                        <a href="$changequery(sort=None)">Most Editions</a> | <strong class="lightgreen">First Published</strong> | <a href="$changequery(sort='new')">Most Recent</a> 
+                        <a href="$changequery(sort=None)#editions">Most Editions</a> | <strong class="lightgreen">First Published</strong> | <a href="$changequery(sort='new')#editions">Most Recent</a> 
                     $elif books.sort == 'new':
-                        <a href="$changequery(sort=None)">Most Editions</a> |  <a href="$changequery(sort='old')">First Published</a> | <strong class="lightgreen">Most Recent</strong> 
+                        <a href="$changequery(sort=None)#editions">Most Editions</a> |  <a href="$changequery(sort='old')#editions">First Published</a> | <strong class="lightgreen">Most Recent</strong> 
                     $elif books.sort == 'title':
-                        <a href="$changequery(sort=None)">Most Editions</a> |  <a href="$changequery(sort='old')">First Published</a> | <a href="$changequery(sort='new')">Most Recent</a> | <strong class="lightgreen">Title</strong>
+                        <a href="$changequery(sort=None)#editions">Most Editions</a> |  <a href="$changequery(sort='old')#editions">First Published</a> | <a href="$changequery(sort='new')#editions">Most Recent</a> | <strong class="lightgreen">Title</strong>
                 </span></p>
 
                 <div id="searchResults" class="narrow">
-                    <ul id="siteSearch">
+                    <ul id="siteSearch" class="collapse">
                     $for doc in books.works:
                         $ key = doc.key
                         <li>
                         <span class="bookcover">
                         $ cover = "http://covers.openlibrary.org/b/olid/%s-M.jpg" % doc.cover_edition_key if doc.cover_edition_key else "http://upstream.openlibrary.org/images/icons/avatar_book-sm.png"
-                        <a href="$key"><img src="$cover" height="70"/></a>
+                        <a href="$key" title="$doc.title"><img src="$cover" height="70" alt="$doc.title"/></a>
                         </span>
                         <span class="details">
                             <span class="resultTitle">
-                                <span class="booktitle"><a href="http://upstream.openlibrary.org$doc.key">$doc.title</a></span>
+                                <span class="booktitle"><a href="http://upstream.openlibrary.org$doc.key">$doc.title$(': ' + doc.subtitle if doc.get('subtitle', None) else '')</a></span>
                                 <span class="resultPublisher">$commify(doc.edition_count) edition$("s" if doc.edition_count != 1 else "")
                                 $if doc.first_publish_year:
                                     - first published in $doc.first_publish_year
                                 </span>
                             </span>
                         </span>
-                        $if len(doc.ia):
+                        $if doc.get('has_fulltext', None):
                             <span class="actions read">
                                 <a href="http://www.archive.org/stream/$doc.ia[0]" title="Read an online eBook">
                                     <span class="image"></span>
                                     <span class="label">Read</span>
                                 </a>
                             </span>
-                        </span>
                         </li>
                     </ul>
                 </div>
-            </div>
+
+        </div>
 
     </div>
     <div class="contentOnethird">
@@ -126,7 +121,6 @@ $ olid = page.key.split('/')[-1]
 
         <!-- SUBJECTS DISPLAY -->
         <div class="section">
-            <h3>Related...</h3>
             $:render_subjects("Subjects", books.get_facet('subject_facet'), '')
             $:render_subjects("Places", books.get_facet('place_facet'), 'places/')
             $:render_subjects("People", books.get_facet('person_facet'), 'people/')
@@ -147,9 +141,48 @@ $ olid = page.key.split('/')[-1]
             $else:
                 <p>No links found. <a href="$page.url('/edit')#web">Add one</a>.</p>
 
-        </div> 
+        </div>
+
+        $if page.alternate_names:
+            $if page.alternate_names != [""]:
+                <div class="section">
+                    <h3>$_("Alternate names")</h3> 
+                    <ul class="booklinks sansserif"><li>$:"</li><li>".join(page.alternate_names)</li></ul>
+                </div>
 
     </div>
+
+    $ pages = (books.num_found / 100) + 1
+    $ page_num = safeint(query_param('page'), default=1)
+        $if pages != 1:
+            $ pages_in_set = 10
+            $ half = pages_in_set/2
+            $if pages < pages_in_set:
+                $ first_page_in_set = 1
+                $ last_page_in_set = pages
+            $elif page_num < half:
+                $ first_page_in_set = 1
+                $ last_page_in_set = min((pages_in_set, pages))
+            $elif page_num > (pages-half):
+                $ first_page_in_set = pages-pages_in_set
+                $ last_page_in_set = pages
+            $else:
+                $ first_page_in_set = page_num-half
+                $ last_page_in_set = page_num+half
+            <div class="clearfix"></div>
+            <div class="pagination">
+            $if page_num != 1:
+                <a href="$changequery(page=None)" class="ChoosePage">&laquo;&nbsp;First</a>
+                <a href="$changequery(page=page_num-1)" class="ChoosePage">&lt;&nbsp;Previous</a>
+            $for p in range(first_page_in_set, last_page_in_set+1):
+                $if p == page_num:
+                    <span class="this">$p</span>
+                $else:
+                    <a href="$changequery(page=p)" class="ChoosePage">$p</a>
+            $if page_num < pages:
+                <a href="$changequery(page=page_num+1)" class="ChoosePage">Next&nbsp;&gt;</a>
+                <a href="$changequery(page=pages)" class="ChoosePage">Last&nbsp;&raquo;</a>
+            </div>
 
     $:render_template("lib/history", page)
 </div>

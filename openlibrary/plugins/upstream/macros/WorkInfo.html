@@ -3,19 +3,29 @@ $def with (page)
 $ _t = i18n.get_namespace('/type/edition')
 $ _ = i18n.get_namespace('/mode/view')
 
-$ s = "other_titles", "translated_titles", "genres", "first_publish_date", "subject_places", "original_languages", "dewey_number", "lc_classifications"
+$ s = "other_titles", "translated_titles", "genres", "first_publish_date", "subject_places", "original_languages", "dewey_number", "lc_classifications", "subjects", "subject_times", "excerpts"
+$ subjects = ["subjects"]
 
 $for name in s:
     $if page[name]:
-        <div class="section"><span class="title">$_t[name]:</span> 
+        <div class="section">
+        <table class="meta">
+        <tbody>
+            <tr><td class="descrip"><span class="title">$_t[name]</span></td>
             $if name == "other_titles":
-                <span class="tag">$:'; '.join(thingrepr(i) for i in page[name])</span>
+                <td class="tag"><span class="object">$:'; '.join(thingrepr(i) for i in page[name])</span></td></tr>
             $elif name == "translated_titles":
-                $for t in page[name]: <span class="tag"><i>$t.language.name -</i> $t.text;</span>
-            $elif name == "links":
-                $for link in page[name]: <span class="tag"><a href="$link.url">$(link.title or link.url)</a></span>
+                $for t in page[name]: <td class="tag"><span class="object"><i>$t.language.name -</i> $t.text;</span></td></tr>
+            $elif name == "subjects":
+                <td class="tag"><span class="object">
+                $for name in subjects:
+                    $for subject in page[name]:
+                        <a href="/search?ftokens=$:utf8(facet_token('subjects', subject.strip()))">$:utf8(thingrepr(subject)).replace(' -- ', '/')</a>,
+                </span></td></tr>
             $else:
-                <span class="tag">$:thingrepr(page[name])</span>
+                <td class="tag"><span class="object">$:thingrepr(page[name])</span></td></tr>
+        </tbody>
+        </table>
         </div>
 
 $ cur_locale = i18n.get_locale()

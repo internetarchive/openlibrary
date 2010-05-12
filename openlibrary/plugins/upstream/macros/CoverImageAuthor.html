@@ -1,0 +1,18 @@
+$def with(book, size="M")
+
+$ title = book.title
+
+$ olid = book.key.split("/")[2]
+
+<script type="text/javascript">
+\$().ready(bookCovers);
+</script>
+
+<div class="author coverMagic">
+    <div class="SRPCover bookCover">
+        <img src="$book.get_photo_url(size)?default=false" class="cover" alt="$title"/>
+    </div>
+    <div class="SRPCoverBlank author">
+        <div class="BookTitle">$title</div>
+    </div>
+</div>

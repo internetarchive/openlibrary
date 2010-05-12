@@ -1,16 +1,7 @@
 $def with (page)
 
 <script type="text/javascript">
-
-//var page = new Subject(page);
-
-function createTemplate(selector) {
-    var code = \$(selector).html()
-                    .replace(/{{/g, "<%=")
-                    .replace(/}}/g, "%>");
-    return Template(code);
-}
-
+<!--
 page.displayCovers = function(pagenum) {
     page.loadPage(pagenum, function(data) {
         \$("#coversCarousel").empty().html(page.renderCovers(data));
@@ -40,7 +31,7 @@ function loadCoverCarousels(carousel, state) {
 }
 
 \$().ready(function() {
-    page.renderCovers = createTemplate("#covers-tmpl");
+    page.renderCovers = render_page;
     page.displayCovers(0);
 });
 
@@ -48,45 +39,32 @@ function loadCoverCarousels(carousel, state) {
 \$().ready(function() {
     carouselSetup(loadCoverCarousels);
 });
+\$().ready(function(){
+    \$(".jcarousel-next").attr('title','View the next editions for this subject.');
+    \$(".jcarousel-prev").attr('title','View the previous editions for this subject.');
+});
+//-->
 </script>
 
-<script type="text/html" class="jstemplate" id="covers-tmpl">
-<% for (var i=0; i<works.length; i++) { %>
-    <% 
-        var cover = works[i]; 
-        if (!cover) {
-            continue;
-        }
-        var authors = [];
-        for (var j in cover.authors) {
-            authors.push(cover.authors[j].name);
-        }
-    %>
-    <div class="coverMagic">
-        <% if (cover.cover_id) { %>
-            <div class="SRPCover">
-                <a href="{{cover.key}}" title="{{cover.title}}, {{cover.edition_count}} editions"><img src="http://covers.openlibrary.org/b/id/{{cover.cover_id}}-M.jpg" alt="{{cover.title}}" class="cover"/></a>
-            </div>
-        <% } else { %>
-            <a href="{{cover.key}}">
-            <div class="SRPCoverBlank" title="{{cover.title}}, {{cover.edition_count}} editions" style="display:block;">
-                <div class="innerBorder">
-                    <div class="BookTitle">{{truncate(cover.title, 40)}}
-                        <div class="Author">{{truncate(authors.join(", "), 40)}}</div>
-                    </div>
-                </div>
-            </div>
-            </a>
-        <% } %>
-        <% if (cover.has_fulltext) { %>
-            <div class="coverEbook"><a href="http://www.archive.org/stream/{{cover.ia}}" title="Read online"><img src="/images/icons/icon_ebook-avail.png" border="0" width="32" height="33" alt="Read online"/></a></div>
-        <% } %>
-    </div>
-<% } %>
+$code:
+    def get_authors(work):
+		return ", ".join(a.name for a in work.authors)
+		
+<script type="text/javascript">
+<!--
+function get_authors(work) {
+	var authors = [];
+	for (var i=0; i < work.authors.length; i++) {
+		authors.push(work.authors[i].name);
+	}
+	return authors.join(", ");
+}
+//-->
 </script>
 
-$def render_page(page):
-    $for w in page.works[:12]:
+
+$jsdef render_page(page):
+    $for w in page.works:
         <div class="coverMagic">
             $if w.cover_id:
                 <div class="SRPCover">
@@ -97,7 +75,7 @@ $def render_page(page):
                     <div class="SRPCoverBlank" title="$w.title, $w.edition_count editions" style="display:block;">
                         <div class="innerBorder">
                             <div class="BookTitle">$truncate(w.title, 40)
-                                <div class="Author">$truncate(", ".join(a.name for a in w.authors), 40)</div>
+                                <div class="Author">$truncate(get_authors(w), 40)</div>
                             </div>
                         </div>
                     </div>
@@ -112,6 +90,7 @@ $def render_page(page):
             <li>$:render_page(page)</li>
         </ul>
         <div id="coversLoading" class="hidden"><h3>Loading books...</h3></div>
+        <div id="coversNone" class="hidden"><h2>$:_('Open Library is unaware of any <span class="bookType">editions</span> about <span class="bookSubject">this subject</span> <span class="clickdata"></span> <a href="javascript:;" class="resetSelection">Zoom out again</a>?')</h2></div>
     </div>
 </div>
 
