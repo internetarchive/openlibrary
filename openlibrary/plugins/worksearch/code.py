@@ -27,7 +27,9 @@ if hasattr(config, 'plugin_worksearch'):
 
     solr_author_host = config.plugin_worksearch.get('author_solr')
     solr_author_select_url = "http://" + solr_author_host + "/solr/authors/select"
-    solr_edition_select_url = "http://" + solr_author_host + "/solr/editions/select"
+
+    solr_edition_host = config.plugin_worksearch.get('edition_solr')
+    solr_edition_select_url = "http://" + solr_edition_host + "/solr/editions/select"
 
     default_spellcheck_count = config.plugin_worksearch.get('spellcheck_count', 10)
 
