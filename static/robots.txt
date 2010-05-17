@@ -3,8 +3,8 @@ User-agent: *
 Disallow: /user
 Disallow: /people
 
-Sitemap: http://www.archive.org/download/ol_sitemaps/siteindex_works.xml.gz
-Sitemap: http://www.archive.org/download/ol_sitemaps/siteindex_editions.xml.gz
-Sitemap: http://www.archive.org/download/ol_sitemaps/siteindex_authors.xml.gz
+Sitemap: http://openlibrary.org/static/sitemaps/siteindex_works.xml.gz
+Sitemap: http://openlibrary.org/static/sitemaps/siteindex_editions.xml.gz
+Sitemap: http://openlibrary.org/static/sitemaps/siteindex_authors.xml.gz
 
 
