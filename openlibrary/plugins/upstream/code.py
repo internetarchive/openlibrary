@@ -226,6 +226,9 @@ def setup():
     addbook.setup()
     covers.setup()
     
+    import data
+    data.setup()
+    
     # Types for upstream paths
     types.register_type('^/authors/[^/]*$', '/type/author')
     types.register_type('^/books/[^/]*$', '/type/edition')
