@@ -137,9 +137,14 @@ def make_index(dump_file):
             title = data.get('title', key)
             path = key
             
-        print "\t".join([web.safestr(path), web.safestr(title), data['created']['value'], data['last_modified']['value']])
+        title = title.replace("\t", " ")
         
-    
+        if 'created' in data:
+            created = data['created']['value']
+        else:
+            created = "-"
+        print "\t".join([web.safestr(path), web.safestr(title), created, timestamp])
+
 def read_tsv(file):
     """Read a tab seperated file and return an iterator over rows."""
     if isinstance(file, basestring):
@@ -236,6 +241,9 @@ def main(cmd, args):
     elif cmd == 'sitemaps':
         from sitemap import generate_sitemaps
         generate_sitemaps(*args, **kwargs)
+    elif cmd == 'htmlindex':
+        from sitemap import generate_html_index
+        generate_html_index(*args, **kwargs)
     else:
         print >> sys.stderr, "Unknown command:", cmd
 
