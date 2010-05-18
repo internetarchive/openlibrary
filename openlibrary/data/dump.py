@@ -107,7 +107,7 @@ def generate_idump(day, **db_parameters):
         + "     AND version.transaction_id=transaction.id"
         + "     AND transaction.created >= $day AND transaction.created < date $day + interval '1 day'"
         + " ORDER BY transaction.created",
-        vars=locals())
+        vars=locals(), chunk_size=10000)
     print_dump(row.data for chunk in rows for row in chunk)
     
 def split_dump(dump_file):
