@@ -19,7 +19,7 @@ def get_ol_dumps():
     
 # cache the result for half an hour
 get_ol_dumps = web.memoize(get_ol_dumps, 30*60, background=True)
-public(get_ol_dumps)
+#public(get_ol_dumps)
 
 def download_url(item, filename):
     return "http://www.archive.org/download/%s/%s" % (item, filename)
