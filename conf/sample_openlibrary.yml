@@ -30,6 +30,7 @@ plugin_worksearch:
     solr: "localhost:8983"
     subject_solr: "localhost:8984"
     author_solr: "localhost:8984"
+    edition_solr: "localhost:8984"
     spellcheck_count: 3
 
 default_template_root: /upstream
