@@ -40,14 +40,21 @@ def ol_things(key, value):
     }
     try:
         d = dict(query=simplejson.dumps(query))
-        result = urllib.urlopen(config.things_api_url + '?' + urllib.urlencode(d)).read()
+        result = download(config.ol_url + '/query.json?' + urllib.urlencode(d))
         result = simplejson.loads(result)
         olids = result['result']
         return [olid.split('/')[-1] for olid in olids]
-    except:
+    except IOError:
         import traceback
         traceback.print_exc()
         return []
+        
+def ol_get(olkey):
+    try:
+        result = download(config.ol_url + olkey + ".json")
+        return simplejson.loads(result)
+    except IOError:
+        return None
 
 USER_AGENT = "Mozilla/5.0 (Compatible; coverstore downloader http://covers.openlibrary.org)"
 def download(url):
