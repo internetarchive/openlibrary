@@ -60,9 +60,17 @@ def parse_tsv(filename):
 
 def generate_cdump(data_file, date=None):
     """Generates cdump from a copy of data table.
-    If date is specified, only revisions created before that date will be considered.
+    If date is specified, only revisions created on or before that date will be considered.
     """
-    filter = date and (lambda doc: doc['last_modified']['value'] < date)
+    
+    # adding Z to the date will make sure all the timestamps of that day are less than date.
+    #
+    #   >>> "2010-05-17T10:20:30" < "2010-05-17"
+    #   False
+    #   >>> "2010-05-17T10:20:30" < "2010-05-17Z"
+    #   True
+    filter = date and (lambda doc: doc['last_modified']['value'] < date + "Z")
+    
     print_dump(read_data_file(data_file), filter=filter)
     
 def generate_dump(cdump_file):
