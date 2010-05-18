@@ -234,6 +234,14 @@ class addbook(delegate.page):
 del delegate.pages['/addbook']
 del delegate.pages['/addauthor'] 
 
+class addbook(delegate.page):
+    def GET(self):
+        raise web.redirect("/books/add")
+        
+class addauthor(delegate.page):
+    def GET(self):
+        raise web.redirect("/authors")
+
 def trim_value(value):
     """Trim strings, lists and dictionaries to remove empty/None values.
     
