@@ -1,0 +1,4 @@
+
+User-Agent: *
+Crawl-delay: 0.5
+
