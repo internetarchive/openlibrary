@@ -52,7 +52,8 @@ class ReadableUrlProcessor:
             obj = key and web.ctx.site.get(key)
         
         if obj is None and web.re_compile(r"/.*/OL\d+[A-Z]"):
-            key = web.ctx.site._request("/olid_to_key?olid=" + key.split("/")[-1]).key
+            olid = web.safestr(key).split("/")[-1]
+            key = web.ctx.site._request("/olid_to_key?" + urllib.urlencode({"olid": olid})).key
             obj = key and web.ctx.site.get(key)
         return obj
 
