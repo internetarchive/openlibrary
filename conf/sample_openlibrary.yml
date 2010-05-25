@@ -12,6 +12,9 @@ infobase:
 # print the mail instead of sending it really.
 dummy_sendmail: True
 
+# enable http compression
+use_gzip: True
+
 # uncomment the following line if you want to run a local coverstore server
 # coverstore_url = "http://0.0.0.0:8070/"
 
@@ -30,6 +33,7 @@ plugin_worksearch:
     solr: "localhost:8983"
     subject_solr: "localhost:8984"
     author_solr: "localhost:8984"
+    edition_solr: "localhost:8984"
     spellcheck_count: 3
 
 default_template_root: /upstream

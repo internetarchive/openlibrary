@@ -64,7 +64,10 @@ def query(category, olid, offset=0, limit=10):
     return result.list()
 
 def details(id):
-    return getdb().select('cover', what='*', where="id=$id", vars=locals()).list()
+    try:
+        return getdb().select('cover', what='*', where="id=$id", vars=locals())[0]
+    except IndexError:
+        return None
     
 def touch(id):
     """Sets the last_modified of the specified cover to the current timestamp.

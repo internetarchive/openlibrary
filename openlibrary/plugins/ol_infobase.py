@@ -22,6 +22,7 @@ def init_plugin():
 
     ol = server.get_site('openlibrary.org')
     ib = server._infobase
+    
 
     if config.get('writelog'):
         ib.add_event_listener(logger.Logger(config.writelog))
@@ -29,6 +30,9 @@ def init_plugin():
     ib.add_event_listener(invalidate_most_recent_change)
 
     if ol:
+        # install custom indexer
+        ol.store.indexer = Indexer()
+        
         if config.get('http_listeners'):
             ol.add_trigger(None, http_notify)
         if config.get('booklog'):
@@ -308,3 +312,14 @@ def process_json(key, json):
     return json
     
 dbstore.process_json = process_json
+
+_Indexer = dbstore.Indexer
+
+class Indexer(_Indexer):
+    """Overwrite default indexer to reduce the str index for editions."""
+    def compute_index(self, doc):
+        index = _Indexer.compute_index(self, doc)
+        whitelist = ['identifiers', 'classifications', 'isbn_10', 'isbn_13', 'lccn', 'oclc_numbers']
+        index = [(datatype, name, value) for datatype, name, value in index 
+                if datatype == 'ref' or name.split(".")[0] in whitelist]
+        return index

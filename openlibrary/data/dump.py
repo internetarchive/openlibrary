@@ -86,11 +86,11 @@ def generate_dump(cdump_file):
     # pass-1: Find the index of the rows with latest revision of each document.
     latest = {}
     for i, (type, key, revision, timestamp, json) in enumerate(read_tsv(cdump_file)):
-        if latest.get(key, -1) < int(revision):
-            latest[key] = i
+        if latest.get(key, -1)[-1] < int(revision):
+            latest[key] = (i, int(revision))
     
     # pass-2: sort the indicies and print the lines 
-    rows = latest.values()
+    rows = [index for index, rev in latest.values()]
     latest = None # free the reference
     rows.sort()
     
@@ -107,7 +107,7 @@ def generate_idump(day, **db_parameters):
         + "     AND version.transaction_id=transaction.id"
         + "     AND transaction.created >= $day AND transaction.created < date $day + interval '1 day'"
         + " ORDER BY transaction.created",
-        vars=locals())
+        vars=locals(), chunk_size=10000)
     print_dump(row.data for chunk in rows for row in chunk)
     
 def split_dump(dump_file):

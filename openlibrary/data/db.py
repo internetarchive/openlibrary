@@ -71,7 +71,7 @@ def iterdocs(type=None):
         for doc in docs:
             yield doc
             
-def longquery(query, vars, chunk_size=100):
+def longquery(query, vars, chunk_size=10000):
     """Execute an expensive query using db cursors.
     
     USAGE:
