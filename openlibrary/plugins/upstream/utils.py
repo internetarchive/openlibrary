@@ -458,8 +458,6 @@ class HTML(unicode):
 _websafe = web.websafe
 def websafe(text):
     if isinstance(text, HTML):
-        print 'websafe %r %r' % (text, _websafe(text))
-        #return _websafe(text.html)
         return text
     elif isinstance(text, web.template.TemplateResult):
         return web.safestr(text)
@@ -629,7 +627,6 @@ class GZipMiddleware:
             return start_response(status, headers)
         
         data = self.app(environ, new_start_response)
-        print "response", response
         if response.compress:
             return [compress("".join(data), 9)]
         else:

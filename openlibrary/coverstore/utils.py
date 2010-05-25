@@ -6,6 +6,7 @@ import os
 import mimetypes
 import Image
 import simplejson
+import web
 
 import random
 import string
@@ -31,6 +32,9 @@ def safeint(value, default=None):
     except:
         return default
 
+def get_ol_url():
+    return web.rstrips(config.ol_url, "/")
+
 def ol_things(key, value):
     query = {
         'type': '/type/edition',
@@ -40,10 +44,9 @@ def ol_things(key, value):
     }
     try:
         d = dict(query=simplejson.dumps(query))
-        result = download(config.ol_url + '/query.json?' + urllib.urlencode(d))
+        result = download(get_ol_url() + '/api/things?' + urllib.urlencode(d))
         result = simplejson.loads(result)
-        olids = result['result']
-        return [olid.split('/')[-1] for olid in olids]
+        return result['result']
     except IOError:
         import traceback
         traceback.print_exc()
@@ -51,7 +54,7 @@ def ol_things(key, value):
         
 def ol_get(olkey):
     try:
-        result = download(config.ol_url + olkey + ".json")
+        result = download(get_ol_url() + olkey + ".json")
         return simplejson.loads(result)
     except IOError:
         return None
