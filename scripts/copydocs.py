@@ -16,11 +16,12 @@ import _init_path
 import sys
 import os
 import simplejson
+import web
 
 from openlibrary.api import OpenLibrary, marshal
 from optparse import OptionParser
 
-__version__ = "0.1"
+__version__ = "0.2"
 
 def find(server, prefix):
     q = {'key~': prefix, 'limit': 1000}
@@ -74,6 +75,9 @@ class Disk:
             if not os.path.exists(dir):
                 os.makedirs(dir)
 
+            if isinstance(text, dict):
+                text = text['value']
+
             try:
                 print "writing", path
                 f = open(path, "w")
@@ -84,8 +88,19 @@ class Disk:
 
         for doc in marshal(docs):
             path = os.path.join(self.root, doc['key'][1:])
-            write(path, simplejson.dumps(doc))
-    
+            if doc['type']['key'] == '/type/template':
+                path = path.replace(".tmpl", ".html")
+                write(path, doc['body'])
+            elif doc['type']['key'] == '/type/macro':
+                path = path + ".html"
+                write(path, doc['macro'])
+                
+def read_lines(filename):
+    try:
+        return [line.strip() for line in open(filename)]
+    except IOError:
+        return []
+            
 def main():
     options, args = parse_args()
 
@@ -96,7 +111,11 @@ def main():
 
     if options.dest.startswith("http://"):
         dest = OpenLibrary(options.dest)
-        dest.autologin()
+        section = "[%s]" % web.rstrips(options.dest, "http://")
+        if section in read_lines(os.path.expanduser("~/.olrc")):
+            dest.autologin()
+        else:
+            dest.login("admin", "admin123")
     else:
         dest = Disk(options.dest)
 
