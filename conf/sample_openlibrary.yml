@@ -12,6 +12,9 @@ infobase:
 # print the mail instead of sending it really.
 dummy_sendmail: True
 
+# enable http compression
+use_gzip: True
+
 # uncomment the following line if you want to run a local coverstore server
 # coverstore_url = "http://0.0.0.0:8070/"
 
