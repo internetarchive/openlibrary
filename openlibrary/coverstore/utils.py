@@ -6,6 +6,7 @@ import os
 import mimetypes
 import Image
 import simplejson
+import web
 
 import random
 import string
@@ -43,10 +44,9 @@ def ol_things(key, value):
     }
     try:
         d = dict(query=simplejson.dumps(query))
-        result = download(get_ol_url() + '/query.json?' + urllib.urlencode(d))
+        result = download(get_ol_url() + '/api/things?' + urllib.urlencode(d))
         result = simplejson.loads(result)
-        olids = result['result']
-        return [olid.split('/')[-1] for olid in olids]
+        return result['result']
     except IOError:
         import traceback
         traceback.print_exc()
