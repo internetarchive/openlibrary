@@ -7,11 +7,12 @@ Glossary:
 * idump - Incremental dump. Dump of all revisions created in the given day.
 """
 
-import sys
+import sys, os
 import web
 import re
 import time
 import simplejson
+import itertools
 
 import db
 
@@ -51,12 +52,18 @@ def read_data_file(filename):
 def log(*args):
     print >> sys.stderr, time.asctime(), " ".join(str(a) for a in args)
 
-def parse_tsv(filename):
-    log("parsing", filename)
-    for i, line in enumerate(open(filename)):
+def read_tsv(file, strip=True):
+    """Read a tab seperated file and return an iterator over rows."""    
+    log("reading", file)
+    if isinstance(file, basestring):
+        file = open(file)
+        
+    for i, line in enumerate(file):
         if i % 1000000 == 0:
             log(i)
-        yield line.strip().split("\t")
+        if strip:
+            line = line.strip()
+        yield line.split("\t")
 
 def generate_cdump(data_file, date=None):
     """Generates cdump from a copy of data table.
@@ -72,31 +79,69 @@ def generate_cdump(data_file, date=None):
     filter = date and (lambda doc: doc['last_modified']['value'] < date + "Z")
     
     print_dump(read_data_file(data_file), filter=filter)
+        
+def sort_dump(dump_file=None, tmpdir="/tmp/", buffer_size="1G"):
+    """Sort the given dump based on key."""
+    tmpdir = os.path.join(tmpdir, "oldumpsort")
+    if not os.path.exists(tmpdir):
+        os.makedirs(tmpdir)
+        
+    M = 1024*1024
     
-def generate_dump(cdump_file):
+    filenames = [os.path.join(tmpdir, "%02x.txt" % i) for i in range(256)]
+    files = [open(f, 'w', 5*M) for f in filenames]
+    
+    if dump_file is None:
+        stdin = sys.stdin
+    else:
+        stdin = open(dump_file)
+    
+    # split the file into 256 chunks using hash of key
+    log("splitting", dump_file)
+    for i, line in enumerate(stdin):
+        if i % 1000000 == 0:
+            log(i)
+        
+        type, key, revision, timestamp, json = line.strip().split("\t")
+        findex = hash(key) % 256
+        files[findex].write(line)
+        
+    for f in files:
+        f.close()
+    files = []
+        
+    for fname in filenames:
+        log("sorting", fname)
+        os.system("sort -S%(buffer_size)s -k2,3 %(fname)s" % locals())
+    
+def pmap(f, tasks):
+    """Run tasks parallelly."""
+    try:
+        from subprocess import Pool
+        
+        from multiprocessing import Pool
+        r = pool.map_async(f, tasks, callback=results.append)
+        r.wait() # Wait on the results
+        
+    except ImportError:
+        Pool = None
+    
+def generate_dump(cdump_file=None):
     """Generate dump from cdump.
     
-    This is done in two passes. In pass 1, line numbers of the latest
-    revisions are stored in a dictionary. In pass 2, the line numbers
-    are sorted and those lines from the file are written to stdout.
-    
-    The cdump file is read twice, once in each pass and complexity of
-    the whole operation is O(N).
-    """
-    # pass-1: Find the index of the rows with latest revision of each document.
-    latest = {}
-    for i, (type, key, revision, timestamp, json) in enumerate(read_tsv(cdump_file)):
-        if latest.get(key, -1)[-1] < int(revision):
-            latest[key] = (i, int(revision))
-    
-    # pass-2: sort the indicies and print the lines 
-    rows = [index for index, rev in latest.values()]
-    latest = None # free the reference
-    rows.sort()
-    
-    file = web.iterbetter(open(cdump_file))
-    sys.stdout.writelines(file[i] for i in rows)
-    
+    The given cdump must be sorted by key.
+    """   
+    def process(data):
+        revision = lambda cols: int(cols[2])
+        for key, rows in itertools.groupby(data, key=lambda cols: cols[1]):
+            row = max(rows, key=revision)
+            yield row
+            
+    tjoin = "\t".join        
+    data = read_tsv(cdump_file or sys.stdin, strip=False)
+    # group by key and find the max by revision
+    sys.stdout.writelines(tjoin(row) for row in process(data))
+        
 def generate_idump(day, **db_parameters):
     """Generate incremental dump for the given day.
     """
@@ -110,15 +155,21 @@ def generate_idump(day, **db_parameters):
         vars=locals(), chunk_size=10000)
     print_dump(row.data for chunk in rows for row in chunk)
     
-def split_dump(dump_file):
+def split_dump(dump_file=None, format="oldump_%s.txt"):
     """Split dump into authors, editions and works."""
     types = ["/type/edition", "/type/author", "/type/work"]
     files = {}
     for t in types:
-        tname = "dump_" + t.split("/")[-1] + "s"
-        files[t] = open(dump_file.replace("dump", tname), "w")
+        tname = t.split("/")[-1] + "s"
+        files[t] = open(format % tname, "w")
         
-    for i, line in enumerate(open(dump_file)):
+    if dump_file is None:
+        stdin = sys.stdin
+    else:
+        stdin = open(dump_file)
+        
+        
+    for i, line in enumerate(stdin):
         if i % 1000000 == 0:
             log(i)
         type, rest = line.split("\t", 1)
@@ -133,7 +184,7 @@ def make_index(dump_file):
     
     from openlibrary.plugins.openlibrary.processors import urlsafe
             
-    for type, key, revision, timestamp, json in parse_tsv(dump_file):
+    for type, key, revision, timestamp, json in read_tsv(dump_file):
         data = simplejson.loads(json)
         if type == '/type/edition' or type == '/type/work':
             title = data.get('title', 'untitled')
@@ -152,14 +203,34 @@ def make_index(dump_file):
         else:
             created = "-"
         print "\t".join([web.safestr(path), web.safestr(title), created, timestamp])
-
-def read_tsv(file):
-    """Read a tab seperated file and return an iterator over rows."""
-    if isinstance(file, basestring):
-        file = open(file)
-    for line in file:
-        yield line.strip().split("\t")
+        
+def make_bsddb(dbfile, dump_file):
+    import bsddb 
+    db = bsddb.btopen(dbfile, 'w', cachesize=1024*1024*1024)
     
+    from infogami.infobase.utils import flatten_dict
+    
+    indexable_keys = set([
+        "authors.key",  "works.key", # edition
+        "authors.author.key", "subjects", "subject_places", "subject_people", "subject_times" # work
+    ])
+    for type, key, revision, timestamp, json in read_tsv(dump_file):
+        db[key] = json
+        d = simplejson.loads(json)
+        index = [(k, v) for k, v in flatten_dict(d) if k in indexable_keys]
+        for k, v in index:
+            k = web.rstrips(k, ".key")
+            if k.startswith("subject"):
+                v = '/' + v.lower().replace(" ", "_")
+                
+            dbkey  = web.safestr('by_%s%s' % (k, v))
+            if dbkey in db:
+                db[dbkey] = db[dbkey] + " " + key
+            else:
+                db[dbkey] = key
+    db.close()
+    log("done")
+
 def _process_key(key):
     mapping = (
         "/l/", "/languages/",
@@ -242,10 +313,14 @@ def main(cmd, args):
         generate_dump(*args, **kwargs)
     elif cmd == 'idump':
         generate_idump(*args, **kwargs)
+    elif cmd == 'sort':
+        sort_dump(*args, **kwargs)
     elif cmd == 'split':
         split_dump(*args, **kwargs)
     elif cmd == 'index':
         make_index(*args, **kwargs)
+    elif cmd == 'bsddb':
+        make_bsddb(*args, **kwargs)
     elif cmd == 'sitemaps':
         from sitemap import generate_sitemaps
         generate_sitemaps(*args, **kwargs)
