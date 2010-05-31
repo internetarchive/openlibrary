@@ -7,6 +7,7 @@ from openlibrary.catalog.utils import flip_name
 from infogami.utils import view, template
 from infogami.utils.view import safeint, add_flash_message
 import simplejson as json
+from openlibrary.plugins.openlibrary.processors import urlsafe
 
 try:
     from openlibrary.plugins.upstream.utils import get_coverstore_url, render_template
@@ -299,7 +300,7 @@ def get_doc(doc):
         authors = [(i, tidy_name(j)) for i, j in zip(ak, an)]
     cover = doc.find("str[@name='cover_edition_key']")
 
-    return web.storage(
+    doc = web.storage(
         key = doc.find("str[@name='key']").text,
         title = doc.find("str[@name='title']").text,
         edition_count = int(doc.find("int[@name='edition_count']").text),
@@ -311,6 +312,8 @@ def get_doc(doc):
         subtitle = work_subtitle,
         cover_edition_key = (cover.text if cover is not None else None),
     )
+    doc.url = '/works/' + doc.key + '/' + urlsafe(doc.title)
+    return doc
 
 re_subject_types = re.compile('^(places|times|people)/(.*)')
 subject_types = {
@@ -328,6 +331,7 @@ def work_object(w):
         edition_count = w['edition_count'],
         key = '/works/' + w['key'],
         title = w['title'],
+        url = '/works/' + w['key'] + '/' + urlsafe(w['title']),
         cover_edition_key = w.get('cover_edition_key', None),
         first_publish_year = (w['first_publish_year'] if 'first_publish_year' in w else None),
         ia = w.get('ia', [])
