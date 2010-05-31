@@ -3,9 +3,9 @@
 
 USAGE: 
     
-    Fetch /subjects/Love and it's references upto depth 2
+    Fetch an author and it's references upto depth 3
     
-    $ python fetch.py /subjects/Love 2
+    $ python fetch.py /authors/OL23919A
 
     Load all the fetched documents into local instance
 
@@ -31,13 +31,11 @@ def query(**kw):
     json = urllib.urlopen("http://openlibrary.org/query.json?" + urllib.urlencode(kw)).read()
     return simplejson.loads(json)
 
-def get_backreferences(key):
+def get_backreferences(key, limit=5):
     if key.startswith("/works"):
-        return [d['key'] for d in query(type="/type/edition", works=key, limit=5)]
+        return [d['key'] for d in query(type="/type/edition", works=key, limit=limit)]
     if key.startswith("/authors"):
-        return [d['key'] for d in query(type="/type/edition", authors=key, limit=5)]
-    elif key.startswith("/subjects"):
-        return [d['key'] for d in query(type="/type/work", subjects=key, limit=5)]
+        return [d['key'] for d in query(type="/type/edition", authors=key, limit=limit)]
     else:
         return []
 
@@ -56,10 +54,10 @@ def get_references(doc, result=None):
             get_references(v, result)
     return result
 
-def fetch(key, depth):
-    _fetch(key, maxlevel=depth)
+def fetch(key, depth, limit):
+    _fetch(key, maxlevel=depth, limit=limit)
 
-def _fetch(key, visited=None, level=0, maxlevel=0):
+def _fetch(key, visited=None, level=0, maxlevel=0, limit=5):
     """Fetch documents using depth-first traversal"""
     if visited is None:
         visited = set()
@@ -77,11 +75,11 @@ def _fetch(key, visited=None, level=0, maxlevel=0):
     refs = get_references(doc)
 
     if level < maxlevel:
-        refs += get_backreferences(key)
+        refs += get_backreferences(key, limit=limit)
 
     for k in refs:
         if k not in visited and not k.startswith("/type/"):
-            _fetch(k, visited, level=level+1, maxlevel=maxlevel)
+            _fetch(k, visited, level=level+1, maxlevel=maxlevel, limit=limit)
 
 def makedirs(dir):
     if not os.path.exists(dir):
@@ -95,8 +93,8 @@ def write(key, doc):
     f.write(simplejson.dumps(doc))
     f.close()
 
-def main(key, level=0):
-    fetch(key, int(level))
+def main(key, level=0, limit=100):
+    fetch(key, int(level), int(limit))
 
 def topological_sort(nodes, get_children):
     def visit(n):
