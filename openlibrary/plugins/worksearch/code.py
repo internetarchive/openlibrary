@@ -297,7 +297,7 @@ def get_doc(doc):
     else:
         ak = [e.text for e in doc.find("arr[@name='author_key']")]
         an = [e.text for e in doc.find("arr[@name='author_name']")]
-        authors = [web.storage(key=key, name=tidy_name(name), url="/authors/%s/%s" % (key, urlsafe(name))) for key, name in zip(ak, an)]
+        authors = [web.storage(key=key, name=tidy_name(name), url="/authors/%s/%s" % (key, (urlsafe(name) if name is not None else 'noname'))) for key, name in zip(ak, an)]
     cover = doc.find("str[@name='cover_edition_key']")
 
     doc = web.storage(
