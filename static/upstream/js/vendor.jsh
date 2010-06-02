@@ -13,6 +13,7 @@ function xcat() {
     echo
 }
 
+xcat $VENDORJS/jquery-ui/jquery-ui-1.7.2.min.js
 xcat $VENDORJS/colorbox/colorbox/jquery.colorbox-min.js
 xcat $VENDORJS/jcarousel/lib/jquery.jcarousel.js | $JSMIN
 xcat $VENDORJS/jquery-sparkline/jquery.sparkline.min.js
