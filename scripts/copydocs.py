@@ -18,7 +18,7 @@ import os
 import simplejson
 import web
 
-from openlibrary.api import OpenLibrary, marshal
+from openlibrary.api import OpenLibrary, marshal, unmarshal
 from optparse import OptionParser
 
 __version__ = "0.2"
@@ -54,6 +54,7 @@ def parse_args():
     parser.add_option("-c", "--comment", dest="comment", default="", help="comment")
     parser.add_option("--src", dest="src", metavar="SOURCE_URL", default="http://openlibrary.org/", help="URL of the source server (default: %default)")
     parser.add_option("--dest", dest="dest", metavar="DEST_URL", default="http://0.0.0.0:8080/", help="URL of the destination server (default: %default)")
+    parser.add_option("-r", "--recursive", dest="recursive", action='store_true', default=False, help="Recursively fetch all the referred docs.")
     return parser.parse_args()
 
 class Disk:
@@ -100,6 +101,59 @@ def read_lines(filename):
         return [line.strip() for line in open(filename)]
     except IOError:
         return []
+        
+def get_references(doc, result=None):
+    if result is None:
+        result = []
+
+    if isinstance(doc, list):
+        for v in doc:
+            get_references(v, result)
+    elif isinstance(doc, dict):
+        if 'key' in doc and len(doc) == 1:
+            result.append(doc['key'])
+
+        for k, v in doc.items():
+            get_references(v, result)
+    return result
+    
+def copy(src, dest, keys, comment, recursive=False, saved=None, cache=None):
+    if saved is None:
+        saved = set()
+    if cache is None:
+        cache = {}
+        
+    def fetch(keys):
+        docs = []
+        
+        for k in keys:
+            if k in cache:
+                docs.append(cache[k])
+                
+        keys = [k for k in keys if k not in cache]
+        if keys:
+            print "fetching", keys
+            docs2 = marshal(src.get_many(keys))
+            cache.update((doc['key'], doc) for doc in docs2)
+            docs.extend(docs2)
+        return docs
+        
+    keys = [k for k in keys if k not in saved]
+    docs = fetch(keys)
+    
+    if recursive:
+        refs = get_references(docs)
+        refs = [r for r in list(set(refs)) if not r.startswith("/type/")]
+        if refs:
+            print "found references", refs
+            copy(src, dest, refs, comment, recursive=True, saved=saved, cache=cache)
+    
+    docs = [doc for doc in docs if doc['key'] not in saved]
+    
+    keys = [doc['key'] for doc in docs]
+    print "saving", keys
+    print dest.save_many(docs, comment=comment)
+    saved.update(keys)
             
 def main():
     options, args = parse_args()
@@ -121,8 +175,8 @@ def main():
 
     keys = args
     keys = list(expand(src, keys))
-    docs = src.get_many(keys)
-    print dest.save_many(docs, comment=options.comment)
+    
+    copy(src, dest, keys, comment=options.comment, recursive=options.recursive)
     
 if __name__ == '__main__':
     main()
