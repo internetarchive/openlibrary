@@ -16,8 +16,8 @@ dummy_sendmail: True
 # enable http compression
 use_gzip: True
 
-# uncomment the following line if you want to run a local coverstore server
-# coverstore_url = "http://0.0.0.0:8070/"
+# set this to the url of coverstore web server
+coverstore_url = "http://0.0.0.0:8070/"
 
 plugins:
     - openlibrary
@@ -40,4 +40,5 @@ plugin_worksearch:
 default_template_root: /upstream
 css_root: /upstream/css
 js_root: /upstream/js
+use_google_cdn: false
 
