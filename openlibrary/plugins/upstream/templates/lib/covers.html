@@ -68,7 +68,7 @@ $jsdef render_page(page):
         <div class="coverMagic">
             $if w.cover_id:
                 <div class="SRPCover">
-                    <a href="$w.key" title="$w.title, $w.edition_count editions"><img src="http://covers.openlibrary.org/b/id/$w.cover_id-M.jpg" alt="$w.title" class="cover"/></a>                
+                    <a href="$w.key" title="$w.title, $w.edition_count editions"><img src="$get_coverstore_url()/b/id/$w.cover_id-M.jpg" alt="$w.title" class="cover"/></a>                
                 </div>
             $else:
                 <a href="$w.key">

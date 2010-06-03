@@ -199,7 +199,7 @@ function less(header) {
             $ key = doc.key
             <li>
             <span class="bookcover">
-                $ cover = "http://covers.openlibrary.org/b/olid/%s-M.jpg" % doc.cover_edition_key if doc.cover_edition_key else "http://openlibrary.org/images/icons/avatar_book-sm.png"
+                $ cover = "$get_coverstore_url()/b/olid/%s-M.jpg" % doc.cover_edition_key if doc.cover_edition_key else "http://openlibrary.org/images/icons/avatar_book-sm.png"
                 <a href="$doc.url"><img src="$cover" height="70" alt="$doc.title$(': ' + doc.subtitle if doc.get('subtitle', None) else '')" title="$doc.title$(': ' + doc.subtitle if doc.get('subtitle', None) else '')"/></a>
             </span>
             <span class="details">

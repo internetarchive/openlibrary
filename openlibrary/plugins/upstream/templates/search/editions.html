@@ -34,7 +34,7 @@ $else:
             $ authors = zip(doc.get('author_key', []), doc.get('author_name', []))
             <li>
             <span class="bookcover">
-                $ cover = "http://covers.openlibrary.org/b/olid/%s-M.jpg?default=http://upstream.openlibrary.org/images/icons/avatar_book-sm.png" % doc['key']
+                $ cover = "$get_coverstore_url()/b/olid/%s-M.jpg?default=http://upstream.openlibrary.org/images/icons/avatar_book-sm.png" % doc['key']
                 <a href="/books/$doc['key']"><img src="$cover" height="70" alt="$doc['title']" title="$doc['title']"/></a>
             </span>
             <span class="details">
