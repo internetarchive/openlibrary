@@ -25,7 +25,6 @@ def run_update():
     global authors_to_update
     global works_to_update
     global last_update
-    last_update = time()
     print 'running update: %s works %s authors' % (len(works_to_update), len(authors_to_update))
     if works_to_update:
         requests = []
@@ -53,10 +52,17 @@ def run_update():
                     assert need_update
                     print w
                     ol.save(w['key'], w, 'avoid author redirect')
-
-        solr_update(requests + ['<commit/>'], debug=True)
+            if len(requests) >= 100:
+                solr_update(requests, debug=True)
+                requests = []
+#            if num % 1000 == 0:
+#                solr_update(['<commit/>'], debug=True)
+        if requests:
+            solr_update(requests, debug=True)
+        solr_update(['<commit/>'], debug=True)
+    last_update = time()
     print >> open(state_file, 'w'), offset
-    if False and authors_to_update:
+    if authors_to_update:
         requests = []
         for akey in authors_to_update:
             print 'update author:', akey
@@ -111,7 +117,7 @@ while True:
         if action == 'new_account':
             continue
         author = i['data'].get('author', None) if 'data' in i else None
-        if author in ('/user/AccountBot',):
+        if author in ('/user/AccountBot', '/people/AccountBot'):
             if action not in ('save', 'save_many'):
                 print action, author, key, i.keys()
                 print i['data']
@@ -135,6 +141,6 @@ while True:
                 key = query.pop('key')
                 process_save(key, query)
     since_last_update = time() - last_update
-    if len(works_to_update) > 1000 or len(authors_to_update) > 1000 or since_last_update > 60 * 30:
+    if len(works_to_update) > 100 or len(authors_to_update) > 100 or since_last_update > 60 * 30:
         run_update()
 
