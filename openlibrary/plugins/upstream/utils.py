@@ -569,7 +569,11 @@ def sprintf(s, *a, **kw):
         
 def _get_blog_feeds():
     url = "http://blog.openlibrary.org/feed/"
-    tree = etree.parse(urllib.urlopen(url))
+    try:
+        tree = etree.parse(urllib.urlopen(url))
+    except IOError:
+        # Handle error gracefully.
+        return []
     
     def parse_item(item):
         pubdate = datetime.datetime.strptime(item.find("pubDate").text, '%a, %d %b %Y %H:%M:%S +0000')
