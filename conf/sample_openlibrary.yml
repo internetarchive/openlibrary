@@ -10,6 +10,11 @@ infobase:
     user_root: "/people"
     writelog: "log"
 
+# Comment db_parameters and infobase and uncomment infobase_server to run OL with an infobase server
+#infobase_server: "0.0.0.0:7000"
+
+site: openlibrary.org
+
 # print the mail instead of sending it really.
 dummy_sendmail: True
 
@@ -17,7 +22,7 @@ dummy_sendmail: True
 use_gzip: True
 
 # set this to the url of coverstore web server
-coverstore_url = "http://0.0.0.0:8070/"
+coverstore_url: "http://0.0.0.0:8070/"
 
 plugins:
     - openlibrary
