@@ -8,6 +8,7 @@ db_parameters:
 infobase:
     secret_key: "xxx"
     user_root: "/people"
+    writelog: "log"
 
 # print the mail instead of sending it really.
 dummy_sendmail: True
