@@ -56,7 +56,7 @@ $else:
                     </span>
                     $if 'publisher' in doc:
                         <span class="resultPublisher">
-                            Published by $', '.join(doc['publisher'])
+                            Published $doc.get('publish_date', '') by $', '.join(doc['publisher'])
                         </span>
                 </span>
             </span>
