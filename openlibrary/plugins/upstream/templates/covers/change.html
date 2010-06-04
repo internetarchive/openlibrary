@@ -6,8 +6,10 @@ $if doc.type.key == '/type/author':
     $ title = "Author Photos"
     $if doc.get_photo():
         $ change = "Manage Author Photos"
+        $ size = "smaller"        
     $else:
         $ change = "Add Author Photo"
+        $ size = "smallest"
 $else:
     $ add_url = doc.url('/add-cover')
     $ manage_url = doc.url('/manage-covers')
@@ -15,8 +17,10 @@ $else:
     
     $if doc.get_cover():
         $ change = "Manage Covers"
+        $ size = "smaller"
     $else:
         $ change = "Add Cover Image"
+        $ size = "smallest"
     
 <script type="text/javascript">
 <!--
@@ -89,7 +93,7 @@ function update_image(image) {
 //-->
 </script>
 
-<div class="smallest sansserif" style="margin-top:5px;"><a href="#addImage" class="coverPop">$change</a></div>
+<div class="$size sansserif" style="margin-top:5px;"><a href="#addImage" class="coverPop">$change</a></div>
 
 <div class="hidden">
     <div class="floater" id="addImage">

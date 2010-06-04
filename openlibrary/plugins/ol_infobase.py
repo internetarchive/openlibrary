@@ -23,7 +23,6 @@ def init_plugin():
     ol = server.get_site('openlibrary.org')
     ib = server._infobase
     
-
     if config.get('writelog'):
         ib.add_event_listener(logger.Logger(config.writelog))
         
@@ -305,7 +304,7 @@ def process_json(key, json):
     if key is None or json is None:
         return None
     base = key[1:].split("/")[0]
-    if base in ['authors', 'books', 'works', 'people', 'usergroup', 'permission']:
+    if base in ['authors', 'books', 'works', 'languages', 'people', 'usergroup', 'permission']:
         data = simplejson.loads(json)
         data = _process_data(data)
         json = simplejson.dumps(data)

@@ -1,0 +1,17 @@
+$def with (page)
+<?xml version="1.0" encoding="utf-8"?>
+<rdf:RDF
+  xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+  xmlns:ol='http://openlibrary.org$page.type.key'
+>
+$def display(key, value):
+    $if isinstance(value, list):
+        $for v in value: $:display(key, v)
+    $elif hasattr(value, 'key'):
+            <ol:$key>http://openlibrary.org${value.key}.rdf</ol:$key>
+    $else:
+            <ol:$key>$value</ol:$key>
+
+$for key in page.keys(): 
+    $:display(key, page[key])
+</rdf:RDF>

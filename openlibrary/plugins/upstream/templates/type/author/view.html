@@ -73,15 +73,14 @@ $ olid = page.key.split('/')[-1]
                 <div id="searchResults" class="narrow">
                     <ul id="siteSearch" class="collapse">
                     $for doc in books.works:
-                        $ key = doc.key
                         <li>
                         <span class="bookcover">
-                        $ cover = "http://covers.openlibrary.org/b/olid/%s-M.jpg" % doc.cover_edition_key if doc.cover_edition_key else "http://upstream.openlibrary.org/images/icons/avatar_book-sm.png"
-                        <a href="$key" title="$doc.title"><img src="$cover" height="70" alt="$doc.title"/></a>
+                        $ cover = "$get_coverstore_url()/b/olid/%s-M.jpg" % doc.cover_edition_key if doc.cover_edition_key else "/images/icons/avatar_book-sm.png"
+                        <a href="$doc.url" title="$doc.title"><img src="$cover" height="70" alt="$doc.title"/></a>
                         </span>
                         <span class="details">
                             <span class="resultTitle">
-                                <span class="booktitle"><a href="http://upstream.openlibrary.org$doc.key">$doc.title$(': ' + doc.subtitle if doc.get('subtitle', None) else '')</a></span>
+                                <span class="booktitle"><a href="$doc.url">$doc.title$(': ' + doc.subtitle if doc.get('subtitle', None) else '')</a></span>
                                 <span class="resultPublisher">$commify(doc.edition_count) edition$("s" if doc.edition_count != 1 else "")
                                 $if doc.first_publish_year:
                                     - first published in $doc.first_publish_year
@@ -109,23 +108,21 @@ $ olid = page.key.split('/')[-1]
             $:render_template("covers/change", page, ".bookCover img")
         </div>
 
-        $def render_subjects(label, subjects, extra):
+        $def render_subjects(label, subjects, prefix):
             $if subjects:
                 <div class="section">
                     <h6 class="collapse black uppercase">$label</h6>
                     <div class="sansserif">
                     $for subject, count in subjects:
-                        <a href="/subjects/$extra$subject.replace(' ', '_')">$subject</a>$cond(not loop.last, ",", "")
+                        <a href="/subjects/$prefix$subject.lower().replace(' ', '_')">$subject</a>$cond(not loop.last, ",", "")
                     </div>
                 </div>
 
         <!-- SUBJECTS DISPLAY -->
-        <div class="section">
-            $:render_subjects("Subjects", books.get_facet('subject_facet'), '')
-            $:render_subjects("Places", books.get_facet('place_facet'), 'places/')
-            $:render_subjects("People", books.get_facet('person_facet'), 'people/')
-            $:render_subjects("Time", books.get_facet('time_facet'), 'times/')
-        </div>
+        $:render_subjects("Subjects", books.get_facet('subject_facet'), '')
+        $:render_subjects("Places", books.get_facet('place_facet'), 'place:')
+        $:render_subjects("People", books.get_facet('person_facet'), 'person:')
+        $:render_subjects("Time", books.get_facet('time_facet'), 'time:')
         <!-- /SUBJECTS -->
 
         <div class="section">

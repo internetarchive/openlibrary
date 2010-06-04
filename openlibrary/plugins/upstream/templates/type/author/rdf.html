@@ -1,0 +1,41 @@
+$def with (author)
+<?xml version="1.0" encoding="utf-8"?>
+<rdf:RDF
+  xmlns:rdf='http://www.w3.org/1999/02/22-rdf-syntax-ns#'
+  xmlns:rdfs='http://www.w3.org/2000/01/rdf-schema#'
+  xmlns:bibo='http://purl.org/ontology/bibo/'
+  xmlns:rdg2='http://RDVocab.info/elementsG2/'
+  xmlns:dcterms='http://purl.org/dc/terms/'
+>
+
+    $if author.enumeration:
+        $ name = author.name + ", " + author.enumeration
+    $else:
+        $ name = author.name
+
+    $def display(tag, value):
+        $if isinstance(value, list):
+            $for x in value:
+                <$tag>$x</$tag>
+        $elif value:
+            <$tag>$value</$tag>
+            
+    <rdf:Description rdf:about="http://openlibrary.org$author.key">
+        $:display("rdg2:name", name)
+        $:display("rdg2:variantNameForThePerson", author.alternate_names)
+        $:display("rdg2:biographicalInformation", author.bio)
+        $:display("rdg2:dateOfBirth", author.birth_date)
+        $:display("rdg2:dateOfDeath", author.death_date)
+        $:display("rdg2:titleOfThePerson", author.title)
+
+        $for link in author.links:
+            $:display("bibo:uri", link.url)
+
+        $:display("bibo:uri", author.wikipedia)
+       
+        $:display("rdg2:identifierForThePerson", author.key)
+
+        <!-- administrative -->
+        $:display("dcterms:modified", author.last_modified)
+    </rdf:Description>
+</rdf:RDF>

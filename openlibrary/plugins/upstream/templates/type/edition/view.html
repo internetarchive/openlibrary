@@ -14,17 +14,30 @@ $def display_value(label, value):
         </tr>
 
 $def display_identifiers(label, ids):
-    <tr>
-        <td class="title"><h6 class="title">$label</h6></td>
-        <td class="object"><span class="object">
-            $for id in ids:
-                $ sep = cond(loop.last, "", ", ")
-                $if id.url:
-                    <a href="$id.url">$id.value</a>$sep
-                $else:
-                    ${id.value}$sep
-        </span></td>
-    </tr>
+    $if label != "Goodreads":
+        <tr>
+            <td class="title"><h6 class="title">$label</h6></td>
+            <td class="object"><span class="object">
+                $for id in ids:
+                    $ sep = cond(loop.last, "", ", ")
+                    $if id.url:
+                        <a href="$id.url">$id.value</a>$sep
+                    $else:
+                        ${id.value}$sep
+            </span></td>
+        </tr>
+    $else:
+        <tr>
+            <td class="title"><h6 class="title">$label</h6></td>
+            <td class="object"><span class="object">
+                $for id in ids:
+                    <a href="$id.url">$id.value</a>
+            </span>
+            $if ctx.user and ctx.user.is_admin():
+                <div id="gr_add_to_books"></div>
+                <script type="text/javascript" src="http://www.goodreads.com/book/add_to_book_widget_frame/$id.value"></script>
+            </td>
+        </tr>
 
 $def display_contributor(c):
     <li><span>$c.role</span><br />$c.name </li>
@@ -97,14 +110,14 @@ $ work = page.works and page.works[0] or None
         <div class="editionAbout">
 
             <div class="section sansserif" style="line-height: 1.5em">
-                    <span style="font-size:18px;"><strong>$page.title</strong></span>  
+                    <span style="font-size:1.125em;"><strong>$page.title</strong></span>  
                 $if page.subtitle:
                     <br /><span class="larger"><em>$page.subtitle</em></span> 
                 $if page.edition_title or page.edition_name:
                     <br />$page.edition_title $page.edition_name
                 $if page.by_statement:
                     <br />$page.by_statement
-                <span style="font-size:13px;">
+                <span style="font-size:0.8125em;">
                     $if page.publish_date or page.publishers or page.publish_places:
                         <br />Published
                         $if page.publish_date:
@@ -165,17 +178,6 @@ $ work = page.works and page.works[0] or None
                 </table>
             </div>
 
-        <div class="section">
-            <h3 class="collapse">$_("ID Numbers")</h3>
-            <table class="meta">
-            <tbody>
-                $:display_identifiers("Open Library", [storage(url=None, value=page.key.split("/")[-1])])
-                $for name, values in page.get_identifiers().multi_items():
-                    $:display_identifiers(values[0].label, values)
-            </tbody>
-            </table>
-        </div>
-        
         $ classifications = page.get_classifications().multi_items()
         $if classifications:
             <div class="section">
@@ -202,6 +204,17 @@ $ work = page.works and page.works[0] or None
             </table>
             </div>
 
+        <div class="section">
+            <h3 class="collapse">$_("ID Numbers")</h3>
+            <table class="meta">
+            <tbody>
+                $:display_identifiers("Open Library", [storage(url=None, value=page.key.split("/")[-1])])
+                $for name, values in page.get_identifiers().multi_items():
+                    $:display_identifiers(values[0].label, values)
+            </tbody>
+            </table>
+        </div>
+        
         </div>
 
         <div class="editionTools">

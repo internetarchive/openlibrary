@@ -313,7 +313,8 @@ $def radiobuttons(name, options, value):
 
         <div class="formElement">
             <div class="label">
-                <label for="edition-description">$_("Does this edition need a unique description?")</label> 
+                <label for="edition-description">$_("Description of this edition")</label>
+                <span class="tip">$_("Only if it's different from the work's description")</span> 
             </div>
             <div class="input">
                 <textarea name="edition--description" id="edition-description" rows="3" cols="50">$book.description</textarea>

@@ -15,7 +15,7 @@ $var title: $page.title
             <span class="tools" style="white-space:nowrap;">
             $if page.edition_count == 1:
                 $for book in page.editions:
-                    <a href="$book.key" title="View this edition">1 edition</a>
+                    <a href="$book.url()" title="View this edition">1 edition</a>
             $else:
                 <a href="#editions" class="plain brown">$page.edition_count editions</a>
             </span>
@@ -63,27 +63,23 @@ $var title: $page.title
             <p class="largest" style="margin-bottom: 20px;" title="First Sentence"><em>"$page.first_sentence</em>"</p>
 
         $if page.description:
-            <div class="sansserif smallest brown collapse" style="margin-bottom: 5px;">About the Book</div>
+            <div class="sansserif smallest brown collapse">About the Book</div>
             $:sanitize(format(page.description))
 
-        $def render_subjects(label, subjects):
+        $def render_subjects(label, subjects, prefix=""):
             $if subjects:
                 <div class="section" style="margin-bottom:15px;">
                     <h6 class="collapse black uppercase">$label</h6>
                     <div class="sansserif">
                     $for subject in subjects:
-                        $ lc = label.lower()
-                        $ start = '/subjects'
-                        $if lc != 'subjects':
-                            $ start = start + '/' + lc
-                        <a href="$start/$:utf8(subject.lower().replace(' ', '_').replace(',',''))">$subject</a>$cond(not loop.last,",","")
+                        <a href="/subjects/$prefix$:utf8(subject.lower().replace(' ', '_').replace(',',''))">$subject</a>$cond(not loop.last,",","")
                     </div>
                 </div>
 
         $:render_subjects("Subjects", page.get_subjects())
-        $:render_subjects("People", page.subject_people)
-        $:render_subjects("Places", page.subject_places)
-        $:render_subjects("Times", page.subject_times)
+        $:render_subjects("People", page.subject_people, prefix="person:")
+        $:render_subjects("Places", page.subject_places, prefix="place:")
+        $:render_subjects("Times", page.subject_times, prefix="time:")
 
         $if page.excerpts:
             <div class="section">
@@ -126,7 +122,7 @@ $var title: $page.title
         $if page.edition_count > 1:
             $if (page.lc_classifications or page.dewey_number):
                 <div class="section">
-                    <h3>$_("Classifications")</h3>
+                    <h3 class="collapse">$_("Classifications")</h3>
                     <table class="meta"><tbody>
                     $if page.lc_classifications:
                         <tr><td class="title"><span class="title">Library of Congress</span></td>

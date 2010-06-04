@@ -23,7 +23,10 @@ $ bodyid = ctx.get('bodyid', 'user')
 <a name="top"></a>
 
 $if bodyid != "form":
-    <p class="shift"><a href="#content" title="Click to skip!">Click here to skip to this page's main content.</a></p>
+    <p class="shift">
+        <a href="#content" title="Click to skip!">Click here to skip to this page's main content.</a>
+        <a href="/index/">Site Index</a>
+    </p>
     <div id="topNotice"><p>$:render_template("site/alert")</p></div>
 
     <div id="placement">
