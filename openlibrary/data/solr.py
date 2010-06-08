@@ -48,6 +48,19 @@ def fix_subjects(doc):
         if name in doc:
             doc[name] = [fix(s) for s in doc[name]]
     return doc
+    
+def get_subjects(work):
+    for s in doc.get('subjects', []):
+        yield s, '/subjects/' + s.lower().replace(' ', '_')
+
+    for s in doc.get('subject_places', []):
+        yield s, '/subjects/place:' + s.lower().replace(' ', '_')
+
+    for s in doc.get('subject_people', []):
+        yield s, '/subjects/person:' + s.lower().replace(' ', '_')
+
+    for s in doc.get('subject_times', []):
+        yield s, '/subjects/time:' + s.lower().replace(' ', '_')    
 
 def process_work(doc, author_db):
     doc = fix_subjects(doc)
@@ -65,26 +78,12 @@ def process_work(doc, author_db):
         yield doc['key'], 'author', author_db[olid]
         yield akey, 'work', doc['key']
         
-    for s in doc.get('subjects', []):
-        key = '/subjects/' + s.lower().replace(' ', '_')
-        yield key, "name", s
+    for name, key in get_subjects(doc):
+        yield key, "name", name
         yield key, "work", doc['key']
-
-    for s in doc.get('subject_places', []):
-        key = '/subjects/place:' + s.lower().replace(' ', '_')
-        yield key, "name", s
-        yield key, "work", doc['key']
-
-    for s in doc.get('subject_people', []):
-        key = '/subjects/person:' + s.lower().replace(' ', '_')
-        yield key, "name", s
-        yield key, "work", doc['key']
-    
-    for s in doc.get('subject_times', []):
-        key = '/subjects/time:' + s.lower().replace(' ', '_')
-        yield key, "name", s
-        yield key, "work", doc['key']
-    
+        for a in authors:
+            yield a, "subject", key
+        
 def process_author(doc):
     key = doc['key']
     properties = ["name", "personal_name", "alternate_names", "birth_date", "death_date", "date"]
@@ -107,6 +106,8 @@ class Writer:
             return "times.txt"
         elif key.startswith("/subjects/"):
             return "subjects.txt"
+        else:
+            return "unexpected.txt"
             
     def get_file(self, key):
         filename = self.get_filename(key)
@@ -152,7 +153,7 @@ def generate_dump(editions_dump, works_dump, authors_dump, redirects_dump):
     author_db = process_author_dump(writer, authors_dump)
     process_work_dump(writer, works_dump, author_db)
     author_db.close()
+    author_db = None
     
     process_edition_dump(writer, editions_dump)
-
     log("done")
