@@ -49,7 +49,7 @@ def fix_subjects(doc):
             doc[name] = [fix(s) for s in doc[name]]
     return doc
     
-def get_subjects(work):
+def get_subjects(doc):
     for s in doc.get('subjects', []):
         yield s, '/subjects/' + s.lower().replace(' ', '_')
 
@@ -121,7 +121,7 @@ class Writer:
             self.get_file(key).write(tjoin([key, property, value]) + "\n")
             
     def close(self):
-        for f in self.files:
+        for f in self.files.values():
             f.close()
         self.files.clear()
             
