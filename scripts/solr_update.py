@@ -6,14 +6,26 @@ from openlibrary.solr.update_work import update_work, solr_update, update_author
 from openlibrary.api import OpenLibrary, Reference
 from openlibrary.catalog.read_rc import read_rc
 from openlibrary.catalog.works.find_works import find_title_redirects, find_works, get_books, books_query, update_works
+from optparse import OptionParser
+import sys
+import yaml
 
-rc = read_rc()
-ol = OpenLibrary("http://openlibrary.org")
-ol.login('EdwardBot', rc['EdwardBot']) 
+parser = OptionParser()
 
-base = 'http://ia331526.us.archive.org:7001/openlibrary.org/log/'
+parser.add_option("--server", dest="server", default='openlibrary.org')
+parser.add_option("--config", dest="config", default='openlibrary.yml')
 
-state_file = rc['state_dir'] + '/solr_update'
+(options, args) = parser.parse_args()
+
+ol = OpenLibrary("http://" + options.server)
+done_login = False
+
+config_file = options.config
+runtime_config = yaml.load(open(config_file))
+
+base = 'http://%s/openlibrary.org/log/' % runtime_config['infobase_server']
+
+state_file = runtime_config['state_dir'] + '/solr_update'
 offset = open(state_file).readline()[:-1]
 
 print 'start:', offset
@@ -51,6 +63,9 @@ def run_update():
                             need_update = True
                     assert need_update
                     print w
+                    if not done_login:
+                        rc = read_rc()
+                        ol.login('EdwardBot', rc['EdwardBot']) 
                     ol.save(w['key'], w, 'avoid author redirect')
             if len(requests) >= 100:
                 solr_update(requests, debug=True)
