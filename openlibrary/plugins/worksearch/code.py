@@ -609,11 +609,11 @@ class search(delegate.page):
 
     def GET(self):
         global ftoken_db
-        i = web.input(author_key=[], language=[], first_publish_year=[], publisher_facet=[], subject_facet=[], person_facet=[], place_facet=[], time_facet=[], ftokens=[])
-        if i.get('ftokens', []):
+        i = web.input(author_key=[], language=[], first_publish_year=[], publisher_facet=[], subject_facet=[], person_facet=[], place_facet=[], time_facet=[])
+        if i.get('ftokens', None) and ',' not in i.ftokens:
+            token = i.ftokens
             if ftoken_db is None:
                 ftoken_db = dbm.open('/olsystem/ftokens', 'r')
-            token = i.ftokens[0]
             if ftoken_db.get(token, None):
                 raise web.seeother('/subjects/' + ftoken_db[token].decode('utf-8').lower().replace(' ', '_'))
 
