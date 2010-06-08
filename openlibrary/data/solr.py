@@ -120,6 +120,11 @@ class Writer:
         for key, property, value in tuples:
             self.get_file(key).write(tjoin([key, property, value]) + "\n")
             
+    def close(self):
+        for f in self.files:
+            f.close()
+        self.files.clear()
+            
 def process_author_dump(writer, authors_dump):
     import bsddb 
     db = bsddb.btopen('solrdump/authors.db', 'w', cachesize=1024*1024*1024)
@@ -156,4 +161,6 @@ def generate_dump(editions_dump, works_dump, authors_dump, redirects_dump):
     author_db = None
     
     process_edition_dump(writer, editions_dump)
+    
+    writer.close()
     log("done")
