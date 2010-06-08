@@ -608,6 +608,7 @@ class search(delegate.page):
             raise web.seeother(editions[0])
 
     def GET(self):
+        global ftoken_db
         i = web.input(author_key=[], language=[], first_publish_year=[], publisher_facet=[], subject_facet=[], person_facet=[], place_facet=[], time_facet=[], ftokens=[])
         if i.get('ftokens', []):
             if not ftoken_db:
