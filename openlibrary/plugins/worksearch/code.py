@@ -9,7 +9,7 @@ from infogami.utils.view import safeint, add_flash_message
 import simplejson as json
 from openlibrary.plugins.openlibrary.processors import urlsafe
 
-ftoken_db = {}
+ftoken_db = None
 
 try:
     from openlibrary.plugins.upstream.utils import get_coverstore_url, render_template
@@ -611,11 +611,11 @@ class search(delegate.page):
         global ftoken_db
         i = web.input(author_key=[], language=[], first_publish_year=[], publisher_facet=[], subject_facet=[], person_facet=[], place_facet=[], time_facet=[], ftokens=[])
         if i.get('ftokens', []):
-            if not ftoken_db:
+            if ftoken_db is None:
                 ftoken_db = dbm.open('/olsystem/ftokens', 'r')
             token = i.ftokens[0]
-            if token in ftoken_db:
-                raise web.seeother('/subject/' + ftoken_db[token].lower().replace(' ', '_'))
+            if ftoken_db.get(token, None):
+                raise web.seeother('/subject/' + ftoken_db[token].decode('utf-8').lower().replace(' ', '_'))
 
         self.redirect_if_needed(i)
 
