@@ -5,15 +5,29 @@ from openlibrary.solr.work_subject import find_subjects, four_types, get_marc_su
 from pprint import pprint
 from urllib import urlopen
 import simplejson as json
+from time import sleep
 
 re_lang_key = re.compile(r'^/(?:l|languages)/([a-z]{3})$')
 re_author_key = re.compile(r'^/(?:a|authors)/(OL\d+A)$')
 re_edition_key = re.compile(r'^/(?:b|books)/(OL\d+M)$')
 
 solr_host = {
-    'works': 'ia331507:8983',
-    'authors': 'ia331507:8984'
+    'works': 'ia331508:8983',
+    'authors': 'ia331509:8983',
+    'subjects': 'ia331509:8983',
+    'editions': 'ia331509:8983',
 }
+
+def is_daisy_encrypted(ia):
+    url = 'http://www.archive.org/download/%s/%s_meta.xml' % (ia, ia)
+    look_for = '<collection>printdisabled</collection>'
+    for attempt in range(20):
+        try:
+            return any(i.strip().lower() == look_for for i in urlopen(url))
+        except:
+            print 'retry', attempt
+            sleep(5)
+    return False
 
 class AuthorRedirect (Exception):
     pass
@@ -38,20 +52,23 @@ def add_field_list(doc, name, field_list):
     for value in field_list:
         add_field(doc, name, value)
 
-to_drop = set('''!*"'();:@&=+$,/?%#[]''')
+to_drop = set(''';/?:@&=+$,<>#%"{}|\\^[]`\n\r''')
 
 def str_to_key(s):
-    return ''.join(c for c in s.lower() if c not in to_drop)
+    return ''.join(c if c != ' ' else '_' for c in s.lower() if c not in to_drop)
 
 re_not_az = re.compile('[^a-zA-Z]')
 def is_sine_nomine(pub):
     return re_not_az.sub('', pub).lower() == 'sn'
 
-def pick_cover(editions):
+def pick_cover(w, editions):
+    w_cover = w['covers'][0] if w.get('covers', []) else None
     first_with_cover = None
     for e in editions:
-        if not has_cover(e['key']):
+        if 'covers' not in e:
             continue
+        if w_cover and e['covers'][0] == w_cover:
+            return e['key']
         if not first_with_cover:
             first_with_cover = e['key']
         for l in e.get('languages', []):
@@ -76,34 +93,42 @@ def build_doc(w):
     if 'editions' not in w:
         q = { 'type':'/type/edition', 'works': wkey, '*': None }
         w['editions'] = list(query_iter(q))
+        print 'editions:', [e['key'] for e in w['editions']]
 
     editions = []
     for e in w['editions']:
         pub_year = get_pub_year(e)
         if pub_year:
             e['pub_year'] = pub_year
+        if 'ocaid' in e and is_daisy_encrypted(e['ocaid']):
+            e['encrypted_daisy'] = True
         editions.append(e)
 
     editions.sort(key=lambda e: e.get('pub_year', None))
 
     print len(w['editions']), 'editions found'
 
-    try:
-        work_authors = [a['author']['key'] for a in w.get('authors', []) if 'author' in a]
-        author_keys = [re_author_key.match(akey).group(1) for akey in work_authors]
-        authors = [withKey(akey) for akey in work_authors]
-    except KeyError:
-        print w['key']
-        raise
     print w['key']
-    for a in authors:
-        print a
+    work_authors = []
+    authors = []
+    author_keys = []
+    for a in w.get('authors', []):
+        if 'author' not in a:
+            continue
+        akey = a['author']['key']
+        m = re_author_key.match(akey)
+        if not m:
+            print 'invalid author key:', akey
+            continue
+        work_authors.append(akey)
+        author_keys.append(m.group(1))
+        authors.append(withKey(akey))
     if any(a['type']['key'] == '/type/redirect' for a in authors):
         raise AuthorRedirect
     assert all(a['type']['key'] == '/type/author' for a in authors)
 
-    subjects = four_types(find_subjects(get_marc_subjects(w)))
-    print subjects
+    #subjects = four_types(find_subjects(get_marc_subjects(w)))
+    subjects = {}
     field_map = {
         'subjects': 'subject',
         'subject_places': 'place',
@@ -111,7 +136,8 @@ def build_doc(w):
         'subject_people': 'people',
     }
 
-    print subjects
+    has_fulltext = any(e.get('ocaid', None) and not e.get('encrypted_daisy', None) for e in editions)
+
     for db_field, solr_field in field_map.iteritems():
         if not w.get(db_field, None):
             continue
@@ -127,6 +153,13 @@ def build_doc(w):
                 print 'v:', v
                 raise
 
+    if any(e.get('ocaid', None) for e in editions):
+        subjects.setdefault('subject', {})
+        subjects['subject']['Accessible book'] = subjects['subject'].get('Accessible book', 0) + 1
+        if not has_fulltext:
+            subjects['subject']['Protected DAISY'] = subjects['subject'].get('Protected DAISY', 0) + 1
+        print w['key'], subjects['subject']
+
     doc = Element("doc")
 
     add_field(doc, 'key', w['key'][7:])
@@ -134,7 +167,6 @@ def build_doc(w):
     if title:
         add_field(doc, 'title', title)
 #        add_field(doc, 'title_suggest', title)
-    has_fulltext = any(e.get('ocaid', None) for e in editions)
 
     add_field(doc, 'has_fulltext', has_fulltext)
     if w.get('subtitle', None):
@@ -157,11 +189,7 @@ def build_doc(w):
     for e in editions:
         add_field(doc, 'edition_key', re_edition_key.match(e['key']).group(1))
 
-    cover_edition = None
-    if 'cover_edition' in w:
-        cover_edition = w['cover_edition']['key']
-    else:
-        cover_edition = pick_cover(editions)
+    cover_edition = pick_cover(w, editions)
     if cover_edition:
         add_field(doc, 'cover_edition_key', re_edition_key.match(cover_edition).group(1))
 
@@ -211,7 +239,7 @@ def build_doc(w):
     lang = set()
     for e in editions:
         for l in e.get('languages', []):
-            m = re_lang_key.match(l['key'])
+            m = re_lang_key.match(l['key'] if isinstance(l, dict) else l)
             lang.add(m.group(1))
     if lang:
         add_field_list(doc, 'language', lang)
@@ -257,8 +285,10 @@ def solr_update(requests, debug=False, index='works'):
     h1.connect()
     for r in requests:
         if debug:
-            print `r[:70]` + '...' if len(r) > 70 else `r`
+            print 'request:', `r[:65]` + '...' if len(r) > 65 else `r`
+        assert isinstance(r, basestring)
         url = 'http://%s/solr/%s/update' % (solr_host[index], index)
+        print url
         h1.request('POST', url, r, { 'Content-type': 'text/xml;charset=utf-8'})
         response = h1.getresponse()
         response_body = response.read()
@@ -288,9 +318,9 @@ def update_work(w):
         except:
             print w
             raise
-        if doc:
+        if doc is not None:
             add = Element("add")
-            add.append(build_doc(w))
+            add.append(doc)
             add_xml = tostring(add).encode('utf-8')
             requests.append(add_xml)
 
@@ -298,8 +328,12 @@ def update_work(w):
 
 def update_author(akey):
     # http://ia331507.us.archive.org:8984/solr/works/select?indent=on&q=author_key:OL22098A&facet=true&rows=1&sort=edition_count%20desc&fl=title&facet.field=subject_facet&facet.mincount=1
+    m = re_author_key.match(akey)
+    if not m:
+        print 'bad key:', akey
+        return
+    author_id = m.group(1)
     a = withKey(akey)
-    author_id = re_author_key.match(akey).group(1)
     if a['type']['key'] in ('/type/redirect', '/type/delete') or not a.get('name', None):
         return ['<delete><query>key:%s</query></delete>' % author_id] 
     try:
@@ -312,7 +346,6 @@ def update_author(akey):
 
     url = 'http://' + solr_host['works'] + '/solr/works/select?wt=json&json.nl=arrarr&q=author_key:%s&sort=edition_count+desc&rows=1&fl=title,subtitle&facet=true&facet.mincount=1' % author_id
     url += ''.join('&facet.field=%s_facet' % f for f in facet_fields)
-    print url
     reply = json.load(urlopen(url))
     work_count = reply['response']['numFound']
     docs = reply['response'].get('docs', [])
@@ -342,7 +375,7 @@ def update_author(akey):
     add_field_list(doc, 'top_subjects', top_subjects)
 
     q = {'type': '/type/redirect', 'location': akey}
-    redirects = ''.join('<query>key:%s</query>' % re_author_key.match(r['key']).match(1) for r in query_iter(q))
+    redirects = ''.join('<query>key:%s</query>' % (re_author_key.match(r['key']).group(1),) for r in query_iter(q))
     requests = []
     if redirects:
         requests.append('<delete>' + redirects + '</delete>')
