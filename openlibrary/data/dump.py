@@ -13,6 +13,7 @@ import re
 import time
 import simplejson
 import itertools
+import gzip
 
 import db
 
@@ -51,12 +52,18 @@ def read_data_file(filename):
         
 def log(*args):
     print >> sys.stderr, time.asctime(), " ".join(str(a) for a in args)
+    
+def xopen(path, mode='r'):
+    if path.endswith(".gz"):
+        return gzip.open(path, mode)
+    else:
+        return open(path, mode)
 
 def read_tsv(file, strip=True):
     """Read a tab seperated file and return an iterator over rows."""    
     log("reading", file)
     if isinstance(file, basestring):
-        file = open(file)
+        file = xopen(file)
         
     for i, line in enumerate(file):
         if i % 1000000 == 0:
@@ -94,7 +101,7 @@ def sort_dump(dump_file=None, tmpdir="/tmp/", buffer_size="1G"):
     if dump_file is None:
         stdin = sys.stdin
     else:
-        stdin = open(dump_file)
+        stdin = xopen(dump_file)
     
     # split the file into 256 chunks using hash of key
     log("splitting", dump_file)
@@ -157,17 +164,16 @@ def generate_idump(day, **db_parameters):
     
 def split_dump(dump_file=None, format="oldump_%s.txt"):
     """Split dump into authors, editions and works."""
-    types = ["/type/edition", "/type/author", "/type/work"]
+    types = ["/type/edition", "/type/author", "/type/work", "/type/redirect"]
     files = {}
     for t in types:
         tname = t.split("/")[-1] + "s"
-        files[t] = open(format % tname, "w")
+        files[t] = open(format % tname, "w", 5*1024*1024)
         
     if dump_file is None:
         stdin = sys.stdin
     else:
-        stdin = open(dump_file)
-        
+        stdin = xopen(dump_file)
         
     for i, line in enumerate(stdin):
         if i % 1000000 == 0:
@@ -321,6 +327,9 @@ def main(cmd, args):
         make_index(*args, **kwargs)
     elif cmd == 'bsddb':
         make_bsddb(*args, **kwargs)
+    elif cmd == "solrdump":
+        import solr
+        solr.generate_dump(*args, **kwargs)
     elif cmd == 'sitemaps':
         from sitemap import generate_sitemaps
         generate_sitemaps(*args, **kwargs)
