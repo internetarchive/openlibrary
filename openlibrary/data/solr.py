@@ -75,9 +75,11 @@ def process_work(doc, author_db):
     authors = [a['author']['key'] for a in doc.get('authors', []) if 'author' in a and 'key' in a['author']]
     for akey in set(authors):
         olid = akey.split("/")[-1]
-        yield doc['key'], 'author', author_db[olid]
-        yield akey, 'work', doc['key']
-        
+        try:
+            yield doc['key'], 'author', author_db[olid]
+            yield akey, 'work', doc['key']
+        except KeyError:
+            pass
     for name, key in get_subjects(doc):
         yield key, "name", name
         yield key, "work", doc['key']
@@ -116,14 +118,18 @@ class Writer:
         return self.files[filename]
         
     def write(self, tuples):
-        tjoin = "\t".join
+        tjoin = lambda *cols: "\t".join([web.safestr(c) for c in cols]) + "\n"
         for key, property, value in tuples:
-            self.get_file(key).write(tjoin([key, property, value]) + "\n")
+            self.get_file(key).write(tjoin(key, property, value))
             
     def close(self):
         for f in self.files.values():
             f.close()
         self.files.clear()
+        
+    def flush(self):
+        for f in self.files.values():
+            f.flush()
             
 def process_author_dump(writer, authors_dump):
     import bsddb 
