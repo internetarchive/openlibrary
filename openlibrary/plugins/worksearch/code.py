@@ -615,7 +615,7 @@ class search(delegate.page):
                 ftoken_db = dbm.open('/olsystem/ftokens', 'r')
             token = i.ftokens[0]
             if ftoken_db.get(token, None):
-                raise web.seeother('/subject/' + ftoken_db[token].decode('utf-8').lower().replace(' ', '_'))
+                raise web.seeother('/subjects/' + ftoken_db[token].decode('utf-8').lower().replace(' ', '_'))
 
         self.redirect_if_needed(i)
 
