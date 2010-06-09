@@ -145,6 +145,7 @@ while True:
             print 'make sure infogami server is working, connection refused from:'
             print url
             sys.exit(0)
+        print 'url:', url
         raise
 
     offset = ret['offset']
