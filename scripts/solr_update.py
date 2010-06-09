@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 from urllib2 import urlopen
 import simplejson
 from time import time, sleep
