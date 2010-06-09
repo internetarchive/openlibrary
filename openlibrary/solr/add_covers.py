@@ -3,10 +3,7 @@ from openlibrary.catalog.utils.query import query_iter, withKey
 from openlibrary.catalog.read_rc import read_rc
 import re
 
-rc = read_rc()
-ol = OpenLibrary("http://openlibrary.org")
-ol.login('WorkBot', rc['WorkBot']) 
-
+ol = None
 edition_covers = None
 
 re_year = re.compile('(\d{4})$')
@@ -22,6 +19,11 @@ def add_cover_to_work(w):
         if not cover_edition:
             return
     w['cover_edition'] = Reference(cover_edition)
+    if ol is None:
+        rc = read_rc()
+        ol = OpenLibrary("http://openlibrary.org")
+        ol.login('WorkBot', rc['WorkBot']) 
+
     print ol.save(w['key'], w, 'added cover to work')
 
 def get_covers(editions):
