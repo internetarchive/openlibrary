@@ -7,7 +7,6 @@ from openlibrary.catalog.utils.query import withKey, set_query_host
 from openlibrary.solr.update_work import update_work, solr_update, update_author, AuthorRedirect
 from openlibrary.api import OpenLibrary, Reference
 from openlibrary.catalog.read_rc import read_rc
-from openlibrary.catalog.works.find_works import find_title_redirects, find_works, get_books, books_query, update_works
 from openlibrary import config
 from optparse import OptionParser
 from os.path import exists
@@ -18,6 +17,11 @@ parser = OptionParser()
 parser.add_option("--server", dest="server", default='openlibrary.org')
 parser.add_option("--config", dest="config", default='openlibrary.yml')
 parser.add_option("--statefile", dest="state_file", default='solr_update')
+
+handle_author_merge = False
+
+if handle_author_merge:
+    from openlibrary.catalog.works.find_works import find_title_redirects, find_works, get_books, books_query, update_works
 
 (options, args) = parser.parse_args()
 
@@ -162,7 +166,7 @@ while True:
             key = i['data'].pop('key')
             process_save(key, i['data']['query'])
         elif action == 'save_many':
-            if not i['data']['author'].endswith('Bot') and i['data']['comment'] == 'merge authors':
+            if handle_author_merge and not i['data']['author'].endswith('Bot') and i['data']['comment'] == 'merge authors':
                 first_redirect = i['data']['query'][0]
                 assert first_redirect['type']['key'] == '/type/redirect'
                 akey = first_redirect['location']
