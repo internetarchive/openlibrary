@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-from urllib2 import urlopen
+from urllib2 import urlopen, URLError
 import simplejson
 from time import time, sleep
 from openlibrary.catalog.utils.query import withKey
@@ -9,6 +9,7 @@ from openlibrary.api import OpenLibrary, Reference
 from openlibrary.catalog.read_rc import read_rc
 from openlibrary.catalog.works.find_works import find_title_redirects, find_works, get_books, books_query, update_works
 from optparse import OptionParser
+from os.path import exists
 import sys
 import yaml
 
@@ -16,6 +17,7 @@ parser = OptionParser()
 
 parser.add_option("--server", dest="server", default='openlibrary.org')
 parser.add_option("--config", dest="config", default='openlibrary.yml')
+parser.add_option("--statefile", dest="state_file", default='solr_update')
 
 (options, args) = parser.parse_args()
 
@@ -27,7 +29,14 @@ runtime_config = yaml.load(open(config_file))
 
 base = 'http://%s/openlibrary.org/log/' % runtime_config['infobase_server']
 
-state_file = runtime_config['state_dir'] + '/solr_update'
+state_file = runtime_config['state_dir'] + '/' + options.state_file
+
+if not exists(state_file):
+    print 'start point needed. do this:'
+    print 'mkdir state'
+    print 'echo 2010-06-01:0 > state/' + options.state_file
+    sys.exit(0)
+
 offset = open(state_file).readline()[:-1]
 
 print 'start:', offset
@@ -120,7 +129,15 @@ def process_save(key, query):
 
 while True:
     url = base + offset
-    ret = simplejson.load(urlopen(url))
+    try:
+        ret = simplejson.load(urlopen(url))
+    except URLError as inst:
+        if inst.args[0].args == (111, 'Connection refused'):
+            print 'make sure infogami server is working, connection refused from:'
+            print url
+            sys.exit(0)
+        raise
+
     offset = ret['offset']
     data = ret['data']
     print offset, len(data), '%s works %s authors' % (len(works_to_update), len(authors_to_update))
