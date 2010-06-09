@@ -9,5 +9,8 @@ import os.path
 # secret_key = ''
  
 def read_rc():
-    f = open(os.path.expanduser('~/.olrc'))
+    rc_file = os.path.expanduser('~/.olrc')
+    if not os.path.exists(rc_file):
+        return {}
+    f = open(rc_file)
     return eval('dict(' + ', '.join(i for i in f if i) + ')')
