@@ -34,6 +34,10 @@ config.load(config_file)
 
 base = 'http://%s/openlibrary.org/log/' % config.runtime_config['infobase_server']
 
+if 'state_dir' not in config.runtime_config:
+    print 'state_dir missing from ' + config_file
+    sys.exit(0)
+
 state_file = config.runtime_config['state_dir'] + '/' + options.state_file
 
 if not exists(state_file):
@@ -137,7 +141,7 @@ while True:
     try:
         ret = simplejson.load(urlopen(url))
     except URLError as inst:
-        if inst.args[0].args == (111, 'Connection refused'):
+        if inst.args and inst.args[0].args == (111, 'Connection refused'):
             print 'make sure infogami server is working, connection refused from:'
             print url
             sys.exit(0)
