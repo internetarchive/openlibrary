@@ -3,15 +3,15 @@
 from urllib2 import urlopen, URLError
 import simplejson
 from time import time, sleep
-from openlibrary.catalog.utils.query import withKey
+from openlibrary.catalog.utils.query import withKey, set_query_host
 from openlibrary.solr.update_work import update_work, solr_update, update_author, AuthorRedirect
 from openlibrary.api import OpenLibrary, Reference
 from openlibrary.catalog.read_rc import read_rc
 from openlibrary.catalog.works.find_works import find_title_redirects, find_works, get_books, books_query, update_works
+from openlibrary import config
 from optparse import OptionParser
 from os.path import exists
 import sys
-import yaml
 
 parser = OptionParser()
 
@@ -22,14 +22,15 @@ parser.add_option("--statefile", dest="state_file", default='solr_update')
 (options, args) = parser.parse_args()
 
 ol = OpenLibrary("http://" + options.server)
+set_query_host(options.server)
 done_login = False
 
 config_file = options.config
-runtime_config = yaml.load(open(config_file))
+config.load(config_file)
 
-base = 'http://%s/openlibrary.org/log/' % runtime_config['infobase_server']
+base = 'http://%s/openlibrary.org/log/' % config.runtime_config['infobase_server']
 
-state_file = runtime_config['state_dir'] + '/' + options.state_file
+state_file = config.runtime_config['state_dir'] + '/' + options.state_file
 
 if not exists(state_file):
     print 'start point needed. do this:'
