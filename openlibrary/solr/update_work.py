@@ -15,6 +15,8 @@ re_edition_key = re.compile(r'^/(?:b|books)/(OL\d+M)$')
 solr_host = {}
 
 def get_solr(index):
+    global solr_host
+
     if not solr_host:
         solr_host = {
             'works': config.runtime_config['plugin_worksearch']['solr'],
