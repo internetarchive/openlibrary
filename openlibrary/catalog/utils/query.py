@@ -14,6 +14,16 @@ def has_cover(key):
     url = 'http://covers.openlibrary.org/' + key[1] + '/query?olid=' + key[3:]
     return urlread(url).strip() != '[]'
 
+def has_cover_retry(key):
+    for attempt in range(5):
+        try:
+            return has_cover(key)
+        except KeyboardInterrupt:
+            raise
+        except:
+            pass
+        sleep(2)
+
 def base_url():
     host = 'openlibrary.org'
     if staging:
@@ -57,7 +67,13 @@ def query(q):
             pass
         if ret:
             try:
-                return json.loads(ret)
+                data = json.loads(ret)
+                if isinstance(data, dict):
+                    if 'error' in data:
+                        print 'error:'
+                        print ret
+                    assert 'error' not in data
+                return data
             except:
                 print ret
                 print url
@@ -129,5 +145,3 @@ def get_mc(key): # get machine comment
     if comments[0] == 'initial import':
         return None
     return comments[0]
-
-    return 'mc'
