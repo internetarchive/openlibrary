@@ -1,33 +1,51 @@
 #!/usr/bin/python
 
-from urllib2 import urlopen
+from urllib2 import urlopen, URLError
 import simplejson
 from time import time, sleep
-from openlibrary.catalog.utils.query import withKey
+from openlibrary.catalog.utils.query import withKey, set_query_host
 from openlibrary.solr.update_work import update_work, solr_update, update_author, AuthorRedirect
 from openlibrary.api import OpenLibrary, Reference
 from openlibrary.catalog.read_rc import read_rc
-from openlibrary.catalog.works.find_works import find_title_redirects, find_works, get_books, books_query, update_works
+from openlibrary import config
 from optparse import OptionParser
+from os.path import exists
 import sys
-import yaml
 
 parser = OptionParser()
 
 parser.add_option("--server", dest="server", default='openlibrary.org')
 parser.add_option("--config", dest="config", default='openlibrary.yml')
+parser.add_option("--statefile", dest="state_file", default='solr_update')
+
+handle_author_merge = False
+
+if handle_author_merge:
+    from openlibrary.catalog.works.find_works import find_title_redirects, find_works, get_books, books_query, update_works
 
 (options, args) = parser.parse_args()
 
 ol = OpenLibrary("http://" + options.server)
+set_query_host(options.server)
 done_login = False
 
 config_file = options.config
-runtime_config = yaml.load(open(config_file))
+config.load(config_file)
 
-base = 'http://%s/openlibrary.org/log/' % runtime_config['infobase_server']
+base = 'http://%s/openlibrary.org/log/' % config.runtime_config['infobase_server']
 
-state_file = runtime_config['state_dir'] + '/solr_update'
+if 'state_dir' not in config.runtime_config:
+    print 'state_dir missing from ' + config_file
+    sys.exit(0)
+
+state_file = config.runtime_config['state_dir'] + '/' + options.state_file
+
+if not exists(state_file):
+    print 'start point needed. do this:'
+    print 'mkdir state'
+    print 'echo 2010-06-01:0 > state/' + options.state_file
+    sys.exit(0)
+
 offset = open(state_file).readline()[:-1]
 
 print 'start:', offset
@@ -120,7 +138,16 @@ def process_save(key, query):
 
 while True:
     url = base + offset
-    ret = simplejson.load(urlopen(url))
+    try:
+        ret = simplejson.load(urlopen(url))
+    except URLError as inst:
+        if inst.args and inst.args[0].args == (111, 'Connection refused'):
+            print 'make sure infogami server is working, connection refused from:'
+            print url
+            sys.exit(0)
+        print 'url:', url
+        raise
+
     offset = ret['offset']
     data = ret['data']
     print offset, len(data), '%s works %s authors' % (len(works_to_update), len(authors_to_update))
@@ -144,7 +171,7 @@ while True:
             key = i['data'].pop('key')
             process_save(key, i['data']['query'])
         elif action == 'save_many':
-            if not i['data']['author'].endswith('Bot') and i['data']['comment'] == 'merge authors':
+            if handle_author_merge and not i['data']['author'].endswith('Bot') and i['data']['comment'] == 'merge authors':
                 first_redirect = i['data']['query'][0]
                 assert first_redirect['type']['key'] == '/type/redirect'
                 akey = first_redirect['location']

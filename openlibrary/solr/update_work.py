@@ -6,17 +6,25 @@ from pprint import pprint
 from urllib import urlopen
 import simplejson as json
 from time import sleep
+from openlibrary import config
 
 re_lang_key = re.compile(r'^/(?:l|languages)/([a-z]{3})$')
 re_author_key = re.compile(r'^/(?:a|authors)/(OL\d+A)$')
 re_edition_key = re.compile(r'^/(?:b|books)/(OL\d+M)$')
 
-solr_host = {
-    'works': 'ia331508:8983',
-    'authors': 'ia331509:8983',
-    'subjects': 'ia331509:8983',
-    'editions': 'ia331509:8983',
-}
+solr_host = {}
+
+def get_solr(index):
+    global solr_host
+
+    if not solr_host:
+        solr_host = {
+            'works': config.runtime_config['plugin_worksearch']['solr'],
+            'authors': config.runtime_config['plugin_worksearch']['author_solr'],
+            'subjects': config.runtime_config['plugin_worksearch']['subject_solr'],
+            'editions': config.runtime_config['plugin_worksearch']['edition_solr'],
+        }
+    return solr_host[index]
 
 def is_daisy_encrypted(ia):
     url = 'http://www.archive.org/download/%s/%s_meta.xml' % (ia, ia)
@@ -281,13 +289,13 @@ def build_doc(w):
     return doc
 
 def solr_update(requests, debug=False, index='works'):
-    h1 = httplib.HTTPConnection(solr_host[index])
+    h1 = httplib.HTTPConnection(get_solr(index))
     h1.connect()
     for r in requests:
         if debug:
             print 'request:', `r[:65]` + '...' if len(r) > 65 else `r`
         assert isinstance(r, basestring)
-        url = 'http://%s/solr/%s/update' % (solr_host[index], index)
+        url = 'http://%s/solr/%s/update' % (get_solr(index), index)
         print url
         h1.request('POST', url, r, { 'Content-type': 'text/xml;charset=utf-8'})
         response = h1.getresponse()
@@ -344,7 +352,7 @@ def update_author(akey):
 
     facet_fields = ['subject', 'time', 'person', 'place']
 
-    url = 'http://' + solr_host['works'] + '/solr/works/select?wt=json&json.nl=arrarr&q=author_key:%s&sort=edition_count+desc&rows=1&fl=title,subtitle&facet=true&facet.mincount=1' % author_id
+    url = 'http://' + get_solr('works') + '/solr/works/select?wt=json&json.nl=arrarr&q=author_key:%s&sort=edition_count+desc&rows=1&fl=title,subtitle&facet=true&facet.mincount=1' % author_id
     url += ''.join('&facet.field=%s_facet' % f for f in facet_fields)
     reply = json.load(urlopen(url))
     work_count = reply['response']['numFound']
