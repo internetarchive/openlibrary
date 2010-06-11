@@ -1,5 +1,5 @@
 
-import web, re, urllib
+import web, re, urllib, dbm
 from lxml.etree import parse, tostring, XML, XMLSyntaxError
 from infogami.utils import delegate
 from infogami import config
@@ -8,6 +8,8 @@ from infogami.utils import view, template
 from infogami.utils.view import safeint, add_flash_message
 import simplejson as json
 from openlibrary.plugins.openlibrary.processors import urlsafe
+
+ftoken_db = None
 
 try:
     from openlibrary.plugins.upstream.utils import get_coverstore_url, render_template
@@ -567,7 +569,7 @@ re_olid = re.compile('^OL\d+([AMW])$')
 olid_urls = {'A': 'authors', 'M': 'editions', 'W': 'works'}
 
 class search(delegate.page):
-    def clean_inputs(self, i):
+    def redirect_if_needed(self, i):
         params = {}
         need_redirect = False
         for k, v in i.items():
@@ -591,7 +593,8 @@ class search(delegate.page):
                 if clean != v:
                     need_redirect = True
             params[k] = clean
-        return params if need_redirect else None
+        if need_redirect:
+            raise web.seeother(web.changequery(**params))
 
     def isbn_redirect(self, isbn_param):
         isbn = read_isbn(isbn_param)
@@ -605,11 +608,16 @@ class search(delegate.page):
             raise web.seeother(editions[0])
 
     def GET(self):
+        global ftoken_db
         i = web.input(author_key=[], language=[], first_publish_year=[], publisher_facet=[], subject_facet=[], person_facet=[], place_facet=[], time_facet=[])
-        params = self.clean_inputs(i)
+        if i.get('ftokens', None) and ',' not in i.ftokens:
+            token = i.ftokens
+            if ftoken_db is None:
+                ftoken_db = dbm.open('/olsystem/ftokens', 'r')
+            if ftoken_db.get(token, None):
+                raise web.seeother('/subjects/' + ftoken_db[token].decode('utf-8').lower().replace(' ', '_'))
 
-        if params:
-            raise web.seeother(web.changequery(**params))
+        self.redirect_if_needed(i)
 
         if 'isbn' in i and all(not v for k, v in i.items() if k != 'isbn'):
             self.isbn_redirect(i.isbn)

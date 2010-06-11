@@ -1,7 +1,6 @@
 import re, urllib2
 from openlibrary.catalog.marc.fast_parse import get_tag_lines, get_all_subfields, get_subfield_values, get_subfields, BadDictionary
 from openlibrary.catalog.utils import remove_trailing_dot, remove_trailing_number_dot, flip_name
-from openlibrary.catalog.get_ia import get_data
 from openlibrary.catalog.importer.db_read import get_mc
 from collections import defaultdict
 
@@ -19,8 +18,10 @@ def get_marc_source(w):
         if sr:
             found.update(i[5:] for i in sr if i.startswith('marc:'))
         else:
-            assert re_edition_key.match(e['key'])
-            mc = get_mc(e['key'])
+            m = re_edition_key.match(e['key'])
+            if not m:
+                print e['key']
+            mc = get_mc('/b/' + m.group(1))
             if mc and not mc.startswith('amazon:') and not re_ia_marc.match(mc):
                 found.add(mc)
     return found
@@ -28,6 +29,7 @@ def get_marc_source(w):
 def get_marc_subjects(w):
     for src in get_marc_source(w):
         data = None
+        from openlibrary.catalog.get_ia import get_data
         try:
             data = get_data(src)
         except ValueError:
