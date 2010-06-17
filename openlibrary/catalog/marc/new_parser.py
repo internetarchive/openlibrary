@@ -185,10 +185,6 @@ def read_title(fields):
 #   assert len(fields['245']) == 1
     line = fields['245'][0]
     contents = get_contents(line, ['a', 'b', 'c', 'h'])
-#    try:
-#        title_prefix_len = int(line[1])
-#    except ValueError:
-#        title_prefix_len = None
 
     edition = {}
     title = None
@@ -199,11 +195,6 @@ def read_title(fields):
     elif 'b' in contents:
         title = contents['b'][0].strip(' /,;:')
         del contents['b'][0]
-#    if title and title_prefix_len:
-#        edition['title'] = title[title_prefix_len:]
-#        edition['title_prefix'] = title[:title_prefix_len]
-#    else:
-#        edition['title'] = title
     edition['title'] = title
     if 'b' in contents and contents['b']:
         edition["subtitle"] = ' : '.join([x.strip(' /,;:') for x in contents['b']])
