@@ -469,7 +469,6 @@ def read_edition(rec):
     if v:
         edition['authors'] = [v]
 
-    edition.update(read_subjects(rec))
     edition.update(read_title(rec))
 
     for func in (read_publisher, read_isbn, read_pagination):
