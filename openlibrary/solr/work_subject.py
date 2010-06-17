@@ -18,8 +18,10 @@ def get_marc_source(w):
         if sr:
             found.update(i[5:] for i in sr if i.startswith('marc:'))
         else:
-            assert re_edition_key.match(e['key'])
-            mc = get_mc(e['key'])
+            m = re_edition_key.match(e['key'])
+            if not m:
+                print e['key']
+            mc = get_mc('/b/' + m.group(1))
             if mc and not mc.startswith('amazon:') and not re_ia_marc.match(mc):
                 found.add(mc)
     return found
