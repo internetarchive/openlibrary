@@ -146,11 +146,17 @@ def get_document(key):
     return web.ctx.site.get(key)
     
 class revert(delegate.mode):
+    def GET(self, key):
+        raise web.seeother(web.changequery(m=None))
+        
     def POST(self, key):
         i = web.input("v", _comment=None)
         v = i.v and safeint(i.v, None)
         if v is None:
             raise web.seeother(web.changequery({}))
+
+        if not web.ctx.site.can_write(key):
+            return render.permission_denied(web.ctx.fullpath, "Permission denied to edit " + key + ".")
         
         thing = web.ctx.site.get(key, i.v)
         
