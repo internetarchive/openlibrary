@@ -8,90 +8,31 @@ from pprint import pprint
 from urllib import urlopen
 from lxml import etree
 
-samples = ['warofrebellionco1473unit', 'flatlandromanceo00abbouoft', 'secretcodeofsucc00stjo']
-samples = ['warofrebellionco1473unit'], #'flatlandromanceo00abbouoft', 'secretcodeofsucc00stjo']
-samples = ['zweibchersatir01horauoft']
-
-def whatever():
-    count = 0
-    for line in open('/2/edward/ia/scanned_books'):
-        count += 1
-        if count < 100:
-            continue
-        count = 0
-        cur = eval(line)
-        item = cur['identifier']
-        yield item
-
-#item = whatever()
-#print item
-
 record_tag = '{http://www.loc.gov/MARC21/slim}record'
 
+xml_samples = [
+('39002054008678.yale.edu', {'publishers': [u'W. Briggs'], 'pagination': u'243 p., [27] leaves of plates :', 'number_of_pages': 243, 'title': u'Upper Canada sketches', 'lccn': [u'02012591'], 'authors': [{'birth_date': u'1842', 'personal_name': u'Conant, Thomas', 'death_date': u'1905', 'name': u'Conant, Thomas', 'entity_type': 'person'}], 'languages': [{'key': '/languages/eng'}], 'publish_date': '1898', 'publish_country': 'onc', 'lc_classification': [u'F1058 .C74'], 'by_statement': u'by Thomas Conant.', 'publish_places': [u'Toronto'], 'oclc_number': [u'9268563']} ),
+('flatlandromanceo00abbouoft', {'publishers': [u'Seeley and Co.'], 'pagination': u'viii p., 1 l.,', 'subtitle': u'a romance of many dimensions', 'title': u'Flatland', 'notes': u'31', 'lc_classification': [u'QA699 .A12'], 'languages': [{'key': '/languages/eng'}], 'publish_date': '1884', 'publish_country': 'enk', 'authors': [{'birth_date': u'1838', 'personal_name': u'Abbott, Edwin Abbott', 'death_date': u'1926', 'name': u'Abbott, Edwin Abbott', 'entity_type': 'person'}], 'by_statement': u'by A. Square ; with illustrations by the author.', 'publish_places': [u'London']} ),
+('nybc200247', {'other_titles': [u'Tzum hundertstn geboirntog fun Shimen Dubnow', u'Centennial of the historian Shimen Dubnow'], 'physical_format': u'', 'pagination': u'92 p. :', 'table_of_contents': [{'type': '/type/toc_item', 'title': u'Ar\u1e6di\u1e33len vegn Shimen Dubnov'}, {'type': '/type/toc_item', 'title': u'Ophandlungen un ar\u1e6di\u1e33len fun Shimen Dubnov'}, {'type': '/type/toc_item', 'title': u'Briv fun Sh. Dubnov.'}], 'subtitle': u'zamlung', 'title': u'Tsum hunderts\u1e6dn geboyrn\u1e6dog fun Shimon Dubno\u1e7f', 'series': [u'Steven Spielberg digital Yiddish library -- no. 00247'], 'notes': u'Electronic reproduction. Amherst : National Yiddish Book Center, 1999.\n\nThis item is offered for sale by the National Yiddish Book Center. Internet: www.yiddishbooks.org; email: orders@bikher.org; phone: 413.256.4900; fax: 413.256.4700', 'number_of_pages': 92, 'languages': [{'key': '/languages/yid'}], 'publishers': [u'I\u1e33uf'], 'publish_date': '1961', 'publish_country': 'nyu', 'authors': [{'birth_date': u'1860', 'personal_name': u'Dubnow, Simon', 'death_date': u'1941', 'name': u'Dubnow, Simon', 'entity_type': 'person'}], 'by_statement': u'tsunoyfgesh.tel\u1e6d un reda\u1e33\u1e6dir\u1e6d fun Na\u1e25man Mayzil.', 'publish_places': [u'Nyu-Yor\u1e33'], 'contributions': [u'Mayzel, Nachman, 1887-1966.']} ),
+('secretcodeofsucc00stjo', {'publishers': [u'HarperCollins Publishers'], 'pagination': u'xi, 243 p.', 'number_of_pages': 243, 'table_of_contents': [{'type': '/type/toc_item', 'title': u'The secret of success in life and business'}, {'type': '/type/toc_item', 'title': u"What's wrong with this picture?"}, {'type': '/type/toc_item', 'title': u"The little assumption that's costing you a fortune"}, {'type': '/type/toc_item', 'title': u'The secret code revealed'}, {'type': '/type/toc_item', 'title': u'Step one: afformations'}, {'type': '/type/toc_item', 'title': u'Step two: loving mirrors and safe havens'}, {'type': '/type/toc_item', 'title': u'Step three: systems of support'}, {'type': '/type/toc_item', 'title': u'Step four: goal-free zones and goal replacement surgery'}, {'type': '/type/toc_item', 'title': u'Step five : who are you trying to protect, punish or please?'}, {'type': '/type/toc_item', 'title': u'Step six: find your no'}, {'type': '/type/toc_item', 'title': u'Step seven: find your because'}, {'type': '/type/toc_item', 'title': u'Now what?'}, {'type': '/type/toc_item', 'title': u'Your free bonus gift'}, {'type': '/type/toc_item', 'title': u'Spread the word.'}], 'description': u'Americans spend billions on self-help products, yet few people are living the life they really want. The real problem, says productivity expert Noah St. John, is that most people focus on the "how-to" aspects of success without coming to terms with what calls your "head trash"-the subconscious, emotional roadblocks that prevent people from acting on their real hopes, dreams, and ambitions. St. John has created a seven-step approach that helps you learn how to: eliminate the causes of self-sabotage and fear of success; allow yourself to make more money; remove stress while dramatically increasing personal productivity; improve relationships with coworkers, family, and friends; and experience enhanced feelings of happiness, connection, and love.--From publisher description.', 'links': [{'url': u'http://www.loc.gov/catdir/toc/ecip0824/2008033690.html', 'title': u'Table of contents only'}], 'title': u'The secret code of success', 'lccn': [u'2008033690'], 'notes': u'Includes indexes.', 'authors': [{'birth_date': u'1967', 'personal_name': u'St. John, Noah', 'name': u'St. John, Noah', 'entity_type': 'person'}], 'isbn_13': [u'9780061715747', u'9780061764547'], 'subtitle': u'7 hidden steps to more wealth and happiness', 'languages': [{'key': '/languages/eng'}], 'dewey_decimal_class': [u'650.1'], 'isbn_10': [u'0061715743', u'006176454X'], 'publish_date': '2009', 'publish_country': 'nyu', 'lc_classification': [u'HF5386 .S7595 2009'], 'by_statement': u'by Noah St. John ; foreword by Jack Canfield.', 'publish_places': [u'New York'], 'oclc_number': [u'232977651']} ),
+('warofrebellionco1473unit', {'other_titles': [u'Official records of the Union and Confederate Armies.'], 'publishers': [u'Govt. Print. Off.'], 'pagination': u'70 v. in 128 ;', 'number_of_pages': 128, 'subtitle': u'a compilation of the official records of the Union and Confederate armies', 'title': u'The War of the Rebellion', 'lccn': [u'03003452'], 'notes': u'Found also in the House Miscellaneous documents of the 52d to the 56th Congress.\n\nEach number has special index. Inserted in each volume: Additions and corrections ... Washington, Govt. Print. Off., 1902.\n\nSeries 1, v. 1-53, series 3, v. 1-5, and series 4, v. 1-3 include "Alternate designations of organizations mentioned."\n\nVol. 54-55 of series 1 [serial no. 112-113] "have not been published, and no material for them is in hand."  cf. General index, p. xi. Series 2, v. 1 [serial no. 114] with imprint 1894, was not issued until 1898.\n\nEdited in the War Records Office, 1880-July 1899; in the Record and Pension Office, July 1899-1901.\n\nRobert N. Scott compiled and edited v. 1-18, 1880-87, and also collected the greater part of the material for v. 19-36, 1887-91. After his death in 1887 the work was continued by Henry M. Lazelle, 1887-89, and by a board of publication, 1889-99, consisting of George B. Davis, 1889-97, Leslie J. Perry, 1889-99, Joseph W. Kirkley, 1889-99, and Fred C. Ainsworth, 1898-99; from 1899-1901 edited by Fred C. Ainsworth and Joesph W. Kirkley.\n\nSome volumes are 1985 reprints by National Historical Society.\n\n16', 'authors': [{'name': u'United States. War Dept.', 'entity_type': 'org'}], 'languages': [{'key': '/languages/eng'}], 'publish_date': '1880', 'publish_country': 'dcu', 'lc_classification': [u'E464 .U6'], 'by_statement': u'prepared under the direction of the Secretary of War.', 'publish_places': [u'Washington'], 'contributions': [u'Scott, Robert N. 1838-1887.', u'Lazelle, Henry Martyn, 1832-', u'Davis, George B. 1847-1914.', u'Perry, Leslie J.', u'Kirkley, Joseph W. 1841-1912.', u'Ainsworth, Frederick Crayton, 1852-1834.', u'Moodey, John Sheldon, 1842-', u'Cowles, Calvin D. 1849- comp.', u'United States. War Records Office.', u'United States. Record and Pension Office.', u'United States. Congress. House.']} ),
+('zweibchersatir01horauoft', {'publishers': [u'Teubner'], 'pagination': u'2 vol. in 3.', 'table_of_contents': [{'type': '/type/toc_item', 'title': u'Vol. 1. Text, \xdcbersetzung und kritischer Apparat.-  Vol. 2, pt. 1, Commentar zum ersten Buche der Satiren.-  Vol. 2, pt. 2, Commentar zum zweiten Buche der Satiren, verfasst von W.S. Teuffel.'}], 'title': u'Zwei B\xfccher Satiren', 'work_titles': [u'Satirae'], 'notes': u'26', 'languages': [{'key': '/languages/ger'}], 'publish_date': '1854', 'publish_country': 'ge ', 'authors': [{'personal_name': u'Horace.', 'name': u'Horace.', 'entity_type': 'person'}], 'by_statement': u'aus dreissig unverglichenen und allen bisher verglichenen Handschriften, wie auch s\xe4mmtlichen bedeutenden Ausgaben kritisch hergestellt, metrisch \xfcbersetzt, und mit erkl\xe4rendem Commentar versehen von C. Kirchner.', 'publish_places': [u'Leipzig'], 'contributions': [u'Kirchner, Carl Christian Jacob, 1787-1855, tr. [and] ed.', u'Teuffel, Wilhelm Sigmund, 1820-1878,']} ),
+]
+
 class TestParse(unittest.TestCase):
-    for i in whatever():
-#        if i != 'apocalypseofabrabgh00boxg':
-#            continue
-#        if i != 'cu31924024927323':
-#            continue
-#        if i != 'deeringofdealors00gris':
-#            continue
-#        if i != 'iconographiegn50jang':
-#            continue
-#        if i < 'canterburyyork48unknuoft':
-#            continue
-#        if i != 'behullhglorygod00macngoog':
-#            continue
-        if i == 'akademiesocialis10vprauoft':
-            continue
-
-        print i
-        marc_xml_url = 'http://www.archive.org/download/' + i + '/' + i + '_marc.xml'
-        marc_bin_url = 'http://www.archive.org/download/' + i + '/' + i + '_meta.mrc'
-        #f = open('test_data/' + i + '_meta.mrc')
-        f = urlopen(marc_bin_url)
-        data = f.read()
-        #print 'binary:', `data`
-        if '<title>Internet Archive: Page Not Found</title>' in data:
-            continue
-        if '<title>Internet Archive: Error</title>' in data:
-            f = urlopen(marc_bin_url)
-            data = f.read()
-            if '<title>Internet Archive: Error</title>' in data:
+    def test_xml(self):
+        for i, j in xml_samples:
+            f = open('test_data/' + i + '_marc.xml')
+            element = etree.parse(f).getroot()
+            if element.tag != record_tag and element[0].tag == record_tag:
+                element = element[0]
+            rec = MarcXml(element)
+            try:
+                edition_marc_xml = read_edition(rec)
+            except BadSubtag:
+                print 'bad subtag'
                 continue
-
-        if data == '': # empty
-            continue
-        #rec = MarcBinary(data, ia=True)
-        rec = MarcBinary(data)
-        edition_marc_bin = read_edition(rec)
-
-        element = etree.parse(urlopen(marc_xml_url)).getroot()
-        if element.tag != record_tag and element[0].tag == record_tag:
-            element = element[0]
-        #f = open('test_data/' + i + '_marc.xml')
-        rec = MarcXml(element)
-        try:
-            edition_marc_xml = read_edition(rec)
-        except BadSubtag:
-            continue
-        except BlankTag:
-            print 'blank tag'
-            continue
-
-        print 'XML'
-        pprint(edition_marc_xml)
-        print
-        print 'Binary'
-        pprint(edition_marc_bin)
-        print
-
-        assert edition_marc_bin.keys() == edition_marc_xml.keys()
-
-        for k in edition_marc_bin.keys():
-            if edition_marc_bin[k] != edition_marc_xml[k]:
-                print k
-                print '  bin:', `edition_marc_bin[k]`
-                print '  xml:', `edition_marc_xml[k]`
-
-#        assert edition_marc_bin == edition_marc_xml
+            except BlankTag:
+                print 'blank tag'
+                continue
+            self.assertEqual(edition_marc_xml, j)
