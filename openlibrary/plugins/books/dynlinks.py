@@ -123,12 +123,13 @@ def get_many_as_dict(keys):
     return dict((doc['key'], doc) for doc in ol_get_many(keys))
     
 def get_url(doc):
+    base = web.ctx.get("home", "http://openlibrary.org")
     if doc['key'].startswith("/books/") or doc['key'].startswith("/works/"):
-        return "http://openlibrary.org" + doc['key'] + "/" + urlsafe(doc.get("title", "untitled"))
+        return base + doc['key'] + "/" + urlsafe(doc.get("title", "untitled"))
     elif doc['key'].startswith("/authors/"):
-        return "http://openlibrary.org" + doc['key'] + "/" + urlsafe(doc.get("name", "unnamed"))
+        return base + doc['key'] + "/" + urlsafe(doc.get("name", "unnamed"))
     else:
-        return "http://openlibrary.org" + doc['key']
+        return base + doc['key']
     
 class DataProcessor:
     """Processor to process the result when jscmd=data.
