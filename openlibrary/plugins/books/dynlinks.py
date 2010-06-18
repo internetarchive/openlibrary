@@ -122,6 +122,14 @@ def process_result(result, jscmd):
 def get_many_as_dict(keys):
     return dict((doc['key'], doc) for doc in ol_get_many(keys))
     
+def get_url(doc):
+    if doc['key'].startswith("/books/") or doc['key'].startswith("/works/"):
+        return "http://openlibrary.org" + doc['key'] + "/" + urlsafe(doc.get("title", "untitled"))
+    elif doc['key'].startswith("/authors/"):
+        return "http://openlibrary.org" + doc['key'] + "/" + urlsafe(doc.get("name", "unnamed"))
+    else:
+        return "http://openlibrary.org" + doc['key']
+    
 class DataProcessor:
     """Processor to process the result when jscmd=data.
     """
@@ -136,7 +144,7 @@ class DataProcessor:
         
     def get_authors(self, work):
         author_keys = [a['author']['key'] for a in work.get('authors', [])]
-        return [{"url": "http://openlibrary.org" + key, "name": self.authors[key].get("name", "")} for key in author_keys]
+        return [{"url": get_url(self.authors[key]), "name": self.authors[key].get("name", "")} for key in author_keys]
     
     def get_work(self, doc):
         works = [self.works[w['key']] for w in doc.get('works', [])]
@@ -161,7 +169,7 @@ class DataProcessor:
             return [subject(s, prefix) for s in w.get(name, '')]
                     
         d = {
-            "url": "http://openlibrary.org" + doc['key'],
+            "url": get_url(doc),
             "title": doc.get("title", ""),
             "subtitle": doc.get("subtitle", ""),
             
@@ -242,7 +250,7 @@ def process_result_for_viewapi(result):
 def process_doc_for_viewapi(bib_key, page):
     key = page['key']
     
-    url = 'http://openlibrary.org' + key + '/' + urlsafe(page.get('title', 'untitled'))
+    url = get_url(page)
     
     if 'ocaid' in page:
         preview = 'full'

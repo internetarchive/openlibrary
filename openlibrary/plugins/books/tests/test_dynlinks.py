@@ -27,7 +27,7 @@ def pytest_funcarg__data0(request):
         },
         "result": {
             "data": {
-                "url": "http://openlibrary.org/books/OL0M",
+                "url": "http://openlibrary.org/books/OL0M/book-0",
                 "title": "book-0",
             }
         }
@@ -97,11 +97,11 @@ def pytest_funcarg__data9(request):
                 "preview_url": "http://openlibrary.org/books/OL9M",
             },
             "data": {
-                "url": "http://openlibrary.org/books/OL9M",
+                "url": "http://openlibrary.org/books/OL9M/foo",
                 "title": "foo",
                 "subtitle": "bar",
                 "authors": [{
-                    "url": "http://openlibrary.org/authors/OL9A",
+                    "url": "http://openlibrary.org/authors/OL9A/Mark_Twain",
                     "name": "Mark Twain"
                 }],
                 "identifiers": {
@@ -221,7 +221,6 @@ def test_process_result_for_details(monkeypatch):
                     }
             }}
             
-            
     OL1A = {
         "key": "/authors/OL1A",
         "type": {"key": "/type/author"},
@@ -325,7 +324,7 @@ class TestDataProcessor:
     def test_get_authors1(self, data1):
         p = dynlinks.DataProcessor()
         p.authors = data1
-        assert p.get_authors(data1['/works/OL1W']) == [{"url": "http://openlibrary.org/authors/OL1A", "name": "Mark Twain"}]
+        assert p.get_authors(data1['/works/OL1W']) == [{"url": "http://openlibrary.org/authors/OL1A/Mark_Twain", "name": "Mark Twain"}]
         
     def test_process_doc0(self, data0):
         p = dynlinks.DataProcessor()
