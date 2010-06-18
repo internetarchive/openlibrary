@@ -78,7 +78,7 @@ def ol_query(name, value):
         return keys[0]
 
 def ol_get_many(keys):
-    return web.ctx.site.get_many(keys)
+    return [doc.dict() for doc in web.ctx.site.get_many(keys)]
     
 def query_keys(bib_keys):
     """Given a list of bibkeys, returns a mapping from bibkey to OL key.
@@ -112,16 +112,116 @@ def uniq(values):
 def process_result(result, jscmd):
     d = {
         "details": process_result_for_details,
-        "data": process_result_for_data,
+        "data": DataProcessor().process,
         "viewapi": process_result_for_viewapi
     }
     
     f = d.get(jscmd) or d['viewapi']
     return f(result)
     
-def process_result_for_data(result):
-    # TODO
-    return dict((k, doc['key']) for k, doc in result.items())
+def get_many_as_dict(keys):
+    return dict((doc['key'], doc) for doc in ol_get_many(keys))
+    
+class DataProcessor:
+    """Processor to process the result when jscmd=data.
+    """
+    def process(self, result):
+        work_keys = [w['key'] for doc in result.values() for w in doc.get('works', [])]
+        self.works = get_many_as_dict(work_keys)
+        
+        author_keys = [a['author']['key'] for w in self.works.values() for a in w.get('authors', [])]
+        self.authors = get_many_as_dict(author_keys)
+        
+        return dict((k, self.process_doc(doc)) for k, doc in result.items())
+        
+    def get_authors(self, work):
+        author_keys = [a['author']['key'] for a in work.get('authors', [])]
+        return [{"url": "http://openlibrary.org" + key, "name": self.authors[key].get("name", "")} for key in author_keys]
+    
+    def get_work(self, doc):
+        works = [self.works[w['key']] for w in doc.get('works', [])]
+        if works:
+            return works[0]
+        else:
+            return {}
+        
+    def process_doc(self, doc):
+        """Processes one document.
+        Should be called only after initializing self.authors and self.works.
+        """
+        w = self.get_work(doc)
+        
+        def subject(name, prefix):
+            return {
+                "name": name,
+                "url": "http://openlibrary.org/subjects/%s%s" % (prefix, name.lower().replace(" ", "_"))
+            }
+            
+        def get_subjects(name, prefix):
+            return [subject(s, prefix) for s in w.get(name, '')]
+                    
+        d = {
+            "url": "http://openlibrary.org" + doc['key'],
+            "title": doc.get("title", ""),
+            "subtitle": doc.get("subtitle", ""),
+            
+            "authors": self.get_authors(w),
+
+            "number_of_pages": doc.get("number_of_pages", ""),
+            "weight": doc.get("weight", ""),
+
+            'identifiers': web.dictadd(doc.get('identifiers', {}), {
+                'isbn_10': doc.get('isbn_10', []),
+                'isbn_13': doc.get('isbn_13', []),
+                'lccn': doc.get('lccn', []),
+                'oclc': doc.get('oclc_numbers', []),
+            }),
+            
+            'classifications': {},
+            
+            "publishers": [{"name": p} for p in doc.get("publishers", "")],
+            "publish_places": [{"name": p} for p in doc.get("publish_places", "")],
+            "publish_date": doc.get("publish_date"),
+            
+            "subjects": get_subjects("subjects", ""),
+            "subject_places": get_subjects("subject_places", "place:"),
+            "subject_people": get_subjects("subject_people", "person:"),
+            "subject_times": get_subjects("subject_times", "time:"),
+            
+            "links": [dict(title=link.get("title"), url=link['url']) for link in w.get('links', '') if link.get('url')],
+        }
+        
+        if doc.get('covers'):
+            cover_id = doc['covers'][0]
+            d['cover'] = {
+                "small": "http://covers.openlibrary.org/b/id/%s-S.jpg" % cover_id,
+                "medium": "http://covers.openlibrary.org/b/id/%s-M.jpg" % cover_id,
+                "large": "http://covers.openlibrary.org/b/id/%s-L.jpg" % cover_id,
+            }
+
+        d['identifiers'] = trim(d['identifiers'])
+        d['classifications'] = trim(d['classifications'])
+        return trim(d)
+        
+def trim(d):
+    """Remote empty values from given dictionary.
+    
+        >>> trim({"a": "x", "b": "", "c": [], "d": {}})
+        {'a': 'x'}
+    """
+    return dict((k, v) for k, v in d.iteritems() if v)
+    
+def get_authors(docs):
+    """Returns a dict of author_key to {"key", "...", "name": "..."} for all authors in docs.
+    """
+    authors = [a['key'] for doc in docs for a in doc.get('authors', [])]
+    author_dict = {}
+    
+    if authors:
+        for a in ol_get_many(uniq(authors)):
+            author_dict[a['key']] = {"key": a['key'], "name": a.get("name", "")}
+    
+    return author_dict
 
 def process_result_for_details(result):
     def f(bib_key, doc):
@@ -132,14 +232,8 @@ def process_result_for_details(result):
             
         d['details'] = doc
         return d
-            
-    authors = [a['key'] for doc in result.values() for a in doc.get('authors', [])]
-    author_dict = {}
     
-    if authors:
-        for a in ol_get_many(uniq(authors)):
-            author_dict[a['key']] = {"key": a['key'], "name": a.get("name", "")}
-        
+    author_dict = get_authors(result.values())
     return dict((k, f(k, doc)) for k, doc in result.items())
 
 def process_result_for_viewapi(result):
@@ -192,9 +286,14 @@ def dynlinks(bib_keys, options):
     # for backward-compatibility
     if options.get("details", "").lower() == "true":
         options["jscmd"] = "details"
-        
-    result = query_docs(bib_keys)
-    result = process_result(result, options.get('jscmd'))
+    
+    try:    
+        result = query_docs(bib_keys)
+        result = process_result(result, options.get('jscmd'))
+    except:
+        print >> sys.stderr, "Error in processing Books API"
+        traceback.print_exc()
+        result = {}
     return format_result(result, options)
     
 if __name__ == "__main__":

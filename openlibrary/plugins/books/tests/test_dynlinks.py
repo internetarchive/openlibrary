@@ -1,7 +1,149 @@
+"""Test suite for dynlinks.
+
+Most of the tests here use 3 sets of data. 
+
+data0: This contains OL0A, OL0M and OL0W with each having just name/title.
+data1: This contains OL1A, OL1M, OL1W with each having name/tile and interconnections.
+data9: This contans OL9A, OL9M and OL9W with interconnections and almost all fields.
+"""
 from .. import dynlinks
 
 import re
 import simplejson
+
+def pytest_funcarg__data0(request):
+    return {
+        "/books/OL0M": {
+            "key": "/books/OL0M",
+            "title": "book-0"
+        },
+        "/authors/OL0A": {
+            "key": "/authors/OL0A",
+            "name": "author-0"
+        },
+        "/works/OL0W": {
+            "key": "/works/OL0W",
+            "title": "work-0"
+        },
+        "result": {
+            "data": {
+                "url": "http://openlibrary.org/books/OL0M",
+                "title": "book-0",
+            }
+        }
+    }
+
+def pytest_funcarg__data1(request):
+    return {
+        "/books/OL1M": {
+            "key": "/books/OL1M",
+            "title": "foo",
+            "works": [{"key": "/works/OL1W"}]
+        },
+        "/authors/OL1A": {
+            "key": "/authors/OL1A",
+            "name": "Mark Twain"
+        },
+        "/works/OL1W": {
+            "key": "/works/OL1W",
+            "title": "Foo",
+            "authors": [{
+                "author": {"key": "/authors/OL1A"}
+            }]
+        }
+    }
+    
+def pytest_funcarg__data9(request):
+    return {
+        "/authors/OL9A": {
+            "key": "/authors/OL9A",
+            "name": "Mark Twain"
+        },
+        "/works/OL9W": {
+            "key": "/works/OL9W",
+            "title": "Foo",
+            "authors": [{
+                "author": {"key": "/authors/OL9A"}
+            }],
+            "links": [{
+                "title": "wikipedia article",
+                "url": "http://en.wikipedia.org/wiki/foo"
+            }],
+            "subjects": ["Test Subject"],
+            "subject_people": ["Test Person"],
+            "subject_places": ["Test Place"],
+            "subject_times": ["Test Time"],
+        },
+        "/books/OL9M": {
+            "key": "/books/OL9M",
+            "title": "foo",
+            "subtitle": "bar",
+            "works": [{"key": "/works/OL9W"}],
+            "publishers": ["Dover Publications"],
+            "publish_places": ["New York"],
+            "identifiers": {
+                "goodreads": ["12345"]
+            },
+            "isbn_10": ["1234567890"],
+            "lccn": ["lccn-1"],
+            "oclc_numbers": ["oclc-1"],
+            "covers": [42, 53],
+        },
+        "result": {
+            "viewapi": {
+                "info_url": "http://openlibrary.org/books/OL9M",
+                "thumbnail_url": "http://covers.openlibrary.org/b/id/42-S.jpg",
+                "preview": "noview",
+                "preview_url": "http://openlibrary.org/books/OL9M",
+            },
+            "data": {
+                "url": "http://openlibrary.org/books/OL9M",
+                "title": "foo",
+                "subtitle": "bar",
+                "authors": [{
+                    "url": "http://openlibrary.org/authors/OL9A",
+                    "name": "Mark Twain"
+                }],
+                "identifiers": {
+                    "isbn_10": ["1234567890"],
+                    "lccn": ["lccn-1"],
+                    "oclc": ["oclc-1"],
+                    "goodreads": ["12345"]
+                },
+                "publishers": [{
+                    "name": "Dover Publications"
+                }],
+                "publish_places": [{
+                    "name": "New York"
+                }],
+                "links": [{
+                    "title": "wikipedia article",
+                    "url": "http://en.wikipedia.org/wiki/foo"
+                }],
+                'subjects': [{
+                    'url': 'http://openlibrary.org/subjects/test_subject', 
+                    'name': 'Test Subject'
+                }], 
+                'subject_places': [{
+                    'url': 'http://openlibrary.org/subjects/place:test_place', 
+                    'name': 'Test Place'
+                }],
+                'subject_people': [{
+                    'url': 'http://openlibrary.org/subjects/person:test_person', 
+                    'name': 'Test Person'
+                }], 
+                'subject_times': [{
+                    'url': 'http://openlibrary.org/subjects/time:test_time', 
+                    'name': 'Test Time'
+                }],
+                "cover": {
+                    "small": "http://covers.openlibrary.org/b/id/42-S.jpg",
+                    "medium": "http://covers.openlibrary.org/b/id/42-M.jpg",
+                    "large": "http://covers.openlibrary.org/b/id/42-L.jpg",
+                }
+            }
+        }
+    }
 
 class Mock:
     def __init__(self):
@@ -167,9 +309,30 @@ def test_dynlinks_details(monkeypatch):
             "details": {
                 "key": "/books/OL2M", 
                 "title": "bar", 
-                "ocaid": "ia-bar"            
+                "ocaid": "ia-bar"
             }
         },
     }
     json = dynlinks.dynlinks(["OL2M"], {"format": "json", "details": "true"})
-    #assert simplejson.loads(json) == expected_result
+    assert simplejson.loads(json) == expected_result
+    
+class TestDataProcessor:        
+    def test_get_authors0(self, data0):
+        p = dynlinks.DataProcessor()
+        p.authors = data0
+        assert p.get_authors(data0['/books/OL0M']) == []
+        
+    def test_get_authors1(self, data1):
+        p = dynlinks.DataProcessor()
+        p.authors = data1
+        assert p.get_authors(data1['/works/OL1W']) == [{"url": "http://openlibrary.org/authors/OL1A", "name": "Mark Twain"}]
+        
+    def test_process_doc0(self, data0):
+        p = dynlinks.DataProcessor()
+        assert p.process_doc(data0['/books/OL0M']) == data0['result']['data']
+        
+    def test_process_doc9(self, data9):
+        p = dynlinks.DataProcessor()
+        p.authors = data9
+        p.works = data9                
+        assert p.process_doc(data9['/books/OL9M']) == data9['result']['data']
