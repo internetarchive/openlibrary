@@ -159,6 +159,15 @@ class DataProcessor:
         w = self.get_work(doc)
         
         def subject(name, prefix):
+            # handle bad subjects loaded earlier.
+            if isinstance(name, dict):
+                if 'value' in name:
+                    name = name['value']
+                elif 'key' in name:
+                    name = name['key'].split("/")[-1].replace("_", " ")
+                else:
+                    return {}
+                
             return {
                 "name": name,
                 "url": "http://openlibrary.org/subjects/%s%s" % (prefix, name.lower().replace(" ", "_"))
