@@ -1,8 +1,6 @@
-import urllib2
-import urllib
 import simplejson
 import web
-import os
+import sys
 import traceback
 
 from openlibrary.plugins.openlibrary.processors import urlsafe
