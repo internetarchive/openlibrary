@@ -3,7 +3,6 @@ import web, re, urllib, dbm
 from lxml.etree import parse, tostring, XML, XMLSyntaxError
 from infogami.utils import delegate
 from infogami import config
-from openlibrary.catalog.utils import flip_name
 from infogami.utils import view, template
 from infogami.utils.view import safeint, add_flash_message
 import simplejson as json
@@ -100,21 +99,6 @@ def url_quote(s):
     if not s:
         return ''
     return urllib.quote_plus(s.encode('utf-8'))
-
-re_baron = re.compile(r'^([A-Z][a-z]+), (.+) \1 Baron$')
-def tidy_name(s):
-    if s is None:
-        return '<em>name missing</em>'
-    if s == 'Mao, Zedong':
-        return 'Mao Zedong'
-    m = re_baron.match(s)
-    if m:
-        return m.group(2) + ' ' + m.group(1)
-    if ' Baron ' in s:
-        s = s[:s.find(' Baron ')]
-    elif s.endswith(' Sir'):
-        s = s[:-4]
-    return flip_name(s)
 
 def advanced_to_simple(params):
     q_list = []
@@ -299,7 +283,7 @@ def get_doc(doc):
     else:
         ak = [e.text for e in doc.find("arr[@name='author_key']")]
         an = [e.text for e in doc.find("arr[@name='author_name']")]
-        authors = [web.storage(key=key, name=tidy_name(name), url="/authors/%s/%s" % (key, (urlsafe(name) if name is not None else 'noname'))) for key, name in zip(ak, an)]
+        authors = [web.storage(key=key, name=name, url="/authors/%s/%s" % (key, (urlsafe(name) if name is not None else 'noname'))) for key, name in zip(ak, an)]
     cover = doc.find("str[@name='cover_edition_key']")
 
     doc = web.storage(

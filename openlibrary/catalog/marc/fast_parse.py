@@ -8,16 +8,18 @@ from openlibrary.catalog.utils import tidy_isbn
 
 marc8 = MARC8ToUnicode(quiet=True)
 
+re_real_book = re.compile('(pbk|hardcover|alk[^a-z]paper|cloth)', re.I)
+
 def translate(data, bad_ia_charset=False):
     if bad_ia_charset:
-        data = data.decode('utf-8')
+        #data = data.decode('utf-8')
         data = marc8.translate(data)
         return normalize('NFC', data)
     data = mnemonics.read(data)
     if type(data) == unicode:
         return normalize('NFC', data)
     try:
-        data = data.decode('utf8')
+        data = data.decode('utf-8')
         is_utf8 = True
     except UnicodeDecodeError:
         is_utf8 = False
@@ -327,7 +329,7 @@ def index_fields(data, want, check_author = True):
 
     seen_008 = False
     oclc_001 = False
-    is_pbk = False
+    is_real_book = False
 
     tag_006_says_electric = False
     for tag, line in fields:
@@ -344,8 +346,8 @@ def index_fields(data, want, check_author = True):
                 return None
             seen_008 = True
             continue
-        if tag == '020' and 'pbk' in line:
-            is_pbk = True
+        if tag == '020' and re_real_book.search(line):
+            is_real_book = True
         if tag == '260': 
             if line.find('\x1fh[sound') != -1: # sound recording
                 return None
@@ -373,7 +375,7 @@ def index_fields(data, want, check_author = True):
         return None
 #    if 'title' not in edition:
 #        return None
-    if tag_006_says_electric and not is_pbk:
+    if tag_006_says_electric and not is_real_book:
         return None
     return edition
 
@@ -398,7 +400,7 @@ def read_edition(data, accept_electronic = False):
 
     oclc_001 = False
     tag_006_says_electric = False
-    is_pbk = False
+    is_real_book = False
     for tag, line in fields:
         if tag == '003': # control number identifier
             if line.lower().startswith('ocolc'):
@@ -414,8 +416,8 @@ def read_edition(data, accept_electronic = False):
                 edition['publish_date'] = line[7:11]
             edition['publish_country'] = line[15:18]
             continue
-        if tag == '020' and 'pbk' in line:
-            is_pbk = True
+        if tag == '020' and re_real_book.search(line):
+            is_real_book = True
         for t, proc, key in read_tag:
             if t != tag:
                 continue
@@ -440,7 +442,7 @@ def read_edition(data, accept_electronic = False):
         add_oclc(edition)
     if 'control_number' in edition:
         del edition['control_number']
-    if not accept_electronic and tag_006_says_electric and not is_pbk:
+    if not accept_electronic and tag_006_says_electric and not is_real_book:
         print 'electronic resources'
         return None
 
