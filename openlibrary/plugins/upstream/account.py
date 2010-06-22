@@ -339,6 +339,13 @@ class account_notifications(delegate.page):
         add_flash_message('note', _("Notification preferences have been updated successfully."))
         web.seeother("/account")
 
+class account_loans(delegate.page):
+    path = "/account/loans"
+    
+    @require_login
+    def GET(self):
+        user = web.ctx.site.get_user()
+        return render['account/borrow'](user)
 
 class account_others(delegate.page):
     path = "(/account/.*)"
