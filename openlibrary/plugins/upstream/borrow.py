@@ -1,5 +1,8 @@
 """Handlers for borrowing books"""
 
+import datetime
+import string
+
 import web
 
 from infogami import config
@@ -32,34 +35,75 @@ class do_borrow(delegate.page):
         
         everythingChecksOut = True # XXX
         if everythingChecksOut:
-            # XXX get loan URL and loan id
-            loanid = 'loan1'
-            expiry = '2010'
+            # XXX get loan URL and loan id            
             resourceType = 'epub'
-            loan_url = '/?loanid=%s&bookid=%s&expiry=%s&debug=true' % (loanid, key, expiry)
-            add_user_loan(user, key, resourceType, expiry)
-            raise web.seeother(loan_url)
+            loan = Loan(user.key, key, resourceType)
+            loan.add()
+            acs4link = loan.create_url()
+            raise web.seeother(acs4link)
         else:
             # Send to the borrow page
             raise web.seeother(key + '/borrow') # XXX doesn't work because title is after OL id
             
-@public
-def get_own_loans():
-    return get_user_loans(web.ctx.site.get_user())
-    
 
-def key_for_loan(user, bookId, resourceType):
-    return '%s-%s-%s' % (user, bookId, resourceType)
-    
-def obj_for_loan(user, bookId, resourceType, expiry):
-    return { 'type': '/type/loan', 'user': user.key,
-             'bookId': bookId, 'expiry': expiry }
+class Loan:
+
+    defaultLoanDelta = datetime.timedelta(weeks = 2)
+    isoFormat = "%Y-%m-%dT%H:%M:%S.%f"
+
+    def __init__(self, userKey, bookKey, resourceType, expiry = None, loanedAt = None):
+        self.userKey = userKey
+        self.bookKey = bookKey
+        self.resourceType = resourceType
+        self.type = '/type/loan'
+        
+        if loanedAt is not None:
+            self.loanedAt = loanedAt
+        else:
+            self.loanedAt = datetime.datetime.utcnow().isoformat()
+
+        if expiry is not None:
+            self.expiry = expiry
+        else:
+            print(self.loanedAt)
+            self.expiry = datetime.datetime.strptime(self.loanedAt, Loan.isoFormat)
+        
+    def get_key(self):
+        return '%s-%s-%s' % (self.userKey, self.bookKey, self.resourceType)
+        
+    def get_dict(self):
+        return { 'user': self.userKey, 'type': '/type/loan',
+                 'book': self.bookKey, 'expiry': self.expiry,
+                 'loanedAt': self.loanedAt, 'resourceType': self.resourceType }
+                 
+    def set_dict(self, loanDict):
+        self.userKey = loanDict['user']
+        self.type = loanDict['type']
+        self.bookKey = loanDict['book']
+        self.resourceType = loanDict['resourceType']
+        self.expiry = loanDict['expiry']
+        self.loanedAt = loanDict['loanedAt']
+        
+    def load(self):
+        self.set_dict(web.ctx.site.store[self.get_key()])
+        
+    def save(self):
+        web.ctx.site.store[self.get_key()] = self.get_dict()
+        
+    def add(self):
+        """Record/update the loan"""
+        self.save()
+        
+    def remove(self):
+        web.ctx.site.delete(self.get_key())
+        
+    def create_url(self):
+        """Mints a loan URL"""
+        # XXX implement
+        pieces = ['%s=%s' % (key, value) for (key, value) in self.get_dict().items()]
+        return "/?%s" % string.join(pieces, '&')
+        
              
-def get_user_loans(user):
+def get_loans(user):
     return [web.ctx.site.store[result['key']] for result in web.ctx.site.store.query('/type/loan', 'user', user.key)]
     
-def add_user_loan(user, bookId, resourceType, expiry):
-    web.ctx.site.store[key_for_loan(user, bookId, resourceType)] = obj_for_loan(user, bookId, resourceType, expiry)
-    
-def remove_user_loan(user, bookId, resourceType):
-    return web.ctx.site.store.delete(key_for_loan(user, bookId, resourceType))
