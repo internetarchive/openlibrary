@@ -12,18 +12,27 @@ from infogami.utils.view import public
 import utils
 from utils import render_template
 
+import acs4
+
+########## Page Handlers
+
 # Handler for /books/{bookid}/{title}/borrow
 class borrow(delegate.page):
-	path = "(/books/OL\d+M)/borrow"
-	
-	def GET(self, key):
-		book = web.ctx.site.get(key)
-		
-		if not book:
-			raise web.notfound()
-			
-		return render_template("borrow", book)
-		
+    path = "(/books/OL\d+M)/borrow"
+    
+    def GET(self, key):
+        book = web.ctx.site.get(key)
+        
+        if not book:
+            raise web.notfound()
+            
+        loans = []
+        user = web.ctx.site.get_user()
+        if user:
+            loans = get_loans(user)
+            
+        return render_template("borrow", book, loans)
+        
 class do_borrow(delegate.page):
     """Actually borrow the book, via POST"""
     path = "(/books/OL\d+M)/_doborrow"
@@ -44,7 +53,18 @@ class do_borrow(delegate.page):
         else:
             # Send to the borrow page
             raise web.seeother(key + '/borrow') # XXX doesn't work because title is after OL id
-            
+
+
+########## Public Functions
+
+
+########## Helper Functions
+             
+def get_loans(user):
+    return [web.ctx.site.store[result['key']] for result in web.ctx.site.store.query('/type/loan', 'user', user.key)]
+
+
+########## Classes
 
 class Loan:
 
@@ -103,7 +123,3 @@ class Loan:
         pieces = ['%s=%s' % (key, value) for (key, value) in self.get_dict().items()]
         return "/?%s" % string.join(pieces, '&')
         
-             
-def get_loans(user):
-    return [web.ctx.site.store[result['key']] for result in web.ctx.site.store.query('/type/loan', 'user', user.key)]
-    
