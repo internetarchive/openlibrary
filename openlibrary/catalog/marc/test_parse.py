@@ -1,7 +1,7 @@
 #!/usr/bin/python
 import unittest
 
-from parse import read_edition
+from parse import read_edition, SeeAlsoAsTitle
 from marc_binary import MarcBinary
 from marc_xml import MarcXml, BadSubtag, BlankTag
 from pprint import pprint, pformat
@@ -957,3 +957,8 @@ class TestParse(unittest.TestCase):
             rec = MarcBinary(f.read())
             edition_marc_bin = read_edition(rec)
             self.assertEqual(edition_marc_bin, j)
+
+        i = 'talis_see_also.mrc'
+        f = open('test_data/' + i)
+        rec = MarcBinary(f.read())
+        self.assertRaises(SeeAlsoAsTitle, read_edition, rec)

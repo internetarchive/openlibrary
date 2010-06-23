@@ -15,6 +15,9 @@ re_bracket_field = re.compile('^\s*(\[.*\])\.?\s*$')
 class NoTitle(Exception):
     pass
 
+class SeeAlsoAsTitle(Exception):
+    pass
+
 want = [
     '001',
     '003', # for OCLC
@@ -178,7 +181,7 @@ def read_title(rec):
         title = contents['b'][0].strip(' /,;:')
         del contents['b'][0]
     if title in ('See.', 'See also.'):
-        raise SeeAlsoAsTitle
+        raise SeeAlsoAsTitle # talis_openlibrary_contribution/talis-openlibrary-contribution.mrc:183427199:255
     ret['title'] = title
     if 'b' in contents and contents['b']:
         ret["subtitle"] = ' : '.join([x.strip(' /,;:') for x in contents['b']])
