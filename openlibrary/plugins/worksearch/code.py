@@ -188,6 +188,7 @@ def run_solr_query(param = {}, rows=100, page=1, sort=None, spellcheck_count=Non
             if m: # FIXME: 'OL123A OR OL234A'
                 q_list.append('author_key:(' + m.group(1) + ')')
             else:
+                v = re_to_esc.sub(lambda m:'\\' + m.group(), v)
                 q_list.append('(author_name:(' + v + ') OR author_alternative_name:(' + v + '))')
 
         check_params = ['title', 'publisher', 'isbn', 'oclc', 'lccn', 'contribtor', 'subject', 'place', 'person', 'time']
