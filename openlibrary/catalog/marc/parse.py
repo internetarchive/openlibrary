@@ -164,6 +164,8 @@ def read_work_titles(rec):
 def read_title(rec):
     fields = rec.get_fields('245')
     if not fields:
+        fields = rec.get_fields('740')
+    if not fields:
         raise NoTitle
 
 #   example MARC record with multiple titles:

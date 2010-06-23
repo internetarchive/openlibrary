@@ -1,7 +1,7 @@
 #!/usr/bin/python
 import unittest
 
-from parse import read_edition, SeeAlsoAsTitle
+from parse import read_edition, SeeAlsoAsTitle, NoTitle
 from marc_binary import MarcBinary
 from marc_xml import MarcXml, BadSubtag, BlankTag
 from pprint import pprint, pformat
@@ -938,6 +938,19 @@ bin_samples = [
     'authors': [{'birth_date': u'1670', 'personal_name': u'Congreve, William', 'death_date': u'1729', 'name': u'Congreve, William', 'entity_type': 'person'}],
     'publish_places': [u'London'],
 }),
+('talis_740.mrc', {
+    'other_titles': [u'Modern Supreme Court.'],
+    'publishers': [u'Harvard U.P.'],
+    'pagination': u'D8.390. n.e.',
+    'table_of_contents': [{'type': '/type/toc_item', 'title': u'The modern Supreme Court /.'}],
+    'title': u'Modern Supreme Court.',
+    'number_of_pages': 390,
+    'languages': [{'key': '/languages/eng'}],
+    'isbn_10': [u'0674580567'],
+    'publish_date': '1973',
+    'publish_country': 'xxk',
+    'authors': [{'personal_name': u'McCloskey, Robert Green.', 'name': u'McCloskey, Robert Green.', 'entity_type': 'person'}], 
+    'publish_places': [u'Cambridge,Mass', u'London']}),
 ]
 
 class TestParse(unittest.TestCase):
@@ -962,3 +975,8 @@ class TestParse(unittest.TestCase):
         f = open('test_data/' + i)
         rec = MarcBinary(f.read())
         self.assertRaises(SeeAlsoAsTitle, read_edition, rec)
+
+        i = 'talis_no_title2.mrc'
+        f = open('test_data/' + i)
+        rec = MarcBinary(f.read())
+        self.assertRaises(NoTitle, read_edition, rec)
