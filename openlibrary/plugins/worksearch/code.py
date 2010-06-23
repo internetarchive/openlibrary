@@ -17,6 +17,13 @@ except AttributeError:
 from openlibrary.plugins.search.code import search as _edition_search
 from infogami.plugins.api.code import jsonapi
 
+re_solr_range = re.compile(r'\[.+\bTO\b.+\]', re.I)
+re_bracket = re.compile(r'[\[\]]')
+def escape_bracket(q):
+    if re_solr_range.search(q):
+        return q
+    return re_bracket.sub(lambda m:'\\'+m.group(), q)
+
 class edition_search(_edition_search):
     path = "/search/edition"
 
@@ -800,11 +807,12 @@ class merge_author_works(delegate.page):
     path = "/authors/(OL\d+A)/merge-works"
     def GET(self, key):
         works = works_by_author(key)
-    
+
 class subject_search(delegate.page):
     path = '/search/subjects'
     def GET(self):
         def get_results(q, offset=0, limit=100):
+            q = escape_bracket(q)
             solr_select = solr_subject_select_url + "?q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=name,type,count&qt=standard&wt=json" % (web.urlquote(q), offset, limit)
             solr_select += '&sort=count+desc'
             return json.loads(urllib.urlopen(solr_select).read())
@@ -814,6 +822,7 @@ class author_search(delegate.page):
     path = '/search/authors'
     def GET(self):
         def get_results(q, offset=0, limit=100):
+            q = escape_bracket(q)
             solr_select = solr_author_select_url + "?q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=*&qt=standard&wt=json" % (web.urlquote(q), offset, limit)
             solr_select += '&sort=work_count+desc'
             return json.loads(urllib.urlopen(solr_select).read())
@@ -823,6 +832,7 @@ class edition_search(delegate.page):
     path = '/search/editions'
     def GET(self):
         def get_results(q, offset=0, limit=100):
+            q = escape_bracket(q)
             solr_select = solr_edition_select_url + "?q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=*&qt=standard&wt=json" % (web.urlquote(q), offset, limit)
             return json.loads(urllib.urlopen(solr_select).read())
         return render_template('search/editions.tmpl', get_results)
