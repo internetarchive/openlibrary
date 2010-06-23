@@ -16,7 +16,6 @@ import os
 import _init_path
 
 import web
-web.config.debug = False
 
 import infogami
 from infogami import config

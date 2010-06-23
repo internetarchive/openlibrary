@@ -36,6 +36,14 @@ def get_schema(engine='postgres'):
     s.add_index('cover', 'deleted')
     s.add_index('cover', 'archived')
 
+    s.add_table("log",
+        s.column("id", "serial", primary_key=True),
+        s.column("cover_id", "integer", references="cover"),
+        s.column("action", "text"),
+        s.column("timestamp", "timestamp")
+    )
+    s.add_index("log", "timestamp")
+
     sql = s.sql(engine)
     if engine == 'sqlite':
         # quick hack to fix bug in openlibrary.utils.schema
