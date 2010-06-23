@@ -927,6 +927,7 @@ bin_samples = [
   'publish_date': '1964',
   'publishers': [u'Institution of Civil Engineers'],
   'title': u'The use of aerial photographs in materialssurveys and classification of landforms'}),
+('talis_no_title.mrc', {'publishers': [u'Methuen'], 'table_of_contents': [{'type': '/type/toc_item', 'title': u'Contents:The Old batchelour, - -The double dealer.'}], 'title': u'Plays.', 'dewey_decimal_class': [u'822.4'], 'languages': [{'key': '/languages/eng'}], 'publish_date': '1895', 'publish_country': 'xxk', 'authors': [{'birth_date': u'1670', 'personal_name': u'Congreve, William', 'death_date': u'1729', 'name': u'Congreve, William', 'entity_type': 'person'}], 'publish_places': [u'London'], 'contributions': [u'Congreve, William, 1670-1729.', u'Congreve, William, 1670-1729.', u'Congreve, William, 1670-1729.']}),
 ]
 
 class TestParse(unittest.TestCase):

@@ -12,6 +12,9 @@ re_int = re.compile ('\d{2,}')
 re_number_dot = re.compile('\d{3,}\.$')
 re_bracket_field = re.compile('^\s*(\[.*\])\.?\s*$')
 
+class NoTitle(Exception):
+    pass
+
 want = [
     '001',
     '003', # for OCLC
@@ -493,7 +496,15 @@ def read_edition(rec, handle_missing_008=False):
     update_edition(rec, edition, read_toc, 'table_of_contents')
     update_edition(rec, edition, read_url, 'links')
 
-    edition.update(read_title(rec))
+    try:
+        edition.update(read_title(rec))
+    except NoTitle:
+        if 'work_titles' in edition:
+            assert len(edition['work_titles']) == 1
+            edition['title'] = edition['work_titles'][0]
+            del edition['work_titles']
+        else:
+            raise
 
     for func in (read_publisher, read_isbn, read_pagination):
         v = func(rec)
