@@ -170,7 +170,9 @@ def read_title(rec):
 
 #   example MARC record with multiple titles:
 #   http://openlibrary.org/show-marc/marc_western_washington_univ/wwu_bibs.mrc_revrev.mrc:299505697:862
-    contents = fields[0].get_contents(['a', 'b', 'c', 'h'])
+    contents = fields[0].get_contents(['a', 'b', 'c', 'h', 'p'])
+
+    b_and_p = [i for i in fields[0].get_subfield_values(['b', 'p']) if i]
 
     ret = {}
     title = None
@@ -179,16 +181,15 @@ def read_title(rec):
 #   http://openlibrary.org/show-marc/marc_western_washington_univ/wwu_bibs.mrc_revrev.mrc:516779055:1304
     if 'a' in contents:
         title = ' '.join(x.strip(' /,;:') for x in contents['a'])
-    elif 'b' in contents:
-        title = contents['b'][0].strip(' /,;:')
-        del contents['b'][0]
+    elif b_and_p:
+        title = b_and_p.pop(0).strip(' /,;:')
     if title in ('See.', 'See also.'):
         raise SeeAlsoAsTitle # talis_openlibrary_contribution/talis-openlibrary-contribution.mrc:183427199:255
-    ret['title'] = title
-    if 'b' in contents and contents['b']:
-        ret["subtitle"] = ' : '.join([x.strip(' /,;:') for x in contents['b']])
+    ret['title'] = remove_trailing_dot(title)
+    if b_and_p:
+        ret["subtitle"] = ' : '.join(remove_trailing_dot(x.strip(' /,;:')) for x in b_and_p)
     if 'c' in contents:
-        ret["by_statement"] = ' '.join(contents['c'])
+        ret["by_statement"] = remove_trailing_dot(' '.join(contents['c']))
     if 'h' in contents:
         h = ' '.join(contents['h']).strip(' ')
         m = re_bracket_field.match(h)
