@@ -911,9 +911,23 @@ bin_samples = [
                         'type': '/type/toc_item'}],
  'title': u'Zwei B\xc3\xbccher Satiren',
  'work_titles': [u'Satirae']}),
+('talis_two_authors.mrc',
+ {'authors': [{'entity_type': 'person',
+               'name': u'Dowling, James Walter Frederick.',
+               'personal_name': u'Dowling, James Walter Frederick.'},
+              {'entity_type': 'event',
+               'name': u'Conference on Civil Engineering Problems Overseas.'}],
+  'by_statement': u'[by] J.W.F. Dowling, F.H.P. Williams.',
+  'contributions': [u'Williams, Frederik Harry Paston.',
+                    u'Conference on Civil Engineering Problems Overseas (1964)'],
+  'languages': [{'key': '/languages/eng'}],
+  'notes': u'Paper from Conference on Civil Engineering problems Overseas, 1964.',
+  'pagination': u'1 vol',
+  'publish_country': 'xxk',
+  'publish_date': '1964',
+  'publishers': [u'Institution of Civil Engineers'],
+  'title': u'The use of aerial photographs in materialssurveys and classification of landforms'}),
 ]
-
-bin_samples2 = ['talis_two_authors.mrc']
 
 class TestParse(unittest.TestCase):
     def test_xml(self):
@@ -932,10 +946,3 @@ class TestParse(unittest.TestCase):
             rec = MarcBinary(f.read())
             edition_marc_bin = read_edition(rec)
             self.assertEqual(edition_marc_bin, j)
-
-        i = 'talis_two_authors.mrc'
-        f = open('test_data/' + i)
-        rec = MarcBinary(f.read())
-        edition_marc_bin = read_edition(rec)
-
-

@@ -71,9 +71,7 @@ def remove_duplicates(seq):
 def read_oclc(rec):
     found = []
     tag_001 = rec.get_fields('001')
-    print '001:', tag_001
     tag_003 = rec.get_fields('003')
-    print '003:', tag_003
     if tag_001 and tag_003 and re_ocolc.match(tag_003[0]):
         oclc = tag_001[0]
         m = re_ocn_or_ocm.match(oclc)
@@ -265,8 +263,7 @@ def read_author_person(f):
         author['fuller_name'] = ' '.join(contents['q'])
     return author
 
-def read_author(rec):
-    found = []
+def read_authors(rec):
     count = 0
     fields_100 = rec.get_fields('100')
     fields_110 = rec.get_fields('110')
@@ -274,17 +271,19 @@ def read_author(rec):
     count = len(fields_100) + len(fields_110) + len(fields_111)
     if count == 0:
         return
-    assert count == 1
-    if fields_100:
-        return read_author_person(fields_100[0])
-    if fields_110:
-        f = fields_110[0]
+    # talis_openlibrary_contribution/talis-openlibrary-contribution.mrc:11601515:773 has two authors:
+    # 100 1  $aDowling, James Walter Frederick.
+    # 111 2  $aConference on Civil Engineering Problems Overseas.
+
+    found = [read_author_person(f) for f in fields_100]
+    for f in fields_110:
         name = [v.strip(' /,;:') for v in f.get_subfield_values(['a', 'b'])]
-        return { 'entity_type': 'org', 'name': ' '.join(name) }
-    if fields_111:
-        f = fields_111[0]
+        found.append({ 'entity_type': 'org', 'name': ' '.join(name)})
+    for f in fields_111:
         name = [v.strip(' /,;:') for v in f.get_subfield_values(['a', 'c', 'd', 'n'])]
-        return { 'entity_type': 'event', 'name': ' '.join(name) }
+        found.append({ 'entity_type': 'event', 'name': ' '.join(name)})
+    if found:
+        return found
 
 # no monograph should be longer than 50,000 pages
 max_number_of_pages = 50000
@@ -479,6 +478,7 @@ def read_edition(rec, handle_missing_008=False):
         update_edition(rec, edition, read_pub_date, 'publish_date')
 
     update_edition(rec, edition, read_lccn, 'lccn')
+    update_edition(rec, edition, read_authors, 'authors')
     update_edition(rec, edition, read_oclc, 'oclc_number')
     update_edition(rec, edition, read_lc_classification, 'lc_classification')
     update_edition(rec, edition, read_dewey, 'dewey_decimal_class')
@@ -492,10 +492,6 @@ def read_edition(rec, handle_missing_008=False):
     update_edition(rec, edition, read_contributions, 'contributions')
     update_edition(rec, edition, read_toc, 'table_of_contents')
     update_edition(rec, edition, read_url, 'links')
-
-    v = read_author(rec)
-    if v:
-        edition['authors'] = [v]
 
     edition.update(read_title(rec))
 
