@@ -913,6 +913,8 @@ bin_samples = [
  'work_titles': [u'Satirae']}),
 ]
 
+bin_samples2 = ['talis_two_authors.mrc']
+
 class TestParse(unittest.TestCase):
     def test_xml(self):
         for i, j in xml_samples:
@@ -930,4 +932,10 @@ class TestParse(unittest.TestCase):
             rec = MarcBinary(f.read())
             edition_marc_bin = read_edition(rec)
             self.assertEqual(edition_marc_bin, j)
+
+        i = 'talis_two_authors.mrc'
+        f = open('test_data/' + i)
+        rec = MarcBinary(f.read())
+        edition_marc_bin = read_edition(rec)
+
 
