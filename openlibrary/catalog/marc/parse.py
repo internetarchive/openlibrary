@@ -399,9 +399,19 @@ def read_contributions(rec):
         ('711', 'acdn'),
     ]
 
+    skip_authors = set()
+    for tag in ('100', '110', '111'):
+        fields = rec.get_fields(tag)
+        for f in fields:
+            skip_authors.add(tuple(f.get_all_subfields()))
+
     found = []
     for tag, sub in want:
-        found += [' '.join(f.get_subfield_values(sub)) for f in rec.get_fields(tag)]
+        this_tag = []
+        for f in rec.get_fields(tag):
+            cur = tuple(f.get_subfields(sub))
+            if tuple(cur) not in skip_authors:
+                found.append(' '.join(i[1] for i in cur))
     return found
 
 def read_toc(rec):
