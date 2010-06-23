@@ -1,280 +1,65 @@
-from openlibrary.catalog.merge.names import flip_marc_name
+import re
+from openlibrary.catalog.utils import pick_first_date, tidy_isbn, flip_name, remove_trailing_dot
+from collections import defaultdict
 
-import sys, re
-
-# no monograph should be longer than 50,000 pages
-max_number_of_pages = 50000
-re_isbn = re.compile('([^ ()]+[\dX])(?: \((?:v\. (\d+)(?: : )?)?(.*)\))?')
 re_question = re.compile('^\?+$')
 re_lccn = re.compile('(...\d+).*')
+re_letters = re.compile('[A-Za-z]')
+re_oclc = re.compile('^\(OCoLC\).*?0*(\d+)')
+re_ocolc = re.compile('^ocolc *$', re.I)
+re_ocn_or_ocm = re.compile('^oc[nm](\d+) *$')
 re_int = re.compile ('\d{2,}')
-re_oclc = re.compile ('^\(OCoLC\).*?0*(\d+)')
-re_date = map (re.compile, [
-    '(?P<birth_date>\d+\??)-(?P<death_date>\d+\??)',
-    '(?P<birth_date>\d+\??)-',
-    'b\.? (?P<birth_date>(?:ca\. )?\d+\??)',
-    'd\.? (?P<death_date>(?:ca\. )?\d+\??)',
-    '(?P<birth_date>.*\d+.*)-(?P<death_date>.*\d+.*)',
-    '^(?P<birth_date>[^-]*\d+[^-]+ cent\.[^-]*)$'])
-
-re_ad_bc = re.compile(r'\b(B\.C\.?|A\.D\.?)')
 re_number_dot = re.compile('\d{3,}\.$')
-re_date_fl = re.compile('^fl[., ]')
+re_bracket_field = re.compile('^\s*(\[.*\])\.?\s*$')
 
-class BigToc:
+want = [
+    '001',
+    '003', # for OCLC
+    '008', # publish date, country and language
+    '010', # lccn
+    '020', # isbn
+    '035', # oclc
+    '050', # lc classification
+    '082', # dewey
+    '100', '110', '111', # authors TODO
+    '130', '240', # work title
+    '245', # title
+    '250', # edition
+    '260', # publisher
+    '300', # pagination
+    '440', '490', '830' # series
+    ] + [str(i) for i in range(500,600)] + [ # notes + toc + description
+    #'600', '610', '611', '630', '648', '650', '651', '662', # subjects
+    '700', '710', '711', # contributions
+    '246', '730', '740', # other titles
+    '852', # location
+    '856'] # URL
+
+class BadMARC(Exception):
     pass
 
-def specific_subtags(f, subtags):
-    return [j for i, j in f.subfield_sequence if i in subtags]
+class SeaAlsoAsTitle(Exception):
+    pass
 
-def parse_date(date):
-    if re_date_fl.match(date):
-        return {}
-    if date.find('-') == -1:
-        for r in re_date:
-            m = r.search(date)
-            if m:
-                return m.groupdict()
-        return {}
-
-    parts = date.split('-')
-    i = { 'birth_date': parts[0].strip() }
-    if len(parts) == 2:
-        parts[1] = parts[1].strip()
-        if parts[1]:
-            i['death_date'] = parts[1]
-            if not re_ad_bc.search(i['birth_date']):
-                m = re_ad_bc.search(i['death_date'])
-                if m:
-                    i['birth_date'] += ' ' + m.group(1)
-    return i
-
-def remove_trailing_number_dot(date):
-    m = re_number_dot.search(date)
-    if m:
-        return date[:-1]
-    else:
-        return date
-
-def pick_first_date(dates):
-    # this is to handle this case:
-    # 100: $aLogan, Olive (Logan), $cSikes, $dMrs., $d1839-
-    # see http://archive.org/download/gettheebehindmes00logaiala/gettheebehindmes00logaiala_meta.mrc
-    # or http://pharosdb.us.archive.org:9090/show-marc?record=gettheebehindmes00logaiala/gettheebehindmes00logaiala_meta.mrc:0:521
-
-    for date in dates:
-        result = parse_date(date)
-        if result != {}:
-            return result
-
-    return { 'date': ' '.join([remove_trailing_number_dot(d) for d in dates]) }
-
-def find_authors (r, edition):
-    authors = []
-    for f in r.get_fields('100'):
-        author = {}
-        if 'a' not in f.contents and 'c' not in f.contents:
-            continue # should at least be a name or title
-        name = " ".join([j.strip(' /,;:') for i, j in f.subfield_sequence if i in 'abc'])
-        if 'd' in f.contents:
-            author = pick_first_date(f.contents['d'])
-            author['db_name'] = ' '.join([name] + f.contents['d'])
-        else:
-            author['db_name'] = name
-        author['name'] = name
-        author['entity_type'] = 'person'
-        subfields = [
-            ('a', 'personal_name'),
-            ('b', 'numeration'),
-            ('c', 'title')
-        ]
-        for subfield, field_name in subfields:
-            if subfield in f.contents:
-                author[field_name] = ' '.join([x.strip(' /,;:') for x in f.contents[subfield]])
-        if 'q' in f.contents:
-            author['fuller_name'] = ' '.join(f.contents['q'])
-        authors.append(author)
-
-    for f in r.get_fields('110'):
-        author = {
-            'entity_type': 'org',
-            'name': " ".join([j.strip(' /,;:') for i, j in f.subfield_sequence if i in 'ab'])
-        }
-        author['db_name'] = author['name']
-        authors.append(author)
-
-    for f in r.get_fields('111'):
-        author = {
-            'entity_type': 'event',
-            'name': " ".join([j.strip(' /,;:') for i, j in f.subfield_sequence if i in 'acdn'])
-        }
-        author['db_name'] = author['name']
-        authors.append(author)
-    if authors:
-        edition['authors'] = authors
-
-def find_contributions(r, edition):
-    contributions = []
-    for tag, subtags in [ ('700', 'abcde'), ('710', 'ab'), ('711', 'acdn') ]:
-        for f in r.get_fields(tag):
-            contributions.append(" ".join(specific_subtags(f, subtags)))
-    if contributions:
-        edition['contributions'] = contributions
-
-def find_contributions_complex(r, edition):
-    authors = []
-    for f in r.get_fields('700'):
-        author = {}
-        if 'a' not in f.contents and 'c' not in f.contents:
-            continue # should at least be a name or title
-        name = " ".join([j.strip(' /,;:') for i, j in f.subfield_sequence if i in 'abc'])
-        if 'd' in f.contents:
-            author = pick_first_date(f.contents['d'])
-            author['db_name'] = ' '.join([name] + f.contents['d'])
-        else:
-            author['db_name'] = name
-        author['name'] = name
-        author['entity_type'] = 'person'
-        subfields = [
-            ('a', 'personal_name'),
-            ('b', 'numeration'),
-            ('c', 'title')
-        ]
-        for subfield, field_name in subfields:
-            if subfield in f.contents:
-                author[field_name] = ' '.join([x.strip(' /,;:') for x in f.contents[subfield]])
-        if 'q' in f.contents:
-            author['fuller_name'] = ' '.join(f.contents['q'])
-        authors.append(author)
-
-    for f in r.get_fields('710'):
-        author = {
-            'entity_type': 'org',
-            'name': " ".join([j.strip(' /,;:') for i, j in f.subfield_sequence if i in 'ab'])
-        }
-        author['db_name'] = author['name']
-        authors.append(author)
-
-    for f in r.get_fields('711'):
-        author = {
-            'entity_type': 'event',
-            'name': " ".join([j.strip(' /,;:') for i, j in f.subfield_sequence if i in 'acdn'])
-        }
-        author['db_name'] = author['name']
-        authors.append(author)
-    if authors:
-        edition['authors'] = authors
-
-def find_title(r, edition):
-    # title
-    f = r.get_field('245')
-    if not f or 'a' not in f.contents:
+def read_lccn(rec):
+    fields = rec.get_fields('010')
+    if not fields:
         return
-    try:
-        title_prefix_len = int(f.indicator2)
-    except ValueError:
-        title_prefix_len = None
-        pass
-    title = ' '.join(x.strip(' /,;:') for x in f.contents['a'])
-    if title_prefix_len:
-        edition['title'] = title[title_prefix_len:]
-        edition['title_prefix'] = title[:title_prefix_len]
-    else:
-        edition['title'] = title
-    if 'b' in f.contents:
-        edition["subtitle"] = ' : '.join([x.strip(' /,;:') for x in f.contents['b']])
-    if 'c' in f.contents:
-        edition["by_statement"] = ' '.join(f.contents['c'])
-    if 'h' in f.contents:
-        edition["physical_format"] = ' '.join(f.contents['h'])
 
-def find_other_titles(r, edition):
-    other_titles = [' '.join(f.contents['a']) for f in r.get_fields('246') if 'a' in f.contents]
+    found = []
+    for f in fields:
+        for k, v in f.get_subfields(['a']):
+            lccn = v.strip()
+            if re_question.match(lccn):
+                continue
+            m = re_lccn.search(lccn)
+            if not m:
+                continue
+            lccn = re_letters.sub('', m.group(1)).strip()
+            if lccn:
+                found.append(lccn)
 
-    for f in r.get_fields('730'):
-        other_titles.append(' '.join([j for i,j in f.subfield_sequence if i.islower()]))
-
-    for f in r.get_fields('740'):
-        other_titles.append(' '.join(specific_subtags(f, 'apn')))
-
-    if other_titles:
-        edition["other_titles"] = other_titles
-
-def find_work_title(r, edition):
-    work_title = []
-    f = r.get_field('240', default=None)
-    if f:
-        work_title.append(' '.join(specific_subtags(f, 'amnpr')))
-
-    f = r.get_field('130', default=None)
-    if f:
-        work_title.append(' '.join([j for i,j in f.subfield_sequence if i.islower()]))
-
-    if work_title:
-        edition["work_titles"] = work_title
-
-def find_edition(r, edition):
-    e = []
-    for f in r.get_fields('250'):
-        e += [j for i,j in f.subfield_sequence]
-    if e:
-        edition['edition_name'] = ' '.join(e)
-
-def find_publisher(r, edition):
-    publisher = []
-    publish_place = []
-    for f in r.get_fields('260'):
-        if 'b' in f.contents:
-            publisher += [x.strip(" /,;:") for x in f.contents['b']]
-        if 'a' in f.contents:
-            publish_place += [x.strip(" /.,;:") for x in f.contents['a']]
-    if publisher:
-        edition["publishers"] = publisher
-    if publish_place:
-        edition["publish_places"] = publish_place
-
-def find_pagination(r, edition):
-    pagination = []
-    for f in r.get_fields('300'):
-        if 'a' in f.contents:
-            pagination += f.contents['a']
-    if pagination:
-        edition["pagination"] = ' '.join(pagination)
-        num = []
-        for x in pagination:
-            num += [ int(i) for i in re_int.findall(x.replace(',',''))]
-            num += [ int(i) for i in re_int.findall(x) ]
-        valid = [i for i in num if i < max_number_of_pages]
-        if valid:
-            edition["number_of_pages"] = max(valid)
-
-def find_dewey_number(r, edition):
-    # dewey_number
-    fields = r.get_fields('082')
-    if fields:
-        dewey_number = []
-        for f in fields:
-            if 'a' in f.contents:
-                dewey_number += f.contents['a']
-        edition["dewey_decimal_class"] = dewey_number
-
-def find_subjects(r, edition):
-    fields = [
-        ('600', 'abcd'),
-        ('610', 'ab'),
-        ('630', 'acdegnpqst'),
-        ('650', 'a'),
-        ('651', 'a'),
-    ]
-
-    subject = []
-    subdivision_fields = 'vxyz'
-
-    for tag, name_fields in fields:
-        subject += [" -- ".join([" ".join(specific_subtags(f, name_fields))] + specific_subtags(f, subdivision_fields)) for f in r.get_fields(tag)]
-
-    if subject:
-        edition["subjects"] = subject
+    return found
 
 def remove_duplicates(seq):
     u = []
@@ -283,268 +68,412 @@ def remove_duplicates(seq):
             u.append(x)
     return u
 
-def find_subject_place(r, edition):
-    subject_place = []
-    for (tag, subtag) in [('651', 'a'), ('650', 'z')]:
-        for f in r.get_fields(tag):
-            if subtag in f.contents:
-                subject_place += f.contents[subtag]
+def read_oclc(rec):
+    found = []
+    tag_001 = rec.get_fields('001')
+    tag_003 = rec.get_fields('003')
+    if tag_001 and tag_003 and re_ocolc.match(tag_003[0]):
+        oclc = tag_001[0]
+        m = re_ocn_or_ocm.match(oclc)
+        if m:
+            oclc = m.group(1)
+        assert oclc.isdigit()
+        found.append(oclc)
 
-    if subject_place:
-        edition["subject_places"] = remove_duplicates(subject_place)
-        
-def find_subject_time(r, edition):
-    subject_time = []
-    for (tag, subtag) in [('600', 'y'), ('650', 'y'), ('651', 'y')]:
-        for f in r.get_fields(tag):
-            if subtag in f.contents:
-                subject_time += f.contents[subtag]
+    for f in rec.get_fields('035'):
+        for k, v in f.get_subfields(['a']):
+            m = re_oclc.match(v)
+            if m:
+                oclc = m.group(1)
+                if oclc not in found:
+                    found.append(oclc)
+    return remove_duplicates(found)
 
-    if subject_time:
-        edition["subject_times"] = remove_duplicates(subject_time)
-
-def find_genre(r, edition):
-    genres = []
-    for (tag, subtag) in [('600', 'v'), ('650', 'v'), ('651', 'v')]:
-        for f in r.get_fields(tag):
-            if subtag in f.contents:
-                genres += f.contents[subtag]
-
-    if genres:
-        edition["genres"] = remove_duplicates(genres)
-
-def find_series(r, edition):
-    series = []
-    for tag in ('440', '490', '830'):
-        for f in r.get_fields(tag):
-            this_series = []
-            for tag, value in f.subfield_sequence:
-                if tag == 'a':
-                    v = value.rstrip('.,; ')
-                    if v:
-                        this_series += [v]
-                elif tag == 'v' and value:
-                    this_series += [value]
-            if this_series:
-                series += [' -- '.join(this_series)]
-    if series:
-        edition["series"] = series
-
-def find_description(r, edition):
-    description = []
-    for f in r.get_fields('520'):
-        if 'a' not in f.contents:
-            continue
-        assert len(f.contents["a"]) == 1
-        description.append(f.contents["a"][0])
-    if description:
-        edition["description"] = "\n\n".join(description)
-
-def find_toc(r, edition): # table of contents
-    toc = []
-    for f in r.get_fields('505'):
-        try:
-            toc_line = []
-            for subfield, value in f.subfield_sequence:
-                if subfield == 'a':
-                    toc.extend([x.strip() for x in value.split('--')])
-                    continue
-                if subfield == 't':
-                    if toc_line:
-                        toc.append(' -- '.join(toc_line))
-                    toc_line = [value.strip(" /")]
-                    continue
-                toc_line.append(value.strip(" -"))
-            if toc_line:
-                toc.append(' -- '.join(toc_line))
-        except AssertionError:
-            print f.subfield_sequence
-            raise
-    if not toc:
+def read_lc_classification(rec):
+    fields = rec.get_fields('050')
+    if not fields:
         return
-    toc2 = []
-    for i in toc:
-        if len(i) < 2048:
-            toc2.append(i)
-        else:
-            sep_counts = [(i.count(sep), sep) for sep in '  ', ' - ']
-            split_item = i.split(max(sep_counts)[1])
-            # FIXME: omaggiodantealig00romauoft
-            for j in split_item:
-                if len(j) >= 2048:
-                    raise BigToc
-            toc2.extend(split_item)
-    edition['table_of_contents'] = [{'title': i, 'type': '/type/toc_item'} for i in toc2]
 
-def find_notes(r, edition):
-    notes = []
+    found = []
+    for f in fields:
+        contents = f.get_contents(['a', 'b'])
+        if 'b' in contents:
+            b = ' '.join(contents['b'])
+            if 'a' in contents:
+                found += [' '.join([a, b]) for a in contents['a']]
+            else:
+                found += [b]
+        # http://openlibrary.org/show-marc/marc_university_of_toronto/uoft.marc:671135731:596
+        elif 'a' in contents:
+            found += contents['a']
+    return found
+
+def read_isbn(rec):
+    fields = rec.get_fields('020')
+    if not fields:
+        return
+
+    found = []
+    for f in fields:
+        isbn = rec.read_isbn(f)
+        if isbn:
+            found += isbn
+    ret = {}
+    seen = set()
+
+    for i in tidy_isbn(found):
+        if i in seen: # avoid dups
+            continue
+        seen.add(i)
+        if len(i) == 13:
+            ret.setdefault('isbn_13', []).append(i)
+        elif len(i) <= 16:
+            ret.setdefault('isbn_10', []).append(i)
+    return ret
+
+def read_dewey(rec):
+    fields = rec.get_fields('082')
+    if not fields:
+        return
+    found = []
+    for f in fields:
+        found += f.get_subfield_values(['a'])
+    return found
+
+def read_work_titles(rec):
+    found = []
+    tag_240 = rec.get_fields('240')
+    if tag_240:
+        for f in tag_240:
+            title = f.get_subfield_values(['a', 'm', 'n', 'p', 'r'])
+            found.append(' '.join(title))
+
+    tag_130 = rec.get_fields('130')
+    if tag_130:
+        for f in tag_130:
+            found.append(' '.join(f.get_lower_subfields()))
+
+    return found
+
+def read_title(rec):
+    fields = rec.get_fields('245')
+    if not fields:
+        raise NoTitle
+
+#   example MARC record with multiple titles:
+#   http://openlibrary.org/show-marc/marc_western_washington_univ/wwu_bibs.mrc_revrev.mrc:299505697:862
+    contents = fields[0].get_contents(['a', 'b', 'c', 'h'])
+
+    ret = {}
+    title = None
+
+#   MARC record with 245a missing:
+#   http://openlibrary.org/show-marc/marc_western_washington_univ/wwu_bibs.mrc_revrev.mrc:516779055:1304
+    if 'a' in contents:
+        title = ' '.join(x.strip(' /,;:') for x in contents['a'])
+    elif 'b' in contents:
+        title = contents['b'][0].strip(' /,;:')
+        del contents['b'][0]
+    if title in ('See.', 'See also.'):
+        raise SeeAlsoAsTitle
+    ret['title'] = title
+    if 'b' in contents and contents['b']:
+        ret["subtitle"] = ' : '.join([x.strip(' /,;:') for x in contents['b']])
+    if 'c' in contents:
+        ret["by_statement"] = ' '.join(contents['c'])
+    if 'h' in contents:
+        h = ' '.join(contents['h']).strip(' ')
+        m = re_bracket_field.match(h)
+        if m:
+            h = m.group(1)
+        ret["physical_format"] = h
+    return ret
+
+def read_edition_name(rec):
+    fields = rec.get_fields('250')
+    if not fields:
+        return
+    found = []
+    for f in fields:
+        found += [v for k, v in f.get_all_subfields()]
+    return found
+
+def read_publisher(rec):
+    fields = rec.get_fields('260')
+    if not fields:
+        return
+    publisher = []
+    publish_places = []
+    for f in fields:
+        contents = f.get_contents(['a', 'b'])
+        if 'b' in contents:
+            publisher += [x.strip(" /,;:") for x in contents['b']]
+        if 'a' in contents:
+            publish_places += [x.strip(" /.,;:") for x in contents['a'] if x]
+    edition = {}
+    if publisher:
+        edition["publishers"] = publisher
+    if len(publish_places) and publish_places[0]:
+        edition["publish_places"] = publish_places
+    return edition
+
+def read_author_person(f):
+    author = {}
+    contents = f.get_contents(['a', 'b', 'c', 'd'])
+    if 'a' not in contents and 'c' not in contents:
+        return # should at least be a name or title
+    name = [v.strip(' /,;:') for v in f.get_subfield_values(['a', 'b', 'c'])]
+    if 'd' in contents:
+        author = pick_first_date(contents['d'])
+        if 'death_date' in author and author['death_date']:
+            death_date = author['death_date']
+            if re_number_dot.search(death_date):
+                author['death_date'] = death_date[:-1]
+
+    author['name'] = ' '.join(name)
+    author['entity_type'] = 'person'
+    subfields = [
+        ('a', 'personal_name'),
+        ('b', 'numeration'),
+        ('c', 'title')
+    ]
+    for subfield, field_name in subfields:
+        if subfield in contents:
+            author[field_name] = ' '.join([x.strip(' /,;:') for x in contents[subfield]])
+    if 'q' in contents:
+        author['fuller_name'] = ' '.join(contents['q'])
+    return author
+
+def read_author(rec):
+    found = []
+    count = 0
+    fields_100 = rec.get_fields('100')
+    fields_110 = rec.get_fields('110')
+    fields_111 = rec.get_fields('111')
+    count = len(fields_100) + len(fields_110) + len(fields_111)
+    if count == 0:
+        return
+    assert count == 1
+    if fields_100:
+        return read_author_person(fields_100[0])
+    if fields_110:
+        f = fields_110[0]
+        name = [v.strip(' /,;:') for v in f.get_subfield_values(['a', 'b'])]
+        return { 'entity_type': 'org', 'name': ' '.join(name) }
+    if fields_111:
+        f = fields_111[0]
+        name = [v.strip(' /,;:') for v in f.get_subfield_values(['a', 'c', 'd', 'n'])]
+        return { 'entity_type': 'event', 'name': ' '.join(name) }
+
+# no monograph should be longer than 50,000 pages
+max_number_of_pages = 50000
+
+def read_pagination(rec):
+    fields = rec.get_fields('300')
+    if not fields:
+        return
+
+    pagination = []
+    edition = {}
+    for f in fields:
+        pagination += f.get_subfield_values(['a'])
+    if pagination:
+        edition["pagination"] = ' '.join(pagination)
+        num = [] # http://openlibrary.org/show-marc/marc_university_of_toronto/uoft.marc:2617696:825
+        for x in pagination:
+            num += [ int(i) for i in re_int.findall(x.replace(',',''))]
+            num += [ int(i) for i in re_int.findall(x) ]
+        valid = [i for i in num if i < max_number_of_pages]
+        if valid:
+            edition["number_of_pages"] = max(valid)
+    return edition
+
+def read_series(rec):
+    found = []
+    for tag in ('440', '490', '830'):
+        fields = rec.get_fields(tag)
+        if not fields:
+            continue
+        for f in fields:
+            this = []
+            for k, v in f.get_subfields(['a', 'v']):
+                if k == 'v' and v:
+                    this.append(v)
+                    continue
+                v = v.rstrip('.,; ')
+                if v:
+                    this.append(v)
+            if this:
+                found += [' -- '.join(this)]
+    return found
+
+def read_notes(rec):
+    found = []
     for tag in range(500,600):
         if tag in (505, 520):
             continue
-        fields = r.get_fields(str(tag))
+        fields = rec.get_fields(str(tag))
+        if not fields:
+            continue
         for f in fields:
-            x = [j for i,j in f.subfield_sequence if i.islower()]
+            x = f.get_lower_subfields()
             if x:
-                notes.append(' '.join(x))
-    if notes:
-        edition["notes"] = notes
+                found.append(' '.join(x).strip(' '))
+    if found:
+        return '\n\n'.join(found)
 
-def find_lc_classification(r, edition):
-    lc = []
-    for f in r.get_fields('050'):
-        if 'b' in f.contents:
-            b = ' '.join(f.contents['b'])
-            if 'a' in f.contents:
-                lc += [' '.join([a, b]) for a in f.contents['a']]
-            else:
-                lc += [b]
-        elif 'a' in f.contents:
-            # zeitschriftfrd17beseuoft
-            # 050  4 $d\Hammond\
-            lc += f.contents['a']
-    if lc:
-        edition["lc_classifications"] = lc
+def read_description(rec):
+    fields = rec.get_fields('520')
+    if not fields:
+        return
+    found = []
+    for f in fields:
+        this = f.get_subfield_values(['a'])
+        if len(this) != 1:
+            print `fields`
+            print `line`
+            print len(this)
+        # multiple 'a' subfields
+        # marc_loc_updates/v37.i47.records.utf8:5325207:1062
+        # 520: $aManpower policy;$aNusa Tenggara Barat Province
+        found += this
+    if found:
+        return "\n\n".join(found).strip(' ')
 
-def find_oclc(r, edition):
-    oclc = []
-    for f in r.get_fields('035'):
-        if 'a' not in f.contents:
+def read_url(rec):
+    found = []
+    for f in rec.get_fields('856'):
+        contents = f.get_contents(['3', 'u'])
+        if not contents.get('u', []):
+            #print `f.ind1(), f.ind2()`, list(f.get_all_subfields())
             continue
-        for a in f.contents['a']:
-            m = re_oclc.match(f.contents['a'][0])
-            if m:
-                v = m.group(1)
-                if v not in oclc:
-                    oclc.append(v)
-    if oclc:
-        edition['oclc_numbers'] = oclc
+        assert len(contents['u']) == 1
+        link = { 'url': contents['u'][0].strip(' ') }
+        if '3' in contents:
+            assert len(contents['3']) == 1
+            link['title'] = contents['3'][0].strip(' ')
+        found.append(link)
+    return found
 
-def find_isbn(r, edition):
-    isbn_10 = []
-    isbn_13 = []
-    invalid = []
-    odd_length = []
-    for f in r.get_fields('020'):
-        for subtag in 'a', 'z':
-            if subtag in f.contents:
-                for x in f.contents[subtag]:
-                    m = re_isbn.match(x)
-                    if m:
-                        if subtag == 'z':
-                            invalid.append(m.group(1))
-                        elif len(m.group(1)) == 13:
-                            isbn_13.append(m.group(1))
-                        elif len(m.group(1)) == 10:
-                            isbn_10.append(m.group(1))
-                        else:
-                            odd_length.append(m.group(1))
+def read_other_titles(rec):
+    return [' '.join(f.get_subfield_values(['a'])) for f in rec.get_fields('246')] \
+        + [' '.join(f.get_lower_subfields()) for f in rec.get_fields('730')] \
+        + [' '.join(f.get_subfield_values(['a', 'p', 'n'])) for f in rec.get_fields('740')]
 
-    if isbn_10:
-        edition["isbn_10"] = isbn_10
-    if isbn_13:
-        edition["isbn_13"] = isbn_13
-    if invalid:
-        edition["isbn_invalid"] = invalid
-    if odd_length:
-        edition["isbn_odd_length"] = odd_length
+def read_location(rec):
+    fields = rec.get_fields('852')
+    if not fields:
+        return
+    found = []
+    for f in fields:
+        found += [v for v in f.get_subfield_values(['a']) if v]
+    return found
 
-def find_lccn(r, edition):
-    for f in r.get_fields('010'):
-        if not f or 'a' not in f.contents:
-            continue
-        for v in f.contents['a']:
-            lccn = v.strip()
-            if re_question.match(lccn):
+def read_contributions(rec):
+    want = [
+        ('700', 'abcde'),
+        ('710', 'ab'),
+        ('711', 'acdn'),
+    ]
+
+    found = []
+    for tag, sub in want:
+        found += [' '.join(f.get_subfield_values(sub)) for f in rec.get_fields(tag)]
+    return found
+
+def read_toc(rec):
+    fields = rec.get_fields('505')
+
+    toc = []
+    for f in fields:
+        toc_line = []
+        for k, v in f.get_all_subfields():
+            if k == 'a':
+                toc_split = [i.strip() for i in v.split('--')]
+                if any(len(i) > 2048 for i in toc_split):
+                    toc_split = [i.strip() for i in v.split(' - ')]
+                # http://openlibrary.org/show-marc/marc_miami_univ_ohio/allbibs0036.out:3918815:7321
+                if any(len(i) > 2048 for i in toc_split):
+                    toc_split = [i.strip() for i in v.split('; ')]
+                # FIXME:
+                # http://openlibrary.org/show-marc/marc_western_washington_univ/wwu_bibs.mrc_revrev.mrc:938969487:3862
+                if any(len(i) > 2048 for i in toc_split):
+                    toc_split = [i.strip() for i in v.split(' / ')]
+                assert isinstance(toc_split, list)
+                toc.extend(toc_split)
                 continue
-            m = re_lccn.search(lccn)
-            if m:
-                edition["lccn"] = [m.group(1)]
-                return
+            if k == 't':
+                if toc_line:
+                    toc.append(' -- '.join(toc_line))
+                if (len(v) > 2048):
+                    toc_line = [i.strip() for i in v.strip('/').split('--')]
+                else:
+                    toc_line = [v.strip('/')]
+                continue
+            toc_line.append(v.strip(' -'))
+        if toc_line:
+            toc.append('-- '.join(toc_line))
+    found = []
+    for i in toc:
+        if len(i) > 2048:
+            i = i.split('  ')
+            found.extend(i)
+        else:
+            found.append(i)
+    return [{'title': i, 'type': '/type/toc_item'} for i in found]
 
-def find_url(r, edition):
-    url = []
-    for f in r.get_fields('856'):
-        if 'u' not in f.contents:
-            continue
-        url += f.contents['u']
-    if len(url):
-        edition["url"] = url
+def update_edition(rec, edition, func, field):
+    v = func(rec)
+    if v:
+        edition[field] = v
 
-def find_location(r, edition):
-    loc = []
-    for f in r.get_fields('852'):
-        if 'a' not in f.contents:
-            continue
-        f_loc = f.contents['a']
-        if not f_loc:
-            continue
-        loc += f_loc
-    if loc:
-        edition['location'] = loc
+def read_edition(rec):
+    rec.build_fields(want)
+    edition = {}
+    tag_008 = rec.get_fields('008')
+    if len(tag_008) != 1:
+        raise BadMARC("single '008' field required")
 
-def encode_record_locator (r, file_locator):
-    return ':'.join ([file_locator, str(r.record_pos()), str(r.record_len())])
-
-def read_edition(r, edition):
-    if len(r.get_fields('001')) > 1:
-        return False
-
-    find_title(r, edition)
-    if not "title" in edition:
-        return False
-    find_other_titles(r, edition)
-    find_work_title(r, edition)
-    find_authors(r, edition)
-    find_contributions(r, edition)
-    find_edition(r, edition)
-    find_publisher(r, edition)
-    find_pagination(r, edition)
-    find_subjects(r, edition)
-    find_genre(r, edition)
-    find_series(r, edition)
-    find_description(r, edition)
-    find_toc(r, edition)
-    find_dewey_number(r, edition)
-    find_lc_classification(r, edition)
-    find_isbn(r, edition)
-    find_oclc(r, edition)
-    find_lccn(r, edition)
-    find_url(r, edition)
-    find_location(r, edition)
-
-    if len(r.get_fields('008')) != 1:
-        return False
-    f = r.get_field('008')
+    f = tag_008[0]
+    if not f:
+        raise BadMARC("'008' field must not be blank")
     publish_date = str(f)[7:11]
-    if publish_date != '||||':
+
+    if publish_date.isdigit() and publish_date != '0000':
         edition["publish_date"] = publish_date
+    if str(f)[6] == 't':
+        edition["copyright_date"] = str(f)[11:15]
     publish_country = str(f)[15:18]
     if publish_country not in ('|||', '   '):
         edition["publish_country"] = publish_country
     lang = str(f)[35:38]
-    edition["languages"] = [{ 'key': '/l/' + lang }]
-    return True
+    if lang not in ('   ', '|||'):
+        edition["languages"] = [{ 'key': '/l/' + lang }]
 
-def parser(file_locator, input, bad_data):
-    for r in MARC21BiblioFile (input):
-        # only interested in books
-        if r.marc_biblio_record_type() != 'a':
-            continue
-        if r.marc_biblio_bibliographic_level() != 'm':
-            continue
-        edition = {
-            'source_record_loc': encode_record_locator (r, file_locator)
-        }
-        try:
-            if read_edition(r, edition):
-                yield edition
-        except KeyboardInterrupt:
-            raise
-        except:
-            raise
-            bad_data(edition['source_record_loc'])
+    update_edition(rec, edition, read_lccn, 'lccn')
+    update_edition(rec, edition, read_oclc, 'oclc_number')
+    update_edition(rec, edition, read_lc_classification, 'lc_classification')
+    update_edition(rec, edition, read_dewey, 'dewey_decimal_class')
+    update_edition(rec, edition, read_work_titles, 'work_titles')
+    update_edition(rec, edition, read_other_titles, 'other_titles')
+    update_edition(rec, edition, read_edition_name, 'edition_name')
+    update_edition(rec, edition, read_series, 'series')
+    update_edition(rec, edition, read_notes, 'notes')
+    update_edition(rec, edition, read_description, 'description')
+    update_edition(rec, edition, read_location, 'location')
+    update_edition(rec, edition, read_contributions, 'contributions')
+    update_edition(rec, edition, read_toc, 'table_of_contents')
+    update_edition(rec, edition, read_url, 'links')
 
-if __name__ == '__main__':
-    for x in parser(sys.argv[1], sys.argv[2], sys.stdin):
-        print x
+    v = read_author(rec)
+    if v:
+        edition['authors'] = [v]
 
+    edition.update(read_title(rec))
+
+    for func in (read_publisher, read_isbn, read_pagination):
+        v = func(rec)
+        if v:
+            edition.update(v)
+
+    return edition
