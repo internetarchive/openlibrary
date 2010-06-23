@@ -270,6 +270,10 @@ def read_author_person(f):
             author[field_name] = ' '.join([x.strip(' /,;:') for x in contents[subfield]])
     if 'q' in contents:
         author['fuller_name'] = ' '.join(contents['q'])
+    foc = '[from old catalog]'
+    for f in 'name', 'personal_name':
+        if author[f].endswith(foc):
+            author[f] = remove_trailing_dot(author[f][:-len(foc)].strip())
     return author
 
 def read_authors(rec):
