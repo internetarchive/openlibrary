@@ -952,6 +952,20 @@ bin_samples = [
     'authors': [{'personal_name': u'McCloskey, Robert Green.', 'name': u'McCloskey, Robert Green.', 'entity_type': 'person'}], 
     'publish_places': [u'Cambridge,Mass', u'London']}),
 ('talis_245p.mrc', {'languages': [{'key': '/languages/eng'}], 'publishers': [u'Cambridge University Press'], 'isbn_10': [u'0521282047'], 'publish_date': '1981', 'publish_country': 'xxk', 'title': u'SMP topic mathematics', 'subtitle': 'Pattern and design', 'publish_places': [u'Cambridge (etc.)'], 'authors': [{'name': u'School Mathematics Project.', 'entity_type': 'org'}]}),
+('talis_856.mrc', {
+    'publishers': [u'American-Israeli Cooperative Enterprise'],
+    'pagination': u'381p. :',
+    'subtitle': u'a guide to the Arab-Israeli conflict',
+    'links': [{'url': u'http://bibpurl.oclc.org/web/451'}, {'url': u'http://www.us-israel.org/jsourc e/myths/cover.html'}],
+    'title': u'Myths and facts', 'dewey_decimal_class': [u'956.04'],
+    'notes': u'"Revised and updated version of the classic guide to the Arab-Israeli Conflict"--Back cover.\n\nIncludes bibliographical references (p. 443-444) and index.',
+    'number_of_pages': 381,
+    'languages': [{'key': '/languages/eng'}],
+    'isbn_10': [u'0971294518'],
+    'publish_date': '2002', 'publish_country': 'xxu',
+    'by_statement': u'edited by Mitchell G. Bard ; foreword by Eli E. Hertz',
+    'publish_places': [u'Chevy Chase, MD'],
+    'contributions': [u'Bard, Mitchell Geoffrey, 1959-', u'American-Israeli Cooperative Enterprise.']}),
 ]
 
 class TestParse(unittest.TestCase):

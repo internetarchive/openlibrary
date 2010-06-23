@@ -376,12 +376,16 @@ def read_url(rec):
         if not contents.get('u', []):
             #print `f.ind1(), f.ind2()`, list(f.get_all_subfields())
             continue
-        assert len(contents['u']) == 1
-        link = { 'url': contents['u'][0].strip(' ') }
-        if '3' in contents:
-            assert len(contents['3']) == 1
-            link['title'] = contents['3'][0].strip(' ')
+        if '3' not in contents:
+            found += [{ 'url': u.strip(' ') } for u in contents['u']]
+            continue
+        assert len(contents['u']) == 1 and len(contents['3']) == 1
+        link = {
+            'url': contents['u'][0].strip(' '),
+            'title': contents['3'][0].strip(' '),
+        }
         found.append(link)
+
     return found
 
 def read_other_titles(rec):
