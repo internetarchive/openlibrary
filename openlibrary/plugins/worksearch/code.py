@@ -19,6 +19,7 @@ from infogami.plugins.api.code import jsonapi
 
 re_solr_range = re.compile(r'\[.+\bTO\b.+\]', re.I)
 re_bracket = re.compile(r'[\[\]]')
+re_to_esc = re.compile(r'[\[\]:]')
 def escape_bracket(q):
     if re_solr_range.search(q):
         return q
@@ -625,7 +626,8 @@ class search(delegate.page):
             q_list.append(q)
         for k in ('title', 'author', 'isbn', 'subject', 'place', 'person', 'publisher'):
             if k in i:
-                q_list.append(k + ':' + i[k].replace(':', '\\:').strip())
+                v = re_to_esc.sub(lambda m:'\\' + m.group(), i[k].strip())
+                q_list.append(k + ':' + v)
 
         return render.work_search(i, ' '.join(q_list), do_search, get_doc)
 
