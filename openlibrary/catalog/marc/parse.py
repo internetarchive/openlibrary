@@ -71,7 +71,9 @@ def remove_duplicates(seq):
 def read_oclc(rec):
     found = []
     tag_001 = rec.get_fields('001')
+    print '001:', tag_001
     tag_003 = rec.get_fields('003')
+    print '003:', tag_003
     if tag_001 and tag_003 and re_ocolc.match(tag_003[0]):
         oclc = tag_001[0]
         m = re_ocn_or_ocm.match(oclc)
@@ -186,6 +188,7 @@ def read_title(rec):
         m = re_bracket_field.match(h)
         if m:
             h = m.group(1)
+        assert h
         ret["physical_format"] = h
     return ret
 
@@ -197,6 +200,24 @@ def read_edition_name(rec):
     for f in fields:
         found += [v for k, v in f.get_all_subfields()]
     return found
+
+def read_languages(rec):
+    fields = rec.get_fields('041')
+    if not fields:
+        return
+    found = []
+    for f in fields:
+        found += [i for i in f.get_subfield_values('a') if i and len(i) == 3]
+    return [{'key': '/languages/' + i} for i in found]
+
+def read_pub_date(rec):
+    fields = rec.get_fields('260')
+    if not fields:
+        return
+    found = []
+    for f in fields:
+        found += [i for i in f.get_subfield_values('c') if i]
+    return found[0] if found else None
 
 def read_publisher(rec):
     fields = rec.get_fields('260')
@@ -427,28 +448,35 @@ def update_edition(rec, edition, func, field):
     if v:
         edition[field] = v
 
-def read_edition(rec):
+def read_edition(rec, handle_missing_008=False):
     rec.build_fields(want)
     edition = {}
     tag_008 = rec.get_fields('008')
-    if len(tag_008) != 1:
-        raise BadMARC("single '008' field required")
+    if len(tag_008) == 0:
+        if not handle_missing_008:
+            raise BadMARC("single '008' field required")
+    if len(tag_008) > 1:
+        raise BadMARC("can't handle more than one '008' field")
+    if len(tag_008) == 1:
+        f = tag_008[0].replace(u'\xa0', ' ')
+        if not f:
+            raise BadMARC("'008' field must not be blank")
+        publish_date = str(f)[7:11]
 
-    f = tag_008[0]
-    if not f:
-        raise BadMARC("'008' field must not be blank")
-    publish_date = str(f)[7:11]
-
-    if publish_date.isdigit() and publish_date != '0000':
-        edition["publish_date"] = publish_date
-    if str(f)[6] == 't':
-        edition["copyright_date"] = str(f)[11:15]
-    publish_country = str(f)[15:18]
-    if publish_country not in ('|||', '   '):
-        edition["publish_country"] = publish_country
-    lang = str(f)[35:38]
-    if lang not in ('   ', '|||'):
-        edition["languages"] = [{ 'key': '/l/' + lang }]
+        if publish_date.isdigit() and publish_date != '0000':
+            edition["publish_date"] = publish_date
+        if str(f)[6] == 't':
+            edition["copyright_date"] = str(f)[11:15]
+        publish_country = str(f)[15:18]
+        if publish_country not in ('|||', '   '):
+            edition["publish_country"] = publish_country
+        lang = str(f)[35:38]
+        if lang not in ('   ', '|||'):
+            edition["languages"] = [{ 'key': '/languages/' + lang }]
+    else:
+        assert handle_missing_008
+        update_edition(rec, edition, read_languages, 'languages')
+        update_edition(rec, edition, read_pub_date, 'publish_date')
 
     update_edition(rec, edition, read_lccn, 'lccn')
     update_edition(rec, edition, read_oclc, 'oclc_number')
