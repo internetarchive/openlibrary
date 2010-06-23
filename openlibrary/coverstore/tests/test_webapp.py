@@ -18,6 +18,7 @@ def teardown_module(mod):
     
 class WebTestCase(unittest.TestCase):
     def setUp(self):
+        db.delete("log", where="1=1")
         db.delete('cover', where='1=1')
         self.browser = app.browser()
 
@@ -30,9 +31,9 @@ class WebTestCase(unittest.TestCase):
         b = self.browser
 
         path = os.path.join(static_dir, path)
-        content_type, data = utils.urlencode({'olid': olid, 'file': open(path), 'failure_url': '/failed'}) 
-        b.open('/b/upload', data, {'Content-Type': content_type})
-        return self.jsonget('/b/olid/%s.json' % olid)['id']
+        content_type, data = utils.urlencode({'olid': olid, 'data': open(path).read()}) 
+        b.open('/b/upload2', data, {'Content-Type': content_type})
+        return simplejson.loads(b.data)['id']
 
     def delete(self, id, redirect_url=None):
         b = self.browser
@@ -62,6 +63,8 @@ class DBTest:
 
 class TestWebapp(WebTestCase):
     def test_touch(self):
+        py.test.skip("TODO: touch is no more used. Remove or fix this test later.")
+        
         b = self.browser
 
         id1 = self.upload('OL1M', 'logos/logo-en.png')
@@ -89,26 +92,26 @@ class TestWebapp(WebTestCase):
         b = self.browser
 
         path = os.path.join(static_dir, 'logos/logo-en.png')
-        content_type, data = utils.urlencode({'olid': 'OL1234M', 'file': open(path), 'failure_url': '/failed'}) 
-        b.open('/b/upload', data, {'Content-Type': content_type})
+        content_type, data = utils.urlencode({'olid': 'OL1234M', 'data': open(path).read()}) 
+        b.open('/b/upload2', data, {'Content-Type': content_type})
+        id = simplejson.loads(b.data)['id']
 
         assert b.status == 200
-        assert b.path == '/'
 
-        b.open('/b/olid/OL1234M.json')
+        b.open('/b/id/%d.json' % id)
 
-        response = b.open('/b/olid/OL1234M.jpg')
+        response = b.open('/b/id/%d.jpg' % id)
         assert b.status == 200
         assert response.info().getheader('Content-Type') == 'image/jpeg'
         assert b.data == open(path).read()
 
-        b.open('/b/olid/OL1234M-S.jpg')
+        b.open('/b/id/%d-S.jpg' % id)
         assert b.status == 200
 
-        b.open('/b/olid/OL1234M-M.jpg')
+        b.open('/b/id/%d-M.jpg' % id)
         assert b.status == 200
 
-        b.open('/b/olid/OL1234M-L.jpg')
+        b.open('/b/id/%d-L.jpg' % id)
         assert b.status == 200
         
     def test_archive_status(self):
@@ -156,19 +159,21 @@ class TestAppWithHTTP(WebTestCase):
         assert utils.download('http://0.0.0.0:8090/a.png') == data
         
     def test_upload_from_url(self):
-        return
         data = open(static_dir + '/logos/logo-en.png').read()
         self.server.request('/a.png').should_return(data, headers={'Content-Type': 'image/png'})
         
         query = urllib.urlencode({'source_url': 'http://0.0.0.0:8090/a.png', 'olid': 'OL1M'})
-        self.browser.open('/b/upload', query)
+        self.browser.open('/b/upload2', query)
+        id = simplejson.loads(self.browser.data)['id']
         
-        assert self.browser.open('/b/olid/OL1M.jpg').read() == data
+        assert self.browser.open('/b/id/%d.jpg' % id).read() == data
 
-        d = self.jsonget('/b/olid/OL1M.json')
+        d = self.jsonget('/b/id/%d.json' % id)
         assert d['source_url'] == 'http://0.0.0.0:8090/a.png'
-
+        assert d['olid'] == 'OL1M'
+        
     def test_isbn(self):
+        py.test.skip("TODO")
         config.things_api_url = "http://127.0.0.1:8090/api/things"
         from openlibrary.utils import httpserver
 
