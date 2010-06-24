@@ -1,5 +1,7 @@
 #!/usr/bin/python
 
+import _init_path
+
 from urllib2 import urlopen, URLError
 import simplejson
 from time import time, sleep
