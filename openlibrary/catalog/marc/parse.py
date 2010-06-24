@@ -1,5 +1,5 @@
 import re
-from openlibrary.catalog.utils import pick_first_date, tidy_isbn, flip_name, remove_trailing_dot
+from openlibrary.catalog.utils import pick_first_date, tidy_isbn, flip_name, remove_trailing_dot, remove_trailing_number_dot
 from collections import defaultdict
 
 re_question = re.compile('^\?+$')
@@ -229,7 +229,7 @@ def read_pub_date(rec):
     found = []
     for f in fields:
         found += [i for i in f.get_subfield_values('c') if i]
-    return found[0] if found else None
+    return remove_trailing_number_dot(found[0]) if found else None
 
 def read_publisher(rec):
     fields = rec.get_fields('260')
@@ -279,6 +279,8 @@ def read_author_person(f):
     for f in 'name', 'personal_name':
         if author[f].endswith(foc):
             author[f] = remove_trailing_dot(author[f][:-len(foc)].strip())
+        else:
+            author[f] = remove_trailing_dot(author[f])
     return author
 
 def read_authors(rec):
@@ -296,10 +298,10 @@ def read_authors(rec):
     found = [read_author_person(f) for f in fields_100]
     for f in fields_110:
         name = [v.strip(' /,;:') for v in f.get_subfield_values(['a', 'b'])]
-        found.append({ 'entity_type': 'org', 'name': ' '.join(name)})
+        found.append({ 'entity_type': 'org', 'name': remove_trailing_dot(' '.join(name))})
     for f in fields_111:
         name = [v.strip(' /,;:') for v in f.get_subfield_values(['a', 'c', 'd', 'n'])]
-        found.append({ 'entity_type': 'event', 'name': ' '.join(name)})
+        found.append({ 'entity_type': 'event', 'name': remove_trailing_dot(' '.join(name))})
     if found:
         return found
 
@@ -476,7 +478,8 @@ def update_edition(rec, edition, func, field):
 
 re_bad_char = re.compile(u'[\xa0\xf6]')
 
-def read_edition(rec, handle_missing_008=False):
+def read_edition(rec):
+    handle_missing_008=True
     rec.build_fields(want)
     edition = {}
     tag_008 = rec.get_fields('008')
@@ -486,7 +489,7 @@ def read_edition(rec, handle_missing_008=False):
     if len(tag_008) > 1:
         raise BadMARC("can't handle more than one '008' field")
     if len(tag_008) == 1:
-        assert len(tag_008[0]) == 40
+        #assert len(tag_008[0]) == 40
         f = re_bad_char.sub(' ', tag_008[0])
         if not f:
             raise BadMARC("'008' field must not be blank")
