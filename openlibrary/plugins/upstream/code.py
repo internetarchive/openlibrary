@@ -113,6 +113,9 @@ def create_dynamic_document(url, prefix):
         def url(self):
             return url + "?v=" + doc.md5()
             
+        def reload(self):
+            doc.update()
+            
     class hook(client.hook):
         """Hook to update the DynamicDocument when any of the source pages is updated."""
         def on_new_version(self, page):
@@ -129,6 +132,11 @@ web.template.Template.globals['all_js'] = all_js()
 
 all_css = create_dynamic_document("/css/all.css", config.get("css_root", "/css"))
 web.template.Template.globals['all_css'] = all_css()
+
+def reload():
+    """Reload all.css and all.js"""
+    all_css().reload()
+    all_js().reload()
 
 def setup_jquery_urls():
     if config.get('use_google_cdn', True):

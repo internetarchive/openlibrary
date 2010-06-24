@@ -5,7 +5,9 @@ import web
 import subprocess
 import datetime
 import urllib
+import traceback
 
+from infogami import config
 from infogami.utils import delegate
 from infogami.utils.view import render, public
 from infogami.utils.context import context
@@ -68,13 +70,46 @@ class gitpull:
         out = p.stdout.read()
         p.wait()
         return '<pre>' + web.websafe(out) + '</pre>'
-
+        
 class reload:
     def GET(self):
-        from infogami.plugins.wikitemplates import code
-        code.load_all()
-        return delegate.RawText('done')
+        servers = config.get("plugin_admin", {}).get("webservers", [])
+        if servers:
+            body = "".join(self.reload(servers))
+        else:
+            body = "No webservers specified in the configuration file."
         
+        return render_template("message", "Reload", body)
+        
+    def reload(self, servers):
+        for s in servers:
+            s = web.rstrips(s, "/") + "/_reload"
+            yield "<h3>" + s + "</h3>"
+            try:
+                response = urllib.urlopen(s).read()
+                print s, response
+                yield "<p><pre>" + response[:100] + "</pre></p>"
+            except:
+                yield "<p><pre>%s</pre></p>" % traceback.format_exc()
+        
+@web.memoize
+def local_ip():
+    import socket
+    return socket.gethostbyname(socket.gethostname())
+
+class _reload(delegate.page):
+    def GET(self):
+        # make sure the request is coming from the LAN.
+        if web.ctx.ip not in ['127.0.0.1', '0.0.0.0'] and web.ctx.ip.rsplit(".", 1)[0] != local_ip().rsplit(".", 1)[0]:
+            return render.permission_denied(web.ctx.fullpath, "Permission denied to reload templates/macros.")
+        
+        from infogami.plugins.wikitemplates import code as wikitemplates
+        wikitemplates.load_all()
+
+        from openlibrary.plugins.upstream import code as upstream
+        upstream.reload()
+        return delegate.RawText("done")
+
 class any:
     def GET(self):
         path = web.ctx.path
