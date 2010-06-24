@@ -29,7 +29,14 @@ class show_ia(delegate.page):
         except urllib2.HTTPError, e:
             return "ERROR:" + str(e)
 
-        return render.showia(record, filename)
+        from openlibrary.catalog.marc.xml_to_html import to_html
+
+        try:
+            as_html = to_html(record)
+        except:
+            as_html = 'error reading MARC XML'
+
+        return render.showia(record, filename, as_html)
         
 class show_amazon(delegate.page):
     path = "/show-records/amazon:(.*)"
