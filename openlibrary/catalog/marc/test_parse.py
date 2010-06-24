@@ -1008,6 +1008,15 @@ bin_samples = [
     'authors': [{'personal_name': u'Cole, Hugo.', 'name': u'Cole, Hugo.', 'entity_type': 'person'}],
     'publish_places': [u'London']}),
 ('ithaca_two_856u.mrc', {'publishers': [u'[s.n.'], 'pagination': u'v. :', 'links': [{'url': u'http://bibpurl.oclc.org/web/240', 'title': u'2000-2001'}, {'url': u'http://www.statistics.gov.uk/statbase/Product.asp?vlnk=5703', 'title': u'2000-2001'}], 'title': u'Britain', 'lccn': [u'72626487'], 'notes': u'Subtitle varies: "An official handbook," 1949-50-1998; "the official yearbook of the United Kingdom," 1999-2001.\n\nPublished: H.M.S.O., <1955>-1996; The Stationery Office, 1997-2001.\n\nSome issues also available online via the World Wide Web.\n\nPrepared by: the Office for National Statistics, 1998-2001.', 'languages': [{'key': '/languages/eng'}], 'work_titles': [u'Britain (London, England)'], 'publish_date': '1950', 'publish_country': 'enk', 'lc_classification': [u'DA630 .A17'], 'by_statement': u'issued by the Central Office of Information', 'publish_places': [u'London'], 'contributions': [u'Great Britain. Central Office of Information', u'Great Britain. Office for National Statistics']}),
+('collingswood_bad_008.mrc', {
+    'edition_name': [u'[1st ed.]'],
+    'pagination': u'128 p.',
+    'subtitle': u'ten great battles recreated from history',
+    'title': u'The war game', 'lccn': [u'7282711'],
+    'publishers': [u'Dutton'], 'number_of_pages': 128, 'languages': [{'key': '/languages/eng'}], 
+    'isbn_10': [u'0525230106'], 'publish_date': '1972', 'publish_country': 'nyu',
+    'authors': [{'personal_name': u'Young, Peter.', 'name': u'Young, Peter.', 'entity_type': 'person'}],
+    'by_statement': u'General editor: Peter Young. Pref. by Aram Bakshian, Jr. War games photographed by Philip O. Stearns', 'publish_places': [u'New York']}),
 ]
 
 class TestParse(unittest.TestCase):

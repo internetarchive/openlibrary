@@ -476,6 +476,8 @@ def update_edition(rec, edition, func, field):
     if v:
         edition[field] = v
 
+re_bad_char = re.compile(u'[\xa0\xf6]')
+
 def read_edition(rec, handle_missing_008=False):
     rec.build_fields(want)
     edition = {}
@@ -486,7 +488,9 @@ def read_edition(rec, handle_missing_008=False):
     if len(tag_008) > 1:
         raise BadMARC("can't handle more than one '008' field")
     if len(tag_008) == 1:
-        f = tag_008[0].replace(u'\xa0', ' ')
+        assert len(tag_008[0]) == 40
+        print len(tag_008[0]), `tag_008[0]`
+        f = re_bad_char.sub(' ', tag_008[0])
         if not f:
             raise BadMARC("'008' field must not be blank")
         publish_date = str(f)[7:11]
