@@ -489,7 +489,6 @@ def read_edition(rec, handle_missing_008=False):
         raise BadMARC("can't handle more than one '008' field")
     if len(tag_008) == 1:
         assert len(tag_008[0]) == 40
-        print len(tag_008[0]), `tag_008[0]`
         f = re_bad_char.sub(' ', tag_008[0])
         if not f:
             raise BadMARC("'008' field must not be blank")
