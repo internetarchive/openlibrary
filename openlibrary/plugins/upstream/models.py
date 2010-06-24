@@ -117,13 +117,13 @@ class Edition(ol_code.Edition):
         return any(i.strip().lower() == look_for for i in urllib2.urlopen(url))
         
     def is_lending_library(self):
-    	# TODO only pull meta.xml once for both this check and is_daisy_encrypted
-    	if not self.get('ocaid', None):
-    		return False
-    	ia = self.ocaid
-    	url = 'http://www.archive.org/download/%s/%s_meta.xml' % (ia, ia)
-    	look_for = '<collection>lendinglibrary</collection>'
-    	return any(i.strip().lower() == look_for for i in urllib2.urlopen(url))
+        # TODO only pull meta.xml once for both this check and is_daisy_encrypted
+        if not self.get('ocaid', None):
+            return False
+        ia = self.ocaid
+        url = 'http://www.archive.org/download/%s/%s_meta.xml' % (ia, ia)
+        look_for = '<collection>lendinglibrary</collection>'
+        return any(i.strip().lower() == look_for for i in urllib2.urlopen(url))
 
     def _process_identifiers(self, config, names, values):
         id_map = {}
