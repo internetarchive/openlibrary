@@ -186,7 +186,10 @@ class cover:
             web.header('Cache-Control', 'public')
             web.expires(100 * 365 * 24 * 3600) # this image is not going to expire in next 100 years.
             web.header('Content-Type', 'image/jpeg')
-            return read_image(d, size)
+            try:
+                return read_image(d, size)
+            except IOError:
+                raise web.notfound()
             
 class cover_details:
     def GET(self, category, key, value):
