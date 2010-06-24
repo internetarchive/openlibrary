@@ -14,6 +14,10 @@ from utils import render_template
 
 import acs4
 
+########## Constants
+
+kLendingLibrarySubject = 'Lending library'
+
 ########## Page Handlers
 
 # Handler for /books/{bookid}/{title}/borrow
@@ -21,9 +25,9 @@ class borrow(delegate.page):
     path = "(/books/OL\d+M)/borrow"
     
     def GET(self, key):
-        book = web.ctx.site.get(key)
+        edition = web.ctx.site.get(key)
         
-        if not book:
+        if not edition:
             raise web.notfound()
             
         loans = []
@@ -31,7 +35,7 @@ class borrow(delegate.page):
         if user:
             loans = get_loans(user)
             
-        return render_template("borrow", book, loans)
+        return render_template("borrow", edition, loans)
         
 class do_borrow(delegate.page):
     """Actually borrow the book, via POST"""
@@ -54,9 +58,44 @@ class do_borrow(delegate.page):
             # Send to the borrow page
             raise web.seeother(key + '/borrow') # XXX doesn't work because title is after OL id
 
-
 ########## Public Functions
 
+@public
+def overdrive_id(edition):
+    identifier = None
+    if edition.get('identifiers', None) and edition.identifiers.get('overdrive', None):
+        identifier = edition.identifiers.overdrive[0]
+    return identifier
+
+@public
+def can_borrow(edition):
+    global kLendingLibrarySubject
+    
+    # Check if in overdrive
+    # $$$ Should we also require to be in lending library?
+    if overdrive_id(edition):
+        return True
+    
+    # Check that work is in lending library
+    inLendingLibrary = False
+    for work in edition.get('works', []):
+        subjects = work.get_subjects()
+        if subjects:
+            try:
+                if subjects.index(kLendingLibrarySubject) >= 0:
+                    inLendingLibrary = True
+                    break
+            except ValueError:
+                pass
+                
+    if not inLendingLibrary:
+        return False
+    
+    # Check if hosted at archive.org
+    if edition.get('ocaid', False):
+        return True
+    
+    return False
 
 ########## Helper Functions
              
