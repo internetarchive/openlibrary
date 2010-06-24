@@ -12,6 +12,12 @@ re_int = re.compile ('\d{2,}')
 re_number_dot = re.compile('\d{3,}\.$')
 re_bracket_field = re.compile('^\s*(\[.*\])\.?\s*$')
 
+class NoTitle(Exception):
+    pass
+
+class SeeAlsoAsTitle(Exception):
+    pass
+
 want = [
     '001',
     '003', # for OCLC
@@ -146,23 +152,28 @@ def read_work_titles(rec):
     if tag_240:
         for f in tag_240:
             title = f.get_subfield_values(['a', 'm', 'n', 'p', 'r'])
-            found.append(' '.join(title))
+            found.append(remove_trailing_dot(' '.join(title).strip(',')))
 
     tag_130 = rec.get_fields('130')
     if tag_130:
         for f in tag_130:
-            found.append(' '.join(f.get_lower_subfields()))
+            title = ' '.join(v for k, v in f.get_all_subfields() if k.islower() and k != 'n')
+            found.append(remove_trailing_dot(title.strip(',')))
 
-    return found
+    return remove_duplicates(found)
 
 def read_title(rec):
     fields = rec.get_fields('245')
+    if not fields:
+        fields = rec.get_fields('740')
     if not fields:
         raise NoTitle
 
 #   example MARC record with multiple titles:
 #   http://openlibrary.org/show-marc/marc_western_washington_univ/wwu_bibs.mrc_revrev.mrc:299505697:862
-    contents = fields[0].get_contents(['a', 'b', 'c', 'h'])
+    contents = fields[0].get_contents(['a', 'b', 'c', 'h', 'p'])
+
+    b_and_p = [i for i in fields[0].get_subfield_values(['b', 'p']) if i]
 
     ret = {}
     title = None
@@ -171,21 +182,25 @@ def read_title(rec):
 #   http://openlibrary.org/show-marc/marc_western_washington_univ/wwu_bibs.mrc_revrev.mrc:516779055:1304
     if 'a' in contents:
         title = ' '.join(x.strip(' /,;:') for x in contents['a'])
-    elif 'b' in contents:
-        title = contents['b'][0].strip(' /,;:')
-        del contents['b'][0]
+    elif b_and_p:
+        title = b_and_p.pop(0).strip(' /,;:')
+# talis_openlibrary_contribution/talis-openlibrary-contribution.mrc:183427199:255
     if title in ('See.', 'See also.'):
         raise SeeAlsoAsTitle
-    ret['title'] = title
-    if 'b' in contents and contents['b']:
-        ret["subtitle"] = ' : '.join([x.strip(' /,;:') for x in contents['b']])
+# talis_openlibrary_contribution/talis-openlibrary-contribution.mrc:5654086:483
+    if title is None:
+        raise NoTitle
+    ret['title'] = remove_trailing_dot(title)
+    if b_and_p:
+        ret["subtitle"] = ' : '.join(remove_trailing_dot(x.strip(' /,;:')) for x in b_and_p)
     if 'c' in contents:
-        ret["by_statement"] = ' '.join(contents['c'])
+        ret["by_statement"] = remove_trailing_dot(' '.join(contents['c']))
     if 'h' in contents:
         h = ' '.join(contents['h']).strip(' ')
         m = re_bracket_field.match(h)
         if m:
             h = m.group(1)
+        assert h
         ret["physical_format"] = h
     return ret
 
@@ -197,6 +212,24 @@ def read_edition_name(rec):
     for f in fields:
         found += [v for k, v in f.get_all_subfields()]
     return found
+
+def read_languages(rec):
+    fields = rec.get_fields('041')
+    if not fields:
+        return
+    found = []
+    for f in fields:
+        found += [i for i in f.get_subfield_values('a') if i and len(i) == 3]
+    return [{'key': '/languages/' + i} for i in found]
+
+def read_pub_date(rec):
+    fields = rec.get_fields('260')
+    if not fields:
+        return
+    found = []
+    for f in fields:
+        found += [i for i in f.get_subfield_values('c') if i]
+    return found[0] if found else None
 
 def read_publisher(rec):
     fields = rec.get_fields('260')
@@ -242,10 +275,13 @@ def read_author_person(f):
             author[field_name] = ' '.join([x.strip(' /,;:') for x in contents[subfield]])
     if 'q' in contents:
         author['fuller_name'] = ' '.join(contents['q'])
+    foc = '[from old catalog]'
+    for f in 'name', 'personal_name':
+        if author[f].endswith(foc):
+            author[f] = remove_trailing_dot(author[f][:-len(foc)].strip())
     return author
 
-def read_author(rec):
-    found = []
+def read_authors(rec):
     count = 0
     fields_100 = rec.get_fields('100')
     fields_110 = rec.get_fields('110')
@@ -253,17 +289,19 @@ def read_author(rec):
     count = len(fields_100) + len(fields_110) + len(fields_111)
     if count == 0:
         return
-    assert count == 1
-    if fields_100:
-        return read_author_person(fields_100[0])
-    if fields_110:
-        f = fields_110[0]
+    # talis_openlibrary_contribution/talis-openlibrary-contribution.mrc:11601515:773 has two authors:
+    # 100 1  $aDowling, James Walter Frederick.
+    # 111 2  $aConference on Civil Engineering Problems Overseas.
+
+    found = [read_author_person(f) for f in fields_100]
+    for f in fields_110:
         name = [v.strip(' /,;:') for v in f.get_subfield_values(['a', 'b'])]
-        return { 'entity_type': 'org', 'name': ' '.join(name) }
-    if fields_111:
-        f = fields_111[0]
+        found.append({ 'entity_type': 'org', 'name': ' '.join(name)})
+    for f in fields_111:
         name = [v.strip(' /,;:') for v in f.get_subfield_values(['a', 'c', 'd', 'n'])]
-        return { 'entity_type': 'event', 'name': ' '.join(name) }
+        found.append({ 'entity_type': 'event', 'name': ' '.join(name)})
+    if found:
+        return found
 
 # no monograph should be longer than 50,000 pages
 max_number_of_pages = 50000
@@ -328,11 +366,9 @@ def read_description(rec):
         return
     found = []
     for f in fields:
-        this = f.get_subfield_values(['a'])
-        if len(this) != 1:
-            print `fields`
-            print `line`
-            print len(this)
+        this = [i for i in f.get_subfield_values(['a']) if i]
+        #if len(this) != 1:
+        #    print f.get_all_subfields()
         # multiple 'a' subfields
         # marc_loc_updates/v37.i47.records.utf8:5325207:1062
         # 520: $aManpower policy;$aNusa Tenggara Barat Province
@@ -347,12 +383,13 @@ def read_url(rec):
         if not contents.get('u', []):
             #print `f.ind1(), f.ind2()`, list(f.get_all_subfields())
             continue
-        assert len(contents['u']) == 1
-        link = { 'url': contents['u'][0].strip(' ') }
-        if '3' in contents:
-            assert len(contents['3']) == 1
-            link['title'] = contents['3'][0].strip(' ')
-        found.append(link)
+        if '3' not in contents:
+            found += [{ 'url': u.strip(' ') } for u in contents['u']]
+            continue
+        assert len(contents['3']) == 1
+        title = contents['3'][0].strip(' ')
+        found += [{ 'url': u.strip(' '), 'title': title  } for u in contents['u']]
+
     return found
 
 def read_other_titles(rec):
@@ -376,9 +413,19 @@ def read_contributions(rec):
         ('711', 'acdn'),
     ]
 
+    skip_authors = set()
+    for tag in ('100', '110', '111'):
+        fields = rec.get_fields(tag)
+        for f in fields:
+            skip_authors.add(tuple(f.get_all_subfields()))
+
     found = []
     for tag, sub in want:
-        found += [' '.join(f.get_subfield_values(sub)) for f in rec.get_fields(tag)]
+        this_tag = []
+        for f in rec.get_fields(tag):
+            cur = tuple(f.get_subfields(sub))
+            if tuple(cur) not in skip_authors:
+                found.append(remove_trailing_dot(' '.join(i[1] for i in cur).strip(',')))
     return found
 
 def read_toc(rec):
@@ -427,30 +474,41 @@ def update_edition(rec, edition, func, field):
     if v:
         edition[field] = v
 
-def read_edition(rec):
+re_bad_char = re.compile(u'[\xa0\xf6]')
+
+def read_edition(rec, handle_missing_008=False):
     rec.build_fields(want)
     edition = {}
     tag_008 = rec.get_fields('008')
-    if len(tag_008) != 1:
-        raise BadMARC("single '008' field required")
+    if len(tag_008) == 0:
+        if not handle_missing_008:
+            raise BadMARC("single '008' field required")
+    if len(tag_008) > 1:
+        raise BadMARC("can't handle more than one '008' field")
+    if len(tag_008) == 1:
+        assert len(tag_008[0]) == 40
+        f = re_bad_char.sub(' ', tag_008[0])
+        if not f:
+            raise BadMARC("'008' field must not be blank")
+        publish_date = str(f)[7:11]
 
-    f = tag_008[0]
-    if not f:
-        raise BadMARC("'008' field must not be blank")
-    publish_date = str(f)[7:11]
-
-    if publish_date.isdigit() and publish_date != '0000':
-        edition["publish_date"] = publish_date
-    if str(f)[6] == 't':
-        edition["copyright_date"] = str(f)[11:15]
-    publish_country = str(f)[15:18]
-    if publish_country not in ('|||', '   '):
-        edition["publish_country"] = publish_country
-    lang = str(f)[35:38]
-    if lang not in ('   ', '|||'):
-        edition["languages"] = [{ 'key': '/l/' + lang }]
+        if publish_date.isdigit() and publish_date != '0000':
+            edition["publish_date"] = publish_date
+        if str(f)[6] == 't':
+            edition["copyright_date"] = str(f)[11:15]
+        publish_country = str(f)[15:18]
+        if publish_country not in ('|||', '   '):
+            edition["publish_country"] = publish_country
+        lang = str(f)[35:38]
+        if lang not in ('   ', '|||'):
+            edition["languages"] = [{ 'key': '/languages/' + lang }]
+    else:
+        assert handle_missing_008
+        update_edition(rec, edition, read_languages, 'languages')
+        update_edition(rec, edition, read_pub_date, 'publish_date')
 
     update_edition(rec, edition, read_lccn, 'lccn')
+    update_edition(rec, edition, read_authors, 'authors')
     update_edition(rec, edition, read_oclc, 'oclc_number')
     update_edition(rec, edition, read_lc_classification, 'lc_classification')
     update_edition(rec, edition, read_dewey, 'dewey_decimal_class')
@@ -465,11 +523,15 @@ def read_edition(rec):
     update_edition(rec, edition, read_toc, 'table_of_contents')
     update_edition(rec, edition, read_url, 'links')
 
-    v = read_author(rec)
-    if v:
-        edition['authors'] = [v]
-
-    edition.update(read_title(rec))
+    try:
+        edition.update(read_title(rec))
+    except NoTitle:
+        if 'work_titles' in edition:
+            assert len(edition['work_titles']) == 1
+            edition['title'] = edition['work_titles'][0]
+            del edition['work_titles']
+        else:
+            raise
 
     for func in (read_publisher, read_isbn, read_pagination):
         v = func(rec)
