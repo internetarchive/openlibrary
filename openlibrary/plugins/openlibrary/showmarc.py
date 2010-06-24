@@ -10,8 +10,14 @@ from time import time
 import os.path
 import sys
 
+class old_show_marc(delegate.page):
+    path = "/show-marc/(.*)"
+
+    def GET(self, param):
+        raise web.seeother('/show-records/' + param)
+
 class show_ia(delegate.page):
-    path = "/show-marc/ia:(.*)"
+    path = "/show-records/ia:(.*)"
 
     def GET(self, ia):
         filename = ia + "/" + ia + "_marc.xml"
@@ -26,13 +32,13 @@ class show_ia(delegate.page):
         return render.showia(record, filename)
         
 class show_amazon(delegate.page):
-    path = "/show-marc/amazon:(.*)"
+    path = "/show-records/amazon:(.*)"
     
     def GET(self, asin):
         return render.showamazon(asin)
 
 class show_marc(delegate.page):
-    path = "/show-marc/(.*):(\d+):(\d+)"
+    path = "/show-records/(.*):(\d+):(\d+)"
 	
     def GET(self, filename, offset, length):
         offset = int(offset)
