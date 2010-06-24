@@ -29,12 +29,12 @@ class show_ia(delegate.page):
         except urllib2.HTTPError, e:
             return "ERROR:" + str(e)
 
-        from openlibrary.catalog.marc.xml_to_html import to_html
+        from openlibrary.catalog.marc import xml_to_html
 
         try:
-            as_html = to_html(record)
+            as_html = xml_to_html.html_record(record)
         except:
-            as_html = 'error reading MARC XML'
+            as_html = None
 
         return render.showia(record, filename, as_html)
         
@@ -69,10 +69,10 @@ class show_marc(delegate.page):
         except urllib2.HTTPError, e:
             return "ERROR:" + str(e)
 
-        from openlibrary.catalog.marc.html import html_record
+        from openlibrary.catalog.marc import html
 
         try:
-            record = html_record(result)
+            record = html.html_record(result)
         except ValueError:
             record = None
 
