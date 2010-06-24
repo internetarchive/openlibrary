@@ -998,6 +998,15 @@ bin_samples = [
     'authors': [{'birth_date': u'1748', 'personal_name': u'Day, Thomas', 'death_date': u'1789', 'name': u'Day, Thomas', 'entity_type': 'person'}],
     'publish_places': [u'New York', u'London'],
     'contributions': [u'Wollstonecraft, Mary, 1759-1797', u'Blake, William, 1757-1827']}),
+('talis_empty_245.mrc', {
+    'publishers': [u'Schott'],
+    'title': u'2 diversions. Dance',
+    'series': [u"Schott's woodwind series -- Oboe and pianoforte, no.2"], 
+    'notes': u'Score and part.',
+    'languages': [{'key': '/languages/eng'}],
+    'publish_date': '1950', 'publish_country': 'xxk',
+    'authors': [{'personal_name': u'Cole, Hugo.', 'name': u'Cole, Hugo.', 'entity_type': 'person'}],
+    'publish_places': [u'London']}),
 ]
 
 class TestParse(unittest.TestCase):

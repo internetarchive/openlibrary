@@ -184,8 +184,12 @@ def read_title(rec):
         title = ' '.join(x.strip(' /,;:') for x in contents['a'])
     elif b_and_p:
         title = b_and_p.pop(0).strip(' /,;:')
+# talis_openlibrary_contribution/talis-openlibrary-contribution.mrc:183427199:255
     if title in ('See.', 'See also.'):
-        raise SeeAlsoAsTitle # talis_openlibrary_contribution/talis-openlibrary-contribution.mrc:183427199:255
+        raise SeeAlsoAsTitle
+# talis_openlibrary_contribution/talis-openlibrary-contribution.mrc:5654086:483
+    if title is None:
+        raise NoTitle
     ret['title'] = remove_trailing_dot(title)
     if b_and_p:
         ret["subtitle"] = ' : '.join(remove_trailing_dot(x.strip(' /,;:')) for x in b_and_p)
