@@ -366,11 +366,9 @@ def read_description(rec):
         return
     found = []
     for f in fields:
-        this = f.get_subfield_values(['a'])
-        if len(this) != 1:
-            print `fields`
-            print `line`
-            print len(this)
+        this = [i for i in f.get_subfield_values(['a']) if i]
+        #if len(this) != 1:
+        #    print f.get_all_subfields()
         # multiple 'a' subfields
         # marc_loc_updates/v37.i47.records.utf8:5325207:1062
         # 520: $aManpower policy;$aNusa Tenggara Barat Province

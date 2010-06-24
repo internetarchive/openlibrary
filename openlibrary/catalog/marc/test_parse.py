@@ -1017,6 +1017,7 @@ bin_samples = [
     'isbn_10': [u'0525230106'], 'publish_date': '1972', 'publish_country': 'nyu',
     'authors': [{'personal_name': u'Young, Peter.', 'name': u'Young, Peter.', 'entity_type': 'person'}],
     'by_statement': u'General editor: Peter Young. Pref. by Aram Bakshian, Jr. War games photographed by Philip O. Stearns', 'publish_places': [u'New York']}),
+('collingswood_520aa.mrc', {'publishers': [u'Listening Library'], 'pagination': u'2 sound cassettes (3 hr. 16 min.) :', 'description': u'At the beginning of eighth grade, learning disabled Max and his new friend Freak, whose birth defect has affected his body but not his brilliant mind, find that when they combine forces they make a powerful team.', 'title': u'Freak the Mighty', 'notes': u'CS j1202', 'number_of_pages': 16, 'physical_format': u'[sound recording] /', 'isbn_10': [u'087279811'], 'publish_date': '1998', 'publish_country': 'ctu', 'authors': [{'personal_name': u'Philbrick, W. R.', 'name': u'Philbrick, W. R.', 'entity_type': 'person'}], 'by_statement': u'Rodman Philbrick. e.', 'publish_places': [u'Greenwitch, CT']}),
 ]
 
 class TestParse(unittest.TestCase):
