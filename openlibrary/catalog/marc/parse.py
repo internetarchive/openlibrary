@@ -152,14 +152,15 @@ def read_work_titles(rec):
     if tag_240:
         for f in tag_240:
             title = f.get_subfield_values(['a', 'm', 'n', 'p', 'r'])
-            found.append(' '.join(title))
+            found.append(remove_trailing_dot(' '.join(title).strip(',')))
 
     tag_130 = rec.get_fields('130')
     if tag_130:
         for f in tag_130:
-            found.append(' '.join(f.get_lower_subfields()))
+            title = ' '.join(v for k, v in f.get_all_subfields() if k.islower() and k != 'n')
+            found.append(remove_trailing_dot(title.strip(',')))
 
-    return found
+    return remove_duplicates(found)
 
 def read_title(rec):
     fields = rec.get_fields('245')
@@ -425,7 +426,7 @@ def read_contributions(rec):
         for f in rec.get_fields(tag):
             cur = tuple(f.get_subfields(sub))
             if tuple(cur) not in skip_authors:
-                found.append(' '.join(i[1] for i in cur))
+                found.append(remove_trailing_dot(' '.join(i[1] for i in cur).strip(',')))
     return found
 
 def read_toc(rec):
