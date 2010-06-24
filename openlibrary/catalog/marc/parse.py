@@ -388,12 +388,9 @@ def read_url(rec):
         if '3' not in contents:
             found += [{ 'url': u.strip(' ') } for u in contents['u']]
             continue
-        assert len(contents['u']) == 1 and len(contents['3']) == 1
-        link = {
-            'url': contents['u'][0].strip(' '),
-            'title': contents['3'][0].strip(' '),
-        }
-        found.append(link)
+        assert len(contents['3']) == 1
+        title = contents['3'][0].strip(' ')
+        found += [{ 'url': u.strip(' '), 'title': title  } for u in contents['u']]
 
     return found
 
