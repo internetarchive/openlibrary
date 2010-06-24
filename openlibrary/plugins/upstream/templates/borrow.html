@@ -1,11 +1,10 @@
-$def with (page)
+$def with (page, loans)
 
 $var title: $page.title
 
 $ _x = ctx.setdefault('bodyid', 'plain')
 
 <div id="contentBody">
-    $repr(ctx.user.key)
 
     <div class="navBorrow">
         <a href="javascript:;" onclick="history.go(-1);"><strong>Back</strong></a>
