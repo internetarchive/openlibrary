@@ -235,5 +235,5 @@ class ContentServer:
         self.name = result['name']
 
     def get_loan_link(self, resource_id):
-        loan_link = acs4.mint(self.host, self.shared_secret, resource_id, 'enterloan', self.name, self.port)
+        loan_link = acs4.mint(self.host, self.shared_secret, resource_id, 'enterloan', self.name, port = self.port)
         return loan_link
