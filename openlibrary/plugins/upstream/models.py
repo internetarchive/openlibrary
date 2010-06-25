@@ -112,7 +112,7 @@ class Edition(ol_code.Edition):
 
     def get_ia_meta_fields(self):
         if not self.get('ocaid', None):
-            return set()
+            return {}
         ia = self.ocaid
         url = 'http://www.archive.org/download/%s/%s_meta.xml' % (ia, ia)
         reply = { 'collection': set() }
@@ -132,6 +132,8 @@ class Edition(ol_code.Edition):
 
     def is_daisy_encrypted(self):
         meta_fields = self.get_ia_meta_fields()
+        if not meta_fields:
+            return
         v = meta_fields['collection']
         return 'printdisabled' in v or 'lendinglibrary' in v
 
