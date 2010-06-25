@@ -110,7 +110,6 @@ def is_loan_available(edition, type):
         return False
     
     resource_id = edition.get_lending_resource_id(type)
-    print 'res ' + resource_id
     
     if not resource_id:
         return False
@@ -155,7 +154,7 @@ def get_loan_link(edition, type):
             return None
         content_server = ContentServer(config.content_server)
         
-    resource_id = edition.get_lending_resource(type)
+    resource_id = edition.get_lending_resource_id(type)
     return content_server.get_loan_link(resource_id)
 
 ########## Helper Functions
@@ -184,7 +183,6 @@ class Loan:
         if expiry is not None:
             self.expiry = expiry
         else:
-            print(self.loanedAt)
             self.expiry = datetime.datetime.strptime(self.loanedAt, Loan.isoFormat)
         
     def get_key(self):

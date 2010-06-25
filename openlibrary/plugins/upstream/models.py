@@ -150,7 +150,6 @@ class Edition(ol_code.Edition):
 
         desired = 'acs:%s:' % type
         for urn in self._lending_resources:
-            print '  urn ' + urn # XXX
             if urn.startswith(desired):
                 return urn[len(desired):]
 
