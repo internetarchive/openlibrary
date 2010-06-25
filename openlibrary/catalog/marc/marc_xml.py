@@ -73,6 +73,20 @@ class MarcXml(MarcBase):
         assert record.tag == record_tag
         self.record = record
 
+    def leader(self):
+        leader_element = self.record[0]
+        assert leader_element.tag == leader_tag
+        return get_text(leader_element)
+
+    def all_fields(self):
+        for i in self.record:
+            if i.tag != data_tag and i.tag != control_tag:
+                continue
+            if i.attrib['tag'] == '':
+                raise BlankTag
+            assert i.attrib['tag'].isdigit() 
+            yield i.attrib['tag'], i
+
     def read_fields(self, want):
         want = set(want)
 
