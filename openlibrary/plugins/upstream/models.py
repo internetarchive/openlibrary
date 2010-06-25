@@ -159,7 +159,7 @@ class Edition(ol_code.Edition):
 
         return None
         
-    def available_loans(self):
+    def get_available_loans(self):
         """Returns [{'resource_id': uuid, 'type': type, 'contributor': contributor, 'size': bytes}]
         
         contributor and size may be None"""
