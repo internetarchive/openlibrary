@@ -129,7 +129,10 @@ class Edition(ol_code.Edition):
 #         return 'lendinglibrary' in collections
         
     def get_lending_resources(self):
-        """Returns the loan resource identifiers for books hosted on archive.org"""
+        """Returns the loan resource identifiers (in meta.xml format) for books hosted on archive.org
+        
+        Returns e.g. ['acs:epub:urn:uuid:0df6f344-7ce9-4038-885e-e02db34f2891', 'acs:pdf:urn:uuid:7f192e62-13f5-4a62-af48-be4bea67e109']
+        """
         
         # The entries in meta.xml look like this:
         # <external-identifier>
@@ -140,6 +143,7 @@ class Edition(ol_code.Edition):
         if not itemid:
             self._lending_resources = []
             return self._lending_resources
+        
         url = 'http://www.archive.org/download/%s/%s_meta.xml' % (itemid, itemid)
         # $$$ error handling
         root = etree.parse(urllib2.urlopen(url))
@@ -147,11 +151,9 @@ class Edition(ol_code.Edition):
         return self._lending_resources
         
     def get_lending_resource_id(self, type):
-        if getattr(self, '_lending_resources', None) is None:
-            self.get_lending_resources()
 
         desired = 'acs:%s:' % type
-        for urn in self._lending_resources:
+        for urn in self.get_lending_resources():
             if urn.startswith(desired):
                 return urn[len(desired):]
 
