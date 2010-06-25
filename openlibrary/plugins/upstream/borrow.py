@@ -1,7 +1,9 @@
 """Handlers for borrowing books"""
 
 import datetime
+import simplejson
 import string
+import urllib2
 
 import web
 
@@ -16,7 +18,10 @@ import acs4
 
 ########## Constants
 
-kLendingLibrarySubject = 'Lending library'
+lending_library_subject = 'Lending library'
+loanstatus_url = config.loanstatus_url
+
+content_server = None
 
 ########## Page Handlers
 
@@ -69,7 +74,7 @@ def overdrive_id(edition):
 
 @public
 def can_borrow(edition):
-    global kLendingLibrarySubject
+    global lending_library_subject
     
     # Check if in overdrive
     # $$$ Should we also require to be in lending library?
@@ -82,7 +87,7 @@ def can_borrow(edition):
         subjects = work.get_subjects()
         if subjects:
             try:
-                if subjects.index(kLendingLibrarySubject) >= 0:
+                if subjects.index(lending_library_subject) >= 0:
                     inLendingLibrary = True
                     break
             except ValueError:
@@ -97,11 +102,66 @@ def can_borrow(edition):
     
     return False
 
+@public
+def is_loan_available(edition, type):
+    global loanstatus_url
+    
+    if not loanstatus_url:
+        return False
+    
+    resource_id = edition.get_lending_resource_id(type)
+    print 'res ' + resource_id
+    
+    if not resource_id:
+        return False
+        
+    # BSS response looks like this:
+    #
+    # [
+    #     {
+    #         "loanuntil": "2010-06-25T00:52:04", 
+    #         "resourceid": "a8b600e2-32fd-4aeb-a2b5-641103583254", 
+    #         "returned": "F", 
+    #         "until": "2010-06-25T00:52:04"
+    #     }
+    # ]
+
+    url = '%s/is_loaned_out/%s' % (loanstatus_url, resource_id)
+    try:
+        response = simplejson.loads(urllib2.urlopen(url).read())
+        if len(response) == 0:
+            # No outstanding loans
+            return True
+        
+        if response[0]['returned'] != 'F':
+            # Current loan has been returned
+            return True
+            
+    except IOError:
+        # status server is down
+        # $$$ log
+        return False
+        
+    return False
+    
+# XXX - currently here for development - put behind user limit and availability checks
+@public
+def get_loan_link(edition, type):
+    global content_server
+    
+    if not content_server:
+        if not config.content_server:
+            # $$$ log
+            return None
+        content_server = ContentServer(config.content_server)
+        
+    resource_id = edition.get_lending_resource(type)
+    return content_server.get_loan_link(resource_id)
+
 ########## Helper Functions
-             
+
 def get_loans(user):
     return [web.ctx.site.store[result['key']] for result in web.ctx.site.store.query('/type/loan', 'user', user.key)]
-
 
 ########## Classes
 
@@ -162,3 +222,18 @@ class Loan:
         pieces = ['%s=%s' % (key, value) for (key, value) in self.get_dict().items()]
         return "/?%s" % string.join(pieces, '&')
         
+class ContentServer:
+    def __init__(self, config):
+        self.host = config.host
+        self.port = config.port
+        self.password = config.password
+        self.distributor = config.distributor
+        
+        # Contact server to get shared secret for signing
+        result = acs4.get_distributor_info(self.host, self.password, self.distributor)
+        self.shared_secret = result['sharedSecret']
+        self.name = result['name']
+
+    def get_loan_link(self, resource_id):
+        loan_link = acs4.mint(self.host, self.shared_secret, resource_id, 'enterloan', self.name, self.port)
+        return loan_link

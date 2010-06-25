@@ -3,6 +3,7 @@ import web
 import urllib, urllib2
 import simplejson
 import re
+from lxml import etree
 from collections import defaultdict
 
 from infogami import config
@@ -124,6 +125,36 @@ class Edition(ol_code.Edition):
         url = 'http://www.archive.org/download/%s/%s_meta.xml' % (ia, ia)
         look_for = '<collection>lendinglibrary</collection>'
         return any(i.strip().lower() == look_for for i in urllib2.urlopen(url))
+        
+    def get_lending_resources(self):
+        """Returns the loan resource identifiers for books hosted on archive.org"""
+        
+        # The entries in meta.xml look like this:
+        # <external-identifier>
+        #     acs:epub:urn:uuid:0df6f344-7ce9-4038-885e-e02db34f2891
+        # </external-identifier>
+        
+        itemid = self.ocaid
+        if not itemid:
+            self._lending_resources = []
+            return self._lending_resources
+        url = 'http://www.archive.org/download/%s/%s_meta.xml' % (itemid, itemid)
+        # $$$ error handling
+        root = etree.parse(urllib2.urlopen(url))
+        self._lending_resources = [ elem.text for elem in root.findall('external-identifier') ]
+        return self._lending_resources
+        
+    def get_lending_resource_id(self, type):
+        if getattr(self, '_lending_resources', None) is None:
+            self.get_lending_resources()
+
+        desired = 'acs:%s:' % type
+        for urn in self._lending_resources:
+            print '  urn ' + urn # XXX
+            if urn.startswith(desired):
+                return urn[len(desired):]
+
+        return None
 
     def _process_identifiers(self, config, names, values):
         id_map = {}

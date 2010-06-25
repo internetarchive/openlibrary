@@ -24,6 +24,16 @@ use_gzip: True
 # set this to the url of coverstore web server
 coverstore_url: "http://0.0.0.0:8070/"
 
+# set this to the url of the lending status server
+# lendingstatus_url: "http://lending.example.com/bss/bss.py"
+
+# ACS4 content server
+# content_server:
+#     host: 'acs4server.example.com'
+#     port: 8080
+#     password: 'secret'
+#     distributor: 'urn:uuid:0000000-4000-2000-6000-900000000000'
+
 state_dir: 'state'
 
 plugins:
