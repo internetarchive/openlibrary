@@ -123,9 +123,9 @@ class Edition(ol_code.Edition):
         collections = self.get_ia_collections()
         return 'printdisabled' in collections or 'lendinglibrary' in collections
 
-     def is_lending_library(self):
-        collections = self.get_ia_collections()
-        return 'lendinglibrary' in collections
+#      def is_lending_library(self):
+#         collections = self.get_ia_collections()
+#         return 'lendinglibrary' in collections
         
     def get_lending_resources(self):
         """Returns the loan resource identifiers for books hosted on archive.org"""
