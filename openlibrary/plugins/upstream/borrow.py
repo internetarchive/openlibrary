@@ -51,14 +51,16 @@ class do_borrow(delegate.page):
         
         user = web.ctx.site.get_user()
         
+        if not user:
+            raise web.seeother(key + '/borrow') # XXX not correct url.... need short title
+        
         everythingChecksOut = True # XXX
         if everythingChecksOut:
             # XXX get loan URL and loan id            
             resourceType = 'epub'
             loan = Loan(user.key, key, resourceType)
-            loan.add()
-            acs4link = loan.create_url()
-            raise web.seeother(acs4link)
+            loan_link = loan.make_offer() # generate the link and record that loan offer occurred
+            raise web.seeother(loan_link)
         else:
             # Send to the borrow page
             raise web.seeother(key + '/borrow') # XXX doesn't work because title is after OL id
@@ -112,7 +114,7 @@ def is_loan_available(edition, type):
         return False
         
     return not is_loaned_out(resource_id)
-        
+
 # XXX - currently here for development - put behind user limit and availability checks
 @public
 def get_loan_link(edition, type):
@@ -191,6 +193,7 @@ class Loan:
         if expiry is not None:
             self.expiry = expiry
         else:
+            # XXX set proper expiry
             self.expiry = datetime.datetime.strptime(self.loanedAt, Loan.isoFormat)
         
     def get_key(self):
@@ -215,18 +218,19 @@ class Loan:
     def save(self):
         web.ctx.site.store[self.get_key()] = self.get_dict()
         
-    def add(self):
-        """Record/update the loan"""
-        self.save()
-        
     def remove(self):
         web.ctx.site.delete(self.get_key())
         
-    def create_url(self):
-        """Mints a loan URL"""
-        # XXX implement
-        pieces = ['%s=%s' % (key, value) for (key, value) in self.get_dict().items()]
-        return "/?%s" % string.join(pieces, '&')
+    def make_offer(self):
+        """Create loan url and record that loan was offered.  Returns the link URL that triggers
+           Digital Editions to open."""
+        edition = web.ctx.site.get(self.bookKey)
+        loan_link = get_loan_link(edition, self.resourceType)
+        if not loan_link:
+            raise Exception('Could not get loan link for edition %s type %s' % self.bookKey, self.resourceType)
+        # XXX record resource id
+        self.save()
+        return loan_link
         
 class ContentServer:
     def __init__(self, config):
