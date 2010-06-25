@@ -17,7 +17,7 @@ from openlibrary.utils.solr import Solr
 from utils import get_coverstore_url, MultiDict, parse_toc, parse_datetime, get_edition_config
 import account
 
-re_meta_field = re.compile('<(collection|contributor)>([^<]+)</collection>', re.I)
+re_meta_field = re.compile('<(collection|contributor)>([^<]+)</(collection|contributor)>', re.I)
 
 class Image:
     def __init__(self, category, id):
@@ -131,7 +131,7 @@ class Edition(ol_code.Edition):
         return reply
 
     def is_daisy_encrypted(self):
-        meta_fields = self.get_ia_collections()
+        meta_fields = self.get_ia_meta_fields()
         v = meta_fields['collection']
         return 'printdisabled' in v or 'lendinglibrary' in v
 
