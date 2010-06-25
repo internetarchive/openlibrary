@@ -115,7 +115,7 @@ class Edition(ol_code.Edition):
             return set()
         ia = self.ocaid
         url = 'http://www.archive.org/download/%s/%s_meta.xml' % (ia, ia)
-        matches = (re_meta_collection.match(line) for line in urllib2.urlopen(url))
+        matches = (re_meta_collection.search(line) for line in urllib2.urlopen(url))
         return set(m.group(1).lower() for m in matches if m)
 
     def is_daisy_encrypted(self):
