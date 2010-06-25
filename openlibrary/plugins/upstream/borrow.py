@@ -96,6 +96,8 @@ def can_borrow(edition):
     if not inLendingLibrary:
         return False
     
+    # Book is in lending library
+    
     # Check if hosted at archive.org
     if edition.get('ocaid', False):
         return True
@@ -103,46 +105,14 @@ def can_borrow(edition):
     return False
 
 @public
-def is_loan_available(edition, type):
-    global loanstatus_url
-    
-    if not loanstatus_url:
-        return False
-    
+def is_loan_available(edition, type):    
     resource_id = edition.get_lending_resource_id(type)
     
     if not resource_id:
         return False
         
-    # BSS response looks like this:
-    #
-    # [
-    #     {
-    #         "loanuntil": "2010-06-25T00:52:04", 
-    #         "resourceid": "a8b600e2-32fd-4aeb-a2b5-641103583254", 
-    #         "returned": "F", 
-    #         "until": "2010-06-25T00:52:04"
-    #     }
-    # ]
-
-    url = '%s/is_loaned_out/%s' % (loanstatus_url, resource_id)
-    try:
-        response = simplejson.loads(urllib2.urlopen(url).read())
-        if len(response) == 0:
-            # No outstanding loans
-            return True
+    return not is_loaned_out(resource_id)
         
-        if response[0]['returned'] != 'F':
-            # Current loan has been returned
-            return True
-            
-    except IOError:
-        # status server is down
-        # $$$ log
-        return False
-        
-    return False
-    
 # XXX - currently here for development - put behind user limit and availability checks
 @public
 def get_loan_link(edition, type):
@@ -161,6 +131,44 @@ def get_loan_link(edition, type):
 
 def get_loans(user):
     return [web.ctx.site.store[result['key']] for result in web.ctx.site.store.query('/type/loan', 'user', user.key)]
+
+def is_loaned_out(resource_id):
+    global loanstatus_url
+    
+    if not loanstatus_url:
+        raise Exception('No loanstatus_url -- cannot check loan status')
+    
+    # BSS response looks like this:
+    #
+    # [
+    #     {
+    #         "loanuntil": "2010-06-25T00:52:04", 
+    #         "resourceid": "a8b600e2-32fd-4aeb-a2b5-641103583254", 
+    #         "returned": "F", 
+    #         "until": "2010-06-25T00:52:04"
+    #     }
+    # ]
+
+    url = '%s/is_loaned_out/%s' % (loanstatus_url, resource_id)
+    try:
+        response = simplejson.loads(urllib2.urlopen(url).read())
+        if len(response) == 0:
+            # No outstanding loans
+            return False
+        
+        if response[0]['returned'] in ['F','?']:
+            return True
+            
+        if response[0]['returned'] == 'T':
+            # Current loan has been returned
+            return False
+            
+    except IOError:
+        # status server is down
+        # XXX be more graceful
+        raise Exception('Loan status server not available')
+    
+    raise Exception('Error communicating with loan status server for resource %s' % resource_id)
 
 ########## Classes
 

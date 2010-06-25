@@ -17,6 +17,7 @@ from openlibrary.utils.solr import Solr
 
 from utils import get_coverstore_url, MultiDict, parse_toc, parse_datetime, get_edition_config
 import account
+import borrow
 
 re_meta_collection = re.compile('<collection>([^<]+)</collection>', re.I)
 
@@ -155,6 +156,28 @@ class Edition(ol_code.Edition):
                 return urn[len(desired):]
 
         return None
+        
+    def available_loans(self):
+        """Returns [{'resource_id': uuid, 'type': type, 'contributor': contributor, 'size': bytes}]
+        
+        contributor and size may be None"""
+        loans = []
+            
+        resource_pattern = r'acs:(\w+):(.*)'
+        for resource_urn in self.get_lending_resources():
+            (type, resource_id) = re.match(resource_pattern, resource_urn).groups()
+            loans.append( { 'resource_id': resource_id, 'type': type, 'contributor': None, 'size': None } )
+            
+        
+        # Check if available
+        for loan in loans:
+            if borrow.is_loaned_out(loan['resource_id']):
+                # Only a single loan of an item is allowed
+                return []
+        
+        # XXX get contributor and file size
+            
+        return loans
 
     def _process_identifiers(self, config, names, values):
         id_map = {}
@@ -491,6 +514,9 @@ class User(ol_code.User):
             return web.ctx.site._request('/count_edits_by_user', data={"key": self.key})
         else:
             return 0
+            
+    def get_loan_count(self):
+        return borrow.get_loans(self)
             
 class UnitParser:
     """Parsers values like dimentions and weight.
