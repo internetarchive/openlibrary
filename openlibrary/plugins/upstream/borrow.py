@@ -34,10 +34,13 @@ class borrow(delegate.page):
         
         if not edition:
             raise web.notfound()
+
+        # XXX synchronize loan info from acs -- check for returns
             
         loans = []
         user = web.ctx.site.get_user()
         if user:
+            # XXX synchronize user loans
             loans = get_loans(user)
             
         return render_template("borrow", edition, loans)
@@ -127,7 +130,7 @@ def get_loan_link(edition, type):
         content_server = ContentServer(config.content_server)
         
     resource_id = edition.get_lending_resource_id(type)
-    return content_server.get_loan_link(resource_id)
+    return (resource_id, content_server.get_loan_link(resource_id))
 
 ########## Helper Functions
 
@@ -176,41 +179,46 @@ def is_loaned_out(resource_id):
 
 class Loan:
 
-    defaultLoanDelta = datetime.timedelta(weeks = 2)
-    isoFormat = "%Y-%m-%dT%H:%M:%S.%f"
+    default_loan_delta = datetime.timedelta(weeks = 2)
+    iso_format = "%Y-%m-%dT%H:%M:%S.%f"
 
-    def __init__(self, userKey, bookKey, resourceType, expiry = None, loanedAt = None):
-        self.userKey = userKey
-        self.bookKey = bookKey
-        self.resourceType = resourceType
+    def __init__(self, user_key, book_key, resource_type, expiry = None, loaned_at = None):
+        self.user_key = user_key
+        self.book_key = book_key
+        self.resource_type = resource_type
         self.type = '/type/loan'
+        self.resource_id = None
+        self.offer_url = None
         
-        if loanedAt is not None:
-            self.loanedAt = loanedAt
+        if loaned_at is not None:
+            self.loaned_at = loaned_at
         else:
-            self.loanedAt = datetime.datetime.utcnow().isoformat()
+            self.loaned_at = datetime.datetime.utcnow().isoformat()
 
         if expiry is not None:
             self.expiry = expiry
         else:
             # XXX set proper expiry
-            self.expiry = datetime.datetime.strptime(self.loanedAt, Loan.isoFormat)
+            self.expiry = datetime.datetime.strptime(self.loaned_at, Loan.iso_format)
         
     def get_key(self):
-        return '%s-%s-%s' % (self.userKey, self.bookKey, self.resourceType)
+        return '%s-%s-%s' % (self.user_key, self.book_key, self.resource_type)
         
     def get_dict(self):
-        return { 'user': self.userKey, 'type': '/type/loan',
-                 'book': self.bookKey, 'expiry': self.expiry,
-                 'loanedAt': self.loanedAt, 'resourceType': self.resourceType }
+        return { 'user': self.user_key, 'type': '/type/loan',
+                 'book': self.book_key, 'expiry': self.expiry,
+                 'loaned_at': self.loaned_at, 'resource_type': self.resource_type,
+                 'resource_id': self.resource_id, 'offer_url': self.offer_url }
                  
-    def set_dict(self, loanDict):
-        self.userKey = loanDict['user']
-        self.type = loanDict['type']
-        self.bookKey = loanDict['book']
-        self.resourceType = loanDict['resourceType']
-        self.expiry = loanDict['expiry']
-        self.loanedAt = loanDict['loanedAt']
+    def set_dict(self, loan_dict):
+        self.user_key = loan_dict['user']
+        self.type = loan_dict['type']
+        self.book_key = loan_dict['book']
+        self.resource_type = loan_dict['resource_type']
+        self.expiry = loan_dict['expiry']
+        self.loaned_at = loan_dict['loaned_at']
+        self.resource_id = loan_dict['resource_id']
+        self.offer_url = loan_dict['offer_url']
         
     def load(self):
         self.set_dict(web.ctx.site.store[self.get_key()])
@@ -224,11 +232,12 @@ class Loan:
     def make_offer(self):
         """Create loan url and record that loan was offered.  Returns the link URL that triggers
            Digital Editions to open."""
-        edition = web.ctx.site.get(self.bookKey)
-        loan_link = get_loan_link(edition, self.resourceType)
+        edition = web.ctx.site.get(self.book_key)
+        resource_id, loan_link = get_loan_link(edition, self.resource_type)
         if not loan_link:
-            raise Exception('Could not get loan link for edition %s type %s' % self.bookKey, self.resourceType)
-        # XXX record resource id
+            raise Exception('Could not get loan link for edition %s type %s' % self.book_key, self.resource_type)
+        self.offer_url = loan_link
+        self.resource_id = resource_id
         self.save()
         return loan_link
         
