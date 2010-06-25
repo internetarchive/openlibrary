@@ -17,6 +17,8 @@ from openlibrary.utils.solr import Solr
 from utils import get_coverstore_url, MultiDict, parse_toc, parse_datetime, get_edition_config
 import account
 
+re_meta_collection = re.compile('<collection>([^<]+)</collection>', re.I)
+
 class Image:
     def __init__(self, category, id):
         self.category = category
@@ -108,13 +110,17 @@ class Edition(ol_code.Edition):
         names = ['isbn_10', 'isbn_13', 'lccn', 'oclc_numbers', 'ocaid']
         return self._process_identifiers(get_edition_config().identifiers, names, self.identifiers)
 
-    def is_daisy_encrypted(self):
+    def get_ia_collections(self):
         if not self.get('ocaid', None):
-            return
+            return set()
         ia = self.ocaid
         url = 'http://www.archive.org/download/%s/%s_meta.xml' % (ia, ia)
-        look_for = '<collection>printdisabled</collection>'
-        return any(i.strip().lower() == look_for for i in urllib2.urlopen(url))
+        matches = (re_meta_collection.match(line) for line in urllib2.urlopen(url))
+        return set(m.group(1).lower() for m in matches if m)
+
+    def is_daisy_encrypted(self):
+        collections = self.get_ia_collections()
+        return 'printdisabled' in collections or 'lendinglibrary' in collections
 
     def _process_identifiers(self, config, names, values):
         id_map = {}
