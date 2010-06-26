@@ -180,7 +180,13 @@ class Edition(ol_code.Edition):
         # XXX get contributor and file size
             
         return loans
-        
+    
+    def update_loan_status(self):
+        """Update the loan status based off the status in ACS4"""
+        urn_pattern = r'acs:\w+:(.*)'
+        for ia_urn in self.get_lending_resources():
+            resource_id = re.match(urn_pattern, ia_urn).group(0)
+            borrow.update_loan_status(resource_id)
 
     def _process_identifiers(self, config, names, values):
         id_map = {}
@@ -520,6 +526,12 @@ class User(ol_code.User):
             
     def get_loan_count(self):
         return len(borrow.get_loans(self))
+        
+    def update_loan_status(self):
+        """Update the status of this user's loans."""
+        loans = borrow.get_loans(self)
+        for resource_id in [loan['resource_id'] for loan in loans]:
+            borrow.update_loan_status(resource_id)
             
 class UnitParser:
     """Parsers values like dimentions and weight.

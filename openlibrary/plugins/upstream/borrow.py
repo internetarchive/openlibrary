@@ -34,16 +34,15 @@ class borrow(delegate.page):
     
     def GET(self, key):
         edition = web.ctx.site.get(key)
+        edition.update_loan_status()
         
         if not edition:
             raise web.notfound()
-
-        # XXX synchronize loan info from acs -- check for returns
             
         loans = []
         user = web.ctx.site.get_user()
         if user:
-            # XXX synchronize user loans
+            user.update_loan_status()
             loans = get_loans(user)
             
         return render_template("borrow", edition, loans)
@@ -132,7 +131,7 @@ def is_loan_available(edition, type):
 
 def get_loans(user):
     return [web.ctx.site.store[result['key']] for result in web.ctx.site.store.query('/type/loan', 'user', user.key)]
-
+    
 def get_loan_link(edition, type):
     global content_server
     
@@ -178,20 +177,53 @@ def get_loan_status(resource_id):
         raise Exception('Loan status server not available')
     
     raise Exception('Error communicating with loan status server for resource %s' % resource_id)
-    
+
 
 def is_loaned_out(resource_id):
     status = get_loan_status(resource_id)
+    return is_loaned_out_from_status(status)
+    
+def is_loaned_out_from_status(status):
     if not status:
         return False
-    
     else:
         if status['returned'] == 'T':
             # Current loan has been returned
             return False
-    
+            
+    # Has status and not returned
     return True
     
+def update_loan_status(resource_id):
+    """Update the loan status in OL based off status in ACS4.  Used to check for early returns."""
+    
+    # Find loan in OL
+    loan_keys = web.ctx.site.store.query('/type/loan', 'resource_id', resource_id)
+    if not loan_keys:
+        # No local records
+        return
+
+    # Only support single loan of resource at the moment
+    if len(loan_keys) > 1:
+        raise Exception('Found too many local loan records for resource %s' % resource_id)
+        
+    loan_key = loan_keys[0]['key']
+        
+    # Load status from book status server
+    status = get_loan_status(resource_id)
+    
+    if not is_loaned_out_from_status(status):
+        # Was returned or expired
+        web.ctx.site.store.delete(loan_key)
+        return
+
+    # Book has non-returned status
+    # Update expiry
+    loan = web.ctx.site.store.get(loan_key)
+    if loan['expiry'] != status['until']:
+        loan['expiry'] = status['until']
+        web.ctx.site.store[loan_key] = loan
+
 def user_can_borrow_edition(user, edition, type):
     """Returns true if the user can borrow this edition given their current loans.  Returns False if the
        user holds a current loan for the edition."""
