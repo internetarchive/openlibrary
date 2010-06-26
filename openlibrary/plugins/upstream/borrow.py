@@ -144,10 +144,10 @@ def get_loan_link(edition, type):
         
     resource_id = edition.get_lending_resource_id(type)
     return (resource_id, content_server.get_loan_link(resource_id))
-
-def is_loaned_out(resource_id):
-    global loanstatus_url
     
+def get_loan_status(resource_id):
+    global loanstatus_url
+
     if not loanstatus_url:
         raise Exception('No loanstatus_url -- cannot check loan status')
     
@@ -167,14 +167,10 @@ def is_loaned_out(resource_id):
         response = simplejson.loads(urllib2.urlopen(url).read())
         if len(response) == 0:
             # No outstanding loans
-            return False
+            return None
         
-        if response[0]['returned'] in ['F','?']:
-            return True
-            
-        if response[0]['returned'] == 'T':
-            # Current loan has been returned
-            return False
+        else:
+            return response[0]
             
     except IOError:
         # status server is down
@@ -182,6 +178,19 @@ def is_loaned_out(resource_id):
         raise Exception('Loan status server not available')
     
     raise Exception('Error communicating with loan status server for resource %s' % resource_id)
+    
+
+def is_loaned_out(resource_id):
+    status = get_loan_status(resource_id)
+    if not status:
+        return False
+    
+    else:
+        if status['returned'] == 'T':
+            # Current loan has been returned
+            return False
+    
+    return True
     
 def user_can_borrow_edition(user, edition, type):
     """Returns true if the user can borrow this edition given their current loans.  Returns False if the
