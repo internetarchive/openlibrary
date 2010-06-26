@@ -346,6 +346,7 @@ class account_loans(delegate.page):
     @require_login
     def GET(self):
         user = web.ctx.site.get_user()
+        user.update_loan_status()
         loans = borrow.get_loans(user)
         return render['account/borrow'](user, loans)
 

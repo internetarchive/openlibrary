@@ -1,6 +1,6 @@
 """Handlers for borrowing books"""
 
-import datetime
+import datetime, time
 import simplejson
 import string
 import urllib2
@@ -25,6 +25,12 @@ content_server = None
 
 # Max loans a user can have at once
 user_max_loans = 5
+
+# When we generate a loan offer (.acsm) for a user we assume that the loan has occurred.
+# Once the loan fulfillment inside Digital Editions the book status server will know
+# the loan has occurred.  We allow this timeout so that we don't delete the OL loan
+# record before fulfillment because we can't find it in the book status server.
+loan_fulfillment_timeout_seconds = 60*10
 
 ########## Page Handlers
 
@@ -197,6 +203,8 @@ def is_loaned_out_from_status(status):
 def update_loan_status(resource_id):
     """Update the loan status in OL based off status in ACS4.  Used to check for early returns."""
     
+    global loan_fulfillment_timeout_seconds
+    
     # Find loan in OL
     loan_keys = web.ctx.site.store.query('/type/loan', 'resource_id', resource_id)
     if not loan_keys:
@@ -211,15 +219,26 @@ def update_loan_status(resource_id):
         
     # Load status from book status server
     status = get_loan_status(resource_id)
-    
+
+    # Local loan record
+    loan = web.ctx.site.store.get(loan_key)
+
     if not is_loaned_out_from_status(status):
-        # Was returned or expired
+        # No loan record, or returned or expired
+        
+        # Check if our local loan record is fresh -- allow some time for fulfillment
+        if loan['expiry'] is None:
+            now = time.time()
+            if now - loan['loaned_at'] < loan_fulfillment_timeout_seconds:
+                # Don't delete the loan record - give it time to complete
+                return
+    
+        # Was returned, expired, or timed out
         web.ctx.site.store.delete(loan_key)
         return
 
     # Book has non-returned status
     # Update expiry
-    loan = web.ctx.site.store.get(loan_key)
     if loan['expiry'] != status['until']:
         loan['expiry'] = status['until']
         web.ctx.site.store[loan_key] = loan
@@ -244,9 +263,6 @@ def user_can_borrow_edition(user, edition, type):
 
 class Loan:
 
-    default_loan_delta = datetime.timedelta(weeks = 2)
-    iso_format = "%Y-%m-%dT%H:%M:%S.%f"
-
     def __init__(self, user_key, book_key, resource_type, loaned_at = None):
         self.user_key = user_key
         self.book_key = book_key
@@ -254,12 +270,12 @@ class Loan:
         self.type = '/type/loan'
         self.resource_id = None
         self.loan_link = None
-        self.expiry = None # to be retrieved from ACS4
+        self.expiry = None # We leave the expiry blank until we get confirmation of loan from ACS4
         
         if loaned_at is not None:
             self.loaned_at = loaned_at
         else:
-            self.loaned_at = datetime.datetime.utcnow().isoformat()
+            self.loaned_at = time.time()
         
     def get_key(self):
         return '%s-%s-%s' % (self.user_key, self.book_key, self.resource_type)
