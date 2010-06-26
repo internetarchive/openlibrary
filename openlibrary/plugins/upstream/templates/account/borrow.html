@@ -19,6 +19,7 @@ $().ready(function(){
 </div>
 
 <div id="contentBody">
+$# XXX borrow history not yet recorded
 <!-- if no borrow history -->
     <div class="contentHalf" style="padding-right:20px;width:419px;">
         <img src="/images/icons/icon_book-lg.png" alt="icon: Book" width="49" height="60" class="right" />
@@ -74,13 +75,14 @@ $().ready(function(){
     <div class="clearfix"></div>
     <p class="small sansserif lightgreen">$:_('If you work at a library which is interested to find out more about lending ebooks through Open Library, please <a href="/contact">get in touch with us</a>!')</p>
 <!-- elif no books -->
+$if len(loans) == 0:
     <p>$_("You don't have any books checked out at the moment.")</p>
-<!-- else -->
+$else:
     <div id="borrowTable">
     <table>
         <thead>
             <tr>
-                <th class="titles" colspan="2">[#] $_("Current Loans")</th>
+                <th class="titles" colspan="2">$len(loans) $_("Current Loans")</th>
                 <th class="expires">$_("Loan Expires In")</th>
                 <th class="returns">$_("Early Return?")</th>
             </tr>
@@ -104,14 +106,12 @@ $().ready(function(){
                     
                     </span>
                     <div class="date">
-                    Borrowed on <!-- borrowed date-->Day, 00 Month 0000
+                    $# XXX format date - in utc seconds
+                    Borrowed on $loan['loaned_at']
                     </div>
                 </td>
                 <td class="expires">
-                    <!-- if less than 1 day left -->
-                        <span class="red"># hours</span>
-                    <!-- else -->
-                        <span class="darkgreen"># (days/week/weeks)</span>
+                    $:macros.FormatExpiry(loan['expiry'])
                 </td>
             <!-- if this borrow # > 1 -->
                 <!-- </tr> -->

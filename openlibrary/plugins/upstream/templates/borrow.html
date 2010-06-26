@@ -257,14 +257,7 @@ $ user_can_borrow_this = False
                                 </div>
                             </td>
                             <td class="expires">
-                                $if loan['expiry'] is None:
-                                    $# Not yet fulfilled
-                                    <span class="red">Not yet downloaded</span>
-                                $# XXX implement - will be in ACS4 isoformat or None if loan has not been fulfilled
-                                <!-- if less than 1 day left -->
-                                    <span class="red"># hours</span>
-                                <!-- else -->
-                                    <span class="darkgreen"># (days/week/weeks)</span>
+                                $:macros.FormatExpiry(loan['expiry'])
                             </td>
                         </tr>
                     </tbody>
