@@ -78,6 +78,12 @@ class do_borrow(delegate.page):
         if user_can_borrow_edition(user, edition, resource_type):
             loan = Loan(user.key, key, resource_type)
             loan_link = loan.make_offer() # generate the link and record that loan offer occurred
+            
+            # XXX Record fact of borrow - how do I write into user? do I need permissions?
+            # if not user.has_borrowed:
+            #   user.has_borrowed = True
+            #   user.save()
+            
             raise web.seeother(loan_link)
         else:
             # Send to the borrow page
