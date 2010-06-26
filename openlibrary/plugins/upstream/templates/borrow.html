@@ -5,6 +5,7 @@ $var title: $page.title
 $ _x = ctx.setdefault('bodyid', 'plain')
 
 $ available_loans = page.get_available_loans()
+$ user_can_borrow_this = False
 
 <div id="contentBody">
 
@@ -14,89 +15,6 @@ $ available_loans = page.get_available_loans()
 
         <h1 class="sansserif">Borrow</h1>
         
-        <div id="borrowThis" class="borrow">
-            <table>
-                <tbody>
-                    <tr>
-                        <td valign="top" style="padding-right:10px;">
-                            $:render_template('covers/book_cover_small', page)
-                        </td>
-                        <td>
-                            <span class="title">
-                                $page.title
-                                $if page.subtitle:
-                                    <em>$page.subtitle</em>
-                            </span>
-                            <span class="author">
-                            $ authors = page.get_authors()
-                            $if authors:
-                                $ author_list = ', '.join('%s' % (a.url(), truncate(a.name, 40)) for a in authors)
-                                <span class="darkgrey">$_("by")</span> $:author_list
-                            $else:
-                                $:_('<span class="darkgrey">by</span> an <em>unknown author</em>')
-                            </span>
-                            <br/>
-                            <span class="publisher">
-                            $if page.publish_date or page.publishers:
-                                $if page.publish_date:
-                                    $page.publish_date
-                                $else:
-                                    <em>Published date unknown</em> 
-                                $if page.publishers:
-                                    $for p in page.publishers:
-                                        , $p$cond(loop.last, "", ", ")
-                                $else:
-                                    , <em>publisher unknown</em>
-                            </span>
-                        </td>
-                    </tr>
-
-
-                    <!-- if borrowable AND ctx.user AND books < 5 -->
-                        <tr>
-                            <td>&nbsp;</td>
-                            <td style="padding-top:25px;">
-                            <script type="text/javascript">
-                            $().ready(function(){
-                                $("#borrowBook").submit(function(){
-                                    $(".postSubmit").toggle();
-                                    $("button[type=submit]").text("Try your download again?");
-                                    return false;
-                                });
-                            });
-                            </script>
-                            <ul class="postSubmit large">
-                                <li><strong>Please choose your preferred format:</strong></li>
-                            </ul>
-                            <p class="postSubmit hidden">Your download is in progress.</p>
-                            <form method="post" action="_doborrow" id="borrowBook" name="borrowBook" class="olform">
-                                <p class="large postSubmit" style="margin-left:30px;">
-                                    <label>
-                                    <input type="radio" name="format" value="pdf" checked="checked"/> 
-                                    <strong style="padding-left:10px;">PDF</strong> 
-                                    <span class="smaller grey">[file size]; high quality scans of pages</span>
-                                    </label>
-                                </p>
-                                <p class="large postSubmit" style="margin-left:30px;">
-                                    <label>
-                                    <input type="radio" name="format" value="epub"/>
-                                    <strong style="padding-left:10px;">ePub</strong>
-                                    <span class="smaller grey">[file size]; plain text version; may contain OCR errors</span>
-                                    </label>
-                                </p> 
-                                <div style="margin-left:15px;">
-                                    <button type="submit" class="larger">Download ebook</button>
-                                    <a href="javascript:;" onclick="history.go(-1);" class="red small postSubmit" style="padding-left:30px;">Cancel</a>
-                                </div>
-                            </form>
-                            </td>
-                        </tr>
-
-
-                </tbody>
-            </table>
-        </div>
-        
         $if not can_borrow(page):
             $# not a borrowable book
             <div class="message info">
@@ -105,7 +23,7 @@ $ available_loans = page.get_available_loans()
             
         $elif not page.ocaid:
             $# overdrive-only - does not require login
-            $# $$$ we could generate direct overdrive link if overdrive id is available
+            $# $$$ we could generate direct overdrive link since overdrive id is available
             <div class="message info">
                 <h2 class="sansserif">An ebook may be available from your local library.</h2>
                 <p><a href="this book link">Check Overdrive</a> for availability.</p>
@@ -208,7 +126,95 @@ $ available_loans = page.get_available_loans()
                 <p>eBooks are borrowed for two-week periods, but this one may be returned before then. Please check back!</p>
             </div>
             
-        $# XXX borrow should go here
+        $else:
+            $# We can borrow it!
+            $ user_can_borrow_this = True
+        
+        $# XXX calculate the user_can_borrow_this earlier so this table can go above the message box
+        <div id="borrowThis" class="borrow">
+            <table>
+                <tbody>
+                    <tr>
+                        <td valign="top" style="padding-right:10px;">
+                            $:render_template('covers/book_cover_small', page)
+                        </td>
+                        <td>
+                            <span class="title">
+                                $page.title
+                                $if page.subtitle:
+                                    <em>$page.subtitle</em>
+                            </span>
+                            <span class="author">
+                            $ authors = page.get_authors()
+                            $if authors:
+                                $ author_list = ', '.join('%s' % (a.url(), truncate(a.name, 40)) for a in authors)
+                                <span class="darkgrey">$_("by")</span> $:author_list
+                            $else:
+                                $:_('<span class="darkgrey">by</span> an <em>unknown author</em>')
+                            </span>
+                            <br/>
+                            <span class="publisher">
+                            $if page.publish_date or page.publishers:
+                                $if page.publish_date:
+                                    $page.publish_date
+                                $else:
+                                    <em>Published date unknown</em> 
+                                $if page.publishers:
+                                    $for p in page.publishers:
+                                        , $p$cond(loop.last, "", ", ")
+                                $else:
+                                    , <em>publisher unknown</em>
+                            </span>
+                        </td>
+                    </tr>
+
+
+                    $if user_can_borrow_this:
+                        <tr>
+                            <td>&nbsp;</td>
+                            <td style="padding-top:25px;">
+                            <script type="text/javascript">
+                            $().ready(function(){
+                                $("#borrowBook").submit(function(){
+                                    $(".postSubmit").toggle();
+                                    $("button[type=submit]").text("Try your download again?");
+                                    return false;
+                                });
+                            });
+                            </script>
+                            $# XXX should generate based on available_loans
+                            <ul class="postSubmit large">
+                                <li><strong>Please choose your preferred format:</strong></li>
+                            </ul>
+                            <p class="postSubmit hidden">Your download is in progress.</p>
+                            <form method="post" action="_doborrow" id="borrowBook" name="borrowBook" class="olform">
+                                <p class="large postSubmit" style="margin-left:30px;">
+                                    <label>
+                                    <input type="radio" name="format" value="pdf" checked="checked"/> 
+                                    <strong style="padding-left:10px;">PDF</strong> 
+                                    <span class="smaller grey">[file size]; high quality scans of pages</span>
+                                    </label>
+                                </p>
+                                <p class="large postSubmit" style="margin-left:30px;">
+                                    <label>
+                                    <input type="radio" name="format" value="epub"/>
+                                    <strong style="padding-left:10px;">ePub</strong>
+                                    $# XXX file size not yet available
+                                    <span class="smaller grey">[file size]; plain text version; may contain OCR errors</span>
+                                    </label>
+                                </p> 
+                                <div style="margin-left:15px;">
+                                    <button type="submit" class="larger">Download ebook</button>
+                                    <a href="javascript:;" onclick="history.go(-1);" class="red small postSubmit" style="padding-left:30px;">Cancel</a>
+                                </div>
+                            </form>
+                            </td>
+                        </tr>
+
+
+                </tbody>
+            </table>
+        </div>        
 
         $if loans:
             $# user has outstanding loans
@@ -251,8 +257,10 @@ $ available_loans = page.get_available_loans()
                                 </div>
                             </td>
                             <td class="expires">
+                                $if loan['expiry'] is None:
+                                    $# Not yet fulfilled
+                                    <span class="red">Not yet downloaded</span>
                                 $# XXX implement - will be in ACS4 isoformat or None if loan has not been fulfilled
-                                $loan['expiry']
                                 <!-- if less than 1 day left -->
                                     <span class="red"># hours</span>
                                 <!-- else -->
