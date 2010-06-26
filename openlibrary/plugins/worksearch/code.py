@@ -139,7 +139,7 @@ field_name_map = {
 }
 
 all_fields += field_name_map.keys()
-re_fields = re.compile('(' + '|'.join(all_fields) + r'):', re.I)
+re_fields = re.compile('(-?' + '|'.join(all_fields) + r'):', re.I)
 
 plurals = dict((f + 's', f) for f in ('publisher', 'author'))
         
@@ -172,6 +172,8 @@ def run_solr_query(param = {}, rows=100, page=1, sort=None, spellcheck_count=Non
     if q_param:
         if q_param == '*:*':
             q_list.append(q_param)
+        elif 'NOT ' in q_param: # this is a hack
+            q_list.append(q_param.strip())
         elif re_fields.search(q_param):
             q_list.extend('%s:(%s)' % i for i in parse_query_fields(q_param))
         else:

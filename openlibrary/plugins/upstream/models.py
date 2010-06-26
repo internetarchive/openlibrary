@@ -19,7 +19,7 @@ from utils import get_coverstore_url, MultiDict, parse_toc, parse_datetime, get_
 import account
 import borrow
 
-re_meta_collection = re.compile('<collection>([^<]+)</collection>', re.I)
+re_meta_field = re.compile('<(collection|contributor)>([^<]+)</(collection|contributor)>', re.I)
 
 class Image:
     def __init__(self, category, id):
@@ -112,17 +112,32 @@ class Edition(ol_code.Edition):
         names = ['isbn_10', 'isbn_13', 'lccn', 'oclc_numbers', 'ocaid']
         return self._process_identifiers(get_edition_config().identifiers, names, self.identifiers)
 
-    def get_ia_collections(self):
+    def get_ia_meta_fields(self):
         if not self.get('ocaid', None):
-            return set()
+            return {}
         ia = self.ocaid
         url = 'http://www.archive.org/download/%s/%s_meta.xml' % (ia, ia)
-        matches = (re_meta_collection.search(line) for line in urllib2.urlopen(url))
-        return set(m.group(1).lower() for m in matches if m)
+        reply = { 'collection': set() }
+        for line in urllib2.urlopen(url):
+            m = re_meta_field.search(line)
+            if not m:
+                continue
+            k = m.group(1).lower()
+            v = m.group(2)
+            if k == 'collection':
+                reply[k].add(v.lower())
+            else:
+                assert k == 'contributor'
+                reply[k] = v
+
+        return reply
 
     def is_daisy_encrypted(self):
-        collections = self.get_ia_collections()
-        return 'printdisabled' in collections or 'lendinglibrary' in collections
+        meta_fields = self.get_ia_meta_fields()
+        if not meta_fields:
+            return
+        v = meta_fields['collection']
+        return 'printdisabled' in v or 'lendinglibrary' in v
 
 #      def is_lending_library(self):
 #         collections = self.get_ia_collections()
