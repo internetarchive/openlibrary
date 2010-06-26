@@ -180,6 +180,7 @@ class Edition(ol_code.Edition):
         # XXX get contributor and file size
             
         return loans
+        
 
     def _process_identifiers(self, config, names, values):
         id_map = {}
@@ -518,7 +519,7 @@ class User(ol_code.User):
             return 0
             
     def get_loan_count(self):
-        return borrow.get_loans(self)
+        return len(borrow.get_loans(self))
             
 class UnitParser:
     """Parsers values like dimentions and weight.

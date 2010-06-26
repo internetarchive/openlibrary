@@ -23,6 +23,9 @@ loanstatus_url = config.loanstatus_url
 
 content_server = None
 
+# Max loans a user can have at once
+user_max_loans = 5
+
 ########## Page Handlers
 
 # Handler for /books/{bookid}/{title}/borrow
@@ -50,23 +53,30 @@ class do_borrow(delegate.page):
     path = "(/books/OL\d+M)/_doborrow"
     
     def POST(self, key):
-        i = web.input()
+        i = web.input(format=None)
+        resource_type = i.format
         
         user = web.ctx.site.get_user()
         
-        if not user:
-            raise web.seeother(key + '/borrow') # XXX not correct url.... need short title
+        error_redirect = key + '/book/borrow' # $$$ 'book' part is hack to work around another hack -- should be short title
         
-        everythingChecksOut = True # XXX
-        if everythingChecksOut:
-            # XXX get loan URL and loan id            
-            resourceType = 'epub'
-            loan = Loan(user.key, key, resourceType)
+        if not user:
+            raise web.seeother(error_redirect)
+        
+        if resource_type not in ['epub', 'pdf']:
+            raise web.seeother(error_redirect)
+        
+        edition = web.ctx.site.get(key)
+        if not edition:
+            raise web.notfound()
+            
+        if user_can_borrow_edition(user, edition, resource_type):
+            loan = Loan(user.key, key, resource_type)
             loan_link = loan.make_offer() # generate the link and record that loan offer occurred
             raise web.seeother(loan_link)
         else:
             # Send to the borrow page
-            raise web.seeother(key + '/borrow') # XXX doesn't work because title is after OL id
+            raise web.seeother(error_redirect)
 
 ########## Public Functions
 
@@ -118,8 +128,11 @@ def is_loan_available(edition, type):
         
     return not is_loaned_out(resource_id)
 
-# XXX - currently here for development - put behind user limit and availability checks
-@public
+########## Helper Functions
+
+def get_loans(user):
+    return [web.ctx.site.store[result['key']] for result in web.ctx.site.store.query('/type/loan', 'user', user.key)]
+
 def get_loan_link(edition, type):
     global content_server
     
@@ -131,11 +144,6 @@ def get_loan_link(edition, type):
         
     resource_id = edition.get_lending_resource_id(type)
     return (resource_id, content_server.get_loan_link(resource_id))
-
-########## Helper Functions
-
-def get_loans(user):
-    return [web.ctx.site.store[result['key']] for result in web.ctx.site.store.query('/type/loan', 'user', user.key)]
 
 def is_loaned_out(resource_id):
     global loanstatus_url
@@ -170,10 +178,26 @@ def is_loaned_out(resource_id):
             
     except IOError:
         # status server is down
-        # XXX be more graceful
+        # $$$ be more graceful
         raise Exception('Loan status server not available')
     
     raise Exception('Error communicating with loan status server for resource %s' % resource_id)
+    
+def user_can_borrow_edition(user, edition, type):
+    """Returns true if the user can borrow this edition given their current loans.  Returns False if the
+       user holds a current loan for the edition."""
+       
+    global user_max_loans
+        
+    if not can_borrow(edition):
+        return False
+    if user.get_loan_count() >= user_max_loans:
+        return False
+    
+    if type in [loan['type'] for loan in edition.get_available_loans()]:
+        return True
+    
+    return False
 
 ########## Classes
 
@@ -182,24 +206,19 @@ class Loan:
     default_loan_delta = datetime.timedelta(weeks = 2)
     iso_format = "%Y-%m-%dT%H:%M:%S.%f"
 
-    def __init__(self, user_key, book_key, resource_type, expiry = None, loaned_at = None):
+    def __init__(self, user_key, book_key, resource_type, loaned_at = None):
         self.user_key = user_key
         self.book_key = book_key
         self.resource_type = resource_type
         self.type = '/type/loan'
         self.resource_id = None
-        self.offer_url = None
+        self.loan_link = None
+        self.expiry = None # to be retrieved from ACS4
         
         if loaned_at is not None:
             self.loaned_at = loaned_at
         else:
             self.loaned_at = datetime.datetime.utcnow().isoformat()
-
-        if expiry is not None:
-            self.expiry = expiry
-        else:
-            # XXX set proper expiry
-            self.expiry = datetime.datetime.strptime(self.loaned_at, Loan.iso_format)
         
     def get_key(self):
         return '%s-%s-%s' % (self.user_key, self.book_key, self.resource_type)
@@ -208,7 +227,7 @@ class Loan:
         return { 'user': self.user_key, 'type': '/type/loan',
                  'book': self.book_key, 'expiry': self.expiry,
                  'loaned_at': self.loaned_at, 'resource_type': self.resource_type,
-                 'resource_id': self.resource_id, 'offer_url': self.offer_url }
+                 'resource_id': self.resource_id, 'loan_link': self.loan_link }
                  
     def set_dict(self, loan_dict):
         self.user_key = loan_dict['user']
@@ -218,7 +237,7 @@ class Loan:
         self.expiry = loan_dict['expiry']
         self.loaned_at = loan_dict['loaned_at']
         self.resource_id = loan_dict['resource_id']
-        self.offer_url = loan_dict['offer_url']
+        self.loan_link = loan_dict['loan_link']
         
     def load(self):
         self.set_dict(web.ctx.site.store[self.get_key()])
@@ -236,10 +255,10 @@ class Loan:
         resource_id, loan_link = get_loan_link(edition, self.resource_type)
         if not loan_link:
             raise Exception('Could not get loan link for edition %s type %s' % self.book_key, self.resource_type)
-        self.offer_url = loan_link
+        self.loan_link = loan_link
         self.resource_id = resource_id
         self.save()
-        return loan_link
+        return self.loan_link
         
 class ContentServer:
     def __init__(self, config):
