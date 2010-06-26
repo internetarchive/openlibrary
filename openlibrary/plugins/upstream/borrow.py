@@ -53,28 +53,22 @@ class borrow(delegate.page):
             
         return render_template("borrow", edition, loans)
         
-class do_borrow(delegate.page):
-    """Actually borrow the book, via POST"""
-    path = "(/books/OL\d+M)/_doborrow"
-    
     def POST(self, key):
         i = web.input(format=None)
         resource_type = i.format
         
+        edition = web.ctx.site.get(key)
+        if not edition:
+            raise web.notfound()
+        error_redirect = edition.url("/borrow")
+        
         user = web.ctx.site.get_user()
-        
-        error_redirect = key + '/book/borrow' # $$$ 'book' part is hack to work around another hack -- should be short title
-        
         if not user:
             raise web.seeother(error_redirect)
         
         if resource_type not in ['epub', 'pdf']:
             raise web.seeother(error_redirect)
         
-        edition = web.ctx.site.get(key)
-        if not edition:
-            raise web.notfound()
-            
         if user_can_borrow_edition(user, edition, resource_type):
             loan = Loan(user.key, key, resource_type)
             loan_link = loan.make_offer() # generate the link and record that loan offer occurred
@@ -142,7 +136,7 @@ def is_loan_available(edition, type):
 ########## Helper Functions
 
 def get_loans(user):
-    return [web.ctx.site.store[result['key']] for result in web.ctx.site.store.query('/type/loan', 'user', user.key)]
+    return web.ctx.site.store.values(type='/type/loan', name='user', value=user.key)
     
 def get_loan_link(edition, type):
     global content_server
