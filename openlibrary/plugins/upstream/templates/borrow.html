@@ -4,6 +4,8 @@ $var title: $page.title
 
 $ _x = ctx.setdefault('bodyid', 'plain')
 
+$ available_loans = page.get_available_loans()
+
 <div id="contentBody">
 
     <div class="navBorrow">
@@ -95,87 +97,121 @@ $ _x = ctx.setdefault('bodyid', 'plain')
             </table>
         </div>
         
-        <!-- if unborrowable -->
+        $if not can_borrow(page):
+            $# not a borrowable book
             <div class="message info">
                 <h2 class="sansserif">This title is not available for borrowing.</h2>
             </div>
-        <!-- elif overdrive-only -->
+            
+        $elif not page.ocaid:
+            $# overdrive-only - does not require login
+            $# $$$ we could generate direct overdrive link if overdrive id is available
             <div class="message info">
                 <h2 class="sansserif">An ebook may be available from your local library.</h2>
                 <p><a href="this book link">Check Overdrive</a> for availability.</p>
             </div>
-        <!-- elif ctx.user and books = 5 -->
+            
+        $elif not ctx.user:
+            $# not logged in
+            
+            $if not page.available_loans():
+                $# not logged in and book is checked-out
+                <div class="message info">
+                    <h2 class="sansserif">This title has been checked out.</h2>
+                    <p>But, you'll need to <a href="/account/login">log in</a> or <a href="/account/create">open a new account</a> to borrow any ebooks from Open library.</p>
+                </div>        
+
+            $else:
+                $# not logged in and book is available
+                <div class="message alert">
+                    <h2 class="sansserif">Only Open Library account holders can borrow this book.</h2>
+                    <p>Log in below, or <a href="/account/create">open a new account</a>.</p>
+                </div>
+                <script type="text/javascript">
+                //\$().ready(passwordMask);
+                //\$().ready(validateForms);
+                //\$().ready(validateLogin);
+                </script>
+                <div class="panel">
+                    <div class="head">
+                        <h3>Log In</h3>
+                    </div>
+                    <form class="login olform" name="register" method="post">
+                    <div class="formElement">
+                        <div class="label"><label for="username">$_("Username")</label> <span class="smaller lighter"></span></div>
+                        <div class="input">
+                            <input type="text" class="required" id="username" name="username" value=""/>
+                        </div>
+                    </div>
+                    <div class="formElement">
+                        <div class="label"><label for="password">$_("Password")</label> <span class="smaller lighter"></span></div>
+                        <div class="input">
+                            <input type="password" class="required"  id="password" name="password" value="" />
+                        </div>
+                    </div>
+                    <div class="formElement">
+                        <div class="input">
+                            <input name="remember" type="checkbox" id="remember" />
+                            <label for="remember" class="small">Remember me</label>
+                        </div>
+                    </div>
+                    $# XXX fill in redirect
+                    <input type="hidden" id="redirect" value="XXX - form.redirect.value" name="redirect" />
+                    <div class="clearfix"></div>
+                    <div class="formElement bottom">
+                        <br/>
+                        <input value="$_('Log In')" type="submit" name="submit" title="$_('Log In')"/>
+                        &nbsp;
+                        <a href="javascript:;" onclick="history.go(-1);" class="smaller attn">$_("Cancel")</a>
+                    </div>
+                    <div class="formElement">
+                        <div class="label"></div>
+                        <div class="input smaller">$:_('Did you <a href="/account/password/forgot">forget your password</a>?')
+                        <br/><br/>
+                        $:_('Not a member of Open Library? <a href="/account/create">Sign up now</a>.')</div>
+                    </div>
+                    </form>            
+                </div>
+                
+        $elif page.key in [loan['book'] for loan in loans]:
+            $# checked out by this user!
+            
+            $for candidate in loans:
+                $if candidate['book'] == page.key:
+                    $ active_loan = candidate
+            
+            $if active_loan['expiry'] is not None:
+                $# Has been fulfilled
+                <div class="message info">
+                    <h2 class="sansserif">We show that you've got this title checked out.</h2>
+                    <p>Open Adobe Digital Editions to read it or to return it to Open Library.</p>
+                </div>
+            $else:
+                $# $$$ wording
+                <div class="message info">
+                    <h2 class="sansserif">We show that you've got this title checked out but haven't loaded it into Digital Editions.</h2>
+                    <p>You can <a href="$active_loan['loan_link']">download this book again</a>.</p>
+                </div>
+                
+        
+        $elif len(loans) >= 5:
+            $# already loaned maximum number of books
             <div class="message stop">
                 <h2 class="sansserif">Hang on. You've hit the lending limit of 5 concurrent titles.</h2>
                 <p>Open Adobe Digital Editions to return a book you've borrowed, then try again.</p>
             </div>
-        <!-- elif ctx.user and book checked-out -->
+
+        $elif not available_loans:
+            $# book is not available for loan
             <div class="message info">
                 <h2 class="sansserif">Oh, dear. This title has been checked out.</h2>
                 <p>eBooks are borrowed for two-week periods, but this one may be returned before then. Please check back!</p>
             </div>
-        <!-- elif ctx.user and book checked-out by ctx.user -->
-            <div class="message info">
-                <h2 class="sansserif">We show that you've got this title checked out.</h2>
-                <p>Open Adobe Digital Editions to read it or to return it to Open Library.</p>
-            </div>
-        <!-- elif not ctx.user and book checked-out -->
-            <div class="message info">
-                <h2 class="sansserif">This titled has been checked out.</h2>
-                <p>But, you'll need to <a href="/account/login">log in</a> or <a href="/account/create">open a new account</a> to borrow any ebooks from Open library.</p>
-            </div>        
-        <!-- elif not ctx.user -->
-            <div class="message alert">
-                <h2 class="sansserif">Only Open Library account holders can borrow this book.</h2>
-                <p>Log in below, or <a href="/account/create">open a new account</a>.</p>
-            </div>
-            <script type="text/javascript">
-            //\$().ready(passwordMask);
-            //\$().ready(validateForms);
-            //\$().ready(validateLogin);
-            </script>
-            <div class="panel">
-                <div class="head">
-                    <h3>Log In</h3>
-                </div>
-                <form class="login olform" name="register" method="post">
-                <div class="formElement">
-                    <div class="label"><label for="username">$_("Username")</label> <span class="smaller lighter"></span></div>
-                    <div class="input">
-                        <input type="text" class="required" id="username" name="username" value=""/>
-                    </div>
-                </div>
-                <div class="formElement">
-                    <div class="label"><label for="password">$_("Password")</label> <span class="smaller lighter"></span></div>
-                    <div class="input">
-                        <input type="password" class="required"  id="password" name="password" value="" />
-                    </div>
-                </div>
-                <div class="formElement">
-                    <div class="input">
-                        <input name="remember" type="checkbox" id="remember" />
-                        <label for="remember" class="small">Remember me</label>
-                    </div>
-                </div>
-                <input type="hidden" id="redirect" value="XXX - form.redirect.value" name="redirect" />
-                <div class="clearfix"></div>
-                <div class="formElement bottom">
-                    <br/>
-                    <input value="$_('Log In')" type="submit" name="submit" title="$_('Log In')"/>
-                    &nbsp;
-                    <a href="javascript:;" onclick="history.go(-1);" class="smaller attn">$_("Cancel")</a>
-                </div>
-                <div class="formElement">
-                    <div class="label"></div>
-                    <div class="input smaller">$:_('Did you <a href="/account/password/forgot">forget your password</a>?')
-                    <br/><br/>
-                    $:_('Not a member of Open Library? <a href="/account/create">Sign up now</a>.')</div>
-                </div>
-                </form>            
-            </div>
+            
+        $# XXX borrow should go here
 
-
-        <!-- if ctx.user and borrow exists -->
+        $if loans:
+            $# user has outstanding loans
             <div id="borrowTable" class="borrow">
                 <table>
                     <thead>
@@ -185,30 +221,38 @@ $ _x = ctx.setdefault('bodyid', 'plain')
                         </tr>
                     </thead>
                     <tbody>
-                    <!-- for each borrow -->
+                    
+                    $# for each borrow
+                    $for loan in loans:
+                        $ book = get_document(loan['book'])
                         <tr>
                             <td class="cover">
-                            $:render_template('covers/book_cover_small', page)
+                            $:render_template('covers/book_cover_small', book)
                             </td>
                             <td class="titles">
                                 <span class="title">
-                                $page.title
+                                $book.title
                                 $if page.subtitle:
-                                    <em>$page.subtitle</em>
+                                    <em>$book.subtitle</em>
                                 </span>
                                 <span class="author">
-                                $ authors = page.get_authors()
+                                $# XXX it looks like Edition.get_authors doesn't work on dev instance -- doesn't find authors from works
+                                $ authors = book.get_authors()
                                 $if authors:
                                     $ author_list = ', '.join('%s' % (a.url(), truncate(a.name, 40)) for a in authors)
                                     $_("by") $:author_list
                                 $else:
                                     $:_("by an <em>unknown author</em>")
                                 </span>
+                                
                                 <div class="date">
-                                Borrowed on <!-- borrowed date-->25 May 2010
+                                $# XXX format date -- stored as UTC seconds since epoch
+                                Borrowed on $loan['loaned_at']
                                 </div>
                             </td>
                             <td class="expires">
+                                $# XXX implement - will be in ACS4 isoformat or None if loan has not been fulfilled
+                                $loan['expiry']
                                 <!-- if less than 1 day left -->
                                     <span class="red"># hours</span>
                                 <!-- else -->
