@@ -19,8 +19,9 @@ $().ready(function(){
 </div>
 
 <div id="contentBody">
-$# XXX borrow history not yet recorded
+$# XXX borrow history not yet recorded so we show instructions if no current loans
 <!-- if no borrow history -->
+$if len(loans) == 0:
     <div class="contentHalf" style="padding-right:20px;width:419px;">
         <img src="/images/icons/icon_book-lg.png" alt="icon: Book" width="49" height="60" class="right" />
         <p>$_("There are 3 different sources for borrowing books through Open Library:")</p>
@@ -74,10 +75,11 @@ $# XXX borrow history not yet recorded
     </div>
     <div class="clearfix"></div>
     <p class="small sansserif lightgreen">$:_('If you work at a library which is interested to find out more about lending ebooks through Open Library, please <a href="/contact">get in touch with us</a>!')</p>
-<!-- elif no books -->
-$if len(loans) == 0:
+    
+    <!-- elif no books -->
     <p>$_("You don't have any books checked out at the moment.")</p>
 $else:
+    $# Have current loans
     <div id="borrowTable">
     <table>
         <thead>
