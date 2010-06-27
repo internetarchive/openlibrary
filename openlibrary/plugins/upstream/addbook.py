@@ -580,7 +580,7 @@ class edit(core.edit):
 class daisy(delegate.page):
     path = "(/books/OL\d+M)/daisy"
 
-    def GET(sef, key):
+    def GET(self, key):
         page = web.ctx.site.get(key)
 
         if not page:

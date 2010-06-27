@@ -1,0 +1,11 @@
+$def with(expiry)
+
+$if expiry is None:
+    $# Not yet fulfilled
+    <span class="red">Not yet downloaded</span>
+$# XXX implement - expiry is in ACS4 isoformat
+$expiry
+<!-- if less than 1 day left -->
+    <span class="red"># hours</span>
+<!-- else -->
+    <span class="darkgreen"># (days/week/weeks)</span>

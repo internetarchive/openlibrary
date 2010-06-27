@@ -22,6 +22,7 @@ import utils
 import addbook
 import models
 import covers
+import borrow
 
 if not config.get('coverstore_url'):
     config.coverstore_url = "http://covers.openlibrary.org"
