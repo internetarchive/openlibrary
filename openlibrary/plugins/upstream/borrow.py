@@ -40,10 +40,11 @@ class borrow(delegate.page):
     
     def GET(self, key):
         edition = web.ctx.site.get(key)
-        edition.update_loan_status()
         
         if not edition:
             raise web.notfound()
+
+        edition.update_loan_status()
             
         loans = []
         user = web.ctx.site.get_user()
@@ -90,18 +91,20 @@ class borrow_admin(delegate.page):
     
     def GET(self, key):
         edition = web.ctx.site.get(key)
-        edition.update_loan_status()
         
         if not edition:
             raise web.notfound()
+
+        edition.update_loan_status()
+        edition_loans = get_edition_loans(edition)
             
-        loans = []
+        user_loans = []
         user = web.ctx.site.get_user()
         if user:
             user.update_loan_status()
-            loans = get_loans(user)
+            user_loans = get_loans(user)
             
-        return render_template("borrow_admin", edition, loans)
+        return render_template("borrow_admin", edition, edition_loans, user_loans)
         
             
 ########## Public Functions
@@ -158,6 +161,9 @@ def is_loan_available(edition, type):
 
 def get_loans(user):
     return web.ctx.site.store.values(type='/type/loan', name='user', value=user.key)
+
+def get_edition_loans(edition):
+    return web.ctx.site.store.values(type='/type/loan', name='book', value=edition.key)
     
 def get_loan_link(edition, type):
     global content_server

@@ -186,10 +186,17 @@ class Edition(ol_code.Edition):
             loans.append( { 'resource_id': resource_id, 'type': type, 'contributor': None, 'size': None } )
             
         
-        # Check if available
+        # Check if we have a possible loan - may not yet be fulfilled in ACS4
+        if borrow.get_edition_loans(self):
+            # There is a current loan or offer
+            return []
+            
+        # Check if available - book status server
+        # We shouldn't be out of sync but we fail safe
         for loan in loans:
             if borrow.is_loaned_out(loan['resource_id']):
                 # Only a single loan of an item is allowed
+                # XXX log out of sync state
                 return []
         
         # XXX get contributor and file size

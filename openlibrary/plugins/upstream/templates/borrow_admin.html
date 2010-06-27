@@ -1,4 +1,4 @@
-$def with (page, loans)
+$def with (page, edition_loans, user_loans)
 
 $var title: $page.title
 
@@ -41,10 +41,13 @@ $ available_loans = page.get_available_loans()
         </p>
         
         <p>
+            current loans for $page.title: $edition_loans
+        
+        <p>
             available loans for $page.title: $available_loans
         </p>
         <p>
-            Your $len(loans) borrowed books: $loans
+            Your $len(user_loans) borrowed books: $user_loans
         </p>
         
         <p>

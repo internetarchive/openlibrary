@@ -32,7 +32,7 @@ $ user_can_borrow_this = False
         $elif not ctx.user:
             $# not logged in
             
-            $if not page.available_loans():
+            $if not available_loans:
                 $# not logged in and book is checked-out
                 <div class="message info">
                     <h2 class="sansserif">This title has been checked out.</h2>
@@ -54,6 +54,7 @@ $ user_can_borrow_this = False
                     <div class="head">
                         <h3>Log In</h3>
                     </div>
+                    $# XXX Lance where should this form submit to?
                     <form class="login olform" name="register" method="post">
                     <div class="formElement">
                         <div class="label"><label for="username">$_("Username")</label> <span class="smaller lighter"></span></div>
@@ -73,8 +74,9 @@ $ user_can_borrow_this = False
                             <label for="remember" class="small">Remember me</label>
                         </div>
                     </div>
-                    $# XXX fill in redirect
-                    <input type="hidden" id="redirect" value="XXX - form.redirect.value" name="redirect" />
+                    $# XXX check redirect is correct
+                    $ borrow_url = '/books/' + page.key + '/title/borrow'
+                    <input type="hidden" id="redirect" value="$borrow_url" name="redirect" />
                     <div class="clearfix"></div>
                     <div class="formElement bottom">
                         <br/>
