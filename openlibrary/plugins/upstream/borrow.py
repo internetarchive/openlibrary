@@ -69,7 +69,8 @@ class borrow(delegate.page):
         if resource_type not in ['epub', 'pdf']:
             raise web.seeother(error_redirect)
         
-        if user_can_borrow_edition(user, edition, resource_type):
+        if True: # XXX
+        #if user_can_borrow_edition(user, edition, resource_type):
             loan = Loan(user.key, key, resource_type)
             loan_link = loan.make_offer() # generate the link and record that loan offer occurred
             
@@ -83,6 +84,26 @@ class borrow(delegate.page):
             # Send to the borrow page
             raise web.seeother(error_redirect)
 
+# XXX should be available only to admins
+class borrow_admin(delegate.page):
+    path = "(/books/OL\d+M)/borrow_admin"
+    
+    def GET(self, key):
+        edition = web.ctx.site.get(key)
+        edition.update_loan_status()
+        
+        if not edition:
+            raise web.notfound()
+            
+        loans = []
+        user = web.ctx.site.get_user()
+        if user:
+            user.update_loan_status()
+            loans = get_loans(user)
+            
+        return render_template("borrow_admin", edition, loans)
+        
+            
 ########## Public Functions
 
 @public
