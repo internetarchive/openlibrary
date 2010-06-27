@@ -185,6 +185,8 @@ def get_loan_link(edition, type):
         content_server = ContentServer(config.content_server)
         
     resource_id = edition.get_lending_resource_id(type)
+    if not resource_id:
+        raise Exception('Could not find resource_id for %s - %s' % (edition.key, type))
     return (resource_id, content_server.get_loan_link(resource_id))
     
 def get_loan_status(resource_id):
