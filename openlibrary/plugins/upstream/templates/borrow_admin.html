@@ -22,10 +22,10 @@ $ available_loans = page.get_available_loans()
         </p>
         
         <p>
-            ocaid: $page.ocaid
+            archive.org item identifier: $page.ocaid
         <p>
         <p>
-            acs4 links: $page.get_lending_resources()
+            external-identifiers from archive.org meta.xml: $page.get_lending_resources()
         </p>
         
         <p>
@@ -44,10 +44,18 @@ $ available_loans = page.get_available_loans()
             current loans for $page.title: $edition_loans
         
         <p>
-            available loans for $page.title: $available_loans
+            <table>
+              <tr><th>Available loans for $page.title:</tr></th>
+              $for loan in available_loans:
+                 <tr><td>$loan</td></tr>
+            </table>
         </p>
         <p>
-            Your $len(user_loans) borrowed books: $user_loans
+            <table>
+              <tr><th>Your $len(user_loans) borrowed books:</th></tr>
+              $for loan in user_loans:
+                  <tr><td>$loan<br>&nbsp;</td></tr>
+            </table>
         </p>
         
         <p>
