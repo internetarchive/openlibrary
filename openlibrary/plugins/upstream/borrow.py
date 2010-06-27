@@ -89,7 +89,15 @@ class borrow(delegate.page):
 class borrow_admin(delegate.page):
     path = "(/books/OL\d+M)/borrow_admin"
     
+    def is_admin(self):
+        """"Returns True if the current user is in admin usergroup."""
+        user = web.ctx.site.get_user()
+        return user and user.key in [m.key for m in web.ctx.site.get('/usergroup/admin').members]
+    
     def GET(self, key):
+        if not self.is_admin():
+            return render_template('permission_denied', web.ctx.path, "Permission denied.")
+    
         edition = web.ctx.site.get(key)
         
         if not edition:
