@@ -177,14 +177,24 @@ class Edition(ol_code.Edition):
     def get_available_loans(self):
         """Returns [{'resource_id': uuid, 'type': type, 'size': bytes}]
         
-        contributor and size may be None"""
+        size may be None"""
+        
+        default_type = 'pdf'
+        
         loans = []
             
         resource_pattern = r'acs:(\w+):(.*)'
         for resource_urn in self.get_lending_resources():
             (type, resource_id) = re.match(resource_pattern, resource_urn).groups()
-            loans.append( { 'resource_id': resource_id, 'type': type, 'contributor': None, 'size': None } )
-            
+            loans.append( { 'resource_id': resource_id, 'type': type, 'size': None } )
+        
+        # Put default type at start of list, then sort by type name
+        def loan_key(loan):
+            if loan['type'] == default_type:
+                return '1-%s' % loan['type']
+            else:
+                return '2-%s' % loan['type']        
+        loans = sorted(loans, key=loan_key)
         
         # Check if we have a possible loan - may not yet be fulfilled in ACS4
         if borrow.get_edition_loans(self):
