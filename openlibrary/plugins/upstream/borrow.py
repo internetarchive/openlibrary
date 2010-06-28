@@ -10,6 +10,7 @@ import web
 from infogami import config
 from infogami.utils import delegate
 from infogami.utils.view import public
+from infogami.infobase.utils import parse_datetime
 
 import utils
 from utils import render_template
@@ -171,6 +172,13 @@ def is_loan_available(edition, type):
         return False
         
     return not is_loaned_out(resource_id)
+
+@public
+def parse_loan_expiry(expiry):
+    """Returns datetime object, or None"""
+    if expiry is None:
+        return None
+    return parse_datetime(expiry)
 
 ########## Helper Functions
 
