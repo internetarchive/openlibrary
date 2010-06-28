@@ -67,6 +67,8 @@ def work_wrapper(w):
         d.cover_edition_key = w['cover_edition_key']
     else:
         d.cover_id = None
+    if 'subject' in w:
+        d.subject = w['subject']
 
     # special care to handle missing author_key/author_name in the solr record
     w.setdefault('author_key', [])
