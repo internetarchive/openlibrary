@@ -72,12 +72,11 @@ class borrow(delegate.page):
         if resource_type not in ['epub', 'pdf']:
             raise web.seeother(error_redirect)
         
-        if True: # XXX
-        #if user_can_borrow_edition(user, edition, resource_type):
+        if user_can_borrow_edition(user, edition, resource_type):
             loan = Loan(user.key, key, resource_type)
             loan_link = loan.make_offer() # generate the link and record that loan offer occurred
             
-            # XXX Record fact of borrow - how do I write into user? do I need permissions?
+            # XXX Record fact that user has done a borrow borrow - how do I write into user? do I need permissions?
             # if not user.has_borrowed:
             #   user.has_borrowed = True
             #   user.save()
@@ -87,7 +86,6 @@ class borrow(delegate.page):
             # Send to the borrow page
             raise web.seeother(error_redirect)
 
-# XXX should be available only to admins
 class borrow_admin(delegate.page):
     path = "(/books/OL\d+M)/borrow_admin"
     
