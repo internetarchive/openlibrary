@@ -175,7 +175,7 @@ class Edition(ol_code.Edition):
         return None
         
     def get_available_loans(self):
-        """Returns [{'resource_id': uuid, 'type': type, 'contributor': contributor, 'size': bytes}]
+        """Returns [{'resource_id': uuid, 'type': type, 'size': bytes}]
         
         contributor and size may be None"""
         loans = []
@@ -199,7 +199,7 @@ class Edition(ol_code.Edition):
                 # XXX log out of sync state
                 return []
         
-        # XXX get contributor and file size
+        # XXX get file size
             
         return loans
     
