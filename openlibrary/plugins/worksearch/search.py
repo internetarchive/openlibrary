@@ -31,7 +31,8 @@ def work_search(query, limit=20, offset=0, **kw):
         "edition_count",
         "ia",
         "cover_edition_key",
-        "has_fulltext"
+        "has_fulltext",
+        "subject"
     ]
     kw.setdefault("fields", fields)
 
