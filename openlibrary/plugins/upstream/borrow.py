@@ -20,7 +20,7 @@ import acs4
 ########## Constants
 
 lending_library_subject = 'Lending library'
-loanstatus_url = config.loanstatus_url
+loanstatus_url = config.get('loanstatus_url')
 
 content_server = None
 
