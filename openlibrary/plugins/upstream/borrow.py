@@ -174,11 +174,15 @@ def is_loan_available(edition, type):
     return not is_loaned_out(resource_id)
 
 @public
-def parse_loan_expiry(expiry):
+def datetime_from_isoformat(expiry):
     """Returns datetime object, or None"""
     if expiry is None:
         return None
     return parse_datetime(expiry)
+    
+@public
+def datetime_from_utc_timestamp(seconds):
+    return datetime.datetime.utcfromtimestamp(seconds)
 
 ########## Helper Functions
 
