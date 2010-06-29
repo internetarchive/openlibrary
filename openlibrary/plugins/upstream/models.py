@@ -217,7 +217,7 @@ class Edition(ol_code.Edition):
         """Update the loan status based off the status in ACS4"""
         urn_pattern = r'acs:\w+:(.*)'
         for ia_urn in self.get_lending_resources():
-            resource_id = re.match(urn_pattern, ia_urn).group(0)
+            resource_id = re.match(urn_pattern, ia_urn).group(1)
             borrow.update_loan_status(resource_id)
 
     def _process_identifiers(self, config, names, values):
