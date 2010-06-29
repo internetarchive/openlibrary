@@ -10,6 +10,7 @@ import web
 from infogami import config
 from infogami.utils import delegate
 from infogami.utils.view import public
+from infogami.infobase.utils import parse_datetime
 
 import utils
 from utils import render_template
@@ -19,7 +20,7 @@ import acs4
 ########## Constants
 
 lending_library_subject = 'Lending library'
-loanstatus_url = config.loanstatus_url
+loanstatus_url = config.get('loanstatus_url')
 
 content_server = None
 
@@ -89,13 +90,8 @@ class borrow(delegate.page):
 class borrow_admin(delegate.page):
     path = "(/books/OL\d+M)/borrow_admin"
     
-    def is_admin(self):
-        """"Returns True if the current user is in admin usergroup."""
-        user = web.ctx.site.get_user()
-        return user and user.key in [m.key for m in web.ctx.site.get('/usergroup/admin').members]
-    
     def GET(self, key):
-        if not self.is_admin():
+        if not is_admin():
             return render_template('permission_denied', web.ctx.path, "Permission denied.")
     
         edition = web.ctx.site.get(key)
@@ -114,6 +110,18 @@ class borrow_admin(delegate.page):
             
         return render_template("borrow_admin", edition, edition_loans, user_loans)
         
+class loans_admin(delegate.page):
+    # XXX integrate with admin plugin -- should be at /admin/loans
+    path = "/loans/admin"
+    
+    def GET(self):
+        if not is_admin():
+            return render_template('permission_denied', web.ctx.path, "Permission denied.")
+            
+        loans = get_all_loans()
+        
+        return render_template("admin/loans", loans)
+
             
 ########## Public Functions
 
@@ -165,7 +173,17 @@ def is_loan_available(edition, type):
         
     return not is_loaned_out(resource_id)
 
+@public
+def parse_loan_expiry(expiry):
+    """Returns datetime object, or None"""
+    if expiry is None:
+        return None
+    return parse_datetime(expiry)
+
 ########## Helper Functions
+
+def get_all_loans():
+    return web.ctx.site.store.values(type='/type/loan')
 
 def get_loans(user):
     return web.ctx.site.store.values(type='/type/loan', name='user', value=user.key)
@@ -295,6 +313,11 @@ def user_can_borrow_edition(user, edition, type):
         return True
     
     return False
+
+def is_admin():
+    """"Returns True if the current user is in admin usergroup."""
+    user = web.ctx.site.get_user()
+    return user and user.key in [m.key for m in web.ctx.site.get('/usergroup/admin').members]
 
 ########## Classes
 

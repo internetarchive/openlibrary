@@ -31,7 +31,8 @@ def work_search(query, limit=20, offset=0, **kw):
         "edition_count",
         "ia",
         "cover_edition_key",
-        "has_fulltext"
+        "has_fulltext",
+        "subject"
     ]
     kw.setdefault("fields", fields)
 
@@ -66,6 +67,7 @@ def work_wrapper(w):
         d.cover_edition_key = w['cover_edition_key']
     else:
         d.cover_id = None
+    d.subject = w.get('subject', [])
 
     # special care to handle missing author_key/author_name in the solr record
     w.setdefault('author_key', [])

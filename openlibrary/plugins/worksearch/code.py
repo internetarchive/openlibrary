@@ -29,16 +29,16 @@ class edition_search(_edition_search):
     path = "/search/edition"
 
 if hasattr(config, 'plugin_worksearch'):
-    solr_host = config.plugin_worksearch.get('solr')
+    solr_host = config.plugin_worksearch.get('solr', 'localhost')
     solr_select_url = "http://" + solr_host + "/solr/works/select"
 
-    solr_subject_host = config.plugin_worksearch.get('subject_solr')
+    solr_subject_host = config.plugin_worksearch.get('subject_solr', 'localhost')
     solr_subject_select_url = "http://" + solr_subject_host + "/solr/subjects/select"
 
-    solr_author_host = config.plugin_worksearch.get('author_solr')
+    solr_author_host = config.plugin_worksearch.get('author_solr', 'localhost')
     solr_author_select_url = "http://" + solr_author_host + "/solr/authors/select"
 
-    solr_edition_host = config.plugin_worksearch.get('edition_solr')
+    solr_edition_host = config.plugin_worksearch.get('edition_solr', 'localhost')
     solr_edition_select_url = "http://" + solr_edition_host + "/solr/editions/select"
 
     default_spellcheck_count = config.plugin_worksearch.get('spellcheck_count', 10)
