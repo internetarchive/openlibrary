@@ -110,19 +110,6 @@ class borrow_admin(delegate.page):
             
         return render_template("borrow_admin", edition, edition_loans, user_loans)
         
-class loans_admin(delegate.page):
-    # XXX integrate with admin plugin -- should be at /admin/loans
-    path = "/loans/admin"
-    
-    def GET(self):
-        if not is_admin():
-            return render_template('permission_denied', web.ctx.path, "Permission denied.")
-            
-        loans = get_all_loans()
-        
-        return render_template("admin/loans", loans)
-
-            
 ########## Public Functions
 
 @public
