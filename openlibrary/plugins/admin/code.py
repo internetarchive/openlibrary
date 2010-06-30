@@ -255,6 +255,12 @@ def get_admin_stats():
     }
     return storify(xstats)
     
+from openlibrary.plugins.upstream import borrow
+class loans_admin:
+    def GET(self):
+        loans = borrow.get_all_loans()
+        return render_template("admin/loans", loans)
+            
 def setup():
     register_admin_page('/admin/git-pull', gitpull, label='git-pull')
     register_admin_page('/admin/reload', reload, label='Reload Templates')
@@ -265,6 +271,7 @@ def setup():
     register_admin_page('/admin/stats/(\d\d\d\d-\d\d-\d\d)', stats, label='Stats JSON')
     register_admin_page('/admin/ipstats', ipstats, label='IP Stats JSON')
     register_admin_page('/admin/block', block, label='')
+    register_admin_page('/admin/loans', loans_admin, label='')
     
     import mem
 
