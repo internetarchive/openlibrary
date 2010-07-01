@@ -14,7 +14,7 @@ charParams_tag = ns + 'charParams'
 
 re_page_num = re.compile(r'^\[?\d+\]?$')
 
-def abbey_to_par(f, debug=False):
+def abbyy_to_par(f, debug=False):
     prev = ''
     page_count = 0
     for event, element in iterparse(f):
@@ -80,5 +80,5 @@ def abbey_to_par(f, debug=False):
 
 if __name__ == '__main__':
     import sys
-    for i in abbey_to_par(sys.stdin, debug=False):
+    for i in abbyy_to_par(sys.stdin, debug=False):
         print i.encode('utf-8')
