@@ -32,10 +32,10 @@ def work_search(query, limit=20, offset=0, **kw):
         "ia",
         "cover_edition_key",
         "has_fulltext",
-        "subject"
-        "ia_collection_s"
-        "public_scan_b"
-        "overdrive_s"
+        "subject",
+        "ia_collection_s",
+        "public_scan_b",
+        "overdrive_s",
     ]
     kw.setdefault("fields", fields)
 
