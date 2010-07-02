@@ -33,6 +33,9 @@ def work_search(query, limit=20, offset=0, **kw):
         "cover_edition_key",
         "has_fulltext",
         "subject"
+        "ia_collection_s"
+        "public_scan_b"
+        "overdrive_s"
     ]
     kw.setdefault("fields", fields)
 
@@ -68,6 +71,11 @@ def work_wrapper(w):
     else:
         d.cover_id = None
     d.subject = w.get('subject', [])
+    ia_collection = set(w.get('ia_collection_s', '').split(';'))
+    d.ia_collection = list(ia_collection)
+    d.lendinglibrary = 'lendinglibrary' in ia_collection
+    d.printdisabled = 'printdisabled' in ia_collection
+    d.overdrive = w.get('overdrive', '').split(';')
 
     # special care to handle missing author_key/author_name in the solr record
     w.setdefault('author_key', [])
@@ -78,5 +86,6 @@ def work_wrapper(w):
 
     d.first_publish_year = (w['first_publish_year'][0] if 'first_publish_year' in w else None)
     d.ia = w.get('ia', [])
+    d.public_scan = w.get('public_scan_b', bool(d.ia))
     d.has_fulltext = w.get('has_fulltext', "false")
     return d
