@@ -52,6 +52,8 @@ def abbyy_to_par(f, debug=False):
                                     if debug:
                                         print 'page number:', cur
                                     continue
+                            if formatting[0].attrib['wordStart'] == 'true' and text and text[-1] != ' ':
+                                text += ' '
                             if cur != ' ' and formatting[0].attrib['wordStart'] == 'false' and text and text[-1] == '-':
                                 text = text[:-1] + cur
                             else:
@@ -75,3 +77,8 @@ def abbyy_to_par(f, debug=False):
             element.clear()
     if prev:
         yield prev
+
+if __name__ == '__main__':
+    import sys
+    for i in abbyy_to_par(sys.stdin, debug=False):
+        print i.encode('utf-8')
