@@ -318,7 +318,17 @@ class Indexer(_Indexer):
     """Overwrite default indexer to reduce the str index for editions."""
     def compute_index(self, doc):
         index = _Indexer.compute_index(self, doc)
+
+        try:
+            if doc['type']['key'] != '/type/edition':
+                return index
+        except KeyError:
+            return index
+            
         whitelist = ['identifiers', 'classifications', 'isbn_10', 'isbn_13', 'lccn', 'oclc_numbers']
         index = [(datatype, name, value) for datatype, name, value in index 
                 if datatype == 'ref' or name.split(".")[0] in whitelist]
+
+        # avoid indexing table_of_contents.type etc.
+        index = [(datatype, name, value) for datatype, name, value in index if not name.endswith('.type')]
         return index
