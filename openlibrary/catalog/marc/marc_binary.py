@@ -15,7 +15,6 @@ class BinaryDataField():
         return fast_parse.translate(data)
         if self.ia:
             return normalize('NFC', data)
-            print `data`
             return normalize('NFC', data.decode('utf-8'))
 
     def ind1(self):
@@ -74,6 +73,9 @@ class MarcBinary(MarcBase):
             if tag not in want:
                 continue
             if tag.startswith('00'):
+                # marc_upei/marc-for-openlibrary-bigset.mrc:78997353:588
+                if tag == '008' and line == '':
+                    continue
                 assert line[-1] == '\x1e'
                 yield tag, line[:-1]
             else:

@@ -426,8 +426,10 @@ def read_contributions(rec):
         this_tag = []
         for f in rec.get_fields(tag):
             cur = tuple(f.get_subfields(sub))
-            if tuple(cur) not in skip_authors:
-                found.append(remove_trailing_dot(' '.join(i[1] for i in cur).strip(',')))
+            if tuple(cur) in skip_authors:
+                continue
+            name = remove_trailing_dot(' '.join(i[1] for i in cur).strip(','))
+            found.append(name) # need to add flip_name
     return found
 
 def read_toc(rec):

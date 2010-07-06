@@ -48,6 +48,9 @@ def normalize_str(s):
 # no monograph should be longer than 50,000 pages
 max_number_of_pages = 50000
 
+class InvalidMarcFile(Exception):
+    pass
+
 def read_file(f):
     buf = None
     while 1:
@@ -63,11 +66,9 @@ def read_file(f):
             buf = length
         if length == "":
             break
-        try:
-            assert length.isdigit()
-        except AssertionError:
+        if not length.isdigit():
             print 'not a digit:', `length`
-            raise
+            raise InvalidMarcFile
         int_length = int(length)
         data = buf + f.read(int_length - len(buf))
         buf = None
