@@ -25,7 +25,7 @@ class show_ia(delegate.page):
         url = 'http://www.archive.org/download/%s'% filename
 
         try:        
-            record = urllib2.urlopen(url).read(100000)
+            record = urllib2.urlopen(url).read()
         except urllib2.HTTPError, e:
             return "ERROR:" + str(e)
 
