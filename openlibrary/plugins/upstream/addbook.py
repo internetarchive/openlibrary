@@ -180,7 +180,8 @@ class addbook(delegate.page):
         elif len(result.docs) == 1:
             # found one edition match
             work = result.docs[0]
-            publisher = publisher and fuzzy_find(publisher, work.publisher, stopwords=["publisher", "publishers", "and"])
+            publisher = publisher and fuzzy_find(publisher, work.publisher, 
+                                                 stopwords=("publisher", "publishers", "and"))
             
             editions = web.ctx.site.get_many(["/books/" + key for key in work.edition_key])
             for e in editions:
@@ -311,7 +312,7 @@ class SaveBookHelper:
                 a._save(utils.get_message("comment_new_author"))
                 author['author']['key'] = a.key
             
-        if work_data and not delete:
+        if work_data:
             if self.work is None:
                 self.work = self.new_work(self.edition)
                 self.edition.works = [{'key': self.work.key}]
@@ -430,23 +431,27 @@ class SaveBookHelper:
         """Process input data for work."""
         def read_subject(subjects):
             if not subjects:
-                return []
+                return
+
             f = StringIO(subjects.encode('utf-8')) # no unicode in csv module
-            return [s.decode('utf-8') for s in csv.reader(f, dialect='excel', skipinitialspace=True).next()]
-        work.subjects = read_subject(work.get('subjects', ''))
-        work.subject_places = read_subject(work.get('subject_places', ''))
-        work.subject_times = read_subject(work.get('subject_times', ''))
-        work.subject_people = read_subject(work.get('subject_people', ''))
+            dedup = set()
+            for s in csv.reader(f, dialect='excel', skipinitialspace=True).next():
+                s = s.decode('utf-8')
+                if s.lower() not in dedup:
+                    yield s
+                    dedup.add(s.lower())
+
+        work.subjects = list(read_subject(work.get('subjects', '')))
+        work.subject_places = list(read_subject(work.get('subject_places', '')))
+        work.subject_times = list(read_subject(work.get('subject_times', '')))
+        work.subject_people = list(read_subject(work.get('subject_people', '')))
         if ': ' in work.title:
             work.title, work.subtitle = work.title.split(': ', 1)
         
-        for k in ['excerpts', 'links']:
+        for k in ('excerpts', 'links'):
             work[k] = work.get(k) or []
         
-        work = trim_doc(work)
-        
-        return work
-        
+        return trim_doc(work)
 
 class book_edit(delegate.page):
     path = "(/books/OL\d+M)/edit"
@@ -508,7 +513,6 @@ class work_edit(delegate.page):
     def POST(self, key):
         i = web.input(v=None, _method="GET")
         v = i.v and safeint(i.v, None)
-        
         work = web.ctx.site.get(key, v)
         if work is None:
             raise web.notfound()
@@ -580,7 +584,7 @@ class edit(core.edit):
 class daisy(delegate.page):
     path = "(/books/OL\d+M)/daisy"
 
-    def GET(sef, key):
+    def GET(self, key):
         page = web.ctx.site.get(key)
 
         if not page:

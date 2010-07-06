@@ -34,11 +34,6 @@ def init_plugin():
         
         if config.get('http_listeners'):
             ol.add_trigger(None, http_notify)
-        if config.get('booklog'):
-            global booklogger
-            booklogger = logger.Logger(config.booklog)
-            ol.add_trigger('/type/edition', write_booklog)
-            ol.add_trigger('/type/author', write_booklog2)
     
     # hook to add count functionality
     server.app.add_mapping("/([^/]*)/count_editions_by_author", __name__ + ".count_editions_by_author")
@@ -224,27 +219,6 @@ def get_object_data(site, thing):
             d[k] = expand(v)
     return d
 
-booklogger = None
-
-def write_booklog(site, old, new):
-    """Log modifications to book records."""
-    sitename = site.sitename
-    if new.type.key == '/type/edition':
-        booklogger.write('book', sitename, new.last_modified, get_object_data(site, new))
-    else:
-        booklogger.write('delete', sitename, new.last_modified, {'key': new.key})
-        
-def write_booklog2(site, old, new):
-    """This function is called when any author object is changed.
-    to log all books of the author if name is changed.
-    """
-    sitename = site.sitename
-    if old and old.type.key == new.type.key == '/type/author' and old.name != new.name:
-        query = {'type': '/type/edition', 'authors': new.key, 'limit': 1000}
-        for d in site.things(query):
-            book = site._get_thing(d['key'])
-            booklogger.write('book', sitename, new.last_modified, get_object_data(site, book))
-
 def http_notify(site, old, new):
     """Notify listeners over http."""
     data = new.format_data()
@@ -318,7 +292,17 @@ class Indexer(_Indexer):
     """Overwrite default indexer to reduce the str index for editions."""
     def compute_index(self, doc):
         index = _Indexer.compute_index(self, doc)
+
+        try:
+            if doc['type']['key'] != '/type/edition':
+                return index
+        except KeyError:
+            return index
+            
         whitelist = ['identifiers', 'classifications', 'isbn_10', 'isbn_13', 'lccn', 'oclc_numbers']
         index = [(datatype, name, value) for datatype, name, value in index 
                 if datatype == 'ref' or name.split(".")[0] in whitelist]
+
+        # avoid indexing table_of_contents.type etc.
+        index = [(datatype, name, value) for datatype, name, value in index if not name.endswith('.type')]
         return index

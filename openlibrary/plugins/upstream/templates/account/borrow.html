@@ -1,0 +1,133 @@
+$def with (user, loans)
+
+$var title: $_("Books You've Checked Out")
+
+<!-- if 5 books -->
+<script type="text/javascript">
+<!--
+$().ready(function(){
+    $("#contentMsg").show();
+    $(".alert span").css({'font-size':'.6875em','color':'#333'})
+    $(".alert span").text("You have 5 ebooks out at the moment. That's the limit! You can free up slots by returning ebooks through Adobe Digital Editions.");
+});
+//-->
+</script>
+
+<div id="contentHead">
+    <div class="small sansserif grey" style="margin-bottom:5px;"">$:_("%(user)s", user='<a href="%s">%s</a>' % (ctx.user.key, ctx.user.displayname)) /</div>
+    <h1>$_("Books You've Checked Out")</h1>
+</div>
+
+<div id="contentBody">
+$# XXX borrow history not yet recorded so we show instructions if no current loans
+<!-- if no borrow history -->
+$if len(loans) == 0:
+    <div class="contentHalf" style="padding-right:20px;width:419px;">
+        <img src="/images/icons/icon_book-lg.png" alt="icon: Book" width="49" height="60" class="right" />
+        <p>$_("There are 3 different sources for borrowing books through Open Library:")</p>
+        <p style="line-height:1em;margin:1.5em 0 1em;">
+            <strong>
+            <span style="font-size:1.875em;">1.</span> 
+            <span style="font-size:1.125em;">$_("Internet Archive"),</span>
+            </strong>
+            <span class="larger"><em>$_("eBooks everywhere")</em></span>
+        </p>
+        <p class="large">$:_('The <a href="http://www.archive.org/">Internet Archive</a> and several partner libraries are offering thousands of eBooks for loan to anyone with an Open Library account, anywhere in the world.')</p>
+        <p style="line-height:1em;margin:1.5em 0 1em;">
+            <strong>
+            <span style="font-size:1.875em;">2.</span>
+            <span style="font-size:1.125em;">$_("OverDrive"),</span>
+            </strong>
+            <span class="larger"><em>$_("eBooks from your local library")</em></span>
+        </p>
+        <p class="large">$:_('Open Library has teamed up with <a href="http://overdrive.com/">OverDrive.com</a>, a global disctributor of eBooks through your local library where available.')</p>
+        <p style="line-height:1em;margin:1.5em 0 1em;">
+            <strong>
+            <span style="font-size:1.875em;">3.</span> 
+            <span style="font-size:1.125em;">$_("WorldCat"),</span>
+            </strong>
+            <span class="larger"><em>$_("physical books from your local library")</em></span> 
+        </p>
+        <p class="large">$_("We connect our records to WorldCat wherever possible. You can tell WorldCat your postcode/zip code, and it will tell you the closest library with a copy of the book.")</p>
+    </div>
+    <div class="contentSpacer"></div>
+    <div class="contentQuarter">
+        <div class="section">
+            <h3>$_("Getting Started")</h3>
+            <p class="small sansserif">$_("Basically, all you need to borrow a book from the Internet Archive is an Open Library account and Adobe Digital Editions.")</p>
+            <p class="small sansserif">$:_('We\'ve created a new page to help you <a href=""><strong>set up your first loan through the Internet Archive</strong></a>.')</p>
+        </div>
+        <div class="section">
+            <h3>Help/Downloads</h3>
+            <img src="/images/logo_adobeACS.png" alt="logo: Adobe" width="43" height="72" class="left"/>
+            <p class="small sansserif collapse"><a href="http://www.adobe.com/products/digitaleditions/#fp"><strong>Download</strong></a></p> 
+            <p class="small sansserif"><a href="http://www.adobe.com/products/digitaleditions/">Adobe Digital Editions</a></p>
+            <p class="small sansserif"><a href="http://www.adobe.com/products/digitaleditions/help/">Help</a> on adobe.com</p>
+        </div>
+        <div class="section">
+        <p class="small sansserif"><a href="">$_("Open Library lending FAQ")</a></p>
+        </div>
+    </div>
+    <div class="contentSpacer"></div>
+    <div class="contentQuarter">
+        <h3>Which books are available?</h3>
+        <p class="small sansserif">$:_('Browse all the available books through the <a href="">"Lending Library"</a> subject, or try a <a href="/search">search</a>.')</p>
+    </div>
+    <div class="clearfix"></div>
+    <p class="small sansserif lightgreen">$:_('If you work at a library which is interested to find out more about lending ebooks through Open Library, please <a href="/contact">get in touch with us</a>!')</p>
+    
+    <!-- elif no books -->
+    <p>$_("You don't have any books checked out at the moment.")</p>
+$else:
+    $# Have current loans
+    <div id="borrowTable">
+    <table>
+        <thead>
+            <tr>
+                <th class="titles" colspan="2">$len(loans) $_("Current Loans")</th>
+                <th class="expires">$_("Loan Expires In")</th>
+                <th class="returns">$_("Early Return?")</th>
+            </tr>
+        </thead>
+        <tbody>
+        <!-- for each borrow -->
+        $for loan in loans:
+            $ book = get_document(loan['book'])
+            <tr>
+                <td class="cover">
+                $:render_template('covers/book_cover_small', book)
+                </td>
+                <td class="titles">
+                    <span class="title">
+                    $book.title
+                    $if book.subtitle:
+                        <em>$book.subtitle</em>
+                    </span>
+                    <span class="author">
+                    $:macros.AuthorList(book.works[0].get_authors())
+                    
+                    </span>
+                    <div class="date">
+                    $# XXX format date - in utc seconds
+                    Borrowed on $loan['loaned_at']
+                    </div>
+                </td>
+                <td class="expires">
+                    $:macros.FormatExpiry(loan['expiry'])
+                </td>
+            <!-- if this borrow # > 1 -->
+                <!-- </tr> -->
+            <td class="returns" rowspan="NUMBER OF BOOKS">
+                Return eBooks through Adobe Digital Editions.
+                <br/><br/>
+                <strong>
+                    {Step 1} &gt; {Step 2}
+                </strong>
+            </td>
+            <!-- if this borrow # = 1 -->
+                </tr>
+        </tbody>
+    </table>
+    </div>
+
+</div>

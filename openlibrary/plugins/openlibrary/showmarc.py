@@ -10,8 +10,14 @@ from time import time
 import os.path
 import sys
 
+class old_show_marc(delegate.page):
+    path = "/show-marc/(.*)"
+
+    def GET(self, param):
+        raise web.seeother('/show-records/' + param)
+
 class show_ia(delegate.page):
-    path = "/show-marc/ia:(.*)"
+    path = "/show-records/ia:(.*)"
 
     def GET(self, ia):
         filename = ia + "/" + ia + "_marc.xml"
@@ -23,16 +29,23 @@ class show_ia(delegate.page):
         except urllib2.HTTPError, e:
             return "ERROR:" + str(e)
 
-        return render.showia(record, filename)
+        from openlibrary.catalog.marc import xml_to_html
+
+        try:
+            as_html = xml_to_html.html_record(record)
+        except:
+            as_html = None
+
+        return render.showia(record, filename, as_html)
         
 class show_amazon(delegate.page):
-    path = "/show-marc/amazon:(.*)"
+    path = "/show-records/amazon:(.*)"
     
     def GET(self, asin):
         return render.showamazon(asin)
 
 class show_marc(delegate.page):
-    path = "/show-marc/(.*):(\d+):(\d+)"
+    path = "/show-records/(.*):(\d+):(\d+)"
 	
     def GET(self, filename, offset, length):
         offset = int(offset)
@@ -56,10 +69,10 @@ class show_marc(delegate.page):
         except urllib2.HTTPError, e:
             return "ERROR:" + str(e)
 
-        from openlibrary.catalog.marc.html import html_record
+        from openlibrary.catalog.marc import html
 
         try:
-            record = html_record(result)
+            record = html.html_record(result)
         except ValueError:
             record = None
 

@@ -409,10 +409,14 @@ class change_cover(delegate.mode):
         return render.change_cover(page)
         
 class bookpage(delegate.page):
-    path = r"/(isbn|oclc|lccn|ia|ISBN|OCLC|LCCN|IA)/([^.]*)"
+    path = r"/(isbn|oclc|lccn|ia|ISBN|OCLC|LCCN|IA)/([^./]*)(/.*)?"
 
-    def GET(self, key, value):
+    def GET(self, key, value, suffix):
         key = key.lower()
+        suffix = suffix or ""
+        
+        print (key, value, suffix)
+        
         if key == "isbn":
             if len(value) == 13:
                 key = "isbn_13"
@@ -430,17 +434,24 @@ class bookpage(delegate.page):
             ext = "." + web.ctx.encoding
         else:
             ext = ""
+            
+        def redirect(key, ext, suffix):
+            if ext:
+                return web.found(key + ext)
+            else:
+                book = web.ctx.site.get(key)
+                return web.found(book.url(suffix))
 
         q = {"type": "/type/edition", key: value}
         try:
             result = web.ctx.site.things(q)
             if result:
-                raise web.seeother(result[0] + ext)
+                raise redirect(result[0], ext, suffix)
             elif key =='ocaid':
                 q = {"type": "/type/edition", 'source_records': 'ia:' + value}
                 result = web.ctx.site.things(q)
                 if result:
-                    raise web.seeother(result[0] + ext)
+                    raise redirect(redirect[0], ext, suffix)
             web.ctx.status = "404 Not Found"
             return render.notfound(web.ctx.path, create=False)
         except web.HTTPError:

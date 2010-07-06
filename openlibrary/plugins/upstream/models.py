@@ -3,6 +3,7 @@ import web
 import urllib, urllib2
 import simplejson
 import re
+from lxml import etree
 from collections import defaultdict
 
 from infogami import config
@@ -16,6 +17,9 @@ from openlibrary.utils.solr import Solr
 
 from utils import get_coverstore_url, MultiDict, parse_toc, parse_datetime, get_edition_config
 import account
+import borrow
+
+re_meta_field = re.compile('<(collection|contributor)>([^<]+)</(collection|contributor)>', re.I)
 
 class Image:
     def __init__(self, category, id):
@@ -108,13 +112,113 @@ class Edition(ol_code.Edition):
         names = ['isbn_10', 'isbn_13', 'lccn', 'oclc_numbers', 'ocaid']
         return self._process_identifiers(get_edition_config().identifiers, names, self.identifiers)
 
-    def is_daisy_encrypted(self):
+    def get_ia_meta_fields(self):
         if not self.get('ocaid', None):
-            return
+            return {}
         ia = self.ocaid
         url = 'http://www.archive.org/download/%s/%s_meta.xml' % (ia, ia)
-        look_for = '<collection>printdisabled</collection>'
-        return any(i.strip().lower() == look_for for i in urllib2.urlopen(url))
+        reply = { 'collection': set() }
+        for line in urllib2.urlopen(url):
+            m = re_meta_field.search(line)
+            if not m:
+                continue
+            k = m.group(1).lower()
+            v = m.group(2)
+            if k == 'collection':
+                reply[k].add(v.lower())
+            else:
+                assert k == 'contributor'
+                reply[k] = v
+
+        return reply
+
+    def is_daisy_encrypted(self):
+        meta_fields = self.get_ia_meta_fields()
+        if not meta_fields:
+            return
+        v = meta_fields['collection']
+        return 'printdisabled' in v or 'lendinglibrary' in v
+
+#      def is_lending_library(self):
+#         collections = self.get_ia_collections()
+#         return 'lendinglibrary' in collections
+        
+    def get_lending_resources(self):
+        """Returns the loan resource identifiers (in meta.xml format) for books hosted on archive.org
+        
+        Returns e.g. ['acs:epub:urn:uuid:0df6f344-7ce9-4038-885e-e02db34f2891', 'acs:pdf:urn:uuid:7f192e62-13f5-4a62-af48-be4bea67e109']
+        """
+        
+        # The entries in meta.xml look like this:
+        # <external-identifier>
+        #     acs:epub:urn:uuid:0df6f344-7ce9-4038-885e-e02db34f2891
+        # </external-identifier>
+        
+        itemid = self.ocaid
+        if not itemid:
+            self._lending_resources = []
+            return self._lending_resources
+        
+        url = 'http://www.archive.org/download/%s/%s_meta.xml' % (itemid, itemid)
+        # $$$ error handling
+        root = etree.parse(urllib2.urlopen(url))
+        self._lending_resources = [ elem.text for elem in root.findall('external-identifier') ]
+        return self._lending_resources
+        
+    def get_lending_resource_id(self, type):
+
+        desired = 'acs:%s:' % type
+        for urn in self.get_lending_resources():
+            if urn.startswith(desired):
+                return urn[len(desired):]
+
+        return None
+        
+    def get_available_loans(self):
+        """Returns [{'resource_id': uuid, 'type': type, 'size': bytes}]
+        
+        size may be None"""
+        
+        default_type = 'pdf'
+        
+        loans = []
+            
+        resource_pattern = r'acs:(\w+):(.*)'
+        for resource_urn in self.get_lending_resources():
+            (type, resource_id) = re.match(resource_pattern, resource_urn).groups()
+            loans.append( { 'resource_id': resource_id, 'type': type, 'size': None } )
+        
+        # Put default type at start of list, then sort by type name
+        def loan_key(loan):
+            if loan['type'] == default_type:
+                return '1-%s' % loan['type']
+            else:
+                return '2-%s' % loan['type']        
+        loans = sorted(loans, key=loan_key)
+        
+        # Check if we have a possible loan - may not yet be fulfilled in ACS4
+        if borrow.get_edition_loans(self):
+            # There is a current loan or offer
+            return []
+            
+        # Check if available - book status server
+        # We shouldn't be out of sync but we fail safe
+        for loan in loans:
+            if borrow.is_loaned_out(loan['resource_id']):
+                # Only a single loan of an item is allowed
+                # XXX log out of sync state
+                return []
+        
+        # XXX get file size
+            
+        return loans
+    
+    def update_loan_status(self):
+        """Update the loan status based off the status in ACS4"""
+        urn_pattern = r'acs:\w+:(.*)'
+        for ia_urn in self.get_lending_resources():
+            resource_id = re.match(urn_pattern, ia_urn).group(1)
+            borrow.update_loan_status(resource_id)
 
     def _process_identifiers(self, config, names, values):
         id_map = {}
@@ -451,6 +555,15 @@ class User(ol_code.User):
             return web.ctx.site._request('/count_edits_by_user', data={"key": self.key})
         else:
             return 0
+            
+    def get_loan_count(self):
+        return len(borrow.get_loans(self))
+        
+    def update_loan_status(self):
+        """Update the status of this user's loans."""
+        loans = borrow.get_loans(self)
+        for resource_id in [loan['resource_id'] for loan in loans]:
+            borrow.update_loan_status(resource_id)
             
 class UnitParser:
     """Parsers values like dimentions and weight.
