@@ -61,6 +61,18 @@ xml_samples = [
     'languages': [{'key': '/languages/eng'}],
     'publish_date': '1915',
     'publish_country': 'mau', 'lc_classification': [u'PS3503.R53 O6 1915'], 'publish_places': [u'Boston']}),
+('00schlgoog', {
+    'pagination': u'x, 148 p.',
+    'title': u'Halakhot pesukot',
+    'lccn': [u'60055861'],
+    'notes': u'Romanized.',
+    'number_of_pages': 148,
+    'languages': [{'key': '/languages/heb'}],
+    'publish_date': '1886',
+    'publish_country': 'fr ',
+    'lc_classification': [u'BM520.9 .H35 1886'],
+    'publish_places': [u'Versailles'],
+    'contributions': [u'Yehudai ben Na\u1e25man, gaon, 8th century, supposed author', u'Schlosberg, Leon, d. 1899, ed.']}),
 ]
 
 bin_samples = [
@@ -1042,13 +1054,24 @@ class TestParse(unittest.TestCase):
                 element = element[0]
             rec = MarcXml(element)
             edition_marc_xml = read_edition(rec)
+            self.assertEqual(sorted(edition_marc_xml.keys()), sorted(j.keys()))
+            for k in edition_marc_xml.keys():
+                self.assertEqual(edition_marc_xml[k], j[k])
             self.assertEqual(edition_marc_xml, j)
 
     def test_binary(self):
         for i, j in bin_samples:
             f = open('test_data/' + i)
             rec = MarcBinary(f.read())
+            print i
             edition_marc_bin = read_edition(rec)
+            self.assertEqual(sorted(edition_marc_bin.keys()), sorted(j.keys()))
+            for k in edition_marc_bin.keys():
+                if isinstance(j[k], list):
+                    for item1, item2 in zip(edition_marc_bin[k], j[k]):
+                        self.assertEqual(item1, item2)
+
+                self.assertEqual(edition_marc_bin[k], j[k])
             self.assertEqual(edition_marc_bin, j)
 
         i = 'talis_see_also.mrc'

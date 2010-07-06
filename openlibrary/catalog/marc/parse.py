@@ -11,6 +11,10 @@ re_ocn_or_ocm = re.compile('^oc[nm](\d+) *$')
 re_int = re.compile ('\d{2,}')
 re_number_dot = re.compile('\d{3,}\.$')
 re_bracket_field = re.compile('^\s*(\[.*\])\.?\s*$')
+foc = '[from old catalog]'
+
+def strip_foc(s):
+    return s[:-len(foc)].rstrip() if s.endswith(foc) else s
 
 class NoTitle(Exception):
     pass
@@ -275,12 +279,8 @@ def read_author_person(f):
             author[field_name] = ' '.join([x.strip(' /,;:') for x in contents[subfield]])
     if 'q' in contents:
         author['fuller_name'] = ' '.join(contents['q'])
-    foc = '[from old catalog]'
     for f in 'name', 'personal_name':
-        if author[f].endswith(foc):
-            author[f] = remove_trailing_dot(author[f][:-len(foc)].strip())
-        else:
-            author[f] = remove_trailing_dot(author[f])
+        author[f] = remove_trailing_dot(strip_foc(author[f]))
     return author
 
 def read_authors(rec):
@@ -428,7 +428,8 @@ def read_contributions(rec):
             cur = tuple(f.get_subfields(sub))
             if tuple(cur) in skip_authors:
                 continue
-            name = remove_trailing_dot(' '.join(i[1] for i in cur).strip(','))
+            print cur
+            name = remove_trailing_dot(' '.join(strip_foc(i[1]) for i in cur).strip(','))
             found.append(name) # need to add flip_name
     return found
 
