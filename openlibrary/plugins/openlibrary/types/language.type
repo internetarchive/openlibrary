@@ -30,11 +30,6 @@
         },
         'unique': True
     }],
-    'property': [{
-        'key': '/type/language/name'
-    }, {
-        'key': '/type/language/code'
-    }],
     'type': {
         'key': '/type/type'
     }

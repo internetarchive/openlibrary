@@ -63,22 +63,6 @@ xml_samples = [
     'publish_country': 'mau', 'lc_classification': [u'PS3503.R53 O6 1915'], 'publish_places': [u'Boston']}),
 ]
 
-bin_samples = '''
-    bpl_0486266893
-    flatlandromanceo00abbouoft_meta.mrc
-    histoirereligieu05cr_meta.mrc
-    ithaca_college_75002321
-    lc_0444897283
-    lc_1416500308
-    ocm00400866
-    secretcodeofsucc00stjo_meta.mrc
-    uoft_4351105_1626
-    warofrebellionco1473unit_meta.mrc
-    wrapped_lines
-    wwu_51323556
-    zweibchersatir01horauoft_meta.mrc
-'''.split()
-
 bin_samples = [
 ('bpl_0486266893', {
   'authors': [{'birth_date': u'1694', 'death_date': u'1778', 'entity_type': 'person', 'name': u'Voltaire', 'personal_name': u'Voltaire'}],
