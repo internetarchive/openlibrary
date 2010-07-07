@@ -111,6 +111,21 @@ xml_samples = [
  'publishers': [u'Jose'],
  'subtitle': u"o\xf9 l'on verra les minist\xe8res de Dom Juan [et] du Duc de Medina Celi, et diverses choses oncernant la monarchie Espaagnole",
  'title': u"M\xe9moires de la cour d'Espagne, dupuis l'ann\xe9e 1679, jusqu'en 1681"}),
+('13dipolarcycload00burk', {
+ 'authors': [{'birth_date': u'1954',
+              'entity_type': 'person',
+              'name': u'Burkholder, Conrad',
+              'personal_name': u'Burkholder, Conrad'}],
+ 'by_statement': u'by Conrad Burkholder',
+ 'languages': [{'key': '/languages/eng'}],
+ 'location': [u'FU', u'FU'],
+ 'notes': u'Typescript.\n\nVita.\n\nThesis (Ph. D.)--University of Florida, 1984.\n\nBibliography: leaves 284-290.',
+ 'number_of_pages': 291,
+ 'oclc_numbers': [u'14236343'],
+ 'pagination': u'iv, 291 leaves :',
+ 'publish_country': 'xx ',
+ 'publish_date': '1984',
+ 'title': u'1,3-Dipolar cycloadditions of fluorinated allenes and studies of fluorinated trimethylenemethanes'}),
 ]
 
 bin_samples = [
@@ -118,7 +133,7 @@ bin_samples = [
   'authors': [{'birth_date': u'1694', 'death_date': u'1778', 'entity_type': 'person', 'name': u'Voltaire', 'personal_name': u'Voltaire'}],
  'by_statement': u'Voltaire',
  'dewey_decimal_class': [u'843/.5'],
- 'edition_name': [u'Dover Thrift ed.'],
+ 'edition_name': u'Dover Thrift ed.',
  'isbn_10': [u'0486266893'],
  'languages': [{'key': '/languages/eng'}],
  'lc_classifications': [u'PQ2082.C3 E5 1991'],
@@ -152,7 +167,7 @@ bin_samples = [
               'name': u'Cr\xe2etineau-Joly, J.',
               'personal_name': u'Cr\xe2etineau-Joly, J.'}],
  'by_statement': u'par J. Cr\xe2etineau-Joly',
- 'edition_name': [u'Deuxi\xe1eme ed.'],
+ 'edition_name': u'Deuxi\xe1eme ed.',
  'languages': [{'key': '/languages/fre'}],
  'notes': u'STH Library: has vols. 2-6 only.',
  'oclc_numbers': ['10603157'],
@@ -225,7 +240,7 @@ bin_samples = [
 ('ocm00400866', {'authors': [{'entity_type': 'person',
               'name': u'Armitage, M. Teresa',
               'personal_name': u'Armitage, M. Teresa'}],
- 'edition_name': [u"Teachers' edition"],
+ 'edition_name': u"Teachers' edition",
  'languages': [{'key': '/languages/eng'}],
  'notes': u'For mixed voices 1-4 parts with piano accompaniments',
  'number_of_pages': 572,
@@ -1068,7 +1083,7 @@ bin_samples = [
     'publish_places': [u'London'],
     'contributions': [u'Great Britain. Office for National Statistics']}),
 ('collingswood_bad_008.mrc', {
-    'edition_name': [u'[1st ed.]'],
+    'edition_name': u'1st ed.',
     'pagination': u'128 p.',
     'subtitle': u'ten great battles recreated from history',
     'title': u'The war game', 'lccn': [u'7282711'],
@@ -1132,6 +1147,7 @@ class TestParse(unittest.TestCase):
             #pprint(j)
             #print
             self.assertEqual(sorted(edition_marc_bin.keys()), sorted(j.keys()))
+            print i
             for k in edition_marc_bin.keys():
                 if isinstance(j[k], list):
                     for item1, item2 in zip(edition_marc_bin[k], j[k]):

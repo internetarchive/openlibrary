@@ -38,7 +38,7 @@ want = [
     '260', # publisher
     '300', # pagination
     '440', '490', '830' # series
-    ] + [str(i) for i in range(500,600)] + [ # notes + toc + description
+    ] + [str(i) for i in range(500,595)] + [ # notes + toc + description
     #'600', '610', '611', '630', '648', '650', '651', '662', # subjects
     '700', '710', '711', # contributions
     '246', '730', '740', # other titles
@@ -214,8 +214,9 @@ def read_edition_name(rec):
         return
     found = []
     for f in fields:
+        f.remove_brackets()
         found += [v for k, v in f.get_all_subfields()]
-    return found
+    return ' '.join(found)
 
 def read_languages(rec):
     fields = rec.get_fields('041')
@@ -368,8 +369,8 @@ def read_series(rec):
 
 def read_notes(rec):
     found = []
-    for tag in range(500,600):
-        if tag in (505, 520, 596):
+    for tag in range(500,595):
+        if tag in (505, 520):
             continue
         fields = rec.get_fields(str(tag))
         if not fields:
