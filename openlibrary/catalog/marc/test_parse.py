@@ -63,6 +63,13 @@ xml_samples = [
     'publish_country': 'mau', 'lc_classification': [u'PS3503.R53 O6 1915'], 'publish_places': [u'Boston']}),
 ('00schlgoog', {
     'pagination': u'x, 148 p.',
+    'authors': [{
+        'personal_name':u'Yehudai ben Na\u1e25man',
+        'name':u'Yehudai ben Na\u1e25man gaon',
+        'title': 'gaon',
+        'date': '8th century',
+        'entity_type': 'person',
+        'role': 'supposed author'}],
     'title': u'Halakhot pesukot',
     'lccn': [u'60055861'],
     'notes': u'Romanized.',
@@ -72,7 +79,7 @@ xml_samples = [
     'publish_country': 'fr ',
     'lc_classification': [u'BM520.9 .H35 1886'],
     'publish_places': [u'Versailles'],
-    'contributions': [u'Yehudai ben Na\u1e25man, gaon, 8th century, supposed author', u'Schlosberg, Leon, d. 1899, ed.']}),
+    'contributions': [u'Schlosberg, Leon, d. 1899, ed.']}),
 ]
 
 bin_samples = [
@@ -127,9 +134,9 @@ bin_samples = [
  'subtitle': u'compos\xe2ee sur les documents in\xe2edidts et authentiques',
  'title': u'Histoire religieuse, politique et litt\xe2eraire de la Compagnie de J\xe2esus'}),
 ('ithaca_college_75002321', {'by_statement': u'editors, Joseph A. Pechman, P. Michael Timpane',
- 'contributions': [u'Pechman, Joseph A., 1918-',
-                   u'Timpane, P. Michael, 1934-',
-                   u'Brookings Institution, Washington, D.C. Panel on Social Experimentation'],
+ 'authors': [{'birth_date': u'1918', 'entity_type': 'person', 'name': u'Pechman, Joseph A.', 'personal_name': u'Pechman, Joseph A.'},
+    {'birth_date': u'1934', 'entity_type': 'person', 'name': u'Timpane, P. Michael', 'personal_name': u'Timpane, P. Michael'}],
+ 'contributions': [u'Brookings Institution, Washington, D.C. Panel on Social Experimentation'],
  'dewey_decimal_class': [u'361.6/2/09749'],
  'isbn_10': [u'0815769768', u'081576975X'],
  'languages': [{'key': '/languages/eng'}],
@@ -1065,6 +1072,12 @@ class TestParse(unittest.TestCase):
             rec = MarcBinary(f.read())
             print i
             edition_marc_bin = read_edition(rec)
+            print 'result:'
+            pprint(edition_marc_bin)
+            print
+            print 'expected:'
+            pprint(j)
+            print
             self.assertEqual(sorted(edition_marc_bin.keys()), sorted(j.keys()))
             for k in edition_marc_bin.keys():
                 if isinstance(j[k], list):

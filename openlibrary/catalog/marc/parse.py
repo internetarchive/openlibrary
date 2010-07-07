@@ -256,12 +256,12 @@ def read_publisher(rec):
 
 def read_author_person(f):
     author = {}
-    contents = f.get_contents(['a', 'b', 'c', 'd'])
+    contents = f.get_contents(['a', 'b', 'c', 'd', 'e'])
     if 'a' not in contents and 'c' not in contents:
         return # should at least be a name or title
     name = [v.strip(' /,;:') for v in f.get_subfield_values(['a', 'b', 'c'])]
     if 'd' in contents:
-        author = pick_first_date(contents['d'])
+        author = pick_first_date(strip_foc(d).strip(',') for d in contents['d'])
         if 'death_date' in author and author['death_date']:
             death_date = author['death_date']
             if re_number_dot.search(death_date):
@@ -272,16 +272,32 @@ def read_author_person(f):
     subfields = [
         ('a', 'personal_name'),
         ('b', 'numeration'),
-        ('c', 'title')
+        ('c', 'title'),
+        ('e', 'role')
     ]
     for subfield, field_name in subfields:
         if subfield in contents:
-            author[field_name] = ' '.join([x.strip(' /,;:') for x in contents[subfield]])
+            author[field_name] = remove_trailing_dot(' '.join([x.strip(' /,;:') for x in contents[subfield]]))
     if 'q' in contents:
         author['fuller_name'] = ' '.join(contents['q'])
     for f in 'name', 'personal_name':
         author[f] = remove_trailing_dot(strip_foc(author[f]))
     return author
+
+# 1. if authors in 100, 110, 111 use them
+# 2. if first contrib is 710 or 711 use it
+# 3. if 
+
+def person_last_name(f):
+    v = list(f.get_subfield_values('a'))[0]
+    return v[:v.find(', ')] if ', ' in v else v
+
+def last_name_in_245c(rec, person):
+    fields = rec.get_fields('245')
+    if not fields:
+        return
+    last_name = person_last_name(person).lower()
+    return any(any(last_name in v.lower() for v in f.get_subfield_values(['c'])) for f in fields)
 
 def read_authors(rec):
     count = 0
@@ -289,6 +305,24 @@ def read_authors(rec):
     fields_110 = rec.get_fields('110')
     fields_111 = rec.get_fields('111')
     count = len(fields_100) + len(fields_110) + len(fields_111)
+    if count == 0:
+        for tag, f in rec.read_fields(['700', '710', '711']):
+            if tag == '700':
+                f = rec.decode_field(f)
+                if not fields_100 or last_name_in_245c(rec, f):
+                    fields_100.append(f)
+                continue
+            elif fields_100:
+                break
+            if tag == '710':
+                fields_110 = [rec.decode_field(f)]
+                break
+            if tag == '711':
+                fields_111 = [rec.decode_field(f)]
+                break
+        count = len(fields_100) + len(fields_110) + len(fields_111)
+        if count == 0:
+            return
     if count == 0:
         return
     # talis_openlibrary_contribution/talis-openlibrary-contribution.mrc:11601515:773 has two authors:
@@ -409,11 +443,11 @@ def read_location(rec):
     return found
 
 def read_contributions(rec):
-    want = [
+    want = dict((
         ('700', 'abcde'),
         ('710', 'ab'),
         ('711', 'acdn'),
-    ]
+    ))
 
     skip_authors = set()
     for tag in ('100', '110', '111'):
@@ -422,15 +456,14 @@ def read_contributions(rec):
             skip_authors.add(tuple(f.get_all_subfields()))
 
     found = []
-    for tag, sub in want:
-        this_tag = []
-        for f in rec.get_fields(tag):
-            cur = tuple(f.get_subfields(sub))
-            if tuple(cur) in skip_authors:
-                continue
-            print cur
-            name = remove_trailing_dot(' '.join(strip_foc(i[1]) for i in cur).strip(','))
-            found.append(name) # need to add flip_name
+    for tag, f in rec.read_fields(['700', '710', '711']): 
+        sub = want[tag]
+        cur = tuple(rec.decode_field(f).get_subfields(sub))
+        if tuple(cur) in skip_authors:
+            continue
+        print cur
+        name = remove_trailing_dot(' '.join(strip_foc(i[1]) for i in cur).strip(','))
+        found.append(name) # need to add flip_name
     return found
 
 def read_toc(rec):
