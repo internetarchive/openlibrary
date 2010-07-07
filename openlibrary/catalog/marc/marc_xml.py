@@ -29,6 +29,14 @@ class DataField:
     def __init__(self, element):
         assert element.tag == data_tag
         self.element = element
+
+    def remove_brackets(self):
+        f = self.element[0]
+        l = self.element[-1]
+        if f.text and l.text and f.text.startswith('[') and l.text.endswith(']'):
+            f.text = f.text[1:]
+            l.text = l.text[:-1]
+
     def ind1(self):
         return self.element.attrib['ind1']
     def ind2(self):

@@ -255,6 +255,7 @@ def read_publisher(rec):
     return edition
 
 def read_author_person(f):
+    f.remove_brackets()
     author = {}
     contents = f.get_contents(['a', 'b', 'c', 'd', 'e'])
     if 'a' not in contents and 'c' not in contents:
@@ -313,9 +314,11 @@ def read_authors(rec):
 
     found = [read_author_person(f) for f in fields_100]
     for f in fields_110:
+        f.remove_brackets()
         name = [v.strip(' /,;:') for v in f.get_subfield_values(['a', 'b'])]
         found.append({ 'entity_type': 'org', 'name': remove_trailing_dot(' '.join(name))})
     for f in fields_111:
+        f.remove_brackets()
         name = [v.strip(' /,;:') for v in f.get_subfield_values(['a', 'c', 'd', 'n'])]
         found.append({ 'entity_type': 'event', 'name': remove_trailing_dot(' '.join(name))})
     if found:
@@ -366,7 +369,7 @@ def read_series(rec):
 def read_notes(rec):
     found = []
     for tag in range(500,600):
-        if tag in (505, 520):
+        if tag in (505, 520, 596):
             continue
         fields = rec.get_fields(str(tag))
         if not fields:
@@ -551,8 +554,8 @@ def read_edition(rec):
 
     update_edition(rec, edition, read_lccn, 'lccn')
     update_edition(rec, edition, read_authors, 'authors')
-    update_edition(rec, edition, read_oclc, 'oclc_number')
-    update_edition(rec, edition, read_lc_classification, 'lc_classification')
+    update_edition(rec, edition, read_oclc, 'oclc_numbers')
+    update_edition(rec, edition, read_lc_classification, 'lc_classifications')
     update_edition(rec, edition, read_dewey, 'dewey_decimal_class')
     update_edition(rec, edition, read_work_titles, 'work_titles')
     update_edition(rec, edition, read_other_titles, 'other_titles')
