@@ -21,8 +21,8 @@ class BinaryDataField():
 
     def remove_brackets(self):
         line = self.line
-        if line[3] == '[' and line[-2] == ']':
-            self.line = line[0:3] + line[4:-3] + line[-1]
+        if line[4] == '[' and line[-2] == ']':
+            self.line = line[0:4] + line[5:-2] + line[-1]
 
     def get_subfields(self, want):
         want = set(want)
