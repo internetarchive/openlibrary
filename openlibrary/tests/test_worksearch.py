@@ -1,6 +1,7 @@
 import unittest
-from openlibrary.plugins.worksearch.code import search, advanced_to_simple, read_facets, sorted_work_editions, parse_query_fields, escape_bracket
-from lxml.etree import fromstring
+from openlibrary.plugins.worksearch.code import search, advanced_to_simple, read_facets, sorted_work_editions, parse_query_fields, escape_bracket, run_solr_query, get_doc
+from lxml import etree
+from infogami import config
 
 class TestWorkSearch(unittest.TestCase):
     def setUp(self):
@@ -45,7 +46,7 @@ class TestWorkSearch(unittest.TestCase):
         </response>'''
 
         expect = {'has_fulltext': [('true', 'yes', '2'), ('false', 'no', '46')]}
-        self.assertEqual(read_facets(fromstring(xml)), expect)
+        self.assertEqual(read_facets(etree.fromstring(xml)), expect)
 
     def test_sorted_work_editions(self):
         json_data = '''{
@@ -98,3 +99,32 @@ class TestWorkSearch(unittest.TestCase):
         expect = [('title', 'flatland\:a romance of many dimensions')]
         q = 'title:flatland:a romance of many dimensions'
         self.assertEqual(list(func(q)), expect)
+
+    def test_public_scan(self):
+        param = {'subject_facet': ['Lending library']}
+        (reply, solr_select, q_list) = run_solr_query(param, rows = 10, spellcheck_count = 3)
+        print solr_select
+        print q_list
+        print reply
+        root = etree.XML(reply)
+        docs = root.find('result')
+        for doc in docs:
+            self.assertEqual(get_doc(doc).public_scan, False)
+
+    def test_get_doc(self):
+        sample_doc = etree.fromstring('''<doc>
+  <arr name="author_key"><str>OL218224A</str></arr>
+  <arr name="author_name"><str>Alan Freedman</str></arr>
+  <str name="cover_edition_key">OL1111795M</str>
+  <int name="edition_count">14</int>
+  <int name="first_publish_year">1981</int>
+  <bool name="has_fulltext">true</bool>
+  <arr name="ia"><str>computerglossary00free</str></arr>
+  <str name="key">OL1820355W</str>
+  <str name="lending_edition_s">OL1111795M</str>
+  <bool name="public_scan_b">false</bool>
+  <str name="title">The computer glossary</str>
+ </doc>''')
+
+        doc = get_doc(sample_doc)
+        self.assertEqual(doc.public_scan, False)
