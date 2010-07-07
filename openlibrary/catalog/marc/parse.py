@@ -7,7 +7,7 @@ re_lccn = re.compile('(...\d+).*')
 re_letters = re.compile('[A-Za-z]')
 re_oclc = re.compile('^\(OCoLC\).*?0*(\d+)')
 re_ocolc = re.compile('^ocolc *$', re.I)
-re_ocn_or_ocm = re.compile('^oc[nm](\d+) *$')
+re_ocn_or_ocm = re.compile('^oc[nm]0*(\d+) *$')
 re_int = re.compile ('\d{2,}')
 re_number_dot = re.compile('\d{3,}\.$')
 re_bracket_field = re.compile('^\s*(\[.*\])\.?\s*$')
@@ -464,7 +464,6 @@ def read_contributions(rec):
         cur = tuple(rec.decode_field(f).get_subfields(sub))
         if tuple(cur) in skip_authors:
             continue
-        print cur
         name = remove_trailing_dot(' '.join(strip_foc(i[1]) for i in cur).strip(','))
         ret.setdefault('contributions', []).append(name) # need to add flip_name
 

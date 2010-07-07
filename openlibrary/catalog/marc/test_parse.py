@@ -80,7 +80,23 @@ xml_samples = [
     'lc_classification': [u'BM520.9 .H35 1886'],
     'publish_places': [u'Versailles'],
     'contributions': [u'Schlosberg, Leon, d. 1899, ed.']}),
+('0descriptionofta1682unit', {'authors': [{'entity_type': 'org',
+              'name': u'United States. Congress. Senate. Committee on Finance. Subcommittee on Estate and Gift Taxation'}],
+ 'by_statement': u'prepared by the staff of the Joint Committee on Taxation',
+ 'contributions': [u'United States. Congress. Joint Committee on Taxation'],
+ 'languages': [{'key': '/languages/eng'}],
+ 'notes': u'At head of title: Joint Committee print.\n\n"JCS-16-82."\n\n"May 26, 1982."\n\nIncludes bibliographical references.',
+ 'number_of_pages': 20,
+ 'oclc_number': [u'8638218'],
+ 'pagination': u'iii, 20 p. ;',
+ 'publish_country': 'dcu',
+ 'publish_date': '1982',
+ 'publish_places': [u'Washington'],
+ 'publishers': [u'U.S. Government Printing Office'],
+ 'subtitle': u'scheduled for a hearing before the Subcommittee on Estate and Gift Taxation of the Senate Committee on Finance on May 27, 1982',
+ 'title': u'Description of tax bills and other estate tax matters relating to the section 6166 Technical Revision Act of 1982 (S. 2479), the tax treatment of certain disclaimers (S. 1983), and the estate tax valuation of certain mineral property'})
 ]
+
 
 bin_samples = [
 ('bpl_0486266893', {
