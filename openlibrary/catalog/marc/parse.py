@@ -306,24 +306,6 @@ def read_authors(rec):
     fields_111 = rec.get_fields('111')
     count = len(fields_100) + len(fields_110) + len(fields_111)
     if count == 0:
-        for tag, f in rec.read_fields(['700', '710', '711']):
-            if tag == '700':
-                f = rec.decode_field(f)
-                if not fields_100 or last_name_in_245c(rec, f):
-                    fields_100.append(f)
-                continue
-            elif fields_100:
-                break
-            if tag == '710':
-                fields_110 = [rec.decode_field(f)]
-                break
-            if tag == '711':
-                fields_111 = [rec.decode_field(f)]
-                break
-        count = len(fields_100) + len(fields_110) + len(fields_111)
-        if count == 0:
-            return
-    if count == 0:
         return
     # talis_openlibrary_contribution/talis-openlibrary-contribution.mrc:11601515:773 has two authors:
     # 100 1  $aDowling, James Walter Frederick.
@@ -449,13 +431,34 @@ def read_contributions(rec):
         ('711', 'acdn'),
     ))
 
+    ret = {}
     skip_authors = set()
     for tag in ('100', '110', '111'):
         fields = rec.get_fields(tag)
         for f in fields:
             skip_authors.add(tuple(f.get_all_subfields()))
+    
+    if not skip_authors:
+        for tag, f in rec.read_fields(['700', '710', '711']):
+            f = rec.decode_field(f)
+            if tag == '700':
+                if 'authors' not in ret or last_name_in_245c(rec, f):
+                    ret.setdefault('authors', []).append(read_author_person(f))
+                    skip_authors.add(tuple(f.get_subfields(want[tag])))
+                continue
+            elif 'authors' in ret:
+                break
+            if tag == '710':
+                name = [v.strip(' /,;:') for v in f.get_subfield_values(want[tag])]
+                ret['authors'] = [{ 'entity_type': 'org', 'name': remove_trailing_dot(' '.join(name))}]
+                skip_authors.add(tuple(f.get_subfields(want[tag])))
+                break
+            if tag == '711':
+                name = [v.strip(' /,;:') for v in f.get_subfield_values(want[tag])]
+                ret['authors'] = [{ 'entity_type': 'event', 'name': remove_trailing_dot(' '.join(name))}]
+                skip_authors.add(tuple(f.get_subfields(want[tag])))
+                break
 
-    found = []
     for tag, f in rec.read_fields(['700', '710', '711']): 
         sub = want[tag]
         cur = tuple(rec.decode_field(f).get_subfields(sub))
@@ -463,8 +466,9 @@ def read_contributions(rec):
             continue
         print cur
         name = remove_trailing_dot(' '.join(strip_foc(i[1]) for i in cur).strip(','))
-        found.append(name) # need to add flip_name
-    return found
+        ret.setdefault('contributions', []).append(name) # need to add flip_name
+
+    return ret
 
 def read_toc(rec):
     fields = rec.get_fields('505')
@@ -558,9 +562,10 @@ def read_edition(rec):
     update_edition(rec, edition, read_notes, 'notes')
     update_edition(rec, edition, read_description, 'description')
     update_edition(rec, edition, read_location, 'location')
-    update_edition(rec, edition, read_contributions, 'contributions')
     update_edition(rec, edition, read_toc, 'table_of_contents')
     update_edition(rec, edition, read_url, 'links')
+
+    edition.update(read_contributions(rec))
 
     try:
         edition.update(read_title(rec))
