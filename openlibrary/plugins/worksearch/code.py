@@ -110,7 +110,7 @@ def url_quote(s):
 
 def advanced_to_simple(params):
     q_list = []
-    q = params.get('q', None)
+    q = params.get('q')
     if q and q != '*:*':
         q_list.append(params['q'])
     for k in 'title', 'author':
@@ -341,12 +341,12 @@ def work_object(w):
         lending_edition = w.get('lending_edition_s', ''),
         overdrive = (w['overdrive_s'].split(';') if 'overdrive_s' in w else []),
         url = '/works/' + w['key'] + '/' + urlsafe(w['title']),
-        cover_edition_key = w.get('cover_edition_key', None),
+        cover_edition_key = w.get('cover_edition_key'),
         first_publish_year = (w['first_publish_year'] if 'first_publish_year' in w else None),
         ia = w.get('ia', [])
     )
     for f in 'has_fulltext', 'subtitle':
-        if w.get(f, None):
+        if w.get(f):
             obj[f] = w[f]
     return web.storage(obj)
 
@@ -617,12 +617,15 @@ class search(delegate.page):
     def GET(self):
         global ftoken_db
         i = web.input(author_key=[], language=[], first_publish_year=[], publisher_facet=[], subject_facet=[], person_facet=[], place_facet=[], time_facet=[])
-        if i.get('ftokens', None) and ',' not in i.ftokens:
+        if i.get('ftokens') and ',' not in i.ftokens:
             token = i.ftokens
             if ftoken_db is None:
                 ftoken_db = dbm.open('/olsystem/ftokens', 'r')
-            if ftoken_db.get(token, None):
+            if ftoken_db.get(token):
                 raise web.seeother('/subjects/' + ftoken_db[token].decode('utf-8').lower().replace(' ', '_'))
+
+        if i.get('wisbn'):
+            i.isbn = i.wisbn
 
         self.redirect_if_needed(i)
 
