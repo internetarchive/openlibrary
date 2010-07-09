@@ -126,6 +126,23 @@ xml_samples = [
  'publish_country': 'xx ',
  'publish_date': '1984',
  'title': u'1,3-Dipolar cycloadditions of fluorinated allenes and studies of fluorinated trimethylenemethanes'}),
+('bijouorannualofl1828cole', {
+    'authors': [{'birth_date': u'1772',
+                'death_date': u'1834',
+                'entity_type': 'person',
+                'name': u'Coleridge, Samuel Taylor',
+                'personal_name': u'Coleridge, Samuel Taylor'}],
+    'other_titles': [u'Bijou', u'Annual of literature and the arts'],
+    'publishers': [u'William Pickering'],
+    'pagination': u'1 v. :',
+    'title': u'The Bijou, or Annual of literature and the arts.',
+    'lccn': [u'83'], 'notes': u'No more published?',
+    'languages': [{'key': '/languages/eng'}],
+    'publish_date': '1828',
+    'publish_country': 'enk',
+    'publish_places': [u'London'],
+    'contributions': [u'Lamb, Charles, 1775-1834']}),
+
 ]
 
 bin_samples = [
