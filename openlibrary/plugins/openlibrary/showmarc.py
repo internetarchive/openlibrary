@@ -8,7 +8,7 @@ import web
 import urllib2
 from time import time
 import os.path
-import sys
+import sys, re
 
 class old_show_marc(delegate.page):
     path = "/show-marc/(.*)"
