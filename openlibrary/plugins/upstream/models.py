@@ -312,7 +312,10 @@ class Edition(ol_code.Edition):
         return d and UnitParser(["height", "width", "depth"]).parse(d)
     
     def set_physical_dimensions(self, d):
-        self.physical_dimensions = d and UnitParser(["height", "width", "depth"]).format(d)
+        # don't overwrite physical dimensions if nothing was passed in - there
+        # may be dimensions in the database that don't conform to the d x d x d format
+        if d:
+            self.physical_dimensions = UnitParser(["height", "width", "depth"]).format(d)
         
     def get_toc_text(self):
         def format_row(r):

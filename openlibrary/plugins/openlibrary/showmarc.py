@@ -44,10 +44,16 @@ class show_amazon(delegate.page):
     def GET(self, asin):
         return render.showamazon(asin)
 
+re_bad_meta_mrc = re.compile('^([^/]+)_meta\.mrc$')
+
 class show_marc(delegate.page):
     path = "/show-records/(.*):(\d+):(\d+)"
 	
     def GET(self, filename, offset, length):
+        m = re_bad_meta_mrc.match(filename)
+        if m:
+            raise web.seeother('/show-records/ia:' + m.group(1))
+
         offset = int(offset)
         length = int(length)
 
