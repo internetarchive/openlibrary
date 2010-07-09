@@ -17,6 +17,9 @@ solr_host = {}
 def get_solr(index):
     global solr_host
 
+    if not config.runtime_config:
+        config.load('openlibrary.yml')
+
     if not solr_host:
         solr_host = {
             'works': config.runtime_config['plugin_worksearch']['solr'],
