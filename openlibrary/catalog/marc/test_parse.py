@@ -73,6 +73,17 @@ xml_samples = [
     'lc_classification': [u'BM520.9 .H35 1886'],
     'publish_places': [u'Versailles'],
     'contributions': [u'Yehudai ben Na\u1e25man, gaon, 8th century, supposed author', u'Schlosberg, Leon, d. 1899, ed.']}),
+('bijouorannualofl1828cole', {
+    'other_titles': [u'Bijou', u'Annual of literature and the arts'],
+    'publishers': [u'William Pickering'],
+    'pagination': u'1 v. :',
+    'title': u'The Bijou, or Annual of literature and the arts.',
+    'lccn': [u'83'], 'notes': u'No more published?',
+    'languages': [{'key': '/languages/eng'}],
+    'publish_date': '1828',
+    'publish_country': 'enk',
+    'publish_places': [u'London'],
+    'contributions': [u'Coleridge, Samuel Taylor, 1772-1834', u'Lamb, Charles, 1775-1834']}),
 ]
 
 bin_samples = [
@@ -1054,9 +1065,9 @@ class TestParse(unittest.TestCase):
                 element = element[0]
             rec = MarcXml(element)
             edition_marc_xml = read_edition(rec)
-            self.assertEqual(sorted(edition_marc_xml.keys()), sorted(j.keys()))
-            for k in edition_marc_xml.keys():
-                self.assertEqual(edition_marc_xml[k], j[k])
+            #self.assertEqual(sorted(edition_marc_xml.keys()), sorted(j.keys()))
+            #for k in edition_marc_xml.keys():
+            #    self.assertEqual(edition_marc_xml[k], j[k])
             self.assertEqual(edition_marc_xml, j)
 
     def test_binary(self):
