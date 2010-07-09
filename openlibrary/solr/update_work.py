@@ -272,6 +272,7 @@ def build_doc(w):
     all_collection = set()
     all_overdrive = set()
     lending_edition = None
+    printdisabled = set()
     for e in editions:
         if 'overdrive' in e:
             all_overdrive.add(e['overdrive'])
@@ -279,6 +280,8 @@ def build_doc(w):
             continue
         if not lending_edition and 'lendinglibrary' in e['ia_collection']:
             lending_edition = re_edition_key.match(e['key']).group(1)
+        if 'printdisabled' in e['ia_collection']:
+            printdisabled.add(re_edition_key.match(e['key']).group(1))
         all_collection.update(e['ia_collection'])
         assert isinstance(e['ocaid'], basestring)
         i = e['ocaid'].strip()
@@ -304,6 +307,8 @@ def build_doc(w):
         add_field(doc, 'all_overdrive_s', ';'.join(all_overdrive))
     if lending_edition:
         add_field(doc, 'lending_edition_s', lending_edition)
+    if printdisabled:
+        add_field(doc, 'printdisabled_s', ';'.join(list(printdisabled)))
 
     author_keys = [re_author_key.match(a['key']).group(1) for a in authors]
     author_names = [a.get('name', '') for a in authors]
