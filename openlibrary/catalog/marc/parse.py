@@ -7,7 +7,7 @@ re_lccn = re.compile('(...\d+).*')
 re_letters = re.compile('[A-Za-z]')
 re_oclc = re.compile('^\(OCoLC\).*?0*(\d+)')
 re_ocolc = re.compile('^ocolc *$', re.I)
-re_ocn_or_ocm = re.compile('^oc[nm](\d+) *$')
+re_ocn_or_ocm = re.compile('^oc[nm]0*(\d+) *$')
 re_int = re.compile ('\d{2,}')
 re_number_dot = re.compile('\d{3,}\.$')
 re_bracket_field = re.compile('^\s*(\[.*\])\.?\s*$')
@@ -38,7 +38,7 @@ want = [
     '260', # publisher
     '300', # pagination
     '440', '490', '830' # series
-    ] + [str(i) for i in range(500,600)] + [ # notes + toc + description
+    ] + [str(i) for i in range(500,595)] + [ # notes + toc + description
     #'600', '610', '611', '630', '648', '650', '651', '662', # subjects
     '700', '710', '711', # contributions
     '246', '730', '740', # other titles
@@ -214,8 +214,9 @@ def read_edition_name(rec):
         return
     found = []
     for f in fields:
+        f.remove_brackets()
         found += [v for k, v in f.get_all_subfields()]
-    return found
+    return ' '.join(found)
 
 def read_languages(rec):
     fields = rec.get_fields('041')
@@ -255,6 +256,7 @@ def read_publisher(rec):
     return edition
 
 def read_author_person(f):
+    f.remove_brackets()
     author = {}
     contents = f.get_contents(['a', 'b', 'c', 'd', 'e'])
     if 'a' not in contents and 'c' not in contents:
@@ -313,9 +315,11 @@ def read_authors(rec):
 
     found = [read_author_person(f) for f in fields_100]
     for f in fields_110:
+        f.remove_brackets()
         name = [v.strip(' /,;:') for v in f.get_subfield_values(['a', 'b'])]
         found.append({ 'entity_type': 'org', 'name': remove_trailing_dot(' '.join(name))})
     for f in fields_111:
+        f.remove_brackets()
         name = [v.strip(' /,;:') for v in f.get_subfield_values(['a', 'c', 'd', 'n'])]
         found.append({ 'entity_type': 'event', 'name': remove_trailing_dot(' '.join(name))})
     if found:
@@ -365,7 +369,7 @@ def read_series(rec):
 
 def read_notes(rec):
     found = []
-    for tag in range(500,600):
+    for tag in range(500,595):
         if tag in (505, 520):
             continue
         fields = rec.get_fields(str(tag))
@@ -464,7 +468,6 @@ def read_contributions(rec):
         cur = tuple(rec.decode_field(f).get_subfields(sub))
         if tuple(cur) in skip_authors:
             continue
-        print cur
         name = remove_trailing_dot(' '.join(strip_foc(i[1]) for i in cur).strip(','))
         ret.setdefault('contributions', []).append(name) # need to add flip_name
 
@@ -552,8 +555,8 @@ def read_edition(rec):
 
     update_edition(rec, edition, read_lccn, 'lccn')
     update_edition(rec, edition, read_authors, 'authors')
-    update_edition(rec, edition, read_oclc, 'oclc_number')
-    update_edition(rec, edition, read_lc_classification, 'lc_classification')
+    update_edition(rec, edition, read_oclc, 'oclc_numbers')
+    update_edition(rec, edition, read_lc_classification, 'lc_classifications')
     update_edition(rec, edition, read_dewey, 'dewey_decimal_class')
     update_edition(rec, edition, read_work_titles, 'work_titles')
     update_edition(rec, edition, read_other_titles, 'other_titles')
