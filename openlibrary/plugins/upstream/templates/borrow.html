@@ -254,11 +254,12 @@ $ user_can_borrow_this = False
                                 
                                 <div class="date">
                                 $# XXX format date -- stored as UTC seconds since epoch
-                                Borrowed on $loan['loaned_at']
+                                Borrowed on $datestr(datetime_from_utc_timestamp(loan['loaned_at']))
                                 </div>
                             </td>
                             <td class="expires">
-                                $:macros.FormatExpiry(loan['expiry'])
+                                
+                                $#datestr(parse_isoformat(loan['expiry']))
                             </td>
                         </tr>
                     </tbody>
