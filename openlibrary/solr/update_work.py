@@ -17,6 +17,9 @@ solr_host = {}
 def get_solr(index):
     global solr_host
 
+    if not config.runtime_config:
+        config.load('openlibrary.yml')
+
     if not solr_host:
         solr_host = {
             'works': config.runtime_config['plugin_worksearch']['solr'],
@@ -116,9 +119,10 @@ def build_doc(w):
             print 'collection:', collection
             e['ia_collection'] = collection
             e['public_scan'] = ('lendinglibrary' not in collection) and ('printdisabled' not in collection)
-        overdrive_id = e.get('identifiers', {}).get('overdrive_id', None)
+        overdrive_id = e.get('identifiers', {}).get('overdrive', None)
         if overdrive_id:
-            e['overdrive'] = overdrive
+            print 'overdrive:', overdrive_id
+            e['overdrive'] = overdrive_id
         editions.append(e)
 
     editions.sort(key=lambda e: e.get('pub_year', None))
@@ -275,7 +279,7 @@ def build_doc(w):
     printdisabled = set()
     for e in editions:
         if 'overdrive' in e:
-            all_overdrive.add(e['overdrive'])
+            all_overdrive.update(e['overdrive'])
         if 'ocaid' not in e:
             continue
         if not lending_edition and 'lendinglibrary' in e['ia_collection']:

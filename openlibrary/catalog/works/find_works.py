@@ -146,9 +146,10 @@ def get_work_title(e):
     return e['work_titles'][0].strip('. ')
 
 # don't use any of these as work titles
-bad_titles = ['Publications', 'Works. English', 'Works', 'Report', \
-    'Letters', 'Calendar', 'Bulletin', 'Plays', \
-    'Sermons', 'Correspondence', 'Bill', 'Bills', 'Selections', 'Selected works', 'Selected works. English', 'Laws, etc']
+bad_titles = ['Publications', 'Works. English', 'Missal', 'Works', 'Report', \
+    'Letters', 'Calendar', 'Bulletin', 'Plays', 'Sermons', 'Correspondence', \
+    'Bill', 'Bills', 'Selections', 'Selected works', 'Selected works. English', \
+    'The Novels', 'Laws, etc']
 
 def get_books(akey, query):
     for e in query:
@@ -268,12 +269,18 @@ def find_title_redirects(akey):
     title_redirects = {}
     for w in get_existing_works(akey):
         norm_wt = mk_norm(w['title'])
-        q = {'type':'/type/redirect', 'location': str(w['key']), 'limit': 500}
+        q = {'type':'/type/redirect', 'location': str(w['key']), 'limit': 0}
         for r in map(get_first_version, ol.query(q)):
+            redirect_history = json.load(urlopen('http://openlibrary.org%s.json?m=history' % r['key']))
+            if any(v['author'].endswith('/WorkBot') and v['comment'] == "merge works" for v in redirect_history):
+                continue
+            print 'redirect:', r
+            print 'latest revision:', latest
             if mk_norm(r['title']) == norm_wt:
                 continue
             if r['title'] in title_redirects:
                 assert title_redirects[r['title']] == w['title']
+            print 'redirect:', r['key'], r['title'], 'work:', w['key'], w['title']
             title_redirects[r['title']] = w['title']
     return title_redirects
 
@@ -403,11 +410,10 @@ def add_detail_to_work(i, j):
         add_subjects_to_work(i['subjects'], j)
 
 def fix_up_authors(w, akey, editions):
+    print (w, akey, editions)
     seen_akey = False
     need_save = False
-    print 'fix_up_authors'
     for a in w.get('authors', []):
-        print a
         obj = withKey(a['author']['key'])
         if obj['type']['key'] == '/type/redirect':
             a['author']['key'] = obj['location']
@@ -491,7 +497,9 @@ def update_work_with_best_match(akey, w, work_to_edition, do_updates, fh_log):
             work_updated.append(wkey)
 
     for wkey in w['existing_works'].iterkeys():
-        for ekey in work_to_edition[wkey]:
+        editions = set(work_to_edition[wkey])
+        editions.update(e['key'] for e in w['editions'])
+        for ekey in editions:
             e = ol.get(ekey)
             e['works'] = [{'key': best}]
             update.append(e)
