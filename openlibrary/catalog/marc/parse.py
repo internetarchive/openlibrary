@@ -430,7 +430,7 @@ def read_location(rec):
 
 def read_contributions(rec):
     want = dict((
-        ('700', 'abcde'),
+        ('700', 'abcdeq'),
         ('710', 'ab'),
         ('711', 'acdn'),
     ))
