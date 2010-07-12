@@ -175,6 +175,12 @@ class DataProcessor:
             
         def get_subjects(name, prefix):
             return [subject(s, prefix) for s in w.get(name, '')]
+            
+        def format_excerpt(e):
+            return {
+                "text": e.get("excerpt", {}).get("value", ""),
+                "comment": e.get("comment", "")
+            }
                     
         d = {
             "url": get_url(doc),
@@ -193,7 +199,10 @@ class DataProcessor:
                 'oclc': doc.get('oclc_numbers', []),
             }),
             
-            'classifications': {},
+            'classifications': web.dictadd(doc.get('classifications', {}), {
+                'lc_classifications': doc.get('lc_classifications', []),
+                'dewey_decimal_class': doc.get('dewey_decimal_class', [])
+            }),
             
             "publishers": [{"name": p} for p in doc.get("publishers", "")],
             "publish_places": [{"name": p} for p in doc.get("publish_places", "")],
@@ -203,9 +212,12 @@ class DataProcessor:
             "subject_places": get_subjects("subject_places", "place:"),
             "subject_people": get_subjects("subject_people", "person:"),
             "subject_times": get_subjects("subject_times", "time:"),
-            
+            "excerpts": [format_excerpt(e) for e in w.get("excerpts", [])],
             "links": [dict(title=link.get("title"), url=link['url']) for link in w.get('links', '') if link.get('url')],
         }
+
+        if doc.get("ocaid"):
+            d['ebooks'] = [{"preview_url": "http://www.archive.org/details/" + doc['ocaid']}]
         
         if doc.get('covers'):
             cover_id = doc['covers'][0]

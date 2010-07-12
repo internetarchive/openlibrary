@@ -73,6 +73,13 @@ def pytest_funcarg__data9(request):
             "subject_people": ["Test Person"],
             "subject_places": ["Test Place"],
             "subject_times": ["Test Time"],
+            "excerpts": [{
+                "excerpt": {
+                    "type": "/type/text",
+                    "value": "This is an excerpt."
+                },
+                "comment": "foo"
+            }]
         },
         "/books/OL9M": {
             "key": "/books/OL9M",
@@ -87,7 +94,12 @@ def pytest_funcarg__data9(request):
             "isbn_10": ["1234567890"],
             "lccn": ["lccn-1"],
             "oclc_numbers": ["oclc-1"],
+            "classifications": {
+                "indcat": ["12345"]
+            },
+            "lc_classifications": ["LC1234"],
             "covers": [42, 53],
+            "ocaid": "foo12bar"
         },
         "result": {
             "viewapi": {
@@ -109,6 +121,10 @@ def pytest_funcarg__data9(request):
                     "lccn": ["lccn-1"],
                     "oclc": ["oclc-1"],
                     "goodreads": ["12345"]
+                },
+                "classifications": {
+                    "lc_classifications": ["LC1234"],
+                    "indcat": ["12345"]
                 },
                 "publishers": [{
                     "name": "Dover Publications"
@@ -140,7 +156,14 @@ def pytest_funcarg__data9(request):
                     "small": "http://covers.openlibrary.org/b/id/42-S.jpg",
                     "medium": "http://covers.openlibrary.org/b/id/42-M.jpg",
                     "large": "http://covers.openlibrary.org/b/id/42-L.jpg",
-                }
+                },
+                "excerpts": [{
+                    "text": "This is an excerpt.",
+                    "comment": "foo",
+                }],
+                "ebooks": [{
+                    "preview_url": "http://www.archive.org/details/foo12bar"
+                }]
             }
         }
     }
