@@ -7,22 +7,22 @@ def norm(s):
     return normalize('NFC', unicode(s))
 
 class BinaryDataField():
-    def __init__(self, line, ia=False):
+    def __init__(self, line):
         self.line = line
-        self.ia = ia
 
     def translate(self, data):
         return fast_parse.translate(data)
-        if self.ia:
-            return normalize('NFC', data)
-            print `data`
-            return normalize('NFC', data.decode('utf-8'))
 
     def ind1(self):
         return self.line[0]
 
     def ind2(self):
         return self.line[1]
+
+    def remove_brackets(self):
+        line = self.line
+        if line[4] == '[' and line[-2] == ']':
+            self.line = line[0:4] + line[5:-2] + line[-1]
 
     def get_subfields(self, want):
         want = set(want)
@@ -58,15 +58,9 @@ class BinaryDataField():
 #        return fast_parse.translate(data, bad_ia_charset=True)
 
 class MarcBinary(MarcBase):
-    def __init__(self, data, ia=False):
-        if ia:
-            try:
-                data = data.decode('utf-8')
-            except UnicodeDecodeError:
-                pass
+    def __init__(self, data):
         assert len(data) and isinstance(data, basestring)
         self.data = data
-        self.ia = ia
 
     def read_fields(self, want):
         want = set(want)
@@ -74,10 +68,13 @@ class MarcBinary(MarcBase):
             if tag not in want:
                 continue
             if tag.startswith('00'):
+                # marc_upei/marc-for-openlibrary-bigset.mrc:78997353:588
+                if tag == '008' and line == '':
+                    continue
                 assert line[-1] == '\x1e'
                 yield tag, line[:-1]
             else:
-                yield tag, BinaryDataField(line, ia=self.ia)
+                yield tag, BinaryDataField(line)
 
     def decode_field(self, field):
         return field # noop on MARC binary

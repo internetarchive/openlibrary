@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<record xmlns="http://www.loc.gov/MARC21/slim">
+  <leader>00734cam a22002050  4500</leader>
+  <controlfield tag="001">1064675</controlfield>
+  <controlfield tag="008">730219s1733    fr                  fre |</controlfield>
+  <datafield tag="035" ind1=" " ind2=" ">
+    <subfield code="a">(Sirsi) AFB-8971</subfield>
+  </datafield>
+  <datafield tag="035" ind1=" " ind2=" ">
+    <subfield code="a">462325</subfield>
+  </datafield>
+  <datafield tag="040" ind1=" " ind2=" ">
+    <subfield code="a">OTU</subfield>
+    <subfield code="b">ENG</subfield>
+  </datafield>
+  <datafield tag="090" ind1="1" ind2="9">
+    <subfield code="a">HSp V7254m</subfield>
+    <subfield code="b">ROBA</subfield>
+    <subfield code="c">1</subfield>
+  </datafield>
+  <datafield tag="100" ind1="1" ind2="0">
+    <subfield code="a">[Villars, Pierre,</subfield>
+    <subfield code="c">marquis de,</subfield>
+    <subfield code="d">1623-1698]</subfield>
+  </datafield>
+  <datafield tag="245" ind1="1" ind2="0">
+    <subfield code="a">Mémoires de la cour d&apos;Espagne, dupuis l&apos;année 1679, jusqu&apos;en 1681,</subfield>
+    <subfield code="b">où l&apos;on verra les ministères de Dom Juan [et] du Duc de Medina Celi, et diverses choses oncernant la monarchie Espaagnole.</subfield>
+  </datafield>
+  <datafield tag="260" ind1="0" ind2=" ">
+    <subfield code="a">Paris,</subfield>
+    <subfield code="b">Jose,</subfield>
+    <subfield code="c">1733.</subfield>
+  </datafield>
+  <datafield tag="300" ind1=" " ind2=" ">
+    <subfield code="a">[viii], 371 p.</subfield>
+  </datafield>
+  <datafield tag="596" ind1=" " ind2=" ">
+    <subfield code="a">26</subfield>
+  </datafield>
+  <datafield tag="650" ind1=" " ind2="0">
+    <subfield code="a">Courts and court life</subfield>
+  </datafield>
+  <datafield tag="651" ind1=" " ind2="0">
+    <subfield code="a">Spain</subfield>
+    <subfield code="x">History</subfield>
+  </datafield>
+  <datafield tag="948" ind1=" " ind2=" ">
+    <subfield code="a">07/15/1992</subfield>
+    <subfield code="b">01/25/1993</subfield>
+  </datafield>
+  <datafield tag="926" ind1=" " ind2=" ">
+    <subfield code="a">ROBARTS</subfield>
+    <subfield code="b">STACKS</subfield>
+    <subfield code="c">HSp V7254m</subfield>
+    <subfield code="d">BOOK</subfield>
+    <subfield code="f">1</subfield>
+  </datafield>
+</record>

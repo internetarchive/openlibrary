@@ -3,7 +3,7 @@ from openlibrary.catalog.utils.query import query_iter, withKey, has_cover
 from lxml.etree import tostring, Element, SubElement
 from openlibrary.solr.work_subject import find_subjects, four_types, get_marc_subjects
 from pprint import pprint
-from urllib import urlopen
+from urllib2 import urlopen, URLError
 import simplejson as json
 from time import sleep
 from openlibrary import config
@@ -17,6 +17,9 @@ solr_host = {}
 def get_solr(index):
     global solr_host
 
+    if not config.runtime_config:
+        config.load('openlibrary.yml')
+
     if not solr_host:
         solr_host = {
             'works': config.runtime_config['plugin_worksearch']['solr'],
@@ -26,16 +29,19 @@ def get_solr(index):
         }
     return solr_host[index]
 
-def is_daisy_encrypted(ia):
+re_collection = re.compile(r'<collection>(.*)</collection>', re.I)
+
+def get_ia_collection(ia):
     url = 'http://www.archive.org/download/%s/%s_meta.xml' % (ia, ia)
-    look_for = '<collection>printdisabled</collection>'
-    for attempt in range(20):
+    print 'getting:', url
+    for attempt in range(5):
         try:
-            return any(i.strip().lower() == look_for for i in urlopen(url))
-        except:
-            print 'retry', attempt
+            matches = (re_collection.search(line) for line in urlopen(url))
+            return set(m.group(1).lower() for m in matches if m)
+        except URLError:
+            print 'retry', attempt, url
             sleep(5)
-    return False
+    return set()
 
 class AuthorRedirect (Exception):
     pass
@@ -108,8 +114,15 @@ def build_doc(w):
         pub_year = get_pub_year(e)
         if pub_year:
             e['pub_year'] = pub_year
-        if 'ocaid' in e and is_daisy_encrypted(e['ocaid']):
-            e['encrypted_daisy'] = True
+        if 'ocaid' in e:
+            collection = get_ia_collection(e['ocaid'])
+            print 'collection:', collection
+            e['ia_collection'] = collection
+            e['public_scan'] = ('lendinglibrary' not in collection) and ('printdisabled' not in collection)
+        overdrive_id = e.get('identifiers', {}).get('overdrive', None)
+        if overdrive_id:
+            print 'overdrive:', overdrive_id
+            e['overdrive'] = overdrive_id
         editions.append(e)
 
     editions.sort(key=lambda e: e.get('pub_year', None))
@@ -141,10 +154,12 @@ def build_doc(w):
         'subjects': 'subject',
         'subject_places': 'place',
         'subject_times': 'time',
-        'subject_people': 'people',
+        'subject_people': 'person',
     }
 
-    has_fulltext = any(e.get('ocaid', None) and not e.get('encrypted_daisy', None) for e in editions)
+    has_fulltext = any(e.get('ocaid', None) or e.get('overdrive', None) for e in editions)
+
+    print 'has_fulltext:', has_fulltext
 
     for db_field, solr_field in field_map.iteritems():
         if not w.get(db_field, None):
@@ -252,17 +267,53 @@ def build_doc(w):
     if lang:
         add_field_list(doc, 'language', lang)
 
-    goog = set() # google
-    non_goog = set()
+    pub_goog = set() # google
+    pub_nongoog = set()
+    nonpub_goog = set()
+    nonpub_nongoog = set()
+
+    public_scan = False
+    all_collection = set()
+    all_overdrive = set()
+    lending_edition = None
+    printdisabled = set()
     for e in editions:
-        if 'ocaid' in e:
-            assert isinstance(e['ocaid'], basestring)
-            i = e['ocaid'].strip()
+        if 'overdrive' in e:
+            all_overdrive.update(e['overdrive'])
+        if 'ocaid' not in e:
+            continue
+        if not lending_edition and 'lendinglibrary' in e['ia_collection']:
+            lending_edition = re_edition_key.match(e['key']).group(1)
+        if 'printdisabled' in e['ia_collection']:
+            printdisabled.add(re_edition_key.match(e['key']).group(1))
+        all_collection.update(e['ia_collection'])
+        assert isinstance(e['ocaid'], basestring)
+        i = e['ocaid'].strip()
+        if e['public_scan']:
+            public_scan = True
             if i.endswith('goog'):
-                goog.add(i)
+                pub_goog.add(i)
             else:
-                non_goog.add(i)
-    add_field_list(doc, 'ia', list(non_goog) + list(goog))
+                pub_nongoog.add(i)
+        else:
+            if i.endswith('goog'):
+                nonpub_goog.add(i)
+            else:
+                nonpub_nongoog.add(i)
+    print 'lending_edition:', lending_edition
+    ia_list = list(pub_nongoog) + list(pub_goog) + list(nonpub_nongoog) + list(nonpub_goog)
+    add_field_list(doc, 'ia', ia_list)
+    if has_fulltext:
+        add_field(doc, 'public_scan_b', public_scan)
+    if all_collection:
+        add_field(doc, 'ia_collection_s', ';'.join(all_collection))
+    if all_overdrive:
+        add_field(doc, 'all_overdrive_s', ';'.join(all_overdrive))
+    if lending_edition:
+        add_field(doc, 'lending_edition_s', lending_edition)
+    if printdisabled:
+        add_field(doc, 'printdisabled_s', ';'.join(list(printdisabled)))
+
     author_keys = [re_author_key.match(a['key']).group(1) for a in authors]
     author_names = [a.get('name', '') for a in authors]
     add_field_list(doc, 'author_key', author_keys)

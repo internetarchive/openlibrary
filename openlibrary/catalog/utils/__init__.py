@@ -15,6 +15,7 @@ re_ad_bc = re.compile(r'\b(B\.C\.?|A\.D\.?)')
 re_date_fl = re.compile('^fl[., ]')
 re_number_dot = re.compile('\d{2,}[- ]*(\.+)$')
 re_l_in_date = re.compile('(l\d|\dl)')
+re_lower_word_dot = re.compile(' [a-z]{,4}\.$', re.UNICODE)
 re_end_dot = re.compile('[^ .][^ .]\.$', re.UNICODE)
 re_marc_name = re.compile('^(.*?),+ (.*)$')
 re_year = re.compile(r'\b(\d{4})\b')
@@ -60,6 +61,8 @@ def remove_trailing_number_dot(date):
         return date
 
 def remove_trailing_dot(s):
+    if s.endswith(" Dept.") or re_lower_word_dot.search(s):
+        return s
     m = re_end_dot.search(s)
     if m:
         s = s[:-1]

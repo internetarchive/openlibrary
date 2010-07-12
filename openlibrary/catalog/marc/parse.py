@@ -7,10 +7,14 @@ re_lccn = re.compile('(...\d+).*')
 re_letters = re.compile('[A-Za-z]')
 re_oclc = re.compile('^\(OCoLC\).*?0*(\d+)')
 re_ocolc = re.compile('^ocolc *$', re.I)
-re_ocn_or_ocm = re.compile('^oc[nm](\d+) *$')
+re_ocn_or_ocm = re.compile('^oc[nm]0*(\d+) *$')
 re_int = re.compile ('\d{2,}')
 re_number_dot = re.compile('\d{3,}\.$')
 re_bracket_field = re.compile('^\s*(\[.*\])\.?\s*$')
+foc = '[from old catalog]'
+
+def strip_foc(s):
+    return s[:-len(foc)].rstrip() if s.endswith(foc) else s
 
 class NoTitle(Exception):
     pass
@@ -34,7 +38,7 @@ want = [
     '260', # publisher
     '300', # pagination
     '440', '490', '830' # series
-    ] + [str(i) for i in range(500,600)] + [ # notes + toc + description
+    ] + [str(i) for i in range(500,595)] + [ # notes + toc + description
     #'600', '610', '611', '630', '648', '650', '651', '662', # subjects
     '700', '710', '711', # contributions
     '246', '730', '740', # other titles
@@ -210,8 +214,9 @@ def read_edition_name(rec):
         return
     found = []
     for f in fields:
+        f.remove_brackets()
         found += [v for k, v in f.get_all_subfields()]
-    return found
+    return ' '.join(found)
 
 def read_languages(rec):
     fields = rec.get_fields('041')
@@ -251,13 +256,14 @@ def read_publisher(rec):
     return edition
 
 def read_author_person(f):
+    f.remove_brackets()
     author = {}
-    contents = f.get_contents(['a', 'b', 'c', 'd'])
+    contents = f.get_contents(['a', 'b', 'c', 'd', 'e'])
     if 'a' not in contents and 'c' not in contents:
         return # should at least be a name or title
     name = [v.strip(' /,;:') for v in f.get_subfield_values(['a', 'b', 'c'])]
     if 'd' in contents:
-        author = pick_first_date(contents['d'])
+        author = pick_first_date(strip_foc(d).strip(',') for d in contents['d'])
         if 'death_date' in author and author['death_date']:
             death_date = author['death_date']
             if re_number_dot.search(death_date):
@@ -268,20 +274,32 @@ def read_author_person(f):
     subfields = [
         ('a', 'personal_name'),
         ('b', 'numeration'),
-        ('c', 'title')
+        ('c', 'title'),
+        ('e', 'role')
     ]
     for subfield, field_name in subfields:
         if subfield in contents:
-            author[field_name] = ' '.join([x.strip(' /,;:') for x in contents[subfield]])
+            author[field_name] = remove_trailing_dot(' '.join([x.strip(' /,;:') for x in contents[subfield]]))
     if 'q' in contents:
         author['fuller_name'] = ' '.join(contents['q'])
-    foc = '[from old catalog]'
     for f in 'name', 'personal_name':
-        if author[f].endswith(foc):
-            author[f] = remove_trailing_dot(author[f][:-len(foc)].strip())
-        else:
-            author[f] = remove_trailing_dot(author[f])
+        author[f] = remove_trailing_dot(strip_foc(author[f]))
     return author
+
+# 1. if authors in 100, 110, 111 use them
+# 2. if first contrib is 710 or 711 use it
+# 3. if 
+
+def person_last_name(f):
+    v = list(f.get_subfield_values('a'))[0]
+    return v[:v.find(', ')] if ', ' in v else v
+
+def last_name_in_245c(rec, person):
+    fields = rec.get_fields('245')
+    if not fields:
+        return
+    last_name = person_last_name(person).lower()
+    return any(any(last_name in v.lower() for v in f.get_subfield_values(['c'])) for f in fields)
 
 def read_authors(rec):
     count = 0
@@ -297,9 +315,11 @@ def read_authors(rec):
 
     found = [read_author_person(f) for f in fields_100]
     for f in fields_110:
+        f.remove_brackets()
         name = [v.strip(' /,;:') for v in f.get_subfield_values(['a', 'b'])]
         found.append({ 'entity_type': 'org', 'name': remove_trailing_dot(' '.join(name))})
     for f in fields_111:
+        f.remove_brackets()
         name = [v.strip(' /,;:') for v in f.get_subfield_values(['a', 'c', 'd', 'n'])]
         found.append({ 'entity_type': 'event', 'name': remove_trailing_dot(' '.join(name))})
     if found:
@@ -349,7 +369,7 @@ def read_series(rec):
 
 def read_notes(rec):
     found = []
-    for tag in range(500,600):
+    for tag in range(500,595):
         if tag in (505, 520):
             continue
         fields = rec.get_fields(str(tag))
@@ -409,26 +429,49 @@ def read_location(rec):
     return found
 
 def read_contributions(rec):
-    want = [
+    want = dict((
         ('700', 'abcde'),
         ('710', 'ab'),
         ('711', 'acdn'),
-    ]
+    ))
 
+    ret = {}
     skip_authors = set()
     for tag in ('100', '110', '111'):
         fields = rec.get_fields(tag)
         for f in fields:
             skip_authors.add(tuple(f.get_all_subfields()))
+    
+    if not skip_authors:
+        for tag, f in rec.read_fields(['700', '710', '711']):
+            f = rec.decode_field(f)
+            if tag == '700':
+                if 'authors' not in ret or last_name_in_245c(rec, f):
+                    ret.setdefault('authors', []).append(read_author_person(f))
+                    skip_authors.add(tuple(f.get_subfields(want[tag])))
+                continue
+            elif 'authors' in ret:
+                break
+            if tag == '710':
+                name = [v.strip(' /,;:') for v in f.get_subfield_values(want[tag])]
+                ret['authors'] = [{ 'entity_type': 'org', 'name': remove_trailing_dot(' '.join(name))}]
+                skip_authors.add(tuple(f.get_subfields(want[tag])))
+                break
+            if tag == '711':
+                name = [v.strip(' /,;:') for v in f.get_subfield_values(want[tag])]
+                ret['authors'] = [{ 'entity_type': 'event', 'name': remove_trailing_dot(' '.join(name))}]
+                skip_authors.add(tuple(f.get_subfields(want[tag])))
+                break
 
-    found = []
-    for tag, sub in want:
-        this_tag = []
-        for f in rec.get_fields(tag):
-            cur = tuple(f.get_subfields(sub))
-            if tuple(cur) not in skip_authors:
-                found.append(remove_trailing_dot(' '.join(i[1] for i in cur).strip(',')))
-    return found
+    for tag, f in rec.read_fields(['700', '710', '711']): 
+        sub = want[tag]
+        cur = tuple(rec.decode_field(f).get_subfields(sub))
+        if tuple(cur) in skip_authors:
+            continue
+        name = remove_trailing_dot(' '.join(strip_foc(i[1]) for i in cur).strip(','))
+        ret.setdefault('contributions', []).append(name) # need to add flip_name
+
+    return ret
 
 def read_toc(rec):
     fields = rec.get_fields('505')
@@ -487,7 +530,10 @@ def read_edition(rec):
         if not handle_missing_008:
             raise BadMARC("single '008' field required")
     if len(tag_008) > 1:
-        raise BadMARC("can't handle more than one '008' field")
+        len_40 = [f for f in tag_008 if len(f) == 40]
+        if len_40:
+            tag_008 = len_40
+        tag_008 = [min(tag_008, key=lambda f:f.count(' '))]
     if len(tag_008) == 1:
         #assert len(tag_008[0]) == 40
         f = re_bad_char.sub(' ', tag_008[0])
@@ -512,8 +558,8 @@ def read_edition(rec):
 
     update_edition(rec, edition, read_lccn, 'lccn')
     update_edition(rec, edition, read_authors, 'authors')
-    update_edition(rec, edition, read_oclc, 'oclc_number')
-    update_edition(rec, edition, read_lc_classification, 'lc_classification')
+    update_edition(rec, edition, read_oclc, 'oclc_numbers')
+    update_edition(rec, edition, read_lc_classification, 'lc_classifications')
     update_edition(rec, edition, read_dewey, 'dewey_decimal_class')
     update_edition(rec, edition, read_work_titles, 'work_titles')
     update_edition(rec, edition, read_other_titles, 'other_titles')
@@ -522,9 +568,10 @@ def read_edition(rec):
     update_edition(rec, edition, read_notes, 'notes')
     update_edition(rec, edition, read_description, 'description')
     update_edition(rec, edition, read_location, 'location')
-    update_edition(rec, edition, read_contributions, 'contributions')
     update_edition(rec, edition, read_toc, 'table_of_contents')
     update_edition(rec, edition, read_url, 'links')
+
+    edition.update(read_contributions(rec))
 
     try:
         edition.update(read_title(rec))
