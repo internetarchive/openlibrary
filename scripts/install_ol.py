@@ -102,7 +102,8 @@ cmd('bootstapping', '''cd %s && sudo -u %s ./scripts/openlibrary-server openlibr
 #start up an instance of OL on the default port, so we can create users
 print 'Starting up an OL instance!'
 
-p = subprocess.Popen('''cd %s && sudo -u %s ./scripts/openlibrary-server openlibrary.yml''' % (install_dir, install_user), shell=True)
+#p = subprocess.Popen('''cd %s && sudo -u %s ./scripts/openlibrary-server openlibrary.yml''' % (install_dir, install_user), shell=True)
+p = subprocess.Popen(['sudo', '-u', install_user, './scripts/openlibrary-server','openlibrary.yml'], cwd=install_dir)
 
 
 print "Waiting 5 seconds for OL to start up..."
@@ -191,5 +192,50 @@ if not in_api_group:
 else:
     print "/people/openlibrary already in api group"
 
+
+#Copy templates, macros and some config from openlibrary.org website.
+
+cmd('copying upstream config from openlibrary.org',
+    '''cd "%s" && sudo -u %s ./scripts/copydocs.py --src http://openlibrary.org/ --dest http://0.0.0.0:8080/ /upstream/*''' % (install_dir, install_user))
+
+cmd('copying edition config from openlibrary.org',
+    '''cd "%s" && sudo -u %s ./scripts/copydocs.py --src http://openlibrary.org/ --dest http://0.0.0.0:8080/ /config/edition''' % (install_dir, install_user))
+
+print "creating AccountBot user"
+#the /people/AccountBot page exists, but we need to change it's type to 'user'
+post_data = 'title=&type.key=%2Ftype%2Fuser&body=&_comment=&_save=Save'
+f = urllib.urlopen('http://0.0.0.0:8080/people/AccountBot?m=edit', post_data)
+c = f.read()
+f.close()
+time.sleep(2)
+
 print "restarting server!"
 p.terminate()
+time.sleep(2)
+p = subprocess.Popen(['sudo', '-u', install_user, './scripts/openlibrary-server','openlibrary.yml'], cwd=install_dir)
+print "Waiting 5 seconds for OL to start up..."
+time.sleep(5)
+print "done waiting for OL to restart"
+
+
+### Infobase Server
+
+cmd('copying infobase conf file', '''cat %s/conf/sample_infobase.yml |perl -p -e 's/anand/%s/g;' > %s/infobase.yml''' % (install_dir, install_user, install_dir))
+
+cmd('make coverstore directory', '''sudo -u %s mkdir -p %s/coverstore/localdisk''' % (install_user, install_dir))
+
+print 'starting up infobase'
+
+infobase = subprocess.Popen(['sudo', '-u', install_user, './scripts/infobase-server','infobase.yml', '7000'], cwd=install_dir)
+
+cmd('editing openlibrary.yml to use infobase', """perl -p -i -e 's/#infobase_server/infobase_server/;' %s/openlibrary.yml""" % install_dir)
+
+print "restarting server!"
+p.terminate()
+time.sleep(2)
+p = subprocess.Popen(['sudo', '-u', install_user, './scripts/openlibrary-server','openlibrary.yml'], cwd=install_dir)
+print "Waiting 5 seconds for OL to start up..."
+time.sleep(5)
+print "done waiting for OL to restart"
+
+print 'finished installing openlibrary! please visit http://0.0.0.0:8080'
