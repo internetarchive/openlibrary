@@ -102,7 +102,6 @@ cmd('bootstapping', '''cd %s && sudo -u %s ./scripts/openlibrary-server openlibr
 #start up an instance of OL on the default port, so we can create users
 print 'Starting up an OL instance!'
 
-#p = subprocess.Popen('''cd %s && sudo -u %s ./scripts/openlibrary-server openlibrary.yml''' % (install_dir, install_user), shell=True)
 p = subprocess.Popen(['sudo', '-u', install_user, './scripts/openlibrary-server','openlibrary.yml'], cwd=install_dir)
 
 
@@ -237,5 +236,19 @@ p = subprocess.Popen(['sudo', '-u', install_user, './scripts/openlibrary-server'
 print "Waiting 5 seconds for OL to start up..."
 time.sleep(5)
 print "done waiting for OL to restart"
+
+
+### Coverstore Web Server
+
+print 'creating coverstore db and not checking for errors\n'
+#this command will return an error if the db already exists...
+commands.getstatusoutput('''sudo -u %s createdb coverstore''' % install_user)
+
+cmd('adding the coverstore schema', '''sudo -u %s psql coverstore < %s/openlibrary/coverstore/schema.sql''' % (install_user, install_dir))
+
+cmd('copying coverstore conf file', '''cat %s/conf/sample_coverstore.yml |perl -p -e 's/anand/%s/g;' > %s/coverstore.yml''' % (install_dir, install_user, install_dir))
+
+print 'starting up coversotre on port 8070'
+infobase = subprocess.Popen(['sudo', '-u', install_user, './scripts/coverstore-server','coverstore.yml', '8070'], cwd=install_dir)
 
 print 'finished installing openlibrary! please visit http://0.0.0.0:8080'
