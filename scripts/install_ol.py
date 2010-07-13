@@ -14,6 +14,7 @@ import os
 import urllib
 import subprocess
 import time
+import datetime
 import json
 
 install_dir = '/home/openlibrary/openlibrary'
@@ -93,7 +94,7 @@ print 'creating openlibrary db and not checking for errors\n'
 commands.getstatusoutput('''sudo -u %s createdb openlibrary''' % install_user)
 
 
-cmd('copying configuration file', '''cat %s/conf/sample_openlibrary.yml |perl -p -e 's/anand/%s/g;' > %s/openlibrary.yml''' % (install_dir, install_user, install_dir))
+cmd('copying configuration file', '''sudo -u %s cat %s/conf/sample_openlibrary.yml |perl -p -e 's/anand/%s/g;' > %s/openlibrary.yml''' % (install_user, install_dir, install_user, install_dir))
 
 cmd('bootstapping', '''cd %s && sudo -u %s ./scripts/openlibrary-server openlibrary.yml install''' % (install_dir, install_user))
 
@@ -206,36 +207,20 @@ post_data = 'title=&type.key=%2Ftype%2Fuser&body=&_comment=&_save=Save'
 f = urllib.urlopen('http://0.0.0.0:8080/people/AccountBot?m=edit', post_data)
 c = f.read()
 f.close()
-time.sleep(2)
-
-print "restarting server!"
-p.terminate()
-time.sleep(2)
-p = subprocess.Popen(['sudo', '-u', install_user, './scripts/openlibrary-server','openlibrary.yml'], cwd=install_dir)
-print "Waiting 5 seconds for OL to start up..."
-time.sleep(5)
-print "done waiting for OL to restart"
 
 
 ### Infobase Server
 
-cmd('copying infobase conf file', '''cat %s/conf/sample_infobase.yml |perl -p -e 's/anand/%s/g;' > %s/infobase.yml''' % (install_dir, install_user, install_dir))
+cmd('copying infobase conf file', '''sudo -u %s cat %s/conf/sample_infobase.yml |perl -p -e 's/anand/%s/g;' > %s/infobase.yml''' % (install_user, install_dir, install_user, install_dir))
 
 cmd('make coverstore directory', '''sudo -u %s mkdir -p %s/coverstore/localdisk''' % (install_user, install_dir))
 
 print 'starting up infobase'
 
 infobase = subprocess.Popen(['sudo', '-u', install_user, './scripts/infobase-server','infobase.yml', '7000'], cwd=install_dir)
+time.sleep(2)
 
 cmd('editing openlibrary.yml to use infobase', """perl -p -i -e 's/#infobase_server/infobase_server/;' %s/openlibrary.yml""" % install_dir)
-
-print "restarting server!"
-p.terminate()
-time.sleep(2)
-p = subprocess.Popen(['sudo', '-u', install_user, './scripts/openlibrary-server','openlibrary.yml'], cwd=install_dir)
-print "Waiting 5 seconds for OL to start up..."
-time.sleep(5)
-print "done waiting for OL to restart"
 
 
 ### Coverstore Web Server
@@ -246,9 +231,54 @@ commands.getstatusoutput('''sudo -u %s createdb coverstore''' % install_user)
 
 cmd('adding the coverstore schema', '''sudo -u %s psql coverstore < %s/openlibrary/coverstore/schema.sql''' % (install_user, install_dir))
 
-cmd('copying coverstore conf file', '''cat %s/conf/sample_coverstore.yml |perl -p -e 's/anand/%s/g;' > %s/coverstore.yml''' % (install_dir, install_user, install_dir))
+cmd('copying coverstore conf file', '''sudo -u %s cat %s/conf/sample_coverstore.yml |perl -p -e 's/anand/%s/g;' > %s/coverstore.yml''' % (install_user, install_dir, install_user, install_dir))
 
-print 'starting up coversotre on port 8070'
+print 'starting up coverstore on port 8070'
 infobase = subprocess.Popen(['sudo', '-u', install_user, './scripts/coverstore-server','coverstore.yml', '8070'], cwd=install_dir)
+time.sleep(2)
+
+print "restarting server!"
+p.terminate()
+time.sleep(2)
+p = subprocess.Popen(['sudo', '-u', install_user, './scripts/openlibrary-server','openlibrary.yml'], cwd=install_dir)
+print "Waiting 5 seconds for OL to start up..."
+time.sleep(5)
+print "done waiting for OL to restart"
+
+
+### Solr Search Engine
+
+cmd('setting up solr', '''cd %s && sudo -u %s %s/scripts/setup_solr.py''' % (install_dir, install_user, install_dir))
+
+print 'starting solr'
+solr = subprocess.Popen(['sudo', '-u', install_user, 'java', '-jar', 'start.jar'], cwd=install_dir+'/vendor/solr')
+
+print 'waiting 30 seconds for solr'
+time.sleep(30)
+
+print 'writing ~/.olrc'
+f = open(os.path.expanduser('~'+install_user+'/.olrc'), 'w')
+f.write('[0.0.0.0:8080]\n')
+f.write('username = admin\n')
+f.write('password = admin123\n')
+f.close()
+
+cmd('making solr update state dir', '''sudo -u %s mkdir -p %s/state''' % (install_user, install_dir))
+cmd('writing solr update state', '''sudo -u %s echo %s:0 > %s/state/solr_update''' % (install_user, datetime.date.today().isoformat(), install_dir))
+
+print 'starting solr update script'
+solrupdate = subprocess.Popen(['sudo', '-u', install_user, 'scripts/solr_update.py', '--server=0.0.0.0:8080'], cwd=install_dir)
+
+
+### restart
+
+print "restarting server!"
+p.terminate()
+time.sleep(2)
+p = subprocess.Popen(['sudo', '-u', install_user, './scripts/openlibrary-server','openlibrary.yml'], cwd=install_dir)
+print "Waiting 5 seconds for OL to start up..."
+time.sleep(5)
+print "done waiting for OL to restart"
+
 
 print 'finished installing openlibrary! please visit http://0.0.0.0:8080'
