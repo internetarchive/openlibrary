@@ -23,7 +23,7 @@ from infogami.infobase.client import Thing
 from infogami.infobase.utils import parse_datetime
 
 from openlibrary.i18n import gettext as _
-from openlibrary.plugins.openlibrary.code import sanitize
+from openlibrary.plugins.openlibrary.utils import sanitize
 
 class MultiDict(DictMixin):
     """Ordered Dictionary that can store multiple values.
@@ -138,7 +138,7 @@ def list_recent_pages(path, limit=100, offset=0):
 @public
 def json_encode(d):
     return simplejson.dumps(d)
-    
+
 def unflatten(d, seperator="--"):
     """Convert flattened data into nested form.
     
