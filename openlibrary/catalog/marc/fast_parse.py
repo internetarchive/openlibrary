@@ -10,7 +10,11 @@ marc8 = MARC8ToUnicode(quiet=True)
 
 re_real_book = re.compile('(pbk|hardcover|alk[^a-z]paper|cloth)', re.I)
 
-def translate(data, bad_ia_charset=False):
+def translate(data, bad_ia_charset=False, leader_says_marc8=False):
+    if leader_says_marc8:
+        data = marc8.translate(data)
+        data = mnemonics.read(data)
+        return data
     if bad_ia_charset:
         #data = data.decode('utf-8')
         data = marc8.translate(data)
@@ -475,7 +479,8 @@ def split_line(s):
         pos = s.find('\x1f', pos + 1)
         if pos == -1:
             break
-        marks.append(pos)
+        if s[pos+1] != '\x1b':
+            marks.append(pos)
     if not marks:
         return [('v', s)]
 
