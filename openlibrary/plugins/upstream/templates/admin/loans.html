@@ -6,15 +6,10 @@ $ _x = ctx.setdefault('usergroup', 'admin')
 <div id="contentHead">
     <div class="smaller grey"><a href="/admin">Admin</a> /</div>
     <h1>Outstanding eBook Loans</h1>
-    $if action == 'updateall':
-        <p id="note">
-            All loan statuses updated.
-        </p>
-    $else:
-        <p id="note">
-            <em class="red">Note:</em> This table shows the stored loan status. To refresh the status of an individual loan click "refresh".
-            Loan status is automatically refreshed when a user visits a <code>/books/OLid/borrow</code> page or <a href="/account/loans"><code>/account/loans</code></a>.
-        </p>
+    <p id="note">
+        <em class="red">Note:</em> Loan status is updated on demand (when a user looks at a borrow page or their own loans) as well as periodically.
+        To immediately refresh the status of all loans click below.
+    </p>
     <p>
         <form method="post" id="adminAction" name="adminAction" class="olform">
             <input type="hidden" name="action" value="updateall" />

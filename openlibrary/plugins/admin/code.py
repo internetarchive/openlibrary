@@ -273,7 +273,8 @@ class loans_admin:
         if action == 'updateall':
             borrow.update_all_loan_status()
         loans = borrow.get_all_loans()
-        return render_template("admin/loans", loans, action)
+        raise web.seeother(web.ctx.path) # Redirect to avoid form re-post on re-load
+        #return render_template("admin/loans", loans, action)
             
 def setup():
     register_admin_page('/admin/git-pull', gitpull, label='git-pull')
