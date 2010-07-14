@@ -12,7 +12,6 @@ from infogami.utils import delegate
 from infogami.utils.view import safeint, add_flash_message
 from infogami.infobase.client import ClientException
 
-from openlibrary.plugins.openlibrary import code as ol_code
 from openlibrary.plugins.openlibrary.processors import urlsafe
 from openlibrary.utils.solr import Solr
 from openlibrary.i18n import gettext as _
@@ -232,8 +231,9 @@ class addbook(delegate.page):
         raise web.seeother(edition.url("/edit?mode=add-work"))
 
 
-del delegate.pages['/addbook']
-del delegate.pages['/addauthor'] 
+# remove existing definations of addbook and addauthor
+delegate.pages.pop('/addbook', None)
+delegate.pages.pop('/addauthor', None) 
 
 class addbook(delegate.page):
     def GET(self):
@@ -311,7 +311,7 @@ class SaveBookHelper:
                 a = self.new_author(formdata['authors'][i])
                 a._save(utils.get_message("comment_new_author"))
                 author['author']['key'] = a.key
-            
+                    
         if work_data:
             if self.work is None:
                 self.work = self.new_work(self.edition)
@@ -445,11 +445,14 @@ class SaveBookHelper:
         work.subject_places = list(read_subject(work.get('subject_places', '')))
         work.subject_times = list(read_subject(work.get('subject_times', '')))
         work.subject_people = list(read_subject(work.get('subject_people', '')))
-        if ': ' in work.title:
+        if ': ' in work.get('title', ''):
             work.title, work.subtitle = work.title.split(': ', 1)
         
         for k in ('excerpts', 'links'):
             work[k] = work.get(k) or []
+            
+        # ignore empty authors
+        work.authors = [a for a in work.get('authors', []) if a.get('author', {}).get('key', '').strip()]
         
         return trim_doc(work)
 
