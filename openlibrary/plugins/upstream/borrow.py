@@ -313,14 +313,15 @@ def update_all_loan_status():
     # Get all Open Library loan records
     # $$$ Would be nice if there were a version of store.query that returned values as well as keys
     offset = 0
-    limit = 10000
+    limit = 500
     all_updated = False
+
+    # Get book status records of everything loaned out
+    bss_statuses = get_all_loaned_out()
+    bss_resource_ids = [status['resourceid'] for status in bss_statuses]
+
     while not all_updated:
         ol_loan_keys = [row['key'] for row in web.ctx.site.store.query('/type/loan', limit=limit, offset=offset)]
-        
-        # Get book status records of everything loaned out
-        bss_statuses = get_all_loaned_out()
-        bss_resource_ids = [status['resourceid'] for status in bss_statuses]
         
         # Update status of each loan
         for loan_key in ol_loan_keys:
@@ -334,8 +335,8 @@ def update_all_loan_status():
         
         if len(ol_loan_keys) < limit:
             all_updated = True
-        else:
-            offset += 1
+        else:        
+            offset += len(ol_loan_keys)
 
 def user_can_borrow_edition(user, edition, type):
     """Returns true if the user can borrow this edition given their current loans.  Returns False if the
