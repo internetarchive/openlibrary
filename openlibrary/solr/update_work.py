@@ -7,6 +7,7 @@ from urllib2 import urlopen, URLError
 import simplejson as json
 from time import sleep
 from openlibrary import config
+from unicodedata import normalize
 
 re_lang_key = re.compile(r'^/(?:l|languages)/([a-z]{3})$')
 re_author_key = re.compile(r'^/(?:a|authors)/(OL\d+A)$')
@@ -56,7 +57,7 @@ def strip_bad_char(s):
 def add_field(doc, name, value):
     field = Element("field", name=name)
     try:
-        field.text = unicode(strip_bad_char(value))
+        field.text = normalize('NFC', unicode(strip_bad_char(value)))
     except:
         print `value`
         raise
@@ -308,7 +309,7 @@ def build_doc(w):
     if all_collection:
         add_field(doc, 'ia_collection_s', ';'.join(all_collection))
     if all_overdrive:
-        add_field(doc, 'all_overdrive_s', ';'.join(all_overdrive))
+        add_field(doc, 'overdrive_s', ';'.join(all_overdrive))
     if lending_edition:
         add_field(doc, 'lending_edition_s', lending_edition)
     if printdisabled:
