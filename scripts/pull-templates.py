@@ -17,9 +17,7 @@ def parse_options(args=None):
 
     options, args = parser.parse_args()
 
-    if not options.template_root.endswith("/"):
-        options.template_root += "/"
-    
+    options.template_root = options.template_root.rstrip("/")    
     return options, args
 
 def write(path, text):
@@ -40,6 +38,8 @@ def delete(path):
 
 def make_path(doc):
     key = doc['key'].rsplit(".")[0]
+    key = web.lstrips(key, options.template_root)
+    
     plugin = doc.get("plugin", options.default_plugin)
     return "openlibrary/plugins/%s%s.html" % (plugin, key)
 
