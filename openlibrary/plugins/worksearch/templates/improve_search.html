@@ -1,0 +1,40 @@
+$def with (search_fields, boost, q, search)
+<style>th { font-weight: bold }</style>
+<div id="contentBody">
+<form>
+<table>
+<tbody>
+</td></tr>
+$for cols in group(search_fields, 3):
+    <tr>
+    $if loop.first:
+        <td rowspan="8"><textarea name="q" cols="40" rows="10" style="width:300px">$q</textarea></td>
+    $for f in cols:
+        <td>$f.replace('_', ' ')</td><td><input name="$f" size="2" value="$boost.setdefault(f, 1)"></td>
+    </tr>
+<tr><td colspan="6"><input value="search" type="submit"></td></tr>
+</tbody>
+</table>
+</form>
+$if q:
+    <table>
+    $for line in q.split('\r\n'):
+        $if not line:
+            $continue
+        $ line = line.strip()
+        $ q_param = ' OR '.join('%s:(%s)^%s' % (f, line, boost[f]) for f in search_fields)
+        $ result = search(q_param)
+        <tr><td colspan="4"><h2>$line</h2>$result['response']['numFound'] result(s)<p></td></tr>
+        <tr><th>score&nbsp;</th><th>title</th><th>authors</th></tr>
+        $for doc in result['response']['docs']:
+            <tr>
+                <td>$("%.2f" % doc['score'])</td>
+                <td><a href="/works/$doc['key']">$doc['title']</a></td>
+                <td>
+                $for key, name in zip(doc['author_key'], doc['author_name']):
+                    <a href="/authors/$key">$name</a>
+                </td>
+                <td>$doc['edition_count'] editions</td>
+            </tr>
+    </table>
+</div>
