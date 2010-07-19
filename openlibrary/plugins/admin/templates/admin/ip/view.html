@@ -1,6 +1,20 @@
 $def with (ip)
 
-$var title: $ip.ip
+$ _x = ctx.setdefault('bodyid', 'admin')
+$ _x = ctx.setdefault('usergroup', 'admin')
+
+$var title: [Admin Center] $ip.ip
+
+
+<div id="contentBody">
+<div class="head">
+        <button class="delete" type="submit" value="Block This IP" name="_delete" title="Block This IP" style="float: right;">Block This IP</button>
+        <h1><a href="/admin/">Admin</a> / <a href="/admin/ip/">IP</a> / $ip.ip</h1>
+</div>
 
 <h2>$_("Edit History")</h2>
 $:render_template("admin/history", ip.get_edit_history())
+
+
+        <button class="delete" type="submit" value="Block This IP" name="_delete" title="Block This IP">Block This IP</button>
+</div>
