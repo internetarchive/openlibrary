@@ -252,7 +252,8 @@ class Edition(ol_code.Edition):
     
     def set_identifiers(self, identifiers):
         """Updates the edition from identifiers specified as (name, value) pairs."""
-        names = ['isbn_10', 'isbn_13', 'lccn', 'oclc_numbers', 'ocaid', 'dewey_decimal_class', 'lc_classifications']
+        names = ('isbn_10', 'isbn_13', 'lccn', 'oclc_numbers', 'ocaid', 
+                 'dewey_decimal_class', 'lc_classifications')
         
         d = {}
         for id in identifiers:
@@ -279,7 +280,9 @@ class Edition(ol_code.Edition):
 
     def get_classifications(self):
         names = ["dewey_decimal_class", "lc_classifications"]
-        return self._process_identifiers(get_edition_config().classifications, names, self.classifications)
+        return self._process_identifiers(get_edition_config().classifications, 
+                                         names, 
+                                         self.classifications)
         
     def set_classifications(self, classifications):
         names = ["dewey_decimal_class", "lc_classifications"]
@@ -346,12 +349,65 @@ class Edition(ol_code.Edition):
         self.table_of_contents = parse_toc(text)
         
     def get_links(self):
-        links1 = [web.storage(url=url, title=title) for url, title in zip(self.uris, self.uri_descriptions)] 
+        links1 = [web.storage(url=url, title=title) 
+                  for url, title in zip(self.uris, self.uri_descriptions)] 
         links2 = list(self.links)
         return links1 + links2
         
     def get_olid(self):
         return self.key.split('/')[-1]
+    
+    @property
+    def wp_citation_fields(self):
+        """
+        Builds a wikipedia citation as defined by http://en.wikipedia.org/wiki/Template:Cite#Citing_books
+        """
+        result = {
+            "title": self.works[0].title.replace("[", "&#91").replace("]", "&#93"),
+            "publication-date": self.get('publish_date'),
+            "url": "http://openlibrary.org%s" % self.url()
+        }
+
+        if self.title != self.works[0].title:
+            result['edition'] = self.title
+
+        if self.get('isbn_10'):
+            result['id'] = self['isbn_10'][0]
+            result['isbn'] = self['isbn_13'][0] if self.get('isbn_13') else self['isbn_10'][0]
+
+        if self.get('oclc_numbers'):
+            result['oclc'] = self.oclc_numbers[0]
+
+        if self.get('ocaid'):
+            url = 'http://www.archive.org/download/%s/%s_meta.xml' % (self['ocaid'], self['ocaid'])
+            try:
+                # XXXarielb cache this!
+                root = etree.parse(urllib2.urlopen(url))
+                archivedate = root.find('addeddate')
+                if archivedate is not None:
+                    # both archivedate and archiveurl are required
+                    result['archivedate'] = archivedate.text
+                    result['archiveurl'] = "http://www.archive.org/details/%s" % self['ocaid']
+            except:
+                # XXarielb log an error?
+                pass
+
+        if self.works[0].get('first_publish_year'):
+            result['origyear'] = self.works[0]['first_publish_year']
+
+        if self.get('publishers'):
+            result['publisher'] = self['publishers'][0]
+
+        if self.get('publish_places'):
+            result['publication-place'] = self['publish_places'][0]
+
+        authors = [ar.author for ar in self.works[0].authors]
+        if len(authors) == 1:
+            result['author'] = authors[0].name
+        else:
+            for i, a in enumerate(authors):
+                result['author%s' % (i + 1)] = a.name 
+        return result
         
 class Author(ol_code.Author):
     def get_photos(self):

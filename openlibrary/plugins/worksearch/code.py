@@ -7,6 +7,7 @@ from infogami.utils import view, template
 from infogami.utils.view import safeint, add_flash_message
 import simplejson as json
 from openlibrary.plugins.openlibrary.processors import urlsafe
+from unicodedata import normalize
 
 ftoken_db = None
 
@@ -587,13 +588,13 @@ class search(delegate.page):
             if isinstance(v, list):
                 if v == []:
                     continue
-                clean = [b.strip() for b in v]
+                clean = [normalize('NFC', b.strip()) for b in v]
                 if clean != v:
                     need_redirect = True
                 if len(clean) == 1 and clean[0] == u'':
                     clean = None
             else:
-                clean = v.strip()
+                clean = normalize('NFC', v.strip())
                 if clean == '':
                     need_redirect = True
                     clean = None

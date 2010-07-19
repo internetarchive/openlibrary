@@ -230,6 +230,19 @@ def get_loan_status(resource_id):
     
     raise Exception('Error communicating with loan status server for resource %s' % resource_id)
 
+def get_all_loaned_out():
+    """Returns array of BSS status for all resources currently loaned out (according to BSS)"""
+    global loanstatus_url
+    
+    if not loanstatus_url:
+        raise Exception('No loanstatus_url -- cannot check loan status')
+        
+    url = '%s/is_loaned_out/' % loanstatus_url
+    try:
+        response = simplejson.loads(urllib2.urlopen(url).read())
+        return response
+    except IOError:
+        raise Exception('Loan status server not available')
 
 def is_loaned_out(resource_id):
     status = get_loan_status(resource_id)
@@ -249,8 +262,6 @@ def is_loaned_out_from_status(status):
 def update_loan_status(resource_id):
     """Update the loan status in OL based off status in ACS4.  Used to check for early returns."""
     
-    global loan_fulfillment_timeout_seconds
-    
     # Find loan in OL
     loan_keys = web.ctx.site.store.query('/type/loan', 'resource_id', resource_id)
     if not loan_keys:
@@ -268,7 +279,14 @@ def update_loan_status(resource_id):
 
     # Local loan record
     loan = web.ctx.site.store.get(loan_key)
-
+    
+    update_loan_from_bss_status(loan_key, loan, status)
+        
+def update_loan_from_bss_status(loan_key, loan, status):
+    """Update the loan status in the private data store from BSS status"""
+    
+    global loan_fulfillment_timeout_seconds
+    
     if not is_loaned_out_from_status(status):
         # No loan record, or returned or expired
         
@@ -288,6 +306,37 @@ def update_loan_status(resource_id):
     if loan['expiry'] != status['until']:
         loan['expiry'] = status['until']
         web.ctx.site.store[loan_key] = loan
+
+def update_all_loan_status():
+    """Update the status of all loans known to Open Library by cross-checking with the book status server"""
+    
+    # Get all Open Library loan records
+    # $$$ Would be nice if there were a version of store.query that returned values as well as keys
+    offset = 0
+    limit = 500
+    all_updated = False
+
+    # Get book status records of everything loaned out
+    bss_statuses = get_all_loaned_out()
+    bss_resource_ids = [status['resourceid'] for status in bss_statuses]
+
+    while not all_updated:
+        ol_loan_keys = [row['key'] for row in web.ctx.site.store.query('/type/loan', limit=limit, offset=offset)]
+        
+        # Update status of each loan
+        for loan_key in ol_loan_keys:
+            loan = web.ctx.site.store.get(loan_key)
+            try:
+                status = bss_statuses[ bss_resource_ids.index(loan['resource_id']) ]
+            except ValueError:
+                status = None
+                
+            update_loan_from_bss_status(loan_key, loan, status)
+        
+        if len(ol_loan_keys) < limit:
+            all_updated = True
+        else:        
+            offset += len(ol_loan_keys)
 
 def user_can_borrow_edition(user, edition, type):
     """Returns true if the user can borrow this edition given their current loans.  Returns False if the
