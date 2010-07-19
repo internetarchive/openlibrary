@@ -138,11 +138,13 @@ def write_machine_tags(ln, books):
                 work['key'], 
                 nyt['book_details'][0]['title'], nyt['book_details'][0]['author']
             ))
+        else:
+            LOG("DEBUG", "Adding tags (%s) to %s" % (", ".join(tags), work['key']))
     LOG("INFO", "WRITING MACHINE TAGS FOR %s of %s works" % (
         len(write), len(books)
     ))
     if write:
-        OL.save_many(write.values()[:3], comment="Adding tags to New York Times %s bestsellers" % ln)
+        OL.save_many(write.values(), comment="Adding tags to New York Times %s bestsellers" % ln)
 
 
 if __name__ == "__main__":
@@ -167,6 +169,7 @@ if __name__ == "__main__":
     OL.login(options.username, options.password)
     results = collections.defaultdict(list)
     for ln in get_nyt_bestseller_list_names():
+        LOG("INFO", "processing list %s" % ln)
         for i, book in enumerate(load_nyt_bestseller_list(ln)):
             ol_keys = reconcile_book(book)
             if not ol_keys:
