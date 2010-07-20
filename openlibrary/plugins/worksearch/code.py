@@ -1,4 +1,3 @@
-
 import web, re, urllib, dbm
 from lxml.etree import parse, tostring, XML, XMLSyntaxError
 from infogami.utils import delegate
@@ -378,35 +377,6 @@ def first(seq):
     except:
         return None
 
-def get_ebook_count(field, key, publish_year=None):
-    q = '%s_key:%s+AND+(overdrive_s:*+OR+ia:*)' % (field, key)
-    if publish_year:
-        if isinstance(publish_year, list):
-            q += '+AND+publish_date:[%d+TO+%d]' % publish_year
-        else:
-            q += '+AND+publish_date:%d' % publish_year
-
-    count = 0
-    start = 0
-    solr_url = root_url % (rows, start, q)
-    response = simplejson.load(urlopen(solr_url))['response']
-    num_found = response['numFound']
-    while start < num_found:
-        if start:
-            solr_url = root_url % (rows, start, q)
-            print solr_url
-            response = simplejson.load(urlopen(solr_url))['response']
-        for doc in response['docs']:
-            if 'ia' in doc:
-                count += len(doc['ia'])
-            if doc.get('overdrive_s'):
-                count += len(doc['overdrive_s'].split(';'))
-        start += rows
-    
-    return count
-
-fast_ebook_count = web.memoize(get_ebook_count, 60 * 30, background=True)
-
 def get_subject(key, details=False, offset=0, limit=12, **filters):
     """Returns data related to a subject.
 
@@ -526,7 +496,7 @@ def get_subject(key, details=False, offset=0, limit=12, **filters):
     )
 
     if details:
-        subject.ebook_count = fast_ebook_count(meta.name, q[meta.facet_key], q.get('publish_year'))
+        subject.ebook_count = dict(result.facets["has_fulltext"]).get("true", 0)
 
         subject.subjects = result.facets["subject_facet"]
         subject.places = result.facets["place_facet"]
