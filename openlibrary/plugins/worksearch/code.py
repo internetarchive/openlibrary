@@ -1,4 +1,3 @@
-
 import web, re, urllib, dbm
 from lxml.etree import parse, tostring, XML, XMLSyntaxError
 from infogami.utils import delegate
