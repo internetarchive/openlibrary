@@ -20,7 +20,7 @@ import datetime
 from ConfigParser import ConfigParser
 import urllib, urllib2
 import simplejson
-
+import web
 
 class OLError(Exception):
     def __init__(self, http_error):
@@ -107,7 +107,8 @@ class OpenLibrary:
             return self._get_many(keys)
         
     def _get_many(self, keys):
-        return self._request("/api/get_many?" + urllib.urlencode({"keys": simplejson.dumps(keys)}))
+        response = self._request("/api/get_many?" + urllib.urlencode({"keys": simplejson.dumps(keys)}))
+        return simplejson.loads(response.read())['result']
 
     def save(self, key, data, comment=None):
         headers = {'Content-Type': 'application/json'}
