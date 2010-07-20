@@ -95,7 +95,19 @@ class OpenLibrary:
         return unmarshal(simplejson.loads(data))
         
     def get_many(self, keys):
-        return self.query({"key": keys, "*": None, "limit": len(keys)})
+        """Get multiple documents in a single request as a dictionary.
+        """
+        if len(keys) > 100:
+            # get in chunks of 100 to avoid crossing the URL length limit.
+            d = {}
+            for chunk in web.group(keys, 100):
+                d.update(self._get_many(chunk))
+            return d
+        else:
+            return self._get_many(keys)
+        
+    def _get_many(self, keys):
+        return self._request("/api/get_many?" + urllib.urlencode({"keys": simplejson.dumps(keys)}))
 
     def save(self, key, data, comment=None):
         headers = {'Content-Type': 'application/json'}
