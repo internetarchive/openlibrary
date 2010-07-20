@@ -97,10 +97,10 @@ class OpenLibrary:
     def get_many(self, keys):
         """Get multiple documents in a single request as a dictionary.
         """
-        if len(keys) > 100:
-            # get in chunks of 100 to avoid crossing the URL length limit.
+        if len(keys) > 500:
+            # get in chunks of 500 to avoid crossing the URL length limit.
             d = {}
-            for chunk in web.group(keys, 100):
+            for chunk in web.group(keys, 500):
                 d.update(self._get_many(chunk))
             return d
         else:
