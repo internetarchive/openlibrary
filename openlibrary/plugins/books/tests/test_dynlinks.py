@@ -79,6 +79,10 @@ def pytest_funcarg__data9(request):
                     "value": "This is an excerpt."
                 },
                 "comment": "foo"
+            }, {
+                # sometimes excerpt was plain string instead of /type/text.
+                "excerpt": "This is another excerpt.",
+                "comment": "bar"
             }]
         },
         "/books/OL9M": {
@@ -160,6 +164,9 @@ def pytest_funcarg__data9(request):
                 "excerpts": [{
                     "text": "This is an excerpt.",
                     "comment": "foo",
+                }, {
+                    "text": "This is another excerpt.",
+                    "comment": "bar"
                 }],
                 "ebooks": [{
                     "preview_url": "http://www.archive.org/details/foo12bar"
@@ -356,5 +363,5 @@ class TestDataProcessor:
     def test_process_doc9(self, data9):
         p = dynlinks.DataProcessor()
         p.authors = data9
-        p.works = data9                
+        p.works = data9
         assert p.process_doc(data9['/books/OL9M']) == data9['result']['data']

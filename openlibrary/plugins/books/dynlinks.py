@@ -4,6 +4,7 @@ import sys
 import traceback
 
 from openlibrary.plugins.openlibrary.processors import urlsafe
+from infogami.utils.delegate import register_exception
 
 def split_key(bib_key):
     """
@@ -176,9 +177,15 @@ class DataProcessor:
         def get_subjects(name, prefix):
             return [subject(s, prefix) for s in w.get(name, '')]
             
+        def get_value(v):
+            if isinstance(v, dict):
+                return v.get('value', '')
+            else:
+                return v
+            
         def format_excerpt(e):
             return {
-                "text": e.get("excerpt", {}).get("value", ""),
+                "text": get_value(e.get("excerpt", {})),
                 "comment": e.get("comment", "")
             }
                     
@@ -320,7 +327,8 @@ def dynlinks(bib_keys, options):
         result = process_result(result, options.get('jscmd'))
     except:
         print >> sys.stderr, "Error in processing Books API"
-        traceback.print_exc()
+        register_exception()
+        
         result = {}
     return format_result(result, options)
     
