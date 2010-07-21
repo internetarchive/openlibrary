@@ -23,6 +23,7 @@ from infogami.core.db import ValidationException
 import processors
 
 from utils import sanitize
+from openlibrary.utils.isbn import isbn_13_to_isbn_10
 
 delegate.app.add_processor(processors.ReadableUrlProcessor())
 delegate.app.add_processor(processors.ProfileProcessor())
@@ -69,6 +70,7 @@ import showmarc
 # add zip and tuple to the list of public functions
 public(zip)
 public(tuple)
+public(isbn_13_to_isbn_10)
 web.template.Template.globals['NEWLINE'] = "\n"
 
 # Remove movefiles install hook. openlibrary manages its own files.
