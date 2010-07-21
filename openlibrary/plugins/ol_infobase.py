@@ -30,7 +30,8 @@ def init_plugin():
 
     if ol:
         # install custom indexer
-        ol.store.indexer = Indexer()
+        #XXX-Anand: this might create some trouble. Commenting out.
+        # ol.store.indexer = Indexer()
         
         if config.get('http_listeners'):
             ol.add_trigger(None, http_notify)
@@ -304,7 +305,7 @@ class Indexer(_Indexer):
         except KeyError:
             return index
             
-        whitelist = ['identifiers', 'classifications', 'isbn_10', 'isbn_13', 'lccn', 'oclc_numbers']
+        whitelist = ['identifiers', 'classifications', 'isbn_10', 'isbn_13', 'lccn', 'oclc_numbers', 'ocaid']
         index = [(datatype, name, value) for datatype, name, value in index 
                 if datatype == 'ref' or name.split(".")[0] in whitelist]
 
