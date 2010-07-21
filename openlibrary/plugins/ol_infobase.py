@@ -221,7 +221,12 @@ def get_object_data(site, thing):
 
 def http_notify(site, old, new):
     """Notify listeners over http."""
-    data = new.format_data()
+    if isinstance(new, dict):
+        data = new
+    else:
+        # new is a thing. call format_data to get the actual data.
+        data = new.format_data()
+        
     json = simplejson.dumps(data)
     key = data['key']
 
