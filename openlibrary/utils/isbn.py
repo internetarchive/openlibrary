@@ -26,7 +26,7 @@ def check_digit_13(isbn):
         return str(r)
 
 def isbn_13_to_isbn_10(isbn_13):
-    isbn13 = isbn13.replace('-', '')
+    isbn_13 = isbn_13.replace('-', '')
     try:
         assert len(isbn_13) == 13 and isbn_13.isdigit()
         assert isbn_13.startswith('978')

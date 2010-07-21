@@ -8,6 +8,7 @@ import re
 import urllib
 import socket
 import datetime
+from time import time
 
 import infogami
 
@@ -71,6 +72,7 @@ import showmarc
 public(zip)
 public(tuple)
 public(isbn_13_to_isbn_10)
+public(time)
 web.template.Template.globals['NEWLINE'] = "\n"
 
 # Remove movefiles install hook. openlibrary manages its own files.
