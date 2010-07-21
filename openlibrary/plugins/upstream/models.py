@@ -378,20 +378,6 @@ class Edition(ol_code.Edition):
         if self.get('oclc_numbers'):
             result['oclc'] = self.oclc_numbers[0]
 
-        if self.get('ocaid'):
-            url = 'http://www.archive.org/download/%s/%s_meta.xml' % (self['ocaid'], self['ocaid'])
-            try:
-                # XXXarielb cache this!
-                root = etree.parse(urllib2.urlopen(url))
-                archivedate = root.find('addeddate')
-                if archivedate is not None:
-                    # both archivedate and archiveurl are required
-                    result['archivedate'] = archivedate.text
-                    result['archiveurl'] = "http://www.archive.org/details/%s" % self['ocaid']
-            except:
-                # XXarielb log an error?
-                pass
-
         if self.works[0].get('first_publish_year'):
             result['origyear'] = self.works[0]['first_publish_year']
 
