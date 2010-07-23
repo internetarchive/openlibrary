@@ -385,6 +385,7 @@ def first(seq):
         return None
 
 re_chars = re.compile("([%s])" % re.escape(r'+-!(){}[]^"~*?:\\'))
+re_year = re.compile(r'\b(\d+)$')
 
 def find_ebook_count(field, key):
     q = '%s_key:%s+AND+(overdrive_s:*+OR+ia:*)' % (field, re_chars.sub(r'\\\1', key).encode('utf-8'))
