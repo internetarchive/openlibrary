@@ -7,6 +7,7 @@ from infogami.utils.view import safeint, add_flash_message
 import simplejson as json
 from openlibrary.plugins.openlibrary.processors import urlsafe
 from unicodedata import normalize
+from collections import defaultdict
 
 ftoken_db = None
 
@@ -42,6 +43,12 @@ if hasattr(config, 'plugin_worksearch'):
     solr_edition_select_url = "http://" + solr_edition_host + "/solr/editions/select"
 
     default_spellcheck_count = config.plugin_worksearch.get('spellcheck_count', 10)
+
+    ebook_count_host = config.plugin_worksearch.get('ebook_count_host')
+    ebook_count_user = config.plugin_worksearch.get('ebook_count_user')
+    ebook_count_db_name = config.plugin_worksearch.get('ebook_count_db_name')
+
+    ebook_count_db = web.database(dbn='postgres', db=ebook_count_db_name, host=ebook_count_host, user=ebook_count_user)
 
 to_drop = set(''';/?:@&=+$,<>#%"{}|\\^[]`\n\r''')
 
@@ -377,6 +384,74 @@ def first(seq):
     except:
         return None
 
+re_chars = re.compile("([%s])" % re.escape(r'+-!(){}[]^"~*?:\\'))
+re_year = re.compile(r'\b(\d+)$')
+
+def find_ebook_count(field, key):
+    q = '%s_key:%s+AND+(overdrive_s:*+OR+ia:*)' % (field, re_chars.sub(r'\\\1', key).encode('utf-8'))
+
+    root_url = 'http://ia331508:8983/solr/works/select?wt=json&indent=on&rows=%d&start=%d&q.op=AND&q=%s&fl=edition_key'
+    rows = 1000
+
+    ebook_count = 0
+    start = 0
+    solr_url = root_url % (rows, start, q)
+    response = json.load(urllib.urlopen(solr_url))['response']
+    num_found = response['numFound']
+    print 'num_found:', num_found
+    years = defaultdict(int)
+    while start < num_found:
+        if start:
+            solr_url = root_url % (rows, start, q)
+            print solr_url
+            response = json.load(urllib.urlopen(solr_url))['response']
+        for doc in response['docs']:
+            for k in doc['edition_key']:
+                e = web.ctx.site.get('/books/' + k)
+                ia = set(i[3:] for i in e.get('source_records', []) if i.startswith('ia:'))
+                if e.get('ocaid'):
+                    ia.add(e['ocaid'])
+                pub_date = e.get('publish_date')
+                pub_year = -1
+                if pub_date:
+                    m = re_year.search(pub_date)
+                    if m:
+                        pub_year = int(m.group(1))
+                ebook_count = len(ia)
+                if 'overdrive' in e.get('identifiers', {}):
+                    ebook_count += len(e['identifiers']['overdrive'])
+                if ebook_count:
+                    years[pub_year] += ebook_count
+        start += rows
+
+    return dict(years)
+
+def get_ebook_count(field, key, publish_year=None):
+    def db_lookup(field, key, publish_year=None):
+        sql = 'select sum(ebook_count) as num from subjects where field=$field and key=$key'
+        if publish_year:
+            if isinstance(publish_year, list):
+                sql += ' and publish_year between $y1 and $y2'
+                (y1, y2) = publish_year
+            else:
+                sql += ' and publish_year=$publish_year'
+        return list(ebook_count_db.query(sql, vars=locals()))[0].num
+
+    total = db_lookup(field, key, publish_year)
+    if total:
+        return total
+    elif publish_year:
+        sql = 'select ebook_count as num from subjects where field=$field and key=$key limit 1'
+        if len(list(ebook_count_db.query(sql, vars=locals()))) != 0:
+            return 0
+    years = find_ebook_count(field, key)
+    if not years:
+        return 0
+    for year, count in sorted(years.iteritems()):
+        ebook_count_db.query('insert into subjects (field, key, publish_year, ebook_count) values ($field, $key, $year, $count)', vars=locals())
+
+    return db_lookup(field, key, publish_year)
+
 def get_subject(key, details=False, offset=0, limit=12, **filters):
     """Returns data related to a subject.
 
@@ -496,7 +571,8 @@ def get_subject(key, details=False, offset=0, limit=12, **filters):
     )
 
     if details:
-        subject.ebook_count = dict(result.facets["has_fulltext"]).get("true", 0)
+        #subject.ebook_count = dict(result.facets["has_fulltext"]).get("true", 0)
+        subject.ebook_count = get_ebook_count(meta.name, q[meta.facet_key], q.get('publish_year'))
 
         subject.subjects = result.facets["subject_facet"]
         subject.places = result.facets["place_facet"]
