@@ -801,7 +801,7 @@ class merge_authors(delegate.page):
             updates.append(master_author)
         web.ctx.site.save_many(updates, comment='merge authors', action="merge-authors")
 
-    def GET(self):
+    def POST(self):
         i = web.input(key=[], master=None)
         keys = []
         for key in i.key:
@@ -821,6 +821,8 @@ class merge_authors(delegate.page):
 
         return render['merge/authors'](errors, i.master, keys, \
             top_books_from_author, do_merge)
+
+    GET = POST
 
 class improve_search(delegate.page):
     def GET(self):
