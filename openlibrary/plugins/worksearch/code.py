@@ -448,7 +448,7 @@ def get_ebook_count(field, key, publish_year=None):
     if not years:
         return 0
     for year, count in sorted(years.iteritems()):
-        db.query('insert into subjects (field, key, publish_year, ebook_count) values ($field, $key, $year, $count)', vars=locals())
+        ebook_count_db.query('insert into subjects (field, key, publish_year, ebook_count) values ($field, $key, $year, $count)', vars=locals())
 
     return db_lookup(field, key, publish_year)
 
