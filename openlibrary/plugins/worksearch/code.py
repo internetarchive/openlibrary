@@ -389,10 +389,13 @@ re_chars = re.compile("([%s])" % re.escape(r'+-!(){}[]^"~*?:\\'))
 def find_ebook_count(field, key):
     q = '%s_key:%s+AND+(overdrive_s:*+OR+ia:*)' % (field, re_chars.sub(r'\\\1', key).encode('utf-8'))
 
+    root_url = 'http://ia331508:8983/solr/works/select?wt=json&indent=on&rows=%d&start=%d&q.op=AND&q=%s&fl=edition_key'
+    rows = 1000
+
     ebook_count = 0
     start = 0
     solr_url = root_url % (rows, start, q)
-    response = json.load(urlopen(solr_url))['response']
+    response = json.load(urllib.urlopen(solr_url))['response']
     num_found = response['numFound']
     print 'num_found:', num_found
     years = defaultdict(int)
@@ -400,7 +403,7 @@ def find_ebook_count(field, key):
         if start:
             solr_url = root_url % (rows, start, q)
             print solr_url
-            response = json.load(urlopen(solr_url))['response']
+            response = json.load(urllib.urlopen(solr_url))['response']
         for doc in response['docs']:
             for k in doc['edition_key']:
                 e = web.ctx.site.get('/books/' + k)
