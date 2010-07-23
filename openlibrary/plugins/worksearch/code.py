@@ -423,7 +423,7 @@ def find_ebook_count(field, key):
     return dict(years)
 
 def get_ebook_count(field, key, publish_year=None):
-    def db_lookup():
+    def db_lookup(field, key, publish_year=None):
         sql = 'select sum(ebook_count) as num from subjects where field=$field and key=$key'
         if publish_year:
             if isinstance(publish_year, list):
@@ -433,16 +433,20 @@ def get_ebook_count(field, key, publish_year=None):
                 sql += ' and publish_year=$publish_year'
         return list(ebook_count_db.query(sql, vars=locals()))[0].num
 
-    total = db_lookup()
+    total = db_lookup(field, key, publish_year)
     if total:
         return total
+    elif publish_year:
+        sql = 'select ebook_count as num from subjects where field=$field and key=$key limit 1'
+        if len(list(ebook_count_db.query(sql, vars=locals()))) != 0:
+            return 0
     years = find_ebook_count(field, key)
     if not years:
         return 0
     for year, count in sorted(years.iteritems()):
         db.query('insert into subjects (field, key, publish_year, ebook_count) values ($field, $key, $year, $count)', vars=locals())
 
-    return db_lookup()
+    return db_lookup(field, key, publish_year)
 
 def get_subject(key, details=False, offset=0, limit=12, **filters):
     """Returns data related to a subject.
