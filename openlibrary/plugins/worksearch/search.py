@@ -77,7 +77,7 @@ def work_wrapper(w):
     d.lendinglibrary = 'lendinglibrary' in ia_collection
     d.printdisabled = 'printdisabled' in ia_collection
     d.lending_edition = w.get('lending_edition_s', '')
-    d.overdrive = w['overdrive_s'].split(';') if 'overdrive_s' in w else []
+    d.overdrive = w['overdrive_s'].split(';')[0] if 'overdrive_s' in w else ''
 
     # special care to handle missing author_key/author_name in the solr record
     w.setdefault('author_key', [])
