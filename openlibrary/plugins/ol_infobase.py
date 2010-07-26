@@ -30,7 +30,8 @@ def init_plugin():
 
     if ol:
         # install custom indexer
-        ol.store.indexer = Indexer()
+        #XXX-Anand: this might create some trouble. Commenting out.
+        # ol.store.indexer = Indexer()
         
         if config.get('http_listeners'):
             ol.add_trigger(None, http_notify)
@@ -221,7 +222,12 @@ def get_object_data(site, thing):
 
 def http_notify(site, old, new):
     """Notify listeners over http."""
-    data = new.format_data()
+    if isinstance(new, dict):
+        data = new
+    else:
+        # new is a thing. call format_data to get the actual data.
+        data = new.format_data()
+        
     json = simplejson.dumps(data)
     key = data['key']
 
@@ -299,7 +305,7 @@ class Indexer(_Indexer):
         except KeyError:
             return index
             
-        whitelist = ['identifiers', 'classifications', 'isbn_10', 'isbn_13', 'lccn', 'oclc_numbers']
+        whitelist = ['identifiers', 'classifications', 'isbn_10', 'isbn_13', 'lccn', 'oclc_numbers', 'ocaid']
         index = [(datatype, name, value) for datatype, name, value in index 
                 if datatype == 'ref' or name.split(".")[0] in whitelist]
 
