@@ -11,7 +11,7 @@ from openlibrary.coverstore import config, code, archive
 
 def runfcgi(func, addr=('localhost', 8000)):
     """Runs a WSGI function as a FastCGI pre-fork server."""
-    config = dict(web.config.get("fastcgi"))
+    config = dict(web.config.get("fastcgi", {}))
 
     mode = config.pop("mode", None)
     if mode == "prefork":    
