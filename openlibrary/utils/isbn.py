@@ -31,6 +31,6 @@ def isbn_13_to_isbn_10(isbn_13):
         assert len(isbn_13) == 13 and isbn_13.isdigit()
         assert isbn_13.startswith('978')
         assert check_digit_13(isbn_13[:-1]) == isbn_13[-1]
-    except AssersionError:
+    except AssertionError:
         return
     return isbn_13[3:-1] + check_digit_10(isbn_13[3:-1])
