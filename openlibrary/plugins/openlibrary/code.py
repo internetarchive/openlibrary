@@ -448,6 +448,10 @@ class bookpage(delegate.page):
                 q = {"type": "/type/edition", 'source_records': 'ia:' + value}
                 result = web.ctx.site.things(q)
                 if result:
+                    raise redirect(result[0], ext, suffix)
+                q = {"type": "/type/volume", 'ia_id': value}
+                result = web.ctx.site.things(q)
+                if result:
                     raise redirect(redirect[0], ext, suffix)
             web.ctx.status = "404 Not Found"
             return render.notfound(web.ctx.path, create=False)
