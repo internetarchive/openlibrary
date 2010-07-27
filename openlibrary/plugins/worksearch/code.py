@@ -1,5 +1,5 @@
 import web, re, urllib, dbm
-from lxml.etree import parse, tostring, XML, XMLSyntaxError
+from lxml.etree import XML, XMLSyntaxError
 from infogami.utils import delegate
 from infogami import config
 from infogami.utils import view, template
@@ -779,22 +779,12 @@ def simple_search(q, offset=0, rows=20, sort=None):
 
 def top_books_from_author(akey, rows=5, offset=0):
     q = 'author_key:(' + akey + ')'
-    solr_select = solr_select_url + "?indent=on&version=2.2&q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=*%%2Cscore&qt=standard&wt=standard&explainOther=&hl=on&hl.fl=title" % (q, offset, rows)
-    solr_select += "&sort=edition_count+desc"
-
-    reply = urllib.urlopen(solr_select)
-    root = parse(reply).getroot()
-    result = root.find('result')
-    if result is None:
-        return []
-
-    books = [web.storage(
-        key=doc.find("str[@name='key']").text,
-        title=doc.find("str[@name='title']").text,
-        edition_count=int(doc.find("int[@name='edition_count']").text),
-    ) for doc in result]
-
-    return { 'books': books, 'total': int(result.attrib['numFound']) }
+    solr_select = solr_select_url + "?q=%s&start=%d&rows=%d&fl=key,title,edition_count&wt=json&sort=edition_count+desc" % (q, offset, rows)
+    response = json.load(urllib.urlopen(solr_select))['response']
+    return {
+        'books': [web.storage(doc) for doc in response['docs']],
+        'total': response['numFound'],
+    }
 
 def do_merge():
     return
