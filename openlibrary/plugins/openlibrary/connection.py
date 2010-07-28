@@ -5,7 +5,7 @@ from infogami.infobase import client, lru
 import web
 import simplejson
 
-default_cache_prefixes = ["/type/", "/l/", "/index.", "/about", "/css/", "/js/"]
+default_cache_prefixes = ["/type/", "/languages/", "/index.", "/about", "/css/", "/js/"]
 
 
 class ConnectionMiddleware:
