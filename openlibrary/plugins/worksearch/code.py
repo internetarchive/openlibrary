@@ -323,7 +323,9 @@ def get_doc(doc):
     e_overdrive = doc.find("str[@name='overdrive_s']")
     e_lending_edition = doc.find("str[@name='lending_edition_s']")
     e_collection = doc.find("str[@name='ia_collection_s']")
-    collections = set(e_collection.text.split(';')) if e_collection else set()
+    collections = set()
+    if e_collection is not None:
+        collections = set(e_collection.text.split(';'))
 
     doc = web.storage(
         key = doc.find("str[@name='key']").text,
@@ -748,9 +750,9 @@ def works_by_author(akey, sort='editions', page=1, rows=100):
     fields = ['key', 'author_name', 'author_key', 'title', 'subtitle',
         'edition_count', 'ia', 'cover_edition_key', 'has_fulltext',
         'first_publish_year', 'public_scan_b', 'lending_edition_s',
-        'overdrive_s']
+        'overdrive_s', 'ia_collection_s']
     fl = ','.join(fields)
-    solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=%s&qt=standard&wt=json" % (q, offset, rows, fl)
+    solr_select = solr_select_url + "?q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=%s&wt=json" % (q, offset, rows, fl)
     facet_fields = ["author_facet", "language", "publish_year", "publisher_facet", "subject_facet", "person_facet", "place_facet", "time_facet"]
     if sort == 'editions':
         solr_select += '&sort=edition_count+desc'
