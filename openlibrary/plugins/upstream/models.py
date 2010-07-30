@@ -118,7 +118,11 @@ class Edition(ol_code.Edition):
         ia = self.ocaid
         url = 'http://www.archive.org/download/%s/%s_meta.xml' % (ia, ia)
         reply = { 'collection': set() }
-        for line in urllib2.urlopen(url):
+        try:
+            f = urllib2.urlopen(url)
+        except:
+            return reply
+        for line in f:
             m = re_meta_field.search(line)
             if not m:
                 continue

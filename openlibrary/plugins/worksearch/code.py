@@ -1,5 +1,5 @@
 import web, re, urllib, dbm
-from lxml.etree import parse, tostring, XML, XMLSyntaxError
+from lxml.etree import XML, XMLSyntaxError
 from infogami.utils import delegate
 from infogami import config
 from infogami.utils import view, template
@@ -115,7 +115,7 @@ def url_quote(s):
         return ''
     return urllib.quote_plus(s.encode('utf-8'))
 
-def advanced_to_simple(params):
+def advanced_to_simple(params): # unused
     q_list = []
     q = params.get('q')
     if q and q != '*:*':
@@ -149,32 +149,38 @@ all_fields += field_name_map.keys()
 re_fields = re.compile('(-?' + '|'.join(all_fields) + r'):', re.I)
 
 plurals = dict((f + 's', f) for f in ('publisher', 'author'))
+
+re_op = re.compile(' +(OR|AND)$')
         
 def parse_query_fields(q):
     found = [(m.start(), m.end()) for m in re_fields.finditer(q)]
     first = q[:found[0][0]].strip() if found else q.strip()
     if first:
-        yield 'text', first.replace(':', '\:')
+        yield {'field': 'text', 'value': first.replace(':', '\:')}
     for field_num in range(len(found)):
+        op_found = None
         f = found[field_num]
         field_name = q[f[0]:f[1]-1].lower()
         if field_name in field_name_map:
             field_name = field_name_map[field_name]
         if field_num == len(found)-1:
-            value = q[f[1]:]
+            v = q[f[1]:].strip()
         else:
-            value = q[f[1]:found[field_num+1][0]]
-        yield field_name, value.strip().replace(':', '\:')
+            v = q[f[1]:found[field_num+1][0]].strip()
+            m = re_op.search(v)
+            if m:
+                v = v[:-len(m.group(0))]
+                op_found = m.group(1)
+        yield {'field': field_name, 'value': v.replace(':', '\:')}
+        if op_found:
+            yield {'op': op_found }
 
-def run_solr_query(param = {}, rows=100, page=1, sort=None, spellcheck_count=None):
-    if spellcheck_count == None:
-        spellcheck_count = default_spellcheck_count
+def build_q_list(param):
     q_list = []
     if 'q' in param:
         q_param = param['q'].strip()
     else:
         q_param = None
-    offset = rows * (page - 1)
     use_dismax = False
     if q_param:
         if q_param == '*:*':
@@ -182,7 +188,7 @@ def run_solr_query(param = {}, rows=100, page=1, sort=None, spellcheck_count=Non
         elif 'NOT ' in q_param: # this is a hack
             q_list.append(q_param.strip())
         elif re_fields.search(q_param):
-            q_list.extend('%s:(%s)' % i for i in parse_query_fields(q_param))
+            q_list.extend(i['op'] if 'op' in i else '%s:(%s)' % (i['field'], i['value']) for i in parse_query_fields(q_param))
         else:
             isbn = read_isbn(q_param)
             if isbn:
@@ -202,15 +208,23 @@ def run_solr_query(param = {}, rows=100, page=1, sort=None, spellcheck_count=Non
 
         check_params = ['title', 'publisher', 'isbn', 'oclc', 'lccn', 'contribtor', 'subject', 'place', 'person', 'time']
         q_list += ['%s:(%s)' % (k, param[k]) for k in check_params if k in param]
+    return (q_list, use_dismax)
 
-    fields = ['key', 'author_name', 'author_key', 'title', 'subtitle', 'edition_count', 'ia', 'has_fulltext', 'first_publish_year', 'cover_edition_key', 'public_scan_b', 'lending_edition_s', 'overdrive_s']
+def run_solr_query(param = {}, rows=100, page=1, sort=None, spellcheck_count=None):
+    if spellcheck_count == None:
+        spellcheck_count = default_spellcheck_count
+    offset = rows * (page - 1)
+
+    (q_list, use_dismax) = build_q_list(param)
+
+    fields = ['key', 'author_name', 'author_key', 'title', 'subtitle', 'edition_count', 'ia', 'has_fulltext', 'first_publish_year', 'cover_edition_key', 'public_scan_b', 'lending_edition_s', 'overdrive_s', 'ia_collection_s']
     fl = ','.join(fields)
     if use_dismax:
         q = web.urlquote(' '.join(q_list))
-        solr_select = solr_select_url + "?version=2.2&defType=dismax&q.op=AND&q=%s&qf=text+title^5+author_name^5&bf=sqrt(edition_count)^10&start=%d&rows=%d&fl=%s&qt=standard&wt=standard" % (q, offset, rows, fl)
+        solr_select = solr_select_url + "?defType=dismax&q.op=AND&q=%s&qf=text+title^5+author_name^5&bf=sqrt(edition_count)^10&start=%d&rows=%d&fl=%s&wt=standard" % (q, offset, rows, fl)
     else:
         q = web.urlquote(' '.join(q_list + ['_val_:"sqrt(edition_count)"^10']))
-        solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&start=%d&rows=%d&fl=%s&qt=standard&wt=standard" % (q, offset, rows, fl)
+        solr_select = solr_select_url + "?q.op=AND&q=%s&start=%d&rows=%d&fl=%s&wt=standard" % (q, offset, rows, fl)
     solr_select += '&spellcheck=true&spellcheck.count=%d' % spellcheck_count
     solr_select += "&facet=true&" + '&'.join("facet.field=" + f for f in facet_fields)
 
@@ -308,6 +322,10 @@ def get_doc(doc):
     e_public_scan = doc.find("bool[@name='public_scan_b']")
     e_overdrive = doc.find("str[@name='overdrive_s']")
     e_lending_edition = doc.find("str[@name='lending_edition_s']")
+    e_collection = doc.find("str[@name='ia_collection_s']")
+    collections = set()
+    if e_collection is not None:
+        collections = set(e_collection.text.split(';'))
 
     doc = web.storage(
         key = doc.find("str[@name='key']").text,
@@ -318,6 +336,7 @@ def get_doc(doc):
         public_scan = ((e_public_scan.text == 'true') if e_public_scan is not None else (e_ia is not None)),
         overdrive = (e_overdrive.text.split(';') if e_overdrive is not None else []),
         lending_edition = (e_lending_edition.text if e_lending_edition is not None else None),
+        collections = collections,
         authors = authors,
         first_publish_year = first_pub,
         first_edition = first_edition,
@@ -731,9 +750,9 @@ def works_by_author(akey, sort='editions', page=1, rows=100):
     fields = ['key', 'author_name', 'author_key', 'title', 'subtitle',
         'edition_count', 'ia', 'cover_edition_key', 'has_fulltext',
         'first_publish_year', 'public_scan_b', 'lending_edition_s',
-        'overdrive_s']
+        'overdrive_s', 'ia_collection_s']
     fl = ','.join(fields)
-    solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=%s&qt=standard&wt=json" % (q, offset, rows, fl)
+    solr_select = solr_select_url + "?q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=%s&wt=json" % (q, offset, rows, fl)
     facet_fields = ["author_facet", "language", "publish_year", "publisher_facet", "subject_facet", "person_facet", "place_facet", "time_facet"]
     if sort == 'editions':
         solr_select += '&sort=edition_count+desc'
@@ -779,22 +798,12 @@ def simple_search(q, offset=0, rows=20, sort=None):
 
 def top_books_from_author(akey, rows=5, offset=0):
     q = 'author_key:(' + akey + ')'
-    solr_select = solr_select_url + "?indent=on&version=2.2&q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=*%%2Cscore&qt=standard&wt=standard&explainOther=&hl=on&hl.fl=title" % (q, offset, rows)
-    solr_select += "&sort=edition_count+desc"
-
-    reply = urllib.urlopen(solr_select)
-    root = parse(reply).getroot()
-    result = root.find('result')
-    if result is None:
-        return []
-
-    books = [web.storage(
-        key=doc.find("str[@name='key']").text,
-        title=doc.find("str[@name='title']").text,
-        edition_count=int(doc.find("int[@name='edition_count']").text),
-    ) for doc in result]
-
-    return { 'books': books, 'total': int(result.attrib['numFound']) }
+    solr_select = solr_select_url + "?q=%s&start=%d&rows=%d&fl=key,title,edition_count&wt=json&sort=edition_count+desc" % (q, offset, rows)
+    response = json.load(urllib.urlopen(solr_select))['response']
+    return {
+        'books': [web.storage(doc) for doc in response['docs']],
+        'total': response['numFound'],
+    }
 
 def do_merge():
     return
@@ -877,7 +886,7 @@ class merge_authors(delegate.page):
             updates.append(master_author)
         web.ctx.site.save_many(updates, comment='merge authors', action="merge-authors")
 
-    def GET(self):
+    def POST(self):
         i = web.input(key=[], master=None)
         keys = []
         for key in i.key:
@@ -897,6 +906,8 @@ class merge_authors(delegate.page):
 
         return render['merge/authors'](errors, i.master, keys, \
             top_books_from_author, do_merge)
+
+    GET = POST
 
 class improve_search(delegate.page):
     def GET(self):

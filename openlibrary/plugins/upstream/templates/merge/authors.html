@@ -9,8 +9,6 @@ $def with (errors, master, keys, top_books_from_author, do_merge)
         buttons: {
             "Merge Authors": function() {
                 \$('#mergeForm').submit();
-                \$('p.merge').hide();
-                \$('p.merging').customFadeIn();
                 \$(this).parents().find('button').attr('disabled','disabled');
             },
             "Cancel": function() {
@@ -28,7 +26,9 @@ $def with (errors, master, keys, top_books_from_author, do_merge)
             return false;
         };
     });
-
+    \$("div.radio:first input[type=radio]").attr("checked","checked");
+    \$("div.checkbox:first input[type=checkbox]").attr("checked","checked");
+    \$("div.author:first").addClass("master");
     \$("#include input[type=radio]").mouseover(function(){
         \$(this).parent().parent().animate({backgroundColor:'#fefde6'},300);
     });
@@ -37,6 +37,7 @@ $def with (errors, master, keys, top_books_from_author, do_merge)
     });
     \$("#include input[type=radio]").click(function(){
         \$(".merge").find("div.master").removeClass("master");
+        \$("#mergeForm").attr("action", \$(".count a", \$(this).parent().parent()).attr("href"));
         \$(this).parent().parent().addClass("master");
         \$(this).parent().parent().find("input[type=checkbox]").attr('checked', true);
     });
@@ -77,11 +78,11 @@ $if errors:
 <div id="confirmMerge" title="Confirm Merge" style="text-align:left;">
     <p class="merge">Are you sure you want to merge these records into a single Author?<br/><br/>
     <span class="red">This action cannot be reverted!</span></p>
-    <p class="hidden merging">Hang on while those records are merged....</p>
 </div>
 
-<form method="get" action="/authors/merge" id="mergeForm" name="mergeForm">
-
+$# make into a post
+<form method="get" action="/authors/$(keys[0] if keys else "")" id="mergeForm" name="mergeForm">
+    <input type="hidden" name="merge" value="true"/>
     <div class="merge" id="include">
 
         <div class="entry header">
@@ -92,14 +93,14 @@ $if errors:
         </div>
 
         $for k in keys:
-            $ a=get_document('/authors/' + k)
+            $ a = get_document('/authors/' + k)
             $ top = top_books_from_author(k)
-            <div class="entry">
-                <div class="data input">
+            <div class="entry author">
+                <div class="data input radio">
                     $:radio_input(checked=(master==k), name='master', value=k)
                 </div>
-                <div class="data input">
-                    <input type="checkbox" value="$k" name="key" id="$k" $cond(master, 'checked="checked"', '')/>
+                <div class="data input checkbox">
+                    <input type="checkbox" value="$k" name="merge_key" id="$k" $cond(master, 'checked="checked"', '')/>
                 </div>
                 <div class="data record">
                     <label for="$k">

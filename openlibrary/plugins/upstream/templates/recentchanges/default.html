@@ -1,0 +1,46 @@
+$def with (change)
+
+<div id="contentHead">
+    <h1>$_("Change")</h1>
+</div>
+
+$def display(label, value):
+    <div>
+        <span class="title">$label:</span>
+        <span class="tag">$value</span>
+    </div>
+
+<div id="contentBody">
+
+    <div>
+        <span class="title">Id:</span>
+        <span class="tag">$change.id</span>
+    </div>
+
+    <div>
+        <span class="title">Kind:</span>
+        <span class="tag">$change.kind</span>
+    </div>
+    <div>
+        <span class="title">Timestamp:</span>
+        <span class="tag">$change.timestamp.isoformat()</span>
+    </div>
+    <div>
+        <span class="title">Comment:</span>
+        <span class="tag">$change.comment</span>
+    </div>
+
+    <div>
+        <span class="title">Author:</span>
+        $if change.author:
+            <span class="tag"><a href="$change.author.key">$change.author.displayname</a></span>
+        $else:
+            <span class="tag">$change.ip</span>
+    </div>
+
+    <h3>Updated Records</h3>
+    <ul class="changeHistory">
+        $for c in change.get_changes():
+            <li><a href="$c.key?v=$c.revision">$c.key@$c.revision</a></li>
+    </ul>
+</div>

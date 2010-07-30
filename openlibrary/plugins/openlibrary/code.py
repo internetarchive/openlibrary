@@ -73,6 +73,8 @@ public(zip)
 public(tuple)
 public(isbn_13_to_isbn_10)
 public(time)
+public(web.input)
+public(simplejson.dumps)
 web.template.Template.globals['NEWLINE'] = "\n"
 
 # Remove movefiles install hook. openlibrary manages its own files.
@@ -444,6 +446,10 @@ class bookpage(delegate.page):
                 raise redirect(result[0], ext, suffix)
             elif key =='ocaid':
                 q = {"type": "/type/edition", 'source_records': 'ia:' + value}
+                result = web.ctx.site.things(q)
+                if result:
+                    raise redirect(result[0], ext, suffix)
+                q = {"type": "/type/volume", 'ia_id': value}
                 result = web.ctx.site.things(q)
                 if result:
                     raise redirect(redirect[0], ext, suffix)
