@@ -1,5 +1,5 @@
 import unittest
-from openlibrary.plugins.worksearch.code import search, advanced_to_simple, read_facets, sorted_work_editions, parse_query_fields, escape_bracket, run_solr_query, get_doc
+from openlibrary.plugins.worksearch.code import search, advanced_to_simple, read_facets, sorted_work_editions, parse_query_fields, escape_bracket, run_solr_query, get_doc, build_q_list
 from lxml import etree
 from infogami import config
 
@@ -68,12 +68,15 @@ class TestWorkSearch(unittest.TestCase):
     def test_query_parser_fields(self):
         func = parse_query_fields
 
-        expect = [('text', 'query here')]
+        expect = [{'field': 'text', 'value': 'query here'}]
         q = 'query here'
         print q
         self.assertEqual(list(func(q)), expect)
 
-        expect = [('title', 'food rules'), ('author_name', 'pollan')]
+        expect = [
+            {'field': 'title', 'value': 'food rules'},
+            {'field': 'author_name', 'value': 'pollan'},
+        ]
 
         q = 'title:food rules author:pollan'
         self.assertEqual(list(func(q)), expect)
@@ -84,33 +87,52 @@ class TestWorkSearch(unittest.TestCase):
         q = 'Title:food rules By:pollan'
         self.assertEqual(list(func(q)), expect)
 
-        expect = [('title', '"food rules"'), ('author_name', 'pollan')]
+        expect = [
+            {'field': 'title', 'value': '"food rules"'},
+            {'field': 'author_name', 'value': 'pollan'},
+        ]
         q = 'title:"food rules" author:pollan'
         self.assertEqual(list(func(q)), expect)
 
-        expect = [('text', 'query here'), ('title', 'food rules'), ('author_name', 'pollan')]
+        expect = [
+            {'field': 'text', 'value': 'query here'},
+            {'field': 'title', 'value': 'food rules'},
+            {'field': 'author_name', 'value': 'pollan'},
+        ]
         q = 'query here title:food rules author:pollan'
         self.assertEqual(list(func(q)), expect)
 
-        expect = [('text', 'flatland\:a romance of many dimensions')]
+        expect = [
+            {'field': 'text', 'value': 'flatland\:a romance of many dimensions'},
+        ]
         q = 'flatland:a romance of many dimensions'
         self.assertEqual(list(func(q)), expect)
 
-        expect = [('title', 'flatland\:a romance of many dimensions')]
+        expect = [
+            { 'field': 'title', 'value': 'flatland\:a romance of many dimensions'},
+        ]
         q = 'title:flatland:a romance of many dimensions'
         self.assertEqual(list(func(q)), expect)
 
-    def test_public_scan(self):
-        param = {'subject_facet': ['Lending library']}
-        (reply, solr_select, q_list) = run_solr_query(param, rows = 10, spellcheck_count = 3)
-        print solr_select
-        print q_list
-        print reply
-        root = etree.XML(reply)
-        docs = root.find('result')
-        for doc in docs:
-            self.assertEqual(get_doc(doc).public_scan, False)
+        expect = [
+            { 'field': 'author_name', 'value': 'Kim Harrison' },
+            { 'op': 'OR' },
+            { 'field': 'author_name', 'value': 'Lynsay Sands' },
+        ]
+        q = 'authors:Kim Harrison OR authors:Lynsay Sands'
+        self.assertEqual(list(func(q)), expect)
 
+#     def test_public_scan(self):
+#         param = {'subject_facet': ['Lending library']}
+#         (reply, solr_select, q_list) = run_solr_query(param, rows = 10, spellcheck_count = 3)
+#         print solr_select
+#         print q_list
+#         print reply
+#         root = etree.XML(reply)
+#         docs = root.find('result')
+#         for doc in docs:
+#             self.assertEqual(get_doc(doc).public_scan, False)
+ 
     def test_get_doc(self):
         sample_doc = etree.fromstring('''<doc>
   <arr name="author_key"><str>OL218224A</str></arr>
@@ -128,3 +150,19 @@ class TestWorkSearch(unittest.TestCase):
 
         doc = get_doc(sample_doc)
         self.assertEqual(doc.public_scan, False)
+
+    def test_build_q_list(self):
+        param = {'q': 'test'}
+        expect = (['test'], True)
+        self.assertEqual(build_q_list(param), expect)
+
+        param = {'q': 'title:(Holidays are Hell) authors:(Kim Harrison) OR authors:(Lynsay Sands)'}
+        expect = (['title:((Holidays are Hell))', 'author_name:((Kim Harrison))', 'OR', 'author_name:((Lynsay Sands))'], False)
+        query_fields = [
+            {'field': 'title', 'value': '(Holidays are Hell)'},
+            {'field': 'author_name', 'value': '(Kim Harrison)'},
+            {'op': 'OR'},
+            {'field': 'author_name', 'value': '(Lynsay Sands)'}
+        ]
+        self.assertEqual(list(parse_query_fields(param['q'])), query_fields)
+        self.assertEqual(build_q_list(param), expect)
