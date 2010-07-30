@@ -366,6 +366,7 @@ def work_object(w):
         public_scan = w.get('public_scan_b', bool(ia)),
         lending_edition = w.get('lending_edition_s', ''),
         overdrive = (w['overdrive_s'].split(';') if 'overdrive_s' in w else []),
+        collections = set(w['ia_collection_s'].split(';') if 'ia_collection_s' in w else []),
         url = '/works/' + w['key'] + '/' + urlsafe(w['title']),
         cover_edition_key = w.get('cover_edition_key'),
         first_publish_year = (w['first_publish_year'] if 'first_publish_year' in w else None),
