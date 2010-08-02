@@ -1,0 +1,39 @@
+$def with (changes)
+
+$def get_comment(change):
+    $ t = get_template("recentchanges/" + change.kind + "/comment") or get_template("recentchanges/default/comment")
+    $:t(change)
+
+$var title: $_("Recent Changes")
+
+<div id="contentHead">
+    <div class="head">
+        <h1>$_("Recent Changes")</h1>
+    </div>
+</div>
+
+<div id="contentBody">
+    <table class="changeHistory">
+        <thead>
+            <tr>
+                <th>$_("When")</th>
+                <th>$_("Who")</th>
+                <th>$_("What")</th>
+            </tr>
+        </thead>
+        <tbody>
+        $for c in changes:
+            <tr>
+                $ url_format = "/recentchanges/%(year)d/%(month)02d/%(day)02d/%(kind)s/%(id)s"
+                <td class="time"><a href="$c.url(url_format)">$datestr(c.timestamp)</td>
+                $if c.author:
+                    <td class="displayname"><a rel="nofollow" href="$c.author.key" title="$c.author.displayname">$c.author.displayname</a></td>
+                $elif c.ip and c.ip != '127.0.0.1':
+                    <td class="history"><a rel="nofollow" href="$changequery(ip=c.ip)" title="When you see numbers here, that's the IP address of the anonymous editor">$c.ip</a></td>
+                $else:
+                    <td class="history">$c.ip</td>
+                <td class="comment">$:get_comment(c)</td>
+            </tr>
+        </tbody>
+    </table>
+</div>

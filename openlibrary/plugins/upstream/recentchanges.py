@@ -8,6 +8,38 @@ from infogami.utils import delegate
 from infogami.utils.view import render, render_template
 from infogami.utils import features
 
+from openlibrary.utils import dateutil
+
+class index(delegate.page):
+    path = "/recentchanges(/[^/0-9][^/]*)?"
+
+    def is_enabled(self):
+        return features.is_enabled("recentchanges_v2")    
+    
+    def GET(self, kind):
+        return self.render(kind=kind)
+    
+    def render(self, date=None, kind=None):
+        query = {}
+        
+        if date:
+            begin_date, end_date = dateutil.parse_daterange(date)
+            query['begin_date'] = begin_date.isoformat()
+            query['end_date'] = end_date.isoformat()
+        
+        if kind:
+            query['kind'] = kind
+                
+        changes = web.ctx.site.recentchanges(query)
+        return render_template("recentchanges/index", changes)
+
+class index_with_date(index):
+    path = "/recentchanges/(\d\d\d\d(?:/\d\d)?(?:/\d\d)?)(/[^/]*)?"
+    
+    def GET(self, date, kind):
+        date = date.replace("/", "-")
+        return self.render(kind=kind, date=date)
+
 class recentchanges_view(delegate.page):
     path = "/recentchanges/\d\d\d\d/\d\d/\d\d/[^/]*/(\d+)"
     
@@ -34,3 +66,5 @@ class recentchanges_view(delegate.page):
                 return render_template(tname, change)
             else:
                 return render_template("recentchanges/default", change)
+    
+    
