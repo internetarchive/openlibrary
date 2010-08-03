@@ -62,13 +62,16 @@ class Disk:
         self.root = root
 
     def get_many(self, keys):
-        return [{
-                    "key": k, 
-                    "type": {"key": "/type/template"}, 
-                    "body": {
-                        "type": "/type/text", 
-                        "value": open(self.root + k.replace(".tmpl", ".html")).read()}}
-                for k in keys]
+        def f(k):
+            return {
+                "key": k, 
+                "type": {"key": "/type/template"}, 
+                "body": {
+                    "type": "/type/text", 
+                    "value": open(self.root + k.replace(".tmpl", ".html")).read()
+                }
+            }
+        return dict((k, f(k)) for k in keys)
 
     def save_many(self, docs, comment=None):
         def write(path, text):
@@ -133,7 +136,7 @@ def copy(src, dest, keys, comment, recursive=False, saved=None, cache=None):
         keys = [k for k in keys if k not in cache]
         if keys:
             print "fetching", keys
-            docs2 = marshal(src.get_many(keys))
+            docs2 = marshal(src.get_many(keys).values())
             cache.update((doc['key'], doc) for doc in docs2)
             docs.extend(docs2)
         return docs
