@@ -5,14 +5,10 @@ $def with (change)
 </div>
 
 <div id="contentBody">
-    
     <div id="mergeHead" class="sansserif">
         $change.comment
     </div>
 
     <h3>Updated Records</h3>
-    <ul class="changeHistory">
-        $for c in change.get_changes():
-            <li><a href="$c.key?v=$c.revision">$c.key@$c.revision</a></li>
-    </ul>
+    $:render_template("recentchanges/updated_records", change)
 </div>
