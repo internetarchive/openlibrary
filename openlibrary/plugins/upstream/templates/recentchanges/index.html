@@ -1,7 +1,8 @@
 $def with (changes)
 
-$def get_comment(change):
-    $ t = get_template("recentchanges/" + change.kind + "/comment") or get_template("recentchanges/default/comment")
+
+$def call_template(name, change):
+    $ t = get_template("recentchanges/" + change.kind + "/" + name) or get_template("recentchanges/default/" + name)
     $:t(change)
 
 $var title: $_("Recent Changes")
@@ -17,22 +18,23 @@ $var title: $_("Recent Changes")
         <thead>
             <tr>
                 <th>$_("When")</th>
-                <th>$_("Who")</th>
                 <th>$_("What")</th>
+                <th>$_("Who")</th>
+                <th>&#191;Qu&#233;?</th>
             </tr>
         </thead>
         <tbody>
         $for c in changes:
             <tr>
-                $ url_format = "/recentchanges/%(year)d/%(month)02d/%(day)02d/%(kind)s/%(id)s"
-                <td class="time"><a href="$c.url(url_format)">$datestr(c.timestamp)</td>
+                <td class="time">$datestr(c.timestamp)</td>
+                <td class="path">$:call_template("path", c)</td>
                 $if c.author:
                     <td class="displayname"><a rel="nofollow" href="$c.author.key" title="$c.author.displayname">$c.author.displayname</a></td>
                 $elif c.ip and c.ip != '127.0.0.1':
                     <td class="history"><a rel="nofollow" href="$changequery(ip=c.ip)" title="When you see numbers here, that's the IP address of the anonymous editor">$c.ip</a></td>
                 $else:
                     <td class="history">$c.ip</td>
-                <td class="comment">$:get_comment(c)</td>
+                <td class="comment">$:call_template("comment", c)</td>
             </tr>
         </tbody>
     </table>

@@ -1,14 +1,8 @@
 $def with (change)
 
 <div id="contentHead">
-    <h1>$_("Change")</h1>
+    $:render_template("recentchanges/header", change)
 </div>
-
-$def display(label, value):
-    <div>
-        <span class="title">$label:</span>
-        <span class="tag">$value</span>
-    </div>
 
 <div id="contentBody">
 
@@ -28,14 +22,6 @@ $def display(label, value):
     <div>
         <span class="title">Comment:</span>
         <span class="tag">$change.comment</span>
-    </div>
-
-    <div>
-        <span class="title">Author:</span>
-        $if change.author:
-            <span class="tag"><a href="$change.author.key">$change.author.displayname</a></span>
-        $else:
-            <span class="tag">$change.ip</span>
     </div>
 
     <h3>Updated Records</h3>

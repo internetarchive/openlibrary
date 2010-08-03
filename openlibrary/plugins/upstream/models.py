@@ -636,6 +636,18 @@ class UnitParser:
         m = rx.match(s)
         return m and web.storage(zip(self.fields + ["units"], m.groups()))
 
+class Changeset(client.Changeset):
+    def can_undo(self):
+        return False
+
+class MergeAuthors(Changeset):
+    def can_undo(self):
+        return True
+        
+    def get_master(self):
+        master = self.data.get("master")
+        return master and web.ctx.site.get(master)
+
 def setup():
     client.register_thing_class('/type/edition', Edition)
     client.register_thing_class('/type/author', Author)
@@ -645,3 +657,7 @@ def setup():
     client.register_thing_class('/type/place', SubjectPlace)
     client.register_thing_class('/type/person', SubjectPerson)
     client.register_thing_class('/type/user', User)
+
+    client.register_changeset_class(None, Changeset) # set the default class
+    client.register_changeset_class('merge-authors', MergeAuthors)
+

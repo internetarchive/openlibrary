@@ -61,10 +61,10 @@ class recentchanges_view(delegate.page):
         if path != web.ctx.path:
             raise web.redirect(path)
         else:
-            tname = "recentchanges/" + change.kind
+            tname = "recentchanges/" + change.kind + "/view"
             if tname in render:
                 return render_template(tname, change)
             else:
-                return render_template("recentchanges/default", change)
+                return render_template("recentchanges/default/view", change)
     
     
