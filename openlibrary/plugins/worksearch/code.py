@@ -912,7 +912,7 @@ class merge_authors(delegate.page):
             selected=selected
         )
         
-        if not master or not len(selected) < 2:
+        if not i.master or len(selected) < 2:
             return render_template("merge/authors", keys, top_books_from_author=top_books_from_author, formdata=formdata)
         else:
             self.db_merge('/authors/' + i.master, ['/authors/' + k for k in selected])
