@@ -817,6 +817,9 @@ def uniq(values):
 
 class merge_authors(delegate.page):
     path = '/authors/merge'
+    
+    def is_enabled(self):
+        return "merge-authors" in web.ctx.features
 
     def do_merge(self, master, old_keys):
         master_author = web.ctx.site.get(master).dict()
@@ -915,7 +918,7 @@ class merge_authors(delegate.page):
         if not i.master or len(selected) < 2:
             return render_template("merge/authors", keys, top_books_from_author=top_books_from_author, formdata=formdata)
         else:
-            self.db_merge('/authors/' + i.master, ['/authors/' + k for k in selected])
+            self.do_merge('/authors/' + i.master, ['/authors/' + k for k in selected])
             add_flash_message("info", 'authors merged, search should be updated within 5 minutes')
             raise web.seeother('/authors/' + i.master)
 
