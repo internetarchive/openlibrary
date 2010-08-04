@@ -5,10 +5,14 @@ This should go into infogami.
 import web
 
 from infogami.utils import delegate
-from infogami.utils.view import render, render_template
+from infogami.utils.view import public, render, render_template
 from infogami.utils import features
 
 from openlibrary.utils import dateutil
+
+@public
+def recentchanges(query):
+    return web.ctx.site.recentchanges(query)
 
 class index(delegate.page):
     path = "/recentchanges(/[^/0-9][^/]*)?"
@@ -30,8 +34,7 @@ class index(delegate.page):
         if kind:
             query['kind'] = kind
                 
-        changes = web.ctx.site.recentchanges(query)
-        return render_template("recentchanges/index", changes)
+        return render_template("recentchanges/index", query)
 
 class index_with_date(index):
     path = "/recentchanges/(\d\d\d\d(?:/\d\d)?(?:/\d\d)?)(/[^/]*)?"
