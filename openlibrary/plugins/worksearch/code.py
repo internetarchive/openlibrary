@@ -2,8 +2,7 @@ import web, re, urllib, dbm
 from lxml.etree import XML, XMLSyntaxError
 from infogami.utils import delegate
 from infogami import config
-from infogami.utils import view, template
-from infogami.utils.view import safeint, add_flash_message
+from infogami.utils.view import render, render_template, safeint, add_flash_message
 import simplejson as json
 from openlibrary.plugins.openlibrary.processors import urlsafe
 from unicodedata import normalize
@@ -12,7 +11,7 @@ from collections import defaultdict
 ftoken_db = None
 
 try:
-    from openlibrary.plugins.upstream.utils import get_coverstore_url, render_template
+    from openlibrary.plugins.upstream.utils import get_coverstore_url
 except AttributeError:
     pass # unittest
 from openlibrary.plugins.search.code import search as _edition_search
@@ -61,8 +60,6 @@ def read_author_facet(af):
         return af.split('\t')
     else:
         return re_author_facet.match(af).groups()
-
-render = template.render
 
 search_fields = ["key", "redirects", "title", "subtitle", "alternative_title", "alternative_subtitle", "edition_key", "by_statement", "publish_date", "lccn", "ia", "oclc", "isbn", "contributor", "publish_place", "publisher", "first_sentence", "author_key", "author_name", "author_alternative_name", "subject", "person", "place", "time"]
 
@@ -808,6 +805,15 @@ def top_books_from_author(akey, rows=5, offset=0):
 
 def do_merge():
     return
+    
+def uniq(values):
+    s = set()
+    result = []
+    for v in values:
+        if v not in s:
+            s.add(v)
+            result.append(v)
+    return result
 
 class merge_authors(delegate.page):
     path = '/authors/merge'
@@ -885,30 +891,33 @@ class merge_authors(delegate.page):
 
         if master_needs_save:
             updates.append(master_author)
-        web.ctx.site.save_many(updates, comment='merge authors', action="merge-authors")
-
+        data = {
+            "master": master,
+            "duplicates": list(old_keys)
+        }
+        web.ctx.site.save_many(updates, comment='merge authors', action="merge-authors", data=data)
+        
+    def GET(self):
+        i = web.input(key=[])
+        keys = uniq(i.key)        
+        return render_template('merge/authors', keys, top_books_from_author=top_books_from_author)
+        
     def POST(self):
-        i = web.input(key=[], master=None)
-        keys = []
-        for key in i.key:
-            if key not in keys:
-                keys.append(key)
-        errors = []
-        if i.master == '':
-            errors += ['you must select a master author record']
-        if not keys:
-            errors += ['no authors selected']
-
-        if not errors and i.master:
-            old_keys = set('/authors/' + k for k in keys if k != i.master) 
-            self.do_merge('/authors/' + i.master, old_keys)
+        i = web.input(key=[], master=None, merge_key=[])
+        keys = uniq(i.key)
+        selected = set(i.merge_key)
+        
+        formdata = web.storage(
+            master=i.master, 
+            selected=selected
+        )
+        
+        if not master or not len(selected) < 2:
+            return render_template("merge/authors", keys, top_books_from_author=top_books_from_author, formdata=formdata)
+        else:
+            self.db_merge('/authors/' + i.master, ['/authors/' + k for k in selected])
             add_flash_message("info", 'authors merged, search should be updated within 5 minutes')
             raise web.seeother('/authors/' + i.master)
-
-        return render['merge/authors'](errors, i.master, keys, \
-            top_books_from_author, do_merge)
-
-    GET = POST
 
 class improve_search(delegate.page):
     def GET(self):
