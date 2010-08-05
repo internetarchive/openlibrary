@@ -898,7 +898,7 @@ class merge_authors(delegate.page):
             "master": master,
             "duplicates": list(old_keys)
         }
-        web.ctx.site.save_many(updates, comment='merge authors', action="merge-authors", data=data)
+        return web.ctx.site.save_many(updates, comment='merge authors', action="merge-authors", data=data)
         
     def GET(self):
         i = web.input(key=[])
@@ -908,19 +908,42 @@ class merge_authors(delegate.page):
     def POST(self):
         i = web.input(key=[], master=None, merge_key=[])
         keys = uniq(i.key)
-        selected = set(i.merge_key)
+        selected = uniq(i.merge_key)
         
+        # doesn't make sense to merge master with it self.
+        if i.master in selected:
+            selected.remove(i.master)
+                
         formdata = web.storage(
             master=i.master, 
             selected=selected
         )
         
-        if not i.master or len(selected) < 2:
+        if not i.master or len(selected) == 0:
             return render_template("merge/authors", keys, top_books_from_author=top_books_from_author, formdata=formdata)
-        else:
-            self.do_merge('/authors/' + i.master, ['/authors/' + k for k in selected])
-            add_flash_message("info", 'authors merged, search should be updated within 5 minutes')
-            raise web.seeother('/authors/' + i.master)
+        else:                
+            # redirect to the master. The master will display a progressbar and call the merge_authors_json to trigger the merge.
+            master = web.ctx.site.get("/authors/" + i.master)
+            raise web.seeother(master.url() + "?merge=true&duplicates=" + ",".join(selected))
+			
+class merge_authors_json(delegate.page):
+    """JSON API for merge authors. 
+    
+    This is called from the master author page to trigger the merge while displaying progress.
+    """
+    path = "/authors/merge"
+    encoding = "json"
+	
+    def is_enabled(self):
+        return "merge-authors" in web.ctx.features
+	
+    def POST(self):
+        jsontext = web.data()
+        data = json.loads(jsontext)
+        master = data['master']
+        duplicates = data['duplicates']
+        result = merge_authors().do_merge(master, duplicates)
+        return delegate.RawText(json.dumps(result),  content_type="application/json")
 
 class improve_search(delegate.page):
     def GET(self):
