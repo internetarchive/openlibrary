@@ -23,7 +23,7 @@ vemail = RegexpValidator(r".*@.*", _("Must be a valid email address"))
 
 Register = Form(
     Textbox("displayname", description=_("Your Full Name")),
-    Textbox('email', description=_('Your Email Address'), klass='required', validators=[vemail, email_not_already_used, email_not_dispostable]),
+    Textbox('email', description=_('Your Email Address'), klass='required', validators=[vemail, email_not_already_used, email_not_disposable]),
     Textbox('username', description=_('Choose a Username'), klass='required', help=_("Only letters and numbers, please, and at least 3 characters."), 
         validators=[vlogin, username_validator]),
     Password('password', description=_('Choose a Password'), klass='required', validators=[vpass])
