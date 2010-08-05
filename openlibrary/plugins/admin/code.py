@@ -177,7 +177,7 @@ class block:
         i = web.input()
         
         page = web.ctx.get("/admin/block") or web.ctx.site.new("/admin/block", {"key": "/admin/block", "type": "/type/object"})
-        ips = [d.strip() for d in i.ips.split('\n') if d.get('ip')]
+        ips = [d.strip() for d in i.ips.split('\r\n')]
         page.ips = ips
         page._save("update blocked IPs")
         add_flash_message("info", "Saved!")
