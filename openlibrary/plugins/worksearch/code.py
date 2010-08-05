@@ -898,7 +898,7 @@ class merge_authors(delegate.page):
             "master": master,
             "duplicates": list(old_keys)
         }
-        web.ctx.site.save_many(updates, comment='merge authors', action="merge-authors", data=data)
+        return web.ctx.site.save_many(updates, comment='merge authors', action="merge-authors", data=data)
         
     def GET(self):
         i = web.input(key=[])
@@ -934,11 +934,12 @@ class merge_authors_json(delegate.page):
         return "merge-authors" in web.ctx.features
 	
     def POST(self):
-        json = web.data()
-        data = simplejson.loads(json)
+        jsontext = web.data()
+        data = json.loads(jsontext)
         master = data['master']
         duplicates = data['duplicates']
-        return merge_authors().do_merge(master, duplicates)
+        result = merge_authors().do_merge(master, duplicates)
+        return delegate.RawText(json.dumps(result),  content_type="application/json")
 
 class improve_search(delegate.page):
     def GET(self):
