@@ -918,9 +918,27 @@ class merge_authors(delegate.page):
         if not i.master or len(selected) < 2:
             return render_template("merge/authors", keys, top_books_from_author=top_books_from_author, formdata=formdata)
         else:
-            self.do_merge('/authors/' + i.master, ['/authors/' + k for k in selected])
-            add_flash_message("info", 'authors merged, search should be updated within 5 minutes')
-            raise web.seeother('/authors/' + i.master)
+            # redirect to the master. The master will display a progressbar and call the merge_authors_json to trigger the merge.
+            master = web.ctx.site.get("/authors/" + i.master)
+            raise web.seeother(master.url() + "?merge=true&duplicates=" + ",".join(selected))
+			
+class merge_authors_json(delegate.page):
+    """JSON API for merge authors. 
+    
+    This is called from the master author page to trigger the merge while displaying progress.
+    """
+    path = "/authors/merge"
+    encoding = "json"
+	
+    def is_enabled(self):
+        return "merge-authors" in web.ctx.features
+	
+    def POST(self):
+        json = web.data()
+        data = simplejson.loads(json)
+        master = data['master']
+        duplicates = data['duplicates']
+        return merge_authors().do_merge(master, duplicates)
 
 class improve_search(delegate.page):
     def GET(self):
