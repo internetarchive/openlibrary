@@ -32,7 +32,7 @@ class index(delegate.page):
             query['end_date'] = end_date.isoformat()
         
         if kind:
-            query['kind'] = kind
+            query['kind'] = kind and kind.strip("/")
                 
         return render_template("recentchanges/index", query)
 
