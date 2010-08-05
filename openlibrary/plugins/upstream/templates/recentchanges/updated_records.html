@@ -3,6 +3,17 @@ $def with (change)
 $def call_template(name, change):
     $ t = get_template("recentchanges/" + change.kind + "/" + name) or get_template("recentchanges/default/" + name)
     $:t(change)
+    
+$ all_changes = change.get_changes()
+    
+    
+$ page = safeint(query_param('page', '1'))
+$ pagesize = 50
+$ pagecount = (len(all_changes)+pagesize-1)/pagesize
+$ offset = (page-1) * pagesize
+
+$ changes = all_changes[offset:offset+pagesize]
+
 
 <table class="changeHistory">
     <thead>
@@ -13,7 +24,7 @@ $def call_template(name, change):
         </tr>
     </thead>
     <tbody>
-        $for thing in change.get_changes():
+        $for thing in changes:
         <tr>
             <td class="time">$datestr(change.timestamp)</td>
             $# show book title/author name instead of key
@@ -36,3 +47,5 @@ $def call_template(name, change):
         </tr>
     </tbody>
 </table>
+
+$:render_template("lib/pagination", pagecount, page, lambda page: changequery(page=page))
