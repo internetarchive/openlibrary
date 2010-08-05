@@ -1,4 +1,4 @@
-$def with (errors, master, keys, top_books_from_author, do_merge)
+$def with (keys, top_books_from_author, formdata=None)
 
 <script type="text/javascript">
 \$().ready(function(){
@@ -9,8 +9,6 @@ $def with (errors, master, keys, top_books_from_author, do_merge)
         buttons: {
             "Merge Authors": function() {
                 \$('#mergeForm').submit();
-                \$('p.merge').hide();
-                \$('p.merging').customFadeIn();
                 \$(this).parents().find('button').attr('disabled','disabled');
             },
             "Cancel": function() {
@@ -39,6 +37,7 @@ $def with (errors, master, keys, top_books_from_author, do_merge)
     });
     \$("#include input[type=radio]").click(function(){
         \$(".merge").find("div.master").removeClass("master");
+        \$("#mergeForm").attr("action", \$(".count a", \$(this).parent().parent()).attr("href"));
         \$(this).parent().parent().addClass("master");
         \$(this).parent().parent().find("input[type=checkbox]").attr('checked', true);
     });
@@ -50,15 +49,16 @@ $def with (errors, master, keys, top_books_from_author, do_merge)
 </div>
 
 <div id="contentBody">
-
-$if errors:
-    <div class="sansserif attn">
-    Errors:<br/>
-    <ul>
-    $for error in errors:
-        <li>$error</li>
-    </ul>
-    </div>
+    
+$if not keys:
+    $# TODO: improve this message. This error comes when no author keys are passed as url parameters.
+    <div class="note">$_("No authors provided.")</div>
+    
+$if formdata: 
+    $if not formdata.master:
+        <div class="note">$_("Please select a master author record.")</div>
+    $if len(formdata.selected) < 2:
+        <div class="note">$_("Please select some authors to merge.")</div>
 
 <ol class="sansserif">
     <li>Select a &quot;master&quot; record that best represents the author - 
@@ -79,11 +79,10 @@ $if errors:
 <div id="confirmMerge" title="Confirm Merge" style="text-align:left;">
     <p class="merge">Are you sure you want to merge these records into a single Author?<br/><br/>
     <span class="red">This action cannot be reverted!</span></p>
-    <p class="hidden merging">Hang on while those records are merged....</p>
 </div>
 
-<form method="get" action="/authors/merge" id="mergeForm" name="mergeForm">
-
+<form method="POST" id="mergeForm" name="mergeForm">
+    <input type="hidden" name="merge" value="true"/>
     <div class="merge" id="include">
 
         <div class="entry header">
@@ -92,16 +91,21 @@ $if errors:
             <div class="data record smaller"><strong>Authors</strong></div>
             <div class="data count">&nbsp;</div>
         </div>
+        
+        $if keys:
+            $ master = formdata and formdata.master or keys[0]
+        $else:
+            $ master = None
 
         $for k in keys:
-            $ a=get_document('/authors/' + k)
+            $ a = get_document('/authors/' + k)
             $ top = top_books_from_author(k)
             <div class="entry author">
                 <div class="data input radio">
-                    $:radio_input(checked=(master==k), name='master', value=k)
+                    $:radio_input(checked=(k==master), name='master', value=k)
                 </div>
                 <div class="data input checkbox">
-                    <input type="checkbox" value="$k" name="key" id="$k" $cond(master, 'checked="checked"', '')/>
+                    <input type="checkbox" value="$k" name="merge_key" id="$k" $cond(formdata and k in formdata.selected, 'checked="checked"', '')/>
                 </div>
                 <div class="data record">
                     <label for="$k">
@@ -117,10 +121,9 @@ $if errors:
                     </ul>
                 </div>
                 <div class="data count">
-                    <a href="/authors/$k" target="new" title="$_('Visit this author\'s page in a new window')">$commify(top['total']) work$("s" if top['total'] != 1 else "")</a>
+                    <a href="/authors/$k" target="new" title="$_('Visit this author\'s page in a new window')">$sprintf(ungettext("%s work", "%s works", top['total']), top['total'])</a>
                 </div>
             </div>
-
     </div>
 
 <p>
