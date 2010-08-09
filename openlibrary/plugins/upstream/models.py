@@ -646,7 +646,11 @@ class MergeAuthors(Changeset):
         
     def get_master(self):
         master = self.data.get("master")
-        return master and web.ctx.site.get(master)
+        return master and web.ctx.site.get(master, lazy=True)
+        
+    def get_duplicates(self):
+        duplicates = self.data.get("duplicates")
+        return duplicates and [web.ctx.site.get(key, lazy=True) for key in duplicates]
 
 def setup():
     client.register_thing_class('/type/edition', Edition)

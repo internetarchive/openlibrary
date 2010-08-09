@@ -14,7 +14,7 @@ import StringIO
 
 from infogami import config
 from infogami.utils import view, delegate
-from infogami.utils.view import render, public, _format
+from infogami.utils.view import render, get_template, public, _format
 from infogami.utils.macro import macro
 from infogami.utils.markdown import markdown
 from infogami.utils.context import context
@@ -552,12 +552,39 @@ def _get_recent_changes():
         
     return result
     
+def _get_recent_changes2():
+    """New recent changes for around the library.
+    
+    This function returns the message to display for each change.
+    The message is get by calling `recentchanges/$kind/message.html` template.
+    
+    If `$var ignore=True` is set by the message template, the change is ignored.
+    """
+    if 'env' not in web.ctx:
+        delegate.fakeload()
+    
+    q = {"bot": False, "limit": 100}
+    changes = web.ctx.site.recentchanges(q)
+    
+    def render(c):
+        t = get_template("recentchanges/" + c.kind + "/message") or get_template("recentchanges/default/message")
+        return t(c)
+
+    messages = [render(c) for c in changes]
+    messages = [m for m in messages if str(m.get("ignore", "false")).lower() != "true"]
+    return messages
+    
 _get_recent_changes = web.memoize(_get_recent_changes, expires=5*60, background=True)
+_get_recent_changes2 = web.memoize(_get_recent_changes2, expires=5*60, background=True)
 
 @public
 def get_random_recent_changes(n):
-    changes = _get_recent_changes()
-    return random.sample(changes, n)    
+    if "recentchanges_v2" in web.ctx.features:
+        changes = _get_recent_changes2()
+    else:
+        changes = _get_recent_changes()
+        
+    return random.sample(changes, n)  
 
 @public
 def sprintf(s, *a, **kw):

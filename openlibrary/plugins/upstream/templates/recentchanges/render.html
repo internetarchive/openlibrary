@@ -7,6 +7,7 @@ $def call_template(name, change):
     $:t(change)
 
 $ changes = recentchanges(dict(query, limit=limit, offset=(page-1) * limit))
+$var length = len(changes)
 
 <table class="changeHistory">
     <thead>
