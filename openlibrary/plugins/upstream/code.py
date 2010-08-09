@@ -24,6 +24,7 @@ import models
 import covers
 import borrow
 import recentchanges
+import merge_authors
 
 if not config.get('coverstore_url'):
     config.coverstore_url = "http://covers.openlibrary.org"
@@ -241,6 +242,7 @@ def setup():
     utils.setup()
     addbook.setup()
     covers.setup()
+    merge_authors.setup()
     
     import data
     data.setup()

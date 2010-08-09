@@ -1,6 +1,8 @@
 """Merge authors.
 """
 import web
+import simplejson
+from infogami.utils import delegate
 
 class MergeAuthorsImpl:
     def merge(self, master, duplicates):
@@ -39,8 +41,7 @@ class MergeAuthorsImpl:
             r = {
                 'key': old,
                 'type': {'key': '/type/redirect'},
-                'location': master,
-                'limit': 10000,
+                'location': master
             }
             updates.append(r)
 
@@ -84,3 +85,66 @@ class MergeAuthorsImpl:
             "duplicates": list(duplicates)
         }
         return web.ctx.site.save_many(updates, comment='merge authors', action="merge-authors", data=data)
+
+def uniq(values):
+    s = set()
+    result = []
+    for v in values:
+        if v not in s:
+            s.add(v)
+            result.append(v)
+    return result
+
+class merge_authors(delegate.page):
+    path = '/authors/merge'
+
+    def is_enabled(self):
+        return "merge-authors" in web.ctx.features
+
+    def GET(self):
+        i = web.input(key=[])
+        keys = uniq(i.key)        
+        return render_template('merge/authors', keys, top_books_from_author=top_books_from_author)
+
+    def POST(self):
+        i = web.input(key=[], master=None, merge_key=[])
+        keys = uniq(i.key)
+        selected = uniq(i.merge_key)
+
+        # doesn't make sense to merge master with it self.
+        if i.master in selected:
+            selected.remove(i.master)
+
+        formdata = web.storage(
+            master=i.master, 
+            selected=selected
+        )
+
+        if not i.master or len(selected) == 0:
+            return render_template("merge/authors", keys, top_books_from_author=top_books_from_author, formdata=formdata)
+        else:                
+            # redirect to the master. The master will display a progressbar and call the merge_authors_json to trigger the merge.
+            master = web.ctx.site.get("/authors/" + i.master)
+            raise web.seeother(master.url() + "?merge=true&duplicates=" + ",".join(selected))
+
+class merge_authors_json(delegate.page):
+    """JSON API for merge authors. 
+
+    This is called from the master author page to trigger the merge while displaying progress.
+    """
+    path = "/authors/merge"
+    encoding = "json"
+
+    def is_enabled(self):
+        return "merge-authors" in web.ctx.features
+
+    def POST(self):
+        jsontext = web.data()
+        data = simplejson.loads(json)
+        master = data['master']
+        duplicates = data['duplicates']
+        result = merge_authors().do_merge(master, duplicates)
+        return delegate.RawText(json.dumps(result),  content_type="application/json")
+
+def setup():
+    pass
