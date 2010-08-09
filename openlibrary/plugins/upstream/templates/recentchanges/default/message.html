@@ -11,7 +11,7 @@ $if len(change.changes) == 1:
     $if doc.type.key in ['/type/edition', '/type/work']:
         $ what = doc.title or doc.key
     $elif doc.key == '/type/author':
-        $ what = doc.thing.name or doc.key
+        $ what = doc.name or doc.key
     $else:
         $ what = doc.key
     $ what = '<a href="%s" rel="nofollow">%s</a>' % (doc.key, what)
