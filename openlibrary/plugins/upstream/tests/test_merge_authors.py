@@ -5,7 +5,7 @@ from infogami.utils import delegate
 
 from infogami.infobase.tests.pytest_wildcard import *
 
-from .. import merge
+from .. import merge_authors
 
 def setup_module(mod):
     delegate.fakeload()
@@ -13,13 +13,17 @@ def setup_module(mod):
 class MockSite:
     def __init__(self):
         self.docs = {}
+        self.query_results = {}
         
     def get(self, key):
         doc = self.docs[key]
         return client.create_thing(self, key, doc)
         
     def things(self, query):
-        return []
+        return self.query_results.get(merge_authors.dicthash(query), [])
+        
+    def add_query(self, query, result):
+        self.query_results[merge_authors.dicthash(query)] = result
         
     def get_dict(self, key):
         return self.get(key).dict()
@@ -68,14 +72,118 @@ testdata = web.storage({
     }
 })
 
-class TestMergeAuthorsImpl:
+class TestBasicMergeEngine:
     def setup_method(self, method):
-        self.merger = merge.MergeAuthorsImpl()
+        self.engine = merge_authors.BasicMergeEngine()
         web.ctx.site = MockSite()
+        
+    def test_make_redirect_doc(self):
+        assert self.engine.make_redirect_doc("/a", "/b") == {
+            "key": "/a",
+            "type": {"key": "/type/redirect"},
+            "location": "/b"
+        }
+    
+    def test_convert_doc(self):
+        doc = {
+            "key": "/a",
+            "type": {"key": "/type/object"},
+            "x1": [{"key": "/b"}],
+            "x2": [{"key": "/b"}, {"key": "/c"}],
+            "y1": {
+                "a": "foo",
+                "b": {"key": "/b"}
+            },
+            "y2": [{
+                "a": "foo",
+                "b": {"key": "/b"}
+            }, {
+                "a": "foo",
+                "b": {"key": "/c"}
+            }]
+        }
+        
+        assert self.engine.convert_doc(doc, "/c", ["/b"]) == {
+            "key": "/a",
+            "type": {"key": "/type/object"},
+            "x1": [{"key": "/c"}],
+            "x2": [{"key": "/c"}],
+            "y1": {
+                "a": "foo",
+                "b": {"key": "/c"}
+            },
+            "y2": [{
+                "a": "foo",
+                "b": {"key": "/c"}
+            }]
+        }
+    
+    def test_merge_property(self):
+        assert self.engine.merge_property(None, "hello") == "hello"
+        assert self.engine.merge_property("hello", None) == "hello"
+        assert self.engine.merge_property("foo", "bar") == "foo"
+        assert self.engine.merge_property(["foo"], ["bar"]) == ["foo", "bar"]
+        assert self.engine.merge_property(None, ["bar"]) == ["bar"]
+ 
+class TestAuthorMergeEngine:
+    def setup_method(self, method):
+        self.engine = merge_authors.AuthorMergeEngine()
+        web.ctx.site = MockSite()
+    
+    def test_fix_edition(self):
+        edition = {
+            "key": "/books/OL2M",
+            "authors": [{"key": "/authors/OL2A"}],
+            "title": "book 1"
+        }
+        
+        # edition having duplicate author
+        self.engine.convert_doc(edition, "/authors/OL1A", ["/authors/OL2A"]) == {
+            "key": "/books/OL2M",
+            "authors": [{"key": "/authors/OL1A"}],
+            "title": "book 1"
+        }
+
+        # edition not having duplicate author
+        self.engine.convert_doc(edition, "/authors/OL1A", ["/authors/OL3A"]) == {
+            "key": "/books/OL2M",
+            "authors": [{"key": "/authors/OL2A"}],
+            "title": "book 1"
+        }        
+        
+    def test_fix_work(self):
+        work = {
+            "key": "/works/OL2W",
+            "authors": [{
+                "type": {"key": "/type/author_role"},
+                "author": {"key": "/authors/OL2A"}
+            }],
+            "title": "book 1"
+        }
+        
+        # work having duplicate author
+        self.engine.convert_doc(work, "/authors/OL1A", ["/authors/OL2A"]) == {
+            "key": "/works/OL2W",
+            "authors": [{
+                "type": {"key": "/type/author_role"},
+                "author": {"key": "/authors/OL1A"}
+            }],
+            "title": "book 1"
+        }
+
+        # work not having duplicate author
+        self.engine.convert_doc(work, "/authors/OL1A", ["/authors/OL3A"]) == {
+            "key": "/works/OL2W",
+            "authors": [{
+                "type": {"key": "/type/author_role"},
+                "author": {"key": "/authors/OL2A"}
+            }],
+            "title": "book 1"
+        }
         
     def test_redirection(self):
         web.ctx.site.add([testdata.a, testdata.b, testdata.c])
-        self.merger.merge("/authors/a", ["/authors/b", "/authors/c"])
+        self.engine.merge("/authors/a", ["/authors/b", "/authors/c"])
         
         # assert redirection
         assert web.ctx.site.get("/authors/b").dict() == {
@@ -91,7 +199,7 @@ class TestMergeAuthorsImpl:
         
     def test_alternate_names(self):
         web.ctx.site.add([testdata.a, testdata.b, testdata.c])
-        self.merger.merge("/authors/a", ["/authors/b", "/authors/c"])
+        self.engine.merge("/authors/a", ["/authors/b", "/authors/c"])
         assert web.ctx.site.get("/authors/a").alternate_names == ["b", "c"]
 
     def test_photos(self):
@@ -99,7 +207,7 @@ class TestMergeAuthorsImpl:
         b = dict(testdata.b, photos=[3, 4])
 
         web.ctx.site.add([a, b])
-        self.merger.merge("/authors/a", ["/authors/b"])
+        self.engine.merge("/authors/a", ["/authors/b"])
         
         photos = web.ctx.site.get("/authors/a").photos
         assert photos == [1, 2, 3, 4]
@@ -118,7 +226,7 @@ class TestMergeAuthorsImpl:
         b = dict(testdata.b, links=[link_b])
         web.ctx.site.add([a, b])
         
-        self.merger.merge("/authors/a", ["/authors/b"])
+        self.engine.merge("/authors/a", ["/authors/b"])
         links = web.ctx.site.get("/authors/a").links        
         assert links == [link_a, link_b]
         
@@ -131,6 +239,45 @@ class TestMergeAuthorsImpl:
         b = dict(testdata.b, birth_date=birth_date)
         web.ctx.site.add([a, b])
         
-        self.merger.merge("/authors/a", ["/authors/b"])
+        self.engine.merge("/authors/a", ["/authors/b"])
         master_birth_date = web.ctx.site.get("/authors/a").get('birth_date')
         assert master_birth_date == birth_date
+        
+    def test_work_authors(self):
+        a = testdata.a
+        b = testdata.b
+        work_b = {
+            "key": "/works/OL1W",
+            "type": {"key": "/type/work"},
+            "authors": [{
+                "type": "/type/author_role",
+                "author": {"key": "/authors/b"}
+            }]
+        }
+        web.ctx.site.add([a, b, work_b])
+        
+        q = {
+            "type": "/type/work", 
+            "authors": {
+                "author": {"key": "/authors/b"}
+            },
+            "limit": 10000
+        }
+        web.ctx.site.add_query(q, ["/works/OL1W"])
+        
+        self.engine.merge("/authors/a", ["/authors/b"])
+        assert web.ctx.site.get_dict("/works/OL1W") == {
+            "key": "/works/OL1W",
+            "type": {"key": "/type/work"},
+            "authors": [{
+                "type": "/type/author_role",
+                "author": {"key": "/authors/a"}
+            }]
+        }
+
+def test_dicthash():
+    uniq = merge_authors.uniq
+    dicthash = merge_authors.dicthash
+    
+    a = {"a": 1}
+    assert uniq([a, a], key=dicthash) == [a]
