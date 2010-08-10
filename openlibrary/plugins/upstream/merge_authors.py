@@ -100,6 +100,7 @@ class AuthorMergeEngine(BasicMergeEngine):
         master = BasicMergeEngine.merge_docs(self, master, dup)
         if 'name' in dup:
             master.setdefault('alternate_names', []).append(dup['name'])
+        master['alternate_names'] = uniq(master['alternate_names'])
         return master
         
     def save(self, docs, master, duplicates):
