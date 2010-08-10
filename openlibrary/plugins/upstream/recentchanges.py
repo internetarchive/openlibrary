@@ -13,9 +13,18 @@ from openlibrary.utils import dateutil
 @public
 def recentchanges(query):
     return web.ctx.site.recentchanges(query)
+    
+class index2(delegate.page):
+    path = "/recentchanges"
+    
+    def GET(self):
+        if features.is_enabled("recentchanges_v2"):
+            return index().render()
+        else:
+            return render.recentchanges()
 
 class index(delegate.page):
-    path = "/recentchanges(/[^/0-9][^/]*)?"
+    path = "/recentchanges(/[^/0-9][^/]*)"
 
     def is_enabled(self):
         return features.is_enabled("recentchanges_v2")    
