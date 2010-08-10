@@ -5,7 +5,7 @@ This should go into infogami.
 import web
 
 from infogami.utils import delegate
-from infogami.utils.view import public, render, render_template
+from infogami.utils.view import public, render, render_template, add_flash_message
 from infogami.utils import features
 
 from openlibrary.utils import dateutil
@@ -69,5 +69,13 @@ class recentchanges_view(delegate.page):
                 return render_template(tname, change)
             else:
                 return render_template("recentchanges/default/view", change)
-    
-    
+                
+    def POST(self, id):
+        if not features.is_enabled("undo"):
+            return render_template("permission_denied", web.ctx.path, "Permission denied to undo.")
+            
+        id = int(id)
+        change = web.ctx.site.get_change(id)
+        change._undo()
+        add_flash_message("info", "Changes are successfully undone.")
+        raise web.seeother(change.url())

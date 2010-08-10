@@ -639,6 +639,26 @@ class UnitParser:
 class Changeset(client.Changeset):
     def can_undo(self):
         return False
+        
+    def _undo(self):
+        """Undo this transaction."""
+        docs = {}
+        
+        def get_doc(key, revision):
+            if revision == 0:
+                return {
+                    "key": key,
+                    "type": {"key": "/type/delete"}
+                }
+            else:
+                return web.ctx.site.get(key, revision).dict()
+        
+        docs = [get_doc(c['key'], c['revision']-1) for c in self.changes]
+        data = {
+            "undo_of": self.id
+        }
+        comment = 'undo ' + self.comment
+        return web.ctx.site.save_many(docs, action="undo", data=data, comment=comment)
 
 class MergeAuthors(Changeset):
     def can_undo(self):
@@ -651,6 +671,14 @@ class MergeAuthors(Changeset):
     def get_duplicates(self):
         duplicates = self.data.get("duplicates")
         return duplicates and [web.ctx.site.get(key, lazy=True) for key in duplicates]
+        
+class Undo(Changeset):
+    def can_undo(self):
+        return False
+    
+    def get_undo_of(self):
+        undo_of = self.data['undo_of']
+        return web.ctx.site.get_change(undo_of)
 
 def setup():
     client.register_thing_class('/type/edition', Edition)
@@ -664,4 +692,5 @@ def setup():
 
     client.register_changeset_class(None, Changeset) # set the default class
     client.register_changeset_class('merge-authors', MergeAuthors)
+    client.register_changeset_class('undo', Undo)
 
