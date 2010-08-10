@@ -1,20 +1,28 @@
 $def with (page)
 
-<script type="text/javascript">
-<!--
-\$().ready(function() {
-   if ("$query_param('merge', 'false')" == "true") {
-       \$("#preMerge").parent().andSelf().show();
-      var data = {"master": "$input(master=None).master",
-                   "key": $:dumps(input(merge_key=[]).merge_key)};
-       \$.post("/authors/merge", data,
-               function(result, status, req) {
-                  \$("#preMerge").fadeOut(); \$("#postMerge").fadeIn();
-               });
-   }
-});
-//-->
-</script>
+$if "merge-authors" in ctx.features and query_param('merge', 'false') == 'true':
+    <script type="text/javascript">
+    // <!--
+    \$().ready(function() {
+        if ("$query_param('merge', 'false')" == "true") {
+            \$("#preMerge").parent().andSelf().show();
+
+            $ duplicates = ["/authors/" + k for k in query_param("duplicates", "").split(",")]            
+            var data = {
+                "master": "$page.key",
+                "duplicates": $:json_encode(duplicates)
+            };
+            \$.post("/authors/merge.json", JSON.stringify(data),
+                function(result, status, req) {
+                    \$("#preMerge").fadeOut(); \$("#postMerge").fadeIn();
+                }, 
+                "json"
+            );
+        }
+    });
+    //-->
+    </script>
+
 $var title: $page.get('name', 'name missing')
 $var history: $page.history
 
@@ -35,6 +43,8 @@ $putctx("description", "Books by " + page.get("name", ""))
         $if page.date:
             $page.date
     </h2>
+    $if ctx.user and ctx.user.is_admin():
+        <span class="adminOnly"><a href="http://edward.openlibrary.org/work_finder$page.key">run work finder</a></span>
 </div>
 
 <script type="text/javascript">
@@ -45,26 +55,26 @@ $putctx("description", "Books by " + page.get("name", ""))
 
 <div id="contentBody">
 
-   <div class="message hidden">
-        <div id="preMerge" class="hidden">
-            <p class="larger collapse"><strong>Merging Authors...</strong></p>
-            <p class="collapse adjust"><img src="/images/ajax-loader-bar.gif" width="220" height="19" alt="In progress..."/></p>
-            <p class="smaller lightgreen collapse">Duplicates</p>
-            <p class="small collapse">
-                <ul>
-                    $for key in input(merge_key=[]).merge_key:
-                         <li>
-                             $get_document("/authors/%s" % key).name; 
-                             <small>(/authors/$key)</small>
-                         </li>
-            </p>
+    $if "merge-authors" in ctx.features and query_param('merge', 'false') == 'true':
+       <div class="message hidden">
+            <div id="preMerge" class="hidden">
+                <p class="larger collapse"><strong>Merging Authors...</strong></p>
+                <p class="collapse adjust"><img src="/images/ajax-loader-bar.gif" width="220" height="19" alt="In progress..."/></p>
+                <p class="smaller lightgreen collapse">Duplicates</p>
+                <p class="small collapse">
+                    <ul>
+                        $ duplicates = ["/authors/" + k for k in query_param("duplicates", "").split(",")]
+                        $for key in duplicates:
+                             <li> $get_document(key).name; <small>($key)</small></li>
+                    </ul>
+                </p>
+            </div>
+            <div id="postMerge" class="hidden">
+                <p class="larger collapse"><strong>Success!</strong></p>
+                <p class="right small"><a href="javascript:;" onclick="$('.message').slideUp('slow');">Done?</a></p>
+                <p class="small collapse">Those authors have been merged into this master.</p>
+            </div>
         </div>
-        <div id="postMerge" class="hidden">
-            <p class="larger collapse"><strong>Success!</strong></p>
-            <p class="right small"><a href="javascript:;" onclick="$('.message').slideUp('slow');">Done?</a></p>
-            <p class="small collapse">Your author merge has successfuly completed.</p>
-        </div>
-    </div>
 
     <div class="contentTwothird" style="margin-bottom:0;">
 
@@ -88,16 +98,13 @@ $putctx("description", "Books by " + page.get("name", ""))
         <div class="section">
             <a name="editions"></a>
                 <h2 class="collapse">
-                    $_("Books by this Author")
-                    <span class="count">
-                        $commify(books.num_found) book$("s" if books.num_found != 1 else "") &nbsp;
-                        <span class="smaller"><a href="/books/add?author=$page.key">Add another</a>? <a href="#" title="This doesn't work yet" class="fixthis">Merge duplicates</a>?</span>
-                    </span>
+                    $commify(books.num_found) book$("s" if books.num_found != 1 else "")
+                    <span class="count smaller"><a href="/books/add?author=$page.key">Add another</a>?</span>
                 </h2>
                 <a name="books"></a>
                 <p><span class="tools">
                 $if books.num_found > 1:
-                    <img src="/images/icons/icon_sort.png" alt="Sorting by" width="9" height="11" style="margin-right:10px;"/> 
+                    <img src="/images/icons/icon_sort.png" alt="Sorting by" width="9" height="11" style="margin-right:5px;"/> 
                     $if books.sort == 'editions':
                         <strong class="lightgreen">Most Editions</strong> | <a href="$changequery(sort='old')#editions">First Published</a> | <a href="$changequery(sort='new')#editions">Most Recent</a> 
                     $elif books.sort == 'old':
@@ -146,6 +153,13 @@ $putctx("description", "Books by " + page.get("name", ""))
                                     <span class="label">Borrow</span>
                                 </a>
                             </span>
+                        $elif 'printdisabled' in doc.collections:
+                            <span class="actions read">
+                                <a href="$doc.key" title="Protected DAISY">
+                                    <span class="image daisy"></span>
+                                    <span class="label">DAISY</span>
+                                </a>
+                            </span>
                         </li>
                     </ul>
                 </div>
@@ -188,7 +202,7 @@ $putctx("description", "Books by " + page.get("name", ""))
                     <li><a href="$link.url">$link.title</a></li>
                 </ul>
             $else:
-                <p>No links found. <a href="$page.url('/edit')#web">Add one</a>.</p>
+                <p class="sansserif small">No links yet. <a href="$page.url('/edit')#web">Add one</a>?</p>
 
         </div>
 
