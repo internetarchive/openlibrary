@@ -11,7 +11,7 @@ $elif change.author:
     $ who = '<a href="%s" rel="nofollow">%s</a>' % (change.author.key, change.author.displayname or change.author.key)
     $ master_html = '<a href="%s">%s</a>' % (master.key, master.name)
     $:sprintf(msg, who=who, count=len(duplicates), master=master_html)
-    <span class="timestamp">$when</span>
+    <span class="timestamp">$datestr(change.timestamp)</span>
 $else:
     $ msg = ungettext("one duplicate of %(master)s was merged anonymously", "%(count)d duplicates of %(master)s were merged anonymously", len(duplicates))
     

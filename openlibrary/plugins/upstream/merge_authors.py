@@ -3,6 +3,9 @@
 import web
 import simplejson
 from infogami.utils import delegate
+from infogami.utils.view import render_template
+
+from openlibrary.plugins.worksearch.code import top_books_from_author
 
 class BasicMergeEngine:
     """Generic merge functionality useful for all types of merges.
@@ -97,10 +100,12 @@ class BasicMergeEngine:
 
 class AuthorMergeEngine(BasicMergeEngine):
     def merge_docs(self, master, dup):
-        master = BasicMergeEngine.merge_docs(self, master, dup)
-        if 'name' in dup:
-            master.setdefault('alternate_names', []).append(dup['name'])
-        master['alternate_names'] = uniq(master['alternate_names'])
+        # avoid merging other types.
+        if dup['type']['key'] == '/type/author':
+            master = BasicMergeEngine.merge_docs(self, master, dup)
+            if 'name' in dup:
+                master.setdefault('alternate_names', []).append(dup['name'])
+            master['alternate_names'] = uniq(master['alternate_names'])
         return master
         
     def save(self, docs, master, duplicates):
@@ -160,16 +165,27 @@ class merge_authors(delegate.page):
 
     def is_enabled(self):
         return "merge-authors" in web.ctx.features
+        
+    def filter_authors(self, keys):
+        docs = web.ctx.site.get_many(["/authors/" + k for k in keys])
+        d = dict((doc.key, doc.type.key) for doc in docs)
+        return [k for k in keys if d.get("/authors/" + k) == '/type/author']
 
     def GET(self):
         i = web.input(key=[])
-        keys = uniq(i.key)        
+        keys = uniq(i.key)
+        
+        # filter bad keys
+        keys = self.filter_authors(keys)
         return render_template('merge/authors', keys, top_books_from_author=top_books_from_author)
 
     def POST(self):
         i = web.input(key=[], master=None, merge_key=[])
         keys = uniq(i.key)
         selected = uniq(i.merge_key)
+        
+        # filter bad keys
+        keys = self.filter_authors(keys)        
 
         # doesn't make sense to merge master with it self.
         if i.master in selected:
