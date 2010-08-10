@@ -670,7 +670,9 @@ class MergeAuthors(Changeset):
         
     def get_duplicates(self):
         duplicates = self.data.get("duplicates")
-        return duplicates and [web.ctx.site.get(key, lazy=True) for key in duplicates]
+        changes = dict((c['key'], c['revision']) for c in self.changes)
+        
+        return duplicates and [web.ctx.site.get(key, revision=changes[key]-1, lazy=True) for key in duplicates if key in changes]
         
 class Undo(Changeset):
     def can_undo(self):

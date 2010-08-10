@@ -4,7 +4,36 @@ $def with (change)
     $:render_template("recentchanges/header", change, label="Author Merge")
 </div>
 
+$ master = change.get_master()
+
 <div id="contentBody">
+    <div id="mergeHead" class="sansserif">
+        <div class="smallest lightgreen">Master</div>
+        
+        <div id="recordMaster">
+            <span id="recordMasterTitle" class="larger">
+                <strong>$master.name</strong>
+            </span>
+            <span id="recordMasterDate" class="smaller">
+                $if master.birth_date or master.death_date:
+                    $if master.birth_date and master.death_date:
+                        ($master.birth_date - $master.death_date)
+                    $elif master.birth_date:
+                        ($master.birth_date - )
+                    $else:
+                        ( - $master.death_date)
+            </span>
+        </div>
+        
+        <div class="smallest lightgreen">Duplicates</div>
+        <div id="recordDuplicates">
+            <p class="small collapse">
+                $for dup in change.get_duplicates():
+                    $dup.name;
+            </p>
+        </div>
+    </div>
+    
     <h3>Updated Records</h3>
     $:render_template("recentchanges/updated_records", change)
 </div>
