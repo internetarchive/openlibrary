@@ -10,37 +10,47 @@ from openlibrary.solr.update_work import update_work, solr_update, update_author
 from openlibrary.api import OpenLibrary, Reference
 from openlibrary.catalog.read_rc import read_rc
 from openlibrary import config
-from optparse import OptionParser
+import argparse
 from os.path import exists
 import sys
 
-parser = OptionParser()
+parser = argparse.ArgumentParser(description='update solr')
+parser.add_argument('--server', default='openlibrary.org')
+parser.add_argument('--config', default='openlibrary.yml')
+parser.add_argument('--author_limit', default=100)
+parser.add_argument('--work_limit', default=100)
+parser.add_argument('--skip_user', action='append', default=[])
+parser.add_argument('--only_user', action='append', default=[])
+parser.add_argument('--state_file', default='solr_update')
+parser.add_argument('--handle_author_merge', action='store_true')
+parser.add_argument('--no_commit', action='store_true')
+parser.add_argument('--no_author_updates', action='store_true')
+parser.add_argument('--just_consider_authors', action='store_true')
+parser.add_argument('--limit', default=None)
 
-parser.add_option("--server", dest="server", default='openlibrary.org')
-parser.add_option("--config", dest="config", default='openlibrary.yml')
-parser.add_option("--statefile", dest="state_file", default='solr_update')
-
-handle_author_merge = False
+args = parser.parse_args()
+handle_author_merge = args.handle_author_merge
 
 if handle_author_merge:
     from openlibrary.catalog.works.find_works import find_title_redirects, find_works, get_books, books_query, update_works
 
-(options, args) = parser.parse_args()
-
-ol = OpenLibrary("http://" + options.server)
-set_query_host(options.server)
+ol = OpenLibrary("http://" + args.server)
+set_query_host(args.server)
 done_login = False
 
-config_file = options.config
+config_file = args.config
 config.load(config_file)
 
 base = 'http://%s/openlibrary.org/log/' % config.runtime_config['infobase_server']
+
+skip_user = set(u.lower() for u in args.skip_user)
+only_user = set(u.lower() for u in args.only_user)
 
 if 'state_dir' not in config.runtime_config:
     print 'state_dir missing from ' + config_file
     sys.exit(0)
 
-state_file = config.runtime_config['state_dir'] + '/' + options.state_file
+state_file = config.runtime_config['state_dir'] + '/' + args.state_file
 
 if not exists(state_file):
     print 'start point needed. do this:'
@@ -53,7 +63,10 @@ offset = open(state_file).readline()[:-1]
 print 'start:', offset
 authors_to_update = set()
 works_to_update = set()
+subjects_to_update = set()
 last_update = time()
+author_limit = int(args.author_limit)
+work_limit = int(args.work_limit)
 
 def run_update():
     global authors_to_update
@@ -96,15 +109,16 @@ def run_update():
 #                solr_update(['<commit/>'], debug=True)
         if requests:
             solr_update(requests, debug=True)
-        solr_update(['<commit/>'], debug=True)
+        if not args.no_commit:
+            solr_update(['<commit/>'], debug=True)
     last_update = time()
-    print >> open(state_file, 'w'), offset
-    if authors_to_update:
+    if not args.no_author_updates and authors_to_update:
         requests = []
         for akey in authors_to_update:
             print 'update author:', akey
             requests += update_author(akey)
-        solr_update(requests + ['<commit/>'], index='authors', debug=True)
+        if not args.no_commit:
+            solr_update(requests + ['<commit/>'], index='authors', debug=True)
     authors_to_update = set()
     works_to_update = set()
     print >> open(state_file, 'w'), offset
@@ -118,9 +132,12 @@ def process_save(key, query):
         authors_to_update.add(key)
         q = {
             'type':'/type/work',
-            'authors':{'author':{'key': key}}
+            'authors':{'author':{'key': key}},
+            'limit':0,
         }
         works_to_update.update(ol.query(q))
+        return
+    elif args.just_consider_authors:
         return
     if key.startswith('/works/'):
         works_to_update.add(key)
@@ -140,14 +157,22 @@ def process_save(key, query):
 
 while True:
     url = base + offset
+    if args.limit:
+        url += '?limit=' + args.limit
+    print url
     try:
-        ret = simplejson.load(urlopen(url))
+        data = urlopen(url).read()
     except URLError as inst:
         if inst.args and inst.args[0].args == (111, 'Connection refused'):
             print 'make sure infogami server is working, connection refused from:'
             print url
             sys.exit(0)
         print 'url:', url
+        raise
+    try:
+        ret = simplejson.loads(data)
+    except:
+        open('bad_data.json', 'w').write(data)
         raise
 
     offset = ret['offset']
@@ -163,7 +188,13 @@ while True:
         if action == 'new_account':
             continue
         author = i['data'].get('author', None) if 'data' in i else None
-        if author in ('/user/AccountBot', '/people/AccountBot'):
+        lc_author = None
+        if author:
+            author = author.split('/')[-1]
+            lc_author = author.lower()
+            if lc_author in skip_user or (only_user and lc_author not in only_user):
+                continue
+        if author == 'AccountBot':
             if action not in ('save', 'save_many'):
                 print action, author, key, i.keys()
                 print i['data']
@@ -187,6 +218,6 @@ while True:
                 key = query.pop('key')
                 process_save(key, query)
     since_last_update = time() - last_update
-    if len(works_to_update) > 100 or len(authors_to_update) > 100 or since_last_update > 60 * 30:
+    if len(works_to_update) > work_limit or len(authors_to_update) > author_limit or since_last_update > 60 * 30:
         run_update()
 
