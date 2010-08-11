@@ -856,11 +856,14 @@ class search_json(delegate.page):
             query = simplejson.loads(i.query)
         else:
             query = i
+            
+        limit = query.pop("limit", None)
+        offset = safeint(query.pop("offset", 0))
         
         from openlibrary.utils.solr import Solr
         import simplejson
         
         solr = Solr("http://%s/solr/works" % solr_host)
-        result = solr.select(query)
+        result = solr.select(query, rows=limit, start=offset)
         web.header('Content-Type', 'application/json')
         return delegate.RawText(simplejson.dumps(result, indent=True))
