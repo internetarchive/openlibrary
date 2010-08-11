@@ -2,11 +2,12 @@
 
 import _init_path
 
-from urllib2 import urlopen, URLError
-import simplejson
+from urllib import urlopen, quote_plus
+import simplejson, re
 from time import time, sleep
 from openlibrary.catalog.utils.query import withKey, set_query_host
-from openlibrary.solr.update_work import update_work, solr_update, update_author, AuthorRedirect
+from openlibrary.solr.update_work import update_work, solr_update, update_author, AuthorRedirect, get_work_subjects, add_field, strip_bad_char
+from lxml.etree import tostring, Element
 from openlibrary.api import OpenLibrary, Reference
 from openlibrary.catalog.read_rc import read_rc
 from openlibrary import config
@@ -63,14 +64,42 @@ offset = open(state_file).readline()[:-1]
 print 'start:', offset
 authors_to_update = set()
 works_to_update = set()
-subjects_to_update = set()
 last_update = time()
 author_limit = int(args.author_limit)
 work_limit = int(args.work_limit)
 
+to_drop = set(''';/?:@&=+$,<>#%"{}|\\^[]`\n\r''')
+
+def str_to_key(s):
+    return ''.join(c if c != ' ' else '_' for c in s.lower() if c not in to_drop)
+
+re_escape = re.compile("([%s])" % re.escape(r'+-!(){}[]^"~*?:\\'))
+
+def subject_count(field, subject):
+    key = re_escape.sub(r'\\\1', str_to_key(subject)).encode('utf-8')
+    data = urlopen('http://ia331508:8983/solr/works/select?indent=on&wt=json&rows=0&q=%s_key:%s' % (field, key)).read()
+    ret = simplejson.loads(data)
+    return ret['response']['numFound']
+
+def subject_need_update(key, count):
+    escape_key = quote_plus(re_escape.sub(r'\\\1', key).encode('utf-8'))
+
+    reply = urlopen('http://ia331509:8983/solr/subjects/select?indent=on&wt=json&q=key:"' + escape_key + '"').read()
+
+    try:
+        docs = simplejson.loads(reply)['response']['docs']
+    except:
+        print (key, escape_key)
+        print reply
+        raise
+    if not docs:
+        return True
+    assert len(docs) == 1
+    return count == docs[0]['count']
+
 def run_update():
-    global authors_to_update
-    global works_to_update
+    global authors_to_update, works_to_update
+    subjects_to_update = set()
     global last_update
     print 'running update: %s works %s authors' % (len(works_to_update), len(authors_to_update))
     if works_to_update:
@@ -83,9 +112,10 @@ def run_update():
             if '/' in wkey[7:]:
                 print 'bad wkey:', wkey
                 continue
+            work_to_update = withKey(wkey)
             for attempt in range(5):
                 try:
-                    requests += update_work(withKey(wkey))
+                    requests += update_work(work_to_update)
                     break
                 except AuthorRedirect:
                     print 'fixing author redirect'
@@ -96,17 +126,21 @@ def run_update():
                         if r['type'] == '/type/redirect':
                             a['author'] = {'key': r['location']}
                             need_update = True
-                    assert need_update
-                    print w
-                    if not done_login:
-                        rc = read_rc()
-                        ol.login('EdwardBot', rc['EdwardBot']) 
-                    ol.save(w['key'], w, 'avoid author redirect')
-            if len(requests) >= 100:
-                solr_update(requests, debug=True)
-                requests = []
-#            if num % 1000 == 0:
-#                solr_update(['<commit/>'], debug=True)
+                    if need_update:
+                        if not done_login:
+                            rc = read_rc()
+                            ol.login('EdwardBot', rc['EdwardBot']) 
+                        ol.save(w['key'], w, 'avoid author redirect')
+            if work_to_update['type']['key'] == '/type/work' and work_to_update.get('title', None):
+                subjects = get_work_subjects(work_to_update)
+                print subjects
+                for subject_type, values in subjects.iteritems():
+                    subjects_to_update.update((subject_type, v) for v in values)
+                if len(requests) >= 100:
+                    solr_update(requests, debug=True)
+                    requests = []
+    #            if num % 1000 == 0:
+    #                solr_update(['<commit/>'], debug=True)
         if requests:
             solr_update(requests, debug=True)
         if not args.no_commit:
@@ -119,8 +153,32 @@ def run_update():
             requests += update_author(akey)
         if not args.no_commit:
             solr_update(requests + ['<commit/>'], index='authors', debug=True)
+    subject_add = Element("add")
+    print subjects_to_update
+    for subject_type, subject_name in subjects_to_update:
+        key = subject_type + '/' + subject_name
+        count = subject_count(subject_type, subject_name)
+
+        if not subject_need_update(key, count):
+            print 'no updated needed:', (subject_type, subject_name, count)
+            continue
+        print 'updated needed:', (subject_type, subject_name, count)
+
+        doc = Element("doc")
+        add_field(doc, 'key', key)
+        add_field(doc, 'name', subject_name)
+        add_field(doc, 'type', subject_type)
+        add_field(doc, 'count', count)
+        subject_add.append(doc)
+
+    if len(subject_add):
+        print 'updating subjects'
+        add_xml = tostring(subject_add).encode('utf-8')
+        solr_update([add_xml, '<commit />'], debug=True, index='subjects')
+
     authors_to_update = set()
     works_to_update = set()
+    subjects_to_update = set()
     print >> open(state_file, 'w'), offset
 
 def process_save(key, query):
@@ -220,4 +278,3 @@ while True:
     since_last_update = time() - last_update
     if len(works_to_update) > work_limit or len(authors_to_update) > author_limit or since_last_update > 60 * 30:
         run_update()
-
