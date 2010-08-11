@@ -10,7 +10,7 @@ $if len(change.changes) == 1:
     
     $if doc.type.key in ['/type/edition', '/type/work']:
         $ what = doc.title or doc.key
-    $elif doc.key == '/type/author':
+    $elif doc.type.key == '/type/author':
         $ what = doc.name or doc.key
     $else:
         $ what = doc.key
