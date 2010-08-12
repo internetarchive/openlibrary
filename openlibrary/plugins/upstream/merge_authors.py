@@ -1,6 +1,6 @@
 """Merge authors.
 """
-import web
+import web, re
 import simplejson
 from infogami.utils import delegate
 from infogami.utils.view import render_template
@@ -105,7 +105,7 @@ class AuthorMergeEngine(BasicMergeEngine):
             master = BasicMergeEngine.merge_docs(self, master, dup)
             if 'name' in dup:
                 master.setdefault('alternate_names', []).append(dup['name'])
-            master['alternate_names'] = uniq(master['alternate_names'])
+            master['alternate_names'] = uniq(master['alternate_names'], key=space_squash_and_strip)
         return master
         
     def save(self, docs, master, duplicates):
@@ -133,6 +133,10 @@ class AuthorMergeEngine(BasicMergeEngine):
         }
         work_keys_2 = web.ctx.site.things(q)
         return edition_keys + work_keys_1 + work_keys_2
+
+re_whitespace = re.compile('\s+')
+def space_squash_and_strip(s):
+    return re_whitespace.sub(' ', s).strip()
     
 def uniq(values, key=None):
     """Returns the unique entries from the given values in the original order.
