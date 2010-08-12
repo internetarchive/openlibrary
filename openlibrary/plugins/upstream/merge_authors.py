@@ -103,7 +103,7 @@ class AuthorMergeEngine(BasicMergeEngine):
         # avoid merging other types.
         if dup['type']['key'] == '/type/author':
             master = BasicMergeEngine.merge_docs(self, master, dup)
-            if 'name' in dup:
+            if dup.get('name') and not name_eq(dup['name'], master.get('name') or ''):
                 master.setdefault('alternate_names', []).append(dup['name'])
             master['alternate_names'] = uniq(master['alternate_names'], key=space_squash_and_strip)
         return master
@@ -137,6 +137,9 @@ class AuthorMergeEngine(BasicMergeEngine):
 re_whitespace = re.compile('\s+')
 def space_squash_and_strip(s):
     return re_whitespace.sub(' ', s).strip()
+
+def name_eq(n1, n2):
+    return space_squash_and_strip(n1) == space_squash_and_strip(n2)
     
 def uniq(values, key=None):
     """Returns the unique entries from the given values in the original order.
