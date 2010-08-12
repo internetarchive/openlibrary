@@ -1,6 +1,6 @@
 import web
 
-from infogami.infobase import client
+from infogami.infobase import client, common
 from infogami.utils import delegate
 
 from infogami.infobase.tests.pytest_wildcard import *
@@ -10,14 +10,22 @@ from .. import merge_authors
 def setup_module(mod):
     delegate.fakeload()
 
-class MockSite:
+    # models module imports openlibrary.code, which imports ol_infobase and that expects db_parameters.
+    web.config.db_parameters = dict(dbn="sqlite", db=":memory:")
+    from .. import models
+    models.setup()
+
+class MockSite(client.Site):
     def __init__(self):
         self.docs = {}
         self.query_results = {}
         
     def get(self, key):
         doc = self.docs[key]
-        return client.create_thing(self, key, doc)
+        
+        # black magic
+        data = self._process_dict(common.parse_query(doc))
+        return client.create_thing(self, key, data)
         
     def things(self, query):
         return self.query_results.get(merge_authors.dicthash(query), [])
@@ -129,7 +137,38 @@ class TestAuthorMergeEngine:
     def setup_method(self, method):
         self.engine = merge_authors.AuthorMergeEngine()
         web.ctx.site = MockSite()
-    
+        
+    def test_get_many(self):
+        # get_many should handle bad table_of_contents in the edition.
+        edition = {
+            "key": "/books/OL1M",
+            "type": {"key": "/type/edition"},
+            "table_of_contents": [{
+                "type": "/type/text",
+                "value": "foo"
+            }]
+        }
+        type_edition = {
+            "key": "/type/edition",
+            "type": {"key": "/type/type"}
+        }
+        web.ctx.site.add([edition, type_edition])
+        
+        t = web.ctx.site.get("/books/OL1M")
+        
+        assert web.ctx.site.get("/books/OL1M").type.key == "/type/edition"
+        
+        assert self.engine.get_many(["/books/OL1M"])[0] == {
+            "key": "/books/OL1M",
+            "type": {"key": "/type/edition"},
+            "table_of_contents": [{
+                "label": "",
+                "level": 0,
+                "pagenum": "",
+                "title": "foo"
+            }]
+        }
+        
     def test_fix_edition(self):
         edition = {
             "key": "/books/OL2M",
@@ -227,7 +266,7 @@ class TestAuthorMergeEngine:
         web.ctx.site.add([a, b])
         
         self.engine.merge("/authors/a", ["/authors/b"])
-        links = web.ctx.site.get("/authors/a").links        
+        links = web.ctx.site.get("/authors/a").dict()['links']
         assert links == [link_a, link_b]
         
     def test_new_field(self):
