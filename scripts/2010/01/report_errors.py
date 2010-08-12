@@ -11,7 +11,7 @@ from optparse import OptionParser
 
 TEMPLATE = """\
 $def with (hostname, date, dir, errors)
-$var subject: $dir: daily update
+$var subject: $dir: $date
 
 $ error_places = group(errors, lambda e: (e.message, e.code))
 $hostname.split('.')[0]/$date: $len(errors) errors at $len(error_places) places
