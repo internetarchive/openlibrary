@@ -3,7 +3,7 @@
 import web, re
 import simplejson
 from infogami.utils import delegate
-from infogami.utils.view import render_template
+from infogami.utils.view import render_template, safeint
 
 from openlibrary.plugins.worksearch.code import top_books_from_author
 
@@ -37,7 +37,13 @@ class BasicMergeEngine:
         return docs_to_save
         
     def get_many(self, keys):
-        return [thing.dict() for thing in web.ctx.site.get_many(list(keys))]
+        def process(doc):
+            # some books have bad table_of_contents. Fix them to avoid failure on save.
+            if doc['type']['key'] == "/type/edition":
+                if 'table_of_contents' in doc:
+                    doc['table_of_contents'] = fix_table_of_contents(doc['table_of_contents'])
+            return doc
+        return [process(thing.dict()) for thing in web.ctx.site.get_many(list(keys))]
         
     def find_all_backreferences(self, duplicates):
         references = set()
@@ -166,6 +172,32 @@ def dicthash(d):
         return tuple(dicthash(v) for v in d)
     else:
         return d
+        
+def fix_table_of_contents(table_of_contents):
+    """Some books have bad table_of_contents. This function converts them in to correct format.
+    """
+    def row(r):
+        if isinstance(r, basestring):
+            level = 0
+            label = ""
+            title = web.safeunicode(r)
+            pagenum = ""
+        elif 'value' in r:
+            level = 0
+            label = ""
+            title = web.safeunicode(r['value'])
+            pagenum = ""            
+        else:
+            level = safeint(r.get('level', '0'), 0)
+            label = r.get('label', '')
+            title = r.get('title', '')
+            pagenum = r.get('pagenum', '')
+            
+        r = web.storage(level=level, label=label, title=title, pagenum=pagenum)
+        return r
+    
+    d = [row(r) for r in table_of_contents]
+    return [row for row in d if any(row.values())]
 
 class merge_authors(delegate.page):
     path = '/authors/merge'
