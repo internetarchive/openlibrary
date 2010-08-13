@@ -655,7 +655,7 @@ class Changeset(client.Changeset):
         
         docs = [get_doc(c['key'], c['revision']-1) for c in self.changes]
         data = {
-            "undo_of": self.id
+            "parent_changeset": self.id
         }
         comment = 'undo ' + self.comment
         return web.ctx.site.save_many(docs, action="undo", data=data, comment=comment)
