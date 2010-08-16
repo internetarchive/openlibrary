@@ -6,7 +6,6 @@ from infogami.utils.view import render
 
 import web
 import urllib2
-from time import time
 import os.path
 import sys, re
 
@@ -59,12 +58,9 @@ class show_marc(delegate.page):
 
         #print "record_locator: <code>%s</code><p/><hr>" % locator
 
-        r0, r1 = offset, offset+length-1
+        r0, r1 = offset, offset+100000
         url = 'http://www.archive.org/download/%s'% filename
 
-        assert 0 < length < 100000
-
-        t0 = time()
         ureq = urllib2.Request(url,
                                None,
                                {'Range':'bytes=%d-%d'% (r0, r1)},
@@ -74,6 +70,10 @@ class show_marc(delegate.page):
             result = urllib2.urlopen(ureq).read(100000)
         except urllib2.HTTPError, e:
             return "ERROR:" + str(e)
+
+        len_in_rec = int(result[:5])
+        if len_in_rec != length:
+            raise web.seeother('/show-records/%s:%d:%d' % (filename, offset, len_in_rec))
 
         from openlibrary.catalog.marc import html
 
