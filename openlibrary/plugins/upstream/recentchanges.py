@@ -42,7 +42,7 @@ class index(delegate.page):
         
         if kind:
             query['kind'] = kind and kind.strip("/")
-                
+        
         return render_template("recentchanges/index", query)
 
 class index_with_date(index):
@@ -51,6 +51,21 @@ class index_with_date(index):
     def GET(self, date, kind):
         date = date.replace("/", "-")
         return self.render(kind=kind, date=date)
+        
+class recentchanges_redirect(delegate.page):
+    path = "/recentchanges/goto/(\d+)"
+
+    def is_enabled(self):
+        return features.is_enabled("recentchanges_v2")
+
+    def GET(self, id):
+        id = int(id)
+        change = web.ctx.site.get_change(id)
+        if not change:
+            web.ctx.status = "404 Not Found"
+            return render.notfound(web.ctx.path)
+    
+        raise web.found(change.url())
 
 class recentchanges_view(delegate.page):
     path = "/recentchanges/\d\d\d\d/\d\d/\d\d/[^/]*/(\d+)"
@@ -68,7 +83,7 @@ class recentchanges_view(delegate.page):
         if not change:
             web.ctx.status = "404 Not Found"
             return render.notfound(web.ctx.path)
-        
+            
         path = self.get_change_url(change)
         if path != web.ctx.path:
             raise web.redirect(path)
