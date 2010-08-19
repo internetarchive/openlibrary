@@ -6,8 +6,8 @@ $def with (change)
 
 <div id="contentBody">
     <div id="mergeHead" class="sansserif">
-        $ source = change.get_undo_of()
-        Undo of <a href="$source.url()">$source.kind</a>.
+        $ parent = change.get_parent_changeset()
+        Undo of <a href="$parent.url()">$parent.kind</a>.
     </div>
 
     <h3>Updated Records</h3>

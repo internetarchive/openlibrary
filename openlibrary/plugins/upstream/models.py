@@ -659,10 +659,28 @@ class Changeset(client.Changeset):
         }
         comment = 'undo ' + self.comment
         return web.ctx.site.save_many(docs, action="undo", data=data, comment=comment)
+            
+    def get_undo_changeset(self):
+        """Returns the changeset that undone this transaction if one exists, None otherwise.
+        """
+        try:
+            return self._undo_changeset
+        except AttributeError:
+            pass
+        
+        changesets = web.ctx.site.recentchanges({
+            "kind": "undo", 
+            "data": {
+                "parent_changeset": self.id
+            }
+        })
+        # return the first undo changeset
+        self._undo_changeset = changesets and changesets[-1] or None
+        return self._undo_changeset
 
 class MergeAuthors(Changeset):
     def can_undo(self):
-        return True
+        return self.get_undo_changeset() is None
         
     def get_master(self):
         master = self.data.get("master")
@@ -681,6 +699,10 @@ class Undo(Changeset):
     def get_undo_of(self):
         undo_of = self.data['undo_of']
         return web.ctx.site.get_change(undo_of)
+        
+    def get_parent_changeset(self):
+        parent = self.data['parent_changeset']
+        return web.ctx.site.get_change(parent)
 
 def setup():
     client.register_thing_class('/type/edition', Edition)

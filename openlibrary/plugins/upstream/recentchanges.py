@@ -101,5 +101,4 @@ class recentchanges_view(delegate.page):
         id = int(id)
         change = web.ctx.site.get_change(id)
         change._undo()
-        add_flash_message("info", "Changes are successfully undone.")
         raise web.seeother(change.url())
