@@ -447,6 +447,8 @@ class SaveBookHelper:
         work.subject_people = list(read_subject(work.get('subject_people', '')))
         if ': ' in work.get('title', ''):
             work.title, work.subtitle = work.title.split(': ', 1)
+        else:
+            work.subtitle = None
         
         for k in ('excerpts', 'links'):
             work[k] = work.get(k) or []
