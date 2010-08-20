@@ -12,11 +12,12 @@ def main(filename):
         doc = simplejson.loads(json)
         
         cover = doc.get('covers') and doc.get('covers')[0]
-        isbns = doc.get('isbn_10', []) + doc.get('isbn_13')
+        isbns = doc.get('isbn_10', []) + doc.get('isbn_13', [])
         key = doc['key']
         
         if cover and cover > 0:
-            print "\t".join([cover, key, ",".join(isbns)])
+            print "\t".join([str(cover), key, ",".join(isbns)])
 
 if __name__ == '__main__':
+    import sys
     main(sys.argv[1])
