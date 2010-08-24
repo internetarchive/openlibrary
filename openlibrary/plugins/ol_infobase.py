@@ -280,6 +280,40 @@ def _process_data(data):
     else:
         return data
 
+def safeint(value, default=0):
+    """Convers the value to integer. Returns 0, if the conversion fails."""
+    try:
+        return int(value)
+    except Exception:
+        return default
+    
+def fix_table_of_contents(table_of_contents):
+    """Some books have bad table_of_contents. This function converts them in to correct format.
+    """
+    def row(r):
+        if isinstance(r, basestring):
+            level = 0
+            label = ""
+            title = web.safeunicode(r)
+            pagenum = ""
+        elif 'value' in r:
+            level = 0
+            label = ""
+            title = web.safeunicode(r['value'])
+            pagenum = ""
+        elif isinstance(r, dict):
+            level = safeint(r.get('level', '0'), 0)
+            label = r.get('label', '')
+            title = r.get('title', '')
+            pagenum = r.get('pagenum', '')
+        else:
+            return {}
+
+        return dict(level=level, label=label, title=title, pagenum=pagenum)
+
+    d = [row(r) for r in table_of_contents]
+    return [row for row in d if any(row.values())]
+
 def process_json(key, json):
     if key is None or json is None:
         return None
@@ -287,6 +321,10 @@ def process_json(key, json):
     if base in ['authors', 'books', 'works', 'languages', 'people', 'usergroup', 'permission']:
         data = simplejson.loads(json)
         data = _process_data(data)
+        
+        if base == 'books' and 'table_of_contents' in data:
+            data['table_of_contents'] = fix_table_of_contents(data['table_of_contents'])
+        
         json = simplejson.dumps(data)
     return json
     
