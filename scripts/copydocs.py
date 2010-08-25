@@ -168,7 +168,7 @@ def main():
 
     if options.dest.startswith("http://"):
         dest = OpenLibrary(options.dest)
-        section = "[%s]" % web.rstrips(options.dest, "http://")
+        section = "[%s]" % web.lstrips(options.dest, "http://").strip("/")
         if section in read_lines(os.path.expanduser("~/.olrc")):
             dest.autologin()
         else:
