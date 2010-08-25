@@ -245,8 +245,9 @@ def get_changes_v2(query):
         change.created = change.timestamp
 
         change.get = change.__dict__.get
-        change.get_comment = lambda: get_comment(change)
-        
+        change.get_comment = lambda: get_comment(change)        
+        change.machine_comment = change.data.get("machine_comment")
+    
         return change
         
     def get_comment(change):
