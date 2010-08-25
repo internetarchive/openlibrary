@@ -226,24 +226,11 @@ def radio_list(name, args, value):
 def get_coverstore_url():
     return config.get('coverstore_url', 'http://covers.openlibrary.org').rstrip('/')
 
-def get_history_v1(page):
-    """Returns initial and most recent history of given page.
-    
-    If the page has more than 5 revisions, first 2 and recent 3 changes are returned. 
-    If the page has 5 or less than 
-    """
-    h = web.storage(revision=page.revision, lastest_revision=page.revision, created=page.created)
-    if h.revision < 5:
-        h.recent = web.ctx.site.versions({"key": page.key, "limit": 5})
-        h.initial = h.recent[-1:]
-        h.recent = h.recent[:-1]
-    else:
-        h.initial = web.ctx.site.versions({"key": page.key, "limit": 1, "offset": h.revision-1})
-        h.recent = web.ctx.site.versions({"key": page.key, "limit": 4})
-    return h
+def get_changes_v1(query):
+    return web.ctx.site.versions(query)
 
-def get_history_v2(page):
-    h = web.storage(revision=page.revision, lastest_revision=page.revision, created=page.created)
+def get_changes_v2(query):
+    page = web.ctx.site.get(query['key'])
     
     def first(seq, default=None):
         try:
@@ -265,25 +252,30 @@ def get_history_v2(page):
     def get_comment(change):
         t = get_template("recentchanges/" + change.kind + "/comment") or get_template("recentchanges/default/comment")
         return t(change, page)
-    
-    def recentchanges(query):
-        changes = web.ctx.site.recentchanges(query)
-        return [process_change(c) for c in changes]
 
-    if h.revision < 5:
-        h.recent = recentchanges({"key": page.key, "limit": 5})
-        h.initial = h.recent[-1:]
-        h.recent = h.recent[:-1]
+    query['key'] = page.key
+    changes = web.ctx.site.recentchanges(query)
+    return [process_change(c) for c in changes]
+    
+def get_changes(query):
+    if 'history_v2' in web.ctx.features:
+        return get_changes_v2(query)
     else:
-        h.initial = recentchanges({"key": page.key, "limit": 1, "offset": h.revision-1})
-        h.recent = recentchanges({"key": page.key, "limit": 4})
-    
-    print h.initial[0].__dict__
-    
-    return h
+        return get_changes_v1(query)
 
 @public
 def get_history(page):
+    h = web.storage(revision=page.revision, lastest_revision=page.revision, created=page.created)
+    if h.revision < 5:
+        h.recent = get_changes({"key": page.key, "limit": 5})
+        h.initial = h.recent[-1:]
+        h.recent = h.recent[:-1]
+    else:
+        h.initial = get_changes({"key": page.key, "limit": 1, "offset": h.revision-1})
+        h.recent = get_changes({"key": page.key, "limit": 4})
+    
+    return h
+    
     print "get_history", page
     if 'history_v2' in web.ctx.features:
         return get_history_v2(page)

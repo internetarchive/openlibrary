@@ -5,10 +5,11 @@ This should go into infogami.
 import web
 
 from infogami.utils import delegate
-from infogami.utils.view import public, render, render_template, add_flash_message
+from infogami.utils.view import public, render, render_template, add_flash_message, safeint
 from infogami.utils import features
 
 from openlibrary.utils import dateutil
+from utils import get_changes
 
 @public
 def recentchanges(query):
@@ -102,3 +103,17 @@ class recentchanges_view(delegate.page):
         change = web.ctx.site.get_change(id)
         change._undo()
         raise web.seeother(change.url())
+
+class history(delegate.mode):
+    def GET(self, path):
+        page = web.ctx.site.get(path)
+        if not page:
+            raise web.seeother(path)
+        i = web.input(page=0)
+        offset = 20 * safeint(i.page)
+        limit = 20
+        history = get_changes(dict(key=path, limit=limit, offset=offset))
+        print "## history"
+        for h in history:
+            print h.__dict__
+        return render.history(page, history)
