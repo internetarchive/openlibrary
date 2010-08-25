@@ -18,12 +18,15 @@ import sys
 parser = argparse.ArgumentParser(description='update solr')
 parser.add_argument('--server', default='openlibrary.org')
 parser.add_argument('--config', default='openlibrary.yml')
-parser.add_argument('--author_limit', default=100)
-parser.add_argument('--work_limit', default=100)
+parser.add_argument('--author_limit', default=1000)
+parser.add_argument('--work_limit', default=1000)
 parser.add_argument('--skip_user', action='append', default=[])
 parser.add_argument('--only_user', action='append', default=[])
 parser.add_argument('--state_file', default='solr_update')
 parser.add_argument('--handle_author_merge', action='store_true')
+parser.add_argument('--mins', default=5)
+parser.add_argument('--only_author_merge', action='store_true')
+parser.add_argument('--skip_author_merge', action='store_true')
 parser.add_argument('--no_commit', action='store_true')
 parser.add_argument('--no_author_updates', action='store_true')
 parser.add_argument('--just_consider_authors', action='store_true')
@@ -31,6 +34,11 @@ parser.add_argument('--limit', default=None)
 
 args = parser.parse_args()
 handle_author_merge = args.handle_author_merge
+only_author_merge = args.only_author_merge
+skip_author_merge = args.skip_author_merge
+
+if only_author_merge:
+    handle_author_merge = True
 
 if handle_author_merge:
     from openlibrary.catalog.works.find_works import find_title_redirects, find_works, get_books, books_query, update_works
@@ -67,6 +75,7 @@ works_to_update = set()
 last_update = time()
 author_limit = int(args.author_limit)
 work_limit = int(args.work_limit)
+time_limit = 60 * int(args.mins)
 
 to_drop = set(''';/?:@&=+$,<>#%"{}|\\^[]`\n\r''')
 
@@ -259,10 +268,17 @@ while True:
             assert action in ('save', 'save_many')
             continue
         if action == 'save':
+            if only_author_merge:
+                continue
             key = i['data'].pop('key')
             process_save(key, i['data']['query'])
         elif action == 'save_many':
-            if handle_author_merge and not i['data']['author'].endswith('Bot') and i['data']['comment'] == 'merge authors':
+            author_merge = i['data']['comment'] == 'merge authors'
+            if author_merge and skip_author_merge:
+                continue
+            if author_merge and only_author_merge:
+                continue
+            if handle_author_merge and not i['data']['author'].endswith('Bot') and author_merge:
                 first_redirect = i['data']['query'][0]
                 assert first_redirect['type']['key'] == '/type/redirect'
                 akey = first_redirect['location']
@@ -276,5 +292,5 @@ while True:
                 key = query.pop('key')
                 process_save(key, query)
     since_last_update = time() - last_update
-    if len(works_to_update) > work_limit or len(authors_to_update) > author_limit or since_last_update > 60 * 30:
+    if len(works_to_update) > work_limit or len(authors_to_update) > author_limit or since_last_update > time_limit:
         run_update()
