@@ -34,7 +34,7 @@ class add_cover(delegate.page):
         coverid = data.get('id')
         
         if coverid:
-            self.save(book, coverid)
+            self.save(book, coverid, url=i.url)
             cover = Image("b", coverid)
             return render_template("covers/saved", cover)
         else:
@@ -64,10 +64,9 @@ class add_cover(delegate.page):
         
         return web.storage(simplejson.loads(out))
         
-    def save(self, book, coverid):
+    def save(self, book, coverid, url=None):
         book.covers = [coverid] + [cover.id for cover in book.get_covers()]
-        book._save("Added new cover")
-
+        book._save("Added new cover", action="add-cover", data={"url": url})
 
 class add_work_cover(add_cover):
     path = "(/works/OL\d+W)/add-cover"
@@ -83,9 +82,9 @@ class add_photo(add_cover):
     path = "(/authors/OL\d+A)/add-photo"
     cover_category = "a"
     
-    def save(self, author, photoid):
+    def save(self, author, photoid, url=None):
         author.photos = [photoid] + [photo.id for photo in author.get_photos()]
-        author._save("Added new photo")
+        author._save("Added new photo", action="add-photo", data={"url": url})
 
 class manage_covers(delegate.page):
     path = "(/books/OL\d+M)/manage-covers"
