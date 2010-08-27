@@ -703,7 +703,22 @@ class Undo(Changeset):
     def get_parent_changeset(self):
         parent = self.data['parent_changeset']
         return web.ctx.site.get_change(parent)
-
+        
+class AddBookChangeset(Changeset):
+    def get_work(self):
+        book = self.get_edition()
+        return (book and book.works and book.works[0]) or None
+    
+    def get_edition(self):
+        for doc in self.get_changes():
+            if doc.key.startswith("/books/"):
+                return doc
+        
+    def get_author(self):
+        for doc in self.get_changes():
+            if doc.key.startswith("/authors/"):
+                return doc
+        
 def setup():
     client.register_thing_class('/type/edition', Edition)
     client.register_thing_class('/type/author', Author)
@@ -718,3 +733,4 @@ def setup():
     client.register_changeset_class('merge-authors', MergeAuthors)
     client.register_changeset_class('undo', Undo)
 
+    client.register_changeset_class('add-book', AddBookChangeset)

@@ -1,0 +1,8 @@
+$def with (change)
+
+$ book = change.get_edition()
+
+<div class="truncatepath">
+    <a class="datalink" href="$book.url()">$book.title</a>
+    <span class="smallest sansserif"> - <a href="$change.url()" style="text-decoration: none;">expand</a></span>
+</div>

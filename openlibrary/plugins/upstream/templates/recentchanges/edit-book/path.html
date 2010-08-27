@@ -1,0 +1,8 @@
+$def with (change)
+
+$ changes = change.get_changes()
+
+<div class="truncatepath">
+    <a class="datalink" href="$changes[0].url()">$changes[0].title</a>
+    <span class="smallest sansserif"> - <a href="$change.url()" style="text-decoration: none;">expand</a></span>
+</div>
