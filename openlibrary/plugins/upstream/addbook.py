@@ -222,7 +222,7 @@ class addbook(delegate.page):
         
         saveutil.save(edition)
         comment = utils.get_message("comment_add_book")
-        saveutil.commit(comment, action="add-book")
+        saveutil.commit(comment=comment, action="add-book")
 
         raise web.seeother(edition.url("/edit?mode=add-book"))
         
