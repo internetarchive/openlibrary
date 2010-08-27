@@ -735,8 +735,8 @@ def get_most_recent_change(self):
 
 def prefetch(self):
     """Prefetch all the anticipated docs."""
-    h = get_history_preview()
-    authors = set(v.author.key for v in h.initial + h.recent in self.get_history_preview() if v.author)
+    h = self.get_history_preview()
+    authors = set(v.author.key for v in h.initial + h.recent if v.author)
     # preload them
     web.ctx.site.get_many(list(authors))
     
