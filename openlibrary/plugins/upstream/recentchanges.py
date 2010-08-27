@@ -113,7 +113,4 @@ class history(delegate.mode):
         offset = 20 * safeint(i.page)
         limit = 20
         history = get_changes(dict(key=path, limit=limit, offset=offset))
-        print "## history"
-        for h in history:
-            print h.__dict__
         return render.history(page, history)
