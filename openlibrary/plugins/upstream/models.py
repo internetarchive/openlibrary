@@ -718,7 +718,28 @@ class AddBookChangeset(Changeset):
         for doc in self.get_changes():
             if doc.key.startswith("/authors/"):
                 return doc
-        
+
+# methods monkey-patched to client.Thing
+from utils import get_history
+def get_history_preview(self):
+    if '_history_preview' not in self.__dict__:
+        self.__dict__['_history_preview'] = get_history(self)
+    return self._history_preview
+    
+def get_most_recent_change(self):
+    h = self.get_history_preview()
+    if h.recent:
+        return h.recent[0]
+    else:
+        return h.initial[0]
+
+def prefetch(self):
+    """Prefetch all the anticipated docs."""
+    h = get_history_preview()
+    authors = set(v.author.key for v in h.initial + h.recent in self.get_history_preview() if v.author)
+    # preload them
+    web.ctx.site.get_many(list(authors))
+    
 def setup():
     client.register_thing_class('/type/edition', Edition)
     client.register_thing_class('/type/author', Author)
@@ -734,3 +755,7 @@ def setup():
     client.register_changeset_class('undo', Undo)
 
     client.register_changeset_class('add-book', AddBookChangeset)
+    
+    client.Thing.get_history_preview = get_history_preview
+    client.Thing.get_most_recent_change = get_most_recent_change
+    client.Thing.prefetch = prefetch

@@ -7,7 +7,6 @@ import simplejson
 
 default_cache_prefixes = ["/type/", "/languages/", "/index.", "/about", "/css/", "/js/"]
 
-
 class ConnectionMiddleware:
     def __init__(self, conn):
         self.conn = conn
@@ -166,9 +165,11 @@ class MigrationMiddleware(ConnectionMiddleware):
             "/b/", "/books/",
             "/user/", "/people/"
         )
-        for old, new in web.group(mapping, 2):
-            if key.startswith(old):
-                return new + key[len(old):]
+        
+        if old.split("/")[1] in ['a', 'b', 'l', 'user']:
+            for old, new in web.group(mapping, 2):
+                if key.startswith(old):
+                    return new + key[len(old):]
         return key
     
     def exists(self, key):
