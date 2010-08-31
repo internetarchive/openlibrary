@@ -18,7 +18,7 @@ _db = None
 def get_db():
     global _db
     if _db is None and config.get("ol_db_parameters"):
-        _db = web.dabatase(config.ol_db_parameters)
+        _db = web.database(**config.ol_db_parameters)
     return _db
     
 _memcache = None
@@ -34,7 +34,7 @@ def get_property_id(name):
     try:
         type_id = db.query("SELECT * FROM thing WHERE key='/type/edition'")[0].id
         rows = db.query("SELECT * FROM property WHERE name=$name AND type=$type_id", vars=locals())
-        return row[0].id
+        return rows[0].id
     except IndexError:
         return None
     
@@ -54,7 +54,7 @@ def get(key):
     # try memcache
     memcache = get_memcache()
     if memcache:
-        json = olmemcache.get(key)
+        json = memcache.get(key)
         if json:
             return simplejson.loads(json)
 
