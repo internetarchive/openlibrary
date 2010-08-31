@@ -47,7 +47,8 @@ def query(key, value):
         " WHERE thing.id=edition_str.thing_id" + 
             " AND key_id=$key_id" +
             " AND value=$value" +
-        " ORDER BY thing.last_modified LIMIT 10")
+        " ORDER BY thing.last_modified LIMIT 10",
+        vars=locals())
     return [row.key for row in rows]
 
 def get(key):
