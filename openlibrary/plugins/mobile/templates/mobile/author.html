@@ -1,7 +1,15 @@
 $def with(author)
-<h1>Oliver Herford <span class="byHeading brown">1863-1935</span></h1> 
+<h1>
+     $author.name
+     <span class="byHeading brown">
+         $if author.birth_date or author.death_date:
+             $author.birth_date - $author.death_date
+         $elif author.date:
+             $author.date
+     </span>
+</h1> 
 <table width="100%" border="0" cellpadding="5" cellspacing="0"> 
-    <tr> 
+   <tr> 
         <td><img src="http://covers.openlibrary.org/w/id/6076582-M.jpg" width="45" height="68" hspace="10" align="left" /></td> 
         <td width="100%"><a href="edition.html" class="bookTitle">Artful Antics</a><br /> 
             <span class="brown">1919, George H. Doran Company</span></td> 
