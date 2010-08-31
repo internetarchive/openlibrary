@@ -12,6 +12,7 @@ import random
 import string
 
 import config
+import oldb
 
 class AppURLopener(urllib.FancyURLopener):
     version = "Mozilla/5.0 (Compatible; coverstore downloader http://covers.openlibrary.org)"
@@ -34,30 +35,36 @@ def safeint(value, default=None):
 
 def get_ol_url():
     return web.rstrips(config.ol_url, "/")
-
+    
 def ol_things(key, value):
-    query = {
-        'type': '/type/edition',
-        key: value, 
-        'sort': 'last_modified',
-        'limit': 10
-    }
-    try:
-        d = dict(query=simplejson.dumps(query))
-        result = download(get_ol_url() + '/api/things?' + urllib.urlencode(d))
-        result = simplejson.loads(result)
-        return result['result']
-    except IOError:
-        import traceback
-        traceback.print_exc()
-        return []
+    if oldb.is_supported():
+        return oldb.query(key, value)
+    else:
+        query = {
+            'type': '/type/edition',
+            key: value, 
+            'sort': 'last_modified',
+            'limit': 10
+        }
+        try:
+            d = dict(query=simplejson.dumps(query))
+            result = download(get_ol_url() + '/api/things?' + urllib.urlencode(d))
+            result = simplejson.loads(result)
+            return result['result']
+        except IOError:
+            import traceback
+            traceback.print_exc()
+            return []
         
 def ol_get(olkey):
-    try:
-        result = download(get_ol_url() + olkey + ".json")
-        return simplejson.loads(result)
-    except IOError:
-        return None
+    if oldb.is_supported():
+        return oldb.get(olkey)
+    else:
+        try:
+            result = download(get_ol_url() + olkey + ".json")
+            return simplejson.loads(result)
+        except IOError:
+            return None
 
 USER_AGENT = "Mozilla/5.0 (Compatible; coverstore downloader http://covers.openlibrary.org)"
 def download(url):
