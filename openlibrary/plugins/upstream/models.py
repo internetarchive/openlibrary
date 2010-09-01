@@ -9,6 +9,7 @@ from collections import defaultdict
 from infogami import config
 from infogami.infobase import client
 from infogami.utils.view import safeint
+from infogami.utils import stats
 
 from openlibrary.plugins.search.code import SearchProcessor
 from openlibrary.plugins.openlibrary import code as ol_code
