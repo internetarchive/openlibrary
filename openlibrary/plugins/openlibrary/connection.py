@@ -2,6 +2,8 @@
 """
 from infogami import config
 from infogami.infobase import client, lru
+from infogami.utils import stats
+
 import web
 import simplejson
 
@@ -66,7 +68,9 @@ class MemcacheMiddleware(ConnectionMiddleware):
         revision = data.get('revision')
         
         if revision is None:
-            result = self.memcache.get(key) 
+            stats.begin("memcache.get", key=key)
+            result = self.memcache.get(key)
+            stats.end(hit=bool(result))
         else:
             result = None
             
@@ -74,7 +78,10 @@ class MemcacheMiddleware(ConnectionMiddleware):
     
     def get_many(self, sitename, data):
         keys = simplejson.loads(data['keys'])
+        
+        stats.begin("memcache.get_multi")
         result = self.memcache.get_multi(keys)
+        stats.end(found=len(result))
         
         keys2 = [k for k in keys if k not in result]
         if keys2:
