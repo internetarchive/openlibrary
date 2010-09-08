@@ -173,7 +173,7 @@ class MigrationMiddleware(ConnectionMiddleware):
             "/user/", "/people/"
         )
         
-        if key.split("/")[1] in ['a', 'b', 'l', 'user']:
+        if "/" in key and key.split("/")[1] in ['a', 'b', 'l', 'user']:
             for old, new in web.group(mapping, 2):
                 if key.startswith(old):
                     return new + key[len(old):]
