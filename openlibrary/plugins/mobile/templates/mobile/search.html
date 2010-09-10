@@ -9,20 +9,23 @@ $def with(q, results)
 
 <h2 class="darkgreen">$results.num_found hits</h2> 
 <table width="100%" border="0" cellpadding="5" cellspacing="0"> 
-$for doc in results["docs"]:
+$for edition, work in results["books"]:
     <tr> 
          <td>
-           $ cover = "http://covers.openlibrary.org/b/olid/%s-M.jpg" % doc.cover_edition_key if doc.cover_edition_key else "http://openlibrary.org/images/icons/avatar_book-sm.png"
-
-               <img src="$cover" width="45" height="68" hspace="10" align="left" />
+              <img src="$(edition.get_cover_url('M') or '/images/icons/avatar_book-sm.png')" 
+                   width="45" height="68" hspace="10" align="left" />
          </td> 
          <td width="100%">
-               <a href="$doc.url" class="bookTitle">$doc.title</a> by 
-               $for author in doc["authors"]:
+               <a href="$edition.url()" class="bookTitle">$edition.title</a> by 
+               $for author in work["authors"]:
                    <a href="$author.url">$author.name</a>$cond(not loop.last, ",")
                <br /> 
-               $# <span class="brown">$doc.first_publish_year, Rogers &amp; Hammerstein</span></td> 
-        <td><input type="submit" name="button2" id="button2" value="Read" /></td> 
+               <span class="brown">
+                 $work.first_publish_year, 
+                 $(edition.publishers[0] if edition.publishers else "")
+               </span>
+        </td> 
+        <td><a href="http://archive.org/stream/$edition.ocaid">Read</a></td>
     </tr> 
 </table> 
-<p>&nbsp;</p> 
+
