@@ -9,6 +9,7 @@ from collections import defaultdict
 from infogami import config
 from infogami.infobase import client
 from infogami.utils.view import safeint
+from infogami.utils import stats
 
 from openlibrary.plugins.search.code import SearchProcessor
 from openlibrary.plugins.openlibrary import code as ol_code
@@ -119,8 +120,11 @@ class Edition(ol_code.Edition):
         url = 'http://www.archive.org/download/%s/%s_meta.xml' % (ia, ia)
         reply = { 'collection': set() }
         try:
+            stats.begin("archive.org", url=url)
             f = urllib2.urlopen(url)
+            stats.end()
         except:
+            stats.end()
             return reply
         for line in f:
             m = re_meta_field.search(line)
@@ -165,7 +169,10 @@ class Edition(ol_code.Edition):
         
         url = 'http://www.archive.org/download/%s/%s_meta.xml' % (itemid, itemid)
         # $$$ error handling
+        stats.begin("archive.org", url=url)
         root = etree.parse(urllib2.urlopen(url))
+        stats.end()
+        
         self._lending_resources = [ elem.text for elem in root.findall('external-identifier') ]
         return self._lending_resources
         

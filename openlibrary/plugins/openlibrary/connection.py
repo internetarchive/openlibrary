@@ -2,10 +2,12 @@
 """
 from infogami import config
 from infogami.infobase import client, lru
+from infogami.utils import stats
+
 import web
 import simplejson
 
-default_cache_prefixes = ["/type/", "/languages/", "/index.", "/about", "/css/", "/js/"]
+default_cache_prefixes = ["/type/", "/languages/", "/index.", "/about", "/css/", "/js/", "/config/"]
 
 class ConnectionMiddleware:
     def __init__(self, conn):
@@ -66,7 +68,9 @@ class MemcacheMiddleware(ConnectionMiddleware):
         revision = data.get('revision')
         
         if revision is None:
-            result = self.memcache.get(key) 
+            stats.begin("memcache.get", key=key)
+            result = self.memcache.get(key)
+            stats.end(hit=bool(result))
         else:
             result = None
             
@@ -74,7 +78,10 @@ class MemcacheMiddleware(ConnectionMiddleware):
     
     def get_many(self, sitename, data):
         keys = simplejson.loads(data['keys'])
+        
+        stats.begin("memcache.get_multi")
         result = self.memcache.get_multi(keys)
+        stats.end(found=len(result))
         
         keys2 = [k for k in keys if k not in result]
         if keys2:
@@ -166,7 +173,7 @@ class MigrationMiddleware(ConnectionMiddleware):
             "/user/", "/people/"
         )
         
-        if key.split("/")[1] in ['a', 'b', 'l', 'user']:
+        if "/" in key and key.split("/")[1] in ['a', 'b', 'l', 'user']:
             for old, new in web.group(mapping, 2):
                 if key.startswith(old):
                     return new + key[len(old):]
@@ -218,13 +225,13 @@ def OLConnection():
 
     conn = create_connection()
 
+    if config.get('memcache_servers'):
+        conn = MemcacheMiddleware(conn, config.get('memcache_servers'))
+    
     cache_prefixes = config.get("cache_prefixes", default_cache_prefixes)
     if cache_prefixes :
         conn = LocalCacheMiddleware(conn, cache_prefixes)
 
-    if config.get('memcache_servers'):
-        conn = MemcacheMiddleware(conn, config.get('memcache_servers'))
-    
     if config.get('upstream_to_www_migration'):
         conn = MigrationMiddleware(conn)
 
