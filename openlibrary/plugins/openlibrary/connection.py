@@ -159,7 +159,7 @@ class LocalCacheMiddleware(ConnectionMiddleware):
     def cachable(self, key):
         """Tests if key is cacheable."""
         for prefix in self.cache_prefixes:
-            if key.startswith(prefix):
+            if key and key.startswith(prefix):
                 return True
         return False
         
