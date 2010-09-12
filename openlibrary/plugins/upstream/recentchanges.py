@@ -78,7 +78,7 @@ class index(delegate.page):
 
         # constrain limit and offset for performance reasons
         limit = constrain(limit, 0, 1000)
-        offset = constrain(limit, 0, 10000)
+        offset = constrain(offset, 0, 10000)
          
         query['limit'] = limit
         query['offset'] = offset
