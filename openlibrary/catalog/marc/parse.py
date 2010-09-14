@@ -557,10 +557,10 @@ def read_edition(rec):
         if str(f)[6] == 't':
             edition["copyright_date"] = str(f)[11:15]
         publish_country = str(f)[15:18]
-        if publish_country not in ('|||', '   ', '\x01\x01\x01'):
+        if publish_country not in ('|||', '   ', '\x01\x01\x01', '???'):
             edition["publish_country"] = publish_country
         lang = str(f)[35:38]
-        if lang not in ('   ', '|||', ''):
+        if lang not in ('   ', '|||', '', '???'):
             edition["languages"] = [{ 'key': '/languages/' + lang }]
     else:
         assert handle_missing_008
