@@ -3,6 +3,8 @@
 This should go into infogami.
 """
 import web
+import simplejson
+import yaml
 
 from infogami.utils import delegate
 from infogami.utils.view import public, render, render_template, add_flash_message, safeint
@@ -10,6 +12,7 @@ from infogami.utils import features
 
 from openlibrary.utils import dateutil
 from utils import get_changes
+
 
 @public
 def recentchanges(query):
@@ -43,8 +46,64 @@ class index(delegate.page):
         
         if kind:
             query['kind'] = kind and kind.strip("/")
+
+        print "encoding", web.ctx.encoding
+        
+        if web.ctx.encoding in ["json", "yml"]:
+            return self.handle_encoding(query, web.ctx.encoding)
         
         return render_template("recentchanges/index", query)
+
+    def handle_encoding(self, query, encoding):
+        i = web.input(bot="", limit=100, offset=0, text="false")
+        
+        # The bot stuff is handled in the template for the regular path. 
+        # We need to handle it here for api.
+        if i.bot.lower() == "true":
+            query['bot'] = True
+        elif i.bot.lower()  == "false":
+            query['bot'] = False
+            
+        # and limit and offset business too
+        limit = safeint(i.limit, 100)
+        offset = safeint(i.offset, 0)
+        
+        def constrain(value, low, high):
+            if value < low:
+                return low
+            elif value > high:
+                return high
+            else:
+                return value
+
+        # constrain limit and offset for performance reasons
+        limit = constrain(limit, 0, 1000)
+        offset = constrain(offset, 0, 10000)
+         
+        query['limit'] = limit
+        query['offset'] = offset
+        
+        result = [c.dict() for c in web.ctx.site.recentchanges(query)]
+        
+        if encoding == "json":
+            response = simplejson.dumps(result)
+            content_type = "application/json"
+        elif encoding == "yml":
+            response = self.yaml_dump(result)
+            content_type = "text/x-yaml"
+        else:
+            response = ""
+            content_type = "text/plain"
+        
+        if i.text.lower() == "true":
+            web.header('Content-Type', 'text/plain')
+        else:
+            web.header('Content-Type', content_type)
+        
+        return delegate.RawText(response)
+
+    def yaml_dump(self, d):
+        return yaml.safe_dump(d, indent=4, allow_unicode=True, default_flow_style=False)
 
 class index_with_date(index):
     path = "/recentchanges/(\d\d\d\d(?:/\d\d)?(?:/\d\d)?)(/[^/]*)?"
@@ -113,7 +172,4 @@ class history(delegate.mode):
         offset = 20 * safeint(i.page)
         limit = 20
         history = get_changes(dict(key=path, limit=limit, offset=offset))
-        print "## history"
-        for h in history:
-            print h.__dict__
         return render.history(page, history)

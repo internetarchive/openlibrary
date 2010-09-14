@@ -9,6 +9,7 @@ from collections import defaultdict
 from infogami import config
 from infogami.infobase import client
 from infogami.utils.view import safeint
+from infogami.utils import stats
 
 from openlibrary.plugins.search.code import SearchProcessor
 from openlibrary.plugins.openlibrary import code as ol_code
@@ -119,8 +120,11 @@ class Edition(ol_code.Edition):
         url = 'http://www.archive.org/download/%s/%s_meta.xml' % (ia, ia)
         reply = { 'collection': set() }
         try:
+            stats.begin("archive.org", url=url)
             f = urllib2.urlopen(url)
+            stats.end()
         except:
+            stats.end()
             return reply
         for line in f:
             m = re_meta_field.search(line)
@@ -165,7 +169,10 @@ class Edition(ol_code.Edition):
         
         url = 'http://www.archive.org/download/%s/%s_meta.xml' % (itemid, itemid)
         # $$$ error handling
+        stats.begin("archive.org", url=url)
         root = etree.parse(urllib2.urlopen(url))
+        stats.end()
+        
         self._lending_resources = [ elem.text for elem in root.findall('external-identifier') ]
         return self._lending_resources
         
@@ -703,7 +710,43 @@ class Undo(Changeset):
     def get_parent_changeset(self):
         parent = self.data['parent_changeset']
         return web.ctx.site.get_change(parent)
+        
+class AddBookChangeset(Changeset):
+    def get_work(self):
+        book = self.get_edition()
+        return (book and book.works and book.works[0]) or None
+    
+    def get_edition(self):
+        for doc in self.get_changes():
+            if doc.key.startswith("/books/"):
+                return doc
+        
+    def get_author(self):
+        for doc in self.get_changes():
+            if doc.key.startswith("/authors/"):
+                return doc
 
+# methods monkey-patched to client.Thing
+from utils import get_history
+def get_history_preview(self):
+    if '_history_preview' not in self.__dict__:
+        self.__dict__['_history_preview'] = get_history(self)
+    return self._history_preview
+    
+def get_most_recent_change(self):
+    h = self.get_history_preview()
+    if h.recent:
+        return h.recent[0]
+    else:
+        return h.initial[0]
+
+def prefetch(self):
+    """Prefetch all the anticipated docs."""
+    h = self.get_history_preview()
+    authors = set(v.author.key for v in h.initial + h.recent if v.author)
+    # preload them
+    web.ctx.site.get_many(list(authors))
+    
 def setup():
     client.register_thing_class('/type/edition', Edition)
     client.register_thing_class('/type/author', Author)
@@ -718,3 +761,8 @@ def setup():
     client.register_changeset_class('merge-authors', MergeAuthors)
     client.register_changeset_class('undo', Undo)
 
+    client.register_changeset_class('add-book', AddBookChangeset)
+    
+    client.Thing.get_history_preview = get_history_preview
+    client.Thing.get_most_recent_change = get_most_recent_change
+    client.Thing.prefetch = prefetch

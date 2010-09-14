@@ -55,6 +55,24 @@ def new_doc(type, **data):
     data['key'] = key
     data['type'] = {"key": type}
     return web.ctx.site.new(key, data)
+    
+class DocSaveHelper:
+    """Simple utility to collct the saves and save all of the togeter at the end.
+    """
+    def __init__(self):
+        self.docs = []
+        
+    def save(self, doc):
+        """Adds the doc to the list of docs to be saved.
+        """
+        if not isinstance(doc, dict): # thing
+            doc = doc.dict()
+        self.docs.append(doc)
+        
+    def commit(self, **kw):
+        """Saves all the collected docs."""
+        if self.docs:
+            web.ctx.site.save_many(self.docs, **kw)
 
 class addbook(delegate.page):
     path = "/books/add"
@@ -67,7 +85,10 @@ class addbook(delegate.page):
         
     def POST(self):
         i = web.input(title="", author_name="", author_key="", publisher="", publish_date="", id_name="", id_value="", _test="false")
-        match = self.find_matches(i)
+        
+        saveutil = DocSaveHelper()
+        
+        match = self.find_matches(saveutil, i)
 
         if i._test == "true" and not isinstance(match, list):
             if match:
@@ -86,12 +107,12 @@ class addbook(delegate.page):
         elif match and match.key.startswith('/works'):
             # work match but not edition
             work = match
-            return self.work_match(work, i)
+            return self.work_match(saveutil, work, i)
         else:
             # no match
-            return self.no_match(i)
+            return self.no_match(saveutil, i)
                         
-    def find_matches(self, i):
+    def find_matches(self, saveutil, i):
         """Tries to find an edition or a work or multiple works that match the given input data.
         
         Case#1: No match. None is returned.
@@ -112,7 +133,7 @@ class addbook(delegate.page):
         if i.author_key == "__new__":
             a = new_doc("/type/author", name=i.author_name)
             comment = utils.get_message("comment_new_author")
-            a._save(comment)
+            saveutil.save(a)
             i.author_key = a.key
             # since new author is created it must be a new record
             return None
@@ -196,10 +217,13 @@ class addbook(delegate.page):
                         continue
                 return e
                 
-    def work_match(self, work, i):
-        edition = self._make_edition(work, i)            
-        comment = utils.get_message("comment_new_edition")
-        edition._save(comment)
+    def work_match(self, saveutil, work, i):
+        edition = self._make_edition(work, i)
+        
+        saveutil.save(edition)
+        comment = utils.get_message("comment_add_book")
+        saveutil.commit(comment=comment, action="add-book")
+
         raise web.seeother(edition.url("/edit?mode=add-book"))
         
     def _make_edition(self, work, i):
@@ -216,20 +240,22 @@ class addbook(delegate.page):
     def work_edition_match(self, edition):
         raise web.seeother(edition.url("/edit?mode=found"))
         
-    def no_match(self, i):
+    def no_match(self, saveutil, i):
         # TODO: Handle add-new-author
         work = new_doc("/type/work",
             title=i.title,
             authors=[{"author": {"key": i.author_key}}]
         )
-        comment = utils.get_message("comment_new_work")
-        work._save(comment)
         
         edition = self._make_edition(work, i)
-        comment = utils.get_message("comment_new_edition")
-        edition._save(comment)        
+        
+        saveutil.save(work)
+        saveutil.save(edition)
+        
+        comment = utils.get_message("comment_add_book")
+        saveutil.commit(action="add-book", comment=comment)
+        
         raise web.seeother(edition.url("/edit?mode=add-work"))
-
 
 # remove existing definations of addbook and addauthor
 delegate.pages.pop('/addbook', None)
@@ -295,29 +321,31 @@ class SaveBookHelper:
         
         formdata = utils.unflatten(formdata)
         work_data, edition_data = self.process_input(formdata)
-        
+                
         self.process_new_fields(formdata)
+        
+        saveutil = DocSaveHelper()
         
         if delete:
             if self.edition:
                 self.delete(self.edition.key, comment=comment)
             
             if self.work and self.work.edition_count == 0:
-                self.delete(self.work.key, comment=comment)
+                self.delete(self.work.key, comment=comment, action="delete")
             return
             
         for i, author in enumerate(work_data.get("authors") or []):
             if author['author']['key'] == "__new__":
                 a = self.new_author(formdata['authors'][i])
-                a._save(utils.get_message("comment_new_author"))
                 author['author']['key'] = a.key
-                    
+                saveutil.save(a)
+        
         if work_data:
             if self.work is None:
                 self.work = self.new_work(self.edition)
                 self.edition.works = [{'key': self.work.key}]
             self.work.update(work_data)
-            self.work._save(comment=comment)
+            saveutil.save(self.work)
             
         if self.edition and edition_data:
             identifiers = edition_data.pop('identifiers', [])
@@ -335,7 +363,9 @@ class SaveBookHelper:
                 edition_data.translated_from = None
             
             self.edition.update(edition_data)
-            self.edition._save(comment=comment)
+            saveutil.save(self.edition)
+        
+        saveutil.commit(comment=comment, action="edit-book")
     
     def new_work(self, edition):
         work_key = web.ctx.site.new_key("/type/work")

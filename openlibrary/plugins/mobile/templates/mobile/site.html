@@ -1,0 +1,20 @@
+$def with(page)
+<html>
+<head>
+  <title>Welcome to Open Library</title>
+  <link rel="stylesheet" type="text/css" href="/static/css/mobile.css">
+</head>
+<body>
+  <p class="header">
+    <a href="/"><img src="/images/logo_OL-sm.png" width="90" height="71"/></a>
+  </p>
+
+  $:page
+
+  <div class="clearfix"></div> 
+
+  <p class="footer">
+    Open Library is a project from the <a href="http://archive.org">Internet Archive</a>.<br /> 
+    <a href="http://openlibrary.org">http://openlibrary.org</a>
+  </p>
+</head>

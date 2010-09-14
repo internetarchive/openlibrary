@@ -172,24 +172,28 @@ class cover:
             value = _query(category, key, value)
             if value is None:
                 return notfound()
-            else:
-                return redirect(value)
-        else:
-            d = db.details(value)
-            if not d:
-                return notfound()
-                
+        
+        d = db.details(value)
+        if not d:
+            return notfound()
+
+        # set cache-for-ever headers only when requested with ID
+        if key == 'id':
             etag = "%s-%s" % (d.id, size.lower())
             if not web.modified(trim_microsecond(d.created), etag=etag):
                 raise web.notmodified()
 
             web.header('Cache-Control', 'public')
             web.expires(100 * 365 * 24 * 3600) # this image is not going to expire in next 100 years.
-            web.header('Content-Type', 'image/jpeg')
-            try:
-                return read_image(d, size)
-            except IOError:
-                raise web.notfound()
+        else:
+            web.header('Cache-Control', 'public')
+            web.expires(10*60) # Allow the client to cache the image for 10 mins to avoid further requests
+        
+        web.header('Content-Type', 'image/jpeg')
+        try:
+            return read_image(d, size)
+        except IOError:
+            raise web.notfound()
             
 class cover_details:
     def GET(self, category, key, value):

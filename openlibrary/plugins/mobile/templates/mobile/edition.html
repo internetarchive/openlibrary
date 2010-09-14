@@ -1,0 +1,15 @@
+$def with(edition)
+
+<h1>
+    <img src="$(edition.get_cover_url('M') or '/images/icons/avatar_edition-sm.png')" 
+         alt="cover image" width="180" height="275" hspace="10" align="right"/>
+    $edition.get_title()
+    <span class="byHeading"><br/>by 
+    <a href="/authors/OL1A">Peter Simple</a>, <a href="/authors/OL1A">Oliver Herford</a></span></h1> 
+    $if edition.description:
+        <p><em>$edition.description</em></p>
+$#<p><em>Six busy days it took in all<br /> 
+$#    To make a World and plan its jail,<br /> 
+$#    The seventh, SOMEONE said 'twas good<br /> 
+$#And rested, so you think he could? </em><a href="show full description">More</a></p> 
+    <p><a href="http://archive.org/stream/$edition.ocaid">Read</a></p> 

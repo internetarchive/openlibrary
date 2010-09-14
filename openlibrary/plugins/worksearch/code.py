@@ -1,6 +1,6 @@
 import web, re, urllib, dbm
 from lxml.etree import XML, XMLSyntaxError
-from infogami.utils import delegate
+from infogami.utils import delegate, stats
 from infogami import config
 from infogami.utils.view import render, render_template, safeint, add_flash_message
 import simplejson as json
@@ -242,7 +242,10 @@ def run_solr_query(param = {}, rows=100, page=1, sort=None, spellcheck_count=Non
         solr_select += ''.join('&fq=%s:"%s"' % (k, url_quote(l)) for l in v if l)
     if sort:
         solr_select += "&sort=" + url_quote(sort)
+    
+    stats.begin("solr", url=solr_select)
     reply = urllib.urlopen(solr_select).read()
+    stats.end()    
     return (reply, solr_select, q_list)
 
 re_pre = re.compile(r'<pre>(.*)</pre>', re.S)
@@ -413,7 +416,11 @@ def find_ebook_count(field, key):
     ebook_count = 0
     start = 0
     solr_url = root_url % (rows, start, q)
+    
+    stats.begin("solr", url=solr_url)
     response = json.load(urllib.urlopen(solr_url))['response']
+    stats.end()
+    
     num_found = response['numFound']
     print 'num_found:', num_found
     years = defaultdict(int)
@@ -421,7 +428,9 @@ def find_ebook_count(field, key):
         if start:
             solr_url = root_url % (rows, start, q)
             print solr_url
+            stats.begin("solr", url=solr_url)
             response = json.load(urllib.urlopen(solr_url))['response']
+            stats.end()
         for doc in response['docs']:
             for k in doc['edition_key']:
                 e = web.ctx.site.get('/books/' + k)
@@ -761,7 +770,9 @@ def works_by_author(akey, sort='editions', page=1, rows=100):
     elif sort.startswith('title'):
         solr_select += '&sort=title+asc'
     solr_select += "&facet=true&facet.mincount=1&f.author_facet.facet.sort=count&f.publish_year.facet.limit=-1&facet.limit=25&" + '&'.join("facet.field=" + f for f in facet_fields)
+    stats.begin("solr", url=solr_select)
     reply = json.load(urllib.urlopen(solr_select))
+    stats.end()
     facets = reply['facet_counts']['facet_fields']
     works = [work_object(w) for w in reply['response']['docs']]
 
@@ -780,7 +791,9 @@ def sorted_work_editions(wkey, json_data=None):
     q='key:' + wkey
     if not json_data: # for testing
         solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&rows=10&fl=edition_key&qt=standard&wt=json" % q
+        stats.begin("solr", url=solr_select)
         json_data = urllib.urlopen(solr_select).read()
+        stats.end()
     reply = json.loads(json_data)
 
     if reply['response']['numFound'] == 0:
@@ -792,12 +805,17 @@ def simple_search(q, offset=0, rows=20, sort=None):
     if sort:
         solr_select += "&sort=" + web.urlquote(sort)
 
-    return json.load(urllib.urlopen(solr_select))
+    stats.begin("solr", url=solr_select)
+    json_data = urllib.urlopen(solr_select)
+    stats.end()
+    return json.load(json_data)
 
 def top_books_from_author(akey, rows=5, offset=0):
     q = 'author_key:(' + akey + ')'
     solr_select = solr_select_url + "?q=%s&start=%d&rows=%d&fl=key,title,edition_count&wt=json&sort=edition_count+desc" % (q, offset, rows)
+    stats.begin("solr", url=solr_select)
     response = json.load(urllib.urlopen(solr_select))['response']
+    stats.end()
     return {
         'books': [web.storage(doc) for doc in response['docs']],
         'total': response['numFound'],
@@ -824,7 +842,10 @@ class subject_search(delegate.page):
             q = escape_bracket(q)
             solr_select = solr_subject_select_url + "?q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=name,type,count&qt=standard&wt=json" % (web.urlquote(q), offset, limit)
             solr_select += '&sort=count+desc'
-            return json.loads(urllib.urlopen(solr_select).read())
+            stats.begin("solr", url=solr_select)
+            json_data = urllib.urlopen(solr_select).read()
+            stats.end()
+            return json.loads(json_data)
         return render_template('search/subjects.tmpl', get_results)
 
 class author_search(delegate.page):
@@ -834,7 +855,10 @@ class author_search(delegate.page):
             q = escape_bracket(q)
             solr_select = solr_author_select_url + "?q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=*&qt=standard&wt=json" % (web.urlquote(q), offset, limit)
             solr_select += '&sort=work_count+desc'
-            return json.loads(urllib.urlopen(solr_select).read())
+            stats.begin("solr", url=solr_select)
+            json_data = urllib.urlopen(solr_select).read()
+            stats.end()
+            return json.loads(json_data)
         return render_template('search/authors.tmpl', get_results)
 
 class edition_search(delegate.page):
@@ -843,7 +867,10 @@ class edition_search(delegate.page):
         def get_results(q, offset=0, limit=100):
             q = escape_bracket(q)
             solr_select = solr_edition_select_url + "?q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=*&qt=standard&wt=json" % (web.urlquote(q), offset, limit)
-            return json.loads(urllib.urlopen(solr_select).read())
+            stats.begin("solr", url=solr_select)
+            json_data = urllib.urlopen(solr_select).read()
+            stats.end()
+            return json.loads(json_data)
         return render_template('search/editions.tmpl', get_results)
 
 class search_json(delegate.page):

@@ -6,3 +6,6 @@ default_image = None
 data_root = None
 
 ol_url = "http://openlibrary.org/"
+
+def get(name, default=None):
+    return globals().get(name, default)
