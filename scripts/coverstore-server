@@ -38,7 +38,6 @@ def start_gunicorn_server():
     """Starts the coverstore server using gunicorn server.
     """
     from gunicorn.app.base import Application
-    from gunicorn.config import Config
     
     configfile = sys.argv.pop(1)
     
