@@ -87,8 +87,8 @@ def read_oclc(rec):
         m = re_ocn_or_ocm.match(oclc)
         if m:
             oclc = m.group(1)
-        assert oclc.isdigit()
-        found.append(oclc)
+        if oclc.isdigit():
+            found.append(oclc)
 
     for f in rec.get_fields('035'):
         for k, v in f.get_subfields(['a']):
@@ -192,8 +192,12 @@ def read_title(rec):
     if title in ('See.', 'See also.'):
         raise SeeAlsoAsTitle
 # talis_openlibrary_contribution/talis-openlibrary-contribution.mrc:5654086:483
+# scrapbooksofmoun03tupp
     if title is None:
-        raise NoTitle
+        subfields = list(fields[0].get_all_subfields())
+        title = ' '.join(v for k, v in subfields)
+        if not title: # ia:scrapbooksofmoun03tupp
+            raise NoTitle
     ret['title'] = remove_trailing_dot(title)
     if b_and_p:
         ret["subtitle"] = ' : '.join(remove_trailing_dot(x.strip(' /,;:')) for x in b_and_p)
@@ -218,6 +222,13 @@ def read_edition_name(rec):
         found += [v for k, v in f.get_all_subfields()]
     return ' '.join(found)
 
+lang_map = {
+    'ser': 'srp', # http://www.archive.org/details/zadovoljstvauivo00lubb
+    'sze': 'slo',
+    'fr ': 'fre',
+    'fle': 'dut',
+}
+
 def read_languages(rec):
     fields = rec.get_fields('041')
     if not fields:
@@ -225,7 +236,7 @@ def read_languages(rec):
     found = []
     for f in fields:
         found += [i for i in f.get_subfield_values('a') if i and len(i) == 3]
-    return [{'key': '/languages/' + i} for i in found]
+    return [{'key': '/languages/' + lang_map.get(i, i)} for i in found]
 
 def read_pub_date(rec):
     fields = rec.get_fields('260')
@@ -313,7 +324,7 @@ def read_authors(rec):
     # 100 1  $aDowling, James Walter Frederick.
     # 111 2  $aConference on Civil Engineering Problems Overseas.
 
-    found = [read_author_person(f) for f in fields_100]
+    found = [f for f in (read_author_person(f) for f in fields_100) if f]
     for f in fields_110:
         f.remove_brackets()
         name = [v.strip(' /,;:') for v in f.get_subfield_values(['a', 'b'])]
@@ -546,10 +557,10 @@ def read_edition(rec):
         if str(f)[6] == 't':
             edition["copyright_date"] = str(f)[11:15]
         publish_country = str(f)[15:18]
-        if publish_country not in ('|||', '   '):
+        if publish_country not in ('|||', '   ', '\x01\x01\x01', '???'):
             edition["publish_country"] = publish_country
         lang = str(f)[35:38]
-        if lang not in ('   ', '|||'):
+        if lang not in ('   ', '|||', '', '???'):
             edition["languages"] = [{ 'key': '/languages/' + lang }]
     else:
         assert handle_missing_008
