@@ -2,8 +2,19 @@
 """Run coverstore server.
 
 Usage:
+
+start coverstore using dev webserver:
+
     ./scripts/coverstore-server coverstore.yml 8080
+
+start coverstore as fastcgi:
+
     ./scripts/coverstore-server coverstore.yml fastcgi 7070
+
+start coverstore using gunicorn webserver:
+
+    ./scripts/coverstore-server coverstore.yml --gunicorn -b 0.0.0.0:8080
+
 """
 
 import sys
@@ -35,11 +46,6 @@ def start_gunicorn_server():
         def init(self, parser, opts, args):
             pass
             
-        def _load_config(self):
-            self.cfg = Config(False)
-            for k, v in self.options.items():
-                self.cfg.set(k.lower(), v)
-        
         def load(self):
             from openlibrary.coverstore import server, code
             server.load_config(configfile)
