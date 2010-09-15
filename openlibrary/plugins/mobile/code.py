@@ -10,7 +10,13 @@ class index(delegate.page):
     path = "/"
 
     def GET(self):
-        return layout(render_template("mobile/index"))
+        rc = web.ctx.site.recentchanges({"bot": True, "limit": 1000, "author": "/people/ImportBot"})
+        edition_keys = []
+        for change in rc:
+            edition_keys.extend([c.key for c in change.changes 
+                                 if c.revision == 1 and c.key.startswith("/books/")])
+        editions = [ed for ed in web.ctx.site.get_many(edition_keys) if ed.ocaid]
+        return layout(render_template("mobile/index", new_books=editions[:10]))
 
 def _editions_for_works(works):
     ocaids = set()
