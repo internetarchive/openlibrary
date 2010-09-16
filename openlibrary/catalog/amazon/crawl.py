@@ -51,9 +51,10 @@ re_charset_header = re.compile('; charset=(.+)\r\n')
 version_block = '1 0 Open Library\nURL IP-address Archive-date Content-type Archive-length\n'
 
 class Scraper:
-    def __init__(self):
+    def __init__(self, recording=True):
         self.host = 'www.amazon.com'
         self.sock = socket.create_connection((self.host, 80))
+        self.recording = recording
         self.cur_arc = None
 
     def add_to_arc(self, url, start, content_type, reply):
@@ -114,39 +115,16 @@ class Scraper:
         line = fp.readline()
         recv_buf += line
         fp.close()
-        self.add_to_arc(url, start, content_type, recv_buf)
+        if self.recording:
+            self.add_to_arc(url, start, content_type, recv_buf)
         return body.decode(charset) if charset else body
 
-scraper = Scraper()
+scraper = Scraper(recording=False)
 
 def get_url(params):
-    url = base_url + rh + params
+    url = base_url + params
     page = scraper.get(url)
     return fromstring(page)
-    filename = 'cache/' + params
-    for i in range(10):
-        try:
-            url = base_url + rh + params
-            print url
-            req = urlopen(url)
-            page = req.read()
-            break
-        except IOError:
-            if i == 9:
-                raise
-            pass
-        sleep(2)
-    #open(filename, 'w').write(page)
-    return fromstring(page)
-
-def get_page(params):
-    return get_url(params) # no cache
-    filename = 'cache/' + params
-    if exists(filename):
-        root = parse(filename).getroot()
-    else:
-        root = get_url(params)
-    return root
 
 def get_total(root):
     if root.find(".//h1[@id='noResultsTitle']") is not None:
@@ -204,10 +182,9 @@ def get_cats(root):
         m = re_rh_n.search(href)
         cats.append((int(m.group(1)), e.text))
 
-def read_page(cur_date):
+def read_page(params):
     # read search results page
-    params = cur_date.strftime("%Y%m%d")
-    root = get_page(params)
+    root = get_url(params)
     total = get_total(root)
     if total == 0:
         print 'no results found'
@@ -217,6 +194,9 @@ def read_page(cur_date):
     print 'total:', total, 'pages:', pages
 
     cats = get_cats(root)
+    print 'cats 1'
+    for a, b, c in cats:
+        print "%8d %-30s %8d" % (a, b, c)
     #return grand_total, [], cats
 
     books = set()
@@ -224,29 +204,21 @@ def read_page(cur_date):
     books.update(read_books(params, root))
     for page in range(2, min((pages, 100))+1):
         params_with_page = params + "&page=%d" % page
-        books.update(read_books(params_with_page, get_page(params_with_page)))
+        books.update(read_books(params_with_page, get_url(params_with_page)))
         print page, len(books)
 
     print len(books)
 
-#    for order_by in ('-price', 'price', '-editionspsrank'):
-#        print order_by
-#        for page in range(1, min((pages, 100))+1):
-#            params_with_page = params + "&page=%d&sort=%s" % (page, order_by)
-#            cur = read_books(params_with_page, get_page(params_with_page))
-#            books.update(cur)
-#            print order_by, page, len(books), len(cur)
-#        print order_by, len(books)
-#
-#    return
-
     cats = get_cats(root)
+    print 'cats 2'
+    for a, b, c in cats:
+        print "%8d %30s %8d" % (a, b, c)
     print 'cat total:', sum(i[2] for i in cats)
     if total > max_results:
         for n, title, count in cats:
             print `n, title, count`
             params_with_cat = params + ",n:" + str(n)
-            root = get_page(params_with_cat)
+            root = get_url(params_with_cat)
             cat_total = get_total(root)
             pages = (cat_total / page_size) + 1
             print 'cat_total:', total, 'pages:', total / page_size
@@ -261,7 +233,7 @@ def read_page(cur_date):
             for page in range(2, min((pages, 100)) + 1):
                 params_with_page = params_with_cat + "&page=%d" % page
                 try:
-                    books.update(read_books(params_with_page, get_page(params_with_page)))
+                    books.update(read_books(params_with_page, get_url(params_with_page)))
                 except PersonalizedBooks:
                     print 'WARNING: Personalized Books'
                     break
@@ -270,11 +242,7 @@ def read_page(cur_date):
 
     return total, books, cats
 
-def write_books(cur_date, books):
-    out = open(out_dir + "/list." + cur_date, 'w')
-    for b in books:
-        print >> out, b
-    out.close()
+def write_books(books):
     i = 0
     error_count = 0
 
@@ -299,12 +267,13 @@ def write_books(cur_date, books):
             sleep(5)
 
 if __name__ == '__main__':
+
     one_day = timedelta(days=1)
     cur = date(2009, 1, 1) # start date
     cur = date(2009, 12, 25)
     while True:
         print cur
-        total, books, cats = read_page(cur)
+        total, books, cats = read_page(rh + cur.strftime("%Y%m%d"))
         open(out_dir + '/total.' + str(cur), 'w').write(str(total) + "\n")
 
         out = open(out_dir + "/cats." + str(cur), 'w')
