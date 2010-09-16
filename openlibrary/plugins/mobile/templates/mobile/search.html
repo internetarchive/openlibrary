@@ -16,12 +16,15 @@ $for edition, work in results["books"]:
                    width="45" height="68" hspace="10" align="left" />
          </td> 
          <td width="100%">
-               <a href="$edition.url()" class="bookTitle">$edition.title</a> by 
-               $for author in work["authors"]:
-                   <a href="$author.url">$author.name</a>$cond(not loop.last, ",")
-               <br /> 
+               <a href="$edition.url()" class="bookTitle">$edition.title</a>
+               $if work["authors"]:
+                   by 
+                   $for author in work["authors"]:
+                       <a href="$author.url">$author.name</a>$cond(not loop.last, ",")
+                   <br /> 
                <span class="brown">
-                 $work.first_publish_year, 
+                 $if work.first_publish_year:
+                     $work.first_publish_year, 
                  $(edition.publishers[0] if edition.publishers else "")
                </span>
         </td> 
