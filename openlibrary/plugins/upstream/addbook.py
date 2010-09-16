@@ -12,10 +12,11 @@ from infogami.utils import delegate
 from infogami.utils.view import safeint, add_flash_message
 from infogami.infobase.client import ClientException
 
-from openlibrary.plugins.openlibrary import code as ol_code
 from openlibrary.plugins.openlibrary.processors import urlsafe
 from openlibrary.utils.solr import Solr
 from openlibrary.i18n import gettext as _
+from StringIO import StringIO
+import csv
 
 import utils
 from utils import render_template, fuzzy_find
@@ -54,6 +55,24 @@ def new_doc(type, **data):
     data['key'] = key
     data['type'] = {"key": type}
     return web.ctx.site.new(key, data)
+    
+class DocSaveHelper:
+    """Simple utility to collct the saves and save all of the togeter at the end.
+    """
+    def __init__(self):
+        self.docs = []
+        
+    def save(self, doc):
+        """Adds the doc to the list of docs to be saved.
+        """
+        if not isinstance(doc, dict): # thing
+            doc = doc.dict()
+        self.docs.append(doc)
+        
+    def commit(self, **kw):
+        """Saves all the collected docs."""
+        if self.docs:
+            web.ctx.site.save_many(self.docs, **kw)
 
 class addbook(delegate.page):
     path = "/books/add"
@@ -66,7 +85,10 @@ class addbook(delegate.page):
         
     def POST(self):
         i = web.input(title="", author_name="", author_key="", publisher="", publish_date="", id_name="", id_value="", _test="false")
-        match = self.find_matches(i)
+        
+        saveutil = DocSaveHelper()
+        
+        match = self.find_matches(saveutil, i)
 
         if i._test == "true" and not isinstance(match, list):
             if match:
@@ -85,12 +107,12 @@ class addbook(delegate.page):
         elif match and match.key.startswith('/works'):
             # work match but not edition
             work = match
-            return self.work_match(work, i)
+            return self.work_match(saveutil, work, i)
         else:
             # no match
-            return self.no_match(i)
+            return self.no_match(saveutil, i)
                         
-    def find_matches(self, i):
+    def find_matches(self, saveutil, i):
         """Tries to find an edition or a work or multiple works that match the given input data.
         
         Case#1: No match. None is returned.
@@ -111,7 +133,7 @@ class addbook(delegate.page):
         if i.author_key == "__new__":
             a = new_doc("/type/author", name=i.author_name)
             comment = utils.get_message("comment_new_author")
-            a._save(comment)
+            saveutil.save(a)
             i.author_key = a.key
             # since new author is created it must be a new record
             return None
@@ -178,7 +200,8 @@ class addbook(delegate.page):
         elif len(result.docs) == 1:
             # found one edition match
             work = result.docs[0]
-            publisher = publisher and fuzzy_find(publisher, work.publisher, stopwords=["publisher", "publishers", "and"])
+            publisher = publisher and fuzzy_find(publisher, work.publisher, 
+                                                 stopwords=("publisher", "publishers", "and"))
             
             editions = web.ctx.site.get_many(["/books/" + key for key in work.edition_key])
             for e in editions:
@@ -194,11 +217,14 @@ class addbook(delegate.page):
                         continue
                 return e
                 
-    def work_match(self, work, i):
-        edition = self._make_edition(work, i)            
-        comment = utils.get_message("comment_new_edition")
-        edition._save(comment)
-        raise web.seeother(edition.url("/edit"))
+    def work_match(self, saveutil, work, i):
+        edition = self._make_edition(work, i)
+        
+        saveutil.save(edition)
+        comment = utils.get_message("comment_add_book")
+        saveutil.commit(comment=comment, action="add-book")
+
+        raise web.seeother(edition.url("/edit?mode=add-book"))
         
     def _make_edition(self, work, i):
         edition = new_doc("/type/edition", 
@@ -212,25 +238,36 @@ class addbook(delegate.page):
         return edition
         
     def work_edition_match(self, edition):
-        raise web.seeother(edition.url("/edit?from=add"))
+        raise web.seeother(edition.url("/edit?mode=found"))
         
-    def no_match(self, i):
+    def no_match(self, saveutil, i):
         # TODO: Handle add-new-author
         work = new_doc("/type/work",
             title=i.title,
             authors=[{"author": {"key": i.author_key}}]
         )
-        comment = utils.get_message("comment_new_work")
-        work._save(comment)
         
         edition = self._make_edition(work, i)
-        comment = utils.get_message("comment_new_edition")
-        edition._save(comment)
-        raise web.seeother(edition.url("/edit"))
+        
+        saveutil.save(work)
+        saveutil.save(edition)
+        
+        comment = utils.get_message("comment_add_book")
+        saveutil.commit(action="add-book", comment=comment)
+        
+        raise web.seeother(edition.url("/edit?mode=add-work"))
 
+# remove existing definations of addbook and addauthor
+delegate.pages.pop('/addbook', None)
+delegate.pages.pop('/addauthor', None) 
 
-del delegate.pages['/addbook']
-del delegate.pages['/addauthor'] 
+class addbook(delegate.page):
+    def GET(self):
+        raise web.redirect("/books/add")
+        
+class addauthor(delegate.page):
+    def GET(self):
+        raise web.redirect("/authors")
 
 def trim_value(value):
     """Trim strings, lists and dictionaries to remove empty/None values.
@@ -284,29 +321,31 @@ class SaveBookHelper:
         
         formdata = utils.unflatten(formdata)
         work_data, edition_data = self.process_input(formdata)
-        
+                
         self.process_new_fields(formdata)
+        
+        saveutil = DocSaveHelper()
         
         if delete:
             if self.edition:
                 self.delete(self.edition.key, comment=comment)
             
             if self.work and self.work.edition_count == 0:
-                self.delete(self.work.key, comment=comment)
+                self.delete(self.work.key, comment=comment, action="delete")
             return
             
         for i, author in enumerate(work_data.get("authors") or []):
             if author['author']['key'] == "__new__":
                 a = self.new_author(formdata['authors'][i])
-                a._save(utils.get_message("comment_new_author"))
                 author['author']['key'] = a.key
-            
-        if work_data and not delete:
+                saveutil.save(a)
+        
+        if work_data:
             if self.work is None:
                 self.work = self.new_work(self.edition)
                 self.edition.works = [{'key': self.work.key}]
             self.work.update(work_data)
-            self.work._save(comment=comment)
+            saveutil.save(self.work)
             
         if self.edition and edition_data:
             identifiers = edition_data.pop('identifiers', [])
@@ -324,7 +363,9 @@ class SaveBookHelper:
                 edition_data.translated_from = None
             
             self.edition.update(edition_data)
-            self.edition._save(comment=comment)
+            saveutil.save(self.edition)
+        
+        saveutil.commit(comment=comment, action="edit-book")
     
     def new_work(self, edition):
         work_key = web.ctx.site.new_key("/type/work")
@@ -418,18 +459,34 @@ class SaveBookHelper:
         
     def process_work(self, work):
         """Process input data for work."""
-        work.subjects = work.get('subjects', '').split(',')
-        work.subject_places = work.get('subject_places', '').split(',')
-        work.subject_times = work.get('subject_times', '').split(',')
-        work.subject_people = work.get('subject_people', '').split(',')
+        def read_subject(subjects):
+            if not subjects:
+                return
+
+            f = StringIO(subjects.encode('utf-8')) # no unicode in csv module
+            dedup = set()
+            for s in csv.reader(f, dialect='excel', skipinitialspace=True).next():
+                s = s.decode('utf-8')
+                if s.lower() not in dedup:
+                    yield s
+                    dedup.add(s.lower())
+
+        work.subjects = list(read_subject(work.get('subjects', '')))
+        work.subject_places = list(read_subject(work.get('subject_places', '')))
+        work.subject_times = list(read_subject(work.get('subject_times', '')))
+        work.subject_people = list(read_subject(work.get('subject_people', '')))
+        if ': ' in work.get('title', ''):
+            work.title, work.subtitle = work.title.split(': ', 1)
+        else:
+            work.subtitle = None
         
-        for k in ['excerpts', 'links']:
+        for k in ('excerpts', 'links'):
             work[k] = work.get(k) or []
+            
+        # ignore empty authors
+        work.authors = [a for a in work.get('authors', []) if a.get('author', {}).get('key', '').strip()]
         
-        work = trim_doc(work)
-        
-        return work
-        
+        return trim_doc(work)
 
 class book_edit(delegate.page):
     path = "(/books/OL\d+M)/edit"
@@ -491,7 +548,6 @@ class work_edit(delegate.page):
     def POST(self, key):
         i = web.input(v=None, _method="GET")
         v = i.v and safeint(i.v, None)
-        
         work = web.ctx.site.get(key, v)
         if work is None:
             raise web.notfound()
@@ -559,6 +615,17 @@ class edit(core.edit):
                 raise web.seeother(page.url(suffix="/edit"))
         else:
             return core.edit.GET(self, key)
+
+class daisy(delegate.page):
+    path = "(/books/OL\d+M)/daisy"
+
+    def GET(self, key):
+        page = web.ctx.site.get(key)
+
+        if not page:
+            raise web.notfound()
+
+        return render_template("books/daisy", page)
         
 def to_json(d):
     web.header('Content-Type', 'application/json')    
@@ -589,6 +656,10 @@ class authors_autocomplete(delegate.page):
         docs = data['docs']
         for d in docs:
             d.key = "/authors/" + d.key
+            
+            # Temp fix until upstream-to-www migration is done
+            d.key = web.ctx.site._request("/olid_to_key?olid=" + d.key.split("/")[-1]).key
+            
             if 'top_work' in d:
                 d['works'] = [d.pop('top_work')]
             else:

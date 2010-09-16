@@ -1,12 +1,15 @@
+
 import web
 import urllib, urllib2
 import simplejson
 import re
+from lxml import etree
 from collections import defaultdict
 
 from infogami import config
 from infogami.infobase import client
 from infogami.utils.view import safeint
+from infogami.utils import stats
 
 from openlibrary.plugins.search.code import SearchProcessor
 from openlibrary.plugins.openlibrary import code as ol_code
@@ -15,6 +18,9 @@ from openlibrary.utils.solr import Solr
 
 from utils import get_coverstore_url, MultiDict, parse_toc, parse_datetime, get_edition_config
 import account
+import borrow
+
+re_meta_field = re.compile('<(collection|contributor)>([^<]+)</(collection|contributor)>', re.I)
 
 class Image:
     def __init__(self, category, id):
@@ -41,41 +47,6 @@ class Image:
     def __repr__(self):
         return "<image: %s/%d>" % (self.category, self.id)
 
-def query_coverstore(category, **kw):
-    # Optimization to speedup work pages by avoiding the multiple requests to coverstore
-    try:
-        if kw.keys() == ["olid"]:
-            return web.ctx['coverstore_cache'][kw['olid']]
-    except KeyError:
-        pass
-        
-    try:
-        url = "%s/%s/query?%s" % (get_coverstore_url(), category, urllib.urlencode(kw))
-        json = urllib2.urlopen(url).read()
-        return simplejson.loads(json)
-    except IOError:
-        return []
-        
-def populate_coverstore_cache(olids):
-    # This single combined query is running slower that N individual queries.
-    # Don't try that until it is fixed.
-    return
-    
-    try:
-        url = "%s/b/query?cmd=ids&olid=%s"% (get_coverstore_url(), ",".join(olids))
-        d = simplejson.loads(urllib2.urlopen(url).read())
-        
-        cache = {}
-        for olid in olids:
-            if olid in d:
-                v = [d[olid]]
-            else:
-                v = []
-            cache[olid] = v
-        web.ctx.coverstore_cache = cache
-    except IOError:
-        pass
-
 class Edition(ol_code.Edition):
     def get_title(self):
         if self['title_prefix']:
@@ -98,7 +69,10 @@ class Edition(ol_code.Edition):
         """Next edition of work"""
         if len(self.get('works', [])) != 1:
             return
-        editions = sorted_work_editions(self.works[0].get_olid())
+        wkey = self.works[0].get_olid()
+        if not wkey:
+            return
+        editions = sorted_work_editions(wkey)
         try:
             i = editions.index(self.get_olid())
         except ValueError:
@@ -111,7 +85,10 @@ class Edition(ol_code.Edition):
         """Previous edition of work"""
         if len(self.get('works', [])) != 1:
             return
-        editions = sorted_work_editions(self.works[0].get_olid())
+        wkey = self.works[0].get_olid()
+        if not wkey:
+            return
+        editions = sorted_work_editions(wkey)
         try:
             i = editions.index(self.get_olid())
         except ValueError:
@@ -121,8 +98,7 @@ class Edition(ol_code.Edition):
         return editions[i - 1]
  
     def get_covers(self):
-        covers = self.covers or query_coverstore('b', olid=self.get_olid())
-        return [Image('b', c) for c in covers if c > 0]
+        return [Image('b', c) for c in self.covers if c > 0]
         
     def get_cover(self):
         covers = self.get_covers()
@@ -136,7 +112,125 @@ class Edition(ol_code.Edition):
         """Returns (name, value) pairs of all available identifiers."""
         names = ['isbn_10', 'isbn_13', 'lccn', 'oclc_numbers', 'ocaid']
         return self._process_identifiers(get_edition_config().identifiers, names, self.identifiers)
+
+    def get_ia_meta_fields(self):
+        if not self.get('ocaid', None):
+            return {}
+        ia = self.ocaid
+        url = 'http://www.archive.org/download/%s/%s_meta.xml' % (ia, ia)
+        reply = { 'collection': set() }
+        try:
+            stats.begin("archive.org", url=url)
+            f = urllib2.urlopen(url)
+            stats.end()
+        except:
+            stats.end()
+            return reply
+        for line in f:
+            m = re_meta_field.search(line)
+            if not m:
+                continue
+            k = m.group(1).lower()
+            v = m.group(2)
+            if k == 'collection':
+                reply[k].add(v.lower())
+            else:
+                assert k == 'contributor'
+                reply[k] = v
+
+        return reply
+
+    def is_daisy_encrypted(self):
+        meta_fields = self.get_ia_meta_fields()
+        if not meta_fields:
+            return
+        v = meta_fields['collection']
+        return 'printdisabled' in v or 'lendinglibrary' in v
+
+#      def is_lending_library(self):
+#         collections = self.get_ia_collections()
+#         return 'lendinglibrary' in collections
         
+    def get_lending_resources(self):
+        """Returns the loan resource identifiers (in meta.xml format) for books hosted on archive.org
+        
+        Returns e.g. ['acs:epub:urn:uuid:0df6f344-7ce9-4038-885e-e02db34f2891', 'acs:pdf:urn:uuid:7f192e62-13f5-4a62-af48-be4bea67e109']
+        """
+        
+        # The entries in meta.xml look like this:
+        # <external-identifier>
+        #     acs:epub:urn:uuid:0df6f344-7ce9-4038-885e-e02db34f2891
+        # </external-identifier>
+        
+        itemid = self.ocaid
+        if not itemid:
+            self._lending_resources = []
+            return self._lending_resources
+        
+        url = 'http://www.archive.org/download/%s/%s_meta.xml' % (itemid, itemid)
+        # $$$ error handling
+        stats.begin("archive.org", url=url)
+        root = etree.parse(urllib2.urlopen(url))
+        stats.end()
+        
+        self._lending_resources = [ elem.text for elem in root.findall('external-identifier') ]
+        return self._lending_resources
+        
+    def get_lending_resource_id(self, type):
+
+        desired = 'acs:%s:' % type
+        for urn in self.get_lending_resources():
+            if urn.startswith(desired):
+                return urn[len(desired):]
+
+        return None
+        
+    def get_available_loans(self):
+        """Returns [{'resource_id': uuid, 'type': type, 'size': bytes}]
+        
+        size may be None"""
+        
+        default_type = 'pdf'
+        
+        loans = []
+            
+        resource_pattern = r'acs:(\w+):(.*)'
+        for resource_urn in self.get_lending_resources():
+            (type, resource_id) = re.match(resource_pattern, resource_urn).groups()
+            loans.append( { 'resource_id': resource_id, 'type': type, 'size': None } )
+        
+        # Put default type at start of list, then sort by type name
+        def loan_key(loan):
+            if loan['type'] == default_type:
+                return '1-%s' % loan['type']
+            else:
+                return '2-%s' % loan['type']        
+        loans = sorted(loans, key=loan_key)
+        
+        # Check if we have a possible loan - may not yet be fulfilled in ACS4
+        if borrow.get_edition_loans(self):
+            # There is a current loan or offer
+            return []
+            
+        # Check if available - book status server
+        # We shouldn't be out of sync but we fail safe
+        for loan in loans:
+            if borrow.is_loaned_out(loan['resource_id']):
+                # Only a single loan of an item is allowed
+                # XXX log out of sync state
+                return []
+        
+        # XXX get file size
+            
+        return loans
+    
+    def update_loan_status(self):
+        """Update the loan status based off the status in ACS4"""
+        urn_pattern = r'acs:\w+:(.*)'
+        for ia_urn in self.get_lending_resources():
+            resource_id = re.match(urn_pattern, ia_urn).group(1)
+            borrow.update_loan_status(resource_id)
+
     def _process_identifiers(self, config, names, values):
         id_map = {}
         for id in config:
@@ -169,7 +263,8 @@ class Edition(ol_code.Edition):
     
     def set_identifiers(self, identifiers):
         """Updates the edition from identifiers specified as (name, value) pairs."""
-        names = ['isbn_10', 'isbn_13', 'lccn', 'oclc_numbers', 'ocaid', 'dewey_decimal_class', 'lc_classifications']
+        names = ('isbn_10', 'isbn_13', 'lccn', 'oclc_numbers', 'ocaid', 
+                 'dewey_decimal_class', 'lc_classifications')
         
         d = {}
         for id in identifiers:
@@ -196,7 +291,9 @@ class Edition(ol_code.Edition):
 
     def get_classifications(self):
         names = ["dewey_decimal_class", "lc_classifications"]
-        return self._process_identifiers(get_edition_config().classifications, names, self.classifications)
+        return self._process_identifiers(get_edition_config().classifications, 
+                                         names, 
+                                         self.classifications)
         
     def set_classifications(self, classifications):
         names = ["dewey_decimal_class", "lc_classifications"]
@@ -229,7 +326,10 @@ class Edition(ol_code.Edition):
         return d and UnitParser(["height", "width", "depth"]).parse(d)
     
     def set_physical_dimensions(self, d):
-        self.physical_dimensions = d and UnitParser(["height", "width", "depth"]).format(d)
+        # don't overwrite physical dimensions if nothing was passed in - there
+        # may be dimensions in the database that don't conform to the d x d x d format
+        if d:
+            self.physical_dimensions = UnitParser(["height", "width", "depth"]).format(d)
         
     def get_toc_text(self):
         def format_row(r):
@@ -260,17 +360,55 @@ class Edition(ol_code.Edition):
         self.table_of_contents = parse_toc(text)
         
     def get_links(self):
-        links1 = [web.storage(url=url, title=title) for url, title in zip(self.uris, self.uri_descriptions)] 
+        links1 = [web.storage(url=url, title=title) 
+                  for url, title in zip(self.uris, self.uri_descriptions)] 
         links2 = list(self.links)
         return links1 + links2
         
     def get_olid(self):
         return self.key.split('/')[-1]
+    
+    @property
+    def wp_citation_fields(self):
+        """
+        Builds a wikipedia citation as defined by http://en.wikipedia.org/wiki/Template:Cite#Citing_books
+        """
+        result = {
+            "title": self.works[0].title.replace("[", "&#91").replace("]", "&#93"),
+            "publication-date": self.get('publish_date'),
+            "url": "http://openlibrary.org%s" % self.url()
+        }
+
+        if self.title != self.works[0].title:
+            result['edition'] = self.title
+
+        if self.get('isbn_10'):
+            result['id'] = self['isbn_10'][0]
+            result['isbn'] = self['isbn_13'][0] if self.get('isbn_13') else self['isbn_10'][0]
+
+        if self.get('oclc_numbers'):
+            result['oclc'] = self.oclc_numbers[0]
+
+        if self.works[0].get('first_publish_year'):
+            result['origyear'] = self.works[0]['first_publish_year']
+
+        if self.get('publishers'):
+            result['publisher'] = self['publishers'][0]
+
+        if self.get('publish_places'):
+            result['publication-place'] = self['publish_places'][0]
+
+        authors = [ar.author for ar in self.works[0].authors]
+        if len(authors) == 1:
+            result['author'] = authors[0].name
+        else:
+            for i, a in enumerate(authors):
+                result['author%s' % (i + 1)] = a.name 
+        return result
         
 class Author(ol_code.Author):
     def get_photos(self):
-        photos = self.photos or query_coverstore('a', olid=self.get_olid())
-        return [Image("a", id) for id in photos if id > 0]
+        return [Image("a", id) for id in self.photos if id > 0]
         
     def get_photo(self):
         photos = self.get_photos()
@@ -321,7 +459,7 @@ class Work(ol_code.Work):
         
     def _get_solr_data(self):
         key = self.get_olid()
-        fields = ["cover_edition_key", "cover_id", "edition_key"]
+        fields = ["cover_edition_key", "cover_id", "edition_key", "first_publish_year"]
         
         solr = get_works_solr()
         d = solr.select({"key": key}, fields=fields)
@@ -329,7 +467,7 @@ class Work(ol_code.Work):
             w = d.docs[0]
         else:
             w = None
-        
+                
         # Replace _solr_data property with the attribute
         self.__dict__['_solr_data'] = w
         return w
@@ -367,12 +505,11 @@ class Work(ol_code.Work):
         editions = w and w.get('edition_key')
         
         if editions:
-            # pre-fetch the cover ids to avoid multiple requests to coverstore
-            populate_coverstore_cache(editions)
-            
             return web.ctx.site.get_many(["/books/" + olid for olid in editions])
         else:
             return []
+
+    first_publish_year = property(lambda self: self._solr_data.get("first_publish_year"))
         
     def get_edition_covers(self):
         editions = web.ctx.site.get_many(web.ctx.site.things({"type": "/type/edition", "works": self.key, "limit": 1000}))
@@ -475,6 +612,15 @@ class User(ol_code.User):
         else:
             return 0
             
+    def get_loan_count(self):
+        return len(borrow.get_loans(self))
+        
+    def update_loan_status(self):
+        """Update the status of this user's loans."""
+        loans = borrow.get_loans(self)
+        for resource_id in [loan['resource_id'] for loan in loans]:
+            borrow.update_loan_status(resource_id)
+            
 class UnitParser:
     """Parsers values like dimentions and weight.
 
@@ -497,6 +643,110 @@ class UnitParser:
         m = rx.match(s)
         return m and web.storage(zip(self.fields + ["units"], m.groups()))
 
+class Changeset(client.Changeset):
+    def can_undo(self):
+        return False
+        
+    def _undo(self):
+        """Undo this transaction."""
+        docs = {}
+        
+        def get_doc(key, revision):
+            if revision == 0:
+                return {
+                    "key": key,
+                    "type": {"key": "/type/delete"}
+                }
+            else:
+                return web.ctx.site.get(key, revision).dict()
+        
+        docs = [get_doc(c['key'], c['revision']-1) for c in self.changes]
+        data = {
+            "parent_changeset": self.id
+        }
+        comment = 'undo ' + self.comment
+        return web.ctx.site.save_many(docs, action="undo", data=data, comment=comment)
+            
+    def get_undo_changeset(self):
+        """Returns the changeset that undone this transaction if one exists, None otherwise.
+        """
+        try:
+            return self._undo_changeset
+        except AttributeError:
+            pass
+        
+        changesets = web.ctx.site.recentchanges({
+            "kind": "undo", 
+            "data": {
+                "parent_changeset": self.id
+            }
+        })
+        # return the first undo changeset
+        self._undo_changeset = changesets and changesets[-1] or None
+        return self._undo_changeset
+
+class MergeAuthors(Changeset):
+    def can_undo(self):
+        return self.get_undo_changeset() is None
+        
+    def get_master(self):
+        master = self.data.get("master")
+        return master and web.ctx.site.get(master, lazy=True)
+        
+    def get_duplicates(self):
+        duplicates = self.data.get("duplicates")
+        changes = dict((c['key'], c['revision']) for c in self.changes)
+        
+        return duplicates and [web.ctx.site.get(key, revision=changes[key]-1, lazy=True) for key in duplicates if key in changes]
+        
+class Undo(Changeset):
+    def can_undo(self):
+        return False
+    
+    def get_undo_of(self):
+        undo_of = self.data['undo_of']
+        return web.ctx.site.get_change(undo_of)
+        
+    def get_parent_changeset(self):
+        parent = self.data['parent_changeset']
+        return web.ctx.site.get_change(parent)
+        
+class AddBookChangeset(Changeset):
+    def get_work(self):
+        book = self.get_edition()
+        return (book and book.works and book.works[0]) or None
+    
+    def get_edition(self):
+        for doc in self.get_changes():
+            if doc.key.startswith("/books/"):
+                return doc
+        
+    def get_author(self):
+        for doc in self.get_changes():
+            if doc.key.startswith("/authors/"):
+                return doc
+
+# methods monkey-patched to client.Thing
+from utils import get_history
+def get_history_preview(self):
+    if '_history_preview' not in self.__dict__:
+        self.__dict__['_history_preview'] = get_history(self)
+    return self._history_preview
+    
+def get_most_recent_change(self):
+    h = self.get_history_preview()
+    if h.recent:
+        return h.recent[0]
+    else:
+        return h.initial[0]
+
+def prefetch(self):
+    """Prefetch all the anticipated docs."""
+    h = self.get_history_preview()
+    authors = set(v.author.key for v in h.initial + h.recent if v.author)
+    # preload them
+    web.ctx.site.get_many(list(authors))
+    
 def setup():
     client.register_thing_class('/type/edition', Edition)
     client.register_thing_class('/type/author', Author)
@@ -506,3 +756,13 @@ def setup():
     client.register_thing_class('/type/place', SubjectPlace)
     client.register_thing_class('/type/person', SubjectPerson)
     client.register_thing_class('/type/user', User)
+
+    client.register_changeset_class(None, Changeset) # set the default class
+    client.register_changeset_class('merge-authors', MergeAuthors)
+    client.register_changeset_class('undo', Undo)
+
+    client.register_changeset_class('add-book', AddBookChangeset)
+    
+    client.Thing.get_history_preview = get_history_preview
+    client.Thing.get_most_recent_change = get_most_recent_change
+    client.Thing.prefetch = prefetch

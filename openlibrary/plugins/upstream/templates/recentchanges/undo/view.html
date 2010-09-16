@@ -1,0 +1,15 @@
+$def with (change)
+
+<div id="contentHead">
+    $:render_template("recentchanges/header", change, label="Undo")
+</div>
+
+<div id="contentBody">
+    <div id="mergeHead" class="sansserif">
+        $ parent = change.get_parent_changeset()
+        Undo of <a href="$parent.url()">$parent.kind</a>.
+    </div>
+
+    <h3>Updated Records</h3>
+    $:render_template("recentchanges/updated_records", change)
+</div>

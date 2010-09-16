@@ -1,0 +1,24 @@
+$def with (change)
+
+<div class="truncatepath">
+    $if len(change.changes) == 0:
+        <span class="fixthis">???</span>
+        <span class="smallest sansserif"> - <a href="$change.url()" style="text-decoration: none;">expand</a></span>
+    $elif len(change.changes) == 1:
+        $ doc = change.get_changes()[0]
+        $# show book title/author name instead of key
+        $if doc.type.key == '/type/edition':
+            $ name = doc.title or 'Title unknown'
+        $elif doc.type.key == '/type/work':
+            $ name = doc.title or 'Title unknown'
+        $elif doc.type.key == '/type/author':
+            $ name = doc.name or 'Author name unknown'
+        $else:
+            $ name = doc.key
+        <a href="$homepath()$doc.key" class="datalink" title="$doc.key">$name</a>
+        $if doc.revision != 1:
+            <span class="smallest sansserif"> - <a style="text-decoration: none;" href="$homepath()$doc.key?m=diff&amp;b=$doc.revision" title="Review what's changed in from the previous revision">diff</a></span>
+    $else:
+        $len(change.changes) records
+        <span class="smallest sansserif"> - <a href="$change.url()" style="text-decoration: none;">expand</a></span>
+</div>

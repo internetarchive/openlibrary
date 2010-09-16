@@ -22,15 +22,15 @@ $putctx("robots", "noindex,nofollow")
             
 <div id="contentBody">
             
-    <form id="addAuthor" name="edit" method="post" action="" class="olform">
+    <form id="addAuthor" name="edit" method="post" action="" class="olform validate">
 
-        <div class="formElement section">
+        <div class="formElement" style="margin-bottom:12px;">
             <div class="label">
                 <label for="name">$_("Name")</label> 
-                <span class="tip">$:_('Please use "natural" order: <em>Leo Tolstoy</em> <strong>not</strong> <em>Tolstoy, Leo</em>')</span>
+                <span class="tip">$:_('Please use natural order. For example: <strong>Leo Tolstoy</strong> not <strong>Tolstoy, Leo</strong>. <span class="attn"><em>* Required field.</em></span>')</span>
             </div>
             <div class="input">
-                <input type="text" name="author--name" id="name" style="font-size:1.875em!important;" value="$page.name"/>
+                <input type="text" name="author--name" id="name" style="font-size:1.875em!important;width:900px!important;" value="$page.name" class="required"/>
             </div>
         </div>
                             
@@ -45,7 +45,7 @@ $putctx("robots", "noindex,nofollow")
 
                 <div id="about">
                     
-                    <fieldset class="major">
+                    <fieldset class="major collapse">
 
                         <div class="formElement">
                             <div class="label">
@@ -57,7 +57,7 @@ $putctx("robots", "noindex,nofollow")
                             </div>
                         </div>
 
-                        <div class="formElement contentQuarter" id="birthDate" style="width:205px;">
+                        <div class="formElement contentQuarter" id="birthDate" style="width:205px;margin-bottom:0;">
                             <div class="label birthLabelAcc">
                                 <label for="birth_date">$_("Date of birth")</label>
                             </div>
@@ -66,7 +66,7 @@ $putctx("robots", "noindex,nofollow")
                             </div>
                         </div>
                             
-                        <div class="formElement contentQuarter" id="deathDate" style="width:205px;">
+                        <div class="formElement contentQuarter" id="deathDate" style="width:205px;margin-bottom:0;">
                             <div class="label deathLabelAcc">
                                 <label for="death_date">$_("Date of death")</label>
                             </div>
@@ -75,9 +75,9 @@ $putctx("robots", "noindex,nofollow")
                             </div>
                         </div>
 
-                        <div class="formElement contentQuarter">
-                            <div class="label tipAcc">
-                                <span class="tip">$_('We\'re not storing structured dates here yet, so just add as much detail as you know. Like "21 May 2000".')</span>
+                        <div class="formElement contentQuarter" style="margin-bottom:0;">
+                            <div class="label tipAcc" style="margin-top:10px;padding-top:1em;">
+                                <span class="tip">$_('We\'re not storing structured dates (yet) so a date like "21 May 2000" is recommended.')</span>
                             </div>
                         </div>
 
@@ -89,7 +89,7 @@ $putctx("robots", "noindex,nofollow")
                                 <span class="tip">$_("For example:") Lev Nikolayevich Tolstoy; Yasnaya Polyana</span>
                             </div>
                             <div class="input">
-                                <textarea name="author--alternate_names" id="alternate_names" rows="6" cols="40" style="height:65px;">$";".join(page.alternate_names)</textarea>
+                                <textarea name="author--alternate_names" id="alternate_names" rows="6" cols="40" style="height:65px;">$"; ".join(page.alternate_names)</textarea>
                             </div>
                         </div>
 
@@ -101,18 +101,18 @@ $putctx("robots", "noindex,nofollow")
                 </div>
             </div>
                 
+        </div>
+
+        <div class="illustration" style="float:left;width:220px;min-height:200px;text-align:center;margin-top:1.125em;padding-top:15px;">
+            $:render_template("covers/author_photo", page)
+            $:render_template("covers/change", page)
+        </div>
+                
             <div class="clearfix"></div>
 
             <div class="formElement bottom">
                 $:macros.EditButtons(comment=page.comment_)
             </div>
 
-        </div>
-
-        <div class="illustration" style="float:left;width:220px;min-height:200px;text-align:center;margin-top:20px;">
-            $:render_template("covers/author_photo", page)
-            $:render_template("covers/change", page)
-        </div>
-                
     </form>
 </div>

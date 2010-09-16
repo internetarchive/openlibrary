@@ -1,13 +1,14 @@
 import re, urllib2
 from openlibrary.catalog.marc.fast_parse import get_tag_lines, get_all_subfields, get_subfield_values, get_subfields, BadDictionary
 from openlibrary.catalog.utils import remove_trailing_dot, remove_trailing_number_dot, flip_name
-from openlibrary.catalog.get_ia import get_data
 from openlibrary.catalog.importer.db_read import get_mc
 from collections import defaultdict
 
 subject_fields = set(['600', '610', '611', '630', '648', '650', '651', '662'])
 
 re_large_book = re.compile('large.*book', re.I)
+
+re_edition_key = re.compile(r'^/(?:b|books)/(OL\d+M)$')
 
 re_ia_marc = re.compile('^(?:.*/)?([^/]+)_(marc\.xml|meta\.mrc)(:0:\d+)?$')
 def get_marc_source(w):
@@ -17,7 +18,10 @@ def get_marc_source(w):
         if sr:
             found.update(i[5:] for i in sr if i.startswith('marc:'))
         else:
-            mc = get_mc(e['key'])
+            m = re_edition_key.match(e['key'])
+            if not m:
+                print e['key']
+            mc = get_mc('/b/' + m.group(1))
             if mc and not mc.startswith('amazon:') and not re_ia_marc.match(mc):
                 found.add(mc)
     return found
@@ -25,6 +29,7 @@ def get_marc_source(w):
 def get_marc_subjects(w):
     for src in get_marc_source(w):
         data = None
+        from openlibrary.catalog.get_ia import get_data
         try:
             data = get_data(src)
         except ValueError:
@@ -61,7 +66,7 @@ def flip_place(s):
 re_fictitious_character = re.compile('^(.+), (.+)( \(.* character\))$')
 re_etc = re.compile('^(.+?)[, .]+etc[, .]?$', re.I)
 re_aspects = re.compile(' [Aa]spects$')
-re_comma = re.compile('^([A-Z])([A-Za-z ]+?), ([A-Z][A-Z a-z]+)$')
+re_comma = re.compile('^([A-Z])([A-Za-z ]+?) *, ([A-Z][A-Z a-z]+)$')
 
 def tidy_subject(s):
     s = s.strip()
@@ -94,6 +99,7 @@ def find_aspects(line):
         return
     a, x = cur[0][1], cur[1][1]
     x = x.strip('. ')
+    a = a.strip('. ')
     if not re_aspects.search(x):
         return
     if a == 'Body, Human':

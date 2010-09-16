@@ -9,22 +9,35 @@ $code:
 $def display_value(label, value):
     $if value:
         <tr>
-            <td class="title"><span class="title">$label</span></td>
+            <td class="title"><h6 class="title">$label</h6></td>
             <td class="tag"><span class="object">$:thingrepr(value)</span></td>
         </tr>
 
 $def display_identifiers(label, ids):
-    <tr>
-        <td class="title"><span class="title">$label</span></td>
-        <td class="object"><span class="object">
-            $for id in ids:
-                $ sep = cond(loop.last, "", ", ")
-                $if id.url:
-                    <a href="$id.url">$id.value</a>$sep
-                $else:
-                    ${id.value}$sep
-        </span></td>
-    </tr>
+    $if label != "Goodreads":
+        <tr>
+            <td class="title"><h6 class="title">$label</h6></td>
+            <td class="object"><span class="object">
+                $for id in ids:
+                    $ sep = cond(loop.last, "", ", ")
+                    $if id.url:
+                        <a href="$id.url">$id.value</a>$sep
+                    $else:
+                        ${id.value}$sep
+            </span></td>
+        </tr>
+    $else:
+        <tr>
+            <td class="title"><h6 class="title">$label</h6></td>
+            <td class="object"><span class="object">
+                $for id in ids:
+                    <a href="$id.url">$id.value</a>
+            </span>
+            $if ctx.user and ctx.user.is_admin():
+                <div id="gr_add_to_books"></div>
+                <script type="text/javascript" src="http://www.goodreads.com/book/add_to_book_widget_frame/$id.value"></script>
+            </td>
+        </tr>
 
 $def display_contributor(c):
     <li><span>$c.role</span><br />$c.name </li>
@@ -32,52 +45,44 @@ $def display_contributor(c):
 $ work = page.works and page.works[0] or None    
 
 <div id="contentHead">
-    
+    <table width="100%"><tbody><tr>
+
+    <td valign="top" style="padding-right:10px;">
+        $:render_template('covers/book_cover_small', page.works[0])
+    </td>
+
+    <td valign="top" width="100%">
     $:macros.databarView(page)
-
-    <div class="head">
-        <div style="float:left;margin:0 10px 10px 0;clear:left;">
-            $:render_template('covers/book_cover_small', page.works[0])
-        </div>
-        $if page.works:
-            <h1 class="collapse">$:thingrepr(page.works)</h1>
+    <div class="navEdition brown sansserif small">
+        $ work = page.works and page.works[0]
+        $if work:
+            <strong>$work.edition_count edition$("s" if work.edition_count != 1 else "")</strong> of
+            <span title="$_('Go to the main page for %s', page.title)"><a href="$work.url()">$truncate(work.title or "", 60)</a></span>
         $else:
-            <h1 class="collapse">$page.title</h1>
-        <div class="work">
-        
-        $ authors = cond(work, work and work.get_authors(), page.get_authors())
-        
+            <strong>$:_('1 edition')</strong> record for of $page.title
+    $ authors = cond(work, work and work.get_authors(), page.get_authors())
         $if authors:
-            $ author_list = ', '.join('<a href="%s">%s</a>' % (a.url(), a.name) for a in authors)
-            <span class="editions">$_("By") $:author_list</span>
+            $ author_list = ', '.join('<a href="%s">%s</a>' % (a.url(), truncate(a.name, 40)) for a in authors)
+            $_("by") <span title="$_('Go to this author\'s page')">$:author_list</span>
         $else:
-            <span class="editions">$:_("By <em>unknown author</em>")</span>
-        </div>   
-    </div>
-
-    <div class="small lightgreen sansserif" style="margin-bottom: 20px;">
-        $if page.works:
-            <b>$page.works[0].edition_count edition$("s" if page.works[0].edition_count != 1 else ""):</b> 
-            <span class="brown">
-                You're looking at 
-                $if page.publish_date or page.publishers:
-                     the <i>$page.publish_date $:thingrepr(page.publishers)</i> edition.
-            </span>
-            <br />
-            $ prev = page.get_prev()
-            $ next = page.get_next()
+            $:_("by an <em>unknown author</em>")
+        <br />
+                <span class="smaller"><a href="/books/add?work=$page.works[0].key" title="$_('Add another edition of') $page.title">$_("Add another")</a>?</span>
+        <br />
+        $ prev = page.get_prev()
+        $ next = page.get_next()
+        $if page.works[0].edition_count > 1:
             $if prev:
-                <a href="/books/$prev" class="fixthis" title="PUBLISH DATE, PUBLISHER">&larr; $_("Previous")</a> 
-            $if prev and next:
-                &bull;
+                <a href="/books/$prev" title="$:_('View the previous edition of %s', page.title)">&larr; $_("Previous")</a>&nbsp;|
+            $else:
+                &larr; $_("Previous")&nbsp;|
             $if next:
-                <a href="/books/$next" class="fixthis" title="PUBLISH DATE, PUBLISHER">$_("Next") &rarr;</a> 
-        $else:
-            <span class="brown">
-                $:_('Open Library only knows about this edition of %s.', page.title) <a href="/books/add?work=$page.key" title="$_('Add another edition of') $page.title">$_("Add another")</a>?
-          </span>
+                <a href="/books/$next" title="$:_('View the next edition of %s', page.title)">$_("Next") &rarr;</a>
+            $else:
+                $_("Next") &rarr;
     </div>
-
+    </td>    
+    </tr></tbody></table>
 </div>
 
 <div id="contentBody">
@@ -91,8 +96,7 @@ $ work = page.works and page.works[0] or None
                 $:render_template('covers/change', page, ".edition-cover .bookCover img")
             </div>
             
-        $ contributors = [storage(role='Author', name=a.name) for a in work and work.get_authors() or []] + page.get('contributors', [])
-
+        $ contributors = page.get('contributors', [])
         $if contributors:
             <div class="section">
                 <h3 class="collapse">$_("Contributors")</h3>
@@ -105,6 +109,33 @@ $ work = page.works and page.works[0] or None
 
         <div class="editionAbout">
 
+            <div class="section sansserif" style="line-height: 1.5em">
+                    <span style="font-size:1.125em;"><strong>$page.title</strong></span>  
+                $if page.subtitle:
+                    <br /><span class="larger"><em>$page.subtitle</em></span> 
+                $if page.edition_title or page.edition_name:
+                    <br />$page.edition_title $page.edition_name
+                $if page.by_statement:
+                    <br />$page.by_statement
+                <span style="font-size:0.8125em;">
+                    $if page.publish_date or page.publishers or page.publish_places:
+                        <br />Published
+                        $if page.publish_date:
+                            <strong>$page.publish_date</strong> 
+                        $if page.publishers:
+                            by
+                            $for p in page.publishers:
+                                <a href="/search?publisher_facet=$p.replace('&','%26')" title="$_('Search for other books from') $p">$p</a>$cond(loop.last, "", ", ")
+                        $if page.publish_places:
+                            in
+                            $for p in page.publish_places:
+                                 <a href="/search/subjects?q=$p.replace('&','%26')" title="$_('Search for subjects about') $p">$p</a>$cond(loop.last, "", ", ")
+                        <span class="adjust">.</span>
+                    $if page.languages:
+                    <br/>Written in $:thingrepr(page.languages).
+                </span> 
+            </div>
+
         $if page.description:
             <h3 class="collapse">$_("About the Book")</h3>
             $:format(page.description)
@@ -116,9 +147,9 @@ $ work = page.works and page.works[0] or None
         $ table_of_contents = page.get_table_of_contents()
         $if table_of_contents and len(table_of_contents) > 1:
             <div class="section">
-            <table class="meta" id="toc-table">
+            <h3 class="collapse">$_("Table of Contents")</h3>
+            <table class="meta sansserif" id="toc-table">
             <tbody>
-                <tr><td colspan="3"><h3 class="collapse">$_("Table of Contents")</h3></td></tr>
                 $for toc in table_of_contents:
                     <tr class="toc-level-$toc.level">
                         <td class="toc-label">$toc.label</td>
@@ -129,53 +160,30 @@ $ work = page.works and page.works[0] or None
             </table>
             </div>
 
-        <div class="section">
-            <h3 class="collapse">$_("Edition Notes")</h3>
-            $if page.notes:
-                $:format(page.notes)
-            <table class="meta" style="margin-top: 10px">
-                <tbody>
-                    $:display_value(_("Title"), page.title)
-                    $:display_value(_("Subtitle"), page.subtitle)
-                    $:display_value(_("Edition Title"), page.edition_title)
-                    $:display_value(_("Edition Name"), page.edition_name)
-                    $:display_value(_("Publisher"), page.publishers)
-                    $:display_value(_("Publish Date"), page.publish_date)
-                    $:display_value(_("Published in"), page.publish_places)
-                    $:display_value(_("Series"), page.series)
-                    $:display_value(_("Volume"), page.volume)
-                    $:display_value(_("Genre"), page.genres)
-                    $:display_value(_("Other Titles"), page.other_titles)
-                    $:display_value(_("By Statement"), page.by_statement)
-                    $:display_value(_("Copyright Date"), page.copyright_date)
-                    $:display_value(_("Written in"), page.languages) 
-                    $:display_value(_("Translation Of"), page.translation_of)
-                    $:display_value(_("Translated From"), page.translated_from)
-                </tbody>
-            </table>
-        </div>
+        $if page.notes or page.series or page.volume or page.genres or page.other_titles or page.copyright_date or page.translation_of or page.translated_from:
+            <div class="section">
+                <h3 class="collapse">$_("Edition Notes")</h3>
+                $if page.notes:
+                    <span class="sansserif">$:format(page.notes)</span>
+                <table class="meta">
+                    <tbody>
+                        $:display_value(_("Series"), page.series)
+                        $:display_value(_("Volume"), page.volume)
+                        $:display_value(_("Genre"), page.genres)
+                        $:display_value(_("Other Titles"), page.other_titles)
+                        $:display_value(_("Copyright Date"), page.copyright_date)
+                        $:display_value(_("Translation Of"), page.translation_of)
+                        $:display_value(_("Translated From"), page.translated_from)
+                    </tbody>
+                </table>
+            </div>
 
-        <div class="section">
-            <table class="meta">
-            <tbody>
-                <tr>
-                    <td colspan="2"><h3 class="collapse">$_("ID Numbers")</h3></td>
-                </tr>
-                $:display_identifiers("Open Library", [storage(url=None, value=page.key.split("/")[-1])])
-                $for name, values in page.get_identifiers().multi_items():
-                    $:display_identifiers(values[0].label, values)
-            </tbody>
-            </table>
-        </div>
-        
         $ classifications = page.get_classifications().multi_items()
         $if classifications:
             <div class="section">
+                <h3 class="collapse">$_("Classifications")</h3>
                 <table class="meta">
                 <tbody>
-                    <tr>
-                        <td colspan="2"><h3 class="collapse">$_("Classifications")</h3></td>
-                    </tr>
                     $for name, values in classifications:
                         $:display_identifiers(values[0].label, values)
                 </tbody>
@@ -184,9 +192,9 @@ $ work = page.works and page.works[0] or None
             
         $if has_any("physical_format", "pagination", "physical_dimensions", "weight"):
             <div class="section">
+            <h3 class="collapse">$_("The Physical Object")</h3>
             <table class="meta">
             <tbody>
-                <tr><td colspan="2"><h3 class="collapse">$_("The Physical Object")</h3></td></tr>
                 $:display_value(_("Format"), page.physical_format)
                 $:display_value(_("Pagination"), page.pagination)
                 $:display_value(_("Number of pages"), page.number_of_pages)
@@ -196,6 +204,17 @@ $ work = page.works and page.works[0] or None
             </table>
             </div>
 
+        <div class="section">
+            <h3 class="collapse">$_("ID Numbers")</h3>
+            <table class="meta">
+            <tbody>
+                $:display_identifiers("Open Library", [storage(url=None, value=page.key.split("/")[-1])])
+                $for name, values in page.get_identifiers().multi_items():
+                    $:display_identifiers(values[0].label, values)
+            </tbody>
+            </table>
+        </div>
+        
         </div>
 
         <div class="editionTools">

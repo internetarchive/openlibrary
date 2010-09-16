@@ -3,6 +3,7 @@
 import web
 import urllib
 import re
+import os
 
 class ReadableUrlProcessor:
     """Open Library code works with urls like /b/OL1M and /b/OL1M/cover.
@@ -12,12 +13,20 @@ class ReadableUrlProcessor:
     """
     
     patterns = [
-        (r'/b/OL\d+M', '/type/edition', 'title', 'untitled'),
-        (r'/a/OL\d+A', '/type/author', 'name', 'noname'),
-        (r'/works/OL\d+W', '/type/work', 'title', 'untitled')
+        (r'/\w+/OL\d+M', '/type/edition', 'title', 'untitled'),
+        (r'/\w+/OL\d+A', '/type/author', 'name', 'noname'),
+        (r'/\w+/OL\d+W', '/type/work', 'title', 'untitled')
     ]
         
     def __call__(self, handler):
+        # temp hack to handle languages and users during upstream-to-www migration
+        if web.ctx.path.startswith("/l/"):
+            raise web.seeother("/languages/" + web.ctx.path[len("/l/"):])
+                
+        if web.ctx.path.startswith("/user/"):
+            if not web.ctx.site.get(web.ctx.path):
+                raise web.seeother("/people/" + web.ctx.path[len("/user/"):])
+        
         real_path, readable_path = self.get_readable_path(web.ctx.path, encoding=web.ctx.encoding)
 
         #@@ web.ctx.path is either quoted or unquoted depends on whether the application is running
@@ -25,7 +34,7 @@ class ReadableUrlProcessor:
         #@@ take care of that case here till that is fixed.
         # @@ Also, the redirection must be done only for GET requests.
         if readable_path != web.ctx.path and readable_path != urllib.quote(web.utf8(web.ctx.path)) and web.ctx.method == "GET":
-            raise web.seeother(web.safeunicode(readable_path) + web.safeunicode(web.ctx.query))
+            raise web.redirect(web.safeunicode(readable_path) + web.safeunicode(web.ctx.query))
 
         web.ctx.readable_path = readable_path
         web.ctx.path = real_path
@@ -33,7 +42,20 @@ class ReadableUrlProcessor:
         return handler()
 
     def get_object(self, key):
-        return web.ctx.site.get(key)
+        obj = web.ctx.site.get(key)
+        if obj is None and key.startswith("/a/"):
+            key = "/authors/" + key[len("/a/"):]
+            obj = key and web.ctx.site.get(key)
+            
+        if obj is None and key.startswith("/b/"):
+            key = "/books/" + key[len("/b/"):]
+            obj = key and web.ctx.site.get(key)
+        
+        if obj is None and web.re_compile(r"/.*/OL\d+[A-Z]"):
+            olid = web.safestr(key).split("/")[-1]
+            key = web.ctx.site._request("/olid_to_key?" + urllib.urlencode({"olid": olid})).key
+            obj = key and web.ctx.site.get(key)
+        return obj
 
     def _split(self, path):
         """Splits the path as required by the get_readable_path.
@@ -103,16 +125,28 @@ class ReadableUrlProcessor:
             return None, None, None
 
         type, property, default_title = match(path)
+        if type is None:
+            path = web.safeunicode(path)
+            return (path, path)
 
-        if not type \
-           or encoding is not None \
-           or path.endswith(".json"):
+        if encoding is not None \
+           or path.endswith(".json") or path.endswith(".yml") or path.endswith(".rdf"):
+            key, ext = os.path.splitext(path)
+            
+            get_object = get_object or self.get_object
+            thing = get_object(key)
+            if thing:
+                path = thing.key + ext
             path = web.safeunicode(path)
             return (path, path)
 
         prefix, middle, suffix = self._split(path)
         get_object = get_object or self.get_object
         thing = get_object(prefix)
+        
+        # get_object may handle redirections.
+        if thing:
+            prefix = thing.key
 
         if thing and thing.type.key == type:
             title = thing.get(property) or default_title
@@ -162,7 +196,7 @@ class ProfileProcessor:
                 return out
         else:
             return handler()
-
+    
 if __name__ == "__main__":
     import doctest
     doctest.testmod()

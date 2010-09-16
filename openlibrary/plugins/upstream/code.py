@@ -22,6 +22,9 @@ import utils
 import addbook
 import models
 import covers
+import borrow
+import recentchanges
+import merge_authors
 
 if not config.get('coverstore_url'):
     config.coverstore_url = "http://covers.openlibrary.org"
@@ -112,6 +115,9 @@ def create_dynamic_document(url, prefix):
         def url(self):
             return url + "?v=" + doc.md5()
             
+        def reload(self):
+            doc.update()
+            
     class hook(client.hook):
         """Hook to update the DynamicDocument when any of the source pages is updated."""
         def on_new_version(self, page):
@@ -123,11 +129,16 @@ def create_dynamic_document(url, prefix):
     delegate.pages[url][None] = page
     return page
             
-all_js = create_dynamic_document("/js/all.js", "/js")
+all_js = create_dynamic_document("/js/all.js", config.get("js_root", "/js"))
 web.template.Template.globals['all_js'] = all_js()
 
-all_css = create_dynamic_document("/css/all.css", "/css")
+all_css = create_dynamic_document("/css/all.css", config.get("css_root", "/css"))
 web.template.Template.globals['all_css'] = all_css()
+
+def reload():
+    """Reload all.css and all.js"""
+    all_css().reload()
+    all_js().reload()
 
 def setup_jquery_urls():
     if config.get('use_google_cdn', True):
@@ -140,23 +151,23 @@ def setup_jquery_urls():
     web.template.Template.globals['jquery_url'] = jquery_url
     web.template.Template.globals['jqueryui_url'] = jqueryui_url
     web.template.Template.globals['use_google_cdn'] = config.get('use_google_cdn', True)
-
-class redirects(delegate.page):
-    path = "/(a|b|user)/(.*)"
-    def GET(self, prefix, path):
-        d = dict(a="authors", b="books", user="people")
-        raise web.redirect("/%s/%s" % (d[prefix], path))
         
 @public
 def get_document(key):
     return web.ctx.site.get(key)
     
 class revert(delegate.mode):
+    def GET(self, key):
+        raise web.seeother(web.changequery(m=None))
+        
     def POST(self, key):
         i = web.input("v", _comment=None)
         v = i.v and safeint(i.v, None)
         if v is None:
             raise web.seeother(web.changequery({}))
+
+        if not web.ctx.site.can_write(key):
+            return render.permission_denied(web.ctx.fullpath, "Permission denied to edit " + key + ".")
         
         thing = web.ctx.site.get(key, i.v)
         
@@ -219,9 +230,10 @@ class report_spam(delegate.page):
             'irl': i.irl,
             'comment': i.comment,
             'sent': datetime.datetime.utcnow(),
+            'browser': web.ctx.env.get('HTTP_USER_AGENT', '')
         })
         msg = render_template('email/spam_report', fields)
-        web.sendmail(config.from_address, config.report_spam_address, msg.subject, str(msg))
+        web.sendmail(i.email, config.report_spam_address, msg.subject, str(msg))
         return render_template("contact/spam/sent")
 
 def setup():
@@ -230,14 +242,11 @@ def setup():
     utils.setup()
     addbook.setup()
     covers.setup()
+    merge_authors.setup()
     
-    # overwrite ReadableUrlProcessor patterns for upstream
-    ReadableUrlProcessor.patterns = [
-        (r'/books/OL\d+M', '/type/edition', 'title', 'untitled'),
-        (r'/authors/OL\d+A', '/type/author', 'name', 'noname'),
-        (r'/works/OL\d+W', '/type/work', 'title', 'untitled')
-    ]
-
+    import data
+    data.setup()
+    
     # Types for upstream paths
     types.register_type('^/authors/[^/]*$', '/type/author')
     types.register_type('^/books/[^/]*$', '/type/edition')
@@ -272,5 +281,5 @@ def setup():
     web.template.STATEMENT_NODES["jsdef"] = jsdef.JSDefNode
     
     setup_jquery_urls()
-    
 setup()
+

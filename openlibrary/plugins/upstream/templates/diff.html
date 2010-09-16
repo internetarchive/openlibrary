@@ -2,6 +2,8 @@ $def with (a, b)
 
 $var title: $_("Diff on %s", a.key)
 
+$putctx("robots", "noindex,nofollow")
+
 <div id="contentHead">
 
     $:macros.databarDiff() 
@@ -30,7 +32,7 @@ $def display_revision(page):
 $def diff_covers(p, a, b):
     $if a[p] != b[p]:
         <tr>
-            <td class="diff-header-side">$label</td>
+            <td class="diff-header-side">$p</td>
             <td class="diff-body">
                 $for img in a[p]:
                     <img src="$get_coverstore_url()/b/id/$img-S.jpg"/>
@@ -54,22 +56,39 @@ $def diff_covers(p, a, b):
             </tr>
         </thead>
         <tbody>
+            
+        $code:
+            def find_diff(a, b, p):
+                label = p
+                # quick hack to display images in diff
+                if p in ["covers", "photos"]:
+                    return diff_covers(p, a, b)
+                elif p == "table_of_contents":
+                    return thingdiff("/type/text", "table_of_contents", a.get_toc_text(), b.get_toc_text())
+                elif p == "title_prefix":
+                    return thingdiff("/type/string", "title_prefix", a[p].strip(), b[p].strip())
+                elif p == "authors":
+                    return thingdiff("/type/author", "authors", a.get_authors(), b.get_authors())
+                else:
+                    ap = a[p]
+                    bp = b[p]
+                    t = get_expected_type(a, p)
+                    if t == "/type/string":
+                        if is_thing(ap):
+                            ap = ap.dict()
+                        if is_thing(bp):
+                            bp = bp.dict()
+                    return thingdiff(t, label, ap, bp)
         
         $ diff_count = 0
-	
+        
         $for p in set(a.keys() + b.keys()):
-            $ label = p
-            $# quick hack to display images in diff
-            $if p in ["covers", "photos"]:
-                $ diff = diff_covers(p, a, b)
-            $elif p == "table_of_contents":
-                $ diff = thingdiff("/type/text", "table_of_contents", a.get_toc_text(), b.get_toc_text())
-            $elif p == "title_prefix":
-                $ diff = thingdiff("/type/string", "title_prefix", a[p].strip(), b[p].strip())
-            $else:
-                $ diff = thingdiff(get_expected_type(a, p), label, a[p], b[p])
-                
-            $ diff = diff and diff.strip()
+            $ diff = find_diff(a, b, p)
+            $if not isinstance(diff, (str, unicode)) and hasattr(diff, "next"):
+                $ diff = u"".join(text for _x, text in diff)
+            
+            $if isinstance(diff, (str, unicode)):    
+                $ diff = diff and diff.strip()
             $if diff:
                 $:diff
                 $ diff_count += 1

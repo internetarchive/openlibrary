@@ -2,7 +2,7 @@ import urllib, web
 import simplejson as json
 from time import sleep
 
-staging = False
+query_host = 'openlibrary.org'
 
 def jsonload(url):
     return json.load(urllib.urlopen(url))
@@ -10,15 +10,26 @@ def jsonload(url):
 def urlread(url):
     return urllib.urlopen(url).read()
 
+def set_query_host(host):
+    global query_host
+    query_host = host
+
 def has_cover(key):
     url = 'http://covers.openlibrary.org/' + key[1] + '/query?olid=' + key[3:]
     return urlread(url).strip() != '[]'
 
+def has_cover_retry(key):
+    for attempt in range(5):
+        try:
+            return has_cover(key)
+        except KeyboardInterrupt:
+            raise
+        except:
+            pass
+        sleep(2)
+
 def base_url():
-    host = 'openlibrary.org'
-    if staging:
-        host = 'dev.' + host
-    return "http://" + host
+    return "http://" + query_host
 
 def query_url():
     return base_url() + "/query.json?query="
@@ -39,10 +50,6 @@ def get_all_ia():
             return
         q['offset'] += limit
 
-def set_staging(i):
-    global staging
-    staging = i
-
 def query(q):
     url = query_url() + urllib.quote(json.dumps(q))
     ret = None
@@ -57,7 +64,13 @@ def query(q):
             pass
         if ret:
             try:
-                return json.loads(ret)
+                data = json.loads(ret)
+                if isinstance(data, dict):
+                    if 'error' in data:
+                        print 'error:'
+                        print ret
+                    assert 'error' not in data
+                return data
             except:
                 print ret
                 print url
@@ -129,5 +142,3 @@ def get_mc(key): # get machine comment
     if comments[0] == 'initial import':
         return None
     return comments[0]
-
-    return 'mc'

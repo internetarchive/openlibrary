@@ -9,10 +9,12 @@ import random
 import urllib
 import xml.etree.ElementTree as etree
 import datetime
+import gzip
+import StringIO
 
 from infogami import config
 from infogami.utils import view, delegate
-from infogami.utils.view import render, public, _format
+from infogami.utils.view import render, get_template, public, _format
 from infogami.utils.macro import macro
 from infogami.utils.markdown import markdown
 from infogami.utils.context import context
@@ -21,7 +23,7 @@ from infogami.infobase.client import Thing
 from infogami.infobase.utils import parse_datetime
 
 from openlibrary.i18n import gettext as _
-from openlibrary.plugins.openlibrary.code import sanitize
+from openlibrary.plugins.openlibrary.utils import sanitize
 
 class MultiDict(DictMixin):
     """Ordered Dictionary that can store multiple values.
@@ -136,7 +138,7 @@ def list_recent_pages(path, limit=100, offset=0):
 @public
 def json_encode(d):
     return simplejson.dumps(d)
-    
+
 def unflatten(d, seperator="--"):
     """Convert flattened data into nested form.
     
@@ -224,23 +226,62 @@ def radio_list(name, args, value):
 def get_coverstore_url():
     return config.get('coverstore_url', 'http://covers.openlibrary.org').rstrip('/')
 
+def get_changes_v1(query):
+    return web.ctx.site.versions(query)
+
+def get_changes_v2(query):
+    page = web.ctx.site.get(query['key'])
+    
+    def first(seq, default=None):
+        try:
+            return seq.next()
+        except:
+            return default
+    
+    def process_change(change):
+        change.thing = page
+        change.key = page.key
+        change.revision = first(c.revision for c in change.changes if c.key == page.key)
+        change.created = change.timestamp
+
+        change.get = change.__dict__.get
+        change.get_comment = lambda: get_comment(change)        
+        change.machine_comment = change.data.get("machine_comment")
+    
+        return change
+        
+    def get_comment(change):
+        t = get_template("recentchanges/" + change.kind + "/comment") or get_template("recentchanges/default/comment")
+        return t(change, page)
+
+    query['key'] = page.key
+    changes = web.ctx.site.recentchanges(query)
+    return [process_change(c) for c in changes]
+    
+def get_changes(query):
+    if 'history_v2' in web.ctx.features:
+        return get_changes_v2(query)
+    else:
+        return get_changes_v1(query)
 
 @public
 def get_history(page):
-    """Returns initial and most recent history of given page.
-    
-    If the page has more than 5 revisions, first 2 and recent 3 changes are returned. 
-    If the page has 5 or less than 
-    """
     h = web.storage(revision=page.revision, lastest_revision=page.revision, created=page.created)
     if h.revision < 5:
-        h.recent = web.ctx.site.versions({"key": page.key, "limit": 5})
+        h.recent = get_changes({"key": page.key, "limit": 5})
         h.initial = h.recent[-1:]
         h.recent = h.recent[:-1]
     else:
-        h.initial = web.ctx.site.versions({"key": page.key, "limit": 1, "offset": h.revision-1})
-        h.recent = web.ctx.site.versions({"key": page.key, "limit": 4})
+        h.initial = get_changes({"key": page.key, "limit": 1, "offset": h.revision-1})
+        h.recent = get_changes({"key": page.key, "limit": 4})
+    
     return h
+    
+    print "get_history", page
+    if 'history_v2' in web.ctx.features:
+        return get_history_v2(page)
+    else:
+        return get_history_v1(page)    
     
 @public
 def get_version(key, revision):
@@ -456,8 +497,6 @@ class HTML(unicode):
 _websafe = web.websafe
 def websafe(text):
     if isinstance(text, HTML):
-        print 'websafe %r %r' % (text, _websafe(text))
-        #return _websafe(text.html)
         return text
     elif isinstance(text, web.template.TemplateResult):
         return web.safestr(text)
@@ -552,12 +591,39 @@ def _get_recent_changes():
         
     return result
     
+def _get_recent_changes2():
+    """New recent changes for around the library.
+    
+    This function returns the message to display for each change.
+    The message is get by calling `recentchanges/$kind/message.html` template.
+    
+    If `$var ignore=True` is set by the message template, the change is ignored.
+    """
+    if 'env' not in web.ctx:
+        delegate.fakeload()
+    
+    q = {"bot": False, "limit": 100}
+    changes = web.ctx.site.recentchanges(q)
+    
+    def render(c):
+        t = get_template("recentchanges/" + c.kind + "/message") or get_template("recentchanges/default/message")
+        return t(c)
+
+    messages = [render(c) for c in changes]
+    messages = [m for m in messages if str(m.get("ignore", "false")).lower() != "true"]
+    return messages
+    
 _get_recent_changes = web.memoize(_get_recent_changes, expires=5*60, background=True)
+_get_recent_changes2 = web.memoize(_get_recent_changes2, expires=5*60, background=True)
 
 @public
 def get_random_recent_changes(n):
-    changes = _get_recent_changes()
-    return random.sample(changes, n)    
+    if "recentchanges_v2" in web.ctx.features:
+        changes = _get_recent_changes2()
+    else:
+        changes = _get_recent_changes()
+        
+    return random.sample(changes, n)  
 
 @public
 def sprintf(s, *a, **kw):
@@ -569,7 +635,11 @@ def sprintf(s, *a, **kw):
         
 def _get_blog_feeds():
     url = "http://blog.openlibrary.org/feed/"
-    tree = etree.parse(urllib.urlopen(url))
+    try:
+        tree = etree.parse(urllib.urlopen(url))
+    except IOError:
+        # Handle error gracefully.
+        return []
     
     def parse_item(item):
         pubdate = datetime.datetime.strptime(item.find("pubDate").text, '%a, %d %b %Y %H:%M:%S +0000')
@@ -590,6 +660,47 @@ class Request:
     path = property(lambda self: web.ctx.path)
     home = property(lambda self: web.ctx.home)
     domain = property(lambda self: web.ctx.host)
+    
+class GZipMiddleware:
+    """WSGI middleware to gzip the response."""
+    def __init__(self, app):
+        self.app = app
+        
+    def __call__(self, environ, start_response):
+        accept_encoding = environ.get("HTTP_ACCEPT_ENCODING", "")
+        if not 'gzip' in accept_encoding:
+            return self.app(environ, start_response)
+        
+        response = web.storage(compress=False)
+        
+        def get_response_header(name, default=None):
+            for hdr, value in response.headers:
+                if hdr.lower() == name.lower():
+                    return value
+            return default
+            
+        def compress(text, level=9):
+            f = StringIO.StringIO()
+            gz = gzip.GzipFile(None, 'wb', level, fileobj=f)
+            gz.write(text)
+            gz.close()
+            return f.getvalue()
+        
+        def new_start_response(status, headers):
+            response.status = status
+            response.headers = headers
+            
+            if status.startswith("200") and get_response_header("Content-Type", "").startswith("text/"):
+                headers.append(("Content-Encoding", "gzip"))
+                headers.append(("Vary", "Accept-Encoding"))
+                response.compress = True
+            return start_response(status, headers)
+        
+        data = self.app(environ, new_start_response)
+        if response.compress:
+            return [compress("".join(data), 9)]
+        else:
+            return data
 
 def setup():
     """Do required initialization"""
@@ -604,6 +715,9 @@ def setup():
         'HTML': HTML,
         'request': Request()
     })
+
+    if config.get('use_gzip') == True:
+        config.middleware.append(GZipMiddleware)
     
 if __name__ == '__main__':
     import doctest

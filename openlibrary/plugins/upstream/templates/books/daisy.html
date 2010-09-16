@@ -1,0 +1,66 @@
+$def with (page)
+
+$var title: $page.title
+
+$ _x = ctx.setdefault('bodyid', 'plain')
+
+$ daisy = "http://www.archive.org/download/XXX/XXX_daisy.zip"
+
+<div id="contentBody">
+
+    <div class="nav">
+        <a href="javascript:;" onclick="history.go(-1);"><strong>Back</strong></a>
+        |
+        <a href="/">Open Library Home</a>
+    </div>
+
+    $if not page.ocaid:
+        <ul class="link">
+            <li>There isn't a DAISY file available for <a href="$page.key">$page.title</a></li>
+        </ul>
+    $elif page.is_daisy_encrypted():
+        <div class="message">
+            <h2 class="sansserif">This DAISY file is protected.</h2>
+            <p>It can only be opened on a specialized device with a key issued by the Library of Congress.</p>
+        </div>
+        <ul class="link">
+            <li><a href="$daisy.replace('XXX', page.ocaid)"><strong>Download the DAISY.zip</strong></a> for <a href="$page.key">$page.title</a></li>
+        </ul>
+    $else:
+        <ul class="link">
+            <li><a href="$daisy.replace('XXX', page.ocaid)"><strong>Download the DAISY.zip</strong></a> for <a href="$page.key">$page.title</a></li>
+        </ul>
+
+
+    <p class="largest" style="margin-bottom: 0;"><strong>Books for people who don't read print?</strong></p>
+    <p>The <a href="http://archive.org">Internet Archive</a> is proud to be distributing over 1 million books free in a format called DAISY, designed for those of us who find it challenging to use regular printed media. </p>
+    <p>There are two types of DAISYs on Open Library: <i>open</i> and <i>protected</i>. Open DAISYs can be read by anyone in the world on many different devices. Protected DAISYs 
+    $if page.is_daisy_encrypted(): 
+        (like this one)
+     can only be opened using a key issued by the <a href="http://www.loc.gov/nls/">Library of Congress NLS program</a>.</p>
+    <p><b><i>Enjoy!</i></b></p>
+
+    <h3 class="collapse">&nbsp;</h3>
+    <div id="faq">
+    <div class="contentOnethird">
+        <h4>What is the DAISY format?</h4>
+        <p class="serif">The DAISY digital format helps people who have challenges using regular printed media. DAISY digital <span class="highlight">talking books</span> offer the benefits of regular audiobooks, with navigation within the book, to chapters or specific pages.<br/>
+        <a href="http://www.daisy.org/">More information at daisy.org</a></p>
+    </div>
+    <div class="contentSpacer"></div>
+    <div class="contentOnethird">
+        <h4>How do I find DAISYs on Open Library?</h4>
+        <p class="serif">In addition to <a href="/subjects/accessible_book">loads of open DAISYs</a>, the Open Library lists a smaller selection of <a href="/subjects/protected_DAISY">protected DAISY titles</a> accessible to those with a Library of Congress NLS key. These titles are brought to you by the <a href="http://www.archive.org/">Internet Archive</a>.</p>
+    </div>
+    <div class="contentSpacer"></div>
+    <div class="contentOnethird">
+        <h4>What is the NLS?</h4>
+        <p class="serif">The Library of Congress <a href="http://www.loc.gov/nls/">National Library Service for the Blind and Physically Handicapped (NLS)</a> administers a free library program of braille and audio materials circulated to eligible borrowers in the United States through a national network of cooperating libraries. 
+        <br /><a href="http://www.loc.gov/nls/eligible.html">Are you eligible to register?</a></a>
+    </div>
+    </div>
+
+    <div class="clearfix"></div>
+
+    <p class="help"><strong>Need help?</strong> Please read our <a href="/help/faq">FAQ on accessing books through Open Library</a>.</p>
+</div>

@@ -1,0 +1,33 @@
+$def with (change)
+
+$if change.author:
+    $ who = '<a href="%s" rel="nofollow">%s</a>' % (change.author.key, change.author.displayname or change.author.key)
+$else:
+    $ who = None
+
+$if len(change.changes) == 1:
+    $ doc = change.get_changes()[0]
+    
+    $if doc.type.key in ['/type/edition', '/type/work']:
+        $ what = doc.title or doc.key
+    $elif doc.type.key == '/type/author':
+        $ what = doc.name or doc.key
+    $else:
+        $ what = doc.key
+    $ what = '<a href="%s" rel="nofollow">%s</a>' % (doc.key, what)
+    $ when = datestr(change.timestamp)
+    
+    $if doc.revision == 1:
+        $ action = "created"
+    $else:
+        $ action = "updated"
+    
+    $if doc.revision == 1 and doc.author and doc.author.key == doc.key:
+        $:who $_('opened a new Open Library account!')
+    $elif who:
+        $:who $action $:what
+    $else:
+        $:what was $action anonymously
+    <span class="timestamp">$when</span>
+$else:
+    $var ignore = True

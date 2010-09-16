@@ -426,8 +426,10 @@
        when adding a document.
    -->
 
+   <field name="key" type="string" indexed="true" stored="true" required="true" /> 
    <field name="name" type="textgen" indexed="true" stored="true" required="true" /> 
    <field name="type" type="string" indexed="true" stored="true" required="true" /> 
+   <field name="count" type="int" indexed="true" stored="true" required="true" /> 
 
    <!-- Dynamic field definitions.  If a field name is not found, dynamicFields
         will be used if the name matches any of the patterns.
@@ -470,7 +472,7 @@
  <!-- Field to use to determine and enforce document uniqueness. 
       Unless this field is marked with required="false", it will be a required field
    -->
- <uniqueKey>name</uniqueKey>
+ <uniqueKey>key</uniqueKey>
 
  <!-- field for the QueryParser to use when an explicit fieldname is absent -->
  <defaultSearchField>name</defaultSearchField>

@@ -1,0 +1,20 @@
+$def with (change)
+
+$ master = change.get_master()
+$ duplicates = change.get_duplicates()
+
+$if not master:
+    $var ignore = True
+$elif change.author:
+    $ msg = ungettext("%(who)s merged one duplicate of %(master)s.", "%(who)s merged %(count)d duplicates of %(master)s.", len(duplicates))
+
+    $ who = '<a href="%s" rel="nofollow">%s</a>' % (change.author.key, change.author.displayname or change.author.key)
+    $ master_html = '<a href="%s">%s</a>' % (master.key, master.name)
+    $:sprintf(msg, who=who, count=len(duplicates), master=master_html)
+    <span class="timestamp">$datestr(change.timestamp)</span>
+$else:
+    $ msg = ungettext("one duplicate of %(master)s was merged anonymously", "%(count)d duplicates of %(master)s were merged anonymously", len(duplicates))
+    
+    $ master_html = '<a href="%s">%s</a>' % (master.key, master.name)
+    $:sprintf(msg, msg, master=master_html, count=len(duplicates))
+    <span class="timestamp">$datestr(change.timestamp)</span>

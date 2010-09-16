@@ -1,6 +1,7 @@
 $def with (book)
 
 <script type="text/javascript">
+<!--
 \$(function() {
     function error(error_div, input, message) {
         \$(error_div).show().html(message);
@@ -56,7 +57,7 @@ $def with (book)
    });
    
 });
-
+//-->
 </script>
 
 <div class="hidden">
@@ -66,10 +67,10 @@ $def with (book)
             <a class="floaterShut close-popup" href="#"></a>
         </div>
         <div id="select-role-popup-errors" class="popAlert addfield hidden"></div>
-        <form class="floatform" id="addrole-form" name="newrole" method="POST" enctype="multipart/form-data" action="">
+        <form class="floatform" id="addrole-form" name="newrole" method="post" enctype="multipart/form-data" action="">
             <div class="formElement">
                 <div class="label">
-                    <label for="newrole">$_("What should we show in the menu?") <span class="tip">$_("For example:") <em>Illustrator, Editor</em></span></label>
+                    <label for="select-role-popup-value">$_("What should we show in the menu?") <span class="tip">$_("For example:") <em>Illustrator, Editor</em></span></label>
                 </div>
                 <div class="input">
                     <input type="text" name="value" id="select-role-popup-value" value=""/>
@@ -93,7 +94,7 @@ $def with (book)
         </div>
         <div class="popAlert addfield hidden" id="select-id-popup-errors"></div>
         <div class="popNotify"><span class="red">*</span><span class="tip">$_("Required field")</span></div>
-        <form class="floatform" id="addname-form" name="newname" method="POST" enctype="multipart/form-data" action="">
+        <form class="floatform" id="addname-form" name="newname" method="post" enctype="multipart/form-data" action="">
             <div class="formElement">
                 <div class="label">
                     <label for="id-label"><span class="red" style="font-weight:normal;">*</span>$_("What should we show in the menu?") <span class="tip">$_("For example:") <em>Goodreads</em></span></label>
@@ -117,7 +118,7 @@ $def with (book)
                     <label for="id-note">$_("Please leave a note: Why is this ID useful?")</label>
                 </div>
                 <div class="input">
-                    <textarea name="note" id="id-note" value="" rows="5" cols="40"></textarea>
+                    <textarea name="note" id="id-note" rows="5" cols="40"></textarea>
                 </div>
             </div>
             
@@ -138,10 +139,10 @@ $def with (book)
         </div>
         <div class="popAlert addfield hidden" id="select-classification-popup-errors"></div>
         <div class="popNotify"><span class="red">*</span><span class="tip">$_("Required field")</span></div>
-        <form class="floatform" id="addclass-form" name="newrclass" method="POST" enctype="multipart/form-data" action="">
+        <form class="floatform" id="addclass-form" name="newrclass" method="post" enctype="multipart/form-data" action="">
             <div class="formElement">
                 <div class="label">
-                    <label for="newrole"><span class="red" style="font-weight:normal;">*</span>$_("What should we show in the menu?") <span class="tip">$_("For example:") <em>Library of Congress</em></span></label>
+                    <label for="select-classification-popup-label"><span class="red" style="font-weight:normal;">*</span>$_("What should we show in the menu?") <span class="tip">$_("For example:") <em>Library of Congress</em></span></label>
                 </div>
                 <div class="input">
                     <input type="text" name="label" id="select-classification-popup-label" value=""/>
@@ -150,19 +151,19 @@ $def with (book)
                         
             <div class="formElement">
                 <div class="label">
-                    <label for="newrole">$_("Please leave a note: Why is this classification useful?")</label>
+                    <label for="new-role-note">$_("Please leave a note: Why is this classification useful?")</label>
                 </div>
                 <div class="input">
-                    <textarea name="note" value="" rows="5" cols="40"></textarea>
+                    <textarea name="note" id="new-role-note" rows="5" cols="40"></textarea>
                 </div>
             </div>
             
             <div class="formElement">
                 <div class="label">
-                    <label for="newrole">$_("Can you direct us to more information about this classification system online?")</label>
+                    <label for="new-role-website">$_("Can you direct us to more information about this classification system online?")</label>
                 </div>
                 <div class="input">
-                    <input type="text" name="website" value="http://"/>
+                    <input type="text" name="website" id="new-role-website" value="http://"/>
                 </div>
             </div>
             

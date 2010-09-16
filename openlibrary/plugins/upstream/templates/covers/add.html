@@ -1,6 +1,7 @@
 $def with (doc, data={}, status=None)
 
 $putctx('bodyid', 'form')
+$putctx('robots', 'noindex,nofollow')
 
 $if doc.type.key == "/type/author":
     $ intro = _("There are two ways to place an author's image on Open Library")
@@ -24,6 +25,7 @@ $if status:
 </div>
 
 <script type="text/javascript">
+<!--
 \$().ready(carousels);
 \$().ready(function(){\$('#popcovers').jcarousel();});
 \$(function() {
@@ -57,7 +59,7 @@ $if status:
        }       
    });
 });
-
+//-->
 </script>
 
 <div class="imageIntro">$intro</div>

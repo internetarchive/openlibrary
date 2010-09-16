@@ -11,14 +11,14 @@ $var title: $_("Add a book")
             
 <div id="contentBody">
             
-    <form method="post" id="addbook" class="olform addbook1 validate" name="edit">
+    <form method="post" action="" id="addbook" class="olform addbook1 validate" name="edit">
     
         $ author = (work and work.authors and work.authors[0].author) or author
         <div class="formElement">
             <div class="label"><label for="title">$_("Title")</label></div>
             <div class="input">
                 $if work:
-                    <input type="text" disabled="disabled" value="$work.title"/>
+                    <input type="text" id="title" disabled="disabled" value="$work.title"/>
                     <input type="hidden" name="title" value="$work.title"/>
                 $else:
                     <input type="text" name="title" id="title" class="required title" style="width:630px;" value="$(work and work.title)" $cond(work, 'readonly="readonly"')/>
@@ -51,7 +51,8 @@ $var title: $_("Add a book")
         </div>
         
         <div class="formElement">
-            <div class="label"><label for="id_name">$:_("And optionally, an ID number &#151; like an ISBN &#151; would be helpful...")</label></div>
+            <div class="label"><label for="id_value">$:_("And optionally, an ID number &#151; like an ISBN &#151; would be helpful...")</label></div>
+                <label for="id_name" class="hidden">$_("ID Type")</label>
             <div class="input">
                 <select name="id_name" id="id_name">
                 <option value="">$_("Select")</option>

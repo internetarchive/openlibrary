@@ -1,7 +1,10 @@
 
 User-agent: *
-Disallow: /nothing---please-crawl-us--
 Disallow: /user
+Disallow: /people
 
-Sitemap: http://openlibrary/sitemap.xml.gz
+Sitemap: http://openlibrary.org/static/sitemaps/siteindex_works.xml.gz
+Sitemap: http://openlibrary.org/static/sitemaps/siteindex_editions.xml.gz
+Sitemap: http://openlibrary.org/static/sitemaps/siteindex_authors.xml.gz
+
 

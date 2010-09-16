@@ -9,6 +9,10 @@ $code:
         else:
             return a.name
 
+<script type="text/javascript">
+\$().ready(bookCovers);
+</script>
+
 $for b in results:
         $if fulltext:
             $ book = b[0]
@@ -25,7 +29,7 @@ $for b in results:
         <div class="coverMagic">
             <div class="SRPCover">
                 <a href="$book.key" title="$book.title_prefix $book.title $_.by $:authorlist">
-                    <img src="http://covers.openlibrary.org/b/olid/$olid-M.jpg?default=false" class="cover" alt="$book.title_prefix $book.title $_.by $:authorlist"/>
+                    <img src="$get_coverstore_url()/b/olid/$olid-M.jpg?default=false" class="cover" alt="$book.title_prefix $book.title $_.by $:authorlist"/>
                 </a>
             </div>
             <div class="SRPCoverBlank" onClick="document.location.href='$book.key';" title="$book.title_prefix $book.title $_.by $:authorlist">

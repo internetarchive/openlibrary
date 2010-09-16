@@ -1,0 +1,56 @@
+$def with (author=None, type=None, limit=25)
+
+$# _ = i18n.get_namespace('/macros/RecentChanges')
+
+$ page = safeint(query_param('page', '0'))
+$ ip = query_param('ip', None)
+$ changes = get_recent_changes(author=author, type=type, ip=ip, limit=limit, offset=page * limit)
+
+$ show_users = (query_param('show_users', 'false').lower() == 'true')
+
+<!--islist-->
+
+    <table id="adminHistory" style="width: 100%">
+        <thead>
+            <tr>
+                <th>$_("When")</th>
+                <th>$_("Path")</th>
+                <th>$_("Comments")</th>
+                <th>$_("Actions")</th>
+            </tr>
+        </thead>
+
+        $for v in changes:
+            <tbody>
+            $if show_users or not v.key.startswith('/admin/people'):
+                <tr>
+                    <td class="time">$datestr(v.created)</td>
+                    $if v.thing.type.key == '/type/edition':
+                        $ name = v.thing.title
+                    $elif v.thing.type.key == '/type/author':
+                        $ name = v.thing.name
+                    $else:
+                        $ name = v.key
+                    <td class="path"><a href="$homepath()$v.key" title="$v.key">$:macros.TruncateString(name, 35)</a></td>
+                    <td class="comment">$v.comment</td>
+                    <td class="buttons" nowrap="nowrap">
+                        <a href="$homepath()$v.key?m=view&v=$v.revision">$_("view")</a> -
+                        <a href="$homepath()$v.key?m=edit&v=$v.revision">$_("edit")</a> - 
+                        <a href="$homepath()$v.key?m=diff&b=$v.revision">$_("diff")</a>
+                    </td>
+                </tr>
+            $else:
+                <tr>
+                    <td colspan="4" class="comment"><em>No edit history available.</em></td>
+                </tr>
+            </tbody>
+
+    </table>
+
+    <div class="small sansserif">
+    $if page != 0:
+        <a href="$:changequery(page=page - 1)" rel="nofollow">$_("Newer")</a>
+    
+    $if len(changes) == limit:
+        &nbsp; <a href="$:changequery(page=page + 1)" rel="nofollow">$_("Older")</a>
+    </div>

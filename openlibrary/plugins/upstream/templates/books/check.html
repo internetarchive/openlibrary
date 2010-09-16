@@ -1,0 +1,60 @@
+$def with (d, matches)
+
+$var title: $_("Add a book")
+
+<div id="contentHead">
+    <h1>$_("Add a Book")</h1>
+    <p class="instruct">
+        $:_("One moment... It looks like we already have <em>some potential matches</em> for <b>%s</b> by <b>%s</b>.", d.title, d.author_name)
+        <br/><br/>
+        $:_("Rather than creating a duplicate record, please click through the result you think best matches your book.") 
+    </p>
+</div>
+            
+<div id="contentBody">            
+    <div id="searchResults" class="add">
+        <ul id="siteSearch">
+        $for work in matches:
+            <li class="workResult" id="$work.key.split('/')[-1]">
+                <span class="bookcover">
+                    <a href="javascript:;" title="Select this book"><img src="$work.cover_url" height="70"/></a>
+                </span>
+                <span class="details">
+                    <span class="resultTitle">
+                        <span class="booktitle"><a href="javascript:;" title="Select this book">$work.title</a></span>
+                        <span class="bookauthor">by
+                            $for a in work.authors:
+                                $a.name$cond(not loop.last, ',')
+                        </span>
+                        <span class="resultPublisher">$commify(work.edition_count) edition$("s" if work.edition_count != 1 else "")
+                        $if work.first_publish_year:
+                            <span "smallest">&bull;</span> First published in $work.first_publish_year
+                        </span>
+                    </span>
+                </span>
+            </li>
+        </ul>
+    </div>
+
+    <form method="POST" id="addbook" class="olform addbook1 hidden" name="edit">
+        <input type="hidden" id="work" name="work" value=""/>
+        <input type="hidden" name="title" value="$d.title"/>
+        <input type="hidden" name="author_key" value="$d.author_key"/>
+        <input type="hidden" name="publisher" value="$d.publisher"/>
+        <input type="hidden" name="publish_date" value="$d.publish_date"/>
+        <input type="hidden" name="id_name" value="$d.id_name"/>
+        <input type="hidden" name="id_value" value="$d.id_value"/>
+    </form>
+</div>
+
+<script type="text/javascript">
+<!--
+\$(function() {
+    \$("#siteSearch a").click(function() {
+        var li = \$(this).parents('li:first');
+        \$("input#work").val("/works/" + li.attr("id"));
+        \$("form#addbook").submit();
+    });
+});
+//-->
+</script>

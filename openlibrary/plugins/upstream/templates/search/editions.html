@@ -1,0 +1,68 @@
+$def with (get_results)
+
+$ q = query_param('q')
+
+<div id="contentHead">
+    <h1>
+        $_("Edition Search")
+    </h1>
+
+$if q:
+    $ results = get_results(q)
+    $ response = results['response']
+    <p class="sansserif darkgreen collapse"><strong>$commify(response['numFound']) hit$("s" if response['numFound'] != 1 else "")</strong></p>
+$else:
+    <p class="sansserif red collapse"><strong>No hits</strong></span></p>
+
+</div>
+
+<div id="contentMeta">
+
+    <div class="section">
+
+    <form class="siteSearch olform" action="">
+        <input type="text" class="larger" name="q" size="100" style="width: 505px;" value="$q"/>
+        <input type="submit"  class="large" value="$_('Search')"/>
+    </form>
+
+    </div>
+
+    $if q:
+        <div id="searchResults">
+        <ul id="siteSearch">
+        $for doc in response['docs']:
+            $ authors = zip(doc.get('author_key', []), doc.get('author_name', []))
+            <li>
+            <span class="bookcover">
+                $ cover = "$get_coverstore_url()/b/olid/%s-M.jpg?default=http://upstream.openlibrary.org/images/icons/avatar_book-sm.png" % doc['key']
+                <a href="/books/$doc['key']"><img src="$cover" height="70" alt="$doc['title']" title="$doc['title']"/></a>
+            </span>
+            <span class="details">
+                <span class="resultTitle">
+                    <span class="booktitle">
+                        $ title = doc['title']
+                        $if doc.get('subtitle', None):
+                            $ title = title + ': ' + doc['subtitle']
+                        <a href="/books/$doc['key']">$title</a>
+                    </span>
+                
+                    <span class="bookauthor">
+                    $if authors:
+                        by
+                        $for k, n in authors:
+                            <a href="http://upstream.openlibrary.org/authors/$k" class="results">$n</a>$(',' if not loop.last else '')
+                    $else:
+                        <em>no authors</em>
+                    </span>
+                    $if 'publisher' in doc:
+                        <span class="resultPublisher">
+                            Published $doc.get('publish_date', '') by $', '.join(doc['publisher'])
+                        </span>
+                </span>
+            </span>
+            </li>
+            <!-- $:doc -->
+        </ul>
+        </div>
+
+</div>

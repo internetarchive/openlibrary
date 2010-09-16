@@ -17,19 +17,19 @@ $ versions = h.recent + h.initial
             $ url = changequery(m='history')
             
         $ latest = versions[0]
-        <span class="link"><a href="$url">$latest.revision $_("revision")$("s" if latest.revision != 1 else "")</a></span>
+        <span class="link"><a rel="nofollow" href="$url">$latest.revision $_("revision")$("s" if latest.revision != 1 else "")</a></span>
         </h2>
     </div>
 
     <table class="history">
         <tbody>
             $def render_row(v,):
-                <td class="timestamp"><a href="$v.key?v=$v.revision" title="$_('View revision %s', v.revision)">$datestr(v.created)</a></td>
+                <td class="timestamp"><a rel="nofollow" href="$v.key?v=$v.revision" title="$_('View revision %s', v.revision)">$datestr(v.created)</a></td>
                 <td class="timestamp">
                     $if v.author: 
-                        $ author_link = '<a href="%s" class="truncate" title="%s">%s</a>' % (v.author.key, v.author.displayname, v.author.displayname)
+                        $ author_link = '<a rel="nofollow" href="%s" class="truncate" title="%s">%s</a>' % (v.author.key, v.author.displayname, v.author.displayname)
                     $elif v.ip and v.ip != "127.0.0.1":
-                        $ author_link = '<a href="/recentchanges?ip=%s" title="%s">%s</a>' % (v.ip, _('an anonymous user'), v.ip)
+                        $ author_link = '<a rel="nofollow" href="/recentchanges?ip=%s" title="%s">%s</a>' % (v.ip, _('an anonymous user'), v.ip)
                     $else:
                         $ author_link = '<span>%s</span>' % (_('an anonymous user'))
                     $if v.revision == 1:

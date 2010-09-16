@@ -28,10 +28,10 @@ urls = (
 app = web.application(urls, globals())
 
 convertions = {
-    '/people/': '/user/',
-    '/books/': '/b/',
-    '/authors/': '/a/',
-    '/languages/': '/l/',
+#    '/people/': '/user/',
+#    '/books/': '/b/',
+#    '/authors/': '/a/',
+#    '/languages/': '/l/',
     '/templates/': '/upstream/templates/',
     '/macros/': '/upstream/macros/',
     '/js/': '/upstream/js/',
@@ -107,8 +107,11 @@ def convert_key(key, mapping=convertions):
         >>> convert_key("/authors/OL1A", {'/authors/': '/a/'})
         '/a/OL1A'
     """
-    if key == '/':
+    if key is None:
+        return None
+    elif key == '/':
         return '/upstream'
+        
     for new, old in mapping.items():
         if key.startswith(new):
             key2 = old + key[len(new):]

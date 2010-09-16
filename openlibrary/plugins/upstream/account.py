@@ -13,6 +13,7 @@ import infogami.core.code as core
 from openlibrary.i18n import gettext as _
 import forms
 import utils
+import borrow
 
 def _generate_salted_hash(key, text, salt=None):
     salt = salt or hmac.HMAC(key, str(random.random())).hexdigest()[:5]
@@ -339,6 +340,15 @@ class account_notifications(delegate.page):
         add_flash_message('note', _("Notification preferences have been updated successfully."))
         web.seeother("/account")
 
+class account_loans(delegate.page):
+    path = "/account/loans"
+    
+    @require_login
+    def GET(self):
+        user = web.ctx.site.get_user()
+        user.update_loan_status()
+        loans = borrow.get_loans(user)
+        return render['account/borrow'](user, loans)
 
 class account_others(delegate.page):
     path = "(/account/.*)"

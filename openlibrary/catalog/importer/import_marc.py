@@ -12,8 +12,7 @@ from openlibrary.catalog.importer.lang import add_lang
 from openlibrary.catalog.get_ia import files, read_marc_file
 from openlibrary.catalog.merge.merge_marc import build_marc
 from openlibrary.catalog.importer.db_read import get_mc, withKey
-sys.path.append('/home/edward/src/olapi')
-from olapi import OpenLibrary, unmarshal
+from openlibrary.api import OpenLibrary, unmarshal
 
 from openlibrary.catalog.read_rc import read_rc
 

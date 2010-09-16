@@ -8,16 +8,22 @@ from openlibrary.catalog.utils import tidy_isbn
 
 marc8 = MARC8ToUnicode(quiet=True)
 
-def translate(data, bad_ia_charset=False):
+re_real_book = re.compile('(pbk|hardcover|alk[^a-z]paper|cloth)', re.I)
+
+def translate(data, bad_ia_charset=False, leader_says_marc8=False):
+    if leader_says_marc8:
+        data = marc8.translate(data)
+        data = mnemonics.read(data)
+        return data
     if bad_ia_charset:
-        data = data.decode('utf-8')
+        #data = data.decode('utf-8')
         data = marc8.translate(data)
         return normalize('NFC', data)
     data = mnemonics.read(data)
     if type(data) == unicode:
         return normalize('NFC', data)
     try:
-        data = data.decode('utf8')
+        data = data.decode('utf-8')
         is_utf8 = True
     except UnicodeDecodeError:
         is_utf8 = False
@@ -46,6 +52,9 @@ def normalize_str(s):
 # no monograph should be longer than 50,000 pages
 max_number_of_pages = 50000
 
+class InvalidMarcFile(Exception):
+    pass
+
 def read_file(f):
     buf = None
     while 1:
@@ -61,11 +70,9 @@ def read_file(f):
             buf = length
         if length == "":
             break
-        try:
-            assert length.isdigit()
-        except AssertionError:
+        if not length.isdigit():
             print 'not a digit:', `length`
-            raise
+            raise InvalidMarcFile
         int_length = int(length)
         data = buf + f.read(int_length - len(buf))
         buf = None
@@ -102,13 +109,13 @@ def read_author_person(line):
     return [{ 'db_name': u' '.join(name_and_date), 'name': u' '.join(name), }]
 
 # exceptions:
-class SoundRecording:
+class SoundRecording(Exception):
     pass
 
-class NotBook:
+class NotBook(Exception):
     pass
 
-class BadDictionary:
+class BadDictionary(Exception):
     pass
 
 def read_full_title(line, accept_sound = False):
@@ -165,6 +172,8 @@ def get_subfields(line, want):
 
 def read_directory(data):
     dir_end = data.find('\x1e')
+    if dir_end == -1:
+        raise BadDictionary
     directory = data[24:dir_end]
     if len(directory) % 12 != 0:
         print 'directory is the wrong size'
@@ -172,6 +181,7 @@ def read_directory(data):
         # sometimes the leader includes some utf-8 by mistake
         directory = data[:dir_end].decode('utf-8')[24:]
         if len(directory) % 12 != 0:
+            print len(directory) / 12
             raise BadDictionary
     iter_dir = (directory[i*12:(i+1)*12] for i in range(len(directory) / 12))
     return dir_end, iter_dir
@@ -181,10 +191,10 @@ def get_tag_line(data, line):
     offset = int(line[7:12])
 
     # handle off-by-one errors in MARC records
-    if data[offset] != '\x1e':
-        offset += data[offset:].find('\x1e')
-    last = offset+length
     try:
+        if data[offset] != '\x1e':
+            offset += data[offset:].find('\x1e')
+        last = offset+length
         if data[last] != '\x1e':
             length += data[last:].find('\x1e')
     except IndexError:
@@ -324,7 +334,9 @@ def index_fields(data, want, check_author = True):
 
     seen_008 = False
     oclc_001 = False
+    is_real_book = False
 
+    tag_006_says_electric = False
     for tag, line in fields:
         if tag == '003': # control number identifier
             if line.lower().startswith('ocolc'):
@@ -332,13 +344,15 @@ def index_fields(data, want, check_author = True):
             continue
         if tag == '006':
             if line[0] == 'm': # don't want electronic resources
-                return None
+                tag_006_says_electric = True
             continue
         if tag == '008':
             if seen_008: # dup
                 return None
             seen_008 = True
             continue
+        if tag == '020' and re_real_book.search(line):
+            is_real_book = True
         if tag == '260': 
             if line.find('\x1fh[sound') != -1: # sound recording
                 return None
@@ -366,6 +380,8 @@ def index_fields(data, want, check_author = True):
         return None
 #    if 'title' not in edition:
 #        return None
+    if tag_006_says_electric and not is_real_book:
+        return None
     return edition
 
 def read_edition(data, accept_electronic = False):
@@ -388,14 +404,16 @@ def read_edition(data, accept_electronic = False):
     ]
 
     oclc_001 = False
+    tag_006_says_electric = False
+    is_real_book = False
     for tag, line in fields:
         if tag == '003': # control number identifier
             if line.lower().startswith('ocolc'):
                 oclc_001 = True
             continue
         if tag == '006':
-            if not accept_electronic and line[0] == 'm':
-                return None
+            if line[0] == 'm':
+                tag_006_says_electric = True
             continue
         if tag == '008': # not interested in '19uu' for merge
             #assert len(line) == 41 usually
@@ -403,6 +421,8 @@ def read_edition(data, accept_electronic = False):
                 edition['publish_date'] = line[7:11]
             edition['publish_country'] = line[15:18]
             continue
+        if tag == '020' and re_real_book.search(line):
+            is_real_book = True
         for t, proc, key in read_tag:
             if t != tag:
                 continue
@@ -427,6 +447,10 @@ def read_edition(data, accept_electronic = False):
         add_oclc(edition)
     if 'control_number' in edition:
         del edition['control_number']
+    if not accept_electronic and tag_006_says_electric and not is_real_book:
+        print 'electronic resources'
+        return None
+
     return edition
 
 def handle_wrapped_lines(iter):
@@ -455,7 +479,8 @@ def split_line(s):
         pos = s.find('\x1f', pos + 1)
         if pos == -1:
             break
-        marks.append(pos)
+        if s[pos+1] != '\x1b':
+            marks.append(pos)
     if not marks:
         return [('v', s)]
 

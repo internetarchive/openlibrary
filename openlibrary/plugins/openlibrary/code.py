@@ -5,20 +5,10 @@ import web
 import simplejson
 import os
 import re
-import urllib, urlparse
+import urllib
 import socket
 import datetime
-
-try:
-    import genshi
-    import genshi.filters
-except ImportError:
-    genshi = None
-    
-try:
-    from BeautifulSoup import BeautifulSoup
-except ImportError:
-    BeautifulSoup = None
+from time import time
 
 import infogami
 
@@ -32,6 +22,9 @@ from infogami.infobase import client, dbstore
 from infogami.core.db import ValidationException
 
 import processors
+
+from utils import sanitize
+from openlibrary.utils.isbn import isbn_13_to_isbn_10
 
 delegate.app.add_processor(processors.ReadableUrlProcessor())
 delegate.app.add_processor(processors.ProfileProcessor())
@@ -63,6 +56,9 @@ types.register_type('^/works/[^/]*$', '/type/work')
 types.register_type('^/subjects/[^/]*$', '/type/subject')
 types.register_type('^/publishers/[^/]*$', '/type/publisher')
 
+types.register_type('^/usergroup/[^/]*$', '/type/usergroup')
+types.register_type('^/permission/[^/]*$', '/type/permision')
+
 types.register_type('^/(css|js)/[^/]*$', '/type/rawtext')
 
 # set up infobase schema. required when running in standalone mode.
@@ -75,6 +71,10 @@ import showmarc
 # add zip and tuple to the list of public functions
 public(zip)
 public(tuple)
+public(isbn_13_to_isbn_10)
+public(time)
+public(web.input)
+public(simplejson.dumps)
 web.template.Template.globals['NEWLINE'] = "\n"
 
 # Remove movefiles install hook. openlibrary manages its own files.
@@ -406,10 +406,14 @@ class change_cover(delegate.mode):
         return render.change_cover(page)
         
 class bookpage(delegate.page):
-    path = r"/(isbn|oclc|lccn|ia|ISBN|OCLC|LCCN|IA)/([^.]*)"
+    path = r"/(isbn|oclc|lccn|ia|ISBN|OCLC|LCCN|IA)/([^./]*)(/.*)?"
 
-    def GET(self, key, value):
+    def GET(self, key, value, suffix):
         key = key.lower()
+        suffix = suffix or ""
+        
+        print (key, value, suffix)
+        
         if key == "isbn":
             if len(value) == 13:
                 key = "isbn_13"
@@ -427,17 +431,28 @@ class bookpage(delegate.page):
             ext = "." + web.ctx.encoding
         else:
             ext = ""
+            
+        def redirect(key, ext, suffix):
+            if ext:
+                return web.found(key + ext)
+            else:
+                book = web.ctx.site.get(key)
+                return web.found(book.url(suffix))
 
         q = {"type": "/type/edition", key: value}
         try:
             result = web.ctx.site.things(q)
             if result:
-                raise web.seeother(result[0] + ext)
+                raise redirect(result[0], ext, suffix)
             elif key =='ocaid':
                 q = {"type": "/type/edition", 'source_records': 'ia:' + value}
                 result = web.ctx.site.things(q)
                 if result:
-                    raise web.seeother(result[0] + ext)
+                    raise redirect(result[0], ext, suffix)
+                q = {"type": "/type/volume", 'ia_id': value}
+                result = web.ctx.site.things(q)
+                if result:
+                    raise redirect(redirect[0], ext, suffix)
             web.ctx.status = "404 Not Found"
             return render.notfound(web.ctx.path, create=False)
         except web.HTTPError:
@@ -738,37 +753,6 @@ def internalerror():
 delegate.app.internalerror = internalerror
 delegate.add_exception_hook(save_error)
 
-@public
-def sanitize(html):
-    """Remove unsafe tags and attributes from html and add rel="nofollow" attribute to all links."""
-    # Can't sanitize unless genshi module is available
-    if genshi is None:
-        return html
-        
-    def get_nofollow(name, event):
-        attrs = event[1][1]
-        href = attrs.get('href', '')
-
-        if href:
-            # add rel=nofollow to all absolute links
-            _, host, _, _, _ = urlparse.urlsplit(href)
-            if host:
-                return 'nofollow'
-                
-
-    try:
-        html = genshi.HTML(html)
-    except genshi.ParseError:
-        if BeautifulSoup:
-            # Bad html. Tidy it up using BeautifulSoup
-            html = str(BeautifulSoup(html))
-            html = genshi.HTML(html)
-        else:
-            raise
-
-    stream = html | genshi.filters.HTMLSanitizer() | genshi.filters.Transformer("//a").attr("rel", get_nofollow)
-    return stream.render()                                                                                   
-        
 class memory(delegate.page):
     path = "/debug/memory"
 
@@ -792,4 +776,3 @@ class backdoor(delegate.page):
 from infogami.core.forms import register
 username_validator = web.form.Validator("Username already used", lambda username: not web.ctx.site._request("/has_user", data={"username": username}))
 register.username.validators = list(register.username.validators) + [username_validator]
-
