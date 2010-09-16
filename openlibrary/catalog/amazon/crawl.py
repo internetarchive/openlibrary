@@ -35,8 +35,7 @@ u'\xa0(8)'
 base_url = "http://www.amazon.com/s?ie=UTF8&rh="
 rh = 'i:stripbooks,p_n_feature_browse-bin:618083011,p_n_date:'
 
-out_dir = '/2/edward/amazon/crawl/'
-arc_dir = '/2/edward/amazon/arc/'
+out_dir = '/home/edward/amazon/crawl'
 
 # 4 = Children's Books, 28 = Teens
 re_child_book_param = re.compile(',n:(4|28)(?:&page=\d+)?$')
