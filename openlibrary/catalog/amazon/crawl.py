@@ -25,6 +25,7 @@ base_url = "http://amazon.com/s?ie=UTF8&rh="
 rh = 'i:stripbooks,p_n_feature_browse-bin:618083011,p_n_date:'
 
 out_dir = '/1/edward/amazon/crawl'
+out_dir = '/home/edward/amazon/crawl'
 
 def get_url(params):
     filename = 'cache/' + params
@@ -53,9 +54,10 @@ def get_page(params):
     return root
 
 def get_total(root):
-    result_count = root.find(".//td[@class='resultCount']").text
-    m = re_result_count.match(result_count)
-    return int(m.group(1).replace(',', ''))
+    e = root.find(".//td[@class='resultCount']")
+    if e is None:
+        return
+    return int(re_result_count.match(e.text).group(1).replace(',', ''))
 
 def read_books(params, root):
     # sometimes there is no link, bug at Amazaon
@@ -106,6 +108,9 @@ def read_page(cur_date):
     params = cur_date.strftime("%Y%m%d")
     root = get_page(params)
     total = get_total(root)
+    if total is None:
+        print 'no books on', cur_date
+        return 0, set(), []
     grand_total = total
     pages = (total / page_size) + 1
     print 'total:', total, 'pages:', pages
@@ -161,6 +166,7 @@ def write_books(cur_date, books):
     for b in books:
         print >> out, b
     out.close()
+    return
     i = 0
     error_count = 0
 
@@ -191,7 +197,7 @@ def write_books(cur_date, books):
     index.close()
 
 one_day = timedelta(days=1)
-cur = date(2009, 05, 19)
+cur = date(2010, 01, 17)
 while True:
     print cur
     total, books, cats = read_page(cur)
