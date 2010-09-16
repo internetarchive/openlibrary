@@ -1,6 +1,6 @@
 import openlibrary.catalog.marc.fast_parse as fast_parse
 import openlibrary.catalog.marc.read_xml as read_xml
-import xml.etree.ElementTree as et
+from lxml import etree
 import xml.parsers.expat
 import urllib2, os.path, re
 from openlibrary.catalog.read_rc import read_rc
@@ -24,7 +24,7 @@ def urlopen_keep_trying(url):
             f = urllib2.urlopen(url)
         except urllib2.HTTPError, error:
             if error.code == 404:
-                print "404 for '%s'" % url
+                #print "404 for '%s'" % url
                 raise
             else:
                 print 'error:', error.code, error.msg
@@ -53,6 +53,26 @@ def find_item(ia):
     assert m.group(3) == ia
     return (ia_host, ia_path)
 
+def bad_ia_xml(ia):
+    # need to handle 404s:
+    # http://www.archive.org/details/index1858mary
+    loc = ia + "/" + ia + "_marc.xml"
+    return '<!--' in urlopen_keep_trying(base + loc).read()
+
+def get_marc_ia(ia):
+    ia = ia.strip() # 'cyclopdiaofedu00kidd '
+    url = base + ia + "/" + ia + "_meta.mrc"
+    data = urlopen_keep_trying(url).read()
+    length = int(data[0:5])
+    if len(data) != length:
+        data = data.decode('utf-8').encode('raw_unicode_escape')
+    assert len(data) == length
+
+    assert 'Internet Archive: Error' not in data
+    print 'leader:', data[:24]
+    return data
+    return fast_parse.read_edition(data, accept_electronic = True)
+
 def get_ia(ia):
     ia = ia.strip() # 'cyclopdiaofedu00kidd '
     # read MARC record of scanned book from archive.org
@@ -64,6 +84,7 @@ def get_ia(ia):
         f = open(xml_path + xml_file)
     else:
         try:
+            print base + loc
             f = urlopen_keep_trying(base + loc)
         except urllib2.HTTPError, error:
             if error.code == 404:
@@ -71,15 +92,17 @@ def get_ia(ia):
             else:
                 print 'error:', error.code, error.msg
                 raise
+    assert f
     if f:
         try:
-            return loc, read_xml.read_edition(f)
+            return read_xml.read_edition(f)
         except read_xml.BadXML:
             pass
         except xml.parsers.expat.ExpatError:
             #print 'IA:', `ia`
             #print 'XML parse error:', base + loc
             pass
+    print base + loc
     if '<title>Internet Archive: Page Not Found</title>' in urllib2.urlopen(base + loc).read(200):
         raise NoMARCXML
     url = base + ia + "/" + ia + "_meta.mrc"
@@ -89,21 +112,21 @@ def get_ia(ia):
     except urllib2.URLError:
         pass
     if not f:
-        return None, None
+        return None
     data = f.read()
     length = data[0:5]
     loc = ia + "/" + ia + "_meta.mrc:0:" + length
     if len(data) == 0:
         print 'zero length MARC for', url
-        return None, None
+        return None
     if 'Internet Archive: Error' in data:
         print 'internet archive error for', url
-        return None, None
+        return None
     if data.startswith('<html>\n<head>'):
         print 'internet archive error for', url
-        return None, None
+        return None
     try:
-        return ia, fast_parse.read_edition(data, accept_electronic = True)
+        return fast_parse.read_edition(data, accept_electronic = True)
     except (ValueError, AssertionError, fast_parse.BadDictionary):
         print `data`
         raise
@@ -112,12 +135,12 @@ def files(archive_id):
     url = base + archive_id + "/" + archive_id + "_files.xml"
     for i in range(5):
         try:
-            tree = et.parse(urlopen_keep_trying(url))
+            tree = etree.parse(urlopen_keep_trying(url))
             break
         except xml.parsers.expat.ExpatError:
             sleep(2)
     try:
-        tree = et.parse(urlopen_keep_trying(url))
+        tree = etree.parse(urlopen_keep_trying(url))
     except:
         print "error reading", url
         raise
@@ -147,6 +170,7 @@ def get_data(loc):
     return buf
 
 def get_from_archive(locator):
+    print locator
     if locator.startswith('marc:'):
         locator = locator[5:]
     file, offset, length = locator.split (":")
@@ -168,7 +192,7 @@ def get_from_archive(locator):
             if error.code == 416:
                 raise
             elif error.code == 404:
-                print "404 for '%s'" % url
+                #print "404 for '%s'" % url
                 raise
             else:
                 print 'error:', error.code, error.msg
@@ -200,6 +224,28 @@ def read_marc_file(part, f, pos=0):
     except ValueError:
         print f
         raise
+
+def marc_formats(ia):
+    files = {
+        ia + '_marc.xml': 'xml',
+        ia + '_meta.mrc': 'bin',
+    }
+    has = { 'xml': False, 'bin': False }
+    url = 'http://www.archive.org/download/' + ia + '/' + ia + '_files.xml'
+    f = urlopen_keep_trying(url)
+    data = f.read()
+    try:
+        root = etree.fromstring(data)
+    except:
+        print 'bad:', `data`
+        return has
+    for e in root:
+        name = e.attrib['name']
+        if name in files:
+            has[files[name]] = True
+        if all(has.values()):
+            break
+    return has
 
 def test_get_ia():
     ia = "poeticalworksoft00grayiala"
