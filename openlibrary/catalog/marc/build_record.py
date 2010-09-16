@@ -1,6 +1,6 @@
 from fast_parse import *
 from warnings import warn
-from catalog.utils import pick_first_date
+from openlibrary.catalog.utils import pick_first_date
 import re
 
 re_question = re.compile('^\?+$')
