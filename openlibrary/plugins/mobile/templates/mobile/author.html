@@ -12,8 +12,10 @@ $def with(author, books)
 $for edition, work in books:
     <tr> 
          <td>
-              <img src="$(edition.get_cover_url('M') or '/images/icons/avatar_book-sm.png')" 
-                   width="45" height="68" hspace="10" align="left" />
+             <a href="$edition.url()">
+                 <img src="$(edition.get_cover_url('M') or '/images/icons/avatar_book-sm.png')" 
+                      width="45" height="68" hspace="10" align="left" />
+             </a>
          </td> 
          <td width="100%">
                <a href="$edition.url()" class="bookTitle">$edition.title</a>

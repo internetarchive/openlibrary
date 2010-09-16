@@ -3,8 +3,8 @@ from infogami.utils.view import render_template
 from infogami.utils import delegate
 from openlibrary.plugins.worksearch import code as worksearch
 
-def layout(page):
-    return delegate.RawText(render_template("mobile/site", page))
+def layout(page, title=None):
+    return delegate.RawText(render_template("mobile/site", page, title=title))
 
 class index(delegate.page):
     path = "/"
@@ -63,7 +63,7 @@ class book(delegate.page):
 
     def GET(self, key):
         book = web.ctx.site.get(key)
-        return layout(render_template("mobile/book", book=book))
+        return layout(render_template("mobile/book", book=book), title=book.title)
 
 class author(delegate.page):
 
@@ -77,11 +77,4 @@ class author(delegate.page):
         for edition, work in _editions_for_works(works):
             books.append((edition, work))
         
-        return layout(render_template("mobile/author", author=author, books=books))
-    
-#class notfound(delegate.page):
-#    
-#    path = "/.*"
-#
-#    def GET(self):
-#        raise web.NotFound()
+        return layout(render_template("mobile/author", author=author, books=books), title=author.title)

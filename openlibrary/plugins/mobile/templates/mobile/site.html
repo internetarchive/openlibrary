@@ -1,7 +1,7 @@
-$def with(page)
+$def with(page, title)
 <html>
 <head>
-  <title>Welcome to Open Library</title>
+  <title>$("%s (Open Library)" % title if title else "Welcome to Open Library")</title>
   <link rel="stylesheet" type="text/css" href="/static/css/mobile.css">
 </head>
 <body>
@@ -13,8 +13,9 @@ $def with(page)
 
   <div class="clearfix"></div> 
 
-  <p class="footer">
+  <div class="footer">
+    <div>mobile | <a href="#">full</a></div>
     Open Library is a project from the <a href="http://archive.org">Internet Archive</a>.<br /> 
     <a href="http://openlibrary.org">http://openlibrary.org</a>
-  </p>
+  </div>
 </head>
