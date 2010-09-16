@@ -1,5 +1,8 @@
 #!/usr/bin/python2.5
-from catalog.marc.fast_parse import *
+from openlibrary.catalog.marc.fast_parse import *
+from marc_binary import MarcBinary
+import parse
+#from parse import read_edition, SeeAlsoAsTitle, NoTitle
 import sys, codecs, re
 from getopt import getopt
 
@@ -56,8 +59,6 @@ for data, length in read_file(f):
     pos = next
     next += length
     total += 1
-    if pos < 107550000:
-        continue
     if show_field:
         get_first_tag(data, set([show_field]))
     if show_leader:
@@ -67,6 +68,9 @@ for data, length in read_file(f):
     if verbose:
         show_book(data)
         print
+    marc_rec = MarcBinary(data)
+    edition_marc_bin = parse.read_edition(marc_rec)
+    print edition_marc_bin
     if build_rec:
         pprint(build_record(data))
         print
