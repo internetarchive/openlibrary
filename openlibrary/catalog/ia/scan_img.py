@@ -3,6 +3,7 @@ import xml.etree.ElementTree as et
 import xml.parsers.expat, socket # for exceptions
 import re, urllib
 from subprocess import Popen, PIPE
+from openlibrary.catalog.get_ia import urlopen_keep_trying
 
 re_loc = re.compile('^(ia\d+\.us\.archive\.org):(/\d+/items/(.*))$')
 re_remove_xmlns = re.compile(' xmlns="[^"]+"')
@@ -46,7 +47,7 @@ def find_item(ia):
     assert ret[-1] == '\n'
     loc = ret[:-1]
     m = re_loc.match(loc)
-    print loc
+    #print loc
     assert m
     ia_host = m.group(1)
     ia_path = m.group(2)
@@ -57,6 +58,37 @@ def find_item(ia):
 def find_title_leaf_et(ia_host, ia_path, scandata):
     return parse_scandata_xml(scandata)
 
+def find_title(item_id):
+    (ia_host, ia_path) = find_item(item_id)
+
+    if not ia_host:
+        return
+    url = 'http://' + ia_host + ia_path + "/" + item_id + "_scandata.xml"
+    scandata = None
+    try:
+        scandata = urlopen_keep_trying(url).read()
+    except:
+        pass
+    if not scandata or '<book>' not in scandata[:100]:
+        url = "http://" + ia_host + "/zipview.php?zip=" + ia_path + "/scandata.zip&file=scandata.xml"
+        scandata = urlopen_keep_trying(url).read()
+    if not scandata or '<book>' not in scandata:
+        return
+
+    zip_type = 'tif' if item_id.endswith('goog') else 'jp2'
+    try:
+        status = zip_test(ia_host, ia_path, item_id, zip_type)
+    except socket.error:
+        #print 'socket error:', ia_host
+        bad_hosts.add(ia_host)
+        return
+    if status in (403, 404):
+        #print zip_type, ' not found:', item_id
+        return
+
+    (cover, title) = parse_scandata_xml(scandata)
+    return title
+
 def find_img(item_id):
     (ia_host, ia_path) = find_item(item_id)
 
@@ -66,12 +98,12 @@ def find_img(item_id):
     url = 'http://' + ia_host + ia_path + "/" + item_id + "_scandata.xml"
     scandata = None
     try:
-        scandata = urllib.urlopen(url).read()
+        scandata = urlopen_keep_trying(url).read()
     except:
         pass
     if not scandata or '<book>' not in scandata[:100]:
         url = "http://" + ia_host + "/zipview.php?zip=" + ia_path + "/scandata.zip&file=scandata.xml"
-        scandata = urllib.urlopen(url).read()
+        scandata = urlopen_keep_trying(url).read()
     if not scandata or '<book>' not in scandata:
         return {}
 
