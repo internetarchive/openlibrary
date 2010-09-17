@@ -2,7 +2,7 @@
 
 import re
 from pymarc import MARC8ToUnicode
-import openlibrary.catalog.marc.mnemonics as mnemonics
+from openlibrary.catalog.marc import mnemonics
 from unicodedata import normalize
 from openlibrary.catalog.utils import tidy_isbn
 
@@ -10,29 +10,17 @@ marc8 = MARC8ToUnicode(quiet=True)
 
 re_real_book = re.compile('(pbk|hardcover|alk[^a-z]paper|cloth)', re.I)
 
-def translate(data, bad_ia_charset=False, leader_says_marc8=False):
-    if leader_says_marc8:
-        data = marc8.translate(data)
-        data = mnemonics.read(data)
-        return data
-    if bad_ia_charset:
-        #data = data.decode('utf-8')
-        data = marc8.translate(data)
-        return normalize('NFC', data)
-    data = mnemonics.read(data)
-    if type(data) == unicode:
-        return normalize('NFC', data)
+def translate(bytes_in, leader_says_marc8=False):
     try:
-        data = data.decode('utf-8')
-        is_utf8 = True
-    except UnicodeDecodeError:
-        is_utf8 = False
-    if not is_utf8:
-        data = marc8.translate(data)
-    if type(data) == unicode:
+        if leader_says_marc8:
+            data = marc8.translate(mnemonics.read(bytes_in))
+        else:
+            data = bytes_in.decode('utf-8')
         return normalize('NFC', data)
-    else:
-        return data
+    except:
+        print 'translate error for:', `bytes_in`
+        print 'marc8:', leader_says_marc8
+        raise
 
 re_question = re.compile('^\?+$')
 re_lccn = re.compile('(...\d+).*')
@@ -95,10 +83,10 @@ def read_file(f):
             break
         yield (data, int_length)
 
-def read_author_person(line):
+def read_author_person(line, is_marc8):
     name = []
     name_and_date = []
-    for k, v in get_subfields(line, ['a', 'b', 'c', 'd']):
+    for k, v in get_subfields(line, ['a', 'b', 'c', 'd'], is_marc8):
         if k != 'd':
             v = v.strip(' /,;:')
             name.append(v)
@@ -118,25 +106,25 @@ class NotBook(Exception):
 class BadDictionary(Exception):
     pass
 
-def read_full_title(line, accept_sound = False):
-    for k, v in get_subfields(line, ['h']):
+def read_full_title(line, accept_sound = False, is_marc8=False):
+    for k, v in get_subfields(line, ['h'], is_marc8):
         if not accept_sound and v.lower().startswith("[sound"):
             raise SoundRecording
         if v.lower().startswith("[graphic") or v.lower().startswith("[cartographic"):
             raise NotBook
-    title = [v.strip(' /,;:') for k, v in get_subfields(line, ['a', 'b'])]
+    title = [v.strip(' /,;:') for k, v in get_subfields(line, ['a', 'b'], is_marc8)]
     return ' '.join([t for t in title if t])
 
-def read_short_title(line):
-    title = normalize_str(read_full_title(line))[:25].rstrip()
+def read_short_title(line, is_marc8):
+    title = normalize_str(read_full_title(line, is_marc8))[:25].rstrip()
     if title:
         return [title]
     else:
         return []
 
-def read_title_and_subtitle(data): # not currently used
+def read_title_and_subtitle(data, is_marc8): # not currently used
     line = get_first_tag(data, set(['245']))
-    contents = get_contents(line, ['a', 'b', 'c', 'h'])
+    contents = get_contents(line, ['a', 'b', 'c', 'h'], is_marc8)
 
     title = None
     if 'a' in contents:
@@ -157,18 +145,18 @@ def get_raw_subfields(line, want):
         if i and i[0] in want:
             yield i[0], i[1:]
 
-def get_all_subfields(line, ia_bad_charset=False):
+def get_all_subfields(line, is_marc8=False):
     for i in line[3:-1].split('\x1f'):
         if i:
-            j = translate(i, ia_bad_charset)
+            j = translate(i, is_marc8)
             yield j[0], j[1:]
 
-def get_subfields(line, want):
+def get_subfields(line, want, is_marc8=False):
     want = set(want)
     #assert line[2] == '\x1f'
     for i in line[3:-1].split('\x1f'):
         if i and i[0] in want:
-            yield i[0], translate(i[1:])
+            yield i[0], translate(i[1:], is_marc8)
 
 def read_directory(data):
     dir_end = data.find('\x1e')
@@ -209,9 +197,9 @@ def get_tag_line(data, line):
 
 re_dates = re.compile('^\(?(\d+-\d*|\d*-\d+)\)?$')
 
-def get_person_content(line):
+def get_person_content(line, is_marc8):
     contents = {}
-    for k, v in get_subfields(line, ['a', 'b', 'c', 'd', 'q']):
+    for k, v in get_subfields(line, ['a', 'b', 'c', 'd', 'q'], is_marc8):
         if k != 'd' and re_dates.match(v): # wrong subtag
             k = 'd'
         contents.setdefault(k, []).append(v)
@@ -219,17 +207,17 @@ def get_person_content(line):
 
 def get_contents(line, want):
     contents = {}
-    for k, v in get_subfields(line, want):
+    for k, v in get_subfields(line, want, is_marc8):
         contents.setdefault(k, []).append(v)
     return contents
 
-def get_lower_subfields(line):
+def get_lower_subfields(line, is_marc8):
     if len(line) < 4: 
         return [] # http://openlibrary.org/show-marc/marc_university_of_toronto/uoft.marc:2479215:693
-    return [translate(i[1:]) for i in line[3:-1].split('\x1f') if i and i[0].islower()]
+    return [translate(i[1:], is_marc8) for i in line[3:-1].split('\x1f') if i and i[0].islower()]
 
-def get_subfield_values(line, want):
-    return [v for k, v in get_subfields(line, want)]
+def get_subfield_values(line, want, is_marc8):
+    return [v for k, v in get_subfields(line, want, is_marc8)]
 
 def get_all_tag_lines(data):
     dir_end, iter_dir = read_directory(data)
@@ -251,11 +239,11 @@ def get_tag_lines(data, want):
     data = data[dir_end:]
     return [(line[:3], get_tag_line(data, line)) for line in iter_dir if line[:3] in want]
 
-def read_control_number(line):
+def read_control_number(line, is_marc8):
     assert line[-1] == '\x1e'
     return [line[:-1]]
 
-def read_lccn(line):
+def read_lccn(line, is_marc8):
     found = []
     for k, v in get_raw_subfields(line, ['a']):
         lccn = v.strip()
@@ -270,7 +258,7 @@ def read_lccn(line):
             found.append(lccn)
     return found
 
-def read_isbn(line):
+def read_isbn(line, is_marc8):
     found = []
     if line.find('\x1f') != -1:
         for k, v in get_raw_subfields(line, ['a', 'z']):
@@ -283,7 +271,7 @@ def read_isbn(line):
             found = [m.group(1)]
     return map(str, tidy_isbn(found))
 
-def read_oclc(line):
+def read_oclc(line, is_marc8):
     found = []
     for k, v in get_raw_subfields(line, ['a']):
         m = re_oclc.match(v)
@@ -291,15 +279,15 @@ def read_oclc(line):
             found.append(m.group(1))
     return found
 
-def read_publisher(line):
-    return [i for i in (v.strip(' /,;:') for k, v in get_subfields(line, ['b'])) if i]
+def read_publisher(line, is_marc8):
+    return [i for i in (v.strip(' /,;:') for k, v in get_subfields(line, ['b'], is_marc8)) if i]
 
-def read_author_org(line):
-    name = " ".join(v.strip(' /,;:') for k, v in get_subfields(line, ['a', 'b']))
+def read_author_org(line, is_marc8):
+    name = " ".join(v.strip(' /,;:') for k, v in get_subfields(line, ['a', 'b'], is_marc8))
     return [{ 'name': name, 'db_name': name, }]
 
-def read_author_event(line):
-    name = " ".join(v.strip(' /,;:') for k, v in get_subfields(line, ['a', 'b', 'd', 'n']))
+def read_author_event(line, is_marc8):
+    name = " ".join(v.strip(' /,;:') for k, v in get_subfields(line, ['a', 'b', 'd', 'n'], is_marc8))
     return [{ 'name': name, 'db_name': name, }]
 
 def add_oclc(edition):
@@ -312,6 +300,7 @@ def add_oclc(edition):
 def index_fields(data, want, check_author = True):
     if str(data)[6:8] != 'am': # only want books
         return None
+    is_marc8 = data[9] != 'a'
     edition = {}
     # ['006', '010', '020', '035', '245']
     author = {
@@ -367,7 +356,7 @@ def index_fields(data, want, check_author = True):
         assert tag in read_tag
         proc, key = read_tag[tag]
         try:
-            found = proc(line)
+            found = proc(line, is_marc8)
         except SoundRecording:
             return None
         if found:
@@ -385,6 +374,7 @@ def index_fields(data, want, check_author = True):
     return edition
 
 def read_edition(data, accept_electronic = False):
+    is_marc8 = data[9] != 'a'
     edition = {}
     want = ['001', '003', '006', '008', '010', '020', '035', \
             '100', '110', '111', '700', '710', '711', '245', '260', '300']
@@ -403,6 +393,7 @@ def read_edition(data, accept_electronic = False):
         ('260', read_publisher, 'publishers'),
     ]
 
+    marc8 = data[9] != 'a'
     oclc_001 = False
     tag_006_says_electric = False
     is_real_book = False
@@ -426,15 +417,15 @@ def read_edition(data, accept_electronic = False):
         for t, proc, key in read_tag:
             if t != tag:
                 continue
-            found = proc(line)
+            found = proc(line, is_marc8=is_marc8)
             if found:
                 edition.setdefault(key, []).extend(found)
             break
         if tag == '245':
-            edition['full_title'] = read_full_title(line)
+            edition['full_title'] = read_full_title(line, is_marc8=is_marc8)
             continue
         if tag == '300':
-            for k, v in get_subfields(line, ['a']):
+            for k, v in get_subfields(line, ['a'], is_marc8):
                 num = [ int(i) for i in re_int.findall(v) ]
                 num = [i for i in num if i < max_number_of_pages]
                 if not num:
