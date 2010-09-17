@@ -83,6 +83,8 @@ class MarcXml(MarcBase):
 
     def leader(self):
         leader_element = self.record[0]
+        if not isinstance(leader_element.tag, str):
+            leader_element = self.record[1]
         assert leader_element.tag == leader_tag
         return get_text(leader_element)
 
@@ -98,12 +100,23 @@ class MarcXml(MarcBase):
     def read_fields(self, want):
         want = set(want)
 
+        # http://www.archive.org/download/abridgedacademy00levegoog/abridgedacademy00levegoog_marc.xml
+
+        non_digit = False
         for i in self.record:
             if i.tag != data_tag and i.tag != control_tag:
                 continue
-            if i.attrib['tag'] == '':
+            tag = i.attrib['tag']
+            if tag == '':
                 raise BlankTag
-            assert i.attrib['tag'].isdigit() 
+            if tag == 'FMT':
+                continue
+            if not tag.isdigit():
+                non_digit = True
+            else:
+                if tag[0] != '9' and non_digit:
+                    raise BadSubtag
+
             if i.attrib['tag'] not in want:
                 continue
             yield i.attrib['tag'], i
