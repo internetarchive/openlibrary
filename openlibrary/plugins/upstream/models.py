@@ -11,8 +11,9 @@ from infogami.infobase import client
 from infogami.utils.view import safeint
 from infogami.utils import stats
 
+from openlibrary.core import models
+
 from openlibrary.plugins.search.code import SearchProcessor
-from openlibrary.plugins.openlibrary import code as ol_code
 from openlibrary.plugins.worksearch.code import works_by_author, sorted_work_editions
 from openlibrary.utils.solr import Solr
 
@@ -47,7 +48,7 @@ class Image:
     def __repr__(self):
         return "<image: %s/%d>" % (self.category, self.id)
 
-class Edition(ol_code.Edition):
+class Edition(models.Edition):
     def get_title(self):
         if self['title_prefix']:
             return self['title_prefix'] + ' ' + self['title']
@@ -406,7 +407,7 @@ class Edition(ol_code.Edition):
                 result['author%s' % (i + 1)] = a.name 
         return result
         
-class Author(ol_code.Author):
+class Author(models.Author):
     def get_photos(self):
         return [Image("a", id) for id in self.photos if id > 0]
         
@@ -435,7 +436,7 @@ def get_works_solr():
     base_url = "http://%s/solr/works" % config.plugin_worksearch.get('solr')
     return Solr(base_url)
         
-class Work(ol_code.Work):
+class Work(models.Work):
     def get_olid(self):
         return self.key.split('/')[-1]
 
@@ -588,7 +589,7 @@ class SubjectPerson(Subject):
     pass
 
 
-class User(ol_code.User):
+class User(models.User):
     
     def get_name(self):
         return self.displayname or self.key.split('/')[-1]
@@ -725,29 +726,10 @@ class AddBookChangeset(Changeset):
         for doc in self.get_changes():
             if doc.key.startswith("/authors/"):
                 return doc
-
-# methods monkey-patched to client.Thing
-from utils import get_history
-def get_history_preview(self):
-    if '_history_preview' not in self.__dict__:
-        self.__dict__['_history_preview'] = get_history(self)
-    return self._history_preview
-    
-def get_most_recent_change(self):
-    h = self.get_history_preview()
-    if h.recent:
-        return h.recent[0]
-    else:
-        return h.initial[0]
-
-def prefetch(self):
-    """Prefetch all the anticipated docs."""
-    h = self.get_history_preview()
-    authors = set(v.author.key for v in h.initial + h.recent if v.author)
-    # preload them
-    web.ctx.site.get_many(list(authors))
     
 def setup():
+    models.register_models()
+    
     client.register_thing_class('/type/edition', Edition)
     client.register_thing_class('/type/author', Author)
     client.register_thing_class('/type/work', Work)
@@ -762,7 +744,3 @@ def setup():
     client.register_changeset_class('undo', Undo)
 
     client.register_changeset_class('add-book', AddBookChangeset)
-    
-    client.Thing.get_history_preview = get_history_preview
-    client.Thing.get_most_recent_change = get_most_recent_change
-    client.Thing.prefetch = prefetch

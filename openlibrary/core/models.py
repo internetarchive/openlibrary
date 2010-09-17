@@ -1,0 +1,111 @@
+"""Models of various OL objects.
+"""
+
+import urllib
+from infogami.infobase import client
+
+import helpers as h
+
+#TODO: fix this. openlibrary.core should not import plugins.
+from openlibrary.plugins.upstream.utils import get_history
+
+
+class Thing(client.Thing):
+    """Base class for all OL models."""
+    def get_history_preview(self):
+        if '_history_preview' not in self.__dict__:
+            self.__dict__['_history_preview'] = get_history(self)
+        return self._history_preview
+        
+    def get_most_recent_change(self):
+        """Returns the most recent change.
+        """
+        h = self.get_history_preview()
+        if h.recent:
+            return h.recent[0]
+        else:
+            return h.initial[0]
+    
+    def prefetch(self):
+        """Prefetch all the anticipated data."""
+        h = self.get_history_preview()
+        authors = set(v.author.key for v in h.initial + h.recent if v.author)
+        # preload them
+        self._site.get_many(list(authors))
+        
+    def _make_url(self, label, suffix, **params):
+        """Make url of the form $key/$label$suffix?$params.
+        """
+        u = self.key + "/" + h.urlsafe(label) + suffix
+        if params:
+            u += '?' + urllib.urlencode(params)
+        return u
+        
+
+class Edition(Thing):
+    """Class to represent /type/edition objects in OL.
+    """
+    def url(self, suffix="", **params):
+        return self._make_url(self.title or "untitled", suffix, **params)
+
+    def __repr__(self):
+        return "<Edition: %s>" % repr(self.title)
+    __str__ = __repr__
+
+    def full_title(self):
+        # retained for backward-compatibility. Is anybody using this really?
+        return self.title            
+
+
+class Work(Thing):
+    """Class to represent /type/work objects in OL.
+    """
+    def url(self, suffix="", **params):
+        return self._make_url(self.title or "untitled", suffix, **params)
+
+    def __repr__(self):
+        return "<Work: %s>" % repr(self.title)
+    __str__ = __repr__
+
+    def get_edition_count(self):
+        if '_editon_count' not in self.__dict__:
+            self.__dict__['_editon_count'] = self._site._request(
+                                                '/count_editions_by_work', 
+                                                data={'key': self.key})
+        return self.__dict__['_editon_count']
+
+
+class Author(Thing):
+    """Class to represent /type/author objects in OL.
+    """
+    def url(self, suffix="", **params):
+        return self._make_url(self.name or "unnamed", suffix, **params)
+
+    def __repr__(self):
+        return "<Author: %s>" % repr(self.name)
+    __str__ = __repr__
+
+    def get_edition_count(self):
+        return self._site._request(
+                '/count_editions_by_author', 
+                data={'key': self.key})
+    edition_count = property(get_edition_count)
+
+
+class User(Thing):
+    def get_usergroups(self):
+        keys = web.ctx.site.things({
+            'type': '/type/usergroup', 
+            'members': self.key})
+        return web.ctx.site.get_many(keys)
+    usergroups = property(get_usergroups)
+
+    def is_admin(self):
+        return '/usergroup/admin' in [g.key for g in self.usergroups]
+
+def register_models():
+    client.register_thing_class(None, Thing) # default
+    client.register_thing_class('/type/edition', Edition)
+    client.register_thing_class('/type/work', Work)
+    client.register_thing_class('/type/author', Author)
+    client.register_thing_class('/type/user', User)
