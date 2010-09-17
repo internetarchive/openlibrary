@@ -16,7 +16,7 @@ def html_subfields(line):
 
 def html_line(tag, field):
     if tag.startswith('00'):
-        s = esc(field)
+        s = esc_sp(field)
     else:
         s = esc_sp(field.ind1() + field.ind2()) + ' ' + html_subfields(field)
     return u'<large>' + tag + u'</large> <code>' + s + u'</code>'
