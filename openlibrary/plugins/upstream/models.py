@@ -12,6 +12,7 @@ from infogami.utils.view import safeint
 from infogami.utils import stats
 
 from openlibrary.core import models
+from openlibrary.core.models import Image
 
 from openlibrary.plugins.search.code import SearchProcessor
 from openlibrary.plugins.worksearch.code import works_by_author, sorted_work_editions
@@ -22,31 +23,6 @@ import account
 import borrow
 
 re_meta_field = re.compile('<(collection|contributor)>([^<]+)</(collection|contributor)>', re.I)
-
-class Image:
-    def __init__(self, category, id):
-        self.category = category
-        self.id = id
-        
-    def info(self):
-        url = '%s/%s/id/%s.json' % (get_coverstore_url(), self.category, self.id)
-        try:
-            d = simplejson.loads(urllib2.urlopen(url).read())
-            d['created'] = parse_datetime(d['created'])
-            if d['author'] == 'None':
-                d['author'] = None
-            d['author'] = d['author'] and web.ctx.site.get(d['author'])
-            
-            return web.storage(d)
-        except IOError:
-            # coverstore is down
-            return None
-                
-    def url(self, size="M"):
-        return "%s/%s/id/%s-%s.jpg" % (get_coverstore_url(), self.category, self.id, size.upper())
-        
-    def __repr__(self):
-        return "<image: %s/%d>" % (self.category, self.id)
 
 class Edition(models.Edition):
     def get_title(self):
@@ -99,7 +75,7 @@ class Edition(models.Edition):
         return editions[i - 1]
  
     def get_covers(self):
-        return [Image('b', c) for c in self.covers if c > 0]
+        return [Image(self._site, 'b', c) for c in self.covers if c > 0]
         
     def get_cover(self):
         covers = self.get_covers()
@@ -409,7 +385,7 @@ class Edition(models.Edition):
         
 class Author(models.Author):
     def get_photos(self):
-        return [Image("a", id) for id in self.photos if id > 0]
+        return [Image(self._site, "a", id) for id in self.photos if id > 0]
         
     def get_photo(self):
         photos = self.get_photos()
@@ -442,7 +418,7 @@ class Work(models.Work):
 
     def get_covers(self):
         if self.covers:
-            return [Image("w", id) for id in self.covers if id > 0]
+            return [Image(self._site, "w", id) for id in self.covers if id > 0]
         else:
             return self.get_covers_from_solr()
             
@@ -450,7 +426,7 @@ class Work(models.Work):
         w = self._solr_data
         if w:
             if 'cover_id' in w:
-                return [Image("w", int(w['cover_id']))]
+                return [Image(self._site, "w", int(w['cover_id']))]
             elif 'cover_edition_key' in w:
                 cover_edition = web.ctx.site.get("/books/" + w['cover_edition_key'])
                 cover = cover_edition and cover_edition.get_cover()
