@@ -34,7 +34,7 @@ def get_schema():
     # custom postgres functions required by OL.
     more_sql = """
     CREATE OR REPLACE FUNCTION get_olid(text) RETURNS text AS $$
-        select split_part($1, '/', 3) where $1 ~ '^/[^/]*/OL[0-9]+[A-Z]$';
+        select regexp_replace($1, '.*(OL[0-9]+[A-Z])', E'\\1') where $1 ~ '^/.*/OL[0-9]+[A-Z]$';
     $$ LANGUAGE SQL IMMUTABLE;
     
     CREATE INDEX thing_olid_idx ON thing(get_olid(key));
