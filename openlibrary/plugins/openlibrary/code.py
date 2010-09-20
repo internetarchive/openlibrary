@@ -4,7 +4,6 @@ Open Library Plugin.
 import web
 import simplejson
 import os
-import re
 import urllib
 import socket
 import datetime
@@ -16,14 +15,13 @@ import infogami
 if not hasattr(infogami.config, 'features'):
     infogami.config.features = []
     
-from infogami.utils import types, delegate
+from infogami.utils import delegate
 from infogami.utils.view import render, public, safeint, add_flash_message
-from infogami.infobase import client, dbstore
+from infogami.infobase import client
 from infogami.core.db import ValidationException
 
 import processors
 
-from utils import sanitize
 from openlibrary.utils.isbn import isbn_13_to_isbn_10
 
 delegate.app.add_processor(processors.ReadableUrlProcessor())
@@ -48,22 +46,14 @@ import connection
 client._connection_types['ol'] = connection.OLConnection
 infogami.config.infobase_parameters = dict(type="ol")
 
-types.register_type('^/a/[^/]*$', '/type/author')
-types.register_type('^/b/[^/]*$', '/type/edition')
-types.register_type('^/l/[^/]*$', '/type/language')
-
-types.register_type('^/works/[^/]*$', '/type/work')
-types.register_type('^/subjects/[^/]*$', '/type/subject')
-types.register_type('^/publishers/[^/]*$', '/type/publisher')
-
-types.register_type('^/usergroup/[^/]*$', '/type/usergroup')
-types.register_type('^/permission/[^/]*$', '/type/permision')
-
-types.register_type('^/(css|js)/[^/]*$', '/type/rawtext')
-
 # set up infobase schema. required when running in standalone mode.
-import schema
-dbstore.default_schema = schema.get_schema()
+from openlibrary.core import schema
+schema.register_schema()
+
+from openlibrary.core import models
+models.register_models()
+models.register_types()
+
 
 # this adds /show-marc/xxx page to infogami
 import showmarc
@@ -80,8 +70,6 @@ web.template.Template.globals['NEWLINE'] = "\n"
 # Remove movefiles install hook. openlibrary manages its own files.
 infogami._install_hooks = [h for h in infogami._install_hooks if h.__name__ != "movefiles"]
 
-from openlibrary.core import models
-models.register_models()
 
 class hooks(client.hook):
     def before_new_version(self, page):

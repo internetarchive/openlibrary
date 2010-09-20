@@ -139,3 +139,18 @@ def register_models():
     client.register_thing_class('/type/work', Work)
     client.register_thing_class('/type/author', Author)
     client.register_thing_class('/type/user', User)
+    
+def register_types():
+    """Register default types for various path patterns used in OL.
+    """
+    from infogami.utils import types
+
+    types.register_type('^/authors/[^/]*$', '/type/author')
+    types.register_type('^/works/[^/]*$', '/type/work')
+    types.register_type('^/books/[^/]*$', '/type/edition')
+
+    types.register_type('^/usergroup/[^/]*$', '/type/usergroup')
+    types.register_type('^/permission/[^/]*$', '/type/permision')
+
+    types.register_type('^/(css|js)/[^/]*$', '/type/rawtext')
+    
