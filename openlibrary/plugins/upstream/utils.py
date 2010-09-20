@@ -25,6 +25,9 @@ from infogami.infobase.utils import parse_datetime
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.openlibrary.utils import sanitize
 
+from openlibrary.core.helpers import json_encode, datestr, format_date, sprintf, cond, commify, truncate
+    
+
 class MultiDict(DictMixin):
     """Ordered Dictionary that can store multiple values.
     
@@ -308,27 +311,6 @@ def get_locale():
         return babel.Locale("en")
     
 @public
-def datestr(then, now=None):
-    """Internationalized version of web.datestr."""
-    result = web.datestr(then, now)
-    if result[0] in string.digits: # eg: 2 milliseconds ago
-        t, message = result.split(' ', 1)
-        return _("%d " + message) % int(t)
-    else:
-        return babel.dates.format_date(then, format="long", locale=get_locale())
-        
-@public
-def format_date(date):
-    return babel.dates.format_date(date, format="long", locale=get_locale())
-
-@public     
-def truncate(text, limit):
-    """Truncate text and add ellipses if it longer than specified limit."""
-    if len(text) < limit:
-        return text
-    return text[:limit] + "..."
-    
-@public
 def process_version(v):
     """Looks at the version and adds machine_comment required for showing "View MARC" link."""
     importers = ['/people/ImportBot', '/people/EdwardBot']
@@ -345,13 +327,6 @@ def process_version(v):
             else:
                 v.machine_comment = marc
     return v
-
-@public
-def cond(pred, true_value, false_value=""):
-    if pred:
-        return true_value
-    else:
-        return false_value
 
 @public
 def is_thing(t):
@@ -427,59 +402,8 @@ def get_edition_config():
     identifiers = [web.storage(t.dict()) for t in thing.identifiers if 'name' in t]
     roles = thing.roles
     return web.storage(classifications=classifications, identifiers=identifiers, roles=roles)
-    
-# regexp to match urls and emails. 
-# Adopted from github-flavored-markdown (BSD-style open source license)
-# http://github.com/github/github-flavored-markdown/blob/gh-pages/scripts/showdown.js#L158
-AUTOLINK_RE = r'''(^|\s)(https?\:\/\/[^"\s<>]*[^.,;'">\:\s\<\>\)\]\!]|[a-z0-9_\-+=.]+@[a-z0-9\-]+(?:\.[a-z0-9-]+)+)'''
 
-LINK_REFERENCE_RE = re.compile(r' *\[[^\[\] ]*\] *:')
-
-class LineBreaksPreprocessor(markdown.Preprocessor):
-    def run(self, lines) :
-        for i in range(len(lines)-1):
-            # append <br/> to all lines expect blank lines and the line before blankline.
-            if (lines[i].strip() and lines[i+1].strip()
-                and not markdown.RE.regExp['tabbed'].match(lines[i])
-                and not LINK_REFERENCE_RE.match(lines[i])):
-                lines[i] += "<br />"
-        return lines
-
-LINE_BREAKS_PREPROCESSOR = LineBreaksPreprocessor()
-
-class AutolinkPreprocessor(markdown.Preprocessor):
-    rx = re.compile(AUTOLINK_RE)
-    def run(self, lines):
-        for i in range(len(lines)):
-            if not markdown.RE.regExp['tabbed'].match(lines[i]):
-                lines[i] = self.rx.sub(r'\1<\2>', lines[i])
-        return lines
-
-AUTOLINK_PREPROCESSOR = AutolinkPreprocessor()
-    
-class OLMarkdown(markdown.Markdown):
-    """Open Library flavored Markdown, inspired by [Github Flavored Markdown][GFM].
-    
-    GFM: http://github.github.com/github-flavored-markdown/
-
-    Differences from traditional Markdown:
-    * new lines in paragraph are treated as line breaks
-    * URLs are autolinked
-    * generated HTML is sanitized    
-    """
-    def __init__(self, *a, **kw):
-        markdown.Markdown.__init__(self, *a, **kw)
-        self._patch()
-        
-    def _patch(self):
-        p = self.preprocessors
-        p[p.index(markdown.LINE_BREAKS_PREPROCESSOR)] = LINE_BREAKS_PREPROCESSOR
-        p.append(AUTOLINK_PREPROCESSOR)
-        
-    def convert(self):
-        html = markdown.Markdown.convert(self)
-        return sanitize(html)
-        
+from openlibrary.core.olmarkdown import OLMarkdown
 def get_markdown(text, safe_mode=False):
     md = OLMarkdown(source=text, safe_mode=safe_mode)
     view._register_mdx_extensions(md)
@@ -503,13 +427,6 @@ def websafe(text):
     else:
         return _websafe(text)
         
-
-def commify(number):
-    """localized version of web.commify"""
-    try:
-        return format_number(int(number), web.ctx.lang or "en")
-    except:
-        return number
 
 from openlibrary.utils.olcompress import OLCompressor
 from openlibrary.utils import olmemcache
@@ -624,14 +541,6 @@ def get_random_recent_changes(n):
         changes = _get_recent_changes()
         
     return random.sample(changes, n)  
-
-@public
-def sprintf(s, *a, **kw):
-    args = kw or a
-    if args:
-        return s % args
-    else:
-        return s
         
 def _get_blog_feeds():
     url = "http://blog.openlibrary.org/feed/"
@@ -715,6 +624,9 @@ def setup():
         'HTML': HTML,
         'request': Request()
     })
+    
+    from openlibrary.core import helpers as h
+    web.template.Template.globals.update(h.helpers)
 
     if config.get('use_gzip') == True:
         config.middleware.append(GZipMiddleware)

@@ -4,7 +4,6 @@ Open Library Plugin.
 import web
 import simplejson
 import os
-import re
 import urllib
 import socket
 import datetime
@@ -16,24 +15,17 @@ import infogami
 if not hasattr(infogami.config, 'features'):
     infogami.config.features = []
     
-from infogami.utils import types, delegate
+from infogami.utils import delegate
 from infogami.utils.view import render, public, safeint, add_flash_message
-from infogami.infobase import client, dbstore
+from infogami.infobase import client
 from infogami.core.db import ValidationException
 
 import processors
 
-from utils import sanitize
 from openlibrary.utils.isbn import isbn_13_to_isbn_10
 
 delegate.app.add_processor(processors.ReadableUrlProcessor())
 delegate.app.add_processor(processors.ProfileProcessor())
-
-# setup infobase hooks for OL
-from openlibrary.plugins import ol_infobase
-
-if infogami.config.get('infobase_server') is None:
-    ol_infobase.init_plugin()
 
 try:
     from infogami.plugins.api import code as api
@@ -48,22 +40,19 @@ import connection
 client._connection_types['ol'] = connection.OLConnection
 infogami.config.infobase_parameters = dict(type="ol")
 
-types.register_type('^/a/[^/]*$', '/type/author')
-types.register_type('^/b/[^/]*$', '/type/edition')
-types.register_type('^/l/[^/]*$', '/type/language')
-
-types.register_type('^/works/[^/]*$', '/type/work')
-types.register_type('^/subjects/[^/]*$', '/type/subject')
-types.register_type('^/publishers/[^/]*$', '/type/publisher')
-
-types.register_type('^/usergroup/[^/]*$', '/type/usergroup')
-types.register_type('^/permission/[^/]*$', '/type/permision')
-
-types.register_type('^/(css|js)/[^/]*$', '/type/rawtext')
-
 # set up infobase schema. required when running in standalone mode.
-import schema
-dbstore.default_schema = schema.get_schema()
+from openlibrary.core import schema
+schema.register_schema()
+
+if infogami.config.get('infobase_server') is None:
+    # setup infobase hooks for OL
+    from openlibrary.plugins import ol_infobase
+    ol_infobase.init_plugin()
+
+from openlibrary.core import models
+models.register_models()
+models.register_types()
+
 
 # this adds /show-marc/xxx page to infogami
 import showmarc
@@ -80,75 +69,8 @@ web.template.Template.globals['NEWLINE'] = "\n"
 # Remove movefiles install hook. openlibrary manages its own files.
 infogami._install_hooks = [h for h in infogami._install_hooks if h.__name__ != "movefiles"]
 
-class Author(client.Thing):
-    photo_url_pattern = "%s?m=change_cover"
-    
-    def get_edition_count(self):
-        return web.ctx.site._request('/count_editions_by_author', data={'key': self.key})
-    edition_count = property(get_edition_count)
-    
-    def photo_url(self):
-        p = processors.ReadableUrlProcessor()
-        _, path = p.get_readable_path(self.key)
-        return self.photo_url_pattern % path
-        
-    def url(self, suffix="", **params):
-        u = self.key + "/" + processors._safepath(self.get('name', 'no name')) + suffix
-        if params:
-            u += '?' + urllib.urlencode(params)
-        return u
-    
-class Edition(client.Thing):
-    cover_url_pattern = "%s?m=change_cover"
-    
-    def full_title(self):
-        if self.title_prefix:
-            return self.title_prefix + ' ' + self.title
-        else:
-            return self.title
-            
-    def cover_url(self):
-        p = processors.ReadableUrlProcessor()
-        _, path = p.get_readable_path(self.key)
-        return self.cover_url_pattern % path
-        
-    def url(self, suffix="", **params):
-        u = self.key + "/" + processors._safepath(self.title or "untitled") + suffix
-        if params:
-            u += '?' + urllib.urlencode(params)
-        return u
-                
-    def __repr__(self):
-        return "<Edition: %s>" % repr(self.full_title())
-    __str__ = __repr__
-
-class Work(client.Thing):
-    def get_edition_count(self):
-        if '_editon_count' not in self.__dict__:
-            self.__dict__['_editon_count'] = web.ctx.site._request('/count_editions_by_work', data={'key': self.key})
-        return self.__dict__['_editon_count']
-        
-    edition_count = property(get_edition_count)
-
-    def url(self, suffix="", **params):
-        u = self.key + "/" + processors._safepath(self.title or "untitled") + suffix
-        if params:
-            u += '?' + urllib.urlencode(params)
-        return u
-
-class User(client.Thing):
-    def get_usergroups(self):
-        keys = web.ctx.site.things({'type': '/type/usergroup', 'members': self.key})
-        return web.ctx.site.get_many(keys)
-    usergroups = property(get_usergroups)
-
-    def is_admin(self):
-        return '/usergroup/admin' in [g.key for g in self.usergroups]
-    
-client.register_thing_class('/type/author', Author)
-client.register_thing_class('/type/edition', Edition)
-client.register_thing_class('/type/work', Work)
-client.register_thing_class('/type/user', User)
+import lists
+lists.setup()
 
 class hooks(client.hook):
     def before_new_version(self, page):
