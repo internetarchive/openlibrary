@@ -15,7 +15,8 @@ class ReadableUrlProcessor:
     patterns = [
         (r'/\w+/OL\d+M', '/type/edition', 'title', 'untitled'),
         (r'/\w+/OL\d+A', '/type/author', 'name', 'noname'),
-        (r'/\w+/OL\d+W', '/type/work', 'title', 'untitled')
+        (r'/\w+/OL\d+W', '/type/work', 'title', 'untitled'),
+        (r'/[/\w]+/OL\d+L', '/type/list', 'name', 'unnamed')
     ]
         
     def __call__(self, handler):
@@ -53,7 +54,7 @@ class ReadableUrlProcessor:
         
         if obj is None and web.re_compile(r"/.*/OL\d+[A-Z]"):
             olid = web.safestr(key).split("/")[-1]
-            key = web.ctx.site._request("/olid_to_key?" + urllib.urlencode({"olid": olid})).key
+            key = web.ctx.site._request("/olid_to_key", data={"olid": olid}).key
             obj = key and web.ctx.site.get(key)
         return obj
 
@@ -120,11 +121,19 @@ class ReadableUrlProcessor:
         """
         def match(path):    
             for pat, type, property, default_title in self.patterns:
-                if web.re_compile('^' + pat).match(path):
-                    return type, property, default_title
-            return None, None, None
+                m = web.re_compile('^' + pat).match(path)
+                if m:
+                    prefix = m.group()
+                    tokens = web.lstrips(path, prefix).split("/", 1)
+                    middle = web.listget(tokens, 1, "")
+                    suffix = web.listget(tokens, 2, "")
+                    if suffix:
+                        suffix = "/" + suffix
+                    
+                    return type, property, default_title, prefix, middle, suffix
+            return None, None, None, None, None, None
 
-        type, property, default_title = match(path)
+        type, property, default_title, prefix, middle, suffix = match(path)
         if type is None:
             path = web.safeunicode(path)
             return (path, path)
@@ -140,7 +149,7 @@ class ReadableUrlProcessor:
             path = web.safeunicode(path)
             return (path, path)
 
-        prefix, middle, suffix = self._split(path)
+        #prefix, middle, suffix = self._split(path)
         get_object = get_object or self.get_object
         thing = get_object(prefix)
         

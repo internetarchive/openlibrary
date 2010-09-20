@@ -102,6 +102,8 @@ class Work(Thing):
                                                 '/count_editions_by_work', 
                                                 data={'key': self.key})
         return self.__dict__['_editon_count']
+    
+    edition_count = property(get_edition_count)
 
 
 class Author(Thing):
@@ -119,8 +121,7 @@ class Author(Thing):
                 '/count_editions_by_author', 
                 data={'key': self.key})
     edition_count = property(get_edition_count)
-
-
+    
 class User(Thing):
     def get_usergroups(self):
         keys = self._site.things({
@@ -131,6 +132,140 @@ class User(Thing):
 
     def is_admin(self):
         return '/usergroup/admin' in [g.key for g in self.usergroups]
+        
+    def get_lists(self, member=None):
+        """Returns all the lists of this user.
+        
+        When member is specified, this returns all the lists which contain the
+        given member.
+        
+        Member could be an object or a string like "subject:cheese".
+        """
+        q = {"type": "/type/list", "key~": owner.key + "/lists/*"}
+        if member:
+            if isinstance(member, Thing):
+                member = {"key": member.key}
+            q['members'] = member
+        keys = site.things(q)
+        return site.get_many(keys)
+        
+    def new_list(self, name, description, members, tags=[]):
+        """Creates a new list object with given name, description, and members.
+
+        Members must be a list containing references to author, edition, work or subject strings.
+
+        Sample members:
+
+            {"key": "/authors/OL1A"}
+            {"key": "/books/OL1M"}
+            {"key": "/works/OL1W"}
+            "subject:love"
+            "place:san_francisco"
+            "time:1947"
+            "person:gerge"
+
+        The caller must call list._save(...) to save the list.
+        """
+        id = self._site.seq.next_value("list")
+
+        # since the owner is part of the URL, it might be difficult to handle
+        # change of ownerships. Need to think of a way to handle redirects.
+        key = "%s/lists/OL%sL" % (self.key, id)
+        doc = {
+            "key": key,
+            "type": {
+                "key": "/type/list"
+            },
+            "name": name,
+            "description": description,
+            "members": members,
+            "tags": tags
+        }
+        return self._site.new(key, doc)
+
+
+class List(Thing):
+    """Class to represent /type/list objects in OL.
+    
+    List contains the following properties:
+    
+        * name - name of the list
+        * description - detailed description of the list (markdown)
+        * members - members of the list. Either references or subject strings.
+        * cover - id of the book cover. Picked from one of its editions.
+        * tags - list of tags to describe this list.
+    """
+    def url(self, suffix="", **params):
+        return self._make_url(self.name or "unnamed", suffix, **params)
+    
+    def get_editions(self):
+        """Returns all the editions referenced by members of this list.
+        """
+        #@@ Returning the editions in members instead of finding all the members.
+        # This will be fixed soon.
+        return [doc for doc in self.members 
+            if isinstance(doc, Thing) 
+            and doc.type.key == '/type/edition']
+        
+    def get_edition_count(self):
+        """Returns the number of editions referenced by members of this list.
+        """
+        # Temporary implementation. will be fixed soon.
+        return len(self.get_editions())
+        
+    def get_updates(self, offset=0, limit=20):
+        """Returns the updates to the members of this list.
+        """
+        return []
+    
+    def get_update_count(self):
+        """Returns the number of updates since this list is created.
+        """
+        return 0
+        
+    def get_cover(self):
+        """Returns a cover object.
+        """
+        return self.cover and Image(self._site, "b", self.cover)
+        
+    def get_tags(self):
+        """Returns tags as objects.
+        
+        Each tag object will contain name and url fields.
+        """
+        return [web.storage(name=t, url=self.key + u"/tags/" + t) for t in self.tags]
+        
+    def get_subjects(self):
+        """Returns list of subjects inferred from the members.
+        Each item in the list will be a storage object with title and url.
+        """
+        # sample subjects
+        return [
+            {"title": "Cheese", "url": "/subjects/cheese"},
+            {"title": "San Francisco", "url": "/subjects/place:san_francisco"}
+        ]
+        
+    def add_member(self, member):
+        """Adds a new member to this list.
+        
+        Member can be:
+            - author, edition or work object
+            - {"key": "..."} for author, edition or work objects
+            - subject strings.
+        """
+        if isinstance(member, Thing):
+            member = {"key": member.key}
+            
+        self.members = self.members or []
+        self.members.append(member)
+        
+    def remove_member(self, member):
+        """Removes a member for the list.
+        """
+        if isinstance(member, Thing):
+            member = {"key": member.key}
+            
+        self.members = [m for m in self.members if m != member]
 
 
 def register_models():
@@ -139,6 +274,7 @@ def register_models():
     client.register_thing_class('/type/work', Work)
     client.register_thing_class('/type/author', Author)
     client.register_thing_class('/type/user', User)
+    client.register_thing_class('/type/list', List)
     
 def register_types():
     """Register default types for various path patterns used in OL.
@@ -146,8 +282,9 @@ def register_types():
     from infogami.utils import types
 
     types.register_type('^/authors/[^/]*$', '/type/author')
-    types.register_type('^/works/[^/]*$', '/type/work')
     types.register_type('^/books/[^/]*$', '/type/edition')
+    types.register_type('^/works/[^/]*$', '/type/work')
+    types.register_type('^/languages/[^/]*$', '/type/language')
 
     types.register_type('^/usergroup/[^/]*$', '/type/usergroup')
     types.register_type('^/permission/[^/]*$', '/type/permision')

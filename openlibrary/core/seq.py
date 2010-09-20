@@ -1,6 +1,6 @@
 """Library to generate keys for new documents using database sequences.
 
-Currently new keys are generated for author, edition, work and list types.
+Currently new keys are generated for author, edition and work types.
 """
 
 __all__ = [

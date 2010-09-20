@@ -27,12 +27,6 @@ from openlibrary.utils.isbn import isbn_13_to_isbn_10
 delegate.app.add_processor(processors.ReadableUrlProcessor())
 delegate.app.add_processor(processors.ProfileProcessor())
 
-# setup infobase hooks for OL
-from openlibrary.plugins import ol_infobase
-
-if infogami.config.get('infobase_server') is None:
-    ol_infobase.init_plugin()
-
 try:
     from infogami.plugins.api import code as api
 except:
@@ -49,6 +43,11 @@ infogami.config.infobase_parameters = dict(type="ol")
 # set up infobase schema. required when running in standalone mode.
 from openlibrary.core import schema
 schema.register_schema()
+
+if infogami.config.get('infobase_server') is None:
+    # setup infobase hooks for OL
+    from openlibrary.plugins import ol_infobase
+    ol_infobase.init_plugin()
 
 from openlibrary.core import models
 models.register_models()
@@ -70,6 +69,8 @@ web.template.Template.globals['NEWLINE'] = "\n"
 # Remove movefiles install hook. openlibrary manages its own files.
 infogami._install_hooks = [h for h in infogami._install_hooks if h.__name__ != "movefiles"]
 
+import lists
+lists.setup()
 
 class hooks(client.hook):
     def before_new_version(self, page):
