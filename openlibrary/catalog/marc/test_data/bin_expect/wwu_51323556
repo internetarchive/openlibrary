@@ -1,0 +1,148 @@
+{
+    "languages": [
+        {
+            "key": "/languages/eng"
+        }
+    ], 
+    "pagination": "xviii, 456 p. :", 
+    "lc_classifications": [
+        "HA30.6 .S665 2004"
+    ], 
+    "links": [
+        {
+            "url": "http://www.loc.gov/catdir/enhancements/fy0613/2002156669-d.html", 
+            "title": "Publisher description"
+        }
+    ], 
+    "publishers": [
+        "Oxford University Press"
+    ], 
+    "lccn": [
+        "2002156669"
+    ], 
+    "series": [
+        "Spatial information systems"
+    ], 
+    "notes": "Includes bibliographical references and index.\n\nGift; James Loucky; May, 2007.\n\n\"Gift, May 2007\"", 
+    "number_of_pages": 456, 
+    "title": "Spatially integrated social science", 
+    "table_of_contents": [
+        {
+            "type": "/type/toc_item", 
+            "title": "Introduction. Thinking spatially in the social sciences"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Michael F. Goodchild and Donald G. Janelle -- Spatial analysis at individual and household levels. Inferring the behavior of households from remotely sensed changes in land cover : current methods and future directions"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Bruce Boucek and Emilio F. Moran. Geo-visualization of human activity patterns using 3-d GIS : a time-geographic approach"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Mei-Po Kwan and Jiyeong Lee. Agent-based modeling : from individual residential choice to urban residential dynamics"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Itzhak Benenson. Too much of the wrong kind of data : implications for the practice of micro-scale spatial modeling"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "David O'Sullivan. Neighborhood-level analysis. Identifying ethnic neighborhoods with census data : group concentration and spatial clustering"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "John R. Logan and Wenquan Zhang. Spatial analyses of homicide with areal data"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Steven F. Messner and Luc Anselin. Spatial (dis)advantage and homicide in Chicago neighborhoods"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Robert J. Sampson and Jeffrey D. Morenoff. Measuring spatial diffusion of shots fired activity across city neighborhoods"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Jacqueline Cohen and George Tita. The spatial structure of urban political discussion networks"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Munroe Eagles, Paul B\u00e9langer, and Hugh W. Calkins. Region-level analysis. Mapping social exclusion and inclusion in developing countries : spatial patterns of S\u00e0o Paulo in the 1990s"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Gilberto C\u01cemara, Aldaiza Sposati, Dirce Koga, Antonio Miguel Monteiro, Frederico Roman Ramos, Eduardo Camargo, and Suzana Druck Fuks. Business location and spatial externalities : tying concepts to measures"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Stuart H Sweeney and Edward J. Feser. Updating spatial perspectives and analytical frameworks in urban research"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Qing Shen. Spatial analysis of regional income inequality"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Sergio J. Rey. Shaping policy decisions with spatial analysis"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Ted K. Bradshaw and Brian Muller. Geographical approaches for reconstructing past human behavior from prehistoric roadways"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "John Kantner. Multi-scale spatial perspectives. Time, space, and archaeological landscapes : establishing connections in the first millennium BC"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Patrick Daly and Gary Lock. Spatial perspectives in public health"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Anthony C. Gatrell and Janette E. Rigby. The role of spatial analysis in demographic research"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "John R. Weeks. Spatial interaction models of international telecommunication flows"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Jean-Michel Guldmann. Planning scenario visualization and assessment : a cellular automata based integrated spatial decision support system"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Roger White, Bas Straatman, and Guy Engelen."
+        }
+    ], 
+    "isbn_13": [
+        "9780195152708"
+    ], 
+    "isbn_10": [
+        "0195152700"
+    ], 
+    "publish_date": "2004", 
+    "publish_country": "enk", 
+    "authors": [
+        {
+            "personal_name": "Goodchild, Michael F.", 
+            "name": "Goodchild, Michael F.", 
+            "entity_type": "person"
+        }, 
+        {
+            "birth_date": "1940", 
+            "personal_name": "Janelle, Donald G.", 
+            "name": "Janelle, Donald G.", 
+            "entity_type": "person"
+        }
+    ], 
+    "by_statement": "edited by  Michael F. Goodchild, Donald G. Janelle", 
+    "oclc_numbers": [
+        "51323556"
+    ], 
+    "publish_places": [
+        "Oxford [England]", 
+        "New York"
+    ]
+}

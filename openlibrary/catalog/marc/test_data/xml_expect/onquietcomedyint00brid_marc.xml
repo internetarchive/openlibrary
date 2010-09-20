@@ -1,0 +1,32 @@
+{
+    "publishers": [
+        "W. H. Baker & co."
+    ], 
+    "subtitle": "a comedy in two acts", 
+    "lc_classifications": [
+        "PS3503.R53 O6 1915"
+    ], 
+    "authors": [
+        {
+            "entity_type": "person", 
+            "name": "Bridgham, Gladys Ruth", 
+            "personal_name": "Bridgham, Gladys Ruth"
+        }
+    ], 
+    "publish_places": [
+        "Boston"
+    ], 
+    "pagination": "30 p.", 
+    "title": "On the quiet", 
+    "lccn": [
+        "34001802"
+    ], 
+    "number_of_pages": 30, 
+    "languages": [
+        {
+            "key": "/languages/eng"
+        }
+    ], 
+    "publish_date": "1915", 
+    "publish_country": "mau"
+}

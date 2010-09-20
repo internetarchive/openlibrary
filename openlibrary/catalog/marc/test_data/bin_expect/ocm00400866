@@ -1,0 +1,1455 @@
+{
+    "publishers": [
+        "C. C. Birchard"
+    ], 
+    "table_of_contents": [
+        {
+            "type": "/type/toc_item", 
+            "title": "Abide with me"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Absent-minded serenade"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Ah, leave me not alone"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Alice, where art thou?"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "A little sun, a little rain"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Alleluia"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Allah"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "All is well"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "All through the night"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "All ye that weep"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Although our dark career"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "America"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "America the beautiful"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "The angelus"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Annie Laurie"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "April wakes"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Ariel's song"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "A-roving"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "The ash grove"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "At evening"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "At the spinning wheel"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Auld lang syne"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Autumn scene"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Ave Maria"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Baccalaureate hymn"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "The bark canoe"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Battle hymn of the republic"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Behold the Lord High Executioner"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Bells of Aberdovey"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Bleesed are the peacemakers"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "The blue flower"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Breakers"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Break forth, o beauteous heavenly light"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Bring the wagon home, John"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Brotherhood"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Bunches of grapes"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "By peaceful hearth"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "The call"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Calm as the night"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Camp song"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Canoeing"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Captain Kidd"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Carmen Carmela"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Carmelina"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Carol of the birds"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "The carrier dove"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Carry me back to old Virginny"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "The cat and the catboat"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Charlie is my darlin'"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Cheerio"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Cherry bloom"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Chinese hymn"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Choral sanctus"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Christmas greeting"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Christ the Lord is risen today"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Closing hymn"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Columbia the gem of the ocean"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Columbus"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Come, thou almighty King"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Coronation"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "The counter-charm"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Creator alme siderum"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "The Danube river"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "The dawn of Maytime"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Dayspring"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Dear one, believe (Caro mio ben)"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Dialgue"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Dixie"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Dogie song"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "The dove"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Down in Dixie"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Down Mobile"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Drink to me only wtih thine eyes"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Easter"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Echo"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Evening in the tropics"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Evening prayer"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Evening song"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Fair glows the earth"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Fairy friends"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Faith of our fathers"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "The first Nowell"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Flag song"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "A flower song"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Flow gently, sweet Afton"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Forget-me-not"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "The four winds"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "The generous heart"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Gypsy John"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Gipsy life"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Gipsy song"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Gloria"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Glory now to thee be given"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Glory to him"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Glorious things of thee are spoken"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "God ever glorious"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "God of all nature"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "God rest you merry, gentlemen"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Go down, Moses"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Go to it"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Great God, we sing that mighty hand"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Hail Columbia"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Happy days"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "The happy family"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Hark hark the lark"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Hear the noisy wind"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Hearld of happiness"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Here's a first rate opportunity"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Hit the line"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Hold thy peace"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Home is wating"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Homeland"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "The honey bee"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Hope and faith"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "A hope carol"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Horn music"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "How lovely are the messengers"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "I ain't gwine to study war no more"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "I am a pirate king"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "I am the captain of the Pinafore"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "I am the monarch of the sea"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "If I could fly"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "I'm called Little Buttercup"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Inconsequence"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "The inglenook"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "In Hawaii"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "In memoriam"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "In old Versailles"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "In summer"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "In the forest"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "An Irish love song"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "I've no time to be a-sighin'"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Jeanie with the light brown hair"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Jerusalem"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Jerusalem the golden"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Joy of the hour"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Jubilate"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Keep a-goin'"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Keeping on"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Keep us, O Lord"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Keller's American hymn"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Kimi-ga-yo"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "King of glory"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "King of Yvetot"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Lady Moon"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "The lake at night"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Land of the midnight sun"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Largo"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Laughing song"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Law and order"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Law is the true embodiment"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Lead kindly light"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Let peace endure"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Let the whole creation cry"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Light"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Lincoln"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Lincoln marching song"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Loch Lomond"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Lo, what a branch of beauty"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Lord of light"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Lord, with undying love"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Love's greeting (Salut d'amour)"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Love's old sweet song"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Lullaby"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Lullaby of life"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "The lullaby"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Madeleine"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Madrigal"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Magnet and the churn"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "The Magyars"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "A maiden fair to see"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "the man in the moon"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Marching song"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "March of civilization"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Marianina"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Mass dear"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Matin song"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Matona"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "A May dance"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "May in flower"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "The Mazurka"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Menuetto pastorale"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Meow"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "The messenger"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Missionary chant"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "The moon"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Moonlight serenade"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Morn of May"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Mother Volga"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "The mountain brook"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "A mountain picture"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "A mountain romance"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Music in China"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "My object all sublime"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "My old Kentucky home"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "My ship"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "My sunshine"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Nathan Hale"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Nazareth"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "'Neath our flag"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "'Neath the window"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "New Year's Eve"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Nobody at home"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "No land like ours"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "None shall part us"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Nothing serious"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Now all the bells are ringing"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Now is the month of Maying"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Now the day is over"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "O cherish love"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "O give thanks"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "O, I would live in a dairy"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Old folks at home"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "O little town of Bethlehem"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "The olive tree"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "O lord most holy"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "On Canaan shore"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "One misty, moisty morning"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Onward, Christian soldiers"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "O priase the Lord, our master"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "O rest in the Lord"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "O star divine"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Our flag is there"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Our heritage"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Outward bound"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "O victorious people"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Over the bright blue sea"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "O western wind"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Pack, clouds, away"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "The palms"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "The parting hour"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Parting song"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Pastoral"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Peace be wtih all"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "The pearl"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "A peasant dance"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Petition"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "The Philippines"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Picnics"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Pilgrims' chorus"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "The pioneers"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Policeman's lot is not a happy one"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Poplar trees"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Praise"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Praise God"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Praise the Lord"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Praise to God and thanks we bring"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "A prayer"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Prayer of Thanksgiving"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Prithee, pretty maiden"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Psalm of the Son of Man"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "The range of the buffalo"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "The reapers"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Red, red rose"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Response"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Riddle of spring"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "The right path"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Ring on, Chrimstas Bells"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Ring the bells"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Rise my soul"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "The river"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "The rose"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Roses"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "A roundel"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Row the boat"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Royal summer comes apace"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Sailor's home song"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "The sailor lad"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Salute to the flag"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Sanctus"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Scotland"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "A sea song"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Sentence"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Serenade"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Shenandoah"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "The sheperhdess"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Shepherd music"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Silent night"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Sing on"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Sleep, baby, sleep"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "A song of hope"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Song of the forge"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "A song of thanksgiving"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Song of the night watch"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Song ot the nightingale"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "The spacious firmament on high"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Speed our republic"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Spirit of twighlight"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Spring and youth"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Stabat Mater Dolorosa"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Starlight"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Stars of the summer night"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Star-spangled banner"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Sumer is i-cimen in"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Summer passes"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "The swallow"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "The swan"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Sweet and low"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Sweet day is softly dying"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Taken from a county jail"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Take up your sword"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Thanksgiving"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Thanksgiving Day"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "The son of God goes forth to war"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "The strife is o'er"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Those evening bells"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Those pals of ours"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Thou'rt lik unto a flower"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Thou'rt like a lovely flower"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "thou'rt like unto a flower"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Thou mighty God"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Three children sliding"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Three kings of Orient"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Three little maids from school are we"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Three little tailors"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Three sons"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Threnody"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Tit willow"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "The train"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "A tribute"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "The tryst"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Twighlight"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Twighlight dreams"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Twighlight music"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Undaunted"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Under the silver star"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Unfailing love"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Vale of Cashmere"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Venture Gwen"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Victors all!"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "The vision"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "The voice of praise"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "A voice runs through the sleeping land"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Washington"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "We are dainty little fairies"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Wedding song"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "We sail the ocean blue"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Westminster chimes"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "When the foreman bars his steel"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "When music leads the way"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "When the grand old flag goes by"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Where e'er you walk"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Where honor leads"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "The white dove"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Who's that a-calling?"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Why lingers my gaze"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Winter"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Winter sport"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "With catlike tread"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Woodland dancing"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Worship"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "The worship of nature"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Ye shepherds, tell me"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Young Colin"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Youth"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Yuletide"
+        }
+    ], 
+    "series": [
+        "The Laurel music series"
+    ], 
+    "authors": [
+        {
+            "personal_name": "Armitage, M. Teresa", 
+            "name": "Armitage, M. Teresa", 
+            "entity_type": "person"
+        }
+    ], 
+    "publish_places": [
+        "Boston"
+    ], 
+    "languages": [
+        {
+            "key": "/languages/eng"
+        }
+    ], 
+    "pagination": "572 p. ;", 
+    "title": "Senior Laurel songs for high schools", 
+    "notes": "For mixed voices 1-4 parts with piano accompaniments", 
+    "number_of_pages": 572, 
+    "edition_name": "Teachers' edition", 
+    "publish_date": "1926"
+}

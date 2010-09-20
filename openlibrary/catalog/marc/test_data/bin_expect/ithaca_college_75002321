@@ -1,0 +1,54 @@
+{
+    "publishers": [
+        "Brookings Institution"
+    ], 
+    "pagination": "xiii, 232 p. ;", 
+    "lc_classifications": [
+        "HC107.N53 I58"
+    ], 
+    "subtitle": "the New Jersey negative income tax experiment", 
+    "title": "Work incentives and income guarantees", 
+    "dewey_decimal_class": [
+        "361.6/2/09749"
+    ], 
+    "series": [
+        "Brookings studies in social experimentation"
+    ], 
+    "notes": "Papers and comments presented at the conference at Brookings Institution, Apr. 29-30, 1974, sponsored by the Brookings Panel on Social Experimentation.\n\nIncludes bibliographical references and index.", 
+    "number_of_pages": 232, 
+    "languages": [
+        {
+            "key": "/languages/eng"
+        }
+    ], 
+    "lccn": [
+        "\u02b9  75002321"
+    ], 
+    "isbn_10": [
+        "0815769768", 
+        "081576975X"
+    ], 
+    "publish_date": "1975", 
+    "publish_country": "dcu", 
+    "authors": [
+        {
+            "birth_date": "1918", 
+            "personal_name": "Pechman, Joseph A.", 
+            "name": "Pechman, Joseph A.", 
+            "entity_type": "person"
+        }, 
+        {
+            "birth_date": "1934", 
+            "personal_name": "Timpane, P. Michael", 
+            "name": "Timpane, P. Michael", 
+            "entity_type": "person"
+        }
+    ], 
+    "by_statement": "editors, Joseph A. Pechman, P. Michael Timpane", 
+    "publish_places": [
+        "Washington"
+    ], 
+    "contributions": [
+        "Brookings Institution, Washington, D.C. Panel on Social Experimentation"
+    ]
+}
