@@ -289,6 +289,7 @@ function validateReminder() {
                     }
                     $.fn.colorbox({
                        inline: true,
+                       opacity: "0.5",
                        href: options.href,
                        open: true
                     });
@@ -1692,6 +1693,44 @@ $.fn.dataTableExt.oPagination.full_numbers = {
 	}
 }
 
+jQuery.fn.highlight = function(pat) {
+    function innerHighlight(node, pat) {
+        var skip = 0;
+        if (node.nodeType == 3) {
+            var pos = node.data.toUpperCase().indexOf(pat);
+            if (pos >= 0) {
+                var spannode = document.createElement('span');
+                spannode.className = 'highlight';
+                var middlebit = node.splitText(pos);
+                var endbit = middlebit.splitText(pat.length);
+                var middleclone = middlebit.cloneNode(true);
+                spannode.appendChild(middleclone);
+                middlebit.parentNode.replaceChild(spannode, middlebit);
+                skip = 1;
+            }
+        }
+        else if (node.nodeType == 1 && node.childNodes && !/(script|style)/i.test(node.tagName)) {
+            for (var i = 0; i < node.childNodes.length; ++i) {
+                i += innerHighlight(node.childNodes[i], pat);
+            }
+        }
+    return skip;
+    }
+    return this.each(function() {
+        innerHighlight(this, pat.toUpperCase());
+    });
+};
+
+jQuery.fn.removeHighlight = function() {
+    return this.find("span.highlight").each(function() {
+        this.parentNode.firstChild.nodeName;
+        with (this.parentNode) {
+            replaceChild(this.firstChild, this);
+            normalize();
+        }
+     }).end();
+};
+
 function linkbuttons() {
     $(".linkButton").click(function(){
         window.location = $(this).attr("name");
@@ -1986,6 +2025,10 @@ $().ready(function(){
         if ($("#prevHead").length == 0) {
             $('.wmd-preview').before('<h3 id="prevHead" style="margin:15px 0 10px;padding:0;">Preview</h3>');
         }
+    });
+    $('.dropclick').click(function(){
+        $(this).next('.dropdown').slideToggle();
+        $(this).parent().find('.arrow').toggleClass("up");
     });
 });
 jQuery.fn.exists = function(){return jQuery(this).length>0;}
@@ -2317,7 +2360,7 @@ function cond(predicate, true_value, false_value) {
 (function($) {
     
 
-    // valudate publish-date to make sure the date is not in future
+    // validate publish-date to make sure the date is not in future
     jQuery.validator.addMethod("publish-date", function(value, element) { 
             // if it doesn't have even three digits then it can't be a future date      
             var tokens = /(\d{3,})/.exec(value);
@@ -2341,7 +2384,7 @@ function cond(predicate, true_value, false_value) {
                 var errors = validator.numberOfInvalids();
                 if (errors) {
                     var message = ungettext(
-                        "Hang on... you missed 1 field. It's highlighted below.",
+                        "Hang on... you missed a bit. It's highlighted below.",
                         "Hang on...you missed some fields. They're highlighted below.",
                         errors);
 
@@ -2368,7 +2411,7 @@ function cond(predicate, true_value, false_value) {
                 var validator = this;
                 var valid = true;
 
-                // validate author-autocompletes on submit
+                /* validate author-autocompletes on submit
                 $(form).find("input.author-autocomplete").each(function() {
                     if ($(this).val() && !$(this).hasClass("accept")) {
                         validator.showLabel(this, _("Please select an author from the dropdown."));
@@ -2377,6 +2420,7 @@ function cond(predicate, true_value, false_value) {
                         valid = false;
                     }
                 });
+                */
                 
                 if (valid) {
                     form.submit();
