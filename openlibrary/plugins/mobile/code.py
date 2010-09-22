@@ -1,14 +1,56 @@
 import web
+import Cookie
+import urllib
+
 from infogami.utils.view import render_template
 from infogami.utils import delegate
+from infogami import config
+
 from openlibrary.plugins.worksearch import code as worksearch
 
+class MobileMiddleware:
+    """WSGI middleware to delegate requests to the mobile app when the mobile
+    cookie is on.
+    """
+    def __init__(self, wsgi_app):
+        self.wsgi_app = wsgi_app
+
+    def cookies(self, env, **defaults):
+        # adopted from web.cookies
+        cookie = Cookie.SimpleCookie()
+        cookie.load(env.get('HTTP_COOKIE', ''))
+        d = web.storify(cookie, **defaults)
+        for k, v in d.items():
+            d[k] = v and urllib.unquote(v)
+        return d
+        
+    def __call__(self, environ, start_response):
+        cookies = self.cookies(environ, mobile="false")
+        # delegate to mobile app when cookie mobile is set to true. 
+        if cookies.mobile == "true":
+            return mobile_wsgi_app(environ, start_response)
+        else:
+            return self.wsgi_app(environ, start_response)
+
+config.middleware.append(MobileMiddleware)
+            
+urls = (
+    "/", "index",
+    "/books/.*", "books",
+    "/authors/.*", "authors",
+    "/search", "search",
+    "/images/.*", "static",
+    
+)
+app = web.application(urls, globals())
+# to setup ctx.site
+app.add_processor(web.loadhook(delegate.initialize_context))
+mobile_wsgi_app = app.wsgifunc()
+
 def layout(page, title=None):
-    return delegate.RawText(render_template("mobile/site", page, title=title))
+    return render_template("mobile/site", page, title=title)
 
-class index(delegate.page):
-    path = "/"
-
+class index:
     def GET(self):
         rc = web.ctx.site.recentchanges({"bot": True, "limit": 1000, "author": "/people/ImportBot"})
         edition_keys = []
@@ -40,8 +82,7 @@ def _editions_for_works(works):
             yield edition, work
     
 
-class search(delegate.page):
-
+class search:
     def _do_search(self, q):
         ugly = worksearch.do_search({"q": q, "has_fulltext": "true"}, None)
         results = web.storage({'num_found': ugly['num_found'], 'books': []})
@@ -57,18 +98,12 @@ class search(delegate.page):
         results = self._do_search(i.q)
         return layout(render_template("mobile/search", q=i.q, results=results))
 
-class book(delegate.page):
-    
-    path = r"(/books/.*)"
-
+class book:
     def GET(self, key):
         book = web.ctx.site.get(key)
         return layout(render_template("mobile/book", book=book), title=book.title)
 
-class author(delegate.page):
-
-    path = "(/authors/.*)"
-
+class author:
     def GET(self, key):
         author = web.ctx.site.get(key)
         books = []
@@ -78,3 +113,7 @@ class author(delegate.page):
             books.append((edition, work))
         
         return layout(render_template("mobile/author", author=author, books=books), title=author.title)
+
+class static:
+    def GET(self):
+        raise web.seeother('/static/upstream' + web.ctx.path)
