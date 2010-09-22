@@ -70,6 +70,13 @@ class Thing(client.Thing):
             u += '?' + urllib.urlencode(params)
         return u
         
+    def _get_lists(self):
+        q = {
+            "type": "/type/list",
+            "seeds": {"key": self.key} 
+        }
+        keys = self._site.things(q)
+        return self._site.get_many(keys)
 
 class Edition(Thing):
     """Class to represent /type/edition objects in OL.
@@ -85,6 +92,8 @@ class Edition(Thing):
         # retained for backward-compatibility. Is anybody using this really?
         return self.title            
 
+    def get_lists(self):
+        return self._get_lists()
 
 class Work(Thing):
     """Class to represent /type/work objects in OL.
@@ -105,6 +114,8 @@ class Work(Thing):
     
     edition_count = property(get_edition_count)
 
+    def get_lists(self):
+        return self._get_lists()
 
 class Author(Thing):
     """Class to represent /type/author objects in OL.
@@ -121,6 +132,9 @@ class Author(Thing):
                 '/count_editions_by_author', 
                 data={'key': self.key})
     edition_count = property(get_edition_count)
+    
+    def get_lists(self):
+        return self._get_lists()
     
 class User(Thing):
     def get_usergroups(self):
@@ -141,13 +155,13 @@ class User(Thing):
         
         Member could be an object or a string like "subject:cheese".
         """
-        q = {"type": "/type/list", "key~": owner.key + "/lists/*"}
+        q = {"type": "/type/list", "key~": self.key + "/lists/*"}
         if member:
             if isinstance(member, Thing):
                 member = {"key": member.key}
             q['members'] = member
-        keys = site.things(q)
-        return site.get_many(keys)
+        keys = self._site.things(q)
+        return self._site.get_many(keys)
         
     def new_list(self, name, description, members, tags=[]):
         """Creates a new list object with given name, description, and members.
@@ -245,27 +259,27 @@ class List(Thing):
             {"title": "San Francisco", "url": "/subjects/place:san_francisco"}
         ]
         
-    def add_member(self, member):
-        """Adds a new member to this list.
+    def add_seed(self, seed):
+        """Adds a new seed to this list.
         
-        Member can be:
+        seed can be:
             - author, edition or work object
             - {"key": "..."} for author, edition or work objects
             - subject strings.
         """
-        if isinstance(member, Thing):
-            member = {"key": member.key}
+        if isinstance(seed, Thing):
+            seed = {"key": seed.key}
             
-        self.members = self.members or []
-        self.members.append(member)
+        self.seeds = self.seeds or []
+        self.seeds.append(seed)
         
-    def remove_member(self, member):
-        """Removes a member for the list.
+    def remove_seed(self, seed):
+        """Removes a seed for the list.
         """
-        if isinstance(member, Thing):
-            member = {"key": member.key}
+        if isinstance(seed, Thing):
+            seed = {"key": seed.key}
             
-        self.members = [m for m in self.members if m != member]
+        self.seeds = [s for s in self.seeds if s != seed]
 
 
 def register_models():

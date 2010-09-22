@@ -1,0 +1,16 @@
+$def with (doc, lists)
+
+<div id="contentHead"> 
+    $ header = render_template("lists/header", doc, lists)
+    $var title = header.title
+    $:header
+</div>
+
+<div id="contentBody">
+    <div id="searchResults" class="narrow"> 
+    <ul id="siteSearch" class="collapse"> 
+        $for list in lists:
+            <li>$:render_template("lists/preview", list)</li>
+    </ul>
+    </div>
+</div>

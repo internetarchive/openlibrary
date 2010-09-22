@@ -4,6 +4,7 @@ import web
 import simplejson
 
 from infogami.utils import delegate
+from infogami.utils.view import render_template
 
 class lists_new(delegate.page):
     """Controller for creating new lists.
@@ -38,6 +39,17 @@ class lists_new(delegate.page):
         )
         web.header("Content-Type", "application/json")
         return delegate.RawText(result)
+
+class lists(delegate.page):
+    path = "(/(?:people|books|works|authors)/\w+)/lists"
+    
+    def GET(self, path):
+        doc = web.ctx.site.get(path)
+        if not doc:
+            raise web.notfound()
+            
+        lists = doc.get_lists()
+        return render_template("lists/lists.html", doc, lists)
         
 def setup():
     pass
