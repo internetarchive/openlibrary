@@ -147,28 +147,28 @@ class User(Thing):
     def is_admin(self):
         return '/usergroup/admin' in [g.key for g in self.usergroups]
         
-    def get_lists(self, member=None):
+    def get_lists(self, seed=None):
         """Returns all the lists of this user.
         
-        When member is specified, this returns all the lists which contain the
-        given member.
+        When seed is specified, this returns all the lists which contain the
+        given seed.
         
-        Member could be an object or a string like "subject:cheese".
+        seed could be an object or a string like "subject:cheese".
         """
         q = {"type": "/type/list", "key~": self.key + "/lists/*"}
-        if member:
-            if isinstance(member, Thing):
-                member = {"key": member.key}
-            q['members'] = member
+        if seed:
+            if isinstance(seed, Thing):
+                seed = {"key": seed.key}
+            q['seeds'] = seed
         keys = self._site.things(q)
         return self._site.get_many(keys)
         
-    def new_list(self, name, description, members, tags=[]):
-        """Creates a new list object with given name, description, and members.
+    def new_list(self, name, description, seeds, tags=[]):
+        """Creates a new list object with given name, description, and seeds.
 
-        Members must be a list containing references to author, edition, work or subject strings.
+        seeds must be a list containing references to author, edition, work or subject strings.
 
-        Sample members:
+        Sample seeds:
 
             {"key": "/authors/OL1A"}
             {"key": "/books/OL1M"}
@@ -192,7 +192,7 @@ class User(Thing):
             },
             "name": name,
             "description": description,
-            "members": members,
+            "seeds": seeds,
             "tags": tags
         }
         return self._site.new(key, doc)
@@ -250,7 +250,7 @@ class List(Thing):
         return [web.storage(name=t, url=self.key + u"/tags/" + t) for t in self.tags]
         
     def get_subjects(self):
-        """Returns list of subjects inferred from the members.
+        """Returns list of subjects inferred from the seeds.
         Each item in the list will be a storage object with title and url.
         """
         # sample subjects
