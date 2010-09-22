@@ -1,0 +1,18 @@
+$def with (doc, lists)
+
+$ type = doc.type.key
+
+$if type == "/type/author":
+    <h1><a href="$doc.key">$doc.name</a> / Lists</h1>
+    $var title: $doc.name / Lists
+$elif type == "/type/edition":
+    <h1><a href="$doc.key">$doc.title</a> / Lists</h1>
+    $var title: $doc.title / Lists
+$elif type == "/type/work":
+    <h1><a href="$doc.key">$doc.title</a> / Lists</h1>
+    $var title: $doc.title / Lists
+$elif type == "/type/user":
+    <h1><a href="$doc.key">$doc.displayname</a> / Lists</h1>
+    $var title: $doc.displayname / Lists
+
+$len(lists) lists.

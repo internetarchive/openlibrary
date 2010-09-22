@@ -35,7 +35,7 @@ class add_cover(delegate.page):
         
         if coverid:
             self.save(book, coverid, url=i.url)
-            cover = Image("b", coverid)
+            cover = Image(web.ctx.site, "b", coverid)
             return render_template("covers/saved", cover)
         else:
             return render_template("covers/add", book, {'url': i.url}, data)
