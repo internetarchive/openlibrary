@@ -16,7 +16,6 @@ class lists_new(delegate.page):
         return "lists" in web.ctx.features
     
     def POST(self, user_key):
-        print "lists_new.POST", user_key
         site = web.ctx.site
         user = site.get(user_key)
         
@@ -30,7 +29,7 @@ class lists_new(delegate.page):
             name=data['name'], 
             description=data.get('description', ''),
             tags=data.get('tags', []),
-            members=data.get('members', [])
+            seeds=data.get('seeds', [])
         )
         
         result = site.save(list.dict(), 
