@@ -24,10 +24,15 @@ class MobileMiddleware:
             d[k] = v and urllib.unquote(v)
         return d
         
+    def is_mobile_device(self, environ):
+        useragent = environ.get('HTTP_USER_AGENT', '').lower()
+        return 'ipad' in useragent \
+            or 'iphone' in useragent
+        
     def __call__(self, environ, start_response):
         cookies = self.cookies(environ, mobile="false")
         # delegate to mobile app when cookie mobile is set to true. 
-        if cookies.mobile == "true":
+        if cookies.mobile == "true" or self.is_mobile_device(environ):
             return mobile_wsgi_app(environ, start_response)
         else:
             return self.wsgi_app(environ, start_response)
@@ -115,5 +120,8 @@ class author:
         return layout(render_template("mobile/author", author=author, books=books), title=author.title)
 
 class static:
+    # just used in the development. 
+    # on production /images/.* is handled by lighttpd.
+    
     def GET(self):
         raise web.seeother('/static/upstream' + web.ctx.path)
