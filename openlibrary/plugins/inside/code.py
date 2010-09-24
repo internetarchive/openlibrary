@@ -22,9 +22,9 @@ class subject_search(delegate.page):
     path = '/search/inside'
 
     def GET(self):
-        def get_results(q, offset=0, limit=100):
+        def get_results(q, offset=0, limit=100, snippts=3, fragsize=200):
             q = escape_bracket(q)
-            solr_select = solr_select_url + "?fl=ia,body_length,page_count&hl=true&hl.fl=body&hl.snippets=3&hl.mergeContiguous=true&hl.usePhraseHighlighter=true&hl.simple.pre={{{&hl.simple.post=}}}&hl.fragsize=200&q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=*&qt=standard&wt=json" % (web.urlquote(q), offset, limit)
+            solr_select = solr_select_url + "?fl=ia,body_length,page_count&hl=true&hl.fl=body&hl.snippets=%d&hl.mergeContiguous=true&hl.usePhraseHighlighter=true&hl.simple.pre={{{&hl.simple.post=}}}&hl.fragsize=%d&q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=*&qt=standard&wt=json" % (snippts, fragsize, web.urlquote(q), offset, limit)
             stats.begin("solr", url=solr_select)
             json_data = urllib.urlopen(solr_select).read()
             stats.end()
