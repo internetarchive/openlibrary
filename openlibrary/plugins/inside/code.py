@@ -18,6 +18,14 @@ def quote_snippet(snippet):
 
 solr_select_url = 'http://ia331509:8984/solr/inside/select'
 
+def editions_from_ia(ia):
+    q = {'type': '/type/edition', 'ocaid': ia}
+    editions = web.ctx.site.things(q)
+    if not editions:
+        q = {'type': '/type/edition', 'source_records': 'ia:' + ia}
+        editions = web.ctx.site.things(q)
+    return editions
+
 class subject_search(delegate.page):
     path = '/search/inside'
 
@@ -30,5 +38,5 @@ class subject_search(delegate.page):
             stats.end()
             return simplejson.loads(json_data)
 
-        return render_template('search/inside.tmpl', get_results, quote_snippet)
+        return render_template('search/inside.tmpl', get_results, quote_snippet, editions_from_ia)
 
