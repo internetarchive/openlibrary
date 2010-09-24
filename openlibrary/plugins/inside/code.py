@@ -1,7 +1,7 @@
 from infogami.utils import delegate, stats
 from infogami.utils.view import render_template
 
-import re, web, urllib, simplejson
+import re, web, urllib, simplejson, httplib
 
 re_solr_range = re.compile(r'\[.+\bTO\b.+\]', re.I)
 re_bracket = re.compile(r'[\[\]]')
@@ -40,3 +40,29 @@ class subject_search(delegate.page):
 
         return render_template('search/inside.tmpl', get_results, quote_snippet, editions_from_ia)
 
+def ia_lookup(path):
+    h1 = httplib.HTTPConnection("www.archive.org")
+
+    for attempt in range(5):
+        h1.request("GET", path)
+        res = h1.getresponse()
+        res.read()
+        #print (res.status, res.reason)
+        if res.status != 200:
+            break
+    assert res.status == 302
+    new_url = res.getheader('location')
+
+    re_new_url = re.compile('^http://([^/]+\.us\.archive\.org)(/.+)$')
+
+    m = re_new_url.match(new_url)
+    return m.groups()
+
+class snippets(delegate.page):
+    path = '/search/inside/(.+)'
+    def GET(self, ia):
+        def find_matches(ia, q):
+            host, ia_path = ia_lookup('/download/' + ia)
+            url = 'http://' + host + '/~edward/inside.php?path=' + ia_path + '&q=' + web.urlquote(q)
+            return simplejson.load(urllib.urlopen(url))
+        return render_template('search/snippets.tmpl', find_matches, ia)
