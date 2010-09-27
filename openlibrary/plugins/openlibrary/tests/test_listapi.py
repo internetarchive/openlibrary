@@ -52,8 +52,6 @@ class ListAPI:
         data = self.urlopen("/people/" + self.username + "/lists.json").read()
         return simplejson.loads(data)
         
-    def get_all_lists(self):
-        
     def get_list(self, key):
         data = self.urlopen(key + ".json").read()
         return simplejson.loads(data)
