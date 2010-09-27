@@ -7,5 +7,6 @@ py.test                         \
     openlibrary/core            \
     openlibrary/plugins/books   \
     openlibrary/coverstore      \
-    openlibrary/plugins/upstream
+    openlibrary/plugins/upstream \
+    openlibrary/plugins/openlibrary
 
