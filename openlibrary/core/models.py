@@ -147,7 +147,7 @@ class User(Thing):
     def is_admin(self):
         return '/usergroup/admin' in [g.key for g in self.usergroups]
         
-    def get_lists(self, seed=None):
+    def get_lists(self, seed=None, limit=20, offset=0):
         """Returns all the lists of this user.
         
         When seed is specified, this returns all the lists which contain the
@@ -155,7 +155,12 @@ class User(Thing):
         
         seed could be an object or a string like "subject:cheese".
         """
-        q = {"type": "/type/list", "key~": self.key + "/lists/*"}
+        q = {
+            "type": "/type/list", 
+            "key~": self.key + "/lists/*",
+            "limit": limit,
+            "offset": offset
+        }
         if seed:
             if isinstance(seed, Thing):
                 seed = {"key": seed.key}
