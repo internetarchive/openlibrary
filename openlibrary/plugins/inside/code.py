@@ -1,5 +1,6 @@
 from infogami.utils import delegate, stats
 from infogami.utils.view import render_template
+from lxml import etree
 
 import re, web, urllib, simplejson, httplib
 
@@ -26,19 +27,39 @@ def editions_from_ia(ia):
         editions = web.ctx.site.things(q)
     return editions
 
+def read_from_archive(ia):
+    meta_xml = 'http://www.archive.org/download/' + ia + '/' + ia + '_meta.xml'
+    tree = etree.parse(meta_xml)
+    root = tree.getroot()
+    item = {}
+
+    fields = ['title', 'creator', 'publisher', 'date', 'language']
+
+    for k in 'title', 'date', 'publisher':
+        v = root.find(k)
+        if v is not None:
+            item[k] = v.text
+
+    for k in 'creator', 'language':
+        v = root.findall(k)
+        if len(v):
+            item[k] = [i.text for i in v]
+
+    return item
+
 class subject_search(delegate.page):
     path = '/search/inside'
 
     def GET(self):
-        def get_results(q, offset=0, limit=100, snippts=3, fragsize=200):
+        def get_results(q, offset=0, limit=100, snippets=3, fragsize=200):
             q = escape_bracket(q)
-            solr_select = solr_select_url + "?fl=ia,body_length,page_count&hl=true&hl.fl=body&hl.snippets=%d&hl.mergeContiguous=true&hl.usePhraseHighlighter=true&hl.simple.pre={{{&hl.simple.post=}}}&hl.fragsize=%d&q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=*&qt=standard&wt=json" % (snippts, fragsize, web.urlquote(q), offset, limit)
+            solr_select = solr_select_url + "?fl=ia,body_length,page_count&hl=true&hl.fl=body&hl.snippets=%d&hl.mergeContiguous=true&hl.usePhraseHighlighter=true&hl.simple.pre={{{&hl.simple.post=}}}&hl.fragsize=%d&q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=*&qt=standard&wt=json" % (snippets, fragsize, web.urlquote(q), offset, limit)
             stats.begin("solr", url=solr_select)
             json_data = urllib.urlopen(solr_select).read()
             stats.end()
             return simplejson.loads(json_data)
 
-        return render_template('search/inside.tmpl', get_results, quote_snippet, editions_from_ia)
+        return render_template('search/inside.tmpl', get_results, quote_snippet, editions_from_ia, read_from_archive)
 
 def ia_lookup(path):
     h1 = httplib.HTTPConnection("www.archive.org")
