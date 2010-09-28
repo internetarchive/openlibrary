@@ -270,23 +270,7 @@ class List(Thing):
             web.storage(title="Cheese", url="/subjects/cheese"),
             web.storage(title="San Francisco", url="/subjects/place:san_francisco")
         ]
-        
-    def get_seeds(self):
-        """Returns the all the seeds with uniform interface.
-        """
-        for s in self.seeds:
-            if isinstance(s, Thing):
-                yield web.storage(
-                    type=s.type.key.split("/")[-1],
-                    doc=s
-                )
-            else:
-                yield web.storage(
-                    type="subject",
-                    title=s.split(":")[-1]
-                    url="/subjects" + s
-                )
-        
+            
     def add_seed(self, seed):
         """Adds a new seed to this list.
         
