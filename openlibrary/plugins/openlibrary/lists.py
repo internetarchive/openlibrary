@@ -150,10 +150,10 @@ class list_seeds(delegate.page):
             
         data = formats.load(web.data(), self.encoding)
         
-        for seed in data.get("add"):
+        for seed in data.get("add", []):
             list.add_seed(seed)
             
-        for seed in data.get("remove"):
+        for seed in data.get("remove", []):
             list.remove_seed(seed)
             
         d = list._save(comment="updated list seeds.")
