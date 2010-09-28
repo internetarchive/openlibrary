@@ -10,7 +10,7 @@ from merge import try_merge
 from db_read import get_things
 from catalog.get_ia import get_ia, urlopen_keep_trying
 from catalog.merge.merge_marc import build_marc
-import pool, sys
+import pool, sys, urllib2
 
 archive_url = "http://archive.org/download/"
 
@@ -23,9 +23,9 @@ conn = MySQLdb.connect(host=rc['ia_db_host'], user=rc['ia_db_user'], \
         passwd=rc['ia_db_pass'], db='archive')
 cur = conn.cursor()
 
-collection = sys.argv[1]
+#collection = sys.argv[1]
 
-print 'loading from collection: %s' % collection
+#print 'loading from collection: %s' % collection
 
 def read_short_title(title):
     return str(fast_parse.normalize_str(title)[:25])
@@ -58,8 +58,9 @@ def write_edition(loc, edition):
 def load():
     global rec_no, t_prev
     skipping = False
-    cur.execute("select identifier from metadata where collection=%(c)s", {'c': collection})
     #for ia in ['nybc200715']:
+    #cur.execute("select identifier from metadata where collection=%(c)s", {'c': collection})
+    cur.execute("select identifier from metadata where scanner is not null and scanner != 'google' and noindex is null and mediatype='texts' and curatestate='approved'") # order by curatedate")
     for ia, in cur.fetchall():
         rec_no += 1
         if rec_no % chunk == 0:
@@ -82,6 +83,8 @@ def load():
             loc, rec = get_ia(ia)
         except (KeyboardInterrupt, NameError):
             raise
+        except urllib2.HTTPError:
+            continue
         if loc is None:
             continue
         print loc, rec

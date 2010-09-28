@@ -3,16 +3,8 @@ import simplejson as json
 import web
 from catalog.merge.merge_index import add_to_indexes
 
-# need to use multiple databases
-# use psycopg2 until open library is upgraded to web 3.0
-
-import psycopg2
-from catalog.read_rc import read_rc
-rc = read_rc()
-conn = psycopg2.connect("dbname='marc_index'")
-cur = conn.cursor()
-
-index_path = '/1/edward/marc_index/'
+marc_index = web.database(dbn='postgres', db='marc_index')
+marc_index.printing = False
 
 pool_url = 'http://0.0.0.0:9020/'
 
@@ -37,8 +29,8 @@ def build(index_fields):
         for v in index_fields[field]:
             if field == 'isbn' and len(v) < 10:
                 continue
-            cur.execute('select k from ' + field + ' where v=%(v)s', {'v': v})
-            pool.setdefault(field, set()).update(i[0] for i in cur.fetchall())
+            iter = marc_index.query('select k from ' + field + ' where v=$v', {'v': v})
+            pool.setdefault(field, set()).update(i.k for i in iter)
     return dict((k, sorted(v)) for k, v in pool.iteritems())
 
 def update(key, q):
@@ -57,7 +49,7 @@ def update(key, q):
 #            print "key dup: key=%s, value=%s" % (key, value)
 #            print q
 #            continue
-        cur.execute('insert into ' + field + ' (k, v) values (%(key)s, %(value)s)', vars)
+        marc_index.query('insert into ' + field + ' (k, v) values ($key, $value)', vars)
 
 def post_progress(archive_id, q):
     url = pool_url + "store/" + archive_id
