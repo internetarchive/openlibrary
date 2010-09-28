@@ -27,7 +27,7 @@ def get_record(key, mc):
         rec = fast_parse.read_edition(data)
     except (fast_parse.SoundRecording, IndexError, AssertionError):
         print mc
-        print edition_key
+        print key
         return False
     try:
         return marc.build_marc(rec)
@@ -65,6 +65,13 @@ def amazon_and_marc(key1, key2):
         rec_amazon = try_amazon(key2)
         rec_marc = get_record(key1, mc1)
     return rec_amazon, rec_marc
+
+def marc_and_marc(key1, key2):
+    mc1 = get_mc(key1)
+    rec1 = get_record(key1, mc1)
+    mc2 = get_mc(key2)
+    rec2 = get_record(key2, mc2)
+    return rec1, rec2
 
 if __name__ == '__main__':
     key1 = '/b/OL9621221M' # amazon
