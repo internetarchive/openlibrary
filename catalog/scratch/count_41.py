@@ -2,8 +2,22 @@ import web, os.path
 from catalog.get_ia import read_marc_file
 from catalog.read_rc import read_rc
 from catalog.marc.fast_parse import get_first_tag, get_all_subfields
+from catalog.utils.query import query_iter
+
+marc_index = web.database(dbn='postgres', db='marc_index')
+marc_index.printing = False
 
 rc = read_rc()
+
+def get_keys(loc):
+    assert loc.startswith('marc:')
+    vars = {'loc': loc[5:]}
+    db_iter = marc_index.query('select k from machine_comment where v=$loc', vars)
+    mc = list(db_iter)
+    if mc:
+        return [r.k for r in mc]
+    iter = query_iter({'type': '/type/edition', 'source_records': loc})
+    return [e['key'] for e in iter]
 
 def files():
     endings = ['.mrc', '.marc', '.out', '.dat', '.records.utf8']
@@ -46,6 +60,10 @@ for name, part, size in files():
         if line[0] == '1':
             i1_1 += 1
         subfields = list(get_all_subfields(line))
+        print loc
+        keys = get_keys(loc)
+        print keys, line[0:2], subfields
+        continue
         if line[1] != ' ':
             i2 += 1
             print 'i2:', line[0:2], subfields
