@@ -4,6 +4,8 @@ import sys
 import traceback
 
 from openlibrary.plugins.openlibrary.processors import urlsafe
+from openlibrary.core import helpers as h
+
 from infogami.utils.delegate import register_exception
 
 def split_key(bib_key):
@@ -46,7 +48,8 @@ def split_key(bib_key):
         value = bib_key
         
     # treat OLxxxM as OLID
-    if key is None and bib_key.startswith('ol') and bib_key.endswith('m'):
+    re_olid = web.re_compile('ol\d+m(@\d+)?')
+    if key is None and re_olid.match(bib_key):
         key = 'olid'
         value = bib_key
     
@@ -75,6 +78,20 @@ def ol_query(name, value):
     keys = web.ctx.site.things(query)
     if keys:
         return keys[0]
+        
+def ol_get_many_as_dict(keys):
+    keys_with_revisions = [k for k in keys if '@' in k]
+    keys2 = [k for k in keys if '@' not in k]
+    
+    result = dict((doc['key'], doc) for doc in ol_get_many(keys2))
+    
+    for k in keys_with_revisions:
+        key, revision = k.split('@', 1)
+        revision = h.safeint(revision, None)
+        doc = web.ctx.site.get(key, revision)
+        result[k] = doc and doc.dict()
+    
+    return result
 
 def ol_get_many(keys):
     return [doc.dict() for doc in web.ctx.site.get_many(keys)]
@@ -101,8 +118,7 @@ def query_docs(bib_keys):
     """Given a list of bib_keys, returns a mapping from bibkey to OL doc.
     """
     mapping = query_keys(bib_keys)
-    things = ol_get_many(uniq(mapping.values()))
-    thingdict = dict((t['key'], t) for t in things)
+    thingdict = ol_get_many_as_dict(uniq(mapping.values()))
     return dict((bib_key, thingdict[key]) for bib_key, key in mapping.items() if key in thingdict)
     
 def uniq(values):

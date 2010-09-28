@@ -165,6 +165,7 @@ class User(Thing):
             if isinstance(seed, Thing):
                 seed = {"key": seed.key}
             q['seeds'] = seed
+            
         keys = self._site.things(q)
         return self._site.get_many(keys)
         
@@ -216,6 +217,12 @@ class List(Thing):
     """
     def url(self, suffix="", **params):
         return self._make_url(self.name or "unnamed", suffix, **params)
+        
+    def get_owner(self):
+        match = web.re_compile("(/people/\w+)/lists/OL\d+L").match(self.key)
+        if match:
+            key = match.group(1)
+            return self._site.get(key)
     
     def get_editions(self):
         """Returns all the editions referenced by members of this list.
@@ -260,9 +267,25 @@ class List(Thing):
         """
         # sample subjects
         return [
-            {"title": "Cheese", "url": "/subjects/cheese"},
-            {"title": "San Francisco", "url": "/subjects/place:san_francisco"}
+            web.storage(title="Cheese", url="/subjects/cheese"),
+            web.storage(title="San Francisco", url="/subjects/place:san_francisco")
         ]
+        
+    def get_seeds(self):
+        """Returns the all the seeds with uniform interface.
+        """
+        for s in self.seeds:
+            if isinstance(s, Thing):
+                yield web.storage(
+                    type=s.type.key.split("/")[-1],
+                    doc=s
+                )
+            else:
+                yield web.storage(
+                    type="subject",
+                    title=s.split(":")[-1]
+                    url="/subjects" + s
+                )
         
     def add_seed(self, seed):
         """Adds a new seed to this list.
@@ -274,9 +297,14 @@ class List(Thing):
         """
         if isinstance(seed, Thing):
             seed = {"key": seed.key}
-            
-        self.seeds = self.seeds or []
-        self.seeds.append(seed)
+
+        index = self._index_of_seed(seed)
+        if index >= 0:
+            return False
+        else:
+            self.seeds = self.seeds or []
+            self.seeds.append(seed)
+            return True
         
     def remove_seed(self, seed):
         """Removes a seed for the list.
@@ -284,8 +312,20 @@ class List(Thing):
         if isinstance(seed, Thing):
             seed = {"key": seed.key}
             
-        self.seeds = [s for s in self.seeds if s != seed]
-
+        index = self._index_of_seed(seed)
+        if index >= 0:
+            self.seeds.pop(index)
+            return True
+        else:
+            return False
+        
+    def _index_of_seed(self, seed):
+        for i, s in enumerate(self.seeds):
+            if isinstance(s, Thing):
+                s = {"key": s.key}
+            if s == seed:
+                return i
+        return -1
 
 def register_models():
     client.register_thing_class(None, Thing) # default
