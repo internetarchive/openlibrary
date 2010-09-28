@@ -1,6 +1,9 @@
-[submodule "webpy"]
-	path = webpy
-	url = git://github.com/webpy/webpy.git
-[submodule "infogami"]
-	path = infogami
-	url = git://github.com/infogami/infogami.git
+[submodule "vendor/infogami"]
+	path = vendor/infogami
+	url = git://github.com/openlibrary/infogami.git
+[submodule "vendor/js/wmd"]
+	path = vendor/js/wmd
+	url = git://github.com/openlibrary/wmd.git
+[submodule "vendor/acs4_py"]
+	path = vendor/acs4_py
+	url = http://github.com/internetarchive/acs4_py.git

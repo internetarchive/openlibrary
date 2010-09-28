@@ -1,0 +1,100 @@
+{
+    'description': '',
+    'key': '/type/scan_record',
+    'kind': 'regular',
+    'name': '',
+    'properties': [{
+        'description': '',
+        'expected_type': {
+            'key': '/type/edition'
+        },
+        'name': 'edition',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': True
+    }, {
+        'description': '',
+        'expected_type': {
+            'key': '/type/string'
+        },
+        'name': 'scan_status',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': True
+    }, {
+        'description': '',
+        'expected_type': {
+            'key': '/type/scan_location'
+        },
+        'name': 'locations',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': False
+    }, {
+        'description': '',
+        'expected_type': {
+            'key': '/type/string'
+        },
+        'name': 'source_record_id',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': True
+    }, {
+        'description': '',
+        'expected_type': {
+            'key': '/type/string'
+        },
+        'name': 'shelves',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': False
+    }, {
+        'description': '',
+        'expected_type': {
+            'key': '/type/string'
+        },
+        'name': 'barcodes',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': False
+    }, {
+        'description': '',
+        'expected_type': {
+            'key': '/type/string'
+        },
+        'name': 'request_date',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': True
+    }, {
+        'description': '',
+        'expected_type': {
+            'key': '/type/user'
+        },
+        'name': 'sponsor',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': True
+    }, {
+        'description': '',
+        'expected_type': {
+            'key': '/type/string'
+        },
+        'name': 'completion_date',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': True
+    }],
+    'type': {
+        'key': '/type/type'
+    }
+}

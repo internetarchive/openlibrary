@@ -1,0 +1,29 @@
+$def with (page)
+
+$var title: $page.name
+
+<div id="contentHead">
+    $:macros.databarView(page)
+
+    <span class="tag">
+        / <a href="/languages">languages</a> / $page.code
+    </span>
+    
+    <h1>$page.name</h1> 
+</div>
+
+<div id="contentBody">
+
+    <div>
+       <span class="title">$_("Code")</span>
+       <span class="tag">$page.code</span>
+    </div>
+
+    <div>
+       <span class="title">$_("Name")</span>
+       <span class="tag">$page.name</span>
+    </div>
+
+    $:render_template("lib/history", page)
+
+</div>

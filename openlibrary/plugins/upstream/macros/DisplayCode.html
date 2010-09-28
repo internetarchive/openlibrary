@@ -1,0 +1,22 @@
+$def with (code, lang=None)
+
+$if lang: 
+    $ lang = "lang-" + lang
+
+$def splitlines(text):
+    $ text = text.rstrip()
+    $ n = text.count("\n") + 1
+    <table class="code">
+    <tbody>
+    <tr>
+    <td>
+    <pre>\
+    $for i in range(n): <span rel="#L$(i+1)">$("%4d" % (i+1))</span>
+    </pre>
+    </td>
+    <td style="width:100%;"><pre>$text</pre></td>
+    </tr>
+    </tbody>
+    </table>
+
+<div class="contenttext">$:splitlines(code)</div>

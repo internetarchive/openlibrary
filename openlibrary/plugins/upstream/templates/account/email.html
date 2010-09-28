@@ -1,0 +1,37 @@
+$def with (email, form)
+
+<div id="contentHead">
+    <h1>$_("Change Your Email Address")</h1>
+</div>
+
+<script type="text/javascript">
+\$().ready(validateForms);
+\$().ready(validateEmail);
+</script>
+
+<div id="contentBody">
+    <form id="register" class="olform email" name="register" method="post">
+        <p class="instruct">$_("Your current email address is"): $email</p>
+        
+        $if form.note:
+            <div class="note">$form.note</div>
+
+        <div class="formElement">
+            <div class="label"><label for="email">$_("Your New Email Address")</label> <span class="smaller lighter"></span></div>
+            <div class="input">
+                <input type="text" id="email" value="$form.email.value" name="email" />
+
+                <span class="invalid clearfix" htmlfor="email">$form.email.note</span>
+            </div>
+        </div>
+        
+        <div class="formElement bottom">
+            <div class="input">
+                <br/>
+                <input value="$_('Change It')" type="submit" name="submit" title="$_('Change It')"/>
+                &nbsp;
+                <a href="javascript:history.go(-1);" class="smaller attn">$_("Cancel")</a>
+            </div>
+        </div>
+    </form>
+</div>

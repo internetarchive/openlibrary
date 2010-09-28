@@ -1,0 +1,30 @@
+$def with (history)
+
+$ _x = ctx.setdefault('bodyid', 'admin')
+$ _x = ctx.setdefault('usergroup', 'admin')
+
+<table id="adminHistory" style="width: 100%">
+<thead>
+    <tr>
+        <th><strong>Date</strong></th>
+        <th><strong>Who</strong></th>
+        <th><strong>Page</strong></th>
+        <th><strong>Comment</strong></th>
+    </tr>
+</thead>
+<tbody>
+    $for v in history:
+        <tr>
+            <td class="time">$datestr(v.created)</td>
+            <td class="displayname">
+                $if v.author:
+                    <a href="/admin$v.author.key">$v.author.displayname</a>
+                @<a href="/admin/ip/$v.ip">$v.ip</a>
+            </td>
+            <td class="path"><a href="$v.key">$v.key</a></td>
+            <td class="comment">$v.comment</td>
+        </tr>
+</tbody>
+</table>
+
+$:macros.Paginate()

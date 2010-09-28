@@ -1,0 +1,597 @@
+$def with (work, book)
+
+$ edition_config = get_edition_config()
+
+$def radiobuttons(name, options, value):
+    $for v in options:
+        $ id = name + '--' + v.replace(' ', '-')
+        $ checked = cond(v == value, 'checked="checked"', '')
+        <input name="$name" type="radio" id="$id" value="$v" $checked />
+        <label for="$id">$v</label>
+        &nbsp;&nbsp;
+
+<div class="small brown librarianFlip">
+    <span id="modeToggle">Turn on</span> <a title="$_('Expose another 20 fields about the edition')" id="libraryMode" accesskey="l" href="javascript:;">$_("Librarian Mode")</a>?
+</div>
+
+<fieldset class="major">
+    <legend>$_("Publishing Info")</legend>
+
+    <div class="formBack">
+
+        <div class="formElement">
+            <div class="label">
+                <label for="edition-publishers">$_("Who is the publisher?")</label> 
+                <span class="tip">$_("For example"): <em>Oxford University Press; Penguin; W.W. Norton</em></span>
+            </div>
+            <div class="input">
+                <input type="text" name="edition--publishers" id="edition-publishers" value="$'; '.join(book.publishers)"/>
+            </div>
+        </div>
+
+        <div class="formElement">
+            <div class="label">
+                <label for="edition-publish_date">$_("When was it published?")</label> 
+                <span class="tip">$_("You should be able to find this in the first few pages of the book.")</span>
+            </div>
+            <div class="input">
+                <input type="text" name="edition--publish_date" id="edition-publish_date" value="$book.publish_date" style="width:50%!important;"/>
+            </div>
+        </div>
+
+        <div class="formElement">
+            <div class="label">
+                <label for="edition-publish_places">$_("Where was the book published?")</label>
+                <span class="tip">$_("City, Country please.") $_("For example"): <i>New York, USA; Sydney, Australia</i></span>
+            </div>
+            <div class="input">
+                <input type="text" name="edition--publish_places" id="edition-publish_places" value="$'; '.join(book.publish_places)"/>
+            </div>
+        </div>
+
+       
+        <div class="formElement librarian hidden">
+            <div class="label">
+                <label for="edition-copyright_date">$_("Is there a copyright date?")</label>
+                <span class="tip">$_("The year following the copyright statement.")</span>
+            </div>
+            <div class="input">
+                <input type="text" name="edition--copyright_date" id="edition-copyright_date" value="$book.copyright_date"/>
+            </div>
+        </div>
+
+        <div class="formElement librarian hidden">
+            <div class="label">
+                <label for="edition-series">$_("Is the book part of a series?")</label> 
+                <span class="tip">$_("The name of the publisher's series.") $_("For example:") <i>The Story of Civilization, Part III</i></span>
+            </div>
+            <div class="input">
+                <input type="text" name="edition--series--0" id="edition-series" value="$(book.series and book.series[0] or "")"/>
+            </div>
+        </div>
+
+        <!--
+        <div class="formElement librarian hidden">
+            <div class="label fixthis">
+                <label for="edition-collections">$_("Is it a volume in a collection?")</label>
+                <span class="tip">$_("What collection does it belong to?")</span>
+            </div>
+            <div class="input">
+                <input type="text" name="edition-collections-0" id="edition-collections" value=""/>
+                <div class="tip">$:_("i.e. <i>The <strong>Pocket Atlas of Anatomy</strong> collection consists of Vol I: Head and Neck, Vol. II: Thorax, Heart, Abdomen and Pelvis &amp; Vol. III: Spines Extremities and Joints</i>")</div>
+            </div>
+        </div>
+        -->
+
+    </div>
+</fieldset>
+
+<fieldset class="major">
+    <legend>$_("This Edition")</legend>
+    <div class="formBack">
+
+    <div class="formBackLeft">
+
+        <div class="formElement">
+            <div class="label">
+                <label for="edition-title">Title</label> 
+                <span class="tip">$_("There are occasionally title variants amongst editions.")</span>
+            </div>
+            <div class="input">
+                <input type="text" name="edition--title" id="edition-title" value="$book.title" style="width:650px;"/>
+                <input type="hidden" name="edition--title_prefix" value=""/>
+            </div>
+        </div>
+
+        <div class="formElement">
+            <div class="label"><label for="edition-subtitle">$_("Subtitle")</label> <span class="tip">$:_("Usually distinguished by different or smaller type. For example: <i>envisioning the next 50 years</i>")</span></div>
+            <div class="input">
+                <input type="text" name="edition--subtitle" id="edition-subtitle" value="$book.subtitle" style="width:650px;"/>
+            </div>
+        </div>
+        
+        <div class="formElement" style="width: 650px;">
+            <div class="label">
+                <label for="edition-toc">Table of Contents</label> 
+                <span class="tip">$:_('Use a "|" to add a column, and a line break between lines. Like this:')</span><br/><br/>
+<pre class="smaller gray"> INTRODUCTION |  | 10
+ Chapter I. | The rights and involved duties of mankind considered | 19
+ Chapter II. | The prevailing opinion of a sexual character discusses | 31</pre>
+<br/>
+            </div>
+            <div class="input">
+                <textarea name="edition--table_of_contents" id="edition-toc" rows="5" cols="50" style="width: 100%;min-height:250px;">$book.get_toc_text()</textarea>
+            </div>
+        </div>
+        
+        
+        
+
+        <div class="formElement librarian hidden">
+            <div class="label">
+                <label for="edition-title_other">$_("Is it known by any other titles?")</label> 
+                <span class="tip">$_("Perhaps in another language?")</span>
+            </div>
+            <div class="input">
+                <input type="text" name="edition--other_titles--0" id="edition-title_other" value="$(book.other_titles and book.other_titles[0])" style="width:620px!important;"/>
+                <div class="tip">$_("For example:") $:_("<i>Der Zauberberg</i> is an alternate title for <i>The Magic Mountain</i>.")</div>
+            </div>
+        </div>
+
+        <div class="formElement librarian hidden">
+            <div class="label">
+                <label for="edition-edition_name">$_("Does this edition have a specific name?")</label> 
+                <span class="tip">$_("For example:") <i>Centennial edition</i>; <i>First edition</i></span>
+            </div>
+            <div class="input">
+                <input type="text" name="edition--edition_name" id="edition-edition_name" value="$book.edition_name" style="width:620px!important;"/>
+            </div>
+        </div>
+
+    </div>
+    <div class="formBackRight">
+        <div class="illustration">
+            $:render_template("covers/book_cover", book)
+            $:render_template("covers/change", book)
+        </div>
+    </div>
+
+    <div class="clearfix"></div>
+
+        <div class="formElement librarian hidden">
+            <div class="label">
+                <label for="edition-notes">$_("Any notes about this specific edition?")</label> 
+            <span class="tip">$_("Anything about the book that may be of interest.") $_("For example:") <i>A Plume Book</i>.</span>
+            </div>
+            <div class="input">
+                <textarea name="edition--notes" class="markdown" id="edition-notes" rows="3" cols="50">$book.notes</textarea>
+            </div>
+        </div>
+
+        <div class="clearfix"></div>
+
+        <fieldset class="minor">
+            <legend>$_("Contributors")</legend>
+
+            <div class="formElement" id="roles">
+                <div class="label">
+                    <label for="select-role">$_("List the people involved")</label>
+                    <span class="tip"></span>
+                </div>
+                <div class="input">
+                    <div id="role-errors" class="note hidden"></div>
+                    <table class="identifiers">
+                    <tbody>
+                        <tr id="roles-form">
+                            <td align="right" style="width:138px;">
+                                <select name="role" id="select-role" style="font-family:'Lucida Grande',sans-serif;font-size:14px;padding:4px;width:130px;">
+                                    <option value="" selected="selected">$_("Select role")</option>
+                                    $for role in edition_config.roles:
+                                        <option>$role</option>
+                                    <option>---</option>
+                                    <option value="__add__">$_("Add a new role")</option>
+                                </select>
+                            </td>
+                            <td style="width:170px;">
+                                <input type="text" id="role-name" name="name" style="width:160px!important;"/>
+                            </td>
+                            <td>
+                                <input type="button" name="submit" class="repeat-add" value="Add"/>
+                            </td>
+                        </tr>
+                    </tbody>
+                    </table>
+                    <table class="identifiers">
+                        <tbody id="roles-display">
+                            <tr id="roles-template" class="repeat-item" style="display: none;">
+                                <td align="right" style="width:138px;"><strong>{{role}}</strong></td>
+                                <td style="width:170px;">{{name}}
+                                    <input type="hidden" name="{{prefix}}contributors--{{index}}--role" value="{{role}}"/>
+                                    <input type="hidden" name="{{prefix}}contributors--{{index}}--name" value="{{name}}"/>
+                                </td>
+                                <td><a href="javascript:;" class="repeat-remove red plain" title="$_('Remove this contributor')">[x]</a></td>
+                            </tr>
+                            $ work = book.works[0]
+                            $for i, a in enumerate(work.get_authors()):
+                                <tr class="repeat-item">
+                                    <td align="right" style="width:138px;"><strong>Author</strong></td>
+                                    <td style="width:170px;">$a.name</td>
+                                    <td></td>
+                                </tr>
+                            $for i, c in enumerate(book.contributors):
+                                <tr class="repeat-item">
+                                    <td align="right" style="width:138px;"><strong>$c.role</strong></td>
+                                    <td style="width:170px;">$c.name
+                                        <input type="hidden" name="edition--contributors--${i}--role" value="$c.role"/>
+                                        <input type="hidden" name="edition--contributors--${i}--name" value="$c.name"/>
+                                    </td>
+                                    <td><a href="javascript:;" class="repeat-remove red plain" title="$_('Remove this contributor')">[x]</a></td>
+                                </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="formElement librarian hidden">
+                <div class="label">
+                    <label for="edition-by_statement">$_("Is there a By Statement?")</label>
+                    <span class="tip">$_("For example:") <em>edited by David Anderson</em></span>
+                </div>
+                <div class="input">
+                    <input name="edition--by_statement" type="text" id="edition-by_statement" value="$book.by_statement" style="width:350px!important;"/>
+                </div>
+            </div>
+
+        </fieldset>
+
+        <div class="formDivider"></div>
+
+        <fieldset class="minor">
+
+            <legend>Languages</legend>
+
+            <div class="formElement">
+                <div class="label">
+                    <label for="edition-language">$_("What language is this edition written in?")</label>
+                    <span class="tip"></span>
+                </div>
+                <div class="input">
+                    $ language = book.languages and book.languages[0]
+                    <input type="text" name="languages" id="edition-language" value="$(language and language.name)" class="language-autocomplete" style="width:300px!important;"/>
+                    <input type="hidden" name="edition--languages--0--key" id="edition-language-key" value="$(language and '/languages/' + language.code)"/>
+                </div>
+            </div>
+            
+            <div class="formElement librarian hidden">
+                <div class="label">
+                    <label for="is-translation">$_("Is it a translation of another book?")</label>
+                    <span class="tip"></span>
+                </div>
+                $ translation = book.translation_of or book.translated_from
+                $ checked_yes = cond(translation, 'checked="checked"', '')
+                $ checked_no = cond(not translation, 'checked="checked"', '')
+                $if translation:
+                    $ trans_class = "transYes"
+                $else:
+                    $ trans_class = "hidden transYes"
+                    
+                <div class="input">
+                    <br/>
+                    <input type="radio" name="edition--translation" id="is-translation" value="no" $checked_no  onclick="\$('.transYes').customFadeOut();"/>
+                    <label for="is-translation">$_("No")</label>
+                </div>
+                <div class="input">
+                    <input type="radio" name="edition--translation" id="is-translation2" value="yes" $checked_yes onclick="\$('.transYes').customFadeIn();"/>
+                    <label for="is-translation2">$_("Yes, it's a translation")</label>
+                </div>
+
+                <div class="$trans_class">
+                    <div class="label">
+                        <span class="tip">$_("What's the original book?")</span>
+                    </div>
+                    <div class="input">
+                        <input name="edition--translation_of" type="text" id="translation-of" style="width:300px!important;" value="$book.translation_of"/>
+                    </div>
+                </div>
+
+                <div class="$trans_class">
+                    <div class="label">
+                        <label for="edition-translated_from"><span class="tip">$_("What language was the original written in?")</span></label>
+                    </div>
+                    <div class="input">
+                        <input type="text" name="translated_from" id="edition-translated_from" class="language-autocomplete" value="$(book.translated_from and book.translated_from[0].name)" style="width:300px!important;"/>
+                        <input type="hidden" name="edition--translated_from--0--key" id="edition-translated_from-key" value="$(book.translated_from and book.translated_from[0].key)"/>
+                    </div>
+                </div>
+
+            </div>
+            
+
+        </fieldset>
+
+        <div class="clearfix"></div>
+
+        <div class="formElement">
+            <div class="label">
+                <label for="edition-description">$_("Description of this edition")</label>
+                <span class="tip">$_("Only if it's different from the work's description")</span> 
+            </div>
+            <div class="input">
+                <textarea name="edition--description" id="edition-description" rows="3" cols="50">$book.description</textarea>
+            </div>
+        </div>
+
+    </div>
+
+</fieldset>
+
+<fieldset class="major" id="identifiers">
+    <legend>$_("ID Numbers")</legend>
+    <div class="formBack">
+    
+        <div id="id-errors" class="note hidden"></div>
+        <div class="formElement">
+            <div class="label">
+                <label for="select-id">$_("Do you know any identifiers for this edition?")</label>
+                <span class="tip">$_("Like, ISBN?")</span>
+            </div>
+            <div class="input">
+                <table class="identifiers" width="100%">
+                    <tr id="identifiers-form">
+                        <td align="right">
+                            $ id_labels = dict((d.name, d.label) for d in edition_config.identifiers)
+                            <select name="name" id="select-id">    
+                                <option value="">Select one of many...</option>
+                                $for id in edition_config.identifiers:
+                                    <option value="$id.name">$id.label</option>
+                                <option>---</option>
+                                <option value="__add__">Add a new ID type</option>
+                            </select>
+                        </td>
+                        <td width="380">
+                            <input type="text" name="value" id="id-value" size="20" style="width:365px!important;"/>
+                        </td>
+                        <td width="100%">
+                            <input type="button" name="add" class="repeat-add" value="Add" />
+                        </td>
+                    </tr>
+                    <tbody id="identifiers-display">
+                        <tr id="identifiers-template" style="display: none;" class="repeat-item">
+                            <td align="right"><strong>{{\$("#select-id").find("option[value=" + name + "]").html()}}</strong></td>
+                            <td width="380">{{value}}
+                                <input type="hidden" name="{{prefix}}identifiers--{{index}}--name" value="{{name}}"/>
+                                <input type="hidden" name="{{prefix}}identifiers--{{index}}--value" value="{{value}}"/>
+                            </td>
+                            <td width="100%"><a href="javascript:;" class="repeat-remove red plain" title="Remove this identifier">[x]</a></td>
+                        </tr>
+                        <tr>
+                            <td align="right">Open Library</td>
+                            <td width="380">$book.key.split("/")[-1]</td>
+                            <td width="100%"></td>
+                        </tr>
+                        $for i, id in enumerate(book.get_identifiers().values()):
+                        <tr id="identifiers--$i" class="repeat-item">
+                            <td align="right"><strong>$id_labels.get(id.name, id.name)</strong></td>
+                            <td width="380">$id.value
+                                <input type="hidden" name="edition--identifiers--${i}--name" value="$id.name"/>
+                                <input type="hidden" name="edition--identifiers--${i}--value" value="$id.value"/>
+                            </td>
+                            <td width="100%"><a href="javascript:;" class="repeat-remove red plain" title="Remove this identifier">[x]</a></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</fieldset>
+
+<fieldset class="major librarian hidden" id="classifications">
+    <legend>$_("Classifications")</legend>
+    <div class="formBack">
+
+        <div id="classification-errors" class="note hidden"></div>
+        <div class="formElement">
+            <div class="label">
+                <label for="select-classification">$_("Do you know any classifications of this edition?")</label>
+                <span class="tip">$_("Like, Dewey Decimal?")</span>
+            </div>
+            <div class="input">
+                <table class="classifications identifiers" width="100%">
+                    <tr id="classifications-form">
+                        <td align="right">
+                            $ classification_labels = dict((d.name, d.label) for d in edition_config.classifications)
+                            <select name="name" id="select-classification"> 
+                                <option value="">$_("Select one of many...")</option>
+                                $for d in edition_config.classifications:
+                                    <option value="$d.name">$d.label</option>
+                                <option>---</option>
+                                <option value="__add__">$_("Add a new classification type")</option>
+                            </select>
+                        </td>
+                        <td width="380">
+                            <input type="text" name="value" id="classification-value" size="20" style="width:365px!important;"/>
+                        </td>
+                        <td width="100%">
+                            <input type="button" name="add" class="repeat-add" value="$_('Add')" />
+                        </td>
+                    </tr>
+                    <tbody id="classifications-display">
+                        <tr id="classifications-template" style="display: none;" class="repeat-item">
+                            <td align="right"><strong>{{\$("#select-classification").find("option[value=" + name + "]").html()}}</strong></td>
+                            <td width="380">{{value}}
+                                <input type="hidden" name="{{prefix}}classifications--{{index}}--name" value="{{name}}"/>
+                                <input type="hidden" name="{{prefix}}classifications--{{index}}--value" value="{{value}}"/>
+                            </td>
+                            <td width="100%"><a href="javascript:;" class="repeat-remove red plain" title="$_('Remove this classification')">[x]</a></td>
+                        </tr>
+                        $for i, id in enumerate(book.get_classifications().values()):
+                        <tr id="classifications--$i" class="repeat-item">
+                            <td align="right"><strong>$classification_labels.get(id.name, id.name)</strong></td>
+                            <td width="380">$id.value
+                                <input type="hidden" name="edition--classifications--${i}--name" value="$id.name"/>
+                                <input type="hidden" name="edition--classifications--${i}--value" value="$id.value"/>
+                            </td>
+                            <td width="100%"><a href="javascript:;" class="repeat-remove red plain" title="$_('Remove this classification')">[x]</a></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</fieldset>
+
+
+<fieldset class="major" style="padding:0;">
+    <legend>$_("The Physical Object")</legend>
+    <div class="formBack">
+
+        <fieldset class="minor">
+            <div class="formElement">
+                <div class="label">
+                    <label for="edition--physical_format">$_("What sort of book is it?")</label>
+                    <span class="tip">$_("Paperback; Hardcover, etc.")</span>
+                </div>
+                <div class="input">
+                    <input name="edition--physical_format" type="text" id="edition--physical_format" style="width:365px;" value="$book.physical_format"/>
+                </div>
+            </div>
+            <div class="formElement">
+                <div class="label">
+                    <label for="edition--number_of_pages">$_("How many pages?")</label>
+                    <span class="tip"></span>
+                </div>
+                <div class="input">
+                    <input name="edition--number_of_pages" type="text" id="edition--number_of_pages" style="width: 365px;" value="$book.number_of_pages"/>
+                </div>
+            </div>
+            <div class="formElement">
+                <div class="label">
+                    <label for="edition--pagination">$_("Pagination?")</label>
+                    <span class="tip">$_("Note the highest number in each pagination pattern.")</span>
+                </div>
+                <div class="input">
+                    <input name="edition--pagination" type="text" id="edition--pagination" style="width:365px;" value="$book.pagination"/>
+                    <div class="tip">$_("For example:") <em>xii, 346p.</em></div>
+                </div>
+            </div>
+        
+            <div class="formElement">
+                <div class="label">
+                    <label for="edition--weight--value">$_("How much does the book weigh?")</label>
+                    <span class="tip"></span>
+                </div>
+                <div class="input">
+                    $ weight = book.get_weight() or storage(value="", units="grams")
+                    <input name="edition--weight--value" type="text" id="edition--weight--value" style="width:70px!important;" value="$weight.value" size="6"/>
+                    <span class="tip">
+                        $:radiobuttons("edition--weight--units", ["grams", "kilos", "ounces", "pounds"], weight.units)
+                    </span>
+                </div>
+            </div>
+        </fieldset>
+
+            <div class="formDivider"></div>
+
+            <fieldset class="minor">
+                <legend>$_("Dimensions")</legend>
+                $ dimensions = book.get_physical_dimensions() or storage(height="", width="", depth="", units="inches")
+                <div class="formElement">
+                    <div class="input">
+                        <table cellpadding="1">
+                        <tbody>
+                            <tr>
+                                <td rowspan="3" style="padding-right:5px;"><img src="/images/dimensions.png" alt="dimensions" width="107" height="69" align="left"/></td>
+                                <td><span class="tip"><label for="dimensions-height">$_("Height:")</label> </span></td>
+                                <td><input name="edition--physical_dimensions--height" type="text" id="dimensions-height" style="width:50px!important;" size="6" value="$dimensions.height"/></td>
+                            </tr>
+                            <tr>
+                                <td><span class="tip"><label for="dimensions-width">$_("Width:")</label> </span></td>
+                                <td><input name="edition--physical_dimensions--width" type="text" id="dimensions-width" style="width:50px!important;" size="6" value="$dimensions.width"/>
+                                    <span class="tip">
+                                        $:radiobuttons("edition--physical_dimensions--units", ["centimeters", "inches"], dimensions.units)
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><span class="tip"><label for="dimensions-depth">$_("Depth:")</label> </span></td>
+                                <td><input name="edition--physical_dimensions--depth" type="text" id="dimensions-depth" style="width:50px!important;" size="6" value="$dimensions.depth"/></td>
+                            </tr>
+                        </tbody>
+                        </table>
+                    </div>
+                </div>
+            </fieldset>
+    </div>
+
+</fieldset>
+
+
+<script type="text/javascript">
+<!--
+    \$().ready(function() {
+        function error(errordiv, input, message) {
+            \$(errordiv).show().html(message);
+            \$(input).focus();
+            return false;            
+        }
+        
+        \$("#roles").repeat({
+            vars: {
+                "prefix": "edition--"
+            },
+            validate: function(data) {
+                if (data.role == "" || data.role == "---") {
+                    return error("#role-errors", "#select-role", "$_('Please select a role.')");
+                }
+                
+                if (data.name == "") {
+                    return error("#role-errors", "#role-name", "$_('You need to give this ROLE a name.')".replace(/ROLE/, data.role));
+                } 
+
+                \$("#role-errors").hide();
+                return true;
+            }
+        });
+        \$("#identifiers").repeat({
+            vars: {
+                "prefix": "edition--"
+            },
+            validate: function(data) {
+                if (data.name == "" || data.name == "---") {
+                    return error("#id-errors", "select-id", "$_('Please select an identifier.')")
+                }
+                if (data.value == "") {
+                    var label = \$("#select-id").find("option[value=" + data.name + "]").html();
+                    return error("#id-errors", "id-value", "$_('You need to give a value to ID.')".replace(/ID/, label));  
+                }
+                \$("id-errors").hide();
+                return true;
+            }
+        });
+        \$("#classifications").repeat({
+            vars: {
+                "prefix": "edition--"
+            },
+            validate: function(data) {
+                if (data.name == "" || data.name == "---") {
+                    return error("#classification-errors", "#select-classification", "$_('Please select a classification.')");
+                }
+                
+                if (data.value == "") {
+                    var label = \$("#select-classification").find("option[value=" + data.name + "]").html();
+                    return error("#classification-errors", "#classification-value", "$_('You need to give a value to CLASS.')".replace(/CLASS/, label));
+                } 
+
+                \$("#classification-errors").hide();
+                return true;
+            }            
+        });
+       \$("a#libraryMode").click(function(event) {
+           event.preventDefault();
+           
+          \$(".librarian").toggle();          
+          \$(this).parent().find('#modeToggle').toggleText("Turn on","Exit");
+       });
+    });
+//-->
+</script>

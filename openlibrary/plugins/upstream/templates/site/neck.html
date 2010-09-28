@@ -1,0 +1,38 @@
+$def with (title)
+
+$putctx("sent_neck", True)
+
+    $if ctx.get("robots"):
+        <meta name="robots" content="$ctx.robots" />
+    
+    <title>$:title ($_("Open Library"))</title>
+
+    $for link in ctx.get("links", []):
+        $:link
+
+    <script type="text/javascript">
+        \$().ready(setupSearch);
+        \$().ready(linkbuttons);
+    </script>
+</head>
+
+$ bodyid = ctx.get('bodyid', 'user')
+
+<body id="$bodyid">
+<div id="background">
+<a name="top"></a>
+
+$if bodyid != "form":
+    <p class="shift">
+        <a href="#content" title="Click to skip!">Click here to skip to this page's main content.</a>
+        <a href="/index/">Site Index</a>
+    </p>
+    <div id="topNotice"><p>$:render_template("site/alert")</p></div>
+
+    <div id="placement">
+
+        <div id="position">
+
+            $if bodyid == 'user' or bodyid == 'admin':
+                $:render_template("lib/search_head", None)
+                $:render_template("lib/nav_head", None)

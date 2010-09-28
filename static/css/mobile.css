@@ -1,0 +1,66 @@
+@charset "UTF-8";
+ 
+body {
+	margin: 2%;
+	font-family: Helvetica, Arial, sans serif, Lucida, "Lucida Sans";
+	font-size: 1em;
+}
+ 
+p {
+	line-height: 1.5em;
+}
+ 
+table {
+	width: 90%;
+	border-top: 1px dotted #CCC;
+}
+ 
+td {
+	border-bottom: 1px dotted #CCC;
+	vertical-align: center;
+}
+ 
+img {
+	border: 0;
+	}
+	
+.bookTitle {
+	font-size: 1.25em;
+}
+ 
+.byHeading {
+	font-size: .8em;
+	font-weight: normal;
+}
+ 
+.footer {
+	text-align: center;
+	font-size: 0.8em;
+	color: #333333
+}
+ 
+input {
+	font-size: 2em;
+}
+ 
+.searchBox {
+	width: 60%;
+}
+ 
+ 
+ 
+.clearfix{width:100%;clear:both;}
+ 
+ 
+/* COLORS! */
+ 
+.orange {color: #ffa337!important;}
+.brown {color: #615132!important;}
+.teal {color: #00636a!important;}
+.darkgreen {color: #35672e!important;}
+.lightgreen {color: #748d36!important;}
+.blue {color: #036daa!important;}
+.red {color: #e44028!important;}
+.yellow {color: #fffdcd!important;}
+.gray, .grey {color:#666!important;}
+.darkgray, .darkgrey {color:#333!important;}

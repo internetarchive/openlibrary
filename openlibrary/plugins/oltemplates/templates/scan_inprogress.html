@@ -1,0 +1,69 @@
+$def with (book)
+
+$var title: $book.title
+
+$add_stylesheet("/css/global.css?format=raw")
+$add_stylesheet("/css/thickbox.css?format=raw")
+$add_stylesheet("/css/master.css?format=raw")
+$add_stylesheet("/css/doc-styles.css?format=raw")
+
+$add_javascript("/static/js/jquery/jquery.js")
+$add_javascript("/static/js/jquery/thickbox.js")
+$add_javascript("/static/js/global.js")
+
+
+<style type="text/css">
+<!--
+.simple { border-bottom: 1px solid #ccc; background-color: #ffffff; margin: 0px 10px 0px 10px; padding: 3px; }
+.booktitle { margin: 0px 5px 0px 19px; }
+
+input {background-color: #fff; font-family: georgia; font-size: 18px; color: #6F320D; border: 1px solid #ccc; padding-left: 4px; margin-top: 6px; margin-bottom: 6px; width: 100%}
+textarea {height:200px; background-color: #fff; font-family: georgia; font-size: 18px; color: #6F320D; border: 1px solid #ccc; padding-left: 4px; margin-top: 6px; margin-bottom: 6px; width: 100%}
+
+#book-art { width: 205px; height: 300px; text-align: center; float: left; padding-top: 21px; padding-left: 13px; padding-right: 14px; background: #fff url(/static/logos/logo-en.png) top center no-repeat; }
+-->
+</style>
+
+
+<div id="book-art">
+    <div id="book" style="height: 286px;">
+    </div>
+<div style="text-align: center; padding-right: 10px; color: #919070;">
+<b>Please help support Open Library! Your <a href="http://www.archive.org/donate/">donation to the Internet Archive</a> will help this service grow.<br /><br /></b>
+</div>
+</div>
+
+<div id="header">
+    <span id="title"><br />Scan in progress ....</span><br />
+    <br />
+    <span id="statement">
+    We are going to scan your book. </span>
+</div>
+
+<br />
+<div class="content"> 
+    <table cellpadding="10" cellspacing="0" border="0" class="scod"><tr><td valign="top">
+<div class="scod-table-item" style="margin-right: 100px;">
+
+<div class="alert">
+   <code class="normal">
+   <b>NOTE:</b> This feature is still under development. Please be patient during the scanning process.
+   </code>
+   </div>
+
+<br />
+We will email you at <a href="mailto:$ctx.user.email">$ctx.user.email</a> when it is done. A link to a downloadable version of this book will appear <a href="$:changequery({})">on this page</a> when it is complete.<br /><br />
+
+Thank you for helping build the library.<br /><br />
+
+<br /><br />
+</div>
+
+
+</div>
+
+</td></tr></table>
+
+</div>
+
+</div>

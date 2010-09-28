@@ -1,0 +1,27 @@
+$def with(page, title)
+<html>
+<head>
+  <title>$("%s (Open Library)" % title if title else "Welcome to Open Library")</title>
+  <link rel="stylesheet" type="text/css" href="/static/css/mobile.css">
+</head>
+<body>
+  <p class="header">
+    <a href="/"><img src="/images/logo_OL-sm.png" width="90" height="71"/></a>
+  </p>
+
+  $:page
+
+  <div class="clearfix"></div>
+  
+  <script type="text/javascript">
+    function turnoff_mobile() {
+        document.cookie = "mobile=false; path=/; expires=Thu, 1 Jan 1970 00:00:00 UTC";
+    }
+  </script>
+
+  <div class="footer">
+    <div>mobile | <a href="/" onclick="javascript: turnoff_mobile();">full</a></div>
+    Open Library is a project from the <a href="http://archive.org">Internet Archive</a>.<br /> 
+    <a href="http://openlibrary.org">http://openlibrary.org</a>
+  </div>
+</head>

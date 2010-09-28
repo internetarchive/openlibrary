@@ -1,0 +1,30 @@
+{
+    'backreferences': [{
+        'expected_type': {
+            'key': '/type/edition'
+        },
+        'name': 'edition',
+        'property_name': 'collections',
+        'type': {
+            'key': '/type/backreference'
+        }
+    }],
+    'description': '',
+    'key': '/type/collection',
+    'kind': 'regular',
+    'name': '',
+    'properties': [{
+        'description': '',
+        'expected_type': {
+            'key': '/type/string'
+        },
+        'name': 'name',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': True
+    }],
+    'type': {
+        'key': '/type/type'
+    }
+}

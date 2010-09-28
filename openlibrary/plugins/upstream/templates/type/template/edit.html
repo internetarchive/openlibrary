@@ -1,0 +1,37 @@
+$def with (page)
+
+$ _x = ctx.setdefault('bodyid', 'edit')
+
+$var title: $_("Edit %(title)s", title=page.key)
+
+$:render_template("lib/edit_head", page)
+
+<div id="contentBody">
+    <form name="edit" method="post" action="" autocomplete="off">
+        
+        <div class="formElement title">
+            <div class="label">
+                <label for="title">$_("Title")</label>
+            </div>
+            <div class="input">
+                <input type="text" name="title" id="title" value="$page.title"/>
+            </div>
+        </div>
+
+        $:macros.TypeChanger(page.type)
+
+        <div class="clearfix"></div>
+        
+        <div class="formElement">
+            <div class="label">
+                <label for="body">$_("Document Body")</label>
+            </div>
+            <div class="input">
+                <textarea name="body" id="body" rows="40" cols="80">$page.body</textarea>
+            </div>
+        </div>
+
+        $:macros.EditButtons(comment=page.comment_)
+
+    </form>
+</div>

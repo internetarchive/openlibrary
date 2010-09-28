@@ -1,0 +1,24 @@
+$def with (page, preview=False)
+
+$ edit = thingedit(page)
+$var title: $:edit.title
+
+$ __x = ctx.setdefault("robots", "noindex,nofollow")
+    
+$:macros.databarEdit(page)
+
+$if preview:
+    <div id="preview">
+    $:thingview(page)
+    </div>
+
+$ flash_messages = get_flash_messages()
+$if flash_messages:
+    <div id="flash_messages">
+        $for flash in flash_messages:
+            <div class="$flash.type">$flash.message</div>
+    </div>
+
+<div id="edit">
+$:edit
+</div>

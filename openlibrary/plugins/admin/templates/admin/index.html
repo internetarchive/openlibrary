@@ -1,0 +1,167 @@
+$def with ()
+
+$ _x = ctx.setdefault('bodyid', 'admin')
+$ _x = ctx.setdefault('usergroup', 'admin')
+
+$:macros.Dashboard()
+$ stats = get_admin_stats()
+<div id="contentHead">
+    <div class="contentRight" style="float: right;">
+        <table class="records">
+            <tr>
+                <td><div class="amount">xxx</div>
+                    <div class="label">Total Records</div></td>
+                <td><div class="amount">xxx</div>
+                    <div class="label">Full Text</div></td>
+                <td><div class="amount">xxx</div>
+                    <div class="label">Unique IP<span class="lowercase">s</span> Yesterday</div></td>
+            </tr>
+        </table>
+    </div>
+    <h1>$_("Admin Center")</h1>
+	<div>
+		<a href="/admin/reload/">Reload Templates</a>
+		| <a href="/admin/block">Block IPs</a>
+		| <a href="/admin/loans">Loans</a>
+	</div>
+</div>
+<div id="contentBody">
+
+    <div class="contentLeft">
+        <div class="head rel"> <span class="caption"><a href="/recentchanges/" class="fixthis">Edits Per Day</a></span>
+            <h2>Edits</h2>
+        </div>
+        <div class="chartHolder">
+            <div class="chartDisplay">
+            </div>
+        </div>
+        <table class="measurements stripeEven" id="edits">
+            <thead>
+                <tr>
+                    <th></th>
+                    <th>Today</th>
+                    <th>Yesterday</th>
+                    <th>This Week</th>
+                    <th>This Month</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="major">
+                    <td class="type">Human</td>
+                    <td class="amount"><strong>$commify(stats.edits.today.human)</strong></td>
+                    <td class="amount">$commify(stats.edits.yesterday.human)</td>
+                    <td class="amount">$commify(stats.edits.thisweek.human)</td>
+                    <td class="amount">$commify(stats.edits.thismonth.human)</td>
+                </tr>
+                <tr class="even">
+                    <td class="type">Bot</td>
+                    <td class="amount">$commify(stats.edits.today.bot)</td>
+                    <td class="amount">$commify(stats.edits.yesterday.bot)</td>
+                    <td class="amount">$commify(stats.edits.thisweek.bot)</td>
+                    <td class="amount">$commify(stats.edits.thismonth.bot)</td>
+                </tr>
+                <tr class="totals">
+                    <td class="type">Total</td>
+                    <td class="amount">$commify(stats.edits.today.total)</td>
+                    <td class="amount">$commify(stats.edits.yesterday.total)</td>
+                    <td class="amount">$commify(stats.edits.thisweek.total)</td>
+                    <td class="amount">$commify(stats.edits.thismonth.total)</td>
+                </tr>
+            </tbody>
+        </table>
+        <!-- HIDING UNTIL WE CAN DO IT -->
+        <!--                
+                    <div class="contentQuarter center" id="logged">
+                        <div class="titleSmall">Logged In : Logged Out</div>
+                        <br/>
+                        <div class="largest">x : x</div>
+                    </div>
+                    
+                    <div class="spacer"></div>
+
+                    <div class="contentQuarter" id="prolific">
+
+                        <div class="titleSmall">Prolific Member Editors</div>
+                        <div class="smaller">
+                        <a href="[USER PROFILE]">name</a>,
+                        <a href="[USER PROFILE"]>name</a>,
+                        <a href="[USER PROFILE"]>name</a>,
+                        <a href="[USER PROFILE"]>name</a>,
+                        <a href="[USER PROFILE"]>ip address</a>,
+                        <a href="[USER PROFILE"]>name</a>,
+                        <a href="[USER PROFILE"]>name</a>
+
+                        </div>
+                    </div>
+-->
+    </div>
+    <div class="contentRight">
+        <div class="head rel"> <span class="caption"><a href="/admin/people" class="fixthis">New Accounts Per Day</a></span>
+            <h2>Members</h2>
+        </div>
+        <div class="chartHolder">
+            <div class="chartDisplay">
+            </div>
+        </div>
+        <table class="measurements stripeEven" id="members">
+            <thead>
+                <tr>
+                    <th>Today</th>
+                    <th>Yesterday</th>
+                    <th>This Week</th>
+                    <th>This Month</th>
+                    <th class="shift">All Time</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="major">
+                    <td class="amount"><strong>$commify(stats.members.today)</strong></td>
+                    <td class="amount">$commify(stats.members.yesterday)</td>
+                    <td class="amount">$commify(stats.members.thisweek)</td>
+                    <td class="amount">$commify(stats.members.thismonth)</td>
+                    <td class="amount shift"><strong>$:macros.MemberCount()</strong></td>
+                </tr>
+                <tr class="even">
+                    <td class="diff"></td>
+                    <td class="diff"><span class="pos">+x.x%</span></td>
+                    <td class="diff"><span class="neg">-x.x%</span></td>
+                    <td class="diff"><span class="pos">+x.x%</span></td>
+                    <td class="diff"></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <!-- HIDING THIS UNTIL WE CAN BUILD IT -->
+    <!--
+
+                <div class="clearfix"></div>
+
+                <div class="tweets" id="adminTwitter">
+                    $:macros.twitter()
+                </div>
+            
+                <div class="spacer"></div>
+                <div class="flickrs" id="adminFlickr"></div>
+                <div class="clearfix"></div>
+
+-->
+    <div class="clearfix"></div>
+    <div id="uniqueIps">
+        <div class="measurements">
+
+        <h3>Unique IPs</h3>
+            <div class="caption">Yesterday</div>
+            <div class="measure large"><strong>xxx</strong></div>
+            <div class="caption">Day</div>
+            <div class="measure large">xxx</div>
+            <div class="caption">Day</div>
+            <div class="measure">xxx</div>
+            <div class="caption">Day</div>
+            <div class="measure">xxx</div>
+        </div>
+        <div style="float:left;">
+            <div id="placeholder" style="width:680px;height:300px;"></div>
+            <div id="overview" style="margin-left:50px;margin-top:20px;width:400px;height:50px"></div>
+        </div>
+    </div>
+</div>

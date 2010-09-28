@@ -1,0 +1,275 @@
+$def with (page)
+
+$ lang = i18n.get_locale() or 'en'
+$ _t = i18n.get_namespace('/type/edition')
+$ _ = i18n.get_namespace('/mode/view')
+
+
+$if page.type.key == "/type/edition":
+    $ title = (page.title_prefix or "") + " " + page.title
+    $ fieldname = "cover"
+    $ category = "b"
+    $ type = "book"
+    $ e = ""
+$else:
+    $ title = page.name
+    $ fieldname = "photo"
+    $ category = "a"
+    $ type = "author"
+    $ e = ""
+    
+$var title: $title
+
+$add_javascript('/static/js/jquery/jquery.js')
+$add_javascript('/static/js/jquery/jquery.slicker.js')
+$add_javascript('/static/js/jquery.smartmodal.js')
+$add_stylesheet('/css/modal.css?format=raw')
+
+$ olid = page.key.split('/')[-1]
+
+<style type="text/css">
+<!--
+    .coverheaders { margin-bottom: 6px; text-align: left; font-weight: bold; color: #625E25; font-family: georgia, times new roman, times, serif; font-size: 14px; }
+    .coveritem { margin-bottom: 24px; padding-left: 10px; }
+
+    .cover { border: 1px solid #999;}
+    .cover:hover { border: 1px solid #900;}
+
+    #book-outline { padding: 8px; border: 1px solid #ccc; background-color: #fff; }
+    #book-art { text-align: center; margin-top: 21px; margin-left: 13px; margin-right: 14px; clear: both; float: left; }
+    .cover-error { color: red; font-size: 12px; font-weight: bold; padding-left: 10px;  margin-bottom: 6px;}
+    a.prevnext { font-size: 14px; text-decoration: none; color: #6f320d; font-style: italic; }
+
+*{text-align:left;}
+
+h1{font-size:131%;}
+h2{font-size:116%;}
+h1,h2{font-weight:bold;}
+h1,h2,p{margin-bottom:15px;}
+
+strong{font-weight:bold;}
+em{font-style:italic;}
+
+#container{
+	width:70%;
+	margin:10px auto;
+}
+div.example{
+	padding-top:10px;
+	border-top:1px dotted black;
+}
+
+ul.horizontal li{
+	position:relative;
+	float:left;
+	margin:5px 5px 5px 0;
+}
+
+.hidden{display:none;}
+
+/* Nasty clearfix hacks */
+.clearfix {display:inline-block;} 
+/* Hide from IE Mac \*/ 
+.clearfix {display:block;} 
+/* End hide from IE Mac */ 
+.clearfix:after {
+    content: "."; 
+    display: block; 
+    height: 0; 
+    clear: both; 
+    visibility: hidden;
+}
+-->
+</style>
+
+
+<div id="rel_modal_content" class="hidden">
+                <div style="modal_close"><a class="modal_close" href="#"><img src="/static/images/x.png" border="0" alt="+" width="18" height="18" /></a></div>            
+    <table cellspacing="0" cellpadding="0" border="0" width="100%" style="clear: both;">
+    <tr>
+        <td>
+            <div id="book-outline" style="margin-bottom: 6px;"><img id="modal_image" src="http://covers.openlibrary.org/$category/olid/$olid-M.jpg" alt="$title"width="180"/></div>
+        </td>
+        <td style="width: 100%; padding-left: 10px;">
+            <form name="touch" action="http://covers.openlibrary.org/$category/touch" method="POST">
+                <input type="hidden" class="input-redirecturl" name="redirect_url" value=""/>
+                <input type="hidden" class="input-coverid" name="id" value=""/>
+                
+                <div class="editbutton" style="margin-bottom: 6px; text-align: center; background-color: #fff;">
+                    <a href="#" style="text-decoration: none" onclick="\$(document['touch']).submit();">Select Cover</a>
+                </div>
+            </form>
+            
+            <form name="delete" action="http://covers.openlibrary.org/$category/delete" method="POST">
+                <input type="hidden" class="input-redirecturl" name="redirect_url" value=""/>
+                <input type="hidden" class="input-coverid" name="id" value=""/>
+                <div class="editbutton" style="margin-bottom: 6px; text-align: center; background-color: #fff;">
+                    <a href="#" style="text-decoration: none" onclick="\$(document['delete']).submit();">Delete Cover</a>
+                </div>
+            </form>
+        </td>
+    </tr>
+    </table>
+</div>
+
+<div id="metadata-body">
+
+    $if type == "book":
+        <div id="book-art">
+            <div id="book-outline"><img src="http://covers.openlibrary.org/b/olid/$olid-M.jpg" alt="$page.title_prefix $page.title" width="180"/></div>
+        </div>
+    $else:
+        <div id="book-art" class="datalink"><img src="http://covers.openlibrary.org/a/olid/$olid-M.jpg" width="180"/></div>
+
+<div style="margin-left: 255px; padding-bottom: 60px">
+    <div id="header">               
+    $if type == "book":
+        <div class="pretitle">Change cover of:</div>
+        <div id="title">$page.title_prefix $page.title</div>
+    $else:
+        <div class="pretitle">Change photograph of:</div>
+        <div id="title">$page.name</div>
+    </div>
+
+	<div class="coveritem">
+    <span class="book-details-italic">
+    $if type == "book":
+        You can change the cover of this book to suit your preferences.
+    $else:
+        You can change the photo of this author to suit your preferences.
+    </span>
+
+	<div class="coverheaders">Choose from existing ${fieldname}s.</div>
+        <div style="padding: 8px;">
+            <table id="covers" cellspacing="0" cellpadding="0" border="0">
+    	    </table>
+        </div>
+	</div>
+	
+	<div class="cover-error">$query_param("errmsg", "")</div>
+
+	<div class="coveritem">
+	    <div class="coverheaders">Upload from your computer</div>
+	    <form action="http://covers.openlibrary.org/$category/upload" method="POST" enctype="multipart/form-data">
+	        <input type="hidden" name="olid" value="$olid"/>
+	        <input type="hidden" name="author" value="${ctx.user and ctx.user.key}"/>
+	        <input type="hidden" class="status_url" name="success_url" value=""/>
+	        <input type="hidden" class="status_url" name="failure_url" value=""/>
+	        <input type="file" name="file" value=""/>
+	        <input class="small-button" type="submit" name="upload" value="Upload"/>
+	    </form>
+	</div>
+	
+	<div class="coveritem">
+	    <div class="coverheaders">Grab $fieldname from a url</div>
+	    <form action="http://covers.openlibrary.org/$category/upload" method="POST" enctype="multipart/form-data">
+	        <input type="hidden" name="olid" value="$olid"/>
+	        <input type="hidden" class="status_url" name="success_url" value=""/>
+	        <input type="hidden" class="status_url" name="failure_url" value=""/>
+	        <input type="hidden" name="author" value="${ctx.user and ctx.user.key}"/>
+	        <input type="text" name="source_url" value=""/>
+	        <input class="small-button" type="submit" name="upload" value="Upload"/>
+
+	    </form>
+	</div>
+
+
+    <div class="button-border" style="padding-top: 20px;"><img src="/static/images/flourish.left.gif"  alt="[" /><button class="action" type="button"  value="Continue"  name="_save" title="Continue" onclick="history.back();">Continue</button><img src="/static/images/flourish.gif"  alt="]" /></div>
+
+    <div style="display: none">
+    	<form name="touch" method="POST" action="http://covers.openlibrary.org/$category/touch">
+    	<input type="hidden" id="touch_cover" name="id" value=""/>
+    	<input type="hidden" id ="touch_redirect_url" name="redirect_url" value=""/>
+    	</form>
+    </div>
+</div>
+
+</div>
+
+$ limit = 10
+
+<script type="text/javascript">
+<!--
+
+/**
+ * >>> group([1, 2, 3, 4, 5], 2)
+ * [[1, 2], [3, 4], [5]]
+ */
+function group(elems, n) {
+    var result = [];
+    \$.each(elems, function(i, e) {
+        var index = Math.floor(i / n);
+        if (!result[index])
+            result[index] = [];
+		result[index].push(e);
+    });	
+    return result;
+}
+
+var current_offset = 0;
+
+var _test = null;
+
+function display_covers(ids) {
+    var table = \$("#covers");
+
+    var elems = \$.map(ids, function(id, i) {
+        return '<td><div style="margin-right: 8px; margin-bottom: 6px;"><a class="modal3" rel="rel_modal_content" id="coverlink-XXX" href="#"><img class="cover" src="http://covers.openlibrary.org/$category/id/XXX-S.jpg" /></a></div></td>'.replace(/XXX/g, id);
+    });
+    
+    \$("#covers").empty();
+
+    // put $limit covers in each row
+    \$(group(elems, 5)).each(function(i, tds) {
+        \$("#covers").append("<tr>" + tds.join("") + "</tr>");
+    });
+    
+    if (ids.length == 10)
+        \$("#covers").append('<tr><td rowspan="5"><a href="#" onclick="redisplay_covers();">Display all covers</a></td></tr>');
+
+
+    \$('a.modal3').click(function() {
+        var id = this.id.replace('coverlink-', '');
+        \$(".input-coverid").val(id);
+        var src = "http://covers.openlibrary.org/$category/id/ID-M.jpg".replace('ID', id);
+        \$("#modal_image").attr("src", src);
+        \$(this).modal();
+        \$(this).modal_show();
+    });      
+}
+
+function redisplay_covers(offset) {
+    current_offset = offset || 0;
+    var url = "http://covers.openlibrary.org/$category/query?olid=$olid&offset=" + offset + "&limit=$limit&callback=?"
+    \$.getJSON(url, function(ids) {
+        display_covers(ids, offset);
+    });
+}
+
+function display_all_covers() {
+    var url = "http://covers.openlibrary.org/$category/query?olid=$olid&limit=1000&callback=?"
+    \$.getJSON(url, function(ids) {
+        display_covers(ids);
+    });
+}
+
+\$(document).ready(function(){
+    \$(".status_url").val(document.location.href);
+    
+    \$("#prev_covers").click(function(event) {
+        event.preventDefault();
+        redisplay_covers(current_offset-$limit);
+    });
+    \$("#next_covers").click(function(event) {
+        event.preventDefault();
+        redisplay_covers(current_offset+$limit);
+    });
+    
+    \$(".input-redirecturl").val(document.location.href);
+});
+
+-->
+</script>
+
+
+<script type="text/javascript" src="http://covers.openlibrary.org/$category/query?olid=$olid&callback=display_covers&limit=$limit"></script>

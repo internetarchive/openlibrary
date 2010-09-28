@@ -1,0 +1,57 @@
+$def with (results, fulltext=False)
+
+$ _ = i18n.get_namespace('/search')
+
+<ul id="siteSearch">
+
+$for b in results:
+    $if fulltext:
+        $ book = b[0]
+        $ ocaid = b[1]
+        $ pages = b[2]
+    $else:
+        $ book = b
+        $ ocaid = None
+    <li>
+    <span class="bookcover">
+        $ olid = book.key.split('/')[-1]
+        <a href="$book.key"><img src="$get_coverstore_url()/b/olid/$olid-S.jpg?default=http://upstream.openlibrary.org/images/icons/avatar_book-sm.png" height="60"/></a>
+    </span>
+    <span class="details">
+        <span class="resultTitle">
+            $ title = book.title
+            <span class="booktitle"><a href="$book.key/$title.replace(' ', '-')">$book.title_prefix $title</a></span>
+            $if book.get('authors', None):
+                <span class="bookauthor">$_.by
+                $ authorlist = ', '.join([thingrepr(author).rstrip() for author in book.authors])
+                $:authorlist
+                </span>
+            <span class="resultPublisher">
+                $if book.publishers:
+                    $(', '.join(book.publishers)), $book.publish_date
+                $else:
+                    $book.publish_date
+                <span class="resultType">
+                    $book.physical_format.replace('[', '').replace(']','')
+                </span>
+            </span>
+            $if fulltext:
+                <span class="small sansserif">Pages:
+                $if len(pages)==0: <i>Unknown</i>
+                $ a = []
+                $for pn, pg in pages:
+                    $ a.append('<a href="http://www.archive.org/stream/%s#page/n%s/mode/1up">%s</a>'% (book.ocaid, pn-1, pg))
+                $:(',&nbsp;&nbsp;'.join(a))
+                </span>
+        </span>
+        $if book.ocaid: 
+            <span class="actions">
+                <a href="http://www.archive.org/stream/$book.ocaid">
+                    <span class="image read"></span>
+                    <span class="label">Read</span>
+                </a>
+            </span>
+    </span>
+    </li>
+
+</ul>

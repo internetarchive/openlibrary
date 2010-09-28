@@ -1,0 +1,37 @@
+/* ItemOps Styles */
+
+.itemOpTable { 
+  margin: 1em;
+  border-collapse:collapse; 
+  border:1px solid silver; 
+}
+
+.itemOpTable td { 
+  padding: 4px;
+  background-color:#eeeedd; border:1px solid silver;
+}
+
+.itemOpTable th { 
+  background-color:#e5e5e5; border:1px solid black; 
+}
+
+.itemOpBox { 
+  border:0;
+  font-size: smaller;
+}
+
+.curateInfoTable { 
+  border-collapse:collapse;
+}
+
+.curateInfoTable td { 
+  padding: 0;
+}
+
+.extraFieldTable { 
+  border-collapse: collapse;
+}
+
+.extraFieldTable td { 
+  background-color:#e5e5e5; 
+}

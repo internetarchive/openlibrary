@@ -1,0 +1,21 @@
+$def with (user)
+
+$var title: $_("Your Account")
+
+<div id="contentHead">
+    <h1>$_("Your Account")</h1>
+</div>
+
+<div id="contentBody">
+    <p class="sansserif larger"><a href="/account/password">$_("Change Password")</a></p>
+    <p class="sansserif larger"><a href="/account/email">$_("Update Email Address")</a></p>
+    <p class="sansserif larger"><a href="/account/notifications">$_("Your Notifications")</a></p>
+    <p class="sansserif larger"><a href="$user.key">$_("View")</a> $_("or") <a href="$user.key?m=edit">$_("Edit")</a> $_("Your Profile Page")</p>
+
+    <!--
+    <p class="sansserif larger"><a href="/account/lists">$("Your Lists")</a></p>
+    -->
+    <br/>
+    
+    <p class="sansserif larger"><a href="/account/delete" class="fixthis">$_("Delete Your Account")</a> <i>coming soon...</i></p>
+</div>

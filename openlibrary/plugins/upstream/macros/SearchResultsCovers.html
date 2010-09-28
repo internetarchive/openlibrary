@@ -1,0 +1,42 @@
+$def with (results, fulltext=False)
+
+$ _ = i18n.get_namespace('/search')
+
+$code:
+    def aname(a):
+        if isinstance(a, basestring):
+            return a
+        else:
+            return a.name
+
+<script type="text/javascript">
+\$().ready(bookCovers);
+</script>
+
+$for b in results:
+        $if fulltext:
+            $ book = b[0]
+            $ ocaid = b[1]
+            $ pages = b[2]
+        $else:
+            $ book = b
+            $ ocaid = None
+        $ olid = book.key.split('/')[-1]
+        $ title = book.title
+        $ authorlist = ', '.join([aname(author) for author in book.authors])
+        $if book.ocaid:
+            $ authorlist = authorlist + ' (' + str(_.fulltext) + ')'
+        <div class="coverMagic">
+            <div class="SRPCover">
+                <a href="$book.key" title="$book.title_prefix $book.title $_.by $:authorlist">
+                    <img src="$get_coverstore_url()/b/olid/$olid-M.jpg?default=false" class="cover" alt="$book.title_prefix $book.title $_.by $:authorlist"/>
+                </a>
+            </div>
+            <div class="SRPCoverBlank" onClick="document.location.href='$book.key';" title="$book.title_prefix $book.title $_.by $:authorlist">
+                <div class="innerBorder">
+                    <div class="BookTitle">$:macros.TruncateString(title, 70)
+                        <div class="Author">$:authorlist</div>
+                    </div>
+                </div>
+            </div>
+        </div>

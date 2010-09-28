@@ -1,0 +1,31 @@
+{
+    'description': {
+        'type': '/type/text',
+        'value': 'Type to display raw information without putting inside site template. Examples: css files, javascripts etc.'
+    },
+    'key': '/type/rawtext',
+    'kind': 'regular',
+    'name': 'Rawtext',
+    'properties': [{
+        'expected_type': {
+            'key': '/type/string'
+        },
+        'name': 'title',
+        'unique': True
+    }, {
+        'expected_type': {
+            'key': '/type/string'
+        },
+        'name': 'content_type',
+        'unique': True
+    }, {
+        'expected_type': {
+            'key': '/type/text'
+        },
+        'name': 'body',
+        'unique': True
+    }],
+    'type': {
+        'key': '/type/type'
+    }
+}

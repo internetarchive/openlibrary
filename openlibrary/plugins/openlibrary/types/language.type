@@ -1,0 +1,36 @@
+{
+    'backreferences': [{
+        'expected_type': {
+            'key': '/type/work'
+        },
+        'name': 'works',
+        'property_name': 'original_languages',
+        'type': {
+            'key': '/type/backreference'
+        }
+    }],
+    'key': '/type/language',
+    'kind': 'regular',
+    'properties': [{
+        'expected_type': {
+            'key': '/type/string'
+        },
+        'name': 'name',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': True
+    }, {
+        'expected_type': {
+            'key': '/type/string'
+        },
+        'name': 'code',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': True
+    }],
+    'type': {
+        'key': '/type/type'
+    }
+}

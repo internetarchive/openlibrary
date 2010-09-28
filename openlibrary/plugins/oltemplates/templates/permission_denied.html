@@ -1,0 +1,19 @@
+$def with (path, error)
+
+$var title: Permission Denied
+
+<div id="header">
+    <div style="float:left;padding-left:10px;padding-right:15px;"></div>
+    <div id="title">Permission Denied</div>
+</div>
+
+<div class="contenttext">
+
+$error
+
+<br/><br/>
+
+$if not ctx.user:
+    You may <a href="/account/login?$:urlencode(dict(redirect=path))">Login</a> if you have the required permissions.    
+
+</div>

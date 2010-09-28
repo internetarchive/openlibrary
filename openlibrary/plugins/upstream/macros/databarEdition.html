@@ -1,0 +1,145 @@
+$def with (book)
+
+$ booksense = "http://booksense.com/product/info.jsp?isbn=XXX"
+$ amazon = "http://www.amazon.com/gp/product/XXX?tag=openlibr-20"
+$ abebooks = "http://clickserve.cc-dt.com/link/tplclick?lid=41000000024660875&pubid=21000000000172077&isbn=XXX"
+$ alibris = " http://click.linksynergy.com/fs-bin/click?id=eSmaWuUpnDY&offerid=99238.122856000&type=2&subid=0&tmpid=939&RD_PARM1=http%253A%252F%252Fwww.alibris.com/booksearch%253Fqsort%253Dp%2526isbn%253DXXX"
+$ barnesandnoble = "http://search.barnesandnoble.com/booksearch/isbninquiry.asp?ISBN=XXXafsrc=1&lkid=J14933426&pubid=K172077"
+$ bibliocom = " http://www.biblio.com/isbn/XXX.html"
+$ powells = "http://www.powells.com/partner/33286/biblio/XXX"
+
+$ worldcat = "http://worldcat.org/isbn/XXX"
+$ worldcatoclc = "http://worldcat.org/oclc/XXX"
+$ bookmooch = "http://www.bookmooch.com/m/mooch_choice?asin=XXX"
+$ titletrader = "http://www.titletrader.com/invinfo/XXX.html"
+
+$ viewbook = "http://www.archive.org/stream/XXX"
+$ detailbook = "http://www.archive.org/details/XXX"
+$ downloadbook = "http://www.archive.org/download/XXX/XXX.pdf"
+$ pdfbw = "http://www.archive.org/download/XXX/XXX_bw.pdf"
+$ daisy = "http://www.archive.org/download/XXX/XXX_daisy.zip"
+$ epub = "http://www.archive.org/download/XXX/XXX.epub"
+$ kindle = "http://www.archive.org/download/XXX/XXX.mobi"
+$ djvu = "http://www.archive.org/stream/XXX/XXX.djvu"
+$ djvutxt = "http://www.archive.org/download/XXX/XXX_djvu.txt"
+$ seeall = "http://www.archive.org/download/XXX"
+$ google = ""
+
+$ isbn_10 = (book.isbn_10 and book.isbn_10[0]) or ""
+$ oclc_numbers = (book.oclc_numbers and book.oclc_numbers[0]) or ""
+
+<script type="text/javascript">
+\$().ready(slidePanels);
+</script>
+
+<div id="Tools">
+
+$if book.volumes:
+    <div>
+    <h3 class="header">
+        <span class="icon read"></span>
+        <span class="head blue">Browse</span>
+        <span class="subhead">on <span class="blue">Internet Archive</span></span>
+    </h3>
+    $for v in book.volumes:
+        $if v.ia_id != "-":
+            <div class="panel">
+                <p><a href="$viewbook.replace('XXX', v.ia_id)">View Volume $v.volume_number</a></p>
+            </div>
+            </div>
+$elif book.get('ocaid'):
+    <div>
+    <h3 class="header">
+        <span class="icon read"></span>
+        <span class="head blue">Read</span>
+        <span class="subhead">on <span class="blue" onclick="location.href='http://www.archive.org/';">Internet Archive</span></span>
+    </h3>
+    <div class="panel">
+        <p><a href="$viewbook.replace('XXX', book.ocaid)">Read online</a></p>
+        <p><a href="$djvutxt.replace('XXX', book.ocaid)">Full text</a></p>
+        <p><a href="$djvu.replace('XXX', book.ocaid)">DjVu</a> (Requires Java)</p>
+        <p><a href="$seeall.replace('XXX', book.ocaid)">View all available methods</a></p>
+    </div>
+    </div>
+    <div>
+    <h3 class="header">
+        <span class="icon download"></span>
+        <span class="head blue">Download</span>
+        <span class="subhead">available</span>
+    </h3>
+    <div class="panel">
+        <p><a href="$downloadbook.replace('XXX', book.ocaid)">PDF</a></p>
+        <p><a href="$daisy.replace('XXX', book.ocaid)">DAISY</a></p>
+        <p><a href="$epub.replace('XXX', book.ocaid)">EPUB</a></p>
+        <p><a href="$kindle.replace('XXX', book.ocaid)">Kindle</a></p>
+    </div>
+    </div>
+$else:
+    <div>
+    <h3 class="closed">
+        <span class="icon readinact"></span>
+        <span class="head">Read</span>
+        <span class="subhead">is unavailable</span>
+    </h3>
+    </div>
+
+$if isbn_10:
+    <div>
+    <h3 class="header">
+        <span class="icon buy"></span>
+        <span class="head blue">Buy</span>
+        <span class="subhead">from an online retailer</span>
+    </h3>
+    <div class="panel">
+        <p><a href="$amazon.replace('XXX', isbn_10)" class="datalink">Amazon</a></p>
+        <p><a href="$abebooks.replace('XXX', isbn_10)" class="datalink">Abebooks</a></p>
+        <p><a href="$alibris.replace('XXX', isbn_10)" class="datalink">Alibris</a></p>
+        <p><a href="$barnesandnoble.replace('XXX', isbn_10)" class="datalink">Barnes and Noble</a></p>
+        <p><a href="$bibliocom.replace('XXX', isbn_10)" class="datalink">Biblio.com</a></p>
+        <p><a href="$powells.replace('XXX', isbn_10)" class="datalink">Powells</a></p>
+    </div>
+    </div>
+$else:
+    <div>
+    <h3 class="closed">
+        <span class="icon buyinact"></span>
+        <span class="head">Buy</span>
+        <span class="subhead">is unavailable</span>
+    </h3>
+    </div>
+
+$if isbn_10:
+    <div>
+    <h3 onclick="location.href='$worldcat.replace('XXX', isbn_10)';">
+        <span class="icon borrow"></span>
+        <span class="head blue">Borrow</span>
+        <span class="subhead">from your local library</span>
+    </h3>
+    </div>
+$elif oclc_numbers:
+    <div>
+    <h3 onclick="location.href='$worldcatoclc.replace('XXX', oclc_numbers)';">
+        <span class="icon borrow"></span>
+        <span class="head blue">Borrow</span>
+        <span class="subhead">from your local library</span>
+    </h3>
+    </div>
+$else:
+    <div>
+    <h3 class="closed">
+        <span class="icon borrowinact"></span>
+        <span class="head">Borrow</span>
+        <span class="subhead">is unavailable</span>
+    </h3>
+    </div>
+
+<!--
+    <div>
+    <h3 onclick="location.href='/lists';" class="fixthis" title="Lists not implemented">
+        <span class="icon list"></span>
+        <span class="head">List</span>
+        <span class="subhead">Make this a favorite</span>
+    </h3>
+    </div>
+-->
+</div>

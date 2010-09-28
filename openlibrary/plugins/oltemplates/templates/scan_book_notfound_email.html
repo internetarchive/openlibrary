@@ -1,0 +1,19 @@
+$def with (book, scan_record, comment)
+
+$var subject: Scan of $book.title could not be completed
+
+Hello, $scan_record.sponsor.displayname!
+
+We are sending this mail to inform you that the scan of the book 
+"$book.title", that you have sponsored, could not be completed. 
+
+$if comment:
+    We apologize for the inconvenience. 
+    The reason for this is: $comment
+
+You might want to try searching for Open Library for similar books:
+http://openlibrary.org/search?q=$book.title
+
+Thank you for your patronage!
+
+The Open Library Team

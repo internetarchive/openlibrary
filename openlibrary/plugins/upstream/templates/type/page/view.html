@@ -1,0 +1,28 @@
+$def with (page)
+
+$ title = page.title or page.key
+
+$if title.startswith("i18n::") and title.count(':') == 3:
+    $ namespace = title.split(':')[2]
+    $ key = title.split(':')[3]
+    $ title = i18n.get(namespace, key)
+
+$var title: $title
+        
+$if '<!--suppress-title-->' not in page.body:
+    <div id="contentHead">
+        $:macros.databarView(page)
+        <h1>$title</h1>
+    </div>
+
+$ text = format(page.body)
+
+<div id="contentBody">
+
+    $:macros.Subnavigation(page)
+
+    $:text
+
+    $:render_template("lib/history", page)
+
+</div>

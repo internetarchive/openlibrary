@@ -1,0 +1,168 @@
+$def with (page)
+
+$ _t = i18n.get_namespace(page.type.key)
+$ _ = i18n.get_namespace('/mode/edit')
+
+$var title: $_.edit_title(page.name)
+
+$add_javascript("/static/js/repetition/repetition-model.js")
+$add_javascript("/static/js/jquery/jquery.js")
+
+<script>
+function changeTemplate() {
+    var t = document.edit._type.value;
+    document.location.href += '&t=' + t;
+}
+
+function moveup(e) {
+    if (!e) e = window.event;
+    if (e.preventDefault)
+        e.preventDefault();
+    
+    var parents = \$(this).parents().filter("tr[@repeat]");
+    var a = parents[0];
+    var b = parents.prev()[0]
+    swapvalues(a, b);
+    return this.returnValue = false;
+}
+
+function movedown(e) {
+    if (!e) e = window.event;
+    if (e.preventDefault)
+        e.preventDefault();
+    
+    var parents = \$(this).parents().filter("tr[@repeat]");
+    var a = parents[0];
+    var b = parents.next()[0]
+    swapvalues(a, b);
+    return this.returnValue = false;
+}
+
+function swapvalues(a, b) {
+    var ia = \$(':input', a);
+    var ib = \$(':input', b);
+    
+    for (var i=0; i<ia.length; i++)
+        swap(ia[i], ib[i]);
+}
+
+function swap(a, b) {
+    // probably this check must also be there for type radio
+    if (a.nodeName.toLowerCase() == 'input' && a.type.toLowerCase() == 'checkbox') {
+        var t = a.checked; 
+        a.checked = b.checked; 
+        b.checked = t; 
+    }
+    else {
+        var t = a.value; 
+        a.value = b.value; 
+        b.value = t;         
+    }
+}
+
+</script>
+
+$def display_multiple_row(property, value, index):
+    $if index is None:
+        $ attrs = 'id="row_%s" repeat="template"' % property.name
+        $ prefix = '%s#[row_%s]' % (property.name, property.name)
+    $else:
+        $ attrs = 'repeat="%d""' % index
+        $ prefix = '%s#%d' % (property.name, index)
+        
+    <tr $:attrs>
+        $if property.expected_type.kind == "embeddable":
+            $ count = len(property.expected_type.properties)
+            $ klass = property.expected_type.key.split('/')[-1]
+            $for p in property.expected_type.properties:
+                <!-- $p.name $p.expected_type -->
+                <td class="inputrow inputrow-$count $klass-$p.name">$:thinginput(value and value[p.name], name=prefix + "." + p.name, expected_type=p.expected_type)</td>
+        $else:
+            $ klass = page.type.key.split('/')[-1]
+            <td class="inputrow  $klass-$property.name">$:thinginput(value, name=prefix, expected_type=property.expected_type)</td>
+        $:move_buttons(property.name)
+    </tr>
+$def display_header(property):
+    $if property.expected_type.kind == "embeddable":
+        <tr>
+            $for p in property.expected_type.properties:
+                <th class="inputrow">$i18n.get(p.expected_type.key, p.name)</td>
+        </tr>
+
+$def display_multiple(property, value):
+    <table cellpadding="0" cellspacing="0" border="0" width="100%">
+        <tbody>
+        $:display_header(property)
+        </tbody>
+        <tbody>
+        $for i, v in enumerate(value):
+            $:display_multiple_row(property, v, i)
+        $:display_multiple_row(property, None, None)
+        $:add_button(property)
+        </tbody>
+    </table>
+
+$def display_regular(p, value):
+    $:thinginput(value, p)
+    
+$def display(property, value):
+    $if property.unique:
+        $:display_regular(property, value)
+    $else:
+        $:display_multiple(property, value)
+        
+$def move_buttons(key):
+    <td style="white-space: nowrap;">
+        <button type="remove" template="row_$key" class="repeat"><img class="minus" src="/static/images/minus.png" alt="-" width="18" height="18" /></button>
+    	<button type="move-up" template="row_$key" onclick="return moveup.apply(this, [event]);"  class="repeat"><img class="moveup" src="/static/images/arrow.up.gif" alt="up" width="18" height="18" /></button>
+    	<button type="move-down" template="row_$key" onclick="return movedown.apply(this, [event]);"  class="repeat"><img class="movedown" src="/static/images/arrow.down.gif" alt="down" width="18" height="18"></button>
+    </td>
+
+$def add_button(property):
+    <tr>
+    $if property.expected_type.kind == "embeddable":
+        $for p in property.expected_type.properties:
+            <td></td>
+    $else:
+        <td></td>
+    <td style="padding-bottom: 12px;"><button type="add" template="row_$property.name" class="repeat"><img class="plus" src="/static/images/plus.png" alt="+" width="18" height="18" /></button></td>
+    </tr>
+
+<form name="edit" method="POST">
+
+    <div id="slickbox" style="overflow: hidden">
+        $:macros.TypeChanger(page.type)
+    </div>
+
+    <!-- WIKI EDIT SECTION -->
+    <div id="biblio-form-body">    
+        <table cellspacing="0" cellpadding="0" border="0" width="100%"><tbody>
+    <tr>
+        <td colspan="2">
+                <div id="header">               
+                    <span class="pretitle">$_.pretitle:<br /></span>             
+                    <div id="title">$page.title</div>            
+                </div>
+        </td>
+    </tr>            
+</tbody>
+
+$for p in page.type.properties:
+    $ label = _t[p.name]
+    $ value = page[p.name]
+    $ klass = page.type.key.split("/")[-1] + "-" + p.name
+    <tbody>
+        <tr>
+            <td class="formheader" style="text-align: right; padding-right: 10px; vertical-align: top; padding-top: 4px;">$label</td>
+            <td  class="inputrow $klass">$:display(p, value)</td>
+        </tr>
+    </tbody>
+</table>
+    
+
+<!-- edit summary and buttons -->
+<div style="padding-left: 10px;">
+    $:macros.EditButtons(comment=page.comment_)
+</div>
+
+</form>

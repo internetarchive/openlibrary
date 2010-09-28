@@ -1,0 +1,31 @@
+$def with (comment=None)
+
+<script type="text/javascript">
+\$().ready(Dialog);
+\$().ready(deleteVerify);
+</script>
+<div id="dialog" class="hidden" title="Really delete this macro?"><p>Are you sure you want to delete this?</p></div>
+
+<div class="formElement">
+    <div class="label">
+        <label for="comment">$_("Please, leave a short note about what you changed:")</label>
+        <span class="gray small">(Optional, but very useful!)</span>
+    </div>
+    <div class="input">
+        <input type="text" name="_comment" id="comment" value="$comment" style="width:900px;"/>
+    </div>
+</div>
+
+<div class="cclicense">
+    $:_('By saving a change to this wiki, you agree that your contribution is given freely to the world under <a href="http://wiki.creativecommons.org/CC0_FAQ">CC0</a>. Yippee!')
+</div>
+
+<div class="formElement collapse">
+    <div class="input">
+        <input type="submit" value="$_('Save')" style="font-size:18px!important;" name="_save" title="$_('Save')" />
+        &nbsp;
+        <a href="javascript:history.go(-1);" class="small attn plain">$_('Cancel')</a>
+        <button class="right" type="submit" value="$_('Delete Record')" name="delete" title="$_('Delete this record')" id="delete">$_("Delete Record")</button>
+        <input type="submit" name="_delete" value="Delete" style="display: none;"/>
+    </div>
+</div>

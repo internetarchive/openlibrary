@@ -1,0 +1,49 @@
+$def with (page)
+
+$ h = get_history(page)
+
+$ versions = h.recent + h.initial
+
+<div class="clearfix"></div>
+<div id="pageHistory">
+    <div class="head">
+        <h2>
+        $_("History")
+    
+        <span class="title">$_("Created %s", datestr(h.initial[0].created)) &bull; </span>
+        $if page.url:
+            $ url = page.url(m='history')
+        $else:
+            $ url = changequery(m='history')
+            
+        $ latest = versions[0]
+        <span class="link"><a rel="nofollow" href="$url">$latest.revision $_("revision")$("s" if latest.revision != 1 else "")</a></span>
+        </h2>
+    </div>
+
+    <table class="history">
+        <tbody>
+            $def render_row(v,):
+                <td class="timestamp"><a rel="nofollow" href="$v.key?v=$v.revision" title="$_('View revision %s', v.revision)">$datestr(v.created)</a></td>
+                <td class="timestamp">
+                    $if v.author: 
+                        $ author_link = '<a rel="nofollow" href="%s" class="truncate" title="%s">%s</a>' % (v.author.key, v.author.displayname, v.author.displayname)
+                    $elif v.ip and v.ip != "127.0.0.1":
+                        $ author_link = '<a rel="nofollow" href="/recentchanges?ip=%s" title="%s">%s</a>' % (v.ip, _('an anonymous user'), v.ip)
+                    $else:
+                        $ author_link = '<span>%s</span>' % (_('an anonymous user'))
+                    $if v.revision == 1:
+                        $:_("Created by %s", author_link)
+                    $else:
+                        $:_("Edited by %s", author_link)
+                </td>
+                <td class="detail">$:render_template("history/comment", v)</td>
+            
+            $for v in h.recent:
+                <tr>$:render_row(v)</tr>
+            $if h.initial:
+                $for v in h.initial:
+                    <tr class="first" style="background: #eee;">$:render_row(v)</tr>
+        </tbody>
+    </table>
+</div>

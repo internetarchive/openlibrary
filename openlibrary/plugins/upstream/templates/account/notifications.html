@@ -1,0 +1,60 @@
+$def with (d, email)
+
+$var title: $_("Notifications from Open Library")
+
+<div id="contentHead">
+    <h1>$_("Notifications from Open Library")</h1>
+    <p class="instruct">
+        <a href="/account/email">$_("Update your email address?")</a>
+        $:_("We have %(email)s for you at the moment.", email='<b>' + email + '</b>')
+    </p>
+</div>
+
+$def selected(value, value2):
+    $if value == value2: checked="checked"
+
+$ notify = d.get('notify', 'no')        
+$ updates = d.get('updates', 'no')
+
+<div id="contentBody">
+    <form method="post" class="olform" action="" id="notifications">
+        <p class="sansserif larger">$_("Notifications are connected to Lists at the moment. If one of the books on your list gets edited, or a new book comes into the catalog, we'll let you know, if you want.")</p>
+        <br/>
+        
+
+
+        <div class="formElement">
+            <h3 class="collapse">$_("Would you like to receive remarkably low traffic update-style emails from Open Library?")</h3>
+        </div>
+        <br/>
+        <div class="formElement">
+            <div class="input radio">
+                <div class="sansserif larger">
+                    <input type="radio" name="updates" id="u0" value="no" $selected(updates, "no")/>
+                    <label for="u0">$_("No, thank you")</label>
+                    <br/><br/>
+                </div>
+            </div>
+            <div class="input radio">
+                <div class="sansserif larger">
+                    <input type="radio" name="updates" id="u1" value="yes" $selected(updates, "yes")/> 
+                    <label for="u1">$_("Yes! Please!")</label>
+                    <br/><br/>
+                </div>
+            </div>
+        </div>
+        <div class="formElement bottom">
+            <div class="input">
+                <br/>
+                <input value="Save" type="submit" name="submit" title="$_('Save')"/>
+                &nbsp;
+                <a href="javascript:history.go(-1);" class="smaller attn">$_('Cancel')</a>
+            </div>
+        </div>
+    </form>
+</div>
+
+
+<script type="text/javascript">
+    \$().ready(twitterOn);
+</script>

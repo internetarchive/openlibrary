@@ -1,0 +1,264 @@
+{
+    "classifications": [
+        {
+            "name": "dewey_decimal_class", 
+            "label": "Dewey Decimal Class"
+        }, 
+        {
+            "name": "lc_classifications", 
+            "label": "Library of Congress"
+        }, 
+        {
+            "website": "http://rvk.uni-regensburg.de/index.php?option=com_rvko&view=show&Itemid=53", 
+            "notes": "", 
+            "name": "rvk", 
+            "label": "RVK"
+        }, 
+        {
+            "website": "http://www.bne.es/es/LaBNE/Adquisiciones/DepositoLegal/", 
+            "notes": "", 
+            "name": "dep\u00f3sito_legal_n.a.", 
+            "label": "Dep\u00f3sito Legal N.A."
+        }, 
+        {
+            "website": "http://ykl.kirjastot.fi/en-GB/?PrevLang=fi", 
+            "notes": "", 
+            "name": "finnish_public_libraries_classification_system", 
+            "label": "Finnish Public Libraries"
+        }
+    ], 
+    "roles": [
+        "Author", 
+        "Adaptation", 
+        "Afterword", 
+        "Book Designer", 
+        "Contributor", 
+        "Colorist", 
+        "Copy Editor", 
+        "Cover artist", 
+        "Contributing artist", 
+        "Curator", 
+        "Decorator", 
+        "Designer", 
+        "Editor", 
+        "Epilogue", 
+        "Foreword", 
+        "Graphic Design", 
+        "Illustrator", 
+        "Indexer", 
+        "Introduction", 
+        "Narrator", 
+        "Photographer", 
+        "Printmaker", 
+        "Proofreader", 
+        "Screenplay", 
+        "Translator", 
+        "Technical Reviewer", 
+        "Text Design", 
+        "Typesetter", 
+        "Conductor", 
+        "Orchestra", 
+        "Recording Studio", 
+        "Soloist", 
+        "Script", 
+        "Agent", 
+        "As told to", 
+        "Assistant Editor", 
+        "Art Director", 
+        "Botanical Illustrator", 
+        "Chief editor", 
+        "Compiler", 
+        "Consultant Editor", 
+        "Consulting Editor", 
+        "Editorial Director", 
+        "General Editor", 
+        "Lettering", 
+        "Home Economist", 
+        "Map Design and Cartography", 
+        "Photo Editor", 
+        "Preface", 
+        "Posf\u00e1cio", 
+        "Production Controller", 
+        "Production Coordinator", 
+        "Research", 
+        "Senior Editor", 
+        "Director", 
+        "Musical Director", 
+        "Recording Producer", 
+        "Producer", 
+        "Collected by", 
+        "Reviewer", 
+        "Co-Authors", 
+        "collection", 
+        "Information Officer", 
+        "Research Dir.", 
+        "Revised by", 
+        "Notes by", 
+        "Selected by", 
+        "Copyright", 
+        "Photo Scanning Specialist", 
+        "printer", 
+        "grunt", 
+        "hallucinator", 
+        "smallchange artist", 
+        "Advisory Editor", 
+        "Researcher"
+    ], 
+    "identifiers": [
+        {
+            "url": "http://www.amazon.com/gp/product/@@@", 
+            "name": "amazon", 
+            "label": "Amazon ASIN"
+        }, 
+        {
+            "url": "http://www.biodiversitylibrary.org/bibliography/@@@", 
+            "website": "http://www.biodiversitylibrary.org", 
+            "notes": "", 
+            "name": "bhl", 
+            "label": "Biodiversity Heritage Library"
+        }, 
+        {
+            "url": "http://www.bookmooch.com/detail/@@@", 
+            "name": "bookmooch", 
+            "label": "Book Mooch"
+        }, 
+        {
+            "url": "http://d-nb.info/@@@", 
+            "website": "http://www.d-nb.de/eng/index.htm", 
+            "notes": "", 
+            "name": "dnb", 
+            "label": "Deutsche National Bibliothek"
+        }, 
+        {
+            "url": "http://www.goodreads.com/book/show/@@@", 
+            "name": "goodreads", 
+            "label": "Goodreads"
+        }, 
+        {
+            "url": "http://books.google.com/books?id=@@@", 
+            "name": "google", 
+            "label": "Google"
+        }, 
+        {
+            "url": "http://www.archive.org/details/@@@", 
+            "name": "ocaid", 
+            "label": "Internet Archive"
+        }, 
+        {
+            "name": "isbn_10", 
+            "label": "ISBN 10"
+        }, 
+        {
+            "name": "isbn_13", 
+            "label": "ISBN 13"
+        }, 
+        {
+            "url": "http://catalog.hathitrust.org/Record/@@@", 
+            "website": "http://hathitrust.org/", 
+            "name": "hathi_trust", 
+            "label": "Hathi Trust"
+        }, 
+        {
+            "url": "http://discovery.lib.harvard.edu/?itemid=|library/m/aleph|@@@", 
+            "website": "http://harvard.edu", 
+            "notes": "", 
+            "name": "harvard", 
+            "label": "Harvard University Library"
+        }, 
+        {
+            "url": "http://lccn.loc.gov/@@@", 
+            "name": "lccn", 
+            "label": "LC Control Number"
+        }, 
+        {
+            "url": "http://www.librarything.com/work/@@@", 
+            "name": "librarything", 
+            "label": "Library Thing"
+        }, 
+        {
+            "url": "http://www.lulu.com/product/@@@", 
+            "website": "http://www.lulu.com", 
+            "name": "lulu", 
+            "label": "Lulu"
+        }, 
+        {
+            "url": "http://catalogue.nla.gov.au/Record/@@@", 
+            "website": "http://www.nla.gov.au/", 
+            "notes": "", 
+            "name": "nla", 
+            "label": "National Library of Australia"
+        }, 
+        {
+            "url": "http://www.worldcat.org/oclc/@@@?tab=details", 
+            "name": "oclc_numbers", 
+            "label": "OCLC/WorldCat"
+        }, 
+        {
+            "name": "overdrive", 
+            "label": "OverDrive"
+        }, 
+        {
+            "url": "http://www.paperbackswap.com/book/details/@@@", 
+            "name": "paperback_swap", 
+            "label": "Paperback Swap"
+        }, 
+        {
+            "url": "http://www.gutenberg.org/etext/@@@", 
+            "website": "www.gutenberg.org", 
+            "name": "project_gutenberg", 
+            "label": "Project Gutenberg"
+        }, 
+        {
+            "url": "http://www.scribd.com/doc/@@@/", 
+            "website": "http://www.scribd.com/", 
+            "name": "scribd", 
+            "label": "Scribd"
+        }, 
+        {
+            "url": "http://www.shelfari.com/books/@@@/", 
+            "website": "http://www.shelfari.com/", 
+            "name": "shelfari", 
+            "label": "Shelfari"
+        }, 
+        {
+            "url": "http://www.almedina.net/catalog/product_info.php?products_id=@@@", 
+            "notes": "", 
+            "name": "almedina", 
+            "label": "Almedina"
+        }, 
+        {
+            "website": "http://www.issn.org/", 
+            "notes": "", 
+            "name": "issn", 
+            "label": "ISSN"
+        }, 
+        {
+            "website": "www.alibris.com", 
+            "notes": "", 
+            "name": "alibris", 
+            "label": "Alibris"
+        }, 
+        {
+            "website": "http://www.isfdb.org/wiki/index.php/Publisher:Triad", 
+            "notes": "", 
+            "name": "isfdb", 
+            "label": "isfdb"
+        }, 
+        {
+            "website": "http://www.elviejolibro.tk", 
+            "notes": "", 
+            "name": "libreria_virtual_el_viejo_libro", 
+            "label": "Libreria Virtual El Viejo Libro"
+        }, 
+        {
+            "website": "", 
+            "notes": "", 
+            "name": "albertina_national_bibliotheek_van_belgi\u00eb", 
+            "label": "Albertina National Bibliotheek van Belgi\u00eb"
+        }
+    ], 
+    "key": "/config/edition", 
+    "type": {
+        "key": "/type/object"
+    }, 
+}

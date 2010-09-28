@@ -1,0 +1,170 @@
+$def with (book)
+
+$code:
+    def has_any(*keys):
+        return any(book[k] for k in keys)
+
+$def display_value(label, value):
+    $if value:
+        <tr>
+            <td class="title"><h6 class="title">$label</h6></td>
+            <td class="tag"><span class="object">$:thingrepr(value)</span></td>
+        </tr>
+
+$def display_identifiers(label, ids):
+    $if label != "Goodreads":
+        <tr>
+            <td class="title"><h6 class="title">$label</h6></td>
+            <td class="object"><span class="object">
+                $for id in ids:
+                    $ sep = cond(loop.last, "", ", ")
+                    $if id.url:
+                        <a href="$id.url">$id.value</a>$sep
+                    $else:
+                        ${id.value}$sep
+            </span></td>
+        </tr>
+    $else:
+        <tr>
+            <td class="title"><h6 class="title">$label</h6></td>
+            <td class="object"><span class="object">
+                $for id in ids:
+                    <a href="$id.url">$id.value</a>
+            </span>
+            $if ctx.user and ctx.user.is_admin():
+                <div id="gr_add_to_books"></div>
+                <script type="text/javascript" src="http://www.goodreads.com/book/add_to_book_widget_frame/$id.value"></script>
+            </td>
+        </tr>
+
+$def display_contributor(c):
+    <li><span>$c.role</span><br />$c.name </li>
+
+$ work = book.works and book.works[0] or None
+
+$ publishers = (', '.join(book.publishers))
+
+        <div class="workAbout">
+            <div class="section smaller lightgreen sansserif" style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #dedede; margin-bottom: 5px">
+                $_("There is only 1 edition record, so we'll show it here:")
+            </div>
+            <div class="section sansserif" style="line-height: 1.5em">
+                <span style="font-size: 18px;"><strong>$book.title</strong></span>
+                $if book.subtitle:
+                    <br /><span class="larger"><em>$book.subtitle</em></span>
+                $if book.edition_title or book.edition_name:
+                    <br/>$book.edition_title $book.edition_name
+                $if book.by_statement:
+                    <br/>$book.by_statement
+                $if book.publish_date or book.publishers or book.publish_places:
+                    <br/>
+                    <span style="font-size:13px;">
+                        Published
+                        $if book.publish_date:
+                            <strong>$book.publish_date</strong> 
+                        $if book.publishers:
+                            by
+                            $for p in book.publishers:
+                                <a href="/search?publisher_facet=$p.replace('&','%26')" title="$_('Search for other books from') $p">$p</a>$cond(loop.last, "", ", ")
+                        $if book.publish_places:
+                            in
+                            $for p in book.publish_places:
+                                 <a href="/search/subjects?q=$p.replace('&','%26')" title="$_('Search for subjects about') $p">$p</a>$cond(loop.last, "", ", ")
+                        <span class="adjust">.</span>
+                        $if book.languages:
+                        <br/>Written in $:thingrepr(book.languages).
+                </span>    
+            </div>
+
+        $if book.description:
+            <h3 class="collapse">$_("About the Book")</h3>
+            $:format(book.description)
+
+        $if book.first_sentence:
+            <h3 class="collapse">$_("First Sentence")</h3>
+            <p>$book.first_sentence</p>
+
+        $ table_of_contents = book.get_table_of_contents()
+        $if table_of_contents and len(table_of_contents) > 1:
+            <div class="section">
+            <h3 class="collapse">$_("Table of Contents")</h3>
+            <table class="meta" id="toc-table">
+            <tbody>
+                $for toc in table_of_contents:
+                    <tr class="toc-level-$toc.level">
+                        <td class="toc-label">$toc.label</td>
+                        <td class="toc-title">$toc.title</td>
+                        <td class="toc-pagenum">$toc.pagenum</td>
+                    </tr>
+            </tbody>
+            </table>
+            </div>
+
+        $if book.notes or book.series or book.volume or book.genres or book.other_titles or book.copyright_date or book.translation_of or book.translated_from:
+            <div class="section">
+                <h3 class="collapse">$_("Edition Notes")</h3>
+                $if book.notes:
+                    <div class="sansserif">$:format(book.notes)</div>
+                <table class="meta">
+                    <tbody>
+                        $:display_value(_("Series"), book.series)
+                        $:display_value(_("Volume"), book.volume)
+                        $:display_value(_("Genre"), book.genres)
+                        $:display_value(_("Other Titles"), book.other_titles)
+                        $:display_value(_("Copyright Date"), book.copyright_date)
+                        $:display_value(_("Translation Of"), book.translation_of)
+                        $:display_value(_("Translated From"), book.translated_from)
+                    </tbody>
+                </table>
+            </div>
+        
+        $ classifications = book.get_classifications().multi_items()
+        $if classifications:
+            <div class="section">
+                <h3 class="collapse">$_("Classifications")</h3>
+                <table class="meta">
+                <tbody>
+                    $for name, values in classifications:
+                        $:display_identifiers(values[0].label, values)
+                </tbody>
+                </table>
+            </div>
+            
+        $if has_any("physical_format", "pagination", "physical_dimensions", "weight"):
+            <div class="section">
+            <h3 class="collapse">$_("The Physical Object")</h3>
+            <table class="meta">
+            <tbody>
+                $:display_value(_("Format"), book.physical_format)
+                $:display_value(_("Pagination"), book.pagination)
+                $:display_value(_("Number of pages"), book.number_of_pages)
+                $:display_value(_("Dimensions"), book.physical_dimensions)
+                $:display_value(_("Weight"), book.weight)
+            </tbody>
+            </table>
+            </div>
+
+        $ contributors = book.get('contributors', [])
+        $if contributors:
+            <div class="section">
+                <h3 class="collapse">$_("Contributors")</h3>
+                <ul class="contributors">
+                    $for c in contributors:
+                        $:display_contributor(c)
+                </ul>
+            </div>
+
+        <div class="section">
+            <h3 class="collapse">$_("ID Numbers")</h3>
+            <table class="meta">
+            <tbody>
+                $:display_identifiers("Open Library", [storage(url=None, value=book.key.split("/")[-1])])
+                $for name, values in book.get_identifiers().multi_items():
+                    $:display_identifiers(values[0].label, values)
+            </tbody>
+            </table>
+        </div>
+
+        </div>
+
+<!-- source_records: $book.get('source_records', []) -->

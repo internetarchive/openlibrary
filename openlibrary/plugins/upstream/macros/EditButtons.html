@@ -1,0 +1,24 @@
+$def with (comment=None)
+
+<div class="formElement">
+    <div class="label">
+        <label for="comment">$_("Please, leave a short note about what you changed:") <span class="small gray">(Optional, but very useful!)</span></label>
+    </div>
+    <div class="input">
+        <input type="text" name="_comment" id="comment" value="$comment" style="width:900px;" tabindex="0"/>
+    </div>
+</div>
+
+<div class="cclicense">
+    $:_('By saving a change to this wiki, you agree that your contribution is given freely to the world under <a href="http://wiki.creativecommons.org/CC0_FAQ">CC0</a>. Yippee!')
+</div>
+
+<div class="formElement collapse">
+    <div class="input">
+        <input type="submit" style="font-size:18px!important;" value="$_('Save')" name="_save" title="$_('Save')" tabindex="0"/>
+        &nbsp;
+        <a href="javascript:history.go(-1);" class="small red" tabindex="0">$_('Cancel')</a>
+        $if ctx.user and ctx.user.is_admin():
+            <button type="submit" value="$_('Delete Record')" name="_delete" title="$_('Delete Record')" id="delete" class="right" tabindex="0">$_("Delete Record")</button>
+    </div>
+</div>

@@ -1,0 +1,14 @@
+$def with (type, name, value, property="key", limit=10)
+
+
+$if property == "key":
+    <input 
+        type="text" id="$name" name="${name}.$property" value="$value[property]" class="cloneThis" 
+        ac_name="$name" ac_type="$type" ac_property="$property" ac_limit="$limit" ac_enabled="true"
+        />
+$else:
+    <input
+        type="text" id="$name" name="_${name}.$property" value="$value[property]" class="cloneThis"
+        ac_name="$name" ac_type="$type" ac_property="$property" ac_limit="$limit" ac_enabled="true" 
+        />
+    <input type="hidden" id="result_$name" name="${name}.key" value="$value.key"/>

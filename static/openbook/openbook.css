@@ -1,0 +1,13 @@
+.openbook-cover {
+    float: left; 
+    border: 0px none; 
+    padding: 0px 10px 10px 15px;    
+}
+.openbook-title {
+    font-weight: bold;
+    font-style: italic;    
+}
+.openbook-authors {
+    font-weight: bold;
+}
+

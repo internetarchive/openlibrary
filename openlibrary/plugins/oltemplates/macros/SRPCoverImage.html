@@ -1,0 +1,25 @@
+$def with(book, size="M")
+
+$code:
+    def aname(a):
+        if isinstance(a, basestring):
+            return a
+        else:
+            return a.name
+
+$ title = book.title_prefix + " " + book.title
+$ olid = book.key.split("/")[2]
+
+$if size == "M":
+	<div class="SRPCover">
+	    <img src="http://covers.openlibrary.org/b/olid/$olid-M.jpg?default=false" onerror="\$(this).parent().hide(); \$('#default-cover-$olid').show();" height="255"/>    
+	</div>
+    <div class="SRPCoverBlank" id="default-cover-$olid" style="display: none;">
+        <div class="BookTitle">
+            $ author_names = ", ".join(aname(a) for a in book.authors) or book.by_statement
+            $:macros.TruncateString(title, 70)
+            <div class="Author">$author_names</div>
+        </div>
+    </div>
+$else:
+    <img src="http://covers.openlibrary.org/b/olid/$olid-S.jpg?default=http://openlibrary.org/static/images/blank.book.png" height="58"/>

@@ -1,0 +1,42 @@
+$def with (image, showinfo=True)
+
+$putctx("bodyid", "form")
+
+<script type="text/javascript">
+<!--
+\$().ready(function() {
+    \$("#topNotice").hide();
+    \$("#popClose").click(closePopup);
+    parent.update_image("$(image and image.id)");
+});
+//-->
+</script>
+
+<div class="imagePost">
+    $if image:
+        <img src="$image.url(size='M')" class="cover" alt="New book cover"/>
+</div>
+            
+<div class="imageSaved">
+    <div class="saved">$_("Saved!")</div>
+    <div class="meta">
+        $if showinfo:
+            <strong>$_("Notes:")</strong><br/>
+            $ d = image.info()
+            $if d:
+                $if d.author:
+                    Uploaded by <a href="$d.author.key">$d.author.name</a> on $format_date(d.created)<br/>
+                $else:
+                    Uploaded anonymously on $datestr(d.created)<br/>
+                $if d.source_url:
+                    <a href="$d.source_url">$d.source_url</a><br/>
+            <br/>
+        <a href="$changequery()">$_("Add another image")</a>?
+    </div>
+</div>
+            
+<div class="clearfix"></div>
+                    
+<div class="formButtons">
+    <button type="button" name="finished" id="popClose" value="Finished" class="largest">$_("Finished")</a>
+</div>

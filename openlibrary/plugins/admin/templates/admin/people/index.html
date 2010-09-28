@@ -1,0 +1,36 @@
+$def with ()
+
+$ _x = ctx.setdefault('bodyid', 'admin')
+$ _x = ctx.setdefault('usergroup', 'admin')
+
+$var title: [Admin Center] People
+
+<div id="contentBody">
+    <h1><a href="/admin/">Admin</a> / People</h1>
+
+<table id="adminHistory">
+    <thead>
+    <tr>
+        <th>$_("Date/Time")</th>
+        <th>$_("Name")</th>
+        <th>$_("email")</th>
+        <th>$_("Edits")</th>
+    </tr>
+    </thead>
+    <tbody>
+    $for a in get_recent_accounts(limit=50):
+        <tr>
+            <td class="time">$datestr(a.created)</td>
+            <td class="displayname"><a href="/admin$a.key">$a.displayname</a> <a href="$a.key" style="color: #900; text-decoration: none;">profile</a></td>
+            <td class="displayname">$a.get_email()</td>
+            <td class="comment">$a.get_edit_count()</td>
+        </tr>
+    </tbody>
+    </table>
+
+<div class="head">
+    <h2>$_("Edit History")</h2>
+</div>
+$:render_template("admin/history", get_recent_changes(limit=5))
+
+</div>

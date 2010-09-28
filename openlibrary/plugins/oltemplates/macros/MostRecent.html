@@ -1,0 +1,33 @@
+$def with (**kw)
+
+$ _ = i18n.get_namespace('/mode/view')
+
+$ v = most_recent_change()
+
+<div id="databar">
+<div class="widgetlabel">
+    $if v.author:
+        $ who = '<a href="%s" rel="nofollow">%s</a>' % (v.author.key, v.author.displayname or v.author.key)
+    $else:
+        $ who = None
+    
+    $if v.thing.type.key == '/type/edition':
+        $ what = v.thing.title
+    $elif v.thing.type.key == '/type/author':
+        $ what = v.thing.name
+    $else:
+        $ what = v.key
+    $ what = '<a href="%s" rel="nofollow">%s</a>' % (v.key, what)
+    
+    $ when = datestr(v.created)
+    $if v.comment:
+        $ comment = ": " + v.comment[0:50]
+    $else:
+        $ comment = ""
+        
+    $if who:
+        <b>$_.whats_new:</b> $:who updated $:what $when $comment
+    $else:
+        <b>$_.whats_new:</b> $:what was updated anonymously $when $comment
+</div>
+</div>

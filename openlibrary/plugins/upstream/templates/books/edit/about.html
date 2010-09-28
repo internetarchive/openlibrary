@@ -1,0 +1,76 @@
+$def with (work)
+
+<fieldset class="major collapse">
+    <div class="formElement">
+        <div class="label">
+            <label for="about-about">$_("How would you describe this book?")</label> 
+            <span class="tip">$_("There's no wrong answer here.")</span>
+        </div>
+        <div class="input">
+            <textarea name="work--description" id="about-about" class="markdown" cols="55" rows="5" tabindex="0">$work.description</textarea>
+        </div>
+    </div>
+    
+    <div class="formElement">
+        <div class="label">
+            <label for="about-tags">$_("Some tags perhaps?")</label> 
+            <span class="tip"><span class="highlight">$_("Please separate with commas.")</span> $_("For example:") <i><a href="/subjects/cheese">cheese</a>, <a href="/subjects/roman_empire">Roman Empire</a>, <a href="/subjects/psychology">psychology</a></i></span>
+        </div>
+        <div class="input">
+            $ subjects = []
+            $for s in work.get_subjects():
+                $ s = s.replace('"', '""')
+                $subjects.append('"' + s + '"' if ',' in s else s)
+            <input type="text" name="work--subjects" id="about-tags" value="$', '.join(subjects)" tabindex="0"/>
+        </div>
+    </div>
+
+    <div class="formElement">
+        <div class="label">
+            <label for="about-places">$_("Note any places mentioned?")</label> 
+            <span class="tip">$_("For example:") <i><a href="/subjects/places/London">London</a>, <a href="/subjects/places/Atlantis">Atlantis</a>, <a href="/subjects/places/Omaha">Omaha</a></i></span>
+        </div>
+        <div class="input">
+            $ subjects = []
+            $for s in work.subject_places:
+                $ s = s.replace('"', '""')
+                $subjects.append('"' + s + '"' if ',' in s else s)
+            <input type="text" name="work--subject_places" id="about-places" value="$', '.join(subjects)" tabindex="0"/>
+        </div>
+    </div>
+
+    <div class="formElement">
+        <div class="label">
+            <label for="about-people">$_("A person? Or, people?")</label> 
+            <span class="tip">$_("For example:") <i><a href="/subjects/people/Theodore_Roosevelt">Theodore Roosevelt</a>, <a href="/subjects/people/Julian_of_Norwich">Julian of Norwich</a>, <a href="/subjects/people/Tintin">Tintin</a></i></span>
+        </div>
+        <div class="input">
+            $ subjects = []
+            $for s in work.subject_people:
+                $ s = s.replace('"', '""')
+                $subjects.append('"' + s + '"' if ',' in s else s)
+            <input type="text" name="work--subject_people" id="about-people" value="$', '.join(subjects)" tabindex="0"/>
+        </div>
+    </div>
+
+    <div class="formElement bottom">
+        <div class="label">
+            <label for="about-time">$_("When is it set or about?")</label> 
+            <span class="tip">$_("For example:") <i><a href="/subjects/time/1984">1984</a>, <a href="/subjects/time/the_middle_ages">The Middle Ages</a>, <a href="/subjects/time/1810-1890">1810-1890</a></i></span>
+        </div>
+        <div class="input">
+            $ subjects = []
+            $for s in work.subject_times:
+                $ s = s.replace('"', '""')
+                $subjects.append('"' + s + '"' if ',' in s else s)
+            <input type="text" name="work--subject_times" id="about-time" value="$', '.join(subjects)" tabindex="0"/>
+        </div>
+    </div>
+
+    <div class="formElement">
+        <div class="tip footnote">
+            <strong>$_("Note:") </strong>$:_('Any tags, places, people or time periods you add here will be transformed into what we call "<a href="/subjects">Subjects</a>".')
+        </div>
+    </div>
+
+</fieldset>

@@ -1,0 +1,23 @@
+$def with (v)
+
+$ get_source_record = render_template("history/sources").get_source_record
+
+$def link(url, label):
+    $if url: <a href="$url">$label</a>
+    $else: $label
+
+$ v = process_version(v)
+$ record_id = v.get('machine_comment')
+$if record_id:
+    $ record = get_source_record(record_id)
+    $if v.revision == 1:
+        $if record.source_name == "amazon.com":
+             Inital record created, from an $:link(record.source_url, "amazon.com") <a href="$record.url">record</a>.
+        $else:
+            Initial record created, from $:link(record.source_url, record.source_name) <a href="$record.url">MARC record</a>.
+    $else:
+        Found a <a href="$record.url">matching record</a> from $:link(record.source_url, record.source_name).
+$elif v.comment:
+    $v.comment
+$else:
+    <em>$_("Edited without comment")</em>

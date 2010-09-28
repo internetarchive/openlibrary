@@ -1,0 +1,43 @@
+$def with (limit=25, hash="", **query)
+
+$ page = safeint(query_param('page', '1'))
+
+$def call_template(name, change):
+    $ t = get_template("recentchanges/" + change.kind + "/" + name) or get_template("recentchanges/default/" + name)
+    $:t(change)
+
+$ changes = recentchanges(dict(query, limit=limit, offset=(page-1) * limit))
+$var length = len(changes)
+
+<table class="changeHistory">
+    <thead>
+        <tr>
+            <th>$_("When")</th>
+            <th>$_("What")</th>
+            <th>$_("Who")</th>
+            <th>&#191;Qu&#233;?</th>
+        </tr>
+    </thead>
+    <tbody>
+    $for c in changes:
+        <tr>
+            <td class="time">$datestr(c.timestamp)</td>
+            <td class="path">$:call_template("path", c)</td>
+            $if c.author:
+                <td class="displayname"><a rel="nofollow" href="$c.author.key" title="$c.author.displayname">$c.author.displayname</a></td>
+            $elif c.ip and c.ip != '127.0.0.1':
+                <td class="history"><a rel="nofollow" href="$changequery(ip=c.ip)" title="When you see numbers here, that's the IP address of the anonymous editor">$c.ip</a></td>
+            $else:
+                <td class="history">$c.ip</td>
+            <td class="comment">$:call_template("comment", c)</td>
+        </tr>
+    </tbody>
+</table>
+
+<div class="historyPager small sansserif gray">
+    $if len(changes) == limit:
+        <a href="$:changequery(page=page + 1)$hash" rel="nofollow">&larr; $_("Older")</a>
+    $if page > 1:
+         &nbsp;|&nbsp;
+        <a href="$:changequery(page=page - 1)$hash" rel="nofollow">$_("Newer") &rarr;</a>
+</div>

@@ -1,0 +1,97 @@
+$def with (page)
+
+$ _s = i18n.get_namespace('/search')
+$ _t = i18n.get_namespace('/type/author')
+$ _ = i18n.get_namespace('/mode/view')
+
+$var title: $page.name
+
+$add_stylesheet("/css/search.css?format=raw")
+
+$ olid = page.key.split('/')[-1]
+
+<style type="text/css">
+<!--
+.coverviewbutton { 	
+    background-color: #F9F8D0; border: 1px solid #B9B7A1;
+    font-family: georgia; font-size: 12px; color: #6F320D;
+    text-transform: uppercase;
+    font-weight: bold;
+    letter-spacing: .05em;
+    line-height: 28px;			
+    height: 26px;
+    margin: 9px 0px 0px 13px;
+    padding: 0px 4px 0px 4px;
+    text-align: center;
+    width: 170px;
+} 
+-->
+</style>
+
+
+<div id="header-view">
+    <br />
+    <div style="float:left;padding-right:15px;">
+        <div style="border: 1px solid #ccc;" />
+            <div style="border: 7px solid #fff;">
+                <img src="http://covers.openlibrary.org/a/olid/$olid-M.jpg?default=http://openlibrary.org/static/images/quill.png" height="125" />
+            </div>
+        </div>
+            <div class="coverviewbutton" style="margin-left: 0px; width: 92px; margin-bottom: 30px;"><a href="$:page.photo_url()">Add Photo</a></div>
+    </div>
+    <div id="title">
+        $page.name
+        $:macros.FlourishButton("edit", changequery(m='edit'), "right", "edition")
+    </div>
+    <span class="book-details-italic">&nbsp;&nbsp;&nbsp;
+        $if page.birth_date or page.death_date:
+            $page.birth_date - $page.death_date
+        $else:
+            $if page.date:
+                $page.date
+    </span>
+</div>
+
+<div class="maintext"> 
+    $:format(page.get('bio', ''))
+
+    $if page.website:
+        <p><b>$_t.website:</b> <a href="$page.website" class="datalink">$page.website</a></p>
+            
+    $if page.location:
+        <p><b>$_t.location:</b> $page.location</p>
+
+    $if page.alternate_names:
+        <p><b>$_t.alternate_names:</b> $", ".join(page.alternate_names)</p>
+ 	 	
+    $if page.wikipedia and page.wikipedia.startswith("http"):
+        <span class="copyright"><a href="$page.wikipedia" class="sidebar">- Wikipedia article</a></span>
+
+</div>
+
+<!-- BEGIN SEARCH -->   
+
+<br clear="all" />
+   
+<span class="subhead-emphasis" style="padding-left: 45px;">$_t.by_author</span>
+
+$if page.books:
+    <div style="border-left: 1px solid #ccc; border-right: 1px solid #ccc;">
+        $:macros.SearchResults(page.books)
+    </div>
+
+<div class="copyright-footer">
+    $ books_page = safeint(query_param('books_page', '0'))
+    $if books_page != 0:
+        &larr; <a href="$:changequery(books_page=books_page - 1)" class="datalink" rel="nofollow">$_.prev</a>
+        
+    $if len(page.books) == 20:
+        ... <a href="$:changequery(books_page=books_page + 1)" class="datalink" rel="nofollow">$_.next</a> &rarr;
+
+<div style="padding-left: 20px; text-align: right">
+    <br />
+    $_s.cant_find&nbsp;&nbsp;
+    <div><a href="/addbook?author=$page.key">$_s.add_a_book</a> &rarr;</div>
+    <br /><br />
+</div>
+

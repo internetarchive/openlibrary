@@ -1,0 +1,28 @@
+$def with(book, size="M")
+
+$ olid = book.key.split("/")[2]
+$ author_names = ', '.join(a.author.name for a in book.authors)
+$ title = book.title_prefix + " " + book.title
+
+<script type="text/javascript">
+\$().ready(bookCovers);
+</script>
+
+<div class="coverMagic">
+    <div class="SRPCover bookCover">
+        <img src="$get_coverstore_url()/b/olid/$olid-M.jpg?default=false" class="cover" alt="$title $_.by $author_names"/> 
+    </div>
+    <div class="SRPCoverBlank">
+        <div class="innerBorder">
+            <div class="BookTitle">$:macros.TruncateString(title, 70)
+                <div class="Author">$:macros.TruncateString(author_names, 30)</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+$if book.publishers:
+    <div class="edition">
+        Cover image for the<br/>
+        <a href="$book.key" title="$title">$book.publish_date $:thingrepr(book.publishers) ($:thingrepr(book.publish_places).strip()) edition</a>     
+    </div>

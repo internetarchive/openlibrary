@@ -1,0 +1,89 @@
+$def with (form)
+
+$var title: $_("Sign Up to Open Library")
+
+<div id="contentHead">
+    <h1>$_("Sign Up")</h1>
+    $if not ctx.user:
+        <p class="instruct">$_("Complete the form below to create your new Open Library account.")
+        <span class="attn remind">$_("Each field is required, and you'll need to verify your email address.")</span></p>
+</div>
+
+<div id="contentBody">
+
+<script type="text/javascript">
+\$().ready(validateForms);
+\$().ready(setup_account_create);
+\$().ready(function(){
+    \$('#username').keyup(function(){
+        var value = \$(this).val();
+        \$('#userUrl').addClass('darkgreen').text(value).css('font-weight','700');
+    });
+});
+</script>
+
+$if ctx.user:
+    <p>$:_("You are already logged into Open Library as %(user)s", user='<a href="%s">%s</a>' % (ctx.user.key, ctx.user.displayname))</p>
+    <p>$:_('If you\'d like to create a new, different Open Library account, you\'ll need to <a href="javascript:;" onclick="document.forms[\'logout\'].submit()">log out</a> and start the signup process afresh.')</p>
+$else:
+    <form id="signup" class="olform create" name="signup" method="post">        
+        $if form.note:
+            <div class="note">$form.note</div>
+        <div class="formElement">
+            <div class="label">
+                <label for="displayname">$_("Your Full Name")</label>
+                <span class="smaller lighter">$_("This is how your additions and edits will be credited on the site.")</span>
+            </div>
+            <div class="input">
+                <input type="text" name="displayname" id="displayname" value="$form.displayname.value"/>
+                <span class="invalid clearfix" htmlfor="username">$form.displayname.note</span>
+            </div>
+        </div>
+        <div class="formElement">
+            <div class="label">
+                <label for="username">$_("Choose a Username")</label>
+                <span class="smaller lighter">$_("Letters and numbers only please, and at least 3 characters.")</span>
+            </div>
+            <div class="input">
+                <input type="text" class="required" name="username" id="username" value="$form.username.value"/>
+                <span class="invalid clearfix" htmlfor="username">$form.username.note</span>
+                <div class="sansserif smaller lighter">Your URL: http://openlibrary.org/people/<span id="userUrl">username</span></div>
+            </div>
+        </div>
+        <div class="formElement">
+            <div class="label">
+                <label for="password">$("Choose a Password")</label>
+                <span class="smaller lighter"></span></div>
+            <div class="input">
+                <input value="" type="password" class="required" name="password" id="password"/>
+                <span class="invalid clearfix" htmlfor="password">$form.password.note</span>
+            </div>
+        </div>
+        <div class="formElement">
+            <div class="label">
+                <label for="email">$("Your Email Address")</label>
+                <span class="smaller lighter"></span>
+            </div>
+            <div class="input">
+                <input type="text" class="required" name="email" id="email" value="$form.email.value"/>
+                <span class="invalid clearfix" htmlfor="email">$form.email.note</span>
+            </div>
+        </div>
+        <div class="formElement">
+            <div class="label">
+                <input type="checkbox" id="agreement" name="agreement" value="yes"/> <label for="agreement" class="smaller">$:_("I acknowledge that my use of Open Library is subject to the Internet Archive's <a href='http://www.archive.org/about/terms.php' target='_new' title='Read the Terms of Use in a new browser.'>Terms of Use</a>.")</label>
+            </div>
+            <div class="input">
+            </div>
+        </div>
+        <div class="formElement bottom">
+            <div class="input">
+                <br/>
+                <input value="Sign Up" type="submit" name="submit" title="$_('Sign Up')"/>
+                &nbsp;
+                <a href="javascript:history.go(-1);" class="smaller attn">$_("Cancel")</a>
+            </div>
+        </div>
+    </form> 
+
+</div>

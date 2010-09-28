@@ -1,0 +1,177 @@
+$def with (book)
+
+<script type="text/javascript">
+<!--
+\$(function() {
+    function error(error_div, input, message) {
+        \$(error_div).show().html(message);
+        \$.fn.colorbox.resize();
+        setTimeout(function(){ 
+            \$(input).focus();
+        }, 0);
+        return false;
+    }
+   \$("#select-role").add_new_field({
+       href: "#select-role-popup",
+       validate: function(data) {
+           if (data.value == "") {
+               return error("#select-role-popup-errors", "#select-role-popup-value", "Please enter a new role.");
+           }
+           \$("#select-role-popup-errors").hide();
+           return true;
+       },
+       onshow: function() {
+           \$("#select-role-popup-errors").hide();
+           \$("#select-role-popup input[type=text]").val("");
+       }
+   });
+
+   \$("#select-id").add_new_field({
+       href: "#select-id-popup",
+       validate: function(data) {
+           if (data.label == "") {
+               return error("#select-id-popup-errors", "#select-id-popup-label", "Please enter name of the new identifier type.");
+           }
+           data.value = data.label.toLowerCase().replace(/ /g, "_");
+           return true;
+       },
+       onshow: function() {
+           \$("#select-id-popup-errors").hide();
+           \$("#select-id-popup input[type=text]").val("");
+       }
+   });
+
+   \$("#select-classification").add_new_field({
+       href: "#select-classification-popup",
+       validate: function(data) {
+           if (data.label == "") {
+               return error("#select-classification-popup-errors", "#select-classification-popup-label", "Please enter name of the new classification type.");
+           }
+           data.value = data.label.toLowerCase().replace(/ /g, "_");
+           return true;           
+       },
+       onshow: function() {
+           \$("#select-classification-popup-errors").hide();
+           \$("#select-classification-popup input[type=text]").val("");
+       }       
+   });
+   
+});
+//-->
+</script>
+
+<div class="hidden">
+    <div class="floaterAdd" id="select-role-popup">
+        <div class="floaterHead">
+            <h2>$_("Add a New Contributor Role")</h2>
+            <a class="floaterShut close-popup" href="#"></a>
+        </div>
+        <div id="select-role-popup-errors" class="popAlert addfield hidden"></div>
+        <form class="floatform" id="addrole-form" name="newrole" method="post" enctype="multipart/form-data" action="">
+            <div class="formElement">
+                <div class="label">
+                    <label for="select-role-popup-value">$_("What should we show in the menu?") <span class="tip">$_("For example:") <em>Illustrator, Editor</em></span></label>
+                </div>
+                <div class="input">
+                    <input type="text" name="value" id="select-role-popup-value" value=""/>
+                </div>
+            </div>
+            
+            <div class="formElement">
+                <button type="submit" name="" style="width:auto!important;">$_("Add")</button>
+                &nbsp;
+                <a class="red plain close-popup" href="#">$_("Cancel")</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="hidden">
+    <div class="floaterAdd" id="select-id-popup">
+        <div class="floaterHead">
+            <h2>$_("Add a New Type of Identifier")</h2>
+            <a class="floaterShut close-popup" href="#"></a>
+        </div>
+        <div class="popAlert addfield hidden" id="select-id-popup-errors"></div>
+        <div class="popNotify"><span class="red">*</span><span class="tip">$_("Required field")</span></div>
+        <form class="floatform" id="addname-form" name="newname" method="post" enctype="multipart/form-data" action="">
+            <div class="formElement">
+                <div class="label">
+                    <label for="id-label"><span class="red" style="font-weight:normal;">*</span>$_("What should we show in the menu?") <span class="tip">$_("For example:") <em>Goodreads</em></span></label>
+                </div>
+                <div class="input">
+                    <input type="text" name="label" id="id-label" value=""/>
+                </div>
+            </div>
+            
+            <div class="formElement">
+                <div class="label">
+                    <label for="id-website">$_("If the system has a website, what's the homepage?") <span class="tip">$_("For example:") <em>http://www.goodreads.com/</em></span></label>
+                </div>
+                <div class="input">
+                    <input type="text" name="website" id="id-website" value="http://"/>
+                </div>
+            </div>
+            
+            <div class="formElement">
+                <div class="label">
+                    <label for="id-note">$_("Please leave a note: Why is this ID useful?")</label>
+                </div>
+                <div class="input">
+                    <textarea name="note" id="id-note" rows="5" cols="40"></textarea>
+                </div>
+            </div>
+            
+            <div class="formElement" style="margin-bottom:15px;">
+                <div class="label"></div>
+                <button type="submit" name="" style="width:auto!important;">$_("Add")</button>
+                &nbsp;
+                <a class="red plain close-popup" href="#">$_("Cancel")</a>
+            </div>
+        </form>
+    </div>
+</div>
+<div class="hidden">
+    <div class="floaterAdd" id="select-classification-popup">
+        <div class="floaterHead">
+            <h2>$_("Add a New Classification System")</h2>
+            <a class="floaterShut close-popup" href="#"></a>
+        </div>
+        <div class="popAlert addfield hidden" id="select-classification-popup-errors"></div>
+        <div class="popNotify"><span class="red">*</span><span class="tip">$_("Required field")</span></div>
+        <form class="floatform" id="addclass-form" name="newrclass" method="post" enctype="multipart/form-data" action="">
+            <div class="formElement">
+                <div class="label">
+                    <label for="select-classification-popup-label"><span class="red" style="font-weight:normal;">*</span>$_("What should we show in the menu?") <span class="tip">$_("For example:") <em>Library of Congress</em></span></label>
+                </div>
+                <div class="input">
+                    <input type="text" name="label" id="select-classification-popup-label" value=""/>
+                </div>
+            </div>
+                        
+            <div class="formElement">
+                <div class="label">
+                    <label for="new-role-note">$_("Please leave a note: Why is this classification useful?")</label>
+                </div>
+                <div class="input">
+                    <textarea name="note" id="new-role-note" rows="5" cols="40"></textarea>
+                </div>
+            </div>
+            
+            <div class="formElement">
+                <div class="label">
+                    <label for="new-role-website">$_("Can you direct us to more information about this classification system online?")</label>
+                </div>
+                <div class="input">
+                    <input type="text" name="website" id="new-role-website" value="http://"/>
+                </div>
+            </div>
+            
+            <div class="formElement" style="margin-bottom:15px;">
+                <button type="submit" name="" style="width:auto!important;">$_("Add")</button>
+                &nbsp;
+                <a class="red plain close-popup" href="#">$_("Cancel")</a>
+            </div>
+        </form>
+    </div>
+</div>

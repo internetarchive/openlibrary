@@ -1,0 +1,36 @@
+$def with (page)
+
+        <div id="footer">
+                    
+        <div id="footerPosition">
+
+            $:render_template("lib/search_foot", page)
+
+            <div class="footerNav" title="Main Navigation">
+                <ul>
+                    <li><a href="#top" title="Go to the top of this page">Top</a><span>|</span></li>
+                    <li><a href="/" title="$_('Go home')">$_("Home")</a><span>&bull;</span></li>
+                    <li><a href="/books/add" title="$_('Add a new book to Open Library')">$_("Add a Book")</a><span>&bull;</span></li>
+                    <li><a href="/subjects" title="$_('Explore subjects')">$_("Subjects")</a><span>|</span></li>
+                    <li><a href="/authors" title="$_('Explore authors')">$_("Authors")</a><span>|</span></li>
+                    <li><a href="/lists" title="$_('Manage your lists')">$_("Lists")</a><span>&bull;</span></li>
+                    <li><a href="/about" title="$_('About the Open Library staff')">$_("About Us")</a><span>|</span></li>
+                    <li><a href="/help" title="$_('Get help')">$_("Help")</a><span>&bull;</span></li>
+                    <li><a href="/developers" title="$_('Visit the Developers Center')">$_("Developers")</a></li>
+                </ul>
+            </div>
+
+        </div>
+
+            <div id="footerHistory">
+                <h4>
+                    <a href="/recentchanges" title="View all recent changes">$:_("Around<br/>The Library")</a>
+                </h4>
+                $:render_template("site/around_the_library")
+                <div id="abuse" title="$_('Report this page or content as spam')">
+                    <a href="/contact?path=$request.path"><span></span>$_("Problem?")</a>
+                </div>
+            </div>
+
+
+        </div>

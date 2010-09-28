@@ -1,0 +1,15 @@
+$def with (page)
+
+$ title = page.title or page.key
+
+$ _x = ctx.setdefault("bodyid", "edit")
+
+$var title: $title
+
+$:macros.databarTemplate(page)
+
+$:render_template("lib/view_head", page)
+
+<div id="contentBody">
+    $:macros.DisplayCode(page.body, lang="html")
+</div>

@@ -1,0 +1,149 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+  <head>
+    <title>Tweet! Put Twitter on your site with this simple, unobtrusive jQuery widget</title>
+    <link href="index.css" media="all" rel="stylesheet" type="text/css"/>
+    <link href="jquery.tweet.css" media="all" rel="stylesheet" type="text/css"/>
+    <link href="jquery.tweet.query.css" media="all" rel="stylesheet" type="text/css"/>
+    <script language="javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.1/jquery.min.js" type="text/javascript"></script>
+    <script language="javascript" src="jquery.tweet.js" type="text/javascript"></script>
+    <script type='text/javascript'>
+      jQuery(document).ready(function($) {
+        $(".tweet").tweet({
+          join_text: "auto",
+          username: "seaofclouds",
+          avatar_size: 48,
+          count: 3,
+          auto_join_text_default: "we said,", 
+          auto_join_text_ed: "we",
+          auto_join_text_ing: "we were",
+          auto_join_text_reply: "we replied",
+          auto_join_text_url: "we were checking out",
+          loading_text: "loading tweets..."
+        });
+        $("#query").tweet({
+          avatar_size: 32,
+          count: 4,
+          query: "tweet.seaofclouds.com",
+          loading_text: "searching twitter..."
+        });
+        $("#userandquery").tweet({
+          count: 3,
+          query: "from:seaofclouds&phrase=http",
+          loading_text: "searching twitter..."
+        });
+        $("#fromtwo").tweet({
+          avatar_size: 32,
+          count: 4,
+          query: "from%3Aseaofclouds+OR+from%3Alaughingsquid",
+          loading_text: "searching twitter..."
+        });
+      })      
+    </script>
+  </head>
+  <body>
+    <div class='container'>
+      <h1>Tweet!</h1>
+      <h2>put <a href="http://twitter.com">twitter</a> on your website with <em>tweet!</em>, an unobtrusive javascript plugin for jquery.</h2>
+      
+      <h3>Demo</h3>
+      <p>displaying three tweets from the <a href="http://twitter.com/seaofclouds">seaofclouds twitter feed</a>. check the script in action at <a href="http://seaofclouds.com">seaofclouds.com</a></p>
+      <div class='tweet'></div>
+      
+      <p>displaying four tweets from the query "<a href="http://search.twitter.com/search?q=tweet.seaofclouds.com">tweet.seaofclouds.com</a>".</p>
+      <div id="query" class='query'></div>
+      
+      <p>displaying up to three links with the query "<a href="http://search.twitter.com/search?q=from%3seaofclouds&phrase=http">from:seaofclouds and the phrase 'http'</a>".</p>
+      <div id='userandquery' class="query"></div>
+      
+      <p>displaying four tweets from two users with the query "<a href="http://search.twitter.com/search?q=from%3Aseaofclouds+OR+from%3Alaughingsquid">from:seaofclouds OR from:laughingsquid</a>".</p>
+      <div id='fromtwo' class="query"></div>
+      
+      <h3>Features</h3>
+      <ul>
+        <li>small size and fast download time</li>
+        <li>will not slow down or pause your page while tweets are loading</li>
+        <li>display up to 100 tweets, as permitted by the twitter search api</li>
+        <li>display tweets from a twitter search, or from your own feed</li>
+        <li>optional verb tense matching, for human readable tweets</li>
+        <li>optionally display your avatar</li>
+        <li>optionally display tweets from multiple accounts!</li>
+        <li>automatic linking of  @replies to users&#8217; twitter page</li>
+        <li>automatic linking of URLs</li>
+        <li>uses <a href="http://apiwiki.twitter.com/Twitter-Search-API-Method%3A-search">Twitter's Search API</a>, so you can display any tweets you like</li>
+        <li>automatic linking of <a href="http://search.twitter.com/search?q=&amp;tag=hashtags">#hashtags</a>, to a twitter search of all your tags</li>
+        <li>converts &lt;3 to a css styleable <tt class='heart'>♥</tt> (we ♥ hearts)</li>
+        <li>makes awesome text, AWESOME text with AWESOMEIZER</li>
+        <li>customize the style with your own stylesheet or with other jquery plugins</li>
+        <li>compatible with most jquery versions, including jquery 1.2.6 and the latest, 1.3.x</li>
+      </ul>
+      
+      <p><strong>NOTE:</strong> Some users have reported that they <a href="http://help.twitter.com/forums/10713/entries/42646">do not show up in Twitter's search results</a>.</p>
+      
+      <div class='download'>
+        <h3>Download</h3>
+        <p>
+          <a href="http://github.com/seaofclouds/tweet/zipball/master">
+            <img border="0" width="90" src="http://github.com/images/modules/download/zip.png"></a>
+          <a href="http://github.com/seaofclouds/tweet/tarball/master">
+            <img border="0" width="90" src="http://github.com/images/modules/download/tar.png"></a>
+        </p>
+      </div>
+      
+      <h3>Usage</h3>
+      <p><strong>1.</strong> <a href="http://jquery.com/">Get JQuery</a>. In these examples, we use <a href="http://code.google.com/apis/ajaxlibs/">Google's AJAX Libraries API</a>.
+      <p><strong>2.</strong> include jQuery and jquery.tweet.js files in your template's <span class="code">&lt;head&gt;</span>.</p>
+      <code>
+        &lt;script language=&quot;javascript&quot; src=&quot;http://ajax.googleapis.com/ajax/libs/jquery/1.3.1/jquery.min.js&quot; type=&quot;text/javascript&quot;&gt;&lt;/script&gt;<br />
+        &lt;script language=&quot;javascript&quot; src=&quot;/tweet/jquery.tweet.js&quot; type=&quot;text/javascript&quot;&gt;&lt;/script&gt;
+      </code>
+      <p><strong>3.</strong> Also in <span class="code">&lt;head&gt;</span>, Initialize tweet! on page load with your Username and other options</p>
+      <code>
+        &lt;script type=&apos;text/javascript&apos;&gt;<br />
+        &nbsp; &nbsp; $(document).ready(function(){<br />
+        &nbsp; &nbsp; &nbsp; &nbsp; $(".tweet").tweet({<br />
+        &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; username: "seaofclouds",<br />
+        &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; join_text: "auto",<br />
+        &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; avatar_size: 32,<br />
+        &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; count: 3,<br />
+        &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; auto_join_text_default: "we said,", <br />
+        &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; auto_join_text_ed: "we",<br />
+        &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; auto_join_text_ing: "we were",<br />
+        &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; auto_join_text_reply: "we replied to",<br />
+        &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; auto_join_text_url: "we were checking out",<br />
+        &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; loading_text: "loading tweets..."<br />
+        &nbsp; &nbsp; &nbsp; &nbsp; });<br />
+        &nbsp; &nbsp; });<br />
+        &lt;/script&gt;
+      </code>
+      <p><strong>4.</strong> In <span class="code">&lt;body&gt;</span>, include a placeholder for your tweets. They'll get loaded in via JSON. How fancy!</p>
+      <code>
+        &lt;div class=&quot;tweet&quot;&gt;&lt;/div&gt;
+      </code>
+      <p><strong>5.</strong> Style with our stylesheet in <span class="code">&lt;head&gt;</span>, or modify as you like!</p>
+      <code>
+        &lt;link href=&quot;jquery.tweet.css&quot; media=&quot;all&quot; rel=&quot;stylesheet&quot; type=&quot;text/css&quot;/&gt;
+      </code>
+      
+      <h3>Contribute</h3>
+      <p>Bring your code slinging skills to <a href="http://github.com/seaofclouds/tweet/">Github</a> and help us develop new features for tweet!</p>
+      <code>
+        git clone git://github.com/seaofclouds/tweet.git
+      </code>
+      <a href="http://github.com/seaofclouds/tweet"><img style="position: absolute; top: 0; right: 0; border: 0;" src="http://s3.amazonaws.com/github/ribbons/forkme_right_white_ffffff.png" alt="Fork me on GitHub" /></a>
+      <p>
+        <strong>Report bugs and request features</strong> in <a href="http://github.com/seaofclouds/tweet/issues">Github Issues</a>
+      </p>
+      <h3>Licensed under the MIT</h3>
+      <code>
+        <a href="http://www.opensource.org/licenses/mit-license.php">http://www.opensource.org/licenses/mit-license.php</a>
+      </code>
+      <div class='twoot'>
+        <h3>If you like Tweet, check out <a href="http://github.com/peterk/twoot/tree/master">Twoot</a>!</h3>
+        <p><a href="http://github.com/peterk/twoot/tree/master">Twoot</a> is a miniature Twitter client based on Tweet that allows you to post tweets and see what your friends are up to. Thanks, <a href="http://www.peterkrantz.com">Peter Krantz</a>!</p>
+      </div>
+      <p class='copyright'>something nifty from <a href="http://seaofclouds.com">seaofclouds</a><span class="trade">&trade;</span> | <a href="http://github.com/seaofclouds/tweet/">contribute</a></p>
+    </div>
+  </body>
+</html>

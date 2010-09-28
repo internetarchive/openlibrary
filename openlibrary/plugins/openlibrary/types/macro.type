@@ -1,0 +1,27 @@
+{
+    'key': '/type/macro',
+    'kind': 'regular',
+    'name': 'Macro',
+    'properties': [{
+        'expected_type': {
+            'key': '/type/text'
+        },
+        'name': 'macro',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': True
+    }, {
+        'expected_type': {
+            'key': '/type/string'
+        },
+        'name': 'description',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': True
+    }],
+    'type': {
+        'key': '/type/type'
+    }
+}

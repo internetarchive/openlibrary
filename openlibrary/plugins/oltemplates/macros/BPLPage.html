@@ -1,0 +1,239 @@
+<style type="text/css">
+<!--
+#book-art { width: 205px; height: 320px; text-align: center; float: left; padding-top: 0px; margin-top: 4px; padding-left: 13px; padding-right: 14px; background: #fff url(x/static/logos/logo-en.png) top center no-repeat; }
+#footer { position: absolute; top: 940px; width: 99% }
+#title { visibility: hidden }
+#Nav {
+	width: 250px;	
+	padding: 0 0 0 0;
+	list-style: none;
+	font-size: 10pt;
+}
+
+#Nav2 {
+	width: 250px;
+	padding: 0 0 0 0;
+	list-style: none;
+	font-size: 11pt;
+}
+
+#Nav li {
+	background: transparent;
+	margin: 1px 1px 6px 1px;	
+
+}
+
+.Menu {
+	padding: 3px 0px 3px 0px;		
+	margin-top: 0px;
+	margin-left: 0px;
+	list-style: none;
+	display: none;	
+	background: transparent;
+	margin-left: 20px;
+}
+
+.Menu2 {
+	padding: 0;		
+	margin-top: 0px;
+	margin-left: 0px;
+	list-style: none;
+	display: none;	
+	background: transparent;
+	margin-left: 20px;
+}
+
+.Menu li {
+/*	height: 20px; */
+	background: transparent;
+	font-size: 9pt;
+	line-height; 10pt;	
+}
+
+-->
+</style>
+
+
+<script src='http://invisible.net/openlibrary/reboot-scod/subject-browse/js/menu.js' type='text/javascript'></script>
+<script src='http://mjtemplate.org/dist/mjt-0.6/mjt.js' type='text/javascript'></script>
+
+<script type="text/javascript">
+var scan_records = null;
+function process_scan_records(records) {
+    scan_records = records;
+}
+\$(document).ready(function(){
+    mjt.run("Nav");
+});
+</script>
+
+<!-- this should come only after mjt.run, other adding mouseover event happen before adding those elements. -->
+<script src='http://invisible.net/openlibrary/new.bpl.launch/subject-browse/js/menu.js' type='text/javascript'></script>
+
+<script src='/query.json?query={"type": "/type/scan_record", "scan_status": "SCAN_COMPLETE", "sort": "-completion_date", "limit": 15, "edition": {"*": null, "authors": {"name": null}}}&callback=process_scan_records' type='text/javascript'></script>
+
+
+<div id="contentcolumn" style="position: absolute; top: 55px;">
+<table cellpadding="0" cellspacing="0" border="0" width="100%"><tr><td valign="top">
+    <div id="header">               
+        <div id="title" class="title-pad" style="visibility: visible">Open Library Scan-On-Demand</div>
+        <div class="subtitle" style="margin-top: -4px; padding-bottom: 0px;">In partnership with Boston Public Library</div>
+
+        <div id="book-art" class="datalink" style="clear: both; margin-bottom: 30px;">
+            <a href="/dev/docs/scan-on-demand"><img src="http://invisible.net/openlibrary/reboot-scod/subject-browse/images/blank.book.IA.png" width="180" style="padding-top: 10px;"/></a>
+
+            <a href="/dev/docs/scan-on-demand" style="text-decoration: none" class="linkbutton"><button type="submit" name="submit" value="scan_this_book" class="submit" style="width: 170px; margin-top: 6px;">How It Works</button></a>
+	        </span>
+        </div>
+
+<div class="contenttext" style="padding-right: 10px; margin-right: 0px;">
+<p style="padding-top: 6px;">Simply search for a public domain book on Open Library and, if it's at the Boston Public Library and hasn't been scanned yet, you will see a "Scan This Book" button. When you click the button and follow the steps to confirm, we'll have a librarian go and get the book from the stacks, bring it to our scanning center, and have our team of scanners digitize it page-by-page. The books are being highlighted in GnuBook, the Internet Archive's exciting new bookreader, and are also available in other formats, such as PDF and full text. <br /><br />
+
+<form method="get" action="/search">
+    <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+
+            <td>
+                <div class="simple-search-form">
+                    <input style="background-color: #f8f8f8; font-family: georgia; font-size: 18px; color: #6F320D; border: 1px solid #ccc; padding-left: 4px; width: 100%" type="text" name="q" value="" title="type_search." />
+                </div>
+            </td>
+            <td>
+                <div class="button-border"><button class="go" type="submit">Go</button><img src="/static/images/flourish.gif"  alt="Go" /></div>
+            </td>
+
+        </tr>
+        <tr>
+            <td colspan="2" style="padding-top: 3px;">
+                <span class="copyright">
+                    <input tabindex="9" type="checkbox" value="zcsjstumitke" name="ftokens" checked>
+                    Scannable books only
+                </span>
+
+            </td>
+
+        </tr>
+    </table>      
+</form>
+
+
+
+</p>
+</div>
+
+<br clear="both">
+<div style="margin-left: 20px; margin-right: 20px; ">
+<table cellpadding="0" cellspacing="0" border="0" width="100%">
+            <tr>
+                <td class="historyheader" colspan="4" style="border-bottom: 1px solid #999">Select Subjects</td>
+
+            </tr>
+<tr>
+ <td class="path" style="border-bottom: 1px solid #ccc" ><a href="http://openlibrary.org/search?q=subjects:(boston+mass)&ftokens=zcsjstumitke">Boston, Mass.</a> (54)</td>
+ <td class="path" style="border-bottom: 1px solid #ccc" ><a href="http://openlibrary.org/search?q=subjects:(children)&ftokens=zcsjstumitke">Childrens Books</a> (91)</td>
+ <td class="path" style="border-bottom: 1px solid #ccc" ><a href="http://openlibrary.org/search?q=subjects:(education)&ftokens=zcsjstumitke">Education</a> (52)</td>
+ <td class="path" style="border-bottom: 1px solid #ccc" ><a href="http://openlibrary.org/search?q=subjects:(women)&ftokens=zcsjstumitke">Women</a> (43)</td>
+</tr>
+<tr>
+ <td class="path" style="border-bottom: 1px solid #ccc" ><a href="http://openlibrary.org/search?q=subjects:(america)&ftokens=zcsjstumitke">America</a> (88)</td>
+ <td class="path" style="border-bottom: 1px solid #ccc" ><a href="http://openlibrary.org/search?q=subjects:(united+states)&ftokens=zcsjstumitke">United States</a> (303)</td>
+ <td class="path" style="border-bottom: 1px solid #ccc" ><a href="http://openlibrary.org/search?q=subjects:(law)&ftokens=zcsjstumitke">Law</a> (102)</td>
+ <td class="path" style="border-bottom: 1px solid #ccc" ><a href="http://openlibrary.org/search?q=subjects:(music)&ftokens=zcsjstumitke">Music</a> (21)</td>
+</tr>
+<tr>
+ <td class="path" style="border-bottom: 1px solid #ccc" ><a href="http://openlibrary.org/search?q=subjects:(history)&ftokens=zcsjstumitke">History</a> (846)</td>
+ <td class="path" style="border-bottom: 1px solid #ccc" ><a href="http://openlibrary.org/search?q=subjects:(art)&ftokens=zcsjstumitke">Art</a> (64)</td>
+ <td class="path" style="border-bottom: 1px solid #ccc" ><a href="http://openlibrary.org/search?q=subjects:(europe)&ftokens=zcsjstumitke">Europe</a> (41)</td>
+ <td class="path" style="border-bottom: 1px solid #ccc" ><a href="http://openlibrary.org/search?q=subjects:(england)&ftokens=zcsjstumitke">England</a> (137)</td>
+</tr>
+<tr>
+ <td class="path" style="border-bottom: 1px solid #ccc" ><a href="http://openlibrary.org/search?q=subjects:(science)&ftokens=zcsjstumitke">Science</a> (25)</td>
+ <td class="path" style="border-bottom: 1px solid #ccc" ><a href="http://openlibrary.org/search?q=subjects:(nature)&ftokens=zcsjstumitke">Nature</a> (2)</td>
+ <td class="path" style="border-bottom: 1px solid #ccc" ><a href="http://openlibrary.org/search?q=subjects:(religion)&ftokens=zcsjstumitke">Religion</a> (19)</td>
+ <td class="path" style="border-bottom: 1px solid #ccc" ><a href="http://openlibrary.org/search?q=subjects:(literature)&ftokens=zcsjstumitke">Literature</a> (245)</td>
+</tr>
+<tr>
+ <td class="path" style="border-bottom: 1px solid #ccc" ><a href="http://openlibrary.org/search?q=subjects:(moral)&ftokens=zcsjstumitke">Morality</a> (1)</td>
+ <td class="path" style="border-bottom: 1px solid #ccc" ><a href="http://openlibrary.org/search?q=subjects:(architecture)&ftokens=zcsjstumitke">Architecture</a> (26)</td>
+ <td class="path" style="border-bottom: 1px solid #ccc" ><a href="http://openlibrary.org/search?q=subjects:(world)&ftokens=zcsjstumitke">World</a> (51)</td>
+ <td class="path" style="border-bottom: 1px solid #ccc" ><a href="http://openlibrary.org/search?q=subjects:(animals)&ftokens=zcsjstumitke">Animals</a> (13)</td>
+</tr>
+<tr>
+ <td class="path" style="border-bottom: 1px solid #ccc" ><a href="http://openlibrary.org/search?q=subjects:(asia)&ftokens=zcsjstumitke">Asia</a> (13)</td>
+ <td class="path" style="border-bottom: 1px solid #ccc" ><a href="http://openlibrary.org/search?q=subjects:(geography)&ftokens=zcsjstumitke">Geography</a> (23)</td>
+ <td class="path" style="border-bottom: 1px solid #ccc" ><a href="http://openlibrary.org/search?q=subjects:(geology)&ftokens=zcsjstumitke">Geology</a> (11)</td>
+ <td class="path" style="border-bottom: 1px solid #ccc" ><a href="http://openlibrary.org/search?q=subjects:(politics)&ftokens=zcsjstumitke">Politics</a> (147)</td>
+</tr>
+<tr>
+ <td class="path" colspan="4" style="padding-top: 6px;"><img src="/static/images/arrow.red.png" alt="Disclosure Arrow" border="0" /> <span class="copyright"><a href="http://openlibrary.org/search?q=&ftokens=zcsjstumitke"  style="text-decoration: underline">View All Scannable Books</a> (6,474) ...</span></td>
+</tr>
+</table>
+
+<br /><br /><br />
+</div>
+</div>
+</div>
+</td><td  style="width: 300px; vertical-align: top;">
+
+<div id="bibliography">
+<div id="biblio-form-body" style="min-height: 800px; padding-left: 10px; padding-top: 20px;">
+
+<span class="navheader">Recently Scanned</span> <br />
+
+<table border="0" cellpadding="0" cellspacing="10" width="85%" align="center">
+
+    <tr>
+    <td  width="50%">
+<!-- rendered using mjt-template. http://mjtemplate.org -->
+<ul id="Nav">
+	<li mjt.for="r in scan_records">
+    	<div mjt.script="">
+    		var title = r.edition.title;
+    		var olid = r.edition.key.split('/')[2];
+    		var authors = [];
+    		for (var i in r.edition.authors)
+    			authors[i] = r.edition.authors[i].name;
+    		authors = authors.join(", ");
+    	</div>
+		<img src="/static/images/arrow.red.png" alt="Disclosure Arrow" border="0" /> <a target="_blank" href="http://www.us.archive.org/GnuBook/?id=\$r.edition.ocaid">\$title</a>
+		<ul class="Menu">
+			<li style="background-color: #fff; border: 1px solid #ccc; padding: 0px; height: 70px; overflow: hidden;">
+				<a href="/bookreader/\$r.edition.ocaid"><img 
+					src="http://covers.openlibrary.org/b/olid/\$olid-M.jpg?" 
+					width="180" 
+					style="padding-top: 10px; float: left; width: 40px; padding-left: 6px;"/></a>
+				<div style="padding: 0px 6px 6px 55px; margin-top: 0px;">
+					<span mjt.if="authors">by \$authors</span><br/>
+					<span mjt.if="r.edition.publish_date">Published in \$r.edition.publish_date,</span>
+					<span mjt.if="r.edition.publishers">\${r.edition.publishers[0]}</span>
+					<span mjt.if="r.edition.publish_places != undefined &amp;&amp; r.edition.publish_places != []">(\${r.edition.publish_places[0]})</span>
+					<a href="/b/\$olid">Details</a>
+				</div>
+			</li>
+		</ul>
+	</li>
+</ul>
+    
+
+
+    </td>
+    </tr>
+</table>
+
+   
+    </td>
+
+    </tr>
+</table>
+
+
+
+</div>
+</div>
+
+
+<div class="copyright-footer" style="clear: both; position: absolute; top: 900px; width: 99%; padding-right: 0px; margin-right: 0px; padding-left: 0px; margin-left: 0px;"><img src="/static/images/arrow.red.png" alt="Disclosure Arrow" border="0" style="margin-left: 20px;" /> You can learn more about this new feature by reading our <a href="/dev/docs/scan-on-demand/">developer documentation.</a> →</div>
+
+</div>
+
+</div>

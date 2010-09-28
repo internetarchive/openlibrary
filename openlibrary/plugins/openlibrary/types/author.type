@@ -1,0 +1,153 @@
+{
+    'backreferences': [{
+        'expected_type': {
+            'key': '/type/edition'
+        },
+        'name': 'books',
+        'property_name': 'authors',
+        'type': {
+            'key': '/type/backreference'
+        }
+    }, {
+        'expected_type': {
+            'key': '/type/work'
+        },
+        'name': 'works',
+        'property_name': 'authors',
+        'type': {
+            'key': '/type/backreference'
+        }
+    }],
+    'key': '/type/author',
+    'kind': 'regular',
+    'properties': [{
+        'expected_type': {
+            'key': '/type/string'
+        },
+        'name': 'name',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': True
+    }, {
+        'expected_type': {
+            'key': '/type/boolean'
+        },
+        'name': 'eastern_order',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': True
+    }, {
+        'expected_type': {
+            'key': '/type/string'
+        },
+        'name': 'personal_name',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': True
+    }, {
+        'expected_type': {
+            'key': '/type/string'
+        },
+        'name': 'enumeration',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': True
+    }, {
+        'expected_type': {
+            'key': '/type/string'
+        },
+        'name': 'title',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': True
+    }, {
+        'expected_type': {
+            'key': '/type/string'
+        },
+        'name': 'alternate_names',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': False
+    }, {
+        'expected_type': {
+            'key': '/type/string'
+        },
+        'name': 'uris',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': False
+    }, {
+        'expected_type': {
+            'key': '/type/text'
+        },
+        'name': 'bio',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': True
+    }, {
+        'expected_type': {
+            'key': '/type/string'
+        },
+        'name': 'location',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': True
+    }, {
+        'expected_type': {
+            'key': '/type/string'
+        },
+        'name': 'birth_date',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': True
+    }, {
+        'expected_type': {
+            'key': '/type/string'
+        },
+        'name': 'death_date',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': True
+    }, {
+        'expected_type': {
+            'key': '/type/string'
+        },
+        'name': 'date',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': True
+    }, {
+        'expected_type': {
+            'key': '/type/string'
+        },
+        'name': 'wikipedia',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': True
+    }, {
+        'expected_type': {
+            'key': '/type/link'
+        },
+        'name': 'links',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': False
+    }],
+    'type': {
+        'key': '/type/type'
+    }
+}

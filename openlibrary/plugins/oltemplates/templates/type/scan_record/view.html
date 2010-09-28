@@ -1,0 +1,151 @@
+$def with (page)
+
+$var title: Scan Record of $page.edition.title
+
+<div style="padding: 10px 20px 10px 0px; float:right; clear: both;">
+    <img src="/static/images/flourish.left.gif"  alt="[" /><button type="button" name="submit" value="edit" class="edition"  onclick="window.location.href = '/scan_queue';">Scan Queue</button><img src="/static/images/flourish.gif"  alt="]" />
+</div>
+
+<div id="header">
+    <div style="float:left;padding-left:10px;padding-right:15px;"></div>
+    <span class="pretitle">Scan Record of</span>
+    <div id="title">$page.edition.title</div>
+</div>
+
+<div id="bibliography">
+    <div id="browse-rule"></div>
+    <div id="biblio-form-body">
+
+        <table cellpadding="0" cellspacing="0" border="0" width="100%">
+            <tr>
+                <td class="historyheader" style="white-space: nowrap;">Edition:</td><td class="path" valign="top" width="100%"> $:thingrepr(page.edition)</td>
+            </tr><tr>
+                <td class="historyheader" style="white-space: nowrap;">Source Record ID:</td><td class="path" valign="top" width="100%">$page.source_record_id</td>
+            </tr>
+        </table>
+
+        <table>
+            <tr>
+                <td class="historyheader" style="white-space: nowrap;">Location</td>
+                <td class="historyheader" style="white-space: nowrap;">Shelf</td>
+                <td class="historyheader" style="white-space: nowrap;">Barcode</td>
+            </tr>
+            $for num in range(len(page.locations)):
+                <tr>
+                    <td class="path" valign="top">$:thingrepr(page.locations[num])</td>
+                    <td class="path" valign="top">$:thingrepr(page.shelves[num])</td>
+                    <td class="path" valign="top">$:thingrepr(page.barcodes[num])</td>
+                </tr>
+        </table>
+<br/><br /><br />
+
+<script>
+
+function toggle_scan_edit() {
+    \$("#scan_status").toggle();
+    \$("#scan_status_edit").toggle();
+    return false;
+}
+
+\$(document).ready(function() {
+    \$("#dropdown_scan_status").change(function() {
+        if (\$("#dropdown_scan_status").val() == "SCAN_COMPLETE") {
+            \$("#scan_complete").show();
+            document.forms["edit"].action = "$page.edition.key?m=scan_complete";
+        }
+        else if (\$("#dropdown_scan_status").val() == "BOOK_NOT_SCANNED") {
+            document.forms["edit"].action = "$page.edition.key?m=scan_book_notfound";
+        }
+        else {
+            \$("#scan_complete").hide();
+            document.forms["edit"].action = "$page.key?m=edit";
+        }
+    })
+    .change();
+
+    \$("#multivolume_work").change(function() {
+        if(this.checked) {
+            \$("#archiveid").hide();
+            \$("#volumes").show();
+        }
+        else {
+            \$("#archiveid").show();
+            \$("#volumes").hide();
+        }
+    })
+    .change();
+});
+
+</script>
+
+
+
+<div id="scan_status">
+<span class="green"><span class="formheader">
+    Scan Status: $page.scan_status <input class="small-button" type="button" value="UPDATE" style="margin-left: 10px"  onclick="return toggle_scan_edit();" />
+</span></span>
+</div>
+
+<div id="scan_status_edit" style="display: none;">
+    $ options = ["NOT_SCANNED", "WAITING_FOR_BOOK", "BOOK_NOT_SCANNED", "SCAN_IN_PROGRESS", "SCAN_COMPLETE"]
+    <form name="edit" method="POST" action="$:changequery(m='edit')">
+        <div class="green"><div "formheader">
+            <div><b>Scan Status:</b> $:Dropdown("scan_status", options, id="dropdown_scan_status", value=page.scan_status).render() </div><br/>
+            <div id="scan_complete">
+                $if page.edition.volumes:
+                    $ checked = "checked"
+                    $ volumes = []
+                    $for v in page.edition.volumes:
+                        $volumes.append(v.ia_id)
+                    $ volumes = NEWLINE.join(volumes)
+                $else:
+                    $ checked = ""
+                    $ volumes = ""
+                <input id="multivolume_work" type="checkbox" name="multivolume_work" $checked value="yes"/><i>This is a multi-volume work.</i><br /><br />
+                <div id="archiveid"><b>Archive ID:</b> <input type="text" name="ocaid" value="$page.edition.ocaid"/><br /><br /></div>
+                <div id="volumes">
+                    <b>Archive IDs of all volumes:</b><br/>Please enter each Archive ID on its own line in sequential order (e.g. *00*, *01*, *02*, etc.)<br />
+                    <textarea name="volumes"  rows="10" cols="80" style="clear: both; margin-top: 10px; margin-bottom: 10px;">$:volumes</textarea>
+                </div>
+            </div>
+            <b>Comment:</b><br/>
+            <textarea name="_comment" rows="5" cols="40" style="width: 100%; margin-top: 10px; margin-bottom: 10px;"></textarea><br/>
+
+            <input class="small-button" type="submit" name="_save" value="SAVE" style="margin-left: 10px" />
+            <input class="small-button" type="button" name="_cancel" value="DELETE" onclick="return toggle_scan_edit();" />
+        </div></div>
+    </form>
+</div>
+
+<br /><br />
+
+$ history = get_recent_changes(key=page.key)
+$ fields = ["scan_status", "source_record_id", "sponsor", "request_date", "completion_date"]
+
+<style type="text/css">
+
+.change { margin: 10px; }
+.chanageby {background: #eeeeee; padding: 5px; }
+
+#changes { margin-left: 10px; }
+
+</style>
+
+<h2>Change History</h2>
+
+<div id="changes">
+$for a, b in zip(history, history[slice(1, None)]):
+    <div class="change">
+        <div class="changeby">Changed $datestr(a.created) by
+        $if a.author: <a href="a.key">$a.author.displayname</a>
+        $else: $a.ip
+        </div>
+        $for f in fields:
+            $if a.thing[f] != b.thing[f]:
+                <b>$f</b> changed from $b.thing[f] to $a.thing[f]<br/>
+        <br/>
+        $a.comment
+    </div>
+</div>
+
+</div>

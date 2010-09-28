@@ -1,0 +1,17 @@
+$def with (path, error)
+
+$var title: Permission Denied
+
+<div id="contentHead">
+    <h1>$_("Permission denied.")</h1>
+</div>
+
+<div id="contentBody">
+
+<p>$error</p>
+
+
+$if not ctx.user:
+    <p>$:_('You may <a href="%s">log in</a> if you have the required permissions.', "/account/login?" + urlencode(dict(redirect=path)))</p>
+
+</div>

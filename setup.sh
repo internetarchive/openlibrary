@@ -10,13 +10,17 @@ then
     git submodule update
 else
     function get_tarball() {
-        name=$1
-        tag=$2
-        wget http://github.com/$name/$name/tarball/$tag -O $name.tgz
-        tar xvzf $name.tgz
-        rm -rf $name
-        mv $name-$name-* $name
+        user=$1
+        project=$2
+        tag=$3
+        wget http://github.com/$user/$project/tarball/$tag -O $project.tgz
+        tar xvzf $project.tgz
+        rm -rf $project
+        mv $user-$project-* $project
     }
-    get_tarball infogami master
-    get_tarball webpy webpy-0.31
+    get_tarball infogami infogami master
+    get_tarball internetarchive acs4_py master
 fi
+
+cd $root
+./scripts/i18n-messages compile

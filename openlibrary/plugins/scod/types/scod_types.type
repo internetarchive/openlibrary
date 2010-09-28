@@ -1,0 +1,28 @@
+[
+    {
+        'key': '/type/scan_location',
+        'type': '/type/type',
+    },
+    {
+        'key': '/type/scan_record',
+        'type': '/type/type',
+        'kind': 'regular',
+        'properties': [
+            property("edition", "/type/edition", True),
+            property("scan_status", "/type/string", True),
+            property("locations", "/type/scan_location", False),
+            property("sponsor", "/type/user", True),
+        ]
+    },
+    {
+        'key': '/type/scan_location',
+        'type': '/type/type',
+        'kind': 'regular',
+        'properties': [
+            property("name", "/type/string", True)
+        ],
+        'backreferences': [
+            backreference('books', '/type/scan_record', 'locations')
+        ]
+    },
+]

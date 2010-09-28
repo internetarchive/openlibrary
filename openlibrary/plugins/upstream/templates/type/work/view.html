@@ -1,0 +1,234 @@
+$def with (page)
+
+$var title: $page.title
+
+<div id="contentHead">
+
+    $:macros.databarView(page)
+
+    <h1 class="collapse">
+        $if page.get('subtitle', ''):
+            $page.title<span title="subtitle">: $page.subtitle</span>
+        $else:
+            $page.title
+        $if page.editions:
+            <span class="tools" style="white-space:nowrap;">
+            $if page.edition_count == 1:
+                $for book in page.editions:
+                    <a href="$book.url()" title="View this edition">1 edition</a>
+            $else:
+                <a href="#editions" class="plain brown">$page.edition_count editions</a>
+            </span>
+    </h1>
+    <div class="clearfix"></div>
+    $if page.authors:
+        $ author_list = ', '.join('<a href="%s">%s</a>' % (a.author.url(), a.author.name) for a in page.authors)
+        <div class="work"><span class="editions">$_("By") $:author_list</span></div>
+    $else:
+        <div class="work"><span class="editions">$:_("By <em>unknown author</em>")</span></div>
+</div>
+
+<div class="clearfix"></div>
+
+<script type="text/javascript">
+<!--
+\$().ready(function(){
+    var back = history.length; 
+    \$().bind('cbox_closed', function(){ 
+        var page = back - history.length;
+        if (page < 0){ 
+            history.go(page); 
+        } 
+    });
+});
+//-->
+</script>
+
+
+<div id="contentBody">
+
+    <div class="workCover">
+        <div class="illustration" id="work">
+            $:render_template('covers/book_cover', page)
+            $:render_template("covers/change", page, ".bookCover img")
+        </div>
+        $if page.edition_count == 1:
+            $for book in page.editions:
+                $:render_template("books/edition-toolbar-show", book)
+    </div>
+
+    <div class="workAbout">
+    <div class="workPadding">
+        $if not page.excerpts and page.first_sentence:
+            <p class="largest" style="margin-bottom: 20px;" title="First Sentence"><em>"$page.first_sentence</em>"</p>
+
+        $if page.description:
+            <div class="sansserif smallest brown collapse">About the Book</div>
+            $:sanitize(format(page.description))
+
+        $def render_subjects(label, subjects, prefix=""):
+            $if subjects:
+                <div class="section" style="margin-bottom:15px;">
+                    <h6 class="collapse black uppercase">$label</h6>
+                    <div class="sansserif">
+                    $for subject in subjects:
+                        <a href="/subjects/$prefix$:utf8(subject.lower().replace(' ', '_').replace(',',''))">$subject</a>$cond(not loop.last,",","")
+                    </div>
+                </div>
+
+        $:render_subjects("Subjects", page.get_subjects())
+        $:render_subjects("People", page.subject_people, prefix="person:")
+        $:render_subjects("Places", page.subject_places, prefix="place:")
+        $:render_subjects("Times", page.subject_times, prefix="time:")
+
+        $if page.excerpts:
+            <div class="section">
+                <h3 class="collapse">$_("Excerpts")</h3>
+                $for excerpt in page.excerpts:
+                    <div class="excerpt">
+                        <div class="text">
+                            $for line in excerpt.excerpt.split('\n'):
+                                $line<br/>
+                        </div>
+                        <div class="attribution">
+                            $if excerpt.pages:
+                                $_("Page") $excerpt.pages,
+                            $if excerpt.author:
+                                $_("added by") <a href="$excerpt.author.key">$excerpt.author.displayname</a>.
+                            $else:
+                                $_("added anonymously").
+                            $if excerpt.comment:
+                                "<em>$excerpt.comment</em>"
+                        </div>
+                    </div>
+            </div>
+        $if not (page.description or page.excerpts):
+            <div class="workHelp brown sansserif">  	 	
+                $ exclaim = random.choice(["Well, gosh.", "Dang.", "Darn it.", "Oy vey.","¡Ay, caramba!", "Uh oh.","Sheesh.", "Ack!", "D'oh.","Oh, pooh.", "What the..?", "Cor blimey.",   "Jeepers.", "Heavens to Betsy!", "Oh! The humanity!", "Alack!", "Alas...", "Zut alors!","Drat!","Fiddlesticks.", "Good grief.", "Rats.", "Yikes!", "Crikey!"]) 		
+                <span id="curses">$exclaim</span> The library doesn't know what this book is <strong>about</strong>. <br />Can you <b><a href="$page.url('/edit')#about/about">help describe it</a></b>?
+            </div>
+
+        $if page.links or (page.wikipedia and page.wikipedia.startswith("http")):
+            <div class="section">
+                <h3>$_("Links") <span class="gray small sansserif">$_("(outside Open Library)")</span></h3>
+                <ul class="booklinks sansserif">
+                $if page.wikipedia and page.wikipedia.startswith("http"):
+                    <li><a href="$page.wikipedia" class="sidebar">Wikipedia</a></li>
+                $for link in page.links:
+                    <li><a href="$link.url">$link.title</a></li>
+                </ul>
+            </div>
+
+        $if page.edition_count > 1:
+            $if (page.lc_classifications or page.dewey_number):
+                <div class="section">
+                    <h3 class="collapse">$_("Classifications")</h3>
+                    <table class="meta"><tbody>
+                    $if page.lc_classifications:
+                        <tr><td class="title"><span class="title">Library of Congress</span></td>
+                        <td class="tag"><span class="object">$thingrepr(page.lc_classifications)</span></td></tr>
+                    $if page.dewey_number:
+                        <tr><td class="title"><span class="title">Dewey</span></td>
+                        <td class="tag"><span class="object">$thingrepr(page.dewey_number)</span></td></tr>
+                    </tbody></table>
+                </div>
+        </div>
+    </div>
+
+    <a name="editions"></a>
+
+    $if page.edition_count > 1:
+        <div class="clearfix"></div>
+        <div class="head">
+            <h2>
+            $commify(page.edition_count) editions
+            $if page.first_publish_year:
+                <span class="count">$_("First published in %s", page.first_publish_year)</span>
+            </h2>
+            <div class="small sansserif brown" style="position:relative;z-index:1000;width:400px;">
+                <a href="/books/add?work=$page.key" title="$_('Add another edition of') $page.title">$_("Add another")</a>? 
+                $if ctx.user and ctx.user.is_admin():
+                    <a href="#" title="This doesn't work yet" class="fixthis">Merge duplicates</a>?
+            </div>
+        </div>
+
+    $if page.edition_count == 1:
+        $for book in page.editions:
+            $:render_template("books/edition-show", book)
+
+    $if page.edition_count > 1:
+        <script type="text/javascript">
+        <!--
+        \$().ready(function(){
+            \$('#editions span.count').each(function(i){
+                \$(this).text(i+1);
+                var myLength = \$(this).text().length;
+                if (myLength == 1) {\$(this).prepend("000");}
+                else if (myLength == 2) {\$(this).prepend("00");}
+                else if (myLength == 3) {\$(this).prepend("0");};
+            });
+            \$('#editions th.title').mouseover(function(){
+                if (\$(this).hasClass('sorting_asc')) {\$(this).attr("title","Sort latest to earliest");}
+                else if (\$(this).hasClass('sorting_desc')) {\$(this).attr("title","Sort earliest to latest");}
+                else {\$(this).attr("title","Sort by publish date");};
+            });
+            \$('#editions th.read').mouseover(function(){
+                if (\$(this).hasClass('sorting_asc')) {\$(this).attr("title","Push readable versions to the bottom");}
+                else if (\$(this).hasClass('sorting_desc')) {\$(this).attr("title","Sort by editions to read");}
+                else {\$(this).attr("title","Available to read");};
+            });
+            \$('#editions th.borrow').mouseover(function(){
+                if (\$(this).hasClass('sorting_asc')) {\$(this).attr("title","Are you a member of your local library?");}
+                else if (\$(this).hasClass('sorting_desc')) {\$(this).attr("title","Bring books you can borrow to the top");}
+                else {\$(this).attr("title","Available to borrow");};
+            });
+            \$('#editions th.buy').mouseover(function(){
+                if (\$(this).hasClass('sorting_asc')) {\$(this).attr("title","Books for sale to the bottom");}
+                else if (\$(this).hasClass('sorting_desc')) {\$(this).attr("title","Bring books for sale to the top");}
+                else {\$(this).attr("title","Available to buy");};
+            });
+        });
+        \$(window).load(function(){
+           var rowCount = \$('#editions tbody tr').length;
+            if (rowCount < 16) {
+                \$('#editions').dataTable({
+                    "aoColumns": [{"sType":"html"},null,null,null],
+                    "aaSorting": [ [1,'asc'] ],
+                    "bPaginate": false,
+                    "bInfo": false,
+                    "bFilter": false,
+                    "bStateSave": false,
+                    "bAutoWidth": false
+                });
+            } else {
+                \$('#editions').dataTable({
+                    "aoColumns": [{"sType":"html"},null,null,null],
+                    "aaSorting": [ [1,'asc'] ],
+                    "bPaginate": true,
+                    "bInfo": true,
+                    "sPaginationType": "full_numbers",
+                    "bFilter": false,
+                    "bStateSave": false,
+                    "bAutoWidth": false
+                });
+            }
+        });
+        //-->
+        </script>
+        <table id="editions">
+            <thead>
+            <tr>
+                <th class="title" title=""><a href="javascript:;">Edition</a></th>
+                <th class="read" title=""><a href="javascript:;">Read</a></th>
+                <th class="borrow" title=""><a href="javascript:;">Borrow</a></th>
+                <th class="buy" title=""><a href="javascript:;">Buy</a></th>
+            </tr>
+            </thead>
+            <tbody>
+                $for book in page.get_sorted_editions():
+                    <tr>$:render_template("books/edition-sort", book)</tr>
+            </tbody>
+        </table>
+
+    $:render_template("lib/history", page)
+</div>

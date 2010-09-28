@@ -1,0 +1,78 @@
+$def with (namespace, lang, page)
+
+$ lang = page.key.split('.')[-1]
+$ namespace = find_i18n_namespace(page.key)
+
+<script type="text/javascript">
+function change_ns(ns) {
+	document.forms['i18n']['ns'].value = ns;
+	document.forms['i18n'].submit();
+}
+
+function changelang() {
+    var lang = \$("#id_lang").attr('value');
+	window.location.href = "/i18n$namespace/strings." + lang + "?m=edit";
+}
+
+function add_key() {
+	var key = document.getElementById("newkey").value;
+	var table = document.getElementById("strings_table");
+	var row = table.insertRow(table.rows.length);
+	var cell1 = row.insertCell(0);
+	var cell2 = row.insertCell(1);
+	cell1.innerHTML = key;
+        cell2.innerHTML = '<input type="text" name="string_' + key + '" value=""/ style="width: 100%">';
+        \$("table#strings_table tr:last td:first").attr("class", "formheader")
+	return false;
+}
+
+</script>
+
+
+
+<form method="POST">
+
+$var title: Editing $page.key
+
+<div id="contentHead">
+    <div class="head">
+        $:macros.SeeLanguage()
+        <span class="tools">Editing</span>
+        <h1>$page.key</h1>
+    </div>
+</div>
+
+<div id="contentBody">
+$:macros.TypeChanger(page.type)
+$ xnamespace = namespace or "/"
+
+$for ns in _.get_namespaces():
+    $if ns == xnamespace:
+        $(ns or "root")
+    $else:
+        <a href="/i18n$ns/strings.$lang?m=edit" >$ns</a>     
+    $(_.get_count(ns, lang))/$_.get_count(ns)
+
+    <table id="strings_table">
+    $for key in _.getkeys(namespace, lang):
+        <tr>
+            <td class="formheader-i18n">$key</td>
+            <td width="100%" style="padding-left: 20px"><input type="text" name="string_$key" value="$page.get('string_' + key, '')" style="width: 100%" /></td>
+        </tr>
+    </table>
+
+        $_.get('/type/i18n', 'add_new_key') <input type="text" name="_newkey" id="newkey"/>
+        <button type="button" onclick="add_key()" name="_addkey" value="$_.get('/type/i18n', 'add')" />Add</button>
+
+      $:macros.EditButtons()
+    
+
+Language: $:Dropdown('lang', _.get_languages(), onchange="changelang();", id="id_lang", value=lang).render()
+
+<input type="hidden" name="ns" value="$namespace">
+
+
+
+</div>
+
+</form>

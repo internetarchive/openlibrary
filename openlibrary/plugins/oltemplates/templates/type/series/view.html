@@ -1,0 +1,77 @@
+$def with (page)
+
+$ _t = i18n.get_namespace(page.type.key)
+$ _ = i18n.get_namespace('/mode/view')
+
+$var title: $page.title
+
+$ first = page.works[0].authors
+$ all_same_author = all(w.authors == first for w in page.works[1:])
+
+<div id="header">  	 	
+ 	<div style="float:left;padding-left:10px;padding-right:15px;"></div> 		
+ 	<div id="title">$page.title</div>
+    $if all_same_author:
+        <div id="statement">
+            by <span class="datalink">$:thingrepr(first)</span><br />
+        </div>
+</div>
+
+$if page.description: $:format(page.description)
+
+$ s = "genres", "subjects", "subject_places", "subject_times", "links"
+
+<div style="padding: 20px 30px 20px 30px; margin-right: 30px;">
+<table border="0" cellpadding="0" cellspacing="0">
+$ rule = "-top"
+    $for name in s:
+        $if page[name]:
+            <tr>
+                <td class="formheader-rule">$_t[name]:</td>
+            $if name == "links":
+                <td class="formfield-rule" width="100%">
+                <ul>
+                    $for link in page[name]:
+                        <li><a href="$link.url">$link.title</a>
+                </ul>
+                </td>
+            $elif name == "subjects":
+                <td class="formfield-rule" width="100%">
+                    $for subject in page[name]:
+                        $ subject_label = subject.strip('.')
+                        <a href="/search?ftokens=$:utf8(facet_token('subjects', thingrepr(subject).strip()))">$:utf8(thingrepr(subject_label)).replace('--', '&mdash;')</a><br />
+                </td>
+            $else:
+                    <td class="formfield-rule" width="100%">$:thingrepr(page[name])</td>
+                </tr>
+</table>
+
+</div>
+
+<div id="bibliography">
+    <div id="browse-rule"></div>
+    <div id="biblio-form-body">
+
+<table cellpadding="0" cellspacing="0" border="0" width="100%">
+    <tr>
+    <td class="historyheader">#</td>
+    <td class="historyheader" width="100%">Title</td>
+    <td class="historyheader" style="white-space: nowrap">First published</td>
+    $if not all_same_author:
+        <td class="historyheader">Author</td>
+    </tr>
+    $ first = "first"
+    $for work in page.works:
+        <tr>
+            <td class="number $first">$loop.index&nbsp;&nbsp;</td>
+            <td class="history $first">$:thingrepr(work)</td>
+            <td class="history $first">$work.first_publish_date</td>
+            $if not all_same_author:
+                <td class="history $first">$:thingrepr(work.authors)</td>
+            <td class="history $first" align="center">&nbsp;&nbsp;</td>
+        </tr>
+        $ first = ""
+</table>
+
+</div></div>
+</div>

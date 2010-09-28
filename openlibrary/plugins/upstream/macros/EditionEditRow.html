@@ -1,0 +1,31 @@
+$def with (page, name, unique=True, right=False)
+
+$ label = i18n.get('/type/edition', name)
+$ value = page[name]
+
+$ class_label = "label"
+$ class_input = "input"
+$ button_id = name + "Add"
+
+$ property_type = get_property_type(page.type, name)
+
+<div id="div_$name">
+
+$if unique:
+    <div class="formElement">
+        <div class="$class_label"><label for="$name">$label</label></div>
+        <div class="$class_input">$:thinginput(value, name=name, id=name, expected_type=property_type)</div>
+    </div>
+$else:
+    $ value = value or [""]
+    $for i, v in enumerate(value):
+        <div class="formElement">
+            <div class="$class_label"><label for="$name">$label</label></div>
+            <div class="$class_input">$:thinginput(v, expected_type=property_type, name=name, id=name)            
+                $if i == len(value) - 1:
+                    <button class="addAnother control" id="$button_id" type="button" title="Add another?"></button>
+            </div>
+        </div>
+        $ label = ""
+
+</div>

@@ -1,0 +1,30 @@
+{
+    'backreferences': [{
+        'expected_type': {
+            'key': '/type/scan_record'
+        },
+        'name': 'available_books',
+        'property_name': 'locations',
+        'type': {
+            'key': '/type/backreference'
+        }
+    }],
+    'description': '',
+    'key': '/type/scan_location',
+    'kind': 'regular',
+    'name': '',
+    'properties': [{
+        'description': '',
+        'expected_type': {
+            'key': '/type/string'
+        },
+        'name': 'name',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': True
+    }],
+    'type': {
+        'key': '/type/type'
+    }
+}

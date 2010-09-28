@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<record xmlns="http://www.loc.gov/MARC21/slim">
+  <leader>01124cam a22002530  4500</leader>
+  <controlfield tag="001">591072</controlfield>
+  <controlfield tag="008">720203m18541857ge                p ger |</controlfield>
+  <datafield tag="035" ind1=" " ind2=" ">
+    <subfield code="a">(Sirsi) AER-1190</subfield>
+  </datafield>
+  <datafield tag="035" ind1=" " ind2=" ">
+    <subfield code="a">22520-2</subfield>
+    <subfield code="b">v. 1, v. 2, pts. 1-2</subfield>
+  </datafield>
+  <datafield tag="040" ind1=" " ind2=" ">
+    <subfield code="a">OTU</subfield>
+    <subfield code="b">ENG</subfield>
+  </datafield>
+  <datafield tag="041" ind1="1" ind2=" ">
+    <subfield code="a">gerlat</subfield>
+  </datafield>
+  <datafield tag="090" ind1="1" ind2="9">
+    <subfield code="a">LL H8113s .Gk</subfield>
+    <subfield code="b">ROBA</subfield>
+    <subfield code="c">1</subfield>
+  </datafield>
+  <datafield tag="100" ind1="0" ind2="0">
+    <subfield code="a">Horace.</subfield>
+  </datafield>
+  <datafield tag="240" ind1="1" ind2="0">
+    <subfield code="a">Satirae</subfield>
+  </datafield>
+  <datafield tag="243" ind1="1" ind2="0">
+    <subfield code="a">Selected works</subfield>
+  </datafield>
+  <datafield tag="245" ind1="0" ind2="0">
+    <subfield code="a">Zwei Bücher Satiren;</subfield>
+    <subfield code="c">aus dreissig unverglichenen und allen bisher verglichenen Handschriften, wie auch sämmtlichen bedeutenden Ausgaben kritisch hergestellt, metrisch übersetzt, und mit erklärendem Commentar versehen von C. Kirchner.</subfield>
+  </datafield>
+  <datafield tag="260" ind1="0" ind2=" ">
+    <subfield code="a">Leipzig,</subfield>
+    <subfield code="b">Teubner,</subfield>
+    <subfield code="c">1854-57.</subfield>
+  </datafield>
+  <datafield tag="300" ind1=" " ind2=" ">
+    <subfield code="a">2 vol. in 3.</subfield>
+  </datafield>
+  <datafield tag="505" ind1="0" ind2=" ">
+    <subfield code="a">Vol. 1. Text, Übersetzung und kritischer Apparat.-  Vol. 2, pt. 1, Commentar zum ersten Buche der Satiren.-  Vol. 2, pt. 2, Commentar zum zweiten Buche der Satiren, verfasst von W.S. Teuffel.</subfield>
+  </datafield>
+  <datafield tag="596" ind1=" " ind2=" ">
+    <subfield code="a">26</subfield>
+  </datafield>
+  <datafield tag="700" ind1="1" ind2="0">
+    <subfield code="a">Kirchner, Carl Christian Jacob,</subfield>
+    <subfield code="d">1787-1855,</subfield>
+    <subfield code="e">tr. [and] ed.</subfield>
+  </datafield>
+  <datafield tag="700" ind1="1" ind2="0">
+    <subfield code="a">Teuffel, Wilhelm Sigmund,</subfield>
+    <subfield code="d">1820-1878,</subfield>
+  </datafield>
+  <datafield tag="948" ind1=" " ind2=" ">
+    <subfield code="a">07/15/1992</subfield>
+    <subfield code="b">09/07/1994</subfield>
+  </datafield>
+  <datafield tag="926" ind1=" " ind2=" ">
+    <subfield code="a">ROBARTS</subfield>
+    <subfield code="b">STACKS</subfield>
+    <subfield code="c">LL H8113s .Gk</subfield>
+    <subfield code="d">BOOK</subfield>
+    <subfield code="f">1</subfield>
+  </datafield>
+</record>

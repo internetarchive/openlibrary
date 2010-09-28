@@ -1,0 +1,122 @@
+$def with (q, qresults, results, works_groups, facets, ftokens, ft_pairs, timings, errortext)
+
+$ _ = i18n.get_namespace('/search')
+$var title: $_.search_results
+$add_stylesheet('/css/search.css?format=raw')
+
+<!-- Timings (for debugging): $timings -->
+
+$# check for the presence of a facet token corresponding to a fulltext search selection facet
+$# this is kludgy and maybe it should be done some other way, like with another plugin function
+$ want_fulltext = ''
+$if 'mhsncqbxgkup' in ftokens:
+    $ want_fulltext = 'checked'
+
+<!-- glo version -->
+
+<style type="text/css">
+<!--
+h2.Match { font-size: 1.25em; font-weight: bold; color: #000; margin-bottom: 20px;}
+h5 { font-size: 13px; font-variant: small-caps; margin-top: 10px; margin-bottom: 5px;}
+.SearchBox { margin-top: 10px; margin-bottom: 30px;}
+.ErrorMsg { background-color: #fc0; padding: 5px; font-family: Verdana, Arial; font-size: 11px; }
+.FacetList { background-color: #f5f5f5; padding-top: 0px; padding-right: 20px; padding-bottom: 10px; padding-left: 10px; line-height: 18px; }
+.FacetResultCount {color: #666; font-family: Verdana, Arial; font-size: 9px;}
+.Switch {color: #666; font-family: Verdana, Arial; font-size: 11px; font-weight: normal;}
+.Chosen { font-size: 1.1em; }
+.Chosen a { color: #333; text-decoration: none; }
+.ClearX {font-family: Verdana, Arial; font-size: 12px; color: #f33; font-weight: bold; }
+.SRPCover { margin-top: 10px; margin-right: 0px; margin-bottom: 20px; margin-left: 40px; float:left; height: 255px; vertical-align: middle; }
+.SRPCover img { border-right: 1px solid #666; border-bottom: 1px solid #666; }
+.SRPCoverBlank { width: 170px; height: 255px; margin-top: 10px; margin-right: 0px; margin-bottom: 20px; margin-left: 40px; float:left; vertical-align: middle; text-align: center; float:left; background: transparent url("/static/images/blank.book.new.png") 0px 3px no-repeat;}
+.BookTitle { color: #f9f8d0; width: 180px; height: 250px; vertical-align: middle; display: table-cell; padding-left: 8px; }
+.Author { color: #fff; font-style: italic; font-size: 12px; line-height: 15px; padding-right: 4px; padding-left: 4px; }
+.ReadNow { font-variant: small-caps; color: #3333ff; text-decoration: underline; }
+.Pages {padding: 20px; font-family: Verdana, Arial; font-size: 11px; }
+.Pages .YouAreHere { border: 1px solid #ddd; padding: 5px; }
+.Pages .ChoosePage { border: 1px solid #ddd; padding: 5px; }
+.AddBook { font-size: 14px; color: #666; padding: 10px; text-align: center; font-style: italic; margin-top: 20px;}
+.SearchTime { margin-top: 20px; color: #666; font-family: Verdana, Arial; font-size: 9px; font-weight: normal; }
+-->
+</style>
+
+<div id="header-fullpage">
+
+  <span id="title">Search Results</span>
+
+    <form method="get" action="/search">
+      <div class="SearchBox"><input style="background-color: #f8f8f8; font-family: georgia; font-size: 18px; color: #6F320D; border: 1px solid #ccc; padding-left: 4px;" type="text" name="q" value="$q" title="type_search." size="40" />
+      <button class="go" type="submit">go</button>&nbsp;&nbsp;<span class="Switch">&nbsp;&nbsp;<a href="/advanced">More search options</a></span>
+
+<!--      <br /> -->
+<!--      <span class="Switch"><input tabindex="9" type="checkbox" value="mhsncqbxgkup" name="ftokens" $want_fulltext /> $_.scanned_books_only </span> -->
+      </div>
+    </form>
+
+
+$if errortext:
+    <br /><div id="ErrorMsg"><span class="errorhead">$_.error:</span> $errortext</div>
+$else:
+    <h2 class="Match">
+    $if q or ftokens: There are $qresults.total_results matching records. 
+    $if qresults.total_results > 0:
+        $if query_param('view')=='covers':
+          <span class="Switch">Show: <a href="$changequery(view='list')">List</a> / <b>Covers</b></span>
+        $else:
+          <span class="Switch">Show: <b>List</b> / <a href="$changequery(view='covers')">Covers</a></span>
+  </h2>
+
+<table border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+
+<!-- facets -->
+$if facets: 
+    <td valign="top" class="FacetList">
+    $ selected_tokens = [token for token,tpair in ft_pairs]
+    $for facet in facets:
+	$ fname = facet[0]
+	$ fn1 = _[fname]
+	$ fentries = facet[1]
+	<h5>$fn1</h5>
+        $ displayed_entries = fentries[slice(6)]
+        $macros.ReorderFacets(fname, displayed_entries, selected_tokens)
+	$for fentry in displayed_entries:
+	    $ fval = fentry[0]
+	    $ fcount = fentry[1]
+	    $ ftoken = facet_token(fname, fval)
+	    $ cancel = (ftoken in selected_tokens)
+	    $if cancel:
+                <span class="Chosen"><a class="datalink" href="$changequery(ftokens=ftokens + ',' + ftoken, offset='0', remove='')">$:macros.HasFulltext(fname, fval)</a>&nbsp;&nbsp;<a href="$changequery(remove=ftoken, ftokens=ftokens)" title="Click this to remove"><span class="ClearX">[x]</span></a></span>
+            $else:
+                $# ignore "scannable facet value
+                $if fname == "has_fulltext" and fval == 5:
+                    $continue
+	        <a class="datalink" href="$changequery(ftokens=ftokens + ',' + ftoken, offset='0', remove='')">$:macros.HasFulltext(fname, fval)</a>&nbsp;&nbsp;<span style="color: #666; font-family: Verdana, Arial; font-size: 9px;">$fcount</span>
+	    <br />
+    </td>    
+      
+<!-- results -->
+<td valign="top" width="80%">
+$if query_param('view')=='covers':
+    $:macros.SearchResultsCovers(results)
+$else:
+    $:macros.SearchResults(results)  
+$if qresults.total_results > 20:
+    <br clear="all" /><br clear="all" />
+    <div class="Pages">
+    $ last_page = (qresults.total_results + 19) / 20
+    $ first_page = 1
+    $ this_page = qresults.begin / 20 + 1
+    $:macros.SearchPagination(q, first_page, last_page, this_page, 20)
+    </div>
+</td>
+</tr>
+</table>
+<div class="AddBook">$_.cant_find&nbsp;<a href="/addbook">$_.add_a_book</a>.</div>
+
+$if timings and timings[1]:
+    $ t_date, t_plist = timings
+    $ (_x,t_querydone), (_x,t_faceted), (_x,t_expanded), (_x,t_works) = t_plist  # _x = ignored
+    $ t_search, t_infoget = t_faceted, t_expanded - t_faceted
+    <div class="SearchTime"> $("Search = %.2f sec; Presentation = %.2f sec"% (t_search, t_infoget))</div>
+</div>

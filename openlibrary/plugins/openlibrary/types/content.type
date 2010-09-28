@@ -1,0 +1,30 @@
+{
+    'description': '',
+    'key': '/type/content',
+    'kind': 'regular',
+    'name': 'Content',
+    'properties': [{
+        'description': '',
+        'expected_type': {
+            'key': '/type/string'
+        },
+        'name': 'title',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': True
+    }, {
+        'description': '',
+        'expected_type': {
+            'key': '/type/text'
+        },
+        'name': 'body',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': True
+    }],
+    'type': {
+        'key': '/type/type'
+    }
+}

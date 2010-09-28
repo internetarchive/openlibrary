@@ -1,0 +1,66 @@
+$def with (page)
+
+$ advanced = (
+$    ('publisher', _("Publisher")),
+$    ('person', _("Person")),
+$    ('subject', _("Subject")),
+$    ('isbn', "ISBN"),
+$    ('place', _("Place")),
+$    ('author', _("Author")),
+$    ('title', _("Title")),
+$ )
+
+            <div id="formScroll"><div id="scrollBtm"></div></div>
+            <div class="siteSearch" id="footerSearch">
+
+            <form method="get" action="/search" class="siteSearch">
+                <div id="bottomOptions" class="searchOptions hidden">
+                <fieldset class="home">
+                    <legend>Advanced Search</legend>
+                <!-- HIDE THIS
+                <div class="formElement">
+                <label for="qbtm-language">$_("Language")</label><br/>
+                <select name="language" id="qbtm-language">
+                    <option value="">$_('any')</option>
+                    <option value="eng">$_('English')</option>
+                    <option value="ger">$_('German')</option>
+                    <option value="fre">$_('French')</option>
+                    <option value="spa">$_('Spanish')</option>
+                    <option value="rus">$_('Russian')</option>
+                    <option value="ita">$_('Italian')</option>
+                    <option value="chi">$_('Chinese')</option>
+                    <option value="ara">$_('Arabic')</option>
+                    <option value="jpn">$_('Japanese')</option>
+                    <option value="por">$_('Portuguese')</option>
+                    <option value="pol">$_('Polish')</option>
+                </select>
+                </div>
+                -->
+                $for name, label in advanced:
+                    <div class="formElement">
+                    <label for="qbtm-$name">$label</label><br/>
+                    <input type="text" name="$name" id="qbtm-$name" size="35"/>
+                    </div>
+                </fieldset>
+                </div>
+            
+                <fieldset class="home">
+                <legend>Site Search</legend>
+                <label for="qbtm" class="small hidden" id="btmSrchLabel">Keyword<br/></label>
+                <input type="text" name="q" id="qbtm" size="35"/>
+                <input type="submit" value="Search"/>
+                </fieldset>
+                <div class="searchPlacement">
+                    <div class="searchFilter">
+                        <div class="searchOpener">
+                            <a href="javascript:;" id="searchFoot">$_("More search options")</a>
+                        </div>
+                        <div class="searchCheckbox">
+                            <input name="has_fulltext" type="checkbox" value="true" id="ftokensbtm"/> 
+                            <label for="ftokensbtm">$_("Only show ebooks")</label>
+                        </div>
+                    </div>
+                </div>
+            </form>
+
+            </div>

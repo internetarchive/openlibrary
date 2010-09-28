@@ -1,0 +1,22 @@
+$def with (path, limit=50)
+
+$ path = query_param("path", path)
+$ page = safeint(query_param("page", "0"))
+$ pages = list_recent_pages(path, limit=limit, offset=page * limit)
+
+<table>
+$for p in pages:
+    $if p.type.key != '/type/delete':
+        <tr>
+            <td>$datestr(p.last_modified) </td>
+            <td> <a href="$homepath()$p.key">$p.key</a></td>
+        </tr>
+<table>
+
+<div class="sansserif">
+$if page != 0:
+    &lt; <a href="$:changequery(page=page - 1)" rel="nofollow">$_("Prev")</a> ... 
+
+$if len(pages) == limit:
+    <a href="$:changequery(page=page + 1)" rel="nofollow">$_("Next")</a> &gt;
+</div>

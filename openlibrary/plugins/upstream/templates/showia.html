@@ -1,0 +1,35 @@
+$def with (record, filename)
+
+$ title = "MARC XML Record from Internet Archive"
+
+$var title: $title
+
+<div id="contentHead">
+    <h1>$title</h1>
+</div>
+
+<div id="contentBody">
+    <div class="section">
+        <table class="meta">
+            <tbody>
+                <tr>
+                    <td class="title"><span class="title">Record ID</span></td>
+                    <td class="tag"><span class="object">ia:$filename</span></td>
+                </tr>
+                <tr>
+                    <td class="title"><span class="title">Source</span></td>
+                    <td class="tag"><span class="object"><a href="http://www.archive.org/details/$filename.split('/')[0]">Internet Archive</a></span></td>
+                </tr>
+                <tr>
+                    <td class="title"><span class="title">Download Link</span></td>
+                    <td class="tag"><span class="object"><a href="http://www.archive.org/download/$filename">http://www.archive.org/download/$filename</a></span></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    $if not record:
+        <p>$_("Invalid MARC XML record.")</p>
+    $else:
+        <pre>$record</pre>
+</div>

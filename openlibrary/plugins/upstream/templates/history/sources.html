@@ -1,0 +1,39 @@
+$code:
+    names = {
+        "marc_loc_updates": "Library of Congress",
+        "marc_records_scriblio_net": "Scriblio",
+        "talis_openlibrary_contribution": "Talis",        
+        "unc_catalog_marc": "University of North Carolina",
+        "marc_oregon_summit_records": "Oregon Libraries",
+        "marc_western_washington_univ": "Western Washington University",
+        "marc_university_of_toronto": "University of Toronto",
+        "bpl_marc": "Boston Public Library",
+        "marc_boston_college": "Boston College",
+        "marc_miami_univ_ohio": "Miami University of Ohio",
+        "marc_laurentian": "The Laurentian Library",
+        "wfm_bk_marc": "Buffalo State College",
+        "CollingswoodLibraryMarcDump10-27-2008": "Collingswood Public Library",
+        "hollis_marc": "Harvard's HOLLIS catalog",
+        "marc_ithaca_college": "Ithaca College Library",
+        "marc_binghamton_univ": "Binghamton University",
+        "marc_upei": "University of Prince Edward Island",
+    }
+    for i in range(1, 17):
+        names["SanFranPL%02d" % i] = "San Francisco Public Library"
+        
+    def get_source_record(record_id):
+        item = record_id.split("/")[0]
+        url = "/show-marc/" + record_id
+        
+        if item.startswith("ia:"):
+            source_name = "Internet Archive"
+            source_url = "http://www.archive.org/details/" + item[3:]
+        elif item.startswith("amazon:"):
+            source_name = "amazon.com"
+            source_url = "http://www.amazon.com/?tag=openlibr-20"
+        else:
+            source_name = names.get(item, item)
+            source_url = "http://www.archive.org/details/" + item    
+        return storage(id=record_id, url=url, source_name=source_name, source_url=source_url)
+
+$var get_source_record = get_source_record

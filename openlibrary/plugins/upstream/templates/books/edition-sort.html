@@ -1,0 +1,139 @@
+$def with (book)
+
+$ booksense = "http://booksense.com/product/info.jsp?isbn=XXX"
+$ amazon = "http://www.amazon.com/gp/product/XXX?tag=openlibr-20"
+$ abebooks = "http://clickserve.cc-dt.com/link/tplclick?lid=41000000024660875&pubid=21000000000172077&isbn=XXX"
+$ alibris = " http://click.linksynergy.com/fs-bin/click?id=eSmaWuUpnDY&offerid=99238.122856000&type=2&subid=0&tmpid=939&RD_PARM1=http%253A%252F%252Fwww.alibris.com/booksearch%253Fqsort%253Dp%2526isbn%253DXXX"
+$ barnesandnoble = "http://search.barnesandnoble.com/booksearch/isbninquiry.asp?ISBN=XXXafsrc=1&lkid=J14933426&pubid=K172077"
+$ bibliocom = "http://www.biblio.com/editions.php?isbn=XXX&aid=openlibrary"
+$ powells = "http://www.powells.com/partner/33286/biblio/XXX"
+
+$ worldcat = "http://worldcat.org/isbn/XXX"
+$ worldcatoclc = "http://worldcat.org/oclc/XXX"
+$ bookmooch = "http://www.bookmooch.com/m/mooch_choice?asin=XXX"
+$ titletrader = "http://www.titletrader.com/invinfo/XXX.html"
+
+$ viewbook = "http://www.archive.org/stream/XXX"
+$ detailbook = "http://www.archive.org/details/XXX"
+$ downloadbook = "http://www.archive.org/download/XXX/XXX.pdf"
+$ pdfbw = "http://www.archive.org/download/XXX/XXX_bw.pdf"
+$ daisy = "http://www.archive.org/download/XXX/XXX_daisy.zip"
+$ epub = "http://www.archive.org/download/XXX/XXX.epub"
+$ kindle = "http://www.archive.org/download/XXX/XXX.mobi"
+$ djvu = "http://www.archive.org/stream/XXX/XXX.djvu"
+$ djvutxt = "http://www.archive.org/download/XXX/XXX_djvu.txt"
+$ seeall = "http://www.archive.org/download/XXX"
+$ google = ""
+
+$ isbn_10 = (book.isbn_10 and book.isbn_10[0]) or ""
+$ oclc_numbers = (book.oclc_numbers and book.oclc_numbers[0]) or ""
+
+$ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
+
+    <td class="book">
+        <span class="hidden count"></span>
+        <div class="cover">
+            <a href="$book.url()"><img src="$url" height="60" alt="$book.title" title="$book.title"/></a>
+        </div>
+        <div class="title">
+            <div class="published">
+            $if book.publishers and book.publish_date:
+                $book.publish_date, $(', '.join(book.publishers))
+            $elif book.publish_date:
+                $book.publish_date
+            $elif book.publishers:
+                $(', '.join(book.publishers))
+            $else:
+                <em>Publisher unknown</em>
+            </div>
+            <a href="$book.url()">$book.title</a><br/>
+            <div class="format">
+                $book.physical_format.replace('[', '').replace(']','')
+                $if book.languages:
+                    in $', '.join(l.name for l in book.languages)
+            </div>
+        </div>
+    </td>
+
+    $if book.ocaid and book.is_daisy_encrypted():
+        <td class="icon read">
+        <div class="aaaa"></div>
+        <span class="hidden count"></span>
+        <div class="links">
+            <ul>
+            <li><a href="$book.url('/daisy')" class="plain"><span class="underline">DAISY</span> <img src="/images/icons/icon-encrypto-sm.png" width="11" height="14" alt="Encrypted DAISY"/></a></li>
+            </ul>
+        </div>
+        </td> 
+    $elif book.ocaid:
+        <td class="icon read">
+        <div class="aaaa"></div>
+        <span class="hidden count"></span>
+        <div class="links">
+            <ul>
+            <li><strong><a href="$viewbook.replace('XXX', book.ocaid)">Read Online</a></strong><br/><br/></li>
+            <li><a href="$downloadbook.replace('XXX', book.ocaid)">PDF</a></li>
+            <li><a href="$djvutxt.replace('XXX', book.ocaid)">Plain text</a></li>
+            <li><a href="$book.url('/daisy')">DAISY</a></li>
+            <li><a href="$epub.replace('XXX', book.ocaid)">ePub</a></li>
+            <li><a href="$kindle.replace('XXX', book.ocaid)">Kindle</a></li>
+            </ul>
+        </div>
+        </td>
+    $else:
+        <td class="icon read inact">
+        <div class="zzzz icon readinact"><span class="shift">ZZZ</span></div>
+        <span class="hidden count"></span>
+        <div class="links">
+        </div>
+        </td>
+
+    $if isbn_10:
+        <td class="icon borrow">
+            <div class="aaaa"></div>
+            <span class="hidden count"></span>
+            <div class="links">
+                <ul>
+                <li><a href="$worldcat.replace('XXX', isbn_10)">WorldCat</a></li>
+                </ul>
+            </div>
+        </td>
+    $elif oclc_numbers:
+        <td class="icon borrow">
+            <div class="aaaa"></div>
+            <span class="hidden count"></span>
+            <div class="links">
+                <ul>
+                <li><a href="$worldcatoclc.replace('XXX', oclc_numbers)">WorldCat</a></li>
+                </ul>
+            </div>
+        </td>
+    $else:
+        <td class="icon borrow inact">
+            <div class="zzzz icon borrowinact"></div>
+            <span class="hidden count"></span>
+            <div class="links">
+            </div>
+        </td>
+
+    $if isbn_10:
+        $ isbn_10 = isbn_10.replace('-', '')
+            <td class="icon buy">
+            <div class="aaaa"></div>
+            <span class="hidden count"></span>
+            <div class="links">
+                <ul>
+                <li><a href="$alibris.replace('XXX', isbn_10)">Alibris</a></li>
+                <li><a href="$amazon.replace('XXX', isbn_10)">Amazon</a></li>
+                <li><a href="$bibliocom.replace('XXX', isbn_10)">Biblio.com</a></li>
+                <li><a href="$powells.replace('XXX', isbn_10)">Powells</a></li>
+                </ul>
+            </div>
+            </td>
+    $else:
+        <td class="icon buy inact">
+        <div class="zzzz icon buyinact"></div>
+        <span class="hidden count"></span>
+        <div class="links">
+        </div>
+        </td>

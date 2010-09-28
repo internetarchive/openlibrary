@@ -1,0 +1,28 @@
+$def with (page)
+
+$var title: $page.displayname
+
+$# _t = i18n.get_namespace('/type/user')
+$# _ = i18n.get_namespace('/mode/view')
+
+<div id="contentHead">
+    $:macros.databarView(page)
+    <h1>$page.displayname</h1>
+</div>
+
+<div id="contentBody">
+    $if page.website:
+        <p>
+        $for url in page.website:
+            <a href="$url">$url</a><br/>
+        </p>
+
+    $:sanitize(format(page.description))
+
+    <div class="head">
+        <h3>$_("%s has been tending to", page.displayname):</h3>
+    </div>
+
+    $:macros.RecentChangesUsers(author=page, limit=25)
+
+</div>

@@ -1,0 +1,189 @@
+{
+    'backreferences': [{
+        'expected_type': {
+            'key': '/type/edition'
+        },
+        'name': 'editions',
+        'property_name': 'works',
+        'type': {
+            'key': '/type/backreference'
+        }
+    }],
+    'key': '/type/work',
+    'kind': 'regular',
+    'properties': [{
+        'expected_type': {
+            'key': '/type/string'
+        },
+        'name': 'title',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': True
+    }, {
+        'expected_type': {
+            'key': '/type/string'
+        },
+        'name': 'subtitle',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': True
+    }, {
+        'expected_type': {
+            'key': '/type/author_role'
+        },
+        'name': 'authors',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': False
+    }, {
+        'expected_type': {
+            'key': '/type/translated_string'
+        },
+        'name': 'translated_titles',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': False
+    }, {
+        'expected_type': {
+            'key': '/type/subject'
+        },
+        'name': 'subjects',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': False
+    }, {
+        'expected_type': {
+            'key': '/type/string'
+        },
+        'name': 'subject_places',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': False
+    }, {
+        'expected_type': {
+            'key': '/type/string'
+        },
+        'name': 'subject_times',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': False
+    }, {
+        'expected_type': {
+            'key': '/type/string'
+        },
+        'name': 'genres',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': False
+    }, {
+        'expected_type': {
+            'key': '/type/text'
+        },
+        'name': 'description',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': True
+    }, {
+        'expected_type': {
+            'key': '/type/text'
+        },
+        'name': 'exerpts',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': True
+    }, {
+        'expected_type': {
+            'key': '/type/toc_item'
+        },
+        'name': 'table_of_contents',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': False
+    }, {
+        'expected_type': {
+            'key': '/type/string'
+        },
+        'name': 'dewey_number',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': False
+    }, {
+        'expected_type': {
+            'key': '/type/string'
+        },
+        'name': 'lc_classifications',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': False
+    }, {
+        'expected_type': {
+            'key': '/type/text'
+        },
+        'name': 'first_sentence',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': True
+    }, {
+        'expected_type': {
+            'key': '/type/language'
+        },
+        'name': 'original_languages',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': False
+    }, {
+        'expected_type': {
+            'key': '/type/string'
+        },
+        'name': 'other_titles',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': False
+    }, {
+        'expected_type': {
+            'key': '/type/string'
+        },
+        'name': 'first_publish_date',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': True
+    }, {
+        'expected_type': {
+            'key': '/type/link'
+        },
+        'name': 'links',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': False
+    }, {
+        'expected_type': {
+            'key': '/type/text'
+        },
+        'name': 'notes',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': True
+    }],
+    'type': {
+        'key': '/type/type'
+    }
+}

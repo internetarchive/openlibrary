@@ -1,0 +1,12 @@
+{
+    'description': {
+        'type': '/type/text',
+        'value': 'Placeholder type for storing user preferences like objects'
+    },
+    'key': '/type/object',
+    'kind': 'regular',
+    'name': 'Object',
+    'type': {
+        'key': '/type/type'
+    }
+}

@@ -1,0 +1,86 @@
+$def with (page)
+
+$ _x = ctx.setdefault('bodyid', 'edit')
+
+$var title: $_("Edit %(title)s", title=page.key)
+
+$:render_template("lib/edit_head", page)
+
+<form name="edit" class="olform" method="post" action="">
+
+<div id="contentBody">
+
+    <div class="formElement">
+        <div class="label">
+            <label for="statement">$_("Title")</label>        
+            <span class="tip">$_("This only appears in the document head, and gets attached to bookmark labels")</span>
+        </div>
+        <div class="input">
+            <input type="text" name="title2" id="title" value="$page.title2"/>
+        </div>
+    </div>
+
+    <div class="formElement">
+        <div class="label">
+            <label for="statement">$_("Intro")</label>        
+            <span class="tip">$_("This appears in the red area.")</span>
+        </div>
+        <div class="input">
+            <textarea name="intro" id="intro" rows="8" cols="80" style="height:50px;">$page.intro</textarea>
+        </div>
+    </div>
+
+    <div class="formElement">
+        <div class="label">
+            <label for="statement">$_("Statement")</label>        
+            <span class="tip">$_("This appears in the gray area beneath the splash image.")</span>
+        </div>
+        <div class="input">
+            <textarea name="statement" id="statement" rows="8" cols="80" style="height:50px;">$page.statement</textarea>
+        </div>
+    </div>
+
+    <div class="formElement">
+        <div class="label">
+            <label for="col1">$_("Column 1")</label>        
+            <span class="tip">$_("This content occupies the first column.")</span>
+        </div>
+        <div class="input">
+            <textarea name="column_1" id="col1" rows="8" cols="80" style="height:200px;">$page.column_1</textarea>
+        </div>
+    </div>
+
+    <div class="formElement">
+        <div class="label">
+            <label for="col2">$_("Column 2")</label>
+            <span class="tip">$_("This content occupies the second column.")</span>
+        </div>
+        <div class="input">
+            <textarea name="column_2" id="col2" rows="15" cols="80" style="height:200px;">$page.column_2</textarea>
+        </div>
+    </div>
+
+    <div class="formElement">
+        <div class="label">
+            <label for="col3">$_("Column 3")</label>
+            <span class="tip">$_("...And the third column. (The fourth column is reserved for blog entries.)")</span>
+        </div>
+        <div class="input">
+            <textarea name="column_3" id="col3" rows="4" cols="80" style="height:200px;">$page.column_3</textarea>
+        </div>
+    </div>
+
+    <div class="formElement">
+        <div class="label">
+            <label for="noticeBtm">$_("Bottom Notice")</label>
+            <span class="tip">$_("Optionally, this appears at the bottom of the page.")</span>
+        <div class="input">
+            <textarea name="notice" id="noticeBtm" rows="2" cols="80" style="height:50px;">$page.notice</textarea>
+        </div>
+    </div>
+
+    $:macros.EditButtons(comment=page.comment_)
+
+</div>
+
+</form>

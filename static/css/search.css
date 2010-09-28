@@ -1,0 +1,74 @@
+/* 
+   OPEN LIBRARY DEFAULT STYLES - BETA 
+   Comment date: 03.19.08
+   -------------------------------
+   Please email me with any suggested improvements: webchick@invisible.net
+*/
+
+
+/*FACETED RESULTS LINKS*/
+
+.cover { height: 60px; width: 100px; text-align: center; padding-right: 18px; padding-top: 6px; padding-bottom: 6px; border-bottom: 1px solid #ccc;  }
+.search-outer { background-color: #F9F8D0; margin-left: 18px; margin-right: 18px; margin-bottom: 18px; padding-top: 30px; }
+.search-inner { background-color: transparent; margin: 10px 10px 5px 10px; border-bottom: 0px solid #fff; }
+.result-text { padding: 6px 6px 6px 0px; color: #919070; font-size: 14px; line-height: 20px; border-bottom: 1px solid #ccc; width: 100%; }
+.result-work { padding: 2px 20px 0px 0px; margin-left: 30px; color: #919070; font-size: 14px; }
+.result-item { border-top: 1px solid #ccc; padding: 0px; color: #919070; font-size: 14px; line-height: 20px; min-height: 72px; background-color: #fff; clear: left; }
+.result-small { margin-left: 0px; margin-top: 2px; line-height: 20px; }
+.refinesearch { font-weight: bold }
+.refineindent { padding-left: 15px; line-height: 16px; }
+.pagination { font-size: 14px; line-height: 20px; color: #666; background-color: #f8f8f8; border-top: 1px solid #ccc; padding: 10px 25px 10px 25px; font-style: italic; margin-top: 20px; }
+.paginate { padding-right: 5px; padding-top: 4px; color: #999; }
+.moreresults { text-align: right; padding-left: 0px; padding-right: 13px; padding-top: 4px; color: #666; float: left; width: 130px; }
+
+#search-nav { float:right; padding: 0px 0px 0px 0px; margin: 10px 0px 10px 30px; border-left: 1px solid #ccc; border-bottom: 1px solid #ccc; background-color: #ffffff; width: 240px; }
+#search-options { margin: 0px 10px 10px 10px; padding-bottom: 10px; background-color: #F9F8D0; width: 230px; }
+
+td.paginate { padding-right: 5px; padding-top: 2px; color: #999; background-color: #eee; height: 20px; }
+td.moreresults { text-align: right; padding-left: 5px; padding-right: 5px; padding-top: 2px; color: #666; background-color: #eee; }
+td.totalresults { font-size: 14px; line-height: 20px; color: #666; font-style: italic; text-align: right; }
+td.search-form-title { white-space: nowrap; text-align: right; color: #919070; font-size: 13px; }
+
+
+
+/*SEARCH RESULTS LINKS*/
+
+a.result 			{ font-size: 16px; color: #5c6cb4; }
+a.result:visited 	{ color: #6F320D; }	
+a.result:hover 		{  }
+
+a.resultlink 			{ color: #919070; text-decoration: underline; }
+a.resultlink:visited 	{ color: #919070; text-decoration: underline; }	
+a.resultlink:hover 		{ text-decoration: underline; }
+
+a.editionlink 			{ color: #625E25; text-decoration: underline; font-size: 11px; }
+a.editionlink:visited 	{ color: #625E25; text-decoration: underline; font-size: 11px;  }	
+a.editionlink:hover 		{ text-decoration: underline; font-size: 11px;  }
+
+a.fulltext 			{ color: #625E25; text-decoration: underline; font-size: 11px; }
+a.fulltext:visited 	{ color: #625E25; text-decoration: underline; font-size: 11px;  }	
+a.fulltext:hover 		{ text-decoration: underline; font-size: 11px;  }
+
+
+
+h2.Match { font-size: 1.25em; font-weight: bold; color: #000; margin-bottom: 20px;}
+h5 { font-size: 13px; font-variant: small-caps; margin-top: 10px; margin-bottom: 5px;}
+.SearchBox { margin-top: 10px; margin-bottom: 30px;}
+.ErrorMsg { background-color: #fc0; padding: 5px; font-family: Verdana, Arial; font-size: 11px; }
+.FacetList { background-color: #f5f5f5; padding-top: 0px; padding-right: 20px; padding-bottom: 10px; padding-left: 10px; line-height: 18px; }
+.FacetResultCount {color: #666; font-family: Verdana, Arial; font-size: 9px;}
+.Switch {color: #666; font-family: Verdana, Arial; font-size: 11px; font-weight: normal;}
+.Chosen { font-size: 1.1em; }
+.Chosen a { color: #333; text-decoration: none; }
+.ClearX {font-family: Verdana, Arial; font-size: 12px; color: #f33; font-weight: bold; }
+.SRPCover { margin-top: 10px; margin-right: 0px; margin-bottom: 20px; margin-left: 40px; float:left; height: 255px; vertical-align: middle; }
+.SRPCover img { border-right: 1px solid #666; border-bottom: 1px solid #666; }
+.SRPCoverBlank { width: 170px; height: 255px; margin-top: 10px; margin-right: 0px; margin-bottom: 20px; margin-left: 40px; float:left; vertical-align: middle; text-align: center; float:left; background: transparent url("/static/images/blank.book.new.png") 0px 3px no-repeat;}
+.BookTitle { color: #f9f8d0; width: 180px; height: 250px; vertical-align: middle; display: table-cell; padding-left: 8px; }
+.Author { color: #fff; font-style: italic; font-size: 12px; line-height: 15px; padding-right: 4px; padding-left: 4px; }
+.ReadNow { font-variant: small-caps; color: #3333ff; text-decoration: underline; }
+.Pages {padding: 20px; font-family: Verdana, Arial; font-size: 11px; }
+.Pages .YouAreHere { border: 1px solid #ddd; padding: 5px; }
+.Pages .ChoosePage { border: 1px solid #ddd; padding: 5px; }
+.AddBook { font-size: 14px; color: #666; padding: 10px; text-align: center; font-style: italic; margin-top: 20px;}
+.SearchTime { margin-top: 20px; color: #666; font-family: Verdana, Arial; font-size: 9px; font-weight: normal; }

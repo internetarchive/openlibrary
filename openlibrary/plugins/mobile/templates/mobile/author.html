@@ -1,0 +1,30 @@
+$def with(author, books)
+<h1>
+     $author.name
+     <span class="byHeading brown">
+         $if author.birth_date or author.death_date:
+             $author.birth_date - $author.death_date
+         $elif author.date:
+             $author.date
+     </span>
+</h1> 
+<table width="100%" border="0" cellpadding="5" cellspacing="0"> 
+$for edition, work in books:
+    <tr> 
+         <td>
+             <a href="$edition.url()">
+                 <img src="$(edition.get_cover_url('M') or '/images/icons/avatar_book-sm.png')" 
+                      width="45" height="68" hspace="10" align="left" />
+             </a>
+         </td> 
+         <td width="100%">
+               <a href="$edition.url()" class="bookTitle">$edition.title</a>
+               <br/>
+               <span class="brown">
+                 $work.first_publish_year, 
+                 $(edition.publishers[0] if edition.publishers else "")
+               </span>
+        </td> 
+        <td><a href="http://archive.org/stream/$edition.ocaid">Read</a></td>
+    </tr> 
+</table> 

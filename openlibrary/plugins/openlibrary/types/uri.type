@@ -1,0 +1,12 @@
+{
+    'description': {
+        'type': '/type/text',
+        'value': 'Type to store URIs.'
+    },
+    'key': '/type/uri',
+    'kind': 'regular',
+    'name': 'URI',
+    'type': {
+        'key': '/type/type'
+    }
+}

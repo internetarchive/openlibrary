@@ -1,0 +1,14 @@
+$def with (change)
+
+<div id="contentHead">
+    $:render_template("recentchanges/header", change)
+</div>
+
+<div id="contentBody">
+    <div id="mergeHead" class="sansserif">
+        $change.comment
+    </div>
+
+    <h3>Updated Records</h3>
+    $:render_template("recentchanges/updated_records", change)
+</div>

@@ -1,0 +1,34 @@
+$def with(new_books)
+<h2>Find a Book</h2> 
+<form id="search" name="search" method="get" action="/search"> 
+    <p> 
+        <input name="q" type="text" id="textfield" class="searchBox" /> 
+        <button type="submit">Search</button>
+   </p> 
+</form> 
+
+<h2>New books to read</h2> 
+<table width="100%" border="0" cellpadding="5" cellspacing="0"> 
+$for edition in new_books:
+    <tr> 
+        <td>
+            <a href="$edition.url()">
+                <img src="$(edition.get_cover_url('M') or '/images/icons/avatar_book-sm.png')" 
+                     width="45" height="68" hspace="10" align="left" />
+            </a>
+        </td> 
+        <td width="100%"><a href="$edition.url()" class="bookTitle">$edition.title</a> 
+        $if edition.authors:
+            by 
+            $for author in edition.authors:
+                <a href="$author.url()">$author.name</a>
+        <br/> 
+        <span class="brown">
+            $if edition.works and edition.works[0].first_publish_year:
+                $edition.works[0].first_publish_year, 
+            $(edition.publishers[0] if edition.publishers else "")
+        </span>
+        </td>
+        <td><a href="http://archive.org/stream/$edition.ocaid">Read</a></td>
+    </tr> 
+</table> 

@@ -1,0 +1,13 @@
+{
+    'description': {
+        'type': '/type/text',
+        'value': 'Type for storing internationalization strings'
+    },
+    'key': '/type/i18n',
+    'kind': 'regular',
+    'name': 'i18n strings',
+    'properties': [],
+    'type': {
+        'key': '/type/type'
+    }
+}

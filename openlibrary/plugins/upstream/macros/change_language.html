@@ -1,0 +1,20 @@
+$ languages = i18n.get_languages()
+
+$ locale = i18n.get_locale()
+$ _ = i18n.get_namespace('/macros/ChangeLanguage')
+
+<div class="head">
+<h3>$_.change_language:</h3>
+</div>
+$:Dropdown('lang', languages, onchange="changelang();", id="lang_dropdown", value=locale).render()
+[<a href="/i18n">?</a>]
+
+<script type="text/javascript">
+    function changelang() {
+        setlang(document.getElementById("lang_dropdown").value);
+    }
+    function setlang(lang) {
+        document.cookie = "HTTP_LANG=" + lang + "; path=/;";
+        window.location.reload()
+    }
+</script>

@@ -1,0 +1,84 @@
+$def with (page, h)
+
+$putctx("robots", "noindex,nofollow")
+
+$# show book title/author name instead of key
+$if page.type.key in ['/type/edition' or '/type/work']:
+    $ name = page.title or 'Title unknown'
+$elif page.type.key == '/type/author':
+    $ name = page.name or 'Author name unknown'
+$else:
+    $ name = page.key
+
+$var title: $name
+
+<div id="contentHead">
+    $:macros.databarHistory(page)
+    <span class="lightgreen smallest sansserif">$_("History of edits to")</span>
+    <h1><a href="$page.key">$name</a></h1>
+</div>
+
+<div id="contentBody">
+        <form action="">
+        <table id="pageHistory">
+        <thead>
+            <tr>
+                <th class="numberhead" style="text-align:center;">$_("Revision")</th>
+                <th class="historyheader">$_("When")</th>
+                <th class="historyheader">$_("Who")</th>
+                <th class="historyheader">$_("¿Qué?")</th>
+                <th class="historyheader" colspan="2" style="text-align:center;">$_("Diff")</th>
+            </tr>
+        </thead>
+        <tbody>
+            $for v in h:
+                <tr>
+                    <td class="number">$v.revision</td>
+                    <td class="history"><a href="$changequery(m=None, v=v.revision)" title="$_('View revision %s', v.revision)">$datestr(v.created)</a></td>
+                    $if v.author:
+                        <td class="displayname" valign="top"><div class="truncatedisplayname"><a href="$homepath()$v.author.key" class="truncate" title="$v.author.displayname">$v.author.displayname</a></div></td>
+                    $elif v.ip and v.ip != '127.0.0.1':
+                        <td class="history" valign="top"><a href="/recentchanges?ip=$v.ip">$v.ip</a></td>
+                    $else:
+                        <td class="history" valign="top">$v.ip</td>
+                    <td class="comment">$:render_template("history/comment", v)</td>
+                    <td class="compare" style="text-align:center;">
+                        <input type="radio" id="a$v.revision" name="a" value="$v.revision"/>
+                        &nbsp;&nbsp;&nbsp;
+                        <input type="radio" id="b$v.revision" name="b" value="$v.revision"/>
+                    </td>
+                </tr>
+            <tr>
+                <td colspan="4"></td>
+                <td colspan="1" style="text-align:center;">
+                    <input type="submit" value="$_('Compare')"  name="_compare" title="$_('See Diff')"/>
+                </td>
+            </tr>
+        </tbody>
+        </table>
+        <input type="hidden" name='m' value="diff"/>
+
+        </form>
+
+        <script type="text/javascript">
+            $ rev = page.latest_revision or page.revision
+            var a = document.getElementById("a${rev - 1}");
+            var a2 = document.getElementById("a$rev");
+            var b = document.getElementById("b$rev");
+
+            if (a) 
+                a.checked = true;
+            else
+                a2.checked = true;
+            b.checked = true;
+        </script>
+
+        <div class="sansserif">
+        $ page = safeint(query_param("page", "0"))
+        $if page != 0:
+            <a href="$:changequery(page=page - 1)" rel="nofollow">&larr; $_("Back")</a>
+        $if len(h) == 20:
+            <a href="$:changequery(page=page + 1)" rel="nofollow">$_("Next") &rarr;</a>
+        </div>
+
+</div>

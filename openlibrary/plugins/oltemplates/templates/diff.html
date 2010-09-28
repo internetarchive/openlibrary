@@ -1,0 +1,57 @@
+$def with (a, b)
+
+$ _t = i18n.get_namespace(a.type.key)
+$ _ = i18n.get_namespace('/mode/diff')
+
+$add_stylesheet('/static/css/diff.css')
+
+$var title: $_.diff_title(a.key)
+
+$:macros.databarDiff()
+
+<div id="header">
+    <div style="float:left;padding-left:10px;padding-right:15px;"></div>
+    <span class="pretitle">$_.pretitle:<br /></span>             
+    <div id="title">$a.key</div>            
+</div>
+
+
+<div class="diff-border">
+<div class="diff">
+
+    <table class="sidebyside" cellpadding="0" cellspacing="0" border="0" summary="$_.differences">
+       <colgroup class="l"><col class="lineno" /><col class="content" /></colgroup>
+        <colgroup class="r"><col class="lineno" /><col class="content" /></colgroup>
+       <thead>
+           <tr> 
+              <td colspan="2" class="diff-header-top">$_.revision $a.revision</td> 
+              <td colspan="2" class="diff-header-top">$_.revision $b.revision</td>
+           </tr>
+        </thead>
+        <tbody>
+	
+        $for p in set(a.keys() + b.keys()):
+            $ label = _t[p]
+            $# quick hack to display images in diff
+            $if (p in ["coverimage", "photograph"]) and (a[p] != b[p]):
+                <tr>
+                    <td class="diff-header-side" valign="top">$label</td>
+                    <td class="diff-body" valign="top"><img width="180" src="$a[p]"/></td>
+                    <td class="diff-body" valign="top"><img width="180" src="$b[p]"/></td>
+                </tr> 
+            $else:
+                $:thingdiff(get_expected_type(a, p), label, a[p], b[p])
+        </tbody>
+    </table>
+       
+    <div id="legend">
+       <h3>$_.legend:</h3>
+       <dl>
+           <dt class="unmod"></dt><dd>$_.modified</dd>
+           <dt class="add"></dt><dd>$_.added</dd>
+           <dt class="rem"></dt><dd>$_.removed</dd>
+           <dt class="mod"></dt><dd>$_.modified</dd>
+       </dl>
+    </div>
+</div>
+</div>

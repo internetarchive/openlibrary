@@ -1,0 +1,20 @@
+{
+    'description': '',
+    'key': '/type/redirect',
+    'kind': 'regular',
+    'name': '',
+    'properties': [{
+        'description': '',
+        'expected_type': {
+            'key': '/type/string'
+        },
+        'name': 'location',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': True
+    }],
+    'type': {
+        'key': '/type/type'
+    }
+}

@@ -1,0 +1,19 @@
+$def with (form)
+
+$ _ = i18n.get_namespace('/account/preferences')
+
+$var title: $_.template_preferences
+
+<div id="header-fullpage">
+        <span id="title">$_.template_preferences</span> 
+</div>
+
+<div id="form-border">
+<div id="metadata-body">
+
+<form method="POST">
+$:form.render()
+</form>
+
+</div>
+</div>

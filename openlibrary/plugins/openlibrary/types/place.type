@@ -1,0 +1,126 @@
+{
+    'backreferences': [{
+        'expected_type': {
+            'key': '/type/work'
+        },
+        'name': 'works',
+        'property_name': 'subject_places',
+        'type': {
+            'key': '/type/backreference'
+        }
+    }, {
+        'expected_type': {
+            'key': '/type/place'
+        },
+        'name': 'contains',
+        'property_name': 'is_in',
+        'type': {
+            'key': '/type/backreference'
+        }
+    }, {
+        'expected_type': {
+            'key': '/type/author'
+        },
+        'name': 'authors_birth',
+        'property_name': 'birth_place',
+        'type': {
+            'key': '/type/backreference'
+        }
+    }, {
+        'expected_type': {
+            'key': '/type/author'
+        },
+        'name': 'authors_death',
+        'property_name': 'death_place',
+        'type': {
+            'key': '/type/backreference'
+        }
+    }],
+    'key': '/type/place',
+    'kind': 'regular',
+    'properties': [{
+        'expected_type': {
+            'key': '/type/string'
+        },
+        'name': 'name',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': True
+    }, {
+        'expected_type': {
+            'key': '/type/float'
+        },
+        'name': 'latitude',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': True
+    }, {
+        'expected_type': {
+            'key': '/type/float'
+        },
+        'name': 'longitude',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': True
+    }, {
+        'expected_type': {
+            'key': '/type/int'
+        },
+        'name': 'zoom_level',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': True
+    }, {
+        'expected_type': {
+            'key': '/type/string'
+        },
+        'name': 'kind',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': True
+    }, {
+        'expected_type': {
+            'key': '/type/work'
+        },
+        'name': 'highlights',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': False
+    }, {
+        'expected_type': {
+            'key': '/type/place'
+        },
+        'name': 'is_in',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': False
+    }, {
+        'expected_type': {
+            'key': '/type/string'
+        },
+        'name': 'marc_names',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': False
+    }, {
+        'expected_type': {
+            'key': '/type/string'
+        },
+        'name': 'demonym',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': False
+    }],
+    'type': {
+        'key': '/type/type'
+    }
+}

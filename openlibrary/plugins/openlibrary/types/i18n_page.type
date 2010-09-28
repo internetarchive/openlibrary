@@ -1,0 +1,9 @@
+{
+    'description': '',
+    'key': '/type/i18n_page',
+    'kind': 'regular',
+    'name': 'i18n page',
+    'type': {
+        'key': '/type/type'
+    }
+}

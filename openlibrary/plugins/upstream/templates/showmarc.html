@@ -1,0 +1,43 @@
+$def with (record, filename, begin, length)
+
+$ format = query_param('format')
+$if format == 'raw':
+    $var content_type: application/marc
+    $var rawtext = record.data
+
+$ get_source_record = render_template("history/sources").get_source_record
+$ source_record = get_source_record("%s:%s:%s" % (filename, begin, length))
+$ title = "MARC Record from " + source_record.source_name
+
+$var title: $title
+
+<div id="contentHead">
+    <h1>$title</h1>
+</div>
+
+<div id="contentBody">
+    <div class="section">
+        <table class="meta">
+            <tbody>
+                <tr>
+                    <td class="title"><span class="title">Record ID</span></td>
+                    <td class="tag"><span class="object">$source_record.id</span></td>
+                </tr>
+                <tr>
+                    <td class="title"><span class="title">Source</span></td>
+                    <td class="tag"><span class="object"><a href="$source_record.source_url">$source_record.source_name</a></span></td>
+                </tr>
+                <tr>
+                    <td class="title"><span class="title">Download Link</span></td>
+                    <td class="tag"><span class="object"><a href="$source_record.url?format=raw">$source_record.url?format=raw</a></span></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    $if not record:
+        <p>$_("Invalid MARC record.")</p>
+    $else:
+        <p><b>LEADER:</b> <code>$record.leader</code><br/>
+        $:record.html()</p>
+</div>

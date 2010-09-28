@@ -1,0 +1,11 @@
+/*
+ * jQuery Flickr - jQuery plug-in
+ * Version 1.0, Released 2008.04.17
+ *
+ * Copyright (c) 2008 Daniel MacDonald (www.projectatomic.com)
+ * Dual licensed GPL http://www.gnu.org/licenses/gpl.html 
+ * and MIT http://www.opensource.org/licenses/mit-license.php
+ */
+function flickrFeed() {
+(function($){$.fn.flickr=function(o){var s={api_key:'8768c72efd76d70dd2f09ecec62bf8d6',type:'search',group_id:'1049700@N25',thumb_size:'t',size:null,per_page:25,page:1,attr:'',api_url:null,params:'',api_callback:'?',callback:null};if(o)$.extend(s,o);return this.each(function(){var list=$('<ul>').appendTo(this);var url=$.flickr.format(s);$.getJSON(url,function(r){if(r.stat!="ok"){for(i in r){$('<li>').text(i+': '+r[i]).appendTo(list);};}else{if(s.type=='photoset')r.photos=r.photoset;list.append('<input type="hidden" value="'+r.photos.page+'" />');list.append('<input type="hidden" value="'+r.photos.pages+'" />');list.append('<input type="hidden" value="'+r.photos.perpage+'" />');list.append('<input type="hidden" value="'+r.photos.total+'" />');for(var i=0;i<r.photos.photo.length;i++){var photo=r.photos.photo[i];var t='http://farm'+photo['farm']+'.static.flickr.com/'+photo['server']+'/'+photo['id']+'_'+photo['secret']+'_'+s.thumb_size+'.jpg';var h='http://farm'+photo['farm']+'.static.flickr.com/'+photo['server']+'/'+photo['id']+'_';switch(s.size){case'm':h+=photo['secret']+'_m.jpg';break;case'b':h+=photo['secret']+'_b.jpg';break;case'o':if(photo['originalsecret']&&photo['originalformat']){h+=photo['originalsecret']+'_o.'+photo['originalformat'];}else{h+=photo['secret']+'_b.jpg';};break;default:h+=photo['secret']+'.jpg';};list.append('<li><a rel="flickrfeed" class="flickrpic" href="'+h+'" '+s.attr+' title="'+photo['title']+'"><img src="'+t+'" alt="'+photo['title']+'" /></a></li>');};if(s.callback)s.callback(list);};});});};$.flickr={format:function(s){if(s.url)return s.url;var url='http://api.flickr.com/services/rest/?format=json&jsoncallback='+s.api_callback+'&api_key='+s.api_key;switch(s.type){case'search':url+='&method=flickr.groups.pools.getPhotos&group_id='+s.group_id;break;default:url+='&method=flickr.photos.getRecent';};if(s.size=='o')url+='&extras=original_format';url+='&per_page='+s.per_page+'&page='+s.page+s.params;return url;}};})(jQuery);
+};

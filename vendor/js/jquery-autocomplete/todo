@@ -1,0 +1,166 @@
+TODO
+
+- test formatItem implementation that returns (clickable) anchors
+- bug: handle del key; eg. type a letter, remove it using del, type same letter again: nothing happens
+- handle up/down keys in textarea (prevent default while select is open?)
+- docs: max:0 works, too, "removing" it(??)
+- fix ac_loading/options.loadingClass
+- support/enable request urls like foo/bar/10 instead of foo/q=10
+- urlencode request term before passing to $.ajax/data; evaluate why $.ajax doesn't handle that itself, if at all; try with umlauts, russian/danish/chinese characeters (see validate)
+- test what happens when an element gets focused programmatically (maybe even before then autcomplete is applied)
+- check if blur on selecting can be removed
+- fix keyhandling to ignore metakeys, eg. shift; especially important for chinese characters that need more then one key
+- enhance mustMatch: provide event/callback when a value gets deleted
+- handle tab key different then enter, eg. don't blur field or prevent default, just let it move on; in any case, no need to blur the field when selecting a value via tab, unlike return
+- prevent redundant requests on
+  - superstring returned no result, no need to query again for substring, eg. pete returned nothing, peter won't either
+  - previous query mustn't be requested again, eg. pete returns 10 lines, peter nothing, backspace to pete should get the 10 lines from cache (may need TimeToLive setting for cache to invalidate it)
+- incorporate improvements and suggestions by Hector: http://beta.winserver.com/public/test/MultiSuggestTest.wct
+- json support: An optional JSON format, that assumes a certain JSON format as default and just looks for a dataType "json" to be activated; [records], where each record is { id:String, label:String, moreOptionalValues... } 
+- accept callback as first argument to let users implement their own dynamic data (no caching) - consider async API
+- allow users to keep their incomplete value when pressing tab, just mimic the default-browser-autocomplete: tab doesn't select any proposed value -> tab closes the select and works normal otherwise
+- small bug in your autocomplete,  When setting autoFill:true I would expect formatResult to be called on autofill, it seems not to be the case.
+- add a callback to allow decoding the response
+- allow modification of not-last value in multiple-fields
+@option Number size Limit the number of items to show at once. Default: 
+@option Function parse - TEST AND DOCUMENT ME
+- add option to display selectbox on focus
+
+$input.bind("show", function() {
+	if ( !select.visible() ) {
+		onChange(0, true);
+	}
+});
+
+- reference: http://capxous.com/
+  - add "try ..." hints to demo
+  - check out demos
+- reference: http://createwebapp.com/demo/
+  
+- add option to hide selectbox when no match is found - see comment by Ian on plugin page (14. Juli 2007 04:31)
+- add example for reinitializing an autocomplete using unbind()
+
+- Add option to pass through additional arguments to $.ajax, like type to use POST instead of GET
+
+ - I found out that the problem with UTF-8 not being correctly sent can be solved on the server side by applying (PHP) rawurldecode() function, which decodes the Unicode characters sent by GET method and therefore URL-encoded.
+-> add that hint to docs and examples
+
+But I am trying this with these three values: “foo bar”, “foo foo”, and “foo far”, and if I enter “b” (or “ba”) nothing matches, if I enter “f” all three do match, and if I enter “fa” the last one matches.
+The problem seems to be that the cache is implemented with a first-character hashtable, so only after matching the first character, the latter ones are searched for.
+
+xml example:
+<script type="text/javascript">
+      function parseXML(data) {
+        var results = [];
+        var branches = $(data).find('item');
+        $(branches).each(function() {
+          var text = $.trim($(this).find('text').text());
+          var value = $.trim($(this).find('value').text());
+          //console.log(text);
+          //console.log(value);
+          results[results.length] = {'data': this, 'result': value, 'value': text};
+        });
+        $(results).each(function() {
+          //console.log('value', this.value);
+          //console.log('text', this.text);
+        });
+        //console.log(results);
+        return results;
+      };
+    $(YourOojHere).autocomplete(SERVER_AJAX_URL, {parse: parseXML});
+  </script>
+<?xml version="1.0"?>
+<ajaxresponse>
+  <item>
+    <text>
+      <![CDATA[<b>FreeNode:</b> irc.freenode.net:6667]]>
+    </text>
+    <value><![CDATA[irc.freenode.net:6667]]></value>
+  </item><item>
+    <text>
+      <![CDATA[<b>irc.oftc.net</b>:6667]]>
+    </text>
+    <value><![CDATA[irc.oftc.net:6667]]></value>
+  </item><item>
+    <text>
+      <![CDATA[<b>irc.undernet.org</b>:6667]]>
+    </text>
+    <value><![CDATA[irc.undernet.org:6667]]></value>
+  </item>
+</ajaxresponse>
+  
+  
+
+Hi all,
+
+I use Autocomplete 1.0 Alpha mostly for form inputs bound to foreign
+key columns. For instance I have a user_position table with two
+columns: user_id and position_id. On new appointment form I have two
+autocomplete text inputs with the following code:
+
+   <input type="text" id="user_id" class="ac_input"  tabindex="1" />
+   <input type="text" id="position_id" class="ac_input" tabindex="2" />
+
+As you can see the inputs do not have a name attribute, and when the
+form is submitted their values are not sent, which is all right since
+they will contain strings like:
+
+   'John Doe'
+   'Sales Manager'
+
+whereas our backend expects something like:
+
+   23
+   14
+
+which are the user_id for John Doe and position_id for Sales Manager.
+To send these values I have two hidden inputs in the form like this:
+
+   <input type="hidden" name="user_id" value="">
+   <input type="hidden" name="position_id" value="">
+
+Also I have the following code in the $().ready function:
+
+   $("#user_id").result(function(event, data, formatted) {
+     $("input[@name=user_id]").val(data[1]);
+   });
+   $("#position_id").result(function(event, data, formatted) {
+     $("input[@name=position_id]").val(data[1]);
+   });
+
+As could be seen these functions stuff user_id and position_id values
+(in our example 23 and 14) into the hidden inputs, and when the form
+is submitted these values are sent:
+
+   user_id = 23
+   position_id = 14
+
+The backend script then takes care of adding a record to our
+user_position table containing those values.
+
+I wonder how could the plugin code be modified to simplify the setup
+by taking care of adding hidden inputs and updating the value of
+hidden inputs as default behavior. I have successfully attempted a
+simpler solution - writing a wrapper to perform these additional tasks
+and invoke autocomplete as well. I hope my intention is clear enough,
+if not, this is exactly the expected outcome:
+
+Before:
+
+   <script type="text/javascript"
+   src="jquery.autocomplete-modified.js"></script>
+   <input type="text" name="user_id" class="ac_input" tabindex="1" />
+
+After:
+
+   <input type="text" id="user_id" class="ac_input" tabindex="1" />
+   <input type="hidden" name="user_id" value="23">
+
+
+Last word, I know this looks like a tall order, and I do not hope
+someone will make a complete working mod for me, but rather would very
+much appreciate helpful  advise and directions.
+
+Many thanks in advance
+Majid
+

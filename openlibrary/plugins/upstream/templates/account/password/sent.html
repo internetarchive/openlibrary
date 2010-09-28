@@ -1,0 +1,11 @@
+$def with (email)
+
+$var title: $_("Password Reminder")
+
+<div id="contentHead">
+    <h1>$_("Thanks.")</h1>
+</div>
+ 
+<div id="contentBody">
+    <p class="sansserif">$:_("We've sent an email to %(email)s with instructions to help you reset your Open Library password. Please check your inbox for a note from us.", email='<b>' + email + '</b>')</p>
+</div>

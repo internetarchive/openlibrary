@@ -1,0 +1,71 @@
+$def with (author=None, type=None, limit=25)
+
+$ page = safeint(query_param('page', '1'))
+$ ip = query_param('ip', None)
+
+$def render_changes(bot, hash=""):
+    $ changes = get_recent_changes(author=author, type=type, ip=ip, bot=bot, limit=limit, offset=(page-1) * limit)
+    <table class="changeHistory">
+        <thead>
+            <tr>
+                <th>$_("When")</th>
+                <th>$_("What")</th>
+                <th>$_("Who")</th>
+                <th>&#191;Qu&#233;?</th>
+            </tr>
+        </thead>
+        <tbody>
+        $for v in changes:
+            $if v.key.startswith("/admin/"):
+                $continue
+            <tr>
+                <td class="time">$datestr(v.created)</td>
+                $# show book title/author name instead of key
+                $if v.thing.type.key == '/type/edition':
+                    $ name = v.thing.title or 'Title unknown'
+                $elif v.thing.type.key == '/type/work':
+                    $ name = v.thing.title or 'Title unknown'
+                $elif v.thing.type.key == '/type/author':
+                    $ name = v.thing.name or 'Author name unknown'
+                $else:
+                    $ name = v.key
+                <td class="path">
+                    <div class="truncatepath">
+                        <a href="$homepath()$v.key" class="datalink" title="$v.key">$name</a>
+                        $if v.revision != 1:
+                           <span class="smallest sansserif"> - <a style="text-decoration: none;" href="$homepath()$v.key?m=diff&amp;b=$v.revision" title="Review what's changed in from the previous revision">diff</a></span>
+                    </div>
+                </td>
+                $if v.author:
+                    <td class="displayname"><a href="$homepath()$v.author.key" title="$v.author.displayname">$v.author.displayname</a></td>
+                $elif v.ip and v.ip != '127.0.0.1':
+                    <td class="history"><a href="/recentchanges?ip=$v.ip" title="When you see numbers here, that's the IP address of the anonymous editor">$v.ip</a></td>
+                $else:
+                    <td class="history">$v.ip</td>
+                <td class="comment">$v.comment
+                    $ marc = v.get('machine_comment')
+		    $if marc: (<a href="/show-marc/$marc">$_("View MARC")</a>)
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <div class="small sansserif">
+    $if page > 1:
+        <a href="$:changequery(page=page - 1)$hash" rel="nofollow">&larr; $_("Newer")</a>
+    $if len(changes) == limit:
+        &nbsp; <a href="$:changequery(page=page + 1)$hash" rel="nofollow">$_("Older") &rarr;</a>
+    </div>
+
+$if ip or author:
+    $:render_changes(bot=None)
+$else:
+    <div id="tabsHistory" class="tabs autohash">
+        <ul>
+            <li><a href="#humans">By Humans</a></li>
+            <li><a href="#bots">By Bots</a></li>
+            <li><a href="#all">Everything</a></li>
+        </ul>
+        <div id="humans">$:render_changes(bot=False, hash="#humans")</div>
+        <div id="bots">$:render_changes(bot=True, hash="#bots")</div>
+        <div id="all">$:render_changes(bot=None, hash="#all")</div>
+    </div>

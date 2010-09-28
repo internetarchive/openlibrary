@@ -1,0 +1,32 @@
+$def with(book, size="M")
+
+$code:
+    def aname(a):
+        if isinstance(a, basestring):
+            return a
+        else:
+            return a.name
+
+$ title = book.title_prefix + " " + book.title
+$ olid = book.key.split("/")[2]
+
+$if size == "M":
+    <div class="coverMagic">
+        <div class="SRPCover">
+            <a href="$book.key" title="$title">
+                <img src="$get_coverstore_url()/b/olid/$olid-M.jpg?default=false" class="cover" alt="$title"/>
+            </a>
+        </div>
+        <div class="SRPCoverBlank" onClick="document.location.href='$book.key';" title="Go to the page for $title">
+            <div class="innerBorder">
+                <div class="BookTitle">
+                    $:macros.TruncateString(title, 70)
+                    <div class="Author"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+$else:
+    <a href="$book.key" title="$title">
+        <img src="$get_coverstore_url()/b/olid/$olid-S.jpg?default=http://upstream.openlibrary.org/images/icons/avatar_book-sm.png" alt="$title"/>
+    </a>

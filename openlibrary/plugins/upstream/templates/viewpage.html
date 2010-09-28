@@ -1,0 +1,30 @@
+$def with (page)
+
+$ v = query_param("v", None)
+
+$if v:
+    <div id="revertNotice">
+        <form name="revert" method="POST" action="$changequery(m='revert')">
+            <button type="submit">$_("Revert to this revision?")</button>
+        <form>
+    </div>
+    <div id="revertLink"><a rel="nofollow" href="$changequery(m='revert')">$_("Revert to this revision")</a>?</div>
+    $putctx("robots", "noindex,nofollow")
+$else:
+    $ ctx.setdefault("links", [])
+    $ ctx.links.append('<link rel="alternate" type="application/json" href="' + request.home + page.key + '.json"/>')
+    $if page.type.key in ["/type/edition", "/type/work", "/type/author"]:
+        $ ctx.links.append('<link rel="alternate" type="application/rdf+xml" href="' + request.home + page.key + '.rdf"/>')
+        $ ctx.links.append('<link rel="canonical" type="text/html" href="' + request.home + page.url() + '"/>')
+
+$ view = thingview(page)
+
+$var title: $:view.title
+
+$if 'content_type' in view:
+    $var content_type = view.content_type
+
+$if 'rawtext' in view:
+    $var rawtext = view.rawtext
+
+$:view

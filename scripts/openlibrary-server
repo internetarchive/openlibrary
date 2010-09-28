@@ -1,0 +1,42 @@
+#! /usr/bin/env python
+"""Script to run openlibrary server.
+
+USAGE:
+
+* Run openlibrary http server at port 8080.
+
+    $ ./scripts/openlibrary-server infogami.yml startserver 8080
+
+* Run openlibrary as fastcgi server at port 7070
+
+    $ ./scripts/openlibrary-server infogami.yml startserver fastcgi 8080
+"""
+import sys
+import os
+import _init_path
+
+import web
+
+import infogami
+from infogami import config
+
+def setup_env():
+    # make sure PYTHON_EGG_CACHE is writable
+    os.environ['PYTHON_EGG_CACHE'] = "/tmp/.python-eggs"
+
+    # required when run as fastcgi
+    os.environ['REAL_SCRIPT_NAME'] = ""
+
+def main(args):
+    if len(args) < 1 or sys.argv[0] in ['-h', '--help']:
+        print >> sys.stderr, "USAGE: %s configfile [subcommand] [arguments]" % (sys.argv[0])
+        sys.exit(1)
+        
+    config.plugin_path += ['openlibrary.plugins']
+    config.site = "openlibrary.org"
+    
+    setup_env()
+    infogami.main(*args)
+
+if __name__ == "__main__":
+    main(sys.argv[1:])

@@ -1,0 +1,21 @@
+$def with (form)
+
+$if form.note:
+    <div class="note">$form.note</div>
+
+$for i in form.inputs:
+    $ id = i.id or i.name
+    $if i.is_hidden():
+        $:i.render()
+    $else:
+        <div class="formElement">
+            <div class="label"><label for="$i.id">$i.description</label> <span class="smaller lighter">$i.help</span></div>
+            <div class="input">
+                $:i.render()
+            </div>
+            $if "password" == i.id:
+                <div class="input"><span id="showpass" class="smaller"></span></div>
+            $if "new_password" == i.id:
+                <div class="input"><span id="masker" class="smaller"></span></div>
+            <div class="invalid clearfix" htmlfor="$i.id">$i.note</div>
+        </div>

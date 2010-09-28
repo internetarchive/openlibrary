@@ -1,0 +1,78 @@
+$def with (page)
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+    $if ctx.get("robots"):
+        <meta name="robots" content="$ctx.robots" />
+
+    $add_javascript('/static/js/jquery/jquery.js')
+    $add_javascript('/static/js/jquery/jquery.slicker.js')
+
+    <title>$:page.title ($_.open_library)</title>
+
+    $for link in ctx.get("links", []):
+        $:link
+
+    $for s in ctx.stylesheets:
+        <link rel="stylesheet" type="text/css" href="$s" />
+
+    <link href="/static/css/master.css" rel="stylesheet" type="text/css" />
+
+    $for url in ctx.javascripts:
+        <script src="$url" type="text/javascript"></script>
+
+</head>
+
+<body>
+
+    <div id="contentwrapper">
+        <div id="toolbar">
+            <div class="logotype"><a href="/" class="white">$_.open_library</a> <a href="/beta" class="white" style="font-size: 0.8em; text-decoration: underline">$_.beta</a></div>
+            <div class="navlinks">
+            $if ctx.user:
+                <div style="display: none;">
+                    <form name='logout' action="$homepath()/account/logout" method='POST'></form>
+                </div>
+                $:_.welcome_user(homepath() + ctx.user.key, ctx.user.displayname)
+                | <a href="$homepath()/account/preferences">$_.preferences</a>
+                | <a href="#" onclick="document.forms['logout'].submit()">$_.logout</a>
+            $else:
+                <a href="/account/login" class="white">$_.login</a>
+            </div>
+        </div>
+
+
+    $if ctx.error:
+        <div id="error"><span class="errorhead">ERROR:</span> $ctx.error <div id="hideerror"><a href="#" onclick="tOff('error')" class="white">x</a></div></div>
+
+    $ flash_messages = get_flash_messages()
+    $if flash_messages:
+        <div id="flash_messages">
+            $for flash in flash_messages:
+                <div class="$flash.type">$flash.message</div>
+        </div>
+        
+    <div>$:page</div>
+    </div>
+    
+    <div id="footer">
+        <div class="logotype">
+            <a href="/" class="white">$_.open_library</a>
+            <a href="/beta" class="white" style="font-size: 0.8em; text-decoration: underline">$_.beta</a>
+        </div>
+        <div class="navlinks">
+            <a class="white" href="/about">$_.about_us</a> |
+            <a class="white" href="/index/index.html">Index</a> |
+            <a class="white" href="http://www.archive.org/">$_.internet_archive</a> |
+            <a class="white" href="http://www.opencontentalliance.org/">OCA</a> |
+            <a class="white" href="http://creativecommons.org/">CC</a> |
+            <a class="white" href="http://wikimediafoundation.org/">WMF</a> |
+            <a class="white" href="/about/contact">$_.contact_us</a>
+        </div>
+    </div>
+
+</body>
+</html>

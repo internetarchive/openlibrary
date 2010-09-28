@@ -1,0 +1,37 @@
+{
+    "publishers": [
+        "W. Briggs"
+    ], 
+    "lc_classifications": [
+        "F1058 .C74"
+    ], 
+    "authors": [
+        {
+            "birth_date": "1842", 
+            "death_date": "1905", 
+            "entity_type": "person", 
+            "name": "Conant, Thomas", 
+            "personal_name": "Conant, Thomas"
+        }
+    ], 
+    "publish_places": [
+        "Toronto"
+    ], 
+    "pagination": "243 p., [27] leaves of plates :", 
+    "title": "Upper Canada sketches", 
+    "lccn": [
+        "02012591"
+    ], 
+    "number_of_pages": 243, 
+    "languages": [
+        {
+            "key": "/languages/eng"
+        }
+    ], 
+    "publish_date": "1898", 
+    "publish_country": "onc", 
+    "by_statement": "by Thomas Conant", 
+    "oclc_numbers": [
+        "9268563"
+    ]
+}

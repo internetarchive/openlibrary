@@ -1,0 +1,22 @@
+$def with (page)
+
+$if page.type.key in ["/type/work", "/type/edition"]:
+   $ edit_url = page.url(suffix="/edit")
+$else:
+   $ edit_url = page.key + "?m=edit"
+
+<div id="editTools" class="edit">
+    <div id="editButton">
+        <button class="linkButton" name="$edit_url" title="Edit this template" accesskey="e">$_("Edit")</button>
+    </div>
+    <div id="editInfo">
+        $ author = get_recent_author(page)
+        $if author:
+            <div class="brown smaller sansserif">$_("Last edited by") <a href="$author.key" rel="nofollow">$author.displayname</a></div>
+        $else:
+            <div class="brown smaller sansserif">$_("Last edited anonymously")</div>
+        <div class="smallest gray sansserif">
+            $(page.last_modified and datestr(page.last_modified))
+        </div>
+    </div>
+</div>

@@ -1,0 +1,78 @@
+$def with (work=None, author=None)
+
+$var title: $_("Add a book")
+
+<div id="contentHead">
+    <div class="head">
+        <h1>$_("Add a book to Open Library")</h1>
+    </div>
+        <p class="instruct">$_("We require a minimum set of fields to create a new record. These are those fields.")</p>
+</div>
+            
+<div id="contentBody">
+            
+    <form method="post" action="" id="addbook" class="olform addbook1 validate" name="edit">
+    
+        $ author = (work and work.authors and work.authors[0].author) or author
+        <div class="formElement">
+            <div class="label"><label for="title">$_("Title")</label></div>
+            <div class="input">
+                $if work:
+                    <input type="text" id="title" disabled="disabled" value="$work.title"/>
+                    <input type="hidden" name="title" value="$work.title"/>
+                $else:
+                    <input type="text" name="title" id="title" class="required title" style="width:630px;" value="$(work and work.title)" $cond(work, 'readonly="readonly"')/>
+            </div>
+        </div>
+        <div class="formElement">
+            <div class="label"><label for="author">$_("Author")</label> <span class="smaller lighter">$_('Like, "Agatha Christie" or "Jean-Paul Sartre." We\'ll also do a live check to see if we already know the author.')</span></div>
+            <div class="input">
+                $if author:
+                    <input type="text" id="author" disabled="disabled" value="$author.name"/>
+                    <input type="hidden" name="author_name" value="$author.name"/>
+                $else:
+                    <input type="text" name="author_name" id="author" class="author-autocomplete required author" value=""/>
+                <input type="hidden" name="author_key" id="author-key" class="author" value="$(author and author.key)"/>
+            </div>
+        </div>
+
+        <div class="formElement">
+            <div class="label"><label for="publisher">$_("Who is the publisher?")</label></div>
+            <div class="input">
+                <input type="text" name="publisher" class="required" id="publisher"/>
+            </div>
+        </div>
+        
+        <div class="formElement">
+            <div class="label"><label for="publish_date">$_("When was it published?")</label> <span class="smaller lighter">$_("The year it was published is plenty.")</span></div>
+            <div class="input">
+                <input type="text" name="publish_date" class="required publish-date" id="publish_date"/>
+            </div>
+        </div>
+        
+        <div class="formElement">
+            <div class="label"><label for="id_value">$:_("And optionally, an ID number &#151; like an ISBN &#151; would be helpful...")</label></div>
+                <label for="id_name" class="hidden">$_("ID Type")</label>
+            <div class="input">
+                <select name="id_name" id="id_name">
+                <option value="">$_("Select")</option>
+                <option value="ocaid">IA</option>
+                <option value="isbn_10">ISBN 10</option>
+                <option value="isbn_13">ISBN 13</option>
+                <option value="lccn">LCCN</option>
+                </select>
+                &nbsp;
+                <input type="text" name="id_value" id="id_value" size="20" style="width:200px;"/>
+            </div>
+        </div>
+
+        <div class="formElement bottom">
+            <div class="input">
+                <br/>
+                <button type="submit" name="_save" title="$_('Add this book now')" class="larger">$_('Add')</button>
+                &nbsp;
+                <a href="javascript:history.go(-1);" class="attn">$_('Cancel')</a>
+            </div>
+        </div>
+    </form> 
+</div>
