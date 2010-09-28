@@ -1,7 +1,7 @@
 #!/usr/bin/python
-from catalog.marc.fast_parse import get_subfields
-from catalog.wikipedia.lookup import name_lookup, look_for_match, pick_from_match, more_than_one_match
-from catalog.utils import pick_first_date
+from openlibrary.catalog.marc.fast_parse import get_subfields
+from openlibrary.catalog.wikipedia.lookup import name_lookup, look_for_match, pick_from_match, more_than_one_match
+from openlibrary.catalog.utils import pick_first_date
 from pprint import pprint
 
 marc = [
