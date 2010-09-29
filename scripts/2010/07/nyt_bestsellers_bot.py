@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import urllib2, urllib, sys, collections, re, os, site
+import urllib2, urllib, sys, collections, re, os, site, datetime
 
 local_site = os.path.join(os.path.dirname(__file__), "..", "..", "..")
 site.addsitedir(local_site)
@@ -112,6 +112,14 @@ def reconcile_book(book):
             return result
     return result
 
+def _get_first_bestseller_date(nyt):
+    bd = nyt['bestsellers_date']
+    wol = nyt['weeks_on_list']
+    bd = datetime.datetime.strptime(bd, "%Y-%m-%d")
+    wol = datetime.timedelta(days=wol * 7)
+    result = bd - wol
+    return result.date().isoformat()
+
 def write_machine_tags(ln, books):
     key_to_nyt = {}
     for book in books:
@@ -120,11 +128,13 @@ def write_machine_tags(ln, books):
 
     works = OL.get_many(list(set(key_to_nyt.keys())))
     write = {}
-    for work in works:
+    for work in works.values():
         nyt = key_to_nyt[work['key']]
-        tags = ("New York Times bestseller",
-                "nyt:%s=%s" % ("_".join([s.lower() for s in ln.split()]),
-                               nyt['bestsellers_date']))
+        tags = (
+            "New York Times bestseller",
+            "nyt:%s=%s" % ("_".join([s.lower() for s in ln.split()]),
+                           _get_first_bestseller_date(nyt))
+        )
         if 'subjects' not in work:
             work['subjects'] = list(tags)
             write[work['key']] = work
@@ -133,6 +143,10 @@ def write_machine_tags(ln, books):
                 if tag not in work['subjects']:
                     work['subjects'].append(tag)
                     write[work['key']] = work
+        # clean up any broken tags
+        work['subjects'] = [s for s in work['subjects']
+                            if not s.startswith(("nyt:", "nytimes:")) or s in tags]
+
         if work['key'] not in write:
             LOG("INFO", "all tags already present, skipping %s: '%s' by %s" % (
                 work['key'], 
