@@ -272,14 +272,20 @@ def fmt_line(fields):
 
 def pick_from_match(match):
     l = [(norm_name(k), v) for k, v in match.items()]
-    good = [(name, (cats, match_name)) for name, (cats, match_name) in l \
-            if any(name == m for m in match_name)]
+    good = [(k, v) for k, v in l if any(k == m for m in v['match_name'])]
     if len(good) == 1:
         return dict(good)
+    exact_date = [(k, v) for k, v in l if v['exact_dates']]
+    if len(exact_date) == 1:
+        return dict(exact_date)
+    if len(exact_date) > 1 and len(good) > 1:
+        exact_date = [(k, v) for k, v in good if v['exact_dates']]
+        if len(exact_date) == 1:
+            return dict(exact_date)
     return match
 
 def more_than_one_match(match):
-    return [("http://en.wikipedia.org/wiki/" + name.replace(' ', '_'), match_name, cats) for name, (cats, match_name) in match.items()]
+    return [("http://en.wikipedia.org/wiki/" + name.replace(' ', '_'), i) for name, i in match.items()]
 
 def test_date_match():
     # $aAngelico,$cfra,$dca. 1400-l455.
@@ -332,6 +338,14 @@ def test_date_match():
 
 date_cats = (' births', ' deaths', 'century writers', 'century Latin writers', 'century women writers', 'century French writers') # time for an regexp
 
+def exact_date_match(dates, cats):
+    if 'date' in dates or not all(i in dates for i in ('birth_date', 'death_date')):
+        return False
+    if any('ca.' in i for i in dates.values()):
+        return False
+    birth, death = get_birth_and_death(cats)
+    return dates['birth_date'] == birth and dates['death_date'] == death
+
 def look_for_match(found, dates, verbose):
     match = {}
     for name, cats, match_name, pd in found:
@@ -344,7 +358,8 @@ def look_for_match(found, dates, verbose):
                 print dates
                 print
             continue
-        dm = date_match(dates, cats)
+        exact_dm = exact_date_match(dates, cats)
+        dm = exact_dm or date_match(dates, cats)
         if not dm and found_name_match:
             if 'death_date' in dates:
                 death = dates['death_date']
@@ -356,9 +371,9 @@ def look_for_match(found, dates, verbose):
                     assert birth + ' births' not in cats
         if dm:
             if name in match:
-                match[name][1].append(match_name)
+                match[name]['match_name'].append(match_name)
             else:
-                match[name] = (cats, [match_name])
+                match[name] = {'cats': cats, 'exact_dates': exact_dm, 'match_name': [match_name]}
         if not verbose:
             continue
         print (name, match_name)
@@ -416,7 +431,17 @@ def test_lookup3():
     match = pick_from_match(match)
     pprint(match)
 
-#test_lookup3()
+def test_lookup4():
+    fields = (('a', 'Forbes, George'), ('d', '1849-1936.'))
+    found = name_lookup(fields)
+    dates = pick_first_date(v for k, v in fields if k == 'd')
+    match = look_for_match(found, dates, False)
+    for k, v in match.iteritems():
+        print k, v
+    match = pick_from_match(match)
+    pprint(match)
+
+#test_lookup4()
 
 def db_marc_lookup():
     verbose = False
@@ -429,9 +454,10 @@ def db_marc_lookup():
     prev_fields = None
     fh = open('matches', 'w')
     bad = codecs.open('more_than_one_match', 'w', 'utf8')
-    for line in open('/1/edward/wikipedia/marc_authors_filtered'):
+    for line in open('/1/edward/wikipedia/marc_authors2'):
         count+=1
-        (author_count, line) = eval(line)
+#        (author_count, line) = eval(line)
+        (line, author_count) = eval(line)
 #        line = strip_brackets(line)
         if count % 5000 == 0:
             t1 = time() - t0
@@ -480,9 +506,10 @@ def db_marc_lookup():
                 print >> bad, i
         else:
             #print (list(get_subfields(line, 'abcd')), match.keys()[0])
-            cats = match.values()[0][0]
+            cats = match.values()[0]['cats']
+            exact = match.values()[0]['exact_dates']
             dc = [i for i in cats if any(i.endswith(j) for j in date_cats)]
-            print >> fh, (match.keys()[0], fields, author_count, dc, 'Living people' in cats)
+            print >> fh, (match.keys()[0], fields, author_count, dc, exact, 'Living people' in cats)
     print match_count
     fh.close()
 

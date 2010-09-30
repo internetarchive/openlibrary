@@ -1,25 +1,33 @@
 create table files (
     id serial,
-    ia char(32),
-    part char(32)
+    part varchar(80)
 );
 
-create table rec (
+create table recs (
     id serial,
     marc_file integer,
-    pos integer,
-    len integer,
-    title char(25),
-    lccn char(32),
-    call_number char(32)
+    pos bigint,
+    len integer
 );
     
 create table isbn (
-    value char(16),
-    rec integer
+    rec integer,
+    value varchar(16)
 );
 
 create table oclc (
-    value char(32),
-    rec integer
+    rec integer,
+    value varchar(32)
 );
+
+create table title (
+    rec integer,
+    value varchar(25)
+);
+
+create table lccn (
+    rec integer,
+    value varchar(32)
+);
+
+

@@ -1,5 +1,6 @@
+#!/usr/bin/python2.5
 import random
-import web #, dbhash
+import web
 from web_marc_db import search_query, show_locs
 
 # too slow
@@ -24,10 +25,11 @@ def random_isbn():
 
 def search(field, value):
     locs = search_query(field, value)
+    print locs
     if locs:
-        show_locs(locs, value if field == 'isbn' else None)
+        return show_locs(locs, value if field == 'isbn' else None)
     else:
-        print value, ' not found'
+        return value + ' not found'
 
 urls = (
     '/random', 'rand',
@@ -58,43 +60,44 @@ class index():
         if 'oclc' in input and input.oclc:
             oclc = input.oclc
             title = 'MARC lookup: oclc=' + oclc
-        print "<html>\n<head>\n<title>%s</title>" % title
-        print '''
+        ret = "<html>\n<head>\n<title>%s</title>" % title
+        ret += '''
 <style>
 th { text-align: left }
 td { padding: 5px; background: #eee }
 </style>'''
 
-        print '</head><body><a name="top">'
-        print '<form name="main" method="get"><table><tr><td align="right">ISBN</td><td>'
+        ret += '</head><body><a name="top">'
+        ret += '<form name="main" method="get"><table><tr><td align="right">ISBN</td><td>'
         if isbn:
-            print '<input type="text" name="isbn" value="%s">' % web.htmlquote(isbn)
+            ret += '<input type="text" name="isbn" value="%s">' % web.htmlquote(isbn)
         else:
-            print '<input type="text" name="isbn">'
-        print ' or <a href="/random">random</a><br>'
-        print '</td></tr><tr><td align="right">LCCN</td><td>'
+            ret += '<input type="text" name="isbn">'
+        ret += ' or <a href="/random">random</a><br>'
+        ret += '</td></tr><tr><td align="right">LCCN</td><td>'
         if lccn:
-            print '<input type="text" name="lccn" value="%s">' % web.htmlquote(lccn)
+            ret += '<input type="text" name="lccn" value="%s">' % web.htmlquote(lccn)
         else:
-            print '<input type="text" name="lccn">'
-        print '</td></tr><tr><td align="right">OCLC</td><td>'
+            ret += '<input type="text" name="lccn">'
+        ret += '</td></tr><tr><td align="right">OCLC</td><td>'
         if oclc:
-            print '<input type="text" name="oclc" value="%s">' % web.htmlquote(oclc)
+            ret += '<input type="text" name="oclc" value="%s">' % web.htmlquote(oclc)
         else:
-            print '<input type="text" name="oclc">'
-        print '</td></tr>',
-        print '<tr><td></td><td><input type="submit" value="find"></td></tr>'
-        print '</table>'
-        print '</form>'
+            ret += '<input type="text" name="oclc">'
+        ret += '</td></tr>'
+        ret += '<tr><td></td><td><input type="submit" value="find"></td></tr>'
+        ret += '</table>'
+        ret += '</form>'
         if isbn:
-            search('isbn', isbn)
+            ret += search('isbn', isbn)
         elif lccn:
             search('lccn', lccn)
         elif oclc:
             search('oclc', oclc)
-        print "</body></html>"
+        ret += "</body></html>"
+        return ret
 
+app = web.application(urls, globals())
 
-if __name__ == "__main__": web.run(urls, globals(), web.reloader)
-
-
+if __name__ == "__main__":
+    app.run()
