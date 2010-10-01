@@ -13,6 +13,7 @@ class MobileMiddleware:
     cookie is on.
     """
     def __init__(self, wsgi_app):
+
         self.wsgi_app = wsgi_app
 
     def cookies(self, env, **defaults):
@@ -26,13 +27,12 @@ class MobileMiddleware:
         
     def is_mobile_device(self, environ):
         useragent = environ.get('HTTP_USER_AGENT', '').lower()
-        return 'ipad' in useragent \
-            or 'iphone' in useragent
+        return 'ipad' in useragent or 'iphone' in useragent
         
     def __call__(self, environ, start_response):
-        cookies = self.cookies(environ, mobile="false")
+        cookies = self.cookies(environ, mobile="true")
         # delegate to mobile app when cookie mobile is set to true. 
-        if cookies.mobile == "true" or self.is_mobile_device(environ):
+        if cookies.mobile == "true" and self.is_mobile_device(environ):
             return mobile_wsgi_app(environ, start_response)
         else:
             return self.wsgi_app(environ, start_response)
@@ -41,12 +41,13 @@ config.middleware.append(MobileMiddleware)
             
 urls = (
     "/", "index",
-    "/books/.*", "books",
-    "/authors/.*", "authors",
+    "(/books/OL\d+M)(?:/.*)?", "book",
+    "(/authors/OL\d+A)(?:/.*)?", "author",
     "/search", "search",
     "/images/.*", "static",
     
 )
+
 app = web.application(urls, globals())
 # to setup ctx.site
 app.add_processor(web.loadhook(delegate.initialize_context))

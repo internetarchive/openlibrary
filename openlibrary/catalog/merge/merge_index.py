@@ -11,6 +11,15 @@ re_letters = re.compile('[A-Za-z]')
 def clean_lccn(lccn):
     return re_letters.sub('', lccn).strip()
 
+re_isbn = re.compile('([-0-9X]{10,})')
+
+def clean_isbn(isbn):
+    m = re_isbn.search(isbn)
+    if m:
+        return m.group(1).replace('-', '')
+
+
+
 def add_to_indexes(record):
     if 'title' not in record or record['title'] is None:
         return
@@ -28,7 +37,7 @@ def add_to_indexes(record):
     fields = [
         ('lccn', 'lccn', clean_lccn),
         ('oclc_numbers', 'oclc', None),
-        ('isbn_10', 'isbn', None),
+        ('isbn_10', 'isbn', clean_isbn),
         ('isbn_13', 'isbn', None),
     ]
     for a, b, clean in fields:
@@ -39,4 +48,6 @@ def add_to_indexes(record):
                 continue
             if clean:
                 v = clean(v)
+                if not v:
+                    continue
             yield b, v
