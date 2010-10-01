@@ -1,7 +1,7 @@
 import httplib, re, sys
 from openlibrary.catalog.utils.query import query_iter, withKey, has_cover
+from openlibrary.catalog.marc.marc_subject import get_work_subjects, four_types
 from lxml.etree import tostring, Element, SubElement
-from openlibrary.solr.work_subject import find_subjects, four_types, get_marc_subjects
 from pprint import pprint
 from urllib2 import urlopen, URLError
 import simplejson as json
@@ -34,7 +34,7 @@ re_collection = re.compile(r'<collection>(.*)</collection>', re.I)
 
 def get_ia_collection(ia):
     url = 'http://www.archive.org/download/%s/%s_meta.xml' % (ia, ia)
-    print 'getting:', url
+    #print 'getting:', url
     for attempt in range(5):
         try:
             matches = (re_collection.search(line) for line in urlopen(url))
@@ -47,7 +47,7 @@ def get_ia_collection(ia):
 class AuthorRedirect (Exception):
     pass
 
-re_bad_char = re.compile('[\x01\x1a-\x1e]')
+re_bad_char = re.compile('[\x01\x0b\x1a-\x1e]')
 re_year = re.compile(r'(\d{4})$')
 def strip_bad_char(s):
     if not isinstance(s, basestring):
@@ -91,7 +91,36 @@ def pick_cover(w, editions):
                 return e['key']
     return first_with_cover
 
-def build_doc(w):
+def get_work_subjects(w):
+    wkey = w['key']
+    assert w['type']['key'] == '/type/work'
+
+    subjects = {}
+    field_map = {
+        'subjects': 'subject',
+        'subject_places': 'place',
+        'subject_times': 'time',
+        'subject_people': 'person',
+    }
+
+    for db_field, solr_field in field_map.iteritems():
+        if not w.get(db_field, None):
+            continue
+        cur = subjects.setdefault(solr_field, {})
+        for v in w[db_field]:
+            try:
+                if isinstance(v, dict):
+                    if 'value' not in v:
+                        continue
+                    v = v['value']
+                cur[v] = cur.get(v, 0) + 1
+            except:
+                print 'v:', v
+                raise
+
+    return subjects
+
+def build_doc(w, obj_cache={}, resolve_redirects=False):
     wkey = w['key']
     assert w['type']['key'] == '/type/work'
     title = w.get('title', None)
@@ -117,26 +146,26 @@ def build_doc(w):
             e['pub_year'] = pub_year
         if 'ocaid' in e:
             collection = get_ia_collection(e['ocaid'])
-            print 'collection:', collection
+            #print 'collection:', collection
             e['ia_collection'] = collection
             e['public_scan'] = ('lendinglibrary' not in collection) and ('printdisabled' not in collection)
         overdrive_id = e.get('identifiers', {}).get('overdrive', None)
         if overdrive_id:
-            print 'overdrive:', overdrive_id
+            #print 'overdrive:', overdrive_id
             e['overdrive'] = overdrive_id
         editions.append(e)
 
     editions.sort(key=lambda e: e.get('pub_year', None))
 
-    print len(w['editions']), 'editions found'
+    #print len(w['editions']), 'editions found'
 
-    print w['key']
+    #print w['key']
     work_authors = []
     authors = []
     author_keys = []
     for a in w.get('authors', []):
-        if 'author' not in a:
-            continue
+        if 'author' not in a: # OL Web UI bug
+            continue # http://openlibrary.org/works/OL15365167W.yml?m=edit&v=1
         akey = a['author']['key']
         m = re_author_key.match(akey)
         if not m:
@@ -144,13 +173,31 @@ def build_doc(w):
             continue
         work_authors.append(akey)
         author_keys.append(m.group(1))
-        authors.append(withKey(akey))
+        if akey in obj_cache and obj_cache[akey]['type']['key'] != '/type/redirect':
+            authors.append(obj_cache[akey])
+        else:
+            authors.append(withKey(akey))
     if any(a['type']['key'] == '/type/redirect' for a in authors):
-        raise AuthorRedirect
+        if resolve_redirects:
+            def resolve(a):
+                if a['type']['key'] == '/type/redirect':
+                    a = withKey(a['location'])
+                return a
+            authors = [resolve(a) for a in authors]
+        else:
+            print
+            for a in authors:
+                print 'author:', a
+            print
+            raise AuthorRedirect
     assert all(a['type']['key'] == '/type/author' for a in authors)
 
-    #subjects = four_types(find_subjects(get_marc_subjects(w)))
-    subjects = {}
+    try:
+        subjects = four_types(get_work_subjects(w))
+    except:
+        print 'bad work: ', w['key']
+        raise
+
     field_map = {
         'subjects': 'subject',
         'subject_places': 'place',
@@ -160,7 +207,7 @@ def build_doc(w):
 
     has_fulltext = any(e.get('ocaid', None) or e.get('overdrive', None) for e in editions)
 
-    print 'has_fulltext:', has_fulltext
+    #print 'has_fulltext:', has_fulltext
 
     for db_field, solr_field in field_map.iteritems():
         if not w.get(db_field, None):
@@ -182,7 +229,7 @@ def build_doc(w):
         subjects['subject']['Accessible book'] = subjects['subject'].get('Accessible book', 0) + 1
         if not has_fulltext:
             subjects['subject']['Protected DAISY'] = subjects['subject'].get('Protected DAISY', 0) + 1
-        print w['key'], subjects['subject']
+        #print w['key'], subjects['subject']
 
     doc = Element("doc")
 
@@ -301,7 +348,7 @@ def build_doc(w):
                 nonpub_goog.add(i)
             else:
                 nonpub_nongoog.add(i)
-    print 'lending_edition:', lending_edition
+    #print 'lending_edition:', lending_edition
     ia_list = list(pub_nongoog) + list(pub_goog) + list(nonpub_nongoog) + list(nonpub_goog)
     add_field_list(doc, 'ia', ia_list)
     if has_fulltext:
@@ -334,7 +381,7 @@ def build_doc(w):
         if k not in subjects:
             continue
         add_field_list(doc, k, subjects[k].keys())
-#        add_field_list(doc, k + '_facet', subjects[k].keys())
+        add_field_list(doc, k + '_facet', subjects[k].keys())
         subject_keys = [str_to_key(s) for s in subjects[k].keys()]
         add_field_list(doc, k + '_key', subject_keys)
 
@@ -362,7 +409,12 @@ def solr_update(requests, debug=False, index='works'):
 #            print response.getheaders()
     h1.close()
 
-def update_work(w):
+def withKey_cached(key, obj_cache={}):
+    if key not in obj_cache:
+        obj_cache[key] = withKey(key)
+    return obj_cache[key]
+
+def update_work(w, obj_cache={}, debug=False, resolve_redirects=False):
     wkey = w['key']
     assert wkey.startswith('/works')
     assert '/' not in wkey[7:]
@@ -374,7 +426,7 @@ def update_work(w):
 
     if w['type']['key'] == '/type/work' and w.get('title', None):
         try:
-            doc = build_doc(w)
+            doc = build_doc(w, obj_cache, resolve_redirects=resolve_redirects)
         except:
             print w
             raise
@@ -386,14 +438,15 @@ def update_work(w):
 
     return requests
 
-def update_author(akey):
+def update_author(akey, a=None, handle_redirects=True):
     # http://ia331507.us.archive.org:8984/solr/works/select?indent=on&q=author_key:OL22098A&facet=true&rows=1&sort=edition_count%20desc&fl=title&facet.field=subject_facet&facet.mincount=1
     m = re_author_key.match(akey)
     if not m:
         print 'bad key:', akey
         return
     author_id = m.group(1)
-    a = withKey(akey)
+    if not a:
+        a = withKey(akey)
     if a['type']['key'] in ('/type/redirect', '/type/delete') or not a.get('name', None):
         return ['<delete><query>key:%s</query></delete>' % author_id] 
     try:
@@ -434,11 +487,12 @@ def update_author(akey):
     add_field(doc, 'work_count', work_count)
     add_field_list(doc, 'top_subjects', top_subjects)
 
-    q = {'type': '/type/redirect', 'location': akey}
-    redirects = ''.join('<query>key:%s</query>' % (re_author_key.match(r['key']).group(1),) for r in query_iter(q))
     requests = []
-    if redirects:
-        requests.append('<delete>' + redirects + '</delete>')
+    if handle_redirects:
+        q = {'type': '/type/redirect', 'location': akey}
+        redirects = ''.join('<id>%s</id>' % re_author_key.match(r['key']).group(1) for r in query_iter(q))
+        if redirects:
+            requests.append('<delete>' + redirects + '</delete>')
 
     requests.append(tostring(add).encode('utf-8'))
     return requests

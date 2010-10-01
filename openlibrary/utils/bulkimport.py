@@ -230,7 +230,6 @@ class Reindexer:
         
         try:
             documents = self.get_documents(keys)
-            print keys, documents
             self.delete_earlier_index(documents, tables)
             self.create_new_index(documents, tables)
         except:

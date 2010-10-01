@@ -2,13 +2,13 @@
 from time import time, sleep
 import openlibrary.catalog.marc.fast_parse as fast_parse
 import web, sys, codecs, re, urllib2, httplib
-import openlibrary.catalog.importer.pool as pool
+from openlibrary.catalog.importer import pool
 import simplejson as json
 from openlibrary.catalog.utils.query import query_iter
 from openlibrary.catalog.importer.merge import try_merge
-from openlibrary.catalog.marc.new_parser import read_edition
+from openlibrary.catalog.marc.parse import read_edition
 from openlibrary.catalog.importer.load import build_query, east_in_by_statement, import_author
-from openlibrary.catalog.importer.lang import add_lang
+from openlibrary.catalog.works.find_works import find_title_redirects, find_works, get_books, books_query, update_works
 from openlibrary.catalog.get_ia import files, read_marc_file
 from openlibrary.catalog.merge.merge_marc import build_marc
 from openlibrary.catalog.importer.db_read import get_mc, withKey
@@ -19,7 +19,7 @@ from openlibrary.catalog.read_rc import read_rc
 rc = read_rc()
 
 marc_index = web.database(dbn='postgres', db='marc_index')
-marc_index.printing = False
+marc_index.printing = True
 
 db_amazon = web.database(dbn='postgres', db='amazon')
 db_amazon.printing = False
@@ -114,7 +114,7 @@ def has_dot(s):
     return s.endswith('.') and not re_skip.search(s)
 
 def author_from_data(loc, data):
-    edition = read_edition(loc, data)
+    edition = read_edition(data)
     assert 'authors' in edition
     east = east_in_by_statement(edition)
     assert len(edition['authors']) == 1
@@ -278,7 +278,6 @@ def write(q): # unused
         raise
 
 def write_edition(loc, edition):
-    add_lang(edition)
     q = build_query(loc, edition)
     authors = []
     for a in q.get('authors', []):
@@ -321,6 +320,13 @@ def write_edition(loc, edition):
     # get key from return
     pool.update(key, q)
 
+    for a in authors:
+        akey = a['key']
+        title_redirects = find_title_redirects(akey)
+        works = find_works(akey, get_books(akey, books_query(akey)), existing=title_redirects)
+        works = list(works)
+        updated = update_works(akey, works, do_updates=True)
+
 for part, size in files(archive_id):
 #for part, size in marc_loc_updates:
     print part, size
@@ -337,13 +343,7 @@ for part, size in files(archive_id):
     for loc, data in part_iter:
         #if loc == 'marc_binghamton_univ/bgm_openlib_final_10-15.mrc:265680068:4538':
         #    continue
-        try:
-            edition = read_edition(loc, data)
-        except AssertionError:
-            print loc
-            raise
-        if not edition:
-            continue
+        edition = read_edition(data)
         if edition['title'] == 'See.':
             print 'See.', edition
             continue
