@@ -5,18 +5,22 @@ from math import floor
 from pprint import pprint
 import htmlentitydefs
 
-class BrokenTitle:
+class BrokenTitle(Exception):
     pass
 
-class IncompletePage:
+class IncompletePage(Exception):
+    pass
+
+class MissingAuthor(Exception):
     pass
 
 role_re = re.compile("^ \(([^)]+)\)")
 
+#: sample: ' [Paperback, Large Print]'
+
 re_title = re.compile("""
-    (?:\ \[([^a-z]+)\]\ )? # flags
-    \ 
-    \(([^()]+|[^()]*\(.*\)[^()]*)\)
+    (?:\ \[([A-Za-z, ]+)\])? # flags
+    (?:\(\ ([^()]+|[^()]*\(.*\)[^()]*)\))?
     """, re.MULTILINE | re.X)
 
 re_split_title = re.compile(r'''^
@@ -24,7 +28,9 @@ re_split_title = re.compile(r'''^
     (?::\ (\ *[^:]+))?$
 ''', re.X)
 
-re_list_price = re.compile('^\$([\d,]+)\.(\d\d) $')
+re_missing_author = re.compile('\n\n(~  )?\(([A-Za-z, ]+)\), ')
+
+re_list_price = re.compile('^\$([\d,]+)\.(\d\d)$')
 re_amazon_price = re.compile('^\$([\d,]+)\.(\d\d)$')
 # '$0.04\n      \n    '
 re_you_save = re.compile('^\$([\d,]+)\.(\d\d)\s*\((\d+)%\)\s*$')
@@ -59,7 +65,13 @@ def to_dict(k, v):
 
 def read_authors(by_span):
     authors = []
-    assert by_span.text == '\n\nby '
+    if re_missing_author.match(by_span.text):
+        raise MissingAuthor
+    try:
+        assert by_span.text in ('\n\n', '\n\n~ ')
+    except:
+        print `by_span.text`
+        raise
     expect_end = False
     for e in by_span:
         if expect_end:
@@ -72,12 +84,12 @@ def read_authors(by_span):
             assert e.tail.endswith(', ')
         m = role_re.match(e.tail)
         if m:
-            authors.append({ 'name': e.text, 'role': m.group(1) })
+            authors.append({ 'name': e.text, 'role': m.group(1), 'href': e.attrib['href'] })
         else:
-            authors.append({ 'name': e.text })
+            authors.append({ 'name': e.text, 'href': e.attrib['href'] })
     return authors
 
-def get_title_and_authors(doc):
+def get_title_and_authors(doc, title_from_html):
     try:
         prodImage = doc.get_element_by_id('prodImage')
     except KeyError:
@@ -112,12 +124,23 @@ def get_title_and_authors(doc):
     if not title_text.startswith(full_title):
         print 'alt:', `prodImage.attrib['alt']`
         print 'title mistmach:', `full_title`, '!=', `title_text`
+        title_text = title_from_html.decode('latin-1')
+        print 'title_text:', `title_text`
+        print 'full_title:', `full_title`
+    if not title_text.startswith(full_title):
+        print 'alt:', `prodImage.attrib['alt']`
+        print 'title mistmach:', `full_title`, '!=', `title_text`
         raise BrokenTitle
-    btAsinTitle = title_text[len(full_title):]
-    m = re_title.match(btAsinTitle)
-    (flag, book['binding']) = m.groups()
-    if flag:
-        book['flag'] = flag
+    if full_title != title_text:
+        btAsinTitle = title_text[len(full_title):]
+        m = re_title.match(btAsinTitle)
+        if not m:
+            print 'title:', `btAsinTitle`
+        (flag, binding) = m.groups()
+        if binding is not None:
+            book['binding'] = binding
+        if flag:
+            book['flag'] = flag
     if subtitle:
         book['subtitle'] = subtitle
 
@@ -140,10 +163,10 @@ def read_price_block(doc):
         assert tr.tag == 'tr' and len(tr) == 2
         assert all(td.tag == 'td' for td in tr)
         heading = tr[0].text
-        value = tr[1].text
+        value = tr[1].text_content()
 
         if heading == 'List Price:':
-            m = re_list_price.match(tr[1].text)
+            m = re_list_price.match(value)
             list_price = dollars_and_cents(m.group(1), m.group(2))
             book["list_price"] = list_price
         elif heading == "Price:":
@@ -315,6 +338,9 @@ def read_product_details(doc):
     li = ul[ul_start]
     b = read_li(li)
     (binding, pages) = (b.text, b.tail)
+    if binding[-1] == ':':
+        binding = binding[:-1]
+    found['binding'] = binding
     if pages:
         m = re_pages.match(pages)
         if m:
@@ -473,7 +499,7 @@ def read_subject(doc):
         and input.attrib['name'] == 'index' \
         and input.attrib['value'] == 'books'
     found = []
-    for input in form[1:-4:3]:
+    for input in form[3:-4:3]:
         a = input.getnext()
         assert a.tag == 'a'
         found_text = a.text if len(a) == 0 else a[0].text
@@ -510,9 +536,9 @@ def read_tags(doc):
     assert len(table) == 1
     tr = table[0]
 
-def read_edition(doc):
+def read_edition(doc, title_from_html=None):
     edition = {}
-    book = get_title_and_authors(doc)
+    book = get_title_and_authors(doc, title_from_html)
     edition.update(book)
 
     ret = read_price_block(doc)
@@ -530,7 +556,7 @@ def read_edition(doc):
         #read_avail,
         read_product_details,
         read_other_editions,
-        read_sims,
+        #read_sims, # not needed now
         read_subject,
         read_category,
     ]
@@ -555,7 +581,7 @@ def edition_to_ol(edition):
     if 'isbn_13' in edition:
         ol['isbn_13'] = [edition['isbn_13'].replace('-','')]
     if 'category' in edition:
-        ol['subjects'] = [' -- '.join(i) for i in edition['category']]
+        ol['subjects'] = edition['category']
     if 'binding' in edition:
         ol['physical_format'] = edition['binding']
     if 'dimensions' in edition:
@@ -563,11 +589,15 @@ def edition_to_ol(edition):
     if 'shipping_weight' in edition:
         ol['weight'] = edition['shipping_weight']
     if 'authors' in edition:
-        ol['authors'] = edition['authors']
+        ol['authors'] = [a for a in edition['authors'] if a['name'] != 'n/a']
+    if 'publisher' in edition:
+        ol['publishers'] = [edition['publisher']]
+    else:
+        print 'publisher missing'
 
     for k, v in ol.iteritems():
         if isinstance(v, basestring) and v[-1] == '(':
-            pprint(ol)
+            pprint(edition)
             print 'ends with "(":', `k, v`
             sys.exit(0)
 
