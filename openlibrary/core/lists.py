@@ -1,31 +1,34 @@
 """Library to perform offline operations for managing lists.
 
-The data for lists is maintained in the following tables. These tables can be
+The data for lists is maintained in the seed_* tables. These tables can be
 part of the openlibrary database or a separate dabatase.
-
-    create table seed_editions (
-        id serial primary key,
-        seed text,
-        work text,
-        edition text,
-        ebook boolean
-    );
-
-    create table seed_updates (
-        id serial primary key,
-        tx_id int,
-        seed text,
-        timestamp timestamp,
-    
-        UNIQUE(seed, tx_id)
-    );
-
 """
+
 import web
 import simplejson
 
 from infogami.infobase import client
 from openlibrary.utils import olmemcache
+
+
+SCHEMA = """
+create table seed_editions (
+    id serial primary key,
+    seed text,
+    work text,
+    edition text,
+    ebook boolean
+);
+
+create table seed_updates (
+    id serial primary key,
+    tx_id int,
+    seed text,
+    timestamp timestamp,
+
+    UNIQUE(seed, tx_id)
+);
+"""
 
 class ListsEngine:
     """Engine to perform all offline updates for lists.
@@ -53,14 +56,17 @@ class ListsEngine:
         """Creates lists engine with the given settings.
         """
         if "infobase_server" in settings:
-            self.infobase_conn = client.RemoteConnection(settings["infobase_server"])
+            self.infobase_conn = client.RemoteConnection(**settings["infobase_server"])
         elif "db" in settings:
-            self.infobase_conn = client.LocalConnection(settings["db"])
+            web.config.db_parameters = settings['db']
+            self.infobase_conn = client.LocalConnection(**settings["db"])
         else:
             raise Exception("Either infobase_server or db must be specified in the settings.")
         
         if "memcache_servers" in settings:
             self.memcache = olmemcache.Client(settings["memcache_servers"])
+        else:
+            self.memcache = None
             
         if "lists_db" in settings:
             db_params = settings['lists_db'].copy()
@@ -79,7 +85,7 @@ class ListsEngine:
                     for e in editions
                     for w in e.get('works', [])]
         works = self._get_docs(work_keys)
-        self._index_edition_docs(editions, works())
+        self._index_edition_docs(editions, works)
         
     def index_updates(self, changeset_ids):
         pass
@@ -88,6 +94,9 @@ class ListsEngine:
         """Takes a list of editions and a dict of works of those editions and
         updates the seed_editions table.
         """
+        if not editions:
+            return
+
         p = EditionProcessor()
         
         data = [dict(seed=seed, work=work, edition=edition, ebook=ebook)
@@ -99,7 +108,7 @@ class ListsEngine:
         t = self.db.transaction()
         try:
             self.db.query(
-                "DELETE seed_editions WHERE edition in $edition_keys", 
+                "DELETE FROM seed_editions WHERE edition in $edition_keys", 
                 vars=locals())
             self.db.multiple_insert("seed_editions", data, seqname=False)
         except:
@@ -128,12 +137,12 @@ class ListsEngine:
         docs = {}
         
         for keys2 in web.group(keys, 500):
-            docs2 = self.infobase_conn.request(
+            json = self.infobase_conn.request(
                 sitename="openlibrary.org",
                 path="/get_many",
                 data={"keys": simplejson.dumps(keys2)})
-            
-            docs.update(docs2)    
+            docs2 = simplejson.loads(json)
+            docs.update(docs2)
         return docs    
         
 class EditionProcessor:
