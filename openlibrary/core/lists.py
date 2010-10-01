@@ -56,7 +56,7 @@ class ListsEngine:
         """Creates lists engine with the given settings.
         """
         if "infobase_server" in settings:
-            self.infobase_conn = client.RemoteConnection(**settings["infobase_server"])
+            self.infobase_conn = client.RemoteConnection(settings["infobase_server"])
         elif "db" in settings:
             web.config.db_parameters = settings['db']
             self.infobase_conn = client.LocalConnection(**settings["db"])
