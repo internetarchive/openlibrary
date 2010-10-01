@@ -1,14 +1,14 @@
-from openlibrary.core.seeddb import SeedEngine
+from openlibrary.core.lists import EditionProcessor
 
-class TestSeedEngine:
+class TestEditionProcessor:
     def test_process_subject(self):
-        s = SeedEngine()
+        s = EditionProcessor()
         assert s.process_subject("foo") == "foo"
         assert s.process_subject("foo bar") == "foo_bar"
         assert s.process_subject("Foo Bar") == "foo_bar"
         
     def test_find_work_feeds(self):
-        s = SeedEngine()
+        s = EditionProcessor()
         def f(doc):
             return set(s.find_work_seeds(doc))
         
@@ -52,7 +52,7 @@ class TestSeedEngine:
         ])
 
     def test_process_edition(self):
-        s = SeedEngine()
+        s = EditionProcessor()
         
         # process_edition returns a iterator with each entry containig:
         # (seed, work_key, edition_key, ebook)
