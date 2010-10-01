@@ -16,11 +16,11 @@ from openlibrary.core import lists, formats
 def index_editions(settings_filename, *keys):
     settings = formats.load_yaml(open(settings_filename).read())
     engine = lists.ListsEngine(settings)
-    engine.index_editions(args)
+    engine.index_editions(keys)
 
 def main(cmd=None, *args):
     if cmd == "index-editions":
-        index_editions(args)
+        index_editions(*args)
     elif cmd is None or cmd == "help" or cmd == "--help":
         print __doc__
     else:
