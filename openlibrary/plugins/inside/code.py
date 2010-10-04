@@ -4,6 +4,7 @@ from lxml import etree
 
 import re, web, urllib, simplejson, httplib
 
+re_query_parser_error = re.compile(r'<pre>org.apache.lucene.queryParser.ParseException: (.*)</pre>', re.S)
 re_solr_range = re.compile(r'\[.+\bTO\b.+\]', re.I)
 re_bracket = re.compile(r'[\[\]]')
 re_to_esc = re.compile(r'[\[\]:]')
@@ -47,17 +48,22 @@ def read_from_archive(ia):
 
     return item
 
-class subject_search(delegate.page):
+class search_inside(delegate.page):
     path = '/search/inside'
 
     def GET(self):
         def get_results(q, offset=0, limit=100, snippets=3, fragsize=200):
             q = escape_bracket(q)
-            solr_select = solr_select_url + "?fl=ia,body_length,page_count&hl=true&hl.fl=body&hl.snippets=%d&hl.mergeContiguous=true&hl.usePhraseHighlighter=true&hl.simple.pre={{{&hl.simple.post=}}}&hl.fragsize=%d&q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=*&qt=standard&wt=json" % (snippets, fragsize, web.urlquote(q), offset, limit)
+            solr_select = solr_select_url + "?fl=ia,body_length,page_count&hl=true&hl.fl=body&hl.snippets=%d&hl.mergeContiguous=true&hl.usePhraseHighlighter=true&hl.simple.pre={{{&hl.simple.post=}}}&hl.fragsize=%d&q.op=AND&q=%s&start=%d&rows=%d&qf=body&qt=standard&wt=json" % (snippets, fragsize, web.urlquote(q), offset, limit)
+            print solr_select
             stats.begin("solr", url=solr_select)
             json_data = urllib.urlopen(solr_select).read()
             stats.end()
-            return simplejson.loads(json_data)
+            try:
+                return simplejson.loads(json_data)
+            except:
+                m = re_query_parser_error.search(json_data)
+                return { 'error': web.htmlunquote(m.group(1)) }
 
         return render_template('search/inside.tmpl', get_results, quote_snippet, editions_from_ia, read_from_archive)
 
@@ -85,5 +91,6 @@ class snippets(delegate.page):
         def find_matches(ia, q):
             host, ia_path = ia_lookup('/download/' + ia)
             url = 'http://' + host + '/~edward/inside.php?path=' + ia_path + '&q=' + web.urlquote(q)
+            print url
             return simplejson.load(urllib.urlopen(url))
         return render_template('search/snippets.tmpl', find_matches, ia)
