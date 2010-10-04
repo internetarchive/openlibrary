@@ -68,7 +68,8 @@ class xml_rec:
             raise MultipleTitles
         if tag == '240' and len(self.dataFields[tag]) > 1:
             raise MultipleWorkTitles
-        assert len(self.dataFields[tag]) == 1
+        if tag != '006':
+            assert len(self.dataFields[tag]) == 1
         element = self.dataFields[tag][0]
         if element.tag == control_tag:
             return norm(element.text) if element.text else u''

@@ -61,7 +61,10 @@ def is_dark_or_bad(ia):
     return rows[0].curatestate == 'dark'
 
 def marc_match(e1, loc):
+    print 'loc:', loc
+    print len(get_from_local(loc))
     rec = fast_parse.read_edition(get_from_local(loc))
+    print 'rec:', rec
     try:
         e2 = build_marc(rec)
     except TypeError:
@@ -71,7 +74,7 @@ def marc_match(e1, loc):
 
 def ia_match(e1, ia):
     try:
-        loc, rec = get_ia(ia)
+        rec = get_ia(ia)
     except NoMARCXML:
         return False
     except urllib2.HTTPError:
@@ -179,7 +182,7 @@ def try_merge(e1, edition_key, thing):
         if is_dark_or_bad(ia):
             return False
         try:
-            loc2, rec2 = get_ia(ia)
+            rec2 = get_ia(ia)
         except xml.parsers.expat.ExpatError:
             return False
         except NoMARCXML:
