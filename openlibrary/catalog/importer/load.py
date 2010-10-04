@@ -1,7 +1,8 @@
 import web, re
-from db_read import get_things, withKey
+from db_read import withKey
 from openlibrary.catalog.utils import flip_name, author_dates_match, key_int
 from openlibrary.catalog.utils.query import query_iter
+from pprint import pprint
 
 def find_author(name):
     q = {'type': '/type/author', 'name': name}
@@ -145,6 +146,8 @@ def east_in_by_statement(rec):
 def check_if_loaded(loc): # unused
     return bool(get_versions({'machine_comment': loc}))
 
+# {'publishers': [u'D. Obradovi'], 'pagination': u'204p.', 'source_records': [u'ia:zadovoljstvauivo00lubb'], 'title': u'Zadovoljstva u ivotu', 'series': [u'Srpska knjiecna zadruga.  [Izdanja] 133'], 'number_of_pages': {'type': '/type/int', 'value': 204}, 'languages': [{'key': '/languages/ser'}], 'lc_classifications': [u'BJ1571 A819 1910'], 'publish_date': '1910', 'authors': [{'key': '/authors/OL162549A'}], 'ocaid': u'zadovoljstvauivo00lubb', 'publish_places': [u'Beograd'], 'type': {'key': '/type/edition'}}
+
 def build_query(loc, rec):
     if 'table_of_contents' in rec:
         assert not isinstance(rec['table_of_contents'][0], list)
@@ -152,9 +155,29 @@ def build_query(loc, rec):
         'type': { 'key': '/type/edition'},
     }
 
-    east = east_in_by_statement(rec)
+    try:
+        east = east_in_by_statement(rec)
+    except:
+        pprint(rec)
+        raise
     if east:
         print rec
+
+    for l in rec.get('languages', []):
+        print l
+        if l['key'] == '/languages/ser':
+            l['key'] = '/languages/srp'
+        if l['key'] in ('/languages/end', '/languages/enk', '/languages/ent'):
+            l['key'] = '/languages/eng'
+        if l['key'] == '/languages/cro':
+            l['key'] = '/languages/chu'
+        if l['key'] == '/languages/fr ':
+            l['key'] = '/languages/fre'
+        if l['key'] == '/languages/it ':
+            l['key'] = '/languages/ita'
+        if l['key'] == '/languages/fle': # flemish -> dutch
+            l['key'] = '/languages/dut'
+        assert withKey(l['key'])
 
     for k, v in rec.iteritems():
         if k == 'authors':
@@ -171,9 +194,3 @@ def build_query(loc, rec):
 
     assert 'title' in book
     return book
-
-def add_keys(q): # unused
-    if 'authors' in q:
-        for a in q['authors']:
-            a.setdefault('key', '/a/OL%dA' % (get_author_num(web) + 1))
-    q['key'] = '/b/OL%dM' % (get_book_num(web) + 1)

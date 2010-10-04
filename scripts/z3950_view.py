@@ -2,7 +2,9 @@ import web
 from PyZ3950 import zoom
 from lxml import etree
 import sys, re
+from urllib import urlopen
 from openlibrary.catalog.marc.html import html_record
+from openlibrary.catalog.marc import xml_to_html
 
 tree = etree.parse('/petabox/www/petabox/includes/ztargets.xml')
 root = tree.getroot()
@@ -14,26 +16,27 @@ for t in root:
         continue
     for element in t:
         cur[element.tag] = element.text
-    targets[cur['handle']] = cur
+    targets[cur['title']] = cur
 
-re_identifier = re.compile('^([^:]+):(\d+)(?:/(.+))?$')
+re_identifier = re.compile('^([^:/]+)(?::(\d+))?(?:/(.+))?$')
 
-def get_marc(target_id, cclquery):
-    target = targets[target_id]
+def get_marc(target_name, cclquery, result_offset):
+    target = targets[target_name]
     m = re_identifier.match(target['identifier'])
     (host, port, db) = m.groups()
-    port = int(port)
-    
+    port = int(port) if port else 210
     conn = zoom.Connection (host, port)
     if db:
         conn.databaseName = db
     conn.preferredRecordSyntax = 'USMARC'
     query = zoom.Query ('PQF', cclquery)
     res = conn.search (query)
+    offset = 0
     for r in res:
-        first = r.data
-        break
-    return first
+        return r.data
+        offset += 1
+        if offset == result_offset:
+            return r.data
 
 urls = (
     '/z39.50/(.+)', 'z3950_lookup',
@@ -91,15 +94,46 @@ class z3950_lookup:
 </ul>
 ''' % (ia, ia, ia, ia, ia)
         marc_source = 'http://www.archive.org/download/' + ia + '/' + ia + '_metasource.xml'
-        root = etree.parse(marc_source).getroot()
-        cclquery = root.find('cclquery').text
-        target_id = root.find('target').attrib['id']
+        marc_xml = 'http://www.archive.org/download/' + ia + '/' + ia + '_marc.xml'
+        marc_bin = 'http://www.archive.org/download/' + ia + '/' + ia + '_meta.mrc'
 
-        marc = get_marc(target_id, cclquery)
+        try:
+            from_marc_xml = xml_to_html.html_record(urlopen(marc_xml).read())
+        except:
+            from_marc_xml = None
+
+        try:
+            meta_mrc = urlopen(marc_bin).read()
+            from_marc_bin = html_record(meta_mrc)
+        except:
+            from_marc_bin = None
+
+        root = etree.parse(urlopen(marc_source)).getroot()
+        cclquery = root.find('cclquery').text
+        target_name = root.find('target').text
+        result_offset = root.find('resultOffset').text
+
+        marc = get_marc(target_name, cclquery, result_offset)
         rec = html_record(marc)
 
-        ret += 'leader: ' + rec.leader + '<br>'
-        ret += rec.html()
+        ret += '<h2>From Z39.50</h2>'
+
+        ret += 'leader: <code>' + rec.leader.replace(' ', '&nbsp;') + '</code><br>'
+        ret += rec.html() + '<br>\n'
+
+        if from_marc_xml:
+            ret += '<h2>From MARC XML on archive.org</h2>'
+            
+            ret += 'leader: <code>' + from_marc_xml.leader.replace(' ', '&nbsp;') + '</code><br>'
+            ret += from_marc_xml.html() + '<br>\n'
+
+        if from_marc_xml:
+            ret += '<h2>From MARC binary on archive.org</h2>'
+            
+            ret += 'record length: ' + `len(meta_mrc)` + ' bytes<br>'
+            ret += 'leader: <code>' + from_marc_bin.leader.replace(' ', '&nbsp;') + '</code><br>'
+            ret += from_marc_bin.html() + '<br>\n'
+
         ret += '</body></html>'
 
         return ret

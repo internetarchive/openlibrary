@@ -3,7 +3,7 @@
 # find works and create pages on production
 
 import re, sys, codecs, web
-from openlibrary.catalog.get_ia import get_from_archive
+from openlibrary.catalog.get_ia import get_from_archive, get_data
 from openlibrary.catalog.marc.fast_parse import get_subfield_values, get_first_tag, get_tag_lines, get_subfields, BadDictionary
 from openlibrary.catalog.utils.query import query_iter, set_staging, query
 from openlibrary.catalog.utils import mk_norm
@@ -21,10 +21,10 @@ rc = read_rc()
 
 ol = OpenLibrary("http://openlibrary.org")
 ol.login('WorkBot', rc['WorkBot'])
-fh_log = open('/1/edward/logs/WorkBot', 'a')
 
 def write_log(cat, key, title):
     print >> fh_log, (("%.2f" % time()), cat, key, title)
+    fh_log.flush()
 
 sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
 re_skip = re.compile('\b([A-Z]|Co|Dr|Jr|Capt|Mr|Mrs|Ms|Prof|Rev|Revd|Hon|etc)\.$')
@@ -43,6 +43,29 @@ def has_dot(s):
 # sample title: The Dollar Hen (Illustrated Edition) (Dodo Press)
 re_parens = re.compile('^(.*?)(?: \(.+ (?:Edition|Press)\))+$')
 
+def key_int(key):
+    # extract the number from a key like /a/OL1234A
+    return int(web.numify(key))
+
+def update_work_edition(ekey, wkey, use):
+    print (ekey, wkey, use)
+    e = ol.get(ekey)
+    works = []
+    for w in e['works']:
+        if w == wkey:
+            if use not in works:
+                works.append(Reference(use))
+        else:
+            if w not in works:
+                works.append(w)
+
+    if e['works'] == works:
+        return
+    print 'before:', e['works']
+    print 'after:', works
+    e['works'] = works
+    print ol.save(e['key'], e, 'remove duplicate work page')
+
 def top_rev_wt(d):
     d_sorted = sorted(d.keys(), cmp=lambda i, j: cmp(d[j], d[i]) or cmp(len(j), len(i)))
     return d_sorted[0]
@@ -51,7 +74,12 @@ def books_query(akey): # live version
     q = {
         'type':'/type/edition',
         'authors': akey,
-        '*': None
+        'source_records': None,
+        'title': None,
+        'work_title': None,
+        'languages': None,
+        'title_prefix': None,
+        'subtitle': None,
     }
     return query_iter(q)
 
@@ -71,9 +99,10 @@ def get_marc_src(e):
             yield 'ia', m.group(1)
         else:
             yield 'marc', mc
-    if 'source_records' not in e:
+    source_records = e.get('source_records', [])
+    if not source_records:
         return
-    for src in e['source_records']:
+    for src in source_records:
         if src.startswith('ia:'):
             if not mc or src != mc:
                 yield 'ia', src[3:]
@@ -90,8 +119,8 @@ def get_ia_work_title(ia):
     except KeyboardInterrupt:
         raise
     except:
-        print 'bad XML', ia
-        print url
+        #print 'bad XML', ia
+        #print url
         return
     #print etree.tostring(root)
     e = root.find(ns_data + "[@tag='240']")
@@ -111,12 +140,17 @@ def get_work_title(e):
                 break
             continue
         assert src_type == 'marc'
+        data = None
+        #print 'get from archive:', src
         try:
-            data = get_from_archive(src)
+            data = get_data(src)
         except ValueError:
             print 'bad record source:', src
             print 'http://openlibrary.org' + e['key']
             continue
+        except urllib2.HTTPError, error:
+            print 'HTTP error:', error.code, error.msg
+            print e['key']
         if not data:
             continue
         try:
@@ -136,14 +170,12 @@ def get_work_title(e):
     print 'http://openlibrary.org' + e['key']
     return e['work_titles'][0]
 
-def get_books(akey):
-    for e in books_query(akey):
+def get_books(akey, query):
+    for e in query:
         if not e.get('title', None):
             continue
-        if len(e.get('authors', [])) != 1:
-            continue
-        if 'works' in e:
-            continue
+#        if len(e.get('authors', [])) != 1:
+#            continue
         if 'title_prefix' in e and e['title_prefix']:
             prefix = e['title_prefix']
             if prefix[-1] != ' ':
@@ -171,8 +203,9 @@ def get_books(akey):
             'key': e['key'],
         }
 
-        if 'languages' in e:
-            book['lang'] = [l['key'][3:] for l in e['languages']]
+        lang = e.get('languages', [])
+        if lang:
+            book['lang'] = [l['key'][3:] for l in lang]
 
         if e.get('table_of_contents', None):
             if isinstance(e['table_of_contents'][0], basestring):
@@ -214,14 +247,14 @@ def build_work_title_map(equiv, norm_titles):
                 title_map[i] = most_common_title
     return title_map
 
-def find_works(akey):
+def find_works(akey, book_iter):
     equiv = defaultdict(int) # title and work title pairs
     norm_titles = defaultdict(int) # frequency of titles
     books_by_key = {}
     books = []
     rev_wt = defaultdict(lambda: defaultdict(int))
 
-    for book in get_books(akey):
+    for book in book_iter:
         if 'norm_wt' in book:
             pair = (book['norm_title'], book['norm_wt'])
             equiv[pair] += 1
@@ -248,8 +281,8 @@ def find_works(akey):
     works = sorted([(sum(map(len, w.values() + [work_titles[n]])), n, w) for n, w in works.items()])
 
     for work_count, norm, w in works:
-        if work_count < 2:
-            continue
+#        if work_count < 2:
+#            continue
         first = sorted(w.items(), reverse=True, key=lambda i:len(i[1]))[0][0]
         titles = defaultdict(int)
         for key_list in w.values():
@@ -273,12 +306,16 @@ def toc_items(toc_list):
     return [{'title': unicode(item), 'type': Reference('/type/toc_item')} for item in toc_list] 
 
 def add_works(works):
-    q = [
-    {
-        'authors': [{'author': Reference(w['author'])}],
-        'type': '/type/work',
-        'title': w['title']
-    } for w in works]
+    q = []
+    for w in works:
+        cur = {
+            'authors': [{'author': Reference(w['author'])}],
+            'type': '/type/work',
+            'title': w['title']
+        }
+        if 'subjects' in w:
+            cur['subjects'] = w['subjects']
+        q.append(cur)
     try:
         return ol.new(q, comment='create work page')
     except:
@@ -308,54 +345,123 @@ def add_work(akey, w):
 
 def save_editions(queue):
     print 'saving'
-    print ol.save_many(queue, 'add edition to work page')
+    try:
+        print ol.save_many(queue, 'add edition to work page')
+    except:
+        print 'ol.save_many() failed, trying again in 30 seconds'
+        sleep(30)
+        print ol.save_many(queue, 'add edition to work page')
     print 'saved'
 
-work_queue = []
+def merge_works(work_keys):
+    use = "/works/OL%dW" % min(key_int(w) for w in work_keys)
+    for wkey in work_keys:
+        if wkey == use:
+            continue
+        w_query = {'type':'/type/edition', 'works':wkey, 'limit':False}
+        for e in ol.query(w_query): # returns strings?
+            print e
+            update_work_edition(e, wkey, use)
+        w = ol.get(wkey)
+        assert w['type'] == '/type/work'
+        w['type'] = '/type/redirect'
+        w['location'] = use
+        print ol.save(wkey, w, 'delete duplicate work page')
+
+def update_edition(ekey, wkey):
+    e = ol.get(ekey)
+    fix_edition(ekey, e, ol)
+    write_log('edition', ekey, e.get('title', 'title missing'))
+    if e.get('works', []):
+        assert len(e['works']) == 1
+        if e['works'][0] != wkey:
+            print 'e:', e
+            print 'wkey:', wkey
+            print 'ekey:', ekey
+            print 'e["works"]:', e['works']
+            #merge_works([e['works'][0], wkey])
+        #assert e['works'][0] == wkey
+        return None
+    e['works'] = [Reference(wkey)]
+    return e
 
 def run_queue(queue):
     work_keys = add_works(queue)
     for w, wkey in zip(queue, work_keys):
         w['key'] = wkey
         write_log('work', wkey, w['title'])
-    for ekey in w['editions']:
-        e = ol.get(ekey)
-        fix_edition(ekey, e, ol)
-        #assert 'works' not in e
-        write_log('edition', ekey, e.get('title', 'title missing'))
-        e['works'] = [Reference(w['key'])]
-        yield e
+        for ekey in w['editions']:
+            e = update_edition(ekey, wkey)
+            if e:
+                yield e
+
+def get_work_key(title, akey):
+    q = {
+        'type': '/type/work',
+        'title': title,
+        'authors': None,
+    }
+    matches = [w for w in ol.query(q) if any(a['author'] == akey for a in w['authors'])]
+    if not matches:
+        return None
+    if len(matches) != 1:
+        print 'time to fix duplicate works'
+        print `title`
+        print 'http://openlibrary.org' + akey
+        print matches
+    assert len(matches) == 1
+    return matches[0]['key']
 
 def by_authors():
-    q = { 'type':'/type/author', 'name': None, 'works': None }
+    skip = '/a/OL25755A'
+    q = { 'type':'/type/author', 'name': None }
     for a in query_iter(q):
         akey = a['key']
+        if skip:
+            if akey == skip:
+                skip = None
+            else:
+                continue
         write_log('author', akey, a.get('name', 'name missing'))
-        q = {
-            'type':'/type/work',
-            'authors': akey,
-        }
 
-        works = find_works(akey)
+        works = find_works(akey, get_books(akey, books_query(akey)))
         print akey, `a['name']`
+
         for w in works:
             w['author'] = akey
-            work_queue.append(w)
-            if len(work_queue) > 1000:
-                for e in run_queue(work_queue):
-                    yield e
-                work_queue = []
+            wkey = get_work_key(w['title'], akey)
+            if wkey:
+                w['key'] = wkey
+            yield w
+
+if __name__ == '__main__':
+    fh_log = open('/1/edward/logs/WorkBot', 'a')
+    edition_queue = []
+    work_queue = []
+
+    for w in by_authors():
+        if 'key' in w:
+            for ekey in w['editions']:
+                e = update_edition(ekey, w['key'])
+                if e:
+                    edition_queue.append(e)
+            continue
+
+        work_queue.append(w)
+        if len(work_queue) > 1000:
+            for e in run_queue(work_queue):
+                print e['key'], `e['title']`
+                edition_queue.append(e)
+                if len(edition_queue) > 1000:
+                    save_editions(edition_queue)
+                    edition_queue = []
+                    sleep(5)
+            work_queue = []
+
+    print 'almost finished'
     for e in run_queue(work_queue):
-        yield e
+        edition_queue.append(e)
+    save_editions(edition_queue)
+    print 'finished'
 
-edition_queue = []
-for e in by_authors():
-    print e['key'], `e['title']`
-    edition_queue.append(e)
-    if len(edition_queue) > 1000:
-        save_editions(edition_queue)
-        edition_queue = []
-        sleep(5)
-save_editions(edition_queue)
-
-fh_log.close()
+    fh_log.close()

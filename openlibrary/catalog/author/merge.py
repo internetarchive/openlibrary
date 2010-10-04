@@ -5,15 +5,9 @@ from openlibrary.catalog.utils import key_int, match_with_bad_chars, pick_best_a
 from unicodedata import normalize
 import web, re, sys, codecs, urllib
 sys.path.append('/home/edward/src/olapi')
-from olapi import OpenLibrary, unmarshal
+from olapi import OpenLibrary, unmarshal, Reference
 from openlibrary.catalog.utils.edit import fix_edition
 from openlibrary.catalog.utils.query import query_iter
-
-sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
-
-rc = read_rc()
-ol = OpenLibrary("http://openlibrary.org")
-ol.login('EdwardBot', rc['EdwardBot']) 
 
 def urlread(url):
     return urllib.urlopen(url).read()
@@ -45,45 +39,65 @@ def update_author(key, new):
         q[k] = { 'connect': 'update', 'value': v }
     print ol.write(q, comment='merge author')
 
-def update_edition(key, old, new):
-    print 'key:', key
-    print 'old:', old
-    print 'new:', new
-    e = ol.get(key)
+def update_edition(ol, e, old, new, debug=False):
+    key = e['key']
+    if debug:
+        print 'key:', key
+        print 'old:', old
+        print 'new:', new
     fix_edition(key, e, ol)
     authors = []
-    print 'current authors:', e['authors']
+    if debug:
+        print 'current authors:', e['authors']
     for cur in e['authors']:
         cur = cur['key']
-        print old, cur in old
+        if debug:
+            print old, cur in old
         a = new if cur in old else cur
-        print cur, '->', a
+        if debug:
+            print cur, '->', a
         if a not in authors:
-            authors.append({'key': a})
-    print 'authors:', authors
-    e['authors'] = authors
+            authors.append(a)
+    if debug:
+        print 'authors:', authors
+    e['authors'] = [{'key': a} for a in authors]
 
     try:
-        print ol.save(key, e, 'merge authors')
+        ret = ol.save(key, e, 'merge authors')
     except:
-        print e
+        if debug:
+            print e
         raise
-    new_edition = ol.get(key)
-    if 'table_of_contents' in new_edition:
-        # [{u'type': <ref: u'/type/toc_item'>}, ...]
-        print key, new_edition['table_of_contents']
-        #assert 'title' in new_edition['table_of_contents'][0]
-#    assert all(cur not in old for cur in e['authors'])
+    if debug:
+        print ret
 
-def switch_author(old, new, other):
+    update = []
+    for wkey in e.get('works', []):
+        need_update = False
+        print 'work:', wkey
+        w = ol.get(wkey)
+        for a in w['authors']:
+            if a['author'] in old:
+                a['author'] = Reference(new)
+                need_update = True
+        if need_update:
+            update.append(w)
+
+    if update:
+        ret = ol.save_many(update, 'merge authors')
+
+def switch_author(ol, old, new, other, debug=False):
     q = { 'authors': old, 'type': '/type/edition', }
     for e in query_iter(q):
-        print 'switch author:', e['key']
-        update_edition(e['key'], other, new)
+        if debug:
+            print 'switch author:', e['key']
+        print e
+        e = ol.get(e['key'])
+        update_edition(ol, e, other, new, debug)
 
-def make_redirect(old, new):
+def make_redirect(ol, old, new):
     r = {'type': {'key': '/type/redirect'}, 'location': new}
-    ol.save(old, r, 'replace with redirect')
+    ol.save(old, r, 'merge authors, replace with redirect')
 
 re_number_dot = re.compile('\d{2,}[- ]*(\.+)$')
 
@@ -137,21 +151,24 @@ def has_image(key):
     ret = urlread(url).strip()
     return ret != '[]'
 
-def merge_authors(keys):
+def merge_authors(ol, keys, debug=False):
 #    print 'merge author %s:"%s" and %s:"%s"' % (author['key'], author['name'], merge_with['key'], merge_with['name'])
 #    print 'becomes: "%s"' % `new_name`
     authors = [a for a in (withKey(k) for k in keys) if a['type']['key'] != '/type/redirect']
     not_redirect = set(a['key'] for a in authors)
-    for a in authors:
-        print a
+    if debug:
+        for a in authors:
+            print a
 
     assert all(a['type']['key'] == '/type/author' for a in authors)
     name1 = authors[0]['name']
+    for a in authors:
+        print `a['key'], a['name']`
     assert all(match_with_bad_chars(a['name'], name1) for a in authors[1:])
 
     best_key = pick_best_author(authors)['key']
 
-    imgs = [a['key'] for a in authors if has_image(a['key'])]
+    imgs = [a['key'] for a in authors if a['key'] != '/a/OL2688880A' and has_image(a['key'])]
     if len(imgs) == 1:
         new_key = imgs[0]
     else:
@@ -166,21 +183,30 @@ def merge_authors(keys):
             print imgs
             assert len(imgs) == 0
 
+    print new_key
+    print best_key
+
     do_normalize(new_key, best_key, authors)
     old_keys = set(k for k in keys if k != new_key) 
     print 'old keys:', old_keys
+
     for old in old_keys:
         # /b/OL21291659M
-        switch_author(old, new_key, old_keys)
+        switch_author(ol, old, new_key, old_keys, debug=True)
         if old in not_redirect:
-            make_redirect(old, new_key)
+            make_redirect(ol, old, new_key)
         q = { 'authors': old, 'type': '/type/edition', }
         if list(get_things(q)) != []:
-            switch_author(old, new_key, old_keys)
-        l = list(query_iter(q))
-        print old, l
-        assert l == []
+            switch_author(ol, old, new_key, old_keys, debug=True)
+        #l = list(query_iter(q))
+        #print old, l
+        #assert l == []
     
 if __name__ == '__main__':
+    sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
+
+    rc = read_rc()
+    ol = OpenLibrary("http://openlibrary.org")
+    ol.login('EdwardBot', rc['EdwardBot']) 
     assert len(sys.argv) > 2
-    merge_authors(sys.argv[1:])
+    merge_authors(ol, sys.argv[1:])

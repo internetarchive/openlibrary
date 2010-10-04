@@ -90,7 +90,7 @@ class snippets(delegate.page):
     def GET(self, ia):
         def find_matches(ia, q):
             host, ia_path = ia_lookup('/download/' + ia)
-            url = 'http://' + host + '/~edward/inside.php?path=' + ia_path + '&q=' + web.urlquote(q)
+            url = 'http://' + host + '/~edward/inside.php?item_id=' + ia + '&doc=' + ia + '&path=' + ia_path + '&q=' + web.urlquote(q)
             print url
             return simplejson.load(urllib.urlopen(url))
         return render_template('search/snippets.tmpl', find_matches, ia)

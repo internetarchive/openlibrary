@@ -102,6 +102,8 @@ def write_edition(ia, edition, rec):
         edition['languages'] = [{'key': '/languages/por'}]
     elif ia == 'dasrmischepriv00rein':
         edition['languages'] = [{'key': '/languages/ger'}]
+    elif ia == 'derelephantenord00berl':
+        del edition['languages']
     q = build_query(loc, edition)
     authors = []
     for a in q.get('authors', []):
@@ -225,6 +227,24 @@ def hide_books(start):
         solr_update(requests + ['<commit/>'], debug=True)
     print >> open(hide_state_file, 'w'), last_updated
 
+def bad_marc_alert(ia):
+    from pprint import pformat
+    msg_from = 'load_scribe@archive.org'
+    msg_to = 'edward@archive.org'
+    msg = '''\
+From: %s
+To: %s
+Subject: bad MARC: %s
+
+bad MARC: %s
+
+''' % (msg_from, msg_to, ia, ia)
+
+    import smtplib
+    server = smtplib.SMTP('mail.archive.org')
+    server.sendmail(msg_from, [msg_to], msg)
+    server.quit()
+
 if __name__ == '__main__':
     fh_log = open('/1/edward/logs/load_scribe', 'a')
 
@@ -236,37 +256,44 @@ if __name__ == '__main__':
             hide_books(start)
         print 'start:', start
 
-        db_iter = db.query("select identifier, updated, noindex, collection from metadata where scanner is not null and mediatype='texts' and (not curatestate='dark' or curatestate is null) and scandate is not null and updated > $start order by updated", {'start': start})
+        db_iter = db.query("select identifier, contributor, updated, noindex, collection from metadata where scanner is not null and mediatype='texts' and (not curatestate='dark' or curatestate is null) and scandate is not null and updated > $start order by updated", {'start': start})
         t_start = time()
         for row in db_iter:
             ia = row.identifier
+            if row.contributor == 'Allen County Public Library Genealogy Center':
+                print 'skipping Allen County Public Library Genealogy Center'
+                continue
             if row.collection:
                 collections = set(i.lower().strip() for i in row.collection.split(';'))
             else:
                 collections = set()
-
-            if any('census' in c for c in collections):
-                print 'skip census for now:', ia
-                continue
-
             if row.noindex:
                 if not row.collection:
                     continue
                 collections = set(i.lower().strip() for i in row.collection.split(';'))
-                if 'printdisabled' in collections or 'lendinglibrary' in collections:
+                if not ('printdisabled' in collections or 'lendinglibrary' in collections):
                     continue
             if ia.startswith('annualreportspri'):
                 print 'skipping:', ia
                 continue
             if 'shenzhentest' in collections:
                 continue
+
+            if any('census' in c for c in collections):
+                print 'skipping census'
+                continue
+
             if re_census.match(ia) or ia.startswith('populationschedu') or ia.startswith('michigancensus') or 'census00reel' in ia or ia.startswith('populationsc1880'):
                 print 'ia:', ia
                 print 'collections:', list(collections)
                 print 'census not marked correctly'
                 continue
+            assert 'passportapplicat' not in ia and 'passengerlistsof' not in ia
             if 'passportapplicat' in ia:
                 print 'skip passport applications for now:', ia
+                continue
+            if 'passengerlistsof' in ia:
+                print 'skip passenger lists', ia
                 continue
             print `ia`, row.updated
             when = str(row.updated)
@@ -282,16 +309,24 @@ if __name__ == '__main__':
             except urllib2.HTTPError as error:
                 write_log(ia, when, "error: HTTPError: " + str(error))
                 continue
-            if not any(formats.values()):
-                print 'skipping, no MARC'
-                continue
-            if all(formats.values()):
-                use_binary = bad_ia_xml(ia)
-            else:
-                use_binary = formats['bin']
-            if use_binary:
-                rec = get_marc_ia(ia)
-            else:
+            if formats['bin']:
+                use_binary = True
+                try:
+                    marc_data = get_marc_ia(ia)
+                except:
+                    bad_marc_alert(ia)
+                    continue
+                if str(marc_data)[6:8] != 'am': # only want books
+                    print 'not a book!'
+                    continue
+                try:
+                    rec = fast_parse.read_edition(marc_data, accept_electronic = True)
+                except:
+                    print 'bad:', ia
+                    raise
+            elif formats['xml']:
+                use_binary = False
+                assert not bad_ia_xml(ia)
                 try:
                     rec = get_ia(ia)
                 except (KeyboardInterrupt, NameError):
@@ -302,8 +337,11 @@ if __name__ == '__main__':
                 except urllib2.HTTPError as error:
                     write_log(ia, when, "error: HTTPError: " + str(error))
                     continue
+            else:
+                print 'skipping, no MARC'
+                continue
 
-            if rec is None:
+            if not rec:
                 write_log(ia, when, "error: no rec")
                 continue
             if 'physical_format' in rec:

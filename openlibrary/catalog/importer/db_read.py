@@ -30,6 +30,8 @@ def read_from_url(url):
     ret = json.loads(data)
     if ret['status'] == 'fail' and ret['message'].startswith('Not Found: '):
         return None
+    if ret['status'] != 'ok':
+        print ret
     assert ret['status'] == 'ok'
     return ret['result']
 

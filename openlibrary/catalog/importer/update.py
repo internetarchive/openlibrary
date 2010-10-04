@@ -53,9 +53,14 @@ def undelete_authors(authors):
             print a
             assert a['type'] == '/type/author'
 
+re_edition_key = re.compile('^/b(?:ooks)?/(OL\d+M)')
+
 def add_source_records(key, ia, v=None):
     new = 'ia:' + ia
     sr = None
+    m = re_edition_key.match(key)
+    old_style_key = '/b/' + m.group(1)
+    key = '/books/' + m.group(1)
     e = ol.get(key, v=v)
     need_update = False
     if 'ocaid' not in e:
@@ -66,7 +71,7 @@ def add_source_records(key, ia, v=None):
             return
         e['source_records'].append(new)
     else:
-        existing = get_mc(key)
+        existing = get_mc(old_style_key)
         amazon = 'amazon:'
         if existing is None:
             sr = []
@@ -98,26 +103,7 @@ def add_source_records(key, ia, v=None):
         e['authors'] = [{'key': a['key']} for a in authors]
         undelete_authors(authors)
     print 'saving', key
-    print marshal(e)
     print ol.save(key, e, 'found a matching MARC record')
-#    for attempt in range(50):
-#        try:
-#            print ol.save(key, e, 'found a matching MARC record')
-#            break
-#        except KeyboardInterrupt:
-#            raise
-#        except URLError:
-#            if attempt == 49:
-#                raise
-#        except:
-#            print e
-#            raise
-#        print 'attempt %d failed' % attempt
-#        sleep(30)
-    if new_toc:
-        new_edition = ol.get(key)
-        # [{u'type': <ref: u'/type/toc_item'>}, ...]
-        assert 'title' in new_edition['table_of_contents'][0]
     add_cover_image(key, ia)
 
 def ocaid_and_source_records(key, ocaid, source_records):
