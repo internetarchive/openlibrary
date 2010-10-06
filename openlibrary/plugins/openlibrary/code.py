@@ -353,6 +353,9 @@ class bookpage(delegate.page):
             ext = "." + web.ctx.encoding
         else:
             ext = ""
+        
+        if web.ctx.env.get('QUERY_STRING'):
+            ext += '?' + web.ctx.env['QUERY_STRING']
             
         def redirect(key, ext, suffix):
             if ext:
