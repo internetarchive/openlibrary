@@ -214,6 +214,8 @@ class DataProcessor:
             "authors": self.get_authors(w),
 
             "number_of_pages": doc.get("number_of_pages", ""),
+            "pagination": doc.get("pagination", ""),
+            
             "weight": doc.get("weight", ""),
             
             "by_statement": doc.get("by_statement", ""),

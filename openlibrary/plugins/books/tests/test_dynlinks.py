@@ -108,7 +108,9 @@ def pytest_funcarg__data9(request):
             },
             "lc_classifications": ["LC1234"],
             "covers": [42, 53],
-            "ocaid": "foo12bar"
+            "ocaid": "foo12bar",
+            "number_of_pages": "100",
+            "pagination": "100 p."
         },
         "result": {
             "viewapi": {
@@ -178,7 +180,9 @@ def pytest_funcarg__data9(request):
                 }],
                 "ebooks": [{
                     "preview_url": "http://www.archive.org/details/foo12bar"
-                }]
+                }],
+                "number_of_pages": "100",
+                "pagination": "100 p."
             }
         }
     }
