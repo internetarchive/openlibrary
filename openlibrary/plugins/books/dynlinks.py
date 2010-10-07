@@ -207,19 +207,25 @@ class DataProcessor:
                     
         d = {
             "url": get_url(doc),
+            "key": doc['key'],
             "title": doc.get("title", ""),
             "subtitle": doc.get("subtitle", ""),
             
             "authors": self.get_authors(w),
 
             "number_of_pages": doc.get("number_of_pages", ""),
+            "pagination": doc.get("pagination", ""),
+            
             "weight": doc.get("weight", ""),
+            
+            "by_statement": doc.get("by_statement", ""),
 
             'identifiers': web.dictadd(doc.get('identifiers', {}), {
                 'isbn_10': doc.get('isbn_10', []),
                 'isbn_13': doc.get('isbn_13', []),
                 'lccn': doc.get('lccn', []),
                 'oclc': doc.get('oclc_numbers', []),
+                'openlibrary': [doc['key'].split("/")[-1]]
             }),
             
             'classifications': web.dictadd(doc.get('classifications', {}), {
