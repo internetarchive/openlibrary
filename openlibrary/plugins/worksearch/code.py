@@ -651,6 +651,39 @@ class subjects_json(delegate.page):
         subject = get_subject(key, offset=i.offset, limit=i.limit, details=i.details.lower() == "true", **filters)
         return json.dumps(subject)
         
+class subject_works_json(delegate.page):
+    path = '(/subjects/\w+)/works'
+    encoding = "json"
+
+    @jsonapi
+    def GET(self, key):
+        if key.lower() != key:
+            raise web.redirect(key.lower())
+
+        i = web.input(offset=0, limit=12, has_fulltext="false")
+
+        filters = {}
+        if i.get("has_fulltext") == "true":
+            filters["has_fulltext"] = "true"
+            
+        if i.get("published_in"):
+            if "-" in i.published_in:
+                begin, end = i.published_in.split("-", 1)
+                
+                if safeint(begin, None) is not None and safeint(end, None) is not None:
+                    filters["publish_year"] = [begin, end]
+            else:
+                y = safeint(i.published_in, None)
+                if y is not None:
+                    filters["publish_year"] = i.published_in
+
+        i.limit = safeint(i.limit, 12)
+        i.offset = safeint(i.offset, 0)
+
+        subject = get_subject(key, offset=i.offset, limit=i.limit, details=False, **filters)
+        return json.dumps(subject)
+    
+        
 class subjects(delegate.page):
     path = '(/subjects/.+)'
     

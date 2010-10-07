@@ -28,7 +28,11 @@ def pytest_funcarg__data0(request):
         "result": {
             "data": {
                 "url": "http://openlibrary.org/books/OL0M/book-0",
+                "key": "/books/OL0M",
                 "title": "book-0",
+                "identifiers": {
+                    "openlibrary": ["OL0M"]
+                }
             }
         }
     }
@@ -89,6 +93,7 @@ def pytest_funcarg__data9(request):
             "key": "/books/OL9M",
             "title": "foo",
             "subtitle": "bar",
+            "by_statement":  "Mark Twain",
             "works": [{"key": "/works/OL9W"}],
             "publishers": ["Dover Publications"],
             "publish_places": ["New York"],
@@ -114,8 +119,10 @@ def pytest_funcarg__data9(request):
             },
             "data": {
                 "url": "http://openlibrary.org/books/OL9M/foo",
+                "key": "/books/OL9M",
                 "title": "foo",
                 "subtitle": "bar",
+                "by_statement": "Mark Twain",
                 "authors": [{
                     "url": "http://openlibrary.org/authors/OL9A/Mark_Twain",
                     "name": "Mark Twain"
@@ -124,7 +131,8 @@ def pytest_funcarg__data9(request):
                     "isbn_10": ["1234567890"],
                     "lccn": ["lccn-1"],
                     "oclc": ["oclc-1"],
-                    "goodreads": ["12345"]
+                    "goodreads": ["12345"],
+                    "openlibrary": ["OL9M"]
                 },
                 "classifications": {
                     "lc_classifications": ["LC1234"],

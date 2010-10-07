@@ -35,6 +35,10 @@ def init_plugin():
         
         if config.get('http_listeners'):
             ol.add_trigger(None, http_notify)
+            
+        _cache = config.get("cache", {})
+        if _cache.get("type") == "memcache":
+            ol.add_trigger(None, MemcacheInvalidater())
     
     # hook to add count functionality
     server.app.add_mapping("/([^/]*)/count_editions_by_author", __name__ + ".count_editions_by_author")
@@ -173,6 +177,7 @@ class clear_cache:
 class olid_to_key:
     @server.jsonify
     def GET(self, sitename):
+        print "olid_to_key"
         i = server.input("olid")
         d = get_db().query("SELECT key FROM thing WHERE get_olid(key) = $i.olid", vars=locals())
         key = d and d[0].key or None
@@ -246,6 +251,69 @@ def http_notify(site, old, new):
             print >> web.debug, "failed to send http_notify", repr(url), repr(key)
             import traceback
             traceback.print_exc()
+            
+class MemcacheInvalidater:
+    def __init__(self):
+        self.memcache = self.get_memcache_client()
+        
+    def get_memcache_client(self):
+        _cache = config.get("cache", {})
+        if _cache.get("type") == "memcache" and "servers" in _cache:
+            return olmemcache.Client(_cache['servers'])
+            
+    def to_dict(self, d):
+        if isinstance(d, dict):
+            return d
+        else:
+            # new is a thing. call format_data to get the actual data.
+            return d.format_data()
+        
+    def __call__(self, site, old, new):
+        if not old:
+            return
+            
+        old = self.to_dict(old)
+        new = self.to_dict(new)
+        
+        type = old['type']['key']
+        
+        if type == '/type/author':
+            keys = self.invalidate_author(site, old)
+        elif type == '/type/edition':
+            keys = self.invalidate_edition(site, old)
+        elif type == '/type/work':
+            keys = self.invalidate_work(site, old)
+        else:
+            keys = self.invalidate_default(site, old)
+            
+        self.memcache.delete_multi(['details/' + k for k in keys])
+        
+    def invalidate_author(self, site, old):
+        yield old.key
+
+    def invalidate_edition(self, site, old):
+        yield old.key
+        
+        for w in old.get('works', []):
+            if 'key' in w:
+                yield w['key']
+
+    def invalidate_work(self, site, old):
+        yield old.key
+        
+        # invalidate all work.editions
+        editions = site.things({"type": "/type/edition", "work": old.key})
+        for e in editions:
+            yield e['key']
+            
+        # invalidate work.authors
+        authors = work.get('authors', [])
+        for a in authors:
+            if 'author' in a and 'key' in a['author']:
+                yield a['author']['key']
+    
+    def invalidate_default(self, site, old):
+        yield old.key
             
 # openlibrary.utils can't be imported directly because 
 # openlibrary.plugins.openlibrary masks openlibrary module
