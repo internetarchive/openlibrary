@@ -203,6 +203,20 @@ class MigrationMiddleware(ConnectionMiddleware):
         response = ConnectionMiddleware.get(self, sitename, data)
         if response:
             data = simplejson.loads(response)
+            
+            type = data and data.get("type", {}).get("key") 
+            
+            if type == "/type/work":
+                if data.get("authors"):
+                    # some record got empty author records because of an error
+                    # temporary hack to fix 
+                    data['authors'] = [a for a in data['authors'] if 'author' in a]
+            elif type == "/type/edition":
+                # get rid of title_prefix.
+                if 'title_prefix' in data:
+                    data['title'] = data['title_prefix'] + ' ' + data['title']
+                    del data['title_prefix']
+            
             response = simplejson.dumps(self._process(data))
         return response
         
