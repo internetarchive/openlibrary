@@ -90,7 +90,7 @@ def _editions_for_works(works):
 
 class search:
     def _do_search(self, q):
-        ugly = worksearch.do_search({"q": q, "has_fulltext": "true"}, None)
+        ugly = worksearch.do_search({"q": q, "has_fulltext": "true", "public_scan": "true"}, None)
         results = web.storage({'num_found': ugly['num_found'], 'books': []})
         works = [worksearch.get_doc(doc) for doc in ugly['docs']]
         for work in works:
