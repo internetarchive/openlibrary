@@ -11,6 +11,9 @@ class MockConnection:
             key = data['key']
             if key in self.docs:
                 return simplejson.dumps(self.docs[key])
+        if path == "/get_many":
+            keys = simplejson.loads(data['keys'])
+            return simplejson.dumps(dict((k, self.docs[k]) for k in keys))
         else:
             return None
 
@@ -47,6 +50,11 @@ class TestMigrationMiddleware:
         def get(key):
             json = conn.request("openlibrary.org", "/get", data={"key": key}) 
             return simplejson.loads(json)
+
+        def get_many(keys):
+            data = dict(keys=simplejson.dumps(keys))
+            json = conn.request("openlibrary.org", "/get_many", data=data) 
+            return simplejson.loads(json)
         
         add({
             "key": "/works/OL1W",
@@ -60,6 +68,13 @@ class TestMigrationMiddleware:
             "key": "/works/OL1W",
             "type": {"key": "/type/work"},
             "authors": []
+        }
+        assert get_many(["/works/OL1W"]) == {
+            "/works/OL1W": {
+                "key": "/works/OL1W",
+                "type": {"key": "/type/work"},
+                "authors": []
+            }
         }
         
         OL2W = {
