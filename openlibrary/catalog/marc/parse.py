@@ -561,7 +561,10 @@ def read_edition(rec):
             edition["publish_country"] = publish_country
         lang = str(f)[35:38]
         if lang not in ('   ', '|||', '', '???'):
-            edition["languages"] = [{ 'key': '/languages/' + lang }]
+            # diebrokeradical400poll
+            if lang.startswith('ng') and f[34] == 'e':
+                lang = 'eng'
+            edition["languages"] = [{ 'key': '/languages/' + lang.lower() }]
     else:
         assert handle_missing_008
         update_edition(rec, edition, read_languages, 'languages')
