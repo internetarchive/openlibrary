@@ -24,6 +24,13 @@ import borrow
 
 re_meta_field = re.compile('<(collection|contributor)>([^<]+)</(collection|contributor)>', re.I)
 
+def follow_redirect(doc):
+    if doc.type.key == "/type/redirect":
+        key = doc.location
+        return web.ctx.site.get(key)
+    else:
+        return doc
+
 class Edition(models.Edition):
     def get_title(self):
         if self['title_prefix']:
@@ -40,8 +47,10 @@ class Edition(models.Edition):
     
     def get_authors(self):
         """Added to provide same interface for work and edition"""
-        return self.authors
-
+        authors = [follow_redirect(a) for a in self.authors]
+        authors = [a for a in authors if a and a.type.key == "/type/author"]
+        return authors
+        
     def get_next(self):
         """Next edition of work"""
         if len(self.get('works', [])) != 1:
@@ -460,7 +469,10 @@ class Work(models.Work):
         return cover and cover.url(size)
         
     def get_authors(self):
-        return [a.author for a in self.authors]
+        authors =  [a.author for a in self.authors]
+        authors = [follow_redirect(a) for a in authors]
+        authors = [a for a in authors if a and a.type.key == "/type/author"]
+        return authors
     
     def get_subjects(self):
         """Return subject strings."""
