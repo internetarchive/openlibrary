@@ -225,6 +225,19 @@ def run_solr_query(param = {}, rows=100, page=1, sort=None, spellcheck_count=Non
     solr_select += '&spellcheck=true&spellcheck.count=%d' % spellcheck_count
     solr_select += "&facet=true&" + '&'.join("facet.field=" + f for f in facet_fields)
 
+    if 'public_scan' in param:
+        v = param.pop('public_scan').lower()
+        if v in ('true', 'false'):
+            if v == 'false':
+                # also constrain on print disabled since the index may not be in sync
+                param.setdefault('print_disabled', 'false')
+            solr_select += '&fq=public_scan_b:%s' % v
+
+    if 'print_disabled' in param:
+        v = param.pop('print_disabled').lower()
+        if v in ('true', 'false'):
+            solr_select += '&fq=%ssubject_key:protected_daisy' % ('-' if v == 'false' else '')
+
     k = 'has_fulltext'
     if k in param:
         v = param[k].lower()
