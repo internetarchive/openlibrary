@@ -43,7 +43,7 @@ def get_nyt_bestseller_list_names():
 
 def load_nyt_bestseller_list(list_name):
     url = "%s/%s.json?%s" % (NYT_BEST_SELLERS_URL, 
-                             urllib.quote(list_name), 
+                             urllib.quote(list_name.replace(' ', '-')), 
                              urllib.urlencode({"api-key": NYT_API_KEY}))
     
     results = _request(url)
@@ -199,8 +199,10 @@ if __name__ == "__main__":
                     "ol:keys": ol_keys,
                     "ol:works": (key for key in ol_keys if key.startswith("/works/"))
             })
-        LOG("INFO", "RECONCILED %s%% of %s" % (int(len([r for r in results[ln] if r['ol:works']]) / 
-                                                   float(len(results[ln])) * 100), 
-                                         ln))
-        write_machine_tags(ln, results[ln])
-
+        if results[ln]:
+            LOG("INFO", "RECONCILED %s%% of %s" % (int(len([r for r in results[ln] if r['ol:works']]) / 
+                                                       float(len(results[ln])) * 100), 
+                                             ln))
+            write_machine_tags(ln, results[ln])
+        else:
+            LOG("WARN", "No bestsellers for %s" % ln)

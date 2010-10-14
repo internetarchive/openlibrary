@@ -32,7 +32,11 @@ class MobileMiddleware:
     def __call__(self, environ, start_response):
         cookies = self.cookies(environ, mobile="true")
         # delegate to mobile app when cookie mobile is set to true. 
-        if cookies.mobile == "true" and self.is_mobile_device(environ):
+        if (cookies.mobile == "true" 
+            and self.is_mobile_device(environ) 
+            # XXXarielb there's probably a better way to do this
+            # we need to serve the query entrypoint on mobile too
+            and not environ.get('PATH_INFO', '').startswith("/query")):
             return mobile_wsgi_app(environ, start_response)
         else:
             return self.wsgi_app(environ, start_response)
@@ -45,7 +49,6 @@ urls = (
     "(/authors/OL\d+A)(?:/.*)?", "author",
     "/search", "search",
     "/images/.*", "static",
-    
 )
 
 app = web.application(urls, globals())
@@ -90,7 +93,7 @@ def _editions_for_works(works):
 
 class search:
     def _do_search(self, q):
-        ugly = worksearch.do_search({"q": q, "has_fulltext": "true"}, None)
+        ugly = worksearch.do_search({"q": q, "has_fulltext": "true", "public_scan": "true"}, None)
         results = web.storage({'num_found': ugly['num_found'], 'books': []})
         works = [worksearch.get_doc(doc) for doc in ugly['docs']]
         for work in works:

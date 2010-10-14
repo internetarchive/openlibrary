@@ -1,0 +1,18 @@
+These scripts can be used to produce plots using data from access logs.
+
+To use, copy the access logs off of the web server.  I do this using something like:
+
+  for i in `find . -name *.gz`; do 
+     j=`echo $i | sed -e "s/\.\/\([0-9]*\)\/\([0-9]*\)\(.*\)/access_\1_\2.log.gz/g"`; 
+     scp $i ariel@ia331503:/0/logs/$j; 
+  done
+
+then feed the logs into crunch_logs.py using seomthing like:
+  (find tmp/logs/ -name '*.gz' -exec bash -c 'gzip -dc {}  \; ;) | python crunck_logs.py -d tmp/y/  
+
+then wait a few hours.  to make this faster, consider multithreading it to use more cpus - or porting this to hadoop which could make things very snappy.
+
+this will produce a csv for each processor.
+
+then to make a plot feed a csv to make_plot.py:
+  python make_plot.py -l 30 -t "Referrers" referrers.csv

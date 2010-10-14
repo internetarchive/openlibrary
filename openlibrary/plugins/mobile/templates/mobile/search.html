@@ -7,7 +7,7 @@ $def with(q, results)
    </p> 
 </form> 
 
-<h2 class="darkgreen">$results.num_found hits</h2> 
+<h2 class="darkgreen">$results.num_found $("hits" if results.num_found != 1 else "hit")</h2> 
 $if results["books"]:
     <table width="100%" border="0" cellpadding="5" cellspacing="0"> 
     $for edition, work in results["books"]:
@@ -36,4 +36,4 @@ $if results["books"]:
     </table> 
     
 $if not results["books"]:
-    <div class="no-results">Try this search on the <a href="http://openlibrary.org/search?q=$q">main site</a></div>
+    <div class="no-results">Try this search on the <a href="search?q=$q" onclick="javascript:turnoff_mobile()">main site</a></div>
