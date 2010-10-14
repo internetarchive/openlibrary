@@ -213,7 +213,7 @@ class addbook(delegate.page):
                     if not e.publish_date or publish_year != self.extract_year(e.publish_date):
                         continue
                 if id_value and id_name in mapping:
-                    if not id_name in e or e[id_name] != id_value:
+                    if not id_name in e or id_value not in e[id_name]:
                         continue
                 return e
                 

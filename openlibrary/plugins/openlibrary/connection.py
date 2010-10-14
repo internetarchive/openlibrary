@@ -219,7 +219,8 @@ class MigrationMiddleware(ConnectionMiddleware):
         elif type == "/type/edition":
             # get rid of title_prefix.
             if 'title_prefix' in doc:
-                doc['title'] = doc['title_prefix'] + ' ' + doc['title']
+                title = doc['title_prefix'].strip() + ' ' + doc.get('title', '')
+                doc['title'] = title.strip()
                 del doc['title_prefix']
         return doc
         
