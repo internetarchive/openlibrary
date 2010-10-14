@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<record xmlns="http://www.loc.gov/MARC21/slim">
+  <leader>00931cam a2200253I  4500</leader>
+  <controlfield tag="005">19861108121520.0</controlfield>
+  <controlfield tag="008">750701s1923                eng u</controlfield>
+  <datafield tag="035" ind1=" " ind2=" ">
+    <subfield code="a">(OCoLC)ocm01424970</subfield>
+  </datafield>
+  <datafield tag="035" ind1=" " ind2=" ">
+    <subfield code="a">0421019-Z</subfield>
+  </datafield>
+  <datafield tag="035" ind1="9" ind2=" ">
+    <subfield code="a">UMA-16292443</subfield>
+  </datafield>
+  <datafield tag="040" ind1=" " ind2=" ">
+    <subfield code="c">TLM</subfield>
+    <subfield code="d">OCL</subfield>
+    <subfield code="d">AUM</subfield>
+  </datafield>
+  <datafield tag="090" ind1=" " ind2=" ">
+    <subfield code="a">DA574.A8</subfield>
+    <subfield code="b">A4</subfield>
+  </datafield>
+  <datafield tag="100" ind1="1" ind2="0">
+    <subfield code="a">Astor, Nancy Witcher Langhorne Astor,</subfield>
+    <subfield code="c">Viscountess,</subfield>
+    <subfield code="d">1879-1964.</subfield>
+  </datafield>
+  <datafield tag="245" ind1="1" ind2="0">
+    <subfield code="a">My two countries /</subfield>
+    <subfield code="c">by Lady Astor.</subfield>
+  </datafield>
+  <datafield tag="260" ind1=" " ind2=" ">
+    <subfield code="a">Garden City, N. Y. :</subfield>
+    <subfield code="b">Doubleday,</subfield>
+    <subfield code="c">1923.</subfield>
+  </datafield>
+  <datafield tag="300" ind1=" " ind2=" ">
+    <subfield code="a">120 p. ;</subfield>
+    <subfield code="c">19 cm.</subfield>
+  </datafield>
+  <datafield tag="650" ind1=" " ind2="0">
+    <subfield code="a">Women in politics.</subfield>
+  </datafield>
+  <datafield tag="852" ind1="0" ind2=" ">
+    <subfield code="b">UMDUB</subfield>
+    <subfield code="c">UGEN</subfield>
+    <subfield code="h">DA574.A8</subfield>
+    <subfield code="i">A4</subfield>
+  </datafield>
+  <datafield tag="998" ind1=" " ind2=" ">
+    <subfield code="a">uau</subfield>
+    <subfield code="b">12-01-93</subfield>
+    <subfield code="c">m</subfield>
+    <subfield code="d">a</subfield>
+    <subfield code="e">-</subfield>
+    <subfield code="f">eng</subfield>
+    <subfield code="g"></subfield>
+    <subfield code="h">0</subfield>
+  </datafield>
+  <datafield tag="956" ind1=" " ind2=" ">
+    <subfield code="a">CONV</subfield>
+    <subfield code="b">20</subfield>
+    <subfield code="c">20060724</subfield>
+    <subfield code="l">FCL01</subfield>
+    <subfield code="h">1002</subfield>
+  </datafield>
+  <datafield tag="907" ind1=" " ind2=" ">
+    <subfield code="a">.b16292443</subfield>
+    <subfield code="b">11-25-98</subfield>
+    <subfield code="c">12-22-93</subfield>
+  </datafield>
+  <datafield tag="049" ind1=" " ind2=" ">
+    <subfield code="a">AUMM</subfield>
+  </datafield>
+  <datafield tag="930" ind1="-" ind2="1">
+    <subfield code="l">FCL01</subfield>
+    <subfield code="L">FCL01</subfield>
+    <subfield code="m">BOOK</subfield>
+    <subfield code="1">UMDUB</subfield>
+    <subfield code="A">UM Du Bois Library</subfield>
+    <subfield code="2">UGEN</subfield>
+    <subfield code="B">UM W.E.B.  Du Bois</subfield>
+    <subfield code="h">DA574.A8</subfield>
+    <subfield code="i">A4</subfield>
+    <subfield code="6">i16685295</subfield>
+    <subfield code="5">312066034426942</subfield>
+    <subfield code="8">19931222</subfield>
+    <subfield code="e">UMA-16292443</subfield>
+    <subfield code="f">01</subfield>
+    <subfield code="F">Regular</subfield>
+    <subfield code="p">DO</subfield>
+    <subfield code="P">Out for Scannin</subfield>
+  </datafield>
+  <datafield tag="903" ind1=" " ind2=" ">
+    <subfield code="0">2857678</subfield>
+  </datafield>
+</record>

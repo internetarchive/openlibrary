@@ -1,4 +1,4 @@
-import web, re, httplib, sys, urllib2
+import web, re, httplib, sys, urllib2, threading
 import simplejson as json
 from lxml import etree
 import openlibrary.catalog.importer.pool as pool
@@ -7,15 +7,16 @@ from openlibrary.catalog.marc.marc_binary import MarcBinary
 from openlibrary.catalog.merge.merge_marc import build_marc
 from openlibrary.catalog.read_rc import read_rc
 from openlibrary.catalog.importer.load import build_query, east_in_by_statement, import_author
+from openlibrary.catalog.utils import error_mail
 from openlibrary.catalog.utils.query import query, withKey
 from openlibrary.catalog.importer.merge import try_merge
 from openlibrary.catalog.importer.update import add_source_records
-from openlibrary.catalog.get_ia import get_ia, urlopen_keep_trying, NoMARCXML, bad_ia_xml, marc_formats, get_marc_ia
+from openlibrary.catalog.get_ia import get_ia, urlopen_keep_trying, NoMARCXML, bad_ia_xml, marc_formats, get_marc_ia, get_marc_ia_data
 from openlibrary.catalog.title_page_img.load import add_cover_image
 from openlibrary.solr.update_work import update_work, solr_update
 #from openlibrary.catalog.works.find_works import find_title_redirects, find_works, get_books, books_query, update_works
 from openlibrary.catalog.works.find_work_for_edition import find_matching_work
-from openlibrary.catalog.marc import fast_parse
+from openlibrary.catalog.marc import fast_parse, is_display_marc
 from openlibrary.catalog.marc.parse import read_edition, NoTitle
 from openlibrary.catalog.marc.marc_subject import subjects_for_work
 from time import time, sleep
@@ -25,6 +26,7 @@ import argparse
 
 parser = argparse.ArgumentParser(description='scribe loader')
 parser.add_argument('--skip_hide_books', action='store_true')
+parser.add_argument('--item_id')
 args = parser.parse_args()
 
 rc = read_rc()
@@ -91,6 +93,7 @@ def load(ia, use_binary=False):
     if use_binary:
         rec = load_binary(ia)
         edition = read_edition(rec)
+    pprint(edition)
     assert 'title' in edition
 
     edition['ocaid'] = ia
@@ -168,7 +171,8 @@ def write_edition(ia, edition, rec):
     pool.update(key, q)
 
     print 'add_cover_image'
-    add_cover_image(ret, ia)
+    t = threading.Thread(target=add_cover_image, args=(ret, ia))
+    t.start()
     return
 
     print 'run work finder'
@@ -196,7 +200,7 @@ def hide_books(start):
 
     mend = []
     fix_works = set()
-    db_iter = db.query("select identifier, collection, updated from metadata where (noindex is not null or curatestate='dark') and mediatype='texts' and scandate is not null and updated > $start order by updated", {'start': hide_start})
+    db_iter = db.query("select identifier, collection, updated from metadata where (noindex is not null or curatestate='dark') and mediatype='texts' and scandate is not null and updated > $start order by scandate_dt", {'start': hide_start})
     last_updated = None
     for row in db_iter:
         ia = row.identifier
@@ -227,38 +231,49 @@ def hide_books(start):
         solr_update(requests + ['<commit/>'], debug=True)
     print >> open(hide_state_file, 'w'), last_updated
 
-def bad_marc_alert(ia):
-    from pprint import pformat
+def load_error_mail(ia, marc_display, subject):
     msg_from = 'load_scribe@archive.org'
-    msg_to = 'edward@archive.org'
-    msg = '''\
-From: %s
-To: %s
-Subject: bad MARC: %s
+    msg_to = ['edward@archive.org']
+    subject += ': ' + ia
+    msg = 'http://www.archive.org/details/%s\n' % ia
+    msg += 'http://www.archive.org/download/%s\n'
+    msg += '\n' + bad_binary
+    error_mail(msg_from, msg_to, subject, msg)
 
-bad MARC: %s
-
-''' % (msg_from, msg_to, ia, ia)
-
-    import smtplib
-    server = smtplib.SMTP('mail.archive.org')
-    server.sendmail(msg_from, [msg_to], msg)
-    server.quit()
+def bad_marc_alert(bad_marc):
+    msg_from = 'load_scribe@archive.org'
+    msg_to = ['edward@archive.org']
+    subject = '%d bad MARC' % len(bad_marc)
+    msg = '\n'.join((
+        'http://www.archive.org/details/%s\n' +
+        'http://www.archive.org/download/%s\n\n' +
+        '%s\n\n') % (ia, ia, `data`) for ia, data in bad_marc)
+    error_mail(msg_from, msg_to, subject, msg)
 
 if __name__ == '__main__':
     fh_log = open('/1/edward/logs/load_scribe', 'a')
 
     state_file = rc['state_dir'] + '/load_scribe'
     start = open(state_file).readline()[:-1]
+    bad_marc_last_sent = time()
+    bad_marc = []
 
     while True:
-        if not args.skip_hide_books:
-            hide_books(start)
-        print 'start:', start
 
-        db_iter = db.query("select identifier, contributor, updated, noindex, collection from metadata where scanner is not null and mediatype='texts' and (not curatestate='dark' or curatestate is null) and scandate is not null and updated > $start order by updated", {'start': start})
+        if args.item_id:
+            db_iter = db.query("select identifier, contributor, updated, noindex, collection from metadata where scanner is not null and mediatype='texts' and (not curatestate='dark' or curatestate is null) and scandate is not null and identifier=$item_id", {'item_id': args.item_id})
+        else:
+            if not args.skip_hide_books:
+                hide_books(start)
+            print 'start:', start
+            db_iter = db.query("select identifier, contributor, updated, noindex, collection from metadata where scanner is not null and mediatype='texts' and (not curatestate='dark' or curatestate is null) and scandate is not null and updated between $start and date_add($start, interval 7 day) order by updated", {'start': start})
         t_start = time()
         for row in db_iter:
+            if len(bad_marc) > 10 or time() - bad_marc_last_sent > (4 * 60 * 60):
+                bad_marc_alert(bad_marc)
+                bad_marc = []
+                bad_marc_last_sent = time()
+
             ia = row.identifier
             if row.contributor == 'Allen County Public Library Genealogy Center':
                 print 'skipping Allen County Public Library Genealogy Center'
@@ -309,24 +324,47 @@ if __name__ == '__main__':
             except urllib2.HTTPError as error:
                 write_log(ia, when, "error: HTTPError: " + str(error))
                 continue
+            use_binary = False
+            bad_binary = None
             if formats['bin']:
+                print 'binary'
                 use_binary = True
-                try:
-                    marc_data = get_marc_ia(ia)
-                except:
-                    bad_marc_alert(ia)
+                marc_data = get_marc_ia_data(ia)
+                if marc_data == '':
+                    bad_binary = 'MARC binary empty string'
+                if not bad_binary and is_display_marc(marc_data):
+                    use_binary = False
+                    bad_binary = marc_data
+                    bad_marc.append((ia, marc_data))
+                if not bad_binary:
+                    try:
+                        length = int(marc_data[0:5])
+                    except ValueError:
+                        bad_binary = "MARC doesn't start with number"
+                if not bad_binary and len(marc_data) != length:
+                    try:
+                        marc_marc_data = marc_data.decode('utf-8').encode('raw_unicode_escape')
+                    except:
+                        bad_binary = "double UTF-8 decode error"
+                if not bad_binary and len(marc_data) != length:
+                    bad_binary = 'MARC length mismatch: %d != %d' % (len(marc_data), length)
+                if not bad_binary and 'Internet Archive: Error' in marc_data:
+                    bad_binary = 'Internet Archive: Error'
+                if not bad_binary:
+                    if str(marc_data)[6:8] != 'am': # only want books
+                        print 'not a book!'
+                        continue
+                    try:
+                        rec = fast_parse.read_edition(marc_data, accept_electronic = True)
+                    except:
+                        bad_binary = "MARC parse error"
+            if bad_binary and not formats['xml']:
+                load_error_mail(ia, bad_binary, 'bad MARC binary, no MARC XML')
+                continue
+            if not use_binary and formats['xml']:
+                if bad_ia_xml(ia) and bad_binary:
+                    load_error_mail(ia, bad_binary, 'bad MARC binary, bad MARC XML')
                     continue
-                if str(marc_data)[6:8] != 'am': # only want books
-                    print 'not a book!'
-                    continue
-                try:
-                    rec = fast_parse.read_edition(marc_data, accept_electronic = True)
-                except:
-                    print 'bad:', ia
-                    raise
-            elif formats['xml']:
-                use_binary = False
-                assert not bad_ia_xml(ia)
                 try:
                     rec = get_ia(ia)
                 except (KeyboardInterrupt, NameError):
@@ -399,6 +437,8 @@ if __name__ == '__main__':
         secs = time() - t_start
         mins = secs / 60
         print "finished %d took mins" % mins
+        if args.item_id:
+            break
         print >> open(state_file, 'w'), start
         if mins < 30:
             print 'waiting'

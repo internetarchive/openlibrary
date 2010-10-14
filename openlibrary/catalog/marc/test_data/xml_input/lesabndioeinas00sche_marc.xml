@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<record xmlns="http://www.loc.gov/MARC21/slim">
+  <leader>00615nx  a22002051  4500</leader>
+  <controlfield tag="001">AET-2444</controlfield>
+  <controlfield tag="003">OCoLC</controlfield>
+  <controlfield tag="004">AET-2444</controlfield>
+  <controlfield tag="005">19980813140641.0</controlfield>
+  <controlfield tag="007">ta</controlfield>
+  <controlfield tag="008">770719s1913    gw a          000 1 ger  </controlfield>
+  <datafield tag="010" ind1=" " ind2=" ">
+    <subfield code="a">54054403</subfield>
+    <subfield code="o">03124530</subfield>
+  </datafield>
+  <datafield tag="040" ind1=" " ind2=" ">
+    <subfield code="a">DLC</subfield>
+    <subfield code="c">RRR</subfield>
+    <subfield code="d">MBB</subfield>
+  </datafield>
+  <datafield tag="049" ind1=" " ind2=" ">
+    <subfield code="a">MBBB</subfield>
+  </datafield>
+  <datafield tag="050" ind1="0" ind2=" ">
+    <subfield code="a">PT2638.E4</subfield>
+    <subfield code="b">L4 1913</subfield>
+  </datafield>
+  <datafield tag="100" ind1="1" ind2=" ">
+    <subfield code="a">Scheerbart, Paul,</subfield>
+    <subfield code="d">1863-1915</subfield>
+  </datafield>
+  <datafield tag="245" ind1="1" ind2="0">
+    <subfield code="a">Lesabéndio :</subfield>
+    <subfield code="b">ein asteroïden-Roman /</subfield>
+    <subfield code="c">von Paul Scheerbart.</subfield>
+  </datafield>
+  <datafield tag="260" ind1=" " ind2=" ">
+    <subfield code="a">München :</subfield>
+    <subfield code="b">G. Müller,</subfield>
+    <subfield code="c">1913.</subfield>
+  </datafield>
+  <datafield tag="300" ind1=" " ind2=" ">
+    <subfield code="a">282 p. :</subfield>
+    <subfield code="b">ill. ;</subfield>
+    <subfield code="c">23 cm.</subfield>
+  </datafield>
+  <datafield tag="852" ind1="0" ind2=" ">
+    <subfield code="b">MAIN</subfield>
+    <subfield code="c">MSTCK</subfield>
+    <subfield code="h">PT2638.E4</subfield>
+    <subfield code="i">L4 1913</subfield>
+    <subfield code="p">39097010041581</subfield>
+    <subfield code="4">Main Library</subfield>
+    <subfield code="5">Main Library - Stacks</subfield>
+  </datafield>
+</record>

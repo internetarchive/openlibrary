@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<record xmlns="http://www.loc.gov/MARC21/slim">
+  <leader>01546nam a22003491i 4500</leader>
+  <controlfield tag="001">LINMUS12313</controlfield>
+  <controlfield tag="003">SIRSI</controlfield>
+  <controlfield tag="005">19990412081800.0</controlfield>
+  <controlfield tag="008">970612s1909    nyuac             0 eng u</controlfield>
+  <datafield tag="035" ind1=" " ind2=" ">
+    <subfield code="a">tmp18427478</subfield>
+  </datafield>
+  <datafield tag="035" ind1=" " ind2=" ">
+    <subfield code="a">(Sirsi) LINMUS12313</subfield>
+  </datafield>
+  <datafield tag="040" ind1=" " ind2=" ">
+    <subfield code="c">UPRA</subfield>
+    <subfield code="d">UPRA</subfield>
+  </datafield>
+  <datafield tag="090" ind1=" " ind2=" ">
+    <subfield code="a">E457.7</subfield>
+    <subfield code="b">.N53 1909</subfield>
+  </datafield>
+  <datafield tag="100" ind1="1" ind2=" ">
+    <subfield code="a"></subfield>
+  </datafield>
+  <datafield tag="245" ind1="1" ind2="0">
+    <subfield code="a">Lincoln Centenary, February 12, 1909 /</subfield>
+    <subfield code="b">a prospectus for the schools of the state ;</subfield>
+    <subfield code="c">compiled by Harlan Hoyt Horner.</subfield>
+  </datafield>
+  <datafield tag="260" ind1=" " ind2=" ">
+    <subfield code="a">Albany, NY :</subfield>
+    <subfield code="b">New York State Education Dept.,</subfield>
+    <subfield code="c">1909.</subfield>
+  </datafield>
+  <datafield tag="300" ind1=" " ind2=" ">
+    <subfield code="a">31 p. :</subfield>
+    <subfield code="b">ill. (incl. ports., facsims.) ;</subfield>
+    <subfield code="c">23 cm.</subfield>
+  </datafield>
+  <datafield tag="500" ind1=" " ind2=" ">
+    <subfield code="a">At head of title: New York state education department.</subfield>
+  </datafield>
+  <datafield tag="500" ind1=" " ind2=" ">
+    <subfield code="a">Covers included in pagination.</subfield>
+  </datafield>
+  <datafield tag="500" ind1=" " ind2=" ">
+    <subfield code="a">&quot;Abraham Lincoln, a select reading list&quot;: p. 26-27.</subfield>
+  </datafield>
+  <datafield tag="510" ind1="4" ind2=" ">
+    <subfield code="a">Monaghan, J. Lincoln bibliography,</subfield>
+    <subfield code="c">1750</subfield>
+  </datafield>
+  <datafield tag="510" ind1="4" ind2=" ">
+    <subfield code="a">Oakleaf, J. Lincoln bibliography,</subfield>
+    <subfield code="c">1036</subfield>
+  </datafield>
+  <datafield tag="590" ind1=" " ind2=" ">
+    <subfield code="a">Pamphlet, illustrated wrappers; cover embossed in upper right corner with notary public stamp of &quot;George J. Mager, Cortland Co. N.Y.&quot;</subfield>
+  </datafield>
+  <datafield tag="590" ind1=" " ind2=" ">
+    <subfield code="a">Handwritten inscription on p. 2: To Hon. D. Fish, with all good wishes,  A. S. Draper.</subfield>
+  </datafield>
+  <datafield tag="590" ind1=" " ind2=" ">
+    <subfield code="a">Daniel Fish Collection.</subfield>
+  </datafield>
+  <datafield tag="600" ind1="1" ind2="0">
+    <subfield code="a">Lincoln, Abraham,</subfield>
+    <subfield code="d">1809-1865</subfield>
+    <subfield code="x">Anniversaries, etc.</subfield>
+  </datafield>
+  <datafield tag="650" ind1=" " ind2="0">
+    <subfield code="a">Lincoln Day.</subfield>
+  </datafield>
+  <datafield tag="650" ind1=" " ind2="0">
+    <subfield code="a">Schools</subfield>
+    <subfield code="x">Exercises and recreations.</subfield>
+  </datafield>
+  <datafield tag="700" ind1="1" ind2=" ">
+    <subfield code="a">Horner, Harlan Hoyt,</subfield>
+    <subfield code="d">1878-1965</subfield>
+    <subfield code="e">comp.</subfield>
+  </datafield>
+  <datafield tag="948" ind1=" " ind2=" ">
+    <subfield code="a">04/12/1999</subfield>
+  </datafield>
+  <datafield tag="596" ind1=" " ind2=" ">
+    <subfield code="a">18</subfield>
+  </datafield>
+  <datafield tag="999" ind1=" " ind2=" ">
+    <subfield code="a">E457.7 .N53 1909</subfield>
+    <subfield code="w">LC</subfield>
+    <subfield code="c">1</subfield>
+    <subfield code="i">71200908403681</subfield>
+    <subfield code="l">LINCOLN</subfield>
+    <subfield code="m">LINCOLN</subfield>
+    <subfield code="r">N</subfield>
+    <subfield code="s">Y</subfield>
+    <subfield code="t">BOOK</subfield>
+    <subfield code="u">4/12/1999</subfield>
+    <subfield code="x">301</subfield>
+    <subfield code="z">ADULT</subfield>
+    <subfield code="o">.STAFF. Lincolniana</subfield>
+    <subfield code="o">.STAFF. MQ18949</subfield>
+  </datafield>
+</record>

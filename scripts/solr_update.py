@@ -104,7 +104,7 @@ def subject_need_update(key, count):
     if not docs:
         return True
     assert len(docs) == 1
-    return count == docs[0]['count']
+    return count != docs[0]['count']
 
 def run_update():
     global authors_to_update, works_to_update
@@ -140,7 +140,7 @@ def run_update():
                             rc = read_rc()
                             ol.login('EdwardBot', rc['EdwardBot']) 
                         ol.save(w['key'], w, 'avoid author redirect')
-            if work_to_update['type']['key'] == '/type/work' and work_to_update.get('title', None):
+            if work_to_update['type']['key'] == '/type/work' and work_to_update.get('title'):
                 subjects = get_work_subjects(work_to_update)
                 print subjects
                 for subject_type, values in subjects.iteritems():
@@ -158,7 +158,7 @@ def run_update():
     if not args.no_author_updates and authors_to_update:
         requests = []
         for akey in authors_to_update:
-            print 'update author:', akey
+            print 'update author:', `akey`
             requests += update_author(akey)
         if not args.no_commit:
             solr_update(requests + ['<commit/>'], index='authors', debug=True)
@@ -202,22 +202,33 @@ def process_save(key, query):
             'authors':{'author':{'key': key}},
             'limit':0,
         }
-        works_to_update.update(ol.query(q))
+        works = None
+        for attempt in range(5):
+            try:
+                works = ol.query(q)
+                break
+            except:
+                sleep(10)
+        if not works:
+            works = ol.query(q)
+        works_to_update.update(works)
         return
     elif args.just_consider_authors:
         return
     if key.startswith('/works/'):
         works_to_update.add(key)
+
+        authors = [a['author']['key'] if isinstance(a['author'], dict) else a['author'] for a in (query.get('authors') or []) if a.get('author')]
         if query:
-            authors_to_update.update(a['author']['key'] if isinstance(a['author'], dict) else a['author'] for a in query.get('authors', []) if a.get('author', None))
+            authors_to_update.update(a for a in authors if a)
         return
     if (key.startswith('/books/') or key.startswith('/b/')) and query and obj_type != '/type/delete':
         if obj_type != '/type/edition':
             print 'bad type for ', key
             return
-        works_to_update.update(w['key'] if isinstance(w, dict) else w for w in query.get('works', []))
+        works_to_update.update(w['key'] if isinstance(w, dict) else w for w in (query.get('works') or []))
         try:
-            authors_to_update.update(a['key'] if isinstance(a, dict) else a for a in query.get('authors', []))
+            authors_to_update.update(a['key'] if isinstance(a, dict) else a for a in (query.get('authors') or []))
         except:
             print query
             raise
@@ -254,7 +265,7 @@ while True:
         action = i.pop('action')
         if action == 'new_account':
             continue
-        author = i['data'].get('author', None) if 'data' in i else None
+        author = i['data'].get('author') if 'data' in i else None
         lc_author = None
         if author:
             author = author.split('/')[-1]

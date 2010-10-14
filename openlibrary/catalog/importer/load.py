@@ -1,12 +1,47 @@
 import web, re
 from db_read import withKey
-from openlibrary.catalog.utils import flip_name, author_dates_match, key_int
+from openlibrary.catalog.utils import flip_name, author_dates_match, key_int, error_mail
 from openlibrary.catalog.utils.query import query_iter
 from pprint import pprint
+from openlibrary.catalog.read_rc import read_rc
+from openlibrary.api import OpenLibrary
 
-def find_author(name):
-    q = {'type': '/type/author', 'name': name}
-    return [a['key'] for a in query_iter(q)]
+rc = read_rc()
+ol = OpenLibrary("http://openlibrary.org")
+ol.login('ImportBot', rc['ImportBot']) 
+
+def walk_redirects(obj, seen):
+    seen.add(obj['key'])
+    while obj['type'] == '/type/redirect':
+        assert obj['location'] != obj['key']
+        obj = ol.get(obj['location'])
+        seen.add(obj['key'])
+    return obj
+
+def find_author(name, send_mail=True):
+    q = {'type': '/type/author', 'name': name, 'limit': 0}
+    del q['limit']
+    reply = list(ol.query(q))
+    authors = [ol.get(k) for k in reply]
+    if any(a['type'] != '/type/author' for a in authors):
+        subject = 'author query redirect: ' + q['name']
+        body = 'Error: author query result should not contain redirects\n\n'
+        body += 'query: ' + `q` + '\n\nresult\n'
+        if send_mail:
+            for a in authors:
+                if a['type'] == '/type/redirect':
+                    body += a['key'] + ' redirects to ' + a['location'] + '\n'
+                elif a['type'] == '/type/delete':
+                    body += a['key'] + ' is deleted ' + '\n'
+                elif a['type'] == '/type/author':
+                    body += a['key'] + ' is an author: ' + a['name'] + '\n'
+                else:
+                    body += a['key'] + 'has bad type' + a + '\n'
+            addr = 'edward@archive.org'
+            error_mail(addr, [addr], subject, body)
+        seen = set()
+        authors = [walk_redirects(a, seen) for a in authors if a['key'] not in seen]
+    return authors
 
 def do_flip(author):
     # given an author name flip it in place
@@ -46,40 +81,30 @@ def find_entity(author):
     if author['entity_type'] != 'person':
         if not things:
             return None
-        db_entity = withKey(things[0])
-        if db_entity['type']['key'] == '/type/redirect':
-            db_entity = withKey(db_entity['location'])
-        assert db_entity['type']['key'] == '/type/author'
+        db_entity = things[0]
+#        if db_entity['type']['key'] == '/type/redirect':
+#            db_entity = withKey(db_entity['location'])
+        assert db_entity['type'] == '/type/author'
         return db_entity
     if ', ' in name:
         things += find_author(flip_name(name))
     match = []
     seen = set()
-    for key in things:
+    for a in things:
+        key = a['key']
         if key in seen:
             continue
         seen.add(key)
-        db_entity = withKey(key)
-        if db_entity['type']['key'] == '/type/redirect':
-            key = db_entity['location']
-            if key in seen:
-                continue
-            seen.add(key)
-            db_entity = withKey(key)
-        if db_entity['type']['key'] == '/type/delete':
+        orig_key = key
+        print a['type']
+        assert a['type'] == '/type/author'
+        if 'birth_date' in author and 'birth_date' not in a:
             continue
-        try:
-            assert db_entity['type']['key'] == '/type/author'
-        except:
-            print name, key, db_entity
-            raise
-        if 'birth_date' in author and 'birth_date' not in db_entity:
+        if 'birth_date' not in author and 'birth_date' in a:
             continue
-        if 'birth_date' not in author and 'birth_date' in db_entity:
+        if not author_dates_match(author, a):
             continue
-        if not author_dates_match(author, db_entity):
-            continue
-        match.append(db_entity)
+        match.append(a)
     if not match:
         return None
     if len(match) == 1:
@@ -94,17 +119,11 @@ def find_entity(author):
 def import_author(author, eastern=False):
     existing = find_entity(author)
     if existing:
-        existing['key'] = existing['key'].replace('\/', '/')
-        existing['type']['key'] = existing['type']['key'].replace('\/', '/')
-        if existing['type']['key'] != '/type/author':
-            print author
-            print existing
-        assert existing['type']['key'] == '/type/author'
+        assert existing['type'] == '/type/author'
         for k in 'last_modified', 'id', 'revision', 'created':
             if k in existing:
                 del existing[k]
         new = existing
-#        new["create"] = "unless_exists"
         if 'death_date' in author and 'death_date' not in existing:
             new['death_date'] = {
                 'connect': 'update',
