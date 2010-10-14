@@ -21,9 +21,7 @@ from time import sleep, time, strftime
 from openlibrary.catalog.marc.marc_subject import get_work_subjects, four_types
 import simplejson as json
 
-rc = read_rc()
 ol = OpenLibrary("http://openlibrary.org")
-ol.login('WorkBot', rc['WorkBot']) 
 
 re_skip = re.compile('\b([A-Z]|Co|Dr|Jr|Capt|Mr|Mrs|Ms|Prof|Rev|Revd|Hon|etc)\.$')
 re_work_key = re.compile('^/works/OL(\d+)W$')
@@ -564,6 +562,10 @@ def update_work_with_best_match(akey, w, work_to_edition, do_updates, fh_log):
 
 def update_works(akey, works, do_updates=False):
     # we can now look up all works by an author   
+    if do_updates:
+        rc = read_rc()
+        ol.login('WorkBot', rc['WorkBot']) 
+
     fh_log = open('/1/openlibrary/log/work_finder/' + strftime('%F_%T'), 'w')
     works = list(works)
     print >> fh_log, akey

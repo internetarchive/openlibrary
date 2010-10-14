@@ -47,6 +47,8 @@ def run_work_finder(i):
 
     title_redirects = find_title_redirects(akey)
     works = find_works(akey, get_books(akey, books_query(akey)), existing=title_redirects)
+    print 'author:', akey
+    print 'works:', works
     updated = update_works(akey, works, do_updates=True)
     print '%d records updated' % len(updated)
 
