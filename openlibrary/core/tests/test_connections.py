@@ -41,6 +41,31 @@ class TestMigrationMiddleware:
             "title": "The Book"
         }
 
+        add({
+            "key": "/books/OL2M",
+            "type": {"key": "/type/edition"},
+            "title_prefix": "The ",
+            "title": "Book"
+        })
+            
+        assert get("/books/OL2M") == {
+            "key": "/books/OL2M",
+            "type": {"key": "/type/edition"},
+            "title": "The Book"
+        }
+
+        add({
+            "key": "/books/OL3M",
+            "type": {"key": "/type/edition"},
+            "title_prefix": "The Book",
+        })
+        
+        assert get("/books/OL3M") == {
+            "key": "/books/OL3M",
+            "type": {"key": "/type/edition"},
+            "title": "The Book"
+        }
+
     def test_authors(self):
         conn = connections.MigrationMiddleware(MockConnection())
 
