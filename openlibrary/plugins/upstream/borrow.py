@@ -288,10 +288,16 @@ def is_loaned_out(resource_id):
     if resource_id.startswith('bookreader'):
         # Check our local status
         loan_key = get_loan_key(resource_id)
+        if not loan_key:
+            # No loan recorded
+            return False
+
+        # Find the loan and check if it has expired
         loan = web.ctx.store.get(loan_key)
         if loan:
             if loan['expiry'] < time.time():
                 return True
+                
         return False
     
     # Assume ACS4 loan - check status server
@@ -314,6 +320,12 @@ def update_loan_status(resource_id):
     
     # Get local loan record
     loan_key = get_loan_key(resource_id)
+    print 'XXXyyy loan_key %s' % loan_key
+    
+    if not loan_key:
+        # No loan recorded, nothing to do
+        return
+        
     loan = web.ctx.site.store.get(loan_key)
     
     # If this is a BookReader loan, local version of loan is authoritative
@@ -462,6 +474,14 @@ class Loan:
         self.resource_id = resource_id
         self.save()
         return self.loan_link
+
+    def return_resource(self):
+        """Return the book to circulation!  This object is invalid and should not be used after
+           this is called.  Currently only possible for bookreader loans."""
+        if self.type != 'bookreader':
+            raise Exception('Not possible to return loan of type %s' % self.type)
+        # $$$ Could add some stats tracking.  For now we just nuke it.
+        self.remove()
         
 class ContentServer:
     def __init__(self, config):

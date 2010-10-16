@@ -153,17 +153,18 @@ class Edition(models.Edition):
         itemid = self.ocaid
         
         # Use cached value if available
-        try:
-            return self._lending_resources
-        except AttributeError:
-            pass
-            
-        if not itemid:
-            self._lending_resources = []
-            return self._lending_resources
+#         try:
+#             return self._lending_resources
+#         except AttributeError:
+#             pass
+#             
+#         if not itemid:
+#             self._lending_resources = []
+#             return self._lending_resources
         
         url = 'http://www.archive.org/download/%s/%s_meta.xml' % (itemid, itemid)
         # $$$ error handling
+        print "XXX GETTING %s" % url
         stats.begin("archive.org", url=url)
         root = etree.parse(urllib2.urlopen(url))
         stats.end()
@@ -202,12 +203,15 @@ class Edition(models.Edition):
         
         resource_pattern = r'acs:(\w+):(.*)'
         for resource_urn in self.get_lending_resources():
+            print 'RESOURCE %s' % resource_urn
             if resource_urn.startswith('acs:'):
                 (type, resource_id) = re.match(resource_pattern, resource_urn).groups()
                 loans.append( { 'resource_id': resource_id, 'type': type, 'size': None } )
             elif resource_urn.startswith('bookreader'):
                 loans.append( { 'resource_id': resource_urn, 'type': 'bookreader', 'size': None } )
             
+        
+        print 'XXXXXXXXXXXXXXX loans %s' % loans # XXX
         
         # Put default type at start of list, then sort by type name
         def loan_key(loan):
@@ -235,10 +239,14 @@ class Edition(models.Edition):
         return loans
     
     def update_loan_status(self):
-        """Update the loan status based off the status in ACS4"""
+        """Update the loan status"""
         urn_pattern = r'acs:\w+:(.*)'
         for ia_urn in self.get_lending_resources():
-            resource_id = re.match(urn_pattern, ia_urn).group(1)
+            if ia_urn.startswith('acs:'):
+                resource_id = re.match(urn_pattern, ia_urn).group(1)
+            else:
+                resource_id = ia_urn
+
             borrow.update_loan_status(resource_id)
 
     def _process_identifiers(self, config, names, values):
