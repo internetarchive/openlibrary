@@ -138,9 +138,11 @@ class Edition(models.Edition):
 #         return 'lendinglibrary' in collections
         
     def get_lending_resources(self):
-        """Returns the loan resource identifiers (in meta.xml format) for books hosted on archive.org
+        """Returns the loan resource identifiers (in meta.xml format for ACS4 resources) for books hosted on archive.org
         
-        Returns e.g. ['acs:epub:urn:uuid:0df6f344-7ce9-4038-885e-e02db34f2891', 'acs:pdf:urn:uuid:7f192e62-13f5-4a62-af48-be4bea67e109']
+        Returns e.g. ['bookreader:lettertoannewarr00west',
+                      'acs:epub:urn:uuid:0df6f344-7ce9-4038-885e-e02db34f2891',
+                      'acs:pdf:urn:uuid:7f192e62-13f5-4a62-af48-be4bea67e109']
         """
         
         # The entries in meta.xml look like this:
@@ -149,6 +151,13 @@ class Edition(models.Edition):
         # </external-identifier>
         
         itemid = self.ocaid
+        
+        # Use cached value if available
+        try:
+            return self._lending_resources
+        except AttributeError:
+            pass
+            
         if not itemid:
             self._lending_resources = []
             return self._lending_resources
@@ -160,11 +169,22 @@ class Edition(models.Edition):
         stats.end()
         
         self._lending_resources = [ elem.text for elem in root.findall('external-identifier') ]
+        
+        # Check if available for in-browser lending - marked with 'browserlending' collection
+        browserLendingCollections = ['browserlending']
+        collections = [ elem.text for elem in root.findall('collection') ]
+        for collection in collections:
+            if collection in browserLendingCollections:
+                self._lending_resources.append('bookreader:%s' % self.ocaid)
+                break
+        
         return self._lending_resources
         
     def get_lending_resource_id(self, type):
-
-        desired = 'acs:%s:' % type
+        if type == 'bookreader':
+            desired = 'bookreader:%s' % self.ocaid
+        else:
+            desired = 'acs:%s:' % type
         for urn in self.get_lending_resources():
             if urn.startswith(desired):
                 return urn[len(desired):]
@@ -176,14 +196,18 @@ class Edition(models.Edition):
         
         size may be None"""
         
-        default_type = 'pdf'
+        default_type = 'bookreader'
         
         loans = []
-            
+        
         resource_pattern = r'acs:(\w+):(.*)'
         for resource_urn in self.get_lending_resources():
-            (type, resource_id) = re.match(resource_pattern, resource_urn).groups()
-            loans.append( { 'resource_id': resource_id, 'type': type, 'size': None } )
+            if resource_urn.startswith('acs:'):
+                (type, resource_id) = re.match(resource_pattern, resource_urn).groups()
+                loans.append( { 'resource_id': resource_id, 'type': type, 'size': None } )
+            elif resource_urn.startswith('bookreader'):
+                loans.append( { 'resource_id': resource_urn, 'type': 'bookreader', 'size': None } )
+            
         
         # Put default type at start of list, then sort by type name
         def loan_key(loan):

@@ -35,6 +35,9 @@ user_max_loans = 5
 #     for the duration of the timeout
 loan_fulfillment_timeout_seconds = 60*5
 
+# How long bookreader loans should last
+bookreader_loan_seconds = 600 # XXXmang testing value
+
 ########## Page Handlers
 
 # Handler for /books/{bookid}/{title}/borrow
@@ -58,6 +61,8 @@ class borrow(delegate.page):
         return render_template("borrow", edition, loans)
         
     def POST(self, key):
+        """Called when the user wants to borrow the edition"""
+        
         i = web.input(format=None)
         resource_type = i.format
         
@@ -70,14 +75,16 @@ class borrow(delegate.page):
         if not user:
             raise web.seeother(error_redirect)
         
-        if resource_type not in ['epub', 'pdf']:
+        if resource_type not in ['epub', 'pdf', 'bookreader']:
             raise web.seeother(error_redirect)
         
         if user_can_borrow_edition(user, edition, resource_type):
             loan = Loan(user.key, key, resource_type)
+            if resource_type == 'bookreader':
+                loan.expiry = time.time() + bookreader_loan_seconds
             loan_link = loan.make_offer() # generate the link and record that loan offer occurred
             
-            # XXX Record fact that user has done a borrow borrow - how do I write into user? do I need permissions?
+            # $$$ Record fact that user has done a borrow - how do I write into user? do I need permissions?
             # if not user.has_borrowed:
             #   user.has_borrowed = True
             #   user.save()
@@ -183,22 +190,53 @@ def get_edition_loans(edition):
     return web.ctx.site.store.values(type='/type/loan', name='book', value=edition.key)
     
 def get_loan_link(edition, type):
+    """Get the loan link, which may be an ACS4 link or BookReader link depending on the loan type"""
     global content_server
-    
-    if not content_server:
-        if not config.content_server:
-            # $$$ log
-            return None
-        content_server = ContentServer(config.content_server)
-        
+
     resource_id = edition.get_lending_resource_id(type)
-    if not resource_id:
-        raise Exception('Could not find resource_id for %s - %s' % (edition.key, type))
-    return (resource_id, content_server.get_loan_link(resource_id))
+    
+    if type == 'bookreader':
+        # link to bookreader
+        return (resource_id, get_bookreader_link(edition))
+        
+    if type in ['pdf','epub']:
+        # ACS4
+        if not content_server:
+            if not config.content_server:
+                # $$$ log
+                return None
+            content_server = ContentServer(config.content_server)
+            
+        if not resource_id:
+            raise Exception('Could not find resource_id for %s - %s' % (edition.key, type))
+        return (resource_id, content_server.get_loan_link(resource_id))
+        
+    raise Exception('Unknown resource type %s for loan of edition %s', edition.key, type)
+    
+def get_bookreader_link(edition):
+    return "http://www.archive.org/stream/%s" % (edition.ocaid)
+    
+def get_loan_key(resource_id):
+    """Get the key for the loan associated with the resource_id"""
+    # Find loan in OL
+    loan_keys = web.ctx.site.store.query('/type/loan', 'resource_id', resource_id)
+    if not loan_keys:
+        # No local records
+        return
+
+    # Only support single loan of resource at the moment
+    if len(loan_keys) > 1:
+        raise Exception('Found too many local loan records for resource %s' % resource_id)
+        
+    loan_key = loan_keys[0]['key']
+    return loan_key
     
 def get_loan_status(resource_id):
+    """Should only be used for ACS4 loans.  Get the status of the loan from the ACS4 server,
+       via the Book Status Server (BSS)
+    """
     global loanstatus_url
-
+    
     if not loanstatus_url:
         raise Exception('No loanstatus_url -- cannot check loan status')
     
@@ -245,6 +283,18 @@ def get_all_loaned_out():
         raise Exception('Loan status server not available')
 
 def is_loaned_out(resource_id):
+
+    # bookreader loan status is stored in the private data store
+    if resource_id.startswith('bookreader'):
+        # Check our local status
+        loan_key = get_loan_key(resource_id)
+        loan = web.ctx.store.get(loan_key)
+        if loan:
+            if loan['expiry'] < time.time():
+                return True
+        return False
+    
+    # Assume ACS4 loan - check status server
     status = get_loan_status(resource_id)
     return is_loaned_out_from_status(status)
     
@@ -262,24 +312,18 @@ def is_loaned_out_from_status(status):
 def update_loan_status(resource_id):
     """Update the loan status in OL based off status in ACS4.  Used to check for early returns."""
     
-    # Find loan in OL
-    loan_keys = web.ctx.site.store.query('/type/loan', 'resource_id', resource_id)
-    if not loan_keys:
-        # No local records
+    # Get local loan record
+    loan_key = get_loan_key(resource_id)
+    loan = web.ctx.site.store.get(loan_key)
+    
+    # If this is a BookReader loan, local version of loan is authoritative
+    if loan['type'] == 'bookreader':
+        # XXXmang delete loan record if has expired
         return
-
-    # Only support single loan of resource at the moment
-    if len(loan_keys) > 1:
-        raise Exception('Found too many local loan records for resource %s' % resource_id)
-        
-    loan_key = loan_keys[0]['key']
         
     # Load status from book status server
     status = get_loan_status(resource_id)
 
-    # Local loan record
-    loan = web.ctx.site.store.get(loan_key)
-    
     update_loan_from_bss_status(loan_key, loan, status)
         
 def update_loan_from_bss_status(loan_key, loan, status):
@@ -293,6 +337,7 @@ def update_loan_from_bss_status(loan_key, loan, status):
         # Check if our local loan record is fresh -- allow some time for fulfillment
         if loan['expiry'] is None:
             now = time.time()
+            # XXXmang need to convert loan['loaned_at'] to number?
             if now - loan['loaned_at'] < loan_fulfillment_timeout_seconds:
                 # Don't delete the loan record - give it time to complete
                 return
@@ -407,7 +452,8 @@ class Loan:
         
     def make_offer(self):
         """Create loan url and record that loan was offered.  Returns the link URL that triggers
-           Digital Editions to open."""
+           Digital Editions to open or the link for the BookReader."""
+           
         edition = web.ctx.site.get(self.book_key)
         resource_id, loan_link = get_loan_link(edition, self.resource_type)
         if not loan_link:
