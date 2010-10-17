@@ -1,6 +1,7 @@
 """Handlers for borrowing books"""
 
 import datetime, time
+import hashlib
 import simplejson
 import string
 import urllib2
@@ -37,6 +38,11 @@ loan_fulfillment_timeout_seconds = 60*5
 
 # How long bookreader loans should last
 bookreader_loan_seconds = 600 # XXXmang testing value
+
+# How long the auth token given to the BookReader should last.  After the auth token
+# expires the BookReader will not be able to access the book.  The BookReader polls
+# OL periodically to get fresh tokens.
+bookreader_auth_seconds = 10*60
 
 ########## Page Handlers
 
@@ -147,6 +153,27 @@ class borrow_admin(delegate.page):
             user_loans = get_loans(user)
             
         return render_template("borrow_admin", edition, edition_loans, user_loans)
+        
+# Handler for /iauth/{itemid}
+class ia_auth(delegate.page):
+    path = r"/ia_auth/(.*)"
+    
+    def GET(self, item_id):
+        i = web.input(_method='GET', callback=None)
+        
+        resource_id = 'bookreader:%s' % item_id
+        content_type = "application/json"
+        
+        user = web.ctx.site.get_user()
+        auth_json = simplejson.dumps( get_ia_auth_dict(user, resource_id) )
+        
+        output = auth_json
+        
+        if i.callback:
+            content_type = "text/javascript"
+            output = '%s ( %s );' % (i.callback, output)
+        
+        return delegate.RawText(output, content_type=content_type)
         
 ########## Public Functions
 
@@ -358,7 +385,6 @@ def update_loan_status(resource_id):
     
     # Get local loan record
     loan_key = get_loan_key(resource_id)
-    print 'XXXyyy loan_key %s' % loan_key
     
     if not loan_key:
         # No loan recorded, nothing to do
@@ -387,7 +413,6 @@ def update_loan_from_bss_status(loan_key, loan, status):
         # Check if our local loan record is fresh -- allow some time for fulfillment
         if loan['expiry'] is None:
             now = time.time()
-            # XXXmang need to convert loan['loaned_at'] to number?
             if now - loan['loaned_at'] < loan_fulfillment_timeout_seconds:
                 # Don't delete the loan record - give it time to complete
                 return
@@ -466,6 +491,56 @@ def return_resource(resource_id):
         raise Exception('Not possible to return loan %s of type %s' % (loan['resource_id'], loan['resource_type']))
     # $$$ Could add some stats tracking.  For now we just nuke it.
     web.ctx.site.store.delete(loan_key)
+
+def get_ia_auth_dict(user, item_id):
+    """Returns response similar to one of these:
+    {'success':true,'token':'1287185207-fa72103dd21073add8f87a5ad8bce845'}
+    {'success':false,'msg':'Book is checked out'}
+    """
+    
+    error_message = None
+    
+    # Lookup loan information
+    loan_key = get_loan_key(item_id)
+    
+    if not user:
+        error_message = 'Not logged into Open Library'
+    
+    elif not loan_key:
+        error_message = 'This book has not been checked out'
+    
+    else:
+        # There is a loan for this book
+        loan = web.ctx.site.store.get(loan_key)
+        
+        if loan['user'] != user.key:
+            error_message = 'This books was not checked out by you'
+        
+        elif loan['expiry'] < time.time():
+            error_message = 'Your loan has expired'
+    
+    if error_message:
+        return { 'success': False, 'msg': error_message }
+    
+    return { 'success': True, 'token': make_bookreader_token(item_id, bookreader_auth_seconds) }
+    
+
+def make_bookreader_token(item_id, expiry_seconds):
+    """Make a key that allows a client to access the item on archive.org for the number of
+       seconds from now.
+    """
+    # $timestamp = $time+600; //access granted for ten minutes
+    # $hmac = hash_hmac('md5', "{$id}-{$timestamp}", configGetValue('ol-loan-secret'));
+    # return "{$timestamp}-{$hmac}";
+    
+    try:
+        access_key = config.ia_access_secret
+    except AttributeError:
+        raise Exception("config value config.ia_access_secret is not present -- check your config")
+        
+    timestamp = time.time() + expiry_seconds
+    token = hashlib.md5('%s-%d' % (item_id, timestamp)).hexdigest()
+    return token
 
 ########## Classes
 

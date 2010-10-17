@@ -183,9 +183,11 @@ class Edition(models.Edition):
         
     def get_lending_resource_id(self, type):
         if type == 'bookreader':
-            desired = 'bookreader:%s' % self.ocaid
+            # XXXmang is the ocaid always set?
+            return 'bookreader:%s' % self.ocaid
         else:
             desired = 'acs:%s:' % type
+            
         for urn in self.get_lending_resources():
             if urn.startswith(desired):
                 return urn[len(desired):]
