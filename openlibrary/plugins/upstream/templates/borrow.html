@@ -1,4 +1,4 @@
-$def with (page, loans)
+$def with (page, loans, user_did_return)
 
 $var title: $page.title
 
@@ -138,7 +138,8 @@ $ contrib = meta_fields['contributor']
                     </div>
                     </form>            
                 </div>
-                
+        
+        
         $elif page.key in [loan['book'] for loan in loans]:
             $# checked out by this user!
             
@@ -159,6 +160,16 @@ $ contrib = meta_fields['contributor']
                     <p>This loan is on hold for about 5 minutes. If you don't open it up within that time, someone else may borrow it. <a href="$active_loan['loan_link']">Download again</a>?</p>
                 </div>
                 
+            $if can_return_resource_type(candidate['resource_type']):
+                <div class="message info">
+                    <h2 class="sansserif">This book can be returned.</h2>
+                    <p>
+                    $:macros.ReturnForm(page, candidate)
+                    </p>
+                </div>
+            $else:
+                $# can't return this book
+                
         
         $elif len(loans) >= 5:
             $# already loaned maximum number of books
@@ -177,6 +188,13 @@ $ contrib = meta_fields['contributor']
         $else:
             $# We can borrow it!
             $ user_can_borrow_this = True
+            
+        $if user_did_return:
+            $# Just returned this book
+            <div class="message info">
+                <h2 class="sansserif">You've just returned this book.</h2>
+                <p>There are more books available in the <a href="/subjects/lending_library">lending library</a>.</p>
+            </div>
         
         $if user_can_borrow_this:
             <div class="borrow">

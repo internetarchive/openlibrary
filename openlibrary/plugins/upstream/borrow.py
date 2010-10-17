@@ -58,13 +58,12 @@ class borrow(delegate.page):
             user.update_loan_status()
             loans = get_loans(user)
             
-        return render_template("borrow", edition, loans)
+        return render_template("borrow", edition, loans, False)
         
     def POST(self, key):
         """Called when the user wants to borrow the edition"""
         
-        i = web.input(format=None)
-        resource_type = i.format
+        i = web.input(action='borrow', format=None)
         
         edition = web.ctx.site.get(key)
         if not edition:
@@ -74,24 +73,56 @@ class borrow(delegate.page):
         user = web.ctx.site.get_user()
         if not user:
             raise web.seeother(error_redirect)
-        
-        if resource_type not in ['epub', 'pdf', 'bookreader']:
-            raise web.seeother(error_redirect)
-        
-        if user_can_borrow_edition(user, edition, resource_type):
-            loan = Loan(user.key, key, resource_type)
-            if resource_type == 'bookreader':
-                loan.expiry = time.time() + bookreader_loan_seconds
-            loan_link = loan.make_offer() # generate the link and record that loan offer occurred
+
+        if i.action == 'borrow':
+            resource_type = i.format
             
-            # $$$ Record fact that user has done a borrow - how do I write into user? do I need permissions?
-            # if not user.has_borrowed:
-            #   user.has_borrowed = True
-            #   user.save()
+            if resource_type not in ['epub', 'pdf', 'bookreader']:
+                raise web.seeother(error_redirect)
             
-            raise web.seeother(loan_link)
+            if user_can_borrow_edition(user, edition, resource_type):
+                loan = Loan(user.key, key, resource_type)
+                if resource_type == 'bookreader':
+                    loan.expiry = time.time() + bookreader_loan_seconds
+                loan_link = loan.make_offer() # generate the link and record that loan offer occurred
+                
+                # $$$ Record fact that user has done a borrow - how do I write into user? do I need permissions?
+                # if not user.has_borrowed:
+                #   user.has_borrowed = True
+                #   user.save()
+                
+                raise web.seeother(loan_link)
+            else:
+                # Send to the borrow page
+                raise web.seeother(error_redirect)
+                
+        elif i.action == 'return':
+            # Check that this user has the loan
+            user.update_loan_status()
+            loans = get_loans(user)
+
+            user_loan = None
+            for loan in loans:
+                if loan['user'] == user.key:
+                    user_loan = loan
+                    
+            if not user_loan:
+                # $$$ add error message
+                raise web.seeother(error_redirect)
+                
+            # They have it -- return it
+            return_resource(loan['resource_id'])
+            
+            # Get updated loans
+            loans = get_loans(user)
+            
+            # Show the page with "you've just returned this"
+            # $$$ we should call redirect here with some state saying the user just returned the book
+            #     reloading the page will do the form post again which will do the redirect (no harm done)
+            return render_template("borrow", edition, loans, True)
+            
         else:
-            # Send to the borrow page
+            # Action not recognized
             raise web.seeother(error_redirect)
 
 class borrow_admin(delegate.page):
@@ -178,6 +209,13 @@ def datetime_from_isoformat(expiry):
 def datetime_from_utc_timestamp(seconds):
     return datetime.datetime.utcfromtimestamp(seconds)
 
+@public
+def can_return_resource_type(resource_type):
+    """Returns true if this resource can be returned from the OL site"""
+    if resource_type.startswith('bookreader'):
+        return True
+    return False
+        
 ########## Helper Functions
 
 def get_all_loans():
@@ -415,6 +453,19 @@ def is_admin():
     """"Returns True if the current user is in admin usergroup."""
     user = web.ctx.site.get_user()
     return user and user.key in [m.key for m in web.ctx.site.get('/usergroup/admin').members]
+    
+def return_resource(resource_id):
+        """Return the book to circulation!  This object is invalid and should not be used after
+           this is called.  Currently only possible for bookreader loans."""
+        loan_key = get_loan_key(resource_id)
+        if not loan_key:
+            raise Exception('Asked to return %s but no loan recorded' % resource_id)
+        
+        loan = web.ctx.site.store.get(loan_key)
+        if loan['resource_type'] != 'bookreader':
+            raise Exception('Not possible to return loan %s of type %s' % (loan['resource_id'], loan['resource_type']))
+        # $$$ Could add some stats tracking.  For now we just nuke it.
+        web.ctx.site.store.delete(loan_key)
 
 ########## Classes
 
@@ -474,14 +525,6 @@ class Loan:
         self.resource_id = resource_id
         self.save()
         return self.loan_link
-
-    def return_resource(self):
-        """Return the book to circulation!  This object is invalid and should not be used after
-           this is called.  Currently only possible for bookreader loans."""
-        if self.type != 'bookreader':
-            raise Exception('Not possible to return loan of type %s' % self.type)
-        # $$$ Could add some stats tracking.  For now we just nuke it.
-        self.remove()
         
 class ContentServer:
     def __init__(self, config):

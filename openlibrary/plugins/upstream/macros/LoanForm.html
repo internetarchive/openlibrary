@@ -1,7 +1,7 @@
 $def with (page, available_loans)
 
-$ default_type = 'pdf'
-$ type_info = { 'epub': ('ePub', 'plain text version; may contain OCR errors'), 'pdf': ('PDF', 'high quality scans of pages') }
+$ default_type = 'bookreader'
+$ type_info = { 'epub': ('ePub', 'plain text version; may contain OCR errors'), 'pdf': ('PDF', 'high quality scans of pages'), 'bookreader': ('BookReader', 'read online'), }
 
 $if not available_loans:
     $# Caller should check before calling
