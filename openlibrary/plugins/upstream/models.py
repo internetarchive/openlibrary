@@ -164,7 +164,6 @@ class Edition(models.Edition):
         
         url = 'http://www.archive.org/download/%s/%s_meta.xml' % (itemid, itemid)
         # $$$ error handling
-        print "XXX GETTING %s" % url
         stats.begin("archive.org", url=url)
         root = etree.parse(urllib2.urlopen(url))
         stats.end()
@@ -213,8 +212,6 @@ class Edition(models.Edition):
                 loans.append( { 'resource_id': resource_urn, 'type': 'bookreader', 'size': None } )
             
         
-        print 'XXXXXXXXXXXXXXX loans %s' % loans # XXX
-        
         # Put default type at start of list, then sort by type name
         def loan_key(loan):
             if loan['type'] == default_type:
@@ -242,14 +239,19 @@ class Edition(models.Edition):
     
     def update_loan_status(self):
         """Update the loan status"""
-        urn_pattern = r'acs:\w+:(.*)'
-        for ia_urn in self.get_lending_resources():
-            if ia_urn.startswith('acs:'):
-                resource_id = re.match(urn_pattern, ia_urn).group(1)
-            else:
-                resource_id = ia_urn
-
-            borrow.update_loan_status(resource_id)
+        # $$$ search in the store and update
+        loans = borrow.get_edition_loans(self)
+        for loan in loans:
+            borrow.update_loan_status(loan['resource_id'])
+            
+#         urn_pattern = r'acs:\w+:(.*)'
+#         for ia_urn in self.get_lending_resources():
+#             if ia_urn.startswith('acs:'):
+#                 resource_id = re.match(urn_pattern, ia_urn).group(1)
+#             else:
+#                 resource_id = ia_urn
+# 
+#             borrow.update_loan_status(resource_id)
 
     def _process_identifiers(self, config, names, values):
         id_map = {}

@@ -395,7 +395,10 @@ def update_loan_status(resource_id):
     
     # If this is a BookReader loan, local version of loan is authoritative
     if loan['resource_type'] == 'bookreader':
-        # XXXmang delete loan record if has expired
+        # delete loan record if has expired
+        # $$$ consolidate logic for checking expiry.  keep loan record for some time after it expires.
+        if loan['expiry'] and loan['expiry'] < datetime.datetime.utcnow().isoformat():
+            web.ctx.site.store.delete(loan_key)
         return
         
     # Load status from book status server
