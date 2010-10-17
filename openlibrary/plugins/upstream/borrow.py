@@ -37,7 +37,7 @@ user_max_loans = 5
 loan_fulfillment_timeout_seconds = 60*5
 
 # How long bookreader loans should last
-bookreader_loan_seconds = 600 # XXXmang testing value
+bookreader_loan_seconds = 120 # XXXmang testing value
 
 # How long the auth token given to the BookReader should last.  After the auth token
 # expires the BookReader will not be able to access the book.  The BookReader polls
@@ -89,7 +89,8 @@ class borrow(delegate.page):
             if user_can_borrow_edition(user, edition, resource_type):
                 loan = Loan(user.key, key, resource_type)
                 if resource_type == 'bookreader':
-                    loan.expiry = time.time() + bookreader_loan_seconds
+                    # The loan expiry should be utc isoformat
+                    loan.expiry = datetime.datetime.utcfromtimestamp(time.time() + bookreader_loan_seconds).isoformat()
                 loan_link = loan.make_offer() # generate the link and record that loan offer occurred
                 
                 # $$$ Record fact that user has done a borrow - how do I write into user? do I need permissions?
@@ -231,7 +232,7 @@ def datetime_from_isoformat(expiry):
     if expiry is None:
         return None
     return parse_datetime(expiry)
-    
+        
 @public
 def datetime_from_utc_timestamp(seconds):
     return datetime.datetime.utcfromtimestamp(seconds)
@@ -329,7 +330,7 @@ def get_loan_status(resource_id):
     except IOError:
         # status server is down
         # $$$ be more graceful
-        raise Exception('Loan status server not available')
+        raise Exception('Loan status server not available - tried at %s', url)
     
     raise Exception('Error communicating with loan status server for resource %s' % resource_id)
 
@@ -360,7 +361,7 @@ def is_loaned_out(resource_id):
         # Find the loan and check if it has expired
         loan = web.ctx.store.get(loan_key)
         if loan:
-            if loan['expiry'] < time.time():
+            if datetime_from_isoformat(loan['expiry']) < datetime.datetime.utcnow():
                 return True
                 
         return False
@@ -393,7 +394,7 @@ def update_loan_status(resource_id):
     loan = web.ctx.site.store.get(loan_key)
     
     # If this is a BookReader loan, local version of loan is authoritative
-    if loan['type'] == 'bookreader':
+    if loan['resource_type'] == 'bookreader':
         # XXXmang delete loan record if has expired
         return
         
@@ -413,6 +414,7 @@ def update_loan_from_bss_status(loan_key, loan, status):
         # Check if our local loan record is fresh -- allow some time for fulfillment
         if loan['expiry'] is None:
             now = time.time()
+            # $$$ loan_at in the store is in timestamp seconds until updated (from BSS) to isoformat string
             if now - loan['loaned_at'] < loan_fulfillment_timeout_seconds:
                 # Don't delete the loan record - give it time to complete
                 return
@@ -492,7 +494,7 @@ def return_resource(resource_id):
     # $$$ Could add some stats tracking.  For now we just nuke it.
     web.ctx.site.store.delete(loan_key)
 
-def get_ia_auth_dict(user, item_id):
+def get_ia_auth_dict(user, resource_id):
     """Returns response similar to one of these:
     {'success':true,'token':'1287185207-fa72103dd21073add8f87a5ad8bce845'}
     {'success':false,'msg':'Book is checked out'}
@@ -501,9 +503,12 @@ def get_ia_auth_dict(user, item_id):
     error_message = None
     
     # Lookup loan information
-    loan_key = get_loan_key(item_id)
+    loan_key = get_loan_key(resource_id)
+
+    if not resource_id.startswith('bookreader'):
+        error_message = 'Bad resource id type'
     
-    if not user:
+    elif not user:
         error_message = 'Not logged into Open Library'
     
     elif not loan_key:
@@ -516,16 +521,18 @@ def get_ia_auth_dict(user, item_id):
         if loan['user'] != user.key:
             error_message = 'This books was not checked out by you'
         
-        elif loan['expiry'] < time.time():
+        elif loan['expiry'] < datetime.datetime.utcnow().isoformat():
             error_message = 'Your loan has expired'
     
+    print '  loan expiry %s - now %s' % (loan['expiry'], datetime.datetime.utcnow().isoformat())
     if error_message:
         return { 'success': False, 'msg': error_message }
     
-    return { 'success': True, 'token': make_bookreader_token(item_id, bookreader_auth_seconds) }
+    item_id = resource_id[len('bookreader:'):]
+    return { 'success': True, 'token': make_ia_token(item_id, bookreader_auth_seconds) }
     
 
-def make_bookreader_token(item_id, expiry_seconds):
+def make_ia_token(item_id, expiry_seconds):
     """Make a key that allows a client to access the item on archive.org for the number of
        seconds from now.
     """
@@ -539,7 +546,8 @@ def make_bookreader_token(item_id, expiry_seconds):
         raise Exception("config value config.ia_access_secret is not present -- check your config")
         
     timestamp = time.time() + expiry_seconds
-    token = hashlib.md5('%s-%d' % (item_id, timestamp)).hexdigest()
+    token_data = '%s-%d' % (item_id, timestamp)
+    token = hashlib.md5(token_data).hexdigest()
     return token
 
 ########## Classes
