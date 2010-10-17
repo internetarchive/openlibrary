@@ -455,17 +455,17 @@ def is_admin():
     return user and user.key in [m.key for m in web.ctx.site.get('/usergroup/admin').members]
     
 def return_resource(resource_id):
-        """Return the book to circulation!  This object is invalid and should not be used after
-           this is called.  Currently only possible for bookreader loans."""
-        loan_key = get_loan_key(resource_id)
-        if not loan_key:
-            raise Exception('Asked to return %s but no loan recorded' % resource_id)
-        
-        loan = web.ctx.site.store.get(loan_key)
-        if loan['resource_type'] != 'bookreader':
-            raise Exception('Not possible to return loan %s of type %s' % (loan['resource_id'], loan['resource_type']))
-        # $$$ Could add some stats tracking.  For now we just nuke it.
-        web.ctx.site.store.delete(loan_key)
+    """Return the book to circulation!  This object is invalid and should not be used after
+       this is called.  Currently only possible for bookreader loans."""
+    loan_key = get_loan_key(resource_id)
+    if not loan_key:
+        raise Exception('Asked to return %s but no loan recorded' % resource_id)
+    
+    loan = web.ctx.site.store.get(loan_key)
+    if loan['resource_type'] != 'bookreader':
+        raise Exception('Not possible to return loan %s of type %s' % (loan['resource_id'], loan['resource_type']))
+    # $$$ Could add some stats tracking.  For now we just nuke it.
+    web.ctx.site.store.delete(loan_key)
 
 ########## Classes
 
