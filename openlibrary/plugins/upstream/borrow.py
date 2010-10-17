@@ -1,7 +1,7 @@
 """Handlers for borrowing books"""
 
 import datetime, time
-import hashlib
+import hmac
 import simplejson
 import string
 import urllib2
@@ -43,6 +43,7 @@ bookreader_loan_seconds = 120 # XXXmang testing value
 # expires the BookReader will not be able to access the book.  The BookReader polls
 # OL periodically to get fresh tokens.
 bookreader_auth_seconds = 10*60
+
 
 ########## Page Handlers
 
@@ -527,7 +528,6 @@ def get_ia_auth_dict(user, resource_id):
         elif loan['expiry'] < datetime.datetime.utcnow().isoformat():
             error_message = 'Your loan has expired'
     
-    print '  loan expiry %s - now %s' % (loan['expiry'], datetime.datetime.utcnow().isoformat())
     if error_message:
         return { 'success': False, 'msg': error_message }
     
@@ -548,9 +548,10 @@ def make_ia_token(item_id, expiry_seconds):
     except AttributeError:
         raise Exception("config value config.ia_access_secret is not present -- check your config")
         
-    timestamp = time.time() + expiry_seconds
+    timestamp = int(time.time() + expiry_seconds)
     token_data = '%s-%d' % (item_id, timestamp)
-    token = hashlib.md5(token_data).hexdigest()
+    
+    token = '%d-%s' % (timestamp, hmac.new(access_key, token_data).hexdigest())
     return token
 
 ########## Classes
