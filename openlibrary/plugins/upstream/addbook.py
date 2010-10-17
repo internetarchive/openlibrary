@@ -123,7 +123,13 @@ class addbook(delegate.page):
         """
         i.publish_year = i.publish_date and self.extract_year(i.publish_date)
         
-        work = i.get('work') and web.ctx.site.get(i.work)
+        work_key = i.get('work')
+        
+        # work_key is set to none-of-these when user selects none-of-these link.
+        if work_key == 'none-of-these':
+            return None
+            
+        work = work_key and web.ctx.site.get(work_key)
         if work:
             edition = self.try_edition_match(work=work, 
                 publisher=i.publisher, publish_year=i.publish_year, 
