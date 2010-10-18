@@ -100,6 +100,9 @@ def add_source_records(key, ia, v=None):
         authors = [ol.get(akey) for akey in e['authors']]
         authors = [ol.get(a['location']) if a['type'] == '/type/redirect' else a \
                 for a in authors]
+        for a in authors:
+            if a['type'] == '/type/redirect':
+                print 'double redirect on:', e['key']
         e['authors'] = [{'key': a['key']} for a in authors]
         undelete_authors(authors)
     print 'saving', key
