@@ -9,17 +9,25 @@ $ user_can_borrow_this = False
 $ meta_fields = page.get_ia_meta_fields()
 $ collection = meta_fields['collection']
 $if meta_fields.has_key('contributor'):
-    $ contrib = ['contributor']
+    $ contrib = meta_fields['contributor']
 $else:
     $ contrib = None
 
 
 $# $$$ Put our launch books "on hold" -- remove after Books in Browsers
-$ launch_books = ['browserlendingtest', 'romanceonthreele00hafnrich', 'librariesoffutur00lickuoft', 'remixmakingartco01lessrich', 'youlooktooyoungt00davi']
-$if page.ocaid in launch_books:
-    $if not (ctx.user and ctx.user.is_admin()):
+$if ctx.user and ctx.user.is_admin():
+    $ bookreader_loans = filter(lambda loan: loan['type'] == 'bookreader', available_loans)
+    $if bookreader_loans:
+        <div class="small sansserif clearfix"><br/><span class="adminOnly">Showing BookReader loan</span></div>
+$else:
+    $# If this is a launch book, don't allow loan
+    $ launch_books = ['browserlendingtest', 'romanceonthreele00hafnrich', 'librariesoffutur00lickuoft', 'remixmakingartco01lessrich', 'youlooktooyoungt00davi']
+    $if page.ocaid in launch_books:
        $ available_loans = []
        <!-- holding book -->
+
+    $# Don't show BookReader loans yet
+    $ available_loans = filter(lambda loan: loan['type'] != 'bookreader', available_loans)
 
 <div id="contentBody">
 
