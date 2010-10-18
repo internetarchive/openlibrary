@@ -65,8 +65,15 @@ class borrow(delegate.page):
         if user:
             user.update_loan_status()
             loans = get_loans(user)
-            
-        return render_template("borrow", edition, loans, False)
+        
+        # Check if we recently did a return
+        i = web.input(r=None)
+        if i.r == 't':
+            have_returned = True
+        else:
+            have_returned = False
+        
+        return render_template("borrow", edition, loans, have_returned)
         
     def POST(self, key):
         """Called when the user wants to borrow the edition"""
@@ -125,10 +132,8 @@ class borrow(delegate.page):
             # Get updated loans
             loans = get_loans(user)
             
-            # Show the page with "you've just returned this"
-            # $$$ we should call redirect here with some state saying the user just returned the book
-            #     reloading the page will do the form post again which will do the redirect (no harm done)
-            return render_template("borrow", edition, loans, True)
+            # Show the page with "you've returned this"
+            raise web.seeother(edition.url('/borrow?r=t'))
             
         else:
             # Action not recognized
