@@ -8,7 +8,18 @@ $ available_loans = page.get_available_loans()
 $ user_can_borrow_this = False
 $ meta_fields = page.get_ia_meta_fields()
 $ collection = meta_fields['collection']
-$ contrib = meta_fields['contributor']
+$if meta_fields.has_key('contributor'):
+    $ contrib = ['contributor']
+$else:
+    $ contrib = None
+
+
+$# $$$ Put our launch books "on hold" -- remove after Books in Browsers
+$ launch_books = ['browserlendingtest', 'romanceonthreele00hafnrich', 'librariesoffutur00lickuoft', 'remixmakingartco01lessrich', 'youlooktooyoungt00davi']
+$if page.ocaid in launch_books:
+    $if not (ctx.user and ctx.user.is_admin()):
+       $ available_loans = []
+       <!-- holding book -->
 
 <div id="contentBody">
 
@@ -48,9 +59,10 @@ $ contrib = meta_fields['contributor']
                                 $else:
                                     <em>publisher unknown</em>
                             </span>
-                            <span class="contributor">
-                                from $contrib
-                            </span>
+                            $if contrib:
+                                <span class="contributor">
+                                    from $contrib
+                                </span>
                         </td>
                     </tr>
                 </tbody>

@@ -32,7 +32,7 @@ user_max_loans = 5
 # Once the loan fulfillment inside Digital Editions the book status server will know
 # the loan has occurred.  We allow this timeout so that we don't delete the OL loan
 # record before fulfillment because we can't find it in the book status server.
-# XXX If a user borrows an ACS4 book and immediately returns book loan will show as
+# $$$ If a user borrows an ACS4 book and immediately returns book loan will show as
 #     "not yet downloaded" for the duration of the timeout.
 #     BookReader loan status is always current.
 loan_fulfillment_timeout_seconds = 60*5
@@ -45,6 +45,10 @@ bookreader_loan_seconds = 120 # XXXmang testing value
 # OL periodically to get fresh tokens.
 bookreader_auth_seconds = 10*60
 
+# Base URL for BookReader
+#bookreader_stream_base = 'http://www.archive.org/stream'
+# XXXmang change to www once BookReader launched
+bookreader_stream_base = 'http://www-testflip.archive.org/stream'
 
 ########## Page Handlers
 
@@ -287,7 +291,8 @@ def get_loan_link(edition, type):
     raise Exception('Unknown resource type %s for loan of edition %s', edition.key, type)
     
 def get_bookreader_link(edition):
-    return "http://www.archive.org/stream/%s" % (edition.ocaid)
+    """Returns the link to the BookReader for the edition"""
+    return "%s/%s" % (bookreader_stream_base, edition.ocaid)
     
 def get_loan_key(resource_id):
     """Get the key for the loan associated with the resource_id"""
