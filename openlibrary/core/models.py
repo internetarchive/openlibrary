@@ -11,6 +11,8 @@ import helpers as h
 #TODO: fix this. openlibrary.core should not import plugins.
 from openlibrary.plugins.upstream.utils import get_history
 
+# relative imports
+from lists.model import ListMixin
 
 class Image:
     def __init__(self, site, category, id):
@@ -204,7 +206,7 @@ class User(Thing):
         return self._site.new(key, doc)
 
 
-class List(Thing):
+class List(Thing, ListMixin):
     """Class to represent /type/list objects in OL.
     
     List contains the following properties:
