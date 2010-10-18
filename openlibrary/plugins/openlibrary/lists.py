@@ -160,8 +160,32 @@ class list_seeds(delegate.page):
 
         web.header("Content-Type", self.content_type)
         return delegate.RawText(formats.dump(d, self.encoding))
+
+class list_seed_yaml(list_seeds):
+    encoding = "yml"
+    content_type = "text/yaml"
+        
+class list_editions(delegate.page):
+    path = "(/people/\w+/lists/OL\d+L)/editions"
+    encoding = "json"
+
+    content_type = "application/json"
+
+    def GET(self, key):
+        list = web.ctx.site.get(key)
+        if not list:
+            raise web.notfound()
+            
+        i = web.input(limit=20, offset=0)
+        
+        limit = h.safeint(i.limit, 20)
+        offset = h.safeint(i.offset, 0)
+
+        data = dict(list.get_editions(limit=limit, offset=offset))
+        text = formats.dump(data, self.encoding)
+        return delegate.RawText(text)
     
-class list_seeds_yaml(list_seeds):
+class list_editions_yaml(list_editions):
     encoding = "yml"
     content_type = "text/yaml"
 

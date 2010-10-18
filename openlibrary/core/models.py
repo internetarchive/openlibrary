@@ -226,7 +226,7 @@ class List(Thing, ListMixin):
             key = match.group(1)
             return self._site.get(key)
     
-    def get_editions(self):
+    def _get_editions(self):
         """Returns all the editions referenced by members of this list.
         """
         #@@ Returning the editions in members instead of finding all the members.
@@ -263,7 +263,7 @@ class List(Thing, ListMixin):
         """
         return [web.storage(name=t, url=self.key + u"/tags/" + t) for t in self.tags]
         
-    def get_subjects(self):
+    def _get_subjects(self):
         """Returns list of subjects inferred from the seeds.
         Each item in the list will be a storage object with title and url.
         """
