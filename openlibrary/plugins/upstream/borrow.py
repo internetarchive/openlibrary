@@ -32,8 +32,9 @@ user_max_loans = 5
 # Once the loan fulfillment inside Digital Editions the book status server will know
 # the loan has occurred.  We allow this timeout so that we don't delete the OL loan
 # record before fulfillment because we can't find it in the book status server.
-# XXX if user borrows and immediately returns book loan will show as "not yet downloaded"
-#     for the duration of the timeout
+# XXX If a user borrows an ACS4 book and immediately returns book loan will show as
+#     "not yet downloaded" for the duration of the timeout.
+#     BookReader loan status is always current.
 loan_fulfillment_timeout_seconds = 60*5
 
 # How long bookreader loans should last
