@@ -15,7 +15,7 @@ xml_samples = ['39002054008678.yale.edu', 'flatlandromanceo00abbouoft',
     'nybc200247', 'secretcodeofsucc00stjo', 'warofrebellionco1473unit',
     'zweibchersatir01horauoft', 'onquietcomedyint00brid', '00schlgoog',
     '0descriptionofta1682unit', '1733mmoiresdel00vill', '13dipolarcycload00burk',
-    'bijouorannualofl1828cole']
+    'bijouorannualofl1828cole', 'soilsurveyrepor00statgoog']
 
 bin_samples = ['bpl_0486266893', 'flatlandromanceo00abbouoft_meta.mrc',
     'histoirereligieu05cr_meta.mrc', 'ithaca_college_75002321', 'lc_0444897283',
