@@ -2,7 +2,7 @@
 
 import re
 from pymarc import MARC8ToUnicode
-from openlibrary.catalog.marc import mnemonics
+import mnemonics
 from unicodedata import normalize
 from openlibrary.catalog.utils import tidy_isbn
 
