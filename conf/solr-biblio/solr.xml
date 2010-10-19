@@ -5,6 +5,7 @@
     <core name="authors" instanceDir="authors" />
     <core name="subjects" instanceDir="subjects" />
     <core name="editions" instanceDir="editions" />
+    <core name="inside" instanceDir="inside" />
   </cores>
 </solr>
 
