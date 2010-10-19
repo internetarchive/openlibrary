@@ -7,13 +7,15 @@ $ _x = ctx.setdefault('bodyid', 'plain')
 $ available_loans = page.get_available_loans()
 $ user_can_borrow_this = False
 $ meta_fields = page.get_ia_meta_fields()
-$ collection = meta_fields['collection']
+$if meta_fields.has_key('collection'):
+    $ collection = meta_fields['collection']
+$else:
+    $ collection = None
 $if meta_fields.has_key('contributor'):
     $ contrib = meta_fields['contributor']
 $else:
     $ contrib = None
-
-
+    
 $# $$$ Put our launch books "on hold" -- remove after Books in Browsers
 $if ctx.user and ctx.user.is_admin():
     $ bookreader_loans = filter(lambda loan: loan['type'] == 'bookreader', available_loans)
