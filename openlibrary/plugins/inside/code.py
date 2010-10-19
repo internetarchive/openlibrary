@@ -1,5 +1,6 @@
 from infogami.utils import delegate, stats
 from infogami.utils.view import render_template, public
+from infogami import config
 from lxml import etree
 
 import re, web, urllib, simplejson, httplib
@@ -19,7 +20,7 @@ def quote_snippet(snippet):
     return re_trans.sub(lambda m: trans[m.group(1)], web.htmlquote(snippet))
 
 if hasattr(config, 'plugin_inside'):
-    solr_host = config.plugin_worksearch.get['solr']
+    solr_host = config.plugin_inside['solr']
     solr_select_url = "http://" + solr_host + "/solr/inside/select"
 
 def editions_from_ia(ia):
