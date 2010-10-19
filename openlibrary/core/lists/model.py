@@ -2,10 +2,9 @@
 """
 from collections import defaultdict
 import web
-import socket
 
 from infogami import config
-import couchdb
+import couchdb.client
 
 def cached_property(name, getter):
     """Just like property, but the getter is called only for the first access. 
@@ -35,20 +34,13 @@ class ListMixin:
                 
         return [process(seed) for seed in self.seeds]
         
-    def _get_db(self):
-        try:
-            db_url = config.lists['db']
-            return couchdb.Database(db_url)
-        except (AttributeError, KeyError), e:
-            return None
-        
     def _get_seed_summary(self):
         rawseeds = self._get_rawseeds()
         keys = crossproduct(rawseeds, ['works', 'editions', 'ebooks'])
                 
         d = dict((seed, {"editions": 0, "works": 0, "ebooks": 0}) for seed in rawseeds)
         
-        for row in self._couch_view("ol/lists", keys=keys, group=True):
+        for row in self._seeds_view(keys=keys, group=True):
             key, name = row.key
             d[key][name] = row.value
         
@@ -72,7 +64,7 @@ class ListMixin:
         
     def get_works(self, limit=50, offset=0):
         keys = [[seed, "works"] for seed in self._get_rawseeds()]
-        rows = self._couch_view("ol/lists", keys=keys, reduce=False, limit=limit, skip=offset)
+        rows = self._seeds_view(keys=keys, reduce=False, limit=limit, skip=offset)
         return web.storage({
             "count": self.work_count,
             "works": [row.value for row in rows]
@@ -80,7 +72,7 @@ class ListMixin:
 
     def get_editions(self, limit=50, offset=0):
         keys = [[seed, "editions"] for seed in self._get_rawseeds()]
-        rows = self._couch_view("ol/lists", keys=keys, reduce=False, limit=limit, skip=offset)
+        rows = self._seeds_view(keys=keys, reduce=False, limit=limit, skip=offset)
         return web.storage({
             "count": self.edition_count,
             "editions": [row.value for row in rows]
@@ -88,7 +80,7 @@ class ListMixin:
         
     def get_subjects(self, limit=20):
         keys = [[seed, "subjects"] for seed in self._get_rawseeds()]
-        rows = self._couch_view("ol/lists", keys=keys, reduce=False)
+        rows = self._seeds_view(keys=keys, reduce=False)
         
         # store the counts of subject to pick the top ones
         subject_counts = defaultdict(lambda: 0)
@@ -97,7 +89,7 @@ class ListMixin:
         subject_titles = defaultdict(lambda: defaultdict(lambda: 0))
         
         for row in rows:
-            key, title = row.value
+            key, title = row.value['key'], row.value['name']
             subject_counts[key] += 1
             subject_titles[key][title] += 1
             
@@ -120,19 +112,23 @@ class ListMixin:
     def get_seeds(self):
         return [Seed(self, s) for s in self.seeds]
         
-    def _couch_view(self, name, **kw):
-        db = self._get_db()
-        
-        # XXX-Temporary: ignore errors
-        if db is None:
+    def _seeds_view(self, **kw):
+        view_url = config.get("lists", {}).get("seeds_view")
+        if not view_url:
             return []
             
-        try:
-            kw['stale'] = 'ok'
-            return db.view(name, **kw)
-        except socket.error:
-            # XXX-Temporary: ignore errors
+        kw['stale'] = 'ok'
+        view = couchdb.client.PermanentView(view_url, "seeds_view")
+        return view(**kw)
+        
+    def _updates_view(self, **kw):
+        view_url = config.get("lists", {}).get("updates_view")
+        if not view_url:
             return []
+            
+        kw['stale'] = 'ok'
+        view = couchdb.client.PermanentView(view_url, "updates_view")
+        return view(**kw)
 
 def valuesort(d):
     """Sorts the keys in the dictionary based on the values.
@@ -157,7 +153,7 @@ class Seed:
         
         if isinstance(value, basestring):
             self.document = None
-            self.key = key
+            self.key = value
             self.type = "subject"
         else:
             self.document = value

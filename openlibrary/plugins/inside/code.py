@@ -30,22 +30,24 @@ def editions_from_ia(ia):
 
 def read_from_archive(ia):
     meta_xml = 'http://www.archive.org/download/' + ia + '/' + ia + '_meta.xml'
-    tree = etree.parse(meta_xml)
-    root = tree.getroot()
     item = {}
+    try:
+        tree = etree.parse(meta_xml)
+        root = tree.getroot()
 
-    fields = ['title', 'creator', 'publisher', 'date', 'language']
+        fields = ['title', 'creator', 'publisher', 'date', 'language']
 
-    for k in 'title', 'date', 'publisher':
-        v = root.find(k)
-        if v is not None:
-            item[k] = v.text
+        for k in 'title', 'date', 'publisher':
+            v = root.find(k)
+            if v is not None:
+                item[k] = v.text
 
-    for k in 'creator', 'language':
-        v = root.findall(k)
-        if len(v):
-            item[k] = [i.text for i in v]
-
+        for k in 'creator', 'language':
+            v = root.findall(k)
+            if len(v):
+                item[k] = [i.text for i in v]
+    except:
+        pass
     return item
 
 class search_inside(delegate.page):
@@ -85,6 +87,8 @@ def ia_lookup(path):
     m = re_new_url.match(new_url)
     return m.groups()
 
+re_h1_error = re.compile('<center><h1>(.+?)</h1></center>')
+
 class snippets(delegate.page):
     path = '/search/inside/(.+)'
     def GET(self, ia):
@@ -92,5 +96,10 @@ class snippets(delegate.page):
             host, ia_path = ia_lookup('/download/' + ia)
             url = 'http://' + host + '/~edward/inside.php?item_id=' + ia + '&doc=' + ia + '&path=' + ia_path + '&q=' + web.urlquote(q)
             print url
-            return simplejson.load(urllib.urlopen(url))
+            ret = urllib.urlopen(url)
+            try:
+                return simplejson.load(ret)
+            except:
+                m = re_h1_error.search(json_data)
+                return { 'error': web.htmlunquote(m.group(1)) }
         return render_template('search/snippets.tmpl', find_matches, ia)
