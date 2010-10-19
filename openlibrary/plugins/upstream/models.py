@@ -151,6 +151,9 @@ class Edition(models.Edition):
         # </external-identifier>
         
         itemid = self.ocaid
+        if not itemid:
+            # Could be e.g. OverDrive
+            return []
         
         # Use cached value if available
 #         try:
@@ -182,14 +185,18 @@ class Edition(models.Edition):
         
     def get_lending_resource_id(self, type):
         if type == 'bookreader':
-            # XXXmang is the ocaid always set?
-            return 'bookreader:%s' % self.ocaid
+            desired = 'bookreader:'
         else:
             desired = 'acs:%s:' % type
             
         for urn in self.get_lending_resources():
-            if urn.startswith(desired):
-                return urn[len(desired):]
+            if urn.startswith(desired):            
+                # Got a match                
+                # $$$ a little icky - prune the acs:type if present
+                if urn.startswith('acs:'):
+                    urn = urn[len(desired):]
+                    
+                return urn
 
         return None
         
