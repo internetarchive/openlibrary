@@ -40,7 +40,7 @@ class ListMixin:
                 
         d = dict((seed, {"editions": 0, "works": 0, "ebooks": 0}) for seed in rawseeds)
         
-        for row in self._couch_view("ol/lists", keys=keys, group=True):
+        for row in self._seeds_view(keys=keys, group=True):
             key, name = row.key
             d[key][name] = row.value
         
