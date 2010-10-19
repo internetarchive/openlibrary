@@ -486,7 +486,7 @@ def user_can_borrow_edition(user, edition, type):
     if user.get_loan_count() >= user_max_loans:
         return False
     
-    if type in [loan['type'] for loan in edition.get_available_loans()]:
+    if type in [loan['resource_type'] for loan in edition.get_available_loans()]:
         return True
     
     return False

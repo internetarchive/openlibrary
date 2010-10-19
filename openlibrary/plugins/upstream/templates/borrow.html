@@ -18,7 +18,7 @@ $else:
     
 $# $$$ Put our launch books "on hold" -- remove after Books in Browsers
 $if ctx.user and ctx.user.is_admin():
-    $ bookreader_loans = filter(lambda loan: loan['type'] == 'bookreader', available_loans)
+    $ bookreader_loans = filter(lambda loan: loan['resource_type'] == 'bookreader', available_loans)
     $if bookreader_loans:
         <div class="small sansserif clearfix"><br/><span class="adminOnly">Showing BookReader loan</span></div>
 $else:
@@ -29,7 +29,7 @@ $else:
        <!-- holding book -->
 
     $# Don't show BookReader loans yet
-    $ available_loans = filter(lambda loan: loan['type'] != 'bookreader', available_loans)
+    $ available_loans = filter(lambda loan: loan['resource_type'] != 'bookreader', available_loans)
 
 <div id="contentBody">
 

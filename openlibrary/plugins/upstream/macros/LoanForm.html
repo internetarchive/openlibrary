@@ -11,10 +11,10 @@ $else:
     $# sort loans
     $code:
         def loan_key(loan):
-            if loan['type'] == default_type:
-                return '1-%s' % loan['type']
+            if loan['resource_type'] == default_type:
+                return '1-%s' % loan['resource_type']
             else:
-                return '2-%s' % loan['type']
+                return '2-%s' % loan['resource_type']
                 
         available_loans.sort(key=loan_key)
 
@@ -24,13 +24,13 @@ $else:
  
     <form method="post" id="borrowBook" name="borrowBook" class="olform">
     $for loan in available_loans:
-        $ type_str, desc = type_info.get(loan['type'], (loan['type'], ''))
+        $ type_str, desc = type_info.get(loan['resource_type'], (loan['resource_type'], ''))
         <p class="large preSubmit" style="margin-left:30px;">
             <label>
-            $if loan['type'] == default_type or len(available_loans) == 1:
-                <input type="radio" name="format" value="$loan['type']" checked="checked"/>
+            $if loan['resource_type'] == default_type or len(available_loans) == 1:
+                <input type="radio" name="format" value="$loan['resource_type']" checked="checked"/>
             $else:
-                <input type="radio" name="format" value="$loan['type']" />  
+                <input type="radio" name="format" value="$loan['resource_type']" />  
             <strong style="padding-left:10px;">$type_str</strong> 
             <span class="smaller grey">$desc</span>
             </label>

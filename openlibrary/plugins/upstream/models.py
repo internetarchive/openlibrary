@@ -201,7 +201,7 @@ class Edition(models.Edition):
         return None
         
     def get_available_loans(self):
-        """Returns [{'resource_id': uuid, 'type': type, 'size': bytes}]
+        """Returns [{'resource_id': uuid, 'resource_type': type, 'size': bytes}]
         
         size may be None"""
         
@@ -214,17 +214,17 @@ class Edition(models.Edition):
             print 'RESOURCE %s' % resource_urn
             if resource_urn.startswith('acs:'):
                 (type, resource_id) = re.match(resource_pattern, resource_urn).groups()
-                loans.append( { 'resource_id': resource_id, 'type': type, 'size': None } )
+                loans.append( { 'resource_id': resource_id, 'resource_type': type, 'size': None } )
             elif resource_urn.startswith('bookreader'):
-                loans.append( { 'resource_id': resource_urn, 'type': 'bookreader', 'size': None } )
+                loans.append( { 'resource_id': resource_urn, 'resource_type': 'bookreader', 'size': None } )
             
         
         # Put default type at start of list, then sort by type name
         def loan_key(loan):
-            if loan['type'] == default_type:
-                return '1-%s' % loan['type']
+            if loan['resource_type'] == default_type:
+                return '1-%s' % loan['resource_type']
             else:
-                return '2-%s' % loan['type']        
+                return '2-%s' % loan['resource_type']        
         loans = sorted(loans, key=loan_key)
         
         # Check if we have a possible loan - may not yet be fulfilled in ACS4
