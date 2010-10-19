@@ -2,7 +2,6 @@
 """
 from collections import defaultdict
 import web
-import socket
 
 from infogami import config
 import couchdb.client
@@ -152,7 +151,7 @@ class Seed:
         
         if isinstance(value, basestring):
             self.document = None
-            self.key = key
+            self.key = value
             self.type = "subject"
         else:
             self.document = value
