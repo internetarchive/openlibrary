@@ -89,7 +89,7 @@ class ListMixin:
         subject_titles = defaultdict(lambda: defaultdict(lambda: 0))
         
         for row in rows:
-            key, title = row.value
+            key, title = row.value['key'], row.value['name']
             subject_counts[key] += 1
             subject_titles[key][title] += 1
             
@@ -117,6 +117,7 @@ class ListMixin:
         if not view_url:
             return []
             
+        kw['stale'] = 'ok'
         view = couchdb.client.PermanentView(view_url, "seeds_view")
         return view(**kw)
         
@@ -125,6 +126,7 @@ class ListMixin:
         if not view_url:
             return []
             
+        kw['stale'] = 'ok'
         view = couchdb.client.PermanentView(view_url, "updates_view")
         return view(**kw)
 
