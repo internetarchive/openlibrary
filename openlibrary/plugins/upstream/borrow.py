@@ -127,13 +127,14 @@ class borrow(delegate.page):
             for loan in loans:
                 if loan['book'] == edition.key and can_return_resource_type(loan['resource_type']):
                     user_loan = loan
+                    break
                     
             if not user_loan:
                 # $$$ add error message
                 raise web.seeother(error_redirect)
                 
             # They have it -- return it
-            return_resource(loan['resource_id'])
+            return_resource(user_loan['resource_id'])
             
             # Get updated loans
             loans = get_loans(user)

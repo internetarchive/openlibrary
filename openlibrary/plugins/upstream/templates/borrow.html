@@ -165,6 +165,7 @@ $else:
         $elif page.key in [loan['book'] for loan in loans]:
             $# checked out by this user!
             
+            $# find the loan
             $for candidate in loans:
                 $if candidate['book'] == page.key:
                     $ active_loan = candidate
@@ -182,11 +183,11 @@ $else:
                     <p>This loan is on hold for about 5 minutes. If you don't open it up within that time, someone else may borrow it. <a href="$active_loan['loan_link']">Download again</a>?</p>
                 </div>
                 
-            $if can_return_resource_type(candidate['resource_type']):
+            $if can_return_resource_type(active_loan['resource_type']):
                 <div class="message info">
                     <h2 class="sansserif">This book can be returned.</h2>
                     <p>
-                    $:macros.ReturnForm(candidate)
+                    $:macros.ReturnForm(active_loan)
                     </p>
                 </div>
             $else:
