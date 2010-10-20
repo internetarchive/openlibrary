@@ -121,6 +121,8 @@ class borrow(delegate.page):
             user.update_loan_status()
             loans = get_loans(user)
 
+            # We pick the first loan that the user has for this book that is returnable.
+            # Assumes a user can't borrow multiple formats (resource_type) of the same book.
             user_loan = None
             for loan in loans:
                 if loan['book'] == edition.key and can_return_resource_type(loan['resource_type']):
