@@ -7,8 +7,8 @@ $ _x = ctx.setdefault('usergroup', 'admin')
     <div class="smaller grey"><a href="/admin">Admin</a> /</div>
     <h1>Outstanding eBook Loans</h1>
     <p id="note">
-        <em class="red">Note:</em> Loan status is updated on demand (when a user looks at a borrow page or their own loans) as well as periodically.
-        To immediately refresh the status of all loans click below.
+        <em class="red">Note:</em> ACS4 loan status for ePub and PDF is updated on demand (when a user looks at a borrow page or their own loans).
+        BookReader loan status is always current.  To immediately refresh the status of all loans click below.
     </p>
     <p>
         <form method="post" id="adminAction" name="adminAction" class="olform">
@@ -30,6 +30,7 @@ $ _x = ctx.setdefault('usergroup', 'admin')
                     $len(loans) $_("Current Loans")
                 </th>
                 <th class="expires">$_("Loan Expires")</th>
+                <th class="what">$_("What")</th>
                 <th>$_("Who")</th>
                 <th>$_("Actions")</th>
             </tr>
@@ -57,6 +58,16 @@ $ _x = ctx.setdefault('usergroup', 'admin')
                 </td>
                 <td class="expires">
                     $:macros.FormatExpiry(loan['expiry'])
+                </td>
+                <td class="user">
+                    $if loan['resource_type'] == 'pdf':
+                        PDF
+                    $elif loan['resource_type'] == 'epub':
+                        ePub
+                    $elif loan['resource_type'] == 'bookreader':
+                        BookReader
+                    $else:
+                        $loan['resource_type']
                 </td>
                 <td class="user">
                     $ user = get_document(loan['user'])
