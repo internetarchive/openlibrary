@@ -17,9 +17,6 @@ import _init_path
 
 import web
 
-import infogami
-from infogami import config
-
 def setup_env():
     # make sure PYTHON_EGG_CACHE is writable
     os.environ['PYTHON_EGG_CACHE'] = "/tmp/.python-eggs"
@@ -27,16 +24,60 @@ def setup_env():
     # required when run as fastcgi
     os.environ['REAL_SCRIPT_NAME'] = ""
 
-def main(args):
+def start_server():
+    args = sys.argv[1:]
+    
     if len(args) < 1 or sys.argv[0] in ['-h', '--help']:
         print >> sys.stderr, "USAGE: %s configfile [subcommand] [arguments]" % (sys.argv[0])
         sys.exit(1)
+
+    import infogami
+    from infogami import config
         
     config.plugin_path += ['openlibrary.plugins']
     config.site = "openlibrary.org"
     
-    setup_env()
     infogami.main(*args)
 
+def start_gunicorn_server():
+    """Starts the coverstore server using gunicorn server.
+    """
+    from gunicorn.app.base import Application
+
+    configfile = sys.argv.pop(1)
+    
+    def dummy(*a, **kw):
+        pass
+
+    class WSGIServer(Application):
+        def init(self, parser, opts, args):
+            pass
+
+        def load(self):
+            import infogami
+            from infogami import config
+            from infogami.utils import delegate
+            
+            config.plugin_path += ['openlibrary.plugins']
+            config.site = "openlibrary.org"
+            
+            # add a dummy action and run it
+            infogami.action(dummy)
+            infogami.main(configfile, "dummy")
+            
+            wsgi_app = delegate.app.wsgifunc(*config.middleware)
+            return wsgi_app
+
+    WSGIServer("%prog openlibrary.yml --gunicorn [options]").run()
+
+def main():
+    setup_env()
+    
+    if "--gunicorn" in sys.argv:
+        sys.argv.pop(sys.argv.index("--gunicorn"))        
+        start_gunicorn_server()
+    else:
+        start_server()
+
 if __name__ == "__main__":
-    main(sys.argv[1:])
+    main()
