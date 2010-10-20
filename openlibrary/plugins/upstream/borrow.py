@@ -38,7 +38,7 @@ user_max_loans = 5
 loan_fulfillment_timeout_seconds = 60*5
 
 # How long bookreader loans should last
-bookreader_loan_seconds = 120 # XXXmang testing value
+bookreader_loan_seconds = 60*60*24*14
 
 # How long the auth token given to the BookReader should last.  After the auth token
 # expires the BookReader will not be able to access the book.  The BookReader polls
