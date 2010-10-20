@@ -1,4 +1,4 @@
-$def with (page, loans, user_did_return)
+$def with (page, loans, has_returned_recently)
 
 $var title: $page.title
 
@@ -186,7 +186,7 @@ $else:
                 <div class="message info">
                     <h2 class="sansserif">This book can be returned.</h2>
                     <p>
-                    $:macros.ReturnForm(page, candidate)
+                    $:macros.ReturnForm(candidate)
                     </p>
                 </div>
             $else:
@@ -211,8 +211,8 @@ $else:
             $# We can borrow it!
             $ user_can_borrow_this = True
             
-        $if user_did_return:
-            $# Have returned this book
+        $if has_returned_recently and not page.key in [loan['book'] for loan in loans]:
+            $# May have returned this book and not currently borrowed
             <div class="message info">
                 <h2 class="sansserif">You've returned this book.</h2>
                 <p>There are more books available in the <a href="/subjects/lending_library">lending library</a>.</p>

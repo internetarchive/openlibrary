@@ -137,6 +137,8 @@ class borrow(delegate.page):
             loans = get_loans(user)
             
             # Show the page with "you've returned this"
+            # $$$ this would do better in a session variable that can be cleared
+            #     after the message is shown once
             raise web.seeother(edition.url('/borrow?r=t'))
             
         else:
