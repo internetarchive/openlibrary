@@ -25,6 +25,10 @@ loanstatus_url = config.get('loanstatus_url')
 
 content_server = None
 
+# ACS4 resource ids start with 'urn:uuid:'.  The meta.xml on archive.org
+# adds 'acs:epub:' or 'acs:pdf:' to distinguish the file type.
+acs_resource_id_prefixes = ['urn:uuid:', 'acs:epub:', 'acs:pdf:']
+
 # Max loans a user can have at once
 user_max_loans = 5
 
@@ -428,6 +432,9 @@ def update_loan_from_bss_status(loan_key, loan, status):
     
     global loan_fulfillment_timeout_seconds
     
+    if not resource_uses_bss(loan['resource_id']):
+        raise Exception('Tried to update loan %s with ACS4/BSS status when it should not use BSS' % loan_key)
+    
     if not is_loaned_out_from_status(status):
         # No loan record, or returned or expired
         
@@ -463,22 +470,35 @@ def update_all_loan_status():
     bss_resource_ids = [status['resourceid'] for status in bss_statuses]
 
     while not all_updated:
+        # Could just get epub and pdf loans here since they're the ones that use BSS
         ol_loan_keys = [row['key'] for row in web.ctx.site.store.query('/type/loan', limit=limit, offset=offset)]
         
         # Update status of each loan
         for loan_key in ol_loan_keys:
             loan = web.ctx.site.store.get(loan_key)
-            try:
-                status = bss_statuses[ bss_resource_ids.index(loan['resource_id']) ]
-            except ValueError:
-                status = None
-                
-            update_loan_from_bss_status(loan_key, loan, status)
+            
+            if resource_uses_bss(loan['resource_id']):
+                try:
+                    status = bss_statuses[ bss_resource_ids.index(loan['resource_id']) ]
+                except ValueError:
+                    status = None
+                    
+                update_loan_from_bss_status(loan_key, loan, status)
         
         if len(ol_loan_keys) < limit:
             all_updated = True
         else:        
             offset += len(ol_loan_keys)
+            
+def resource_uses_bss(resource_id):
+    """Returns true if the resource should use the BSS for status"""
+    global acs_resource_id_prefixes
+    
+    if resource_id:
+        for prefix in acs_resource_id_prefixes:
+            if resource_id.startswith(prefix):
+                return True
+    return False
 
 def user_can_borrow_edition(user, edition, type):
     """Returns true if the user can borrow this edition given their current loans.  Returns False if the
