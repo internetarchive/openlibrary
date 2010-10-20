@@ -123,7 +123,7 @@ class borrow(delegate.page):
 
             user_loan = None
             for loan in loans:
-                if loan['user'] == user.key:
+                if loan['book'] == edition.key and can_return_resource_type(loan['resource_type']):
                     user_loan = loan
                     
             if not user_loan:
