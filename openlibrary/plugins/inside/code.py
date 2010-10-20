@@ -1,5 +1,6 @@
 from infogami.utils import delegate, stats
-from infogami.utils.view import render_template
+from infogami.utils.view import render_template, public
+from infogami import config
 from lxml import etree
 
 import re, web, urllib, simplejson, httplib
@@ -18,7 +19,9 @@ re_trans = re.compile(r'(\n|\{\{\{|\}\}\})')
 def quote_snippet(snippet):
     return re_trans.sub(lambda m: trans[m.group(1)], web.htmlquote(snippet))
 
-solr_select_url = 'http://ia331509:8984/solr/inside/select'
+if hasattr(config, 'plugin_inside'):
+    solr_host = config.plugin_inside['solr']
+    solr_select_url = "http://" + solr_host + "/solr/inside/select"
 
 def editions_from_ia(ia):
     q = {'type': '/type/edition', 'ocaid': ia}
@@ -30,23 +33,38 @@ def editions_from_ia(ia):
 
 def read_from_archive(ia):
     meta_xml = 'http://www.archive.org/download/' + ia + '/' + ia + '_meta.xml'
-    tree = etree.parse(meta_xml)
-    root = tree.getroot()
     item = {}
+    try:
+        tree = etree.parse(meta_xml)
+        root = tree.getroot()
 
-    fields = ['title', 'creator', 'publisher', 'date', 'language']
+        fields = ['title', 'creator', 'publisher', 'date', 'language']
 
-    for k in 'title', 'date', 'publisher':
-        v = root.find(k)
-        if v is not None:
-            item[k] = v.text
+        for k in 'title', 'date', 'publisher':
+            v = root.find(k)
+            if v is not None:
+                item[k] = v.text
 
-    for k in 'creator', 'language':
-        v = root.findall(k)
-        if len(v):
-            item[k] = [i.text for i in v]
-
+        for k in 'creator', 'language':
+            v = root.findall(k)
+            if len(v):
+                item[k] = [i.text for i in v]
+    except:
+        pass
     return item
+
+@public
+def search_inside_result_count(q):
+    q = escape_bracket(q)
+    solr_select = solr_select_url + "?fl=ia&q.op=AND&wt=json&q=" + web.urlquote(q)
+    stats.begin("solr", url=solr_select)
+    json_data = urllib.urlopen(solr_select).read()
+    stats.end()
+    try:
+        results = simplejson.loads(json_data)
+    except:
+        return None
+    return results['response']['numFound']
 
 class search_inside(delegate.page):
     path = '/search/inside'
@@ -55,7 +73,6 @@ class search_inside(delegate.page):
         def get_results(q, offset=0, limit=100, snippets=3, fragsize=200):
             q = escape_bracket(q)
             solr_select = solr_select_url + "?fl=ia,body_length,page_count&hl=true&hl.fl=body&hl.snippets=%d&hl.mergeContiguous=true&hl.usePhraseHighlighter=false&hl.simple.pre={{{&hl.simple.post=}}}&hl.fragsize=%d&q.op=AND&q=%s&start=%d&rows=%d&qf=body&qt=standard&hl.maxAnalyzedChars=1000000&wt=json" % (snippets, fragsize, web.urlquote(q), offset, limit)
-            print solr_select
             stats.begin("solr", url=solr_select)
             json_data = urllib.urlopen(solr_select).read()
             stats.end()
@@ -74,7 +91,6 @@ def ia_lookup(path):
         h1.request("GET", path)
         res = h1.getresponse()
         res.read()
-        #print (res.status, res.reason)
         if res.status != 200:
             break
     assert res.status == 302
@@ -85,12 +101,18 @@ def ia_lookup(path):
     m = re_new_url.match(new_url)
     return m.groups()
 
+re_h1_error = re.compile('<center><h1>(.+?)</h1></center>')
+
 class snippets(delegate.page):
     path = '/search/inside/(.+)'
     def GET(self, ia):
         def find_matches(ia, q):
             host, ia_path = ia_lookup('/download/' + ia)
-            url = 'http://' + host + '/~edward/inside.php?item_id=' + ia + '&doc=' + ia + '&path=' + ia_path + '&q=' + web.urlquote(q)
-            print url
-            return simplejson.load(urllib.urlopen(url))
+            url = 'http://' + host + '/fulltext/inside.php?item_id=' + ia + '&doc=' + ia + '&path=' + ia_path + '&q=' + web.urlquote(q)
+            ret = urllib.urlopen(url)
+            try:
+                return simplejson.load(ret)
+            except:
+                m = re_h1_error.search(ret)
+                return { 'error': web.htmlunquote(m.group(1)) }
         return render_template('search/snippets.tmpl', find_matches, ia)
