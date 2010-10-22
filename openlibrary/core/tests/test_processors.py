@@ -1,4 +1,4 @@
-from openlibrary.core import processors
+from openlibrary.core.processors import readableurls as processors
 from infogami.infobase import client, common
 import web
 
@@ -134,4 +134,3 @@ def test_list_urls():
         u"/people/joe/lists/OL1L", 
         u"/people/joe/lists/OL1L/foo"
     )
-    
