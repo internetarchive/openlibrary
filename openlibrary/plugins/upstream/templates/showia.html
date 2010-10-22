@@ -1,28 +1,32 @@
-$def with (record, filename)
+$def with (xml_record, filename, record)
 
 $ title = "MARC XML Record from Internet Archive"
+$ bin = filename.replace('_marc.xml', '_meta.mrc')
 
 $var title: $title
 
 <div id="contentHead">
     <h1>$title</h1>
 </div>
-
 <div id="contentBody">
     <div class="section">
         <table class="meta">
             <tbody>
                 <tr>
                     <td class="title"><span class="title">Record ID</span></td>
-                    <td class="tag"><span class="object">ia:$filename</span></td>
+                    <td><span class="object">ia:$filename</span></td>
                 </tr>
                 <tr>
                     <td class="title"><span class="title">Source</span></td>
-                    <td class="tag"><span class="object"><a href="http://www.archive.org/details/$filename.split('/')[0]">Internet Archive</a></span></td>
+                    <td><span class="object"><a href="http://www.archive.org/details/$filename.split('/')[0]">Internet Archive</a></span></td>
                 </tr>
                 <tr>
-                    <td class="title"><span class="title">Download Link</span></td>
-                    <td class="tag"><span class="object"><a href="http://www.archive.org/download/$filename">http://www.archive.org/download/$filename</a></span></td>
+                    <td class="title"><span class="title">Download MARC XML</span></td>
+                    <td><span class="object"><a href="http://www.archive.org/download/$filename">http://www.archive.org/download/$filename</a></span></td>
+                </tr>
+                <tr>
+                    <td class="title"><span class="title">Download MARC binary</span></td>
+                    <td><span class="object"><a href="http://www.archive.org/download/$bin">http://www.archive.org/download/$bin</a></span></td>
                 </tr>
             </tbody>
         </table>
@@ -31,5 +35,6 @@ $var title: $title
     $if not record:
         <p>$_("Invalid MARC XML record.")</p>
     $else:
-        <pre>$record</pre>
+        <p><b>LEADER:</b> <code>$record.leader</code><br/>
+        $:record.html()</p>
 </div>
