@@ -45,6 +45,7 @@ def start_gunicorn_server():
     from gunicorn.app.base import Application
 
     configfile = sys.argv.pop(1)
+    web.config.debug = False
     
     def dummy(*a, **kw):
         pass
