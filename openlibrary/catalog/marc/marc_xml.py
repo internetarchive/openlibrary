@@ -94,7 +94,6 @@ class MarcXml(MarcBase):
                 continue
             if i.attrib['tag'] == '':
                 raise BlankTag
-            assert i.attrib['tag'].isdigit() 
             yield i.attrib['tag'], i
 
     def read_fields(self, want):
