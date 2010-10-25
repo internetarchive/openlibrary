@@ -53,8 +53,8 @@ class MockSite:
         
     def get(self, key, revision=None):
         data = self.docs.get(key)
-        data = web.storage(common.parse_query(data))
-        return client.create_thing(self, key, self._process_dict(data))
+        data = data and web.storage(common.parse_query(data))
+        return data and client.create_thing(self, key, self._process_dict(data))
 
     def _process(self, value):
         if isinstance(value, list):

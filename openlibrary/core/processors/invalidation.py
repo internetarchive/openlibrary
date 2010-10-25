@@ -73,7 +73,7 @@ class InvalidationProcessor:
 
         self.cookie_name = cookie_name
         self.last_poll_time = datetime.datetime.utcnow()
-        self.last_update_time = self.last_poll_time - self.timeout
+        self.last_update_time = self.last_poll_time
         
         # set expire_time slightly more than timeout
         self.expire_time = 3 * timeout
@@ -83,22 +83,16 @@ class InvalidationProcessor:
         def t(date):
             return date.isoformat().split("T")[-1]
             
-        log(web.ctx.method, web.ctx.fullpath, t(self.last_update_time), t(self.last_poll_time))
-        
         cookie_time = self.get_cookie_time()
         
-        # last update in recent timeout seconds?
-        has_recent_update = (self.last_poll_time - self.last_update_time) < self.timeout
-        print "has_recent_update", has_recent_update, self.last_poll_time - self.last_update_time
-        
         if cookie_time and cookie_time > self.last_poll_time:
-            log("cookie reload", cookie_time)
             self.reload()
         elif self.is_timeout():
-            log("timeout reload")
             self.reload()
-        elif has_recent_update and (cookie_time is None or cookie_time < self.last_update_time):
-            log("setcookie", cookie_time, self.last_update_time)
+
+        # last update in recent timeout seconds?
+        has_recent_update = (self.last_poll_time - self.last_update_time) < self.timeout
+        if has_recent_update and (cookie_time is None or cookie_time < self.last_update_time):
             web.setcookie(self.cookie_name, self.last_update_time.isoformat(), expires=self.expire_time)
 
         return handler()
@@ -124,24 +118,27 @@ class InvalidationProcessor:
         """Triggers on_new_version event for all the documents modified since last_poll_time.
         """
         t = datetime.datetime.utcnow()
+        reloaded = False
 
         keys = []
         for prefix in self.prefixes:
-            q = {"key~": prefix + "*", "last_modified>": self.last_poll_time.isoformat()}
-            keys += things(q)
+            q = {"key~": prefix + "*", "last_modified>": self.last_poll_time.isoformat(), "limit": 1000}
+            keys += web.ctx.site.things(q)
     
-        log("reload", keys)
         if keys:
             web.ctx._invalidation_inprogress = True
-            docs = get_many(keys)
+            docs = web.ctx.site.get_many(keys)
             for doc in docs:
                 try:
                     client._run_hooks("on_new_version", doc)
                 except Exception:
                     pass
+            self.last_update_time = max(doc.last_modified for doc in docs)
+            reloaded = True
             del web.ctx._invalidation_inprogress
 
         self.last_poll_time = t
+        return reloaded
         
 class _InvalidationHook:
     """Infogami client hook to get notification on edits. 
@@ -161,26 +158,10 @@ class _InvalidationHook:
             # This event is triggered from invalidation. ignore it.
             return
             
-        print "on_new_version", doc.key
         if any(doc.key.startswith(prefix) for prefix in self.prefixes):
             # The supplied does doesn't have the updated last_modified time. 
             # Fetch the document afresh to get the correct last_modified time.
-            doc = get_doc(doc.key)
+            doc = web.ctx.site.get(doc.key)
             t = doc.last_modified
             
-            log("hook setcookie", doc.key, t.isoformat())
             web.setcookie(self.cookie_name, t.isoformat(), expires=self.expire_time)
-            
-def get_doc(key):
-    return web.ctx.site.get(key)
-    
-def get_many(keys):
-    return web.ctx.site.get_many(keys)
-    
-def things(query):
-    return web.ctx.site.things(query)
-        
-def log(*args):
-    import os, sys
-    args = [os.getpid()] + list(args)
-    print >> sys.stderr, " ".join(str(a) for a in args)
