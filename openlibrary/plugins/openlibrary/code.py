@@ -28,7 +28,7 @@ delegate.app.add_processor(processors.ReadableUrlProcessor())
 delegate.app.add_processor(processors.ProfileProcessor())
 
 def setup_invalidation_processor():
-    from openlibrary.core import processors
+    from openlibrary.core.processors.invalidation import InvalidationProcessor
     
     config = infogami.config.get("invalidation", {})
 
@@ -36,11 +36,8 @@ def setup_invalidation_processor():
     timeout = config.get("timeout", 60)
     cookie_name = config.get("cookie", "invalidation_timestamp")
     
-    print "prefixes", prefixes
-    print "timeout", timeout
-    
     if prefixes:
-        p = processors.InvalidationProcessor(prefixes, timeout=timeout, cookie_name=cookie_name)
+        p = InvalidationProcessor(prefixes, timeout=timeout, cookie_name=cookie_name)
         delegate.app.add_processor(p)
         client.hooks.append(p.hook)
 
