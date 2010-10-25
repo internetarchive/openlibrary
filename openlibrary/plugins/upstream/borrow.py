@@ -1,5 +1,6 @@
 """Handlers for borrowing books"""
 
+import copy
 import datetime, time
 import hmac
 import simplejson
@@ -266,14 +267,35 @@ def can_return_resource_type(resource_type):
         
 ########## Helper Functions
 
+def get_all_store_values(**query):
+    """Get all values by paging through all results"""
+    query = copy.deepcopy(query)
+    if not query.has_key('limit'):
+        query['limit'] = 500
+    query['offset'] = 0
+    values = []
+    got_all = False
+    
+    while not got_all:
+        new_values = web.ctx.site.store.values(**query)
+        values.extend(new_values)
+        if len(new_values) < query['limit']:
+            got_all = True
+        query['offset'] += len(new_values)
+    return values
+
 def get_all_loans():
-    return web.ctx.site.store.values(type='/type/loan')
+    # return web.ctx.site.store.values(type='/type/loan')
+    return get_all_store_values(type='/type/loan')
 
 def get_loans(user):
-    return web.ctx.site.store.values(type='/type/loan', name='user', value=user.key)
+    # return web.ctx.site.store.values(type='/type/loan', name='user', value=user.key)
+    return get_all_store_values(type='/type/loan', name='user', value=user.key)    
 
 def get_edition_loans(edition):
-    return web.ctx.site.store.values(type='/type/loan', name='book', value=edition.key)
+    # return web.ctx.site.store.values(type='/type/loan', name='book', value=edition.key)
+    return get_all_store_values(type='/type/loan', name='book', value=edition.key)
+
     
 def get_loan_link(edition, type):
     """Get the loan link, which may be an ACS4 link or BookReader link depending on the loan type"""
