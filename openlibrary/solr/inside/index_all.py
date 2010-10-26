@@ -12,7 +12,7 @@ def add_field(doc, name, value):
     field.text = normalize('NFC', unicode(value))
     doc.append(field)
 
-solr_host = 'ia331504:8983'
+solr_host = 'ia331509:8984'
 
 def find_abbyy(dir_html, ia):
     if 'abbyy' not in dir_html:
@@ -38,6 +38,10 @@ items_processed = 0
 input_counter_lock = threading.Lock()
 input_count = 0
 total = 1899481
+current_book_lock = threading.Lock()
+current_book = None
+solr_ia_status_lock = threading.Lock()
+solr_ia_status = None
 
 re_ia_host = re.compile('^ia(\d+).us.archive.org$')
 def use_secondary(host):
@@ -52,23 +56,19 @@ def use_primary(host):
 
 def add_to_item_queue():
     global input_count
-    print 'add_to_item_queue'
     skip = None
     for line in open('/home/edward/scans/book_data_2010-10-15'):
         input_counter_lock.acquire()
         input_count += 1
         input_counter_lock.release()
-        #(ia, title, collection, imagecount, foldoutcount, scandate_dt, scancenter, size, scanner, repub_state) = eval(line)
         ia = line[:-1]
         if skip:
             if ia == skip:
                 skip = None
             continue
-        #collection = set(collection.split(';'))
-        #if 'printdisabled' in collection or 'lendinglibrary' in collection:
-        #    continue
-        #if ia[0] == '(' and ia[-1] == ')':
-        #    continue
+        current_book_lock.acquire()
+        current_book = ia
+        current_book_lock.release()
         item_queue.put(ia)
 
 re_loc = re.compile('^(ia\d+\.us\.archive\.org):(/\d+/items/(.*))$')
@@ -208,11 +208,15 @@ def run_solr_queue():
         response = h1.getresponse()
         response_body = response.read()
         assert response.reason == 'OK'
+        solr_ia_status_lock.acquire()
+        solr_ia_status = ia
+        solr_ia_status_lock.release()
         solr_queue.task_done()
 
 t0 = time()
 
 def status_thread():
+    sleep(1)
     while True:
         run_time = time() - t0
         print 'run time:         %8.2f minutes' % (float(run_time) / 60)
@@ -233,6 +237,12 @@ def status_thread():
         counter_lock.acquire()
         print 'items processed:  %8d (%.2f items/second)' % (items_processed, float(items_processed) / run_time)
         counter_lock.release()
+        current_book_lock.acquire()
+        print 'current book:', current_book
+        current_book_lock.release()
+        solr_ia_status_lock.acquire()
+        print 'most recently feed to solr:', solr_ia_status
+        solr_ia_status_lock.release()
 
         host_count = 0
         queued_items = 0
