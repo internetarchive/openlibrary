@@ -486,7 +486,7 @@ def update_all_loan_status():
     bss_resource_ids = [status['resourceid'] for status in bss_statuses]
 
     for resource_type in ['epub', 'pdf']:
-        print "XXX updating %s" % resource_type
+        # print "updating %s loans" % resource_type
         
         offset = 0
         limit = 500
