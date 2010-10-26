@@ -337,7 +337,7 @@ class SaveBookHelper:
                 self.delete(self.edition.key, comment=comment)
             
             if self.work and self.work.edition_count == 0:
-                self.delete(self.work.key, comment=comment, action="delete")
+                self.delete(self.work.key, comment=comment)
             return
             
         for i, author in enumerate(work_data.get("authors") or []):

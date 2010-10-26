@@ -16,9 +16,11 @@ $if len(loans) >= 5:
 <div id="contentHead">
     <div class="small sansserif grey" style="margin-bottom:5px;"">$:_("%(user)s", user='<a href="%s">%s</a>' % (ctx.user.key, ctx.user.displayname)) /</div>
     <h1>$_("Books You've Checked Out")</h1>
+
 </div>
 
 <div id="contentBody">
+
 $if len(loans) > 0:
     $# Have current loans
     <div id="borrowTable" class="borrow collapse">
@@ -32,6 +34,7 @@ $if len(loans) > 0:
                     $len(loans) $_("Current Loans")
                 </th>
                 <th class="expires">$_("Loan Expires")</th>
+                <th class="actions">$_("Loan actions")</th>
             </tr>
         </thead>
         <tbody>
@@ -57,6 +60,11 @@ $if len(loans) > 0:
                 </td>
                 <td class="expires">
                     $:macros.FormatExpiry(loan['expiry'])
+                </td>
+                <td class="actions">
+                    $if loan['resource_type'] == 'bookreader':
+                        <a href="$loan['loan_link']">Read Online</a>
+                        $:macros.ReturnForm(loan)
                 </td>
             </tr>
         </tbody>

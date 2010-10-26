@@ -1,5 +1,5 @@
-#!/usr/bin/python2.5
-from openlibrary.catalog.marc.fast_parse import *
+#!/usr/bin/python
+from fast_parse import *
 from marc_binary import MarcBinary
 import parse
 #from parse import read_edition, SeeAlsoAsTitle, NoTitle
@@ -68,9 +68,9 @@ for data, length in read_file(f):
     if verbose:
         show_book(data)
         print
-    marc_rec = MarcBinary(data)
-    edition_marc_bin = parse.read_edition(marc_rec)
-    print edition_marc_bin
+    #marc_rec = MarcBinary(data)
+    #edition_marc_bin = parse.read_edition(marc_rec)
+    #print edition_marc_bin
     if build_rec:
         pprint(build_record(data))
         print
@@ -82,7 +82,7 @@ for data, length in read_file(f):
     except BadDictionary:
         bad_dict += 1
         continue
-    if not rec:
+    except NotBook:
         if show_non_books:
             show_book(data)
             print

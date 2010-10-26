@@ -138,9 +138,11 @@ class Edition(models.Edition):
 #         return 'lendinglibrary' in collections
         
     def get_lending_resources(self):
-        """Returns the loan resource identifiers (in meta.xml format) for books hosted on archive.org
+        """Returns the loan resource identifiers (in meta.xml format for ACS4 resources) for books hosted on archive.org
         
-        Returns e.g. ['acs:epub:urn:uuid:0df6f344-7ce9-4038-885e-e02db34f2891', 'acs:pdf:urn:uuid:7f192e62-13f5-4a62-af48-be4bea67e109']
+        Returns e.g. ['bookreader:lettertoannewarr00west',
+                      'acs:epub:urn:uuid:0df6f344-7ce9-4038-885e-e02db34f2891',
+                      'acs:pdf:urn:uuid:7f192e62-13f5-4a62-af48-be4bea67e109']
         """
         
         # The entries in meta.xml look like this:
@@ -150,8 +152,18 @@ class Edition(models.Edition):
         
         itemid = self.ocaid
         if not itemid:
-            self._lending_resources = []
-            return self._lending_resources
+            # Could be e.g. OverDrive
+            return []
+        
+        # Use cached value if available
+#         try:
+#             return self._lending_resources
+#         except AttributeError:
+#             pass
+#             
+#         if not itemid:
+#             self._lending_resources = []
+#             return self._lending_resources
         
         url = 'http://www.archive.org/download/%s/%s_meta.xml' % (itemid, itemid)
         # $$$ error handling
@@ -160,37 +172,59 @@ class Edition(models.Edition):
         stats.end()
         
         self._lending_resources = [ elem.text for elem in root.findall('external-identifier') ]
+        
+        # Check if available for in-browser lending - marked with 'browserlending' collection
+        browserLendingCollections = ['browserlending']
+        collections = [ elem.text for elem in root.findall('collection') ]
+        for collection in collections:
+            if collection in browserLendingCollections:
+                self._lending_resources.append('bookreader:%s' % self.ocaid)
+                break
+        
         return self._lending_resources
         
     def get_lending_resource_id(self, type):
-
-        desired = 'acs:%s:' % type
+        if type == 'bookreader':
+            desired = 'bookreader:'
+        else:
+            desired = 'acs:%s:' % type
+            
         for urn in self.get_lending_resources():
-            if urn.startswith(desired):
-                return urn[len(desired):]
+            if urn.startswith(desired):            
+                # Got a match                
+                # $$$ a little icky - prune the acs:type if present
+                if urn.startswith('acs:'):
+                    urn = urn[len(desired):]
+                    
+                return urn
 
         return None
         
     def get_available_loans(self):
-        """Returns [{'resource_id': uuid, 'type': type, 'size': bytes}]
+        """Returns [{'resource_id': uuid, 'resource_type': type, 'size': bytes}]
         
         size may be None"""
         
-        default_type = 'pdf'
+        default_type = 'bookreader'
         
         loans = []
-            
+        
         resource_pattern = r'acs:(\w+):(.*)'
         for resource_urn in self.get_lending_resources():
-            (type, resource_id) = re.match(resource_pattern, resource_urn).groups()
-            loans.append( { 'resource_id': resource_id, 'type': type, 'size': None } )
+            print 'RESOURCE %s' % resource_urn
+            if resource_urn.startswith('acs:'):
+                (type, resource_id) = re.match(resource_pattern, resource_urn).groups()
+                loans.append( { 'resource_id': resource_id, 'resource_type': type, 'size': None } )
+            elif resource_urn.startswith('bookreader'):
+                loans.append( { 'resource_id': resource_urn, 'resource_type': 'bookreader', 'size': None } )
+            
         
         # Put default type at start of list, then sort by type name
         def loan_key(loan):
-            if loan['type'] == default_type:
-                return '1-%s' % loan['type']
+            if loan['resource_type'] == default_type:
+                return '1-%s' % loan['resource_type']
             else:
-                return '2-%s' % loan['type']        
+                return '2-%s' % loan['resource_type']        
         loans = sorted(loans, key=loan_key)
         
         # Check if we have a possible loan - may not yet be fulfilled in ACS4
@@ -211,11 +245,20 @@ class Edition(models.Edition):
         return loans
     
     def update_loan_status(self):
-        """Update the loan status based off the status in ACS4"""
-        urn_pattern = r'acs:\w+:(.*)'
-        for ia_urn in self.get_lending_resources():
-            resource_id = re.match(urn_pattern, ia_urn).group(1)
-            borrow.update_loan_status(resource_id)
+        """Update the loan status"""
+        # $$$ search in the store and update
+        loans = borrow.get_edition_loans(self)
+        for loan in loans:
+            borrow.update_loan_status(loan['resource_id'])
+            
+#         urn_pattern = r'acs:\w+:(.*)'
+#         for ia_urn in self.get_lending_resources():
+#             if ia_urn.startswith('acs:'):
+#                 resource_id = re.match(urn_pattern, ia_urn).group(1)
+#             else:
+#                 resource_id = ia_urn
+# 
+#             borrow.update_loan_status(resource_id)
 
     def _process_identifiers(self, config, names, values):
         id_map = {}
