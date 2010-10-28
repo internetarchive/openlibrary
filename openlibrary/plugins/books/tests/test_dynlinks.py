@@ -10,6 +10,8 @@ from .. import dynlinks
 
 import re
 import simplejson
+import web
+from openlibrary.core import mocksite
 
 def pytest_funcarg__data0(request):
     return {
@@ -323,6 +325,19 @@ def test_dynlinks(monkeypatch):
 
     js = dynlinks.dynlinks(["isbn:1234567890"], {"format": "json"})
     assert simplejson.loads(js) == expected_result
+
+def test_isbnx(monkeypatch):
+    site = mocksite.MockSite()
+    site.save({
+        "key": "/books/OL1M",
+        "type": {"key": "/type/edition"},
+        "isbn_10": "123456789X"
+    })
+    
+    monkeypatch.setattr(web.ctx, "site", site, raising=False)
+    json = dynlinks.dynlinks(["isbn:123456789X"], {"format": "json"})
+    d = simplejson.loads(json)
+    assert d.keys() == ["isbn:123456789X"] 
 
 def test_dynlinks_ia(monkeypatch):
     monkeypatch_ol(monkeypatch)

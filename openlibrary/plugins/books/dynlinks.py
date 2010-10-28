@@ -23,7 +23,7 @@ def split_key(bib_key):
         >>> split_key('badkey')
         (None, None)
     """
-    bib_key = bib_key.lower().strip()
+    bib_key = bib_key.strip()
     if not bib_key:
         return None, None
 
@@ -37,7 +37,7 @@ def split_key(bib_key):
     else:
         # try prefix match
         for k in valid_keys:
-            if bib_key.startswith(k):
+            if bib_key.lower().startswith(k):
                 key = k
                 value = bib_key[len(k):]
                 continue
@@ -48,10 +48,10 @@ def split_key(bib_key):
         value = bib_key
         
     # treat OLxxxM as OLID
-    re_olid = web.re_compile('ol\d+m(@\d+)?')
-    if key is None and re_olid.match(bib_key):
+    re_olid = web.re_compile('OL\d+M(@\d+)?')
+    if key is None and re_olid.match(bib_key.upper()):
         key = 'olid'
-        value = bib_key
+        value = bib_key.upper()
     
     # decide isbn_10 or isbn_13 based on length.
     if key == 'isbn':
