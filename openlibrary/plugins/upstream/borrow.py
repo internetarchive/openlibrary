@@ -1,5 +1,6 @@
 """Handlers for borrowing books"""
 
+import copy
 import datetime, time
 import hmac
 import simplejson
@@ -24,6 +25,10 @@ lending_library_subject = 'Lending library'
 loanstatus_url = config.get('loanstatus_url')
 
 content_server = None
+
+# ACS4 resource ids start with 'urn:uuid:'.  The meta.xml on archive.org
+# adds 'acs:epub:' or 'acs:pdf:' to distinguish the file type.
+acs_resource_id_prefixes = ['urn:uuid:', 'acs:epub:', 'acs:pdf:']
 
 # Max loans a user can have at once
 user_max_loans = 5
@@ -262,14 +267,35 @@ def can_return_resource_type(resource_type):
         
 ########## Helper Functions
 
+def get_all_store_values(**query):
+    """Get all values by paging through all results"""
+    query = copy.deepcopy(query)
+    if not query.has_key('limit'):
+        query['limit'] = 500
+    query['offset'] = 0
+    values = []
+    got_all = False
+    
+    while not got_all:
+        new_values = web.ctx.site.store.values(**query)
+        values.extend(new_values)
+        if len(new_values) < query['limit']:
+            got_all = True
+        query['offset'] += len(new_values)
+    return values
+
 def get_all_loans():
-    return web.ctx.site.store.values(type='/type/loan')
+    # return web.ctx.site.store.values(type='/type/loan')
+    return get_all_store_values(type='/type/loan')
 
 def get_loans(user):
-    return web.ctx.site.store.values(type='/type/loan', name='user', value=user.key)
+    # return web.ctx.site.store.values(type='/type/loan', name='user', value=user.key)
+    return get_all_store_values(type='/type/loan', name='user', value=user.key)    
 
 def get_edition_loans(edition):
-    return web.ctx.site.store.values(type='/type/loan', name='book', value=edition.key)
+    # return web.ctx.site.store.values(type='/type/loan', name='book', value=edition.key)
+    return get_all_store_values(type='/type/loan', name='book', value=edition.key)
+
     
 def get_loan_link(edition, type):
     """Get the loan link, which may be an ACS4 link or BookReader link depending on the loan type"""
@@ -428,6 +454,9 @@ def update_loan_from_bss_status(loan_key, loan, status):
     
     global loan_fulfillment_timeout_seconds
     
+    if not resource_uses_bss(loan['resource_id']):
+        raise Exception('Tried to update loan %s with ACS4/BSS status when it should not use BSS' % loan_key)
+    
     if not is_loaned_out_from_status(status):
         # No loan record, or returned or expired
         
@@ -452,33 +481,47 @@ def update_loan_from_bss_status(loan_key, loan, status):
 def update_all_loan_status():
     """Update the status of all loans known to Open Library by cross-checking with the book status server"""
     
-    # Get all Open Library loan records
-    # $$$ Would be nice if there were a version of store.query that returned values as well as keys
-    offset = 0
-    limit = 500
-    all_updated = False
-
     # Get book status records of everything loaned out
     bss_statuses = get_all_loaned_out()
     bss_resource_ids = [status['resourceid'] for status in bss_statuses]
 
-    while not all_updated:
-        ol_loan_keys = [row['key'] for row in web.ctx.site.store.query('/type/loan', limit=limit, offset=offset)]
+    for resource_type in ['epub', 'pdf']:
+        # print "updating %s loans" % resource_type
         
-        # Update status of each loan
-        for loan_key in ol_loan_keys:
-            loan = web.ctx.site.store.get(loan_key)
-            try:
-                status = bss_statuses[ bss_resource_ids.index(loan['resource_id']) ]
-            except ValueError:
-                status = None
+        offset = 0
+        limit = 500
+        all_updated = False
+    
+        while not all_updated:
+            # Could just get epub and pdf loans here since they're the ones that use BSS
+            ol_loan_keys = [row['key'] for row in web.ctx.site.store.query('/type/loan', 'resource_type', resource_type, limit=limit, offset=offset)]
+            
+            # Update status of each loan
+            for loan_key in ol_loan_keys:
+                loan = web.ctx.site.store.get(loan_key)
                 
-            update_loan_from_bss_status(loan_key, loan, status)
-        
-        if len(ol_loan_keys) < limit:
-            all_updated = True
-        else:        
-            offset += len(ol_loan_keys)
+                if resource_uses_bss(loan['resource_id']):
+                    try:
+                        status = bss_statuses[ bss_resource_ids.index(loan['resource_id']) ]
+                    except ValueError:
+                        status = None
+                        
+                    update_loan_from_bss_status(loan_key, loan, status)
+            
+            if len(ol_loan_keys) < limit:
+                all_updated = True
+            else:        
+                offset += len(ol_loan_keys)
+            
+def resource_uses_bss(resource_id):
+    """Returns true if the resource should use the BSS for status"""
+    global acs_resource_id_prefixes
+    
+    if resource_id:
+        for prefix in acs_resource_id_prefixes:
+            if resource_id.startswith(prefix):
+                return True
+    return False
 
 def user_can_borrow_edition(user, edition, type):
     """Returns true if the user can borrow this edition given their current loans.  Returns False if the

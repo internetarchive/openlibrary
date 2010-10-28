@@ -16,11 +16,12 @@ $if meta_fields.has_key('contributor'):
 $else:
     $ contrib = None
     
-$# $$$ Put our launch books "on hold" -- remove after Books in Browsers
-$if ctx.user and ctx.user.is_admin():
+$# $$$ Put our launch books "on hold"
+$ demo_users = ('/people/mang','/people/mangtronix','/people/brewster','/people/alexis','/people/alexisr','/people/raj','/people/rajk','/people/glassdog')
+$if str(ctx.user) in demo_users:
     $ bookreader_loans = filter(lambda loan: loan['resource_type'] == 'bookreader', available_loans)
     $if bookreader_loans:
-        <div class="small sansserif clearfix"><br/><span class="adminOnly">Showing BookReader loan</span></div>
+        <!-- <div class="small sansserif clearfix"><br/><span class="adminOnly">Showing BookReader loan</span></div> -->
 $else:
     $# If this is a launch book, don't allow loan
     $ launch_books = ['browserlendingtest', 'romanceonthreele00hafnrich', 'librariesoffutur00lickuoft', 'remixmakingartco01lessrich', 'youlooktooyoungt00davi']
@@ -34,6 +35,7 @@ $else:
 <div id="contentBody">
 
     <div class="navBorrow">
+        <a href="http://openlibrary.org/" title="Return to home page"><img src="/images/logo_OL-sm.png" width="90" height="71" alt="Open Library logo" class="right"/></a>
         <a href="$page.url()"><strong>Back</strong></a>
     </div>
 
@@ -70,7 +72,7 @@ $else:
                                     <em>publisher unknown</em>
                             </span>
                             $if contrib:
-                                <span class="contributor">
+                                <span class="contributor small grey">
                                     from $contrib
                                 </span>
                         </td>
@@ -170,28 +172,28 @@ $else:
                 $if candidate['book'] == page.key:
                     $ active_loan = candidate
             
-            $if active_loan['expiry'] is not None:
-                $# Has been fulfilled
-                <div class="message info">
-                    <h2 class="sansserif">We show that you've borrowed this title.</h2>
-                    <p>Open Adobe Digital Editions to read it or to return it to Open Library.</p>
-                </div>
-            $else:
-                $# $$$ wording
-                <div class="message info">
-                    <h2 class="sansserif">We show that you've checked this out but haven't loaded it in Digital Editions yet.</h2>
-                    <p>This loan is on hold for about 5 minutes. If you don't open it up within that time, someone else may borrow it. <a href="$active_loan['loan_link']">Download again</a>?</p>
-                </div>
-                
             $if can_return_resource_type(active_loan['resource_type']):
-                <div class="message info">
-                    <h2 class="sansserif">This book can be returned.</h2>
+               <div class="message info">
+                    <h2 class="sansserif">You have this book checked out. You can <a href="$active_loan['loan_link']">Read Online</a> or return the book.
                     <p>
                     $:macros.ReturnForm(active_loan)
                     </p>
                 </div>
             $else:
-                $# can't return this book
+                $# Currently this means ACS4
+                $if active_loan['expiry'] is not None:
+                    $# Has been fulfilled
+                    <div class="message info">
+                        <h2 class="sansserif">We show that you've borrowed this title.</h2>
+                        <p>Open Adobe Digital Editions to read it or to return it to Open Library.</p>
+                    </div>
+                $else:
+                    $# $$$ wording
+                    <div class="message info">
+                        <h2 class="sansserif">We show that you've checked this out but haven't loaded it in Digital Editions yet.</h2>
+                        <p>This loan is on hold for about 5 minutes. If you don't open it up within that time, someone else may borrow it. <a href="$active_loan['loan_link']">Download again</a>?</p>
+                    </div>
+                
                 
         
         $elif len(loans) >= 5:
@@ -237,7 +239,7 @@ $else:
                         });
                         </script>
                         <div class="postSubmit hidden center">
-                            <p>Download in progress...</p>
+                            <p>Borrowing book...</p>
                             <img src="/images/ajax-loader-bar.gif" alt="Download in progress" width="220" height="19"/>
                         </div>
                         $:macros.LoanForm(page, available_loans)
@@ -253,7 +255,7 @@ $else:
                 <table>
                     <thead>
                         <tr>
-                            <th colspan="2" class="titles">You've checked out...</th>
+                            <th colspan="2" class="titles"><a href="/account/loans">You've checked out...</a></th>
                             <th class="expires">Loan expires</th>
                         </tr>
                     </thead>
@@ -286,12 +288,16 @@ $else:
                         </tr>
                     </tbody>
                 </table>
-                <p class="large">You can <span class="highlight">return books early through Adobe Digital Editions</span>. <a href="/help/faq#returns">Need help</a>?</p>
-                <p class="large">Any changes you make there <em>should</em> be reflected here when you get back and refresh this page.</p>
+                $for loan in loans:
+                    $if loan['resource_type'] != 'bookreader':
+                        <p class="large">You can <span class="highlight">return books early through Adobe Digital Editions</span>. <a href="/help/faq#returns">Need help</a>?</p>
+                        <p class="large">Any changes you make there <em>should</em> be reflected here when you get back and refresh this page.</p>
+                        $break
             </div>
         $if not loans:
-            <p class="large" style="margin-top: 50px; border-top: 1px dotted #615132; padding-top: 10px;"><span class="highlight"><b>IMPORTANT:</b></span> If this is your first time borrowing a book, you'll need to <a href="http://www.adobe.com/products/digitaleditions/">download and install Adobe Digital Editions</a></span>. That's the program you need to use to open these borrowable ebook files from Open Library, and to return books early if you want to.</p>   
-     
-        <p class="help"><b>Need help?</b> Please read the <a href="/help/faq#section-borrow">FAQ on borrowing books through Open Library</a>.</p>
+            <p class="large" style="margin-top: 50px; border-top: 1px dotted #615132; padding-top: 10px;"><span class="highlight"><b>IMPORTANT:</b></span> You need to <a href="http://www.adobe.com/products/digitaleditions/">download and install Adobe Digital Editions</a> to read PDFs or ePubs, or return them early.</p>
+            <p class="help" ><b>Need help?</b> Please read the <a href="/help/faq#section-borrowing">FAQ on borrowing books through Open Library</a>.</p>
+        $else:
+            <p class="help" style="margin-top: 50px; border-top: 1px dotted #615132; padding-top: 10px;"><b>Need help?</b> Please read the <a href="/help/faq#section-borrowing">FAQ on borrowing books through Open Library</a>.</p>
 
 </div>
