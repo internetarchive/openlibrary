@@ -99,7 +99,7 @@ class InvalidationProcessor:
 
     def is_timeout(self):
         t = datetime.datetime.utcnow()
-        dt = t - self.last_update_time
+        dt = t - self.last_poll_time
         return dt > self.timeout
         
     def get_cookie_time(self):

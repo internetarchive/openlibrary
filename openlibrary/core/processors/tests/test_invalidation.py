@@ -95,6 +95,25 @@ class TestInvalidationProcessor:
         assert self.hook.call_count == 1
         assert self.hook.recent_doc.dict() == web.ctx.site.get("/templates/site.tmpl").dict()
         
+    def test_is_timeout(self, monkeypatch):
+        # create the processor at 60 seconds past in time
+        mock_now = datetime.datetime.utcnow() - datetime.timedelta(seconds=60)
+        monkeypatch.setattr(datetime, "datetime", MockDatetime(mock_now))
+        
+        p = invalidation.InvalidationProcessor(prefixes=['/templates'], timeout=60)
+        
+        # come back to real time
+        monkeypatch.undo()
+        
+        # monkeypatch web
+        self._monkeypatch_web(monkeypatch)
+        self._monkeypatch_hooks(monkeypatch)
+        
+        p.reload()
+        
+        # until next 60 seconds, is_timeout must be false.
+        assert p.is_timeout() == False
+        
     def test_reload_on_cookie(self, monkeypatch):
         self._monkeypatch_web(monkeypatch)
         self._monkeypatch_hooks(monkeypatch)
