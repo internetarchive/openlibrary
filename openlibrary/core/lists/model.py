@@ -1,10 +1,11 @@
 """Helper functions used by the List model.
 """
 from collections import defaultdict
+import couchdb
 import web
-
 from infogami import config
-import couchdb.client
+
+from openlibrary.core import helpers as h
 
 def cached_property(name, getter):
     """Just like property, but the getter is called only for the first access. 
@@ -36,14 +37,17 @@ class ListMixin:
         
     def _get_seed_summary(self):
         rawseeds = self._get_rawseeds()
-        keys = crossproduct(rawseeds, ['works', 'editions', 'ebooks'])
-                
-        d = dict((seed, {"editions": 0, "works": 0, "ebooks": 0}) for seed in rawseeds)
         
-        for row in self._seeds_view(keys=keys, group=True):
-            key, name = row.key
-            d[key][name] = row.value
-        
+        db = self._get_seeds_db()
+    
+        d = dict((seed, web.storage({"editions": 0, "works": 0, "ebooks": 0, "last_update": ""})) for seed in rawseeds)
+    
+        print "couchdb.view", db, rawseeds
+        for row in db.view("_all_docs", keys=rawseeds, include_docs=True):
+            if 'doc' in row:
+                d[row.key] = web.storage(row.doc)
+            
+        print d
         return d
         
     def _get_edition_count(self):
@@ -54,7 +58,6 @@ class ListMixin:
 
     def _get_ebook_count(self):
         return sum(seed['ebooks'] for seed in self.seed_summary.values())
-
 
     seed_summary = cached_property("seed_summary", _get_seed_summary)
     
@@ -78,7 +81,34 @@ class ListMixin:
             "editions": [row.value for row in rows]
         })
         
+    def _get_all_subjects(self):
+        d = defaultdict(list)
+        
+        for seed in self.seed_summary.values():
+            for s in seed.get("subjects", []):
+                d[s['key']].append(s)
+                
+        def subject_url(s):
+            if s.startswith("subject:"):
+                return "/subjects/" + s.split(":", 1)[1]
+            else:
+                return "/subjects/" + s                
+                
+        subjects = [
+            web.storage(
+                key=key, 
+                url=subject_url(key),
+                count=sum(s['count'] for s in values), 
+                name=values[0]["name"],
+                title=values[0]["name"]
+                )
+            for key, values in d.items()]
+
+        return sorted(subjects, reverse=True, key=lambda s: s["count"])
+        
     def get_subjects(self, limit=20):
+        return self._get_all_subjects()[:limit]
+
         keys = [[seed, "subjects"] for seed in self._get_rawseeds()]
         rows = self._seeds_view(keys=keys, reduce=False)
         
@@ -112,14 +142,12 @@ class ListMixin:
     def get_seeds(self):
         return [Seed(self, s) for s in self.seeds]
         
-    def _seeds_view(self, **kw):
-        view_url = config.get("lists", {}).get("seeds_view")
-        if not view_url:
-            return []
-            
-        kw['stale'] = 'ok'
-        view = couchdb.client.PermanentView(view_url, "seeds_view")
-        return view(**kw)
+    def _get_seeds_db(self):
+        db_url = config.get("lists", {}).get("seeds_db")
+        if not db_url:
+            return {}
+        
+        return couchdb.Database(db_url)
         
     def _updates_view(self, **kw):
         view_url = config.get("lists", {}).get("updates_view")
@@ -142,6 +170,7 @@ class Seed:
         * work_count
         * edition_count
         * ebook_count
+        * last_update
         * type - "edition", "work" or "subject"
         * document - reference to the edition/work document
         * title
@@ -197,10 +226,15 @@ class Seed:
             return self.document.get_photo()
         else:
             return None
+            
+    def _get_last_update(self):
+        date = self._get_summary().get("last_update") or None
+        return date and h.parse_datetime(date)
         
     work_count = property(lambda self: self._get_summary()['works'])
     edition_count = property(lambda self: self._get_summary()['editions'])
     ebook_count = property(lambda self: self._get_summary()['ebooks'])
+    last_update = property(_get_last_update)
     
     title = property(get_title)
     url = property(get_url)
