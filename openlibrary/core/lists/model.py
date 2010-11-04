@@ -42,12 +42,10 @@ class ListMixin:
     
         d = dict((seed, web.storage({"editions": 0, "works": 0, "ebooks": 0, "last_update": ""})) for seed in rawseeds)
     
-        print "couchdb.view", db, rawseeds
         for row in db.view("_all_docs", keys=rawseeds, include_docs=True):
             if 'doc' in row:
                 d[row.key] = web.storage(row.doc)
             
-        print d
         return d
         
     def _get_edition_count(self):
@@ -58,12 +56,19 @@ class ListMixin:
 
     def _get_ebook_count(self):
         return sum(seed['ebooks'] for seed in self.seed_summary.values())
+        
+    def _get_last_update(self):
+        dates = [seed.last_update for seed in self.get_seeds() if seed.last_update]
+        d = dates and max(dates) or None
+        print "last_update", d
+        return d
 
     seed_summary = cached_property("seed_summary", _get_seed_summary)
     
     work_count = cached_property("work_count", _get_work_count)
     edition_count = cached_property("edition_count", _get_edition_count)
     ebook_count = cached_property("ebook_count", _get_ebook_count)
+    last_update = cached_property("last_update", _get_last_update)
         
     def get_works(self, limit=50, offset=0):
         keys = [[seed, "works"] for seed in self._get_rawseeds()]
