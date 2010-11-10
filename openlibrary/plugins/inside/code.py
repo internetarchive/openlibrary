@@ -12,7 +12,8 @@ re_to_esc = re.compile(r'[\[\]:]')
 def escape_bracket(q):
     if re_solr_range.search(q):
         return q
-    return re_bracket.sub(lambda m:'\\'+m.group(), q)
+    esc_q = re_bracket.sub(lambda m:'\\'+m.group(), q)
+    return esc_q if 'ia:' in q else esc_q.replace(':', '\\:')
 
 trans = { '\n': '<br>', '{{{': '<b>', '}}}': '</b>', }
 re_trans = re.compile(r'(\n|\{\{\{|\}\}\})')
