@@ -5,7 +5,7 @@ Usage: ./scripts/manage-lists.py command settings.yml args
 """
 import _init_path
 import sys, os, shutil, tempfile, time, re
-import multiprocessing, itertools
+import multiprocessing, itertools, collections
 import optparse
 import simplejson
 import couchdb
@@ -215,7 +215,7 @@ class ProcessDump(Command):
         
         pool = multiprocessing.Pool(4)
         pool.map(worker, os.listdir(indir))
-    
+
 class GenerateSeeds(Command):
     """Processes works.txt and generates seeds.txt.
     
@@ -229,25 +229,112 @@ class GenerateSeeds(Command):
     """
     def init(self):
         self.re_subject = re.compile("[, _]+")
+        self.parser.add_option("--no-cleanup", action="store_true", default=False)
         
     def run(self, works_txt=None, **options):
-        works_file = works_txt and open(works_txt) or sys.stdin
+        works_file = works_txt and xopen(works_txt) or sys.stdin
         works = self.read_works(works_file)
         
-        f = open("map.txt", "w")
+        tmpdir = tempfile.mkdtemp(prefix="ol-seeds-")
+        
+        self.log("tmpdir: %s" % tmpdir)
+        
+        map_dir = os.path.join(tmpdir, "map")
+        sorted_dir = os.path.join(tmpdir, "sorted")
+        reduce_dir = os.path.join(tmpdir, "reduce")
+        
+        os.mkdir(map_dir)
+        os.mkdir(sorted_dir)
+        os.mkdir(reduce_dir)
+        
+        files = {}
         for work in works:
             for seed, info in self.map(work):
-                f.write("%s\t%s\n" % (seed.encode("utf-8"), simplejson.dumps(info)))
-                
-        self.sort("map.txt", "map_sorted.txt")
+                self.write(map_dir, files, seed, info)
+        for f in files.values():
+            f.close()
         
-    def sort(self, filename, outfile):
-        os.system("sort -k1 -S1G %s > %s" % (filename, outfile))
-    
+        self.log("sorting...")
+        self.sort_files(map_dir, sorted_dir)
+
+        self.log("running reduce")
+        self.reduce_files(sorted_dir, reduce_dir)
+
+        self.log("merging the results...")
+        os.system("cat %s/* > seeds.txt" % reduce_dir)
+        
+        if not options.get("no_cleanup"):
+            self.log("cleaning up...")
+            shutil.rmtree(tmpdir)
+        self.log("done")
+        
+    def reduce_files(self, indir, outdir):
+        for f in os.listdir(indir):
+            infile = os.path.join(indir, f)
+            outfile = os.path.join(outdir, f)
+            self.log("reduce %s" % f)
+            
+            out = open(outfile, "w", 10*1024*1024)
+            for key, chunk in itertools.groupby(self.read_kvs(infile), lambda kv: kv[0]):
+                values = [v for k, v in chunk]
+                val = self.reduce(values)
+                out.write("%s\t%s\n" % (key, simplejson.dumps(val)))
+            out.close()
+                
+    def read_kvs(self, filename):
+        for line in open(filename):
+            key, value = line.strip().split("\t")
+            value = simplejson.loads(value)
+            yield key, value
+        
+    def write(self, dir, files, key, value):
+        index = self.hash(key)
+        if index not in files:
+            files[index] = open(os.path.join(dir, "%04d.txt" % index), "w", 1024*1024)
+            
+        text = "%s\t%s\n" % (key.encode('utf-8'), simplejson.dumps(value))
+        files[index].write(text)
+        
+    def hash(self, key):
+        """Returns an integer in the range [0..999] for each key.
+        """
+        if key.startswith("/authors/"):
+            n = int(web.numify(key))
+            return 100 + n / 1000000
+        elif key.startswith("/books/"):
+            n = int(web.numify(key))
+            return 200 + n / 1000000
+        elif key.startswith("person:"):
+            return 400
+        elif key.startswith("place:"):
+            return 410
+        elif key.startswith("subject:"):
+            return 420
+        elif key.startswith("time:"):
+            return 430
+        elif key.startswith("/works/"):
+            n = int(web.numify(key))
+            return 800 + n / 1000000
+        else:
+            return 900
+
+    def sort_files(self, dir, outdir):
+        for f in os.listdir(dir):
+            infile = os.path.join(dir, f)
+            outfile = os.path.join(outdir, f)
+            self.log("sort %s" % f)
+            os.system("sort -S1G -k1 %s -o %s" % (infile, outfile))
+
     def read_works(self, works_file):
-        for line in works_file:
+        self.log("reading " + works_file.name)
+        for i, line in enumerate(works_file):
+            if i % 1000000 == 0:
+                self.log(i)
             key, json = line.strip().split("\t", 1)
             yield simplejson.loads(json)
+            
+    def log(self, msg):
+        print >> sys.stderr, time.asctime(), msg
             
     def map(self, work):
         """Map function for generating seed info.
@@ -256,15 +343,15 @@ class GenerateSeeds(Command):
         Seed_info is of the following format:
         
             {
-                "works": [{"key": "/works/..."}],
-                "editions": [..],
-                "subjects": [..],
-                "last_modified": "..."
+                "works": 1,
+                "editions": 10,
+                "subjects": [{"name": "San Francisco", key="place:san_francisco"}],
+                "last_modified": "2010-10-11T10:20:30"
             }
         """
         authors = self.get_authors(work)
         subjects = self.get_subjects(work)
-        editions = list(self.get_editions(work))
+        editions = work.get("editions", [])
         ebooks = [e for e in editions if "ocaid" in e]
 
         docs = [work] + work.get("editions", [])
@@ -293,15 +380,36 @@ class GenerateSeeds(Command):
             yield s['key'], dict(xwork, subjects=[s])
             
     def reduce(self, values):
-       pass 
+        works = len(values)
+        editions = sum(v['editions'] for v in values)
+        ebooks = sum(v['ebooks'] for v in values)
+        last_update = max(v['last_modified'] for v in values)
+        
+        subjects = self.process_subjects(s for v in values for s in v['subjects'])
+        
+        return {
+            "works": works,
+            "editions": editions,
+            "ebooks": ebooks,
+            "last_update": last_update,
+            "subjects": subjects
+        }
+                
+    def most_used(self, seq):
+        d = collections.defaultdict(lambda: 0)
+        for x in seq:
+            d[x] += 1
+        return sorted(d, key=lambda k: d[k], reverse=True)[0] 
 
-    def get_editions(self, work):
-        editions = work.get('editions', [])
-        for e in editions:
-            doc = {'key': e['key']}
-            if 'ocaid' in e:
-                doc['ia'] = e['ocaid']
-            yield doc
+    def process_subjects(self, subjects):
+        d = collections.defaultdict(list)
+
+        for s in subjects:
+            d[s['key']].append(s['name'])
+
+        subjects = [{"key": key, "name": self.most_used(names), "count": len(names)} for key, names in d.items()]
+        subjects.sort(key=lambda s: s['count'], reverse=True)
+        return subjects
 
     def get_authors(self, work):
         return [a['author'] for a in work.get('authors', []) if 'author' in a]
@@ -331,7 +439,7 @@ class CouchDBImport(Command):
             doc['_id'] = key
             yield doc
             
-def xopen(filename, mode="r", buffering=None):
+def xopen(filename, mode="r", buffering=1):
     if filename.endswith(".gz"):
         import gzip
         return gzip.open(filename, mode, buffering)
