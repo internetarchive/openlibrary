@@ -53,46 +53,6 @@ class MakeEdtions(Command):
                 e["seeds"] = seeds
             print "%s\t%s" % (e['key'].encode('utf-8'), simplejson.dumps(e))
 
-class _Sort(Command):
-    def run(self, outdir, filename):
-        name = os.path.basename(filename)
-        outfile = os.path.join(outdir, name)
-        os.system("sort %s -o %s" % (filename, outfile))
-
-class _GroupWorks(Command):
-    """Combines editions and work from the sorted docs file."""
-    def run(self, filename, outfile):
-        for work in self.parse(self.read(filename)):
-            print work['key'] + "\t" + simplejson.dumps(work) 
-
-    def read(self, filename):
-        for line in open(filename):
-            key, json = line.strip().split("\t", 1)
-            yield key, json
-
-    def parse(self, rows):
-        for key, chunk in itertools.groupby(rows, lambda row: row[0][:-2]):
-            docs = [simplejson.loads(json) for key, json in chunk]
-
-            work = None
-            editions = []
-
-            for doc in docs:
-                if doc['type']['key'] == '/type/work':
-                    work = doc
-                else:
-                    editions.append(doc)
-
-            if not work:
-                work = {
-                    "key": editions[0]['works'][0]['key'],
-                    "type": {"key": "/type/work"},
-                    "dummy_": True
-                }
-
-            work['editions'] = editions
-            yield work
-
 class SortWorker:
     def __init__(self, indir, outdir):
         self.indir = indir
@@ -104,15 +64,17 @@ class SortWorker:
 class GroupWorksWorker:
     """Worker to group edtions of a work."""
     def __init__(self, indir, outdir):
-            self.indir = indir
-            self.outdir = outdir
+        self.indir = indir
+        self.outdir = outdir
 
     def __call__(self, filename):
         infile = os.path.join(self.indir, filename)
-        outfile = os.path.joout(self.outdir, filename, 'w', 50*1024*1024)
+        outfile = os.path.join(self.outdir, filename)
+        out = open(outfile, 'w', 50*1024*1024)
         
         for work in self.parse(self.read(open(infile))):
-            outfile.write(work['key'] + "\t" + simplejson.dumps(work) + "\n")
+            out.write(work['key'] + "\t" + simplejson.dumps(work) + "\n")
+        out.close()
 
     def read(self, f):
         for line in f:
@@ -120,7 +82,7 @@ class GroupWorksWorker:
             yield key, json
 
     def parse(self, rows):
-        for key, chunk in itertools.groupby(rows, lambda row: row[0][:-2]):
+        for key, chunk in itertools.groupby(rows, lambda row: row[0]):
             docs = [simplejson.loads(json) for key, json in chunk]
 
             work = None
@@ -141,7 +103,14 @@ class GroupWorksWorker:
 
             work['editions'] = editions
             yield work
-
+            
+class ProcessChangesets(Command):
+    """Command to process changesets.
+    
+    Changesets are processed and effected seeds are generated for each changeset. This involves accessing infobase for 
+    """
+    def run(self, configfile):
+        pass
 
 class ProcessDump(Command):
     """Processes works and edition dumps and generates documents that can be loaded into couchdb.
@@ -150,7 +119,11 @@ class ProcessDump(Command):
         * works.txt
         * editions.txt
     """
-    def run(self, works_dump, editons_dump, **options):
+    def init(self):
+        self.parser.add_option("--no-cleanup", action="store_true", default=False)
+        self.parser.add_option("--bucket-size", type="int", default=100000)
+
+    def run(self, works_dump, editons_dump, bucket_size=100000, **options):
         seq = self.read_dumps(works_dump, editons_dump)
         
         tmpdir = tempfile.mkdtemp(prefix="ol-process-dump-")
@@ -164,7 +137,7 @@ class ProcessDump(Command):
         os.mkdir(works_dir)
         
         self.log("spitting inputs into %s" % docs_dir)
-        self.split(seq, docs_dir)
+        self.split(seq, docs_dir, bucket_size)
         
         self.log("sorting into %s" % sorted_dir)
         self.sort_files(docs_dir, sorted_dir)
@@ -172,11 +145,11 @@ class ProcessDump(Command):
         self.log("grouping works into %s" % works_dir)
         self.group_works(sorted_dir, works_dir)
         
-        self.log("writing works.txt...")
-        os.system("cat %s/* > works.txt" % works_dir)
+        self.log("merging the sorted works")
+        os.system("cat  %s/* > works.txt" % works_dir)
 
-        self.log("cleaning up...")
         if not options.get("no_cleanup"):
+            self.log("cleaning up...")
             shutil.rmtree(tmpdir)
         self.log("done")
         
@@ -184,23 +157,31 @@ class ProcessDump(Command):
         print >> sys.stderr, time.asctime(), msg
         
     def sort_files(self, dir, outdir):
-        sort_worker = SortWorker(dir, outdir)
-        pool = multiprocessing.Pool(4)
-        pool.map(sort_worker, os.listdir(dir))
+        for f in os.listdir(dir):
+            infile = os.path.join(dir, f)
+            outfile = os.path.join(outdir, f)
+            self.log("sort %s" % f)
+            os.system("sort -S1G -k1 %s -o %s" % (infile, outfile))
         
-    def split(self, seq, dir):
+    def split(self, seq, dir, bucket_size):
         M = 1024*1024
-        files = [open(os.path.join(dir, "%02d.txt" % i), "w", 10*M) for i in range(100)]
+        files = {}
+        
+        def get_file(index):
+            if index not in files:
+                files[index] = open(os.path.join(dir, "%04d.txt" % index), "w", 2*M)
+            return files[index]
         
         for key, json in seq:
-            ikey = web.numify(key)
-            if ikey:
-                index = int(ikey[:2])
-                files[index].write("%s\t%s\n" % (key, json))
-            else:
-                self.log("bad key %r" % key)
+            try:
+                index = int(web.numify(key)) / bucket_size
+            except Exception:
+                print >> sys.stderr, "bad key %s" % key
+                continue
+                
+            get_file(index).write("%s\t%s\n" % (key, json))
         
-        for f in files:
+        for f in files.values():
             f.close()
             
     def read_dumps(self, works_dump, editons_dump):
@@ -362,10 +343,7 @@ def main(cmd=None, *args):
         "process-dump": ProcessDump(),
         "generate-seeds": GenerateSeeds(),
         "make-editions": MakeEdtions(),
-        "couchdb-import": CouchDBImport(),
-        
-        "_group_works": _GroupWorks(),
-        "_sort": _Sort(),
+        "couchdb-import": CouchDBImport(),        
     }
     if cmd in commands:
         commands[cmd](args)
