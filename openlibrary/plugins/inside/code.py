@@ -36,7 +36,10 @@ def read_from_archive(ia):
     meta_xml = 'http://www.archive.org/download/' + ia + '/' + ia + '_meta.xml'
     xml_data = urllib.urlopen(meta_xml)
     item = {}
-    tree = etree.parse(xml_data)
+    try:
+        tree = etree.parse(xml_data)
+    except etree.XMLSyntaxError:
+        return {}
     root = tree.getroot()
 
     fields = ['title', 'creator', 'publisher', 'date', 'language']
