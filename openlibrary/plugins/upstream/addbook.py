@@ -123,7 +123,13 @@ class addbook(delegate.page):
         """
         i.publish_year = i.publish_date and self.extract_year(i.publish_date)
         
-        work = i.get('work') and web.ctx.site.get(i.work)
+        work_key = i.get('work')
+        
+        # work_key is set to none-of-these when user selects none-of-these link.
+        if work_key == 'none-of-these':
+            return None
+            
+        work = work_key and web.ctx.site.get(work_key)
         if work:
             edition = self.try_edition_match(work=work, 
                 publisher=i.publisher, publish_year=i.publish_year, 
@@ -213,7 +219,7 @@ class addbook(delegate.page):
                     if not e.publish_date or publish_year != self.extract_year(e.publish_date):
                         continue
                 if id_value and id_name in mapping:
-                    if not id_name in e or e[id_name] != id_value:
+                    if not id_name in e or id_value not in e[id_name]:
                         continue
                 return e
                 
@@ -331,7 +337,7 @@ class SaveBookHelper:
                 self.delete(self.edition.key, comment=comment)
             
             if self.work and self.work.edition_count == 0:
-                self.delete(self.work.key, comment=comment, action="delete")
+                self.delete(self.work.key, comment=comment)
             return
             
         for i, author in enumerate(work_data.get("authors") or []):

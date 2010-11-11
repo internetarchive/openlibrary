@@ -11,7 +11,7 @@ $    ('first_publish_year', 'First published'),
 $    ('publisher_facet', 'Publisher'),
 $    ('language', 'Language'),
 $ )
-$ fulltext_names = {'true': 'only ebooks', 'false': 'ebooks hidden'}
+$ fulltext_names = {'true': 'Only ebooks', 'false': 'eBooks hidden'}
 
 $ facet_fields = ['has_fulltext', 'author_facet', 'language', 'first_publish_year', 'publisher_facet',  'subject_facet', 'person_facet', 'place_facet', 'time_facet']
 
@@ -54,7 +54,9 @@ $if param:
     $ page = int(param.get('page', 1))
     $ sort = param.get('sort', None)
     $ rows = 100
-    $ results = do_search(param, sorts[sort] if sort else None, page, rows=rows, spellcheck_count=3)	
+    $ search_start = time()
+    $ results = do_search(param, sorts[sort] if sort else None, page, rows=rows, spellcheck_count=3)
+    $ search_secs = time() - search_start
     $ docs = results.docs
     $ facet_counts = results.facet_counts
     $ num_found = results.num_found
@@ -147,7 +149,7 @@ function less(header) {
         <form method="get" action="/search" class="siteSearch olform">
         <label for="q" class="hidden">Keywords</label>
         <input type="text" name="q" id="q" value="$q_param" size="100" style="width:505px;"/>
-        <input type="submit" class="large" id="searchsubmit" value="$_('Search')"/>
+        <button type="submit" class="larger" id="searchsubmit">$_("Search")</button>
         &nbsp;<input name="has_fulltext" type="checkbox" value="true" $('checked="checked"' if 'has_fulltext' in param else '') id="ftokensmid"/>
         <label for="ftokensmid"><span class="tools">$_("Only show ebooks")</span></label>
         $for k, values in param.items():
@@ -158,6 +160,11 @@ function less(header) {
         </form>
 
         $if param and not error:
+            $ title = []
+            $if q_param:
+                $title.append(q_param)                
+            $if 'has_fulltext' in param:
+                $title.append('eBook')
             $if any(header in param for header, label in facet_map):
                 <p class="collapse darkgray"><span class="tools"><img src="/images/icons/icon_search-facet.png" alt="Search facets" width="11" height="10" style="margin-right:5px;"/><strong>
                 $for header, label in facet_map:
@@ -169,6 +176,8 @@ function less(header) {
                             $continue
                         $if header == 'has_fulltext':
                             $ display = fulltext_names[k]
+                        $else:
+                            $title.append(display)
                         $if header == 'subject_facet':
                             <a href="/subjects/$display.replace(' ', '_')" title="Explore books about $display" class="facetSubject">$display</a>
                         $elif header == 'person_facet': 
@@ -177,12 +186,19 @@ function less(header) {
                             <a href="/subjects/place:$display.replace(' ', '_')" title="Explore books about $display" class="facetSubject">$display</a>
                         $elif header == 'time_facet':
                             <a href="/subjects/time:$display.replace(' ', '_')" title="Explore books about $display" class="facetSubject">$display</a>
+                        $elif header == 'first_publish_year':
+                            <span title="First published in">$display</span>
+                        $elif header == 'language':
+                            <span title="Written in">$display</span>
+                        $elif header == 'publisher_facet':
+                            <span title="Published by">$display</span>
                         $else:
                             $display
                         <span style="padding-right:15px;"><a href="$:del_facet_url(header, k)" title="$_('Click to remove this facet')" class="facetRemove plain red">[x]</a></span>
                 </strong></span></p>
-
+            $var title: ${', '.join(title)} - search
     </div>
+
 
 <!-- results -->
 
@@ -199,15 +215,15 @@ function less(header) {
             $ key = doc.key
             <li>
             <span class="bookcover">
-                $ cover = "$get_coverstore_url()/b/olid/%s-M.jpg" % doc.cover_edition_key if doc.cover_edition_key else "http://openlibrary.org/images/icons/avatar_book-sm.png"
-                <a href="$doc.url"><img src="$cover" height="70" alt="$doc.title$(': ' + doc.subtitle if doc.get('subtitle', None) else '')" title="$doc.title$(': ' + doc.subtitle if doc.get('subtitle', None) else '')"/></a>
+                $ cover = "http://covers.openlibrary.org/b/olid/%s-M.jpg" % doc.cover_edition_key if doc.cover_edition_key else "http://openlibrary.org/images/icons/avatar_book-sm.png"
+                <a href="$doc.url"><img src="$cover" height="70" alt="Cover of: $doc.title$(': ' + doc.subtitle if doc.get('subtitle', None) else '')" title="Cover of: $doc.title$(': ' + doc.subtitle if doc.get('subtitle', None) else '')"/></a>
             </span>
             <span class="details">
                 <span class="resultTitle">
-                    <span class="booktitle">
+                    <h3 class="booktitle">
                         <a href="$doc.url"
                         class="results">$doc.title$(': ' + doc.subtitle if doc.get('subtitle', None) else '')</a>
-                    </span>
+                    </h3>
                     <span class="bookauthor">by
                     $if not doc.authors:
                         <em>Unknown author</em>
@@ -228,11 +244,32 @@ function less(header) {
                     </span>
                 </span>
             </span>
-            $if doc.has_fulltext:
+            $if doc.public_scan and doc.get('has_fulltext'):
                 <span class="actions">
-                    <a href="http://www.archive.org/stream/$doc.ia[0]" title="$_('Read an online ebook')">
-                        <span class="image"></span>
+                    <a href="http://www.archive.org/stream/$doc.ia[0]" title="$_('Open in online Book Reader. Downloads available in ePub, DAISY, PDF, TXT formats from main book page')">
+                        <span class="image read"></span>
                         <span class="label">$_("Read")</span>
+                    </a>                
+                </span>
+            $elif doc.lending_edition:
+                <span class="actions">
+                    <a href="/editions/$doc.lending_edition" title="Borrow book">
+                        <span class="image borrow"></span>
+                        <span class="label">Borrow</span>
+                    </a>                
+                </span>
+            $elif doc.overdrive:
+                <span class="actions">
+                    <a href="http://search.overdrive.com/SearchResults.aspx?ReserveID={$(doc.overdrive[0])}" title="Borrow this on overdrive.com">
+                        <span class="image borrow"></span>
+                        <span class="label">Borrow</span>
+                    </a>                
+                </span>
+            $elif not doc.public_scan and 'printdisabled' in doc.collections:
+                <span class="actions">
+                    <a href="/works/$doc.key" title="Protected DAISY">
+                        <span class="image daisy"></span>
+                        <span class="label">DAISY</span>
                     </a>                
                 </span>
             </li>
@@ -244,11 +281,13 @@ function less(header) {
 <!-- facets -->
 
 $if error:
-    <h2>search engine error</h2>
+    <h3>BARF! Search engine ERROR!</h3>
     <pre>$error</pre>
 $if param and not error:
     $if results.num_found != 0:
         <div id="searchFacets">
+        <h3 class="collapse">$_("Zoom In")</h3>
+        <div class="smallest lightgreen sansserif" style="margin-bottom:20px;">$_("Focus your results using these") <a href="/search/howto">$_("filters")</a></div>
         $for header, label in facet_map:
             $if header=='has_fulltext' and 'has_fulltext' in param:
                 $continue
@@ -256,11 +295,11 @@ $if param and not error:
             $if not counts:
                 $continue
             <div class="facet $header">
-            $if header == 'author_key' and ctx.user and ctx.user.is_admin() and len(counts) > 1:
-                $ keys = '&'.join('key=%s' % k for k, display, count in counts[:50])
-                <div class="facetHead">$label <span style="font-weight:normal;" class="lowercase"><a href="/authors/merge?$keys" class="plain fixthis">merge authors</a></span></div>
+            $if header == 'author_key' and len(counts) > 1 and ctx.user:
+                $ keys = '&'.join('key=%s' % k for k, display, count in counts)
+                <h4 class="facetHead">$label <span class="merge"><a href="/authors/merge?$keys" title="Merge duplicate authors from this search">Merge duplicates</a></span></h4>
             $else:
-                <div class="facetHead">$label</div>
+                <h4 class="facetHead">$label</h4>
             $ num = 0
             $for k, display, count in counts:
                 $ num = num + 1
@@ -281,35 +320,10 @@ $if param and not error:
 <!-- /facets -->
 
     $if param and not error:
-        $ pages = (num_found / rows) + 1
-        $if pages != 1:
-            $ pages_in_set = 10
-            $ half = pages_in_set/2
-            $if pages < pages_in_set:
-                $ first_page_in_set = 1
-                $ last_page_in_set = pages
-            $elif page < half:
-                $ first_page_in_set = 1
-                $ last_page_in_set = min((pages_in_set, pages))
-            $elif page > (pages-half):
-                $ first_page_in_set = pages-pages_in_set
-                $ last_page_in_set = pages
-            $else:
-                $ first_page_in_set = page-half
-                $ last_page_in_set = page+half
-            <div class="clearfix"></div>
-            <div class="pagination collapse">
-            $if page != 1:
-                <a href="$changequery(page=None)" class="ChoosePage">&laquo;&nbsp;First</a>
-                <a href="$changequery(page=page-1)" class="ChoosePage">&lt;&nbsp;Previous</a>
-            $for p in range(first_page_in_set, last_page_in_set+1):
-                $if p == page:
-                    <span class="this">$p</span>
-                $else:
-                    <a href="$changequery(page=p)" class="ChoosePage">$p</a>
-            $if page < pages:
-                <a href="$changequery(page=page+1)" class="ChoosePage">Next&nbsp;&gt;</a>
-                <a href="$changequery(page=pages)" class="ChoosePage">Last&nbsp;&raquo;</a>
-            </div>
+        $:macros.Pager(page, num_found, rows)
+
+    $if param and not error:
+        $if ctx.user and ctx.user.is_admin():
+            <div class="small sansserif clearfix"><br/><span class="adminOnly">Searching solr took $("%.2f" % search_secs) seconds</span></div>
 
 </div>

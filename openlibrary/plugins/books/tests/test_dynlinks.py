@@ -10,6 +10,9 @@ from .. import dynlinks
 
 import re
 import simplejson
+import web
+from openlibrary.core import mocksite
+from openlibrary.core import ia
 
 def pytest_funcarg__data0(request):
     return {
@@ -28,7 +31,11 @@ def pytest_funcarg__data0(request):
         "result": {
             "data": {
                 "url": "http://openlibrary.org/books/OL0M/book-0",
+                "key": "/books/OL0M",
                 "title": "book-0",
+                "identifiers": {
+                    "openlibrary": ["OL0M"]
+                }
             }
         }
     }
@@ -89,6 +96,7 @@ def pytest_funcarg__data9(request):
             "key": "/books/OL9M",
             "title": "foo",
             "subtitle": "bar",
+            "by_statement":  "Mark Twain",
             "works": [{"key": "/works/OL9W"}],
             "publishers": ["Dover Publications"],
             "publish_places": ["New York"],
@@ -103,7 +111,9 @@ def pytest_funcarg__data9(request):
             },
             "lc_classifications": ["LC1234"],
             "covers": [42, 53],
-            "ocaid": "foo12bar"
+            "ocaid": "foo12bar",
+            "number_of_pages": "100",
+            "pagination": "100 p."
         },
         "result": {
             "viewapi": {
@@ -114,8 +124,10 @@ def pytest_funcarg__data9(request):
             },
             "data": {
                 "url": "http://openlibrary.org/books/OL9M/foo",
+                "key": "/books/OL9M",
                 "title": "foo",
                 "subtitle": "bar",
+                "by_statement": "Mark Twain",
                 "authors": [{
                     "url": "http://openlibrary.org/authors/OL9A/Mark_Twain",
                     "name": "Mark Twain"
@@ -124,7 +136,8 @@ def pytest_funcarg__data9(request):
                     "isbn_10": ["1234567890"],
                     "lccn": ["lccn-1"],
                     "oclc": ["oclc-1"],
-                    "goodreads": ["12345"]
+                    "goodreads": ["12345"],
+                    "openlibrary": ["OL9M"]
                 },
                 "classifications": {
                     "lc_classifications": ["LC1234"],
@@ -169,8 +182,12 @@ def pytest_funcarg__data9(request):
                     "comment": "bar"
                 }],
                 "ebooks": [{
-                    "preview_url": "http://www.archive.org/details/foo12bar"
-                }]
+                    "preview_url": "http://www.archive.org/details/foo12bar",
+                    "read_url": "http://www.archive.org/stream/foo12bar",
+                    "availability": "full"
+                }],
+                "number_of_pages": "100",
+                "pagination": "100 p."
             }
         }
     }
@@ -202,6 +219,8 @@ def monkeypatch_ol(monkeypatch):
     mock.setup_call(["/books/OL2M"], _return=[{"key": "/books/OL2M", "title": "bar", "ocaid": "ia-bar"}])
     mock.default = []
     monkeypatch.setattr(dynlinks, "ol_get_many", mock)
+    
+    monkeypatch.setattr(ia, "get_meta_xml", lambda itemid: web.storage())
 
 def test_query_keys(monkeypatch):
     monkeypatch_ol(monkeypatch)
@@ -217,7 +236,9 @@ def test_query_docs(monkeypatch):
     assert dynlinks.query_docs(["isbn:9876543210"]) == {}
     assert dynlinks.query_docs(["isbn:1234567890", "isbn:9876543210"]) == {"isbn:1234567890": {"key": "/books/OL1M", "title": "foo"}}
     
-def test_process_doc_for_view_api():
+def test_process_doc_for_view_api(monkeypatch):
+    monkeypatch_ol(monkeypatch)
+    
     bib_key = "isbn:1234567890"
     doc = {"key": "/books/OL1M", "title": "foo"}
     expected_result = {
@@ -312,6 +333,19 @@ def test_dynlinks(monkeypatch):
     js = dynlinks.dynlinks(["isbn:1234567890"], {"format": "json"})
     assert simplejson.loads(js) == expected_result
 
+def test_isbnx(monkeypatch):
+    site = mocksite.MockSite()
+    site.save({
+        "key": "/books/OL1M",
+        "type": {"key": "/type/edition"},
+        "isbn_10": "123456789X"
+    })
+    
+    monkeypatch.setattr(web.ctx, "site", site, raising=False)
+    json = dynlinks.dynlinks(["isbn:123456789X"], {"format": "json"})
+    d = simplejson.loads(json)
+    assert d.keys() == ["isbn:123456789X"] 
+
 def test_dynlinks_ia(monkeypatch):
     monkeypatch_ol(monkeypatch)
 
@@ -360,7 +394,9 @@ class TestDataProcessor:
         p = dynlinks.DataProcessor()
         assert p.process_doc(data0['/books/OL0M']) == data0['result']['data']
         
-    def test_process_doc9(self, data9):
+    def test_process_doc9(self, monkeypatch, data9):
+        monkeypatch_ol(monkeypatch)
+        
         p = dynlinks.DataProcessor()
         p.authors = data9
         p.works = data9

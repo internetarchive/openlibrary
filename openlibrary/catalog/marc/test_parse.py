@@ -15,7 +15,7 @@ xml_samples = ['39002054008678.yale.edu', 'flatlandromanceo00abbouoft',
     'nybc200247', 'secretcodeofsucc00stjo', 'warofrebellionco1473unit',
     'zweibchersatir01horauoft', 'onquietcomedyint00brid', '00schlgoog',
     '0descriptionofta1682unit', '1733mmoiresdel00vill', '13dipolarcycload00burk',
-    'bijouorannualofl1828cole']
+    'bijouorannualofl1828cole', 'soilsurveyrepor00statgoog', 'diebrokeradical400poll']
 
 bin_samples = ['bpl_0486266893', 'flatlandromanceo00abbouoft_meta.mrc',
     'histoirereligieu05cr_meta.mrc', 'ithaca_college_75002321', 'lc_0444897283',
@@ -25,7 +25,7 @@ bin_samples = ['bpl_0486266893', 'flatlandromanceo00abbouoft_meta.mrc',
     'talis_no_title.mrc', 'talis_740.mrc', 'talis_245p.mrc', 'talis_856.mrc',
     'talis_multi_work_tiles.mrc', 'talis_empty_245.mrc', 'ithaca_two_856u.mrc',
     'collingswood_bad_008.mrc', 'collingswood_520aa.mrc', 'upei_broken_008.mrc',
-    'upei_short_008.mrc']
+    'upei_short_008.mrc', 'diebrokeradical400poll_meta.mrc']
 
 class TestParse(unittest.TestCase):
     def test_xml(self):

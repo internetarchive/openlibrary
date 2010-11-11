@@ -83,7 +83,7 @@ for line in open('/2/edward/20century/records_to_load'):
 
     edition_pool = pool.build(index_fields)
     if not edition_pool or not any(v for v in edition_pool.itervalues()):
-        print >> new_book, rec
+        print >> new_book, full_rec
         continue
 
     print item, edition_pool

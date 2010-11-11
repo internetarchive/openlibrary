@@ -203,14 +203,34 @@ class MigrationMiddleware(ConnectionMiddleware):
         response = ConnectionMiddleware.get(self, sitename, data)
         if response:
             data = simplejson.loads(response)
-            response = simplejson.dumps(self._process(data))
+            data = self._process(data)
+            data = data and self.fix_doc(data)
+            response = simplejson.dumps(data)
         return response
+        
+    def fix_doc(self, doc):
+        type = doc.get("type", {}).get("key") 
+        
+        if type == "/type/work":
+            if doc.get("authors"):
+                # some record got empty author records because of an error
+                # temporary hack to fix 
+                doc['authors'] = [a for a in doc['authors'] if 'author' in a]
+        elif type == "/type/edition":
+            # get rid of title_prefix.
+            if 'title_prefix' in doc:
+                title = doc['title_prefix'].strip() + ' ' + doc.get('title', '')
+                doc['title'] = title.strip()
+                del doc['title_prefix']
+        return doc
         
     def get_many(self, sitename, data):
         response = ConnectionMiddleware.get_many(self, sitename, data)
         if response:
             data = simplejson.loads(response)
-            response = simplejson.dumps(self._process(data))
+            data = self._process(data)
+            data = dict((key, self.fix_doc(doc)) for key, doc in data.items())
+            response = simplejson.dumps(data)
         return response
 
 def OLConnection():

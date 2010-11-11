@@ -225,6 +225,19 @@ def run_solr_query(param = {}, rows=100, page=1, sort=None, spellcheck_count=Non
     solr_select += '&spellcheck=true&spellcheck.count=%d' % spellcheck_count
     solr_select += "&facet=true&" + '&'.join("facet.field=" + f for f in facet_fields)
 
+    if 'public_scan' in param:
+        v = param.pop('public_scan').lower()
+        if v in ('true', 'false'):
+            if v == 'false':
+                # also constrain on print disabled since the index may not be in sync
+                param.setdefault('print_disabled', 'false')
+            solr_select += '&fq=public_scan_b:%s' % v
+
+    if 'print_disabled' in param:
+        v = param.pop('print_disabled').lower()
+        if v in ('true', 'false'):
+            solr_select += '&fq=%ssubject_key:protected_daisy' % ('-' if v == 'false' else '')
+
     k = 'has_fulltext'
     if k in param:
         v = param[k].lower()
@@ -650,6 +663,39 @@ class subjects_json(delegate.page):
 
         subject = get_subject(key, offset=i.offset, limit=i.limit, details=i.details.lower() == "true", **filters)
         return json.dumps(subject)
+        
+class subject_works_json(delegate.page):
+    path = '(/subjects/\w+)/works'
+    encoding = "json"
+
+    @jsonapi
+    def GET(self, key):
+        if key.lower() != key:
+            raise web.redirect(key.lower())
+
+        i = web.input(offset=0, limit=12, has_fulltext="false")
+
+        filters = {}
+        if i.get("has_fulltext") == "true":
+            filters["has_fulltext"] = "true"
+            
+        if i.get("published_in"):
+            if "-" in i.published_in:
+                begin, end = i.published_in.split("-", 1)
+                
+                if safeint(begin, None) is not None and safeint(end, None) is not None:
+                    filters["publish_year"] = [begin, end]
+            else:
+                y = safeint(i.published_in, None)
+                if y is not None:
+                    filters["publish_year"] = i.published_in
+
+        i.limit = safeint(i.limit, 12)
+        i.offset = safeint(i.offset, 0)
+
+        subject = get_subject(key, offset=i.offset, limit=i.limit, details=False, **filters)
+        return json.dumps(subject)
+    
         
 class subjects(delegate.page):
     path = '(/subjects/.+)'

@@ -1,5 +1,4 @@
-import openlibrary.catalog.marc.fast_parse as fast_parse
-import openlibrary.catalog.marc.read_xml as read_xml
+from openlibrary.catalog.marc import fast_parse, read_xml, is_display_marc
 from lxml import etree
 import xml.parsers.expat
 import urllib2, os.path, re
@@ -54,10 +53,20 @@ def find_item(ia):
     return (ia_host, ia_path)
 
 def bad_ia_xml(ia):
+    if ia == 'revistadoinstit01paulgoog':
+        return False
     # need to handle 404s:
     # http://www.archive.org/details/index1858mary
     loc = ia + "/" + ia + "_marc.xml"
     return '<!--' in urlopen_keep_trying(base + loc).read()
+
+def get_marc_ia_data(ia):
+    ia = ia.strip() # 'cyclopdiaofedu00kidd '
+    url = base + ia + "/" + ia + "_meta.mrc"
+    f = urlopen_keep_trying(url)
+    if f is None:
+        return None
+    return f.read()
 
 def get_marc_ia(ia):
     ia = ia.strip() # 'cyclopdiaofedu00kidd '
@@ -161,7 +170,10 @@ def get_data(loc):
         filename, p, l = loc.split(':')
     except ValueError:
         return None
-    if not os.path.exists(rc['marc_path'] + '/' + filename):
+    marc_path = rc.get('marc_path')
+    if not marc_path:
+        return None
+    if not os.path.exists(marc_path + '/' + filename):
         return None
     f = open(rc['marc_path'] + '/' + filename)
     f.seek(int(p))
@@ -170,7 +182,6 @@ def get_data(loc):
     return buf
 
 def get_from_archive(locator):
-    print locator
     if locator.startswith('marc:'):
         locator = locator[5:]
     file, offset, length = locator.split (":")
@@ -233,6 +244,8 @@ def marc_formats(ia):
     has = { 'xml': False, 'bin': False }
     url = 'http://www.archive.org/download/' + ia + '/' + ia + '_files.xml'
     f = urlopen_keep_trying(url)
+    if f is None:
+        return {}
     data = f.read()
     try:
         root = etree.fromstring(data)

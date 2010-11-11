@@ -6,7 +6,8 @@ from openlibrary import config
 from time import time, sleep
 import argparse, simplejson, re
 from urllib import urlopen, quote_plus
-from openlibrary.solr.update_work import update_author, update_work, get_work_subjects, add_field, solr_update
+from openlibrary.catalog.utils.query import withKey, set_query_host
+from openlibrary.solr.update_work import update_author, update_work, get_work_subjects, add_field, solr_update, AuthorRedirect
 from collections import defaultdict
 from lxml.etree import tostring, Element
 
@@ -19,6 +20,7 @@ config_file = args.config
 config.load(config_file)
 
 base = 'http://%s/openlibrary.org/log/' % config.runtime_config['infobase_server']
+set_query_host('openlibrary.org')
 
 state_file = config.runtime_config['state_dir'] + '/' + args.state_file
 offset = open(state_file).readline()[:-1]
@@ -147,7 +149,12 @@ def solr_updates(i):
             subjects = get_work_subjects(work)
             for subject_type, values in subjects.iteritems():
                 subjects_to_update.update((subject_type, v) for v in values)
-            ret = update_work(work, obj_cache=obj_by_key, debug=True)
+            try:
+                ret = update_work(work, obj_cache=obj_by_key, debug=True)
+            except AuthorRedirect:
+                work = withKey(wkey)
+                work['editions'] = editions_by_work[wkey]
+                ret = update_work(work, debug=True, resolve_redirects=True)
             work_updates += ret
     solr_update(work_updates, debug=False, index='works')
 

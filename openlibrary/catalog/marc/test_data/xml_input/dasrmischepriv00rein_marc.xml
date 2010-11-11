@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<record xmlns="http://www.loc.gov/MARC21/slim">
+  <leader>01040cam a22002410  4500</leader>
+  <controlfield tag="001">2882468</controlfield>
+  <controlfield tag="008">831024s1836    gx        ger       c   c</controlfield>
+  <datafield tag="035" ind1=" " ind2=" ">
+    <subfield code="a">(Sirsi) AGO-1188</subfield>
+  </datafield>
+  <datafield tag="040" ind1=" " ind2=" ">
+    <subfield code="a">otu</subfield>
+    <subfield code="b">eng</subfield>
+  </datafield>
+  <datafield tag="043" ind1=" " ind2=" ">
+    <subfield code="a">ae-----</subfield>
+    <subfield code="a">ff-----</subfield>
+    <subfield code="a">nc-----</subfield>
+  </datafield>
+  <datafield tag="050" ind1=" " ind2="4">
+    <subfield code="a">K R3648</subfield>
+    <subfield code="b">R6 1836</subfield>
+  </datafield>
+  <datafield tag="090" ind1=" " ind2="8">
+    <subfield code="a">K .R3648R6 1836</subfield>
+    <subfield code="b">ROBA</subfield>
+    <subfield code="c">1</subfield>
+  </datafield>
+  <datafield tag="100" ind1="1" ind2="0">
+    <subfield code="a">Rein, Wilhelm,</subfield>
+    <subfield code="d">1809-1865</subfield>
+  </datafield>
+  <datafield tag="245" ind1="1" ind2="4">
+    <subfield code="a">Das römische Privatrecht und der Civilprocess bis in das erste Jahrhundert der Kaiserherrschaft  :</subfield>
+    <subfield code="b">ein Hülfsbuch zur Erklärung der alten Classiker, vorzüglich für Philologen nach den Quellen bearbeitet /</subfield>
+    <subfield code="c">von Wilhelm Rein.</subfield>
+  </datafield>
+  <datafield tag="260" ind1="0" ind2=" ">
+    <subfield code="a">Leipzig :</subfield>
+    <subfield code="b">K.F. Koehler,</subfield>
+    <subfield code="c">1836.</subfield>
+  </datafield>
+  <datafield tag="300" ind1=" " ind2=" ">
+    <subfield code="a">xxxiv, 537 p.</subfield>
+  </datafield>
+  <datafield tag="500" ind1=" " ind2=" ">
+    <subfield code="a">Mit einer geschichtlichen Uebersicht der römischen Verfassungsgeschichte und der Rechtsquellen bis auf Justinianus.</subfield>
+  </datafield>
+  <datafield tag="504" ind1=" " ind2=" ">
+    <subfield code="a">Includes bibliographical references.</subfield>
+  </datafield>
+  <datafield tag="596" ind1=" " ind2=" ">
+    <subfield code="a">52</subfield>
+  </datafield>
+  <datafield tag="650" ind1=" " ind2="0">
+    <subfield code="a">Roman law</subfield>
+    <subfield code="x">History</subfield>
+  </datafield>
+  <datafield tag="650" ind1=" " ind2="0">
+    <subfield code="a">Constitutional history</subfield>
+    <subfield code="z">Rome.</subfield>
+  </datafield>
+  <datafield tag="948" ind1=" " ind2=" ">
+    <subfield code="a">07/15/1992</subfield>
+    <subfield code="b">10/03/1998</subfield>
+  </datafield>
+  <datafield tag="926" ind1=" " ind2=" ">
+    <subfield code="a">DOWNSVIEW</subfield>
+    <subfield code="b">CHECKEDOUT</subfield>
+    <subfield code="c">K .R3648 R6 1836</subfield>
+    <subfield code="d">BOOK</subfield>
+    <subfield code="e">18/10/2010</subfield>
+    <subfield code="f">1</subfield>
+  </datafield>
+</record>

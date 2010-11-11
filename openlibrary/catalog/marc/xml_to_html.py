@@ -23,8 +23,10 @@ def html_line(tag, field):
 
 class html_record():
     def __init__(self, data):
-        tree = etree.fromstring(data)
-        rec = MarcXml(tree)
+        root = etree.fromstring(data)
+        if root.tag == '{http://www.loc.gov/MARC21/slim}collection':
+            root = root[0]
+        rec = MarcXml(root)
         self.rec = rec
         self.leader = rec.leader()
 
@@ -34,11 +36,11 @@ class html_record():
         return '<br>\n'.join(lines)
 
 if __name__ == '__main__':
-    samples = '''1893manualofharm00jadauoft 39002054008678.yale.edu flatlandromanceo00abbouoft nybc200247 onquietcomedyint00brid secretcodeofsucc00stjo warofrebellionco1473unit zweibchersatir01horauoft'''.split()
+    samples = '''1893manualofharm00jadauoft 39002054008678.yale.edu flatlandromanceo00abbouoft nybc200247 onquietcomedyint00brid secretcodeofsucc00stjo warofrebellionco1473unit zweibchersatir01horauoft cu31924091184469'''.split()
 
     for filename in samples:
-        print 'test_data/' + filename + '_marc.xml'
-        data = open('test_data/' + filename + '_marc.xml').read()
+        print 'test_data/xml_input/' + filename + '_marc.xml'
+        data = open('test_data/xml_input/' + filename + '_marc.xml').read()
         if data == '':
             continue
         rec = html_record(data)
