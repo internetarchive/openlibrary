@@ -215,7 +215,36 @@ class ProcessDump(Command):
         
         pool = multiprocessing.Pool(4)
         pool.map(worker, os.listdir(indir))
-
+        
+MEGABYTE = 1024 * 1024
+        
+class GenerateEditions(Command):
+    """Processes the works.txt, the denormalized works dump, to generate editions.txt with seed info.
+    """
+    def init(self):
+        cmd = GenerateSeeds()
+        self.get_subjects = cmd.get_subjects
+        self.get_authors = cmd.get_authors
+        self.read_works = cmd.read_works
+        
+    def run(self, works_txt=None):
+        works_file = works_txt and xopen(works_txt) or sys.stdin
+        works = self.read_works(works_file)
+        
+        f = open("editions.txt", "w", 10 * MEGABYTE)
+        
+        for work in works:
+            seeds = self.get_seeds(work)
+            for e in work.get('editions', []):
+                e['seeds'] = [e['key']] + seeds
+                f.write("%s\t%s\n" % (e['key'], simplejson.dumps(e)))
+        f.close()
+        
+    def get_seeds(self, work):
+        return [work['key']] + \
+            [a['key'] for a in self.get_authors(work)] + \
+            [s['key'] for s in self.get_subjects(work)]
+    
 class GenerateSeeds(Command):
     """Processes works.txt and generates seeds.txt.
     
@@ -450,6 +479,7 @@ def main(cmd=None, *args):
     commands = {
         "process-dump": ProcessDump(),
         "generate-seeds": GenerateSeeds(),
+        "generate-editions": GenerateEditions(),
         "make-editions": MakeEdtions(),
         "couchdb-import": CouchDBImport(),        
     }
