@@ -5,6 +5,7 @@ import traceback
 
 from openlibrary.plugins.openlibrary.processors import urlsafe
 from openlibrary.core import helpers as h
+from openlibrary.core import ia
 
 from infogami.utils.delegate import register_exception
 
@@ -244,9 +245,18 @@ class DataProcessor:
             "excerpts": [format_excerpt(e) for e in w.get("excerpts", [])],
             "links": [dict(title=link.get("title"), url=link['url']) for link in w.get('links', '') if link.get('url')],
         }
+        
+        def ebook(itemid):
+            availability = get_ia_availability(itemid)
+            d = {
+                "preview_url": "http://www.archive.org/details/" + doc['ocaid'],
+                "read_url": "http://www.archive.org/stream/" + doc['ocaid'],
+                "availability": availability
+            }
+            return d
 
         if doc.get("ocaid"):
-            d['ebooks'] = [{"preview_url": "http://www.archive.org/details/" + doc['ocaid']}]
+            d['ebooks'] = [ebook(doc['ocaid'])]
         
         if doc.get('covers'):
             cover_id = doc['covers'][0]
@@ -295,6 +305,17 @@ def process_result_for_details(result):
 
 def process_result_for_viewapi(result):
     return dict((k, process_doc_for_viewapi(k, doc)) for k, doc in result.items())
+    
+
+def get_ia_availability(itemid):
+    collections = ia.get_meta_xml(itemid).get("collection", [])
+
+    if 'printdisabled' in collections:
+        return 'printdisabled'
+    elif 'lendinglibrary' in collections:
+        return 'borrow'
+    else:
+        return 'full'
 
 def process_doc_for_viewapi(bib_key, page):
     key = page['key']
@@ -302,7 +323,7 @@ def process_doc_for_viewapi(bib_key, page):
     url = get_url(page)
     
     if 'ocaid' in page:
-        preview = 'full'
+        preview = get_ia_availability(page['ocaid'])
         preview_url = 'http://www.archive.org/details/' + page['ocaid']
     else:
         preview = 'noview'
