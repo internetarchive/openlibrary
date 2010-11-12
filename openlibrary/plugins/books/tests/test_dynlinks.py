@@ -184,7 +184,22 @@ def pytest_funcarg__data9(request):
                 "ebooks": [{
                     "preview_url": "http://www.archive.org/details/foo12bar",
                     "read_url": "http://www.archive.org/stream/foo12bar",
-                    "availability": "full"
+                    "availability": "full",
+                    "formats": {
+                        "pdf": {
+                            "url": "http://www.archive.org/download/foo12bar/foo12bar.pdf"
+                        },
+                        "epub": {
+                            "url": "http://www.archive.org/download/foo12bar/foo12bar.epub"
+                        },
+                        "text": {
+                            "url": "http://www.archive.org/download/foo12bar/foo12bar_djvu.txt"
+                        },
+                        "djvu": {
+                            "url": "http://www.archive.org/download/foo12bar/foo12bar.djvu",
+                            "permission": "open"
+                        },
+                    }
                 }],
                 "number_of_pages": "100",
                 "pagination": "100 p."
@@ -400,4 +415,5 @@ class TestDataProcessor:
         p = dynlinks.DataProcessor()
         p.authors = data9
         p.works = data9
+        print p.process_doc(data9['/books/OL9M'])
         assert p.process_doc(data9['/books/OL9M']) == data9['result']['data']

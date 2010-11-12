@@ -246,17 +246,53 @@ class DataProcessor:
             "links": [dict(title=link.get("title"), url=link['url']) for link in w.get('links', '') if link.get('url')],
         }
         
-        def ebook(itemid):
+        def ebook(doc):
+            itemid = doc['ocaid']
             availability = get_ia_availability(itemid)
+            
             d = {
-                "preview_url": "http://www.archive.org/details/" + doc['ocaid'],
-                "read_url": "http://www.archive.org/stream/" + doc['ocaid'],
+                "preview_url": "http://www.archive.org/details/" + itemid,
                 "availability": availability
             }
+                
+            prefix = "http://www.archive.org/download/%s/%s" % (itemid, itemid)
+            if availability == 'full':
+                d["read_url"] = "http://www.archive.org/stream/%s" % (itemid)
+                d['formats'] = {
+                    "pdf": {
+                        "url": prefix + ".pdf"
+                    },
+                    "epub": {
+                        "url": prefix + ".epub"
+                    },
+                    "text": {
+                        "url": prefix + "_djvu.txt"
+                    },
+                    "djvu": {
+                        "url": prefix + ".djvu",
+                        "permission": "open"
+                    }
+                }
+            elif availability == "borrow":
+                d['borrow_url'] = u"http://openlibrary.org%s/%s/borrow" % (doc['key'], h.urlsafe(doc.get("title", "untitled")))
+                d['formats'] = {
+                    "djvu": {
+                        "url": prefix + ".djvu",
+                        "permission": "restricted"
+                    }
+                }
+            else:
+                d['formats'] = {
+                    "djvu": {
+                        "url": prefix + ".djvu",
+                        "permission": "restricted"
+                    }
+                }
+                
             return d
 
         if doc.get("ocaid"):
-            d['ebooks'] = [ebook(doc['ocaid'])]
+            d['ebooks'] = [ebook(doc)]
         
         if doc.get('covers'):
             cover_id = doc['covers'][0]
@@ -311,7 +347,7 @@ def get_ia_availability(itemid):
     collections = ia.get_meta_xml(itemid).get("collection", [])
 
     if 'printdisabled' in collections:
-        return 'printdisabled'
+        return 'restricted'
     elif 'lendinglibrary' in collections:
         return 'borrow'
     else:
