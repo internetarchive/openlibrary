@@ -346,10 +346,10 @@ def process_result_for_viewapi(result):
 def get_ia_availability(itemid):
     collections = ia.get_meta_xml(itemid).get("collection", [])
 
-    if 'printdisabled' in collections:
-        return 'restricted'
-    elif 'lendinglibrary' in collections:
+    if 'lendinglibrary' in collections:
         return 'borrow'
+    elif 'printdisabled' in collections:
+        return 'restricted'
     else:
         return 'full'
 
