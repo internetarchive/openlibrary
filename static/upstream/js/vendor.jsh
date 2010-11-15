@@ -27,9 +27,12 @@ xcat $VENDORJS/jquery-autocomplete/jquery.autocomplete-modified.js | $JSMIN
 
 xcat $VENDORJS/wmd/jquery.wmd.min.js 
 
+xcat $VENDORJS/flot/excanvas.min.js
 xcat $VENDORJS/flot/jquery.flot.min.js
 xcat $VENDORJS/flot/jquery.flot.selection.min.js
 xcat $VENDORJS/flot/jquery.flot.crosshair.min.js
+
+xcat $VENDORJS/json2/json2.js | $JSMIN
 
 # for backward compatability
 xcat <<END

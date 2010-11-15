@@ -5,11 +5,14 @@ import web
 import subprocess
 import datetime
 import urllib
+import traceback
 
+from infogami import config
 from infogami.utils import delegate
 from infogami.utils.view import render, public
 from infogami.utils.context import context
 
+from infogami.utils.view import add_flash_message
 import openlibrary
 
 def render_template(name, *a, **kw):
@@ -67,13 +70,46 @@ class gitpull:
         out = p.stdout.read()
         p.wait()
         return '<pre>' + web.websafe(out) + '</pre>'
-
+        
 class reload:
     def GET(self):
-        from infogami.plugins.wikitemplates import code
-        code.load_all()
-        return delegate.RawText('done')
+        servers = config.get("plugin_admin", {}).get("webservers", [])
+        if servers:
+            body = "".join(self.reload(servers))
+        else:
+            body = "No webservers specified in the configuration file."
         
+        return render_template("message", "Reload", body)
+        
+    def reload(self, servers):
+        for s in servers:
+            s = web.rstrips(s, "/") + "/_reload"
+            yield "<h3>" + s + "</h3>"
+            try:
+                response = urllib.urlopen(s).read()
+                print s, response
+                yield "<p><pre>" + response[:100] + "</pre></p>"
+            except:
+                yield "<p><pre>%s</pre></p>" % traceback.format_exc()
+        
+@web.memoize
+def local_ip():
+    import socket
+    return socket.gethostbyname(socket.gethostname())
+
+class _reload(delegate.page):
+    def GET(self):
+        # make sure the request is coming from the LAN.
+        if web.ctx.ip not in ['127.0.0.1', '0.0.0.0'] and web.ctx.ip.rsplit(".", 1)[0] != local_ip().rsplit(".", 1)[0]:
+            return render.permission_denied(web.ctx.fullpath, "Permission denied to reload templates/macros.")
+        
+        from infogami.plugins.wikitemplates import code as wikitemplates
+        wikitemplates.load_all()
+
+        from openlibrary.plugins.upstream import code as upstream
+        upstream.reload()
+        return delegate.RawText("done")
+
 class any:
     def GET(self):
         path = web.ctx.path
@@ -132,6 +168,37 @@ class ipstats:
         json = urllib.urlopen("http://www.archive.org/download/stats/numUniqueIPsOL.json").read()
         return delegate.RawText(json)
         
+class block:
+    def GET(self):
+        page = web.ctx.site.get("/admin/block") or web.storage(ips=[web.storage(ip="127.0.0.1", duration="1 week", since="1 day")])
+        return render_template("admin/block", page)
+    
+    def POST(self):
+        i = web.input()
+        
+        page = web.ctx.get("/admin/block") or web.ctx.site.new("/admin/block", {"key": "/admin/block", "type": "/type/object"})
+        ips = [{'ip': d} for d in (d.strip() for d in i.ips.split('\r\n')) if d]
+        page.ips = ips
+        page._save("update blocked IPs")
+        add_flash_message("info", "Saved!")
+        raise web.seeother("/admin/block")
+        
+def get_blocked_ips():
+    doc = web.ctx.site.get("/admin/block")
+    if doc:
+        return [d.ip for d in doc.ips]
+    else:
+        return []
+    
+def block_ip_processor(handler):
+    if not web.ctx.path.startswith("/admin") \
+        and (web.ctx.method == "POST" or web.ctx.path.endswith("/edit")) \
+        and web.ctx.ip in get_blocked_ips():
+        
+        return render_template("permission_denied", web.ctx.path, "Your IP address is blocked.")
+    else:
+        return handler()
+        
 def daterange(date, *slice):
     return [date + datetime.timedelta(i) for i in range(*slice)]
     
@@ -186,7 +253,28 @@ def get_admin_stats():
         }
     }
     return storify(xstats)
-
+    
+from openlibrary.plugins.upstream import borrow
+class loans_admin:
+    def GET(self):
+        loans = borrow.get_all_loans()
+        return render_template("admin/loans", loans, None)
+        
+    def POST(self):
+        i = web.input(action=None)
+        
+        # Sanitize
+        action = None
+        actions = ['updateall']
+        if i.action in actions:
+            action = i.action
+            
+        if action == 'updateall':
+            borrow.update_all_loan_status()
+        loans = borrow.get_all_loans()
+        raise web.seeother(web.ctx.path) # Redirect to avoid form re-post on re-load
+        #return render_template("admin/loans", loans, action)
+            
 def setup():
     register_admin_page('/admin/git-pull', gitpull, label='git-pull')
     register_admin_page('/admin/reload', reload, label='Reload Templates')
@@ -196,8 +284,17 @@ def setup():
     register_admin_page('/admin/ip/(.*)', ipaddress_view, label='View IP')
     register_admin_page('/admin/stats/(\d\d\d\d-\d\d-\d\d)', stats, label='Stats JSON')
     register_admin_page('/admin/ipstats', ipstats, label='IP Stats JSON')
+    register_admin_page('/admin/block', block, label='')
+    register_admin_page('/admin/loans', loans_admin, label='')
     
+    import mem
+
+    for p in [mem._memory, mem._memory_type, mem._memory_id]:
+        register_admin_page('/admin' + p.path, p)
+
     public(get_admin_stats)
+    
+    delegate.app.add_processor(block_ip_processor)
     
 class IPAddress:
     def __init__(self, ip):

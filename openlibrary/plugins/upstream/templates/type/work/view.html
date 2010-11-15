@@ -1,200 +1,234 @@
 $def with (page)
 
-$ _t = i18n.get_namespace('/type/edition')
-$ _ = i18n.get_namespace('/mode/view')
-
 $var title: $page.title
 
 <div id="contentHead">
 
     $:macros.databarView(page)
 
-    <div class="head">
-        <h1>$page.title</h1>
-        <div class="clearfix"></div>
-        $if page.get('subtitle'):
-            <span class="subtitle">$page.subtitle</span>
-            <div class="clearfix"></div>
-        $if page.authors:
-            $ author_list = ', '.join('<a href="%s">%s</a>' % (a.author.key, a.author.name) for a in page.authors)
-            <h2 class="author">by $:author_list</h2>
-    </div>
+    <h1 class="collapse">
+        $if page.get('subtitle', ''):
+            $page.title<span title="subtitle">: $page.subtitle</span>
+        $else:
+            $page.title
+        $if page.editions:
+            <span class="tools" style="white-space:nowrap;">
+            $if page.edition_count == 1:
+                $for book in page.editions:
+                    <a href="$book.url()" title="View this edition">1 edition</a>
+            $else:
+                <a href="#editions" class="plain brown">$page.edition_count editions</a>
+            </span>
+    </h1>
+    <div class="clearfix"></div>
+    $if page.authors:
+        $ author_list = ', '.join('<a href="%s">%s</a>' % (a.author.url(), a.author.name) for a in page.authors)
+        <div class="work"><span class="editions">$_("By") $:author_list</span></div>
+    $else:
+        <div class="work"><span class="editions">$:_("By <em>unknown author</em>")</span></div>
 </div>
+
 <div class="clearfix"></div>
 
 <script type="text/javascript">
-\$().ready(bookCovers);
-\$().ready(carousels);
-\$().ready(carouselSetup);
-\$().ready(bigCharts);
-\$().ready(tableShow);
-\$().ready(slidePanels);
+<!--
+\$().ready(function(){
+    var back = history.length; 
+    \$().bind('cbox_closed', function(){ 
+        var page = back - history.length;
+        if (page < 0){ 
+            history.go(page); 
+        } 
+    });
+});
+//-->
 </script>
 
-$ s = "subjects", "first_sentence",
 
 <div id="contentBody">
 
-    $:macros.databarWork(page)
-
-    <div id="workDetails">
-
-    <div class="illustration right">
-        $:macros.CoverImageWork(page)
+    <div class="workCover">
+        <div class="illustration" id="work">
+            $:render_template('covers/book_cover', page)
+            $:render_template("covers/change", page, ".bookCover img")
+        </div>
+        $if page.edition_count == 1:
+            $for book in page.editions:
+                $:render_template("books/edition-toolbar-show", book)
     </div>
 
-$if page.description:
-    <p>$page.description</p>
+    <div class="workAbout">
+    <div class="workPadding">
+        $if not page.excerpts and page.first_sentence:
+            <p class="largest" style="margin-bottom: 20px;" title="First Sentence"><em>"$page.first_sentence</em>"</p>
 
+        $if page.description:
+            <div class="sansserif smallest brown collapse">About the Book</div>
+            $:sanitize(format(page.description))
 
-    $for name in s:
-        $if page[name]:
-            <div class="section"><span class="title">$_t[name]:</span>
-            $if name == "subjects":
-                <span class="tag">
-                    $for subject in page[name]:
-                        $ subject_label = subject.strip('.')
-                        <a href="/search?ftokens=$:utf8(facet_token('subjects', thingrepr(subject).strip()))">$:utf8(thingrepr(subject_label)).replace('--', '&mdash;')</a>&nbsp;
-                </span>
-            $else:
-                <span class="tag">$:thingrepr(page[name])</span>
+        $def render_subjects(label, subjects, prefix=""):
+            $if subjects:
+                <div class="section" style="margin-bottom:15px;">
+                    <h6 class="collapse black uppercase">$label</h6>
+                    <div class="sansserif">
+                    $for subject in subjects:
+                        <a href="/subjects/$prefix$:utf8(subject.lower().replace(' ', '_').replace(',',''))">$subject</a>$cond(not loop.last,",","")
+                    </div>
+                </div>
+
+        $:render_subjects("Subjects", page.get_subjects())
+        $:render_subjects("People", page.subject_people, prefix="person:")
+        $:render_subjects("Places", page.subject_places, prefix="place:")
+        $:render_subjects("Times", page.subject_times, prefix="time:")
+
+        $if page.excerpts:
+            <div class="section">
+                <h3 class="collapse">$_("Excerpts")</h3>
+                $for excerpt in page.excerpts:
+                    <div class="excerpt">
+                        <div class="text">
+                            $for line in excerpt.excerpt.split('\n'):
+                                $line<br/>
+                        </div>
+                        <div class="attribution">
+                            $if excerpt.pages:
+                                $_("Page") $excerpt.pages,
+                            $if excerpt.author:
+                                $_("added by") <a href="$excerpt.author.key">$excerpt.author.displayname</a>.
+                            $else:
+                                $_("added anonymously").
+                            $if excerpt.comment:
+                                "<em>$excerpt.comment</em>"
+                        </div>
+                    </div>
+            </div>
+        $if not (page.description or page.excerpts):
+            <div class="workHelp brown sansserif">  	 	
+                $ exclaim = random.choice(["Well, gosh.", "Dang.", "Darn it.", "Oy vey.","¡Ay, caramba!", "Uh oh.","Sheesh.", "Ack!", "D'oh.","Oh, pooh.", "What the..?", "Cor blimey.",   "Jeepers.", "Heavens to Betsy!", "Oh! The humanity!", "Alack!", "Alas...", "Zut alors!","Drat!","Fiddlesticks.", "Good grief.", "Rats.", "Yikes!", "Crikey!"]) 		
+                <span id="curses">$exclaim</span> The library doesn't know what this book is <strong>about</strong>. <br />Can you <b><a href="$page.url('/edit')#about/about">help describe it</a></b>?
             </div>
 
-$if page.notes:
-    <div class="section">
-        <span class="title">$_t['notes']:</span>
-        <span class="tag">$:thingrepr(page.notes)</span>
+        $if page.links or (page.wikipedia and page.wikipedia.startswith("http")):
+            <div class="section">
+                <h3>$_("Links") <span class="gray small sansserif">$_("(outside Open Library)")</span></h3>
+                <ul class="booklinks sansserif">
+                $if page.wikipedia and page.wikipedia.startswith("http"):
+                    <li><a href="$page.wikipedia" class="sidebar">Wikipedia</a></li>
+                $for link in page.links:
+                    <li><a href="$link.url">$link.title</a></li>
+                </ul>
+            </div>
+
+        $if page.edition_count > 1:
+            $if (page.lc_classifications or page.dewey_number):
+                <div class="section">
+                    <h3 class="collapse">$_("Classifications")</h3>
+                    <table class="meta"><tbody>
+                    $if page.lc_classifications:
+                        <tr><td class="title"><span class="title">Library of Congress</span></td>
+                        <td class="tag"><span class="object">$thingrepr(page.lc_classifications)</span></td></tr>
+                    $if page.dewey_number:
+                        <tr><td class="title"><span class="title">Dewey</span></td>
+                        <td class="tag"><span class="object">$thingrepr(page.dewey_number)</span></td></tr>
+                    </tbody></table>
+                </div>
+        </div>
     </div>
 
-    $:macros.WorkInfo(page)
+    <a name="editions"></a>
 
-
-    <div class="head">
-        <h3>Reviews from around the web</h3>
-    </div>
-    <p class="smaller">
-    </p>
-
-    </div>
-
-    <div class="clearfix"></div>
-
-
-    <div class="head">
-        <h2>Versions we know about</h2><br/>
-        <span class="count"><strong>### editions</strong> available in # languages</span>
-    </div>
-
-</div>
-
-
-<div id="contentLists" class="editions">
-$if page.editions:
-    <div id="editionsCovers" class="covers">
-        <ul id="coversCarousel" class="jcarousel-skin-OL">
-        $ col = 0
-            $for book in page.editions:
-                $ title = book.title_prefix + " " + book.title
-                $ olid = book.key.split("/")[2]
-                $if col == 0: <li>
-                    <div class="coverMagic">
-	                <div class="SRPCover">
-                            <a href="$book.key" title="$book.title_prefix $book.title">
-	                    <img src="http://covers.openlibrary.org/b/olid/$olid-M.jpg?default=false" class="cover" alt="$title"/>
-                            </a>
-	                </div>
-                        <div class="SRPCoverBlank" onClick="document.location.href='$book.key';" title="$title">
-                            <div class="innerBorder">
-                                <div class="BookTitle">$title
-                                    <div class="Author">$:author_list</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="bookMeta">
-                            <div class="Publisher">Printed for $:thingrepr(book.publishers)</div>
-                            <div class="Year">in $book.publish_date</div>
-                        </div>
-                    </div>
-                $ col += 1
-                $if col == 12: 
-                    </li>
-                    $ col = 0
-        $if col != 0: </li>
-        </ul>
-    </div>
-    <div id="editionsList" class="covers">
-        <ul id="listCarousel" class="jcarousel-skin-OL">
-            $for book in page.editions:
-                <li>
-                    <span class="bookcover"><a href="$book.key">$:macros.CoverImage(book, size="S")</a></span>
-                    <div class="resultTitle">
-                        <span class="booktitle"><a href="$book.key">$book.title</a></span>
-                        $if book.subtitle: $book.subtitle
-                        <span class="bookauthor">$:author_list</span>
-                        $if book.ocaid:
-                            <span class="sansserif">&nbsp;<a href="/bookreader/$book.ocaid" class="small orange">Read Online</a>&nbsp;</span>
-                    </div>
-                    <div class="resultPublisher">
-                    $if book.get('publishers'): $:thingrepr(book.publishers) 
-                    $if book.get('publish_places'): ($:thingrepr(book.publish_places).strip()) 
-                    $if book.get('publish_date'): $book.publish_date &nbsp;
-                    $ edition_and_lang = ''
-                    $if book.edition_name:
-                        $ edition_and_lang += book.edition_name 
-                    $if book.languages:
-                        $ edition_and_lang += ', '.join([l.name for l in book.languages])
-                    $if edition_and_lang and book.number_of_pages:
-                        $ edition_and_lang += ', '
-                    $edition_and_lang
-                    $if book.number_of_pages:
-                        $book.number_of_pages pages
-                    </div>
-                </li>
-        </ul>
-    </div>
-    <div class="jcarousel-toolbar">
-        <span class="tools"><span class="label">Display:</span> <span class="list"><a class="on" href="javascript:;" id="edsCovers">Covers</a> / <a href="javascript:;" id="edsList">List</a></span></span>
-    </div>
-                
-    <div class="editThis">
-        <a class="editCTA" href="[EDIT]" title="Add editions related to this work">
-        Do you know <strong>an edition we're missing</strong>?
-        </a>
-    </div>
-</div>
-
-<div class="clearfix"></div>
-
-<div id="contentMeta">
-
-    <div id="resultsLists">
+    $if page.edition_count > 1:
+        <div class="clearfix"></div>
         <div class="head">
-            <h2>Possibly related...</h2>
-            <a class="editCTA" href="" title="Add books related to this work">
-            Do you know <strong>a book that's related</strong>?
-            </a>
+            <h2>
+            $commify(page.edition_count) editions
+            $if page.first_publish_year:
+                <span class="count">$_("First published in %s", page.first_publish_year)</span>
+            </h2>
+            <div class="small sansserif brown" style="position:relative;z-index:1000;width:400px;">
+                <a href="/books/add?work=$page.key" title="$_('Add another edition of') $page.title">$_("Add another")</a>? 
+                $if ctx.user and ctx.user.is_admin():
+                    <a href="#" title="This doesn't work yet" class="fixthis">Merge duplicates</a>?
+            </div>
         </div>
 
-        <div class="books">
-            $:macros.SRPCoverImage(page)
-        </div>
+    $if page.edition_count == 1:
+        $for book in page.editions:
+            $:render_template("books/edition-show", book)
 
-    </div>
+    $if page.edition_count > 1:
+        <script type="text/javascript">
+        <!--
+        \$().ready(function(){
+            \$('#editions span.count').each(function(i){
+                \$(this).text(i+1);
+                var myLength = \$(this).text().length;
+                if (myLength == 1) {\$(this).prepend("000");}
+                else if (myLength == 2) {\$(this).prepend("00");}
+                else if (myLength == 3) {\$(this).prepend("0");};
+            });
+            \$('#editions th.title').mouseover(function(){
+                if (\$(this).hasClass('sorting_asc')) {\$(this).attr("title","Sort latest to earliest");}
+                else if (\$(this).hasClass('sorting_desc')) {\$(this).attr("title","Sort earliest to latest");}
+                else {\$(this).attr("title","Sort by publish date");};
+            });
+            \$('#editions th.read').mouseover(function(){
+                if (\$(this).hasClass('sorting_asc')) {\$(this).attr("title","Push readable versions to the bottom");}
+                else if (\$(this).hasClass('sorting_desc')) {\$(this).attr("title","Sort by editions to read");}
+                else {\$(this).attr("title","Available to read");};
+            });
+            \$('#editions th.borrow').mouseover(function(){
+                if (\$(this).hasClass('sorting_asc')) {\$(this).attr("title","Are you a member of your local library?");}
+                else if (\$(this).hasClass('sorting_desc')) {\$(this).attr("title","Bring books you can borrow to the top");}
+                else {\$(this).attr("title","Available to borrow");};
+            });
+            \$('#editions th.buy').mouseover(function(){
+                if (\$(this).hasClass('sorting_asc')) {\$(this).attr("title","Books for sale to the bottom");}
+                else if (\$(this).hasClass('sorting_desc')) {\$(this).attr("title","Bring books for sale to the top");}
+                else {\$(this).attr("title","Available to buy");};
+            });
+        });
+        \$(window).load(function(){
+           var rowCount = \$('#editions tbody tr').length;
+            if (rowCount < 16) {
+                \$('#editions').dataTable({
+                    "aoColumns": [{"sType":"html"},null,null,null],
+                    "aaSorting": [ [1,'asc'] ],
+                    "bPaginate": false,
+                    "bInfo": false,
+                    "bFilter": false,
+                    "bStateSave": false,
+                    "bAutoWidth": false
+                });
+            } else {
+                \$('#editions').dataTable({
+                    "aoColumns": [{"sType":"html"},null,null,null],
+                    "aaSorting": [ [1,'asc'] ],
+                    "bPaginate": true,
+                    "bInfo": true,
+                    "sPaginationType": "full_numbers",
+                    "bFilter": false,
+                    "bStateSave": false,
+                    "bAutoWidth": false
+                });
+            }
+        });
+        //-->
+        </script>
+        <table id="editions">
+            <thead>
+            <tr>
+                <th class="title" title=""><a href="javascript:;">Edition</a></th>
+                <th class="read" title=""><a href="javascript:;">Read</a></th>
+                <th class="borrow" title=""><a href="javascript:;">Borrow</a></th>
+                <th class="buy" title=""><a href="javascript:;">Buy</a></th>
+            </tr>
+            </thead>
+            <tbody>
+                $for book in page.get_sorted_editions():
+                    <tr>$:render_template("books/edition-sort", book)</tr>
+            </tbody>
+        </table>
 
-    <div class="clearfix"></div>
-
-    <div class="section">
-        <span class="title">Potentially related subjects:</span>
-        <span class="tag"><a href="">Tag or Subject</a></span>
-    </div>
-
-    <div class="clearfix"></div>
-
-    <div id="resultsAbout">
-        <div class="head">
-            <h2>History</h2>
-            <span class="link"><a href="$changequery(m='history')">Read all</a></span>
-        </div>
-        $:render_template("lib/history", page)
-    </div>
+    $:render_template("lib/history", page)
 </div>

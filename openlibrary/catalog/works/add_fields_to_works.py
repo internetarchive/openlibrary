@@ -90,11 +90,15 @@ def lang():
             queue = []
     print ol.write(queue, comment='add original language')
 
+def toc_items(toc_list):
+    return [{'title': item, 'type': '/type/toc_item'} for item in toc_list] 
+
 def add_fields():
     comment = 'add fields to works'
     queue = []
     seen = set()
-    fields = ['genres', 'first_sentence', 'dewey_number', 'lc_classifications', 'publish_date']
+    fields = ['genres', 'first_sentence', 'dewey_number', \
+            'lc_classifications', 'publish_date'] #, 'table_of_contents']
     for w in iter_works(fields + ['title']):
         if w['key'] in seen or all(w.get(f, None) for f in fields):
             continue
@@ -124,6 +128,24 @@ def add_fields():
                 if f == 'genres':
                     found_list = [[g.strip('.') for g in e[f]] for e in editions \
                         if e.get(f, None) and not any('ranslation' in i for i in e[f])]
+                if f == 'table_of_contents':
+                    found_list = []
+                    for e in query_iter(q):
+                        if not e.get(f, None):
+                            continue
+                        toc = e[f]
+                        print e['key'], toc
+                        print e
+                        print
+                        if isinstance(toc[0], basestring):
+                            found_list.append(toc_items(toc))
+                        else:
+                            assert isinstance(toc[0], dict)
+                            if toc[0]['type'] == '/type/text':
+                                found_list.append(toc_items([i['value'] for i in toc]))
+                            else:
+                                assert toc[0]['type']['key'] == '/type/toc_item'
+                                found_list.append(toc)
                 else:
                     found_list = [e[f] for e in query_iter(q) if e.get(f, None)]
                 if found_list:

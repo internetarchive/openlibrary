@@ -1,0 +1,51 @@
+$def with (change)
+
+$def call_template(name, change):
+    $ t = get_template("recentchanges/" + change.kind + "/" + name) or get_template("recentchanges/default/" + name)
+    $:t(change)
+    
+$ all_changes = change.get_changes()
+    
+    
+$ page = safeint(query_param('page', '1'))
+$ pagesize = 50
+$ pagecount = (len(all_changes)+pagesize-1)/pagesize
+$ offset = (page-1) * pagesize
+
+$ changes = all_changes[offset:offset+pagesize]
+
+
+<table class="changeHistory">
+    <thead>
+        <tr>
+            <th>$_("When")</th>
+            <th>$_("What")</th>
+            <th>&#191;Qu&#233;?</th>
+        </tr>
+    </thead>
+    <tbody>
+        $for thing in changes:
+        <tr>
+            <td class="time">$datestr(change.timestamp)</td>
+            $# show book title/author name instead of key
+            $if thing.type.key == '/type/edition':
+                $ name = thing.title or 'Title unknown'
+            $elif thing.type.key == '/type/work':
+                $ name = thing.title or 'Title unknown'
+            $elif thing.type.key == '/type/author':
+                $ name = thing.name or 'Author name unknown'
+            $else:
+                $ name = thing.key
+            <td class="path">
+                <div class="truncatepath">
+                    <a href="$homepath()$thing.key" class="datalink" title="$thing.key">$name</a>
+                    $if thing.revision != 1:
+                       <span class="smallest sansserif"> - <a style="text-decoration: none;" href="$homepath()$thing.key?m=diff&amp;b=$thing.revision" title="Review what's changed in from the previous revision">diff</a></span>
+                </div>
+            </td>
+            <td class="comment">$:call_template("comment", change)</td>
+        </tr>
+    </tbody>
+</table>
+
+$:render_template("lib/pagination", pagecount, page, lambda page: changequery(page=page))

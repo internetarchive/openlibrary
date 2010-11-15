@@ -4,13 +4,12 @@ from urllib2 import urlopen, URLError
 from openlibrary.catalog.read_rc import read_rc
 from openlibrary.catalog.importer.db_read import get_mc
 from time import sleep
-
-sys.path.append('/home/edward/src/olapi')
-from olapi import OpenLibrary, unmarshal, marshal
+from openlibrary.catalog.title_page_img.load import add_cover_image
+from openlibrary.api import OpenLibrary, unmarshal, marshal
 
 rc = read_rc()
 ol = OpenLibrary("http://openlibrary.org")
-ol.login('EdwardBot', rc['EdwardBot']) 
+ol.login('ImportBot', rc['ImportBot']) 
 
 db_amazon = web.database(dbn='postgres', db='amazon')
 db_amazon.printing = False
@@ -54,10 +53,15 @@ def undelete_authors(authors):
             print a
             assert a['type'] == '/type/author'
 
-def add_source_records(key, ia):
+re_edition_key = re.compile('^/b(?:ooks)?/(OL\d+M)')
+
+def add_source_records(key, ia, v=None):
     new = 'ia:' + ia
     sr = None
-    e = ol.get(key)
+    m = re_edition_key.match(key)
+    old_style_key = '/b/' + m.group(1)
+    key = '/books/' + m.group(1)
+    e = ol.get(key, v=v)
     need_update = False
     if 'ocaid' not in e:
         need_update = True
@@ -67,7 +71,7 @@ def add_source_records(key, ia):
             return
         e['source_records'].append(new)
     else:
-        existing = get_mc(key)
+        existing = get_mc(old_style_key)
         amazon = 'amazon:'
         if existing is None:
             sr = []
@@ -96,28 +100,14 @@ def add_source_records(key, ia):
         authors = [ol.get(akey) for akey in e['authors']]
         authors = [ol.get(a['location']) if a['type'] == '/type/redirect' else a \
                 for a in authors]
+        for a in authors:
+            if a['type'] == '/type/redirect':
+                print 'double redirect on:', e['key']
         e['authors'] = [{'key': a['key']} for a in authors]
         undelete_authors(authors)
     print 'saving', key
-    print marshal(e)
-    for attempt in range(50):
-        try:
-            print ol.save(key, e, 'found a matching MARC record')
-            break
-        except KeyboardInterrupt:
-            raise
-        except URLError:
-            if attempt == 49:
-                raise
-        except:
-            print e
-            raise
-        print 'attempt %d failed' % attempt
-        sleep(30)
-    if new_toc:
-        new_edition = ol.get(key)
-        # [{u'type': <ref: u'/type/toc_item'>}, ...]
-        assert 'title' in new_edition['table_of_contents'][0]
+    print ol.save(key, e, 'found a matching MARC record')
+    add_cover_image(key, ia)
 
 def ocaid_and_source_records(key, ocaid, source_records):
     e = ol.get(key)

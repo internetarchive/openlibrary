@@ -1,16 +1,18 @@
 """Utilities for coverstore"""
 
-import urllib
+import urllib, urllib2
 import socket
 import os
 import mimetypes
 import Image
 import simplejson
+import web
 
 import random
 import string
 
 import config
+import oldb
 
 class AppURLopener(urllib.FancyURLopener):
     version = "Mozilla/5.0 (Compatible; coverstore downloader http://covers.openlibrary.org)"
@@ -31,26 +33,43 @@ def safeint(value, default=None):
     except:
         return default
 
+def get_ol_url():
+    return web.rstrips(config.ol_url, "/")
+    
 def ol_things(key, value):
-    query = {
-        'type': '/type/edition',
-        key: value, 
-        'sort': 'last_modified',
-        'limit': 10
-    }
-    try:
-        d = dict(query=simplejson.dumps(query))
-        result = urllib.urlopen(config.things_api_url + '?' + urllib.urlencode(d)).read()
-        result = simplejson.loads(result)
-        olids = result['result']
-        return [olid.split('/')[-1] for olid in olids]
-    except:
-        import traceback
-        traceback.print_exc()
-        return []
-                
+    if oldb.is_supported():
+        return oldb.query(key, value)
+    else:
+        query = {
+            'type': '/type/edition',
+            key: value, 
+            'sort': 'last_modified',
+            'limit': 10
+        }
+        try:
+            d = dict(query=simplejson.dumps(query))
+            result = download(get_ol_url() + '/api/things?' + urllib.urlencode(d))
+            result = simplejson.loads(result)
+            return result['result']
+        except IOError:
+            import traceback
+            traceback.print_exc()
+            return []
+        
+def ol_get(olkey):
+    if oldb.is_supported():
+        return oldb.get(olkey)
+    else:
+        try:
+            result = download(get_ol_url() + olkey + ".json")
+            return simplejson.loads(result)
+        except IOError:
+            return None
+
+USER_AGENT = "Mozilla/5.0 (Compatible; coverstore downloader http://covers.openlibrary.org)"
 def download(url):
-    r = urllib.urlopen(url)
+    req = urllib2.Request(url, headers={'User-Agent': USER_AGENT})
+    r = urllib2.urlopen(req)
     return r.read()
 
 def urldecode(url):
@@ -78,7 +97,7 @@ def changequery(url, **kw):
 def read_file(path, offset, size, chunk=50*1024):
     """Returns an iterator over file data at specified offset and size.    
     
-        >>> len("".join(read_file('/dev/random', 100, 10000)))
+        >>> len("".join(read_file('/dev/urandom', 100, 10000)))
         10000
     """
     f = open(path)

@@ -1,0 +1,137 @@
+$def with (keys, top_books_from_author, formdata=None)
+
+<script type="text/javascript">
+\$().ready(function(){
+    \$('#noMaster').dialog({autoOpen:false,modal:true});
+    \$('#confirmMerge').dialog({
+        autoOpen: false,
+        modal: true,
+        buttons: {
+            "Merge Authors": function() {
+                \$('#mergeForm').submit();
+                \$(this).parents().find('button').attr('disabled','disabled');
+            },
+            "Cancel": function() {
+                \$(this).dialog("close");
+            }
+        }
+    });
+    \$('#save').click(function(){
+        var n = \$("#mergeForm input[type=radio]:checked").length;
+        if (n == 0) {
+            \$('#noMaster').dialog('open');
+            return false;
+        } else {
+            \$('#confirmMerge').dialog('open');
+            return false;
+        };
+    });
+    \$("div.radio:first input[type=radio]").attr("checked","checked");
+    \$("div.checkbox:first input[type=checkbox]").attr("checked","checked");
+    \$("div.author:first").addClass("master");
+    \$("#include input[type=radio]").mouseover(function(){
+        \$(this).parent().parent().animate({backgroundColor:'#fefde6'},300);
+    });
+    \$("#include input[type=radio]").mouseout(function(){
+        \$(this).parent().parent().animate({backgroundColor:'#fff'},100);
+    });
+    \$("#include input[type=radio]").click(function(){
+        \$(".merge").find("div.master").removeClass("master");
+        \$("#mergeForm").attr("action", \$(".count a", \$(this).parent().parent()).attr("href"));
+        \$(this).parent().parent().addClass("master");
+        \$(this).parent().parent().find("input[type=checkbox]").attr('checked', true);
+    });
+});
+</script>
+
+<div id="contentHead">
+    <h1>$_("Merge Authors")</h1>
+</div>
+
+<div id="contentBody">
+    
+$if not keys:
+    $# TODO: improve this message. This error comes when no author keys are passed as url parameters.
+    <div class="note">$_("No authors provided.")</div>
+    
+$if formdata: 
+    $if not formdata.master:
+        <div class="note">$_("Please select a master author record.")</div>
+    $if len(formdata.selected) < 2:
+        <div class="note">$_("Please select some authors to merge.")</div>
+
+<ol class="sansserif">
+    <li>Select a &quot;master&quot; record that best represents the author - 
+        <input type="radio" name="radio" id="radio"/>
+    </li>
+    <li>Select author records which should be merged with the master
+        - 
+        <input type="checkbox" name="checkbox" id="checkbox" checked="checked" />
+    </li>
+    <li>Press MERGE AUTHORS.
+    </li>
+</ol>
+
+<div id="noMaster" title="No Master record" style="text-align:left;">
+    <p>You must select a master record. This will act as the new Author record for all merged records.</p>
+</div>
+
+<div id="confirmMerge" title="Confirm Merge" style="text-align:left;">
+    <p class="merge">Are you sure you want to merge these records into a single Author?<br/><br/>
+    <span class="red">This action cannot be reverted!</span></p>
+</div>
+
+<form method="POST" id="mergeForm" name="mergeForm">
+    <input type="hidden" name="merge" value="true"/>
+    <div class="merge" id="include">
+
+        <div class="entry header">
+            <div class="data input smaller center" style="background-color:#fffdcd;min-height:25px;"><strong>Master</strong></div>
+            <div class="data input smaller center"><strong>Merge</strong></div>
+            <div class="data record smaller"><strong>Authors</strong></div>
+            <div class="data count">&nbsp;</div>
+        </div>
+        
+        $if keys:
+            $ master = formdata and formdata.master or keys[0]
+        $else:
+            $ master = None
+
+        $for k in keys:
+            $ a = get_document('/authors/' + k)
+            $ top = top_books_from_author(k)
+            <div class="entry author">
+                <div class="data input radio">
+                    $:radio_input(checked=(k==master), name='master', value=k)
+                </div>
+                <div class="data input checkbox">
+                    <input type="checkbox" value="$k" name="merge_key" id="$k" $cond(formdata and k in formdata.selected, 'checked="checked"', '')/>
+                </div>
+                <div class="data record">
+                    <label for="$k">
+                        <span class="name">$a.name</span>
+                        $if a.birth_date or a.death_date:
+                            <span class="metaDate" title="birth/death date">$a.get('birth_date', '') - $a.get('death_date', '')</span>
+                        $elif a.date:
+                            <span class="metaDate">$a.date</span>
+                    </label>
+                    <ul>
+                    $for doc in top['books']:
+                        <li><a href="/works/$doc.key" target="new" title="Open in a new window">$doc.title</a> <span class="smaller">$doc.edition_count edition$("s" if doc.edition_count != 1 else "")</small></li>
+                    </ul>
+                </div>
+                <div class="data count">
+                    <a href="/authors/$k" target="new" title="$_('Visit this author\'s page in a new window')">$sprintf(ungettext("%s work", "%s works", top['total']), top['total'])</a>
+                </div>
+            </div>
+    </div>
+
+<p>
+<button id="save" class="larger" value="Merge Authors">Merge Authors</button>
+&nbsp;&nbsp;
+<a href="javascript:history.go(-1);" class="small red sansserif">Cancel</a>
+</p>
+
+</form>
+
+</div>

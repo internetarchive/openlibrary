@@ -15,7 +15,7 @@ if not os.path.exists(filename):
 if not os.path.exists(solr_dir):
     os.system('tar zxf ' + filename)
 
-types = 'authors', 'publishers', 'works'
+types = 'authors', 'editions', 'works', 'subjects', 'inside'
 for d in ['solr', 'solr/solr'] + ['solr/solr/' + t for t in types]:
     if not os.path.exists(d):
         os.mkdir(d)
@@ -31,7 +31,7 @@ cp_file(solr_dir + '/example/' + f, 'solr/' + f)
 f = 'solr.xml'
 cp_file('../conf/solr-biblio/solr.xml', 'solr/solr/' + f)
 
-for t in 'authors', 'publishers', 'works':
+for t in types:
     if not os.path.exists('solr/solr/' + t + '/conf'):
         shutil.copytree(solr_dir + '/example/solr/conf', 'solr/solr/' + t + '/conf')
     cp_file('../conf/solr-biblio/' + t + '.xml', 'solr/solr/' + t + '/conf/schema.xml')

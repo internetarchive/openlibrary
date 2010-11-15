@@ -3,21 +3,24 @@ $def with (form)
 $var title: $_("Reset Password")
 
 <div id="contentHead">
-    <div class="head">
-        <h1>$_("Reset Password")</h1>
-    </div>
+    <h1>$_("Reset Password")</h1>
 </div>
             
 <div id="contentBody">
+
+    <p class="sansserif">$_("Please enter a new password for your Open Library account.")</p>
+
     <form id="register" class="reminder olform" name="reset" method="post">
         
         $:form.render()
 
-        <div class="formElement bottom">
+        <div class="formElement">
             <div class="input">
-                <br/>
                 <input value="$_('Reset')" type="submit" name="submit" title="$_('Reset')"/>
+                <a href="javascript:;" onclick="history.go(-1);" class="large attn">$_("Cancel")</a>
             </div>
         </div>
+
     </form> 
+
 </div>

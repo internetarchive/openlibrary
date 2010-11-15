@@ -3,33 +3,59 @@ $def with (form)
 $var title: $("Log In")
 
 <div id="contentHead">
-    <div class="head">
-        <h1>$_("Log In")</h1>
-    </div>
+    <h1>$_("Log In")</h1>
 </div>
 
 <script type="text/javascript">
-\$().ready(passwordMask);
-\$().ready(validateForms);
-\$().ready(validateLogin);
+//\$().ready(passwordMask);
+//\$().ready(validateForms);
+//\$().ready(validateLogin);
 </script>
 
 <div id="contentBody">
     <form id="register" class="login olform" name="register" method="post">
+        
+        $if form.note:
+            <div class="note">$form.note</div>        
 
-        $:form.render()
+        <div class="formElement">
+            <div class="label"><label for="username">$_("Username")</label> <span class="smaller lighter"></span></div>
+
+            <div class="input">
+                <input type="text" class="required" id="username" name="username" value="$form.username.value"/>
+                <span class="invalid clearfix" htmlfor="username">$form.username.note</span>
+            </div>
+        </div>
+    
+        <div class="formElement">
+            <div class="label"><label for="password">$_("Password")</label> <span class="smaller lighter"></span></div>
+            <div class="input">
+                <input type="password" class="required"  id="password" name="password" value="$form.password.value" />
+                <span class="invalid clearfix" htmlfor="password">$form.password.note</span>
+            </div>
+        </div>
+
+        <div class="formElement">
+            <div class="input">
+                <input name="remember" type="checkbox" id="remember" />
+                <label for="remember" class="small">Remember me</label>
+            </div>
+        </div>
+        <input type="hidden" id="redirect" value="$form.redirect.value" name="redirect" />
+
+        <div class="clearfix"></div>
 
         <div class="formElement bottom">
             <br/>
-            <input value="Log In" type="submit" name="submit" title="Log In"/>
+            <input value="$_('Log In')" type="submit" name="submit" title="$_('Log In')"/>
             &nbsp;
-            <a href="javascript:;" onclick="history.go(-1);" class="smaller attn">Cancel</a>
+            <a href="javascript:;" onclick="history.go(-1);" class="smaller attn">$_("Cancel")</a>
         </div>
         <div class="formElement">
             <div class="label"></div>
-            <div class="input smaller">Did you <a href="/account/password/forgot">forget your password</a>?
+            <div class="input smaller">$:_('Did you <a href="/account/password/forgot">forget your password</a>?')
             <br/><br/>
-            Not a member of Open Library? <a href="/account/create">Sign up now</a>.</div>
+            $:_('Not a member of Open Library? <a href="/account/create">Sign up now</a>.')</div>
         </div>
     </form>
 </div>

@@ -1,0 +1,25 @@
+$def with (change, page=None)
+
+$ work = change.get_work()
+$ edition = change.get_edition()
+$ author = change.get_author()
+
+$if edition.publishers:
+    $ edition_name = "; ".join(edition.publishers)
+$else:
+    $ edition_name = "Unknown publisher"
+
+$if edition.publish_date:
+    $ edition_name = edition.publish_date + " " + truncate(edition_name, 20)
+
+$if page and page.type.key == "/type/edition":
+    Added new edition.
+$elif page and page.type.key == "/type/work":
+    Added new work.
+$elif page and page.type.key == "/type/author":
+    Added new author.
+$else:
+    $if author:
+        Added <a href="$edition.url()">$edition_name</a> edition of <a href="$work.url()">$work.title</a>, and added a new author <a href="$author.url()">$author.name</a>.
+    $else:
+        Added <a href="$edition.url()">$edition_name</a> edition of <a href="$work.url()">$work.title</a>.

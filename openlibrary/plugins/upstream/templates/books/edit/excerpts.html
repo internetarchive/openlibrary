@@ -1,0 +1,160 @@
+$def with (work)
+
+<div id="excerpts-errors" class="note hidden">
+</div>
+        
+<fieldset class="major collapse" id="addexcerpts">
+    <div id="excerpts-form">
+        <div class="formElement">
+            <div>$_("If there are particular (short) passages you feel represent the book well, please feel free to transcribe them here.")</div>
+        </div>
+    
+        <div class="formElement">
+            <div class="label">
+                <label for="excerpts-pages">$_("Page number?")</label>
+                <span class="tip">$_("For example:") <i>23, xi or 433-434</i></span>
+            </div>
+            <div class="input">
+                <input type="text" name="pages" id="excerpts-pages" value="" tabindex="0" onblur="\$('#repeat-exc').addClass('darkgreen');" style="width:60px!important;"/>
+                <span class="tip fixthis"><input type="checkbox" name="first--sentence" id="first--sentence" tabindex="0"/> This is the first sentence.</span>
+            </div>
+            
+        </div>
+
+        <div class="formElement">
+            <div class="label">
+                <label for="excerpts-excerpt">$_("Transcribe the excerpt")</label>
+                <span class="tip highlight" id="charLimit">$_("Maximum length is 2000 characters. No HTML allowed.")</span>
+                <span id="excerpts-excerpt-len" style="float: right; font-weight: bold; margin-right: 30px;">2000</span>
+            </div>
+            <div class="input">
+                <textarea name="excerpt" id="excerpts-excerpt" rows="5" cols="50" tabindex="0" onblur="\$('#repeat-exc').addClass('darkgreen');"></textarea>
+            </div>
+        </div>
+
+        <div class="formElement bottom">
+            <div class="label">
+                <label for="excerpts-comment">$_("Why did you choose this excerpt?")</label>
+                <span class="tip">$_("Add an optional note.")</span>
+            </div>
+            <div class="input">
+                <textarea name="comment" id="excerpts-comment" rows="2" cols="50" tabindex="0" onblur="\$('#repeat-exc').addClass('darkgreen');"></textarea>
+            </div>
+        </div>
+        <div class="formElement">
+            <div class="input">
+                <input type="button" id="repeat-exc" class="repeat-add larger" name="add" value="$_('Add')" tabindex="0"/>
+           </div>
+        </div>
+    </div>
+
+    <div class="formElement" id="excerpts-list">
+        <div class="label" id="excerpts-so-far"><h3>$_("Excerpts so far...")</h3></div>
+        <div id="excerpts-display">
+            <div class="formBack repeat-item" style="display: none" id="excerpts-template">
+                <input type="hidden" name="{{prefix}}--{{index}}--pages" value="{{pages}}"/>
+                <input type="hidden" name="{{prefix}}--{{index}}--excerpt" value="{{excerpt}}"/>
+                <input type="hidden" name="{{prefix}}--{{index}}--comment" value="{{comment}}"/>
+                <input type="hidden" name="{{prefix}}--{{index}}--author--key" value="$(ctx.user and ctx.user.key)"/>
+                <div style="float:right;"><a href="javascript:;" class="repeat-remove red plain">[x]</a></div>                   
+                <blockquote>
+                    {{excerpt}}
+                    <br />
+                    <i>
+                        {{cond(pages, "From page " + pages + ".", "")}}
+                        $if ctx.user:
+                            <a href="$ctx.user.key">$ctx.user.displayname</a> $_("noted:") "{{comment}}"
+                        $else:
+                            $:_("An anonymous note:") "{{comment}}"
+                    </i>
+                </blockquote>
+            </div>
+            
+            $for i, excerpt in enumerate(work.excerpts):
+                <div class="formBack repeat-item">
+                    <input type="hidden" name="work--excerpts--$i--pages" value="$excerpt.pages"/>
+                    <input type="hidden" name="work--excerpts--$i--excerpt" value="$excerpt.excerpt"/>
+                    <input type="hidden" name="work--excerpts--$i--comment" value="$excerpt.comment"/>
+                    <input type="hidden" name="work--excerpts--$i--author--key" value="$(excerpt.author and excerpt.author.key)"/>
+                    <div style="float:right;"><a href="javascript:;" class="repeat-remove red plain">[x]</a></div>                   
+                    <blockquote>
+                        $for line in excerpt.excerpt.split('\n'):
+                            $line<br/>
+                        <br />
+                        <i>
+                            $if excerpt.pages:
+                                $_("From page") $excerpt.pages. 
+                            $if excerpt.author:
+                                <a href="$excerpt.author.key">$excerpt.author.displayname</a> $_("noted:") 
+                            $else:
+                                $_("An anonymous note:")
+                            "$excerpt.comment"
+                        </i>
+                    </blockquote>
+                </div>
+        </div>
+    </div>
+        
+    <script type="text/javascript">
+    <!--
+        \$().ready(function() {
+            function error(errordiv, input, message) {
+                \$(errordiv).show().html(message);
+                \$(input).focus();
+                return false;
+            }
+            
+            \$("#excerpts").repeat({
+                vars: {
+                    "prefix": "work--excerpts",
+                },
+                validate: function(data) {
+                    \$.log(["validate", data]);
+                    if (!data.excerpt) {
+                        return error("#excerpts-errors", "#excerpts-excerpt", "$_('Please provide an excerpt.')");
+                    }
+                    if (data.excerpt.length > 2000) {
+                        return error("#excerpts-errors", "#excerpts-excerpt", "$_('That excerpt is too long.')")
+                    }
+                    \$("#excerpts-errors").hide();
+                    return true;
+                }
+            });
+            
+            function update_len() {
+                var len = \$("#excerpts-excerpt").val().length;
+                if (len > 2000) {
+                    var color = "#e44028";
+                }
+                else {
+                    var color = "gray";
+                }
+                \$("#excerpts-excerpt-len").html(2000 - len).css("color", color);
+            }
+            
+            function show_hide_title() {
+                if (\$("#excerpts-display .repeat-item").length > 1) {
+                    \$("#excerpts-so-far").show();
+                }
+                else {
+                    \$("#excerpts-so-far").hide();                    
+                }
+            }
+            
+            // update length on every keystroke
+            \$("#excerpts-excerpt").keyup(update_len);
+            
+            // update length on add.
+            \$("#excerpts")
+                .bind("repeat-add", update_len)
+                .bind("repeat-add", show_hide_title)
+                .bind("repeat-remove", show_hide_title);
+            
+            // update length on load
+            update_len();
+            show_hide_title();
+        });
+    //-->
+    </script>
+
+</fieldset>

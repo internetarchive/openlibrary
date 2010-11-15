@@ -8,37 +8,31 @@ $ _x = ctx.setdefault('bodyid', 'edit')
 
 $var title: $_.edit_title(page.key)
 
-<div id="contentHead">
-    <div class="head">
-        <span class="tools">$_.edit_pretitle:</span>
-        <h1>$page.title</h1>  
-    </div>
-</div>
+$:render_template("lib/edit_head", page)
 
 <form name="edit" method="post" action="" class="olform">
 
 <div id="contentBody">
 
-    $:macros.TypeChanger(page.type)
-
-    <div class="formElement">
+    <div class="formElement title">
         <div class="label"><label for="title">$_t.title:</label></div>
         <div class="input">
-            <input type="text" name="title" value="$page.title" style="width:100%" />
+            <input type="text" name="title" value="$page.title" />
         </div>
     </div>
 
+    $:macros.TypeChanger(page.type)
+
+    <div class="clearfix"></div>
+
     <div class="formElement">
-        <div class="label"><label for="body">Document Body:</label></div>
+        <div class="label"><label for="body">$_("Document Body")</label></div>
         <div class="input">
-            <textarea name="body" id="body" rows="15" cols="80" style="width:100%;font-family:'Lucida Console',monospace;">$page.body</textarea>
+            <textarea name="body" id="body" rows="15" cols="80">$page.body</textarea>
         </div>
     </div>
 
-    <div class="formElement">
-        $:macros.EditButtons(comment=page.comment_)
-        $:macros.HelpFormatting()
-    </div>
+    $:macros.EditButtons(comment=page.comment_)
 
 </div>
 

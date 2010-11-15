@@ -1,0 +1,38 @@
+$def with (page)
+
+        <div id="header">
+
+            <div id="headerNav">
+                <ul class="links">
+                    <li class="first"><a href="/subjects" title="$_('Explore subjects')">$_("Subjects")</a></li>
+                    <li><a href="/authors" title="$_('Explore authors')">$_("Authors")</a></li>
+                    <li class="second"><a href="/books/add" title="$_('Add a new book to Open Library')">$_("Add a Book")</a></li>
+                    <li><a href="/lists" title="$_('Manage your lists')">$_("Lists")</a></li>
+                    <li><a href="/recentchanges" title="$_('Recent edits and additions')">$_("Recently")</a></li>
+                    <li><a href="/about" title="$_('About the Open Library staff')">$_("About Us")</a></li>
+                </ul>
+            </div>
+
+            <div id="headerLogo">
+              <h2><a href="/" title="Go Home"><img src="/images/logo_OL-lg.png" alt="$_('Open Library')" width="220" height="140"/></a></h2>
+              <p class="tagline">$_("One web page for every book.")</p>
+            </div>
+
+            <div id="headerTools">
+
+                <div id="headerLogin">
+                $if ctx.user:
+                    <div class="hidden">
+                        <form name='logout' action="$homepath()/account/logout" method="post"></form>
+                    </div>
+                    $:_("Welcome %(user)s", user='<a href="%s">%s</a>' % (ctx.user.key, ctx.user.displayname))
+                    | <a href="$homepath()/account">$_("Preferences")</a>
+                    | <a href="#" onclick="document.forms['logout'].submit()">$_("Log out")</a>
+                $else:
+                    <a href="/account/login" class="white">$_("Log in")</a>
+                    /
+                    <a href="/account/create">$_("Sign Up")</a>
+                </div>
+            </div>
+
+        </div>

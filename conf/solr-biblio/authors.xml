@@ -428,10 +428,14 @@
 
    <field name="key" type="string" indexed="true" stored="true" required="true" /> 
    <field name="name" type="textgen" indexed="true" stored="true"/>
+   <field name="name_str" type="string" indexed="true" stored="false"/>
    <field name="alternate_names" type="textgen" indexed="true" stored="true" multiValued="true"/>
    <field name="birth_date" type="string" indexed="true" stored="true"/>
    <field name="death_date" type="string" indexed="true" stored="true"/>
-   <field name="dates" type="string" indexed="true" stored="true"/>
+   <field name="date" type="string" indexed="true" stored="true"/>
+   <field name="work_count" type="int" indexed="true" stored="true"/>
+   <field name="top_work" type="string" indexed="false" stored="true"/>
+   <field name="top_subjects" type="string" indexed="false" stored="true" multiValued="true"/>
 
    <!-- Dynamic field definitions.  If a field name is not found, dynamicFields
         will be used if the name matches any of the patterns.

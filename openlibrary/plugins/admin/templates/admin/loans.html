@@ -1,0 +1,85 @@
+$def with (loans, action)
+
+$ _x = ctx.setdefault('bodyid', 'admin')
+$ _x = ctx.setdefault('usergroup', 'admin')
+
+<div id="contentHead">
+    <div class="smaller grey"><a href="/admin">Admin</a> /</div>
+    <h1>Outstanding eBook Loans</h1>
+    <p id="note">
+        <em class="red">Note:</em> ACS4 loan status for ePub and PDF is updated on demand (when a user looks at a borrow page or their own loans).
+        BookReader loan status is always current.  To immediately refresh the status of all loans click below.
+    </p>
+    <p>
+        <form method="post" id="adminAction" name="adminAction" class="olform">
+            <input type="hidden" name="action" value="updateall" />
+            <input type="submit" value="Update all loan statuses" />
+        </form>
+    </p>
+        
+</div>
+<div id="contentBody">
+    <div id="borrowTable" class="borrow collapse">
+    <table>
+        <thead>
+            <tr>
+                <th class="titles" colspan="2">
+                $if len(loans) == 1:
+                    $_("1 Current Loan")
+                $else:
+                    $len(loans) $_("Current Loans")
+                </th>
+                <th class="expires">$_("Loan Expires")</th>
+                <th class="what">$_("What")</th>
+                <th>$_("Who")</th>
+                <th>$_("Actions")</th>
+            </tr>
+        </thead>
+        <tbody>
+        <!-- for each borrow -->
+        $for loan in loans:
+            $ book = get_document(loan['book'])
+            <tr>
+                <td class="cover">
+                $:render_template('covers/book_cover_small', book)
+                </td>
+                <td class="titles">
+                    <span class="book">
+                    <a href="$book.key" class="borrowResults">
+                    <strong>$book.title</strong>
+                    </a>
+                    </span>
+                    <span class="author">
+                    $:macros.AuthorList(book.get_authors())
+                    </span>
+                    <div class="date">
+                    Borrowed $datestr(datetime_from_utc_timestamp(loan['loaned_at']))
+                    </div>
+                </td>
+                <td class="expires">
+                    $:macros.FormatExpiry(loan['expiry'])
+                </td>
+                <td class="user">
+                    $if loan['resource_type'] == 'pdf':
+                        PDF
+                    $elif loan['resource_type'] == 'epub':
+                        ePub
+                    $elif loan['resource_type'] == 'bookreader':
+                        BookReader
+                    $else:
+                        $loan['resource_type']
+                </td>
+                <td class="user">
+                    $ user = get_document(loan['user'])
+                    <a href="$user.key">$user.name</a>
+                </td>
+                <td class="action">
+                    $ borrow_admin = loan['book'] + '/title/borrow_admin'
+                    <a href="$borrow_admin">debug_info</a><br/><br/>
+                    <a href="$borrow_admin" class="smaller plain">refresh</a>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    </div>
+</div>

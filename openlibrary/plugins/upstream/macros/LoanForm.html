@@ -1,0 +1,42 @@
+$def with (page, available_loans)
+
+$ default_type = 'bookreader'
+$ type_info = { 'epub': ('ePub', 'plain text version; may contain OCR errors'), 'pdf': ('PDF', 'high quality scans of pages'), 'bookreader': ('BookReader', 'read online'), }
+
+$if not available_loans:
+    $# Caller should check before calling
+    No loans available
+
+$else:
+    $# sort loans
+    $code:
+        def loan_key(loan):
+            if loan['resource_type'] == default_type:
+                return '1-%s' % loan['resource_type']
+            else:
+                return '2-%s' % loan['resource_type']
+                
+        available_loans.sort(key=loan_key)
+
+    <ul class="preSubmit large">
+        <li><strong>Please choose your preferred format:</strong></li>
+    </ul>
+ 
+    <form method="post" id="borrowBook" name="borrowBook" class="olform">
+    $for loan in available_loans:
+        $ type_str, desc = type_info.get(loan['resource_type'], (loan['resource_type'], ''))
+        <p class="large preSubmit" style="margin-left:30px;">
+            <label>
+            $if loan['resource_type'] == default_type or len(available_loans) == 1:
+                <input type="radio" name="format" value="$loan['resource_type']" checked="checked"/>
+            $else:
+                <input type="radio" name="format" value="$loan['resource_type']" />  
+            <strong style="padding-left:10px;">$type_str</strong> 
+            <span class="smaller grey">$desc</span>
+            </label>
+        </p>
+    <div style="margin-left:15px;" class="preSubmit">
+        <input type="submit" class="larger" value="Download eBook"/>
+        <a href="$page.key" class="red small" style="padding-left:30px;">Cancel</a>
+    </div>
+    </form>

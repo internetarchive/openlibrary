@@ -4,21 +4,11 @@ $ lang = i18n.get_locale() or 'en'
 
 $var title: $page.title
 
-<style type="text/css">
-<!--
-#book-art { width: 205px; height: 300px; text-align: center; float: left; padding-top: 21px; margin-top: 4px; padding-left: 13px; padding-right: 14px; background: #fff url(/static/logos/logo-${lang}.png) top center no-repeat; }
--->
-</style>
-
-$add_stylesheet("/css/doc-styles.css?format=raw")
-$add_javascript("/static/js/jquery.js")
-
-<blockquote class="text">
-    <div id="book-art"></div>
-    <div id="abstract">        
-        <p style="padding-top: 24px;">
-            <span id="title">$page.title<br /></span>
-    </div>
-
+<div id="contentHead">
+    $:macros.databarView(page)
+    <h1>$page.title</h1>
+</div>
+<div id="contentBody">
     $:format(page.body)
+    $:render_template("lib/history", page)
 </div>

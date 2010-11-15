@@ -1,0 +1,86 @@
+$def with (page, edition_loans, user_loans)
+
+$var title: $page.title
+
+$ _x = ctx.setdefault('bodyid', 'plain')
+
+$ available_loans = page.get_available_loans()
+
+<div id="contentBody">
+
+    <div class="navBorrow">
+        <a href="javascript:;" onclick="history.go(-1);"><strong>Back</strong></a>
+    </div>
+
+        <h1 class="sansserif">Borrow - Administration</h1>
+
+        <p>
+            can_borrow: $can_borrow(page)
+        </p>
+        <p>
+            overdrive_id: $overdrive_id(page)
+        </p>
+        
+        <p>
+            archive.org item identifier: $page.ocaid
+        <p>
+        <p>
+            external-identifiers from archive.org meta.xml: $page.get_lending_resources()
+        </p>
+        
+        <p>
+            pdf available: $is_loan_available(page, 'pdf')<br>
+            epub available: $is_loan_available(page, 'epub')
+        </p>
+        
+        <p>
+            $ pdf_resource_id = page.get_lending_resource_id('pdf')
+            pdf resourceid: $pdf_resource_id<br>
+            $ epub_resource_id = page.get_lending_resource_id('epub')
+            epub resourceid: $epub_resource_id
+        </p>
+        
+        <p>
+            current loans for $page.title: $edition_loans
+        
+        <p>
+            <table>
+              <tr><th>Available loans for $page.title:</tr></th>
+              $for loan in available_loans:
+                 <tr><td>$loan</td></tr>
+            </table>
+        </p>
+        <p>
+            <table>
+              <tr><th>Your $len(user_loans) borrowed books:</th></tr>
+              $for loan in user_loans:
+                  <tr><td>$loan<br>&nbsp;</td></tr>
+            </table>
+        </p>
+        
+        <p>
+            You are: $ctx.user
+        </p>
+        
+        <p>
+            Book status in ACS4:<br>
+            $ bss = 'http://lending.us.archive.org/bss/bss.py'
+            $ bss_format = "<a href='" + bss + "/%(what)s/%(urn)s'>%(type)s %(what)s</a><br>"
+            $ pdf_loaned = bss_format % { 'what': 'is_loaned_out', 'urn': pdf_resource_id, 'type': 'pdf' }
+            $:pdf_loaned
+            $ pdf_info = bss_format % { 'what': 'resource_info', 'urn': pdf_resource_id, 'type': 'pdf' }
+            $:pdf_info
+            $ pdf_fulfillment = bss_format % { 'what': 'fulfillment_info', 'urn': pdf_resource_id, 'type': 'pdf' }
+            $:pdf_fulfillment
+            
+            <br>
+            $ epub_loaned = bss_format % { 'what': 'is_loaned_out', 'urn': epub_resource_id, 'type': 'epub' }
+            $:epub_loaned
+            $ epub_info = bss_format % { 'what': 'resource_info', 'urn': epub_resource_id, 'type': 'epub' }
+            $:epub_info
+            $ epub_fulfillment = bss_format % { 'what': 'fulfillment_info', 'urn': epub_resource_id, 'type': 'epub' }
+            $:epub_fulfillment
+        </p>
+        
+
+</div>

@@ -1,0 +1,32 @@
+$def with (page=None)
+
+$ bodyid = ctx.get('bodyid', 'user')
+
+$if bodyid == 'user' or 'admin':
+    $:render_template("lib/nav_foot", page)
+
+        </div><!-- /position -->
+        </div><!-- /placement -->
+
+    </div><!-- /background -->
+
+$if bodyid == 'user' or 'admin':
+    $:render_template("lib/site_legal", page)
+
+$# Books in Browsers demo
+$ demo_users = ('/people/mang','/people/mangtronix','/people/brewster','/people/alexis','/people/alexisr','/people/raj','/people/rajk','/people/glassdog','/people/bibdemo')
+$if str(ctx.user) in demo_users:
+    <!-- Rewrite BookReader links -->
+    <script type="text/javascript">
+        \$().ready(function() {
+           \$("a[href^='http://www.archive.org/stream']")
+           .each(function()
+           { 
+              this.href = this.href.replace(/^http:\/\/www/, 
+                 "http://www-testflip");
+           });
+         });
+    </script>
+
+</body>
+</html>

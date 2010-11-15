@@ -1,24 +1,7 @@
 $def with (page)
 
-$ lang = i18n.get_locale() or 'en'
+$ view = render_template("type/page/view.tmpl", page)
 
-$var title: $page.title
+$var title: $view.title
 
-<div id="contentHead">
-    $:macros.databarView(page)
-    <div class="head">
-    <h1>$page.title</h1>
-    </div>
-</div>
-
-<div id="contentBody">
-
-$:format(page.body)
-
-    $if not page.key.startswith("/about."):
-        <p class="smaller sansserif"><a href="/about">$_.back_to_ol</a></p> 
-
-<script>
-\$().ready(setup_wmd);
-</script>
-</div>
+$:view

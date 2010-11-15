@@ -30,3 +30,13 @@ create index cover_last_modified_idx ON cover (last_modified);
 create index cover_created_idx ON cover (created);
 create index cover_deleted_idx ON cover(deleted);
 create index cover_archived_idx ON cover(archived);
+
+create table log (
+    id serial primary key,
+    cover_id int references cover(id),
+    action text,
+    timestamp timestamp
+);
+
+create index log_timestamp_idx on log(timestamp);
+

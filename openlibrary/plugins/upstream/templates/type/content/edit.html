@@ -1,41 +1,7 @@
 $def with (page)
 
-$ lang = i18n.get_locale() or 'en'
-$ _t = i18n.get_namespace('/type/content')
-$ _ = i18n.get_namespace('/mode/edit')
+$ view = render_template("type/page/edit.tmpl", page)
 
-$ _x = ctx.setdefault('bodyid', 'edit')
+$var title: $view.title
 
-$var title: $_.edit_title(page.key)
-
-<div id="contentHead">
-    <div class="head">
-        <span class="tools">$_.edit_pretitle:</span>
-        <h2>$page.title</h2>
-    </div>
-</div>
-
-<div id="contentBody">
-    <form name="edit" class="olform" method="post" action="">
-        $:macros.TypeChanger(page.type)
-            <div class="formElement">
-                <div class="label" style="text-transform:capitalize;"><label for="title">$_t.title</label></div>
-                <div class="input">
-                    <input type="text" name="title" id="title" value="$page.title"/>
-                </div>
-            </div>
-            <div class="formElement">
-                <div class="label"><label for="wmd-input">Document Body</label></div>
-                <div class="input">
-                    <textarea name="body" id="wmd-input" rows="25" cols="80" style="width:100%;font:0.75em monospace;">$page.body</textarea>
-                </div>
-            </div>
-            <div class="formElement">
-                $:macros.EditButtons()
-                $:macros.HelpFormatting()
-            </div>
-    </form>
-</div>
-<script type="text/javascript">
-\$().ready(setup_wmd);
-</script>
+$:view

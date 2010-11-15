@@ -1,0 +1,38 @@
+$def with (query)
+
+$var title: $_("Recent Changes")
+
+$def breadcrumbs():
+    $ path = request.path[1:]
+    $ d = dict(recentchanges=_("Recent Changes"))
+    $ p = ""
+    $for k in path.split("/"):
+        $ label = d.get(k, k)
+        $if loop.last:
+            $label
+        $else:
+            $ p = p + "/" + k
+            <a href="$p">$label</a> /
+            
+<div id="contentHead">
+    <div class="head">
+        <h1>$:breadcrumbs()</h1>
+    </div>
+</div>
+
+<div id="contentBody">
+    $ ip = query_param('ip', None)
+    $if ip:
+        $:render_template("recentchanges/render", limit=50, ip=ip, **query)</div>
+    $else:
+        <div id="tabsHistory" class="tabs autohash">
+            <ul>
+                <li><a href="#humans">By Humans</a></li>
+                <li><a href="#bots">By Bots</a></li>
+                <li><a href="#all">Everything</a></li>
+            </ul>
+            <div id="humans">$:render_template("recentchanges/render", limit=50, bot=False, hash="#humans", **query)</div>
+            <div id="bots">$:render_template("recentchanges/render", limit=50, bot=True, hash="#bots", **query)</div>
+            <div id="all">$:render_template("recentchanges/render", limit=50, bot=None, hash="#all", **query)</div>
+        </div>
+</div>

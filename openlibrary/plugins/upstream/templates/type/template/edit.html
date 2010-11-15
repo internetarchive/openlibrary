@@ -4,17 +4,12 @@ $ _x = ctx.setdefault('bodyid', 'edit')
 
 $var title: $_("Edit %(title)s", title=page.key)
 
-<div id="contentHead">
-    <div class="head">
-        <span class="tools">$_("Currently Editing:")</span>
-        <h2>$(page.title or page.key)</h2>
-    </div>
-</div>
+$:render_template("lib/edit_head", page)
+
 <div id="contentBody">
-    <form name="edit" method="post" action="">
-        $:macros.TypeChanger(page.type)
+    <form name="edit" method="post" action="" autocomplete="off">
         
-        <div class="formElement">
+        <div class="formElement title">
             <div class="label">
                 <label for="title">$_("Title")</label>
             </div>
@@ -22,6 +17,10 @@ $var title: $_("Edit %(title)s", title=page.key)
                 <input type="text" name="title" id="title" value="$page.title"/>
             </div>
         </div>
+
+        $:macros.TypeChanger(page.type)
+
+        <div class="clearfix"></div>
         
         <div class="formElement">
             <div class="label">
@@ -32,10 +31,7 @@ $var title: $_("Edit %(title)s", title=page.key)
             </div>
         </div>
 
-        <div class="formElement">
-            $:macros.EditButtons(comment=page.comment_)
-            $:macros.HelpFormatting()
-        </div>
+        $:macros.EditButtons(comment=page.comment_)
+
     </form>
 </div>
-    

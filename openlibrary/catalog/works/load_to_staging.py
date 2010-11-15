@@ -15,16 +15,22 @@ infogami.login('edward', rc['edward'])
 
 for line in open('works_for_staging'):
     work_key, title, authors, editions = eval(line)
-    q = {
-        'create': 'unless_exists',
-        'type': { 'key': '/type/work' },
-        'key': work_key,
-        'title': title,
-        'authors': [{'key': '/a/' + a} for a in authors],
-    }
-    print q
-    ret = infogami.write(q, comment='create work')
-    print ret
+    if not all(db_read.withKey('/a/' + a) for a in authors):
+        continue
+    work = db_read.withKey(work_key)
+    print work_key
+    if work:
+        continue
+    if not work:
+        q = {
+            'create': 'unless_exists',
+            'type': { 'key': '/type/work' },
+            'key': work_key,
+            'title': title,
+            'authors': [{'key': '/a/' + a} for a in authors],
+        }
+        ret = infogami.write(q, comment='create work')
+        print ret
     for edition_key in editions:
         edition = db_read.withKey(edition_key)
         if not edition: continue
@@ -34,7 +40,5 @@ for line in open('works_for_staging'):
             'works': { 'connect': 'update_list', 'value': [{'key': work_key}]}
         }
         ret = infogami.write(q, comment='add work to edition')
-        print edition
-        print q
         print edition_key, ret
         assert ret['result']['updated']

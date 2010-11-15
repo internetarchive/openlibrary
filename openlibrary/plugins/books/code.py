@@ -11,17 +11,13 @@ class books:
     def GET(self):
         i = web.input(bibkeys='', callback=None, details="false")
         
-        details = (i.details.lower() == 'true')
-        result = dynlinks.get_multi(i.bibkeys.split(','), details=details) 
-        result = simplejson.dumps(result, indent=4)
-        
         web.ctx.headers = []
-        web.header('Content-Type', 'text/javascript')
-        
-        if i.callback:
-            return '%s(%s);' % (i.callback, result)
+        if i.get("format") == "json":
+            web.header('Content-Type', 'application/json')
         else:
-            return 'var _OLBookInfo = %s;' % result
-
+            web.header('Content-Type', 'text/javascript')
+        
+        return dynlinks.dynlinks(i.bibkeys.split(","), i)
+        
 add_hook("books", books)
 

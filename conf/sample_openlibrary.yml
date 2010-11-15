@@ -1,15 +1,61 @@
 
 db_parameters:
     engine: "postgres"
-    database: "openlibrary3"
+    database: "openlibrary"
     username: "anand"
     password: ""
 
+infobase:
+    secret_key: "xxx"
+    user_root: "/people"
+    writelog: "log"
+
+# Comment db_parameters and infobase and uncomment infobase_server to run OL with an infobase server
+#infobase_server: "0.0.0.0:7000"
+
+site: openlibrary.org
+
+# print the mail instead of sending it really.
+dummy_sendmail: True
+
+# enable http compression
+use_gzip: True
+
+# set this to the url of coverstore web server
+coverstore_url: "http://0.0.0.0:8070/"
+
+# set this to the url of the lending status server
+# lendingstatus_url: "http://lending.example.com/bss/bss.py"
+
+# ACS4 content server
+# content_server:
+#     host: 'acs4server.example.com'
+#     port: 8080
+#     password: 'secret'
+#     distributor: 'urn:uuid:0000000-4000-2000-6000-900000000000'
+
+state_dir: 'state'
+
 plugins:
     - openlibrary
-#    - search
-#    - worksearch
     - links
     - wikitemplates
-    - i18n
+    - search
+    - oltemplates
+    - worksearch
+    - upstream
+    - admin
+    - api
     
+plugin_worksearch:
+    solr: "localhost:8983"
+    subject_solr: "localhost:8983"
+    author_solr: "localhost:8983"
+    edition_solr: "localhost:8983"
+    spellcheck_count: 3
+
+default_template_root: /upstream
+css_root: /upstream/css
+js_root: /upstream/js
+use_google_cdn: false
+

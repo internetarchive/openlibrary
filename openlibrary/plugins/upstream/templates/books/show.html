@@ -1,0 +1,32 @@
+$def with (book)
+
+<span class="bookcover">
+    $ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
+    <a href="$book.key"><img src="$url" height="60"/></a>
+</span>
+<span class="details">
+    <span class="resultTitle">
+        <span class="booktitle"><a href="$book.url()">$book.title</a></span>
+        $if book.get('authors', None):
+            <span class="bookauthor">$_("by")
+            $ authorlist = ', '.join([thingrepr(author).rstrip() for author in book.authors])
+            $:authorlist
+            </span>
+        <span class="resultPublisher">
+            $if book.publishers:
+                $(', '.join(book.publishers)), $book.publish_date
+            $else:
+                $book.publish_date
+            <span class="resultType">
+                $book.physical_format.replace('[', '').replace(']','')
+            </span>
+        </span>
+    </span>
+    $if book.ocaid: 
+        <span class="actions">
+            <a href="http://www.archive.org/stream/$book.ocaid">
+                <span class="image read"></span>
+                <span class="label">$_("Read")</span>
+            </a>
+        </span>
+</span>

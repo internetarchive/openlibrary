@@ -60,6 +60,8 @@ def remove_trailing_number_dot(date):
         return date
 
 def remove_trailing_dot(s):
+    if s.endswith(" Dept."):
+        return s
     m = re_end_dot.search(s)
     if m:
         s = s[:-1]
@@ -296,3 +298,31 @@ def mk_norm(title):
     elif norm.startswith('a '):
         norm = norm[2:]
     return norm.replace('-', '').replace(' ', '')
+
+def error_mail(msg_from, msg_to, subject, body):
+    assert isinstance(msg_to, list)
+    msg = 'From: %s\nTo: %s\nSubject: %s\n\n%s' % (msg_from, ', '.join(msg_to), subject, body)
+
+    import smtplib
+    server = smtplib.SMTP('mail.archive.org')
+    server.sendmail(msg_from, msg_to, msg)
+    server.quit()
+
+def bad_marc_alert(ia):
+    from pprint import pformat
+    msg_from = 'load_scribe@archive.org'
+    msg_to = 'edward@archive.org'
+    msg = '''\
+From: %s
+To: %s
+Subject: bad MARC: %s
+
+bad MARC: %s
+
+''' % (msg_from, msg_to, ia, ia)
+
+    import smtplib
+    server = smtplib.SMTP('mail.archive.org')
+    server.sendmail(msg_from, [msg_to], msg)
+    server.quit()
+

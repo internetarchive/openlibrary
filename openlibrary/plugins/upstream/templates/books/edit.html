@@ -1,14 +1,22 @@
-$def with (page)
+$def with (work, edition=None)
 
-$var title: $page.title
+$ this_title = work.title + ': ' + work.subtitle if work.get('subtitle', None) else work.title
+
+$var title: $this_title
+$putctx("robots", "noindex,nofollow")
 
 <script type="text/javascript">
+<!--
 \$().ready(Tabs);
-\$().ready(function(){\$("#tabsAddbook").tabs({fx:{opacity:'toggle'}});});
+\$().ready(function(){
+    if(jQuery.support.opacity){
+        \$("#tabsAddbook").tabs({fx:{opacity:'toggle'}});
+    } else {
+        \$("#tabsAddbook").tabs();
+    };
+});
 \$().ready(boxPop);
 \$().ready(function(){\$("#coverPop").colorbox({inline:true, href:"#addCover"});});
-\$().ready(function(){\$("#tocPop").colorbox({inline:true, href:"#addTOC"});});
-\$().ready(setup_wmd);
 
 function limitChars(textid, limit, infodiv) {
     var text = \$('#'+textid).val(); 
@@ -23,342 +31,171 @@ function limitChars(textid, limit, infodiv) {
     }
 };
 \$().ready(function(){\$('#excerpt').keyup(function(){limitChars('excerpt', 2000, 'charLimit');});});
-\$().ready(function(){
-    \$('a#libraryMode').click(function(){
-        \$('.librarian').toggle();
-        \$(this).parent().find('#modeToggle').toggleText("Turn on","Exit");
-    });
+
+\$().ready(function() {
+    var hash = document.location.hash || "#edition";
+    var tab = hash.split("/")[0]
+    var link = "#" + "link_" + tab.substr(1);
+    var fieldname = ":input" + hash.replace('/', '-');
+    
+    \$(link).click();
+        
+    // input field is enabled only after the tab is selected and that takes some time after clicking the link.
+    // wait for 1 sec after clicking the link and focus the input field
+    setTimeout(function() {
+        // scroll such that top of the content is visible    
+        if (\$(fieldname).length != 0) {
+            \$(fieldname).focus();   
+        }
+        else {
+            \$("#tabsAddbook > div:visible :input:first").focus();
+        }
+        \$(window).scrollTop(\$("#contentHead").offset().top);        
+    }, 1000);
 });
+//-->
 </script>
+
 <div id="contentHead">
-    <div class="head">
-        <h1>$_("Add a little more?")</h1>
-    </div>
-    <p class="instruct">$_("OK. That's the very beginning of a new record saved. The Open Library can hold a lot more detail about books though, so if you're interested, please help us fill in the gaps!")</p>
+    $code: 
+        def find_mode():
+            mode = query_param("mode")
+            if not edition or not work.key:
+                return "other"
+            if mode == "found":
+                return "existing_record"
+            if mode == "add-work" and work.revision == 1 and work.edition_count == 1 and edition.revision == 1:
+                return "new_work"
+            if mode == "add-book" and edition.revision == 1:
+                return "new_edition"
+            return "other"
+            
+        mode = find_mode()
+        if mode == "new_work":
+            title = _("Add a little more?")
+            note = _('<p class="alert thanks">Thank you for adding that book! Any more information you could provide would be wonderful!</p>')
+        elif mode == "new_edition":
+            title = _("Add a little more?")
+            note = _('<p class="alert thanks">We already know about <b>%s</b>, but not the <b>%s %s edition</b>. Thanks! Do you know any more about this edition?</p>', work.title, edition.publish_date, "; ".join(edition.publishers))
+        elif mode == "existing_record":
+            title = _("Add a little more?")
+            note = _('<p class="alert info">We already know about the <b>%s %s edition</b> of <b>%s</b>, but please, tell us more!</p>', edition.publish_date, "; ".join(edition.publishers), work.title)
+        else:
+            title = _("Editing...")
+            note = ""
+            
+    <h1>$:title</h1>
+    $:note
 </div>
 
-$ work = page.works[0]
+<script type="text/javascript">
+<!--
+\$(function() {
+    function update_visible() {
+        if (\$("#authors div.input").length > 1) {
+            \$("#authors a.remove").show();
+        }
+        else {
+            \$("#authors a.remove").hide();
+        }
+
+        \$("#authors a.add:not(:last)").hide();
+        \$("#authors a.add:last").show();
+    }
+    
+    update_visible();
+    
+    \$("#authors a.remove").live("click", function() {
+        if (\$("#authors div.input").length > 1) {
+            \$(this).closest("div.input").remove();
+            update_visible();
+        }
+    });
+
+    \$("#authors a.add").live("click", function(event) {
+        event.preventDefault();
+        
+        var n = \$("#authors div.input:last").attr("id").substr("author-input-".length);
+        n = parseInt(n);
+        
+        \$("#authors").append(render_author(n+1, {key:"", name: ""}));
+        \$("#authors input.author-autocomplete:last").author_autocomplete();
+        update_visible();
+    });
+    
+});
+//-->
+</script>
+
+$jsdef render_author(i, author):
+    <div class="input" id="author-input-$i">
+        <input name="authors--$i" class="required author author-autocomplete" type="text" id="author-$i" value="$author.name" tabindex="0"/>
+        <input name="work--authors--$i--author--key" type="hidden" id="author-$i-key" value="$author.key" />
+        <a href="javascript:;" class="remove red plain hidden" title="$_('Remove this author')">[x]</a>&nbsp;
+        <a href="javascript:;" class="add hidden">Add another author?</a>
+    </div>
 
 <div id="contentBody">
-    <form method="post" id="addWork" class="olform books" name="edit">
-    
-    <div class="TitleAuthor sansserif">
-        <input name="work-title" type="text" id="work-title" value="$work.title"/>
-        <strong>&nbsp;by&nbsp; </strong>
-        <input name="author" type="text" id="author" value="$work.author"/>
-    </div>
-
-    <div id="tabsAddbook">
-        <ul>
-            <li><a href="#about">$_("What's It About?")</a></li>
-            <li><a href="#excerpts">$_("Add Excerpts")</a></li>
-            <li><a href="#web">$("Web Resources")</a></li>
-            <li><a href="#edition">$_("Your Edition, 1995")</a></li>
-        </ul>
-
-            <!-- START ABOUT WORK -->
-    
-            <div id="about">
-        
-                <fieldset class="major">
-
-                    <div class="formElement">
-                        <div class="label">
-                            <label for="bookAbout">$_("How would you describe this book?")</label> 
-                            <span class="tip">$_("There's no wrong answer here.")</span>
-                        </div>
-                        <div class="input">
-                            <textarea name="bookAbout" id="bookAbout" class="markdown" cols="55" rows="5"></textarea>
-                            <div class="wmd-preview"></div>
-                        </div>
-                    </div>
-                    <div class="formElement">
-                        <div class="label">
-                            <label for="">$_("Some tags perhaps?")</label> 
-                            <span class="tip"><span class="highlight">$_("Please separate with commas.")</span> $_("For example:") <i><a href="[SUBJECT LINK]">cheese</a>, <a href="[SUBJECT LINK]">Roman Empire</a>, <a href="[SUBJECT LINK]">psychology</a></i></span>
-                        </div>
-                        <div class="input">
-                            <input type="text" name="" id="" value=""/>
-                        </div>
-                    </div>
-    
-                    <div class="formElement">
-                        <div class="label">
-                            <label for="">$_("Does it mention any places?")</label> 
-                            <span class="tip">$_("For example:") <i><a href="[SUBJECT LINK]">London</a>, <a href="[SUBJECT   LINK]">Atlantis</a>, <a href="[SUBJECT LINK]">Omaha</a></i></span>
-                        </div>
-                        <div class="input">
-                            <input type="text" name="" id="" value=""/>
-                        </div>
-                    </div>
-    
-                    <div class="formElement">
-                        <div class="label">
-                            <label for="">$_("Is it about a certain person? Or, people?")</label> 
-                            <span class="tip">$_("For example:") <i><a href="[SUBJECT LINK]">Theodore Roosevelt</a>, <a href="[SUBJECT   LINK]">Julian of Norwich</a>, <a href="[SUBJECT LINK]">Tintin</a></i></span>
-                        </div>
-                        <div class="input">
-                            <input type="text" name="" id="" value=""/>
-                        </div>
-                    </div>
-    
-                    <div class="formElement">
-                        <div class="label">
-                            <label for="">$_("When is it set or about?")</label> 
-                            <span class="tip">$_("For example:") <i><a href="[SUBJECT LINK]">1984</a>, <a href="[SUBJECT LINK]">The Middle Ages</a>, <a href="[SUBJECT LINK]">1810-1890</a></i></span>
-                        </div>
-                        <div class="input">
-                            <input type="text" name="" id="" value=""/>
-                        </div>
-                    </div>
-    
-                    <div class="formElement bottom">
-                        <div class="input">
-                            <input type="submit" value="Save" name="submit" id="submit"/>
-                            &nbsp;
-                            <a href="javascript:history.go(-1);" class="larger attn">$_("Cancel")</a>
-                        </div>
-                    </div>
-    
-                    <div class="formElement">
-                        <div class="tip footnote">
-                            <strong>$_("Note:") </strong>$:_('Any tags, places, people or time periods you add here will be transformed into what we call "<a href="/subjects">Subjects</a>".')
-                        </div>
-                    </div>
-    
-                </fieldset>
-
+    <form method="post" id="addWork" class="olform books" name="edit" action="">
+        <div class="TitleAuthor sansserif">
+            <div class="label">
+                <label for="work-title">Title</label> <span class="tip">Use <b><i>Title: Subtitle</i></b> to add a subtitle.</span> 
             </div>
+            <div class="input">
+                <input name="work--title" type="text" id="work-title" value="$this_title" tabindex="0"/>
+            </div>
+            <div class="label">
+                <label for="author-$0">Author</label>
+            </div>
+            $ authors = work.authors and [a.author for a in work.authors]            
+            <div id="authors">
+                $if authors:
+                    $for i, author in enumerate(authors):
+                        $:render_author(i, author)
+                $else:
+                    $:render_author(0, storage(name="", key=""))
+            </div>
+        </div>
+        
+        <div id="tabsAddbook">
+            <ul>
+                <li><a href="#about" id="link_about">$_("What's It About?")</a></li>
+                <li><a href="#excerpts" id="link_excerpts">$_("Add Excerpts")</a></li>
+                <li><a href="#web" id="link_web">$("Web Resources")</a></li>
+                $if edition:
+                    $if edition.publishers:
+                        $ edition_name = "; ".join(edition.publishers) + ' edition'
+                    $else:
+                        $ edition_name = "Unknown publisher" + ' edition'
+                    
+                    $if edition.publish_date:
+                        $ edition_name = truncate(edition_name, 20) + ", " + edition.publish_date
+                    
+                    <li><a href="#edition" id="link_edition">$edition_name</a></li>
+            </ul>
 
-            <!-- /ABOUT -->
-
-            <!-- START EXCERPTS FOR WORK -->        
+            <div id="about">
+                $:render_template("books/edit/about", work)
+            </div>
 
             <div id="excerpts">
-        
-                <fieldset class="major">
-
-                    <div class="formElement">
-                        <div>$_("If there are particular (short) passages you feel represent the book well, please feel free to transcribe them here.")</div>
-                    </div>
-
-                    <div class="formElement">
-                        <div class="label">
-                            <label for="excerpt_pages">$_("Page number?")</label>
-                            <span class="tip">$_("For example:") <i>23, xi or 433-434</i></span>
-                        </div>
-                        <div class="input">
-                            <input type="text" name="excerpt_pages" id="excerpt_pages" value="" class="xsmall"/>
-                        </div>
-                    </div>
-
-                    <div class="formElement">
-                        <div class="label">
-                            <label for="excerpt">$_("Transcribe the excerpt")</label>
-                            <span class="tip highlight" id="charLimit">$_("Maximum length is 2000 characters")</span>
-                        </div>
-                        <div class="input">
-                            <textarea name="excerpt" id="excerpt" rows="5" cols="50"></textarea>
-                        </div>
-                    </div>
-
-                    <div class="formElement">
-                        <div class="label">
-                            <label for="excerpt_describe">$_("Why did you choose this excerpt?")</label>
-                            <span class="tip">$_("Add a note about why you chose this. (Optional)")</span>
-                        </div>
-                        <div class="input">
-                            <textarea name="excerpt_describe" id="excerpt_describe" rows="3" cols="50"></textarea>
-                        </div>
-                    </div>
-
-                    <div class="formElement bottom">
-                        <div class="input">
-                            <input type="submit" value="$_('Save')" name="submit" id="submit"/>
-                            &nbsp;
-                            <a href="javascript:history.go(-1);" class="larger attn">$_("Cancel")</a>
-                        </div>
-                    </div>
-
-                    <div class="formElement">
-                        <div class="label"><h3>$_("Excerpts so far...")</h3></div>
-                        <div class="input formBack">
-                            <div><strong>From Page 25:</strong></div>
-                            <blockquote>
-                            If you don't pay attention to your bandwidth you might not ever know you're uploading extremely large images, because Flickr automatically resizes them to a number of different standard sizes. For example, all photos in your photostream will be displayed at a maximum of 240 pixels wide (or high, depending on their orientation), allowing people to view many of your photos at once.
-                            </blockquote>
-                            <div><strong><a href="[USER URL]">george08</a> noted:</strong> "I needed a bit of copy for a mock- up."</div>
-                            <br/>
-                        </div>
-                    </div>
-
-                    <div class="formElement">
-                        <div class="tip footnote">
-                            <strong>Note: </strong>If you like the idea of excerpts, you might enjoy the &quot;<a href="http://www.google.com/search?q=blog+all+dog-eared+pages">Blog All Dog-Eared Pages</a>&quot; concept.
-                        </div>
-                    </div>
-    
-                </fieldset>
-
+                $:render_template("books/edit/excerpts", work)
             </div>
 
-            <!-- /EXCERPTS -->
-
-            <!-- START WEB LINKS FOR WORK -->
-        
             <div id="web">
-        
-                <fieldset class="major">
-
-                    <div class="formElement">
-                        Please help connect our records to as many <u>good</u><span class="orange">*</span> online resources as you can find.
-                    </div>
-        
-                    <div class="formElement">
-                        <div class="label">
-                            <label for="work_url">URL</label> 
-                            <span class="tip"></span>
-                        </div>
-                        <div class="input">
-                            <input type="text" name="work_url" id="work_url" value="http://"/>
-                        </div>
-                    </div>
-
-                    <div class="formElement">
-                        <div class="label">
-                            <label for="work_url_label">Give your link a label</label> 
-                            <span class="tip">For example: <i>Podcast about the book on The Guardian</i></span>
-                        </div>
-                        <div class="input">
-                            <input type="text" name="work_url_label" id="work_url_label" value=""/>
-                            <input type="button" value="Add Link"></button>
-                        </div>
-                    </div>
-    
-                    <div class="formElement">
-                        <div class="input">
-                            <ul class="booklinks">
-                                <li><a href="[URL]">The Author's Homepage</a><br/><span class="link">http://rogerramjet.com</   span></li
-                                <li><a href="[URL]">Interesting Critique of the 3rd chapter</a><br/><span class="link">http://omgwtf.com/chapter3-is-rad</span></li>
-                            </ul>
-                        </div>
-                    </div>
-    
-                    <div class="formElement bottom">
-                        <div class="input">
-                            <input type="submit" value="Save" name="submit" id="submit"/>
-                            &nbsp;
-                            <a href="javascript:history.go(-1);" class="larger attn">Cancel</a>
-                        </div>
-                    </div>
-    
-                </fieldset>
-
-                <div class="formElement pingList">
-                    <p>We're also pinging the web to see who knows what...</p>
-                    <ul class="urlList">
-                        <li>
-                            <span class="url">* <a href="[URL]">Wikipedia</a></span>
-                            <span class="quote">One Flew Over the Cuckoo's Nest was a direct product of Kesey's time working the graveyard shift as an orderly at a mental...</span>
-                            <span class="date"></span>
-                        </li>
-                        <li>
-                            <span class="url">* <a href="[URL]">GoodReads</a></span>
-                            <span class="quote">31,435 member reviews; in 25 groups; on 35 lists</span>
-                            <span class="date"></span>
-                        </li>
-                        <li>
-                            <span class="url">* <a href="[URL]">The Guardian</a></span>
-                            <span class="quote">"The book that changed my life" -</span>
-                            <span class="date">Tuesday, May 26, 2009</span>
-                        </li>
-                        <li>
-                            <span class="url">* <a href="[URL]">Amazon</a></span>
-                            <span class="quote">\$10.20, available for Kindle</span>
-                            <span class="date"></span>
-                        </li>
-                        <li>
-                            <span class="url">* <a href="[URL]">Library of Congress</a></span>
-                            <span class="quote"></li>
-                            <span class="date"></span>
-                        <li>
-                            <span class="url">* <a href="[URL]">BBC</a></span>
-                            <span class="quote">One Flew Over the Cuckoo's Nest is playing a major national tour this year and Shane Richie is starring as Randle P. McMurphy...</span>
-                            <span class="date"></span>
-                        </li>
-                        <li>
-                            <span class="url">* <a href="[URL]">The New York Times</a></span>
-                            <span class="quote">"'One Flew Over the Cuckoo's Nest' is still fresh at 25" -</span> 
-                            <span class="date">Monday, August 17, 2009</span>
-                        </li>
-                    </ul>
-                </div>
-
-                <div class="formElement">
-                    <div class="tip footnote"><span class="orange">*</span> "Good" means no spammy links, please. Keep them relevant to the book. Irrelevant sites may be removed. Blatant spam will be deleted without remorse.</div>
-                </div>
-    
+                $:render_template("books/edit/web", work, prefix="work--")
             </div>
         
-        <!-- /WEB LINKS -->
-
-        <!-- START EDITION -->    
-
-            <div id="edition">
-                $:render_template("books/edit/edition", page)
-            </div>
-
+            $if edition:
+                <div id="edition">
+                    $:render_template("books/edit/edition", work, edition)
+                </div>
         </div>
 
+        $:macros.EditButtons(comment=work.comment_)        
     </form>
-    
 
-    <div class="hidden">
-        <div class="floater" id="addCover">
-            <form class="olform books" id="bookcover" name="bookcover">
-                <div id="popThisUp" class="floaterAlert hidden"><strong>Ahem.</strong> You appear not to have specified an image. Please choose one?</div>
-                <a id="coverShut" href="javascript:;" onclick="\$.fn.colorbox.close();"></a>
-                <h2>Add a Cover Image</h2>
-                <div id="coverIntro">There are two ways to get a cover image on Open Library:</div>
-                <label id="coverBrowse" for="coverFile">Either browse to an image file on your computer,</label>
-                <input type="file" name="coverFile" id="coverFile"/>
-                <label id="coverWeb" for="coverUrl"><span class="highlight"><u>Or</u></span>, paste in a URL to an image if it's on the web.</label>
-                <input type="text" name="coverUrl" id="coverUrl" value="http://"/>
-                <!-- THE BUTTON BELOW IS A SIMPLE SUBMIT, BUT IF PRESSED W/O ANY INPUT, FIRE THE ONCLICK -->
-                <button type="button" name="coverUpload" id="coverUpload" value="Upload" style="width:auto!important;" onclick="\$('#popThisUp').show().css('padding-top','13px').animate({top:'-52px',height:'27px'});">Upload</button>
-                <a id="coverClose" href="javascript:;" onclick="\$.fn.colorbox.close();">Cancel</a>
-                <div id="coverLegal"><span class="black">Note:</span><br/>We need some crystal clear language in here about the copyright palava about covers. We know people are going to steal them from all over.</div>
-            </form>
-        </div>
-    </div>
-    
-
-
-    <div id="resultsAbout">
-    
-        <div class="head">
-            <h2>
-                $_("History")
-            </h2>
-            <span class="link"><a href="[THING HISTORY PAGE]">$_("Read all")</a></span>
-        </div>
-
-        <table class="history">
-            <tbody>
-                <tr class="first">
-                    <td class="timestamp">A moment ago</td>
-                    <td class="detail">
-                        <!-- SOURCE -->
-                        <a href="[URL]">george08</a>
-                        <!-- /SOURCE --> 
-                        created the record.
-                        <!-- EDITION -->
-                        <!-- /EDITION --> 
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-
-    </div>
+    $if edition:
+        $:render_template("books/edit/addfield", edition)
 
 </div>

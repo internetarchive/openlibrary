@@ -28,10 +28,10 @@ urls = (
 app = web.application(urls, globals())
 
 convertions = {
-    '/people/': '/user/',
-    '/books/': '/b/',
-    '/authors/': '/a/',
-    '/languages/': '/l/',
+#    '/people/': '/user/',
+#    '/books/': '/b/',
+#    '/authors/': '/a/',
+#    '/languages/': '/l/',
     '/templates/': '/upstream/templates/',
     '/macros/': '/upstream/macros/',
     '/js/': '/upstream/js/',
@@ -107,8 +107,11 @@ def convert_key(key, mapping=convertions):
         >>> convert_key("/authors/OL1A", {'/authors/': '/a/'})
         '/a/OL1A'
     """
-    if key == '/':
+    if key is None:
+        return None
+    elif key == '/':
         return '/upstream'
+        
     for new, old in mapping.items():
         if key.startswith(new):
             key2 = old + key[len(new):]
@@ -163,12 +166,17 @@ class things(proxy):
         if 'query' in self.input:
             q = self.input.query
             q = simplejson.loads(q)
-            for k, v in q.items():
-                if isinstance(v, basestring):
-                    q[k] = convert_key(v)
-                elif isinstance(v, list):
-                    q[k] = [convert_key(x) for x in v]
-            self.input.query = simplejson.dumps(q)
+            
+            def convert_keys(q):
+                if isinstance(q, dict):
+                    return dict((k, convert_keys(v)) for k, v in q.items())
+                elif isinstance(q, list):
+                    return [convert_keys(x) for x in q]
+                elif isinstance(q, basestring):
+                    return convert_key(q)
+                else:
+                    return q
+            self.input.query = simplejson.dumps(convert_keys(q))
             
     def after_request(self):
         if self.output:

@@ -4,22 +4,19 @@ $ _x = ctx.setdefault("bodyid", "edit")
 
 $var title: $page.title
 
-$:macros.databarView(page)
+$:macros.databarTemplate(page)
 
 $ format = query_param('format')
 $if format == 'raw':
     $var content_type: $page.content_type
     $var rawtext: $:page.body
 $else:
-    <div id="contentHead">
-        <div class="head"><h1>$page.title</h1></div>
+    $:render_template("lib/view_head", page)
         <p class="small">
-            $_.last_modified $(page.last_modified and datestr(page.last_modified))
-            | <a href="$page.key?format=raw">view as rawtext</a>
+            <a href="$page.key?format=raw">view as rawtext</a>
             $if page.key.endswith(".css"):
             | 
             <a href="#" onclick="document.location.href='http://jigsaw.w3.org/css-validator/validator?uri=' + escape(document.location.href.replace('#', '') + '?format=raw');">validate CSS</a>
         </p>
-    </div>
 
     $:macros.DisplayCode(page.body)

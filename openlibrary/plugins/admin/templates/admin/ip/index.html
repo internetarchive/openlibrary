@@ -1,3 +1,45 @@
 $def with ()
 
-$var title: IP
+$ _x = ctx.setdefault('bodyid', 'admin')
+$ _x = ctx.setdefault('usergroup', 'admin')
+
+$var title: [Admin Center] IP
+
+<div id="contentBody">
+<div class="head">
+        <h1><a href="/admin/">Admin</a> / IP</h1>
+
+</div>
+
+<h2>$_("List of Banned IPs")</h2>
+<table id="adminHistory" style="width: 100%">
+<thead>
+     <tr>
+          <th>$_("Date/Time")</th>
+          <th>$_("IP address")</th>
+          <th>Admin Comment</th>
+          <th>&nbsp;</th>
+          <th>$_("# of edits")</th>
+     </tr>
+</thead>
+     <tr>
+          <td class="time">x minutes ago</td>
+          <td class="displayname"><a href="#">IP</a></td>
+          <td class="path" colspan="2">comment</td>
+          <td class="comment">###</td>
+     </tr>
+     <tr>
+          <td class="time">x minutes ago</td>
+          <td class="displayname"><a href="#">IP</a></td>
+          <td class="path" colspan="2">comment</td>
+          <td class="comment">###</td>
+     </tr>
+     <tr>
+          <td class="time">x minutes ago</td>
+          <td class="displayname"><a href="#">IP</a></td>
+          <td class="path" colspan="2">comment</td>
+          <td class="comment">###</td>
+     </tr>
+     </table>
+
+</div>

@@ -1,0 +1,45 @@
+$def with (results, fulltext=False)
+
+$ _ = i18n.get_namespace('/search')
+
+
+<ul>
+
+$for b in results:
+    $if fulltext:
+        $ book = b[0]
+        $ ocaid = b[1]
+        $ pages = b[2]
+    $else:
+        $ book = b
+        $ ocaid = None
+    $ title = book.title
+    <li>
+    <span class="bookcover">
+        $ olid = book.key.split('/')[-1]
+        <a href="$book.key"><img src="$get_coverstore_url()/b/olid/$olid-S.jpg?default=http://upstream.openlibrary.org/images/icons/avatar_book-sm.png" height="60"/></a>
+    </span>
+    <span class="resultTitle">
+        <span class="details">
+            <span class="resultPublisher">
+            $if book.publishers:
+                <a href="$book.key/$title.replace(' ', '-')"><strong>$book.publish_date,</strong> $(', '.join(book.publishers))</a>
+            $else:
+                <a href="$book.key/$title.replace(' ', '-')"><strong>$book.publish_date</strong></a>
+            </span>
+            <span class="resultType">
+                $book.physical_format.replace('[', '').replace(']','')
+            </span>
+            <br/>
+            <span class="booktitle">$book.title_prefix $title</span>
+        </span>
+        $if book.ocaid: 
+            <span class="actions">
+                <a href="http://www.archive.org/stream/$book.ocaid">
+                    <span class="image read"></span>
+                    <span class="label">Read</span>
+                </a>
+            </span>
+    </span>
+    </li>
+</ul>

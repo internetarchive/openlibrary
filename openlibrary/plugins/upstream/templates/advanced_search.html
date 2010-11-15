@@ -1,11 +1,37 @@
-$def with (q, qresults, results, works_groups, facets, ftokens, ft_pairs, timings, errortext)
+$def with (input, do_search, get_doc)
 
-$ _ = i18n.get_namespace('/search')
+$ facet_map = (
+$    ('has_fulltext', _('eBook?')),
+$    ('author_key', _('Author')),
+$    ('subject_facet', _('Subjects')),
+$    ('place_facet', _('Places')),
+$    ('time_facet', _('Times')),
+$    ('publisher_facet', _('Publisher')),
+$    ('first_publish_year', _('First published')),
+$    ('fiction', _('Fiction?')),
+$    ('language', _('Language')),
+$ )
 
-<!-- Timings (for debugging): $timings -->
+$ facet_fields = ['has_fulltext', 'author_facet', 'language', 'first_publish_year', 'publisher_facet', 'fiction', 'subject_facet', 'person_facet', 'place_facet', 'time_facet']
 
-<script type="text/javascript">\$().ready(bookCovers);</script>
+$def page_url(page):
+    $search_url()&page=$(page+1)
 
+$ param = {}
+$for p in ['q', 'title', 'author', 'page', 'sort', 'isbn', 'oclc', 'contributor', 'publish_place', 'lccn', 'ia', 'first_sentence', 'publisher', 'author_key', 'debug'] + facet_fields:
+    $if p in input and input[p]:
+        $ param[p] = input[p]
+
+$if param:
+    $ page = int(param.get('page', 1))
+    $ sort = param.get('sort', None)
+    $ rows = 100
+    $ results = do_search(param, sort, page, rows=rows)
+    $ search_url = results.search_url
+    $ docs = results.docs
+    $ facet_counts = results.facet_counts
+    $ num_found = results.num_found
+    
 <div id="contentHead">
   <div class="head">
   <h1>Search Results</h1>
@@ -13,77 +39,119 @@ $ _ = i18n.get_namespace('/search')
 </div>
 
 <div id="contentBody">
-$if errortext:
-    <div class="head"><h3><span class="red"><strong>$_.error:</strong> $errortext</span></h3></div>
-$else:
-    <p>
-    <span class="sansserif darkgreen">We found <strong>$qresults.total_results editions</strong> that match your query.</span>
-    $if qresults.total_results > 0:
-        $if query_param('view')=='covers':
-          <span class="tools">Show: <a href="$changequery(view='list')">List</a> / <b>Covers</b></span>
-        $else:
-          <span class="tools">Show: <b>List</b> / <a href="$changequery(view='covers')">Covers</a></span>
+    <p><span class="sansserif darkgreen">$:_("We found <strong>%s results</strong> that match your query.", commify(num_found))</span>
+
+    $ sorturl = search_url() # first page
+    
+    $if sort == 'score':
+        <span class="tools">Sort by <a href="$sorturl">number of editions</a> or <strong>relevance</strong></span>
+    $else:
+        <span class="tools">Sort by <strong>number of editions</strong> or <a href="$sorturl&sort=score">relevance</a></span>
+
     </p>
 
 <!-- facets -->
-$if facets: 
+
     <div id="searchFacets">
-    $ selected_tokens = [token for token,tpair in ft_pairs]
-    $for facet in facets:
-	$ fname = facet[0]
-	$ fn1 = _[fname]
-	$ fentries = facet[1]
+
+    $for header, label in facet_map:
+        $ counts = facet_counts[header]
+        $if not counts:
+            $continue
         <div class="facet">
-	<div class="facetHead">$fn1</div>
-        $ displayed_entries = fentries[slice(6)]
-        $macros.ReorderFacets(fname, displayed_entries, selected_tokens)
-	$for fentry in displayed_entries:
-	    $ fval = fentry[0]
-	    $ fcount = fentry[1]
-	    $ ftoken = facet_token(fname, fval)
-	    $ cancel = (ftoken in selected_tokens)
-	    $if cancel:
+        <div class="facetHead">$label</div>
+        $ num = 0
+        $for k, display, count in counts[:10]:
+            $ num = num+1
+            $if num <= 5:
                 <div class="facetEntry">
-                    <span class="small">
-                        <a href="$changequery(ftokens=ftokens + ',' + ftoken, offset='0', remove='')">$:macros.HasFulltext(fname, fval)</a>
-                    </span>
-                    &nbsp;
-                    <span class="smaller">
-                        <a href="$changequery(remove=ftoken, ftokens=ftokens)" title="Click this to remove" class="red">[x]</a>
-                    </span>
+            $else:
+                <div class="$header facetEntry hidden">
+            $if k in param.get(header, []):
+                <span class="small">$display</span>&nbsp;<span class="smaller gray"><a href="$search_url((header, k))" title="Click this to remove" class="red">[x]</a></span>
                 </div>
             $else:
-                <div class="facetEntry">
-                    <span class="small">
-                    <a href="$changequery(ftokens=ftokens + ',' + ftoken, offset='0', remove='')">$:macros.HasFulltext(fname, fval)</a>
-                    </span>
-                    &nbsp;
-                    <span class="smaller gray">
-                        $fcount
-                    </span>
+                <span class="small"><a href="$search_url()&$header=$k">$display</a></span>&nbsp;<span class="smaller gray">$commify(count)</span>
                 </div>
-        </div>
-
-    </div>    
-      
-<!-- results -->
-    <div id="searchResults">
-    $if query_param('view')=='covers':
-        $:macros.SearchResultsCovers(results)
-    $else:
-        $:macros.SearchResults(results)
-
-        <div class="clearfix"></div>
-    $if qresults.total_results > 20:
-        <div class="clearfix"></div>
-        <div class="pagination">
-        $ last_page = (qresults.total_results + 19) / 20
-        $ first_page = 1
-        $ this_page = qresults.begin / 20 + 1
-        $:macros.SearchPagination(q, first_page, last_page, this_page, 20)
+        $if len(counts) > 5:
+            <div class="facetEntry"><span class="small"><a href="javascript:;"  onClick="\$(this).toggleText('more','less');jQuery('div.$header').toggle();false" class="orange">more</a></span></div>
         </div>
 
     </div>
-    <p class="small sansserif">$_.cant_find&nbsp;<a href="/addbook">$_.add_a_book</a>.</p>
+
+<!-- /facets -->
+
+<!-- results -->
+
+<script type="text/javascript">\$().ready(bookCovers);</script>
+
+    <div id="searchResults">
+
+    <ul id="siteSearch">
+
+    $for result_doc in docs:
+        $ doc = get_doc(result_doc)
+        $ key = doc.key
+        <li>
+        <span class="bookcover">
+            $ olid = doc.key.split('/')[-1]
+            <a href="$doc.key"><img src="$get_coverstore_url()/b/olid/$olid-S.jpg?default=http://upstream.openlibrary.org/images/icons/avatar_book-sm.png" height="60"/></a>
+        </span>
+        <span class="details">
+            <span class="resultTitle">
+                <span class="booktitle"><a href="http://upstream.openlibrary.org/works/$doc.key">$doc.title</a></span>
+                <span class="bookauthor">by
+                $for k, n in doc.authors:
+                    <a href="http://upstream.openlibrary.org/authors/$k">$n</a>$(',' if not loop.last else '')
+                </span>
+                <span class="resultPublisher">$commify(doc.edition_count) edition$("s" if doc.edition_count != 1 else "")</span>
+            </span>
+        </span>
+        $if len(doc.ia):
+            <span class="actions">
+                <a href="javascript:;" >
+                    <span class="image read"></span>
+                    <span class="label">$commify(len(doc.ia))&nbsp;eBook$("s" if len(doc.ia) != 1 else "")</span>
+                </a>
+                
+            </span>
+        </span>
+    </li>
+
+    </ul>
+    
+    $ pages = (num_found / rows) + 1
+    $ pages_in_set = 10
+    $ half = pages_in_set/2
+    $if pages < pages_in_set:
+        $ first_page_in_set = 1
+        $ last_page_in_set = pages
+    $elif page < half:
+        $ first_page_in_set = 1
+        $ last_page_in_set = min((pages_in_set, pages))
+    $elif page > (pages-half):
+        $ first_page = pages-pages_in_set
+        $ last_page_in_set = pages
+    $else:
+        $ first_page_in_set = page-half
+        $ last_page_in_set = page+half       
+    
+    Pages:
+    <div class="clearfix"></div>
+    <div class="pagination">
+    $if page != 1:
+        <a href="$search_url()" class="ChoosePage">&laquo;&nbsp;First</a>
+        <a href="$search_url()&amp;page=$(page-1)" class="ChoosePage">&lt;&nbsp;Previous</a>
+    $for p in range(first_page_in_set, last_page_in_set+1):
+        $if p == page:
+            <span class="this">$p</span>
+        $else:
+            <a href="$search_url()&amp;page=$p" class="ChoosePage">$p</a>
+    $if page < pages:
+        <a href="$search_url()&amp;page=$(page+1)" class="ChoosePage">Next&nbsp;&gt;</a>
+        <a href="$search_url()&amp;page=$pages" class="ChoosePage">Last&nbsp;&raquo;</a>
+    </div>
+
+    </div>
 
 </div>

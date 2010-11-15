@@ -27,10 +27,16 @@ for e in query_iter(q):
         'key': e['key'],
         'subjects': {'connect': 'update_list', 'value': subjects },
     }
-    if e.get('table_of_contents', None) and e['table_of_contents'][0]['type'] == '/type/text':
-        assert all(i['type'] == '/type/text' for i in e['table_of_contents'])
-        toc = [{'title': i['value'], 'type': '/type/toc_item'} for i in e['table_of_contents']]
-        q['table_of_contents'] = {'connect': 'update_list', 'value': toc }
+    # need to fix table_of_contents to pass validation
+    toc = e['table_of_contents']
+    if toc and (isinstance(toc[0], basestring) or toc[0]['type'] == '/type/text'):
+        if isinstance(toc[0], basestring):
+            assert all(isinstance(i, basestring) for i in toc)
+            new_toc = [{'title': i, 'type': '/type/toc_item'} for i in toc]
+        else:
+            assert all(i['type'] == '/type/text' for i in toc)
+            new_toc = [{'title': i['value'], 'type': '/type/toc_item'} for i in toc]
+        q['table_of_contents'] = {'connect': 'update_list', 'value': new_toc }
     queue.append(q)
     count += 1
     if len(queue) == 100:

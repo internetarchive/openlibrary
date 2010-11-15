@@ -1,9 +1,61 @@
 $def with (page)
 
-$ lang = i18n.get_locale() or 'en'
-$ _t = i18n.get_namespace('/type/home')
-$ _ = i18n.get_namespace('/mode/view')
+$var title: $page.title2
 
-$var title: $page.title
+$ text = format(page.body)
+$ text = format(page.title)
 
-$:macros.databar()
+<script type="text/javascript">
+<!--
+\$().ready(function(){
+    \$("#contentHead").hide();
+    \$('<meta name="google-site-verification" content="KrqcZD4l5BLNVyjzSi2sjZBiwgmkJ1W7n6w7ThD7A74" />').appendTo('head');
+});
+//-->
+</script>
+
+<div class="shift">Welcome to Open Library!<br/>Looking for accessible books in the DAISY format? View our <a href="/subjects/accessible_book">accessible book subject page</a>, or <a href="/search?subject_facet=Accessible%20book">search for accessible books</a>.</div>
+        
+<div id="homeSplash" title="Photo by Simon Chetrit">
+    <div id="homeBlurb">
+        $:format(page.intro)
+    </div>
+</div>
+
+<div id="homeStatement">
+    $:format(page.statement)
+</div>
+
+<div id="contentBody">
+
+    <div class="contentQuarter home" id="homeBookAdd">
+        $:page.column_1
+    </div>
+
+    <div class="contentSpacer"></div>
+
+    <div class="contentQuarter home" id="homeSubjectBrowse">
+        $:format(page.column_2)
+    </div>
+
+    <div class="contentSpacer"></div>
+
+    <div class="contentQuarter home" id="homeAccountBlog">
+        $:format(page.column_3)
+    </div>
+
+    <div class="contentSpacer"></div>
+
+    <div class="contentQuarter home" id="homeRecent">
+        <h3><a href="http://blog.openlibrary.org">blog.openlibrary.org</a></h3>
+        <ul id="olBlog" style="font-size: 13px;">
+            $for post in get_blog_feeds()[:2]:
+                <li><a href="$post.link">$post.title</a> - <em>$datestr(post.pubdate)</em></li>
+        </ul>
+    </div>
+
+    $if page.notice:
+        <div class="clearfix"></div>
+        <p class="small collapse">$:format(page.notice)</p>
+
+</div>

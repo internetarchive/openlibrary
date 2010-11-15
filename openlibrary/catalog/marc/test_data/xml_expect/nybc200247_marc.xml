@@ -1,0 +1,54 @@
+{
+    "other_titles": [
+        "Tzum hundertstn geboirntog fun Shimen Dubnow", 
+        "Centennial of the historian Shimen Dubnow"
+    ], 
+    "publishers": [
+        "I\u1e33uf"
+    ], 
+    "pagination": "92 p. :", 
+    "table_of_contents": [
+        {
+            "type": "/type/toc_item", 
+            "title": "Ar\u1e6di\u1e33len vegn Shimen Dubnov"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Ophandlungen un ar\u1e6di\u1e33len fun Shimen Dubnov"
+        }, 
+        {
+            "type": "/type/toc_item", 
+            "title": "Briv fun Sh. Dubnov."
+        }
+    ], 
+    "title": "Tsum hunderts\u1e6dn geboyrn\u1e6dog fun Shimon Dubno\u1e7f", 
+    "series": [
+        "Steven Spielberg digital Yiddish library -- no. 00247"
+    ], 
+    "notes": "Electronic reproduction. Amherst : National Yiddish Book Center, 1999.\n\nThis item is offered for sale by the National Yiddish Book Center. Internet: www.yiddishbooks.org; email: orders@bikher.org; phone: 413.256.4900; fax: 413.256.4700", 
+    "number_of_pages": 92, 
+    "languages": [
+        {
+            "key": "/languages/yid"
+        }
+    ], 
+    "publish_date": "1961", 
+    "publish_country": "nyu", 
+    "authors": [
+        {
+            "birth_date": "1860", 
+            "death_date": "1941", 
+            "entity_type": "person", 
+            "name": "Dubnow, Simon", 
+            "personal_name": "Dubnow, Simon"
+        }
+    ], 
+    "subtitle": "zamlung", 
+    "publish_places": [
+        "Nyu-Yor\u1e33"
+    ], 
+    "contributions": [
+        "Mayzel, Nachman, 1887-1966"
+    ], 
+    "by_statement": "tsunoyfgesh.tel\u1e6d un reda\u1e33\u1e6dir\u1e6d fun Na\u1e25man Mayzil"
+}

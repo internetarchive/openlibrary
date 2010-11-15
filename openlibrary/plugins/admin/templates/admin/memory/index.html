@@ -1,0 +1,55 @@
+$def with (counts, page, sort=None)
+
+$var title: Memory Status
+
+<div id="contentHead">
+    <div class="head">
+        <h1>Memory Status</h1>
+    </div>
+</div>
+
+<style type="text/css">
+    table {
+        margin: 20px 0px;
+    }
+    td{
+        valign: top;
+        padding: 0px 10px;
+    }
+    th {
+        padding: 5px 10px;
+        background: #eee;
+    }
+    .count { text-align: right; }
+</style>
+            
+<div id="contentBody">
+
+$def arrow(name):
+   $if sort == name: &darr;
+
+<form method="POST" action=""><input type="submit" value="Mark"/></form>
+
+
+    <table>
+        <tbody>
+            <tr>
+                <th>type</th>
+                <th class="count"><a href="$changequery(sort='count')">count</a>$:arrow("count")</th>
+                <th class="count"><a href="$changequery(sort='mark')">mark</a>$:arrow("mark")</th>
+                <th class="count"><a href="$changequery(sort='diff')">diff</a>$:arrow("diff")</th>
+            </tr>
+            $for d in counts:
+            <tr>
+                <td>$d.type</td>
+                <td class="count"><a href="/admin/memory/type/$d.type">$d.count</a></td>
+                <td class="count">$d.mark</td>
+                <td class="count"><a href="/admin/memory/type/$d.type?diff=true">$d.diff</a></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div>
+        <a href="$changequery(page=page-1)">Prev</a> | <a href="$changequery(page=page+1)">Next</a>
+    </div>
+</div>

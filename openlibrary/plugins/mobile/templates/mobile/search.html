@@ -1,0 +1,39 @@
+$def with(q, results)
+<h2>Find a Book</h2> 
+<form id="search" name="search" method="get" action="/search"> 
+    <p> 
+        <input name="q" type="text" id="textfield" class="searchBox" value="$q"/> 
+        <input type="submit" name="button" id="button" value="Search" /> 
+   </p> 
+</form> 
+
+<h2 class="darkgreen">$results.num_found $("hits" if results.num_found != 1 else "hit")</h2> 
+$if results["books"]:
+    <table width="100%" border="0" cellpadding="5" cellspacing="0"> 
+    $for edition, work in results["books"]:
+        <tr> 
+             <td>
+                 <a href="$edition.url()">
+                     <img src="$(edition.get_cover_url('M') or '/images/icons/avatar_book-sm.png')" 
+                          width="45" height="68" hspace="10" align="left" />
+                 </a>
+             </td> 
+             <td width="100%">
+                   <a href="$edition.url()" class="bookTitle">$edition.title</a>
+                   $if work["authors"]:
+                       by 
+                       $for author in work["authors"]:
+                           <a href="$author.url">$author.name</a>$cond(not loop.last, ",")
+                       <br /> 
+                   <span class="brown">
+                     $if work.first_publish_year:
+                         $work.first_publish_year, 
+                     $(edition.publishers[0] if edition.publishers else "")
+                   </span>
+            </td> 
+            <td><a href="http://archive.org/stream/$edition.ocaid">Read</a></td>
+        </tr> 
+    </table> 
+    
+$if not results["books"]:
+    <div class="no-results">Try this search on the <a href="search?q=$q" onclick="javascript:turnoff_mobile()">main site</a></div>

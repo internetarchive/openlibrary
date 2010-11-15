@@ -1,0 +1,103 @@
+$def with (a, b)
+
+$var title: $_("Diff on %s", a.key)
+
+$putctx("robots", "noindex,nofollow")
+
+<div id="contentHead">
+
+    $:macros.databarDiff() 
+
+    <h2 class="collapse"><a href="$a.key">$a.key</a> &rarr; Diff</h2>  
+
+    <div id="legend">
+       <dl>
+           <dd class="add">$_("Added")</dd>
+           <dd class="mod">$_("Modified")</dd>
+           <dd class="rem">$_("Removed")</dd>
+           <dd class="unmod">$_("Not changed")</dd>
+       </dl>
+    </div>
+          
+</div>
+
+$def display_revision(page):
+    <span class="heading">$_("Revision %d", page.revision)</span><br />
+    $ v = get_version(page.key, page.revision)
+    $if v.author:
+        <span class="smallest brown sansserif">$:_('By <a href="%s">%s</a> %s', v.author.key, v.author.displayname, datestr(v.created))</span>
+    $else:
+        <span class="smallest brown sansserif">$:_('By Anonymous %s', datestr(v.created))</span>
+
+$def diff_covers(p, a, b):
+    $if a[p] != b[p]:
+        <tr>
+            <td class="diff-header-side">$p</td>
+            <td class="diff-body">
+                $for img in a[p]:
+                    <img src="$get_coverstore_url()/b/id/$img-S.jpg"/>
+            </td>
+            <td class="diff-body">
+                $for img in b[p]:
+                    <img src="$get_coverstore_url()/b/id/$img-S.jpg"/>
+            </td>
+        </tr>
+
+<div id="contentBody" class="diff">
+
+    <table class="revisions" summary="$_('Differences')">
+        <colgroup class="l"><col class="line" /><col class="content" /></colgroup>
+        <colgroup class="r"><col class="line" /><col class="content" /></colgroup>
+        <thead>
+            <tr> 
+                <th></th>
+                <th style="width: 40%">$:display_revision(a)</th>
+                <th style="width: 40%">$:display_revision(b)</th>
+            </tr>
+        </thead>
+        <tbody>
+            
+        $code:
+            def find_diff(a, b, p):
+                label = p
+                # quick hack to display images in diff
+                if p in ["covers", "photos"]:
+                    return diff_covers(p, a, b)
+                elif p == "table_of_contents":
+                    return thingdiff("/type/text", "table_of_contents", a.get_toc_text(), b.get_toc_text())
+                elif p == "title_prefix":
+                    return thingdiff("/type/string", "title_prefix", a[p].strip(), b[p].strip())
+                elif p == "authors":
+                    return thingdiff("/type/author", "authors", a.get_authors(), b.get_authors())
+                else:
+                    ap = a[p]
+                    bp = b[p]
+                    t = get_expected_type(a, p)
+                    if t == "/type/string":
+                        if is_thing(ap):
+                            ap = ap.dict()
+                        if is_thing(bp):
+                            bp = bp.dict()
+                    return thingdiff(t, label, ap, bp)
+        
+        $ diff_count = 0
+        
+        $for p in set(a.keys() + b.keys()):
+            $ diff = find_diff(a, b, p)
+            $if not isinstance(diff, (str, unicode)) and hasattr(diff, "next"):
+                $ diff = u"".join(text for _x, text in diff)
+            
+            $if isinstance(diff, (str, unicode)):    
+                $ diff = diff and diff.strip()
+            $if diff:
+                $:diff
+                $ diff_count += 1
+        $if diff_count == 0:
+            <tr>
+                <td colspan="3" style="text-align: center;">$_("Both the revisions are identical.")</td>
+            </tr>
+        </tbody>
+    </table>
+       
+
+</div>

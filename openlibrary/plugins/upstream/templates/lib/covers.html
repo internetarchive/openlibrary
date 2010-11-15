@@ -1,0 +1,97 @@
+$def with (page)
+
+<script type="text/javascript">
+<!--
+page.displayCovers = function(pagenum) {
+    page.loadPage(pagenum, function(data) {
+        \$("#coversCarousel").empty().html(page.renderCovers(data));
+    });
+};
+
+function loadCoverCarousels(carousel, state) {
+    if (!page.coverCarousel) {
+        page.coverCarousel = carousel;
+        page.coverCarousel.size(page.getPageCount());
+    }
+    var index = carousel.first;
+    page.pos = (index-1)*12;
+
+    if (window.set_hash) {
+         var _p = (index == 1) ? null : index;
+        set_hash({"page": _p});
+    }
+
+    if (carousel.has(index)) {
+        return;
+    }
+    carousel.add(index, "<h3>Loading books...</h3>");
+    page.loadPage(index-1, function(data) {
+        carousel.add(index, page.renderCovers(data));
+    });
+}
+
+\$().ready(function() {
+    page.renderCovers = render_page;
+    page.displayCovers(0);
+});
+
+\$().ready(carousels);
+\$().ready(function() {
+    carouselSetup(loadCoverCarousels);
+});
+\$().ready(function(){
+    \$(".jcarousel-next").attr('title','View the next editions for this subject.');
+    \$(".jcarousel-prev").attr('title','View the previous editions for this subject.');
+});
+//-->
+</script>
+
+$code:
+    def get_authors(work):
+		return ", ".join(a.name for a in work.authors)
+		
+<script type="text/javascript">
+<!--
+function get_authors(work) {
+	var authors = [];
+	for (var i=0; i < work.authors.length; i++) {
+		authors.push(work.authors[i].name);
+	}
+	return authors.join(", ");
+}
+//-->
+</script>
+
+
+$jsdef render_page(page):
+    $for w in page.works:
+        <div class="coverMagic">
+            $if w.cover_id:
+                <div class="SRPCover">
+                    <a href="$w.key" title="$w.title, $w.edition_count editions"><img src="$get_coverstore_url()/b/id/$w.cover_id-M.jpg" alt="$w.title" class="cover"/></a>                
+                </div>
+            $else:
+                <a href="$w.key">
+                    <div class="SRPCoverBlank" title="$w.title, $w.edition_count editions" style="display:block;">
+                        <div class="innerBorder">
+                            <div class="BookTitle">$truncate(w.title, 40)
+                                <div class="Author">$truncate(get_authors(w), 40)</div>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            $if w.has_fulltext:
+                <div class="coverEbook"><a href="http://www.archive.org/stream/$w.ia" title="$_('Read online')"><img src="/images/icons/icon_ebook-avail.png" border="0" width="32" height="33" alt="$_('Read online')"/></a></div>
+        </div>
+
+<div id="contentLists" class="results">
+    <div class="covers" id="resultsCovers">
+        <ul id="coversCarousel" class="jcarousel-skin-OL">
+            <li>$:render_page(page)</li>
+        </ul>
+        <div id="coversLoading" class="hidden"><h3>Loading books...</h3></div>
+        <div id="coversNone" class="hidden"><h2>$:_('Open Library is unaware of any <span class="bookType">editions</span> about <span class="bookSubject">this subject</span> <span class="clickdata"></span> <a href="javascript:;" class="resetSelection">Zoom out again</a>?')</h2></div>
+    </div>
+</div>
+
+<div class="clearfix"></div>

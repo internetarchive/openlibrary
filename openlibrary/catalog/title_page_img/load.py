@@ -1,7 +1,12 @@
 from openlibrary.catalog.ia.scan_img import find_img
 from openlibrary.catalog.utils.query import has_cover_retry
 from openlibrary.catalog.read_rc import read_rc
-import web, urllib, socket, httplib
+from openlibrary.api import OpenLibrary
+import web, urllib, socket, httplib, json
+
+rc = read_rc()
+ol = OpenLibrary("http://upstream.openlibrary.org/")
+ol.login('ImportBot', rc['ImportBot']) 
 
 def urlread(url):
     return urllib.urlopen(url).read()
@@ -21,7 +26,8 @@ def post(key, ia, from_ia):
     title = from_ia['title']
     cover = from_ia['cover']
     if title is None:
-        assert cover is not None
+        if cover is None:
+            return
         use_cover = True
     leaf = cover if use_cover else title
     zip_type = 'tif' if ia.endswith('goog') else 'jp2'
@@ -49,13 +55,40 @@ def post(key, ia, from_ia):
             continue
         break
 
-def add_cover_image(key, ia):
-    if has_cover_retry(key):
-        print key, 'has_cover'
+def add_cover_image(ekey, ia):
+#    if has_cover_retry(key):
+#        print key, 'has_cover'
+#        return
+    h1 = httplib.HTTPConnection('openlibrary.org')
+    body = json.dumps(dict(username='ImportBot', password=rc['ImportBot']))
+    headers = {'Content-Type': 'application/json'}  
+    h1.request('POST', 'http://openlibrary.org/account/login', body, headers)
+
+    res = h1.getresponse()
+
+    res.read()
+    assert res.status == 200
+    cookies = res.getheader('set-cookie').split(',')
+    cookie =  ';'.join([c.split(';')[0] for c in cookies])
+    #print 'cookie:', cookie
+
+    cover_url = 'http://www.archive.org/download/' + ia + '/page/' + ia + '_preview.jpg'
+    body = urllib.urlencode({"url": cover_url})
+    assert ekey.startswith('/books/')
+    add_cover_url = 'http://openlibrary.org' + ekey + '/add-cover.json'
+    #print cover_url
+    #print add_cover_url
+    h1.request('POST', add_cover_url, body, {'Cookie': cookie})
+    res = h1.getresponse()
+    res.read()
+    return
+
     ret = find_img(ia)
 
+    if not ret:
+        return
     print 'cover image:', ret
-    post(key, ia, ret)
+    post(ekey, ia, ret)
 
 def test_load():
     key = '/b/OL6544096M'

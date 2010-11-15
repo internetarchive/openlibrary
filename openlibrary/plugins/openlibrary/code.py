@@ -4,16 +4,10 @@ Open Library Plugin.
 import web
 import simplejson
 import os
-import re
-import urllib, urlparse
+import urllib
 import socket
 import datetime
-
-try:
-    import genshi
-    import genshi.filters
-except ImportError:
-    genshi = None
+from time import time
 
 import infogami
 
@@ -21,21 +15,34 @@ import infogami
 if not hasattr(infogami.config, 'features'):
     infogami.config.features = []
     
-from infogami.utils import types, delegate
+from infogami.utils import delegate
 from infogami.utils.view import render, public, safeint, add_flash_message
-from infogami.infobase import client, dbstore
+from infogami.infobase import client
 from infogami.core.db import ValidationException
+
+from openlibrary.utils.isbn import isbn_13_to_isbn_10
 
 import processors
 
 delegate.app.add_processor(processors.ReadableUrlProcessor())
 delegate.app.add_processor(processors.ProfileProcessor())
 
-# setup infobase hooks for OL
-from openlibrary.plugins import ol_infobase
+def setup_invalidation_processor():
+    from openlibrary.core.processors.invalidation import InvalidationProcessor
+    
+    config = infogami.config.get("invalidation", {})
 
-if infogami.config.get('infobase_server') is None:
-    ol_infobase.init_plugin()
+    prefixes = config.get('prefixes', [])
+    timeout = config.get("timeout", 60)
+    cookie_name = config.get("cookie", "invalidation_timestamp")
+    
+    if prefixes:
+        p = InvalidationProcessor(prefixes, timeout=timeout, cookie_name=cookie_name)
+        delegate.app.add_processor(p)
+        client.hooks.append(p.hook)
+
+setup_invalidation_processor()
+
 
 try:
     from infogami.plugins.api import code as api
@@ -50,19 +57,19 @@ import connection
 client._connection_types['ol'] = connection.OLConnection
 infogami.config.infobase_parameters = dict(type="ol")
 
-types.register_type('^/a/[^/]*$', '/type/author')
-types.register_type('^/b/[^/]*$', '/type/edition')
-types.register_type('^/l/[^/]*$', '/type/language')
-
-types.register_type('^/works/[^/]*$', '/type/work')
-types.register_type('^/subjects/[^/]*$', '/type/subject')
-types.register_type('^/publishers/[^/]*$', '/type/publisher')
-
-types.register_type('^/(css|js)/[^/]*$', '/type/rawtext')
-
 # set up infobase schema. required when running in standalone mode.
-import schema
-dbstore.default_schema = schema.get_schema()
+from openlibrary.core import schema
+schema.register_schema()
+
+if infogami.config.get('infobase_server') is None:
+    # setup infobase hooks for OL
+    from openlibrary.plugins import ol_infobase
+    ol_infobase.init_plugin()
+
+from openlibrary.core import models
+models.register_models()
+models.register_types()
+
 
 # this adds /show-marc/xxx page to infogami
 import showmarc
@@ -70,84 +77,29 @@ import showmarc
 # add zip and tuple to the list of public functions
 public(zip)
 public(tuple)
+public(isbn_13_to_isbn_10)
+public(time)
+public(web.input)
+public(simplejson.dumps)
 web.template.Template.globals['NEWLINE'] = "\n"
 
 # Remove movefiles install hook. openlibrary manages its own files.
 infogami._install_hooks = [h for h in infogami._install_hooks if h.__name__ != "movefiles"]
 
-class Author(client.Thing):
-    photo_url_pattern = "%s?m=change_cover"
-    
-    def get_edition_count(self):
-        return web.ctx.site._request('/count_editions_by_author', data={'key': self.key})
-    edition_count = property(get_edition_count)
-    
-    def photo_url(self):
-        p = processors.ReadableUrlProcessor()
-        _, path = p.get_readable_path(self.key)
-        return self.photo_url_pattern % path
-        
-    def url(self, suffix="", **params):
-        u = self.key + "/" + processors._safepath(self.name) + suffix
-        if params:
-            u += '?' + urllib.urlencode(params)
-        return u
-    
-class Edition(client.Thing):
-    cover_url_pattern = "%s?m=change_cover"
-    
-    def full_title(self):
-        if self.title_prefix:
-            return self.title_prefix + ' ' + self.title
-        else:
-            return self.title
-            
-    def cover_url(self):
-        p = processors.ReadableUrlProcessor()
-        _, path = p.get_readable_path(self.key)
-        return self.cover_url_pattern % path
-        
-    def url(self, suffix="", **params):
-        u = self.key + "/" + processors._safepath(self.title or "untitled") + suffix
-        if params:
-            u += '?' + urllib.urlencode(params)
-        return u
-                
-    def __repr__(self):
-        return "<Edition: %s>" % repr(self.full_title())
-    __str__ = __repr__
-
-class Work(client.Thing):
-    def get_edition_count(self):
-        return web.ctx.site._request('/count_editions_by_work', data={'key': self.key})
-    edition_count = property(get_edition_count)
-
-    def url(self, suffix="", **params):
-        u = self.key + "/" + processors._safepath(self.title or "untitled") + suffix
-        if params:
-            u += '?' + urllib.urlencode(params)
-        return u
-
-class User(client.Thing):
-    def get_usergroups(self):
-        keys = web.ctx.site.things({'type': '/type/usergroup', 'members': self.key})
-        return web.ctx.site.get_many(keys)
-    usergroups = property(get_usergroups)
-
-    def is_admin(self):
-        return '/usergroup/admin' in [g.key for g in self.usergroups]
-    
-client.register_thing_class('/type/author', Author)
-client.register_thing_class('/type/edition', Edition)
-client.register_thing_class('/type/work', Work)
-client.register_thing_class('/type/user', User)
+import lists
+lists.setup()
 
 class hooks(client.hook):
     def before_new_version(self, page):
         if page.key.startswith('/a/') or page.key.startswith('/authors/'):
-            if page.type.key == '/type/delete' and page.books != []:
+            if page.type.key == '/type/author':
+                return
+                
+            books = web.ctx.site.things({"type": "/type/edition", "authors": page.key})
+            books = books or web.ctx.site.things({"type": "/type/work", "authors": {"author": {"key": page.key}}})
+            if page.type.key == '/type/delete' and books:
                 raise ValidationException("Deleting author pages is not allowed.")
-            elif page.type.key != '/type/author' and page.books != []:
+            elif page.type.key != '/type/author' and books:
                 raise ValidationException("Changing type of author pages is not allowed.")
 
 @infogami.action
@@ -393,10 +345,14 @@ class change_cover(delegate.mode):
         return render.change_cover(page)
         
 class bookpage(delegate.page):
-    path = r"/(isbn|oclc|lccn|ia|ISBN|OCLC|LCCN|IA)/([^.]*)"
+    path = r"/(isbn|oclc|lccn|ia|ISBN|OCLC|LCCN|IA)/([^./]*)(/.*)?"
 
-    def GET(self, key, value):
+    def GET(self, key, value, suffix):
         key = key.lower()
+        suffix = suffix or ""
+        
+        print (key, value, suffix)
+        
         if key == "isbn":
             if len(value) == 13:
                 key = "isbn_13"
@@ -414,17 +370,31 @@ class bookpage(delegate.page):
             ext = "." + web.ctx.encoding
         else:
             ext = ""
+        
+        if web.ctx.env.get('QUERY_STRING'):
+            ext += '?' + web.ctx.env['QUERY_STRING']
+            
+        def redirect(key, ext, suffix):
+            if ext:
+                return web.found(key + ext)
+            else:
+                book = web.ctx.site.get(key)
+                return web.found(book.url(suffix))
 
         q = {"type": "/type/edition", key: value}
         try:
             result = web.ctx.site.things(q)
             if result:
-                raise web.seeother(result[0] + ext)
+                raise redirect(result[0], ext, suffix)
             elif key =='ocaid':
                 q = {"type": "/type/edition", 'source_records': 'ia:' + value}
                 result = web.ctx.site.things(q)
                 if result:
-                    raise web.seeother(result[0] + ext)
+                    raise redirect(result[0], ext, suffix)
+                q = {"type": "/type/volume", 'ia_id': value}
+                result = web.ctx.site.things(q)
+                if result:
+                    raise redirect(redirect[0], ext, suffix)
             web.ctx.status = "404 Not Found"
             return render.notfound(web.ctx.path, create=False)
         except web.HTTPError:
@@ -521,7 +491,13 @@ class _yaml_edit(_yaml):
         if not self.is_admin():
             return render.permission_denied(key, 'Permission Denied')
             
-        d = self.get_data(key)
+        try:
+            d = self.get_data(key)
+        except web.HTTPError, e:
+            if web.ctx.status.lower() == "404 not found":
+                d = {"key": key}
+            else:
+                raise
         return render.edit_yaml(key, self.dump(d))
         
     def POST(self, key):
@@ -536,7 +512,7 @@ class _yaml_edit(_yaml):
             p = web.ctx.site.new(key, d)
             try:
                 p._save(i._comment)
-            except (ClientException, db.ValidationException), e:            
+            except (client.ClientException, ValidationException), e:            
                 add_flash_message('error', str(e))
                 return render.edit_yaml(key, i.body)                
             raise web.seeother(key + '.yml')
@@ -627,10 +603,10 @@ def changequery(query=None, **kw):
         else:
             query[k] = v
 
-    query = dict((k, web.safestr(v)) for k, v in query.items())
+    query = dict((k, (map(web.safestr, v) if isinstance(v, list) else web.safestr(v))) for k, v in query.items())
     out = web.ctx.get('readable_path', web.ctx.path)
     if query:
-        out += '?' + urllib.urlencode(query)
+        out += '?' + urllib.urlencode(query, doseq=True)
     return out
 
 # Hack to limit recent changes offset.
@@ -717,27 +693,8 @@ def internalerror():
         raise web.internalerror(web.safestr(msg))
     
 delegate.app.internalerror = internalerror
+delegate.add_exception_hook(save_error)
 
-@public
-def sanitize(html):
-    """Remove unsafe tags and attributes from html and add rel="nofollow" attribute to all links."""
-    # Can't sanitize unless genshi module is available
-    if genshi is None:
-        return html
-        
-    def get_nofollow(name, event):
-        attrs = event[1][1]
-        href = attrs.get('href', '')
-
-        if href:
-            # add rel=nofollow to all absolute links
-            _, host, _, _, _ = urlparse.urlsplit(href)
-            if host:
-                return 'nofollow'
-
-    stream = genshi.HTML(html) | genshi.filters.HTMLSanitizer() | genshi.filters.Transformer("//a").attr("rel", get_nofollow)
-    return stream.render()                                                                                   
-        
 class memory(delegate.page):
     path = "/debug/memory"
 
@@ -756,3 +713,8 @@ class backdoor(delegate.page):
         if isinstance(result, basestring):
             result = delegate.RawText(result)
         return result
+        
+# monkey-patch to check for lowercase usernames on register
+from infogami.core.forms import register
+username_validator = web.form.Validator("Username already used", lambda username: not web.ctx.site._request("/has_user", data={"username": username}))
+register.username.validators = list(register.username.validators) + [username_validator]

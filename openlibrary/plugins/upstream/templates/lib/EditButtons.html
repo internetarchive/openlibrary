@@ -1,0 +1,35 @@
+$def with (comment=None)
+
+<script type="text/javascript">
+\$().ready(Dialog);
+\$().ready(deleteVerify);
+</script>
+<div id="dialog" class="hidden" title="Really delete this record?"><p>$_("Are you sure you want to delete this?")</p></div>
+
+<div class="cclicense">
+    $:_('You irrevocably agree to release your contributions under the <a href="http://creativecommons.org/choose/zero">CC0 1.0 Universal license</a> and agree that a hyperlink or URL is sufficient attribution. Content that violates any copyrights will be deleted.')
+</div>
+
+<div class="formElement">
+    <div class="label">
+        <label for="comment">$_("Please, leave a short note about what you changed:") <span class="small gray">$_("(Optional, but very useful!)")</span></label>
+    </div>
+    <div class="input">
+        <input type="text" name="_comment" id="comment" value="$comment" style="width:900px;"/>
+    </div>
+</div>
+
+<div class="formElement bottom">
+    <div class="input">
+        <input type="submit" style="font-size:18px!important;" value="$_('Save')" name="_save" title="$_('Save')"/>
+<!-- EDIT OUT PREVIEW 
+        &nbsp;
+        <input type="submit" value="Preview" name="_preview" title="Preview"/>
+-->
+        &nbsp;
+        <a href="javascript:history.go(-1);" class="small red">$_('Cancel')</a>
+        <button type="submit" value="$_('Delete Record')" name="_delete" title="$_('Delete Record')" id="delete" class="right">$_("Delete Record")</button>
+    </div>
+</div>
+
+<br/>

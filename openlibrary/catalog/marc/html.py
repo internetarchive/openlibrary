@@ -10,30 +10,28 @@ def esc(s):
 def esc_sp(s):
     return esc(s).replace(' ', '&nbsp;')
 
-def html_subfields(line):
-    assert line[-1] == '\x1e'
-    encode = {
-        'k': lambda s: '<b>$%s</b>' % s,
-        'v': lambda s: esc(translate(s)),
-    }
-    return ''.join(encode[k](v) for k, v in split_line(line[2:-1]))
-
-def html_line(tag, line):
-    if tag.startswith('00'):
-        s = esc(line[:-1])
-    else:
-        s = esc_sp(line[0:2]) + ' ' + html_subfields(line)
-    return u'<large>' + tag + u'</large> <code>' + s + u'</code>'
-
-def as_html(data):
-    return '<br>\n'.join(html_line(t, l) for t, l in get_all_tag_lines(data))
-
 class html_record():
     def __init__(self, data):
         self.data = data
         self.leader = data[:24]
+        self.is_marc8 = data[9] != 'a'
     def html(self):
-        return as_html(self.data) 
+        return '<br>\n'.join(self.html_line(t, l) for t, l in get_all_tag_lines(self.data))
+
+    def html_subfields(self, line):
+        assert line[-1] == '\x1e'
+        encode = {
+            'k': lambda s: '<b>$%s</b>' % s,
+            'v': lambda s: esc(translate(s, self.is_marc8)),
+        }
+        return ''.join(encode[k](v) for k, v in split_line(line[2:-1]))
+
+    def html_line(self, tag, line):
+        if tag.startswith('00'):
+            s = esc_sp(line[:-1])
+        else:
+            s = esc_sp(line[0:2]) + ' ' + self.html_subfields(line)
+        return u'<large>' + tag + u'</large> <code>' + s + u'</code>'
 
 def test_html_subfields():
     samples = [

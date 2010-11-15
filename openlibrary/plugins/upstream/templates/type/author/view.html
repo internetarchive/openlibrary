@@ -1,92 +1,251 @@
 $def with (page)
 
-$ _s = i18n.get_namespace('/search')
-$ _t = i18n.get_namespace('/type/author')
-$ _ = i18n.get_namespace('/mode/view')
+$if "merge-authors" in ctx.features and query_param('merge', 'false') == 'true':
+    <script type="text/javascript">
+    // <!--
+    \$().ready(function() {
+        if ("$query_param('merge', 'false')" == "true") {
+            \$("#preMerge").parent().andSelf().show();
 
-$var title: $page.name
+            $ duplicates = ["/authors/" + k for k in query_param("duplicates", "").split(",")]            
+            var data = {
+                "master": "$page.key",
+                "duplicates": $:json_encode(duplicates)
+            };
+            \$.post("/authors/merge.json", JSON.stringify(data),
+                function(result, status, req) {
+                    \$("#preMerge").fadeOut(); \$("#postMerge").fadeIn();
+                }, 
+                "json"
+            );
+        }
+    });
+    //-->
+    </script>
+
+$var title: $page.get('name', 'name missing')
+$var history: $page.history
 
 $ olid = page.key.split('/')[-1]
+
+$putctx("description", "Books by " + page.get("name", ""))
 
 <div id="contentHead">
 
     $:macros.databarView(page)
 
-    <div class="head">
-        <h1>$page.name</h1>
-    </div>
-    <br/>
-    <h3>
-        $if page.birth_date or page.death_date:
-            $page.birth_date - $page.death_date
-        $else:
-            $if page.date:
-                $page.date
-    </h3>
+    <h1>$page.get('name', 'name missing')</h1>
+    <div class="clearfix"></div>
+    <h2 class="author collapse">
+    $if page.birth_date or page.death_date:
+        $page.birth_date - $page.death_date
+    $else:
+        $if page.date:
+            $page.date
+    </h2>
+    $if ctx.user and ctx.user.is_admin():
+        <span class="adminOnly"><a href="http://edward.openlibrary.org/work_finder$page.key">run work finder</a></span>
 </div>
 
 <script type="text/javascript">
-\$().ready(bookCovers);
+<!--
+\$().ready(function(){\$("#coverPop").colorbox({inline:true, opacity:"0.5", href:"#addImage"});});
+//-->
 </script>
 
 <div id="contentBody">
 
-    <div class="illustration right">
-        <div class="bookCover">
-            <span><img src="http://covers.openlibrary.org/a/olid/$olid-M.jpg?default=false" class="cover"/></span>
-        </div>
-        <div class="SRPCoverBlank author">
-            <div class="BookTitle">$page.name
-                <div class="Author"></div>
-            </div>
-        </div> 
-        <div class="smaller sansserif"><br/><a href="$:changequery(m='change_cover')">Add Photo</a></div>
-    </div>
-
-    $:format(page.get('bio', ''))
-
-    $if page.website:
-        <div class="section"><span class="title">$_t.website:</span> <span class="tag"><a href="$page.website" class="datalink">$page.website</a></span></div>
-            
-    $if page.location:
-        <div class="section"><span class="title">$_t.location:</span> <span class="tag">$page.location</span></div>
-
-    $if page.alternate_names:
-        <div class="section"><span class="title">$_t.alternate_names:</span> <span class="tag">$", ".join(page.alternate_names)</span></div>
- 	 	
-    $if page.wikipedia and page.wikipedia.startswith("http"):
-        <div class="section"><span class="title"></span><span class="tag">Read about $page.name at <a href="$page.wikipedia" class="sidebar">Wikipedia</a></span></div>
-
-<!-- BEGIN SEARCH -->
-    <div class="clearfix"></div>
-    <div class="section">
-        <a name="editions"></a>
-        <div class="head">
-            <h2>$_t.by_author</h2>
-
-                $ books_page = safeint(query_param('books_page', '0'))
-                <span class="tools">
-                $if books_page != 0:
-                    <a href="$:changequery(books_page=books_page - 1)" class="sansserif" rel="nofollow">$_.prev</a>
-        
-                $if len(page.books) == 20:
-                    ... <a href="$:changequery(books_page=books_page + 1)" class="sansserif" rel="nofollow">$_.next</a>
-                </span>
-        </div>
-        <br/>
-
-        $if page.books:
-            <div id="searchResults" class="wide">
-                $:macros.SearchResults(page.books)
-                <p class="sansserif">
-                $if books_page != 0:
-                    <a href="$:changequery(books_page=books_page - 1)" class="sansserif" rel="nofollow">$_.prev</a>
-        
-                $if len(page.books) == 20:
-                    ... <a href="$:changequery(books_page=books_page + 1)" class="sansserif" rel="nofollow">$_.next</a>
+    $if "merge-authors" in ctx.features and query_param('merge', 'false') == 'true':
+       <div class="message hidden">
+            <div id="preMerge" class="hidden">
+                <p class="larger collapse"><strong>Merging Authors...</strong></p>
+                <p class="collapse adjust"><img src="/images/ajax-loader-bar.gif" width="220" height="19" alt="In progress..."/></p>
+                <p class="smaller lightgreen collapse">Duplicates</p>
+                <p class="small collapse">
+                    <ul>
+                        $ duplicates = ["/authors/" + k for k in query_param("duplicates", "").split(",")]
+                        $for key in duplicates:
+                             <li> $get_document(key).name; <small>($key)</small></li>
+                    </ul>
                 </p>
             </div>
+            <div id="postMerge" class="hidden">
+                <p class="larger collapse"><strong>Success!</strong></p>
+                <p class="right small"><a href="javascript:;" onclick="$('.message').slideUp('slow');">Done?</a></p>
+                <p class="small collapse">Those authors have been merged into this master.</p>
+            </div>
+        </div>
+
+    <div class="contentTwothird" style="margin-bottom:0;">
+
+        $:format(page.get('bio', ''))
+
+        $if page.website:
+            <div class="section">
+                <h6 class="collapse black uppercase">$_("Website")</h6> 
+                <a href="$page.website" class="datalink">$page.website</a>
+            </div>
+
+        $if page.location:
+            <div class="section hidden">
+                <h6 class="collapse black uppercase">$_("Location")</h6>
+                $page.location
+            </div>
+
+        $ books = page.get_books()
+
+        <div class="clearfix"></div>
+        <div class="section">
+            <a name="editions"></a>
+                <h2 class="collapse">
+                    $commify(books.num_found) book$("s" if books.num_found != 1 else "")
+                    <span class="count smaller"><a href="/books/add?author=$page.key">Add another</a>?</span>
+                </h2>
+                <a name="books"></a>
+                <p><span class="tools">
+                $if books.num_found > 1:
+                    <img src="/images/icons/icon_sort.png" alt="Sorting by" width="9" height="11" style="margin-right:5px;"/> 
+                    $if books.sort == 'editions':
+                        <strong class="lightgreen">Most Editions</strong> | <a href="$changequery(sort='old')#editions">First Published</a> | <a href="$changequery(sort='new')#editions">Most Recent</a> 
+                    $elif books.sort == 'old':
+                        <a href="$changequery(sort=None)#editions">Most Editions</a> | <strong class="lightgreen">First Published</strong> | <a href="$changequery(sort='new')#editions">Most Recent</a> 
+                    $elif books.sort == 'new':
+                        <a href="$changequery(sort=None)#editions">Most Editions</a> |  <a href="$changequery(sort='old')#editions">First Published</a> | <strong class="lightgreen">Most Recent</strong> 
+                    $elif books.sort == 'title':
+                        <a href="$changequery(sort=None)#editions">Most Editions</a> |  <a href="$changequery(sort='old')#editions">First Published</a> | <a href="$changequery(sort='new')#editions">Most Recent</a> | <strong class="lightgreen">Title</strong>
+                </span></p>
+
+                <div id="searchResults" class="narrow">
+                    <ul id="siteSearch" class="collapse">
+                    $for doc in books.works:
+                        <li>
+                        <span class="bookcover">
+                        $ cover = "http://covers.openlibrary.org/b/olid/%s-M.jpg" % doc.cover_edition_key if doc.cover_edition_key else "/images/icons/avatar_book-sm.png"
+                        <a href="$doc.url" title="$doc.title"><img src="$cover" height="70" alt="$doc.title"/></a>
+                        </span>
+                        <span class="details">
+                            <span class="resultTitle">
+                                <h3 class="booktitle"><a href="$doc.url">$doc.title$(': ' + doc.subtitle if doc.get('subtitle', None) else '')</a></h3>
+                                <span class="resultPublisher">$commify(doc.edition_count) edition$("s" if doc.edition_count != 1 else "")
+                                $if doc.first_publish_year:
+                                    - first published in $doc.first_publish_year
+                                </span>
+                            </span>
+                        </span>
+                        $if doc.public_scan:
+                            <span class="actions read">
+                                <a href="http://www.archive.org/stream/$doc.ia[0]" title="$_('Open in online Book Reader. Downloads available in ePub, DAISY, PDF, TXT formats from main book page')">
+                                    <span class="image read"></span>
+                                    <span class="label">Read</span>
+                                </a>
+                            </span>
+                        $elif doc.lending_edition:
+                            <span class="actions read">
+                                <a href="/editions/$doc.lending_edition" title="Borrow book">
+                                    <span class="image borrow"></span>
+                                    <span class="label">Borrow</span>
+                                </a>
+                            </span>
+                        $elif doc.overdrive:
+                            <span class="actions read">
+                                <a href="http://search.overdrive.com/SearchResults.aspx?ReserveID={$(doc.overdrive[0])}" title="Borrow this on overdrive.com">
+                                    <span class="image borrow"></span>
+                                    <span class="label">Borrow</span>
+                                </a>
+                            </span>
+                        $elif 'printdisabled' in doc.collections:
+                            <span class="actions read">
+                                <a href="$doc.key" title="Protected DAISY">
+                                    <span class="image daisy"></span>
+                                    <span class="label">DAISY</span>
+                                </a>
+                            </span>
+                        </li>
+                    </ul>
+                </div>
+
+        </div>
+
+    </div>
+    <div class="contentOnethird">
+
+        <div class="illustration">
+            $:render_template("covers/author_photo", page) 
+            $:render_template("covers/change", page, ".bookCover img")
+        </div>
+
+        $def render_subjects(label, subjects, prefix):
+            $if subjects:
+                <div class="section">
+                    <h6 class="collapse black uppercase">$label</h6>
+                    <div class="sansserif">
+                    $for subject, count in subjects:
+                        <a href="/subjects/$prefix$subject.lower().replace(' ', '_')">$subject</a>$cond(not loop.last, ",", "")
+                    </div>
+                </div>
+
+        <!-- SUBJECTS DISPLAY -->
+        $:render_subjects("Subjects", books.get_facet('subject_facet'), '')
+        $:render_subjects("Places", books.get_facet('place_facet'), 'place:')
+        $:render_subjects("People", books.get_facet('person_facet'), 'person:')
+        $:render_subjects("Time", books.get_facet('time_facet'), 'time:')
+        <!-- /SUBJECTS -->
+
+        <div class="section">
+            <h3>Links <span class="gray small sansserif">(outside Open Library)</span></h3>
+
+            $if page.links or (page.wikipedia and page.wikipedia.startswith("http")):
+                <ul class="booklinks sansserif">
+                $if page.wikipedia and page.wikipedia.startswith("http"):
+                    <li><a href="$page.wikipedia" class="sidebar">Wikipedia</a></li>
+                $for link in page.links:
+                    <li><a href="$link.url">$link.title</a></li>
+                </ul>
+            $else:
+                <p class="sansserif small">No links yet. <a href="$page.url('/edit')#web">Add one</a>?</p>
+
+        </div>
+
+        $if page.alternate_names:
+            $if page.alternate_names != [""]:
+                <div class="section">
+                    <h3>$_("Alternate names")</h3> 
+                    <ul class="booklinks sansserif"><li>$:"</li><li>".join(page.alternate_names)</li></ul>
+                </div>
 
     </div>
 
+    $ pages = (books.num_found / 100) + 1
+    $ page_num = safeint(query_param('page'), default=1)
+        $if pages != 1:
+            $ pages_in_set = 10
+            $ half = pages_in_set/2
+            $if pages < pages_in_set:
+                $ first_page_in_set = 1
+                $ last_page_in_set = pages
+            $elif page_num < half:
+                $ first_page_in_set = 1
+                $ last_page_in_set = min((pages_in_set, pages))
+            $elif page_num > (pages-half):
+                $ first_page_in_set = pages-pages_in_set
+                $ last_page_in_set = pages
+            $else:
+                $ first_page_in_set = page_num-half
+                $ last_page_in_set = page_num+half
+            <div class="clearfix"></div>
+            <div class="pagination">
+            $if page_num != 1:
+                <a href="$changequery(page=None)" class="ChoosePage">&laquo;&nbsp;First</a>
+                <a href="$changequery(page=page_num-1)" class="ChoosePage">&lt;&nbsp;Previous</a>
+            $for p in range(first_page_in_set, last_page_in_set+1):
+                $if p == page_num:
+                    <span class="this">$p</span>
+                $else:
+                    <a href="$changequery(page=p)" class="ChoosePage">$p</a>
+            $if page_num < pages:
+                <a href="$changequery(page=page_num+1)" class="ChoosePage">Next&nbsp;&gt;</a>
+                <a href="$changequery(page=pages)" class="ChoosePage">Last&nbsp;&raquo;</a>
+            </div>
+
+    $:render_template("lib/history", page)
 </div>

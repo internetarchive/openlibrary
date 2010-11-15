@@ -1,0 +1,93 @@
+$def with (work, prefix="")
+
+<div id="link-errors" class="note hidden">
+</div>
+
+<fieldset class="major collapse" id="links">
+    <div id="links-form">
+        <div class="formElement">
+            $:_('Please connect Open Library records to <u>good</u><span class="orange">*</span> online resources.')
+        </div>
+
+        <div class="formElement">
+            <div class="label">
+                <label for="link-url">URL</label> 
+                <span class="tip"></span>
+            </div>
+            <div class="input">
+                <input type="text" name="url" id="link-url" value="http://" tabindex="0" onblur="\$('#repeat-add').addClass('darkgreen');"/>
+            </div>
+        </div>
+
+        <div class="formElement bottom">
+            <div class="label">
+                <label for="link-label">$_("Give your link a label")</label> 
+                <span class="tip">$_("For example:") <i>$_("Podcast about the book on The Guardian")</i></span>
+            </div>
+            <div class="input">
+                <input type="text" name="title" id="link-label" value="" tabindex="0" onblur="\$('#repeat-add').addClass('darkgreen');"/>
+            </div>
+        </div>
+
+        <div class="formElement">
+            <div class="input">
+                <input type="button" id="repeat-add" class="repeat-add" value="Add Link" tabindex="0"/>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="formElement">
+        <div class="label"></div>
+        <div class="input">
+            <ul class="booklinks" id="links-display">
+                <li id="links-template" style="display: none;" class="repeat-item">
+                    <div class="linkRemove"><a href="javascript:;" class="repeat-remove red plain" title="$_('Remove this link')">[x]</a></div>
+                    <a href="{{url}}">{{title}}</a>
+                    <span class="link wrap">{{url}}</span>
+                    <input type="hidden" name="{{prefix}}links--{{index}}--title" value="{{title}}"/>
+                    <input type="hidden" name="{{prefix}}links--{{index}}--url" value="{{url}}"/>
+                </li>
+                
+                $for index, link in enumerate(work.links):
+                    <li class="repeat-item">
+                        <div class="linkRemove"><a href="javascript:;" class="repeat-remove red plain" title="$_('Remove this link')">[x]</a></div>
+                        <a href="$link.url">$link.title</a><span class="link wrap">$link.url</span>
+                        <input type="hidden" name="${prefix}links--${index}--title" value="$link.title"/>
+                        <input type="hidden" name="${prefix}links--${index}--url" value="$link.url"/>
+                    </li>
+            </ul>
+        </div>
+    </div>
+
+</fieldset>
+
+<script type="text/javascript">
+<!--
+    \$().ready(function() {
+        \$("#links").repeat({
+            vars: {
+                prefix: "$prefix"
+            },
+            validate: function(data) {                
+                if (\$.trim(data.url) == "" || \$.trim(data.url) == "http://") {
+                    \$("#link-errors").show().html("$_('Please provide a URL.')");
+                    \$("#link-url").focus();
+                    return false;
+                }
+                if (\$.trim(data.title) == "") {
+                    \$("#link-errors").show().html("$_('Please provide a label.')");
+                    \$("#link-label").focus();
+                    return false;
+                }
+                \$("#link-errors").hide();
+                return true;
+            }
+        });
+    });
+//-->
+</script>
+
+<div class="formElement">
+    <div class="tip footnote"><span class="orange">*</span> $_('"Good" means no spammy links, please. Keep them relevant to the book. Irrelevant sites may be removed. Blatant spam will be deleted without remorse.')</div>
+</div>

@@ -1,0 +1,18 @@
+$def with(book)
+
+<h1>
+    <a href="http://archive.org/stream/$book.ocaid">
+        <img src="$(book.get_cover_url('M') or '/images/icons/avatar_book-sm.png')" 
+             alt="cover image" width="180" height="275" hspace="10" align="right"/>
+    </a>
+    $book.get_title()
+    $if book.get_authors():
+        <span class="byHeading"><br/>by
+        $for author in book.get_authors():
+            <a href="$author.url()">$author.get("name")</a>$cond(not loop.last, ",")
+       </span></h1> 
+    $if book.description:
+        <p><em>$:sanitize(format(book.description))</em></p>
+    $if not book.description and book.works and book.works[0].description:
+        <p><em>$:sanitize(format(book.works[0].description))</em></p>
+    <p><a href="http://archive.org/stream/$book.ocaid">Read</a></p> 

@@ -10,7 +10,7 @@ from infogami.utils import view, template
 from infogami import config
 from infogami.plugins.api.code import jsonapi
 
-import re
+import re, web
 import solr_client
 import time
 import simplejson
@@ -21,12 +21,13 @@ from collections import defaultdict
 
 render = template.render
 
-sconfig = config.plugin_search
+sconfig = web.storage()
+if hasattr(config, 'plugin_search'):
+    sconfig = config.plugin_search
 
 sconfig.setdefault('solr', None)
 sconfig.setdefault('fulltext_solr', None)
 sconfig.setdefault('fulltext_shards', [])
-
 
 def parse_host(host_and_port):
     """
@@ -68,7 +69,6 @@ def lookup_ocaid(ocaid):
 
 from collapse import collapse_groups
 class fullsearch(delegate.page):
-    path = '/search/edition'
     def POST(self):
         errortext = None
         out = []
@@ -631,7 +631,7 @@ class search_json(delegate.page):
     
     @jsonapi
     def GET(self):
-        i = web.input(q='', query=None)
+        i = web.input(q='', query=None, _unicode=False)
         # query can be either specified as json with parameter query or just query parameters
         query = i.pop('query')
         if query:

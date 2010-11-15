@@ -1,0 +1,118 @@
+$def with (page)
+ 
+$var title: $page.name
+
+$putctx("robots", "noindex,nofollow")
+
+<script type="text/javascript">
+\$().ready(function(){
+    if(jQuery.support.opacity){
+        \$("#tabsAddauthor").tabs({fx:{opacity:'toggle'}});
+    } else {
+        \$("#tabsAddauthor").tabs();
+    };
+});
+\$().ready(function(){\$("#coverPop").colorbox({inline:true, opacity:0.7, href:"#addCover"});});
+</script>
+
+<div id="contentHead">
+    $:macros.databarEdit(page)
+    <h1>$_("Edit Author")</h1>
+</div>
+            
+<div id="contentBody">
+            
+    <form id="addAuthor" name="edit" method="post" action="" class="olform validate">
+
+        <div class="formElement" style="margin-bottom:12px;">
+            <div class="label">
+                <label for="name">$_("Name")</label> 
+                <span class="tip">$:_('Please use natural order. For example: <strong>Leo Tolstoy</strong> not <strong>Tolstoy, Leo</strong>. <span class="attn"><em>* Required field.</em></span>')</span>
+            </div>
+            <div class="input">
+                <input type="text" name="author--name" id="name" style="font-size:1.875em!important;width:900px!important;" value="$page.name" class="required"/>
+            </div>
+        </div>
+                            
+        <div style="float:left;width:698px;">
+
+            <div id="tabsAddauthor">
+
+                <ul>
+                    <li><a href="#about">$_("About")</a></li>
+                    <li><a href="#web">$_("Web Resources")</a></li>
+                </ul>
+
+                <div id="about">
+                    
+                    <fieldset class="major collapse">
+
+                        <div class="formElement">
+                            <div class="label">
+                                <label for="wmd-input">$_("A short bio?")</label> 
+                                <span class="tip">$_('If you "borrow" information from somewhere, please make sure to cite the source.')</span>
+                            </div>
+                            <div class="input">
+                                <textarea name="author--bio" class="markdown" id="wmd-input" rows="6" cols="40" style="height:265px;width:100%;">$page.bio</textarea>
+                            </div>
+                        </div>
+
+                        <div class="formElement contentQuarter" id="birthDate" style="width:205px;margin-bottom:0;">
+                            <div class="label birthLabelAcc">
+                                <label for="birth_date">$_("Date of birth")</label>
+                            </div>
+                            <div class="input birthInputAcc">
+                                <input type="text" name="author--birth_date" id="birth_date" value="$page.birth_date" style="width:140px!important;"/>
+                            </div>
+                        </div>
+                            
+                        <div class="formElement contentQuarter" id="deathDate" style="width:205px;margin-bottom:0;">
+                            <div class="label deathLabelAcc">
+                                <label for="death_date">$_("Date of death")</label>
+                            </div>
+                            <div class="input deathInputAcc">
+                                <input type="text" name="author--death_date" id="death_date" value="$page.death_date" style="width:140px!important;"/>
+                            </div>
+                        </div>
+
+                        <div class="formElement contentQuarter" style="margin-bottom:0;">
+                            <div class="label tipAcc" style="margin-top:10px;padding-top:1em;">
+                                <span class="tip">$_('We\'re not storing structured dates (yet) so a date like "21 May 2000" is recommended.')</span>
+                            </div>
+                        </div>
+
+                        <div class="clearfix"></div>
+                            
+                        <div class="formElement">
+                            <div class="label">
+                                <label for="alternate_names">$_("Does this author go by any other names?")</label> 
+                                <span class="tip">$_("For example:") Lev Nikolayevich Tolstoy; Yasnaya Polyana</span>
+                            </div>
+                            <div class="input">
+                                <textarea name="author--alternate_names" id="alternate_names" rows="6" cols="40" style="height:65px;">$"; ".join(page.alternate_names)</textarea>
+                            </div>
+                        </div>
+
+                        
+                </div>
+<!-- /ABOUT -->
+                <div id="web">
+                    $:render_template("books/edit/web", page, prefix="author--")
+                </div>
+            </div>
+                
+        </div>
+
+        <div class="illustration" style="float:left;width:220px;min-height:200px;text-align:center;margin-top:1.125em;padding-top:15px;">
+            $:render_template("covers/author_photo", page)
+            $:render_template("covers/change", page)
+        </div>
+                
+            <div class="clearfix"></div>
+
+            <div class="formElement bottom">
+                $:macros.EditButtons(comment=page.comment_)
+            </div>
+
+    </form>
+</div>

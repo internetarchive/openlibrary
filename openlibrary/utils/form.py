@@ -120,6 +120,13 @@ class Form:
             if i.name == key:
                 return i
         raise KeyError, key
+        
+    def __getattr__(self, name):
+        # don't interfere with deepcopy
+        inputs = self.__dict__.get('inputs') or []
+        for x in inputs:
+            if x.name == name: return x
+        raise AttributeError, name
 
     def render(self):
         return render.form(self)

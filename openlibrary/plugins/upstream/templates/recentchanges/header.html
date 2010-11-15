@@ -1,0 +1,37 @@
+$def with (change, label=None)
+
+$ label = label or change.kind.replace("_", " ").replace("-", " ").title()
+
+<div id="editTools" class="edit">
+    $if change.can_undo() and "undo" in ctx.features:
+        <div id="editButton">
+            <form id="undo-form" method="POST">
+                <button class="larger" name="#" accesskey="u" id="undo-button" type="submit">Undo All</button>
+            </form>
+        </div>
+    <div id="editInfo">
+        <div class="brown smaller sansserif">By 
+            $if change.author:
+                <a href="$change.author.key" rel="nofollow">$change.author.displayname</a>
+            $else:
+                $change.ip
+        </div>
+        <div class="smallest gray sansserif">$datestr(change.timestamp)</div>
+    </div>
+</div>
+
+$def breadcrumbs():
+    $ path = request.path[1:]
+    $ d = dict(recentchanges=_("Recent Changes"))
+    $ p = ""
+    $for k in path.split("/"):
+        $ label = d.get(k, k)
+        $if loop.last:
+            $label
+        $else:
+            $ p = p + "/" + k
+            <a href="$p">$label</a>/\
+$#end
+<div class="brown sansserif small">$:breadcrumbs()</div>
+<h1>$label</h1>
+

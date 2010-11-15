@@ -3,9 +3,7 @@ $def with (d, email)
 $var title: $_("Notifications from Open Library")
 
 <div id="contentHead">
-    <div class="head">
-        <h1>$_("Notifications from Open Library")</h1>
-    </div>
+    <h1>$_("Notifications from Open Library")</h1>
     <p class="instruct">
         <a href="/account/email">$_("Update your email address?")</a>
         $:_("We have %(email)s for you at the moment.", email='<b>' + email + '</b>')
@@ -23,69 +21,26 @@ $ updates = d.get('updates', 'no')
         <p class="sansserif larger">$_("Notifications are connected to Lists at the moment. If one of the books on your list gets edited, or a new book comes into the catalog, we'll let you know, if you want.")</p>
         <br/>
         
-        <div class="formElement">
-            <div class="head">
-                <h3>$_("How would you like to receive List updates?")</h3>
-            </div>
-        </div>
-        <br/>
-        <div class="formElement">
-            <div class="input radio">
-                <p class="sansserif larger">
-                    <input type="radio" name="notify" id="n0" value="weelky_email" $:selected(notify, "weelky_email")/> 
-                    <label for="n0">$_("A weekly email, but only if something's changed")</label>
-                </p>
-            </div>
-            
-            <div class="input radio">
-                <p class="sansserif larger">
-                    <input type="radio" name="notify" id="n1" value="daily_email" $:selected(notify, "daily_email")/>
-                    <label for="n1">$_("A daily email, but only if something's changed")</label>
-                </p>
-            </div>
-            
-            <div class="input radio">
-                <p class="sansserif larger">
-                    <input type="radio" name="notify" id="n2" value="instant_email" $:selected(notify, "instant_email")/> 
-                    <label for="n2">$_("An email, pretty soon after any update")</label>
-                </p>
-            </div>
-            <div class="input radio">
-                <p class="sansserif larger">
-                    <input type="radio" name="notify" id="n3" class="twitter" value="twitter" $:selected(notify, "twitter")/> 
-                    <label for="n3"><em>$_("Send me a Twitter")</em></label> 
-                    <span id="twitterName" class="hidden">
-                        <em>to</em> <input type="text" name="twitter" id="twitteruser" value="$d.get('twitter', 'Twitter Username')" onFocus="if(!this._haschanged){this.value=''};this._haschanged=true;" style="width:200px;"/>
-                    </span>
-                </p>
-            </div>
-            <div class="input radio">
-                <p class="sansserif larger">
-                    <input type="radio" name="notify" id="n4" value="note" $:selected(notify, "note")/> 
-                    <label for="n4">$_("Just pop a note on my Open Library home page")</label></p>
-           </div>
-            <div class="input radio">
-                <p class="sansserif larger">
-                    <input type="radio" name="notify" id="n5" value="no" $:selected(notify, "no")/> 
-                    <label for="n5">$_("I don't want to be notified, thank you")</label></p>
-            </div>
-        </div>
 
-        <div class="head">
-            <h3>$_("Would you like to receive remarkably low traffic update-style emails from Open Library?")</h3>
+
+        <div class="formElement">
+            <h3 class="collapse">$_("Would you like to receive remarkably low traffic update-style emails from Open Library?")</h3>
         </div>
         <br/>
         <div class="formElement">
             <div class="input radio">
-                <p class="sansserif larger">
+                <div class="sansserif larger">
                     <input type="radio" name="updates" id="u0" value="no" $selected(updates, "no")/>
                     <label for="u0">$_("No, thank you")</label>
-                </p>
+                    <br/><br/>
+                </div>
             </div>
             <div class="input radio">
-                <p class="sansserif larger">
+                <div class="sansserif larger">
                     <input type="radio" name="updates" id="u1" value="yes" $selected(updates, "yes")/> 
-                    <label for="u1">$_("Yes! Please!")</label></p>
+                    <label for="u1">$_("Yes! Please!")</label>
+                    <br/><br/>
+                </div>
             </div>
         </div>
         <div class="formElement bottom">

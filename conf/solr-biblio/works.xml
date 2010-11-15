@@ -396,6 +396,25 @@
          any data added to them will be ignored outright.  --> 
     <fieldtype name="ignored" stored="false" indexed="false" multiValued="true" class="solr.StrField" /> 
 
+    <fieldType name="textSpell" class="solr.TextField" positionIncrementGap="100" stored="false" multiValued="true">
+    <analyzer type="index">
+        <tokenizer class="solr.StandardTokenizerFactory"/>
+        <filter class="solr.LowerCaseFilterFactory"/>
+        <filter class="solr.SynonymFilterFactory" synonyms="synonyms.txt" ignoreCase="true" expand="true"/>
+        <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt"/>
+        <filter class="solr.StandardFilterFactory"/>
+        <filter class="solr.RemoveDuplicatesTokenFilterFactory"/>
+    </analyzer>
+    <analyzer type="query">
+        <tokenizer class="solr.StandardTokenizerFactory"/>
+        <filter class="solr.LowerCaseFilterFactory"/> 
+        <!-- <filter class="solr.SynonymFilterFactory" synonyms="synonyms.txt" ignoreCase="true" expand="true"/> -->
+        <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt"/>
+        <filter class="solr.StandardFilterFactory"/>
+        <filter class="solr.RemoveDuplicatesTokenFilterFactory"/>
+    </analyzer>
+    </fieldType>
+
  </types>
 
 
@@ -436,10 +455,13 @@
     <field name="alternative_subtitle" type="text" stored="false" multiValued="true"/>
     <field name="edition_count" type="int"/>
     <field name="edition_key" type="string" multiValued="true"/>
+    <field name="cover_edition_key" type="string" indexed="false"/>
     <field name="by_statement" type="text" stored="false" multiValued="true"/>
     <field name="publish_date" type="text" multiValued="true"/>
     <field name="publish_year" type="int" multiValued="true"/>
-    <field name="first_publish_year" type="int" multiValued="true"/>
+    <field name="first_publish_year" type="int"/>
+    <field name="first_edition" type="string" indexed="false"/>
+    <field name="first_publisher" type="string" indexed="false"/>
     <field name="language" type="string" multiValued="true"/>
     <field name="number_of_pages" type="int" multiValued="true"/>
     <field name="lccn" type="textgen" multiValued="true"/>
@@ -456,16 +478,21 @@
     <field name="author_name" type="textgen" multiValued="true"/>
     <field name="author_alternative_name" type="textgen" multiValued="true"/>
     <field name="author_facet" type="string" stored="false" multiValued="true"/>
-    <field name="fiction" type="boolean"/>
-    <field name="subject" type="text" stored="false" multiValued="true"/>
-    <field name="place" type="textgen" stored="false" multiValued="true"/>
-    <field name="person" type="textgen" stored="false" multiValued="true"/>
-    <field name="time" type="text" stored="false" multiValued="true"/>
+    <field name="subject" type="text" multiValued="true"/>
     <field name="subject_facet" type="string" stored="false" multiValued="true"/>
+    <field name="subject_key" type="string" stored="false" multiValued="true"/>
+    <field name="place" type="textgen" multiValued="true"/>
     <field name="place_facet" type="string" stored="false" multiValued="true"/>
+    <field name="place_key" type="string" stored="false" multiValued="true"/>
+    <field name="person" type="textgen" multiValued="true"/>
     <field name="person_facet" type="string" stored="false" multiValued="true"/>
+    <field name="person_key" type="string" stored="false" multiValued="true"/>
+    <field name="time" type="text" multiValued="true"/>
     <field name="time_facet" type="string" stored="false" multiValued="true"/>
-t
+    <field name="time_key" type="string" stored="false" multiValued="true"/>
+
+    <field name="text" type="text" multiValued="true"/>
+
    <!--
    <field name="timestamp" type="date" indexed="true" stored="true" default="NOW" multiValued="false"/>
      -->
@@ -515,7 +542,7 @@ t
  <uniqueKey>key</uniqueKey>
 
  <!-- field for the QueryParser to use when an explicit fieldname is absent -->
- <!-- <defaultSearchField>text</defaultSearchField> -->
+ <defaultSearchField>text</defaultSearchField>
 
  <!-- SolrQueryParser configuration: defaultOperator="AND|OR" -->
  <!-- <solrQueryParser defaultOperator="OR"/> -->
@@ -523,6 +550,36 @@ t
   <!-- copyField commands copy one field to another at the time a document
         is added to the index.  It's used either to index the same field differently,
         or to add multiple fields to the same field for easier/faster searching.  -->
+
+   <copyField source="title" dest="title_suggest"/>
+   <copyField source="publisher" dest="publisher_facet"/>
+   <copyField source="subject" dest="subject_facet"/>
+   <copyField source="place" dest="place_facet"/>
+   <copyField source="person" dest="person_facet"/>
+   <copyField source="time" dest="time_facet"/>
+
+   <copyField source="key" dest="text"/>
+   <copyField source="redirects" dest="text"/>
+   <copyField source="title" dest="text"/>
+   <copyField source="subtitle" dest="text"/>
+   <copyField source="alternative_title" dest="text"/>
+   <copyField source="alternative_subtitle" dest="text"/>
+   <copyField source="edition_key" dest="text"/>
+   <copyField source="by_statement" dest="text"/>
+   <copyField source="lccn" dest="text"/>
+   <copyField source="ia" dest="text"/>
+   <copyField source="oclc" dest="text"/>
+   <copyField source="isbn" dest="text"/>
+   <copyField source="contributor" dest="text"/>
+   <copyField source="publisher" dest="text"/>
+   <copyField source="first_sentence" dest="text"/>
+   <copyField source="author_key" dest="text"/>
+   <copyField source="author_name" dest="text"/>
+   <copyField source="author_alternative_name" dest="text"/>
+   <copyField source="subject" dest="text"/>
+   <copyField source="place" dest="text"/>
+   <copyField source="person" dest="text"/>
+   <copyField source="time" dest="text"/>
 
    <!-- 
    <copyField source="cat" dest="text"/>

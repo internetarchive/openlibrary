@@ -9,20 +9,21 @@ $var title: $_.edit_title(page.key)
 
 <form name="edit" method="post" action="">
 
-<div id="contentHead">
-    <div class="head">
-        <span class="tools">$_.edit_pretitle:</span>
-        <h2>$page.description</h2>
-    </div>
-</div>
+$:render_template("lib/edit_head", page)
+
 <div id="contentBody">
-    $:macros.TypeChanger(page.type)
-    <div class="formElement">
+
+    <div class="formElement title">
         <div class="label"><label for="description">$_t.description</label></div>
         <div class="input">
-            <input type="text" name="description" style="width: 100%" value="$page.description"/>
+            <input type="text" name="description" value="$page.description"/>
         </div>
     </div>
+
+    $:macros.TypeChanger(page.type)
+
+    <div class="clearfix"></div>
+
     <div class="formElement">
         <div class="label"><label for="macro">Macro</labal></div>
         <div class="input">
@@ -30,10 +31,8 @@ $var title: $_.edit_title(page.key)
         </div>
     </div>
 
-    <div class="formElement">
-        $:macros.EditButtons()
-        $:macros.HelpFormatting()
-    </div>
+    $:macros.EditButtonsMacros()
+
 </div>
 
 </form>

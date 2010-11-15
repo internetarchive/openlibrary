@@ -7,7 +7,7 @@ import urllib
 import simplejson
 
 import web
-from infogami.infobase import config, common, server, cache
+from infogami.infobase import config, common, server, cache, dbstore
 
 # relative import
 from openlibrary import schema
@@ -22,20 +22,23 @@ def init_plugin():
 
     ol = server.get_site('openlibrary.org')
     ib = server._infobase
-
+    
     if config.get('writelog'):
         ib.add_event_listener(logger.Logger(config.writelog))
         
     ib.add_event_listener(invalidate_most_recent_change)
 
     if ol:
+        # install custom indexer
+        #XXX-Anand: this might create some trouble. Commenting out.
+        # ol.store.indexer = Indexer()
+        
         if config.get('http_listeners'):
             ol.add_trigger(None, http_notify)
-        if config.get('booklog'):
-            global booklogger
-            booklogger = logger.Logger(config.booklog)
-            ol.add_trigger('/type/edition', write_booklog)
-            ol.add_trigger('/type/author', write_booklog2)
+            
+        _cache = config.get("cache", {})
+        if _cache.get("type") == "memcache":
+            ol.add_trigger(None, MemcacheInvalidater())
     
     # hook to add count functionality
     server.app.add_mapping("/([^/]*)/count_editions_by_author", __name__ + ".count_editions_by_author")
@@ -44,6 +47,8 @@ def init_plugin():
     server.app.add_mapping("/([^/]*)/most_recent", __name__ + ".most_recent")
     server.app.add_mapping("/([^/]*)/clear_cache", __name__ + ".clear_cache")
     server.app.add_mapping("/([^/]*)/stats/(\d\d\d\d-\d\d-\d\d)", __name__ + ".stats")
+    server.app.add_mapping("/([^/]*)/has_user", __name__ + ".has_user")
+    server.app.add_mapping("/([^/]*)/olid_to_key", __name__ + ".olid_to_key")
         
 def get_db():
     site = server.get_site('openlibrary.org')
@@ -90,7 +95,20 @@ class count_edits_by_user:
         i = server.input('key')
         author_id = get_thing_id(i.key)
         return get_db().query("SELECT count(*) as count FROM transaction WHERE author_id=$author_id", vars=locals())[0].count
+
+class has_user:
+    @server.jsonify
+    def GET(self, sitename):
+        i = server.input("username")
         
+        # Don't allows OLIDs to be usernames
+        if web.re_compile(r"OL\d+[A-Z]").match(i.username.upper()):
+            return True
+        
+        key = "/user/" + i.username.lower()
+        type_user = get_thing_id("/type/user")
+        d = get_db().query("SELECT * from thing WHERE lower(key) = $key AND type=$type_user", vars=locals())
+        return bool(d)
     
 class stats:
     @server.jsonify
@@ -111,8 +129,7 @@ class stats:
         where = 'v.transaction_id=t.id AND t.created >= date($today) AND t.created < date($tomorrow)'
 
         if bots:
-            bot_users = ["/user/EdwardBot", "/user/ImportBot", "/user/WorkBot", "/user/AnandBot", "/user/StatsBot"]
-            where += " AND t.author_id IN (SELECT id FROM thing WHERE key IN $bot_users)"
+            where += " AND t.author_id IN (SELECT thing_id FROM account WHERE bot = 't')"
 
         return self.count(tables=tables, where=where, vars=locals())
         
@@ -156,7 +173,16 @@ class clear_cache:
         from infogami.infobase import cache
         cache.global_cache.clear()
         return {'done': True}
-
+        
+class olid_to_key:
+    @server.jsonify
+    def GET(self, sitename):
+        print "olid_to_key"
+        i = server.input("olid")
+        d = get_db().query("SELECT key FROM thing WHERE get_olid(key) = $i.olid", vars=locals())
+        key = d and d[0].key or None
+        return {"olid": i.olid, "key": key}
+        
 def write(path, data):
     dir = os.path.dirname(path)
     if not os.path.exists(dir):
@@ -199,36 +225,20 @@ def get_object_data(site, thing):
             d[k] = expand(v)
     return d
 
-booklogger = None
-
-def write_booklog(site, old, new):
-    """Log modifications to book records."""
-    sitename = site.sitename
-    if new.type.key == '/type/edition':
-        booklogger.write('book', sitename, new.last_modified, get_object_data(site, new))
-    else:
-        booklogger.write('delete', sitename, new.last_modified, {'key': new.key})
-        
-def write_booklog2(site, old, new):
-    """This function is called when any author object is changed.
-    to log all books of the author if name is changed.
-    """
-    sitename = site.sitename
-    if old and old.type.key == new.type.key == '/type/author' and old.name != new.name:
-        query = {'type': '/type/edition', 'authors': new.key, 'limit': 1000}
-        for d in site.things(query):
-            book = site._get_thing(d['key'])
-            booklogger.write('book', sitename, new.last_modified, get_object_data(site, book))
-
 def http_notify(site, old, new):
     """Notify listeners over http."""
-    data = new.format_data()
+    if isinstance(new, dict):
+        data = new
+    else:
+        # new is a thing. call format_data to get the actual data.
+        data = new.format_data()
+        
     json = simplejson.dumps(data)
     key = data['key']
 
     # optimize the most common case. 
     # The following prefixes are never cached at the client. Avoid cache invalidation in that case.
-    not_cached = ['/b/', '/a/', '/books/', '/authors/', '/works/', '/subjects/', '/publishers/', '/upstream/']
+    not_cached = ['/b/', '/a/', '/books/', '/authors/', '/works/', '/subjects/', '/publishers/', '/user/', '/usergroup/', '/people/']
     for prefix in not_cached:
         if key.startswith(prefix):
             return
@@ -242,6 +252,69 @@ def http_notify(site, old, new):
             import traceback
             traceback.print_exc()
             
+class MemcacheInvalidater:
+    def __init__(self):
+        self.memcache = self.get_memcache_client()
+        
+    def get_memcache_client(self):
+        _cache = config.get("cache", {})
+        if _cache.get("type") == "memcache" and "servers" in _cache:
+            return olmemcache.Client(_cache['servers'])
+            
+    def to_dict(self, d):
+        if isinstance(d, dict):
+            return d
+        else:
+            # new is a thing. call format_data to get the actual data.
+            return d.format_data()
+        
+    def __call__(self, site, old, new):
+        if not old:
+            return
+            
+        old = self.to_dict(old)
+        new = self.to_dict(new)
+        
+        type = old['type']['key']
+        
+        if type == '/type/author':
+            keys = self.invalidate_author(site, old)
+        elif type == '/type/edition':
+            keys = self.invalidate_edition(site, old)
+        elif type == '/type/work':
+            keys = self.invalidate_work(site, old)
+        else:
+            keys = self.invalidate_default(site, old)
+            
+        self.memcache.delete_multi(['details/' + k for k in keys])
+        
+    def invalidate_author(self, site, old):
+        yield old.key
+
+    def invalidate_edition(self, site, old):
+        yield old.key
+        
+        for w in old.get('works', []):
+            if 'key' in w:
+                yield w['key']
+
+    def invalidate_work(self, site, old):
+        yield old.key
+        
+        # invalidate all work.editions
+        editions = site.things({"type": "/type/edition", "work": old.key})
+        for e in editions:
+            yield e['key']
+            
+        # invalidate work.authors
+        authors = work.get('authors', [])
+        for a in authors:
+            if 'author' in a and 'key' in a['author']:
+                yield a['author']['key']
+    
+    def invalidate_default(self, site, old):
+        yield old.key
+            
 # openlibrary.utils can't be imported directly because 
 # openlibrary.plugins.openlibrary masks openlibrary module
 olmemcache = __import__("openlibrary.utils.olmemcache", None, None, ['x'])
@@ -252,3 +325,96 @@ def MemcachedDict(servers=[]):
     return cache.MemcachedDict(memcache_client=client)
 
 cache.register_cache('memcache', MemcachedDict)
+
+def _process_key(key):
+    mapping = (
+        "/l/", "/languages/",
+        "/a/", "/authors/",
+        "/b/", "/books/",
+        "/user/", "/people/"
+    )
+    for old, new in web.group(mapping, 2):
+        if key.startswith(old):
+            return new + key[len(old):]
+    return key
+
+def _process_data(data):
+    if isinstance(data, list):
+        return [_process_data(d) for d in data]
+    elif isinstance(data, dict):
+        if 'key' in data:
+            data['key'] = _process_key(data['key'])
+        return dict((k, _process_data(v)) for k, v in data.iteritems())
+    else:
+        return data
+
+def safeint(value, default=0):
+    """Convers the value to integer. Returns 0, if the conversion fails."""
+    try:
+        return int(value)
+    except Exception:
+        return default
+    
+def fix_table_of_contents(table_of_contents):
+    """Some books have bad table_of_contents. This function converts them in to correct format.
+    """
+    def row(r):
+        if isinstance(r, basestring):
+            level = 0
+            label = ""
+            title = web.safeunicode(r)
+            pagenum = ""
+        elif 'value' in r:
+            level = 0
+            label = ""
+            title = web.safeunicode(r['value'])
+            pagenum = ""
+        elif isinstance(r, dict):
+            level = safeint(r.get('level', '0'), 0)
+            label = r.get('label', '')
+            title = r.get('title', '')
+            pagenum = r.get('pagenum', '')
+        else:
+            return {}
+
+        return dict(level=level, label=label, title=title, pagenum=pagenum)
+
+    d = [row(r) for r in table_of_contents]
+    return [row for row in d if any(row.values())]
+
+def process_json(key, json):
+    if key is None or json is None:
+        return None
+    base = key[1:].split("/")[0]
+    if base in ['authors', 'books', 'works', 'languages', 'people', 'usergroup', 'permission']:
+        data = simplejson.loads(json)
+        data = _process_data(data)
+        
+        if base == 'books' and 'table_of_contents' in data:
+            data['table_of_contents'] = fix_table_of_contents(data['table_of_contents'])
+        
+        json = simplejson.dumps(data)
+    return json
+    
+dbstore.process_json = process_json
+
+_Indexer = dbstore.Indexer
+
+class Indexer(_Indexer):
+    """Overwrite default indexer to reduce the str index for editions."""
+    def compute_index(self, doc):
+        index = _Indexer.compute_index(self, doc)
+
+        try:
+            if doc['type']['key'] != '/type/edition':
+                return index
+        except KeyError:
+            return index
+            
+        whitelist = ['identifiers', 'classifications', 'isbn_10', 'isbn_13', 'lccn', 'oclc_numbers', 'ocaid']
+        index = [(datatype, name, value) for datatype, name, value in index 
+                if datatype == 'ref' or name.split(".")[0] in whitelist]
+
+        # avoid indexing table_of_contents.type etc.
+        index = [(datatype, name, value) for datatype, name, value in index if not name.endswith('.type')]
+        return index

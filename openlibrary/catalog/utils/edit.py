@@ -1,12 +1,29 @@
 import re, web
 from openlibrary.catalog.importer.db_read import get_mc
 from openlibrary.api import unmarshal
+from time import sleep
 
 re_meta_mrc = re.compile('([^/]+)_(meta|marc).(mrc|xml)')
 re_skip = re.compile('\b([A-Z]|Co|Dr|Jr|Capt|Mr|Mrs|Ms|Prof|Rev|Revd|Hon)\.$')
 
 db_amazon = web.database(dbn='postgres', db='amazon')
 db_amazon.printing = False
+
+def query_with_retry(ol, q):
+    for attempt in range(50):
+        try:
+            return ol.query(q)
+        except:
+            sleep(5)
+            print 'retry attempt', attempt
+
+def get_with_retry(ol, k):
+    for attempt in range(50):
+        try:
+            return ol.get(k)
+        except:
+            sleep(5)
+            print 'retry attempt', attempt
 
 def amazon_source_records(asin):
     iter = db_amazon.select('amazon', where='asin = $asin', vars={'asin':asin})
@@ -49,10 +66,10 @@ def undelete_authors(authors, ol):
 def fix_authors(e, ol):
     if 'authors' not in e:
         return
-    authors = [ol.get(akey) for akey in e['authors']]
+    authors = [get_with_retry(ol, akey) for akey in e['authors']]
     while any(a['type'] == '/type/redirect' for a in authors):
         print 'following redirects'
-        authors = [ol.get(a['location']) if a['type'] == '/type/redirect' else a for a in authors]
+        authors = [get_with_retry(ol, a['location']) if a['type'] == '/type/redirect' else a for a in authors]
     e['authors'] = [{'key': a['key']} for a in authors]
     undelete_authors(authors, ol)
 

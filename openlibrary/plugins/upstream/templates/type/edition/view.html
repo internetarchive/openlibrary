@@ -1,288 +1,239 @@
 $def with (page)
 
-$ lang = i18n.get_locale() or 'en'
-$ _t = i18n.get_namespace('/type/edition')
-$ _ = i18n.get_namespace('/mode/view')
+$var title: $page.title
 
-$ title = page.title_prefix + ' ' + page.title
+$code:
+    def has_any(*keys):
+        return any(page[k] for k in keys)
 
-$var title: $title
+$def display_value(label, value):
+    $if value:
+        <tr>
+            <td class="title"><h6 class="title">$label</h6></td>
+            <td class="tag"><span class="object">$:thingrepr(value)</span></td>
+        </tr>
 
-$ lccn = page["lccn"] and page["lccn"][0] and ("http://lccn.loc.gov/" + page["lccn"][0])
-$ oclc = page["oclc_numbers"] and page["oclc_numbers"][0] and ("http://www.worldcat.org/oclc/" + page["oclc_numbers"][0] + "?tab=details")
+$def display_identifiers(label, ids):
+    $if label != "Goodreads":
+        <tr>
+            <td class="title"><h6 class="title">$label</h6></td>
+            <td class="object"><span class="object">
+                $for id in ids:
+                    $ sep = cond(loop.last, "", ", ")
+                    $if id.url:
+                        <a href="$id.url">$id.value</a>$sep
+                    $else:
+                        ${id.value}$sep
+            </span></td>
+        </tr>
+    $else:
+        <tr>
+            <td class="title"><h6 class="title">$label</h6></td>
+            <td class="object"><span class="object">
+                $for id in ids:
+                    <a href="$id.url">$id.value</a>
+            </span>
+            $if ctx.user and ctx.user.is_admin():
+                <div id="gr_add_to_books"></div>
+                <script type="text/javascript" src="http://www.goodreads.com/book/add_to_book_widget_frame/$id.value"></script>
+            </td>
+        </tr>
+
+$def display_contributor(c):
+    <li><span>$c.role</span><br />$c.name </li>
+    
+$ work = page.works and page.works[0] or None    
 
 <div id="contentHead">
-    
+    <table width="100%"><tbody><tr>
+
+    <td valign="top" style="padding-right:10px;">
+        $:render_template('covers/book_cover_small', page.works[0])
+    </td>
+
+    <td valign="top" width="100%">
     $:macros.databarView(page)
-
-    <div class="head">
-        <span class="sansserif">
-        $if page.works: $:thingrepr(page.works)
-        $if page.authors: by $:thingrepr(page.authors)
-        </span><br/>
-        <h1>
-            $if page.get('publish_date'): $page.publish_date 
-            $if page.get('publishers'): $:thingrepr(page.publishers)
-            $if page.get('publish_places'): ($:thingrepr(page.publish_places).strip())
-        </h1>
-        
+    <div class="navEdition brown sansserif small">
+        $ work = page.works and page.works[0]
+        $if work:
+            <strong>$work.edition_count edition$("s" if work.edition_count != 1 else "")</strong> of
+            <span title="$_('Go to the main page for %s', page.title)"><a href="$work.url()">$truncate(work.title or "", 60)</a></span>
+        $else:
+            <strong>$:_('1 edition')</strong> record for of $page.title
+    $ authors = cond(work, work and work.get_authors(), page.get_authors())
+        $if authors:
+            $ author_list = ', '.join('<a href="%s">%s</a>' % (a.url(), truncate(a.name, 40)) for a in authors)
+            $_("by") <span title="$_('Go to this author\'s page')">$:author_list</span>
+        $else:
+            $:_("by an <em>unknown author</em>")
+        <br />
+                <span class="smaller"><a href="/books/add?work=$page.works[0].key" title="$_('Add another edition of') $page.title">$_("Add another")</a>?</span>
+        <br />
+        $ prev = page.get_prev()
+        $ next = page.get_next()
+        $if page.works[0].edition_count > 1:
+            $if prev:
+                <a href="/books/$prev" title="$:_('View the previous edition of %s', page.title)">&larr; $_("Previous")</a>&nbsp;|
+            $else:
+                &larr; $_("Previous")&nbsp;|
+            $if next:
+                <a href="/books/$next" title="$:_('View the next edition of %s', page.title)">$_("Next") &rarr;</a>
+            $else:
+                $_("Next") &rarr;
     </div>
+    </td>    
+    </tr></tbody></table>
 </div>
-
-<script type="text/javascript">
-\$().ready(bookCovers);
-\$().ready(tableShow);
-\$().ready(slidePanels);
-</script>
 
 <div id="contentBody">
 
-    $:macros.databarWork(page)
+    <div class="workDetails">
 
-    <div id="workDetails">
+        <div class="editionCover">
 
-    <div class="illustration right">
-        $:macros.CoverImage(page)
-        <div class="smaller sansserif"><a href="$:page.cover_url()">Change Cover</a></div>
-    </div>
-
-    <div class="section">
-        <span class="title">Edition Title:</span> 
-        <span class="tag">
-            $title
-            $if page.get('subtitle'): $page.subtitle
-        </span>
-    </div>
-
-    $ s1 = ["contributions", "other_titles", "by_statement", "series", "copyright_date", "source_records", "languages", "translated_from", "edition_name", "physical_format", "physical_dimensions", "pagination", "weight"]
-    $ s2 = ["isbn_10", "isbn_13", "lccn", "dewey_decimal_class", "lc_classifications", "oclc_numbers"]
-    $ s3 = ["genres", "subjects"]
-    $ s4 = ["download_url", "purchase_url"]
-    $ sections = [s1, s2, s3, s4]
-
-    $ rule = "-top"
-
-    $if page.description: <p>$:format(page.description)</p>
-
-    $if page.first_sentence: <div class="section"><span class="title">First sentence:</span> <span class="tag">$page.first_sentence</span></div>
-
-    $if page.notes: <div class="section"><span class="title">Notes:</span> <span class="tag">$page.notes</span></div>
-
-    $for s in sections:
-        $for name in s:
-            $if page[name]:
-                <div class="section">
-                    <span class="title">$_t[name]:</span>
-                    $if name.endswith("_url"):
-                        $ links = []
-                        $for n in page[name]:
-                            $links.append('<a href="' + n + '">' + n + '</a>')
-                        $ links = NEWLINE.join(links)
-                        <span class="tag">$:links</a></span>
-                    $elif name == "lccn":
-                        $if lccn: <span class="tag"><a href="$lccn">$:thingrepr(page[name])</a></span>
-                    $elif name == "oclc_numbers":
-                        $if oclc: <span class="tag"><a href="$oclc">$:thingrepr(page[name])</a></span>
-                    $elif name == 'source_records':
-                        <span class="tag">
-                        $for src in page[name]:
-                            $if src.startswith('marc:'):
-                                <a href="http://openlibrary.org/show-marc/$src[5:]">Library MARC record</a>;
-                            $elif src.startswith('amazon:'):
-                                <a href="http://amazon.com/dp/$src[7:17]">Amazon.com</a>;
-                            $elif src.startswith('ia:'):
-                                <a href="http://www.archive.org/details/$src[3:]">Internet Archive</a>
-                            $else:
-                                $:thingrepr(src)
-                        </span>
-                    $elif name == "subjects":
-                        <span class="tag">
-                        $for subject in page[name]:
-                            <a href="/search?ftokens=$:utf8(facet_token('subjects', subject.strip()))">$:utf8(thingrepr(subject)).replace('--', '&mdash;')</a>,
-                        </span>
-                    $else:
-                        <span class="tag">$:thingrepr(page[name])</span>
-                </div>
-                $ rule = ""
-         $ rule = "-rule"
-
-
-        $if page.ocaid: <br/>
-        $if not page.ocaid: <br/>
-
-
-            $if page.uris:
-                <div class="head">
-                    <h2>External links</h2>
-                </div>
-
-                $for num in range(len(page['uris'])):
-                    $if num < len(page['uri_descriptions']):
-                        $ desc = page.uri_descriptions[num]
-                    $else:
-                        $ desc = page.uris[num]
-                    <div class="section">
-                        <span class="title">$desc:</span>
-                        <span class="tag"><a href="$page.uris[num]">$page.uris[num]</a></span>
-                    </div>
-
+            <div class="illustration edition-cover">
+                $:render_template('covers/book_cover', page)
+                $:render_template('covers/change', page, ".edition-cover .bookCover img")
+            </div>
+            
+        $ contributors = page.get('contributors', [])
+        $if contributors:
+            <div class="section">
+                <h3 class="collapse">$_("Contributors")</h3>
+                <ul class="contributors">
+                    $for c in contributors:
+                        $:display_contributor(c)
+                </ul>
+            </div>
         </div>
 
-        <div class="clearfix"></div>
+        <div class="editionAbout">
 
-            <div class="head">
-                <h2>$_t.table_of_contents</h2>
-                $:macros.FlourishButton("edit", changequery(m='edit'))
+            <div class="section sansserif" style="line-height: 1.5em">
+                    <span style="font-size:1.125em;"><strong>$page.title</strong></span>  
+                $if page.subtitle:
+                    <br /><span class="larger"><em>$page.subtitle</em></span> 
+                $if page.edition_title or page.edition_name:
+                    <br />$page.edition_title $page.edition_name
+                $if page.by_statement:
+                    <br />$page.by_statement
+                <span style="font-size:0.8125em;">
+                    $if page.publish_date or page.publishers or page.publish_places:
+                        <br />Published
+                        $if page.publish_date:
+                            <strong>$page.publish_date</strong> 
+                        $if page.publishers:
+                            by
+                            $for p in page.publishers:
+                                <a href="/search?publisher_facet=$p.replace('&','%26')" title="$_('Search for other books from') $p">$p</a>$cond(loop.last, "", ", ")
+                        $if page.publish_places:
+                            in
+                            $for p in page.publish_places:
+                                 <a href="/search/subjects?q=$p.replace('&','%26')" title="$_('Search for subjects about') $p">$p</a>$cond(loop.last, "", ", ")
+                        <span class="adjust">.</span>
+                    $if page.languages:
+                    <br/>Written in $:thingrepr(page.languages).
+                </span> 
             </div>
 
-            $if page.table_of_contents:
-                <table>
-                    $ first = "first"
-                    $ table_of_contents = page.table_of_contents
-                    $if isinstance(table_of_contents[0], unicode):
-                        $ table_of_contents = [{'class': 'section', 'label': '', 'title': x, 'pagenum': ''} for x in table_of_contents]
-                    $for i, toc in enumerate(table_of_contents):
-                        <tr class="toc-$toc['class']">
-                            <td class="toc-number rule $first"><b>$toc['label']</b>&nbsp;&nbsp;</td>
-                            <td class="toc rule $first" style="white-space: nowrap">$toc['title']</td>
-                            <td class="toc-ellipsis rule $first" style="width: 100%"></td>
-                            <td class="toc-link-end rule $first" align="center">$toc['pagenum']&nbsp;&nbsp;</td>
-                        </tr>
-                        $ first = ""
+        $if page.description:
+            <h3 class="collapse">$_("About the Book")</h3>
+            $:format(page.description)
+
+        $if page.first_sentence:
+            <h3 class="collapse">$_("First Sentence")</h3>
+            <p>$page.first_sentence</p>
+
+        $ table_of_contents = page.get_table_of_contents()
+        $if table_of_contents and len(table_of_contents) > 1:
+            <div class="section">
+            <h3 class="collapse">$_("Table of Contents")</h3>
+            <table class="meta sansserif" id="toc-table">
+            <tbody>
+                $for toc in table_of_contents:
+                    <tr class="toc-level-$toc.level">
+                        <td class="toc-label">$toc.label</td>
+                        <td class="toc-title">$toc.title</td>
+                        <td class="toc-pagenum">$toc.pagenum</td>
+                    </tr>
+            </tbody>
+            </table>
+            </div>
+
+        $if page.notes or page.series or page.volume or page.genres or page.other_titles or page.copyright_date or page.translation_of or page.translated_from:
+            <div class="section">
+                <h3 class="collapse">$_("Edition Notes")</h3>
+                $if page.notes:
+                    <span class="sansserif">$:format(page.notes)</span>
+                <table class="meta">
+                    <tbody>
+                        $:display_value(_("Series"), page.series)
+                        $:display_value(_("Volume"), page.volume)
+                        $:display_value(_("Genre"), page.genres)
+                        $:display_value(_("Other Titles"), page.other_titles)
+                        $:display_value(_("Copyright Date"), page.copyright_date)
+                        $:display_value(_("Translation Of"), page.translation_of)
+                        $:display_value(_("Translated From"), page.translated_from)
+                    </tbody>
                 </table>
-            $else:
-                <p><em>No table of contents available.</em> <a href="$changequery(m='edit')" >Add it!</a></p>
+            </div>
 
-    <div class="clearfix"></div>
+        $ classifications = page.get_classifications().multi_items()
+        $if classifications:
+            <div class="section">
+                <h3 class="collapse">$_("Classifications")</h3>
+                <table class="meta">
+                <tbody>
+                    $for name, values in classifications:
+                        $:display_identifiers(values[0].label, values)
+                </tbody>
+                </table>
+            </div>
+            
+        $if has_any("physical_format", "pagination", "physical_dimensions", "weight"):
+            <div class="section">
+            <h3 class="collapse">$_("The Physical Object")</h3>
+            <table class="meta">
+            <tbody>
+                $:display_value(_("Format"), page.physical_format)
+                $:display_value(_("Pagination"), page.pagination)
+                $:display_value(_("Number of pages"), page.number_of_pages)
+                $:display_value(_("Dimensions"), page.physical_dimensions)
+                $:display_value(_("Weight"), page.weight)
+            </tbody>
+            </table>
+            </div>
 
-    <div id="resultsAbout">
-        <div class="head">
-            <h2>History</h2>
-            <span class="link"><a href="$changequery(m='history')">Read all</a></span>
+        <div class="section">
+            <h3 class="collapse">$_("ID Numbers")</h3>
+            <table class="meta">
+            <tbody>
+                $:display_identifiers("Open Library", [storage(url=None, value=page.key.split("/")[-1])])
+                $for name, values in page.get_identifiers().multi_items():
+                    $:display_identifiers(values[0].label, values)
+            </tbody>
+            </table>
+        </div>
+        
         </div>
 
-                    <table class="history">
-                        <tbody>
-                            <tr>
-                                <td class="timestamp">1 hour ago</td>
-                                <td class="detail">
-                                    <!-- SOURCE -->
-                                    <a href="[URL]">Powells</a>
-                                    <!-- /SOURCE --> 
-                                    told us they sell the
-                                    <!-- EDITION -->
-                                    <a href="[BOOK PAGE]">1983 Bantam edition</a>.
-                                    <!-- /EDITION --> 
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="timestamp">3 days ago</td>
-                                <td class="detail">
-                                    We discovered a
-                                    <!-- SCAN TYPE -->
-                                    <a href="[SCANNED URL]">full-text digital version</a>
-                                    <!-- /SCAN TYPE -->
-                                    of the
-                                    <!-- EDITION -->
-                                    1963 Penguin edition
-                                    <!-- /EDITION -->
-                                    is available on
-                                    <!-- SOURCE -->
-                                    <a href="[SCAN LINK]">Google</a>.
-                                    <!-- /SOURCE -->
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="timestamp">A week ago</td>
-                                <td class="detail">
-                                    <!-- ACTION -->
-                                    A new edition
-                                    <!-- /ACTION -->
-                                    was added by
-                                    <!-- MEMBER -->
-                                    <a href="[PROFILE]">Sonny</a>,
-                                    <!-- /MEMBER -->
-                                    on Open Library:
-                                    <!-- EDITION -->
-                                    <a href="[BOOK PAGE]">1983, Bantam</a>.
-                                </td>
-                            </tr>
-                            <tr class="reveal">
-                                <td class="timestamp">&nbsp;</td>
-                                <td class="detail"><a href="javascript:;" class="showmore">See more history</a></td>
-                            </tr>
-                            <tr class="hidden">
-                                <td class="timestamp">Time stamp</td>
-                                <td class="detail">Here's what happened!</td>
-                            </tr>
-                            <tr class="hidden">
-                                <td class="timestamp">Time stamp</td>
-                                <td class="detail">Here's what happened!</td>
-                            </tr>
-                            <tr class="hidden">
-                                <td class="timestamp">Time stamp</td>
-                                <td class="detail">Here's what happened!</td>
-                            </tr>
-                            <tr class="hidden">
-                                <td class="timestamp">Time stamp</td>
-                                <td class="detail">Here's what happened!</td>
-                            </tr>
-                            <tr class="hidden">
-                                <td class="timestamp">Time stamp</td>
-                                <td class="detail">Here's what happened!</td>
-                            </tr>
-                            <tr class="hidden">
-                                <td class="timestamp">Time stamp</td>
-                                <td class="detail">Here's what happened!</td>
-                            </tr>
-                            <tr class="hidden">
-                                <td class="timestamp">Time stamp</td>
-                                <td class="detail">Here's what happened!</td>
-                            </tr>
-                            <tr>
-                                <td class="timestamp">Last month</td>
-                                <td class="detail">
-                                    Turned up on
-                                    <!-- MEMBER -->
-                                    <a href="[PROFILE]">Estelle Getty</a>'s
-                                    <!-- /MEMBER -->
-                                    <!-- LIST -->
-                                    <a href="[LIST URL]">Snaks for Important People</a> list.
-                                    <!-- /LIST -->
-                                </td>
-                            </tr>
-                            <tr class="first">
-                                <td class="timestamp">12 Nov 08</td>
-                                <td class="detail">
-                                    <!-- ACTION -->
-                                    We imported the original source record from
-                                    <!-- /ACTION -->
-                                    <!-- SOURCE -->
-                                    <a href="[SOURCE URL]"><strong>Library of Congress</strong></a>:
-                                    <!-- /SOURCE -->
-                                    <!-- EDITION -->
-                                    <a href="[BOOK URL]">1962, Penguin, paperback</a>.
-                                    <!-- /EDITION -->
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+        <div class="editionTools">
+            $:macros.databarWork(page)
+
+            $ links = page.get_links()
+            $if links:
+                <div class="section">
+                   <h3>Links <span class="gray small sansserif">($_("that leave Open Library"))</span></h3>
+                   <ul class="booklinks sansserif">
+                   $for link in links:
+                       <li><a href="$link.url">$link.title</a></li>
+                   </ul>
+                </div>
+        </div>
 
     </div>
 
-
-</div>
+    $:render_template("lib/history", page)
 </div>
 
 <!-- source_records: $page.get('source_records', []) -->
-
-$ keys = []
-$for isbn in page.get('isbn_10', []) + page.get("isbn_13", []):
-    $ keys.append("ISBN:" + isbn)
-$for lccn in page.get('lccn', []):
-    $ keys.append("LCCN:" + lccn)
-$for oclc in page.get('oclc', []):
-    $ keys.append("OCLC:" + oclc)
-
-$if keys:
-    <script src="http://books.google.com/books?bibkeys=$(",".join(keys))&amp;jscmd=viewapi&amp;callback=gbs_callback" type="text/javascript"></script>

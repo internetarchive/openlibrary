@@ -20,7 +20,7 @@ import datetime
 from ConfigParser import ConfigParser
 import urllib, urllib2
 import simplejson
-
+import web
 
 class OLError(Exception):
     def __init__(self, http_error):
@@ -90,9 +90,25 @@ class OpenLibrary:
             cookies = response.headers['Set-Cookie'].split(',')
             self.cookie =  ';'.join([c.split(';')[0] for c in cookies])
 
-    def get(self, key):
-        data = self._request(key + '.json').read()
+    def get(self, key, v=None):
+        data = self._request(key + '.json' + ('?v=%d' % v if v else '')).read()
         return unmarshal(simplejson.loads(data))
+        
+    def get_many(self, keys):
+        """Get multiple documents in a single request as a dictionary.
+        """
+        if len(keys) > 500:
+            # get in chunks of 500 to avoid crossing the URL length limit.
+            d = {}
+            for chunk in web.group(keys, 500):
+                d.update(self._get_many(chunk))
+            return d
+        else:
+            return self._get_many(keys)
+        
+    def _get_many(self, keys):
+        response = self._request("/api/get_many?" + urllib.urlencode({"keys": simplejson.dumps(keys)}))
+        return simplejson.loads(response.read())['result']
 
     def save(self, key, data, comment=None):
         headers = {'Content-Type': 'application/json'}

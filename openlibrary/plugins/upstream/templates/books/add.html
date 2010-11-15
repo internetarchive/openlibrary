@@ -1,4 +1,4 @@
-$def with ()
+$def with (work=None, author=None)
 
 $var title: $_("Add a book")
 
@@ -6,80 +6,72 @@ $var title: $_("Add a book")
     <div class="head">
         <h1>$_("Add a book to Open Library")</h1>
     </div>
-    <p class="instruct">$_("We require a minimum set of fields to create a new record. These are those fields.")</p>
+        <p class="instruct">$_("We require a minimum set of fields to create a new record. These are those fields.")</p>
 </div>
             
 <div id="contentBody">
             
-    <form method="POST" id="addbook" class="olform addbook1" name="edit">
-                
+    <form method="post" action="" id="addbook" class="olform addbook1 validate" name="edit">
+    
+        $ author = (work and work.authors and work.authors[0].author) or author
         <div class="formElement">
             <div class="label"><label for="title">$_("Title")</label></div>
             <div class="input">
-                <input type="text" name="title" id="title" class="required title" style="width:630px;"/>
+                $if work:
+                    <input type="text" id="title" disabled="disabled" value="$work.title"/>
+                    <input type="hidden" name="title" value="$work.title"/>
+                $else:
+                    <input type="text" name="title" id="title" class="required title" style="width:630px;" value="$(work and work.title)" $cond(work, 'readonly="readonly"')/>
             </div>
         </div>
-            
         <div class="formElement">
-            <div class="label"><label for="author">Author</label> <span class="smaller lighter">$_('Like, "Agatha Christie" or "Jean-Paul Sartre." We\'ll also do a live check to see if we already know the author.')</span></div>
+            <div class="label"><label for="author">$_("Author")</label> <span class="smaller lighter">$_('Like, "Agatha Christie" or "Jean-Paul Sartre." We\'ll also do a live check to see if we already know the author.')</span></div>
             <div class="input">
-                <input type="text" name="author" id="author" class="required author" onBlur="\$('#matchAuthor').customFadeIn()"/>
+                $if author:
+                    <input type="text" id="author" disabled="disabled" value="$author.name"/>
+                    <input type="hidden" name="author_name" value="$author.name"/>
+                $else:
+                    <input type="text" name="author_name" id="author" class="author-autocomplete required author" value=""/>
+                <input type="hidden" name="author_key" id="author-key" class="author" value="$(author and author.key)"/>
             </div>
         </div>
 
-        <div class="formElement hidden" id="matchAuthor">
-            <div class="input" style="margin-left:40px;">
-                <div class="small sansserif">We think you mean the [AUTHOR NAME] who wrote [EDITION NAME WHICH COULD BE QUITE LONG AND GO ON AND ON AND ON FOR PROBABLY MORE WORDS THAN ARE ORDINARILY NECESSARY, ALL THINGS CONSIDERED], but there are [#] more. <a href="javascript:;" onclick="\$('#authorsMore').slideToggle();">See them now?</a>
-                    <ul class="authorlinks hidden" id="authorsMore">
-                        <li onclick="[POPULATE INPUT]" title="Use this author"><span class="blue">[AUTHOR NAME]</span> writes about [SUBJECT], [SUBJECT], [SUBJECT]</li>
-                        <li onclick="[POPULATE INPUT]" title="Use this author"><span class="blue">[AUTHOR NAME]</span> writes about [SUBJECT], [SUBJECT], [SUBJECT]</li>
-                        <li onclick="[POPULATE INPUT]" title="Use this author"><span class="blue">[AUTHOR NAME]</span> writes about [SUBJECT], [SUBJECT], [SUBJECT]</li>
-                        <li onclick="[POPULATE INPUT]" title="Use this author"><span class="blue">[AUTHOR NAME]</span> writes about [SUBJECT], [SUBJECT], [SUBJECT]</li>
-                        <li onclick="[POPULATE INPUT]" title="Use this author"><span class="blue">[AUTHOR NAME]</span> writes about [SUBJECT], [SUBJECT], [SUBJECT]</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
         <div class="formElement">
             <div class="label"><label for="publisher">$_("Who is the publisher?")</label></div>
             <div class="input">
-                <input type="text" name="publisher" id="publisher"/>
-                <div id="publisherLoading"><img src="images/waiting.gif" alt="$_('Just a sec...')" width="16" height="16"/></div>
-                <div id="publisherResult"></div>
+                <input type="text" name="publisher" class="required" id="publisher"/>
             </div>
         </div>
         
         <div class="formElement">
-            <div class="label"><label for="dateYear">$_("When was it published?")</label></div>
+            <div class="label"><label for="publish_date">$_("When was it published?")</label> <span class="smaller lighter">$_("The year it was published is plenty.")</span></div>
             <div class="input">
-                <input type="text" name="dateYear" id="dateYear" size="6" maxlength="4" style="width:80px;" value="YYYY" onFocus="if(!this._haschanged){this.value=''};this._haschanged=true;"/>
+                <input type="text" name="publish_date" class="required publish-date" id="publish_date"/>
             </div>
         </div>
         
         <div class="formElement">
-            <div class="label"><label for="IDtype">And optionally, an ID number &#151; like an ISBN &#151; would be helpful...</label></div>
+            <div class="label"><label for="id_value">$:_("And optionally, an ID number &#151; like an ISBN &#151; would be helpful...")</label></div>
+                <label for="id_name" class="hidden">$_("ID Type")</label>
             <div class="input">
-                <select name="IDtype" id="IDtype">
+                <select name="id_name" id="id_name">
                 <option value="">$_("Select")</option>
-                <option value="Dewey">Dewey</option>
-                <option value="LC">LC</option>
-                <option value="ISBN10">ISBN 10</option>
-                <option value="ISBN13">ISBN 13</option>
-                <option value="LCCN">LCCN</option>
-                <option value="IA">IA</option>
-                <option value="OCLC">OCLC</option>
+                <option value="ocaid">IA</option>
+                <option value="isbn_10">ISBN 10</option>
+                <option value="isbn_13">ISBN 13</option>
+                <option value="lccn">LCCN</option>
                 </select>
                 &nbsp;
-                <input type="text" name="IDnumber" id="IDnumber" size="20" style="width:200px;"/>
+                <input type="text" name="id_value" id="id_value" size="20" style="width:200px;"/>
             </div>
         </div>
 
         <div class="formElement bottom">
             <div class="input">
                 <br/>
-                <input value="$_('Add')" type="submit" name="submit" title="$_('Add this book now')"/>
+                <button type="submit" name="_save" title="$_('Add this book now')" class="larger">$_('Add')</button>
                 &nbsp;
-                <a href="javascript:history.go(-1);" class="smaller attn">$_('Cancel')</a>
+                <a href="javascript:history.go(-1);" class="attn">$_('Cancel')</a>
             </div>
         </div>
     </form> 

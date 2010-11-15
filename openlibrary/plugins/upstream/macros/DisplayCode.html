@@ -11,7 +11,7 @@ $def splitlines(text):
     <tr>
     <td>
     <pre>\
-    $for i in range(n):$("%4d" % (i+1))
+    $for i in range(n): <span rel="#L$(i+1)">$("%4d" % (i+1))</span>
     </pre>
     </td>
     <td style="width:100%;"><pre>$text</pre></td>

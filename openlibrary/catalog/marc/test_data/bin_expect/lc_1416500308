@@ -1,0 +1,44 @@
+{
+    "publishers": [
+        "Pocket Books"
+    ], 
+    "series": [
+        "Enriched classics", 
+        "Enriched classics series"
+    ], 
+    "lc_classifications": [
+        "PQ2082.C3 E5 2005c"
+    ], 
+    "authors": [
+        {
+            "birth_date": "1694", 
+            "personal_name": "Voltaire", 
+            "death_date": "1778", 
+            "name": "Voltaire", 
+            "entity_type": "person"
+        }
+    ], 
+    "publish_places": [
+        "New York"
+    ], 
+    "pagination": "178 p. ;", 
+    "title": "Candide", 
+    "lccn": [
+        "2005280851"
+    ], 
+    "number_of_pages": 178, 
+    "languages": [
+        {
+            "key": "/languages/eng"
+        }
+    ], 
+    "work_titles": [
+        "Candide"
+    ], 
+    "isbn_10": [
+        "1416500308"
+    ], 
+    "publish_date": "2005", 
+    "publish_country": "nyu", 
+    "by_statement": "Voltaire ; supplementary material written by Alyssa Harad"
+}

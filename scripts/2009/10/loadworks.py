@@ -32,14 +32,18 @@ class WorkLoader:
 
     def load_works_chunk(self, lines, editions_file):
         authors = [eval(line) for line in lines]
-        keys = self.loader.new_work_keys(len(works))
 
         editions = {}
         for akey, works in authors:
+            keys = self.loader.new_work_keys(len(works))
             for work, key in zip(works, keys):
                 work['key'] = key
                 work['type'] = {'key': "/type/work"}
                 work['authors'] = [{'author': {'key': akey}, 'type': '/type/author_role'}]
+                if 'subjects' in work:
+                    del work['subjects']
+                if 'toc' in work:
+                    del work['toc']
                 editions[key] = work.pop('editions')
                 
         result = self.loader.bulk_new(works, comment="add works page", author=self.author)
@@ -104,10 +108,12 @@ def make_documents(lines):
             for r in rows]
 
 def main(filename):
-    loader = WorkLoader(db="staging", host="ia331525")
-    loader.loader.db.printing = True
-    loader.load_works(filename)
-    #loader.update_editions(filename)
+    #loader = WorkLoader(db="staging", host="ia331525")
+    loader = WorkLoader(db="openlibrary", host="ia331526")
+#    loader.loader.db.printing = True
+    loader.loader.db.printing = False
+    #loader.load_works(filename)
+    loader.update_editions(filename)
 
 def log(*args):
     args = [time.asctime()] + list(args)

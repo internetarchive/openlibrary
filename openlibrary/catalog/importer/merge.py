@@ -3,11 +3,10 @@ from openlibrary.catalog.read_rc import read_rc
 import openlibrary.catalog.merge.amazon as amazon
 from openlibrary.catalog.get_ia import *
 from openlibrary.catalog.importer.db_read import withKey, get_mc
+from openlibrary.api import OpenLibrary
 import openlibrary.catalog.marc.fast_parse as fast_parse
 import xml.parsers.expat
 import web, sys
-sys.path.append('/home/edward/src/olapi')
-from olapi import OpenLibrary
 from time import sleep
 
 rc = read_rc()
@@ -62,7 +61,10 @@ def is_dark_or_bad(ia):
     return rows[0].curatestate == 'dark'
 
 def marc_match(e1, loc):
+    print 'loc:', loc
+    print len(get_from_local(loc))
     rec = fast_parse.read_edition(get_from_local(loc))
+    print 'rec:', rec
     try:
         e2 = build_marc(rec)
     except TypeError:
@@ -72,7 +74,7 @@ def marc_match(e1, loc):
 
 def ia_match(e1, ia):
     try:
-        loc, rec = get_ia(ia)
+        rec = get_ia(ia)
     except NoMARCXML:
         return False
     except urllib2.HTTPError:
@@ -171,14 +173,16 @@ def try_merge(e1, edition_key, thing):
         elif mc.endswith('.xml') or mc.endswith('.mrc'):
             ia = mc[:mc.find('/')]
         if '_meta.mrc:' in mc:
-            assert 'ocaid' in thing
+            print thing
+            if 'ocaid' not in thing:
+                return False
             ia = thing['ocaid']
     rec2 = None
     if ia:
         if is_dark_or_bad(ia):
             return False
         try:
-            loc2, rec2 = get_ia(ia)
+            rec2 = get_ia(ia)
         except xml.parsers.expat.ExpatError:
             return False
         except NoMARCXML:

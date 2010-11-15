@@ -3,11 +3,8 @@ $def with (form)
 $var title: $_("Password Reminder")
 
 <div id="contentHead">
-    <div class="head">
-        <h1>$_("Password Reminder")</h1>
-    </div>
-
-    <p class="instruct">$_("Please provide the email address you used to originally sign-up, and we'll send you instructions to change your Open Library password.")</p>
+    <h1>$_("Password Reminder")</h1>
+    <p class="instruct">$_("Please tell us the email address associated with your Open Library account. Then we can send you instructions to help you reset your Open Library password.")</p>
 </div>
             
 <div id="contentBody">
@@ -15,12 +12,12 @@ $var title: $_("Password Reminder")
         
         $:form.render()
 
-        <div class="formElement bottom">
+        <div class="formElement">
             <div class="input">
                 <br/>
                 <input value="$_('Send It')" type="submit" name="submit" title="$_('Send It')"/>
                 &nbsp;
-                <a href="javascript:;" onclick="history.go(-1);" class="smaller attn">$_("Cancel")</a>
+                <a href="javascript:;" onclick="history.go(-1);" class="large attn">$_("Cancel")</a>
             </div>
         </div>
     </form> 

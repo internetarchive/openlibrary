@@ -23,19 +23,33 @@ def new(category, olid, filename, filename_s, filename_m, filename_l,
     author, ip, source_url, width, height):
     category_id = get_category_id(category)
     now=datetime.datetime.utcnow()
-    return getdb().insert('cover', category_id=category_id, 
-        filename=filename, filename_s=filename_s, filename_m=filename_m, filename_l=filename_l,
-        olid=olid, author=author, ip=ip,
-        source_url=source_url, width=width, height=height, 
-        created=now, last_modified=now, deleted=False, archived=False)
+    
+    db = getdb()
+    
+    t = db.transaction()
+    try:
+        cover_id = db.insert('cover', category_id=category_id, 
+            filename=filename, filename_s=filename_s, filename_m=filename_m, filename_l=filename_l,
+            olid=olid, author=author, ip=ip,
+            source_url=source_url, width=width, height=height, 
+            created=now, last_modified=now, deleted=False, archived=False)
+    
+        db.insert("log", action="new", timestamp=now, cover_id=cover_id)
+    except:
+        t.rollback()
+        raise
+    else:
+        t.commit()
+    return cover_id
         
 def query(category, olid, offset=0, limit=10):
     category_id = get_category_id(category)
     deleted = False
     
     if isinstance(olid, list):
-        where = web.reparam('deleted=$deleted AND category_id = $category_id AND ', locals()) \
-                + web.sqlors('olid=', olid)
+        if len(olid) == 0:
+            olid = [-1]
+        where = web.reparam('deleted=$deleted AND category_id = $category_id AND olid IN $olid', locals())
     elif olid is None:
         where = web.reparam('deleted=$deleted AND category_id=$category_id', locals())
     else:
@@ -50,18 +64,41 @@ def query(category, olid, offset=0, limit=10):
     return result.list()
 
 def details(id):
-    return getdb().select('cover', what='*', where="id=$id", vars=locals()).list()
+    try:
+        return getdb().select('cover', what='*', where="id=$id", vars=locals())[0]
+    except IndexError:
+        return None
     
 def touch(id):
     """Sets the last_modified of the specified cover to the current timestamp.
     By doing so, this cover become comes in the top in query because the results are ordered by last_modified.
     """
     now = datetime.datetime.utcnow()
-    getdb().query("UPDATE cover SET last_modified=$now where id=$id", vars=locals())
+    db = getdb()
+    t = db.transaction()
+    try:
+        db.query("UPDATE cover SET last_modified=$now where id=$id", vars=locals())
+        db.insert("log", action="touch", timestamp=now, cover_id=id)
+    except:
+        t.rollback()
+        raise
+    else:
+        t.commit()
 
 def delete(id):
-    t = True
-    getdb().query('UPDATE cover set deleted=$t WHERE id=$id', vars=locals())
+    true = True
+    now = datetime.datetime.utcnow()
+
+    db = getdb()
+    t = db.transaction()
+    try:    
+        db.query('UPDATE cover set deleted=$true AND last_modified=$now WHERE id=$id', vars=locals())
+        db.insert("log", action="delete", timestamp=now, cover_id=id)
+    except:
+        t.rollback()
+        raise
+    else:
+        t.commit()    
 
 def get_filename(id):
     d = getdb().select('cover', what='filename', where='id=$id',vars=locals())

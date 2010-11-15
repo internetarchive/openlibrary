@@ -30,6 +30,8 @@ def read_from_url(url):
     ret = json.loads(data)
     if ret['status'] == 'fail' and ret['message'].startswith('Not Found: '):
         return None
+    if ret['status'] != 'ok':
+        print ret
     assert ret['status'] == 'ok'
     return ret['result']
 
@@ -57,4 +59,13 @@ def get_mc(key):
     return found[0].v if found else None
 
 def withKey(key):
-    return read_from_url(api_get() + key)
+    def process(key):
+        return read_from_url(api_get() + key)
+
+    for attempt in range(5):
+        try:
+            return process(key)
+        except ValueError:
+            pass
+        sleep(10)
+    return process(key)
