@@ -169,7 +169,7 @@ def do_search(param, sort, page=1, rows=100):
     return web.storage(
         facet_counts = read_facets(root),
         docs = docs,
-        is_advanced = bool(param['q']),
+        is_advanced = bool(param.get('q', None)),
         num_found = (int(docs.attrib['numFound']) if docs is not None else None),
         search_url = search_url,
         solr_select = solr_select,
