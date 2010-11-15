@@ -2,8 +2,11 @@
 """
 from collections import defaultdict
 import couchdb
+import urllib, urllib2
+import simplejson
 import web
 from infogami import config
+from infogami.infobase import client, common
 
 from openlibrary.core import helpers as h
 
@@ -78,13 +81,31 @@ class ListMixin:
             "works": [row.value for row in rows]
         })
 
-    def get_editions(self, limit=50, offset=0):
-        keys = [[seed, "editions"] for seed in self._get_rawseeds()]
-        rows = self._seeds_view(keys=keys, reduce=False, limit=limit, skip=offset)
-        return web.storage({
-            "count": self.edition_count,
-            "editions": [row.value for row in rows]
-        })
+    def get_editions(self, limit=50, offset=0, _raw=False):
+        """Returns the editions objects belonged to this list ordered by last_modified. 
+        
+        When _raw=True, the edtion dicts are returned instead of edtion objects.
+        """
+        d = self._editions_view(self._get_rawseeds(), 
+            skip=offset, limit=limit, 
+            sort="last_modified", reverse="true", 
+            include_docs="true")
+        
+        def get_doc(row):
+            doc = row['doc']
+            del doc['_id']
+            del doc['_rev']
+            if not _raw:
+                data = self._site._process_dict(common.parse_query(doc))
+                doc = client.create_thing(self._site, doc['key'], data)
+            return doc
+        
+        return {
+            "count": d['total_rows'],
+            "offset": d.get('skip', 0),
+            "limit": d['limit'],
+            "editions": [get_doc(row) for row in d['rows']]
+        }
         
     def _get_all_subjects(self):
         d = defaultdict(list)
@@ -162,6 +183,24 @@ class ListMixin:
         kw['stale'] = 'ok'
         view = couchdb.client.PermanentView(view_url, "updates_view")
         return view(**kw)
+
+    def _editions_view(self, seeds, **kw):
+        reverse = str(kw.pop("reverse", "")).lower()
+        if 'sort' in kw and reverse == "true":
+            # sort=\field is the couchdb-lucene's way of telling ORDER BY field DESC
+            kw['sort'] = '\\' + kw['sort']
+        view_url = config.get("lists", {}).get("editions_view")
+        if not view_url:
+            return {}
+
+        def escape(value):
+            return web.re_compile(r'([:(){}])').sub(r'\\\1', value)
+
+        q = " OR ".join("seed:" + escape(seed) for seed in seeds)
+        url = view_url + "?" + urllib.urlencode(dict(kw, q=q))
+        json = urllib2.urlopen(url).read()
+        return simplejson.loads(json)
+        
 
 def valuesort(d):
     """Sorts the keys in the dictionary based on the values.

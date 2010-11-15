@@ -163,9 +163,31 @@ class list_seeds(delegate.page):
 
 class list_seed_yaml(list_seeds):
     encoding = "yml"
-    content_type = "text/yaml"
-        
+    content_type = 'text/yaml; charset="utf-8"'
+    
+
 class list_editions(delegate.page):
+    """Controller for displaying lists of a seed or lists of a person.
+    """
+    path = "(/people/\w+/lists/OL\d+L)/editions"
+
+    def is_enabled(self):
+        return "lists" in web.ctx.features
+
+    def GET(self, path):
+        list = web.ctx.site.get(path)
+        if not list:
+            raise web.notfound()
+        
+        i = web.input(limit=20, page=1)
+        limit = h.safeint(i.limit, 20)
+        page = h.safeint(i.page, 1) - 1
+        offset = page * limit
+
+        editions = list.get_editions(limit=limit, offset=offset)
+        return render_template("type/list/editions.html", list, editions)
+
+class list_editions_json(delegate.page):
     path = "(/people/\w+/lists/OL\d+L)/editions"
     encoding = "json"
 
@@ -181,13 +203,13 @@ class list_editions(delegate.page):
         limit = h.safeint(i.limit, 20)
         offset = h.safeint(i.offset, 0)
 
-        data = dict(list.get_editions(limit=limit, offset=offset))
+        data = list.get_editions(limit=limit, offset=offset, _raw=True)
         text = formats.dump(data, self.encoding)
-        return delegate.RawText(text)
+        return delegate.RawText(text, content_type=self.content_type)
     
-class list_editions_yaml(list_editions):
+class list_editions_yaml(list_editions_json):
     encoding = "yml"
-    content_type = "text/yaml"
+    content_type = 'text/yaml; charset="utf-8"'
 
 def setup():
     pass
