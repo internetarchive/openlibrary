@@ -1,10 +1,13 @@
 """Helper functions used by the List model.
 """
 from collections import defaultdict
-import couchdb
+import re
 import urllib, urllib2
+
+import couchdb
 import simplejson
 import web
+
 from infogami import config
 from infogami.infobase import client, common
 
@@ -194,13 +197,17 @@ class ListMixin:
             return {}
 
         def escape(value):
-            return web.re_compile(r'([:(){}])').sub(r'\\\1', value)
-
+            special_chars = '+-&|!(){}[]^"~*?:\\'
+            pattern = "([%s])" % re.escape(special_chars)
+            
+            quote = '"'
+            return quote + web.re_compile(pattern).sub(r'\\\1', value) + quote
+        
         q = " OR ".join("seed:" + escape(seed) for seed in seeds)
         url = view_url + "?" + urllib.urlencode(dict(kw, q=q))
+        print url
         json = urllib2.urlopen(url).read()
         return simplejson.loads(json)
-        
 
 def valuesort(d):
     """Sorts the keys in the dictionary based on the values.
