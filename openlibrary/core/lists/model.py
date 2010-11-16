@@ -135,38 +135,27 @@ class ListMixin:
 
         return sorted(subjects, reverse=True, key=lambda s: s["count"])
         
-    def get_subjects(self, limit=20):
+    def get_top_subjects(self, limit=20):
         return self._get_all_subjects()[:limit]
-
-        keys = [[seed, "subjects"] for seed in self._get_rawseeds()]
-        rows = self._seeds_view(keys=keys, reduce=False)
         
-        # store the counts of subject to pick the top ones
-        subject_counts = defaultdict(lambda: 0)
-        
-        # store counts of tiles of each subject to find the most used title for each subject
-        subject_titles = defaultdict(lambda: defaultdict(lambda: 0))
-        
-        for row in rows:
-            key, title = row.value['key'], row.value['name']
-            subject_counts[key] += 1
-            subject_titles[key][title] += 1
-            
-        def subject_url(s):
-            if s.startswith("subject:"):
-                return "/subjects/" + s.split(":", 1)[1]
+    def get_subjects(self, limit=20):
+        def get_subject_type(s):
+            if s.url.startswith("/subjects/place:"):
+                return "places"
+            elif s.url.startswith("/subjects/person:"):
+                return "people"
+            elif s.url.startswith("/subjects/time:"):
+                return "times"
             else:
-                return "/subjects/" + s
+                return "subjects"
         
-        def subject_title(s):
-            return valuesort(subject_titles[s])[-1]
-            
-        subjects = [
-            web.storage(title=subject_title(s), url=subject_url(s), count=count)
-            for s, count in subject_counts.items()
-        ]
-        subjects = sorted(subjects, key=lambda s: s.count, reverse=True)
-        return subjects[:limit]
+        d = web.storage(subjects=[], places=[], people=[], times=[])
+
+        for s in self._get_all_subjects():
+            kind = get_subject_type(s)
+            if len(d[kind]) < limit:
+                d[kind].append(s)
+        return d
         
     def get_seeds(self):
         return [Seed(self, s) for s in self.seeds]
