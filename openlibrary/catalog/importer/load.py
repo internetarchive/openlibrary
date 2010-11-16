@@ -24,7 +24,7 @@ def find_author(name, send_mail=True):
     reply = list(ol.query(q))
     authors = [ol.get(k) for k in reply]
     if any(a['type'] != '/type/author' for a in authors):
-        subject = 'author query redirect: ' + q['name']
+        subject = 'author query redirect: ' + `q['name']`
         body = 'Error: author query result should not contain redirects\n\n'
         body += 'query: ' + `q` + '\n\nresult\n'
         if send_mail:
@@ -34,7 +34,7 @@ def find_author(name, send_mail=True):
                 elif a['type'] == '/type/delete':
                     body += a['key'] + ' is deleted ' + '\n'
                 elif a['type'] == '/type/author':
-                    body += a['key'] + ' is an author: ' + a['name'] + '\n'
+                    body += a['key'] + ' is an author: ' + `a['name']` + '\n'
                 else:
                     body += a['key'] + 'has bad type' + a + '\n'
             addr = 'edward@archive.org'
@@ -182,6 +182,13 @@ def build_query(loc, rec):
     if east:
         print rec
 
+    langs = rec.get('languages', [])
+    print langs
+    if any(l['key'] == '/languages/zxx' for l in langs):
+        print 'zxx found in langs'
+        rec['languages'] = [l for l in langs if l['key'] != '/languages/zxx']
+        print 'fixed:', langs
+
     for l in rec.get('languages', []):
         print l
         if l['key'] == '/languages/ser':
@@ -190,6 +197,10 @@ def build_query(loc, rec):
             l['key'] = '/languages/eng'
         if l['key'] == '/languages/cro':
             l['key'] = '/languages/chu'
+        if l['key'] == '/languages/jap':
+            l['key'] = '/languages/jpn'
+        if l['key'] == '/languages/fra':
+            l['key'] = '/languages/fre'
         if l['key'] == '/languages/fr ':
             l['key'] = '/languages/fre'
         if l['key'] == '/languages/it ':
