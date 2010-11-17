@@ -1,5 +1,6 @@
 import web
 
+from openlibrary.core.mocks import mock_couchdb
 from openlibrary.core.lists import model
 
 class MockCouchDB:
@@ -40,16 +41,17 @@ class TestListMixin:
             ]
         }
         
-        db = MockCouchDB([doc1, doc2])
+        db = mock_couchdb.Database()
+        db.update([doc1, doc2])
         list = MockList(db, ['/works/OL1W', '/authors/OL1A'])
         
         assert list.edition_count == 20
         assert list.work_count == 6
         assert list.ebook_count == 4
-        assert list.get_subjects() == [
+        assert list.get_top_subjects() == [
             {"key": "subject:love", "url": "/subjects/love", "name": "Love", "title": "Love", "count": 4},
             {"key": "place:san_francisco", "url": "/subjects/place:san_francisco", "name": "San Francisco", "title": "San Francisco", "count": 3}
         ]
-        assert list.get_subjects(limit=1) == [
+        assert list.get_top_subjects(limit=1) == [
             {"key": "subject:love", "url": "/subjects/love", "name": "Love", "title": "Love", "count": 4}
         ]
