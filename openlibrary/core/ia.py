@@ -34,7 +34,7 @@ def xml2dict(xml, **defaults):
     dom = minidom.parseString(xml)
     
     for node in dom.documentElement.childNodes:
-        if node.nodeType == node.TEXT_NODE:
+        if node.nodeType == node.TEXT_NODE or len(node.childNodes) == 0:
             continue
         else:
             key = node.tagName
