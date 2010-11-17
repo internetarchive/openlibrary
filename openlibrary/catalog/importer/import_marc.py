@@ -1,6 +1,7 @@
 #!/usr/bin/python2.5
 from time import time, sleep
 import openlibrary.catalog.marc.fast_parse as fast_parse
+from openlibrary.catalog.marc.marc_binary import MarcBinary
 import web, sys, codecs, re, urllib2, httplib
 from openlibrary.catalog.importer import pool
 import simplejson as json
@@ -8,10 +9,12 @@ from openlibrary.catalog.utils.query import query_iter
 from openlibrary.catalog.importer.merge import try_merge
 from openlibrary.catalog.marc.parse import read_edition
 from openlibrary.catalog.importer.load import build_query, east_in_by_statement, import_author
-from openlibrary.catalog.works.find_works import find_title_redirects, find_works, get_books, books_query, update_works
+from openlibrary.catalog.works.find_work_for_edition import find_matching_work
+#from openlibrary.catalog.works.find_works import find_title_redirects, find_works, get_books, books_query, update_works
 from openlibrary.catalog.get_ia import files, read_marc_file
 from openlibrary.catalog.merge.merge_marc import build_marc
 from openlibrary.catalog.importer.db_read import get_mc, withKey
+from openlibrary.catalog.marc.marc_subject import subjects_for_work
 from openlibrary.api import OpenLibrary, unmarshal
 
 from openlibrary.catalog.read_rc import read_rc
@@ -34,6 +37,8 @@ t_prev = time()
 rec_no = 0
 chunk = 50
 load_count = 0
+
+re_edition_key = re.compile('^/(?:books|b)/(OL\d+M)$')
 
 archive_id = sys.argv[1]
 
@@ -298,6 +303,32 @@ def write_edition(loc, edition):
     if authors:
         q['authors'] = authors
 
+    wkey = None
+    subjects = subjects_for_work(rec)
+    if 'authors' in q:
+        wkey = find_matching_work(q)
+    if wkey:
+        w = ol.get(wkey)
+        need_update = False
+        for k, subject_list in subjects.items():
+            for s in subject_list:
+                if s not in w.get(k, []):
+                    w.setdefault(k, []).append(s)
+                    need_update = True
+        if need_update:
+            ol.save(wkey, w, 'add subjects from new record')
+    else:
+        w = {
+            'type': '/type/work',
+            'title': q['title'],
+        }
+        if 'authors' in q:
+            w['authors'] = [{'type':'/type/author_role', 'author': akey} for akey in q['authors']]
+        w.update(subjects)
+
+        wkey = ol.new(w, comment='initial import')
+    q['works'] = [{'key': wkey}]
+
     for attempt in range(5):
         if attempt > 0:
             print 'retrying'
@@ -312,13 +343,15 @@ def write_edition(loc, edition):
         break
     print 'ret:', ret
     assert isinstance(ret, basestring)
+    key = '/b/' + re_edition_key.match(ret).group(1)
 #    assert ret['status'] == 'ok'
 #    assert 'created' in ret
 #    editions = [i for i in ret['created'] if i.startswith('/b/OL')]
 #    assert len(editions) == 1
-    key = ret
     # get key from return
     pool.update(key, q)
+
+    return
 
     for a in authors:
         akey = a['key']
@@ -343,7 +376,9 @@ for part, size in files(archive_id):
     for loc, data in part_iter:
         #if loc == 'marc_binghamton_univ/bgm_openlib_final_10-15.mrc:265680068:4538':
         #    continue
-        edition = read_edition(data)
+        assert len(data) == int(data[:5])
+        rec = MarcBinary(data)
+        edition = read_edition(rec)
         if edition['title'] == 'See.':
             print 'See.', edition
             continue
