@@ -65,56 +65,16 @@ class Updater:
 
         self.seeds_db.update_seeds(ctx.seeds.keys())
         
-        # TODO: update editions_db
-    
-    def update_work(self, work):
-        key = work['key']
-        
-        # update the works db
-        work2 = self.works_db.get(key, {})
-        works2.update(work)
-        
-        self.works_db[key] = work2
-        
-        seeds = _get_seeds(work2)
-        
-        # update all editions in the editions db
-        for e in work2.get("editions", []):
-            self.update_edition_in_editions_db(e, seeds)
-            
-        for seed in seeds:
-            self.update_seeds_db(seed)
-        
-    def update_edition(self, edition):
-        work = self.update_edition_in_works_db(edition)
-        seeds = self._get_seeds(work)
-        self.update_edition_in_editions_db(edition, seeds)
-
-    def update_edition_in_works_db(self, edition):
-        old_work = self._find()
-        self.works_db.view("seeds/seeds", key=edition['key'])
-        
-    def update_edition_in_editions_db(self, edition, seeds=None):
-        pass
-        
-    def update_seeds_db(self, seed):
-        pass
+        # TODO: update editions_db   
         
     def _get_works(self, changeset):
         return [doc for doc in changeset.get("docs", []) 
                     if doc['key'].startswith("/works/")]
-        
+    
     def _get_editions(self, changeset):
         return [doc for doc in changeset.get("docs", []) 
                     if doc['key'].startswith("/books/")]
-        
-    def _get_seeds(self, work):
-        return [k for k, v in SeedView().map(work)]
-        
-    def _find_old_work(self, edition_key):
-        """Returns the key of the work that has this edition by querying the works_db.
-        """
-        pass
+    
 
 class WorksDB:
     """The works db contains the denormalized works.
@@ -179,9 +139,8 @@ class WorksDB:
             return None
         
         # Add/update the edition to the current work
-        try:
-            work = self.db[work_key]
-        except KeyError:
+        work = self.db.get(work_key)
+        if work is None:
             # That work is not found in the db.
             # Bad data? ignore for now.
             return None
@@ -246,7 +205,9 @@ class SeedsDB:
         couchdb_bulk_save(self.db, docs)
 
     def _get_seed_doc(self, seed):
+        logging.info("loading works for %r", seed)
         works = self.works_db.get_works(seed)
+        logging.info("found %d works", len(works))
         logging.info("BEGIN map-reduce for %r", seed)
         doc = SeedView().map_reduce(works, seed)
         logging.info("END map-reduce for %r", seed)
@@ -270,7 +231,7 @@ def couchdb_bulk_save(db, docs):
     """Saves/updates the given docs into the given couchdb database using bulk save.
     """
     keys = [doc["_id"] for doc in docs if "_id" in doc]
-    revs = dict((row.key, row.value["rev"]) for row in db.view("_all_docs", keys=keys)) 
+    revs = dict((row.key, row.value["rev"]) for row in db.view("_all_docs", keys=keys) if "value" in row) 
     
     for doc in docs:
         id = doc.get('_id')
@@ -376,14 +337,14 @@ def main(configfile):
     
     Expects one changeset per line in JSON format.
     """
-    config = formats.load_yaml(configfile)
+    config = formats.load_yaml(open(configfile).read())
     updater = Updater(config)
 
     def changesets():
         for line in sys.stdin:
             yield simplejson.loads(line.strip())
             
-    for c in changesets:
+    for c in changesets():
         updater.process_changeset(c)
             
 if __name__ == "__main__":
