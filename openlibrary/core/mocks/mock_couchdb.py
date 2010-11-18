@@ -30,6 +30,9 @@ class Database:
         
         return (doc['_id'], doc['_rev'])
         
+    def __iter__(self):
+        return iter(self.docs)
+        
     def _process_design_doc(self, doc):
         id = doc['_id']
         
