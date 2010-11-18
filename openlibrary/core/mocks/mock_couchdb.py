@@ -148,6 +148,9 @@ class MockView(View):
         offset = 0
         rows = self.rows[:]
         
+        if options.get('startkey_docid') == "0099":
+            raise StopIteration
+        
         if "key" in options:
             key = options['key']
             try:
@@ -156,6 +159,21 @@ class MockView(View):
             except ValueError:
                 offset = len(keys)
             rows = [row for row in self.rows if row['key'] == key]
+            
+        if "startkey_docid" in options:
+            start_docid = options['startkey_docid']
+            index = [row['id'] for row in rows].index(start_docid)
+            rows = rows[index:]
+            offset += index
+                
+        if "skip" in options:
+            skip = options['skip']
+            offset += skip
+            rows = rows[skip:]
+            
+        if "limit" in options:
+            limit = options['limit']
+            rows = rows[:limit]
             
         if options.get("include_docs") == True:
             for row in rows:

@@ -47,13 +47,26 @@ class Updater:
         
     def create_db(self, url):
         return couchdb.Database(url)
+    
+    def process_changesets(self, changesets):
+        ctx = UpdaterContext()
+        for changeset in changesets:
+            logging.info("processing changeset %s", changeset["id"])
+            
+            for work in self._get_works(changeset):
+                work = self.works_db.update_work(ctx, work)
+                
+            for edition in self._get_editions(changeset):
+                self.works_db.update_edition(ctx, edition)
+            
+            ctx.editions.clear() # we are not using them right now
+        
+        logging.info("BEGIN updating seeds")
+        self.seeds_db.update_seeds(ctx.seeds.keys())
+        logging.info("END updating seeds")
         
     def process_changeset(self, changeset):
         logging.info("processing changeset %s", changeset["id"])
-        
-        works = {}
-        editions = {}
-        seeds = {}
         
         ctx = UpdaterContext()
         
@@ -174,9 +187,22 @@ class WorksDB:
         except IndexError:
             return None
             
-    def get_works(self, seed):
-        return [row.doc for row in self.db.view("seeds/seeds", key=seed, include_docs=True)]
+    def get_works(self, seed, chunksize=100):
+        rows = couch_iterview(self.db, "seeds/seeds", key=seed, include_docs=True)
+        return (row.doc for row in rows)
         
+        """
+        rows = self.db.view("seeds/seeds", key=seed, include_docs=True, limit=chunksize).rows
+        for row in rows:
+            yield row
+            docid = row.id
+            
+        while rows:
+            rows = self.db.view("seeds/seeds", key=seed, include_docs=True, startkey_docid=docid, skip=1, limit=chunksize)
+            for row in rows:
+                yield row
+                docid = row.id
+        """
     def get_seeds(self, work):
         return [k for k, v in SeedView().map(work)]
             
@@ -205,10 +231,8 @@ class SeedsDB:
         couchdb_bulk_save(self.db, docs)
 
     def _get_seed_doc(self, seed):
-        logging.info("loading works for %r", seed)
-        works = self.works_db.get_works(seed)
-        logging.info("found %d works", len(works))
         logging.info("BEGIN map-reduce for %r", seed)
+        works = self.works_db.get_works(seed)
         doc = SeedView().map_reduce(works, seed)
         logging.info("END map-reduce for %r", seed)
         
@@ -240,6 +264,18 @@ def couchdb_bulk_save(db, docs):
     
     db.update(docs)
     
+def couch_iterview(db, viewname, chunksize=100, **options):
+    rows = db.view(viewname, limit=chunksize, **options).rows
+    for row in rows:
+        yield row
+        docid = row.id
+        
+    while rows:
+        rows = db.view(viewname, startkey_docid=docid, skip=1, limit=chunksize, **options).rows
+        for row in rows:
+            yield row
+            docid = row.id
+
 class SeedView:
     """Map-reduce view to compute seed info.
     
@@ -329,7 +365,9 @@ class SeedView:
         return subjects
         
     def map_reduce(self, works, key):
-        values = (v for work in works for k, v in self.map(work) if k == key)
+        values = (v for work in works 
+                    for k, v in self.map(work) 
+                    if k == key)
         return self.reduce(values)
         
 def main(configfile):
@@ -339,13 +377,9 @@ def main(configfile):
     """
     config = formats.load_yaml(open(configfile).read())
     updater = Updater(config)
-
-    def changesets():
-        for line in sys.stdin:
-            yield simplejson.loads(line.strip())
-            
-    for c in changesets():
-        updater.process_changeset(c)
+        
+    changesets = (simplejson.loads(line.strip()) for line in sys.stdin)
+    updater.process_changesets(changesets)
             
 if __name__ == "__main__":
     import sys

@@ -396,3 +396,10 @@ class TestUpdater:
         }
         self.updater.process_changeset(changeset)
         assert self._get_doc("seeds", "subject:love") == None
+
+def test_couch_iterview():
+    db = mock_couchdb.Database()
+    for i in range(100):
+        db.save({"_id": "%04d" % i})
+    
+    assert [int(row.id) for row in updater.couch_iterview(db, "_all_docs", chunksize=10)] == range(100)
