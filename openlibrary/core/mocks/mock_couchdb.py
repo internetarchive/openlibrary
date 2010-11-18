@@ -30,6 +30,12 @@ class Database:
         
         return (doc['_id'], doc['_rev'])
         
+    def delete(self, doc):
+        del self.docs[doc['_id']]
+        
+        for view in self._views.values():
+            view.remove_doc(doc)
+    
     def __iter__(self):
         return iter(self.docs)
         
@@ -81,7 +87,10 @@ class Database:
         
     def update(self, docs):
         for doc in docs:
-            self.save(doc)
+            if doc.get("_deleted") == True:
+                self.delete(doc)
+            else:
+                self.save(doc)
                 
     def view(self, name, wrapper=None, **options):
         rows = self._views[name].get_rows()
@@ -121,6 +130,10 @@ class _View:
         id = doc['_id']
         self.rows = [row for row in self.rows if row['id'] != id]
         self.rows += [{"id": id, "key": key, "value": value} for key, value in self.map(doc)]
+        
+    def remove_doc(self, doc):
+        id = doc['_id']
+        self.rows = [row for row in self.rows if row['id'] != id]
         
     def get_rows(self):
         return sorted(self.rows, key=lambda row: row['key'])

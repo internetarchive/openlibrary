@@ -27,11 +27,13 @@ class TestWorksDB:
         db = mock_couchdb.Database()
         db.save(read_couchapp("works/seeds"))
         self.works_db = updater.WorksDB(db)
+        self.ctx = updater.UpdaterContext()
         
     def _get_doc(self, key):
-        doc = self.works_db.db[key]
-        del doc['_id']
-        del doc['_rev']
+        doc = self.works_db.db.get(key)
+        if doc:
+            del doc['_id']
+            del doc['_rev']
         return doc
         
     def _add_doc(self, doc):
@@ -41,7 +43,7 @@ class TestWorksDB:
         
     def test_update_work(self):
         # test adding for the first time
-        self.works_db.update_work({
+        self.works_db.update_work(self.ctx, {
             "key": "/works/OL1W",
             "title": "foo"
         })
@@ -53,7 +55,7 @@ class TestWorksDB:
         }
         
         # test changing the title
-        self.works_db.update_work({
+        self.works_db.update_work(self.ctx, {
             "key": "/works/OL1W",
             "title": "bar"
         })
@@ -74,7 +76,7 @@ class TestWorksDB:
             ]
         }
 
-        self.works_db.update_work({
+        self.works_db.update_work(self.ctx, {
             "key": "/works/OL1W",
             "title": "bar",
         })
@@ -92,20 +94,24 @@ class TestWorksDB:
             "key": "/works/OL1W",
             "type": {"key": "/type/work"},
             "title": "foo",
+            "last_modified": {"type": "/type/datetime", "value": "2010-10-20 10:20:30"}
         })
         
-        self.works_db.update_edition({
+        self.works_db.update_edition(self.ctx, {
           "key": "/books/OL1M",
-          "works": [{"key": "/works/OL1W"}]
+          "works": [{"key": "/works/OL1W"}],
+          "last_modified": {"type": "/type/datetime", "value": "2010-10-20 10:20:30"}
         })
         
         assert self._get_doc("/works/OL1W") == {
             "key": "/works/OL1W",
             "type": {"key": "/type/work"},
             "title": "foo",
+            "last_modified": {"type": "/type/datetime", "value": "2010-10-20 10:20:30"},
             "editions": [{
                 "key": "/books/OL1M",
-                "works": [{"key": "/works/OL1W"}]
+                "works": [{"key": "/works/OL1W"}],
+                "last_modified": {"type": "/type/datetime", "value": "2010-10-20 10:20:30"}                
             }]
         }
     
@@ -139,30 +145,36 @@ class TestWorksDB:
         self.works_db.db['/works/OL1W'] = {
             "key": "/works/OL1W",
             "type": {"key": "/type/work"},
-            "editions": [{"key": "/books/OL1M"}]
+            "editions": [{"key": "/books/OL1M"}],
+            "last_modified": {"type": "/type/datetime", "value": "2010-10-20 10:20:30"}
         }
         self.works_db.db['/works/OL2W'] = {
             "key": "/works/OL2W",
             "type": {"key": "/type/work"},
+            "last_modified": {"type": "/type/datetime", "value": "2010-10-20 10:20:30"}
         }
         assert self.works_db._get_old_work_key({"key": "/books/OL1M"}) == "/works/OL1W"
         
-        self.works_db.update_edition({
+        self.works_db.update_edition(self.ctx, {
           "key": "/books/OL1M",
-          "works": [{"key": "/works/OL2W"}]
+          "works": [{"key": "/works/OL2W"}],
+          "last_modified": {"type": "/type/datetime", "value": "2010-10-20 10:20:30"}
         })
         
         assert self._get_doc("/works/OL1W") == {
             "key": "/works/OL1W",
             "type": {"key": "/type/work"},
+            "last_modified": {"type": "/type/datetime", "value": "2010-10-20 10:20:30"},
             "editions": []
         }
         assert self._get_doc("/works/OL2W") == {
             "key": "/works/OL2W",
             "type": {"key": "/type/work"},
+            "last_modified": {"type": "/type/datetime", "value": "2010-10-20 10:20:30"},
             "editions": [{
                 "key": "/books/OL1M",
-                "works": [{"key": "/works/OL2W"}]
+                "works": [{"key": "/works/OL2W"}],
+                "last_modified": {"type": "/type/datetime", "value": "2010-10-20 10:20:30"}            
             }]
         }
 
@@ -265,9 +277,10 @@ class TestUpdater:
         databases["works"].save(read_couchapp("works/seeds"))
         
     def _get_doc(self, dbname, id):
-        doc = self.databases[dbname][id]
-        del doc["_id"]
-        del doc["_rev"]
+        doc = self.databases[dbname].get(id)
+        if doc:
+            del doc["_id"]
+            del doc["_rev"]
         return doc
         
     def test_process_changeset(self):
@@ -351,5 +364,35 @@ class TestUpdater:
                 {"name": "Love", "key": "subject:love", "count": 1}
             ]
         }
+    
+    def test_process_changeset_old_seed(self):
+        # save a book and work 
+        changeset = {
+            "id": "1234",
+            "author": {"key": "/people/anand"},
+            "docs": [{
+                "key": "/works/OL1W",
+                "type": {"key": "/type/work"},
+                "subjects": ["Love"],
+                "last_modified": {"type": "/type/datetime", "value": "2010-10-20 10:20:30"}
+            }, {
+                "key": "/books/OL1M",
+                "type": {"key": "/type/edition"},
+                "works": [{"key": "/works/OL1W"}],
+                "last_modified": {"type": "/type/datetime", "value": "2010-10-20 10:20:30"}
+            }]
+        }
+        self.updater.process_changeset(changeset)
         
-        
+        # change the subject and make sure the counts of old changeset are updated
+        changeset = {
+            "id": "1235",
+            "author": {"key": "/people/anand"},
+            "docs": [{
+                "key": "/works/OL1W",
+                "type": {"key": "/type/work"},
+                "last_modified": {"type": "/type/datetime", "value": "2010-10-20 15:25:35"}
+            }]
+        }
+        self.updater.process_changeset(changeset)
+        assert self._get_doc("seeds", "subject:love") == None

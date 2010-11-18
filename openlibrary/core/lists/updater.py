@@ -1,13 +1,35 @@
-import re
 import collections
 import logging
+import re
+
 import couchdb
+import simplejson
+
+from openlibrary.core import formats
 
 logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s %(levelname)-8s %(message)s',
                     datefmt='%a, %d %b %Y %H:%M:%S')
 
 RE_SUBJECT = re.compile("[, _]+")
+
+class UpdaterContext:
+    """The state of the updater.
+    
+    The updater context contains 3 dicts to store works, editions and seeds.
+    """
+    def __init__(self):
+        self.editions = {}
+        self.works = {}
+        self.seeds = {}
+        
+    def add_editions(self, editions):
+        for e in editions:
+            self.editions[e['key']] = e
+            
+    def add_seeds(self, seeds):
+        for s in seeds:
+            self.seeds[s] = None
 
 class Updater:
     def __init__(self, config):
@@ -27,19 +49,23 @@ class Updater:
         return couchdb.Database(url)
         
     def process_changeset(self, changeset):
+        logging.info("processing changeset %s", changeset["id"])
+        
         works = {}
+        editions = {}
+        seeds = {}
+        
+        ctx = UpdaterContext()
         
         for work in self._get_works(changeset):
-            self.works_db.update_work(work)
-            works[work['key']] = work
+            work = self.works_db.update_work(ctx, work)
             
         for edition in self._get_editions(changeset):
-            work = self.works_db.update_edition(edition)
-            works[work['key']] = work
+            self.works_db.update_edition(ctx, edition)
 
-        seeds = set(seed for work in works.values() 
-                         for seed in self._get_seeds(work))
-        self.seeds_db.update_seeds(seeds)
+        self.seeds_db.update_seeds(ctx.seeds.keys())
+        
+        # TODO: update editions_db
     
     def update_work(self, work):
         key = work['key']
@@ -99,21 +125,37 @@ class WorksDB:
     def __init__(self, db):
         self.db = db
         
-    def update_work(self, work):
+    def update_work(self, ctx, work):
         """Adds/Updates the given work in the database.
         """
         logging.info("updating work %s", work['key'])
         
         key = work['key']
-        work2 = self.db.get(key, {})
-        if work2:
-            work['_rev'] = work2['_rev']
+        old_work = self.db.get(key, {})
+        if old_work:
+            work['_rev'] = old_work['_rev']
+            work['editions'] = old_work.get('editions', [])
+            
+            old_seeds = set(self.get_seeds(old_work))
+        else:
+            work['editions'] = []
+            old_seeds = set()
+            
+        new_seeds = set(self.get_seeds(work))
         
-        work['editions'] = work2.get('editions', [])
+        # Add both old and new seeds to the queue
+        ctx.add_seeds(old_seeds)
+        ctx.add_seeds(new_seeds)
+        
+        # Add editions to the queue if any of the seeds are modified
+        if old_seeds != new_seeds:
+            ctx.add_editions(work['editions'])
+            
         self.db[key] = work
+        return work
         
-    def update_edition(self, edition):
-        """Adds/updates the given edition in the database.
+    def update_edition(self, ctx, edition):
+        """Adds/updates the given edition in the database and returns the work from the database.
         """
         logging.info("updating edition %s", edition['key'])
         
@@ -129,6 +171,12 @@ class WorksDB:
             old_work = self.db[old_work_key]
             self._delete_edtion(old_work, edition)
             self.db.save(old_work)
+            
+            old_seeds = self.get_seeds(old_work)
+            ctx.add_seeds(old_seeds)
+            
+        if work_key is None:
+            return None
         
         # Add/update the edition to the current work
         try:
@@ -140,6 +188,9 @@ class WorksDB:
             
         self._add_edition(work, edition)
         self.db.save(work)
+        
+        new_seeds = self.get_seeds(work)
+        ctx.add_seeds(new_seeds)
         return work
         
     def _delete_edtion(self, work, edition):
@@ -166,6 +217,9 @@ class WorksDB:
             
     def get_works(self, seed):
         return [row.doc for row in self.db.view("seeds/seeds", key=seed, include_docs=True)]
+        
+    def get_seeds(self, work):
+        return [k for k, v in SeedView().map(work)]
             
 class EditionsDB:
     def __init__(self, db):
@@ -193,9 +247,24 @@ class SeedsDB:
 
     def _get_seed_doc(self, seed):
         works = self.works_db.get_works(seed)
+        logging.info("BEGIN map-reduce for %r", seed)
         doc = SeedView().map_reduce(works, seed)
+        logging.info("END map-reduce for %r", seed)
+        
+        if self.is_empty(doc):
+            doc = {"_deleted": True}
+        
         doc['_id'] = seed
         return doc
+        
+    def is_empty(self, seed):
+        return seed == {
+            "works": 0,
+            "editions": 0,
+            "ebooks": 0,
+            "last_modified": "",
+            "subjects": []
+        }
 
 def couchdb_bulk_save(db, docs):
     """Saves/updates the given docs into the given couchdb database using bulk save.
@@ -301,3 +370,22 @@ class SeedView:
     def map_reduce(self, works, key):
         values = (v for work in works for k, v in self.map(work) if k == key)
         return self.reduce(values)
+        
+def main(configfile):
+    """Creates an updater using the config files and calls it with changesets read from stdin.
+    
+    Expects one changeset per line in JSON format.
+    """
+    config = formats.load_yaml(configfile)
+    updater = Updater(config)
+
+    def changesets():
+        for line in sys.stdin:
+            yield simplejson.loads(line.strip())
+            
+    for c in changesets:
+        updater.process_changeset(c)
+            
+if __name__ == "__main__":
+    import sys
+    main(sys.argv[1])

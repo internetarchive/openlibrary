@@ -1,6 +1,19 @@
 from openlibrary.core.mocks.mock_couchdb import Database
 
 class TestMockCouchDB:
+    def _add_design_doc(self, db):
+        db.save({
+            "_id": "_design/names",
+            "views": {
+                "names": {
+                    "map": "" +  
+                        "def f(doc):\n" + 
+                        "    if 'name' in doc:\n"
+                        "        yield doc['name'], None"
+                }
+            }
+        })
+
     def test_save(self):
         db = Database()
         assert db.get("foo") is None
@@ -44,17 +57,7 @@ class TestMockCouchDB:
         
     def test_view(self):
         db = Database()
-        db.save({
-            "_id": "_design/names",
-            "views": {
-                "names": {
-                    "map": "" +  
-                        "def f(doc):\n" + 
-                        "    if 'name' in doc:\n"
-                        "        yield doc['name'], None"
-                }
-            }
-        })
+        self._add_design_doc(db)
         
         db.save({"_id": "a", "name": "a"})
         db.save({"_id": "b", "name": "b"})
@@ -76,4 +79,12 @@ class TestMockCouchDB:
             "rows": [
                 {"id": "b", "key": "b", "value": None},
             ]
-        } 
+        }
+        
+    def test_delete(self):
+        db = Database()
+        
+        db.save({"_id": "a", "name": "a"})
+        db.delete({"_id": "a", "_rev": 1})
+        
+        assert db.get("a") == None
