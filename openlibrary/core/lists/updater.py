@@ -187,22 +187,14 @@ class WorksDB:
         except IndexError:
             return None
             
-    def get_works(self, seed, chunksize=100):
+    def get_works(self, seed, chunksize=1000):
         rows = couch_iterview(self.db, "seeds/seeds", key=seed, include_docs=True)
         return (row.doc for row in rows)
         
-        """
-        rows = self.db.view("seeds/seeds", key=seed, include_docs=True, limit=chunksize).rows
-        for row in rows:
-            yield row
-            docid = row.id
-            
-        while rows:
-            rows = self.db.view("seeds/seeds", key=seed, include_docs=True, startkey_docid=docid, skip=1, limit=chunksize)
-            for row in rows:
-                yield row
-                docid = row.id
-        """
+    def get_work_counts(self, seed, chunksize=1000):
+        rows = couch_iterview(self.db, "counts/counts", key=seed)
+        return (row.value for row in rows)
+        
     def get_seeds(self, work):
         return [k for k, v in SeedView().map(work)]
             
@@ -230,7 +222,7 @@ class SeedsDB:
         docs = [self._get_seed_doc(seed) for seed in seeds]
         couchdb_bulk_save(self.db, docs)
 
-    def _get_seed_doc(self, seed):
+    def _get_seed_doc(self, seed):        
         logging.info("BEGIN map-reduce for %r", seed)
         works = self.works_db.get_works(seed)
         doc = SeedView().map_reduce(works, seed)
@@ -241,7 +233,7 @@ class SeedsDB:
         
         doc['_id'] = seed
         return doc
-        
+                
     def is_empty(self, seed):
         return seed == {
             "works": 0,
@@ -263,14 +255,15 @@ def couchdb_bulk_save(db, docs):
             doc['_rev'] = revs[id]
     
     db.update(docs)
-    
+
 def couch_iterview(db, viewname, chunksize=100, **options):
     rows = db.view(viewname, limit=chunksize, **options).rows
     for row in rows:
         yield row
         docid = row.id
         
-    while rows:
+    while len(rows) == limit:
+        print "db.view", viewname, docid
         rows = db.view(viewname, startkey_docid=docid, skip=1, limit=chunksize, **options).rows
         for row in rows:
             yield row
@@ -289,13 +282,14 @@ class SeedView:
             if isinstance(subject, basestring):
                 key = prefix + RE_SUBJECT.sub("_", subject.lower()).strip("_")
                 return {"key": key, "name": subject}
-
+                
         def get_subjects(work):
             subjects = [_get_subject(s, "subject:") for s in work.get("subjects", [])]
             places = [_get_subject(s, "place:") for s in work.get("subject_places", [])]
             people = [_get_subject(s, "person:") for s in work.get("subject_people", [])]
             times = [_get_subject(s, "time:") for s in work.get("subject_times", [])]
-            return [s for s in subjects + places + people + times if s is not None]
+            d = dict((s['key'], s) for s in subjects + places + people + times if s is not None)
+            return d.values()
 
         type = work.get('type', {}).get('key')
         if type == "/type/work":
@@ -303,7 +297,9 @@ class SeedView:
             subjects = get_subjects(work)
             editions = work.get('editions', [])
 
-            last_modified = max(date['value'] for date in [work['last_modified']] + [e['last_modified'] for e in work.get('editions', [])])
+            dates = (doc['last_modified'] for doc in [work] + work.get('editions', [])
+                                          if 'last_modified' in doc)
+            last_modified = max(date['value'] for date in dates or [""])
 
             xwork = {
                 "works": 1,
