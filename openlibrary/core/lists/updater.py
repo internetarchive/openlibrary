@@ -1,9 +1,11 @@
 import collections
 import logging
 import re
+import multiprocessing
 
 import couchdb
 import simplejson
+import web
 
 from openlibrary.core import formats
 
@@ -205,7 +207,7 @@ class EditionsDB:
     def update_edition(self, edition, seeds, changeset):
         edition['seeds'] = seeds
         self.db[edition['key']] = edition
-
+        
 class SeedsDB:
     """The seed db stores summary like work_count, edition_count, ebook_count,
     last_update, subjects etc for each seed.
@@ -218,10 +220,15 @@ class SeedsDB:
         self.works_db = works_db
         
     def update_seeds(self, seeds):
-        logging.info("update_seeds %s", seeds)
+        logging.info("update_seeds %s", len(seeds))
+        chunks = [list(x) for x in web.group(seeds, 100)]
+        pool = multiprocessing.Pool(4)
+        pool.map(self, chunks)
+        
+    def __call__(self, seeds):
         docs = [self._get_seed_doc(seed) for seed in seeds]
         couchdb_bulk_save(self.db, docs)
-
+        
     def _get_seed_doc(self, seed):        
         logging.info("BEGIN map-reduce for %r", seed)
         works = self.works_db.get_works(seed)
