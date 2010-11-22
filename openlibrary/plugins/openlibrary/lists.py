@@ -185,6 +185,10 @@ class list_editions(delegate.page):
         offset = page * limit
 
         editions = list.get_editions(limit=limit, offset=offset)
+        
+        list.preload_authors(editions['editions'])
+        list.load_changesets(editions['editions'])
+        
         return render_template("type/list/editions.html", list, editions)
 
 class list_editions_json(delegate.page):

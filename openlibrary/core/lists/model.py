@@ -10,6 +10,7 @@ import web
 
 from infogami import config
 from infogami.infobase import client, common
+from infogami.utils import stats
 
 from openlibrary.core import helpers as h
 
@@ -48,11 +49,19 @@ class ListMixin:
     
         d = dict((seed, web.storage({"editions": 0, "works": 0, "ebooks": 0, "last_update": ""})) for seed in rawseeds)
     
-        for row in db.view("_all_docs", keys=rawseeds, include_docs=True):
+        for row in self._couchdb_view(db, "_all_docs", keys=rawseeds, include_docs=True):
             if 'doc' in row:
                 d[row.key] = web.storage(row.doc)
             
         return d
+        
+    def _couchdb_view(self, db, viewname, **kw):
+        stats.begin("couchdb", db=db.name, view=viewname, kw=kw)
+        try:
+            result = db.view(viewname, **kw)
+        finally:
+            stats.end()
+        return result
         
     def _get_edition_count(self):
         return sum(seed['editions'] for seed in self.seed_summary.values())
@@ -110,6 +119,39 @@ class ListMixin:
             "editions": [get_doc(row) for row in d['rows']]
         }
         
+    def _preload(self, keys):
+        keys = list(set(keys))
+        return self._site.get_many(keys)
+        
+    def preload_works(self, editions):
+        return self._preload(w.key for e in editions 
+                                   for w in e.get('works', []))
+        
+    def preload_authors(self, editions):
+        works = self.preload_works(editions)
+        return self._preload(a.author.key for w in works
+                                          for a in w.get("authors")
+                                          if "author" in a)
+                            
+    def load_changesets(self, editions):
+        """Adds "recent_changeset" to each edition.
+        
+        The recent_changeset will be of the form:
+            {
+                "id": "...",
+                "author": {
+                    "key": "..", 
+                    "displayname", "..."
+                }, 
+                "timestamp": "...",
+                "ip": "...",
+                "comment": "..."
+            }
+         """
+        for e in editions:
+            if "recent_changeset" not in e:
+                e['recent_changeset'] = self._site.recentchanges({"key": e.key, "limit": 1})[0]
+    
     def _get_all_subjects(self):
         d = defaultdict(list)
         
@@ -194,8 +236,12 @@ class ListMixin:
         
         q = " OR ".join("seed:" + escape(seed) for seed in seeds)
         url = view_url + "?" + urllib.urlencode(dict(kw, q=q))
-        print url
-        json = urllib2.urlopen(url).read()
+        
+        stats.begin("couchdb", url=url)
+        try:
+            json = urllib2.urlopen(url).read()
+        finally:
+            stats.end()
         return simplejson.loads(json)
 
 def valuesort(d):
