@@ -520,14 +520,8 @@ def main(configfile):
     config = formats.load_yaml(open(configfile).read())
     updater = Updater(config)
     
-    #updater.seeds_db.update_seeds()
-
-    seeds = ["subject:armed_forces", "subject:commentaries", "subject:communism", "subject:economics", "subject:english"]
-    #seeds = ["/authors/OL4529419A", "/authors/OL2754228A", "/authors/OL41174A"]
-    updater.seeds_db.update_seeds(seeds)
-        
-    #changesets = (simplejson.loads(line.strip()) for line in sys.stdin)
-    #updater.process_changesets(changesets)
+    changesets = (simplejson.loads(line.strip()) for line in sys.stdin)
+    updater.process_changesets(changesets)
             
 if __name__ == "__main__":
     import sys
