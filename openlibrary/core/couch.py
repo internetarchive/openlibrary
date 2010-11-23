@@ -46,7 +46,7 @@ class PermanentView(couchdb.client.PermanentView):
         rawdata = iter(rawdata)
         header = rawdata.next().strip()
         
-        if not header.endswith("]}"):
+        if not header.endswith("}"):
             header += "]}"
         data = simplejson.loads(header)
         data["rows"] = self._parse_rows(rawdata)

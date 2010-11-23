@@ -273,7 +273,7 @@ class TestUpdater:
         return doc
         
     def test_process_changeset(self):
-        # Add a new book and new work and make sure the works and seeds databases are updated.
+        # Add a new book and new work and make sure the works, editions and seeds databases are updated.
         changeset = {
             "id": "1234",
             "author": {"key": "/people/anand"},
@@ -292,13 +292,21 @@ class TestUpdater:
         
         self.updater.process_changeset(changeset)
         
-        print list(self.databases["works"])
-        keys = sorted(k for k in self.databases["works"] if not k.startswith("_"))
-        assert keys == ["/works/OL1W"]
+        def get_docids(db):
+            return sorted(k for k in db if not k.startswith("_"))
         
-        keys = sorted(k for k in self.databases["seeds"] if not k.startswith("_"))
-        assert keys == ["/books/OL1M", "/works/OL1W", "subject:love"]
+        assert get_docids(self.databases['works']) == ["/works/OL1W"]
+        assert get_docids(self.databases['editions']) == ["/books/OL1M"]
+        assert get_docids(self.databases['seeds']) == ["/books/OL1M", "/works/OL1W", "subject:love"]
         
+        assert self._get_doc("editions", "/books/OL1M") == {
+            "key": "/books/OL1M",
+            "type": {"key": "/type/edition"},
+            "works": [{"key": "/works/OL1W"}],
+            "last_modified": {"type": "/type/datetime", "value": "2010-10-20 10:20:30"},
+            "seeds": ["/works/OL1W", "/books/OL1M", "subject:love"]
+        }
+                
         assert self._get_doc("seeds", "/works/OL1W") == {
             "works": 1,
             "editions": 1,
