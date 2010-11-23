@@ -53,6 +53,7 @@ bookreader_auth_seconds = 10*60
 # Base URL for BookReader
 #bookreader_stream_base = 'http://www.archive.org/stream'
 # XXXmang change to www once BookReader launched
+#bookreader_stream_base = 'http://www-mang.archive.org/stream'
 bookreader_stream_base = 'http://www-testflip.archive.org/stream'
 
 ########## Page Handlers
@@ -187,7 +188,7 @@ class ia_auth(delegate.page):
         content_type = "application/json"
         
         user = web.ctx.site.get_user()
-        auth_json = simplejson.dumps( get_ia_auth_dict(user, resource_id) )
+        auth_json = simplejson.dumps( get_ia_auth_dict(user, resource_id, item_id) )
         
         output = auth_json
         
@@ -557,7 +558,7 @@ def return_resource(resource_id):
     # $$$ Could add some stats tracking.  For now we just nuke it.
     web.ctx.site.store.delete(loan_key)
 
-def get_ia_auth_dict(user, resource_id):
+def get_ia_auth_dict(user, resource_id, item_id):
     """Returns response similar to one of these:
     {'success':true,'token':'1287185207-fa72103dd21073add8f87a5ad8bce845'}
     {'success':false,'msg':'Book is checked out'}
@@ -572,20 +573,24 @@ def get_ia_auth_dict(user, resource_id):
         error_message = 'Bad resource id type'
     
     elif not user:
-        error_message = 'Not logged into Open Library'
+        login_url = 'http://%s/account/login?redirect=%s' % (web.ctx.host, bookreader_stream_base + '/' + urllib2.quote(item_id))
+        error_message = 'Please <a href="' + login_url + '">log into Open Library</a> to continue.'
     
     elif not loan_key:
-        error_message = 'This book has not been checked out'
+        borrow_url = 'http://%s/ia/%s/borrow' % (web.ctx.host, urllib2.quote(item_id))
+        error_message = 'This book is currently available to borrow. You can <a href="' + borrow_url + '">borrow this book through Open Library</a>.'
     
     else:
         # There is a loan for this book
         loan = web.ctx.site.store.get(loan_key)
         
         if loan['user'] != user.key:
-            error_message = 'This books was not checked out by you'
+            lending_url = 'http://%s/subjects/lending_library' % web.ctx.host
+            error_message = 'This book is currently checked out by someone else.  More titles are available in the <a href="' + lending_url + '">lending library</a>.'
         
         elif loan['expiry'] < datetime.datetime.utcnow().isoformat():
-            error_message = 'Your loan has expired'
+            edition_url = 'http://%s/ia/%s' % (web.ctx.host, urllib2.quote(item_id))
+            error_message = 'Your loan for this book has expired.  You can <a href="' + edition_url + '">visit this book\'s page on Open Library</a>.'
     
     if error_message:
         return { 'success': False, 'msg': error_message }
