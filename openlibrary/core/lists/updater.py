@@ -1,13 +1,18 @@
 import collections
+import itertools
 import logging
 import re
-import multiprocessing
+import urllib2
 
-import couchdb
+try:
+    import multiprocessing
+except ImportError:
+    multiprocessing = None
+
 import simplejson
 import web
 
-from openlibrary.core import formats
+from openlibrary.core import formats, couch
 
 logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s %(levelname)-8s %(message)s',
@@ -32,6 +37,44 @@ class UpdaterContext:
     def add_seeds(self, seeds):
         for s in seeds:
             self.seeds[s] = None
+            
+class CachedDatabase:
+    """CouchDB Database that caches some documents locally for faster access.
+    """
+    def __init__(self, db):
+        self.db = db
+        self.docs = {}
+        self.dirty = {}
+        
+    def preload(self, keys):
+        for row in self.db.view("_all_docs", keys=keys, include_docs=True):
+            if "doc" in row:
+                self.docs[row.id] = row.doc
+        
+    def get(self, key, default=None):
+        return self.docs.get(key) or self.db.get(key, default)
+        
+    def view(self, name, **kw):
+        if kw.get("stale") != "ok":
+            self.commit()
+        return self.db.view(name, **kw)
+    
+    def save(self, doc):
+        self.docs[doc['_id']] = doc
+        self.dirty[doc['_id']] = doc
+        
+    def commit(self):
+        if self.dirty:
+            logging.info("commiting %d docs" % len(self.dirty))
+            self.db.update(self.dirty.values())
+            self.dirty.clear()
+        
+    def reset(self):
+        self.commit()
+        self.docs.clear()
+        
+    def __getattr__(self, name):
+        return getattr(self.db, name)
 
 class Updater:
     def __init__(self, config):
@@ -43,28 +86,62 @@ class Updater:
         def f(name):
             return self.create_db(config[name])
             
-        self.works_db = WorksDB(f("works_db"))
+        def f2(name):
+            return CachedDatabase(f(name))
+            
+        self.works_db = WorksDB(f2("works_db"))
+        #self.works_db = WorksDB(f("works_db"))
+
         self.editions_db = EditionsDB(f("editions_db"))
         self.seeds_db = SeedsDB(f("seeds_db"), self.works_db)
         
     def create_db(self, url):
-        return couchdb.Database(url)
+        return couch.Database(url)
     
     def process_changesets(self, changesets):
         ctx = UpdaterContext()
-        for changeset in changesets:
-            logging.info("processing changeset %s", changeset["id"])
+        for chunk in web.group(changesets, 200):
+            chunk = list(chunk)
             
-            for work in self._get_works(changeset):
+            works = [work for changeset in chunk 
+                          for work in self._get_works(changeset)]
+
+            editions = [e for changeset in chunk 
+                        for e in self._get_editions(changeset)]
+                        
+            keys = [w['key'] for w in works] + [e['works'][0]['key'] for e in editions if e.get('works')] 
+            keys = list(set(keys))
+            self.works_db.db.preload(keys)
+            
+            for work in works:
                 work = self.works_db.update_work(ctx, work)
-                
-            for edition in self._get_editions(changeset):
+
+            # works have been modified. Commit to update the views.
+            self.works_db.db.commit()
+            
+            for edition in editions:
                 self.works_db.update_edition(ctx, edition)
             
             ctx.editions.clear() # we are not using them right now
+
+            if len(ctx.seeds) > 1000:
+                self.works_db.db.commit()
+
+                logging.info("BEGIN updating seeds")
+                self.seeds_db.update_seeds(ctx.seeds.keys())
+                ctx.seeds.clear()
+                logging.info("END updating seeds")
+            
+            # reset to limit the make sure the size of cache never grows without any limit.
+            if len(self.works_db.db.docs) > 1000:
+                self.works_db.db.reset()
+                
+        self.works_db.db.commit()
+        self.works_db.db.reset()
         
         logging.info("BEGIN updating seeds")
         self.seeds_db.update_seeds(ctx.seeds.keys())
+        ctx.seeds.clear()
         logging.info("END updating seeds")
         
     def process_changeset(self, changeset):
@@ -80,6 +157,8 @@ class Updater:
 
         self.seeds_db.update_seeds(ctx.seeds.keys())
         
+        self.works_db.db.commit()
+        self.works_db.db.reset()
         # TODO: update editions_db   
         
     def _get_works(self, changeset):
@@ -90,7 +169,6 @@ class Updater:
         return [doc for doc in changeset.get("docs", []) 
                     if doc['key'].startswith("/books/")]
     
-
 class WorksDB:
     """The works db contains the denormalized works.
     
@@ -100,13 +178,19 @@ class WorksDB:
     def __init__(self, db):
         self.db = db
         
-    def update_work(self, ctx, work):
+    def update_works(self, ctx, works):
+        pass
+        
+    def update_work(self, ctx, work, get=None, save=None):
         """Adds/Updates the given work in the database.
         """
+        get = get or self.db.get
+        save = save or self.db.save
+        
         logging.info("updating work %s", work['key'])
         
         key = work['key']
-        old_work = self.db.get(key, {})
+        old_work = get(key, {})
         if old_work:
             work['_rev'] = old_work['_rev']
             work['editions'] = old_work.get('editions', [])
@@ -116,6 +200,8 @@ class WorksDB:
             work['editions'] = []
             old_seeds = set()
             
+
+        work['_id'] = work['key']
         new_seeds = set(self.get_seeds(work))
         
         # Add both old and new seeds to the queue
@@ -126,7 +212,7 @@ class WorksDB:
         if old_seeds != new_seeds:
             ctx.add_editions(work['editions'])
             
-        self.db[key] = work
+        save(work)
         return work
         
     def update_edition(self, ctx, edition):
@@ -143,7 +229,7 @@ class WorksDB:
 
         # unlink the edition from old work if required
         if old_work_key and old_work_key != work_key:
-            old_work = self.db[old_work_key]
+            old_work = self.db.get(old_work_key)
             self._delete_edtion(old_work, edition)
             self.db.save(old_work)
             
@@ -169,8 +255,11 @@ class WorksDB:
         
     def _delete_edtion(self, work, edition):
         editions = dict((e['key'], e) for e in work.get('editions', []))
-        del editions[edition['key']]
-        work['editions'] = editions.values()
+        
+        key = edition['key']
+        if key in editions:
+            del editions[key]
+            work['editions'] = editions.values()
         
     def _add_edition(self, work, edition):
         editions = dict((e['key'], e) for e in work.get('editions', []))
@@ -190,7 +279,7 @@ class WorksDB:
             return None
             
     def get_works(self, seed, chunksize=1000):
-        rows = couch_iterview(self.db, "seeds/seeds", key=seed, include_docs=True)
+        rows = self.db.view("seeds/seeds", key=seed, include_docs=True).rows
         return (row.doc for row in rows)
         
     def get_work_counts(self, seed, chunksize=1000):
@@ -218,38 +307,36 @@ class SeedsDB:
     def __init__(self, db, works_db):
         self.db = db
         self.works_db = works_db
+        self._big_seeds = None
         
     def update_seeds(self, seeds):
-        logging.info("update_seeds %s", len(seeds))
-        chunks = [list(x) for x in web.group(seeds, 100)]
-        pool = multiprocessing.Pool(4)
-        pool.map(self, chunks)
+        big_seeds = self.get_big_seeds()
+        seeds = [seed for seed in seeds if seed not in big_seeds]
+        logging.info("update_seeds %s", seeds)
         
-    def __call__(self, seeds):
-        docs = [self._get_seed_doc(seed) for seed in seeds]
-        couchdb_bulk_save(self.db, docs)
+        counts = self.works_db.db.view("seeds2/seeds", keys=seeds)
         
-    def _get_seed_doc(self, seed):        
-        logging.info("BEGIN map-reduce for %r", seed)
-        works = self.works_db.get_works(seed)
-        doc = SeedView().map_reduce(works, seed)
-        logging.info("END map-reduce for %r", seed)
-        
-        if self.is_empty(doc):
-            doc = {"_deleted": True}
-        
+        docs = dict((seed, self._get_seed_doc(seed, rows))
+                    for seed, rows 
+                    in itertools.groupby(counts, lambda row: row['key']))
+                    
+        for s in seeds:
+            if s not in docs:
+                docs[s] = {"_id": s, "_deleted": True}
+                    
+        couchdb_bulk_save(self.db, docs.values())
+                    
+    def _get_seed_doc(self, seed, rows):
+        doc = SeedView().reduce(row['value'] for row in rows)
         doc['_id'] = seed
         return doc
+        
+    def get_big_seeds(self):
+        if not self._big_seeds:
+            # consider seeds having more than 2000 works as big ones
+            self._big_seeds =  set(row.key for row in self.db.view("sort/by_work_count", endkey=2000, descending=True))
+        return self._big_seeds
                 
-    def is_empty(self, seed):
-        return seed == {
-            "works": 0,
-            "editions": 0,
-            "ebooks": 0,
-            "last_modified": "",
-            "subjects": []
-        }
-
 def couchdb_bulk_save(db, docs):
     """Saves/updates the given docs into the given couchdb database using bulk save.
     """
@@ -262,15 +349,34 @@ def couchdb_bulk_save(db, docs):
             doc['_rev'] = revs[id]
     
     db.update(docs)
+    
+def couch_row_iter(url, keys):
+    headers = {"Content-Type": "application/json"}
+    
+    req = urllib2.Request(url, simplejson.dumps({"keys": keys}), headers)
+    f = urllib2.urlopen(req).fp
+    f.readline() # skip the first line
 
+    while True:
+        line = f.readline().strip()
+        if not line:
+            break # error?
+
+        if line.endswith(","):
+            yield simplejson.loads(line[:-1])
+        else:
+            # last row
+            yield simplejson.loads(line)
+            break
+    
 def couch_iterview(db, viewname, chunksize=100, **options):
+    print "couchdb %s: %s, %s, %s" % (db.name, viewname, chunksize, options)
     rows = db.view(viewname, limit=chunksize, **options).rows
     for row in rows:
         yield row
         docid = row.id
         
-    while len(rows) == limit:
-        print "db.view", viewname, docid
+    while len(rows) == chunksize:
         rows = db.view(viewname, startkey_docid=docid, skip=1, limit=chunksize, **options).rows
         for row in rows:
             yield row
@@ -331,23 +437,24 @@ class SeedView:
 
             for s in subjects:
                 yield s['key'], dict(xwork, subjects=[s])
-        
+    
     def reduce(self, values):
         d = {
             "works": 0,
             "editions": 0,
             "ebooks": 0,
             "last_modified": "",
-            "subjects": []
         }
+        subject_processor = SubjectProcessor()
+        
         for v in values:
-            d["works"] += v['works']
-            d['editions'] += v['editions']
-            d['ebooks'] += v['ebooks']
-            d['subjects'] += v['subjects']
-            d['last_modified'] = max(d['last_modified'], v['last_modified'])
+            d["works"] += v[0]
+            d['editions'] += v[1]
+            d['ebooks'] += v[2]
+            d['last_modified'] = max(d['last_modified'], v[3])
+            subject_processor.add_subjects(v[4])
             
-        d['subjects'] = self._process_subjects(d['subjects'])
+        d['subjects'] = subject_processor.top_subjects()
         return d
             
     def _most_used(self, seq):
@@ -373,6 +480,38 @@ class SeedView:
                     if k == key)
         return self.reduce(values)
         
+class SubjectProcessor:
+    """Processor to take a dict of subjects, places, people and times and build a list of ranked subjects.
+    """
+    def __init__(self):
+        self.subjects = collections.defaultdict(list)
+        
+    def add_subjects(self, subjects):
+        for s in subjects.get("subjects", []):
+            self._add_subject('subject:', s)
+            
+    def _add_subject(self, prefix, name):
+        s = self._get_subject(prefix, name)
+        if s:
+            self.subjects[s['key']].append(s['name'])
+            
+    def _get_subject(self, prefix, subject_name):
+        if isinstance(subject_name, basestring):
+            key = prefix + RE_SUBJECT.sub("_", subject_name.lower()).strip("_")
+            return {"key": key, "name": subject_name}
+        
+    def _most_used(self, seq):
+        d = collections.defaultdict(lambda: 0)
+        for x in seq:
+            d[x] += 1
+
+        return sorted(d, key=lambda k: d[k], reverse=True)[0]
+            
+    def top_subjects(self, limit=100):
+        subjects = [{"key": key, "name": self._most_used(names), "count": len(names)} for key, names in self.subjects.items()]
+        subjects.sort(key=lambda s: s['count'], reverse=True)
+        return subjects[:limit]
+
 def main(configfile):
     """Creates an updater using the config files and calls it with changesets read from stdin.
     
@@ -380,9 +519,15 @@ def main(configfile):
     """
     config = formats.load_yaml(open(configfile).read())
     updater = Updater(config)
+    
+    #updater.seeds_db.update_seeds()
+
+    seeds = ["subject:armed_forces", "subject:commentaries", "subject:communism", "subject:economics", "subject:english"]
+    #seeds = ["/authors/OL4529419A", "/authors/OL2754228A", "/authors/OL41174A"]
+    updater.seeds_db.update_seeds(seeds)
         
-    changesets = (simplejson.loads(line.strip()) for line in sys.stdin)
-    updater.process_changesets(changesets)
+    #changesets = (simplejson.loads(line.strip()) for line in sys.stdin)
+    #updater.process_changesets(changesets)
             
 if __name__ == "__main__":
     import sys

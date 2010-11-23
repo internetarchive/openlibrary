@@ -26,6 +26,7 @@ class TestWorksDB:
     def setup_method(self, method):
         db = mock_couchdb.Database()
         db.save(read_couchapp("works/seeds"))
+        db['_design/seeds2'] = db['_design/seeds']
         self.works_db = updater.WorksDB(db)
         self.ctx = updater.UpdaterContext()
         
@@ -128,8 +129,8 @@ class TestWorksDB:
             "total_rows": 2,
             "offset": 0,
             "rows": [
-                {"id": "/works/OL1W", "key": "/books/OL1M", "value": None},
-                {"id": "/works/OL1W", "key": "/works/OL1W", "value": None}
+                {"id": "/works/OL1W", "key": "/books/OL1M", "value": [1, 1, 0, "", {}]},
+                {"id": "/works/OL1W", "key": "/works/OL1W", "value": [1, 1, 0, "", {}]}
             ]
         }
         
@@ -223,28 +224,14 @@ class TestSeedView:
         assert rows['/books/OL2M'] == dict(d, editions=1, ebooks=0, last_modified="2009-01-02 10:20:30")
 
     def test_reduce(self):
-        d1 = {
-            "works": 1,
-            "editions": 2,
-            "ebooks": 1,
-            "last_modified": "2010-11-11 10:20:30",
-            "subjects": [
-                {"name": "Love", "key": "subject:love"},
-                {"name": "Hate", "key": "subject:hate"}
-            ]
-        }
+        d1 = [1, 2, 1, "2010-11-11 10:20:30", {
+            "subjects": ["Love", "Hate"]
+        }]
 
-        d2 = {
-            "works": 1,
-            "editions": 1,
-            "ebooks": 0,
-            "last_modified": "2009-01-02 10:20:30",
-            "subjects": [
-                {"name": "Love", "key": "subject:love"}
-            ]
-        }
+        d2 = [1, 1, 0, "2009-01-02 10:20:30", {
+            "subjects": ["Love"]
+        }]
         view = updater.SeedView()
-        
         assert view.reduce([d1, d2]) == {
             "works": 2,
             "editions": 3,
@@ -275,6 +262,8 @@ class TestUpdater:
         self.updater = Updater(config)
         
         databases["works"].save(read_couchapp("works/seeds"))
+        databases['works']['_design/seeds2'] = databases['works']['_design/seeds']
+        databases['seeds'].save(read_couchapp("seeds/sort"))
         
     def _get_doc(self, dbname, id):
         doc = self.databases[dbname].get(id)
@@ -303,10 +292,11 @@ class TestUpdater:
         
         self.updater.process_changeset(changeset)
         
-        keys = sorted(self.databases["works"])
-        assert keys == ["/works/OL1W", "_design/seeds"]
+        print list(self.databases["works"])
+        keys = sorted(k for k in self.databases["works"] if not k.startswith("_"))
+        assert keys == ["/works/OL1W"]
         
-        keys = sorted(self.databases["seeds"])
+        keys = sorted(k for k in self.databases["seeds"] if not k.startswith("_"))
         assert keys == ["/books/OL1M", "/works/OL1W", "subject:love"]
         
         assert self._get_doc("seeds", "/works/OL1W") == {

@@ -4,9 +4,10 @@ import uuid
 from couchdb.client import View
 
 class Database:
-    def __init__(self):
+    def __init__(self, name=None):
         self.docs = {}
         self._views = {}
+        self.name = name or "mock-couchdb"
         
         self._views["_all_docs"] = _View(self._map_all_docs)
         
