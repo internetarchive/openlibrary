@@ -101,8 +101,15 @@ def load(ia, use_binary=False):
 
 def write_edition(ia, edition, rec):
     loc = 'ia:' + ia
-    if ia == 'ofilhoprdigodr00mano':
+    if ia == 'munkai00apor':
+        edition['languages'] = [
+            {'key': '/languages/lat'},
+            {'key': '/languages/hun'},
+        ]
+    elif ia == 'ofilhoprdigodr00mano':
         edition['languages'] = [{'key': '/languages/por'}]
+    elif ia == 'nekaroronneteyer00hill':
+        edition['languages'] = [{'key': '/languages/moh'}]
     elif ia == 'adventuresofamer00kouw':
         edition['languages'] = [{'key': '/languages/eng'}]
     elif ia == 'goldentreasury00wrig':
@@ -446,7 +453,6 @@ if __name__ == '__main__':
         if args.item_id:
             break
         print >> open(state_file, 'w'), start
-        continue # FIXME
         if mins < 30:
             print 'waiting'
             sleep(60 * 30 - secs)
