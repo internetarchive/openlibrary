@@ -32,7 +32,7 @@
         "Leipzig"
     ], 
     "contributions": [
-        "Kirchner, Carl Christian Jacob, 1787-1855, tr. [and] ed.", 
+        "Kirchner, Carl Christian Jacob, 1787-1855, tr. [and] ed", 
         "Teuffel, Wilhelm Sigmund, 1820-1878"
     ]
 }
