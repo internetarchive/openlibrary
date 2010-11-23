@@ -243,9 +243,18 @@ def marc_formats(ia):
     }
     has = { 'xml': False, 'bin': False }
     url = 'http://www.archive.org/download/' + ia + '/' + ia + '_files.xml'
-    f = urlopen_keep_trying(url)
+    for attempt in range(10):
+        f = urlopen_keep_trying(url)
+        if f is not None:
+            break
+        sleep(10)
     if f is None:
-        return {}
+        msg_from = 'load_scribe@archive.org'
+        msg_to = ['edward@archive.org']
+        subject = "error reading %s_files.xml" % ia
+        msg = url
+        error_mail(msg_from, msg_to, subject, msg)
+        return has
     data = f.read()
     try:
         root = etree.fromstring(data)
