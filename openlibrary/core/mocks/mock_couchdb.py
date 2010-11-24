@@ -4,9 +4,10 @@ import uuid
 from couchdb.client import View
 
 class Database:
-    def __init__(self):
+    def __init__(self, name=None):
         self.docs = {}
         self._views = {}
+        self.name = name or "mock-couchdb"
         
         self._views["_all_docs"] = _View(self._map_all_docs)
         
@@ -150,8 +151,12 @@ class MockView(View):
         
         if options.get('startkey_docid') == "0099":
             raise StopIteration
-        
-        if "key" in options:
+            
+        if "keys" in options:
+          keys = set(options['keys'])
+          rows = [row for row in self.rows if row['key'] in keys]
+          offset = None
+        elif "key" in options:
             key = options['key']
             try:
                 keys = [row['key'] for row in rows]
@@ -179,8 +184,10 @@ class MockView(View):
             for row in rows:
                 row["doc"] = self.db[row['id']]
             
-        return {
+        result = {
             "total_rows": len(self.rows),
-            "offset": offset,
             "rows": rows,
         }
+        if offset is not None:
+            result['offset'] = offset
+        return result

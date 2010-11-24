@@ -1,2 +1,3 @@
 def map(doc):
-    yield doc['works'], None
+    if 'works' in doc:
+        yield doc['works'], None
