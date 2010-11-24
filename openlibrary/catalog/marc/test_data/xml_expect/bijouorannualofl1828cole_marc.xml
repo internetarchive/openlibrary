@@ -1,37 +1,37 @@
 {
-    "other_titles": [
-        "Bijou", 
-        "Annual of literature and the arts"
-    ], 
-    "publishers": [
-        "William Pickering"
-    ], 
-    "authors": [
-        {
-            "birth_date": "1772", 
-            "personal_name": "Coleridge, Samuel Taylor", 
-            "death_date": "1834", 
-            "name": "Coleridge, Samuel Taylor", 
-            "entity_type": "person"
-        }
-    ], 
-    "publish_places": [
-        "London"
-    ], 
-    "contributions": [
-        "Lamb, Charles, 1775-1834"
-    ], 
-    "pagination": "1 v. :", 
-    "title": "The Bijou, or Annual of literature and the arts", 
-    "lccn": [
-        "83"
-    ], 
-    "notes": "No more published?", 
-    "languages": [
-        {
-            "key": "/languages/eng"
-        }
-    ], 
-    "publish_date": "1828", 
-    "publish_country": "enk"
+  "other_titles": [
+    "Bijou", 
+    "Annual of literature and the arts"
+  ], 
+  "publishers": [
+    "William Pickering"
+  ], 
+  "pagination": "1 v. :", 
+  "title": "The Bijou, or Annual of literature and the arts", 
+  "lccn": [
+    "83"
+  ], 
+  "notes": "No more published?", 
+  "languages": [
+    {
+      "key": "/languages/eng"
+    }
+  ], 
+  "publish_date": "1828", 
+  "publish_country": "enk", 
+  "authors": [
+    {
+      "birth_date": "1772", 
+      "personal_name": "Coleridge, Samuel Taylor", 
+      "death_date": "1834", 
+      "name": "Coleridge, Samuel Taylor", 
+      "entity_type": "person"
+    }
+  ], 
+  "publish_places": [
+    "London"
+  ], 
+  "contributions": [
+    "Lamb, Charles, 1775-1834"
+  ]
 }

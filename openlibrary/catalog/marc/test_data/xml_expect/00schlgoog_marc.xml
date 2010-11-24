@@ -1,35 +1,35 @@
 {
-    "lc_classifications": [
-        "BM520.9 .H35 1886"
-    ], 
-    "authors": [
-        {
-            "name": "Yehudai ben Na\u1e25man gaon", 
-            "title": "gaon", 
-            "entity_type": "person", 
-            "role": "supposed author", 
-            "date": "8th century", 
-            "personal_name": "Yehudai ben Na\u1e25man"
-        }
-    ], 
-    "publish_places": [
-        "Versailles"
-    ], 
-    "contributions": [
-        "Schlosberg, Leon, d. 1899, ed"
-    ], 
-    "pagination": "x, 148 p.", 
-    "title": "Halakhot pesukot", 
-    "lccn": [
-        "60055861"
-    ], 
-    "notes": "Romanized.", 
-    "number_of_pages": 148, 
-    "languages": [
-        {
-            "key": "/languages/heb"
-        }
-    ], 
-    "publish_date": "1886", 
-    "publish_country": "fr "
+  "pagination": "x, 148 p.", 
+  "title": "Halakhot pesukot", 
+  "lccn": [
+    "60055861"
+  ], 
+  "notes": "Romanized.", 
+  "number_of_pages": 148, 
+  "languages": [
+    {
+      "key": "/languages/heb"
+    }
+  ], 
+  "lc_classifications": [
+    "BM520.9 .H35 1886"
+  ], 
+  "publish_date": "1886", 
+  "publish_country": "fr ", 
+  "authors": [
+    {
+      "name": "Yehudai ben Na\u1e25man gaon", 
+      "title": "gaon", 
+      "personal_name": "Yehudai ben Na\u1e25man", 
+      "role": "supposed author", 
+      "date": "8th century", 
+      "entity_type": "person"
+    }
+  ], 
+  "publish_places": [
+    "Versailles"
+  ], 
+  "contributions": [
+    "Schlosberg, Leon, d. 1899, ed"
+  ]
 }

@@ -1,26 +1,26 @@
 {
-    "pagination": "no. in v.", 
-    "title": "Soil survey report", 
-    "lccn": [
-        "37038470"
-    ], 
-    "notes": "Serial.\n\nPREMARC/SERLOC merged record", 
-    "languages": [
-        {
-            "key": "/languages/eng"
-        }
-    ], 
-    "lc_classifications": [
-        "S599.I7 A3"
-    ], 
-    "publish_country": "iau", 
-    "authors": [
-        {
-            "name": "Iowa. Agricultural and Home Economics Experiment Station, Ames. [from old catalog]", 
-            "entity_type": "org"
-        }
-    ], 
-    "publish_places": [
-        "Ames"
-    ]
+  "pagination": "no. in v.", 
+  "title": "Soil survey report", 
+  "lccn": [
+    "37038470"
+  ], 
+  "notes": "Serial.\n\nPREMARC/SERLOC merged record", 
+  "languages": [
+    {
+      "key": "/languages/eng"
+    }
+  ], 
+  "lc_classifications": [
+    "S599.I7 A3"
+  ], 
+  "publish_country": "iau", 
+  "authors": [
+    {
+      "name": "Iowa. Agricultural and Home Economics Experiment Station, Ames. [from old catalog]", 
+      "entity_type": "org"
+    }
+  ], 
+  "publish_places": [
+    "Ames"
+  ]
 }
