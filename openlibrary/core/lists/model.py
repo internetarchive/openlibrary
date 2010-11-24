@@ -202,6 +202,11 @@ class ListMixin:
     def get_seeds(self):
         return [Seed(self, s) for s in self.seeds]
         
+    def has_seed(self, seed):
+        if isinstance(seed, dict):
+            seed = seed['key']
+        return seed in self._get_rawseeds()
+        
     def _get_seeds_db(self):
         db_url = config.get("lists", {}).get("seeds_db")
         if not db_url:
