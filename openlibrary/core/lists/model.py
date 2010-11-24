@@ -295,9 +295,16 @@ class Seed:
         elif self.type == "author":
             return self.document.name or self.key
         elif self.type == "subject":
-            return self.key.split(":")[-1]
+            return self._get_subject_title()
         else:
             return self.key
+    
+    def _get_subject_title(self):
+        subjects = self._get_summary().get("subjects")
+        if subjects:
+            return subjects[0]['name']
+        else:
+            return self.key.replace("_", " ")
             
     def get_url(self):
         if self.document:
