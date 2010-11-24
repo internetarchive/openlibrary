@@ -192,7 +192,8 @@ class WorksDB:
         key = work['key']
         old_work = get(key, {})
         if old_work:
-            work['_rev'] = old_work['_rev']
+            if "_rev" in old_work:  # ugly side-effect of CachedDatabase.
+                work['_rev'] = old_work['_rev']
             work['editions'] = old_work.get('editions', [])
             
             old_seeds = set(self.get_seeds(old_work))
