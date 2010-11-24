@@ -303,7 +303,10 @@ class Seed:
         if self.document:
             return self.document.url()
         else:
-            return "/subjects/" + self.key
+            if self.key.startswith("subject:"):
+                return "/subjects/" + web.lstrips(self.key, "subject:")
+            else:
+                return "/subjects/" + self.key
             
     def get_cover(self):
         if self.type in ['work', 'edition']:

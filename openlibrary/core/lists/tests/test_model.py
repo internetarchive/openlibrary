@@ -55,3 +55,12 @@ class TestListMixin:
         assert list.get_top_subjects(limit=1) == [
             {"key": "subject:love", "url": "/subjects/love", "name": "Love", "title": "Love", "count": 4}
         ]
+        
+class TestSeed:
+    def test_subject_url(self):
+        Seed = model.Seed
+        print Seed(None, "subject:foo").url
+        assert Seed(None, "subject:foo").url == "/subjects/foo"
+        assert Seed(None, "person:foo").url == "/subjects/person:foo"
+        assert Seed(None, "place:foo").url == "/subjects/place:foo"
+        assert Seed(None, "time:foo").url == "/subjects/time:foo"
