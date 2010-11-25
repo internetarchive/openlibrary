@@ -326,7 +326,7 @@ class Subject(web.storage):
         seed = self.key.split("/")[-1]
         if seed.split(":")[0] not in ["place", "person", "time"]:
             seed = "subject:" + seed
-        return subject
+        return seed
 
 def register_models():
     client.register_thing_class(None, Thing) # default
