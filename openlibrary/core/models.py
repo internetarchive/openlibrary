@@ -319,8 +319,8 @@ class Subject(web.storage):
             "type": "/type/list",
             "seeds": {"key": self.key} 
         }
-        keys = self._site.things(q)
-        return self._site.get_many(keys)
+        keys = web.ctx.site.things(q)
+        return web.ctx.site.get_many(keys)
         
     def get_seed(self):
         seed = self.key.split("/")[-1]
