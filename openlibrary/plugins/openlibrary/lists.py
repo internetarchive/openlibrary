@@ -223,24 +223,30 @@ class export(delegate.page):
         if not list:
             raise web.notfound()
             
-        i = web.input(format="html")
-        
-        if i.format == "html":
-            editions = list.get_editions(limit=10000, offset=0)['editions']
-            list.preload_authors(editions)
-            html = render_template("lists/export_as_html", list, editions)
+        format = web.input(format="html").format
+                
+        if format == "html":
+            html = render_template("lists/export_as_html", list, self.get_editions(list))
             return delegate.RawText(html)
-        elif i.format == "json":
-            editions = list.get_editions(limit=10000, offset=0, _raw=True)['editions']
+        elif format == "bibtex":
+            html = render_template("lists/export_as_bibtex", list, self.get_editions(list))
+            return delegate.RawText(html)
+        elif format == "json":
+            data = {"editions": self.get_editions(list, raw=True)}
             web.header("Content-Type", "application/json")
-            return delegate.RawText(formats.dump_json({"editions": editions}))
-        elif i.format == "yaml":
-            editions = list.get_editions(limit=10000, offset=0, _raw=True)['editions']
+            return delegate.RawText(formats.dump_json(data))
+        elif format == "yaml":
+            data = {"editions": self.get_editions(list, raw=True)}
             web.header("Content-Type", "application/yaml")
-            return delegate.RawText(formats.dump_yaml({"editions": editions}))
+            return delegate.RawText(formats.dump_yaml(data))
         else:
-            # TODO: show error 
-            pass
-
+            raise web.notfound()
+            
+    def get_editions(self, list, raw=False):
+        editions = list.get_editions(limit=10000, offset=0, _raw=raw)['editions']
+        if not raw:
+            list.preload_authors(editions)
+        return editions
+        
 def setup():
     pass
