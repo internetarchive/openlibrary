@@ -313,6 +313,21 @@ class List(Thing, ListMixin):
                 return i
         return -1
 
+class Subject(web.storage):
+    def get_lists(self):
+        q = {
+            "type": "/type/list",
+            "seeds": {"key": self.key} 
+        }
+        keys = self._site.things(q)
+        return self._site.get_many(keys)
+        
+    def get_seed(self):
+        seed = self.key.split("/")[-1]
+        if seed.split(":")[0] not in ["place", "person", "time"]:
+            seed = "subject:" + seed
+        return subject
+
 def register_models():
     client.register_thing_class(None, Thing) # default
     client.register_thing_class('/type/edition', Edition)

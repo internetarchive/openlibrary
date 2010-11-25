@@ -17,6 +17,8 @@ except AttributeError:
 from openlibrary.plugins.search.code import search as _edition_search
 from infogami.plugins.api.code import jsonapi
 
+from openlibrary.core.models import Subject
+
 re_solr_range = re.compile(r'\[.+\bTO\b.+\]', re.I)
 re_bracket = re.compile(r'[\[\]]')
 re_to_esc = re.compile(r'[\[\]:]')
@@ -601,7 +603,7 @@ def get_subject(key, details=False, offset=0, limit=12, **filters):
     for w in result.docs:
         w.ia = w.ia and w.ia[0] or None
 
-    subject = web.storage(
+    subject = Subject(
         key=key,
         name=name,
         subject_type=subject_type,
