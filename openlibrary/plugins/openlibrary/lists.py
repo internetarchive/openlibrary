@@ -210,10 +210,33 @@ class list_editions_json(delegate.page):
         data = list.get_editions(limit=limit, offset=offset, _raw=True)
         text = formats.dump(data, self.encoding)
         return delegate.RawText(text, content_type=self.content_type)
-    
+        
 class list_editions_yaml(list_editions_json):
     encoding = "yml"
     content_type = 'text/yaml; charset="utf-8"'
+    
+class export(delegate.page):
+    path = "(/people/\w+/lists/OL\d+L)/export"
+
+    def GET(self, key):
+        list = web.ctx.site.get(key)
+        if not list:
+            raise web.notfound()
+            
+        i = web.input(format="html")
+        editions = list.get_editions(limit=10000, offset=0, _raw=True)['editions']
+        
+        if i.format == "html":
+            return render_template("lists/export_as_html", list, editions)
+        elif i.format == "json":
+            web.header("Content-Type", "application/json")
+            return delegate.RawText(formats.dump_json({"editions": editions}))
+        elif i.format == "yaml":
+            web.header("Content-Type", "application/yaml")
+            return delegate.RawText(formats.dump_yaml({"editions": editions}))
+        else:
+            # TODO: show error 
+            pass
 
 def setup():
     pass
