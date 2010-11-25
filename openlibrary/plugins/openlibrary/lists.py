@@ -224,14 +224,18 @@ class export(delegate.page):
             raise web.notfound()
             
         i = web.input(format="html")
-        editions = list.get_editions(limit=10000, offset=0, _raw=True)['editions']
         
         if i.format == "html":
-            return render_template("lists/export_as_html", list, editions)
+            editions = list.get_editions(limit=10000, offset=0)['editions']
+            list.preload_authors(editions)
+            html = render_template("lists/export_as_html", list, editions)
+            return delegate.RawText(html)
         elif i.format == "json":
+            editions = list.get_editions(limit=10000, offset=0, _raw=True)['editions']
             web.header("Content-Type", "application/json")
             return delegate.RawText(formats.dump_json({"editions": editions}))
         elif i.format == "yaml":
+            editions = list.get_editions(limit=10000, offset=0, _raw=True)['editions']
             web.header("Content-Type", "application/yaml")
             return delegate.RawText(formats.dump_yaml({"editions": editions}))
         else:

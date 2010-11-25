@@ -130,7 +130,7 @@ class ListMixin:
     def preload_authors(self, editions):
         works = self.preload_works(editions)
         return self._preload(a.author.key for w in works
-                                          for a in w.get("authors")
+                                          for a in w.get("authors", [])
                                           if "author" in a)
                             
     def load_changesets(self, editions):
@@ -150,7 +150,10 @@ class ListMixin:
          """
         for e in editions:
             if "recent_changeset" not in e:
-                e['recent_changeset'] = self._site.recentchanges({"key": e.key, "limit": 1})[0]
+                try:
+                    e['recent_changeset'] = self._site.recentchanges({"key": e.key, "limit": 1})[0]
+                except IndexError:
+                    pass
     
     def _get_all_subjects(self):
         d = defaultdict(list)
