@@ -317,7 +317,7 @@ class Subject(web.storage):
     def get_lists(self):
         q = {
             "type": "/type/list",
-            "seeds": {"key": self.key} 
+            "seeds": self.get_seed()
         }
         keys = web.ctx.site.things(q)
         return web.ctx.site.get_many(keys)
