@@ -581,6 +581,15 @@ class SubjectProcessor:
     def add_subjects(self, subjects):
         for s in subjects.get("subjects", []):
             self._add_subject('subject:', s)
+
+        for s in subjects.get("people", []):
+            self._add_subject('person:', s)
+
+        for s in subjects.get("places", []):
+            self._add_subject('place:', s)
+
+        for s in subjects.get("times", []):
+            self._add_subject('time:', s)
             
     def _add_subject(self, prefix, name):
         s = self._get_subject(prefix, name)
