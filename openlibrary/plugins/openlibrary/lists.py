@@ -95,7 +95,7 @@ class lists_json(delegate.page):
         try:
             result = site.save(list.dict(), 
                 comment="Created new list.",
-                action="new-list"
+                action="lists"
             )
         except client.ClientException, e:
             headers = {"Content-Type": self.get_content_type()}
@@ -156,7 +156,7 @@ class list_seeds(delegate.page):
         for seed in data.get("remove", []):
             list.remove_seed(seed)
             
-        d = list._save(comment="updated list seeds.")
+        d = list._save(comment="updated list seeds.", action="lists")
 
         web.header("Content-Type", self.content_type)
         return delegate.RawText(formats.dump(d, self.encoding))
