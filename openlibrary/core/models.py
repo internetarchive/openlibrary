@@ -12,7 +12,7 @@ import helpers as h
 from openlibrary.plugins.upstream.utils import get_history
 
 # relative imports
-from lists.model import ListMixin
+from lists.model import ListMixin, Seed
 
 class Image:
     def __init__(self, site, category, id):
@@ -350,4 +350,3 @@ def register_types():
     types.register_type('^/permission/[^/]*$', '/type/permision')
 
     types.register_type('^/(css|js)/[^/]*$', '/type/rawtext')
-    
