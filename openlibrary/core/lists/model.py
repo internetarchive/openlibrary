@@ -75,7 +75,6 @@ class ListMixin:
     def _get_last_update(self):
         dates = [seed.last_update for seed in self.get_seeds() if seed.last_update]
         d = dates and max(dates) or None
-        print "last_update", d
         return d
 
     seed_summary = cached_property("seed_summary", _get_seed_summary)
@@ -204,6 +203,11 @@ class ListMixin:
         
     def get_seeds(self):
         return [Seed(self, s) for s in self.seeds]
+        
+    def get_seed(self, seed):
+        if isinstance(seed, dict):
+            seed = seed['key']
+        return Seed(self, s)
         
     def has_seed(self, seed):
         if isinstance(seed, dict):
@@ -343,6 +347,10 @@ class Seed:
     title = property(get_title)
     url = property(get_url)
     cover = property(get_cover)
+    
+    def __repr__(self):
+        return "<seed: %s %s>" % (self.type, self.key)
+    __str__ = __repr__
     
 def crossproduct(A, B):
     return [(a, b) for a in A for b in B]

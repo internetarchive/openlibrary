@@ -95,7 +95,11 @@ class lists_json(delegate.page):
         try:
             result = site.save(list.dict(), 
                 comment="Created new list.",
-                action="lists"
+                action="lists",
+                data={
+                    "list": {"key": list.key},
+                    "seeds": data.get("seeds", [])
+                }
             )
         except client.ClientException, e:
             headers = {"Content-Type": self.get_content_type()}
@@ -150,14 +154,30 @@ class list_seeds(delegate.page):
             
         data = formats.load(web.data(), self.encoding)
         
-        for seed in data.get("add", []):
+        data.setdefault("add", [])
+        data.setdefault("remove", [])
+        
+        for seed in data["add"]:
             list.add_seed(seed)
             
-        for seed in data.get("remove", []):
+        for seed in data["remove"]:
             list.remove_seed(seed)
             
-        d = list._save(comment="updated list seeds.", action="lists")
-
+        seeds = []
+        for seed in data["add"] + data["remove"]:
+            if isinstance(seed, dict):
+                seeds.append(seed['key'])
+            else:
+                seeds.append(seed)
+                
+        changeset_data = {
+            "list": {"key": key},
+            "seeds": seeds,
+            "add": data.get("add", []),
+            "remove": data.get("remove", [])
+        }
+            
+        d = list._save(comment="updated list seeds.", action="lists", data=changeset_data)
         web.header("Content-Type", self.content_type)
         return delegate.RawText(formats.dump(d, self.encoding))
 

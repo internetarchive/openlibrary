@@ -757,7 +757,27 @@ class AddBookChangeset(Changeset):
         for doc in self.get_changes():
             if doc.key.startswith("/authors/"):
                 return doc
-    
+
+class ListChangeset(Changeset):
+    def get_added_seed(self):
+        added = self.data.get("add")
+        if added and len(added) == 1:
+            return self.get_seed(added[0])
+            
+    def get_removed_seed(self):
+        removed = self.data.get("remove")
+        if removed and len(removed) == 1:
+            return self.get_seed(removed[0])
+            
+    def get_list(self):
+        return self.get_changes()[0]
+        
+    def get_seed(self, seed):
+        """Returns the seed object."""
+        if isinstance(seed, dict):
+            seed = self._site.get(seed['key'])
+        return models.Seed(self.get_list(), seed)
+
 def setup():
     models.register_models()
     
@@ -775,3 +795,4 @@ def setup():
     client.register_changeset_class('undo', Undo)
 
     client.register_changeset_class('add-book', AddBookChangeset)
+    client.register_changeset_class('lists', ListChangeset)

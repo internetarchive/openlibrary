@@ -623,7 +623,7 @@ def main(configfile):
     
     changesets = (simplejson.loads(line.strip()) for line in sys.stdin)
     updater.process_changesets(changesets)
-            
+
 if __name__ == "__main__":
     import sys
     main(sys.argv[1])
