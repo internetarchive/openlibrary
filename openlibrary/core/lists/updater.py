@@ -13,6 +13,7 @@ import simplejson
 import web
 
 from openlibrary.core import formats, couch
+import engine
 
 logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s %(levelname)-8s %(message)s',
@@ -123,13 +124,12 @@ class Updater:
 
             self.editions_db.update_editions(ctx.editions.values())
             
-            if len(ctx.seeds) > 1000:
+            t = datetime.datetime.utcnow().isoformat()
+            if ctx.seeds:
+                logging.info("mark %d seeds for update" % len(ctx.seeds))
                 self.works_db.db.commit()
-
-                logging.info("BEGIN updating seeds")
-                self.seeds_db.update_seeds(ctx.seeds.keys())
+                self.seeds_db.mark_seeds_for_update()
                 ctx.seeds.clear()
-                logging.info("END updating seeds")
             
             # reset to limit the make sure the size of cache never grows without any limit.
             if len(self.works_db.db.docs) > 1000:
@@ -137,11 +137,6 @@ class Updater:
                 
         self.works_db.db.commit()
         self.works_db.db.reset()
-        
-        logging.info("BEGIN updating seeds")
-        self.seeds_db.update_seeds(ctx.seeds.keys())
-        ctx.seeds.clear()
-        logging.info("END updating seeds")
         
     def process_changeset(self, changeset):
         logging.info("processing changeset %s", changeset["id"])
@@ -166,7 +161,7 @@ class Updater:
                     if doc['key'].startswith("/works/")]
     
     def _get_editions(self, changeset):
-        return [doc for doc in changeset.get("docs", []) 
+        return [doc for doc in changeset.get("docs", [])
                     if doc['key'].startswith("/books/")]
     
 class WorksDB:
@@ -196,14 +191,13 @@ class WorksDB:
                 work['_rev'] = old_work['_rev']
             work['editions'] = old_work.get('editions', [])
             
-            old_seeds = set(self.get_seeds(old_work))
+            old_seeds = set(engine.get_seeds(old_work))
         else:
             work['editions'] = []
             old_seeds = set()
-            
 
         work['_id'] = work['key']
-        new_seeds = set(self.get_seeds(work))
+        new_seeds = set(engine.get_seeds(work))
         
         # Add both old and new seeds to the queue
         ctx.add_seeds(old_seeds)
@@ -251,7 +245,7 @@ class WorksDB:
                 self._delete_edtion(old_work, e)
                 self.db.save(old_work)
 
-                old_seeds = self.get_seeds(old_work)
+                old_seeds = engine.get_seeds(old_work)
                 ctx.add_seeds(old_seeds)
             
             if work_key is None:
@@ -267,50 +261,12 @@ class WorksDB:
             self._add_edition(work, e)
             self.db.save(work)
 
-            new_seeds = self.get_seeds(work)
+            new_seeds = engine.get_seeds(work)
             ctx.add_seeds(new_seeds)
             ctx.add_editions([e])
             
     def update_edition(self, ctx, edition):
         self.update_editions(ctx, [edition])
-        
-    def __update_edition(self, ctx, edition):
-        """Adds/updates the given edition in the database and returns the work from the database.
-        """
-        logging.info("updating edition %s", edition['key'])
-        
-        old_work_key = self._get_old_work_key(edition)
-        
-        try:
-            work_key = edition.get("works", [])[0]['key']
-        except IndexError:
-            work_key = None
-
-        # unlink the edition from old work if required
-        if old_work_key and old_work_key != work_key:
-            old_work = self.db.get(old_work_key)
-            self._delete_edtion(old_work, edition)
-            self.db.save(old_work)
-            
-            old_seeds = self.get_seeds(old_work)
-            ctx.add_seeds(old_seeds)
-            
-        if work_key is None:
-            return None
-        
-        # Add/update the edition to the current work
-        work = self.db.get(work_key)
-        if work is None:
-            # That work is not found in the db.
-            # Bad data? ignore for now.
-            return None
-            
-        self._add_edition(work, edition)
-        self.db.save(work)
-        
-        new_seeds = self.get_seeds(work)
-        ctx.add_seeds(new_seeds)
-        return work
         
     def _delete_edtion(self, work, edition):
         editions = dict((e['key'], e) for e in work.get('editions', []))
@@ -340,14 +296,7 @@ class WorksDB:
     def get_works(self, seed, chunksize=1000):
         rows = self.db.view("seeds/seeds", key=seed, include_docs=True).rows
         return (row.doc for row in rows)
-        
-    def get_work_counts(self, seed, chunksize=1000):
-        rows = couch_iterview(self.db, "counts/counts", key=seed)
-        return (row.value for row in rows)
-        
-    def get_seeds(self, work):
-        return [k for k, v in SeedView().map(work)]
-        
+                        
 class EditionsDB:
     def __init__(self, db, works_db):
         self.db = db
@@ -365,7 +314,7 @@ class EditionsDB:
                     for row in self.works_db.db.view("_all_docs", keys=work_keys, include_docs=True) 
                     if "doc" in row)
                     
-        seeds = dict((w['key'], self.works_db.get_seeds(w)) for w in works.values())
+        seeds = dict((w['key'], engine.get_seeds(w)) for w in works.values())
         
         for e in editions:
             key = e['key']
@@ -379,7 +328,7 @@ class EditionsDB:
             e['_id'] = key
         
         couchdb_bulk_save(self.db, editions)
-        
+
 class SeedsDB:
     """The seed db stores summary like work_count, edition_count, ebook_count,
     last_update, subjects etc for each seed.
@@ -391,6 +340,20 @@ class SeedsDB:
         self.db = db
         self.works_db = works_db
         self._big_seeds = None
+        
+    def mark_seeds_for_update(self, seeds):
+        docs = []
+        t = datetime.datetime.utcnow().isoformat()
+        
+        for row in self.db.view("_all_docs", keys=seeds, include_docs=True).rows:
+            if 'error' in row:
+                doc = {"_id": row.key}
+            else:
+                doc = row.doc
+            doc['dirty'] = t
+            docs.append(doc)
+        
+        couchdb_bulk_save(self.db, docs)
     
     def update_seeds(self, seeds, chunksize=50):
         big_seeds = self.get_big_seeds()
@@ -418,7 +381,7 @@ class SeedsDB:
         couchdb_bulk_save(self.db, docs.values())
     
     def _get_seed_doc(self, seed, rows):
-        doc = SeedView().reduce(row['value'] for row in rows)
+        doc = engine.reduce_seeds(row['value'] for row in rows)
         doc['_id'] = seed
         return doc
         
@@ -440,178 +403,7 @@ def couchdb_bulk_save(db, docs):
         if id in revs:
             doc['_rev'] = revs[id]
     
-    db.update(docs)
-    
-def couch_row_iter(url, keys):
-    headers = {"Content-Type": "application/json"}
-    
-    req = urllib2.Request(url, simplejson.dumps({"keys": keys}), headers)
-    f = urllib2.urlopen(req).fp
-    f.readline() # skip the first line
-
-    while True:
-        line = f.readline().strip()
-        if not line:
-            break # error?
-
-        if line.endswith(","):
-            yield simplejson.loads(line[:-1])
-        else:
-            # last row
-            yield simplejson.loads(line)
-            break
-    
-def couch_iterview(db, viewname, chunksize=100, **options):
-    print "couchdb %s: %s, %s, %s" % (db.name, viewname, chunksize, options)
-    rows = db.view(viewname, limit=chunksize, **options).rows
-    for row in rows:
-        yield row
-        docid = row.id
-        
-    while len(rows) == chunksize:
-        rows = db.view(viewname, startkey_docid=docid, skip=1, limit=chunksize, **options).rows
-        for row in rows:
-            yield row
-            docid = row.id
-
-class SeedView:
-    """Map-reduce view to compute seed info.
-    
-    This should ideally be part of a couchdb view, but it is too slow to run with couchdb.
-    """
-    def map(self, work):
-        def get_authors(work):
-            return [a['author'] for a in work.get('authors', []) if 'author' in a]
-
-        def _get_subject(subject, prefix):
-            if isinstance(subject, basestring):
-                key = prefix + RE_SUBJECT.sub("_", subject.lower()).strip("_")
-                return {"key": key, "name": subject}
-                
-        def get_subjects(work):
-            subjects = [_get_subject(s, "subject:") for s in work.get("subjects", [])]
-            places = [_get_subject(s, "place:") for s in work.get("subject_places", [])]
-            people = [_get_subject(s, "person:") for s in work.get("subject_people", [])]
-            times = [_get_subject(s, "time:") for s in work.get("subject_times", [])]
-            d = dict((s['key'], s) for s in subjects + places + people + times if s is not None)
-            return d.values()
-
-        type = work.get('type', {}).get('key')
-        if type == "/type/work":
-            authors = get_authors(work)
-            subjects = get_subjects(work)
-            editions = work.get('editions', [])
-
-            dates = (doc['last_modified'] for doc in [work] + work.get('editions', [])
-                                          if 'last_modified' in doc)
-            last_modified = max(date['value'] for date in dates or [""])
-
-            xwork = {
-                "works": 1,
-                "editions": len(editions),
-                "ebooks": sum(1 for e in editions if "ocaid" in e),
-                "subjects": subjects,
-                "last_modified": last_modified
-            }
-
-            yield work['key'], xwork
-            for a in authors:
-                yield a['key'], xwork
-
-            for e in editions:
-                yield e['key'], {
-                    'works': 1,
-                    'editions': 1,
-                    'ebooks': int("ocaid" in e),
-                    'last_modified': e['last_modified']['value'],
-                    'subjects': subjects,
-                }
-
-            for s in subjects:
-                yield s['key'], dict(xwork, subjects=[s])
-    
-    def reduce(self, values):
-        d = {
-            "works": 0,
-            "editions": 0,
-            "ebooks": 0,
-            "last_modified": "",
-        }
-        subject_processor = SubjectProcessor()
-        
-        for v in values:
-            d["works"] += v[0]
-            d['editions'] += v[1]
-            d['ebooks'] += v[2]
-            d['last_modified'] = max(d['last_modified'], v[3])
-            subject_processor.add_subjects(v[4])
-            
-        d['subjects'] = subject_processor.top_subjects()
-        return d
-            
-    def _most_used(self, seq):
-        d = collections.defaultdict(lambda: 0)
-        for x in seq:
-            d[x] += 1
-
-        return sorted(d, key=lambda k: d[k], reverse=True)[0]
-
-    def _process_subjects(self, subjects):
-        d = collections.defaultdict(list)
-
-        for s in subjects:
-            d[s['key']].append(s['name'])
-
-        subjects = [{"key": key, "name": self._most_used(names), "count": len(names)} for key, names in d.items()]
-        subjects.sort(key=lambda s: s['count'], reverse=True)
-        return subjects
-        
-    def map_reduce(self, works, key):
-        values = (v for work in works 
-                    for k, v in self.map(work) 
-                    if k == key)
-        return self.reduce(values)
-        
-class SubjectProcessor:
-    """Processor to take a dict of subjects, places, people and times and build a list of ranked subjects.
-    """
-    def __init__(self):
-        self.subjects = collections.defaultdict(list)
-        
-    def add_subjects(self, subjects):
-        for s in subjects.get("subjects", []):
-            self._add_subject('subject:', s)
-
-        for s in subjects.get("people", []):
-            self._add_subject('person:', s)
-
-        for s in subjects.get("places", []):
-            self._add_subject('place:', s)
-
-        for s in subjects.get("times", []):
-            self._add_subject('time:', s)
-            
-    def _add_subject(self, prefix, name):
-        s = self._get_subject(prefix, name)
-        if s:
-            self.subjects[s['key']].append(s['name'])
-            
-    def _get_subject(self, prefix, subject_name):
-        if isinstance(subject_name, basestring):
-            key = prefix + RE_SUBJECT.sub("_", subject_name.lower()).strip("_")
-            return {"key": key, "name": subject_name}
-        
-    def _most_used(self, seq):
-        d = collections.defaultdict(lambda: 0)
-        for x in seq:
-            d[x] += 1
-
-        return sorted(d, key=lambda k: d[k], reverse=True)[0]
-            
-    def top_subjects(self, limit=100):
-        subjects = [{"key": key, "name": self._most_used(names), "count": len(names)} for key, names in self.subjects.items()]
-        subjects.sort(key=lambda s: s['count'], reverse=True)
-        return subjects[:limit]
+    return db.update(docs)
 
 def main(configfile):
     """Creates an updater using the config files and calls it with changesets read from stdin.
