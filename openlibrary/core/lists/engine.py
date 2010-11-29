@@ -7,11 +7,54 @@ import simplejson
 def reduce_seeds(values):
     """Function to reduce the seed values got from works db.
     """
-    pass
+    d = {
+        "works": 0,
+        "editions": 0,
+        "ebooks": 0,
+        "last_modified": "",
+    }
+    subject_processor = SubjectProcessor()
+    
+    for v in values:
+        d["works"] += v[0]
+        d['editions'] += v[1]
+        d['ebooks'] += v[2]
+        d['last_modified'] = max(d['last_modified'], v[3])
+        subject_processor.add_subjects(v[4])
+        
+    d['subjects'] = subject_processor.top_subjects()
+    return d
     
 def get_seeds(work):
     """Returns all seeds of given work."""
-    pass
+    def get_authors(work):
+        return [a['author'] for a in work.get('authors', []) if 'author' in a]
+
+    def _get_subject(subject, prefix):
+        if isinstance(subject, basestring):
+            key = prefix + RE_SUBJECT.sub("_", subject.lower()).strip("_")
+            return {"key": key, "name": subject}
+            
+    def get_subjects(work):
+        subjects = [_get_subject(s, "subject:") for s in work.get("subjects", [])]
+        places = [_get_subject(s, "place:") for s in work.get("subject_places", [])]
+        people = [_get_subject(s, "person:") for s in work.get("subject_people", [])]
+        times = [_get_subject(s, "time:") for s in work.get("subject_times", [])]
+        d = dict((s['key'], s) for s in subjects + places + people + times if s is not None)
+        return d.values()
+    
+    def get(work):
+        yield work['key']
+        for a in get_authors(work):
+            yield a['key']
+        
+        for e in work.get('editions', []):
+            yield e['key']
+        
+        for s in get_subjects(work):
+            yield s['key']
+            
+    return list(get(work))
     
 class SubjectProcessor:
     """Processor to take a dict of subjects, places, people and times and build a list of ranked subjects.
