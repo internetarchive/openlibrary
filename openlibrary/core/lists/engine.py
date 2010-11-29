@@ -3,6 +3,7 @@
 
 import web
 import simplejson
+import re
 
 def reduce_seeds(values):
     """Function to reduce the seed values got from works db.
@@ -25,6 +26,8 @@ def reduce_seeds(values):
     d['subjects'] = subject_processor.top_subjects()
     return d
     
+RE_SUBJECT = re.compile("[, _]+")
+
 def get_seeds(work):
     """Returns all seeds of given work."""
     def get_authors(work):
