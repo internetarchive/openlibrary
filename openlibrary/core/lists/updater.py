@@ -2,6 +2,7 @@ import collections
 import itertools
 import logging
 import re
+import time
 import urllib2
 
 try:
@@ -37,6 +38,24 @@ class UpdaterContext:
         for s in seeds:
             self.seeds[s] = None
             
+class Timer:
+    def __init__(self):
+        self.names = collections.defaultdict(lambda: web.storage(time=0.0, count=0))
+        
+    def start(self, name):
+        d = self.names[name]
+        d.start = time.time()
+    
+    def end(self, name):
+        d = self.names[name]
+        d.count += 1
+        d.time += time.time() - d.start
+        
+    def print_summary(self):
+        for k in sorted(self.names, key=lambda name: self.names[name].time):
+            d = self.names[name]
+            print "%s\t%s\t%s" % (k, d.time, d.count)
+             
 class CachedDatabase:
     """CouchDB Database that caches some documents locally for faster access.
     """
@@ -116,17 +135,22 @@ class Updater:
                 work = self.works_db.update_work(ctx, work)
 
             # works have been modified. Commit to update the views.
+            logging.info("BEGIN commit works_db")
             self.works_db.db.commit()
+            logging.info("END commit works_db")
             
             self.works_db.update_editions(ctx, editions)
-
             self.editions_db.update_editions(ctx.editions.values())
             
             t = datetime.datetime.utcnow().isoformat()
             if ctx.seeds:
-                logging.info("mark %d seeds for update" % len(ctx.seeds))
+                logging.info("BEGIN commit works_db")
                 self.works_db.db.commit()
+                logging.info("END commit works_db")
+                
+                logging.info("BEGIN mark %d seeds for update" % len(ctx.seeds))
                 self.seeds_db.mark_seeds_for_update()
+                logging.info("END mark %d seeds for update" % len(ctx.seeds))
                 ctx.seeds.clear()
             
             # reset to limit the make sure the size of cache never grows without any limit.
@@ -210,7 +234,7 @@ class WorksDB:
         
     def update_editions(self, ctx, editions):
         editions = list(editions)
-        logging.info("works_db: update_editions %s", len(editions))
+        logging.info("works_db: BEGIN update_editions %s", len(editions))
         # remove duplicate entries from editions
         editions = dict((e['key'], e) for e in editions).values()
         keys = [e['key'] for e in editions]
@@ -262,6 +286,8 @@ class WorksDB:
             new_seeds = engine.get_seeds(work)
             ctx.add_seeds(new_seeds)
             ctx.add_editions([e])
+
+        logging.info("works_db: END update_editions %s", len(editions))
             
     def update_edition(self, ctx, edition):
         self.update_editions(ctx, [edition])
@@ -301,7 +327,7 @@ class EditionsDB:
         self.works_db = works_db
             
     def update_editions(self, editions):
-        logging.info("edition_db: updating %d editions", len(editions))
+        logging.info("edition_db: BEGIN updating %d editions", len(editions))
         
         def get_work_key(e):
             if e.get('works'):
@@ -325,7 +351,9 @@ class EditionsDB:
                 e['_deleted'] = True
             e['_id'] = key
         
+        logging.info("edition_db: saving...")
         couchdb_bulk_save(self.db, editions)
+        logging.info("edition_db: END updating %d editions", len(editions))
 
 class SeedsDB:
     """The seed db stores summary like work_count, edition_count, ebook_count,
