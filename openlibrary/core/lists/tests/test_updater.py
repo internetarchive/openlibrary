@@ -178,70 +178,6 @@ class TestWorksDB:
                 "last_modified": {"type": "/type/datetime", "value": "2010-10-20 10:20:30"}            
             }]
         }
-
-class TestSeedView:
-    def test_map(self):
-        work = {
-            "key": "/works/OL1W",
-            "type": {"key": "/type/work"},
-            "authors": [
-                {"author": {"key": "/authors/OL1A"}}
-            ],
-            "editions": [
-                {
-                    "key": "/books/OL1M", 
-                    "ocaid": "foobar",
-                    "last_modified": {"type": "/type/datetime", "value": "2010-11-11 10:20:30"}
-                },
-                {
-                    "key": "/books/OL2M", 
-                    "last_modified": {"type": "/type/datetime", "value": "2009-01-02 10:20:30"}
-                }
-                
-            ],
-            "subjects": ["Love"],
-            "last_modified": {"type": "/type/datetime", "value": "2010-01-02 10:20:30"}
-        }
-        
-        view = updater.SeedView()
-        
-        rows = dict(view.map(work))
-        assert sorted(rows.keys()) == sorted(["/authors/OL1A", "/books/OL1M", "/books/OL2M", "/works/OL1W", "subject:love"])
-        
-        d = {
-            "works": 1,
-            "editions": 2,
-            "ebooks": 1,
-            "last_modified": "2010-11-11 10:20:30",
-            "subjects": [
-                {"name": "Love", "key": "subject:love"}
-            ]
-        }
-        assert rows['/works/OL1W'] == d
-        assert rows['/authors/OL1A'] == d
-
-        assert rows['/books/OL1M'] == dict(d, editions=1)
-        assert rows['/books/OL2M'] == dict(d, editions=1, ebooks=0, last_modified="2009-01-02 10:20:30")
-
-    def test_reduce(self):
-        d1 = [1, 2, 1, "2010-11-11 10:20:30", {
-            "subjects": ["Love", "Hate"]
-        }]
-
-        d2 = [1, 1, 0, "2009-01-02 10:20:30", {
-            "subjects": ["Love"]
-        }]
-        view = updater.SeedView()
-        assert view.reduce([d1, d2]) == {
-            "works": 2,
-            "editions": 3,
-            "ebooks": 1,
-            "last_modified": "2010-11-11 10:20:30",
-            "subjects": [
-                {"name": "Love", "key": "subject:love", "count": 2},
-                {"name": "Hate", "key": "subject:hate", "count": 1}
-            ]
-        }
         
 class TestUpdater:
     def setup_method(self, method):
@@ -264,6 +200,7 @@ class TestUpdater:
         databases["works"].save(read_couchapp("works/seeds"))
         databases['works']['_design/seeds2'] = databases['works']['_design/seeds']
         databases['seeds'].save(read_couchapp("seeds/sort"))
+        databases['seeds'].save(read_couchapp("seeds/dirty"))
         
     def _get_doc(self, dbname, id):
         doc = self.databases[dbname].get(id)
@@ -271,6 +208,10 @@ class TestUpdater:
             del doc["_id"]
             del doc["_rev"]
         return doc
+        
+    def _update_pending_seeds(self):
+        seeds = [row.id for row in self.databases['seeds'].view("dirty/dirty")]
+        self.updater.update_seeds(seeds)
         
     def test_process_changeset(self):
         # Add a new book and new work and make sure the works, editions and seeds databases are updated.
@@ -291,6 +232,7 @@ class TestUpdater:
         }
         
         self.updater.process_changeset(changeset)
+        self._update_pending_seeds()
         
         def get_docids(db):
             return sorted(k for k in db if not k.startswith("_"))
@@ -304,9 +246,9 @@ class TestUpdater:
             "type": {"key": "/type/edition"},
             "works": [{"key": "/works/OL1W"}],
             "last_modified": {"type": "/type/datetime", "value": "2010-10-20 10:20:30"},
-            "seeds": ["/works/OL1W", "/books/OL1M", "subject:love"]
+            "seeds": ["/works/OL1W", "subject:love", "/books/OL1M"]
         }
-                
+        
         assert self._get_doc("seeds", "/works/OL1W") == {
             "works": 1,
             "editions": 1,
@@ -331,6 +273,8 @@ class TestUpdater:
         }
         
         self.updater.process_changeset(changeset)
+        self._update_pending_seeds()
+        
         assert self._get_doc("seeds", "/works/OL1W") == {
             "works": 1,
             "editions": 2,
@@ -353,6 +297,8 @@ class TestUpdater:
             }]
         }
         self.updater.process_changeset(changeset)
+        self._update_pending_seeds()
+        
         assert self._get_doc("seeds", "/works/OL1W") == {
             "works": 1,
             "editions": 2,
@@ -362,7 +308,7 @@ class TestUpdater:
                 {"name": "Love", "key": "subject:love", "count": 1}
             ]
         }
-    
+
     def test_process_changeset_old_seed(self):
         # save a book and work 
         changeset = {
@@ -381,6 +327,7 @@ class TestUpdater:
             }]
         }
         self.updater.process_changeset(changeset)
+        self._update_pending_seeds()
         
         # change the subject and make sure the counts of old changeset are updated
         changeset = {
@@ -393,11 +340,6 @@ class TestUpdater:
             }]
         }
         self.updater.process_changeset(changeset)
+        self._update_pending_seeds()
+        
         assert self._get_doc("seeds", "subject:love") == None
-
-def test_couch_iterview():
-    db = mock_couchdb.Database()
-    for i in range(100):
-        db.save({"_id": "%04d" % i})
-    
-    assert [int(row.id) for row in updater.couch_iterview(db, "_all_docs", chunksize=10)] == range(100)

@@ -165,19 +165,8 @@ class Updater:
         logging.info("processing changeset %s", changeset["id"])
         return self.process_changesets([changeset])
         
-        ctx = UpdaterContext()
-        
-        for work in self._get_works(changeset):
-            work = self.works_db.update_work(ctx, work)
-            
-        for edition in self._get_editions(changeset):
-            self.works_db.update_edition(ctx, edition)
-
-        self.seeds_db.update_seeds(ctx.seeds.keys())
-        
-        self.works_db.db.commit()
-        self.works_db.db.reset()
-        # TODO: update editions_db   
+    def update_seeds(self, seeds):
+        self.seeds_db.update_seeds(seeds)
         
     def _get_works(self, changeset):
         return [doc for doc in changeset.get("docs", []) 
@@ -255,42 +244,51 @@ class WorksDB:
         works = dict((row.id, row.doc) 
                     for row in self.db.view("_all_docs", keys=work_keys, include_docs=True) 
                     if "doc" in row)
+                    
+        def get_seeds(work):
+            # returns non edition seeds
+            if work:
+                return sorted(engine.get_seeds(work))
+            else:
+                return []
 
         for e in editions:
             key = e['key']
             logging.info("works_db: updating edition %s", key)
+            
+            ctx.add_editions([e])
+            ctx.add_seeds([key])
+            
             work_key = get_work_key(e)
             
             if key in old_works:
                 old_work = old_works[key]
             else:
                 old_work = None
+                
+            old_seeds = get_seeds(old_work)
             
             # unlink the edition from old work if required
             if old_work and old_work['key'] != work_key:
                 self._delete_edtion(old_work, e)
                 self.db.save(old_work)
-
-                old_seeds = engine.get_seeds(old_work)
+                
+                # one edition has been removed. update the seeds.
                 ctx.add_seeds(old_seeds)
             
-            if work_key is None:
-                continue
-            
             # Add/update the edition to the current work
-            work = works.get(work_key)
+            work = work_key and works.get(work_key)
             if work is None:
-                # That work is not found in the db.
-                # Bad data? ignore for now.
+                # Either the edition has no work or the work is not found the db.
                 return None
 
+            # last update of all these seeds must be updated now.
+            new_seeds = get_seeds(work)
+            ctx.add_seeds(new_seeds)
+                
             self._add_edition(work, e)
             self.db.save(work)
-
-            new_seeds = engine.get_seeds(work)
-            ctx.add_seeds(new_seeds)
-            ctx.add_editions([e])
-
+            
         logging.info("works_db: END update_editions %s", len(editions))
             
     def update_edition(self, ctx, edition):
@@ -308,6 +306,10 @@ class WorksDB:
         editions = dict((e['key'], e) for e in work.get('editions', []))
         editions[edition['key']] = edition
         work['editions'] = editions.values()
+        
+    def _has_edition(self, work, edition):
+        editions = dict((e['key'], e) for e in work.get('editions', []))
+        return edition['key'] in editions
                 
     def _get_work(self, edition):
         works = edition.get('works', [])
@@ -344,7 +346,7 @@ class EditionsDB:
                     
         def get_seeds(work):
             """Return non edition seeds of a work."""
-            return [seed for seed in engine.get_seeds(w) if not seed.startswith("/books/")]
+            return [seed for seed in engine.get_seeds(work) if not seed.startswith("/books/")]
                     
         seeds = dict((w['key'], get_seeds(w)) for w in works.values())
         
@@ -376,18 +378,19 @@ class SeedsDB:
         self._big_seeds = None
         
     def mark_seeds_for_update(self, seeds):
-        docs = []
+        docs = {}
         t = datetime.datetime.utcnow().isoformat()
         
         for row in self.db.view("_all_docs", keys=seeds, include_docs=True).rows:
-            if 'error' in row:
-                doc = {"_id": row.key}
-            else:
-                doc = row.doc
-            doc['dirty'] = t
-            docs.append(doc)
-        
-        couchdb_bulk_save(self.db, docs)
+            if 'doc' in row:
+                doc = dict(row.doc, dirty=t)
+                docs[row.key] = doc
+            
+        for seed in seeds:
+            if seed not in docs:
+                docs[seed] = {"_id": seed, "dirty": t}
+
+        couchdb_bulk_save(self.db, docs.values())
     
     def update_seeds(self, seeds, chunksize=50):
         big_seeds = self.get_big_seeds()

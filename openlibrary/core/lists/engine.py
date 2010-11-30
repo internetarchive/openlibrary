@@ -1,9 +1,11 @@
 """Utility functions for processing lists.
 """
 
-import web
-import simplejson
+import collections
 import re
+
+import simplejson
+import web
 
 def reduce_seeds(values):
     """Function to reduce the seed values got from works db.
