@@ -1,11 +1,13 @@
 """Lists implementaion.
 """
-import web
+import random
+
 import simplejson
+import web
 import yaml
 
 from infogami.utils import delegate
-from infogami.utils.view import render_template
+from infogami.utils.view import render_template, public
 from infogami.infobase import client
 
 from openlibrary.core import formats
@@ -270,3 +272,12 @@ class export(delegate.page):
         
 def setup():
     pass
+    
+@public
+def get_active_lists_in_random(limit=25):
+    # get 5 times more lists and pick the required number in random among them.
+    keys = web.ctx.site.query({"type": "/type/list", "sort": "-last_modified", "limit": 5*limit})
+    
+    if len(keys) > limit:
+        keys = random.sample(keys, limit)
+    return web.ctx.site.get_many(keys)
