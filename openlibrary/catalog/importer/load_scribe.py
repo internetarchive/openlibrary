@@ -106,6 +106,8 @@ def write_edition(ia, edition, rec):
             {'key': '/languages/lat'},
             {'key': '/languages/hun'},
         ]
+    elif ia == 'cihm_39338':
+        edition['languages'] = [{'key': '/languages/ger'}]
     elif ia == 'ofilhoprdigodr00mano':
         edition['languages'] = [{'key': '/languages/por'}]
     elif ia == 'nekaroronneteyer00hill':
@@ -443,7 +445,11 @@ if __name__ == '__main__':
                     break
 
             if not match:
-                load(ia, use_binary=use_binary)
+                try:
+                    load(ia, use_binary=use_binary)
+                except:
+                    print 'bad item:', ia
+                    raise
                 write_log(ia, when, "loaded")
             print >> open(state_file, 'w'), row.updated
         start = row.updated
