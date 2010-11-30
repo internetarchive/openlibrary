@@ -7,7 +7,7 @@ import web
 import yaml
 
 from infogami.utils import delegate
-from infogami.utils.view import render_template
+from infogami.utils.view import render_template, public
 from infogami.infobase import client
 
 from openlibrary.core import formats
@@ -17,8 +17,7 @@ class lists_home(delegate.page):
     path = "/lists"
     
     def GET(self):
-        lists = get_active_lists_in_random()
-        return render_template("lists/home", lists)
+        return render_template("lists/home")
 
 class lists(delegate.page):
     """Controller for displaying lists of a seed or lists of a person.
@@ -280,7 +279,8 @@ class export(delegate.page):
 def setup():
     pass
     
-def get_active_lists_in_random(limit=25):
+@public
+def get_active_lists_in_random(limit=20):
     # get 5 times more lists and pick the required number in random among them.
     keys = web.ctx.site.things({"type": "/type/list", "sort": "-last_modified", "limit": 5*limit})
     
