@@ -118,7 +118,7 @@ class Updater:
     
     def process_changesets(self, changesets):
         ctx = UpdaterContext()
-        for chunk in web.group(changesets, 200):
+        for chunk in web.group(changesets, 50):
             chunk = list(chunk)
             
             works = [work for changeset in chunk 
