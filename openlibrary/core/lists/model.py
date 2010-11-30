@@ -47,12 +47,18 @@ class ListMixin:
         
         db = self._get_seeds_db()
     
-        d = dict((seed, web.storage({"editions": 0, "works": 0, "ebooks": 0, "last_update": ""})) for seed in rawseeds)
+        zeros = {"editions": 0, "works": 0, "ebooks": 0, "last_update": ""}
+        d = dict((seed, web.storage(zeros)) for seed in rawseeds)
     
         for row in self._couchdb_view(db, "_all_docs", keys=rawseeds, include_docs=True):
             if 'doc' in row:
-                d[row.key] = web.storage(row.doc)
-            
+                if 'edition' not in row.doc:
+                    doc = web.storage(zeros, **row.doc)
+                    
+                    # if seed info is not yet created, display edition count as 1
+                    if doc.editions == 0 and row.key.startswith("/books"):
+                        doc.editions = 1
+                    d[row.key] = doc
         return d
         
     def _couchdb_view(self, db, viewname, **kw):
@@ -100,8 +106,9 @@ class ListMixin:
         d = self._editions_view(self._get_rawseeds(), 
             skip=offset, limit=limit, 
             sort="last_modified", reverse="true", 
-            include_docs="true")
-        
+            include_docs="true",
+            stale="ok")
+
         def get_doc(row):
             doc = row['doc']
             del doc['_id']
