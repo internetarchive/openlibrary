@@ -106,8 +106,9 @@ class ListMixin:
         d = self._editions_view(self._get_rawseeds(), 
             skip=offset, limit=limit, 
             sort="last_modified", reverse="true", 
-            include_docs="true")
-        
+            include_docs="true",
+            stale="ok")
+
         def get_doc(row):
             doc = row['doc']
             del doc['_id']
