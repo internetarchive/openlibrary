@@ -1,4 +1,5 @@
 import collections
+import datetime
 import itertools
 import logging
 import re
@@ -149,7 +150,7 @@ class Updater:
                 logging.info("END commit works_db")
                 
                 logging.info("BEGIN mark %d seeds for update" % len(ctx.seeds))
-                self.seeds_db.mark_seeds_for_update()
+                self.seeds_db.mark_seeds_for_update(ctx.seeds.keys())
                 logging.info("END mark %d seeds for update" % len(ctx.seeds))
                 ctx.seeds.clear()
             
@@ -240,7 +241,7 @@ class WorksDB:
         keys = [e['key'] for e in editions]
         
         old_works = dict((row.key, row.doc) 
-                        for row in self.db.view("seeds2/seeds", keys=keys, include_docs=True) 
+                        for row in self.db.view("seeds/seeds", keys=keys, include_docs=True) 
                         if "doc" in row)
                         
         def get_work_key(e):
@@ -394,7 +395,7 @@ class SeedsDB:
             self._update_seeds(chunk)
         
     def _update_seeds(self, seeds):
-        counts = self.works_db.db.view("seeds2/seeds", keys=list(seeds))
+        counts = self.works_db.db.view("seeds/seeds", keys=list(seeds))
 
         docs = dict((seed, self._get_seed_doc(seed, rows))
                     for seed, rows 
