@@ -226,8 +226,11 @@ class WorksDB:
         ctx.add_seeds(old_seeds)
         ctx.add_seeds(new_seeds)
         
+        def non_edition_seeds(seeds):
+            return sorted(seed for seed in seeds if not seed.startswith("/books"))
+        
         # Add editions to the queue if any of the seeds are modified
-        if old_seeds != new_seeds:
+        if non_edition_seeds(old_seeds) != non_edition_seeds(new_seeds):
             ctx.add_editions(work['editions'])
             
         save(work)
@@ -339,14 +342,18 @@ class EditionsDB:
                     for row in self.works_db.db.view("_all_docs", keys=work_keys, include_docs=True) 
                     if "doc" in row)
                     
-        seeds = dict((w['key'], engine.get_seeds(w)) for w in works.values())
+        def get_seeds(work):
+            """Return non edition seeds of a work."""
+            return [seed for seed in engine.get_seeds(w) if not seed.startswith("/books/")]
+                    
+        seeds = dict((w['key'], get_seeds(w)) for w in works.values())
         
         for e in editions:
             key = e['key']
             logging.info("edition_db: updating edition %s", key)
             if e['type']['key'] == '/type/edition':
                 wkey = get_work_key(e)
-                e['seeds'] = seeds.get(wkey) or [e['key']]
+                e['seeds'] = seeds.get(wkey) + [e['key']]
             else:
                 e.clear()
                 e['_deleted'] = True
