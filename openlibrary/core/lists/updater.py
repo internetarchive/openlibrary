@@ -125,7 +125,7 @@ class Updater:
             works = [work for changeset in chunk 
                           for work in self._get_works(changeset)]
 
-            editions = [e for changeset in chunk 
+            editions = [e for changeset in chunk
                         for e in self._get_editions(changeset)]
                         
             keys = [w['key'] for w in works] + [e['works'][0]['key'] for e in editions if e.get('works')] 
@@ -142,6 +142,7 @@ class Updater:
             
             self.works_db.update_editions(ctx, editions)
             self.editions_db.update_editions(ctx.editions.values())
+            ctx.editions.clear()
             
             t = datetime.datetime.utcnow().isoformat()
             if ctx.seeds:
@@ -164,7 +165,7 @@ class Updater:
     def process_changeset(self, changeset):
         logging.info("processing changeset %s", changeset["id"])
         return self.process_changesets([changeset])
-        
+    
     def update_seeds(self, seeds):
         self.seeds_db.update_seeds(seeds)
         
