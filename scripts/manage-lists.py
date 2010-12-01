@@ -5,7 +5,7 @@ Usage: ./scripts/manage-lists.py command settings.yml args
 """
 import _init_path
 import sys, os, shutil, tempfile, time, re
-import multiprocessing, itertools, collections
+import itertools, collections
 import optparse
 import simplejson
 import couchdb
@@ -221,6 +221,7 @@ class ProcessDump(Command):
     def group_works(self, indir, outdir):
         worker = GroupWorksWorker(indir, outdir)
         
+        import multiprocessing
         pool = multiprocessing.Pool(4)
         pool.map(worker, os.listdir(indir))
         
