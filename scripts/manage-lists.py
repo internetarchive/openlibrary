@@ -548,7 +548,7 @@ class UpdateSeeds(Command):
         while True:
             seeds = updater.update_pending_seeds(limit=100)
             if not seeds:
-                print >> time.asctime(), "no pending seeds. sleeping for 2 seconds."
+                print >> sys.stderr, time.asctime(), "no pending seeds. sleeping for 2 seconds."
                 time.sleep(2)
         
     def read_lists_config(self, configfile):
