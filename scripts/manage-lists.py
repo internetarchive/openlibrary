@@ -10,11 +10,16 @@ import optparse
 import simplejson
 import couchdb
 import web
+import datetime
+
+from openlibrary.core import formats
+from openlibrary.core.lists.updater import Updater
 
 class Command:
-    def __init__(self):
-        self.parser = optparse.OptionParser(add_help_option=False)
-        self.parser.add_option("--help", action="store_true", help="display this help message")
+    def __init__(self, name=None):
+        self.name = name or ""
+        self.parser = optparse.OptionParser("%prog " + self.name + " [options]", add_help_option=False)
+        self.parser.add_option("-h", "--help", action="store_true", help="display this help message")
 
         self.init()
 
@@ -38,6 +43,9 @@ class Command:
             self.help()
         else:
             self.run(*args, **kwargs)
+            
+    def help(self):
+        print self.parser.format_help()
 
     def init(self):
         pass
@@ -468,20 +476,102 @@ class CouchDBImport(Command):
             doc['_id'] = key
             yield doc
             
+class LogReplay(Command):
+    """Reads to the log file and updates the works and editions db.
+    """
+    def init(self):
+        self.parser.usage = '%prog log-replay [options] lists_config'
+        self.add_option("--offset-file", help="file to store the current log offset.", default="/var/run/openlibrary/list_updater.offset")
+    
+    def run(self, configfile, offset_file):
+        self.offset_file = offset_file
+        conf = self.read_lists_config(configfile)
+        
+        updater = Updater(conf)
+        self.read_changesets(config['infobase_log_url'], updater.process_changesets)
+    
+    def read_lists_config(self, configfile):
+        conf = formats.load_yaml(open(configfile).read())
+        return conf.get("lists")
+
+    def read_log(url, callback, chunksize=100):
+        offset = read_offset(self.offset_file) or default_offset()
+
+        while True:
+            json = wget("%s/%s?limit=%d" % (url, offset, chunksize))
+            d = simplejson.loads(json)
+
+            if not d['data']:
+                print >> sys.stderr, time.asctime(), "sleeping for 2 sec."
+                time.sleep(2)
+                continue
+
+            callback(d['data'])
+
+            offset = d['offset']
+            self.write(self.offset_file, offset)
+
+    def read_changesets(url, callback, chunksize=100):
+        def f(rows):
+            changesets = [row['data']['changeset'] for row in rows
+                            if 'data' in row and 'changeset' in row['data']]
+
+            changesets and callback(changesets)
+        self.read_log(url, callback=f, chunksize=chunksize)
+
+    def wget(self, url):
+        print >> sys.stderr, time.asctime(), "wget", url
+        return urllib2.urlopen(url).read()
+
+    def write(self, filename, text):
+        f = open(filename, "w")
+        f.write(text)
+        f.close()
+        
+    def read_offset(self, filename):
+        try:
+            return open(filename).read().strip()
+        except IOError:
+            return None
+
+    def default_offset(self):
+        return datetime.date.today().isoformat() + ":0"
+
+class UpdateSeeds(Command):
+    def init(self):
+        self.parser.usage = '%prog update-seeds lists_config'
+        
+    def run(self, configfile):
+        conf = self.read_lists_config(configfile)
+        updater = Updater(conf)
+        
+        while True:
+            seeds = updater.update_pending_seeds(limit=100)
+            if not seeds:
+                print >> time.asctime(), "no pending seeds. sleeping for 2 seconds."
+                time.sleep(2)
+        
+    def read_lists_config(self, configfile):
+        conf = formats.load_yaml(open(configfile).read())
+        return conf.get("lists")
+
+            
 def xopen(filename, mode="r", buffering=1):
     if filename.endswith(".gz"):
         import gzip
         return gzip.open(filename, mode, buffering)
     else:
         return open(filename, mode, buffering)
-
+        
 def main(cmd=None, *args):
     commands = {
         "process-dump": ProcessDump(),
         "generate-seeds": GenerateSeeds(),
         "generate-editions": GenerateEditions(),
         "make-editions": MakeEdtions(),
-        "couchdb-import": CouchDBImport(),        
+        "couchdb-import": CouchDBImport(),
+        "log-replay": LogReplay(),
+        "update-seeds": UpdateSeeds()
     }
     if cmd in commands:
         commands[cmd](args)

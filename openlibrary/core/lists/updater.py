@@ -169,6 +169,16 @@ class Updater:
     def update_seeds(self, seeds):
         self.seeds_db.update_seeds(seeds)
         
+    def update_pending_seeds(self, limit=100):
+        logging.info("BEGIN update_pending_seeds")
+        rows = self.seeds_db.db.view("dirty/dirty", limit=limit)
+        seeds = [row.id for row in rows]
+        logging.info("found %d seeds", len(seeds))
+        if seeds:
+            self.update_seeds(seeds)
+        logging.info("END update_pending_seeds")
+        return seeds
+        
     def _get_works(self, changeset):
         return [doc for doc in changeset.get("docs", []) 
                     if doc['key'].startswith("/works/")]
@@ -356,7 +366,7 @@ class EditionsDB:
             logging.info("edition_db: updating edition %s", key)
             if e['type']['key'] == '/type/edition':
                 wkey = get_work_key(e)
-                e['seeds'] = seeds.get(wkey) + [e['key']]
+                e['seeds'] = seeds.get(wkey, []) + [e['key']]
             else:
                 e.clear()
                 e['_deleted'] = True
