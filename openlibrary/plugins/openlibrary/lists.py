@@ -13,6 +13,8 @@ from infogami.infobase import client
 from openlibrary.core import formats
 import openlibrary.core.helpers as h
 
+from openlibrary.plugins.worksearch import code as worksearch
+
 class lists_home(delegate.page):
     path = "/lists"
     
@@ -28,12 +30,22 @@ class lists(delegate.page):
         return "lists" in web.ctx.features
             
     def GET(self, path):
-        doc = web.ctx.site.get(path)
+        doc = self.get_doc(path)
         if not doc:
             raise web.notfound()
             
         lists = doc.get_lists()
         return self.render(doc, lists)
+        
+    def get_doc(self, key):
+        if key.startswith("/subjects/"):
+            s = worksearch.get_subject(key)
+            if s.work_count > 0:
+                return s
+            else:
+                return None
+        else:
+            return web.ctx.site.get(path)
         
     def render(self, doc, lists):
         return render_template("lists/lists.html", doc, lists)

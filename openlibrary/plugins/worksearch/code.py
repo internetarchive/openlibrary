@@ -635,7 +635,7 @@ def get_subject(key, details=False, offset=0, limit=12, **filters):
     return subject
 
 class subjects_json(delegate.page):
-    path = '(/subjects/.+)'
+    path = '(/subjects/[^/]+)'
     encoding = "json"
 
     @jsonapi
@@ -667,7 +667,7 @@ class subjects_json(delegate.page):
         return json.dumps(subject)
         
 class subject_works_json(delegate.page):
-    path = '(/subjects/\w+)/works'
+    path = '(/subjects/[^/]+)/works'
     encoding = "json"
 
     @jsonapi
@@ -700,7 +700,7 @@ class subject_works_json(delegate.page):
     
         
 class subjects(delegate.page):
-    path = '(/subjects/.+)'
+    path = '(/subjects/[^/]+)'
     
     def GET(self, key):
         if key.lower() != key:
