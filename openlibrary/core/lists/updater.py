@@ -394,7 +394,9 @@ class SeedsDB:
         
         for row in self.db.view("_all_docs", keys=seeds, include_docs=True).rows:
             if 'doc' in row:
-                doc = dict(row.doc, dirty=t)
+                # handle deleted docs
+                doc = row.doc or {"_rev": row.value['rev'], "_id": row.id}
+                doc = dict(doc, dirty=t)
                 docs[row.key] = doc
             
         for seed in seeds:
