@@ -253,7 +253,7 @@ class TestUpdater:
             "works": 1,
             "editions": 1,
             "ebooks": 0,
-            "last_modified": "2010-10-20 10:20:30",
+            "last_update": "2010-10-20 10:20:30",
             "subjects": [
                 {"name": "Love", "key": "subject:love", "count": 1}
             ]
@@ -279,7 +279,7 @@ class TestUpdater:
             "works": 1,
             "editions": 2,
             "ebooks": 1,
-            "last_modified": "2010-10-20 15:25:35",
+            "last_update": "2010-10-20 15:25:35",
             "subjects": [
                 {"name": "Love", "key": "subject:love", "count": 1}
             ]
@@ -303,7 +303,7 @@ class TestUpdater:
             "works": 1,
             "editions": 2,
             "ebooks": 1,
-            "last_modified": "2010-10-25 15:25:35",
+            "last_update": "2010-10-25 15:25:35",
             "subjects": [
                 {"name": "Love", "key": "subject:love", "count": 1}
             ]
