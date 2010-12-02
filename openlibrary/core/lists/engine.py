@@ -14,7 +14,7 @@ def reduce_seeds(values):
         "works": 0,
         "editions": 0,
         "ebooks": 0,
-        "last_modified": "",
+        "last_update": "",
     }
     subject_processor = SubjectProcessor()
     
@@ -22,7 +22,7 @@ def reduce_seeds(values):
         d["works"] += v[0]
         d['editions'] += v[1]
         d['ebooks'] += v[2]
-        d['last_modified'] = max(d['last_modified'], v[3])
+        d['last_update'] = max(d['last_update'], v[3])
         subject_processor.add_subjects(v[4])
         
     d['subjects'] = subject_processor.top_subjects()
