@@ -45,7 +45,7 @@ class lists(delegate.page):
             else:
                 return None
         else:
-            return web.ctx.site.get(path)
+            return web.ctx.site.get(key)
         
     def render(self, doc, lists):
         return render_template("lists/lists.html", doc, lists)
