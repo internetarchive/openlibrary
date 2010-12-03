@@ -55,3 +55,12 @@ class TestAuthor:
         e = models.Author(MockSite(), "/authors/OL1A", data=data)
         assert e.url() == "/authors/OL1A/unnamed"
 
+
+class TestSubject:
+    def test_url(self):
+        subject = models.Subject({
+            "key": "/subjects/love"
+        })
+        assert subject.url() == "/subjects/love"
+        assert subject.url("/lists") == "/subjects/love/lists"
+        

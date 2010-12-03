@@ -327,6 +327,12 @@ class Subject(web.storage):
         if seed.split(":")[0] not in ["place", "person", "time"]:
             seed = "subject:" + seed
         return seed
+        
+    def url(self, suffix="", **params):
+        u = self.key + suffix
+        if params:
+            u += '?' + urllib.urlencode(params)
+        return u
 
 def register_models():
     client.register_thing_class(None, Thing) # default
