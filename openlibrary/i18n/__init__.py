@@ -183,17 +183,22 @@ class LazyObject:
     def __radd__(self, other):
         return other + self._creator()
 
-def ungettext(s1, s2, n):
+def ungettext(s1, s2, _n, *a, **kw):
     translations = load_translations(web.ctx.get('lang', 'en'))
-    value = (translations and translations.ungettext(s1, s2, n))
-    if value:
-        return value
-    else:
+    value = (translations and translations.ungettext(s1, s2, _n))
+    if not value:
         # fallback when translation is not provided
-        if n == 1:
-            return s1
+        if _n == 1:
+            value = s1
         else:
-            return s2
+            value = s2
+            
+    if a:
+        return value % a
+    elif kw:
+        return value % kw
+    else:
+        return value
 
 gettext = GetText()
 ugettext = gettext
