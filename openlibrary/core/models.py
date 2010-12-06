@@ -92,7 +92,12 @@ class Edition(Thing):
 
     def full_title(self):
         # retained for backward-compatibility. Is anybody using this really?
-        return self.title            
+        return self.title
+    
+    def get_publish_year(self):
+        if self.publish_date:
+            m = web.re_compile("(\d\d\d\d)").search(self.publish_date)
+            return m and int(m.group(1))
 
     def get_lists(self):
         return self._get_lists()
