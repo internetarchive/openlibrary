@@ -221,6 +221,12 @@ class ListMixin:
             seed = seed['key']
         return seed in self._get_rawseeds()
         
+    def get_default_cover(self):
+        for s in self.get_seeds():
+            cover = s.get_cover()
+            if cover:
+                return cover
+    
     def _get_seeds_db(self):
         db_url = config.get("lists", {}).get("seeds_db")
         if not db_url:
