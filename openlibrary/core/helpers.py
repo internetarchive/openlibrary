@@ -33,7 +33,7 @@ __all__ = [
     "json_encode",
     "datestr", "format_date", 
     "sprintf", "cond", "commify", "truncate",
-    "urlsafe",
+    "urlsafe", "texsafe",
     
     # functions imported from elsewhere
     "parse_datetime", "safeint"
