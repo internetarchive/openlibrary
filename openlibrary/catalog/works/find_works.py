@@ -179,13 +179,6 @@ def get_books(akey, query):
         title = title.strip(' ')
         if has_dot(title):
             title = title[:-1]
-        title_and_subtitle = title
-        if e.get('subtitle', None):
-            title_and_subtitle += ' ' + e['subtitle']
-        #if title_and_subtitle in ['Publications', 'Works', 'Report', \
-        #        'Letters', 'Calendar', 'Bulletin', 'Plays', \
-        #        'Sermons', 'Correspondence', 'Bills']:
-        #    continue
 
         m = re_parens.match(title)
         if m:
