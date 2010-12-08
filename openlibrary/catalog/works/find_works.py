@@ -390,7 +390,11 @@ def find_works(akey, book_iter, existing={}):
             w['subtitle'] = use_subtitle
         if toc:
             w['toc'] = toc
-        subjects = four_types(get_work_subjects(w))
+        try:
+            subjects = four_types(get_work_subjects(w))
+        except:
+            print w
+            raise
         if subjects:
             w['subjects'] = subjects
         yield w

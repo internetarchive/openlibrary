@@ -1,5 +1,5 @@
 #!/usr/bin/python
-import web, os, smtplib
+import web, os, smtplib, sys
 from email.mime.text import MIMEText
 
 password = open(os.path.expanduser('~/.openlibrary_db_password')).read()
@@ -26,6 +26,9 @@ for row in db_error.query("select t, query, result from errors where t between '
     body += '-' * 60 + '\nAuthor name: ' + author + '\n'
     body += 'http://openlibrary.org/query.json?type=/type/author&name=%s' % web.urlquote(author) + '\n\n'
     body += row.result + '\n'
+
+if bad_count == 0:
+    sys.exit(0)
 
 #print body
 
