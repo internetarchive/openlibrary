@@ -220,7 +220,7 @@ class ListMixin:
     def get_seed(self, seed):
         if isinstance(seed, dict):
             seed = seed['key']
-        return Seed(self, s)
+        return Seed(self, seed)
         
     def has_seed(self, seed):
         if isinstance(seed, dict):
