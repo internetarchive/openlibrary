@@ -97,6 +97,9 @@ class ListMixin:
             "count": self.work_count,
             "works": [row.value for row in rows]
         })
+        
+    def get_couchdb_docs(self, db, keys):
+        return dict((row.id, row.doc) for row in db.view("_all_docs", keys=keys, include_docs=True))
 
     def get_editions(self, limit=50, offset=0, _raw=False):
         """Returns the editions objects belonged to this list ordered by last_modified. 
@@ -106,11 +109,14 @@ class ListMixin:
         d = self._editions_view(self._get_rawseeds(), 
             skip=offset, limit=limit, 
             sort="last_modified", reverse="true", 
-            include_docs="true",
             stale="ok")
+        
+        # couchdb-lucene is single-threaded. Get docs from couchdb instead of
+        # passing include_docs=True to couchdb-lucene to reduce load on it.
+        docs = self.get_couchdb_docs(self._get_editions_db(), [row['id'] for row in d['rows']])
 
         def get_doc(row):
-            doc = row['doc']
+            doc = docs[row['id']]
             del doc['_id']
             del doc['_rev']
             if not _raw:
@@ -229,6 +235,13 @@ class ListMixin:
     
     def _get_seeds_db(self):
         db_url = config.get("lists", {}).get("seeds_db")
+        if not db_url:
+            return {}
+        
+        return couchdb.Database(db_url)
+        
+    def _get_editions_db(self):
+        db_url = config.get("lists", {}).get("editions_db")
         if not db_url:
             return {}
         
