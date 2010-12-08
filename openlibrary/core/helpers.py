@@ -169,6 +169,44 @@ def get_coverstore_url():
     return config.get('coverstore_url', 'http://covers.openlibrary.org').rstrip('/')
 
 
+_texsafe_map = {
+    '"': r'\textquotedbl{}',
+    '#': r'\#',
+    '$': r'\$',
+    '%': r'\%',
+    '&': r'\&',
+    '<': r'\textless{}',
+    '>': r'\textgreater{}',
+    '\\': r'\textbackslash{}',
+    '^': r'\^{}',
+    '_': r'\_{}',
+    '{': r'\{',
+    '}': r'\}',
+    '|': r'\textbar{}',
+    '~': r'\~{}',
+}
+
+_texsafe_re = None
+
+def texsafe(text):
+    """Escapes the special characters in the given text for using it in tex type setting.
+    
+    Tex (or Latex) uses some characters in the ascii character range for
+    special notations. These characters must be escaped when occur in the
+    regular text. This function escapes those special characters.
+    
+    The list of special characters and the latex command to typeset them can
+    be found in "The Comprehensive LaTeX Symbol List"[1].
+    
+    [1]: http://www.ctan.org/tex-archive/info/symbols/comprehensive/symbols-a4.pdf
+    """
+    global _texsafe_re
+    if _texsafe_re is None:
+        pattern = "[%s]" % re.escape("".join(_texsafe_map.keys()))
+        _texsafe_re = re.compile(pattern)
+        
+    return _texsafe_re.sub(lambda m: _texsafe_map[m.group(0)], text)
+    
 def _get_helpers():
     _globals = globals()
     return web.storage((k, _globals[k]) for k in __all__)

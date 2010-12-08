@@ -82,3 +82,8 @@ def test_get_coverstore_url(monkeypatch):
     # make sure trailing / is always stripped
     monkeypatch.setattr(config, "coverstore_url", "http://0.0.0.0:8090/", raising=False)
     assert h.get_coverstore_url() == "http://0.0.0.0:8090"
+
+def test_texsafe():
+    assert h.texsafe("hello") == r"hello"
+    assert h.texsafe("a_b") == r"a\_{}b"  
+    assert h.texsafe("a < b") == r"a \textless{} b"
