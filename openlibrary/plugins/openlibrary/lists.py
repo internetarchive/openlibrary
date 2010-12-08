@@ -24,7 +24,7 @@ class lists_home(delegate.page):
 class lists(delegate.page):
     """Controller for displaying lists of a seed or lists of a person.
     """
-    path = "(/(?:people|books|works|authors|subjects)/\w+)/lists"
+    path = "(/(?:people|books|works|authors|subjects)/[^/]+)/lists"
 
     def is_enabled(self):
         return "lists" in web.ctx.features
