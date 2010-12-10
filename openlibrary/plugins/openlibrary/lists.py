@@ -50,6 +50,29 @@ class lists(delegate.page):
     def render(self, doc, lists):
         return render_template("lists/lists.html", doc, lists)
         
+class lists_delete(delegate.page):
+    path = "(/people/\w+/lists/OL\d+L)/delete"
+    encoding = "json"
+
+    def POST(self, key):
+        doc = web.ctx.site.get(key)
+        if doc is None or doc.type.key != '/type/list':
+            raise web.notfound()
+        
+        doc = {
+            "key": key,
+            "type": {"key": "/type/delete"}
+        }
+        try:
+            result = web.ctx.site.save(doc, action="lists", comment="Deleted list.")
+        except client.ClientException, e:
+            web.ctx.status = e.status
+            web.header("Content-Type", "application/json")
+            return delegate.RawText(e.json)
+            
+        web.header("Content-Type", "application/json")
+        return delegate.RawText('{"status": "ok"}')
+        
 class lists_json(delegate.page):
     path = "(/(?:people|books|works|authors|subjects)/\w+)/lists"
     encoding = "json"
