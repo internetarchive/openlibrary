@@ -74,7 +74,7 @@ class lists_delete(delegate.page):
         return delegate.RawText('{"status": "ok"}')
         
 class lists_json(delegate.page):
-    path = "(/(?:people|books|works|authors|subjects)/\w+)/lists"
+    path = "(/(?:people|books|works|authors|subjects)/[^/]+)/lists"
     encoding = "json"
     content_type = "application/json"
     
