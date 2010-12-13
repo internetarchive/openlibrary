@@ -311,6 +311,20 @@ class export(delegate.page):
             list.preload_authors(editions)
         return editions
         
+class feeds(delegate.page):
+    path = "(/people/[^/]+/lists/OL\d+L)/feeds/(updates).(atom)"
+    
+    def GET(self, key, name, format):
+        list = web.ctx.site.get(key)
+        if list is None:
+            raise web.notfound()
+        text = getattr(self, 'GET_' + name + '_' + format)(list)
+        return delegate.RawText(text)
+    
+    def GET_updates_atom(self, list):
+        web.header("Content-Type", "application/atom+xml")
+        return render_template("lists/feed_updates.xml", list)
+    
 def setup():
     pass
     
