@@ -322,7 +322,7 @@ class feeds(delegate.page):
         return delegate.RawText(text)
     
     def GET_updates_atom(self, list):
-        web.header("Content-Type", "application/atom+xml")
+        web.header("Content-Type", 'application/atom+xml; charset="utf-8"')
         return render_template("lists/feed_updates.xml", list)
     
 def setup():
