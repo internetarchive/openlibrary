@@ -272,7 +272,7 @@ class ListMixin:
             quote = '"'
             return quote + web.re_compile(pattern).sub(r'\\\1', value) + quote
         
-        q = " OR ".join("seed:" + escape(seed) for seed in seeds)
+        q = " OR ".join("seed:" + escape(seed.encode('utf-8')) for seed in seeds)
         url = view_url + "?" + urllib.urlencode(dict(kw, q=q))
         
         stats.begin("couchdb", url=url)
