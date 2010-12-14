@@ -84,7 +84,9 @@ def json_encode(d):
 def datestr(then, now=None, lang=None):
     """Internationalized version of web.datestr."""
     result = web.datestr(then, now)
-    if result[0] in string.digits: # eg: 2 milliseconds ago
+    if not result:
+        return result
+    elif result[0] in string.digits: # eg: 2 milliseconds ago
         t, message = result.split(' ', 1)
         return _("%d " + message) % int(t)
     else:
