@@ -236,14 +236,14 @@ class ListMixin:
     def _get_seeds_db(self):
         db_url = config.get("lists", {}).get("seeds_db")
         if not db_url:
-            return {}
+            return None
         
         return couchdb.Database(db_url)
         
     def _get_editions_db(self):
         db_url = config.get("lists", {}).get("editions_db")
         if not db_url:
-            return {}
+            return None
         
         return couchdb.Database(db_url)
         
