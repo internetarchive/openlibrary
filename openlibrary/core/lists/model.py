@@ -214,8 +214,11 @@ class ListMixin:
                 d[kind].append(s)
         return d
         
-    def get_seeds(self):
-        return [Seed(self, s) for s in self.seeds]
+    def get_seeds(self, sort=False):
+        seeds = [Seed(self, s) for s in self.seeds]
+        if sort:
+            seeds = h.safesort(seeds, reverse=True, key=lambda seed: seed.last_update)
+        return seeds
         
     def get_seed(self, seed):
         if isinstance(seed, dict):
@@ -236,14 +239,14 @@ class ListMixin:
     def _get_seeds_db(self):
         db_url = config.get("lists", {}).get("seeds_db")
         if not db_url:
-            return {}
+            return None
         
         return couchdb.Database(db_url)
         
     def _get_editions_db(self):
         db_url = config.get("lists", {}).get("editions_db")
         if not db_url:
-            return {}
+            return None
         
         return couchdb.Database(db_url)
         
@@ -272,7 +275,7 @@ class ListMixin:
             quote = '"'
             return quote + web.re_compile(pattern).sub(r'\\\1', value) + quote
         
-        q = " OR ".join("seed:" + escape(seed) for seed in seeds)
+        q = " OR ".join("seed:" + escape(seed.encode('utf-8')) for seed in seeds)
         url = view_url + "?" + urllib.urlencode(dict(kw, q=q))
         
         stats.begin("couchdb", url=url)
