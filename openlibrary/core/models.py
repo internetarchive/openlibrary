@@ -230,32 +230,7 @@ class List(Thing, ListMixin):
         if match:
             key = match.group(1)
             return self._site.get(key)
-    
-    def _get_editions(self):
-        """Returns all the editions referenced by members of this list.
-        """
-        #@@ Returning the editions in members instead of finding all the members.
-        # This will be fixed soon.
-        return [doc for doc in self.members 
-            if isinstance(doc, Thing) 
-            and doc.type.key == '/type/edition']
-        
-    def get_edition_count(self):
-        """Returns the number of editions referenced by members of this list.
-        """
-        # Temporary implementation. will be fixed soon.
-        return len(self.get_editions())
-        
-    def get_updates(self, offset=0, limit=20):
-        """Returns the updates to the members of this list.
-        """
-        return []
-    
-    def get_update_count(self):
-        """Returns the number of updates since this list is created.
-        """
-        return 0
-        
+            
     def get_cover(self):
         """Returns a cover object.
         """
@@ -277,7 +252,7 @@ class List(Thing, ListMixin):
             web.storage(title="Cheese", url="/subjects/cheese"),
             web.storage(title="San Francisco", url="/subjects/place:san_francisco")
         ]
-            
+        
     def add_seed(self, seed):
         """Adds a new seed to this list.
         
