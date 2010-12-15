@@ -75,10 +75,11 @@ class Thing(client.Thing):
     def _get_lists(self):
         q = {
             "type": "/type/list",
-            "seeds": {"key": self.key} 
+            "seeds": {"key": self.key},
+            "limit": 1000
         }
         keys = self._site.things(q)
-        return self._site.get_many(keys)
+        return h.safesort(self._site.get_many(keys), reverse=True, key=lambda list: list.last_update)
 
 class Edition(Thing):
     """Class to represent /type/edition objects in OL.
@@ -154,7 +155,7 @@ class User(Thing):
     def is_admin(self):
         return '/usergroup/admin' in [g.key for g in self.usergroups]
         
-    def get_lists(self, seed=None, limit=20, offset=0):
+    def get_lists(self, seed=None, limit=100, offset=0):
         """Returns all the lists of this user.
         
         When seed is specified, this returns all the lists which contain the
@@ -174,7 +175,7 @@ class User(Thing):
             q['seeds'] = seed
             
         keys = self._site.things(q)
-        return self._site.get_many(keys)
+        return h.safesort(self._site.get_many(keys), reverse=True, key=lambda list: list.last_update)
         
     def new_list(self, name, description, seeds, tags=[]):
         """Creates a new list object with given name, description, and seeds.
@@ -230,32 +231,7 @@ class List(Thing, ListMixin):
         if match:
             key = match.group(1)
             return self._site.get(key)
-    
-    def _get_editions(self):
-        """Returns all the editions referenced by members of this list.
-        """
-        #@@ Returning the editions in members instead of finding all the members.
-        # This will be fixed soon.
-        return [doc for doc in self.members 
-            if isinstance(doc, Thing) 
-            and doc.type.key == '/type/edition']
-        
-    def get_edition_count(self):
-        """Returns the number of editions referenced by members of this list.
-        """
-        # Temporary implementation. will be fixed soon.
-        return len(self.get_editions())
-        
-    def get_updates(self, offset=0, limit=20):
-        """Returns the updates to the members of this list.
-        """
-        return []
-    
-    def get_update_count(self):
-        """Returns the number of updates since this list is created.
-        """
-        return 0
-        
+            
     def get_cover(self):
         """Returns a cover object.
         """
@@ -277,7 +253,7 @@ class List(Thing, ListMixin):
             web.storage(title="Cheese", url="/subjects/cheese"),
             web.storage(title="San Francisco", url="/subjects/place:san_francisco")
         ]
-            
+        
     def add_seed(self, seed):
         """Adds a new seed to this list.
         
@@ -322,10 +298,12 @@ class Subject(web.storage):
     def get_lists(self):
         q = {
             "type": "/type/list",
-            "seeds": self.get_seed()
+            "seeds": self.get_seed(),
+            "limit": 1000
         }
         keys = web.ctx.site.things(q)
-        return web.ctx.site.get_many(keys)
+        lists = web.ctx.site.get_many(keys)
+        return h.safesort(lists, reverse=True, key=lambda list: list.last_update)
         
     def get_seed(self):
         seed = self.key.split("/")[-1]
