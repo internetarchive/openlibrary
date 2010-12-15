@@ -79,7 +79,7 @@ class Thing(client.Thing):
             "limit": 1000
         }
         keys = self._site.things(q)
-        return h.safesort(self._site.get_many(keys), reverse=True, lambda key=list: list.last_update)
+        return h.safesort(self._site.get_many(keys), reverse=True, key=lambda list: list.last_update)
 
 class Edition(Thing):
     """Class to represent /type/edition objects in OL.
