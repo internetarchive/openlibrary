@@ -81,19 +81,13 @@ def index_items():
     while True:
         #print 'item_and_host_queue.get()'
         (num, ia, host, path) = item_and_host_queue.get()
-        #print 'item_and_host_queue.get() done'
-        host = use_secondary(host)
         if not host:
             item_and_host_queue.task_done()
             continue
         filename = ia + '_abbyy'
         filename_gz = filename + '.gz'
 
-        try:
-            dir_html = urlopen('http://%s/%s' % (host, path)).read()
-        except:
-            host = use_primary(host)
-            dir_html = urlopen('http://%s/%s' % (host, path)).read()
+        dir_html = urlopen('http://%s%s' % (host, path)).read()
         filename = find_abbyy(dir_html, ia)
         if not filename:
             item_and_host_queue.task_done()
@@ -109,8 +103,7 @@ def index_items():
 def add_to_item_queue():
     global input_count, current_book
     skip = None
-    #for line in open('/home/edward/scans/book_data_2010-10-15'):
-    for line in open('/home/edward/scans/gap'):
+    for line in open('/home/edward/scans/book_data_2010-10-15'):
         input_count += 1
         ia = line[:-1]
         if ia.startswith('WIDE-2010'):
@@ -121,14 +114,11 @@ def add_to_item_queue():
             continue
 
         current_book = ia
-        url = 'http://' + solr_host + '/solr/inside/select?indent=on&wt=json&rows=0&q=ia:' + ia
+        url = 'http://' + solr_host + '/solr/inside/select?indent=on&fl=body&wt=json&rows=1&q=ia:' + ia
         num_found = json.load(urlopen(url))['response']['numFound']
-        if num_found != 0:
-            continue
-
-        #print 'item_queue.put((input_count, ia))'
-        item_queue.put((input_count, ia))
-        #print 'item_queue.put((input_count, ia)) done'
+        docs = json.load(urlopen(url))['response']['docs']
+        if num_found == 0 or '\n' not in docs[0]['body']:
+            item_queue.put((input_count, ia))
 
 re_loc = re.compile('^(ia\d+\.us\.archive\.org):(/\d+/items/(.*))$')
 
@@ -153,17 +143,13 @@ def find_item(ia):
 
 def run_find_item():
     while True:
-        #print 'item_queue.get()'
         (num, ia) = item_queue.get()
-        #print 'item_queue.get() done'
         try:
             (host, path) = find_item(ia)
         except (timeout, FindItemError):
             item_queue.task_done()
             continue
-        #print 'item_and_host_queue.put((num, ia, host, path))'
         item_and_host_queue.put((num, ia, host, path))
-        #print 'item_and_host_queue.put((num, ia, host, path)) done'
         item_queue.task_done()
 
 def run_solr_queue():
@@ -249,7 +235,7 @@ def status_thread():
         print 'host queues:         %8d' % host_count
         print 'items queued:        %8d' % queued_items
         print
-        sleep(1)
+        sleep(3)
         #if run_time < 120:
         #    sleep(1)
         #else:
@@ -263,10 +249,13 @@ t_solr = spawn(run_solr_queue)
 
 #joinall([t_run_find_item, t_item_queue, t_index_items, t_solr])
 
-sleep(1)
 print 'join item_queue thread'
 t_item_queue.join()
 print 'item_queue thread complete'
+print 'join find item queue'
+item_queue.join()
+print 'find item queue complete'
+print 'join item_and_host_queue:', item_and_host_queue.qsize()
 print 'join item_and_host_queue:', item_and_host_queue.qsize()
 item_and_host_queue.join()
 print 'item_and_host_queue complete'
