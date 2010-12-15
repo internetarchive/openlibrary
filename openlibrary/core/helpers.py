@@ -90,9 +90,10 @@ def safesort(iterable, key=None, reverse=False):
     care to make that work.
     """
     key = key or (lambda x: x)
-    safekey = lambda x: (x.__class__.__name__, key(x))
+    def safekey(x):
+        k = key(x)
+        return (k.__class__.__name__, k)
     return sorted(iterable, key=safekey, reverse=reverse)
-
 
 def datestr(then, now=None, lang=None):
     """Internationalized version of web.datestr."""

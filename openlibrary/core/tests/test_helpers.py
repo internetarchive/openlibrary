@@ -36,6 +36,8 @@ def test_safesort():
     assert h.safesort([y2005, y2010, y2000, None]) == [None, y2000, y2005, y2010]
     assert h.safesort([y2005, y2010, y2000, None], reverse=True) == [y2010, y2005, y2000, None]
     
+    assert h.safesort([[y2005], [None]], key=lambda x: x[0]) == [[None], [y2005]]
+
 def test_datestr():
     from datetime import datetime
     then = datetime(2010, 1, 1, 0, 0, 0)
