@@ -75,10 +75,11 @@ class Thing(client.Thing):
     def _get_lists(self):
         q = {
             "type": "/type/list",
-            "seeds": {"key": self.key} 
+            "seeds": {"key": self.key},
+            "limit": 1000
         }
         keys = self._site.things(q)
-        return self._site.get_many(keys)
+        return sorted(self._site.get_many(keys), key=lambda list: list.last_update, reverse=True)
 
 class Edition(Thing):
     """Class to represent /type/edition objects in OL.
@@ -174,7 +175,7 @@ class User(Thing):
             q['seeds'] = seed
             
         keys = self._site.things(q)
-        return self._site.get_many(keys)
+        return sorted(self._site.get_many(keys), key=lambda list: list.last_update, reverse=True)
         
     def new_list(self, name, description, seeds, tags=[]):
         """Creates a new list object with given name, description, and seeds.
@@ -297,10 +298,12 @@ class Subject(web.storage):
     def get_lists(self):
         q = {
             "type": "/type/list",
-            "seeds": self.get_seed()
+            "seeds": self.get_seed(),
+            "limit": 1000
         }
         keys = web.ctx.site.things(q)
-        return web.ctx.site.get_many(keys)
+        lists = web.ctx.site.get_many(keys)
+        return sorted(lists, key=lambda list: list.last_update, reverse=True)
         
     def get_seed(self):
         seed = self.key.split("/")[-1]
