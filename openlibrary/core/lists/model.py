@@ -216,8 +216,7 @@ class ListMixin:
         
     def get_seeds(self):
         seeds = [Seed(self, s) for s in self.seeds]
-        seeds.sort(key=lambda seed: seed.last_update, reverse=True)
-        return seeds
+        return h.safesort(seeds, reverse=True, key=lambda seed: seed.last_update)
         
     def get_seed(self, seed):
         if isinstance(seed, dict):

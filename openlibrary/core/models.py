@@ -79,7 +79,7 @@ class Thing(client.Thing):
             "limit": 1000
         }
         keys = self._site.things(q)
-        return sorted(self._site.get_many(keys), key=lambda list: list.last_update, reverse=True)
+        return h.safesort(self._site.get_many(keys), reverse=True, lambda key=list: list.last_update)
 
 class Edition(Thing):
     """Class to represent /type/edition objects in OL.
@@ -175,7 +175,7 @@ class User(Thing):
             q['seeds'] = seed
             
         keys = self._site.things(q)
-        return sorted(self._site.get_many(keys), key=lambda list: list.last_update, reverse=True)
+        return h.safesort(self._site.get_many(keys), reverse=True, key=lambda list: list.last_update)
         
     def new_list(self, name, description, seeds, tags=[]):
         """Creates a new list object with given name, description, and seeds.
@@ -303,7 +303,7 @@ class Subject(web.storage):
         }
         keys = web.ctx.site.things(q)
         lists = web.ctx.site.get_many(keys)
-        return sorted(lists, key=lambda list: list.last_update, reverse=True)
+        return h.safesort(lists, reverse=True, key=lambda list: list.last_update)
         
     def get_seed(self):
         seed = self.key.split("/")[-1]

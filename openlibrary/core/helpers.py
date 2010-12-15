@@ -31,7 +31,8 @@ from openlibrary.i18n import gettext as _
 __all__ = [
     "sanitize", 
     "json_encode",
-    "datestr", "format_date", 
+    "safesort", 
+    "datestr", "format_date",    
     "sprintf", "cond", "commify", "truncate",
     "urlsafe", "texsafe",
     
@@ -79,6 +80,18 @@ def json_encode(d):
     """Same as simplejson.dumps.
     """
     return simplejson.dumps(d)
+
+
+def safesort(iterable, key=None, reverse=False):
+    """Sorts heterogeneous of objects without raising errors.
+    
+    Sorting heterogeneous objects sometimes causes error. For example,
+    datetime and Nones don't go well together. This function takes special
+    care to make that work.
+    """
+    key = key or (lambda x: x)
+    safekey = lambda x: (x.__class__.__name__, key(x))
+    return sorted(iterable, key=safekey, reverse=reverse)
 
 
 def datestr(then, now=None, lang=None):
