@@ -214,9 +214,11 @@ class ListMixin:
                 d[kind].append(s)
         return d
         
-    def get_seeds(self):
+    def get_seeds(self, sort=False):
         seeds = [Seed(self, s) for s in self.seeds]
-        return h.safesort(seeds, reverse=True, key=lambda seed: seed.last_update)
+        if sort:
+            seeds = h.safesort(seeds, reverse=True, key=lambda seed: seed.last_update)
+        return seeds
         
     def get_seed(self, seed):
         if isinstance(seed, dict):
