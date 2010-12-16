@@ -229,16 +229,16 @@ def build_work_title_map(equiv, norm_titles):
             title_to_work_title[norm_title].add(norm_wt)
 
     title_map = {}
-    for title, v in title_to_work_title.items():
-        if len(v) == 1:
-            title_map[title] = list(v)[0]
+    for norm_title, work_titles in title_to_work_title.items():
+        if len(work_titles) == 1:
+            title_map[norm_title] = list(work_titles)[0]
             continue
-        most_common_title = max(v, key=lambda i:norm_titles[i])
-        if title != most_common_title:
-            title_map[title] = most_common_title
-        for i in v:
-            if i != most_common_title:
-                title_map[i] = most_common_title
+        most_common_title = max(work_titles, key=lambda i:norm_titles[i])
+        if norm_title != most_common_title:
+            title_map[norm_title] = most_common_title
+        for work_title in work_titles:
+            if work_title != most_common_title:
+                title_map[work_title] = most_common_title
     return title_map
 
 def get_first_version(key):
@@ -315,7 +315,7 @@ def find_works(akey, book_iter, existing={}):
             pair = (book['norm_title'], book['norm_wt'])
             equiv[pair] += 1
             rev_wt[book['norm_wt']][book['work_title']] +=1
-        norm_titles[book['norm_title']] += 1
+        norm_titles[book['norm_title']] += 1 # used to build title_map
         books_by_key[book['key']] = book
         books.append(book)
 
@@ -413,7 +413,8 @@ def add_subjects_to_work(subjects, w):
     }
     for k, v in subjects.items():
         k = mapping[k]
-        w[k] = [i[0] for i in sorted(v.items(), key=lambda i:i[1], reverse=True) if i != '']
+        subjects = [i[0] for i in sorted(v.items(), key=lambda i:i[1], reverse=True) if i != '']
+        w[k].extend(s for s in subjects if s not in w[k])
         try:
             assert all(i != '' and not i.endswith(' ') for i in w[k])
         except AssertionError:
@@ -510,10 +511,17 @@ def update_work_with_best_match(akey, w, work_to_edition, do_updates, fh_log):
     work_updated = []
     best = w['best_match']['key']
     update = []
+    subjects_from_existing_works = defaultdict(set)
     for wkey in w['existing_works'].iterkeys():
-        if wkey != best:
-            update.append({'type': '/type/redirect', 'location': best, 'key': wkey})
-            work_updated.append(wkey)
+        if wkey == best:
+            continue
+        existing = get_with_retry(wkey)
+        for k in 'subjects', 'subject_places', 'subject_times', 'subject_people':
+            if existing.get(k):
+                subjects_from_existing_works[k].update(existing[k])
+
+        update.append({'type': '/type/redirect', 'location': best, 'key': wkey})
+        work_updated.append(wkey)
 
     for wkey in w['existing_works'].iterkeys():
         editions = set(work_to_edition[wkey])
@@ -533,6 +541,8 @@ def update_work_with_best_match(akey, w, work_to_edition, do_updates, fh_log):
 
     cur_work = w['best_match']
     need_save = fix_up_authors(cur_work, akey, w['editions']) 
+    if any(subjects_from_existing_works.values()):
+        need_save = True
     if need_save or cur_work['title'] != w['title'] \
             or ('subtitle' in w and 'subtitle' not in cur_work) \
             or ('subjects' in w and 'subjects' not in cur_work):
@@ -543,6 +553,8 @@ def update_work_with_best_match(akey, w, work_to_edition, do_updates, fh_log):
             pprint(existing_work)
         assert existing_work['type'] == '/type/work'
         existing_work['title'] = w['title']
+        for k, v in subjects_from_existing_works.items():
+            existing_work[k] = list(v)
         add_detail_to_work(w, existing_work)
         print >> fh_log, 'existing:', existing_work
         print >> fh_log, 'subtitle:', `existing_work['subtitle']` if 'subtitle' in existing_work else 'n/a'
