@@ -414,7 +414,8 @@ def add_subjects_to_work(subjects, w):
     for k, v in subjects.items():
         k = mapping[k]
         subjects = [i[0] for i in sorted(v.items(), key=lambda i:i[1], reverse=True) if i != '']
-        w[k].extend(s for s in subjects if s not in w[k])
+        existing_subjects = set(w.get(k, []))
+        w.setdefault(k, []).extend(s for s in subjects if s not in existing_subjects)
         try:
             assert all(i != '' and not i.endswith(' ') for i in w[k])
         except AssertionError:
@@ -554,7 +555,8 @@ def update_work_with_best_match(akey, w, work_to_edition, do_updates, fh_log):
         assert existing_work['type'] == '/type/work'
         existing_work['title'] = w['title']
         for k, v in subjects_from_existing_works.items():
-            existing_work[k] = list(v)
+            existing_subjects = set(existing_work.get(k, []))
+            existing_work.setdefault(k, []).extend(s for s in v if s not in existing_subjects)
         add_detail_to_work(w, existing_work)
         print >> fh_log, 'existing:', existing_work
         print >> fh_log, 'subtitle:', `existing_work['subtitle']` if 'subtitle' in existing_work else 'n/a'
