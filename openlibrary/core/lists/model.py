@@ -14,6 +14,15 @@ from infogami.utils import stats
 
 from openlibrary.core import helpers as h
 
+# this will be imported on demand to avoid circular dependency
+worksearch = None
+
+def get_subject(key):
+    global worksearch
+    if worksearch is None:
+        from openlibrary.plugins.worksearch import code as worksearch
+    return worksearch.get_subject(key)
+
 def cached_property(name, getter):
     """Just like property, but the getter is called only for the first access. 
 
@@ -308,7 +317,7 @@ class Seed:
         self._list = list
         
         if isinstance(value, basestring):
-            self.document = None
+            self.document = get_subject(self.get_subject_url(value))
             self.key = value
             self.type = "subject"
         else:
@@ -355,12 +364,20 @@ class Seed:
                 return "/subjects/" + web.lstrips(self.key, "subject:")
             else:
                 return "/subjects/" + self.key
+                
+    def get_subject_url(self, subject):
+        if subject.startswith("subject:"):
+            return "/subjects/" + web.lstrips(subject, "subject:")
+        else:
+            return "/subjects/" + subject
             
     def get_cover(self):
         if self.type in ['work', 'edition']:
             return self.document.get_cover()
         elif self.type == 'author':
             return self.document.get_photo()
+        elif self.type == 'subject':
+            return self.document.get_default_cover()
         else:
             return None
             

@@ -316,6 +316,12 @@ class Subject(web.storage):
         if params:
             u += '?' + urllib.urlencode(params)
         return u
+        
+    def get_default_cover(self):
+        for w in self.works:
+            cover_id = w.get("cover_id")
+            if cover_id:
+                return Image(web.ctx.site, "b", cover_id)
 
 def register_models():
     client.register_thing_class(None, Thing) # default
