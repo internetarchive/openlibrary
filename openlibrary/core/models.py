@@ -72,11 +72,12 @@ class Thing(client.Thing):
             u += '?' + urllib.urlencode(params)
         return u
         
-    def _get_lists(self):
+    def _get_lists(self, limit=50, offset=0):
         q = {
             "type": "/type/list",
             "seeds": {"key": self.key},
-            "limit": 1000
+            "limit": limit,
+            "offset": offset
         }
         keys = self._site.things(q)
         return h.safesort(self._site.get_many(keys), reverse=True, key=lambda list: list.last_update)
@@ -100,8 +101,8 @@ class Edition(Thing):
             m = web.re_compile("(\d\d\d\d)").search(self.publish_date)
             return m and int(m.group(1))
 
-    def get_lists(self):
-        return self._get_lists()
+    def get_lists(self, limit=50, offset=0):
+        return self._get_lists(limit=limit, offset=offset)
 
 class Work(Thing):
     """Class to represent /type/work objects in OL.
@@ -122,8 +123,8 @@ class Work(Thing):
     
     edition_count = property(get_edition_count)
 
-    def get_lists(self):
-        return self._get_lists()
+    def get_lists(self, limit=50, offset=0):
+        return self._get_lists(limit=limit, offset=offset)
 
 class Author(Thing):
     """Class to represent /type/author objects in OL.
@@ -141,8 +142,8 @@ class Author(Thing):
                 data={'key': self.key})
     edition_count = property(get_edition_count)
     
-    def get_lists(self):
-        return self._get_lists()
+    def get_lists(self, limit=50, offset=0):
+        return self._get_lists(limit=limit, offset=offset)
     
 class User(Thing):
     def get_usergroups(self):
