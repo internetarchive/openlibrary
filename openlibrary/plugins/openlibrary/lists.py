@@ -83,9 +83,9 @@ class lists_json(delegate.page):
         if not doc:
             raise web.notfound()
             
-        i = web.input(offset=0, limit=20)
+        i = web.input(offset=0, limit=50)
         i.offset = h.safeint(i.offset, 0)
-        i.limit = h.safeint(i.limit, 20)
+        i.limit = h.safeint(i.limit, 50)
         
         i.limit = min(i.limit, 100)
         i.offset = max(i.offset, 0)
@@ -101,7 +101,7 @@ class lists_json(delegate.page):
             "list_count": len(lists),
             "lists": [{"key": list.key} for list in lists]
         }
-        # TODO: add next and prev links        
+        # TODO: add next and prev links
         return delegate.RawText(self.dumps(d))
         
     def forbidden(self):
@@ -278,6 +278,34 @@ class list_editions_yaml(list_editions_json):
     encoding = "yml"
     content_type = 'text/yaml; charset="utf-8"'
     
+
+class list_subjects_json(delegate.page):
+    path = "(/people/\w+/lists/OL\d+L)/subjects"
+    encoding = "json"
+    content_type = "application/json"
+
+    def GET(self, key):
+        list = web.ctx.site.get(key)
+        if not list:
+            raise web.notfound()
+            
+        i = web.input(limit=20)
+        limit = h.safeint(i.limit, 20)
+
+        data = list.get_subjects(limit=limit)
+        data['key'] = key
+        data['links'] = {
+            "self": web.ctx.home + key + "/subjects.json"
+        }
+        
+        text = formats.dump(data, self.encoding)
+        return delegate.RawText(text, content_type=self.content_type)
+        
+class list_editions_yaml(list_subjects_json):
+    encoding = "yml"
+    content_type = 'text/yaml; charset="utf-8"'
+
+
 class export(delegate.page):
     path = "(/people/\w+/lists/OL\d+L)/export"
 
