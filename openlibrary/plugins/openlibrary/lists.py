@@ -89,21 +89,34 @@ class lists_json(delegate.page):
         
         i.limit = min(i.limit, 100)
         i.offset = max(i.offset, 0)
-            
-        lists = doc.get_lists(limit=i.limit, offset=i.offset)
-        return self.render(doc, lists, i)
-    
-    def render(self, doc, lists, i):
+        
+        lists = self.get_lists(doc, limit=i.limit, offset=i.offset)
+        return delegate.RawText(self.dumps(lists))
+        
+    def get_lists(self, doc, limit=50, offset=0):
+        lists = doc.get_lists(limit=limit, offset=offset)
+        size = len(lists)
+        
+        if offset or len(lists) == limit:
+            # There could be more lists than len(lists)
+            size = len(doc.get_lists(limit=1000))
+        
         d = {
             "links": {
-                "self": web.ctx.home + web.ctx.fullpath
+                "self": web.ctx.home + web.ctx.path
             },
-            "list_count": len(lists),
-            "lists": [{"key": list.key} for list in lists]
+            "size": size,
+            "entries": [list.preview() for list in lists]
         }
-        # TODO: add next and prev links
-        return delegate.RawText(self.dumps(d))
-        
+        if offset + len(lists) < size:
+            d['links']['next'] = web.ctx.home + web.changequery(limit=limit, offset=offset + limit)
+            
+        if offset:
+            offset = max(0, offset-limit)
+            d['links']['prev'] = web.ctx.home + web.changequery(limit=limit, offset=offset)
+            
+        return d
+            
     def forbidden(self):
         headers = {"Content-Type": self.get_content_type()}
         data = {

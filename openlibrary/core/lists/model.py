@@ -98,6 +98,19 @@ class ListMixin:
     edition_count = cached_property("edition_count", _get_edition_count)
     ebook_count = cached_property("ebook_count", _get_ebook_count)
     last_update = cached_property("last_update", _get_last_update)
+    
+    def preview(self):
+        """Return data to preview this list. 
+        
+        Used in the API.
+        """
+        return {
+            "url": web.ctx.home + self.key,
+            "full_url": web.ctx.home + self.url(),
+            "name": self.name or "",
+            "seed_count": len(self.seeds),
+            "last_update": self.last_update and self.last_update.isoformat() or None
+        }
         
     def get_works(self, limit=50, offset=0):
         keys = [[seed, "works"] for seed in self._get_rawseeds()]

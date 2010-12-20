@@ -295,6 +295,9 @@ class List(Thing, ListMixin):
                 return i
         return -1
 
+    def __repr__(self):
+        return "<List: %s (%r)>" % (self.key, self.name)
+
 class Subject(web.storage):
     def get_lists(self):
         q = {
