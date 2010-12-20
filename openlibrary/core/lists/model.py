@@ -109,6 +109,7 @@ class ListMixin:
             "full_url": web.ctx.home + self.url(),
             "name": self.name or "",
             "seed_count": len(self.seeds),
+            "edition_count": self.edition_count,
             "last_update": self.last_update and self.last_update.isoformat() or None
         }
         
