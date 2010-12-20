@@ -103,17 +103,17 @@ class lists_json(delegate.page):
         
         d = {
             "links": {
-                "self": web.ctx.home + web.ctx.path
+                "self": web.ctx.path
             },
             "size": size,
             "entries": [list.preview() for list in lists]
         }
         if offset + len(lists) < size:
-            d['links']['next'] = web.ctx.home + web.changequery(limit=limit, offset=offset + limit)
+            d['links']['next'] = web.changequery(limit=limit, offset=offset + limit)
             
         if offset:
             offset = max(0, offset-limit)
-            d['links']['prev'] = web.ctx.home + web.changequery(limit=limit, offset=offset)
+            d['links']['prev'] = web.changequery(limit=limit, offset=offset)
             
         return d
             
@@ -177,9 +177,49 @@ class lists_json(delegate.page):
     
     def loads(self, text):
         return formats.load(text, self.encoding)
-        
 
 class lists_yaml(lists_json):
+    encoding = "yml"
+    content_type = "text/yaml"
+
+class list_view_json(delegate.page):
+    path = "(/people/[^/]+/lists/OL\d+L)"
+    encoding = "json"
+    content_type = "application/json"
+
+    def GET(self, key):
+        list = web.ctx.site.get(key)
+        if not list or list.type.key == '/type/delete':
+            raise web.notfound()
+        
+        data = self.get_list_data(list)
+        return delegate.RawText(self.dumps(data))
+            
+    def get_list_data(self, list):
+        return {
+            "links": {
+                "self": list.key,
+                "seeds": list.key + "/seeds",
+                "subjects": list.key + "/subjects",
+                "editions": list.key + "/editions",
+            },
+            "name": list.name or None,
+            "description": list.description and unicode(list.description) or None,
+            "seed_count": len(list.seeds),
+            "edition_count": list.edition_count,
+            
+            "meta": {
+                "revision": list.revision,
+                "created": list.created.isoformat(),
+                "last_modified": list.last_modified.isoformat(),
+            }
+        }
+
+    def dumps(self, data):
+        web.header("Content-Type", self.content_type)
+        return formats.dump(data, self.encoding)
+    
+class list_view_yaml(list_view_json):
     encoding = "yml"
     content_type = "text/yaml"
         
@@ -194,7 +234,17 @@ class list_seeds(delegate.page):
         if not list:
             raise web.notfound()
         
-        data = list.dict().get("seeds", [])
+        seeds = [seed.dict() for seed in list.get_seeds()]
+        
+        data = {
+            "links": {
+                "self": key + "/seeds",
+                "list": key
+            },
+            "size": len(seeds),
+            "entries": seeds
+        }
+        
         text = formats.dump(data, self.encoding)
         return delegate.RawText(text)
         
@@ -283,14 +333,42 @@ class list_editions_json(delegate.page):
         limit = h.safeint(i.limit, 20)
         offset = h.safeint(i.offset, 0)
 
-        data = list.get_editions(limit=limit, offset=offset, _raw=True)
+        editions = list.get_editions(limit=limit, offset=offset, _raw=True)
+        
+        data = make_collection(
+            size=editions['count'], 
+            entries=[self.process_edition(e) for e in editions['editions']],
+            limit=limit,
+            offset=offset
+        )
+        data['links']['list'] = key 
         text = formats.dump(data, self.encoding)
         return delegate.RawText(text, content_type=self.content_type)
         
+    def process_edition(self, e):
+        e.pop("seeds", None)
+        return e
+        
 class list_editions_yaml(list_editions_json):
     encoding = "yml"
-    content_type = 'text/yaml; charset="utf-8"'
+    content_type = 'text/yaml; charset="utf-8"'    
     
+def make_collection(size, entries, limit, offset):
+    d = {
+        "size": size,
+        "entries": entries,
+        "links": {
+            "self": web.changequery(),
+        }
+    }
+    
+    if offset + len(entries) < size:
+        d['links']['next'] = web.changequery(limit=limit, offset=offset+limit)
+    
+    if offset:
+        d['links']['prev'] = web.changequery(limit=limit, offset=max(0, offset-limit))
+    
+    return d
 
 class list_subjects_json(delegate.page):
     path = "(/people/\w+/lists/OL\d+L)/subjects"
@@ -305,14 +383,32 @@ class list_subjects_json(delegate.page):
         i = web.input(limit=20)
         limit = h.safeint(i.limit, 20)
 
-        data = list.get_subjects(limit=limit)
-        data['key'] = key
+        data = self.get_subjects(list, limit=limit)
         data['links'] = {
-            "self": web.ctx.home + key + "/subjects.json"
+            "self": key + "/subjects",
+            "list": key
         }
         
         text = formats.dump(data, self.encoding)
         return delegate.RawText(text, content_type=self.content_type)
+        
+    def get_subjects(self, list, limit):
+        data = list.get_subjects(limit=limit)
+        for key, subjects in data.items():
+            data[key] = [self._process_subject(s) for s in subjects]
+        return dict(data)
+        
+    def _process_subject(self, s):
+        key = s['key']
+        if key.startswith("subject:"):
+            key = "/subjects/" + web.lstrips(key, "subject:")
+        else:
+            key = "/subjects/" + key
+        return {
+            "name": s['name'],
+            "count": s['count'],
+            "url": key
+        }
         
 class list_editions_yaml(list_subjects_json):
     encoding = "yml"

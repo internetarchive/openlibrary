@@ -105,8 +105,8 @@ class ListMixin:
         Used in the API.
         """
         return {
-            "url": web.ctx.home + self.key,
-            "full_url": web.ctx.home + self.url(),
+            "url": self.key,
+            "full_url": self.url(),
             "name": self.name or "",
             "seed_count": len(self.seeds),
             "edition_count": self.edition_count,
@@ -407,6 +407,31 @@ class Seed:
     title = property(get_title)
     url = property(get_url)
     cover = property(get_cover)
+    
+    def dict(self):
+        if self.type == "subject":
+            url = self.url
+            full_url = self.url
+        else:
+            url = self.key
+            full_url = self.url
+        
+        d = {
+            "url": url,
+            "full_url": full_url,
+            "type": self.type,
+            "title": self.title,
+            "work_count": self.work_count,
+            "edition_count": self.edition_count,
+            "ebook_count": self.ebook_count,
+            "last_update": self.last_update and self.last_update.isoformat() or None
+        }
+        cover = self.get_cover()
+        if cover:
+            d['picture'] = {
+                "url": cover.url("S")
+            }
+        return d
     
     def __repr__(self):
         return "<seed: %s %s>" % (self.type, self.key)
