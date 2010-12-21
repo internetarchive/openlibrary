@@ -144,11 +144,13 @@ class lists_json(delegate.page):
         data = self.loads(web.data())
         # TODO: validate data
         
+        seeds = self.process_seeds(data.get('seeds', []))
+        
         list = user.new_list(
             name=data.get('name', ''),
             description=data.get('description', ''),
             tags=data.get('tags', []),
-            seeds=data.get('seeds', [])
+            seeds=seeds
         )
         
         try:
@@ -157,7 +159,7 @@ class lists_json(delegate.page):
                 action="lists",
                 data={
                     "list": {"key": list.key},
-                    "seeds": data.get("seeds", [])
+                    "seeds": seeds
                 }
             )
         except client.ClientException, e:
@@ -171,6 +173,20 @@ class lists_json(delegate.page):
         
         web.header("Content-Type", self.get_content_type())
         return delegate.RawText(self.dumps(result))
+        
+    def process_seeds(self, seeds):
+        def f(seed):
+            if isinstance(seed, dict):
+                return seed
+            elif seed.startswith("/subjects/"):
+                seed = seed.split("/")[-1]
+                if seed.split(":")[0] not in ["place", "person", "time"]:
+                    seed = "subject:" + seed
+                seed = seed.replace(",", "_").replace("__", "_")
+            else:
+                seed = {"key": seed}
+            return seed
+        return [f(seed) for seed in seeds]
                 
     def get_content_type(self):
         return self.content_type
@@ -266,10 +282,13 @@ class list_seeds(delegate.page):
         data.setdefault("add", [])
         data.setdefault("remove", [])
         
-        for seed in data["add"]:
+        # support /subjects/foo and /books/OL1M along with subject:foo and {"key": "/books/OL1M"}.
+        process_seeds = lists_json().process_seeds
+        
+        for seed in process_seeds(data["add"]):
             list.add_seed(seed)
             
-        for seed in data["remove"]:
+        for seed in process_seeds(data["remove"]):
             list.remove_seed(seed)
             
         seeds = []
