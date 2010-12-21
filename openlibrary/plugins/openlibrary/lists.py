@@ -79,7 +79,10 @@ class lists_json(delegate.page):
     content_type = "application/json"
     
     def GET(self, path):
-        doc = web.ctx.site.get(path)
+        if path.startswith("/subjects/"):
+            doc = worksearch.get_subject(path)
+        else:
+            doc = web.ctx.site.get(path)
         if not doc:
             raise web.notfound()
             

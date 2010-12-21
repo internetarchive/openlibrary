@@ -299,11 +299,12 @@ class List(Thing, ListMixin):
         return "<List: %s (%r)>" % (self.key, self.name)
 
 class Subject(web.storage):
-    def get_lists(self):
+    def get_lists(self, limit=1000, offset=0):
         q = {
             "type": "/type/list",
             "seeds": self.get_seed(),
-            "limit": 1000
+            "limit": limit,
+            "offset": offset
         }
         keys = web.ctx.site.things(q)
         lists = web.ctx.site.get_many(keys)
