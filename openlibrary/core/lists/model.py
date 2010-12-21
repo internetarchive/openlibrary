@@ -60,7 +60,7 @@ class ListMixin:
         d = dict((seed, web.storage(zeros)) for seed in rawseeds)
     
         for row in self._couchdb_view(db, "_all_docs", keys=rawseeds, include_docs=True):
-            if 'doc' in row:
+            if row.get('doc'):
                 if 'edition' not in row.doc:
                     doc = web.storage(zeros, **row.doc)
                     
