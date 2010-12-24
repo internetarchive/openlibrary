@@ -183,7 +183,7 @@ class lists_json(delegate.page):
                 if seed.split(":")[0] not in ["place", "person", "time"]:
                     seed = "subject:" + seed
                 seed = seed.replace(",", "_").replace("__", "_")
-            else:
+            elif seed.startswith("/"):
                 seed = {"key": seed}
             return seed
         return [f(seed) for seed in seeds]
