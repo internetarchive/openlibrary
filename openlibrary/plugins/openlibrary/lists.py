@@ -495,6 +495,6 @@ def get_active_lists_in_random(limit=20):
     # ignore lists with just 1 seed
     lists = [list for list in web.ctx.site.get_many(keys) if len(list.seeds) > 1]
     
-    if len(keys) > limit:
+    if len(lists) > limit:
         lists = random.sample(lists, limit)
     return lists
