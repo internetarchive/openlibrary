@@ -92,10 +92,6 @@ def install_solr():
     
     download_and_extract("http://www.apache.org/dist/lucene/solr/1.4.0/apache-solr-1.4.0.tgz")
     
-    #solr_tgz = wget("http://www.apache.org/dist/lucene/solr/1.4.0/apache-solr-1.4.0.tgz")
-    #if not os.path.exists("vendor/apache-solr-1.4.0"):
-    #    system("cd vendor && tar xzf apache-solr-1.4.0.tgz")
-    
     types = 'authors', 'editions', 'works', 'subjects', 'inside'
     paths = ["vendor/solr/solr/" + t for t in types]
     system("mkdir -p " + " ".join(paths))
@@ -143,6 +139,11 @@ def download_and_extract(url):
     dir = filename.replace(".tgz", "").replace(".tar.gz", "")
     if not os.path.exists(dir):
         system("cd vendor && tar xzf " + os.path.basename(filename))
+        
+def checkout_submodules():
+    info("checking out git submodules ...")
+    system("git submodule init")
+    system("git submodule update")
 
 def main():
     setup_dirs()
@@ -152,6 +153,7 @@ def main():
     setup_virtualenv()
     install_python_dependencies()
     install_vendor_packages()
+    checkout_submodules()
     
 if __name__ == '__main__':
     main()
