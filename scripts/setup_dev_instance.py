@@ -13,6 +13,49 @@ INTERP = None
 
 CWD = os.getcwd()
 
+class CouchDBInstaller:
+    """CouchDB Installer for linux and osx.
+    """
+    def run(self):
+        distro = self.find_distro()
+        if distro == "osx":
+            self.install_osx()
+        else:
+            self.install_linux()
+        self.copy_config_files()    
+            
+    def copy_config_files(self):
+        debug("copying config files")
+        system("cp conf/couchdb/local.ini vendor/couchdb-1.0.1/etc/")
+        
+    def install_osx(self):
+        pass
+        
+    def install_linux(self):
+        download_url = "http://www.archive.org/download/ol_vendor/couchdb-1.0.1-linux-binaries.tgz"
+        download_and_extract(download_url, dirname="couchdb-1.0.1")
+        self.fix_linux_paths()
+        
+    def fix_linux_paths(self):
+        root = os.getcwd() + "/vendor/couchdb-1.0.1"
+        for f in "bin/couchdb bin/couchjs bin/erl etc/couchdb/default.ini etc/init.d/couchdb etc/logrotate.d/couchdb lib/couchdb/erlang/lib/couch-1.0.1/ebin/couch.app".split():
+    	    debug("fixing paths in", f)
+    	    self.replace_file(os.path.join(root, f), "/home/anand/couchdb-1.0.1", root)
+        
+    def replace_file(self, path, pattern, replacement):
+        text = open(path).read()
+        text = text.replace(pattern, replacement)
+        f = open(path, "w")
+        f.write(text)
+        f.close()
+        
+    def find_distro(self):
+        uname = os.popen("uname").read().strip()
+        if uname == "Darwin":
+            return "osx"
+        else:
+            return "linux"
+
 def log(level, args):
     msg = " ".join(map(str, args))
     if level == "ERROR" or level == "INFO":
@@ -78,8 +121,9 @@ def install_python_dependencies():
     
 def install_vendor_packages():
     install_solr()
-    install_couchdb()
     install_couchdb_lucene()
+    CouchDBInstaller().run()
+    
     
 def mkdir_p(*paths):
     debug("mkdir -p ", *paths)
@@ -90,12 +134,15 @@ def mkdir_p(*paths):
 def install_solr():
     info("installing solr...")
     
-    download_and_extract("http://www.apache.org/dist/lucene/solr/1.4.0/apache-solr-1.4.0.tgz")
+    download_and_extract("http://www.archive.org/download/ol_vendor/apache-solr-1.4.0.tgz")
     
     types = 'authors', 'editions', 'works', 'subjects', 'inside'
-    paths = ["vendor/solr/solr/" + t for t in types]
+    paths = ["vendor/solr/solr/" + t for t in types] 
     system("mkdir -p " + " ".join(paths))
-    system("cp -R vendor/apache-solr-1.4.0/example/{etc,lib,logs,webapps,start.jar} vendor/solr/")
+    
+    for f in "etc lib logs webapps start.jar".split():
+        system("cp -R vendor/apache-solr-1.4.0/example/%s vendor/solr/" % f)
+    
     system("cp conf/solr-biblio/solr.xml vendor/solr/solr/")
 
     solrconfig = open("vendor/apache-solr-1.4.0/example/solr/conf/solrconfig.xml").read()
@@ -110,17 +157,6 @@ def install_solr():
         debug("creating", f)
         write(f, solrconfig.replace("./solr/data", "./solr/%s/data" % t))
     
-def install_couchdb():
-    info("installing couchdb...")
-    info("  downloading...")
-    download_and_extract("http://www.archive.org/download/ol_vendor/apache-couchdb-1.0.1.tar.gz")
-    
-    info("  building...")
-    system("bash -c 'cd vendor/apache-couchdb-1.0.1 && ./configure && make && make dev'")
-    
-    info("  copying config file...")
-    system("cp conf/couchdb/local.ini vendor/apache-couchdb-1.0.1/etc/couchdb/local_dev.ini")
-    
 def install_couchdb_lucene():
     info("installing couchdb lucene...")
     download_and_extract("http://www.archive.org/download/ol_vendor/couchdb-lucene-0.6-SNAPSHOT-dist.tar.gz")    
@@ -131,19 +167,40 @@ def wget(url):
         system("wget %s -O %s" % (url, filename))
     return filename
     
-def download_and_extract(url):
+def download_and_extract(url, dirname=None):
     filename = "vendor/" + url.split("/")[-1]
     if not os.path.exists(filename):
         system("wget %s -O %s" % (url, filename))
         
-    dir = filename.replace(".tgz", "").replace(".tar.gz", "")
-    if not os.path.exists(dir):
+    dirname = dirname or filename.replace(".tgz", "").replace(".tar.gz", "")
+    if not os.path.exists(dirname):
         system("cd vendor && tar xzf " + os.path.basename(filename))
         
 def checkout_submodules():
     info("checking out git submodules ...")
     system("git submodule init")
     system("git submodule update")
+    
+def initialize_databases():
+    info("initializing databases...")
+    initialize_postgres_database()
+    
+def initialize_postgres_database():
+    info("  creating postgres db...")
+    system("createdb openlibrary")
+    system("python openlibrary/core/schema.py | psql openlibrary")
+    
+    stdout = open("var/log/install.log", 'a')
+    info("  starting infobase server to initialize OL")
+    cmd = INTERP + " ./scripts/infobase-server conf/infobase.yml 7500"
+    p = subprocess.Popen(cmd.split(), stdout=stdout, stderr=stdout)
+    time.sleep(2)
+    try:
+        info("  running OL setup script...")
+        system(INTERP + " ./scripts/openlibrary-server conf/openlibrary.yml install")
+    finally:
+        info("  stopping infobase server...")
+        p.kill()
 
 def main():
     setup_dirs()
@@ -154,6 +211,7 @@ def main():
     install_python_dependencies()
     install_vendor_packages()
     checkout_submodules()
+    initialize_databases()
     
 if __name__ == '__main__':
     main()
