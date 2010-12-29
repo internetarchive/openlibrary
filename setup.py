@@ -12,5 +12,5 @@ setup(
     description='OpenlibraryBot',
     packages=find_packages(exclude=["ez_setup"]),
     scripts=filter(executable, glob.glob('scripts/*')),
-    install_requires='web.py==0.33 Babel pyyaml psycopg2 simplejson python-memcached lxml PIL pymarc genshi couchdb argparse supervisor'.split(),
+    install_requires='web.py==0.33 Babel pyyaml psycopg2 simplejson python-memcached lxml PIL pymarc genshi couchdb argparse supervisor gunicorn'.split(),
 )
