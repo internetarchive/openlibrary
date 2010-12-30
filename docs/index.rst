@@ -4,7 +4,7 @@ Open Library: Developer Documentation
 .. toctree::
    :maxdepth: 2
 
-   setup.rst
+   bootstrap.rst
    dev.rst
    design/index.rst
    api/index.rst

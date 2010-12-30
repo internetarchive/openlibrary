@@ -3,6 +3,15 @@ Setting up a dev instance
 
 Setting up OL dev instance requires installing third-party software, running many services. 
 
+Supported Platforms
+-------------------
+
+Open Library dev instance works on::
+
+* Ubuntu 10.04
+* Ununtu 10.10
+* Mac OS X Snow Leopard
+
 Dependencies
 ------------
 
@@ -59,48 +68,30 @@ The installation script is part of the Open Library repository. You need to get 
     $ git clone git://github.com/openlibrary/openlibrary.git
     $ cd openlibrary
 
-Now run the install script.
+Now run the ``bootstrap`` command to do the remaining setup.::
 
-	$ ./scripts/setup_dev_instance.py
+	$ python setup.py bootstrap
 
-The install script creates a virtualenv, installs all dependent python packages, installs vendor software and initializes OL databases. Detailed log is written to ``var/log/install.log`` and errors and info are reported to stdout and stderr.
-
-
-Setup a virtual env: ::
-	
-	$ mkdir ~/pyenvs
-	$ virtualenv ~/pyenv/ol
-	$ . ~/pyenvs/ol/bin/activate
-
-Checkout submodules::
-
-	$ ./setup.sh
-	
-Install third-party modules::
-
-	$ ./scripts/vendor-install.sh
-	
-Setup databases::
-
-	$ ./scripts/initialize.sh 
+The bootstrap command creates a virtualenv, installs all dependent python
+packages, installs vendor software and initializes OL databases. Detailed log
+is written to ``var/log/install.log`` and errors and info are reported to
+stdout and stderr.
 
 Run
 ---
 
-Once in the installation is done, running dev instance is very simple. ::
+Once in the installation is done, running dev instance is very simple.::
 
-	$ ./scripts/start.sh
+	$ python setup.py start
 	...
 	
-This script starts all the OL services using supervisord.
+This starts all the OL services using supervisord.
 
-Open Library webserver is now running at: ::
+Once the services are started, Open Library dev instance will be available at::
 
 	http://0.0.0.0:8080/
 
 Sample Data
 -----------
 
-Load sample data by running: ::
-
-   $ ./scripts/import_sample_data.py
+Loading sample data is not yet implemented.
