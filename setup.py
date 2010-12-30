@@ -31,13 +31,12 @@ web.py==0.33
 
 cmdclass = {}
 
-if BuildDoc:
-    class OLBuildDoc(BuildDoc):
-        def run(self):
-            print "generating API docs..."
-            os.system("python scripts/generate-api-docs.py")
-            BuildDoc.run(self)
-    cmdclass['build_sphinx'] = OLBuildDoc
+try:    
+    from openlibrary.core import setup_commands
+    cmdclass['start'] = setup_commands.StartCommand
+    cmdclass['build_sphinx'] = setup_commands.BuildDoc
+except ImportError:
+    pass
 
 setup(
     name='openlibrary',
