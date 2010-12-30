@@ -7,7 +7,7 @@ monkey.patch_socket()
 import re, httplib, json, sys
 from time import time
 from collections import defaultdict
-from lxml.etree import Element, tostring
+from lxml.etree import Element, tostring, parse, fromstring
 import urllib2
 from unicodedata import normalize
 
@@ -16,28 +16,41 @@ input_count = 0
 current_book = None
 find_item_book = None
 item_queue = JoinableQueue(maxsize=100)
-solr_queue = JoinableQueue(maxsize=100)
-item_and_host_queue = JoinableQueue(maxsize=10000)
+solr_queue = JoinableQueue(maxsize=1000)
+locator_times = []
+#item_and_host_queue = JoinableQueue(maxsize=10000)
 t0 = time()
 total = 1936324
 items_processed = 0
 items_skipped = 0
 solr_ia_status = None
 solr_error = False
-host_queues = defaultdict(lambda: JoinableQueue(maxsize=100))
+host_queues = defaultdict(lambda: JoinableQueue(maxsize=1000))
 solr_host = 'localhost:8983'
 #solr_pool = Pool(4)
 re_href = re.compile('href="([^"]+)"')
 host_threads = {}
 load_log = open('/1/log/index_inside', 'w')
-book_log = open('/1/log/book_done', 'a')
+good_log = open('/1/log/book_good', 'a')
+bad_log = open('/1/log/book_bad', 'a')
 done_count = 0
+good_count = 0
+bad_count = 0
+two_threads_per_host = True
 
-def done(ia):
-    global done_count
+
+# http://www.archive.org/services/find_file.php?file=bostonharborunce00bost&loconly=1
+
+def done(ia, was_good):
+    global done_count, good_count, bad_count
+    book_log = good_log if was_good else bad_log
+    if was_good:
+        good_count += 1
+    else:
+        bad_count += 1
     print >> book_log, ia
     done_count += 1
-    book_log.flush()
+    #book_log.flush()
 
 re_ia_host = re.compile('^ia(\d+).us.archive.org$')
 def use_secondary(host):
@@ -61,6 +74,8 @@ def urlread_keep_trying(url):
             else:
                 print 'error:', error.code, error.msg
             pass
+        except httplib.BadStatusLine:
+            print 'bad status line'
         except httplib.IncompleteRead:
             print 'incomplete read'
         except urllib2.URLError:
@@ -89,12 +104,29 @@ def read_text_from_node(host):
     global items_processed
     while True:
         #print 'host_queues[%s].get()' % host
-        num, ia, path, filename = host_queues[host].get()
+        num, ia, path = host_queues[host].get()
+
+        filename = ia + '_abbyy'
+        filename_gz = filename + '.gz'
+
+        url = 'http://%s/%s' % (host, path)
+        dir_html = urlread_keep_trying('http://%s/%s' % (host, path))
+        if not dir_html:
+            done(ia, False)
+            host_queues[host].task_done()
+            continue
+
+        filename = find_abbyy(dir_html, ia)
+        if not filename:
+            done(ia, False)
+            host_queues[host].task_done()
+            continue
+
         #print 'host_queues[%s].get() done'
         url = 'http://%s/~edward/abbyy_to_text.php?ia=%s&path=%s&file=%s' % (host, ia, path, filename)
         reply = urlread_keep_trying(url)
         if not reply or 'language not currently OCRable' in reply[:200]:
-            done(ia)
+            done(ia, False)
             host_queues[host].task_done()
             continue
         #index = reply.rfind(nl_page_count)
@@ -102,7 +134,7 @@ def read_text_from_node(host):
         if index == -1:
             print 'bad reply'
             print url
-            done(ia)
+            done(ia, False)
             host_queues[host].task_done()
             continue
         last_nl = reply.rfind('\n')
@@ -121,51 +153,29 @@ def read_text_from_node(host):
             #print 'solr_queue.put() done'
             items_processed += 1
         else:
-            done(ia)
+            done(ia, False)
         host_queues[host].task_done()
 
-def index_items():
-    while True:
-        (num, ia, host, path) = item_and_host_queue.get()
-        filename = ia + '_abbyy'
-        filename_gz = filename + '.gz'
-
-        url = 'http://%s/%s' % (host, path)
-        dir_html = urlread_keep_trying('http://%s/%s' % (host, path))
-        if not dir_html:
-            done(ia)
-            item_and_host_queue.task_done()
-            continue
-
-        filename = find_abbyy(dir_html, ia)
-        if not filename:
-            done(ia)
-            item_and_host_queue.task_done()
-            continue
-
-        #print 'host_queues[host].put()'
-        host_queues[host].put((num, ia, path, filename))
-        #print 'host_queues[host].put() done'
-        if host not in host_threads:
-            host_threads[host] = spawn_link_exception(read_text_from_node, host)
-        item_and_host_queue.task_done()
+#def index_items():
+#    while True:
+#        (num, ia, host, path) = item_and_host_queue.get()
+#
+#        host_queues[host].put((num, ia, path, filename))
+#        if host not in host_threads:
+#            host_threads[host] = spawn_link_exception(read_text_from_node, host)
+#        item_and_host_queue.task_done()
 
 def add_to_item_queue():
     global input_count, current_book, items_skipped
-    skip = True
+    skip = False
     check_for_existing = False
-    items_done = set(line[:-1] for line in open('/1/log/book_done'))
+    items_done = set(line[:-1] for line in open('/1/log/book_good'))
+    items_done.update(line[:-1] for line in open('/1/log/book_bad'))
     for line in open('/home/edward/scans/book_data_2010-12-09'):
         input_count += 1
         ia = line[:-1]
         if ia.startswith('WIDE-2010'):
             continue
-        if skip:
-            if ia.startswith('archiv'):
-                skip = None
-            else:
-                items_skipped += 1
-                continue
         if ia in items_done:
             items_skipped += 1
             continue
@@ -189,7 +199,7 @@ class FindItemError(Exception):
 def find_item(ia):
     s = socket(AF_INET, SOCK_DGRAM, SOL_UDP)
     s.setblocking(1)
-    s.settimeout(4.0)
+    s.settimeout(2.0)
     s.setsockopt(1, SO_BROADCAST, 1)
     s.sendto(ia, ('<broadcast>', 8010))
     for attempt in range(5):
@@ -200,20 +210,55 @@ def find_item(ia):
         ia_path = m.group(2)
         if m.group(3) == ia:
             return (ia_host, ia_path)
+        else:
+            print ia, '!=', m.group(3), 'retry'
     raise FindItemError
+
+def web_find_item(ia):
+    reply = urlread_keep_trying('http://www.archive.org/services/find_file.php?file=%s&loconly=1' % ia)
+    if not reply:
+        return
+        raise FindItemError
+    root = fromstring(reply)
+    assert root.tag == 'results'
+    if len(root) == 0:
+        raise FindItemError
+    assert root[0].tag == 'location'
+    return (root[0].get('host'), root[0].get('dir'))
 
 def run_find_item():
     global find_item_book
     while True:
         (num, ia) = item_queue.get()
         find_item_book = ia
+        #print 'find_item:', ia
+        t0_find_item = time()
         try:
-            (host, path) = find_item(ia)
-        except (timeout, FindItemError):
+            try:
+                (host, path) = find_item(ia)
+            except timeout:
+                (host, path) = web_find_item(ia)
+        #except (timeout, FindItemError):
+        except FindItemError:
+            t1_find_item = time() - t0_find_item
+            #print 'fail find_item:', ia, t1_find_item
             item_queue.task_done()
-            done(ia)
+            done(ia, False)
             continue
-        item_and_host_queue.put((num, ia, host, path))
+        t1_find_item = time() - t0_find_item
+        #print 'find_item:', ia, t1_find_item
+        if len(locator_times) == 100:
+            locator_times.pop(0)
+        locator_times.append((t1_find_item, host))
+
+        host_queues[host].put((num, ia, path))
+        if host not in host_threads:
+            if two_threads_per_host:
+                host_threads[host] = [ \
+                    spawn_link_exception(read_text_from_node, host), \
+                    spawn_link_exception(read_text_from_node, host)]
+            else:
+                host_threads[host] = spawn_link_exception(read_text_from_node, host)
         item_queue.task_done()
 
 def add_field(doc, name, value):
@@ -241,7 +286,7 @@ def run_solr_queue(queue_num):
         log(ia + ' - solr_queue.get() done')
         add = Element("add")
         esc_body = normalize('NFC', body.replace(']]>', ']]]]><![CDATA[>'))
-        r = '<add><doc>\n'
+        r = '<add commitWithin="10000000"><doc>\n'
         r += '<field name="ia">%s</field>\n' % ia
         r += '<field name="body_%s"><![CDATA[%s]]></field>\n' % (lang, esc_body)
         r += '<field name="body_length">%s</field>\n' % len(body)
@@ -276,7 +321,7 @@ def run_solr_queue(queue_num):
         assert response.reason == 'OK'
         solr_ia_status = ia
         log(ia + ' - solr_queue.task_done()')
-        done(ia)
+        done(ia, True)
         solr_queue.task_done()
         log(ia + ' - solr_queue.task_done() done')
 
@@ -289,9 +334,8 @@ def status_thread():
             print solr_error
         print 'run time:            %8.2f minutes' % (float(run_time) / 60)
         print 'input queue:         %8d' % item_queue.qsize()
-        print 'after find_item:     %8d' % item_and_host_queue.qsize()
+        #print 'after find_item:     %8d' % item_and_host_queue.qsize()
         print 'solr queue:          %8d' % solr_queue.qsize()
-        print 'done count:          %8d' % done_count
 
         #rec_per_sec = float(input_count - items_skipped) / run_time
         if done_count:
@@ -301,11 +345,11 @@ def status_thread():
             sec_left = remain / rec_per_sec
             hours_left = float(sec_left) / (60 * 60)
             print 'done count:          %8d (%.2f items/second)' % (done_count, rec_per_sec)
+            print '%8d good (%8.2f%%)   %8d bad (%8.2f%%)' % (good_count, ((float(good_count) * 100) / done_count), bad_count, ((float(bad_count) * 100) / done_count))
             print '       %8.2f%%       %8.2f hours left (%.1f days/left)' % (((float(items_skipped + done_count) * 100.0) / total), hours_left, hours_left / 24)
 
         #print 'items processed:     %8d (%.2f items/second)' % (items_processed, float(items_processed) / run_time)
         print 'current book:              ', current_book
-        print 'IA locator book:           ', find_item_book
         print 'most recently feed to solr:', solr_ia_status
 
         host_count = 0
@@ -317,6 +361,9 @@ def status_thread():
             queued_items += qsize
         print 'host queues:         %8d' % host_count
         print 'items queued:        %8d' % queued_items
+        if locator_times:
+            print 'average locator time: %8.2f secs' % (float(sum(t[0] for t in locator_times)) / len(locator_times))
+            #print sorted(locator_times, key=lambda t:t[0], reverse=True)[:10]
         print
         if run_time < 120:
             sleep(1)
@@ -325,12 +372,11 @@ def status_thread():
 
 t_status = spawn_link_exception(status_thread)
 t_item_queue = spawn_link_exception(add_to_item_queue)
-t_run_find_item = spawn_link_exception(run_find_item)
-t_index_items = spawn_link_exception(index_items)
-t_solr1 = spawn_link_exception(run_solr_queue, 1)
-t_solr2 = spawn_link_exception(run_solr_queue, 2)
-t_solr3 = spawn_link_exception(run_solr_queue, 3)
-t_solr4 = spawn_link_exception(run_solr_queue, 4)
+for i in range(80):
+    spawn_link_exception(run_find_item)
+#t_index_items = spawn_link_exception(index_items)
+for i in range(8):
+    spawn_link_exception(run_solr_queue, i)
 
 #joinall([t_run_find_item, t_item_queue, t_index_items, t_solr])
 
@@ -338,9 +384,9 @@ sleep(1)
 print 'join item_queue thread'
 t_item_queue.join()
 print 'item_queue thread complete'
-print 'join item_and_host_queue:', item_and_host_queue.qsize()
-item_and_host_queue.join()
-print 'item_and_host_queue complete'
+#print 'join item_and_host_queue:', item_and_host_queue.qsize()
+#item_and_host_queue.join()
+#print 'item_and_host_queue complete'
 for host, host_queue in host_queues.items():
     qsize = host_queue.qsize()
     print 'host:', host, qsize
