@@ -425,7 +425,7 @@ re_year = re.compile(r'\b(\d+)$')
 def find_ebook_count(field, key):
     q = '%s_key:%s+AND+(overdrive_s:*+OR+ia:*)' % (field, re_chars.sub(r'\\\1', key).encode('utf-8'))
 
-    root_url = 'http://ia331508:8983/solr/works/select?wt=json&indent=on&rows=%d&start=%d&q.op=AND&q=%s&fl=edition_key'
+    root_url = solr_select_url + '?wt=json&indent=on&rows=%d&start=%d&q.op=AND&q=%s&fl=edition_key'
     rows = 1000
 
     ebook_count = 0
