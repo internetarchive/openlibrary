@@ -59,7 +59,7 @@ class BuildDoc(_BuildDoc):
         if _BuildDoc is object:
             raise ImportError("sphinx")
         print "generating API docs..."
-        #os.system("python scripts/generate-api-docs.py")
+        os.system("python scripts/generate-api-docs.py")
         _BuildDoc.run(self)
         
 commands = {
