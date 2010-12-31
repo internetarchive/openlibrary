@@ -55,7 +55,7 @@ class CouchDBInstaller:
             return "osx"
         else:
             return "linux"
-
+            
 def log(level, args):
     msg = " ".join(map(str, args))
     if level == "ERROR" or level == "INFO":
@@ -114,8 +114,8 @@ def setup_virtualenv():
         
         info("restarting the script with python from", INTERP)
         env = dict(os.environ)
-        env['PATH'] = pyenv + ":" + env['PATH']
-        os.execvpe(INTERP, [INTERP] + [sys.argv], env)
+        env['PATH'] = pyenv + "/bin:" + env['PATH']
+        os.execvpe(INTERP, [INTERP] + sys.argv, env)
         
 def install_python_dependencies():
     info("installing python dependencies")
@@ -189,9 +189,8 @@ def initialize_databases():
     initialize_couchdb_databases()
     
 def initialize_postgres_database():
-    info("  creating postgres db...")
+    info("  creating openlibrary database...")
     system("createdb openlibrary")
-    system("python openlibrary/core/schema.py | psql openlibrary")
     
     stdout = open("var/log/install.log", 'a')
     info("  starting infobase server to initialize OL")
@@ -204,6 +203,7 @@ def initialize_postgres_database():
     finally:
         info("  stopping infobase server...")
         p.kill()
+        
         
 def initialize_couchdb_databases():
     cmd = "bin/couchdb"
@@ -224,9 +224,9 @@ def initialize_couchdb_databases():
         system("couchapp push couchapps/seeds/dirty http://127.0.0.1:5984/seeds")     
         system("couchapp push couchapps/seeds/sort http://127.0.0.1:5984/seeds")
         
-        system("curl -X POST -H 'Content-Type: application/json' http://127.0.0.1:5984/works/_ensure_full_commit")
-        system("curl -X POST -H 'Content-Type: application/json' http://127.0.0.1:5984/editions/_ensure_full_commit")
-        system("curl -X POST -H 'Content-Type: application/json' http://127.0.0.1:5984/seeds/_ensure_full_commit")
+        system("curl -s -X POST -H 'Content-Type: application/json' http://127.0.0.1:5984/works/_ensure_full_commit")
+        system("curl -s -X POST -H 'Content-Type: application/json' http://127.0.0.1:5984/editions/_ensure_full_commit")
+        system("curl -s -X POST -H 'Content-Type: application/json' http://127.0.0.1:5984/seeds/_ensure_full_commit")
     finally:
         info("stopping couchdb server...")
         p and p.terminate()
