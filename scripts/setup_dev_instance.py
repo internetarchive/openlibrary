@@ -308,10 +308,32 @@ class setup_ol(DBTask):
         info("setting up openlibrary database")
         self.create_database("openlibrary")
         Infobase().run_tasks(self.ol_install)
+        self.create_ebook_count_db()
         
     def ol_install(self, infobase):
         info("    running OL setup script")
-        system(INTERP + " ./scripts/openlibrary-server conf/openlibrary.yml install")        
+        system(INTERP + " ./scripts/openlibrary-server conf/openlibrary.yml install")
+        
+    def create_ebook_count_db(self):
+        info("    setting up openlibrary_ebook_count database")
+        self.create_database("openlibrary_ebook_count")
+        
+        schema = """
+        create table subjects (
+    		field text not null,
+    		key character varying(255),
+    		publish_year integer, 
+    		ebook_count integer,
+    		PRIMARY KEY (field, key, publish_year)
+    	);
+    	CREATE INDEX field_key ON subjects(field, key);
+        """
+        
+        if not self.has_table("openlibrary_ebook_count", "subjects"):
+            import web
+            db = web.database(dbn="postgres", db="openlibrary_ebook_count", user=os.getenv("USER"), pw="")
+            db.printing = False
+            db.query(schema)    	
 
 class setup_couchdb:
     """Creates couchdb databases required for OL and adds design documents to them."""
