@@ -191,7 +191,7 @@ def initialize_databases():
 def initialize_postgres_database():
     info("creating coverstore database...")
     system("createdb coverstore")
-    system("cat openlibrary/coverstore/schema.sql | psql coverstore")
+    system("psql coverstore < openlibrary/coverstore/schema.sql")
     
     info("  creating openlibrary database...")
     system("createdb openlibrary")
