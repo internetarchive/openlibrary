@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 import _init_path
 
@@ -50,6 +50,9 @@ done_login = False
 config_file = args.config
 config.load(config_file)
 
+solr_works = config.runtime_config["plugin_worksearch"]["solr"]
+solr_subjects = config.runtime_config["plugin_worksearch"]["subject_solr"]
+
 base = 'http://%s/openlibrary.org/log/' % config.runtime_config['infobase_server']
 
 skip_user = set(u.lower() for u in args.skip_user)
@@ -64,7 +67,7 @@ state_file = config.runtime_config['state_dir'] + '/' + args.state_file
 if not exists(state_file):
     print 'start point needed. do this:'
     print 'mkdir state'
-    print 'echo 2010-06-01:0 > state/' + options.state_file
+    print 'echo 2010-06-01:0 > state/' + args.state_file
     sys.exit(0)
 
 offset = open(state_file).readline()[:-1]
@@ -86,14 +89,14 @@ re_escape = re.compile("([%s])" % re.escape(r'+-!(){}[]^"~*?:\\'))
 
 def subject_count(field, subject):
     key = re_escape.sub(r'\\\1', str_to_key(subject)).encode('utf-8')
-    data = urlopen('http://ia331508:8983/solr/works/select?indent=on&wt=json&rows=0&q=%s_key:%s' % (field, key)).read()
+    data = urlopen('http://%s/solr/works/select?indent=on&wt=json&rows=0&q=%s_key:%s' % (solr_works, field, key)).read()
     ret = simplejson.loads(data)
     return ret['response']['numFound']
 
 def subject_need_update(key, count):
     escape_key = quote_plus(re_escape.sub(r'\\\1', key).encode('utf-8'))
 
-    reply = urlopen('http://ia331509:8983/solr/subjects/select?indent=on&wt=json&q=key:"' + escape_key + '"').read()
+    reply = urlopen('http://%s/solr/subjects/select?indent=on&wt=json&q=key:"%s"' % (solr_subjects, escape_key)).read()
 
     try:
         docs = simplejson.loads(reply)['response']['docs']
@@ -305,3 +308,4 @@ while True:
     since_last_update = time() - last_update
     if len(works_to_update) > work_limit or len(authors_to_update) > author_limit or since_last_update > time_limit:
         run_update()
+
