@@ -24,10 +24,8 @@ $if submodules:
     -------------
     
     .. automodule:: $mod
-        :members:
 $else:
     .. automodule:: $mod
-        :members:
 """
 
 t = web.template.Template(template)
@@ -70,6 +68,7 @@ def find_python_sources(dir):
         "openlibrary/plugins/heartbeat.*",
         ".*tests",
         "infogami/plugins.*",
+        "infogami.utils.markdown",
     ]
     re_ignore = re.compile("|".join(ignores))
 
