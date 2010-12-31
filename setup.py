@@ -10,7 +10,8 @@ dependencies = """
 Babel
 PIL
 argparse
-couchdb
+CouchDB==0.8
+couchapp
 genshi
 gunicorn
 lxml
