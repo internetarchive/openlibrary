@@ -115,7 +115,7 @@ def setup_virtualenv():
         info("restarting the script with python from", INTERP)
         env = dict(os.environ)
         env['PATH'] = pyenv + ":" + env['PATH']
-        os.execpv(INTERP, [INTERP] + [sys.argv], env)
+        os.execvpe(INTERP, [INTERP] + [sys.argv], env)
         
 def install_python_dependencies():
     info("installing python dependencies")
