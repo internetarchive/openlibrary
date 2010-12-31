@@ -64,13 +64,10 @@ if 'state_dir' not in config.runtime_config:
 
 state_file = config.runtime_config['state_dir'] + '/' + args.state_file
 
-if not exists(state_file):
-    print 'start point needed. do this:'
-    print 'mkdir state'
-    print 'echo 2010-06-01:0 > state/' + args.state_file
-    sys.exit(0)
-
-offset = open(state_file).readline()[:-1]
+if exists(state_file):
+    offset = open(state_file).readline()[:-1]
+else:
+    offset = "2010-06-01:0"
 
 print 'start:', offset
 authors_to_update = set()
