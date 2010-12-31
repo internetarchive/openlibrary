@@ -189,6 +189,10 @@ def initialize_databases():
     initialize_couchdb_databases()
     
 def initialize_postgres_database():
+    info("creating coverstore database...")
+    system("createdb coverstore")
+    system("cat openlibrary/coverstore/schema.sql | psql coverstore")
+    
     info("  creating openlibrary database...")
     system("createdb openlibrary")
     
