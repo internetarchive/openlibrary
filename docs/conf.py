@@ -206,7 +206,7 @@ html_theme_options = {
     'sidebarlinkcolor': '#036DAA',
     'sidebartextcolor': 'black',
 
-    'relbarbgcolor': '#CBC4A7',
+    'relbarbgcolor': '#E2DCC5',
     'relbartextcolor': 'black',
     'relbarlinkcolor': '#036DAA',
 
@@ -217,3 +217,4 @@ html_theme_options = {
     'headtextcolor': '#20435C',
     'headlinkcolor': '#036DAA',
 }
+
