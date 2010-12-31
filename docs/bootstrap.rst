@@ -22,21 +22,26 @@ Dependencies
 * At least 1GB of RAM on your dev machine or virtual machine
 * Python virtualenv
 
-To install them on Ubuntu/Debian::
+On Linux, installing some of the python packages depends on the following packages.
 
-	$ sudo apt-get install postgresql libpq-dev git-core openjdk-6-jre-headless python-virtualenv python-dev
-	$ sudo apt-get install libxslt1-dev
+* python-dev
+* libpq-dev
+* libxslt-dev
 
-To install them on Mac OS X: ::
+To install dependencies on Ubuntu/Debian::
 
-	$ brew install postgresql git
-	$ sudo easy_install virtualenv
+    $ sudo apt-get install postgresql libpq-dev git-core openjdk-6-jre-headless python-virtualenv python-dev libxslt-dev
+
+To install dependencies on Mac OS X: ::
+
+    $ brew install postgresql git
+    $ sudo easy_install virtualenv
 	
 Make sure you create a postgres user account for you.::
 
-	$ sudo -u postgres createuser anand
-	[sudo] password for anand: 
-	Shall the new role be a superuser? (y/n) y
+    $ sudo -u postgres createuser anand
+    [sudo] password for anand: 
+    Shall the new role be a superuser? (y/n) y
 
 Open Library depends also on the following packages, but they are installed by the install script.
 
@@ -56,6 +61,7 @@ Open Library depends also on the following packages, but they are installed by t
   * python-memcached 
   * pyyaml 
   * simplejson 
+  * sphinx
   * web.py==0.33
 
 Installation
@@ -70,7 +76,7 @@ The installation script is part of the Open Library repository. You need to get 
 
 Now run the ``bootstrap`` command to do the remaining setup.::
 
-	$ python setup.py bootstrap
+    $ python setup.py bootstrap
 
 The bootstrap command creates a virtualenv, installs all dependent python
 packages, installs vendor software and initializes OL databases. Detailed log
@@ -80,16 +86,22 @@ stdout and stderr.
 Run
 ---
 
-Once in the installation is done, running dev instance is very simple.::
+Once in the installation is done, running dev instance is very simple.
 
-	$ python setup.py start
-	...
+Load the virtual env.::
+
+    $ source ~/pyenv/ol/bin/activate
+
+And start the services.::
+
+    $ python setup.py start
+    ...
 	
-This starts all the OL services using supervisord.
+This starts all the OL services using `supervisord <http://supervisord.org/>`_.
 
-Once the services are started, Open Library dev instance will be available at::
+Once the services are started, Open Library dev instance will be available at:
 
-	http://0.0.0.0:8080/
+http://0.0.0.0:8080/
 
 Sample Data
 -----------
