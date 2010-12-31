@@ -26,7 +26,7 @@ class CouchDBInstaller:
             
     def copy_config_files(self):
         debug("copying config files")
-        system("cp conf/couchdb/local.ini vendor/couchdb-1.0.1/etc/")
+        system("cp conf/couchdb/local.ini vendor/couchdb-1.0.1/etc/couchdb/")
         
     def install_osx(self):
         pass
@@ -113,7 +113,9 @@ def setup_virtualenv():
         system("virtualenv " + pyenv)
         
         info("restarting the script with python from", INTERP)
-        os.execl(INTERP, INTERP, *sys.argv)
+        env = dict(os.environ)
+        env['PATH'] = pyenv + ":" + env['PATH']
+        os.execpv(INTERP, [INTERP] + [sys.argv], env)
         
 def install_python_dependencies():
     info("installing python dependencies")
@@ -184,6 +186,7 @@ def checkout_submodules():
 def initialize_databases():
     info("initializing databases...")
     initialize_postgres_database()
+    initialize_couchdb_databases()
     
 def initialize_postgres_database():
     info("  creating postgres db...")
@@ -201,6 +204,32 @@ def initialize_postgres_database():
     finally:
         info("  stopping infobase server...")
         p.kill()
+        
+def initialize_couchdb_databases():
+    cmd = "bin/couchdb"
+    try:
+        info("starting couchdb server...")
+        p = None
+        stdout = open("var/log/install.log", 'a')
+        p = subprocess.Popen(cmd.split(), stdout=stdout, stderr=stdout, cwd="vendor/couchdb-1.0.1")
+        time.sleep(2)
+        info("  creating couchdb databases...")
+        system("curl -s -X PUT http://127.0.0.1:5984/works")
+        system("curl -s -X PUT http://127.0.0.1:5984/editions")
+        system("curl -s -X PUT http://127.0.0.1:5984/seeds")
+
+        info("  adding design documents...")
+        system("couchapp push couchapps/works/seeds http://127.0.0.1:5984/works")        
+        system("couchapp push couchapps/editions/seeds http://127.0.0.1:5984/editions")        
+        system("couchapp push couchapps/seeds/dirty http://127.0.0.1:5984/seeds")     
+        system("couchapp push couchapps/seeds/sort http://127.0.0.1:5984/seeds")
+        
+        system("curl -X POST -H 'Content-Type: application/json' http://127.0.0.1:5984/works/_ensure_full_commit")
+        system("curl -X POST -H 'Content-Type: application/json' http://127.0.0.1:5984/editions/_ensure_full_commit")
+        system("curl -X POST -H 'Content-Type: application/json' http://127.0.0.1:5984/seeds/_ensure_full_commit")
+    finally:
+        info("stopping couchdb server...")
+        p and p.terminate()
 
 def main():
     setup_dirs()
