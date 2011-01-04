@@ -3,15 +3,9 @@
 from setuptools import Command
 import os
 import ConfigParser
+from setuptools.command.test import test as _test
 
-class StartCommand(Command):
-    """Distutils command to start OL services.
-    
-    This is invoked by calling::
-    
-        $ python setup.py start
-    """
-    description = "Start Open Library services"
+class BaseCommand(Command):
     user_options = []
     
     def initialize_options(self):
@@ -26,16 +20,29 @@ class StartCommand(Command):
         path = p.get("install", "virtualenv")
         return os.path.expanduser(path)
 
-    def run(self):
-        """runner"""
+    def exec_command(self, args):
         env = dict(os.environ)
         virtualenv = self.get_virtualenv()
-        env['PATH'] = virtualenv + "/bin:" + env['PATH']
-        
-        args = "supervisord -c conf/services.ini -n".split()
+        env['PATH'] = virtualenv + "/bin:" + env['PATH']        
         os.execvpe(args[0], args, env)
+    
+    
+class StartCommand(BaseCommand):
+    """Distutils command to start OL services.
+    
+    This is invoked by calling::
+    
+        $ python setup.py start
+    """
+    description = "Start Open Library services"
+        
+    def run(self):
+        """runner"""
+        args = "supervisord -c conf/services.ini -n".split()
+        self.exec_command(args)
 
-class ShellCommand(Command):
+
+class ShellCommand(BaseCommand):
     """Distutils command to start a bash shell with OL environment.
     
     This is invoked by calling::
@@ -43,36 +50,38 @@ class ShellCommand(Command):
         $ python setup.py shell
     """
     description = "Start bash shell with OL environment"
-    user_options = []
-    
-    def initialize_options(self):
-        pass
-
-    def finalize_options(self):
-        pass
 
     def run(self):
         args = ["bash", "-c", 'source conf/bashrc; bash --norc']
         os.execvp(args[0], args)
         
-class BootstrapCommand(Command):
+
+class BootstrapCommand(BaseCommand):
     """Distutils command to bootstrap OL dev instance.
     
-    This is invoked by calling:
+    This is invoked by calling::
     
         $ python setup.py bootstrap
     """
     description = "Bootstrap OL dev instance"
-    user_options = []
-    
-    def initialize_options(self):
-        pass
-
-    def finalize_options(self):
-        pass
     
     def run(self):
         os.system("python scripts/setup_dev_instance.py")
+
+class TestCommand(BaseCommand):
+    """Distutils command to tun all the tests.
+
+    This is invoked by calling::
+    
+        $ python setup.py test    
+    """
+    description = "Run all tests"
+    user_options = []
+    
+    def run(self):
+        args = "bash scripts/runtests.sh".split()
+        self.exec_command(args)
+        
 
 try:
     from sphinx.setup_command import BuildDoc as _BuildDoc
@@ -98,4 +107,5 @@ commands = {
     'build_sphinx': BuildDoc,
     'shell': ShellCommand,
     'start': StartCommand,
+    'test': TestCommand
 }
