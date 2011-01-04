@@ -18,6 +18,9 @@ use_gzip: True
 admin_password: "admin123"
 errorlog: "var/log/ol-errors"
 login_cookie_name: session
+
+infobase:
+    secret_key: xxx
  
 memcache_servers:
     - "localhost:7060"
