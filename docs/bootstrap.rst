@@ -8,9 +8,10 @@ Supported Platforms
 
 Open Library dev instance works on::
 
-* Ubuntu 10.04
 * Ununtu 10.10
-* Mac OS X Snow Leopard
+* Ubuntu 10.04
+
+Support for Mac OS X will be available soon.
 
 Dependencies
 ------------
@@ -21,6 +22,7 @@ Dependencies
 * Java Runtime (tested with openjdk-6-jre)
 * At least 1GB of RAM on your dev machine or virtual machine
 * Python virtualenv
+* memcached
 
 On Linux, installing some of the python packages depends on the following packages.
 
@@ -30,7 +32,7 @@ On Linux, installing some of the python packages depends on the following packag
 
 To install dependencies on Ubuntu/Debian::
 
-    $ sudo apt-get install postgresql libpq-dev git-core openjdk-6-jre-headless python-virtualenv python-dev libxslt-dev
+    $ sudo apt-get install memcached postgresql git-core openjdk-6-jre-headless python-virtualenv python-dev libpq-dev libxslt-dev
 
 To install dependencies on Mac OS X: ::
 
@@ -102,6 +104,8 @@ This starts all the OL services using `supervisord <http://supervisord.org/>`_.
 Once the services are started, Open Library dev instance will be available at:
 
 http://0.0.0.0:8080/
+
+Logs of the running services will be available in ``var/log/``.
 
 Sample Data
 -----------
