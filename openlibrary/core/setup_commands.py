@@ -52,7 +52,7 @@ class ShellCommand(BaseCommand):
     description = "Start bash shell with OL environment"
 
     def run(self):
-        args = ["bash", "-c", 'source conf/bashrc; bash --norc']
+        args = "bash --rcfile conf/bashrc".split()
         os.execvp(args[0], args)
         
 
