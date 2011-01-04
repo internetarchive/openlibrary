@@ -90,12 +90,6 @@ Run
 
 Once in the installation is done, running dev instance is very simple.
 
-Load the virtual env.::
-
-    $ source ~/pyenv/ol/bin/activate
-
-And start the services.::
-
     $ python setup.py start
     ...
 	

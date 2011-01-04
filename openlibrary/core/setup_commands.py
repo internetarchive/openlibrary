@@ -2,6 +2,7 @@
 """
 from setuptools import Command
 import os
+import ConfigParser
 
 class StartCommand(Command):
     """Distutils command to start OL services.
@@ -18,10 +19,40 @@ class StartCommand(Command):
 
     def finalize_options(self):
         pass
+        
+    def get_virtualenv(self):
+        p = ConfigParser.ConfigParser()
+        p.read("conf/install.ini")
+        path = p.get("install", "virtualenv")
+        return os.path.expanduser(path)
 
     def run(self):
         """runner"""
+        env = dict(os.environ)
+        virtualenv = self.get_virtualenv()
+        env['PATH'] = virtualenv + "/bin:" + env['PATH']
+        
         args = "supervisord -c conf/services.ini -n".split()
+        os.execvpe(args[0], args, env)
+
+class ShellCommand(Command):
+    """Distutils command to start a bash shell with OL environment.
+    
+    This is invoked by calling::
+    
+        $ python setup.py shell
+    """
+    description = "Start bash shell with OL environment"
+    user_options = []
+    
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        args = ["bash", "-c", 'source conf/bashrc; bash --norc']
         os.execvp(args[0], args)
         
 class BootstrapCommand(Command):
@@ -64,6 +95,7 @@ class BuildDoc(_BuildDoc):
         
 commands = {
     'bootstrap': BootstrapCommand,
-    'start': StartCommand,
     'build_sphinx': BuildDoc,
+    'shell': ShellCommand,
+    'start': StartCommand,
 }
