@@ -1,56 +1,5 @@
 $def with (data)
 
-$jsdef dropdown(name, options, value=""):
-    <select name="$name">
-        $for val in options:
-            $ text = val
-            <option value="$val" $cond(val==value, 'selected="selected"', "")>$text</option>
-    </select>
-
-$jsdef render_ip(i, d):
-    <div class="ip" id="id-$i">
-        <input type="text" name="ips--$i--ip" value="$d.ip" />
-        <a href="javascript:;" class="remove red plain hidden" title="$_('Unblock this IP')">[x]</a>&nbsp;
-        <a href="javscript:;" class="add hidden">Add another IP?</a>
-    </div>
-    
-<script type="text/javascript">
-\$(function() {
-    function update_visible() {
-        if (\$("#ips div.ip").length > 1) {
-            \$("#ips a.remove").show();
-        }
-        else {
-            \$("#ips a.remove").hide();
-        }
-
-        \$("#ips a.add:not(:last)").hide();
-        \$("#ips a.add:last").show();
-    }
-
-    update_visible();
-
-    \$("#ips a.remove").live("click", function() {
-        if (\$("#ips div.ip").length > 1) {
-            \$(this).closest("div.ip").remove();
-            update_visible();
-        }
-    });
-
-    \$("#ips a.add").live("click", function(event) {
-        event.preventDefault();
-
-        var n = \$("#ips div.ip:last").attr("id").substr("ip-".length);
-        n = parseInt(n);
-
-        \$("#ips").append(render_ip(n+1, {ip: ""}));
-        update_visible();
-    });
-
-});
-</script>
-    
-
 <div id="contentHead">
     <h2>Block IP address</h2>
 </div>
@@ -60,12 +9,15 @@ $jsdef render_ip(i, d):
     <form method="POST">
     <b>Blocked IP Addresses</b>
     <div id="ips">
-        $for i, d in enumerate(data.ips or [storage(ip="")]):
-            $:render_ip(i, d)
+    <textarea rows="60" name="ips">
+    $ ip_list = data.ips
+    $ ip_list.sort(key=lambda d:d.ip)
+    $for d in ip_list:
+        $d.ip
+    </textarea>
     </div>
     <input type="submit" name="_submit" value="Save"/>
     </form>
     
-    
-    
+        
 </div>
