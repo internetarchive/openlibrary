@@ -67,6 +67,10 @@ def start_gunicorn_server():
             infogami.main(configfile, "dummy")
             
             wsgi_app = delegate.app.wsgifunc(*config.middleware)
+            
+            # setup middleware for handling /static
+            wsgi_app = web.httpserver.StaticMiddleware(wsgi_app)
+
             return wsgi_app
 
     WSGIServer("%prog openlibrary.yml --gunicorn [options]").run()

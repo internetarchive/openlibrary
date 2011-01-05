@@ -1,5 +1,7 @@
 r"""Open Library API Client.
 
+Sample Usage::
+
     ol = OpenLibrary("http://0.0.0.0:8080")
     ol.login('joe', 'secret')
     
@@ -52,7 +54,7 @@ class OpenLibrary:
 
         The ~/.olrc file must be in ini format (format readable by
         ConfigParser module) and there should be a section with the
-        server name. A sample configuration file may look like this:
+        server name. A sample configuration file may look like this::
 
             [openlibrary.org]
             username = joe
@@ -151,13 +153,13 @@ class OpenLibrary:
         performance issues. Pass limit=False to fetch all matching
         results by making multiple requests to the server. Please note
         the an iterator is returned insted of list when limit=False is
-        passed.
+        passed.::
 
-        >>> ol.query({'type': '/type/type', 'limit': 2}) #doctest: +SKIP
-        [{'key': '/type/property'}, {'key': '/type/type'}]
+            >>> ol.query({'type': '/type/type', 'limit': 2}) #doctest: +SKIP
+            [{'key': '/type/property'}, {'key': '/type/type'}]
 
-        >>> ol.query(type='/type/type', limit=2) #doctest: +SKIP
-        [{'key': '/type/property'}, {'key': '/type/type'}]
+            >>> ol.query(type='/type/type', limit=2) #doctest: +SKIP
+            [{'key': '/type/property'}, {'key': '/type/type'}]
         """
         q = dict(q or {})
         q.update(kw)
@@ -183,7 +185,7 @@ class OpenLibrary:
 
 
 def marshal(data):
-    """Serializes the specified data in the format required by OL.
+    """Serializes the specified data in the format required by OL.::
 
         >>> marshal(datetime.datetime(2009, 1, 2, 3, 4, 5, 6789))
         {'type': '/type/datetime', 'value': '2009-01-02T03:04:05.006789'}
@@ -203,12 +205,12 @@ def marshal(data):
 
 
 def unmarshal(d):
-    u"""Converts OL serialized objects to python.
+    u"""Converts OL serialized objects to python.::
 
-    >>> unmarshal({"type": "/type/text", "value": "hello, world"})
-    <text: u'hello, world'>
-    >>> unmarshal({"type": "/type/datetime", "value": "2009-01-02T03:04:05.006789"})
-    datetime.datetime(2009, 1, 2, 3, 4, 5, 6789)
+        >>> unmarshal({"type": "/type/text", "value": "hello, world"})
+        <text: u'hello, world'>
+        >>> unmarshal({"type": "/type/datetime", "value": "2009-01-02T03:04:05.006789"})
+        datetime.datetime(2009, 1, 2, 3, 4, 5, 6789)
     """
     if isinstance(d, list):
         return [unmarshal(v) for v in d]
@@ -229,7 +231,7 @@ def unmarshal(d):
 
 
 def parse_datetime(value):
-    """Parses ISO datetime formatted strinb.
+    """Parses ISO datetime formatted string.::
 
         >>> parse_datetime("2009-01-02T03:04:05.006789")
         datetime.datetime(2009, 1, 2, 3, 4, 5, 6789)

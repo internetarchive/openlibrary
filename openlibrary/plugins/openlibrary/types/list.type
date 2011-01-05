@@ -1,0 +1,49 @@
+{
+    "name": "List", 
+    "created": {
+        "type": "/type/datetime", 
+        "value": "2010-09-20T11:54:54.247729"
+    }, 
+    "last_modified": {
+        "type": "/type/datetime", 
+        "value": "2010-09-27T10:41:53.438229"
+    }, 
+    "latest_revision": 2, 
+    "key": "/type/list", 
+    "type": {
+        "key": "/type/type"
+    }, 
+    "properties": [
+        {
+            "expected_type": {
+                "key": "/type/string"
+            }, 
+            "unique": true, 
+            "type": {
+                "key": "/type/property"
+            }, 
+            "name": "name"
+        }, 
+        {
+            "expected_type": {
+                "key": "/type/text"
+            }, 
+            "unique": true, 
+            "type": {
+                "key": "/type/property"
+            }, 
+            "name": "description"
+        }, 
+        {
+            "expected_type": {
+                "key": "/type/string"
+            }, 
+            "unique": false, 
+            "type": {
+                "key": "/type/property"
+            }, 
+            "name": "tags"
+        }
+    ], 
+    "revision": 2
+}

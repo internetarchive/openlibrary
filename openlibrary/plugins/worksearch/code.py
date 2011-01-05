@@ -7,6 +7,7 @@ import simplejson as json
 from openlibrary.plugins.openlibrary.processors import urlsafe
 from unicodedata import normalize
 from collections import defaultdict
+import os
 
 ftoken_db = None
 
@@ -46,7 +47,7 @@ if hasattr(config, 'plugin_worksearch'):
     default_spellcheck_count = config.plugin_worksearch.get('spellcheck_count', 10)
 
     ebook_count_host = config.plugin_worksearch.get('ebook_count_host')
-    ebook_count_user = config.plugin_worksearch.get('ebook_count_user')
+    ebook_count_user = config.plugin_worksearch.get('ebook_count_user') or os.getenv("USER")
     ebook_count_db_name = config.plugin_worksearch.get('ebook_count_db_name')
 
     ebook_count_db = web.database(dbn='postgres', db=ebook_count_db_name, host=ebook_count_host, user=ebook_count_user)
