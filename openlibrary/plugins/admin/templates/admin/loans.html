@@ -7,14 +7,16 @@ $ _x = ctx.setdefault('usergroup', 'admin')
     <div class="smaller grey"><a href="/admin">Admin</a> /</div>
     <h1>Outstanding eBook Loans</h1>
     <p id="note">
-        <em class="red">Note:</em> ACS4 loan status for ePub and PDF is updated on demand (when a user looks at a borrow page or their own loans).
-        BookReader loan status is always current.  To immediately refresh the status of all loans click below.
+        <em class="red">Note:</em> ACS4 loan status for ePub and PDF is updated on demand (when a user looks at a borrow page or their own loans).  You can refresh the status of a loan (synchronize with ACS4 server) by clicking on "refresh". BookReader loan status is always current.  
     </p>
     <p>
-        <form method="post" id="adminAction" name="adminAction" class="olform">
-            <input type="hidden" name="action" value="updateall" />
-            <input type="submit" value="Update all loan statuses" />
-        </form>
+        $if str(ctx.user) == '/people/mangtronix':
+            <form method="post" id="adminAction" name="adminAction" class="olform">
+                <input type="hidden" name="action" value="updateall" />
+                <input type="submit" value="Update ACS4 loan statuses" />
+            </form>
+        $else:
+            <span class="adminOnly">We're currently collecting stats - bulk status update is disabled.  Please do not refresh loan status manually, thanks.</span>
     </p>
         
 </div>
