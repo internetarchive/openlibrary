@@ -7,6 +7,7 @@ Open Library: Developer Documentation
    bootstrap.rst
    dev.rst
    architecture.rst
+   design.rst
    appendices/index.rst
 
 Indices and tables
