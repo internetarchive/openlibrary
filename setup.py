@@ -16,6 +16,7 @@ gunicorn
 lxml
 psycopg2
 pymarc
+pytest
 python-memcached
 pyyaml
 simplejson
