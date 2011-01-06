@@ -1,11 +1,10 @@
-$def with ()
+$def with (counts)
 
 $ _x = ctx.setdefault('bodyid', 'admin')
 $ _x = ctx.setdefault('usergroup', 'admin')
 
 $:macros.Dashboard()
 $ stats = get_admin_stats()
-$ counts = get_counts()
 <div id="contentHead">
     <div class="contentRight" style="float:right;">
         <table class="records">
@@ -39,45 +38,45 @@ $ counts = get_counts()
         </tr>
         <tr class="major">
             <td class="">Works</td>
-            <td class="amount">$commify(counts.works.lastweek)</td>
-            <td class="amount">$commify(counts.works.lastmonth)</td>
-            <td class="amount">$commify(counts.works.total)</td>    
+            <td class="amount">$commify(counts.work.lastweek)</td>
+            <td class="amount">$commify(counts.work.lastmonth)</td>
+            <td class="amount">$commify(counts.work.total)</td>    
         </tr>
         <tr>
             <td class="">Editions</td>
-            <td class="amount">$commify(counts.works.lastweek)</td> 
-            <td class="amount">$commify(counts.works.lastmonth)</td>
-            <td class="amount">$commify(counts.works.total)</td>    
+            <td class="amount">$commify(counts.edition.lastweek)</td> 
+            <td class="amount">$commify(counts.edition.lastmonth)</td>
+            <td class="amount">$commify(counts.edition.total)</td>    
         </tr>
         <tr>
             <td class="">eBooks</td>
-            <td class="amount">$commify(counts.works.lastweek)</td> 
-            <td class="amount">$commify(counts.works.lastmonth)</td>
-            <td class="amount">$commify(counts.works.total)</td>    
+            <td class="amount">$commify(counts.ebook.lastweek)</td> 
+            <td class="amount">$commify(counts.ebook.lastmonth)</td>
+            <td class="amount">$commify(counts.ebook.total)</td>    
         </tr>
         <tr>
             <td class="">Covers</td>
-            <td class="amount">$commify(counts.covers.lastweek)</td> 
-            <td class="amount">$commify(counts.covers.lastmonth)</td>
-            <td class="amount">$commify(counts.covers.total)</td>    
+            <td class="amount">$commify(counts.cover.lastweek)</td> 
+            <td class="amount">$commify(counts.cover.lastmonth)</td>
+            <td class="amount">$commify(counts.cover.total)</td>    
         </tr>
         <tr class="major">
             <td class="">Authors</td>
-            <td class="amount">$commify(counts.authors.lastweek)</td> 
-            <td class="amount">$commify(counts.authors.lastmonth)</td>
-            <td class="amount">$commify(counts.authors.total)</td>    
+            <td class="amount">$commify(counts.author.lastweek)</td> 
+            <td class="amount">$commify(counts.author.lastmonth)</td>
+            <td class="amount">$commify(counts.author.total)</td>    
         </tr>
         <tr class="major">
             <td class="">Subjects</td>
-            <td class="amount">$commify(counts.subjects.lastweek)</td> 
-            <td class="amount">$commify(counts.subjects.lastmonth)</td>
-            <td class="amount">$commify(counts.subjects.total)</td>    
+            <td class="amount">$commify(counts.subject.lastweek)</td> 
+            <td class="amount">$commify(counts.subject.lastmonth)</td>
+            <td class="amount">$commify(counts.subject.total)</td>    
         </tr>
         <tr class="major">
             <td class="">Lists</td>
-            <td class="amount">$commify(counts.lists.lastweek)</td> 
-            <td class="amount">$commify(counts.lists.lastmonth)</td>
-            <td class="amount">$commify(counts.lists.total)</td>    
+            <td class="amount">$commify(counts.list.lastweek)</td> 
+            <td class="amount">$commify(counts.list.lastmonth)</td>
+            <td class="amount">$commify(counts.list.total)</td>    
         </tr>
         <tr class="major">
             <td class="">User Accounts</td>

@@ -59,7 +59,7 @@ class admin(delegate.page):
 
 class admin_index:
     def GET(self):
-        return render_template("admin/index")
+        return render_template("admin/index",get_counts())
         
 class gitpull:
     def GET(self):
@@ -214,20 +214,21 @@ def get_counts():
     """Generate counts for various operations which will be given to the
     index page"""
     # This needs to be replaced with the real thing
-    works = dict(lastweek  = 10,
-                 lastmonth = 40,
-                 total     = 10000)
-    editions = ebooks = covers = authors = subjects = lists = useraccounts = works
+    placeholder = dict(lastweek  = "xxxx",
+                       lastmonth = "xxxx",
+                       total     = "xxxx")
 
-    counts = dict(works = works,
-                  editions = editions,
-                  ebooks = ebooks,
-                  covers = covers,
-                  authors = authors,
-                  subjects = subjects,
-                  lists = lists,
-                  useraccounts = useraccounts)
+    lastweek  = (datetime.date.today() - datetime.timedelta(days =  2)).isoformat()
+    lastmonth = (datetime.date.today() - datetime.timedelta(days = 28)).isoformat()
 
+    counts = web.storage()
+    for i in "work edition user author list".split():
+        counts[i] = dict(lastweek  = len(web.ctx.site.things({"type"     : "/type/%s"%i,
+                                                              "created>" : lastweek})),
+                         lastmonth = len(web.ctx.site.things({"type"     : "/type/%s"%i,
+                                                              "created>" : lastmonth})),
+                         total     = "xxxx")
+    counts["ebook"] = counts["cover"] = counts["subject"] = placeholder
     s = storify(counts)
     return s
 
@@ -314,7 +315,6 @@ def setup():
         register_admin_page('/admin' + p.path, p)
 
     public(get_admin_stats)
-    public(get_counts)
     
     delegate.app.add_processor(block_ip_processor)
     
