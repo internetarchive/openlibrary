@@ -33,11 +33,11 @@ def get_secret_key():
 def sendmail(to, msg, cc=None):
     cc = cc or []
     if config.get('dummy_sendmail'):
-        print 'To:', to
-        print 'From:', config.from_address
-        print 'Subject:', msg.subject
-        print
-        print web.safestr(msg)
+        print >> web.debug, 'To:', to
+        print >> web.debug, 'From:', config.from_address
+        print >> web.debug, 'Subject:', msg.subject
+        print >> web.debug
+        print >> web.debug, web.safestr(msg)
     else:
         web.sendmail(config.from_address, to, subject=msg.subject.strip(), message=web.safestr(msg), cc=cc)
     
