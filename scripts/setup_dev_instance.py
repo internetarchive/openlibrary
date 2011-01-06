@@ -252,6 +252,7 @@ class install_couchdb:
     """Installs couchdb and updates configuration files..
     """
     def run(self):
+        info("installing couchdb ...")
         distro = self.find_distro()
         if distro == "osx":
             self.install_osx()
@@ -264,7 +265,9 @@ class install_couchdb:
         system("cp conf/couchdb/local.ini vendor/couchdb-1.0.1/etc/couchdb/")
         
     def install_osx(self):
-        pass
+        download_url = "http://www.archive.org/download/ol_vendor/couchdb-1.0.1-osx-binaries.tgz"
+        download_and_extract(download_url, dirname="couchdb-1.0.1")
+        system("cd vendor/couchdb-1.0.1 && ln -fs couchdb-1.0.1/etc etc")
         
     def install_linux(self):
         download_url = "http://www.archive.org/download/ol_vendor/couchdb-1.0.1-linux-binaries.tgz"
