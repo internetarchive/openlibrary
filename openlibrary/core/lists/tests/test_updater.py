@@ -2,6 +2,7 @@ from openlibrary.core.mocks import mock_couchdb
 from openlibrary.core.lists import updater
 import re
 import os
+import simplejson
 
 def read_couchapp(path):
     """Reads the couchapp from repository_root/couchapps/$path.
