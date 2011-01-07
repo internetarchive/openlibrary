@@ -53,12 +53,12 @@ class admin(delegate.page):
     GET = POST = delegate
         
     def is_admin(self):
-        """"Returns True if the current user is in admin usergroup."""
+        """Returns True if the current user is in admin usergroup."""
         return context.user and context.user.key in [m.key for m in web.ctx.site.get('/usergroup/admin').members]
 
 class admin_index:
     def GET(self):
-        return render_template("admin/index")
+        return render_template("admin/index",get_counts())
         
 class gitpull:
     def GET(self):
@@ -208,6 +208,28 @@ def storify(d):
         return [storify(v) for v in d]
     else:
         return d
+
+def get_counts():
+    """Generate counts for various operations which will be given to the
+    index page"""
+    # This needs to be replaced with the real thing
+    placeholder = dict(lastweek  = "xxxx",
+                       lastmonth = "xxxx",
+                       total     = "xxxx")
+
+    lastweek  = (datetime.date.today() - datetime.timedelta(days =  2)).isoformat()
+    lastmonth = (datetime.date.today() - datetime.timedelta(days = 28)).isoformat()
+
+    counts = web.storage()
+    for i in "work edition user author list".split():
+        counts[i] = dict(lastweek  = len(web.ctx.site.things({"type"     : "/type/%s"%i,
+                                                              "created>" : lastweek})),
+                         lastmonth = len(web.ctx.site.things({"type"     : "/type/%s"%i,
+                                                              "created>" : lastmonth})),
+                         total     = "xxxx")
+    counts["ebook"] = counts["cover"] = counts["subject"] = placeholder
+    s = storify(counts)
+    return s
 
 def get_admin_stats():
     def f(dates):
