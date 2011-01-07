@@ -18,6 +18,11 @@ class Minicron(object):
         def match_minute(ctime, exp):
             if exp == "*":
                 return True
+            if "/" in exp:
+                a,b = exp.split("/")
+                return not ctime.minute % int(b)
+            if ctime.minute == int(exp):
+                return True
 
         def match_hour(ctime, exp):
             if exp == "*":

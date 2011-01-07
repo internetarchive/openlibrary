@@ -24,11 +24,31 @@ def test_ticker(crontabfile, monkeypatch, counter):
     assert cron._tick.invocations == 5, "Ticker ran %d times (should be 5)"%cron._tick.invocations
 
 
-def test_cronline_parser(crontabfile):
-    "Checks the cronline parser various inputs"
-    d = datetime.datetime.now()
+def test_cronline_parser_everyminute(crontabfile):
+    "Checks the cronline parser for executing every minute"
     cron = minicron.Minicron(crontabfile, 1)
+    d = datetime.datetime.now()
     assert cron._matches_cron_expression(d, "* * * * * do_something"), "* * * * * should be executed every minute"
+
+def test_cronline_parser_fifthminuteofeveryhour(crontabfile):
+    "Checks the cronline parser for executing at the fifth minute of every hour"
+    cron = minicron.Minicron(crontabfile, 1)
+    d = datetime.datetime(year = 2010, month = 8, day = 10, hour = 1, minute = 1, second = 0)
+    assert cron._matches_cron_expression(d, "5 * * * * do_something") == False, "5 * * * * should be executed only at the fifth minute but is executed at the first"
+    d = datetime.datetime(year = 2010, month = 8, day = 10, hour = 1, minute = 5, second = 0)
+    assert cron._matches_cron_expression(d, "5 * * * * do_something"), "5 * * * * should be executed at the fifth minute but is not"
+
+def test_cronline_parser_everyfifthminute(crontabfile):
+    "Checks the cronline parser for executing at every fifth minute"
+    cron = minicron.Minicron(crontabfile, 1)
+    d = datetime.datetime(year = 2010, month = 8, day = 10, hour = 1, minute = 2, second = 0)
+    assert cron._matches_cron_expression(d, "*/5 * * * * do_something") == False, "*/5 * * * * should be executed only at every fifth minute but is executed at the second"
+    d = datetime.datetime(year = 2010, month = 8, day = 10, hour = 1, minute = 5, second = 0)
+    assert cron._matches_cron_expression(d, "*/5 * * * * do_something"), "*/5 * * * * should be executed at the fifth minute but is not"
+
+
+    
+    
     
 
 # def test_runner_everyminute(tmpdir, monkeypatch, counter):
