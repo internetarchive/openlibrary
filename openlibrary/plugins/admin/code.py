@@ -56,7 +56,6 @@ class admin(delegate.page):
         """"Returns True if the current user is in admin usergroup."""
         return context.user and context.user.key in [m.key for m in web.ctx.site.get('/usergroup/admin').members]
 
-
 class admin_index:
     def GET(self):
         return render_template("admin/index")
@@ -258,6 +257,10 @@ from openlibrary.plugins.upstream import borrow
 class loans_admin:
     def GET(self):
         loans = borrow.get_all_loans()
+
+        # Preload books
+        web.ctx.site.get_many([loan['book'] for loan in loans])
+
         return render_template("admin/loans", loans, None)
         
     def POST(self):
