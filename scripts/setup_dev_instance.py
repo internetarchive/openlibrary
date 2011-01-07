@@ -48,7 +48,7 @@ def system(cmd):
         raise Exception("%r failed with exit code %d" % (cmd, ret))
 
 def setup_dirs():
-    os.system("mkdir -p var/lib var/run var/log")
+    os.system("mkdir -p var/lib var/run var/log usr/local/bin usr/local/lib")
     os.system("echo > var/log/install.log")
 
 def read_config():
@@ -73,6 +73,13 @@ def download_and_extract(url, dirname=None):
     dirname = dirname or filename.replace(".tgz", "").replace(".tar.gz", "")
     if not os.path.exists(dirname):
         system("cd vendor && tar xzf " + os.path.basename(filename))
+
+def find_distro():
+    uname = os.uname()[0]
+    if uname == "Darwin":
+        return "osx"
+    else:
+        return "linux"
     
 class Process:
     def __init__(self):
@@ -99,9 +106,15 @@ class Process:
         try:
             self.start()
             for task in tasks:
-                task(self)
+                task()
         finally:
             self.stop()
+            
+class Postgres(Process):
+    def get_specs(self):
+        return {
+            "command": "vendor/postgresql-8.4.4/bin/postgres -D var/lib/postgresql"
+        }
                         
 class CouchDB(Process):
     def get_specs(self):
@@ -202,7 +215,9 @@ class setup_virtualenv:
         
             info("restarting the script with python from", INTERP)
             env = dict(os.environ)
-            env['PATH'] = pyenv + "/bin:" + env['PATH']
+            env['PATH'] = pyenv + "/bin:usr/local/bin:" + env['PATH']
+            env['LD_LIBRARY_PATH'] = 'usr/local/lib'
+            env['DYLD_LIBRARY_PATH'] = 'usr/local/lib'
             os.execvpe(INTERP, [INTERP] + sys.argv, env)
         
 class install_python_dependencies:
@@ -253,7 +268,7 @@ class install_couchdb:
     """
     def run(self):
         info("installing couchdb ...")
-        distro = self.find_distro()
+        distro = find_distro()
         if distro == "osx":
             self.install_osx()
         else:
@@ -287,13 +302,38 @@ class install_couchdb:
         f.write(text)
         f.close()
         
-    def find_distro(self):
-        uname = os.popen("uname").read().strip()
-        if uname == "Darwin":
-            return "osx"
-        else:
-            return "linux"
-                        
+class install_postgresql:
+    """Installs postgresql on Mac OS X.
+    Doesn't do anything on Linux.
+    """
+    def run(self):
+        distro = find_distro()
+        if distro == "osx":
+            self.install()
+        
+    def install(self):
+        info("installing postgresql..")
+        download_url = "http://www.archive.org/download/ol_vendor/postgresql-8.4.4-osx-binaries.tgz"
+        download_and_extract(download_url, dirname="postgresql-8.4.4")
+        if not os.path.exists("var/lib/postgresql/base"):
+            system("vendor/postgresql-8.4.4/bin/initdb --no-locale var/lib/postgresql")
+        system("cd usr/local/bin && ln -fs ../../../vendor/postgresql-8.4.4/bin/* .")
+        system("cd usr/local/lib && ln -fs ../../../vendor/postgresql-8.4.4/lib/* .")
+        
+class start_postgresql:
+    def run(self):
+        distro = find_distro()
+        if distro == "osx":
+            self.start()
+        
+    def start(self):
+        info("starting postgresql..")
+        
+        pg = Postgres()
+        register_cleanup(pg.stop)
+        pg.start()
+        
+        
 class setup_coverstore(DBTask):
     """Creates and initialized coverstore db."""
     def run(self):
@@ -310,10 +350,11 @@ class setup_ol(DBTask):
     def run(self):
         info("setting up openlibrary database")
         self.create_database("openlibrary")
+        
         Infobase().run_tasks(self.ol_install)
         self.create_ebook_count_db()
         
-    def ol_install(self, infobase):
+    def ol_install(self):
         info("    running OL setup script")
         system(INTERP + " ./scripts/openlibrary-server conf/openlibrary.yml install")
         
@@ -342,29 +383,32 @@ class setup_couchdb:
     """Creates couchdb databases required for OL and adds design documents to them."""
     def run(self):
         info("setting up couchdb")
-        CouchDB().run_tasks(self.create_dbs, self.add_design_docs)
+        self.couchdb = CouchDB()
+        self.couchdb.run_tasks(self.create_dbs, self.add_design_docs)
         
-    def create_dbs(self, couchdb):
+    def create_dbs(self):
         info("    creating databases")
-        couchdb.create_database("works")
-        couchdb.create_database("editions")
-        couchdb.create_database("seeds")
+        self.couchdb.create_database("works")
+        self.couchdb.create_database("editions")
+        self.couchdb.create_database("seeds")
         
-    def add_design_docs(self, couchdb):
+    def add_design_docs(self):
         info("    adding design docs")
-        couchdb.add_design_doc("works", "works/seeds")
-        couchdb.add_design_doc("editions", "editions/seeds")
-        couchdb.add_design_doc("seeds", "seeds/dirty")
-        couchdb.add_design_doc("seeds", "seeds/sort")
+        self.couchdb.add_design_doc("works", "works/seeds")
+        self.couchdb.add_design_doc("editions", "editions/seeds")
+        self.couchdb.add_design_doc("seeds", "seeds/dirty")
+        self.couchdb.add_design_doc("seeds", "seeds/sort")
 
 class setup_accounts:
     """Task for creating openlibrary account and adding it to admin and api usergroups.
     """
     def run(self):
         info("setting up accounts...")
-        Infobase().run_tasks(self.create_account, self.add_to_usergroups)
+        self.infobase = Infobase()
+        self.infobase.run_tasks(self.create_account, self.add_to_usergroups)
         
-    def create_account(self, infobase):
+    def create_account(self):
+        infobase = self.infobase
         if not infobase.get_doc("/people/openlibrary"):
             info("    creating openlibrary account")
             infobase.post("/account/register", {
@@ -382,7 +426,8 @@ class setup_accounts:
             "verified": "true"
         })
         
-    def add_to_usergroups(self, infobase):
+    def add_to_usergroups(self):
+        infobase = self.infobase
         info("    adding openlibrary to admin and api usergroups")
         usergroups = [
             {
@@ -408,6 +453,12 @@ class setup_accounts:
             "comment": "Added openlibrary to admin and api usergroups."
         })
 
+
+cleanup_tasks = []
+
+def register_cleanup(cleanup):
+    cleanup_tasks.append(cleanup)
+        
 def main():
     setup_dirs()
     global config
@@ -422,15 +473,22 @@ def main():
         install_couchdb(),
         install_solr(),
         install_couchdb_lucene(),
+        install_postgresql(),
+        
+        start_postgresql(),        
         
         setup_coverstore(),
         setup_ol(),
         setup_couchdb(),
         setup_accounts()
     ]
-    
-    for task in tasks:
-        task.run()
+
+    try:
+        for task in tasks:
+            task.run()
+    finally:
+        for cleanup in cleanup_tasks:
+            cleanup()
     
 if __name__ == '__main__':
     main()

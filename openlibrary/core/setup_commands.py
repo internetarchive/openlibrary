@@ -23,7 +23,9 @@ class BaseCommand(Command):
     def exec_command(self, args):
         env = dict(os.environ)
         virtualenv = self.get_virtualenv()
-        env['PATH'] = virtualenv + "/bin:" + env['PATH']        
+        env['PATH'] = virtualenv + "/bin:" + env['PATH']
+        env['LD_LIBRARY_PATH'] = "usr/local/lib"
+        env['DYLD_LIBRARY_PATH'] = "usr/local/lib"
         os.execvpe(args[0], args, env)
     
     
@@ -38,9 +40,23 @@ class StartCommand(BaseCommand):
         
     def run(self):
         """runner"""
-        args = "supervisord -c conf/services.ini -n".split()
+        self.create_conf_file()
+        print "starting supervisor"
+        
+        args = "supervisord -c var/lib/supervisor.ini -n".split()
         self.exec_command(args)
-
+        
+    def create_conf_file(self):
+        print "creating supervisor config file var/lib/supervisor.ini"
+        conf = open("conf/supervisor/common.ini").read() + "\n"
+        if os.uname()[0] == "Darwin":
+            conf += open("conf/supervisor/macosx.ini").read()
+        else:
+            conf += open("conf/supervisor/linux.ini").read()
+        
+        f = open("var/lib/supervisor.ini", "w")
+        f.write(conf)
+        f.close()
 
 class ShellCommand(BaseCommand):
     """Distutils command to start a bash shell with OL environment.
