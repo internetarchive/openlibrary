@@ -1,6 +1,7 @@
 import os
 import time
 import sched
+import logging
 import datetime
 import subprocess
 
@@ -18,6 +19,7 @@ class Minicron(object):
         believe that a minute has gone by every second (useful for
         testing).
         """
+        logging.basicConfig(level=logging.DEBUG, format = "[%(levelname)s] : %(filename)s:%(lineno)d : %(message)s")
         self.ctime = inittime
         if self.ctime == None:
             self.ctime = datetime.datetime.fromtimestamp(time.time())
@@ -56,24 +58,24 @@ class Minicron(object):
 
     def _run_command(self, cmd):
         "Runs the given command"
-        # print " Running %s"%cmd.strip()
+        logging.debug(" Running command %s"%cmd)
         p = subprocess.Popen([cmd], shell = True)
         p.wait()
         
     def _check_and_run_commands(self, ctime):
         """Checks each line of the cron input file to see if the
         command is to be run. If so, it runs it"""
-        # print ctime
         f = open(self.cronfile)
         for cronline in f:
             if self._matches_cron_expression(ctime, cronline):
                 mm, hh, dom, moy, dow, cmd = cronline.split(None, 5)
-                self._run_command(cmd)
+                self._run_command(cmd.strip())
         f.close()
 
     def _tick(self):
         "The ticker that gets called once a minute"
         self.ctime += datetime.timedelta(seconds = 60)
+        logging.debug("Ticker waking up at %s"%self.ctime)
         self._check_and_run_commands(self.ctime)
         if self.times == None:
             self.scheduler.enter(self.tickfreq, 1, self._tick, ())
