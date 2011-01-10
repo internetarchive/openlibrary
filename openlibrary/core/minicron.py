@@ -19,7 +19,7 @@ class Minicron(object):
         believe that a minute has gone by every second (useful for
         testing).
         """
-        logging.basicConfig(level=logging.DEBUG, format = "[%(levelname)s] : %(filename)s:%(lineno)d : %(message)s")
+        logging.basicConfig(level=logging.INFO, format = "[%(levelname)s] : %(filename)s:%(lineno)d : %(message)s")
         self.ctime = inittime
         if self.ctime == None:
             self.ctime = datetime.datetime.fromtimestamp(time.time())
