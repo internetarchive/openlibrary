@@ -2,6 +2,7 @@ import os
 import time
 import sched
 import datetime
+import subprocess
 
 class BadCronLine(ValueError): pass
 
@@ -33,7 +34,7 @@ class Minicron(object):
             if ctime.hour == int(exp):
                 return True
 
-        mm, hh, dom, moy, dow, cmd = cronline.split(None, 6)
+        mm, hh, dom, moy, dow, cmd = cronline.split(None, 5)
         
         if not all(x == "*" for x in [dom, moy, dow]):
             raise BadCronLine("Only minutes and hours may be set. The others have to be *")
@@ -41,10 +42,21 @@ class Minicron(object):
         return all([match_minute(ctime, mm),
                     match_hour  (ctime, hh)])
             
+    def _check_and_run_commands(self, ctime):
+        """Checks each line of the cron input file to see if the
+        command is to be run. If so, it runs it"""
+        f = open(self.cronfile)
+        for cronline in f:
+            if self._matches_cron_expression(ctime, cronline):
+                mm, hh, dom, moy, dow, cmd = cronline.split(None, 5)
+                p = subprocess.Popen([cmd], shell = True)
+                p.wait()
+        f.close()
 
     def _tick(self):
         "The ticker that gets called once a minute"
         ctime = datetime.datetime.fromtimestamp(time.time())
+        self._check_and_run_commands(ctime)
         if self.times == None:
             self.scheduler.enter(self.tickfreq, 1, self._tick, ())
         elif self.times > 0:
