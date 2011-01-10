@@ -27,6 +27,11 @@ class Minicron(object):
         def match_hour(ctime, exp):
             if exp == "*":
                 return True
+            if "/" in exp:
+                a,b = exp.split("/")
+                return not ctime.hour % int(b)
+            if ctime.hour == int(exp):
+                return True
 
         mm, hh, dom, moy, dow, cmd = cronline.split(None, 6)
         
@@ -36,8 +41,6 @@ class Minicron(object):
         return all([match_minute(ctime, mm),
                     match_hour  (ctime, hh)])
             
-        
-
 
     def _tick(self):
         "The ticker that gets called once a minute"

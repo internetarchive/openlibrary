@@ -20,15 +20,15 @@ def test_ticker(crontabfile, monkeypatch, counter):
     cron = minicron.Minicron(crontabfile, 1) # Make the clock tick once a second (so that the test finishes quickly)
                                              # A minute is scaled down a second now
     monkeypatch.setattr(cron, '_tick', counter(cron._tick))
-    cron.run(5) 
-    assert cron._tick.invocations == 5, "Ticker ran %d times (should be 5)"%cron._tick.invocations
+    cron.run(3) 
+    assert cron._tick.invocations == 3, "Ticker ran %d times (should be 3)"%cron._tick.invocations
 
 
 def test_cronline_parser_everyminute(crontabfile):
-    "Checks the cronline parser for executing every minute"
+    "Checks the cronline parser for executing every minute/hour"
     cron = minicron.Minicron(crontabfile, 1)
     d = datetime.datetime.now()
-    assert cron._matches_cron_expression(d, "* * * * * do_something"), "* * * * * should be executed every minute"
+    assert cron._matches_cron_expression(d, "* * * * * do_something"), "* * * * * should be executed every minute/hour but isn't"
 
 def test_cronline_parser_fifthminuteofeveryhour(crontabfile):
     "Checks the cronline parser for executing at the fifth minute of every hour"
@@ -46,6 +46,24 @@ def test_cronline_parser_everyfifthminute(crontabfile):
     d = datetime.datetime(year = 2010, month = 8, day = 10, hour = 1, minute = 5, second = 0)
     assert cron._matches_cron_expression(d, "*/5 * * * * do_something"), "*/5 * * * * should be executed at the fifth minute but is not"
 
+def test_cronline_parser_thirdhourofeveryday(crontabfile):
+    "Checks the cronline parser for executing at the third hour of every day"
+    cron = minicron.Minicron(crontabfile, 1)
+    expression = "* 3 * * * do_something"
+    d = datetime.datetime(year = 2010, month = 8, day = 10, hour = 1, minute = 1, second = 0)
+    assert cron._matches_cron_expression(d, expression) == False, " %s should be executed only at the third hour but is executed at the first"%expression
+    d = datetime.datetime(year = 2010, month = 8, day = 10, hour = 3, minute = 1, second = 0)
+    assert cron._matches_cron_expression(d, expression), "%s should be executed at the third hour but is not"%expression
+
+def test_cronline_parser_everythirdhour(crontabfile):
+    "Checks the cronline parser for executing every third hour"
+    cron = minicron.Minicron(crontabfile, 1)
+    expression = "* */3 * * * do_something"
+    d = datetime.datetime(year = 2010, month = 8, day = 10, hour = 1, minute = 1, second = 0)
+    assert cron._matches_cron_expression(d, expression) == False, " %s should be executed only every third hour but is executed at the first"%expression
+    # d = datetime.datetime(year = 2010, month = 8, day = 10, hour = 3, minute = 1, second = 0)
+    # assert cron._matches_cron_expression(d, expression), "%s should be executed at the third hour but is not"%expression
+    
 
     
     
