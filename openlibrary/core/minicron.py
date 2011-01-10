@@ -7,7 +7,20 @@ import subprocess
 class BadCronLine(ValueError): pass
 
 class Minicron(object):
-    def __init__(self, cronfile, tickfreq = 60):
+    def __init__(self, cronfile, inittime = None, tickfreq = 60):
+        """Creates a cron runner that runs starting at
+        `inittime` (default is the current time).
+        A 'minute' goes by once every `tickfreq` seconds (default is 60)
+
+        `inittime` can be used to make the cron believe it's running
+        at a different time. `tickfreq` can be used to scale the
+        runner up or down. Passing _1_ for example will make it
+        believe that a minute has gone by every second (useful for
+        testing).
+        """
+        self.ctime = inittime
+        if self.ctime == None:
+            self.ctime = datetime.datetime.fromtimestamp(time.time())
         self.tickfreq = tickfreq
         self.cronfile = cronfile
         self.scheduler = sched.scheduler(time.time, time.sleep)
@@ -38,32 +51,35 @@ class Minicron(object):
         
         if not all(x == "*" for x in [dom, moy, dow]):
             raise BadCronLine("Only minutes and hours may be set. The others have to be *")
-
         return all([match_minute(ctime, mm),
                     match_hour  (ctime, hh)])
-            
+
+    def _run_command(self, cmd):
+        "Runs the given command"
+        # print " Running %s"%cmd.strip()
+        p = subprocess.Popen([cmd], shell = True)
+        p.wait()
+        
     def _check_and_run_commands(self, ctime):
         """Checks each line of the cron input file to see if the
         command is to be run. If so, it runs it"""
+        # print ctime
         f = open(self.cronfile)
         for cronline in f:
             if self._matches_cron_expression(ctime, cronline):
                 mm, hh, dom, moy, dow, cmd = cronline.split(None, 5)
-                p = subprocess.Popen([cmd], shell = True)
-                p.wait()
+                self._run_command(cmd)
         f.close()
 
     def _tick(self):
         "The ticker that gets called once a minute"
-        ctime = datetime.datetime.fromtimestamp(time.time())
-        self._check_and_run_commands(ctime)
+        self.ctime += datetime.timedelta(seconds = 60)
+        self._check_and_run_commands(self.ctime)
         if self.times == None:
             self.scheduler.enter(self.tickfreq, 1, self._tick, ())
         elif self.times > 0:
             self.times -= 1
             self.scheduler.enter(self.tickfreq, 1, self._tick, ())
-
-        
         
 
     def run(self, times = None):

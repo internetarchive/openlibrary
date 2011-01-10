@@ -5,16 +5,17 @@ A simple cron substitute for the dev instance.
 """
 
 import os
+import time
 import datetime
 
 import pytest
 
 from openlibrary.core import minicron
 
-def test_sanity(dummy_crontabfile):
-    "Create a simple cron parser with an input file"
-    cron = minicron.Minicron(dummy_crontabfile)
-    # pytest.raises(IOError, minicron.Minicron, "/non/existent/file.tests")
+def test_nonexistentinputfile(dummy_crontabfile):
+    "Create a cron parser with an non existent input file"
+    cron = minicron.Minicron("/non/existent/file.tests", None, 0.01)
+    pytest.raises(IOError, cron.run)
 
 def test_malformed_cron_line(dummy_crontabfile):
     cron = minicron.Minicron(dummy_crontabfile, 1)
@@ -23,12 +24,10 @@ def test_malformed_cron_line(dummy_crontabfile):
 
 def test_ticker(dummy_crontabfile, monkeypatch, counter):
     "Checks that the ticker executes once a minute"
-    cron = minicron.Minicron(dummy_crontabfile, 1) # Make the clock tick once a second (so that the test finishes quickly)
-                                             # A minute is scaled down to a second now
+    cron = minicron.Minicron(dummy_crontabfile, None, 0.1) # Make the clock tick once in 0.1 seconds (so that the test finishes quickly)
     monkeypatch.setattr(cron, '_tick', counter(cron._tick))
     cron.run(3) 
     assert cron._tick.invocations == 3, "Ticker ran %d times (should be 3)"%cron._tick.invocations
-
 
 def test_cronline_parser_everyminute(dummy_crontabfile):
     "Checks the cronline parser for executing every minute/hour"
@@ -79,20 +78,37 @@ def test_cronline_parser_everythirdhour(dummy_crontabfile):
 def test_cronline_running(crontabfile):
     "Checks if the cron actually executes commands"
     assert not os.path.exists("/tmp/crontest") # Make sure that out test file doesn't exist
-    cron = minicron.Minicron(crontabfile, 1)
+    cron = minicron.Minicron(crontabfile, None, 0.1)
     cron.run(1)
     assert os.path.exists("/tmp/crontest"), "/tmp/crontest should have been created by the cron but its not"
     os.unlink("/tmp/crontest")
-    
 
-# def test_runner_everyminute(tmpdir, monkeypatch, counter):
-#     "Checks that execution happens every minute for a * * * * * cron line"
-#     p = tmpdir.mkdir("crontab").join("every-minute")
-#     p.write("* * * * * echo 'hello'")
-#     cron = minicron.Minicron(p, 1)
-#     monkeypatch.setattr(cron, '_tick', counter(cron._tick))
-#     monkeypatch.setattr(cron, '_execute', counter(cron._execute))
-#     cron.run(5)
-#     assert cron._execute_command.invocations == 5, "Command was executed %d times (should be 5)"%cron._execute.invocations
-#     assert cron._execute_command.invocations == 5, "Command was executed %d times (should be 5)"%cron._execute.invocations
+def test_proper_run(monkeypatch, counter):
+    "Tries a cron run with a non-trivial time pattern"
+    cronfile = os.tmpnam()
+    f = open(cronfile,"w")
+    f.write("*/2 0 * * * touch /tmp/foo\n") # Every alternate minute in the first hour only
+    f.close()
+    cron = minicron.Minicron(cronfile, datetime.datetime(hour =0, minute = 0, second = 0, year = 2011, month = 1, day =1), 0.01)
+    monkeypatch.setattr(cron, '_run_command', counter(cron._run_command))
+    cron.run(120) # Run for 2 hours
+    assert cron._run_command.invocations == 29, "The function should have run every alternate minute in the first hour (29 times) but ran %s times"%cron._run_command.invocations 
+
+    f = open(cronfile,"w")
+    f.write("*/2 0 * * * touch /tmp/foo\n") # Every alternate minute in the first hour only
+    f.write("* 1 * * * touch /tmp/foo\n") # Every minute in the second hour
+    f.close()
+    cron = minicron.Minicron(cronfile, datetime.datetime(hour =0, minute = 0, second = 0, year = 2011, month = 1, day =1), 0.01)
+    monkeypatch.setattr(cron, '_run_command', counter(cron._run_command))
+    cron.run(180) # Run for 3 hours
+    assert cron._run_command.invocations == 89, "The function should have run every alternate minute in the first hour (29 times) and every minute in the second (60 times) i.e. totally 89 times but ran %s times"%cron._run_command.invocations
+
+    f = open(cronfile,"w")
+    f.write("1 1 * * * touch /tmp/foo\n") # Every alternate minute in the first hour only
+    f.close()
+    cron = minicron.Minicron(cronfile, datetime.datetime(hour =0, minute = 0, second = 0, year = 2011, month = 1, day =1), 0.01)
+    monkeypatch.setattr(cron, '_run_command', counter(cron._run_command))
+    cron.run(180) # Run for 3 hours
+    assert cron._run_command.invocations == 1, "The function should have run just once in the second minute of the second hour but ran %s times"%cron._run_command.invocations
+
     

@@ -3,8 +3,8 @@ import os
 def pytest_funcarg__dummy_crontabfile(request):
     "Creates a dummy crontab file that can be used for to try things"
     cronfile = os.tmpnam()
-    ip = """* * * * * cmd1
-* * * * * cmd2"""
+    ip = """* * * * * /bin/true
+* * * * * /bin/true"""
     f = open(cronfile,"w")
     f.write(ip)
     f.close()
@@ -23,6 +23,7 @@ def pytest_funcarg__crontabfile(request):
     f.close()
     request.addfinalizer(lambda : os.remove(cronfile))
     return cronfile
+
 
 def pytest_funcarg__counter(request):
     """Returns a decorator that will create a 'counted' version of the
