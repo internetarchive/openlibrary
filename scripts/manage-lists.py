@@ -11,6 +11,7 @@ import simplejson
 import couchdb
 import web
 import datetime
+import urllib2
 
 from openlibrary.core import formats
 from openlibrary.core.lists.updater import Updater
@@ -486,20 +487,17 @@ class LogReplay(Command):
     
     def run(self, configfile, offset_file):
         self.offset_file = offset_file
-        conf = self.read_lists_config(configfile)
-        
-        updater = Updater(conf)
-        self.read_changesets(config['infobase_log_url'], updater.process_changesets)
-    
-    def read_lists_config(self, configfile):
         conf = formats.load_yaml(open(configfile).read())
-        return conf.get("lists")
-
-    def read_log(url, callback, chunksize=100):
-        offset = read_offset(self.offset_file) or default_offset()
+        updater = Updater(conf.get("lists"))
+        
+        infobase_log_url = "http://%s/openlibrary.org/log" % conf.get("infobase_server")
+        self.read_changesets(infobase_log_url, updater.process_changesets)
+    
+    def read_log(self, url, callback, chunksize=100):
+        offset = self.read_offset(self.offset_file) or self.default_offset()
 
         while True:
-            json = wget("%s/%s?limit=%d" % (url, offset, chunksize))
+            json = self.wget("%s/%s?limit=%d" % (url, offset, chunksize))
             d = simplejson.loads(json)
 
             if not d['data']:
@@ -512,10 +510,10 @@ class LogReplay(Command):
             offset = d['offset']
             self.write(self.offset_file, offset)
 
-    def read_changesets(url, callback, chunksize=100):
+    def read_changesets(self, url, callback, chunksize=100):
         def f(rows):
             changesets = [row['data']['changeset'] for row in rows
-                            if 'data' in row and 'changeset' in row['data']]
+                            if row.get('data', {}).get('changeset')]
 
             changesets and callback(changesets)
         self.read_log(url, callback=f, chunksize=chunksize)

@@ -1,0 +1,72 @@
+$def with (doc, lists)
+
+$def render_author():
+    $#<!-- Need to insert author photo $:render_template('covers/book_cover_small', doc.works[0]) -->
+    <h1><a href="$doc.key">$doc.name</a> / Lists</h1>
+    <p class="collapse large brown sansserif">
+    <!-- Include number of works: ### works -->
+    </p>
+    <p class="sansserif lightgreen large">
+        $ msg = ungettext("This author is on <strong>%s list</strong>.", "This author is on <strong>%s lists</strong>.", len(lists))
+        $:sprintf(msg, commify(len(lists)))
+    </p>
+    
+$def render_edition():
+    $#<!-- Need to insert book cover $:render_template('covers/book_cover_small', doc.works[0]) -->
+    <h1 class="collapse"><a href="$doc.key">$doc.title</a> / Lists</h1>
+    <p class="collapse large brown sansserif">
+    <!-- IF YEAR: doc.publish_date, (Need to pull in Edition info for header) -->
+    <!-- IF PUBLISHER: doc.publishers -->
+    </p>
+
+    <p class="sansserif lightgreen large">
+        $ msg = ungettext("This is edition is on <strong>%s list</strong>.", "This edition is on <strong>%s lists</strong>.", len(lists))
+        $:sprintf(msg, commify(len(lists)))
+    </p>
+
+$def render_work():
+    <h1><a href="$doc.key">$doc.title</a> / Lists</h1>
+    <p class="sansserif lightgreen large">
+        $ msg = ungettext("This work is on <strong>%s list</strong>.", "This work is on <strong>%s lists</strong>.", len(lists))
+        $:sprintf(msg, commify(len(lists)))
+    </p>
+    
+$def render_user():
+    <h1 class="collapse"><a href="$doc.key">$doc.displayname</a> / Lists</h1>
+    <p class="collapse large brown sansserif">
+        $ msg = ungettext("%s has %s list.", "%s has %s lists.", len(lists))
+        $sprintf(msg, doc.displayname, commify(len(lists)))
+    </p>
+
+$def render_subject():
+    <h1><a href="$doc.key">$doc.name</a> / Lists</h1>
+
+    <p class="sansserif lightgreen large">
+        $ msg = ungettext("This subject is on <strong>%s list</strong>.", "This subject is on <strong>%s lists</strong>.", len(lists))
+        $:sprintf(msg, commify(len(lists)))
+    </p>
+
+$ type = doc.get("type") and doc.type.key
+
+$if doc.key.startswith("/subjects/"):
+    $var title: $doc.name
+    $:render_subject()
+
+$elif type == "/type/author":
+    $var title: $doc.name
+    $:render_author()
+
+$elif type == "/type/edition":
+    $var title: $doc.title
+    $:render_edition()
+
+$elif type == "/type/work":
+    $var title: $doc.title
+    $:render_work()
+
+$elif type == "/type/user":
+    $var title: $doc.displayname
+    $:render_user()
+
+$else:
+    $var title: Hm. Can't find it.

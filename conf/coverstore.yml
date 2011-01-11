@@ -1,0 +1,8 @@
+# coverstore configuration
+
+db_parameters:
+    dbn: "postgres"
+    db: "coverstore"
+
+data_root: "var/lib/coverstore"
+default_image: "static/images/empty.gif"

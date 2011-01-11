@@ -1,0 +1,15 @@
+$def with (doc=None, limit=5)
+
+$ q = {"kind": "lists"}
+
+$if doc is None:
+    $pass
+$elif doc.key.startswith("/subjects/"):
+    $ q['seeds'] = doc.get_seed()
+$elif doc.type.key == "/type/user":
+    $ q["author"] = doc.key
+$else:
+    $ q['seeds'] = doc.key
+
+$ changes = recentchanges(q)
+$:render_template("recentchanges/render", limit=limit, paginate=False, **q)

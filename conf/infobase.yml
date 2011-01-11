@@ -1,0 +1,22 @@
+# infobase configuration
+
+db_parameters:
+    engine: postgres
+    database: openlibrary
+
+account_bot: /people/AccountBot
+user_root: /people/
+
+#secret_key: g6mwujjJAKIB9QAx0EcwCTrN6jrWmm
+secret_key: xxx
+
+plugins:
+    - openlibrary.plugins.ol_infobase
+
+cache:
+    type: memcache
+    servers:
+        - "127.0.0.1:7060"
+
+errorlog: var/run/infobase-errors
+writelog: var/log/infobase-writelog

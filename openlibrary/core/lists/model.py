@@ -60,7 +60,7 @@ class ListMixin:
         d = dict((seed, web.storage(zeros)) for seed in rawseeds)
     
         for row in self._couchdb_view(db, "_all_docs", keys=rawseeds, include_docs=True):
-            if 'doc' in row:
+            if row.get('doc'):
                 if 'edition' not in row.doc:
                     doc = web.storage(zeros, **row.doc)
                     
@@ -98,6 +98,20 @@ class ListMixin:
     edition_count = cached_property("edition_count", _get_edition_count)
     ebook_count = cached_property("ebook_count", _get_ebook_count)
     last_update = cached_property("last_update", _get_last_update)
+    
+    def preview(self):
+        """Return data to preview this list. 
+        
+        Used in the API.
+        """
+        return {
+            "url": self.key,
+            "full_url": self.url(),
+            "name": self.name or "",
+            "seed_count": len(self.seeds),
+            "edition_count": self.edition_count,
+            "last_update": self.last_update and self.last_update.isoformat() or None
+        }
         
     def get_works(self, limit=50, offset=0):
         keys = [[seed, "works"] for seed in self._get_rawseeds()]
@@ -393,6 +407,31 @@ class Seed:
     title = property(get_title)
     url = property(get_url)
     cover = property(get_cover)
+    
+    def dict(self):
+        if self.type == "subject":
+            url = self.url
+            full_url = self.url
+        else:
+            url = self.key
+            full_url = self.url
+        
+        d = {
+            "url": url,
+            "full_url": full_url,
+            "type": self.type,
+            "title": self.title,
+            "work_count": self.work_count,
+            "edition_count": self.edition_count,
+            "ebook_count": self.ebook_count,
+            "last_update": self.last_update and self.last_update.isoformat() or None
+        }
+        cover = self.get_cover()
+        if cover:
+            d['picture'] = {
+                "url": cover.url("S")
+            }
+        return d
     
     def __repr__(self):
         return "<seed: %s %s>" % (self.type, self.key)

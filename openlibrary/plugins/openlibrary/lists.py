@@ -79,7 +79,10 @@ class lists_json(delegate.page):
     content_type = "application/json"
     
     def GET(self, path):
-        doc = web.ctx.site.get(path)
+        if path.startswith("/subjects/"):
+            doc = worksearch.get_subject(path)
+        else:
+            doc = web.ctx.site.get(path)
         if not doc:
             raise web.notfound()
             
@@ -89,21 +92,34 @@ class lists_json(delegate.page):
         
         i.limit = min(i.limit, 100)
         i.offset = max(i.offset, 0)
-            
-        lists = doc.get_lists(limit=i.limit, offset=i.offset)
-        return self.render(doc, lists, i)
-    
-    def render(self, doc, lists, i):
+        
+        lists = self.get_lists(doc, limit=i.limit, offset=i.offset)
+        return delegate.RawText(self.dumps(lists))
+        
+    def get_lists(self, doc, limit=50, offset=0):
+        lists = doc.get_lists(limit=limit, offset=offset)
+        size = len(lists)
+        
+        if offset or len(lists) == limit:
+            # There could be more lists than len(lists)
+            size = len(doc.get_lists(limit=1000))
+        
         d = {
             "links": {
-                "self": web.ctx.home + web.ctx.fullpath
+                "self": web.ctx.path
             },
-            "list_count": len(lists),
-            "lists": [{"key": list.key} for list in lists]
+            "size": size,
+            "entries": [list.preview() for list in lists]
         }
-        # TODO: add next and prev links
-        return delegate.RawText(self.dumps(d))
-        
+        if offset + len(lists) < size:
+            d['links']['next'] = web.changequery(limit=limit, offset=offset + limit)
+            
+        if offset:
+            offset = max(0, offset-limit)
+            d['links']['prev'] = web.changequery(limit=limit, offset=offset)
+            
+        return d
+            
     def forbidden(self):
         headers = {"Content-Type": self.get_content_type()}
         data = {
@@ -128,11 +144,13 @@ class lists_json(delegate.page):
         data = self.loads(web.data())
         # TODO: validate data
         
+        seeds = self.process_seeds(data.get('seeds', []))
+        
         list = user.new_list(
             name=data.get('name', ''),
             description=data.get('description', ''),
             tags=data.get('tags', []),
-            seeds=data.get('seeds', [])
+            seeds=seeds
         )
         
         try:
@@ -141,7 +159,7 @@ class lists_json(delegate.page):
                 action="lists",
                 data={
                     "list": {"key": list.key},
-                    "seeds": data.get("seeds", [])
+                    "seeds": seeds
                 }
             )
         except client.ClientException, e:
@@ -155,6 +173,20 @@ class lists_json(delegate.page):
         
         web.header("Content-Type", self.get_content_type())
         return delegate.RawText(self.dumps(result))
+        
+    def process_seeds(self, seeds):
+        def f(seed):
+            if isinstance(seed, dict):
+                return seed
+            elif seed.startswith("/subjects/"):
+                seed = seed.split("/")[-1]
+                if seed.split(":")[0] not in ["place", "person", "time"]:
+                    seed = "subject:" + seed
+                seed = seed.replace(",", "_").replace("__", "_")
+            elif seed.startswith("/"):
+                seed = {"key": seed}
+            return seed
+        return [f(seed) for seed in seeds]
                 
     def get_content_type(self):
         return self.content_type
@@ -164,9 +196,49 @@ class lists_json(delegate.page):
     
     def loads(self, text):
         return formats.load(text, self.encoding)
-        
 
 class lists_yaml(lists_json):
+    encoding = "yml"
+    content_type = "text/yaml"
+
+class list_view_json(delegate.page):
+    path = "(/people/[^/]+/lists/OL\d+L)"
+    encoding = "json"
+    content_type = "application/json"
+
+    def GET(self, key):
+        list = web.ctx.site.get(key)
+        if not list or list.type.key == '/type/delete':
+            raise web.notfound()
+        
+        data = self.get_list_data(list)
+        return delegate.RawText(self.dumps(data))
+            
+    def get_list_data(self, list):
+        return {
+            "links": {
+                "self": list.key,
+                "seeds": list.key + "/seeds",
+                "subjects": list.key + "/subjects",
+                "editions": list.key + "/editions",
+            },
+            "name": list.name or None,
+            "description": list.description and unicode(list.description) or None,
+            "seed_count": len(list.seeds),
+            "edition_count": list.edition_count,
+            
+            "meta": {
+                "revision": list.revision,
+                "created": list.created.isoformat(),
+                "last_modified": list.last_modified.isoformat(),
+            }
+        }
+
+    def dumps(self, data):
+        web.header("Content-Type", self.content_type)
+        return formats.dump(data, self.encoding)
+    
+class list_view_yaml(list_view_json):
     encoding = "yml"
     content_type = "text/yaml"
         
@@ -181,7 +253,17 @@ class list_seeds(delegate.page):
         if not list:
             raise web.notfound()
         
-        data = list.dict().get("seeds", [])
+        seeds = [seed.dict() for seed in list.get_seeds()]
+        
+        data = {
+            "links": {
+                "self": key + "/seeds",
+                "list": key
+            },
+            "size": len(seeds),
+            "entries": seeds
+        }
+        
         text = formats.dump(data, self.encoding)
         return delegate.RawText(text)
         
@@ -200,10 +282,13 @@ class list_seeds(delegate.page):
         data.setdefault("add", [])
         data.setdefault("remove", [])
         
-        for seed in data["add"]:
+        # support /subjects/foo and /books/OL1M along with subject:foo and {"key": "/books/OL1M"}.
+        process_seeds = lists_json().process_seeds
+        
+        for seed in process_seeds(data["add"]):
             list.add_seed(seed)
             
-        for seed in data["remove"]:
+        for seed in process_seeds(data["remove"]):
             list.remove_seed(seed)
             
         seeds = []
@@ -270,14 +355,42 @@ class list_editions_json(delegate.page):
         limit = h.safeint(i.limit, 20)
         offset = h.safeint(i.offset, 0)
 
-        data = list.get_editions(limit=limit, offset=offset, _raw=True)
+        editions = list.get_editions(limit=limit, offset=offset, _raw=True)
+        
+        data = make_collection(
+            size=editions['count'], 
+            entries=[self.process_edition(e) for e in editions['editions']],
+            limit=limit,
+            offset=offset
+        )
+        data['links']['list'] = key 
         text = formats.dump(data, self.encoding)
         return delegate.RawText(text, content_type=self.content_type)
         
+    def process_edition(self, e):
+        e.pop("seeds", None)
+        return e
+        
 class list_editions_yaml(list_editions_json):
     encoding = "yml"
-    content_type = 'text/yaml; charset="utf-8"'
+    content_type = 'text/yaml; charset="utf-8"'    
     
+def make_collection(size, entries, limit, offset):
+    d = {
+        "size": size,
+        "entries": entries,
+        "links": {
+            "self": web.changequery(),
+        }
+    }
+    
+    if offset + len(entries) < size:
+        d['links']['next'] = web.changequery(limit=limit, offset=offset+limit)
+    
+    if offset:
+        d['links']['prev'] = web.changequery(limit=limit, offset=max(0, offset-limit))
+    
+    return d
 
 class list_subjects_json(delegate.page):
     path = "(/people/\w+/lists/OL\d+L)/subjects"
@@ -292,14 +405,32 @@ class list_subjects_json(delegate.page):
         i = web.input(limit=20)
         limit = h.safeint(i.limit, 20)
 
-        data = list.get_subjects(limit=limit)
-        data['key'] = key
+        data = self.get_subjects(list, limit=limit)
         data['links'] = {
-            "self": web.ctx.home + key + "/subjects.json"
+            "self": key + "/subjects",
+            "list": key
         }
         
         text = formats.dump(data, self.encoding)
         return delegate.RawText(text, content_type=self.content_type)
+        
+    def get_subjects(self, list, limit):
+        data = list.get_subjects(limit=limit)
+        for key, subjects in data.items():
+            data[key] = [self._process_subject(s) for s in subjects]
+        return dict(data)
+        
+    def _process_subject(self, s):
+        key = s['key']
+        if key.startswith("subject:"):
+            key = "/subjects/" + web.lstrips(key, "subject:")
+        else:
+            key = "/subjects/" + key
+        return {
+            "name": s['name'],
+            "count": s['count'],
+            "url": key
+        }
         
 class list_editions_yaml(list_subjects_json):
     encoding = "yml"
@@ -361,6 +492,9 @@ def get_active_lists_in_random(limit=20):
     # get 5 times more lists and pick the required number in random among them.
     keys = web.ctx.site.things({"type": "/type/list", "sort": "-last_modified", "limit": 5*limit})
     
-    if len(keys) > limit:
-        keys = random.sample(keys, limit)
-    return web.ctx.site.get_many(keys)
+    # ignore lists with just 2 seeds
+    lists = [list for list in web.ctx.site.get_many(keys) if len(list.seeds) > 2]
+    
+    if len(lists) > limit:
+        lists = random.sample(lists, limit)
+    return lists

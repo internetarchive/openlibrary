@@ -1,4 +1,4 @@
-$def with ()
+$def with (counts)
 
 $ _x = ctx.setdefault('bodyid', 'admin')
 $ _x = ctx.setdefault('usergroup', 'admin')
@@ -6,7 +6,7 @@ $ _x = ctx.setdefault('usergroup', 'admin')
 $:macros.Dashboard()
 $ stats = get_admin_stats()
 <div id="contentHead">
-    <div class="contentRight" style="float: right;">
+    <div class="contentRight" style="float:right;">
         <table class="records">
             <tr>
                 <td><div class="amount">xxx</div>
@@ -19,20 +19,78 @@ $ stats = get_admin_stats()
         </table>
     </div>
     <h1>$_("Admin Center")</h1>
-	<div>
-		<a href="/admin/reload/">Reload Templates</a>
-		| <a href="/admin/block">Block IPs</a>
-		| <a href="/admin/loans">Loans</a>
+	<div class="small">
+	    <a href="/admin/reload/">Reload Templates</a>
+	    | <a href="/admin/block">Block IPs</a>
+	    | <a href="/admin/loans">Loans</a>
 	</div>
 </div>
 <div id="contentBody">
 
+    <h2>Record Counts</h2>
+
+    <table class="measurements">
+        <tr>
+            <th>What</th>
+            <th>Last 7 days</th>
+            <th>Last 28 days</th>
+            <th>Total</th>
+        </tr>
+        <tr class="major">
+            <td class="">Works</td>
+            <td class="amount">$commify(counts.work.lastweek)</td>
+            <td class="amount">$commify(counts.work.lastmonth)</td>
+            <td class="amount">$commify(counts.work.total)</td>    
+        </tr>
+        <tr>
+            <td class="">Editions</td>
+            <td class="amount">$commify(counts.edition.lastweek)</td> 
+            <td class="amount">$commify(counts.edition.lastmonth)</td>
+            <td class="amount">$commify(counts.edition.total)</td>    
+        </tr>
+        <tr>
+            <td class="">eBooks</td>
+            <td class="amount">$commify(counts.ebook.lastweek)</td> 
+            <td class="amount">$commify(counts.ebook.lastmonth)</td>
+            <td class="amount">$commify(counts.ebook.total)</td>    
+        </tr>
+        <tr>
+            <td class="">Covers</td>
+            <td class="amount">$commify(counts.cover.lastweek)</td> 
+            <td class="amount">$commify(counts.cover.lastmonth)</td>
+            <td class="amount">$commify(counts.cover.total)</td>    
+        </tr>
+        <tr class="major">
+            <td class="">Authors</td>
+            <td class="amount">$commify(counts.author.lastweek)</td> 
+            <td class="amount">$commify(counts.author.lastmonth)</td>
+            <td class="amount">$commify(counts.author.total)</td>    
+        </tr>
+        <tr class="major">
+            <td class="">Subjects</td>
+            <td class="amount">$commify(counts.subject.lastweek)</td> 
+            <td class="amount">$commify(counts.subject.lastmonth)</td>
+            <td class="amount">$commify(counts.subject.total)</td>    
+        </tr>
+        <tr class="major">
+            <td class="">Lists</td>
+            <td class="amount">$commify(counts.list.lastweek)</td> 
+            <td class="amount">$commify(counts.list.lastmonth)</td>
+            <td class="amount">$commify(counts.list.total)</td>    
+        </tr>
+        <tr class="major">
+            <td class="">User Accounts</td>
+            <td class="amount"></td>
+            <td class="amount"></td>
+            <td class="amount"></td>
+        </tr>
+    </table>
     <div class="contentLeft">
         <div class="head rel"> <span class="caption"><a href="/recentchanges/" class="fixthis">Edits Per Day</a></span>
             <h2>Edits</h2>
         </div>
         <div class="chartHolder">
-            <div class="chartDisplay">
+            <div class="chartDisplay">bar graph: edits per day
             </div>
         </div>
         <table class="measurements stripeEven" id="edits">
@@ -41,8 +99,8 @@ $ stats = get_admin_stats()
                     <th></th>
                     <th>Today</th>
                     <th>Yesterday</th>
-                    <th>This Week</th>
-                    <th>This Month</th>
+                    <th>Last 7 days</th>
+                    <th>Last 28 days</th>
                 </tr>
             </thead>
             <tbody>
@@ -69,38 +127,15 @@ $ stats = get_admin_stats()
                 </tr>
             </tbody>
         </table>
-        <!-- HIDING UNTIL WE CAN DO IT -->
-        <!--                
-                    <div class="contentQuarter center" id="logged">
-                        <div class="titleSmall">Logged In : Logged Out</div>
-                        <br/>
-                        <div class="largest">x : x</div>
-                    </div>
-                    
-                    <div class="spacer"></div>
-
-                    <div class="contentQuarter" id="prolific">
-
-                        <div class="titleSmall">Prolific Member Editors</div>
-                        <div class="smaller">
-                        <a href="[USER PROFILE]">name</a>,
-                        <a href="[USER PROFILE"]>name</a>,
-                        <a href="[USER PROFILE"]>name</a>,
-                        <a href="[USER PROFILE"]>name</a>,
-                        <a href="[USER PROFILE"]>ip address</a>,
-                        <a href="[USER PROFILE"]>name</a>,
-                        <a href="[USER PROFILE"]>name</a>
-
-                        </div>
-                    </div>
--->
+             
     </div>
+
     <div class="contentRight">
         <div class="head rel"> <span class="caption"><a href="/admin/people" class="fixthis">New Accounts Per Day</a></span>
             <h2>Members</h2>
         </div>
         <div class="chartHolder">
-            <div class="chartDisplay">
+            <div class="chartDisplay">bar graph: accounts per day
             </div>
         </div>
         <table class="measurements stripeEven" id="members">
@@ -108,8 +143,8 @@ $ stats = get_admin_stats()
                 <tr>
                     <th>Today</th>
                     <th>Yesterday</th>
-                    <th>This Week</th>
-                    <th>This Month</th>
+                    <th>Last 7 days</th>
+                    <th>Last 28 days</th>
                     <th class="shift">All Time</th>
                 </tr>
             </thead>
@@ -131,21 +166,32 @@ $ stats = get_admin_stats()
             </tbody>
         </table>
     </div>
-    <!-- HIDING THIS UNTIL WE CAN BUILD IT -->
-    <!--
 
-                <div class="clearfix"></div>
-
-                <div class="tweets" id="adminTwitter">
-                    $:macros.twitter()
-                </div>
-            
-                <div class="spacer"></div>
-                <div class="flickrs" id="adminFlickr"></div>
-                <div class="clearfix"></div>
-
--->
     <div class="clearfix"></div>
+
+    <div class="contentQuarter center" id="logged">
+        <div class="titleSmall">Logged In : Logged Out</div>
+        <br/>
+        <div class="largest fixthis">x : x</div>
+    </div>
+                    
+    <div class="contentSpacer"></div>
+
+    <div class="contentQuarter" id="prolific">
+        <div class="titleSmall fixthis">Prolific Member Editors</div>
+        <div class="smaller">
+            <a href="[USER PROFILE]">name</a>,
+            <a href="[USER PROFILE"]>name</a>,
+            <a href="[USER PROFILE"]>name</a>,
+            <a href="[USER PROFILE"]>name</a>,
+            <a href="[USER PROFILE"]>ip address</a>,
+            <a href="[USER PROFILE"]>name</a>,
+            <a href="[USER PROFILE"]>name</a>
+        </div>
+    </div>
+
+    <div class="clearfix"></div>
+
     <div id="uniqueIps">
         <div class="measurements">
 
@@ -164,4 +210,25 @@ $ stats = get_admin_stats()
             <div id="overview" style="margin-left:50px;margin-top:20px;width:400px;height:50px"></div>
         </div>
     </div>
+
+    <div class="clearfix"></div>
+
+    <div class="tweets" id="adminTwitter">$:macros.twitter()</div>
+            
+    <div class="contentSpacer"></div>
+
+    <div class="contentQuarter">
+        <!-- Start of Flickr Badge -->
+            <table id="flickr_badge_uber_wrapper"> 
+                <tr> 
+                    <td>
+                        <table id="flickr_badge_wrapper"> 
+                            <script type="text/javascript" src="http://www.flickr.com/badge_code_v2.gne?count=2&display=random&size=m&layout=v&source=user&user=41108298%40N06"></script> 
+                        </table> 
+                    </td> 
+                </tr> 
+            </table> 
+        <!-- End of Flickr Badge -->
+    </div>
+
 </div>

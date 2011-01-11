@@ -2,3 +2,10 @@
 *~
 *.swp
 *.mo
+var/
+build/
+docs/api/openlibrary/
+docs/api/infogami/
+*.tgz
+*.tar.gz
+*.org

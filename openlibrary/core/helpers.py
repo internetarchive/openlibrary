@@ -39,11 +39,11 @@ __all__ = [
     # functions imported from elsewhere
     "parse_datetime", "safeint"
 ]
-
+__docformat__ = "restructuredtext en"
 
 def sanitize(html):
-    """Remove unsafe tags and attributes from html and add rel="nofollow"
-    attribute to all links. 
+    """Removes unsafe tags and attributes from html and adds
+    ``rel="nofollow"`` attribute to all external links.
     """
 
     # Can't sanitize unless genshi module is available
@@ -212,9 +212,9 @@ def texsafe(text):
     regular text. This function escapes those special characters.
     
     The list of special characters and the latex command to typeset them can
-    be found in "The Comprehensive LaTeX Symbol List"[1].
+    be found in `The Comprehensive LaTeX Symbol List`_.
     
-    [1]: http://www.ctan.org/tex-archive/info/symbols/comprehensive/symbols-a4.pdf
+    .. _The Comprehensive LaTeX Symbol List: http://www.ctan.org/tex-archive/info/symbols/comprehensive/symbols-a4.pdf
     """
     global _texsafe_re
     if _texsafe_re is None:
