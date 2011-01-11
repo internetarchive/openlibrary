@@ -87,7 +87,11 @@ re_escape = re.compile("([%s])" % re.escape(r'+-!(){}[]^"~*?:\\'))
 def subject_count(field, subject):
     key = re_escape.sub(r'\\\1', str_to_key(subject)).encode('utf-8')
     data = urlopen('http://ia331508:8983/solr/works/select?indent=on&wt=json&rows=0&q=%s_key:%s' % (field, key)).read()
-    ret = simplejson.loads(data)
+    try:
+        ret = simplejson.loads(data)
+    except:
+        print data
+        return 0
     return ret['response']['numFound']
 
 def subject_need_update(key, count):
