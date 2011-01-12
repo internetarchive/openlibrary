@@ -492,8 +492,8 @@ def get_active_lists_in_random(limit=20):
     # get 5 times more lists and pick the required number in random among them.
     keys = web.ctx.site.things({"type": "/type/list", "sort": "-last_modified", "limit": 5*limit})
     
-    # ignore lists with just 1 seed
-    lists = [list for list in web.ctx.site.get_many(keys) if len(list.seeds) > 1]
+    # ignore lists with just 2 seeds
+    lists = [list for list in web.ctx.site.get_many(keys) if len(list.seeds) > 2]
     
     if len(lists) > limit:
         lists = random.sample(lists, limit)

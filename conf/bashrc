@@ -1,0 +1,18 @@
+#
+# bash startup script to setup environment for OL
+#
+
+if [ -f ~/.bashrc ]
+then
+   source ~/.bashrc
+fi
+
+gitroot=$(git rev-parse --show-toplevel)
+pyenv=$(grep '^virtualenv' $gitroot/conf/install.ini | sed -e 's/.*= *//' ) 
+pyenv=$(eval echo $pyenv) # expand ~ in the pyenv
+
+export PATH=$gitroot/usr/local/bin:$PATH
+export LD_LIBRARY_PATH=$gitroot/usr/local/lib:$LD_LIBRARY_PATH
+export DYLD_LIBRARY_PATH=$gitroot/usr/local/lib:$DYLD_LIBRARY_PATH
+
+source $pyenv/bin/activate

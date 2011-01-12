@@ -1,0 +1,97 @@
+$def with (list, editions)
+
+$var title: $list.name
+
+<div id="contentHead"> 
+
+    $:macros.databarView(list)
+ 
+    <div class="superNav">
+        $ owner = list.get_owner()
+        <a href="$owner.key">$owner.displayname</a>
+        / 
+        <a href="$owner.key/lists">Lists</a>
+    </div> 
+    <h1>
+        $list.name 
+        <span class="sansserif small black">
+            <a href="$list.url()" class="">Seeds</a>
+            &nbsp;|&nbsp;
+            <strong>Activity</strong>        
+        </span>
+    </h1> 
+    <p class="collapse sansserif">
+        <span class="darkgreen"><strong>$commify(list.edition_count) edition$("s" if list.edition_count != 1 else "")</strong></span>
+    </p>
+</div> 
+
+$def render_authors(authors):
+    $if not authors:
+        <em>Unknown authors</em>
+    $else:
+        $for a in authors:
+            <a href="$a.url()" class="results">$a.name</a>$cond(loop.last, "", ", ")
+ 
+<div id="contentBody"> 
+ 
+    <div class="lists">
+        <table id="editions">
+            <tr>
+                <th>WHAT</th>
+                <th>WHEN</th>
+                <th>WHO</th>
+                <th>¿Qué?</th>
+            </tr>
+            $for book in editions['editions']:
+                <tr class="$loop.parity">
+                    <td class="what">
+                        $ cover = book.get_cover()
+                        $ cover_url = cover and cover.url("S") or "/images/icons/avatar_book-sm.png"
+                        <div class="cover"> 
+                            <a href="$book.url()"><img src="$cover_url" height="70"/></a>
+                        </div> 
+                        <div class="title"> 
+                            $if book.works:
+                                $ authors = book.works[0].get_authors()
+                            $else:
+                                $ authors = book.get_authors()
+                            <h3> 
+                                <a href="$book.url()" class="results">$book.title</a>
+                            </h3>
+                            
+                            <span class="author">by $:render_authors(authors)</span>
+                            
+                            <div class="published">
+                                $if book.publishers and book.publish_date:
+                                    $book.publish_date, $(', '.join(book.publishers))
+                                $elif book.publish_date:
+                                    $book.publish_date
+                                $elif book.publishers:
+                                    <em>Publish date unknown</em>, $(', '.join(book.publishers))
+                                $else:
+                                    <em>Publisher unknown</em>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="when">$datestr(book.last_modified)</td>
+                    <td class="who">
+                        $ changeset = book.get("recent_changeset")
+                        $if changeset:
+                            $if changeset.author:
+                                <a href="$changeset.author.key" rel="nofollow">$changeset.author.displayname</a>
+                            $else:
+                                <span>$changeset.ip</span>
+                    </td>
+                    <td class="que">
+                        $if changeset:
+                            $changeset.comment
+                    </td>
+                </tr>
+        </table>
+        
+        $ page = safeint(query_param("page", 1), 1)
+        $ pagesize = editions['limit']
+        $ pages = editions['count']/pagesize + cond(editions['count']%pagesize, 1, 0)
+        $:render_template("lib/pagination", pages, page, list.url("/editions?page=%(page)s"))
+    </div> 
+</div>

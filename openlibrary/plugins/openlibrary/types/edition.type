@@ -1,431 +1,490 @@
 {
-    'key': '/type/edition',
-    'kind': 'regular',
-    'properties': [{
-        'expected_type': {
-            'key': '/type/string'
-        },
-        'name': 'title',
-        'type': {
-            'key': '/type/property'
-        },
-        'unique': True
-    }, {
-        'expected_type': {
-            'key': '/type/string'
-        },
-        'name': 'title_prefix',
-        'type': {
-            'key': '/type/property'
-        },
-        'unique': True
-    }, {
-        'expected_type': {
-            'key': '/type/string'
-        },
-        'name': 'subtitle',
-        'type': {
-            'key': '/type/property'
-        },
-        'unique': True
-    }, {
-        'expected_type': {
-            'key': '/type/string'
-        },
-        'name': 'other_titles',
-        'type': {
-            'key': '/type/property'
-        },
-        'unique': False
-    }, {
-        'expected_type': {
-            'key': '/type/author'
-        },
-        'name': 'authors',
-        'type': {
-            'key': '/type/property'
-        },
-        'unique': False
-    }, {
-        'expected_type': {
-            'key': '/type/string'
-        },
-        'name': 'by_statement',
-        'type': {
-            'key': '/type/property'
-        },
-        'unique': True
-    }, {
-        'expected_type': {
-            'key': '/type/string'
-        },
-        'name': 'publish_date',
-        'type': {
-            'key': '/type/property'
-        },
-        'unique': True
-    }, {
-        'expected_type': {
-            'key': '/type/string'
-        },
-        'name': 'copyright_date',
-        'type': {
-            'key': '/type/property'
-        },
-        'unique': True
-    }, {
-        'expected_type': {
-            'key': '/type/string'
-        },
-        'name': 'edition_name',
-        'type': {
-            'key': '/type/property'
-        },
-        'unique': True
-    }, {
-        'expected_type': {
-            'key': '/type/language'
-        },
-        'name': 'languages',
-        'type': {
-            'key': '/type/property'
-        },
-        'unique': False
-    }, {
-        'expected_type': {
-            'key': '/type/text'
-        },
-        'name': 'description',
-        'type': {
-            'key': '/type/property'
-        },
-        'unique': True
-    }, {
-        'expected_type': {
-            'key': '/type/text'
-        },
-        'name': 'notes',
-        'type': {
-            'key': '/type/property'
-        },
-        'unique': True
-    }, {
-        'expected_type': {
-            'key': '/type/string'
-        },
-        'name': 'genres',
-        'type': {
-            'key': '/type/property'
-        },
-        'unique': False
-    }, {
-        'expected_type': {
-            'key': '/type/toc_item'
-        },
-        'name': 'table_of_contents',
-        'type': {
-            'key': '/type/property'
-        },
-        'unique': False
-    }, {
-        'expected_type': {
-            'key': '/type/string'
-        },
-        'name': 'work_titles',
-        'type': {
-            'key': '/type/property'
-        },
-        'unique': False
-    }, {
-        'expected_type': {
-            'key': '/type/string'
-        },
-        'name': 'series',
-        'type': {
-            'key': '/type/property'
-        },
-        'unique': False
-    }, {
-        'expected_type': {
-            'key': '/type/string'
-        },
-        'name': 'physical_dimensions',
-        'type': {
-            'key': '/type/property'
-        },
-        'unique': True
-    }, {
-        'expected_type': {
-            'key': '/type/string'
-        },
-        'name': 'physical_format',
-        'type': {
-            'key': '/type/property'
-        },
-        'unique': True
-    }, {
-        'expected_type': {
-            'key': '/type/int'
-        },
-        'name': 'number_of_pages',
-        'type': {
-            'key': '/type/property'
-        },
-        'unique': True
-    }, {
-        'expected_type': {
-            'key': '/type/string'
-        },
-        'name': 'subjects',
-        'type': {
-            'key': '/type/property'
-        },
-        'unique': False
-    }, {
-        'expected_type': {
-            'key': '/type/string'
-        },
-        'name': 'pagination',
-        'type': {
-            'key': '/type/property'
-        },
-        'unique': True
-    }, {
-        'expected_type': {
-            'key': '/type/string'
-        },
-        'name': 'lccn',
-        'type': {
-            'key': '/type/property'
-        },
-        'unique': False
-    }, {
-        'expected_type': {
-            'key': '/type/string'
-        },
-        'name': 'ocaid',
-        'type': {
-            'key': '/type/property'
-        },
-        'unique': True
-    }, {
-        'expected_type': {
-            'key': '/type/string'
-        },
-        'name': 'oclc_numbers',
-        'type': {
-            'key': '/type/property'
-        },
-        'unique': False
-    }, {
-        'expected_type': {
-            'key': '/type/string'
-        },
-        'name': 'isbn_10',
-        'type': {
-            'key': '/type/property'
-        },
-        'unique': False
-    }, {
-        'expected_type': {
-            'key': '/type/string'
-        },
-        'name': 'isbn_13',
-        'type': {
-            'key': '/type/property'
-        },
-        'unique': False
-    }, {
-        'expected_type': {
-            'key': '/type/string'
-        },
-        'name': 'dewey_decimal_class',
-        'type': {
-            'key': '/type/property'
-        },
-        'unique': False
-    }, {
-        'expected_type': {
-            'key': '/type/string'
-        },
-        'name': 'lc_classifications',
-        'type': {
-            'key': '/type/property'
-        },
-        'unique': False
-    }, {
-        'expected_type': {
-            'key': '/type/string'
-        },
-        'name': 'contributions',
-        'type': {
-            'key': '/type/property'
-        },
-        'unique': False
-    }, {
-        'expected_type': {
-            'key': '/type/string'
-        },
-        'name': 'publish_places',
-        'type': {
-            'key': '/type/property'
-        },
-        'unique': False
-    }, {
-        'expected_type': {
-            'key': '/type/string'
-        },
-        'name': 'publish_country',
-        'type': {
-            'key': '/type/property'
-        },
-        'unique': True
-    }, {
-        'expected_type': {
-            'key': '/type/string'
-        },
-        'name': 'publishers',
-        'type': {
-            'key': '/type/property'
-        },
-        'unique': False
-    }, {
-        'expected_type': {
-            'key': '/type/string'
-        },
-        'name': 'distributors',
-        'type': {
-            'key': '/type/property'
-        },
-        'unique': False
-    }, {
-        'expected_type': {
-            'key': '/type/text'
-        },
-        'name': 'first_sentence',
-        'type': {
-            'key': '/type/property'
-        },
-        'unique': True
-    }, {
-        'expected_type': {
-            'key': '/type/string'
-        },
-        'name': 'weight',
-        'type': {
-            'key': '/type/property'
-        },
-        'unique': True
-    }, {
-        'expected_type': {
-            'key': '/type/string'
-        },
-        'name': 'location',
-        'type': {
-            'key': '/type/property'
-        },
-        'unique': False
-    }, {
-        'expected_type': {
-            'key': '/type/boolean'
-        },
-        'name': 'scan_on_demand',
-        'type': {
-            'key': '/type/property'
-        },
-        'unique': True
-    }, {
-        'expected_type': {
-            'key': '/type/collection'
-        },
-        'name': 'collections',
-        'type': {
-            'key': '/type/property'
-        },
-        'unique': False
-    }, {
-        'expected_type': {
-            'key': '/type/string'
-        },
-        'name': 'uris',
-        'type': {
-            'key': '/type/property'
-        },
-        'unique': False
-    }, {
-        'expected_type': {
-            'key': '/type/string'
-        },
-        'name': 'uri_descriptions',
-        'type': {
-            'key': '/type/property'
-        },
-        'unique': False
-    }, {
-        'expected_type': {
-            'key': '/type/string'
-        },
-        'name': 'translation_of',
-        'type': {
-            'key': '/type/property'
-        },
-        'unique': True
-    }, {
-        'expected_type': {
-            'key': '/type/work'
-        },
-        'name': 'works',
-        'type': {
-            'key': '/type/property'
-        },
-        'unique': False
-    }, {
-        'expected_type': {
-            'key': '/type/string'
-        },
-        'name': 'source_records',
-        'type': {
-            'key': '/type/property'
-        },
-        'unique': False
-    }, {
-        'expected_type': {
-            'key': '/type/language'
-        },
-        'name': 'translated_from',
-        'type': {
-            'key': '/type/property'
-        },
-        'unique': False
-    }, {
-        'expected_type': {
-            'key': '/type/scan_record'
-        },
-        'name': 'scan_records',
-        'type': {
-            'key': '/type/property'
-        },
-        'unique': False
-    }, {
-        'expected_type': {
-            'key': '/type/volume'
-        },
-        'name': 'volumes',
-        'type': {
-            'key': '/type/property'
-        },
-        'unique': False
-    }, {
-        'expected_type': {
-            'key': '/type/string'
-        },
-        'name': 'accompanying_material',
-        'type': {
-            'key': '/type/property'
-        },
-        'unique': True
-    }],
-    'type': {
-        'key': '/type/type'
-    }
+    "kind": "regular", 
+    "created": {
+        "type": "/type/datetime", 
+        "value": "2008-03-19T16:44:24.216334"
+    }, 
+    "id": 52, 
+    "last_modified": {
+        "type": "/type/datetime", 
+        "value": "2009-09-22T10:44:06.178888"
+    }, 
+    "latest_revision": 33, 
+    "key": "/type/edition", 
+    "type": {
+        "key": "/type/type"
+    }, 
+    "properties": [
+        {
+            "expected_type": {
+                "key": "/type/string"
+            }, 
+            "unique": true, 
+            "type": {
+                "key": "/type/property"
+            }, 
+            "name": "title"
+        }, 
+        {
+            "expected_type": {
+                "key": "/type/string"
+            }, 
+            "unique": true, 
+            "type": {
+                "key": "/type/property"
+            }, 
+            "name": "title_prefix"
+        }, 
+        {
+            "expected_type": {
+                "key": "/type/string"
+            }, 
+            "unique": true, 
+            "type": {
+                "key": "/type/property"
+            }, 
+            "name": "subtitle"
+        }, 
+        {
+            "expected_type": {
+                "key": "/type/string"
+            }, 
+            "unique": false, 
+            "type": {
+                "key": "/type/property"
+            }, 
+            "name": "other_titles"
+        }, 
+        {
+            "expected_type": {
+                "key": "/type/author"
+            }, 
+            "unique": false, 
+            "type": {
+                "key": "/type/property"
+            }, 
+            "name": "authors"
+        }, 
+        {
+            "expected_type": {
+                "key": "/type/string"
+            }, 
+            "unique": true, 
+            "type": {
+                "key": "/type/property"
+            }, 
+            "name": "by_statement"
+        }, 
+        {
+            "expected_type": {
+                "key": "/type/string"
+            }, 
+            "unique": true, 
+            "type": {
+                "key": "/type/property"
+            }, 
+            "name": "publish_date"
+        }, 
+        {
+            "expected_type": {
+                "key": "/type/string"
+            }, 
+            "unique": true, 
+            "type": {
+                "key": "/type/property"
+            }, 
+            "name": "copyright_date"
+        }, 
+        {
+            "expected_type": {
+                "key": "/type/string"
+            }, 
+            "unique": true, 
+            "type": {
+                "key": "/type/property"
+            }, 
+            "name": "edition_name"
+        }, 
+        {
+            "expected_type": {
+                "key": "/type/language"
+            }, 
+            "unique": false, 
+            "type": {
+                "key": "/type/property"
+            }, 
+            "name": "languages"
+        }, 
+        {
+            "expected_type": {
+                "key": "/type/text"
+            }, 
+            "unique": true, 
+            "type": {
+                "key": "/type/property"
+            }, 
+            "name": "description"
+        }, 
+        {
+            "expected_type": {
+                "key": "/type/text"
+            }, 
+            "unique": true, 
+            "type": {
+                "key": "/type/property"
+            }, 
+            "name": "notes"
+        }, 
+        {
+            "expected_type": {
+                "key": "/type/string"
+            }, 
+            "unique": false, 
+            "type": {
+                "key": "/type/property"
+            }, 
+            "name": "genres"
+        }, 
+        {
+            "expected_type": {
+                "key": "/type/toc_item"
+            }, 
+            "unique": false, 
+            "type": {
+                "key": "/type/property"
+            }, 
+            "name": "table_of_contents"
+        }, 
+        {
+            "expected_type": {
+                "key": "/type/string"
+            }, 
+            "unique": false, 
+            "type": {
+                "key": "/type/property"
+            }, 
+            "name": "work_titles"
+        }, 
+        {
+            "expected_type": {
+                "key": "/type/string"
+            }, 
+            "unique": false, 
+            "type": {
+                "key": "/type/property"
+            }, 
+            "name": "series"
+        }, 
+        {
+            "expected_type": {
+                "key": "/type/string"
+            }, 
+            "unique": true, 
+            "type": {
+                "key": "/type/property"
+            }, 
+            "name": "physical_dimensions"
+        }, 
+        {
+            "expected_type": {
+                "key": "/type/string"
+            }, 
+            "unique": true, 
+            "type": {
+                "key": "/type/property"
+            }, 
+            "name": "physical_format"
+        }, 
+        {
+            "expected_type": {
+                "key": "/type/int"
+            }, 
+            "unique": true, 
+            "type": {
+                "key": "/type/property"
+            }, 
+            "name": "number_of_pages"
+        }, 
+        {
+            "expected_type": {
+                "key": "/type/string"
+            }, 
+            "unique": false, 
+            "type": {
+                "key": "/type/property"
+            }, 
+            "name": "subjects"
+        }, 
+        {
+            "expected_type": {
+                "key": "/type/string"
+            }, 
+            "unique": true, 
+            "type": {
+                "key": "/type/property"
+            }, 
+            "name": "pagination"
+        }, 
+        {
+            "expected_type": {
+                "key": "/type/string"
+            }, 
+            "unique": false, 
+            "type": {
+                "key": "/type/property"
+            }, 
+            "name": "lccn"
+        }, 
+        {
+            "expected_type": {
+                "key": "/type/string"
+            }, 
+            "unique": true, 
+            "type": {
+                "key": "/type/property"
+            }, 
+            "name": "ocaid"
+        }, 
+        {
+            "expected_type": {
+                "key": "/type/string"
+            }, 
+            "unique": false, 
+            "type": {
+                "key": "/type/property"
+            }, 
+            "name": "oclc_numbers"
+        }, 
+        {
+            "expected_type": {
+                "key": "/type/string"
+            }, 
+            "unique": false, 
+            "type": {
+                "key": "/type/property"
+            }, 
+            "name": "isbn_10"
+        }, 
+        {
+            "expected_type": {
+                "key": "/type/string"
+            }, 
+            "unique": false, 
+            "type": {
+                "key": "/type/property"
+            }, 
+            "name": "isbn_13"
+        }, 
+        {
+            "expected_type": {
+                "key": "/type/string"
+            }, 
+            "unique": false, 
+            "type": {
+                "key": "/type/property"
+            }, 
+            "name": "dewey_decimal_class"
+        }, 
+        {
+            "expected_type": {
+                "key": "/type/string"
+            }, 
+            "unique": false, 
+            "type": {
+                "key": "/type/property"
+            }, 
+            "name": "lc_classifications"
+        }, 
+        {
+            "expected_type": {
+                "key": "/type/string"
+            }, 
+            "unique": false, 
+            "type": {
+                "key": "/type/property"
+            }, 
+            "name": "contributions"
+        }, 
+        {
+            "expected_type": {
+                "key": "/type/string"
+            }, 
+            "unique": false, 
+            "type": {
+                "key": "/type/property"
+            }, 
+            "name": "publish_places"
+        }, 
+        {
+            "expected_type": {
+                "key": "/type/string"
+            }, 
+            "unique": true, 
+            "type": {
+                "key": "/type/property"
+            }, 
+            "name": "publish_country"
+        }, 
+        {
+            "expected_type": {
+                "key": "/type/string"
+            }, 
+            "unique": false, 
+            "type": {
+                "key": "/type/property"
+            }, 
+            "name": "publishers"
+        }, 
+        {
+            "expected_type": {
+                "key": "/type/string"
+            }, 
+            "unique": false, 
+            "type": {
+                "key": "/type/property"
+            }, 
+            "name": "distributors"
+        }, 
+        {
+            "expected_type": {
+                "key": "/type/text"
+            }, 
+            "unique": true, 
+            "type": {
+                "key": "/type/property"
+            }, 
+            "name": "first_sentence"
+        }, 
+        {
+            "expected_type": {
+                "key": "/type/string"
+            }, 
+            "unique": true, 
+            "type": {
+                "key": "/type/property"
+            }, 
+            "name": "weight"
+        }, 
+        {
+            "expected_type": {
+                "key": "/type/string"
+            }, 
+            "unique": false, 
+            "type": {
+                "key": "/type/property"
+            }, 
+            "name": "location"
+        }, 
+        {
+            "expected_type": {
+                "key": "/type/boolean"
+            }, 
+            "unique": true, 
+            "type": {
+                "key": "/type/property"
+            }, 
+            "name": "scan_on_demand"
+        }, 
+        {
+            "expected_type": {
+                "key": "/type/collection"
+            }, 
+            "unique": false, 
+            "type": {
+                "key": "/type/property"
+            }, 
+            "name": "collections"
+        }, 
+        {
+            "expected_type": {
+                "key": "/type/string"
+            }, 
+            "unique": false, 
+            "type": {
+                "key": "/type/property"
+            }, 
+            "name": "uris"
+        }, 
+        {
+            "expected_type": {
+                "key": "/type/string"
+            }, 
+            "unique": false, 
+            "type": {
+                "key": "/type/property"
+            }, 
+            "name": "uri_descriptions"
+        }, 
+        {
+            "expected_type": {
+                "key": "/type/string"
+            }, 
+            "unique": true, 
+            "type": {
+                "key": "/type/property"
+            }, 
+            "name": "translation_of"
+        }, 
+        {
+            "expected_type": {
+                "key": "/type/work"
+            }, 
+            "unique": false, 
+            "type": {
+                "key": "/type/property"
+            }, 
+            "name": "works"
+        }, 
+        {
+            "expected_type": {
+                "key": "/type/string"
+            }, 
+            "unique": false, 
+            "type": {
+                "key": "/type/property"
+            }, 
+            "name": "source_records"
+        }, 
+        {
+            "expected_type": {
+                "key": "/type/language"
+            }, 
+            "unique": false, 
+            "type": {
+                "key": "/type/property"
+            }, 
+            "name": "translated_from"
+        }, 
+        {
+            "expected_type": {
+                "key": "/type/scan_record"
+            }, 
+            "unique": false, 
+            "type": {
+                "key": "/type/property"
+            }, 
+            "name": "scan_records"
+        }, 
+        {
+            "expected_type": {
+                "key": "/type/volume"
+            }, 
+            "unique": false, 
+            "type": {
+                "key": "/type/property"
+            }, 
+            "name": "volumes"
+        }, 
+        {
+            "expected_type": {
+                "key": "/type/string"
+            }, 
+            "unique": true, 
+            "type": {
+                "key": "/type/property"
+            }, 
+            "name": "accompanying_material"
+        }
+    ], 
+    "revision": 33
 }

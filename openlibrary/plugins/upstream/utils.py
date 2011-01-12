@@ -539,8 +539,11 @@ def get_random_recent_changes(n):
         changes = _get_recent_changes2()
     else:
         changes = _get_recent_changes()
-        
-    return random.sample(changes, n)  
+    
+    if len(changes) > n:
+        return random.sample(changes, n)  
+    else:
+        return changes
         
 def _get_blog_feeds():
     url = "http://blog.openlibrary.org/feed/"

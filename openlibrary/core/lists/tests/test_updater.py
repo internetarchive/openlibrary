@@ -2,6 +2,7 @@ from openlibrary.core.mocks import mock_couchdb
 from openlibrary.core.lists import updater
 import re
 import os
+import simplejson
 
 def read_couchapp(path):
     """Reads the couchapp from repository_root/couchapps/$path.
@@ -18,7 +19,12 @@ def read_couchapp(path):
                 d[name] = value
             return d
         else:
-            return open(path).read().strip()
+            value = open(path).read().strip()
+            # special care to make this function compatible with couchapp.
+            # couchapp dumps the json after the second nested level.
+            if value.startswith("{"):
+                value = simplejson.loads(value)
+            return value
     
     return read(root)
     
