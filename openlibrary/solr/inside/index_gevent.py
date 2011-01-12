@@ -148,8 +148,12 @@ def read_text_from_node(host):
             raise
         assert page_count.isdigit()
         if body != '':
+            meta_xml = urlread_keep_trying('http://%s%s/%s_meta.xml' % (host, path, ia))
+            root = fromstring(meta_xml)
+            collection = [e.text for e in root.findall('collection')]
+
             #print 'solr_queue.put((ia, body, page_count))'
-            solr_queue.put((ia, body, lang, page_count))
+            solr_queue.put((ia, body, lang, page_count, collection))
             #print 'solr_queue.put() done'
             items_processed += 1
         else:
@@ -282,7 +286,7 @@ def run_solr_queue(queue_num):
     global solr_ia_status, solr_error
     while True:
         log('solr_queue.get()')
-        (ia, body, lang, page_count) = solr_queue.get()
+        (ia, body, lang, page_count, collection) = solr_queue.get()
         log(ia + ' - solr_queue.get() done')
         add = Element("add")
         esc_body = normalize('NFC', body.replace(']]>', ']]]]><![CDATA[>'))
@@ -291,6 +295,8 @@ def run_solr_queue(queue_num):
         r += '<field name="body_%s"><![CDATA[%s]]></field>\n' % (lang, esc_body)
         r += '<field name="body_length">%s</field>\n' % len(body)
         r += '<field name="page_count">%s</field>\n' % page_count
+        for c in collection:
+            r += '<field name="collection">%s</field>\n' % c
         r += '</doc></add>\n'
 
         #doc = build_doc(ia, body, page_count)
@@ -370,28 +376,29 @@ def status_thread():
         else:
             sleep(5)
 
-t_status = spawn_link_exception(status_thread)
-t_item_queue = spawn_link_exception(add_to_item_queue)
-for i in range(80):
-    spawn_link_exception(run_find_item)
-#t_index_items = spawn_link_exception(index_items)
-for i in range(8):
-    spawn_link_exception(run_solr_queue, i)
+if __name__ == '__main__':
+    t_status = spawn_link_exception(status_thread)
+    t_item_queue = spawn_link_exception(add_to_item_queue)
+    for i in range(80):
+        spawn_link_exception(run_find_item)
+    #t_index_items = spawn_link_exception(index_items)
+    for i in range(8):
+        spawn_link_exception(run_solr_queue, i)
 
-#joinall([t_run_find_item, t_item_queue, t_index_items, t_solr])
+    #joinall([t_run_find_item, t_item_queue, t_index_items, t_solr])
 
-sleep(1)
-print 'join item_queue thread'
-t_item_queue.join()
-print 'item_queue thread complete'
-#print 'join item_and_host_queue:', item_and_host_queue.qsize()
-#item_and_host_queue.join()
-#print 'item_and_host_queue complete'
-for host, host_queue in host_queues.items():
-    qsize = host_queue.qsize()
-    print 'host:', host, qsize
-    host_queue.join()
+    sleep(1)
+    print 'join item_queue thread'
+    t_item_queue.join()
+    print 'item_queue thread complete'
+    #print 'join item_and_host_queue:', item_and_host_queue.qsize()
+    #item_and_host_queue.join()
+    #print 'item_and_host_queue complete'
+    for host, host_queue in host_queues.items():
+        qsize = host_queue.qsize()
+        print 'host:', host, qsize
+        host_queue.join()
 
-print 'join solr_queue:', solr_queue.qsize()
-solr_queue.join()
-print 'solr_queue complete'
+    print 'join solr_queue:', solr_queue.qsize()
+    solr_queue.join()
+    print 'solr_queue complete'
