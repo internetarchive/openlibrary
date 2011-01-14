@@ -54,6 +54,7 @@ bookreader_auth_seconds = 10*60
 # Base URL for BookReader
 #bookreader_stream_base = 'http://www.archive.org/stream'
 # XXXmang change to www once BookReader launched
+#bookreader_stream_base = 'http://www-mang.archive.org/stream'
 bookreader_stream_base = 'http://www-testflip.archive.org/stream'
 #bookreader_stream_base = 'http://www-mang.archive.org/stream'
 
@@ -596,14 +597,14 @@ def get_ia_auth_dict(user, item_id, resource_id):
     
     elif not loan_key:
         error_message = 'This book has not been checked out'
-        resolution_message = 'You can <a href="%(base_url)s/ia/%(item_id)s/borrow">borrow this book from Open Library</a>.' % resolution_dict
+        resolution_message = 'This book is currently available to borrow. You can <a href="%(base_url)s/ia/%(item_id)s/borrow">borrow this book from Open Library</a>.' % resolution_dict
     
     else:
         # There is a loan for this book
         loan = web.ctx.site.store.get(loan_key)
         
         if loan['user'] != user.key:
-            error_message = 'This books was not checked out by you'
+            error_message = 'This book is checked out'
             resolution_message = 'This book is currently checked out.  You can <a href="%(base_url)s/ia/%(item_id)s">visit this book\'s page on Open Library</a>.' % resolution_dict
         
         elif loan['expiry'] < datetime.datetime.utcnow().isoformat():
