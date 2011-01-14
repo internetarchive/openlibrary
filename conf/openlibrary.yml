@@ -67,3 +67,6 @@ lists:
     editions_db: http://127.0.0.1:5984/editions
     works_db: http://127.0.0.1:5984/works
     editions_view: http://127.0.0.1:5984/editions/_fti/_design/seeds/by_seed
+
+admin:
+    counts_db: http://127.0.0.1:5984/admin

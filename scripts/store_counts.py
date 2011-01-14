@@ -13,14 +13,22 @@ import psycopg2
 
 class InvalidType(TypeError): pass
 
-def get_db_creds(config_file):
+def connect_to_pg(config_file):
     with open(config_file) as f:
         config = yaml.load(f)
     db = config["db_parameters"]["database"]
-    logging.debug(" Database is %s"%db)
-    return db
+    logging.debug(" Postgres Database is %s"%db)
+    return psycopg2.connect("dbname = %s"%db)
 
-def get_data_count(db, typ, start, end):
+
+def connect_to_couch(config_file):
+    with open(config_file) as f:
+        config = yaml.load(f)
+    db = config["admin"]["counts_db"]
+    logging.debug(" Couch Database is %s"%db)
+    return couchdb.Database(db)
+
+def get_data(db, typ, start, end):
     """Returns the number of new records of type `typ` inserted between
     `start` and `end`"""
     c = db.cursor()
@@ -39,24 +47,32 @@ def get_data_count(db, typ, start, end):
     logging.debug("    %s"%count)
     return count
 
+def store_data(db, typ, count, date):
+    uid = "counts-%s"%date
+    try:
+        vals = db[uid]
+    except couchdb.http.ResourceNotFound:
+        vals = {}
+        db[uid] = vals
+    vals[typ] = count
+    db.save(vals)
+    
 
-def main(config_file, ndays = 1):
+
+def main(infobase_config, openlibrary_config, ndays = 1):
     logging.basicConfig(level=logging.DEBUG, format = "[%(levelname)s] : %(filename)s:%(lineno)d : %(message)s")
     logging.debug("Parsing config file")
-    db = get_db_creds(config_file)
-    logging.debug("Connecting to database")
-    pg_conn = psycopg2.connect("dbname = %s"%db)
-    couch_conn = 
-    cday = datetime.datetime.now()
+    pg_conn = connect_to_pg(infobase_config)
+    couch = connect_to_couch(openlibrary_config)
+    udate = datetime.datetime.now()
     for i in range(int(ndays)):
-        lday = cday - datetime.timedelta(days = 1)
-        logging.debug("From %s to %s"%(lday,cday))
+        ldate = udate - datetime.timedelta(days = 1)
+        logging.debug("From %s to %s"%(ldate, udate))
         for typ in "work edition user author list".split():
             logging.debug(" Type : %s"%typ)
-            c = get_data_count(pg_conn, typ, lday.strftime("%Y-%m-%d"), cday.strftime("%Y-%m-%d"))
-            store_data(couch_conn, c)
-
-        cday = lday
+            count = get_data(pg_conn, typ, ldate.strftime("%Y-%m-%d"), udate.strftime("%Y-%m-%d"))
+            store_data(couch, typ, count, ldate.strftime("%Y-%m-%d"))
+        udate = ldate
     
 
     
