@@ -3,6 +3,7 @@
 import copy
 import datetime, time
 import hmac
+import re
 import simplejson
 import string
 import urllib2
@@ -54,6 +55,7 @@ bookreader_auth_seconds = 10*60
 #bookreader_stream_base = 'http://www.archive.org/stream'
 # XXXmang change to www once BookReader launched
 bookreader_stream_base = 'http://www-testflip.archive.org/stream'
+#bookreader_stream_base = 'http://www-mang.archive.org/stream'
 
 ########## Page Handlers
 
@@ -186,8 +188,10 @@ class ia_auth(delegate.page):
         resource_id = 'bookreader:%s' % item_id
         content_type = "application/json"
         
+        # check that identifier is valid
+        
         user = web.ctx.site.get_user()
-        auth_json = simplejson.dumps( get_ia_auth_dict(user, resource_id) )
+        auth_json = simplejson.dumps( get_ia_auth_dict(user, item_id, resource_id) )
         
         output = auth_json
         
@@ -260,8 +264,15 @@ def datetime_from_utc_timestamp(seconds):
 
 @public
 def can_return_resource_type(resource_type):
-    """Returns true if this resource can be returned from the OL site"""
+    """Returns true if this resource can be returned from the OL site."""
     if resource_type.startswith('bookreader'):
+        return True
+    return False
+    
+@public
+def ia_identifier_is_valid(item_id):
+    """Returns false if the item id is obviously malformed. Not currently checking length."""
+    if re.match(r'^[a-zA-Z0-9][a-zA-Z0-9\.\-_]*$', item_id):
         return True
     return False
         
@@ -557,25 +568,35 @@ def return_resource(resource_id):
     # $$$ Could add some stats tracking.  For now we just nuke it.
     web.ctx.site.store.delete(loan_key)
 
-def get_ia_auth_dict(user, resource_id):
+def get_ia_auth_dict(user, item_id, resource_id):
     """Returns response similar to one of these:
-    {'success':true,'token':'1287185207-fa72103dd21073add8f87a5ad8bce845'}
-    {'success':false,'msg':'Book is checked out'}
+    {'success':true,'token':'1287185207-fa72103dd21073add8f87a5ad8bce845','borrowed':true}
+    {'success':false,'msg':'Book is checked out','borrowed':false, 'resolution': 'You can visit <a href="http://openlibary.org/ia/someid">this book\'s page on Open Library</a>.'}
     """
     
+    base_url = 'http://' + web.ctx.host
+    resolution_dict = { 'base_url': base_url, 'item_id': item_id, 'stream_base': bookreader_stream_base }
+    
     error_message = None
+    borrowed = False
+    
+    if not ia_identifier_is_valid(item_id):
+        return {'success': False, 'msg': 'Invalid item id', 'resolution': 'This book does not appear to have a valid item identifier.' }
     
     # Lookup loan information
     loan_key = get_loan_key(resource_id)
 
     if not resource_id.startswith('bookreader'):
         error_message = 'Bad resource id type'
+        resolution_message = 'This book cannot be borrowed for in-browser loan. You can <a href="%(base_url)s/ia/%(item_id)s">visit this book\'s page</a> on openlibrary.org to learn more about the book.' % resolution_dict
     
     elif not user:
         error_message = 'Not logged into Open Library'
+        resolution_message = 'Please <a href="%(base_url)s/account/login?redirect=%(stream_base)s/%(item_id)s">log into Open Library</a> to continue.' % resolution_dict
     
     elif not loan_key:
         error_message = 'This book has not been checked out'
+        resolution_message = 'You can <a href="%(base_url)s/ia/%(item_id)s/borrow">borrow this book from Open Library</a>.' % resolution_dict
     
     else:
         # There is a loan for this book
@@ -583,12 +604,17 @@ def get_ia_auth_dict(user, resource_id):
         
         if loan['user'] != user.key:
             error_message = 'This books was not checked out by you'
+            resolution_message = 'This book is currently checked out.  You can <a href="%(base_url)s/ia/%(item_id)s">visit this book\'s page on Open Library</a>.' % resolution_dict
         
         elif loan['expiry'] < datetime.datetime.utcnow().isoformat():
             error_message = 'Your loan has expired'
+            resolution_message = 'Your loan for this book has expired.  You can <a href="%(base_url)s/ia/%(item_id)s">visit this book\'s page on Open Library</a>.' % resolution_dict
+            
+        else: # user borrowed this book
+            borrowed = True
     
     if error_message:
-        return { 'success': False, 'msg': error_message }
+        return { 'success': False, 'msg': error_message, 'resolution': resolution_message }
     
     item_id = resource_id[len('bookreader:'):]
     return { 'success': True, 'token': make_ia_token(item_id, bookreader_auth_seconds) }
