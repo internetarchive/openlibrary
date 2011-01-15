@@ -343,7 +343,7 @@ def get_loan_key(resource_id):
     loan_keys = web.ctx.site.store.query('/type/loan', 'resource_id', resource_id)
     if not loan_keys:
         # No local records
-        return
+        return None
 
     # Only support single loan of resource at the moment
     if len(loan_keys) > 1:
@@ -592,11 +592,16 @@ def get_ia_auth_dict(user, item_id, resource_id):
         resolution_message = 'This book cannot be borrowed for in-browser loan. You can <a href="%(base_url)s/ia/%(item_id)s">visit this book\'s page</a> on openlibrary.org to learn more about the book.' % resolution_dict
     
     elif not user:
-        error_message = 'Not logged into Open Library'
-        resolution_message = 'Please <a href="%(base_url)s/account/login?redirect=%(stream_base)s/%(item_id)s">log into Open Library</a> to access this book.' % resolution_dict
+        if loan_key:
+            # Checked out
+            error_message = "Book is checked out"
+            resolution_message = 'This book is currently checked out. If you checked it out you can <a href="%(base_url)s/account/login?redirect=%(stream_base)s/%(item_id)s">log into Open Library</a> to read the book.  You can also <a href="%(base_url)/subjects/Lending_library">look at other books available to borrow</a>'
+        else:
+            error_message = "Book available to borrow"
+            resolution_message = 'This book is available to borrow.  Please <a href="%(base_url)s/account/login?redirect=%(base_url)s/ia/%(item_id)s/borrow">log into Open Library</a> to borrow the book.' % resolution_dict
     
     elif not loan_key:
-        error_message = 'This book has not been checked out'
+        error_message = 'This book is available to borrow'
         resolution_message = 'This book is currently available to borrow. You can <a href="%(base_url)s/ia/%(item_id)s/borrow">borrow this book from Open Library</a>.' % resolution_dict
     
     else:
@@ -605,7 +610,7 @@ def get_ia_auth_dict(user, item_id, resource_id):
         
         if loan['user'] != user.key:
             error_message = 'This book is checked out'
-            resolution_message = 'This book is currently checked out.  You can <a href="%(base_url)s/ia/%(item_id)s">visit this book\'s page on Open Library</a>.' % resolution_dict
+            resolution_message = 'This book is currently checked out.  You can <a href="%(base_url)s/ia/%(item_id)s">visit this book\'s page on Open Library</a> or <a href="%(base_url)/subjects/Lending_library">look at other books available to borrow</a>.' % resolution_dict
         
         elif loan['expiry'] < datetime.datetime.utcnow().isoformat():
             error_message = 'Your loan has expired'
