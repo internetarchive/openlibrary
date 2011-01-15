@@ -593,7 +593,7 @@ def get_ia_auth_dict(user, item_id, resource_id):
     
     elif not user:
         error_message = 'Not logged into Open Library'
-        resolution_message = 'Please <a href="%(base_url)s/account/login?redirect=%(stream_base)s/%(item_id)s">log into Open Library</a> to continue.' % resolution_dict
+        resolution_message = 'Please <a href="%(base_url)s/account/login?redirect=%(stream_base)s/%(item_id)s">log into Open Library</a> to access this book.' % resolution_dict
     
     elif not loan_key:
         error_message = 'This book has not been checked out'
