@@ -32,7 +32,7 @@ def get_data(db, typ, start, end):
     """Returns the number of new records of type `typ` inserted between
     `start` and `end`"""
     c = db.cursor()
-    logging.debug("   %s : %s to %s"%(typ, start, end))
+    # logging.debug("   %s : %s to %s"%(typ, start, end))
     q1 = "SELECT id as id from thing where key='/type/%s'"%typ
     c.execute(q1)
     v = c.fetchone()
@@ -44,7 +44,7 @@ def get_data(db, typ, start, end):
     c.execute(q2)
     v = c.fetchall()
     count = v[0][0]
-    logging.debug("    %s"%count)
+    # logging.debug("    %s"%count)
     return count
 
 def store_data(db, typ, count, date):
@@ -69,8 +69,8 @@ def main(infobase_config, openlibrary_config, ndays = 1):
         ldate = udate - datetime.timedelta(days = 1)
         logging.debug("From %s to %s"%(ldate, udate))
         for typ in "work edition user author list".split():
-            logging.debug(" Type : %s"%typ)
             count = get_data(pg_conn, typ, ldate.strftime("%Y-%m-%d"), udate.strftime("%Y-%m-%d"))
+            logging.debug(" Type : %s - %d"%(typ,count))
             store_data(couch, typ, count, ldate.strftime("%Y-%m-%d"))
         udate = ldate
     
