@@ -225,13 +225,17 @@ def get_counts():
     counts = web.storage()
     counts_db_name = config.get("admin",{}).get("counts_db")
     if not counts_db_name:
-        for i in "work edition user author list".split():
+        for i in "work edition user author list ebook cover subject".split():
             counts[i] = placeholder
         return storify(counts)
 
     counts_db = couchdb.Database(counts_db_name)
     start_date = (datetime.datetime.now() - datetime.timedelta(days = 28)).strftime("%Y-%m-%d")
-    data = [x.doc for x in counts_db.view("_all_docs", startkey_docid = "counts-%s"%start_date, include_docs = True)]
+    end_date = datetime.datetime.now().strftime("%Y-%m-%d")
+    data = [x.doc for x in counts_db.view("_all_docs",
+                                          startkey_docid = "counts-%s"%start_date,
+                                          endkey_docid   = "counts-%s"%end_date,
+                                          include_docs = True)]
 
     for i in "work edition user author list".split():
         lastweek = _sum_values(data[-7:], i)
