@@ -32,7 +32,7 @@ def setup_db(mod, root):
 def setup_module(mod, db=False):
     mod.static_dir = get_static_dir()
     
-    mod.root = py.test.config.ensuretemp('coverstore')
+    mod.root = py.test.ensuretemp('coverstore')
     setup_dirs(mod.root)
     
     if db:
