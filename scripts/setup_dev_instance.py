@@ -391,6 +391,8 @@ class setup_couchdb:
         self.couchdb.create_database("works")
         self.couchdb.create_database("editions")
         self.couchdb.create_database("seeds")
+        self.couchdb.create_database("admin")
+        
         
     def add_design_docs(self):
         info("    adding design docs")
