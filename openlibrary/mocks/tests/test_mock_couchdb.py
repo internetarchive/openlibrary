@@ -1,4 +1,4 @@
-from openlibrary.core.mocks.mock_couchdb import Database
+from ..mock_couchdb import Database
 
 class TestMockCouchDB:
     def _add_design_doc(self, db):

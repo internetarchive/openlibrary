@@ -11,7 +11,7 @@ from .. import dynlinks
 import re
 import simplejson
 import web
-from openlibrary.core import mocksite
+from openlibrary.mocks import mock_infobase
 from openlibrary.core import ia
 
 def pytest_funcarg__data0(request):
@@ -349,7 +349,7 @@ def test_dynlinks(monkeypatch):
     assert simplejson.loads(js) == expected_result
 
 def test_isbnx(monkeypatch):
-    site = mocksite.MockSite()
+    site = mock_infobase.MockSite()
     site.save({
         "key": "/books/OL1M",
         "type": {"key": "/type/edition"},
