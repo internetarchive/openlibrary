@@ -56,7 +56,6 @@ bookreader_auth_seconds = 10*60
 # XXXmang change to www once BookReader launched
 #bookreader_stream_base = 'http://www-mang.archive.org/stream'
 bookreader_stream_base = 'http://www-testflip.archive.org/stream'
-#bookreader_stream_base = 'http://www-mang.archive.org/stream'
 
 ########## Page Handlers
 
