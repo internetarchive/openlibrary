@@ -2,15 +2,13 @@
 """
 import random
 
-import simplejson
 import web
-import yaml
 
 from infogami.utils import delegate
 from infogami.utils.view import render_template, public
 from infogami.infobase import client
 
-from openlibrary.core import formats
+from openlibrary.core import formats, cache
 import openlibrary.core.helpers as h
 
 from openlibrary.plugins.worksearch import code as worksearch
@@ -486,15 +484,33 @@ class feeds(delegate.page):
     
 def setup():
     pass
+
+def get_recently_modified_lists(limit, offset=0):
+    """Returns the most recently modified lists as list of dictionaries.
     
+    This function is memoized for better performance.
+    """
+    # this function is memozied with background=True option. 
+    # web.ctx must be initialized as it won't be avaiable to the background thread.
+    if 'env' not in web.ctx:
+        delegate.fakeload()
+    
+    keys = web.ctx.site.things({"type": "/type/list", "sort": "-last_modified", "limit": limit, "offset": offset})
+    lists = web.ctx.site.get_many(keys)
+    return [list.dict() for list in lists]
+    
+get_recently_modified_lists = cache.memcache_memoize(get_recently_modified_lists, timeout=5*60)
+
 @public
-def get_active_lists_in_random(limit=20):
-    # get 5 times more lists and pick the required number in random among them.
-    keys = web.ctx.site.things({"type": "/type/list", "sort": "-last_modified", "limit": 5*limit})
+def get_active_lists_in_random(limit=20, preload=True):
+    lists = get_recently_modified_lists(limit*10)
     
-    # ignore lists with just 2 seeds
-    lists = [list for list in web.ctx.site.get_many(keys) if len(list.seeds) > 2]
+    # ignore lists with 2 or less seeds
+    lists = [list for list in lists if len(list.get("seeds", [])) > 2]
     
     if len(lists) > limit:
         lists = random.sample(lists, limit)
+
+    # convert rawdata into models.
+    lists = [web.ctx.site.new(list['key'], list) for list in lists]
     return lists
