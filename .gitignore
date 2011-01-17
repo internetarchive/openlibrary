@@ -9,3 +9,15 @@ docs/api/infogami/
 *.tgz
 *.tar.gz
 *.org
+coverage/
+docs/_build/
+docs/appendices/api/infogami/
+docs/appendices/api/openlibrary/
+ol.log
+openlibrary.egg-info/
+pip-log.txt
+supervisord.pid
+vendor/apache-solr-1.4.0/
+vendor/couchdb-1.0.1/
+vendor/couchdb-lucene-0.6-SNAPSHOT/
+vendor/solr/
