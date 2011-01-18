@@ -17,9 +17,13 @@ def connect_to_pg(config_file):
     f = open(config_file)
     config = yaml.load(f)
     f.close()
-    db = config["db_parameters"]["database"]
-    logging.debug(" Postgres Database is %s"%db)
-    return web.database(dbn="postgres",db = db)
+    conf = {}
+    conf["db"] = config["db_parameters"]["database"]
+    host = config["db_parameters"].get("host")
+    if host:
+        conf["host"] = host
+    logging.debug(" Postgres Database is %(db)s"%conf)
+    return web.database(dbn="postgres",**conf)
 
 def connect_to_couch(config_file):
     f = open(config_file)
