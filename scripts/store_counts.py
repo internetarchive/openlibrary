@@ -20,8 +20,11 @@ def connect_to_pg(config_file):
     conf = {}
     conf["db"] = config["db_parameters"]["database"]
     host = config["db_parameters"].get("host")
+    user = config["db_parameters"].get("username")
     if host:
         conf["host"] = host
+    if user:
+        conf["user"] = user
     logging.debug(" Postgres Database is %(db)s"%conf)
     return web.database(dbn="postgres",**conf)
 
