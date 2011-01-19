@@ -11,8 +11,14 @@ def print_log(msg):
   print("[" + timestamp + "] " + msg)
 
 def set_identifier(book, id_name, id_value):
-  ids = book.setdefault("identifiers", {})
-  ids[id_name] = [id_value]
+  # OL handles the standard identifiers in a different way.
+  if id_name in ["isbn_10", "isbn_13", "oclc_numbers", "lccn"]:
+    ids = book.setdefault(id_name, [])
+    if id_value not in ids:
+      ids.append(id_value)
+  else:
+    ids = book.setdefault("identifiers", {})
+    ids[id_name] = [id_value]
 
 def set_goodreads_id(olid, goodreads_id):
   book = ol.get(olid)
