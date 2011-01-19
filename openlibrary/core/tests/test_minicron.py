@@ -8,19 +8,19 @@ import os
 import time
 import datetime
 
-import pytest
+import py
 
 from openlibrary.core import minicron
 
 def test_nonexistentinputfile(dummy_crontabfile):
     "Create a cron parser with an non existent input file"
     cron = minicron.Minicron("/non/existent/file.tests", None, 0.01)
-    pytest.raises(IOError, cron.run)
+    py.test.raises(IOError, cron.run)
 
 def test_malformed_cron_line(dummy_crontabfile):
     cron = minicron.Minicron(dummy_crontabfile, 1)
     d = datetime.datetime.now()
-    pytest.raises(minicron.BadCronLine, cron._matches_cron_expression, d, "* * 5 * * do_something")
+    py.test.raises(minicron.BadCronLine, cron._matches_cron_expression, d, "* * 5 * * do_something")
 
 def test_ticker(dummy_crontabfile, monkeypatch, counter):
     "Checks that the ticker executes once a minute"
