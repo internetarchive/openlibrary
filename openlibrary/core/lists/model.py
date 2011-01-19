@@ -47,7 +47,7 @@ class ListMixin:
             if isinstance(seed, basestring):
                 return seed
             else:
-                return seed['key']
+                return seed.key
                 
         return [process(seed) for seed in self.seeds]
         
@@ -91,9 +91,11 @@ class ListMixin:
         return sum(seed['ebooks'] for seed in self.seed_summary.values())
         
     def _get_last_update(self):
-        dates = [seed.last_update for seed in self.get_seeds() if seed.last_update]
-        d = dates and max(dates) or None
-        return d
+        if self.seed_summary:
+            date = max(seed['last_update'] for seed in self.seed_summary.values()) or None
+        else:
+            date = None
+        return date and h.parse_datetime(date)
 
     seed_summary = cached_property("seed_summary", _get_seed_summary)
     
