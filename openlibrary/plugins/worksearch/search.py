@@ -45,8 +45,10 @@ def work_search(query, limit=20, offset=0, **kw):
     solr = get_works_solr()
     
     stats.begin("solr", query=query, start=offset, rows=limit, kw=kw)
-    result = solr.select(query, start=offset, rows=limit, **kw)
-    stats.end()
+    try:
+        result = solr.select(query, start=offset, rows=limit, **kw)
+    finally:
+        stats.end()
     
     return result
 
