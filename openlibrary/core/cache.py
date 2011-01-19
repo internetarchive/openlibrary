@@ -10,6 +10,7 @@ import simplejson
 import web
 
 from infogami import config
+from infogami.utils import stats
 
 class memcache_memoize:
     """Memoizes a function, caching its return values in memcached for each input.
@@ -102,14 +103,14 @@ class memcache_memoize:
     def _update_async_worker(self, *args, **kw):
         key = self.compute_key(args, kw) + "/flag"
         
-        if not self.memcache.add(key, True):
+        if not self.memcache.add(key, "true"):
             # already somebody else is computing this value.
             return
         
         try:
             self.update(*args, **kw)            
         finally:
-            # Remove current thread from active threads, if it is present.
+            # Remove current thread from active threads
             self.active_threads.pop(threading.currentThread().getName(), None)
             
             # remove the flag
@@ -123,7 +124,7 @@ class memcache_memoize:
         value = self.f(*args, **kw)
         t = time.time()
         
-        self.memcache_add(args, kw, value, t)        
+        self.memcache_set(args, kw, value, t)
         return value, t
         
     def join_threads(self):
@@ -160,12 +161,15 @@ class memcache_memoize:
     def json_decode(self, json):
         return simplejson.loads(json)
                 
-    def memcache_add(self, args, kw, value, time):
+    def memcache_set(self, args, kw, value, time):
         """Adds value and time to memcache. Key is computed from the arguments.
         """
         key = self.compute_key(args, kw)
         json = self.json_encode([value, time])
-        self.memcache.add(key, json)
+
+        stats.begin("memcache.set", key=key)
+        self.memcache.set(key, json)
+        stats.end()
         
     def memcache_get(self, args, kw):
         """Reads the value from memcahe. Key is computed from the arguments.
@@ -173,5 +177,9 @@ class memcache_memoize:
         Returns (value, time) when the value is available, None otherwise.
         """
         key = self.compute_key(args, kw)
+
+        stats.begin("memcache.get", key=key)
         json = self.memcache.get(key)
+        stats.end(hit=bool(json))
+        
         return json and self.json_decode(json)
