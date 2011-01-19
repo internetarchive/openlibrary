@@ -497,20 +497,49 @@ def get_recently_modified_lists(limit, offset=0):
     
     keys = web.ctx.site.things({"type": "/type/list", "sort": "-last_modified", "limit": limit, "offset": offset})
     lists = web.ctx.site.get_many(keys)
+        
     return [list.dict() for list in lists]
     
 get_recently_modified_lists = cache.memcache_memoize(get_recently_modified_lists, timeout=5*60)
+    
+def _preload_lists(lists):
+    """Preloads all referenced documents for each list.
+    List can be either a dict of a model object.
+    """
+    keys = set()
+    
+    for xlist in lists:
+        if not isinstance(xlist, dict):
+            xlist = xlist.dict()
+        
+        owner = xlist['key'].rsplit("/lists/", 1)[0]
+        keys.add(owner)
+                
+        for seed in xlist.get("seeds", []):
+            if isinstance(seed, dict) and "key" in seed:
+                keys.add(seed['key'])
+            
+    web.ctx.site.get_many(list(keys))
 
 @public
 def get_active_lists_in_random(limit=20, preload=True):
-    lists = get_recently_modified_lists(limit*10)
+    lists = []
+    offset = 0
     
-    # ignore lists with 2 or less seeds
-    lists = [list for list in lists if len(list.get("seeds", [])) > 2]
+    while len(lists) < limit:
+        result = get_recently_modified_lists(limit*5, offset=offset)
+        offset += len(result)
+        
+        # ignore lists with 2 or less seeds
+        lists += [xlist for xlist in result if len(xlist.get("seeds", [])) > 2]
     
     if len(lists) > limit:
         lists = random.sample(lists, limit)
 
+    if preload:
+        _preload_lists(lists)
+            
     # convert rawdata into models.
-    lists = [web.ctx.site.new(list['key'], list) for list in lists]
+    lists = [web.ctx.site.new(xlist['key'], xlist) for xlist in lists]
+    
     return lists
