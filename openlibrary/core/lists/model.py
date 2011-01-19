@@ -55,10 +55,10 @@ class ListMixin:
         rawseeds = self._get_rawseeds()
         
         db = self._get_seeds_db()
-    
+
         zeros = {"editions": 0, "works": 0, "ebooks": 0, "last_update": ""}
         d = dict((seed, web.storage(zeros)) for seed in rawseeds)
-    
+        
         for row in self._couchdb_view(db, "_all_docs", keys=rawseeds, include_docs=True):
             if row.get('doc'):
                 if 'edition' not in row.doc:
@@ -74,6 +74,9 @@ class ListMixin:
         stats.begin("couchdb", db=db.name, view=viewname, kw=kw)
         try:
             result = db.view(viewname, **kw)
+            
+            # force fetching the results
+            result.rows
         finally:
             stats.end()
         return result
@@ -122,7 +125,12 @@ class ListMixin:
         })
         
     def get_couchdb_docs(self, db, keys):
-        return dict((row.id, row.doc) for row in db.view("_all_docs", keys=keys, include_docs=True))
+        try:
+            stats.begin(name="_all_docs", keys=keys, include_docs=True)
+            docs = dict((row.id, row.doc) for row in db.view("_all_docs", keys=keys, include_docs=True))
+        finally:
+            stats.end()
+        return docs
 
     def get_editions(self, limit=50, offset=0, _raw=False):
         """Returns the editions objects belonged to this list ordered by last_modified. 
@@ -258,7 +266,7 @@ class ListMixin:
             cover = s.get_cover()
             if cover:
                 return cover
-    
+        
     def _get_seeds_db(self):
         db_url = config.get("lists", {}).get("seeds_db")
         if not db_url:
