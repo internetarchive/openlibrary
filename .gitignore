@@ -3,6 +3,7 @@
 *.swp
 *.mo
 var/
+usr/
 build/
 docs/api/openlibrary/
 docs/api/infogami/
