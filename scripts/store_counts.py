@@ -36,28 +36,37 @@ def connect_to_couch(config_file):
     logging.debug(" Couch Database is %s"%db)
     return couchdb.Database(db)
 
-def get_data(db, typ, start, end):
+def get_data(db, start, end):
     """Returns the number of new records of type `typ` inserted between
     `start` and `end`"""
-    q1 = "SELECT id as id from thing where key='/type/%s'"%typ
-    result = db.query(q1)
-    try:
-        kid = result[0].id 
-    except IndexError:
-        raise InvalidType("No id for type '/type/%s in the datbase"%typ)
-    q2 = "select count(*) as count from thing where type=%d and created >= '%s' and created < '%s'"%(kid, start, end)
-    result = db.query(q2)
-    count = result[0].count
-    return count
+    def _query_single_thing(db, typ, start, end):
+        "Query the counts a single type from the things table"
+        q1 = "SELECT id as id from thing where key='/type/%s'"%typ
+        result = db.query(q1)
+        try:
+            kid = result[0].id 
+        except IndexError:
+            raise InvalidType("No id for type '/type/%s in the datbase"%typ)
+        q2 = "select count(*) as count from thing where type=%d and created >= '%s' and created < '%s'"%(kid, start, end)
+        result = db.query(q2)
+        count = result[0].count
+        return count
 
-def store_data(db, typ, count, date):
+    retval = {}
+    for typ in "work edition user author list".split():
+        retval[typ] = _query_single_thing(db, typ, start, end)
+        logging.debug(" Type : %s - %d"%(typ,retval[typ]))
+    return retval
+
+
+def store_data(db, data, date):
     uid = "counts-%s"%date
     try:
         vals = db[uid]
+        vals.update(data)
     except couchdb.http.ResourceNotFound:
-        vals = {}
+        vals = data
         db[uid] = vals
-    vals[typ] = count
     db.save(vals)
     
 
@@ -75,10 +84,8 @@ def main(infobase_config, openlibrary_config, ndays = 1):
     for i in range(int(ndays)):
         ldate = udate - datetime.timedelta(days = 1)
         logging.debug("From %s to %s"%(ldate, udate))
-        for typ in "work edition user author list".split():
-            count = get_data(pg_conn, typ, ldate.strftime("%Y-%m-%d"), udate.strftime("%Y-%m-%d"))
-            logging.debug(" Type : %s - %d"%(typ,count))
-            store_data(couch, typ, count, ldate.strftime("%Y-%m-%d"))
+        data = get_data(pg_conn, ldate.strftime("%Y-%m-%d"), udate.strftime("%Y-%m-%d"))
+        store_data(couch, data, ldate.strftime("%Y-%m-%d"))
         udate = ldate
     return 0
         
