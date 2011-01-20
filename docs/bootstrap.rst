@@ -1,3 +1,5 @@
+.. _bootstrap:
+
 Setting up a dev instance
 =========================
 
@@ -106,8 +108,6 @@ not all necessary to run but for things like testing, documentation etc.
   * supervisor
   * py.test
   * sphinx
-
-
 
 Running the install script
 --------------------------
