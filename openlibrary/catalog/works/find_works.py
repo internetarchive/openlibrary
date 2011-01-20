@@ -302,6 +302,7 @@ def find_title_redirects(akey):
             title_redirects[r['title']] = w['title']
     return title_redirects
 
+# akey is unused in find_works
 def find_works(akey, book_iter, existing={}):
     equiv = defaultdict(int) # normalized title and work title pairs
     norm_titles = defaultdict(int) # frequency of titles

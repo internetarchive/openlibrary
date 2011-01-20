@@ -162,7 +162,12 @@ def get_work_subjects(w):
             loc = sr[5:]
             data = get_from_archive(loc)
             rec = MarcBinary(data)
-            subjects.append(read_subjects(rec))
+            try:
+                subjects.append(read_subjects(rec))
+            except:
+                print 'bad MARC:', loc
+                print 'data:', `data`
+                raise
         else:
             assert sr.startswith('ia:')
             subjects.append(get_subjects_from_ia(sr[3:]))

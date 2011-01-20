@@ -103,7 +103,6 @@ def find_entity(author):
             continue
         seen.add(key)
         orig_key = key
-        print a['type']
         assert a['type'] == '/type/author'
         if 'birth_date' in author and 'birth_date' not in a:
             continue
@@ -208,6 +207,8 @@ def build_query(loc, rec):
             l['key'] = '/languages/jpn'
         if l['key'] == '/languages/fra':
             l['key'] = '/languages/fre'
+        if l['key'] == '/languages/gwr':
+            l['key'] = '/languages/ger'
         if l['key'] == '/languages/fr ':
             l['key'] = '/languages/fre'
         if l['key'] == '/languages/it ':

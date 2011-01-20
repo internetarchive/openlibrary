@@ -4,7 +4,8 @@ import httplib, web, time, sys, os
 rc = read_rc()
 accesskey = rc['s3_accesskey']
 secret = rc['s3_secret']
-arc_dir = '/2/edward/amazon/arc'
+#arc_dir = '/2/edward/amazon/arc'
+arc_dir = '/0/amazon'
 
 no_bucket_error = '<Code>NoSuchBucket</Code>'
 internal_error = '<Code>InternalError</Code>'
@@ -89,9 +90,9 @@ ia = 'amazon_book_crawl'
 for filename in os.listdir(arc_dir):
     if filename in done:
         continue
-    print filename
     if not filename.endswith('.arc'):
         continue
+    print filename
     con = httplib.HTTPConnection('s3.us.archive.org')
     con.connect()
     put_file(con, ia, filename, {})

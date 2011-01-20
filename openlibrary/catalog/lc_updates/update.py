@@ -39,7 +39,6 @@ def put_file(con, ia, filename):
         time.sleep(5)
     print 'too many failed attempts'
 
-#print subprocess.Popen(["/usr/bin/perl", "get.pl"])
 subprocess.call(["/usr/bin/perl", "get.pl"])
 
 d = '/1/edward/lc_updates'
@@ -48,8 +47,6 @@ url = 'http://www.archive.org/download/' + item_id
 existing = frozenset(l[2] for l in parse(url).getroot().iterlinks())
 
 to_upload = set(os.listdir(d)) - existing
-
-#to_upload = set(['v37.i26.records.utf8'])
 
 for f in to_upload:
     con = httplib.HTTPConnection('s3.us.archive.org')

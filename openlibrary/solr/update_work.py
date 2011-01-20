@@ -188,8 +188,11 @@ def build_doc(w, obj_cache={}, resolve_redirects=False):
             print
             for a in authors:
                 print 'author:', a
+            print w['key']
             print
             raise AuthorRedirect
+    for a in authors:
+        print 'author:', a
     assert all(a['type']['key'] == '/type/author' for a in authors)
 
     try:

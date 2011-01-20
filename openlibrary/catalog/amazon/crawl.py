@@ -35,7 +35,8 @@ u'\xa0(8)'
 base_url = "http://www.amazon.com/s?ie=UTF8&rh="
 rh = 'i:stripbooks,p_n_feature_browse-bin:618083011,p_n_date:'
 
-out_dir = '/home/edward/amazon/crawl'
+out_dir = '/0/amazon'
+arc_dir = '/0/amazon/arc'
 
 # 4 = Children's Books, 28 = Teens
 re_child_book_param = re.compile(',n:(4|28)(?:&page=\d+)?$')
@@ -43,7 +44,7 @@ re_child_book_param = re.compile(',n:(4|28)(?:&page=\d+)?$')
 def now():
     return datetime.utcnow().replace(microsecond=0)
 
-max_size = 1024 * 1024 * 100
+max_size = 1024 * 1024 * 1024 * 10 # 10 GB
 ip = '207.241.229.141'
 content_type_hdr = 'Content-Type: '
 re_charset_header = re.compile('; charset=(.+)\r\n')
@@ -118,7 +119,7 @@ class Scraper:
             self.add_to_arc(url, start, content_type, recv_buf)
         return body.decode(charset) if charset else body
 
-scraper = Scraper(recording=False)
+scraper = Scraper(recording=True)
 
 def get_url(params):
     url = base_url + params
@@ -269,7 +270,8 @@ if __name__ == '__main__':
 
     one_day = timedelta(days=1)
     cur = date(2009, 1, 1) # start date
-    cur = date(2009, 12, 25)
+    cur = date(2009, 11, 11) # start date
+    #cur = date(2009, 12, 25)
     while True:
         print cur
         total, books, cats = read_page(rh + cur.strftime("%Y%m%d"))
@@ -280,5 +282,5 @@ if __name__ == '__main__':
             print >> out, i
         out.close()
         print len(books)
-        write_books(str(cur), books)
+        write_books(books)
         cur += one_day

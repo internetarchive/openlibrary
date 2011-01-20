@@ -18,17 +18,6 @@ pool_url = 'http://0.0.0.0:9020/'
 
 db_fields = ('isbn', 'title', 'oclc', 'lccn')
 
-def pool_build(fields): # unused
-    params = dict((k, '_'.join(v)) for k, v in fields.iteritems() if k != 'author')
-    url = pool_url + "?" + web.http.urlencode(params)
-    ret = cjson.decode(urlopen(url).read())
-    return ret['pool']
-
-def pool_update(key, q): # unused
-    q['key'] = key
-    req = Request(pool_url, cjson.encode(q))
-    urlopen(req).read()
-
 def build(index_fields):
     pool = {}
     for field in db_fields:

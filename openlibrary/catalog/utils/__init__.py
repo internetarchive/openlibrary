@@ -287,17 +287,17 @@ def get_title(e):
         title = e['title']
     return title
 
-def mk_norm(title):
-    m = re_brackets.match(title)
+def mk_norm(s):
+    m = re_brackets.match(s)
     if m:
-        title = m.group(1)
-    norm = merge.normalize(title).strip(' ')
+        s = m.group(1)
+    norm = merge.normalize(s).strip(' ')
     norm = norm.replace(' and ', ' ')
     if norm.startswith('the '):
         norm = norm[4:]
     elif norm.startswith('a '):
         norm = norm[2:]
-    return norm.replace('-', '').replace(' ', '')
+    return norm.replace(' ', '')
 
 def error_mail(msg_from, msg_to, subject, body):
     assert isinstance(msg_to, list)

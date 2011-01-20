@@ -1,37 +1,13 @@
 from openlibrary.catalog.marc import fast_parse, read_xml, is_display_marc
 from lxml import etree
 import xml.parsers.expat
-import urllib2, os.path, re
+import urllib2, os.path
 from openlibrary.catalog.read_rc import read_rc
 from time import sleep
-from socket import socket, AF_INET, SOCK_DGRAM, SOL_UDP, SO_BROADCAST, timeout
 
 base = "http://archive.org/download/"
 
 rc = read_rc()
-
-re_loc = re.compile('^(ia\d+\.us\.archive\.org):(/\d+/items/(.*))$')
-
-class FindItemError(Exception):
-    pass
-
-def find_item(ia):
-    s = socket(AF_INET, SOCK_DGRAM, SOL_UDP)
-    s.setblocking(1)
-    s.settimeout(2.0)
-    s.setsockopt(1, SO_BROADCAST, 1)
-    s.sendto(ia, ('<broadcast>', 8010))
-    for attempt in range(5):
-        (loc, address) = s.recvfrom(1024)
-        m = re_loc.match(loc)
-
-        ia_host = m.group(1)
-        ia_path = m.group(2)
-        if m.group(3) == ia:
-            return (ia_host, ia_path)
-        else:
-            print ia, '!=', m.group(3), 'retry'
-    raise FindItemError
 
 class NoMARCXML:
     pass
@@ -236,13 +212,16 @@ def read_marc_file(part, f, pos=0):
         print f
         raise
 
-def marc_formats(ia):
+def marc_formats(ia, host=None, path=None):
     files = {
         ia + '_marc.xml': 'xml',
         ia + '_meta.mrc': 'bin',
     }
     has = { 'xml': False, 'bin': False }
-    url = 'http://www.archive.org/download/' + ia + '/' + ia + '_files.xml'
+    if host and path:
+        url = 'http://%s%s/%s_files.xml' % (ia, host, path)
+    else:
+        url = 'http://www.archive.org/download/' + ia + '/' + ia + '_files.xml'
     for attempt in range(10):
         f = urlopen_keep_trying(url)
         if f is not None:

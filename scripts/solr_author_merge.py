@@ -13,7 +13,7 @@ from lxml.etree import tostring, Element
 
 parser = argparse.ArgumentParser(description='solr author merge')
 parser.add_argument('--config', default='openlibrary.yml')
-parser.add_argument('--state_file', default='author_merge_work_finder')
+parser.add_argument('--state_file', default='author_merge')
 args = parser.parse_args()
 
 config_file = args.config
@@ -206,6 +206,10 @@ while True:
         if action != 'save_many':
             continue
         if i['data']['comment'] != 'merge authors':
+            continue
+        if 'changeset' not in i['data']:
+            print i
+        if i['data']['changeset']['kind'] == 'edit-book':
             continue
         if i['timestamp'] == '2010-08-05T14:37:25.139418':
             continue # bad author redirect
