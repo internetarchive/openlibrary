@@ -24,3 +24,9 @@ To start individual services::
 Look at the supervisord config files to know the list of services.
 
 To know more about other available setup.py commands, see :doc:`appendices/setup_commands`.
+
+Handling database schema changes
+--------------------------------
+
+See :doc:`appendices/db_migrations` to know how to upgrade database schema. 
+
