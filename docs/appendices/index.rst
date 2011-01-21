@@ -8,3 +8,4 @@
    config_files.rst
    setup_commands.rst
    db_migrations.rst
+   dependencies.rst
