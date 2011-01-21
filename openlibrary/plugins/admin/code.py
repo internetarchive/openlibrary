@@ -1,11 +1,14 @@
 """Plugin to provide admin interface.
 """
 import os
+import sys
 import web
 import subprocess
 import datetime
 import urllib
 import traceback
+
+import couchdb
 
 from infogami import config
 from infogami.utils import delegate
@@ -53,13 +56,12 @@ class admin(delegate.page):
     GET = POST = delegate
         
     def is_admin(self):
-        """"Returns True if the current user is in admin usergroup."""
+        """Returns True if the current user is in admin usergroup."""
         return context.user and context.user.key in [m.key for m in web.ctx.site.get('/usergroup/admin').members]
-
 
 class admin_index:
     def GET(self):
-        return render_template("admin/index")
+        return render_template("admin/index",get_counts())
         
 class gitpull:
     def GET(self):
@@ -210,6 +212,41 @@ def storify(d):
     else:
         return d
 
+def get_counts():
+    """Generate counts for various operations which will be given to the
+    index page"""
+    def _sum_values(d, key):
+        "Returns the sum of all values with the same key in a list of dictionaries"
+        return sum((x[key] for x in d), 0)
+                   
+    placeholder = dict(lastweek  = "xxxx",
+                       lastmonth = "xxxx",
+                       total     = "xxxx")
+    counts = web.storage()
+    counts_db_name = config.get("admin",{}).get("counts_db")
+    if not counts_db_name:
+        for i in "work edition user author list ebook cover subject".split():
+            counts[i] = placeholder
+        return storify(counts)
+
+    counts_db = couchdb.Database(counts_db_name)
+    start_date = (datetime.datetime.now() - datetime.timedelta(days = 28)).strftime("%Y-%m-%d")
+    end_date = datetime.datetime.now().strftime("%Y-%m-%d")
+    data = [x.doc for x in counts_db.view("_all_docs",
+                                          startkey_docid = "counts-%s"%start_date,
+                                          endkey_docid   = "counts-%s"%end_date,
+                                          include_docs = True)]
+
+    for i in "work edition user author list".split():
+        lastweek = _sum_values(data[-7:], i)
+        lastmonth = _sum_values(data[:-7], i) + lastweek
+        counts[i] = dict(lastweek  = lastweek,
+                         lastmonth = lastmonth,
+                         total     = "xxxx")
+    counts["ebook"] = counts["cover"] = counts["subject"] = placeholder
+    s = storify(counts)
+    return s
+
 def get_admin_stats():
     def f(dates):
         keys = ["/admin/stats/" + date.isoformat() for date in dates]
@@ -258,6 +295,10 @@ from openlibrary.plugins.upstream import borrow
 class loans_admin:
     def GET(self):
         loans = borrow.get_all_loans()
+
+        # Preload books
+        web.ctx.site.get_many([loan['book'] for loan in loans])
+
         return render_template("admin/loans", loans, None)
         
     def POST(self):

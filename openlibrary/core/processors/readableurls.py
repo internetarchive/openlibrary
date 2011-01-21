@@ -4,7 +4,7 @@ import os
 import urllib
 import web
 
-import helpers as h
+from openlibrary.core import helpers as h
 
 class ReadableUrlProcessor:
     """Open Library code works with urls like /books/OL1M and

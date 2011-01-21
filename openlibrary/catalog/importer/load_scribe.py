@@ -101,8 +101,21 @@ def load(ia, use_binary=False):
 
 def write_edition(ia, edition, rec):
     loc = 'ia:' + ia
-    if ia == 'ofilhoprdigodr00mano':
+    if ia == 'munkai00apor':
+        edition['languages'] = [
+            {'key': '/languages/lat'},
+            {'key': '/languages/hun'},
+        ]
+    elif ia == 'cihm_39338':
+        edition['languages'] = [{'key': '/languages/ger'}]
+    elif ia == 'ofilhoprdigodr00mano':
         edition['languages'] = [{'key': '/languages/por'}]
+    elif ia == 'nekaroronneteyer00hill':
+        edition['languages'] = [{'key': '/languages/moh'}]
+    elif ia == 'adventuresofamer00kouw':
+        edition['languages'] = [{'key': '/languages/eng'}]
+    elif ia == 'goldentreasury00wrig':
+        edition['languages'] = [{'key': '/languages/grc'}]
     elif ia == 'dasrmischepriv00rein':
         edition['languages'] = [{'key': '/languages/ger'}]
     elif ia == 'derelephantenord00berl':
@@ -266,7 +279,7 @@ if __name__ == '__main__':
             if not args.skip_hide_books:
                 hide_books(start)
             print 'start:', start
-            db_iter = db.query("select identifier, contributor, updated, noindex, collection from metadata where scanner is not null and mediatype='texts' and (not curatestate='dark' or curatestate is null) and scandate is not null and updated between $start and date_add($start, interval 7 day) order by updated", {'start': start})
+            db_iter = db.query("select identifier, contributor, updated, noindex, collection from metadata where scanner is not null and mediatype='texts' and (not curatestate='dark' or curatestate is null) and scandate is not null and updated between $start and date_add($start, interval 2 day) order by updated", {'start': start})
         t_start = time()
         for row in db_iter:
             if len(bad_marc) > 10 or time() - bad_marc_last_sent > (4 * 60 * 60):
@@ -326,6 +339,8 @@ if __name__ == '__main__':
                 continue
             use_binary = False
             bad_binary = None
+            print formats
+            rec = {}
             if formats['bin']:
                 print 'binary'
                 use_binary = True
@@ -375,7 +390,7 @@ if __name__ == '__main__':
                 except urllib2.HTTPError as error:
                     write_log(ia, when, "error: HTTPError: " + str(error))
                     continue
-            else:
+            if not use_binary and not formats['xml']:
                 print 'skipping, no MARC'
                 continue
 
@@ -430,7 +445,11 @@ if __name__ == '__main__':
                     break
 
             if not match:
-                load(ia, use_binary=use_binary)
+                try:
+                    load(ia, use_binary=use_binary)
+                except:
+                    print 'bad item:', ia
+                    raise
                 write_log(ia, when, "loaded")
             print >> open(state_file, 'w'), row.updated
         start = row.updated

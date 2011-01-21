@@ -1,4 +1,4 @@
-import web, re
+import web, re, os
 from db_read import withKey
 from openlibrary.catalog.utils import flip_name, author_dates_match, key_int, error_mail
 from openlibrary.catalog.utils.query import query_iter
@@ -10,6 +10,11 @@ rc = read_rc()
 ol = OpenLibrary("http://openlibrary.org")
 ol.login('ImportBot', rc['ImportBot']) 
 
+password = open(os.path.expanduser('~/.openlibrary_db_password')).read()
+if password.endswith('\n'):
+    password = password[:-1]
+db_error = web.database(dbn='postgres', db='ol_errors', host='localhost', user='openlibrary', pw=password)
+
 def walk_redirects(obj, seen):
     seen.add(obj['key'])
     while obj['type'] == '/type/redirect':
@@ -20,25 +25,27 @@ def walk_redirects(obj, seen):
 
 def find_author(name, send_mail=True):
     q = {'type': '/type/author', 'name': name, 'limit': 0}
-    del q['limit']
     reply = list(ol.query(q))
     authors = [ol.get(k) for k in reply]
     if any(a['type'] != '/type/author' for a in authors):
-        subject = 'author query redirect: ' + q['name']
+        subject = 'author query redirect: ' + `q['name']`
         body = 'Error: author query result should not contain redirects\n\n'
         body += 'query: ' + `q` + '\n\nresult\n'
         if send_mail:
+            result = ''
             for a in authors:
                 if a['type'] == '/type/redirect':
-                    body += a['key'] + ' redirects to ' + a['location'] + '\n'
+                    result += a['key'] + ' redirects to ' + a['location'] + '\n'
                 elif a['type'] == '/type/delete':
-                    body += a['key'] + ' is deleted ' + '\n'
+                    result += a['key'] + ' is deleted ' + '\n'
                 elif a['type'] == '/type/author':
-                    body += a['key'] + ' is an author: ' + a['name'] + '\n'
+                    result += a['key'] + ' is an author: ' + a['name'] + '\n'
                 else:
-                    body += a['key'] + 'has bad type' + a + '\n'
+                    result += a['key'] + 'has bad type' + a + '\n'
+            body += result
             addr = 'edward@archive.org'
-            error_mail(addr, [addr], subject, body)
+            #error_mail(addr, [addr], subject, body)
+            db_error.insert('errors', query=name, result=result, t=web.SQLLiteral("now()"))
         seen = set()
         authors = [walk_redirects(a, seen) for a in authors if a['key'] not in seen]
     return authors
@@ -182,6 +189,13 @@ def build_query(loc, rec):
     if east:
         print rec
 
+    langs = rec.get('languages', [])
+    print langs
+    if any(l['key'] == '/languages/zxx' for l in langs):
+        print 'zxx found in langs'
+        rec['languages'] = [l for l in langs if l['key'] != '/languages/zxx']
+        print 'fixed:', langs
+
     for l in rec.get('languages', []):
         print l
         if l['key'] == '/languages/ser':
@@ -190,6 +204,10 @@ def build_query(loc, rec):
             l['key'] = '/languages/eng'
         if l['key'] == '/languages/cro':
             l['key'] = '/languages/chu'
+        if l['key'] == '/languages/jap':
+            l['key'] = '/languages/jpn'
+        if l['key'] == '/languages/fra':
+            l['key'] = '/languages/fre'
         if l['key'] == '/languages/fr ':
             l['key'] = '/languages/fre'
         if l['key'] == '/languages/it ':

@@ -10,14 +10,12 @@ This extension adds a new block `jsdef` to Templetor, which provides a
 a template function just like `def` and also generates an equivalent
 javascript function.
 
-
-USAGE:
+USAGE::
 
     import jsdef
     render = web.tempalte.render("templates/", extensions=[jsdef.extension])
 
-
-Sample Template:
+Sample Template::
 
     $def with (page)
     
@@ -40,7 +38,9 @@ Sample Template:
     </script>
 
 For more details, see:
+
 http://github.com/anandology/notebook/tree/master/2010/03/jsdef/
+
 """
 
 __author__ = "Anand Chitipothu <anandology@gmail.com>"
@@ -58,7 +58,7 @@ import web
 from web.template import Template, Parser, LineNode, SuiteNode, DefNode, PythonTokenizer, INDENT
 
 def extension(parser):
-    r"""jsdef extension. Adds support for `jsdef` block to template parser.
+    r"""jsdef extension. Adds support for `jsdef` block to template parser.::
     
         >>> t = Template("$jsdef hello(name):\n    Hello $name!", extensions=[extension])
         >>> print t() #doctest:+NORMALIZE_WHITESPACE
@@ -96,7 +96,7 @@ class JSNode:
             return indent[4:] + 'self.extend(%s)\n' % repr(self.jsemit(self.node, ""))
     
     def jsemit(self, node, indent):
-        r"""Emit Javascript for given node.
+        r"""Emit Javascript for given node.::
         
             >>> jsemit = JSNode(None).jsemit
             >>> jsemit(web.template.StatementNode("break"), "")
@@ -183,7 +183,7 @@ class JSNode:
         return text
         
 def tokenize(code):
-    """Tokenize python code.
+    """Tokenize python code.::
     
         >>> list(tokenize("x + y"))
         ['x', ' ', '+', ' ', 'y']
@@ -203,7 +203,7 @@ def tokenize(code):
         pass
             
 def py2js(expr):
-    """Converts a python expression to javascript.
+    """Converts a python expression to javascript.::
     
         >>> py2js("x + y")
         'x + y'

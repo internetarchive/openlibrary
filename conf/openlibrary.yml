@@ -1,0 +1,72 @@
+# Open Library fastcgi configuration
+
+infobase_server: "127.0.0.1:7500"
+site: "openlibrary.org"
+
+from_address: "Open Library <noreply@openlibrary.org>"
+report_spam_address: "Open Library <info@openlibrary.org>"
+
+dummy_sendmail: True
+
+coverstore_url: "http://127.0.0.1:7000/"
+
+state_dir: var/run
+
+# enable http compression
+use_gzip: True
+
+admin_password: "admin123"
+errorlog: "var/log/ol-errors"
+login_cookie_name: session
+
+infobase:
+    secret_key: xxx
+ 
+memcache_servers:
+    - "localhost:7060"
+
+plugins:
+    - "openlibrary"
+    - "links"
+    - "wikitemplates"
+    - "search"
+    - "worksearch"
+    - "api"
+    - "books"
+    - "oltemplates"
+    - "admin"
+    - "upstream"
+
+plugin_worksearch:
+    solr: "localhost:8983"
+    subject_solr: "localhost:8983"
+    author_solr: "localhost:8983"
+    edition_solr: "localhost:8983"
+    spellcheck_count: 3
+    ebook_count_host: 'localhost'
+    ebook_count_db_name: 'openlibrary_ebook_count'
+
+features:
+    upstream: enabled
+    cache_most_recent: enabled
+    recentchanges_v2: enabled
+    history_v2: admin
+    merge-authors: enabled
+    undo: enabled
+    dev: enabled
+    lists: enabled
+
+upstream_to_www_migration: true
+default_template_root: /upstream
+css_root: /upstream/css
+js_root: /upstream/js
+use_google_cdn: false
+
+lists:
+    seeds_db: http://127.0.0.1:5984/seeds
+    editions_db: http://127.0.0.1:5984/editions
+    works_db: http://127.0.0.1:5984/works
+    editions_view: http://127.0.0.1:5984/editions/_fti/_design/seeds/by_seed
+
+admin:
+    counts_db: http://127.0.0.1:5984/admin

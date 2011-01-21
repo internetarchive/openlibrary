@@ -1,15 +1,15 @@
 """i18n support for Open Library using GNU gettext. Python module
 babel is used to manage the message catalogs.
 
-## Introduction
+**Introduction**
 
 To add i18n support to Open Library, templates and macros are modified
 to use gettext function calls. For brevity, the gettext function is
-abbreviated as _.
+abbreviated as _.::
 
     <a href="..">$_("More search options")</a>
 
-The messages in the the templates and macros are extracted and .pot file is created.
+The messages in the the templates and macros are extracted and .pot file is created.::
 
     $ ./scripts/i18n-messages extract
     created openlibrary/i18n/messages.pot
@@ -27,21 +27,21 @@ The messages in the the templates and macros are extracted and .pot file is crea
 The .pot file contains msgid and msgstr for each translation used.
 The `msgstr` field for each entry is filled with the translation of
 the required language and that file is placed at
-openlibrary/i18n/$locale/messages.po.
+openlibrary/i18n/$locale/messages.po.::
 
     $ mkdir openlibrary/i18n/te
     $ cp openlibrary/i18n/messages.pot openlibrary/i18n/te/messages.po
     $ # edit openlibrary/i18n/te/messages.po and fill the translations
 
 The .po files needs to be compiled to .mo files to be able to use them
-by gettext system. 
+by gettext system.::
 
     $ ./scripts/i18n-messages compile
     compiling openlibrary/i18n/te/messages.po
     compiling openlibrary/i18n/it/messages.po
     ...
 
-## Glossory
+**Glossory**::
 
 .po - portable object
 .pot - portable object template
@@ -183,17 +183,22 @@ class LazyObject:
     def __radd__(self, other):
         return other + self._creator()
 
-def ungettext(s1, s2, n):
+def ungettext(s1, s2, _n, *a, **kw):
     translations = load_translations(web.ctx.get('lang', 'en'))
-    value = (translations and translations.ungettext(s1, s2, n))
-    if value:
-        return value
-    else:
+    value = (translations and translations.ungettext(s1, s2, _n))
+    if not value:
         # fallback when translation is not provided
-        if n == 1:
-            return s1
+        if _n == 1:
+            value = s1
         else:
-            return s2
+            value = s2
+            
+    if a:
+        return value % a
+    elif kw:
+        return value % kw
+    else:
+        return value
 
 gettext = GetText()
 ugettext = gettext

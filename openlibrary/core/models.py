@@ -12,7 +12,7 @@ import helpers as h
 from openlibrary.plugins.upstream.utils import get_history
 
 # relative imports
-from lists.model import ListMixin
+from lists.model import ListMixin, Seed
 
 class Image:
     def __init__(self, site, category, id):
@@ -72,13 +72,15 @@ class Thing(client.Thing):
             u += '?' + urllib.urlencode(params)
         return u
         
-    def _get_lists(self):
+    def _get_lists(self, limit=50, offset=0):
         q = {
             "type": "/type/list",
-            "seeds": {"key": self.key} 
+            "seeds": {"key": self.key},
+            "limit": limit,
+            "offset": offset
         }
         keys = self._site.things(q)
-        return self._site.get_many(keys)
+        return h.safesort(self._site.get_many(keys), reverse=True, key=lambda list: list.last_update)
 
 class Edition(Thing):
     """Class to represent /type/edition objects in OL.
@@ -92,10 +94,15 @@ class Edition(Thing):
 
     def full_title(self):
         # retained for backward-compatibility. Is anybody using this really?
-        return self.title            
+        return self.title
+    
+    def get_publish_year(self):
+        if self.publish_date:
+            m = web.re_compile("(\d\d\d\d)").search(self.publish_date)
+            return m and int(m.group(1))
 
-    def get_lists(self):
-        return self._get_lists()
+    def get_lists(self, limit=50, offset=0):
+        return self._get_lists(limit=limit, offset=offset)
 
 class Work(Thing):
     """Class to represent /type/work objects in OL.
@@ -116,8 +123,8 @@ class Work(Thing):
     
     edition_count = property(get_edition_count)
 
-    def get_lists(self):
-        return self._get_lists()
+    def get_lists(self, limit=50, offset=0):
+        return self._get_lists(limit=limit, offset=offset)
 
 class Author(Thing):
     """Class to represent /type/author objects in OL.
@@ -135,8 +142,8 @@ class Author(Thing):
                 data={'key': self.key})
     edition_count = property(get_edition_count)
     
-    def get_lists(self):
-        return self._get_lists()
+    def get_lists(self, limit=50, offset=0):
+        return self._get_lists(limit=limit, offset=offset)
     
 class User(Thing):
     def get_usergroups(self):
@@ -149,7 +156,7 @@ class User(Thing):
     def is_admin(self):
         return '/usergroup/admin' in [g.key for g in self.usergroups]
         
-    def get_lists(self, seed=None, limit=20, offset=0):
+    def get_lists(self, seed=None, limit=100, offset=0):
         """Returns all the lists of this user.
         
         When seed is specified, this returns all the lists which contain the
@@ -169,7 +176,7 @@ class User(Thing):
             q['seeds'] = seed
             
         keys = self._site.things(q)
-        return self._site.get_many(keys)
+        return h.safesort(self._site.get_many(keys), reverse=True, key=lambda list: list.last_update)
         
     def new_list(self, name, description, seeds, tags=[]):
         """Creates a new list object with given name, description, and seeds.
@@ -225,32 +232,7 @@ class List(Thing, ListMixin):
         if match:
             key = match.group(1)
             return self._site.get(key)
-    
-    def _get_editions(self):
-        """Returns all the editions referenced by members of this list.
-        """
-        #@@ Returning the editions in members instead of finding all the members.
-        # This will be fixed soon.
-        return [doc for doc in self.members 
-            if isinstance(doc, Thing) 
-            and doc.type.key == '/type/edition']
-        
-    def get_edition_count(self):
-        """Returns the number of editions referenced by members of this list.
-        """
-        # Temporary implementation. will be fixed soon.
-        return len(self.get_editions())
-        
-    def get_updates(self, offset=0, limit=20):
-        """Returns the updates to the members of this list.
-        """
-        return []
-    
-    def get_update_count(self):
-        """Returns the number of updates since this list is created.
-        """
-        return 0
-        
+            
     def get_cover(self):
         """Returns a cover object.
         """
@@ -272,7 +254,7 @@ class List(Thing, ListMixin):
             web.storage(title="Cheese", url="/subjects/cheese"),
             web.storage(title="San Francisco", url="/subjects/place:san_francisco")
         ]
-            
+        
     def add_seed(self, seed):
         """Adds a new seed to this list.
         
@@ -313,6 +295,39 @@ class List(Thing, ListMixin):
                 return i
         return -1
 
+    def __repr__(self):
+        return "<List: %s (%r)>" % (self.key, self.name)
+
+class Subject(web.storage):
+    def get_lists(self, limit=1000, offset=0):
+        q = {
+            "type": "/type/list",
+            "seeds": self.get_seed(),
+            "limit": limit,
+            "offset": offset
+        }
+        keys = web.ctx.site.things(q)
+        lists = web.ctx.site.get_many(keys)
+        return h.safesort(lists, reverse=True, key=lambda list: list.last_update)
+        
+    def get_seed(self):
+        seed = self.key.split("/")[-1]
+        if seed.split(":")[0] not in ["place", "person", "time"]:
+            seed = "subject:" + seed
+        return seed
+        
+    def url(self, suffix="", **params):
+        u = self.key + suffix
+        if params:
+            u += '?' + urllib.urlencode(params)
+        return u
+        
+    def get_default_cover(self):
+        for w in self.works:
+            cover_id = w.get("cover_id")
+            if cover_id:
+                return Image(web.ctx.site, "b", cover_id)
+
 def register_models():
     client.register_thing_class(None, Thing) # default
     client.register_thing_class('/type/edition', Edition)
@@ -335,4 +350,3 @@ def register_types():
     types.register_type('^/permission/[^/]*$', '/type/permision')
 
     types.register_type('^/(css|js)/[^/]*$', '/type/rawtext')
-    

@@ -244,6 +244,7 @@ def read_pub_date(rec):
         return
     found = []
     for f in fields:
+        f.remove_brackets()
         found += [i for i in f.get_subfield_values('c') if i]
     return remove_trailing_number_dot(found[0]) if found else None
 
@@ -254,6 +255,7 @@ def read_publisher(rec):
     publisher = []
     publish_places = []
     for f in fields:
+        f.remove_brackets()
         contents = f.get_contents(['a', 'b'])
         if 'b' in contents:
             publisher += [x.strip(" /,;:") for x in contents['b']]
@@ -603,3 +605,7 @@ def read_edition(rec):
             edition.update(v)
 
     return edition
+
+if __name__ == '__main__':
+    import sys
+    loc = sys.argv[1]

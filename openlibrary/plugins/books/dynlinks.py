@@ -5,6 +5,7 @@ import traceback
 
 from openlibrary.plugins.openlibrary.processors import urlsafe
 from openlibrary.core import helpers as h
+from openlibrary.core import ia
 
 from infogami.utils.delegate import register_exception
 
@@ -23,7 +24,7 @@ def split_key(bib_key):
         >>> split_key('badkey')
         (None, None)
     """
-    bib_key = bib_key.lower().strip()
+    bib_key = bib_key.strip()
     if not bib_key:
         return None, None
 
@@ -37,7 +38,7 @@ def split_key(bib_key):
     else:
         # try prefix match
         for k in valid_keys:
-            if bib_key.startswith(k):
+            if bib_key.lower().startswith(k):
                 key = k
                 value = bib_key[len(k):]
                 continue
@@ -48,10 +49,10 @@ def split_key(bib_key):
         value = bib_key
         
     # treat OLxxxM as OLID
-    re_olid = web.re_compile('ol\d+m(@\d+)?')
-    if key is None and re_olid.match(bib_key):
+    re_olid = web.re_compile('OL\d+M(@\d+)?')
+    if key is None and re_olid.match(bib_key.upper()):
         key = 'olid'
-        value = bib_key
+        value = bib_key.upper()
     
     # decide isbn_10 or isbn_13 based on length.
     if key == 'isbn':
@@ -244,9 +245,54 @@ class DataProcessor:
             "excerpts": [format_excerpt(e) for e in w.get("excerpts", [])],
             "links": [dict(title=link.get("title"), url=link['url']) for link in w.get('links', '') if link.get('url')],
         }
+        
+        def ebook(doc):
+            itemid = doc['ocaid']
+            availability = get_ia_availability(itemid)
+            
+            d = {
+                "preview_url": "http://www.archive.org/details/" + itemid,
+                "availability": availability
+            }
+                
+            prefix = "http://www.archive.org/download/%s/%s" % (itemid, itemid)
+            if availability == 'full':
+                d["read_url"] = "http://www.archive.org/stream/%s" % (itemid)
+                d['formats'] = {
+                    "pdf": {
+                        "url": prefix + ".pdf"
+                    },
+                    "epub": {
+                        "url": prefix + ".epub"
+                    },
+                    "text": {
+                        "url": prefix + "_djvu.txt"
+                    },
+                    "djvu": {
+                        "url": prefix + ".djvu",
+                        "permission": "open"
+                    }
+                }
+            elif availability == "borrow":
+                d['borrow_url'] = u"http://openlibrary.org%s/%s/borrow" % (doc['key'], h.urlsafe(doc.get("title", "untitled")))
+                d['formats'] = {
+                    "djvu": {
+                        "url": prefix + ".djvu",
+                        "permission": "restricted"
+                    }
+                }
+            else:
+                d['formats'] = {
+                    "djvu": {
+                        "url": prefix + ".djvu",
+                        "permission": "restricted"
+                    }
+                }
+                
+            return d
 
         if doc.get("ocaid"):
-            d['ebooks'] = [{"preview_url": "http://www.archive.org/details/" + doc['ocaid']}]
+            d['ebooks'] = [ebook(doc)]
         
         if doc.get('covers'):
             cover_id = doc['covers'][0]
@@ -295,6 +341,17 @@ def process_result_for_details(result):
 
 def process_result_for_viewapi(result):
     return dict((k, process_doc_for_viewapi(k, doc)) for k, doc in result.items())
+    
+
+def get_ia_availability(itemid):
+    collections = ia.get_meta_xml(itemid).get("collection", [])
+
+    if 'lendinglibrary' in collections:
+        return 'borrow'
+    elif 'printdisabled' in collections:
+        return 'restricted'
+    else:
+        return 'full'
 
 def process_doc_for_viewapi(bib_key, page):
     key = page['key']
@@ -302,7 +359,7 @@ def process_doc_for_viewapi(bib_key, page):
     url = get_url(page)
     
     if 'ocaid' in page:
-        preview = 'full'
+        preview = get_ia_availability(page['ocaid'])
         preview_url = 'http://www.archive.org/details/' + page['ocaid']
     else:
         preview = 'noview'

@@ -16,7 +16,8 @@ re_bad_fields = re.compile(r'\b(' + '|'.join(bad_fields) + '):')
 def escape_bracket(q):
     if re_solr_range.search(q):
         return q
-    return re_bracket.sub(lambda m:'\\'+m.group(), q)
+    esc_q = re_bracket.sub(lambda m:'\\'+m.group(), q)
+    return esc_q if 'ia:' in q else esc_q.replace(':', '\\:')
 
 def escape_q(q):
     if re_inside_fields.match(q):
@@ -42,24 +43,25 @@ def editions_from_ia(ia):
 
 def read_from_archive(ia):
     meta_xml = 'http://www.archive.org/download/' + ia + '/' + ia + '_meta.xml'
+    xml_data = urllib.urlopen(meta_xml)
     item = {}
     try:
-        tree = etree.parse(meta_xml)
-        root = tree.getroot()
+        tree = etree.parse(xml_data)
+    except etree.XMLSyntaxError:
+        return {}
+    root = tree.getroot()
 
-        fields = ['title', 'creator', 'publisher', 'date', 'language']
+    fields = ['title', 'creator', 'publisher', 'date', 'language']
 
-        for k in 'title', 'date', 'publisher':
-            v = root.find(k)
-            if v is not None:
-                item[k] = v.text
+    for k in 'title', 'date', 'publisher':
+        v = root.find(k)
+        if v is not None:
+            item[k] = v.text
 
-        for k in 'creator', 'language':
-            v = root.findall(k)
-            if len(v):
-                item[k] = [i.text for i in v]
-    except:
-        pass
+    for k in 'creator', 'language':
+        v = root.findall(k)
+        if len(v):
+            item[k] = [i.text for i in v]
     return item
 
 @public

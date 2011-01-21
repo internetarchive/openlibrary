@@ -1,49 +1,49 @@
 {
-    "languages": [
-        {
-            "key": "/languages/eng"
-        }
-    ], 
-    "pagination": "ix, 94 p. ;", 
-    "lc_classifications": [
-        "PQ2082.C3 E5 1991"
-    ], 
-    "work_titles": [
-        "Candide"
-    ], 
-    "publishers": [
-        "Dover Publications"
-    ], 
-    "dewey_decimal_class": [
-        "843/.5"
-    ], 
-    "series": [
-        "Dover thrift editions", 
-        "Dover thrift editions"
-    ], 
-    "notes": "Translation from French.", 
-    "number_of_pages": 94, 
-    "title": "Candide", 
-    "edition_name": "Dover Thrift ed.", 
-    "lccn": [
-        "90020571"
-    ], 
-    "isbn_10": [
-        "0486266893"
-    ], 
-    "publish_date": "1991", 
-    "publish_country": "nyu", 
-    "authors": [
-        {
-            "birth_date": "1694", 
-            "personal_name": "Voltaire", 
-            "death_date": "1778", 
-            "name": "Voltaire", 
-            "entity_type": "person"
-        }
-    ], 
-    "by_statement": "Voltaire", 
-    "publish_places": [
-        "New York"
-    ]
+  "edition_name": "Dover Thrift ed.", 
+  "pagination": "ix, 94 p. ;", 
+  "number_of_pages": 94, 
+  "title": "Candide", 
+  "lccn": [
+    "90020571"
+  ], 
+  "series": [
+    "Dover thrift editions", 
+    "Dover thrift editions"
+  ], 
+  "notes": "Translation from French.", 
+  "work_titles": [
+    "Candide"
+  ], 
+  "languages": [
+    {
+      "key": "/languages/eng"
+    }
+  ], 
+  "dewey_decimal_class": [
+    "843/.5"
+  ], 
+  "publishers": [
+    "Dover Publications"
+  ], 
+  "lc_classifications": [
+    "PQ2082.C3 E5 1991"
+  ], 
+  "publish_date": "1991", 
+  "publish_country": "nyu", 
+  "authors": [
+    {
+      "birth_date": "1694", 
+      "personal_name": "Voltaire", 
+      "death_date": "1778", 
+      "name": "Voltaire", 
+      "entity_type": "person"
+    }
+  ], 
+  "by_statement": "Voltaire", 
+  "publish_places": [
+    "New York"
+  ], 
+  "isbn_10": [
+    "0486266893"
+  ]
 }

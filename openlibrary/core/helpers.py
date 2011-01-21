@@ -31,18 +31,19 @@ from openlibrary.i18n import gettext as _
 __all__ = [
     "sanitize", 
     "json_encode",
-    "datestr", "format_date", 
+    "safesort", 
+    "datestr", "format_date",    
     "sprintf", "cond", "commify", "truncate",
-    "urlsafe",
+    "urlsafe", "texsafe",
     
     # functions imported from elsewhere
     "parse_datetime", "safeint"
 ]
-
+__docformat__ = "restructuredtext en"
 
 def sanitize(html):
-    """Remove unsafe tags and attributes from html and add rel="nofollow"
-    attribute to all links. 
+    """Removes unsafe tags and attributes from html and adds
+    ``rel="nofollow"`` attribute to all external links.
     """
 
     # Can't sanitize unless genshi module is available
@@ -81,10 +82,25 @@ def json_encode(d):
     return simplejson.dumps(d)
 
 
+def safesort(iterable, key=None, reverse=False):
+    """Sorts heterogeneous of objects without raising errors.
+    
+    Sorting heterogeneous objects sometimes causes error. For example,
+    datetime and Nones don't go well together. This function takes special
+    care to make that work.
+    """
+    key = key or (lambda x: x)
+    def safekey(x):
+        k = key(x)
+        return (k.__class__.__name__, k)
+    return sorted(iterable, key=safekey, reverse=reverse)
+
 def datestr(then, now=None, lang=None):
     """Internationalized version of web.datestr."""
     result = web.datestr(then, now)
-    if result[0] in string.digits: # eg: 2 milliseconds ago
+    if not result:
+        return result
+    elif result[0] in string.digits: # eg: 2 milliseconds ago
         t, message = result.split(' ', 1)
         return _("%d " + message) % int(t)
     else:
@@ -169,6 +185,44 @@ def get_coverstore_url():
     return config.get('coverstore_url', 'http://covers.openlibrary.org').rstrip('/')
 
 
+_texsafe_map = {
+    '"': r'\textquotedbl{}',
+    '#': r'\#',
+    '$': r'\$',
+    '%': r'\%',
+    '&': r'\&',
+    '<': r'\textless{}',
+    '>': r'\textgreater{}',
+    '\\': r'\textbackslash{}',
+    '^': r'\^{}',
+    '_': r'\_{}',
+    '{': r'\{',
+    '}': r'\}',
+    '|': r'\textbar{}',
+    '~': r'\~{}',
+}
+
+_texsafe_re = None
+
+def texsafe(text):
+    """Escapes the special characters in the given text for using it in tex type setting.
+    
+    Tex (or Latex) uses some characters in the ascii character range for
+    special notations. These characters must be escaped when occur in the
+    regular text. This function escapes those special characters.
+    
+    The list of special characters and the latex command to typeset them can
+    be found in `The Comprehensive LaTeX Symbol List`_.
+    
+    .. _The Comprehensive LaTeX Symbol List: http://www.ctan.org/tex-archive/info/symbols/comprehensive/symbols-a4.pdf
+    """
+    global _texsafe_re
+    if _texsafe_re is None:
+        pattern = "[%s]" % re.escape("".join(_texsafe_map.keys()))
+        _texsafe_re = re.compile(pattern)
+        
+    return _texsafe_re.sub(lambda m: _texsafe_map[m.group(0)], text)
+    
 def _get_helpers():
     _globals = globals()
     return web.storage((k, _globals[k]) for k in __all__)

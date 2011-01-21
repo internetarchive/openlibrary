@@ -1,33 +1,33 @@
 {
-    "publishers": [
-        "U.S. Government Printing Office"
-    ], 
-    "subtitle": "scheduled for a hearing before the Subcommittee on Estate and Gift Taxation of the Senate Committee on Finance on May 27, 1982", 
-    "authors": [
-        {
-            "name": "United States. Congress. Senate. Committee on Finance. Subcommittee on Estate and Gift Taxation", 
-            "entity_type": "org"
-        }
-    ], 
-    "publish_places": [
-        "Washington"
-    ], 
-    "contributions": [
-        "United States. Congress. Joint Committee on Taxation"
-    ], 
-    "pagination": "iii, 20 p. ;", 
-    "title": "Description of tax bills and other estate tax matters relating to the section 6166 Technical Revision Act of 1982 (S. 2479), the tax treatment of certain disclaimers (S. 1983), and the estate tax valuation of certain mineral property", 
-    "notes": "At head of title: Joint Committee print.\n\n\"JCS-16-82.\"\n\n\"May 26, 1982.\"\n\nIncludes bibliographical references.", 
-    "number_of_pages": 20, 
-    "languages": [
-        {
-            "key": "/languages/eng"
-        }
-    ], 
-    "publish_date": "1982", 
-    "publish_country": "dcu", 
-    "by_statement": "prepared by the staff of the Joint Committee on Taxation", 
-    "oclc_numbers": [
-        "8638218"
-    ]
+  "publishers": [
+    "U.S. Government Printing Office"
+  ], 
+  "pagination": "iii, 20 p. ;", 
+  "subtitle": "scheduled for a hearing before the Subcommittee on Estate and Gift Taxation of the Senate Committee on Finance on May 27, 1982", 
+  "title": "Description of tax bills and other estate tax matters relating to the section 6166 Technical Revision Act of 1982 (S. 2479), the tax treatment of certain disclaimers (S. 1983), and the estate tax valuation of certain mineral property", 
+  "notes": "At head of title: Joint Committee print.\n\n\"JCS-16-82.\"\n\n\"May 26, 1982.\"\n\nIncludes bibliographical references.", 
+  "number_of_pages": 20, 
+  "languages": [
+    {
+      "key": "/languages/eng"
+    }
+  ], 
+  "publish_date": "1982", 
+  "publish_country": "dcu", 
+  "authors": [
+    {
+      "name": "United States. Congress. Senate. Committee on Finance. Subcommittee on Estate and Gift Taxation", 
+      "entity_type": "org"
+    }
+  ], 
+  "by_statement": "prepared by the staff of the Joint Committee on Taxation", 
+  "oclc_numbers": [
+    "8638218"
+  ], 
+  "contributions": [
+    "United States. Congress. Joint Committee on Taxation"
+  ], 
+  "publish_places": [
+    "Washington"
+  ]
 }

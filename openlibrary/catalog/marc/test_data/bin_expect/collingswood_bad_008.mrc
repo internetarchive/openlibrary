@@ -1,34 +1,34 @@
 {
-    "publishers": [
-        "Dutton"
-    ], 
-    "subtitle": "ten great battles recreated from history", 
-    "authors": [
-        {
-            "entity_type": "person", 
-            "name": "Young, Peter", 
-            "personal_name": "Young, Peter"
-        }
-    ], 
-    "publish_places": [
-        "New York"
-    ], 
-    "languages": [
-        {
-            "key": "/languages/eng"
-        }
-    ], 
-    "pagination": "128 p.", 
-    "title": "The war game", 
-    "lccn": [
-        "7282711"
-    ], 
-    "number_of_pages": 128, 
-    "edition_name": "1st ed.", 
-    "isbn_10": [
-        "0525230106"
-    ], 
-    "publish_date": "1972", 
-    "publish_country": "nyu", 
-    "by_statement": "General editor: Peter Young. Pref. by Aram Bakshian, Jr. War games photographed by Philip O. Stearns"
+  "edition_name": "1st ed.", 
+  "pagination": "128 p.", 
+  "subtitle": "ten great battles recreated from history", 
+  "title": "The war game", 
+  "lccn": [
+    "7282711"
+  ], 
+  "publishers": [
+    "Dutton"
+  ], 
+  "number_of_pages": 128, 
+  "languages": [
+    {
+      "key": "/languages/eng"
+    }
+  ], 
+  "isbn_10": [
+    "0525230106"
+  ], 
+  "publish_date": "1972", 
+  "publish_country": "nyu", 
+  "authors": [
+    {
+      "personal_name": "Young, Peter", 
+      "name": "Young, Peter", 
+      "entity_type": "person"
+    }
+  ], 
+  "by_statement": "General editor: Peter Young. Pref. by Aram Bakshian, Jr. War games photographed by Philip O. Stearns", 
+  "publish_places": [
+    "New York"
+  ]
 }

@@ -4,15 +4,34 @@ import xml.parsers.expat
 import urllib2, os.path, re
 from openlibrary.catalog.read_rc import read_rc
 from time import sleep
-from subprocess import Popen, PIPE
+from socket import socket, AF_INET, SOCK_DGRAM, SOL_UDP, SO_BROADCAST, timeout
 
 base = "http://archive.org/download/"
-
-xml_path = '/home/edward/get_new_books/xml'
 
 rc = read_rc()
 
 re_loc = re.compile('^(ia\d+\.us\.archive\.org):(/\d+/items/(.*))$')
+
+class FindItemError(Exception):
+    pass
+
+def find_item(ia):
+    s = socket(AF_INET, SOCK_DGRAM, SOL_UDP)
+    s.setblocking(1)
+    s.settimeout(2.0)
+    s.setsockopt(1, SO_BROADCAST, 1)
+    s.sendto(ia, ('<broadcast>', 8010))
+    for attempt in range(5):
+        (loc, address) = s.recvfrom(1024)
+        m = re_loc.match(loc)
+
+        ia_host = m.group(1)
+        ia_path = m.group(2)
+        if m.group(3) == ia:
+            return (ia_host, ia_path)
+        else:
+            print ia, '!=', m.group(3), 'retry'
+    raise FindItemError
 
 class NoMARCXML:
     pass
@@ -22,7 +41,7 @@ def urlopen_keep_trying(url):
         try:
             f = urllib2.urlopen(url)
         except urllib2.HTTPError, error:
-            if error.code == 404:
+            if error.code in (403, 404):
                 #print "404 for '%s'" % url
                 raise
             else:
@@ -35,22 +54,6 @@ def urlopen_keep_trying(url):
         print url, "failed"
         sleep(2)
         print "trying again"
-
-def find_item(ia):
-    # ignore erorrs
-    ret = Popen(["/petabox/sw/bin/find_item.php", ia], stdout=PIPE, stderr=PIPE).communicate()[0]
-    if not ret:
-        return (None, None)
-    assert ret[-1] == '\n'
-    loc = ret[:-1]
-    m = re_loc.match(loc)
-    if not m:
-        print loc
-    assert m
-    ia_host = m.group(1)
-    ia_path = m.group(2)
-    assert m.group(3) == ia
-    return (ia_host, ia_path)
 
 def bad_ia_xml(ia):
     if ia == 'revistadoinstit01paulgoog':
@@ -89,18 +92,15 @@ def get_ia(ia):
     # if there is a problem with the XML switch to the binary MARC
     xml_file = ia + "_marc.xml"
     loc = ia + "/" + xml_file
-    if os.path.exists(xml_path + xml_file):
-        f = open(xml_path + xml_file)
-    else:
-        try:
-            print base + loc
-            f = urlopen_keep_trying(base + loc)
-        except urllib2.HTTPError, error:
-            if error.code == 404:
-                raise NoMARCXML
-            else:
-                print 'error:', error.code, error.msg
-                raise
+    try:
+        print base + loc
+        f = urlopen_keep_trying(base + loc)
+    except urllib2.HTTPError, error:
+        if error.code == 404:
+            raise NoMARCXML
+        else:
+            print 'error:', error.code, error.msg
+            raise
     assert f
     if f:
         try:
@@ -243,9 +243,18 @@ def marc_formats(ia):
     }
     has = { 'xml': False, 'bin': False }
     url = 'http://www.archive.org/download/' + ia + '/' + ia + '_files.xml'
-    f = urlopen_keep_trying(url)
+    for attempt in range(10):
+        f = urlopen_keep_trying(url)
+        if f is not None:
+            break
+        sleep(10)
     if f is None:
-        return {}
+        msg_from = 'load_scribe@archive.org'
+        msg_to = ['edward@archive.org']
+        subject = "error reading %s_files.xml" % ia
+        msg = url
+        error_mail(msg_from, msg_to, subject, msg)
+        return has
     data = f.read()
     try:
         root = etree.fromstring(data)

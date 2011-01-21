@@ -1,5 +1,8 @@
 from openlibrary.core import models
 
+# this should be moved to openlibrary.core
+from openlibrary.plugins.upstream.models import UnitParser
+
 class MockSite:
     def get(self, key):
         return models.Thing(self, key, data={})
@@ -51,5 +54,13 @@ class TestAuthor:
         }
         e = models.Author(MockSite(), "/authors/OL1A", data=data)
         assert e.url() == "/authors/OL1A/unnamed"
+
+
+class TestSubject:
+    def test_url(self):
+        subject = models.Subject({
+            "key": "/subjects/love"
+        })
+        assert subject.url() == "/subjects/love"
+        assert subject.url("/lists") == "/subjects/love/lists"
         
-    

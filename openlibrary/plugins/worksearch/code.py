@@ -7,6 +7,7 @@ import simplejson as json
 from openlibrary.plugins.openlibrary.processors import urlsafe
 from unicodedata import normalize
 from collections import defaultdict
+import os
 
 ftoken_db = None
 
@@ -16,6 +17,8 @@ except AttributeError:
     pass # unittest
 from openlibrary.plugins.search.code import search as _edition_search
 from infogami.plugins.api.code import jsonapi
+
+from openlibrary.core.models import Subject
 
 re_solr_range = re.compile(r'\[.+\bTO\b.+\]', re.I)
 re_bracket = re.compile(r'[\[\]]')
@@ -44,7 +47,7 @@ if hasattr(config, 'plugin_worksearch'):
     default_spellcheck_count = config.plugin_worksearch.get('spellcheck_count', 10)
 
     ebook_count_host = config.plugin_worksearch.get('ebook_count_host')
-    ebook_count_user = config.plugin_worksearch.get('ebook_count_user')
+    ebook_count_user = config.plugin_worksearch.get('ebook_count_user') or os.getenv("USER")
     ebook_count_db_name = config.plugin_worksearch.get('ebook_count_db_name')
 
     ebook_count_db = web.database(dbn='postgres', db=ebook_count_db_name, host=ebook_count_host, user=ebook_count_user)
@@ -278,7 +281,7 @@ def do_search(param, sort, page=1, rows=100, spellcheck_count=None):
         return web.storage(
             facet_counts = None,
             docs = [],
-            is_advanced = bool(param.get('q', 'None')),
+            is_advanced = bool(param.get('q')),
             num_found = None,
             solr_select = solr_select,
             q_list = q_list,
@@ -299,7 +302,7 @@ def do_search(param, sort, page=1, rows=100, spellcheck_count=None):
     return web.storage(
         facet_counts = read_facets(root),
         docs = docs,
-        is_advanced = bool(param.get('q', 'None')),
+        is_advanced = bool(param.get('q')),
         num_found = (int(docs.attrib['numFound']) if docs is not None else None),
         solr_select = solr_select,
         q_list = q_list,
@@ -423,7 +426,7 @@ re_year = re.compile(r'\b(\d+)$')
 def find_ebook_count(field, key):
     q = '%s_key:%s+AND+(overdrive_s:*+OR+ia:*)' % (field, re_chars.sub(r'\\\1', key).encode('utf-8'))
 
-    root_url = 'http://ia331508:8983/solr/works/select?wt=json&indent=on&rows=%d&start=%d&q.op=AND&q=%s&fl=edition_key'
+    root_url = solr_select_url + '?wt=json&indent=on&rows=%d&start=%d&q.op=AND&q=%s&fl=edition_key'
     rows = 1000
 
     ebook_count = 0
@@ -601,7 +604,7 @@ def get_subject(key, details=False, offset=0, limit=12, **filters):
     for w in result.docs:
         w.ia = w.ia and w.ia[0] or None
 
-    subject = web.storage(
+    subject = Subject(
         key=key,
         name=name,
         subject_type=subject_type,
@@ -633,7 +636,7 @@ def get_subject(key, details=False, offset=0, limit=12, **filters):
     return subject
 
 class subjects_json(delegate.page):
-    path = '(/subjects/.+)'
+    path = '(/subjects/[^/]+)'
     encoding = "json"
 
     @jsonapi
@@ -665,7 +668,7 @@ class subjects_json(delegate.page):
         return json.dumps(subject)
         
 class subject_works_json(delegate.page):
-    path = '(/subjects/\w+)/works'
+    path = '(/subjects/[^/]+)/works'
     encoding = "json"
 
     @jsonapi
@@ -698,7 +701,7 @@ class subject_works_json(delegate.page):
     
         
 class subjects(delegate.page):
-    path = '(/subjects/.+)'
+    path = '(/subjects/[^/]+)'
     
     def GET(self, key):
         if key.lower() != key:

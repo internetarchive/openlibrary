@@ -10,6 +10,9 @@ from .. import dynlinks
 
 import re
 import simplejson
+import web
+from openlibrary.mocks import mock_infobase
+from openlibrary.core import ia
 
 def pytest_funcarg__data0(request):
     return {
@@ -179,7 +182,24 @@ def pytest_funcarg__data9(request):
                     "comment": "bar"
                 }],
                 "ebooks": [{
-                    "preview_url": "http://www.archive.org/details/foo12bar"
+                    "preview_url": "http://www.archive.org/details/foo12bar",
+                    "read_url": "http://www.archive.org/stream/foo12bar",
+                    "availability": "full",
+                    "formats": {
+                        "pdf": {
+                            "url": "http://www.archive.org/download/foo12bar/foo12bar.pdf"
+                        },
+                        "epub": {
+                            "url": "http://www.archive.org/download/foo12bar/foo12bar.epub"
+                        },
+                        "text": {
+                            "url": "http://www.archive.org/download/foo12bar/foo12bar_djvu.txt"
+                        },
+                        "djvu": {
+                            "url": "http://www.archive.org/download/foo12bar/foo12bar.djvu",
+                            "permission": "open"
+                        },
+                    }
                 }],
                 "number_of_pages": "100",
                 "pagination": "100 p."
@@ -214,6 +234,8 @@ def monkeypatch_ol(monkeypatch):
     mock.setup_call(["/books/OL2M"], _return=[{"key": "/books/OL2M", "title": "bar", "ocaid": "ia-bar"}])
     mock.default = []
     monkeypatch.setattr(dynlinks, "ol_get_many", mock)
+    
+    monkeypatch.setattr(ia, "get_meta_xml", lambda itemid: web.storage())
 
 def test_query_keys(monkeypatch):
     monkeypatch_ol(monkeypatch)
@@ -229,7 +251,9 @@ def test_query_docs(monkeypatch):
     assert dynlinks.query_docs(["isbn:9876543210"]) == {}
     assert dynlinks.query_docs(["isbn:1234567890", "isbn:9876543210"]) == {"isbn:1234567890": {"key": "/books/OL1M", "title": "foo"}}
     
-def test_process_doc_for_view_api():
+def test_process_doc_for_view_api(monkeypatch):
+    monkeypatch_ol(monkeypatch)
+    
     bib_key = "isbn:1234567890"
     doc = {"key": "/books/OL1M", "title": "foo"}
     expected_result = {
@@ -324,6 +348,19 @@ def test_dynlinks(monkeypatch):
     js = dynlinks.dynlinks(["isbn:1234567890"], {"format": "json"})
     assert simplejson.loads(js) == expected_result
 
+def test_isbnx(monkeypatch):
+    site = mock_infobase.MockSite()
+    site.save({
+        "key": "/books/OL1M",
+        "type": {"key": "/type/edition"},
+        "isbn_10": "123456789X"
+    })
+    
+    monkeypatch.setattr(web.ctx, "site", site, raising=False)
+    json = dynlinks.dynlinks(["isbn:123456789X"], {"format": "json"})
+    d = simplejson.loads(json)
+    assert d.keys() == ["isbn:123456789X"] 
+
 def test_dynlinks_ia(monkeypatch):
     monkeypatch_ol(monkeypatch)
 
@@ -372,8 +409,11 @@ class TestDataProcessor:
         p = dynlinks.DataProcessor()
         assert p.process_doc(data0['/books/OL0M']) == data0['result']['data']
         
-    def test_process_doc9(self, data9):
+    def test_process_doc9(self, monkeypatch, data9):
+        monkeypatch_ol(monkeypatch)
+        
         p = dynlinks.DataProcessor()
         p.authors = data9
         p.works = data9
+        print p.process_doc(data9['/books/OL9M'])
         assert p.process_doc(data9['/books/OL9M']) == data9['result']['data']
