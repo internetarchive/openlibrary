@@ -95,7 +95,7 @@ def system(cmd):
         raise Exception("%r failed with exit code %d" % (cmd, ret))
 
 def setup_dirs():
-    os.system("mkdir -p var/cache var/lib var/log var/run usr/local/bin usr/local/lib")
+    os.system("mkdir -p var/cache var/lib var/log var/run usr/local/bin usr/local/etc usr/local/lib")
     os.system("echo > var/log/install.log")
 
 def read_config():
@@ -160,8 +160,7 @@ class Postgres(Process):
 class CouchDB(Process):
     def get_specs(self):
         return {
-            "command": "bin/couchdb",
-            "cwd": "usr/local/couchdb-1.0.1"
+            "command": "usr/local/bin/couchdb",
         }
         
     def create_database(self, name):
@@ -301,7 +300,8 @@ class install_solr:
 class install_couchdb_lucene:
     def run(self):    
         info("installing couchdb lucene...")
-        download_and_extract("http://www.archive.org/download/ol_vendor/couchdb-lucene-0.6-SNAPSHOT-dist.tar.gz")    
+        download_and_extract("http://www.archive.org/download/ol_vendor/couchdb-lucene-0.6-SNAPSHOT-dist.tar.gz")
+        os.system("cd usr/local/etc && ln -fs ../couchdb-lucene-0.6-SNAPSHOT/conf couchdb-lucene")
 
 class checkout_submodules:
     def run(self):
@@ -323,17 +323,23 @@ class install_couchdb:
             
     def copy_config_files(self):
         debug("copying config files")
-        CWD.join("conf/couchdb/local.ini").copy_to("usr/local/couchdb-1.0.1/etc/couchdb/")
+        CWD.join("conf/couchdb/local.ini").copy_to("usr/local/etc/couchdb/")
         
     def install_osx(self):
         download_url = "http://www.archive.org/download/ol_vendor/couchdb-1.0.1-osx-binaries.tgz"
-        download_and_extract(download_url, dirname="couchdb-1.0.1")
-        system("cd vendor/couchdb-1.0.1 && ln -fs couchdb-1.0.1/etc etc")
+        
+        download_and_extract(download_url, dirname="couchdb_1.0.1")
+        # mac os x distribution uses relative paths. So no need to fix files.
+        
+        os.system("cd usr/local/etc && ln -sf ../couchdb_1.0.1/etc/couchdb .")
         
     def install_linux(self):
         download_url = "http://www.archive.org/download/ol_vendor/couchdb-1.0.1-linux-binaries.tgz"
         download_and_extract(download_url, dirname="couchdb-1.0.1")
         self.fix_linux_paths()
+        
+        os.system("cd usr/local/bin && ln -fs ../couchdb-1.0.1/bin/couchdb .")
+        os.system("cd usr/local/etc && ln -sf ../couchdb-1.0.1/etc/couchdb .")
         
     def fix_linux_paths(self):
         root = CWD.join("usr/local/couchdb-1.0.1")
@@ -343,7 +349,7 @@ class install_couchdb:
     	    debug("fixing paths in", f)
             f = root.join(f)
             f.write(f.read().replace(DEFAULT_ROOT, root.path))
-        
+                
 class install_postgresql:
     """Installs postgresql on Mac OS X.
     Doesn't do anything on Linux.
