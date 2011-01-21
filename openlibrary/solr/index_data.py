@@ -1,7 +1,7 @@
 import os, httplib, sys
 import simplejson as json
 from collections import defaultdict
-from lxml.etree import tostring, Element 
+from lxml.etree import tostring, Element
 
 def index_publishers(data_dir):
     dir = data_dir + '/b/'
