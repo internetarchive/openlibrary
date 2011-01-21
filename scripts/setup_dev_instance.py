@@ -2,7 +2,7 @@
 """Script to install OL dev instance.
 """
 import ConfigParser
-import os
+import os, shutil
 import shlex
 import subprocess
 import sys
@@ -13,7 +13,54 @@ import commands
 config = None
 INTERP = None
 
-CWD = os.getcwd()
+class Path:
+    """Wrapper over file path, inspired by py.path.local.
+    """
+    def __init__(self, path):
+        self.path = path
+        
+    def exists(self):
+        return os.path.exists(self.path)
+        
+    def basename(self):
+        return os.path.basename(self.path)
+    
+    def join(self, *a):
+        parts = [self.path] + list(a)
+        path = os.path.join(*parts)
+        return Path(path)
+        
+    def mkdir(self, *parts):
+        path = self.join(*parts).path
+        if not os.path.exists(path):
+            os.makedirs(path)
+            
+    def isdir(self):
+        return os.path.isdir(self.path)
+        
+    def copy_to(self, dest, recursive=False):
+        if isinstance(dest, Path):
+            dest = dest.path
+            
+        options = ""
+        if recursive:
+            options += " -r"
+            
+        cmd = "cp %s %s %s" % (options, self.path, dest)
+        os.system(cmd)
+        
+    def read(self):
+        return open(self.path).read()
+        
+    def write(self, text, append=False):
+        if append:
+            f = open(self.path, 'a')
+        else:
+            f = open(self.path, 'w')
+        f.write(text)
+        f.close()
+
+CWD = Path(os.getcwd())
 
 ## Common utilities
 def log(level, args):
@@ -22,7 +69,7 @@ def log(level, args):
         print msg
 
     text = time.asctime() + " " + level.ljust(6) + " " + msg + "\n"
-    write(CWD + "/var/log/install.log", text, append=True)
+    CWD.join("var/log/install.log").write(text, append=True)
     
 def info(*args):
     log("INFO", args)
@@ -48,7 +95,7 @@ def system(cmd):
         raise Exception("%r failed with exit code %d" % (cmd, ret))
 
 def setup_dirs():
-    os.system("mkdir -p var/lib var/run var/log usr/local/bin usr/local/lib")
+    os.system("mkdir -p var/cache var/lib var/log var/run usr/local/bin usr/local/lib")
     os.system("echo > var/log/install.log")
 
 def read_config():
@@ -59,20 +106,14 @@ def read_config():
     p.read("conf/install.ini")
     return dict(p.items("install"))
     
-def wget(url):
-    filename = "vendor/" + url.split("/")[-1]
-    if not os.path.exists(filename):
-        system("wget %s -O %s" % (url, filename))
-    return filename
-
 def download_and_extract(url, dirname=None):
-    filename = "vendor/" + url.split("/")[-1]
-    if not os.path.exists(filename):
-        system("wget %s -O %s" % (url, filename))
+    path = CWD.join("var/cache", url.split("/")[-1])
+    if not path.exists():
+        system("wget %s -O %s" % (url, path.path))
 
-    dirname = dirname or filename.replace(".tgz", "").replace(".tar.gz", "")
-    if not os.path.exists(dirname):
-        system("cd vendor && tar xzf " + os.path.basename(filename))
+    dirname = dirname or path.basename().replace(".tgz", "").replace(".tar.gz", "")
+    if not CWD.join("usr/local", dirname).exists():
+        system("cd usr/local && tar xzf " + path.path)
 
 def find_distro():
     uname = os.uname()[0]
@@ -113,14 +154,14 @@ class Process:
 class Postgres(Process):
     def get_specs(self):
         return {
-            "command": "vendor/postgresql-8.4.4/bin/postgres -D var/lib/postgresql"
+            "command": "usr/local/postgresql-8.4.4/bin/postgres -D var/lib/postgresql"
         }
                         
 class CouchDB(Process):
     def get_specs(self):
         return {
             "command": "bin/couchdb",
-            "cwd": "vendor/couchdb-1.0.1"
+            "cwd": "usr/local/couchdb-1.0.1"
         }
         
     def create_database(self, name):
@@ -230,27 +271,32 @@ class install_solr:
         info("installing solr...")
     
         download_and_extract("http://www.archive.org/download/ol_vendor/apache-solr-1.4.0.tgz")
-    
-        types = 'authors', 'editions', 'works', 'subjects', 'inside'
-        paths = ["vendor/solr/solr/" + t for t in types] 
-        system("mkdir -p " + " ".join(paths))
-    
-        for f in "etc lib logs webapps start.jar".split():
-            system("cp -R vendor/apache-solr-1.4.0/example/%s vendor/solr/" % f)
-    
-        system("cp conf/solr-biblio/solr.xml vendor/solr/solr/")
+        
+        base  = CWD.join("usr/local/apache-solr-1.4.0")
+        solr = CWD.join("usr/local/solr")
 
-        solrconfig = open("vendor/apache-solr-1.4.0/example/solr/conf/solrconfig.xml").read()
+        types = 'authors', 'editions', 'works', 'subjects', 'inside'
+        for t in types:
+            solr.mkdir("solr", t)
+            
+        for f in "etc lib logs webapps start.jar".split():
+            src = base.join("example", f)
+            dest = solr.join(f)
+            src.copy_to(dest, recursive=True)
+            
+        CWD.join("conf/solr-biblio/solr.xml").copy_to(solr.join("solr"))
+
+        solrconfig = base.join("example/solr/conf/solrconfig.xml").read()
     
         for t in types:
-            if not os.path.exists('solr/solr/' + t + '/conf'):
-                system("cp -r vendor/apache-solr-1.4.0/example/solr/conf vendor/solr/solr/%s/conf" % t)
+            if not solr.join("solr", t, "conf").exists():
+                base.join("example/solr/conf").copy_to(solr.join("solr", t, "conf"), recursive=True)
+                
+            CWD.join("conf/solr-biblio", t + ".xml").copy_to(solr.join("solr", t, "conf/schema.xml"))
             
-            system('cp conf/solr-biblio/%s.xml vendor/solr/solr/%s/conf/schema.xml' % (t, t))
-        
-            f = 'vendor/solr/solr/' + t + '/conf/solrconfig.xml'
-            debug("creating", f)
-            write(f, solrconfig.replace("./solr/data", "./solr/%s/data" % t))
+            f = solr.join("solr", t, "conf/solrconfig.xml")
+            debug("creating", f.path)
+            f.write(solrconfig.replace("./solr/data", "./solr/%s/data" % t))
 
 class install_couchdb_lucene:
     def run(self):    
@@ -277,7 +323,7 @@ class install_couchdb:
             
     def copy_config_files(self):
         debug("copying config files")
-        system("cp conf/couchdb/local.ini vendor/couchdb-1.0.1/etc/couchdb/")
+        CWD.join("conf/couchdb/local.ini").copy_to("usr/local/couchdb-1.0.1/etc/couchdb/")
         
     def install_osx(self):
         download_url = "http://www.archive.org/download/ol_vendor/couchdb-1.0.1-osx-binaries.tgz"
@@ -290,17 +336,13 @@ class install_couchdb:
         self.fix_linux_paths()
         
     def fix_linux_paths(self):
-        root = os.getcwd() + "/vendor/couchdb-1.0.1"
+        root = CWD.join("usr/local/couchdb-1.0.1")
+        DEFAULT_ROOT = "/home/anand/couchdb-1.0.1"
+        
         for f in "bin/couchdb bin/couchjs bin/erl etc/couchdb/default.ini etc/init.d/couchdb etc/logrotate.d/couchdb lib/couchdb/erlang/lib/couch-1.0.1/ebin/couch.app".split():
     	    debug("fixing paths in", f)
-    	    self.replace_file(os.path.join(root, f), "/home/anand/couchdb-1.0.1", root)
-        
-    def replace_file(self, path, pattern, replacement):
-        text = open(path).read()
-        text = text.replace(pattern, replacement)
-        f = open(path, "w")
-        f.write(text)
-        f.close()
+            f = root.join(f)
+            f.write(f.read().replace(DEFAULT_ROOT, root.path))
         
 class install_postgresql:
     """Installs postgresql on Mac OS X.
@@ -315,10 +357,11 @@ class install_postgresql:
         info("installing postgresql..")
         download_url = "http://www.archive.org/download/ol_vendor/postgresql-8.4.4-osx-binaries.tgz"
         download_and_extract(download_url, dirname="postgresql-8.4.4")
+        system("cd usr/local/bin && ln -fs ../postgresql-8.4.4/bin/* .")
+        system("cd usr/local/lib && ln -fs ../postgresql-8.4.4/lib/* .")
+        
         if not os.path.exists("var/lib/postgresql/base"):
-            system("vendor/postgresql-8.4.4/bin/initdb --no-locale var/lib/postgresql")
-        system("cd usr/local/bin && ln -fs ../../../vendor/postgresql-8.4.4/bin/* .")
-        system("cd usr/local/lib && ln -fs ../../../vendor/postgresql-8.4.4/lib/* .")
+            system("usr/local/bin/initdb --no-locale var/lib/postgresql")
         
 class start_postgresql:
     def run(self):
