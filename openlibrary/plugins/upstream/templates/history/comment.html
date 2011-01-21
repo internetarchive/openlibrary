@@ -17,7 +17,10 @@ $if record_id:
             Initial record created, from $:link(record.source_url, record.source_name) <a href="$record.url">MARC record</a>.
     $else:
         Found a <a href="$record.url">matching record</a> from $:link(record.source_url, record.source_name).
+$elif "history_v2" in ctx.features:
+    $ t = get_template("recentchanges/" + v.kind + "/comment") or get_template("recentchanges/default/comment")
+    $:t(v, v.thing)
 $elif v.comment:
     $v.comment
 $else:
-    <em>$_("Edited without comment")</em>
+    <em>$_("Edited without comment.")</em>

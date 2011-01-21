@@ -7,16 +7,15 @@ $def with (change)
 $ master = change.get_master()
 
 <div id="contentBody">
-    
     $if change.get_undo_changeset():
-        <p class="alert">This merge has been undone. see <a href="$change.get_undo_changeset().url()">details</a>.</p>
-    
+        <p class="alert">This merge has been undone. <a href="$change.get_undo_changeset().url()">Details here</a>.</p>
+
     <div id="mergeHead" class="sansserif">
         <div class="smallest lightgreen">Master</div>
         
         <div id="recordMaster">
             <span id="recordMasterTitle" class="larger">
-                <strong>$master.name</strong>
+                <strong><a href="$master.key">$master.name</a></strong>
             </span>
             <span id="recordMasterDate" class="smaller">
                 $if master.birth_date or master.death_date:

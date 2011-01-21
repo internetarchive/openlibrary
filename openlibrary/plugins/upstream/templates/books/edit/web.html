@@ -10,29 +10,40 @@ $def with (work, prefix="")
         </div>
 
         <div class="formElement">
-            <div class="label">
-                <label for="link-url">URL</label> 
-                <span class="tip"></span>
-            </div>
-            <div class="input">
-                <input type="text" name="url" id="link-url" value="http://" tabindex="0" onblur="\$('#repeat-add').addClass('darkgreen');"/>
-            </div>
-        </div>
-
-        <div class="formElement bottom">
-            <div class="label">
-                <label for="link-label">$_("Give your link a label")</label> 
-                <span class="tip">$_("For example:") <i>$_("Podcast about the book on The Guardian")</i></span>
-            </div>
-            <div class="input">
-                <input type="text" name="title" id="link-label" value="" tabindex="0" onblur="\$('#repeat-add').addClass('darkgreen');"/>
-            </div>
-        </div>
-
-        <div class="formElement">
-            <div class="input">
-                <input type="button" id="repeat-add" class="repeat-add" value="Add Link" tabindex="0"/>
-            </div>
+            <table>
+                <tbody>
+                    <tr>
+                        <td valign="top">
+                            <div class="label">
+                                <label for="link-label">$_("Give your link a label")</label> 
+                            </div>
+                        </td>
+                        <td valign="top" colspan="2">
+                            <div class="label">
+                                <label for="link-url">URL</label> 
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td valign="top">
+                            <div class="input">
+                                <input type="text" name="title" id="link-label" class="addweb" value=""/>
+                                <br/><span class="tip">$:_("For example: <em>New York Times review</em>")</span>
+                            </div>
+                        </td>
+                        <td valign="top">
+                            <div class="input">
+                                <input type="text" name="url" id="link-url" class="addweb" value="http://"/>
+                            </div>
+                        </td>
+                        <td valign="top">
+                            <div class="input">
+                                <input type="button" id="repeat-add" class="repeat-add" value="Add Link"/>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
 
     </div>

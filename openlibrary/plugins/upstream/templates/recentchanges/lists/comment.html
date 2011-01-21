@@ -1,0 +1,14 @@
+$def with (change, page=None)
+
+$ list = change.get_list()
+
+$if list.revision == 1:
+    Created a new list.
+$elif change.get_added_seed():
+    $ seed = change.get_added_seed()
+    Added <a href="$seed.url">$seed.title</a> to the list.
+$elif change.get_removed_seed():
+    $ seed = change.get_removed_seed()
+    Removed <a href="$seed.url">$seed.title</a> from the list.
+$else:
+    $change.comment

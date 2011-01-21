@@ -8,10 +8,10 @@ $else:
 
     $if page.key == master:
         $# comment in the master record
-        Merged $len(duplicates) duplicate author records into this master (<a href="$change.url()">details</a>).
+        Merged $len(duplicates) duplicate author records into this master. See <a href="$change.url()">details</a>.
     $elif page.key in duplicates:
         $# comment in the duplicate record
-        Marked as duplicate of <a href="$master.url()">$master.name</a> (<a href="$change.url()">details</a>).
+        Marked as duplicate. See <a href="$change.url()">details</a>.
     $else:
         $# comment in the effected work records
         Merged duplicate author records. See <a href="$change.url()">details</a>.

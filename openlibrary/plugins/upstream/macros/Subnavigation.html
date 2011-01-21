@@ -1,44 +1,37 @@
 $def with (page)
 
+$ dev_nav1 = [
+$     ("/developers", "Developers"),
+$     ("/developers/api", "API"),
+$     ("/data", "Data"),
+$     ("/developers/licensing", "Licensing"),
+$ ]
+
+$ dev_nav2 = [
+$   ("http://bugs.launchpad.net/openlibrary", "Bugs"),
+$   ("http://github.com/openlibrary", "Source Code"),
+$   ("/developers/ol", "OL Development"),
+$ ]
+
+$ tour_nav = [
+$     ("/tour", "Welcome"),
+$     ("/search/howto", "Searching Open Library"),
+$     ("/tour/reading", "Reading Books"),
+$     ("/tour/books", "Adding & Editing Books"),
+$     ("/tour/subjects", "Using Subjects"),
+$     ("/help/faq", "Open Library F.A.Q."),
+$ ]
+
 $if page.key in ["/developers","/data","/developers/api","/developers/licensing","/developers/ol","/developers/docs"]:
     <div class="subNav sansserif">
-        <ul class="collapse">
-            <li>
-            $if page.key in ["/developers"]:
-                <strong>Developers</strong>
-            $else:
-                <a href="/developers" rel="nofollow">Developers</a>
-            <span>|</span>
-            </li>
-            <li>
-            $if page.key in ["/developers/api"]:
-                <strong>API</strong>
-            $else:
-                <a href="/developers/api" rel="nofollow">API</a>
-            <span>|</span>
-            </li>
-            <li>
-            $if page.key in ["/data"]:
-                <strong>Data</strong>
-            $else:
-                <a href="/data" rel="nofollow">Data</a>
-            <span>|</span>
-            </li>
-            <li>
-            $if page.key in ["/developers/licensing"]:
-                <strong>Licensing</strong>
-            $else:
-                <a href="/developers/licensing">Licensing</a>
-            <span>&bull;</span>
-            </li>
-            <li><a href="http://bugs.launchpad.net/openlibrary" rel="nofollow">Bugs</a><span>|</span></li>
-            <li><a href="http://github.com/openlibrary" rel="nofollow">Source Code</a><span>|</span></li>
-            <li>
-            $if page.key in ["/developers/ol"]:
-                <strong>OL Development</strong>
-            $else:
-                <a href="/developers/ol">OL Development</a>
-            </li>
-        </ul>
+        $:render_template("lib/subnavigation", dev_nav1)
+        <span style="float: left; padding: 0px 10px">&bull;</span>
+        $:render_template("lib/subnavigation", dev_nav2)
+    </div>
+    <br style="clear: both;"/>
+
+$if page.key.startswith("/tour"):
+    <div class="subNav sansserif">
+        $:render_template("lib/subnavigation", tour_nav)
     </div>
     <br style="clear: both;"/>

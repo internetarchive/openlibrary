@@ -152,7 +152,7 @@ $ web = ["download_url", "purchase_url"]
                 $if name == 'source_records':
                     $for src in page[name]:
                         $if src.startswith('marc:'):
-                            <td class="tag"><span class="tag"><a href="http://openlibrary.org/show-marc/$src[5:]">Library MARC record</a></span></td></tr>
+                            <td class="tag"><span class="tag"><a href="http://openlibrary.org/show-records/$src[5:]">Library MARC record</a></span></td></tr>
                         $elif src.startswith('amazon:'):
                             <td class="tag"><span class="tag"><a href="http://amazon.com/dp/$src[7:17]">Amazon.com</a></span></td></tr>
                         $elif src.startswith('ia:'):

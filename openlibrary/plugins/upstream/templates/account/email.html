@@ -1,6 +1,10 @@
 $def with (email, form)
 
 <div id="contentHead">
+    <div class="small sansserif grey" style="margin-bottom:5px;"">$:_("%(user)s", user='<a href="%s">%s</a>' % (ctx.user.key, ctx.user.displayname))
+    /
+    <a href="$homepath()/account">$_("Settings")</a>
+    /</div>
     <h1>$_("Change Your Email Address")</h1>
 </div>
 
@@ -28,7 +32,7 @@ $def with (email, form)
         <div class="formElement bottom">
             <div class="input">
                 <br/>
-                <input value="$_('Change It')" type="submit" name="submit" title="$_('Change It')"/>
+                <input value="$_('Change It')" type="submit" name="changeit" id="changeit" title="$_('Change It')"/>
                 &nbsp;
                 <a href="javascript:history.go(-1);" class="smaller attn">$_("Cancel")</a>
             </div>

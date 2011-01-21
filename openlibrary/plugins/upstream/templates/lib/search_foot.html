@@ -1,13 +1,13 @@
 $def with (page)
 
 $ advanced = (
-$    ('publisher', _("Publisher")),
-$    ('person', _("Person")),
-$    ('subject', _("Subject")),
-$    ('isbn', "ISBN"),
-$    ('place', _("Place")),
-$    ('author', _("Author")),
-$    ('title', _("Title")),
+$    ('title', _("Title"),_("like 'Clockwork Orange'")),
+$    ('author', _("Author"),_("like 'Tom Clancy'")),
+$    ('isbn', "ISBN",_("ISBN-10 or ISBN-13")),
+$    ('subject', _("Subject"),_("like 'butterflies' or 'cooking'")),
+$    ('place', _("Place"),_("like 'London' or 'heaven'")),
+$    ('person', _("Person"),_("like 'Winston Churchill'")),
+$    ('publisher', _("Publisher"),_("like 'Houghton Mifflin'")),
 $ )
 
             <div id="formScroll"><div id="scrollBtm"></div></div>
@@ -15,6 +15,9 @@ $ )
 
             <form method="get" action="/search" class="siteSearch">
                 <div id="bottomOptions" class="searchOptions hidden">
+                <div class="searchPlus">
+                    <a href="/search/inside">Search inside books instead</a>?
+                </div>
                 <fieldset class="home">
                     <legend>Advanced Search</legend>
                 <!-- HIDE THIS
@@ -36,10 +39,10 @@ $ )
                 </select>
                 </div>
                 -->
-                $for name, label in advanced:
+                $for name, label, placeholder in advanced:
                     <div class="formElement">
                     <label for="qbtm-$name">$label</label><br/>
-                    <input type="text" name="$name" id="qbtm-$name" size="35"/>
+                    <input type="text" name="$name" id="qbtm-$name" placeholder="$placeholder" size="35"/>
                     </div>
                 </fieldset>
                 </div>

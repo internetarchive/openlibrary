@@ -8,7 +8,7 @@ $def display_value(label, value):
     $if value:
         <tr>
             <td class="title"><h6 class="title">$label</h6></td>
-            <td class="tag"><span class="object">$:thingrepr(value)</span></td>
+            <td><span class="object">$:thingrepr(value)</span></td>
         </tr>
 
 $def display_identifiers(label, ids):
@@ -24,18 +24,27 @@ $def display_identifiers(label, ids):
                         ${id.value}$sep
             </span></td>
         </tr>
-    $else:
-        <tr>
-            <td class="title"><h6 class="title">$label</h6></td>
-            <td class="object"><span class="object">
-                $for id in ids:
-                    <a href="$id.url">$id.value</a>
-            </span>
-            $if ctx.user and ctx.user.is_admin():
-                <div id="gr_add_to_books"></div>
-                <script type="text/javascript" src="http://www.goodreads.com/book/add_to_book_widget_frame/$id.value"></script>
-            </td>
-        </tr>
+
+$def display_goodreads(label, ids):
+    $if label == "Goodreads":
+        <table class="meta collapse">
+            <tbody>
+            <tr>
+                <td class="title"><h6 class="title">$label</h6></td>
+                <td class="object">
+                    <span class="object">
+                    $for id in ids:
+                        <a href="$id.url">$id.value</a>
+                    </span>
+                    <div id="gr_add_to_books">
+                        <div class="gr_custom_each_container_">
+                            <iframe height="110" width="460" frameborder="0" scrolling="no" src="http://www.archive.org/openlibrary/goodreads_proxy.php?id=$id.value" /></iframe>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
 
 $def display_contributor(c):
     <li><span>$c.role</span><br />$c.name </li>
@@ -46,10 +55,13 @@ $ publishers = (', '.join(book.publishers))
 
         <div class="workAbout">
             <div class="section smaller lightgreen sansserif" style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #dedede; margin-bottom: 5px">
-                $_("There is only 1 edition record, so we'll show it here:")
+                $_("There is only 1 edition record, so we'll show it here...")
+                &nbsp;&bull;&nbsp;
+                <a href="/books/add?work=$book.works[0].key" title="$_('Add another edition of') $book.works[0].title">$_("Add edition")</a>?
             </div>
-            <div class="section sansserif" style="line-height: 1.5em">
-                <span style="font-size: 18px;"><strong>$book.title</strong></span>
+            <div class="section">
+                <h2 class="edition">
+                    <strong>$book.title</strong>
                 $if book.subtitle:
                     <br /><span class="larger"><em>$book.subtitle</em></span>
                 $if book.edition_title or book.edition_name:
@@ -57,23 +69,23 @@ $ publishers = (', '.join(book.publishers))
                 $if book.by_statement:
                     <br/>$book.by_statement
                 $if book.publish_date or book.publishers or book.publish_places:
-                    <br/>
-                    <span style="font-size:13px;">
-                        Published
-                        $if book.publish_date:
-                            <strong>$book.publish_date</strong> 
-                        $if book.publishers:
-                            by
-                            $for p in book.publishers:
-                                <a href="/search?publisher_facet=$p.replace('&','%26')" title="$_('Search for other books from') $p">$p</a>$cond(loop.last, "", ", ")
-                        $if book.publish_places:
-                            in
-                            $for p in book.publish_places:
-                                 <a href="/search/subjects?q=$p.replace('&','%26')" title="$_('Search for subjects about') $p">$p</a>$cond(loop.last, "", ", ")
-                        <span class="adjust">.</span>
-                        $if book.languages:
-                        <br/>Written in $:thingrepr(book.languages).
-                </span>    
+                </h2>
+                <h4 class="publisher">
+                    Published
+                    $if book.publish_date:
+                        <strong>$book.publish_date</strong> 
+                    $if book.publishers:
+                        by
+                        $for p in book.publishers:
+                            <a href="/search?publisher_facet=$p.replace('&','%26')" title="$_('Search for other books from') $p">$p</a>$cond(loop.last, "", ", ")
+                    $if book.publish_places:
+                        in
+                        $for p in book.publish_places:
+                             <a href="/search/subjects?q=$p.replace('&','%26')" title="$_('Search for subjects about') $p">$p</a>$cond(loop.last, "", ", ")
+                    <span class="adjust">.</span>
+                    $if book.languages:
+                    <br/>Written in $:thingrepr(book.languages).
+                </h4>    
             </div>
 
         $if book.description:
@@ -163,8 +175,35 @@ $ publishers = (', '.join(book.publishers))
                     $:display_identifiers(values[0].label, values)
             </tbody>
             </table>
+            $:display_goodreads("Open Library", [storage(url=None, value=book.key.split("/")[-1])])
+            $for name, values in book.get_identifiers().multi_items():
+                $:display_goodreads(values[0].label, values)
+        </div>
         </div>
 
+        <script type="text/javascript">
+        <!--
+        \$(function(){
+            \$('#historyTools').append('| <a href="javascript:;" id="wikilink" title="Cite this on Wikipedia">Wikipedia citation</a>');
+            \$('#wikilink').colorbox({inline:true,opacity:"0.5",href:"#wikicode"});
+            \$('#wikiselect').focus(function(){\$(this).select();})
+        });
+        //-->
+        </script>
+        <div class="hidden">
+            <div class="coverFloat" id="wikicode">
+                <div class="coverFloatHead">
+                    Wikipedia citation
+                    <a class="floaterShut" href="javascript:;" onclick="\$.fn.colorbox.close();"><span class="shift">Close</span></a>
+                </div>
+                <p>Copy and paste this code into your Wikipedia page. <a href="http://en.wikipedia.org/wiki/Template:Cite#Citing_books" target="_new" title="Get instructions at Wikipedia in a new window">Need help</a>?</p>
+                <form method="get" action="">
+        <textarea cols="30" rows="20" readonly="readonly" id="wikiselect">{{Citation
+        $for k, v in book.wp_citation_fields.iteritems():
+            |$k = $v
+        }}</textarea>
+                </form>
+            </div>    
         </div>
 
 <!-- source_records: $book.get('source_records', []) -->

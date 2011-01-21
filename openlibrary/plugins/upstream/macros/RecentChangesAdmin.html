@@ -10,7 +10,7 @@ $ show_users = (query_param('show_users', 'false').lower() == 'true')
 
 <!--islist-->
 
-    <table id="adminHistory" style="width: 100%">
+    <table id="adminHistory" style="width:100%;">
         <thead>
             <tr>
                 <th>$_("When")</th>
@@ -47,10 +47,11 @@ $ show_users = (query_param('show_users', 'false').lower() == 'true')
 
     </table>
 
-    <div class="small sansserif">
-    $if page != 0:
-        <a href="$:changequery(page=page - 1)" rel="nofollow">$_("Newer")</a>
-    
+    <div class="historyPager small sansserif gray" style="width:100%;">
     $if len(changes) == limit:
-        &nbsp; <a href="$:changequery(page=page + 1)" rel="nofollow">$_("Older")</a>
+        <a href="$:changequery(page=page + 1)" rel="nofollow">&larr; $_("Older")</a> &nbsp;|&nbsp; 
+    $if page != 0:
+        <a href="$:changequery(page=page - 1)" rel="nofollow">$_("Newer") &rarr;</a>
+    $else:
+        $_("Newer") &rarr;
     </div>

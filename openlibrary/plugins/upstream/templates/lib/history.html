@@ -1,16 +1,18 @@
 $def with (page)
 
-$ h = get_history(page)
+$if "superfast" in ctx.features:
+    $ h = page.get_history_preview()
+$else:
+    $ h = get_history(page)
 
 $ versions = h.recent + h.initial
 
 <div class="clearfix"></div>
 <div id="pageHistory">
-    <div class="head">
-        <h2>
+    <h2 class="collapse">
         $_("History")
     
-        <span class="title">$_("Created %s", datestr(h.initial[0].created)) &bull; </span>
+        <span class="title">$_("Created %s", datestr(h.initial[0].created)) &middot; </span>
         $if page.url:
             $ url = page.url(m='history')
         $else:
@@ -18,8 +20,18 @@ $ versions = h.recent + h.initial
             
         $ latest = versions[0]
         <span class="link"><a rel="nofollow" href="$url">$latest.revision $_("revision")$("s" if latest.revision != 1 else "")</a></span>
-        </h2>
-    </div>
+
+        $if page.key.startswith("/works") or page.key.startswith("/books") or page.key.startswith("/authors"): 
+            $ rdf = page.key + ".rdf"
+            $ json = page.key + ".json"
+            <div id="historyTools" class="smaller brown sansserif" style="float:right;padding-top:8px;">
+                Download catalog record:
+                <a href="$rdf">RDF</a>
+                /
+                <a href="$json">JSON</a>
+            </div>
+
+    </h2>
 
     <table class="history">
         <tbody>

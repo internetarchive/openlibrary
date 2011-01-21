@@ -70,7 +70,7 @@ function update_image(image) {
     
     // Add iframes lazily when the popup is loaded.
     // This avoids fetching the iframes along with main page.
-    \$(".coverPop").colorbox({inline: true, href: "#addImage"})
+    \$(".coverPop").colorbox({inline: true, opacity: "0.5", href: "#addImage"})
         .bind("click", function() {
             $if doc.type.key == "/type/work":
                 \$('#imagesAdd').prepend('<div id="throbber"><h3>$_("One sec, we\'re searching for covers...")</h3></div>');
@@ -88,7 +88,7 @@ function update_image(image) {
     // Add function to close throbber
     closeThrobber = function() {\$("#throbber").customFadeOut();};
     // Open larger cover image
-    \$(".coverLook").colorbox({inline: true, href: "#seeImage"});
+    \$(".coverLook").colorbox({inline: true, opacity:"0.5", href: "#seeImage"});
 });
 //-->
 </script>
@@ -99,7 +99,7 @@ function update_image(image) {
     <div class="floater" id="addImage">
         <div class="floaterHead">
             <h2>$title</h2>
-            <a class="floaterShut" href="javascript:;" onclick="\$.fn.colorbox.close();"></a>
+            <a class="floaterShut" href="javascript:;" onclick="\$.fn.colorbox.close();"><span class="shift">$_("Close")</span></a>
         </div>
 
         <div id="tabsImages" class="tabs tabsPop">

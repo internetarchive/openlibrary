@@ -9,5 +9,9 @@ $ _x = ctx.setdefault('bodyid', 'edit')
 $:render_template("lib/view_head", page)
 
 <div id="contentBody">
-$:macros.DisplayCode(page.macro)
+    <div>
+        <span class="title">plugin</span>
+        <span class="tag">$page.get("plugin", "upstream")</span>
+    </div>
+    $:macros.DisplayCode(page.macro)
 </div>

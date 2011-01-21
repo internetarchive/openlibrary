@@ -1,16 +1,109 @@
 $def with (doc, lists)
 
-<div id="contentHead"> 
+<div id="contentHead">
     $ header = render_template("lists/header", doc, lists)
-    $var title = header.title
+    $var title: $header.title / Lists
     $:header
 </div>
 
+$if doc.key.startswith("/subjects/"):
+    $ seed = doc.get_seed()
+$else:
+    $ seed = {"key": doc.key}
+
+$if "type" in doc and doc.type.key == "/type/user":
+    <style type="text/css">
+        span.list-owner { display: none; }
+    </style>
+    $if ctx.user and ctx.user.key == doc.key:
+        <script type="text/javascript">
+            \$(function() {
+                \$("#listResults .resultTitle")
+                    .prepend('' +
+                        '<span class="listDelete sansserif small">' +
+                            '<a href="javascript:;"><span></span>Delete this list</a>' +
+                        '</span>')
+                    .find(".listDelete a")
+                    .click(function() {
+                        \$('#delete-dialog')
+                            .data("list-id", \$(this).closest("li").attr("id"))
+                            .dialog('open');
+                        return false;
+                    });
+                
+                \$("#delete-dialog").ol_confirm_dialog(function(){
+                    var list_id = "#" + \$(this).data("list-id");
+                    var key = \$(list_id + " a:first").attr("href");
+                    var dialog = this;
+                
+                    \$.post(key + "/delete.json", function() {
+                        \$(list_id).remove();
+                        \$(dialog).dialog("close");
+                    });
+                });
+            });
+        </script>
+        <div id="delete-dialog" class="hidden" title="Delete list">Are you sure you want to delete this list?</div>
+$else:
+    <script type="text/javascript">
+        \$(function() {
+            \$("#listResults .resultTitle.my-list")
+            .prepend('' +
+                '<span class="listDelete sansserif smaller">' +
+                    '<a href="javascript:;"><span></span>Remove this seed?</a>' +
+                '</span>')
+            .find(".listDelete a")
+            .click(function() {
+                \$('#remove-dialog')
+                    .data("list-id", \$(this).closest("li").attr("id"))
+                    .dialog('open');
+                return false;
+            });
+        
+            \$("#remove-dialog").ol_confirm_dialog(function() {
+                var seed = $:json_encode(seed);
+                var list_id = "#" + \$(this).data("list-id");
+                var key = \$(list_id + " a:first").attr("href");
+                
+                var dialog = this;
+                
+                remove_seed(key, seed, function() {
+                    \$(list_id).remove();
+                    \$(dialog).dialog("close");
+                });
+            });
+        });
+        
+        function remove_seed(list_key, seed, success) {
+            \$.ajax({
+                type: "POST",
+                url: list_key + "/seeds.json",
+                contentType: "application/json",
+                data: JSON.stringify({
+                    "remove": [seed]
+                }),
+                dataType: "json",
+
+                beforeSend: function(xhr) {
+                    xhr.setRequestHeader("Content-Type", "application/json");
+                    xhr.setRequestHeader("Accept", "application/json");
+                },
+                success: success
+            });
+        }
+    </script>
+    <div id="remove-dialog" class="hidden" title="Remove">Are you sure you want to remove <strong>$header.title</strong> from this list?</div>
+    
 <div id="contentBody">
-    <div id="searchResults" class="narrow"> 
-    <ul id="siteSearch" class="collapse"> 
-        $for list in lists:
-            <li>$:render_template("lists/preview", list)</li>
-    </ul>
-    </div>
+    $if lists:
+        <ul id="listResults" class="wide"> 
+            $for list in lists:
+                <li id="list-$loop.index">$:render_template("lists/preview", list)</li>
+        </ul>
+    $else:
+        <p>No lists yet!</p>
+    <div class="clearfix"></div>
+
+    <h2>Recent Activity</h2>
+    $:render_template("lists/activity", doc)
 </div>

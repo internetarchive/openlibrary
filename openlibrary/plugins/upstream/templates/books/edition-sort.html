@@ -10,6 +10,7 @@ $ powells = "http://www.powells.com/partner/33286/biblio/XXX"
 
 $ worldcat = "http://worldcat.org/isbn/XXX"
 $ worldcatoclc = "http://worldcat.org/oclc/XXX"
+$ overdrive = "http://search.overdrive.com/SearchResults.aspx?ReserveID={XXX}"
 $ bookmooch = "http://www.bookmooch.com/m/mooch_choice?asin=XXX"
 $ titletrader = "http://www.titletrader.com/invinfo/XXX.html"
 
@@ -19,7 +20,9 @@ $ downloadbook = "http://www.archive.org/download/XXX/XXX.pdf"
 $ pdfbw = "http://www.archive.org/download/XXX/XXX_bw.pdf"
 $ daisy = "http://www.archive.org/download/XXX/XXX_daisy.zip"
 $ epub = "http://www.archive.org/download/XXX/XXX.epub"
-$ kindle = "http://www.archive.org/download/XXX/XXX.mobi"
+$ mobi = "http://www.archive.org/download/XXX/XXX.mobi"
+$ kindle = "https://www.amazon.com/gp/digital/fiona/web-to-kindle?clientid=IA&itemid=XXX&docid=XXX"
+
 $ djvu = "http://www.archive.org/stream/XXX/XXX.djvu"
 $ djvutxt = "http://www.archive.org/download/XXX/XXX_djvu.txt"
 $ seeall = "http://www.archive.org/download/XXX"
@@ -28,12 +31,24 @@ $ google = ""
 $ isbn_10 = (book.isbn_10 and book.isbn_10[0]) or ""
 $ oclc_numbers = (book.oclc_numbers and book.oclc_numbers[0]) or ""
 
+$ collection = set()
+$ meta_fields = book.get_ia_meta_fields()
+$if meta_fields:
+    $ collection = meta_fields.get('collection', [])
+    $ contrib = meta_fields.get('contributor')
+
+$ overdrive_id = None
+$if book.get('identifiers', None) and book.identifiers.get('overdrive', None):
+    $ overdrive_id = book.identifiers.overdrive[0]
+
+$ scribd = book.get('identifiers', {}).get('scribd', [None])[0]
+
 $ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
 
     <td class="book">
         <span class="hidden count"></span>
         <div class="cover">
-            <a href="$book.url()"><img src="$url" height="60" alt="$book.title" title="$book.title"/></a>
+            <a href="$book.url()"><img src="$url" alt="Cover of: $book.title" title="Cover of: $book.title"/></a>
         </div>
         <div class="title">
             <div class="published">
@@ -42,98 +57,102 @@ $ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
             $elif book.publish_date:
                 $book.publish_date
             $elif book.publishers:
-                $(', '.join(book.publishers))
+                <em>Publish date unknown</em>, $(', '.join(book.publishers))
             $else:
                 <em>Publisher unknown</em>
             </div>
-            <a href="$book.url()">$book.title</a><br/>
+            $if book.title:
+                <a href="$book.url()">$book.title</a><br/>
+            $else:
+                <a href="$book.url()"><em>Title missing</em></a><br/>
             <div class="format">
                 $book.physical_format.replace('[', '').replace(']','')
                 $if book.languages:
                     in $', '.join(l.name for l in book.languages)
+            $if book.edition_name:
+                -
+                $book.edition_name
             </div>
         </div>
     </td>
 
-    $if book.ocaid and book.is_daisy_encrypted():
+    $if 'printdisabled' in collection or 'lendinglibrary' in collection:
         <td class="icon read">
-        <div class="aaaa"></div>
-        <span class="hidden count"></span>
+        <div class="bbbb"></div>
         <div class="links">
             <ul>
-            <li><a href="$book.url('/daisy')" class="plain"><span class="underline">DAISY</span> <img src="/images/icons/icon-encrypto-sm.png" width="11" height="14" alt="Encrypted DAISY"/></a></li>
+            <li><a href="$book.url('/daisy')" class="plain"><span class="underline">DAISY</span> <img src="/images/icons/icon-encrypto-sm.png" width="11" height="14" alt="Protected DAISY"/></a></li>
             </ul>
         </div>
         </td> 
     $elif book.ocaid:
         <td class="icon read">
         <div class="aaaa"></div>
-        <span class="hidden count"></span>
         <div class="links">
             <ul>
-            <li><strong><a href="$viewbook.replace('XXX', book.ocaid)">Read Online</a></strong><br/><br/></li>
-            <li><a href="$downloadbook.replace('XXX', book.ocaid)">PDF</a></li>
-            <li><a href="$djvutxt.replace('XXX', book.ocaid)">Plain text</a></li>
-            <li><a href="$book.url('/daisy')">DAISY</a></li>
-            <li><a href="$epub.replace('XXX', book.ocaid)">ePub</a></li>
-            <li><a href="$kindle.replace('XXX', book.ocaid)">Kindle</a></li>
+            <li><strong><a href="$viewbook.replace('XXX', book.ocaid)" title="Read a scanned version in BookReader">Read online</a></strong><br/><br/></li>
+            <li><a href="$downloadbook.replace('XXX', book.ocaid)" title="Download a PDF">PDF</a></li>
+            <li><a href="$djvutxt.replace('XXX', book.ocaid)" title="Download a plain text version">Plain text</a></li>
+            <li><a href="$book.url('/daisy')" title="Download a zipped DAISY file">DAISY</a></li>
+            <li><a href="$epub.replace('XXX', book.ocaid)" title="Download an ePub">ePub</a></li>
+            <li><a href="$djvu.replace('XXX', book.ocaid)" title="Read a DjVu">DjVu</a> <span class="grey smaller">streaming</span></li>
+            <li><a href="$mobi.replace('XXX', book.ocaid)" title="Download a MOBI file from Internet Archive">MOBI</a></li>
+            <li><a href="$kindle.replace('XXX', book.ocaid)" title="Send to Kindle">Send to Kindle</a></li>
             </ul>
         </div>
         </td>
     $else:
         <td class="icon read inact">
-        <div class="zzzz icon readinact"><span class="shift">ZZZ</span></div>
-        <span class="hidden count"></span>
+        <div class="zzzz"></div>
         <div class="links">
         </div>
         </td>
 
-    $if isbn_10:
+    $if isbn_10 or oclc_numbers or overdrive_id or 'lendinglibrary' in collection:
         <td class="icon borrow">
             <div class="aaaa"></div>
-            <span class="hidden count"></span>
             <div class="links">
                 <ul>
-                <li><a href="$worldcat.replace('XXX', isbn_10)">WorldCat</a></li>
-                </ul>
-            </div>
-        </td>
-    $elif oclc_numbers:
-        <td class="icon borrow">
-            <div class="aaaa"></div>
-            <span class="hidden count"></span>
-            <div class="links">
-                <ul>
-                <li><a href="$worldcatoclc.replace('XXX', oclc_numbers)">WorldCat</a></li>
+                $if overdrive_id:
+                    <li><a href="$overdrive.replace('XXX', overdrive_id)" title="Borrow from OverDrive">eBook, local library</a><br /><span class="gray smaller">via OverDrive</span></li>
+                $if  'lendinglibrary' in collection:
+                    $ borrow_link = book.url() + '/borrow'
+                    <li><a href="$borrow_link" title="Borrow from $contrib">eBook</a><br /><span class="gray smaller">from $contrib</span></li>
+                $if isbn_10:
+                    <li><a href="$worldcat.replace('XXX', isbn_10)" title="Look for this edition at WorldCat">Physical copy</a><br /><span class="gray smaller">via WorldCat</span></li>
+                $elif oclc_numbers:
+                    <li><a href="$worldcatoclc.replace('XXX', oclc_numbers)" title="Look for this edition at WorldCat">Physical copy</a><br /><span class="gray smaller">via WorldCat</span></li>
                 </ul>
             </div>
         </td>
     $else:
         <td class="icon borrow inact">
-            <div class="zzzz icon borrowinact"></div>
-            <span class="hidden count"></span>
+            <div class="zzzz"></div>
             <div class="links">
             </div>
         </td>
 
-    $if isbn_10:
-        $ isbn_10 = isbn_10.replace('-', '')
-            <td class="icon buy">
-            <div class="aaaa"></div>
-            <span class="hidden count"></span>
-            <div class="links">
-                <ul>
-                <li><a href="$alibris.replace('XXX', isbn_10)">Alibris</a></li>
-                <li><a href="$amazon.replace('XXX', isbn_10)">Amazon</a></li>
-                <li><a href="$bibliocom.replace('XXX', isbn_10)">Biblio.com</a></li>
-                <li><a href="$powells.replace('XXX', isbn_10)">Powells</a></li>
-                </ul>
-            </div>
-            </td>
+    $if isbn_10 or scribd:
+        $if isbn_10:
+            $ isbn_10 = isbn_10.replace('-', '')
+        <td class="icon buy">
+        <div class="aaaa"></div>
+        <div class="links">
+            <ul>
+            $if isbn_10:
+                <li><a href="$alibris.replace('XXX', isbn_10)" title="Look for this edition for sale at Alibris">Alibris</a></li>
+                <li><a href="$amazon.replace('XXX', isbn_10)" title="Look for this edition for sale at Amazon">Amazon</a></li>
+                <li><a href="$abebooks.replace('XXX', isbn_10)" title="Look for this edition for sale at AbeBooks">AbeBooks</a></li>
+                <li><a href="$bibliocom.replace('XXX', isbn_10)" title="Look for this edition for sale at Biblio">Biblio.com</a></li>
+                <li><a href="$powells.replace('XXX', isbn_10)" title="Look for this edition for sale at Powell's">Powells</a></li>
+            $else:
+                <li><a href="http://www.scribd.com/doc/$scribd" title="Look for this edition for sale at Scribd">Scribd</a><br /><span class="gray smaller">eBook in browser</span></li>
+            </ul>
+        </div>
+        </td>
     $else:
         <td class="icon buy inact">
-        <div class="zzzz icon buyinact"></div>
-        <span class="hidden count"></span>
+        <div class="zzzz"></div>
         <div class="links">
         </div>
         </td>

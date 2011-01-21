@@ -21,7 +21,7 @@ function add_key() {
 	var cell1 = row.insertCell(0);
 	var cell2 = row.insertCell(1);
 	cell1.innerHTML = key;
-        cell2.innerHTML = '<input type="text" name="string_' + key + '" value=""/ style="width: 100%">';
+        cell2.innerHTML = '<input type="text" name="string_' + key + '" value=""/>';
         \$("table#strings_table tr:last td:first").attr("class", "formheader")
 	return false;
 }
