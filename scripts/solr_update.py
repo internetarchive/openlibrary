@@ -2,7 +2,7 @@
 
 import _init_path
 
-from urllib import urlopen, quote_plus
+from urllib import urlopen
 import simplejson, re
 from time import time, sleep
 from openlibrary.catalog.utils.query import withKey, set_query_host
@@ -11,6 +11,7 @@ from lxml.etree import tostring, Element
 from openlibrary.api import OpenLibrary, Reference
 from openlibrary.catalog.read_rc import read_rc
 from openlibrary import config
+from openlibrary.solr import subject_count, subject_need_update
 import argparse
 from os.path import exists
 import sys
@@ -76,39 +77,6 @@ last_update = time()
 author_limit = int(args.author_limit)
 work_limit = int(args.work_limit)
 time_limit = 60 * int(args.mins)
-
-to_drop = set(''';/?:@&=+$,<>#%"{}|\\^[]`\n\r''')
-
-def str_to_key(s):
-    return ''.join(c if c != ' ' else '_' for c in s.lower() if c not in to_drop)
-
-re_escape = re.compile("([%s])" % re.escape(r'+-!(){}[]^"~*?:\\'))
-
-def subject_count(field, subject):
-    key = re_escape.sub(r'\\\1', str_to_key(subject)).encode('utf-8')
-    data = urlopen('http://%s/solr/works/select?indent=on&wt=json&rows=0&q=%s_key:%s' % (solr_works, field, key)).read()
-    try:
-        ret = simplejson.loads(data)
-    except:
-        print data
-        return 0
-    return ret['response']['numFound']
-
-def subject_need_update(key, count):
-    escape_key = quote_plus(re_escape.sub(r'\\\1', key).encode('utf-8'))
-
-    reply = urlopen('http://%s/solr/subjects/select?indent=on&wt=json&q=key:"%s"' % (solr_subjects, escape_key)).read()
-
-    try:
-        docs = simplejson.loads(reply)['response']['docs']
-    except:
-        print (key, escape_key)
-        print reply
-        raise
-    if not docs:
-        return True
-    assert len(docs) == 1
-    return count != docs[0]['count']
 
 def run_update():
     global authors_to_update, works_to_update
