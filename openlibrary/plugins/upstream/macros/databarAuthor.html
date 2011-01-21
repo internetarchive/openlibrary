@@ -1,0 +1,89 @@
+$def with (page)
+
+<div id="Tools" class="collapse">
+$if ctx.user: 
+    $if "lists" in ctx.features:
+        <!-- IF ON LIST -->
+        <div class="dropit">
+            <div class="icon listed"></div>
+            <p class="listed">$page.get('name', 'name missing') is on your <a href="#">List Name Which Could Be Long</a> list. <span class="smaller"><a href="#" class="red">Remove</a>?</span></p>
+        </div>
+        <!-- IF NOT ON LIST -->
+        <div class="dropit">
+            <div class="icon list"></div> 
+            <div class="dropper on">
+                <a href="javascript:;" class="dropclick plain">
+                    <h3>Add to list</h3>
+                    <div class="arrow"></div>
+                </a>
+                <div class="dropdown">
+                    <p><span>Add to</span> <a href="javascript:;">This is a List Name</a></p> 
+                    <p><span>Add to</span> <a href="javascript:;">This is Another List Name Which is Longer!</a></p> 
+                    <p><a href="javascript:;" class="listClick">Create a new list</a></p>
+                </div> 
+            </div> 
+        </div>
+        <div class="hidden">
+            <div class="floaterAdd" id="addList">
+                <div class="floaterHead">
+                    <h2>Create a new list</h2>
+                    <a class="floaterShut" href="javascript:;" onclick="\$.fn.colorbox.close();"><span class="shift">$_("Close")</span></a>
+                </div>
+                <form method="post" action="" class="floatform">
+                <div class="formElement">
+                    <div class="label">
+                        <label for="list_label">List Label</label>
+                    </div>
+                    <div class="input">
+                        <input type="text" name="list_label" id="list_label" class="text" value=""/>
+                    </div>
+                </div>
+                <div class="formElement">
+                    <div class="label">
+                        <label for="list_desc">List Description</label>
+                    </div>
+                    <div class="input">
+                        <textarea name="list_desc" id="list_desc" rows="5" cols="30"></textarea>
+                    </div>
+                </div>
+                <div class="formElement">
+                    <div class="label">
+                        <label for="list_tags">Tags</label>
+                    </div>
+                    <div class="input">
+                        <input type="text" name="list_tags" id="list_tags" class="text" value=""/>
+                    </div>
+                </div>
+                <div class="formElement">
+                    <div class="input">
+                        <button type="button" class="larger">Add new list</button>
+                        &nbsp; &nbsp;
+                        <a href="javascript:;" onclick="\$.fn.colorbox.close();" class="small plain red">Cancel</a>
+                    </div>
+                    <div class="label"></div>
+                </div>
+                </form>
+            </div>
+        </div>
+        <script type="text/javascript">
+        \$().ready(function(){\$(".listClick").colorbox({inline: true, opacity: "0.5", href: "#addList"})});
+        </script>
+
+</div>
+<!-- IF on a list: -->
+    <div class="clearfix"></div>
+    <ul class="listLists">
+        <!-- FOR each list -->
+        <li>
+            <span class="image">
+            $ cover = "http://covers.openlibrary.org/b/olid/%s-M.jpg" % page.cover_edition_key if page.cover_edition_key else "http://openlibrary.org/images/icons/avatar_book-sm.png"
+            <a href="$page.url"><img src="$cover" width="32" alt="Cover of: $page.title$(': ' + page.subtitle if page.get('subtitle', None) else '')" title="Cover of: $page.title$(': ' + page.subtitle if page.get('subtitle', None) else '')"/></a>
+            </span>
+            <span class="data">
+                <span class="label"><a href="LIST LINK">List Title</a></span>
+                <span class="owner">from <a href="PROFILE LINK">ownername</a></span>
+            </span>
+        </li>
+    </ul>
+
+<div class="clearfix"></div>

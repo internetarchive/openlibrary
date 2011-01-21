@@ -1,11 +1,38 @@
 {
+    "body": {
+        "type": "/type/text", 
+        "value": "One web page for every book. ([More...](/about))"
+    }, 
+    "stats": {
+        "type": "/type/text", 
+        "value": "{{BookCount(\"featuring %s books\", \"including %s with full-text\")}}"
+    }, 
+    "column_2": "### Add a Book ###\r\n\r\nThere are millions of records in Open Library, but nowhere near every book ever published! Would you like to <b><a href=\"/books/add\">try adding a book</a></b> to the library?", 
+    "column_1": "<h3>Browse the Catalog</h3>\r\n\r\n<p>You can always search, but try jumping in to <b><a href=\"/subjects\"><strong>subjects</strong></a></b>, like <a href=\"/subjects/astronauts\">Astronauts</a>, <a href=\"/subjects/place:texas\">Texas</a>, <a href=\"/subjects/diaries\">Diaries</a>, <a href=\"/subjects/riots\">Riots</a>, <a href=\"/subjects/place:assam\">Assam</a>, <a href=\"/subjects/time:pleistocene\">Pleistocene</a>, <a href=\"/subjects/person:colette_(1873-1954)\">Colette</a>, <a href=\"/subjects/carpentry\">Carpentry</a>, <a href=\"/subjects/accessible_book\">accessible books</a>, or the <a href=\"/subjects/lending_library\">lending library</a>.</p>", 
+    "permission": {
+        "key": "/permission/restricted"
+    }, 
+    "title": "Open Library", 
+    "created": {
+        "type": "/type/datetime", 
+        "value": "2008-04-02T02:57:38.981106"
+    }, 
     "key": "/", 
-    "type": {"key": "/type/home"},
-    "title": "Welcome to Open Library", 
     "title2": "Welcome to Open Library!", 
     "intro": "**Ever wanted to play librarian?**\r\nIt's OK. We all do.", 
+    "latest_revision": 22, 
     "statement": "If you love books, why not *help build a library*?", 
-    "column_1": "<h3>Browse the Catalog</h3>\r\n\r\n<p>You can always search, but try jumping in to <b><a href=\"/subjects\"><strong>subjects</strong></a></b>, like <a href=\"/subjects/astronauts\">Astronauts</a>, <a href=\"/subjects/place:texas\">Texas</a>, <a href=\"/subjects/diaries\">Diaries</a>, <a href=\"/subjects/riots\">Riots</a>, <a href=\"/subjects/place:assam\">Assam</a>, <a href=\"/subjects/time:pleistocene\">Pleistocene</a>, <a href=\"/subjects/person:colette_(1873-1954)\">Colette</a> or <a href=\"/subjects/carpentry\">Carpentry</a>, <a href=\"/subjects/accessible_book\">Accessible books</a>...</p>", 
-    "column_2": "### Add a Book ###\r\n\r\nThere are millions of records in Open Library, but nowhere near every book ever published! Would you like to <b><a href=\"/books/add\">try adding a book</a></b> to the library?", 
-    "column_3": "### Open an Account ###\r\n\r\nYou can keep track of your edits if you <b><a href=\"/account/create\">open an account</a></b>. <br><br>It's a wiki too, which means anyone can edit or correct it anytime."
+    "last_modified": {
+        "type": "/type/datetime", 
+        "value": "2010-12-10T00:52:33.323137"
+    }, 
+    "column_3": "### Open an Account ###\r\n\r\nYou can keep track of your edits if you <b><a href=\"/account/create\">open an account</a></b>. <br><br>It's a wiki too, which means anyone can edit or correct it anytime.", 
+    "news": {
+        "type": "/type/text", 
+        "value": "<b>Open Library Redesign!</b><br />\r\n\r\n<br />We're about to announce the upcoming redesign of Open Library. We've been working for the past few months on a ton of improvements that we can't wait to show you. Please, <a href=\"http://blog.openlibrary.org/\">keep an eye on the blog for our announcement</a>."
+    }, 
+    "type": {
+        "key": "/type/home"
+    }, 
+    "revision": 22
 }

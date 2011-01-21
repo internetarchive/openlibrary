@@ -49,11 +49,12 @@ $def render_changes(bot, hash=""):
             </tr>
         </tbody>
     </table>
-    <div class="small sansserif">
-    $if page > 1:
-        <a href="$:changequery(page=page - 1)$hash" rel="nofollow">&larr; $_("Newer")</a>
+    <div class="historyPager small sansserif gray">
     $if len(changes) == limit:
-        &nbsp; <a href="$:changequery(page=page + 1)$hash" rel="nofollow">$_("Older") &rarr;</a>
+        <a href="$:changequery(page=page + 1)$hash" rel="nofollow">&larr; $_("Older")</a>
+    $if page > 1:
+         &nbsp;|&nbsp;
+        <a href="$:changequery(page=page - 1)$hash" rel="nofollow">$_("Newer") &rarr;</a>
     </div>
 
 $if ip or author:

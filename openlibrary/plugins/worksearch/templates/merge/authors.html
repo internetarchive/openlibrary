@@ -7,11 +7,11 @@ $def with (keys, top_books_from_author, formdata=None)
         autoOpen: false,
         modal: true,
         buttons: {
-            "Merge Authors": function() {
+            "Yes, Merge": function() {
                 \$('#mergeForm').submit();
                 \$(this).parents().find('button').attr('disabled','disabled');
             },
-            "Cancel": function() {
+            "No, Cancel": function() {
                 \$(this).dialog("close");
             }
         }
@@ -37,12 +37,13 @@ $def with (keys, top_books_from_author, formdata=None)
     });
     \$("#include input[type=radio]").click(function(){
         \$(".merge").find("div.master").removeClass("master");
-        \$("#mergeForm").attr("action", \$(".count a", \$(this).parent().parent()).attr("href"));
         \$(this).parent().parent().addClass("master");
         \$(this).parent().parent().find("input[type=checkbox]").attr('checked', true);
     });
 });
 </script>
+
+$var title: $_("Merge Authors")
 
 <div id="contentHead">
     <h1>$_("Merge Authors")</h1>
@@ -52,17 +53,17 @@ $def with (keys, top_books_from_author, formdata=None)
     
 $if not keys:
     $# TODO: improve this message. This error comes when no author keys are passed as url parameters.
-    <div class="note">$_("No authors provided.")</div>
+    <div class="note">$_("No authors selected.")</div>
     
 $if formdata: 
     $if not formdata.master:
         <div class="note">$_("Please select a master author record.")</div>
-    $if len(formdata.selected) < 2:
+    $if len(formdata.selected) == 0:
         <div class="note">$_("Please select some authors to merge.")</div>
 
 <ol class="sansserif">
     <li>Select a &quot;master&quot; record that best represents the author - 
-        <input type="radio" name="radio" id="radio"/>
+        <input type="radio" name="radio" id="radio" checked="checked"/>
     </li>
     <li>Select author records which should be merged with the master
         - 
@@ -73,12 +74,11 @@ $if formdata:
 </ol>
 
 <div id="noMaster" title="No Master record" style="text-align:left;">
-    <p>You must select a master record. This will act as the new Author record for all merged records.</p>
+    <p>You must select a master record to point the duplicates toward.</p>
 </div>
 
-<div id="confirmMerge" title="Confirm Merge" style="text-align:left;">
-    <p class="merge">Are you sure you want to merge these records into a single Author?<br/><br/>
-    <span class="red">This action cannot be reverted!</span></p>
+<div id="confirmMerge" title="Please Be Careful..." style="text-align:left;">
+    <p class="merge"><b>Are you sure</b> you want to merge these records?</p>
 </div>
 
 <form method="POST" id="mergeForm" name="mergeForm">

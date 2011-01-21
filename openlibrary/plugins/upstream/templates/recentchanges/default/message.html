@@ -22,7 +22,7 @@ $if len(change.changes) == 1:
     $else:
         $ action = "updated"
     
-    $if doc.revision == 1 and doc.author and doc.author.key == doc.key:
+    $if doc.revision == 1 and change.author and change.author.key == doc.key:
         $:who $_('opened a new Open Library account!')
     $elif who:
         $:who $action $:what

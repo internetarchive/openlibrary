@@ -54,7 +54,9 @@ $if param:
     $ page = int(param.get('page', 1))
     $ sort = param.get('sort', None)
     $ rows = 100
-    $ results = do_search(param, sorts[sort] if sort else None, page, rows=rows, spellcheck_count=3)	
+    $ search_start = time()
+    $ results = do_search(param, sorts[sort] if sort else None, page, rows=rows, spellcheck_count=3)
+    $ search_secs = time() - search_start
     $ docs = results.docs
     $ facet_counts = results.facet_counts
     $ num_found = results.num_found
@@ -107,6 +109,11 @@ function less(header) {
 </script>
 
 <div id="contentHead">
+    <div id="pullOut" class="sansserif searchInside">
+        <p><a href="/search/inside">Search inside</a>
+        over 2 million books</p>
+        <div class="label new"></div>
+    </div>
     $if param:
         <h1>
             $_("Search Results")
@@ -195,6 +202,7 @@ function less(header) {
                         <span style="padding-right:15px;"><a href="$:del_facet_url(header, k)" title="$_('Click to remove this facet')" class="facetRemove plain red">[x]</a></span>
                 </strong></span></p>
             $var title: ${', '.join(title)} - search
+        
     </div>
 
 
@@ -263,6 +271,13 @@ function less(header) {
                         <span class="label">Borrow</span>
                     </a>                
                 </span>
+            $elif not doc.public_scan and 'printdisabled' in doc.collections:
+                <span class="actions">
+                    <a href="/works/$doc.key" title="Protected DAISY">
+                        <span class="image daisy"></span>
+                        <span class="label">DAISY</span>
+                    </a>                
+                </span>
             </li>
         </ul>
         </div>
@@ -278,7 +293,7 @@ $if param and not error:
     $if results.num_found != 0:
         <div id="searchFacets">
         <h3 class="collapse">$_("Zoom In")</h3>
-        <div class="smallest lightgreen sansserif" style="margin-bottom:20px;">$_("Focus your results using these filters") <a href="/search/howto">syntax</a></div>
+        <div class="smallest lightgreen sansserif" style="margin-bottom:20px;">$_("Focus your results using these") <a href="/search/howto">$_("filters")</a></div>
         $for header, label in facet_map:
             $if header=='has_fulltext' and 'has_fulltext' in param:
                 $continue
@@ -286,9 +301,9 @@ $if param and not error:
             $if not counts:
                 $continue
             <div class="facet $header">
-            $if header == 'author_key' and ctx.user and ctx.user.is_admin() and len(counts) > 1:
+            $if header == 'author_key' and len(counts) > 1 and ctx.user:
                 $ keys = '&'.join('key=%s' % k for k, display, count in counts)
-                <h4 class="facetHead">$label <span style="font-weight:normal;" class="lowercase"><a href="/authors/merge?$keys" class="plain fixthis">merge authors</a></span></h4>
+                <h4 class="facetHead">$label <span class="merge"><a href="/authors/merge?$keys" title="Merge duplicate authors from this search">Merge duplicates</a></span></h4>
             $else:
                 <h4 class="facetHead">$label</h4>
             $ num = 0
@@ -312,5 +327,9 @@ $if param and not error:
 
     $if param and not error:
         $:macros.Pager(page, num_found, rows)
+
+    $if param and not error:
+        $if ctx.user and ctx.user.is_admin():
+            <div class="small sansserif clearfix"><br/><span class="adminOnly">Searching solr took $("%.2f" % search_secs) seconds</span></div>
 
 </div>

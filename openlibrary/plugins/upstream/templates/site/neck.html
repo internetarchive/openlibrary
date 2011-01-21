@@ -4,7 +4,10 @@ $putctx("sent_neck", True)
 
     $if ctx.get("robots"):
         <meta name="robots" content="$ctx.robots" />
-    
+
+    $if ctx.get("description"):
+    	<meta name="description" content="$ctx.description" />
+
     <title>$:title ($_("Open Library"))</title>
 
     $for link in ctx.get("links", []):
@@ -27,7 +30,7 @@ $if bodyid != "form":
         <a href="#content" title="Click to skip!">Click here to skip to this page's main content.</a>
         <a href="/index/">Site Index</a>
     </p>
-    <div id="topNotice"><p>$:render_template("site/alert")</p></div>
+    $:render_template("site/alert")
 
     <div id="placement">
 

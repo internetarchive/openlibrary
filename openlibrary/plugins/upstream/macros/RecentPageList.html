@@ -13,10 +13,11 @@ $for p in pages:
         </tr>
 <table>
 
-<div class="sansserif">
+ <div class="historyPager small sansserif gray">
 $if page != 0:
-    &lt; <a href="$:changequery(page=page - 1)" rel="nofollow">$_("Prev")</a> ... 
-
+    &larr; <a href="$:changequery(page=page - 1)" rel="nofollow">$_("Prev")</a> &nbsp;|&nbsp;
 $if len(pages) == limit:
-    <a href="$:changequery(page=page + 1)" rel="nofollow">$_("Next")</a> &gt;
+    <a href="$:changequery(page=page + 1)" rel="nofollow">$_("Next")</a> &rarr;
+$else:
+    $_("Next")</a> &rarr;
 </div>

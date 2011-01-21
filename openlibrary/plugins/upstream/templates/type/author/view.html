@@ -12,12 +12,28 @@ $if "merge-authors" in ctx.features and query_param('merge', 'false') == 'true':
                 "master": "$page.key",
                 "duplicates": $:json_encode(duplicates)
             };
+            /*
             \$.post("/authors/merge.json", JSON.stringify(data),
                 function(result, status, req) {
                     \$("#preMerge").fadeOut(); \$("#postMerge").fadeIn();
                 }, 
                 "json"
             );
+            */
+            
+            \$.ajax({
+                url: "/authors/merge.json",
+                type: "POST",
+                data: JSON.stringify(data),
+                success: function(data, textStatus, XMLHttpRequest) {
+                    \$("#preMerge").fadeOut(); 
+                    \$("#postMerge").fadeIn();                    
+                },
+                error: function(XMLHttpRequest, textStatus, errorThrown) {
+                    \$("#preMerge").fadeOut(); 
+                    \$("#errorMerge").fadeIn();                                        
+                }
+            });
         }
     });
     //-->
@@ -70,9 +86,14 @@ $putctx("description", "Books by " + page.get("name", ""))
                 </p>
             </div>
             <div id="postMerge" class="hidden">
+                <p class="right small"><b><a href="$page.key">Refresh the page</a>?</b></p>
                 <p class="larger collapse"><strong>Success!</strong></p>
-                <p class="right small"><a href="javascript:;" onclick="$('.message').slideUp('slow');">Done?</a></p>
-                <p class="small collapse">Those authors have been merged into this master.</p>
+                <p class="small collapse">OK. The merge is in motion. <i>It will take <u>a few minutes to finish</u> the update.</i></p>
+            </div>
+
+            <div id="errorMerge" class="hidden">
+                <p class="larger collapse"><strong>Argh!</strong></p>
+                <p class="small collapse">That merge didn't work. It's our fault, and we've made a note of it.</p>
             </div>
         </div>
 
@@ -98,7 +119,7 @@ $putctx("description", "Books by " + page.get("name", ""))
         <div class="section">
             <a name="editions"></a>
                 <h2 class="collapse">
-                    $commify(books.num_found) book$("s" if books.num_found != 1 else "")
+                    $commify(books.num_found) work$("s" if books.num_found != 1 else "")
                     <span class="count smaller"><a href="/books/add?author=$page.key">Add another</a>?</span>
                 </h2>
                 <a name="books"></a>
@@ -190,6 +211,13 @@ $putctx("description", "Books by " + page.get("name", ""))
         $:render_subjects("People", books.get_facet('person_facet'), 'person:')
         $:render_subjects("Time", books.get_facet('time_facet'), 'time:')
         <!-- /SUBJECTS -->
+
+        $if "lists" in ctx.features:
+            <div class="section">
+                <div class="Tools" style="margin:0 0 25px 0;float:left;">
+                    $:render_template("lists/widget", page)
+                </div>
+            </div>
 
         <div class="section">
             <h3>Links <span class="gray small sansserif">(outside Open Library)</span></h3>

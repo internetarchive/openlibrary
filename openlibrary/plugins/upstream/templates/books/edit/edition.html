@@ -113,10 +113,11 @@ $def radiobuttons(name, options, value):
         <div class="formElement" style="width: 650px;">
             <div class="label">
                 <label for="edition-toc">Table of Contents</label> 
-                <span class="tip">$:_('Use a "|" to add a column, and a line break between lines. Like this:')</span><br/><br/>
-<pre class="smaller gray"> INTRODUCTION |  | 10
- Chapter I. | The rights and involved duties of mankind considered | 19
- Chapter II. | The prevailing opinion of a sexual character discusses | 31</pre>
+                <span class="tip">$:_('Use a "*" for an indent, a "|" to add a column, and line breaks for new lines. Like this:')</span><br/><br/>
+<pre class="smaller gray"> * Part 1 | THIS WORLD | 1
+ ** chapter 1 | Of the Nature of Flatland | 3
+ ** chapter 2 | Of the Climate and Houses in Flatland | 5
+ * Part 2 | OTHER WORLDS | 42</pre>
 <br/>
             </div>
             <div class="input">
@@ -136,6 +137,10 @@ $def radiobuttons(name, options, value):
                 <input type="text" name="edition--other_titles--0" id="edition-title_other" value="$(book.other_titles and book.other_titles[0])" style="width:620px!important;"/>
                 <div class="tip">$_("For example:") $:_("<i>Der Zauberberg</i> is an alternate title for <i>The Magic Mountain</i>.")</div>
             </div>
+            $if book.other_titles and len(book.other_titles) > 1:
+                $for i, t in enumerate(book.other_titles):
+                    $if i > 0:
+                        <input type="hidden" name="edition--other_titles--$i" value="$book.other_titles[i]"/>
         </div>
 
         <div class="formElement librarian hidden">
@@ -184,7 +189,7 @@ $def radiobuttons(name, options, value):
                     <tbody>
                         <tr id="roles-form">
                             <td align="right" style="width:138px;">
-                                <select name="role" id="select-role" style="font-family:'Lucida Grande',sans-serif;font-size:14px;padding:4px;width:130px;">
+                                <select name="role" id="select-role" class="sansserif large" style="padding:4px;width:130px;">
                                     <option value="" selected="selected">$_("Select role")</option>
                                     $for role in edition_config.roles:
                                         <option>$role</option>
@@ -196,7 +201,7 @@ $def radiobuttons(name, options, value):
                                 <input type="text" id="role-name" name="name" style="width:160px!important;"/>
                             </td>
                             <td>
-                                <input type="button" name="submit" class="repeat-add" value="Add"/>
+                                <button type="button" name="add" class="repeat-add larger">$_("Add")</button>
                             </td>
                         </tr>
                     </tbody>
@@ -352,7 +357,7 @@ $def radiobuttons(name, options, value):
                             <input type="text" name="value" id="id-value" size="20" style="width:365px!important;"/>
                         </td>
                         <td width="100%">
-                            <input type="button" name="add" class="repeat-add" value="Add" />
+                            <button type="button" name="add" class="repeat-add larger">$_("Add")</button>
                         </td>
                     </tr>
                     <tbody id="identifiers-display">
@@ -412,7 +417,7 @@ $def radiobuttons(name, options, value):
                             <input type="text" name="value" id="classification-value" size="20" style="width:365px!important;"/>
                         </td>
                         <td width="100%">
-                            <input type="button" name="add" class="repeat-add" value="$_('Add')" />
+                            <button type="button" name="add" class="repeat-add larger">$_("Add")</button>
                         </td>
                     </tr>
                     <tbody id="classifications-display">

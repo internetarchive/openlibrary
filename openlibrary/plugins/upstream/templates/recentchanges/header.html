@@ -30,8 +30,7 @@ $def breadcrumbs():
             $label
         $else:
             $ p = p + "/" + k
-            <a href="$p">$label</a>/\
+            <a href="$p">$label</a> / \
 $#end
-<div class="brown sansserif small">$:breadcrumbs()</div>
+<div class="breadcrumbs">$:breadcrumbs()</div>
 <h1>$label</h1>
-

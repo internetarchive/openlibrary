@@ -12,7 +12,7 @@ $var title: $_("Add a book")
 </div>
             
 <div id="contentBody">            
-    <div id="searchResults" class="add">
+    <div id="searchResults">
         <ul id="siteSearch">
         $for work in matches:
             <li class="workResult" id="$work.key.split('/')[-1]">
@@ -21,7 +21,7 @@ $var title: $_("Add a book")
                 </span>
                 <span class="details">
                     <span class="resultTitle">
-                        <span class="booktitle"><a href="javascript:;" title="Select this book">$work.title</a></span>
+                        <h3 class="booktitle"><a href="javascript:;" title="Select this book">$work.title</a></h3>
                         <span class="bookauthor">by
                             $for a in work.authors:
                                 $a.name$cond(not loop.last, ',')
@@ -35,6 +35,8 @@ $var title: $_("Add a book")
             </li>
         </ul>
     </div>
+
+    <p class="small sansserif clearfix">None of these match the book I want to add. <a href="javascript:;" id="bookAddCont">Continue</a>.</p>
 
     <form method="POST" id="addbook" class="olform addbook1 hidden" name="edit">
         <input type="hidden" id="work" name="work" value=""/>
@@ -53,6 +55,13 @@ $var title: $_("Add a book")
     \$("#siteSearch a").click(function() {
         var li = \$(this).parents('li:first');
         \$("input#work").val("/works/" + li.attr("id"));
+        \$("form#addbook").submit();
+    });
+});
+
+\$(function() {
+    \$("#bookAddCont").click(function() {
+        \$("input#work").val("none-of-these");
         \$("form#addbook").submit();
     });
 });

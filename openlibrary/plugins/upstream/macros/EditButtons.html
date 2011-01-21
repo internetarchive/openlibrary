@@ -5,7 +5,7 @@ $def with (comment=None)
         <label for="comment">$_("Please, leave a short note about what you changed:") <span class="small gray">(Optional, but very useful!)</span></label>
     </div>
     <div class="input">
-        <input type="text" name="_comment" id="comment" value="$comment" style="width:900px;" tabindex="0"/>
+        <input type="text" name="_comment" id="comment" value="$comment" style="width:900px;"/>
     </div>
 </div>
 
@@ -13,12 +13,15 @@ $def with (comment=None)
     $:_('By saving a change to this wiki, you agree that your contribution is given freely to the world under <a href="http://wiki.creativecommons.org/CC0_FAQ">CC0</a>. Yippee!')
 </div>
 
-<div class="formElement collapse">
+<div class="formElement collapse" style="position:relative;">
     <div class="input">
-        <input type="submit" style="font-size:18px!important;" value="$_('Save')" name="_save" title="$_('Save')" tabindex="0"/>
+        <button type="submit" class="larger" name="_save" title="$_('Save')">$_("Save")</button>
         &nbsp;
-        <a href="javascript:history.go(-1);" class="small red" tabindex="0">$_('Cancel')</a>
+        <a href="javascript:history.go(-1);" class="small red">$_('Cancel')</a>
         $if ctx.user and ctx.user.is_admin():
-            <button type="submit" value="$_('Delete Record')" name="_delete" title="$_('Delete Record')" id="delete" class="right" tabindex="0">$_("Delete Record")</button>
-    </div>
+            <span class="adminOnly right"><button type="submit" value="$_('Delete Record')" name="_delete" title="$_('Delete Record')" id="delete">$_("Delete Record")</button></span>
+            </div>
+        $else:
+            <div class="adminDelete" style="width:500px;left:205px;"><em>Please Note:</em> Only Admins can delete things. <a href="/contact" class="blue">Let us know</a> if there's a problem.</div>
+            </div>
 </div>

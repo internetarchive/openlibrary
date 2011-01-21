@@ -13,17 +13,17 @@ $for name in s:
         <tbody>
             <tr><td class="descrip"><span class="title">$_t[name]</span></td>
             $if name == "other_titles":
-                <td class="tag"><span class="object">$:'; '.join(thingrepr(i) for i in page[name])</span></td></tr>
+                <td><span class="object">$:'; '.join(thingrepr(i) for i in page[name])</span></td></tr>
             $elif name == "translated_titles":
                 $for t in page[name]: <td class="tag"><span class="object"><i>$t.language.name -</i> $t.text;</span></td></tr>
             $elif name == "subjects":
-                <td class="tag"><span class="object">
+                <td><span class="object">
                 $for name in subjects:
                     $for subject in page[name]:
                         <a href="/search?ftokens=$:utf8(facet_token('subjects', subject.strip()))">$:utf8(thingrepr(subject)).replace(' -- ', '/')</a>,
                 </span></td></tr>
             $else:
-                <td class="tag"><span class="object">$:thingrepr(page[name])</span></td></tr>
+                <td><span class="object">$:thingrepr(page[name])</span></td></tr>
         </tbody>
         </table>
         </div>

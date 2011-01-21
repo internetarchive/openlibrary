@@ -24,7 +24,7 @@ $else:
 
 </div>
 
-<div id="contentMeta">
+<div id="contentBody">
 
     <div class="section">
 
@@ -42,16 +42,16 @@ $else:
             $ authors = zip(doc.get('author_key', []), doc.get('author_name', []))
             <li>
             <span class="bookcover">
-                $ cover = "http://covers.openlibrary.org/b/olid/%s-M.jpg?default=http://upstream.openlibrary.org/images/icons/avatar_book-sm.png" % doc['key']
+                $ cover = "http://covers.openlibrary.org/b/olid/%s-M.jpg?default=http://openlibrary.org/images/icons/avatar_book-sm.png" % doc['key']
                 <a href="/books/$doc['key']"><img src="$cover" height="70" alt="$doc['title']" title="$doc['title']"/></a>
             </span>
             <span class="details">
                 <span class="resultTitle">
-                    <span class="booktitle">
+                    <span class="booktitle sansserif">
                         $ title = doc['title']
                         $if doc.get('subtitle', None):
                             $ title = title + ': ' + doc['subtitle']
-                        <a href="/books/$doc['key']">$title</a>
+                        <b><a href="/books/$doc['key']" class="results">$title</a></b>
                     </span>
                 
                     <span class="bookauthor">

@@ -3,7 +3,10 @@ $def with (d, email)
 $var title: $_("Notifications from Open Library")
 
 <div id="contentHead">
-    <h1>$_("Notifications from Open Library")</h1>
+    <div class="small sansserif grey" style="margin-bottom:5px;"">$:_("%(user)s", user='<a href="%s">%s</a>' % (ctx.user.key, ctx.user.displayname))
+    /
+    <a href="$homepath()/account">$_("Settings")</a>
+    /</div>    <h1>$_("Notifications from Open Library")</h1>
     <p class="instruct">
         <a href="/account/email">$_("Update your email address?")</a>
         $:_("We have %(email)s for you at the moment.", email='<b>' + email + '</b>')
@@ -46,7 +49,7 @@ $ updates = d.get('updates', 'no')
         <div class="formElement bottom">
             <div class="input">
                 <br/>
-                <input value="Save" type="submit" name="submit" title="$_('Save')"/>
+                <button type="submit" class="larger" name="save" title="$_('Save')">$_("Save")</button>
                 &nbsp;
                 <a href="javascript:history.go(-1);" class="smaller attn">$_('Cancel')</a>
             </div>

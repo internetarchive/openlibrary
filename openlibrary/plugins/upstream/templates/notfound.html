@@ -14,4 +14,10 @@ $if create is None:
     <p>$_("%s does not exist", path)</p>
     $if create: 
         <p><a href="$:changequery(m='edit')">$_("Create it?")</a></p>
+
+    <div>
+    $if "/templates" in path or "/macros" in path:
+        <h3>Looking for a template/macro?</h3>
+        $:macros.PageList(path)
+    </div>
 </div>

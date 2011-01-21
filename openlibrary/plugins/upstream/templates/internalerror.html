@@ -8,9 +8,6 @@ $var title: Internal Error
 
 <div id="contentBody">
     <p>$_("Sorry. There seems to be a problem with what you were just looking at.")</p>
-    <p>$:_('We\'ve noted the error and will look into it as soon as possible. Head for <a href="/">home</a>?')</p>
-
-$if ctx.user and ctx.user.is_admin():
-    <p><b>$name</b></p>
+    <p>$:_('We\'ve noted the error %s and will look into it as soon as possible. Head for <a href="/">home</a>?', name)</p>
 
 </div>

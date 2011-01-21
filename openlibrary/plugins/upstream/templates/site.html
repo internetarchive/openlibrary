@@ -10,17 +10,17 @@ $:render_template("site/body", page)
 
 $:render_template("site/footer")
 
-<!--
-SUMMARY:
-
-$ stats = stats_summary()
-$for k in stats:
-    $k: $:dict(stats[k])
-
-DETAILS:
-
-$for s in ctx.get("stats", []):
-    $s.name $s.time
-        $:s.data
+$if "stats" in ctx.features:
+    <!--
+    SUMMARY:
     
--->
+    $ stats = stats_summary()
+    $for k in stats:
+        $k: $:dict(stats[k])
+    
+    DETAILS:
+    
+    $for s in ctx.get("stats", []):
+        $s.name $s.time
+            $:s.data
+    -->

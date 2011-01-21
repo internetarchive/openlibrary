@@ -12,6 +12,7 @@ $ title = "MARC Record from " + source_record.source_name
 $var title: $title
 
 <div id="contentHead">
+    <div class="breadcrumbs fixthis"><a href="[EDITION URL]">{Edition Title}</a> /</div>
     <h1>$title</h1>
 </div>
 
@@ -21,15 +22,15 @@ $var title: $title
             <tbody>
                 <tr>
                     <td class="title"><span class="title">Record ID</span></td>
-                    <td class="tag"><span class="object">$source_record.id</span></td>
+                    <td><span class="object">$source_record.id</span></td>
                 </tr>
                 <tr>
                     <td class="title"><span class="title">Source</span></td>
-                    <td class="tag"><span class="object"><a href="$source_record.source_url">$source_record.source_name</a></span></td>
+                    <td><span class="object"><a href="$source_record.source_url">$source_record.source_name</a></span></td>
                 </tr>
                 <tr>
                     <td class="title"><span class="title">Download Link</span></td>
-                    <td class="tag"><span class="object"><a href="$source_record.url?format=raw">$source_record.url?format=raw</a></span></td>
+                    <td><span class="object"><a href="$source_record.url?format=raw">$source_record.url?format=raw</a></span></td>
                 </tr>
             </tbody>
         </table>

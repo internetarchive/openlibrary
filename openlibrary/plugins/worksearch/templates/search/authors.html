@@ -16,21 +16,21 @@ $var title: Search Open Library for "$q"
         $ results = get_results(q, offset=offset, limit=results_per_page)
         $ response = results['response']
         $ num_found = int(response['numFound'])
-        $if num_found >= 2:
-            $if ctx.user and ctx.user.is_admin():
-                $ keys = '&'.join('key=%s' % doc['key'] for doc in response['docs'])
-                <div class="mergeThis adminOnly">
-                    <p class="smaller brown sansserif collapse">Is the same author listed twice?</p>
-                    <a class="large sansserif" href="/authors/merge?$keys">Merge authors</a>
-                </div>
+        $if num_found >= 2 and "merge-authors" in ctx.features and ctx.user:
+            $ keys = '&'.join('key=%s' % doc['key'] for doc in response['docs'])
+            <div class="mergeThis">
+                <p class="smaller brown sansserif collapse">Is the same author listed twice?</p>
+                <a class="large sansserif" href="/authors/merge?$keys">Merge authors</a>
+            </div>
     <h1>
         $_("Author Search")
     </h1>
 
     $if q:
-        <p class="sansserif darkgreen collapse"><strong>$commify(response['numFound']) hit$("s" if response['numFound'] != 1 else "")</strong></p>
-    $else:
-        <p class="sansserif red collapse"><strong>No hits</strong></span></p>
+        $if num_found:
+            <p class="sansserif darkgreen collapse"><strong>$commify(response['numFound']) hit$("s" if response['numFound'] != 1 else "")</strong></p>
+        $else:
+            <p class="sansserif red collapse"><strong>No hits</strong></span></p>
 </div>
 
 <div id="contentMeta">
@@ -52,13 +52,15 @@ $var title: Search Open Library for "$q"
             $ wc = "1 book" if num == 1 else commify(num) + " books"
             $ date = ''
             $if 'birth_date' in doc or 'death_date' in doc:
-                $ date = '(' + doc.get('birth_date', '') + ' - ' + doc.get('death_date', '') + ')'
+                $ date = doc.get('birth_date', '') + ' - ' + doc.get('death_date', '')
             $elif 'date' in doc:
-                $ date = '(' + doc['date'] + ')'
-            <li>
-            <a href="/authors/$doc['key']" class="larger">$n</a>&nbsp;$date&nbsp;<span class="sansserif brown small"><b>$wc</b>, like <i>$doc.get('top_work', '')</i></span><br />
+                $ date = doc['date']
+            <li class="sansserif">
+            <a href="/authors/$doc['key']" class="larger">$n</a>&nbsp;<span class="brown small">$date</span><br />
+            <span class="small grey"><b>$wc</b>  
             $if 'top_subjects' in doc:
-                <div class="grey small sansserif" style="margin-top: 5px;">$', '.join(doc['top_subjects'])</div>
+                about $', '.join(doc['top_subjects']), 
+            including <i>$doc.get('top_work', '')</i></span>
             </li>
         </ul>
 

@@ -3,11 +3,19 @@ $def with (page)
     <div id="bottom">
         <div id="legal">
         <p>$:_('Open Library is an initiative of the <a href="http://www.archive.org/">Internet Archive</a>, a 501(c)(3) non-profit, building a digital library of Internet sites and other cultural artifacts in digital form.<br/>Other <a href="http://www.archive.org/projects/">projects</a> include the <a href="http://www.archive.org/web/web.php">Wayback Machine</a>, <a href="http://www.archive.org/">archive.org</a>, <a href="http://www.nasaimages.org/">nasaimages.org</a>, <a href="http://www.archive-it.org">archive-it.org</a> &amp; <a href="http://opencontentalliance.org">opencontentalliance.org</a>.')</p>
-        <p>$:_('Your use of the Open Library is subject to the Internet Archive\'s <a href="http://www.archive.org/about/terms.php">Terms of Use</a>.')</p>
+        <p>$:_('Your use of the Open Library is subject to the Internet Archive\'s <a href="http://www.archive.org/about/terms.php">Terms of Use</a>.') And, here's an <a href="/index/">index</a> of all the pages.</p>
 
 
         <!--[if lt IE 7]>
         <p style="background:#ffc;border:1px solid red;margin-top:20px;font:11px Verdana;padding:10px;">$:_('The Open Library website has not been optimized for Internet Explorer 6, so some features and graphic elements may not appear correctly. Many sites, including <a href="http://googleenterprise.blogspot.com/2010/01/modern-browsers-for-modern-applications.html">Google</a> and Facebook, have phased out support for IE6 due to security and support issues. Please consider upgrading to <a href="http://www.microsoft.com/windows/internet-explorer/default.aspx">Internet Explorer 8</a>, <a href="http://www.mozilla.com/firefox/">Firefox</a>, <a href="http://www.google.com/chrome/">Chrome</a> or <a href="http://www.apple.com/safari/">Safari</a>, or <a href="http://www.opera.com/">Opera</a> to use this and other web sites to your fullest advantage.')</p>
         <![endif]-->
         </div>
+
+        $if "mobile" in ctx.features:
+            <script type="text/javascript">
+            function turnon_mobile() { document.cookie = "mobile=true; path=/"; }
+            </script>
+            <div class="center" style="margin-top: -75px; font-size: 0.6875em;">
+                <a href="/" onclick="javascript: turnon_mobile();">mobile</a> | full
+            </div>
     </div>
