@@ -3,7 +3,7 @@ import datetime
 
 from infogami.infobase import client
 from openlibrary.core.processors import invalidation
-from openlibrary.core.mocksite import MockSite
+from openlibrary.mocks.mock_infobase import MockSite
 
 class MockHook:
     def __init__(self):

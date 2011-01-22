@@ -2,15 +2,13 @@
 """
 import random
 
-import simplejson
 import web
-import yaml
 
 from infogami.utils import delegate
 from infogami.utils.view import render_template, public
 from infogami.infobase import client
 
-from openlibrary.core import formats
+from openlibrary.core import formats, cache
 import openlibrary.core.helpers as h
 
 from openlibrary.plugins.worksearch import code as worksearch
@@ -486,15 +484,76 @@ class feeds(delegate.page):
     
 def setup():
     pass
+
+def get_recently_modified_lists(limit, offset=0):
+    """Returns the most recently modified lists as list of dictionaries.
     
+    This function is memoized for better performance.
+    """
+    # this function is memozied with background=True option. 
+    # web.ctx must be initialized as it won't be avaiable to the background thread.
+    if 'env' not in web.ctx:
+        delegate.fakeload()
+    
+    keys = web.ctx.site.things({"type": "/type/list", "sort": "-last_modified", "limit": limit, "offset": offset})
+    lists = web.ctx.site.get_many(keys)
+    
+    # Cache seed_summary, so that it can be reused later without recomputing.
+    for list in lists:
+        list.seed_summary_cached = list.seed_summary
+        
+    return [list.dict() for list in lists]
+    
+get_recently_modified_lists = cache.memcache_memoize(get_recently_modified_lists, key_prefix="get_recently_modified_lists", timeout=5*60)
+    
+def _preload_lists(lists):
+    """Preloads all referenced documents for each list.
+    List can be either a dict of a model object.
+    """
+    keys = set()
+    
+    for xlist in lists:
+        if not isinstance(xlist, dict):
+            xlist = xlist.dict()
+        
+        owner = xlist['key'].rsplit("/lists/", 1)[0]
+        keys.add(owner)
+                
+        for seed in xlist.get("seeds", []):
+            if isinstance(seed, dict) and "key" in seed:
+                keys.add(seed['key'])
+            
+    web.ctx.site.get_many(list(keys))
+
 @public
-def get_active_lists_in_random(limit=20):
-    # get 5 times more lists and pick the required number in random among them.
-    keys = web.ctx.site.things({"type": "/type/list", "sort": "-last_modified", "limit": 5*limit})
+def get_active_lists_in_random(limit=20, preload=True):
+    lists = []
+    offset = 0
     
-    # ignore lists with just 2 seeds
-    lists = [list for list in web.ctx.site.get_many(keys) if len(list.seeds) > 2]
+    while len(lists) < limit:
+        result = get_recently_modified_lists(limit*5, offset=offset)
+        offset += len(result)
+        
+        # ignore lists with 2 or less seeds
+        lists += [xlist for xlist in result if len(xlist.get("seeds", [])) > 2]
     
     if len(lists) > limit:
         lists = random.sample(lists, limit)
+
+    if preload:
+        _preload_lists(lists)
+        
+    seed_summaries = {}
+    
+    for xlist in lists:
+        seed_summaries[xlist['key']] = xlist.pop("seed_summary_cached", None)
+    
+    # convert rawdata into models.
+    lists = [web.ctx.site.new(xlist['key'], xlist) for xlist in lists]
+    
+    # Initialize seed_summary to avoid recomputing it for all the lists.
+    for xlist in lists:
+        if xlist.key in seed_summaries:
+            xlist.__dict__['seed_summary'] = seed_summaries[xlist.key]
+    
     return lists
