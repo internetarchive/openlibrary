@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+import sys
+sys.path.append("/opt/openlibrary/production/")
 from openlibrary.core import admin_counts
 
 if __name__ == "__main__":
