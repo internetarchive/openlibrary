@@ -25,7 +25,7 @@ def connect_to_pg(config_file):
     if not conf['db']:
         raise KeyError("database/db")
     host = config["db_parameters"].get("host")
-    user = config["db_parameters"].get("username")
+    user = config["db_parameters"].get("user") or config["db_parameters"].get("username")
     if host:
         conf["host"] = host
     if user:
