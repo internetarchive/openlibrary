@@ -70,6 +70,8 @@ $if len(loans) > 0:
         </tbody>
     </table>
     </div>
+    $for loan in loans:
+        $:macros.BorrowTrouble(loan['expiry'])
     <h3>How To Return eBooks through Adobe Digital Editions</h3>
     <ol class="sansserif small">
         <li>Open Adobe Digital Editions</li>
@@ -80,7 +82,6 @@ $if len(loans) > 0:
         <li>Click "Return" to confirm</li>
         <li>Done!</li>
     </ol>
-
 
 $# XXX borrow history not yet recorded so we show instructions if no current loans
 <!-- if no borrow history -->

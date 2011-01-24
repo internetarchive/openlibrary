@@ -2,6 +2,7 @@
 """
 from openlibrary.utils.solr import Solr
 from infogami import config
+from infogami.utils import stats
 import web
 
 def get_works_solr():
@@ -42,7 +43,14 @@ def work_search(query, limit=20, offset=0, **kw):
 
     query = process_work_query(query)
     solr = get_works_solr()
-    return solr.select(query, start=offset, rows=limit, **kw)
+    
+    stats.begin("solr", query=query, start=offset, rows=limit, kw=kw)
+    try:
+        result = solr.select(query, start=offset, rows=limit, **kw)
+    finally:
+        stats.end()
+    
+    return result
 
 def process_work_query(query):
     if "author" in query and isinstance(query["author"], dict):

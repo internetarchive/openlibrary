@@ -16,7 +16,7 @@ $putctx("robots", "noindex,nofollow")
     };
 });
 \$().ready(boxPop);
-\$().ready(function(){\$("#coverPop").colorbox({inline:true, href:"#addCover"});});
+\$().ready(function(){\$("#coverPop").colorbox({inline:true, opacity:"0.5", href:"#addCover"});});
 
 function limitChars(textid, limit, infodiv) {
     var text = \$('#'+textid).val(); 
@@ -85,6 +85,8 @@ function limitChars(textid, limit, infodiv) {
             note = ""
             
     <h1>$:title</h1>
+    $if not ctx.user:
+        $:render_template("lib/not_logged")
     $:note
 </div>
 
@@ -129,20 +131,20 @@ function limitChars(textid, limit, infodiv) {
 
 $jsdef render_author(i, author):
     <div class="input" id="author-input-$i">
-        <input name="authors--$i" class="required author author-autocomplete" type="text" id="author-$i" value="$author.name" tabindex="0"/>
+        <input name="authors--$i" class="author author-autocomplete" type="text" id="author-$i" value="$author.name"/>
         <input name="work--authors--$i--author--key" type="hidden" id="author-$i-key" value="$author.key" />
         <a href="javascript:;" class="remove red plain hidden" title="$_('Remove this author')">[x]</a>&nbsp;
         <a href="javascript:;" class="add hidden">Add another author?</a>
     </div>
 
 <div id="contentBody">
-    <form method="post" id="addWork" class="olform books" name="edit" action="">
+    <form method="post" id="addWork" class="olform books validate" name="edit" action="">
         <div class="TitleAuthor sansserif">
             <div class="label">
-                <label for="work-title">Title</label> <span class="tip">Use <b><i>Title: Subtitle</i></b> to add a subtitle.</span> 
+                <label for="work-title">Title</label> <span class="tip">Use <b><i>Title: Subtitle</i></b> to add a subtitle.</span> <span class="red">*<span class="tip">$_("Required field")</span></span>
             </div>
             <div class="input">
-                <input name="work--title" type="text" id="work-title" value="$this_title" tabindex="0"/>
+                <input name="work--title" type="text" id="work-title" class="required" value="$this_title"/>
             </div>
             <div class="label">
                 <label for="author-$0">Author</label>
@@ -161,7 +163,7 @@ $jsdef render_author(i, author):
             <ul>
                 <li><a href="#about" id="link_about">$_("What's It About?")</a></li>
                 <li><a href="#excerpts" id="link_excerpts">$_("Add Excerpts")</a></li>
-                <li><a href="#web" id="link_web">$("Web Resources")</a></li>
+                <li><a href="#web" id="link_web">$("Links")</a></li>
                 $if edition:
                     $if edition.publishers:
                         $ edition_name = "; ".join(edition.publishers) + ' edition'

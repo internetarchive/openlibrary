@@ -1,4 +1,4 @@
-from catalog.get_ia import find_item
+from openlibrary.utils.ia import find_item
 from time import sleep
 import httplib
 import socket

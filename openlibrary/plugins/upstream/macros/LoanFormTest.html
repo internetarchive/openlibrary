@@ -1,0 +1,31 @@
+$def with (available_loans)
+
+$ default_type = 'pdf'
+$ type_info = { 'epub': ('ePub', 'plain text version; may contain OCR errors'), 'pdf': ('PDF', 'high quality scans of pages') }
+
+$if not available_loans:
+    $# Caller should check before calling
+    No loans available
+
+$else:
+    <ul class="preSubmit large">
+        <li><strong>Please choose your preferred format:</strong></li>
+    </ul>
+ 
+    <form method="post" id="borrowBook" name="borrowBook" class="olform">
+    $for loan in available_loans:
+        $ type_str, desc = type_info.get(loan['type'], (loan['type'], ''))
+        <p class="large preSubmit" style="margin-left:30px;">
+            <label>
+            $if loan['type'] == default_type or len(available_loans) == 1:
+                <input type="radio" name="format" value="$loan['type']" checked="checked"/>
+            $else:
+                <input type="radio" name="format" value="$loan['type']" />  
+            <strong style="padding-left:10px;">$type_str</strong> 
+            <span class="smaller grey">$desc</span>
+            </label>
+        </p>
+    <div style="margin-left:15px;">
+        <input type="submit" class="larger preSubmit" value="Download eBook"/>
+    </div>
+    </form>

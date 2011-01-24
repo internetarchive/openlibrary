@@ -1,6 +1,9 @@
-$def with (limit=25, hash="", **query)
+$def with (limit=25, hash="", paginate=True, **query)
 
-$ page = safeint(query_param('page', '1'))
+$if paginate:
+    $ page = safeint(query_param('page', '1'))
+$else:
+    $ page = 1
 
 $def call_template(name, change):
     $ t = get_template("recentchanges/" + change.kind + "/" + name) or get_template("recentchanges/default/" + name)
@@ -34,10 +37,11 @@ $var length = len(changes)
     </tbody>
 </table>
 
-<div class="historyPager small sansserif gray">
-    $if len(changes) == limit:
-        <a href="$:changequery(page=page + 1)$hash" rel="nofollow">&larr; $_("Older")</a>
-    $if page > 1:
-         &nbsp;|&nbsp;
-        <a href="$:changequery(page=page - 1)$hash" rel="nofollow">$_("Newer") &rarr;</a>
-</div>
+$if paginate:
+    <div class="historyPager small sansserif gray">
+        $if len(changes) == limit:
+            <a href="$:changequery(page=page + 1)$hash" rel="nofollow">&larr; $_("Older")</a>
+        $if page > 1:
+             &nbsp;|&nbsp;
+            <a href="$:changequery(page=page - 1)$hash" rel="nofollow">$_("Newer") &rarr;</a>
+    </div>

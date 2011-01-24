@@ -2,11 +2,42 @@ $def with (page)
 
 $var title: $page.title
 
+$code:
+    def render_description():
+        items = []
+
+        title = page.title
+        if page.subtitle:
+             title += ": " + page.subtitle
+        if page.authors and any(a.get('author') for a in page.authors):
+            title += " by " + ", ".join(a.author.name for a in page.authors if 'author' in a)
+        items.append(title)
+        
+        if page.editions:
+            items.append("%d %s" % (page.edition_count, cond(page.edition_count > 1, "editions", "edition")))
+            
+        if page.first_publish_year:
+            items.append("First published in %s" % page.first_publish_year)
+        
+        subjects = page.get_subjects()
+        if subjects:
+            items.append("Subjects: " + ", ".join(s for s in subjects))
+        if page.subject_places:
+            items.append("Places: " + ", ".join(s for s in page.subject_places))
+        if page.subject_people:
+            items.append("People: " + ", ".join(s for s in page.subject_people))
+        if page.subject_times:
+            items.append("Times: " + ", ".join(s for s in page.subject_times))
+            
+        return "; ".join(items)
+
+    putctx("description", render_description())
+    
 <div id="contentHead">
 
     $:macros.databarView(page)
 
-    <h1 class="collapse">
+    <h1>
         $if page.get('subtitle', ''):
             $page.title<span title="subtitle">: $page.subtitle</span>
         $else:
@@ -22,10 +53,11 @@ $var title: $page.title
     </h1>
     <div class="clearfix"></div>
     $if page.authors:
-        $ author_list = ', '.join('<a href="%s">%s</a>' % (a.author.url(), a.author.name) for a in page.authors)
+        $ author_list = ', '.join('<a href="%s">%s</a>' % (a.author.url(), a.author.name) for a in page.authors if a.get('author'))
         <div class="work"><span class="editions">$_("By") $:author_list</span></div>
     $else:
         <div class="work"><span class="editions">$:_("By <em>unknown author</em>")</span></div>
+
 </div>
 
 <div class="clearfix"></div>
@@ -55,9 +87,18 @@ $var title: $page.title
         $if page.edition_count == 1:
             $for book in page.editions:
                 $:render_template("books/edition-toolbar-show", book)
+                $if "lists" in ctx.features:
+                    <div class="Tools">
+                        $:render_template("lists/widget", page)
+                    </div>
     </div>
 
     <div class="workAbout">
+        $if not (page.description or page.excerpts or page.first_sentence):
+            <div class="workHelp brown sansserif">
+                $ exclaim = random.choice(["Well, gosh.", "Dang.", "Darn it.", "Oy vey.","¡Ay, caramba!", "Uh oh.","Sheesh.", "Ack!", "D'oh.","Oh, pooh.", "What the..?", "Cor blimey.",   "Jeepers.", "Heavens to Betsy!", "Oh! The humanity!", "Alack!", "Alas...", "Zut alors!","Drat!","Fiddlesticks.", "Good grief.", "Rats.", "Yikes!", "Crikey!"])
+                <span id="curses">$exclaim</span> There's no description for this book yet. Can you <b><a href="$page.url('/edit')#about/about">help</a></b>?
+            </div>
     <div class="workPadding">
         $if not page.excerpts and page.first_sentence:
             <p class="largest" style="margin-bottom: 20px;" title="First Sentence"><em>"$page.first_sentence</em>"</p>
@@ -65,6 +106,10 @@ $var title: $page.title
         $if page.description:
             <div class="sansserif smallest brown collapse">About the Book</div>
             $:sanitize(format(page.description))
+
+        $if page.original_languages:
+            <div class="sansserif smallest brown collapse">Original languages</div>
+            $', '.join(lang.name for lang in page.original_languages)<p>
 
         $def render_subjects(label, subjects, prefix=""):
             $if subjects:
@@ -102,11 +147,6 @@ $var title: $page.title
                         </div>
                     </div>
             </div>
-        $if not (page.description or page.excerpts):
-            <div class="workHelp brown sansserif">  	 	
-                $ exclaim = random.choice(["Well, gosh.", "Dang.", "Darn it.", "Oy vey.","¡Ay, caramba!", "Uh oh.","Sheesh.", "Ack!", "D'oh.","Oh, pooh.", "What the..?", "Cor blimey.",   "Jeepers.", "Heavens to Betsy!", "Oh! The humanity!", "Alack!", "Alas...", "Zut alors!","Drat!","Fiddlesticks.", "Good grief.", "Rats.", "Yikes!", "Crikey!"]) 		
-                <span id="curses">$exclaim</span> The library doesn't know what this book is <strong>about</strong>. <br />Can you <b><a href="$page.url('/edit')#about/about">help describe it</a></b>?
-            </div>
 
         $if page.links or (page.wikipedia and page.wikipedia.startswith("http")):
             <div class="section">
@@ -126,14 +166,37 @@ $var title: $page.title
                     <table class="meta"><tbody>
                     $if page.lc_classifications:
                         <tr><td class="title"><span class="title">Library of Congress</span></td>
-                        <td class="tag"><span class="object">$thingrepr(page.lc_classifications)</span></td></tr>
+                        <td><span class="object">$thingrepr(page.lc_classifications)</span></td></tr>
                     $if page.dewey_number:
                         <tr><td class="title"><span class="title">Dewey</span></td>
-                        <td class="tag"><span class="object">$thingrepr(page.dewey_number)</span></td></tr>
+                        <td><span class="object">$thingrepr(page.dewey_number)</span></td></tr>
                     </tbody></table>
                 </div>
+
         </div>
     </div>
+
+    $if "lists" in ctx.features:
+        $if page.edition_count > 1:
+            <script type="text/javascript"> 
+            \$().ready(function(){
+                \$('#widget-my-lists').children().insertBefore('#widget-my-lists').end().end().remove();
+                \$('#widget-other-lists').children().insertBefore('#widget-other-lists').end().end().remove();
+                if (\$('.dropit').length) {
+                    \$('#widget-add').addClass('contentQuarter').css('min-height','35px');
+                    \$('#listsWork .listLists').wrap('<div class="contentThreeQuarter" style="min-height:35px;">');
+                    \$('<div class="contentSpacer"></div>').insertBefore('.contentThreeQuarter');
+                    \$('#listsWork').addClass('collapse');
+                } else {
+                    \$('#listsWork').css('width','100%');
+                    \$('ul.listLists').css('width','100%')
+                };
+            });
+            </script> 
+            <div class="clearfix"></div>
+            <div class="section" id="listsWork" style="float:left;">
+                $:render_template("lists/widget", page)
+            </div>
 
     <a name="editions"></a>
 
@@ -147,8 +210,6 @@ $var title: $page.title
             </h2>
             <div class="small sansserif brown" style="position:relative;z-index:1000;width:400px;">
                 <a href="/books/add?work=$page.key" title="$_('Add another edition of') $page.title">$_("Add another")</a>? 
-                $if ctx.user and ctx.user.is_admin():
-                    <a href="#" title="This doesn't work yet" class="fixthis">Merge duplicates</a>?
             </div>
         </div>
 
@@ -187,6 +248,16 @@ $var title: $page.title
                 else if (\$(this).hasClass('sorting_desc')) {\$(this).attr("title","Bring books for sale to the top");}
                 else {\$(this).attr("title","Available to buy");};
             });
+            \$('#editions th.read span').html('&nbsp;&uarr;');
+            \$('#editions th').mouseup(function(){
+                \$('#editions th span').html('');
+                \$(this).find('span').html('&nbsp;&uarr;');            
+                if (\$(this).hasClass('sorting_asc')) {
+                    \$(this).find('span').html('&nbsp;&darr;');
+                } else if (\$(this).hasClass('sorting_desc')) {
+                    \$(this).find('span').html('&nbsp;&uarr;');
+                };
+            });
         });
         \$(window).load(function(){
            var rowCount = \$('#editions tbody tr').length;
@@ -218,17 +289,25 @@ $var title: $page.title
         <table id="editions">
             <thead>
             <tr>
-                <th class="title" title=""><a href="javascript:;">Edition</a></th>
-                <th class="read" title=""><a href="javascript:;">Read</a></th>
-                <th class="borrow" title=""><a href="javascript:;">Borrow</a></th>
-                <th class="buy" title=""><a href="javascript:;">Buy</a></th>
+                <th class="title" title=""><a href="javascript:;">Edition<span></span></a></th>
+                <th class="read" title=""><a href="javascript:;">Read<span></span></a></th>
+                <th class="borrow" title=""><a href="javascript:;">Borrow<span></span></a></th>
+                <th class="buy" title=""><a href="javascript:;">Buy<span></span></a></th>
             </tr>
             </thead>
             <tbody>
+                $ edition_list_start = time()
                 $for book in page.get_sorted_editions():
                     <tr>$:render_template("books/edition-sort", book)</tr>
+                $ edition_list_secs = time() - edition_list_start
+
             </tbody>
         </table>
 
+        $if ctx.user and ctx.user.is_admin():
+            <div class="clearfix"></div>
+            <div class="small sansserif"><span class="adminOnly">Getting list of editions took $("%.2f" % edition_list_secs) seconds</span></div>
+
     $:render_template("lib/history", page)
+
 </div>

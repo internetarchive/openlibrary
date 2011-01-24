@@ -6,11 +6,40 @@ $code:
     def has_any(*keys):
         return any(page[k] for k in keys)
 
+$code:       
+    def get_description(book):
+        if book.publishers and book.publish_date:
+            edition = book.publish_date + ',' + ', '.join(book.publishers)
+        elif book.publish_date:
+            edition = book.publish_date
+        elif book.publishers:
+            edition = ', '.join(book.publishers)
+        else:
+            edition = 'unknown '
+            
+        work = page.works and page.works[0]
+        title = cond(work, work.title, book.title)
+        authors = cond(work, work and work.get_authors(), book.get_authors())
+        author_info = " by " + ", ".join(a.name for a in authors)
+
+        format = ""
+        if book.physical_format:
+            format += book.physical_format.replace('[', '').replace(']','')
+
+        if book.languages:
+            format += ' in ' + ', '.join(lang.name for lang in book.languages)
+        if book.edition_name:
+            format += " - " + book.edition_name
+
+        meta = title + author_info + ", " + edition + " edition, " + format
+        return meta
+    putctx("description", get_description(page))
+
 $def display_value(label, value):
     $if value:
         <tr>
             <td class="title"><h6 class="title">$label</h6></td>
-            <td class="tag"><span class="object">$:thingrepr(value)</span></td>
+            <td><span class="object">$:thingrepr(value)</span></td>
         </tr>
 
 $def display_identifiers(label, ids):
@@ -26,23 +55,33 @@ $def display_identifiers(label, ids):
                         ${id.value}$sep
             </span></td>
         </tr>
-    $else:
-        <tr>
-            <td class="title"><h6 class="title">$label</h6></td>
-            <td class="object"><span class="object">
-                $for id in ids:
-                    <a href="$id.url">$id.value</a>
-            </span>
-            $if ctx.user and ctx.user.is_admin():
-                <div id="gr_add_to_books"></div>
-                <script type="text/javascript" src="http://www.goodreads.com/book/add_to_book_widget_frame/$id.value"></script>
-            </td>
-        </tr>
+
+$def display_goodreads(label, ids):
+    $if label == "Goodreads":
+        <table class="meta collapse">
+            <tbody>
+            <tr>
+                <td class="title"><h6 class="title">$label</h6></td>
+                <td class="object">
+                    <span class="object">
+                    $for id in ids:
+                        <a href="$id.url">$id.value</a>
+                    </span>
+                    <div id="gr_add_to_books">
+                        <div class="gr_custom_each_container_">
+                            <iframe height="110" width="280" frameborder="0" scrolling="no" src="http://www.archive.org/openlibrary/goodreads_proxy.php?id=$id.value" /></iframe>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
 
 $def display_contributor(c):
     <li><span>$c.role</span><br />$c.name </li>
-    
+
 $ work = page.works and page.works[0] or None    
+
 
 <div id="contentHead">
     <table width="100%"><tbody><tr>
@@ -50,6 +89,14 @@ $ work = page.works and page.works[0] or None
     <td valign="top" style="padding-right:10px;">
         $:render_template('covers/book_cover_small', page.works[0])
     </td>
+    $ item_id = None
+    $if 'ocaid' in page:
+        $ item_id = page['ocaid']
+        $ meta_fields = page.get_ia_meta_fields()
+        $if meta_fields:
+            $ collection = meta_fields.get('collection', [])
+            $if 'printdisabled' in collection or 'lendinglibrary' in collection:
+                $ item_id = None
 
     <td valign="top" width="100%">
     $:macros.databarView(page)
@@ -60,14 +107,14 @@ $ work = page.works and page.works[0] or None
             <span title="$_('Go to the main page for %s', page.title)"><a href="$work.url()">$truncate(work.title or "", 60)</a></span>
         $else:
             <strong>$:_('1 edition')</strong> record for of $page.title
-    $ authors = cond(work, work and work.get_authors(), page.get_authors())
+        $ authors = cond(work, work and work.get_authors(), page.get_authors())
         $if authors:
             $ author_list = ', '.join('<a href="%s">%s</a>' % (a.url(), truncate(a.name, 40)) for a in authors)
             $_("by") <span title="$_('Go to this author\'s page')">$:author_list</span>
         $else:
             $:_("by an <em>unknown author</em>")
-        <br />
-                <span class="smaller"><a href="/books/add?work=$page.works[0].key" title="$_('Add another edition of') $page.title">$_("Add another")</a>?</span>
+        $if work:
+            <span class="smaller">&nbsp;&bull;&nbsp;<a href="/books/add?work=$work.key" title="$_('Add another edition of') $page.title">$_("Add edition")</a>?</span>
         <br />
         $ prev = page.get_prev()
         $ next = page.get_next()
@@ -109,17 +156,19 @@ $ work = page.works and page.works[0] or None
 
         <div class="editionAbout">
 
-            <div class="section sansserif" style="line-height: 1.5em">
-                    <span style="font-size:1.125em;"><strong>$page.title</strong></span>  
+            <div class="section sansserif">
+                <h1 class="edition">
+                    <strong>$page.title</strong>  
                 $if page.subtitle:
-                    <br /><span class="larger"><em>$page.subtitle</em></span> 
+                    <br /><em>$page.subtitle</em> 
                 $if page.edition_title or page.edition_name:
                     <br />$page.edition_title $page.edition_name
                 $if page.by_statement:
                     <br />$page.by_statement
-                <span style="font-size:0.8125em;">
+                </h1>
+                <h4 class="publisher">
                     $if page.publish_date or page.publishers or page.publish_places:
-                        <br />Published
+                        Published
                         $if page.publish_date:
                             <strong>$page.publish_date</strong> 
                         $if page.publishers:
@@ -133,7 +182,7 @@ $ work = page.works and page.works[0] or None
                         <span class="adjust">.</span>
                     $if page.languages:
                     <br/>Written in $:thingrepr(page.languages).
-                </span> 
+                </h4> 
             </div>
 
         $if page.description:
@@ -153,7 +202,10 @@ $ work = page.works and page.works[0] or None
                 $for toc in table_of_contents:
                     <tr class="toc-level-$toc.level">
                         <td class="toc-label">$toc.label</td>
-                        <td class="toc-title">$toc.title</td>
+                        $if item_id and toc.pagenum.isdigit():
+                            <td class="toc-title"><a href="http://www.archive.org/stream/$item_id#page/$toc.pagenum">$toc.title</a></td>
+                        $else:
+                            <td class="toc-title">$toc.title</td>
                         <td class="toc-pagenum">$toc.pagenum</td>
                     </tr>
             </tbody>
@@ -213,12 +265,20 @@ $ work = page.works and page.works[0] or None
                     $:display_identifiers(values[0].label, values)
             </tbody>
             </table>
+            $:display_goodreads("Open Library", [storage(url=None, value=page.key.split("/")[-1])])
+            $for name, values in page.get_identifiers().multi_items():
+                $:display_goodreads(values[0].label, values)
         </div>
         
         </div>
 
         <div class="editionTools">
             $:macros.databarWork(page)
+
+            $if "lists" in ctx.features:
+                <div class="Tools">
+                    $:render_template("lists/widget", page)
+                </div>
 
             $ links = page.get_links()
             $if links:
@@ -234,6 +294,32 @@ $ work = page.works and page.works[0] or None
     </div>
 
     $:render_template("lib/history", page)
+
+    <script type="text/javascript">
+    <!--
+    \$(function(){
+        \$('#historyTools').append('| <a href="javascript:;" id="wikilink" title="Cite this on Wikipedia">Wikipedia citation</a>');
+        \$('#wikilink').colorbox({inline:true,opacity:"0.5",href:"#wikicode"});
+        \$('#wikiselect').focus(function(){\$(this).select();})
+    });
+    //-->
+    </script>
+    <div class="hidden">
+        <div class="coverFloat" id="wikicode">
+            <div class="coverFloatHead">
+                Wikipedia citation
+                <a class="floaterShut" href="javascript:;" onclick="\$.fn.colorbox.close();"><span class="shift">Close</span></a>
+            </div>
+            <p>Copy and paste this code into your Wikipedia page. <a href="http://en.wikipedia.org/wiki/Template:Cite#Citing_books" target="_new" title="Get instructions at Wikipedia in a new window">Need help</a>?</p>
+            <form method="get" action="">
+                <textarea cols="30" rows="20" readonly="readonly" id="wikiselect">{{Citation
+    $for k, v in page.wp_citation_fields.iteritems():
+       |$k = $v
+    }}</textarea>
+            </form>
+        </div>    
+    </div>
+
 </div>
 
 <!-- source_records: $page.get('source_records', []) -->

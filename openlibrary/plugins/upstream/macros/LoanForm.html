@@ -1,7 +1,7 @@
 $def with (page, available_loans)
 
 $ default_type = 'bookreader'
-$ type_info = { 'epub': ('ePub', 'plain text version; may contain OCR errors'), 'pdf': ('PDF', 'high quality scans of pages'), 'bookreader': ('BookReader', 'read online'), }
+$ type_info = { 'epub': ('Download ePub for Digital Editions', 'smaller file that may contain text conversion errors'),'pdf': ('Download Scanned Book for Digital Editions', 'high quality scanned images'),'bookreader': ('Read Online', 'in the BookReader'), }
 
 $if not available_loans:
     $# Caller should check before calling
@@ -18,25 +18,61 @@ $else:
                 
         available_loans.sort(key=loan_key)
 
-    <ul class="preSubmit large">
-        <li><strong>Please choose your preferred format:</strong></li>
-    </ul>
- 
-    <form method="post" id="borrowBook" name="borrowBook" class="olform">
+    <script type="text/javascript">
+    \$().ready(function(){
+        \$('#borrowbook label').click(function(){
+            \$(this).find('input').attr('checked','checked');
+            \$('#borrowbook').submit();
+            \$('.preSubmit').hide();
+            \$('.postSubmit').show();
+            setTimeout('document.location.reload()', 4000);
+            return true;
+        });
+        if (\$('fieldset.online').length == 0) {\$('form.olform').css('width','455px');};
+    });
+    </script>
+    <div class="preSubmit" style="width:690px;">
+    <form method="post" id="borrowbook" name="borrowBook" class="olform">
     $for loan in available_loans:
         $ type_str, desc = type_info.get(loan['resource_type'], (loan['resource_type'], ''))
-        <p class="large preSubmit" style="margin-left:30px;">
-            <label>
-            $if loan['resource_type'] == default_type or len(available_loans) == 1:
-                <input type="radio" name="format" value="$loan['resource_type']" checked="checked"/>
-            $else:
-                <input type="radio" name="format" value="$loan['resource_type']" />  
-            <strong style="padding-left:10px;">$type_str</strong> 
-            <span class="smaller grey">$desc</span>
-            </label>
-        </p>
-    <div style="margin-left:15px;" class="preSubmit">
-        <input type="submit" class="larger" value="Download eBook"/>
-        <a href="$page.key" class="red small" style="padding-left:30px;">Cancel</a>
-    </div>
+        $if loan['resource_type'] == default_type or len(available_loans) == 1:
+            <fieldset class="online">
+                <legend>Read in Browser</legend>
+                <label>
+                    <input type="radio" name="format" class="online" value="bookreader"/> 
+                    <strong>Read in Browser</strong> 
+                    Open in our BookReader 
+                </label>
+                <div>
+                    <table cellpadding="0" cellspacing="0" border="0"><tbody>
+                        <tr>
+                            <td class="icon"><img src="/images/icons/icon_thumbsup-borrow.png" width="25" height="25"/></td>
+                            <td>Read online now.<br/>No extra software!</td>
+                        </tr>
+                    </tbody></table>
+                </div>
+            </fieldset>
+    <fieldset class="download">
+        <legend>Download &amp; Open in Adobe Digital Editions</legend>
+        <label style="margin-right:15px;"> 
+            <input type="radio" name="format" class="download" value="pdf"/>  
+            <strong>Download PDF</strong> 
+            High quality page images 
+        </label> 
+        <label> 
+            <input type="radio" name="format" class="download" value="epub"/>  
+            <strong>Download ePub</strong> 
+            Smaller file, may contain errors 
+        </label>
+        <div>
+            <table cellpadding="0" cellspacing="0" border="0"><tbody>
+                <tr>
+                    <td class="icon"><img src="/images/icons/icon_wrench-borrow.png" width="30" height="30"/></td>
+                    <td>You <strong>must <a href="http://www.adobe.com/products/digitaleditions/" title="Visit adobe.com in a new browser window to install the software" target="newwindow">install Adobe Digital Editions</a> to view</strong><br/>either of these format options. (It's free.)</td>
+                </tr>
+            </tbody></table>
+        </div>
+    </fieldset>
+    <input type="submit" value="Borrow This Book" id="borrowBtn" name="borrowBtn" class="hidden"/>
     </form>
+    </div>

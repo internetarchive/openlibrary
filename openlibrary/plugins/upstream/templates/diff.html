@@ -22,12 +22,14 @@ $putctx("robots", "noindex,nofollow")
 </div>
 
 $def display_revision(page):
-    <span class="heading">$_("Revision %d", page.revision)</span><br />
-    $ v = get_version(page.key, page.revision)
-    $if v.author:
-        <span class="smallest brown sansserif">$:_('By <a href="%s">%s</a> %s', v.author.key, v.author.displayname, datestr(v.created))</span>
-    $else:
-        <span class="smallest brown sansserif">$:_('By Anonymous %s', datestr(v.created))</span>
+    <div class="small sansserif">
+        <a href="$changequery({}, v=page.revision)"><span class="uppercase"><strong>$_("Revision %d", page.revision)</strong></span></a>
+        $ v = get_version(page.key, page.revision)
+        $if v.author:
+            <span class="brown">$:_('by <a href="%s">%s</a> %s', v.author.key, v.author.displayname, datestr(v.created))</span>
+        $else:
+            <span class="brown">$:_('by Anonymous %s', datestr(v.created))</span>
+    </div>
 
 $def diff_covers(p, a, b):
     $if a[p] != b[p]:
@@ -35,11 +37,11 @@ $def diff_covers(p, a, b):
             <td class="diff-header-side">$p</td>
             <td class="diff-body">
                 $for img in a[p]:
-                    <img src="$get_coverstore_url()/b/id/$img-S.jpg"/>
+                    <img src="$get_coverstore_url()/b/id/$img-M.jpg"/>
             </td>
             <td class="diff-body">
                 $for img in b[p]:
-                    <img src="$get_coverstore_url()/b/id/$img-S.jpg"/>
+                    <img src="$get_coverstore_url()/b/id/$img-M.jpg"/>
             </td>
         </tr>
 

@@ -6,7 +6,7 @@ from openlibrary.catalog.marc.marc_xml import read_marc_file, MarcXml, BlankTag,
 from openlibrary.catalog.marc.marc_binary import MarcBinary
 from openlibrary.catalog.merge.merge_marc import build_marc
 from openlibrary.catalog.read_rc import read_rc
-from openlibrary.catalog.importer.load import build_query, east_in_by_statement, import_author
+from openlibrary.catalog.importer.load import build_query, east_in_by_statement
 from openlibrary.catalog.utils import error_mail
 from openlibrary.catalog.utils.query import query, withKey
 from openlibrary.catalog.importer.merge import try_merge
@@ -106,6 +106,12 @@ def write_edition(ia, edition, rec):
             {'key': '/languages/lat'},
             {'key': '/languages/hun'},
         ]
+    elif ia == 'coursetconfren00sema':
+        edition['languages'] = [{'key': '/languages/fre'}]
+    elif ia == 'repertoiredepein02rein':
+        edition['languages'] = [{'key': '/languages/fre'}]
+    elif ia == 'repertoiredepein01rein':
+        edition['languages'] = [{'key': '/languages/fre'}]
     elif ia == 'cihm_39338':
         edition['languages'] = [{'key': '/languages/ger'}]
     elif ia == 'ofilhoprdigodr00mano':

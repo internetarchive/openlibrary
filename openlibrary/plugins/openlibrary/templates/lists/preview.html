@@ -1,3 +1,44 @@
 $def with (list)
+            <span class="imageLg"> 
+                $ cover = list.get_cover() or list.get_default_cover()
+                $ cover_url = cover and cover.url("M") or "/images/icons/avatar_book-sm.png"
+                <a href="$list.key"><img src="$cover_url" height="110" alt="Cover of: $list.name" title="Cover of: $list"/></a> 
+            </span>
+            <span class="details">
+                $ owner = list.get_owner()
+                $ is_owner = ctx.user and ctx.user.key == owner.key
+                <span class="resultTitle $cond(is_owner, 'my-list')">
+                    $if is_owner:
+                        <h3><a href="$list.key">$list.name</a> </h3>
+                        <span class="list-owner small grey">from <a href="$owner.key">You</a></span>
+                    $else:
+                        <h3><a href="$list.key">$list.name</a> </h3>
+                        <span class="list-owner small grey">from <a href="$owner.key">$owner.displayname</a></span>
+                    
+                    <span class="description">
+                        $if list.description:
+                            $:format(list.description)
+                        $else:
+                            <em>No description.</em>
+                    </span>
+                    <span class="editions">
+                        $ subjects = list.get_top_subjects(limit=5)
+                        $if subjects:
+                            Subjects: 
+                            $for s in subjects[:5]:
+                                <a href="$s.url">$s.title</a>$cond(loop.last, "", ",")
+                            <br />
+                        $ msg = ungettext("%s seed", "%s seeds", len(list.seeds))
+                        $sprintf(msg,  len(list.seeds)),
+                        $ msg = ungettext("%s edition", "%s editions", list.edition_count)
+                        $sprintf(msg,  commify(list.edition_count))
+                        
+                    </span>
+                    $if list.last_update:
+                        <span class="smaller lightgreen">
+                            Last update 
+                            $datestr(list.last_update)
+                        </span>
 
-<a href="$list.key">$list.name</a> ($len(list.seeds) seeds)
+                </span>
+            </span>

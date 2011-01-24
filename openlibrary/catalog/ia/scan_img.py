@@ -1,11 +1,10 @@
 import httplib
 import xml.etree.ElementTree as et
 import xml.parsers.expat, socket # for exceptions
-import re, urllib
-from subprocess import Popen, PIPE
+import urllib, re
 from openlibrary.catalog.get_ia import urlopen_keep_trying
+from openlibrary.utils.ia import find_item
 
-re_loc = re.compile('^(ia\d+\.us\.archive\.org):(/\d+/items/(.*))$')
 re_remove_xmlns = re.compile(' xmlns="[^"]+"')
 
 def parse_scandata_xml(xml):
@@ -38,22 +37,6 @@ def zip_test(ia_host, ia_path, ia, zip_type):
         print r1.status, r1.reason
         raise
     return r1.status
-
-def find_item(ia):
-    ia = ia.strip()
-    ret = Popen(["/petabox/sw/bin/find_item.php", ia], stdout=PIPE, stderr=None).communicate()[0]
-    if not ret:
-        return (None, None)
-    assert ret[-1] == '\n'
-    loc = ret[:-1]
-    m = re_loc.match(loc)
-    #print loc
-    assert m
-    ia_host = m.group(1)
-    ia_path = m.group(2)
-    assert m.group(3) == ia
-
-    return (ia_host, ia_path)
 
 def find_title_leaf_et(ia_host, ia_path, scandata):
     return parse_scandata_xml(scandata)

@@ -22,8 +22,10 @@ $code:
         names["SanFranPL%02d" % i] = "San Francisco Public Library"
         
     def get_source_record(record_id):
+        if '/' not in record_id and '_meta.mrc:' in record_id:
+            record_id = 'ia:' + record_id.split('_')[0]
         item = record_id.split("/")[0]
-        url = "/show-marc/" + record_id
+        url = "/show-records/" + record_id
         
         if item.startswith("ia:"):
             source_name = "Internet Archive"

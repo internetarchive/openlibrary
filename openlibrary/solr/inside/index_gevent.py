@@ -1,10 +1,10 @@
 from gevent import sleep, spawn, spawn_link_exception, monkey
 from gevent.queue import JoinableQueue
-from gevent.socket import socket, AF_INET, SOCK_DGRAM, SOL_UDP, SO_BROADCAST, timeout
 from gevent.pool import Pool
 from datetime import datetime
 monkey.patch_socket()
 import re, httplib, json, sys, os, codecs
+from openlibrary.utils.ia import find_item
 from time import time
 from collections import defaultdict
 from lxml.etree import Element, tostring, parse, fromstring
@@ -205,41 +205,6 @@ def add_to_item_queue():
         item_queue.put((input_count, ia))
         #print 'item_queue.put((input_count, ia)) done'
 
-re_loc = re.compile('^(ia\d+\.us\.archive\.org):(/\d+/items/(.*))$')
-
-class FindItemError(Exception):
-    pass
-
-def find_item(ia):
-    s = socket(AF_INET, SOCK_DGRAM, SOL_UDP)
-    s.setblocking(1)
-    s.settimeout(2.0)
-    s.setsockopt(1, SO_BROADCAST, 1)
-    s.sendto(ia, ('<broadcast>', 8010))
-    for attempt in range(5):
-        (loc, address) = s.recvfrom(1024)
-        m = re_loc.match(loc)
-
-        ia_host = m.group(1)
-        ia_path = m.group(2)
-        if m.group(3) == ia:
-            return (ia_host, ia_path)
-        else:
-            print ia, '!=', m.group(3), 'retry'
-    raise FindItemError
-
-def web_find_item(ia):
-    reply = urlread_keep_trying('http://www.archive.org/services/find_file.php?file=%s&loconly=1' % ia)
-    if not reply:
-        return
-        raise FindItemError
-    root = fromstring(reply)
-    assert root.tag == 'results'
-    if len(root) == 0:
-        raise FindItemError
-    assert root[0].tag == 'location'
-    return (root[0].get('host'), root[0].get('dir'))
-
 lang_map = [
     ('eng', ['english', 'en']),
     ('fre', ['french', 'fr']),
@@ -270,11 +235,7 @@ def run_find_item():
         #print 'find_item:', ia
         t0_find_item = time()
         try:
-            try:
-                (host, path) = find_item(ia)
-            except timeout:
-                (host, path) = web_find_item(ia)
-        #except (timeout, FindItemError):
+            (host, path) = find_item(ia)
         except FindItemError:
             t1_find_item = time() - t0_find_item
             #print 'fail find_item:', ia, t1_find_item

@@ -40,7 +40,7 @@ want = [
     '440', '490', '830' # series
     ] + [str(i) for i in range(500,595)] + [ # notes + toc + description
     #'600', '610', '611', '630', '648', '650', '651', '662', # subjects
-    '700', '710', '711', # contributions
+    '700', '710', '711', '720', # contributions
     '246', '730', '740', # other titles
     '852', # location
     '856'] # URL
@@ -296,7 +296,8 @@ def read_author_person(f):
     if 'q' in contents:
         author['fuller_name'] = ' '.join(contents['q'])
     for f in 'name', 'personal_name':
-        author[f] = remove_trailing_dot(strip_foc(author[f]))
+        if f in author:
+            author[f] = remove_trailing_dot(strip_foc(author[f]))
     return author
 
 # 1. if authors in 100, 110, 111 use them
@@ -446,6 +447,7 @@ def read_contributions(rec):
         ('700', 'abcdeq'),
         ('710', 'ab'),
         ('711', 'acdn'),
+        ('720', 'a'),
     ))
 
     ret = {}
@@ -456,9 +458,9 @@ def read_contributions(rec):
             skip_authors.add(tuple(f.get_all_subfields()))
     
     if not skip_authors:
-        for tag, f in rec.read_fields(['700', '710', '711']):
+        for tag, f in rec.read_fields(['700', '710', '711', '720']):
             f = rec.decode_field(f)
-            if tag == '700':
+            if tag in ('700', '720'):
                 if 'authors' not in ret or last_name_in_245c(rec, f):
                     ret.setdefault('authors', []).append(read_author_person(f))
                     skip_authors.add(tuple(f.get_subfields(want[tag])))
@@ -476,7 +478,7 @@ def read_contributions(rec):
                 skip_authors.add(tuple(f.get_subfields(want[tag])))
                 break
 
-    for tag, f in rec.read_fields(['700', '710', '711']): 
+    for tag, f in rec.read_fields(['700', '710', '711', '720']): 
         sub = want[tag]
         cur = tuple(rec.decode_field(f).get_subfields(sub))
         if tuple(cur) in skip_authors:

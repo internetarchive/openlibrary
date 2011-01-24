@@ -1,13 +1,13 @@
 $def with (page)
 
 $ advanced = (
-$    ('title', _("Title")),
-$    ('author', _("Author")),
-$    ('isbn', "ISBN"),
-$    ('subject', _("Subject")),
-$    ('place', _("Place")),
-$    ('person', _("Person")),
-$    ('publisher', _("Publisher")),
+$    ('title', _("Title"),_("like 'To Kill A Mockingbird'")),
+$    ('author', _("Author"),_("like 'Eudora Welty'")),
+$    ('isbn', "ISBN",_("ISBN-10 or ISBN-13")),
+$    ('subject', _("Subject"),_("like 'doors' or 'the sky'")),
+$    ('place', _("Place"),_("like 'Narnia' or 'Rome'")),
+$    ('person', _("Person"),_("like 'Tom Jones'")),
+$    ('publisher', _("Publisher"),_("like 'Harper Collins'")),
 $ )
 
     <div class="siteSearch" id="headerSearch">
@@ -33,34 +33,15 @@ $ )
             <div id="topOptions" class="searchOptions hidden">
             <fieldset class="home">
                 <legend>Advanced Search</legend>
-            $for name, label in advanced:
+            $for name, label, placeholder in advanced:
                 <div class="formElement">
                 <label for="qtop-$name">$label</label><br/>
-                <input type="text" name="$name" id="qtop-$name" size="35"/>
+                <input type="text" name="$name" id="qtop-$name" placeholder="$placeholder" size="35"/>
                 </div>
-
-            <!-- HIDE FOR NOW
-            <div class="formElement">
-            <label for="qtop-language">$_("Language")</label><br/>
-            <select name="language" id="qtop-language">
-                <option value="">$_('any')</option>
-                <option value="eng">$_('English')</option>
-                <option value="ger">$_('German')</option>
-                <option value="fre">$_('French')</option>
-                <option value="spa">$_('Spanish')</option>
-                <option value="rus">$_('Russian')</option>
-                <option value="ita">$_('Italian')</option>
-                <option value="chi">$_('Chinese')</option>
-                <option value="ara">$_('Arabic')</option>
-                <option value="jpn">$_('Japanese')</option>
-                <option value="por">$_('Portuguese')</option>
-                <option value="pol">$_('Polish')</option>
-            </select>
-            </div>
-            -->
-
             </fieldset>
+            <div class="searchPlus">
+                <a href="/search/inside">Search inside books instead</a>?
+            </div>
             </div>
         </form>
-
     </div>

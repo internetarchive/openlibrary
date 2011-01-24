@@ -88,7 +88,7 @@ while True:
         action = i.pop('action')
         if action != 'save_many':
             continue
-        if i['data']['comment'] != 'merge authors':
+        if i['data']['changeset']['kind'] != 'merge-authors':
             continue
         if i['timestamp'] == '2010-08-05T14:37:25.139418':
             continue # bad author redirect

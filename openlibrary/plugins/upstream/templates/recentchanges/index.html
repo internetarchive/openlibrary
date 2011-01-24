@@ -13,11 +13,28 @@ $def breadcrumbs():
         $else:
             $ p = p + "/" + k
             <a href="$p">$label</a> /
+
+$def subnav():
+    $ path = request.path
+    
+    $# take out the "kind" from path
+    $if path != "/recentchanges" and path[-1] not in "0123456789":
+        $ path = path.rsplit("/", 1)[0]
+    
+    $ nav_items = [
+    $     (path + "/merge-authors", "Author Merges"),
+    $     (path + "/add-book", "Books Added"),
+    $     (path + "/add-cover", "Covers Added"),
+    $ ]
+    
+    $if "lists" in ctx.features:
+        $nav_items.append((path + "/lists", "Lists"))
+     
+    $:render_template("lib/subnavigation", nav_items)
             
 <div id="contentHead">
-    <div class="head">
-        <h1>$:breadcrumbs()</h1>
-    </div>
+    <h1>$:breadcrumbs()</h1>
+    <div class="subNav">$:subnav()</div>
 </div>
 
 <div id="contentBody">

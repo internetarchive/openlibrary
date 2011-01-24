@@ -4,6 +4,7 @@ from setuptools import Command
 import os
 import ConfigParser
 from setuptools.command.test import test as _test
+from distutils.errors import DistutilsArgError
 
 class BaseCommand(Command):
     user_options = []
@@ -37,7 +38,7 @@ class StartCommand(BaseCommand):
         $ python setup.py start
     """
     description = "Start Open Library services"
-        
+    
     def run(self):
         """runner"""
         self.create_conf_file()
@@ -57,6 +58,34 @@ class StartCommand(BaseCommand):
         f = open("var/lib/supervisor.ini", "w")
         f.write(conf)
         f.close()
+        
+class RestartCommand(BaseCommand):
+    """Distutils command to restart OL services.
+
+    This is invoked by calling::
+
+        $ python setup.py restart service-name
+
+    This uses supervisorctl to restart the given service.
+    """
+    description = "Restart a service"
+
+    user_options = [
+        ("service=", "s", "service to restart")
+    ]
+
+    def initialize_options (self):
+        self.service = None
+
+    def finalize_options(self):
+        if not self.service:
+            raise DistutilsArgError("You must specify the service to restart.")
+
+    def run(self):
+        """runner"""
+        f = "var/lib/supervisor.ini"
+        cmd = "supervisorctl -c %s restart %s" % (f, self.service)
+        self.exec_command(cmd.split())
 
 class ShellCommand(BaseCommand):
     """Distutils command to start a bash shell with OL environment.
@@ -123,5 +152,6 @@ commands = {
     'build_sphinx': BuildDoc,
     'shell': ShellCommand,
     'start': StartCommand,
+    'restart': RestartCommand,
     'test': TestCommand
 }

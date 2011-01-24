@@ -59,7 +59,7 @@ class Minicron(object):
     def _run_command(self, cmd):
         "Runs the given command"
         logging.debug(" Running command %s"%cmd)
-        p = subprocess.Popen([cmd], shell = True)
+        p = subprocess.Popen(cmd, shell = True)
         p.wait()
         
     def _check_and_run_commands(self, ctime):

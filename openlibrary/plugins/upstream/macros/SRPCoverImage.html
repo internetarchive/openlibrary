@@ -14,7 +14,7 @@ $if size == "M":
     <div class="coverMagic">
         <div class="SRPCover">
             <a href="$book.key" title="$title">
-                <img src="$get_coverstore_url()/b/olid/$olid-M.jpg?default=false" class="cover" alt="$title"/>
+                <img src="http://covers.openlibrary.org/b/olid/$olid-M.jpg?default=false" class="cover" alt="$title"/>
             </a>
         </div>
         <div class="SRPCoverBlank" onClick="document.location.href='$book.key';" title="Go to the page for $title">
@@ -28,5 +28,5 @@ $if size == "M":
     </div>
 $else:
     <a href="$book.key" title="$title">
-        <img src="$get_coverstore_url()/b/olid/$olid-S.jpg?default=http://upstream.openlibrary.org/images/icons/avatar_book-sm.png" alt="$title"/>
+        <img src="http://covers.openlibrary.org/b/olid/$olid-S.jpg?default=http://upstream.openlibrary.org/images/icons/avatar_book-sm.png" alt="$title"/>
     </a>
