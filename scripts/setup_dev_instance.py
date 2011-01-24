@@ -95,7 +95,12 @@ def system(cmd):
         raise Exception("%r failed with exit code %d" % (cmd, ret))
 
 def setup_dirs():
-    os.system("mkdir -p var/cache var/lib var/log var/run usr/local/bin usr/local/etc usr/local/lib")
+    dirs = (
+        "var/cache var/lib var/log var/run" +
+        " var/lib/coverstore/localdisk" +
+        " usr/local/bin usr/local/etc usr/local/lib"
+    )
+    os.system("mkdir -p " + dirs)
     os.system("echo > var/log/install.log")
 
 def read_config():
