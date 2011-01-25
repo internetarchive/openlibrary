@@ -9,9 +9,6 @@
     }, 
     "column_2": "### Add a Book ###\r\n\r\nThere are millions of records in Open Library, but nowhere near every book ever published! Would you like to <b><a href=\"/books/add\">try adding a book</a></b> to the library?", 
     "column_1": "<h3>Browse the Catalog</h3>\r\n\r\n<p>You can always search, but try jumping in to <b><a href=\"/subjects\"><strong>subjects</strong></a></b>, like <a href=\"/subjects/astronauts\">Astronauts</a>, <a href=\"/subjects/place:texas\">Texas</a>, <a href=\"/subjects/diaries\">Diaries</a>, <a href=\"/subjects/riots\">Riots</a>, <a href=\"/subjects/place:assam\">Assam</a>, <a href=\"/subjects/time:pleistocene\">Pleistocene</a>, <a href=\"/subjects/person:colette_(1873-1954)\">Colette</a>, <a href=\"/subjects/carpentry\">Carpentry</a>, <a href=\"/subjects/accessible_book\">accessible books</a>, or the <a href=\"/subjects/lending_library\">lending library</a>.</p>", 
-    "permission": {
-        "key": "/permission/restricted"
-    }, 
     "title": "Open Library", 
     "created": {
         "type": "/type/datetime", 

@@ -3,7 +3,7 @@ from gevent.queue import JoinableQueue
 from gevent.pool import Pool
 from datetime import datetime
 monkey.patch_socket()
-import re, httplib, json, sys
+import re, httplib, json, sys, os, codecs
 from openlibrary.utils.ia import find_item
 from time import time
 from collections import defaultdict
@@ -11,7 +11,7 @@ from lxml.etree import Element, tostring, parse, fromstring
 import urllib2
 from unicodedata import normalize
 
-scan_list = '/home/edward/scans/book_data_2010-12-09'
+scan_list = '/home/edward/scans/book_data_2011-01-07'
 input_count = 0
 current_book = None
 find_item_book = None
@@ -26,6 +26,7 @@ items_skipped = 0
 solr_ia_status = None
 solr_error = False
 host_queues = defaultdict(lambda: JoinableQueue(maxsize=1000))
+#solr_src_host = 'localhost:8983'
 solr_host = 'localhost:8983'
 #solr_pool = Pool(4)
 re_href = re.compile('href="([^"]+)"')
@@ -38,6 +39,7 @@ good_count = 0
 bad_count = 0
 two_threads_per_host = True
 
+page_counts = dict(eval(line) for line in open('/1/abbyy_text/page_count'))
 
 # http://www.archive.org/services/find_file.php?file=bostonharborunce00bost&loconly=1
 
@@ -50,7 +52,6 @@ def done(ia, was_good):
         bad_count += 1
     print >> book_log, ia
     done_count += 1
-    #book_log.flush()
 
 re_ia_host = re.compile('^ia(\d+).us.archive.org$')
 def use_secondary(host):
@@ -68,7 +69,7 @@ def urlread_keep_trying(url):
         try:
             return urllib2.urlopen(url).read()
         except urllib2.HTTPError, error:
-            if error.code == 404:
+            if error.code in (403, 404):
                 #print "404 for '%s'" % url
                 raise
             else:
@@ -110,7 +111,12 @@ def read_text_from_node(host):
         filename_gz = filename + '.gz'
 
         url = 'http://%s/%s' % (host, path)
-        dir_html = urlread_keep_trying('http://%s/%s' % (host, path))
+        try:
+            dir_html = urlread_keep_trying('http://%s/%s' % (host, path))
+        except urllib2.HTTPError, error:
+            if error.code == 403:
+                print '403 on directory listing for:', ia
+                dir_html = None
         if not dir_html:
             done(ia, False)
             host_queues[host].task_done()
@@ -122,14 +128,18 @@ def read_text_from_node(host):
             host_queues[host].task_done()
             continue
 
-        #print 'host_queues[%s].get() done'
         url = 'http://%s/~edward/abbyy_to_text.php?ia=%s&path=%s&file=%s' % (host, ia, path, filename)
-        reply = urlread_keep_trying(url)
+        try:
+            reply = urlread_keep_trying(url)
+        except urllib2.HTTPError, error:
+            if error.code != 403:
+                raise
+            url = 'http://%s/~edward/abbyy_to_text_p.php?ia=%s&path=%s&file=%s' % (host, ia, path, filename)
+            reply = urlread_keep_trying(url)
         if not reply or 'language not currently OCRable' in reply[:200]:
             done(ia, False)
             host_queues[host].task_done()
             continue
-        #index = reply.rfind(nl_page_count)
         index = reply.rfind(nl_meta)
         if index == -1:
             print 'bad reply'
@@ -195,6 +205,28 @@ def add_to_item_queue():
         item_queue.put((input_count, ia))
         #print 'item_queue.put((input_count, ia)) done'
 
+lang_map = [
+    ('eng', ['english', 'en']),
+    ('fre', ['french', 'fr']),
+    ('ger', ['german', 'de', 'deu']),
+    ('spa', ['spanish', 'spa', 'es']),
+    ('ita', ['italian', 'it']),
+    ('rus', ['russian', 'ru']),
+    ('dut', ['dutch']),
+    ('por', ['portuguese']),
+    ('dan', ['danish']),
+    ('swe', ['swedish']),
+]
+
+lang_dict = {}
+for a, b in lang_map:
+    lang_dict[a] = a
+    for c in b:
+        lang_dict[c] = a
+
+def tidy_lang(l):
+    return lang_dict.get(l.lower().strip('.'))
+
 def run_find_item():
     global find_item_book
     while True:
@@ -216,13 +248,54 @@ def run_find_item():
             locator_times.pop(0)
         locator_times.append((t1_find_item, host))
 
-        host_queues[host].put((num, ia, path))
-        if host not in host_threads:
-            if two_threads_per_host:
-                host_threads[host] = [ \
-                    spawn_link_exception(read_text_from_node, host), \
-                    spawn_link_exception(read_text_from_node, host)]
+        body = None
+        if False:
+            url = 'http://' + solr_src_host + '/solr/inside/select?wt=json&rows=10&q=ia:' + ia
+            response = json.load(urllib2.urlopen(url))['response']
+            if response['numFound']:
+                doc = response['docs'][0]
+                for doc_lang in ['eng', 'fre', 'deu', 'spa', 'other']:
+                    if doc.get('body_' + doc_lang):
+                        body = doc['body_' + doc_lang]
+                        break
+                assert body
+        filename = '/1/abbyy_text/data/' + ia[:2] + '/' + ia
+        if os.path.exists(filename):
+            body = codecs.open(filename, 'r', 'utf-8').read()
+        if body:
+            try:
+                meta_xml = urlread_keep_trying('http://%s%s/%s_meta.xml' % (host, path, ia))
+            except urllib2.HTTPError, error:
+                if error.code != 403:
+                    raise
+                print '403 on meta XML for:', ia
+                item_queue.task_done() # skip
+                done(ia, False)
+                continue
+            try:
+                root = fromstring(meta_xml)
+            except:
+                print 'identifer:', ia
+            collection = [e.text for e in root.findall('collection')]
+            elem_noindex = root.find('noindex')
+            if elem_noindex is not None and elem_noindex.text == 'true' and ('printdisabled' not in collection and 'lendinglibrary' not in collection):
+                item_queue.task_done() # skip
+                done(ia, False)
+                continue
+            lang_elem = root.find('language')
+            if lang_elem is None:
+                print meta_xml
+            if lang_elem is not None:
+                lang = tidy_lang(lang_elem.text) or 'other'
             else:
+                lang = 'other'
+
+            #print 'solr_queue.put((ia, body, page_count))'
+            solr_queue.put((ia, body, lang, page_counts[ia], collection))
+            #print 'solr_queue.put() done'
+        else:
+            host_queues[host].put((num, ia, path))
+            if host not in host_threads:
                 host_threads[host] = spawn_link_exception(read_text_from_node, host)
         item_queue.task_done()
 
@@ -243,21 +316,26 @@ def build_doc(ia, body, page_count):
 def run_solr_queue(queue_num):
     def log(line):
         print >> load_log, queue_num, datetime.now().isoformat(), line
-        load_log.flush()
     global solr_ia_status, solr_error
     while True:
         log('solr_queue.get()')
         (ia, body, lang, page_count, collection) = solr_queue.get()
+        assert lang != 'deu'
         log(ia + ' - solr_queue.get() done')
         add = Element("add")
         esc_body = normalize('NFC', body.replace(']]>', ']]]]><![CDATA[>'))
         r = '<add commitWithin="10000000"><doc>\n'
         r += '<field name="ia">%s</field>\n' % ia
-        r += '<field name="body_%s"><![CDATA[%s]]></field>\n' % (lang, esc_body)
+        if lang != 'other': # also in schema copyField -> body
+            r += '<field name="body_%s"><![CDATA[%s]]></field>\n' % (lang, esc_body)
+        else: 
+            r += '<field name="body"><![CDATA[%s]]></field>\n' % esc_body
         r += '<field name="body_length">%s</field>\n' % len(body)
         r += '<field name="page_count">%s</field>\n' % page_count
         for c in collection:
             r += '<field name="collection">%s</field>\n' % c
+        if lang != 'other':
+            r += '<field name="language">%s</field>\n' % lang
         r += '</doc></add>\n'
 
         #doc = build_doc(ia, body, page_count)
@@ -270,10 +348,15 @@ def run_solr_queue(queue_num):
         h1.connect()
         h1.request('POST', url, r.encode('utf-8'), { 'Content-type': 'text/xml;charset=utf-8'})
         #print '    request done:', ia
-        response = h1.getresponse()
+        try:
+            response = h1.getresponse()
         #print 'getresponse done:', ia
-        response_body = response.read()
+            response_body = response.read()
         #print '        response:', ia, response.reason
+        except:
+            codecs.open('bad.xml', 'w', 'utf-8').write(r)
+            open('error_reply', 'w').write(response_body)
+            raise
         h1.close()
         log(ia + ' - read solr connect and post done')
         if response.reason != 'OK':
