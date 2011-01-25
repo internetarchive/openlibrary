@@ -6,12 +6,12 @@ from urllib import urlopen
 import simplejson, re
 from time import time, sleep
 from openlibrary.catalog.utils.query import withKey, set_query_host
+from openlibrary.solr.update import subject_count, subject_need_update
 from openlibrary.solr.update_work import update_work, solr_update, update_author, AuthorRedirect, get_work_subjects, add_field, strip_bad_char
 from lxml.etree import tostring, Element
 from openlibrary.api import OpenLibrary, Reference
 from openlibrary.catalog.read_rc import read_rc
 from openlibrary import config
-from openlibrary.solr import subject_count, subject_need_update
 import argparse
 from os.path import exists
 import sys
