@@ -53,10 +53,10 @@ bookreader_loan_seconds = 60*60*24*14
 bookreader_auth_seconds = 10*60
 
 # Base URL for BookReader
-#bookreader_stream_base = 'http://www.archive.org/stream'
-# XXXmang change to www once BookReader launched
-#bookreader_stream_base = 'http://www-mang.archive.org/stream'
-bookreader_stream_base = 'http://www-testflip.archive.org/stream'
+try:
+    bookreader_stream_base = config.bookreader_stream_url
+except AttributeError:
+    bookreader_stream_base = 'http://www.archive.org/stream'
 
 ########## Page Handlers
 
@@ -599,11 +599,11 @@ def get_ia_auth_dict(user, item_id, resource_id, user_specified_loan_key):
         
         if loan_key:
             # Checked out
-            error_message = "Not logged into Open Library - Book is checked out"
-            resolution_message = 'This book is currently checked out. If <em>you</em> checked it out please <a href="%(base_url)s/ia/%(item_id)s/borrow">visit Open Library</a> to get access to the book.  You can also <a href="%(base_url)s/subjects/Lending_library">look at other books available to borrow</a>.  You must have cookies enabled for archive.org and openlibrary.org to access borrowed books.' % resolution_dict
+            error_message = "Book is checked out (possibly by you)"
+            resolution_message = 'This book is currently checked out. If <em>you</em> checked it out please <a href="%(base_url)s/ia/%(item_id)s/borrow">visit Open Library</a> to get access to the book.  If you haven\'t checked out this book you can <a href="%(base_url)s/subjects/Lending_library">look at other books available to borrow</a>.  You must have cookies enabled for archive.org and openlibrary.org to access borrowed books.' % resolution_dict
         else:
-            error_message = "Not logged into Open Library - Book available to borrow"
-            resolution_message = 'This book is available to borrow.  Please <a href="%(base_url)s/account/login?redirect=%(base_url)s/ia/%(item_id)s/borrow">log into Open Library</a> to borrow the book.' % resolution_dict
+            error_message = "Book available to borrow"
+            resolution_message = 'This book is available to borrow.  You can <a href="%(base_url)s/account/login?redirect=%(base_url)s/ia/%(item_id)s/borrow">borrow this book from Open Library</a>.' % resolution_dict
     
     elif not loan_key:
         error_message = 'This book is available to borrow'
