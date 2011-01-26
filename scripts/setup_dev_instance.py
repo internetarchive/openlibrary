@@ -142,7 +142,20 @@ class Process:
         command = specs.pop("command")
         args = command.split()
         self.process = subprocess.Popen(args, **specs)
-        time.sleep(2)
+	self.wait_for_start()
+
+    def wait_for_start(self):
+        time.sleep(5)
+
+    def wait_for_url(self, url):
+	for i in range(10):
+	    try:
+		urllib2.urlopen(url).read()
+	    except:
+		time.sleep(0.5)
+		continue
+	    else:
+		return
         
     def stop(self):
         info("    stopping", self.__class__.__name__.lower())
@@ -161,12 +174,15 @@ class Postgres(Process):
         return {
             "command": "usr/local/postgresql-8.4.4/bin/postgres -D var/lib/postgresql"
         }
-                        
+
 class CouchDB(Process):
     def get_specs(self):
         return {
             "command": "usr/local/bin/couchdb",
         }
+
+    def wait_for_start(self):
+        self.wait_for_url("http://127.0.0.1:5984/")
         
     def create_database(self, name):
         import couchdb
@@ -199,6 +215,9 @@ class Infobase(Process):
         return {
             "command": INTERP + " ./scripts/infobase-server conf/infobase.yml 7500"
         }
+
+    def wait_for_start(self):
+        self.wait_for_url("http://127.0.0.1:7500/")
         
     def get(self, path):
         try:
