@@ -1,4 +1,4 @@
-$def with (page, loans, has_returned_recently, bookreader_host)
+$def with (page, loans, has_returned_recently)
 
 $var title: $page.title
 
@@ -16,19 +16,12 @@ $if meta_fields.has_key('contributor'):
 $else:
     $ contrib = None
     
-$# $$$ Put our launch books "on hold"
-$ demo_users = ('/people/mang','/people/mangtronix','/people/brewster','/people/alexis','/people/alexisr','/people/raj','/people/rajk','/people/glassdog')
-$if str(ctx.user) in demo_users:
+$# Show BookReader loans for admins only
+$if ctx.user and ctx.user.is_admin():
     $ bookreader_loans = filter(lambda loan: loan['resource_type'] == 'bookreader', available_loans)
     $if bookreader_loans:
-        <!-- <div class="small sansserif clearfix"><br/><span class="adminOnly">Showing BookReader loan</span></div> -->
+        <div class="small sansserif clearfix"><br/><span class="adminOnly">Showing BookReader loan</span></div>
 $else:
-    $# If this is a launch book, don't allow loan
-    $ launch_books = ['browserlendingtest', 'romanceonthreele00hafnrich', 'librariesoffutur00lickuoft', 'remixmakingartco01lessrich', 'youlooktooyoungt00davi']
-    $if page.ocaid in launch_books:
-       $ available_loans = []
-       <!-- holding book -->
-
     $# Don't show BookReader loans yet
     $ available_loans = filter(lambda loan: loan['resource_type'] != 'bookreader', available_loans)
 
@@ -94,7 +87,7 @@ $else:
             $# $$$ we could generate direct overdrive link since overdrive id is available
             <div class="message info">
                 <h2 class="sansserif">An ebook may be available from your local library.</h2>
-                <p><a href="this book link">Check Overdrive</a> for availability.</p>
+                <p><a href="this book link">Check overdrive.com</a> for availability.</p>
             </div>
             
         $elif not ctx.user:
@@ -171,10 +164,10 @@ $else:
             $for candidate in loans:
                 $if candidate['book'] == page.key:
                     $ active_loan = candidate
-                    
+            
             $if can_return_resource_type(active_loan['resource_type']):
                <div class="message info">
-                    <h2 class="sansserif">You have this book checked out. You can <form method="POST" action="http://$bookreader_host/bookreader/BookReaderAuth.php"><input type="hidden" name="id" value="$page.ocaid" /><input type="hidden" name="uuid" value="$active_loan['store_key']"/><input type="hidden" name="bookPath" value="$active_loan['loan_link']" /><input type="submit" value="Read Online" /></form> or return the book.
+                    <h2 class="sansserif">You have this book checked out. You can <a href="$active_loan['loan_link']">read it online</a> or return the book.
                     <p>
                     $:macros.ReturnForm(active_loan)
                     </p>
@@ -191,11 +184,10 @@ $else:
                     $# $$$ wording
                     <div class="message info">
                         <h2 class="sansserif">We show that you've checked this out but haven't loaded it in Digital Editions yet.</h2>
-                        <p>This loan is on hold for about 5 minutes. If you don't open it up within that time, someone else may borrow it. <a href="$active_loan['loan_link']">Download again</a>?</p>
+                        <p>This loan is on hold for about 5 minutes. If you don't open it up within that time, someone else may borrow it. <a href="$active_loan['loan_link']"><strong>Download again</strong></a>?</p>
                     </div>
-                
-                
-        
+                <p>Need to <a href="http://www.adobe.com/products/digitaleditions/">download Adobe Digital Editions again</a>?</p>
+
         $elif len(loans) >= 5:
             $# already loaned maximum number of books
             <div class="message stop">
@@ -209,6 +201,21 @@ $else:
                 <h2 class="sansserif">This title has been borrowed by someone else.</h2>
                 <p>Please check back later to see if it's available, or look for <a href="/subjects/lending_library">more books you can borrow</a> perhaps?</p>
             </div>
+            $if ctx.user and ctx.user.is_admin():
+                $# Stuff for adding to a list - NEED NEW WIDGET!
+                <style type="text/css">
+                .Tools.borrow {position:relative;}
+                .Tools.borrow #widget-head, .Tools.borrow ul.listLists {display:none;}
+                .Tools.borrow div.icon.list {background-image: none;}
+                p#borrowList {position:absolute;top:0;left:100%;width:300px;font-size:.75em;padding-left:10px;}
+                p#postBorrowList {font-size:.75em;padding-left:55px;}
+                </style>
+                <div class="Tools borrow">
+                    $:render_template("lists/widget", page)
+                    <p id="borrowList">to keep an eye on it, or <a href="/subjects/lending_library">browse more titles</a>.</p>
+                </div>
+                <p id="postBorrowList"><strong>OK!</strong> This title has been added to your <a href="LIST URL">LIST NAME</a> list.<br/>
+                <a href="/subjects/lending_library">Go back to browsing</a>?</p>
             
         $else:
             $# We can borrow it!
@@ -223,81 +230,20 @@ $else:
         
         $if user_can_borrow_this:
             <div class="borrow">
-            <table>
-                <tbody>
-                    <tr>
-                        <td style="width:55px;">&nbsp;</td>
-                        <td style="padding-top:25px;">
-                        <script type="text/javascript">
-                        \$().ready(function(){
-                            \$("#borrowBook").submit(function(){
-                                \$(".preSubmit").hide();
-                                \$(".postSubmit").show();
-                                setTimeout('document.location.reload()', 4000);
-                                return true;
-                            });
-                        });
-                        </script>
-                        <div class="postSubmit hidden center">
-                            <p>Borrowing book...</p>
-                            <img src="/images/ajax-loader-bar.gif" alt="Download in progress" width="220" height="19"/>
-                        </div>
-                        $:macros.LoanForm(page, available_loans)
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+                <div class="postSubmit hidden center">
+                    <p>Borrowing book...</p>
+                    <img src="/images/ajax-loader-bar.gif" alt="Download in progress" width="220" height="19"/>
+                </div>
+                $:macros.LoanForm(page, available_loans)
             </div>        
 
         $if loans:
             $# user has outstanding loans
-            <div id="borrowTable" class="borrow">
-                <table>
-                    <thead>
-                        <tr>
-                            <th colspan="2" class="titles"><a href="/account/loans">You've checked out...</a></th>
-                            <th class="expires">Loan expires</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    
-                    $# for each borrow
-                    $for loan in loans:
-                        $ book = get_document(loan['book'])
-                        <tr>
-                            <td class="cover">
-                            $:render_template('covers/book_cover_small', book)
-                            </td>
-                            <td class="titles">
-                                <span class="book">
-                                <a href="$book.key" class="borrowResults">
-                                $book.title
-                                </a>
-                                </span>
-                                <span class="author">
-                                $ authors = book.works[0].get_authors()
-                                $:macros.AuthorList(authors)
-                                </span>
-                                <div class="date">
-                                    Borrowed $datestr(datetime_from_utc_timestamp(loan['loaned_at']))
-                                </div>
-                            </td>
-                            <td class="expires">
-                                $:macros.FormatExpiry(loan['expiry'])
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-                $for loan in loans:
-                    $if loan['resource_type'] != 'bookreader':
-                        <p class="large">You can <span class="highlight">return books early through Adobe Digital Editions</span>. <a href="/help/faq#returns">Need help</a>?</p>
-                        <p class="large">Any changes you make there <em>should</em> be reflected here when you get back and refresh this page.</p>
-                        $break
-            </div>
-        $if not loans:
-            <p class="large" style="margin-top: 50px; border-top: 1px dotted #615132; padding-top: 10px;"><span class="highlight"><b>IMPORTANT:</b></span> You need to <a href="http://www.adobe.com/products/digitaleditions/">download and install Adobe Digital Editions</a> to read PDFs or ePubs, or return them early.</p>
-            <p class="help" ><b>Need help?</b> Please read the <a href="/help/faq#section-borrowing">FAQ on borrowing books through Open Library</a>.</p>
+            <div class="clearfix"></div>
+            <p class="help" style="margin-top:50px;border-top:1px dotted #615132;padding-top:10px;">You have $len(loans) of a possible 5 books out at the moment. Review <a href="/account/loans/" target="newWindow" title="Open link in a new browser window">your current loans</a>?<br/>
+            <span class="smaller"><strong>Need help?</strong> Head for the <a href="/help/faq/borrow" target="newWindow" title="Open link in a new browser window">Borrowing FAQ</a>.</span></p>
         $else:
-            <p class="help" style="margin-top: 50px; border-top: 1px dotted #615132; padding-top: 10px;"><b>Need help?</b> Please read the <a href="/help/faq#section-borrowing">FAQ on borrowing books through Open Library</a>.</p>
+            <div class="clearfix"></div>
+            <p class="help smaller" style="margin-top:50px;border-top:1px dotted #615132;padding-top:10px;"><strong>Need help?</strong> Head for the <a href="/help/faq/borrow" target="newWindow" title="Open link in a new browser window">Borrowing FAQ</a>.</p>
 
 </div>
