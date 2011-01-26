@@ -237,13 +237,13 @@ def get_counts():
                                           endkey_docid   = "counts-%s"%end_date,
                                           include_docs = True)]
 
-    for i in "work edition user author list".split():
+    for i in "work edition user author list cover".split():
         lastweek = _sum_values(data[-7:], i)
         lastmonth = _sum_values(data[:-7], i) + lastweek
         counts[i] = dict(lastweek  = lastweek,
                          lastmonth = lastmonth,
                          total     = "xxxx")
-    counts["ebook"] = counts["cover"] = counts["subject"] = placeholder
+    counts["ebook"] = counts["subject"] = placeholder
     s = storify(counts)
     return s
 
