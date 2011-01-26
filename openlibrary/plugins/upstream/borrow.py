@@ -54,9 +54,11 @@ bookreader_auth_seconds = 10*60
 
 # Base URL for BookReader
 try:
-    bookreader_stream_base = config.bookreader_stream_url
+    bookreader_host = config.bookreader_host
 except AttributeError:
-    bookreader_stream_base = 'http://www.archive.org/stream'
+    bookreader_host = 'www.archive.org'
+    
+bookreader_stream_base = 'http://' + bookreader_host + '/stream'
 
 ########## Page Handlers
 
@@ -85,7 +87,7 @@ class borrow(delegate.page):
         else:
             have_returned = False
         
-        return render_template("borrow", edition, loans, have_returned)
+        return render_template("borrow", edition, loans, have_returned, bookreader_host)
         
     def POST(self, key):
         """Called when the user wants to borrow the edition"""
@@ -177,7 +179,7 @@ class borrow_admin(delegate.page):
             user.update_loan_status()
             user_loans = get_loans(user)
             
-        return render_template("borrow_admin", edition, edition_loans, user_loans)
+        return render_template("borrow_admin", edition, edition_loans, user_loans, bookreader_host)
         
 # Handler for /iauth/{itemid}
 class ia_auth(delegate.page):
