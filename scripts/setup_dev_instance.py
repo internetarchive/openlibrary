@@ -142,20 +142,20 @@ class Process:
         command = specs.pop("command")
         args = command.split()
         self.process = subprocess.Popen(args, **specs)
-	self.wait_for_start()
+        self.wait_for_start()
 
     def wait_for_start(self):
         time.sleep(5)
 
     def wait_for_url(self, url):
-	for i in range(10):
-	    try:
-		urllib2.urlopen(url).read()
-	    except:
-		time.sleep(0.5)
-		continue
-	    else:
-		return
+        for i in range(10):
+            try:
+                urllib2.urlopen(url).read()
+            except:
+                time.sleep(0.5)
+                continue
+            else:
+                return
         
     def stop(self):
         info("    stopping", self.__class__.__name__.lower())
@@ -370,7 +370,7 @@ class install_couchdb:
         DEFAULT_ROOT = "/home/anand/couchdb-1.0.1"
         
         for f in "bin/couchdb bin/couchjs bin/erl etc/couchdb/default.ini etc/init.d/couchdb etc/logrotate.d/couchdb lib/couchdb/erlang/lib/couch-1.0.1/ebin/couch.app".split():
-    	    debug("fixing paths in", f)
+            debug("fixing paths in", f)
             f = root.join(f)
             f.write(f.read().replace(DEFAULT_ROOT, root.path))
                 
@@ -437,20 +437,20 @@ class setup_ol(DBTask):
         
         schema = """
         create table subjects (
-    		field text not null,
-    		key character varying(255),
-    		publish_year integer, 
-    		ebook_count integer,
-    		PRIMARY KEY (field, key, publish_year)
-    	);
-    	CREATE INDEX field_key ON subjects(field, key);
+            field text not null,
+            key character varying(255),
+            publish_year integer, 
+            ebook_count integer,
+            PRIMARY KEY (field, key, publish_year)
+        );
+        CREATE INDEX field_key ON subjects(field, key);
         """
         
         if not self.has_table("openlibrary_ebook_count", "subjects"):
             import web
             db = web.database(dbn="postgres", db="openlibrary_ebook_count", user=os.getenv("USER"), pw="")
             db.printing = False
-            db.query(schema)    	
+            db.query(schema)
 
 class setup_couchdb:
     """Creates couchdb databases required for OL and adds design documents to them."""
