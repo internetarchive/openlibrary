@@ -132,3 +132,6 @@ class MockSite:
     def reindex(self, doc):
         self.index = [i for i in self.index if i.key != doc['key']]
         self.index.extend(self.compute_index(doc))
+        
+    def _get_backreferences(self, doc):
+        return {}

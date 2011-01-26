@@ -228,7 +228,7 @@ class List(Thing, ListMixin):
         return self._make_url(self.name or "unnamed", suffix, **params)
         
     def get_owner(self):
-        match = web.re_compile("(/people/\w+)/lists/OL\d+L").match(self.key)
+        match = web.re_compile(r"(/people/[^/]+)/lists/OL\d+L").match(self.key)
         if match:
             key = match.group(1)
             return self._site.get(key)
