@@ -7,6 +7,7 @@ import re
 import simplejson
 import string
 import urllib2
+import uuid
 
 import web
 
@@ -183,7 +184,7 @@ class ia_auth(delegate.page):
     path = r"/ia_auth/(.*)"
     
     def GET(self, item_id):
-        i = web.input(_method='GET', callback=None)
+        i = web.input(_method='GET', callback=None, loan=None)
         
         resource_id = 'bookreader:%s' % item_id
         content_type = "application/json"
@@ -191,8 +192,8 @@ class ia_auth(delegate.page):
         # check that identifier is valid
         
         user = web.ctx.site.get_user()
-        auth_json = simplejson.dumps( get_ia_auth_dict(user, item_id, resource_id) )
-        
+        auth_json = simplejson.dumps( get_ia_auth_dict(user, item_id, resource_id, i.loan ) )
+                
         output = auth_json
         
         if i.callback:
@@ -279,7 +280,7 @@ def ia_identifier_is_valid(item_id):
 ########## Helper Functions
 
 def get_all_store_values(**query):
-    """Get all values by paging through all results"""
+    """Get all values by paging through all results. Note: adds store_key with the row id."""
     query = copy.deepcopy(query)
     if not query.has_key('limit'):
         query['limit'] = 500
@@ -288,11 +289,14 @@ def get_all_store_values(**query):
     got_all = False
     
     while not got_all:
-        new_values = web.ctx.site.store.values(**query)
-        values.extend(new_values)
-        if len(new_values) < query['limit']:
+        #new_values = web.ctx.site.store.values(**query)
+        new_items = web.ctx.site.store.items(**query)
+        for new_item in new_items:
+            new_item[1].update({'store_key': new_item[0]})
+            values.append(new_item[1])
+        if len(new_items) < query['limit']:
             got_all = True
-        query['offset'] += len(new_values)
+        query['offset'] += len(new_items)
     return values
 
 def get_all_loans():
@@ -568,7 +572,7 @@ def return_resource(resource_id):
     # $$$ Could add some stats tracking.  For now we just nuke it.
     web.ctx.site.store.delete(loan_key)
 
-def get_ia_auth_dict(user, item_id, resource_id):
+def get_ia_auth_dict(user, item_id, resource_id, user_specified_loan_key):
     """Returns response similar to one of these:
     {'success':true,'token':'1287185207-fa72103dd21073add8f87a5ad8bce845','borrowed':true}
     {'success':false,'msg':'Book is checked out','borrowed':false, 'resolution': 'You can visit <a href="http://openlibary.org/ia/someid">this book\'s page on Open Library</a>.'}
@@ -590,7 +594,9 @@ def get_ia_auth_dict(user, item_id, resource_id):
         error_message = 'Bad resource id type'
         resolution_message = 'This book cannot be borrowed for in-browser loan. You can <a href="%(base_url)s/ia/%(item_id)s">visit this book\'s page</a> on openlibrary.org to learn more about the book.' % resolution_dict
     
-    elif not user:
+    elif user is None and (loan_key != user_specified_loan_key):
+        # Not logged in or wasn't provided the key for this loan
+        
         if loan_key:
             # Checked out
             error_message = "Not logged into Open Library - Book is checked out"
@@ -607,7 +613,7 @@ def get_ia_auth_dict(user, item_id, resource_id):
         # There is a loan for this book
         loan = web.ctx.site.store.get(loan_key)
         
-        if loan['user'] != user.key:
+        if user and (loan['user'] != user.key):
             error_message = 'This book is checked out'
             resolution_message = 'This book is currently checked out.  You can <a href="%(base_url)s/ia/%(item_id)s">visit this book\'s page on Open Library</a> or <a href="%(base_url)/subjects/Lending_library">look at other books available to borrow</a>.' % resolution_dict
         
@@ -649,6 +655,7 @@ def make_ia_token(item_id, expiry_seconds):
 class Loan:
 
     def __init__(self, user_key, book_key, resource_type, loaned_at = None):
+        self.key = uuid.uuid4().hex
         self.user_key = user_key
         self.book_key = book_key
         self.resource_type = resource_type
@@ -663,7 +670,8 @@ class Loan:
             self.loaned_at = time.time()
         
     def get_key(self):
-        return '%s-%s-%s' % (self.user_key, self.book_key, self.resource_type)
+        #return '%s-%s-%s' % (self.user_key, self.book_key, self.resource_type)
+        return self.key
         
     def get_dict(self):
         return { 'user': self.user_key, 'type': '/type/loan',
@@ -681,8 +689,8 @@ class Loan:
         self.resource_id = loan_dict['resource_id']
         self.loan_link = loan_dict['loan_link']
         
-    def load(self):
-        self.set_dict(web.ctx.site.store[self.get_key()])
+    #def load(self):
+    #    self.set_dict(web.ctx.site.store[self.get_key()])
         
     def save(self):
         web.ctx.site.store[self.get_key()] = self.get_dict()
