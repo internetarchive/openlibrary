@@ -1,4 +1,4 @@
-$def with (page, loans, has_returned_recently)
+$def with (page, loans, has_returned_recently, bookreader_host)
 
 $var title: $page.title
 
@@ -171,10 +171,10 @@ $else:
             $for candidate in loans:
                 $if candidate['book'] == page.key:
                     $ active_loan = candidate
-            
+                    
             $if can_return_resource_type(active_loan['resource_type']):
                <div class="message info">
-                    <h2 class="sansserif">You have this book checked out. You can <a href="$active_loan['loan_link']">Read Online</a> or return the book.
+                    <h2 class="sansserif">You have this book checked out. You can <form method="POST" action="http://$bookreader_host/bookreader/BookReaderAuth.php"><input type="hidden" name="id" value="$page.ocaid" /><input type="hidden" name="uuid" value="$active_loan['store_key']"/><input type="hidden" name="bookPath" value="$active_loan['loan_link']" /><input type="submit" value="Read Online" /></form> or return the book.
                     <p>
                     $:macros.ReturnForm(active_loan)
                     </p>
