@@ -368,7 +368,10 @@ class install_couchdb:
         os.system("cd usr/local/etc && ln -sf ../couchdb_1.0.1/etc/couchdb .")
         
     def install_linux(self):
-        download_url = "http://www.archive.org/download/ol_vendor/couchdb-1.0.1-linux-binaries.tgz"
+        if self.is_64_bit():
+            download_url = "http://www.archive.org/download/ol_vendor/couchdb-1.0.1-linux-64bit-binaries.tgz"
+        else:
+            download_url = "http://www.archive.org/download/ol_vendor/couchdb-1.0.1-linux-binaries.tgz"
         download_and_extract(download_url, dirname="couchdb-1.0.1")
         self.fix_linux_paths()
         
@@ -383,7 +386,10 @@ class install_couchdb:
             debug("fixing paths in", f)
             f = root.join(f)
             f.write(f.read().replace(DEFAULT_ROOT, root.path))
-                
+            
+    def is_64_bit(self):
+        return os.uname()[-1] == "x86_64"
+    
 class install_postgresql:
     """Installs postgresql on Mac OS X.
     Doesn't do anything on Linux.
@@ -475,7 +481,6 @@ class setup_couchdb:
         self.couchdb.create_database("editions")
         self.couchdb.create_database("seeds")
         self.couchdb.create_database("admin")
-        
         
     def add_design_docs(self):
         info("    adding design docs")
