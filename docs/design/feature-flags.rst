@@ -68,6 +68,7 @@ Available filters are:
     Enabled only for logged-in users.
 
 **admin**
+
     Enabled for admin users.
     
 **usergroup**
@@ -79,6 +80,7 @@ Available filters are:
             usergroup: beta-users
     
 **queryparam**
+
     Enabled only if the url has a specified query parameter. ::
     
         debug:
