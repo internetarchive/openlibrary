@@ -101,7 +101,11 @@ def setup_dirs():
         " usr/local/bin usr/local/etc usr/local/lib"
     )
     os.system("mkdir -p " + dirs)
-    os.system("echo > var/log/install.log")
+    
+    # this script is relaunched with python from virtualenv after setting up virtualenv.
+    # install.log must not overwritten then.
+    if os.getenv('OL_BOOTSTRAP_RELAUNCH') != "true":
+        os.system("echo > var/log/install.log")
 
 def read_config():
     """Reads conf/install.ini file.
@@ -276,18 +280,24 @@ class setup_virtualenv:
         if sys.executable != INTERP:
             info("creating virtualenv at", pyenv)
             system("virtualenv " + pyenv)
-        
+            
+class install_python_dependencies:
+    def run(self):
+        info("installing python dependencies")
+        system(INTERP + " setup.py develop")
+
+class switch_to_virtualenv:
+    def run(self):
+        if sys.executable != INTERP:
+            pyenv = os.path.expanduser(config['virtualenv'])
+            
             info("restarting the script with python from", INTERP)
             env = dict(os.environ)
             env['PATH'] = pyenv + "/bin:usr/local/bin:" + env['PATH']
             env['LD_LIBRARY_PATH'] = 'usr/local/lib'
             env['DYLD_LIBRARY_PATH'] = 'usr/local/lib'
+            env['OL_BOOTSTRAP_RELAUNCH'] = "true"
             os.execvpe(INTERP, [INTERP] + sys.argv, env)
-        
-class install_python_dependencies:
-    def run(self):
-        info("installing python dependencies")
-        system(INTERP + " setup.py develop")
     
 class install_solr:
     def run(self):
@@ -542,7 +552,8 @@ def main():
     tasks = [
         setup_virtualenv(),
         install_python_dependencies(),
-    
+        switch_to_virtualenv(),
+        
         checkout_submodules(),
     
         install_couchdb(),
