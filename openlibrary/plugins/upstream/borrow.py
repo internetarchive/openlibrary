@@ -87,7 +87,7 @@ class borrow(delegate.page):
         else:
             have_returned = False
         
-        return render_template("borrow", edition, loans, have_returned, bookreader_host)
+        return render_template("borrow", edition, loans, have_returned)
         
     def POST(self, key):
         """Called when the user wants to borrow the edition"""
@@ -179,7 +179,7 @@ class borrow_admin(delegate.page):
             user.update_loan_status()
             user_loans = get_loans(user)
             
-        return render_template("borrow_admin", edition, edition_loans, user_loans, bookreader_host)
+        return render_template("borrow_admin", edition, edition_loans, user_loans)
         
 # Handler for /iauth/{itemid}
 class ia_auth(delegate.page):
@@ -278,6 +278,15 @@ def ia_identifier_is_valid(item_id):
     if re.match(r'^[a-zA-Z0-9][a-zA-Z0-9\.\-_]*$', item_id):
         return True
     return False
+    
+@public
+def get_bookreader_stream_url(itemid):
+    return bookreader_stream_base + '/' + itemid
+    
+@public
+def get_bookreader_host():
+    return bookreader_host
+    
         
 ########## Helper Functions
 
@@ -322,7 +331,7 @@ def get_loan_link(edition, type):
     
     if type == 'bookreader':
         # link to bookreader
-        return (resource_id, get_bookreader_link(edition))
+        return (resource_id, get_bookreader_stream_url(edition.ocaid))
         
     if type in ['pdf','epub']:
         # ACS4
@@ -338,9 +347,9 @@ def get_loan_link(edition, type):
         
     raise Exception('Unknown resource type %s for loan of edition %s', edition.key, type)
     
-def get_bookreader_link(edition):
-    """Returns the link to the BookReader for the edition"""
-    return "%s/%s" % (bookreader_stream_base, edition.ocaid)
+# def get_bookreader_link(edition):
+#     """Returns the link to the BookReader for the edition"""
+#     return "%s/%s" % (bookreader_stream_base, edition.ocaid)
     
 def get_loan_key(resource_id):
     """Get the key for the loan associated with the resource_id"""
@@ -581,7 +590,7 @@ def get_ia_auth_dict(user, item_id, resource_id, user_specified_loan_key):
     """
     
     base_url = 'http://' + web.ctx.host
-    resolution_dict = { 'base_url': base_url, 'item_id': item_id, 'stream_base': bookreader_stream_base }
+    resolution_dict = { 'base_url': base_url, 'item_id': item_id }
     
     error_message = None
     borrowed = False

@@ -63,7 +63,7 @@ $if len(loans) > 0:
                 </td>
                 <td class="actions">
                     $if loan['resource_type'] == 'bookreader':
-                        <a href="$loan['loan_link']">Read Online</a>
+                        $:macros.BookReaderLoanReadForm(loan)
                         $:macros.ReturnForm(loan)
                 </td>
             </tr>

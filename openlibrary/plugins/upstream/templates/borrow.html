@@ -167,7 +167,9 @@ $else:
             
             $if can_return_resource_type(active_loan['resource_type']):
                <div class="message info">
-                    <h2 class="sansserif">You have this book checked out. You can <a href="$active_loan['loan_link']">read it online</a> or return the book.
+                    <h2 class="sansserif">You have this book checked out. You can read it online or return the book.
+                    <p>
+                    $:macros.BookReaderLoanReadForm(active_loan)</p>
                     <p>
                     $:macros.ReturnForm(active_loan)
                     </p>
