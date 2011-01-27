@@ -664,6 +664,29 @@ def make_ia_token(item_id, expiry_seconds):
     token = '%d-%s' % (timestamp, hmac.new(access_key, token_data).hexdigest())
     return token
     
+def ia_token_is_current(item_id, access_token):
+    try:
+        access_key = config.ia_access_secret
+    except AttributeError:
+        raise Exception("config value config.ia_access_secret is not present -- check your config")
+    
+    # Check if token has expired
+    token_timestamp = access_token.split('-')[0]
+    token_time = int(token_timestamp)
+    now = int(time.time())
+    if token_time < now:
+        return False
+    
+    # Verify token is valid
+    token_hmac = access_token.split('-')[1]
+    expected_data = '%s-%s' % (item_id, token_timestamp)
+    expected_hmac = hmac.new(access_key, expected_data).hexdigest()
+    
+    if token_hmac == expected_hmac:
+        return True
+        
+    return False
+    
 def make_bookreader_auth_link(loan_key, item_id, book_path):
     """
     Generate a link to BookReaderAuth.php that starts the BookReader with the information to initiate reading
