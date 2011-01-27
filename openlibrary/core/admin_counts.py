@@ -34,14 +34,16 @@ def connect_to_pg(config_file):
     return web.database(dbn="postgres",**conf)
 
 
-def connect_to_admin(config_file):
-    "Connects to the admin database in couchdb"
+def connect_to_couch(config_file):
+    "Connects to the couch databases"
     f = open(config_file)
     config = yaml.load(f)
     f.close()
-    db = config["admin"]["counts_db"]
-    logging.debug(" Couch Database is %s", db)
-    return couchdb.Database(db)
+    admin_db = config["admin"]["counts_db"]
+    editions_db = config["lists"]["editions_db"]
+    logging.debug(" Admin Database is %s", admin_db)
+    logging.debug(" Editions Database is %s", editions_db)
+    return couchdb.Database(admin_db), couchdb.Database(editions_db)
 
 def get_range_data(infobase_db, coverstore_db, start, end):
     """Returns the number of new records of various types
@@ -74,14 +76,29 @@ def get_range_data(infobase_db, coverstore_db, start, end):
     logging.debug(" Type : cover - %d", retval['cover'])
     return retval
 
-def get_delta_data(db, start, end):
+def get_delta_data(admin_db, editions_db, yesterday):
     """Returns the number of new records of `types` by calculating the
     difference between yesterdays numbers and todays"""
-    
+    # eBooks
+    retval = dict()
+    current_total = editions_db.view("admin/ebooks").rows[0].value
+    key = yesterday.strftime("counts-%Y-%m-%d")
+    logging.debug(" Obtaining counts for ebooks between %s and today", yesterday.strftime("%Y-%m-%d"))
+    try:
+        last_total = admin_db[key]["total_ebooks"]
+    except (couchdb.http.ResourceNotFound, KeyError):
+        last_total = 0
+    current_count = last_total - current_total
+    retval["ebook"] = current_count
+    retval["total_ebooks"] = current_total
+    logging.debug(" Type : ebook - %d", retval['ebook'])
+    # Subjects
+    return retval
 
     
 def store_data(db, data, date):
     uid = "counts-%s"%date
+    logging.debug("Updating admin_db for %s - %s", uid, data)
     try:
         vals = db[uid]
         vals.update(data)
@@ -97,15 +114,16 @@ def main(infobase_config, openlibrary_config, coverstore_config, ndays = 1):
     try:
         infobase_conn = connect_to_pg(infobase_config)
         coverstore_conn = connect_to_pg(coverstore_config)
-        couch = connect_to_admin(openlibrary_config)
+        admin_db, editions_db = connect_to_couch(openlibrary_config)
     except KeyError,k:
         logging.critical("Config file section '%s' missing", k.args[0])
         return -1
-    udate = datetime.datetime.now()
+    today = datetime.datetime.now()
+    data = get_delta_data(admin_db, editions_db, today)
     for i in range(int(ndays)):
-        ldate = udate - datetime.timedelta(days = 1)
-        logging.debug("From %s to %s", ldate, udate)
-        data = get_range_data(infobase_conn, coverstore_conn, ldate.strftime("%Y-%m-%d"), udate.strftime("%Y-%m-%d"))
-        store_data(couch, data, ldate.strftime("%Y-%m-%d"))
-        udate = ldate
+        yesterday = today - datetime.timedelta(days = 1)
+        logging.debug("From %s to %s", yesterday, today)
+        data = get_range_data(infobase_conn, coverstore_conn, yesterday.strftime("%Y-%m-%d"), today.strftime("%Y-%m-%d"))
+        store_data(admin_db, data, yesterday.strftime("%Y-%m-%d"))
+        today = yesterday
     return 0
