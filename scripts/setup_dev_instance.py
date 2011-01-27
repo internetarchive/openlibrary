@@ -115,11 +115,15 @@ def read_config():
     p.read("conf/install.ini")
     return dict(p.items("install"))
     
-def download_and_extract(url, dirname=None):
+def download(url):
     path = CWD.join("var/cache", url.split("/")[-1])
     if not path.exists():
         system("wget %s -O %s" % (url, path.path))
+    
+def download_and_extract(url, dirname=None):
+    download(url)
 
+    path = CWD.join("var/cache", url.split("/")[-1])
     dirname = dirname or path.basename().replace(".tgz", "").replace(".tar.gz", "")
     if not CWD.join("usr/local", dirname).exists():
         system("cd usr/local && tar xzf " + path.path)
@@ -279,12 +283,50 @@ class setup_virtualenv:
     
         if sys.executable != INTERP:
             info("creating virtualenv at", pyenv)
-            system("virtualenv " + pyenv)
+            system("virtualenv " + pyenv + " --no-site-packages")
             
 class install_python_dependencies:
     def run(self):
-        info("installing python dependencies")
-        system(INTERP + " setup.py develop")
+        # avoid installing the packages again after relaunch
+        if os.getenv('OL_BOOTSTRAP_RELAUNCH') != "true":
+            info("installing python dependencies")
+            self.install_from_archive()
+            info("  installing remaining packages")
+            system(INTERP + " setup.py develop")
+        
+    def install_from_archive(self):
+        # This list is maually created after uploading these files to ol_vendor item on archive.org.
+        packages = """
+        meld3-0.6.7.tar.gz
+        Pygments-1.4.tar.gz
+        Jinja2-2.5.5.tar.gz
+        docutils-0.7.tar.gz
+        web.py-0.33.tar.gz
+        
+        Babel-0.9.5.tar.gz
+        PIL-1.1.7.tar.gz
+        simplejson-2.1.3.tar.gz
+        
+        CouchDB-0.8.tar.gz
+        Genshi-0.6.tar.gz
+        PyYAML-3.09.zip
+        Sphinx-1.0.7.tar.gz
+        argparse-1.1.zip
+        gunicorn-0.12.0.tar.gz
+        lxml-2.3beta1.tar.gz
+        psycopg2-2.3.2.tar.gz
+        pymarc-2.71.tar.gz
+        py-1.4.0.zip
+        pytest-2.0.0.zip
+        python-memcached-1.47.tar.gz
+        supervisor-3.0a9.tar.gz
+        """
+        pyenv = os.path.expanduser(config['virtualenv'])
+        for name in packages.strip().split():
+            url = "http://www.archive.org/download/ol_vendor/python-" + name
+            info("  installing", url)
+            download(url)
+            system(pyenv + "/bin/easy_install -Z var/cache/python-" + name)
 
 class switch_to_virtualenv:
     def run(self):
