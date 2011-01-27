@@ -64,16 +64,6 @@ python packages, installs vendor software and initializes the OL
 databases. A detailed log is written to ``var/log/install.log`` and
 info and errors are reported to stdout and stderr respectively.
 
-Get css and js files
---------------------
-
-Openlibrary uses css and js files from the database. Until this is fixed, get the latest css and js files using::
-
-    $ python setup.py shell
-    $ ./scripts/copydocs.py /upstream/css/* /upstream/js/*
-    ...
-    $ exit
-
 Verify the installation
 -----------------------
 *TDB* (insert notes on how to run smoke tests here).

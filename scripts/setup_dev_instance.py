@@ -246,7 +246,16 @@ class Infobase(Process):
         if isinstance(data, dict):
             data = urllib.urlencode(data)
         return urllib2.urlopen("http://127.0.0.1:7500/openlibrary.org" + path, data).read()
-        
+
+class OpenLibrary(Process):
+    def get_specs(self):
+        return {
+            "command": INTERP + " ./scripts/openlibrary-server conf/openlibrary.yml --gunicorn -b 0.0.0.0:8080"
+        }
+
+    def wait_for_start(self):
+        self.wait_for_url("http://127.0.0.1:8080/")
+
 class DBTask:
     def getstatusoutput(self, cmd):
         debug("Executing", cmd)
@@ -584,7 +593,19 @@ class setup_accounts:
             "query": simplejson.dumps(usergroups),
             "comment": "Added openlibrary to admin and api usergroups."
         })
+        
+class copy_docs:
+    def run(self):
+        info("copying js and css files from openlibrary.org")
+        infobase = Infobase()
+        register_cleanup(infobase.stop)
+        infobase.start()
+        
+        ol = OpenLibrary()
+        ol.run_tasks(self.copy_docs)
 
+    def copy_docs(self):
+        system("./scripts/copydocs.py /upstream/css/* /upstream/js/*")
 
 cleanup_tasks = []
 
@@ -608,12 +629,14 @@ def main():
         install_couchdb_lucene(),
         install_postgresql(),
         
-        start_postgresql(),        
+        start_postgresql(),
         
         setup_coverstore(),
         setup_ol(),
         setup_couchdb(),
-        setup_accounts()
+        setup_accounts(),
+        
+        copy_docs()
     ]
 
     try:
