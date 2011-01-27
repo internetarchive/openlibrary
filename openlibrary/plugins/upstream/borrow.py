@@ -121,7 +121,10 @@ class borrow(delegate.page):
                 #   user.has_borrowed = True
                 #   user.save()
                 
-                raise web.seeother(loan_link)
+                if resource_type == 'bookreader':
+                    raise web.seeother(make_bookreader_auth_link(loan.get_key(), edition.ocaid, loan_link))
+                else:
+                    raise web.seeother(loan_link)
             else:
                 # Send to the borrow page
                 raise web.seeother(error_redirect)
@@ -186,7 +189,7 @@ class ia_auth(delegate.page):
     path = r"/ia_auth/(.*)"
     
     def GET(self, item_id):
-        i = web.input(_method='GET', callback=None, loan=None)
+        i = web.input(_method='GET', callback=None, loan=None, token=None)
         
         resource_id = 'bookreader:%s' % item_id
         content_type = "application/json"
@@ -194,7 +197,7 @@ class ia_auth(delegate.page):
         # check that identifier is valid
         
         user = web.ctx.site.get_user()
-        auth_json = simplejson.dumps( get_ia_auth_dict(user, item_id, resource_id, i.loan ) )
+        auth_json = simplejson.dumps( get_ia_auth_dict(user, item_id, resource_id, i.loan, i.token ) )
                 
         output = auth_json
         
@@ -583,7 +586,7 @@ def return_resource(resource_id):
     # $$$ Could add some stats tracking.  For now we just nuke it.
     web.ctx.site.store.delete(loan_key)
 
-def get_ia_auth_dict(user, item_id, resource_id, user_specified_loan_key):
+def get_ia_auth_dict(user, item_id, resource_id, user_specified_loan_key, access_token):
     """Returns response similar to one of these:
     {'success':true,'token':'1287185207-fa72103dd21073add8f87a5ad8bce845','borrowed':true}
     {'success':false,'msg':'Book is checked out','borrowed':false, 'resolution': 'You can visit <a href="http://openlibary.org/ia/someid">this book\'s page on Open Library</a>.'}
@@ -660,6 +663,18 @@ def make_ia_token(item_id, expiry_seconds):
     
     token = '%d-%s' % (timestamp, hmac.new(access_key, token_data).hexdigest())
     return token
+    
+def make_bookreader_auth_link(loan_key, item_id, book_path):
+    """
+    Generate a link to BookReaderAuth.php that starts the BookReader with the information to initiate reading
+    a borrowed book
+    """
+    
+    access_token = make_ia_token(item_id, bookreader_auth_seconds)
+    auth_url = 'http://%s/bookreader/BookReaderAuth.php?uuid=%s&token=%s&id=%s&bookPath=%s' % (
+        bookreader_host, loan_key, access_token, item_id, book_path
+    )
+    return auth_url
 
 ########## Classes
 
