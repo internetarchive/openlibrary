@@ -1,4 +1,4 @@
-"""Plugin to provide admin interface.
+b"""Plugin to provide admin interface.
 """
 import os
 import sys
@@ -217,7 +217,7 @@ def get_counts():
     index page"""
     def _sum_values(d, key):
         "Returns the sum of all values with the same key in a list of dictionaries"
-        return sum((x[key] for x in d), 0)
+        return sum((x.get(key, 0) for x in d), 0)
                    
     placeholder = dict(lastweek  = "xxxx",
                        lastmonth = "xxxx",
@@ -236,14 +236,16 @@ def get_counts():
                                           startkey_docid = "counts-%s"%start_date,
                                           endkey_docid   = "counts-%s"%end_date,
                                           include_docs = True)]
-
-    for i in "work edition user author list cover".split():
+    
+    for i in "work edition user author list cover ebook".split():
         lastweek = _sum_values(data[-7:], i)
         lastmonth = _sum_values(data[:-7], i) + lastweek
+        total = data[-1].get("total_%ss"%i,"xxxx")
+        print data[-1]
         counts[i] = dict(lastweek  = lastweek,
                          lastmonth = lastmonth,
-                         total     = "xxxx")
-    counts["ebook"] = counts["subject"] = placeholder
+                         total     = total)
+    counts["subject"] = placeholder
     s = storify(counts)
     return s
 
