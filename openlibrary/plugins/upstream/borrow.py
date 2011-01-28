@@ -596,52 +596,70 @@ def get_ia_auth_dict(user, item_id, resource_id, user_specified_loan_key, access
     resolution_dict = { 'base_url': base_url, 'item_id': item_id }
     
     error_message = None
-    borrowed = False
+    user_has_current_loan = False
     
+    # Sanity checks
     if not ia_identifier_is_valid(item_id):
         return {'success': False, 'msg': 'Invalid item id', 'resolution': 'This book does not appear to have a valid item identifier.' }
-    
-    # Lookup loan information
-    loan_key = get_loan_key(resource_id)
 
     if not resource_id.startswith('bookreader'):
         error_message = 'Bad resource id type'
         resolution_message = 'This book cannot be borrowed for in-browser loan. You can <a href="%(base_url)s/ia/%(item_id)s">visit this book\'s page</a> on openlibrary.org to learn more about the book.' % resolution_dict
+        return {'success': False, 'msg': error_message, 'resolution': resolution_message }
     
-    elif user is None and (loan_key != user_specified_loan_key):
-        # Not logged in or wasn't provided the key for this loan
-        
-        if loan_key:
-            # Checked out
-            error_message = "Book is checked out (possibly by you)"
-            resolution_message = 'This book is currently checked out. If <em>you</em> checked it out please <a href="%(base_url)s/ia/%(item_id)s/borrow">visit Open Library</a> to get access to the book.  If you haven\'t checked out this book you can <a href="%(base_url)s/subjects/Lending_library">look at other books available to borrow</a>.  You must have cookies enabled for archive.org and openlibrary.org to access borrowed books.' % resolution_dict
-        else:
-            error_message = "Book available to borrow"
-            resolution_message = 'This book is available to borrow.  You can <a href="%(base_url)s/account/login?redirect=%(base_url)s/ia/%(item_id)s/borrow">borrow this book from Open Library</a>.' % resolution_dict
-    
-    elif not loan_key:
+    # Lookup loan information
+    loan_key = get_loan_key(resource_id)
+
+    if loan_key is None:
+        # Book is not checked out
         error_message = 'This book is available to borrow'
         resolution_message = 'This book is currently available to borrow. You can <a href="%(base_url)s/ia/%(item_id)s/borrow">borrow this book from Open Library</a>.' % resolution_dict
-    
+        
     else:
-        # There is a loan for this book
+        # Book is checked out (by someone) - get the loan information
         loan = web.ctx.site.store.get(loan_key)
         
-        if user and (loan['user'] != user.key):
-            error_message = 'This book is checked out'
-            resolution_message = 'This book is currently checked out.  You can <a href="%(base_url)s/ia/%(item_id)s">visit this book\'s page on Open Library</a> or <a href="%(base_url)/subjects/Lending_library">look at other books available to borrow</a>.' % resolution_dict
+        # Check that this is a bookreader loan
+        if loan['resource_type'] != 'bookreader':
+            error_message = 'No BookReader loan'
+            resolution_message = 'This book was borrowed as ' + loan['resource_type'] + '. You can <a href="%(base_url)s/ia/%(item_id)s">visit this book\'s page</a> on openlibrary.org to access the book in that format.' % resolution_dict
+            return {'success': False, 'msg': error_message, 'resolution': resolution_message }
         
-        elif loan['expiry'] < datetime.datetime.utcnow().isoformat():
-            error_message = 'Your loan has expired'
-            resolution_message = 'Your loan for this book has expired.  You can <a href="%(base_url)s/ia/%(item_id)s">visit this book\'s page on Open Library</a>.' % resolution_dict
+        # If we know who this user is, from third-party cookies and they are logged into openlibrary.org, check if they have the loan
+        if user:
+            if loan['user'] != user.key:
+                # Borrowed by someone else
+                error_message = 'This book is checked out'
+                resolution_message = 'This book is currently checked out.  You can <a href="%(base_url)s/ia/%(item_id)s">visit this book\'s page on Open Library</a> or <a href="%(base_url)/subjects/Lending_library">look at other books available to borrow</a>.' % resolution_dict
             
-        else: # user borrowed this book
-            borrowed = True
+            elif loan['expiry'] < datetime.datetime.utcnow().isoformat():
+                # User has the loan, but it's expired
+                error_message = 'Your loan has expired'
+                resolution_message = 'Your loan for this book has expired.  You can <a href="%(base_url)s/ia/%(item_id)s">visit this book\'s page on Open Library</a>.' % resolution_dict
+            
+            else:
+                # User holds the loan - win!
+                user_has_current_loan = True
+        else:
+            # Don't have user context - not logged in or third-party cookies disabled
+            
+            # Check if the loan id + token is valid
+            if user_specified_loan_key and access_token and ia_token_is_current(item_id, access_token):
+                # Win!
+                user_has_current_loan = True
+                    
+            else:
+                # Couldn't validate using token - they need to go to Open Library
+                error_message = "Book is checked out (possibly by you)"
+                resolution_message = 'This book is currently checked out. If <em>you</em> checked it out please <a href="%(base_url)s/ia/%(item_id)s/borrow">visit Open Library</a> to get access to the book.  If you haven\'t checked out this book you can <a href="%(base_url)s/subjects/Lending_library">look at other books available to borrow</a>.  You must have cookies enabled for archive.org and openlibrary.org to access borrowed books.' % resolution_dict
     
     if error_message:
         return { 'success': False, 'msg': error_message, 'resolution': resolution_message }
+    else:
+        # No error message, make sure we thought the loan was current as sanity check
+        if not user_has_current_loan:
+            raise Exception('lending: no current loan for this user found but no error condition specified')
     
-    item_id = resource_id[len('bookreader:'):]
     return { 'success': True, 'token': make_ia_token(item_id, bookreader_auth_seconds) }
     
 
@@ -671,14 +689,22 @@ def ia_token_is_current(item_id, access_token):
         raise Exception("config value config.ia_access_secret is not present -- check your config")
     
     # Check if token has expired
-    token_timestamp = access_token.split('-')[0]
+    try:
+        token_timestamp = access_token.split('-')[0]
+    except:
+        return False
+        
     token_time = int(token_timestamp)
     now = int(time.time())
     if token_time < now:
         return False
     
     # Verify token is valid
-    token_hmac = access_token.split('-')[1]
+    try:
+        token_hmac = access_token.split('-')[1]
+    except:
+        return False
+        
     expected_data = '%s-%s' % (item_id, token_timestamp)
     expected_hmac = hmac.new(access_key, expected_data).hexdigest()
     
