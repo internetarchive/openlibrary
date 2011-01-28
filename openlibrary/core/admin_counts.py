@@ -119,7 +119,10 @@ def main(infobase_config, openlibrary_config, coverstore_config, ndays = 1):
         logging.critical("Config file section '%s' missing", k.args[0])
         return -1
     today = datetime.datetime.now()
+    yesterday = today - datetime.timedelta(days = 1)
+    # Delta data is gathered only for the current day
     data = get_delta_data(admin_db, editions_db, today)
+    store_data(admin_db, data, yesterday.strftime("%Y-%m-%d"))
     for i in range(int(ndays)):
         yesterday = today - datetime.timedelta(days = 1)
         logging.debug("From %s to %s", yesterday, today)
