@@ -12,8 +12,6 @@ def esc_sp(s):
 
 class html_record():
     def __init__(self, data):
-        if len(data) != int(data[:5]):
-            data = data.decode('utf-8').encode('raw_unicode_escape')
         assert len(data) == int(data[:5])
         self.data = data
         self.leader = data[:24]
