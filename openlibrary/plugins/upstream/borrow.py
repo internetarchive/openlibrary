@@ -637,7 +637,7 @@ def get_ia_auth_dict(user, item_id, resource_id, user_specified_loan_key, access
             if loan['user'] != user.key:
                 # Borrowed by someone else
                 error_message = 'This book is checked out'
-                resolution_message = 'This book is currently checked out.  You can <a href="%(base_url)s/ia/%(item_id)s">visit this book\'s page on Open Library</a> or <a href="%(base_url)/subjects/Lending_library">look at other books available to borrow</a>.' % resolution_dict
+                resolution_message = 'This book is currently checked out.  You can <a href="%(base_url)s/ia/%(item_id)s">visit this book\'s page on Open Library</a> or <a href="%(base_url)s/subjects/Lending_library">look at other books available to borrow</a>.' % resolution_dict
             
             elif loan['expiry'] < datetime.datetime.utcnow().isoformat():
                 # User has the loan, but it's expired
