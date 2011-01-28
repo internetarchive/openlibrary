@@ -6,6 +6,7 @@ from infogami.utils import delegate
 from infogami.utils.view import render_template
 
 from openlibrary.core import admin
+from openlibrary.plugins.upstream.utils import get_blog_feeds
 
 class home(delegate.page):
     path = "/"
@@ -15,7 +16,11 @@ class home(delegate.page):
     
     def GET(self):
         stats = admin.get_stats()
-        return render_template("home/index", stats)
+        blog_posts = get_blog_feeds()
+        
+        return render_template("home/index", 
+            stats=stats,
+            blog_posts=blog_posts)
     
 def setup():
     pass

@@ -1,7 +1,37 @@
-$def with (stats)
+$def with (stats=None, blogposts=None)
 
 $var title: $_("Welcome to Open Library")
+  
+  
+<div class="shift">
+    Welcome to Open Library!<br/>
+    Looking for accessible books in the DAISY format? 
+    View our <a href="/subjects/accessible_book">accessible book subject page</a>, 
+    or <a href="/search?subject_facet=Accessible%20book">search for accessible books</a>.
+</div> 
+
+$:render_template("home/splash")
  
+<script type="text/javascript"> 
+\$().ready(function(){
+    \$('.homeCarousel').jcarousel({scroll:6});
+});
+</script>
+ 
+<div id="contentBody">
+    $:render_template("home/read") 
+    <div class="clearfix"></div> 
+     
+    $:render_template("home/borrow") 
+    <div class="clearfix"></div> 
+ 
+    $:render_template("home/stats", stats)
+    <div class="clearfix"></div> 
+ 
+    $:render_template("home/about", blogposts)
+</div>
+
+
 <!-- NEW STYLES--> 
 <style type="text/css"> 
 h1 a.header,h2 a.header, h3 a.header {color:#00636a!important;text-decoration:none!important;}
@@ -113,33 +143,3 @@ div.chartHome a .ticks {font-family:"Georgia","Times New Roman",serif;font-size:
 div.chartHome a .label {font-family:"Lucida Grande","Arial","Helvetica",sans-serif;font-size:0.625em;text-transform:uppercase;}
 div.chartEnd {margin-right:0!important;}
 </style> 
- 
-  
-<div class="shift">
-    Welcome to Open Library!<br/>
-    Looking for accessible books in the DAISY format? 
-    View our <a href="/subjects/accessible_book">accessible book subject page</a>, 
-    or <a href="/search?subject_facet=Accessible%20book">search for accessible books</a>.
-</div> 
-        
-
-$:render_template("home/splash")
- 
-<script type="text/javascript"> 
-\$().ready(function(){
-    \$('.homeCarousel').jcarousel({scroll:6});
-});
-</script>
- 
-<div id="contentBody">
-    $:render_template("home/read") 
-    <div class="clearfix"></div> 
-     
-    $:render_template("home/borrow") 
-    <div class="clearfix"></div> 
- 
-    $:render_template("home/stats")
-    <div class="clearfix"></div> 
- 
-    $:render_template("home/about")
-</div>

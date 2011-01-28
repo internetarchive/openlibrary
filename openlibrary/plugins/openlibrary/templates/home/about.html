@@ -1,4 +1,4 @@
-$def with ()
+$def with (blog_posts=None)
 
 <div class="head"> 
     <h2>About the Project</h2> 
@@ -32,8 +32,9 @@ $def with ()
 <div class="contentQuarter home collapse"> 
     <h3 class="collapse"><a href="http://blog.openlibrary.org/" class="header">Latest Blog Posts</a></h3> 
     <ul id="olBlog"> 
-        $for post in get_blog_feeds()[:2]:
-            <li><a href="$post.link">$post.title</a> - <em>$datestr(post.pubdate)</em></li>
+        $if blog_posts:
+            $for post in blog_posts[:2]:
+                <li><a href="$post.link">$post.title</a> - <em>$datestr(post.pubdate)</em></li>
     </ul> 
 </div> 
 
