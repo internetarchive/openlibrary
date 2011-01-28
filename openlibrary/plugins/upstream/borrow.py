@@ -122,7 +122,7 @@ class borrow(delegate.page):
                 #   user.save()
                 
                 if resource_type == 'bookreader':
-                    raise web.seeother(make_bookreader_auth_link(loan.get_key(), edition.ocaid, loan_link))
+                    raise web.seeother(make_bookreader_auth_link(loan.get_key(), edition.ocaid, '/stream/' + edition.ocaid))
                 else:
                     raise web.seeother(loan_link)
             else:
@@ -163,7 +163,7 @@ class borrow(delegate.page):
             loans = get_loans(user)
             for loan in loans:
                 if loan['book'] == edition.key:
-                    raise web.seeother(make_bookreader_auth_link(loan['store_key'], edition.ocaid, get_bookreader_stream_url(edition.ocaid)))
+                    raise web.seeother(make_bookreader_auth_link(loan['store_key'], edition.ocaid, '/stream/' + edition.ocaid))
             
         # Action not recognized
         raise web.seeother(error_redirect)
