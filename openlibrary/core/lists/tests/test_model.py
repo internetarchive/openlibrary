@@ -1,6 +1,6 @@
 import web
 
-from openlibrary.core.mocks import mock_couchdb
+from openlibrary.mocks import mock_couchdb
 from openlibrary.core.lists import model
 
 class MockCouchDB:

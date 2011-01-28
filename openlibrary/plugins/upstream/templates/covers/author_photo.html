@@ -7,21 +7,22 @@ $ author_lg = author.get_photo_url("L")
 $if url:
     <div class="author coverMagic">
         <div class="SRPCover bookCover">
-            <a href="#seeImage" class="coverLook" title="Pull up a larger author photo"><img src="$url" class="cover" alt="$author.name"/></a>
+            <a href="#seeImage" class="coverLook" title="Pull up a larger author photo"><img src="$url" class="cover" alt="Photo of $author.name"/></a>
         </div>
     </div>
 $else:
     <div class="author coverMagic">
         <div class="SRPCover bookCover">
-            <img src="/images/icons/avatar_author-lg.png" class="cover" alt="$author.name"/>
+            <img src="/images/icons/avatar_author-lg.png" class="cover" alt="We need a photo of $author.name"/>
         </div>
     </div>
 
 <div class="hidden">
     <div class="coverFloat" id="seeImage">
         <div class="coverFloatHead">
-            <a class="floaterShut" href="javascript:;" onclick="\$.fn.colorbox.close();"></a>
+            $truncate(author.name or "", 60)
+            <a class="floaterShut" href="javascript:;" onclick="\$.fn.colorbox.close();"><span class="shift">$_("Close")</span></a>
         </div>
-        <a href="javascript:;" onclick="\$.fn.colorbox.close();"><img src="$author_lg" class="cover" alt="$author.name"/></a>
+        <a href="javascript:;" onclick="\$.fn.colorbox.close();" title="Click to close"><img src="$author_lg" class="cover" alt="Photo of $author.name"/></a>
     </div>
 </div>

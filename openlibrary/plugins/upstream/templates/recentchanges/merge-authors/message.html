@@ -6,7 +6,7 @@ $ duplicates = change.get_duplicates()
 $if not master:
     $var ignore = True
 $elif change.author:
-    $ msg = ungettext("%(who)s merged one duplicate of %(master)s.", "%(who)s merged %(count)d duplicates of %(master)s.", len(duplicates))
+    $ msg = ungettext("%(who)s merged one duplicate of %(master)s", "%(who)s merged %(count)d duplicates of %(master)s", len(duplicates))
 
     $ who = '<a href="%s" rel="nofollow">%s</a>' % (change.author.key, change.author.displayname or change.author.key)
     $ master_html = '<a href="%s">%s</a>' % (master.key, master.name)

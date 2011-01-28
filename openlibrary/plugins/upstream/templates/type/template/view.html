@@ -11,5 +11,9 @@ $:macros.databarTemplate(page)
 $:render_template("lib/view_head", page)
 
 <div id="contentBody">
+    <div>
+        <span class="title">plugin</span>
+        <span class="tag">$page.get("plugin", "upstream")</span>
+    </div>
     $:macros.DisplayCode(page.body, lang="html")
 </div>

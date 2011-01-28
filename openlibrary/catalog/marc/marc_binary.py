@@ -14,6 +14,8 @@ def norm(s):
 class BinaryDataField():
     def __init__(self, rec, line):
         self.rec = rec
+        while line[-2] == '\x1e': # ia:engineercorpsofhe00sher
+            line = line[:-1]
         self.line = line
 
     def translate(self, data):
@@ -97,6 +99,7 @@ class MarcBinary(MarcBase):
     def read_fields(self, want):
         want = set(want)
         marc8 = self.leader()[9] != 'a'
+        #for tag, line in handle_wrapped_lines(get_tag_lines(self.data, want)):
         for tag, line in handle_wrapped_lines(get_tag_lines(self.data, want)):
             if tag not in want:
                 continue

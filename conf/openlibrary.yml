@@ -28,7 +28,6 @@ memcache_servers:
 plugins:
     - "openlibrary"
     - "links"
-    - "wikitemplates"
     - "search"
     - "worksearch"
     - "api"

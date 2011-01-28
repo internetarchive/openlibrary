@@ -2,7 +2,7 @@
 """Script to install OL dev instance.
 """
 import ConfigParser
-import os
+import os, shutil
 import shlex
 import subprocess
 import sys
@@ -13,7 +13,54 @@ import commands
 config = None
 INTERP = None
 
-CWD = os.getcwd()
+class Path:
+    """Wrapper over file path, inspired by py.path.local.
+    """
+    def __init__(self, path):
+        self.path = path
+        
+    def exists(self):
+        return os.path.exists(self.path)
+        
+    def basename(self):
+        return os.path.basename(self.path)
+    
+    def join(self, *a):
+        parts = [self.path] + list(a)
+        path = os.path.join(*parts)
+        return Path(path)
+        
+    def mkdir(self, *parts):
+        path = self.join(*parts).path
+        if not os.path.exists(path):
+            os.makedirs(path)
+            
+    def isdir(self):
+        return os.path.isdir(self.path)
+        
+    def copy_to(self, dest, recursive=False):
+        if isinstance(dest, Path):
+            dest = dest.path
+            
+        options = ""
+        if recursive:
+            options += " -r"
+            
+        cmd = "cp %s %s %s" % (options, self.path, dest)
+        os.system(cmd)
+        
+    def read(self):
+        return open(self.path).read()
+        
+    def write(self, text, append=False):
+        if append:
+            f = open(self.path, 'a')
+        else:
+            f = open(self.path, 'w')
+        f.write(text)
+        f.close()
+
+CWD = Path(os.getcwd())
 
 ## Common utilities
 def log(level, args):
@@ -22,7 +69,7 @@ def log(level, args):
         print msg
 
     text = time.asctime() + " " + level.ljust(6) + " " + msg + "\n"
-    write(CWD + "/var/log/install.log", text, append=True)
+    CWD.join("var/log/install.log").write(text, append=True)
     
 def info(*args):
     log("INFO", args)
@@ -48,8 +95,18 @@ def system(cmd):
         raise Exception("%r failed with exit code %d" % (cmd, ret))
 
 def setup_dirs():
-    os.system("mkdir -p var/lib var/run var/log usr/local/bin usr/local/lib")
-    os.system("echo > var/log/install.log")
+    dirs = (
+        "var/cache var/lib var/log var/run" +
+        " var/lib/coverstore/localdisk" +
+        " var/log/lighttpd var/cache/lighttpd/uploads var/www/cache " + 
+        " usr/local/bin usr/local/etc usr/local/lib"
+    )
+    os.system("mkdir -p " + dirs)
+    
+    # this script is relaunched with python from virtualenv after setting up virtualenv.
+    # install.log must not overwritten then.
+    if os.getenv('OL_BOOTSTRAP_RELAUNCH') != "true":
+        os.system("echo > var/log/install.log")
 
 def read_config():
     """Reads conf/install.ini file.
@@ -59,20 +116,18 @@ def read_config():
     p.read("conf/install.ini")
     return dict(p.items("install"))
     
-def wget(url):
-    filename = "vendor/" + url.split("/")[-1]
-    if not os.path.exists(filename):
-        system("wget %s -O %s" % (url, filename))
-    return filename
-
+def download(url):
+    path = CWD.join("var/cache", url.split("/")[-1])
+    if not path.exists():
+        system("wget %s -O %s" % (url, path.path))
+    
 def download_and_extract(url, dirname=None):
-    filename = "vendor/" + url.split("/")[-1]
-    if not os.path.exists(filename):
-        system("wget %s -O %s" % (url, filename))
+    download(url)
 
-    dirname = dirname or filename.replace(".tgz", "").replace(".tar.gz", "")
-    if not os.path.exists(dirname):
-        system("cd vendor && tar xzf " + os.path.basename(filename))
+    path = CWD.join("var/cache", url.split("/")[-1])
+    dirname = dirname or path.basename().replace(".tgz", "").replace(".tar.gz", "")
+    if not CWD.join("usr/local", dirname).exists():
+        system("cd usr/local && tar xzf " + path.path)
 
 def find_distro():
     uname = os.uname()[0]
@@ -96,7 +151,20 @@ class Process:
         command = specs.pop("command")
         args = command.split()
         self.process = subprocess.Popen(args, **specs)
-        time.sleep(2)
+        self.wait_for_start()
+
+    def wait_for_start(self):
+        time.sleep(5)
+
+    def wait_for_url(self, url):
+        for i in range(10):
+            try:
+                urllib2.urlopen(url).read()
+            except:
+                time.sleep(0.5)
+                continue
+            else:
+                return
         
     def stop(self):
         info("    stopping", self.__class__.__name__.lower())
@@ -113,15 +181,17 @@ class Process:
 class Postgres(Process):
     def get_specs(self):
         return {
-            "command": "vendor/postgresql-8.4.4/bin/postgres -D var/lib/postgresql"
+            "command": "usr/local/postgresql-8.4.4/bin/postgres -D var/lib/postgresql"
         }
-                        
+
 class CouchDB(Process):
     def get_specs(self):
         return {
-            "command": "bin/couchdb",
-            "cwd": "vendor/couchdb-1.0.1"
+            "command": "usr/local/bin/couchdb",
         }
+
+    def wait_for_start(self):
+        self.wait_for_url("http://127.0.0.1:5984/")
         
     def create_database(self, name):
         import couchdb
@@ -154,6 +224,9 @@ class Infobase(Process):
         return {
             "command": INTERP + " ./scripts/infobase-server conf/infobase.yml 7500"
         }
+
+    def wait_for_start(self):
+        self.wait_for_url("http://127.0.0.1:7500/")
         
     def get(self, path):
         try:
@@ -174,7 +247,16 @@ class Infobase(Process):
         if isinstance(data, dict):
             data = urllib.urlencode(data)
         return urllib2.urlopen("http://127.0.0.1:7500/openlibrary.org" + path, data).read()
-        
+
+class OpenLibrary(Process):
+    def get_specs(self):
+        return {
+            "command": INTERP + " ./scripts/openlibrary-server conf/openlibrary.yml --gunicorn -b 0.0.0.0:8080"
+        }
+
+    def wait_for_start(self):
+        self.wait_for_url("http://127.0.0.1:8080/")
+
 class DBTask:
     def getstatusoutput(self, cmd):
         debug("Executing", cmd)
@@ -211,51 +293,101 @@ class setup_virtualenv:
     
         if sys.executable != INTERP:
             info("creating virtualenv at", pyenv)
-            system("virtualenv " + pyenv)
+            system("virtualenv " + pyenv + " --no-site-packages")
+            
+class install_python_dependencies:
+    def run(self):
+        # avoid installing the packages again after relaunch
+        if os.getenv('OL_BOOTSTRAP_RELAUNCH') != "true":
+            info("installing python dependencies")
+            self.install_from_archive()
+            info("  installing remaining packages")
+            system(INTERP + " setup.py develop")
         
+    def install_from_archive(self):
+        # This list is maually created after uploading these files to ol_vendor item on archive.org.
+        packages = """
+        meld3-0.6.7.tar.gz
+        Pygments-1.4.tar.gz
+        Jinja2-2.5.5.tar.gz
+        docutils-0.7.tar.gz
+        web.py-0.33.tar.gz
+        
+        Babel-0.9.5.tar.gz
+        PIL-1.1.7.tar.gz
+        simplejson-2.1.3.tar.gz
+        
+        CouchDB-0.8.tar.gz
+        Genshi-0.6.tar.gz
+        PyYAML-3.09.zip
+        Sphinx-1.0.7.tar.gz
+        argparse-1.1.zip
+        gunicorn-0.12.0.tar.gz
+        lxml-2.3beta1.tar.gz
+        psycopg2-2.3.2.tar.gz
+        pymarc-2.71.tar.gz
+        py-1.4.0.zip
+        pytest-2.0.0.zip
+        python-memcached-1.47.tar.gz
+        supervisor-3.0a9.tar.gz
+        """
+        pyenv = os.path.expanduser(config['virtualenv'])
+        for name in packages.strip().split():
+            url = "http://www.archive.org/download/ol_vendor/python-" + name
+            info("  installing", url)
+            download(url)
+            system(pyenv + "/bin/easy_install -Z var/cache/python-" + name)
+
+class switch_to_virtualenv:
+    def run(self):
+        if sys.executable != INTERP:
+            pyenv = os.path.expanduser(config['virtualenv'])
+            
             info("restarting the script with python from", INTERP)
             env = dict(os.environ)
             env['PATH'] = pyenv + "/bin:usr/local/bin:" + env['PATH']
             env['LD_LIBRARY_PATH'] = 'usr/local/lib'
             env['DYLD_LIBRARY_PATH'] = 'usr/local/lib'
+            env['OL_BOOTSTRAP_RELAUNCH'] = "true"
             os.execvpe(INTERP, [INTERP] + sys.argv, env)
-        
-class install_python_dependencies:
-    def run(self):
-        info("installing python dependencies")
-        system(INTERP + " setup.py develop")
     
 class install_solr:
     def run(self):
         info("installing solr...")
     
         download_and_extract("http://www.archive.org/download/ol_vendor/apache-solr-1.4.0.tgz")
-    
-        types = 'authors', 'editions', 'works', 'subjects', 'inside'
-        paths = ["vendor/solr/solr/" + t for t in types] 
-        system("mkdir -p " + " ".join(paths))
-    
-        for f in "etc lib logs webapps start.jar".split():
-            system("cp -R vendor/apache-solr-1.4.0/example/%s vendor/solr/" % f)
-    
-        system("cp conf/solr-biblio/solr.xml vendor/solr/solr/")
+        
+        base  = CWD.join("usr/local/apache-solr-1.4.0")
+        solr = CWD.join("usr/local/solr")
 
-        solrconfig = open("vendor/apache-solr-1.4.0/example/solr/conf/solrconfig.xml").read()
+        types = 'authors', 'editions', 'works', 'subjects', 'inside'
+        for t in types:
+            solr.mkdir("solr", t)
+            
+        for f in "etc lib logs webapps start.jar".split():
+            src = base.join("example", f)
+            dest = solr.join(f)
+            src.copy_to(dest, recursive=True)
+            
+        CWD.join("conf/solr-biblio/solr.xml").copy_to(solr.join("solr"))
+
+        solrconfig = base.join("example/solr/conf/solrconfig.xml").read()
     
         for t in types:
-            if not os.path.exists('solr/solr/' + t + '/conf'):
-                system("cp -r vendor/apache-solr-1.4.0/example/solr/conf vendor/solr/solr/%s/conf" % t)
+            if not solr.join("solr", t, "conf").exists():
+                base.join("example/solr/conf").copy_to(solr.join("solr", t, "conf"), recursive=True)
+                
+            CWD.join("conf/solr-biblio", t + ".xml").copy_to(solr.join("solr", t, "conf/schema.xml"))
             
-            system('cp conf/solr-biblio/%s.xml vendor/solr/solr/%s/conf/schema.xml' % (t, t))
-        
-            f = 'vendor/solr/solr/' + t + '/conf/solrconfig.xml'
-            debug("creating", f)
-            write(f, solrconfig.replace("./solr/data", "./solr/%s/data" % t))
+            f = solr.join("solr", t, "conf/solrconfig.xml")
+            debug("creating", f.path)
+            f.write(solrconfig.replace("./solr/data", "./solr/%s/data" % t))
 
 class install_couchdb_lucene:
     def run(self):    
         info("installing couchdb lucene...")
-        download_and_extract("http://www.archive.org/download/ol_vendor/couchdb-lucene-0.6-SNAPSHOT-dist.tar.gz")    
+        download_and_extract("http://www.archive.org/download/ol_vendor/couchdb-lucene-0.6-SNAPSHOT-dist.tar.gz")
+        os.system("cd usr/local/etc && ln -fs ../couchdb-lucene-0.6-SNAPSHOT/conf couchdb-lucene")
 
 class checkout_submodules:
     def run(self):
@@ -277,31 +409,39 @@ class install_couchdb:
             
     def copy_config_files(self):
         debug("copying config files")
-        system("cp conf/couchdb/local.ini vendor/couchdb-1.0.1/etc/couchdb/")
+        CWD.join("conf/couchdb/local.ini").copy_to("usr/local/etc/couchdb/")
         
     def install_osx(self):
         download_url = "http://www.archive.org/download/ol_vendor/couchdb-1.0.1-osx-binaries.tgz"
-        download_and_extract(download_url, dirname="couchdb-1.0.1")
-        system("cd vendor/couchdb-1.0.1 && ln -fs couchdb-1.0.1/etc etc")
+        
+        download_and_extract(download_url, dirname="couchdb_1.0.1")
+        # mac os x distribution uses relative paths. So no need to fix files.
+        
+        os.system("cd usr/local/etc && ln -sf ../couchdb_1.0.1/etc/couchdb .")
         
     def install_linux(self):
-        download_url = "http://www.archive.org/download/ol_vendor/couchdb-1.0.1-linux-binaries.tgz"
+        if self.is_64_bit():
+            download_url = "http://www.archive.org/download/ol_vendor/couchdb-1.0.1-linux-64bit-binaries.tgz"
+        else:
+            download_url = "http://www.archive.org/download/ol_vendor/couchdb-1.0.1-linux-binaries.tgz"
         download_and_extract(download_url, dirname="couchdb-1.0.1")
         self.fix_linux_paths()
         
+        os.system("cd usr/local/bin && ln -fs ../couchdb-1.0.1/bin/couchdb .")
+        os.system("cd usr/local/etc && ln -sf ../couchdb-1.0.1/etc/couchdb .")
+        
     def fix_linux_paths(self):
-        root = os.getcwd() + "/vendor/couchdb-1.0.1"
+        root = CWD.join("usr/local/couchdb-1.0.1")
+        DEFAULT_ROOT = "/home/anand/couchdb-1.0.1"
+        
         for f in "bin/couchdb bin/couchjs bin/erl etc/couchdb/default.ini etc/init.d/couchdb etc/logrotate.d/couchdb lib/couchdb/erlang/lib/couch-1.0.1/ebin/couch.app".split():
-    	    debug("fixing paths in", f)
-    	    self.replace_file(os.path.join(root, f), "/home/anand/couchdb-1.0.1", root)
-        
-    def replace_file(self, path, pattern, replacement):
-        text = open(path).read()
-        text = text.replace(pattern, replacement)
-        f = open(path, "w")
-        f.write(text)
-        f.close()
-        
+            debug("fixing paths in", f)
+            f = root.join(f)
+            f.write(f.read().replace(DEFAULT_ROOT, root.path))
+            
+    def is_64_bit(self):
+        return os.uname()[-1] == "x86_64"
+    
 class install_postgresql:
     """Installs postgresql on Mac OS X.
     Doesn't do anything on Linux.
@@ -315,10 +455,11 @@ class install_postgresql:
         info("installing postgresql..")
         download_url = "http://www.archive.org/download/ol_vendor/postgresql-8.4.4-osx-binaries.tgz"
         download_and_extract(download_url, dirname="postgresql-8.4.4")
+        system("cd usr/local/bin && ln -fs ../postgresql-8.4.4/bin/* .")
+        system("cd usr/local/lib && ln -fs ../postgresql-8.4.4/lib/* .")
+        
         if not os.path.exists("var/lib/postgresql/base"):
-            system("vendor/postgresql-8.4.4/bin/initdb --no-locale var/lib/postgresql")
-        system("cd usr/local/bin && ln -fs ../../../vendor/postgresql-8.4.4/bin/* .")
-        system("cd usr/local/lib && ln -fs ../../../vendor/postgresql-8.4.4/lib/* .")
+            system("usr/local/bin/initdb --no-locale var/lib/postgresql")
         
 class start_postgresql:
     def run(self):
@@ -364,20 +505,20 @@ class setup_ol(DBTask):
         
         schema = """
         create table subjects (
-    		field text not null,
-    		key character varying(255),
-    		publish_year integer, 
-    		ebook_count integer,
-    		PRIMARY KEY (field, key, publish_year)
-    	);
-    	CREATE INDEX field_key ON subjects(field, key);
+            field text not null,
+            key character varying(255),
+            publish_year integer, 
+            ebook_count integer,
+            PRIMARY KEY (field, key, publish_year)
+        );
+        CREATE INDEX field_key ON subjects(field, key);
         """
         
         if not self.has_table("openlibrary_ebook_count", "subjects"):
             import web
             db = web.database(dbn="postgres", db="openlibrary_ebook_count", user=os.getenv("USER"), pw="")
             db.printing = False
-            db.query(schema)    	
+            db.query(schema)
 
 class setup_couchdb:
     """Creates couchdb databases required for OL and adds design documents to them."""
@@ -391,6 +532,7 @@ class setup_couchdb:
         self.couchdb.create_database("works")
         self.couchdb.create_database("editions")
         self.couchdb.create_database("seeds")
+        self.couchdb.create_database("admin")
         
     def add_design_docs(self):
         info("    adding design docs")
@@ -452,7 +594,19 @@ class setup_accounts:
             "query": simplejson.dumps(usergroups),
             "comment": "Added openlibrary to admin and api usergroups."
         })
+        
+class copy_docs:
+    def run(self):
+        info("copying js and css files from openlibrary.org")
+        infobase = Infobase()
+        register_cleanup(infobase.stop)
+        infobase.start()
+        
+        ol = OpenLibrary()
+        ol.run_tasks(self.copy_docs)
 
+    def copy_docs(self):
+        system("./scripts/copydocs.py /upstream/css/* /upstream/js/*")
 
 cleanup_tasks = []
 
@@ -467,7 +621,8 @@ def main():
     tasks = [
         setup_virtualenv(),
         install_python_dependencies(),
-    
+        switch_to_virtualenv(),
+        
         checkout_submodules(),
     
         install_couchdb(),
@@ -475,12 +630,14 @@ def main():
         install_couchdb_lucene(),
         install_postgresql(),
         
-        start_postgresql(),        
+        start_postgresql(),
         
         setup_coverstore(),
         setup_ol(),
         setup_couchdb(),
-        setup_accounts()
+        setup_accounts(),
+        
+        copy_docs()
     ]
 
     try:

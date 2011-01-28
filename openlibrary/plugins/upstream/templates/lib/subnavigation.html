@@ -1,0 +1,15 @@
+$def with (items, selected=None)
+
+$ selected = selected or request.path
+
+<ul class="collapse">
+    $for key, title in items:
+        <li>
+            $if selected == key:
+                <strong>$title</strong>
+            $else:
+                <a href="$key">$title</a>
+            $if not loop.last:
+                <span>|</span>
+        </li>
+</ul>

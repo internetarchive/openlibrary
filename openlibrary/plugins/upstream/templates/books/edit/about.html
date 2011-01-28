@@ -27,20 +27,6 @@ $def with (work)
 
     <div class="formElement">
         <div class="label">
-            <label for="about-places">$_("Note any places mentioned?")</label> 
-            <span class="tip">$_("For example:") <i><a href="/subjects/places/London">London</a>, <a href="/subjects/places/Atlantis">Atlantis</a>, <a href="/subjects/places/Omaha">Omaha</a></i></span>
-        </div>
-        <div class="input">
-            $ subjects = []
-            $for s in work.subject_places:
-                $ s = s.replace('"', '""')
-                $subjects.append('"' + s + '"' if ',' in s else s)
-            <input type="text" name="work--subject_places" id="about-places" value="$', '.join(subjects)" tabindex="0"/>
-        </div>
-    </div>
-
-    <div class="formElement">
-        <div class="label">
             <label for="about-people">$_("A person? Or, people?")</label> 
             <span class="tip">$_("For example:") <i><a href="/subjects/people/Theodore_Roosevelt">Theodore Roosevelt</a>, <a href="/subjects/people/Julian_of_Norwich">Julian of Norwich</a>, <a href="/subjects/people/Tintin">Tintin</a></i></span>
         </div>
@@ -50,6 +36,20 @@ $def with (work)
                 $ s = s.replace('"', '""')
                 $subjects.append('"' + s + '"' if ',' in s else s)
             <input type="text" name="work--subject_people" id="about-people" value="$', '.join(subjects)" tabindex="0"/>
+        </div>
+    </div>
+
+    <div class="formElement">
+        <div class="label">
+            <label for="about-places">$_("Note any places mentioned?")</label> 
+            <span class="tip">$_("For example:") <i><a href="/subjects/places/London">London</a>, <a href="/subjects/places/Atlantis">Atlantis</a>, <a href="/subjects/places/Omaha">Omaha</a></i></span>
+        </div>
+        <div class="input">
+            $ subjects = []
+            $for s in work.subject_places:
+                $ s = s.replace('"', '""')
+                $subjects.append('"' + s + '"' if ',' in s else s)
+            <input type="text" name="work--subject_places" id="about-places" value="$', '.join(subjects)" tabindex="0"/>
         </div>
     </div>
 
@@ -64,12 +64,6 @@ $def with (work)
                 $ s = s.replace('"', '""')
                 $subjects.append('"' + s + '"' if ',' in s else s)
             <input type="text" name="work--subject_times" id="about-time" value="$', '.join(subjects)" tabindex="0"/>
-        </div>
-    </div>
-
-    <div class="formElement">
-        <div class="tip footnote">
-            <strong>$_("Note:") </strong>$:_('Any tags, places, people or time periods you add here will be transformed into what we call "<a href="/subjects">Subjects</a>".')
         </div>
     </div>
 

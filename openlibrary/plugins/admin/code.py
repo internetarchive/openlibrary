@@ -1,11 +1,14 @@
 """Plugin to provide admin interface.
 """
 import os
+import sys
 import web
 import subprocess
 import datetime
 import urllib
 import traceback
+
+import couchdb
 
 from infogami import config
 from infogami.utils import delegate
@@ -212,22 +215,38 @@ def storify(d):
 def get_counts():
     """Generate counts for various operations which will be given to the
     index page"""
-    # This needs to be replaced with the real thing
+    def _sum_values(d, key):
+        "Returns the sum of all values with the same key in a list of dictionaries"
+        return sum((x.get(key, 0) for x in d), 0)
+                   
     placeholder = dict(lastweek  = "xxxx",
                        lastmonth = "xxxx",
                        total     = "xxxx")
-
-    lastweek  = (datetime.date.today() - datetime.timedelta(days =  2)).isoformat()
-    lastmonth = (datetime.date.today() - datetime.timedelta(days = 28)).isoformat()
-
     counts = web.storage()
-    for i in "work edition user author list".split():
-        counts[i] = dict(lastweek  = len(web.ctx.site.things({"type"     : "/type/%s"%i,
-                                                              "created>" : lastweek})),
-                         lastmonth = len(web.ctx.site.things({"type"     : "/type/%s"%i,
-                                                              "created>" : lastmonth})),
-                         total     = "xxxx")
-    counts["ebook"] = counts["cover"] = counts["subject"] = placeholder
+    counts_db_name = config.get("admin",{}).get("counts_db")
+    if not counts_db_name:
+        for i in "work edition user author list ebook cover subject".split():
+            counts[i] = placeholder
+        return storify(counts)
+
+    counts_db = couchdb.Database(counts_db_name)
+    start_date = (datetime.datetime.now() - datetime.timedelta(days = 28)).strftime("%Y-%m-%d")
+    end_date = (datetime.datetime.now() - datetime.timedelta(days =1)).strftime("%Y-%m-%d")
+    # The -1 for end_date is because the current day will only be half done till the day is over
+    data = [x.doc for x in counts_db.view("_all_docs",
+                                          startkey_docid = "counts-%s"%start_date,
+                                          endkey_docid   = "counts-%s"%end_date,
+                                          include_docs = True)]
+    
+    for i in "work edition user author list cover ebook".split():
+        lastweek = _sum_values(data[-7:], i)
+        lastmonth = _sum_values(data[:-7], i) + lastweek
+        total = data[-1].get("total_%ss"%i,"xxxx")
+        print data[-1]
+        counts[i] = dict(lastweek  = lastweek,
+                         lastmonth = lastmonth,
+                         total     = total)
+    counts["subject"] = placeholder
     s = storify(counts)
     return s
 

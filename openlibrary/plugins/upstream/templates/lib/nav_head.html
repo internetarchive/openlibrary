@@ -26,7 +26,6 @@ $def with (page)
                         <form name='logout' action="$homepath()/account/logout" method="post"></form>
                     </div>
                     $:_("Welcome %(user)s", user='<a href="%s">%s</a>' % (ctx.user.key, ctx.user.displayname))
-                    | <a href="$homepath()/account">$_("Preferences")</a>
                     | <a href="#" onclick="document.forms['logout'].submit()">$_("Log out")</a>
                 $else:
                     <a href="/account/login" class="white">$_("Log in")</a>

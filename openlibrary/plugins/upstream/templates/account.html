@@ -1,9 +1,10 @@
 $def with (user)
 
-$var title: $_("Your Account")
+$var title: $_("Settings")
 
 <div id="contentHead">
-    <h1>$_("Your Account")</h1>
+    <div class="small sansserif grey" style="margin-bottom:5px;"">$:_("%(user)s", user='<a href="%s">%s</a>' % (ctx.user.key, ctx.user.displayname)) /</div>
+    <h1>$_("Settings")</h1>
 </div>
 
 <div id="contentBody">

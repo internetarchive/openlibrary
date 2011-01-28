@@ -12,12 +12,14 @@ $putctx("robots", "noindex,nofollow")
         \$("#tabsAddauthor").tabs();
     };
 });
-\$().ready(function(){\$("#coverPop").colorbox({inline:true, opacity:0.7, href:"#addCover"});});
+\$().ready(function(){\$("#coverPop").colorbox({inline:true, opacity:"0.5", href:"#addCover"});});
 </script>
 
 <div id="contentHead">
     $:macros.databarEdit(page)
     <h1>$_("Edit Author")</h1>
+    $if not ctx.user:
+        $:render_template("lib/not_logged")
 </div>
             
 <div id="contentBody">
@@ -40,7 +42,7 @@ $putctx("robots", "noindex,nofollow")
 
                 <ul>
                     <li><a href="#about">$_("About")</a></li>
-                    <li><a href="#web">$_("Web Resources")</a></li>
+                    <li><a href="#web">$_("Links")</a></li>
                 </ul>
 
                 <div id="about">
@@ -92,7 +94,19 @@ $putctx("robots", "noindex,nofollow")
                                 <textarea name="author--alternate_names" id="alternate_names" rows="6" cols="40" style="height:65px;">$"; ".join(page.alternate_names)</textarea>
                             </div>
                         </div>
-
+                        
+                        $if page.website:
+                            $if ctx.user and ctx.user.is_admin():
+                                <div class="formElement adminOnly">
+                                    <div class="label">
+                                        <label for="uris">$_("Websites")</label>
+                                        <span class="tip">$_("Deprecated")</span>
+                                    </div>
+                                    <div class="input">
+                                        <input type="text" name="author--website" id="website" value="$page.website"/>
+                                    </div>
+                                </div>
+ 
                         
                 </div>
 <!-- /ABOUT -->

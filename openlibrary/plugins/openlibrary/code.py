@@ -718,3 +718,9 @@ class backdoor(delegate.page):
 from infogami.core.forms import register
 username_validator = web.form.Validator("Username already used", lambda username: not web.ctx.site._request("/has_user", data={"username": username}))
 register.username.validators = list(register.username.validators) + [username_validator]
+
+def setup():
+    import home
+    home.setup()
+    
+setup()

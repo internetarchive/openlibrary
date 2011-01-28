@@ -10,10 +10,11 @@ from openlibrary.catalog.utils.query import withKey, set_query_host
 from openlibrary.solr.update_work import update_author, update_work, get_work_subjects, add_field, solr_update, AuthorRedirect
 from collections import defaultdict
 from lxml.etree import tostring, Element
+from openlibrary.solr import subject_count, subject_need_update
 
 parser = argparse.ArgumentParser(description='solr author merge')
 parser.add_argument('--config', default='openlibrary.yml')
-parser.add_argument('--state_file', default='author_merge_work_finder')
+parser.add_argument('--state_file', default='author_merge')
 args = parser.parse_args()
 
 config_file = args.config
@@ -31,46 +32,15 @@ re_author_key = re.compile(r'^/(?:a|authors)/(OL\d+A)$')
 
 update_times = []
 
-to_drop = set(''';/?:@&=+$,<>#%"{}|\\^[]`\n\r''')
-
 subjects_to_update = set()
 authors_to_update = []
 
-def str_to_key(s):
-    return ''.join(c if c != ' ' else '_' for c in s.lower() if c not in to_drop)
-
-re_escape = re.compile("([%s])" % re.escape(r'+-!(){}[]^"~*?:\\'))
-
-def subject_count(field, subject):
-    key = re_escape.sub(r'\\\1', str_to_key(subject)).encode('utf-8')
-    data = urlopen('http://ia331508:8983/solr/works/select?indent=on&wt=json&rows=0&q=%s_key:%s' % (field, key)).read()
-    ret = simplejson.loads(data)
-    return ret['response']['numFound']
-
-def subject_need_update(key, count):
-    escape_key = quote_plus(re_escape.sub(r'\\\1', key).encode('utf-8'))
-
-    reply = urlopen('http://ia331509:8983/solr/subjects/select?indent=on&wt=json&q=key:"' + escape_key + '"').read()
-
-    try:
-        docs = simplejson.loads(reply)['response']['docs']
-    except:
-        print (key, escape_key)
-        print reply
-        raise
-    if not docs:
-        return True
-    assert len(docs) == 1
-    return count == docs[0]['count']
-
-def solr_update_authors():
-    global authors_to_update
+def solr_update_authors(authors_to_update):
     for a in authors_to_update:
         author_updates = ['<delete>' + ''.join('<id>%s</id>' % re_author_key.match(akey).group(1) for akey in a['redirects']) + '</delete>']
         author_updates += update_author(a['master_key'], a=a['master'], handle_redirects=False)
     solr_update(author_updates, index='authors', debug=False)
     solr_update(['<commit/>'], index='authors', debug=True)
-    authors_to_update = []
 
 def solr_update_subjects():
     global subjects_to_update
@@ -119,7 +89,7 @@ def solr_updates(i):
     print 'timestamp:', i['timestamp']
     print 'dups:', dup_keys
     print 'records to update:', len(d['result'])
-     
+
     master = None
     obj_by_key = {}
     works = []
@@ -193,9 +163,10 @@ while True:
         if authors_to_update:
             print 'commit'
             solr_update(['<commit/>'], debug=True, index='works')
-            solr_update_authors()
+            solr_update_authors(authors_to_update)
+            authors_to_update = []
             solr_update_subjects()
-        
+
         print 'waiting'
         sleep(10)
         continue
@@ -206,6 +177,10 @@ while True:
         if action != 'save_many':
             continue
         if i['data']['comment'] != 'merge authors':
+            continue
+        if 'changeset' not in i['data']:
+            print i
+        if i['data']['changeset']['kind'] == 'edit-book':
             continue
         if i['timestamp'] == '2010-08-05T14:37:25.139418':
             continue # bad author redirect

@@ -9,10 +9,13 @@ $else:
 
 <div id="editTools" class="edit">
     <div id="editButton">
-        <button class="linkButton" name="$edit_url" title="Edit this template" accesskey="e">$_("Edit")</button>
+        <button class="linkButton larger" name="$edit_url" title="Edit this template" accesskey="e">$_("Edit")</button>
     </div>
     <div id="editInfo">
-        $ author = get_recent_author(page)
+        $if "superfast" in ctx.features:
+            $ author = page.get_most_recent_change().author
+        $else:
+            $ author = get_recent_author(page)
         $if author:
             <div class="brown smaller sansserif">$_("Last edited by") <a href="$author.key" rel="nofollow">$author.displayname</a></div>
         $else:

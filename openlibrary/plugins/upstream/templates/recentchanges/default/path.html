@@ -13,6 +13,8 @@ $def with (change)
             $ name = doc.title or 'Title unknown'
         $elif doc.type.key == '/type/author':
             $ name = doc.name or 'Author name unknown'
+        $elif doc.type.key == '/type/list':
+            $ name = (doc.name or doc.key) + " (list)"
         $else:
             $ name = doc.key
         <a href="$homepath()$doc.key" class="datalink" title="$doc.key">$name</a>

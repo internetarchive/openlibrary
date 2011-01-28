@@ -19,23 +19,27 @@ class show_ia(delegate.page):
     path = "/show-records/ia:(.*)"
 
     def GET(self, ia):
-        filename = ia + "/" + ia + "_marc.xml"
+        filename = ia + "/" + ia + "_meta.mrc"
 
         url = 'http://www.archive.org/download/%s'% filename
 
         try:        
-            record = urllib2.urlopen(url).read()
+            data = urllib2.urlopen(url).read()
         except urllib2.HTTPError, e:
             return "ERROR:" + str(e)
 
-        from openlibrary.catalog.marc import xml_to_html
+        from openlibrary.catalog.marc import html
+
+        if len(data) != int(data[:5]):
+            data = data.decode('utf-8').encode('raw_unicode_escape')
+        assert len(data) == int(data[:5])
 
         try:
-            as_html = xml_to_html.html_record(record)
-        except:
-            as_html = None
+            record = html.html_record(data)
+        except ValueError:
+            record = None
 
-        return render.showia(record, filename, as_html)
+        return render.showia(ia, record)
         
 class show_amazon(delegate.page):
     path = "/show-records/amazon:(.*)"
@@ -52,6 +56,10 @@ class show_marc(delegate.page):
         m = re_bad_meta_mrc.match(filename)
         if m:
             raise web.seeother('/show-records/ia:' + m.group(1))
+
+        loc = ':'.join(['marc', filename, offset, length])
+
+        books = web.ctx.site.things({"type": "/type/edition", "source_records": loc})
 
         offset = int(offset)
         length = int(length)
@@ -78,8 +86,8 @@ class show_marc(delegate.page):
         from openlibrary.catalog.marc import html
 
         try:
-            record = html.html_record(result)
+            record = html.html_record(result[0:length])
         except ValueError:
             record = None
 
-        return render.showmarc(record, filename, offset, length)
+        return render.showmarc(record, filename, offset, length, books)

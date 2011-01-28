@@ -1,6 +1,7 @@
 #!/usr/bin/python
 from fast_parse import *
 from marc_binary import MarcBinary
+from pprint import pprint
 import parse
 #from parse import read_edition, SeeAlsoAsTitle, NoTitle
 import sys, codecs, re
@@ -34,8 +35,6 @@ for o, a in opts:
     elif o in ('-v', '--verbose'):
         verbose = True
     elif o == '--build-record':
-        from build_record import build_record
-        from pprint import pprint
         build_rec = True
     elif o == '--show-field':
         show_field = a
@@ -68,11 +67,10 @@ for data, length in read_file(f):
     if verbose:
         show_book(data)
         print
-    #marc_rec = MarcBinary(data)
-    #edition_marc_bin = parse.read_edition(marc_rec)
-    #print edition_marc_bin
     if build_rec:
-        pprint(build_record(data))
+        marc_rec = MarcBinary(data)
+        edition_marc_bin = parse.read_edition(marc_rec)
+        pprint(edition_marc_bin)
         print
     try:
         rec = read_edition(data)

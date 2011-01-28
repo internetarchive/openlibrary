@@ -48,7 +48,7 @@ $ text = format(page.title)
 
     <div class="contentQuarter home" id="homeRecent">
         <h3><a href="http://blog.openlibrary.org">blog.openlibrary.org</a></h3>
-        <ul id="olBlog" style="font-size: 13px;">
+        <ul id="olBlog">
             $for post in get_blog_feeds()[:2]:
                 <li><a href="$post.link">$post.title</a> - <em>$datestr(post.pubdate)</em></li>
         </ul>

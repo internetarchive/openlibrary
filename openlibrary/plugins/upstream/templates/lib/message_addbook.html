@@ -1,0 +1,16 @@
+$def with (page)
+
+$if page.type.key == '/type/work' and page.edition_count == 1:
+    $ edit_url = page.editions[0].key + '?m=edit'
+$elif page.type.key in ["/type/work", "/type/edition", "/type/author"]:
+    $ edit_url = page.url(suffix="/edit")
+$else:
+    $ edit_url = page.key + "?m=edit"
+
+        <h3 class="congrats"><em>Super!</em> Your new record is in the library. Thank you!</h3>
+        <p class="brown">There are a few other simple things you can add while you&#8217;re here to improve your new record quickly, and make it much easier for other people to find later.</p>
+        <p class="list"><span class="red">*</span>&nbsp;&nbsp;<a href="#addImage" class="coverPop">Upload a cover image</a> <span class="small sansserif brown">&nbsp;Snap a quick photo of the cover to share?</span></p>
+        <p class="list"><span class="red">*</span>&nbsp;&nbsp;Add an ISBN <span class="small sansserif brown">&nbsp;Help the library connect with other systems, like Amazon.</span></p>
+        <p class="list"><span class="red">*</span>&nbsp;&nbsp;Add some subjects <span class="small sansserif brown">&nbsp;They&#8217;re just like tags.</span></p>
+        <p class="list"><span class="red">*</span>&nbsp;&nbsp;<a href="$edit_url">Describe what the book&#8217;s about</a> <span class="small sansserif brown">&nbsp;Just a sentence or two is gold.</span></p>
+        <a class="close" href="javascript:;" onclick="$('.bookadded').slideUp();"><img src="/images/icons/icon_cancel.png" width="16" height="16" alt="cancel icon" title="Close this"/></a>

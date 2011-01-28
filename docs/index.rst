@@ -5,9 +5,11 @@ Open Library: Developer Documentation
    :maxdepth: 2
 
    bootstrap.rst
+   working.rst
    dev.rst
    architecture.rst
-   design.rst
+   design/index.rst
+   api/index.rst
    appendices/index.rst
 
 Indices and tables

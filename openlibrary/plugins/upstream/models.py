@@ -491,7 +491,12 @@ class Work(models.Work):
         fields = ["cover_edition_key", "cover_id", "edition_key", "first_publish_year"]
         
         solr = get_works_solr()
-        d = solr.select({"key": key}, fields=fields)
+        stats.begin("solr", query={"key": "key"}, fields=fields)
+        try:
+            d = solr.select({"key": key}, fields=fields)
+        finally:
+            stats.end()
+            
         if d.num_found > 0:
             w = d.docs[0]
         else:

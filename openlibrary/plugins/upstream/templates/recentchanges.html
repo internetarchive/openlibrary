@@ -4,12 +4,15 @@ $def with ()
 $var title: $_("Recent Changes")
 
 <div id="contentHead">
-    <div class="head">
-        <h1>$_("Recent Changes")</h1>
-    </div>
+    <h1>$_("Recent Changes")</h1>
 </div>
 
 <div id="contentBody">
+    <div class="subNav sansserif">
+        <ul class="collapse">
+            <li><a href="/recentchanges/merge-authors">Merged Authors</a></li>
+        </ul>
+    </div>
     $ type = query_param('type', None)
     $:macros.RecentChanges(author=None, type=type, limit=50)
 </div>

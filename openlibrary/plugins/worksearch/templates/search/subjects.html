@@ -8,7 +8,7 @@ $if page:
 $else:
     $ page = 1
 $ offset = (page - 1) * results_per_page
-$ url_map = { 'person': 'people/', 'place': 'places/', 'time': 'times/' }
+$ url_map = { 'person': 'person:', 'place': 'place:', 'time': 'time:' }
 
 <div id="contentHead">
     <h1>
@@ -37,7 +37,7 @@ $if q:
     <ul class="subjectList">
     $for doc in response['docs']:
         $ n = doc['name']
-        $ key = '/subjects/' + url_map.get(doc['type'], '') + n.replace(' ', '_').replace('?', '')
+        $ key = '/subjects/' + url_map.get(doc['type'], '') + n.lower().replace(' ', '_').replace('?', '').replace(',', '')
         
         <li>
             <a href="$key">$n</a>
@@ -77,11 +77,6 @@ $if q:
                 else:
                     note = doc['type']
             <span class="count">&nbsp;&nbsp;<b>$commify(doc['count']) book$("s" if doc['count'] != 1 else "")</b>, $:note</span>
-            $if doc['type'] == 'work':
-                 $if ' (' in n:
-                     $ n = n[:n.find(' (')]
-                 <span class="sansserif smaller"><a href="http://en.wikipedia.org/wiki/$n">Wikipedia</a></span>
-
         </li>
     </ul>
     $:macros.Pager(page, num_found, results_per_page)

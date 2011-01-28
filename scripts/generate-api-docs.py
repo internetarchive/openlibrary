@@ -46,17 +46,6 @@ def write(path, text):
     f.write(text)
     f.close()
     
-def generate_doc_file(path):
-    if path.endswith("__init__.py"):
-        submodules = os.listdir(os.path.dirname(path))
-    else:
-        submodules = []
-        
-    mod = modname(path)
-    
-    text = str(t(mod, submodules))
-    write(docpath(path), text)
-    
 def find_python_sources(dir):
     ignores = [
         "openlibrary/catalog.*",
@@ -107,6 +96,10 @@ def generate_docs(dir):
         mod = modname(path)
         text = str(t(mod, submodules))
         write(docpath(path), text)
+        
+        # set the modification time same as the source file
+        mtime = os.stat(path).st_mtime
+        os.utime(docpath(path), (mtime, mtime))
                 
 def generate_index():
     filenames = sorted(os.listdir("docs/api"))

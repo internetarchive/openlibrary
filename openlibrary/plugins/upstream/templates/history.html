@@ -3,7 +3,7 @@ $def with (page, h)
 $putctx("robots", "noindex,nofollow")
 
 $# show book title/author name instead of key
-$if page.type.key in ['/type/edition' or '/type/work']:
+$if page.type.key in ['/type/edition', '/type/work']:
     $ name = page.title or 'Title unknown'
 $elif page.type.key == '/type/author':
     $ name = page.name or 'Author name unknown'
@@ -43,9 +43,9 @@ $var title: $name
                         <td class="history" valign="top">$v.ip</td>
                     <td class="comment">$:render_template("history/comment", v)</td>
                     <td class="compare" style="text-align:center;">
-                        <input type="radio" id="a$v.revision" name="a" value="$v.revision"/>
+                        <input type="radio" id="a$v.revision" name="a" title="Compare this version..." value="$v.revision"/>
                         &nbsp;&nbsp;&nbsp;
-                        <input type="radio" id="b$v.revision" name="b" value="$v.revision"/>
+                        <input type="radio" id="b$v.revision" name="b" title="...to this version" value="$v.revision"/>
                     </td>
                 </tr>
             <tr>

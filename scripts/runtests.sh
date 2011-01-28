@@ -3,10 +3,11 @@
 set -e
 
 cd `dirname $0`/..
-py.test                         \
+exec py.test                         \
     openlibrary/core            \
-    openlibrary/plugins/books   \
+    openlibrary/mocks           \
     openlibrary/coverstore      \
+    openlibrary/plugins/books   \
     openlibrary/plugins/upstream \
     openlibrary/plugins/openlibrary
 

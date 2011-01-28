@@ -28,7 +28,7 @@ def write(path, text):
         os.makedirs(dir)
         
     f = open(path, "w")
-    f.write(text)
+    f.write(text.encode("utf-8"))
     f.close()
 
 def delete(path):
@@ -58,9 +58,13 @@ def main():
     for pattern in args:
         docs = ol.query({"key~": pattern, "*": None}, limit=1000)
         for doc in marshal(docs):
+            # Anand: special care to ignore bad documents in the database.
+            if "--duplicate" in doc['key']:
+                continue
+
             if doc['type']['key'] == '/type/template':
                 write(make_path(doc), get_value(doc, 'body'))
-            elif doc['type']['key'] == '/type/template':
+            elif doc['type']['key'] == '/type/macro':
                 write(make_path(doc), get_value(doc, 'macro'))
             else:
                 delete(make_path(doc))
