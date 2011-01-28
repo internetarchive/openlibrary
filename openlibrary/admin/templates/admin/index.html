@@ -1,0 +1,231 @@
+$def with (stats)
+
+$var title: Admin
+
+<div id="contentHead">
+    <div class="contentRight" style="float:right;">
+        <table class="records">
+            <tr>
+                <td><div class="amount">xxx</div>
+                    <div class="label">Total Records</div></td>
+                <td><div class="amount">xxx</div>
+                    <div class="label">Full Text</div></td>
+                <td><div class="amount">xxx</div>
+                    <div class="label">Unique IP<span class="lowercase">s</span> Yesterday</div></td>
+            </tr>
+        </table>
+    </div>
+    <h1>$_("Admin Center")</h1>
+	<div class="small">
+	    <a href="/admin/reload/">Reload Templates</a>
+	    | <a href="/admin/block">Block IPs</a>
+	    | <a href="/admin/loans">Loans</a>
+	</div>
+</div>
+<div id="contentBody">
+
+    <h2>Record Counts</h2>
+
+    <table class="measurements">
+        <tr>
+            <th>What</th>
+            <th>Last 7 days</th>
+            <th>Last 28 days</th>
+            <th>Total</th>
+        </tr>
+        <tr class="major">
+            <td class="">Works</td>
+            <td class="amount">$commify(1234)
+            <td class="amount">$commify(1234)
+            <td class="amount">$commify(1234)
+        </tr>
+        <tr>
+            <td class="">Editions</td>
+            <td class="amount">$commify(1234)
+            <td class="amount">$commify(1234)
+            <td class="amount">$commify(1234)
+        </tr>
+        <tr>
+            <td class="">eBooks</td>
+            <td class="amount">$commify(1234)
+            <td class="amount">$commify(1234)
+            <td class="amount">$commify(1234)
+        </tr>
+        <tr>
+            <td class="">Covers</td>
+            <td class="amount">$commify(1234)
+            <td class="amount">$commify(1234)
+            <td class="amount">$commify(1234)
+        </tr>
+        <tr class="major">
+            <td class="">Authors</td>
+            <td class="amount">$commify(1234)
+            <td class="amount">$commify(1234)
+            <td class="amount">$commify(1234)
+        </tr>
+        <tr class="major">
+            <td class="">Subjects</td>
+            <td class="amount">$commify(1234)
+            <td class="amount">$commify(1234)
+            <td class="amount">$commify(1234)
+        </tr>
+        <tr class="major">
+            <td class="">Lists</td>
+            <td class="amount">$commify(1234)
+            <td class="amount">$commify(1234)
+            <td class="amount">$commify(1234)
+        </tr>
+        <tr class="major">
+            <td class="">User Accounts</td>
+            <td class="amount"></td>
+            <td class="amount"></td>
+            <td class="amount"></td>
+        </tr>
+    </table>
+    <div class="contentLeft">
+        <div class="head rel"> <span class="caption"><a href="/recentchanges/" class="fixthis">Edits Per Day</a></span>
+            <h2>Edits</h2>
+        </div>
+        <div class="chartHolder">
+            <div class="chartDisplay">bar graph: edits per day
+            </div>
+        </div>
+        <table class="measurements stripeEven" id="edits">
+            <thead>
+                <tr>
+                    <th></th>
+                    <th>Today</th>
+                    <th>Yesterday</th>
+                    <th>Last 7 days</th>
+                    <th>Last 28 days</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="major">
+                    <td class="type">Human</td>
+                    <td class="amount"><strong>$commify(1234)
+                    <td class="amount">$commify(1234)
+                    <td class="amount">$commify(1234)
+                    <td class="amount">$commify(1234)
+                </tr>
+                <tr class="even">
+                    <td class="type">Bot</td>
+                    <td class="amount">$commify(1234)
+                    <td class="amount">$commify(1234)
+                    <td class="amount">$commify(1234)
+                    <td class="amount">$commify(1234)
+                </tr>
+                <tr class="totals">
+                    <td class="type">Total</td>
+                    <td class="amount">$commify(1234)
+                    <td class="amount">$commify(1234)
+                    <td class="amount">$commify(1234)
+                    <td class="amount">$commify(1234)
+                </tr>
+            </tbody>
+        </table>
+             
+    </div>
+
+    <div class="contentRight">
+        <div class="head rel"> <span class="caption"><a href="/admin/people" class="fixthis">New Accounts Per Day</a></span>
+            <h2>Members</h2>
+        </div>
+        <div class="chartHolder">
+            <div class="chartDisplay">bar graph: accounts per day
+            </div>
+        </div>
+        <table class="measurements stripeEven" id="members">
+            <thead>
+                <tr>
+                    <th>Today</th>
+                    <th>Yesterday</th>
+                    <th>Last 7 days</th>
+                    <th>Last 28 days</th>
+                    <th class="shift">All Time</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="major">
+                    <td class="amount"><strong>$commify(1234)
+                    <td class="amount">$commify(1234)
+                    <td class="amount">$commify(1234)
+                    <td class="amount">$commify(1234)
+                    <td class="amount shift"><strong>$:macros.MemberCount()</strong></td>
+                </tr>
+                <tr class="even">
+                    <td class="diff"></td>
+                    <td class="diff"><span class="pos">+x.x%</span></td>
+                    <td class="diff"><span class="neg">-x.x%</span></td>
+                    <td class="diff"><span class="pos">+x.x%</span></td>
+                    <td class="diff"></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="clearfix"></div>
+
+    <div class="contentQuarter center" id="logged">
+        <div class="titleSmall">Logged In : Logged Out</div>
+        <br/>
+        <div class="largest fixthis">x : x</div>
+    </div>
+                    
+    <div class="contentSpacer"></div>
+
+    <div class="contentQuarter" id="prolific">
+        <div class="titleSmall fixthis">Prolific Member Editors</div>
+        <div class="smaller">
+            <a href="[USER PROFILE]">name</a>,
+            <a href="[USER PROFILE"]>name</a>,
+            <a href="[USER PROFILE"]>name</a>,
+            <a href="[USER PROFILE"]>name</a>,
+            <a href="[USER PROFILE"]>ip address</a>,
+            <a href="[USER PROFILE"]>name</a>,
+            <a href="[USER PROFILE"]>name</a>
+        </div>
+    </div>
+
+    <div class="clearfix"></div>
+
+    <div id="uniqueIps">
+        <div class="measurements">
+
+        <h3>Unique IPs</h3>
+            <div class="caption">Yesterday</div>
+            <div class="measure large"><strong>xxx</strong></div>
+            <div class="caption">Day</div>
+            <div class="measure large">xxx</div>
+            <div class="caption">Day</div>
+            <div class="measure">xxx</div>
+            <div class="caption">Day</div>
+            <div class="measure">xxx</div>
+        </div>
+        <div style="float:left;">
+            <div id="placeholder" style="width:680px;height:300px;"></div>
+            <div id="overview" style="margin-left:50px;margin-top:20px;width:400px;height:50px"></div>
+        </div>
+    </div>
+
+    <div class="clearfix"></div>
+
+    <div class="tweets" id="adminTwitter">$:macros.twitter()</div>
+            
+    <div class="contentSpacer"></div>
+
+    <div class="contentQuarter">
+        <!-- Start of Flickr Badge -->
+            <table id="flickr_badge_uber_wrapper"> 
+                <tr> 
+                    <td>
+                        <table id="flickr_badge_wrapper"> 
+                            <script type="text/javascript" src="http://www.flickr.com/badge_code_v2.gne?count=2&display=random&size=m&layout=v&source=user&user=41108298%40N06"></script> 
+                        </table> 
+                    </td> 
+                </tr> 
+            </table> 
+        <!-- End of Flickr Badge -->
+    </div>
+
+</div>
