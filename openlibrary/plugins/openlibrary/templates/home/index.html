@@ -1,83 +1,145 @@
 $def with (stats)
 
 $var title: $_("Welcome to Open Library")
+ 
+<!-- NEW STYLES--> 
+<style type="text/css"> 
+h1 a.header,h2 a.header, h3 a.header {color:#00636a!important;text-decoration:none!important;}
+h1 a.header:hover,h2 a.header:hover, h3 a.header:hover {color:#036daa!important;text-decoration:underline!important;}
+ 
+div.homeSplash {
+    width: 958px;
+    height: 100px;
+    background: #eee url("/images/homesplash.jpg") no-repeat 0 -45px;
+    text-align: center;
+    padding-top: 50px;
+    overflow: hidden;
+    margin-bottom:20px;
+}
+div.homeBlurb {
+    margin: 0 20%;
+    background-color: #e44028;
+    min-height: 100px;
+}
+div.homeBlurb p {
+    margin: 0;
+    line-height: normal;
+    color: #fff;
+    word-wrap: break-word;
+}
+div.homeBlurb a {
+    color: #fff;
+}
+#homeBlurb1 {font-size:32px;padding-top:15px;font-weight:700;}
+#homeBlurb2 {font-size:28px;padding-bottom:15px;}
+#homeBlurb2 span.amp {font-family: "Baskerville","Georgia","Times New Roman",serif;font-style: italic;}
+ 
+ul#olBlog {margin:0}
+ul#olBlog li {list-style-type: none;margin:1em 0;}
+ 
+.contentLists.results .coverMagic {position:relative;height:200px;margin:0;float:left;}
+.contentLists.results .coverMagic .coverEbook {position:absolute;bottom:5px;right:5px;width:32px;height:33px;cursor:pointer;z-index:1000;}
+.contentLists.results .SRPCover {float:left;height:200px;vertical-align:middle;}
+.contentLists.results .SRPCover img {max-height:200px;max-width:133px;}
+.contentLists.results .SRPCoverBlank {position:relative;width:115px;height:180px;padding:10px;text-align:center;float:left;background:#dedede;cursor:pointer;display:none;}
+.contentLists.results .SRPCoverBlank .innerBorder {float:left;width:113px;height:178px;border:1px solid #fff;}
+.contentLists {margin-bottom:20px;}
+ 
+div#content div.contentLists {
+    float: left;
+    position: relative;
+    left: -20px;
+    background: #f5f5f5;
+    background: -moz-linear-gradient(top, #fafafa, #f5f5f5);
+    background: -webkit-gradient(linear,
+                left top, left bottom, from(#fafafa), to(#f5f5f5));
+    filter: progid:DXImageTransform.Microsoft.Gradient(
+                StartColorStr='#fafafafa', EndColorStr='#f5f5f5f5', GradientType=0);
+}
+/* RESULTS CAROUSEL SKIN */
+.resultsCovers {
+    width: 958px;
+    height: 240px;
+}
+.resultsCovers .jcarousel-container {
+    width: 918px;
+    padding: 20px;
+}
+.resultsCovers .jcarousel-clip {
+    width: 918px;
+    height: 200px;
+}
+.resultsCovers .jcarousel-list-horizontal {padding-left:0;}
+.resultsCovers .jcarousel-item-horizontal {
+    width: 153px;
+    height: 200px;
+    margin-right: 0;
+}
+.resultsCovers h3 {
+    position: relative;
+    width: 220px;
+    height: 19px;
+    top: 180px;
+    left: 349px;
+    text-align: center;
+    background: transparent url("/images/ajax-loader-bar.gif") no-repeat;
+    padding-top: 19px;
+    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, sans-serif;
+    font-weight: normal;
+    color: #666;
+    font-size: 0.6875em;
+}
+.resultsCovers h2 {
+    position: relative;
+    width: 300px;
+    top: 180px;
+    left: 309px;
+    text-align: center;
+    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, sans-serif;
+    font-weight: normal;
+    color: #666;
+    font-size: 14px;
+}
+.resultsCovers a {text-decoration: none;}
+ul.homeCarousel {margin-left:0!important;margin-bottom:none!important;}
+ul.homeCarousel li {list-style-type: none;}
+ 
+div.chartHome {float:left;width:160px;margin:0 29px 30px 0;text-align:center;}
+div.chartHome .chartShow {width:150px;height:60px;padding:0 5px;border-bottom: 1px solid #666;cursor:pointer;}
+div.chartHome a {color:#000;text-decoration:none;}
+div.chartHome a:hover {color:#036daa;text-decoration:underline;}
+div.chartHome a span {display: block;}
+div.chartHome a .ticks {font-family:"Georgia","Times New Roman",serif;font-size:1.125em;font-weight:700;}
+div.chartHome a .label {font-family:"Lucida Grande","Arial","Helvetica",sans-serif;font-size:0.625em;text-transform:uppercase;}
+div.chartEnd {margin-right:0!important;}
+</style> 
+ 
+  
+<div class="shift">
+    Welcome to Open Library!<br/>
+    Looking for accessible books in the DAISY format? 
+    View our <a href="/subjects/accessible_book">accessible book subject page</a>, 
+    or <a href="/search?subject_facet=Accessible%20book">search for accessible books</a>.
+</div> 
+        
 
-<div class="shift">Welcome to Open Library!<br/>Looking for accessible books in the DAISY format? View our <a href="/subjects/accessible_book">accessible book subject page</a>, or <a href="/search?subject_facet=Accessible%20book">search for accessible books</a>.</div>
-
-<div id="homeSplash" title="Photo by Simon Chetrit">
-    <div id="homeBlurb">
-        <p><strong>Ever wanted to play librarian?</strong><br/> 
-           It's OK. We all do.
-        </p>
-    </div>
-</div>
-
-<div id="homeStatement">
-    <p>
-        If you love books, why not <em>help build a library</em>?xx
-    </p>
-</div>
-
+$:render_template("home/splash")
+ 
+<script type="text/javascript"> 
+\$().ready(function(){
+    \$('.homeCarousel').jcarousel({scroll:6});
+});
+</script>
+ 
 <div id="contentBody">
-
-    <div class="contentQuarter home" id="homeBookAdd">
-        <h3>Browse the Catalog</h3>
-
-        <p>
-            You can always search, but try jumping in to
-            <b><a href="/subjects"><strong>subjects</strong></a></b>, like
-            <a href="/subjects/astronauts">Astronauts</a>, 
-            <a href="/subjects/place:texas">Texas</a>,
-            <a href="/subjects/diaries">Diaries</a>,
-            <a href="/subjects/riots">Riots</a>,
-            <a href="/subjects/place:assam">Assam</a>, 
-            <a href="/subjects/time:pleistocene">Pleistocene</a>, 
-            <a href="/subjects/person:colette_(1873-1954)">Colette</a>, 
-            <a href="/subjects/carpentry">Carpentry</a>, 
-            <a href="/subjects/accessible_book">accessible books</a>, or the
-            <a href="/subjects/lending_library">lending library</a>.
-        </p>
-    </div>
-
-    <div class="contentSpacer"></div>
-
-    <div class="contentQuarter home" id="homeSubjectBrowse">
-        <h3>$_("Add a Book")</h3>
-        <p>
-            There are millions of records in Open Library, but nowhere near every
-            book ever published! Would you like to <b><a href="/books/add">try
-            adding a book</a></b> to the library?
-        </p>
-    </div>
-
-    <div class="contentSpacer"></div>
-
-    <div class="contentQuarter home" id="homeAccountBlog">
-        <h3>Open an Account</h3>
-
-        <p>
-            You can keep track of your edits if you 
-            <b><a href="/account/create">open an account</a></b>.
-            <br/>
-            <br/>
-            It's a wiki too, which means anyone can edit or correct it anytime.
-        </p>
-    </div>
-
-    <div class="contentSpacer"></div>
-
-    <div class="contentQuarter home" id="homeRecent">
-        <h3><a href="http://blog.openlibrary.org">blog.openlibrary.org</a></h3>
-        <ul id="olBlog">
-            $for post in get_blog_feeds()[:2]:
-                <li><a href="$post.link">$post.title</a> - <em>$datestr(post.pubdate)</em></li>
-        </ul>
-    </div>
-    
-    $# Optionally, this appears at the bottom of the page.
-    $ notice = ""
-
-    $if notice:
-        <div class="clearfix"></div>
-        <p class="small collapse">$:format(notice)</p>
+    $:render_template("home/read") 
+    <div class="clearfix"></div> 
+     
+    $:render_template("home/borrow") 
+    <div class="clearfix"></div> 
+ 
+    $:render_template("home/stats")
+    <div class="clearfix"></div> 
+ 
+    $:render_template("home/about")
 </div>
