@@ -1,0 +1,83 @@
+$def with (stats)
+
+$var title: $_("Welcome to Open Library")
+
+<div class="shift">Welcome to Open Library!<br/>Looking for accessible books in the DAISY format? View our <a href="/subjects/accessible_book">accessible book subject page</a>, or <a href="/search?subject_facet=Accessible%20book">search for accessible books</a>.</div>
+
+<div id="homeSplash" title="Photo by Simon Chetrit">
+    <div id="homeBlurb">
+        <p><strong>Ever wanted to play librarian?</strong><br/> 
+           It's OK. We all do.
+        </p>
+    </div>
+</div>
+
+<div id="homeStatement">
+    <p>
+        If you love books, why not <em>help build a library</em>?xx
+    </p>
+</div>
+
+<div id="contentBody">
+
+    <div class="contentQuarter home" id="homeBookAdd">
+        <h3>Browse the Catalog</h3>
+
+        <p>
+            You can always search, but try jumping in to
+            <b><a href="/subjects"><strong>subjects</strong></a></b>, like
+            <a href="/subjects/astronauts">Astronauts</a>, 
+            <a href="/subjects/place:texas">Texas</a>,
+            <a href="/subjects/diaries">Diaries</a>,
+            <a href="/subjects/riots">Riots</a>,
+            <a href="/subjects/place:assam">Assam</a>, 
+            <a href="/subjects/time:pleistocene">Pleistocene</a>, 
+            <a href="/subjects/person:colette_(1873-1954)">Colette</a>, 
+            <a href="/subjects/carpentry">Carpentry</a>, 
+            <a href="/subjects/accessible_book">accessible books</a>, or the
+            <a href="/subjects/lending_library">lending library</a>.
+        </p>
+    </div>
+
+    <div class="contentSpacer"></div>
+
+    <div class="contentQuarter home" id="homeSubjectBrowse">
+        <h3>$_("Add a Book")</h3>
+        <p>
+            There are millions of records in Open Library, but nowhere near every
+            book ever published! Would you like to <b><a href="/books/add">try
+            adding a book</a></b> to the library?
+        </p>
+    </div>
+
+    <div class="contentSpacer"></div>
+
+    <div class="contentQuarter home" id="homeAccountBlog">
+        <h3>Open an Account</h3>
+
+        <p>
+            You can keep track of your edits if you 
+            <b><a href="/account/create">open an account</a></b>.
+            <br/>
+            <br/>
+            It's a wiki too, which means anyone can edit or correct it anytime.
+        </p>
+    </div>
+
+    <div class="contentSpacer"></div>
+
+    <div class="contentQuarter home" id="homeRecent">
+        <h3><a href="http://blog.openlibrary.org">blog.openlibrary.org</a></h3>
+        <ul id="olBlog">
+            $for post in get_blog_feeds()[:2]:
+                <li><a href="$post.link">$post.title</a> - <em>$datestr(post.pubdate)</em></li>
+        </ul>
+    </div>
+    
+    $# Optionally, this appears at the bottom of the page.
+    $ notice = ""
+
+    $if notice:
+        <div class="clearfix"></div>
+        <p class="small collapse">$:format(notice)</p>
+</div>

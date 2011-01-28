@@ -54,6 +54,7 @@ features:
     undo: enabled
     dev: enabled
     lists: enabled
+    lending_v2: admin
 
 upstream_to_www_migration: true
 default_template_root: /upstream
