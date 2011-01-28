@@ -82,7 +82,7 @@ class show_marc(delegate.page):
         from openlibrary.catalog.marc import html
 
         try:
-            record = html.html_record(result)
+            record = html.html_record(result[0:length])
         except ValueError:
             record = None
 
