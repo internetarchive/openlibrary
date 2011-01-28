@@ -14,8 +14,9 @@ USAGE:
 import sys
 import os
 import _init_path
-
 import web
+
+from gunicorn.app.base import Application
 
 def setup_env():
     # make sure PYTHON_EGG_CACHE is writable
@@ -40,10 +41,8 @@ def start_server():
     infogami.main(*args)
 
 def start_gunicorn_server():
-    """Starts the coverstore server using gunicorn server.
+    """Starts the openlibrary server using gunicorn server.
     """
-    from gunicorn.app.base import Application
-
     configfile = sys.argv.pop(1)
     web.config.debug = False
     
@@ -74,13 +73,96 @@ def start_gunicorn_server():
             return wsgi_app
 
     WSGIServer("%prog openlibrary.yml --gunicorn [options]").run()
+    
+class BaseWSGIServer(Application):
+    def __init__(self, config_file):
+        self.config_file = config_file
+        Application.__init__(self)
+    
+    def init(self, parser, opts, args):
+        pass
+        
+    def load(self):
+        import infogami
+        from infogami import config
+        from infogami.utils import delegate
+        
+        config.plugin_path += ['openlibrary.plugins']
+        config.site = "openlibrary.org"
+        
+        infogami.load_config(self.config_file)
+        infogami._setup()
+        
+        wsgi_app = self.get_wsgi_app()
+        # setup middleware for handling /static
+        wsgi_app = web.httpserver.StaticMiddleware(wsgi_app)
+        return wsgi_app
+        
+    def get_wsgi_app(self):
+        raise NotImplementedError()
+                
+class OLWSGIServer(BaseWSGIServer):
+    def get_wsgi_app(self):
+        from infogami import config
+        from infogami.utils import delegate
+        
+        return delegate.app.wsgifunc(*config.middleware)
+        
+class AdminWSGIServer(BaseWSGIServer):
+    def get_wsgi_app(self):
+        from openlibrary.admin import code
+        code.setup()
+        return code.app.wsgifunc()
+    
+def start_admin_server():
+    """Starts the openlirbary admin using gunicorn server.
+    """
+    from gunicorn.app.base import Application
+
+    configfile = sys.argv.pop(1)
+    web.config.debug = False
+
+    def dummy(*a, **kw):
+        pass
+
+    class WSGIServer(Application):
+        def init(self, parser, opts, args):
+            pass
+
+        def load(self):
+            import infogami
+            from infogami import config
+            from infogami.utils import delegate
+
+            config.plugin_path += ['openlibrary.plugins']
+            config.site = "openlibrary.org"
+
+            # add a dummy action and run it
+            infogami.action(dummy)
+            infogami.main(configfile, "dummy")
+
+            wsgi_app = delegate.app.wsgifunc(*config.middleware)
+
+            # setup middleware for handling /static
+            wsgi_app = web.httpserver.StaticMiddleware(wsgi_app)
+
+            return wsgi_app
+
+    WSGIServer("%prog openlibrary.yml --gunicorn [options]").run()
+    
 
 def main():
     setup_env()
+    web.config.debug = False
     
     if "--gunicorn" in sys.argv:
         sys.argv.pop(sys.argv.index("--gunicorn"))        
-        start_gunicorn_server()
+        configfile = sys.argv.pop(1)
+        OLWSGIServer(configfile).run()
+    if "--admin" in sys.argv:
+        sys.argv.pop(sys.argv.index("--admin"))
+        configfile = sys.argv.pop(1)
+        AdminWSGIServer(configfile).run()
     else:
         start_server()
 

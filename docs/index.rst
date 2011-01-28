@@ -8,7 +8,7 @@ Open Library: Developer Documentation
    working.rst
    dev.rst
    architecture.rst
-   design.rst
+   design/index.rst
    api/index.rst
    appendices/index.rst
 
