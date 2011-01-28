@@ -22,7 +22,7 @@ class html_record():
     def html_subfields(self, line):
         assert line[-1] == '\x1e'
         encode = {
-            'k': lambda s: '<b>$%s</b>' % s,
+            'k': lambda s: '<b>$%s</b>' % esc(translate(s, self.is_marc8)),
             'v': lambda s: esc(translate(s, self.is_marc8)),
         }
         return ''.join(encode[k](v) for k, v in split_line(line[2:-1]))
