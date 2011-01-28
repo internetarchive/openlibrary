@@ -71,9 +71,9 @@ def get_range_data(infobase_db, coverstore_db, start, end):
     retval = {}
     for typ in "work edition user author list".split():
         retval[typ] = _query_single_thing(infobase_db, typ, start, end)
-        logging.debug(" Type : %s - %d", typ, retval[typ])
+        logging.debug("  Type : %s - %d", typ, retval[typ])
     retval["cover"] = _query_covers(coverstore_db, start, end)
-    logging.debug(" Type : cover - %d", retval['cover'])
+    logging.debug("  Type : cover - %d", retval['cover'])
     return retval
 
 def get_delta_data(admin_db, editions_db, yesterday):
@@ -83,7 +83,7 @@ def get_delta_data(admin_db, editions_db, yesterday):
     retval = dict()
     current_total = editions_db.view("admin/ebooks").rows[0].value
     key = yesterday.strftime("counts-%Y-%m-%d")
-    logging.debug(" Obtaining counts for ebooks between %s and today", yesterday.strftime("%Y-%m-%d"))
+    logging.debug("Getting delta counts for ebooks between %s and today", yesterday.strftime("%Y-%m-%d"))
     try:
         last_total = admin_db[key]["total_ebooks"]
     except (couchdb.http.ResourceNotFound, KeyError):
@@ -109,7 +109,7 @@ def store_data(db, data, date):
     
 
 def main(infobase_config, openlibrary_config, coverstore_config, ndays = 1):
-    logging.basicConfig(level=logging.DEBUG, format = "[%(levelname)s] : %(filename)s:%(lineno)d : %(message)s")
+    logging.basicConfig(level=logging.DEBUG, format = "[%(levelname)s] : %(filename)s:%(lineno)4d : %(message)s")
     logging.debug("Parsing config file")
     try:
         infobase_conn = connect_to_pg(infobase_config)
@@ -125,7 +125,7 @@ def main(infobase_config, openlibrary_config, coverstore_config, ndays = 1):
     store_data(admin_db, data, yesterday.strftime("%Y-%m-%d"))
     for i in range(int(ndays)):
         yesterday = today - datetime.timedelta(days = 1)
-        logging.debug("From %s to %s", yesterday, today)
+        logging.debug(" From %s to %s", yesterday, today)
         data = get_range_data(infobase_conn, coverstore_conn, yesterday.strftime("%Y-%m-%d"), today.strftime("%Y-%m-%d"))
         store_data(admin_db, data, yesterday.strftime("%Y-%m-%d"))
         today = yesterday
