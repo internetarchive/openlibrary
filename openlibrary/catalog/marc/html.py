@@ -12,6 +12,7 @@ def esc_sp(s):
 
 class html_record():
     def __init__(self, data):
+        assert len(data) == int(data[:5])
         self.data = data
         self.leader = data[:24]
         self.is_marc8 = data[9] != 'a'
@@ -21,7 +22,7 @@ class html_record():
     def html_subfields(self, line):
         assert line[-1] == '\x1e'
         encode = {
-            'k': lambda s: '<b>$%s</b>' % s,
+            'k': lambda s: '<b>$%s</b>' % esc(translate(s, self.is_marc8)),
             'v': lambda s: esc(translate(s, self.is_marc8)),
         }
         return ''.join(encode[k](v) for k, v in split_line(line[2:-1]))

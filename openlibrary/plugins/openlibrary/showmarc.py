@@ -19,23 +19,27 @@ class show_ia(delegate.page):
     path = "/show-records/ia:(.*)"
 
     def GET(self, ia):
-        filename = ia + "/" + ia + "_marc.xml"
+        filename = ia + "/" + ia + "_meta.mrc"
 
         url = 'http://www.archive.org/download/%s'% filename
 
         try:        
-            record = urllib2.urlopen(url).read()
+            data = urllib2.urlopen(url).read()
         except urllib2.HTTPError, e:
             return "ERROR:" + str(e)
 
-        from openlibrary.catalog.marc import xml_to_html
+        from openlibrary.catalog.marc import html
+
+        if len(data) != int(data[:5]):
+            data = data.decode('utf-8').encode('raw_unicode_escape')
+        assert len(data) == int(data[:5])
 
         try:
-            as_html = xml_to_html.html_record(record)
-        except:
-            as_html = None
+            record = html.html_record(data)
+        except ValueError:
+            record = None
 
-        return render.showia(record, filename, as_html)
+        return render.showia(ia, record)
         
 class show_amazon(delegate.page):
     path = "/show-records/amazon:(.*)"

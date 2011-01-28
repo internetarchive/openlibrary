@@ -1,0 +1,40 @@
+$def with (blog_posts=None)
+
+<div class="head"> 
+    <h2>About the Project</h2> 
+</div> 
+
+<div class="contentHalf home collapse"> 
+    <p class="collapse">
+        <span class="largest collapse" style="line-height:1.5em;">
+            $_("Open Library is an open, editable library catalog, building towards a web page for every book ever published.")
+        </span>
+        <a href="/about" class="small sansserif">$_("More")</a>
+    </p> 
+
+    <p>
+        Just like Wikipedia, you can contribute new information or corrections to the catalog. 
+        You can browse by <a href="/subjects">subject</a>, <a href="/authors">author</a> or
+        <a href="/lists">lists</a> members have created. If you love books, why not help build a library?
+    </p> 
+</div> 
+
+<div class="contentSpacer"></div> 
+
+<div class="contentQuarter home collapse"> 
+    <h3 class="collapse">Developers</h3> 
+    <p>If you’re even remotely interested in libraries or big data, we encourage you to have a look around the <a href="/developers/api">Open Library API</a>.</p> 
+    <p>We welcome any and all patches and data re-use.</p> 
+</div> 
+
+<div class="contentSpacer"></div> 
+
+<div class="contentQuarter home collapse"> 
+    <h3 class="collapse"><a href="http://blog.openlibrary.org/" class="header">Latest Blog Posts</a></h3> 
+    <ul id="olBlog"> 
+        $if blog_posts:
+            $for post in blog_posts[:2]:
+                <li><a href="$post.link">$post.title</a> - <em>$datestr(post.pubdate)</em></li>
+    </ul> 
+</div> 
+

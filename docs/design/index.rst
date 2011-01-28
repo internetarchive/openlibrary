@@ -10,6 +10,7 @@ Mostly about specific pieces like lists (not overall)
 .. toctree::
    :maxdepth: 1
 
-   design/dev-instance.rst
-   design/lists.rst
+   dev-instance.rst
+   lists.rst
+   feature-flags.rst
 

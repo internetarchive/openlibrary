@@ -10,7 +10,7 @@ function log() {
 function install_linux_dependencies() {
     echo "installing dependencies"
     
-    packages="memcached postgresql git-core openjdk-6-jre-headless python-virtualenv python-dev libpq-dev libxslt-dev "
+    packages="memcached postgresql git-core openjdk-6-jre-headless python-virtualenv python-dev libpq-dev libxslt-dev tzdata"
     # additional packages required for installing PIL
     packages="$packages  zlib1g-dev libfreetype6-dev libjpeg62-dev liblcms1-dev"
     

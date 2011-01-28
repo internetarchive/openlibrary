@@ -1,0 +1,42 @@
+<div class="homeSplash" title="Photo by Simon Chetrit"> 
+    <div class="homeBlurb"> 
+        <p id="homeBlurb1">Open Library is yours</strong></p> 
+        <p id="homeBlurb2">
+            to 
+            <span id="link1"><a href="/subjects">browse</a></span>, 
+            <span id="link2"><a href="/lists">collect</a></span>
+            <span class="amp">&amp;</span> 
+            <span id="link3"><a href="/books/add">build</a></span>.
+        </p> 
+    </div> 
+</div> 
+
+<script type="text/javascript">
+    function set_random_link(selector, links) {
+        var index = Math.floor(Math.random() * links.length);
+        \$(selector).html(links[index]);
+    }
+
+    \$().ready(function(){
+        set_random_link("#link1", [
+            '<a href="/subjects">browse</a>',
+            '<a href="/subjects">explore</a>',
+            '<a href="/subjects/accessible_book">read</a>',
+            '<a href="/subjects">connect</a>'
+        ]);
+    
+        set_random_link("#link2", [
+            '<a href="/lists">collect</a>',
+            '<a href="/lists">compare</a>',
+            '<a href="/search">search</a>',
+            '<a href="/authors">correct</a>'
+        ])
+    
+        set_random_link("#link3", [
+            '<a href="/developers">hack</a>',
+            '<a href="/borrow">borrow</a>',
+            '<a href="/books/add">build</a>',
+            '<a href="/books/add">describe</a>'
+        ])
+    });
+</script> 

@@ -1,0 +1,324 @@
+$def with (stats=None)
+    <div class="head"> 
+        <h2>Around the Library</h2> 
+    </div> 
+    
+ 
+<script id="source" type="text/javascript"> 
+\$(function () {
+    var d = [[1196463600000, 435], [1196550000000, 698], [1196636400000, 102], [1196722800000, 77], [1196809200000, 3636], [1196895600000, 3575], [1196982000000, 2736], [1197068400000, 1086], [1197154800000, 676], [1197241200000, 1205], [1197327600000, 906], [1197414000000, 710], [1197500400000, 639], [1197586800000, 540], [1197673200000, 435], [1197759600000, 301], [1197846000000, 575], [1197932400000, 481], [1198018800000, 591], [1198105200000, 608], [1198191600000, 459], [1198278000000, 234], [1198364400000, 1352], [1198450800000, 686], [1198537200000, 279], [1198623600000, 449], [1198710000000, 468], [1198796400000, 392], [1198882800000, 282], [1198969200000, 208]];
+ 
+    // first correct the timestamps - they are recorded as the daily
+    // midnights in UTC+0100, but Flot always displays dates in UTC
+    // so we have to add one hour to hit the midnights in the plot
+    for (var i = 0; i < d.length; ++i)
+      d[i][0] += 60 * 60 * 1000;
+ 
+    // helper for returning the weekends in a period
+    function weekendAreas(axes) {
+        var markings = [];
+        var d = new Date(axes.xaxis.min);
+        // go to the first Saturday
+        d.setUTCDate(d.getUTCDate() - ((d.getUTCDay() + 1) % 7))
+        d.setUTCSeconds(0);
+        d.setUTCMinutes(0);
+        d.setUTCHours(0);
+        var i = d.getTime();
+        do {
+            // when we don't set yaxis, the rectangle automatically
+            // extends to infinity upwards and downwards
+            markings.push({ xaxis: { from: i, to: i + 2 * 24 * 60 * 60 * 1000 } });
+            i += 7 * 24 * 60 * 60 * 1000;
+        } while (i < axes.xaxis.max);
+ 
+        return markings;
+    }
+    
+    var options = {
+       series: {
+            bars: { 
+                show: true, 
+                fill: 1, 
+                fillColor: "#e44028",
+                color: "#e44028", 
+                align: "left",
+                barWidth: 24 * 60 * 60 * 1000
+            },
+            points: { 
+                show: false 
+            },
+            color: "#e44028"
+        },
+        grid: { 
+            show: false
+        },
+        xaxis: { 
+            mode: "time"
+        }
+    };
+    
+    var plot = \$.plot(\$("#visitors"), [d], options);
+    
+});
+</script> 
+ 
+ 
+    <div class="chartHome"> 
+        <div class="chartShow" onClick="window.location.href='http://archive.org/stats';" title="See all visitors to OpenLibrary.org"> 
+            <div id="visitors" style="width:150px;height:60px;"></div> 
+        </div> 
+        <a href="http://archive.org/stats" title="See all visitors to OpenLibrary.org"><span class="ticks">6,805,789</span><span class="label">Unique Visitors</span></a> 
+    </div> 
+<script id="source" type="text/javascript"> 
+\$(function () {
+    var d = [[1196463600000, 435], [1196550000000, 698], [1196636400000, 102], [1196722800000, 77], [1196809200000, 3636], [1196895600000, 3575], [1196982000000, 2736], [1197068400000, 1086], [1197154800000, 676], [1197241200000, 1205], [1197327600000, 906], [1197414000000, 710], [1197500400000, 639], [1197586800000, 540], [1197673200000, 435], [1197759600000, 301], [1197846000000, 575], [1197932400000, 481], [1198018800000, 591], [1198105200000, 608], [1198191600000, 459], [1198278000000, 234], [1198364400000, 1352], [1198450800000, 686], [1198537200000, 279], [1198623600000, 449], [1198710000000, 468], [1198796400000, 392], [1198882800000, 282], [1198969200000, 208]];
+ 
+    // first correct the timestamps - they are recorded as the daily
+    // midnights in UTC+0100, but Flot always displays dates in UTC
+    // so we have to add one hour to hit the midnights in the plot
+    for (var i = 0; i < d.length; ++i)
+      d[i][0] += 60 * 60 * 1000;
+ 
+    // helper for returning the weekends in a period
+    function weekendAreas(axes) {
+        var markings = [];
+        var d = new Date(axes.xaxis.min);
+        // go to the first Saturday
+        d.setUTCDate(d.getUTCDate() - ((d.getUTCDay() + 1) % 7))
+        d.setUTCSeconds(0);
+        d.setUTCMinutes(0);
+        d.setUTCHours(0);
+        var i = d.getTime();
+        do {
+            // when we don't set yaxis, the rectangle automatically
+            // extends to infinity upwards and downwards
+            markings.push({ xaxis: { from: i, to: i + 2 * 24 * 60 * 60 * 1000 } });
+            i += 7 * 24 * 60 * 60 * 1000;
+        } while (i < axes.xaxis.max);
+ 
+        return markings;
+    }
+    
+    var options = {
+       series: {
+            bars: { 
+                show: true, 
+                fill: 1, 
+                fillColor: "#748d36",
+                color: "#748d36", 
+                align: "left",
+                barWidth: 24 * 60 * 60 * 1000
+            },
+            points: { 
+                show: false 
+            },
+            color: "#748d36"
+        },
+        grid: { 
+            show: false
+        },
+        xaxis: { 
+            mode: "time"
+        }
+    };
+    
+    var plot = \$.plot(\$("#members"), [d], options);
+    
+});
+</script> 
+ 
+    <div class="chartHome"> 
+        <div class="chartShow" onClick="window.location.href='tba';" title="How many new Open Library members have we welcomed?"> 
+            <div id="members" style="width:150px;height:60px;"></div> 
+        </div> 
+        <a href="tba" title="How many new Open Library members have we welcomed?"><span class="ticks">6,134</span><span class="label">New Members</span></a> 
+    </div> 
+<script id="source" type="text/javascript"> 
+\$(function () {
+    var d = [[1196463600000, 435], [1196550000000, 698], [1196636400000, 102], [1196722800000, 77], [1196809200000, 3636], [1196895600000, 3575], [1196982000000, 2736], [1197068400000, 1086], [1197154800000, 676], [1197241200000, 1205], [1197327600000, 906], [1197414000000, 710], [1197500400000, 639], [1197586800000, 540], [1197673200000, 435], [1197759600000, 301], [1197846000000, 575], [1197932400000, 481], [1198018800000, 591], [1198105200000, 608], [1198191600000, 459], [1198278000000, 234], [1198364400000, 1352], [1198450800000, 686], [1198537200000, 279], [1198623600000, 449], [1198710000000, 468], [1198796400000, 392], [1198882800000, 282], [1198969200000, 208]];
+ 
+    // first correct the timestamps - they are recorded as the daily
+    // midnights in UTC+0100, but Flot always displays dates in UTC
+    // so we have to add one hour to hit the midnights in the plot
+    for (var i = 0; i < d.length; ++i)
+      d[i][0] += 60 * 60 * 1000;
+ 
+    // helper for returning the weekends in a period
+    function weekendAreas(axes) {
+        var markings = [];
+        var d = new Date(axes.xaxis.min);
+        // go to the first Saturday
+        d.setUTCDate(d.getUTCDate() - ((d.getUTCDay() + 1) % 7))
+        d.setUTCSeconds(0);
+        d.setUTCMinutes(0);
+        d.setUTCHours(0);
+        var i = d.getTime();
+        do {
+            // when we don't set yaxis, the rectangle automatically
+            // extends to infinity upwards and downwards
+            markings.push({ xaxis: { from: i, to: i + 2 * 24 * 60 * 60 * 1000 } });
+            i += 7 * 24 * 60 * 60 * 1000;
+        } while (i < axes.xaxis.max);
+ 
+        return markings;
+    }
+    
+    var options = {
+       series: {
+            bars: { 
+                show: true, 
+                fill: 1, 
+                fillColor: "#00636a",
+                color: "#00636a", 
+                align: "left",
+                barWidth: 24 * 60 * 60 * 1000
+            },
+            points: { 
+                show: false 
+            },
+            color: "#00636a"
+        },
+        grid: { 
+            show: false
+        },
+        xaxis: { 
+            mode: "time"
+        }
+    };
+    
+    var plot = \$.plot(\$("#edits"), [d], options);
+    
+});
+</script> 
+    <div class="chartHome"> 
+        <div class="chartShow" onClick="window.location.href='/recentchanges';" title="People are constantly updating the catalog"> 
+            <div id="edits" style="width:150px;height:60px;"></div> 
+        </div> 
+        <a href="/recentchanges" title="People are constantly updating the catalog"><span class="ticks">96,589</span><span class="label">Catalog Edits</span></a> 
+    </div> 
+<script id="source" type="text/javascript"> 
+\$(function () {
+    var d = [[1196463600000, 435], [1196550000000, 698], [1196636400000, 102], [1196722800000, 77], [1196809200000, 3636], [1196895600000, 3575], [1196982000000, 2736], [1197068400000, 1086], [1197154800000, 676], [1197241200000, 1205], [1197327600000, 906], [1197414000000, 710], [1197500400000, 639], [1197586800000, 540], [1197673200000, 435], [1197759600000, 301], [1197846000000, 575], [1197932400000, 481], [1198018800000, 591], [1198105200000, 608], [1198191600000, 459], [1198278000000, 234], [1198364400000, 1352], [1198450800000, 686], [1198537200000, 279], [1198623600000, 449], [1198710000000, 468], [1198796400000, 392], [1198882800000, 282], [1198969200000, 208]];
+ 
+    // first correct the timestamps - they are recorded as the daily
+    // midnights in UTC+0100, but Flot always displays dates in UTC
+    // so we have to add one hour to hit the midnights in the plot
+    for (var i = 0; i < d.length; ++i)
+      d[i][0] += 60 * 60 * 1000;
+ 
+    // helper for returning the weekends in a period
+    function weekendAreas(axes) {
+        var markings = [];
+        var d = new Date(axes.xaxis.min);
+        // go to the first Saturday
+        d.setUTCDate(d.getUTCDate() - ((d.getUTCDay() + 1) % 7))
+        d.setUTCSeconds(0);
+        d.setUTCMinutes(0);
+        d.setUTCHours(0);
+        var i = d.getTime();
+        do {
+            // when we don't set yaxis, the rectangle automatically
+            // extends to infinity upwards and downwards
+            markings.push({ xaxis: { from: i, to: i + 2 * 24 * 60 * 60 * 1000 } });
+            i += 7 * 24 * 60 * 60 * 1000;
+        } while (i < axes.xaxis.max);
+ 
+        return markings;
+    }
+    
+    var options = {
+       series: {
+            bars: { 
+                show: true, 
+                fill: 1, 
+                fillColor: "#ffa337",
+                color: "#ffa337", 
+                align: "left",
+                barWidth: 24 * 60 * 60 * 1000
+            },
+            points: { 
+                show: false 
+            },
+            color: "#ffa337"
+        },
+        grid: { 
+            show: false
+        },
+        xaxis: { 
+            mode: "time"
+        }
+    };
+    
+    var plot = \$.plot(\$("#lists"), [d], options);
+    
+});
+</script> 
+    <div class="chartHome"> 
+        <div class="chartShow" onClick="window.location.href='/lists';" title="Members can create Lists"> 
+            <div id="lists" style="width:150px;height:60px;"></div> 
+        </div> 
+        <a href="/lists" title="Members can create Lists"><span class="ticks">1,278</span><span class="label">Lists Created</span></a> 
+    </div> 
+<script id="source" type="text/javascript"> 
+\$(function () {
+    var d = [[1196463600000, 435], [1196550000000, 698], [1196636400000, 102], [1196722800000, 77], [1196809200000, 3636], [1196895600000, 3575], [1196982000000, 2736], [1197068400000, 1086], [1197154800000, 676], [1197241200000, 1205], [1197327600000, 906], [1197414000000, 710], [1197500400000, 639], [1197586800000, 540], [1197673200000, 435], [1197759600000, 301], [1197846000000, 575], [1197932400000, 481], [1198018800000, 591], [1198105200000, 608], [1198191600000, 459], [1198278000000, 234], [1198364400000, 1352], [1198450800000, 686], [1198537200000, 279], [1198623600000, 449], [1198710000000, 468], [1198796400000, 392], [1198882800000, 282], [1198969200000, 208]];
+ 
+    // first correct the timestamps - they are recorded as the daily
+    // midnights in UTC+0100, but Flot always displays dates in UTC
+    // so we have to add one hour to hit the midnights in the plot
+    for (var i = 0; i < d.length; ++i)
+      d[i][0] += 60 * 60 * 1000;
+ 
+    // helper for returning the weekends in a period
+    function weekendAreas(axes) {
+        var markings = [];
+        var d = new Date(axes.xaxis.min);
+        // go to the first Saturday
+        d.setUTCDate(d.getUTCDate() - ((d.getUTCDay() + 1) % 7))
+        d.setUTCSeconds(0);
+        d.setUTCMinutes(0);
+        d.setUTCHours(0);
+        var i = d.getTime();
+        do {
+            // when we don't set yaxis, the rectangle automatically
+            // extends to infinity upwards and downwards
+            markings.push({ xaxis: { from: i, to: i + 2 * 24 * 60 * 60 * 1000 } });
+            i += 7 * 24 * 60 * 60 * 1000;
+        } while (i < axes.xaxis.max);
+ 
+        return markings;
+    }
+    
+    var options = {
+       series: {
+            bars: { 
+                show: true, 
+                fill: 1, 
+                fillColor: "#35672e",
+                color: "#35672e", 
+                align: "left",
+                barWidth: 24 * 60 * 60 * 1000
+            },
+            points: { 
+                show: false 
+            },
+            color: "#35672e"
+        },
+        grid: { 
+            show: false
+        },
+        xaxis: { 
+            mode: "time"
+        }
+    };
+    
+    var plot = \$.plot(\$("#ebooks"), [d], options);
+    
+});
+</script> 
+    <div class="chartHome chartEnd"> 
+        <div class="chartShow" onClick="window.location.href='/borrow';" title="We're a library, so we lend books, too"> 
+            <div id="ebooks" style="width:150px;height:60px;"></div> 
+        </div> 
+        <a href="/borrow" title="We're a library, so we lend books, too"><span class="ticks">12,348</span><span class="label">eBooks Borrowed</span></a> 
+    </div> 
