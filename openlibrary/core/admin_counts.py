@@ -41,9 +41,10 @@ def connect_to_couch(config_file):
     f.close()
     admin_db = config["admin"]["counts_db"]
     editions_db = config["lists"]["editions_db"]
+    works_db = config["lists"]["works_db"]
     logging.debug(" Admin Database is %s", admin_db)
     logging.debug(" Editions Database is %s", editions_db)
-    return couchdb.Database(admin_db), couchdb.Database(editions_db)
+    return couchdb.Database(admin_db), couchdb.Database(editions_db), couchdb.Database(works_db)
 
 def get_range_data(infobase_db, coverstore_db, start, end):
     """Returns the number of new records of various types
@@ -76,25 +77,34 @@ def get_range_data(infobase_db, coverstore_db, start, end):
     logging.debug("  Type : cover - %d", retval['cover'])
     return retval
 
-def get_delta_data(admin_db, editions_db, yesterday):
+def get_delta_data(admin_db, editions_db, today):
     """Returns the number of new records of `types` by calculating the
     difference between yesterdays numbers and todays"""
     # eBooks
     retval = dict()
     current_total = editions_db.view("admin/ebooks").rows[0].value
+    yesterday = today - datetime.timedelta(days = 1)
     key = yesterday.strftime("counts-%Y-%m-%d")
     logging.debug("Getting delta counts for ebooks between %s and today", yesterday.strftime("%Y-%m-%d"))
     try:
         last_total = admin_db[key]["total_ebooks"]
     except (couchdb.http.ResourceNotFound, KeyError):
         last_total = 0
-    current_count = last_total - current_total
+    current_count = current_total - last_total
     retval["ebook"] = current_count
-    retval["total_ebooks"] = current_total
     logging.debug(" Type : ebook - %d", retval['ebook'])
     # Subjects
     return retval
 
+def get_total_data(editions_db, works_db):
+    """Get total counts for the various items and return them as a
+    dictionary"""
+    logging.debug("Getting total counts for works, editions and ebooks")
+    retval = dict(total_works    = works_db.info()["doc_count"],
+                  total_editions = editions_db.info()["doc_count"],
+                  total_ebooks   = editions_db.view("admin/ebooks").rows[0].value)
+    logging.debug("  %s", retval)
+    return retval
     
 def store_data(db, data, date):
     uid = "counts-%s"%date
@@ -114,15 +124,17 @@ def main(infobase_config, openlibrary_config, coverstore_config, ndays = 1):
     try:
         infobase_conn = connect_to_pg(infobase_config)
         coverstore_conn = connect_to_pg(coverstore_config)
-        admin_db, editions_db = connect_to_couch(openlibrary_config)
+        admin_db, editions_db, works_db = connect_to_couch(openlibrary_config)
     except KeyError,k:
         logging.critical("Config file section '%s' missing", k.args[0])
         return -1
     today = datetime.datetime.now()
     yesterday = today - datetime.timedelta(days = 1)
-    # Delta data is gathered only for the current day
-    data = get_delta_data(admin_db, editions_db, today)
-    store_data(admin_db, data, yesterday.strftime("%Y-%m-%d"))
+    # Delta and total data is gathered only for the current day
+    data = get_total_data(editions_db, works_db)
+    data.update(get_delta_data(admin_db, editions_db, today))
+    store_data(admin_db, data, today.strftime("%Y-%m-%d"))
+    logging.debug("Generating range data")
     for i in range(int(ndays)):
         yesterday = today - datetime.timedelta(days = 1)
         logging.debug(" From %s to %s", yesterday, today)
