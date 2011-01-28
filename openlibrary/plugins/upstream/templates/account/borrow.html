@@ -63,7 +63,7 @@ $if len(loans) > 0:
                 </td>
                 <td class="actions">
                     $if loan['resource_type'] == 'bookreader':
-                        $:macros.BookReaderLoanReadForm(loan)
+                        $:macros.BookReaderLoanReadForm(loan['book'])
                         $:macros.ReturnForm(loan)
                 </td>
             </tr>

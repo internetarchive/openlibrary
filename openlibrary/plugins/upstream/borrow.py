@@ -157,9 +157,16 @@ class borrow(delegate.page):
             #     after the message is shown once
             raise web.seeother(edition.url('/borrow?r=t'))
             
-        else:
-            # Action not recognized
-            raise web.seeother(error_redirect)
+        elif i.action == 'read':
+            # Look for loans for this book
+            user.update_loan_status()
+            loans = get_loans(user)
+            for loan in loans:
+                if loan['book'] == edition.key:
+                    raise web.seeother(make_bookreader_auth_link(loan['store_key'], edition.ocaid, get_bookreader_stream_url(edition.ocaid)))
+            
+        # Action not recognized
+        raise web.seeother(error_redirect)
 
 class borrow_admin(delegate.page):
     path = "(/books/OL\d+M)/borrow_admin"

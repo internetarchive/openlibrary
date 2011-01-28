@@ -169,7 +169,7 @@ $else:
                <div class="message info">
                     <h2 class="sansserif">You have this book checked out. You can read it online or return the book.
                     <p>
-                    $:macros.BookReaderLoanReadForm(active_loan)</p>
+                    $:macros.BookReaderLoanReadForm(active_loan['book'])</p>
                     <p>
                     $:macros.ReturnForm(active_loan)
                     </p>
