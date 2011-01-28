@@ -169,7 +169,7 @@ $else:
                <div class="message info">
                     <h2 class="sansserif">You have this book checked out. You can read it online or return the book.
                     <p>
-                    $:macros.BookReaderLoanReadForm(active_loan['book'])
+                    $:macros.LoanReadForm(active_loan['book'])
                     $:macros.ReturnForm(active_loan)
                     </p>
                 </div>
@@ -179,28 +179,28 @@ $else:
                     $# Has been fulfilled
                     <div class="message info">
                         <h2 class="sansserif">We show that you've borrowed this title.</h2>
-                        <p>Open Adobe Digital Editions to read it or to return it to Open Library.</p>
+                        <p>Open Adobe Digital Editions to read it or return to Open Library.</p>
                     </div>
                 $else:
                     $# $$$ wording
                     <div class="message info">
-                        <h2 class="sansserif">We show that you've checked this out but haven't loaded it in Digital Editions yet.</h2>
+                        <h2 class="sansserif">We show that you've borrowed this but haven't loaded it in Digital Editions yet.</h2>
                         <p>This loan is on hold for about 5 minutes. If you don't open it up within that time, someone else may borrow it. <a href="$active_loan['loan_link']"><strong>Download again</strong></a>?</p>
+                       <p>Do you need to try <a href="http://www.adobe.com/products/digitaleditions/">downloading Adobe Digital Editions again</a>? The PDF or ePub loans will only open in that program.</p>
                     </div>
-                <p>Need to <a href="http://www.adobe.com/products/digitaleditions/">download Adobe Digital Editions again</a>?</p>
 
         $elif len(loans) >= 5:
             $# already loaned maximum number of books
             <div class="message stop">
                 <h2 class="sansserif">Hang on. You've hit the lending limit of 5 concurrent titles.</h2>
-                <p>Open Adobe Digital Editions to return a book you've borrowed, then try again.</p>
+                <p>You can free up space by returning one of <a href="/account/loans/" target="newWindow" title="Open link in a new browser window">your current loans</a> early.</p>
             </div>
 
         $elif not available_loans:
             $# book is not available for loan
             <div class="message info">
-                <h2 class="sansserif">This title has been borrowed by someone else.</h2>
-                <p>Please check back later to see if it's available, or look for <a href="/subjects/lending_library">more books you can borrow</a> perhaps?</p>
+                <h2 class="sansserif">This book is checked out.</h2>
+                <p>Please check back later, or look for <a href="/subjects/lending_library">more books you can borrow</a> perhaps?</p>
             </div>
             $if ctx.user and ctx.user.is_admin():
                 $# Stuff for adding to a list - NEED NEW WIDGET!
@@ -226,7 +226,7 @@ $else:
             $# May have returned this book and not currently borrowed
             <div class="message info">
                 <h2 class="sansserif">You've returned this book.</h2>
-                <p>There are more books available in the <a href="/subjects/lending_library">lending library</a>.</p>
+                <p>Find something else to read in the <a href="/subjects/lending_library">lending library</a>.</p>
             </div>
         
         $if user_can_borrow_this:
