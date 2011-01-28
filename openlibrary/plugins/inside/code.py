@@ -58,10 +58,10 @@ def read_from_archive(ia):
         if v is not None:
             item[k] = v.text
 
-    for k in 'creator', 'language':
+    for k in 'creator', 'language', 'collection':
         v = root.findall(k)
         if len(v):
-            item[k] = [i.text for i in v]
+            item[k] = [i.text for i in v if i.text]
     return item
 
 @public
