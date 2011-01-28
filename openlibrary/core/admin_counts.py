@@ -42,9 +42,12 @@ def connect_to_couch(config_file):
     admin_db = config["admin"]["counts_db"]
     editions_db = config["lists"]["editions_db"]
     works_db = config["lists"]["works_db"]
+    seeds_db = config["lists"]["seeds_db"]
     logging.debug(" Admin Database is %s", admin_db)
     logging.debug(" Editions Database is %s", editions_db)
-    return couchdb.Database(admin_db), couchdb.Database(editions_db), couchdb.Database(works_db)
+    logging.debug(" Works Database is %s", works_db)
+    logging.debug(" Seeds Database is %s", seeds_db)
+    return couchdb.Database(admin_db), couchdb.Database(editions_db), couchdb.Database(works_db), couchdb.Database(seeds_db)
 
 def get_range_data(infobase_db, coverstore_db, start, end):
     """Returns the number of new records of various types
@@ -96,12 +99,15 @@ def get_delta_data(admin_db, editions_db, today):
     # Subjects
     return retval
 
-def get_total_data(editions_db, works_db):
+def get_total_data(editions_db, works_db, seeds_db):
     """Get total counts for the various items and return them as a
     dictionary"""
     logging.debug("Getting total counts for works, editions and ebooks")
+    off1 = seeds_db.view("_all_docs", startkey="/authors", limit=0).offset
+    off2 = seeds_db.view("_all_docs", startkey="/authors/Z", limit=0).offset
     retval = dict(total_works    = works_db.info()["doc_count"],
                   total_editions = editions_db.info()["doc_count"],
+                  total_authors  = off2 - off1,
                   total_ebooks   = editions_db.view("admin/ebooks").rows[0].value)
     logging.debug("  %s", retval)
     return retval
@@ -124,14 +130,14 @@ def main(infobase_config, openlibrary_config, coverstore_config, ndays = 1):
     try:
         infobase_conn = connect_to_pg(infobase_config)
         coverstore_conn = connect_to_pg(coverstore_config)
-        admin_db, editions_db, works_db = connect_to_couch(openlibrary_config)
+        admin_db, editions_db, works_db, seeds_db = connect_to_couch(openlibrary_config)
     except KeyError,k:
         logging.critical("Config file section '%s' missing", k.args[0])
         return -1
     today = datetime.datetime.now()
     yesterday = today - datetime.timedelta(days = 1)
     # Delta and total data is gathered only for the current day
-    data = get_total_data(editions_db, works_db)
+    data = get_total_data(editions_db, works_db, seeds_db)
     data.update(get_delta_data(admin_db, editions_db, today))
     store_data(admin_db, data, today.strftime("%Y-%m-%d"))
     logging.debug("Generating range data")
