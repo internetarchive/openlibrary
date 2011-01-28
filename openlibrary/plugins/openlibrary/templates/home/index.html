@@ -1,4 +1,4 @@
-$def with (stats=None, blogposts=None)
+$def with (stats=None, blog_posts=None)
 
 $var title: $_("Welcome to Open Library")
   
@@ -28,7 +28,7 @@ $:render_template("home/splash")
     $:render_template("home/stats", stats)
     <div class="clearfix"></div> 
  
-    $:render_template("home/about", blogposts)
+    $:render_template("home/about", blog_posts)
 </div>
 
 

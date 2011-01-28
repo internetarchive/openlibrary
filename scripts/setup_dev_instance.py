@@ -98,6 +98,7 @@ def setup_dirs():
     dirs = (
         "var/cache var/lib var/log var/run" +
         " var/lib/coverstore/localdisk" +
+        " var/log/lighttpd var/cache/lighttpd/uploads var/www/cache " + 
         " usr/local/bin usr/local/etc usr/local/lib"
     )
     os.system("mkdir -p " + dirs)
