@@ -7,6 +7,7 @@ from_address: "Open Library <noreply@openlibrary.org>"
 report_spam_address: "Open Library <info@openlibrary.org>"
 
 dummy_sendmail: True
+debug: True
 
 coverstore_url: "http://127.0.0.1:7000/"
 
@@ -54,6 +55,7 @@ features:
     undo: enabled
     dev: enabled
     lists: enabled
+    lending_v2: admin
 
 upstream_to_www_migration: true
 default_template_root: /upstream
@@ -66,3 +68,6 @@ lists:
     editions_db: http://127.0.0.1:5984/editions
     works_db: http://127.0.0.1:5984/works
     editions_view: http://127.0.0.1:5984/editions/_fti/_design/seeds/by_seed
+
+admin:
+    counts_db: http://127.0.0.1:5984/admin
