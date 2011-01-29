@@ -374,7 +374,7 @@ def get_loan_key(resource_id):
         raise Exception('Found too many local loan records for resource %s' % resource_id)
         
     loan_key = loan_keys[0]['key']
-    return loan_key
+    return loan_key    
     
 def get_loan_status(resource_id):
     """Should only be used for ACS4 loans.  Get the status of the loan from the ACS4 server,
@@ -618,9 +618,9 @@ def get_ia_auth_dict(user, item_id, resource_id, user_specified_loan_key, access
     loan_key = get_loan_key(resource_id)
 
     if loan_key is None:
-        # Book is not checked out
-        error_message = 'This book is available to borrow'
-        resolution_message = 'This book is currently available to borrow. You can <a href="%(base_url)s/ia/%(item_id)s/borrow">borrow this book from Open Library</a>.' % resolution_dict
+        # Book is not checked out as a BookReader loan - may still be checked out in ACS4
+        error_message = 'Lending Library Book'
+        resolution_message = 'This book is part of the <a href="%(base_url)s/subjects/Lending_library">lending library</a>. Please <a href="%(base_url)s/ia/%(item_id)s/borrow">visit this book\'s page on Open Library</a> to access the book.' % resolution_dict
         
     else:
         # Book is checked out (by someone) - get the loan information
@@ -657,8 +657,8 @@ def get_ia_auth_dict(user, item_id, resource_id, user_specified_loan_key, access
                     
             else:
                 # Couldn't validate using token - they need to go to Open Library
-                error_message = "Book is checked out (possibly by you)"
-                resolution_message = 'This book is currently checked out. If <em>you</em> checked it out please <a href="%(base_url)s/ia/%(item_id)s/borrow">visit Open Library</a> to get access to the book.  If you haven\'t checked out this book you can <a href="%(base_url)s/subjects/Lending_library">look at other books available to borrow</a>.  You must have cookies enabled for archive.org and openlibrary.org to access borrowed books.' % resolution_dict
+                error_message = "Lending Library Book"
+                resolution_message = 'This book is part of the <a href="%(base_url)s/subjects/Lending_library" title="Open Library Lending Library">lending library</a>. Please <a href="%(base_url)s/ia/%(item_id)s/borrow" title="Borrow book page on Open Library">visit this book\'s page on Open Library</a> to access the book.  You must have cookies enabled for archive.org and openlibrary.org to access borrowed books.' % resolution_dict
     
     if error_message:
         return { 'success': False, 'msg': error_message, 'resolution': resolution_message }
