@@ -1,6 +1,5 @@
-======================
- Design documentation
-======================
+Design Notes
+============
 
 Contains design and implementation details of complex parts of the
 system.
