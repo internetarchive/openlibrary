@@ -8,7 +8,7 @@ $if len(loans) >= 5:
     \$().ready(function(){
         \$("#contentMsg").show();
         \$(".alert span").css({'font-size':'.6875em','color':'#333'})
-        \$(".alert span").text("You have 5 ebooks out at the moment. That's the limit! You can free up slots by returning ebooks through Adobe Digital Editions.");
+        \$(".alert span").text("You have 5 ebooks out at the moment. That's the limit! You can free up slots by returning books early.");
     });
     //-->
     </script>
@@ -63,8 +63,11 @@ $if len(loans) > 0:
                 </td>
                 <td class="actions">
                     $if loan['resource_type'] == 'bookreader':
-                        <a href="$loan['loan_link']">Read Online</a>
+                        $# <a href="$loan['loan_link']"><img src="http://openlibrary.org/images/icons/icon_read-borrow.png" style="border:none" align="absmiddle" /></a> <a href="$loan['loan_link']">Read Online</a><br /><br />
+                        $:macros.LoanReadForm(loan['book'])
                         $:macros.ReturnForm(loan)
+                    $else:
+                        <span class="smaller grey sansserif">Return via<br />Adobe Digital Editions</span>
                 </td>
             </tr>
         </tbody>
@@ -131,7 +134,7 @@ $if len(loans) == 0:
     <div class="contentSpacer"></div>
     <div class="contentQuarter">
         <h3>Help/Downloads</h3>
-        <img src="/images/logo_adobeACS.png" alt="logo: Adobe" width="43" height="72" class="left"/>
+        <img src="/images/logo_adobeACS.png" alt="logo: Adobe" width="43" height="72" class="left" style="margin-right:10px;"/>
         <p class="small sansserif collapse"><a href="http://www.adobe.com/products/digitaleditions/#fp">Download Adobe Digital Editions</a></p>
         <p class="small sansserif"><a href="http://www.adobe.com/products/digitaleditions/help/">Help</a> on adobe.com</p>
     </div>

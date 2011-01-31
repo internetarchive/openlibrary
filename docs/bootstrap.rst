@@ -13,25 +13,12 @@ The Open Library dev instance has been tested on the following platforms.
 
 * Ubuntu 10.10
 * Ubuntu 10.04
-* Mac OS X Snow Leopard
+* Mac OS X Snow Leopard (with `XCode`_ and `homebrew`_ installed)
 
 Make sure you have at least 1GB of RAM on your dev machine or virtual machine.
 
-Installing dependencies
------------------------
-
-Open Library depends a lot of third-party programs as well as a whole
-bunch of python libraries. 
-
-To install all the dependencies on Ubuntu::
-
-    $ wget -O - http://github.com/openlibrary/openlibrary/raw/master/scripts/install_dependencies.sh | bash
-    
-To install all the dependencies on Mac OS X::
-
-    $ curl http://github.com/openlibrary/openlibrary/raw/master/scripts/install_dependencies.sh | bash
-    
-The list of dependencies is available at :doc:`appendices/dependencies`.
+.. _XCode: http://developer.apple.com/technologies/xcode.html
+.. _homebrew: http://mxcl.github.com/homebrew/
 
 Getting the source
 ------------------
@@ -44,9 +31,31 @@ hosted on github.
 You can get the source code from there using::
 
    $ git clone git://github.com/openlibrary/openlibrary.git
+   $ cd openlibrary
 
 This will create a directory called openlibrary with the entire
-codebase checked out. 
+codebase checked out.
+
+In case you don't have git installed already, you can install it on Ubuntu using::
+
+    $ sudo apt-get install git-core
+    
+and on Mac OS X using::
+
+    $ brew install git
+
+Installing dependencies
+-----------------------
+
+Open Library depends a lot of third-party programs.
+
+To install all the dependencies::
+
+    $ sudo python setup.py install_dependencies
+
+Note that this is run as root.
+
+See :doc:`appendices/dependencies` for the list of dependencies.
   
 Running the install script
 --------------------------
@@ -68,7 +77,6 @@ Verify the installation
 -----------------------
 *TDB* (insert notes on how to run smoke tests here).
 
-
 Using the dev instance
 ----------------------
 
@@ -83,7 +91,6 @@ Once the services are started, Open Library dev instance will be available at:
 http://0.0.0.0:8080/
 
 Logs of the running services will be available in ``var/log/``.
-
 
 Loading sample data
 -------------------

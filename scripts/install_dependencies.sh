@@ -14,37 +14,61 @@ function install_linux_dependencies() {
     # additional packages required for installing PIL
     packages="$packages  zlib1g-dev libfreetype6-dev libjpeg62-dev liblcms1-dev"
     
-    sudo apt-get -y install $packages
+    apt-get -y install $packages
     
-    echo "creating postgres user"
-    sudo -u postgres createuser -s $USER
+    echo "creating postgres user $SUDO_USER"
+    sudo -u postgres createuser -s $SUDO_USER
 }
 
 function install_macosx_dependencies() {
-    if ! brew --version > /dev/null 2>&1
+    if ! /usr/bin/which -s gcc
     then
-        log "installing homebrew"
-        curl -fsSLk https://gist.github.com/raw/323731/install_homebrew.rb | ruby
-    else
-        log "homebrew installation found."
+        echo -e "\nPlease install XCode.\nhttp://developer.apple.com/technologies/xcode.html" 1>&2
+        exit 3
     fi
     
-    log "installing wget"
-    brew install wget
+    if ! /usr/bin/which -s brew
+    then
+        echo -e "\nPlease install Homebrew.\nhttp://mxcl.github.com/homebrew/" 1>&2
+        exit 3
+    fi
+    
+    packages="wget postgres lighttpd"
+    for p in $packages
+    do
+        log "installing $p"
+        sudo -u $SUDO_USER brew install $p
+    done
     
     log "installing python setuptools"
-    wget -q http://peak.telecommunity.com/dist/ez_setup.py -O /tmp/ez_setup.py
-    sudo python ez_setup.py -U setuptools
+    sudo -u $SUDO_USER wget -q http://peak.telecommunity.com/dist/ez_setup.py -O /tmp/ez_setup.py
+    python /tmp/ez_setup.py -U setuptools
     
     log "installing virtualenv"
-    sudo easy_install virtualenv
+    easy_install virtualenv
 }
 
-uname=$(uname)
+function main() {
+    uname=$(uname)
+    
+    if [ "$SUDO_USER" == "" ]
+    then
+        echo "FATAL: SUDO_USER is not set." 1>&2
+        exit 2
+    fi
 
-if [ "$uname" == "Darwin" ]
+    if [ "$uname" == "Darwin" ]
+    then
+        install_macosx_dependencies
+    else
+        install_linux_dependencies
+    fi
+}
+
+if [ "$USER" == "root" ]
 then
-    install_macosx_dependencies
+    main
 else
-    install_linux_dependencies
+    echo "This script must be run as root." 1>&2
+    exit 1
 fi

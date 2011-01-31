@@ -41,24 +41,10 @@ class StartCommand(BaseCommand):
     
     def run(self):
         """runner"""
-        self.create_conf_file()
-        print "starting supervisor"
-        
-        args = "supervisord -c var/lib/supervisor.ini -n".split()
+        args = "supervisord -c conf/services.ini -n".split()
         self.exec_command(args)
-        
-    def create_conf_file(self):
-        print "creating supervisor config file var/lib/supervisor.ini"
-        conf = open("conf/supervisor/common.ini").read() + "\n"
-        if os.uname()[0] == "Darwin":
-            conf += open("conf/supervisor/macosx.ini").read()
-        else:
-            conf += open("conf/supervisor/linux.ini").read()
-        
-        f = open("var/lib/supervisor.ini", "w")
-        f.write(conf)
-        f.close()
-        
+
+
 class RestartCommand(BaseCommand):
     """Distutils command to restart OL services.
 
@@ -83,9 +69,9 @@ class RestartCommand(BaseCommand):
 
     def run(self):
         """runner"""
-        f = "var/lib/supervisor.ini"
-        cmd = "supervisorctl -c %s restart %s" % (f, self.service)
+        cmd = "supervisorctl -c conf/services.ini restart %s" % self.service
         self.exec_command(cmd.split())
+
 
 class ShellCommand(BaseCommand):
     """Distutils command to start a bash shell with OL environment.
@@ -113,6 +99,7 @@ class BootstrapCommand(BaseCommand):
     def run(self):
         os.system("python scripts/setup_dev_instance.py")
 
+
 class TestCommand(BaseCommand):
     """Distutils command to tun all the tests.
 
@@ -126,7 +113,22 @@ class TestCommand(BaseCommand):
     def run(self):
         args = "bash scripts/runtests.sh".split()
         self.exec_command(args)
-        
+
+
+class InstallDependenciesCommand(BaseCommand):
+    """Distutils command to install all the required dependencies on Ubuntu and Mac OS X.
+    
+    This is involed by calling::
+    
+        $ sudo python setup.py install_dependencies
+    """
+    description = "Installs all the dependencies"
+    user_options = []
+
+    def run(self):
+        args = "bash scripts/install_dependencies.sh".split()
+        self.exec_command(args)
+
 
 try:
     from sphinx.setup_command import BuildDoc as _BuildDoc
@@ -147,11 +149,13 @@ class BuildDoc(_BuildDoc):
         os.system("python scripts/generate-api-docs.py")
         _BuildDoc.run(self)
         
+
 commands = {
     'bootstrap': BootstrapCommand,
     'build_sphinx': BuildDoc,
     'shell': ShellCommand,
     'start': StartCommand,
     'restart': RestartCommand,
-    'test': TestCommand
+    'test': TestCommand,
+    'install_dependencies': InstallDependenciesCommand,
 }

@@ -57,6 +57,10 @@ class show_marc(delegate.page):
         if m:
             raise web.seeother('/show-records/ia:' + m.group(1))
 
+        loc = ':'.join(['marc', filename, offset, length])
+
+        books = web.ctx.site.things({"type": "/type/edition", "source_records": loc})
+
         offset = int(offset)
         length = int(length)
 
@@ -82,8 +86,8 @@ class show_marc(delegate.page):
         from openlibrary.catalog.marc import html
 
         try:
-            record = html.html_record(result)
+            record = html.html_record(result[0:length])
         except ValueError:
             record = None
 
-        return render.showmarc(record, filename, offset, length)
+        return render.showmarc(record, filename, offset, length, books)
