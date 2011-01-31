@@ -80,34 +80,60 @@ def get_range_data(infobase_db, coverstore_db, start, end):
     logging.debug("  Type : cover - %d", retval['cover'])
     return retval
 
-def get_delta_data(admin_db, editions_db, today):
+def get_delta_data(admin_db, editions_db, seeds_db, today):
     """Returns the number of new records of `types` by calculating the
     difference between yesterdays numbers and todays"""
-    # eBooks
     retval = dict()
-    current_total = editions_db.view("admin/ebooks").rows[0].value
     yesterday = today - datetime.timedelta(days = 1)
-    key = yesterday.strftime("counts-%Y-%m-%d")
+    yesterdays_key = yesterday.strftime("counts-%Y-%m-%d")
+    # eBooks
+    current_total = editions_db.view("admin/ebooks").rows[0].value
     logging.debug("Getting delta counts for ebooks between %s and today", yesterday.strftime("%Y-%m-%d"))
     try:
-        last_total = admin_db[key]["total_ebooks"]
+        last_total = admin_db[yesterdays_key]["total_ebooks"]
     except (couchdb.http.ResourceNotFound, KeyError):
         last_total = 0
     current_count = current_total - last_total
     retval["ebook"] = current_count
     logging.debug(" Type : ebook - %d", retval['ebook'])
     # Subjects
+    rows = seeds_db.view("_all_docs", startkey="a")
+    current_total = rows.total_rows - rows.offset
+    logging.debug("Getting delta counts for subjects between %s and today", yesterday.strftime("%Y-%m-%d"))
+    try:
+        last_total = admin_db[yesterdays_key]["total_subjects"]
+    except (couchdb.http.ResourceNotFound, KeyError):
+        last_total = 0
+    current_count = current_total - last_total
+    retval["subject"] = current_count
+    logging.debug(" Type : subjects - %d", retval['subject'])
     return retval
 
-def get_total_data(editions_db, works_db, seeds_db):
+def get_total_data(infobase_db, editions_db, works_db, seeds_db):
     """Get total counts for the various items and return them as a
     dictionary"""
     logging.debug("Getting total counts for works, editions and ebooks")
+    # Computing total authors
     off1 = seeds_db.view("_all_docs", startkey="/authors", limit=0).offset
     off2 = seeds_db.view("_all_docs", startkey="/authors/Z", limit=0).offset
+    # Computing total subjects
+    rows = seeds_db.view("_all_docs", startkey="a")
+    total_subjects = rows.total_rows - rows.offset
+    # Computing total number of lists
+    q1 = "SELECT id as id from thing where key='/type/list'"
+    result = infobase_db.query(q1)
+    try:
+        kid = result[0].id 
+    except IndexError:
+        raise InvalidType("No id for type '/type/list' in the database")
+    q2 = "select count(*) as count from thing where type=%d"%kid
+    result = infobase_db.query(q2)
+    total_lists = result[0].count
     retval = dict(total_works    = works_db.info()["doc_count"],
                   total_editions = editions_db.info()["doc_count"],
                   total_authors  = off2 - off1,
+                  total_subjects = total_subjects,
+                  total_lists    = total_lists,
                   total_ebooks   = editions_db.view("admin/ebooks").rows[0].value)
     logging.debug("  %s", retval)
     return retval
@@ -134,11 +160,11 @@ def main(infobase_config, openlibrary_config, coverstore_config, ndays = 1):
     except KeyError,k:
         logging.critical("Config file section '%s' missing", k.args[0])
         return -1
-    today = datetime.datetime.now()
+    today = datetime.datetime.now() - datetime.timedelta(days = 1)
     yesterday = today - datetime.timedelta(days = 1)
     # Delta and total data is gathered only for the current day
-    data = get_total_data(editions_db, works_db, seeds_db)
-    data.update(get_delta_data(admin_db, editions_db, today))
+    data = get_total_data(infobase_conn, editions_db, works_db, seeds_db)
+    data.update(get_delta_data(admin_db, editions_db, seeds_db, today))
     store_data(admin_db, data, today.strftime("%Y-%m-%d"))
     logging.debug("Generating range data")
     for i in range(int(ndays)):
