@@ -10,7 +10,7 @@ All open library services can be started by running::
 
 This starts all the OL services using `supervisord <http://supervisord.org/>`_.
 
-The supervisor config files are in :file:`conf/supervisor`.
+The supervisor config file is in :file:`conf/services.ini`.
 
 Once the services are started, Open Library dev instance will be available at:
 
