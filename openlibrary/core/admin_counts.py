@@ -116,6 +116,7 @@ def get_total_data(infobase_db, editions_db, works_db, seeds_db):
     # Computing total authors
     off1 = seeds_db.view("_all_docs", startkey="/authors", limit=0).offset
     off2 = seeds_db.view("_all_docs", startkey="/authors/Z", limit=0).offset
+    total_authors = off2 - off1
     # Computing total subjects
     rows = seeds_db.view("_all_docs", startkey="a")
     total_subjects = rows.total_rows - rows.offset
@@ -129,9 +130,12 @@ def get_total_data(infobase_db, editions_db, works_db, seeds_db):
     q2 = "select count(*) as count from thing where type=%d"%kid
     result = infobase_db.query(q2)
     total_lists = result[0].count
+    # Computing total for covers (we find no. of editions with covers rather than total covers since this is more useful)
+    total_covers = editions_db.view("admin/editions_with_covers").rows[0].value
     retval = dict(total_works    = works_db.info()["doc_count"],
                   total_editions = editions_db.info()["doc_count"],
-                  total_authors  = off2 - off1,
+                  total_covers   = total_covers,
+                  total_authors  = total_authors,
                   total_subjects = total_subjects,
                   total_lists    = total_lists,
                   total_ebooks   = editions_db.view("admin/ebooks").rows[0].value)
@@ -160,7 +164,7 @@ def main(infobase_config, openlibrary_config, coverstore_config, ndays = 1):
     except KeyError,k:
         logging.critical("Config file section '%s' missing", k.args[0])
         return -1
-    today = datetime.datetime.now() - datetime.timedelta(days = 1)
+    today = datetime.datetime.now() 
     yesterday = today - datetime.timedelta(days = 1)
     # Delta and total data is gathered only for the current day
     data = get_total_data(infobase_conn, editions_db, works_db, seeds_db)
