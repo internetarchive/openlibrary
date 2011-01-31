@@ -126,7 +126,20 @@ class TestCommand(BaseCommand):
     def run(self):
         args = "bash scripts/runtests.sh".split()
         self.exec_command(args)
-        
+
+class InstallDependenciesCommand(BaseCommand):
+    """Distutils command to install all the required dependencies on Ubuntu and Mac OS X.
+    
+    This is involed by calling::
+    
+        $ sudo python setup.py install_dependencies
+    """
+    description = "Installs all the dependencies"
+    user_options = []
+
+    def run(self):
+        args = "bash scripts/install_dependencies.sh".split()
+        self.exec_command(args)
 
 try:
     from sphinx.setup_command import BuildDoc as _BuildDoc
@@ -153,5 +166,6 @@ commands = {
     'shell': ShellCommand,
     'start': StartCommand,
     'restart': RestartCommand,
-    'test': TestCommand
+    'test': TestCommand,
+    'install_dependencies': InstallDependenciesCommand,
 }
