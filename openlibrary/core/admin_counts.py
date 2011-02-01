@@ -71,11 +71,19 @@ def get_range_data(infobase_db, coverstore_db, start, end):
         result = db.query(q1)
         count = result[0].count
         return count
-        
+
+    def _query_transactions(db, start, end):
+        "Queries the number of edits between start and end"
+        q1 = "SELECT count(*) as count from transaction where created>= '%s' and created < '%s'"% (start, end)
+        result = db.query(q1)
+        count = result[0].count
+        return count
+    
     retval = {}
     for typ in "work edition user author list".split():
         retval[typ] = _query_single_thing(infobase_db, typ, start, end)
         logging.debug("  Type : %s - %d", typ, retval[typ])
+    retval["edit"]  = _query_transactions(infobase_db, start, end)
     retval["cover"] = _query_covers(coverstore_db, start, end)
     logging.debug("  Type : cover - %d", retval['cover'])
     return retval
@@ -87,7 +95,7 @@ def get_delta_data(admin_db, editions_db, seeds_db, today):
     yesterday = today - datetime.timedelta(days = 1)
     yesterdays_key = yesterday.strftime("counts-%Y-%m-%d")
     # eBooks
-    current_total = editions_db.view("admin/ebooks").rows[0].value
+    current_total = editions_db.view("admin/ebooks", stale="ok").rows[0].value
     logging.debug("Getting delta counts for ebooks between %s and today", yesterday.strftime("%Y-%m-%d"))
     try:
         last_total = admin_db[yesterdays_key]["total_ebooks"]
@@ -97,7 +105,7 @@ def get_delta_data(admin_db, editions_db, seeds_db, today):
     retval["ebook"] = current_count
     logging.debug(" Type : ebook - %d", retval['ebook'])
     # Subjects
-    rows = seeds_db.view("_all_docs", startkey="a")
+    rows = seeds_db.view("_all_docs", startkey="a", stale="ok")
     current_total = rows.total_rows - rows.offset
     logging.debug("Getting delta counts for subjects between %s and today", yesterday.strftime("%Y-%m-%d"))
     try:
@@ -114,11 +122,11 @@ def get_total_data(infobase_db, editions_db, works_db, seeds_db):
     dictionary"""
     logging.debug("Getting total counts for works, editions and ebooks")
     # Computing total authors
-    off1 = seeds_db.view("_all_docs", startkey="/authors", limit=0).offset
-    off2 = seeds_db.view("_all_docs", startkey="/authors/Z", limit=0).offset
+    off1 = seeds_db.view("_all_docs", startkey="/authors", limit=0, stale="ok").offset
+    off2 = seeds_db.view("_all_docs", startkey="/authors/Z", limit=0, stale="ok").offset
     total_authors = off2 - off1
     # Computing total subjects
-    rows = seeds_db.view("_all_docs", startkey="a")
+    rows = seeds_db.view("_all_docs", startkey="a", stale="ok")
     total_subjects = rows.total_rows - rows.offset
     # Computing total number of lists
     q1 = "SELECT id as id from thing where key='/type/list'"
@@ -131,14 +139,14 @@ def get_total_data(infobase_db, editions_db, works_db, seeds_db):
     result = infobase_db.query(q2)
     total_lists = result[0].count
     # Computing total for covers (we find no. of editions with covers rather than total covers since this is more useful)
-    total_covers = editions_db.view("admin/editions_with_covers").rows[0].value
+    total_covers = editions_db.view("admin/editions_with_covers", stale="ok").rows[0].value
     retval = dict(total_works    = works_db.info()["doc_count"],
                   total_editions = editions_db.info()["doc_count"],
                   total_covers   = total_covers,
                   total_authors  = total_authors,
                   total_subjects = total_subjects,
                   total_lists    = total_lists,
-                  total_ebooks   = editions_db.view("admin/ebooks").rows[0].value)
+                  total_ebooks   = editions_db.view("admin/ebooks", stale="ok").rows[0].value)
     logging.debug("  %s", retval)
     return retval
     
