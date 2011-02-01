@@ -122,8 +122,8 @@ def get_total_data(infobase_db, editions_db, works_db, seeds_db):
     dictionary"""
     logging.debug("Getting total counts for works, editions and ebooks")
     # Computing total authors
-    off1 = seeds_db.view("_all_docs", startkey="/authors", limit=0, stale="ok", limit = 0).offset
-    off2 = seeds_db.view("_all_docs", startkey="/authors/Z", limit=0, stale="ok", limit = 0).offset
+    off1 = seeds_db.view("_all_docs", startkey="/authors", limit=0, stale="ok").offset
+    off2 = seeds_db.view("_all_docs", startkey="/authors/Z", limit=0, stale="ok").offset
     total_authors = off2 - off1
     # Computing total subjects
     rows = seeds_db.view("_all_docs", startkey="a", stale="ok", limit = 0)
