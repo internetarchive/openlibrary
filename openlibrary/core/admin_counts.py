@@ -105,7 +105,7 @@ def get_delta_data(admin_db, editions_db, seeds_db, today):
     retval["ebook"] = current_count
     logging.debug(" Type : ebook - %d", retval['ebook'])
     # Subjects
-    rows = seeds_db.view("_all_docs", startkey="a", stale="ok")
+    rows = seeds_db.view("_all_docs", startkey="a", stale="ok", limit=0)
     current_total = rows.total_rows - rows.offset
     logging.debug("Getting delta counts for subjects between %s and today", yesterday.strftime("%Y-%m-%d"))
     try:
@@ -122,11 +122,11 @@ def get_total_data(infobase_db, editions_db, works_db, seeds_db):
     dictionary"""
     logging.debug("Getting total counts for works, editions and ebooks")
     # Computing total authors
-    off1 = seeds_db.view("_all_docs", startkey="/authors", limit=0, stale="ok").offset
-    off2 = seeds_db.view("_all_docs", startkey="/authors/Z", limit=0, stale="ok").offset
+    off1 = seeds_db.view("_all_docs", startkey="/authors", limit=0, stale="ok", limit = 0).offset
+    off2 = seeds_db.view("_all_docs", startkey="/authors/Z", limit=0, stale="ok", limit = 0).offset
     total_authors = off2 - off1
     # Computing total subjects
-    rows = seeds_db.view("_all_docs", startkey="a", stale="ok")
+    rows = seeds_db.view("_all_docs", startkey="a", stale="ok", limit = 0)
     total_subjects = rows.total_rows - rows.offset
     # Computing total number of lists
     q1 = "SELECT id as id from thing where key='/type/list'"
