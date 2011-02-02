@@ -228,16 +228,14 @@ def get_counts():
         for i in "work edition user author list ebook cover subject".split():
             counts[i] = placeholder
         return storify(counts)
-
     counts_db = couchdb.Database(counts_db_name)
     start_date = (datetime.datetime.now() - datetime.timedelta(days = 28)).strftime("%Y-%m-%d")
-    end_date = (datetime.datetime.now() - datetime.timedelta(days =1)).strftime("%Y-%m-%d")
+    end_date = datetime.datetime.now().strftime("%Y-%m-%d")
     # The -1 for end_date is because the current day will only be half done till the day is over
     data = [x.doc for x in counts_db.view("_all_docs",
                                           startkey_docid = "counts-%s"%start_date,
                                           endkey_docid   = "counts-%s"%end_date,
                                           include_docs = True)]
-    
     for i in "works editions users authors lists covers ebooks subjects".split():
         lastweek = _sum_values(data[-7:], i)
         lastmonth = _sum_values(data[:-7], i) + lastweek

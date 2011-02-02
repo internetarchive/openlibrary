@@ -97,6 +97,9 @@ def main(infobase_config, openlibrary_config, coverstore_config, ndays = 1):
     except KeyError,k:
         logging.critical("Config file section '%s' missing", k.args[0])
         return -1
+    # Gather delta and total counts
+    # Total counts are simply computed and updated for the current day
+    # Delta counts are computed by subtracting the current total from yesterday's total
     today = datetime.datetime.now()
     yesterday = today - datetime.timedelta(days = 1)
     data = {}
@@ -109,14 +112,19 @@ def main(infobase_config, openlibrary_config, coverstore_config, ndays = 1):
                                         yesterday, today,
                                         prefix = "admin_delta__"))
     store_data(admin_db, data, today.strftime("%Y-%m-%d"))
+    # Now gather data which can be queried based on date ranges
+    # The queries will be from the beginning of today till right now
+    # The data will be stored as the counts of the current day.
+    end = datetime.datetime.now() # Right now
+    start = datetime.datetime(hour = 0, minute = 0, second = 0, day = end.day, month = end.month, year = end.year) # Beginning of the day
     logging.info("Gathering range data")
     data = {}
     for i in range(int(ndays)):
-        yesterday = today - datetime.timedelta(days = 1)
-        logging.info(" %s to %s", yesterday.strftime("%Y-%m-%d"), today.strftime("%Y-%m-%d"))
+        logging.info(" %s to %s", start.strftime("%Y-%m-%d"), end.strftime("%Y-%m-%d"))
         data.update(run_gathering_functions(infobase_db, coverstore_db, seeds_db, editions_db, works_db, admin_db,
-                                            yesterday, today,
+                                            start, end,
                                             prefix = "admin_range__"))
-        store_data(admin_db, data, yesterday.strftime("%Y-%m-%d"))
-        today = yesterday
+        store_data(admin_db, data, start.strftime("%Y-%m-%d"))
+        end = start
+        start = end - datetime.timedelta(days = 1)
     return 0

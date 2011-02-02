@@ -62,7 +62,7 @@ def admin_range__human_edits(**kargs):
     """
     try:
         start = kargs['start'].strftime("%Y-%m-%d")
-        end   = kargs['end'].strftime("%Y-%m-%d")
+        end   = kargs['end'].strftime("%Y-%m-%d %H:%M:%S")
         db    = kargs['thingdb']
     except KeyError, k:
         raise TypeError("%s is a required argument for admin__human_edits"%k)
@@ -77,7 +77,7 @@ def admin_range__bot_edits(**kargs):
     """
     try:
         start = kargs['start'].strftime("%Y-%m-%d")
-        end   = kargs['end'].strftime("%Y-%m-%d")
+        end   = kargs['end'].strftime("%Y-%m-%d %H:%M:%S")
         db    = kargs['thingdb']
     except KeyError, k:
         raise TypeError("%s is a required argument for admin__human_edits"%k)
@@ -91,7 +91,7 @@ def admin_range__covers(**kargs):
     "Queries the number of covers added between `start` and `end`"
     try:
         start = kargs['start'].strftime("%Y-%m-%d")
-        end   = kargs['end'].strftime("%Y-%m-%d")
+        end   = kargs['end'].strftime("%Y-%m-%d %H:%M:%S")
         db    = kargs['coverdb']
     except KeyError, k:
         raise TypeError("%s is a required argument for admin__cover"%k)
