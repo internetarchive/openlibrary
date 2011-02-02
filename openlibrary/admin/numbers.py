@@ -71,6 +71,21 @@ def admin_range__human_edits(**kargs):
     count = result[0].count
     return count
 
+def admin_range__bot_edits(**kargs):
+    """Calculates the number of edits between the `start` and `end`
+    parameters done by bots. `thingdb` is the database.
+    """
+    try:
+        start = kargs['start'].strftime("%Y-%m-%d")
+        end   = kargs['end'].strftime("%Y-%m-%d")
+        db    = kargs['thingdb']
+    except KeyError, k:
+        raise TypeError("%s is a required argument for admin__human_edits"%k)
+    q1 = "SELECT count(*) AS count FROM transaction t, version v WHERE v.transaction_id=t.id AND created >= '%s' and created < '%s' AND t.author_id IN (SELECT thing_id FROM account WHERE bot = 't')"% (start, end)
+    result = db.query(q1)
+    count = result[0].count
+    return count
+    
 
 def admin_range__cover(**kargs):
     "Queries the number of covers added between `start` and `end`"
