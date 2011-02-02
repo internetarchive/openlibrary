@@ -106,24 +106,24 @@ $ stats = get_admin_stats()
             <tbody>
                 <tr class="major">
                     <td class="type">Human</td>
-                    <td class="amount"><strong>$commify(stats.edits.today.human)</strong></td>
-                    <td class="amount">$commify(stats.edits.yesterday.human)</td>
-                    <td class="amount">$commify(stats.edits.thisweek.human)</td>
-                    <td class="amount">$commify(stats.edits.thismonth.human)</td>
+                    <td class="amount"><strong>$commify(counts.human_edits.today)</strong></td>
+                    <td class="amount">$commify(counts.human_edits.yesterday)</td>
+                    <td class="amount">$commify(counts.human_edits.lastweek)</td>
+                    <td class="amount">$commify(counts.human_edits.lastmonth)</td>
                 </tr>
                 <tr class="even">
                     <td class="type">Bot</td>
-                    <td class="amount">$commify(stats.edits.today.bot)</td>
-                    <td class="amount">$commify(stats.edits.yesterday.bot)</td>
-                    <td class="amount">$commify(stats.edits.thisweek.bot)</td>
-                    <td class="amount">$commify(stats.edits.thismonth.bot)</td>
+                    <td class="amount">$commify(counts.bot_edits.today)</td>
+                    <td class="amount">$commify(counts.bot_edits.yesterday)</td>
+                    <td class="amount">$commify(counts.bot_edits.lastweek)</td>
+                    <td class="amount">$commify(counts.bot_edits.lastmonth)</td>
                 </tr>
                 <tr class="totals">
                     <td class="type">Total</td>
-                    <td class="amount">$commify(stats.edits.today.total)</td>
-                    <td class="amount">$commify(stats.edits.yesterday.total)</td>
-                    <td class="amount">$commify(stats.edits.thisweek.total)</td>
-                    <td class="amount">$commify(stats.edits.thismonth.total)</td>
+                    <td class="amount">$commify(counts.bot_edits.today + counts.human_edits.today)</td>
+                    <td class="amount">$commify(counts.bot_edits.yesterday + counts.human_edits.yesterday)</td>
+                    <td class="amount">$commify(counts.bot_edits.lastweek + counts.human_edits.lastweek)</td>
+                    <td class="amount">$commify(counts.bot_edits.lastmonth + counts.human_edits.lastmonth)</td>
                 </tr>
             </tbody>
         </table>
