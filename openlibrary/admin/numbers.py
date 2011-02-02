@@ -87,7 +87,7 @@ def admin_range__bot_edits(**kargs):
     return count
     
 
-def admin_range__cover(**kargs):
+def admin_range__covers(**kargs):
     "Queries the number of covers added between `start` and `end`"
     try:
         start = kargs['start'].strftime("%Y-%m-%d")
@@ -101,14 +101,14 @@ def admin_range__cover(**kargs):
     return count
 
 
-admin_range__work    = functools.partial(single_thing_skeleton, type="work")
-admin_range__edition = functools.partial(single_thing_skeleton, type="edition")
-admin_range__user    = functools.partial(single_thing_skeleton, type="user")
-admin_range__author  = functools.partial(single_thing_skeleton, type="author")
-admin_range__list    = functools.partial(single_thing_skeleton, type="list")
+admin_range__works    = functools.partial(single_thing_skeleton, type="work")
+admin_range__editions = functools.partial(single_thing_skeleton, type="edition")
+admin_range__users    = functools.partial(single_thing_skeleton, type="user")
+admin_range__authors  = functools.partial(single_thing_skeleton, type="author")
+admin_range__lists    = functools.partial(single_thing_skeleton, type="list")
 
 
-def admin_total__author(**kargs):
+def admin_total__authors(**kargs):
     try:
         db    = kargs['seeds_db']
     except KeyError, k:
@@ -119,7 +119,7 @@ def admin_total__author(**kargs):
     return total_authors
 
 
-def admin_total__subject(**kargs):
+def admin_total__subjects(**kargs):
     try:
         db    = kargs['seeds_db']
     except KeyError, k:
@@ -129,7 +129,7 @@ def admin_total__subject(**kargs):
     return total_subjects
 
 
-def admin_total__list(**kargs):
+def admin_total__lists(**kargs):
     try:
         db    = kargs['thingdb']
     except KeyError, k:
@@ -147,7 +147,7 @@ def admin_total__list(**kargs):
     return total_lists
 
 
-def admin_total__cover(**kargs):
+def admin_total__covers(**kargs):
     try:
         db    = kargs['editions_db']
     except KeyError, k:
@@ -156,7 +156,7 @@ def admin_total__cover(**kargs):
     return total_covers
 
 
-def admin_total__work(**kargs):
+def admin_total__works(**kargs):
     try:
         db    = kargs['works_db']
     except KeyError, k:
@@ -165,7 +165,7 @@ def admin_total__work(**kargs):
     return total_works
 
 
-def admin_total__edition(**kargs):
+def admin_total__editions(**kargs):
     try:
         db    = kargs['editions_db']
     except KeyError, k:
@@ -174,7 +174,7 @@ def admin_total__edition(**kargs):
     return total_editions
 
 
-def admin_total__ebook(**kargs):
+def admin_total__ebooks(**kargs):
     try:
         db    = kargs['editions_db']
     except KeyError, k:
@@ -182,7 +182,7 @@ def admin_total__ebook(**kargs):
     total_ebooks = db.view("admin/ebooks", stale="ok").rows[0].value
     return total_ebooks
 
-def admin_delta__ebook(**kargs):
+def admin_delta__ebooks(**kargs):
     try:
         editions_db = kargs['editions_db']
         admin_db    = kargs['admin_db']
@@ -201,7 +201,7 @@ def admin_delta__ebook(**kargs):
     current_count = current_total - last_total
     return current_count
 
-def admin_delta__subject(**kargs):
+def admin_delta__subjects(**kargs):
     try:
         editions_db = kargs['editions_db']
         admin_db    = kargs['admin_db']
