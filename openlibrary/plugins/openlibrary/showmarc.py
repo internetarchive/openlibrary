@@ -19,7 +19,23 @@ class show_ia(delegate.page):
     path = "/show-records/ia:(.*)"
 
     def GET(self, ia):
-        filename = ia + "/" + ia + "_meta.mrc"
+        error_404 = False
+        url = 'http://www.archive.org/download/%s/%s_meta.mrc' % (ia, ia)
+        try:        
+            data = urllib2.urlopen(url).read()
+        except urllib2.HTTPError, e:
+            if e.code == 404:
+                error_404 = True
+            else:
+                return "ERROR:" + str(e)
+
+        if error_404: # no MARC record
+             url = 'http://www.archive.org/download/%s/%s_meta.xml' % (ia, ia)
+            try:        
+                data = urllib2.urlopen(url).read()
+            except urllib2.HTTPError, e:
+                return "ERROR:" + str(e)
+            raise web.seeother('http://www.archive.org/details/' + ia)
 
         books = web.ctx.site.things({
             'type': '/type/edition',
@@ -28,13 +44,6 @@ class show_ia(delegate.page):
             'type': '/type/edition',
             'ocaid': ia,
         })
-
-        url = 'http://www.archive.org/download/%s'% filename
-
-        try:        
-            data = urllib2.urlopen(url).read()
-        except urllib2.HTTPError, e:
-            return "ERROR:" + str(e)
 
         from openlibrary.catalog.marc import html
 
