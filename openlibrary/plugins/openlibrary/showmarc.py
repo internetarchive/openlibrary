@@ -30,7 +30,7 @@ class show_ia(delegate.page):
                 return "ERROR:" + str(e)
 
         if error_404: # no MARC record
-             url = 'http://www.archive.org/download/%s/%s_meta.xml' % (ia, ia)
+            url = 'http://www.archive.org/download/%s/%s_meta.xml' % (ia, ia)
             try:        
                 data = urllib2.urlopen(url).read()
             except urllib2.HTTPError, e:
