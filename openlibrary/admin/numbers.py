@@ -68,8 +68,11 @@ def admin_range__human_edits(**kargs):
         raise TypeError("%s is a required argument for admin__human_edits"%k)
     q1 = "SELECT count(*) AS count FROM transaction WHERE created >= '%s' and created < '%s'"% (start, end)
     result = db.query(q1)
-    count = result[0].count
-    return count
+    total_edits = result[0].count
+    q1 = "SELECT count(*) AS count FROM transaction t, version v WHERE v.transaction_id=t.id AND created >= '%s' and created < '%s' AND t.author_id IN (SELECT thing_id FROM account WHERE bot = 't')"% (start, end)
+    result = db.query(q1)
+    bot_edits = result[0].count
+    return total_edits - bot_edits
 
 def admin_range__bot_edits(**kargs):
     """Calculates the number of edits between the `start` and `end`
