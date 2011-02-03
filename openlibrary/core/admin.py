@@ -14,6 +14,8 @@ class Stats:
             self.stats = range(0, 150, 5)
         else:
             self.stats = [x[key] for x in docs]
+        print "Stats for %s"%key
+        print self.stats
         
     def get_counts(self, ndays = 30):
         """Returns the stats for last n days as an array."""
@@ -47,8 +49,12 @@ def get_stats():
                                          startkey_docid = start,
                                          endkey_docid   = end,
                                          include_docs = True)]
-    print "Documents are ",docs
-    return {
-        "edits"           : Stats(docs, "human_edits"),
-        "lists"           : Stats(docs, "lists"),
-    }
+
+    retval = dict(edits = Stats(docs, "human_edits"),
+                  lists = Stats(docs, "lists")
+                  )
+
+    print "Main get_stats() ", retval["edits"].get_counts(30)
+    return retval
+    
+

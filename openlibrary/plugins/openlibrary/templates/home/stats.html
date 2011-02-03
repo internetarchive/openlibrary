@@ -145,7 +145,7 @@ $def with (stats=None)
                 fillColor: "#00636a",
                 color: "#00636a", 
                 align: "left",
-                barWidth: 24 * 60 * 60 * 1000
+                barWidth: 5
             },
             points: { 
                 show: false 
@@ -155,9 +155,6 @@ $def with (stats=None)
         grid: { 
             show: false
         },
-        xaxis: { 
-            mode: "time"
-        }
     };
     
     var plot = \$.plot(\$("#edits"), [d], options);
