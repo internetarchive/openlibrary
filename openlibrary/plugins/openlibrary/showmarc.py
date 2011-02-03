@@ -21,6 +21,14 @@ class show_ia(delegate.page):
     def GET(self, ia):
         filename = ia + "/" + ia + "_meta.mrc"
 
+        books = web.ctx.site.things({
+            'type': '/type/edition',
+            'source_records': 'ia:' + ia,
+        }) or web.ctx.site.things({
+            'type': '/type/edition',
+            'ocaid': ia,
+        })
+
         url = 'http://www.archive.org/download/%s'% filename
 
         try:        
@@ -39,7 +47,7 @@ class show_ia(delegate.page):
         except ValueError:
             record = None
 
-        return render.showia(ia, record)
+        return render.showia(ia, record, books)
         
 class show_amazon(delegate.page):
     path = "/show-records/amazon:(.*)"
@@ -59,7 +67,10 @@ class show_marc(delegate.page):
 
         loc = ':'.join(['marc', filename, offset, length])
 
-        books = web.ctx.site.things({"type": "/type/edition", "source_records": loc})
+        books = web.ctx.site.things({
+            'type': '/type/edition',
+            'source_records': loc,
+        })
 
         offset = int(offset)
         length = int(length)
