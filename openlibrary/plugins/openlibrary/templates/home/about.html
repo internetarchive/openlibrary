@@ -33,7 +33,7 @@ $def with (blog_posts=None)
     <h3 class="collapse"><a href="http://blog.openlibrary.org/" class="header">Latest Blog Posts</a></h3> 
     <ul id="olBlog"> 
         $if blog_posts:
-            $for post in blog_posts[:2]:
+            $for post in blog_posts[:3]:
                 <li><a href="$post.link">$post.title</a> - <em>$datestr(post.pubdate)</em></li>
     </ul> 
 </div> 
