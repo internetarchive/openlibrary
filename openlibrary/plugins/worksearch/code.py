@@ -5,6 +5,7 @@ from infogami import config
 from infogami.utils.view import render, render_template, safeint, add_flash_message
 import simplejson as json
 from openlibrary.plugins.openlibrary.processors import urlsafe
+from openlibrary.utils import str_to_key, url_quote
 from unicodedata import normalize
 from collections import defaultdict
 import os
@@ -52,17 +53,10 @@ if hasattr(config, 'plugin_worksearch'):
 
     ebook_count_db = web.database(dbn='postgres', db=ebook_count_db_name, host=ebook_count_host, user=ebook_count_user)
 
-to_drop = set(''';/?:@&=+$,<>#%"{}|\\^[]`\n\r''')
-
-def str_to_key(s):
-    return ''.join(c if c != ' ' else ' ' for c in s.lower() if c not in to_drop)
-
 re_author_facet = re.compile('^(OL\d+A) (.*)$')
 def read_author_facet(af):
-    if '\t' in af:
-        return af.split('\t')
-    else:
-        return re_author_facet.match(af).groups()
+    # example input: "OL26783A Leo Tolstoy"
+    return re_author_facet.match(af).groups()
 
 search_fields = ["key", "redirects", "title", "subtitle", "alternative_title", "alternative_subtitle", "edition_key", "by_statement", "publish_date", "lccn", "ia", "oclc", "isbn", "contributor", "publish_place", "publisher", "first_sentence", "author_key", "author_name", "author_alternative_name", "subject", "person", "place", "time"]
 
@@ -102,30 +96,13 @@ def read_facets(root):
                 continue
             k = e.attrib['name']
             if name == 'author_key':
-                k, display = read_author_facet(k) # FIXME
+                k, display = read_author_facet(k)
             elif name == 'language':
                 display = get_language_name(k)
             else:
                 display = k
             facets[name].append((k, display, e.text))
     return facets
-
-def url_quote(s):
-    if not s:
-        return ''
-    return urllib.quote_plus(s.encode('utf-8'))
-
-def advanced_to_simple(params): # unused
-    q_list = []
-    q = params.get('q')
-    if q and q != '*:*':
-        q_list.append(params['q'])
-    for k in 'title', 'author':
-        if k in params:
-            q_list.append("%s:(%s)" % (k, params[k]))
-    return ' '.join(q_list)
-
-re_paren = re.compile('[()]')
 
 re_isbn = re.compile('^([0-9]{9}[0-9Xx]|[0-9]{13})$')
 
@@ -570,7 +547,7 @@ def get_subject(key, details=False, offset=0, limit=12, **filters):
         elif facet == "publisher_facet":
             return web.storage(name=value, count=count)
         elif facet == "author_facet":
-            author = read_author_facet(value) # FIXME
+            author = read_author_facet(value)
             return web.storage(name=author[1], key="/authors/" + author[0], count=count)
         elif facet in ["subject_facet", "person_facet", "place_facet", "time_facet"]:
             return web.storage(key=finddict(SUBJECTS, facet=facet).prefix + str_to_key(value).replace(" ", "_"), name=value, count=count)
