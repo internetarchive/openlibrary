@@ -51,7 +51,7 @@ def single_thing_skeleton(**kargs):
         end   = kargs['end'].strftime("%Y-%m-%d")
         db    = kargs['thingdb']
     except KeyError, k:
-        raise TypeError("%s is a required argument for admin__%s"%(k, typ))
+        raise TypeError("%s is a required argument for admin_range__%s"%(k, typ))
     return query_single_thing(db, typ, start, end)
     
 
@@ -65,11 +65,11 @@ def admin_range__human_edits(**kargs):
         end   = kargs['end'].strftime("%Y-%m-%d %H:%M:%S")
         db    = kargs['thingdb']
     except KeyError, k:
-        raise TypeError("%s is a required argument for admin__human_edits"%k)
+        raise TypeError("%s is a required argument for admin_range__human_edits"%k)
     q1 = "SELECT count(*) AS count FROM transaction WHERE created >= '%s' and created < '%s'"% (start, end)
     result = db.query(q1)
     total_edits = result[0].count
-    q1 = "SELECT count(*) AS count FROM transaction t, version v WHERE v.transaction_id=t.id AND t.created >= '%s' and t.created < '%s' AND t.author_id IN (SELECT thing_id FROM account WHERE bot = 't')"% (start, end)
+    q1 = "SELECT count(DISTINCT t.id) AS count FROM transaction t, version v WHERE v.transaction_id=t.id AND t.created >= '%s' and t.created < '%s' AND t.author_id IN (SELECT thing_id FROM account WHERE bot = 't')"% (start, end)
     result = db.query(q1)
     bot_edits = result[0].count
     return total_edits - bot_edits
@@ -83,7 +83,7 @@ def admin_range__bot_edits(**kargs):
         end   = kargs['end'].strftime("%Y-%m-%d %H:%M:%S")
         db    = kargs['thingdb']
     except KeyError, k:
-        raise TypeError("%s is a required argument for admin__human_edits"%k)
+        raise TypeError("%s is a required argument for admin_range__bot_edits"%k)
     q1 = "SELECT count(*) AS count FROM transaction t, version v WHERE v.transaction_id=t.id AND t.created >= '%s' and t.created < '%s' AND t.author_id IN (SELECT thing_id FROM account WHERE bot = 't')"% (start, end)
     result = db.query(q1)
     count = result[0].count
@@ -97,7 +97,7 @@ def admin_range__covers(**kargs):
         end   = kargs['end'].strftime("%Y-%m-%d %H:%M:%S")
         db    = kargs['coverdb']
     except KeyError, k:
-        raise TypeError("%s is a required argument for admin__cover"%k)
+        raise TypeError("%s is a required argument for admin_range__covers"%k)
     q1 = "SELECT count(*) as count from cover where created>= '%s' and created < '%s'"% (start, end)
     result = db.query(q1)
     count = result[0].count
@@ -115,7 +115,7 @@ def admin_total__authors(**kargs):
     try:
         db    = kargs['seeds_db']
     except KeyError, k:
-        raise TypeError("%s is a required argument for admin_total__author"%k)    
+        raise TypeError("%s is a required argument for admin_total__authors"%k)    
     off1 = db.view("_all_docs", startkey="/authors",   limit=0, stale="ok").offset
     off2 = db.view("_all_docs", startkey="/authors/Z", limit=0, stale="ok").offset
     total_authors = off2 - off1
@@ -126,7 +126,7 @@ def admin_total__subjects(**kargs):
     try:
         db    = kargs['seeds_db']
     except KeyError, k:
-        raise TypeError("%s is a required argument for admin_total__subject"%k)
+        raise TypeError("%s is a required argument for admin_total__subjects"%k)
     rows = db.view("_all_docs", startkey="a", stale="ok", limit = 0)
     total_subjects = rows.total_rows - rows.offset
     return total_subjects
@@ -136,7 +136,7 @@ def admin_total__lists(**kargs):
     try:
         db    = kargs['thingdb']
     except KeyError, k:
-        raise TypeError("%s is a required argument for admin__total_list"%k)    
+        raise TypeError("%s is a required argument for admin_total__lists"%k)    
     # Computing total number of lists
     q1 = "SELECT id as id from thing where key='/type/list'"
     result = db.query(q1)
@@ -154,7 +154,7 @@ def admin_total__covers(**kargs):
     try:
         db    = kargs['editions_db']
     except KeyError, k:
-        raise TypeError("%s is a required argument for admin__total_cover"%k)    
+        raise TypeError("%s is a required argument for admin_total__covers"%k)    
     total_covers = db.view("admin/editions_with_covers", stale="ok").rows[0].value
     return total_covers
 
@@ -163,7 +163,7 @@ def admin_total__works(**kargs):
     try:
         db    = kargs['works_db']
     except KeyError, k:
-        raise TypeError("%s is a required argument for admin__total_work"%k)    
+        raise TypeError("%s is a required argument for admin_total__works"%k)    
     total_works = db.info()["doc_count"]
     return total_works
 
@@ -172,7 +172,7 @@ def admin_total__editions(**kargs):
     try:
         db    = kargs['editions_db']
     except KeyError, k:
-        raise TypeError("%s is a required argument for admin__total_edition"%k)
+        raise TypeError("%s is a required argument for admin_total__editions"%k)
     total_editions = db.info()["doc_count"]
     return total_editions
 
@@ -181,9 +181,10 @@ def admin_total__ebooks(**kargs):
     try:
         db    = kargs['editions_db']
     except KeyError, k:
-        raise TypeError("%s is a required argument for admin__total_ebook"%k)
+        raise TypeError("%s is a required argument for admin_total__ebooks"%k)
     total_ebooks = db.view("admin/ebooks", stale="ok").rows[0].value
     return total_ebooks
+
 
 def admin_delta__ebooks(**kargs):
     try:
@@ -192,7 +193,7 @@ def admin_delta__ebooks(**kargs):
         yesterday   = kargs['start']
         today       = kargs['end']
     except KeyError, k:
-        raise TypeError("%s is a required argument for admin__delta_ebook"%k)
+        raise TypeError("%s is a required argument for admin_delta__ebooks"%k)
     current_total = editions_db.view("admin/ebooks", stale="ok").rows[0].value
     yesterdays_key = yesterday.strftime("counts-%Y-%m-%d")
     try:
@@ -212,7 +213,7 @@ def admin_delta__subjects(**kargs):
         yesterday   = kargs['start']
         today       = kargs['end']
     except KeyError, k:
-        raise TypeError("%s is a required argument for admin__delta_ebook"%k)
+        raise TypeError("%s is a required argument for admin_delta__subjects"%k)
     rows = seeds_db.view("_all_docs", startkey="a", stale="ok", limit=0)
     current_total = rows.total_rows - rows.offset
     yesterdays_key = yesterday.strftime("counts-%Y-%m-%d")
