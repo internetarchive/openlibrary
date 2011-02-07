@@ -81,7 +81,7 @@ class ShellCommand(BaseCommand):
         $ python setup.py shell
     """
     description = "Start bash shell with OL environment"
-
+    
     def run(self):
         args = "bash --rcfile conf/bashrc".split()
         os.execvp(args[0], args)
@@ -95,10 +95,19 @@ class BootstrapCommand(BaseCommand):
         $ python setup.py bootstrap
     """
     description = "Bootstrap OL dev instance"
+    user_options = [
+        ("update", None, 'update the existing dev instance')
+    ]
+    
+    def initialize_options(self):
+        self.update = False        
     
     def run(self):
-        os.system("python scripts/setup_dev_instance.py")
-
+        if self.update:
+            os.system("python scripts/setup_dev_instance.py --update")
+        else:
+            os.system("python scripts/setup_dev_instance.py")
+        
 
 class TestCommand(BaseCommand):
     """Distutils command to tun all the tests.
