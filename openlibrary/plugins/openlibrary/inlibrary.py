@@ -29,7 +29,7 @@ from infogami.utils.view import public
 def ip_to_long(ip):
     long_ip = 0
     for q in ip.split('.'):
-        long_ip = (lngip << 8) | int(q)
+        long_ip = (long_ip << 8) | int(q)
     return long_ip
 
 re_cidr = re.compile('^([0-9.]+)/(\d+)$')
@@ -65,7 +65,7 @@ def ip_in_range(ip_range):
         else:
             return False # unrecognized IP range
 
-    return start <= web.ctx.ip <= end
+    return start <= ip_to_long(web.ctx.ip) <= end
 
 @public
 def in_library():
