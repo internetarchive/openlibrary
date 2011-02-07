@@ -69,8 +69,7 @@ def ip_in_range(ip_range):
 
 @public
 def in_library():
-    for l in web.ctx.site.things({'type': '/type/library'}):
-        for cidr in l.ip_ranges.splitlines():
-            if ip_in_range(cidr.strip()):
-                return True
+    for l in web.ctx.site.things({'type': '/type/library', 'ip_ranges': None}):
+        if any(ip_in_range(r) for r in l['ip_ranges'].splitlines()):
+            return True
     return False
