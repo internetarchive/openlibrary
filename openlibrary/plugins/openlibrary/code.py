@@ -22,6 +22,8 @@ from infogami.core.db import ValidationException
 
 from openlibrary.utils.isbn import isbn_13_to_isbn_10
 
+import in_library
+
 import processors
 
 delegate.app.add_processor(processors.ReadableUrlProcessor())
