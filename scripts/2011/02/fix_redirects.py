@@ -1,7 +1,8 @@
 #! /usr/bin/env python
 """Script to fix redirects in OL database.
 
-In OL database the redirects are still using the old keys. This script fixes them all.
+In the OL database the redirect docs are still using /a/foo and /b/foo 
+instead of /authors/foo and /books/foo. This script fixes it.
     
 USAGE:
 
@@ -34,10 +35,12 @@ def get_type_redirect():
     return db.db.query("SELECT id FROM thing WHERE key='/type/redirect'")[0].id
     
 def longquery(query, vars, callback):
-    for chunk in db.longquery(query, vars=vars):
+    """Executes a long query using SQL cursors and passing a chunk of rows to the callback function in each iteration.
+    """
+    for rows in db.longquery(query, vars=vars):
         t = db.db.transaction()
         try:
-            db.db.query("CREATE TEMP TABLE data_redirects (thing_id int, revision int, data text, UNIQUE(thing_id, revision))")
+            callback(rows)
         except:
             t.rollback()
             raise
