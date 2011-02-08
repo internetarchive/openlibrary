@@ -54,12 +54,13 @@ def get_stats():
         for i in docs: print i
         retval = dict(edits    = Stats(docs, "human_edits", "human_edits"),
                       lists    = Stats(docs, "lists", "total_lists"),
-                      visitors = Stats(docs, "visitors", "visitors")
-                  )
+                      visitors = Stats(docs, "visitors", "visitors"),
+                      members  = Stats(docs, "members", "total_members"))
     except Exception:
         retval = dict(edits = Stats(),
                       lists = Stats(),
-                      visitors = Stats())
+                      visitors = Stats(),
+                      members = Stats())
     return retval
     
 

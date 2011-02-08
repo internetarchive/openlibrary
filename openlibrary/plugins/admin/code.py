@@ -236,7 +236,7 @@ def get_counts():
                                           startkey_docid = "counts-%s"%start_date,
                                           endkey_docid   = "counts-%s"%end_date,
                                           include_docs = True)]
-    for i in "works editions users authors lists covers ebooks subjects human_edits bot_edits".split():
+    for i in "works editions users authors lists covers ebooks subjects human_edits bot_edits members".split():
         today = data[-1].get(i)
         yesterday = data[-2].get(i)
         lastweek = _sum_values(data[-7:], i)

@@ -119,6 +119,7 @@ admin_range__editions = functools.partial(single_thing_skeleton, type="edition")
 admin_range__users    = functools.partial(single_thing_skeleton, type="user")
 admin_range__authors  = functools.partial(single_thing_skeleton, type="author")
 admin_range__lists    = functools.partial(single_thing_skeleton, type="list")
+admin_range__members  = functools.partial(single_thing_skeleton, type="user")
 
 def admin_range__visitors(**kargs):
     "Finds number of unique IPs to visit the OL website."
@@ -221,6 +222,22 @@ def admin_total__ebooks(**kargs):
     total_ebooks = db.view("admin/ebooks", stale="ok").rows[0].value
     return total_ebooks
 
+def admin_total__members(**kargs):
+    try:
+        db    = kargs['thingdb']
+    except KeyError, k:
+        raise TypeError("%s is a required argument for admin_total__members"%k)
+    q1 = "SELECT id as id from thing where key='/type/user'"
+    result = db.query(q1)
+    try:
+        kid = result[0].id 
+    except IndexError:
+        raise InvalidType("No id for type '/type/user in the datbase")
+    q2 = "select count(*) as count from thing where type=%d"% kid
+    result = db.query(q2)
+    count = result[0].count
+    return count
+    
 
 def admin_delta__ebooks(**kargs):
     try:
