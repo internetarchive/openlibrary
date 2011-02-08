@@ -1,6 +1,6 @@
 import httplib, re, sys
 from openlibrary.catalog.utils.query import query_iter, withKey, has_cover
-from openlibrary.catalog.marc.marc_subject import get_work_subjects, four_types
+#from openlibrary.catalog.marc.marc_subject import get_work_subjects, four_types
 from lxml.etree import tostring, Element, SubElement
 from pprint import pprint
 from urllib2 import urlopen, URLError
@@ -119,6 +119,17 @@ def get_work_subjects(w):
                 raise
 
     return subjects
+
+def four_types(i):
+    want = set(['subject', 'time', 'place', 'person'])
+    ret = dict((k, i[k]) for k in want if k in i)
+    for j in (j for j in i.keys() if j not in want):
+        for k, v in i[j].items():
+            if 'subject' in ret:
+                ret['subject'][k] = ret['subject'].get(k, 0) + v
+            else:
+                ret['subject'] = {k: v}
+    return ret
 
 def build_doc(w, obj_cache={}, resolve_redirects=False):
     wkey = w['key']

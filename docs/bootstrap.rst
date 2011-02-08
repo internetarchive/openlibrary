@@ -96,3 +96,12 @@ Loading sample data
 -------------------
 
 Loading sample data is not yet implemented.
+
+Updating an existing dev instance
+----------------------------------
+
+Like any other software, the dev instance keeps changing with time. 
+
+To update an existing dev instance to latest version, run::
+
+    $ python setup.py bootstrap --update

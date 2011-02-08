@@ -1,9 +1,10 @@
 """Models of various OL objects.
 """
-
 import urllib, urllib2
 import simplejson
 import web
+
+import iptools
 from infogami.infobase import client
 
 import helpers as h
@@ -298,6 +299,31 @@ class List(Thing, ListMixin):
     def __repr__(self):
         return "<List: %s (%r)>" % (self.key, self.name)
 
+class Library(Thing):
+    """Library document.
+    
+    Each library has a list of IP addresses belongs to that library. 
+    """
+    def _get_ip_ranges(self):
+        for line in self.ip_ranges.splitlines():
+            if line.strip():
+                if "-" in line:
+                    start, end = line.split("-", 1)
+                    yield (start.strip(), end.strip())
+                else:
+                    yield line.strip()
+    
+    def get_ip_range_list(self):
+        """Returns IpRangeList object for the range of IPs of this library.
+        """
+        ranges = list(self._get_ip_ranges())
+        return iptools.IpRangeList(*ranges)
+        
+    def has_ip(self, ip):
+        """Return True if the the given ip is part of the library's ip range.
+        """
+        return ip in self.get_ip_range_list()
+
 class Subject(web.storage):
     def get_lists(self, limit=1000, offset=0):
         q = {
@@ -335,6 +361,7 @@ def register_models():
     client.register_thing_class('/type/author', Author)
     client.register_thing_class('/type/user', User)
     client.register_thing_class('/type/list', List)
+    client.register_thing_class('/type/library', Library)
     
 def register_types():
     """Register default types for various path patterns used in OL.
@@ -345,6 +372,7 @@ def register_types():
     types.register_type('^/books/[^/]*$', '/type/edition')
     types.register_type('^/works/[^/]*$', '/type/work')
     types.register_type('^/languages/[^/]*$', '/type/language')
+    types.register_type('^/libraries/[^/]*$', '/type/library')
 
     types.register_type('^/usergroup/[^/]*$', '/type/usergroup')
     types.register_type('^/permission/[^/]*$', '/type/permision')

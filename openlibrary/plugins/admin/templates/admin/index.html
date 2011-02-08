@@ -27,70 +27,12 @@ $ stats = get_admin_stats()
 </div>
 <div id="contentBody">
 
-    <h2>Record Counts</h2>
-
-    <table class="measurements">
-        <tr>
-            <th>What</th>
-            <th>Last 7 days</th>
-            <th>Last 28 days</th>
-            <th>Total</th>
-        </tr>
-        <tr class="major">
-            <td class="">Works</td>
-            <td class="amount">$commify(counts.works.lastweek)</td>
-            <td class="amount">$commify(counts.works.lastmonth)</td>
-            <td class="amount">$commify(counts.works.total)</td>    
-        </tr>
-        <tr>
-            <td class="">Editions</td>
-            <td class="amount">$commify(counts.editions.lastweek)</td> 
-            <td class="amount">$commify(counts.editions.lastmonth)</td>
-            <td class="amount">$commify(counts.editions.total)</td>    
-        </tr>
-        <tr>
-            <td class="">eBooks</td>
-            <td class="amount">$commify(counts.ebooks.lastweek)</td> 
-            <td class="amount">$commify(counts.ebooks.lastmonth)</td>
-            <td class="amount">$commify(counts.ebooks.total)</td>    
-        </tr>
-        <tr>
-            <td class="">Covers</td>
-            <td class="amount">$commify(counts.covers.lastweek)</td> 
-            <td class="amount">$commify(counts.covers.lastmonth)</td>
-            <td class="amount">$commify(counts.covers.total)</td>    
-        </tr>
-        <tr class="major">
-            <td class="">Authors</td>
-            <td class="amount">$commify(counts.authors.lastweek)</td> 
-            <td class="amount">$commify(counts.authors.lastmonth)</td>
-            <td class="amount">$commify(counts.authors.total)</td>    
-        </tr>
-        <tr class="major">
-            <td class="">Subjects</td>
-            <td class="amount">$commify(counts.subjects.lastweek)</td> 
-            <td class="amount">$commify(counts.subjects.lastmonth)</td>
-            <td class="amount">$commify(counts.subjects.total)</td>    
-        </tr>
-        <tr class="major">
-            <td class="">Lists</td>
-            <td class="amount">$commify(counts.lists.lastweek)</td> 
-            <td class="amount">$commify(counts.lists.lastmonth)</td>
-            <td class="amount">$commify(counts.lists.total)</td>    
-        </tr>
-        <tr class="major">
-            <td class="">User Accounts</td>
-            <td class="amount"></td>
-            <td class="amount"></td>
-            <td class="amount"></td>
-        </tr>
-    </table>
     <div class="contentLeft">
         <div class="head rel"> <span class="caption"><a href="/recentchanges/" class="fixthis">Edits Per Day</a></span>
             <h2>Edits</h2>
         </div>
         <div class="chartHolder">
-            <div class="chartDisplay">bar graph: edits per day
+            <div class="chartDisplay"><img src="http://home.us.archive.org/~georgeo/mocks/bar.png" />
             </div>
         </div>
         <table class="measurements stripeEven" id="edits">
@@ -135,7 +77,7 @@ $ stats = get_admin_stats()
             <h2>Members</h2>
         </div>
         <div class="chartHolder">
-            <div class="chartDisplay">bar graph: accounts per day
+            <div class="chartDisplay"><img src="http://home.us.archive.org/~georgeo/mocks/bar.png" />
             </div>
         </div>
         <table class="measurements stripeEven" id="members">
@@ -163,32 +105,84 @@ $ stats = get_admin_stats()
                     <td class="diff"><span class="pos">+x.x%</span></td>
                     <td class="diff"></td>
                 </tr>
+                <tr class="totals">
+                    <td class="type">Edit ratio</td>
+                    <td class="amount">(Member)</td>
+                    <td class="amount">x :</td>
+                    <td class="amount">x (Anon)</td>
+                </tr>
             </tbody>
         </table>
     </div>
 
-    <div class="clearfix"></div>
+    <h2>Record Counts</h2>
 
-    <div class="contentQuarter center" id="logged">
-        <div class="titleSmall">Logged In : Logged Out</div>
-        <br/>
-        <div class="largest fixthis">x : x</div>
-    </div>
-                    
-    <div class="contentSpacer"></div>
+    <table class="measurements stripeEven">
+        <tr>
+            <th></th>
+            <th>Last 7 days</th>
+            <th>Last 28 days</th>
+            <th>Trend</th>
+            <th>Total</th>
+        </tr>
+        <tr class="major">
+            <td>Works</td>
+            <td class="amount">$commify(counts.works.lastweek)</td>
+            <td class="amount">$commify(counts.works.lastmonth)</td>
+            <td><img src="http://home.us.archive.org/~georgeo/mocks/spark.png" /></td>
+            <td class="amount">$commify(counts.works.total)</td>    
+        </tr>
+        <tr class="major even">
+            <td>Editions</td>
+            <td class="amount">$commify(counts.editions.lastweek)</td> 
+            <td class="amount">$commify(counts.editions.lastmonth)</td>
+            <td><img src="http://home.us.archive.org/~georgeo/mocks/spark.png" /></td>
+            <td class="amount">$commify(counts.editions.total)</td>    
+        </tr>
+        <tr class="major">
+            <td>eBooks</td>
+            <td class="amount">$commify(counts.ebooks.lastweek)</td> 
+            <td class="amount">$commify(counts.ebooks.lastmonth)</td>
+            <td><img src="http://home.us.archive.org/~georgeo/mocks/spark.png" /></td>
+            <td class="amount">$commify(counts.ebooks.total)</td>    
+        </tr>
+        <tr class="major even">
+            <td>Covers</td>
+            <td class="amount">$commify(counts.covers.lastweek)</td> 
+            <td class="amount">$commify(counts.covers.lastmonth)</td>
+            <td><img src="http://home.us.archive.org/~georgeo/mocks/spark.png" /></td>
+            <td class="amount">$commify(counts.covers.total)</td>    
+        </tr>
+        <tr class="major">
+            <td>Authors</td>
+            <td class="amount">$commify(counts.authors.lastweek)</td> 
+            <td class="amount">$commify(counts.authors.lastmonth)</td>
+            <td><img src="http://home.us.archive.org/~georgeo/mocks/spark.png" /></td>
+            <td class="amount">$commify(counts.authors.total)</td>    
+        </tr>
+        <tr class="major even">
+            <td>Subjects</td>
+            <td class="amount">$commify(counts.subjects.lastweek)</td> 
+            <td class="amount">$commify(counts.subjects.lastmonth)</td>
+            <td><img src="http://home.us.archive.org/~georgeo/mocks/spark.png" /></td>
+            <td class="amount">$commify(counts.subjects.total)</td>    
+        </tr>
+        <tr class="major">
+            <td>Lists</td>
+            <td class="amount">$commify(counts.lists.lastweek)</td> 
+            <td class="amount">$commify(counts.lists.lastmonth)</td>
+            <td><img src="http://home.us.archive.org/~georgeo/mocks/spark.png" /></td>
+            <td class="amount">$commify(counts.lists.total)</td>    
+        </tr>
+        <tr class="major even">
+            <td>Members</td>
+            <td class="amount">$commify(counts.members.lastweek)</td>
+            <td class="amount">$commify(counts.members.lastmonth)</td>
+            <td><img src="http://home.us.archive.org/~georgeo/mocks/spark.png" /></td>
+            <td class="amount">$commify(counts.members.total)</td>
+        </tr>
+    </table>
 
-    <div class="contentQuarter" id="prolific">
-        <div class="titleSmall fixthis">Prolific Member Editors</div>
-        <div class="smaller">
-            <a href="[USER PROFILE]">name</a>,
-            <a href="[USER PROFILE"]>name</a>,
-            <a href="[USER PROFILE"]>name</a>,
-            <a href="[USER PROFILE"]>name</a>,
-            <a href="[USER PROFILE"]>ip address</a>,
-            <a href="[USER PROFILE"]>name</a>,
-            <a href="[USER PROFILE"]>name</a>
-        </div>
-    </div>
 
     <div class="clearfix"></div>
 
@@ -209,7 +203,7 @@ $ stats = get_admin_stats()
             <div id="placeholder" style="width:680px;height:300px;"></div>
             <div id="overview" style="margin-left:50px;margin-top:20px;width:400px;height:50px"></div>
         </div>
-    </div>
+    </div>x
 
     <div class="clearfix"></div>
 

@@ -18,12 +18,22 @@ Functions with names other than the these will not be called from the
 main harness. They can be utility functions.
 
 """
+import os
+import time
+import urllib
 import logging
+import tempfile
+import datetime
+import calendar
 import functools
 
+import web
 import couchdb
 
 class InvalidType(TypeError): pass
+class NoStats(TypeError): pass
+
+sqlitefile = None
 
 # Utility functions
 def query_single_thing(db, typ, start, end):
@@ -51,7 +61,7 @@ def single_thing_skeleton(**kargs):
         end   = kargs['end'].strftime("%Y-%m-%d")
         db    = kargs['thingdb']
     except KeyError, k:
-        raise TypeError("%s is a required argument for admin__%s"%(k, typ))
+        raise TypeError("%s is a required argument for admin_range__%s"%(k, typ))
     return query_single_thing(db, typ, start, end)
     
 
@@ -65,11 +75,11 @@ def admin_range__human_edits(**kargs):
         end   = kargs['end'].strftime("%Y-%m-%d %H:%M:%S")
         db    = kargs['thingdb']
     except KeyError, k:
-        raise TypeError("%s is a required argument for admin__human_edits"%k)
+        raise TypeError("%s is a required argument for admin_range__human_edits"%k)
     q1 = "SELECT count(*) AS count FROM transaction WHERE created >= '%s' and created < '%s'"% (start, end)
     result = db.query(q1)
     total_edits = result[0].count
-    q1 = "SELECT count(*) AS count FROM transaction t, version v WHERE v.transaction_id=t.id AND created >= '%s' and created < '%s' AND t.author_id IN (SELECT thing_id FROM account WHERE bot = 't')"% (start, end)
+    q1 = "SELECT count(DISTINCT t.id) AS count FROM transaction t, version v WHERE v.transaction_id=t.id AND t.created >= '%s' and t.created < '%s' AND t.author_id IN (SELECT thing_id FROM account WHERE bot = 't')"% (start, end)
     result = db.query(q1)
     bot_edits = result[0].count
     return total_edits - bot_edits
@@ -83,8 +93,8 @@ def admin_range__bot_edits(**kargs):
         end   = kargs['end'].strftime("%Y-%m-%d %H:%M:%S")
         db    = kargs['thingdb']
     except KeyError, k:
-        raise TypeError("%s is a required argument for admin__human_edits"%k)
-    q1 = "SELECT count(*) AS count FROM transaction t, version v WHERE v.transaction_id=t.id AND created >= '%s' and created < '%s' AND t.author_id IN (SELECT thing_id FROM account WHERE bot = 't')"% (start, end)
+        raise TypeError("%s is a required argument for admin_range__bot_edits"%k)
+    q1 = "SELECT count(*) AS count FROM transaction t, version v WHERE v.transaction_id=t.id AND t.created >= '%s' and t.created < '%s' AND t.author_id IN (SELECT thing_id FROM account WHERE bot = 't')"% (start, end)
     result = db.query(q1)
     count = result[0].count
     return count
@@ -97,7 +107,7 @@ def admin_range__covers(**kargs):
         end   = kargs['end'].strftime("%Y-%m-%d %H:%M:%S")
         db    = kargs['coverdb']
     except KeyError, k:
-        raise TypeError("%s is a required argument for admin__cover"%k)
+        raise TypeError("%s is a required argument for admin_range__covers"%k)
     q1 = "SELECT count(*) as count from cover where created>= '%s' and created < '%s'"% (start, end)
     result = db.query(q1)
     count = result[0].count
@@ -109,13 +119,40 @@ admin_range__editions = functools.partial(single_thing_skeleton, type="edition")
 admin_range__users    = functools.partial(single_thing_skeleton, type="user")
 admin_range__authors  = functools.partial(single_thing_skeleton, type="author")
 admin_range__lists    = functools.partial(single_thing_skeleton, type="list")
+admin_range__members  = functools.partial(single_thing_skeleton, type="user")
 
+def admin_range__visitors(**kargs):
+    "Finds number of unique IPs to visit the OL website."
+    try:
+        date = kargs['start']
+    except KeyError, k:
+        raise TypeError("%s is a required argument for admin_range__visitors"%k)
+    global sqlitefile
+    if not sqlitefile:
+        sqlitefile = tempfile.mktemp(prefix="sqlite-")
+        url = "http://www.archive.org/download/stats/numUniqueIPsOL.sqlite"
+        logging.debug("  Downloading '%s'", url)
+        sqlite_contents = urllib.urlopen(url).read()
+        f = open(sqlitefile, "w")
+        f.write(sqlite_contents)
+        f.close()
+    db = web.database(dbn="sqlite", db = sqlitefile)
+    d = date.replace(hour = 0, minute = 0, second = 0, microsecond = 0)
+    key = calendar.timegm(d.timetuple())
+    q = "SELECT value AS count FROM data WHERE timestamp = %d"%key
+    result = list(db.query(q))
+    if result:
+        return result[0].count
+    else:
+        logging.debug("  No statistics obtained for %s (%d)", date, key)
+        raise NoStats("No record for %s"%date)
+    
 
 def admin_total__authors(**kargs):
     try:
         db    = kargs['seeds_db']
     except KeyError, k:
-        raise TypeError("%s is a required argument for admin_total__author"%k)    
+        raise TypeError("%s is a required argument for admin_total__authors"%k)    
     off1 = db.view("_all_docs", startkey="/authors",   limit=0, stale="ok").offset
     off2 = db.view("_all_docs", startkey="/authors/Z", limit=0, stale="ok").offset
     total_authors = off2 - off1
@@ -126,7 +163,7 @@ def admin_total__subjects(**kargs):
     try:
         db    = kargs['seeds_db']
     except KeyError, k:
-        raise TypeError("%s is a required argument for admin_total__subject"%k)
+        raise TypeError("%s is a required argument for admin_total__subjects"%k)
     rows = db.view("_all_docs", startkey="a", stale="ok", limit = 0)
     total_subjects = rows.total_rows - rows.offset
     return total_subjects
@@ -136,7 +173,7 @@ def admin_total__lists(**kargs):
     try:
         db    = kargs['thingdb']
     except KeyError, k:
-        raise TypeError("%s is a required argument for admin__total_list"%k)    
+        raise TypeError("%s is a required argument for admin_total__lists"%k)    
     # Computing total number of lists
     q1 = "SELECT id as id from thing where key='/type/list'"
     result = db.query(q1)
@@ -154,7 +191,7 @@ def admin_total__covers(**kargs):
     try:
         db    = kargs['editions_db']
     except KeyError, k:
-        raise TypeError("%s is a required argument for admin__total_cover"%k)    
+        raise TypeError("%s is a required argument for admin_total__covers"%k)    
     total_covers = db.view("admin/editions_with_covers", stale="ok").rows[0].value
     return total_covers
 
@@ -163,7 +200,7 @@ def admin_total__works(**kargs):
     try:
         db    = kargs['works_db']
     except KeyError, k:
-        raise TypeError("%s is a required argument for admin__total_work"%k)    
+        raise TypeError("%s is a required argument for admin_total__works"%k)    
     total_works = db.info()["doc_count"]
     return total_works
 
@@ -172,7 +209,7 @@ def admin_total__editions(**kargs):
     try:
         db    = kargs['editions_db']
     except KeyError, k:
-        raise TypeError("%s is a required argument for admin__total_edition"%k)
+        raise TypeError("%s is a required argument for admin_total__editions"%k)
     total_editions = db.info()["doc_count"]
     return total_editions
 
@@ -181,9 +218,26 @@ def admin_total__ebooks(**kargs):
     try:
         db    = kargs['editions_db']
     except KeyError, k:
-        raise TypeError("%s is a required argument for admin__total_ebook"%k)
+        raise TypeError("%s is a required argument for admin_total__ebooks"%k)
     total_ebooks = db.view("admin/ebooks", stale="ok").rows[0].value
     return total_ebooks
+
+def admin_total__members(**kargs):
+    try:
+        db    = kargs['thingdb']
+    except KeyError, k:
+        raise TypeError("%s is a required argument for admin_total__members"%k)
+    q1 = "SELECT id as id from thing where key='/type/user'"
+    result = db.query(q1)
+    try:
+        kid = result[0].id 
+    except IndexError:
+        raise InvalidType("No id for type '/type/user in the datbase")
+    q2 = "select count(*) as count from thing where type=%d"% kid
+    result = db.query(q2)
+    count = result[0].count
+    return count
+    
 
 def admin_delta__ebooks(**kargs):
     try:
@@ -192,7 +246,7 @@ def admin_delta__ebooks(**kargs):
         yesterday   = kargs['start']
         today       = kargs['end']
     except KeyError, k:
-        raise TypeError("%s is a required argument for admin__delta_ebook"%k)
+        raise TypeError("%s is a required argument for admin_delta__ebooks"%k)
     current_total = editions_db.view("admin/ebooks", stale="ok").rows[0].value
     yesterdays_key = yesterday.strftime("counts-%Y-%m-%d")
     try:
@@ -212,7 +266,7 @@ def admin_delta__subjects(**kargs):
         yesterday   = kargs['start']
         today       = kargs['end']
     except KeyError, k:
-        raise TypeError("%s is a required argument for admin__delta_ebook"%k)
+        raise TypeError("%s is a required argument for admin_delta__subjects"%k)
     rows = seeds_db.view("_all_docs", startkey="a", stale="ok", limit=0)
     current_total = rows.total_rows - rows.offset
     yesterdays_key = yesterday.strftime("counts-%Y-%m-%d")
