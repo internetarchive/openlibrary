@@ -22,8 +22,6 @@ from infogami.core.db import ValidationException
 
 from openlibrary.utils.isbn import isbn_13_to_isbn_10
 
-import inlibrary
-
 import processors
 
 delegate.app.add_processor(processors.ReadableUrlProcessor())
@@ -722,7 +720,8 @@ username_validator = web.form.Validator("Username already used", lambda username
 register.username.validators = list(register.username.validators) + [username_validator]
 
 def setup():
-    import home
+    import home, inlibrary
     home.setup()
+    inlibrary.setup()
     
 setup()
