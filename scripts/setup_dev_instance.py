@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 """Script to install OL dev instance.
 """
+
 import ConfigParser
 import os, shutil
 import shlex
@@ -9,6 +10,13 @@ import sys
 import time
 import urllib, urllib2
 import commands
+
+VERSION = 2
+
+CHANGELOG = """
+001 - Initial setup
+002 - Added couchdb and couchdb-lucene links in usr/local.
+"""
 
 config = None
 INTERP = None
@@ -388,6 +396,9 @@ class install_couchdb_lucene:
         info("installing couchdb lucene...")
         download_and_extract("http://www.archive.org/download/ol_vendor/couchdb-lucene-0.6-SNAPSHOT-dist.tar.gz")
         os.system("cd usr/local/etc && ln -fs ../couchdb-lucene-0.6-SNAPSHOT/conf couchdb-lucene")
+        self.setup_links()
+        
+    def setup_links(self):
         os.system("cd usr/local && ln -fs couchdb-lucene-0.6-SNAPSHOT couchdb-lucene")
 
 class checkout_submodules:
@@ -406,20 +417,14 @@ class install_couchdb:
             self.install_osx()
         else:
             self.install_linux()
+        self.setup_links()
         self.copy_config_files()    
             
-    def copy_config_files(self):
-        debug("copying config files")
-        CWD.join("conf/couchdb/local.ini").copy_to("usr/local/etc/couchdb/")
-        
     def install_osx(self):
         download_url = "http://www.archive.org/download/ol_vendor/couchdb-1.0.1-osx-binaries.tgz"
         
         download_and_extract(download_url, dirname="couchdb_1.0.1")
         # mac os x distribution uses relative paths. So no need to fix files.
-        
-        os.system("cd usr/local/etc && ln -sf ../couchdb_1.0.1/etc/couchdb .")
-        os.system("cd usr/local && ln -sf couchdb_1.0.1 couchdb")
         
     def install_linux(self):
         if self.is_64_bit():
@@ -428,10 +433,6 @@ class install_couchdb:
             download_url = "http://www.archive.org/download/ol_vendor/couchdb-1.0.1-linux-binaries.tgz"
         download_and_extract(download_url, dirname="couchdb-1.0.1")
         self.fix_linux_paths()
-        
-        os.system("cd usr/local/bin && ln -fs ../couchdb-1.0.1/bin/couchdb .")
-        os.system("cd usr/local/etc && ln -sf ../couchdb-1.0.1/etc/couchdb .")
-        os.system("cd usr/local && ln -sf couchdb-1.0.1 couchdb")
         
     def fix_linux_paths(self):
         root = CWD.join("usr/local/couchdb-1.0.1")
@@ -444,6 +445,19 @@ class install_couchdb:
             
     def is_64_bit(self):
         return os.uname()[-1] == "x86_64"
+        
+    def setup_links(self):
+        if find_distro() == "osx":
+            os.system("cd usr/local/etc && ln -sf ../couchdb_1.0.1/etc/couchdb .")
+            os.system("cd usr/local && ln -sf couchdb_1.0.1 couchdb")
+        else:
+            os.system("cd usr/local/bin && ln -fs ../couchdb-1.0.1/bin/couchdb .")
+            os.system("cd usr/local/etc && ln -sf ../couchdb-1.0.1/etc/couchdb .")
+            os.system("cd usr/local && ln -sf couchdb-1.0.1 couchdb")
+    
+    def copy_config_files(self):
+        debug("copying config files")
+        CWD.join("conf/couchdb/local.ini").copy_to("usr/local/etc/couchdb/")
     
 class install_postgresql:
     """Installs postgresql on Mac OS X.
@@ -616,7 +630,7 @@ cleanup_tasks = []
 def register_cleanup(cleanup):
     cleanup_tasks.append(cleanup)
         
-def main():
+def install():
     setup_dirs()
     global config
     config = read_config()
@@ -646,9 +660,60 @@ def main():
     try:
         for task in tasks:
             task.run()
+        
+        update_current_version()
     finally:
         for cleanup in cleanup_tasks:
             cleanup()
+            
+def update():
+    """Updates the existing dev instance to latest version.
+    """
+    v = get_current_version()
+    info("current version is", v)
+    for f in get_update_functions(v):
+        info("executing", f.__name__)
+        f()
+    update_current_version()
+    info("latest version is", VERSION)
+
+def get_update_functions(current_version):
+    for i in range(current_version, VERSION):
+        name = "update_%03d" % (i+1)
+        yield globals()[name]
+
+def update_002():
+    """update the dev instance from version 1 to version 2."""
+    install_couchdb().setup_links()
+    install_couchdb_lucene().setup_links()
+
+def get_current_version():
+    """Returns the current version of dev instance.
+    """
+    return int(read_system_config().get("system", "version"))
     
+def read_system_config():
+    p = ConfigParser.ConfigParser()
+    p.read(["var/run/system.conf"])
+    
+    if not p.has_section("system"):
+        p.add_section("system")
+    
+    if not p.has_option("system", "version"):
+        p.set("system", "version", "1")
+    
+    return p
+    
+def update_current_version():
+    p = read_system_config()
+    p.set("system", "version", VERSION)
+    
+    f = open("var/run/system.conf", 'w')
+    p.write(f)
+    f.close()
+
 if __name__ == '__main__':
-    main()
+    if "--update" in sys.argv:
+        update()
+    else:
+        install()
