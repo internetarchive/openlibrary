@@ -79,16 +79,19 @@ def run_gathering_functions(infobase_db, coverstore_db, seeds_db, editions_db, w
         key = i.replace(prefix,"")
         if key_prefix:
             key = "%s_%s"% (key_prefix, key)
-        ret = fn(thingdb     = infobase_db,
-                 coverdb     = coverstore_db,
-                 seeds_db    = seeds_db,
-                 editions_db = editions_db,
-                 works_db    = works_db,
-                 admin_db    = admin_db,
-                 start       = start,
-                 end         = end)
-        logging.info("  %s - %s", i, ret)
-        d[key] = ret
+        try:
+            ret = fn(thingdb     = infobase_db,
+                     coverdb     = coverstore_db,
+                     seeds_db    = seeds_db,
+                     editions_db = editions_db,
+                     works_db    = works_db,
+                     admin_db    = admin_db,
+                     start       = start,
+                     end         = end)
+            logging.info("  %s - %s", i, ret)
+            d[key] = ret
+        except numbers.NoStats:
+            logging.warning("  %s - No statistics available", i)
     return d
 
 def main(infobase_config, openlibrary_config, coverstore_config, ndays = 1):

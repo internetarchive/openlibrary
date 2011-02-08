@@ -7,7 +7,7 @@ $def with (stats=None)
  
 <script id="source" type="text/javascript"> 
 \$(function () {
-     var d = [[1196463600000, 0], [1196550000000, 1], [1196636400000, 2], [1196722800000, 3], [1196809200000, 4], [1196895600000, 5], [1196982000000, 6], [1197068400000, 7], [1197154800000, 8], [1197241200000, 9], [1197327600000, 10], [1197414000000, 11], [1197500400000, 12], [1197586800000, 13], [1197673200000, 14], [1197759600000, 15], [1197846000000, 16], [1197932400000, 17], [1198018800000, 18], [1198105200000, 19], [1198191600000, 20], [1198278000000, 21], [1198364400000, 22], [1198450800000, 23], [1198537200000, 24], [1198623600000, 25], [1198710000000, 26], [1198796400000, 27], [1198882800000, 28], [1198969200000, 29]];
+     var d = $:json_encode(stats["visitors"].get_counts(30));
  
     var options = {
        series: {
@@ -17,7 +17,7 @@ $def with (stats=None)
                 fillColor: "#e44028",
                 color: "#e44028", 
                 align: "left",
-                barWidth: 24 * 60 * 60 * 1000
+                barWidth: 5
             },
             points: { 
                 show: false 
@@ -27,9 +27,6 @@ $def with (stats=None)
         grid: { 
             show: false
         },
-        xaxis: { 
-            mode: "time"
-        }
     };
     
     var plot = \$.plot(\$("#visitors"), [d], options);
@@ -42,7 +39,7 @@ $def with (stats=None)
         <div class="chartShow" onClick="window.location.href='http://archive.org/stats';" title="See all visitors to OpenLibrary.org"> 
             <div id="visitors" style="width:150px;height:60px;"></div> 
         </div> 
-        <a href="http://archive.org/stats" title="See all visitors to OpenLibrary.org"><span class="ticks">6,805,789</span><span class="label">Unique Visitors</span></a> 
+        <a href="http://archive.org/stats" title="See all visitors to OpenLibrary.org"><span class="ticks">$:stats["visitors"].get_total()</span><span class="label">Unique Visitors</span></a> 
     </div> 
 <script id="source" type="text/javascript"> 
 \$(function () {
@@ -166,7 +163,7 @@ $def with (stats=None)
         <div class="chartShow" onClick="window.location.href='/recentchanges';" title="People are constantly updating the catalog"> 
             <div id="edits" style="width:150px;height:60px;"></div> 
         </div> 
-        <a href="/recentchanges" title="People are constantly updating the catalog"><span class="ticks">96,589</span><span class="label">Catalog Edits</span></a> 
+        <a href="/recentchanges" title="People are constantly updating the catalog"><span class="ticks">$:stats["edits"].get_total()</span><span class="label">Catalog Edits</span></a> 
     </div> 
 <script id="source" type="text/javascript"> 
 \$(function () {
@@ -227,7 +224,7 @@ $def with (stats=None)
         <div class="chartShow" onClick="window.location.href='/lists';" title="Members can create Lists"> 
             <div id="lists" style="width:150px;height:60px;"></div> 
         </div> 
-        <a href="/lists" title="Members can create Lists"><span class="ticks">1,278</span><span class="label">Lists Created</span></a> 
+        <a href="/lists" title="Members can create Lists"><span class="ticks">$:stats["lists"].get_total()</span><span class="label">Lists Created</span></a> 
     </div> 
 <script id="source" type="text/javascript"> 
 \$(function () {

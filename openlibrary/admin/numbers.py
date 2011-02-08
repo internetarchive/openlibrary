@@ -31,6 +31,7 @@ import web
 import couchdb
 
 class InvalidType(TypeError): pass
+class NoStats(TypeError): pass
 
 sqlitefile = None
 
@@ -143,7 +144,7 @@ def admin_range__visitors(**kargs):
         return result[0].count
     else:
         logging.debug("  No statistics obtained for %s (%d)", date, key)
-        return 0
+        raise NoStats("No record for %s"%date)
     
 
 def admin_total__authors(**kargs):
