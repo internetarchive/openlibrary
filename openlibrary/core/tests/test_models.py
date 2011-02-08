@@ -95,4 +95,25 @@ class TestList:
         d.update(fields)
         site.save(d)
         
+class TestLibrary:
+    def test_class(self, mock_site):
+        mock_site.save({
+            "key": "/libraries/ia",
+            "type": {"key": "/type/library"}
+        })
+        doc = mock_site.get("/libraries/ia")
+        assert doc.__class__.__name__ == "Library"
     
+    def test_has_ip(self, mock_site):
+        mock_site.save({
+            "key": "/libraries/ia",
+            "type": {"key": "/type/library"},
+            "ip_ranges": "1.1.1.1\n2.2.2.0/8"
+        })
+        
+        ia = mock_site.get("/libraries/ia")
+        assert ia.has_ip("1.1.1.1") is True
+        assert ia.has_ip("1.1.1.2") is False
+
+        assert ia.has_ip("2.2.2.10") is True
+        assert ia.has_ip("2.2.10.2") is False

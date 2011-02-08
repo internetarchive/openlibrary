@@ -135,3 +135,10 @@ class MockSite:
         
     def _get_backreferences(self, doc):
         return {}
+        
+    def new(self, key, data=None):
+        """Creates a new thing in memory.
+        """
+        data = common.parse_query(data)
+        data = self._process_dict(data or {})
+        return client.create_thing(self, key, data)
