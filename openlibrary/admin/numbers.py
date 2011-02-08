@@ -18,12 +18,21 @@ Functions with names other than the these will not be called from the
 main harness. They can be utility functions.
 
 """
+import os
+import time
+import urllib
 import logging
+import tempfile
+import datetime
+import calendar
 import functools
 
+import web
 import couchdb
 
 class InvalidType(TypeError): pass
+
+sqlitefile = None
 
 # Utility functions
 def query_single_thing(db, typ, start, end):
@@ -110,6 +119,32 @@ admin_range__users    = functools.partial(single_thing_skeleton, type="user")
 admin_range__authors  = functools.partial(single_thing_skeleton, type="author")
 admin_range__lists    = functools.partial(single_thing_skeleton, type="list")
 
+def admin_range__visitors(**kargs):
+    "Finds number of unique IPs to visit the OL website."
+    try:
+        date = kargs['start']
+    except KeyError, k:
+        raise TypeError("%s is a required argument for admin_range__visitors"%k)
+    global sqlitefile
+    if not sqlitefile:
+        sqlitefile = tempfile.mktemp(prefix="sqlite-")
+        url = "http://www.archive.org/download/stats/numUniqueIPsOL.sqlite"
+        logging.debug("  Downloading '%s'", url)
+        sqlite_contents = urllib.urlopen(url).read()
+        f = open(sqlitefile, "w")
+        f.write(sqlite_contents)
+        f.close()
+    db = web.database(dbn="sqlite", db = sqlitefile)
+    d = date.replace(hour = 0, minute = 0, second = 0, microsecond = 0)
+    key = calendar.timegm(d.timetuple())
+    q = "SELECT value AS count FROM data WHERE timestamp = %d"%key
+    result = list(db.query(q))
+    if result:
+        return result[0].count
+    else:
+        logging.debug("  No statistics obtained for %s (%d)", date, key)
+        return 0
+    
 
 def admin_total__authors(**kargs):
     try:

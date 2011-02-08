@@ -3,12 +3,17 @@ Script to read out data from thingdb and put it in couch so that it
 can be queried by the /admin pages on openlibrary
 """
 
+
+import os
 import logging
 import datetime
 
 import web
 import yaml
 import couchdb
+
+import numbers
+
 
 web.config.debug = False
 
@@ -67,7 +72,6 @@ def run_gathering_functions(infobase_db, coverstore_db, seeds_db, editions_db, w
                             start, end, prefix, key_prefix = None):
     """Runs all the data gathering functions with the given prefix
     inside the numbers module"""
-    import numbers
     funcs = [x for x in dir(numbers) if x.startswith(prefix)]
     d = {}
     for i in funcs:
@@ -127,4 +131,7 @@ def main(infobase_config, openlibrary_config, coverstore_config, ndays = 1):
         store_data(admin_db, data, start.strftime("%Y-%m-%d"))
         end = start
         start = end - datetime.timedelta(days = 1)
+    if numbers.sqlitefile:
+        logging.info("Removing sqlite file used for ipstats")
+        os.unlink(numbers.sqlitefile)
     return 0
