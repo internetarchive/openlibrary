@@ -11,11 +11,12 @@ import time
 import urllib, urllib2
 import commands
 
-VERSION = 2
+VERSION = 3
 
 CHANGELOG = """
 001 - Initial setup
 002 - Added couchdb and couchdb-lucene links in usr/local.
+003 - Added iptools python module.
 """
 
 config = None
@@ -294,11 +295,6 @@ class setup_virtualenv:
     virtual env.
     """
     def run(self):
-        global INTERP
-    
-        pyenv = os.path.expanduser(config['virtualenv'])
-        INTERP = pyenv + "/bin/python"
-    
         if sys.executable != INTERP:
             info("creating virtualenv at", pyenv)
             system("virtualenv " + pyenv + " --no-site-packages")
@@ -311,7 +307,7 @@ class install_python_dependencies:
             self.install_from_archive()
             info("  installing remaining packages")
             system(INTERP + " setup.py develop")
-        
+            
     def install_from_archive(self):
         # This list is maually created after uploading these files to ol_vendor item on archive.org.
         packages = """
@@ -629,6 +625,16 @@ class copy_docs:
     def copy_docs(self):
         system("./scripts/copydocs.py /upstream/css/* /upstream/js/*")
 
+
+class setup_globals:
+    def run(self):
+        global config
+        config = read_config()
+        
+        global INTERP
+        pyenv = os.path.expanduser(config['virtualenv'])
+        INTERP = pyenv + "/bin/python"        
+
 cleanup_tasks = []
 
 def register_cleanup(cleanup):
@@ -636,10 +642,10 @@ def register_cleanup(cleanup):
         
 def install():
     setup_dirs()
-    global config
-    config = read_config()
-    
+
     tasks = [
+        setup_globals(),
+        
         setup_virtualenv(),
         install_python_dependencies(),
         switch_to_virtualenv(),
@@ -673,13 +679,24 @@ def install():
 def update():
     """Updates the existing dev instance to latest version.
     """
-    v = get_current_version()
-    info("current version is", v)
-    for f in get_update_functions(v):
-        info("executing", f.__name__)
-        f()
-    update_current_version()
-    info("latest version is", VERSION)
+    tasks = [
+        setup_globals(),
+        switch_to_virtualenv(),
+        run_updates()
+    ]
+    
+    for t in tasks:
+        t.run()
+    
+class run_updates:
+    def run(self):
+        v = get_current_version()
+        info("current version is", v)
+        for f in get_update_functions(v):
+            info("executing", f.__name__)
+            f()
+        update_current_version()
+        info("latest version is", VERSION)
 
 def get_update_functions(current_version):
     for i in range(current_version, VERSION):
@@ -690,6 +707,9 @@ def update_002():
     """update the dev instance from version 1 to version 2."""
     install_couchdb().setup_links()
     install_couchdb_lucene().setup_links()
+
+def update_003():
+    install_python_dependencies().run()
 
 def get_current_version():
     """Returns the current version of dev instance.
