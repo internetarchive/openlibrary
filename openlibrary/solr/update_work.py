@@ -338,6 +338,7 @@ def build_doc(w, obj_cache={}, resolve_redirects=False):
     all_collection = set()
     all_overdrive = set()
     lending_edition = None
+    in_library_edition = None
     printdisabled = set()
     for e in editions:
         if 'overdrive' in e:
@@ -346,6 +347,8 @@ def build_doc(w, obj_cache={}, resolve_redirects=False):
             continue
         if not lending_edition and 'lendinglibrary' in e['ia_collection']:
             lending_edition = re_edition_key.match(e['key']).group(1)
+        if not in_library_edition and 'inlibrary' in e['ia_collection']:
+            in_library_edition = re_edition_key.match(e['key']).group(1)
         if 'printdisabled' in e['ia_collection']:
             printdisabled.add(re_edition_key.match(e['key']).group(1))
         all_collection.update(e['ia_collection'])
@@ -373,6 +376,8 @@ def build_doc(w, obj_cache={}, resolve_redirects=False):
         add_field(doc, 'overdrive_s', ';'.join(all_overdrive))
     if lending_edition:
         add_field(doc, 'lending_edition_s', lending_edition)
+    elif in_library_edition:
+        add_field(doc, 'lending_edition_s', in_library_edition)
     if printdisabled:
         add_field(doc, 'printdisabled_s', ';'.join(list(printdisabled)))
 
@@ -438,7 +443,7 @@ def update_work(w, obj_cache={}, debug=False, resolve_redirects=False):
     delete_xml = '<delete><query>key:%s</query>%s</delete>' % (wkey[7:], redirects)
     requests = [delete_xml]
 
-    if w['type']['key'] == '/type/work' and w.get('title', None):
+    if w['type']['key'] == '/type/work' and w.get('title'):
         try:
             doc = build_doc(w, obj_cache, resolve_redirects=resolve_redirects)
         except:
