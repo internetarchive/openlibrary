@@ -7,7 +7,7 @@ $def with (stats=None)
  
 <script id="source" type="text/javascript"> 
 \$(function () {
-     var d = $:json_encode(stats["visitors"].get_counts(30));
+     var d = $:json_encode(stats["visitors"].get_counts(28));
  
     var options = {
        series: {
@@ -39,11 +39,11 @@ $def with (stats=None)
         <div class="chartShow" onClick="window.location.href='http://archive.org/stats';" title="See all visitors to OpenLibrary.org"> 
             <div id="visitors" style="width:150px;height:60px;"></div> 
         </div> 
-        <a href="http://archive.org/stats" title="See all visitors to OpenLibrary.org"><span class="ticks">$:stats["visitors"].get_total()</span><span class="label">Unique Visitors</span></a> 
+        <a href="http://archive.org/stats" title="See all visitors to OpenLibrary.org"><span class="ticks">$:commify(stats["visitors"].get_summary(28))</span><span class="label">Unique Visitors</span></a> 
     </div> 
 <script id="source" type="text/javascript"> 
 \$(function () {
-    var d = $:json_encode(stats["members"].get_counts(30));
+    var d = $:json_encode(stats["members"].get_counts(28));
  
     // first correct the timestamps - they are recorded as the daily
     // midnights in UTC+0100, but Flot always displays dates in UTC
@@ -100,11 +100,11 @@ $def with (stats=None)
         <div class="chartShow" onClick="window.location.href='tba';" title="How many new Open Library members have we welcomed?"> 
             <div id="members" style="width:150px;height:60px;"></div> 
         </div> 
-        <a href="tba" title="How many new Open Library members have we welcomed?"><span class="ticks">$:stats["members"].get_total()</span><span class="label">New Members</span></a> 
+        <a href="tba" title="How many new Open Library members have we welcomed?"><span class="ticks">$:commify(stats["members"].get_summary(28))</span><span class="label">New Members</span></a> 
     </div> 
 <script id="source" type="text/javascript"> 
 \$(function () {
-    var d = $:json_encode(stats["edits"].get_counts(30));
+    var d = $:json_encode(stats["edits"].get_counts(28));
  
     // first correct the timestamps - they are recorded as the daily
     // midnights in UTC+0100, but Flot always displays dates in UTC
@@ -160,11 +160,11 @@ $def with (stats=None)
         <div class="chartShow" onClick="window.location.href='/recentchanges';" title="People are constantly updating the catalog"> 
             <div id="edits" style="width:150px;height:60px;"></div> 
         </div> 
-        <a href="/recentchanges" title="People are constantly updating the catalog"><span class="ticks">$:stats["edits"].get_total()</span><span class="label">Catalog Edits</span></a> 
+        <a href="/recentchanges" title="People are constantly updating the catalog"><span class="ticks">$:commify(stats["edits"].get_summary(28))</span><span class="label">Catalog Edits</span></a> 
     </div> 
 <script id="source" type="text/javascript"> 
 \$(function () {
-    var d = $:json_encode(stats["lists"].get_counts(30));
+    var d = $:json_encode(stats["lists"].get_counts(28));
 
  
     // first correct the timestamps - they are recorded as the daily
@@ -221,7 +221,7 @@ $def with (stats=None)
         <div class="chartShow" onClick="window.location.href='/lists';" title="Members can create Lists"> 
             <div id="lists" style="width:150px;height:60px;"></div> 
         </div> 
-        <a href="/lists" title="Members can create Lists"><span class="ticks">$:stats["lists"].get_total()</span><span class="label">Lists Created</span></a> 
+        <a href="/lists" title="Members can create Lists"><span class="ticks">$:commify(stats["lists"].get_summary(28))</span><span class="label">Lists Created</span></a> 
     </div> 
 <script id="source" type="text/javascript"> 
 \$(function () {
