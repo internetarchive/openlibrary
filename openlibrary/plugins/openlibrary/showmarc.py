@@ -65,6 +65,7 @@ class show_amazon(delegate.page):
         return render.showamazon(asin)
 
 re_bad_meta_mrc = re.compile('^([^/]+)_meta\.mrc$')
+re_lc_sanfranpl = re.compile('^sanfranpl(\d+)/sanfranpl(\d+)\.out')
 
 class show_marc(delegate.page):
     path = "/show-records/(.*):(\d+):(\d+)"
@@ -73,6 +74,13 @@ class show_marc(delegate.page):
         m = re_bad_meta_mrc.match(filename)
         if m:
             raise web.seeother('/show-records/ia:' + m.group(1))
+        m = re_lc_sanfranpl.match(filename)
+        if m: # archive.org is case-sensative
+            mixed_case = 'SanFranPL%s/SanFranPL%s.out:%s:%s' % (m.group(1), m.group(2), offset, length)
+            raise web.seeother('/show-records/' + mixed_case)
+        if filename == 'collingswoodlibrarymarcdump10-27-2008/collingswood.out':
+            loc = 'CollingswoodLibraryMarcDump10-27-2008/Collingswood.out:%s:%s' % (offset, length)
+            raise web.seeother('/show-records/' + loc)
 
         loc = ':'.join(['marc', filename, offset, length])
 
