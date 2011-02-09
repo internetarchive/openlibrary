@@ -78,6 +78,9 @@ class show_marc(delegate.page):
         if m: # archive.org is case-sensative
             mixed_case = 'SanFranPL%s/SanFranPL%s.out:%s:%s' % (m.group(1), m.group(2), offset, length)
             raise web.seeother('/show-records/' + mixed_case)
+        if filename == 'collingswoodlibrarymarcdump10-27-2008/collingswood.out':
+            loc = 'CollingswoodLibraryMarcDump10-27-2008/Collingswood.out:%s:%s' % (offset, length)
+            raise web.seeother('/show-records/' + loc)
 
         loc = ':'.join(['marc', filename, offset, length])
 
