@@ -103,12 +103,20 @@ class TestLibrary:
         })
         doc = mock_site.get("/libraries/ia")
         assert doc.__class__.__name__ == "Library"
+        
+    def test_parse_ip_ranges(self):
+        doc = models.Library(None, "/libraries/foo")
+        assert list(doc.parse_ip_ranges("")) == []
+        assert list(doc.parse_ip_ranges("1.2.3.4")) == ["1.2.3.4"]
+        assert list(doc.parse_ip_ranges("1.1.1.1\n2.2.2.2")) == ["1.1.1.1", "2.2.2.2"]
+        assert list(doc.parse_ip_ranges("1.1.1.1 # comment \n2.2.2.2")) == ["1.1.1.1", "2.2.2.2"]
+        assert list(doc.parse_ip_ranges("1.1.1.1\n # comment \n2.2.2.2")) == ["1.1.1.1", "2.2.2.2"]
     
     def test_has_ip(self, mock_site):
         mock_site.save({
             "key": "/libraries/ia",
             "type": {"key": "/type/library"},
-            "ip_ranges": "1.1.1.1\n2.2.2.0/8"
+            "ip_ranges": "1.1.1.1\n2.2.2.0/24"
         })
         
         ia = mock_site.get("/libraries/ia")

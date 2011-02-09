@@ -51,7 +51,6 @@ def get_stats():
                                              startkey_docid = start,
                                              endkey_docid   = end,
                                              include_docs = True)]
-        for i in docs: print i
         retval = dict(edits    = Stats(docs, "human_edits", "human_edits"),
                       lists    = Stats(docs, "lists", "total_lists"),
                       visitors = Stats(docs, "visitors", "visitors"),
