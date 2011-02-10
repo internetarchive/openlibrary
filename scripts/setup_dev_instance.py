@@ -296,6 +296,8 @@ class setup_virtualenv:
     """
     def run(self):
         if sys.executable != INTERP:
+            pyenv = os.path.expanduser(config['virtualenv'])
+
             info("creating virtualenv at", pyenv)
             system("virtualenv " + pyenv + " --no-site-packages")
             

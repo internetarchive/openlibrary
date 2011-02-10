@@ -54,6 +54,16 @@ config.load(config_file)
 solr_works = config.runtime_config["plugin_worksearch"]["solr"]
 solr_subjects = config.runtime_config["plugin_worksearch"]["subject_solr"]
 
+def fix_hardcoded_config():
+    from openlibrary.catalog.utils import query 
+    query = query_host = args.server
+    
+    from openlibrary.solr import update
+    update.solr_works = solr_works
+    update.solr_subjects = solr_subjects
+
+fix_hardcoded_config()
+
 base = 'http://%s/openlibrary.org/log/' % config.runtime_config['infobase_server']
 
 skip_user = set(u.lower() for u in args.skip_user)
