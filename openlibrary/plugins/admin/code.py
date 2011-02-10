@@ -216,7 +216,7 @@ def storify(d):
 def get_counts():
     """Generate counts for various operations which will be given to the
     index page"""
-    retval = admin_stats.get_stats()
+    retval = admin_stats.get_stats(100)
     return storify(retval)
 
 def get_admin_stats():
