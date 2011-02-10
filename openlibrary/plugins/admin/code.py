@@ -17,6 +17,7 @@ from infogami.utils.context import context
 
 from infogami.utils.view import add_flash_message
 import openlibrary
+from openlibrary.core import admin as admin_stats
 
 def render_template(name, *a, **kw):
     if "." in name:
@@ -215,40 +216,8 @@ def storify(d):
 def get_counts():
     """Generate counts for various operations which will be given to the
     index page"""
-    def _sum_values(d, key):
-        "Returns the sum of all values with the same key in a list of dictionaries"
-        return sum((x.get(key, 0) for x in d), 0)
-                   
-    placeholder = dict(lastweek  = "xxxx",
-                       lastmonth = "xxxx",
-                       total     = "xxxx")
-    counts = web.storage()
-    counts_db_name = config.get("admin",{}).get("counts_db")
-    if not counts_db_name:
-        for i in "work edition user author list ebook cover subject".split():
-            counts[i] = placeholder
-        return storify(counts)
-    counts_db = couchdb.Database(counts_db_name)
-    start_date = (datetime.datetime.now() - datetime.timedelta(days = 28)).strftime("%Y-%m-%d")
-    end_date = datetime.datetime.now().strftime("%Y-%m-%d")
-    # The -1 for end_date is because the current day will only be half done till the day is over
-    data = [x.doc for x in counts_db.view("_all_docs",
-                                          startkey_docid = "counts-%s"%start_date,
-                                          endkey_docid   = "counts-%s"%end_date,
-                                          include_docs = True)]
-    for i in "works editions users authors lists covers ebooks subjects human_edits bot_edits members".split():
-        today = data[-1].get(i)
-        yesterday = data[-2].get(i)
-        lastweek = _sum_values(data[-7:], i)
-        lastmonth = _sum_values(data[:-7], i) + lastweek
-        total = data[-1].get("total_%s"%i,"xxxx")
-        counts[i] = dict(today     = today,
-                         yesterday = yesterday,
-                         lastweek  = lastweek,
-                         lastmonth = lastmonth,
-                         total     = total)
-    s = storify(counts)
-    return s
+    retval = admin_stats.get_stats()
+    return storify(retval)
 
 def get_admin_stats():
     def f(dates):
