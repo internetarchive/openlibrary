@@ -19,11 +19,14 @@ from infogami.infobase.utils import parse_datetime
 import utils
 from utils import render_template
 
+from openlibrary.core import inlibrary
+
 import acs4
 
 ########## Constants
 
-lending_library_subject = 'Lending library'
+lending_library_subject = u'Lending library'
+in_library_subject = u'In library'
 loanstatus_url = config.get('loanstatus_url')
 
 content_server = None
@@ -189,7 +192,7 @@ class borrow_admin(delegate.page):
             user.update_loan_status()
             user_loans = get_loans(user)
             
-        return render_template("borrow_admin", edition, edition_loans, user_loans)
+        return render_template("borrow_admin", edition, edition_loans, user_loans, web.ctx.ip)
         
 # Handler for /iauth/{itemid}
 class ia_auth(delegate.page):
@@ -225,31 +228,35 @@ def overdrive_id(edition):
 
 @public
 def can_borrow(edition):
-    global lending_library_subject
+    global lending_library_subject, in_library_subject
     
     # Check if in overdrive
     # $$$ Should we also require to be in lending library?
     if overdrive_id(edition):
         return True
     
-    # Check that work is in lending library
-    inLendingLibrary = False
+    # Check that work is in the general lending library, or available for
+    # in-library loan and the user is in a library
+    lendable = False
     for work in edition.get('works', []):
         subjects = work.get_subjects()
+        
         if subjects:
-            try:
-                if subjects.index(lending_library_subject) >= 0:
-                    inLendingLibrary = True
+            if lending_library_subject in subjects:
+                # General lending library
+                lendable = True
+                break
+            if in_library_subject in subjects:
+                # Books is eligible for in-library loan
+                if 'inlibrary' in web.ctx.features and inlibrary.get_library() is not None:
+                    # Person is in a library
+                    lendable = True
                     break
-            except ValueError:
-                pass
-                
-    if not inLendingLibrary:
+                        
+    if not lendable:
         return False
     
-    # Book is in lending library
-    
-    # Check if hosted at archive.org
+    # Check if hosted at archive.org - sanity check
     if edition.get('ocaid', False):
         return True
     

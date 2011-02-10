@@ -536,6 +536,9 @@ def get_subject(key, details=False, offset=0, limit=12, **filters):
 
     meta = finddict(SUBJECTS, prefix=prefix)
 
+    sort_order = 'edition_count desc'
+    sort_order = 'first_publish_year desc'
+
     q = {meta.facet_key: str_to_key(path).lower()}
     subject_type = meta.name
 
@@ -577,7 +580,7 @@ def get_subject(key, details=False, offset=0, limit=12, **filters):
         if filters.get("publish_year"):
             q['publish_year'] = filters['publish_year']
 
-    result = work_search(q, offset=offset, limit=limit, sort="edition_count desc", **kw)
+    result = work_search(q, offset=offset, limit=limit, sort=sort_order, **kw)
     for w in result.docs:
         w.ia = w.ia and w.ia[0] or None
 

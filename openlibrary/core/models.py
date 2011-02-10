@@ -304,9 +304,10 @@ class Library(Thing):
     
     Each library has a list of IP addresses belongs to that library. 
     """
-    def _get_ip_ranges(self):
-        for line in self.ip_ranges.splitlines():
-            if line.strip():
+    def parse_ip_ranges(self, text):
+        for line in text.splitlines():
+            line = line.split("#")[0].strip()
+            if line:
                 if "-" in line:
                     start, end = line.split("-", 1)
                     yield (start.strip(), end.strip())
@@ -316,7 +317,8 @@ class Library(Thing):
     def get_ip_range_list(self):
         """Returns IpRangeList object for the range of IPs of this library.
         """
-        ranges = list(self._get_ip_ranges())
+        ranges = list(self.parse_ip_ranges(self.ip_ranges or ""))
+        print "get_ip_range_list", ranges
         return iptools.IpRangeList(*ranges)
         
     def has_ip(self, ip):
