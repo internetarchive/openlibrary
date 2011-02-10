@@ -97,7 +97,6 @@ def run_update():
             for attempt in range(5):
                 try:
                     requests += update_work(work_to_update)
-                    break
                 except AuthorRedirect:
                     print 'fixing author redirect'
                     w = ol.get(wkey)
