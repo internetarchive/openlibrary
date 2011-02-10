@@ -720,8 +720,10 @@ username_validator = web.form.Validator("Username already used", lambda username
 register.username.validators = list(register.username.validators) + [username_validator]
 
 def setup():
-    import home, inlibrary
+    import home, inlibrary, borrow_home
+    
     home.setup()
     inlibrary.setup()
-    
+    borrow_home.setup()
+
 setup()
