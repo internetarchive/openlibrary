@@ -7,6 +7,9 @@ from infogami.infobase import client, common
 
 class MockSite:
     def __init__(self):
+        self.reset()
+        
+    def reset(self):
         self.docs = {}
         self.changesets = []
         self.index = []
