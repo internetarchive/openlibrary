@@ -104,7 +104,7 @@ $def with (stats=None)
     </div> 
 <script id="source" type="text/javascript"> 
 \$(function () {
-    var d = $:json_encode(stats["edits"].get_counts(28));
+    var d = $:json_encode(stats["human_edits"].get_counts(28));
  
     // first correct the timestamps - they are recorded as the daily
     // midnights in UTC+0100, but Flot always displays dates in UTC
@@ -160,7 +160,7 @@ $def with (stats=None)
         <div class="chartShow" onClick="window.location.href='/recentchanges';" title="People are constantly updating the catalog"> 
             <div id="edits" style="width:150px;height:60px;"></div> 
         </div> 
-        <a href="/recentchanges" title="People are constantly updating the catalog"><span class="ticks">$:commify(stats["edits"].get_summary(28))</span><span class="label">Catalog Edits</span></a> 
+        <a href="/recentchanges" title="People are constantly updating the catalog"><span class="ticks">$:commify(stats["human_edits"].get_summary(28))</span><span class="label">Catalog Edits</span></a> 
     </div> 
 <script id="source" type="text/javascript"> 
 \$(function () {
