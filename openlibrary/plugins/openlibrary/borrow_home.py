@@ -73,7 +73,7 @@ def convert_works_to_editions(site, works):
 def get_lending_library(site, **kw):
     subject = worksearch.get_subject("/subjects/lending_library", **kw)
     subject['key'] = '/borrow'
-    convert_works_to_editions(subject['works'])
+    convert_works_to_editions(site, subject['works'])
     return subject
 
 def setup():
