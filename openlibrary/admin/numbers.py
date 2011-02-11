@@ -250,7 +250,7 @@ def admin_delta__ebooks(**kargs):
     current_total = editions_db.view("admin/ebooks", stale="ok").rows[0].value
     yesterdays_key = yesterday.strftime("counts-%Y-%m-%d")
     try:
-        last_total = admin_db[yesterdays_key]["total_ebook"]
+        last_total = admin_db[yesterdays_key]["total_ebooks"]
         logging.debug("Yesterdays count for total_ebook %s", last_total)
     except (couchdb.http.ResourceNotFound, KeyError):
         logging.warn("No total_ebook found for %s. Using 0", yesterdays_key)
@@ -271,7 +271,7 @@ def admin_delta__subjects(**kargs):
     current_total = rows.total_rows - rows.offset
     yesterdays_key = yesterday.strftime("counts-%Y-%m-%d")
     try:
-        last_total = admin_db[yesterdays_key]["total_subject"]
+        last_total = admin_db[yesterdays_key]["total_subjects"]
         logging.debug("Yesterdays count for total_subject %s", last_total)
     except (couchdb.http.ResourceNotFound, KeyError):
         logging.warn("No total_subject found for %s. Using 0", yesterdays_key)
