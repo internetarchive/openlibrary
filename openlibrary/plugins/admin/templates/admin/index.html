@@ -7,91 +7,11 @@ $:macros.Dashboard()
 $ stats = get_admin_stats()
 <script type="text/javascript"> 
 \$(function () {
-    var d = $:json_encode(counts.human_edits.get_counts(80, True));
-    for (var i = 0; i < d.length; ++i)
-      d[i][0] += 60 * 60 * 1000;
-    function weekendAreas(axes) {
-        var markings = [];
-        var d = new Date(axes.xaxis.min);
-        d.setUTCDate(d.getUTCDate() - ((d.getUTCDay() + 1) % 7))
-        d.setUTCSeconds(0);
-        d.setUTCMinutes(0);
-        d.setUTCHours(0);
-        var i = d.getTime();
-        do {
-            markings.push({ xaxis: { from: i, to: i + 2 * 24 * 60 * 60 * 1000 } });
-            i += 7 * 24 * 60 * 60 * 1000;
-        } while (i < axes.xaxis.max);
- 
-        return markings;
-    }
-    
-    var options = {
-       series: {
-            bars: { 
-                show: true, 
-                fill: 1, 
-                fillColor: "#748d36",
-                color: "#748d36", 
-                align: "left",
-                barWidth: 24 * 60 * 60 * 1000
-            },
-            points: { 
-                show: false 
-            },
-            color: "#748d36"
-        },
-        grid: { 
-            hoverable: true,
-            show: false
-        },
-        xaxis: { 
-            mode: "time"
-        }
-    };
- 
-    var placeholder = \$("#edits");
-
-    var plot = \$.plot(placeholder, [d], options);
-    
-    function showTooltip(x, y, contents) {
-        \$('<div id="chartLabelA">' + contents + '</div>').css( {
-            position: 'absolute',
-            display: 'none',
-            top: y + 12,
-            left: x + 12,
-            border: '1px solid #ccc',
-            padding: '2px',
-            backgroundColor: '#efefef',
-            color: '#454545',
-            fontSize: '11px',
-            webkitBoxShadow: '1px 1px 3px #333',
-            mozBoxShadow: '1px 1px 1px #000',
-            boxShadow: '1px 1px 1px #000'
-        }).appendTo("body").fadeIn(200);
-    };
-    var previousPoint = null;
-    placeholder.bind("plothover", function (event, pos, item) {
-        \$("#x").text(pos.x);
-        \$("#y").text(pos.y.toFixed(0));
-        if (item) {
-            \$("#chartLabelA").remove();
-            var milli = item.datapoint[0];
-            var date = new Date(milli);
-            var x = date.toDateString(),
-                y = item.datapoint[1].toFixed(0);
-            if (y == 1) {
-                showTooltip(item.pageX, item.pageY,
-                    y + " edit on " + x);
-            } else {
-                 showTooltip(item.pageX, item.pageY,
-                    y + " edits on " + x);
-            };
-        } else {
-            \$("#chartLabelA").remove();
-        };
+    var edits = $:json_encode(counts.human_edits.get_counts(80, True));
+    var members = $:json_encode(counts.members.get_counts(80, True));
+    plot_tooltip_graph(\$("#editgraph"), edits, "edit(s) on");
+    plot_tooltip_graph(\$("#membergraph"), members,"new members(s) on");
     });
-});
 </script> 
 
 <div id="contentHead">
@@ -122,7 +42,7 @@ $ stats = get_admin_stats()
         </div>
         <div class="chartHolder">
             <div class="chartDisplay">
-	      <div id="edits" style="width:430px;height:50px;">
+	      <div id="editgraph" style="width:430px;height:50px;">
 		<!-- Edit graphs go here -->
 	      </div>
             </div>
@@ -169,7 +89,9 @@ $ stats = get_admin_stats()
             <h2>Members</h2>
         </div>
         <div class="chartHolder">
-            <div class="chartDisplay"><img src="http://home.us.archive.org/~georgeo/mocks/bar.png" />
+	      <div id="membergraph" style="width:430px;height:50px;">
+		<!-- Member graphs go here -->
+	      </div>
             </div>
         </div>
         <table class="measurements stripeEven" id="members">
@@ -208,7 +130,19 @@ $ stats = get_admin_stats()
     </div>
 
     <h2>Record Counts</h2>
-
+    <script type="text/javascript">
+      \$(function () {
+	  plot_minigraph (\$("#works_minigraph"), $:json_encode(counts.works.get_counts(80)));
+	  plot_minigraph (\$("#editions_minigraph"), $:json_encode(counts.editions.get_counts(80)));
+	  plot_minigraph (\$("#ebooks_minigraph"), $:json_encode(counts.ebooks.get_counts(80)));
+	  plot_minigraph (\$("#covers_minigraph"), $:json_encode(counts.covers.get_counts(80)));
+	  plot_minigraph (\$("#authors_minigraph"), $:json_encode(counts.authors.get_counts(80)));
+	  plot_minigraph (\$("#subjects_minigraph"), $:json_encode(counts.subjects.get_counts(80)));
+	  plot_minigraph (\$("#lists_minigraph"), $:json_encode(counts.lists.get_counts(80)));
+	  plot_minigraph (\$("#members_minigraph"), $:json_encode(counts.members.get_counts(80)));
+      });
+</script>
+    
     <table class="measurements stripeEven">
         <tr>
             <th></th>
@@ -221,56 +155,56 @@ $ stats = get_admin_stats()
             <td>Works</td>
             <td class="amount">$commify(counts.works.get_summary(7))</td>
             <td class="amount">$commify(counts.works.get_summary(28))</td>
-            <td><img src="http://home.us.archive.org/~georgeo/mocks/spark.png" /></td>
+            <td><div id="works_minigraph" style="width:150px;height:30px;" ></div></td>
             <td class="amount">$commify(counts.works.total)</td>    
         </tr>
         <tr class="major even">
             <td>Editions</td>
             <td class="amount">$commify(counts.editions.get_summary(7))</td> 
             <td class="amount">$commify(counts.editions.get_summary(28))</td>
-            <td><img src="http://home.us.archive.org/~georgeo/mocks/spark.png" /></td>
+            <td><div id="editions_minigraph" style="width:150px;height:30px;" ></div></td>
             <td class="amount">$commify(counts.editions.total)</td>    
         </tr>
         <tr class="major">
             <td>eBooks</td>
             <td class="amount">$commify(counts.ebooks.get_summary(7))</td> 
             <td class="amount">$commify(counts.ebooks.get_summary(28))</td>
-            <td><img src="http://home.us.archive.org/~georgeo/mocks/spark.png" /></td>
+            <td><div id="ebooks_minigraph" style="width:150px;height:30px;" ></div></td>
             <td class="amount">$commify(counts.ebooks.total)</td>    
         </tr>
         <tr class="major even">
             <td>Covers</td>
             <td class="amount">$commify(counts.covers.get_summary(7))</td> 
             <td class="amount">$commify(counts.covers.get_summary(28))</td>
-            <td><img src="http://home.us.archive.org/~georgeo/mocks/spark.png" /></td>
+            <td><div id="covers_minigraph" style="width:150px;height:30px;" ></div></td>
             <td class="amount">$commify(counts.covers.total)</td>    
         </tr>
         <tr class="major">
             <td>Authors</td>
             <td class="amount">$commify(counts.authors.get_summary(7))</td> 
             <td class="amount">$commify(counts.authors.get_summary(28))</td>
-            <td><img src="http://home.us.archive.org/~georgeo/mocks/spark.png" /></td>
+            <td><div id="authors_minigraph" style="width:150px;height:30px;" ></div></td>
             <td class="amount">$commify(counts.authors.total)</td>    
         </tr>
         <tr class="major even">
             <td>Subjects</td>
             <td class="amount">$commify(counts.subjects.get_summary(7))</td> 
             <td class="amount">$commify(counts.subjects.get_summary(28))</td>
-            <td><img src="http://home.us.archive.org/~georgeo/mocks/spark.png" /></td>
+            <td><div id="subjects_minigraph" style="width:150px;height:30px;" ></div></td>
             <td class="amount">$commify(counts.subjects.total)</td>    
         </tr>
         <tr class="major">
             <td>Lists</td>
             <td class="amount">$commify(counts.lists.get_summary(7))</td> 
             <td class="amount">$commify(counts.lists.get_summary(28))</td>
-            <td><img src="http://home.us.archive.org/~georgeo/mocks/spark.png" /></td>
+            <td><div id="lists_minigraph" style="width:150px;height:30px;" ></div></td>
             <td class="amount">$commify(counts.lists.total)</td>    
         </tr>
         <tr class="major even">
             <td>Members</td>
             <td class="amount">$commify(counts.members.get_summary(7))</td>
             <td class="amount">$commify(counts.members.get_summary(28))</td>
-            <td><img src="http://home.us.archive.org/~georgeo/mocks/spark.png" /></td>
+            <td><div id="members_minigraph" style="width:150px;height:30px;" ></div></td>
             <td class="amount">$commify(counts.members.total)</td>
         </tr>
     </table>
