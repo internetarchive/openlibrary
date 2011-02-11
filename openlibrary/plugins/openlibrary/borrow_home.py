@@ -71,6 +71,7 @@ def convert_works_to_editions(site, works):
                 w['title'] = e.get('title') or w['title']
 
 def get_lending_library(site, **kw):
+    kw.setdefault("sort", "first_publish_year desc")
     subject = worksearch.get_subject("/subjects/lending_library", **kw)
     subject['key'] = '/borrow'
     convert_works_to_editions(site, subject['works'])
@@ -78,5 +79,3 @@ def get_lending_library(site, **kw):
 
 def setup():
     pass
-    
-    

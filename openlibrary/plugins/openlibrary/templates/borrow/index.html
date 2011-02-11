@@ -120,11 +120,12 @@ function resetCounts() {
 		imperdiet.
 	</p> 
 	<br/> 
-	<div class="inLibrary sansserif"> 
-		It looks like you’re in the <span class="fixthis">Library Name</span> network. 
-		That means you can access any of the <span class="fixthis">00,000</span> in-library titles!
-	</div> 
-	<br/> 
+	$if "inlibrary" in ctx.features and get_library() is not None:
+		<div class="inLibrary sansserif"> 
+			It looks like you’re in the <span>$get_library().name</span> network. 
+			That means you can access any of the <span class="fixthis">00,000</span> in-library titles!
+		</div>
+		<br/>
 	
 	<p class="largest sansserif collapse">
 		2. <a href="/search?sort=new&subject_facet=Lending+library" title="Search for Internet Archive books to borrow">Available to everyone</a>
@@ -160,13 +161,10 @@ function resetCounts() {
 <div class="contentHalf collapse"> 
         
 	<h3 class="collapse">Participating Libraries</h3> 
-	<ul class="unlist listLarge collapse"> 
-    	<li class="lightgrey sansserif small"><a href="Library Page" class="larger">Library Name</a> City, Country</li> 
-    	<li class="lightgrey sansserif small"><a href="Library Page" class="larger">Library Name</a> City, Country</li> 
-    	<li class="lightgrey sansserif small"><a href="Library Page" class="larger">Library Name</a> City, Country</li> 
-    	<li class="lightgrey sansserif small"><a href="Library Page" class="larger">Library Name</a> City, Country</li> 
-    	<li class="lightgrey sansserif small"><a href="Library Page" class="larger">Library Name</a> City, Country</li> 
-	</ul> 
+	<ul class="unlist listLarge collapse">
+		$for lib in sorted(get_libraries(), key=lambda lib: lib.title):
+    		<li class="lightgrey sansserif small"><a href="$lib.key" class="larger">$lib.title</a> <span class="fixthis">City, Country</span></li>
+	</ul>
 	<p class="smaller black sansserif"><strong>Would your library like to join the program?</strong> <a href="/contact">Let us know</a>!</p> 
 </div> 
 

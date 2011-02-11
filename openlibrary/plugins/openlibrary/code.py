@@ -725,5 +725,10 @@ def setup():
     home.setup()
     inlibrary.setup()
     borrow_home.setup()
+    
+    web.template.Template.globals.update({
+        "sorted": sorted,
+    })
+    
 
 setup()
