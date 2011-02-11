@@ -17,7 +17,7 @@ class borrow(delegate.page):
         return "inlibrary" in web.ctx.features
     
     def GET(self):
-        subject = get_lending_library(details=True)
+        subject = get_lending_library(web.ctx.site, details=True)
         return render_template("borrow/index", subject)
 
 class borrow(delegate.page):
@@ -49,12 +49,31 @@ class borrow(delegate.page):
         i.limit = h.safeint(i.limit, 12)
         i.offset = h.safeint(i.offset, 0)
 
-        subject = get_lending_library(offset=i.offset, limit=i.limit, details=i.details.lower() == "true", **filters)
+        subject = get_lending_library(web.ctx.site, offset=i.offset, limit=i.limit, details=i.details.lower() == "true", **filters)
         return simplejson.dumps(subject)
+        
+def convert_works_to_editions(site, works):
+    """Takes work docs got from solr and converts them into appropriate editions required for lending library.
+    """
+    ekeys = ['/books/' + w['lending_edition'] for w in works if w.get('lending_edition')]
+    editions = {}
+    for e in site.get_many(ekeys):
+        editions[e['key']] = e.dict()
+    
+    for w in works:
+        if w.get('lending_edition'):
+            e = editions['/books/' + w['lending_edition']]
+            if 'ocaid' in e:
+                covers = e.get('covers') or [None]
+                w['key'] = e['key']
+                w['cover_id'] = covers[0]
+                w['ia'] = e['ocaid']
+                w['title'] = e.get('title') or w['title']
 
-def get_lending_library(**kw):
+def get_lending_library(site, **kw):
     subject = worksearch.get_subject("/subjects/lending_library", **kw)
     subject['key'] = '/borrow'
+    convert_works_to_editions(subject['works'])
     return subject
 
 def setup():
