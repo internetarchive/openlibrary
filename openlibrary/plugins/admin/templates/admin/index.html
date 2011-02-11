@@ -5,6 +5,15 @@ $ _x = ctx.setdefault('usergroup', 'admin')
 
 $:macros.Dashboard()
 $ stats = get_admin_stats()
+<script type="text/javascript"> 
+\$(function () {
+    var edits = $:json_encode(counts.human_edits.get_counts(80, True));
+    var members = $:json_encode(counts.members.get_counts(80, True));
+    plot_tooltip_graph(\$("#editgraph"), edits, "edit(s) on");
+    plot_tooltip_graph(\$("#membergraph"), members,"new members(s) on");
+    });
+</script> 
+
 <div id="contentHead">
     <div class="contentRight" style="float:right;">
         <table class="records">
@@ -32,7 +41,10 @@ $ stats = get_admin_stats()
             <h2>Edits</h2>
         </div>
         <div class="chartHolder">
-            <div class="chartDisplay"><img src="http://home.us.archive.org/~georgeo/mocks/bar.png" />
+            <div class="chartDisplay">
+	      <div id="editgraph" style="width:430px;height:50px;">
+		<!-- Edit graphs go here -->
+	      </div>
             </div>
         </div>
         <table class="measurements stripeEven" id="edits">
@@ -48,24 +60,24 @@ $ stats = get_admin_stats()
             <tbody>
                 <tr class="major">
                     <td class="type">Human</td>
-                    <td class="amount"><strong>$commify(counts.human_edits.today)</strong></td>
-                    <td class="amount">$commify(counts.human_edits.yesterday)</td>
-                    <td class="amount">$commify(counts.human_edits.lastweek)</td>
-                    <td class="amount">$commify(counts.human_edits.lastmonth)</td>
+                    <td class="amount"><strong>$commify(counts.human_edits.latest)</strong></td>
+                    <td class="amount">$commify(counts.human_edits.previous)</td>
+                    <td class="amount">$commify(counts.human_edits.get_summary(7))</td>
+                    <td class="amount">$commify(counts.human_edits.get_summary(28))</td>
                 </tr>
                 <tr class="even">
                     <td class="type">Bot</td>
-                    <td class="amount">$commify(counts.bot_edits.today)</td>
-                    <td class="amount">$commify(counts.bot_edits.yesterday)</td>
-                    <td class="amount">$commify(counts.bot_edits.lastweek)</td>
-                    <td class="amount">$commify(counts.bot_edits.lastmonth)</td>
+                    <td class="amount"><strong>$commify(counts.bot_edits.latest)</strong></td>
+                    <td class="amount">$commify(counts.bot_edits.previous)</td>
+                    <td class="amount">$commify(counts.bot_edits.get_summary(7))</td>
+                    <td class="amount">$commify(counts.bot_edits.get_summary(28))</td>
                 </tr>
                 <tr class="totals">
                     <td class="type">Total</td>
-                    <td class="amount">$commify(counts.bot_edits.today + counts.human_edits.today)</td>
-                    <td class="amount">$commify(counts.bot_edits.yesterday + counts.human_edits.yesterday)</td>
-                    <td class="amount">$commify(counts.bot_edits.lastweek + counts.human_edits.lastweek)</td>
-                    <td class="amount">$commify(counts.bot_edits.lastmonth + counts.human_edits.lastmonth)</td>
+                    <td class="amount">$commify(counts.bot_edits.latest + counts.human_edits.latest)</td>
+                    <td class="amount">$commify(counts.bot_edits.previous + counts.human_edits.previous)</td>
+                    <td class="amount">$commify(counts.bot_edits.get_summary(7) + counts.human_edits.get_summary(7))</td>
+                    <td class="amount">$commify(counts.bot_edits.get_summary(28) + counts.human_edits.get_summary(28))</td>
                 </tr>
             </tbody>
         </table>
@@ -77,7 +89,9 @@ $ stats = get_admin_stats()
             <h2>Members</h2>
         </div>
         <div class="chartHolder">
-            <div class="chartDisplay"><img src="http://home.us.archive.org/~georgeo/mocks/bar.png" />
+	      <div id="membergraph" style="width:430px;height:50px;">
+		<!-- Member graphs go here -->
+	      </div>
             </div>
         </div>
         <table class="measurements stripeEven" id="members">
@@ -116,7 +130,19 @@ $ stats = get_admin_stats()
     </div>
 
     <h2>Record Counts</h2>
-
+    <script type="text/javascript">
+      \$(function () {
+	  plot_minigraph (\$("#works_minigraph"), $:json_encode(counts.works.get_counts(80)));
+	  plot_minigraph (\$("#editions_minigraph"), $:json_encode(counts.editions.get_counts(80)));
+	  plot_minigraph (\$("#ebooks_minigraph"), $:json_encode(counts.ebooks.get_counts(80)));
+	  plot_minigraph (\$("#covers_minigraph"), $:json_encode(counts.covers.get_counts(80)));
+	  plot_minigraph (\$("#authors_minigraph"), $:json_encode(counts.authors.get_counts(80)));
+	  plot_minigraph (\$("#subjects_minigraph"), $:json_encode(counts.subjects.get_counts(80)));
+	  plot_minigraph (\$("#lists_minigraph"), $:json_encode(counts.lists.get_counts(80)));
+	  plot_minigraph (\$("#members_minigraph"), $:json_encode(counts.members.get_counts(80)));
+      });
+</script>
+    
     <table class="measurements stripeEven">
         <tr>
             <th></th>
@@ -127,58 +153,58 @@ $ stats = get_admin_stats()
         </tr>
         <tr class="major">
             <td>Works</td>
-            <td class="amount">$commify(counts.works.lastweek)</td>
-            <td class="amount">$commify(counts.works.lastmonth)</td>
-            <td><img src="http://home.us.archive.org/~georgeo/mocks/spark.png" /></td>
+            <td class="amount">$commify(counts.works.get_summary(7))</td>
+            <td class="amount">$commify(counts.works.get_summary(28))</td>
+            <td><div id="works_minigraph" style="width:150px;height:30px;" ></div></td>
             <td class="amount">$commify(counts.works.total)</td>    
         </tr>
         <tr class="major even">
             <td>Editions</td>
-            <td class="amount">$commify(counts.editions.lastweek)</td> 
-            <td class="amount">$commify(counts.editions.lastmonth)</td>
-            <td><img src="http://home.us.archive.org/~georgeo/mocks/spark.png" /></td>
+            <td class="amount">$commify(counts.editions.get_summary(7))</td> 
+            <td class="amount">$commify(counts.editions.get_summary(28))</td>
+            <td><div id="editions_minigraph" style="width:150px;height:30px;" ></div></td>
             <td class="amount">$commify(counts.editions.total)</td>    
         </tr>
         <tr class="major">
             <td>eBooks</td>
-            <td class="amount">$commify(counts.ebooks.lastweek)</td> 
-            <td class="amount">$commify(counts.ebooks.lastmonth)</td>
-            <td><img src="http://home.us.archive.org/~georgeo/mocks/spark.png" /></td>
+            <td class="amount">$commify(counts.ebooks.get_summary(7))</td> 
+            <td class="amount">$commify(counts.ebooks.get_summary(28))</td>
+            <td><div id="ebooks_minigraph" style="width:150px;height:30px;" ></div></td>
             <td class="amount">$commify(counts.ebooks.total)</td>    
         </tr>
         <tr class="major even">
             <td>Covers</td>
-            <td class="amount">$commify(counts.covers.lastweek)</td> 
-            <td class="amount">$commify(counts.covers.lastmonth)</td>
-            <td><img src="http://home.us.archive.org/~georgeo/mocks/spark.png" /></td>
+            <td class="amount">$commify(counts.covers.get_summary(7))</td> 
+            <td class="amount">$commify(counts.covers.get_summary(28))</td>
+            <td><div id="covers_minigraph" style="width:150px;height:30px;" ></div></td>
             <td class="amount">$commify(counts.covers.total)</td>    
         </tr>
         <tr class="major">
             <td>Authors</td>
-            <td class="amount">$commify(counts.authors.lastweek)</td> 
-            <td class="amount">$commify(counts.authors.lastmonth)</td>
-            <td><img src="http://home.us.archive.org/~georgeo/mocks/spark.png" /></td>
+            <td class="amount">$commify(counts.authors.get_summary(7))</td> 
+            <td class="amount">$commify(counts.authors.get_summary(28))</td>
+            <td><div id="authors_minigraph" style="width:150px;height:30px;" ></div></td>
             <td class="amount">$commify(counts.authors.total)</td>    
         </tr>
         <tr class="major even">
             <td>Subjects</td>
-            <td class="amount">$commify(counts.subjects.lastweek)</td> 
-            <td class="amount">$commify(counts.subjects.lastmonth)</td>
-            <td><img src="http://home.us.archive.org/~georgeo/mocks/spark.png" /></td>
+            <td class="amount">$commify(counts.subjects.get_summary(7))</td> 
+            <td class="amount">$commify(counts.subjects.get_summary(28))</td>
+            <td><div id="subjects_minigraph" style="width:150px;height:30px;" ></div></td>
             <td class="amount">$commify(counts.subjects.total)</td>    
         </tr>
         <tr class="major">
             <td>Lists</td>
-            <td class="amount">$commify(counts.lists.lastweek)</td> 
-            <td class="amount">$commify(counts.lists.lastmonth)</td>
-            <td><img src="http://home.us.archive.org/~georgeo/mocks/spark.png" /></td>
+            <td class="amount">$commify(counts.lists.get_summary(7))</td> 
+            <td class="amount">$commify(counts.lists.get_summary(28))</td>
+            <td><div id="lists_minigraph" style="width:150px;height:30px;" ></div></td>
             <td class="amount">$commify(counts.lists.total)</td>    
         </tr>
         <tr class="major even">
             <td>Members</td>
-            <td class="amount">$commify(counts.members.lastweek)</td>
-            <td class="amount">$commify(counts.members.lastmonth)</td>
-            <td><img src="http://home.us.archive.org/~georgeo/mocks/spark.png" /></td>
+            <td class="amount">$commify(counts.members.get_summary(7))</td>
+            <td class="amount">$commify(counts.members.get_summary(28))</td>
+            <td><div id="members_minigraph" style="width:150px;height:30px;" ></div></td>
             <td class="amount">$commify(counts.members.total)</td>
         </tr>
     </table>
