@@ -6,9 +6,10 @@ $ subject_list = [('subjects', 20), ('places', 20), ('people', 10), ('times', 10
 
 <div id="contentHead"> 
     <h1> 
-        Lending Library
-        <span class="count" id="coverCount"><strong>0,000 works</strong> / <a href="javascript:;">0,000 ebooks</a> published between 1200 &amp; 2011.</span> 
+        Borrow a Book
+        <span class="count" id="coversCount"><strong>000 books</strong> published between 1200 &amp; 2011.</span>
     </h1> 
+	<!--
     <p class="collapse sansserif"> 
         <span class="tools brown"> 
             <img src="/images/icons/icon_sort.png" alt="Sorting by" width="9" height="11" style="margin-right:10px;"/> 
@@ -18,6 +19,7 @@ $ subject_list = [('subjects', 20), ('places', 20), ('people', 10), ('times', 10
             <a href="javascript:;"># of Editions</a> 
         </span> 
     </p> 
+	-->
 </div> 
 
 <script type="text/javascript">
@@ -36,25 +38,12 @@ function resetCounts() {
     var x = sprintf(ungettext("%s book", "%s books", page.work_count), commify(page.work_count));
     var y = sprintf(ungettext("%s ebook", "%s ebooks", page.ebook_count), commify(page.ebook_count));
     
-    if (page.has_fulltext == "true") {
-        counts.append('<a class="bookcount" href="javascript:;"></a>').find("a:last").text(x);
-        counts.append(" / ");            
-        counts.append('<strong></strong>').find("strong:last").text(y);
-        
-        hash.ebooks = "true";
-    }
-    else {
-        counts.append('<strong></strong>').find("strong:last").text(x);
-        counts.append(" / ");
-        if (page.ebook_count > 0) {
-            counts.append('<a class="ebookcount" href="javascript:;"></a>').find("a:last").text(y);
-        } else {
-            counts.append('<span class="ebookcount"></span>').find("span.ebookcount:last").text(y);
-        }
-        hash.ebooks = null;
-    }
+    counts.append('<strong></strong>').find("strong:last").text(x);
+    hash.ebooks = null;
+
     counts.append("&nbsp;");
     counts.append('<span class="clickdata"></span>');
+
 	\$("#coversCount").html(counts.html());
     
 	var yearFrom, yearTo;		
@@ -71,9 +60,6 @@ function resetCounts() {
 		}
 
 		hash.published_in = y;
-
-        \$(".chartUnzoom").hide();
-        \$(".chartZoom").show();		
 	}
 	else {
 	    page._published_in = null;
@@ -82,9 +68,6 @@ function resetCounts() {
 		yearTo = page.publishing_history[page.publishing_history.length-1][0];
 		
         hash.published_in = null;
-
-        \$(".chartZoom").hide();
-        \$(".chartUnzoom").show();		
 	}
 	
 	if (yearFrom == yearTo) {
@@ -107,7 +90,7 @@ function resetCounts() {
 </div> 
 
 <div class="section"> 
-    <form method="get" action="/search" class="siteSearch olform"> 
+    <form method="get" action="/search?subject_facet=Lending+library" class="siteSearch olform"> 
     <label for="q" class="hidden">Keywords</label> 
     <input type="text" name="q" id="q" value="" size="100" style="width:505px;"/> 
     <button type="submit" class="larger" id="searchsubmit">Search</button> 
