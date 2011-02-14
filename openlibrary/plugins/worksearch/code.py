@@ -667,7 +667,7 @@ class subject_works_json(delegate.page):
                 begin, end = i.published_in.split("-", 1)
 
                 if safeint(begin, None) is not None and safeint(end, None) is not None:
-                    filters["publish_year"] = [begin, end]
+                    filters["publish_year"] = (begin, end)
             else:
                 y = safeint(i.published_in, None)
                 if y is not None:

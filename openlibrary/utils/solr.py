@@ -117,8 +117,10 @@ class Solr:
             return v.replace('"', r'\"').replace("(", "\\(").replace(")", "\\)")
             
         def escape_value(v):
-            if isinstance(v, list): # hack for supporting range
+            if isinstance(v, tuple): # hack for supporting range
                 return "[%s TO %s]" % (escape(v[0]), escape(v[1]))
+            elif isinstance(v, list): # one of 
+                return "(%s)" % " OR ".join(escape_value(x) for x in v)
             else:
                 return '"%s"' % escape(v)
         
