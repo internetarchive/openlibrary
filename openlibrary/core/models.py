@@ -318,7 +318,6 @@ class Library(Thing):
         """Returns IpRangeList object for the range of IPs of this library.
         """
         ranges = list(self.parse_ip_ranges(self.ip_ranges or ""))
-        print "get_ip_range_list", ranges
         return iptools.IpRangeList(*ranges)
         
     def has_ip(self, ip):

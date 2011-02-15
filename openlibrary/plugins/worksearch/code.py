@@ -188,6 +188,7 @@ def build_q_list(param):
     return (q_list, use_dismax)
 
 def run_solr_query(param = {}, rows=100, page=1, sort=None, spellcheck_count=None):
+    # called by do_search
     if spellcheck_count == None:
         spellcheck_count = default_spellcheck_count
     offset = rows * (page - 1)
@@ -287,7 +288,7 @@ def do_search(param, sort, page=1, rows=100, spellcheck_count=None):
         spellcheck = spell_map,
     )
 
-def get_doc(doc):
+def get_doc(doc): # called from work_search template
     e_ia = doc.find("arr[@name='ia']")
     first_pub = None
     e_first_pub = doc.find("int[@name='first_publish_year']")
@@ -349,7 +350,7 @@ subject_types = {
 
 re_year_range = re.compile('^(\d{4})-(\d{4})$')
 
-def work_object(w):
+def work_object(w): # called by works_by_author
     ia = w.get('ia', [])
     obj = dict(
         authors = [web.storage(key='/authors/' + k, name=n) for k, n in zip(w['author_key'], w['author_name'])],
@@ -471,7 +472,7 @@ def get_ebook_count(field, key, publish_year=None):
 
     return db_lookup(field, key, publish_year)
 
-def get_subject(key, details=False, offset=0, limit=12, **filters):
+def get_subject(key, details=False, offset=0, sort='editions', limit=12, **filters):
     """Returns data related to a subject.
 
     By default, it returns a storage object with key, name, work_count and works.
@@ -527,13 +528,16 @@ def get_subject(key, details=False, offset=0, limit=12, **filters):
 
     Optional arguments has_fulltext and published_in can be passed to filter the results.
     """
-    return SubjectEngine().get_subject(key, details=details, offset=offset, limit=limit, **filters)
+    return SubjectEngine().get_subject(key, details=details, offset=offset, sort=sort, limit=limit, **filters)
         
 class SubjectEngine:        
-    def get_subject(self, key, details=False, offset=0, limit=12, **filters):
+    def get_subject(self, key, details=False, offset=0, sort='editions', limit=12, **filters):
         meta = self.get_meta(key)
 
-        sort_order = 'first_publish_year desc'
+        sort_order = {
+            'editions': 'edition_count desc',
+            'old': 'first_publish_year desc',
+        }[sort]
 
         q = self.make_query(key, filters)    
         subject_type = meta.name
@@ -655,27 +659,27 @@ class subjects_json(delegate.page):
         if key.lower() != key:
             raise web.redirect(key.lower())
 
-        i = web.input(offset=0, limit=12, details="false", has_fulltext="false")
+        i = web.input(offset=0, limit=12, details='false', has_fulltext='false', sort='editions')
 
         filters = {}
-        if i.get("has_fulltext") == "true":
-            filters["has_fulltext"] = "true"
+        if i.get('has_fulltext') == 'true':
+            filters['has_fulltext'] = 'true'
 
-        if i.get("published_in"):
-            if "-" in i.published_in:
-                begin, end = i.published_in.split("-", 1)
+        if i.get('published_in'):
+            if '-' in i.published_in:
+                begin, end = i.published_in.split('-', 1)
 
                 if safeint(begin, None) is not None and safeint(end, None) is not None:
-                    filters["publish_year"] = [begin, end]
+                    filters['publish_year'] = [begin, end]
             else:
                 y = safeint(i.published_in, None)
                 if y is not None:
-                    filters["publish_year"] = i.published_in
+                    filters['publish_year'] = i.published_in
 
         i.limit = safeint(i.limit, 12)
         i.offset = safeint(i.offset, 0)
 
-        subject = get_subject(key, offset=i.offset, limit=i.limit, details=i.details.lower() == "true", **filters)
+        subject = get_subject(key, offset=i.offset, limit=i.limit, sort=i.sort, details=i.details.lower() == 'true', **filters)
         return json.dumps(subject)
 
 class subject_works_json(delegate.page):
@@ -812,6 +816,7 @@ class search(delegate.page):
         return render.work_search(i, ' '.join(q_list), do_search, get_doc)
 
 def works_by_author(akey, sort='editions', page=1, rows=100):
+    # called by merge_author_works
     q='author_key:' + akey
     offset = rows * (page - 1)
     fields = ['key', 'author_name', 'author_key', 'title', 'subtitle',
