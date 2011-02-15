@@ -730,5 +730,7 @@ def setup():
         "sorted": sorted,
     })
     
+    from stats import stats_hook
+    delegate.app.add_processor(web.unloadhook(stats_hook))
 
 setup()
