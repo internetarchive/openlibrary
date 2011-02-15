@@ -1,9 +1,7 @@
-import string, re
 import web
 import simplejson
 import babel, babel.core, babel.dates
 from UserDict import DictMixin
-from babel.numbers import format_number
 from collections import defaultdict
 import random
 import urllib
@@ -14,18 +12,12 @@ import StringIO
 
 from infogami import config
 from infogami.utils import view, delegate
-from infogami.utils.view import render, get_template, public, _format
+from infogami.utils.view import render, get_template, public
 from infogami.utils.macro import macro
-from infogami.utils.markdown import markdown
 from infogami.utils.context import context
 from infogami.infobase.client import Thing
 
-from infogami.infobase.utils import parse_datetime
-
-from openlibrary.i18n import gettext as _
-from openlibrary.plugins.openlibrary.utils import sanitize
-
-from openlibrary.core.helpers import json_encode, datestr, format_date, sprintf, cond, commify, truncate
+from openlibrary.core.helpers import commify
     
 
 class MultiDict(DictMixin):
