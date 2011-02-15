@@ -8,6 +8,7 @@ from infogami.utils import delegate
 from infogami.utils.view import render_template
 
 from openlibrary.core import helpers as h
+from openlibrary.core import inlibrary
 from openlibrary.plugins.worksearch import code as worksearch
 
 class borrow(delegate.page):
@@ -17,7 +18,7 @@ class borrow(delegate.page):
         return "inlibrary" in web.ctx.features
     
     def GET(self):
-        subject = get_lending_library(web.ctx.site, details=True)
+        subject = get_lending_library(web.ctx.site, details=True, inlibrary=inlibrary.get_library() is not None)
         return render_template("borrow/index", subject)
 
 class borrow(delegate.page):
@@ -49,7 +50,12 @@ class borrow(delegate.page):
         i.limit = h.safeint(i.limit, 12)
         i.offset = h.safeint(i.offset, 0)
 
-        subject = get_lending_library(web.ctx.site, offset=i.offset, limit=i.limit, details=i.details.lower() == "true", **filters)
+        subject = get_lending_library(web.ctx.site, 
+            offset=i.offset, 
+            limit=i.limit, 
+            details=i.details.lower() == "true", 
+            inlibrary=inlibrary.get_library() is not None,
+            **filters)
         return simplejson.dumps(subject)
         
 def convert_works_to_editions(site, works):
@@ -70,12 +76,35 @@ def convert_works_to_editions(site, works):
                 w['ia'] = e['ocaid']
                 w['title'] = e.get('title') or w['title']
 
-def get_lending_library(site, **kw):
+def get_lending_library(site, inlibrary=False, **kw):
     kw.setdefault("sort", "first_publish_year desc")
-    subject = worksearch.get_subject("/subjects/lending_library", **kw)
+    
+    if inlibrary:
+        subject = CustomSubjectEngine().get_subject("/subjects/lending_library", **kw)
+    else:
+        subject = worksearch.SubjectEngine().get_subject("/subjects/lending_library", **kw)
+    
     subject['key'] = '/borrow'
     convert_works_to_editions(site, subject['works'])
     return subject
+    
+class CustomSubjectEngine(worksearch.SubjectEngine):
+    """SubjectEngine for inlibrary and lending_library combined."""
+    def make_query(self, key, filters):
+        meta = self.get_meta(key)
+
+        q = {meta.facet_key: ["in_library", "lending_library"]}
+
+        if filters:
+            if filters.get("has_fulltext") == "true":
+                q['has_fulltext'] = "true"
+            if filters.get("publish_year"):
+                q['publish_year'] = filters['publish_year']
+
+        return q
+    
+    def get_ebook_count(self, name, value, publish_year):
+        return 0
 
 def setup():
     pass

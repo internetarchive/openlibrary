@@ -2,9 +2,13 @@
 """
 import web
 import cache
+from infogami.utils import delegate
 
 def _get_libraries(site=None):
     """Returns all the libraries each as a dict."""
+    if 'env' not in web.ctx:
+        delegate.fakeload()
+    
     site = site or web.ctx.site
 
     keys = site.things(query={"type": "/type/library", "limit": 1000})
