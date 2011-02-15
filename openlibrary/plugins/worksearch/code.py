@@ -188,6 +188,7 @@ def build_q_list(param):
     return (q_list, use_dismax)
 
 def run_solr_query(param = {}, rows=100, page=1, sort=None, spellcheck_count=None):
+    # called by do_search
     if spellcheck_count == None:
         spellcheck_count = default_spellcheck_count
     offset = rows * (page - 1)
@@ -287,7 +288,7 @@ def do_search(param, sort, page=1, rows=100, spellcheck_count=None):
         spellcheck = spell_map,
     )
 
-def get_doc(doc):
+def get_doc(doc): # called from work_search template
     e_ia = doc.find("arr[@name='ia']")
     first_pub = None
     e_first_pub = doc.find("int[@name='first_publish_year']")
@@ -349,7 +350,7 @@ subject_types = {
 
 re_year_range = re.compile('^(\d{4})-(\d{4})$')
 
-def work_object(w):
+def work_object(w): # called by works_by_author
     ia = w.get('ia', [])
     obj = dict(
         authors = [web.storage(key='/authors/' + k, name=n) for k, n in zip(w['author_key'], w['author_name'])],
@@ -781,6 +782,7 @@ class search(delegate.page):
         return render.work_search(i, ' '.join(q_list), do_search, get_doc)
 
 def works_by_author(akey, sort='editions', page=1, rows=100):
+    # called by merge_author_works
     q='author_key:' + akey
     offset = rows * (page - 1)
     fields = ['key', 'author_name', 'author_key', 'title', 'subtitle',
