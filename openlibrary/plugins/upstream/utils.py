@@ -17,7 +17,7 @@ from infogami.utils.macro import macro
 from infogami.utils.context import context
 from infogami.infobase.client import Thing
 
-from openlibrary.core.helpers import commify
+from openlibrary.core.helpers import commify, parse_datetime
 from openlibrary.core.middleware import GZipMiddleware
     
 class MultiDict(DictMixin):
