@@ -1,4 +1,5 @@
 
+import string
 import web
 import urllib, urllib2
 import simplejson
@@ -22,7 +23,10 @@ from utils import get_coverstore_url, MultiDict, parse_toc, parse_datetime, get_
 import account
 import borrow
 
-re_meta_field = re.compile('<(collection|contributor)>([^<]+)</(collection|contributor)>', re.I)
+ia_meta_sets = set(['collection','external-identifier'])
+ia_meta_fields = set(['contributor'])
+ia_meta_group = '(' + string.join(ia_meta_sets.union(ia_meta_fields), '|') + ')'
+re_meta_field = re.compile('<%s>([^<]+)</%s>' % (ia_meta_group, ia_meta_group), re.I)
 
 def follow_redirect(doc):
     if doc.type.key == "/type/redirect":
@@ -32,6 +36,7 @@ def follow_redirect(doc):
         return doc
 
 class Edition(models.Edition):
+
     def get_title(self):
         if self['title_prefix']:
             return self['title_prefix'] + ' ' + self['title']
@@ -100,11 +105,17 @@ class Edition(models.Edition):
         return self._process_identifiers(get_edition_config().identifiers, names, self.identifiers)
 
     def get_ia_meta_fields(self):
+        # Check for cached value
+        # $$$ we haven't assigned _ia_meta_fields the first time around but there's apparently
+        #     some magic that lets us check this way (and breaks using hasattr to check if defined)
+        if self._ia_meta_fields:
+            return self._ia_meta_fields
+            
         if not self.get('ocaid', None):
             return {}
         ia = self.ocaid
         url = 'http://www.archive.org/download/%s/%s_meta.xml' % (ia, ia)
-        reply = { 'collection': set() }
+        reply = dict([ (set_name, set()) for set_name in ia_meta_sets ]) # create empty sets
         try:
             stats.begin("archive.org", url=url)
             f = urllib2.urlopen(url)
@@ -120,11 +131,14 @@ class Edition(models.Edition):
             v = m.group(2)
             if k == 'collection':
                 reply[k].add(v.lower())
+            elif k in ia_meta_sets:
+                reply[k].add(v)
             else:
-                assert k == 'contributor'
-                reply[k] = v
+                if k in ia_meta_fields:
+                    reply[k] = v
 
-        return reply
+        self._ia_meta_fields = reply
+        return self._ia_meta_fields
 
     def is_daisy_encrypted(self):
         meta_fields = self.get_ia_meta_fields()
