@@ -528,13 +528,13 @@ def get_subject(key, details=False, offset=0, sort='editions', limit=12, **filte
 
     Optional arguments has_fulltext and published_in can be passed to filter the results.
     """
-    sort_order = {
+    sort_options = {
         'editions': 'edition_count desc',
         'old': 'first_publish_year desc',
     }
-    sort_value = sort_order.get(sort) or sort_order['editions']
+    sort_order = sort_options.get(sort) or sort_options['editions']
 
-    return SubjectEngine().get_subject(key, details=details, offset=offset, sort=sort_value, limit=limit, **filters)
+    return SubjectEngine().get_subject(key, details=details, offset=offset, sort=sort_order, limit=limit, **filters)
         
 class SubjectEngine:        
     def get_subject(self, key, details=False, offset=0, limit=12, **filters):
@@ -550,7 +550,7 @@ class SubjectEngine:
             kw = {}
             
         from search import work_search
-        result = work_search(q, offset=offset, limit=limit, sort=sort_order, **kw)
+        result = work_search(q, offset=offset, limit=limit, **kw)
         for w in result.docs:
             w.ia = w.ia and w.ia[0] or None
 
