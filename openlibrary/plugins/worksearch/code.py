@@ -528,16 +528,17 @@ def get_subject(key, details=False, offset=0, sort='editions', limit=12, **filte
 
     Optional arguments has_fulltext and published_in can be passed to filter the results.
     """
-    return SubjectEngine().get_subject(key, details=details, offset=offset, sort=sort, limit=limit, **filters)
+    sort_order = {
+        'editions': 'edition_count desc',
+        'old': 'first_publish_year desc',
+    }
+    sort_value = sort_order.get(sort) or sort_order['editions']
+
+    return SubjectEngine().get_subject(key, details=details, offset=offset, sort=sort_value, limit=limit, **filters)
         
 class SubjectEngine:        
-    def get_subject(self, key, details=False, offset=0, sort='editions', limit=12, **filters):
+    def get_subject(self, key, details=False, offset=0, limit=12, **filters):
         meta = self.get_meta(key)
-
-        sort_order = {
-            'editions': 'edition_count desc',
-            'old': 'first_publish_year desc',
-        }[sort]
 
         q = self.make_query(key, filters)    
         subject_type = meta.name
