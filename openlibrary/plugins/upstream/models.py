@@ -169,33 +169,17 @@ class Edition(models.Edition):
             # Could be e.g. OverDrive
             return []
         
-        # Use cached value if available
-#         try:
-#             return self._lending_resources
-#         except AttributeError:
-#             pass
-#             
-#         if not itemid:
-#             self._lending_resources = []
-#             return self._lending_resources
-        
-        url = 'http://www.archive.org/download/%s/%s_meta.xml' % (itemid, itemid)
-        # $$$ error handling
-        stats.begin("archive.org", url=url)
-        root = etree.parse(urllib2.urlopen(url))
-        stats.end()
-        
-        self._lending_resources = [ elem.text for elem in root.findall('external-identifier') ]
-        
+        lending_resources = []
         # Check if available for in-browser lending - marked with 'browserlending' collection
         browserLendingCollections = ['browserlending']
-        collections = [ elem.text for elem in root.findall('collection') ]
-        for collection in collections:
+        for collection in self.get_ia_meta_fields()['collection']:
             if collection in browserLendingCollections:
-                self._lending_resources.append('bookreader:%s' % self.ocaid)
+                lending_resources.append('bookreader:%s' % self.ocaid)
                 break
+
+        lending_resources.extend(self.get_ia_meta_fields()['external-identifier'])
         
-        return self._lending_resources
+        return lending_resources
         
     def get_lending_resource_id(self, type):
         if type == 'bookreader':
