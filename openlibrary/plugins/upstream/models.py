@@ -201,7 +201,12 @@ class Edition(models.Edition):
         return None
         
     def get_available_loans(self):
-        """Returns [{'resource_id': uuid, 'resource_type': type, 'size': bytes}]
+        """
+        Get the resource types currently available to be loaned out for this edition.  Does NOT
+        take into account the user's status (e.g. number of books out, in-library status, etc).
+        This is like checking if this book is on the shelf.
+        
+        Returns [{'resource_id': uuid, 'resource_type': type, 'size': bytes}]
         
         size may be None"""
         
@@ -209,6 +214,12 @@ class Edition(models.Edition):
         
         loans = []
         
+        # Check if we have a possible loan - may not yet be fulfilled in ACS4
+        if borrow.get_edition_loans(self):
+            # There is a current loan or offer
+            return []
+        
+        # Create list of possible loan formats
         resource_pattern = r'acs:(\w+):(.*)'
         for resource_urn in self.get_lending_resources():
             print 'RESOURCE %s' % resource_urn
@@ -217,8 +228,7 @@ class Edition(models.Edition):
                 loans.append( { 'resource_id': resource_id, 'resource_type': type, 'size': None } )
             elif resource_urn.startswith('bookreader'):
                 loans.append( { 'resource_id': resource_urn, 'resource_type': 'bookreader', 'size': None } )
-            
-        
+                    
         # Put default type at start of list, then sort by type name
         def loan_key(loan):
             if loan['resource_type'] == default_type:
@@ -226,22 +236,16 @@ class Edition(models.Edition):
             else:
                 return '2-%s' % loan['resource_type']        
         loans = sorted(loans, key=loan_key)
-        
-        # Check if we have a possible loan - may not yet be fulfilled in ACS4
-        if borrow.get_edition_loans(self):
-            # There is a current loan or offer
-            return []
-            
-        # Check if available - book status server
-        # We shouldn't be out of sync but we fail safe
+                    
+        # For each possible loan, check if it is available
+        # We shouldn't be out of sync (we already checked get_edition_loans for current loans) but we fail safe, for example
+        # the book may have been borrowed in a dev instance against the live ACS4 server
         for loan in loans:
             if borrow.is_loaned_out(loan['resource_id']):
                 # Only a single loan of an item is allowed
-                # XXX log out of sync state
+                # $$$ log out of sync state
                 return []
-        
-        # XXX get file size
-            
+                    
         return loans
     
     def update_loan_status(self):
