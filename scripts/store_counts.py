@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 
 import sys
-sys.path.append("/opt/openlibrary/production/")
+
+import _init_path
+
 from openlibrary.admin import stats
 
 if __name__ == "__main__":
