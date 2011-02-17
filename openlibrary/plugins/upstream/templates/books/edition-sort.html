@@ -31,11 +31,14 @@ $ google = ""
 $ isbn_10 = (book.isbn_10 and book.isbn_10[0]) or ""
 $ oclc_numbers = (book.oclc_numbers and book.oclc_numbers[0]) or ""
 
+$ library = None
 $ collection = set()
 $ meta_fields = book.get_ia_meta_fields()
 $if meta_fields:
     $ collection = meta_fields.get('collection', [])
     $ contrib = meta_fields.get('contributor')
+    $if 'inlibrary' in collection and 'inlibrary' in ctx.features:
+        $ library = get_library()
 
 $ overdrive_id = None
 $if book.get('identifiers', None) and book.identifiers.get('overdrive', None):
@@ -108,7 +111,7 @@ $ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
         </div>
         </td>
 
-    $if isbn_10 or oclc_numbers or overdrive_id or 'lendinglibrary' in collection:
+    $if isbn_10 or oclc_numbers or overdrive_id or 'lendinglibrary' in collection or library:
         <td class="icon borrow">
             <div class="aaaa"></div>
             <div class="links">
@@ -116,8 +119,9 @@ $ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
                 $if overdrive_id:
                     <li><a href="$overdrive.replace('XXX', overdrive_id)" title="Borrow from OverDrive">eBook, local library</a><br /><span class="gray smaller">via OverDrive</span></li>
                 $if  'lendinglibrary' in collection:
-                    $ borrow_link = book.url() + '/borrow'
-                    <li><a href="$borrow_link" title="Borrow from $contrib">eBook</a><br /><span class="gray smaller">from $contrib</span></li>
+                    $:macros.LoanStatus(book, 'eBook', book.get_available_loans(), contrib, '')
+                $elif library:
+                    $:macros.LoanStatus(book, 'Bones eBook', book.get_available_loans(), contrib, '')
                 $if isbn_10:
                     <li><a href="$worldcat.replace('XXX', isbn_10)" title="Look for this edition at WorldCat">Physical copy</a><br /><span class="gray smaller">via WorldCat</span></li>
                 $elif oclc_numbers:

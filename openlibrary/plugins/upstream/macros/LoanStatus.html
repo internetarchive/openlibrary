@@ -1,0 +1,10 @@
+$def with (page, ebook_text, available_loans, contributor, line_break)
+
+$# TODO construct list of available formats from available_loans
+
+$ borrow_link = page.url() + '/borrow'
+$if available_loans:
+            <p style="margin-bottom:10px;"><a href="$borrow_link" title="Borrow from $contributor">$ebook_text</a> <span class="smaller">PDF, ePub or in browser $:{line_break}from $contributor</span></p>
+$else:
+            <p style="margin-bottom:10px;"><a href="$borrow_link" title="Borrow from $contributor">$ebook_text</a> <span class="smaller"><strike>PDF, ePub or in browser $:{line_break}from $contributor</strike></span> checked out</p>
+    

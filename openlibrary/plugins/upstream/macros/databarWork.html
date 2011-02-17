@@ -60,6 +60,7 @@ $if page.get('identifiers'):
 $if isbn_10 and not asin:
     $ asin = isbn_10
 
+$ library = None
 
 <div class="Tools">
 $ collection = set()
@@ -67,6 +68,8 @@ $ meta_fields = page.get_ia_meta_fields()
 $if meta_fields:
     $ collection = meta_fields.get('collection', [])
     $ contrib = meta_fields.get('contributor')
+    $if 'inlibrary' in collection and 'inlibrary' in ctx.features:
+        $ library = get_library()
 
 $if page.volumes:
     <div>
@@ -117,7 +120,8 @@ $else:
     </div>
     </div>
 
-$if isbn or oclc_numbers or overdrive_id or 'lendinglibrary' in collection:
+$if isbn or oclc_numbers or overdrive_id or 'lendinglibrary' in collection or library:
+    $ available_loans = page.get_available_loans()
     <div>
     <h3 class="header">
         <span class="icon borrow"></span>
@@ -125,8 +129,9 @@ $if isbn or oclc_numbers or overdrive_id or 'lendinglibrary' in collection:
     </h3>
     <div class="panel">
         $if  'lendinglibrary' in collection:
-            $ borrow_link = page.url() + '/borrow'
-            <p style="margin-bottom:10px;"><a href="$borrow_link" title="Borrow from $contrib">eBook</a> <span class="smaller">PDF, ePub or in browser<br/>from $contrib</span></p>
+            $:macros.LoanStatus(page, 'eBook', available_loans, contrib, '<br/>')
+        $elif library:
+            $:macros.LoanStatus(page, 'Bones eBook', available_loans, contrib, '<br/>')
         $if overdrive_id:
             <p><a href="$overdrive.replace('XXX', overdrive_id)" title="Borrow from OverDrive">eBook, local library</a> <span class="smaller">OverDrive</span></p>
         $if isbn:
