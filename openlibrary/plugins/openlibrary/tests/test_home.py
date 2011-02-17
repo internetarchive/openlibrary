@@ -6,29 +6,8 @@ from openlibrary.i18n import gettext
 
 from BeautifulSoup import BeautifulSoup
 
-class TemplateTest:
-    def load_templates(self, path):
-        template.load_templates(path)
-        
-    def setup_method(self, method):
-        self.load_templates("openlibrary/plugins/openlibrary")
-        self.load_templates("openlibrary/plugins/upstream")
-
-        web.template.Template.globals["_"] = gettext
-        
-        web.ctx.env = web.storage()
-        web.ctx.headers = []
-        web.ctx.lang = "en"
-        
-    def teardown_method(self, method):
-        template.disktemplates.clear()
-        web.ctx.clear()
-
-class TestHome:
-    pass
-
-class TestHomeTemplates(TemplateTest):
-    def test_about_template(self):
+class TestHomeTemplates:
+    def test_about_template(self, render_template):
         html = unicode(render_template("home/about"))
         assert "About the Project" in html
     
@@ -50,19 +29,19 @@ class TestHomeTemplates(TemplateTest):
         assert blog is not None
         assert len(blog.findAll("li")) == 1
         
-    def test_stats_template(self):
+    def test_stats_template(self, render_template):
         html = unicode(render_template("home/stats"))
         assert "Around the Library" in html
         
-    def test_read_template(self):
+    def test_read_template(self, render_template):
         html = unicode(render_template("home/read"))
         assert "Books to Read" in html
         
-    def test_borrow_template(self):
+    def test_borrow_template(self, render_template):
         html = unicode(render_template("home/borrow"))
         assert "Return Cart" in html
 
-    def test_home_template(self):
+    def test_home_template(self, render_template):
         html = unicode(render_template("home/index"))
         
         assert '<div class="homeSplash"' in html

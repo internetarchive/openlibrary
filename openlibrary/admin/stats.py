@@ -127,7 +127,7 @@ def main(infobase_config, openlibrary_config, coverstore_config, ndays = 1):
     logging.info("Gathering range data")
     data = {}
     for i in range(int(ndays)):
-        logging.info(" %s to %s", start.strftime("%Y-%m-%d"), end.strftime("%Y-%m-%d"))
+        logging.info(" %s to %s", start, end)
         data.update(run_gathering_functions(infobase_db, coverstore_db, seeds_db, editions_db, works_db, admin_db,
                                             start, end,
                                             prefix = "admin_range__"))

@@ -107,11 +107,11 @@ $ stats = get_admin_stats()
             </thead>
             <tbody>
                 <tr class="major">
-                    <td class="amount"><strong>$commify(stats.members.today)</strong></td>
-                    <td class="amount">$commify(stats.members.yesterday)</td>
-                    <td class="amount">$commify(stats.members.thisweek)</td>
-                    <td class="amount">$commify(stats.members.thismonth)</td>
-                    <td class="amount shift"><strong>$:macros.MemberCount()</strong></td>
+                    <td class="amount"><strong>$commify(counts.members.latest)</strong></td>
+                    <td class="amount">$commify(counts.members.previous)</td>
+                    <td class="amount">$commify(counts.members.get_summary(7))</td>
+                    <td class="amount">$commify(counts.members.get_summary(28))</td>
+                    <td class="amount shift"><strong>$commify(counts.members.total)</strong></td>
                 </tr>
                 <tr class="even">
                     <td class="diff"></td>
