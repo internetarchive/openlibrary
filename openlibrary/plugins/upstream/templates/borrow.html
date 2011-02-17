@@ -15,15 +15,6 @@ $if meta_fields.has_key('contributor'):
     $ contrib = meta_fields['contributor']
 $else:
     $ contrib = None
-    
-$# Show BookReader loans for admins only
-$if ctx.user and ctx.user.is_admin():
-    $ bookreader_loans = filter(lambda loan: loan['resource_type'] == 'bookreader', available_loans)
-    $if bookreader_loans:
-        <div class="small sansserif clearfix"><br/><span class="adminOnly">Showing BookReader loan</span></div>
-$else:
-    $# Don't show BookReader loans yet
-    $ available_loans = filter(lambda loan: loan['resource_type'] != 'bookreader', available_loans)
 
 <div id="contentBody">
 
@@ -79,7 +70,7 @@ $else:
             $# not a borrowable book
             <div class="message info">
                 <h2 class="sansserif">This title is not available to borrow.</h2>
-                <p>Look for something else to read on the <a href="/subjects/lending_library">Lending library</a> subject page?</p>
+                <p>Look for something else in the <a href="/borrow">lending library</a>?</p>
             </div>
             
         $elif not page.ocaid:
@@ -200,23 +191,19 @@ $else:
             $# book is not available for loan
             <div class="message info">
                 <h2 class="sansserif">This book is checked out.</h2>
-                <p>Please check back later, or look for <a href="/subjects/lending_library">more books you can borrow</a> perhaps?</p>
+                <p>Please check back later, or browse <a href="/borrow">more books you can borrow</a>?</p>
             </div>
             $if ctx.user and ctx.user.is_admin():
                 $# Stuff for adding to a list - NEED NEW WIDGET!
-                <style type="text/css">
-                .Tools.borrow {position:relative;}
-                .Tools.borrow #widget-head, .Tools.borrow ul.listLists {display:none;}
-                .Tools.borrow div.icon.list {background-image: none;}
-                p#borrowList {position:absolute;top:0;left:100%;width:300px;font-size:.75em;padding-left:10px;}
-                p#postBorrowList {font-size:.75em;padding-left:55px;}
-                </style>
-                <div class="Tools borrow">
-                    $:render_template("lists/widget", page)
-                    <p id="borrowList">to keep an eye on it, or <a href="/subjects/lending_library">browse more titles</a>.</p>
+                <div class="Tools borrow" id="listsWork">
+                    $:render_template("lists/widget", page, user_lists_only=True)
+                    
+                    <p id="borrowList" class="hidden">to keep an eye on it, or <a href="/subjects/lending_library">browse more titles</a>.</p>
                 </div>
+                <!-- 
                 <p id="postBorrowList"><strong>OK!</strong> This title has been added to your <a href="LIST URL">LIST NAME</a> list.<br/>
-                <a href="/subjects/lending_library">Go back to browsing</a>?</p>
+                <a href="/borrow">Go back to browsing</a>?</p>
+                -->
             
         $else:
             $# We can borrow it!
@@ -226,7 +213,7 @@ $else:
             $# May have returned this book and not currently borrowed
             <div class="message info">
                 <h2 class="sansserif">You've returned this book.</h2>
-                <p>Find something else to read in the <a href="/subjects/lending_library">lending library</a>.</p>
+                <p>Find something else to read in the <a href="/borrow">lending library</a>.</p>
             </div>
         
         $if user_can_borrow_this:
@@ -248,3 +235,30 @@ $else:
             <p class="help smaller" style="margin-top:50px;border-top:1px dotted #615132;padding-top:10px;"><strong>Need help?</strong> Head for the <a href="/help/faq/borrow" target="newWindow" title="Open link in a new browser window">Borrowing FAQ</a>.</p>
 
 </div>
+
+<script type="text/javascript"> 
+function update_borrow_message(){
+    if (\$("#widget-lists").children().length > 0) {
+        \$("#borrowList").hide();
+    }
+    else {
+        \$("#borrowList").show();
+    }
+}    
+
+\$(function(){
+    \$('#widget-my-lists').children().insertBefore('#widget-my-lists').end().end().remove();
+    \$('#widget-other-lists').children().insertBefore('#widget-other-lists').end().end().remove();
+    if (\$('.dropit').length) {
+        \$('#widget-add').addClass('contentQuarter').css('min-height','35px');
+        \$('#listsWork .listLists').wrap('<div class="contentThreeQuarter" style="min-height:35px;">');
+        \$('#listsWork').addClass('collapse');
+    } else {
+        \$('#listsWork').css('width','100%');
+        \$('ul.listLists').css('width','100%')
+    };
+    
+    update_borrow_message();
+    \$(window).bind("ol.lists", update_borrow_message);
+});
+</script>
