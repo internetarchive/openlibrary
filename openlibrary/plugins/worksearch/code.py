@@ -537,7 +537,7 @@ def get_subject(key, details=False, offset=0, sort='editions', limit=12, **filte
     return SubjectEngine().get_subject(key, details=details, offset=offset, sort=sort_order, limit=limit, **filters)
         
 class SubjectEngine:        
-    def get_subject(self, key, details=False, offset=0, limit=12, **filters):
+    def get_subject(self, key, details=False, offset=0, limit=12, sort='first_publish_year desc', **filters):
         meta = self.get_meta(key)
 
         q = self.make_query(key, filters)    
@@ -550,7 +550,7 @@ class SubjectEngine:
             kw = {}
             
         from search import work_search
-        result = work_search(q, offset=offset, limit=limit, **kw)
+        result = work_search(q, offset=offset, limit=limit, sort=sort, **kw)
         for w in result.docs:
             w.ia = w.ia and w.ia[0] or None
 
