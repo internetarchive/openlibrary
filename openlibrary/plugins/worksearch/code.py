@@ -51,7 +51,10 @@ if hasattr(config, 'plugin_worksearch'):
     ebook_count_user = config.plugin_worksearch.get('ebook_count_user') or os.getenv("USER")
     ebook_count_db_name = config.plugin_worksearch.get('ebook_count_db_name')
 
-    ebook_count_db = web.database(dbn='postgres', db=ebook_count_db_name, host=ebook_count_host, user=ebook_count_user)
+    if ebook_count_host:
+        ebook_count_db = web.database(dbn='postgres', db=ebook_count_db_name, host=ebook_count_host, user=ebook_count_user)
+    else:
+        ebook_count_db = web.database(dbn='postgres', db=ebook_count_db_name, user=ebook_count_user)
 
 re_author_facet = re.compile('^(OL\d+A) (.*)$')
 def read_author_facet(af):
@@ -530,7 +533,7 @@ def get_subject(key, details=False, offset=0, sort='editions', limit=12, **filte
     """
     sort_options = {
         'editions': 'edition_count desc',
-        'old': 'first_publish_year desc',
+        'new': 'first_publish_year desc',
     }
     sort_order = sort_options.get(sort) or sort_options['editions']
 
