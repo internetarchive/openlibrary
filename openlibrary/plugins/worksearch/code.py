@@ -536,7 +536,7 @@ class SubjectEngine:
 
         sort_order = {
             'editions': 'edition_count desc',
-            'old': 'first_publish_year desc',
+            'new': 'first_publish_year desc',
         }[sort]
 
         q = self.make_query(key, filters)    
