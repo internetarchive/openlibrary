@@ -58,7 +58,7 @@ def single_thing_skeleton(**kargs):
     try:
         typ   = kargs['type']
         start = kargs['start'].strftime("%Y-%m-%d")
-        end   = kargs['end'].strftime("%Y-%m-%d")
+        end   = kargs['end'].strftime("%Y-%m-%d %H:%M:%S")
         db    = kargs['thingdb']
     except KeyError, k:
         raise TypeError("%s is a required argument for admin_range__%s"%(k, typ))
