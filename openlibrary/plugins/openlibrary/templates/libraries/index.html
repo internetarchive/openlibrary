@@ -1,0 +1,72 @@
+$def with ()
+
+<div id="contentBody" style="width:100%;"> 
+ 
+    <script type="text/javascript"> 
+    \$().ready(function(){
+        var thisH = \$("#mapLegend").height();
+        var thisW = \$("#mapLegend").width();
+        \$("#mapLegendBack").height(thisH).width(thisW);
+ 
+        var control = map.getControlsByClass('OpenLayers.Control.PanZoom')[0];
+        var px =new OpenLayers.Pixel(0,thisH+25);
+        control.moveTo(px)        
+        
+    });
+    
+    function jumpTo(lat, lon, zoom, link) {
+        var lonLat = new OpenLayers.LonLat( lon, lat)
+              .transform(
+                new OpenLayers.Projection("EPSG:4326"), // transform from WGS 1984
+                map.getProjectionObject() // to Spherical Mercator Projection
+              );
+        map.setCenter (lonLat, zoom);
+ 
+        \$('.map_jump_link').css('color', '#036DAA');
+        \$(link).css('color', '#748D36');        
+    }
+    </script> 
+ 
+  <div id="mapdiv" style="height:100%;"></div> 
+  <div id="mapLegendBack"></div> 
+  <div id="mapLegend"> 
+ 
+      <div id="mapLegendHead"> 
+          <h1>In-Library Working Group Members</h1> 
+          <p><a href="">More info</a>&nbsp;<span class="adminOnly"><a href="">See list</a></span></p> 
+      </div> 
+      <div id="mapLegendBody"> 
+          <span><a class="map_jump_link" href="#" onclick="jumpTo(38, -101, 4, this); return false;">All</a></span> 
+          <span>&nbsp;|&nbsp;<a class="map_jump_link" href="#" onclick="jumpTo(37.65,  -122.42, 11, this); return false;" style="color:#748D36">California</a></span> 
+          <span>&nbsp;|&nbsp;<a class="map_jump_link" href="#" onclick="jumpTo(53.28, -113.25, 9, this); return false;">Alberta</a></span> 
+          <span>&nbsp;|&nbsp;<a class="map_jump_link" href="#" onclick="jumpTo(41, -85, 10, this); return false;">Ohio</a></span> 
+          <span>&nbsp;|&nbsp;<a class="map_jump_link" href="#" onclick="jumpTo(43.65, -79.4, 11, this); return false;">Ontario</a></span> 
+          <span>&nbsp;|&nbsp;<a class="map_jump_link" href="#" onclick="jumpTo(29.9, -82.3, 9, this); return false;">Florida</a></span> 
+          <span>&nbsp;|&nbsp;<a class="map_jump_link" href="#" onclick="jumpTo(42.3, -71.1, 12, this); return false;">Massachusetts</a></span> 
+ 
+      </div> 
+  </div>  
+  <script src="http://www.openlayers.org/api/OpenLayers.js"></script> 
+  <script> 
+    map = new OpenLayers.Map("mapdiv");
+    map.addLayer(new OpenLayers.Layer.OSM());
+       
+    var pois = new OpenLayers.Layer.Text( "My Points",
+                    { location:"/libraries/locations.txt",
+                      projection: map.displayProjection
+                    });
+    map.addLayer(pois);
+ 
+    
+    //Set start centrepoint and zoom
+    //TODO: Is it possible to just zoom to extents of defined markers instead?
+    
+    var lonLat = new OpenLayers.LonLat( -122.417740, 37.65)
+          .transform(
+            new OpenLayers.Projection("EPSG:4326"), // transform from WGS 1984
+            map.getProjectionObject() // to Spherical Mercator Projection
+          );
+    var zoom=11;
+    map.setCenter (lonLat, zoom);  
+  </script> 
+</div> 

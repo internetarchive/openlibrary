@@ -1,8 +1,16 @@
-$def with (book)
+$def with (page)
+
+$if page.type.key == '/type/work' and page.edition_count == 1:
+    $ edit_url = page.editions[0].key + '?m=edit'
+$elif page.type.key in ["/type/work", "/type/edition", "/type/author"]:
+    $ edit_url = page.url(suffix="/edit")
+$else:
+    $ edit_url = page.key + "?m=edit"
 
 $ booksense = "http://booksense.com/product/info.jsp?isbn=XXX"
 $ amazon = "http://www.amazon.com/gp/product/XXX?tag=openlibr-20"
-$ abebooks = "http://clickserve.cc-dt.com/link/tplclick?lid=41000000024660875&pubid=21000000000172077&isbn=XXX"
+$ amazon_search = "http://www.amazon.com/s/?tag=openlibr-20&search-alias=aps&field-isbn=XXX"
+$ abebooks = "http://gan.doubleclick.net/gan_click?lid=41000000024660875&pubid=21000000000318564&pvs1=XXX"
 $ alibris = " http://click.linksynergy.com/fs-bin/click?id=eSmaWuUpnDY&offerid=99238.122856000&type=2&subid=0&tmpid=939&RD_PARM1=http%253A%252F%252Fwww.alibris.com/booksearch%253Fqsort%253Dp%2526isbn%253DXXX"
 $ barnesandnoble = "http://search.barnesandnoble.com/booksearch/isbninquiry.asp?ISBN=XXXafsrc=1&lkid=J14933426&pubid=K172077"
 $ bibliocom = "http://www.biblio.com/editions.php?isbn=XXX&aid=openlibrary"
@@ -28,135 +36,151 @@ $ djvutxt = "http://www.archive.org/download/XXX/XXX_djvu.txt"
 $ seeall = "http://www.archive.org/download/XXX"
 $ google = ""
 
-$ isbn_10 = (book.isbn_10 and book.isbn_10[0]) or ""
-$ oclc_numbers = (book.oclc_numbers and book.oclc_numbers[0]) or ""
+$ isbn = (page.isbn_10 and page.isbn_10[0]) or (page.isbn_13 and page.isbn_13[0]) or ""
+$ isbn = isbn.replace("-", "")
+$ oclc_numbers = (page.oclc_numbers and page.oclc_numbers[0]) or ""
+$ isbn_13 = (page.isbn_13 and page.isbn_13[0]) or ""
+$ isbn_10 = ""
+$if page.isbn_10:
+    $ isbn_10 = page.isbn_10[0]
+$elif isbn_13:
+    $ isbn_10 = isbn_13_to_isbn_10(isbn_13)
+
+$ overdrive_id = None
+$ asin = None
+$ scribd = None
+$if page.get('identifiers'):
+    $if page.identifiers.get('scribd'):
+        $ scribd = page.identifiers.scribd[0]
+    $if page.identifiers.get('overdrive'):
+        $ overdrive_id = page.identifiers.overdrive[0]
+    $if page.identifiers.get('amazon'):
+        $ asin = page.identifiers.amazon[0]
+
+$if isbn_10 and not asin:
+    $ asin = isbn_10
 
 $ library = None
+
+<div class="Tools">
 $ collection = set()
-$ meta_fields = book.get_ia_meta_fields()
+$ meta_fields = page.get_ia_meta_fields()
 $if meta_fields:
     $ collection = meta_fields.get('collection', [])
     $ contrib = meta_fields.get('contributor')
     $if 'inlibrary' in collection and 'inlibrary' in ctx.features:
         $ library = get_library()
 
-$ overdrive_id = None
-$if book.get('identifiers', None) and book.identifiers.get('overdrive', None):
-    $ overdrive_id = book.identifiers.overdrive[0]
-
-$ scribd = book.get('identifiers', {}).get('scribd', [None])[0]
-
-$ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
-
-    <td class="book">
-        <span class="hidden count"></span>
-        <div class="cover">
-            <a href="$book.url()"><img src="$url" alt="Cover of: $book.title" title="Cover of: $book.title"/></a>
-        </div>
-        <div class="title">
-            <div class="published">
-            $if book.publishers and book.publish_date:
-                $book.publish_date, $(', '.join(book.publishers))
-            $elif book.publish_date:
-                $book.publish_date
-            $elif book.publishers:
-                <em>Publish date unknown</em>, $(', '.join(book.publishers))
-            $else:
-                <em>Publisher unknown</em>
+$if page.volumes:
+    <div>
+    <h3 class="header">
+        <span class="icon read"></span>
+        <span class="head">Browse</span>
+    </h3>
+    $for v in page.volumes:
+        $if v.ia_id != "-":
+            <div class="panel">
+                <p><a href="$viewbook.replace('XXX', v.ia_id)">View Volume $v.volume_number</a></p>
             </div>
-            $if book.title:
-                <a href="$book.url()">$book.title</a><br/>
-            $else:
-                <a href="$book.url()"><em>Title missing</em></a><br/>
-            <div class="format">
-                $book.physical_format.replace('[', '').replace(']','')
-                $if book.languages:
-                    in $', '.join(l.name for l in book.languages)
-            $if book.edition_name:
-                -
-                $book.edition_name
-            </div>
+    </div>
+$elif 'printdisabled' in collection or 'lendinglibrary' in collection:
+    <div>
+        <h3 class="header">
+            <span class="icon read"></span>
+            <span class="head">Read</span>
+        </h3>
+        <div class="panel">
+            <p><a href="$page.url('/daisy')" title="Encrypted DAISY" class="plain"><span class="underline">DAISY</span> <img src="/images/icons/icon-encrypto-sm.png" width="11" height="14" alt="Encrypted DAISY"/></a></p>
         </div>
-    </td>
+    </div>
+$elif page.get('ocaid'):
+    <div>
+        <h3 class="header">
+            <span class="icon read"></span>
+            <span class="head">Read</span>
+        </h3>
+        <div class="panel" id="readBooks">
+            <p><a href="$viewbook.replace('XXX', page.ocaid)" title="Use BookReader to read online"><strong>Read online</strong></a><br/><br/></p>
+            <p><a href="$downloadbook.replace('XXX', page.ocaid)" title="Download a PDF from Internet Archive">PDF</a></p>
+            <p><a href="$djvutxt.replace('XXX', page.ocaid)" title="Download a text version from Internet Archive">Plain text</a></p>
+            <p><a href="$page.url('/daisy')" title="Download a DAISY file from Internet Archive">DAISY</a></p>
+            <p><a href="$epub.replace('XXX', page.ocaid)" title="Download an ePub from Internet Archive">ePub</a></p>
+            <p><a href="$djvu.replace('XXX', page.ocaid)" title="Stream a DjVu from Internet Archive">DjVu</a> <span class="grey">streaming</span></p>
+            <p><a href="$mobi.replace('XXX', page.ocaid)" title="Download a MOBI file from Internet Archive">MOBI</a> or <a href="$kindle.replace('XXX', page.ocaid)" title="Send to Kindle">send to Kindle</a></p>
+        </div>
+    </div>
+$else:
+    <div>
+    <h3 class="closed">
+        <span class="icon readinact"></span>
+        <span class="head">Read</span>
+    </h3>
+    <div class="panel">
+        <p class="smaller">No readable version available.</p>
+    </div>
+    </div>
 
-    $if 'printdisabled' in collection or 'lendinglibrary' in collection:
-        <td class="icon read">
-        <div class="bbbb"></div>
-        <div class="links">
-            <ul>
-            <li><a href="$book.url('/daisy')" class="plain"><span class="underline">DAISY</span> <img src="/images/icons/icon-encrypto-sm.png" width="11" height="14" alt="Protected DAISY"/></a></li>
-            </ul>
-        </div>
-        </td> 
-    $elif book.ocaid:
-        <td class="icon read">
-        <div class="aaaa"></div>
-        <div class="links">
-            <ul>
-            <li><strong><a href="$viewbook.replace('XXX', book.ocaid)" title="Read a scanned version in BookReader">Read online</a></strong><br/><br/></li>
-            <li><a href="$downloadbook.replace('XXX', book.ocaid)" title="Download a PDF">PDF</a></li>
-            <li><a href="$djvutxt.replace('XXX', book.ocaid)" title="Download a plain text version">Plain text</a></li>
-            <li><a href="$book.url('/daisy')" title="Download a zipped DAISY file">DAISY</a></li>
-            <li><a href="$epub.replace('XXX', book.ocaid)" title="Download an ePub">ePub</a></li>
-            <li><a href="$djvu.replace('XXX', book.ocaid)" title="Read a DjVu">DjVu</a> <span class="grey smaller">streaming</span></li>
-            <li><a href="$mobi.replace('XXX', book.ocaid)" title="Download a MOBI file from Internet Archive">MOBI</a></li>
-            <li><a href="$kindle.replace('XXX', book.ocaid)" title="Send to Kindle">Send to Kindle</a></li>
-            </ul>
-        </div>
-        </td>
-    $else:
-        <td class="icon read inact">
-        <div class="zzzz"></div>
-        <div class="links">
-        </div>
-        </td>
+$if isbn or oclc_numbers or overdrive_id or 'lendinglibrary' in collection or library:
+    $ current_and_available_loans = page.get_current_and_available_loans()
+    <div>
+    <h3 class="header">
+        <span class="icon borrow"></span>
+        <span class="head">Borrow</span>
+    </h3>
+    <div class="panel">
+        $if  'lendinglibrary' in collection:
+            $:macros.LoanStatus(page, 'eBook', ctx.user, current_and_available_loans, contrib, '<br/>')
+        $elif library:
+            $:macros.LoanStatus(page, 'Bones eBook', ctx.user, current_and_available_loans, contrib, '<br/>')
+        $if overdrive_id:
+            <p><a href="$overdrive.replace('XXX', overdrive_id)" title="Borrow from OverDrive">eBook, local library</a> <span class="smaller">OverDrive</span></p>
+        $if isbn:
+            <p><a href="$worldcat.replace('XXX', isbn)" title="Check WorldCat for an edition near you">Physical copy, local</a> <span class="smaller">WorldCat</span></p>
+        $elif oclc_numbers:
+            <p><a href="$worldcatoclc.replace('XXX', oclc_numbers)" title="Check WorldCat for an edition near you">Physical copy, local</a> <span class="smaller">WorldCat</span></p>
+    </div>
+    </div>
+$else:
+    <div>
+    <h3 class="closed">
+        <span class="icon borrowinact"></span>
+        <span class="head">Borrow</span>
+    </h3>
+    <div class="panel">
+        <p class="smaller">Try a <a href="http://www.worldcat.org/" title="Search WorldCat for an available edition">WorldCat</a> search?</p>
+    </div>
+    </div>
 
-    $if isbn_10 or oclc_numbers or overdrive_id or 'lendinglibrary' in collection or library:
-        <td class="icon borrow">
-            <div class="aaaa"></div>
-            <div class="links">
-                <ul>
-                $if overdrive_id:
-                    <li><a href="$overdrive.replace('XXX', overdrive_id)" title="Borrow from OverDrive">eBook, local library</a><br /><span class="gray smaller">via OverDrive</span></li>
-                $if  'lendinglibrary' in collection:
-                    $:macros.LoanStatus(book, 'eBook', book.get_available_loans(), contrib, '')
-                $elif library:
-                    $:macros.LoanStatus(book, 'Bones eBook', book.get_available_loans(), contrib, '')
-                $if isbn_10:
-                    <li><a href="$worldcat.replace('XXX', isbn_10)" title="Look for this edition at WorldCat">Physical copy</a><br /><span class="gray smaller">via WorldCat</span></li>
-                $elif oclc_numbers:
-                    <li><a href="$worldcatoclc.replace('XXX', oclc_numbers)" title="Look for this edition at WorldCat">Physical copy</a><br /><span class="gray smaller">via WorldCat</span></li>
-                </ul>
-            </div>
-        </td>
-    $else:
-        <td class="icon borrow inact">
-            <div class="zzzz"></div>
-            <div class="links">
-            </div>
-        </td>
+$if isbn or asin or scribd:
+    <div>
+        <h3 class="header">
+            <span class="icon buy"></span>
+            <span class="head">Buy</span>
+        </h3>
+        <div class="panel">
+            $if isbn:
+                <p><a href="$alibris.replace('XXX', isbn)" title="Check Alibris for availability">Alibris</a></p>
+            $if asin:
+                <p><a href="$amazon.replace('XXX', asin)" title="Check Amazon for availability">Amazon</a></p>
+            $if isbn:
+                <p><a href="$abebooks.replace('XXX', isbn)" title="Check AbeBooks for availability">AbeBooks</a></p>
+                <p><a href="$bibliocom.replace('XXX', isbn)" title="Check Biblio.com for availability">Biblio.com</a></p>
+                <p><a href="$powells.replace('XXX', isbn)" title="Check Powell's for availability">Powells</a></p>
+            $if scribd:
+                <p><a href="http://www.scribd.com/doc/$scribd" title="Available on Scribd!">Scribd</a> <span class="smaller grey">eBook in browser</span></p>
+        </div>
+    </div>
+$else:
+    <div>
+    <h3 class="closed">
+        <span class="icon buyinact"></span>
+        <span class="head">Buy</span>
+    </h3>
+    <div class="panel">
+        <p><a href="$edit_url">Add an ISBN</a> <span class="smaller">to link to booksellers</span></p>
+    </div>
+    </div>
 
-    $if isbn_10 or scribd:
-        $if isbn_10:
-            $ isbn_10 = isbn_10.replace('-', '')
-        <td class="icon buy">
-        <div class="aaaa"></div>
-        <div class="links">
-            <ul>
-            $if isbn_10:
-                <li><a href="$alibris.replace('XXX', isbn_10)" title="Look for this edition for sale at Alibris">Alibris</a></li>
-                <li><a href="$amazon.replace('XXX', isbn_10)" title="Look for this edition for sale at Amazon">Amazon</a></li>
-                <li><a href="$abebooks.replace('XXX', isbn_10)" title="Look for this edition for sale at AbeBooks">AbeBooks</a></li>
-                <li><a href="$bibliocom.replace('XXX', isbn_10)" title="Look for this edition for sale at Biblio">Biblio.com</a></li>
-                <li><a href="$powells.replace('XXX', isbn_10)" title="Look for this edition for sale at Powell's">Powells</a></li>
-            $else:
-                <li><a href="http://www.scribd.com/doc/$scribd" title="Look for this edition for sale at Scribd">Scribd</a><br /><span class="gray smaller">eBook in browser</span></li>
-            </ul>
-        </div>
-        </td>
-    $else:
-        <td class="icon buy inact">
-        <div class="zzzz"></div>
-        <div class="links">
-        </div>
-        </td>
+
+</div>
+<div class="clearfix"></div>
