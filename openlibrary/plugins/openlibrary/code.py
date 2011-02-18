@@ -720,11 +720,12 @@ username_validator = web.form.Validator("Username already used", lambda username
 register.username.validators = list(register.username.validators) + [username_validator]
 
 def setup():
-    import home, inlibrary, borrow_home
+    import home, inlibrary, borrow_home, libraries
     
     home.setup()
     inlibrary.setup()
     borrow_home.setup()
+    libraries.setup()
     
     web.template.Template.globals.update({
         "sorted": sorted,
