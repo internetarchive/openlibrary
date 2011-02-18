@@ -1,4 +1,4 @@
-$def with (page, edition_loans, user_loans)
+$def with (page, edition_loans, user_loans, user_ip)
 
 $var title: $page.title
 
@@ -13,22 +13,52 @@ $ available_loans = page.get_available_loans()
     </div>
 
         <h1 class="sansserif">Borrow - Administration</h1>
+        <p>
+            can_borrow - can this book ever be borrowed: $can_borrow(page)
+        </p>
+
 
         <p>
-            can_borrow: $can_borrow(page)
+          You are (ctx.user): $ctx.user
         </p>
+
         <p>
-            overdrive_id: $overdrive_id(page)
+          You are an admin?: $ctx.user.is_admin()
         </p>
         
         <p>
-            archive.org item identifier: $page.ocaid
+          IP address: $user_ip
+        </p>
+
+        <p>
+          you are in library? (inlibrary flag set):
+          $if "inlibrary" in ctx.features:
+             yes
+          $else:
+             no
+        </p>
+        
+        <p>
+          which library: $get_library()
+        </p>
+                
+        <p>
+          work subjects: $page.works[0].get_subjects()
+        </p>
+
+        <p>
+            overdrive_id - if set means can be borrowed digitally from an external library using Overdrive: $overdrive_id(page)
+        </p>
+        
+        <p>
+            archive.org item identifier: <a href="http://www.archive.org/details/$page.ocaid">$page.ocaid</a>
         <p>
         <p>
             external-identifiers from archive.org meta.xml: $page.get_lending_resources()
         </p>
         
         <p>
+            bookreader available: $is_loan_available(page, 'bookreader')<br>
             pdf available: $is_loan_available(page, 'pdf')<br>
             epub available: $is_loan_available(page, 'epub')
         </p>
@@ -49,17 +79,6 @@ $ available_loans = page.get_available_loans()
               $for loan in available_loans:
                  <tr><td>$loan</td></tr>
             </table>
-        </p>
-        <p>
-            <table>
-              <tr><th>Your $len(user_loans) borrowed books:</th></tr>
-              $for loan in user_loans:
-                  <tr><td>$loan<br>&nbsp;</td></tr>
-            </table>
-        </p>
-        
-        <p>
-            You are: $ctx.user
         </p>
         
         <p>

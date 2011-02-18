@@ -445,7 +445,7 @@ def is_loaned_out(resource_id):
             return False
 
         # Find the loan and check if it has expired
-        loan = web.ctx.store.get(loan_key)
+        loan = web.ctx.site.store.get(loan_key)
         if loan:
             if datetime_from_isoformat(loan['expiry']) < datetime.datetime.utcnow():
                 return True
