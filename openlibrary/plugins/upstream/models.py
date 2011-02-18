@@ -198,6 +198,10 @@ class Edition(models.Edition):
 
         return None
         
+    def get_current_and_available_loans(self):
+        current_loans = borrow.get_edition_loans(self)
+        return (current_loans, self._get_available_loans(current_loans))
+        
     def get_available_loans(self):
         """
         Get the resource types currently available to be loaned out for this edition.  Does NOT
@@ -208,12 +212,16 @@ class Edition(models.Edition):
         
         size may be None"""
         
+        return self._get_available_loans(borrow.get_edition_loans(self))
+        
+    def _get_available_loan(self, current_loans):
+        
         default_type = 'bookreader'
         
         loans = []
         
         # Check if we have a possible loan - may not yet be fulfilled in ACS4
-        if borrow.get_edition_loans(self):
+        if current_loans:
             # There is a current loan or offer
             return []
         

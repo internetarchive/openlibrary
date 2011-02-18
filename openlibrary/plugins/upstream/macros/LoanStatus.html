@@ -1,11 +1,24 @@
-$def with (page, ebook_text, available_loans, contributor, line_break)
+$def with (page, ebook_text, user, current_and_available_loans, contributor, line_break)
 
 $# TODO construct list of available formats from available_loans
 
+$ (current_loans, available_loans) = current_and_available_loans
+$ user_loan = None
+$for current_loan in current_loans:
+    $if current_loan['user'] == user.key:
+        $ user_loan = current_loan
+        $ break
+
 $ borrow_link = page.url() + '/borrow'
-$if available_loans:
+
+$if user_loan:
+    $if user_loan['resource_type'] == 'bookreader':
+        <p style="margin-bottom:10px;"><a href="$borrow_link" title="Borrow from $contributor">$ebook_text</a> <span class="smaller">You have this book checked out. <br />
+        <a href="$user_loan['loan_link']">Read it</a> or $:macros.ReturnLink(user_loan, 'return now')?</span></p>
+    $else:
+        <p style="margin-bottom:10px;"><a href="$borrow_link" title="Borrow from $contributor">$ebook_text</a> <span class="smaller">You have this book checked out.</span></p>    
+        
+$elif available_loans:
             <p style="margin-bottom:10px;"><a href="$borrow_link" title="Borrow from $contributor">$ebook_text</a> <span class="smaller">PDF, ePub or in browser $:{line_break}from $contributor</span></p>
 $else:
             <p style="margin-bottom:10px;"><strike><a href="$borrow_link" title="Borrow from $contributor">$ebook_text</a></strike> <span class="smaller">This title is <i class="red">checked out</i>.</span></p>
-
-<!-- <p style="margin-bottom:10px;"><a href="$borrow_link" title="Borrow from $contributor">$ebook_text</a> <span class="smaller">You have this book checked out. <br /><a href="#">Read it</a> or <a href="#">return now</a>?</span></p> -->
