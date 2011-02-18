@@ -48,8 +48,6 @@ class Stats:
         This is used to find counts for last 7 days and last 28 days.
         """
         return sum(x[1] for x in self.get_counts(ndays))
-        
-
 
             
 def get_stats(ndays = 30):
@@ -65,6 +63,7 @@ def get_stats(ndays = 30):
                   bot_edits   = Stats(docs, "bot_edits", "bot_edits"),
                   lists       = Stats(docs, "lists", "total_lists"),
                   visitors    = Stats(docs, "visitors", "visitors"),
+                  loans       = Stats(docs, "loans", "loans"),
                   members     = Stats(docs, "members", "total_members"),
                   works       = Stats(docs, "works", "total_works"),
                   editions    = Stats(docs, "editions", "total_editions"),
