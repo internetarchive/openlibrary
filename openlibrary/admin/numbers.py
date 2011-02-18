@@ -147,6 +147,21 @@ def admin_range__visitors(**kargs):
         logging.debug("  No statistics obtained for %s (%d)", date, key)
         raise NoStats("No record for %s"%date)
     
+def admin_range__loans(logroot, start, **kw):
+    """Finds the number of loans on a given day.
+
+    Loan info is written to infobase write log. Grepping through the log file gives us the counts.
+    
+    WARNING: This script must be run on the node that has infobase logs.
+    """
+    if os.path.exists(logroot):
+        path = os.path.join(logroot, "%04d/%02d/%02d.log" % (start.year, start.month, start.day))
+        if os.path.exists(path):
+            return sum(1 for line in open(path) if '"action": "store.put"' in line and '"type": "/type/loan"' in line)
+        else:
+            return 0
+    else:
+        return NoStats("File not found %s" % logroot)
 
 def admin_total__authors(**kargs):
     try:

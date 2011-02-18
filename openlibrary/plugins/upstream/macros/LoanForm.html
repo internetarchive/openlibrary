@@ -33,46 +33,49 @@ $else:
     </script>
     <div class="preSubmit" style="width:690px;">
     <form method="post" id="borrowbook" name="borrowBook" class="olform">
-    $for loan in available_loans:
-        $ type_str, desc = type_info.get(loan['resource_type'], (loan['resource_type'], ''))
-        $if loan['resource_type'] == default_type or len(available_loans) == 1:
-            <fieldset class="online">
-                <legend>Read in Browser</legend>
-                <label>
-                    <input type="radio" name="format" class="online" value="bookreader"/> 
-                    <strong>Read in Browser</strong> 
-                    Open in our BookReader 
+    $ loan_types = [loan['resource_type'] for loan in available_loans]
+    $if 'bookreader' in loan_types:
+        <fieldset class="online">
+            <legend>Read in Browser</legend>
+            <label>
+                <input type="radio" name="format" class="online" value="bookreader"/> 
+                <strong>Read in Browser</strong> 
+                Open in our BookReader 
+            </label>
+            <div>
+                <table cellpadding="0" cellspacing="0" border="0"><tbody>
+                    <tr>
+                        <td class="icon"><img src="/images/icons/icon_thumbsup-borrow.png" width="25" height="25"/></td>
+                        <td>Read online now.<br/>No extra software!</td>
+                    </tr>
+                </tbody></table>
+            </div>
+        </fieldset>
+
+    $if 'pdf' in loan_types or 'epub' in loan_types:    
+        <fieldset class="download">
+            <legend>Download &amp; Open in Adobe Digital Editions</legend>
+            $if 'pdf' in loan_types:
+                <label style="margin-right:15px;"> 
+                    <input type="radio" name="format" class="download" value="pdf"/>  
+                    <strong>Download PDF</strong> 
+                    High quality page images 
+                </label> 
+            $if 'epub' in loan_types:
+                <label> 
+                    <input type="radio" name="format" class="download" value="epub"/>  
+                    <strong>Download ePub</strong> 
+                    Smaller file, may contain errors 
                 </label>
-                <div>
-                    <table cellpadding="0" cellspacing="0" border="0"><tbody>
-                        <tr>
-                            <td class="icon"><img src="/images/icons/icon_thumbsup-borrow.png" width="25" height="25"/></td>
-                            <td>Read online now.<br/>No extra software!</td>
-                        </tr>
-                    </tbody></table>
-                </div>
-            </fieldset>
-    <fieldset class="download">
-        <legend>Download &amp; Open in Adobe Digital Editions</legend>
-        <label style="margin-right:15px;"> 
-            <input type="radio" name="format" class="download" value="pdf"/>  
-            <strong>Download PDF</strong> 
-            High quality page images 
-        </label> 
-        <label> 
-            <input type="radio" name="format" class="download" value="epub"/>  
-            <strong>Download ePub</strong> 
-            Smaller file, may contain errors 
-        </label>
-        <div>
-            <table cellpadding="0" cellspacing="0" border="0"><tbody>
-                <tr>
-                    <td class="icon"><img src="/images/icons/icon_wrench-borrow.png" width="30" height="30"/></td>
-                    <td>You <strong>must <a href="http://www.adobe.com/products/digitaleditions/" title="Visit adobe.com in a new browser window to install the software" target="newwindow">install Adobe Digital Editions</a> to view</strong><br/>either of these format options. (It's free.)</td>
-                </tr>
-            </tbody></table>
-        </div>
-    </fieldset>
+            <div>
+                <table cellpadding="0" cellspacing="0" border="0"><tbody>
+                    <tr>
+                        <td class="icon"><img src="/images/icons/icon_wrench-borrow.png" width="30" height="30"/></td>
+                        <td>You <strong>must <a href="http://www.adobe.com/products/digitaleditions/" title="Visit adobe.com in a new browser window to install the software" target="newwindow">install Adobe Digital Editions</a> to view</strong><br/>either of these format options. (It's free.)</td>
+                    </tr>
+                </tbody></table>
+            </div>
+        </fieldset>
     <input type="submit" value="Borrow This Book" id="borrowBtn" name="borrowBtn" class="hidden"/>
     </form>
     </div>

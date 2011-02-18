@@ -1,4 +1,5 @@
 
+import string
 import web
 import urllib, urllib2
 import simplejson
@@ -22,7 +23,10 @@ from utils import get_coverstore_url, MultiDict, parse_toc, parse_datetime, get_
 import account
 import borrow
 
-re_meta_field = re.compile('<(collection|contributor)>([^<]+)</(collection|contributor)>', re.I)
+ia_meta_sets = set(['collection','external-identifier'])
+ia_meta_fields = set(['contributor'])
+ia_meta_group = '(' + string.join(ia_meta_sets.union(ia_meta_fields), '|') + ')'
+re_meta_field = re.compile('<%s>([^<]+)</%s>' % (ia_meta_group, ia_meta_group), re.I)
 
 def follow_redirect(doc):
     if doc.type.key == "/type/redirect":
@@ -32,6 +36,7 @@ def follow_redirect(doc):
         return doc
 
 class Edition(models.Edition):
+
     def get_title(self):
         if self['title_prefix']:
             return self['title_prefix'] + ' ' + self['title']
@@ -100,11 +105,17 @@ class Edition(models.Edition):
         return self._process_identifiers(get_edition_config().identifiers, names, self.identifiers)
 
     def get_ia_meta_fields(self):
+        # Check for cached value
+        # $$$ we haven't assigned _ia_meta_fields the first time around but there's apparently
+        #     some magic that lets us check this way (and breaks using hasattr to check if defined)
+        if self._ia_meta_fields:
+            return self._ia_meta_fields
+            
         if not self.get('ocaid', None):
             return {}
         ia = self.ocaid
         url = 'http://www.archive.org/download/%s/%s_meta.xml' % (ia, ia)
-        reply = { 'collection': set() }
+        reply = dict([ (set_name, set()) for set_name in ia_meta_sets ]) # create empty sets
         try:
             stats.begin("archive.org", url=url)
             f = urllib2.urlopen(url)
@@ -120,11 +131,14 @@ class Edition(models.Edition):
             v = m.group(2)
             if k == 'collection':
                 reply[k].add(v.lower())
+            elif k in ia_meta_sets:
+                reply[k].add(v)
             else:
-                assert k == 'contributor'
-                reply[k] = v
+                if k in ia_meta_fields:
+                    reply[k] = v
 
-        return reply
+        self._ia_meta_fields = reply
+        return self._ia_meta_fields
 
     def is_daisy_encrypted(self):
         meta_fields = self.get_ia_meta_fields()
@@ -155,33 +169,17 @@ class Edition(models.Edition):
             # Could be e.g. OverDrive
             return []
         
-        # Use cached value if available
-#         try:
-#             return self._lending_resources
-#         except AttributeError:
-#             pass
-#             
-#         if not itemid:
-#             self._lending_resources = []
-#             return self._lending_resources
-        
-        url = 'http://www.archive.org/download/%s/%s_meta.xml' % (itemid, itemid)
-        # $$$ error handling
-        stats.begin("archive.org", url=url)
-        root = etree.parse(urllib2.urlopen(url))
-        stats.end()
-        
-        self._lending_resources = [ elem.text for elem in root.findall('external-identifier') ]
-        
+        lending_resources = []
         # Check if available for in-browser lending - marked with 'browserlending' collection
         browserLendingCollections = ['browserlending']
-        collections = [ elem.text for elem in root.findall('collection') ]
-        for collection in collections:
+        for collection in self.get_ia_meta_fields()['collection']:
             if collection in browserLendingCollections:
-                self._lending_resources.append('bookreader:%s' % self.ocaid)
+                lending_resources.append('bookreader:%s' % self.ocaid)
                 break
+
+        lending_resources.extend(self.get_ia_meta_fields()['external-identifier'])
         
-        return self._lending_resources
+        return lending_resources
         
     def get_lending_resource_id(self, type):
         if type == 'bookreader':
@@ -200,15 +198,34 @@ class Edition(models.Edition):
 
         return None
         
+    def get_current_and_available_loans(self):
+        current_loans = borrow.get_edition_loans(self)
+        return (current_loans, self._get_available_loans(current_loans))
+        
     def get_available_loans(self):
-        """Returns [{'resource_id': uuid, 'resource_type': type, 'size': bytes}]
+        """
+        Get the resource types currently available to be loaned out for this edition.  Does NOT
+        take into account the user's status (e.g. number of books out, in-library status, etc).
+        This is like checking if this book is on the shelf.
+        
+        Returns [{'resource_id': uuid, 'resource_type': type, 'size': bytes}]
         
         size may be None"""
+        
+        return self._get_available_loans(borrow.get_edition_loans(self))
+        
+    def _get_available_loans(self, current_loans):
         
         default_type = 'bookreader'
         
         loans = []
         
+        # Check if we have a possible loan - may not yet be fulfilled in ACS4
+        if current_loans:
+            # There is a current loan or offer
+            return []
+        
+        # Create list of possible loan formats
         resource_pattern = r'acs:(\w+):(.*)'
         for resource_urn in self.get_lending_resources():
             print 'RESOURCE %s' % resource_urn
@@ -217,8 +234,7 @@ class Edition(models.Edition):
                 loans.append( { 'resource_id': resource_id, 'resource_type': type, 'size': None } )
             elif resource_urn.startswith('bookreader'):
                 loans.append( { 'resource_id': resource_urn, 'resource_type': 'bookreader', 'size': None } )
-            
-        
+                    
         # Put default type at start of list, then sort by type name
         def loan_key(loan):
             if loan['resource_type'] == default_type:
@@ -226,22 +242,16 @@ class Edition(models.Edition):
             else:
                 return '2-%s' % loan['resource_type']        
         loans = sorted(loans, key=loan_key)
-        
-        # Check if we have a possible loan - may not yet be fulfilled in ACS4
-        if borrow.get_edition_loans(self):
-            # There is a current loan or offer
-            return []
-            
-        # Check if available - book status server
-        # We shouldn't be out of sync but we fail safe
+                    
+        # For each possible loan, check if it is available
+        # We shouldn't be out of sync (we already checked get_edition_loans for current loans) but we fail safe, for example
+        # the book may have been borrowed in a dev instance against the live ACS4 server
         for loan in loans:
             if borrow.is_loaned_out(loan['resource_id']):
                 # Only a single loan of an item is allowed
-                # XXX log out of sync state
+                # $$$ log out of sync state
                 return []
-        
-        # XXX get file size
-            
+                    
         return loans
     
     def update_loan_status(self):
