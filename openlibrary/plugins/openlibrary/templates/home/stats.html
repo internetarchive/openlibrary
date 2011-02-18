@@ -225,7 +225,7 @@ $def with (stats=None)
     </div> 
 <script id="source" type="text/javascript"> 
 \$(function () {
-    var d = [[1196463600000, 0], [1196550000000, 1], [1196636400000, 2], [1196722800000, 3], [1196809200000, 4], [1196895600000, 5], [1196982000000, 6], [1197068400000, 7], [1197154800000, 8], [1197241200000, 9], [1197327600000, 10], [1197414000000, 11], [1197500400000, 12], [1197586800000, 13], [1197673200000, 14], [1197759600000, 15], [1197846000000, 16], [1197932400000, 17], [1198018800000, 18], [1198105200000, 19], [1198191600000, 20], [1198278000000, 21], [1198364400000, 22], [1198450800000, 23], [1198537200000, 24], [1198623600000, 25], [1198710000000, 26], [1198796400000, 27], [1198882800000, 28], [1198969200000, 29]];;
+    var d = $:json_encode(stats["loans"].get_counts(28));
  
     // first correct the timestamps - they are recorded as the daily
     // midnights in UTC+0100, but Flot always displays dates in UTC
@@ -284,5 +284,5 @@ $def with (stats=None)
         <div class="chartShow" onClick="window.location.href='/borrow';" title="We're a library, so we lend books, too"> 
             <div id="ebooks" style="width:150px;height:60px;"></div> 
         </div> 
-        <a href="/borrow" title="We're a library, so we lend books, too"><span class="ticks">12,348</span><span class="label">eBooks Borrowed</span></a> 
+        <a href="/borrow" title="We're a library, so we lend books, too"><span class="ticks">$:commify(stats["loans"].get_summary(28))</span><span class="label">eBooks Borrowed</span></a> 
     </div> 
