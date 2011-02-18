@@ -1,13 +1,20 @@
-$def with (page, ebook_text, user, current_and_available_loans, contributor, line_break)
+$def with (page, ebook_text, user, current_and_available_loans, contributor, line_break = '')
 
 $# TODO construct list of available formats from available_loans
 
-$ (current_loans, available_loans) = current_and_available_loans
+$if current_and_available_loans:
+  $ current_loans = current_and_available_loans[0]
+  $ available_loans = current_and_available_loans[1]
+$else:
+  $ current_loans = []
+  $ available_loans = []
+
 $ user_loan = None
-$for current_loan in current_loans:
-    $if current_loan['user'] == user.key:
-        $ user_loan = current_loan
-        $ break
+$if user:
+    $for current_loan in current_loans:
+        $if current_loan['user'] == user.key:
+            $ user_loan = current_loan
+            $ break
 
 $ borrow_link = page.url() + '/borrow'
 

@@ -131,7 +131,7 @@ $if isbn or oclc_numbers or overdrive_id or 'lendinglibrary' in collection or li
         $if  'lendinglibrary' in collection:
             $:macros.LoanStatus(page, 'eBook', ctx.user, current_and_available_loans, contrib, '<br/>')
         $elif library:
-            $:macros.LoanStatus(page, 'Bones eBook', current_and_available_loans, contrib, '<br/>')
+            $:macros.LoanStatus(page, 'Bones eBook', ctx.user, current_and_available_loans, contrib, '<br/>')
         $if overdrive_id:
             <p><a href="$overdrive.replace('XXX', overdrive_id)" title="Borrow from OverDrive">eBook, local library</a> <span class="smaller">OverDrive</span></p>
         $if isbn:
