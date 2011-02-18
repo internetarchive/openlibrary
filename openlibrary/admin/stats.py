@@ -69,7 +69,7 @@ def store_data(db, data, date):
     db.save(vals)
     
 def run_gathering_functions(infobase_db, coverstore_db, seeds_db, editions_db, works_db, admin_db,
-                            start, end, prefix, key_prefix = None):
+                            start, end, logroot, prefix, key_prefix = None):
     """Runs all the data gathering functions with the given prefix
     inside the numbers module"""
     funcs = [x for x in dir(numbers) if x.startswith(prefix)]
@@ -86,12 +86,15 @@ def run_gathering_functions(infobase_db, coverstore_db, seeds_db, editions_db, w
                      editions_db = editions_db,
                      works_db    = works_db,
                      admin_db    = admin_db,
+                     logroot     = logroot,
                      start       = start,
                      end         = end)
             logging.info("  %s - %s", i, ret)
             d[key] = ret
         except numbers.NoStats:
             logging.warning("  %s - No statistics available", i)
+        except Exception, k:
+            logging.warning("  Failed with %s", k)
     return d
 
 def main(infobase_config, openlibrary_config, coverstore_config, ndays = 1):
@@ -101,6 +104,7 @@ def main(infobase_config, openlibrary_config, coverstore_config, ndays = 1):
         infobase_db = connect_to_pg(infobase_config)
         coverstore_db = connect_to_pg(coverstore_config)
         admin_db, editions_db, works_db, seeds_db = connect_to_couch(openlibrary_config)
+        logroot = infobase_config.get("writelog")
     except KeyError,k:
         logging.critical("Config file section '%s' missing", k.args[0])
         return -1
@@ -112,11 +116,11 @@ def main(infobase_config, openlibrary_config, coverstore_config, ndays = 1):
     data = {}
     logging.info("Gathering total data")
     data.update(run_gathering_functions(infobase_db, coverstore_db, seeds_db, editions_db, works_db, admin_db,
-                                        yesterday, today,
+                                        yesterday, today, logroot
                                         prefix = "admin_total__", key_prefix = "total"))
     logging.info("Gathering data using difference between totals")
     data.update(run_gathering_functions(infobase_db, coverstore_db, seeds_db, editions_db, works_db, admin_db,
-                                        yesterday, today,
+                                        yesterday, today, logroot,
                                         prefix = "admin_delta__"))
     store_data(admin_db, data, today.strftime("%Y-%m-%d"))
     # Now gather data which can be queried based on date ranges
