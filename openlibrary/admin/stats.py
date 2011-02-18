@@ -92,6 +92,8 @@ def run_gathering_functions(infobase_db, coverstore_db, seeds_db, editions_db, w
             d[key] = ret
         except numbers.NoStats:
             logging.warning("  %s - No statistics available", i)
+        except Exception, k:
+            logging.warning("  Failed with %s", k)
     return d
 
 def main(infobase_config, openlibrary_config, coverstore_config, ndays = 1):
