@@ -5,7 +5,7 @@ from infogami import config
 from infogami.utils.view import render, render_template, safeint, add_flash_message
 import simplejson as json
 from openlibrary.plugins.openlibrary.processors import urlsafe
-from openlibrary.utils import str_to_key, url_quote
+from openlibrary.utils import str_to_key, url_quote, read_isbn
 from unicodedata import normalize
 from collections import defaultdict
 import os
@@ -107,15 +107,9 @@ def read_facets(root):
             facets[name].append((k, display, e.text))
     return facets
 
-re_isbn = re.compile('^([0-9]{9}[0-9Xx]|[0-9]{13})$')
 
 re_isbn_field = re.compile('^\s*(?:isbn[:\s]*)?([-0-9X]{9,})\s*$', re.I)
 
-def read_isbn(s):
-    s = s.replace('-', '')
-    return s if re_isbn.match(s) else None
-
-#re_field = re.compile('([a-zA-Z_]+):')
 re_author_key = re.compile(r'(OL\d+A)')
 
 field_name_map = {
