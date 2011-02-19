@@ -910,7 +910,8 @@ class author_search(delegate.page):
     path = '/search/authors'
     def GET(self):
         def get_results(q, offset=0, limit=100):
-            q = escape_bracket(q)
+            valid_fields = ['key', 'name', 'alternate_names', 'birth_date', 'death_date', 'date', 'work_count']
+            q = escape_colon(escape_bracket(q), valid_fields)
             solr_select = solr_author_select_url + "?q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=*&qt=standard&wt=json" % (web.urlquote(q), offset, limit)
             solr_select += '&sort=work_count+desc'
             stats.begin("solr", url=solr_select)
