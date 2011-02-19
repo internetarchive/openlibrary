@@ -28,8 +28,13 @@ ia_meta_fields = set(['contributor'])
 ia_meta_group = '(' + string.join(ia_meta_sets.union(ia_meta_fields), '|') + ')'
 re_meta_field = re.compile('<%s>([^<]+)</%s>' % (ia_meta_group, ia_meta_group), re.I)
 
-def follow_redirect(doc):
-    if doc.type.key == "/type/redirect":
+def follow_redirect(doc):    
+    if isinstance(doc, basestring) and doc.startswith("/a/"):
+        #Some edition records have authors as ["/a/OL1A""] insead of [{"key": "/a/OL1A"}].
+        # Hack to fix it temporarily.
+        doc = web.ctx.site.get(doc.replace("/a/", "/authors/"))
+    
+    if doc and doc.type.key == "/type/redirect":
         key = doc.location
         return web.ctx.site.get(key)
     else:
