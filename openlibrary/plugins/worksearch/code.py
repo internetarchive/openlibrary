@@ -5,7 +5,7 @@ from infogami import config
 from infogami.utils.view import render, render_template, safeint, add_flash_message
 import simplejson as json
 from openlibrary.plugins.openlibrary.processors import urlsafe
-from openlibrary.utils import str_to_key, url_quote
+from openlibrary.utils import str_to_key, url_quote, read_isbn, finddict
 from unicodedata import normalize
 from collections import defaultdict
 import os
@@ -51,7 +51,10 @@ if hasattr(config, 'plugin_worksearch'):
     ebook_count_user = config.plugin_worksearch.get('ebook_count_user') or os.getenv("USER")
     ebook_count_db_name = config.plugin_worksearch.get('ebook_count_db_name')
 
-    ebook_count_db = web.database(dbn='postgres', db=ebook_count_db_name, host=ebook_count_host, user=ebook_count_user)
+    if ebook_count_host:
+        ebook_count_db = web.database(dbn='postgres', db=ebook_count_db_name, host=ebook_count_host, user=ebook_count_user)
+    else:
+        ebook_count_db = web.database(dbn='postgres', db=ebook_count_db_name, user=ebook_count_user)
 
 re_author_facet = re.compile('^(OL\d+A) (.*)$')
 def read_author_facet(af):
@@ -104,15 +107,9 @@ def read_facets(root):
             facets[name].append((k, display, e.text))
     return facets
 
-re_isbn = re.compile('^([0-9]{9}[0-9Xx]|[0-9]{13})$')
 
 re_isbn_field = re.compile('^\s*(?:isbn[:\s]*)?([-0-9X]{9,})\s*$', re.I)
 
-def read_isbn(s):
-    s = s.replace('-', '')
-    return s if re_isbn.match(s) else None
-
-#re_field = re.compile('([a-zA-Z_]+):')
 re_author_key = re.compile(r'(OL\d+A)')
 
 field_name_map = {
@@ -381,23 +378,6 @@ SUBJECTS = [
     web.storage(name="time", key="times", prefix="/subjects/time:", facet="time_facet", facet_key="time_key"),
 ]
 
-def finddict(dicts, **filters):
-    """Find a dictionary that matches given filter conditions.
-
-        >>> dicts = [{"x": 1, "y": 2}, {"x": 3, "y": 4}]
-        >>> finddict(dicts, x=1)
-        {'x': 1, 'y': 2}
-    """
-    for d in dicts:
-        if (all(d.get(k) == v for k, v in filters.iteritems())):
-            return d
-
-def first(seq):
-    try:
-        return iter(seq).next()
-    except:
-        return None
-
 re_chars = re.compile("([%s])" % re.escape(r'+-!(){}[]^"~*?:\\'))
 re_year = re.compile(r'\b(\d+)$')
 
@@ -535,20 +515,20 @@ def get_subject(key, details=False, offset=0, sort='editions', limit=12, **filte
     sort_order = sort_options.get(sort) or sort_options['editions']
 
     return SubjectEngine().get_subject(key, details=details, offset=offset, sort=sort_order, limit=limit, **filters)
-        
-class SubjectEngine:        
+
+class SubjectEngine:
     def get_subject(self, key, details=False, offset=0, limit=12, sort='first_publish_year desc', **filters):
         meta = self.get_meta(key)
 
-        q = self.make_query(key, filters)    
+        q = self.make_query(key, filters)
         subject_type = meta.name
         name = meta.path.replace("_", " ")
-        
+
         if details:
             kw = self.query_optons_for_details()
         else:
             kw = {}
-            
+
         from search import work_search
         result = work_search(q, offset=offset, limit=limit, sort=sort, **kw)
         for w in result.docs:
@@ -561,7 +541,7 @@ class SubjectEngine:
             work_count = result['num_found'],
             works=result['docs']
         )
-        
+
         if details:
             #subject.ebook_count = dict(result.facets["has_fulltext"]).get("true", 0)
             subject.ebook_count = self.get_ebook_count(meta.name, q[meta.facet_key], q.get('publish_year'))
@@ -584,7 +564,7 @@ class SubjectEngine:
                     break
 
         return subject
-        
+
     def get_meta(self, key):
         prefix = self.parse_key(key)[0]
         meta = finddict(SUBJECTS, prefix=prefix)
@@ -901,11 +881,23 @@ class merge_author_works(delegate.page):
     def GET(self, key):
         works = works_by_author(key)
 
+def escape_colon(q, vf):
+    if ':' not in q:
+        return q
+    parts = q.split(':')
+    result = parts.pop(0)
+    while parts:
+        if not any(result.endswith(f) for f in vf):
+            result += '\\'
+        result += ':' + parts.pop(0)
+    return result
+
 class subject_search(delegate.page):
     path = '/search/subjects'
+    valid_fields = ['key', 'name', 'type', 'count']
     def GET(self):
         def get_results(q, offset=0, limit=100):
-            q = escape_bracket(q)
+            q = escape_colon(escape_bracket(q))
             solr_select = solr_subject_select_url + "?q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=name,type,count&qt=standard&wt=json" % (web.urlquote(q), offset, limit)
             solr_select += '&sort=count+desc'
             stats.begin("solr", url=solr_select)

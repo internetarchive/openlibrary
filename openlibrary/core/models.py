@@ -3,6 +3,7 @@
 import urllib, urllib2
 import simplejson
 import web
+import re
 
 import iptools
 from infogami.infobase import client
@@ -299,6 +300,8 @@ class List(Thing, ListMixin):
     def __repr__(self):
         return "<List: %s (%r)>" % (self.key, self.name)
 
+re_range_star = re.compile(r'(\d+\.\d+)\.(\d+)-(\d+)\.\*')
+
 class Library(Thing):
     """Library document.
     
@@ -307,12 +310,27 @@ class Library(Thing):
     def parse_ip_ranges(self, text):
         for line in text.splitlines():
             line = line.split("#")[0].strip()
-            if line:
-                if "-" in line:
-                    start, end = line.split("-", 1)
-                    yield (start.strip(), end.strip())
-                else:
-                    yield line.strip()
+            if not line:
+                continue
+            m = re_range_star.match(line)
+            if m:
+                start = '%s.%s.0' % (m.group(1), m.group(2))
+                end = '%s.%s.255' % (m.group(1), m.group(3))
+                yield (start, end)
+                continue
+            if "-" in line:
+                start, end = line.split("-", 1)
+                yield (start.strip(), end.strip())
+                continue
+            if '*' in line:
+                collected = []
+                octets = line.split('.')
+                while octets[0].isdigit():
+                    collected.append(octets.pop(0))
+                if collected and all(octet == '*' for octet in octets):
+                    yield '%s/%d' % ('.'.join(collected + ['0'] * len(octets)), len(collected) * 8)
+                continue
+            yield line
     
     def get_ip_range_list(self):
         """Returns IpRangeList object for the range of IPs of this library.
