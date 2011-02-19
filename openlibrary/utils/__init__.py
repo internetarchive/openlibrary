@@ -16,3 +16,15 @@ def read_isbn(s): # doesn't validate checksums
     s = s.replace('-', '')
     return s if re_isbn.match(s) else None
 
+def finddict(dicts, **filters):
+    """Find a dictionary that matches given filter conditions.
+
+        >>> dicts = [{"x": 1, "y": 2}, {"x": 3, "y": 4}]
+        >>> finddict(dicts, x=1)
+        {'x': 1, 'y': 2}
+    """
+    for d in dicts:
+        if (all(d.get(k) == v for k, v in filters.iteritems())):
+            return d
+
+
