@@ -895,8 +895,8 @@ def escape_colon(q, vf):
 class subject_search(delegate.page):
     path = '/search/subjects'
     def GET(self):
-        valid_fields = ['key', 'name', 'type', 'count']
         def get_results(q, offset=0, limit=100):
+            valid_fields = ['key', 'name', 'type', 'count']
             q = escape_colon(escape_bracket(q), valid_fields)
             solr_select = solr_subject_select_url + "?q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=name,type,count&qt=standard&wt=json" % (web.urlquote(q), offset, limit)
             solr_select += '&sort=count+desc'
