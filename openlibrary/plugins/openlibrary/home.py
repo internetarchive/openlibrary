@@ -3,9 +3,10 @@
 import web
 
 from infogami.utils import delegate
-from infogami.utils.view import render_template
+from infogami.utils.view import render_template, public
+from infogami.infobase.client import storify
 
-from openlibrary.core import admin, cache
+from openlibrary.core import admin, cache, ia
 from openlibrary.plugins.upstream.utils import get_blog_feeds
 
 class home(delegate.page):
@@ -24,6 +25,43 @@ class home(delegate.page):
         return render_template("home/index", 
             stats=stats,
             blog_posts=blog_posts)
+  
+@public          
+def carousel_from_list(key, randomize=False):
+    data = format_list_editions(key)
+    return render_template("books/carousel", data)
+
+def _format_list_editions(key):
+    """Formats the editions of the list suitable for display in carousel.
+    """
+    if 'env' not in web.ctx:
+        delegate.fakeload()
+    
+    list = web.ctx.site.get(key)
+    if not list:
+        return []
+    
+    editions = {}
+    for seed in list.seeds:
+        if not isinstance(seed, basestring):
+            if seed.type.key == "/type/edition": 
+                editions[seed.key] = seed
+            else:
+                try:
+                    e = pick_best_edition(seed)
+                except StopIteration:
+                    continue
+                editions[e.key] = e
+    return [format_book_data(e) for e in editions.values()]
+    
+_format_list_editions = cache.memcache_memoize(_format_list_editions, "home.format_list_editions")
+
+def format_list_editions(key):
+    data = _format_list_editions(key)
+    return storify(data)
+    
+def pick_best_edition(work):
+    return (e for e in work.editions if e.ocaid).next()
 
 def format_book_data(book):
     d = web.storage()
@@ -53,7 +91,8 @@ def format_book_data(book):
         collections = ia.get_meta_xml(ia_id).get("collection")
         if 'printdisabled' in collections or 'lendinglibrary' in collections:
             d.daisy_url = book.url("/daisy")
-        elif 'lendinglibrary' in collections:
+            
+        if 'lendinglibrary' in collections:
             d.borrow_url = book.url("/borrow")
         elif 'inlibrary' in collections:
             d.inlibrary_borrow_url = book.url("/borrow")
