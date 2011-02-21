@@ -2,6 +2,7 @@
 """
 import datetime
 import web
+import glob
 
 from infogami.infobase import client, common
 
@@ -38,6 +39,19 @@ class MockSite:
         self.changesets.append(changeset)
         
         self.reindex(doc)
+        
+    def quicksave(self, key, type="/type/object", **kw):
+        """Handy utility to save an object with less code and get the saved object as return value.
+        
+            foo = mock_site.quicksave("/books/OL1M", "/type/edition", title="Foo")
+        """
+        query = {
+            "key": key,
+            "type": {"key": type},
+        }
+        query.update(kw)
+        self.save(query)
+        return self.get(key)
 
     def _make_changeset(self, timestamp, kind, comment, data, changes):
         id = len(self.changesets)
@@ -145,3 +159,23 @@ class MockSite:
         data = common.parse_query(data)
         data = self._process_dict(data or {})
         return client.create_thing(self, key, data)
+        
+def pytest_funcarg__mock_site(request):
+    """mock_site funcarg.
+    """
+    def read_types():
+        for path in glob.glob("openlibrary/plugins/openlibrary/types/*.type"):
+            text = open(path).read()
+            doc = eval(text, dict(true=True, false=False))
+            if isinstance(doc, list):
+                for d in doc:
+                    yield d
+            else:
+                yield doc
+
+    site = MockSite()
+
+    for doc in read_types():
+        site.save(doc)
+
+    return site

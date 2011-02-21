@@ -12,25 +12,9 @@ from openlibrary.core import helpers
 
 pytest_plugins = ["pytest_unittest"]
 
-def pytest_funcarg__mock_site(request):
-    def read_types():
-        for path in glob.glob("openlibrary/plugins/openlibrary/types/*.type"):
-            text = open(path).read()
-            doc = eval(text, dict(true=True, false=False))
-            if isinstance(doc, list):
-                for d in doc:
-                    yield d
-            else:
-                yield doc
-                
-    from openlibrary.mocks.mock_infobase import MockSite
-    site = MockSite()
-    
-    for doc in read_types():
-        site.save(doc)
-    
-    return site
-    
+from openlibrary.mocks.mock_infobase import pytest_funcarg__mock_site
+from openlibrary.mocks.mock_ia import pytest_funcarg__mock_ia
+
 def pytest_funcarg__render_template(request):
     """Utility to test templates.
     """    
@@ -51,4 +35,12 @@ def pytest_funcarg__render_template(request):
         web.ctx.clear()
 
     request.addfinalizer(finalizer)
-    return render_template
+    
+    def render(name, *a, **kw):
+        as_string = kw.pop("as_string", True)
+        d = render_template(name, *a, **kw)
+        if as_string:
+            return unicode(d)
+        else:
+            return d
+    return render
