@@ -210,12 +210,12 @@ class Test_format_book_data:
         a2 = mock_site.quicksave("/authors/OL2A", "/type/author", name="A2")
         work = mock_site.quicksave("/works/OL1W", "/type/work", title="Foo", authors=[{"author": {"key": "/authors/OL2A"}}])
         
-        #book = mock_site.quicksave("/books/OL1M", "/type/edition", title="Foo")
-        #assert home.format_book_data(book)['authors'] == []
+        book = mock_site.quicksave("/books/OL1M", "/type/edition", title="Foo")
+        assert home.format_book_data(book)['authors'] == []
         
         # when there is no work and authors, the authors field must be picked from the book
-        #book = mock_site.quicksave("/books/OL1M", "/type/edition", title="Foo", authors=[{"key": "/authors/OL1A"}])
-        #assert home.format_book_data(book)['authors'] == [{"key": "/authors/OL1A", "name": "A1"}]
+        book = mock_site.quicksave("/books/OL1M", "/type/edition", title="Foo", authors=[{"key": "/authors/OL1A"}])
+        assert home.format_book_data(book)['authors'] == [{"key": "/authors/OL1A", "name": "A1"}]
         
         # when there is work, the authors field must be picked from the work
         book = mock_site.quicksave("/books/OL1M", "/type/edition", 
@@ -223,10 +223,4 @@ class Test_format_book_data:
             authors=[{"key": "/authors/OL1A"}], 
             works=[{"key": "/works/OL1W"}]
         )
-        #print "xx", work.get_authors()
         assert home.format_book_data(book)['authors'] == [{"key": "/authors/OL2A", "name": "A2"}]
-        
-=======
-        assert "Around the Library" in html
-        assert "About the Project" in html
->>>>>>> 0bd4b07d5e70a6a05915544417fa09f7776dd5be
