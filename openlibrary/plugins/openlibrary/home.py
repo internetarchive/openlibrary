@@ -15,7 +15,10 @@ class home(delegate.page):
         return "lending_v2" in web.ctx.features
     
     def GET(self):
-        stats = admin.get_stats()
+        try:
+            stats = admin.get_stats()
+        except Exception:
+            stats = None
         blog_posts = get_blog_feeds()
         
         return render_template("home/index", 

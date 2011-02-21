@@ -5,10 +5,19 @@ import sys
 from infogami.utils.view import render_template
 from infogami.utils import template, context
 from openlibrary.i18n import gettext
-
+from openlibrary.core.admin import Stats
 from BeautifulSoup import BeautifulSoup
 
 from openlibrary.plugins.openlibrary import home
+
+class MockDoc(dict):
+    def __init__(self, _id, *largs, **kargs):
+        self.id = _id
+        super(MockDoc,self).__init__(*largs, **kargs)
+
+    def __repr__(self):
+        o = super(MockDoc, self).__repr__()
+        return "<%s - %s>"%(self.id, o)
 
 class TestHomeTemplates:
     def test_about_template(self, render_template):
@@ -34,8 +43,9 @@ class TestHomeTemplates:
         assert len(blog.findAll("li")) == 1
         
     def test_stats_template(self, render_template):
+        # Make sure that it works fine without any input (skipping section)
         html = unicode(render_template("home/stats"))
-        assert html.strip() == ""
+        assert html == ""
         
     def test_read_template(self, render_template):
         html = unicode(render_template("home/read"))
@@ -46,16 +56,29 @@ class TestHomeTemplates:
         assert "Return Cart" in html
 
     def test_home_template(self, render_template):
-        html = unicode(render_template("home/index"))
-        
+        docs = [MockDoc(_id = datetime.datetime.now().strftime("counts-%Y-%m-%d"),
+                        human_edits = 1, bot_edits = 1, lists = 1,
+                        visitors = 1, loans = 1, members = 1,
+                        works = 1, editions = 1, ebooks = 1,
+                        covers = 1, authors = 1, subjects = 1)]* 100
+        stats = dict(human_edits = Stats(docs, "human_edits", "human_edits"),
+                     bot_edits   = Stats(docs, "bot_edits", "bot_edits"),
+                     lists       = Stats(docs, "lists", "total_lists"),
+                     visitors    = Stats(docs, "visitors", "visitors"),
+                     loans       = Stats(docs, "loans", "loans"),
+                     members     = Stats(docs, "members", "total_members"),
+                     works       = Stats(docs, "works", "total_works"),
+                     editions    = Stats(docs, "editions", "total_editions"),
+                     ebooks      = Stats(docs, "ebooks", "total_ebooks"),
+                     covers      = Stats(docs, "covers", "total_covers"),
+                     authors     = Stats(docs, "authors", "total_authors"),
+                     subjects    = Stats(docs, "subjects", "total_subjects"))
+        html = unicode(render_template("home/index", stats))
         assert '<div class="homeSplash"' in html
         assert "Books to Read" in html
         assert "Return Cart" in html
+        assert "Around the Library" in html
         assert "About the Project" in html
-
-        # stats are not displayed if stats are absent
-        assert "Around the Library" not in html
-
 
 class TestCarouselItem:
     def setup_method(self, m):
@@ -203,3 +226,7 @@ class Test_format_book_data:
         #print "xx", work.get_authors()
         assert home.format_book_data(book)['authors'] == [{"key": "/authors/OL2A", "name": "A2"}]
         
+=======
+        assert "Around the Library" in html
+        assert "About the Project" in html
+>>>>>>> 0bd4b07d5e70a6a05915544417fa09f7776dd5be

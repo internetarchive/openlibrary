@@ -116,7 +116,7 @@ def main(infobase_config, openlibrary_config, coverstore_config, ndays = 1):
     data = {}
     logging.info("Gathering total data")
     data.update(run_gathering_functions(infobase_db, coverstore_db, seeds_db, editions_db, works_db, admin_db,
-                                        yesterday, today, logroot
+                                        yesterday, today, logroot,
                                         prefix = "admin_total__", key_prefix = "total"))
     logging.info("Gathering data using difference between totals")
     data.update(run_gathering_functions(infobase_db, coverstore_db, seeds_db, editions_db, works_db, admin_db,

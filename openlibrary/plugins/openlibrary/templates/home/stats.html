@@ -1,8 +1,6 @@
 $def with (stats=None)
 
-$if not stats:
-    $return
-
+$if stats:
     <div class="head"> 
         <h2 class="inline">Around the Library</h2>
         <p class="inline sansserif large collapse">&nbsp;Here's what's happened over the last 28 days. More <a href="/recentchanges">recent changes</a>.</p>
@@ -43,36 +41,54 @@ $if not stats:
     </div> 
 
 
-<script type="text/javascript">
-
-\$(function () {
-    plot_data("#visitors", $:json_encode(stats["visitors"].get_counts(28)), "#e44028");
-    plot_data("#members", $:json_encode(stats["members"].get_counts(28)), "#748d36");
-    plot_data("#edits", $:json_encode(stats["human_edits"].get_counts(28)), "#00636a");
-    plot_data("#lists", $:json_encode(stats["lists"].get_counts(28)), "#ffa337");
-    plot_data("#ebooks", $:json_encode(stats["loans"].get_counts(28)), "#35672e");
-});
-
-function plot_data(selector, data, color) {
-    var options = {
-       series: {
-            bars: { 
-                show: true, 
-                fill: 1, 
-                fillColor: color,
-                color: color, 
-                align: "left",
-                barWidth: 5
+    <script type="text/javascript">
+    
+    \$(function () {
+        plot_data("#visitors", $:json_encode(stats["visitors"].get_counts(28)), "#e44028");
+        plot_data("#members", $:json_encode(stats["members"].get_counts(28)), "#748d36");
+        plot_data("#edits", $:json_encode(stats["human_edits"].get_counts(28)), "#00636a");
+        plot_data("#lists", $:json_encode(stats["lists"].get_counts(28)), "#ffa337");
+        plot_data("#ebooks", $:json_encode(stats["loans"].get_counts(28)), "#35672e");
+    });
+    
+    function plot_data(selector, data, color) {
+        var options = {
+           series: {
+                bars: { 
+                    show: true, 
+                    fill: 1, 
+                    fillColor: color,
+                    color: color, 
+                    align: "left",
+                    barWidth: 5
+                },
+                points: { 
+                    show: false 
+                },
+                color: color
+                },
+            grid: { 
+                show: false
             },
-            points: { 
-                show: false 
-            },
-            color: color
-        },
-        grid: { 
-            show: false
-        },
-    };
-    \$.plot(\$(selector), [data], options);
-}
-</script>    
+        };
+        \$.plot(\$(selector), [data], options);
+    }
+    </script>    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
