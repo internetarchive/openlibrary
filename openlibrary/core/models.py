@@ -113,7 +113,7 @@ class Work(Thing):
         return self._make_url(self.title or "untitled", suffix, **params)
 
     def __repr__(self):
-        return "<Work: %s>" % repr(self.title)
+        return "<Work: %s>" % repr(self.key)
     __str__ = __repr__
 
     def get_edition_count(self):
@@ -135,7 +135,7 @@ class Author(Thing):
         return self._make_url(self.name or "unnamed", suffix, **params)
 
     def __repr__(self):
-        return "<Author: %s>" % repr(self.name)
+        return "<Author: %s>" % repr(self.key)
     __str__ = __repr__
 
     def get_edition_count(self):
@@ -214,6 +214,9 @@ class User(Thing):
         }
         return self._site.new(key, doc)
 
+    def __repr__(self):
+        return "<User: %s>" % repr(self.key)
+    __str__ = __repr__
 
 class List(Thing, ListMixin):
     """Class to represent /type/list objects in OL.
