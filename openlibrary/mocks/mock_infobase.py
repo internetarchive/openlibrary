@@ -80,7 +80,7 @@ class MockSite:
             d = {}
             for k, v in value.items():
                 d[k] = self._process(v)
-            return client.create_thing(self, None, d)
+            return client.create_thing(self, d.get('key'), d)
         elif isinstance(value, common.Reference):
             return client.create_thing(self, unicode(value), None)
         else:
@@ -153,6 +153,12 @@ class MockSite:
     def _get_backreferences(self, doc):
         return {}
         
+    def _load(self, key, revision=None):
+        doc = self.get(key, revision=revision)
+        data = doc.dict()
+        data = web.storage(common.parse_query(data))
+        return self._process_dict(data)
+        
     def new(self, key, data=None):
         """Creates a new thing in memory.
         """
@@ -172,9 +178,14 @@ def pytest_funcarg__mock_site(request):
                     yield d
             else:
                 yield doc
+    
+    def setup_models():
+        from openlibrary.plugins.upstream import models
+        models.setup()
 
     site = MockSite()
 
+    setup_models()
     for doc in read_types():
         site.save(doc)
 
