@@ -1,0 +1,18 @@
+$def with (books, id="ol-carousel")
+
+<script type="text/javascript"> 
+\$(function(){
+    \$("#$id").jcarousel({scroll:6});
+});
+</script>
+
+<div class="contentLists results"> 
+    <div class="covers resultsCovers"> 
+        <ul class="homeCarousel jcarousel-skin-OL" id="$id">
+            $for book in books:
+                <li>
+                    $:render_template("books/carousel_item", book)
+                </li>
+        </ul>
+    </div>
+</div>
