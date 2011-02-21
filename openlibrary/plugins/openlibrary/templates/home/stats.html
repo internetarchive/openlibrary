@@ -1,4 +1,8 @@
 $def with (stats=None)
+
+$if not stats:
+    $return
+
     <div class="head"> 
         <h2 class="inline">Around the Library</h2>
         <p class="inline sansserif large collapse">&nbsp;Here's what's happened over the last 28 days. More <a href="/recentchanges">recent changes</a>.</p>

@@ -1,5 +1,6 @@
 import datetime
 import web
+
 from infogami.utils.view import render_template
 from infogami.utils import template
 from openlibrary.i18n import gettext
@@ -31,7 +32,7 @@ class TestHomeTemplates:
         
     def test_stats_template(self, render_template):
         html = unicode(render_template("home/stats"))
-        assert "Around the Library" in html
+        assert html.strip() == ""
         
     def test_read_template(self, render_template):
         html = unicode(render_template("home/read"))
@@ -47,5 +48,7 @@ class TestHomeTemplates:
         assert '<div class="homeSplash"' in html
         assert "Books to Read" in html
         assert "Return Cart" in html
-        assert "Around the Library" in html
         assert "About the Project" in html
+
+        # stats are not displayed if stats are absent
+        assert "Around the Library" not in html
