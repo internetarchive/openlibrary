@@ -3,7 +3,7 @@ $def with (book)
 $if "authors" in book:
     $ authors = ", ".join(a.name for a in book.authors)
     $ long_title = truncate(book.title, 40) + " by " + truncate(authors, 40)
-else:
+$else:
     $ authors = ""
     $ long_title = truncate(book.title, 40)
 
