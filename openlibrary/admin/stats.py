@@ -56,6 +56,16 @@ def connect_to_couch(config_file):
     logging.debug(" Seeds Database is %s", seeds_db)
     return couchdb.Database(admin_db), couchdb.Database(editions_db), couchdb.Database(works_db), couchdb.Database(seeds_db)
 
+def get_config_info(infobase_config):
+    """Parses the config file(s) to get back all the necessary pieces of data.
+
+    Add extra parameters here and change the point of calling.
+    """
+    f = open(infobase_config)
+    config = yaml.load(f)
+    f.close()
+    logroot = config.get("writelog")
+    return logroot
     
 def store_data(db, data, date):
     uid = "counts-%s"%date
@@ -104,7 +114,7 @@ def main(infobase_config, openlibrary_config, coverstore_config, ndays = 1):
         infobase_db = connect_to_pg(infobase_config)
         coverstore_db = connect_to_pg(coverstore_config)
         admin_db, editions_db, works_db, seeds_db = connect_to_couch(openlibrary_config)
-        logroot = infobase_config.get("writelog")
+        logroot = get_config_info(infobase_config)
     except KeyError,k:
         logging.critical("Config file section '%s' missing", k.args[0])
         return -1
@@ -133,7 +143,7 @@ def main(infobase_config, openlibrary_config, coverstore_config, ndays = 1):
     for i in range(int(ndays)):
         logging.info(" %s to %s", start, end)
         data.update(run_gathering_functions(infobase_db, coverstore_db, seeds_db, editions_db, works_db, admin_db,
-                                            start, end,
+                                            start, end, logroot,
                                             prefix = "admin_range__"))
         store_data(admin_db, data, start.strftime("%Y-%m-%d"))
         end = start
