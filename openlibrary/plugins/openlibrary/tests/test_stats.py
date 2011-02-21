@@ -1,6 +1,10 @@
+"""
+Tests the stats gathering systems. 
+"""
 from .. import stats
 
 def test_format_stats_entry():
+    "Tests the stats performance entries"
     stats.process_stats({"total": {"time": 0.1}}) == [("TT", 0, 0.1)]
     stats.process_stats({"total": {"time": 0.1346}}) == [("TT", 0, 0.135)]
     
@@ -12,5 +16,6 @@ def test_format_stats_entry():
     stats.process_stats({"something-else": {"count": 2, "time": 0.1}}) == [("OT", 2, 0.100)]
 
 def test_format_stats():
+    "Tests whether the performance status are output properly in the the X-OL-Stats header"
     stats.format_stats({"total": {"time": 0.2}, "infobase": {"count": 2, "time": 0.13}}) == '"IB 2 0.130 TT 0 0.200"'
     
