@@ -42,12 +42,39 @@ $if stats:
     <script type="text/javascript">
     
     \$(function () {
-         plot_data("#visitors", $:json_encode(stats["visitors"].get_counts(28, True)), "#e44028", "unique visitor(s) on");
-         plot_data("#members", $:json_encode(stats["members"].get_counts(28, True)), "#748d36", "new member(s) on");
-         plot_data("#edits", $:json_encode(stats["human_edits"].get_counts(28, True)), "#00636a","catalog edit(s) on");
-         plot_data("#lists", $:json_encode(stats["lists"].get_counts(28, True)), "#ffa337","list(s) created on");
-         plot_data("#ebooks", $:json_encode(stats["loans"].get_counts(28, True)), "#35672e","ebook(s) borrowed on");
+         plot_data("#visitors", $:json_encode(stats["visitors"].get_counts(28, True)), "#e44028", "unique visitors on");
+         plot_data("#members", $:json_encode(stats["members"].get_counts(28, True)), "#748d36", "new members on");
+         plot_data("#edits", $:json_encode(stats["human_edits"].get_counts(28, True)), "#00636a","catalog edits on");
+         plot_data("#lists", $:json_encode(stats["lists"].get_counts(28, True)), "#ffa337","lists created on");
+         plot_data("#ebooks", $:json_encode(stats["loans"].get_counts(28, True)), "#35672e","ebooks borrowed on");
     });
+    
+    function commify(num) {
+        var newNum = "";
+        var ret = "";
+        var count = 0;
+        
+        for (var k = num.length-1; k >= 0; k--){
+          var oneChar = num.charAt(k);
+          if (count == 3) {
+            newNum += ",";
+            newNum += oneChar;
+            count = 1;
+            continue;
+          }
+          else {
+            newNum += oneChar;
+            count ++;
+          }
+       }  //but now the string is reversed!
+       
+      //re-reverse the string
+      for (var k = newNum.length-1; k >= 0; k--){
+          var oneChar = newNum.charAt(k);
+          ret += oneChar;
+      }
+      return ret;
+    }
     
     function plot_data(selector, data, color, tooltip_message) {
         for (var i = 0; i < data.length; ++i)
@@ -104,11 +131,11 @@ $if stats:
                 var date = new Date(milli);
                 var x = date.toDateString(),
                 y = item.datapoint[1].toFixed(0);
-                showTooltip(item.pageX, item.pageY, y + " "+ tooltip_message +" " + x);
+              showTooltip(item.pageX, item.pageY, commify(y) + " "+ tooltip_message +" " + x);
             } else {
                 \$("#chartLabelA").remove();
             };
         });
-    
-    }
+        }
+
     </script>
