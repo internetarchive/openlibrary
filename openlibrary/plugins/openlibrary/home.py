@@ -7,8 +7,9 @@ from infogami.utils import delegate
 from infogami.utils.view import render_template, public
 from infogami.infobase.client import storify
 
-from openlibrary.core import admin, cache, ia
+from openlibrary.core import admin, cache, ia, helpers as h
 from openlibrary.plugins.upstream.utils import get_blog_feeds
+from openlibrary.plugins.worksearch import search
 
 class home(delegate.page):
     path = "/"
@@ -27,15 +28,60 @@ class home(delegate.page):
             stats=stats,
             blog_posts=blog_posts)
   
-@public          
+@public
 def carousel_from_list(key, randomize=False):
+    id = key.split("/")[-1] + "_carousel"
+    
     data = format_list_editions(key)
     if randomize:
         random.shuffle(data)
     
-    return render_template("books/carousel", data)
+    return render_template("books/carousel", storify(data), id=id)
+    
+@public
+def readonline_carousel(id="read-carousel"):
+    data = random_ebooks()
+    if len(data) > 120:
+        data = random.sample(data, 120)
+    return render_template("books/carousel", storify(data), id=id)
 
-def _format_list_editions(key):
+def random_ebooks(limit=1000):
+    solr = search.get_works_solr()
+    sort = "edition_count desc"
+    start = random.randint(0, 1000)
+    result = solr.select(
+        query='has_fulltext:true -public_scan_b:false', 
+        rows=limit, 
+        start=start,
+        sort=sort,
+        fields=[
+            'has_fulltext',
+            'key',
+            'ia',
+            "title",
+            "cover_edition_key",
+            "author_key", "author_name",
+        ])
+    
+    def process_doc(doc):
+        d = {}
+        d['url'] = "/works/" + doc['key']
+        d['title'] = doc.get('title', '')
+        
+        if 'author_key' in doc and 'author_name' in doc:
+            d['authors'] = [{"key": key, "name": name} for key, name in zip(doc['author_key'], doc['author_name'])]
+            
+        if 'cover_edition_key' in doc:
+            d['cover_url'] = h.get_coverstore_url() + "/b/olid/%s-M.jpg" % doc['cover_edition_key']
+            
+        d['read_url'] = "http://www.archive.org/stream/" + doc['ia'][0]
+        return d
+        
+    return [process_doc(doc) for doc in result['docs'] if doc.get('ia')]
+
+random_ebooks = cache.memcache_memoize(random_ebooks, "home.random_ebooks")
+
+def format_list_editions(key):
     """Formats the editions of the list suitable for display in carousel.
     """
     if 'env' not in web.ctx:
@@ -58,12 +104,8 @@ def _format_list_editions(key):
                 editions[e.key] = e
     return [format_book_data(e) for e in editions.values()]
     
-_format_list_editions = cache.memcache_memoize(_format_list_editions, "home.format_list_editions")
+format_list_editions = cache.memcache_memoize(format_list_editions, "home.format_list_editions")
 
-def format_list_editions(key):
-    data = _format_list_editions(key)
-    return storify(data)
-    
 def pick_best_edition(work):
     return (e for e in work.editions if e.ocaid).next()
 
