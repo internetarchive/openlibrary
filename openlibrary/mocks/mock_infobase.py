@@ -168,6 +168,8 @@ class MockSite:
         
 def pytest_funcarg__mock_site(request):
     """mock_site funcarg.
+    
+    Creates a mock site, assigns it to web.ctx.site and returns it.
     """
     def read_types():
         for path in glob.glob("openlibrary/plugins/openlibrary/types/*.type"):
@@ -189,4 +191,16 @@ def pytest_funcarg__mock_site(request):
     for doc in read_types():
         site.save(doc)
 
+    old_ctx = dict(web.ctx)
+    web.ctx.clear()
+    web.ctx.site = site
+    web.ctx.env = web.ctx.environ = web.storage()
+    web.ctx.headers = []
+    
+    def undo():
+        web.ctx.clear()
+        web.ctx.update(old_ctx)
+    
+    request.addfinalizer(undo)
+    
     return site

@@ -14,6 +14,7 @@ pytest_plugins = ["pytest_unittest"]
 
 from openlibrary.mocks.mock_infobase import pytest_funcarg__mock_site
 from openlibrary.mocks.mock_ia import pytest_funcarg__mock_ia
+from openlibrary.mocks.mock_memcache import pytest_funcarg__mock_memcache
 
 def pytest_funcarg__render_template(request):
     """Utility to test templates.
