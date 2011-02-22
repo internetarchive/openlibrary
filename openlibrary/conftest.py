@@ -31,6 +31,20 @@ def pytest_funcarg__render_template(request):
     web.ctx.headers = []
     web.ctx.lang = "en"
 
+    # ol_infobase.init_plugin call is failing when trying to import plugins.openlibrary.code.
+    # monkeypatch to avoid that.
+    from openlibrary.plugins import ol_infobase
+    
+    init_plugin = ol_infobase.init_plugin
+    ol_infobase.init_plugin = lambda: None
+    def undo():
+        ol_infobase.init_plugin = init_plugin
+    request.addfinalizer(undo)    
+    
+    from openlibrary.plugins.openlibrary import code
+    web.config.db_parameters = dict()
+    code.setup_template_globals()
+
     def finalizer():
         template.disktemplates.clear()
         web.ctx.clear()
