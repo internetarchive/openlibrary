@@ -1,8 +1,9 @@
-$def random_link(links):
-    $ link = random.choice(links.split())
-    $ href, label = link.split("-")
-    <a href="$href">$label</a>
-
+$code:
+    def random_link(links):
+        link = random.choice(links.split())
+        href, label = link.split("-")
+        return '<a href="%s">%s</a>' % (href, label)
+    
 <div class="homeSplash" title="Photo by Simon Chetrit"> 
     <div class="homeBlurb"> 
         <p id="homeBlurb1">Open Library is yours</strong></p> 
