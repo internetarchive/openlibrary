@@ -6,7 +6,7 @@
     <!-- START CAROUSEL --> 
     <div class="contentLists results"> 
         <div class="covers resultsCovers"> 
-        <ul class="homeCarousel jcarousel-skin-OL"> 
+        <ul class="homeCarousel jcarousel-skin-OL" id="returncart-carousel"> 
             <li> 
                 <div class="coverMagic"> 
                     <div class="SRPCover"> 
@@ -231,3 +231,11 @@
         </ul> 
         </div> 
     </div> 
+
+
+<script type="text/javascript"> 
+\$(function(){
+    \$('#returncart-carousel').jcarousel({scroll:6});
+});
+</script>
+
