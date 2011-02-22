@@ -42,14 +42,17 @@ $def with (stats=None)
 <script type="text/javascript">
 
 \$(function () {
-    plot_data("#visitors", $:json_encode(stats["visitors"].get_counts(28)), "#e44028");
-    plot_data("#members", $:json_encode(stats["members"].get_counts(28)), "#748d36");
-    plot_data("#edits", $:json_encode(stats["human_edits"].get_counts(28)), "#00636a");
-    plot_data("#lists", $:json_encode(stats["lists"].get_counts(28)), "#ffa337");
-    plot_data("#ebooks", $:json_encode(stats["loans"].get_counts(28)), "#35672e");
+     plot_data("#visitors", $:json_encode(stats["visitors"].get_counts(28, True)), "#e44028", "unique visitor(s) on");
+     plot_data("#members", $:json_encode(stats["members"].get_counts(28, True)), "#748d36", "new member(s) on");
+     plot_data("#edits", $:json_encode(stats["human_edits"].get_counts(28, True)), "#00636a","catalog edit(s) on");
+     plot_data("#lists", $:json_encode(stats["lists"].get_counts(28, True)), "#ffa337","list(s) created on");
+     plot_data("#ebooks", $:json_encode(stats["loans"].get_counts(28, True)), "#35672e","ebook(s) borrowed on");
 });
 
-function plot_data(selector, data, color) {
+function plot_data(selector, data, color, tooltip_message) {
+    for (var i = 0; i < data.length; ++i)
+	data[i][0] += 60 * 60 * 1000;
+
     var options = {
        series: {
             bars: { 
@@ -58,7 +61,7 @@ function plot_data(selector, data, color) {
                 fillColor: color,
                 color: color, 
                 align: "left",
-                barWidth: 5
+                barWidth: 24 * 60 * 60 * 1000
             },
             points: { 
                 show: false 
@@ -66,9 +69,46 @@ function plot_data(selector, data, color) {
             color: color
         },
         grid: { 
+            hoverable: true,
             show: false
         },
+        xaxis: {
+            mode: "time"
+        }
     };
-    \$.plot(\$(selector), [data], options);
+  var plot = \$.plot(\$(selector), [data], options);
+
+  function showTooltip(x, y, contents) {
+    \$('<div id="chartLabelA">' + contents + '</div>').css( {
+            position: 'absolute',
+            display: 'none',
+            top: y + 12,
+            left: x + 12,
+            border: '1px solid #ccc',
+            padding: '2px',
+            backgroundColor: '#efefef',
+            color: '#454545',
+            fontSize: '11px',
+            webkitBoxShadow: '1px 1px 3px #333',
+            mozBoxShadow: '1px 1px 1px #000',
+            boxShadow: '1px 1px 1px #000'
+        }).appendTo("body").fadeIn(200);
+    };
+    var previousPoint = null;
+  \$(selector).bind("plothover", function (event, pos, item) {
+        \$("#x").text(pos.x);
+        \$("#y").text(pos.y.toFixed(0));
+        if (item) {
+            \$("#chartLabelA").remove();
+            var milli = item.datapoint[0];
+            var date = new Date(milli);
+            var x = date.toDateString(),
+            y = item.datapoint[1].toFixed(0);
+            showTooltip(item.pageX, item.pageY, y + " "+ tooltip_message +" " + x);
+        } else {
+            \$("#chartLabelA").remove();
+        };
+    });
+
 }
 </script>    
