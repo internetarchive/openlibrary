@@ -88,7 +88,8 @@ def random_ebooks(limit=1000):
         
     return [process_doc(doc) for doc in result['docs'] if doc.get('ia')]
 
-random_ebooks = cache.memcache_memoize(random_ebooks, "home.random_ebooks")
+# cache the results of random_ebooks in memcache for 15 minutes
+random_ebooks = cache.memcache_memoize(random_ebooks, "home.random_ebooks", timeout=15*60)
 
 def format_list_editions(key):
     """Formats the editions of the list suitable for display in carousel.
@@ -113,7 +114,8 @@ def format_list_editions(key):
                 editions[e.key] = e
     return [format_book_data(e) for e in editions.values()]
     
-format_list_editions = cache.memcache_memoize(format_list_editions, "home.format_list_editions")
+# cache the results of format_list_editions in memcache for 5 minutes
+format_list_editions = cache.memcache_memoize(format_list_editions, "home.format_list_editions", timeout=5*60)
 
 def pick_best_edition(work):
     return (e for e in work.editions if e.ocaid).next()
