@@ -6,11 +6,11 @@ $if "authors" in book:
 $else:
     $ authors = ""
     $ long_title = truncate(book.title, 40)
-
-<div class="coverMagic"> 
+    
+<div class="coverMagic hiddenCoverMagic"> 
     $if "cover_url" in book:
         <div class="SRPCover"> 
-            <a href="$book.url" title="$long_title"><img src="$book.cover_url" alt="$book.title" class="cover"/></a>
+            <a href="$book.url" title="$long_title"><img xsrc="$book.cover_url" src="$get_coverstore_url()/b/id/0-S.jpg" alt="$book.title" class="cover"/></a>
         </div>
     $else:
         <a href="$book.url" title="$long_title">
