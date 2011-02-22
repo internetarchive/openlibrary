@@ -10,6 +10,29 @@ from BeautifulSoup import BeautifulSoup
 
 from openlibrary.plugins.openlibrary import home
 
+def pytest_funcarg__olconfig(request):
+    from infogami import config
+    import copy
+    
+    def safecopy(data):
+        if isinstance(data, list):
+            return [safecopy(d) for d in data]
+        elif isinstance(data, web.storage):
+            return web.storage((k, safecopy(v)) for k, v in data.items())
+        elif isinstance(data, dict):
+            return dict((k, safecopy(v)) for k, v in data.items())
+        else:
+            return data
+    
+    old_config = safecopy(config.__dict__)
+    
+    def undo():
+        config.__dict__.clear()
+        config.__dict__.update(old_config)
+    
+    request.addfinalizer(undo)
+    return config.__dict__
+
 class MockDoc(dict):
     def __init__(self, _id, *largs, **kargs):
         self.id = _id
@@ -18,6 +41,7 @@ class MockDoc(dict):
     def __repr__(self):
         o = super(MockDoc, self).__repr__()
         return "<%s - %s>"%(self.id, o)
+        
 
 class TestHomeTemplates:
     def test_about_template(self, render_template):
@@ -48,14 +72,32 @@ class TestHomeTemplates:
         assert html == ""
         
     def test_read_template(self, render_template):
+        # getting read-online books fails because solr is not defined.
+        # Empty list should be returned when there is error.
         html = unicode(render_template("home/read"))
-        assert "Books to Read" in html
+        assert html.strip() == ""
         
-    def test_borrow_template(self, render_template):
-        html = unicode(render_template("home/borrow"))
+    def test_lending_template(self, render_template, mock_site, olconfig):
+        html = unicode(render_template("home/lendinglibrary"))
+        assert html.strip() == ""
+        
+        mock_site.quicksave("/people/foo/lists/OL1L", "/type/list")
+        olconfig.setdefault("home", {})['lending_list'] = "/people/foo/lists/OL1L"
+
+        html = unicode(render_template("home/lendinglibrary", "/people/foo/lists/OL1L"))
+        assert "Lending Library" in html
+
+    def test_returncart_template(self, render_template, mock_site, olconfig):
+        html = unicode(render_template("home/returncart"))
+        assert html.strip() == ""
+
+        mock_site.quicksave("/people/foo/lists/OL1L", "/type/list")
+        olconfig.setdefault("home", {})['returncart_list'] = "/people/foo/lists/OL1L"
+
+        html = unicode(render_template("home/returncart", "/people/foo/lists/OL1L"))
         assert "Return Cart" in html
 
-    def test_home_template(self, render_template):
+    def test_home_template(self, render_template, mock_site, olconfig):
         docs = [MockDoc(_id = datetime.datetime.now().strftime("counts-%Y-%m-%d"),
                         human_edits = 1, bot_edits = 1, lists = 1,
                         visitors = 1, loans = 1, members = 1,
@@ -73,9 +115,17 @@ class TestHomeTemplates:
                      covers      = Stats(docs, "covers", "total_covers"),
                      authors     = Stats(docs, "authors", "total_authors"),
                      subjects    = Stats(docs, "subjects", "total_subjects"))
-        html = unicode(render_template("home/index", stats))
+                     
+        mock_site.quicksave("/people/foo/lists/OL1L", "/type/list")
+        olconfig.setdefault("home", {})['returncart_list'] = "/people/foo/lists/OL1L"
+        olconfig.setdefault("home", {})['lending_list'] = "/people/foo/lists/OL1L"
+                     
+        html = unicode(render_template("home/index", 
+            stats=stats, 
+            returncart_list="/people/foo/lists/OL1L",
+            lending_list="/people/foo/lists/OL1L"))
         assert '<div class="homeSplash"' in html
-        assert "Books to Read" in html
+        #assert "Books to Read" in html
         assert "Return Cart" in html
         assert "Around the Library" in html
         assert "About the Project" in html

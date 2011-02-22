@@ -6,6 +6,7 @@ import web
 from infogami.utils import delegate
 from infogami.utils.view import render_template, public
 from infogami.infobase.client import storify
+from infogami import config
 
 from openlibrary.core import admin, cache, ia, helpers as h
 from openlibrary.plugins.upstream.utils import get_blog_feeds
@@ -24,26 +25,34 @@ class home(delegate.page):
             stats = None
         blog_posts = get_blog_feeds()
         
+        lending_list = config.get("home", {}).get("lending_list")
+        returncart_list = config.get("home", {}).get("returncart_list")
+        
         return render_template("home/index", 
             stats=stats,
-            blog_posts=blog_posts)
-  
+            blog_posts=blog_posts,
+            lending_list=lending_list,
+            returncart_list=returncart_list)
+
 @public
-def carousel_from_list(key, randomize=False):
+def carousel_from_list(key, randomize=False, limit=60):
     id = key.split("/")[-1] + "_carousel"
     
     data = format_list_editions(key)
     if randomize:
         random.shuffle(data)
-    
+    data = data[:limit]
     return render_template("books/carousel", storify(data), id=id)
     
 @public
 def readonline_carousel(id="read-carousel"):
-    data = random_ebooks()
-    if len(data) > 120:
-        data = random.sample(data, 120)
-    return render_template("books/carousel", storify(data), id=id)
+    try:
+        data = random_ebooks()
+        if len(data) > 120:
+            data = random.sample(data, 120)
+        return render_template("books/carousel", storify(data), id=id)
+    except Exception:
+        return None
 
 def random_ebooks(limit=1000):
     solr = search.get_works_solr()
