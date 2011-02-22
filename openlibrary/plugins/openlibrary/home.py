@@ -1,5 +1,6 @@
 """Controller for home page.
 """
+import random
 import web
 
 from infogami.utils import delegate
@@ -29,6 +30,9 @@ class home(delegate.page):
 @public          
 def carousel_from_list(key, randomize=False):
     data = format_list_editions(key)
+    if randomize:
+        random.shuffle(data)
+    
     return render_template("books/carousel", data)
 
 def _format_list_editions(key):
