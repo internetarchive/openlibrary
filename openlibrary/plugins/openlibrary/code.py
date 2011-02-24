@@ -6,6 +6,7 @@ import simplejson
 import os
 import urllib
 import socket
+import random
 import datetime
 from time import time
 
@@ -73,15 +74,6 @@ models.register_types()
 
 # this adds /show-marc/xxx page to infogami
 import showmarc
-
-# add zip and tuple to the list of public functions
-public(zip)
-public(tuple)
-public(isbn_13_to_isbn_10)
-public(time)
-public(web.input)
-public(simplejson.dumps)
-web.template.Template.globals['NEWLINE'] = "\n"
 
 # Remove movefiles install hook. openlibrary manages its own files.
 infogami._install_hooks = [h for h in infogami._install_hooks if h.__name__ != "movefiles"]
@@ -719,18 +711,32 @@ from infogami.core.forms import register
 username_validator = web.form.Validator("Username already used", lambda username: not web.ctx.site._request("/has_user", data={"username": username}))
 register.username.validators = list(register.username.validators) + [username_validator]
 
+def setup_template_globals():
+    web.template.Template.globals.update({
+        "sorted": sorted,
+        "zip": zip,
+        "tuple": tuple,
+        "isbn_13_to_isbn_10": isbn_13_to_isbn_10,
+        "NEWLINE": "\n",
+        "random": random.Random(),
+        
+        # bad use of globals
+        "time": time,
+        "input": web.input,
+        "dumps": simplejson.dumps,
+    })
+    
 def setup():
-    import home, inlibrary, borrow_home
+    import home, inlibrary, borrow_home, libraries
     
     home.setup()
     inlibrary.setup()
     borrow_home.setup()
-    
-    web.template.Template.globals.update({
-        "sorted": sorted,
-    })
+    libraries.setup()
     
     from stats import stats_hook
     delegate.app.add_processor(web.unloadhook(stats_hook))
-
+    
+    setup_template_globals()
+    
 setup()

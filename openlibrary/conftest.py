@@ -12,25 +12,10 @@ from openlibrary.core import helpers
 
 pytest_plugins = ["pytest_unittest"]
 
-def pytest_funcarg__mock_site(request):
-    def read_types():
-        for path in glob.glob("openlibrary/plugins/openlibrary/types/*.type"):
-            text = open(path).read()
-            doc = eval(text, dict(true=True, false=False))
-            if isinstance(doc, list):
-                for d in doc:
-                    yield d
-            else:
-                yield doc
-                
-    from openlibrary.mocks.mock_infobase import MockSite
-    site = MockSite()
-    
-    for doc in read_types():
-        site.save(doc)
-    
-    return site
-    
+from openlibrary.mocks.mock_infobase import pytest_funcarg__mock_site
+from openlibrary.mocks.mock_ia import pytest_funcarg__mock_ia
+from openlibrary.mocks.mock_memcache import pytest_funcarg__mock_memcache
+
 def pytest_funcarg__render_template(request):
     """Utility to test templates.
     """    
@@ -46,9 +31,31 @@ def pytest_funcarg__render_template(request):
     web.ctx.headers = []
     web.ctx.lang = "en"
 
+    # ol_infobase.init_plugin call is failing when trying to import plugins.openlibrary.code.
+    # monkeypatch to avoid that.
+    from openlibrary.plugins import ol_infobase
+    
+    init_plugin = ol_infobase.init_plugin
+    ol_infobase.init_plugin = lambda: None
+    def undo():
+        ol_infobase.init_plugin = init_plugin
+    request.addfinalizer(undo)    
+    
+    from openlibrary.plugins.openlibrary import code
+    web.config.db_parameters = dict()
+    code.setup_template_globals()
+
     def finalizer():
         template.disktemplates.clear()
         web.ctx.clear()
 
     request.addfinalizer(finalizer)
-    return render_template
+    
+    def render(name, *a, **kw):
+        as_string = kw.pop("as_string", True)
+        d = render_template(name, *a, **kw)
+        if as_string:
+            return unicode(d)
+        else:
+            return d
+    return render

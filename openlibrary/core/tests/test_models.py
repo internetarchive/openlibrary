@@ -106,11 +106,24 @@ class TestLibrary:
         
     def test_parse_ip_ranges(self):
         doc = models.Library(None, "/libraries/foo")
-        assert list(doc.parse_ip_ranges("")) == []
-        assert list(doc.parse_ip_ranges("1.2.3.4")) == ["1.2.3.4"]
-        assert list(doc.parse_ip_ranges("1.1.1.1\n2.2.2.2")) == ["1.1.1.1", "2.2.2.2"]
-        assert list(doc.parse_ip_ranges("1.1.1.1 # comment \n2.2.2.2")) == ["1.1.1.1", "2.2.2.2"]
-        assert list(doc.parse_ip_ranges("1.1.1.1\n # comment \n2.2.2.2")) == ["1.1.1.1", "2.2.2.2"]
+        def compare_ranges(test, expect):
+            result = list(doc.parse_ip_ranges(test))
+            assert result == expect
+        compare_ranges("", [])
+        compare_ranges("1.2.3.4", ["1.2.3.4"])
+        compare_ranges("1.2.3.4", ["1.2.3.4"])
+        compare_ranges("1.1.1.1\n2.2.2.2", ["1.1.1.1", "2.2.2.2"])
+        compare_ranges("1.1.1.1-2.2.2.2", [("1.1.1.1", "2.2.2.2")])
+        compare_ranges("1.1.1.1 # comment \n2.2.2.2", ["1.1.1.1", "2.2.2.2"])
+        compare_ranges("1.1.1.1\n # comment \n2.2.2.2", ["1.1.1.1", "2.2.2.2"])
+        compare_ranges("1.2.3.0/24", ["1.2.3.0/24"])
+        compare_ranges("1.2.3.*", ["1.2.3.0/24"])
+        compare_ranges("1.2.*.*", ["1.2.0.0/16"])
+        compare_ranges("1.*.*.*", ["1.0.0.0/8"])
+        compare_ranges("1.*.*.*", ["1.0.0.0/8"])
+        compare_ranges("*", [])
+        compare_ranges("*.1", [])
+        compare_ranges("1.2.3-10.*", [("1.2.3.0", "1.2.10.255")])
     
     def test_has_ip(self, mock_site):
         mock_site.save({
