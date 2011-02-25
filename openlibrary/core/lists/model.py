@@ -139,6 +139,14 @@ class ListMixin:
         
         When _raw=True, the edtion dicts are returned instead of edtion objects.
         """
+        if not self.seeds:
+            return {
+                "count": 0,
+                "offset": offset,
+                "limit": limit,
+                "editions": []
+            }
+            
         d = self._editions_view(self._get_rawseeds(), 
             skip=offset, limit=limit, 
             sort="last_modified", reverse="true", 

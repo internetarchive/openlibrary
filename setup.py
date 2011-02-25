@@ -13,6 +13,7 @@ argparse
 CouchDB==0.8
 genshi
 gunicorn
+iptools
 lxml
 psycopg2
 pymarc

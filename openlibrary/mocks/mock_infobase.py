@@ -2,11 +2,15 @@
 """
 import datetime
 import web
+import glob
 
 from infogami.infobase import client, common
 
 class MockSite:
     def __init__(self):
+        self.reset()
+        
+    def reset(self):
         self.docs = {}
         self.changesets = []
         self.index = []
@@ -35,6 +39,19 @@ class MockSite:
         self.changesets.append(changeset)
         
         self.reindex(doc)
+        
+    def quicksave(self, key, type="/type/object", **kw):
+        """Handy utility to save an object with less code and get the saved object as return value.
+        
+            foo = mock_site.quicksave("/books/OL1M", "/type/edition", title="Foo")
+        """
+        query = {
+            "key": key,
+            "type": {"key": type},
+        }
+        query.update(kw)
+        self.save(query)
+        return self.get(key)
 
     def _make_changeset(self, timestamp, kind, comment, data, changes):
         id = len(self.changesets)
@@ -63,7 +80,7 @@ class MockSite:
             d = {}
             for k, v in value.items():
                 d[k] = self._process(v)
-            return client.create_thing(self, None, d)
+            return client.create_thing(self, d.get('key'), d)
         elif isinstance(value, common.Reference):
             return client.create_thing(self, unicode(value), None)
         else:
@@ -135,3 +152,55 @@ class MockSite:
         
     def _get_backreferences(self, doc):
         return {}
+        
+    def _load(self, key, revision=None):
+        doc = self.get(key, revision=revision)
+        data = doc.dict()
+        data = web.storage(common.parse_query(data))
+        return self._process_dict(data)
+        
+    def new(self, key, data=None):
+        """Creates a new thing in memory.
+        """
+        data = common.parse_query(data)
+        data = self._process_dict(data or {})
+        return client.create_thing(self, key, data)
+        
+def pytest_funcarg__mock_site(request):
+    """mock_site funcarg.
+    
+    Creates a mock site, assigns it to web.ctx.site and returns it.
+    """
+    def read_types():
+        for path in glob.glob("openlibrary/plugins/openlibrary/types/*.type"):
+            text = open(path).read()
+            doc = eval(text, dict(true=True, false=False))
+            if isinstance(doc, list):
+                for d in doc:
+                    yield d
+            else:
+                yield doc
+    
+    def setup_models():
+        from openlibrary.plugins.upstream import models
+        models.setup()
+
+    site = MockSite()
+
+    setup_models()
+    for doc in read_types():
+        site.save(doc)
+
+    old_ctx = dict(web.ctx)
+    web.ctx.clear()
+    web.ctx.site = site
+    web.ctx.env = web.ctx.environ = web.storage()
+    web.ctx.headers = []
+    
+    def undo():
+        web.ctx.clear()
+        web.ctx.update(old_ctx)
+    
+    request.addfinalizer(undo)
+    
+    return site

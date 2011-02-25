@@ -1,0 +1,46 @@
+$def with (book)
+
+$if "authors" in book:
+    $ authors = ", ".join(a.name for a in book.authors)
+    $ long_title = truncate(book.title, 40) + " by " + truncate(authors, 40)
+$else:
+    $ authors = ""
+    $ long_title = truncate(book.title, 40)
+    
+<div class="coverMagic hiddenCoverMagic"> 
+    $if "cover_url" in book:
+        <div class="SRPCover"> 
+            <a href="$book.url" title="$long_title"><img xsrc="$book.cover_url" src="$get_coverstore_url()/b/id/0-S.jpg" alt="$book.title" class="cover"/></a>
+        </div>
+    $else:
+        <a href="$book.url" title="$long_title">
+            <div class="SRPCoverBlank" style="display:block;">
+                <div class="innerBorder">
+                    <div class="BookTitle">$truncate(book.title, 40)
+                        <div class="Author">$truncate(authors, 40)</div>
+                    </div>
+                </div>
+            </div>
+        </a>
+    
+    $if book.get("read_url"):
+        <div class="coverEbook">
+            <a href="$book.read_url" title="$_('Read online')"><img src="/images/icons/icon_ebook-avail.png" border="0" width="32" height="33" alt="$_('Read online')"/></a>
+        </div>
+    $elif book.get("borrow_url"):
+        <div class="coverEbook">
+            <a href="$book.borrow_url" title="$_('Borrow this book')"><img src="/images/icons/icon_borrow-avail.png" border="0" width="32" height="33" alt="$_('Borrow this book')"/></a>
+        </div>
+    $elif "inlibrary" in ctx.features and book.inlibrary_borrow_url and get_library() is not None:
+        <div class="coverEbook">
+            <a href="$book.inlibrary_borrow_url" title="$_('Borrow this book')"><img src="/images/icons/icon_borrow-avail.png" border="0" width="32" height="33" alt="$_('Borrow this book')"/></a>
+        </div>
+    $elif book.get("daisy_url"):
+        <div class="coverEbook">
+            <a href="$book.daisy_url" title="$_('Download a protected DAISY')"><img src="/images/icons/icon_pdaisy-avail.png" border="0" width="32" height="33" alt="$_('Download a protected DAISY')"/></a>
+        </div>
+    $elif book.get("overdrive_url"):
+        <div class="coverEbook">
+            <a href="$book.overdrive_url" title="$_('Borrow this book')"><img src="/images/icons/icon_borrow-avail.png" border="0" width="32" height="33" alt="$_('Borrow this book')"/></a>
+        </div>
+</div>

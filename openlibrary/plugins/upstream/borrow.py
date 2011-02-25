@@ -19,11 +19,15 @@ from infogami.infobase.utils import parse_datetime
 import utils
 from utils import render_template
 
+from openlibrary.core import inlibrary
+
 import acs4
 
 ########## Constants
 
-lending_library_subject = 'Lending library'
+lending_library_subject = u'Lending library'
+in_library_subject = u'In library'
+lending_subjects = set([lending_library_subject, in_library_subject])
 loanstatus_url = config.get('loanstatus_url')
 
 content_server = None
@@ -167,6 +171,47 @@ class borrow(delegate.page):
             
         # Action not recognized
         raise web.seeother(error_redirect)
+        
+# Handler for /books/{bookid}/{title}/_borrow_status
+class borrow_status(delegate.page):
+    path = "(/books/OL\d+M)/_borrow_status"
+    
+    def GET(self, key):
+    	global lending_subjects
+    	
+        i = web.input(callback=None)
+
+        edition = web.ctx.site.get(key)
+        
+        if not edition:
+            raise web.notfound()
+
+        edition.update_loan_status()            
+        available_formats = [loan['resource_type'] for loan in edition.get_available_loans()]
+        loan_available = len(available_formats) > 0
+        subjects = set([])
+        
+        for work in edition.get('works', []):
+	        for subject in work.get_subjects():
+	            if subject in lending_subjects:
+    	        	subjects.add(subject)
+        
+        output = {
+        	'id' : key,
+        	'loan_available': loan_available,
+        	'available_formats': available_formats,
+        	'lending_subjects': [lending_subject for lending_subject in subjects]
+        }
+
+        output_text = simplejson.dumps( output )
+        
+        content_type = "application/json"
+        if i.callback:
+            content_type = "text/javascript"
+            output_text = '%s ( %s );' % (i.callback, output_text)
+        
+        return delegate.RawText(output_text, content_type=content_type)
+
 
 class borrow_admin(delegate.page):
     path = "(/books/OL\d+M)/borrow_admin"
@@ -189,7 +234,7 @@ class borrow_admin(delegate.page):
             user.update_loan_status()
             user_loans = get_loans(user)
             
-        return render_template("borrow_admin", edition, edition_loans, user_loans)
+        return render_template("borrow_admin", edition, edition_loans, user_loans, web.ctx.ip)
         
 # Handler for /iauth/{itemid}
 class ia_auth(delegate.page):
@@ -225,36 +270,40 @@ def overdrive_id(edition):
 
 @public
 def can_borrow(edition):
-    global lending_library_subject
+    global lending_library_subject, in_library_subject
     
     # Check if in overdrive
     # $$$ Should we also require to be in lending library?
     if overdrive_id(edition):
         return True
     
-    # Check that work is in lending library
-    inLendingLibrary = False
+    # Check that work is in the general lending library, or available for
+    # in-library loan and the user is in a library
+    lendable = False
     for work in edition.get('works', []):
         subjects = work.get_subjects()
+        
         if subjects:
-            try:
-                if subjects.index(lending_library_subject) >= 0:
-                    inLendingLibrary = True
+            if lending_library_subject in subjects:
+                # General lending library
+                lendable = True
+                break
+            if in_library_subject in subjects:
+                # Books is eligible for in-library loan
+                if 'inlibrary' in web.ctx.features and inlibrary.get_library() is not None:
+                    # Person is in a library
+                    lendable = True
                     break
-            except ValueError:
-                pass
-                
-    if not inLendingLibrary:
+                        
+    if not lendable:
         return False
     
-    # Book is in lending library
-    
-    # Check if hosted at archive.org
+    # Check if hosted at archive.org - sanity check
     if edition.get('ocaid', False):
         return True
     
     return False
-
+    
 @public
 def is_loan_available(edition, type):    
     resource_id = edition.get_lending_resource_id(type)
@@ -296,6 +345,7 @@ def get_bookreader_stream_url(itemid):
 @public
 def get_bookreader_host():
     return bookreader_host
+    
     
         
 ########## Helper Functions
@@ -438,7 +488,7 @@ def is_loaned_out(resource_id):
             return False
 
         # Find the loan and check if it has expired
-        loan = web.ctx.store.get(loan_key)
+        loan = web.ctx.site.store.get(loan_key)
         if loan:
             if datetime_from_isoformat(loan['expiry']) < datetime.datetime.utcnow():
                 return True
@@ -471,7 +521,9 @@ def update_loan_status(resource_id):
         return
         
     loan = web.ctx.site.store.get(loan_key)
+    _update_loan_status(loan_key, loan, None)
     
+def _update_loan_status(loan_key, loan, bss_status = None):
     # If this is a BookReader loan, local version of loan is authoritative
     if loan['resource_type'] == 'bookreader':
         # delete loan record if has expired
@@ -481,9 +533,10 @@ def update_loan_status(resource_id):
         return
         
     # Load status from book status server
-    status = get_loan_status(resource_id)
-
-    update_loan_from_bss_status(loan_key, loan, status)
+    if bss_status is None:
+        bss_status = get_loan_status(loan['resource_id'])
+        
+    update_loan_from_bss_status(loan_key, loan, bss_status)
         
 def update_loan_from_bss_status(loan_key, loan, status):
     """Update the loan status in the private data store from BSS status"""
@@ -521,33 +574,32 @@ def update_all_loan_status():
     bss_statuses = get_all_loaned_out()
     bss_resource_ids = [status['resourceid'] for status in bss_statuses]
 
-    for resource_type in ['epub', 'pdf']:
-        # print "updating %s loans" % resource_type
+    offset = 0
+    limit = 500
+    all_updated = False
+
+    while not all_updated:
+        ol_loan_keys = [row['key'] for row in web.ctx.site.store.query('/type/loan', limit=limit, offset=offset)]
         
-        offset = 0
-        limit = 500
-        all_updated = False
-    
-        while not all_updated:
-            # Could just get epub and pdf loans here since they're the ones that use BSS
-            ol_loan_keys = [row['key'] for row in web.ctx.site.store.query('/type/loan', 'resource_type', resource_type, limit=limit, offset=offset)]
+        # Update status of each loan
+        for loan_key in ol_loan_keys:
+            loan = web.ctx.site.store.get(loan_key)
+            import sys; sys.stderr.write('XXXX %s' % loan)
             
-            # Update status of each loan
-            for loan_key in ol_loan_keys:
-                loan = web.ctx.site.store.get(loan_key)
+            bss_status = None
+            if resource_uses_bss(loan['resource_id']):
+                try:
+                    bss_status = bss_statuses[ bss_resource_ids.index(loan['resource_id']) ]
+                except ValueError:
+                    bss_status = None
+                    
+            _update_loan_status(loan_key, loan, bss_status)
                 
-                if resource_uses_bss(loan['resource_id']):
-                    try:
-                        status = bss_statuses[ bss_resource_ids.index(loan['resource_id']) ]
-                    except ValueError:
-                        status = None
-                        
-                    update_loan_from_bss_status(loan_key, loan, status)
-            
-            if len(ol_loan_keys) < limit:
-                all_updated = True
-            else:        
-                offset += len(ol_loan_keys)
+        
+        if len(ol_loan_keys) < limit:
+            all_updated = True
+        else:        
+            offset += len(ol_loan_keys)
             
 def resource_uses_bss(resource_id):
     """Returns true if the resource should use the BSS for status"""

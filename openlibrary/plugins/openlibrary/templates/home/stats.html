@@ -1,294 +1,141 @@
 $def with (stats=None)
+$if stats:
     <div class="head"> 
         <h2 class="inline">Around the Library</h2>
         <p class="inline sansserif large collapse">&nbsp;Here's what's happened over the last 28 days. More <a href="/recentchanges">recent changes</a>.</p>
     </div> 
-    
- 
-<script id="source" type="text/javascript"> 
-\$(function () {
-     var d = [[1196463600000, 0], [1196550000000, 1], [1196636400000, 2], [1196722800000, 3], [1196809200000, 4], [1196895600000, 5], [1196982000000, 6], [1197068400000, 7], [1197154800000, 8], [1197241200000, 9], [1197327600000, 10], [1197414000000, 11], [1197500400000, 12], [1197586800000, 13], [1197673200000, 14], [1197759600000, 15], [1197846000000, 16], [1197932400000, 17], [1198018800000, 18], [1198105200000, 19], [1198191600000, 20], [1198278000000, 21], [1198364400000, 22], [1198450800000, 23], [1198537200000, 24], [1198623600000, 25], [1198710000000, 26], [1198796400000, 27], [1198882800000, 28], [1198969200000, 29]];
- 
-    var options = {
-       series: {
-            bars: { 
-                show: true, 
-                fill: 1, 
-                fillColor: "#e44028",
-                color: "#e44028", 
-                align: "left",
-                barWidth: 24 * 60 * 60 * 1000
-            },
-            points: { 
-                show: false 
-            },
-            color: "#e44028"
-        },
-        grid: { 
-            show: false
-        },
-        xaxis: { 
-            mode: "time"
-        }
-    };
-    
-    var plot = \$.plot(\$("#visitors"), [d], options);
-    
-});
-</script> 
- 
  
     <div class="chartHome"> 
         <div class="chartShow" onClick="window.location.href='http://archive.org/stats';" title="See all visitors to OpenLibrary.org"> 
             <div id="visitors" style="width:150px;height:60px;"></div> 
         </div> 
-        <a href="http://archive.org/stats" title="See all visitors to OpenLibrary.org"><span class="ticks">6,805,789</span><span class="label">Unique Visitors</span></a> 
+        <a href="http://archive.org/stats" title="See all visitors to OpenLibrary.org"><span class="ticks">$:commify(stats["visitors"].get_summary(28))</span><span class="label">Unique Visitors</span></a> 
     </div> 
-<script id="source" type="text/javascript"> 
-\$(function () {
-    var d = [[1196463600000, 0], [1196550000000, 1], [1196636400000, 2], [1196722800000, 3], [1196809200000, 4], [1196895600000, 5], [1196982000000, 6], [1197068400000, 7], [1197154800000, 8], [1197241200000, 9], [1197327600000, 10], [1197414000000, 11], [1197500400000, 12], [1197586800000, 13], [1197673200000, 14], [1197759600000, 15], [1197846000000, 16], [1197932400000, 17], [1198018800000, 18], [1198105200000, 19], [1198191600000, 20], [1198278000000, 21], [1198364400000, 22], [1198450800000, 23], [1198537200000, 24], [1198623600000, 25], [1198710000000, 26], [1198796400000, 27], [1198882800000, 28], [1198969200000, 29]];;
- 
-    // first correct the timestamps - they are recorded as the daily
-    // midnights in UTC+0100, but Flot always displays dates in UTC
-    // so we have to add one hour to hit the midnights in the plot
-    for (var i = 0; i < d.length; ++i)
-      d[i][0] += 60 * 60 * 1000;
- 
-    // helper for returning the weekends in a period
-    function weekendAreas(axes) {
-        var markings = [];
-        var d = new Date(axes.xaxis.min);
-        // go to the first Saturday
-        d.setUTCDate(d.getUTCDate() - ((d.getUTCDay() + 1) % 7))
-        d.setUTCSeconds(0);
-        d.setUTCMinutes(0);
-        d.setUTCHours(0);
-        var i = d.getTime();
-        do {
-            // when we don't set yaxis, the rectangle automatically
-            // extends to infinity upwards and downwards
-            markings.push({ xaxis: { from: i, to: i + 2 * 24 * 60 * 60 * 1000 } });
-            i += 7 * 24 * 60 * 60 * 1000;
-        } while (i < axes.xaxis.max);
- 
-        return markings;
-    }
-    
-    var options = {
-       series: {
-            bars: { 
-                show: true, 
-                fill: 1, 
-                fillColor: "#748d36",
-                color: "#748d36", 
-                align: "left",
-                barWidth: 24 * 60 * 60 * 1000
-            },
-            points: { 
-                show: false 
-            },
-            color: "#748d36"
-        },
-        grid: { 
-            show: false
-        },
-        xaxis: { 
-            mode: "time"
-        }
-    };
-    
-    var plot = \$.plot(\$("#members"), [d], options);
-    
-});
-</script> 
- 
+     
     <div class="chartHome"> 
-        <div class="chartShow" onClick="window.location.href='tba';" title="How many new Open Library members have we welcomed?"> 
+        <div class="chartShow" onClick="window.location.href='/recentchanges';" title="How many new Open Library members have we welcomed?"> 
             <div id="members" style="width:150px;height:60px;"></div> 
         </div> 
-        <a href="tba" title="How many new Open Library members have we welcomed?"><span class="ticks">6,134</span><span class="label">New Members</span></a> 
-    </div> 
-<script id="source" type="text/javascript"> 
-\$(function () {
-    var d = $:json_encode(stats["edits"].get_counts(30));
- 
-    // first correct the timestamps - they are recorded as the daily
-    // midnights in UTC+0100, but Flot always displays dates in UTC
-    // so we have to add one hour to hit the midnights in the plot
-    for (var i = 0; i < d.length; ++i)
-      d[i][0] += 60 * 60 * 1000;
- 
-    // helper for returning the weekends in a period
-    function weekendAreas(axes) {
-        var markings = [];
-        var d = new Date(axes.xaxis.min);
-        // go to the first Saturday
-        d.setUTCDate(d.getUTCDate() - ((d.getUTCDay() + 1) % 7))
-        d.setUTCSeconds(0);
-        d.setUTCMinutes(0);
-        d.setUTCHours(0);
-        var i = d.getTime();
-        do {
-            // when we don't set yaxis, the rectangle automatically
-            // extends to infinity upwards and downwards
-            markings.push({ xaxis: { from: i, to: i + 2 * 24 * 60 * 60 * 1000 } });
-            i += 7 * 24 * 60 * 60 * 1000;
-        } while (i < axes.xaxis.max);
- 
-        return markings;
-    }
-    
-    var options = {
-       series: {
-            bars: { 
-                show: true, 
-                fill: 1, 
-                fillColor: "#00636a",
-                color: "#00636a", 
-                align: "left",
-                barWidth: 5
-            },
-            points: { 
-                show: false 
-            },
-            color: "#00636a"
-        },
-        grid: { 
-            show: false
-        },
-    };
-    
-    var plot = \$.plot(\$("#edits"), [d], options);
-    
-});
-</script> 
+        <a href="/recentchanges" title="How many new Open Library members have we welcomed?"><span class="ticks">$:commify(stats["members"].get_summary(28))</span><span class="label">New Members</span></a> 
+    </div>
     <div class="chartHome"> 
         <div class="chartShow" onClick="window.location.href='/recentchanges';" title="People are constantly updating the catalog"> 
             <div id="edits" style="width:150px;height:60px;"></div> 
         </div> 
-        <a href="/recentchanges" title="People are constantly updating the catalog"><span class="ticks">96,589</span><span class="label">Catalog Edits</span></a> 
+        <a href="/recentchanges" title="People are constantly updating the catalog"><span class="ticks">$:commify(stats["human_edits"].get_summary(28))</span><span class="label">Catalog Edits</span></a> 
     </div> 
-<script id="source" type="text/javascript"> 
-\$(function () {
-    var d = $:json_encode(stats["lists"].get_counts(30));
 
- 
-    // first correct the timestamps - they are recorded as the daily
-    // midnights in UTC+0100, but Flot always displays dates in UTC
-    // so we have to add one hour to hit the midnights in the plot
-    for (var i = 0; i < d.length; ++i)
-      d[i][0] += 60 * 60 * 1000;
- 
-    // helper for returning the weekends in a period
-    function weekendAreas(axes) {
-        var markings = [];
-        var d = new Date(axes.xaxis.min);
-        // go to the first Saturday
-        d.setUTCDate(d.getUTCDate() - ((d.getUTCDay() + 1) % 7))
-        d.setUTCSeconds(0);
-        d.setUTCMinutes(0);
-        d.setUTCHours(0);
-        var i = d.getTime();
-        do {
-            // when we don't set yaxis, the rectangle automatically
-            // extends to infinity upwards and downwards
-            markings.push({ xaxis: { from: i, to: i + 2 * 24 * 60 * 60 * 1000 } });
-            i += 7 * 24 * 60 * 60 * 1000;
-        } while (i < axes.xaxis.max);
- 
-        return markings;
-    }
-    
-    var options = {
-       series: {
-            bars: { 
-                show: true, 
-                fill: 1, 
-                fillColor: "#ffa337",
-                color: "#ffa337", 
-                align: "left",
-                barWidth: 5
-            },
-            points: { 
-                show: false 
-            },
-            color: "#ffa337"
-        },
-        grid: { 
-            show: false
-        },
-    };
-    
-    var plot = \$.plot(\$("#lists"), [d], options);
-    
-});
-</script> 
     <div class="chartHome"> 
         <div class="chartShow" onClick="window.location.href='/lists';" title="Members can create Lists"> 
             <div id="lists" style="width:150px;height:60px;"></div> 
         </div> 
-        <a href="/lists" title="Members can create Lists"><span class="ticks">1,278</span><span class="label">Lists Created</span></a> 
+        <a href="/lists" title="Members can create Lists"><span class="ticks">$:commify(stats["lists"].get_summary(28))</span><span class="label">Lists Created</span></a> 
     </div> 
-<script id="source" type="text/javascript"> 
-\$(function () {
-    var d = [[1196463600000, 0], [1196550000000, 1], [1196636400000, 2], [1196722800000, 3], [1196809200000, 4], [1196895600000, 5], [1196982000000, 6], [1197068400000, 7], [1197154800000, 8], [1197241200000, 9], [1197327600000, 10], [1197414000000, 11], [1197500400000, 12], [1197586800000, 13], [1197673200000, 14], [1197759600000, 15], [1197846000000, 16], [1197932400000, 17], [1198018800000, 18], [1198105200000, 19], [1198191600000, 20], [1198278000000, 21], [1198364400000, 22], [1198450800000, 23], [1198537200000, 24], [1198623600000, 25], [1198710000000, 26], [1198796400000, 27], [1198882800000, 28], [1198969200000, 29]];;
- 
-    // first correct the timestamps - they are recorded as the daily
-    // midnights in UTC+0100, but Flot always displays dates in UTC
-    // so we have to add one hour to hit the midnights in the plot
-    for (var i = 0; i < d.length; ++i)
-      d[i][0] += 60 * 60 * 1000;
- 
-    // helper for returning the weekends in a period
-    function weekendAreas(axes) {
-        var markings = [];
-        var d = new Date(axes.xaxis.min);
-        // go to the first Saturday
-        d.setUTCDate(d.getUTCDate() - ((d.getUTCDay() + 1) % 7))
-        d.setUTCSeconds(0);
-        d.setUTCMinutes(0);
-        d.setUTCHours(0);
-        var i = d.getTime();
-        do {
-            // when we don't set yaxis, the rectangle automatically
-            // extends to infinity upwards and downwards
-            markings.push({ xaxis: { from: i, to: i + 2 * 24 * 60 * 60 * 1000 } });
-            i += 7 * 24 * 60 * 60 * 1000;
-        } while (i < axes.xaxis.max);
- 
-        return markings;
-    }
-    
-    var options = {
-       series: {
-            bars: { 
-                show: true, 
-                fill: 1, 
-                fillColor: "#35672e",
-                color: "#35672e", 
-                align: "left",
-                barWidth: 24 * 60 * 60 * 1000
-            },
-            points: { 
-                show: false 
-            },
-            color: "#35672e"
-        },
-        grid: { 
-            show: false
-        },
-        xaxis: { 
-            mode: "time"
-        }
-    };
-    
-    var plot = \$.plot(\$("#ebooks"), [d], options);
-    
-});
-</script> 
+
     <div class="chartHome chartEnd"> 
         <div class="chartShow" onClick="window.location.href='/borrow';" title="We're a library, so we lend books, too"> 
             <div id="ebooks" style="width:150px;height:60px;"></div> 
         </div> 
-        <a href="/borrow" title="We're a library, so we lend books, too"><span class="ticks">12,348</span><span class="label">eBooks Borrowed</span></a> 
+        <a href="/borrow" title="We're a library, so we lend books, too"><span class="ticks">$:commify(stats["loans"].get_summary(28))</span><span class="label">eBooks Borrowed</span></a> 
     </div> 
+
+    <script type="text/javascript">
+    
+    \$(function () {
+         plot_data("#visitors", $:json_encode(stats["visitors"].get_counts(28, True)), "#e44028", "unique visitors on");
+         plot_data("#members", $:json_encode(stats["members"].get_counts(28, True)), "#748d36", "new members on");
+         plot_data("#edits", $:json_encode(stats["human_edits"].get_counts(28, True)), "#00636a","catalog edits on");
+         plot_data("#lists", $:json_encode(stats["lists"].get_counts(28, True)), "#ffa337","lists created on");
+         plot_data("#ebooks", $:json_encode(stats["loans"].get_counts(28, True)), "#35672e","ebooks borrowed on");
+    });
+    
+    function commify(num) {
+        var newNum = "";
+        var ret = "";
+        var count = 0;
+        
+        for (var k = num.length-1; k >= 0; k--){
+          var oneChar = num.charAt(k);
+          if (count == 3) {
+            newNum += ",";
+            newNum += oneChar;
+            count = 1;
+            continue;
+          }
+          else {
+            newNum += oneChar;
+            count ++;
+          }
+       }  //but now the string is reversed!
+       
+      //re-reverse the string
+      for (var k = newNum.length-1; k >= 0; k--){
+          var oneChar = newNum.charAt(k);
+          ret += oneChar;
+      }
+      return ret;
+    }
+    
+    function plot_data(selector, data, color, tooltip_message) {
+        for (var i = 0; i < data.length; ++i)
+    	data[i][0] += 60 * 60 * 1000;
+    
+        var options = {
+           series: {
+                bars: { 
+                    show: true, 
+                    fill: 1, 
+                    fillColor: color,
+                    color: color, 
+                    align: "left",
+                    barWidth: 24 * 60 * 60 * 1000
+                },
+                points: { 
+                    show: false 
+                },
+                color: color
+            },
+            grid: { 
+                hoverable: true,
+                show: false
+            },
+            xaxis: {
+                mode: "time"
+            }
+        };
+      var plot = \$.plot(\$(selector), [data], options);
+    
+      function showTooltip(x, y, contents) {
+        \$('<div id="chartLabelA">' + contents + '</div>').css( {
+                position: 'absolute',
+                display: 'none',
+                top: y + 12,
+                left: x + 12,
+                border: '1px solid #ccc',
+                padding: '2px',
+                backgroundColor: '#efefef',
+                color: '#454545',
+                fontSize: '11px',
+                webkitBoxShadow: '1px 1px 3px #333',
+                mozBoxShadow: '1px 1px 1px #000',
+                boxShadow: '1px 1px 1px #000'
+            }).appendTo("body").fadeIn(200);
+        };
+        var previousPoint = null;
+      \$(selector).bind("plothover", function (event, pos, item) {
+            \$("#x").text(pos.x);
+            \$("#y").text(pos.y.toFixed(0));
+            if (item) {
+                \$("#chartLabelA").remove();
+                var milli = item.datapoint[0];
+                var date = new Date(milli);
+                var x = date.toDateString(),
+                y = item.datapoint[1].toFixed(0);
+              showTooltip(item.pageX, item.pageY, commify(y) + " "+ tooltip_message +" " + x);
+            } else {
+                \$("#chartLabelA").remove();
+            };
+        });
+        }
+
+    </script>
