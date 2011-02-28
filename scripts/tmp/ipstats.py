@@ -7,29 +7,62 @@ import os
 import datetime
 import subprocess
 
+import couchdb
+import yaml
+
+def connect_to_couch(config_file):
+    "Connects to the couch databases"
+    f = open(config_file)
+    config = yaml.load(f)
+    f.close()
+    admin_db = config["admin"]["counts_db"]
+    return couchdb.Database(admin_db)
+
+def store_data(db, data, date):
+    uid = date.strftime("counts-%Y-%m-%d")
+    print uid
+    try:
+        vals = db[uid]
+        vals.update(data)
+    except couchdb.http.ResourceNotFound:
+        vals = data
+        db[uid] = vals
+    print "saving %s"%vals
+    db.save(vals)
 
 def run_for_day(d):
-    basedir = "/var/log/lighttpd/%(year)d/%(month)d/%(day)d/"%dict(year = d.year, month = d.month, day = d.day)
-    counter = ["|", "awk '$2 == \"openlibrary.org\" { print $1  }'", "|", "sort -u", "|", "wc -l"]
+    basedir = "/var/log/lighttpd/%(year)d/%(month)02d/%(day)d/"%dict(year = d.year, month = d.month, day = d.day)
+    awk = ["awk", '$2 == "openlibrary.org" { print $1 }']
+    sort = ["sort", "-u"]
+    count = ["wc", "-l"]
     if os.path.exists(basedir + "access.log.gz"):
-        cmd = ["zcat %s/access.log.gz"%basedir ] + counter
+        cmd = subprocess.Popen(["zcat", "%s/access.log.gz"%basedir], stdout = subprocess.PIPE)
     elif os.path.exists(basedir + "access.log"):
-        cmd = ["cat %s/access.log"%basedir] + counter
-    p = subprocess.Popen(cmd, stdout = subprocess.PIPE, shell = True)
-    p.wait()
-    val = p.stdout.read()
-    return val
+        cmd = subprocess.Popen(["cat", "%s/access.log"%basedir], stdout = subprocess.PIPE)
+    print awk
+    cmd = subprocess.Popen(awk,   stdin = cmd.stdout, stdout = subprocess.PIPE)
+    print sort
+    cmd = subprocess.Popen(sort,  stdin = cmd.stdout, stdout = subprocess.PIPE)
+    print count
+    cmd = subprocess.Popen(count, stdin = cmd.stdout, stdout = subprocess.PIPE)
+    val = cmd.stdout.read()
+    return dict (visitors = int(val))
     
-def main():
+    
+def main(config):
+    admin_db = connect_to_couch(config)
     current = datetime.datetime.now()
     for i in range(10):
         print current
-        print run_for_day(current)
+        d = run_for_day(current)
+        store_data(admin_db, d, current)
         current = current - datetime.timedelta(days = 1)
 
 if __name__ == "__main__":
     import sys
-    sys.exit(main())
+    sys.exit(main(sys.argv[1]))
+
+
 
 
 
