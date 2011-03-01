@@ -31,7 +31,7 @@ def store_data(db, data, date):
     db.save(vals)
 
 def run_for_day(d):
-    basedir = "/var/log/lighttpd/%(year)d/%(month)02d/%(day)d/"%dict(year = d.year, month = d.month, day = d.day)
+    basedir = "/var/log/lighttpd/%(year)d/%(month)02d/%(day)02d/"%dict(year = d.year, month = d.month, day = d.day)
     awk = ["awk", '$2 == "openlibrary.org" { print $1 }']
     sort = ["sort", "-u"]
     count = ["wc", "-l"]
