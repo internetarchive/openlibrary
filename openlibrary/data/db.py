@@ -53,7 +53,7 @@ def setup_memcache(servers):
     This must be called along with setup_database, if memcached servers are used in the system.
     """
     global mc
-    mc = olmemcache.Client(["ia331532:7060", "ia331533:7060"])
+    mc = olmemcache.Client(servers)
     
 def iterdocs(type=None):
     """Returns an iterator over all docs in the database.
