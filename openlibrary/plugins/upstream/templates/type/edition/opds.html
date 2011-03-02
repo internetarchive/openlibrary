@@ -86,7 +86,7 @@ $:display_tags("bibo:lccn", book.lccn)\
         <dcterms:identifier xsi:type="dcterms:URI">urn:ISBN:$isbn13</dcterms:identifier>
     $if book.ocaid:
         $if 'inlibrary' in collection or 'lendinglibrary' in collection:    
-            <link type="application/vnd.adobe.adept+xml" href="http://openlibrary.org$book.url('/borrow')" rel="http://opds-spec.org/acquisition/borrow">
+            <link type="application/vnd.adobe.adept+xml" href="http://openlibrary.org$book.url('/borrow')" rel="http://opds-spec.org/acquisition/borrow"/>
         $elif 'printdisabled' not in collection:
             <link type="application/pdf" href="http://www.archive.org/download/$book.ocaid/$(book.ocaid).pdf" rel="http://opds-spec.org/acquisition/open-access"/>
             <link type="application/epub+zip" href="http://www.archive.org/download/$book.ocaid/$(book.ocaid).epub" rel="http://opds-spec.org/acquisition/open-access"/>
