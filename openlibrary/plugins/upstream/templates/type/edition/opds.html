@@ -34,14 +34,25 @@ $code:
     # without and leading whitespace, and with a trailing \
     # display_tags() will insert four leading spaces and newlines as necessary
 
-    def display_tags(tag, value):
+    def display_tags(tag, value, prefix='', attributes=''):
+        if '' != attributes:
+            attributes = ' '+attributes
         if isinstance(value, list):
             tags = []
             for x in value:
-                tags.append( '<%s>%s</%s>'%(tag, web.websafe(x), tag) )
+                tags.append( '<%s%s>%s</%s>'%(tag, attributes, web.websafe(prefix + str(x)), tag) )
             return '    ' + '\n    '.join(tags) + '\n'
         elif value:
-            return '    <%s>%s</%s>\n'%(tag, web.websafe(value), tag)
+            return '    <%s%s>%s</%s>\n'%(tag, attributes, web.websafe(prefix + str(value)), tag)
+
+    def display_ids(book):
+        ids = []
+        for name, values in book.get_identifiers().multi_items():
+            for id in values:
+                if id.url and name not in ['oclc_numbers', 'lccn']: #these go in the bibo namespace
+                    ids.append(display_tags('dcterms:identifier', id.url, '', 'xsi:type="dcterms:URI"'))
+        return ''.join(ids)
+
 
 <?xml version="1.0" encoding="utf-8"?>
 <entry
@@ -77,13 +88,12 @@ $:display_tags("summary", book.description)\
 $:display_tags("rdvocab:note", book.notes)\
     $for lang in book.languages:
         <dcterms:language>$lang.code</dcterms:language>
-$:display_tags("dcterms:identifier", book.key)\
+$:display_tags('dcterms:identifier', book.key, 'http://openlibrary.org', 'xsi:type="dcterms:URI"')\
+$:display_tags('dcterms:identifier', book.isbn_10, "urn:ISBN:", 'xsi:type="dcterms:URI"')\
+$:display_tags('dcterms:identifier', book.isbn_13, "urn:ISBN:", 'xsi:type="dcterms:URI"')\
+$:display_ids(book)\
 $:display_tags("bibo:oclcnum", book.oclc_numbers)\
 $:display_tags("bibo:lccn", book.lccn)\
-    $for isbn10 in book.isbn_10:
-        <dcterms:identifier xsi:type="dcterms:URI">urn:ISBN:$isbn10</dcterms:identifier>
-    $for isbn13 in book.isbn_13:
-        <dcterms:identifier xsi:type="dcterms:URI">urn:ISBN:$isbn13</dcterms:identifier>
     $if book.ocaid:
         $if 'inlibrary' in collection or 'lendinglibrary' in collection:    
             <link type="application/vnd.adobe.adept+xml" href="http://openlibrary.org$book.url('/borrow')" rel="http://opds-spec.org/acquisition/borrow"/>
