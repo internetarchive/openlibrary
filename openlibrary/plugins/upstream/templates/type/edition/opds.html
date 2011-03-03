@@ -45,13 +45,15 @@ $code:
         elif value:
             return '    <%s%s>%s</%s>\n'%(tag, attributes, web.websafe(prefix + str(value)), tag)
 
-    def display_ids(book):
-        ids = []
+    def display_rel_links(book, work):
+        links = []
+        if work:
+            links.append( '<link type="text/html" title="Open Library Work" href="http://openlibrary.org%s" rel="related"/>'%(work.key) )
         for name, values in book.get_identifiers().multi_items():
             for id in values:
-                if id.url and name not in ['oclc_numbers', 'lccn']: #these go in the bibo namespace
-                    ids.append(display_tags('dcterms:identifier', id.url, '', 'xsi:type="dcterms:URI"'))
-        return ''.join(ids)
+                if id.url and name not in ['oclc_numbers', 'lccn', 'ocaid']: #these go in other elements
+                    links.append( '<link type="text/html" title="View on %s" href="%s" rel="related"/>'%(id.label, id.url) )
+        return '    ' + '\n    '.join(links) + '\n'
 
 
 <?xml version="1.0" encoding="utf-8"?>
@@ -90,9 +92,9 @@ $:display_tags("rdvocab:note", book.notes)\
     $for lang in book.languages:
         <dcterms:language>$lang.code</dcterms:language>
 $:display_tags('dcterms:identifier', book.key, 'http://openlibrary.org', 'xsi:type="dcterms:URI"')\
+$:display_tags('dcterms:identifier', book.ocaid, 'http://www.archive.org/details/', 'xsi:type="dcterms:URI"')\
 $:display_tags('dcterms:identifier', book.isbn_10, "urn:ISBN:", 'xsi:type="dcterms:URI"')\
 $:display_tags('dcterms:identifier', book.isbn_13, "urn:ISBN:", 'xsi:type="dcterms:URI"')\
-$:display_ids(book)\
 $:display_tags("bibo:oclcnum", book.oclc_numbers)\
 $:display_tags("bibo:lccn", book.lccn)\
     $if book.ocaid:
@@ -105,4 +107,5 @@ $:display_tags("bibo:lccn", book.lccn)\
         <link type="image/jpeg" href="$coverLarge" rel="http://opds-spec.org/image"/>
     $if coverThumb:
         <link type="image/jpeg" href="$coverThumb" rel="http://opds-spec.org/image"/>
+$:display_rel_links(book, work)\
 </entry>
