@@ -8,7 +8,6 @@ import simplejson
 from infogami.infobase._dbstore.save import IndexUtil
 from openlibrary.core import schema
 
-
 db = None
 
 engine = "postgres"
@@ -119,12 +118,28 @@ class RestoreEngine:
 
     def get_thing_id(self, key):
         return db.query("SELECT id FROM thing WHERE key=$key", vars=locals())[0].id
+        
+    def _process_key(self, key):
+        # some data in the database still has /b/ instead /books. 
+        # The transaformation is still done in software.
+        mapping = (
+            "/l/", "/languages/",
+            "/a/", "/authors/",
+            "/b/", "/books/",
+            "/user/", "/people/"
+        )
+
+        if "/" in key and key.split("/")[1] in ['a', 'b', 'l', 'user']:
+            for old, new in web.group(mapping, 2):
+                if key.startswith(old):
+                    return new + key[len(old):]
+        return key
             
     def delete_index(self, docs):
         all_deletes = {}
         for doc in docs:
             doc = dict(doc, _force_reindex=True)
-            dummy_doc = {"key": doc['key'], "type": {"key": "/type/foo"}}
+            dummy_doc = {"key": self._process_key(doc['key']), "type": {"key": "/type/foo"}}
             deletes, _inserts = self.index_engine.diff_index(doc, dummy_doc)
             all_deletes.update(deletes)
             
