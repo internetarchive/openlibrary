@@ -5,83 +5,75 @@ This script must be run on the db node.
 import os, sys
 import web
 import simplejson
+from infogami.infobase._dbstore.save import IndexUtil
+from openlibrary.core import schema
+
 
 db = None
 
 engine = "postgres"
 dbname = "openlibrary"
-    
-def read_transactions(txid):
-    while True:
-        rows = db.query("SELECT * FROM transaction where id > $txid order by id limit 100", vars=locals()).list()
-        if not rows:
-            return
-            
-        for row in rows:
-            data = db.query("SELECT version.id as version_id, data.*"
-                + " FROM version, data"
-                + " WHERE version.thing_id=data.thing_id"
-                + " AND version.revision=data.revision"
-                + " AND version.transaction_id=$row.id",
-                vars=locals())
-            row._versions = data.list()
-            row.created = row.created.isoformat()
-            yield row
-        txid = row.id
-    
-def dump(dirname, date):
-    if not os.path.exists(dirname):
-        os.makedirs(dirname)
-    dirname = os.path.abspath(dirname)
         
-    txid = db.query("SELECT id FROM transaction where created >= $date order by id limit 1", vars=locals())[0].id
-    txid = txid-1 # include txid also
+class RestoreEngine:
+    """Engine to update an existing database with new changes from a dump.
+    """
+    def __init__(self, dirname):
+        self.dirname = dirname
+        self.index_engine = IndexUtil(db, schema.get_schema())
+        
+    def path(self, filename):
+        return os.path.abspath(os.path.join(self.dirname, filename))
+        
+    def restore(self):
+        self.restore_transactions()
+        self.restore_tables()
+        self.restore_sequences()
+        
+    def restore_sequences(self):
+        d = simplejson.loads(open(self.path("sequences.txt")).read())
+        
+        for name, value in d.items():
+            db.query("SELECT setval($name, $value)", vars=locals())
+        
+    def restore_tables(self):
+        # some tables can't be restored before some other table is restored because of foreign-key constraints.
+        # This dict specified the order. Smaller number must be restored first.
+        order = {
+            "store": 1,
+            "store_index": 2
+        }
+        
+        tables = [f[len("table_"):-len(".txt")] for f in os.listdir(self.dirname) if f.startswith("table_")]
+        tables.sort(key=lambda key: order.get(key, 0))
+        
+        for t in tables[::-1]:
+            db.query("DELETE FROM %s" % t)
 
-    f_tx = open(os.path.join(dirname, "transactions.txt"), "w")
-    f_docs = open(os.path.join(dirname, "docs.txt"), "w")
-    for tx in read_transactions(txid):
-        f_tx.write(simplejson.dumps(tx))
-        f_tx.write("\n")
-        for version in tx['_versions']:
-            doc = simplejson.loads(version['data'])
-            cols = [doc['key'], doc['type']['key'], doc['revision'], tx['id']]
-            f_docs.write("\t".join(map(str, cols)) + "\n")
-    f_tx.close()
+        for t in tables:
+            filename = self.path("table_%s.txt" % t)
+            db.query("COPY %s FROM $filename" % t, vars=locals())
             
-    for t in ["account", "store", "store_index"]:
-        filename = os.path.join(dirname, t + ".txt")
-        db.query("COPY %s TO $filename" % t, vars=locals())
-        
-def has_transaction(txid):
-    d = db.query("SELECT id FROM transaction WHERE id=$txid", vars=locals())
-    return bool(d)
+    def get_doc(self, thing_id, revision):
+        d = db.query("SELECT data FROM data WHERE thing_id=$thing_id AND revision=$revision", vars=locals())
+        try:
+            return simplejson.loads(d[0].data)
+        except IndexError:
+            return {}
+            
+    def restore_tx(self, row):
+        data = row.pop("_versions")
 
-def update_seq(table):
-    db.query("SELECT setval('%s_id_seq', (SELECT max(id) FROM %s))" % (table, table))
-    
-def get_thing_id(key):
-    return db.query("SELECT id FROM thing WHERE key=$key", vars=locals())[0].id
-        
-def restore(dirname):
-    dirname = os.path.abspath(dirname)
-    tables = ["account", "store", "store_index"]
-    
-    tx = db.transaction()
-    try:
-        for line in open(os.path.join(dirname, "transactions.txt")):
-            row = simplejson.loads(line)
-            data = row.pop("_versions")
-            if has_transaction(row['id']):
-                print "ignoring tx", row['id']
-                continue
-        
+        tx = db.transaction()
+        try:
+            old_docs = []
+            new_docs = []
             for d in data:
                 id = d['thing_id']
-                
+
                 doc = simplejson.loads(d['data'])
                 key = doc['key']
-                type_id = get_thing_id(doc['type']['key'])
-                
+                type_id = self.get_thing_id(doc['type']['key'])
+
                 if d['revision'] == 1:
                     db.insert("thing", seqname=False, 
                         id=d['thing_id'], key=key, type=type_id,
@@ -93,39 +85,138 @@ def restore(dirname):
                         latest_revision=d['revision'],
                         last_modified=row['created'], 
                         vars=locals())
-                        
+                    old_docs.append(self.get_doc(d['thing_id'], d['revision']-1))
+                new_docs.append(doc)
+
             db.insert("transaction", seqname=False, **row)
-    
+
             values = [{"id": d['version_id'], "thing_id": d['thing_id'], "revision": d['revision'], "transaction_id": row['id']} for d in data]
             db.multiple_insert("version", values, seqname=False)
 
             values = [{"data": d['data'], "thing_id": d['thing_id'], "revision": d['revision']} for d in data]
             db.multiple_insert("data", values, seqname=False)
-                
-        for table in ["thing", "version", "transaction", "store", "store_index"]:
-            update_seq(table)
             
-        for t in tables[::-1]:
-            db.query("DELETE FROM %s" % t)
+            self.delete_index(old_docs)
+            self.insert_index(new_docs)
+        except:
+            tx.rollback()
+            raise
+        else:
+            tx.commit()
+        
+    def restore_transactions(self):
+        for line in open(self.path("transactions.txt")):
+            row = simplejson.loads(line)
+            if self.has_transaction(row['id']):
+                print "ignoring tx", row['id']
+                continue
+            else:
+                self.restore_tx(row)
+                
+    def has_transaction(self, txid):
+        d = db.query("SELECT id FROM transaction WHERE id=$txid", vars=locals())
+        return bool(d)
 
-        for t in tables:
-            filename = os.path.join(dirname, t + ".txt")
-            db.query("COPY %s FROM $filename" % t, vars=locals())
-    except:
-        tx.rollback()
-        raise
-    else:
-        tx.commit()
+    def get_thing_id(self, key):
+        return db.query("SELECT id FROM thing WHERE key=$key", vars=locals())[0].id
+            
+    def delete_index(self, docs):
+        all_deletes = {}
+        for doc in docs:
+            doc = dict(doc, _force_reindex=True)
+            dummy_doc = {"key": doc['key'], "type": {"key": "/type/foo"}}
+            deletes, _inserts = self.index_engine.diff_index(doc, dummy_doc)
+            all_deletes.update(deletes)
+            
+        all_deletes = self.index_engine.compile_index(all_deletes)
+        self.index_engine.delete_index(all_deletes)
+        
+    def insert_index(self, docs):
+        all_inserts = {}
+        for doc in docs:
+            _deletes, inserts = self.index_engine.diff_index({}, doc)
+            all_inserts.update(inserts)
+            
+        all_inserts = self.index_engine.compile_index(all_inserts)
+        self.index_engine.insert_index(all_inserts)
     
+    
+class DumpEngine:
+    def __init__(self, dirname):
+        self.dirname = dirname
+        if not os.path.exists(dirname):
+            os.makedirs(dirname)
+        
+        # make sure postgres can write to the dir. Required to copy tables.
+        os.system("chmod 777 " + dirname)
+        
+    def path(self, filename):
+        return os.path.abspath(os.path.join(self.dirname, filename))
+        
+    def dump(self, date):
+        self.dump_transactions(date)
+        self.dump_tables()
+        self.dump_sequences()
+        
+    def dump_transactions(self, date):
+        txid = db.query("SELECT id FROM transaction where created >= $date order by id limit 1", vars=locals())[0].id
+        txid = txid-1 # include txid also
+
+        f = open(self.path("transactions.txt"), "w")
+        for tx in self.read_transactions(txid):
+            row = simplejson.dumps(tx) + "\n"
+            f.write(row)
+        f.close()
+            
+    def dump_tables(self):
+        for t in ["account", "store", "store_index", "seq"]:
+            filename = self.path("table_%s.txt" % t)
+            db.query("COPY %s TO $filename" % t, vars=locals())
+            
+    def dump_sequences(self):
+        sequences = db.query("SELECT c.relname as name FROM pg_class c WHERE c.relkind = 'S'")
+        d = {}
+        for seq in sequences:
+            d[seq.name] = db.query("SELECT last_value from %s" % seq.name)[0].last_value
+
+        f = open(self.path("sequences.txt"), "w")
+        f.write(simplejson.dumps(d) + "\n")
+        f.close()
+    
+    def read_transactions(self, txid):
+        """Returns an iterator over transactions in the db starting from the given transaction ID.
+        """
+        while True:
+            rows = db.query("SELECT * FROM transaction where id >= $txid order by id limit 100", vars=locals()).list()
+            if not rows:
+                return
+
+            for row in rows:
+                data = db.query("SELECT version.id as version_id, data.*"
+                    + " FROM version, data"
+                    + " WHERE version.thing_id=data.thing_id"
+                    + " AND version.revision=data.revision"
+                    + " AND version.transaction_id=$row.id",
+                    vars=locals())
+                row._versions = data.list()
+                row.created = row.created.isoformat()
+                yield row
+            txid = row.id+1
+        
 def main():
     global db
     db = web.database(dbn=engine, db=dbname, user=os.getenv("USER"), pw="")
     
     if "--restore" in sys.argv:
         db = web.database(dbn=engine, db="openlibrary2", user=os.getenv("USER"), pw="")
-        restore(sys.argv[2])
+        sys.argv.remove("--restore")
+        e = RestoreEngine(sys.argv[1])
+        e.restore()
     else:
-        dump(sys.argv[1], sys.argv[2])
+        dirname = sys.argv[1]
+        date = sys.argv[2]
+        e = DumpEngine(dirname)
+        e.dump(date)
     
 if __name__ == '__main__':
     main()    
