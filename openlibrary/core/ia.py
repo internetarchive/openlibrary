@@ -18,7 +18,16 @@ def get_meta_xml(itemid):
         stats.end()
         return web.storage()
         
-    return web.storage(xml2dict(metaxml, collection=set()))
+    # archive.org returns html on internal errors. 
+    # Checking for valid xml before trying to parse it.
+    if not metaxml.strip().startswith("<?xml"):
+        return web.storage()
+    
+    try:
+        return web.storage(xml2dict(metaxml, collection=set()))
+    except Exception, e:
+        print >> web.debug, "Failed to parse metaxml for %s: %s" % (itemid, str(e)) 
+        return web.storage()
         
 def xml2dict(xml, **defaults):
     """Converts xml to python dictionary assuming that the xml is not nested.
