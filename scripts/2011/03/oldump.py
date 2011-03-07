@@ -208,7 +208,6 @@ def main():
     db = web.database(dbn=engine, db=dbname, user=os.getenv("USER"), pw="")
     
     if "--restore" in sys.argv:
-        db = web.database(dbn=engine, db="openlibrary2", user=os.getenv("USER"), pw="")
         sys.argv.remove("--restore")
         e = RestoreEngine(sys.argv[1])
         e.restore()
