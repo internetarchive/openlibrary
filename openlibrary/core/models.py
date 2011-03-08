@@ -353,7 +353,7 @@ class Library(Thing):
         return ip in self.get_ip_range_list()
 
 class Subject(web.storage):
-    def get_lists(self, limit=1000, offset=0):
+    def get_lists(self, limit=1000, offset=0, sort=True):
         q = {
             "type": "/type/list",
             "seeds": self.get_seed(),
@@ -362,7 +362,9 @@ class Subject(web.storage):
         }
         keys = web.ctx.site.things(q)
         lists = web.ctx.site.get_many(keys)
-        return h.safesort(lists, reverse=True, key=lambda list: list.last_update)
+        if sort:
+            lists = h.safesort(lists, reverse=True, key=lambda list: list.last_update)
+        return lists
         
     def get_seed(self):
         seed = self.key.split("/")[-1]
