@@ -7,7 +7,7 @@ def test_xml2dict():
     assert ia.xml2dict("<metadata><x>1</x><x>2</x></metadata>") == {"x": "2"}
     assert ia.xml2dict("<metadata><x>1</x><x>2</x></metadata>", x=[]) == {"x": ["1", "2"]}
     
-def test_get_metaxml(monkeypatch):
+def test_get_metaxml(monkeypatch, mock_memcache):
     import StringIO
     import urllib2
     
@@ -31,7 +31,7 @@ def test_get_metaxml(monkeypatch):
     assert ia.get_meta_xml("foo00bar") == {
         "title": "Foo", 
         "identifier": "foo00bar",
-        "collection": set(["printdisabled", "inlibrary"])
+        "collection": ["printdisabled", "inlibrary"]
     }
     
     # test with html errors

@@ -26,7 +26,7 @@ def get_meta_xml(itemid):
         return web.storage()
     
     try:
-        return web.storage(xml2dict(metaxml, collection=set()))
+        return web.storage(xml2dict(metaxml, collection=[]))
     except Exception, e:
         print >> web.debug, "Failed to parse metaxml for %s: %s" % (itemid, str(e)) 
         return web.storage()
