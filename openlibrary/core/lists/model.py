@@ -363,6 +363,7 @@ class Seed:
             
         # overwrite the property with the actual value so that subsequent accesses don't have to compute the value.
         self.document = doc
+        return doc
             
     document = property(get_document)
             
