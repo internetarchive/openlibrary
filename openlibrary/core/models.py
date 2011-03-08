@@ -74,7 +74,7 @@ class Thing(client.Thing):
             u += '?' + urllib.urlencode(params)
         return u
         
-    def _get_lists(self, limit=50, offset=0):
+    def _get_lists(self, limit=50, offset=0, sort=True):
         q = {
             "type": "/type/list",
             "seeds": {"key": self.key},
@@ -82,7 +82,10 @@ class Thing(client.Thing):
             "offset": offset
         }
         keys = self._site.things(q)
-        return h.safesort(self._site.get_many(keys), reverse=True, key=lambda list: list.last_update)
+        lists = self._site.get_many(keys)
+        if sort:
+            lists = h.safesort(lists, reverse=True, key=lambda list: list.last_update)
+        return lists
 
 class Edition(Thing):
     """Class to represent /type/edition objects in OL.
@@ -103,8 +106,8 @@ class Edition(Thing):
             m = web.re_compile("(\d\d\d\d)").search(self.publish_date)
             return m and int(m.group(1))
 
-    def get_lists(self, limit=50, offset=0):
-        return self._get_lists(limit=limit, offset=offset)
+    def get_lists(self, limit=50, offset=0, sort=True):
+        return self._get_lists(limit=limit, offset=offset, sort=sort)
 
 class Work(Thing):
     """Class to represent /type/work objects in OL.
@@ -125,8 +128,8 @@ class Work(Thing):
     
     edition_count = property(get_edition_count)
 
-    def get_lists(self, limit=50, offset=0):
-        return self._get_lists(limit=limit, offset=offset)
+    def get_lists(self, limit=50, offset=0, sort=True):
+        return self._get_lists(limit=limit, offset=offset, sort=sort)
 
 class Author(Thing):
     """Class to represent /type/author objects in OL.
@@ -144,8 +147,8 @@ class Author(Thing):
                 data={'key': self.key})
     edition_count = property(get_edition_count)
     
-    def get_lists(self, limit=50, offset=0):
-        return self._get_lists(limit=limit, offset=offset)
+    def get_lists(self, limit=50, offset=0, sort=True):
+        return self._get_lists(limit=limit, offset=offset, sort=sort)
     
 class User(Thing):
     def get_usergroups(self):
@@ -158,7 +161,7 @@ class User(Thing):
     def is_admin(self):
         return '/usergroup/admin' in [g.key for g in self.usergroups]
         
-    def get_lists(self, seed=None, limit=100, offset=0):
+    def get_lists(self, seed=None, limit=100, offset=0, sort=True):
         """Returns all the lists of this user.
         
         When seed is specified, this returns all the lists which contain the
@@ -178,7 +181,10 @@ class User(Thing):
             q['seeds'] = seed
             
         keys = self._site.things(q)
-        return h.safesort(self._site.get_many(keys), reverse=True, key=lambda list: list.last_update)
+        lists = self._site.get_many(keys)
+        if sort:
+            lists = h.safesort(lists, reverse=True, key=lambda list: list.last_update)
+        return lists
         
     def new_list(self, name, description, seeds, tags=[]):
         """Creates a new list object with given name, description, and seeds.
