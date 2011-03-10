@@ -766,10 +766,10 @@ class search(delegate.page):
         i = web.input(author_key=[], language=[], first_publish_year=[], publisher_facet=[], subject_facet=[], person_facet=[], place_facet=[], time_facet=[])
         if i.get('ftokens') and ',' not in i.ftokens:
             token = i.ftokens
-            if ftoken_db is None:
-                ftoken_db = dbm.open('/olsystem/ftokens', 'r')
-            if ftoken_db.get(token):
-                raise web.seeother('/subjects/' + ftoken_db[token].decode('utf-8').lower().replace(' ', '_'))
+            #if ftoken_db is None:
+            #    ftoken_db = dbm.open('/olsystem/ftokens', 'r')
+            #if ftoken_db.get(token):
+            #    raise web.seeother('/subjects/' + ftoken_db[token].decode('utf-8').lower().replace(' ', '_'))
 
         if i.get('wisbn'):
             i.isbn = i.wisbn
