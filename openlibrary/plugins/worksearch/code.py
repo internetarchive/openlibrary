@@ -720,7 +720,7 @@ class subjects(delegate.page):
         return render_template("subjects", page)
 
 re_olid = re.compile('^OL\d+([AMW])$')
-olid_urls = {'A': 'authors', 'M': 'editions', 'W': 'works'}
+olid_urls = {'A': 'authors', 'M': 'books', 'W': 'works'}
 
 class search(delegate.page):
     def redirect_if_needed(self, i):
