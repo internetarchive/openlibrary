@@ -11,6 +11,7 @@ Babel
 PIL
 argparse
 CouchDB==0.8
+DBUtils
 genshi
 gunicorn
 iptools
@@ -31,7 +32,7 @@ from openlibrary.core.setup_commands import commands
 setup(
     name='openlibrary',
     version='2.0',
-    description='OpenlibraryBot',
+    description='Open Library',
     packages=find_packages(exclude=["ez_setup"]),
     scripts=filter(executable, glob.glob('scripts/*')),
     install_requires=dependencies.split(),

@@ -145,7 +145,7 @@ def format_book_data(book):
 
     ia_id = book.get("ocaid")
     if ia_id:
-        collections = ia.get_meta_xml(ia_id).get("collection")
+        collections = ia.get_meta_xml(ia_id).get("collection", [])
         if 'printdisabled' in collections or 'lendinglibrary' in collections:
             d.daisy_url = book.url("/daisy")
             
