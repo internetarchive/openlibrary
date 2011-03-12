@@ -3,7 +3,7 @@
 import httplib
 
 index = 'inside'
-solr_host = 'ia331509:8984'
+solr_host = 'ol-search-inside:8983'
 
 h1 = httplib.HTTPConnection(solr_host)
 h1.connect()
