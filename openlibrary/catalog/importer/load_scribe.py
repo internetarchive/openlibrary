@@ -19,6 +19,7 @@ from openlibrary.catalog.works.find_work_for_edition import find_matching_work
 from openlibrary.catalog.marc import fast_parse, is_display_marc
 from openlibrary.catalog.marc.parse import read_edition, NoTitle
 from openlibrary.catalog.marc.marc_subject import subjects_for_work
+from openlibrary.utils.ia import find_item
 from time import time, sleep
 from openlibrary.api import OpenLibrary, unmarshal
 from pprint import pprint
@@ -57,10 +58,10 @@ def make_index_fields(rec):
             fields['title'] = [read_short_title(v)]
     return fields
 
-archive_url = "http://archive.org/download/"
-
 def load_binary(ia):
-    url = archive_url + ia + '/' + ia + '_meta.mrc'
+    host, path = find_item(ia)
+    url = 'http://' + host + path + '/' + ia + '_meta.mrc'
+    print url
     f = urlopen_keep_trying(url)
     data = f.read()
     assert '<title>Internet Archive: Page Not Found</title>' not in data[:200]
@@ -70,7 +71,9 @@ def load_binary(ia):
     return MarcBinary(data)
 
 def load_xml(ia):
-    url = archive_url + ia + '/' + ia + '_marc.xml'
+    host, path = find_item(ia)
+    url = 'http://' + host + path + '/' + ia + '_meta.mrc'
+    print url
     f = urlopen_keep_trying(url)
     root = etree.parse(f).getroot()
     if root.tag == '{http://www.loc.gov/MARC21/slim}collection':
@@ -279,7 +282,7 @@ def bad_marc_alert(bad_marc):
     error_mail(msg_from, msg_to, subject, msg)
 
 if __name__ == '__main__':
-    fh_log = open('/1/edward/logs/load_scribe', 'a')
+    fh_log = open('/1/openlibrary/logs/load_scribe', 'a')
 
     state_file = rc['state_dir'] + '/load_scribe'
     start = open(state_file).readline()[:-1]
