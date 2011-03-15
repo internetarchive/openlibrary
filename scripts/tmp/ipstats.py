@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/olsystem/bin/olenv python
 """
 Temporary script to store unique IPs in a single day by parsing the
 lighttpd log files directly.
