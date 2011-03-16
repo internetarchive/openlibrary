@@ -903,7 +903,15 @@ class subject_search(delegate.page):
             stats.begin("solr", url=solr_select)
             json_data = urllib.urlopen(solr_select).read()
             stats.end()
-            return json.loads(json_data)
+            try:
+                return json.loads(json_data)
+            except json.JSONDecodeError:
+                m = re_pre.search(json_data)
+                error = web.htmlunquote(m.group(1))
+                solr_error = 'org.apache.lucene.queryParser.ParseException: '
+                if error.startswith(solr_error):
+                    error = error[len(solr_error):]
+                return {'error': error}
         return render_template('search/subjects.tmpl', get_results)
 
 class author_search(delegate.page):
