@@ -41,12 +41,12 @@ class ratelimit(object):
         
         counts = self.get_counters().values()
         
-        # Increment rate limiting counter
-        self.cache_incr(self.current_key())
-        
         # Have they failed?
         if sum(counts) >= self.requests:
             return self.disallowed()
+        else:
+            # Increment rate limiting counter
+            self.cache_incr(self.current_key())        
         
         return fn(*args, **kwargs)
     
