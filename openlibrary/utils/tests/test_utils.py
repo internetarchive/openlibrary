@@ -1,5 +1,5 @@
 # coding=utf-8
-from openlibrary.utils import str_to_key, read_isbn, url_quote
+from openlibrary.utils import str_to_key, read_isbn, url_quote, finddict, escape_bracket
 
 def test_isbn():
     assert read_isbn('x') is None
@@ -22,3 +22,13 @@ def test_url_quote():
     result = url_quote(u'£20') 
     assert result == '%C2%A320'
     assert url_quote('test string') == 'test+string'
+
+def test_finddict():
+    dicts = [{"x": 1, "y": 2}, {"x": 3, "y": 4}]
+    assert finddict(dicts, x=1) == {'x': 1, 'y': 2}
+
+def test_escape_bracket():
+    assert escape_bracket('test') == 'test'
+    assert escape_bracket('this [is a] test') == 'this \\[is a\\] test'
+    assert escape_bracket('aaa [10 TO 500] bbb') == 'aaa [10 TO 500] bbb'
+
