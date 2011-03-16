@@ -1,5 +1,5 @@
 import unittest
-from openlibrary.plugins.worksearch.code import read_facets, sorted_work_editions, parse_query_fields, escape_bracket, run_solr_query, get_doc, build_q_list, escape_colon
+from openlibrary.plugins.worksearch.code import read_facets, sorted_work_editions, parse_query_fields, escape_bracket, run_solr_query, get_doc, build_q_list, escape_colon, parse_search_response
 from lxml import etree
 from infogami import config
 
@@ -145,3 +145,10 @@ def test_build_q_list():
     ]
     assert list(parse_query_fields(param['q'])) == query_fields
     assert build_q_list(param) == expect
+
+def test_parse_search_response():
+    test_input = '<pre>org.apache.lucene.queryParser.ParseException: This is an error</pre>'
+    expect = {'error': 'This is an error'}
+    assert parse_search_response(test_input) == expect
+    assert parse_search_response('{"aaa": "bbb"}') == {'aaa': 'bbb'}
+
