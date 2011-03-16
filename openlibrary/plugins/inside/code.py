@@ -2,6 +2,7 @@ from infogami.utils import delegate, stats
 from infogami.utils.view import render_template, public
 from infogami import config
 from lxml import etree
+from openlibrary.utils import escape_bracket
 
 import re, web, urllib, simplejson, httplib
 
@@ -12,12 +13,6 @@ re_to_esc = re.compile(r'[\[\]:]')
 re_inside_fields = re.compile(r'(ia|body|page_count|body_length):')
 bad_fields = ['title', 'author', 'authors', 'lccn', 'ia', 'oclc', 'isbn', 'publisher', 'subject', 'person', 'place', 'time']
 re_bad_fields = re.compile(r'\b(' + '|'.join(bad_fields) + '):')
-
-def escape_bracket(q):
-    if re_solr_range.search(q):
-        return q
-    esc_q = re_bracket.sub(lambda m:'\\'+m.group(), q)
-    return esc_q if 'ia:' in q else esc_q.replace(':', '\\:')
 
 def escape_q(q):
     if re_inside_fields.match(q):

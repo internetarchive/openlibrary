@@ -5,7 +5,7 @@ from infogami import config
 from infogami.utils.view import render, render_template, safeint, add_flash_message
 import simplejson as json
 from openlibrary.plugins.openlibrary.processors import urlsafe
-from openlibrary.utils import str_to_key, url_quote, read_isbn, finddict
+from openlibrary.utils import str_to_key, url_quote, read_isbn, finddict, escape_bracket
 from unicodedata import normalize
 from collections import defaultdict
 import os
@@ -21,13 +21,7 @@ from infogami.plugins.api.code import jsonapi
 
 from openlibrary.core.models import Subject
 
-re_solr_range = re.compile(r'\[.+\bTO\b.+\]', re.I)
-re_bracket = re.compile(r'[\[\]]')
 re_to_esc = re.compile(r'[\[\]:]')
-def escape_bracket(q):
-    if re_solr_range.search(q):
-        return q
-    return re_bracket.sub(lambda m:'\\'+m.group(), q)
 
 class edition_search(_edition_search):
     path = "/search/edition"
