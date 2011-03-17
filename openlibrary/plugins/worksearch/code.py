@@ -886,6 +886,23 @@ def escape_colon(q, vf):
         result += ':' + parts.pop(0)
     return result
 
+def run_solr_search(solr_select):
+    stats.begin("solr", url=solr_select)
+    json_data = urllib.urlopen(solr_select).read()
+    stats.end()
+    return parse_search_response(json_data)
+
+def parse_search_response(json_data):
+    try:
+        return json.loads(json_data)
+    except json.JSONDecodeError:
+        m = re_pre.search(json_data)
+        error = web.htmlunquote(m.group(1))
+        solr_error = 'org.apache.lucene.queryParser.ParseException: '
+        if error.startswith(solr_error):
+            error = error[len(solr_error):]
+        return {'error': error}
+
 class subject_search(delegate.page):
     path = '/search/subjects'
     def GET(self):
@@ -894,18 +911,7 @@ class subject_search(delegate.page):
             q = escape_colon(escape_bracket(q), valid_fields)
             solr_select = solr_subject_select_url + "?q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=name,type,count&qt=standard&wt=json" % (web.urlquote(q), offset, limit)
             solr_select += '&sort=count+desc'
-            stats.begin("solr", url=solr_select)
-            json_data = urllib.urlopen(solr_select).read()
-            stats.end()
-            try:
-                return json.loads(json_data)
-            except json.JSONDecodeError:
-                m = re_pre.search(json_data)
-                error = web.htmlunquote(m.group(1))
-                solr_error = 'org.apache.lucene.queryParser.ParseException: '
-                if error.startswith(solr_error):
-                    error = error[len(solr_error):]
-                return {'error': error}
+            return run_solr_search(solr_select)
         return render_template('search/subjects.tmpl', get_results)
 
 class author_search(delegate.page):
@@ -916,10 +922,7 @@ class author_search(delegate.page):
             q = escape_colon(escape_bracket(q), valid_fields)
             solr_select = solr_author_select_url + "?q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=*&qt=standard&wt=json" % (web.urlquote(q), offset, limit)
             solr_select += '&sort=work_count+desc'
-            stats.begin("solr", url=solr_select)
-            json_data = urllib.urlopen(solr_select).read()
-            stats.end()
-            return json.loads(json_data)
+            return run_solr_search(solr_select)
         return render_template('search/authors.tmpl', get_results)
 
 class edition_search(delegate.page):
@@ -928,10 +931,7 @@ class edition_search(delegate.page):
         def get_results(q, offset=0, limit=100):
             q = escape_bracket(q)
             solr_select = solr_edition_select_url + "?q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=*&qt=standard&wt=json" % (web.urlquote(q), offset, limit)
-            stats.begin("solr", url=solr_select)
-            json_data = urllib.urlopen(solr_select).read()
-            stats.end()
-            return json.loads(json_data)
+            return run_solr_search(solr_select)
         return render_template('search/editions.tmpl', get_results)
 
 class search_json(delegate.page):

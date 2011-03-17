@@ -7,9 +7,6 @@ from openlibrary.utils import escape_bracket
 import re, web, urllib, simplejson, httplib
 
 re_query_parser_error = re.compile(r'<pre>([^<]+?)</pre>', re.S)
-re_solr_range = re.compile(r'\[.+\bTO\b.+\]', re.I)
-re_bracket = re.compile(r'[\[\]]')
-re_to_esc = re.compile(r'[\[\]:]')
 re_inside_fields = re.compile(r'(ia|body|page_count|body_length):')
 bad_fields = ['title', 'author', 'authors', 'lccn', 'ia', 'oclc', 'isbn', 'publisher', 'subject', 'person', 'place', 'time']
 re_bad_fields = re.compile(r'\b(' + '|'.join(bad_fields) + '):')
