@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/olsystem/bin/olenv python
 
 import sys
 

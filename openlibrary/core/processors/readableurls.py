@@ -58,11 +58,17 @@ def _get_object(site, key):
     if obj is None and key.startswith("/b/"):
         key = "/books/" + key[len("/b/"):]
         obj = key and site.get(key)
-    
-    if obj is None and web.re_compile(r"/.*/OL\d+[A-Z]"):
-        olid = web.safestr(key).split("/")[-1]
-        key = site._request("/olid_to_key", data={"olid": olid}).key
+
+    if obj is None and key.startswith("/user/"):
+        key = "/people/" + key[len("/user/"):]
         obj = key and site.get(key)
+
+    # Disabled temporarily as the index is not ready the db
+    
+    #if obj is None and web.re_compile(r"/.*/OL\d+[A-Z]"):
+    #    olid = web.safestr(key).split("/")[-1]
+    #    key = site._request("/olid_to_key", data={"olid": olid}).key
+    #    obj = key and site.get(key)
     return obj
     
 def get_readable_path(site, path, patterns, encoding=None):

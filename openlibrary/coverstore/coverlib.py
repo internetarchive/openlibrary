@@ -4,6 +4,7 @@ import Image
 import os
 from cStringIO import StringIO
 import web
+import datetime
 
 import config
 import db
@@ -20,7 +21,7 @@ def save_image(data, category, olid, author=None, ip=None, source_url=None):
     
     ValueError is raised if the provided data is not a valid image.
     """
-    prefix = olid + '-' + random_string(5)
+    prefix = make_path_prefix(olid)
     
     img = write_image(data, prefix)
     if img is None:
@@ -43,8 +44,17 @@ def save_image(data, category, olid, author=None, ip=None, source_url=None):
     d.id = db.new(**d)
     return d
     
+def make_path_prefix(olid, date=None):
+    """Makes a file prefix for storing an image.
+    """
+    date = date or datetime.date.today()
+    return "%04d/%02d/%02d/%s-%s" % (date.year, date.month, date.day, olid, random_string(5))
+    
 def write_image(data, prefix):
     path_prefix = find_image_path(prefix)
+    dirname = os.path.dirname(path_prefix)
+    if not os.path.exists(dirname):
+        os.makedirs(dirname)
     try:
         # save original image
         f = open(path_prefix + '.jpg', 'w')

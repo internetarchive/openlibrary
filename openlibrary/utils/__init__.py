@@ -27,4 +27,11 @@ def finddict(dicts, **filters):
         if (all(d.get(k) == v for k, v in filters.iteritems())):
             return d
 
+re_solr_range = re.compile(r'\[.+\bTO\b.+\]', re.I)
+re_bracket = re.compile(r'[\[\]]')
+def escape_bracket(q):
+    if re_solr_range.search(q):
+        return q
+    return re_bracket.sub(lambda m:'\\'+m.group(), q)
+
 

@@ -413,6 +413,24 @@ class rdf(delegate.mode):
             else:
                 return delegate.RawText(result, content_type="application/rdf+xml; charset=utf-8")
 
+delegate.media_types[' application/atom+xml;profile=opds'] = 'opds'
+class opds(delegate.mode):
+    name = 'view'
+    encoding = 'opds'
+
+    def GET(self, key):
+        page = web.ctx.site.get(key)
+        if not page:
+            raise web.notfound("")
+        else:
+            from infogami.utils import template
+            try:
+                result = template.typetemplate('opds')(page, web)
+            except:
+                raise web.notfound("")
+            else:
+                return delegate.RawText(result, content_type=" application/atom+xml;profile=opds")
+
 delegate.media_types['application/marcxml+xml'] = 'marcxml'
 class marcxml(delegate.mode):
     name = 'view'

@@ -348,24 +348,38 @@ class Seed:
     def __init__(self, list, value):
         self._list = list
         
+        self.value = value
         if isinstance(value, basestring):
-            self.document = get_subject(self.get_subject_url(value))
             self.key = value
             self.type = "subject"
         else:
-            self.document = value
             self.key = value.key
             
-            type = self.document.type.key
+    def get_document(self):
+        if isinstance(self.value, basestring):
+            doc = get_subject(self.get_subject_url(self.value))
+        else:
+            doc = self.value
             
-            if type == "/type/edition":
-                self.type = "edition"
-            elif type == "/type/work":
-                self.type = "work"
-            elif type == "/type/author":
-                self.type = "author"
-            else:
-                self.type = "unknown"
+        # overwrite the property with the actual value so that subsequent accesses don't have to compute the value.
+        self.document = doc
+        return doc
+            
+    document = property(get_document)
+            
+    def get_type(self):
+        type = self.document.type.key
+        
+        if type == "/type/edition":
+            return "edition"
+        elif type == "/type/work":
+            return "work"
+        elif type == "/type/author":
+            return "author"
+        else:
+            return "unknown"
+            
+    type = property(get_type)
     
     def _get_summary(self):
         summary = self._list.seed_summary

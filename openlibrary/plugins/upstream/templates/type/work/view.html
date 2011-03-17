@@ -9,8 +9,8 @@ $code:
         title = page.title
         if page.subtitle:
              title += ": " + page.subtitle
-        if page.authors and any(a.get('author') for a in page.authors):
-            title += " by " + ", ".join(a.author.name for a in page.authors if 'author' in a)
+        if page.authors:
+            title += " by " + ", ".join(a.name or "" for a in page.get_authors())
         items.append(title)
         
         if page.editions:
@@ -53,7 +53,7 @@ $code:
     </h1>
     <div class="clearfix"></div>
     $if page.authors:
-        $ author_list = ', '.join('<a href="%s">%s</a>' % (a.author.url(), a.author.name) for a in page.authors if a.get('author'))
+        $ author_list = ', '.join('<a href="%s">%s</a>' % (a.url(), a.name) for a in page.get_authors())
         <div class="work"><span class="editions">$_("By") $:author_list</span></div>
     $else:
         <div class="work"><span class="editions">$:_("By <em>unknown author</em>")</span></div>

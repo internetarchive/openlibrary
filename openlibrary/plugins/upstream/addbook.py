@@ -663,9 +663,6 @@ class authors_autocomplete(delegate.page):
         for d in docs:
             d.key = "/authors/" + d.key
             
-            # Temp fix until upstream-to-www migration is done
-            d.key = web.ctx.site._request("/olid_to_key?olid=" + d.key.split("/")[-1]).key
-            
             if 'top_work' in d:
                 d['works'] = [d.pop('top_work')]
             else:

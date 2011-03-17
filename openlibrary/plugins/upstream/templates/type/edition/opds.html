@@ -1,0 +1,111 @@
+$def with (book, web)
+$code:
+    bookID = book.key
+        
+    if book.subtitle:
+        title = book.title + " " + book.subtitle
+    else:
+        title = book.title
+
+    if book.pagination:
+        pages = book.pagination
+    else:
+        pages = book.number_of_pages
+
+    atomID = 'http://openlibrary.org' + bookID + '.opds'
+    
+    coverLarge = book.get_cover_url('L')
+    coverThumb = book.get_cover_url('S')
+    
+    # the collection and inlibrary check is coped from databarWork.html
+    collection = set()
+    meta_fields = book.get_ia_meta_fields()
+    if meta_fields:
+        collection = meta_fields.get('collection', [])
+        contrib = meta_fields.get('contributor')
+        if 'inlibrary' in collection and 'inlibrary' in ctx.features:
+            library = get_library()
+
+    # Atom dates must be in RFC 3339 format
+    # datetime_from_isoformat() is defined in openlibrary/plugins/upstream/borrow.py
+    updated = datetime_from_isoformat(book.last_modified).strftime('%Y-%m-%dT%H:%M:%SZ')
+
+    # To deal with whitespace issues with templetor, call display_tags()
+    # without and leading whitespace, and with a trailing \
+    # display_tags() will insert four leading spaces and newlines as necessary
+
+    def display_tags(tag, value, prefix='', attributes=''):
+        if '' != attributes:
+            attributes = ' '+attributes
+        if isinstance(value, list):
+            tags = []
+            for x in value:
+                tags.append( '<%s%s>%s</%s>'%(tag, attributes, web.websafe(prefix + str(x)), tag) )
+            return '    ' + '\n    '.join(tags) + '\n'
+        elif value:
+            return '    <%s%s>%s</%s>\n'%(tag, attributes, web.websafe(prefix + str(value)), tag)
+
+    def display_rel_links(book, work):
+        links = []
+        if work:
+            links.append( '<link type="text/html" title="Open Library Work" href="http://openlibrary.org%s" rel="related"/>'%(work.key) )
+        for name, values in book.get_identifiers().multi_items():
+            for id in values:
+                if id.url and name not in ['oclc_numbers', 'lccn', 'ocaid']: #these go in other elements
+                    links.append( '<link type="text/html" title="View on %s" href="%s" rel="related"/>'%(id.label, id.url) )
+        return '    ' + '\n    '.join(links) + '\n'
+
+
+<?xml version="1.0" encoding="utf-8"?>
+<entry
+  xmlns='http://www.w3.org/2005/Atom'
+  xmlns:dcterms='http://purl.org/dc/terms/'
+  xmlns:opds='http://opds-spec.org/'
+  xmlns:rdvocab='http://RDVocab.info/elements/'
+  xmlns:bibo='http://purl.org/ontology/bibo/'
+  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+>    
+    <id>$atomID</id>
+    <link type="application/atom+xml" rel="self" href="$atomID"/>
+    <link type="text/html" rel="alternate" href="http://openlibrary.org$book.url()"/>
+    <title>$title</title>
+    <updated>$updated</updated>
+    $ work = book.works and book.works[0]
+    $ authors = cond(work, work and work.get_authors(), book.get_authors())    
+    $for a in authors:
+        <author>
+            <name>$a.name</name>
+            <uri>http://openlibrary.org$a.url()</uri>
+        </author>
+$:display_tags("dcterms:contributor", book.contributions)\
+$:display_tags("dcterms:publisher", book.publishers)\
+$:display_tags("rdvocab:placeOfPublication", book.publish_places)\
+$:display_tags("dcterms:issued", book.publish_date)\
+$:display_tags("dcterms:extent", pages)\
+$:display_tags("rdvocab:dimensions", book.physical_dimensions)\
+$:display_tags("bibo:edition", book.edition_name)\
+    $ subjects = cond(work, work and work.get_subjects(), book.get_subjects())
+    $for subject in subjects:
+        <category term="/subjects/$:utf8(subject.lower().replace(' ', '_').replace(',',''))" label="$subject"/>
+$:display_tags("summary", book.description)\
+$:display_tags("rdvocab:note", book.notes)\
+    $for lang in book.languages:
+        <dcterms:language>$lang.code</dcterms:language>
+$:display_tags('dcterms:identifier', book.key, 'http://openlibrary.org', 'xsi:type="dcterms:URI"')\
+$:display_tags('dcterms:identifier', book.ocaid, 'http://www.archive.org/details/', 'xsi:type="dcterms:URI"')\
+$:display_tags('dcterms:identifier', book.isbn_10, "urn:ISBN:", 'xsi:type="dcterms:URI"')\
+$:display_tags('dcterms:identifier', book.isbn_13, "urn:ISBN:", 'xsi:type="dcterms:URI"')\
+$:display_tags("bibo:oclcnum", book.oclc_numbers)\
+$:display_tags("bibo:lccn", book.lccn)\
+    $if book.ocaid:
+        $if 'inlibrary' in collection or 'lendinglibrary' in collection:    
+            <link type="application/vnd.adobe.adept+xml" href="http://openlibrary.org$book.url('/borrow')" rel="http://opds-spec.org/acquisition/borrow"/>
+        $elif 'printdisabled' not in collection:
+            <link type="application/pdf" href="http://www.archive.org/download/$book.ocaid/$(book.ocaid).pdf" rel="http://opds-spec.org/acquisition/open-access"/>
+            <link type="application/epub+zip" href="http://www.archive.org/download/$book.ocaid/$(book.ocaid).epub" rel="http://opds-spec.org/acquisition/open-access"/>
+    $if coverLarge:
+        <link type="image/jpeg" href="$coverLarge" rel="http://opds-spec.org/image"/>
+    $if coverThumb:
+        <link type="image/jpeg" href="$coverThumb" rel="http://opds-spec.org/image"/>
+$:display_rel_links(book, work)\
+</entry>

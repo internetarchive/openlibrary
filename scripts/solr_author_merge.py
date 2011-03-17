@@ -10,7 +10,7 @@ from openlibrary.catalog.utils.query import withKey, set_query_host
 from openlibrary.solr.update_work import update_author, update_work, get_work_subjects, add_field, solr_update, AuthorRedirect
 from collections import defaultdict
 from lxml.etree import tostring, Element
-from openlibrary.solr import subject_count, subject_need_update
+from openlibrary.solr.update import subject_count, subject_need_update
 
 parser = argparse.ArgumentParser(description='solr author merge')
 parser.add_argument('--config', default='openlibrary.yml')
