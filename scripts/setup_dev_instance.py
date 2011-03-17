@@ -695,7 +695,7 @@ def update_004():
     os.mkdir('var/lib/solr')
     for i in ('authors', 'editions', 'inside', 'subjects', 'works'):
         os.mkdir('var/lib/solr/' + i)
-        os.system("cp -a usr/local/solr_old/data/" + i + "/data var/lib/solr/" + i) 
+        os.system("mv usr/local/solr_old/solr/" + i + "/data var/lib/solr/" + i) 
 
 def get_current_version():
     """Returns the current version of dev instance.
