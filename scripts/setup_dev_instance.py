@@ -11,12 +11,13 @@ import time
 import urllib, urllib2
 import commands
 
-VERSION = 3
+VERSION = 4
 
 CHANGELOG = """
 001 - Initial setup
 002 - Added couchdb and couchdb-lucene links in usr/local.
 003 - Added iptools python module.
+004 - Moved solr location
 """
 
 config = None
@@ -364,34 +365,9 @@ class switch_to_virtualenv:
 class install_solr:
     def run(self):
         info("installing solr...")
-    
         download_and_extract("http://www.archive.org/download/ol_vendor/apache-solr-1.4.0.tgz")
-        
-        base  = CWD.join("usr/local/apache-solr-1.4.0")
-        solr = CWD.join("usr/local/solr")
+        os.system("cd usr/local && ln -fs apache-solr-1.4.0 solr")
 
-        types = 'authors', 'editions', 'works', 'subjects', 'inside'
-        for t in types:
-            solr.mkdir("solr", t)
-            
-        for f in "etc lib logs webapps start.jar".split():
-            src = base.join("example", f)
-            dest = solr.join(f)
-            src.copy_to(dest, recursive=True)
-            
-        CWD.join("conf/solr-biblio/solr.xml").copy_to(solr.join("solr"))
-
-        solrconfig = base.join("example/solr/conf/solrconfig.xml").read()
-    
-        for t in types:
-            if not solr.join("solr", t, "conf").exists():
-                base.join("example/solr/conf").copy_to(solr.join("solr", t, "conf"), recursive=True)
-                
-            CWD.join("conf/solr-biblio", t + ".xml").copy_to(solr.join("solr", t, "conf/schema.xml"))
-            
-            f = solr.join("solr", t, "conf/solrconfig.xml")
-            debug("creating", f.path)
-            f.write(solrconfig.replace("./solr/data", "./solr/%s/data" % t))
 
 class install_couchdb_lucene:
     def run(self):    
@@ -712,6 +688,14 @@ def update_002():
 
 def update_003():
     install_python_dependencies().run()
+
+def update_004():
+    os.system("cd usr/local && mv solr solr_old")
+    os.system("cd usr/local && ln -fs apache-solr-1.4.0 solr")
+    os.mkdir('var/lib/solr')
+    for i in ('authors', 'editions', 'inside', 'subjects', 'works'):
+        os.mkdir('var/lib/solr/' + i)
+        os.system("mv usr/local/solr_old/solr/" + i + "/data var/lib/solr/" + i) 
 
 def get_current_version():
     """Returns the current version of dev instance.
