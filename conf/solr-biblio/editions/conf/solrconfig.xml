@@ -68,7 +68,7 @@
   <!-- Used to specify an alternate directory to hold all index data
        other than the default ./data under the Solr home.
        If replication is in use, this should match the replication configuration. -->
-  <dataDir>${solr.data.dir:./solr/data}/editions</dataDir>
+  <dataDir>${solr.data.dir}/editions</dataDir>
 
 
   <!-- WARNING: this <indexDefaults> section only provides defaults for index writers
