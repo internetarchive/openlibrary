@@ -26,7 +26,7 @@ class ratelimit(object):
             
     def get_cache(self):
         if self._cache is None:
-            self._cache = memcache.Client(config.ol_memcache_servers)
+            self._cache = memcache.Client(config.memcache_servers)
         return self._cache
             
     def __call__(self, fn):
