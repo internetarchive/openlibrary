@@ -61,7 +61,7 @@ class ratelimit(object):
     
     def should_ratelimit(self):
         # ratelimit only if memcache is enabled
-        return bool(config.get("ol_memcache_servers"))
+        return bool(config.get("memcache_servers"))
     
     def get_counters(self):
         return self.cache_get_many(self.keys_to_check())
