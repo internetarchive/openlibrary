@@ -21,7 +21,7 @@ class show_ia(delegate.page):
     def GET(self, ia):
         error_404 = False
         url = 'http://www.archive.org/download/%s/%s_meta.mrc' % (ia, ia)
-        try:        
+        try:
             data = urllib2.urlopen(url).read()
         except urllib2.HTTPError, e:
             if e.code == 404:
@@ -31,7 +31,7 @@ class show_ia(delegate.page):
 
         if error_404: # no MARC record
             url = 'http://www.archive.org/download/%s/%s_meta.xml' % (ia, ia)
-            try:        
+            try:
                 data = urllib2.urlopen(url).read()
             except urllib2.HTTPError, e:
                 return "ERROR:" + str(e)
