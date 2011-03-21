@@ -390,12 +390,10 @@ def find_ebook_count(field, key):
     stats.end()
 
     num_found = response['numFound']
-    print 'num_found:', num_found
     years = defaultdict(int)
     while start < num_found:
         if start:
             solr_url = root_url % (rows, start, q)
-            print solr_url
             stats.begin("solr", url=solr_url)
             response = json.load(urllib.urlopen(solr_url))['response']
             stats.end()
