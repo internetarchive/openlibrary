@@ -170,7 +170,9 @@ class cover:
                 url += '?' + query
             raise web.found(url)
         
-        if key != 'id':
+        if key == 'isbn':
+            value = self.ratelimit_query(category, key, value)
+        elif key != 'id':
             value = self.query(category, key, value)
             if value is None:
                 return notfound()
@@ -197,9 +199,10 @@ class cover:
         except IOError:
             raise web.notfound()
            
-    @ratelimit.ratelimit()
-    def query(self, category, value, size):
-        return _query(category, value, size)
+    def query(self, category, key, value):
+        return _query(category, key, value)
+        
+    ratelimit_query = ratelimit.ratelimit()(query)
             
 class cover_details:
     def GET(self, category, key, value):
