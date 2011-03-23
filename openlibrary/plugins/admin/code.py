@@ -286,6 +286,11 @@ class loans_admin:
         if action == 'updateall':
             borrow.update_all_loan_status()
         raise web.seeother(web.ctx.path) # Redirect to avoid form re-post on re-load
+
+class service_status(object):
+    def GET(self):
+        return "Hello"
+    
             
 def setup():
     register_admin_page('/admin/git-pull', gitpull, label='git-pull')
@@ -298,6 +303,7 @@ def setup():
     register_admin_page('/admin/ipstats', ipstats, label='IP Stats JSON')
     register_admin_page('/admin/block', block, label='')
     register_admin_page('/admin/loans', loans_admin, label='')
+    register_admin_page('/admin/status', service_status, label = "Open Library services")
     
     import mem
 
