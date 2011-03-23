@@ -9,6 +9,7 @@ import urllib
 import traceback
 
 import couchdb
+import yaml
 
 from infogami import config
 from infogami.utils import delegate
@@ -18,6 +19,8 @@ from infogami.utils.context import context
 from infogami.utils.view import add_flash_message
 import openlibrary
 from openlibrary.core import admin as admin_stats
+
+import services
 
 def render_template(name, *a, **kw):
     if "." in name:
@@ -289,7 +292,14 @@ class loans_admin:
 
 class service_status(object):
     def GET(self):
-        return "Hello"
+        try:
+            f = open("%s/olsystem.yml"%config.admin.olsystem_root)
+            nodes = services.load_all(yaml.load(f))
+            f.close()
+        except IOError, i:
+            f = None
+            nodes = []
+        return render_template("admin/services", nodes)
     
             
 def setup():

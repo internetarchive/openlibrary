@@ -1,0 +1,19 @@
+$def with (nodes)
+
+<table>
+  <tr>
+    <th>Node</th>
+    <th>Services</th>
+    <th>Status</th>
+    <th>Nagios</th>
+  </tr>
+  $for node in nodes:
+    <tr>
+      <td rowspan="$len(nodes[node])">$node</td>
+    </tr>
+    $for service in nodes[node]:
+      <tr></tr>
+      <tr>
+	<td>$service.name</td>
+      </tr>
+</table>
