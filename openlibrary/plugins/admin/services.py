@@ -3,6 +3,7 @@ Contains stuff needed to list services and modules run by OpenLibrary
 for the admin panel
 """
 
+from collections import defaultdict
 
 class Service(object):
     """
@@ -22,7 +23,9 @@ class Service(object):
 def load_all(config):
     """Loads all services specified in the config dictionary and returns
     the list of Service"""
+    d = defaultdict(list)
     for node in config:
         for service in config[node].get('services',[]):
-            yield Service(node = node, name = service)
+            d[node].append(Service(node = node, name = service))
+    return d
 

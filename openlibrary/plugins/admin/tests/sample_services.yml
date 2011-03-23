@@ -7,8 +7,8 @@ ol-web0:
 
 ol-web1:
     services: 
-        - 7071-ol-gunicorn
-        - 7060-memcached
+        - 7072-ol-gunicorn
+        - 7061-memcached
 
 ol-test:
     sites: 

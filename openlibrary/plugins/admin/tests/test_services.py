@@ -5,13 +5,17 @@ Tests for the services module used by the admin interface.
 def test_loader(serviceconfig):
     "Make sure services are loaded"
     from .. import services
-    services = list(services.load_all(serviceconfig))
-    assert len(services) == 4
-    for i in services: print i
-    assert services[0].node == "ol-web1" and services[0].name == "7071-ol-gunicorn"
-    assert services[1].node == "ol-web1" and services[1].name == "7060-memcached"
-    assert services[2].node == "ol-web0" and services[2].name == "7071-ol-gunicorn"
-    assert services[3].node == "ol-web0" and services[3].name == "7060-memcached"
+    services = services.load_all(serviceconfig)
+    assert len(services.keys()) == 2
+    s = sorted(services.keys())
+    assert s[0] == "ol-web0"
+    assert s[1] == "ol-web1"
+    assert services['ol-web0'][0].name == "7071-ol-gunicorn"
+    assert services['ol-web0'][1].name == "7060-memcached"
+    assert services['ol-web1'][0].name == "7072-ol-gunicorn"
+    assert services['ol-web1'][1].name == "7061-memcached"
+    
+    
     
     
     
