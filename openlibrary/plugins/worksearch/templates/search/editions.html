@@ -16,9 +16,10 @@ $ offset = (page - 1) * results_per_page
 
 $if q:
     $ results = get_results(q, offset=offset, limit=results_per_page)
-    $ response = results['response']
-    $ num_found = int(response['numFound'])
-    <p class="sansserif darkgreen collapse"><strong>$commify(response['numFound']) hit$("s" if response['numFound'] != 1 else "")</strong></p>
+    $if 'error' not in results:
+        $ response = results['response']
+        $ num_found = int(response['numFound'])
+        <p class="sansserif darkgreen collapse"><strong>$commify(response['numFound']) hit$("s" if response['numFound'] != 1 else "")</strong></p>
 $else:
     <p class="sansserif red collapse"><strong>No hits</strong></span></p>
 
@@ -35,7 +36,15 @@ $else:
 
     </div>
 
-    $if q:
+    $if q and 'error' in results:
+        <strong>
+            $for line in results['error'].splitlines():
+                $line
+                $if not loop.last:
+                    <br>
+        </strong>
+
+    $if q and 'error' not in results:
         <div id="searchResults">
         <ul id="siteSearch">
         $for doc in response['docs']:

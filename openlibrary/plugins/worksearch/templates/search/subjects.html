@@ -17,9 +17,10 @@ $ url_map = { 'person': 'person:', 'place': 'place:', 'time': 'time:' }
 
 $if q:
     $ results = get_results(q, offset=offset, limit=results_per_page)
-    $ response = results['response']
-    $ num_found = int(response['numFound'])
-    <p class="sansserif darkgreen collapse"><strong>$commify(response['numFound']) hit$("s" if response['numFound'] != 1 else "")</strong></p>
+    $if 'error' not in results:
+        $ response = results['response']
+        $ num_found = int(response['numFound'])
+        <p class="sansserif darkgreen collapse"><strong>$commify(response['numFound']) hit$("s" if response['numFound'] != 1 else "")</strong></p>
 </div>
     
 <div id="contentMeta">
@@ -32,8 +33,16 @@ $if q:
     </form>
     
     </div>
+
+$if q and 'error' in results:
+    <strong>
+        $for line in results['error'].splitlines():
+            $line
+            $if not loop.last:
+                <br>
+    </strong>
     
-$if q:
+$if q and 'error' not in results:
     <ul class="subjectList">
     $for doc in response['docs']:
         $ n = doc['name']

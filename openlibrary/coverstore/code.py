@@ -11,6 +11,8 @@ from utils import safeint, rm_f, random_string, ol_things, ol_get, changequery, 
 
 from coverlib import save_image, read_image, read_file
 
+import ratelimit
+
 urls = (
     '/', 'index',
     '/([^ /]*)/upload', 'upload',
@@ -168,8 +170,10 @@ class cover:
                 url += '?' + query
             raise web.found(url)
         
-        if key != 'id':
-            value = _query(category, key, value)
+        if key == 'isbn':
+            value = self.ratelimit_query(category, key, value)
+        elif key != 'id':
+            value = self.query(category, key, value)
             if value is None:
                 return notfound()
         
@@ -194,6 +198,11 @@ class cover:
             return read_image(d, size)
         except IOError:
             raise web.notfound()
+           
+    def query(self, category, key, value):
+        return _query(category, key, value)
+        
+    ratelimit_query = ratelimit.ratelimit()(query)
             
 class cover_details:
     def GET(self, category, key, value):

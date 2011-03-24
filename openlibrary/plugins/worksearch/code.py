@@ -5,7 +5,7 @@ from infogami import config
 from infogami.utils.view import render, render_template, safeint, add_flash_message
 import simplejson as json
 from openlibrary.plugins.openlibrary.processors import urlsafe
-from openlibrary.utils import str_to_key, url_quote, read_isbn, finddict
+from openlibrary.utils import str_to_key, url_quote, read_isbn, finddict, escape_bracket
 from unicodedata import normalize
 from collections import defaultdict
 import os
@@ -21,13 +21,7 @@ from infogami.plugins.api.code import jsonapi
 
 from openlibrary.core.models import Subject
 
-re_solr_range = re.compile(r'\[.+\bTO\b.+\]', re.I)
-re_bracket = re.compile(r'[\[\]]')
 re_to_esc = re.compile(r'[\[\]:]')
-def escape_bracket(q):
-    if re_solr_range.search(q):
-        return q
-    return re_bracket.sub(lambda m:'\\'+m.group(), q)
 
 class edition_search(_edition_search):
     path = "/search/edition"
@@ -396,12 +390,10 @@ def find_ebook_count(field, key):
     stats.end()
 
     num_found = response['numFound']
-    print 'num_found:', num_found
     years = defaultdict(int)
     while start < num_found:
         if start:
             solr_url = root_url % (rows, start, q)
-            print solr_url
             stats.begin("solr", url=solr_url)
             response = json.load(urllib.urlopen(solr_url))['response']
             stats.end()
@@ -892,6 +884,23 @@ def escape_colon(q, vf):
         result += ':' + parts.pop(0)
     return result
 
+def run_solr_search(solr_select):
+    stats.begin("solr", url=solr_select)
+    json_data = urllib.urlopen(solr_select).read()
+    stats.end()
+    return parse_search_response(json_data)
+
+def parse_search_response(json_data):
+    try:
+        return json.loads(json_data)
+    except json.JSONDecodeError:
+        m = re_pre.search(json_data)
+        error = web.htmlunquote(m.group(1))
+        solr_error = 'org.apache.lucene.queryParser.ParseException: '
+        if error.startswith(solr_error):
+            error = error[len(solr_error):]
+        return {'error': error}
+
 class subject_search(delegate.page):
     path = '/search/subjects'
     def GET(self):
@@ -900,10 +909,7 @@ class subject_search(delegate.page):
             q = escape_colon(escape_bracket(q), valid_fields)
             solr_select = solr_subject_select_url + "?q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=name,type,count&qt=standard&wt=json" % (web.urlquote(q), offset, limit)
             solr_select += '&sort=count+desc'
-            stats.begin("solr", url=solr_select)
-            json_data = urllib.urlopen(solr_select).read()
-            stats.end()
-            return json.loads(json_data)
+            return run_solr_search(solr_select)
         return render_template('search/subjects.tmpl', get_results)
 
 class author_search(delegate.page):
@@ -914,10 +920,7 @@ class author_search(delegate.page):
             q = escape_colon(escape_bracket(q), valid_fields)
             solr_select = solr_author_select_url + "?q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=*&qt=standard&wt=json" % (web.urlquote(q), offset, limit)
             solr_select += '&sort=work_count+desc'
-            stats.begin("solr", url=solr_select)
-            json_data = urllib.urlopen(solr_select).read()
-            stats.end()
-            return json.loads(json_data)
+            return run_solr_search(solr_select)
         return render_template('search/authors.tmpl', get_results)
 
 class edition_search(delegate.page):
@@ -926,10 +929,7 @@ class edition_search(delegate.page):
         def get_results(q, offset=0, limit=100):
             q = escape_bracket(q)
             solr_select = solr_edition_select_url + "?q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=*&qt=standard&wt=json" % (web.urlquote(q), offset, limit)
-            stats.begin("solr", url=solr_select)
-            json_data = urllib.urlopen(solr_select).read()
-            stats.end()
-            return json.loads(json_data)
+            return run_solr_search(solr_select)
         return render_template('search/editions.tmpl', get_results)
 
 class search_json(delegate.page):
