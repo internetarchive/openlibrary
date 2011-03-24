@@ -577,7 +577,7 @@ def update_works(akey, works, do_updates=False):
         rc = read_rc()
         ol.login('WorkBot', rc['WorkBot']) 
 
-    fh_log = open('/1/openlibrary/log/work_finder/' + strftime('%F_%T'), 'w')
+    fh_log = open('/1/var/log/openlibrary/work_finder/' + strftime('%F_%T'), 'w')
     works = list(works)
     print >> fh_log, akey
     print >> fh_log, 'works:'
