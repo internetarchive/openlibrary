@@ -133,7 +133,7 @@ Bad source record: %s
     server.quit()
 
 re_ia_marc = re.compile('^(?:.*/)?([^/]+)_(marc\.xml|meta\.mrc)(:0:\d+)?$')
-def get_work_subjects(w):
+def get_work_subjects(w, do_get_mc=True):
     found = set()
     for e in w['editions']:
         sr = e.get('source_records', [])
@@ -146,8 +146,10 @@ def get_work_subjects(w):
                     found.add(i)
                     continue
         else:
-            m = re_edition_key.match(e['key'])
-            mc = get_mc('/b/' + m.group(1))
+            mc = None
+            if do_get_mc:
+                m = re_edition_key.match(e['key'])
+                mc = get_mc('/b/' + m.group(1))
             if mc:
                 if mc.endswith('initial import'):
                     bad_source_record(e, mc)
