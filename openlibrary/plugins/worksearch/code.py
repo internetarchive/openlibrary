@@ -850,7 +850,7 @@ def simple_search(q, offset=0, rows=20, sort=None):
 
 def top_books_from_author(akey, rows=5, offset=0):
     q = 'author_key:(' + akey + ')'
-    solr_select = solr_select_url + "?q=%s&start=%d&rows=%d&fl=key,title,edition_count&wt=json&sort=edition_count+desc" % (q, offset, rows)
+    solr_select = solr_select_url + "?q=%s&start=%d&rows=%d&fl=key,title,edition_count,first_publish_year&wt=json&sort=edition_count+desc" % (q, offset, rows)
     stats.begin("solr", url=solr_select)
     response = json.load(urllib.urlopen(solr_select))['response']
     stats.end()
