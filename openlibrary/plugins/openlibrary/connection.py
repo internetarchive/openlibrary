@@ -142,14 +142,16 @@ class MemcacheMiddleware(ConnectionMiddleware):
         # Still there is very very small chance of invalid cache if someone else
         # updates memcache after stmt-1 and this process dies after stmt-2.
         self.mc_delete(key)
-        ConnectionMiddleware.store_put(self, sitename, key, data)
+        result = ConnectionMiddleware.store_put(self, sitename, key, data)
         self.mc_delete(key)
+        return result
         
     def store_delete(self, sitename, key, data):
         # see comment in store_put
         self.mc_delete(key)
-        ConnectionMiddleware.store_delete(self, sitename, key, data)
+        result = ConnectionMiddleware.store_delete(self, sitename, key, data)
         self.mc_delete(key)
+        return result
         
 _cache = None
         
