@@ -112,9 +112,13 @@ class Edition(models.Edition):
             return self._ia_meta_fields
             
         if not self.get('ocaid', None):
-            self._ia_meta_fields = {}
+            meta = {}
         else:
-            self._ia_meta_fields = ia.get_meta_xml(self.ocaid)
+            meta = ia.get_meta_xml(self.ocaid)
+            meta.setdefault("external-identifier", [])
+            meta.setdefault("collection", [])
+        
+        self._ia_meta_fields = meta
         return self._ia_meta_fields
 
     def is_daisy_encrypted(self):
