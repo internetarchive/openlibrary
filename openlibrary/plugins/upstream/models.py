@@ -12,7 +12,7 @@ from infogami.infobase import client
 from infogami.utils.view import safeint
 from infogami.utils import stats
 
-from openlibrary.core import models
+from openlibrary.core import models, ia
 from openlibrary.core.models import Image
 
 from openlibrary.plugins.search.code import SearchProcessor
@@ -22,11 +22,6 @@ from openlibrary.utils.solr import Solr
 from utils import get_coverstore_url, MultiDict, parse_toc, parse_datetime, get_edition_config
 import account
 import borrow
-
-ia_meta_sets = set(['collection','external-identifier'])
-ia_meta_fields = set(['contributor'])
-ia_meta_group = '(' + string.join(ia_meta_sets.union(ia_meta_fields), '|') + ')'
-re_meta_field = re.compile('<%s>([^<]+)</%s>' % (ia_meta_group, ia_meta_group), re.I)
 
 def follow_redirect(doc):    
     if isinstance(doc, basestring) and doc.startswith("/a/"):
@@ -117,32 +112,9 @@ class Edition(models.Edition):
             return self._ia_meta_fields
             
         if not self.get('ocaid', None):
-            return {}
-        ia = self.ocaid
-        url = 'http://www.archive.org/download/%s/%s_meta.xml' % (ia, ia)
-        reply = dict([ (set_name, set()) for set_name in ia_meta_sets ]) # create empty sets
-        try:
-            stats.begin("archive.org", url=url)
-            f = urllib2.urlopen(url)
-            stats.end()
-        except:
-            stats.end()
-            return reply
-        for line in f:
-            m = re_meta_field.search(line)
-            if not m:
-                continue
-            k = m.group(1).lower()
-            v = m.group(2)
-            if k == 'collection':
-                reply[k].add(v.lower())
-            elif k in ia_meta_sets:
-                reply[k].add(v)
-            else:
-                if k in ia_meta_fields:
-                    reply[k] = v
-
-        self._ia_meta_fields = reply
+            self._ia_meta_fields = {}
+        else:
+            self._ia_meta_fields = ia.get_meta_xml(self.ocaid)
         return self._ia_meta_fields
 
     def is_daisy_encrypted(self):
