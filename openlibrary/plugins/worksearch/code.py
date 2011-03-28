@@ -953,3 +953,9 @@ class search_json(delegate.page):
         result = solr.select(query, rows=limit, start=offset)
         web.header('Content-Type', 'application/json')
         return delegate.RawText(simplejson.dumps(result, indent=True))
+
+def setup():
+    import searchapi
+    searchapi.setup()
+    
+setup()
