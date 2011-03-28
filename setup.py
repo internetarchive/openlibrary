@@ -10,6 +10,7 @@ dependencies = """
 Babel
 PIL
 argparse
+BeautifulSoup
 CouchDB==0.8
 DBUtils
 genshi
