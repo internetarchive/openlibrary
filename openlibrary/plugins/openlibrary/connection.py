@@ -30,7 +30,7 @@ class ConnectionMiddleware:
             return self.save(sitename, path, data)
         elif path == '/save_many':
             return self.save_many(sitename, data)
-        elif path.startswith("/_store/"):
+        elif path.startswith("/_store/") and not path.startswith("/_store/_"):
             if method == 'GET':
                 return self.store_get(sitename, path)
             elif method == 'PUT':
