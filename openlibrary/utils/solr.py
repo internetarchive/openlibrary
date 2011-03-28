@@ -81,7 +81,6 @@ class Solr:
                 params['facet.field'].append(name)
 
         url = self.base_url + "/select?" + urlencode(params, doseq=True)
-        print url
         data = urllib2.urlopen(url).read()
         return self._parse_solr_result(
             simplejson.loads(data), 
