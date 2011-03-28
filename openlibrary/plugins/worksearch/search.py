@@ -13,7 +13,7 @@ def get_works_solr():
 def get_author_solr():
     c = config.get("plugin_worksearch")
     host = c and c.get('authors_solr')
-    return host and Solr("http://" + host + "/solr/works")
+    return host and Solr("http://" + host + "/solr/authors")
 
 def get_subject_solr():
     c = config.get("plugin_worksearch")

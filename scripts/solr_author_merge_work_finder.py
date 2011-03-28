@@ -46,7 +46,7 @@ def run_work_finder(i):
     print 'dups:', dup_keys
 
     title_redirects = find_title_redirects(akey)
-    works = find_works(akey, get_books(akey, books_query(akey)), existing=title_redirects)
+    works = find_works(get_books(akey, books_query(akey)), existing=title_redirects)
     print 'author:', akey
     print 'works:', works
     updated = update_works(akey, works, do_updates=True)

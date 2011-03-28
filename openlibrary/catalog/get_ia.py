@@ -1,9 +1,10 @@
 from openlibrary.catalog.marc import fast_parse, read_xml, is_display_marc
 from lxml import etree
 import xml.parsers.expat
-import urllib2, os.path
+import urllib2, os.path, socket
 from openlibrary.catalog.read_rc import read_rc
 from time import sleep
+from openlibrary.utils.ia import find_item
 
 base = "http://archive.org/download/"
 
@@ -160,12 +161,23 @@ def get_data(loc):
 def get_from_archive(locator):
     if locator.startswith('marc:'):
         locator = locator[5:]
-    file, offset, length = locator.split (":")
+    filename, offset, length = locator.split (":")
     offset = int (offset)
     length = int (length)
 
+    ia, rest = filename.split('/', 1)
+
+    for attempt in range(5):
+        try:
+            host, path = find_item(ia)
+            break
+        except socket.timeout:
+            if attempt == 5:
+                raise
+            print 'retry, attempt', attempt
+
     r0, r1 = offset, offset+length-1
-    url = 'http://www.archive.org/download/%s'% file
+    url = 'http://' + host + path + '/' + rest 
 
     assert 0 < length < 100000
 
@@ -179,9 +191,10 @@ def get_from_archive(locator):
             if error.code == 416:
                 raise
             elif error.code == 404:
-                #print "404 for '%s'" % url
+                print "404 for '%s'" % url
                 raise
             else:
+                print url
                 print 'error:', error.code, error.msg
         except urllib2.URLError:
             pass

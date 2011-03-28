@@ -22,7 +22,7 @@ import simplejson as json
 
 ol = OpenLibrary("http://openlibrary.org")
 
-re_skip = re.compile('\b([A-Z]|Co|Dr|Jr|Capt|Mr|Mrs|Ms|Prof|Rev|Revd|Hon|etc)\.$')
+re_skip = re.compile(r'\b([A-Z]|Co|Dr|Jr|Capt|Mr|Mrs|Ms|Prof|Rev|Revd|Hon|etc)\.$')
 re_work_key = re.compile('^/works/OL(\d+)W$')
 re_lang_key = re.compile('^/(?:l|languages)/([a-z]{3})$')
 re_author_key = re.compile('^/(?:a|authors)/(OL\d+A)$')
@@ -72,8 +72,7 @@ def books_query(akey): # live version
 def freq_dict_top(d):
     return sorted(d.keys(), reverse=True, key=lambda i:d[i])[0]
 
-def get_marc_src(e):
-    mc = get_mc(e['key'])
+def get_marc_src(e, mc):
     if mc and mc.startswith('amazon:'):
         mc = None
     if mc and mc.startswith('ia:'):
@@ -98,6 +97,7 @@ def get_marc_src(e):
             continue
 
 def get_ia_work_title(ia):
+    # FIXME: rewrite to use MARC binary
     url = 'http://www.archive.org/download/' + ia + '/' + ia + '_marc.xml'
     try:
         root = etree.parse(urlopen(url)).getroot()
@@ -111,10 +111,10 @@ def get_ia_work_title(ia):
     wt = ' '.join(s.text for s in e if s.attrib['code'] == 'a' and s.text)
     return wt
 
-def get_work_title(e):
+def get_work_title(e, mc):
     # use first work title we find in source MARC records
     wt = None
-    for src_type, src in get_marc_src(e):
+    for src_type, src in get_marc_src(e, mc):
         if src_type == 'ia':
             wt = get_ia_work_title(src)
             if wt:
@@ -147,10 +147,11 @@ def get_work_title(e):
             break
     if wt:
         return wt
-    if e.get('work_titles', []):
-        return e['work_titles'][0].strip('. ')
-    if e.get('work_title', []):
-        return e['work_title'][0].strip('. ')
+    for f in 'work_titles', 'work_title':
+        e_wt = e.get(f, [])
+        if e_wt:
+            assert isinstance(e_wt, list)
+            return e_wt[0].strip('. ')
 
 # don't use any of these as work titles
 bad_titles = ['Publications', 'Works. English', 'Missal', 'Works', 'Report', \
@@ -158,7 +159,7 @@ bad_titles = ['Publications', 'Works. English', 'Missal', 'Works', 'Report', \
     'Bill', 'Bills', 'Selections', 'Selected works', 'Selected works. English', \
     'The Novels', 'Laws, etc']
 
-def get_books(akey, query):
+def get_books(akey, query, do_get_mc=True):
     for e in query:
         try:
             if not e.get('title', None):
@@ -208,7 +209,8 @@ def get_books(akey, query):
         if 'source_records' in e:
             book['source_records'] = e['source_records']
 
-        wt = get_work_title(e)
+        mc = get_mc(e['key']) if do_get_mc else None
+        wt = get_work_title(e, mc)
         if not wt:
             yield book
             continue
@@ -222,6 +224,8 @@ def get_books(akey, query):
 
 def build_work_title_map(equiv, norm_titles):
     # map of normalized book titles to normalized work titles
+    if not equiv:
+        return {}
     title_to_work_title = defaultdict(set)
     for (norm_title, norm_wt), v in equiv.items():
         if v != 1:
@@ -301,68 +305,85 @@ def find_title_redirects(akey):
             title_redirects[r['title']] = w['title']
     return title_redirects
 
-# akey is unused in find_works
-def find_works(akey, book_iter, existing={}):
-    equiv = defaultdict(int) # normalized title and work title pairs
-    norm_titles = defaultdict(int) # frequency of titles
-    books_by_key = {}
-    books = []
+def find_works2(book_iter):
+    var = {}
+    var['equiv'] = defaultdict(int) # normalized title and work title pairs
+    var['norm_titles'] = defaultdict(int) # frequency of titles
+    var['books_by_key'] = {}
+    var['books'] = []
     # normalized work title to regular title
-    rev_wt = defaultdict(lambda: defaultdict(int))
+    var['rev_wt'] = defaultdict(lambda: defaultdict(int))
 
     for book in book_iter:
         if 'norm_wt' in book:
             pair = (book['norm_title'], book['norm_wt'])
-            equiv[pair] += 1
-            rev_wt[book['norm_wt']][book['work_title']] +=1
-        norm_titles[book['norm_title']] += 1 # used to build title_map
-        books_by_key[book['key']] = book
-        books.append(book)
+            var['equiv'][pair] += 1
+            var['rev_wt'][book['norm_wt']][book['work_title']] +=1
+        var['norm_titles'][book['norm_title']] += 1 # used to build title_map
+        var['books_by_key'][book['key']] = book
+        var['books'].append(book)
 
-    title_map = build_work_title_map(equiv, norm_titles)
+    return var
+
+def find_works3(var, existing={}):
+    title_map = build_work_title_map(var['equiv'], var['norm_titles'])
 
     for a, b in existing.items():
         norm_a = mk_norm(a)
         norm_b = mk_norm(b)
-        rev_wt[norm_b][norm_a] +=1
+        var['rev_wt'][norm_b][norm_a] +=1
         title_map[norm_a] = norm_b
 
-    works = defaultdict(lambda: defaultdict(list))
-    work_titles = defaultdict(list)
-    for b in books:
+    var['works'] = defaultdict(lambda: defaultdict(list))
+    var['work_titles'] = defaultdict(list)
+    for b in var['books']:
         if 'eng' not in b.get('lang', []) and 'norm_wt' in b:
-            work_titles[b['norm_wt']].append(b['key'])
+            var['work_titles'][b['norm_wt']].append(b['key'])
         n = b['norm_title']
         title = b['title']
         if n in title_map:
             n = title_map[n]
-            title = top_rev_wt(rev_wt[n])
-        works[n][title].append(b['key'])
+            title = top_rev_wt(var['rev_wt'][n])
+        var['works'][n][title].append(b['key'])
 
-    works = sorted([(sum(map(len, w.values() + [work_titles[n]])), n, w) for n, w in works.items()])
+def find_work_sort(var):
+    def sum_len(n, w):
+        # example n: 'magic'
+        # example w: {'magic': ['/books/OL1M', ... '/books/OL4M']}
+        # example work_titles: {'magic': ['/books/OL1M', '/books/OL3M']}
+        return sum(len(i) for i in w.values() + [var['work_titles'][n]])
+    return sorted([(sum_len(n, w), n, w) for n, w in var['works'].items()])
+
+def find_works(book_iter, existing={}, do_get_mc=True):
+
+    var = find_works2(book_iter)
+    find_works3(var, existing)
+
+    works = find_work_sort(var)
 
     for work_count, norm, w in works:
         first = sorted(w.items(), reverse=True, key=lambda i:len(i[1]))[0][0]
         titles = defaultdict(int)
         for key_list in w.values():
             for ekey in key_list:
-                b = books_by_key[ekey]
+                b = var['books_by_key'][ekey]
                 title = b['title']
                 titles[title] += 1
-        keys = work_titles[norm]
+        keys = var['work_titles'][norm]
         for values in w.values():
             keys += values
         assert work_count == len(keys)
         title = max(titles.keys(), key=lambda i:titles[i])
-        toc_iter = ((k, books_by_key[k].get('table_of_contents', None)) for k in keys)
+        toc_iter = ((k, var['books_by_key'][k].get('table_of_contents', None)) for k in keys)
         toc = dict((k, v) for k, v in toc_iter if v)
-        editions = [books_by_key[k] for k in keys]
+        # sometimes keys contains duplicates
+        editions = [var['books_by_key'][k] for k in set(keys)]
         subtitles = defaultdict(lambda: defaultdict(int))
         edition_count = 0
         with_subtitle_count = 0
         for e in editions:
             edition_count += 1
-            subtitle = e['subtitle'] or ''
+            subtitle = e.get('subtitle') or ''
             if subtitle != '':
                 with_subtitle_count += 1
             norm_subtitle = mk_norm(subtitle)
@@ -384,7 +405,7 @@ def find_works(akey, book_iter, existing={}):
         if toc:
             w['toc'] = toc
         try:
-            subjects = four_types(get_work_subjects(w))
+            subjects = four_types(get_work_subjects(w, do_get_mc=do_get_mc))
         except:
             print w
             raise
