@@ -15,7 +15,7 @@ from infogami.utils import view, delegate
 from infogami.utils.view import render, get_template, public
 from infogami.utils.macro import macro
 from infogami.utils.context import context
-from infogami.infobase.client import Thing
+from infogami.infobase.client import Thing, Changeset
 
 from openlibrary.core.helpers import commify, parse_datetime
 from openlibrary.core.middleware import GZipMiddleware
@@ -250,6 +250,19 @@ def get_changes_v1(query, revision=None):
         return v
     
     return [process(v) for v in _get_changes_v1_raw(query, revision)]
+    
+def _get_changes_v2_raw(query, revision=None):
+    """Returns the raw recentchanges response. 
+    
+    Revision is taken as argument to make sure a new cache entry is used when a new revision of the page is created.
+    """
+    if 'env' not in web.ctx:
+        delegate.fakeload()
+    
+    changes = web.ctx.site.recentchanges(query)
+    return [c.dict() for c in changes]
+
+_get_changes_v2_raw = cache.memcache_memoize(_get_changes_v2_raw, key_prefix="upstream._get_changes_v2_raw", timeout=10*60)
 
 def get_changes_v2(query, revision=None):
     page = web.ctx.site.get(query['key'])
@@ -261,6 +274,7 @@ def get_changes_v2(query, revision=None):
             return default
     
     def process_change(change):
+        change = Changeset.create(web.ctx.site, change)
         change.thing = page
         change.key = page.key
         change.revision = first(c.revision for c in change.changes if c.key == page.key)
@@ -277,7 +291,7 @@ def get_changes_v2(query, revision=None):
         return t(change, page)
 
     query['key'] = page.key
-    changes = web.ctx.site.recentchanges(query)
+    changes = _get_changes_v2_raw(query, revision=page.revision)
     return [process_change(c) for c in changes]
     
 def get_changes(query, revision=None):
