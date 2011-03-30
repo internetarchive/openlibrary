@@ -1,0 +1,15 @@
+ol-web0:
+    services: 
+        - 7071-ol-gunicorn
+        - 7060-memcached
+    sites:
+        - default
+
+ol-web1:
+    services: 
+        - 7072-ol-gunicorn
+        - 7061-memcached
+
+ol-test:
+    sites: 
+      something.org

@@ -9,6 +9,7 @@ import urllib
 import traceback
 
 import couchdb
+import yaml
 
 from infogami import config
 from infogami.utils import delegate
@@ -18,6 +19,8 @@ from infogami.utils.context import context
 from infogami.utils.view import add_flash_message
 import openlibrary
 from openlibrary.core import admin as admin_stats
+
+import services
 
 def render_template(name, *a, **kw):
     if "." in name:
@@ -286,6 +289,18 @@ class loans_admin:
         if action == 'updateall':
             borrow.update_all_loan_status()
         raise web.seeother(web.ctx.path) # Redirect to avoid form re-post on re-load
+
+class service_status(object):
+    def GET(self):
+        try:
+            f = open("%s/olsystem.yml"%config.admin.olsystem_root)
+            nodes = services.load_all(yaml.load(f))
+            f.close()
+        except IOError, i:
+            f = None
+            nodes = []
+        return render_template("admin/services", nodes)
+    
             
 def setup():
     register_admin_page('/admin/git-pull', gitpull, label='git-pull')
@@ -298,6 +313,7 @@ def setup():
     register_admin_page('/admin/ipstats', ipstats, label='IP Stats JSON')
     register_admin_page('/admin/block', block, label='')
     register_admin_page('/admin/loans', loans_admin, label='')
+    register_admin_page('/admin/status', service_status, label = "Open Library services")
     
     import mem
 
