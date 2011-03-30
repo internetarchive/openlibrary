@@ -1,6 +1,17 @@
 $def with (nodes)
 
-<table>
+<div id="contentHead">
+    <h1>$_("Admin Center")</h1>
+	<div class="small">
+	    <a href="/admin/reload/">Reload Templates</a>
+	    | <a href="/admin/block">Block IPs</a>
+	    | <a href="/admin/loans">Loans</a>
+	    | <a href="/admin/status">Services</a>
+	</div>
+</div>
+<div id="contentBody">
+
+<table  border="0" cellspacing="1" id="nodes" width="90%" class = "services">
   <tr>
     <th>Node</th>
     <th>Services</th>
@@ -9,11 +20,17 @@ $def with (nodes)
   </tr>
   $for node in nodes:
     <tr>
-      <td rowspan="$len(nodes[node])">$node</td>
+      <td class="node"
+	  rowspan="$len(nodes[node])"><strong>$node</strong> (<a href="http://$(node).us.archive.org/mrtg">MRTG</a>)</td>
+      <td> $nodes[node][0].name (<a href="http://$(node).us.archive.org/cgi-bin/tail.py?service=$(nodes[node][0].name)&lines=20">Logs</a>)</td>
+      <td> $nodes[node][0].status </td>
+      <td> $nodes[node][0].nagios </td>
     </tr>
-    $for service in nodes[node]:
-      <tr></tr>
+    $for service in nodes[node][1:]:
       <tr>
-	<td>$service.name</td>
+	<td>$service.name (<a href="http://$(node).us.archive.org/cgi-bin/tail.py?service=$(service.name)&lines=20">Logs</a>)</td>
+	<td>$service.status</td>
+	<td>$nodes[node][0].nagios</td>
       </tr>
 </table>
+</div>

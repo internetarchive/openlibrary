@@ -15,6 +15,8 @@ class Service(object):
         self.node = node
         self.name = name
         self.logs = logs
+        self.status = "Service status(TBD)"
+        self.nagios = "Nagios status (TBD)"
 
     def __repr__(self):
         return "Service(name = '%s', node = '%s', logs = '%s')"%(self.name, self.node, self.logs)
@@ -25,7 +27,9 @@ def load_all(config):
     the list of Service"""
     d = defaultdict(list)
     for node in config:
-        for service in config[node].get('services',[]):
-            d[node].append(Service(node = node, name = service))
+        services = config[node].get('services',[])
+        if services:
+            for service in services:
+                d[node].append(Service(node = node, name = service))
     return d
 
