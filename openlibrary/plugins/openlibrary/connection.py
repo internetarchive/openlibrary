@@ -30,8 +30,15 @@ class ConnectionMiddleware:
             return self.save(sitename, path, data)
         elif path == '/save_many':
             return self.save_many(sitename, data)
-        else:
-            return self.conn.request(sitename, path, method, data)
+        elif path.startswith("/_store/") and not path.startswith("/_store/_"):
+            if method == 'GET':
+                return self.store_get(sitename, path)
+            elif method == 'PUT':
+                return self.store_put(sitename, path, data)
+            elif method == 'DELETE':
+                return self.store_delete(sitename, path, data)
+                
+        return self.conn.request(sitename, path, method, data)
 
     def get(self, sitename, data):
         return self.conn.request(sitename, '/get', 'GET', data)
@@ -48,6 +55,14 @@ class ConnectionMiddleware:
     def save_many(self, sitename, data):
         return self.conn.request(sitename, '/save_many', 'POST', data)
         
+    def store_get(self, sitename, path):
+        return self.conn.request(sitename, path, 'GET')
+        
+    def store_put(self, sitename, path, data):
+        return self.conn.request(sitename, path, 'PUT', data)
+    
+    def store_delete(self, sitename, path, data):
+        return self.conn.request(sitename, path, 'DELETE', data)
         
 _memcache = None
         
@@ -96,7 +111,48 @@ class MemcacheMiddleware(ConnectionMiddleware):
                 
         return simplejson.dumps(result)
 
+    def mc_get(self, key):
+        stats.begin("memcache.get", key=key)
+        result = self.memcache.get(key)
+        stats.end(hit=bool(result))
+        return result
+    
+    def mc_delete(self, key):
+        stats.begin("memcache.delete", key=key)
+        self.memcache.delete(key)
+        stats.end()
+        
+    def mc_add(self, key, value):
+        stats.begin("memcache.add", key=key)
+        self.memcache.add(key, value)
+        stats.end()
 
+    def store_get(self, sitename, key):
+        result = self.mc_get(key)
+
+        if result is None:
+            result = ConnectionMiddleware.store_get(self, sitename, key)
+            if result:
+                self.mc_add(key, result)
+        return result
+
+    def store_put(self, sitename, key, data):
+        # deleting before put to make sure the entry is deleted even if the
+        # process dies immediately after put.
+        # Still there is very very small chance of invalid cache if someone else
+        # updates memcache after stmt-1 and this process dies after stmt-2.
+        self.mc_delete(key)
+        result = ConnectionMiddleware.store_put(self, sitename, key, data)
+        self.mc_delete(key)
+        return result
+        
+    def store_delete(self, sitename, key, data):
+        # see comment in store_put
+        self.mc_delete(key)
+        result = ConnectionMiddleware.store_delete(self, sitename, key, data)
+        self.mc_delete(key)
+        return result
+        
 _cache = None
         
 class LocalCacheMiddleware(ConnectionMiddleware):

@@ -15,10 +15,11 @@ from infogami.utils import view, delegate
 from infogami.utils.view import render, get_template, public
 from infogami.utils.macro import macro
 from infogami.utils.context import context
-from infogami.infobase.client import Thing
+from infogami.infobase.client import Thing, Changeset
 
 from openlibrary.core.helpers import commify, parse_datetime
 from openlibrary.core.middleware import GZipMiddleware
+from openlibrary.core import cache
     
 class MultiDict(DictMixin):
     """Ordered Dictionary that can store multiple values.
@@ -220,11 +221,50 @@ def radio_list(name, args, value):
 @public
 def get_coverstore_url():
     return config.get('coverstore_url', 'http://covers.openlibrary.org').rstrip('/')
+    
+def _get_changes_v1_raw(query, revision=None):
+    """Returns the raw versions response. 
+    
+    Revision is taken as argument to make sure a new cache entry is used when a new revision of the page is created.
+    """
+    if 'env' not in web.ctx:
+        delegate.fakeload()
+    
+    versions = web.ctx.site.versions(query)
+    
+    for v in versions:
+        v.created = v.created.isoformat()
+        v.author = v.author and v.author.key
+    
+    return versions
 
-def get_changes_v1(query):
-    return web.ctx.site.versions(query)
+_get_changes_v1_raw = cache.memcache_memoize(_get_changes_v1_raw, key_prefix="upstream._get_changes_v1_raw", timeout=10*60)
 
-def get_changes_v2(query):
+def get_changes_v1(query, revision=None):
+    # uses the cached function _get_changes_v1_raw to get the raw data
+    # and processes to before returning.
+    def process(v):
+        v = web.storage(v)
+        v.created = parse_datetime(v.created)
+        v.author = v.author and web.ctx.site.get(v.author, lazy=True)
+        return v
+    
+    return [process(v) for v in _get_changes_v1_raw(query, revision)]
+    
+def _get_changes_v2_raw(query, revision=None):
+    """Returns the raw recentchanges response. 
+    
+    Revision is taken as argument to make sure a new cache entry is used when a new revision of the page is created.
+    """
+    if 'env' not in web.ctx:
+        delegate.fakeload()
+    
+    changes = web.ctx.site.recentchanges(query)
+    return [c.dict() for c in changes]
+
+_get_changes_v2_raw = cache.memcache_memoize(_get_changes_v2_raw, key_prefix="upstream._get_changes_v2_raw", timeout=10*60)
+
+def get_changes_v2(query, revision=None):
     page = web.ctx.site.get(query['key'])
     
     def first(seq, default=None):
@@ -234,6 +274,7 @@ def get_changes_v2(query):
             return default
     
     def process_change(change):
+        change = Changeset.create(web.ctx.site, change)
         change.thing = page
         change.key = page.key
         change.revision = first(c.revision for c in change.changes if c.key == page.key)
@@ -250,29 +291,28 @@ def get_changes_v2(query):
         return t(change, page)
 
     query['key'] = page.key
-    changes = web.ctx.site.recentchanges(query)
+    changes = _get_changes_v2_raw(query, revision=page.revision)
     return [process_change(c) for c in changes]
     
-def get_changes(query):
+def get_changes(query, revision=None):
     if 'history_v2' in web.ctx.features:
-        return get_changes_v2(query)
+        return get_changes_v2(query, revision=revision)
     else:
-        return get_changes_v1(query)
+        return get_changes_v1(query, revision=revision)
 
 @public
 def get_history(page):
     h = web.storage(revision=page.revision, lastest_revision=page.revision, created=page.created)
     if h.revision < 5:
-        h.recent = get_changes({"key": page.key, "limit": 5})
+        h.recent = get_changes({"key": page.key, "limit": 5}, revision=page.revision)
         h.initial = h.recent[-1:]
         h.recent = h.recent[:-1]
     else:
-        h.initial = get_changes({"key": page.key, "limit": 1, "offset": h.revision-1})
-        h.recent = get_changes({"key": page.key, "limit": 4})
+        h.initial = get_changes({"key": page.key, "limit": 1, "offset": h.revision-1}, revision=page.revision)
+        h.recent = get_changes({"key": page.key, "limit": 4}, revision=page.revision)
     
     return h
     
-    print "get_history", page
     if 'history_v2' in web.ctx.features:
         return get_history_v2(page)
     else:
@@ -287,7 +327,7 @@ def get_version(key, revision):
 
 @public
 def get_recent_author(doc):
-    versions = web.ctx.site.versions({'key': doc.key, 'limit': 1})
+    versions = get_changes_v1({'key': doc.key, 'limit': 1, "offset": 0}, revision=doc.revision)
     if versions:
         return versions[0].author
 
