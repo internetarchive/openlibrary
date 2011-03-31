@@ -22,13 +22,13 @@ $def with (nodes)
     <tr>
       <td class="node"
 	  rowspan="$len(nodes[node])"><strong>$node</strong> (<a href="http://$(node).us.archive.org/mrtg">MRTG</a>)</td>
-      <td> $nodes[node][0].name (<a href="http://$(node).us.archive.org/cgi-bin/tail.py?service=$(nodes[node][0].name)&lines=20">Logs</a>)</td>
+      <td> $nodes[node][0].name (<a href="http://$(node).us.archive.org/tail/$(nodes[node][0].name)">Logs</a>)</td>
       <td> $nodes[node][0].status </td>
       <td> $nodes[node][0].nagios </td>
     </tr>
     $for service in nodes[node][1:]:
       <tr>
-	<td>$service.name (<a href="http://$(node).us.archive.org/cgi-bin/tail.py?service=$(service.name)&lines=20">Logs</a>)</td>
+	<td>$service.name (<a href="http://$(node).us.archive.org/tail/$(service.name)">Logs</a>)</td>
 	<td>$service.status</td>
 	<td>$nodes[node][0].nagios</td>
       </tr>
