@@ -24,13 +24,13 @@ $def with (nodes)
 	  rowspan="$len(nodes[node])"><strong>$node</strong> (<a href="http://$(node).us.archive.org/mrtg">MRTG</a>)</td>
       <td> $nodes[node][0].name (<a href="http://$(node).us.archive.org/tail/$(nodes[node][0].name)">Logs</a>)</td>
       <td> $nodes[node][0].status </td>
-      <td> $nodes[node][0].nagios </td>
+      <td class="nagios-$(nodes[node][0].nagios)"> $nodes[node][0].nagios </td>
     </tr>
     $for service in nodes[node][1:]:
       <tr>
 	<td>$service.name (<a href="http://$(node).us.archive.org/tail/$(service.name)">Logs</a>)</td>
 	<td>$service.status</td>
-	<td>$nodes[node][0].nagios</td>
+	<td class="nagios-$(service.nagios)" >$service.nagios</td>
       </tr>
 </table>
 </div>
