@@ -40,7 +40,7 @@ function(doc) {
     doc.isbn_13 && extend_list(d.isbn, doc.isbn_13);
     
     for (var i=0; i<d.isbn.length; i++) {
-        d.isbn[i] = d.isbn[i].replace("/[ -]+/g", "");
+        d.isbn[i] = d.isbn[i].replace(/[ -]+/g, "");
     }
     
     for (var name in d) {
