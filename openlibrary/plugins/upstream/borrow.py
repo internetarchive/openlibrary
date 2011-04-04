@@ -379,10 +379,14 @@ def get_loans(user):
     return get_all_store_values(type='/type/loan', name='user', value=user.key)    
 
 def get_edition_loans(edition):
-    # return web.ctx.site.store.values(type='/type/loan', name='book', value=edition.key)
-    return get_all_store_values(type='/type/loan', name='book', value=edition.key)
+    # An edition can't have loans if it doens't have an IA ID. 
+    # This check avoids a lot of unnecessary queries.
+    if edition.ocaid:
+        # return web.ctx.site.store.values(type='/type/loan', name='book', value=edition.key)
+        return get_all_store_values(type='/type/loan', name='book', value=edition.key)
+    else:
+        return []
 
-    
 def get_loan_link(edition, type):
     """Get the loan link, which may be an ACS4 link or BookReader link depending on the loan type"""
     global content_server

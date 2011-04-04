@@ -1,11 +1,10 @@
-$def with (list_key=None)
+$def with ()
 
-$if list_key:
-    <div class="head"> 
-        <h2 class="inline">The &#8220;Return Cart&#8221;</h2> 
-        <p class="inline sansserif large collapse">&nbsp;
-            Here's a sample of recently returned books from the <a href="/borrow">ebook lending library</a>.
-        </p> 
-    </div> 
+<div class="head"> 
+    <h2 class="inline">The &#8220;Return Cart&#8221;</h2> 
+    <p class="inline sansserif large collapse">&nbsp;
+        Here's a sample of recently returned books from the <a href="/borrow">ebook lending library</a>.
+    </p> 
+</div> 
 
-    $:carousel_from_list(list_key, randomize=True, limit=60)
+$:render_returncart()
