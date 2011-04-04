@@ -26,7 +26,7 @@ if hasattr(config, 'plugin_inside'):
     solr_select_url = "http://" + solr_host + "/solr/inside/select"
 
 def editions_from_ia(ia):
-    q = {'type': '/type/edition', 'ocaid': ia, 'title', None, 'covers': None, 'works': None, 'authors': None}
+    q = {'type': '/type/edition', 'ocaid': ia, 'title': None, 'covers': None, 'works': None, 'authors': None}
     editions = web.ctx.site.things(q)
     if not editions:
         del q['ocaid']
