@@ -20,9 +20,8 @@ $:render_template("home/splash")
         $:render_template("home/lendinglibrary", lending_list) 
         <div class="clearfix"></div> 
 
-    $if returncart_list:
-        $:render_template("home/returncart", returncart_list) 
-        <div class="clearfix"></div> 
+    $:render_template("home/returncart") 
+    <div class="clearfix"></div> 
  
     $:render_template("home/stats", stats)
     <div class="clearfix"></div> 
