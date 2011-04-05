@@ -15,7 +15,7 @@ from infogami.utils import view, delegate
 from infogami.utils.view import render, get_template, public
 from infogami.utils.macro import macro
 from infogami.utils.context import context
-from infogami.infobase.client import Thing, Changeset
+from infogami.infobase.client import Thing, Changeset, storify
 
 from openlibrary.core.helpers import commify, parse_datetime
 from openlibrary.core.middleware import GZipMiddleware
@@ -270,11 +270,11 @@ def get_changes_v2(query, revision=None):
     def first(seq, default=None):
         try:
             return seq.next()
-        except:
+        except StopIteration:
             return default
     
     def process_change(change):
-        change = Changeset.create(web.ctx.site, change)
+        change = Changeset.create(web.ctx.site, storify(change))
         change.thing = page
         change.key = page.key
         change.revision = first(c.revision for c in change.changes if c.key == page.key)
