@@ -191,6 +191,7 @@ class cover:
             raise web.found(url)
         
         if key == 'isbn':
+            value = value.replace("-", "").strip() # strip hyphens from ISBN
             value = self.ratelimit_query(category, key, value)
         elif key != 'id':
             value = self.query(category, key, value)
