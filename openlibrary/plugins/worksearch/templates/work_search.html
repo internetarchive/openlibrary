@@ -17,6 +17,8 @@ $ facet_fields = ['has_fulltext', 'author_facet', 'language', 'first_publish_yea
 
 $ sticky = set(['author_facet', 'language', 'first_publish_year', 'publisher_facet',  'subject_facet', 'person_facet', 'place_facet', 'time_facet'])
 
+$ library = (get_library() if 'inlibrary' in ctx.features else None)
+
 $def add_facet_url(k, v):
     $if k != 'has_fulltext':
         $changequery(page=None,**{k:param.get(k, []) + [v]})
@@ -171,11 +173,11 @@ function less(header) {
             $if 'has_fulltext' in param:
                 $title.append('eBook')
             $if any(header in param for header, label in facet_map):
+                <!-- facet_map: $:facet_map -->
+                <!-- facet_counts: $:facet_counts -->
                 <p class="collapse darkgray"><span class="tools"><img src="/images/icons/icon_search-facet.png" alt="Search facets" width="11" height="10" style="margin-right:5px;"/><strong>
                 $for header, label in facet_map:
                     $ counts = facet_counts[header]
-                    $if not counts:
-                        $continue
                     $for k, display, count in counts:
                         $if k not in param.get(header, []):
                             $continue
@@ -221,7 +223,7 @@ function less(header) {
             $ key = doc.key
             <li>
             <span class="bookcover">
-                $ cover = "http://covers.openlibrary.org/b/olid/%s-M.jpg" % doc.cover_edition_key if doc.cover_edition_key else "http://openlibrary.org/images/icons/avatar_book-sm.png"
+                $ cover = get_coverstore_url() + "/b/olid/%s-M.jpg" % doc.cover_edition_key if doc.cover_edition_key else "http://openlibrary.org/images/icons/avatar_book-sm.png"
                 <a href="$doc.url"><img src="$cover" height="70" alt="Cover of: $doc.title$(': ' + doc.subtitle if doc.get('subtitle', None) else '')" title="Cover of: $doc.title$(': ' + doc.subtitle if doc.get('subtitle', None) else '')"/></a>
             </span>
             <span class="details">
@@ -257,9 +259,9 @@ function less(header) {
                         <span class="label">$_("Read")</span>
                     </a>                
                 </span>
-            $elif doc.lending_edition:
+            $elif doc.lending_edition and (library or 'inlibrary' not in doc.collections):
                 <span class="actions">
-                    <a href="/editions/$doc.lending_edition" title="Borrow book">
+                    <a href="/books/$doc.lending_edition/x/borrow" title="Borrow book">
                         <span class="image borrow"></span>
                         <span class="label">Borrow</span>
                     </a>                
