@@ -31,7 +31,7 @@ $else:
         <div class="coverEbook">
             <a href="$book.borrow_url" title="$_('Borrow this book')"><img src="/images/icons/icon_borrow-avail.png" border="0" width="32" height="33" alt="$_('Borrow this book')"/></a>
         </div>
-    $elif "inlibrary" in ctx.features and book.inlibrary_borrow_url and get_library() is not None:
+    $elif "inlibrary" in ctx.features and book.get("inlibrary_borrow_url") and get_library() is not None:
         <div class="coverEbook">
             <a href="$book.inlibrary_borrow_url" title="$_('Borrow this book')"><img src="/images/icons/icon_borrow-avail.png" border="0" width="32" height="33" alt="$_('Borrow this book')"/></a>
         </div>
