@@ -86,10 +86,17 @@ class MemcacheMiddleware(ConnectionMiddleware):
             stats.begin("memcache.get", key=key)
             result = self.memcache.get(key)
             stats.end(hit=bool(result))
-        else:
-            result = None
             
-        return result or ConnectionMiddleware.get(self, sitename, data)
+            return result or ConnectionMiddleware.get(self, sitename, data)
+        else:
+            # cache get requests with revisions for a minute
+            mc_key = "%s@%d" % (key, revision)
+            result = self.mc_get(mc_key)
+            if result is None:
+                result = ConnectionMiddleware.get(self, sitename, data)
+                if result:
+                    self.mc_set(mc_key, result, time=60) # cache for a minute
+            return result
     
     def get_many(self, sitename, data):
         keys = simplejson.loads(data['keys'])
@@ -125,6 +132,16 @@ class MemcacheMiddleware(ConnectionMiddleware):
     def mc_add(self, key, value):
         stats.begin("memcache.add", key=key)
         self.memcache.add(key, value)
+        stats.end()
+        
+    def mc_set(self, key, value, time=0):
+        stats.begin("memcache.set", key=key)
+        self.memcache.add(key, value, time=time)
+        stats.end()
+    
+    def mc_set_multi(self, mapping):
+        stats.begin("memcache.set_multi")
+        self.memcache.set_multi(mapping)
         stats.end()
 
     def store_get(self, sitename, key):
