@@ -26,6 +26,7 @@ simplejson
 sphinx
 supervisor
 web.py==0.33
+pystatsd
 """
 
 from openlibrary.core.setup_commands import commands
