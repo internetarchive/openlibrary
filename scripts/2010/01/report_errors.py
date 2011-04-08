@@ -69,9 +69,11 @@ def main():
 def process_errors(dir, date):
     root = os.path.join("/var/log/openlibrary", dir, date)
     
+    basename = os.path.basename(dir)
+    
     def parse(f):
         e = parse_error(os.path.join(root, f))
-        e.error_url = "http://%s/logs/%s/%s/%s" % (hostname, dir, date, f)
+        e.error_url = "http://%s/logs/%s/%s/%s" % (hostname, basename, date, f)
         return e
 
     if os.path.exists(root):

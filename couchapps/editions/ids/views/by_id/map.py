@@ -18,13 +18,8 @@ def map(doc):
     d['ia'] = [s[len("ia:"):] for s in doc.get("source_records", []) if s.startswith("ia:")]
     if 'ocaid' in doc and doc['ocaid'] not in d['ia']:
         d['ia'].append(doc['ocaid'])
-    
+
     d['olid'] = [doc['key'].split("/")[-1]]
-    
-    f = open("/tmp/couch.log", 'a')
-    print >> f, doc['key'], d
-    print >> f, cover_value
-    f.flush()
 
     for name, values in d.items():
         for v in values:
