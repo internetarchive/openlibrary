@@ -11,6 +11,8 @@ import cache
 def get_meta_xml(itemid):
     """Returns the contents of meta_xml as JSON.
     """
+    itemid = itemid.strip()
+    
     url = 'http://www.archive.org/download/%s/%s_meta.xml' % (itemid, itemid)
     try:
         stats.begin("archive.org", url=url)
