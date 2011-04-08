@@ -235,6 +235,11 @@ def _get_changes_v1_raw(query, revision=None):
     for v in versions:
         v.created = v.created.isoformat()
         v.author = v.author and v.author.key
+        
+        # XXX-Anand: hack to avoid too big data to be stored in memcache.
+        # v.chanegs is hardly used. It increases the memcache usage tremendously.
+        if len(v.changes) > 10:
+            v.changes = [c for c in v.changes if c['key'] == query['key']]
     
     return versions
 
@@ -262,7 +267,8 @@ def _get_changes_v2_raw(query, revision=None):
     changes = web.ctx.site.recentchanges(query)
     return [c.dict() for c in changes]
 
-_get_changes_v2_raw = cache.memcache_memoize(_get_changes_v2_raw, key_prefix="upstream._get_changes_v2_raw", timeout=10*60)
+# XXX-Anand: disabled temporarily to avoid too much memcache usage.
+#_get_changes_v2_raw = cache.memcache_memoize(_get_changes_v2_raw, key_prefix="upstream._get_changes_v2_raw", timeout=10*60)
 
 def get_changes_v2(query, revision=None):
     page = web.ctx.site.get(query['key'])
