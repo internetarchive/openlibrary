@@ -237,10 +237,9 @@ def _get_changes_v1_raw(query, revision=None):
         v.author = v.author and v.author.key
         
         # XXX-Anand: hack to avoid too big data to be stored in memcache.
-        # v.chanegs is hardly used. It increases the memcache usage tremendously.
-        if len(v.changes) > 10:
-            v.changes = [c for c in v.changes if c['key'] == query['key']]
-    
+        # v.changes is not used and it contrinutes to memcache bloat in a big way.
+        v.changes = '[]'
+            
     return versions
 
 _get_changes_v1_raw = cache.memcache_memoize(_get_changes_v1_raw, key_prefix="upstream._get_changes_v1_raw", timeout=10*60)
