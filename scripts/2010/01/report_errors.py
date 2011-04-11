@@ -81,7 +81,7 @@ def process_errors(dir, date):
     else:
         errors = []
     
-    return t(hostname, date, dir, errors)
+    return t(hostname, date, basename, errors)
     
 def parse_error(path):
     html = open(path).read(10000)

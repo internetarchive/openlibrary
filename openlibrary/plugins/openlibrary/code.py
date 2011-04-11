@@ -328,7 +328,13 @@ class robotstxt(delegate.page):
             raise web.HTTPError("200 OK", {}, data)
         except IOError:
             raise web.notfound()
-            
+
+class health(delegate.page):
+    path = "/health"
+    def GET(self):
+        web.header('Content-Type', 'text/plain')
+        raise web.HTTPError("200 OK", {}, 'OK')
+
 class change_cover(delegate.mode):
     def GET(self, key):
         page = web.ctx.site.get(key)
