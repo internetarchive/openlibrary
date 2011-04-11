@@ -40,10 +40,10 @@ $code:
         if isinstance(value, list):
             tags = []
             for x in value:
-                tags.append( '<%s%s>%s</%s>'%(tag, attributes, web.websafe(prefix + str(x)), tag) )
+                tags.append( '<%s%s>%s</%s>'%(tag, attributes, web.websafe(prefix + unicode(x)), tag) )
             return '    ' + '\n    '.join(tags) + '\n'
         elif value:
-            return '    <%s%s>%s</%s>\n'%(tag, attributes, web.websafe(prefix + str(value)), tag)
+            return '    <%s%s>%s</%s>\n'%(tag, attributes, web.websafe(prefix + unicode(value)), tag)
 
     def display_rel_links(book, work):
         links = []
