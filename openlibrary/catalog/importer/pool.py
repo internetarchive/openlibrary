@@ -9,7 +9,7 @@ from openlibrary.catalog.merge.merge_index import add_to_indexes
 import psycopg2
 from openlibrary.catalog.read_rc import read_rc
 rc = read_rc()
-conn = psycopg2.connect("dbname='marc_index'")
+conn = psycopg2.connect(database='marc_index', host='ol-db')
 cur = conn.cursor()
 
 index_path = '/1/edward/marc_index/'
