@@ -67,7 +67,7 @@ class memcache_memoize:
     def _generate_key_prefix(self):
         try:
             prefix = self.f.__name__ + "_"
-        except AttributeError, TypeError:
+        except (AttributeError, TypeError):
             prefix = ""
         
         return prefix + self._random_string(10)
@@ -155,7 +155,8 @@ class memcache_memoize:
     def compute_key(self, args, kw):
         """Computes memcache key for storing result of function call with given arguments.
         """
-        return self.key_prefix + "-" + self.encode_args(args, kw)
+        key = self.key_prefix + "-" + self.encode_args(args, kw)
+        return key.replace(" ", "_") #XXX: temporary fix to handle spaces in the arguments
         
     def json_encode(self, value):
         """simplejson.dumps without extra spaces.
