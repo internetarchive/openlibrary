@@ -20,6 +20,21 @@ def stats_hook():
         
     openlibrary.core.stats.increment('ol.pageviews')
     
+    memcache_hits = 0
+    memcache_misses = 0
+    for s in web.ctx.get("stats", []):
+        if s.name == 'memcache.get':
+            if s.data['hit']:
+                memcache_hits += 1
+            else:
+                memcache_misses += 1
+    
+    if memcache_hits:
+        openlibrary.core.stats.increment('ol.memcache.hits', memcache_hits)
+    if memcache_misses:
+        openlibrary.core.stats.increment('ol.memcache.misses', memcache_misses)
+    
+    
 def format_stats(stats):
     s = " ".join("%s %d %0.03f" % entry for entry in process_stats(stats))
     return '"%s"' %s
