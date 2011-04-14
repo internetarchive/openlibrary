@@ -20,6 +20,7 @@ import utils
 from utils import render_template
 
 from openlibrary.core import inlibrary
+from openlibrary.core import stats
 
 import acs4
 
@@ -125,6 +126,13 @@ class borrow(delegate.page):
                 #   user.has_borrowed = True
                 #   user.save()
                 
+                if resource_type == 'bookreader':
+                    stats.increment('loans.bookreader')
+                elif resource_type == 'pdf':
+                    stats.increment('loans.pdf')
+                elif resource_type == 'epub':
+                    stats.increment('loans.epub')
+                    
                 if resource_type == 'bookreader':
                     raise web.seeother(make_bookreader_auth_link(loan.get_key(), edition.ocaid, '/stream/' + edition.ocaid))
                 else:
