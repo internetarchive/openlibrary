@@ -78,3 +78,14 @@ admin:
     nagios_url: http://monitor.us.archive.org/cgi-bin/nagios3/status.cgi?hostgroup=24.openlibrary&style=detail
     statsd_server: http://localhost:7085
 
+
+stats: # This section is used to state what stats need to be gathered.
+    page.time: 
+      filter: all
+      time: total
+
+    # books.time:
+    #   filter: url
+    #   pattern: /books/OL\d+M
+    #   time: total-time
+

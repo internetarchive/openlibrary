@@ -8,6 +8,7 @@ import urllib
 import socket
 import random
 import datetime
+import logging
 from time import time
 
 import infogami
@@ -743,6 +744,14 @@ def setup_template_globals():
         "input": web.input,
         "dumps": simplejson.dumps,
     })
+
+def setup_logging():
+    logger = logging.getLogger("openlibrary")
+    logger.setLevel(logging.DEBUG)
+    handler = logging.StreamHandler()
+    handler.setLevel(logging.DEBUG)
+    handler.setFormatter(logging.Formatter("\033[1;2m [%(levelname)s] %(name)s | %(module)s:%(lineno)d | %(message)s \033[0m"))
+    logger.addHandler(handler)
     
 def setup():
     import home, inlibrary, borrow_home, libraries
@@ -756,5 +765,8 @@ def setup():
     delegate.app.add_processor(web.unloadhook(stats_hook))
     
     setup_template_globals()
-    
+    setup_logging()
+    logger = logging.getLogger("openlibrary")
+    logger.info("Application init")
+
 setup()
