@@ -22,6 +22,7 @@ from infogami.infobase import client
 from infogami.core.db import ValidationException
 
 from openlibrary.utils.isbn import isbn_13_to_isbn_10
+import openlibrary.core.stats
 
 import processors
 
@@ -605,6 +606,15 @@ class new:
             web.ctx.site.save_many(query, comment=comment, action=action)
         except client.ClientException, e:
             raise BadRequest(str(e))
+
+        #graphite/statsd tracking of bot edits
+        user = delegate.context.user and delegate.context.user.key
+        if user.lower().endswith('bot'):
+            botname = user.replace('/people/', '', 1)
+            botname = botname.replace('.', '-')
+            key = 'ol.edits.bots.'+botname
+            openlibrary.core.stats.increment(key)
+
         return simplejson.dumps(keys)
         
 api and api.add_hook('new', new)
