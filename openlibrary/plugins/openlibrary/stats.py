@@ -2,11 +2,14 @@
 """
 import web
 from infogami.utils import stats
+import openlibrary.core.stats
 
 def stats_hook():
     """web.py unload hook to add X-OL-Stats header.
     
     This info can be written to lighttpd access log for collecting
+    
+    Also, send stats to graphite using statsd
     """
     try:
         if "stats-header" in web.ctx.features:
@@ -15,6 +18,8 @@ def stats_hook():
         # don't let errors in stats collection break the app.
         print >> web.debug, str(e)
         
+    openlibrary.core.stats.increment('ol.pageviews')
+    
 def format_stats(stats):
     s = " ".join("%s %d %0.03f" % entry for entry in process_stats(stats))
     return '"%s"' %s
