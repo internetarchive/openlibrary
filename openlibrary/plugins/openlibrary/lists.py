@@ -534,8 +534,8 @@ def get_active_lists_in_random(limit=20, preload=True):
         result = get_recently_modified_lists(limit*5, offset=offset)
         offset += len(result)
         
-        # ignore lists with 2 or less seeds
-        lists += [xlist for xlist in result if len(xlist.get("seeds", [])) > 2]
+        # ignore lists with 4 or less seeds
+        lists += [xlist for xlist in result if len(xlist.get("seeds", [])) > 4]
     
     if len(lists) > limit:
         lists = random.sample(lists, limit)
