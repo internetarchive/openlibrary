@@ -11,9 +11,10 @@ def stats_hook():
     
     Also, send stats to graphite using statsd
     """
+    stats_summary = stats.stats_summary()
     try:
         if "stats-header" in web.ctx.features:
-            web.header("X-OL-Stats", format_stats(stats.stats_summary()))
+            web.header("X-OL-Stats", format_stats(stats_summary))
     except Exception, e:
         # don't let errors in stats collection break the app.
         print >> web.debug, str(e)
@@ -34,6 +35,11 @@ def stats_hook():
     if memcache_misses:
         openlibrary.core.stats.increment('ol.memcache.misses', memcache_misses)
     
+    for name, value in stats_summary.items():
+        name = name.replace(".", "_")
+        time = value.get("time", 0.0) * 1000
+        key  = 'ol.'+name
+        openlibrary.core.stats.put(key, time)
     
 def format_stats(stats):
     s = " ".join("%s %d %0.03f" % entry for entry in process_stats(stats))
