@@ -1,6 +1,7 @@
 """Hooks for collecting performance stats.
 """
 import logging
+import traceback
 
 from openlibrary.core import stats as graphite_stats
 
@@ -21,12 +22,18 @@ def evaluate_and_store_stat(name, stat):
     except AttributeError:
         l.critical("Couldn't find filter %s", stat.filter)
         raise
-    if f(web.ctx, params = stat):
-        if stat.has_key("time"):
-            graphite_stats.put(name, summary[stat.time]["time"])
-        elif stat.has_key("count"):
-            print "Storing count for key %s"%stat.count
-            
+    try:
+        if f(web.ctx, params = stat):
+            if stat.has_key("time"):
+                graphite_stats.put(name, summary[stat.time]["time"] * 100)
+            elif stat.has_key("count"):
+                print "Storing count for key %s"%stat.count
+    except Exception, k:
+        tb = traceback.format_exc()
+        l.warning("Error while storing stats (%s). Complete traceback follows"%k)
+        l.warning(tb)
+        
+        
     
 def update_all_stats():
     """
