@@ -828,7 +828,7 @@ def on_loan_delete(loan):
         "type": "ebook",
         "book_key": loan['book'],
         "borrowed": "false"
-    }
+    })
     store[key] = doc
 
     msgbroker.send_message("loan-completed", loan)
