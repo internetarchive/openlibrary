@@ -58,7 +58,7 @@ features:
     undo: enabled
     dev: enabled
     lists: enabled
-    lending_v2: admin
+    lending_v2: enabled
     stats: enabled
     stats-header: enabled
     inlibrary: enabled
