@@ -98,12 +98,18 @@ function setup_tooltip(selector, format_message) {
          }
     });
 });
-
 </script>
+
+<style type="text/css">
+div.graph {
+    width: 918px;
+    height: 180px;
+}
+</style>
 
 <div id="contentBody">
     <h2>Loans per day</h2>
-    <div id="loans-per-day" style="width:450px;height:180px;"></div>
+    <div id="loans-per-day" class="graph"></div>
 
     <h2>Distribution of Loan Duration</h2>
     <div>
@@ -111,10 +117,25 @@ function setup_tooltip(selector, format_message) {
         y-axis: Number of loans<br/>
         <br/>
     </div>
-    <div id="duration" style="width:450px;height:180px;"></div>
+    <div id="duration" class="graph"></div>
+    
+    <div>
+        $ summary = stats.get_summary()
+        $ total = summary['total_loans']
+        $ onehour = summary['one_hour_loans']
+        $ expired = summary['expired_loans']
+        $ percent = lambda v: sprintf("%.2f%%", (100.0 * v)/total)
+
+        Total Loans: $total
+        <br/>
+        Loans returned in less than one hour: $onehour ($percent(onehour))
+        <br/>
+        Expired Loans: $expired ($percent(expired))
+        <br/>
+    </div>
 
     <h2>Average Loan Duration</h2>
-    <div id="avg-duration" style="width:450px;height:180px;"></div>
+    <div id="avg-duration" class="graph"></div>
 
     <h2 class="fixthis">Loans per user</h2>
 
@@ -123,7 +144,7 @@ function setup_tooltip(selector, format_message) {
         y-axis: Number of users<br/>
         <br/>
     </div>
-    <div id="loans-per-user" style="width:450px;height:180px;"></div>
+    <div id="loans-per-user" class="graph"></div>
 
     <h2 class="fixthis">Popular Books</h2>
 </div>
