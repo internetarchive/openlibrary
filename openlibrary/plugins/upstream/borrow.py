@@ -21,6 +21,7 @@ from utils import render_template
 
 from openlibrary.core import inlibrary
 from openlibrary.core import stats
+from openlibrary.core import msgbroker
 
 import acs4
 
@@ -801,22 +802,36 @@ def make_bookreader_auth_link(loan_key, item_id, book_path):
     return auth_url
     
 def on_loan_update(loan):
+    store = web.ctx.site.store
+
     key = "ebooks" + loan['book']
-    doc = {
+    doc = store.get(key) or {}
+
+    doc.update({
         "type": "ebook",
         "book_key": loan['book'],
         "borrowed": "true"
-    }
-    web.ctx.site.store[key] = doc
+    })
+    store[key] = doc
+
+    # TODO: differentiate between loan-updated and loan-created
+    msgbroker.send_message("loan-created", loan)
     
 def on_loan_delete(loan):
+    loan['returned_at'] = time.time()
+
+    store = web.ctx.site.store
     key = "ebooks" + loan['book']
-    doc = {
+    doc = store.get(key) or {}
+
+    doc.update({
         "type": "ebook",
         "book_key": loan['book'],
         "borrowed": "false"
     }
-    web.ctx.site.store[key] = doc
+    store[key] = doc
+
+    msgbroker.send_message("loan-completed", loan)
 
 ########## Classes
 
@@ -842,7 +857,8 @@ class Loan:
         return self.key
         
     def get_dict(self):
-        return { 'user': self.user_key, 'type': '/type/loan',
+        return { '_key': self.get_key(),
+                 'user': self.user_key, 'type': '/type/loan',
                  'book': self.book_key, 'expiry': self.expiry,
                  'loaned_at': self.loaned_at, 'resource_type': self.resource_type,
                  'resource_id': self.resource_id, 'loan_link': self.loan_link }
