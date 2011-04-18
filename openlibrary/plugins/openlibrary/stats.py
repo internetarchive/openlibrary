@@ -22,16 +22,19 @@ def evaluate_and_store_stat(name, stat):
     except AttributeError:
         l.critical("Couldn't find filter %s", stat.filter)
         raise
+    except Exception:
+        l.warning("Error while running filter %s. Complete traceback follows", stat.filter)
+        l.warning(traceback.format_exc())
     try:
         if f(web.ctx, params = stat):
+            l.debug("Storing stat %s", name)
             if stat.has_key("time"):
                 graphite_stats.put(name, summary[stat.time]["time"] * 100)
             elif stat.has_key("count"):
                 print "Storing count for key %s"%stat.count
     except Exception, k:
-        tb = traceback.format_exc()
         l.warning("Error while storing stats (%s). Complete traceback follows"%k)
-        l.warning(tb)
+        l.warning(traceback.format_exc())
         
         
     
@@ -40,7 +43,6 @@ def update_all_stats():
     Run through the filters and record requested items in graphite
     """
     for stat in config.stats:
-        l.debug("Storing stat %s", stat)
         evaluate_and_store_stat(stat, config.stats.get(stat))
         
         
