@@ -83,12 +83,43 @@ admin:
 
 
 stats: # This section is used to state what stats need to be gathered.
-    page.time: 
+    pageload.all:
       filter: all
       time: total
 
-    books.time:
+    pageload.books:
       filter: url
       pattern: /books/OL\d+M
       time: total
+
+    pageload.works:
+      filter: url
+      pattern: /works/OL\d+M
+      time: total
+
+    pageload.authors:
+      filter: url
+      pattern: /authors/OL\d+M
+      time: total
+
+    pageload.author:
+      filter: url
+      pattern: /authors/OL\d+M
+      time: total
+
+    pageload.home:
+      filter: url
+      pattern: ^/$
+      time: total
+      
+    pageload.recentchanges:
+      filter: url
+      pattern: /recentchanges
+      time: total
+
+    pageload.lists:
+      filter: url
+      pattern: /lists
+      time: total
+
 

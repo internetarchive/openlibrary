@@ -5,18 +5,17 @@ import re
 import logging
 l = logging.getLogger("openlibrary.stats_filters")
 
-def all(ctx, params = {}):
+import web
+
+def all(**params):
     "Returns true for all requests"
-    l.debug("Evaluate all")
     return True
 
-def url(ctx, params = {}):
-    l.debug("Evaluate url '%s'"%ctx.path)
-    if re.search(params['pattern'], ctx.path):
-        l.debug(" Matching URL")
+def url(**params):
+    l.debug("Evaluate url '%s'"%web.ctx.path)
+    if re.search(params['pattern'], web.ctx.path):
         return True
     else:
-        l.debug(" URL doesn't match")
         return False
     
 

@@ -10,29 +10,31 @@ from infogami import config
 from infogami.utils import stats
 import openlibrary.core.stats
 
-import filters
+import filters as stats_filters
 
 l = logging.getLogger("openlibrary.stats")
+
+filters = {}
 
 def evaluate_and_store_stat(name, stat):
     """Evaluates whether the given statistic is to be recorded and if
     so, records it."""
+    global filters
     summary = stats.stats_summary()
     try:
-        f = getattr(filters, stat.filter)
-    except AttributeError:
-        l.critical("Couldn't find filter %s", stat.filter)
+        f = filters[stat.filter]
+    except KeyError:
+        l.critical("Filter %s not registered", stat.filter)
         raise
-    except Exception:
-        l.warning("Error while running filter %s. Complete traceback follows", stat.filter)
-        l.warning(traceback.format_exc())
     try:
-        if f(web.ctx, params = stat):
+        if f(**stat):
             l.debug("Storing stat %s", name)
             if stat.has_key("time"):
                 graphite_stats.put(name, summary[stat.time]["time"] * 100)
             elif stat.has_key("count"):
                 print "Storing count for key %s"%stat.count
+            else:
+                l.warning("No storage item specified for stat %s", name)
     except Exception, k:
         l.warning("Error while storing stats (%s). Complete traceback follows"%k)
         l.warning(traceback.format_exc())
@@ -115,3 +117,14 @@ def process_stats(stats):
         
     return [(label, count, time) for label, (count, time) in sorted(d.items())]
 
+def register_filter(name, function):
+    global filters
+    filters[name] = function
+    
+
+def setup():
+    """This function is called from the main application startup
+    routine to set things up. Right now, it just initialises the stats
+    filters"""
+    register_filter("all", stats_filters.all)
+    register_filter("url", stats_filters.url)

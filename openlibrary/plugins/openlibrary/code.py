@@ -770,12 +770,13 @@ def setup_logging():
     logger.addHandler(handler)
     
 def setup():
-    import home, inlibrary, borrow_home, libraries
+    import home, inlibrary, borrow_home, libraries, stats
     
     home.setup()
     inlibrary.setup()
     borrow_home.setup()
     libraries.setup()
+    stats.setup()
     
     from stats import stats_hook
     delegate.app.add_processor(web.unloadhook(stats_hook))
