@@ -40,9 +40,13 @@ def bad_ia_xml(ia):
     loc = ia + "/" + ia + "_marc.xml"
     return '<!--' in urlopen_keep_trying(base + loc).read()
 
-def get_marc_ia_data(ia):
+def get_marc_ia_data(ia, host=None, path=None):
     ia = ia.strip() # 'cyclopdiaofedu00kidd '
-    url = base + ia + "/" + ia + "_meta.mrc"
+    ending = 'meta.mrc'
+    if host and path:
+        url = 'http://%s%s/%s_%s' % (host, path, ia, ending)
+    else:
+        url = 'http://www.archive.org/download/' + ia + '/' + ia + '_' + ending
     f = urlopen_keep_trying(url)
     if f is None:
         return None
@@ -231,10 +235,11 @@ def marc_formats(ia, host=None, path=None):
         ia + '_meta.mrc': 'bin',
     }
     has = { 'xml': False, 'bin': False }
+    ending = 'files.xml'
     if host and path:
-        url = 'http://%s%s/%s_files.xml' % (ia, host, path)
+        url = 'http://%s%s/%s_%s' % (host, path, ia, ending)
     else:
-        url = 'http://www.archive.org/download/' + ia + '/' + ia + '_files.xml'
+        url = 'http://www.archive.org/download/' + ia + '/' + ia + '_' + ending
     for attempt in range(10):
         f = urlopen_keep_trying(url)
         if f is not None:

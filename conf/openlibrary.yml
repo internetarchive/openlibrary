@@ -26,6 +26,9 @@ infobase:
 memcache_servers:
     - "localhost:7060"
 
+loanstatus_url: http://localhost:8010
+ia_access_secret: foobar
+
 plugins:
     - "openlibrary"
     - "links"
@@ -55,7 +58,7 @@ features:
     undo: enabled
     dev: enabled
     lists: enabled
-    lending_v2: admin
+    lending_v2: enabled
     stats: enabled
     stats-header: enabled
     inlibrary: enabled

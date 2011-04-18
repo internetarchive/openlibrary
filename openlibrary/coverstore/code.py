@@ -64,7 +64,7 @@ def _query(category, key, value):
             olkey = prefixes[category] + value
             return get_cover_id([olkey])
     else:
-        if category == 'b' and key in ['isbn', 'lccn', 'oclc', 'ocaid']:
+        if category == 'b':
             db = get_couch_database()
             if db:
                 return find_coverid_from_couch(db, key, value)
