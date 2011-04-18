@@ -18,6 +18,8 @@ from pystatsd import Client
 
 from infogami import config
 
+l = logging.getLogger("openlibrary.pystats")
+
 def create_stats_client():
     "Create the client which can be used for logging statistics"
     logger = logging.getLogger("pystatsd.client")
@@ -37,12 +39,14 @@ def put(key, value):
     "Records this ``value`` with the given ``key``. It is stored as a millisecond count"
     global client
     if client:
+        l.debug("Putting %s as %s"%(value, key))
         client.timing(key, value)
 
 def increment(key, n=1):
     "Increments the value of ``key`` by ``n``"
     global client
     if client:
+        l.debug("Incrementing %s"% key)
         for i in range(n):
             client.increment(key)
 

@@ -1,9 +1,54 @@
 """Hooks for collecting performance stats.
 """
+import logging
+import traceback
+
+from openlibrary.core import stats as graphite_stats
+
 import web
+from infogami import config
 from infogami.utils import stats
 import openlibrary.core.stats
 
+import filters as stats_filters
+
+l = logging.getLogger("openlibrary.stats")
+
+filters = {}
+
+def evaluate_and_store_stat(name, stat):
+    """Evaluates whether the given statistic is to be recorded and if
+    so, records it."""
+    global filters
+    summary = stats.stats_summary()
+    try:
+        f = filters[stat.filter]
+    except KeyError:
+        l.critical("Filter %s not registered", stat.filter)
+        raise
+    try:
+        if f(**stat):
+            l.debug("Storing stat %s", name)
+            if stat.has_key("time"):
+                graphite_stats.put(name, summary[stat.time]["time"] * 100)
+            elif stat.has_key("count"):
+                print "Storing count for key %s"%stat.count
+            else:
+                l.warning("No storage item specified for stat %s", name)
+    except Exception, k:
+        l.warning("Error while storing stats (%s). Complete traceback follows"%k)
+        l.warning(traceback.format_exc())
+        
+        
+    
+def update_all_stats():
+    """
+    Run through the filters and record requested items in graphite
+    """
+    for stat in config.stats:
+        evaluate_and_store_stat(stat, config.stats.get(stat))
+        
+        
 def stats_hook():
     """web.py unload hook to add X-OL-Stats header.
     
@@ -11,6 +56,7 @@ def stats_hook():
     
     Also, send stats to graphite using statsd
     """
+    update_all_stats()
     stats_summary = stats.stats_summary()
     try:
         if "stats-header" in web.ctx.features:
@@ -70,3 +116,15 @@ def process_stats(stats):
         d[label] = xcount + count, xtime + time
         
     return [(label, count, time) for label, (count, time) in sorted(d.items())]
+
+def register_filter(name, function):
+    global filters
+    filters[name] = function
+    
+
+def setup():
+    """This function is called from the main application startup
+    routine to set things up. Right now, it just initialises the stats
+    filters"""
+    register_filter("all", stats_filters.all)
+    register_filter("url", stats_filters.url)
