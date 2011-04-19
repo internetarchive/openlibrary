@@ -302,7 +302,8 @@ class MigrationMiddleware(ConnectionMiddleware):
 
                 # fix broken redirects
                 for a in doc.get("authors", []):
-                    a['key'] = self.fix_broken_redirect(a['key'])
+                    if 'key' in a:
+                        a['key'] = self.fix_broken_redirect(a['key'])
 
         return doc
         
