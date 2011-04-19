@@ -300,10 +300,10 @@ class MigrationMiddleware(ConnectionMiddleware):
                 doc['title'] = title.strip()
                 del doc['title_prefix']
 
-                # fix broken redirects
-                for a in doc.get("authors", []):
-                    if 'key' in a:
-                        a['key'] = self.fix_broken_redirect(a['key'])
+            # fix broken redirects
+            for a in doc.get("authors", []):
+                if 'key' in a:
+                    a['key'] = self.fix_broken_redirect(a['key'])
 
         return doc
         
