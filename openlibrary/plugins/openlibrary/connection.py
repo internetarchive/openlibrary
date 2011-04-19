@@ -312,11 +312,12 @@ class MigrationMiddleware(ConnectionMiddleware):
 
         This is a hack to work-around that isse.
         """
-        doc = self.get(key)
-        if doc.get("type", {}).get("key") == "/type/redirect" and doc.get('location') is not None:
-            return doc['location']
-        else:
-            return key
+        json = self.get("openlibrary.org", {"key": key})
+        if json:
+            doc = simplejson.loads(json)
+            if doc.get("type", {}).get("key") == "/type/redirect" and doc.get('location') is not None:
+                return doc['location']
+        return key
 
     def get_many(self, sitename, data):
         response = ConnectionMiddleware.get_many(self, sitename, data)
