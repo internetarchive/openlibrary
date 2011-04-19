@@ -45,7 +45,7 @@ def update_all_stats():
     """
     Run through the filters and record requested items in graphite
     """
-    for stat in config.stats:
+    for stat in config.get("stats", []):
         evaluate_and_store_stat(stat, config.stats.get(stat))
         
         
