@@ -714,6 +714,8 @@ def internalerror():
     i = web.input(_method='GET', debug='false')
     name = save_error()
     
+    openlibrary.core.stats.increment('ol.internal-errors', 1)
+
     if i.debug.lower() == 'true':
         raise web.debugerror()
     else:
