@@ -1,4 +1,7 @@
 def _map(doc):
+    if not doc['_id'].startswith("loans/"):
+        return
+
     import re, datetime
     def parse_datetime(datestring):
         """Parses from isoformat.
