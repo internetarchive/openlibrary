@@ -97,6 +97,7 @@ labels = {
     "infobase": "IB",
     "solr": "SR",
     "archive.org": "IA",
+    "couchdb", "CD",
 }
 
 def process_stats(stats):
