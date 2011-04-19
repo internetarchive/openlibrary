@@ -4,6 +4,7 @@ Open Library Plugin.
 import web
 import simplejson
 import os
+import sys
 import urllib
 import socket
 import random
@@ -762,13 +763,14 @@ def setup_template_globals():
     })
 
 def setup_logging():
-    logger = logging.getLogger("openlibrary")
-    logger.setLevel(logging.DEBUG)
-    handler = logging.StreamHandler()
-    handler.setLevel(logging.DEBUG)
-    handler.setFormatter(logging.Formatter("\033[1;2m [%(levelname)s] %(name)s | %(module)s:%(lineno)d | %(message)s \033[0m"))
-    logger.addHandler(handler)
-    
+    try:
+        logconfig = infogami.config.get("logging_config_file")
+        if logconfig and os.path.exists(logconfig):
+            logging.config.fileConfig(logconfig)
+    except Exception, e:
+        print >> sys.stderr, "Unable to set logging configuration:", str(e)
+        raise
+
 def setup():
     import home, inlibrary, borrow_home, libraries, stats
     
