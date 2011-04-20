@@ -5,8 +5,9 @@ import sys
 import web
 import subprocess
 import datetime
-import urllib
+import urllib, urllib2
 import traceback
+import logging
 
 import couchdb
 import yaml
@@ -21,6 +22,8 @@ import openlibrary
 from openlibrary.core import admin as admin_stats
 
 import services
+
+logger = logging.getLogger("openlibrary.admin")
 
 def render_template(name, *a, **kw):
     if "." in name:
@@ -300,8 +303,38 @@ class service_status(object):
             f = None
             nodes = []
         return render_template("admin/services", nodes)
+        
+class revert:
+    def GET(self, ip):
+        return render_template("admin/revert", ip)
+        
+    def POST(self, ip):
+        i = web.input(changesets=[], comment="Revert")
+        self.revert(i.changesets, i.comment)
+        raise web.redirect(web.ctx.path)
+        
+    def get_doc(self, key, revision):
+        if revision == 0:
+            return {
+                "key": key,
+                "type": {"key": "/type/delete"}
+            }
+        else:
+            return web.ctx.site.get(key, revision).dict()
     
-            
+    def revert(self, changeset_ids, comment):
+        logger.debug("Reverting changesets %s", changeset_ids)
+        site = web.ctx.site
+        docs = [self.get_doc(c['key'], c['revision']-1) 
+                for cid in changeset_ids 
+                for c in site.get_change(cid).changes]
+
+        logger.debug("Reverting %d docs", len(docs))
+        data = {
+            "reverted_changesets": [str(cid) for cid in changeset_ids]
+        }
+        return web.ctx.site.save_many(docs, action="revert", data=data, comment=comment)
+
 def setup():
     register_admin_page('/admin/git-pull', gitpull, label='git-pull')
     register_admin_page('/admin/reload', reload, label='Reload Templates')
@@ -315,12 +348,15 @@ def setup():
     register_admin_page('/admin/loans', loans_admin, label='')
     register_admin_page('/admin/status', service_status, label = "Open Library services")
     
+    register_admin_page("/admin/revert/(.*)", revert)
+    
     import mem
 
     for p in [mem._memory, mem._memory_type, mem._memory_id]:
         register_admin_page('/admin' + p.path, p)
 
     public(get_admin_stats)
+    public(get_graphite_data)
     
     delegate.app.add_processor(block_ip_processor)
     
