@@ -356,7 +356,6 @@ def setup():
         register_admin_page('/admin' + p.path, p)
 
     public(get_admin_stats)
-    public(get_graphite_data)
     
     delegate.app.add_processor(block_ip_processor)
     
