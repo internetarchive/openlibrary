@@ -13,8 +13,24 @@ $def call_template(name, change):
 
 <div id="contentHead">
 
+$if ip in get_blocked_ips():
+    <div>IP $ip is <a href="/admin/block">blocked</a>.</div>
+$else:
+    <form method="POST" id="block">
+        <input type="hidden" name="action" value="block"/>
+        <button type="submit" class="larger" name="submit">$_("Block %s", ip)</button>
+    </form>
+
+<p>
 Please select the changesets to revert.
-    
+</p>
+
+<style type="text/css">
+a.blocked-ip {
+    color: red;
+}
+</style>
+
 <form method="POST" name="revert" class="olform">
 <table class="changeHistory">
     <thead>
@@ -36,16 +52,15 @@ Please select the changesets to revert.
             $else:
                 $ revert_author = reverts[0].ip
         <tr>
-            $if revert:
-                <td><input type="checkbox" name="changesets" value="$c.id" disabled="disabled"/></td>
-            $else:
+            $if not revert:
                 <td><input type="checkbox" name="changesets" value="$c.id" checked="checked"/></td>
             <td class="time">$datestr(c.timestamp)</td>
             <td class="path">$:call_template("path", c)</td>
             $if c.author:
                 <td class="displayname"><a rel="nofollow" href="$c.author.key" title="$c.author.displayname">$c.author.displayname</a></td>
             $elif c.ip and c.ip != '127.0.0.1':
-                <td class="history"><a rel="nofollow" href="$changequery(ip=c.ip)" title="When you see numbers here, that's the IP address of the anonymous editor">$c.ip</a></td>
+                $ klass = cond(c.ip in get_blocked_ips(), 'blocked-ip', "")
+                <td class="history"><a rel="nofollow" href="$changequery()" class="$klass" title="When you see numbers here, that's the IP address of the anonymous editor">$c.ip</a></td>
             $else:
                 <td class="history">$c.ip</td>
             <td class="comment">

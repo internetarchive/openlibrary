@@ -184,21 +184,23 @@ class block:
     
     def POST(self):
         i = web.input()
-        
-        page = web.ctx.get("/admin/block") or web.ctx.site.new("/admin/block", {"key": "/admin/block", "type": "/type/object"})
-        ips = [{'ip': d} for d in (d.strip() for d in i.ips.split('\r\n')) if d]
-        page.ips = ips
-        page._save("update blocked IPs")
+        ips = [ip.strip() for ip in i.ips.splitlines()]
+        self.block_ips(ips)
         add_flash_message("info", "Saved!")
         raise web.seeother("/admin/block")
         
+    def block_ips(self, ips):
+        page = web.ctx.get("/admin/block") or web.ctx.site.new("/admin/block", {"key": "/admin/block", "type": "/type/object"})
+        page.ips = [{'ip': ip} for ip in ips]
+        page._save("updated blocked IPs")
+
 def get_blocked_ips():
     doc = web.ctx.site.get("/admin/block")
     if doc:
         return [d.ip for d in doc.ips]
     else:
         return []
-    
+
 def block_ip_processor(handler):
     if not web.ctx.path.startswith("/admin") \
         and (web.ctx.method == "POST" or web.ctx.path.endswith("/edit")) \
@@ -309,10 +311,19 @@ class revert:
         return render_template("admin/revert", ip)
         
     def POST(self, ip):
-        i = web.input(changesets=[], comment="Revert")
-        self.revert(i.changesets, i.comment)
+        i = web.input(changesets=[], comment="Revert", action="revert")
+        if i.action == "block":
+            self.block(ip)
+        else:
+            self.revert(i.changesets, i.comment)
         raise web.redirect(web.ctx.path)
         
+    def block(self, ip):
+        ips = get_blocked_ips()
+        if ip not in ips:
+            ips.append(ip)
+        block().block_ips(ips)
+
     def get_doc(self, key, revision):
         if revision == 0:
             return {
@@ -356,7 +367,7 @@ def setup():
         register_admin_page('/admin' + p.path, p)
 
     public(get_admin_stats)
-    
+    public(get_blocked_ips)
     delegate.app.add_processor(block_ip_processor)
     
 class IPAddress:
