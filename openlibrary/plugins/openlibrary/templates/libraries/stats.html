@@ -97,6 +97,20 @@ function setup_tooltip(selector, format_message) {
              mode: "time"
          }
     });
+
+    \$.plot("#loans-per-book", [$:json_encode(stats.get_loans_per_book())], {
+        series: {
+             bars: {
+                 show: true,
+                 align: "center",
+             },
+        },
+         grid: {
+             hoverable: true,
+             show: true
+         }
+    });
+
 });
 </script>
 
@@ -145,6 +159,19 @@ div.graph {
         <br/>
     </div>
     <div id="loans-per-user" class="graph"></div>
+
+
+
+    <h2>Loans per Book</h2>
+    <div>
+        x-axis: Number of loans taken<br/>
+        y-axis: Number of books<br/>
+        <br/>
+    </div>
+
+    <div id="loans-per-book" class="graph"></div>
+
+    <h2>Popular Books</h2>
     $def render_authors(book):
         $ work = book.works and book.works[0]
         $ authors = work and [a.author for a in work.authors if "author" in a]
@@ -171,7 +198,6 @@ div.graph {
             </span>
         </span>
 
-    <h2 class="fixthis">Popular Books</h2>
     <ul id="listResults" class="narrow">
         $for book, count in stats.get_popular_books():
             <li>

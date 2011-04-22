@@ -104,11 +104,16 @@ class LoanStats:
         return [[self.date2timestamp(*row.key)*1000, min(14, row.value['avg']/(60.0*24.0))] for row in rows]
 
     def get_popular_books(self, limit=10):
-        rows = self.view("loans/books", startkey=["", {}], endkey=[""], descending=True, limit=limit).rows
+        rows = self.view("loans/books", reduce=False, startkey=["", {}], endkey=[""], descending=True, limit=limit).rows
         counts = [row.key[-1] for row in rows]
         keys = [row.id for row in rows]
         books = web.ctx.site.get_many(keys)
         return zip(books, counts)
+
+    def get_loans_per_book(self, key=""):
+        """Returns the distribution of #loans/book."""
+        rows = self.view("loans/books", group=True, startkey=[key], endkey=[key, {}]).rows
+        return [[row.key[-1], row.value] for row in rows]
 
 def on_loan_created(topic, loan):
     """Adds the loan info to the admin stats database.
