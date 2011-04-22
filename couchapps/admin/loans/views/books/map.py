@@ -13,4 +13,4 @@ def _map(doc):
         counts[k] = counts.get(k, 0) + count
 
     for k, v in counts.items():
-        yield [k, v], None
+        yield [k, v], 1
