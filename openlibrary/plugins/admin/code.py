@@ -141,8 +141,44 @@ class ipaddress:
         
 class ipaddress_view:
     def GET(self, ip):
-        ip = IPAddress(ip)
         return render_template('admin/ip/view', ip)
+
+    def POST(self, ip):
+        i = web.input(changesets=[], comment="Revert", action="revert")
+        if i.action == "block":
+            self.block(ip)
+        else:
+            self.revert(i.changesets, i.comment)
+        raise web.redirect(web.ctx.path)
+
+    def block(self, ip):
+        ips = get_blocked_ips()
+        if ip not in ips:
+            ips.append(ip)
+        block().block_ips(ips)
+
+    def get_doc(self, key, revision):
+        if revision == 0:
+            return {
+                "key": key,
+                "type": {"key": "/type/delete"}
+            }
+        else:
+            return web.ctx.site.get(key, revision).dict()
+
+    def revert(self, changeset_ids, comment):
+        logger.debug("Reverting changesets %s", changeset_ids)
+        site = web.ctx.site
+        docs = [self.get_doc(c['key'], c['revision']-1) 
+                for cid in changeset_ids 
+                for c in site.get_change(cid).changes]
+
+        logger.debug("Reverting %d docs", len(docs))
+        data = {
+            "reverted_changesets": [str(cid) for cid in changeset_ids]
+        }
+        return web.ctx.site.save_many(docs, action="revert", data=data, comment=comment)
+
         
 class stats:
     def GET(self, today):
@@ -305,46 +341,6 @@ class service_status(object):
             f = None
             nodes = []
         return render_template("admin/services", nodes)
-        
-class revert:
-    def GET(self, ip):
-        return render_template("admin/revert", ip)
-        
-    def POST(self, ip):
-        i = web.input(changesets=[], comment="Revert", action="revert")
-        if i.action == "block":
-            self.block(ip)
-        else:
-            self.revert(i.changesets, i.comment)
-        raise web.redirect(web.ctx.path)
-        
-    def block(self, ip):
-        ips = get_blocked_ips()
-        if ip not in ips:
-            ips.append(ip)
-        block().block_ips(ips)
-
-    def get_doc(self, key, revision):
-        if revision == 0:
-            return {
-                "key": key,
-                "type": {"key": "/type/delete"}
-            }
-        else:
-            return web.ctx.site.get(key, revision).dict()
-    
-    def revert(self, changeset_ids, comment):
-        logger.debug("Reverting changesets %s", changeset_ids)
-        site = web.ctx.site
-        docs = [self.get_doc(c['key'], c['revision']-1) 
-                for cid in changeset_ids 
-                for c in site.get_change(cid).changes]
-
-        logger.debug("Reverting %d docs", len(docs))
-        data = {
-            "reverted_changesets": [str(cid) for cid in changeset_ids]
-        }
-        return web.ctx.site.save_many(docs, action="revert", data=data, comment=comment)
 
 def setup():
     register_admin_page('/admin/git-pull', gitpull, label='git-pull')
@@ -359,8 +355,6 @@ def setup():
     register_admin_page('/admin/loans', loans_admin, label='')
     register_admin_page('/admin/status', service_status, label = "Open Library services")
     
-    register_admin_page("/admin/revert/(.*)", revert)
-    
     import mem
 
     for p in [mem._memory, mem._memory_type, mem._memory_id]:
@@ -370,11 +364,4 @@ def setup():
     public(get_blocked_ips)
     delegate.app.add_processor(block_ip_processor)
     
-class IPAddress:
-    def __init__(self, ip):
-        self.ip = ip
-
-    def get_edit_history(self, limit=10, offset=0):
-        return web.ctx.site.versions({"ip": self.ip, "limit": limit, "offset": offset})
-
 setup()

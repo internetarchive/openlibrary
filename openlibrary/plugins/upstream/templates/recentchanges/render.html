@@ -44,7 +44,7 @@ a.blocked-ip {
                 <td class="displayname"><a rel="nofollow" href="$c.author.key" title="$c.author.displayname">$c.author.displayname</a></td>
             $elif c.ip and c.ip != '127.0.0.1':
                 $if ctx.user and ctx.user.is_admin():
-                    $ ip_url = "/admin/revert/%s" % c.ip
+                    $ ip_url = "/admin/ip/%s" % c.ip
                     $ klass = cond(c.ip in get_blocked_ips(), 'blocked-ip', "")
                 $else:
                     $ ip_url = changequery(ip=c.ip)
