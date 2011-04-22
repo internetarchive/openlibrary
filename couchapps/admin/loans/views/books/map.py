@@ -1,15 +1,16 @@
 def _map(doc):
-    if not doc['_id'].startswith("loans/"):
+    if not doc['_id'].startswith("/books/"):
         return
 
-    import re, datetime
-    def parse_datetime(datestring):
-        """Parses from isoformat.
-        Is there any way to do this in stdlib?
-        """
-        tokens = re.split('-|T|:|\.| ', datestring)
-        return datetime.datetime(*map(int, tokens))
-      
-    if 't_start' in doc and 'book'in doc:  
-        t = parse_datetime(doc['t_start'])
-        yield [doc['book'], t.year, t.month], 1
+    counts = {}
+
+    for k, count in doc['loans'].items():
+        yyyy, mm = k.split("-")
+
+        # store overall, per-year and per-month counts
+        counts[""] = counts.get("", 0) + count
+        counts[yyyy] = counts.get(yyyy, 0) + count
+        counts[k] = counts.get(k, 0) + count
+
+    for k, v in counts.items():
+        yield [k, v], None

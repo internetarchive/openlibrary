@@ -92,7 +92,7 @@ class LoanStats:
 
             # The loan entry gets added to couch only when the loan is deleted in the database, which is probably triggered by a cron job.
             # Even though the max loan duration is 2 weeks, there is a chance that duration is more than 14.
-            if n > 14: 
+            if n > 14:
                 n =15
 
             d[n] = d.get(n, 0) + count
@@ -103,9 +103,17 @@ class LoanStats:
         rows = self.view("loans/duration", group_level=2).rows
         return [[self.date2timestamp(*row.key)*1000, min(14, row.value['avg']/(60.0*24.0))] for row in rows]
 
-def on_loan_created(loan):
+    def get_popular_books(self, limit=10):
+        rows = self.view("loans/books", startkey=["", {}], endkey=[""], descending=True, limit=limit).rows
+        counts = [row.key[-1] for row in rows]
+        keys = [row.id for row in rows]
+        books = web.ctx.site.get_many(keys)
+        return zip(books, counts)
+
+def on_loan_created(topic, loan):
     """Adds the loan info to the admin stats database.
     """
+    logger.debug("on_loan_created")
     db = get_admin_couchdb()
     key = "loans/" + loan['_key']
 
@@ -124,9 +132,19 @@ def on_loan_created(loan):
     else:
         db[d['_id']] = d
 
-def on_loan_completed(loan):
+    logger.debug("incrementing loan count of %s", d['book'])
+
+    # Increment book loan count
+    # Loan count is maintained per month so that it is possible to find popular books per month, year and overall.
+    yyyy_mm = t_start.strftime("%Y-%m")
+    book = db.get(d['book']) or {"_id": d['book']}
+    book["loans"][yyyy_mm] = book.setdefault("loans", {}).setdefault(yyyy_mm, 0) + 1
+    db[d['book']] = book
+
+def on_loan_completed(topic, loan):
     """Marks the loan as completed in the admin stats database.
     """
+    logger.debug("on_loan_completed")
     db = get_admin_couchdb()
     key = "loans/" + loan['_key']
     doc = db.get(key)
