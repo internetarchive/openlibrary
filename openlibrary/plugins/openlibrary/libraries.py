@@ -148,9 +148,10 @@ def on_loan_created(topic, loan):
     db[d['book']] = book
 
     # Increment user loan count
-    user = db.get(d['user']) or {"_id": d['user']}
+    user_key = loan['user']
+    user = db.get(user_key) or {"_id": user_key}
     user["loans"][yyyy_mm] = user.setdefault("loans", {}).setdefault(yyyy_mm, 0) + 1
-    db[d['user']] = user
+    db[user_key] = user
 
 def on_loan_completed(topic, loan):
     """Marks the loan as completed in the admin stats database.
