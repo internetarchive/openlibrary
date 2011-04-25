@@ -98,6 +98,20 @@ function setup_tooltip(selector, format_message) {
          }
     });
 
+    \$.plot("#loans-per-user", [$:json_encode(stats.get_loans_per_user())], {
+        series: {
+             bars: {
+                 show: true,
+                 align: "center",
+             },
+        },
+         grid: {
+             hoverable: true,
+             show: true
+         }
+    });
+    
+
     \$.plot("#loans-per-book", [$:json_encode(stats.get_loans_per_book())], {
         series: {
              bars: {

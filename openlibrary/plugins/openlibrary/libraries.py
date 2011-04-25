@@ -114,6 +114,11 @@ class LoanStats:
         """Returns the distribution of #loans/book."""
         rows = self.view("loans/books", group=True, startkey=[key], endkey=[key, {}]).rows
         return [[row.key[-1], row.value] for row in rows]
+        
+    def get_loans_per_user(self, key=""):
+        """Returns the distribution of #loans/user."""
+        rows = self.view("loans/people", group=True, startkey=[key], endkey=[key, {}]).rows
+        return [[row.key[-1], row.value] for row in rows]
 
 def on_loan_created(topic, loan):
     """Adds the loan info to the admin stats database.
