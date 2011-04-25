@@ -137,14 +137,20 @@ def on_loan_created(topic, loan):
     else:
         db[d['_id']] = d
 
+    yyyy_mm = t_start.strftime("%Y-%m")
+
     logger.debug("incrementing loan count of %s", d['book'])
 
     # Increment book loan count
     # Loan count is maintained per month so that it is possible to find popular books per month, year and overall.
-    yyyy_mm = t_start.strftime("%Y-%m")
     book = db.get(d['book']) or {"_id": d['book']}
     book["loans"][yyyy_mm] = book.setdefault("loans", {}).setdefault(yyyy_mm, 0) + 1
     db[d['book']] = book
+
+    # Increment user loan count
+    user = db.get(d['user']) or {"_id": d['user']}
+    user["loans"][yyyy_mm] = user.setdefault("loans", {}).setdefault(yyyy_mm, 0) + 1
+    db[d['user']] = user
 
 def on_loan_completed(topic, loan):
     """Marks the loan as completed in the admin stats database.
