@@ -43,10 +43,11 @@ def init_plugin():
             logger.info("setting up http listeners")
             ol.add_trigger(None, http_notify)
             
-        _cache = config.get("cache", {})
-        if _cache.get("type") == "memcache":
-            logger.info("setting up memcache invalidater")
-            ol.add_trigger(None, MemcacheInvalidater())
+        ## memcache invalidator is not required now. It was added for future use.
+        #_cache = config.get("cache", {})
+        #if _cache.get("type") == "memcache":
+        #    logger.info("setting up memcache invalidater")
+        #    ol.add_trigger(None, MemcacheInvalidater())
     
     # hook to add count functionality
     server.app.add_mapping("/([^/]*)/count_editions_by_author", __name__ + ".count_editions_by_author")
