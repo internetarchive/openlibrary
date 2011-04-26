@@ -21,6 +21,8 @@ def evaluate_and_store_stat(name, stat):
     so, records it."""
     global filters
     summary = stats.stats_summary()
+    if not summary:
+        return
     try:
         f = filters[stat.filter]
     except KeyError:
