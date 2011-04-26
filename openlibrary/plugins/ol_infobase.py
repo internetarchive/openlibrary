@@ -5,6 +5,8 @@ import os
 import datetime
 import urllib
 import simplejson
+import logging, logging.config
+import sys
 
 import web
 from infogami.infobase import config, common, server, cache, dbstore
@@ -12,9 +14,11 @@ from infogami.infobase import config, common, server, cache, dbstore
 # relative import
 from openlibrary import schema
 
+logger = logging.getLogger("infobase.ol")
+
 def init_plugin():
     """Initialize infobase plugin."""
-    from infogami.infobase import common, dbstore, server, logger
+    from infogami.infobase import common, dbstore, server, logger as infobase_logger
     dbstore.default_schema = schema.get_schema()
 
     if config.get('errorlog'):
@@ -24,9 +28,11 @@ def init_plugin():
     ib = server._infobase
     
     if config.get('writelog'):
-        ib.add_event_listener(logger.Logger(config.writelog))
+        ib.add_event_listener(infobase_logger.Logger(config.writelog))
         
     ib.add_event_listener(invalidate_most_recent_change)
+
+    setup_logging()
 
     if ol:
         # install custom indexer
@@ -34,10 +40,12 @@ def init_plugin():
         # ol.store.indexer = Indexer()
         
         if config.get('http_listeners'):
+            logger.info("setting up http listeners")
             ol.add_trigger(None, http_notify)
             
         _cache = config.get("cache", {})
         if _cache.get("type") == "memcache":
+            logger.info("setting up memcache invalidater")
             ol.add_trigger(None, MemcacheInvalidater())
     
     # hook to add count functionality
@@ -49,7 +57,26 @@ def init_plugin():
     server.app.add_mapping("/([^/]*)/stats/(\d\d\d\d-\d\d-\d\d)", __name__ + ".stats")
     server.app.add_mapping("/([^/]*)/has_user", __name__ + ".has_user")
     server.app.add_mapping("/([^/]*)/olid_to_key", __name__ + ".olid_to_key")
-        
+    server.app.add_mapping("/_reload_config", __name__ + ".reload_config")
+
+def setup_logging():
+    try:
+        logconfig = config.get("logging_config_file")
+        if logconfig and os.path.exists(logconfig):
+            logging.config.fileConfig(logconfig)
+        logger.info("logging initialized")
+        logger.debug("debug")
+    except Exception, e:
+        print >> sys.stderr, "Unable to set logging configuration:", str(e)
+        raise
+
+class reload_config:
+    @server.jsonify
+    def POST(self):
+        logging.info("reloading logging config")
+        setup_logging()
+        return {"ok": "true"}
+
 def get_db():
     site = server.get_site('openlibrary.org')
     return site.store.db
@@ -193,19 +220,16 @@ def write(path, data):
     
 def save_error(dir, prefix):
     try:
-        import traceback
-        traceback.print_exc()
-
+        logger.error("Error", exc_info=True)
         error = web.djangoerror()
         now = datetime.datetime.utcnow()
         path = '%s/%04d-%02d-%02d/%s-%02d%02d%02d.%06d.html' % (dir, \
             now.year, now.month, now.day, prefix,
             now.hour, now.minute, now.second, now.microsecond)
-        print >> web.debug, 'Error saved to', path
+        logger.error("Error saved to %s", path)
         write(path, web.safestr(error))
     except:
-        import traceback
-        traceback.print_exc()
+        logger.error("Exception in saving the error", exc_info=True)
     
 def get_object_data(site, thing):
     """Return expanded data of specified object."""
