@@ -109,7 +109,13 @@ class MemcacheMiddleware(ConnectionMiddleware):
         if keys2:
             data['keys'] = simplejson.dumps(keys2)
             result2 = ConnectionMiddleware.get_many(self, sitename, data)
-            result.update(simplejson.loads(result2))
+            result2 = simplejson.loads(result2)
+
+            # Memcache expects dict with (key, json) mapping and we have (key, doc) mapping.
+            # Converting the docs to json before passing to memcache.
+            self.mc_set_multi(dict((key, simplejson.dumps(doc)) for key, doc in result2.items()))
+
+            result.update(result2)
         
         #@@ too many JSON conversions
         for k in result:
