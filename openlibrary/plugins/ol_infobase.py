@@ -7,6 +7,7 @@ import urllib
 import simplejson
 import logging, logging.config
 import sys
+import traceback
 
 import web
 from infogami.infobase import config, common, server, cache, dbstore
@@ -59,6 +60,7 @@ def init_plugin():
     server.app.add_mapping("/([^/]*)/has_user", __name__ + ".has_user")
     server.app.add_mapping("/([^/]*)/olid_to_key", __name__ + ".olid_to_key")
     server.app.add_mapping("/_reload_config", __name__ + ".reload_config")
+    server.app.add_mapping("/_inspect", __name__ + "._inspect")
 
 def setup_logging():
     try:
@@ -77,6 +79,19 @@ class reload_config:
         logging.info("reloading logging config")
         setup_logging()
         return {"ok": "true"}
+
+class _inspect:
+    """Backdoor to inspect the running process.
+
+    Tries to import _inspect module and executes inspect function in that. The module is reloaded on every invocation.
+    """
+    def GET(self):
+        sys.modules.pop("_inspect", None)
+        try:
+            import _inspect
+            return _inspect.inspect()
+        except Exception, e:
+            return traceback.format_exc()
 
 def get_db():
     site = server.get_site('openlibrary.org')
