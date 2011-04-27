@@ -1,4 +1,4 @@
-$def with (record, filename, begin, length)
+$def with (record, filename, begin, length, books)
 
 $ format = query_param('format')
 $if format == 'raw':
@@ -12,7 +12,9 @@ $ title = "MARC Record from " + source_record.source_name
 $var title: $title
 
 <div id="contentHead">
-    <div class="breadcrumbs fixthis"><a href="[EDITION URL]">{Edition Title}</a> /</div>
+    $if len(books):
+        $ e = get_document(books[0])
+        <div class="breadcrumbs"><a href="$e.key">$e.title</a> /</div>
     <h1>$title</h1>
 </div>
 

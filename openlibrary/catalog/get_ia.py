@@ -43,20 +43,13 @@ def bad_ia_xml(ia):
 
 def get_marc_ia_data(ia, host=None, path=None):
     ia = ia.strip() # 'cyclopdiaofedu00kidd '
+    ending = 'meta.mrc'
     if host and path:
-        url = 'http://%s%s/%s_meta.mrc' % (host, path, ia)
+        url = 'http://%s%s/%s_%s' % (host, path, ia, ending)
     else:
-        url = 'http://www.archive.org/download/' + ia + '/' + ia + '_meta.mrc'
-
-    try:
-        f = urlopen_keep_trying(url)
-    except urllib2.HTTPError:
-        print ia
-        print url
-        raise
-    if f is None:
-        return None
-    return f.read()
+        url = 'http://www.archive.org/download/' + ia + '/' + ia + '_' + ending
+    f = urlopen_keep_trying(url)
+    return f.read if f else None
 
 def get_marc_ia(ia):
     ia = ia.strip() # 'cyclopdiaofedu00kidd '
@@ -241,10 +234,15 @@ def marc_formats(ia, host=None, path=None):
         ia + '_meta.mrc': 'bin',
     }
     has = { 'xml': False, 'bin': False }
+    ending = 'files.xml'
     if host and path:
+<<<<<<< HEAD
         url = 'http://%s%s/%s_files.xml' % (host, path, ia)
+=======
+        url = 'http://%s%s/%s_%s' % (host, path, ia, ending)
+>>>>>>> a6e890c72315ff97b2f8a600f189fce28668fefe
     else:
-        url = 'http://www.archive.org/download/' + ia + '/' + ia + '_files.xml'
+        url = 'http://www.archive.org/download/' + ia + '/' + ia + '_' + ending
     for attempt in range(10):
         f = urlopen_keep_trying(url)
         if f is not None:

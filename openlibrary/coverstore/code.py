@@ -4,6 +4,7 @@ import urllib
 import os
 import Image
 import datetime
+import couchdb
 
 import db
 import config
@@ -40,6 +41,21 @@ def get_cover_id(olkeys):
             
         if covers:
             return covers[0]
+            
+_couchdb = None
+def get_couch_database():
+    global _couchdb
+    if config.get("couchdb_database"):
+        _couchdb = couchdb.Database(config.couchdb_database)
+    return _couchdb
+    
+def find_coverid_from_couch(db, key, value):
+    rows = db.view("covers/by_id", key=[key, value], limit=10, stale="ok")
+    rows = list(rows)
+    
+    if rows:
+        row = max(rows, key=lambda row: row.value['last_modified'])
+        return row.value['cover']
 
 def _query(category, key, value):
     if key == 'olid':
@@ -48,7 +64,11 @@ def _query(category, key, value):
             olkey = prefixes[category] + value
             return get_cover_id([olkey])
     else:
-        if category == 'b' and key in ['isbn', 'lccn', 'oclc', 'ocaid']:
+        if category == 'b':
+            db = get_couch_database()
+            if db:
+                return find_coverid_from_couch(db, key, value)
+            
             if key == 'isbn':
                 if len(value.replace('-', '')) == 13:
                     key = 'isbn_13'
@@ -171,13 +191,12 @@ class cover:
             raise web.found(url)
         
         if key == 'isbn':
+            value = value.replace("-", "").strip() # strip hyphens from ISBN
             value = self.ratelimit_query(category, key, value)
         elif key != 'id':
             value = self.query(category, key, value)
-            if value is None:
-                return notfound()
         
-        d = db.details(value)
+        d = value and db.details(value)
         if not d:
             return notfound()
 

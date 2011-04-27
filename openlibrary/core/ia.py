@@ -11,6 +11,8 @@ import cache
 def get_meta_xml(itemid):
     """Returns the contents of meta_xml as JSON.
     """
+    itemid = itemid.strip()
+    
     url = 'http://www.archive.org/download/%s/%s_meta.xml' % (itemid, itemid)
     try:
         stats.begin("archive.org", url=url)
@@ -26,7 +28,8 @@ def get_meta_xml(itemid):
         return web.storage()
     
     try:
-        return web.storage(xml2dict(metaxml, collection=[]))
+        defaults = {"collection": [], "external-identifier": []}
+        return web.storage(xml2dict(metaxml, **defaults))
     except Exception, e:
         print >> web.debug, "Failed to parse metaxml for %s: %s" % (itemid, str(e)) 
         return web.storage()

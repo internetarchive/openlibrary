@@ -30,8 +30,15 @@ class ConnectionMiddleware:
             return self.save(sitename, path, data)
         elif path == '/save_many':
             return self.save_many(sitename, data)
-        else:
-            return self.conn.request(sitename, path, method, data)
+        elif path.startswith("/_store/") and not path.startswith("/_store/_"):
+            if method == 'GET':
+                return self.store_get(sitename, path)
+            elif method == 'PUT':
+                return self.store_put(sitename, path, data)
+            elif method == 'DELETE':
+                return self.store_delete(sitename, path, data)
+                
+        return self.conn.request(sitename, path, method, data)
 
     def get(self, sitename, data):
         return self.conn.request(sitename, '/get', 'GET', data)
@@ -48,6 +55,14 @@ class ConnectionMiddleware:
     def save_many(self, sitename, data):
         return self.conn.request(sitename, '/save_many', 'POST', data)
         
+    def store_get(self, sitename, path):
+        return self.conn.request(sitename, path, 'GET')
+        
+    def store_put(self, sitename, path, data):
+        return self.conn.request(sitename, path, 'PUT', data)
+    
+    def store_delete(self, sitename, path, data):
+        return self.conn.request(sitename, path, 'DELETE', data)
         
 _memcache = None
         
@@ -71,10 +86,17 @@ class MemcacheMiddleware(ConnectionMiddleware):
             stats.begin("memcache.get", key=key)
             result = self.memcache.get(key)
             stats.end(hit=bool(result))
-        else:
-            result = None
             
-        return result or ConnectionMiddleware.get(self, sitename, data)
+            return result or ConnectionMiddleware.get(self, sitename, data)
+        else:
+            # cache get requests with revisions for a minute
+            mc_key = "%s@%d" % (key, revision)
+            result = self.mc_get(mc_key)
+            if result is None:
+                result = ConnectionMiddleware.get(self, sitename, data)
+                if result:
+                    self.mc_set(mc_key, result, time=60) # cache for a minute
+            return result
     
     def get_many(self, sitename, data):
         keys = simplejson.loads(data['keys'])
@@ -87,7 +109,13 @@ class MemcacheMiddleware(ConnectionMiddleware):
         if keys2:
             data['keys'] = simplejson.dumps(keys2)
             result2 = ConnectionMiddleware.get_many(self, sitename, data)
-            result.update(simplejson.loads(result2))
+            result2 = simplejson.loads(result2)
+
+            # Memcache expects dict with (key, json) mapping and we have (key, doc) mapping.
+            # Converting the docs to json before passing to memcache.
+            self.mc_set_multi(dict((key, simplejson.dumps(doc)) for key, doc in result2.items()))
+
+            result.update(result2)
         
         #@@ too many JSON conversions
         for k in result:
@@ -96,7 +124,58 @@ class MemcacheMiddleware(ConnectionMiddleware):
                 
         return simplejson.dumps(result)
 
+    def mc_get(self, key):
+        stats.begin("memcache.get", key=key)
+        result = self.memcache.get(key)
+        stats.end(hit=bool(result))
+        return result
+    
+    def mc_delete(self, key):
+        stats.begin("memcache.delete", key=key)
+        self.memcache.delete(key)
+        stats.end()
+        
+    def mc_add(self, key, value):
+        stats.begin("memcache.add", key=key)
+        self.memcache.add(key, value)
+        stats.end()
+        
+    def mc_set(self, key, value, time=0):
+        stats.begin("memcache.set", key=key)
+        self.memcache.add(key, value, time=time)
+        stats.end()
+    
+    def mc_set_multi(self, mapping):
+        stats.begin("memcache.set_multi")
+        self.memcache.set_multi(mapping)
+        stats.end()
 
+    def store_get(self, sitename, key):
+        result = self.mc_get(key)
+
+        if result is None:
+            result = ConnectionMiddleware.store_get(self, sitename, key)
+            if result:
+                self.mc_add(key, result)
+        return result
+
+    def store_put(self, sitename, key, data):
+        # deleting before put to make sure the entry is deleted even if the
+        # process dies immediately after put.
+        # Still there is very very small chance of invalid cache if someone else
+        # updates memcache after stmt-1 and this process dies after stmt-2.
+        self.mc_delete(key)
+        result = ConnectionMiddleware.store_put(self, sitename, key, data)
+        self.mc_delete(key)
+        return result
+        
+    def store_delete(self, sitename, key, data):
+        # see comment in store_put
+        self.mc_delete(key)
+        result = ConnectionMiddleware.store_delete(self, sitename, key, data)
+        self.mc_delete(key)
+        return result
+        
 _cache = None
         
 class LocalCacheMiddleware(ConnectionMiddleware):
@@ -215,15 +294,38 @@ class MigrationMiddleware(ConnectionMiddleware):
             if doc.get("authors"):
                 # some record got empty author records because of an error
                 # temporary hack to fix 
-                doc['authors'] = [a for a in doc['authors'] if 'author' in a]
+                doc['authors'] = [a for a in doc['authors'] if 'author' in a and 'key' in a['author']]
+
+                # fix broken redirects
+                for a in doc['authors']:
+                    a['author']['key'] = self.fix_broken_redirect(a['author']['key'])
         elif type == "/type/edition":
             # get rid of title_prefix.
             if 'title_prefix' in doc:
                 title = doc['title_prefix'].strip() + ' ' + doc.get('title', '')
                 doc['title'] = title.strip()
                 del doc['title_prefix']
+
+            # fix broken redirects
+            for a in doc.get("authors", []):
+                if 'key' in a:
+                    a['key'] = self.fix_broken_redirect(a['key'])
+
         return doc
         
+    def fix_broken_redirect(self, key):
+        """Some work/edition records references to redirected author records
+        and that is making save fail.
+
+        This is a hack to work-around that isse.
+        """
+        json = self.get("openlibrary.org", {"key": key})
+        if json:
+            doc = simplejson.loads(json)
+            if doc.get("type", {}).get("key") == "/type/redirect" and doc.get('location') is not None:
+                return doc['location']
+        return key
+
     def get_many(self, sitename, data):
         response = ConnectionMiddleware.get_many(self, sitename, data)
         if response:

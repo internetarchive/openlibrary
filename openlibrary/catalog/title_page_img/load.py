@@ -15,7 +15,6 @@ def add_cover_image(ekey, ia):
     assert res.status == 200
     cookies = res.getheader('set-cookie').split(',')
     cookie =  ';'.join([c.split(';')[0] for c in cookies])
-    #print 'cookie:', cookie
 
     cover_url = 'http://www.archive.org/download/' + ia + '/page/' + ia + '_preview.jpg'
     body = urllib.urlencode({"url": cover_url})

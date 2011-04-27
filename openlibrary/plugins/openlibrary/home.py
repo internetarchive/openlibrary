@@ -45,6 +45,26 @@ def carousel_from_list(key, randomize=False, limit=60):
     return render_template("books/carousel", storify(data), id=id)
     
 @public
+def render_returncart(limit=60, randomize=True):
+    data = get_returncart(limit*5)
+    if randomize:
+        random.shuffle(data)
+    data = data[:limit]
+    return render_template("books/carousel", storify(data), id="returncart_carousel")
+
+def get_returncart(limit):
+    if 'env' not in web.ctx:
+        delegate.fakeload()
+    
+    items = web.ctx.site.store.items(type='ebook', name='borrowed', value='false', limit=limit)
+    keys = [doc['book_key'] for k, doc in items if 'book_key' in doc]
+    books = web.ctx.site.get_many(keys)
+    return [format_book_data(book) for book in books]
+    
+# cache the results of get_returncart in memcache for 15 minutes
+get_returncart = cache.memcache_memoize(get_returncart, "home.get_returncart", timeout=15*60)
+
+@public
 def readonline_carousel(id="read-carousel"):
     try:
         data = random_ebooks()

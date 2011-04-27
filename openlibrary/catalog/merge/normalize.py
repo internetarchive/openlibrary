@@ -1,7 +1,7 @@
 import re, unicodedata 
 
 #re_brace = re.compile('{[^{}]+?}')
-re_normalize = re.compile('[^\w ]')
+re_normalize = re.compile('[^[:alpha:] ]', re.I)
 re_whitespace = re.compile('[-\s,;.]+')
 
 def normalize(s):

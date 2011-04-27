@@ -87,17 +87,7 @@ class TestHomeTemplates:
         html = unicode(render_template("home/lendinglibrary", "/people/foo/lists/OL1L"))
         assert "Lending Library" in html
 
-    def test_returncart_template(self, render_template, mock_site, olconfig):
-        html = unicode(render_template("home/returncart"))
-        assert html.strip() == ""
-
-        mock_site.quicksave("/people/foo/lists/OL1L", "/type/list")
-        olconfig.setdefault("home", {})['returncart_list'] = "/people/foo/lists/OL1L"
-
-        html = unicode(render_template("home/returncart", "/people/foo/lists/OL1L"))
-        assert "Return Cart" in html
-
-    def test_home_template(self, render_template, mock_site, olconfig):
+    def test_home_template(self, render_template, mock_site, olconfig, monkeypatch):
         docs = [MockDoc(_id = datetime.datetime.now().strftime("counts-%Y-%m-%d"),
                         human_edits = 1, bot_edits = 1, lists = 1,
                         visitors = 1, loans = 1, members = 1,
@@ -117,12 +107,12 @@ class TestHomeTemplates:
                      subjects    = Stats(docs, "subjects", "total_subjects"))
                      
         mock_site.quicksave("/people/foo/lists/OL1L", "/type/list")
-        olconfig.setdefault("home", {})['returncart_list'] = "/people/foo/lists/OL1L"
         olconfig.setdefault("home", {})['lending_list'] = "/people/foo/lists/OL1L"
+        
+        monkeypatch.setattr(home, "get_returncart", lambda limit: [])
                      
         html = unicode(render_template("home/index", 
             stats=stats, 
-            returncart_list="/people/foo/lists/OL1L",
             lending_list="/people/foo/lists/OL1L"))
         assert '<div class="homeSplash"' in html
         #assert "Books to Read" in html

@@ -20,6 +20,8 @@ import utils
 from utils import render_template
 
 from openlibrary.core import inlibrary
+from openlibrary.core import stats
+from openlibrary.core import msgbroker
 
 import acs4
 
@@ -125,6 +127,13 @@ class borrow(delegate.page):
                 #   user.has_borrowed = True
                 #   user.save()
                 
+                if resource_type == 'bookreader':
+                    stats.increment('loans.bookreader')
+                elif resource_type == 'pdf':
+                    stats.increment('loans.pdf')
+                elif resource_type == 'epub':
+                    stats.increment('loans.epub')
+                    
                 if resource_type == 'bookreader':
                     raise web.seeother(make_bookreader_auth_link(loan.get_key(), edition.ocaid, '/stream/' + edition.ocaid))
                 else:
@@ -379,10 +388,14 @@ def get_loans(user):
     return get_all_store_values(type='/type/loan', name='user', value=user.key)    
 
 def get_edition_loans(edition):
-    # return web.ctx.site.store.values(type='/type/loan', name='book', value=edition.key)
-    return get_all_store_values(type='/type/loan', name='book', value=edition.key)
+    # An edition can't have loans if it doens't have an IA ID. 
+    # This check avoids a lot of unnecessary queries.
+    if edition.ocaid:
+        # return web.ctx.site.store.values(type='/type/loan', name='book', value=edition.key)
+        return get_all_store_values(type='/type/loan', name='book', value=edition.key)
+    else:
+        return []
 
-    
 def get_loan_link(edition, type):
     """Get the loan link, which may be an ACS4 link or BookReader link depending on the loan type"""
     global content_server
@@ -410,7 +423,7 @@ def get_loan_link(edition, type):
 # def get_bookreader_link(edition):
 #     """Returns the link to the BookReader for the edition"""
 #     return "%s/%s" % (bookreader_stream_base, edition.ocaid)
-    
+
 def get_loan_key(resource_id):
     """Get the key for the loan associated with the resource_id"""
     # Find loan in OL
@@ -530,6 +543,7 @@ def _update_loan_status(loan_key, loan, bss_status = None):
         # $$$ consolidate logic for checking expiry.  keep loan record for some time after it expires.
         if loan['expiry'] and loan['expiry'] < datetime.datetime.utcnow().isoformat():
             web.ctx.site.store.delete(loan_key)
+            on_loan_delete(loan)
         return
         
     # Load status from book status server
@@ -559,6 +573,7 @@ def update_loan_from_bss_status(loan_key, loan, status):
     
         # Was returned, expired, or timed out
         web.ctx.site.store.delete(loan_key)
+        on_loan_delete(loan)
         return
 
     # Book has non-returned status
@@ -566,6 +581,7 @@ def update_loan_from_bss_status(loan_key, loan, status):
     if loan['expiry'] != status['until']:
         loan['expiry'] = status['until']
         web.ctx.site.store[loan_key] = loan
+        on_loan_update(loan)
 
 def update_all_loan_status():
     """Update the status of all loans known to Open Library by cross-checking with the book status server"""
@@ -644,6 +660,7 @@ def return_resource(resource_id):
         raise Exception('Not possible to return loan %s of type %s' % (loan['resource_id'], loan['resource_type']))
     # $$$ Could add some stats tracking.  For now we just nuke it.
     web.ctx.site.store.delete(loan_key)
+    on_loan_delete(loan)
 
 def get_ia_auth_dict(user, item_id, resource_id, user_specified_loan_key, access_token):
     """Returns response similar to one of these:
@@ -783,6 +800,38 @@ def make_bookreader_auth_link(loan_key, item_id, book_path):
         bookreader_host, loan_key, access_token, item_id, book_path
     )
     return auth_url
+    
+def on_loan_update(loan):
+    store = web.ctx.site.store
+
+    key = "ebooks" + loan['book']
+    doc = store.get(key) or {}
+
+    doc.update({
+        "type": "ebook",
+        "book_key": loan['book'],
+        "borrowed": "true"
+    })
+    store[key] = doc
+
+    # TODO: differentiate between loan-updated and loan-created
+    msgbroker.send_message("loan-created", loan)
+    
+def on_loan_delete(loan):
+    loan['returned_at'] = time.time()
+
+    store = web.ctx.site.store
+    key = "ebooks" + loan['book']
+    doc = store.get(key) or {}
+
+    doc.update({
+        "type": "ebook",
+        "book_key": loan['book'],
+        "borrowed": "false"
+    })
+    store[key] = doc
+
+    msgbroker.send_message("loan-completed", loan)
 
 ########## Classes
 
@@ -808,7 +857,8 @@ class Loan:
         return self.key
         
     def get_dict(self):
-        return { 'user': self.user_key, 'type': '/type/loan',
+        return { '_key': self.get_key(),
+                 'user': self.user_key, 'type': '/type/loan',
                  'book': self.book_key, 'expiry': self.expiry,
                  'loaned_at': self.loaned_at, 'resource_type': self.resource_type,
                  'resource_id': self.resource_id, 'loan_link': self.loan_link }
@@ -828,9 +878,11 @@ class Loan:
         
     def save(self):
         web.ctx.site.store[self.get_key()] = self.get_dict()
+        on_loan_update(self.get_dict())
         
     def remove(self):
         web.ctx.site.delete(self.get_key())
+        on_loan_delete(self.get_dict())
         
     def make_offer(self):
         """Create loan url and record that loan was offered.  Returns the link URL that triggers

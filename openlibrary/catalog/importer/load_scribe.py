@@ -21,7 +21,7 @@ from openlibrary.catalog.marc.parse import read_edition, NoTitle
 from openlibrary.catalog.marc.marc_subject import subjects_for_work
 from openlibrary.utils.ia import find_item
 from time import time, sleep
-from openlibrary.api import OpenLibrary, unmarshal
+from openlibrary.api import OpenLibrary
 from pprint import pprint
 import argparse
 

@@ -26,21 +26,25 @@ if hasattr(config, 'plugin_inside'):
     solr_select_url = "http://" + solr_host + "/solr/inside/select"
 
 def editions_from_ia(ia):
-    q = {'type': '/type/edition', 'ocaid': ia}
+    q = {'type': '/type/edition', 'ocaid': ia, 'title': None, 'covers': None, 'works': None, 'authors': None}
     editions = web.ctx.site.things(q)
     if not editions:
-        q = {'type': '/type/edition', 'source_records': 'ia:' + ia}
+        del q['ocaid']
+        q['source_records'] = 'ia:' + ia
         editions = web.ctx.site.things(q)
     return editions
 
 def read_from_archive(ia):
     meta_xml = 'http://www.archive.org/download/' + ia + '/' + ia + '_meta.xml'
+    stats.begin("archive.org", url=meta_xml)
     xml_data = urllib.urlopen(meta_xml)
     item = {}
     try:
         tree = etree.parse(xml_data)
     except etree.XMLSyntaxError:
         return {}
+    finally:
+        stats.end()
     root = tree.getroot()
 
     fields = ['title', 'creator', 'publisher', 'date', 'language']

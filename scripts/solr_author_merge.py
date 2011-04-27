@@ -131,7 +131,8 @@ def solr_updates(i):
                 work['editions'] = editions_by_work[wkey]
                 ret = update_work(work, debug=True, resolve_redirects=True)
             work_updates += ret
-    solr_update(work_updates, debug=False, index='works')
+    if work_updates:
+        solr_update(work_updates, debug=False, index='works')
 
     authors_to_update.append({ 'redirects': dup_keys, 'master_key': master_key, 'master': master})
     print 'authors to update:', len(authors_to_update)
