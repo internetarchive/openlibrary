@@ -1,4 +1,5 @@
 from openlibrary.catalog.marc import fast_parse, read_xml, is_display_marc
+from openlibrary.catalog.utils import error_mail
 from lxml import etree
 import xml.parsers.expat
 import urllib2, os.path, socket
@@ -6,7 +7,7 @@ from openlibrary.catalog.read_rc import read_rc
 from time import sleep
 from openlibrary.utils.ia import find_item
 
-base = "http://archive.org/download/"
+base = "http://www.archive.org/download/"
 
 rc = read_rc()
 
@@ -40,10 +41,19 @@ def bad_ia_xml(ia):
     loc = ia + "/" + ia + "_marc.xml"
     return '<!--' in urlopen_keep_trying(base + loc).read()
 
-def get_marc_ia_data(ia):
+def get_marc_ia_data(ia, host=None, path=None):
     ia = ia.strip() # 'cyclopdiaofedu00kidd '
-    url = base + ia + "/" + ia + "_meta.mrc"
-    f = urlopen_keep_trying(url)
+    if host and path:
+        url = 'http://%s%s/%s_meta.mrc' % (host, path, ia)
+    else:
+        url = 'http://www.archive.org/download/' + ia + '/' + ia + '_meta.mrc'
+
+    try:
+        f = urlopen_keep_trying(url)
+    except urllib2.HTTPError:
+        print ia
+        print url
+        raise
     if f is None:
         return None
     return f.read()
@@ -172,7 +182,7 @@ def get_from_archive(locator):
             host, path = find_item(ia)
             break
         except socket.timeout:
-            if attempt == 5:
+            if attempt == 4:
                 raise
             print 'retry, attempt', attempt
 
@@ -232,7 +242,7 @@ def marc_formats(ia, host=None, path=None):
     }
     has = { 'xml': False, 'bin': False }
     if host and path:
-        url = 'http://%s%s/%s_files.xml' % (ia, host, path)
+        url = 'http://%s%s/%s_files.xml' % (host, path, ia)
     else:
         url = 'http://www.archive.org/download/' + ia + '/' + ia + '_files.xml'
     for attempt in range(10):

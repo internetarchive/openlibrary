@@ -62,8 +62,7 @@ def is_dark_or_bad(ia):
 
 def marc_match(e1, loc):
     print 'loc:', loc
-    print len(get_from_local(loc))
-    rec = fast_parse.read_edition(get_from_local(loc))
+    rec = fast_parse.read_edition(get_from_archive(loc))
     print 'rec:', rec
     try:
         e2 = build_marc(rec)
@@ -218,7 +217,7 @@ def try_merge(e1, edition_key, thing):
         print 'mc:', mc
         try:
             assert not mc.startswith('ia:')
-            data = get_from_local(mc)
+            data = get_from_archive(mc)
             if not data:
                 return True
             rec2 = fast_parse.read_edition(data)

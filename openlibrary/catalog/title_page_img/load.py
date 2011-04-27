@@ -22,7 +22,7 @@ def add_cover_image(ekey, ia):
     assert ekey.startswith('/books/')
     add_cover_url = 'http://openlibrary.org' + ekey + '/add-cover.json'
     headers = {'Content-type': 'application/x-www-form-urlencoded', 'Cookie': cookie}
-    h1.request('POST', add_cover_url, body, {'Cookie': cookie})
+    h1.request('POST', add_cover_url, body, headers)
     res = h1.getresponse()
     res.read()
     return

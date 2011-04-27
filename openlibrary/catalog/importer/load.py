@@ -201,6 +201,8 @@ def build_query(loc, rec):
             l['key'] = '/languages/srp'
         if l['key'] in ('/languages/end', '/languages/enk', '/languages/ent'):
             l['key'] = '/languages/eng'
+        if l['key'] == '/languages/emg':
+            l['key'] = '/languages/eng'
         if l['key'] == '/languages/cro':
             l['key'] = '/languages/chu'
         if l['key'] == '/languages/jap':
