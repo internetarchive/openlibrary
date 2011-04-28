@@ -4,7 +4,7 @@ $def call_template(name, change):
     $ t = get_template("recentchanges/" + change.kind + "/" + name) or get_template("recentchanges/default/" + name)
     $:t(change)
     
-$ all_changes = change.get_changes()
+$ all_changes = change.get_changes() or []
     
     
 $ page = safeint(query_param('page', '1'))

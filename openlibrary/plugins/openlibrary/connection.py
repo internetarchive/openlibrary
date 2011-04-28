@@ -109,7 +109,13 @@ class MemcacheMiddleware(ConnectionMiddleware):
         if keys2:
             data['keys'] = simplejson.dumps(keys2)
             result2 = ConnectionMiddleware.get_many(self, sitename, data)
-            result.update(simplejson.loads(result2))
+            result2 = simplejson.loads(result2)
+
+            # Memcache expects dict with (key, json) mapping and we have (key, doc) mapping.
+            # Converting the docs to json before passing to memcache.
+            self.mc_set_multi(dict((key, simplejson.dumps(doc)) for key, doc in result2.items()))
+
+            result.update(result2)
         
         #@@ too many JSON conversions
         for k in result:
@@ -288,15 +294,38 @@ class MigrationMiddleware(ConnectionMiddleware):
             if doc.get("authors"):
                 # some record got empty author records because of an error
                 # temporary hack to fix 
-                doc['authors'] = [a for a in doc['authors'] if 'author' in a]
+                doc['authors'] = [a for a in doc['authors'] if 'author' in a and 'key' in a['author']]
+
+                # fix broken redirects
+                for a in doc['authors']:
+                    a['author']['key'] = self.fix_broken_redirect(a['author']['key'])
         elif type == "/type/edition":
             # get rid of title_prefix.
             if 'title_prefix' in doc:
                 title = doc['title_prefix'].strip() + ' ' + doc.get('title', '')
                 doc['title'] = title.strip()
                 del doc['title_prefix']
+
+            # fix broken redirects
+            for a in doc.get("authors", []):
+                if 'key' in a:
+                    a['key'] = self.fix_broken_redirect(a['key'])
+
         return doc
         
+    def fix_broken_redirect(self, key):
+        """Some work/edition records references to redirected author records
+        and that is making save fail.
+
+        This is a hack to work-around that isse.
+        """
+        json = self.get("openlibrary.org", {"key": key})
+        if json:
+            doc = simplejson.loads(json)
+            if doc.get("type", {}).get("key") == "/type/redirect" and doc.get('location') is not None:
+                return doc['location']
+        return key
+
     def get_many(self, sitename, data):
         response = ConnectionMiddleware.get_many(self, sitename, data)
         if response:

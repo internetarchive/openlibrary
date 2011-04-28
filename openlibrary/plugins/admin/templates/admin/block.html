@@ -5,6 +5,11 @@ $def with (data)
 </div>
 
 <div id="contentBody">
+    $if query_param("ip") != None:
+        <div>IP address $query_param("ip") has been added to the textarea. Please click Save to block that IP.
+            <br/>
+            <br/>
+        </div>
 
     <form method="POST">
     <b>Blocked IP Addresses</b>
@@ -14,6 +19,8 @@ $def with (data)
     $ ip_list.sort(key=lambda d:d.ip)
     $for d in ip_list:
         $d.ip
+    $if query_param("ip") != None:
+        $:query_param("ip")
     </textarea>
     </div>
     <input type="submit" name="_submit" value="Save"/>

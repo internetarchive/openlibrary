@@ -1,7 +1,7 @@
 $def with (change)
 
 <div class="truncatepath">
-    $if len(change.changes) == 0:
+    $if change.changes is None or len(change.changes) == 0:
         <span class="fixthis">???</span>
         <span class="smallest sansserif"> - <a href="$change.url()" style="text-decoration: none;">expand</a></span>
     $elif len(change.changes) == 1:

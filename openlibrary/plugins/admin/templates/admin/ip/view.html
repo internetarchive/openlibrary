@@ -3,18 +3,98 @@ $def with (ip)
 $ _x = ctx.setdefault('bodyid', 'admin')
 $ _x = ctx.setdefault('usergroup', 'admin')
 
-$var title: [Admin Center] $ip.ip
+$var title: [Admin Center] $ip
+<div id="contentHead">
+    <div class="head">
+        <h1><a href="/admin/">Admin</a> / <a href="/admin/ip/">IP</a> / $ip</h1>
+    </div>
+</div>    
 
+<div id="contentHead">
 
-<div id="contentBody">
-<div class="head">
-        <button class="delete" type="submit" value="Block This IP" name="_delete" title="Block This IP" style="float: right;">Block This IP</button>
-        <h1><a href="/admin/">Admin</a> / <a href="/admin/ip/">IP</a> / $ip.ip</h1>
+$if ip in get_blocked_ips():
+    <div>IP $ip is <a href="/admin/block">blocked</a>.</div>
+$else:
+    <form method="POST" id="block">
+        <input type="hidden" name="action" value="block"/>
+        <button type="submit" class="larger" name="submit">$_("Block %s", ip)</button>
+    </form>
+
+<p>
+Please select the changesets to revert.
+</p>
+
+<style type="text/css">
+a.blocked-ip {
+    color: red;
+}
+</style>
+
+$ changes = recentchanges(dict(ip=ip, limit=100, offset=0))
+
+$def call_template(name, change):
+    $ t = get_template("recentchanges/" + change.kind + "/" + name) or get_template("recentchanges/default/" + name)
+    $:t(change)
+
+<form method="POST" name="revert" class="olform">
+<table class="changeHistory">
+    <thead>
+        <tr>
+            <th></th>            
+            <th>$_("When")</th>
+            <th>$_("What")</th>
+            <th>$_("Who")</th>
+            <th>&#191;Qu&#233;?</th>
+        </tr>
+    </thead>
+    <tbody>
+    $for c in changes:
+        $ reverts = recentchanges({"kind": "revert", "data": {"reverted_changesets": c.id}})
+        $ revert = reverts and reverts[0]
+        $if revert:
+            $if revert.author:
+                $ revert_author = reverts[0].author.displayname
+            $else:
+                $ revert_author = reverts[0].ip
+        <tr>
+            <td>
+                $if not revert:
+                    <input type="checkbox" name="changesets" value="$c.id" checked="checked"/>
+            </td>
+            <td class="time">$datestr(c.timestamp)</td>
+            <td class="path">$:call_template("path", c)</td>
+            $if c.author:
+                <td class="displayname"><a rel="nofollow" href="$c.author.key" title="$c.author.displayname">$c.author.displayname</a></td>
+            $elif c.ip and c.ip != '127.0.0.1':
+                $ klass = cond(c.ip in get_blocked_ips(), 'blocked-ip', "")
+                <td class="history"><a rel="nofollow" href="$changequery()" class="$klass" title="When you see numbers here, that's the IP address of the anonymous editor">$c.ip</a></td>
+            $else:
+                <td class="history">$c.ip</td>
+            <td class="comment">
+                $:call_template("comment", c)
+                $if revert:
+                    <b>-- <a href="$revert.url()">Reverted</a> by $revert_author</b>
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+<br/>
+
+<div class="formElement">
+    <div class="label">
+        <label for="comment">$_("Please, leave a short note about what you changed:") <span class="small gray">(Optional, but very useful!)</span></label>
+    </div>
+    <div class="input">
+        <input type="text" name="comment" id="comment" value="Reverted spam" style="width:900px;"/>
+    </div>
 </div>
 
-<h2>$_("Edit History")</h2>
-$:render_template("admin/history", ip.get_edit_history())
+<div class="formElement collapse" style="position:relative;">
+    <div class="input">
+        <button type="submit" class="larger" name="submit" title="$_('Submit')">$_("Submit")</button>
+    </div>
+</div>
 
-
-        <button class="delete" type="submit" value="Block This IP" name="_delete" title="Block This IP">Block This IP</button>
+</form>
 </div>

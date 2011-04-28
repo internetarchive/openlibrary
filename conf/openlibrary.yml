@@ -26,6 +26,9 @@ infobase:
 memcache_servers:
     - "localhost:7060"
 
+loanstatus_url: http://localhost:8010
+ia_access_secret: foobar
+
 plugins:
     - "openlibrary"
     - "links"
@@ -55,7 +58,7 @@ features:
     undo: enabled
     dev: enabled
     lists: enabled
-    lending_v2: admin
+    lending_v2: enabled
     stats: enabled
     stats-header: enabled
     inlibrary: enabled
@@ -65,6 +68,7 @@ default_template_root: /upstream
 css_root: /upstream/css
 js_root: /upstream/js
 use_google_cdn: false
+logging_config_file: conf/logging.ini
 
 lists:
     seeds_db: http://127.0.0.1:5984/seeds
@@ -76,5 +80,47 @@ admin:
     counts_db: http://127.0.0.1:5984/admin
     olsystem_root: /home/noufal/projects/OL/olsystem/
     nagios_url: http://monitor.us.archive.org/cgi-bin/nagios3/status.cgi?hostgroup=24.openlibrary&style=detail
-    statsd_server: http://localhost:7085
+    statsd_server: localhost:9090
+
+
+stats: # This section is used to state what stats need to be gathered.
+    pageload.all:
+      filter: all
+      time: total
+
+    pageload.books:
+      filter: url
+      pattern: /books/OL\d+M
+      time: total
+
+    pageload.works:
+      filter: url
+      pattern: /works/OL\d+M
+      time: total
+
+    pageload.authors:
+      filter: url
+      pattern: /authors/OL\d+M
+      time: total
+
+    pageload.author:
+      filter: url
+      pattern: /authors/OL\d+M
+      time: total
+
+    pageload.home:
+      filter: url
+      pattern: ^/$
+      time: total
+      
+    pageload.recentchanges:
+      filter: url
+      pattern: /recentchanges
+      time: total
+
+    pageload.lists:
+      filter: url
+      pattern: /lists
+      time: total
+
 

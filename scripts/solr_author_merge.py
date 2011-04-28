@@ -2,10 +2,11 @@
 
 import _init_path
 
+import sys
 from openlibrary import config
 from time import time, sleep
 import argparse, simplejson, re
-from urllib import urlopen, quote_plus
+from urllib2 import URLError, urlopen
 from openlibrary.catalog.utils.query import withKey, set_query_host
 from openlibrary.solr.update_work import update_author, update_work, get_work_subjects, add_field, solr_update, AuthorRedirect
 from collections import defaultdict
@@ -37,7 +38,12 @@ authors_to_update = []
 
 def solr_update_authors(authors_to_update):
     for a in authors_to_update:
-        author_updates = ['<delete>' + ''.join('<id>%s</id>' % re_author_key.match(akey).group(1) for akey in a['redirects']) + '</delete>']
+        try:
+            author_updates = ['<delete>' + ''.join('<id>%s</id>' % re_author_key.match(akey).group(1) for akey in a['redirects']) + '</delete>']
+        except:
+            print 'redirects'
+            print a['redirects']
+            raise
         author_updates += update_author(a['master_key'], a=a['master'], handle_redirects=False)
     solr_update(author_updates, index='authors', debug=False)
     solr_update(['<commit/>'], index='authors', debug=True)
@@ -85,7 +91,6 @@ def solr_updates(i):
     master_key = changeset['data']['master']
     dup_keys = changeset['data']['duplicates']
     assert dup_keys
-    print d['changeset']
     print 'timestamp:', i['timestamp']
     print 'dups:', dup_keys
     print 'records to update:', len(d['result'])

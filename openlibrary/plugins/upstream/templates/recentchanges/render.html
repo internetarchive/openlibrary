@@ -12,6 +12,20 @@ $def call_template(name, change):
 $ changes = recentchanges(dict(query, limit=limit, offset=(page-1) * limit))
 $var length = len(changes)
 
+$if "ip" in query:
+    <div class="adminOnly">
+        $ ip = query["ip"]
+        <a href="/admin/block?ip=$ip">Block $ip?</a>
+        <br/>
+        <a href="/admin/revert/$ip">Revert all these changes?</a>
+        <br/>
+    </div>
+<style type="text/css">
+a.blocked-ip {
+    color: red;
+}
+</style>
+
 <table class="changeHistory">
     <thead>
         <tr>
@@ -29,7 +43,13 @@ $var length = len(changes)
             $if c.author:
                 <td class="displayname"><a rel="nofollow" href="$c.author.key" title="$c.author.displayname">$c.author.displayname</a></td>
             $elif c.ip and c.ip != '127.0.0.1':
-                <td class="history"><a rel="nofollow" href="$changequery(ip=c.ip)" title="When you see numbers here, that's the IP address of the anonymous editor">$c.ip</a></td>
+                $if ctx.user and ctx.user.is_admin():
+                    $ ip_url = "/admin/ip/%s" % c.ip
+                    $ klass = cond(c.ip in get_blocked_ips(), 'blocked-ip', "")
+                $else:
+                    $ ip_url = changequery(ip=c.ip)
+                    $ klass = ""
+                <td class="history"><a rel="nofollow" href="$ip_url" class="$klass" title="When you see numbers here, that's the IP address of the anonymous editor">$c.ip</a></td>
             $else:
                 <td class="history">$c.ip</td>
             <td class="comment">$:call_template("comment", c)</td>

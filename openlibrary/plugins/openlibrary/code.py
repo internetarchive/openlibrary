@@ -4,10 +4,12 @@ Open Library Plugin.
 import web
 import simplejson
 import os
+import sys
 import urllib
 import socket
 import random
 import datetime
+import logging
 from time import time
 
 import infogami
@@ -22,6 +24,7 @@ from infogami.infobase import client
 from infogami.core.db import ValidationException
 
 from openlibrary.utils.isbn import isbn_13_to_isbn_10
+import openlibrary.core.stats
 
 import processors
 
@@ -605,6 +608,15 @@ class new:
             web.ctx.site.save_many(query, comment=comment, action=action)
         except client.ClientException, e:
             raise BadRequest(str(e))
+
+        #graphite/statsd tracking of bot edits
+        user = delegate.context.user and delegate.context.user.key
+        if user.lower().endswith('bot'):
+            botname = user.replace('/people/', '', 1)
+            botname = botname.replace('.', '-')
+            key = 'ol.edits.bots.'+botname
+            openlibrary.core.stats.increment(key)
+
         return simplejson.dumps(keys)
         
 api and api.add_hook('new', new)
@@ -702,6 +714,8 @@ def internalerror():
     i = web.input(_method='GET', debug='false')
     name = save_error()
     
+    openlibrary.core.stats.increment('ol.internal-errors', 1)
+
     if i.debug.lower() == 'true':
         raise web.debugerror()
     else:
@@ -749,18 +763,31 @@ def setup_template_globals():
         "input": web.input,
         "dumps": simplejson.dumps,
     })
-    
+
+def setup_logging():
+    try:
+        logconfig = infogami.config.get("logging_config_file")
+        if logconfig and os.path.exists(logconfig):
+            logging.config.fileConfig(logconfig)
+    except Exception, e:
+        print >> sys.stderr, "Unable to set logging configuration:", str(e)
+        raise
+
 def setup():
-    import home, inlibrary, borrow_home, libraries
+    import home, inlibrary, borrow_home, libraries, stats
     
     home.setup()
     inlibrary.setup()
     borrow_home.setup()
     libraries.setup()
+    stats.setup()
     
     from stats import stats_hook
     delegate.app.add_processor(web.unloadhook(stats_hook))
     
     setup_template_globals()
-    
+    setup_logging()
+    logger = logging.getLogger("openlibrary")
+    logger.info("Application init")
+
 setup()

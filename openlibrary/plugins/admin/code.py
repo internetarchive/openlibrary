@@ -5,8 +5,9 @@ import sys
 import web
 import subprocess
 import datetime
-import urllib
+import urllib, urllib2
 import traceback
+import logging
 
 import couchdb
 import yaml
@@ -21,6 +22,8 @@ import openlibrary
 from openlibrary.core import admin as admin_stats
 
 import services
+
+logger = logging.getLogger("openlibrary.admin")
 
 def render_template(name, *a, **kw):
     if "." in name:
@@ -138,8 +141,44 @@ class ipaddress:
         
 class ipaddress_view:
     def GET(self, ip):
-        ip = IPAddress(ip)
         return render_template('admin/ip/view', ip)
+
+    def POST(self, ip):
+        i = web.input(changesets=[], comment="Revert", action="revert")
+        if i.action == "block":
+            self.block(ip)
+        else:
+            self.revert(i.changesets, i.comment)
+        raise web.redirect(web.ctx.path)
+
+    def block(self, ip):
+        ips = get_blocked_ips()
+        if ip not in ips:
+            ips.append(ip)
+        block().block_ips(ips)
+
+    def get_doc(self, key, revision):
+        if revision == 0:
+            return {
+                "key": key,
+                "type": {"key": "/type/delete"}
+            }
+        else:
+            return web.ctx.site.get(key, revision).dict()
+
+    def revert(self, changeset_ids, comment):
+        logger.debug("Reverting changesets %s", changeset_ids)
+        site = web.ctx.site
+        docs = [self.get_doc(c['key'], c['revision']-1) 
+                for cid in changeset_ids 
+                for c in site.get_change(cid).changes]
+
+        logger.debug("Reverting %d docs", len(docs))
+        data = {
+            "reverted_changesets": [str(cid) for cid in changeset_ids]
+        }
+        return web.ctx.site.save_many(docs, action="revert", data=data, comment=comment)
+
         
 class stats:
     def GET(self, today):
@@ -181,21 +220,23 @@ class block:
     
     def POST(self):
         i = web.input()
-        
-        page = web.ctx.get("/admin/block") or web.ctx.site.new("/admin/block", {"key": "/admin/block", "type": "/type/object"})
-        ips = [{'ip': d} for d in (d.strip() for d in i.ips.split('\r\n')) if d]
-        page.ips = ips
-        page._save("update blocked IPs")
+        ips = [ip.strip() for ip in i.ips.splitlines()]
+        self.block_ips(ips)
         add_flash_message("info", "Saved!")
         raise web.seeother("/admin/block")
         
+    def block_ips(self, ips):
+        page = web.ctx.get("/admin/block") or web.ctx.site.new("/admin/block", {"key": "/admin/block", "type": "/type/object"})
+        page.ips = [{'ip': ip} for ip in ips]
+        page._save("updated blocked IPs")
+
 def get_blocked_ips():
     doc = web.ctx.site.get("/admin/block")
     if doc:
         return [d.ip for d in doc.ips]
     else:
         return []
-    
+
 def block_ip_processor(handler):
     if not web.ctx.path.startswith("/admin") \
         and (web.ctx.method == "POST" or web.ctx.path.endswith("/edit")) \
@@ -300,8 +341,7 @@ class service_status(object):
             f = None
             nodes = []
         return render_template("admin/services", nodes)
-    
-            
+
 def setup():
     register_admin_page('/admin/git-pull', gitpull, label='git-pull')
     register_admin_page('/admin/reload', reload, label='Reload Templates')
@@ -321,14 +361,7 @@ def setup():
         register_admin_page('/admin' + p.path, p)
 
     public(get_admin_stats)
-    
+    public(get_blocked_ips)
     delegate.app.add_processor(block_ip_processor)
     
-class IPAddress:
-    def __init__(self, ip):
-        self.ip = ip
-
-    def get_edit_history(self, limit=10, offset=0):
-        return web.ctx.site.versions({"ip": self.ip, "limit": limit, "offset": offset})
-
 setup()

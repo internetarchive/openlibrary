@@ -47,8 +47,6 @@ class index(delegate.page):
         if kind:
             query['kind'] = kind and kind.strip("/")
 
-        print "encoding", web.ctx.encoding
-        
         if web.ctx.encoding in ["json", "yml"]:
             return self.handle_encoding(query, web.ctx.encoding)
         
