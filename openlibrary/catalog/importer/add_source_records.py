@@ -76,7 +76,7 @@ def amazon_source_records(asin):
     return ["amazon:%s:%s:%d:%d" % (asin, r.seg, r.start, r.length) for r in iter]
 
 def fix_toc(e):
-    toc = e.get('table_of_contents', None)
+    toc = e.get('table_of_contents')
     if not toc:
         return
     if isinstance(toc[0], dict) and toc[0]['type'] == '/type/toc_item':

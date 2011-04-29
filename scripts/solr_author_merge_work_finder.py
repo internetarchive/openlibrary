@@ -42,7 +42,7 @@ def run_work_finder(i):
         raise
     akey = changeset['data']['master']
     dup_keys = changeset['data']['duplicates']
-    print d['changeset']
+    #print d['changeset']
     print 'dups:', dup_keys
 
     title_redirects = find_title_redirects(akey)
@@ -90,12 +90,9 @@ while True:
             continue
         if i['data']['changeset']['kind'] != 'merge-authors':
             continue
-        if i['timestamp'] == '2010-08-05T14:37:25.139418':
-            continue # bad author redirect
-        if i['timestamp'] < '2010-08-16T19:32:14.546564':
-            continue
         if len(i['data']['result']) == 0:
             continue # no change
+        print 'run work finder'
         try:
             run_work_finder(i)
         except:
@@ -104,4 +101,5 @@ while True:
 
         if update_times:
             print "average update time: %.1f seconds" % (float(sum(update_times)) / float(len(update_times)))
+    print >> open(state_file, 'w'), offset
 

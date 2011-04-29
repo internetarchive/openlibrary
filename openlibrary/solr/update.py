@@ -4,8 +4,8 @@ from urllib import urlopen, quote_plus
 
 re_escape = re.compile("([%s])" % re.escape(r'+-!(){}[]^"~*?:\\'))
 
-solr_works = 'ia331508:8983'
-solr_subjects = 'ia331509:8983'
+solr_works = 'ol-solr:8983'
+solr_subjects = 'ol-solr:8983'
 
 def subject_count(field, subject):
     key = re_escape.sub(r'\\\1', str_to_key(subject)).encode('utf-8')

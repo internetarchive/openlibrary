@@ -58,8 +58,7 @@ def make_index_fields(rec):
             fields['title'] = [read_short_title(v)]
     return fields
 
-def load_binary(ia):
-    host, path = find_item(ia)
+def load_binary(ia, host, path):
     url = 'http://' + host + path + '/' + ia + '_meta.mrc'
     print url
     f = urlopen_keep_trying(url)
@@ -70,9 +69,8 @@ def load_binary(ia):
     assert len(data) == int(data[:5])
     return MarcBinary(data)
 
-def load_xml(ia):
-    host, path = find_item(ia)
-    url = 'http://' + host + path + '/' + ia + '_meta.mrc'
+def load_xml(ia, host, path):
+    url = 'http://' + host + path + '/' + ia + '_marc.xml'
     print url
     f = urlopen_keep_trying(url)
     root = etree.parse(f).getroot()
@@ -87,14 +85,14 @@ def load(ia, use_binary=False):
     print "load", ia
     if not use_binary:
         try:
-            rec = load_xml(ia)
+            rec = load_xml(ia, host, path)
             edition = read_edition(rec)
         except BadSubtag:
             use_binary = True
         except BlankTag:
             use_binary = True
     if use_binary:
-        rec = load_binary(ia)
+        rec = load_binary(ia, host, path)
         edition = read_edition(rec)
     pprint(edition)
     assert 'title' in edition
@@ -109,6 +107,8 @@ def write_edition(ia, edition, rec):
             {'key': '/languages/lat'},
             {'key': '/languages/hun'},
         ]
+    elif ia == 'fzfasp00helt':
+        edition['languages'] = [{'key': '/languages/hun'}]
     elif ia == 'coursetconfren00sema':
         edition['languages'] = [{'key': '/languages/fre'}]
     elif ia == 'repertoiredepein02rein':
@@ -127,6 +127,8 @@ def write_edition(ia, edition, rec):
         edition['languages'] = [{'key': '/languages/grc'}]
     elif ia == 'dasrmischepriv00rein':
         edition['languages'] = [{'key': '/languages/ger'}]
+    elif ia == 'lespritdelaligu02anqu':
+        edition['languages'] = [{'key': '/languages/fre'}]
     elif ia == 'derelephantenord00berl':
         del edition['languages']
     q = build_query(loc, edition)
@@ -271,7 +273,15 @@ def load_error_mail(ia, marc_display, subject):
     msg += '\n' + bad_binary
     error_mail(msg_from, msg_to, subject, msg)
 
+def error_marc_403(ia):
+    msg_from = 'load_scribe@archive.org'
+    msg_to = ['edward@archive.org']
+    msg = 'http://www.archive.org/details/' + ia
+    subject = 'MARC 403: ' + ia
+    error_mail(msg_from, msg_to, subject, msg)
+
 def bad_marc_alert(bad_marc):
+    assert bad_marc
     msg_from = 'load_scribe@archive.org'
     msg_to = ['edward@archive.org']
     subject = '%d bad MARC' % len(bad_marc)
@@ -294,18 +304,17 @@ if __name__ == '__main__':
         if args.item_id:
             db_iter = db.query("select identifier, contributor, updated, noindex, collection, format from metadata where scanner is not null and mediatype='texts' and (not curatestate='dark' or curatestate is null) and scandate is not null and format is not null and identifier=$item_id", {'item_id': args.item_id})
         else:
-            if not args.skip_hide_books:
-                hide_books(start)
             print 'start:', start
             db_iter = db.query("select identifier, contributor, updated, noindex, collection, format from metadata where scanner is not null and mediatype='texts' and (not curatestate='dark' or curatestate is null) and scandate is not null and format is not null and updated between $start and date_add($start, interval 2 day) order by updated", {'start': start})
         t_start = time()
         for row in db_iter:
-            if len(bad_marc) > 10 or time() - bad_marc_last_sent > (4 * 60 * 60):
+            if len(bad_marc) > 10 or (bad_marc and time() - bad_marc_last_sent > (4 * 60 * 60)):
                 bad_marc_alert(bad_marc)
                 bad_marc = []
                 bad_marc_last_sent = time()
 
             ia = row.identifier
+            host, path = find_item(ia)
             if 'pdf' not in row.format.lower():
                 continue # scancenter and billing staff often use format like "%pdf%" as a proxy for having derived
             if row.contributor == 'Allen County Public Library Genealogy Center':
@@ -353,7 +362,7 @@ if __name__ == '__main__':
                 continue
 
             try:
-                formats = marc_formats(ia)
+                formats = marc_formats(ia, host, path)
             except urllib2.HTTPError as error:
                 write_log(ia, when, "error: HTTPError: " + str(error))
                 continue
@@ -364,7 +373,13 @@ if __name__ == '__main__':
             if formats['bin']:
                 print 'binary'
                 use_binary = True
-                marc_data = get_marc_ia_data(ia)
+                try:
+                    marc_data = get_marc_ia_data(ia, host, path)
+                except urllib2.HTTPError as error:
+                    if error.code == 403:
+                        error_marc_403(ia)
+                        continue
+                    raise
                 if marc_data == '':
                     bad_binary = 'MARC binary empty string'
                 if not bad_binary and is_display_marc(marc_data):
@@ -486,6 +501,8 @@ if __name__ == '__main__':
         print "finished %d took mins" % mins
         if args.item_id:
             break
+        if not args.skip_hide_books:
+            hide_books(start)
         print >> open(state_file, 'w'), start
         if mins < 30:
             print 'waiting'
