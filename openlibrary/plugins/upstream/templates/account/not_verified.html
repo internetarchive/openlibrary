@@ -1,0 +1,28 @@
+$def with (username, password)
+
+$var title: $_("Email not verified")
+
+<div id="contentHead">
+    <h1>$_("Email not verified")</h1>
+</div>
+
+<div id="contentBody">
+<p>Your email address has not been verified yet.</p>
+
+<p>You must have received an email with a verification link when your account was created. Please click that verification link to verify your email address.</p>
+
+<p>In case you haven't received the verification email, we can resend it.</p>
+
+<form method="POST" class="olform">
+    <input type="hidden" name="username" value="$username"/>
+    <input type="hidden" name="password" value="$password"/>
+    <input type="hidden" name="action" value="resend_verification_email"/>
+    
+    <div class="formElement bottom">
+        <br/>
+        <input value="$_('Resend the verification email')" type="submit" name="" title="$_('Resend the verification email')"/>
+        &nbsp;
+        <a href="/account/login" class="attn">$_("Cancel")</a>
+    </div>
+</form>
+</div>

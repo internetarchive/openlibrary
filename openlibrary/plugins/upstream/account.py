@@ -5,7 +5,7 @@ import urllib
 
 from infogami.utils import delegate
 from infogami import config
-from infogami.utils.view import require_login, render, add_flash_message
+from infogami.utils.view import require_login, render, render_template, add_flash_message
 from infogami.infobase.client import ClientException
 from infogami.utils.context import context
 import infogami.core.code as core
@@ -85,22 +85,31 @@ class account_login(delegate.page):
         return render.login(f)
 
     def POST(self):
-        i = web.input(remember=False, redirect='/')
+        i = web.input(remember=False, redirect='/', action="login")
         
-        def error(name):
-            f = forms.Login()
-            f.fill(i)
-            f.note = utils.get_error(name)
-            print "error: %r %r" % (f.note, web.websafe(f.note))
-            return render.login(f)
+        if i.action == "resend_verification_email":
+            return self.POST_resend_verification_email(i)
+        else:
+            return self.POST_login(i)
+
+    def error(self, name, i):
+        f = forms.Login()
+        f.fill(i)
+        f.note = utils.get_error(name)
+        return render.login(f)
         
+    def POST_login(self, i):
         if web.ctx.site.get('/people/' + i.username) is None:
             return error('account_user_notfound')
         
         try:
             web.ctx.site.login(i.username, i.password, i.remember)
         except ClientException, e:
-            return error("account_incorrect_password")
+            code = e.get_data().get("code")
+            if code == "email_not_verified":
+                return render_template("account/not_verified", username=i.username, password=i.password)
+            else:
+                return self.error("account_incorrect_password", i)
 
         if i.redirect == "/account/login" or i.redirect == "":
             i.redirect = "/"
@@ -108,6 +117,22 @@ class account_login(delegate.page):
         expires = (i.remember and 3600*24*7) or ""
         web.setcookie(config.login_cookie_name, web.ctx.conn.get_auth_token(), expires=expires)
         raise web.seeother(i.redirect)
+
+    def POST_resend_verification_email(self, i):
+        try:
+            web.ctx.site.login(i.username, i.password, i.remember)
+        except ClientException, e:
+            code = e.get_data().get("code")
+            if code != "email_not_verified":
+                return self.error("account_incorrect_password", i)
+
+        email = get_user_email("/people/" + i.username)
+        account_create().send_verification_email(i.username, email)
+
+        user = web.ctx.site.get('/people/' + i.username)
+        title = _("Hi %(user)s", user=user.displayname or i.username)
+        message = _("We've sent the verification email to %(email)s. You'll need to read that and click on the verification link to verify your email.", email=email)
+        return render.message(title, message)
 
 class account_create(delegate.page):
     path = "/account/create"
@@ -134,14 +159,16 @@ class account_create(delegate.page):
         except ClientException, e:
             f.note = str(e)
             return render['account/create'](f)
-        
-        code = _generate_salted_hash(get_secret_key(), i.username + ',' + i.email)
-        link = web.ctx.home + "/account/verify?" + urllib.urlencode({'username': i.username, 'email': i.email, 'code': code})
-        
-        msg = render['email/account/verify'](username=i.username, email=i.email, password=i.password, link=link)
-        sendmail(i.email, msg)
-        
+
+        self.send_verification_email(i.username, i.email)
         return render['account/verify'](username=i.username, email=i.email)
+        
+    def send_verification_email(self, username, email):
+        code = _generate_salted_hash(get_secret_key(), username + ',' + email)
+        link = web.ctx.home + "/account/verify?" + urllib.urlencode({'username': username, 'email': email, 'code': code})
+        
+        msg = render['email/account/verify'](username=username, email=email, password=None, link=link)
+        sendmail(email, msg)
         
 del delegate.pages['/account/register']
     
