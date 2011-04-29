@@ -83,6 +83,7 @@ function setup_tooltip(selector, format_message) {
     setup_tooltip("#duration");
 
     \$.plot("#avg-duration", [{
+        label: "Daily Average",
         data: $:json_encode(stats.get_average_duration_per_day()),
         bars: {
             show: true,
@@ -90,6 +91,7 @@ function setup_tooltip(selector, format_message) {
             barWidth: 24 * 60 * 60 * 1000
         }
     }, {
+        label: "Monthly Average",
         data: $:json_encode(stats.get_average_duration_per_month()),
         lines: { show: true, steps: true }
     }], {
