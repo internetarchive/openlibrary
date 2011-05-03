@@ -51,7 +51,17 @@ class Case(Document):
     history           = ListField(DictField(Mapping.build(at    = DateTimeField(),
                                                           by    = TextField(),
                                                           text  = TextField())))
-    
+
+    def __init__(self, **kargs):
+        super(Case, self).__init__(**kargs)
+        item = dict (at = self.created,
+                     by = self.creator_name or self.creator_email,
+                     text = "Case created")
+        self.history.append(item)
+        
+
+        
+
     @property
     def caseid(self):
         return self._id
