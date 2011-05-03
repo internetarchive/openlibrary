@@ -10,7 +10,6 @@ def test_create_case(couchdb, sequence):
                       subject           = "Testing",
                       description       = "This is a test request",
                       assignee          = "anand@archive.org")
-
     assert c.caseid == "case-0"
     assert c.creator_name == "Noufal Ibrahim"
     assert c.creator_email == "noufal@archive.org"
