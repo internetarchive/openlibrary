@@ -1,4 +1,6 @@
-def test_create_case(couchdb):
+import datetime
+
+def test_create_case(couchdb, sequence):
     "Tries to create a case"
     from openlibrary.core import support
     s = support.Support(db = couchdb)
@@ -16,3 +18,13 @@ def test_create_case(couchdb):
     assert s.subject == "Testing"
     assert s.description == "This is a test request"
     assert s.assignee == "anand@archive.org"
+    created_date = s.created
+    current_date = datetime.datetime.utcnow()
+    assert created_date.day == current_date.day
+    assert created_date.month == current_date.month
+    assert created_date.year == current_date.year
+
+
+
+
+    
