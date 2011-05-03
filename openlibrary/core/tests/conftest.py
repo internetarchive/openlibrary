@@ -24,7 +24,6 @@ def pytest_funcarg__crontabfile(request):
     request.addfinalizer(lambda : os.remove(cronfile))
     return cronfile
 
-
 def pytest_funcarg__counter(request):
     """Returns a decorator that will create a 'counted' version of the
     functions. The number of times it's been called is kept in the
@@ -36,4 +35,9 @@ def pytest_funcarg__counter(request):
         _counted.invocations = 0
         return _counted
     return counter
+
+def pytest_funcarg__couchdb(request):
+    "Returns a mock couchdb database"
+    from openlibrary.mocks import mock_couchdb
+    return mock_couchdb.Database()
 
