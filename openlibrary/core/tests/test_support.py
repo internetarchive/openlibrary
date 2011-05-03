@@ -25,6 +25,19 @@ def test_create_case(couchdb, sequence):
     assert created_date.month == current_date.month
     assert created_date.year == current_date.year
 
+def test_sequence_numbers(couchdb, sequence):
+    "Creates a bunch of cases and checks their case numbers"
+    from openlibrary.core import support
+    s = support.Support(db = couchdb)
+    for i in range(0,10):
+        c = s.create_case(creator_name      = "Noufal Ibrahim",
+                          creator_email     = "noufal@archive.org",
+                          creator_useragent = "Mozilla/5.0 (X11; U; Linux x86_64; en-US; rv:1.9.1.18) Gecko/20110323 Iceweasel/3.5.18 (like Firefox/3.5.18)",
+                          subject           = "Testing",
+                          description       = "This is a test request",
+                          assignee          = "anand@archive.org")
+        assert c.caseid == "case-%d"%i
+
 def test_history_entry(couchdb, sequence):
     "Test history entries upon creation of a new case"
     from openlibrary.core import support
