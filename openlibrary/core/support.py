@@ -14,7 +14,7 @@ def get_admin_database():
         
 
 class Support(object):
-    def __init__(self, db = None):
+    def __init__(self, db = None): #TBD : handle database failures
         if db:
             self.db = db
         else:
@@ -22,7 +22,7 @@ class Support(object):
     
     def create_case(self, creator_name, creator_email, creator_useragent, subject, description, assignee):
         "Creates a support case with the given parameters"
-        seq = web.ctx.site.sequence.next_value("support-case")
+        seq = web.ctx.site.seq.next_value("support-case")
         created = datetime.datetime.utcnow()
         caseid = "case-%s"%seq
         c = Case(_id = caseid,

@@ -65,8 +65,8 @@ def pytest_funcarg__sequence(request):
     # Clean up this mess to mock sequences
     web.ctx = lambda:0
     web.ctx.site = lambda:0
-    web.ctx.site.sequence = lambda: 0
-    web.ctx.site.sequence.next_value = seq_counter
+    web.ctx.site.seq = lambda: 0
+    web.ctx.site.seq.next_value = seq_counter
     # Now run the test
     return seq_counter
 
