@@ -224,9 +224,17 @@ def read_edition_name(rec):
 
 lang_map = {
     'ser': 'srp', # http://www.archive.org/details/zadovoljstvauivo00lubb
+    'end': 'eng',
+    'enk': 'eng',
+    'ent': 'eng',
+    'cro': 'chu',
+    'jap': 'jpn',
+    'fra': 'fre',
+    'gwr': 'ger',
     'sze': 'slo',
     'fr ': 'fre',
-    'fle': 'dut',
+    'fle': 'dut', # flemish -> dutch
+    'it ': 'ita',
 }
 
 def read_languages(rec):
