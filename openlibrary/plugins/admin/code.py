@@ -22,6 +22,7 @@ import openlibrary
 from openlibrary.core import admin as admin_stats
 
 import services
+import support
 
 logger = logging.getLogger("openlibrary.admin")
 
@@ -354,7 +355,8 @@ def setup():
     register_admin_page('/admin/block', block, label='')
     register_admin_page('/admin/loans', loans_admin, label='')
     register_admin_page('/admin/status', service_status, label = "Open Library services")
-    
+    register_admin_page('/admin/support', support.cases, label = "Support cases")
+
     import mem
 
     for p in [mem._memory, mem._memory_type, mem._memory_id]:
