@@ -357,6 +357,7 @@ def setup():
     register_admin_page('/admin/status', service_status, label = "Open Library services")
     register_admin_page('/admin/support', support.cases, label = "Support cases")
 
+    support.setup()
     import mem
 
     for p in [mem._memory, mem._memory_type, mem._memory_id]:

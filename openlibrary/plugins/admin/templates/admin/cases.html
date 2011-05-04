@@ -1,0 +1,43 @@
+$def with (cases)
+
+<div id="contentHead">
+    <h1>$_("Admin Center")</h1>
+	<div class="small">
+	    <a href="/admin/reload/">Reload Templates</a>
+	    | <a href="/admin/block">Block IPs</a>
+	    | <a href="/admin/loans">Loans</a>
+	    | <a href="/admin/status">Services</a>
+	    | <a href="/admin/support">Support</a>
+	</div>
+</div>
+<div id="contentBody">
+
+<h1>Help Cases</h1>
+<p>Filter: 3,617 <strong>Total</strong> | 28 <a href="#filter for new">New</a> | 45 <a href="#filter by replied">Replied</a> | 3,546 <a href="#filter by closed">Closed</a></p>
+
+<table border="0" cellspacing="0" cellpadding="10">
+    <tr>
+        <th><a href="#SORT-BY">Created</a></th>
+        <th><a href="#SORT-BY">#</a></th>
+        <th><a href="#SORT-BY">Subject</a></th>
+        <th><a href="#SORT-BY">User</a></th>
+        <th><a href="#SORT-BY">Assigned to</a></th>
+
+        <th><a href="#SORT-BY">Last Update</a></th>
+        <th><a href="#SORT-BY">Status</a></th>
+    </tr>
+    $for case in cases:
+    <tr>
+      <td>$datestr(case.created)</td>
+      <td>$case.caseid</td>
+      <td>$case.topic</td>
+      <td>$case.creator</td>
+      <td>$case.assignee</td>
+      <td>$datestr(case.last_modified)</td>
+      <td>$case.status</td>
+    </tr>
+</table>
+<p>&nbsp;</p>
+
+
+</div>
