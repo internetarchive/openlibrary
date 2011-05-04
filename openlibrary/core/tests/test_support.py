@@ -84,9 +84,12 @@ def test_change_status(couchdb, sequence):
                       assignee          = "anand@archive.org")
     assert c.caseid == "case-0"
     assert c.status == "new"
-    c.change_status("assigned")
+    c.change_status("assigned", "mary@archive.org")
     c = s.get_case("case-0")
     assert c.status == "assigned"
+    entry = c.history[-1]
+    assert entry.by == "mary@archive.org"
+    assert entry.text == "Case status changed to 'assigned'"
         
 
 def test_reassign(couchdb, sequence):
