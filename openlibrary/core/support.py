@@ -1,7 +1,7 @@
 import datetime
 
 import couchdb
-from couchdb.mapping import TextField, IntegerField, DateTimeField, ListField, DictField, Mapping, Document
+from couchdb.mapping import TextField, IntegerField, DateTimeField, ListField, DictField, Mapping, Document, ViewField
 
 import web
 from infogami import config
@@ -44,7 +44,10 @@ class Support(object):
         c = Case.load(self.db, caseid)
         return c
         
-            
+    def get_all_cases(self):
+        "Return all the cases in the system"
+        return Case.all(self.db)
+
             
     
 
@@ -112,6 +115,12 @@ class Case(Document):
     @property
     def caseid(self):
         return self._id
+
+    @ViewField.define('cases')
+    def all(self, doc):
+        if doc.get("type","") == "case":
+            yield doc["_id"], doc
+
 
     def __eq__(self, second):
         return self._id == second._id

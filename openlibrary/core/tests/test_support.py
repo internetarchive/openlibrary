@@ -144,3 +144,23 @@ def test_modification_date(couchdb, sequence):
     c.add_worklog_entry("noufal@archive.org", "Test entry")
     c = s.get_case(0)
     assert c.last_modified == c.history[-1].at
+
+def test_get_all_cases(couchdb, sequence):
+    "Try to create a bunch of cases and get them all back"
+    from openlibrary.core import support
+    s = support.Support(db = couchdb)
+    for i in range(0,10):
+        c = s.create_case(creator_name      = "Noufal Ibrahim",
+                          creator_email     = "noufal@archive.org",
+                          creator_useragent = "Mozilla/5.0 (X11; U; Linux x86_64; en-US; rv:1.9.1.18) Gecko/20110323 Iceweasel/3.5.18 (like Firefox/3.5.18)",
+                          subject           = "Testing",
+                          description       = "This is a test request",
+                          assignee          = "anand@archive.org")
+    returned_caseids = sorted([x.caseid for x in s.get_all_cases()])
+    expected_caseids = ["case-%s"%x for x in range(0,10)]
+    assert returned_caseids == expected_caseids
+
+    
+    
+    
+    

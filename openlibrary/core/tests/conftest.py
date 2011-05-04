@@ -39,7 +39,21 @@ def pytest_funcarg__counter(request):
 def pytest_funcarg__couchdb(request):
     "Returns a mock couchdb database"
     from openlibrary.mocks import mock_couchdb
-    return mock_couchdb.Database()
+    db = mock_couchdb.Database()    
+    db.save({
+            "_id": "_design/cases",
+            "views": {
+                "all": {
+                    "map": "" +  
+                    "def f(doc):\n" + 
+                    "    if doc.get('type','') == 'case':\n"
+                    "        yield doc['_id'], doc"
+                    }
+                }
+            })
+    return db
+
+
 
 def pytest_funcarg__sequence(request):
     """Returns a function that can be called for sequence numbers
