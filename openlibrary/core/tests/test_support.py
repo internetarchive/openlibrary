@@ -110,3 +110,24 @@ def test_reassign(couchdb, sequence):
     entry = c.history[-1]
     assert entry.by == "mary@archive.org"
     assert entry.text == "Case reassigned to 'george@archive.org'"
+
+def test_add_worklog_entry(couchdb, sequence):
+    "Checks if we can add worklog entries"
+    from openlibrary.core import support
+    s = support.Support(db = couchdb)
+    c = s.create_case(creator_name      = "Noufal Ibrahim",
+                      creator_email     = "noufal@archive.org",
+                      creator_useragent = "Mozilla/5.0 (X11; U; Linux x86_64; en-US; rv:1.9.1.18) Gecko/20110323 Iceweasel/3.5.18 (like Firefox/3.5.18)",
+                      subject           = "Testing",
+                      description       = "This is a test request",
+                      assignee          = "anand@archive.org")
+    assert c.caseid == "case-0"
+    assert len(c.history) == 1
+    c.add_worklog_entry("george@archive.org", "Test entry")
+    c = s.get_case(0)
+    assert len(c.history) == 2
+    entry = c.history[-1]
+    assert entry.by == "george@archive.org"
+    assert entry.text == "Test entry"
+
+    

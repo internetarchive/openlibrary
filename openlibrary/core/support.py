@@ -86,6 +86,13 @@ class Case(Document):
                      text = "Case reassigned to '%s'"%new_assignee)
         self.history.append(entry)
         self.store(self.db)
+
+    def add_worklog_entry(self, by, text):
+        entry = dict(by = by,
+                     at = datetime.datetime.utcnow(),
+                     text = text)
+        self.history.append(entry)
+        self.store(self.db)
         
     # Override base class members to hold the database connection
     @classmethod
