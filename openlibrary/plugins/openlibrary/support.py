@@ -1,8 +1,10 @@
 from infogami.utils import delegate
+from infogami.utils.view import render_template
 
 class support(delegate.page):
     def GET(self):
-        return "Hello"
+        return render_template("support")
+
         
 
 

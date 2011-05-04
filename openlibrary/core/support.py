@@ -6,6 +6,7 @@ from couchdb.mapping import TextField, IntegerField, DateTimeField, ListField, D
 import web
 from infogami import config
 
+@web.memoize
 def get_admin_database():
     admin_db = config.get("admin", {}).get("admin_db",None)
     if admin_db:
