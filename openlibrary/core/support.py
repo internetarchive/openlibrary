@@ -36,6 +36,16 @@ class Support(object):
         c.store(self.db)
         return c
 
+    def get_case(self, caseid):
+        "Returns the case with the given id"
+        if not str(caseid).startswith("case"):
+            caseid = "case-%s"%caseid
+        c = Case.load(self.db, caseid)
+        return c
+        
+            
+            
+    
 
 class Case(Document):
     _id               = TextField()
@@ -60,11 +70,12 @@ class Case(Document):
         self.history.append(item)
         
 
-        
-
     @property
     def caseid(self):
         return self._id
+
+    def __eq__(self, second):
+        return self._id == second._id
 
         
                  

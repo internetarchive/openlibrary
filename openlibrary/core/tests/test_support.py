@@ -54,4 +54,21 @@ def test_history_entry(couchdb, sequence):
     assert entry.text == "Case created"
 
 
+def test_readback(couchdb, sequence):
+    "Test all ways of reading the case back"
+    from openlibrary.core import support
+    s = support.Support(db = couchdb)
+    c = s.create_case(creator_name      = "Noufal Ibrahim",
+                      creator_email     = "noufal@archive.org",
+                      creator_useragent = "Mozilla/5.0 (X11; U; Linux x86_64; en-US; rv:1.9.1.18) Gecko/20110323 Iceweasel/3.5.18 (like Firefox/3.5.18)",
+                      subject           = "Testing",
+                      description       = "This is a test request",
+                      assignee          = "anand@archive.org")
+    
+    c0 = s.get_case("case-0") #Full string id
+    c1 = s.get_case(0)        #Numeric id
+    c2 = s.get_case("0")      #Partial string id
+    assert c0 == c1 == c2
+    assert c0.caseid == "case-0"
+    
     
