@@ -97,10 +97,10 @@ class account_login(delegate.page):
         f.fill(i)
         f.note = utils.get_error(name)
         return render.login(f)
-        
+
     def POST_login(self, i):
         if web.ctx.site.get('/people/' + i.username) is None:
-            return error('account_user_notfound')
+            return self.error('account_user_notfound')
         
         try:
             web.ctx.site.login(i.username, i.password, i.remember)
