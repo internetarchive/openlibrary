@@ -107,7 +107,8 @@ class account_login(delegate.page):
         except ClientException, e:
             code = e.get_data().get("code")
             if code == "email_not_verified":
-                return render_template("account/not_verified", username=i.username, password=i.password)
+                email = get_user_email("/people/" + i.username)
+                return render_template("account/not_verified", username=i.username, password=i.password, email=email)
             else:
                 return self.error("account_incorrect_password", i)
 
