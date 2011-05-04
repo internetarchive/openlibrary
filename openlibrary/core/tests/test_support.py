@@ -104,6 +104,9 @@ def test_reassign(couchdb, sequence):
                       assignee          = "anand@archive.org")
     assert c.caseid == "case-0"
     assert c.assignee == "anand@archive.org"
-    c.reassign("george@archive.org")
+    c.reassign("george@archive.org", "mary@archive.org")
     c = s.get_case("case-0")
     assert c.assignee == "george@archive.org"
+    entry = c.history[-1]
+    assert entry.by == "mary@archive.org"
+    assert entry.text == "Case reassigned to 'george@archive.org'"

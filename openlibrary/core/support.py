@@ -79,8 +79,12 @@ class Case(Document):
         self.store(self.db)
 
 
-    def reassign(self, new_assignee):
+    def reassign(self, new_assignee, by):
         self.assignee = new_assignee
+        entry = dict(by = by,
+                     at = datetime.datetime.utcnow(),
+                     text = "Case reassigned to '%s'"%new_assignee)
+        self.history.append(entry)
         self.store(self.db)
         
     # Override base class members to hold the database connection
