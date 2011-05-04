@@ -130,4 +130,17 @@ def test_add_worklog_entry(couchdb, sequence):
     assert entry.by == "george@archive.org"
     assert entry.text == "Test entry"
 
-    
+def test_modification_date(couchdb, sequence):
+    "Tests the last modified time"
+    from openlibrary.core import support
+    s = support.Support(db = couchdb)
+    c = s.create_case(creator_name      = "Noufal Ibrahim",
+                      creator_email     = "noufal@archive.org",
+                      creator_useragent = "Mozilla/5.0 (X11; U; Linux x86_64; en-US; rv:1.9.1.18) Gecko/20110323 Iceweasel/3.5.18 (like Firefox/3.5.18)",
+                      subject           = "Testing",
+                      description       = "This is a test request",
+                      assignee          = "anand@archive.org")
+    assert c.last_modified == c.created
+    c.add_worklog_entry("noufal@archive.org", "Test entry")
+    c = s.get_case(0)
+    assert c.last_modified == c.history[-1].at

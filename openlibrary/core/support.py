@@ -105,6 +105,9 @@ class Case(Document):
         super(Case, self).store(db)
         self.db = db
         
+    @property
+    def last_modified(self):
+        return self.history[-1].at
 
     @property
     def caseid(self):
