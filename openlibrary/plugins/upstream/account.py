@@ -182,7 +182,8 @@ class account_verify(delegate.page):
         
         if verified:
             web.ctx.site.update_user_details(i.username, verified=True)
-            return render['account/verify/success'](i.username)
+            user = web.ctx.site.get("/people/" + i.username)
+            return render['account/verify/success'](user.displayname or i.username)
         else:
             return render['account/verify/failed']()
 
@@ -206,7 +207,8 @@ class account_email(delegate.page):
         if not f.validates(i):
             return render['account/email'](self.get_email(), f)
         else:
-            username = web.ctx.site.get_user().key.split('/')[-1]
+            user = web.ctx.site.get_user()
+            username = user.key.split('/')[-1]
             
             code = _generate_salted_hash(get_secret_key(), username + ',' + i.email)
             link = web.ctx.home + '/account/email/verify' + '?' + urllib.urlencode({"username": username, 'email': i.email, 'code': code})
@@ -214,10 +216,10 @@ class account_email(delegate.page):
             msg = render['email/email/verify'](username=username, email=i.email, link=link)
             sendmail(i.email, msg)
             
-            title = _("Hi %(user)s", user=username)
+            title = _("Hi %(user)s", user=user.displayname or username)
             message = _("We've sent an email to %(email)s. You'll need to read that and click on the verification link to update your email.", email=i.email)
             return render.message(title, message)
-            
+
 
 class account_email_verify(delegate.page):
     path = "/account/email/verify"
