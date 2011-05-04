@@ -71,4 +71,36 @@ def test_readback(couchdb, sequence):
     assert c0 == c1 == c2
     assert c0.caseid == "case-0"
     
-    
+
+def test_change_status(couchdb, sequence):
+    "Check the API to change case statuses"
+    from openlibrary.core import support
+    s = support.Support(db = couchdb)
+    c = s.create_case(creator_name      = "Noufal Ibrahim",
+                      creator_email     = "noufal@archive.org",
+                      creator_useragent = "Mozilla/5.0 (X11; U; Linux x86_64; en-US; rv:1.9.1.18) Gecko/20110323 Iceweasel/3.5.18 (like Firefox/3.5.18)",
+                      subject           = "Testing",
+                      description       = "This is a test request",
+                      assignee          = "anand@archive.org")
+    assert c.caseid == "case-0"
+    assert c.status == "new"
+    c.change_status("assigned")
+    c = s.get_case("case-0")
+    assert c.status == "assigned"
+        
+
+def test_reassign(couchdb, sequence):
+    "Checks if the case can be reassigned"
+    from openlibrary.core import support
+    s = support.Support(db = couchdb)
+    c = s.create_case(creator_name      = "Noufal Ibrahim",
+                      creator_email     = "noufal@archive.org",
+                      creator_useragent = "Mozilla/5.0 (X11; U; Linux x86_64; en-US; rv:1.9.1.18) Gecko/20110323 Iceweasel/3.5.18 (like Firefox/3.5.18)",
+                      subject           = "Testing",
+                      description       = "This is a test request",
+                      assignee          = "anand@archive.org")
+    assert c.caseid == "case-0"
+    assert c.assignee == "anand@archive.org"
+    c.reassign("george@archive.org")
+    c = s.get_case("case-0")
+    assert c.assignee == "george@archive.org"

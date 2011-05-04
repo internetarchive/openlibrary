@@ -32,7 +32,8 @@ class Support(object):
                  description = description,
                  assignee = assignee,
                  created = created,
-                 status = "new")
+                 status = "new",
+                 support_db = self.db)
         c.store(self.db)
         return c
 
@@ -68,6 +69,25 @@ class Case(Document):
                      by = self.creator_name or self.creator_email,
                      text = "Case created")
         self.history.append(item)
+
+    def change_status(self, new_status):
+        self.status = new_status
+        self.store(self.db)
+
+    def reassign(self, new_assignee):
+        self.assignee = new_assignee
+        self.store(self.db)
+        
+    # Override base class members to hold the database connection
+    @classmethod
+    def load(cls, db, id):
+        ret = super(Case, cls).load(db, id)
+        ret.db = db
+        return ret
+
+    def store(self, db):
+        super(Case, self).store(db)
+        self.db = db
         
 
     @property
