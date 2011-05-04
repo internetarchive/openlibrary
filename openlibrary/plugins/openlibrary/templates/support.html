@@ -1,4 +1,4 @@
-$def with (email=None, url=None)
+$def with (email=None, url=None, done = False)
 
 $var title: What's the problem? 
 
@@ -7,6 +7,10 @@ $var title: What's the problem?
 </div>
 
 <div id="contentBody">
+
+ $if done:
+   <em>Your question has been submitted. We'll get back to you shortly.</em>
+    
 
  <form action="" method="post" name="spamForm" class="olform validate">
  <div class="formElement">
