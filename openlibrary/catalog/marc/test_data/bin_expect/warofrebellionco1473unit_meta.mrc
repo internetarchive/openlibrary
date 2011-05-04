@@ -13,11 +13,7 @@
   ], 
   "notes": "Found also in the House Miscellaneous documents of the 52d to the 56th Congress.\n\nEach number has special index. Inserted in each volume: Additions and corrections ... Washington, Govt. Print. Off., 1902.\n\nSeries 1, v. 1-53, series 3, v. 1-5, and series 4, v. 1-3 include \"Alternate designations of organizations mentioned.\"\n\nVol. 54-55 of series 1 [serial no. 112-113] \"have not been published, and no material for them is in hand.\"  cf. General index, p. xi. Series 2, v. 1 [serial no. 114] with imprint 1894, was not issued until 1898.\n\nEdited in the War Records Office, 1880-July 1899; in the Record and Pension Office, July 1899-1901.\n\nRobert N. Scott compiled and edited v. 1-18, 1880-87, and also collected the greater part of the material for v. 19-36, 1887-91. After his death in 1887 the work was continued by Henry M. Lazelle, 1887-89, and by a board of publication, 1889-99, consisting of George B. Davis, 1889-97, Leslie J. Perry, 1889-99, Joseph W. Kirkley, 1889-99, and Fred C. Ainsworth, 1898-99; from 1899-1901 edited by Fred C. Ainsworth and Joesph W. Kirkley.\n\nSome volumes are 1985 reprints by National Historical Society.", 
   "number_of_pages": 128, 
-  "languages": [
-    {
-      "key": "/languages/eng"
-    }
-  ], 
+  "languages": ["eng"],
   "lc_classifications": [
     "E464 .U6"
   ], 

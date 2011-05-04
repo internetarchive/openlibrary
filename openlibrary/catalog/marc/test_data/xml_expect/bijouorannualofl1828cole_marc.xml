@@ -12,11 +12,7 @@
     "83"
   ], 
   "notes": "No more published?", 
-  "languages": [
-    {
-      "key": "/languages/eng"
-    }
-  ], 
+  "languages": ["eng"],
   "publish_date": "1828", 
   "publish_country": "enk", 
   "authors": [

@@ -14,11 +14,7 @@
   "work_titles": [
     "Candide"
   ], 
-  "languages": [
-    {
-      "key": "/languages/eng"
-    }
-  ], 
+  "languages": ["eng"],
   "dewey_decimal_class": [
     "843/.5"
   ], 
