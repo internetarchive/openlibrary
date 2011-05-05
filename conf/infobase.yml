@@ -7,6 +7,7 @@ db_parameters:
 account_bot: /people/AccountBot
 user_root: /people/
 verify_user_email: true
+logging_config_file: conf/logging.ini
 
 #secret_key: g6mwujjJAKIB9QAx0EcwCTrN6jrWmm
 secret_key: xxx
