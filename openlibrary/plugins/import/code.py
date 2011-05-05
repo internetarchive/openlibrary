@@ -44,10 +44,16 @@ class importapi:
             return json.dumps({'success':False, 'error':'Permission Denied'})
 
         data = web.data()
+
+        if len(data) != int(data[:5]):
+            return json.dumps({'success':False, 'error':'Bad MARC length'})
+
         rec = MarcBinary(data)
         edition = read_edition(rec)
 
         parse_meta_headers(edition)
+
+        #call Edward's code here with the edition dict
 
         return json.dumps({'success':False, 'error':'Not Yet Implemented'})
 
