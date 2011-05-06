@@ -1,9 +1,6 @@
 import web, re, os
-from db_read import withKey
 from openlibrary.catalog.utils import flip_name, author_dates_match, key_int, error_mail
-from openlibrary.catalog.utils.query import query_iter
 from openlibrary.catalog.importer.load import do_flip, east_in_by_statement
-from pprint import pprint
 
 password = open(os.path.expanduser('~/.openlibrary_db_password')).read()
 if password.endswith('\n'):
