@@ -7,11 +7,7 @@
   "title": "The Engineer Corps of Hell; or, Rome's sappers and miners", 
   "notes": "\"Sold by private subscription only, and under stipulated conditions.\"\n\nIncludes the Papal syllabus of errors by Pope Pius IX.", 
   "number_of_pages": 320, 
-  "languages": [
-    {
-      "key": "/languages/eng"
-    }
-  ], 
+  "languages": ["eng"],
   "publish_date": "1883", 
   "publish_country": "cau", 
   "authors": [

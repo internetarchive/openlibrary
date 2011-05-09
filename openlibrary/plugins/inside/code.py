@@ -77,12 +77,31 @@ class search_inside(delegate.page):
     path = '/search/inside'
 
     def GET(self):
-        def get_results(q, offset=0, limit=100, snippets=3, fragsize=200):
+        def get_results(q, offset=0, limit=100, snippets=3, fragsize=200, hl_phrase=False):
             m = re_bad_fields.match(q)
             if m:
                 return { 'error': m.group(1) + ' search not supported' }
             q = escape_q(q)
-            solr_select = solr_select_url + "?fl=ia,body_length,page_count&hl=true&hl.fl=body&hl.snippets=%d&hl.mergeContiguous=true&hl.usePhraseHighlighter=false&hl.simple.pre={{{&hl.simple.post=}}}&hl.fragsize=%d&q.op=AND&q=%s&start=%d&rows=%d&qf=body&qt=standard&hl.maxAnalyzedChars=1000000&wt=json" % (snippets, fragsize, web.urlquote(q), offset, limit)
+            solr_params = [
+                ('fl', 'ia,body_length,page_count'),
+                ('hl', 'true'),
+                ('hl.fl', 'body'),
+                ('hl.snippets', snippets),
+                ('hl.mergeContiguous', 'true'),
+                ('hl.usePhraseHighlighter', 'true' if hl_phrase else 'false'),
+                ('hl.simple.pre', '{{{'),
+                ('hl.simple.post', '}}}'),
+                ('hl.fragsize', fragsize),
+                ('q.op', 'AND'),
+                ('q', web.urlquote(q)),
+                ('start', offset),
+                ('rows', limit),
+                ('qf', 'body'),
+                ('qt', 'standard'),
+                ('hl.maxAnalyzedChars', '-1'),
+                ('wt', 'json'),
+            ]
+            solr_select = solr_select_url + '?' + '&'.join("%s=%s" % (k, unicode(v)) for k, v in solr_params)
             stats.begin("solr", url=solr_select)
             json_data = urllib.urlopen(solr_select).read()
             stats.end()

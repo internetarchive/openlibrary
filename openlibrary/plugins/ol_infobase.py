@@ -5,6 +5,9 @@ import os
 import datetime
 import urllib
 import simplejson
+import logging, logging.config
+import sys
+import traceback
 
 import web
 from infogami.infobase import config, common, server, cache, dbstore
@@ -12,10 +15,15 @@ from infogami.infobase import config, common, server, cache, dbstore
 # relative import
 from openlibrary import schema
 
+logger = logging.getLogger("infobase.ol")
+
 def init_plugin():
     """Initialize infobase plugin."""
-    from infogami.infobase import common, dbstore, server, logger
+    from infogami.infobase import common, dbstore, server, logger as infobase_logger
     dbstore.default_schema = schema.get_schema()
+    
+    # Replace infobase Indexer with OL custom Indexer
+    dbstore.Indexer = OLIndexer
 
     if config.get('errorlog'):
         common.record_exception = lambda: save_error(config.errorlog, 'infobase')
@@ -24,9 +32,11 @@ def init_plugin():
     ib = server._infobase
     
     if config.get('writelog'):
-        ib.add_event_listener(logger.Logger(config.writelog))
+        ib.add_event_listener(infobase_logger.Logger(config.writelog))
         
     ib.add_event_listener(invalidate_most_recent_change)
+
+    setup_logging()
 
     if ol:
         # install custom indexer
@@ -34,11 +44,14 @@ def init_plugin():
         # ol.store.indexer = Indexer()
         
         if config.get('http_listeners'):
+            logger.info("setting up http listeners")
             ol.add_trigger(None, http_notify)
             
-        _cache = config.get("cache", {})
-        if _cache.get("type") == "memcache":
-            ol.add_trigger(None, MemcacheInvalidater())
+        ## memcache invalidator is not required now. It was added for future use.
+        #_cache = config.get("cache", {})
+        #if _cache.get("type") == "memcache":
+        #    logger.info("setting up memcache invalidater")
+        #    ol.add_trigger(None, MemcacheInvalidater())
     
     # hook to add count functionality
     server.app.add_mapping("/([^/]*)/count_editions_by_author", __name__ + ".count_editions_by_author")
@@ -49,7 +62,40 @@ def init_plugin():
     server.app.add_mapping("/([^/]*)/stats/(\d\d\d\d-\d\d-\d\d)", __name__ + ".stats")
     server.app.add_mapping("/([^/]*)/has_user", __name__ + ".has_user")
     server.app.add_mapping("/([^/]*)/olid_to_key", __name__ + ".olid_to_key")
-        
+    server.app.add_mapping("/_reload_config", __name__ + ".reload_config")
+    server.app.add_mapping("/_inspect", __name__ + "._inspect")
+
+def setup_logging():
+    try:
+        logconfig = config.get("logging_config_file")
+        if logconfig and os.path.exists(logconfig):
+            logging.config.fileConfig(logconfig)
+        logger.info("logging initialized")
+        logger.debug("debug")
+    except Exception, e:
+        print >> sys.stderr, "Unable to set logging configuration:", str(e)
+        raise
+
+class reload_config:
+    @server.jsonify
+    def POST(self):
+        logging.info("reloading logging config")
+        setup_logging()
+        return {"ok": "true"}
+
+class _inspect:
+    """Backdoor to inspect the running process.
+
+    Tries to import _inspect module and executes inspect function in that. The module is reloaded on every invocation.
+    """
+    def GET(self):
+        sys.modules.pop("_inspect", None)
+        try:
+            import _inspect
+            return _inspect.inspect()
+        except Exception, e:
+            return traceback.format_exc()
+
 def get_db():
     site = server.get_site('openlibrary.org')
     return site.store.db
@@ -193,19 +239,16 @@ def write(path, data):
     
 def save_error(dir, prefix):
     try:
-        import traceback
-        traceback.print_exc()
-
+        logger.error("Error", exc_info=True)
         error = web.djangoerror()
         now = datetime.datetime.utcnow()
         path = '%s/%04d-%02d-%02d/%s-%02d%02d%02d.%06d.html' % (dir, \
             now.year, now.month, now.day, prefix,
             now.hour, now.minute, now.second, now.microsecond)
-        print >> web.debug, 'Error saved to', path
+        logger.error("Error saved to %s", path)
         write(path, web.safestr(error))
     except:
-        import traceback
-        traceback.print_exc()
+        logger.error("Exception in saving the error", exc_info=True)
     
 def get_object_data(site, thing):
     """Return expanded data of specified object."""
@@ -400,21 +443,36 @@ dbstore.process_json = process_json
 
 _Indexer = dbstore.Indexer
 
-class Indexer(_Indexer):
-    """Overwrite default indexer to reduce the str index for editions."""
+class OLIndexer(_Indexer):
+    """OL custom indexer to index normalized_title etc.
+    """
     def compute_index(self, doc):
-        index = _Indexer.compute_index(self, doc)
+        type = self.get_type(doc)
 
-        try:
-            if doc['type']['key'] != '/type/edition':
-                return index
-        except KeyError:
-            return index
-            
-        whitelist = ['identifiers', 'classifications', 'isbn_10', 'isbn_13', 'lccn', 'oclc_numbers', 'ocaid']
-        index = [(datatype, name, value) for datatype, name, value in index 
-                if datatype == 'ref' or name.split(".")[0] in whitelist]
+        if type == '/type/edition':
+            doc = self.process_edition_doc(doc)
 
-        # avoid indexing table_of_contents.type etc.
-        index = [(datatype, name, value) for datatype, name, value in index if not name.endswith('.type')]
-        return index
+        return _Indexer.compute_index(self, doc)
+
+    def get_type(self, doc):
+        return doc.get("type", {}).get("key")
+
+    def process_edition_doc(self, doc):
+        """Process edition doc to add computed fields used for import.
+
+        Make the computed field names end with an underscore to avoid conflicting with regular fields.
+        """
+        doc = dict(doc)
+
+        title = doc.get("title", "").lower()
+        doc['normalized_title_'] = self.normalize_edition_title(title)
+
+        isbns = doc.get("isbn", []) + doc.get("isbn_13", [])
+        doc['isbn_'] = [self.normalize_isbn(isbn) for isbn in isbns]
+        return doc
+
+    def normalize_edition_title(self, title):
+        return title.lower()
+
+    def normalize_isbn(self, isbn):
+        return isbn.strip().upper().replace(" ", "").replace("-", "")

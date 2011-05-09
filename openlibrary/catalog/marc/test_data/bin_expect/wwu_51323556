@@ -111,11 +111,7 @@
   "isbn_13": [
     "9780195152708"
   ], 
-  "languages": [
-    {
-      "key": "/languages/eng"
-    }
-  ], 
+  "languages": ["eng"],
   "lc_classifications": [
     "HA30.6 .S665 2004"
   ], 

@@ -1,6 +1,5 @@
 from gevent import sleep, spawn, spawn_link_exception, monkey
 from gevent.queue import JoinableQueue
-from gevent.pool import Pool
 from datetime import datetime
 monkey.patch_socket()
 import re, httplib, json, sys, os, codecs
@@ -28,7 +27,6 @@ solr_error = False
 host_queues = defaultdict(lambda: JoinableQueue(maxsize=1000))
 #solr_src_host = 'localhost:8983'
 solr_host = 'localhost:8983'
-#solr_pool = Pool(4)
 re_href = re.compile('href="([^"]+)"')
 host_threads = {}
 load_log = open('/1/log/index_inside', 'w')

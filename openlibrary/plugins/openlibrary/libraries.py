@@ -3,6 +3,7 @@
 import time
 import logging
 import datetime
+import itertools
 
 import web
 import couchdb
@@ -43,6 +44,7 @@ class LoanStats:
         self.db = get_admin_couchdb()
 
     def view(self, viewname, **kw):
+        kw['stale'] = 'ok'
         if self.db:
             return self.db.view(viewname, **kw)
         else:
@@ -80,6 +82,9 @@ class LoanStats:
     def date2timestamp(self, year, month=1, day=1):
         return time.mktime((year, month, day, 0, 0, 0, 0, 0, 0)) # time.mktime takes 9-tuple as argument
 
+    def date2millis(self, year, month=1, day=1):
+        return self.date2timestamp(year, month, day) * 1000
+
     def get_loan_duration_frequency(self):
         rows = self.view("loans/duration").rows
         if not rows:
@@ -101,7 +106,30 @@ class LoanStats:
     def get_average_duration_per_month(self):
         """Returns average duration per month."""
         rows = self.view("loans/duration", group_level=2).rows
-        return [[self.date2timestamp(*row.key)*1000, min(14, row.value['avg']/(60.0*24.0))] for row in rows]
+        minutes_per_day = 60.0 * 24.0
+        return [[self.date2timestamp(*row.key)*1000, min(14, row.value['avg']/minutes_per_day)] for row in rows]
+        
+    def get_average_duration_per_day(self):
+        """Returns average duration per day."""
+        return [[self.date2millis(*key), value] for key, value in self._get_average_duration_per_day()]
+        
+    def _get_average_duration_per_day(self):
+        """Returns (date, duration-in-days) for each day with duration averaged per day."""
+        rows = self.view("loans/duration", group=True).rows
+        minutes_per_day = 60.0 * 24.0
+        return [[row.key, min(14, row.value['avg']/minutes_per_day)] for row in rows]
+        
+    def _get_average_duration_per_month(self):
+        """Returns (date, duration-in-days) for each day with duration averaged per month."""
+        for month, chunk in itertools.groupby(self._get_average_duration_per_day(), lambda x: x[0][:2]):
+            chunk = list(chunk)
+            avg = sum(v for k, v in chunk) / len(chunk)
+            for k, v in chunk:
+                yield k, avg
+        
+    def get_average_duration_per_month(self):
+        """Returns (date-in-millis, duration-in-days) for each day with duration averaged per month."""
+        return [[self.date2millis(*key), value] for key, value in self._get_average_duration_per_month()]
 
     def get_popular_books(self, limit=10):
         rows = self.view("loans/books", reduce=False, startkey=["", {}], endkey=[""], descending=True, limit=limit).rows

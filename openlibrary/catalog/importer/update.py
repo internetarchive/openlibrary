@@ -6,13 +6,11 @@ from openlibrary.catalog.importer.db_read import get_mc
 from time import sleep
 from openlibrary.catalog.title_page_img.load import add_cover_image
 from openlibrary.api import OpenLibrary, unmarshal, marshal
+from pprint import pprint
 
 rc = read_rc()
 ol = OpenLibrary("http://openlibrary.org")
 ol.login('ImportBot', rc['ImportBot']) 
-
-db_amazon = web.database(dbn='postgres', db='amazon')
-db_amazon.printing = False
 
 re_meta_mrc = re.compile('^([^/]*)_meta.mrc:0:\d+$')
 
@@ -20,15 +18,14 @@ def make_redirect(old, new, msg='replace with redirect'):
     r = {'type': {'key': '/type/redirect'}, 'location': new}
     ol.save(old, r, msg)
 
-def amazon_source_records(asin):
-    iter = db_amazon.select('amazon', where='asin = $asin', vars={'asin':asin})
-    return ["amazon:%s:%s:%d:%d" % (asin, r.seg, r.start, r.length) for r in iter]
-
 def fix_toc(e):
     toc = e.get('table_of_contents', None)
     if not toc:
         return
-    if isinstance(toc[0], dict) and toc[0]['type'] == '/type/toc_item':
+    print e['key']
+    pprint(toc)
+    # http://openlibrary.org/books/OL789133M - /type/toc_item missing from table_of_contents
+    if isinstance(toc[0], dict) and ('pagenum' in toc[0] or toc[0]['type'] == '/type/toc_item'):
         return
     return [{'title': unicode(i), 'type': '/type/toc_item'} for i in toc if i != u'']
 
@@ -72,20 +69,24 @@ def add_source_records(key, ia, v=None):
         e['source_records'].append(new)
     else:
         existing = get_mc(old_style_key)
-        amazon = 'amazon:'
+        print 'get_mc(%s) == %s' % (old_style_key, existing)
         if existing is None:
             sr = []
-        elif existing.startswith('ia:'):
+        elif existing.startswith('ia:') or existing.startswith('amazon:'):
             sr = [existing]
-        elif existing.startswith(amazon):
-            sr = amazon_source_records(existing[len(amazon):]) or [existing]
         else:
             m = re_meta_mrc.match(existing)
             sr = ['marc:' + existing if not m else 'ia:' + m.group(1)]
+        print 'ocaid:', e['ocaid']
         if 'ocaid' in e and 'ia:' + e['ocaid'] not in sr:
             sr.append('ia:' + e['ocaid'])
+        print 'sr:', sr
+        print 'ocaid:', e['ocaid']
         if new not in sr:
             e['source_records'] = sr + [new]
+        else:
+            e['source_records'] = sr
+        assert 'source_records' in e
 
     # fix other bits of the record as well
     new_toc = fix_toc(e)
@@ -106,6 +107,7 @@ def add_source_records(key, ia, v=None):
         e['authors'] = [{'key': a['key']} for a in authors]
         undelete_authors(authors)
     print 'saving', key
+    assert 'source_records' in e
     print ol.save(key, e, 'found a matching MARC record')
     add_cover_image(key, ia)
 

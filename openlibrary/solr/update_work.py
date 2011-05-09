@@ -49,6 +49,7 @@ class AuthorRedirect (Exception):
 
 re_bad_char = re.compile('[\x01\x0b\x1a-\x1e]')
 re_year = re.compile(r'(\d{4})$')
+re_iso_date = re.compile(r'^(\d{4})-\d\d-\d\d$')
 def strip_bad_char(s):
     if not isinstance(s, basestring):
         return s
@@ -141,6 +142,9 @@ def build_doc(w, obj_cache={}, resolve_redirects=False):
     def get_pub_year(e):
         pub_date = e.get('publish_date', None)
         if pub_date:
+            m = re_iso_date.match(pub_date)
+            if m:
+                return m.group(1)
             m = re_year.search(pub_date)
             if m:
                 return m.group(1)

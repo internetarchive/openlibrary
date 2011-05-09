@@ -157,6 +157,9 @@ class User(Thing):
             'members': self.key})
         return self._site.get_many(keys)
     usergroups = property(get_usergroups)
+    
+    def get_username(self):
+        return self.key.split("/")[-1]
 
     def is_admin(self):
         return '/usergroup/admin' in [g.key for g in self.usergroups]

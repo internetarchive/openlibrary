@@ -1,9 +1,5 @@
 {
-  "languages": [
-    {
-      "key": "/languages/fre"
-    }
-  ], 
+  "languages": ["fre"],
   "publishers": [
     "Jose"
   ], 

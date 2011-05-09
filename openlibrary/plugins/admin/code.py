@@ -20,6 +20,8 @@ from infogami.utils.context import context
 from infogami.utils.view import add_flash_message
 import openlibrary
 from openlibrary.core import admin as admin_stats
+from openlibrary.plugins.upstream.account import as_admin
+from openlibrary.plugins.upstream import forms
 
 import services
 
@@ -135,6 +137,49 @@ class people_view:
         else:
             raise web.notfound()
             
+    def POST(self, key):
+        user = web.ctx.site.get(key)
+        if not user:
+            raise web.notfound()
+            
+        i = web.input(action=None)
+        if i.action == "update_email":
+            return self.POST_update_email(user, i)
+        elif i.action == "update_password":
+            return self.POST_update_password(user, i)
+    
+    def POST_update_email(self, user, i):
+        @as_admin
+        def f():
+            web.ctx.site.update_user_details(user.get_username(), email=i.email)
+            
+        if not forms.vemail.valid(i.email):
+            return render_template("admin/people/view", user, i, {"email": forms.vemail.msg})
+
+        if not forms.email_not_already_used.valid(i.email):
+            return render_template("admin/people/view", user, i, {"email": forms.email_not_already_used.msg})
+            
+        f()
+        add_flash_message("info", "Email updated successfully!")
+        raise web.seeother(web.ctx.path)
+    
+    def POST_update_password(self, user, i):
+        @as_admin
+        def f():
+            # Infobase API doesn't provide any easier way to reset password. It must be fixed.
+            site = web.ctx.site
+            email = user.get_email()
+            code = site.get_reset_code(email)['code']
+            site.reset_password(username=user.get_username(), code=code, password=i.password)
+            
+        if not forms.vpass.valid(i.password):
+            return render_template("admin/people/view", user, i, {"password": forms.vpass.msg})
+            
+        f()
+        logger.info("updated password of %s", user.key)
+        add_flash_message("info", "Password updated successfully!")
+        raise web.seeother(web.ctx.path)
+        
 class ipaddress:
     def GET(self):
         return render_template('admin/ip/index')

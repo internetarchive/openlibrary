@@ -6,7 +6,7 @@ from openlibrary.catalog.read_rc import read_rc
 
 staging = False
 
-db = web.database(dbn='postgres', db='marc_index')
+db = web.database(dbn='postgres', db='marc_index', host='ol-db')
 db.printing = False
 
 def find_author(name): # unused

@@ -437,6 +437,8 @@ def add_subjects_to_work(subjects, w):
         subjects = [i[0] for i in sorted(v.items(), key=lambda i:i[1], reverse=True) if i != '']
         existing_subjects = set(w.get(k, []))
         w.setdefault(k, []).extend(s for s in subjects if s not in existing_subjects)
+        if w.get(k):
+            w[k] = [unicode(i) for i in w[k]]
         try:
             assert all(i != '' and not i.endswith(' ') for i in w[k])
         except AssertionError:
@@ -452,22 +454,26 @@ def add_detail_to_work(i, j):
         add_subjects_to_work(i['subjects'], j)
 
 def fix_up_authors(w, akey, editions):
+    print 'looking for author:', akey
     #print (w, akey, editions)
     seen_akey = False
     need_save = False
     for a in w.get('authors', []):
+        print 'work:', w['key']
         obj = withKey(a['author']['key'])
         if obj['type']['key'] == '/type/redirect':
             a['author']['key'] = obj['location']
-            a['author']['key'] = '/authors/' + re_author_key.match(a['author']['key']).group(1)
-            #print 'getting:', a['author']['key']
+            print obj['key'], 'redirects to', obj['location']
+            #a['author']['key'] = '/authors/' + re_author_key.match(a['author']['key']).group(1)
+            assert a['author']['key'].startswith('/authors/')
             obj = withKey(a['author']['key'])
-            #print 'found:', obj
             assert obj['type']['key'] == '/type/author'
             need_save = True
         if akey == a['author']['key']:
             seen_akey = True
     if seen_akey:
+        if need_save:
+            print 'need save:', a
         return need_save
     try:
         ekey = editions[0]['key']
@@ -481,8 +487,9 @@ def fix_up_authors(w, akey, editions):
     e = withKey(ekey)
     #print e
     if not e.get('authors', None):
-        #print 'no authors in edition'
+        print 'no authors in edition'
         return
+    print 'authors from first edition', e['authors']
     w['authors'] = [{'type':'/type/author_role', 'author':a} for a in e['authors']]
     #print 'after:'
     #for a in w['authors']:
@@ -529,6 +536,19 @@ def new_work(akey, w, do_updates, fh_log):
         return [wkey]
     return []
 
+def fix_toc(e):
+    toc = e.get('table_of_contents')
+    if not toc:
+        return
+    try:
+        if isinstance(toc[0], dict) and toc[0]['type'] == '/type/toc_item':
+            return
+    except:
+        print 'toc'
+        print toc
+        print `toc`
+    return [{'title': unicode(i), 'type': '/type/toc_item'} for i in toc if i != u'']
+
 def update_work_with_best_match(akey, w, work_to_edition, do_updates, fh_log):
     work_updated = []
     best = w['best_match']['key']
@@ -559,6 +579,9 @@ def update_work_with_best_match(akey, w, work_to_edition, do_updates, fh_log):
                     akey = '/authors/' + m.group(1)
                 authors.append({'key': str(akey)})
             e['authors'] = authors
+            new_toc = fix_toc(e)
+            if new_toc:
+                e['table_of_contents'] = new_toc
             update.append(e)
 
     cur_work = w['best_match']
@@ -579,6 +602,15 @@ def update_work_with_best_match(akey, w, work_to_edition, do_updates, fh_log):
             existing_subjects = set(existing_work.get(k, []))
             existing_work.setdefault(k, []).extend(s for s in v if s not in existing_subjects)
         add_detail_to_work(w, existing_work)
+        for a in existing_work.get('authors', []):
+            obj = withKey(a['author'])
+            if obj['type']['key'] != '/type/redirect':
+                continue
+            new_akey = obj['location']
+            a['author'] = {'key': new_akey}
+            assert new_akey.startswith('/authors/')
+            obj = withKey(new_akey)
+            assert obj['type']['key'] == '/type/author'
         print >> fh_log, 'existing:', existing_work
         print >> fh_log, 'subtitle:', `existing_work['subtitle']` if 'subtitle' in existing_work else 'n/a'
         update.append(existing_work)
@@ -597,8 +629,9 @@ def update_works(akey, works, do_updates=False):
     if do_updates:
         rc = read_rc()
         ol.login('WorkBot', rc['WorkBot']) 
+    assert do_updates
 
-    fh_log = open('/1/openlibrary/log/work_finder/' + strftime('%F_%T'), 'w')
+    fh_log = open('/1/var/log/openlibrary/work_finder/' + strftime('%F_%T'), 'w')
     works = list(works)
     print >> fh_log, akey
     print >> fh_log, 'works:'

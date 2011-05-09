@@ -8,11 +8,7 @@
   ], 
   "notes": "Includes index.", 
   "number_of_pages": 304, 
-  "languages": [
-    {
-      "key": "/languages/eng"
-    }
-  ], 
+  "languages": ["eng"],
   "dewey_decimal_class": [
     "332.024"
   ], 
