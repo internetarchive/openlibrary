@@ -1,5 +1,6 @@
 from openlibrary.catalog.merge.merge_marc import build_marc
 from load_book import build_query
+from openlibrary.catalog.importer.merge import try_merge
 
 type_map = {
     'description': 'text',
@@ -14,7 +15,7 @@ class InvalidLanguage(Exception):
         return "invalid language code: '%s'" % self.code
 
 def load_data(rec):
-    loc = 'ia:' + rec['ia']
+    loc = 'ia:' + rec['ocaid']
     q = build_query(rec)
 
     for a in q.get('authors', []):
@@ -44,9 +45,9 @@ def load_data(rec):
     elif 'inlibrary' in collections:
         subjects['subjects'] += ['Protected DAISY', 'In library']
 
-    if 'authors' in q:
+    if 'authors' in q and False:
         wkey = find_matching_work(q)
-    if wkey:
+    if wkey and False:
         w = ol.get(wkey)
         need_update = False
         for k, subject_list in subjects.items():
@@ -65,23 +66,11 @@ def load_data(rec):
             w['authors'] = [{'type':'/type/author_role', 'author': akey} for akey in q['authors']]
         w.update(subjects)
 
-        wkey = ol.new(w, comment='initial import')
+        wkey = web.ctx.site.new(w, comment='initial import')
 
     q['works'] = [{'key': wkey}]
-    for attempt in range(50):
-        if attempt > 0:
-            print 'retrying'
-        try:
-            pprint(q)
-            ret = ol.new(q, comment='initial import')
-        except httplib.BadStatusLine:
-            sleep(30)
-            continue
-        except: # httplib.BadStatusLine
-            print q
-            raise
-        break
-    print 'ret:', ret
+    ret = web.ctx.site.new(q, comment='initial import')
+
     assert isinstance(ret, basestring)
     key = '/b/' + re_edition_key.match(ret).group(1)
     pool.update(key, q)
@@ -90,9 +79,36 @@ def load_data(rec):
     if 'cover' in rec:
         add_cover_image(ret, rec['cover'])
 
+def is_redirect(i):
+    return i['type']['key'] == redirect
+
+def find_match(e1, edition_pool):
+    seen = set()
+    for k, v in edition_pool.iteritems():
+        for edition_key in v:
+            if edition_key in seen:
+                continue
+            thing = None
+            found = True
+            while not thing or is_redirect(thing):
+                seen.add(edition_key)
+                thing = web.ctx.site.get(edition_key)
+                if thing is None:
+                    found = False
+                    break
+                if is_redirect(thing):
+                    print 'following redirect %s => %s' % (edition_key, thing['location'])
+                    edition_key = thing['location']
+            if not found:
+                continue
+            if try_merge(e1, edition_key, thing):
+                add_source_records(edition_key, ia)
+                return edition_key
+    return None
 
 def load(rec):
-    edition_pool = pool.build(rec)
+    #edition_pool = pool.build(rec)
+    load_data(rec) # 'no books in pool, loading'
     if not edition_pool:
         load_data(rec) # 'no books in pool, loading'
 

@@ -244,7 +244,7 @@ def read_languages(rec):
     found = []
     for f in fields:
         found += [i.lower() for i in f.get_subfield_values('a') if i and len(i) == 3]
-    return [lang_map.get(i, i) for i in found]
+    return [lang_map.get(i, i) for i in found if i != 'zxx']
 
 def read_pub_date(rec):
     fields = rec.get_fields('260')
@@ -572,7 +572,7 @@ def read_edition(rec):
         if publish_country not in ('|||', '   ', '\x01\x01\x01', '???'):
             edition["publish_country"] = publish_country
         lang = str(f)[35:38]
-        if lang not in ('   ', '|||', '', '???'):
+        if lang not in ('   ', '|||', '', '???', 'zxx'):
             # diebrokeradical400poll
             if str(f)[34:37].lower() == 'eng':
                 lang = 'eng'
