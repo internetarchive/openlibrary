@@ -384,6 +384,11 @@ class checkout_submodules:
         info("checking out git submodules ...")
         system("git submodule init")
         system("git submodule update")
+        
+class update_submodules:
+    def run(self):
+        info("updating git submodules")
+        system("git submodule update")
 
 class install_couchdb:
     """Installs couchdb and updates configuration files..
@@ -660,6 +665,7 @@ def update():
     tasks = [
         setup_globals(),
         switch_to_virtualenv(),
+        update_submodules(),
         run_updates()
     ]
     
