@@ -245,6 +245,29 @@ class borrow_admin(delegate.page):
             
         return render_template("borrow_admin", edition, edition_loans, user_loans, web.ctx.ip)
         
+class borrow_admin_no_update(delegate.page):
+    path = "(/books/OL\d+M)/borrow_admin_no_update"
+    
+    def GET(self, key):
+        if not is_admin():
+            return render_template('permission_denied', web.ctx.path, "Permission denied.")
+    
+        edition = web.ctx.site.get(key)
+        
+        if not edition:
+            raise web.notfound()
+
+        edition_loans = get_edition_loans(edition)
+            
+        user_loans = []
+        user = web.ctx.site.get_user()
+        if user:
+            user.update_loan_status()
+            user_loans = get_loans(user)
+            
+        return render_template("borrow_admin", edition, edition_loans, user_loans, web.ctx.ip)
+
+        
 # Handler for /iauth/{itemid}
 class ia_auth(delegate.page):
     path = r"/ia_auth/(.*)"
