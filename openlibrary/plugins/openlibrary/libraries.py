@@ -169,6 +169,9 @@ def on_loan_created(loan):
         "t_start": t_start.isoformat(),
         "status": "active"
     }
+    
+    library = inlibrary.get_library()
+    d['library'] = library and library.key
 
     if key in db:
         logger.warn("loan document is already present in the stats database: %r", key)
