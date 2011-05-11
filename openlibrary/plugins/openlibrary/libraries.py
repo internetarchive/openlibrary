@@ -18,6 +18,11 @@ logger = logging.getLogger("openlibrary.libraries")
 class libraries(delegate.page):
     def GET(self):
         return render_template("libraries/index")
+        
+class add_library(delegate.page):
+    path = "/libraries/add"
+    def GET(self):
+        return render_template("libraries/add")
 
 class locations(delegate.page):
     path = "/libraries/locations.txt"
