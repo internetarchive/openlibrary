@@ -262,10 +262,9 @@ class borrow_admin_no_update(delegate.page):
         user_loans = []
         user = web.ctx.site.get_user()
         if user:
-            user.update_loan_status()
             user_loans = get_loans(user)
             
-        return render_template("borrow_admin", edition, edition_loans, user_loans, web.ctx.ip)
+        return render_template("borrow_admin_no_update", edition, edition_loans, user_loans, web.ctx.ip)
 
         
 # Handler for /iauth/{itemid}
