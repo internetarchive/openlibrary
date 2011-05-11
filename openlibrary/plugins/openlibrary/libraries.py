@@ -153,7 +153,7 @@ class LoanStats:
         rows = self.view("loans/people", group=True, startkey=[key], endkey=[key, {}]).rows
         return [[row.key[-1], row.value] for row in rows]
 
-def on_loan_created(topic, loan):
+def on_loan_created(loan):
     """Adds the loan info to the admin stats database.
     """
     logger.debug("on_loan_created")
@@ -191,7 +191,7 @@ def on_loan_created(topic, loan):
     user["loans"][yyyy_mm] = user.setdefault("loans", {}).setdefault(yyyy_mm, 0) + 1
     db[user_key] = user
 
-def on_loan_completed(topic, loan):
+def on_loan_completed(loan):
     """Marks the loan as completed in the admin stats database.
     """
     logger.debug("on_loan_completed")
