@@ -33,9 +33,9 @@ function setup_tooltip(selector, format_message) {
             backgroundColor: '#efefef',
             color: '#454545',
             fontSize: '11px',
-            webkitBoxShadow: '1px 1px 3px #333',
-            mozBoxShadow: '1px 1px 1px #000',
-            boxShadow: '1px 1px 1px #000'
+            webkitBoxShadow: '0 0 3px #333',
+            mozBoxShadow: '0 0 3px #333',
+            boxShadow: '0 0 3px #333'
         }).appendTo("body").fadeIn(200);
     };
 
@@ -49,7 +49,13 @@ function setup_tooltip(selector, format_message) {
             var y = item.datapoint[1];
             var msg = format_message(x, y);
 
-            showTooltip(item.pageX, item.pageY, msg);
+            if (x == 1) {
+                    showTooltip(item.pageX, item.pageY,
+                                y + " $_('loans for') " + x + " $_('day')");
+                } else {
+                    showTooltip(item.pageX, item.pageY,
+                                y + " $_('loans for') " + x + " $_('days')");
+                };
         } else {
             \$("#chartLabelA").remove();
         };
@@ -163,7 +169,7 @@ div.graph,div.chart{width:898px;height:180px;}
         <div class="chartXaxis">$_("Loan Duration")</div>
     </div>
 
-    <p class="small grey">
+    <p class="smaller grey sansserif">
         $ summary = stats.get_summary()
         $ total = summary['total_loans']
         $ onehour = summary['one_hour_loans']
@@ -177,6 +183,8 @@ div.graph,div.chart{width:898px;height:180px;}
         Expired Loans: $expired ($percent(expired))
         <br/>
     </p>
+    
+    <br/>
 
     <h2>Average Loan Duration</h2>
     <div class="chart">
@@ -184,6 +192,8 @@ div.graph,div.chart{width:898px;height:180px;}
             <noscript>$_("You need to have JavaScript turned on to see the nifty chart!")</noscript>
         </div>    
     </div>
+    
+    <br/>
 
     <h2 class="fixthis">Loans per User</h2>
     <div class="chart">
@@ -193,6 +203,8 @@ div.graph,div.chart{width:898px;height:180px;}
         <div class="chartYaxis" style="width:180px;">$_("Number of Users")</div>
         <div class="chartXaxis">$_("Number of Loans Taken")</div>
     </div>
+    
+    <br/>
 
     <h2>Loans per Book</h2>
     <div class="chart">
@@ -203,6 +215,7 @@ div.graph,div.chart{width:898px;height:180px;}
         <div class="chartXaxis">$_("Number of loans taken")</div>
     </div>
 
+    <br/>
 
     <h2>Popular Books</h2>
     $def render_authors(book):
