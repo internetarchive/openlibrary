@@ -138,3 +138,16 @@ def test_build_pool(mock_site):
 
     pool = build_pool({'lccn': ['234'], 'oclc_numbers': ['456']})
     assert pool == { 'oclc_numbers': ['/books/OL1M'], }
+
+def test_load_twice(mock_site):
+    rec = {
+        'title': 'Test item',
+        'lccn': ['123'],
+    }
+    reply = load(rec)
+    assert reply['success'] == True
+
+    reply = load(rec)
+    assert reply['success'] == True
+
+

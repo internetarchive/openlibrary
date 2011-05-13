@@ -1,7 +1,7 @@
 from openlibrary.catalog.merge.merge_marc import build_marc
 from load_book import build_query
 import web
-#from openlibrary.catalog.importer.merge import try_merge
+from merge import try_merge
 from openlibrary.catalog.utils import mk_norm
 
 type_map = {
@@ -125,7 +125,9 @@ def load_data(rec):
     return reply
 
 def is_redirect(i):
-    return i['type']['key'] == redirect
+    if not i:
+        return False
+    return i.type.key == '/type/redirect'
 
 def find_match(e1, edition_pool):
     seen = set()
@@ -166,8 +168,7 @@ def build_pool(rec):
 def load(rec):
     if not rec.get('title'):
         raise RequiredField('title')
-    #edition_pool = pool.build(rec)
-    edition_pool = {}
+    edition_pool = build_pool(rec)
     if not edition_pool:
         return load_data(rec) # 'no books in pool, loading'
 
@@ -193,4 +194,5 @@ def load(rec):
     else: # 'no match found', rec['ia']
         load_data(rec)
 
-    return {'note': 'loaded'}
+    reply = {'success': True}
+    return reply
