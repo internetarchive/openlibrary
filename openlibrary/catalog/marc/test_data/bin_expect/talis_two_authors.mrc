@@ -1,9 +1,5 @@
 {
-  "languages": [
-    {
-      "key": "/languages/eng"
-    }
-  ], 
+  "languages": ["eng"],
   "publishers": [
     "Institution of Civil Engineers"
   ], 

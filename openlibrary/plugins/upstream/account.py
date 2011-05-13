@@ -100,7 +100,7 @@ class account_login(delegate.page):
 
     def POST_login(self, i):
         if web.ctx.site.get('/people/' + i.username) is None:
-            return self.error('account_user_notfound')
+            return self.error('account_user_notfound', i)
         
         try:
             web.ctx.site.login(i.username, i.password, i.remember)

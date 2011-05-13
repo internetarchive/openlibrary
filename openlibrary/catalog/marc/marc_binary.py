@@ -14,8 +14,9 @@ def norm(s):
 class BinaryDataField():
     def __init__(self, rec, line):
         self.rec = rec
-        while line[-2] == '\x1e': # ia:engineercorpsofhe00sher
-            line = line[:-1]
+        if line:
+            while line[-2] == '\x1e': # ia:engineercorpsofhe00sher
+                line = line[:-1]
         self.line = line
 
     def translate(self, data):

@@ -18,6 +18,11 @@ logger = logging.getLogger("openlibrary.libraries")
 class libraries(delegate.page):
     def GET(self):
         return render_template("libraries/index")
+        
+class add_library(delegate.page):
+    path = "/libraries/add"
+    def GET(self):
+        return render_template("libraries/add")
 
 class locations(delegate.page):
     path = "/libraries/locations.txt"
@@ -148,7 +153,7 @@ class LoanStats:
         rows = self.view("loans/people", group=True, startkey=[key], endkey=[key, {}]).rows
         return [[row.key[-1], row.value] for row in rows]
 
-def on_loan_created(topic, loan):
+def on_loan_created(loan):
     """Adds the loan info to the admin stats database.
     """
     logger.debug("on_loan_created")
@@ -164,6 +169,9 @@ def on_loan_created(topic, loan):
         "t_start": t_start.isoformat(),
         "status": "active"
     }
+    
+    library = inlibrary.get_library()
+    d['library'] = library and library.key
 
     if key in db:
         logger.warn("loan document is already present in the stats database: %r", key)
@@ -186,7 +194,7 @@ def on_loan_created(topic, loan):
     user["loans"][yyyy_mm] = user.setdefault("loans", {}).setdefault(yyyy_mm, 0) + 1
     db[user_key] = user
 
-def on_loan_completed(topic, loan):
+def on_loan_completed(loan):
     """Marks the loan as completed in the admin stats database.
     """
     logger.debug("on_loan_completed")

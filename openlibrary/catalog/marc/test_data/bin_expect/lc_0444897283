@@ -13,11 +13,7 @@
   ], 
   "notes": "Includes bibliographical references.", 
   "number_of_pages": 376, 
-  "languages": [
-    {
-      "key": "/languages/eng"
-    }
-  ], 
+  "languages": ["eng"],
   "dewey_decimal_class": [
     "623.8/1/0285"
   ], 

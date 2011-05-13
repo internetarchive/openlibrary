@@ -13,11 +13,7 @@
   ], 
   "notes": "Papers and comments presented at the conference at Brookings Institution, Apr. 29-30, 1974, sponsored by the Brookings Panel on Social Experimentation.\n\nIncludes bibliographical references and index.", 
   "number_of_pages": 232, 
-  "languages": [
-    {
-      "key": "/languages/eng"
-    }
-  ], 
+  "languages": ["eng"],
   "dewey_decimal_class": [
     "361.6/2/09749"
   ], 

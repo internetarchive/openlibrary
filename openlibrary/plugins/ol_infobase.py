@@ -21,6 +21,9 @@ def init_plugin():
     """Initialize infobase plugin."""
     from infogami.infobase import common, dbstore, server, logger as infobase_logger
     dbstore.default_schema = schema.get_schema()
+    
+    # Replace infobase Indexer with OL custom Indexer
+    dbstore.Indexer = OLIndexer
 
     if config.get('errorlog'):
         common.record_exception = lambda: save_error(config.errorlog, 'infobase')
@@ -440,21 +443,36 @@ dbstore.process_json = process_json
 
 _Indexer = dbstore.Indexer
 
-class Indexer(_Indexer):
-    """Overwrite default indexer to reduce the str index for editions."""
+class OLIndexer(_Indexer):
+    """OL custom indexer to index normalized_title etc.
+    """
     def compute_index(self, doc):
-        index = _Indexer.compute_index(self, doc)
+        type = self.get_type(doc)
 
-        try:
-            if doc['type']['key'] != '/type/edition':
-                return index
-        except KeyError:
-            return index
-            
-        whitelist = ['identifiers', 'classifications', 'isbn_10', 'isbn_13', 'lccn', 'oclc_numbers', 'ocaid']
-        index = [(datatype, name, value) for datatype, name, value in index 
-                if datatype == 'ref' or name.split(".")[0] in whitelist]
+        if type == '/type/edition':
+            doc = self.process_edition_doc(doc)
 
-        # avoid indexing table_of_contents.type etc.
-        index = [(datatype, name, value) for datatype, name, value in index if not name.endswith('.type')]
-        return index
+        return _Indexer.compute_index(self, doc)
+
+    def get_type(self, doc):
+        return doc.get("type", {}).get("key")
+
+    def process_edition_doc(self, doc):
+        """Process edition doc to add computed fields used for import.
+
+        Make the computed field names end with an underscore to avoid conflicting with regular fields.
+        """
+        doc = dict(doc)
+
+        title = doc.get("title", "").lower()
+        doc['normalized_title_'] = self.normalize_edition_title(title)
+
+        isbns = doc.get("isbn", []) + doc.get("isbn_13", [])
+        doc['isbn_'] = [self.normalize_isbn(isbn) for isbn in isbns]
+        return doc
+
+    def normalize_edition_title(self, title):
+        return title.lower()
+
+    def normalize_isbn(self, isbn):
+        return isbn.strip().upper().replace(" ", "").replace("-", "")
