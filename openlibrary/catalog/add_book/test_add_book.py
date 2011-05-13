@@ -1,7 +1,6 @@
 from load_book import build_query, InvalidLanguage
 from . import load, RequiredField, build_pool
 import py.test
-from pprint import pprint
 
 def add_languages(mock_site):
     languages = [
@@ -108,7 +107,6 @@ def test_from_marc(mock_site):
     data = open('test_data/flatlandromanceo00abbouoft_meta.mrc').read()
     assert len(data) == int(data[:5])
     rec = read_edition(MarcBinary(data))
-    pprint(rec)
     reply = load(rec)
     assert reply['success'] == True
     akey1 = reply['authors'][0]['key']

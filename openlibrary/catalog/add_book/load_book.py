@@ -1,10 +1,40 @@
 import web, re, os
 from openlibrary.catalog.utils import flip_name, author_dates_match, key_int, error_mail
-from openlibrary.catalog.importer.load import do_flip, east_in_by_statement
 
-password = open(os.path.expanduser('~/.openlibrary_db_password')).read()
-if password.endswith('\n'):
-    password = password[:-1]
+def east_in_by_statement(rec):
+    if 'by_statement' not in rec:
+        return False
+    if 'authors' not in rec:
+        return False
+    name = rec['authors'][0]['name']
+    flipped = flip_name(name)
+    name = name.replace('.', '')
+    name = name.replace(', ', '')
+    if name == flipped.replace('.', ''):
+        return False
+    return rec['by_statement'].find(name) != -1
+
+def do_flip(author):
+    # given an author name flip it in place
+    if 'personal_name' not in author:
+        return
+    if author['personal_name'] != author['name']:
+        return
+    first_comma = author['name'].find(', ')
+    if first_comma == -1:
+        return
+    # e.g: Harper, John Murdoch, 1845-
+    if author['name'].find(',', first_comma + 1) != -1:
+        return
+    if author['name'].find('i.e.') != -1:
+        return
+    if author['name'].find('i. e.') != -1:
+        return
+    name = flip_name(author['name'])
+    author['name'] = name
+    author['personal_name'] = name
+
+
 
 def find_author(name, send_mail=True):
     def walk_redirects(obj, seen):
