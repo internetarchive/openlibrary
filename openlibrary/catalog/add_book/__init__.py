@@ -41,7 +41,6 @@ def find_matching_work(e):
 
 
 def load_data(rec):
-    loc = 'ia:' + rec['ocaid']
     q = build_query(rec)
 
     reply = {}
@@ -59,7 +58,7 @@ def load_data(rec):
             'name': a['name'],
             'status': ('created' if new_author else 'modified'),
         })
-    q['source_records'] = [loc]
+    #q['source_records'] = [loc]
     if authors:
         q['authors'] = authors
         reply['authors'] = author_reply
@@ -151,6 +150,18 @@ def find_match(e1, edition_pool):
                 add_source_records(edition_key, ia)
                 return edition_key
     return None
+
+pool_fields = ('isbn', 'title', 'oclc_numbers', 'lccn')
+
+def build_pool(rec):
+    pool = {}
+    for field in pool_fields:
+        if field not in rec:
+            continue
+        for v in rec[field]:
+            found = web.ctx.site.things({field: v})
+            pool.setdefault(field, set()).update(found)
+    return dict((k, list(v)) for k, v in pool.iteritems() if v)
 
 def load(rec):
     if not rec.get('title'):
