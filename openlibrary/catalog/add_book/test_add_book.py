@@ -2,7 +2,7 @@ from load_book import build_query, InvalidLanguage
 from . import load, RequiredField
 import py.test
 
-def test_build_query(mock_site):
+def add_languages(mock_site):
     languages = [
         ('eng', 'English'),
         ('fre', 'Frech'),
@@ -13,7 +13,9 @@ def test_build_query(mock_site):
             'name': name,
             'type': {'key': '/type/language'},
         })
-    mock_site.save({'key': '/languages/fre', 'name': 'French'})
+
+def test_build_query(mock_site):
+    add_languages(mock_site)
     rec = {
         'title': 'magic',
         'languages': ['eng', 'fre'],
@@ -29,12 +31,14 @@ def test_build_query(mock_site):
     py.test.raises(InvalidLanguage, build_query, {'languages': ['wtf']})
 
 def test_load(mock_site):
+    add_languages(mock_site)
     rec = {'ocaid': 'test item'}
     py.test.raises(RequiredField, load, {'ocaid': 'test_item'})
 
     rec = {
         'ocaid': 'test_item',
-        'title': 'Test item'
+        'title': 'Test item',
+        'languages': ['eng'],
     }
     reply = load(rec)
     assert reply['success'] == True
@@ -47,6 +51,8 @@ def test_load(mock_site):
     assert e.type.key == '/type/edition'
     assert e.title == 'Test item'
     assert e.ocaid == 'test_item'
+    l = e.languages
+    assert len(l) == 1 and l[0].key == '/languages/eng'
 
     assert reply['work']['status'] == 'created'
     w = mock_site.get(reply['work']['key'])
@@ -67,7 +73,7 @@ def test_load(mock_site):
     rec = {
         'ocaid': 'test_item',
         'title': 'Test item',
-        'authors': [{'name': 'John Doe', 'entity_type': 'person'}],
+        'authors': [{'name': 'John Doe'}],
     }
     reply = load(rec)
     assert reply['success'] == True
@@ -80,7 +86,7 @@ def test_load(mock_site):
     rec = {
         'ocaid': 'test_item',
         'title': 'Test item',
-        'authors': [{'name': 'John Doe', 'entity_type': 'person'}],
+        'authors': [{'name': 'Doe, John', 'entity_type': 'person'}],
     }
     reply = load(rec)
     assert reply['success'] == True

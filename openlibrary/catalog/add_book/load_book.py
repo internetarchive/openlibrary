@@ -38,7 +38,8 @@ def pick_from_matches(author, match): # no DB calls in this function
 def find_entity(author): # no direct DB calls
     name = author['name']
     things = find_author(name)
-    if author['entity_type'] != 'person':
+    et = author.get('entity_type')
+    if et and et != 'person':
         if not things:
             return None
         db_entity = things[0]
