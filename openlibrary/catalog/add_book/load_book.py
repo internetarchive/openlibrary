@@ -18,7 +18,7 @@ def find_author(name, send_mail=True):
     q = {'type': '/type/author', 'name': name} # FIXME should have no limit
     reply = list(web.ctx.site.things(q))
     authors = [web.ctx.site.get(k) for k in reply]
-    if any(a['type']['key'] != '/type/author' for a in authors):
+    if any(a.type.key != '/type/author' for a in authors):
         seen = set()
         authors = [walk_redirects(a, seen) for a in authors if a['key'] not in seen]
     return authors
@@ -54,7 +54,7 @@ def find_entity(author): # no direct DB calls
             continue
         seen.add(key)
         orig_key = key
-        assert a['type']['key'] == '/type/author'
+        assert a.type.key == '/type/author'
         if 'birth_date' in author and 'birth_date' not in a:
             continue
         if 'birth_date' not in author and 'birth_date' in a:
@@ -76,10 +76,10 @@ def find_entity(author): # no direct DB calls
 def import_author(author, eastern=False):
     existing = find_entity(author)
     if existing:
-        assert existing['type']['key'] == '/type/author'
+        assert existing.type.key == '/type/author'
         for k in 'last_modified', 'id', 'revision', 'created':
-            if k in existing:
-                del existing[k]
+            if existing.k:
+                del existing.k
         new = existing
         if 'death_date' in author and 'death_date' not in existing:
             new['death_date'] = author['death_date']

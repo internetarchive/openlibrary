@@ -2,6 +2,7 @@ from openlibrary.catalog.merge.merge_marc import build_marc
 from load_book import build_query
 import web
 #from openlibrary.catalog.importer.merge import try_merge
+from openlibrary.catalog.utils import mk_norm
 
 type_map = {
     'description': 'text',
@@ -14,6 +15,30 @@ class RequiredField(Exception):
         self.f = f
     def __str__(self):
         return "missing required field: '%s'" % self.f
+
+def find_matching_work(e):
+    norm_title = mk_norm(e['title'])
+
+    seen = set()
+    for akey in e['authors']:
+        q = {
+            'type':'/type/work',
+            'authors': {'author': {'key': akey}},
+            'limit': 0,
+            'title': None,
+        }
+        work_keys = list(web.ctx.site.things(q))
+        for w in work_keys:
+            wkey = w['key']
+            if wkey in seen:
+                continue
+            seen.add(wkey)
+            if not w.get('title'):
+                continue
+            if mk_norm(w['title']) == norm_title:
+                assert web.ctx.site.things({'key': wkey, 'type': None})[0]['type'] == '/type/work'
+                return wkey
+
 
 def load_data(rec):
     loc = 'ia:' + rec['ocaid']
@@ -31,6 +56,7 @@ def load_data(rec):
         authors.append({'key': a['key']})
         author_reply.append({
             'key': a['key'],
+            'name': a['name'],
             'status': ('created' if new_author else 'modified'),
         })
     q['source_records'] = [loc]
@@ -51,7 +77,7 @@ def load_data(rec):
 #        subjects['subjects'] += ['Protected DAISY', 'In library']
 
     found_wkey_match = False
-    if 'authors' in q and False:
+    if 'authors' in q:
         wkey = find_matching_work(q)
     if wkey and False:
         w = ol.get(wkey)
@@ -66,7 +92,7 @@ def load_data(rec):
             ol.save(wkey, w, 'add subjects from new record')
     else:
         w = {
-            'type': '/type/work',
+            'type': {'key': '/type/work'},
             'title': q['title'],
         }
         if 'subjects' in rec:
