@@ -38,3 +38,26 @@ def test_load(mock_site):
     assert reply['work']['status'] == 'created'
     w = mock_site.get(reply['work']['key'])
     assert w.title == 'Test item'
+
+    rec = {
+        'ocaid': 'test_item',
+        'title': 'Test item',
+        'subjects': ['Protected DAISY', 'In library'],
+    }
+    reply = load(rec)
+    assert reply['success'] == True
+    w = mock_site.get(reply['work']['key'])
+    assert w.title == 'Test item'
+    assert w.subjects == ['Protected DAISY', 'In library']
+
+    
+    rec = {
+        'ocaid': 'test_item',
+        'title': 'Test item',
+        'authors': [{'name': 'John Doe', 'entity_type': 'person'}],
+    }
+    reply = load(rec)
+    assert reply['success'] == True
+    assert reply['authors'][0]['status'] == 'created'
+
+

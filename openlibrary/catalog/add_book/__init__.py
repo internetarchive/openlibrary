@@ -19,22 +19,24 @@ def load_data(rec):
     loc = 'ia:' + rec['ocaid']
     q = build_query(rec)
 
+    reply = {}
+
     authors = []
+    author_reply = []
     for a in q.get('authors', []):
-        if 'key' in a:
-            authors.append({'key': a['key']})
-        else:
-            try:
-                ret = ol.new(a, comment='new author')
-            except:
-                print a
-                raise
-            print 'ret:', ret
-            assert isinstance(ret, basestring)
-            authors.append({'key': ret})
+        new_author = 'key' not in a
+        if new_author:
+            a['key'] = web.ctx.site.new_key('/type/author')
+            web.ctx.site.save(a, comment='new author')
+        authors.append({'key': a['key']})
+        author_reply.append({
+            'key': a['key'],
+            'status': ('created' if new_author else 'modified'),
+        })
     q['source_records'] = [loc]
     if authors:
         q['authors'] = authors
+        reply['authors'] = author_reply
 
     wkey = None
     #subjects = subjects_for_work(rec)
@@ -67,6 +69,8 @@ def load_data(rec):
             'type': '/type/work',
             'title': q['title'],
         }
+        if 'subjects' in rec:
+            w['subjects'] = rec['subjects']
         if 'authors' in q:
             w['authors'] = [{'type':'/type/author_role', 'author': akey} for akey in q['authors']]
         w.update(subjects)
@@ -87,14 +91,13 @@ def load_data(rec):
     #if 'cover' in rec:
     #    add_cover_image(ekey, rec['cover'])
 
-    return {
-        'success': True,
-        'edition': { 'key': ekey, 'status': 'created', },
-        'work': {
-            'key': wkey,
-            'status': ('modified' if found_wkey_match else 'created'),
-        },
+    reply['success'] = True
+    reply['edition'] = { 'key': ekey, 'status': 'created', }
+    reply['work'] = {
+        'key': wkey,
+        'status': ('modified' if found_wkey_match else 'created'),
     }
+    return reply
 
 def is_redirect(i):
     return i['type']['key'] == redirect
