@@ -1,6 +1,7 @@
 from openlibrary.catalog.merge.merge_marc import build_marc
 from load_book import build_query
-from openlibrary.catalog.importer.merge import try_merge
+import web
+#from openlibrary.catalog.importer.merge import try_merge
 
 type_map = {
     'description': 'text',
@@ -8,16 +9,17 @@ type_map = {
     'number_of_pages': 'int',
 }
 
-class InvalidLanguage(Exception):
-    def __init__(self, code):
-        self.code = code
+class RequiredField(Exception):
+    def __init__(self, f):
+        self.f = f
     def __str__(self):
-        return "invalid language code: '%s'" % self.code
+        return "missing required field: '%s'" % self.f
 
 def load_data(rec):
     loc = 'ia:' + rec['ocaid']
     q = build_query(rec)
 
+    authors = []
     for a in q.get('authors', []):
         if 'key' in a:
             authors.append({'key': a['key']})
@@ -35,20 +37,23 @@ def load_data(rec):
         q['authors'] = authors
 
     wkey = None
-    subjects = subjects_for_work(rec)
-    subjects.setdefault('subjects', []).append('Accessible book')
+    #subjects = subjects_for_work(rec)
+    subjects = {}
+#    subjects.setdefault('subjects', []).append('Accessible book')
+#
+#    if 'printdisabled' in collections:
+#        subjects['subjects'].append('Protected DAISY')
+#    elif 'lendinglibrary' in collections:
+#        subjects['subjects'] += ['Protected DAISY', 'Lending library']
+#    elif 'inlibrary' in collections:
+#        subjects['subjects'] += ['Protected DAISY', 'In library']
 
-    if 'printdisabled' in collections:
-        subjects['subjects'].append('Protected DAISY')
-    elif 'lendinglibrary' in collections:
-        subjects['subjects'] += ['Protected DAISY', 'Lending library']
-    elif 'inlibrary' in collections:
-        subjects['subjects'] += ['Protected DAISY', 'In library']
-
+    found_wkey_match = False
     if 'authors' in q and False:
         wkey = find_matching_work(q)
     if wkey and False:
         w = ol.get(wkey)
+        found_wkey_match = True
         need_update = False
         for k, subject_list in subjects.items():
             for s in subject_list:
@@ -66,18 +71,30 @@ def load_data(rec):
             w['authors'] = [{'type':'/type/author_role', 'author': akey} for akey in q['authors']]
         w.update(subjects)
 
-        wkey = web.ctx.site.new(w, comment='initial import')
+        wkey = web.ctx.site.new_key('/type/work')
+
+        w['key'] = wkey
+        web.ctx.site.save(w, comment='initial import')
 
     q['works'] = [{'key': wkey}]
-    ret = web.ctx.site.new(q, comment='initial import')
+    ekey = web.ctx.site.new_key('/type/edition')
+    q['key'] = ekey
+    web.ctx.site.save(q, comment='initial import')
 
-    assert isinstance(ret, basestring)
-    key = '/b/' + re_edition_key.match(ret).group(1)
-    pool.update(key, q)
+    #pool.update(ekey, q)
 
-    print 'add_cover_image'
-    if 'cover' in rec:
-        add_cover_image(ret, rec['cover'])
+    #print 'add_cover_image'
+    #if 'cover' in rec:
+    #    add_cover_image(ekey, rec['cover'])
+
+    return {
+        'success': True,
+        'edition': { 'key': ekey, 'status': 'created', },
+        'work': {
+            'key': wkey,
+            'status': ('modified' if found_wkey_match else 'created'),
+        },
+    }
 
 def is_redirect(i):
     return i['type']['key'] == redirect
@@ -107,10 +124,12 @@ def find_match(e1, edition_pool):
     return None
 
 def load(rec):
+    if not rec.get('title'):
+        raise RequiredField('title')
     #edition_pool = pool.build(rec)
-    load_data(rec) # 'no books in pool, loading'
+    edition_pool = {}
     if not edition_pool:
-        load_data(rec) # 'no books in pool, loading'
+        return load_data(rec) # 'no books in pool, loading'
 
     rec['full_title'] = rec['title']
     if rec.get('subtitle'):
