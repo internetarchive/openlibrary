@@ -161,7 +161,7 @@ def build_pool(rec):
         if field not in rec:
             continue
         for v in rec[field]:
-            found = web.ctx.site.things({field: v})
+            found = web.ctx.site.things({field: v, 'type': '/type/edition'})
             pool.setdefault(field, set()).update(found)
     return dict((k, list(v)) for k, v in pool.iteritems() if v)
 
