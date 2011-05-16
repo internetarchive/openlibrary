@@ -158,6 +158,10 @@ class User(Thing):
         return self._site.get_many(keys)
     usergroups = property(get_usergroups)
     
+    def get_account(self):
+        account_key = "account/" + self.key.split("/")[-1]
+        return web.ctx.site.store.get(account_key)
+    
     def get_username(self):
         return self.key.split("/")[-1]
 

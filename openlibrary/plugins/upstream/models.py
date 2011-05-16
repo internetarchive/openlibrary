@@ -712,6 +712,12 @@ class Changeset(client.Changeset):
         # return the first undo changeset
         self._undo_changeset = changesets and changesets[-1] or None
         return self._undo_changeset
+        
+class NewAccountChangeset(Changeset):
+    def get_user(self):
+        keys = [c.key for c in self.get_changes()]
+        user_key = "/people/" + keys[0].split("/")[2]
+        return web.ctx.site.get(user_key)
 
 class MergeAuthors(Changeset):
     def can_undo(self):
@@ -792,3 +798,4 @@ def setup():
 
     client.register_changeset_class('add-book', AddBookChangeset)
     client.register_changeset_class('lists', ListChangeset)
+    client.register_changeset_class('new-account', NewAccountChangeset)

@@ -312,7 +312,9 @@ class account_password_reset(delegate.page):
         username = doc['username']
         i = web.input()
 
-        web.ctx.site.update_account(username, password=generate_hash(get_secret_key(), i.password))
+        web.ctx.site.update_account(username, password=i.password)
+        
+        del web.ctx.site.store[doc['_key']]
         add_flash_message('info', _("Your password has been updated successfully."))
         raise web.seeother('/account/login')
 
@@ -485,3 +487,13 @@ def sendmail(to, msg, cc=None):
 
 def generate_uuid():
     return str(uuid.uuid4()).replace("-", "")
+
+def as_admin(f):
+    """Infobase allows some requests only from admin user. This decorator logs in as admin, executes the function and clears the admin credentials."""
+    def g(*a, **kw):
+        try:
+            delegate.admin_login()
+            return f(*a, **kw)
+        finally:
+            web.ctx.headers = []
+    return g
