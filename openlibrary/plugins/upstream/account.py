@@ -20,6 +20,29 @@ import borrow
 
 logger = logging.getLogger("openlibrary.account")
 
+class Account(dict):
+    
+    @staticmethod
+    def find(username=None, lusername=None, email=None):
+        """Finds an account by username, email or lowercase username.
+        """
+        def query(name, value):
+            try:
+                return web.ctx.site.store.values(type="account", name=name, value=value, limit=1)[0]
+            except IndexError:
+                return None
+        
+        if username:
+            doc = web.ctx.site.store.get("account/" + username)
+        elif lusername:
+            doc = query("lusername", lusername)
+        elif email:
+            doc = query("email", email)
+        else:
+            doc = None
+            
+        return doc and Account(doc)
+
 class account(delegate.page):
     """Account preferences.
     """
@@ -42,9 +65,9 @@ class account_create(delegate.page):
     def POST(self):
         i = web.input('email', 'password', 'username', agreement="no")
         i.displayname = i.get('displayname') or i.username
-
+        
         f = forms.Register()
-
+        
         if not f.validates(i):
             return render['account/create'](f)
 
@@ -62,7 +85,7 @@ class account_create(delegate.page):
             f.note = str(e)
             return render['account/create'](f)
 
-        send_verification_email(i.username, i.password)
+        send_verification_email(i.username, i.email)
         return render['account/verify'](username=i.username, email=i.email)
 
 del delegate.pages['/account/register']
