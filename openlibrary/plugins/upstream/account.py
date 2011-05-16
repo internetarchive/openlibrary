@@ -165,7 +165,7 @@ class account_verify_old(delegate.page):
         verified = verify_hash(get_secret_key(), i.username + ',' + i.email, i.code)
 
         if verified:
-            web.ctx.site.update_user_details(i.username, verified=True)
+            web.ctx.site.activate_account(i.username)
             user = web.ctx.site.get("/people/" + i.username)
             return render['account/verify/success'](user.displayname or i.username)
         else:
@@ -177,7 +177,7 @@ class account_email(delegate.page):
     path = "/account/email"
 
     def get_email(self):
-        return context.user.email
+        return context.user.get_account()['email']
 
     @require_login
     def GET(self):
@@ -210,37 +210,42 @@ class account_email_verify(delegate.page):
         docs = web.ctx.site.store.values(type="account-link", name="code", value=code)
         if docs:
             doc = docs[0]
-            logger.info("verify email %s", doc)
-
-            web.ctx.site.update_account(username=doc['username'], email=doc['email'], verified=True)
+            username = doc['username']
+            email = doc['email']
+            response = self.update_email(username, email)
+            # Delete the link doc
             del web.ctx.site.store[doc['_key']]
-
-            user = web.ctx.site.get("/people/" + doc['username'])
-            return render['account/verify/success'](user.displayname or doc['username'])
+            return response
         else:
-            return render['account/verify/failed']()
+            return self.bad_link()
+        
+    def update_email(self, username, email):
+        if web.ctx.site.find_account(email=email):
+            title = _("Email address is already used.")
+            message = _("Your email address couldn't be updated. The specified email address is already used.")
+        else:
+            logger.info("updated email of %s to %s", username, email)
+            web.ctx.site.update_account(username=username, email=email, status="active")
+            title = _("Email verification successful.")
+            message = _('Your email address has been successfully verified and updated in your account.')
+        return render.message(title, message)
+        
+    def bad_link(self):
+        title = _("Email address couldn't be verified.")
+        message = _("Your email address couldn't be verified. The verification link seems invalid.")
+        return render.message(title, message)
 
-class account_email_verify_old(delegate.page):
+class account_email_verify_old(account_email_verify):
     path = "/account/email/verify"
 
     def GET(self):
         i = web.input(username='', email='', code='')
 
-        verified = _verify_salted_hash(get_secret_key(), i.username + ',' + i.email, i.code)
+        verified = verify_hash(get_secret_key(), i.username + ',' + i.email, i.code)
         if verified:
-            if web.ctx.site.find_user_by_email(i.email) is not None:
-                title = _("Email address is already used.")
-                message = _("Your email address couldn't be updated. The specified email address is already used.")
-            else:
-                web.ctx.site.update_user_details(i.username, email=i.email)
-                title = _("Email verification successful.")
-                message = _('Your email address has been successfully verified and updated in your account.')
+            return self.update_email(i.username, i.email)
         else:
-            title = _("Email address couldn't be verified.")
-            message = _("Your email address couldn't be verified. The verification link seems invalid.")
-
-        return render.message(title, message)
-
+            return self.bad_link()
 
 class account_password(delegate.page):
     path = "/account/password"
@@ -318,7 +323,6 @@ class account_password_reset(delegate.page):
         add_flash_message('info', _("Your password has been updated successfully."))
         raise web.seeother('/account/login')
 
-
 class account_password_reset_old(delegate.page):
     path = "/account/password/reset"
 
@@ -350,15 +354,9 @@ class account_password_reset_old(delegate.page):
         if not f.validates(i):
             return render['account/password/reset'](f)
 
-        try:
-            reset_password(i.username, i.code, i.password)
-            web.ctx.site.login(i.username, i.password, False)
-            add_flash_message('info', _("Your password has been updated successfully."))
-            raise web.seeother('/')
-        except Exception, e:
-            add_flash_message('error', "Failed to reset password.<br/><br/> Reason: "  + str(e))
-            return self.GET()
-
+        web.ctx.site.update_account(i.username, password=i.password)
+        add_flash_message('info', _("Your password has been updated successfully."))
+        raise web.seeother('/account/login')
 
 class account_notifications(delegate.page):
     path = "/account/notifications"
