@@ -1,22 +1,48 @@
-"""Simple implementation of infogami site to use in testing.
+"""Simple implementation of mock infogami site to use in testing.
 """
 import datetime
 import web
 import glob
 
-from infogami.infobase import client, common
+from infogami.infobase import client, common, account
+from infogami import config
 
 class MockSite:
     def __init__(self):
         self.reset()
         
     def reset(self):
+        self.store = MockStore()
+        if config.get('infobase') is None:
+            config.infobase = {}
+            
+        config.infobase['secret_key'] = "foobar"
+        
+        self.account_manager = self.create_account_manager()
+        
+        self._cache = {}
         self.docs = {}
         self.changesets = []
         self.index = []
         
+    def create_account_manager(self):
+        # Hack to use the accounts stuff from Infogami
+        from infogami.infobase import config as infobase_config
+        
+        infobase_config.user_root = "/people"
+        
+        store = web.storage(store=self.store)
+        site = web.storage(store=store, save_many=self.save_many)
+        return account.AccountManager(site, config.infobase['secret_key'])
+        
+    def save_many(self, docs, **kw):
+        timestamp = kw.pop("timestamp", datetime.datetime.utcnow())
+        for doc in docs:
+            self.save(doc, timestamp=timestamp)
+        
     def save(self, query, comment=None, action=None, data=None, timestamp=None):
         timestamp = timestamp or datetime.datetime.utcnow()
+        print >> web.debug, "mock_site.save", query
         
         key = query['key']
         
@@ -150,6 +176,15 @@ class MockSite:
         self.index = [i for i in self.index if i.key != doc['key']]
         self.index.extend(self.compute_index(doc))
         
+    def get_user(self):
+        return None
+        
+    def find_user_by_email(self, email):
+        return None
+        
+    def versions(self, q):
+        return []
+        
     def _get_backreferences(self, doc):
         return {}
         
@@ -165,6 +200,51 @@ class MockSite:
         data = common.parse_query(data)
         data = self._process_dict(data or {})
         return client.create_thing(self, key, data)
+        
+    def register(self, username, displayname, email, password):
+        try:
+            self.account_manager.register(
+                username=username, 
+                email=email, 
+                password=password, 
+                data={"displayname": displayname})
+        except common.InfobaseException, e:
+            raise ClientException(str(e))
+            
+    def activate_account(self, username):
+        try:
+            self.account_manager.activate(username=username)
+        except common.InfobaseException, e:
+            raise ClientException(str(e))
+        
+class MockStore(dict):
+    def __setitem__(self, key, doc):
+        doc['_key'] = key
+        dict.__setitem__(self, key, doc)
+        
+    put = __setitem__
+        
+    def put_many(self, docs):
+        self.update((doc['_key'], doc) for doc in docs)
+        
+    def _query(self, type=None, name=None, value=None, limit=100, offset=0):
+        for doc in dict.values(self):
+            if type is not None and doc.get("type", "") != type:
+                continue
+            if name is not None and doc.get(name) != value:
+                continue
+            
+            yield doc
+
+    def keys(self, **kw):
+        return [doc['_key'] for doc in self._query(**kw)]
+
+    def values(self, **kw):
+        return [doc for doc in self._query(**kw)]
+        
+    def items(self, **kw):
+        return [(doc["_key"], doc) for doc in self._query(**kw)]
+        
         
 def pytest_funcarg__mock_site(request):
     """mock_site funcarg.
