@@ -209,13 +209,19 @@ class MockSite:
                 password=password, 
                 data={"displayname": displayname})
         except common.InfobaseException, e:
-            raise ClientException(str(e))
+            raise ClientException("bad_data", str(e))
             
     def activate_account(self, username):
         try:
             self.account_manager.activate(username=username)
         except common.InfobaseException, e:
             raise ClientException(str(e))
+            
+    def update_account(self, username, **kw):
+        status = self.account_manager.update(username, **kw)
+        if status != "ok":
+            raise ClientException("bad_data", "Account activation failed.")
+    
         
 class MockStore(dict):
     def __setitem__(self, key, doc):

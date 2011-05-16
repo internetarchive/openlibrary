@@ -32,6 +32,12 @@ class EMail(web.storage):
     def extract_links(self):
         """Extracts link from the email message."""
         return re.findall(r"http://[^\s]*", self.message)
+        
+class OLBrowser(web.AppBrowser):
+    def get_text(self, e=None, name=None, **kw):
+        if name or kw:
+            e = self.get_soup().find(name=name, **kw)
+        return web.AppBrowser.get_text(self, e)        
 
 class OL:
     """Mock OL object for all tests.
@@ -49,7 +55,7 @@ class OL:
         
         self.setup_config()
                 
-        self.browser = delegate.app.browser()
+        self.browser = OLBrowser(delegate.app)
         
     def setup_config(self):
         config.from_address = "Open Library <noreply@openlibrary.org>"

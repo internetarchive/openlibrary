@@ -20,7 +20,11 @@ import borrow
 
 logger = logging.getLogger("openlibrary.account")
 
-class Account(dict):
+class Account(web.storage):
+    
+    @property
+    def username(self):
+        return self._key.split("/")[-1]
     
     @staticmethod
     def find(username=None, lusername=None, email=None):
@@ -311,9 +315,9 @@ class account_password_forgot(delegate.page):
         if not f.validates(i):
             return render['account/password/forgot'](f)
 
-        key = web.ctx.site.find_user_by_email(i.email)
-        username = key.split("/")[-1]
-        send_forgot_password_email(username, i.email)
+        account = Account.find(email=i.email)
+        
+        send_forgot_password_email(account.username, i.email)
         return render['account/password/sent'](i.email)
 
 class account_password_reset(delegate.page):

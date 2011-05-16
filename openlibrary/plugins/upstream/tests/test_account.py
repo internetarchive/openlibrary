@@ -41,12 +41,9 @@ class TestAccount:
     def test_create(self, ol):
         b = ol.browser
         self.signup(b, displayname="Foo", username="foo", password="secret", email="foo@example.com")
-        
-        head = b.get_soup().find("div", id="contentHead")
-        body = b.get_soup().find("div", id="contentBody")
-        
-        assert "Hi, foo!" in b.get_text(head)
-        assert "sent an email to foo@example.com" in b.get_text(body)
+                
+        assert "Hi, foo!" in b.get_text(id="contentHead")
+        assert "sent an email to foo@example.com" in b.get_text(id="contentBody")
         
         assert ol.sentmail["from_address"] == "Open Library <noreply@openlibrary.org>"
         assert ol.sentmail["to_address"] == "foo@example.com"
@@ -59,12 +56,38 @@ class TestAccount:
         b = ol.browser
         
         self.signup(b, displayname="Foo", username="foo", password="secret", email="foo@example.com")
-        link = ol.sentmail.extract_links()[0]    
-    
+        link = ol.sentmail.extract_links()[0]
         b.open(link)
         
-        head = b.get_soup().find("div", id="contentHead")
-        body = b.get_soup().find("div", id="contentBody")
+        assert "Hi, Foo!" in b.get_text(id="contentHead")        
+        assert "Yay! Your email address has been verified." in b.get_text(id="contentBody")
+
+    def test_forgot_password(self, ol):
+        b = ol.browser
         
-        assert "Hi, Foo!" in b.get_text(head)        
-        assert "Yay! Your email address has been verified." in b.get_text(body)
+        self.signup(b, displayname="Foo", username="foo", password="secret", email="foo@example.com")
+        link = ol.sentmail.extract_links()[0]
+        b.open(link)
+        
+        b.open("/account/password/forgot")
+        b.select_form(name="register") # why is the form called register?
+        b['email'] = "foo@example.com"
+        b.submit()
+        
+        assert "Thanks" in b.get_text(id="contentHead")
+        assert "We've sent an email to foo@example.com with instructions" in b.get_text(id="contentBody")
+        
+        link = ol.sentmail.extract_links()[0]
+        assert re.match("^http://0.0.0.0:8080/account/password/reset/[0-9a-f]{32}$", link)
+        
+        b.open(link)
+        assert "Reset Password" in b.get_text(id="contentHead")
+        assert "Please enter a new password for your Open Library account" in b.get_text(id="contentBody")
+        b.select_form(name="reset")
+        b['password'] = "secret2"
+        b.submit()
+        
+        # TODO: Test login after reset
+        
+        
+        
