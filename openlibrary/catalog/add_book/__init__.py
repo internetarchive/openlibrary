@@ -1,6 +1,8 @@
 from openlibrary.catalog.merge.merge_marc import build_marc
 from load_book import build_query
-from openlibrary.catalog.importer.merge import try_merge
+import web
+from merge import try_merge
+from openlibrary.catalog.utils import mk_norm
 
 type_map = {
     'description': 'text',
@@ -8,47 +10,77 @@ type_map = {
     'number_of_pages': 'int',
 }
 
-class InvalidLanguage(Exception):
-    def __init__(self, code):
-        self.code = code
+class RequiredField(Exception):
+    def __init__(self, f):
+        self.f = f
     def __str__(self):
-        return "invalid language code: '%s'" % self.code
+        return "missing required field: '%s'" % self.f
+
+def find_matching_work(e):
+    norm_title = mk_norm(e['title'])
+
+    seen = set()
+    for akey in e['authors']:
+        q = {
+            'type':'/type/work',
+            'authors': {'author': {'key': akey}},
+            'limit': 0,
+            'title': None,
+        }
+        work_keys = list(web.ctx.site.things(q))
+        for w in work_keys:
+            wkey = w['key']
+            if wkey in seen:
+                continue
+            seen.add(wkey)
+            if not w.get('title'):
+                continue
+            if mk_norm(w['title']) == norm_title:
+                assert web.ctx.site.things({'key': wkey, 'type': None})[0]['type'] == '/type/work'
+                return wkey
+
 
 def load_data(rec):
-    loc = 'ia:' + rec['ocaid']
     q = build_query(rec)
 
+    reply = {}
+
+    authors = []
+    author_reply = []
     for a in q.get('authors', []):
-        if 'key' in a:
-            authors.append({'key': a['key']})
-        else:
-            try:
-                ret = ol.new(a, comment='new author')
-            except:
-                print a
-                raise
-            print 'ret:', ret
-            assert isinstance(ret, basestring)
-            authors.append({'key': ret})
-    q['source_records'] = [loc]
+        new_author = 'key' not in a
+        if new_author:
+            a['key'] = web.ctx.site.new_key('/type/author')
+            web.ctx.site.save(a, comment='new author')
+        authors.append({'key': a['key']})
+        author_reply.append({
+            'key': a['key'],
+            'name': a['name'],
+            'status': ('created' if new_author else 'modified'),
+        })
+    #q['source_records'] = [loc]
     if authors:
         q['authors'] = authors
+        reply['authors'] = author_reply
 
     wkey = None
-    subjects = subjects_for_work(rec)
-    subjects.setdefault('subjects', []).append('Accessible book')
+    #subjects = subjects_for_work(rec)
+    subjects = {}
+#    subjects.setdefault('subjects', []).append('Accessible book')
+#
+#    if 'printdisabled' in collections:
+#        subjects['subjects'].append('Protected DAISY')
+#    elif 'lendinglibrary' in collections:
+#        subjects['subjects'] += ['Protected DAISY', 'Lending library']
+#    elif 'inlibrary' in collections:
+#        subjects['subjects'] += ['Protected DAISY', 'In library']
 
-    if 'printdisabled' in collections:
-        subjects['subjects'].append('Protected DAISY')
-    elif 'lendinglibrary' in collections:
-        subjects['subjects'] += ['Protected DAISY', 'Lending library']
-    elif 'inlibrary' in collections:
-        subjects['subjects'] += ['Protected DAISY', 'In library']
-
-    if 'authors' in q and False:
+    found_wkey_match = False
+    if 'authors' in q:
         wkey = find_matching_work(q)
     if wkey and False:
         w = ol.get(wkey)
+        found_wkey_match = True
         need_update = False
         for k, subject_list in subjects.items():
             for s in subject_list:
@@ -59,28 +91,43 @@ def load_data(rec):
             ol.save(wkey, w, 'add subjects from new record')
     else:
         w = {
-            'type': '/type/work',
+            'type': {'key': '/type/work'},
             'title': q['title'],
         }
+        if 'subjects' in rec:
+            w['subjects'] = rec['subjects']
         if 'authors' in q:
             w['authors'] = [{'type':'/type/author_role', 'author': akey} for akey in q['authors']]
         w.update(subjects)
 
-        wkey = web.ctx.site.new(w, comment='initial import')
+        wkey = web.ctx.site.new_key('/type/work')
+
+        w['key'] = wkey
+        web.ctx.site.save(w, comment='initial import')
 
     q['works'] = [{'key': wkey}]
-    ret = web.ctx.site.new(q, comment='initial import')
+    ekey = web.ctx.site.new_key('/type/edition')
+    q['key'] = ekey
+    web.ctx.site.save(q, comment='initial import')
 
-    assert isinstance(ret, basestring)
-    key = '/b/' + re_edition_key.match(ret).group(1)
-    pool.update(key, q)
+    #pool.update(ekey, q)
 
-    print 'add_cover_image'
-    if 'cover' in rec:
-        add_cover_image(ret, rec['cover'])
+    #print 'add_cover_image'
+    #if 'cover' in rec:
+    #    add_cover_image(ekey, rec['cover'])
+
+    reply['success'] = True
+    reply['edition'] = { 'key': ekey, 'status': 'created', }
+    reply['work'] = {
+        'key': wkey,
+        'status': ('modified' if found_wkey_match else 'created'),
+    }
+    return reply
 
 def is_redirect(i):
-    return i['type']['key'] == redirect
+    if not i:
+        return False
+    return i.type.key == '/type/redirect'
 
 def find_match(e1, edition_pool):
     seen = set()
@@ -106,11 +153,24 @@ def find_match(e1, edition_pool):
                 return edition_key
     return None
 
+pool_fields = ('isbn', 'title', 'oclc_numbers', 'lccn')
+
+def build_pool(rec):
+    pool = {}
+    for field in pool_fields:
+        if field not in rec:
+            continue
+        for v in rec[field]:
+            found = web.ctx.site.things({field: v, 'type': '/type/edition'})
+            pool.setdefault(field, set()).update(found)
+    return dict((k, list(v)) for k, v in pool.iteritems() if v)
+
 def load(rec):
-    #edition_pool = pool.build(rec)
-    load_data(rec) # 'no books in pool, loading'
+    if not rec.get('title'):
+        raise RequiredField('title')
+    edition_pool = build_pool(rec)
     if not edition_pool:
-        load_data(rec) # 'no books in pool, loading'
+        return load_data(rec) # 'no books in pool, loading'
 
     rec['full_title'] = rec['title']
     if rec.get('subtitle'):
@@ -134,4 +194,5 @@ def load(rec):
     else: # 'no match found', rec['ia']
         load_data(rec)
 
-    return {'note': 'loaded'}
+    reply = {'success': True}
+    return reply
