@@ -25,6 +25,9 @@ class Account(web.storage):
     @property
     def username(self):
         return self._key.split("/")[-1]
+        
+    def verify_password(self, password):
+        return verify_hash(get_secret_key(), password, self.enc_password)
     
     @staticmethod
     def find(username=None, lusername=None, email=None):
@@ -114,7 +117,7 @@ class account_login(delegate.page):
 
     def POST(self):
         i = web.input(remember=False, redirect='/', action="login")
-
+        
         if i.action == "resend_verification_email":
             return self.POST_resend_verification_email(i)
         else:
@@ -128,7 +131,7 @@ class account_login(delegate.page):
 
     def POST_login(self, i):
         try:
-            web.ctx.site.login(i.username, i.password, i.remember)
+            web.ctx.site.login(i.username, i.password)
         except ClientException, e:
             code = e.get_data().get("code")
 
@@ -149,7 +152,7 @@ class account_login(delegate.page):
 
     def POST_resend_verification_email(self, i):
         try:
-            web.ctx.site.login(i.username, i.password, i.remember)
+            web.ctx.site.login(i.username, i.password)
         except ClientException, e:
             code = e.get_data().get("code")
             if code != "account_not_verified":
@@ -289,16 +292,21 @@ class account_password(delegate.page):
 
         if not f.validates(i):
             return render['account/password'](f)
-
-        try:
-            user = web.ctx.site.update_user(i.password, i.new_password, None)
-        except ClientException, e:
-            f.note = str(e)
+            
+        user = web.ctx.site.get_user()
+        username = user.key.split("/")[-1]
+        
+        if self.try_login(username, i.password):
+            web.ctx.site.update_account(username, password=i.new_password)
+            add_flash_message('note', _('Your password has been updated successfully.'))
+            raise web.seeother('/account')
+        else:
+            f.note = "Invalid password"
             return render['account/password'](f)
-
-        add_flash_message('note', _('Your password has been updated successfully.'))
-        web.seeother('/account')
-
+        
+    def try_login(self, username, password):
+        account = Account.find(username=username)
+        return account and account.verify_password(password)
 
 class account_password_forgot(delegate.page):
     path = "/account/password/forgot"
@@ -343,7 +351,7 @@ class account_password_reset(delegate.page):
         doc = docs[0]
         username = doc['username']
         i = web.input()
-
+        
         web.ctx.site.update_account(username, password=i.password)
         
         del web.ctx.site.store[doc['_key']]

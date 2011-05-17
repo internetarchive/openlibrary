@@ -31,16 +31,27 @@ class TestAccount:
         b.open("/account/create")
         b.select_form(name="signup")
 
-        b['displayname'] = 'Foo'
-        b['username'] = 'foo'
-        b['password'] = 'secret2'
-        b['email'] = 'foo@example.com'
+        b['displayname'] = displayname
+        b['username'] = username
+        b['password'] = password
+        b['email'] = email
         b['agreement'] = ['yes']
         b.submit()
+        
+    def login(self, b, username, password):
+        """Attempt login and return True if successful.
+        """
+        b.open("/account/login")
+        b.select_form(name="register") # wrong name
+        b["username"] = username
+        b["password"] = password
+        b.submit()
+        
+        return b.path == "/"
 
     def test_create(self, ol):
-        b = ol.browser
-        self.signup(b, displayname="Foo", username="foo", password="secret", email="foo@example.com")
+        b = ol.browser()
+        self.signup(b, displayname="Foo", username="foo", password="blackgoat", email="foo@example.com")
                 
         assert "Hi, foo!" in b.get_text(id="contentHead")
         assert "sent an email to foo@example.com" in b.get_text(id="contentBody")
@@ -53,7 +64,7 @@ class TestAccount:
         assert re.match("^http://0.0.0.0:8080/account/verify/[0-9a-f]{32}$", link)
         
     def test_activate(self, ol):
-        b = ol.browser
+        b = ol.browser()
         
         self.signup(b, displayname="Foo", username="foo", password="secret", email="foo@example.com")
         link = ol.sentmail.extract_links()[0]
@@ -61,9 +72,14 @@ class TestAccount:
         
         assert "Hi, Foo!" in b.get_text(id="contentHead")        
         assert "Yay! Your email address has been verified." in b.get_text(id="contentBody")
+        
+        self.login(b, "foo", "secret")
+        
+        assert b.path == "/"
+        assert "Log out" in b.get_text()        
 
     def test_forgot_password(self, ol):
-        b = ol.browser
+        b = ol.browser()
         
         self.signup(b, displayname="Foo", username="foo", password="secret", email="foo@example.com")
         link = ol.sentmail.extract_links()[0]
@@ -86,8 +102,58 @@ class TestAccount:
         b.select_form(name="reset")
         b['password'] = "secret2"
         b.submit()
+                
+        self.login(b, "foo", "secret2")
+        assert b.path == "/"
+        assert "Log out" in b.get_text()
         
-        # TODO: Test login after reset
+        b.reset()
+        self.login(b, "foo", "secret")
+        assert b.path == "/account/login"
+        assert "That password seems incorrect" in b.get_text()
+
+    def test_change_password(self, ol):
+        b = ol.browser()
+        self.signup(b, displayname="Foo", username="foo", password="secret", email="foo@example.com")
+        link = ol.sentmail.extract_links()[0]
+        b.open(link)
+        self.login(b, "foo", "secret")
         
+        b.open("/account/password")
+        b.select_form(name="register")
+        b['password'] = "secret"
+        b['new_password'] = "more_secret"
+        b.submit()
         
+        assert b.path == "/account"
+        
+        b.reset()
+        assert self.login(b, "foo", "more_secret") == True
+
+    def test_change_email(self, ol):
+        b = ol.browser()
+        self.signup(b, displayname="Foo", username="foo", password="secret", email="foo@example.com")
+
+        link = ol.sentmail.extract_links()[0]
+        b.open(link)
+
+        self.login(b, "foo", "secret")
+
+        b.open("/account/email")
+        
+        assert "foo@example.com" in b.data
+        
+        b.select_form(name="register")
+        b['email'] = "foobar@example.com"
+        b.submit()
+        
+        assert "Hi Foo" in b.get_text(id="contentHead")
+        assert "We've sent an email to foobar@example.com" in b.get_text(id="contentBody")
+        
+        link = ol.sentmail.extract_links()[0]
+        b.open(link)
+        assert "Email verification successful" in b.get_text(id="contentHead")
+        
+        b.open("/account/email")
+        assert "foobar@example.com" in b.data
         

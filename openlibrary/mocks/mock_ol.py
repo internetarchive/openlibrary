@@ -7,7 +7,7 @@ from infogami.utils import delegate
 
 from openlibrary.plugins import ol_infobase
 
-from mock_infobase import pytest_funcarg__mock_site
+from mock_infobase import pytest_funcarg__mock_site, MockConnection
 from _pytest.monkeypatch import pytest_funcarg__monkeypatch
 
 def pytest_funcarg__ol(request):
@@ -15,7 +15,7 @@ def pytest_funcarg__ol(request):
 
     The ol objects exposes the following:
     
-        * ol.browser: web.py browser object that works with OL webapp
+        * ol.browser(): web.py browser object that works with OL webapp
         * ol.site: mock site (also accessible from web.ctx.site)
         * ol.sentmail: Last mail sent
     """
@@ -54,14 +54,20 @@ class OL:
         self._mock_sendmail(request)
         
         self.setup_config()
-                
-        self.browser = OLBrowser(delegate.app)
+        
+    def browser(self):
+        return OLBrowser(delegate.app)
         
     def setup_config(self):
         config.from_address = "Open Library <noreply@openlibrary.org>"
         
     def _load_plugins(self, request):
         def create_site():
+            web.ctx.conn = MockConnection()
+            
+            if web.ctx.get('env'):
+                auth_token = web.cookies().get(config.login_cookie_name)
+                web.ctx.conn.set_auth_token(auth_token)
             return self.site
             
         self.monkeypatch.setattr(delegate, "create_site", create_site)

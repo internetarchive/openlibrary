@@ -3,8 +3,9 @@
 import datetime
 import web
 import glob
+import simplejson
 
-from infogami.infobase import client, common, account
+from infogami.infobase import client, common, account, config as infobase_config
 from infogami import config
 
 class MockSite:
@@ -16,6 +17,7 @@ class MockSite:
         if config.get('infobase') is None:
             config.infobase = {}
             
+        infobase_config.secret_key = "foobar"
         config.infobase['secret_key'] = "foobar"
         
         self.account_manager = self.create_account_manager()
@@ -27,8 +29,6 @@ class MockSite:
         
     def create_account_manager(self):
         # Hack to use the accounts stuff from Infogami
-        from infogami.infobase import config as infobase_config
-        
         infobase_config.user_root = "/people"
         
         store = web.storage(store=self.store)
@@ -42,7 +42,6 @@ class MockSite:
         
     def save(self, query, comment=None, action=None, data=None, timestamp=None):
         timestamp = timestamp or datetime.datetime.utcnow()
-        print >> web.debug, "mock_site.save", query
         
         key = query['key']
         
@@ -176,9 +175,6 @@ class MockSite:
         self.index = [i for i in self.index if i.key != doc['key']]
         self.index.extend(self.compute_index(doc))
         
-    def get_user(self):
-        return None
-        
     def find_user_by_email(self, email):
         return None
         
@@ -209,19 +205,55 @@ class MockSite:
                 password=password, 
                 data={"displayname": displayname})
         except common.InfobaseException, e:
-            raise ClientException("bad_data", str(e))
+            raise client.ClientException("bad_data", str(e))
             
     def activate_account(self, username):
         try:
             self.account_manager.activate(username=username)
         except common.InfobaseException, e:
-            raise ClientException(str(e))
+            raise client.ClientException(str(e))
             
     def update_account(self, username, **kw):
         status = self.account_manager.update(username, **kw)
         if status != "ok":
-            raise ClientException("bad_data", "Account activation failed.")
+            raise client.ClientException("bad_data", "Account activation failed.")
+            
+    def login(self, username, password):
+        status = self.account_manager.login(username, password)
+        if status == "ok":
+            self.account_manager.set_auth_token("/people/" + username)
+        else:
+            d = {"code": status}
+            raise client.ClientException("bad_data", msg="Login failed", json=simplejson.dumps(d))
+            
+    def find_account(self, username=None, email=None):
+        if username is not None:
+            return self.store.get("account/" + username)
+        else:
+            try:
+                return self.store.values(type="account", name="email", value=email)[0]
+            except IndexError:
+                return None
+
+    def get_user(self):
+        auth_token = web.ctx.get("infobase_auth_token", "")
+        
+        if auth_token:
+            try:
+                user_key, login_time, digest = auth_token.split(',')
+            except ValueError:
+                return
+                
+            a = self.account_manager
+            if a._check_salted_hash(a.secret_key, user_key + "," + login_time, digest):
+                return self.get(user_key)
     
+class MockConnection:
+    def get_auth_token(self):
+        return web.ctx.infobase_auth_token
+        
+    def set_auth_token(self, token):
+        web.ctx.infobase_auth_token = token
         
 class MockStore(dict):
     def __setitem__(self, key, doc):
@@ -280,6 +312,7 @@ def pytest_funcarg__mock_site(request):
     old_ctx = dict(web.ctx)
     web.ctx.clear()
     web.ctx.site = site
+    web.ctx.conn = MockConnection()
     web.ctx.env = web.ctx.environ = web.storage()
     web.ctx.headers = []
     
