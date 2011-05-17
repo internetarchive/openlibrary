@@ -28,6 +28,12 @@ class Account(web.storage):
         
     def verify_password(self, password):
         return verify_hash(get_secret_key(), password, self.enc_password)
+        
+    def update_password(self, new_password):
+        web.ctx.site.update_account(self.username, password=new_password)
+    
+    def update_email(self, email):
+        web.ctx.site.update_account(self.username, email=email)
     
     @staticmethod
     def find(username=None, lusername=None, email=None):
