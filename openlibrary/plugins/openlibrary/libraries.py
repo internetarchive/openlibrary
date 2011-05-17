@@ -23,6 +23,17 @@ class add_library(delegate.page):
     path = "/libraries/add"
     def GET(self):
         return render_template("libraries/add")
+        
+    def POST(self):
+        i = web.input()
+        return render_template("libraries/postadd")
+        
+class participating_libraries(delegate.page):
+    path = "/libraries/participating"
+    
+    def GET(self):
+        libraries = inlibrary.get_libraries()
+        return render_template("libraries/participating", libraries)
 
 class locations(delegate.page):
     path = "/libraries/locations.txt"
