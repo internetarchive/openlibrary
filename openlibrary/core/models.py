@@ -12,6 +12,7 @@ import helpers as h
 
 #TODO: fix this. openlibrary.core should not import plugins.
 from openlibrary.plugins.upstream.utils import get_history
+from openlibrary.plugins.upstream.account import Account
 
 # relative imports
 from lists.model import ListMixin, Seed
@@ -159,8 +160,12 @@ class User(Thing):
     usergroups = property(get_usergroups)
     
     def get_account(self):
-        account_key = "account/" + self.key.split("/")[-1]
-        return web.ctx.site.store.get(account_key)
+        username = self.get_username()
+        return Account.find(username=username)
+        
+    def get_email(self):
+        account = self.get_account() or {}
+        return account.get("email")
     
     def get_username(self):
         return self.key.split("/")[-1]

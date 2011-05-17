@@ -21,6 +21,8 @@ from infogami.utils.view import add_flash_message
 import openlibrary
 from openlibrary.core import admin as admin_stats
 from openlibrary.plugins.upstream import forms
+from openlibrary.plugins.upstream.account import Account
+
 
 import services
 
@@ -126,7 +128,13 @@ class any:
 
 class people:
     def GET(self):
-        return render_template("admin/people/index")
+        i = web.input(email=None)
+        
+        if i.email:
+            account = Account.find(email=i.email)
+            if account:
+                raise web.seeother("/admin/people/" + account.username)
+        return render_template("admin/people/index", email=i.email)
 
 class people_view:
     def GET(self, key):

@@ -624,11 +624,7 @@ class User(models.User):
     
     def get_edit_history(self, limit=10, offset=0):
         return web.ctx.site.versions({"author": self.key, "limit": limit, "offset": offset})
-        
-    def get_email(self):
-        if web.ctx.path.startswith("/admin"):
-            return account.get_user_email(self.key)
-            
+                
     def get_creation_info(self):
         if web.ctx.path.startswith("/admin"):
             d = web.ctx.site.versions({'key': self.key, "sort": "-created", "limit": 1})[0]
