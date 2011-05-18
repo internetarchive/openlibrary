@@ -6,6 +6,12 @@ import glob
 
 from infogami.infobase import client, common
 
+key_patterns = {
+    'work': '/works/OL%dW',
+    'edition': '/books/OL%dM',
+    'author': '/authors/OL%dA',
+}
+
 class MockSite:
     def __init__(self):
         self.reset()
@@ -14,6 +20,7 @@ class MockSite:
         self.docs = {}
         self.changesets = []
         self.index = []
+        self.keys = {'work': 0, 'author': 0, 'edition': 0}
         
     def save(self, query, comment=None, action=None, data=None, timestamp=None):
         timestamp = timestamp or datetime.datetime.utcnow()
@@ -165,6 +172,12 @@ class MockSite:
         data = common.parse_query(data)
         data = self._process_dict(data or {})
         return client.create_thing(self, key, data)
+
+    def new_key(self, type):
+        assert type.startswith('/type/')
+        t = type[6:]
+        self.keys[t] += 1
+        return key_patterns[t] % self.keys[t]
         
 def pytest_funcarg__mock_site(request):
     """mock_site funcarg.

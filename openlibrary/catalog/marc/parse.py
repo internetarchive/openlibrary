@@ -224,9 +224,17 @@ def read_edition_name(rec):
 
 lang_map = {
     'ser': 'srp', # http://www.archive.org/details/zadovoljstvauivo00lubb
+    'end': 'eng',
+    'enk': 'eng',
+    'ent': 'eng',
+    'cro': 'chu',
+    'jap': 'jpn',
+    'fra': 'fre',
+    'gwr': 'ger',
     'sze': 'slo',
     'fr ': 'fre',
-    'fle': 'dut',
+    'fle': 'dut', # flemish -> dutch
+    'it ': 'ita',
 }
 
 def read_languages(rec):
@@ -235,8 +243,8 @@ def read_languages(rec):
         return
     found = []
     for f in fields:
-        found += [i for i in f.get_subfield_values('a') if i and len(i) == 3]
-    return [{'key': '/languages/' + lang_map.get(i, i)} for i in found]
+        found += [i.lower() for i in f.get_subfield_values('a') if i and len(i) == 3]
+    return [lang_map.get(i, i) for i in found if i != 'zxx']
 
 def read_pub_date(rec):
     fields = rec.get_fields('260')
@@ -564,11 +572,13 @@ def read_edition(rec):
         if publish_country not in ('|||', '   ', '\x01\x01\x01', '???'):
             edition["publish_country"] = publish_country
         lang = str(f)[35:38]
-        if lang not in ('   ', '|||', '', '???'):
+        if lang not in ('   ', '|||', '', '???', 'zxx'):
             # diebrokeradical400poll
-            if lang.startswith('ng') and f[34] == 'e':
+            if str(f)[34:37].lower() == 'eng':
                 lang = 'eng'
-            edition["languages"] = [{ 'key': '/languages/' + lang.lower() }]
+            else:
+                lang = lang.lower()
+            edition['languages'] = [lang_map.get(lang, lang)]
     else:
         assert handle_missing_008
         update_edition(rec, edition, read_languages, 'languages')

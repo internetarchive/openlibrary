@@ -12,11 +12,7 @@
   "dewey_decimal_class": [
     "822.4"
   ], 
-  "languages": [
-    {
-      "key": "/languages/eng"
-    }
-  ], 
+  "languages": ["eng"],
   "publish_date": "1895", 
   "publish_country": "xxk", 
   "authors": [

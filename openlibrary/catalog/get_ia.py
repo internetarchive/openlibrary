@@ -236,11 +236,7 @@ def marc_formats(ia, host=None, path=None):
     has = { 'xml': False, 'bin': False }
     ending = 'files.xml'
     if host and path:
-<<<<<<< HEAD
-        url = 'http://%s%s/%s_files.xml' % (host, path, ia)
-=======
         url = 'http://%s%s/%s_%s' % (host, path, ia, ending)
->>>>>>> a6e890c72315ff97b2f8a600f189fce28668fefe
     else:
         url = 'http://www.archive.org/download/' + ia + '/' + ia + '_' + ending
     for attempt in range(10):

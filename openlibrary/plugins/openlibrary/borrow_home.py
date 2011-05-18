@@ -57,6 +57,12 @@ class borrow(delegate.page):
             inlibrary=inlibrary.get_library() is not None,
             **filters)
         return simplejson.dumps(subject)
+
+class borrow_about(delegate.page):
+    path = "/borrow/about"
+    
+    def GET(self):
+        return render_template("borrow/about")
         
 def convert_works_to_editions(site, works):
     """Takes work docs got from solr and converts them into appropriate editions required for lending library.

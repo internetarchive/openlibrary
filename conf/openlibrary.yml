@@ -1,6 +1,6 @@
 # Open Library fastcgi configuration
 
-infobase_server: "127.0.0.1:7500"
+infobase_server: "127.0.0.1:7000"
 site: "openlibrary.org"
 
 from_address: "Open Library <noreply@openlibrary.org>"
@@ -9,7 +9,7 @@ report_spam_address: "Open Library <info@openlibrary.org>"
 dummy_sendmail: True
 debug: True
 
-coverstore_url: "http://127.0.0.1:7000/"
+coverstore_url: "http://127.0.0.1:7075/"
 
 state_dir: var/run
 

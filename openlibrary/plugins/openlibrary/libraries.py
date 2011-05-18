@@ -17,7 +17,35 @@ logger = logging.getLogger("openlibrary.libraries")
 
 class libraries(delegate.page):
     def GET(self):
-        return render_template("libraries/index")
+        return render_template("libraries/index", self.get_branches())
+    
+    def get_branches(self):
+        branches = sorted(get_library_branches(), key=lambda b: b.name.upper())
+        return itertools.groupby(branches, lambda b: b.name[0])
+        
+def get_library_branches():
+    """Returns library branches grouped by first letter."""
+    libraries = inlibrary.get_libraries()
+    for lib in libraries:
+        for branch in lib.get_branches():
+            branch.library = lib.name
+            yield branch
+        
+class libraries_register(delegate.page):
+    path = "/libraries/add"
+    def GET(self):
+        return render_template("libraries/add")
+        
+    def POST(self):
+        i = web.input()
+        return render_template("libraries/postadd")
+        
+class participating_libraries(delegate.page):
+    path = "/libraries/participating"
+    
+    def GET(self):
+        libraries = inlibrary.get_libraries()
+        return render_template("libraries/participating", libraries)
 
 class locations(delegate.page):
     path = "/libraries/locations.txt"
@@ -148,7 +176,7 @@ class LoanStats:
         rows = self.view("loans/people", group=True, startkey=[key], endkey=[key, {}]).rows
         return [[row.key[-1], row.value] for row in rows]
 
-def on_loan_created(topic, loan):
+def on_loan_created(loan):
     """Adds the loan info to the admin stats database.
     """
     logger.debug("on_loan_created")
@@ -164,6 +192,9 @@ def on_loan_created(topic, loan):
         "t_start": t_start.isoformat(),
         "status": "active"
     }
+    
+    library = inlibrary.get_library()
+    d['library'] = library and library.key
 
     if key in db:
         logger.warn("loan document is already present in the stats database: %r", key)
@@ -186,7 +217,7 @@ def on_loan_created(topic, loan):
     user["loans"][yyyy_mm] = user.setdefault("loans", {}).setdefault(yyyy_mm, 0) + 1
     db[user_key] = user
 
-def on_loan_completed(topic, loan):
+def on_loan_completed(loan):
     """Marks the loan as completed in the admin stats database.
     """
     logger.debug("on_loan_completed")

@@ -1,7 +1,18 @@
 $def with (stats)
 
 <div id="contentHead">
-    <h1>Libraries / Stats</h1>
+    <div class="right large sansserif" style="padding-top:10px;">
+        <a href="/borrow">$_("Borrow")</a>
+        |
+        <a href="/borrow/about">$_("How it Works")</a>
+        |
+        <a href="/libraries/participating">$_("Participating Libraries")</a>
+        |
+        <a href="/libraries/add">$_("Register")</a>
+        |
+        <strong>$_("Stats")</strong>
+    </div>
+    <h1>$_("Borrow eBooks")</h1>
 </div>
 
 <script type="text/javascript">
@@ -22,9 +33,9 @@ function setup_tooltip(selector, format_message) {
             backgroundColor: '#efefef',
             color: '#454545',
             fontSize: '11px',
-            webkitBoxShadow: '1px 1px 3px #333',
-            mozBoxShadow: '1px 1px 1px #000',
-            boxShadow: '1px 1px 1px #000'
+            webkitBoxShadow: '0 0 3px #333',
+            mozBoxShadow: '0 0 3px #333',
+            boxShadow: '0 0 3px #333'
         }).appendTo("body").fadeIn(200);
     };
 
@@ -38,7 +49,13 @@ function setup_tooltip(selector, format_message) {
             var y = item.datapoint[1];
             var msg = format_message(x, y);
 
-            showTooltip(item.pageX, item.pageY, msg);
+            if (x == 1) {
+                    showTooltip(item.pageX, item.pageY,
+                                y + " $_('loans for') " + x + " $_('day')");
+                } else {
+                    showTooltip(item.pageX, item.pageY,
+                                y + " $_('loans for') " + x + " $_('days')");
+                };
         } else {
             \$("#chartLabelA").remove();
         };
@@ -130,26 +147,30 @@ function setup_tooltip(selector, format_message) {
 });
 </script>
 
-<style type="text/css">
-div.graph {
-    width: 918px;
-    height: 180px;
-}
+<style type="text/css"> 
+div.graph,div.chart{width:898px;height:180px;float:none;background-image:none;}
+.chartYaxis{width:180px;top:85px;left:-85px;}
 </style>
 
 <div id="contentBody">
-    <h2>Loans per day</h2>
-    <div id="loans-per-day" class="graph"></div>
+    <h2>Loans Per Day</h2>
+
+    <div class="chart">
+        <div id="loans-per-day" class="graph">
+            <noscript>$_("You need to have JavaScript turned on to see the nifty chart!")</noscript>
+        </div> 
+    </div>
 
     <h2>Distribution of Loan Duration</h2>
-    <div>
-        x-axis: Loan duration<br/>
-        y-axis: Number of loans<br/>
-        <br/>
+    <div class="chart">
+        <div id="duration" class="graph">
+            <noscript>$_("You need to have JavaScript turned on to see the nifty chart!")</noscript>
+        </div>
+        <div class="chartYaxis" style="width:180px;">$_("Number of Loans")</div>
+        <div class="chartXaxis">$_("Loan Duration")</div>
     </div>
-    <div id="duration" class="graph"></div>
 
-    <div>
+    <p class="smaller grey sansserif">
         $ summary = stats.get_summary()
         $ total = summary['total_loans']
         $ onehour = summary['one_hour_loans']
@@ -162,30 +183,40 @@ div.graph {
         <br/>
         Expired Loans: $expired ($percent(expired))
         <br/>
-    </div>
+    </p>
+    
+    <br/>
 
     <h2>Average Loan Duration</h2>
-    <div id="avg-duration" class="graph"></div>
-
-    <h2 class="fixthis">Loans per user</h2>
-
-    <div>
-        x-axis: Number of loans taken<br/>
-        y-axis: Number of users<br/>
-        <br/>
+    <div class="chart">
+        <div id="avg-duration" class="graph">
+            <noscript>$_("You need to have JavaScript turned on to see the nifty chart!")</noscript>
+        </div>    
     </div>
-    <div id="loans-per-user" class="graph"></div>
+    
+    <br/>
 
-
+    <h2 class="fixthis">Loans per User</h2>
+    <div class="chart">
+        <div id="loans-per-user" class="graph">
+            <noscript>$_("You need to have JavaScript turned on to see the nifty chart!")</noscript>
+        </div>
+        <div class="chartYaxis" style="width:180px;">$_("Number of Users")</div>
+        <div class="chartXaxis">$_("Number of Loans Taken")</div>
+    </div>
+    
+    <br/>
 
     <h2>Loans per Book</h2>
-    <div>
-        x-axis: Number of loans taken<br/>
-        y-axis: Number of books<br/>
-        <br/>
+    <div class="chart">
+        <div id="loans-per-book" class="graph">
+            <noscript>$_("You need to have JavaScript turned on to see the nifty chart!")</noscript>
+        </div>
+        <div class="chartYaxis" style="width:180px;">$_("Number of Books")</div>
+        <div class="chartXaxis">$_("Number of loans taken")</div>
     </div>
 
-    <div id="loans-per-book" class="graph"></div>
+    <br/>
 
     <h2>Popular Books</h2>
     $def render_authors(book):
