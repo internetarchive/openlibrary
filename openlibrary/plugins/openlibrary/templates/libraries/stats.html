@@ -1,17 +1,7 @@
 $def with (stats)
 
 <div id="contentHead">
-    <div class="right large sansserif" style="padding-top:10px;">
-        <a href="/borrow">$_("Borrow")</a>
-        |
-        <a href="/borrow/about">$_("How it Works")</a>
-        |
-        <a href="/libraries/participating">$_("Participating Libraries")</a>
-        |
-        <a href="/libraries/add">$_("Register")</a>
-        |
-        <strong>$_("Stats")</strong>
-    </div>
+    $:render_template("borrow/navigation", path="/libraries/stats")
     <h1>$_("Borrow eBooks")</h1>
 </div>
 
