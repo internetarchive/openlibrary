@@ -5,17 +5,7 @@ $ title = "Register Your Library"
 $var title: $title
 
 <div id="contentHead">
-    <div class="right large sansserif" style="padding-top:10px;">
-        <a href="/borrow">$_("Borrow")</a>
-        |
-        <a href="/borrow/about">$_("How it Works")</a>
-        |
-        <a href="/libraries">$_("Participating Libraries")</a>
-        |
-        <strong>$_("Register")</strong>
-        |
-        <a href="/libraries/stats">$_("Stats")</a>
-    </div>
+    $:render_template("borrow/navigation", path="/libraries/add")
     <h1>$_("Register Your Library")</h1>
 </div>
 

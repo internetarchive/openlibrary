@@ -5,17 +5,7 @@ $var title: $page.name
 $ subject_list = [('subjects', 20), ('places', 20), ('people', 10), ('times', 10)]
 
 <div id="contentHead">
-    <div class="right large sansserif" style="padding-top:10px;">
-        <strong>$_("Borrow")</strong>
-        |
-        <a href="/borrow/about">$_("How it Works")</a>
-        |
-        <a href="/libraries">$_("Participating Libraries")</a>
-        |
-        <a href="/libraries/add">$_("Register")</a>
-        |
-        <a href="/libraries/stats">$_("Stats")</a>
-    </div>
+    $:render_template("borrow/navigation", path="/borrow")
     <h1>$_("Borrow eBooks")</h1>
 </div>
 

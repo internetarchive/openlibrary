@@ -30,6 +30,14 @@ def get_library_branches():
         for branch in lib.get_branches():
             branch.library = lib.name
             yield branch
+            
+class libraries_dashboard(delegate.page):
+    path = "/libraries/dashboard"
+    
+    def GET(self):
+        keys = web.ctx.site.things(query={"type": "/type/library", "limit": 1000})
+        libraries = web.ctx.site.get_many(keys)
+        return render_template("libraries/dashboard", libraries)
         
 class libraries_register(delegate.page):
     path = "/libraries/add"
