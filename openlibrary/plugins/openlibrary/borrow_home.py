@@ -18,7 +18,7 @@ class borrow(delegate.page):
         return "inlibrary" in web.ctx.features
     
     def GET(self):
-        subject = get_lending_library(web.ctx.site, details=True, inlibrary=inlibrary.get_library() is not None)
+        subject = get_lending_library(web.ctx.site, details=True, inlibrary=inlibrary.get_library() is not None, limit=24)
         return render_template("borrow/index", subject)
 
 class borrow(delegate.page):
@@ -30,7 +30,7 @@ class borrow(delegate.page):
 
     @jsonapi
     def GET(self):
-        i = web.input(offset=0, limit=12, details="false", has_fulltext="false")
+        i = web.input(offset=0, limit=24, details="false", has_fulltext="false")
 
         filters = {}
         if i.get("has_fulltext") == "true":

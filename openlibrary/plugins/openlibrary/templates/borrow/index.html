@@ -4,27 +4,35 @@ $var title: $page.name
 
 $ subject_list = [('subjects', 20), ('places', 20), ('people', 10), ('times', 10)]
 
-<div id="contentHead"> 
-    <h1> 
-        Borrow a Book
-        <span class="count" id="coversCount"><strong>000 books</strong> published between 1200 &amp; 2011.</span>
-    </h1> 
-	<!--
-    <p class="collapse sansserif"> 
-        <span class="tools brown"> 
-            <img src="/images/icons/icon_sort.png" alt="Sorting by" width="9" height="11" style="margin-right:10px;"/> 
-            Sort by: 
-            <strong class="lightgreen">Most Recent Publish Date</strong> 
-            |
-            <a href="javascript:;"># of Editions</a> 
-        </span> 
-    </p> 
-	-->
-</div> 
+<div id="contentHead">
+    <div class="right large sansserif" style="padding-top:10px;">
+        <strong>$_("Borrow")</strong>
+        |
+        <a href="/borrow/about">$_("How it Works")</a>
+        |
+        <a href="/libraries">$_("Participating Libraries")</a>
+        |
+        <a href="/libraries/add">$_("Register")</a>
+        |
+        <a href="/libraries/stats">$_("Stats")</a>
+    </div>
+    <h1>$_("Borrow eBooks")</h1>
+</div>
+
+<style type="text/css">
+#resultsCovers {
+    height: 842px;
+    width: 958px;
+}
+#resultsCovers .jcarousel-clip, #resultsList .jcarousel-clip {
+    height: 804px;
+    width: 918px;
+}
+</style>
 
 <script type="text/javascript">
 <!--
-var page = new Subject($:json_encode(page));
+var page = new Subject($:json_encode(page), {pagesize: 24});
 //-->
 </script>
 
@@ -98,74 +106,10 @@ function resetCounts() {
 </div> 
    
 <div class="clearfix"></div> 
- 
+
+
 <div class="head"> 
-    <h2 class="collapse">Borrowing books from Open Library</h2> 
-    <p class="larger sansserif collapse darkgrey">There are 4 different ways to borrow books:</p> 
-</div> 
-
-<div class="contentHalf collapse"> 
- 
-	<p class="largest sansserif collapse">
-		1. <a href="/search?sort=new&subject_facet=Library Name" title="Search for library books to borrow">In-Library lending</a>
-	</p> 
-
-	<p class="large collapse">
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas 
-		quam neque, fermentum at fringilla in, pulvinar quis lacus. Curabitur 
-		aliquam velit semper neque vestibulum ornare rutrum felis gravida. 
-		Quisque orci magna, ornare quis vehicula sit amet, viverra eget dui. 
-		Aenean sagittis, est sed sollicitudin molestie, elit neque elementum 
-		justo, in vehicula nulla leo ut ante.Vestibulum faucibus imperdiet 
-		imperdiet.
-	</p> 
-	<br/> 
-	$if "inlibrary" in ctx.features and get_library() is not None:
-		<div class="inLibrary sansserif"> 
-			It looks like you’re in the <span>$get_library().name</span> network. 
-			That means you can access any of the <span class="fixthis">00,000</span> in-library titles!
-		</div>
-		<br/>
-	
-	<p class="largest sansserif collapse">
-		2. <a href="/search?sort=new&subject_facet=Lending+library" title="Search for Internet Archive books to borrow">Available to everyone</a>
-	</p> 
-	<p class="large collapse">
-		There is a small but growing collection of ebooks available for loan to
-		anyone with an Open Library account through the book scanning
-		program of the Internet Archive, a registered library in California.
-	</p> 
-	<br/> 
-	<p class="largest sansserif collapse">3. <a href="/search?sort=new&subject_facet=overdrive" title="Search for Overdrive books to borrow">Overdrive</a></p> 
-	<p class="large collapse">
-		We have connected <span class="fixthis">00,000</span> Open Library records with the
-		<a href="http://www.overdrive.com/">overdrive.com</a> lending system. You can access ePub or Mobi files from 
-		your local library.
-	</p> 
-	<br/> 
-	<p class="largest sansserif collapse">4. <a href="/search?sort=new&subject_facet=worldcat" title="Search for WorldCat books to borrow">WorldCat</a></p> 
-	<p class="large collapse">Similar to Overdrive, <a href="http://www.worldcat.org/">worldcat.org</a> will help you find ebooks and 
-		physical copies from libraries near you. We’ve added WorldCat links to 
-		<span class="fixthis">0,000,000</span> Open Library records to help you find a book to borrow.
-	</p> 
- 
-	<style type="text/css"> 
-		div.inLibrary {background:#35672e url('/images/icons/icon_thumbsup-white.png') 8px 50% no-repeat;padding:8px 8px 8px 40px;font-size:.75em;color:#fff;}
-		ul.listLarge li {line-height:24px!important;}
-	</style> 
- 
-</div> 
- 
-<div class="contentSpacer"></div> 
- 
-<div class="contentHalf collapse"> 
-        
-	<h3 class="collapse">Participating Libraries</h3> 
-	<ul class="unlist listLarge collapse">
-		$for lib in sorted(get_libraries(), key=lambda lib: lib.title):
-    		<li class="lightgrey sansserif small"><a href="$lib.key" class="larger">$lib.title</a> <span class="fixthis">City, Country</span></li>
-	</ul>
-	<p class="smaller black sansserif"><strong>Would your library like to join the program?</strong> <a href="/contact">Let us know</a>!</p> 
+    <h2>Loans Per Day</h2> 
 </div> 
 
 </div>
