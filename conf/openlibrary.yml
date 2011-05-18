@@ -124,3 +124,4 @@ stats: # This section is used to state what stats need to be gathered.
       time: total
 
 
+libraries_admin_email: admin@dev-instance

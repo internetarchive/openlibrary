@@ -83,8 +83,29 @@ class libraries_register(delegate.page):
         })
         #web.ctx.site.store[doc['_key']] = doc
         
-        # TODO: send mail
+        self.sendmail(i.contact_email, 
+            render_template("libraries/email_confirmation"))
+        
+        if config.get("libraries_admin_email"):
+            self.sendmail(config.libraries_admin_email,
+                render_template("libraries/email_notification", i))
+        
         return render_template("libraries/postadd")
+        
+    def sendmail(self, to, msg, cc=None):
+        cc = cc or []
+        subject = msg.subject.strip()
+        body = web.safestr(msg).strip()
+        
+        if config.get('dummy_sendmail'):
+            print >> web.debug, 'To:', to
+            print >> web.debug, 'From:', config.from_address
+            print >> web.debug, 'Subject:', subject
+            print >> web.debug
+            print >> web.debug, body
+        else:
+            web.sendmail(config.from_address, to, subject=subject, message=body, cc=cc)
+
 
 class locations(delegate.page):
     path = "/libraries/locations.txt"
