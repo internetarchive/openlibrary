@@ -40,7 +40,7 @@ class libraries_dashboard(delegate.page):
         return render_template("libraries/dashboard", libraries)
         
 class libraries_register(delegate.page):
-    path = "/libraries/add"
+    path = "/libraries/register"
     def GET(self):
         return render_template("libraries/add")
         

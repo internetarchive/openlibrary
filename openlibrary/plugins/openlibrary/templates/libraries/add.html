@@ -5,7 +5,7 @@ $ title = "Register Your Library"
 $var title: $title
 
 <div id="contentHead">
-    $:render_template("borrow/navigation", path="/libraries/add")
+    $:render_template("borrow/navigation", path="/libraries/register")
     <h1>$_("Register Your Library")</h1>
 </div>
 
@@ -20,7 +20,8 @@ $var title: $title
             <label for="contact_person">$_("Your Full Name")<span class="attn">*</span></label>        
         </div>
         <div class="input">
-            <input type="text" name="contact_person" id="contact_person"/><br />
+            
+            <input type="text" name="contact_person" id="contact_person" value="$(ctx.user and ctx.user.displayname)"/><br />
         </div>
     </div>
 
@@ -44,7 +45,7 @@ $var title: $title
             </label>        
         </div>
         <div class="input">
-            <input type="text" name="contact_email" id="contact_email"/><br />
+            <input type="text" name="contact_email" id="contact_email" value="$(ctx.user and ctx.user.email)"/><br />
         </div>
     </div>
 
