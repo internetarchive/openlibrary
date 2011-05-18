@@ -8,7 +8,7 @@ from openlibrary.core import support as S
 
 support_db = None
 
-class support(delegate.page):
+class contact(delegate.page):
     def GET(self):
         return render_template("support")
 
