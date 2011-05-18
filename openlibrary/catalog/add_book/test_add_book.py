@@ -1,6 +1,9 @@
 from load_book import build_query, InvalidLanguage
 from . import load, RequiredField, build_pool
 import py.test
+from pprint import pprint
+from openlibrary.catalog.merge.merge_marc import build_marc
+from merge import try_merge
 
 def add_languages(mock_site):
     languages = [
@@ -46,9 +49,6 @@ def test_load(mock_site):
 
     assert reply['edition']['status'] == 'created'
     e = mock_site.get(reply['edition']['key'])
-    print
-    print 'edition type:', `e.type`
-    print
     assert e.type.key == '/type/edition'
     assert e.title == 'Test item'
     assert e.ocaid == 'test_item'
@@ -137,15 +137,50 @@ def test_build_pool(mock_site):
     pool = build_pool({'lccn': ['234'], 'oclc_numbers': ['456']})
     assert pool == { 'oclc_numbers': ['/books/OL1M'], }
 
-def test_load_twice(mock_site):
+def test_try_merge(mock_site):
     rec = {
         'title': 'Test item',
         'lccn': ['123'],
+        'authors': [{'name': 'Smith, John', 'birth_date': '1980'}],
+    }
+    reply = load(rec)
+    ekey = reply['edition']['key']
+    e = mock_site.get(ekey)
+
+    rec['full_title'] = rec['title']
+    if rec.get('subtitle'):
+        rec['full_title'] += ' ' + rec['subtitle']
+    e1 = build_marc(rec)
+    pprint(e1)
+
+    assert try_merge(e1, ekey, e)
+
+def test_load_multiple(mock_site):
+    rec = {
+        'title': 'Test item',
+        'lccn': ['123'],
+        'authors': [{'name': 'Smith, John', 'birth_date': '1980'}],
     }
     reply = load(rec)
     assert reply['success'] == True
+    ekey1 = reply['edition']['key']
+
+    return 
+    reply = load(rec)
+    assert reply['success'] == True
+    ekey2 = reply['edition']['key']
+    assert ekey1 == ekey2
+
+
+    reply = load({'title': 'Test item', 'lccn': ['456']})
+    assert reply['success'] == True
+    ekey3 = reply['edition']['key']
+    assert ekey3 != ekey1
 
     reply = load(rec)
     assert reply['success'] == True
+    ekey4 = reply['edition']['key']
+
+    assert ekey1 == ekey2 == ekey4
 
 
