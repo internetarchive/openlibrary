@@ -319,6 +319,12 @@ class Library(Thing):
     
     Each library has a list of IP addresses belongs to that library. 
     """
+    def url(self, suffix="", **params):
+        u = self.key + suffix
+        if params:
+            u += '?' + urllib.urlencode(params)
+        return u
+    
     def parse_ip_ranges(self, text):
         for line in text.splitlines():
             line = line.split("#")[0].strip()

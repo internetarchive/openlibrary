@@ -11,6 +11,8 @@ from openlibrary.core import helpers as h
 from openlibrary.core import inlibrary
 from openlibrary.plugins.worksearch import code as worksearch
 
+from libraries import LoanStats
+
 class borrow(delegate.page):
     path = "/borrow"
     
@@ -18,8 +20,8 @@ class borrow(delegate.page):
         return "inlibrary" in web.ctx.features
     
     def GET(self):
-        subject = get_lending_library(web.ctx.site, details=True, inlibrary=inlibrary.get_library() is not None)
-        return render_template("borrow/index", subject)
+        subject = get_lending_library(web.ctx.site, details=True, inlibrary=inlibrary.get_library() is not None, limit=24)
+        return render_template("borrow/index", subject, stats=LoanStats())
 
 class borrow(delegate.page):
     path = "/borrow"
@@ -30,7 +32,7 @@ class borrow(delegate.page):
 
     @jsonapi
     def GET(self):
-        i = web.input(offset=0, limit=12, details="false", has_fulltext="false")
+        i = web.input(offset=0, limit=24, details="false", has_fulltext="false")
 
         filters = {}
         if i.get("has_fulltext") == "true":

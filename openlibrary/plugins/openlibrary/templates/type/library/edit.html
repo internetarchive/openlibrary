@@ -17,6 +17,17 @@ $var title: $title
 <form name="edit" class="olform" method="post" action="">
 
 <div id="contentBody">
+    
+    <div class="formElement">
+        <div class="label">
+        </div>
+        <div class="input">
+            <label for="status">$_("Status")</label>        
+            $:Dropdown(name="status", args=[("approved", "Approved"), ("onhold", "On Hold")], value=page.status or "onhold", id="status").render()
+            <br/>
+            <span class="tip">$_("Only approved libraries are allowed to participate in the In-Library lending program.")</span>
+        </div>
+    </div>
 
     <div class="formElement">
         <div class="label">
@@ -95,6 +106,17 @@ $var title: $title
             <textarea name="addresses" id="addresses" rows="20" cols="80" style="width:900px;">$page.addresses</textarea>
         </div>
     </div>
+    
+    <div class="formElement">
+        <div class="label">
+            <label for="notes">$_("Notes")</label><br />        
+            <span class="tip">$:_("Place to keep notes")</span>
+        </div>
+        <div class="input">
+            <textarea name="notes" id="notes" class="markdown" rows="10" cols="80" style="width:900px;">$page.notes</textarea>
+        </div>
+    </div>
+    
 
     $:macros.EditButtons(comment=page.comment_)
 

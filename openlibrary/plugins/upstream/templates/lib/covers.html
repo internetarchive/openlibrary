@@ -14,7 +14,7 @@ function loadCoverCarousels(carousel, state) {
         page.coverCarousel.size(page.getPageCount());
     }
     var index = carousel.first;
-    page.pos = (index-1)*12;
+    page.pos = (index-1)* page.settings.pagesize;
 
     if (window.set_hash) {
          var _p = (index == 1) ? null : index;

@@ -1,0 +1,21 @@
+$def with (libraries, pending_libraries)
+
+<div id="contentHead">
+    $:render_template("borrow/navigation", path="/libraries/dashboard")
+    <h1>Manage Libraries</h1>
+</div> 
+
+<div id="contentBody">
+    <h2>Active Libraries</h2>
+    <ul>
+        $for lib in libraries:
+            <li><a href="$lib.url()">$(lib.name or "Unnamed")</a></li>
+    </ul>
+
+    <h2>Pending Libraries</h2>
+    <ul>
+        $for lib in pending_libraries:
+            <li><a href="$lib.url()">$(lib.name or "Unnamed")</a></li>
+    </ul>
+
+</div>

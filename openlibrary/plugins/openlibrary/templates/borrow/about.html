@@ -5,17 +5,7 @@ $ title = "Borrow eBooks"
 $var title: $title
 
 <div id="contentHead">
-    <div class="right large sansserif" style="padding-top:10px;">
-        <a href="/borrow">$_("Borrow")</a>
-        |
-        <strong>$_("How it Works")</strong>
-        |
-        <a href="/libraries">$_("Participating Libraries")</a>
-        |
-        <a href="/libraries/add">$_("Register")</a>
-        |
-        <a href="/libraries/stats">$_("Stats")</a>
-    </div>
+    $:render_template("borrow/navigation", path="/borrow/about")
     <h1>$_("Borrow eBooks")</h1>
 </div>
 

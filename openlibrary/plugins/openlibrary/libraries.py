@@ -30,22 +30,82 @@ def get_library_branches():
         for branch in lib.get_branches():
             branch.library = lib.name
             yield branch
+            
+class libraries_dashboard(delegate.page):
+    path = "/libraries/dashboard"
+    
+    def GET(self):
+        keys = web.ctx.site.things(query={"type": "/type/library", "limit": 1000})
+        libraries = web.ctx.site.get_many(keys)
+        return render_template("libraries/dashboard", libraries, self.get_pending_libraries())
+        
+    def get_pending_libraries(self):
+        docs =  web.ctx.site.store.values(type="library")
+        return [self._create_pending_library(doc) for doc in docs]
+            
+    def _create_pending_library(self, doc):
+        """Creates a library object from store doc.
+        """
+        key = "/" + doc.pop("_key")
+        doc.pop("_rev", None)
+        doc['key'] = key
+        doc['revision'] = 0
+        doc['type'] = {"key": '/type/library'}
+        doc['status'] = "pending"        
+        return web.ctx.site.new(key, doc)
+        
+class pending_libraries(delegate.page):
+    path = "/(libraries/pending-\d+)"
+    
+    def GET(self, key):
+        doc = web.ctx.site.store.get(key)
+        if not doc:
+            raise web.notfound()
+            
+        page = libraries_dashboard()._create_pending_library(doc)
+        return render_template("type/library/edit", page)
         
 class libraries_register(delegate.page):
-    path = "/libraries/add"
+    path = "/libraries/register"
     def GET(self):
         return render_template("libraries/add")
         
     def POST(self):
         i = web.input()
+        
+        seq = web.ctx.site.seq.next_value("libraries")
+        
+        doc = dict(i)
+        doc.update({
+            "_key": "libraries/pending-%d" % seq,
+            "type": "library",
+            "registered_on": datetime.datetime.utcnow().isoformat()
+        })
+        #web.ctx.site.store[doc['_key']] = doc
+        
+        self.sendmail(i.contact_email, 
+            render_template("libraries/email_confirmation"))
+        
+        if config.get("libraries_admin_email"):
+            self.sendmail(config.libraries_admin_email,
+                render_template("libraries/email_notification", i))
+        
         return render_template("libraries/postadd")
         
-class participating_libraries(delegate.page):
-    path = "/libraries/participating"
-    
-    def GET(self):
-        libraries = inlibrary.get_libraries()
-        return render_template("libraries/participating", libraries)
+    def sendmail(self, to, msg, cc=None):
+        cc = cc or []
+        subject = msg.subject.strip()
+        body = web.safestr(msg).strip()
+        
+        if config.get('dummy_sendmail'):
+            print >> web.debug, 'To:', to
+            print >> web.debug, 'From:', config.from_address
+            print >> web.debug, 'Subject:', subject
+            print >> web.debug
+            print >> web.debug, body
+        else:
+            web.sendmail(config.from_address, to, subject=subject, message=body, cc=cc)
+
 
 class locations(delegate.page):
     path = "/libraries/locations.txt"

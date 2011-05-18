@@ -7,21 +7,9 @@ $ title = "Borrow"
 $var title: $title
 
 <div id="contentHead">
-    <div class="right large sansserif" style="padding-top:10px;">
-        <a href="/borrow">$_("Borrow")</a>
-        |
-        <a href="/borrow/about">$_("How it Works")</a>
-        |
-        <strong>$_("Participating Libraries")</strong>
-        |
-        <a href="/libraries/add">$_("Register")</a>
-        |
-        <a href="/libraries/stats">$_("Stats")</a>
-    </div>
+    $:render_template("borrow/navigation", path="/libraries")
     <h1>$_("Borrow eBooks")</h1>
 </div>
-
-
 
 <div id="contentBody" class="map">
 
@@ -85,7 +73,7 @@ $var title: $title
 <div id="contentMeta">
     <br/>
     <h3 class="inline">Participating Libraries</h3>
-    <p class="inline sansserif small">&nbsp;&nbsp;<a href="/libraries/add">Register Your Library?</a></p>
+    <p class="inline sansserif small">&nbsp;&nbsp;<a href="/libraries/register">Register Your Library?</a></p>
     <div class="clearfix"></div>
 <script type="text/javascript">
 <!--
