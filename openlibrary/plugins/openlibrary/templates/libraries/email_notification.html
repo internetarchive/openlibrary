@@ -1,0 +1,22 @@
+$def with (library)
+
+$#
+$# Notification email sent to admins
+$#
+
+$var subject: [Open Library] New In-Library Registration: $library.name
+
+Hello,
+
+A new library is registered for the In-Library program.
+
+Library Name: $library.name
+Country: $library.country
+
+Contact Person:
+    Name: $library.contact_person 
+    Title: $library.contact_title
+    Email: $library.contact_email
+
+Regards,
+The Open Library Team
