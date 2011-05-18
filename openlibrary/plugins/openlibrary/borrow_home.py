@@ -11,6 +11,8 @@ from openlibrary.core import helpers as h
 from openlibrary.core import inlibrary
 from openlibrary.plugins.worksearch import code as worksearch
 
+from libraries import LoanStats
+
 class borrow(delegate.page):
     path = "/borrow"
     
@@ -19,7 +21,7 @@ class borrow(delegate.page):
     
     def GET(self):
         subject = get_lending_library(web.ctx.site, details=True, inlibrary=inlibrary.get_library() is not None, limit=24)
-        return render_template("borrow/index", subject)
+        return render_template("borrow/index", subject, stats=LoanStats())
 
 class borrow(delegate.page):
     path = "/borrow"
