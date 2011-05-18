@@ -1,6 +1,7 @@
 from load_book import build_query, InvalidLanguage
 from . import load, RequiredField, build_pool
 import py.test
+from pprint import pprint
 
 def add_languages(mock_site):
     languages = [
@@ -46,9 +47,6 @@ def test_load(mock_site):
 
     assert reply['edition']['status'] == 'created'
     e = mock_site.get(reply['edition']['key'])
-    print
-    print 'edition type:', `e.type`
-    print
     assert e.type.key == '/type/edition'
     assert e.title == 'Test item'
     assert e.ocaid == 'test_item'
@@ -144,8 +142,12 @@ def test_load_twice(mock_site):
     }
     reply = load(rec)
     assert reply['success'] == True
+    ekey1 = reply['edition']['key']
 
     reply = load(rec)
     assert reply['success'] == True
+    pprint(reply)
+    ekey2 = reply['edition']['key']
 
+    assert ekey1 == ekey2
 

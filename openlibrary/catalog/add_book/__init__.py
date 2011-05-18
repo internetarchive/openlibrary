@@ -172,6 +172,10 @@ def load(rec):
     if not edition_pool:
         return load_data(rec) # 'no books in pool, loading'
 
+    matches = set(item for sublist in edition_pool.values() for item in sublist)
+    if len(matches) == 1:
+        return {'success': True, 'edition': {'key': list(matches)[0]}}
+
     rec['full_title'] = rec['title']
     if rec.get('subtitle'):
         rec['full_title'] += ' ' + rec['subtitle']
