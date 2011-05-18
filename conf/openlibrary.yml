@@ -62,6 +62,7 @@ features:
     stats: enabled
     stats-header: enabled
     inlibrary: enabled
+    support: admin
 
 upstream_to_www_migration: true
 default_template_root: /upstream
