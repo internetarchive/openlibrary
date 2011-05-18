@@ -17,9 +17,21 @@ logger = logging.getLogger("openlibrary.libraries")
 
 class libraries(delegate.page):
     def GET(self):
-        return render_template("libraries/index")
+        return render_template("libraries/index", self.get_branches())
+    
+    def get_branches(self):
+        branches = sorted(get_library_branches(), key=lambda b: b.name.upper())
+        return itertools.groupby(branches, lambda b: b.name[0])
         
-class add_library(delegate.page):
+def get_library_branches():
+    """Returns library branches grouped by first letter."""
+    libraries = inlibrary.get_libraries()
+    for lib in libraries:
+        for branch in lib.get_branches():
+            branch.library = lib.name
+            yield branch
+        
+class libraries_register(delegate.page):
     path = "/libraries/add"
     def GET(self):
         return render_template("libraries/add")
