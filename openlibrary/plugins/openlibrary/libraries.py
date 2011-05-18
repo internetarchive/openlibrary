@@ -37,7 +37,33 @@ class libraries_dashboard(delegate.page):
     def GET(self):
         keys = web.ctx.site.things(query={"type": "/type/library", "limit": 1000})
         libraries = web.ctx.site.get_many(keys)
-        return render_template("libraries/dashboard", libraries)
+        return render_template("libraries/dashboard", libraries, self.get_pending_libraries())
+        
+    def get_pending_libraries(self):
+        docs =  web.ctx.site.store.values(type="library")
+        return [self._create_pending_library(doc) for doc in docs]
+            
+    def _create_pending_library(self, doc):
+        """Creates a library object from store doc.
+        """
+        key = "/" + doc.pop("_key")
+        doc.pop("_rev", None)
+        doc['key'] = key
+        doc['revision'] = 0
+        doc['type'] = {"key": '/type/library'}
+        doc['status'] = "pending"        
+        return web.ctx.site.new(key, doc)
+        
+class pending_libraries(delegate.page):
+    path = "/(libraries/pending-\d+)"
+    
+    def GET(self, key):
+        doc = web.ctx.site.store.get(key)
+        if not doc:
+            raise web.notfound()
+            
+        page = libraries_dashboard()._create_pending_library(doc)
+        return render_template("type/library/edit", page)
         
 class libraries_register(delegate.page):
     path = "/libraries/register"
@@ -46,14 +72,19 @@ class libraries_register(delegate.page):
         
     def POST(self):
         i = web.input()
-        return render_template("libraries/postadd")
         
-class participating_libraries(delegate.page):
-    path = "/libraries/participating"
-    
-    def GET(self):
-        libraries = inlibrary.get_libraries()
-        return render_template("libraries/participating", libraries)
+        seq = web.ctx.site.seq.next_value("libraries")
+        
+        doc = dict(i)
+        doc.update({
+            "_key": "libraries/pending-%d" % seq,
+            "type": "library",
+            "registered_on": datetime.datetime.utcnow().isoformat()
+        })
+        #web.ctx.site.store[doc['_key']] = doc
+        
+        # TODO: send mail
+        return render_template("libraries/postadd")
 
 class locations(delegate.page):
     path = "/libraries/locations.txt"
