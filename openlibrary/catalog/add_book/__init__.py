@@ -3,6 +3,7 @@ from load_book import build_query
 import web
 from merge import try_merge
 from openlibrary.catalog.utils import mk_norm
+from pprint import pprint
 
 type_map = {
     'description': 'text',
@@ -148,6 +149,7 @@ def find_match(e1, edition_pool):
                     edition_key = thing['location']
             if not found:
                 continue
+            print (e1, edition_key, thing)
             if try_merge(e1, edition_key, thing):
                 add_source_records(edition_key, ia)
                 return edition_key
@@ -172,9 +174,9 @@ def load(rec):
     if not edition_pool:
         return load_data(rec) # 'no books in pool, loading'
 
-    matches = set(item for sublist in edition_pool.values() for item in sublist)
-    if len(matches) == 1:
-        return {'success': True, 'edition': {'key': list(matches)[0]}}
+    #matches = set(item for sublist in edition_pool.values() for item in sublist)
+    #if len(matches) == 1:
+    #    return {'success': True, 'edition': {'key': list(matches)[0]}}
 
     rec['full_title'] = rec['title']
     if rec.get('subtitle'):
@@ -190,6 +192,7 @@ def load(rec):
             elif 'birth_date' in a or 'death_date' in a:
                 date = a.get('birth_date', '') + '-' + a.get('death_date', '')
             a['db_name'] = ' '.join([a['name'], date]) if date else a['name']
+    pprint(e1)
 
     match = find_match(e1, edition_pool)
 
