@@ -20,13 +20,34 @@ $ subject_list = [('subjects', 20), ('places', 20), ('people', 10), ('times', 10
 </div>
 
 <style type="text/css">
+
+/* Reset height to support 4 rows. */
+
 #resultsCovers {
-    height: 842px;
     width: 958px;
+    /*height: 442px;
+    */
+    height: 844px;
 }
-#resultsCovers .jcarousel-clip, #resultsList .jcarousel-clip {
-    height: 804px;
+
+#resultsCovers .jcarousel-container,
+#resultsList .jcarousel-container {
     width: 918px;
+    padding: 20px;
+}
+#resultsCovers .jcarousel-clip,
+#resultsList .jcarousel-clip {
+    width: 918px;
+    /*height: 402px;
+    */
+    height: 804px;
+}
+#resultsCovers .jcarousel-item-horizontal {
+    width: 918px;
+    /*height: 402px;
+    */
+    height: 804px;
+    margin-right: 0;
 }
 </style>
 
