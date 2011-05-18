@@ -5,6 +5,7 @@ import web
 from infogami import config
 from infogami.utils import delegate
 from infogami.utils.view import render_template
+from infogami.utils.context import context
 
 from openlibrary.core import support as S
 
@@ -12,7 +13,9 @@ support_db = None
 
 class contact(delegate.page):
     def GET(self):
-        return render_template("support")
+        i = web.input(path=None)
+        email = context.user and context.user.email
+        return render_template("support", email=email, url=i.path)
 
     def POST(self):
         if "support" in web.ctx.features:
