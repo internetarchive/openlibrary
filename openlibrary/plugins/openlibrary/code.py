@@ -774,13 +774,15 @@ def setup_logging():
         raise
 
 def setup():
-    import home, inlibrary, borrow_home, libraries, stats
+    import home, inlibrary, borrow_home, libraries, stats, support
     
     home.setup()
     inlibrary.setup()
     borrow_home.setup()
     libraries.setup()
     stats.setup()
+    support.setup()
+
     
     from stats import stats_hook
     delegate.app.add_processor(web.unloadhook(stats_hook))
