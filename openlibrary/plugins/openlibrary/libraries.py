@@ -87,6 +87,14 @@ class pending_libraries(delegate.page):
     def POST(self, key):
         i = web.input()
         
+        if "_delete" in i:
+            doc = web.ctx.site.store.get(key)
+            if doc:
+                doc['current_status'] = "deleted"
+                web.ctx.site.store[doc['_key']] = doc
+                add_flash_message("info", "The requested library has been deleted.")
+                raise web.seeother("/libraries/dashboard")
+        
         i._key = web.rstrips(i.key, "/").replace(" ", "_")
         page = libraries_dashboard()._create_pending_library(i)
         
