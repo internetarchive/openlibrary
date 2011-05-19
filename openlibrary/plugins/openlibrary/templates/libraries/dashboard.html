@@ -9,10 +9,22 @@ $def with (libraries, pending_libraries)
     <h2>Active Libraries</h2>
     <ul>
         $for lib in libraries:
-            <li><a href="$lib.url()">$(lib.name or "Unnamed")</a></li>
+            $if lib.status == "approved":
+                <li>
+                    <a href="$lib.url()">$(lib.name or "Unnamed")</a>
+                </li>
+    </ul>
+    
+    <h2>Libraries On-Hold</h2>
+    <ul>
+        $for lib in libraries:
+            $if lib.status != "approved":
+                <li>
+                    <a href="$lib.url()">$(lib.name or "Unnamed")</a>
+                </li>
     </ul>
 
-    <h2>Pending Libraries</h2>
+    <h2>New Libraries</h2>
     <ul>
         $for lib in pending_libraries:
             <li><a href="$lib.url()">$(lib.name or "Unnamed")</a></li>

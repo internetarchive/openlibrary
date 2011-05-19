@@ -1,6 +1,6 @@
 $def with (page)
 
-$ title = page.title or page.key
+$ title = page.title or page.name or page.key
 
 $var title: $title
 
@@ -18,11 +18,23 @@ $var title: $title
 
 <div id="contentBody">
     
+    $# pending pages will not have revision field
+    $if not page.revision: 
+        <div class="formElement">
+            <div class="label">
+                <label for="key">$_("Page Key")</label>        
+            </div>
+            <div class="input">
+                <input type="text" name="key" id="key" value="$page.key"/><br />
+                <span class="tip">$_("The url of the library page")</span>
+            </div>
+        </div>    
+    
     <div class="formElement">
         <div class="label">
         </div>
         <div class="input">
-            <label for="status">$_("Status")</label>        
+            <label for="status">$_("Status")</label>
             $:Dropdown(name="status", args=[("approved", "Approved"), ("onhold", "On Hold")], value=page.status or "onhold", id="status").render()
             <br/>
             <span class="tip">$_("Only approved libraries are allowed to participate in the In-Library lending program.")</span>
@@ -66,6 +78,16 @@ $var title: $title
         <div class="input">
             <input type="text" name="contact_person" id="contact_person" value="$page.contact_person"/><br />
             <span class="tip">$_("Full Name")</span>
+        </div>
+    </div>
+    
+    <div class="formElement">
+        <div class="label">
+            <label for="contact_title">$_("Title of the Contact Person")</label>        
+        </div>
+        <div class="input">
+            <input type="text" name="contact_title" id="contact_title" value="$page.contact_title"/><br />
+            <span class="tip">$_("Title/Role of the contact person")</span>
         </div>
     </div>
 
