@@ -6,26 +6,55 @@ $var title: $title
 
 $if ctx.user and ctx.user.is_admin():
     <div id="contentHead">
-
         $:macros.databarView(page)
 
         <div class="superNav">
             <a href="/libraries">Libraries</a> / 
+            
+            $if ctx.user and ctx.user.is_admin():
+                <span class="adminOnly">$:link("/libraries/dashboard", _("Manage Libraries"))</span>
         </div>
         <h1>$page.title</h1>
+            
     </div>
     <div id="contentBody">
+        $ status = page.status or "onhold"
+        $if status == "approved":
+            <p>Status: <span class="darkgreen">Approved</span></p>
+        $elif status == "onhold":
+            <p>Status: <span class="red">On Hold</span></p>
+        
         $if page.website:
             <p><a href="$page.website" rel="nofollow">$page.website</a></p>
         $if page.contact_person:
             <p>$page.contact_person</p>
+        $if page.contact_email:
+            <p>$page.contact_email</p>
         $if page.ip_ranges:
             <h3>IP Ranges</h3>
             $:sanitize(format(page.ip_ranges))
         $if page.addresses:
             <h3>Locations</h3>
-            $:sanitize(format(page.addresses))
-        
+            <table class="branches">
+                <tr>
+                    <th>Name</th>
+                    <th>Street</th>
+                    <th>City</th>
+                    <th>State</th>
+                    <th>Zip</th>
+                    <th>Country</th>
+                    <th>Phone</th>
+                    <th>URL</th>
+                    <th>Lat/Lon</th>
+                </tr>
+            $for line in page.addresses.splitlines():
+                <tr>
+                $:sanitize(format(''.join('<td>%s</td>' % i for i in line.split('|'))))
+                </tr>
+            </table>
+        $if page.notes:
+            <h3>Notes</h3>
+            $:format(page.notes)
     $:render_template("lib/history", page)
 
     </div>

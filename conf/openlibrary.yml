@@ -62,6 +62,7 @@ features:
     stats: enabled
     stats-header: enabled
     inlibrary: enabled
+    support: admin
 
 upstream_to_www_migration: true
 default_template_root: /upstream
@@ -81,6 +82,8 @@ admin:
     olsystem_root: /home/noufal/projects/OL/olsystem/
     nagios_url: http://monitor.us.archive.org/cgi-bin/nagios3/status.cgi?hostgroup=24.openlibrary&style=detail
     statsd_server: localhost:9090
+    admin_db: http://127.0.0.1:5984/admin
+    
 
 
 stats: # This section is used to state what stats need to be gathered.
@@ -124,3 +127,4 @@ stats: # This section is used to state what stats need to be gathered.
       time: total
 
 
+libraries_admin_email: admin@dev-instance

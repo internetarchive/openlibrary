@@ -319,6 +319,12 @@ class Library(Thing):
     
     Each library has a list of IP addresses belongs to that library. 
     """
+    def url(self, suffix="", **params):
+        u = self.key + suffix
+        if params:
+            u += '?' + urllib.urlencode(params)
+        return u
+    
     def parse_ip_ranges(self, text):
         for line in text.splitlines():
             line = line.split("#")[0].strip()
@@ -354,6 +360,24 @@ class Library(Thing):
         """Return True if the the given ip is part of the library's ip range.
         """
         return ip in self.get_ip_range_list()
+        
+    def get_branches(self):
+        # Library Name | Street | City | State | Zip | Country | Telephone | Website | Lat, Long
+        columns = ["name", "street", "city", "state", "zip", "country", "telephone", "website", "latlong"]
+        def parse(line):
+            branch = web.storage(zip(columns, line.strip().split("|")))
+            
+            # add empty values for missing columns
+            for c in columns:
+                branch.setdefault(c, "")
+            
+            try:
+                branch.lat, branch.lon = branch.latlong.split(",", 1)
+            except ValueError:
+                branch.lat = "0"
+                branch.lon = "0"
+            return branch
+        return [parse(line) for line in self.addresses.splitlines() if line.strip()]
 
 class Subject(web.storage):
     def get_lists(self, limit=1000, offset=0, sort=True):

@@ -1,19 +1,19 @@
-$def with ()
+$def with (branches=None)
 
-<div id="contentBody" style="width:100%;"> 
- 
-    <script type="text/javascript"> 
-    \$().ready(function(){
-        var thisH = \$("#mapLegend").height();
-        var thisW = \$("#mapLegend").width();
-        \$("#mapLegendBack").height(thisH).width(thisW);
- 
-        var control = map.getControlsByClass('OpenLayers.Control.PanZoom')[0];
-        var px =new OpenLayers.Pixel(0,thisH+25);
-        control.moveTo(px)        
-        
-    });
-    
+$ _x = ctx.setdefault('bodyclass', 'map')
+
+$ title = "Borrow"
+
+$var title: $title
+
+<div id="contentHead">
+    $:render_template("borrow/navigation", path="/libraries")
+    <h1>$_("Borrow eBooks")</h1>
+</div>
+
+<div id="contentBody" class="map">
+
+<script type="text/javascript"> 
     function jumpTo(lat, lon, zoom, link) {
         var lonLat = new OpenLayers.LonLat( lon, lat)
               .transform(
@@ -22,32 +22,15 @@ $def with ()
               );
         map.setCenter (lonLat, zoom);
  
-        \$('.map_jump_link').css('color', '#036DAA');
-        \$(link).css('color', '#748D36');        
+        \$('.map_jump_link').css({'color':'#036DAA','text-decoration':'underline','font-weight':'normal','cursor':'pointer'});
+        \$(link).css({'color':'#748D36','text-decoration':'none','font-weight':'bold','cursor':'default'});
+        \$.scrollTo( \$('#contentBody'), 800);
     }
-    </script> 
- 
-  <div id="mapdiv" style="height:100%;"></div> 
-  <div id="mapLegendBack"></div> 
-  <div id="mapLegend"> 
- 
-      <div id="mapLegendHead"> 
-          <h1>In-Library Working Group Members</h1> 
-          <p><a href="">More info</a>&nbsp;<span class="adminOnly"><a href="">See list</a></span></p> 
-      </div> 
-      <div id="mapLegendBody"> 
-          <span><a class="map_jump_link" href="#" onclick="jumpTo(38, -101, 4, this); return false;">All</a></span> 
-          <span>&nbsp;|&nbsp;<a class="map_jump_link" href="#" onclick="jumpTo(37.65,  -122.42, 11, this); return false;" style="color:#748D36">California</a></span> 
-          <span>&nbsp;|&nbsp;<a class="map_jump_link" href="#" onclick="jumpTo(53.28, -113.25, 9, this); return false;">Alberta</a></span> 
-          <span>&nbsp;|&nbsp;<a class="map_jump_link" href="#" onclick="jumpTo(41, -85, 10, this); return false;">Ohio</a></span> 
-          <span>&nbsp;|&nbsp;<a class="map_jump_link" href="#" onclick="jumpTo(43.65, -79.4, 11, this); return false;">Ontario</a></span> 
-          <span>&nbsp;|&nbsp;<a class="map_jump_link" href="#" onclick="jumpTo(29.9, -82.3, 9, this); return false;">Florida</a></span> 
-          <span>&nbsp;|&nbsp;<a class="map_jump_link" href="#" onclick="jumpTo(42.3, -71.1, 12, this); return false;">Massachusetts</a></span> 
- 
-      </div> 
-  </div>  
-  <script src="http://www.openlayers.org/api/OpenLayers.js"></script> 
-  <script> 
+    </script>
+
+    <div id="mapdiv"></div>
+    <script type="text/javascript" src="http://www.openlayers.org/api/OpenLayers.js"></script> 
+    <script type="text/javascript"> 
     map = new OpenLayers.Map("mapdiv");
     map.addLayer(new OpenLayers.Layer.OSM());
        
@@ -61,12 +44,85 @@ $def with ()
     //Set start centrepoint and zoom
     //TODO: Is it possible to just zoom to extents of defined markers instead?
     
-    var lonLat = new OpenLayers.LonLat( -122.417740, 37.65)
+    var lonLat = new OpenLayers.LonLat( -101, 42)
           .transform(
             new OpenLayers.Projection("EPSG:4326"), // transform from WGS 1984
             map.getProjectionObject() // to Spherical Mercator Projection
           );
-    var zoom=11;
-    map.setCenter (lonLat, zoom);  
-  </script> 
-</div> 
+    var zoom=4;
+    map.setCenter (lonLat, zoom); 
+
+    OpenLayers.Feature.prototype.createPopup = function(closeBox){
+        if(this.lonlat!=null){
+            var id=this.id+"_popup";
+            var anchor=(this.marker)?this.marker.icon:null;
+            if(!this.popup){
+                this.popup=new this.popupClass(id, this.lonlat, new OpenLayers.Size(200,100), this.data.popupContentHTML, anchor,true);
+            }
+            if(this.data.overflow!=null){
+                this.popup.contentDiv.style.overflow=this.data.overflow;
+            }
+            this.popup.feature=this;
+        }
+        return this.popup;
+    }    
+    </script>
+
+</div>
+
+<div id="contentMeta">
+    <br/>
+    <h3 class="inline">Participating Libraries</h3>
+    <p class="inline sansserif small">&nbsp;&nbsp;<a href="/libraries/register">Register Your Library?</a></p>
+    <div class="clearfix"></div>
+<script type="text/javascript">
+<!--
+\$(function () {
+    \$(".columns").columnize({columns: 3, balance: true});
+    \$(".columns .column:last").css("margin-right","0");
+});
+//-->
+</script>
+
+<style type="text/css">
+#content .columns {
+    float: left;
+    width: 918px;
+    margin: 20px 0;
+}
+#content .column {
+    width: 286px;
+    margin-right: 30px;
+    float: left;
+}
+#content ul.places {
+    position: relative;
+    margin-bottom: 20px;
+}
+#content ul.places li.label {
+    position: absolute; 
+    top: 0; 
+    left: -1.5em;
+}
+#content ul.places li {
+    list-style: none;
+    color: #999;
+}
+#content ul.places li .city {
+    font-style: italic;
+}
+</style>
+
+    <div class="columns">
+        $for letter, group in branches:
+        <ul class="places sansserif smallest">
+            <li class="label">${letter}.</li>
+            $for branch in group:
+                <li>
+                    <span class="name">$branch.name</span>,
+                    <span class="city">$branch.city</span>
+                </li>
+        </ul>
+    </div>
+
+</div>

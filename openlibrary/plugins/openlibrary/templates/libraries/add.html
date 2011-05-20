@@ -5,23 +5,13 @@ $ title = "Register Your Library"
 $var title: $title
 
 <div id="contentHead">
-    <div class="right large sansserif">
-        <a href="/borrow">$_("Borrow")</a>
-        |
-        <a href="/libraries/info">$_("How it Works")</a>
-        |
-        <a href="/libraries">$_("Participating Libraries")</a>
-        |
-        <strong>$_("Register")</strong>
-        |
-        <a href="/libraries/stats">$_("Stats")</a>
-    </div>
+    $:render_template("borrow/navigation", path="/libraries/register")
     <h1>$_("Register Your Library")</h1>
 </div>
 
 <div id="contentBody">
 
-    <p class="sansserif small">$_("Thank you for your interest in Open Library's lending program. Please complete the form below to register.")<br/><span class="smaller attn"><em>* All fields are required.</em></span></p>
+    <p class="sansserif small">$_("Thank you for your interest in Open Library's lending program. Please complete the form below to register.")<br/><span class="smaller attn"><em>*All fields are required.</em></span></p>
 
 <form name="edit" class="olform" method="post" action="">
 
@@ -30,8 +20,8 @@ $var title: $title
             <label for="contact_person">$_("Your Full Name")<span class="attn">*</span></label>        
         </div>
         <div class="input">
-            <input type="text" name="contact_person" id="contact_person"/><br />
-            <span class="tip">$_("Full Name")</span>
+            
+            <input type="text" name="contact_person" id="contact_person" value="$(ctx.user and ctx.user.displayname)"/><br />
         </div>
     </div>
 
@@ -44,7 +34,6 @@ $var title: $title
         </div>
         <div class="input">
             <input type="text" name="contact_title" id="contact_title"/><br />
-            <span class="tip">$_("Full Name")</span>
         </div>
     </div>
 
@@ -56,7 +45,7 @@ $var title: $title
             </label>        
         </div>
         <div class="input">
-            <input type="text" name="contact_email" id="contact_email"/><br />
+            <input type="text" name="contact_email" id="contact_email" value="$(ctx.user and ctx.user.email)"/><br />
         </div>
     </div>
 
@@ -82,7 +71,7 @@ $var title: $title
         </div>
     </div>
 
-    <div class="formElement bottom">
+    <div class="formElement">
         <div class="input">
             <button type="submit" name="_save" title="$_('Add your library')" class="larger">$_('Save')</button>
             &nbsp;
@@ -92,7 +81,10 @@ $var title: $title
 
 </form>
 
-<p class="uppercase smaller"><strong>Next Steps</strong></p>
+<br/>
+
+<h6 class="collapse black uppercase">$_("Next Steps")</h6>
+
 <ul>
     <li>$_("We'll be in touch within the next few days via email to say hi.")</li>
     <li>$_("You and your colleagues will probably want to sit in on an optional webinar about the lending program, at a date that suits.")</li>

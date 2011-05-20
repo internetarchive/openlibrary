@@ -1,97 +1,149 @@
 $def with (page)
 
-$ _x = ctx.setdefault('bodyid', 'edit')
-
-$ title = page.title or page.key
+$ title = page.title or page.name or page.key
 
 $var title: $title
 
-$:render_template("lib/edit_head", page)
-
 <div id="contentHead">
+    $:macros.databarEdit(page)
     <h1>
         <span class="tools">$_("Currently Editing:")</span>
-        $page.name
+        $page.title
     </h1>
+    $if not ctx.user:
+        $:render_template("lib/not_logged")
 </div>
 
 <form name="edit" class="olform" method="post" action="">
 
 <div id="contentBody">
+    
+    $# pending pages will not have revision field
+    $if not page.revision: 
+        <div class="formElement">
+            <div class="label">
+                <label for="key">$_("Page Key")</label>        
+            </div>
+            <div class="input">
+                <input type="text" name="key" id="key" value="$page.key"/><br />
+                <span class="tip">$_("The url of the library page")</span>
+            </div>
+        </div>    
+    
+    <div class="formElement">
+        <div class="label">
+        </div>
+        <div class="input">
+            <label for="status">$_("Status")</label>
+            $:Dropdown(name="status", args=[("approved", "Approved"), ("onhold", "On Hold")], value=page.status or "onhold", id="status").render()
+            <br/>
+            <span class="tip">$_("Only approved libraries are allowed to participate in the In-Library lending program.")</span>
+        </div>
+    </div>
 
     <div class="formElement">
         <div class="label">
-            <label for="statement">$_("Page Title")</label>        
+            <label for="title">$_("Page Title")</label>        
+        </div>
+        <div class="input">
+            <input type="text" name="title" id="title" value="$page.title"/><br />
             <span class="tip">$_("This only appears in the document head, and gets attached to bookmark labels")</span>
         </div>
-        <div class="input">
-            <input type="text" name="title" id="title" value="$page.title"/>
-        </div>
     </div>
-
     <div class="formElement">
         <div class="label">
-            <label for="statement">$_("Library Name")</label>        
+            <label for="name">$_("Library Name")</label>        
+            
+        </div>
+        <div class="input">
+            <input type="text" name="name" id="name" value="$page.name"/> <br />
             <span class="tip">$_("Library's Official Name - no abbreviations, please")</span>
         </div>
-        <div class="input">
-            <input type="text" name="name" id="title" value="$page.name"/>
-        </div>
     </div>
 
     <div class="formElement">
         <div class="label">
-            <label for="statement">$_("Contact Person")</label>        
-            <span class="tip">$_("Full Name")</span>
+            <label for="website">$_("Main Website")</label>        
         </div>
         <div class="input">
-            <input type="text" name="contact_person" id="title" value="$page.contact_person"/>
-        </div>
-    </div>
-
-    <div class="formElement">
-        <div class="label">
-            <label for="statement">$_("IP Ranges")</label>        
-            <span class="tip">$_("Array")</span>
-        </div>
-        <div class="input">
-            <textarea name="ip_ranges" id="ip_ranges" rows="8" cols="80" style="height:150px;">$page.ip_ranges</textarea>
-            Examples:<br>
-            <ul>
-            <li>208.70.27.190 — single IP</li>
-            <li>208.70.24.0/21 — CIDR notation</li>
-            <li>208.70.24.0-208.70.31.255 — IP range</li>
-            <li><i>Add a comment using a hash separator -</i> 208.70.27.190 #This is the IA main IP</li>
-            </ul>
-        </div>
-    </div>
-
-    <div class="formElement">
-        <div class="label">
-            <label for="statement">$_("Street Address(es)")</label>        
-            <span class="tip">$_("Note any physical street addresses. Please be as accurate as possible.")</span>
-        </div>
-        <div class="input">
-            <textarea name="addresses" id="addresses" rows="8" cols="80" style="height:150px;">$page.addresses</textarea>
-            Examples:<br>
-            <ul>
-            <li><i>CSV: Name, Street, City, State, Zip, Phone, Email</i></li>
-            <li>Glen Park SFPL, 2825 Diamond Street, San Francisco, CA, 94131, (415) 355-2858, gpamgr@sfpl.org</li>
-            <ul>
-        </div>
-    </div>
-
-    <div class="formElement">
-        <div class="label">
-            <label for="statement">$_("Website")</label>        
+            <input type="text" name="website" id="website" value="$page.website"/><br />
             <span class="tip">$_("Include the http://")</span>
         </div>
+    </div>
+
+    <div class="formElement">
+        <div class="label">
+            <label for="contact_person">$_("Contact Person")</label>        
+        </div>
         <div class="input">
-            <input type="text" name="website" id="website" value="$page.website"/>
+            <input type="text" name="contact_person" id="contact_person" value="$page.contact_person"/><br />
+            <span class="tip">$_("Full Name")</span>
         </div>
     </div>
+    
+    <div class="formElement">
+        <div class="label">
+            <label for="contact_title">$_("Title of the Contact Person")</label>        
+        </div>
+        <div class="input">
+            <input type="text" name="contact_title" id="contact_title" value="$page.contact_title"/><br />
+            <span class="tip">$_("Title/Role of the contact person")</span>
+        </div>
+    </div>
+
+    <div class="formElement">
+        <div class="label">
+            <label for="contact_email">$_("Contact's E-mail Address")</label>        
+        </div>
+        <div class="input">
+            <input type="text" name="contact_email" id="contact_email" value="$page.contact_email"/><br />
+        </div>
+    </div>
+
+    <div class="formElement">
+        <div class="label">
+            <label for="country">$_("Country")</label>        
+        </div>
+        <div class="input">
+            <input type="text" name="country" id="title" value="$page.country"/>
+        </div>
+    </div>
+
+    <div class="formElement">
+        <div class="label">
+            <label for="ip_ranges">$_("IP Ranges")</label>        
+        </div>
+        <div class="input">
+            <textarea name="ip_ranges" id="ip_ranges" rows="8" style="height:150px;">$page.ip_ranges</textarea><br />
+            <span class="tip">$:_("Single IP: 208.70.27.190<br /> CIDR: 208.70.24.0/21<br />IP Range: 208.70.24.0-208.70.31.255<br />Add comment using #: 208.70.27.190 #This is the IA main IP")</span>
+        </div>
+    </div>
+
+    <div class="formElement">
+        <div class="label">
+            <label for="addresses">$_("Street Address(es)")</label><br />        
+            <span class="tip">$:_("Please use these fields, separated by a (|):<br />Library Name | Street | City | State | Zip | Country | Telephone | Website | Lat, Long")</span>
+        </div>
+        <div class="input">
+            <textarea name="addresses" id="addresses" rows="20" cols="80" style="width:900px;">$page.addresses</textarea>
+        </div>
+    </div>
+    
+    <div class="formElement">
+        <div class="label">
+            <label for="notes">$_("Notes")</label><br />        
+            <span class="tip">$:_("Place to keep notes")</span>
+        </div>
+        <div class="input">
+            <textarea name="notes" id="notes" class="markdown" rows="10" cols="80" style="width:900px;">$page.notes</textarea>
+        </div>
+    </div>
+    
 
     $:macros.EditButtons(comment=page.comment_)
 
+    $if ctx.user and ctx.user.is_admin():
+        <div class="adminOnly right" style="position:absolute;top:50px;right:20px;"><button type="submit" value="$_('Delete Record')" name="_delete" title="$_('Delete this Library?')" id="deleteTop">$_("Delete Record")</button></div>
+        
 </div>
 </form>
