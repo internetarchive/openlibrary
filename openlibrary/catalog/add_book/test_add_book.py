@@ -151,6 +151,16 @@ def test_try_merge(mock_site):
     if rec.get('subtitle'):
         rec['full_title'] += ' ' + rec['subtitle']
     e1 = build_marc(rec)
+
+    for a in e1['authors']:
+        date = None
+        if 'date' in a:
+            assert 'birth_date' not in a and 'death_date' not in a
+            date = a['date']
+        elif 'birth_date' in a or 'death_date' in a:
+            date = a.get('birth_date', '') + '-' + a.get('death_date', '')
+        a['db_name'] = ' '.join([a['name'], date]) if date else a['name']
+
     pprint(e1)
 
     assert try_merge(e1, ekey, e)
