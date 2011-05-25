@@ -21,6 +21,12 @@ class Client:
             return True
         else:
             return False
+        
+    def delete(self, key):
+        try:
+            del self.cache[key]
+        except KeyError:
+            pass
             
 def pytest_funcarg__mock_memcache(request):
     """This patches all the existing memcache connections to use mock memcache instance.

@@ -82,6 +82,11 @@ class memcache_memoize:
         Returns the cached value when avaiable. Computes and adds the result
         to memcache when not available. Updates asynchronously after timeout.
         """
+        _cache = kw.pop("_cache", None)
+        if _cache == "delete":
+            self.memcache_delete(args, kw)
+            return None
+
         self.stats.calls += 1
         
         value_time = self.memcache_get(args, kw)
@@ -178,8 +183,14 @@ class memcache_memoize:
         self.memcache.set(key, json)
         stats.end()
         
+    def memcache_delete(self, args, kw):
+        key = self.compute_key(args, kw)
+        stats.begin("memcache.delete", key=key)
+        self.memcache.delete(key)
+        stats.end()
+        
     def memcache_get(self, args, kw):
-        """Reads the value from memcahe. Key is computed from the arguments.
+        """Reads the value from memcache. Key is computed from the arguments.
         
         Returns (value, time) when the value is available, None otherwise.
         """
