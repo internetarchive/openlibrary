@@ -4,17 +4,29 @@ OL Import API OPDS parser
 
 import import_edition_builder
 
-def parse_title(e):
+def parse_string(e):
     return e.text
 
 def parse_author(e):
     name = e.find('{http://www.w3.org/2005/Atom}name')    
     return name.text
+
+def parse_category(e):
+    return e.get('label')
     
 parser_map = {
-    '{http://www.w3.org/2005/Atom}title':  ['title',  parse_title],
-    '{http://www.w3.org/2005/Atom}author': ['author', parse_author]
+    '{http://www.w3.org/2005/Atom}title':    ['title',         parse_string],
+    '{http://www.w3.org/2005/Atom}author':   ['author',        parse_author],
+    '{http://purl.org/dc/terms/}publisher':  ['publisher',     parse_string],
+    '{http://RDVocab.info/elements/}':       ['publish_place', parse_string],
+    '{http://purl.org/dc/terms/}issued':     ['publish_date',  parse_string],
+    '{http://purl.org/dc/terms/}extent':     ['pagination',    parse_string],
+    '{http://www.w3.org/2005/Atom}category': ['subject',       parse_category],
+    '{http://purl.org/dc/terms/}language':   ['language',      parse_string],
+    '{http://purl.org/ontology/bibo/}lccn':  ['lccn',          parse_string],
 }
+#TODO: {http://purl.org/dc/terms/}identifier (could be ocaid)
+#TODO: {http://www.w3.org/2005/Atom}link     (could be cover image)
 
 def parse(element):
     edition_dict = import_edition_builder.import_edition_builder()
