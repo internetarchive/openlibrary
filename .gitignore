@@ -22,3 +22,7 @@ vendor/apache-solr-1.4.0/
 vendor/couchdb-1.0.1/
 vendor/couchdb-lucene-0.6-SNAPSHOT/
 vendor/solr/
+mymailserver/logs/lamson.err
+mymailserver/logs/lamson.log
+mymailserver/logs/logger.log
+mymailserver/run/
