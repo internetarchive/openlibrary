@@ -326,6 +326,28 @@ class Library(Thing):
         if params:
             u += '?' + urllib.urlencode(params)
         return u
+
+    def find_bad_ip_ranges(self, text):
+        bad = []
+        for orig in text.splitlines():
+            line = orig.split("#")[0].strip()
+            if not line or "-" in line:
+                continue
+            if re_four_octet.match(line):
+                continue
+            if re_range_star.match(line):
+                continue
+            if re_three_octet.match(line):
+                continue
+            if '*' in line:
+                collected = []
+                octets = line.split('.')
+                while octets[0].isdigit():
+                    collected.append(octets.pop(0))
+                if collected and all(octet == '*' for octet in octets):
+                    continue
+            bad.append(orig)
+        return bad
     
     def parse_ip_ranges(self, text):
         for line in text.splitlines():
