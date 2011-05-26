@@ -39,9 +39,11 @@ class import_edition_builder:
             'author' :       ['authors',        self.add_author],
             'publisher':     ['publishers',     self.add_list],
             'publish_place': ['publish_places', self.add_list],
+            'publish_date':  ['publish_date',   self.add_string],
             'pagination':    ['pagination',     self.add_string],
             'subject':       ['subjects',       self.add_list],
             'language':      ['languages',      self.add_list],
+            'description':   ['description',    self.add_string],
             'lccn':          ['lccn',           self.add_string],
         }
 
