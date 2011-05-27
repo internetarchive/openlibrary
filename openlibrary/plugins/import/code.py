@@ -31,13 +31,15 @@ def parse_data(data):
         print root.tag
         if '{http://www.w3.org/1999/02/22-rdf-syntax-ns#}RDF' == root.tag:
             print 'parsing RDF'
+            return None
         elif '{http://www.w3.org/2005/Atom}entry' == root.tag:
             print 'parsing OPDS/Atom'
-            import_opds.parse(root)
+            edition = import_opds.parse(root)
         else:
             print 'unrecognized XML format'
+            return None
         print 'FOO'*10
-        return None
+
     else:
         if len(data) != int(data[:5]):
             return json.dumps({'success':False, 'error':'Bad MARC length'})
@@ -45,7 +47,7 @@ def parse_data(data):
         rec = MarcBinary(data)
         edition = read_edition(rec)
     
-        parse_meta_headers(edition)
+    parse_meta_headers(edition)
     
     return edition
 
