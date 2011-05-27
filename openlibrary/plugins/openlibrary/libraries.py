@@ -211,9 +211,9 @@ class LoanStats:
         d['expired_loans'] = sum(count for time, count in freq.items() if int(time) >= 14*24)
         return d
 
-    def get_loans_per_day(self):
+    def get_loans_per_day(self, resource_type="total"):
         rows = self.view("loans/loans", group=True).rows
-        return [[self.date2timestamp(*row.key)*1000, row.value] for row in rows]
+        return [[self.date2timestamp(*row.key)*1000, row.value.get(resource_type, 0)] for row in rows]
 
     def date2timestamp(self, year, month=1, day=1):
         return time.mktime((year, month, day, 0, 0, 0, 0, 0, 0)) # time.mktime takes 9-tuple as argument

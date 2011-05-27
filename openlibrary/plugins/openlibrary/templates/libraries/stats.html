@@ -52,16 +52,28 @@ function setup_tooltip(selector, format_message) {
 }
 
 \$(function () {
-    \$.plot("#loans-per-day", [$:json_encode(stats.get_loans_per_day())], {
+    \$.plot("#loans-per-day", [
+        {
+            "data": $:json_encode(stats.get_loans_per_day("bookreader")), 
+            "label": "bookreader",
+            color: "#35672e"
+        }, {
+            "data": $:json_encode(stats.get_loans_per_day("pdf")), 
+            "label": "pdf",
+            color: "#35672e"
+        }, {
+            "data": $:json_encode(stats.get_loans_per_day("epub")), 
+            "label": "epub",
+            color: "#35672e"
+        }
+    ], {
         series: {
-             bars: {
-                 show: true,
-                 align: "left",
-                 barWidth: 24 * 60 * 60 * 1000,
-                 color: "#35672e",
-                 fillColor: "#35672e",
-             },
-             color: "#35672e"
+            stack: 0,
+            bars: {
+                show: true,
+                align: "left",
+                barWidth: 20 * 60 * 60 * 1000,
+            },
         },
         grid: {
             hoverable: true,
