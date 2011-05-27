@@ -9,10 +9,12 @@ relay_config = {'host': 'localhost', 'port': 25}
 
 receiver_config = {'host': 'localhost', 'port': 8823}
 
-handlers = ['app.handlers.sample']
+handlers = ['app.handlers.cases']
 
 router_defaults = {'host': '.+'}
 
 template_config = {'dir': 'app', 'module': 'templates'}
 
 # the config/boot.py will turn these values into variables set in settings
+
+
