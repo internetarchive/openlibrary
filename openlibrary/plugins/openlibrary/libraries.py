@@ -274,15 +274,15 @@ class LoanStats:
         books = web.ctx.site.get_many(keys)
         return zip(books, counts)
 
-    def get_loans_per_book(self, key=""):
+    def get_loans_per_book(self, key="", limit=1):
         """Returns the distribution of #loans/book."""
         rows = self.view("loans/books", group=True, startkey=[key], endkey=[key, {}]).rows
-        return [[row.key[-1], row.value] for row in rows]
+        return [[row.key[-1], row.value] for row in rows if row.value >= limit]
         
-    def get_loans_per_user(self, key=""):
+    def get_loans_per_user(self, key="", limit=1):
         """Returns the distribution of #loans/user."""
         rows = self.view("loans/people", group=True, startkey=[key], endkey=[key, {}]).rows
-        return [[row.key[-1], row.value] for row in rows]
+        return [[row.key[-1], row.value] for row in rows if row.value >= limit]
         
     def get_loans_per_library(self):
         rows = self.view("loans/libraries", group=True).rows

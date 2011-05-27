@@ -132,7 +132,7 @@ function setup_tooltip(selector, format_message) {
         }
     });
 
-    \$.plot("#loans-per-user", [$:json_encode(stats.get_loans_per_user())], {
+    \$.plot("#loans-per-user", [$:json_encode(stats.get_loans_per_user(limit=5))], {
         series: {
              bars: {
                  show: true,
@@ -151,7 +151,7 @@ function setup_tooltip(selector, format_message) {
     });
     
 
-    \$.plot("#loans-per-book", [$:json_encode(stats.get_loans_per_book())], {
+    \$.plot("#loans-per-book", [$:json_encode(stats.get_loans_per_book(limit=5))], {
         series: {
              bars: {
                  show: true,
