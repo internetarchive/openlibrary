@@ -86,6 +86,11 @@ lists.setup()
 
 class hooks(client.hook):
     def before_new_version(self, page):
+        if page.type.key == '/type/library':
+            bad = list(page.find_bad_ip_ranges(page.ip_ranges or ""))
+            if bad:
+                raise ValidationException('Bad IPs: ' + '; '.join(bad))
+
         if page.key.startswith('/a/') or page.key.startswith('/authors/'):
             if page.type.key == '/type/author':
                 return
