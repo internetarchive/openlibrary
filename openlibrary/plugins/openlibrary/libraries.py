@@ -283,6 +283,14 @@ class LoanStats:
         """Returns the distribution of #loans/user."""
         rows = self.view("loans/people", group=True, startkey=[key], endkey=[key, {}]).rows
         return [[row.key[-1], row.value] for row in rows]
+        
+    def get_loans_per_library(self):
+        rows = self.view("loans/libraries", group=True).rows
+        names = self._get_library_names()
+        return [[names.get(row.key, "-"), row.value] for row in rows]
+        
+    def _get_library_names(self):
+        return dict((lib.key, lib.name) for lib in inlibrary.get_libraries())
 
 def on_loan_created(loan):
     """Adds the loan info to the admin stats database.

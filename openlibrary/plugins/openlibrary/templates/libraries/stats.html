@@ -73,7 +73,32 @@ function setup_tooltip(selector, format_message) {
             mode: "time"
         }
     });
+    
+    $ lib_loans = stats.get_loans_per_library()
+    $ ticks = [[i, lib] for i, (lib, count) in enumerate(lib_loans)]
+    $ data = [[i, count] for i, (lib, count) in enumerate(lib_loans)]
 
+    \$.plot("#loans-per-library", [$:json_encode(data)], {
+        series: {
+             bars: {
+                 show: true,
+                 align: "center",
+                 color: "#35672e",
+                 fillColor: "#35672e",
+             },
+             color: "#35672e"
+        },
+        grid: {
+            hoverable: true,
+            show: true,
+            borderWidth: 1, 
+            borderColor: "#d9d9d9"
+        },
+        xaxis: {
+            ticks: $:json_encode(ticks)
+        }
+    });
+    
     \$.plot("#duration", [$:json_encode(stats.get_loan_duration_frequency())], {
         series: {
              bars: {
@@ -146,6 +171,14 @@ div.graph,div.chart{width:898px;height:180px;float:none;background-image:none;}
 
     <div class="chart">
         <div id="loans-per-day" class="graph">
+            <noscript>$_("You need to have JavaScript turned on to see the nifty chart!")</noscript>
+        </div>
+    </div>
+    
+    <h2>Loans Per Library</h2>
+
+    <div class="chart">
+        <div id="loans-per-library" class="graph">
             <noscript>$_("You need to have JavaScript turned on to see the nifty chart!")</noscript>
         </div>
     </div>
