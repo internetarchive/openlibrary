@@ -4,6 +4,7 @@
 from infogami.plugins.api.code import add_hook
 from openlibrary.plugins.openlibrary.code import can_write
 from openlibrary.catalog.marc.marc_binary import MarcBinary
+from openlibrary.catalog.marc.marc_xml import MarcXml
 from openlibrary.catalog.marc.parse import read_edition
 from openlibrary.catalog.add_book import load
 
@@ -32,11 +33,15 @@ def parse_data(data):
         root = etree.fromstring(data)
         print root.tag
         if '{http://www.w3.org/1999/02/22-rdf-syntax-ns#}RDF' == root.tag:
-            print 'parsing RDF'
             return None
         elif '{http://www.w3.org/2005/Atom}entry' == root.tag:
-            print 'parsing OPDS/Atom'
             edition_builder = import_opds.parse(root)
+        elif '{http://www.loc.gov/MARC21/slim}record' == root.tag:
+            if root.tag == '{http://www.loc.gov/MARC21/slim}collection':
+                root = root[0]
+            rec = MarcXml(root)
+            edition = read_edition(rec)
+            edition_builder = import_edition_builder.import_edition_builder(init_dict=edition)
         else:
             print 'unrecognized XML format'
             return None
@@ -44,6 +49,7 @@ def parse_data(data):
         obj = json.loads(data)
         edition_builder = import_edition_builder.import_edition_builder(init_dict=obj)
     else:
+        #Marc Binary
         if len(data) != int(data[:5]):
             return json.dumps({'success':False, 'error':'Bad MARC length'})
     
