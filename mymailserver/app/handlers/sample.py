@@ -4,23 +4,15 @@ from config.settings import relay
 from lamson import view
 
 
-@route("(address)@(host)", address=".+")
-def START(message, address=None, host=None):
-    return NEW_USER
+@route("support\+(case)@(host)", case="[0-9]+")
+def START(message, case=None, host=None):
+    print "I received a message from case %s"%case
+    print "And I'm creating a case for it"
+    return FORWARD
 
-
-@route_like(START)
-def NEW_USER(message, address=None, host=None):
-    return NEW_USER
-
-
-@route_like(START)
-def END(message, address=None, host=None):
-    return NEW_USER(message, address, host)
-
-
-@route_like(START)
+@route("(account)@(host)", account = ".+", host=".+")
 @stateless
-def FORWARD(message, address=None, host=None):
+def FORWARD(message, account=None, host=None):
+    print "Forwarding message now %s, %s, %s"%( message, account, host)
     relay.deliver(message)
 
