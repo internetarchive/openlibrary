@@ -47,7 +47,7 @@ parser_map = {
 #TODO: {http://www.w3.org/2005/Atom}link     (could be cover image)
 
 def parse(root):
-    edition_dict = import_edition_builder.import_edition_builder()
+    edition_builder = import_edition_builder.import_edition_builder()
     
     for e in root:
         if isinstance(e.tag, basestring): 
@@ -56,6 +56,6 @@ def parse(root):
                 key = parser_map[e.tag][0]
                 (new_key, val) = parser_map[e.tag][1](e, key)
                 if new_key:
-                    edition_dict.add(new_key, val)
+                    edition_builder.add(new_key, val)
 
-    return edition_dict.get_dict()
+    return edition_builder

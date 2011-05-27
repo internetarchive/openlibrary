@@ -10,22 +10,24 @@ from openlibrary.catalog.add_book import load
 import web
 import json
 import import_opds
+import import_edition_builder
 from lxml import etree
 
-def parse_meta_headers(edition):
+def parse_meta_headers(edition_builder):
     # parse S3-style http headers
     # we don't yet support augmenting complex fields like author or language
-    string_keys = ['title', 'title_prefix', 'description']
+    # string_keys = ['title', 'title_prefix', 'description']
 
     prefix = 'HTTP_X_ARCHIVE_META_'
 
     for k, v in web.ctx.env.items():
         if k.startswith(prefix):
             meta_key = k[len(prefix):].lower()
-            if meta_key in string_keys:
-                edition[meta_key] = v
+            edition_builder.add(meta_key, v, restrict_keys=False)
+
 
 def parse_data(data):
+    data = data.strip()
     if -1 != data[:10].find('<?xml'):
         root = etree.fromstring(data)
         print root.tag
@@ -34,22 +36,24 @@ def parse_data(data):
             return None
         elif '{http://www.w3.org/2005/Atom}entry' == root.tag:
             print 'parsing OPDS/Atom'
-            edition = import_opds.parse(root)
+            edition_builder = import_opds.parse(root)
         else:
             print 'unrecognized XML format'
             return None
-        print 'FOO'*10
-
+    elif data.startswith('{') and data.endswith('}'):
+        obj = json.loads(data)
+        edition_builder = import_edition_builder.import_edition_builder(init_dict=obj)
     else:
         if len(data) != int(data[:5]):
             return json.dumps({'success':False, 'error':'Bad MARC length'})
     
         rec = MarcBinary(data)
         edition = read_edition(rec)
+        edition_builder = import_edition_builder.import_edition_builder(init_dict=edition)
+
+    parse_meta_headers(edition_builder)
     
-    parse_meta_headers(edition)
-    
-    return edition
+    return edition_builder.get_dict()
 
 class importapi:
     def GET(self):
@@ -75,15 +79,11 @@ class importapi:
         data = web.data()
        
         edition = parse_data(data)
-        print edition
+        print edition #debugging
+
         #call Edward's code here with the edition dict
         if edition:
             reply = load(edition)
-            print '-'*80
-            print reply
-            print '-'*80
-            
-            #return json.dumps({'success':False, 'error':'Not Yet Implemented'})
             return json.dumps(reply)
         else:
             return json.dumps({'success':False, 'error':'Failed to parse Edition data'})

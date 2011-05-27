@@ -38,8 +38,8 @@ class import_edition_builder:
         }
         self.add_list('authors', author_dict)
     
-    def __init__(self):
-        self.edition_dict = {}
+    def __init__(self, init_dict={}):
+        self.edition_dict = init_dict.copy()
 
         self.type_dict = {
             'title'  :       ['title',          self.add_string],
@@ -62,11 +62,14 @@ class import_edition_builder:
     def get_dict(self):
         return self.edition_dict
 
-    def add(self, key, val):
-        if not key in self.type_dict:
-            print 'invalid key: ' + key
+    def add(self, key, val, restrict_keys=True):
+        if restrict_keys and not key in self.type_dict:
+            print 'import_edition_builder invalid key: ' + key
             return
-        
-        new_key  = self.type_dict[key][0]
-        add_func = self.type_dict[key][1]
-        add_func(new_key, val)
+
+        if key in self.type_dict:
+            new_key  = self.type_dict[key][0]
+            add_func = self.type_dict[key][1]
+            add_func(new_key, val)
+        else:
+            self.add_string(key, val)
