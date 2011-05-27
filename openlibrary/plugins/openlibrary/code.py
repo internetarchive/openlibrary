@@ -86,6 +86,11 @@ lists.setup()
 
 class hooks(client.hook):
     def before_new_version(self, page):
+        if page.type.key == '/type/library':
+            bad = list(page.find_bad_ip_ranges(page.ip_ranges or ""))
+            if bad:
+                raise ValidationException('Bad IPs: ' + '; '.join(bad))
+
         if page.key.startswith('/a/') or page.key.startswith('/authors/'):
             if page.type.key == '/type/author':
                 return
@@ -774,7 +779,7 @@ def setup_logging():
         raise
 
 def setup():
-    import home, inlibrary, borrow_home, libraries, stats, support
+    import home, inlibrary, borrow_home, libraries, stats, support, events
     
     home.setup()
     inlibrary.setup()
@@ -782,7 +787,7 @@ def setup():
     libraries.setup()
     stats.setup()
     support.setup()
-
+    events.setup()
     
     from stats import stats_hook
     delegate.app.add_processor(web.unloadhook(stats_hook))

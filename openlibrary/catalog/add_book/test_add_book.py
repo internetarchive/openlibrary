@@ -3,6 +3,8 @@ from . import load, RequiredField, build_pool, add_db_name
 import py.test
 from pprint import pprint
 from openlibrary.catalog.merge.merge_marc import build_marc
+from openlibrary.catalog.marc.parse import read_edition
+from openlibrary.catalog.marc.marc_binary import MarcBinary
 from merge import try_merge
 from copy import deepcopy
 
@@ -200,3 +202,14 @@ def test_add_db_name():
     rec = {}
     add_db_name(rec)
     assert rec == {}
+
+def test_from_marc(mock_site):
+    add_languages(mock_site)
+    marc = MarcBinary(open('test_data/coursepuremath00hardrich_meta.mrc').read())
+    rec = read_edition(marc)
+    reply = load(rec)
+    assert reply['success'] == True
+    reply = load(rec)
+    assert reply['success'] == True
+    assert reply['edition']['status'] == 'match'
+

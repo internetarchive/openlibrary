@@ -1,6 +1,6 @@
 from openlibrary.catalog.merge.merge_marc import build_marc
 from load_book import build_query
-import web
+import web, re
 from merge import try_merge
 from openlibrary.catalog.utils import mk_norm
 from pprint import pprint
@@ -180,6 +180,38 @@ def add_db_name(rec):
             date = a.get('birth_date', '') + '-' + a.get('death_date', '')
         a['db_name'] = ' '.join([a['name'], date]) if date else a['name']
 
+re_lang = re.compile('^/languages/([a-z]{3})$')
+
+def find_exact_match(rec, edition_pool):
+    seen = set()
+    for field, editions in edition_pool.iteritems():
+        for ekey in editions:
+            if ekey in seen:
+                continue
+            seen.add(ekey)
+            existing = web.ctx.site.get(ekey)
+            match = True
+            for k, v in rec.items():
+                existing_value = existing.get(k)
+                if k == 'languages':
+                     existing_value = [re_lang.match(l.key).group(1) for l in existing_value]
+                if k == 'authors':
+                     existing_value = [dict(a) for a in existing_value]
+                     for a in existing_value:
+                         del a['type']
+                         del a['key']
+                     for a in v:
+                         if 'entity_type' in a:
+                            del a['entity_type']
+
+                x = existing_value == v
+                if existing_value != v:
+                    match = False
+                    break
+            if match:
+                return ekey
+    return False
+
 def load(rec):
     if not rec.get('title'):
         raise RequiredField('title')
@@ -191,19 +223,28 @@ def load(rec):
     #if len(matches) == 1:
     #    return {'success': True, 'edition': {'key': list(matches)[0]}}
 
-    rec['full_title'] = rec['title']
-    if rec.get('subtitle'):
-        rec['full_title'] += ' ' + rec['subtitle']
-    e1 = build_marc(rec)
-    add_db_name(e1)
+    match = find_exact_match(rec, edition_pool)
 
-    match = find_match(e1, edition_pool)
+    if not match:
+        rec['full_title'] = rec['title']
+        if rec.get('subtitle'):
+            rec['full_title'] += ' ' + rec['subtitle']
+        e1 = build_marc(rec)
+        add_db_name(e1)
+
+        #print
+        #print 'e1', e1
+        #print 
+        #print 'pool', edition_pool
+        match = find_match(e1, edition_pool)
 
     if match: # 'match found:', match, rec['ia']
-        return {'success': True, 'edition': {'key': match}  }
+        wkey = web.ctx.site.get(match)['works'][0]
+        return {
+            'success': True,
+            'edition': {'key': match, 'status': 'match'},
+            'work': {'key': wkey, 'status': 'match'},
+        }
         #add_source_records(match, ia)
     else: # 'no match found', rec['ia']
-        load_data(rec)
-
-    reply = {'success': True}
-    return reply
+        return load_data(rec)

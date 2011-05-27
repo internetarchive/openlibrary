@@ -211,9 +211,9 @@ class LoanStats:
         d['expired_loans'] = sum(count for time, count in freq.items() if int(time) >= 14*24)
         return d
 
-    def get_loans_per_day(self):
+    def get_loans_per_day(self, resource_type="total"):
         rows = self.view("loans/loans", group=True).rows
-        return [[self.date2timestamp(*row.key)*1000, row.value] for row in rows]
+        return [[self.date2timestamp(*row.key)*1000, row.value.get(resource_type, 0)] for row in rows]
 
     def date2timestamp(self, year, month=1, day=1):
         return time.mktime((year, month, day, 0, 0, 0, 0, 0, 0)) # time.mktime takes 9-tuple as argument
@@ -274,15 +274,23 @@ class LoanStats:
         books = web.ctx.site.get_many(keys)
         return zip(books, counts)
 
-    def get_loans_per_book(self, key=""):
+    def get_loans_per_book(self, key="", limit=1):
         """Returns the distribution of #loans/book."""
         rows = self.view("loans/books", group=True, startkey=[key], endkey=[key, {}]).rows
-        return [[row.key[-1], row.value] for row in rows]
+        return [[row.key[-1], row.value] for row in rows if row.value >= limit]
         
-    def get_loans_per_user(self, key=""):
+    def get_loans_per_user(self, key="", limit=1):
         """Returns the distribution of #loans/user."""
         rows = self.view("loans/people", group=True, startkey=[key], endkey=[key, {}]).rows
-        return [[row.key[-1], row.value] for row in rows]
+        return [[row.key[-1], row.value] for row in rows if row.value >= limit]
+        
+    def get_loans_per_library(self):
+        rows = self.view("loans/libraries", group=True).rows
+        names = self._get_library_names()
+        return [[names.get(row.key, "-"), row.value] for row in rows]
+        
+    def _get_library_names(self):
+        return dict((lib.key, lib.name) for lib in inlibrary.get_libraries())
 
 def on_loan_created(loan):
     """Adds the loan info to the admin stats database.

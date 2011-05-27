@@ -26,7 +26,13 @@ def try_merge(e1, edition_key, existing):
         rec2['lccn'] = existing.lccn
     rec2['authors'] = [{'name': a.name, 'db_name': db_name(a)}
         for a in existing.authors]
+    if existing.publishers:
+        rec2['publishers'] = existing.publishers
+    if existing.publish_date:
+        rec2['publisher_date'] = existing.publish_date
 
     e2 = build_marc(rec2)
-    pprint(e2)
-    return attempt_merge(e1, e2, threshold, debug=False)
+    print
+    print 'e1:', e1
+    print 'e2:', e2
+    return attempt_merge(e1, e2, threshold, debug=True)
