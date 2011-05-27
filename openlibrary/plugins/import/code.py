@@ -11,6 +11,7 @@ from openlibrary.catalog.add_book import load
 import web
 import json
 import import_opds
+import import_rdf
 import import_edition_builder
 from lxml import etree
 
@@ -31,9 +32,9 @@ def parse_data(data):
     data = data.strip()
     if -1 != data[:10].find('<?xml'):
         root = etree.fromstring(data)
-        print root.tag
+        #print root.tag
         if '{http://www.w3.org/1999/02/22-rdf-syntax-ns#}RDF' == root.tag:
-            return None
+            edition_builder = import_rdf.parse(root)
         elif '{http://www.w3.org/2005/Atom}entry' == root.tag:
             edition_builder = import_opds.parse(root)
         elif '{http://www.loc.gov/MARC21/slim}record' == root.tag:
