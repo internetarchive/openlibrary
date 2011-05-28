@@ -208,8 +208,9 @@ class DataProcessor:
                     
         def format_toc_item(ti):
             d = {
-                "title": ti.get("title", ""),
                 "level": ti.get("level", ""),
+                "label": ti.get("label", ""),
+                "title": ti.get("title", ""),
                 "pagenum": ti.get("pagenum", "")
             }
             return trim(d)
