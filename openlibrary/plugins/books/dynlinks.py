@@ -261,7 +261,11 @@ class DataProcessor:
             "subject_people": get_subjects("subject_people", "person:"),
             "subject_times": get_subjects("subject_times", "time:"),
             "excerpts": [format_excerpt(e) for e in w.get("excerpts", [])],
+
+            "first_sentence": doc.get("first_sentence", ""),
+            "notes": doc.get("notes", ""),
             "table_of_contents": format_table_of_contents(doc.get("table_of_contents", [])),
+
             "links": [dict(title=link.get("title"), url=link['url']) for link in w.get('links', '') if link.get('url')],
         }
         
