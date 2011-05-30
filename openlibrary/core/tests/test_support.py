@@ -1,5 +1,8 @@
 import datetime
 
+import py
+
+
 def test_create_case(couchdb, sequence):
     "Tries to create a case"
     from openlibrary.core import support
@@ -161,6 +164,9 @@ def test_get_all_cases(couchdb, sequence):
     assert returned_caseids == expected_caseids
 
     
-    
-    
+def test_nonexistentcase(couchdb):
+    from openlibrary.core import support
+    s = support.Support(db = couchdb)
+    py.test.raises (support.InvalidCase, s.get_case, 12345)
+
     
