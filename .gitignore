@@ -25,4 +25,5 @@ vendor/solr/
 mymailserver/logs/lamson.err
 mymailserver/logs/lamson.log
 mymailserver/logs/logger.log
+lamson.out
 mymailserver/run/
