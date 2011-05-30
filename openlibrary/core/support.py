@@ -6,6 +6,9 @@ from couchdb.mapping import TextField, IntegerField, DateTimeField, ListField, D
 import web
 from infogami import config
 
+
+class InvalidCase(KeyError): pass
+
 @web.memoize
 def get_admin_database():
     admin_db = config.get("admin", {}).get("admin_db",None)
@@ -20,7 +23,7 @@ class Support(object):
         else:
             self.db = get_admin_database()
     
-    def create_case(self, creator_name, creator_email, creator_useragent, subject, description, assignee, url):
+    def create_case(self, creator_name, creator_email, creator_useragent, subject, description, assignee, url = ""):
         "Creates a support case with the given parameters"
         seq = web.ctx.site.seq.next_value("support-case")
         created = datetime.datetime.utcnow()
@@ -104,6 +107,8 @@ class Case(Document):
     @classmethod
     def load(cls, db, id):
         ret = super(Case, cls).load(db, id)
+        if not ret:
+            raise InvalidCase("No case with id %s"%id)
         ret.db = db
         return ret
 
