@@ -135,6 +135,7 @@ def format_one_request(record, data, details):
                           'recordURL': 'http://openlibrary.org%s' % edition['key'],
                           # 'marc-xml': ''
                           'data': data,
+                          'details': details,
                           } },
               'items': items }
     return result
