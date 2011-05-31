@@ -1,5 +1,5 @@
 from openlibrary.catalog.merge.merge_marc import build_marc
-from load_book import build_query
+from load_book import build_query, import_author, east_in_by_statement
 import web, re
 from merge import try_merge
 from openlibrary.catalog.utils import mk_norm
@@ -40,15 +40,10 @@ def find_matching_work(e):
                 assert web.ctx.site.things({'key': wkey, 'type': None})[0]['type'] == '/type/work'
                 return wkey
 
-
-def load_data(rec):
-    q = build_query(rec)
-
-    reply = {}
-
+def build_author_reply(author_in):
     authors = []
     author_reply = []
-    for a in q.get('authors', []):
+    for a in author_in:
         new_author = 'key' not in a
         if new_author:
             a['key'] = web.ctx.site.new_key('/type/author')
@@ -59,6 +54,15 @@ def load_data(rec):
             'name': a['name'],
             'status': ('created' if new_author else 'modified'),
         })
+    return (authors, author_reply)
+
+def load_data(rec):
+    q = build_query(rec)
+
+    reply = {}
+    author_in = q.get('authors', [])
+    (authors, author_reply) = build_author_reply(author_in)
+
     #q['source_records'] = [loc]
     if authors:
         q['authors'] = authors
@@ -98,7 +102,7 @@ def load_data(rec):
         if 'subjects' in rec:
             w['subjects'] = rec['subjects']
         if 'authors' in q:
-            w['authors'] = [{'type':'/type/author_role', 'author': akey} for akey in q['authors']]
+            w['authors'] = [{'type':{'key': '/type/author_role'}, 'author': akey} for akey in q['authors']]
         w.update(subjects)
 
         wkey = web.ctx.site.new_key('/type/work')
@@ -162,7 +166,8 @@ def build_pool(rec):
     for field in pool_fields:
         if field not in rec:
             continue
-        for v in rec[field]:
+        for v in (rec[field] if field != 'title' else [rec[field]]):
+            print (field, v)
             found = web.ctx.site.things({field: v, 'type': '/type/edition'})
             pool.setdefault(field, set()).update(found)
     return dict((k, list(v)) for k, v in pool.iteritems() if v)
@@ -193,8 +198,10 @@ def find_exact_match(rec, edition_pool):
             match = True
             for k, v in rec.items():
                 existing_value = existing.get(k)
+                if not existing_value:
+                    continue
                 if k == 'languages':
-                     existing_value = [re_lang.match(l.key).group(1) for l in existing_value]
+                     existing_value = [str(re_lang.match(l.key).group(1)) for l in existing_value]
                 if k == 'authors':
                      existing_value = [dict(a) for a in existing_value]
                      for a in existing_value:
@@ -204,7 +211,6 @@ def find_exact_match(rec, edition_pool):
                          if 'entity_type' in a:
                             del a['entity_type']
 
-                x = existing_value == v
                 if existing_value != v:
                     match = False
                     break
@@ -216,6 +222,7 @@ def load(rec):
     if not rec.get('title'):
         raise RequiredField('title')
     edition_pool = build_pool(rec)
+    print 'pool:', edition_pool
     if not edition_pool:
         return load_data(rec) # 'no books in pool, loading'
 
@@ -239,12 +246,52 @@ def load(rec):
         match = find_match(e1, edition_pool)
 
     if match: # 'match found:', match, rec['ia']
-        wkey = web.ctx.site.get(match)['works'][0]
-        return {
+        w = web.ctx.site.get(match)['works'][0]
+        reply = {
             'success': True,
             'edition': {'key': match, 'status': 'match'},
-            'work': {'key': wkey, 'status': 'match'},
+            'work': {'key': w.key, 'status': 'match'},
         }
+
+        need_work_save = False
+        if rec.get('authors'):
+            reply['authors'] = []
+            east = east_in_by_statement(rec)
+            work_authors = list(w.authors)
+            author_in = [import_author(a, eastern=east) for a in rec['authors']]
+            for a in author_in:
+                new_author = 'key' not in a
+                add_to_work = False
+                if new_author:
+                    a['key'] = web.ctx.site.new_key('/type/author')
+                    aobj = web.ctx.site.save(a, comment='new author')
+                    add_to_work = True
+                elif not any(i.author.key == a['key'] for i in work_authors):
+                    add_to_work = True
+                if add_to_work:
+                    need_work_save = True
+                    work_authors.append({
+                        'type': {'key': '/type/author_role'},
+                        'author': {'key': a['key'] },
+                    })
+                reply['authors'].append({
+                    'key': a['key'],
+                    'name': a['name'],
+                    'status': ('created' if new_author else 'modified'),
+                })
+            w.authors = work_authors
+        if 'subjects' in rec:
+            work_subjects = list(w.subjects)
+            for s in rec['subjects']:
+                if s not in w.subjects:
+                    print 'w.subjects.append(%s)' % s
+                    work_subjects.append(s)
+                    need_work_save = True
+            if need_work_save:
+                w.subjects = work_subjects
+        if need_work_save:
+            web.ctx.site.save(w, w.key, 'update work')
+        return reply
         #add_source_records(match, ia)
     else: # 'no match found', rec['ia']
         return load_data(rec)
