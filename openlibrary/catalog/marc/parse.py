@@ -95,7 +95,7 @@ def read_oclc(rec):
             m = re_oclc.match(v)
             if not m:
                 m = re_ocn_or_ocm.match(v)
-                if not m.group(1).isdigit():
+                if m and not m.group(1).isdigit():
                     m = None
             if m:
                 oclc = m.group(1)
