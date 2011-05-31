@@ -39,7 +39,8 @@ class read_singleget(delegate.page):
         
         web.ctx.headers = []
         bibkey = '%s:%s' % (idtype, idval)
-        return readlinks.readlink_single(bibkey, i)
+        result = readlinks.readlink_single(bibkey, i)
+        return simplejson.dumps(result)
 
 
 class read_multiget(delegate.page):
@@ -51,9 +52,10 @@ class read_multiget(delegate.page):
         i = web.input()
 
         web.ctx.headers = []
-        return readlinks.readlink_multiple(bibkey_str, i)
-
+        result = readlinks.readlink_multiple(bibkey_str, i)
+        return simplejson.dumps(result)
     
+
 # if __name__ == "__main__":
 #     import doctest
 #     doctest.testmod()
