@@ -93,6 +93,10 @@ def read_oclc(rec):
     for f in rec.get_fields('035'):
         for k, v in f.get_subfields(['a']):
             m = re_oclc.match(v)
+            if not m:
+                m = re_ocn_or_ocm.match(v)
+                if not m.group(1).isdigit():
+                    m = None
             if m:
                 oclc = m.group(1)
                 if oclc not in found:

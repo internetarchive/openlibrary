@@ -10,7 +10,7 @@ import couchdb
 
 from infogami import config
 from infogami.utils import delegate
-from infogami.utils.view import render_template
+from infogami.utils.view import render_template, add_flash_message
 from openlibrary.core import inlibrary
 
 logger = logging.getLogger("openlibrary.libraries")
@@ -40,18 +40,25 @@ class libraries_dashboard(delegate.page):
         return render_template("libraries/dashboard", libraries, self.get_pending_libraries())
         
     def get_pending_libraries(self):
-        docs =  web.ctx.site.store.values(type="library")
+        docs =  web.ctx.site.store.values(type="library", name="current_status", value="pending")
         return [self._create_pending_library(doc) for doc in docs]
             
     def _create_pending_library(self, doc):
         """Creates a library object from store doc.
         """
-        key = "/" + doc.pop("_key")
-        doc.pop("_rev", None)
+        doc = dict(doc)
+        
+        key = doc.pop("_key")
+        if not key.startswith("/"):
+            key = "/" + key
+            
+        for k in doc.keys():
+            if k.startswith("_"):
+                del doc[k]
+                
         doc['key'] = key
-        doc['revision'] = 0
         doc['type'] = {"key": '/type/library'}
-        doc['status'] = "pending"        
+        doc['title'] = doc.get("title", doc['name'])
         return web.ctx.site.new(key, doc)
         
 class pending_libraries(delegate.page):
@@ -62,8 +69,48 @@ class pending_libraries(delegate.page):
         if not doc:
             raise web.notfound()
             
+        doc["_key"] = self.generate_key(doc)
+            
         page = libraries_dashboard()._create_pending_library(doc)
         return render_template("type/library/edit", page)
+        
+    def generate_key(self, doc):
+        key = "/libraries/" + doc['name'].lower().replace(" ", "_")
+        
+        _key = key
+        count = 1
+        while web.ctx.site.get(key) is not None:
+            key = "%s_%s" % (_key, count)
+            count += 1
+        return key
+    
+    def POST(self, key):
+        i = web.input()
+        
+        if "_delete" in i:
+            doc = web.ctx.site.store.get(key)
+            if doc:
+                doc['current_status'] = "deleted"
+                web.ctx.site.store[doc['_key']] = doc
+                add_flash_message("info", "The requested library has been deleted.")
+                raise web.seeother("/libraries/dashboard")
+        
+        i._key = web.rstrips(i.key, "/").replace(" ", "_")
+        page = libraries_dashboard()._create_pending_library(i)
+        
+        if web.ctx.site.get(page.key):
+            add_flash_message("error", "URL %s is already used. Please choose a different one." % page.key)
+            return render_template("type/library/edit", page)
+        elif not i.key.startswith("/libraries/"):
+            add_flash_message("error", "The key must start with /libraries/.")
+            return render_template("type/library/edit", page)
+            
+        page._save()
+        doc = web.ctx.site.store.get(key)
+        if doc:
+            doc['current_status'] = "approved"
+            web.ctx.site.store[doc['_key']] = doc
+        raise web.seeother(page.key)
         
 class libraries_register(delegate.page):
     path = "/libraries/register"
@@ -79,9 +126,10 @@ class libraries_register(delegate.page):
         doc.update({
             "_key": "libraries/pending-%d" % seq,
             "type": "library",
+            "current_status": "pending",
             "registered_on": datetime.datetime.utcnow().isoformat()
         })
-        #web.ctx.site.store[doc['_key']] = doc
+        web.ctx.site.store[doc['_key']] = doc
         
         self.sendmail(i.contact_email, 
             render_template("libraries/email_confirmation"))
@@ -163,9 +211,9 @@ class LoanStats:
         d['expired_loans'] = sum(count for time, count in freq.items() if int(time) >= 14*24)
         return d
 
-    def get_loans_per_day(self):
+    def get_loans_per_day(self, resource_type="total"):
         rows = self.view("loans/loans", group=True).rows
-        return [[self.date2timestamp(*row.key)*1000, row.value] for row in rows]
+        return [[self.date2timestamp(*row.key)*1000, row.value.get(resource_type, 0)] for row in rows]
 
     def date2timestamp(self, year, month=1, day=1):
         return time.mktime((year, month, day, 0, 0, 0, 0, 0, 0)) # time.mktime takes 9-tuple as argument
@@ -226,15 +274,23 @@ class LoanStats:
         books = web.ctx.site.get_many(keys)
         return zip(books, counts)
 
-    def get_loans_per_book(self, key=""):
+    def get_loans_per_book(self, key="", limit=1):
         """Returns the distribution of #loans/book."""
         rows = self.view("loans/books", group=True, startkey=[key], endkey=[key, {}]).rows
-        return [[row.key[-1], row.value] for row in rows]
+        return [[row.key[-1], row.value] for row in rows if row.value >= limit]
         
-    def get_loans_per_user(self, key=""):
+    def get_loans_per_user(self, key="", limit=1):
         """Returns the distribution of #loans/user."""
         rows = self.view("loans/people", group=True, startkey=[key], endkey=[key, {}]).rows
-        return [[row.key[-1], row.value] for row in rows]
+        return [[row.key[-1], row.value] for row in rows if row.value >= limit]
+        
+    def get_loans_per_library(self):
+        rows = self.view("loans/libraries", group=True).rows
+        names = self._get_library_names()
+        return [[names.get(row.key, "-"), row.value] for row in rows]
+        
+    def _get_library_names(self):
+        return dict((lib.key, lib.name) for lib in inlibrary.get_libraries())
 
 def on_loan_created(loan):
     """Adds the loan info to the admin stats database.

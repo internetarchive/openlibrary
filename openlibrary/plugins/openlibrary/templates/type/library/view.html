@@ -6,13 +6,16 @@ $var title: $title
 
 $if ctx.user and ctx.user.is_admin():
     <div id="contentHead">
-
         $:macros.databarView(page)
 
         <div class="superNav">
             <a href="/libraries">Libraries</a> / 
+            
+            $if ctx.user and ctx.user.is_admin():
+                <span class="adminOnly">$:link("/libraries/dashboard", _("Manage Libraries"))</span>
         </div>
         <h1>$page.title</h1>
+            
     </div>
     <div id="contentBody">
         $ status = page.status or "onhold"

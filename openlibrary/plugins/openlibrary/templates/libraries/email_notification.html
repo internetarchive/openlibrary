@@ -4,19 +4,23 @@ $#
 $# Notification email sent to admins
 $#
 
-$var subject: [Open Library] New In-Library Registration: $library.name
+$var subject: [Open Library] New In-Library Registration: $:library.name
 
 Hello,
 
 A new library is registered for the In-Library program.
 
-Library Name: $library.name
-Country: $library.country
+Library Name: $:library.name
+Country: $:library.country
 
 Contact Person:
-    Name: $library.contact_person 
-    Title: $library.contact_title
-    Email: $library.contact_email
+    Name: $:library.contact_person
+    Title: $:library.contact_title
+    Email: $:library.contact_email
+
+You can manage the libraries from:
+
+http://openlibrary.org/libraries/dashboard
 
 Regards,
 The Open Library Team

@@ -1,9 +1,12 @@
 from load_book import build_query, InvalidLanguage
-from . import load, RequiredField, build_pool
+from . import load, RequiredField, build_pool, add_db_name
 import py.test
 from pprint import pprint
 from openlibrary.catalog.merge.merge_marc import build_marc
+from openlibrary.catalog.marc.parse import read_edition
+from openlibrary.catalog.marc.marc_binary import MarcBinary
 from merge import try_merge
+from copy import deepcopy
 
 def add_languages(mock_site):
     languages = [
@@ -151,7 +154,7 @@ def test_try_merge(mock_site):
     if rec.get('subtitle'):
         rec['full_title'] += ' ' + rec['subtitle']
     e1 = build_marc(rec)
-    pprint(e1)
+    add_db_name(e1)
 
     assert try_merge(e1, ekey, e)
 
@@ -165,12 +168,10 @@ def test_load_multiple(mock_site):
     assert reply['success'] == True
     ekey1 = reply['edition']['key']
 
-    return 
     reply = load(rec)
     assert reply['success'] == True
     ekey2 = reply['edition']['key']
     assert ekey1 == ekey2
-
 
     reply = load({'title': 'Test item', 'lccn': ['456']})
     assert reply['success'] == True
@@ -183,4 +184,32 @@ def test_load_multiple(mock_site):
 
     assert ekey1 == ekey2 == ekey4
 
+def test_add_db_name():
+    authors = [
+        {'name': 'Smith, John' },
+        {'name': 'Smith, John', 'date': '1950' },
+        {   'name': 'Smith, John',
+            'birth_date': '1895',
+            'death_date': '1964' },
+    ]
+    orig = deepcopy(authors)
+    add_db_name({'authors': authors})
+    orig[0]['db_name'] = orig[0]['name']
+    orig[1]['db_name'] = orig[1]['name'] + ' 1950'
+    orig[2]['db_name'] = orig[2]['name'] + ' 1895-1964'
+    assert authors == orig
+
+    rec = {}
+    add_db_name(rec)
+    assert rec == {}
+
+def test_from_marc(mock_site):
+    add_languages(mock_site)
+    marc = MarcBinary(open('test_data/coursepuremath00hardrich_meta.mrc').read())
+    rec = read_edition(marc)
+    reply = load(rec)
+    assert reply['success'] == True
+    reply = load(rec)
+    assert reply['success'] == True
+    assert reply['edition']['status'] == 'match'
 
