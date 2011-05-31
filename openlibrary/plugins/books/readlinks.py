@@ -72,8 +72,6 @@ def get_readable_edition_item(edition, work, user_inlibrary, initial_edition):
     else:
         match = 'similar'
 
-    raise Exception
-
     result = {
         'enumcron': False,
         # 'orig': 'University of California'
@@ -100,14 +98,7 @@ def get_readable_edition_item(edition, work, user_inlibrary, initial_edition):
     return result
 
 
-def lookup(bibkey):
-    bka = [bibkey]
-    r = dynlinks.query_docs(bka)
-
-    if len(r) == 0:
-        return []
-
-    record = r[bibkey]
+def format_one_request(record, data, details):
     edition = web.ctx.site.get(record['key'])
     work = web.ctx.site.get(record['works'][0]['key']) # xxx
 
@@ -129,9 +120,6 @@ def lookup(bibkey):
         othered_items.insert(0, thised_item)
     items = othered_items
 
-    (data, details, viewapi) = [dynlinks.process_result(r, cmd)[bibkey]
-                                for cmd in ('data', 'details', 'viewapi')]
-    # return record, edition, work, eds, data, items
 
     isbns = edition.get('isbn_10', [])
     isbns.extend(edition.get('isbn_13', [])) # xxx ? how to handle.
@@ -146,15 +134,51 @@ def lookup(bibkey):
                           # XXX below openlibrary.org from conf
                           'recordURL': 'http://openlibrary.org%s' % edition['key'],
                           # 'marc-xml': ''
-                          'data': data
+                          'data': data,
                           } },
               'items': items }
     return result
 
 
 def readlink_single(bibkey, options):
-    return lookup(bibkey)
+    bka = [bibkey]
+    r = dynlinks.query_docs(bka)
+    (data, details, viewapi) = [dynlinks.process_result(r, cmd)[bibkey]
+                                for cmd in ('data', 'details', 'viewapi')]
+    if len(r) == 0:
+        return []
+    record = r[bibkey]
+    return format_one_request(record, data, details)
+    # (data, details, viewapi) = [dynlinks.process_result(r, cmd)[bibkey]
+    #                             for cmd in ('data', 'details', 'viewapi')]
+    # return record, edition, work, eds, data, items
 
 
 def readlink_multiple(bibkey_str, options):
-    return 'hello multiple %s' % (bibkey_str)
+    requests = bibkey_str.split('|')
+    # make mapping between maybe-id and key-to-use
+    rmap = {}
+    for r in requests:
+        if r[:3].lower() == 'id:':
+            parts = r.split(';')
+            if len(parts) != 2:
+                return {}
+            key = parts[0][3:]
+            val = parts[1]
+        else:
+            key = r
+            val = r
+        rmap[key] = val
+    records = dynlinks.query_docs(rmap.values())
+    datas = dynlinks.process_result(records, 'data')
+    details = dynlinks.process_result(records, 'details')
+
+    formatted = {}
+    for k in records.keys():
+        formatted[k] = format_one_request(records[k], datas[k], details[k])
+
+    result = {}
+    for k in rmap.keys():
+        result[k] = formatted[rmap[k]]
+    
+    return result
