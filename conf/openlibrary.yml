@@ -39,6 +39,7 @@ plugins:
     - "oltemplates"
     - "admin"
     - "upstream"
+    - "importapi"
 
 plugin_worksearch:
     solr: "localhost:8983"
