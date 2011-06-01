@@ -64,18 +64,7 @@ def parse_data(data):
 
 class importapi:
     def GET(self):
-        i = web.input(recipient='', callback=None, details="false")
- 
-        web.ctx.headers = []
-        if i.get("format") == "json":
-            web.header('Content-Type', 'application/json')
-        else:
-            web.header('Content-Type', 'text/javascript')
- 
-        if len(i.recipient) == 0:
-            i.recipient = 'world'
- 
-        return '"hello %s"' % i.recipient
+        return 'The Import API only supports POST requests.'
 
     def POST(self):
         web.header('Content-Type', 'application/json')
