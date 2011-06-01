@@ -86,6 +86,8 @@ def test_load(mock_site):
     assert reply['authors'][0]['name'] == 'John Doe'
     akey1 = reply['authors'][0]['key']
     a = mock_site.get(akey1)
+    w = mock_site.get(reply['work']['key'])
+    assert w.authors
     assert a.type.key == '/type/author'
 
     rec = {
@@ -99,6 +101,15 @@ def test_load(mock_site):
     akey2 = reply['authors'][0]['key']
     assert akey1 == akey2
 
+    rec = {
+        'ocaid': 'test_item',
+        'title': 'Test item',
+        'authors': [{'name': 'James Smith'}],
+    }
+    reply = load(rec)
+    assert reply['authors'][0]['status'] == 'created'
+    w = mock_site.get(reply['work']['key'])
+    assert len(w.authors) == 2
 
 #def test_author_matching(mock_site):
 
@@ -209,7 +220,19 @@ def test_from_marc(mock_site):
     rec = read_edition(marc)
     reply = load(rec)
     assert reply['success'] == True
+    assert reply['edition']['status'] == 'created'
     reply = load(rec)
     assert reply['success'] == True
     assert reply['edition']['status'] == 'match'
+
+    marc = MarcBinary(open('test_data/flatlandromanceo00abbouoft_meta.mrc').read())
+
+    rec = read_edition(marc)
+    reply = load(rec)
+    assert reply['success'] == True
+    assert reply['edition']['status'] == 'created'
+    reply = load(rec)
+    assert reply['success'] == True
+    assert reply['edition']['status'] == 'match'
+
 
