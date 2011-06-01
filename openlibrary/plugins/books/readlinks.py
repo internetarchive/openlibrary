@@ -101,6 +101,10 @@ def get_readable_edition_item(edition, work, user_inlibrary, initial_edition):
 
 def format_one_request(record, data, details):
     edition = web.ctx.site.get(record['key'])
+
+    if not 'works' in record:
+        return {}
+
     work = web.ctx.site.get(record['works'][0]['key']) # xxx
 
     user_inlibrary = inlibrary.get_library()
