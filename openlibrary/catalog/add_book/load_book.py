@@ -34,8 +34,6 @@ def do_flip(author):
     author['name'] = name
     author['personal_name'] = name
 
-
-
 def find_author(name, send_mail=True):
     def walk_redirects(obj, seen):
         seen.add(obj['key'])
