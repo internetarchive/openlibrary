@@ -1,5 +1,6 @@
 import re
 from openlibrary.catalog.utils import pick_first_date, tidy_isbn, flip_name, remove_trailing_dot, remove_trailing_number_dot
+from marc_subject import subjects_for_work
 from collections import defaultdict
 
 re_question = re.compile('^\?+$')
@@ -604,6 +605,7 @@ def read_edition(rec):
     update_edition(rec, edition, read_url, 'links')
 
     edition.update(read_contributions(rec))
+    edition.update(subjects_for_work(rec))
 
     try:
         edition.update(read_title(rec))
