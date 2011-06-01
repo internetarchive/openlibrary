@@ -3,14 +3,13 @@
 
 from infogami.plugins.api.code import add_hook
 import dynlinks
+import readlinks
 
 import web
 from infogami.infobase import _json as simplejson
 
 from infogami.utils import delegate
 from infogami.plugins.api.code import jsonapi
-
-import readlinks
 
 
 class books:
@@ -54,8 +53,3 @@ class read_multiget(delegate.page):
         web.ctx.headers = []
         result = readlinks.readlink_multiple(bibkey_str, i)
         return simplejson.dumps(result)
-    
-
-# if __name__ == "__main__":
-#     import doctest
-#     doctest.testmod()
