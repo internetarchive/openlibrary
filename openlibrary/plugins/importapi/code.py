@@ -86,7 +86,7 @@ class importapi:
         data = web.data()
        
         edition = parse_data(data)
-        print edition #debugging
+        #print edition
 
         #call Edward's code here with the edition dict
         if edition:
