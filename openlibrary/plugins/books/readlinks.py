@@ -21,9 +21,10 @@ def get_work_editions(work):
     editions = ol.query({ 'type': '/type/edition',
                           'works': work.key,
                           'limit': False })
-    # return editions
+    return editions
+
     # return editions only if this ol knows about them.
-    return [edition for edition in editions if web.ctx.site.get(edition)]
+    # return [edition for edition in editions if web.ctx.site.get(edition)]
 
 
 def get_readable_edition_item(edition, work, user_inlibrary, initial_edition):
@@ -108,10 +109,10 @@ def format_one_request(record, data, details):
     thised_item = get_readable_edition_item(edition, work,
                                             user_inlibrary, edition)
     eds = get_work_editions(work)
-    eds = [ed for ed in eds if ed != edition['key'].split('/')[-1]]
+    eds = [ed for ed in eds if ed != edition['key']]
 
-    # XXX turn this into a multi-get
-    eds = [web.ctx.site.get(ed) for ed in eds]
+    eds = web.ctx.site.get_many(eds)
+
     othered_items = [get_readable_edition_item(ed, work,
                                                user_inlibrary, edition)
                      for ed in eds]
@@ -119,7 +120,6 @@ def format_one_request(record, data, details):
     if thised_item:
         othered_items.insert(0, thised_item)
     items = othered_items
-
 
     isbns = edition.get('isbn_10', [])
     isbns.extend(edition.get('isbn_13', [])) # xxx ? how to handle.
@@ -144,8 +144,8 @@ def format_one_request(record, data, details):
 def readlink_single(bibkey, options):
     bka = [bibkey]
     r = dynlinks.query_docs(bka)
-    (data, details, viewapi) = [dynlinks.process_result(r, cmd)[bibkey]
-                                for cmd in ('data', 'details', 'viewapi')]
+    (data, details) = [dynlinks.process_result(r, cmd)[bibkey]
+                       for cmd in ('data', 'details')]
     if len(r) == 0:
         return []
     record = r[bibkey]
@@ -180,6 +180,8 @@ def readlink_multiple(bibkey_str, options):
 
     result = {}
     for k in rmap.keys():
-        result[k] = formatted[rmap[k]]
+        f = formatted.get(rmap[k], None)
+        if f is not None:
+            result[k] = f
     
     return result
