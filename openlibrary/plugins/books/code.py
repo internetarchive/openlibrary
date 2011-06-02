@@ -11,6 +11,8 @@ from infogami.infobase import _json as simplejson
 from infogami.utils import delegate
 from infogami.plugins.api.code import jsonapi
 
+import urlparse
+import re
 
 class books:
     def GET(self):
@@ -46,9 +48,20 @@ class read_multiget(delegate.page):
     """Handle the multi-lookup form of the Hathi-style API
     """
     path = r"/api/volumes/(brief|full)/json/(.+)"
+    path_re = re.compile(path)
     @jsonapi
     def GET(self, brief_or_full, bibkey_str):
         i = web.input()
+
+        # Work around issue with gunicorn where semicolon and after
+        # get truncated.  (web.input() still seems ok)
+        # see https://github.com/benoitc/gunicorn/issues/215
+        raw_uri = web.ctx.env.get("RAW_URI")
+        raw_path = urlparse.urlsplit(raw_uri).path
+        m = self.path_re.match(raw_path)
+        if not len(m.groups()) == 2:
+            return simplejson.dumps({})
+        (brief_or_full, bibkey_str) = m.groups()
 
         web.ctx.headers = []
         result = readlinks.readlink_multiple(bibkey_str, i)
