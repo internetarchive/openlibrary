@@ -13,6 +13,7 @@ from infogami.plugins.api.code import jsonapi
 
 import urlparse
 import re
+import urllib2
 
 class books:
     def GET(self):
@@ -58,7 +59,11 @@ class read_multiget(delegate.page):
         # see https://github.com/benoitc/gunicorn/issues/215
         raw_uri = web.ctx.env.get("RAW_URI")
         raw_path = urlparse.urlsplit(raw_uri).path
-        m = self.path_re.match(raw_path)
+
+        # handle e.g. '%7C' for '|'
+        decoded_path = urllib2.unquote(raw_path)
+
+        m = self.path_re.match(decoded_path)
         if not len(m.groups()) == 2:
             return simplejson.dumps({})
         (brief_or_full, bibkey_str) = m.groups()
