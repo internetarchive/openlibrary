@@ -39,7 +39,7 @@ def update_lists(changeset):
     ol_config = formats.load_yaml(open(configfile).read())
     
     updater = ListUpdater(ol_config.get("lists"))
-    updater.process_changeset(changeset)
+    updater.process_changeset(changeset, update_seeds=True)
 
 @task
 def update_solr(changeset):
