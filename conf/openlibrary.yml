@@ -127,5 +127,10 @@ stats: # This section is used to state what stats need to be gathered.
       pattern: /lists
       time: total
 
+    ol.pageload.readapi:
+      filter: url
+      pattern: /api/volumes/.*
+      time: total
+
 
 libraries_admin_email: admin@dev-instance
