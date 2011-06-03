@@ -6,3 +6,5 @@ BROKER_PORT = 5672
 
 CELERY_RESULT_BACKEND = "amqp"
 CELERY_IMPORTS = ("openlibrary.tasks", )
+
+OL_CONFIG = "conf/openlibrary.yml"
