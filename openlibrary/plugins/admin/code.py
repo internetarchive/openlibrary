@@ -23,8 +23,7 @@ from openlibrary.core import admin as admin_stats
 from openlibrary.plugins.upstream.account import as_admin
 from openlibrary.plugins.upstream import forms
 
-import services
-import support
+from openlibrary.plugins.admin import services, support, tasks
 
 logger = logging.getLogger("openlibrary.admin")
 
@@ -402,6 +401,7 @@ def setup():
     register_admin_page('/admin/status', service_status, label = "Open Library services")
     register_admin_page('/admin/support', support.cases, label = "Support cases")
     register_admin_page('/admin/support/case/(case-\d+)', support.case, label = "Support cases")
+    register_admin_page('/admin/tasks', tasks.monitor, label = "Task queue")
 
     support.setup()
     import mem
