@@ -1,0 +1,52 @@
+$def with (completed = [], active = [])
+
+<div id="contentHead">
+    <h1>$_("Admin Center")</h1>
+	<div class="small">
+	    <a href="/admin/reload/">Reload Templates</a>
+	    | <a href="/admin/block">Block IPs</a>
+	    | <a href="/admin/loans">Loans</a>
+	    | <a href="/admin/status">Services</a>
+	    | <a href="/admin/support">Support</a>
+	    | <a href="/admin/tasks">Tasks</a>
+	</div>
+</div>
+<div id="contentBody">
+<style type="text/css">
+table.tasks { 
+              font-family: Lucida, "Lucida Sans";
+              font-size: 1em;
+              }
+
+table.tasks th { 
+                 font-weight: bold;
+ }
+table.tasks th, table.tasks td {
+                                 border-bottom: 1px solid #ddd; 
+                                 vertical-align:top;
+                                 padding: 5pt;
+                                 }
+table.tasks pre.hidden { 
+                         display: none;
+ }
+
+</style>
+
+<script type="text/javascript">
+\$(function() {
+    \$("a.tb").click(function(ev) {
+	\$(this).next("pre").toggleClass("hidden");
+	return false;
+    });
+});
+</script>
+
+<h1>Task status</h1>
+<div id="tabsHistory" class="tabs autohash">
+  <ul>
+    <li><a href="#completed">Completed tasks</a></li>
+    <li><a href="#active">Active tasks</a></li>
+  </ul>
+<div id="completed">$:render_template("admin/tasks/completed", completed)</div>
+<div id="active">$:render_template("admin/tasks/active", active)</div>
+</div>
