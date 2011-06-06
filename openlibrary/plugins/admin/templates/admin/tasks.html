@@ -1,0 +1,35 @@
+$def with (tasks = [])
+
+<div id="contentHead">
+    <h1>$_("Admin Center")</h1>
+	<div class="small">
+	    <a href="/admin/reload/">Reload Templates</a>
+	    | <a href="/admin/block">Block IPs</a>
+	    | <a href="/admin/loans">Loans</a>
+	    | <a href="/admin/status">Services</a>
+	    | <a href="/admin/support">Support</a>
+	    | <a href="/admin/tasks">Tasks</a>
+	</div>
+</div>
+<div id="contentBody">
+
+<h1>Task status</h1>
+<h2>Completed tasks</h2>
+<table class = "tasks" border="0" cellspacing="0" cellpadding="10">
+    <tr>
+        <th>uuid</th>
+        <th>status</th>
+        <th>result</th>
+        <th>Date of completion</th>
+        <th>traceback</th>
+    </tr>
+    $for task in tasks:
+    <tr>
+      <td>$(task.task_id)</td>
+      <td>$(task.status)</td>
+      <td>task.result</td>
+      <td>$datestr(task.date_done)</td>
+      <td><pre>$(task.traceback)</pre></td>
+    </tr>
+</table>
+</div>
