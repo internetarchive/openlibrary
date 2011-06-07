@@ -110,7 +110,7 @@ class pending_libraries(delegate.page):
         return key
     
     def POST(self, key):
-        i = web.input()
+        i = web.input(_method="POST")
         
         if "_delete" in i:
             doc = web.ctx.site.store.get(key)
@@ -130,10 +130,15 @@ class pending_libraries(delegate.page):
             add_flash_message("error", "The key must start with /libraries/.")
             return render_template("type/library/edit", page)
             
-        page._save()
         doc = web.ctx.site.store.get(key)
+        if doc and "registered_on" in doc:
+            page.registered_on = {"type": "/type/datetime", "value": doc['registered_on']}
+        
+        page._save()
+        
         if doc:
             doc['current_status'] = "approved"
+            doc['page_key'] = page.key
             web.ctx.site.store[doc['_key']] = doc
         raise web.seeother(page.key)
         
