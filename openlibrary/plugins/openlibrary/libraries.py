@@ -23,6 +23,30 @@ class libraries(delegate.page):
         branches = sorted(get_library_branches(), key=lambda b: b.name.upper())
         return itertools.groupby(branches, lambda b: b.name[0])
         
+class libraries_notes(delegate.page):
+    path = "(/libraries/[^/]+)/notes"
+    
+    def POST(self, key):
+        doc = web.ctx.site.get(key)
+        if doc is None or doc.type.key != "/type/library":
+            raise web.notfound()
+        elif not web.ctx.site.can_write(key):
+            raise render_template("permission_denied")
+        else:
+            i = web.input(note="")
+            
+            user = web.ctx.site.get_user()
+            author = user and {"key": user.key}
+            timestamp = {"type": "/type/datetime", "value": datetime.datetime.utcnow().isoformat()}
+            
+            note = {"note": i.note, "author": {"key": user.key}, "timestamp": timestamp}
+            
+            if not doc.notes:
+                doc.notes = []
+            doc.notes.append(note)
+        doc._save(comment="Added a note.")
+        raise web.seeother(key)
+        
 def get_library_branches():
     """Returns library branches grouped by first letter."""
     libraries = inlibrary.get_libraries()
