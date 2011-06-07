@@ -129,17 +129,6 @@ $var title: $title
         </div>
     </div>
     
-    <div class="formElement">
-        <div class="label">
-            <label for="notes">$_("Notes")</label><br />        
-            <span class="tip">$:_("Place to keep notes")</span>
-        </div>
-        <div class="input">
-            <textarea name="notes" id="notes" class="markdown" rows="10" cols="80" style="width:900px;">$page.notes</textarea>
-        </div>
-    </div>
-    
-
     $:macros.EditButtons(comment=page.comment_)
 
     $if ctx.user and ctx.user.is_admin():
