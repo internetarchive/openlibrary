@@ -12,7 +12,7 @@ from openlibrary.api import OpenLibrary, marshal
 def parse_options(args=None):
     parser = OptionParser(args)
     parser.add_option("-s", "--server", dest="server", default="http://openlibrary.org/", help="URL of the openlibrary website (default: %default)")
-    parser.add_option("--template-root", dest="template_root", default="/", help="Template root (default: %default)")
+    parser.add_option("--template-root", dest="template_root", default="/upstream", help="Template root (default: %default)")
     parser.add_option("--default-plugin", dest="default_plugin", default="upstream", help="Default plugin (default: %default)")
 
     options, args = parser.parse_args()

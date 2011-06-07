@@ -216,26 +216,6 @@ class revert(delegate.mode):
         thing._save(comment)
         raise web.seeother(key)
 
-class report_spam(delegate.page):
-    path = '/contact'
-    def GET(self):
-        i = web.input(path=None)
-        email = context.user and context.user.email
-        return render_template("contact/spam", email=email, irl=i.path)
-
-    def POST(self):
-        i = web.input(email='', irl='', comment='')
-        fields = web.storage({
-            'email': i.email,
-            'irl': i.irl,
-            'comment': i.comment,
-            'sent': datetime.datetime.utcnow(),
-            'browser': web.ctx.env.get('HTTP_USER_AGENT', '')
-        })
-        msg = render_template('email/spam_report', fields)
-        web.sendmail(i.email, config.report_spam_address, msg.subject, str(msg))
-        return render_template("contact/spam/sent")
-
 def setup():
     """Setup for upstream plugin"""
     models.setup()

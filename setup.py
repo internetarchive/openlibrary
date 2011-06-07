@@ -27,6 +27,7 @@ sphinx
 supervisor
 web.py==0.33
 pystatsd
+lamson
 """
 
 from openlibrary.core.setup_commands import commands

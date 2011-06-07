@@ -1,10 +1,38 @@
 import web, re, os
 from openlibrary.catalog.utils import flip_name, author_dates_match, key_int, error_mail
-from openlibrary.catalog.importer.load import do_flip, east_in_by_statement
 
-password = open(os.path.expanduser('~/.openlibrary_db_password')).read()
-if password.endswith('\n'):
-    password = password[:-1]
+def east_in_by_statement(rec):
+    if 'by_statement' not in rec:
+        return False
+    if 'authors' not in rec:
+        return False
+    name = rec['authors'][0]['name']
+    flipped = flip_name(name)
+    name = name.replace('.', '')
+    name = name.replace(', ', '')
+    if name == flipped.replace('.', ''):
+        return False
+    return rec['by_statement'].find(name) != -1
+
+def do_flip(author):
+    # given an author name flip it in place
+    if 'personal_name' not in author:
+        return
+    if author['personal_name'] != author['name']:
+        return
+    first_comma = author['name'].find(', ')
+    if first_comma == -1:
+        return
+    # e.g: Harper, John Murdoch, 1845-
+    if author['name'].find(',', first_comma + 1) != -1:
+        return
+    if author['name'].find('i.e.') != -1:
+        return
+    if author['name'].find('i. e.') != -1:
+        return
+    name = flip_name(author['name'])
+    author['name'] = name
+    author['personal_name'] = name
 
 def find_author(name, send_mail=True):
     def walk_redirects(obj, seen):
@@ -18,7 +46,7 @@ def find_author(name, send_mail=True):
     q = {'type': '/type/author', 'name': name} # FIXME should have no limit
     reply = list(web.ctx.site.things(q))
     authors = [web.ctx.site.get(k) for k in reply]
-    if any(a['type']['key'] != '/type/author' for a in authors):
+    if any(a.type.key != '/type/author' for a in authors):
         seen = set()
         authors = [walk_redirects(a, seen) for a in authors if a['key'] not in seen]
     return authors
@@ -38,7 +66,8 @@ def pick_from_matches(author, match): # no DB calls in this function
 def find_entity(author): # no direct DB calls
     name = author['name']
     things = find_author(name)
-    if author['entity_type'] != 'person':
+    et = author.get('entity_type')
+    if et and et != 'person':
         if not things:
             return None
         db_entity = things[0]
@@ -54,7 +83,7 @@ def find_entity(author): # no direct DB calls
             continue
         seen.add(key)
         orig_key = key
-        assert a['type']['key'] == '/type/author'
+        assert a.type.key == '/type/author'
         if 'birth_date' in author and 'birth_date' not in a:
             continue
         if 'birth_date' not in author and 'birth_date' in a:
@@ -76,10 +105,10 @@ def find_entity(author): # no direct DB calls
 def import_author(author, eastern=False):
     existing = find_entity(author)
     if existing:
-        assert existing['type']['key'] == '/type/author'
+        assert existing.type.key == '/type/author'
         for k in 'last_modified', 'id', 'revision', 'created':
-            if k in existing:
-                del existing[k]
+            if existing.k:
+                del existing.k
         new = existing
         if 'death_date' in author and 'death_date' not in existing:
             new['death_date'] = author['death_date']
@@ -109,14 +138,15 @@ def build_query(rec):
 
     for k, v in rec.iteritems():
         if k == 'authors':
-            book[k] = [import_author(v[0], eastern=east)]
+            if v and v[0]:
+                book[k] = [import_author(v[0], eastern=east)]
             continue
         if k == 'languages':
             langs = []
             for l in v:
                 if web.ctx.site.get('/languages/' + l) is None:
                     raise InvalidLanguage(l)
-            book[k] = [{'key': l} for l in v]
+            book[k] = [{'key': '/languages/' + l} for l in v]
             continue
         if k in type_map:
             t = '/type/' + type_map[k]

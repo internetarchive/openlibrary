@@ -1,7 +1,8 @@
 $def with (stats)
 
 <div id="contentHead">
-    <h1>Libraries / Stats</h1>
+    $:render_template("borrow/navigation", path="/libraries/stats")
+    <h1>$_("Borrow eBooks")</h1>
 </div>
 
 <script type="text/javascript">
@@ -17,14 +18,13 @@ function setup_tooltip(selector, format_message) {
             display: 'none',
             top: y + 12,
             left: x + 12,
-            border: '1px solid #ccc',
             padding: '2px',
             backgroundColor: '#efefef',
             color: '#454545',
             fontSize: '11px',
-            webkitBoxShadow: '1px 1px 3px #333',
-            mozBoxShadow: '1px 1px 1px #000',
-            boxShadow: '1px 1px 1px #000'
+            webkitBoxShadow: '0 0 3px #333',
+            mozBoxShadow: '0 0 3px #333',
+            boxShadow: '0 0 3px #333'
         }).appendTo("body").fadeIn(200);
     };
 
@@ -38,7 +38,13 @@ function setup_tooltip(selector, format_message) {
             var y = item.datapoint[1];
             var msg = format_message(x, y);
 
-            showTooltip(item.pageX, item.pageY, msg);
+            if (x == 1) {
+                    showTooltip(item.pageX, item.pageY,
+                                y + " $_('loans for') " + x + " $_('day')");
+                } else {
+                    showTooltip(item.pageX, item.pageY,
+                                y + " $_('loans for') " + x + " $_('days')");
+                };
         } else {
             \$("#chartLabelA").remove();
         };
@@ -46,110 +52,159 @@ function setup_tooltip(selector, format_message) {
 }
 
 \$(function () {
-    \$.plot("#loans-per-day", [$:json_encode(stats.get_loans_per_day())], {
+    \$.plot("#loans-per-day", [
+        {
+            "data": $:json_encode(stats.get_loans_per_day("bookreader")), 
+            "label": "bookreader",
+            color: "#35672e"
+        }, {
+            "data": $:json_encode(stats.get_loans_per_day("pdf")), 
+            "label": "pdf",
+            color: "#35672e"
+        }, {
+            "data": $:json_encode(stats.get_loans_per_day("epub")), 
+            "label": "epub",
+            color: "#35672e"
+        }
+    ], {
+        series: {
+            stack: 0,
+            bars: {
+                show: true,
+                align: "left",
+                barWidth: 20 * 60 * 60 * 1000,
+            },
+        },
+        grid: {
+            hoverable: true,
+            show: true,
+            borderWidth: 1, 
+            borderColor: "#d9d9d9"
+        },
+        xaxis: {
+            mode: "time"
+        }
+    });
+    
+    $ lib_loans = stats.get_loans_per_library()
+    $ ticks = [[i, lib] for i, (lib, count) in enumerate(lib_loans)]
+    $ data = [[i, count] for i, (lib, count) in enumerate(lib_loans)]
+
+    \$.plot("#loans-per-library", [$:json_encode(data)], {
         series: {
              bars: {
                  show: true,
-                 align: "left",
-                 barWidth: 24 * 60 * 60 * 1000
+                 align: "center",
+                 color: "#35672e",
+                 fillColor: "#35672e",
              },
+             color: "#35672e"
         },
-         grid: {
-             hoverable: true,
-             show: true
-         },
-         xaxis: {
-             mode: "time"
-         }
+        grid: {
+            hoverable: true,
+            show: true,
+            borderWidth: 1, 
+            borderColor: "#d9d9d9"
+        },
+        xaxis: {
+            ticks: $:json_encode(ticks)
+        }
     });
-
+    
     \$.plot("#duration", [$:json_encode(stats.get_loan_duration_frequency())], {
         series: {
              bars: {
                  show: true,
                  align: "center",
-                 
+                 color: "#35672e",
+                 fillColor: "#35672e",
              },
+             color: "#35672e"
         },
-         grid: {
-             hoverable: true,
-             show: true
-         },
-         xaxis: {
-             ticks: [7, 14]
-         }
-    });
-
-    setup_tooltip("#duration");
-
-    \$.plot("#avg-duration", [{
-        label: "Daily Average",
-        data: $:json_encode(stats.get_average_duration_per_day()),
-        bars: {
+        grid: {
+            hoverable: true,
             show: true,
-            align: "left",
-            barWidth: 24 * 60 * 60 * 1000
-        }
-    }, {
-        label: "Monthly Average",
-        data: $:json_encode(stats.get_average_duration_per_month()),
-        lines: { show: true, steps: true }
-    }], {
+            borderWidth: 1, 
+            borderColor: "#d9d9d9"
+        },
         xaxis: {
-            mode: "time"
+            ticks: [7, 14]
         }
     });
 
-    \$.plot("#loans-per-user", [$:json_encode(stats.get_loans_per_user())], {
+    \$.plot("#loans-per-user", [$:json_encode(stats.get_loans_per_user(limit=5))], {
         series: {
              bars: {
                  show: true,
                  align: "center",
+                 color: "#35672e",
+                 fillColor: "#35672e",
              },
+             color: "#35672e"
         },
-         grid: {
-             hoverable: true,
-             show: true
-         }
+        grid: {
+            hoverable: true,
+            show: true,
+            borderWidth: 1, 
+            borderColor: "#d9d9d9"
+        }
     });
     
 
-    \$.plot("#loans-per-book", [$:json_encode(stats.get_loans_per_book())], {
+    \$.plot("#loans-per-book", [$:json_encode(stats.get_loans_per_book(limit=5))], {
         series: {
              bars: {
                  show: true,
                  align: "center",
+                 color: "#35672e",
+                 fillColor: "#35672e",
              },
+             color: "#35672e"
         },
-         grid: {
-             hoverable: true,
-             show: true
-         }
+        grid: {
+            hoverable: true,
+            show: true,
+            borderWidth: 1, 
+            borderColor: "#d9d9d9"
+        }
     });
 
 });
 </script>
 
 <style type="text/css">
-div.graph {
-    width: 918px;
-    height: 180px;
-}
+div.graph,div.chart{width:898px;height:180px;float:none;background-image:none;}
+.chartYaxis{width:180px;top:85px;left:-85px;}
 </style>
 
 <div id="contentBody">
-    <h2>Loans per day</h2>
-    <div id="loans-per-day" class="graph"></div>
 
-    <h2>Distribution of Loan Duration</h2>
-    <div>
-        x-axis: Loan duration<br/>
-        y-axis: Number of loans<br/>
-        <br/>
+    <h2>Loans Per Day</h2>
+
+    <div class="chart">
+        <div id="loans-per-day" class="graph">
+            <noscript>$_("You need to have JavaScript turned on to see the nifty chart!")</noscript>
+        </div>
     </div>
-    <div id="duration" class="graph"></div>
+    
+    <h2>Loans Per Library</h2>
 
-    <div>
+    <div class="chart">
+        <div id="loans-per-library" class="graph">
+            <noscript>$_("You need to have JavaScript turned on to see the nifty chart!")</noscript>
+        </div>
+    </div>
+
+    <h2>Average Time a Book is Checked Out</h2>
+    <div class="chart">
+        <div id="duration" class="graph">
+            <noscript>$_("You need to have JavaScript turned on to see the nifty chart!")</noscript>
+        </div>
+        <div class="chartYaxis" style="width:180px;">$_("This Many Books")</div>
+        <div class="chartXaxis">$_("Were Borrowed for This Many Days")</div>
+    </div>
+
+    <p class="smaller grey sansserif">
         $ summary = stats.get_summary()
         $ total = summary['total_loans']
         $ onehour = summary['one_hour_loans']
@@ -162,30 +217,39 @@ div.graph {
         <br/>
         Expired Loans: $expired ($percent(expired))
         <br/>
-    </div>
+    </p>
 
+<!-- Hiding this graph for now -->
+<!--
     <h2>Average Loan Duration</h2>
-    <div id="avg-duration" class="graph"></div>
-
-    <h2 class="fixthis">Loans per user</h2>
-
-    <div>
-        x-axis: Number of loans taken<br/>
-        y-axis: Number of users<br/>
-        <br/>
+    <div class="chart">
+        <div id="avg-duration" class="graph">
+            <noscript>$_("You need to have JavaScript turned on to see the nifty chart!")</noscript>
+        </div>
     </div>
-    <div id="loans-per-user" class="graph"></div>
+-->
 
+    <h2>Average Loans per Person</h2>
+    <div class="chart">
+        <div id="loans-per-user" class="graph">
+            <noscript>$_("You need to have JavaScript turned on to see the nifty chart!")</noscript>
+        </div>
+        <div class="chartYaxis" style="width:180px;">$_("This Many People")</div>
+        <div class="chartXaxis">$_("Borrowed This Many Books")</div>
+    </div>
+    
+    <br/>
 
-
-    <h2>Loans per Book</h2>
-    <div>
-        x-axis: Number of loans taken<br/>
-        y-axis: Number of books<br/>
-        <br/>
+    <h2>Distribution of How Many Times a Book is Borrowed</h2>
+    <div class="chart">
+        <div id="loans-per-book" class="graph">
+            <noscript>$_("You need to have JavaScript turned on to see the nifty chart!")</noscript>
+        </div>
+        <div class="chartYaxis" style="width:180px;">$_("This Many Books")</div>
+        <div class="chartXaxis">$_("Were Borrowed This Many Times")</div>
     </div>
 
-    <div id="loans-per-book" class="graph"></div>
+    <br/>
 
     <h2>Popular Books</h2>
     $def render_authors(book):

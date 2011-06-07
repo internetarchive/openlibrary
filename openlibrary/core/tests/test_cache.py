@@ -68,3 +68,16 @@ class Test_memcache_memoize:
         
         assert m(10) == 100
         assert [s.calls, s.hits, s.updates, s.async_updates] == [2, 1, 1, 1]
+        
+    def test_delete(self):
+        m = self.square_memoize()
+        
+        m(10)
+        m(10)
+        assert m.stats.updates == 1
+
+        # this should clear the cache and the next call should update the cache.
+        m(10, _cache="delete")
+
+        m(10)
+        assert m.stats.updates == 2

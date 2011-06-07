@@ -1,0 +1,41 @@
+$def with (libraries, pending_libraries)
+
+$var title: Libraries Dashboard
+
+<div id="contentHead">
+    $:render_template("borrow/navigation", path="/libraries/dashboard")
+    <h1>Libraries Dashboard</h1>
+</div> 
+
+<div id="contentBody">
+    <h2>Active Libraries</h2>
+    <ul>
+        $for lib in libraries:
+            $if lib.status == "approved":
+                <li>
+                    <a href="$lib.url()">$(lib.name or "Unnamed")</a>
+                </li>
+    </ul>
+    
+    <h2>Libraries On-Hold</h2>
+    <ul>
+        $for lib in libraries:
+            $if lib.status != "approved":
+                <li>
+                    <a href="$lib.url()">$(lib.name or "Unnamed")</a>
+                </li>
+        $if not [lib for lib in libraries if lib.status != "approved"]:
+            <em>None found.</em>
+        
+    </ul>
+
+    <h2>New Libraries</h2>
+    <ul>
+        $for lib in pending_libraries:
+            <li><a href="$lib.url()">$(lib.name or "Unnamed")</a></li>
+            
+        $if not pending_libraries:
+            <em>None found.</em>
+    </ul>
+
+</div>

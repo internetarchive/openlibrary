@@ -1,0 +1,96 @@
+$def with ()
+
+$ title = "Register Your Library"
+
+$var title: $title
+
+<div id="contentHead">
+    $:render_template("borrow/navigation", path="/libraries/register")
+    <h1>$_("Register Your Library")</h1>
+</div>
+
+<div id="contentBody">
+
+    <p class="sansserif small">$_("Thank you for your interest in Open Library's lending program. Please complete the form below to register.")<br/><span class="smaller attn"><em>*All fields are required.</em></span></p>
+
+<form name="edit" class="olform" method="post" action="">
+
+    <div class="formElement">
+        <div class="label">
+            <label for="contact_person">$_("Your Full Name")<span class="attn">*</span></label>        
+        </div>
+        <div class="input">
+            
+            <input type="text" name="contact_person" id="contact_person" value="$(ctx.user and ctx.user.displayname)"/><br />
+        </div>
+    </div>
+
+    <div class="formElement">
+        <div class="label">
+            <label for="contact_title">
+                $_('Your Title')<span class="attn">*</span>&nbsp;&nbsp;
+                <span class="tip">$_("We'll assume you're registering interest on behalf of a library where you work.")</span>
+            </label>        
+        </div>
+        <div class="input">
+            <input type="text" name="contact_title" id="contact_title"/><br />
+        </div>
+    </div>
+
+    <div class="formElement">
+        <div class="label">
+            <label for="contact_email">
+                $_("Your Email Address")<span class="attn">*</span>&nbsp;&nbsp;
+                <span class="tip">$_("This will be our only way to contact you. Make it count!")</span>
+            </label>        
+        </div>
+        <div class="input">
+            <input type="text" name="contact_email" id="contact_email" value="$(ctx.user and ctx.user.email)"/><br />
+        </div>
+    </div>
+
+    <div class="formElement">
+        <div class="label">
+            <label for="name">
+                $_("Which library are you registering interest for?")<span class="attn">*</span>&nbsp;&nbsp;
+                <span class="tip">Please use the full name, no abbreviations.</span>
+            </label>        
+        </div>
+        <div class="input">
+            <input type="text" name="name" id="title"/> <br />
+            <span class="tip">$_("Library's Official Name - no abbreviations, please")</span>
+        </div>
+    </div>
+
+    <div class="formElement">
+        <div class="label">
+            <label for="country">$_('Which country is the library in?')<span class="attn">*</span></label>        
+        </div>
+        <div class="input">
+            <input type="text" name="country" id="country"/>
+        </div>
+    </div>
+
+    <div class="formElement">
+        <div class="input">
+            <button type="submit" name="_save" title="$_('Add your library')" class="larger">$_('Save')</button>
+            &nbsp;
+            <a href="javascript:history.go(-1);" class="attn">$_('Cancel')</a>
+        </div>
+    </div>
+
+</form>
+
+<br/>
+
+<h6 class="collapse black uppercase">$_("Next Steps")</h6>
+
+<ul>
+    <li>$_("We'll be in touch within the next few days via email to say hi.")</li>
+    <li>$_("You and your colleagues will probably want to sit in on an optional webinar about the lending program, at a date that suits.")</li>
+    <li>$_("Your library will select at least one title to be digitized and made available for loan.")</li>
+    <li>$:_("Once you've shared a title available for loan, we'll need details of your library's IP network, so Open Library can detect when a patron is within that network, and therefore eligible to access the <a href='/subjects/in_library/'>In-Library</a> lending pool.")</li>
+    <li>$_("Did we mention all this is free?")</li>
+</ul>
+
+</div>

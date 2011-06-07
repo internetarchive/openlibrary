@@ -192,7 +192,9 @@ class cover:
         
         if key == 'isbn':
             value = value.replace("-", "").strip() # strip hyphens from ISBN
-            value = self.ratelimit_query(category, key, value)
+            # Disabling ratelimit as iptables is taking care of botnets.
+            #value = self.ratelimit_query(category, key, value)
+            value = self.query(category, key, value)
         elif key != 'id':
             value = self.query(category, key, value)
         
