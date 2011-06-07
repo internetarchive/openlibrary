@@ -13,6 +13,8 @@ def massage_taskslists(atasks):
             return datetime.datetime.fromtimestamp(task['time_start'])
         except Exception:
             return ""
+    if not atasks:
+        return []
     for host,tasks in atasks.iteritems():
         for task in tasks:
             yield dict(uuid = task.get('id',""),

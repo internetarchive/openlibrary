@@ -41,15 +41,21 @@ table.tasks pre.hidden {
 });
 </script>
 
-<h1>Task status</h1>
-<div id="tabsHistory" class="tabs autohash">
-  <ul>
-    <li><a href="#completed">Completed tasks</a></li>
-    <li><a href="#active">Active tasks</a></li>
-    <li><a href="#reserved">Reserved tasks</a></li>
-  </ul>
-<div id="completed">$:render_template("admin/tasks/completed", completed)</div>
-<div id="active">$:render_template("admin/tasks/active", active)</div>
-<div id="reserved">$:render_template("admin/tasks/reserved", reserved)</div>
-</div>
+<h2>Task status</h2>
+<table class = "tasks" border="0" cellspacing="0" cellpadding="10">
+    <tr>
+        <th>Uuid</th>
+        <th>Command</th>
+        <th>Arguments</th>
+	<th>Status</th>
+        <th>Host</th>
+        <th>Started at</th>
+	<th>Finished at</th>
+        <!-- <th>Affected docs</th> -->
+    </tr>
+$:render_template("admin/tasks/active", active)
+$:render_template("admin/tasks/reserved", reserved)
+$:render_template("admin/tasks/completed", completed)
+</table>
+
 </div>

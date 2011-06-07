@@ -1,20 +1,12 @@
 $def with (completed = [])
-
-<h2>Completed tasks</h2>
-<table class = "tasks" border="0" cellspacing="0" cellpadding="10">
-    <tr>
-        <th>Uuid</th>
-        <th>Status</th>
-        <th>Result</th>
-        <th>Date of completion</th>
-        <th>Traceback</th>
-    </tr>
     $for task in completed:
     <tr>
       <td>$(task.task_id)</td>
+      <td></td>
+      <td></td>
       <td>$(task.status)</td>
-      <td>task.result</td>
+      <td></td>
+      <td></td>
       <td>$datestr(task.date_done)</td>
-      <td><a class = "tb" href="#">...</a><pre class="hidden">$(task.traceback)</pre></td>
+      <!-- <td><a class = "tb" href="#">...</a><pre class="hidden">(task.traceback)</pre></td> -->
     </tr>
-</table>
