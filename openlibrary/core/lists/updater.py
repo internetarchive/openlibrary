@@ -117,7 +117,11 @@ class Updater:
     def create_db(self, url):
         return couch.Database(url)
     
-    def process_changesets(self, changesets):
+    def process_changesets(self, changesets, update_seeds=False):
+        """Updates the lists databases for given changesets.
+        
+        Seeds are updated in the seeds db if update_seeds is True, otherwise they are marked for later update.
+        """
         ctx = UpdaterContext()
         for chunk in web.group(changesets, 50):
             chunk = list(chunk)
@@ -151,7 +155,10 @@ class Updater:
                 logging.info("END commit works_db")
                 
                 logging.info("BEGIN mark %d seeds for update" % len(ctx.seeds))
-                self.seeds_db.mark_seeds_for_update(ctx.seeds.keys())
+                if update_seeds:
+                    self.seeds_db.update_seeds(ctx.seeds.keys())
+                else:
+                    self.seeds_db.mark_seeds_for_update(ctx.seeds.keys())
                 logging.info("END mark %d seeds for update" % len(ctx.seeds))
                 ctx.seeds.clear()
             
@@ -162,9 +169,9 @@ class Updater:
         self.works_db.db.commit()
         self.works_db.db.reset()
         
-    def process_changeset(self, changeset):
+    def process_changeset(self, changeset, update_seeds=False):
         logging.info("processing changeset %s", changeset["id"])
-        return self.process_changesets([changeset])
+        return self.process_changesets([changeset], update_seeds=update_seeds)
     
     def update_seeds(self, seeds):
         self.seeds_db.update_seeds(seeds)

@@ -35,6 +35,7 @@ def init_plugin():
         ib.add_event_listener(infobase_logger.Logger(config.writelog))
         
     ib.add_event_listener(invalidate_most_recent_change)
+    ib.add_event_listener(notify_celery)
 
     setup_logging()
 
@@ -236,6 +237,15 @@ def write(path, data):
     f = open(path, 'w')
     f.write(data)
     f.close()
+    
+from .. import tasks
+
+def notify_celery(event):
+    """Called on infobase events to notify celery for on every edit.
+    """
+    if event.name in ['save', 'save_many']:
+        changeset = event.data['changeset']
+        tasks.on_edit.delay(changeset)
     
 def save_error(dir, prefix):
     try:

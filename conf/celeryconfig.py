@@ -8,3 +8,5 @@ CELERY_RESULT_BACKEND = "database"
 CELERY_RESULT_DBURI = "postgresql://@:5432/celery"
 
 CELERY_IMPORTS = ("openlibrary.tasks", )
+
+OL_CONFIG = "conf/openlibrary.yml"
