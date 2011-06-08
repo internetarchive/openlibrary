@@ -10,7 +10,7 @@ import couchdb
 
 from infogami import config
 from infogami.utils import delegate
-from infogami.utils.view import render_template, add_flash_message
+from infogami.utils.view import render_template, add_flash_message, public
 from openlibrary.core import inlibrary
 
 logger = logging.getLogger("openlibrary.libraries")
@@ -317,13 +317,24 @@ class LoanStats:
     def get_loans_per_library(self):
         # view contains:
         #   [lib_key, status], 1
+        # Need to use group_level=1 and take key[0] to get the library key.
         rows = self.view("loans/libraries", group=True, group_level=1).rows
         names = self._get_library_names()
         return [[names.get(row.key[0], "-"), row.value] for row in rows]
         
+    def get_active_loans_of_libraries(self):
+        """Returns count of current active loans per library as a dictionary.
+        """
+        rows = self.view("loans/libraries", group=True).rows
+        return dict((row.key[0], row.value) for row in rows if row.key[1] == "active")
+        
     def _get_library_names(self):
         return dict((lib.key, lib.name) for lib in inlibrary.get_libraries())
-
+        
+@public
+def get_active_loans_of_libraries():
+    return LoanStats().get_active_loans_of_libraries()
+    
 def on_loan_created(loan):
     """Adds the loan info to the admin stats database.
     """
