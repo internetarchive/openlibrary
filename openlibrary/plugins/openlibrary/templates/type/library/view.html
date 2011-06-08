@@ -49,12 +49,37 @@ $if ctx.user and ctx.user.is_admin():
                 </tr>
             $for line in page.addresses.splitlines():
                 <tr>
-                $:sanitize(format(''.join('<td>%s</td>' % i for i in line.split('|'))))
+                $:(''.join('<td class="address-col-%s">%s</td>' % (i, col) for i, col in enumerate(line.split('|'))))
                 </tr>
             </table>
-        $if page.notes:
-            <h3>Notes</h3>
-            $:format(page.notes)
+
+        <h3>Notes</h3>
+        <ul id="listResults" class="narrow">
+        $for note in page.notes:
+            <li style="padding: 0px;">
+            $:format(note.note)
+                <div class="small">Noted by <a href="$note.author.url()">$note.author.displayname</a> - <span>$:datestr(note.timestamp)</span></div>
+            </li>
+        </ul>
+        <div class="clearfix"></div>
+                
+        <div>
+            <form name="notes" class="olform" method="POST" action="$page.url('/notes')">
+                <div class="formElement">
+                    <div class="label">
+                        <label for="note">$_("Add Note:")</label><br />        
+                    </div>
+                    <div class="input">
+                        <textarea name="note" id="note" class="markdown" rows="5" cols="80" style="width:900px;"></textarea>
+                    </div>
+                </div>
+                <div class="formElement collapse" style="position:relative;">
+                    <div class="input">
+                        <button type="submit" class="larger" name="" title="$_('Add Note')">$_("Add Note")</button>
+                    </div>
+                </div>
+            </form>
+        </div>
     $:render_template("lib/history", page)
 
     </div>
