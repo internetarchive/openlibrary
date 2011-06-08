@@ -315,9 +315,11 @@ class LoanStats:
         return [[row.key[-1], row.value] for row in rows if row.value >= limit]
         
     def get_loans_per_library(self):
-        rows = self.view("loans/libraries", group=True).rows
+        # view contains:
+        #   [lib_key, status], 1
+        rows = self.view("loans/libraries", group=True, group_level=1).rows
         names = self._get_library_names()
-        return [[names.get(row.key, "-"), row.value] for row in rows]
+        return [[names.get(row.key[0], "-"), row.value] for row in rows]
         
     def _get_library_names(self):
         return dict((lib.key, lib.name) for lib in inlibrary.get_libraries())
