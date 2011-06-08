@@ -23,6 +23,8 @@ from openlibrary.core import inlibrary
 from openlibrary.core import stats
 from openlibrary.core import msgbroker
 
+from lxml import etree
+
 import acs4
 
 ########## Constants
@@ -289,6 +291,26 @@ class ia_auth(delegate.page):
             output = '%s ( %s );' % (i.callback, output)
         
         return delegate.RawText(output, content_type=content_type)
+
+# Handler for /borrow/receive_notification - receive ACS4 status update notifications
+class borrow_receive_notification(delegate.page):
+    path = r"/borrow/receive_notification"
+
+    def GET(self):
+        web.header('Content-Type', 'application/json')
+        output = simplejson.dumps({'success': False, 'error': 'Only POST is supported'})
+        return delegate.RawText(output, content_type='application/json')
+
+    def POST(self):
+        data = web.data()
+        try:
+            notify_xml = etree.fromstring(data)
+            notify_obj = acs4.el_to_o(notify_xml)
+            # print simplejson.dumps(notify_obj)
+            output = simplejson.dumps({'success':True})
+        except Exception, e:
+            output = simplejson.dumps({'success':False, 'error': str(e)})
+        return delegate.RawText(output, content_type='application/json')
         
 ########## Public Functions
 
