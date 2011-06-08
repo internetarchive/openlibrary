@@ -76,10 +76,10 @@ def sanitize(html):
     return stream.render()                                        
 
 
-def json_encode(d):
+def json_encode(d, **kw):
     """Same as simplejson.dumps.
     """
-    return simplejson.dumps(d)
+    return simplejson.dumps(d, **kw)
 
 
 def safesort(iterable, key=None, reverse=False):
