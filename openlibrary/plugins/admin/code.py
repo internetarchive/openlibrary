@@ -388,6 +388,27 @@ class service_status(object):
             nodes = []
         return render_template("admin/services", nodes)
 
+class inspect:
+    def GET(self, section):
+        if section == "store":
+            return self.GET_store()
+        else:
+            raise web.notfound()
+        
+    def GET_store(self):
+        i = web.input(key=None, type=None, name=None, value=None)
+        
+        if i.key:
+            doc = web.ctx.site.store.get(i.key)
+            if doc:
+                docs = [doc]
+            else:
+                docs = []
+        else:
+            docs = web.ctx.site.store.values(type=i.type or None, name=i.name or None, value=i.value or None, limit=100)
+            
+        return render_template("admin/inspect/store", docs, input=i)
+
 def setup():
     register_admin_page('/admin/git-pull', gitpull, label='git-pull')
     register_admin_page('/admin/reload', reload, label='Reload Templates')
@@ -402,6 +423,7 @@ def setup():
     register_admin_page('/admin/status', service_status, label = "Open Library services")
     register_admin_page('/admin/support', support.cases, label = "Support cases")
     register_admin_page('/admin/support/case/(case-\d+)', support.case, label = "Support cases")
+    register_admin_page('/admin/inspect(?:/(.+))?', inspect, label="")
 
     support.setup()
     import mem
