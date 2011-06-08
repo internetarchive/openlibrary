@@ -21,10 +21,8 @@ class MockSite:
         self.changesets = []
         self.index = []
         self.keys = {'work': 0, 'author': 0, 'edition': 0}
-        
-    def save(self, query, comment=None, action=None, data=None, timestamp=None):
-        timestamp = timestamp or datetime.datetime.utcnow()
-        
+
+    def _save_doc(self, query, timestamp):
         key = query['key']
         
         if key in self.docs:
@@ -40,13 +38,31 @@ class MockSite:
         }
         
         self.docs[key] = doc
+
+        return doc
+         
+    def save(self, query, comment=None, action=None, data=None, timestamp=None):
+        timestamp = timestamp or datetime.datetime.utcnow()
         
-        changes = [{"key": doc['key'], "revision": rev}]
+        doc = self._save_doc(query, timestamp)
+       
+        changes = [{"key": doc['key'], "revision": doc['revision']}]
         changeset = self._make_changeset(timestamp=timestamp, kind=action, comment=comment, data=data, changes=changes)
         self.changesets.append(changeset)
         
         self.reindex(doc)
-        
+
+    def save_many(self, query, comment=None, action=None, data=None, timestamp=None):
+        timestamp = timestamp or datetime.datetime.utcnow()
+        docs = [self._save_doc(doc, timestamp) for doc in query]
+
+        changes = [{"key": doc['key'], "revision": doc['revision']} for doc in docs]
+        changeset = self._make_changeset(timestamp=timestamp, kind=action, comment=comment, data=data, changes=changes)
+
+        self.changesets.append(changeset)
+        for doc in docs:
+            self.reindex(doc)
+
     def quicksave(self, key, type="/type/object", **kw):
         """Handy utility to save an object with less code and get the saved object as return value.
         
@@ -107,7 +123,7 @@ class MockSite:
         offset = query.pop('offset', 0)
         
         keys = set(self.docs.keys())
-        
+
         for k, v in query.items():
             keys = set(k for k in self.filter_index(self.index, k, v) if k in keys)
             
