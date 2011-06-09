@@ -1,0 +1,63 @@
+$def with (email=None, url=None, done = False)
+
+$var title: What's the problem? 
+
+<div id="contentHead">
+ <h1>$_("What's the problem?")</h1>
+</div>
+
+<div id="contentBody">
+
+ $if done:
+   <em>Your question has been submitted. We'll get back to you shortly.</em>
+    
+
+ <form action="" method="post" name="spamForm" class="olform validate">
+ <div class="formElement">
+ <div class="label"><label for="email">$_("Your Email Address")</label></div>
+ <div class="input"><input type="text" class = "email" name="email" id="email" value="$email"/> (We'll need this if you want a reply)</div>
+ </div>
+
+ <div class="formElement">
+   <div class="label"><label for="topic">$_("Topic")</label></div>
+   <div class="input">
+     <select name="topic" id="topic">
+       <option>Bug Report</option>
+       <option>Borrowing Books</option>
+       <option>Buying Books</option>
+       <option>Contact an Author</option>
+       <option>Deletion Request</option>
+       <option>Developer/API/Covers Question</option>
+       <option>Editing Problem</option>
+       <option>Image Upload</option>
+       <option>Login Trouble</option>
+       <option>Spam Report</option>
+       <option>Other</option>
+     </select>
+   </div>
+ </div>
+
+ <div class="formElement">
+   <div class="label"><label for="question">$_("Your question")</label></div>
+   <div class="input">
+     <textarea id="question" name="question" class = "required" cols="40" rows="5"></textarea>
+     (Please be as specific as you can.)
+   </div>
+ </div>
+
+
+ <div class="formElement">
+ <div class="label"><label for="url">$_("Which page were you looking at?")</label></div>
+ <div class="input"><input type="text" name="url" class = "required" id="url" value="$url"/></div>
+ </div>
+
+
+ <div class="formElement bottom">
+ <div class="input">
+ <input type="submit" class="largest" value="Send" name="send" title="Send"/>
+ &nbsp; &nbsp;
+ <a href="javascript:history.go(-1);" class="red">Cancel</a>
+ </div>
+ </div>
+ </form>
+</div>

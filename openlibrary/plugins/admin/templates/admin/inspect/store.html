@@ -1,0 +1,92 @@
+$def with (docs, input={})
+
+$var title: Admin Center / Inspect
+
+<div id="contentHead">
+    <h1>$_("Inspect Store")</h1>
+</div>
+
+<style type="text/css">
+    tr {
+        border-bottom: 1px solid #eee;
+    }
+    th {
+    	font-weight: bold;
+    	text-transform: uppercase;
+    	color: #333333;    	
+    }
+    td {
+        min-width: 150px;
+        margin: 0px 5px;
+    }
+    
+    input[type=text] {
+        width: 200px;
+    }
+
+    form.olform tr {
+        border: none;
+    }
+    
+    form.olform td {
+        padding: 1px;
+    }
+    
+    form.olform input[type="text"] {
+        width: 200px;
+    }
+</style>
+
+
+<div id="contentBody">
+    
+<div>
+    <h3>Get</h3>
+    <form name="by_key" class="olform">
+        Key <input type="text" name="key" value="$input.get('key')"> <button type="submit">Submit</button>
+    </form>
+</div>
+
+<div>
+    <h3>Query</h3>
+    <form name="by_type" class="olform">
+        <table class="query">
+            <tr>
+                <td>Type</td>
+                <td>Name</td>
+                <td colspan="2">Value</td>
+            </tr>
+            <tr>
+                <td><input type="text" id="type" name="type" value="$input.get('type')"></td>
+                <td><input type="text" id="name" name="name" value="$input.get('name')"></td>
+                <td><input type="text" id="value" name="value" value="$input.get('value')"></td>
+                <td><button type="submit">Submit</button></td>
+            </tr>
+        </table>
+    </form>
+</div>
+
+
+
+<h3>Documents</h3>
+
+<div>
+$if docs:
+    <table class="meta">
+        <tr>
+            <th>Key</th>
+            <th>Type</th>
+            <th>Json</th>
+        </tr>
+        $for doc in docs:
+            <tr>
+                <td>$doc['_key']</td>
+                <td><a href="$changequery(type=doc.get('type', ''))">$doc.get("type", "-")</a></td>
+                <td><pre>$json_encode(doc, indent="    ")</pre></td>
+            </tr>
+    </table>
+$else:
+    <em>No results found.</em>
+</div>
+
+</div>

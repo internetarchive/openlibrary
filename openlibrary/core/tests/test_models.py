@@ -124,6 +124,8 @@ class TestLibrary:
         compare_ranges("*", [])
         compare_ranges("*.1", [])
         compare_ranges("1.2.3-10.*", [("1.2.3.0", "1.2.10.255")])
+        compare_ranges("1.2.3.", [("1.2.3.0", "1.2.3.255")])
+        compare_ranges("1.1.", [])
     
     def test_has_ip(self, mock_site):
         mock_site.save({
@@ -133,8 +135,31 @@ class TestLibrary:
         })
         
         ia = mock_site.get("/libraries/ia")
-        assert ia.has_ip("1.1.1.1") is True
-        assert ia.has_ip("1.1.1.2") is False
+        assert ia.has_ip("1.1.1.1") 
+        assert not ia.has_ip("1.1.1.2")
 
-        assert ia.has_ip("2.2.2.10") is True
-        assert ia.has_ip("2.2.10.2") is False
+        assert ia.has_ip("2.2.2.10")
+        assert not ia.has_ip("2.2.10.2")
+
+        mock_site.save({
+            "key": "/libraries/ia",
+            "type": {"key": "/type/library"},
+            "ip_ranges": "1.1.1.",
+        })
+
+        ia = mock_site.get("/libraries/ia")
+        assert ia.has_ip("1.1.1.1")
+        assert ia.has_ip("1.1.1.2")
+
+        assert not ia.has_ip("2.2.2.10")
+        assert not ia.has_ip("2.2.10.2")
+
+        mock_site.save({
+            "key": "/libraries/ia",
+            "type": {"key": "/type/library"},
+            "ip_ranges": "1.1.",
+        })
+
+        ia = mock_site.get("/libraries/ia")
+
+        assert not ia.has_ip("2.2.2.2")

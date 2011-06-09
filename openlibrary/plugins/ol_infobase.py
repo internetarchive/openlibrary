@@ -8,6 +8,7 @@ import simplejson
 import logging, logging.config
 import sys
 import traceback
+import re, unicodedata
 
 import web
 from infogami.infobase import config, common, server, cache, dbstore
@@ -223,7 +224,6 @@ class clear_cache:
 class olid_to_key:
     @server.jsonify
     def GET(self, sitename):
-        print "olid_to_key"
         i = server.input("olid")
         d = get_db().query("SELECT key FROM thing WHERE get_olid(key) = $i.olid", vars=locals())
         key = d and d[0].key or None
@@ -443,6 +443,8 @@ dbstore.process_json = process_json
 
 _Indexer = dbstore.Indexer
 
+re_normalize = re.compile('[^[:alphanum:] ]', re.U)
+
 class OLIndexer(_Indexer):
     """OL custom indexer to index normalized_title etc.
     """
@@ -464,7 +466,7 @@ class OLIndexer(_Indexer):
         """
         doc = dict(doc)
 
-        title = doc.get("title", "").lower()
+        title = doc.get("title", "")
         doc['normalized_title_'] = self.normalize_edition_title(title)
 
         isbns = doc.get("isbn", []) + doc.get("isbn_13", [])
@@ -472,7 +474,23 @@ class OLIndexer(_Indexer):
         return doc
 
     def normalize_edition_title(self, title):
-        return title.lower()
+        if isinstance(title, str):
+            title = title.decode('utf-8', "ignore")
+            
+        if not isinstance(title, unicode):
+            return ""
+            
+        # http://stackoverflow.com/questions/517923/what-is-the-best-way-to-remove-accents-in-a-python-unicode-string
+        def strip_accents(s):
+           return ''.join((c for c in unicodedata.normalize('NFD', s) if unicodedata.category(c) != 'Mn'))
 
+        norm = strip_accents(title).lower()
+        norm = norm.replace(' and ', ' ')
+        if norm.startswith('the '):
+            norm = norm[4:]
+        elif norm.startswith('a '):
+            norm = norm[2:]
+        return norm.replace(' ', '')[:25]
+    
     def normalize_isbn(self, isbn):
         return isbn.strip().upper().replace(" ", "").replace("-", "")

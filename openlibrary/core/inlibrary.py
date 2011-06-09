@@ -11,7 +11,7 @@ def _get_libraries(site=None):
     
     site = site or web.ctx.site
 
-    keys = site.things(query={"type": "/type/library", "limit": 1000})
+    keys = site.things(query={"type": "/type/library", "limit": 1000, "status": "approved"})
     libraries = site.get_many(keys)
     return [lib.dict() for lib in libraries]
     
