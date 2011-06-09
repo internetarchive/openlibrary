@@ -82,7 +82,7 @@ $if docs:
             <tr>
                 <td>$doc['_key']</td>
                 <td><a href="$changequery(type=doc.get('type', ''))">$doc.get("type", "-")</a></td>
-                <td><pre>$json_encode(doc, indent="    ")</pre></td>
+                <td><pre>$json_encode(doc, indent="    ", sort_keys=True)</pre></td>
             </tr>
     </table>
 $else:
