@@ -156,7 +156,7 @@ class people_view:
         if i.action == "update_email":
             return self.POST_update_email(account, i)
         elif i.action == "update_password":
-            return self.POST_update_password(action, i)
+            return self.POST_update_password(account, i)
     
     def POST_update_email(self, account, i):
         if not forms.vemail.valid(i.email):
