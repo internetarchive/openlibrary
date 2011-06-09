@@ -351,7 +351,7 @@ class account_password_reset(delegate.page):
         docs = web.ctx.site.store.values(type="account-link", name="code", value=code)
         if not docs:
             title = _("Password reset failed.")
-            message = "Your password reset link seems invalid or expired."
+            message = "The password reset link seems invalid or expired."
             return render.message(title, message)
 
         doc = docs[0]
@@ -359,11 +359,9 @@ class account_password_reset(delegate.page):
         i = web.input()
         
         web.ctx.site.update_account(username, password=i.password)
-        
         del web.ctx.site.store[doc['_key']]
-        add_flash_message('info', _("Your password has been updated successfully."))
-        raise web.seeother('/account/login')
-
+        return render_template("account/password/reset_success", username=username)
+        
 class account_password_reset_old(delegate.page):
     path = "/account/password/reset"
 
