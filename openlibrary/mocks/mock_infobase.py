@@ -41,12 +41,7 @@ class MockSite:
         store = web.storage(store=self.store)
         site = web.storage(store=store, save_many=self.save_many)
         return account.AccountManager(site, config.infobase['secret_key'])
-        
-    def save_many(self, docs, **kw):
-        timestamp = kw.pop("timestamp", datetime.datetime.utcnow())
-        for doc in docs:
-            self.save(doc, timestamp=timestamp)
-        
+                
     def save(self, query, comment=None, action=None, data=None, timestamp=None):
         timestamp = timestamp or datetime.datetime.utcnow()
         
@@ -80,12 +75,15 @@ class MockSite:
         
         self.reindex(doc)
 
-    def save_many(self, query, comment=None, action=None, data=None, timestamp=None):
+    def save_many(self, query, comment=None,  action=None, data=None, timestamp=None, author=None):
         timestamp = timestamp or datetime.datetime.utcnow()
         docs = [self._save_doc(doc, timestamp) for doc in query]
+        
+        if author:
+            author = {"key": author.key}
 
         changes = [{"key": doc['key'], "revision": doc['revision']} for doc in docs]
-        changeset = self._make_changeset(timestamp=timestamp, kind=action, comment=comment, data=data, changes=changes)
+        changeset = self._make_changeset(timestamp=timestamp, kind=action, comment=comment, data=data, changes=changes, author=author)
 
         self.changesets.append(changeset)
         for doc in docs:
@@ -104,7 +102,7 @@ class MockSite:
         self.save(query)
         return self.get(key)
 
-    def _make_changeset(self, timestamp, kind, comment, data, changes):
+    def _make_changeset(self, timestamp, kind, comment, data, changes, author=None):
         id = len(self.changesets)
         return {
             "id": id,
@@ -114,7 +112,7 @@ class MockSite:
             "changes": changes,
             "timestamp": timestamp.isoformat(),
 
-            "author": None,
+            "author": author,
             "ip": "127.0.0.1",
             "bot": False
         }
