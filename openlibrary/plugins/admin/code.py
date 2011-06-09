@@ -55,6 +55,9 @@ class admin(delegate.page):
         raise web.notfound()
         
     def handle(self, cls, args=()):
+        # Use admin theme
+        context.bodyid = "admin"
+        
         m = getattr(cls(), web.ctx.method, None)
         if not m:
             raise web.nomethod(cls=cls)
