@@ -1,6 +1,7 @@
 import logging
 import eventer
-from celery.task import task
+from openlibrary.core.task import oltask
+
 
 import celeryconfig
 
@@ -9,11 +10,11 @@ from openlibrary.core.lists.updater import Updater as ListUpdater
 
 logger = logging.getLogger("openlibrary.tasks")
 
-@task
+@oltask
 def add(x, y):
     return x + y
 
-@task
+@oltask
 def trigger_offline_event(event, *a, **kw):
     logger.info("trigger_offline_event %s %s %s", event, a, kw)
     
@@ -23,14 +24,14 @@ def trigger_offline_event(event, *a, **kw):
     
     eventer.trigger(event, *a, **kw)
     
-@task
+@oltask
 def on_edit(changeset):
     """This gets triggered whenever an edit happens on Open Library.
     """
     update_lists.delay(changeset)
     update_solr.delay(changeset)
     
-@task
+@oltask
 def update_lists(changeset):
     """Updates the lists database on edit.
     """
@@ -41,7 +42,7 @@ def update_lists(changeset):
     updater = ListUpdater(ol_config.get("lists"))
     updater.process_changeset(changeset, update_seeds=True)
 
-@task
+@oltask
 def update_solr(changeset):
     """Updates solr on edit.
     """
