@@ -1,10 +1,17 @@
 import pickle
+import logging
 import datetime
 
 import web
 from celery.task.control import inspect 
 from infogami.utils.view import render_template
 from infogami import config
+
+logger = logging.getLogger("admin.tasks")
+
+@web.memoize
+def connect_to_taskdb():
+    return web.database(dbn="postgres",  db=config.get('celery',{})["tombstone_db"])
 
 def massage_tombstones(dtasks):
     """Massages the database task tombstones into things that can be
@@ -48,10 +55,10 @@ def massage_taskslists(atasks):
                        host = host,
                        affected_docs = 'tbd')
 
-class monitor(object):
+class tasklist(object):
     def GET(self):
         try:
-            db = web.database(dbn="postgres",  db=config.get('celery',{})["tombstone_db"])
+            db = connect_to_taskdb()
             completed_tasks = massage_tombstones(db.select('celery_taskmeta'))
             
             inspector = inspect()
@@ -63,6 +70,17 @@ class monitor(object):
             print e
             return "Error in connecting to tombstone database"
 
-    
-    
-
+class task(object):
+    def GET(self, taskid):
+        try:
+            db = connect_to_taskdb()
+            q = "SELECT * FROM celery_taskmeta WHERE task_id = '%(taskid)s'"%dict(taskid = taskid) #TBD (VERY BAD!!)
+            ret = db.query(q)
+            if not ret:
+                return "No such task"
+            return render_template("admin/tasks/task", ret[0])
+        except KeyboardInterrupt:
+            logger.warning("Problem while obtaining task information '%s'", taskid, exc_info = True)
+            return "Error in obtaining task information"
+                
+            

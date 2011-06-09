@@ -1,0 +1,52 @@
+$def with (task)
+
+<div id="contentHead">
+    <h1>$_("Admin Center")</h1>
+	<div class="small">
+	    <a href="/admin/reload/">Reload Templates</a>
+	    | <a href="/admin/block">Block IPs</a>
+	    | <a href="/admin/loans">Loans</a>
+	    | <a href="/admin/status">Services</a>
+	    | <a href="/admin/support">Support</a>
+	    | <a href="/admin/tasks">Tasks</a>
+	</div>
+</div>
+<div id="contentBody">
+<style type="text/css">
+table { 
+        font-family: Lucida, "Lucida Sans";
+        font-size: 0.75em;
+        }
+
+table th { 
+           font-weight: bold;
+           padding: 2em;
+ }
+table th, table td {
+                           border-bottom: 1px solid #ddd; 
+                           vertical-align:top;
+                           padding: 5pt;
+                           }
+table pre.hidden { 
+                         display: none;
+ }
+
+</style>
+
+<script type="text/javascript">
+\$(function() {
+    \$("a.tb").click(function(ev) {
+	\$(this).next("pre").toggleClass("hidden");
+	return false;
+    });
+});
+</script>
+
+<h2>Task information</h2>
+<table>
+<tr>
+  <th> UUID </th>
+  <td> $task.task_id </td>
+</tr>
+</table>
+</div>
