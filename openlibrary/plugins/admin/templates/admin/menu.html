@@ -7,7 +7,8 @@ $def link(url, title):
         <a href="$url">$title</a>
 
 <div class="small">
-    $:link("/admin/block", _("Block IPs"))
+    $:link("/admin", _("Home"))
+    | $:link("/admin/block", _("Block IPs"))
     | $:link("/admin/nagios", _("Nagios"))
     | $:link("/admin/loans", _("Loans"))
     | $:link("/admin/services", _("Support"))
