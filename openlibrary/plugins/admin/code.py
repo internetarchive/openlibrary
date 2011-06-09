@@ -150,21 +150,20 @@ class people_view:
         if not user:
             raise web.notfound()
             
-        account = user.get_account()
-            
         i = web.input(action=None)
         if i.action == "update_email":
-            return self.POST_update_email(account, i)
+            return self.POST_update_email(user, i)
         elif i.action == "update_password":
-            return self.POST_update_password(account, i)
+            return self.POST_update_password(user, i)
     
-    def POST_update_email(self, account, i):
+    def POST_update_email(self, user, i):
         if not forms.vemail.valid(i.email):
             return render_template("admin/people/view", user, i, {"email": forms.vemail.msg})
 
         if not forms.email_not_already_used.valid(i.email):
             return render_template("admin/people/view", user, i, {"email": forms.email_not_already_used.msg})
-            
+        
+        account = user.get_account()
         account.update_email(i.email)
         
         add_flash_message("info", "Email updated successfully!")
@@ -173,7 +172,8 @@ class people_view:
     def POST_update_password(self, user, i):
         if not forms.vpass.valid(i.password):
             return render_template("admin/people/view", user, i, {"password": forms.vpass.msg})
-            
+
+        account = user.get_account()
         account.update_password(i.password)
         
         logger.info("updated password of %s", user.key)
