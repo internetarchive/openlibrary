@@ -58,4 +58,4 @@ if __name__ == "__main__":
         sys.argv.pop(sys.argv.index("--gunicorn"))
         start_gunicorn_server()
     else:
-        start_server()
+        main(sys.argv[1:])
