@@ -31,6 +31,10 @@ def migrate_account_table(db):
                 
             docs = []
             for row in rows:
+                # Handle bad rows in the thing table.
+                if not row.key.startswith("/people/"):
+                    continue
+                    
                 username = row.key.split("/")[-1]
                 doc = {
                     "_key": "account/" + username,
