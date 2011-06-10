@@ -1,0 +1,18 @@
+$def with (path)
+
+$def link(url, title):
+    $if url == path:
+        <strong>$title</strong>
+    $else:
+        <a href="$url">$title</a>
+
+<div class="small">
+    $:link("/admin", _("Home"))
+    | $:link("/admin/block", _("Block IPs"))
+    | $:link("/admin/nagios", _("Nagios"))
+    | $:link("/admin/loans", _("Loans"))
+    | $:link("/admin/services", _("Support"))
+    
+    <strong style="padding: 0px 5px">•</strong>
+    $:link("/admin/inspect/store", _("Inspect store"))    
+</div>

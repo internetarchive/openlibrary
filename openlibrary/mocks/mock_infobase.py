@@ -1,10 +1,12 @@
-"""Simple implementation of infogami site to use in testing.
+"""Simple implementation of mock infogami site to use in testing.
 """
 import datetime
 import web
 import glob
+import simplejson
 
-from infogami.infobase import client, common
+from infogami.infobase import client, common, account, config as infobase_config
+from infogami import config
 
 key_patterns = {
     'work': '/works/OL%dW',
@@ -17,14 +19,33 @@ class MockSite:
         self.reset()
         
     def reset(self):
+        self.store = MockStore()
+        if config.get('infobase') is None:
+            config.infobase = {}
+            
+        infobase_config.secret_key = "foobar"
+        config.infobase['secret_key'] = "foobar"
+        
+        self.account_manager = self.create_account_manager()
+        
+        self._cache = {}
         self.docs = {}
         self.changesets = []
         self.index = []
         self.keys = {'work': 0, 'author': 0, 'edition': 0}
         
+    def create_account_manager(self):
+        # Hack to use the accounts stuff from Infogami
+        infobase_config.user_root = "/people"
+        
+        store = web.storage(store=self.store)
+        site = web.storage(store=store, save_many=self.save_many)
+        return account.AccountManager(site, config.infobase['secret_key'])
+                
     def save(self, query, comment=None, action=None, data=None, timestamp=None):
         timestamp = timestamp or datetime.datetime.utcnow()
         
+    def _save_doc(self, query, timestamp):
         key = query['key']
         
         if key in self.docs:
@@ -40,13 +61,34 @@ class MockSite:
         }
         
         self.docs[key] = doc
+
+        return doc
+         
+    def save(self, query, comment=None, action=None, data=None, timestamp=None):
+        timestamp = timestamp or datetime.datetime.utcnow()
         
-        changes = [{"key": doc['key'], "revision": rev}]
+        doc = self._save_doc(query, timestamp)
+       
+        changes = [{"key": doc['key'], "revision": doc['revision']}]
         changeset = self._make_changeset(timestamp=timestamp, kind=action, comment=comment, data=data, changes=changes)
         self.changesets.append(changeset)
         
         self.reindex(doc)
+
+    def save_many(self, query, comment=None,  action=None, data=None, timestamp=None, author=None):
+        timestamp = timestamp or datetime.datetime.utcnow()
+        docs = [self._save_doc(doc, timestamp) for doc in query]
         
+        if author:
+            author = {"key": author.key}
+
+        changes = [{"key": doc['key'], "revision": doc['revision']} for doc in docs]
+        changeset = self._make_changeset(timestamp=timestamp, kind=action, comment=comment, data=data, changes=changes, author=author)
+
+        self.changesets.append(changeset)
+        for doc in docs:
+            self.reindex(doc)
+
     def quicksave(self, key, type="/type/object", **kw):
         """Handy utility to save an object with less code and get the saved object as return value.
         
@@ -60,7 +102,7 @@ class MockSite:
         self.save(query)
         return self.get(key)
 
-    def _make_changeset(self, timestamp, kind, comment, data, changes):
+    def _make_changeset(self, timestamp, kind, comment, data, changes, author=None):
         id = len(self.changesets)
         return {
             "id": id,
@@ -70,7 +112,7 @@ class MockSite:
             "changes": changes,
             "timestamp": timestamp.isoformat(),
 
-            "author": None,
+            "author": author,
             "ip": "127.0.0.1",
             "bot": False
         }
@@ -107,7 +149,7 @@ class MockSite:
         offset = query.pop('offset', 0)
         
         keys = set(self.docs.keys())
-        
+
         for k, v in query.items():
             keys = set(k for k in self.filter_index(self.index, k, v) if k in keys)
             
@@ -157,6 +199,12 @@ class MockSite:
         self.index = [i for i in self.index if i.key != doc['key']]
         self.index.extend(self.compute_index(doc))
         
+    def find_user_by_email(self, email):
+        return None
+        
+    def versions(self, q):
+        return []
+        
     def _get_backreferences(self, doc):
         return {}
         
@@ -178,6 +226,93 @@ class MockSite:
         t = type[6:]
         self.keys[t] += 1
         return key_patterns[t] % self.keys[t]
+        
+    def register(self, username, displayname, email, password):
+        try:
+            self.account_manager.register(
+                username=username, 
+                email=email, 
+                password=password, 
+                data={"displayname": displayname})
+        except common.InfobaseException, e:
+            raise client.ClientException("bad_data", str(e))
+            
+    def activate_account(self, username):
+        try:
+            self.account_manager.activate(username=username)
+        except common.InfobaseException, e:
+            raise client.ClientException(str(e))
+            
+    def update_account(self, username, **kw):
+        status = self.account_manager.update(username, **kw)
+        if status != "ok":
+            raise client.ClientException("bad_data", "Account activation failed.")
+            
+    def login(self, username, password):
+        status = self.account_manager.login(username, password)
+        if status == "ok":
+            self.account_manager.set_auth_token("/people/" + username)
+        else:
+            d = {"code": status}
+            raise client.ClientException("bad_data", msg="Login failed", json=simplejson.dumps(d))
+            
+    def find_account(self, username=None, email=None):
+        if username is not None:
+            return self.store.get("account/" + username)
+        else:
+            try:
+                return self.store.values(type="account", name="email", value=email)[0]
+            except IndexError:
+                return None
+
+    def get_user(self):
+        auth_token = web.ctx.get("infobase_auth_token", "")
+        
+        if auth_token:
+            try:
+                user_key, login_time, digest = auth_token.split(',')
+            except ValueError:
+                return
+                
+            a = self.account_manager
+            if a._check_salted_hash(a.secret_key, user_key + "," + login_time, digest):
+                return self.get(user_key)
+    
+class MockConnection:
+    def get_auth_token(self):
+        return web.ctx.infobase_auth_token
+        
+    def set_auth_token(self, token):
+        web.ctx.infobase_auth_token = token
+        
+class MockStore(dict):
+    def __setitem__(self, key, doc):
+        doc['_key'] = key
+        dict.__setitem__(self, key, doc)
+        
+    put = __setitem__
+        
+    def put_many(self, docs):
+        self.update((doc['_key'], doc) for doc in docs)
+        
+    def _query(self, type=None, name=None, value=None, limit=100, offset=0):
+        for doc in dict.values(self):
+            if type is not None and doc.get("type", "") != type:
+                continue
+            if name is not None and doc.get(name) != value:
+                continue
+            
+            yield doc
+
+    def keys(self, **kw):
+        return [doc['_key'] for doc in self._query(**kw)]
+
+    def values(self, **kw):
+        return [doc for doc in self._query(**kw)]
+        
+    def items(self, **kw):
+        return [(doc["_key"], doc) for doc in self._query(**kw)]
+        
         
 def pytest_funcarg__mock_site(request):
     """mock_site funcarg.
@@ -207,6 +342,7 @@ def pytest_funcarg__mock_site(request):
     old_ctx = dict(web.ctx)
     web.ctx.clear()
     web.ctx.site = site
+    web.ctx.conn = MockConnection()
     web.ctx.env = web.ctx.environ = web.storage()
     web.ctx.headers = []
     

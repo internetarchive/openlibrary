@@ -37,7 +37,12 @@ class ConnectionMiddleware:
                 return self.store_put(sitename, path, data)
             elif method == 'DELETE':
                 return self.store_delete(sitename, path, data)
+        elif path.startswith("/account"):
+            return self.account_request(sitename, path, method, data)
                 
+        return self.conn.request(sitename, path, method, data)
+        
+    def account_request(self, sitename, path, method="GET", data=None):
         return self.conn.request(sitename, path, method, data)
 
     def get(self, sitename, data):
@@ -174,6 +179,17 @@ class MemcacheMiddleware(ConnectionMiddleware):
         self.mc_delete(key)
         result = ConnectionMiddleware.store_delete(self, sitename, key, data)
         self.mc_delete(key)
+        return result
+        
+    def account_request(self, sitename, path, method="GET", data=None):
+        # For post requests, remove the account entry from the cache.
+        if method == "POST" and isinstance(data, dict) and "username" in data:
+            print "deleting"
+            self.mc_delete("/_store/account/" + data["username"])
+            result = ConnectionMiddleware.account_request(self, sitename, path, method, data)
+            self.mc_delete("/_store/account/" + data["username"])
+        else:
+            result = ConnectionMiddleware.account_request(self, sitename, path, method, data)
         return result
         
 _cache = None
