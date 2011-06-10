@@ -155,7 +155,7 @@ class account_login(delegate.page):
             logger.error("login failed for %s with error code %s", i.username, code)
 
             if code == "account_not_verified":
-                account = web.ctx.site.find_account(username=i.username)
+                account = Account.find(username=i.username)
                 return render_template("account/not_verified", username=i.username, password=i.password, email=account.email)
             else:
                 return self.error("account_incorrect_password", i)
@@ -175,7 +175,7 @@ class account_login(delegate.page):
             if code != "account_not_verified":
                 return self.error("account_incorrect_password", i)
 
-        account = web.ctx.site.find_account(username=i.username)
+        account = Account.find(username=i.username)
         send_verification_email(i.username, account.email)
 
         title = _("Hi %(user)s", user=account.displayname)
@@ -266,7 +266,7 @@ class account_email_verify(delegate.page):
             return self.bad_link()
         
     def update_email(self, username, email):
-        if web.ctx.site.find_account(email=email):
+        if Account.find(email=email):
             title = _("Email address is already used.")
             message = _("Your email address couldn't be updated. The specified email address is already used.")
         else:
