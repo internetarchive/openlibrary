@@ -267,6 +267,16 @@ class DataProcessor:
 
             "links": [dict(title=link.get("title"), url=link['url']) for link in w.get('links', '') if link.get('url')],
         }
+
+        for fs in [doc.get("first_sentence"), w.get('first_sentence')]:
+            if fs:
+                e = {
+                    "text": get_value(fs),
+                    "comment": "",
+                    "first_sentence": True
+                    }
+                d['excerpts'].insert(0, e)
+                break
         
         def ebook(doc):
             itemid = doc['ocaid']
