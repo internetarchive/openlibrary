@@ -26,6 +26,17 @@ class Account(web.storage):
     def username(self):
         return self._key.split("/")[-1]
         
+    @property
+    def displayname(self):
+        key = "/people/" + self.username
+        doc = web.ctx.site.get(key)
+        if doc:
+            return doc.displayname or self.username
+        elif "data" in self:
+            return self.data.get("displayname") or self.username
+        else:
+            return self.username
+        
     def verify_password(self, password):
         return verify_hash(get_secret_key(), password, self.enc_password)
         
@@ -144,7 +155,7 @@ class account_login(delegate.page):
             logger.error("login failed for %s with error code %s", i.username, code)
 
             if code == "account_not_verified":
-                account = web.ctx.site.find_account(username=i.username)
+                account = Account.find(username=i.username)
                 return render_template("account/not_verified", username=i.username, password=i.password, email=account.email)
             else:
                 return self.error("account_incorrect_password", i)
@@ -164,11 +175,10 @@ class account_login(delegate.page):
             if code != "account_not_verified":
                 return self.error("account_incorrect_password", i)
 
-        account = web.ctx.site.find_account(username=i.username)
+        account = Account.find(username=i.username)
         send_verification_email(i.username, account.email)
 
-        user = web.ctx.site.get('/people/' + i.username)
-        title = _("Hi %(user)s", user=user.displayname or i.username)
+        title = _("Hi %(user)s", user=account.displayname)
         message = _("We've sent the verification email to %(email)s. You'll need to read that and click on the verification link to verify your email.", email=account.email)
         return render.message(title, message)
 
@@ -256,7 +266,7 @@ class account_email_verify(delegate.page):
             return self.bad_link()
         
     def update_email(self, username, email):
-        if web.ctx.site.find_account(email=email):
+        if Account.find(email=email):
             title = _("Email address is already used.")
             message = _("Your email address couldn't be updated. The specified email address is already used.")
         else:
