@@ -13,22 +13,27 @@ logger = logging.getLogger("admin.tasks")
 def connect_to_taskdb():
     return web.database(dbn="postgres",  db=config.get('celery',{})["tombstone_db"])
 
+def unpack_result(task):
+    try:
+        d = pickle.loads(task.result)
+        print d
+        return dict(arguments = d['largs'] + d['kargs'],
+                    command = d['command'],
+                    started_at = d['started_at'],
+                    result = d['result'],
+                    log = d['log'])
+    except:
+        return dict()
+
+
 def massage_tombstones(dtasks):
     """Massages the database task tombstones into things that can be
     displayed by the /admin task templates"""
-    def _unpack_result(task):
-        try:
-            d = pickle.loads(task.result)
-            return dict(arguments = d['largs'] + d['kargs'],
-                        command = d['command'],
-                        started_at = d['started_at'])
-        except:
-            return dict()
     if not dtasks:
         raise StopIteration()
     else:
         for task in dtasks:
-            p = _unpack_result(task)
+            p = unpack_result(task)
             yield dict(uuid = task.task_id,
                        command = p.get('command',""),
                        arguments = p.get('arguments',""),
@@ -78,7 +83,10 @@ class task(object):
             ret = db.query(q)
             if not ret:
                 return "No such task"
-            return render_template("admin/tasks/task", ret[0])
+            else:
+                tsk = ret[0]
+                res = unpack_result(tsk)
+            return render_template("admin/tasks/task", tsk, res)
         except KeyboardInterrupt:
             logger.warning("Problem while obtaining task information '%s'", taskid, exc_info = True)
             return "Error in obtaining task information"
