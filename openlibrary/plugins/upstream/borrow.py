@@ -305,8 +305,11 @@ class borrow_receive_notification(delegate.page):
         data = web.data()
         try:
             notify_xml = etree.fromstring(data)
+
+            # XXX verify signature?  Should be acs4 function...
             notify_obj = acs4.el_to_o(notify_xml)
-            # print simplejson.dumps(notify_obj)
+
+            # print simplejson.dumps(notify_obj, sort_keys=True, indent=4)
             output = simplejson.dumps({'success':True})
         except Exception, e:
             output = simplejson.dumps({'success':False, 'error': str(e)})
