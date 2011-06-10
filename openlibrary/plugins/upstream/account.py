@@ -26,6 +26,17 @@ class Account(web.storage):
     def username(self):
         return self._key.split("/")[-1]
         
+    @property
+    def displayname(self):
+        key = "/people/" + self.username
+        doc = web.ctx.site.get(key)
+        if doc:
+            return doc.displayname or self.username
+        elif "data" in self:
+            return self.data.get("displayname") or self.username
+        else:
+            return self.username
+        
     def verify_password(self, password):
         return verify_hash(get_secret_key(), password, self.enc_password)
         
@@ -167,8 +178,7 @@ class account_login(delegate.page):
         account = web.ctx.site.find_account(username=i.username)
         send_verification_email(i.username, account.email)
 
-        user = web.ctx.site.get('/people/' + i.username)
-        title = _("Hi %(user)s", user=user.displayname or i.username)
+        title = _("Hi %(user)s", user=account.displayname)
         message = _("We've sent the verification email to %(email)s. You'll need to read that and click on the verification link to verify your email.", email=account.email)
         return render.message(title, message)
 
