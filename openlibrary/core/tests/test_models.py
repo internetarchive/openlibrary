@@ -126,6 +126,7 @@ class TestLibrary:
         compare_ranges("1.2.3-10.*", [("1.2.3.0", "1.2.10.255")])
         compare_ranges("1.2.3.", [("1.2.3.0", "1.2.3.255")])
         compare_ranges("1.1.", [])
+        compare_ranges("1.2.3.1-254", [("1.2.3.1", "1.2.3.254")])
     
     def test_has_ip(self, mock_site):
         mock_site.save({
