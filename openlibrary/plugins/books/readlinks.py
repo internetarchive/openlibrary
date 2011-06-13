@@ -394,7 +394,8 @@ def readlinks(req, options):
         result = ReadProcessor().process(req)
     except:
         print >> sys.stderr, "Error in processing Read API"
-        register_exception()
+        raise
+        # register_exception()
         
         result = [] # XXX check for compatibility?
     return result
