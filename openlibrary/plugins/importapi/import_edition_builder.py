@@ -38,6 +38,9 @@ class import_edition_builder:
            'entity_type': 'person'
         }
         self.add_list('authors', author_dict)
+
+    def add_illustrator(self, key, val):
+        self.add_list('contributions', val + u' (Illustrator)')
     
     def __init__(self, init_dict={}):
         self.edition_dict = init_dict.copy()
@@ -57,6 +60,7 @@ class import_edition_builder:
             'isbn_10':       ['isbn_10',        self.add_list],
             'isbn_13':       ['isbn_13',        self.add_list],
             'ocaid':         ['ocaid',          self.add_string],
+            'illustrator':   ['contributions',  self.add_illustrator],
             'dewey_decimal_class': ['dewey_decimal_class', self.add_list],
             'lc_classification'  : ['lc_classifications', self.add_list],
         }
