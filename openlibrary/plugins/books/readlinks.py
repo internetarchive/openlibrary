@@ -348,7 +348,7 @@ class ReadProcessor:
                     'publishDates': [ data.get('publish_date', '') ],
                     'recordURL': data['url'],
                     'data': data,
-                    'details', details,
+                    'details': details,
                     } },
             'items': items }
         return result
