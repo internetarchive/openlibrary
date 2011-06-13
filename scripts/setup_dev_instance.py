@@ -723,7 +723,10 @@ def update_005():
                 "type": "account",
                 "email": row.email,
                 "enc_password": row.password,
+                
+                "username": username,
                 "lusername": username.lower(),
+                
                 "bot": row.bot,
                 "status": row.verified and "verified" or "pending",
                 "created_on": row.created.isoformat(),
