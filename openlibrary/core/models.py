@@ -321,9 +321,13 @@ class List(Thing, ListMixin):
     def __repr__(self):
         return "<List: %s (%r)>" % (self.key, self.name)
 
-re_range_star = re.compile(r'(\d+\.\d+)\.(\d+)-(\d+)\.\*$')
-re_three_octet = re.compile(r'(\d+\.\d+\.\d+)\.$')
-re_four_octet = re.compile(r'(\d+\.\d+\.\d+\.\d+)(/\d+)?$')
+four_octet = r'(\d+\.\d+\.\d+\.\d+)'
+
+re_range_star = re.compile(r'^(\d+\.\d+)\.(\d+)\s*-\s*(\d+)\.\*$')
+re_three = re.compile(r'^(\d+\.\d+\.\d+)\.$')
+re_four = re.compile(r'^' + four_octet + r'(/\d+)?$')
+re_range_in_last = re.compile(r'^(\d+\.\d+\.\d+)\.(\d+)\s*-\s*(\d+)$')
+re_four_to_four = re.compile('^%s\s*-\s*%s$' % (four_octet, four_octet))
 
 class Library(Thing):
     """Library document.
@@ -340,7 +344,7 @@ class Library(Thing):
         bad = []
         for orig in text.splitlines():
             line = orig.split("#")[0].strip()
-            if not line or "-" in line:
+            if re_four_to_four.match(line):
                 continue
             if re_four_octet.match(line):
                 continue
@@ -363,7 +367,7 @@ class Library(Thing):
             line = line.split("#")[0].strip()
             if not line:
                 continue
-            m = re_four_octet.match(line)
+            m = re_four.match(line)
             if m:
                 yield line
                 continue
@@ -373,13 +377,17 @@ class Library(Thing):
                 end = '%s.%s.255' % (m.group(1), m.group(3))
                 yield (start, end)
                 continue
-            m = re_three_octet.match(line)
+            m = re_three.match(line)
             if m:
                 yield ('%s.0' % m.group(1), '%s.255' % m.group(1))
                 continue
-            if "-" in line:
-                start, end = line.split("-", 1)
-                yield (start.strip(), end.strip())
+            m = re_range_in_last.match(line)
+            if m:
+                yield ('%s.%s' % (m.group(1), m.group(2)), '%s.%s' % (m.group(1), m.group(3)))
+                continue
+            m = re_four_to_four.match(line)
+            if m:
+                yield m.groups()
                 continue
             if '*' in line:
                 collected = []
