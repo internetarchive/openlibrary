@@ -40,6 +40,49 @@ class read_singleget(delegate.page):
         i = web.input()
         
         web.ctx.headers = []
+        bibkey = '%s:%s' % (idtype, idval)
+        result = readlinks.readlink_single(bibkey, i)
+        return simplejson.dumps(result)
+
+
+class read_multiget(delegate.page):
+    """Handle the multi-lookup form of the Hathi-style API
+    """
+    path = r"/api/volumes/(brief|full)/json/(.+)"
+    path_re = re.compile(path)
+    @jsonapi
+    def GET(self, brief_or_full, bibkey_str):
+        i = web.input()
+
+        # Work around issue with gunicorn where semicolon and after
+        # get truncated.  (web.input() still seems ok)
+        # see https://github.com/benoitc/gunicorn/issues/215
+        raw_uri = web.ctx.env.get("RAW_URI")
+        raw_path = urlparse.urlsplit(raw_uri).path
+
+        # handle e.g. '%7C' for '|'
+        decoded_path = urllib2.unquote(raw_path)
+
+        m = self.path_re.match(decoded_path)
+        if not len(m.groups()) == 2:
+            return simplejson.dumps({})
+        (brief_or_full, bibkey_str) = m.groups()
+
+        web.ctx.headers = []
+        result = readlinks.readlink_multiple(bibkey_str, i)
+        return simplejson.dumps(result)
+
+
+class read_singleget_alt(delegate.page):
+    """Handle the single-lookup form of the Hathi-style API
+    """
+    path = r"/api/alt/(brief|full)/(oclc|lccn|issn|isbn|htid|olid|recordnumber)/(.+)"
+    encoding = "json"
+    @jsonapi
+    def GET(self, brief_or_full, idtype, idval):
+        i = web.input()
+
+        web.ctx.headers = []
         req = '%s:%s' % (idtype, idval)
         result = readlinks.readlinks(req, i)
         if req in result:
@@ -49,10 +92,10 @@ class read_singleget(delegate.page):
         return simplejson.dumps(result)
 
 
-class read_multiget(delegate.page):
+class read_multiget_alt(delegate.page):
     """Handle the multi-lookup form of the Hathi-style API
     """
-    path = r"/api/volumes/(brief|full)/json/(.+)"
+    path = r"/api/alt/(brief|full)/json/(.+)"
     path_re = re.compile(path)
     @jsonapi
     def GET(self, brief_or_full, req): # params aren't used, see below
@@ -75,4 +118,3 @@ class read_multiget(delegate.page):
         web.ctx.headers = []
         result = readlinks.readlinks(req, i)
         return simplejson.dumps(result)
-

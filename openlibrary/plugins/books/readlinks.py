@@ -347,11 +347,12 @@ class ReadProcessor:
                     'olids': [ key_to_olid(data['key']) ],
                     'publishDates': [ data.get('publish_date', '') ],
                     'recordURL': data['url'],
-                    # 'data': data,
-                    # 'details', details,
+                    'data': data,
+                    'details', details,
                     } },
             'items': items }
         return result
+
 
     def process(self, req):
         requests = req.split('|')
@@ -385,7 +386,7 @@ class ReadProcessor:
             if sub_result:
                 result[result_key] = sub_result
 
-        return self, result
+        return result
 
 
 def readlinks(req, options):
