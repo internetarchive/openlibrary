@@ -139,7 +139,6 @@ def format_one_request(record, data, details):
                           'lccns': edition.get('lccn', []),
                           'oclcs': edition.get('oclc_numbers', []),
                           'publishDates': [edition['publish_date']],
-                          # XXX below openlibrary.org from conf
                           'recordURL': 'http://openlibrary.org%s' % edition['key'],
                           # 'marc-xml': ''
                           'data': data,
@@ -206,14 +205,10 @@ def ol_query(name, value):
         return keys[0]
 
 
-glob = {}
-
 def get_work_iaids(workid):
     wkey = workid.split('/')[2]
-# XXX below for solr_host??
-# def get_works_solr():
-#     base_url = "http://%s/solr/works" % config.plugin_worksearch.get('solr')
-#     return Solr(base_url)
+    # XXX below for solr_host??
+    #     base_url = "http://%s/solr/works" % config.plugin_worksearch.get('solr')
     solr_host = 'ol-solr.us.archive.org:8983'
     solr_select_url = "http://" + solr_host + "/solr/works/select"
     filter = 'ia'
@@ -228,35 +223,156 @@ def get_work_iaids(workid):
 
 
 class ReadProcessor:
-    def make_record(self, bib_keys):
-        return bib_keys
-        # for k in bib_keys:
+    def __init__(self):
+        self.set_inlibrary = False
 
+    def get_inlibrary(self):
+        if not self.set_inlibrary:
+            self.set_inlibrary = True
+            self.inlibrary = inlibrary.get_library()
+        return self.inlibrary
+        
+    def get_readitem(self, iaid, orig_iaid, orig_ed_key, work_key, subjects):
+        meta = self.iaid_to_meta[iaid]
+        collections = meta.get("collection", [])
+        status = ''
+        if 'lendinglibrary' in collections:
+            if not 'Lending library' in subjects:
+                status = 'restricted'
+            else:
+                status = 'lendable'
+        elif 'inlibrary' in collections:
+            if not 'In library' in subjects:
+                status = 'restricted'
+            elif not self.get_inlibrary():
+                status = 'restricted'
+            else:
+                status = 'lendable'
+        elif 'printdisabled' in collections:
+            status = 'restricted'
+        else:
+            status = 'full access'
+        if status == 'restricted':
+            return None
+
+        ed_key = self.iaid_to_ed_key.get(iaid)
+        if not ed_key:
+            # This shouldn't much occur in production, but can easily happen
+            # in a dev instance if the record hasn't been imported.
+            return None
+        edition = self.iaid_to_ed[iaid]
+
+        if status == 'full access':
+            itemURL = 'http://www.archive.org/stream/%s' % (iaid)
+        else:
+            itemURL = u'http://openlibrary.org%s/%s/borrow' % (ed_key,
+                                                               helpers.urlsafe(edition.get('title',
+                                                                                           'untitled')))
+        if status == 'lendable':
+            loanstatus =  web.ctx.site.store.get('ebooks' + ed_key, {'borrowed': 'false'})
+            if loanstatus['borrowed'] == 'true':
+                status = 'checked out'
+
+        result = {
+            'enumcron': False,
+            'match': 'exact' if iaid == orig_iaid else 'similar',
+            'status': status,
+            'fromRecord': orig_ed_key,
+            'ol-edition-id': key_to_olid(ed_key),
+            'ol-work-id': key_to_olid(work_key),
+            'contributor': '',
+            'itemURL': itemURL,
+            }
+
+        if edition.get('covers'):
+            cover_id = edition['covers'][0]
+            # XXX covers url from yaml?
+            result['cover'] = {
+                "small": "http://covers.openlibrary.org/b/id/%s-S.jpg" % cover_id,
+                "medium": "http://covers.openlibrary.org/b/id/%s-M.jpg" % cover_id,
+                "large": "http://covers.openlibrary.org/b/id/%s-L.jpg" % cover_id,
+                }
+
+        return result
+
+
+    def make_record(self, bib_keys):
+        # XXX implement hathi no-match logic?
+        found = False
+        for k in bib_keys:
+            if k in self.docs:
+                found = True
+                break
+        if not found:
+            return None
+        doc = self.docs[k]
+        data = self.datas[k]
+        details = self.detailss[k]
+       
+        # determine potential ia items for this identifier,
+        orig_iaid = doc.get('ocaid')
+        doc_works = doc.get('works')
+        if doc_works and len(doc_works) > 0:
+            work_key = doc_works[0]['key']
+        else:
+            work_key = None
+        work = None
+        subjects = []
+        if work_key:
+            work = self.works.get(work_key)
+            subjects = work.get('subjects', [])
+            iaids = self.work_to_iaids[work_key]
+            # rearrange so any scan for this edition is first
+            if orig_iaid and orig_iaid in iaids:
+                iaids.pop(iaids.index(orig_iaid))
+                iaids.insert(0, orig_iaid)
+        elif orig_iaid:
+            # attempt to handle work-less editions
+            iaids = [ orig_iaid ]
+        else:
+            iaids = []
+        orig_ed_key = data['key']
+
+        items = [self.get_readitem(iaid, orig_iaid, orig_ed_key, work_key, subjects)
+                 for iaid in iaids]
+        items = [item for item in items if item]
+
+        ids = data.get('identifiers', {})
+        result = {'records':
+            { data['key']:
+                  { 'isbns': sum((ids.get('isbn_10', []), ids.get('isbn_13', [])), []),
+                    'issns': [],
+                    'lccns': ids.get('lccn', []),
+                    'oclcs': ids.get('oclc', []),
+                    'olids': [ key_to_olid(data['key']) ],
+                    'publishDates': [ data.get('publish_date', '') ],
+                    'recordURL': data['url'],
+                    # 'data': data,
+                    # 'details', details,
+                    } },
+            'items': items }
+        return result
 
     def process(self, req):
         requests = req.split('|')
         bib_keys = sum([r.split(';') for r in requests], [])
 
-        # filter out 'id:blah' before passing to dynlinks
+        # filter out 'id:foo' before passing to dynlinks
         bib_keys = [k for k in bib_keys if k[:3].lower() != 'id:']
 
         self.docs = dynlinks.query_docs(bib_keys)
+        self.detailss = dynlinks.process_result_for_details(self.docs)
         dp = dynlinks.DataProcessor()
         self.datas = dp.process(self.docs)
         self.works = dp.works
 
-        glob['docs'] = self.docs
-        glob['dp'] = dp
-        glob['datas'] = self.datas
-
-        for workid in self.works:
-            self.works[workid]['iaids'] = get_work_iaids(workid)
-        iaids = sum([w.get('iaids', []) for w in self.works.values()], [])
+        self.work_to_iaids = dict((workid, get_work_iaids(workid)) for workid in self.works)
+        iaids = sum(self.work_to_iaids.values(), [])
         self.iaid_to_meta = dict((iaid, ia.get_meta_xml(iaid)) for iaid in iaids)
-        self.iaid_to_edid = dict((iaid, ol_query('ocaid', iaid))
+        self.iaid_to_ed_key = dict((iaid, ol_query('ocaid', iaid))
                                  for iaid in iaids)
         self.iaid_to_ed = dict((iaid, web.ctx.site.get(olkey))
-                               for iaid, olkey in self.iaid_to_edid.items() if olkey)
+                               for iaid, olkey in self.iaid_to_ed_key.items() if olkey)
 
         result = {}
         for r in requests:
@@ -277,8 +393,7 @@ def readlinks(req, options):
         result = ReadProcessor().process(req)
     except:
         print >> sys.stderr, "Error in processing Read API"
-        # register_exception()
-        raise
+        register_exception()
         
         result = [] # XXX check for compatibility?
     return result
