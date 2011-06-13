@@ -2,14 +2,18 @@
 Bibliographic API, but also includes information about loans and other
 editions of the same work that might be available.
 """
+import sys
+import urllib
 
+import web
 from openlibrary.core import inlibrary
 from openlibrary.core import ia
 from openlibrary.core import helpers
 from openlibrary.api import OpenLibrary
+from infogami.infobase import _json as simplejson
+from infogami.utils.delegate import register_exception
 
 import dynlinks
-import web
 
 
 def key_to_olid(olkey):
@@ -188,4 +192,93 @@ def readlink_multiple(bibkey_str, options):
         if f is not None:
             result[k] = f
     
+    return result
+
+########################
+
+def ol_query(name, value):
+    query = {
+        'type': '/type/edition',
+        name: value,
+    }
+    keys = web.ctx.site.things(query)
+    if keys:
+        return keys[0]
+
+
+glob = {}
+
+def get_work_iaids(workid):
+    wkey = workid.split('/')[2]
+# XXX below for solr_host??
+# def get_works_solr():
+#     base_url = "http://%s/solr/works" % config.plugin_worksearch.get('solr')
+#     return Solr(base_url)
+    solr_host = 'ol-solr.us.archive.org:8983'
+    solr_select_url = "http://" + solr_host + "/solr/works/select"
+    filter = 'ia'
+    q = 'key:' + wkey
+    solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&rows=10&fl=%s&qt=standard&wt=json" % (q, filter)
+    json_data = urllib.urlopen(solr_select).read()
+    print json_data
+    reply = simplejson.loads(json_data)
+    if reply['response']['numFound'] == 0:
+        return []
+    return reply["response"]['docs'][0].get(filter, [])
+
+
+class ReadProcessor:
+    def make_record(self, bib_keys):
+        return bib_keys
+        # for k in bib_keys:
+
+
+    def process(self, req):
+        requests = req.split('|')
+        bib_keys = sum([r.split(';') for r in requests], [])
+
+        # filter out 'id:blah' before passing to dynlinks
+        bib_keys = [k for k in bib_keys if k[:3].lower() != 'id:']
+
+        self.docs = dynlinks.query_docs(bib_keys)
+        dp = dynlinks.DataProcessor()
+        self.datas = dp.process(self.docs)
+        self.works = dp.works
+
+        glob['docs'] = self.docs
+        glob['dp'] = dp
+        glob['datas'] = self.datas
+
+        for workid in self.works:
+            self.works[workid]['iaids'] = get_work_iaids(workid)
+        iaids = sum([w.get('iaids', []) for w in self.works.values()], [])
+        self.iaid_to_meta = dict((iaid, ia.get_meta_xml(iaid)) for iaid in iaids)
+        self.iaid_to_edid = dict((iaid, ol_query('ocaid', iaid))
+                                 for iaid in iaids)
+        self.iaid_to_ed = dict((iaid, web.ctx.site.get(olkey))
+                               for iaid, olkey in self.iaid_to_edid.items() if olkey)
+
+        result = {}
+        for r in requests:
+            bib_keys = r.split(';')
+            if r.lower().startswith('id:'):
+                result_key = bib_keys.pop(0)[3:]
+            else:
+                result_key = r
+            sub_result = self.make_record(bib_keys)
+            if sub_result:
+                result[result_key] = sub_result
+
+        return self, result
+
+
+def readlinks(req, options):
+    try:
+        result = ReadProcessor().process(req)
+    except:
+        print >> sys.stderr, "Error in processing Read API"
+        # register_exception()
+        raise
+        
+        result = [] # XXX check for compatibility?
     return result
