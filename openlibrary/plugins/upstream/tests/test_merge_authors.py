@@ -8,7 +8,7 @@ from infogami.infobase.tests.pytest_wildcard import *
 from .. import merge_authors
 
 def setup_module(mod):
-    delegate.fakeload()
+    #delegate.fakeload()
 
     # models module imports openlibrary.code, which imports ol_infobase and that expects db_parameters.
     web.config.db_parameters = dict(dbn="sqlite", db=":memory:")

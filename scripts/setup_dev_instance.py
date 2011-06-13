@@ -11,13 +11,14 @@ import time
 import urllib, urllib2
 import commands
 
-VERSION = 4
+VERSION = 5
 
 CHANGELOG = """
 001 - Initial setup
 002 - Added couchdb and couchdb-lucene links in usr/local.
 003 - Added iptools python module.
 004 - Moved solr location
+005 - Account v2
 """
 
 config = None
@@ -702,6 +703,40 @@ def update_004():
     for i in ('authors', 'editions', 'inside', 'subjects', 'works'):
         os.mkdir('var/lib/solr/' + i)
         os.system("mv usr/local/solr_old/solr/" + i + "/data var/lib/solr/" + i) 
+        
+def update_005():
+    import web
+    from infogami.infobase._dbstore.store import Store
+    
+    db = web.database(dbn="postgres", db="openlibrary", user=os.getenv("USER"), pw="")    
+    store = Store(db)
+    
+    for row in db.query("SELECT thing.key, thing.created, account.* FROM thing, account WHERE thing.id=account.thing_id"):
+        username = row.key.split("/")[-1]
+        account_key = "account/" + username
+        
+        if store.get(account_key):
+            continue
+        else:
+            account = {
+                "_key": account_key,
+                "type": "account",
+                "email": row.email,
+                "enc_password": row.password,
+                
+                "username": username,
+                "lusername": username.lower(),
+                
+                "bot": row.bot,
+                "status": row.verified and "verified" or "pending",
+                "created_on": row.created.isoformat(),
+            }
+            email_doc = {
+                "_key": "account-email/" + row.email,
+                "type": "account-email",
+                "username": username
+            }
+            store.put_many([account, email_doc])
 
 def get_current_version():
     """Returns the current version of dev instance.

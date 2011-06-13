@@ -13,17 +13,16 @@ class Stats:
     def __init__(self, docs, key, total_key):
         self.key = key
         self.docs = docs
-        
         try:
             self.latest = docs[-1].get(key, 0)
         except IndexError:
             self.latest = 0
-        
+
         try:
             self.previous = docs[-2].get(key, 0)
         except IndexError:
             self.previous = 0
-        
+
         try:
             # Last available total count
             self.total = (x for x in reversed(docs) if total_key in x).next()[total_key]

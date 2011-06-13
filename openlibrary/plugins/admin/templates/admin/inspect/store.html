@@ -2,10 +2,6 @@ $def with (docs, input={})
 
 $var title: Admin Center / Inspect
 
-<div id="contentHead">
-    <h1>$_("Inspect Store")</h1>
-</div>
-
 <style type="text/css">
     tr {
         border-bottom: 1px solid #eee;
@@ -37,6 +33,10 @@ $var title: Admin Center / Inspect
     }
 </style>
 
+<div id="contentHead">
+    <h1>Admin Center</h1>
+    $:render_template("admin/menu", "/admin/inspect/store")
+</div>
 
 <div id="contentBody">
     
@@ -82,7 +82,7 @@ $if docs:
             <tr>
                 <td>$doc['_key']</td>
                 <td><a href="$changequery(type=doc.get('type', ''))">$doc.get("type", "-")</a></td>
-                <td><pre>$json_encode(doc, indent="    ")</pre></td>
+                <td><pre>$json_encode(doc, indent="    ", sort_keys=True)</pre></td>
             </tr>
     </table>
 $else:

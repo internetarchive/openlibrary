@@ -54,14 +54,14 @@ def find_matching_work(e):
             else:
                 print 'title:', w['title'], '!=', get_title(e)
 
-def build_author_reply(author_in):
+def build_author_reply(author_in, edits):
     authors = []
     author_reply = []
     for a in author_in:
         new_author = 'key' not in a
         if new_author:
             a['key'] = web.ctx.site.new_key('/type/author')
-            web.ctx.site.save(a, comment='new author')
+            edits.append(a)
         authors.append({'key': a['key']})
         author_reply.append({
             'key': a['key'],
@@ -72,10 +72,11 @@ def build_author_reply(author_in):
 
 def load_data(rec):
     q = build_query(rec)
+    edits = []
 
     reply = {}
     author_in = q.get('authors', [])
-    (authors, author_reply) = build_author_reply(author_in)
+    (authors, author_reply) = build_author_reply(author_in, edits)
 
     #q['source_records'] = [loc]
     if authors:
@@ -111,7 +112,7 @@ def load_data(rec):
                     need_update = True
         if need_update:
             work_state = 'modified'
-            web.ctx.site.save(w, wkey, 'add subjects from new record')
+            edits.append(w)
     else:
         w = {
             'type': {'key': '/type/work'},
@@ -127,18 +128,21 @@ def load_data(rec):
         wkey = web.ctx.site.new_key('/type/work')
 
         w['key'] = wkey
-        web.ctx.site.save(w, comment='initial import')
+        edits.append(w)
 
     q['works'] = [{'key': wkey}]
     ekey = web.ctx.site.new_key('/type/edition')
     q['key'] = ekey
-    web.ctx.site.save(q, comment='initial import')
+    edits.append(q)
 
     #pool.update(ekey, q)
 
     #print 'add_cover_image'
     #if 'cover' in rec:
     #    add_cover_image(ekey, rec['cover'])
+
+    assert edits
+    web.ctx.site.save_many(edits, 'import new book')
 
     reply['success'] = True
     reply['edition'] = { 'key': ekey, 'status': 'created', }
@@ -270,6 +274,7 @@ def load(rec):
             'work': {'key': w.key, 'status': 'matched'},
         }
 
+        edits = []
         need_work_save = False
         need_edition_save = False
         if rec.get('authors'):
@@ -284,7 +289,7 @@ def load(rec):
                 add_to_edition = False
                 if new_author:
                     a['key'] = web.ctx.site.new_key('/type/author')
-                    aobj = web.ctx.site.save(a, comment='new author')
+                    edits.append(a)
                     add_to_work = True
                     add_to_edition = True
                 else:
@@ -320,10 +325,14 @@ def load(rec):
                 w.subjects = work_subjects
         if need_edition_save:
             reply['edition']['status'] = 'modified'
+            edits.append(e)
             web.ctx.site.save(e, match, 'update edition')
         if need_work_save:
             reply['work']['status'] = 'modified'
-            web.ctx.site.save(w, w.key, 'update work')
+            edits.append(w)
+        if edits:
+            web.ctx.site.save_many(edits, 'import new book')
+
         return reply
         #add_source_records(match, ia)
     else: # 'no match found', rec['ia']
