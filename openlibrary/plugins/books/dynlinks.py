@@ -140,6 +140,8 @@ def get_many_as_dict(keys):
     
 def get_url(doc):
     base = web.ctx.get("home", "http://openlibrary.org")
+    if base == 'http://[unknown]':
+        base = "http://openlibrary.org"
     if doc['key'].startswith("/books/") or doc['key'].startswith("/works/"):
         return base + doc['key'] + "/" + urlsafe(doc.get("title", "untitled"))
     elif doc['key'].startswith("/authors/"):
