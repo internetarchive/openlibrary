@@ -346,11 +346,11 @@ class Library(Thing):
             line = orig.split("#")[0].strip()
             if re_four_to_four.match(line):
                 continue
-            if re_four_octet.match(line):
+            if re_four.match(line):
                 continue
             if re_range_star.match(line):
                 continue
-            if re_three_octet.match(line):
+            if re_three.match(line):
                 continue
             if '*' in line:
                 collected = []
