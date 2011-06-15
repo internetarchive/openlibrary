@@ -9,6 +9,18 @@ re_fictitious_character = re.compile('^(.+), (.+)( \(.* character\))$')
 re_etc = re.compile('^(.+?)[, .]+etc[, .]?$', re.I)
 re_comma = re.compile('^([A-Z])([A-Za-z ]+?) *, ([A-Z][A-Z a-z]+)$')
 
+re_place_comma = re.compile('^(.+), (.+)$')
+re_paren = re.compile('[()]')
+def flip_place(s):
+    s = remove_trailing_dot(s)
+    # Whitechapel (London, England)
+    # East End (London, England)
+    # Whitechapel (Londres, Inglaterra)
+    if re_paren.search(s):
+        return s
+    m = re_place_comma.match(s)
+    return m.group(2) + ' ' + m.group(1) if m else s
+
 def tidy_subject(s):
     s = s.strip()
     if len(s) < 2:

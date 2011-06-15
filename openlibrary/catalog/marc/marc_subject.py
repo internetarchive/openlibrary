@@ -1,7 +1,7 @@
 from openlibrary.catalog.utils import remove_trailing_dot, remove_trailing_number_dot, flip_name
 import re
 from collections import defaultdict
-from openlibrary.catalog.get_ia import get_from_archive, bad_ia_xml, marc_formats, urlopen_keep_trying
+from openlibrary.catalog.get_ia import get_from_archive, marc_formats, urlopen_keep_trying
 from openlibrary.catalog.marc.marc_binary import MarcBinary
 from openlibrary.catalog.importer.db_read import get_mc
 from openlibrary.catalog.marc.marc_xml import BadSubtag, BlankTag
