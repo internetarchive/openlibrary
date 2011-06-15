@@ -32,7 +32,4 @@ def try_merge(e1, edition_key, existing):
         rec2['publisher_date'] = existing.publish_date
 
     e2 = build_marc(rec2)
-    print
-    print 'e1:', e1
-    print 'e2:', e2
-    return attempt_merge(e1, e2, threshold, debug=True)
+    return attempt_merge(e1, e2, threshold, debug=False)

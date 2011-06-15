@@ -5,6 +5,7 @@ Usage:
     $ python account_v2_migration.py infobase.yml
 """
 from __future__ import with_statement
+import _init_path
 
 from infogami.infobase import server
 from infogami.infobase._dbstore.store import Store

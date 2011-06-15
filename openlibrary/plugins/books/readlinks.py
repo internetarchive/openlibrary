@@ -20,181 +20,6 @@ def key_to_olid(olkey):
     return olkey.split('/')[-1]
 
 
-ol = OpenLibrary("http://openlibrary.org")
-def get_work_editions(work):
-    editions = ol.query({ 'type': '/type/edition',
-                          'works': work.key,
-                          'limit': False })
-    return editions
-
-    # return editions only if this ol knows about them.
-    # return [edition for edition in editions if web.ctx.site.get(edition)]
-
-
-def get_readable_edition_item(edition, work, user_inlibrary, initial_edition):
-    ocaid = edition.get('ocaid', False)
-    if not ocaid:
-        return None
-    subjects = work.get_subjects()
-    if not subjects:
-        return None
-
-    metaxml = ia.get_meta_xml(ocaid)
-
-    collections = metaxml.get("collection", [])
-
-    status = ''
-    if 'lendinglibrary' in collections:
-        if not 'Lending library' in subjects:
-            return None
-        status = 'lendable'
-    elif 'inlibrary' in collections:
-        if not 'In library' in subjects:
-            return None
-        if not user_inlibrary:
-            return None
-        status = 'lendable'
-    elif 'printdisabled' in collections:
-        status = 'restricted'
-        return None
-    else:
-        status = 'full access'
-
-    if status == 'full access':
-        itemURL = "http://www.archive.org/stream/%s" % (ocaid)
-    else:
-        itemURL = u"http://openlibrary.org%s/%s/borrow" % (edition['key'],
-                                                           helpers.urlsafe(edition.get("title",
-                                                                                       "untitled")))
-
-    if status == 'lendable':
-        loanstatus =  web.ctx.site.store.get('ebooks' + edition['key'], {'borrowed': 'false'})
-        if loanstatus['borrowed'] == 'true':
-            status = 'checked out'
-
-    if edition['key'] == initial_edition['key']:
-        match = 'exact'
-    else:
-        match = 'similar'
-
-    result = {
-        'enumcron': False,
-        # 'orig': 'University of California'
-        # 'htid': ''
-        # 'lastUpdate: "" # XXX from edition.last_modified (datetime)
-        'match': match,
-        'status': status,
-        'fromRecord': initial_edition['key'],
-        'ol-edition-id': key_to_olid(edition['key']),
-        'ol-work-id': key_to_olid(work['key']),
-        'contributor': 'contributor',
-        'itemURL': itemURL,
-        }
-
-    if edition.get('covers'):
-        cover_id = edition['covers'][0]
-        # XXX covers url from yaml?
-        result['cover'] = {
-            "small": "http://covers.openlibrary.org/b/id/%s-S.jpg" % cover_id,
-            "medium": "http://covers.openlibrary.org/b/id/%s-M.jpg" % cover_id,
-            "large": "http://covers.openlibrary.org/b/id/%s-L.jpg" % cover_id,
-            }
-
-    return result
-
-
-def format_one_request(record, data, details):
-    edition = web.ctx.site.get(record['key'])
-
-    if not 'works' in record:
-        return {}
-
-    work = web.ctx.site.get(record['works'][0]['key']) # xxx
-
-    user_inlibrary = inlibrary.get_library()
-
-    # XXX fix
-    thised_item = get_readable_edition_item(edition, work,
-                                            user_inlibrary, edition)
-    eds = get_work_editions(work)
-    eds = [ed for ed in eds if ed != edition['key']]
-
-    eds = web.ctx.site.get_many(eds)
-
-    othered_items = [get_readable_edition_item(ed, work,
-                                               user_inlibrary, edition)
-                     for ed in eds]
-    othered_items = [item for item in othered_items if item]
-    if thised_item:
-        othered_items.insert(0, thised_item)
-    items = othered_items
-
-    isbns = edition.get('isbn_10', [])
-    isbns.extend(edition.get('isbn_13', [])) # xxx ? how to handle.
-
-    result = {'records':
-                  { edition['key']:
-                        { 'isbns': isbns,
-                          'issns': [],
-                          'lccns': edition.get('lccn', []),
-                          'oclcs': edition.get('oclc_numbers', []),
-                          'publishDates': [edition['publish_date']],
-                          'recordURL': 'http://openlibrary.org%s' % edition['key'],
-                          # 'marc-xml': ''
-                          'data': data,
-                          'details': details,
-                          } },
-              'items': items }
-    return result
-
-
-def readlink_single(bibkey, options):
-    bka = [bibkey]
-    r = dynlinks.query_docs(bka)
-    (data, details) = [dynlinks.process_result(r, cmd)[bibkey]
-                       for cmd in ('data', 'details')]
-    if len(r) == 0:
-        return []
-    record = r[bibkey]
-    return format_one_request(record, data, details)
-    # (data, details, viewapi) = [dynlinks.process_result(r, cmd)[bibkey]
-    #                             for cmd in ('data', 'details', 'viewapi')]
-    # return record, edition, work, eds, data, items
-
-
-def readlink_multiple(bibkey_str, options):
-    requests = bibkey_str.split('|')
-    # make mapping between maybe-id and key-to-use
-    rmap = {}
-    for r in requests:
-        if r[:3].lower() == 'id:':
-            parts = r.split(';')
-            if len(parts) != 2:
-                return {}
-            key = parts[0][3:]
-            val = parts[1]
-        else:
-            key = r
-            val = r
-        rmap[key] = val
-    records = dynlinks.query_docs(rmap.values())
-    datas = dynlinks.process_result(records, 'data')
-    details = dynlinks.process_result(records, 'details')
-
-    formatted = {}
-    for k in records.keys():
-        formatted[k] = format_one_request(records[k], datas[k], details[k])
-
-    result = {}
-    for k in rmap.keys():
-        f = formatted.get(rmap[k], None)
-        if f is not None:
-            result[k] = f
-    
-    return result
-
-########################
-
 def ol_query(name, value):
     query = {
         'type': '/type/edition',
@@ -223,7 +48,8 @@ def get_work_iaids(workid):
 
 
 class ReadProcessor:
-    def __init__(self):
+    def __init__(self, options):
+        self.options = options
         self.set_inlibrary = False
 
     def get_inlibrary(self):
@@ -252,7 +78,7 @@ class ReadProcessor:
             status = 'restricted'
         else:
             status = 'full access'
-        if status == 'restricted':
+        if not self.options.get('show_all_items') and status == 'restricted':
             return None
 
         ed_key = self.iaid_to_ed_key.get(iaid)
@@ -307,7 +133,7 @@ class ReadProcessor:
             return None
         doc = self.docs[k]
         data = self.datas[k]
-        details = self.detailss[k]
+        details = self.detailss.get(k)
        
         # determine potential ia items for this identifier,
         orig_iaid = doc.get('ocaid')
@@ -362,7 +188,10 @@ class ReadProcessor:
         bib_keys = [k for k in bib_keys if k[:3].lower() != 'id:']
 
         self.docs = dynlinks.query_docs(bib_keys)
-        self.detailss = dynlinks.process_result_for_details(self.docs)
+        if not self.options.get('no_details'):
+            self.detailss = dynlinks.process_result_for_details(self.docs)
+        else:
+            self.detailss = {}
         dp = dynlinks.DataProcessor()
         self.datas = dp.process(self.docs)
         self.works = dp.works
@@ -370,10 +199,30 @@ class ReadProcessor:
         self.work_to_iaids = dict((workid, get_work_iaids(workid)) for workid in self.works)
         iaids = sum(self.work_to_iaids.values(), [])
         self.iaid_to_meta = dict((iaid, ia.get_meta_xml(iaid)) for iaid in iaids)
-        self.iaid_to_ed_key = dict((iaid, ol_query('ocaid', iaid))
-                                 for iaid in iaids)
-        self.iaid_to_ed = dict((iaid, web.ctx.site.get(olkey))
-                               for iaid, olkey in self.iaid_to_ed_key.items() if olkey)
+
+        if self.options.get('multiget'):
+            query = {
+                'type': '/type/edition',
+                'ocaid': iaids,
+            }
+            ed_keys = web.ctx.site.things(query)
+            eds = dynlinks.ol_get_many_as_dict(ed_keys)
+            self.iaid_to_ed = dict((ed['ocaid'], ed) for ed in eds.values())
+            
+            # XXX get rid of below when consolidating
+            self.iaid_to_ed_key = dict((iaid, ed['key']) for iaid, ed in self.iaid_to_ed.items())
+        elif self.options.get('slow_get_editions'):
+            self.iaid_to_ed_key = dict((iaid, ol_query('ocaid', iaid))
+                                       for iaid in iaids)
+            self.iaid_to_ed = dict((iaid, web.ctx.site.get(ed_key))
+                                   for iaid, ed_key in self.iaid_to_ed_key.items() if ed_key)
+        else:
+            self.iaid_to_ed_key = dict((iaid, ol_query('ocaid', iaid))
+                                       for iaid in iaids)
+            self.ed_keys = [ed_key for ed_key in self.iaid_to_ed_key.values() if ed_key]
+            self.ed_key_to_ed = dynlinks.ol_get_many_as_dict(self.ed_keys)
+            self.iaid_to_ed = dict((iaid, self.ed_key_to_ed[ed_key])
+                                   for iaid, ed_key in self.iaid_to_ed_key.items() if ed_key)
 
         result = {}
         for r in requests:
@@ -391,11 +240,24 @@ class ReadProcessor:
 
 def readlinks(req, options):
     try:
-        result = ReadProcessor().process(req)
+        rp = ReadProcessor(options)
+        result = rp.process(req)
+
+        if options.get('stats'):
+            from infogami.utils import stats
+            summary = stats.stats_summary()
+            s = {}
+            result['stats'] = s
+            s['summary'] = summary
+            s['stats'] = web.ctx.get('stats', [])
+            # s['stats'] = [stat for stat in s['stats'] if not stat['name'].startswith('memcache')]
+
     except:
-        print >> sys.stderr, "Error in processing Read API"
-        raise
-        # register_exception()
-        
+        print >> sys.stderr, 'Error in processing Read API'
+        if options.get('show_exception'):
+            register_exception()
+            raise
+        else:
+            register_exception()
         result = [] # XXX check for compatibility?
     return result
