@@ -256,6 +256,10 @@ def find_exact_match(rec, edition_pool):
 def load(rec):
     if not rec.get('title'):
         raise RequiredField('title')
+    if not rec.get('source_records'):
+        raise RequiredField('source_records')
+    if isinstance(rec['source_records'], basestring):
+        rec['source_records'] = [rec['source_records']]
     edition_pool = build_pool(rec)
     #print 'pool:', edition_pool
     if not edition_pool:
