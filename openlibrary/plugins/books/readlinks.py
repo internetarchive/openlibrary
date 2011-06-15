@@ -229,6 +229,16 @@ def readlinks(req, options):
     try:
         rp = ReadProcessor(options)
         result = rp.process(req)
+
+        if options.get('stats'):
+            from infogami.utils import stats
+            summary = stats.stats_summary()
+            s = {}
+            result['stats'] = s
+            s['summary'] = summary
+            s['stats'] = web.ctx.get('stats', [])
+            # s['stats'] = [stat for stat in s['stats'] if not stat['name'].startswith('memcache')]
+
     except:
         print >> sys.stderr, 'Error in processing Read API'
         if options.get('show_exception'):
