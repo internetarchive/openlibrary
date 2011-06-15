@@ -10,6 +10,7 @@ from openlibrary.catalog.add_book import load
 
 import web
 import json
+import re
 import import_opds
 import import_rdf
 import import_edition_builder
@@ -20,11 +21,11 @@ def parse_meta_headers(edition_builder):
     # we don't yet support augmenting complex fields like author or language
     # string_keys = ['title', 'title_prefix', 'description']
 
-    prefix = 'HTTP_X_ARCHIVE_META_'
-
+    re_meta = re.compile('HTTP_X_ARCHIVE_META(?:\d{2})?_(.*)')
     for k, v in web.ctx.env.items():
-        if k.startswith(prefix):
-            meta_key = k[len(prefix):].lower()
+        m = re_meta.match(k)
+        if m:
+            meta_key = m.group(1).lower()
             edition_builder.add(meta_key, v, restrict_keys=False)
 
 
