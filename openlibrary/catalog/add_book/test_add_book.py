@@ -72,6 +72,7 @@ def test_load(mock_site):
         'ocaid': 'test_item',
         'title': 'Test item',
         'subjects': ['Protected DAISY', 'In library'],
+        'source_records': 'ia:test_item',
     }
     reply = load(rec)
     assert reply['success'] == True
@@ -83,6 +84,7 @@ def test_load(mock_site):
         'ocaid': 'test_item',
         'title': 'Test item',
         'authors': [{'name': 'John Doe'}],
+        'source_records': 'ia:test_item',
     }
     reply = load(rec)
     assert reply['success'] == True
@@ -98,6 +100,7 @@ def test_load(mock_site):
         'ocaid': 'test_item',
         'title': 'Test item',
         'authors': [{'name': 'Doe, John', 'entity_type': 'person'}],
+        'source_records': 'ia:test_item',
     }
     reply = load(rec)
     assert reply['success'] == True
@@ -109,6 +112,7 @@ def test_load(mock_site):
         'ocaid': 'test_item',
         'title': 'Test item',
         'authors': [{'name': 'James Smith'}],
+        'source_records': 'ia:test_item',
     }
     reply = load(rec)
     assert reply['authors'][0]['status'] == 'created'
@@ -167,6 +171,7 @@ def test_try_merge(mock_site):
         'title': 'Test item',
         'lccn': ['123'],
         'authors': [{'name': 'Smith, John', 'birth_date': '1980'}],
+        'source_records': ['ia:test_item'],
     }
     reply = load(rec)
     ekey = reply['edition']['key']
@@ -184,6 +189,7 @@ def test_load_multiple(mock_site):
     rec = {
         'title': 'Test item',
         'lccn': ['123'],
+        'source_records': ['ia:test_item'],
         'authors': [{'name': 'Smith, John', 'birth_date': '1980'}],
     }
     reply = load(rec)
@@ -195,7 +201,7 @@ def test_load_multiple(mock_site):
     ekey2 = reply['edition']['key']
     assert ekey1 == ekey2
 
-    reply = load({'title': 'Test item', 'lccn': ['456']})
+    reply = load({'title': 'Test item', 'source_records': ['ia:test_item'], 'lccn': ['456']})
     assert reply['success'] == True
     ekey3 = reply['edition']['key']
     assert ekey3 != ekey1
@@ -227,8 +233,10 @@ def test_add_db_name():
 
 def test_from_marc(mock_site):
     add_languages(mock_site)
-    marc = MarcBinary(open('test_data/coursepuremath00hardrich_meta.mrc').read())
+    ia = 'coursepuremath00hardrich'
+    marc = MarcBinary(open('test_data/' + ia + '_meta.mrc').read())
     rec = read_edition(marc)
+    rec['source_records'] = ['ia:' + ia]
     reply = load(rec)
     assert reply['success'] == True
     assert reply['edition']['status'] == 'created'
@@ -236,9 +244,11 @@ def test_from_marc(mock_site):
     assert reply['success'] == True
     assert reply['edition']['status'] == 'matched'
 
-    marc = MarcBinary(open('test_data/flatlandromanceo00abbouoft_meta.mrc').read())
+    ia = 'flatlandromanceo00abbouoft'
+    marc = MarcBinary(open('test_data/' + ia + '_meta.mrc').read())
 
     rec = read_edition(marc)
+    rec['source_records'] = ['ia:' + ia]
     reply = load(rec)
     assert reply['success'] == True
     assert reply['edition']['status'] == 'created'
@@ -300,6 +310,7 @@ def test_don_quixote(mock_site):
             continue
         marc = MarcBinary(data)
         rec = read_edition(marc)
+        rec['source_records'] = ['ia:' + ia]
         reply = load(rec)
         q = {
             'type': '/type/work',

@@ -49,7 +49,7 @@ def get_marc_ia_data(ia, host=None, path=None):
     else:
         url = 'http://www.archive.org/download/' + ia + '/' + ia + '_' + ending
     f = urlopen_keep_trying(url)
-    return f.read if f else None
+    return f.read() if f else None
 
 def get_marc_ia(ia):
     ia = ia.strip() # 'cyclopdiaofedu00kidd '
