@@ -26,11 +26,11 @@ Getting the source
 Open Library uses ``git`` for version control and the `code repository`_ is
 hosted on github.
 
-.. _code repository: http://github.com/openlibrary/openlibrary
+.. _code repository: https://github.com/internetarchive/openlibrary
 
 You can get the source code from there using::
 
-   $ git clone git://github.com/openlibrary/openlibrary.git
+   $ git clone git://github.com/internetarchive/openlibrary.git
    $ cd openlibrary
 
 This will create a directory called openlibrary with the entire
