@@ -1,0 +1,15 @@
+$def with (path, files)
+
+<div id="contentHead">
+    <h2>$:render_template("theme/breadcrums", path)</h2>
+</div>
+
+$if path:
+    $ path = path + "/"
+
+<div id="contentBody">
+    <ul>
+    $for f in files:
+        <li><a href="/theme/files/$path$f">$f</a></li>
+    </ul>
+</div>

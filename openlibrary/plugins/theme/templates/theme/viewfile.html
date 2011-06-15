@@ -1,0 +1,15 @@
+$def with (path, text)
+
+<div id="contentHead">
+    <div id="editTools" class="edit">
+        <div id="editButton">
+            <button class="linkButton larger" name="$changequery(m='edit')" title="Edit this file" accesskey="e">Edit</button>
+        </div>
+    </div>
+    
+    <h2 style="margin: 0; padding:0;">$:render_template("theme/breadcrums", path)</h2>
+</div>
+
+<div id="contentBody">
+    <pre>$text</pre>
+</div>

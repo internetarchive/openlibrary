@@ -1,0 +1,14 @@
+$def with (path)
+
+$def breadcrums(base, parts, sep="/"):
+    $for p in parts:
+        $ base = base + "/" + p
+        $if loop.last:
+            <span class="last">$p</span>
+        $else:
+            <a href="$base" class="last">$p</a>
+            <span class="sep">$sep</span>
+
+<div id="superNav">
+    $:breadcrums(base="/theme", parts=['files'] + path.split("/"), sep="/")
+</div>
