@@ -199,16 +199,29 @@ class ReadProcessor:
         self.work_to_iaids = dict((workid, get_work_iaids(workid)) for workid in self.works)
         iaids = sum(self.work_to_iaids.values(), [])
         self.iaid_to_meta = dict((iaid, ia.get_meta_xml(iaid)) for iaid in iaids)
-        self.iaid_to_ed_key = dict((iaid, ol_query('ocaid', iaid))
-                                 for iaid in iaids)
 
-        if not self.options.get('slow_get_editions'):
+        if self.options.get('multiget'):
+            query = {
+                'type': '/type/edition',
+                'ocaid': iaids,
+            }
+            ed_keys = web.ctx.site.things(query)
+            eds = dynlinks.ol_get_many_as_dict(ed_keys)
+            self.iaid_to_ed = dict((ed['ocaid'], ed) for ed in eds.values())
+            
+            # XXX get rid of below when consolidating
+            self.iaid_to_ed_key = dict((iaid, ed['key']) for iaid, ed in self.iaid_to_ed.items())
+        elif self.options.get('slow_get_editions'):
+            self.iaid_to_ed_key = dict((iaid, ol_query('ocaid', iaid))
+                                       for iaid in iaids)
+            self.iaid_to_ed = dict((iaid, web.ctx.site.get(ed_key))
+                                   for iaid, ed_key in self.iaid_to_ed_key.items() if ed_key)
+        else:
+            self.iaid_to_ed_key = dict((iaid, ol_query('ocaid', iaid))
+                                       for iaid in iaids)
             self.ed_keys = [ed_key for ed_key in self.iaid_to_ed_key.values() if ed_key]
             self.ed_key_to_ed = dynlinks.ol_get_many_as_dict(self.ed_keys)
             self.iaid_to_ed = dict((iaid, self.ed_key_to_ed[ed_key])
-                                   for iaid, ed_key in self.iaid_to_ed_key.items() if ed_key)
-        else:
-            self.iaid_to_ed = dict((iaid, web.ctx.site.get(ed_key))
                                    for iaid, ed_key in self.iaid_to_ed_key.items() if ed_key)
 
         result = {}
