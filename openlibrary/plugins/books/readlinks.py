@@ -223,7 +223,8 @@ def get_work_iaids(workid):
 
 
 class ReadProcessor:
-    def __init__(self):
+    def __init__(self, options):
+        self.options = options
         self.set_inlibrary = False
 
     def get_inlibrary(self):
@@ -252,7 +253,7 @@ class ReadProcessor:
             status = 'restricted'
         else:
             status = 'full access'
-        if status == 'restricted':
+        if not self.options.get('show_all_items') and status == 'restricted':
             return None
 
         ed_key = self.iaid_to_ed_key.get(iaid)
@@ -307,7 +308,7 @@ class ReadProcessor:
             return None
         doc = self.docs[k]
         data = self.datas[k]
-        details = self.detailss[k]
+        details = self.detailss.get(k)
        
         # determine potential ia items for this identifier,
         orig_iaid = doc.get('ocaid')
@@ -362,7 +363,10 @@ class ReadProcessor:
         bib_keys = [k for k in bib_keys if k[:3].lower() != 'id:']
 
         self.docs = dynlinks.query_docs(bib_keys)
-        self.detailss = dynlinks.process_result_for_details(self.docs)
+        if not self.options.get('no_details'):
+            self.detailss = dynlinks.process_result_for_details(self.docs)
+        else:
+            self.detailss = {}
         dp = dynlinks.DataProcessor()
         self.datas = dp.process(self.docs)
         self.works = dp.works
@@ -372,8 +376,15 @@ class ReadProcessor:
         self.iaid_to_meta = dict((iaid, ia.get_meta_xml(iaid)) for iaid in iaids)
         self.iaid_to_ed_key = dict((iaid, ol_query('ocaid', iaid))
                                  for iaid in iaids)
-        self.iaid_to_ed = dict((iaid, web.ctx.site.get(olkey))
-                               for iaid, olkey in self.iaid_to_ed_key.items() if olkey)
+
+        if not self.options.get('slow_get_editions'):
+            self.ed_keys = [ed_key for ed_key in self.iaid_to_ed_key.values() if ed_key]
+            self.ed_key_to_ed = dynlinks.ol_get_many_as_dict(self.ed_keys)
+            self.iaid_to_ed = dict((iaid, self.ed_key_to_ed[ed_key])
+                                   for iaid, ed_key in self.iaid_to_ed_key.items() if ed_key)
+        else:
+            self.iaid_to_ed = dict((iaid, web.ctx.site.get(ed_key))
+                                   for iaid, ed_key in self.iaid_to_ed_key.items() if ed_key)
 
         result = {}
         for r in requests:
@@ -391,10 +402,12 @@ class ReadProcessor:
 
 def readlinks(req, options):
     try:
-        result = ReadProcessor().process(req)
+        rp = ReadProcessor(options)
+        result = rp.process(req)
     except:
         print >> sys.stderr, 'Error in processing Read API'
         if options.get('show_exception'):
+            register_exception()
             raise
         else:
             register_exception()
