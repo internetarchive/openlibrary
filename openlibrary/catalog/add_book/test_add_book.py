@@ -140,10 +140,11 @@ def test_from_marc(mock_site):
     assert a.death_date == '1926'
 
 def test_build_pool(mock_site):
-    assert build_pool({}) == {}
+    assert build_pool({'title': 'test'}) == {'title': []}
     etype = '/type/edition'
     ekey = mock_site.new_key(etype)
     e = {
+        'title': 'test',
         'type': {'key': etype},
         'lccn': ['123'],
         'oclc_numbers': ['456'],
@@ -155,10 +156,11 @@ def test_build_pool(mock_site):
     assert pool == {
         'lccn': ['/books/OL1M'],
         'oclc_numbers': ['/books/OL1M'],
+        'title': ['/books/OL1M'],
     }
 
-    pool = build_pool({'lccn': ['234'], 'oclc_numbers': ['456']})
-    assert pool == { 'oclc_numbers': ['/books/OL1M'], }
+    pool = build_pool({'lccn': ['234'], 'oclc_numbers': ['456'], 'title': 'test',})
+    assert pool == { 'oclc_numbers': ['/books/OL1M'], 'title': ['/books/OL1M'], }
 
 def test_try_merge(mock_site):
     rec = {
@@ -306,26 +308,4 @@ def test_don_quixote(mock_site):
         work_keys = list(mock_site.things(q))
         assert work_keys
         
-        pprint(reply)
         assert reply['success'] == True
-        astatus = reply['authors'][0]['status']
-        wstatus = reply['work']['status']
-        estatus = reply['edition']['status']
-        if num == 0:
-            assert astatus == 'created'
-        else:
-            assert astatus == 'modified'
-        edition_status_counts[estatus] += 1
-        work_status_counts[wstatus] += 1
-        author_status_counts[astatus] += 1
-        for k, v in edition_status_counts.iteritems():
-            print 'edition %8s: %d' % (k, v)
-        print
-        for k, v in work_status_counts.iteritems():
-            print 'work %8s: %d' % (k, v)
-        print
-        for k, v in author_status_counts.iteritems():
-            print 'author %8s: %d' % (k, v)
-
-        #if num == 10#:
-            #break
