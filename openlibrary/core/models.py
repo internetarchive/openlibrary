@@ -329,6 +329,8 @@ re_four = re.compile(r'^' + four_octet + r'(/\d+)?$')
 re_range_in_last = re.compile(r'^(\d+\.\d+\.\d+)\.(\d+)\s*-\s*(\d+)$')
 re_four_to_four = re.compile('^%s\s*-\s*%s$' % (four_octet, four_octet))
 
+patterns = (re_four_to_four, re_four, re_range_star, re_three, re_range_in_last)
+
 class Library(Thing):
     """Library document.
     
@@ -344,13 +346,9 @@ class Library(Thing):
         bad = []
         for orig in text.splitlines():
             line = orig.split("#")[0].strip()
-            if re_four_to_four.match(line):
+            if not line:
                 continue
-            if re_four.match(line):
-                continue
-            if re_range_star.match(line):
-                continue
-            if re_three.match(line):
+            if any(pat.match(line) for pat in patterns):
                 continue
             if '*' in line:
                 collected = []
