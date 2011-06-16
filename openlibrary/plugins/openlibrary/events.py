@@ -27,25 +27,6 @@ class EditHook(client.hook):
         # Create a thing object to pass to event listeners.
         page = web.ctx.site.get(page['key'])
         eventer.trigger("page.edit", page)
-        
-        # Test event
-        eventer.trigger("page.edit2", page.key)
-        
-@eventer.bind(None)
-def trigger_offline_event(event, *a, **kw):
-    """Triggers an offline event corresponds to this event.
-    """
-    logger.info("trigger_offline_event %s %s %s", event, a, kw)
-    offline_event = "offline." + event
-    
-    # Getting the callbacks should be available from eventer API.
-    if eventer._callbacks[offline_event]:
-        logger.info("calling offline task")
-        tasks.trigger_offline_event.delay(offline_event, *a, **kw)
-        
-@eventer.bind("offline.page.edit2")
-def offline_page_edit(key):
-    logger.info("Offline page edit event: %s", key)
 
 def setup():
     """Installs handlers for various events.
