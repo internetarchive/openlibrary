@@ -1,17 +1,22 @@
 import pickle
 import logging
 import datetime
+import urlparse
 
 import web
 from celery.task.control import inspect 
 from infogami.utils.view import render_template
 from infogami import config
 
+
 logger = logging.getLogger("admin.tasks")
 
 @web.memoize
 def connect_to_taskdb():
-    return web.database(dbn="postgres",  db=config.get('celery',{})["tombstone_db"])
+    import celeryconfig
+    scheme, netloc, path, query, frag = urlparse.urlsplit(celeryconfig.CELERY_RESULT_DBURI)
+    username, host = netloc.split("@")
+    return web.database(dbn="postgres", username=username, host=host, db=path[1:])
 
 def unpack_result(task):
     try:
