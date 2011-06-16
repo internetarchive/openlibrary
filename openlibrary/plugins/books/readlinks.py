@@ -17,8 +17,8 @@ from infogami.utils import stats
 import dynlinks
 
 
-def key_to_olid(olkey):
-    return olkey.split('/')[-1]
+def key_to_olid(key):
+    return key.split('/')[-1]
 
 
 def ol_query(name, value):
@@ -31,16 +31,16 @@ def ol_query(name, value):
         return keys[0]
 
 
-def get_work_iaids(workid):
-    wkey = workid.split('/')[2]
+def get_work_iaids(wkey):
+    wid = wkey.split('/')[2]
     # XXX below for solr_host??
     #     base_url = "http://%s/solr/works" % config.plugin_worksearch.get('solr')
     # note: better abstraction at worksearch/search.py
     solr_host = 'ol-solr.us.archive.org:8983'
     solr_select_url = "http://" + solr_host + "/solr/works/select"
     filter = 'ia'
-    q = 'key:' + wkey
-    stats.begin('solr', url=workid)
+    q = 'key:' + wid
+    stats.begin('solr', url=wkey)
     solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&rows=10&fl=%s&qt=standard&wt=json" % (q, filter)
     json_data = urllib.urlopen(solr_select).read()
     stats.end()
@@ -76,7 +76,7 @@ class ReadProcessor:
             self.inlibrary = inlibrary.get_library()
         return self.inlibrary
         
-    def get_readitem(self, iaid, orig_iaid, orig_ed_key, work_key, subjects):
+    def get_readitem(self, iaid, orig_iaid, orig_ekey, wkey, subjects):
         meta = self.iaid_to_meta[iaid]
         collections = meta.get("collection", [])
         status = ''
@@ -102,16 +102,16 @@ class ReadProcessor:
         edition = self.iaid_to_ed.get(iaid)
         if edition is None:
             return None
-        ed_key = edition['key']
+        ekey = edition['key']
 
         if status == 'full access':
             itemURL = 'http://www.archive.org/stream/%s' % (iaid)
         else:
-            itemURL = u'http://openlibrary.org%s/%s/borrow' % (ed_key,
+            itemURL = u'http://openlibrary.org%s/%s/borrow' % (ekey,
                                                                helpers.urlsafe(edition.get('title',
                                                                                            'untitled')))
         if status == 'lendable':
-            loanstatus =  web.ctx.site.store.get('ebooks' + ed_key, {'borrowed': 'false'})
+            loanstatus =  web.ctx.site.store.get('ebooks' + ekey, {'borrowed': 'false'})
             if loanstatus['borrowed'] == 'true':
                 status = 'checked out'
 
@@ -119,9 +119,9 @@ class ReadProcessor:
             'enumcron': False,
             'match': 'exact' if iaid == orig_iaid else 'similar',
             'status': status,
-            'fromRecord': orig_ed_key,
-            'ol-edition-id': key_to_olid(ed_key),
-            'ol-work-id': key_to_olid(work_key),
+            'fromRecord': orig_ekey,
+            'ol-edition-id': key_to_olid(ekey),
+            'ol-work-id': key_to_olid(wkey),
             'contributor': '',
             'itemURL': itemURL,
             }
@@ -155,15 +155,15 @@ class ReadProcessor:
         orig_iaid = doc.get('ocaid')
         doc_works = doc.get('works')
         if doc_works and len(doc_works) > 0:
-            work_key = doc_works[0]['key']
+            wkey = doc_works[0]['key']
         else:
-            work_key = None
+            wkey = None
         work = None
         subjects = []
-        if work_key:
-            work = self.works.get(work_key)
+        if wkey:
+            work = self.works.get(wkey)
             subjects = work.get('subjects', [])
-            iaids = self.work_to_iaids[work_key]
+            iaids = self.wkey_to_iaids[wkey]
             # rearrange so any scan for this edition is first
             if orig_iaid and orig_iaid in iaids:
                 iaids.pop(iaids.index(orig_iaid))
@@ -173,9 +173,9 @@ class ReadProcessor:
             iaids = [ orig_iaid ]
         else:
             iaids = []
-        orig_ed_key = data['key']
+        orig_ekey = data['key']
 
-        items = [self.get_readitem(iaid, orig_iaid, orig_ed_key, work_key, subjects)
+        items = [self.get_readitem(iaid, orig_iaid, orig_ekey, wkey, subjects)
                  for iaid in iaids]
         items = [item for item in items if item]
 
@@ -212,18 +212,18 @@ class ReadProcessor:
         self.datas = dp.process(self.docs)
         self.works = dp.works
 
-        self.work_to_iaids = dict((workid, get_work_iaids(workid)) for workid in self.works)
-        iaids = sum(self.work_to_iaids.values(), [])
+        self.wkey_to_iaids = dict((wkey, get_work_iaids(wkey)) for wkey in self.works)
+        iaids = sum(self.wkey_to_iaids.values(), [])
         self.iaid_to_meta = dict((iaid, ia.get_meta_xml(iaid)) for iaid in iaids)
 
         query = {
             'type': '/type/edition',
             'ocaid': iaids,
         }
-        ed_keys = web.ctx.site.things(query)
-        eds = dynlinks.ol_get_many_as_dict(ed_keys)
+        ekeys = web.ctx.site.things(query)
+        eds = dynlinks.ol_get_many_as_dict(ekeys)
         self.iaid_to_ed = dict((ed['ocaid'], ed) for ed in eds.values())
-        # self.iaid_to_ed_key = dict((iaid, ed['key'])
+        # self.iaid_to_ekey = dict((iaid, ed['key'])
         #                            for iaid, ed in self.iaid_to_ed.items())
 
         # Work towards building a dict of iaid loanability,
@@ -233,8 +233,8 @@ class ReadProcessor:
         # in case site.store supports get_many (unclear)
         # maybe_loanable_iaids = [iaid for iaid in iaids
         #                         if has_lending_collection(self.iaid_to_meta.get(iaid, {}))]
-        # loanable_ekeys = [self.iaid_to_ed_key.get(iaid) for iaid in maybe_loanable_iaids]
-        # loanstatus =  web.ctx.site.store.get('ebooks' + ed_key, {'borrowed': 'false'})
+        # loanable_ekeys = [self.iaid_to_ekey.get(iaid) for iaid in maybe_loanable_iaids]
+        # loanstatus =  web.ctx.site.store.get('ebooks' + ekey, {'borrowed': 'false'})
 
         result = {}
         for r in requests:
