@@ -96,15 +96,13 @@ class ReadProcessor:
             status = 'restricted'
         else:
             status = 'full access'
-        if not self.options.get('show_all_items') and status == 'restricted':
+        if status == 'restricted' and not self.options.get('show_all_items'):
             return None
 
-        ed_key = self.iaid_to_ed_key.get(iaid)
-        if not ed_key:
-            # This shouldn't much occur in production, but can easily happen
-            # in a dev instance if the record hasn't been imported.
+        edition = self.iaid_to_ed.get(iaid)
+        if edition is None:
             return None
-        edition = self.iaid_to_ed[iaid]
+        ed_key = edition['key']
 
         if status == 'full access':
             itemURL = 'http://www.archive.org/stream/%s' % (iaid)
@@ -218,29 +216,25 @@ class ReadProcessor:
         iaids = sum(self.work_to_iaids.values(), [])
         self.iaid_to_meta = dict((iaid, ia.get_meta_xml(iaid)) for iaid in iaids)
 
-        if self.options.get('multiget'):
-            query = {
-                'type': '/type/edition',
-                'ocaid': iaids,
-            }
-            ed_keys = web.ctx.site.things(query)
-            eds = dynlinks.ol_get_many_as_dict(ed_keys)
-            self.iaid_to_ed = dict((ed['ocaid'], ed) for ed in eds.values())
-            
-            # XXX get rid of below when consolidating
-            self.iaid_to_ed_key = dict((iaid, ed['key']) for iaid, ed in self.iaid_to_ed.items())
-        elif self.options.get('slow_get_editions'):
-            self.iaid_to_ed_key = dict((iaid, ol_query('ocaid', iaid))
-                                       for iaid in iaids)
-            self.iaid_to_ed = dict((iaid, web.ctx.site.get(ed_key))
-                                   for iaid, ed_key in self.iaid_to_ed_key.items() if ed_key)
-        else:
-            self.iaid_to_ed_key = dict((iaid, ol_query('ocaid', iaid))
-                                       for iaid in iaids)
-            self.ed_keys = [ed_key for ed_key in self.iaid_to_ed_key.values() if ed_key]
-            self.ed_key_to_ed = dynlinks.ol_get_many_as_dict(self.ed_keys)
-            self.iaid_to_ed = dict((iaid, self.ed_key_to_ed[ed_key])
-                                   for iaid, ed_key in self.iaid_to_ed_key.items() if ed_key)
+        query = {
+            'type': '/type/edition',
+            'ocaid': iaids,
+        }
+        ed_keys = web.ctx.site.things(query)
+        eds = dynlinks.ol_get_many_as_dict(ed_keys)
+        self.iaid_to_ed = dict((ed['ocaid'], ed) for ed in eds.values())
+        # self.iaid_to_ed_key = dict((iaid, ed['key'])
+        #                            for iaid, ed in self.iaid_to_ed.items())
+
+        # Work towards building a dict of iaid loanability,
+        # def has_lending_collection(meta):
+        #     collections = meta.get("collection", [])
+        #     return 'lendinglibrary' in collections or 'inlibrary' in collections
+        # in case site.store supports get_many (unclear)
+        # maybe_loanable_iaids = [iaid for iaid in iaids
+        #                         if has_lending_collection(self.iaid_to_meta.get(iaid, {}))]
+        # loanable_ekeys = [self.iaid_to_ed_key.get(iaid) for iaid in maybe_loanable_iaids]
+        # loanstatus =  web.ctx.site.store.get('ebooks' + ed_key, {'borrowed': 'false'})
 
         result = {}
         for r in requests:
@@ -267,8 +261,6 @@ def readlinks(req, options):
             result['stats'] = s
             s['summary'] = summary
             s['stats'] = web.ctx.get('stats', [])
-            # s['stats'] = [stat for stat in s['stats'] if not stat['name'].startswith('memcache')]
-
     except:
         print >> sys.stderr, 'Error in processing Read API'
         if options.get('show_exception'):
