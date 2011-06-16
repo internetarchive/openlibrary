@@ -24,8 +24,7 @@ from openlibrary.plugins.upstream import forms
 from openlibrary.plugins.upstream.account import Account
 
 
-import services
-import support
+from openlibrary.plugins.admin import services, support, tasks
 
 logger = logging.getLogger("openlibrary.admin")
 
@@ -426,6 +425,8 @@ def setup():
     register_admin_page('/admin/support', support.cases, label = "Support cases")
     register_admin_page('/admin/support/case/(case-\d+)', support.case, label = "Support cases")
     register_admin_page('/admin/inspect(?:/(.+))?', inspect, label="")
+    register_admin_page('/admin/tasks', tasks.tasklist, label = "Task queue")
+    register_admin_page('/admin/task/(.*)', tasks.task, label = "Task details")
 
     support.setup()
     import mem
