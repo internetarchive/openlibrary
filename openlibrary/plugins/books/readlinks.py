@@ -35,6 +35,7 @@ def get_work_iaids(workid):
     wkey = workid.split('/')[2]
     # XXX below for solr_host??
     #     base_url = "http://%s/solr/works" % config.plugin_worksearch.get('solr')
+    # note: better abstraction at worksearch/search.py
     solr_host = 'ol-solr.us.archive.org:8983'
     solr_select_url = "http://" + solr_host + "/solr/works/select"
     filter = 'ia'
@@ -48,6 +49,20 @@ def get_work_iaids(workid):
     if reply['response']['numFound'] == 0:
         return []
     return reply["response"]['docs'][0].get(filter, [])
+
+
+# multi-get version (not yet used)
+def get_works_iaids(wkeys):
+    solr_host = 'ol-solr.us.archive.org:8983'
+    solr_select_url = "http://" + solr_host + "/solr/works/select"
+    filter = 'ia'
+    q = '+OR+'.join(['key:' + wkey.split('/')[2] for wkey in wkeys])
+    solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&rows=10&fl=%s&qt=standard&wt=json" % (q, filter)
+    json_data = urllib.urlopen(solr_select).read()
+    reply = simplejson.loads(json_data)
+    if reply['response']['numFound'] == 0:
+        return []
+    return reply
 
 
 class ReadProcessor:
