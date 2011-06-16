@@ -12,6 +12,7 @@ from openlibrary.core import helpers
 from openlibrary.api import OpenLibrary
 from infogami.infobase import _json as simplejson
 from infogami.utils.delegate import register_exception
+from infogami.utils import stats
 
 import dynlinks
 
@@ -38,7 +39,9 @@ def get_work_iaids(workid):
     solr_select_url = "http://" + solr_host + "/solr/works/select"
     filter = 'ia'
     q = 'key:' + wkey
+    stats.begin('solr', url=workid)
     solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&rows=10&fl=%s&qt=standard&wt=json" % (q, filter)
+    stats.end()
     json_data = urllib.urlopen(solr_select).read()
     print json_data
     reply = simplejson.loads(json_data)
@@ -244,7 +247,6 @@ def readlinks(req, options):
         result = rp.process(req)
 
         if options.get('stats'):
-            from infogami.utils import stats
             summary = stats.stats_summary()
             s = {}
             result['stats'] = s
