@@ -21,6 +21,13 @@ def flip_place(s):
     m = re_place_comma.match(s)
     return m.group(2) + ' ' + m.group(1) if m else s
 
+def flip_subject(s):
+    m = re_comma.match(s)
+    if m:
+        return m.group(3) + ' ' + m.group(1).lower()+m.group(2)
+    else:
+        return s
+
 def tidy_subject(s):
     s = s.strip()
     if len(s) < 2:
