@@ -30,6 +30,7 @@ pystatsd
 lamson
 celery
 eventer
+sqlalchemy
 """
 
 from openlibrary.core.setup_commands import commands
