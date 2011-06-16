@@ -14,9 +14,8 @@ logger = logging.getLogger("admin.tasks")
 @web.memoize
 def connect_to_taskdb():
     import celeryconfig
-    scheme, netloc, path, query, frag = urlparse.urlsplit(celeryconfig.CELERY_RESULT_DBURI)
-    username, host = netloc.split("@")
-    return web.database(dbn="postgres", username=username, host=host, db=path[1:])
+    return web.database(**celeryconfig.OL_RESULT_DB_PARAMETERS)
+
 
 def unpack_result(task):
     try:
