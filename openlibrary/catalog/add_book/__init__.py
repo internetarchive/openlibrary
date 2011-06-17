@@ -287,7 +287,7 @@ def add_cover(cover_url, ekey):
     }
     res = urllib.urlopen(upload_url, urllib.urlencode(params))
     body = res.read()
-    assert res.status == 200
+    assert res.getcode() == 200
     cover_id = int(json.loads(body)['id'])
     return cover_id
 
