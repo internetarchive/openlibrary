@@ -1,6 +1,7 @@
 from openlibrary.catalog.merge.merge_marc import build_marc
-from load_book import build_query, import_author, east_in_by_statement
-import web, re, unicodedata
+from infogami import config
+from load_book import build_query, import_author, east_in_by_statement, InvalidLanguage
+import web, re, unicodedata, urllib, json
 from merge import try_merge
 from openlibrary.catalog.utils import mk_norm
 from pprint import pprint
@@ -89,7 +90,13 @@ def build_author_reply(author_in, edits):
     return (authors, author_reply)
 
 def load_data(rec):
-    q = build_query(rec)
+    try:
+        q = build_query(rec)
+    except InvalidLanguage as e:
+        return {
+            'success': True,
+            'error': str(e),
+        }
     edits = []
 
     reply = {}
@@ -102,6 +109,13 @@ def load_data(rec):
         reply['authors'] = author_reply
 
     wkey = None
+
+    ekey = web.ctx.site.new_key('/type/edition')
+    cover_id = None
+    if 'cover' in rec:
+        cover_id = add_cover(rec['cover'], ekey)
+        q['covers'] = [cover_id]
+        del rec['cover']
 
     work_state = 'created'
     if 'authors' in q:
@@ -118,6 +132,9 @@ def load_data(rec):
                 if s not in w.get(k, []):
                     w.setdefault(k, []).append(s)
                     need_update = True
+        if cover_id:
+            w.setdefault('covers', []).append(cover_id)
+            need_update = True
         if need_update:
             work_state = 'modified'
             edits.append(w)
@@ -133,12 +150,12 @@ def load_data(rec):
             w['authors'] = [{'type':{'key': '/type/author_role'}, 'author': akey} for akey in q['authors']]
 
         wkey = web.ctx.site.new_key('/type/work')
-
+        if cover_id:
+            w['covers'] = [cover_id]
         w['key'] = wkey
         edits.append(w)
 
     q['works'] = [{'key': wkey}]
-    ekey = web.ctx.site.new_key('/type/edition')
     q['key'] = ekey
     edits.append(q)
 
@@ -252,6 +269,22 @@ def find_exact_match(rec, edition_pool):
             if match:
                 return ekey
     return False
+
+def add_cover(cover_url, ekey):
+    olid = ekey.split("/")[-1]
+    coverstore_url = config.get('coverstore_url').rstrip('/')
+    upload_url = coverstore_url + '/b/upload2' 
+    user = web.ctx.site.get_user()
+    params = {
+        'author': user.key,
+        'data': None,
+        'source_url': cover_url,
+        'olid': olid,
+        'ip': web.ctx.ip,
+    }
+    response = urllib.urlopen(upload_url, urllib.urlencode(params))
+    cover_id = int(json.load(response)['id'])
+    return cover_id
 
 def load(rec):
     if not rec.get('title'):
