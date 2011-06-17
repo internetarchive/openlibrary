@@ -90,6 +90,10 @@ def build_author_reply(author_in, edits):
     return (authors, author_reply)
 
 def load_data(rec):
+    cover_url = None
+    if 'cover' in rec:
+        cover_url = rec['cover']
+        del rec['cover']
     try:
         q = build_query(rec)
     except InvalidLanguage as e:
@@ -112,10 +116,9 @@ def load_data(rec):
 
     ekey = web.ctx.site.new_key('/type/edition')
     cover_id = None
-    if 'cover' in rec:
-        cover_id = add_cover(rec['cover'], ekey)
+    if cover_url:
+        cover_id = add_cover(cover_url, ekey)
         q['covers'] = [cover_id]
-        del rec['cover']
 
     work_state = 'created'
     if 'authors' in q:
@@ -137,7 +140,7 @@ def load_data(rec):
             need_update = True
         if need_update:
             work_state = 'modified'
-            edits.append(w)
+            edits.append(w.dict())
     else:
         w = {
             'type': {'key': '/type/work'},
@@ -386,11 +389,10 @@ def load(rec):
             need_edition_save = True
     if need_edition_save:
         reply['edition']['status'] = 'modified'
-        edits.append(e)
-        web.ctx.site.save(e, match, 'update edition')
+        edits.append(e.dict())
     if need_work_save:
         reply['work']['status'] = 'modified'
-        edits.append(w)
+        edits.append(w.dict())
     if edits:
         web.ctx.site.save_many(edits, 'import new book')
     return reply
