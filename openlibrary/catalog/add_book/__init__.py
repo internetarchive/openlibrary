@@ -285,8 +285,10 @@ def add_cover(cover_url, ekey):
         'olid': olid,
         'ip': web.ctx.ip,
     }
-    response = urllib.urlopen(upload_url, urllib.urlencode(params))
-    cover_id = int(json.load(response)['id'])
+    res = urllib.urlopen(upload_url, urllib.urlencode(params))
+    body = res.read()
+    assert res.status == 200
+    cover_id = int(json.loads(body)['id'])
     return cover_id
 
 def load(rec):
