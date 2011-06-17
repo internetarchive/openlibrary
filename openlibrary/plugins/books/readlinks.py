@@ -293,4 +293,4 @@ def readlinks(req, options):
         else:
             register_exception()
         result = [] # XXX check for compatibility?
-    return rp, result
+    return result
