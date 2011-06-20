@@ -140,7 +140,9 @@ def load_data(rec):
             need_update = True
         if need_update:
             work_state = 'modified'
-            edits.append(w.dict())
+            w_dict = w.dict()
+            assert w_dict and isinstance(w_dict, dict)
+            edits.append(w_dict)
     else:
         w = {
             'type': {'key': '/type/work'},
@@ -156,10 +158,12 @@ def load_data(rec):
         if cover_id:
             w['covers'] = [cover_id]
         w['key'] = wkey
+        assert isinstance(w, dict)
         edits.append(w)
 
     q['works'] = [{'key': wkey}]
     q['key'] = ekey
+    assert isinstance(q, dict)
     edits.append(q)
 
     assert edits
@@ -352,6 +356,7 @@ def load(rec):
             add_to_edition = False
             if new_author:
                 a['key'] = web.ctx.site.new_key('/type/author')
+                assert isinstance(a, dict)
                 edits.append(a)
                 add_to_work = True
                 add_to_edition = True
@@ -396,10 +401,14 @@ def load(rec):
             need_edition_save = True
     if need_edition_save:
         reply['edition']['status'] = 'modified'
-        edits.append(e.dict())
+        e_dict = e.dict()
+        assert e_dict and isinstance(e_dict, dict)
+        edits.append(e_dict)
     if need_work_save:
         reply['work']['status'] = 'modified'
-        edits.append(w.dict())
+        w_dict = w.dict()
+        assert w_dict and isinstance(w_dict, dict)
+        edits.append(w_dict)
     if edits:
         edits_str = `edits`
         for i in edits:
