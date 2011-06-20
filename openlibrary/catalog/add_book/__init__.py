@@ -89,6 +89,24 @@ def build_author_reply(author_in, edits):
         })
     return (authors, author_reply)
 
+def new_work(q, rec, cover_id):
+    w = {
+        'type': {'key': '/type/work'},
+        'title': get_title(rec),
+    }
+    for s in subject_fields:
+        if s in rec:
+            w[s] = rec[s]
+
+    if 'authors' in q:
+        w['authors'] = [{'type':{'key': '/type/author_role'}, 'author': akey} for akey in q['authors']]
+
+    wkey = web.ctx.site.new_key('/type/work')
+    if cover_id:
+        w['covers'] = [cover_id]
+    w['key'] = wkey
+
+
 def load_data(rec):
     cover_url = None
     if 'cover' in rec:
@@ -144,22 +162,7 @@ def load_data(rec):
             assert w_dict and isinstance(w_dict, dict)
             edits.append(w_dict)
     else:
-        w = {
-            'type': {'key': '/type/work'},
-            'title': get_title(q),
-        }
-        for s in subject_fields:
-            if s in rec:
-                w[s] = rec[s]
-        if 'authors' in q:
-            w['authors'] = [{'type':{'key': '/type/author_role'}, 'author': akey} for akey in q['authors']]
-
-        wkey = web.ctx.site.new_key('/type/work')
-        if cover_id:
-            w['covers'] = [cover_id]
-        w['key'] = wkey
-        assert isinstance(w, dict)
-        edits.append(w)
+        edits.append(new_work(q, rec, cover_id))
 
     q['works'] = [{'key': wkey}]
     q['key'] = ekey
@@ -333,8 +336,18 @@ def load(rec):
 
     if not match: # 'match found:', match, rec['ia']
         return load_data(rec)
+
+    w = None
     e = web.ctx.site.get(match)
-    w = e['works'][0]
+    if e.works:
+        w = e.works[0].dict()
+        assert w and isinstance(w, dict)
+    else:
+        w = {
+            'type': {'key': '/type/work'},
+            'title': get_title(rec),
+        }
+
     reply = {
         'success': True,
         'edition': {'key': match, 'status': 'matched'},
@@ -347,7 +360,7 @@ def load(rec):
     if rec.get('authors'):
         reply['authors'] = []
         east = east_in_by_statement(rec)
-        work_authors = list(w.authors)
+        work_authors = list(w.get('authors', []))
         edition_authors = list(e.authors)
         author_in = [import_author(a, eastern=east) for a in rec['authors']]
         for a in author_in:
@@ -380,17 +393,16 @@ def load(rec):
                 'name': a['name'],
                 'status': ('created' if new_author else 'modified'),
             })
-        w.authors = work_authors
-        e.authors = edition_authors
+        w['authors'] = work_authors
+        e['authors'] = edition_authors
     if 'subjects' in rec:
-        work_subjects = list(w.subjects)
+        work_subjects = list(w.get('subjects', []))
         for s in rec['subjects']:
-            if s not in w.subjects:
-                #print 'w.subjects.append(%s)' % s
+            if s not in work_subjects:
                 work_subjects.append(s)
                 need_work_save = True
         if need_work_save:
-            w.subjects = work_subjects
+            w['subjects'] = work_subjects
     if 'ocaid' in rec:
         new = 'ia:' + rec['ocaid']
         if not e.ocaid:
@@ -406,9 +418,8 @@ def load(rec):
         edits.append(e_dict)
     if need_work_save:
         reply['work']['status'] = 'modified'
-        w_dict = w.dict()
-        assert w_dict and isinstance(w_dict, dict)
-        edits.append(w_dict)
+        assert w and isinstance(w, dict)
+        edits.append(w)
     if edits:
         edits_str = `edits`
         for i in edits:
