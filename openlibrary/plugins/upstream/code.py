@@ -32,7 +32,7 @@ if not config.get('coverstore_url'):
 class static(delegate.page):
     path = "/images/.*"
     def GET(self):
-        raise web.seeother('/static/upstream' + web.ctx.path)
+        raise web.seeother('/static/' + web.ctx.path)
 
 # handlers for change photo and change cover
 
