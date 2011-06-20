@@ -21,7 +21,6 @@ def find_files(root, filter):
         
         for file in files:
             f = os.path.join(path, file)
-            print >> web.debug, f
             if filter(f):
                 yield f
                 
@@ -39,7 +38,6 @@ class FilesList:
             f.write(simplejson.dumps(files))
             f.close()
             
-        print simplejson.dumps(self.organize_files(files), indent="    ", sort_keys=True)
         return files
         
     def organize_files(self, files):
@@ -73,6 +71,8 @@ class FilesList:
         if recursive:
             return [f for f in self.files if f.startswith(path)]
         else:
+            if path.endswith("/"):
+                path = path[:-1]
             return self.organize_files(self.files).get(path, [])
         
 def list_files():
@@ -90,7 +90,7 @@ def list_files():
         files += list(find_files(d, pattern.search))    
     return sorted(files)
 
-class files_list(delegate.page):
+class index(delegate.page):
     path = "/theme"
     
     def GET(self):
@@ -114,17 +114,11 @@ class file_view(delegate.page):
     GET = POST = delegate
     
     def GET_view(self, path):
+        fileslist = FilesList()
         if path is None:
-            files = FilesList().list()
-            return render_template("theme/files", "", files)
+            return render_template("theme/files", "", fileslist)
         elif os.path.isdir(path):
-            files = FilesList().list(path)
-            
-            # auto-follow intermediate dirs
-            #if len(files) == 1 and files[0].endswith("/"):
-            #    raise web.seeother("/theme/files/" + path + "/" + files[0])
-                
-            return render_template("theme/files", path, files)
+            return render_template("theme/files", path, fileslist)
         else:
             text = open(path).read()
             return render_template("theme/viewfile", path, text)
