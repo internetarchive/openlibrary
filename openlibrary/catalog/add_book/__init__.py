@@ -401,6 +401,10 @@ def load(rec):
         reply['work']['status'] = 'modified'
         edits.append(w.dict())
     if edits:
-        assert all(i and isinstance(i, dict) for i in edits)
+        edits_str = `edits`
+        for i in edits:
+            j = `i`
+            assert i
+            assert isinstance(i, dict)
         web.ctx.site.save_many(edits, 'import new book')
     return reply
