@@ -2,7 +2,7 @@
 # script for generating vendor.js
 
 DIR=`dirname $0`
-OLROOT=$DIR/../../..
+OLROOT=$DIR/../..
 VENDORJS=$OLROOT/vendor/js
 
 JSMIN="python $VENDORJS/wmd/jsmin.py"

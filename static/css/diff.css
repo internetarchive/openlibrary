@@ -1,0 +1,44 @@
+#legend {float: left;font-size: 11px;font-family: "Lucida Grande", Verdana, Geneva, Helvetica, sans-serif;line-height: 1em;margin-top: 20px;}
+#legend dl, dd {float: left;padding: 0;margin: 0;}
+#legend dd {padding: 5px;border: 1px solid #eee;margin-right: 5px;}
+#legend .mod { background-color: #ffcc90 }
+#legend .rem { color: #e44028; text-decoration: line-through; }
+#legend .add { background-color: #adc07f }
+#legend .unmod { background-color: #eee; }
+
+/* Diff comparison table */
+
+.diff .revisions { clear: both; margin-top: 20px; padding: 0; float: left; width: 100%;}
+.diff .revisions th { 
+    padding: 10px;
+    font-family: "News Gothic MT", "Trebuchet MS", Geneva, Helvetica, sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    color: #000;
+}
+.diff .revisions .heading { text-transform: uppercase; }
+.diff .revisions td { 
+    padding: 10px;
+    font-family:"Lucida Console","Courier New", monospace;font-size:0.875em;
+    background: #eee; 
+    vertical-align: top; 
+    font-size: 0.875em;
+    border-right: 1px solid #fff;
+    border-bottom: 1px solid #fff;
+}
+
+.revisions table {margin-top: 0;}
+
+/* .diff table tbody.mod td.l { background: #ffcc90 } */
+.diff table tbody.mod td.r { background: #ffcc90 }
+/* .diff table tbody.add td.l { background: #adc07f } */
+.diff table tbody.add td.r { background: #adc07f }
+.diff table tbody.rem td.l { color: #e44028; text-decoration: line-through;  }
+.diff table tbody.rem td.r { color: #e44028; text-decoration: line-through;  }
+.diff table tbody.mod del, 
+.diff table tbody.mod ins { background: #f0f; }
+
+td.l {padding-left: 12px; width: 50%;}
+td.r {padding-left: 12px; width: 50%;}
+ins { background: #adc07f; text-decoration: none; }
+del { color: #e44028; text-decoration: line-through; }

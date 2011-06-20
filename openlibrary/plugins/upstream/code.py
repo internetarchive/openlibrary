@@ -53,6 +53,16 @@ def vendor_js():
     path = os.path.abspath(os.path.join(__file__, pardir, pardir, pardir, pardir, 'static', 'upstream', 'js', 'vendor.js'))
     digest = md5.md5(open(path).read()).hexdigest()
     return '/static/upstream/js/vendor.js?v=' + digest
+
+@web.memoize
+@public
+def static_url(path):
+    """Takes path relative to static/ and constructs url to that resource with hash.
+    """
+    pardir = os.path.pardir 
+    fullpath = os.path.abspath(os.path.join(__file__, pardir, pardir, pardir, pardir, "static", path))
+    digest = md5.md5(open(fullpath).read()).hexdigest()
+    return "/static/%s?v=%s" % (path, digest)
     
 class DynamicDocument:
     """Dynamic document is created by concatinating various rawtext documents in the DB.
