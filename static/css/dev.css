@@ -1,0 +1,8 @@
+
+body#user {
+    background: #DDCCCC;
+}
+
+body#user div#background, body#user div#headerNav, body#user div.siteSearch {
+    background: #FFDDDD;
+}
