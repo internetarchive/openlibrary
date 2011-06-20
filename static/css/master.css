@@ -175,7 +175,7 @@ div#header{width:960px;clear:both;}
 div#content{clear:both;float:left;position:relative;width:958px;background-color:#fff;}
 body#user div#content {border:1px solid #d3ccb0;}
 body#admin div#content {border:1px solid #c1c1c1;}
-div#footer{clear:both;float:left;width:960px;position:relative;background-color:#e2dcc5;padding-bottom:15px;}
+div#footer{clear:both;float:left;width:960px;position:relative;padding-bottom:15px;}
 div#bottom{width:100%;clear:both;float:left;}
 div#legal{width:905px;margin:0 auto;padding:0 10px;text-align:left;}
 

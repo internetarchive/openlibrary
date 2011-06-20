@@ -81,9 +81,11 @@ def list_files():
         "openlibrary/plugins/upstream", 
         "openlibrary/plugins/admin",
         "openlibrary/plugins/worksearch",
-        "openlibrary/admin"]
+        "openlibrary/admin", 
+        "static"
+    ]
         
-    pattern = re.compile("(/templates/.*.html|/macros/.*.html|/js/*.js|/css/*.css)$")
+    pattern = re.compile("(/templates/.*.html|/macros/.*.html|/js/.*.js|/css/.*.css)$")
     
     files = []
     for d in dirs:
