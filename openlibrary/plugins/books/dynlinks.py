@@ -140,6 +140,8 @@ def get_many_as_dict(keys):
     
 def get_url(doc):
     base = web.ctx.get("home", "http://openlibrary.org")
+    if base == 'http://[unknown]':
+        base = "http://openlibrary.org"
     if doc['key'].startswith("/books/") or doc['key'].startswith("/works/"):
         return base + doc['key'] + "/" + urlsafe(doc.get("title", "untitled"))
     elif doc['key'].startswith("/authors/"):
@@ -267,6 +269,16 @@ class DataProcessor:
 
             "links": [dict(title=link.get("title"), url=link['url']) for link in w.get('links', '') if link.get('url')],
         }
+
+        for fs in [doc.get("first_sentence"), w.get('first_sentence')]:
+            if fs:
+                e = {
+                    "text": get_value(fs),
+                    "comment": "",
+                    "first_sentence": True
+                    }
+                d['excerpts'].insert(0, e)
+                break
         
         def ebook(doc):
             itemid = doc['ocaid']

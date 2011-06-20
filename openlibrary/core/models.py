@@ -12,6 +12,7 @@ import helpers as h
 
 #TODO: fix this. openlibrary.core should not import plugins.
 from openlibrary.plugins.upstream.utils import get_history
+from openlibrary.plugins.upstream.account import Account
 
 # relative imports
 from lists.model import ListMixin, Seed
@@ -157,6 +158,14 @@ class User(Thing):
             'members': self.key})
         return self._site.get_many(keys)
     usergroups = property(get_usergroups)
+    
+    def get_account(self):
+        username = self.get_username()
+        return Account.find(username=username)
+        
+    def get_email(self):
+        account = self.get_account() or {}
+        return account.get("email")
     
     def get_username(self):
         return self.key.split("/")[-1]
@@ -312,9 +321,15 @@ class List(Thing, ListMixin):
     def __repr__(self):
         return "<List: %s (%r)>" % (self.key, self.name)
 
-re_range_star = re.compile(r'(\d+\.\d+)\.(\d+)-(\d+)\.\*$')
-re_three_octet = re.compile(r'(\d+\.\d+\.\d+)\.$')
-re_four_octet = re.compile(r'(\d+\.\d+\.\d+\.\d+)(/\d+)?$')
+four_octet = r'(\d+\.\d+\.\d+\.\d+)'
+
+re_range_star = re.compile(r'^(\d+\.\d+)\.(\d+)\s*-\s*(\d+)\.\*$')
+re_three = re.compile(r'^(\d+\.\d+\.\d+)\.$')
+re_four = re.compile(r'^' + four_octet + r'(/\d+)?$')
+re_range_in_last = re.compile(r'^(\d+\.\d+\.\d+)\.(\d+)\s*-\s*(\d+)$')
+re_four_to_four = re.compile('^%s\s*-\s*%s$' % (four_octet, four_octet))
+
+patterns = (re_four_to_four, re_four, re_range_star, re_three, re_range_in_last)
 
 class Library(Thing):
     """Library document.
@@ -331,13 +346,9 @@ class Library(Thing):
         bad = []
         for orig in text.splitlines():
             line = orig.split("#")[0].strip()
-            if not line or "-" in line:
+            if not line:
                 continue
-            if re_four_octet.match(line):
-                continue
-            if re_range_star.match(line):
-                continue
-            if re_three_octet.match(line):
+            if any(pat.match(line) for pat in patterns):
                 continue
             if '*' in line:
                 collected = []
@@ -354,7 +365,7 @@ class Library(Thing):
             line = line.split("#")[0].strip()
             if not line:
                 continue
-            m = re_four_octet.match(line)
+            m = re_four.match(line)
             if m:
                 yield line
                 continue
@@ -364,13 +375,17 @@ class Library(Thing):
                 end = '%s.%s.255' % (m.group(1), m.group(3))
                 yield (start, end)
                 continue
-            m = re_three_octet.match(line)
+            m = re_three.match(line)
             if m:
                 yield ('%s.0' % m.group(1), '%s.255' % m.group(1))
                 continue
-            if "-" in line:
-                start, end = line.split("-", 1)
-                yield (start.strip(), end.strip())
+            m = re_range_in_last.match(line)
+            if m:
+                yield ('%s.%s' % (m.group(1), m.group(2)), '%s.%s' % (m.group(1), m.group(3)))
+                continue
+            m = re_four_to_four.match(line)
+            if m:
+                yield m.groups()
                 continue
             if '*' in line:
                 collected = []

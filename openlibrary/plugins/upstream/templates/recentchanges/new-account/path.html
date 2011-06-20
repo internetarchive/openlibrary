@@ -1,0 +1,6 @@
+$def with (change)
+
+<div class="truncatepath">
+    $ user = change.get_changes()[0]
+    <a href="$homepath()$user.key" class="datalink" title="$user.key">$user.displayname</a>
+</div>

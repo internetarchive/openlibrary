@@ -25,6 +25,8 @@ def setup_env():
     # required when run as fastcgi
     os.environ['REAL_SCRIPT_NAME'] = ""
 
+    sys.path.append('conf')
+
 def start_server():
     args = sys.argv[1:]
     

@@ -10,7 +10,7 @@ import couchdb
 
 from infogami import config
 from infogami.utils import delegate
-from infogami.utils.view import render_template, add_flash_message
+from infogami.utils.view import render_template, add_flash_message, public
 from openlibrary.core import inlibrary
 
 logger = logging.getLogger("openlibrary.libraries")
@@ -22,6 +22,30 @@ class libraries(delegate.page):
     def get_branches(self):
         branches = sorted(get_library_branches(), key=lambda b: b.name.upper())
         return itertools.groupby(branches, lambda b: b.name[0])
+        
+class libraries_notes(delegate.page):
+    path = "(/libraries/[^/]+)/notes"
+    
+    def POST(self, key):
+        doc = web.ctx.site.get(key)
+        if doc is None or doc.type.key != "/type/library":
+            raise web.notfound()
+        elif not web.ctx.site.can_write(key):
+            raise render_template("permission_denied")
+        else:
+            i = web.input(note="")
+            
+            user = web.ctx.site.get_user()
+            author = user and {"key": user.key}
+            timestamp = {"type": "/type/datetime", "value": datetime.datetime.utcnow().isoformat()}
+            
+            note = {"note": i.note, "author": {"key": user.key}, "timestamp": timestamp}
+            
+            if not doc.notes:
+                doc.notes = []
+            doc.notes.append(note)
+        doc._save(comment="Added a note.")
+        raise web.seeother(key)
         
 def get_library_branches():
     """Returns library branches grouped by first letter."""
@@ -37,10 +61,11 @@ class libraries_dashboard(delegate.page):
     def GET(self):
         keys = web.ctx.site.things(query={"type": "/type/library", "limit": 1000})
         libraries = web.ctx.site.get_many(keys)
+        libraries.sort(key=lambda lib: lib.name)
         return render_template("libraries/dashboard", libraries, self.get_pending_libraries())
         
     def get_pending_libraries(self):
-        docs =  web.ctx.site.store.values(type="library", name="current_status", value="pending")
+        docs = web.ctx.site.store.values(type="library", name="current_status", value="pending")
         return [self._create_pending_library(doc) for doc in docs]
             
     def _create_pending_library(self, doc):
@@ -85,7 +110,7 @@ class pending_libraries(delegate.page):
         return key
     
     def POST(self, key):
-        i = web.input()
+        i = web.input(_method="POST")
         
         if "_delete" in i:
             doc = web.ctx.site.store.get(key)
@@ -105,10 +130,15 @@ class pending_libraries(delegate.page):
             add_flash_message("error", "The key must start with /libraries/.")
             return render_template("type/library/edit", page)
             
-        page._save()
         doc = web.ctx.site.store.get(key)
+        if doc and "registered_on" in doc:
+            page.registered_on = {"type": "/type/datetime", "value": doc['registered_on']}
+        
+        page._save()
+        
         if doc:
             doc['current_status'] = "approved"
+            doc['page_key'] = page.key
             web.ctx.site.store[doc['_key']] = doc
         raise web.seeother(page.key)
         
@@ -285,13 +315,26 @@ class LoanStats:
         return [[row.key[-1], row.value] for row in rows if row.value >= limit]
         
     def get_loans_per_library(self):
-        rows = self.view("loans/libraries", group=True).rows
+        # view contains:
+        #   [lib_key, status], 1
+        # Need to use group_level=1 and take key[0] to get the library key.
+        rows = self.view("loans/libraries", group=True, group_level=1).rows
         names = self._get_library_names()
-        return [[names.get(row.key, "-"), row.value] for row in rows]
+        return [[names.get(row.key[0], "-"), row.value] for row in rows]
+        
+    def get_active_loans_of_libraries(self):
+        """Returns count of current active loans per library as a dictionary.
+        """
+        rows = self.view("loans/libraries", group=True).rows
+        return dict((row.key[0], row.value) for row in rows if row.key[1] == "active")
         
     def _get_library_names(self):
         return dict((lib.key, lib.name) for lib in inlibrary.get_libraries())
-
+        
+@public
+def get_active_loans_of_libraries():
+    return LoanStats().get_active_loans_of_libraries()
+    
 def on_loan_created(loan):
     """Adds the loan info to the admin stats database.
     """

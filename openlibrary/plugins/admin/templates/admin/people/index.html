@@ -1,4 +1,4 @@
-$def with ()
+$def with (email=None)
 
 $ _x = ctx.setdefault('bodyid', 'admin')
 $ _x = ctx.setdefault('usergroup', 'admin')
@@ -7,6 +7,36 @@ $var title: [Admin Center] People
 
 <div id="contentBody">
     <h1><a href="/admin/">Admin</a> / People</h1>
+    
+
+<div class="head">
+    <h2>$_("Find Account")</h2>
+</div>
+
+<table id="adminHistory" style="clear: both;">
+<tbody>
+    <tr>
+        <td>$_("Email Address:")</td>
+        <td>
+            <form method="GET" name="form-email" id="form-email" class="validate">
+                <input type="text" name="email" id="email" class="email" value="$email"/>
+                <button type="submit" name="" value="find">Find</button>
+                <span class="invalid" htmlfor="email" generated="true">
+                    $if email:
+                        No account found with this email.
+                </span>
+            </form>
+        </td>
+    </tr>
+</tbody>
+</table>
+
+<p></p>
+
+
+<div class="head">
+    <h2>$_("Recent Accounts")</h2>
+</div>
 
 <table id="adminHistory">
     <thead>
@@ -18,12 +48,12 @@ $var title: [Admin Center] People
     </tr>
     </thead>
     <tbody>
-    $for a in get_recent_accounts(limit=50):
+    $for user in get_recent_accounts(limit=50):
         <tr>
-            <td class="time">$datestr(a.created)</td>
-            <td class="displayname"><a href="/admin$a.key">$a.displayname</a> <a href="$a.key" style="color: #900; text-decoration: none;">profile</a></td>
-            <td class="displayname">$a.get_email()</td>
-            <td class="comment">$a.get_edit_count()</td>
+            <td class="time">$datestr(user.created)</td>
+            <td class="displayname"><a href="/admin$user.key">$user.displayname</a> <a href="$user.key" style="color: #900; text-decoration: none;">profile</a></td>
+            <td class="displayname">$user.get_email()</td>
+            <td class="comment">$user.get_edit_count()</td>
         </tr>
     </tbody>
     </table>

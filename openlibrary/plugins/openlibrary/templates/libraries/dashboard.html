@@ -1,39 +1,63 @@
 $def with (libraries, pending_libraries)
 
-<div id="contentHead">
-    $:render_template("borrow/navigation", path="/libraries/dashboard")
-    <h1>Manage Libraries</h1>
-</div> 
+$var title: Libraries Dashboard
 
-<div id="contentBody">
-    <h2>Active Libraries</h2>
-    <ul>
-        $for lib in libraries:
-            $if lib.status == "approved":
-                <li>
-                    <a href="$lib.url()">$(lib.name or "Unnamed")</a>
-                </li>
-    </ul>
+$ loan_stats = get_active_loans_of_libraries()
+
+$if ctx.user and ctx.user.is_admin():
+    <div id="contentHead">
+        $:render_template("borrow/navigation", path="/libraries/dashboard")
+        <h1>Libraries Dashboard</h1>
+    </div> 
+
+    <div id="contentBody">
+        <h2>Active Libraries</h2>
+        <ul>
+            $for lib in libraries:
+                $if lib.status == "approved":
+                    <li>
+                        <a href="$lib.url()">$(lib.name or "Unnamed")</a>
+                        <div class="small">
+                            $ registered_on = lib.registered_on or lib.created
+                            Registered on $datestr(registered_on)<br/>
+                            Active Loans: $loan_stats.get(lib.key, 0)
+                        </div>
+                    </li>
+        </ul>
     
-    <h2>Libraries On-Hold</h2>
-    <ul>
-        $for lib in libraries:
-            $if lib.status != "approved":
+        <h2>Libraries On-Hold</h2>
+        <ul>
+            $ onhold = [lib for lib in libraries if lib.status != "approved"]
+            $for lib in onhold:
+                $if lib.status != "approved":
+                    <li>
+                        <a href="$lib.url()">$(lib.name or "Unnamed")</a>
+                        <div class="small">
+                            $ registered_on = lib.registered_on or lib.created
+                            Registered on $datestr(registered_on)<br/>
+                            Active Loans: $loan_stats.get(lib.key, 0)
+                        </div>
+                    </li>
+            $if not onhold:
+                <em>None found.</em>
+        </ul>
+
+        <h2>New Libraries</h2>
+        <ul>
+            $for lib in pending_libraries:
                 <li>
                     <a href="$lib.url()">$(lib.name or "Unnamed")</a>
+                    <div class="small">
+                        $ registered_on = lib.registered_on
+                        Registered on $datestr(parse_datetime(registered_on))<br/>
+                    </div>
                 </li>
-        $if not [lib for lib in libraries if lib.status != "approved"]:
-            <em>None found.</em>
-        
-    </ul>
-
-    <h2>New Libraries</h2>
-    <ul>
-        $for lib in pending_libraries:
-            <li><a href="$lib.url()">$(lib.name or "Unnamed")</a></li>
             
-        $if not pending_libraries:
-            <em>None found.</em>
-    </ul>
+            $if not pending_libraries:
+                <em>None found.</em>
+        </ul>
 
-</div>
+    </div>
+$else:    
+    <div id="contentHead"><h1>Permission denied.</h1></div>
+    <div id="contentBody"><p>Only site administrators can see this page.</p></div>

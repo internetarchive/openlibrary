@@ -1,0 +1,52 @@
+$def with (completed = [], active = [], reserved = [])
+
+<div id="contentHead">
+    <h1>$_("Admin Center")</h1>
+	<div class="small">
+	    <a href="/admin/reload/">Reload Templates</a>
+	    | <a href="/admin/block">Block IPs</a>
+	    | <a href="/admin/loans">Loans</a>
+	    | <a href="/admin/status">Services</a>
+	    | <a href="/admin/support">Support</a>
+	    | <a href="/admin/tasks">Tasks</a>
+	</div>
+</div>
+<div id="contentBody">
+<style type="text/css">
+table.tasks { 
+              font-family: Lucida, "Lucida Sans";
+              font-size: 0.75em;
+              }
+
+table.tasks th { 
+                 font-weight: bold;
+ }
+table.tasks th, table.tasks td {
+                                 border-bottom: 1px solid #ddd; 
+                                 vertical-align:top;
+                                 padding: 5pt;
+                                 }
+table.tasks pre.hidden { 
+                         display: none;
+ }
+
+</style>
+
+<h2>Task status</h2>
+<table class = "tasks" border="0" cellspacing="0" cellpadding="10">
+    <tr>
+        <th>Uuid</th>
+        <th>Command</th>
+        <th>Arguments</th>
+	<th>Status</th>
+        <th>Host</th>
+        <th>Started at</th>
+	<th>Finished at</th>
+        <!-- <th>Affected docs</th> -->
+    </tr>
+$:render_template("admin/tasks/active", active)
+$:render_template("admin/tasks/reserved", reserved)
+$:render_template("admin/tasks/completed", completed)
+</table>
+
+</div>
