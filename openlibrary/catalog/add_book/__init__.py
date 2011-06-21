@@ -346,12 +346,13 @@ def load(rec):
         w = {
             'type': {'key': '/type/work'},
             'title': get_title(rec),
+            'key': web.ctx.site.new_key('/type/work'),
         }
 
     reply = {
         'success': True,
         'edition': {'key': match, 'status': 'matched'},
-        'work': {'key': w.key, 'status': 'matched'},
+        'work': {'key': w['key'], 'status': 'matched'},
     }
 
     edits = []
