@@ -1,33 +1,7 @@
 $def with (page)
 
-$ lang = i18n.get_locale() or 'en'
+$ view = render_template("type/page/view.tmpl", page)
 
-$var title: $page.title
+$var title: $view.title
 
-<style type="text/css">
-<!--
-#book-art-home { width: 205px; height: 300px; text-align: center; float: left; padding-top: 21px; padding-left: 13px; padding-right: 14px; background: #fff url(/static/logos/logo-${lang}.png) top center no-repeat; }
--->
-</style>
-
-<div id="contentcolumn">
-
-<div id="book-art-home" style="clear: both"></div>
-
-<div id="header">
-
-    $if not page.key.startswith("/about."):
-        <p><a href="/about">&larr; $_.back_to_ol</a></p>
-
-    <span id="title">$page.title</span> <br />
-</div>
-
-<div class="contenttext">
-
-$:format(page.body)
-
-</div>
-    $if not page.key.startswith("/about."):
-        <p style="padding-left: 30px;"><a href="/about">&larr; $_.back_to_ol</a></p> 
-
-$:macros.SeeLanguage()
+$:view

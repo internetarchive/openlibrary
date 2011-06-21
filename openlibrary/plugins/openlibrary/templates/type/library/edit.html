@@ -1,123 +1,111 @@
 $def with (page)
 
-$ title = page.title or page.name or page.key
+$ title = page.name or page.key
 
 $var title: $title
 
 <div id="contentHead">
     $:macros.databarEdit(page)
+
+    <div class="small sansserif grey" style="margin-bottom: 5px;" "=""><a href="/libraries/dashboard">Dashboard</a> /</div>
     <h1>
-        <span class="tools">$_("Currently Editing:")</span>
-        $page.title
+        $page.name
     </h1>
     $if not ctx.user:
         $:render_template("lib/not_logged")
 </div>
 
-<form name="edit" class="olform" method="post" action="">
+<script type="text/javascript">
+function check_ip_ranges() {
+    var retval = true;
+    var error_msg = "";
+    
+    var re_ip = /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$$/;
+    var re_range = /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}-\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$$/;
+    var re_cidr = /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/\d{1,2}$$/;
+    var re_comma = /,/;
+    var re_hyphen = /^(\d{1,3}\.\d{1,3}\.\d{1,3})\.(\d{1,3})-(\d{1,3})$$/;
+    var re_wild = /^\d{1,3}\.\d{1,3}\.\d{1,3}(-\d{1,3})?\.\*$$/;
+    var re_wild2 = /^\d{1,3}\.\d{1,3}\.\*\.\*$$/;
+    var re_three = /^(\d{1,3}\.){3}$$/;
+    
+    ips = jQuery("#ip_ranges").val().split('\n');
+    jQuery.each(ips, function(index, value) {
+        value = jQuery.trim(value.split('#')[0])
+        if ("" == value) {
+            return true;
+        }
+        
+        if (re_comma.test(value)) {
+            retval = false;
+            error_msg = "The IP address " + value + " contains a comma, which is not allowed.";
+            return false;        
+        }
+        
+        if (!(re_ip.test(value) | re_range.test(value) | re_cidr.test(value) | re_hyphen.test(value) | re_wild.test(value) | re_wild2.test(value) | re_three.test(value))) {
+            retval = false;
+            error_msg = "The IP address/range " + value + " does not match one of the forms that OL accepts.";
+            return false;
+        }
+    });
+    
+    if (!retval) {
+        alert(error_msg);
+    }
+    return retval;
+}
+</script>
+
+<form name="edit" class="olform" method="post" action="" onsubmit="return check_ip_ranges();">
 
 <div id="contentBody">
     
+<table id="libraryInfo">
     $# pending pages will not have revision field
     $if not page.revision: 
-        <div class="formElement">
-            <div class="label">
-                <label for="key">$_("Page Key")</label>        
-            </div>
-            <div class="input">
-                <input type="text" name="key" id="key" value="$page.key"/><br />
-                <span class="tip">$_("The url of the library page")</span>
-            </div>
-        </div>    
-    
-    <div class="formElement">
-        <div class="label">
-        </div>
-        <div class="input">
-            <label for="status">$_("Status")</label>
-            $:Dropdown(name="status", args=[("approved", "Approved"), ("onhold", "On Hold")], value=page.status or "onhold", id="status").render()
-            <br/>
-            <span class="tip">$_("Only approved libraries are allowed to participate in the In-Library lending program.")</span>
-        </div>
-    </div>
-
-    <div class="formElement">
-        <div class="label">
-            <label for="title">$_("Page Title")</label>        
-        </div>
-        <div class="input">
-            <input type="text" name="title" id="title" value="$page.title"/><br />
-            <span class="tip">$_("This only appears in the document head, and gets attached to bookmark labels")</span>
-        </div>
-    </div>
-    <div class="formElement">
-        <div class="label">
-            <label for="name">$_("Library Name")</label>        
-            
-        </div>
-        <div class="input">
-            <input type="text" name="name" id="name" value="$page.name"/> <br />
-            <span class="tip">$_("Library's Official Name - no abbreviations, please")</span>
-        </div>
-    </div>
-
-    <div class="formElement">
-        <div class="label">
-            <label for="website">$_("Main Website")</label>        
-        </div>
-        <div class="input">
-            <input type="text" name="website" id="website" value="$page.website"/><br />
-            <span class="tip">$_("Include the http://")</span>
-        </div>
-    </div>
-
-    <div class="formElement">
-        <div class="label">
-            <label for="contact_person">$_("Contact Person")</label>        
-        </div>
-        <div class="input">
-            <input type="text" name="contact_person" id="contact_person" value="$page.contact_person"/><br />
-            <span class="tip">$_("Full Name")</span>
-        </div>
-    </div>
-    
-    <div class="formElement">
-        <div class="label">
-            <label for="contact_title">$_("Title of the Contact Person")</label>        
-        </div>
-        <div class="input">
-            <input type="text" name="contact_title" id="contact_title" value="$page.contact_title"/><br />
-            <span class="tip">$_("Title/Role of the contact person")</span>
-        </div>
-    </div>
-
-    <div class="formElement">
-        <div class="label">
-            <label for="contact_email">$_("Contact's E-mail Address")</label>        
-        </div>
-        <div class="input">
-            <input type="text" name="contact_email" id="contact_email" value="$page.contact_email"/><br />
-        </div>
-    </div>
-
-    <div class="formElement">
-        <div class="label">
-            <label for="country">$_("Country")</label>        
-        </div>
-        <div class="input">
-            <input type="text" name="country" id="title" value="$page.country"/>
-        </div>
-    </div>
-
-    <div class="formElement">
-        <div class="label">
-            <label for="ip_ranges">$_("IP Ranges")</label>        
-        </div>
-        <div class="input">
-            <textarea name="ip_ranges" id="ip_ranges" rows="8" style="height:150px;">$page.ip_ranges</textarea><br />
-            <span class="tip">$:_("Single IP: 208.70.27.190<br /> CIDR: 208.70.24.0/21<br />IP Range: 208.70.24.0-208.70.31.255<br />Add comment using #: 208.70.27.190 #This is the IA main IP")</span>
-        </div>
-    </div>
+        <tr>
+            <td class="label"><label for="key">$_("Page Key")</label></td>
+            <td><input type="text" name="key" id="key" value="$page.key"/></td>
+        </tr>
+    <tr>
+        <td class="label"><label for="status">$_("Status")</label></td>
+        <td>$:Dropdown(name="status", args=[("approved", "Live"), ("onhold", "Pending")], value=page.status or "onhold", id="status").render()
+            <span class="small grey">$_("When the library is ready, shift status to Live.")</span></td>
+    </tr>
+    <tr>
+        <td class="label"><label for="name">$_("Library Name")</label></td>
+        <td><input type="text" name="name" id="name" value="$page.name"/></td>
+    </tr>
+    <tr>
+        <td class="label"><label for="website">$_("Library's Website")</label></td>
+        <td><input type="text" name="website" id="website" value="$page.website"/></td>
+    </tr>
+    <tr>
+        <td class="label"><label for="country">$_("Country")</label> </td>
+        <td><input type="text" name="country" id="title" value="$page.country"/></td>
+    </tr>	
+    <tr>
+        <td class="label"><label for="contact_person">$_("Contact Person")</label></td>
+        <td><input type="text" name="contact_person" id="contact_person" value="$page.contact_person"/></td>
+    </tr>
+    <tr>
+        <td class="label"><label for="contact_title">$_("Job Title")</label></td>
+        <td><input type="text" name="contact_title" id="contact_title" value="$page.contact_title"/></td>
+    </tr>
+    <tr>
+        <td class="label"><label for="contact_email">$_("E-mail Address")</label></td>
+        <td><input type="text" name="contact_email" id="contact_email" value="$page.contact_email"/></td>
+    </tr>
+    <tr>
+        <td class="label"><label for="telephone">$_("Telephone")</label></td>
+        <td><input type="text" name="telephone" id="telephone" value="$page.telephone"/></td>
+    </tr>
+    <tr>
+        <td class="label"><label for="ip_ranges">$_("IP Ranges")</label><br /><br />
+            <span class="smaller grey">$:_("208.70.27.190<br />208.70.24.0/21<br />208.70.24.0-208.70.31.255<br />208.70.24.*<br />208.70.*.*<br />208.70.20-30.*<br />208.70.24.10-50<br />208.70.24.<br />Add comment using #: 208.70.27.190 #This is the IA main IP")</span></td>
+        <td><textarea name="ip_ranges" id="ip_ranges" rows="10" style="height:150px;">$page.ip_ranges</textarea></td>
+    </tr>
+</table>
 
     <div class="formElement">
         <div class="label">
@@ -127,8 +115,8 @@ $var title: $title
         <div class="input">
             <textarea name="addresses" id="addresses" rows="20" cols="80" style="width:900px;">$page.addresses</textarea>
         </div>
-    </div>
-    
+    </div>    
+
     $:macros.EditButtons(comment=page.comment_)
 
     $if ctx.user and ctx.user.is_admin():

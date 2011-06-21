@@ -3,30 +3,49 @@ $def with (page)
 $ _t = i18n.get_namespace('/type/macro')
 $ _ = i18n.get_namespace('/mode/edit')
 
+$ _x = ctx.setdefault('bodyid', 'edit')
+
 $var title: $_.edit_title(page.key)
 
 <form name="edit" method="post" action="">
 
-<div id="slickbox" style="overflow: hidden">
-    $:macros.TypeChanger(page.type)
-</div>
+$:render_template("lib/edit_head", page)
 
-<div id="header">
-    <div style="float:left;padding-left:10px;padding-right:15px;"></div>
-    <span class="pretitle">$_.edit_pretitle:<br /></span>
-    <div id="title"> $page.desciption</div>
-</div>
+<div id="contentBody">
 
-<div id="form-border">
-    <div id="metadata-body">
-
-            <strong>$_t.description</strong>
-            <input type="text" name="description" style="width: 100%" value="$page.description"/><br/>
-            <br/>
-            <textarea name="macro" rows="40" cols="80" style="font-family: monospace;">$page.macro</textarea>
-            $:macros.EditButtons()
-        $:macros.HelpFormatting()
+    <div class="formElement title">
+        <div class="label"><label for="description">$_t.description</label></div>
+        <div class="input">
+            <input type="text" name="description" value="$page.description"/>
+        </div>
     </div>
+
+    $:macros.TypeChanger(page.type)
+
+    <div class="clearfix"></div>
+
+    <div class="formElement title">
+        <div class="label"><label for="plugin">Plugin</labal></div>
+        <div class="input">
+            $ plugins = ["admin", "openlibrary", "scod", "search", "upstream", "worksearch"]
+            $:Dropdown("plugin", args=plugins, value=page.get("plugin", "upstream")).render()
+        </div>
+    </div>
+
+    <div class="clearfix"></div>
+
+    <div class="formElement">
+        <div class="label"><label for="macro">Macro</label></div>
+        <div class="input">
+            <textarea name="macro" id="macro" rows="40" cols="80">$page.macro</textarea>
+        </div>
+    </div>
+
+    $:macros.EditButtonsMacros()
+
+    $if ctx.user and ctx.user.is_admin():
+        <div class="adminOnly" style="position:absolute;top:230px;right:20px;"><button type="submit" value="Delete Record" name="_delete" title="Delete this macro?" id="deleteTop">Delete Record</button></div>
+        
 </div>
 
 </form>

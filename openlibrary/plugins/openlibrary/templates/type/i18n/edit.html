@@ -3,20 +3,12 @@ $def with (page)
 $ lang = page.key.split('.')[-1]
 $ namespace = find_i18n_namespace(page.key)
 
-<style type="text/css">
+$ _x = ctx.setdefault('bodyid', 'edit')
 
-#strings_table .i18n-value {
-    width: 100%; 
-    padding-left: 20px;
-}
+$var title: $_("Edit %(title)s", title=page.key)
 
-#strings_table td input {
-    width: 100%;
-}
 
-</style>
-
-<script>
+<script type="text/javascript">
 function change_ns(ns) {
 	document.forms['i18n']['ns'].value = ns;
 	document.forms['i18n'].submit();
@@ -46,7 +38,7 @@ function add_key() {
 }
 
 
-\$(document).ready(function() {
+\$().ready(function() {
     \$("#newkey").bind("keypress", function(e) { 
         if (e.keyCode == 13) { 
             \$("#button_addkey").click(); 
@@ -57,74 +49,69 @@ function add_key() {
 
 </script>
 
-<form method="POST">
-<div id="slickbox" style="overflow: hidden">
-    $:macros.TypeChanger(page.type)
-</div>
+<form method="post">
 
-<div id="biblio-form-body">
-<table cellpadding="0" cellspacing="0" border="0"><tr><td valign="top" width="100%">
+$:render_template("lib/edit_head", page)
 
-$var title: Editing $page.key
+<div id="contentBody">
 
-<div id="header">
-<div style="float:left;padding-left:10px;padding-right:15px;"></div>
-    <div id="title">Editing $page.key</div>
-</div>
+        <div class="formElement title">
+            <div class="label">
+                <label for="title">$_("Title")</label>
+            </div>
+            <div class="input">
+                <input type="text" name="title" id="title" value="$page.title"/>
+            </div>
+        </div>
 
-<table border="0" cellspacing="0" cellpadding="0" width="100%">
-<tr>
-<td style="vertical-align: top; white-space: nowrap; padding-right: 30px">
+        $:macros.TypeChanger(page.type)
+
+        <div class="clearfix"></div>
+        
+        Change language: $:Dropdown('lang', _.get_languages(), onchange="changelang();", id="id_lang", value=lang).render()
+        <input type="hidden" name="ns" value="$namespace">
 
 
-$ xnamespace = namespace or "/"
-
-$for ns in _.get_namespaces():
-    $if ns == xnamespace:
-        <img alt="&rarr;" src="/static/images/arrow.red.png" style="margin-left: -20px"/>
-        $(ns or "root")
-    $else:
-        <a href="/i18n$ns/strings.$lang?m=edit" >$ns</a>     
-    <span id="count" style="font-size: 0.8em; ">$(_.get_count(ns, lang))/$_.get_count(ns)</span> <br/>
-
-</td>
-<td style="vertical-align: top" width="100%">
-    <table id="strings_table">
-    $for key in _.getkeys(namespace, lang):
+    <table width="100%">
         <tr>
-            <td class="formheader-i18n">$key</td>
-            <td width="100%" style="padding-left: 20px"><input type="text" name="string_$key" value="$page.get('string_' + key, '')" style="width: 100%" /></td>
+            <td style="vertical-align: top; white-space: nowrap;>
+
+            $ xnamespace = namespace or "/"
+
+            $for ns in _.get_namespaces():
+                $if ns == xnamespace:
+                    <span class="red">&rarr;</span>
+                    $(ns or "root")
+                $else:
+                    <a href="/i18n$ns/strings.$lang?m=edit" >$ns</a>     
+                <span class="smaller">$(_.get_count(ns, lang))/$_.get_count(ns)</span>
+                <br/>
+
+            </td>
+            <td style="vertical-align: top" width="100%">
+                <table id="strings_table">
+                $for key in _.getkeys(namespace, lang):
+                    <tr>
+                        <td class="formheader-i18n">$key</td>
+                        <td width="100%" style="padding-left: 20px">
+                            <input type="text" name="string_$key" value="$page.get('string_' + key, '')" style="width: 100%" />
+                        </td>
+                    </tr>
+                </table>
+                <br /><br />
+                <span class="darkgreen">
+                    $_.get('/type/i18n', 'add_new_key') 
+                    <input type="text" name="_newkey" id="newkey"/>
+                </span>
+                <button type="button" id="button_addkey" onclick="add_key()" name="_addkey" value="$_.get('/type/i18n', 'add')" class="addkey-small" />Add</button>
+
+    
+            </td>
         </tr>
     </table>
-    <br /><br />
-    <span class="green"><span class="formheader">
-        $_.get('/type/i18n', 'add_new_key') <input type="text" name="_newkey" id="newkey"/></span>
-        <button type="button" id="button_addkey" onclick="add_key()" name="_addkey" value="$_.get('/type/i18n', 'add')" class="addkey-small" />Add</button>
-    </span>
 
-<br/>
-      $:macros.Editi18nButtons()
-    
-</td>
-</tr>
-</table>
+    $:macros.EditButtons(comment=page.comment_)
 
-</td><td style="padding-left: 40px; padding-top: 30px" valign="top">
-
-    <img src="/static/logos/logo-${lang}.gif" border="0" width="180" height="266" />
-
-<br/><br/>
-<span class="green"><span class="formheader">
-Language: $:Dropdown('lang', _.get_languages(), onchange="changelang();", id="id_lang", value=lang).render()
-</span></span>
-<input type="hidden" name="ns" value="$namespace">
-
-<div class="formheader" style="margin-top: 20px; font-weight: normal">Use the pulldown menu to toggle between the default string set of English (en) and your desired language to begin working with translations.</div>
-
-</td></tr></table>
-
-<br /><br /><br />
-
-</div></div>
+</div>
 
 </form>

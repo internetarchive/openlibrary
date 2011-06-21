@@ -1,100 +1,139 @@
 $def with (page)
-
-$ _t = i18n.get_namespace('/type/author')
-$ _ = i18n.get_namespace('/mode/edit')
  
-$var title: Editing $page.name
+$var title: $page.name
 
-<script>
-function add_row(name) {
-    var tbody = \$("#tbody_" + name);
-    var n = tbody.children().length;
+$putctx("robots", "noindex,nofollow")
 
-    var row = \$("tr:last", tbody);
-    var newrow = row.clone();
-
-    tbody.append(newrow);
-
-    \$("td:last", row).html("");
-
-    \$("td:first", newrow).html("");
-    \$("input", newrow).attr("name", name + "#" + n);
-    \$("input", newrow).attr("value", "");
-}
+<script type="text/javascript">
+\$().ready(function(){
+    if(jQuery.support.opacity){
+        \$("#tabsAddauthor").tabs({fx:{opacity:'toggle'}});
+    } else {
+        \$("#tabsAddauthor").tabs();
+    };
+});
+\$().ready(function(){\$("#coverPop").colorbox({inline:true, opacity:"0.5", href:"#addCover"});});
 </script>
 
-
-$ up = '<button class="control" name="up" title="up"><img src="/static/images/arrow.up.gif" alt="up" width="18" height="18" /></button>'
-$ down = '<button class="control" name="down" title="down"><img src="/static/images/arrow.down.gif" alt="up" width="18" height="18" /></button>'
-$ plus = '<button class="control" name="+" title="+"><img src="/static/images/+.gif" alt="up" width="18" height="18" /></button>'
-
-<form method="POST" name="edit">
-<div id="slickbox" style="overflow: hidden">
-    $:macros.TypeChanger(page.type)
+<div id="contentHead">
+    $:macros.databarEdit(page)
+    <h1>$_("Edit Author")</h1>
+    $if not ctx.user:
+        $:render_template("lib/not_logged")
 </div>
-
-    <!-- WIKI EDIT SECTION -->
-    <div id="biblio-form-body">    
-        <table cellspacing="0" cellpadding="0" border="0" width="100%">
-        <tr>
-            <td valign="top">
-                <div id="header">               
-                    <span class="pretitle">$_.pretitle:<br /></span>             
-                    <div id="title">$page.name</div>            
-                </div>
-                
-                <!-- begin left table -->
-                <table cellspacing="0" cellpadding="0" border="0" width="100%">
-                    <tr><td valign="top" colspan="3" height="8"></td></tr>
-                    
-                    $:macros.AuthorEditRow(page, 'name', True)
-                    $:macros.AuthorEditRow(page, 'alternate_names', False)
-                    $:macros.AuthorEditRow(page, 'entity_type', True)
-                    $:macros.AuthorEditRow(page, 'personal_name', True)
-                    $:macros.AuthorEditRow(page, 'numeration', True)
-                    $:macros.AuthorEditRow(page, 'title', True)
-                    $:macros.AuthorEditRow(page, 'fuller_name', True)
-                    $:macros.AuthorEditRow(page, 'website', True)
-                    $:macros.AuthorEditRow(page, 'location', True)
-                    $:macros.AuthorEditRow(page, 'birth_date', True)
-                    $:macros.AuthorEditRow(page, 'death_date', True)
-                    $:macros.AuthorEditRow(page, 'date', True)
-                    $:macros.AuthorEditRow(page, 'wikipedia', True)
-
-                    <!-- ADDITIONAL METADATA -->
-                    <tr><td valign="top" colspan="3" height="22"></td></tr>
-
-                    <!-- description -->
-                    <tr><td valign="top" colspan="3" class="formheader-top">$_t.bio</td></tr>
-                    <tr><td valign="top" colspan="3" class="formheader" width="100%"><textarea name="bio" rows="6" cols="">$page.bio</textarea></td></tr>                    
-                
-                </table> <!-- end left table -->
-            </td>
-            <td valign="top" class="form-margin">
-                <br />
-                $ olid = page.key.split('/')[-1]
-                <div style="padding: 8px; border: solid 1px #ccc; background-color: #fff; width: 180px"><img width="180" src="http://covers.openlibrary.org/a/olid/$olid-M.jpg"/></div>
-        <div class="button-border" style="padding-top: 8px; margin-left: 0px; padding-left: 0px;"><img src="/static/images/flourish.left.gif"  alt="[" /><button  onclick="window.location.href = '$:changequery(m='change_cover')'" class="action" style="width: 165px;">Change Photo</button><img src="/static/images/flourish.gif"  alt="]" /></div>
-                <br />
-
-                <!-- begin right table -->
-                <table cellspacing="0" cellpadding="0" border="0">
-                    <tr>
-                        <td valign="top" colspan="3" width="100%" class="vertspace9">
-                    		<br /><br /><br />
-                            </td>
-                    </tr>
-                </table>
-                <!-- end right table -->
-
-                <br />
-            </td>
-        </tr>
-        </table>
             
-        <!-- edit summary and buttons -->
+<div id="contentBody">
+            
+    <form id="addAuthor" name="edit" method="post" action="" class="olform validate">
 
-             $:macros.EditButtons()
-
+    
+    <div class="formElement title">
+        <div class="formElement" style="margin-bottom:12px;">
+            <div class="label">
+                <label for="name">$_("Name")</label> 
+                <span class="tip">$:_('Please use natural order. For example: <strong>Leo Tolstoy</strong> not <strong>Tolstoy, Leo</strong>. <span class="attn"><em>* Required field.</em></span>')</span>
+            </div>
+            <div class="input">
+                <input type="text" name="author--name" id="name" style="font-size:1.875em!important;width:900px!important;" value="$page.name" class="required"/>
+            </div>
+        </div>
     </div>
-</form>
+                            
+        <div style="float:left;width:698px;">
+
+            <div id="tabsAddauthor">
+
+                <ul>
+                    <li><a href="#about">$_("About")</a></li>
+                    <li><a href="#web">$_("Links")</a></li>
+                </ul>
+
+                <div id="about">
+                    
+                    <fieldset class="major collapse">
+
+                        <div class="formElement">
+                            <div class="label">
+                                <label for="wmd-input">$_("A short bio?")</label> 
+                                <span class="tip">$_('If you "borrow" information from somewhere, please make sure to cite the source.')</span>
+                            </div>
+                            <div class="input">
+                                <textarea name="author--bio" class="markdown" id="wmd-input" rows="6" cols="40" style="height:265px;width:100%;">$page.bio</textarea>
+                            </div>
+                        </div>
+
+                        <div class="formElement contentQuarter" id="birthDate" style="width:205px;margin-bottom:0;">
+                            <div class="label birthLabelAcc">
+                                <label for="birth_date">$_("Date of birth")</label>
+                            </div>
+                            <div class="input birthInputAcc">
+                                <input type="text" name="author--birth_date" id="birth_date" value="$page.birth_date" style="width:150px!important;"/>
+                            </div>
+                        </div>
+                            
+                        <div class="formElement contentQuarter" id="deathDate" style="width:205px;margin-bottom:0;">
+                            <div class="label deathLabelAcc">
+                                <label for="death_date">$_("Date of death")</label>
+                            </div>
+                            <div class="input deathInputAcc">
+                                <input type="text" name="author--death_date" id="death_date" value="$page.death_date" style="width:150px!important;"/>
+                            </div>
+                        </div>
+
+                        <div class="formElement contentQuarter" style="margin-bottom:0;">
+                            <div class="label tipAcc" style="margin-top:10px;padding-top:1em;">
+                                <span class="tip">$_('We\'re not storing structured dates (yet) so a date like "21 May 2000" is recommended.')</span>
+                            </div>
+                        </div>
+
+                        <div class="clearfix"></div>
+                            
+                        <div class="formElement">
+                            <div class="label">
+                                <label for="alternate_names">$_("Does this author go by any other names?")</label> 
+                                <span class="tip">$_("For example:") Lev Nikolayevich Tolstoy; Yasnaya Polyana</span>
+                            </div>
+                            <div class="input">
+                                <textarea name="author--alternate_names" id="alternate_names" rows="6" cols="40" style="height:65px;">$"; ".join(page.alternate_names)</textarea>
+                            </div>
+                        </div>
+                        
+                        $if page.website:
+                            $if ctx.user and ctx.user.is_admin():
+                                <div class="formElement adminOnly">
+                                    <div class="label">
+                                        <label for="uris">$_("Websites")</label>
+                                        <span class="tip">$_("Deprecated")</span>
+                                    </div>
+                                    <div class="input">
+                                        <input type="text" name="author--website" id="website" value="$page.website"/>
+                                    </div>
+                                </div>
+ 
+                        
+                </div>
+<!-- /ABOUT -->
+                <div id="web">
+                    $:render_template("books/edit/web", page, prefix="author--")
+                </div>
+            </div>
+                
+        </div>
+
+        <div class="illustration" style="float:left;width:220px;min-height:200px;text-align:center;margin-top:1.125em;padding-top:15px;">
+            $:render_template("covers/author_photo", page)
+            $:render_template("covers/change", page)
+        </div>
+                
+            <div class="clearfix"></div>
+
+            <div class="formElement bottom">
+                $:macros.EditButtons(comment=page.comment_)
+            </div>
+
+        $if ctx.user and ctx.user.is_admin():
+            <div class="adminOnly" style="position:absolute;top:50px;right:20px;"><button type="submit" value="$_('Delete Record')" name="_delete" title="$_('Delete this macro?')" id="deleteTop">$_("Delete Record")</button></div>
+        
+
+    </form>
+</div>
