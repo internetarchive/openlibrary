@@ -109,10 +109,8 @@ class ReadProcessor:
             self.inlibrary = inlibrary.get_library()
         return self.inlibrary
         
-    def get_readitem(self, iaid, orig_iaid, orig_ekey, wkey, subjects):
-        meta = self.iaid_to_meta[iaid]
-        collections = meta.get("collection", [])
-        status = ''
+
+    def get_item_status(self, collections, subjects):
         if 'lendinglibrary' in collections:
             if not 'Lending library' in subjects:
                 status = 'restricted'
@@ -129,6 +127,14 @@ class ReadProcessor:
             status = 'restricted'
         else:
             status = 'full access'
+        return status
+
+
+    def get_readitem(self, iaid, orig_iaid, orig_ekey, wkey, subjects):
+        meta = self.iaid_to_meta[iaid]
+        collections = meta.get("collection", [])
+
+        status = self.get_item_status(collections, subjects)
         if status == 'restricted' and not self.options.get('show_all_items'):
             return None
 
@@ -137,6 +143,11 @@ class ReadProcessor:
             return None
         ekey = edition['key']
 
+        if status == 'lendable':
+            loanstatus =  web.ctx.site.store.get('ebooks' + ekey, {'borrowed': 'false'})
+            if loanstatus['borrowed'] == 'true':
+                status = 'checked out'
+
         if status == 'full access':
             itemURL = 'http://www.archive.org/stream/%s' % (iaid)
         else:
@@ -144,11 +155,6 @@ class ReadProcessor:
             itemURL = u'http://openlibrary.org%s/%s/borrow' % (ekey,
                                                                helpers.urlsafe(edition.get('title',
                                                                                            'untitled')))
-        if status == 'lendable':
-            loanstatus =  web.ctx.site.store.get('ebooks' + ekey, {'borrowed': 'false'})
-            if loanstatus['borrowed'] == 'true':
-                status = 'checked out'
-
         result = {
             'enumcron': False,
             'match': 'exact' if iaid == orig_iaid else 'similar',
