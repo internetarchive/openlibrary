@@ -250,7 +250,7 @@ class ReadProcessor:
         # XXX control costs below with [:iaid_limit] - note that this may result
         # in no 'exact' item match, even if one exists
         # Note that it's available thru above works/docs
-        iaid_limit = 5
+        iaid_limit = 500
         self.wkey_to_iaids = dict((wkey, get_work_iaids(wkey)[:iaid_limit])
                                   for wkey in self.works)
         iaids = sum(self.wkey_to_iaids.values(), [])
