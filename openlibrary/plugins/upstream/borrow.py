@@ -164,9 +164,6 @@ class borrow(delegate.page):
             # They have it -- return it
             return_resource(user_loan['resource_id'])
             
-            # Get updated loans
-            loans = get_loans(user)
-            
             # Show the page with "you've returned this"
             # $$$ this would do better in a session variable that can be cleared
             #     after the message is shown once
