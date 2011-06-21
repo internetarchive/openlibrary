@@ -375,7 +375,7 @@ def load(rec):
                 add_to_work = True
                 add_to_edition = True
             else:
-                if not any(i.author.key == a['key'] for i in work_authors):
+                if not any(i['author']['key'] == a['key'] for i in work_authors):
                     add_to_work = True
                 if not any(i.key == a['key'] for i in edition_authors):
                     add_to_edition = True
