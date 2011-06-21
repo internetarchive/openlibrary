@@ -1,6 +1,7 @@
 from openlibrary.catalog.merge.merge_marc import build_marc
-from load_book import build_query, import_author, east_in_by_statement
-import web, re, unicodedata
+from infogami import config
+from load_book import build_query, import_author, east_in_by_statement, InvalidLanguage
+import web, re, unicodedata, urllib, json
 from merge import try_merge
 from openlibrary.catalog.utils import mk_norm
 from pprint import pprint
@@ -88,8 +89,36 @@ def build_author_reply(author_in, edits):
         })
     return (authors, author_reply)
 
+def new_work(q, rec, cover_id):
+    w = {
+        'type': {'key': '/type/work'},
+        'title': get_title(rec),
+    }
+    for s in subject_fields:
+        if s in rec:
+            w[s] = rec[s]
+
+    if 'authors' in q:
+        w['authors'] = [{'type':{'key': '/type/author_role'}, 'author': akey} for akey in q['authors']]
+
+    wkey = web.ctx.site.new_key('/type/work')
+    if cover_id:
+        w['covers'] = [cover_id]
+    w['key'] = wkey
+
+
 def load_data(rec):
-    q = build_query(rec)
+    cover_url = None
+    if 'cover' in rec:
+        cover_url = rec['cover']
+        del rec['cover']
+    try:
+        q = build_query(rec)
+    except InvalidLanguage as e:
+        return {
+            'success': True,
+            'error': str(e),
+        }
     edits = []
 
     reply = {}
@@ -102,6 +131,12 @@ def load_data(rec):
         reply['authors'] = author_reply
 
     wkey = None
+
+    ekey = web.ctx.site.new_key('/type/edition')
+    cover_id = None
+    if cover_url:
+        cover_id = add_cover(cover_url, ekey)
+        q['covers'] = [cover_id]
 
     work_state = 'created'
     if 'authors' in q:
@@ -118,28 +153,20 @@ def load_data(rec):
                 if s not in w.get(k, []):
                     w.setdefault(k, []).append(s)
                     need_update = True
+        if cover_id:
+            w.setdefault('covers', []).append(cover_id)
+            need_update = True
         if need_update:
             work_state = 'modified'
-            edits.append(w)
+            w_dict = w.dict()
+            assert w_dict and isinstance(w_dict, dict)
+            edits.append(w_dict)
     else:
-        w = {
-            'type': {'key': '/type/work'},
-            'title': get_title(q),
-        }
-        for s in subject_fields:
-            if s in rec:
-                w[s] = rec[s]
-        if 'authors' in q:
-            w['authors'] = [{'type':{'key': '/type/author_role'}, 'author': akey} for akey in q['authors']]
-
-        wkey = web.ctx.site.new_key('/type/work')
-
-        w['key'] = wkey
-        edits.append(w)
+        edits.append(new_work(q, rec, cover_id))
 
     q['works'] = [{'key': wkey}]
-    ekey = web.ctx.site.new_key('/type/edition')
     q['key'] = ekey
+    assert isinstance(q, dict)
     edits.append(q)
 
     assert edits
@@ -253,6 +280,29 @@ def find_exact_match(rec, edition_pool):
                 return ekey
     return False
 
+def add_cover(cover_url, ekey):
+    olid = ekey.split("/")[-1]
+    coverstore_url = config.get('coverstore_url').rstrip('/')
+    upload_url = coverstore_url + '/b/upload2' 
+    user = web.ctx.site.get_user()
+    params = {
+        'author': user.key,
+        'data': None,
+        'source_url': cover_url,
+        'olid': olid,
+        'ip': web.ctx.ip,
+    }
+    for attempt in range(5):
+        res = urllib.urlopen(upload_url, urllib.urlencode(params))
+        body = res.read()
+        assert res.getcode() == 200
+        if body != '':
+            break
+        print 'retry, attempt', attempt
+        sleep(5)
+    cover_id = int(json.loads(body)['id'])
+    return cover_id
+
 def load(rec):
     if not rec.get('title'):
         raise RequiredField('title')
@@ -286,12 +336,23 @@ def load(rec):
 
     if not match: # 'match found:', match, rec['ia']
         return load_data(rec)
+
+    w = None
     e = web.ctx.site.get(match)
-    w = e['works'][0]
+    if e.works:
+        w = e.works[0].dict()
+        assert w and isinstance(w, dict)
+    else:
+        w = {
+            'type': {'key': '/type/work'},
+            'title': get_title(rec),
+            'key': web.ctx.site.new_key('/type/work'),
+        }
+
     reply = {
         'success': True,
         'edition': {'key': match, 'status': 'matched'},
-        'work': {'key': w.key, 'status': 'matched'},
+        'work': {'key': w['key'], 'status': 'matched'},
     }
 
     edits = []
@@ -300,7 +361,7 @@ def load(rec):
     if rec.get('authors'):
         reply['authors'] = []
         east = east_in_by_statement(rec)
-        work_authors = list(w.authors)
+        work_authors = list(w.get('authors', []))
         edition_authors = list(e.authors)
         author_in = [import_author(a, eastern=east) for a in rec['authors']]
         for a in author_in:
@@ -309,6 +370,7 @@ def load(rec):
             add_to_edition = False
             if new_author:
                 a['key'] = web.ctx.site.new_key('/type/author')
+                assert isinstance(a, dict)
                 edits.append(a)
                 add_to_work = True
                 add_to_edition = True
@@ -332,17 +394,16 @@ def load(rec):
                 'name': a['name'],
                 'status': ('created' if new_author else 'modified'),
             })
-        w.authors = work_authors
-        e.authors = edition_authors
+        w['authors'] = work_authors
+        e['authors'] = edition_authors
     if 'subjects' in rec:
-        work_subjects = list(w.subjects)
+        work_subjects = list(w.get('subjects', []))
         for s in rec['subjects']:
-            if s not in w.subjects:
-                #print 'w.subjects.append(%s)' % s
+            if s not in work_subjects:
                 work_subjects.append(s)
                 need_work_save = True
         if need_work_save:
-            w.subjects = work_subjects
+            w['subjects'] = work_subjects
     if 'ocaid' in rec:
         new = 'ia:' + rec['ocaid']
         if not e.ocaid:
@@ -353,11 +414,18 @@ def load(rec):
             need_edition_save = True
     if need_edition_save:
         reply['edition']['status'] = 'modified'
-        edits.append(e)
-        web.ctx.site.save(e, match, 'update edition')
+        e_dict = e.dict()
+        assert e_dict and isinstance(e_dict, dict)
+        edits.append(e_dict)
     if need_work_save:
         reply['work']['status'] = 'modified'
+        assert w and isinstance(w, dict)
         edits.append(w)
     if edits:
+        edits_str = `edits`
+        for i in edits:
+            j = `i`
+            assert i
+            assert isinstance(i, dict)
         web.ctx.site.save_many(edits, 'import new book')
     return reply

@@ -5,11 +5,11 @@ threshold = 875
 
 def db_name(a):
     date = None
-    if a.date:
-        assert not a.birth_date and not a.death_date
-        date = a.date
-    elif a.birth_date in a.death_date:
+    if a.birth_date or a.death_date:
         date = a.get('birth_date', '') + '-' + a.get('death_date', '')
+    elif a.date:
+        #assert not a.birth_date and not a.death_date 
+        date = a.date
     return ' '.join([a['name'], date]) if date else a['name']
 
 def try_merge(e1, edition_key, existing):

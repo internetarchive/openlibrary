@@ -65,6 +65,23 @@ def get_works_iaids(wkeys):
     return reply
 
 
+def get_eids_for_wids(wids):
+    """ To support testing by passing in a list of work-ids - map each to
+    it's first edition ID """
+    solr_host = 'ol-solr.us.archive.org:8983'
+    solr_select_url = "http://" + solr_host + "/solr/works/select"
+    filter = 'edition_key'
+    q = '+OR+'.join(wids)
+    solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&rows=10&fl=key,%s&qt=standard&wt=json" % (q, filter)
+    json_data = urllib.urlopen(solr_select).read()
+    reply = simplejson.loads(json_data)
+    if reply['response']['numFound'] == 0:
+        return []
+    rows = reply['response']['docs']
+    result = dict((r['key'], r[filter][0]) for r in rows if len(r.get(filter, [])))
+    return result
+
+
 class ReadProcessor:
     def __init__(self, options):
         self.options = options
@@ -253,6 +270,13 @@ class ReadProcessor:
 def readlinks(req, options):
     try:
         rp = ReadProcessor(options)
+
+        if options.get('listofworks'):
+            """ For load-testing, handle a special syntax """
+            wids = req.split('|')
+            mapping = get_eids_for_wids(wids[:5])
+            req = '|'.join(('olid:' + k) for k in mapping.values())
+
         result = rp.process(req)
 
         if options.get('stats'):
@@ -268,5 +292,5 @@ def readlinks(req, options):
             raise
         else:
             register_exception()
-        result = [] # XXX check for compatibility?
+        result = {}
     return result
