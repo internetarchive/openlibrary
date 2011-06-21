@@ -337,17 +337,23 @@ def load(rec):
     if not match: # 'match found:', match, rec['ia']
         return load_data(rec)
 
+    need_work_save = False
+    need_edition_save = False
     w = None
     e = web.ctx.site.get(match)
     if e.works:
         w = e.works[0].dict()
         assert w and isinstance(w, dict)
+        work_created = False
     else:
+        work_created = True
+        need_work_save = True
         w = {
             'type': {'key': '/type/work'},
             'title': get_title(rec),
             'key': web.ctx.site.new_key('/type/work'),
         }
+        e.works = [{'key': w['key']}]
 
     reply = {
         'success': True,
@@ -356,8 +362,6 @@ def load(rec):
     }
 
     edits = []
-    need_work_save = False
-    need_edition_save = False
     if rec.get('authors'):
         reply['authors'] = []
         east = east_in_by_statement(rec)
@@ -402,7 +406,7 @@ def load(rec):
             if s not in work_subjects:
                 work_subjects.append(s)
                 need_work_save = True
-        if need_work_save:
+        if need_work_save and work_subjects:
             w['subjects'] = work_subjects
     if 'ocaid' in rec:
         new = 'ia:' + rec['ocaid']
@@ -418,7 +422,7 @@ def load(rec):
         assert e_dict and isinstance(e_dict, dict)
         edits.append(e_dict)
     if need_work_save:
-        reply['work']['status'] = 'modified'
+        reply['work']['status'] = 'created' if work_created else 'modified'
         assert w and isinstance(w, dict)
         edits.append(w)
     if edits:
