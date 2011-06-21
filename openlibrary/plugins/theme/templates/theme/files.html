@@ -1,22 +1,103 @@
 $def with (path, files)
 
 <div id="contentHead">
-    <h2 class="file-list">$:render_template("theme/breadcrums", path)</h2>
-    <h2 class="file-finder">
+    <h2 id="files-header">$:render_template("theme/breadcrums", path)</h2>
+    
+    <div id="finder-header">
+        <h2 style="display: inline">files /</h2>
+        <input type="text" name="pattern" id="pattern" value="" style="width: 300px; border: none;"/>
+    </div>
 </div>
 
 $if path:
     $ path = path + "/"
+    
+$code:
+    def contains(f, pattern):
+        return pattern in f
+        
+<script type="text/javascript">
+function contains(f, pattern) {
+    return f.indexOf(pattern) >= 0;
+}
+</script>
+    
+$jsdef render_select(files, pattern): 
+    <ul>
+        $for f in files:
+            $if contains(f, pattern):
+                <li>
+                    <a href="/theme/files/$f">$f</a>
+                </li>
+    </ul>
 
 <div id="contentBody">
     <div id="files">
         <ul>
         $for f in files.list(path):
-            <li><a href="/theme/files/$path$f">$f</a></li>
+            <li><a href="$path$f">$f</a></li>
         </ul>
     </div>
     
-    <div id="finder">
-        
+    <a href="#select" id="link-select" class="hidden"></a>
+    <div id="finder" class="hidden">
+        <ul>
+        $for f in files.list(recursive=True):
+            <li><a href="/theme/files/$f">$f</a></li>
+        </ul>
     </div>
 </div>
+
+<script type="text/javascript">
+    var select_mode = false;
+    
+    var Workspace = Backbone.Controller.extend({
+        routes: {
+            "select": "select_view",
+            "*foo": "regular_view"
+        },
+        select_view: function() {
+            select_mode = true;
+            \$("#files-header").hide();
+            \$("#files").hide();
+            
+            \$("#finder-header").show();
+            \$("#finder").show();
+            \$("#pattern").focus();
+        },
+        regular_view: function() {
+            select_mode = false;
+            \$("#finder-header").hide();
+            \$("#finder").hide();
+
+            \$("#files-header").show();
+            \$("#files").show();
+        }
+    });
+    
+    var _files = $:json_encode(files.list(recursive=True));
+    
+    \$(function() {
+        \$(document).bind("keydown", function(e) {
+            if (!e.altKey && !e.ctrlKey && !e.metaKey) {
+                if (e.keyCode == 84 && !select_mode) { // t
+                    workspace.select_view();
+                    e.preventDefault();
+                }
+                else if (e.keyCode == 27) { // ESC
+                    workspace.regular_view();
+                    e.preventDefault();
+                }
+            }
+        });
+        
+        \$("#pattern").keydown(function() {
+            var pattern = \$("#pattern").val();
+            \$("#finder").html(render_select(_files, pattern));
+        });
+        
+        var workspace = new Workspace();
+        Backbone.history.start();
+    });
+    
+</script>
