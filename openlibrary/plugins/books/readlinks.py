@@ -247,7 +247,12 @@ class ReadProcessor:
         self.datas = dp.process(self.docs)
         self.works = dp.works
 
-        self.wkey_to_iaids = dict((wkey, get_work_iaids(wkey)) for wkey in self.works)
+        # XXX control costs below with [:iaid_limit] - note that this may result
+        # in no 'exact' item match, even if one exists
+        # Note that it's available thru above works/docs
+        iaid_limit = 5
+        self.wkey_to_iaids = dict((wkey, get_work_iaids(wkey)[:iaid_limit])
+                                  for wkey in self.works)
         iaids = sum(self.wkey_to_iaids.values(), [])
         self.iaid_to_meta = dict((iaid, ia.get_meta_xml(iaid)) for iaid in iaids)
 
