@@ -8,16 +8,19 @@ from infogami import config
 
 
 class InvalidCase(KeyError): pass
+class DatabaseConnectionError(Exception): pass
 
 @web.memoize
 def get_admin_database():
     admin_db = config.get("admin", {}).get("admin_db",None)
     if admin_db:
         return couchdb.Database(admin_db)
+    else:
+        raise DatabaseConnectionError("No admin_db specified in config")
         
 
 class Support(object):
-    def __init__(self, db = None): #TBD : handle database failures
+    def __init__(self, db = None):
         if db:
             self.db = db
         else:

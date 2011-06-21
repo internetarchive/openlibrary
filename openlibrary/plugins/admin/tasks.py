@@ -83,7 +83,7 @@ class task(object):
     def GET(self, taskid):
         try:
             db = connect_to_taskdb()
-            q = "SELECT * FROM celery_taskmeta WHERE task_id = '%(taskid)s'"%dict(taskid = taskid) #TBD (VERY BAD!!)
+            q = "SELECT * FROM celery_taskmeta WHERE task_id = '%(taskid)s'"%dict(taskid = taskid) 
             ret = db.query(q)
             if not ret:
                 return "No such task"

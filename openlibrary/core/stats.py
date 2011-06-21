@@ -32,7 +32,6 @@ def create_stats_client():
         else:
             return False
     except Exception:
-        #TBD : Log stats error here
         return False
 
 def put(key, value):
