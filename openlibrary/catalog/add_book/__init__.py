@@ -105,7 +105,7 @@ def new_work(q, rec, cover_id):
     if cover_id:
         w['covers'] = [cover_id]
     w['key'] = wkey
-
+    return w
 
 def load_data(rec):
     cover_url = None
