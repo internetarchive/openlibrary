@@ -9,7 +9,8 @@ body#user div#headerNav,
 body#user div.siteSearch, 
 body#user div#headerNav, 
 body#user div#headerLogo,
-body#user div#headerTools
+body#user div#headerTools,
+body#user div#headerPlace
 {
     background: #BBCCBB;
 }
