@@ -162,8 +162,11 @@ def load_data(rec):
             assert w_dict and isinstance(w_dict, dict)
             edits.append(w_dict)
     else:
-        edits.append(new_work(q, rec, cover_id))
+        w = new_work(q, rec, cover_id)
+        wkey = w['key']
+        edits.append(w)
 
+    assert wkey
     q['works'] = [{'key': wkey}]
     q['key'] = ekey
     assert isinstance(q, dict)
