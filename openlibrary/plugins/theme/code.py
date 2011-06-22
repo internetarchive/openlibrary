@@ -23,57 +23,6 @@ def find_files(root, filter):
             f = os.path.join(path, file)
             if filter(f):
                 yield f
-                
-class FilesList:
-    def __init__(self):
-        self.cache_file = ".theme"
-            
-    @property
-    def files(self):
-        if os.path.exists(self.cache_file):
-            files = simplejson.loads(open(self.cache_file).read())
-        else:
-            files = list_files()
-            f = open(self.cache_file, "w")
-            f.write(simplejson.dumps(files))
-            f.close()
-            
-        return files
-        
-    def organize_files(self, files):
-        """Organizes files directory wise.
-        """
-        d = defaultdict(lambda: [])        
-        for f in files:
-            dir, filename = os.path.split(f)
-            d[dir].append(filename)
-            
-        def index_dir(path):
-            if path:
-                dir, dirname = os.path.split(path)
-                if dir not in d:
-                    index_dir(dir)
-                d[dir].append(dirname + "/")
-        
-        for f in d.keys():
-            index_dir(f)
-                    
-        for files in d.values():
-            files.sort(key=lambda f: (not f.endswith("/"), f))
-                        
-        return d
-        
-    def invalidate(self):
-        os.unlink(self.cache_file)
-                
-    def list(self, path=None, recursive=False):
-        path = path or ""
-        if recursive:
-            return [f for f in self.files if f.startswith(path)]
-        else:
-            if path.endswith("/"):
-                path = path[:-1]
-            return self.organize_files(self.files).get(path, [])
         
 def list_files():
     dirs = [
@@ -102,7 +51,7 @@ class file_index(delegate.page):
     path = "/theme/files"
 
     def GET(self):
-        files = FilesList().files
+        files = list_files()
         return render_template("theme/files", files)
 
 class file_view(delegate.page):
