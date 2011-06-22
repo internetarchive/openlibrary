@@ -56,15 +56,18 @@ function setup_tooltip(selector, format_message) {
         {
             "data": $:json_encode(stats.get_loans_per_day("bookreader")), 
             "label": "bookreader",
-            color: "#35672e"
+            bars: { "fillColor": "#fffdcd" },
+            color: "#fffdcd"
         }, {
             "data": $:json_encode(stats.get_loans_per_day("pdf")), 
             "label": "pdf",
-            color: "#35672e"
+            bars: { "fillColor": "#ffa337" },
+            color: "#ffa337"
         }, {
             "data": $:json_encode(stats.get_loans_per_day("epub")), 
             "label": "epub",
-            color: "#35672e"
+            bars: { "fillColor": "#748d36" },
+            color: "#748d36"
         }
     ], {
         series: {

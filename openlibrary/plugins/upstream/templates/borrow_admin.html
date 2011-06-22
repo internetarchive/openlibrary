@@ -6,6 +6,15 @@ $ _x = ctx.setdefault('bodyid', 'plain')
 
 $ available_loans = page.get_available_loans()
 
+$ current_and_available_loans = page.get_current_and_available_loans()
+$ current_loans = current_and_available_loans[0]
+$ loan_users = [loan['user'] for loan in current_loans]
+
+$def format_users(users):
+    $for user_key in users:
+        $ user = get_document(user_key)
+        <a href="$user.key">$user.name ($user.key)</a>
+
 <div id="contentBody">
 
     <div class="navBorrow">
@@ -13,54 +22,64 @@ $ available_loans = page.get_available_loans()
     </div>
 
         <h1 class="sansserif">Borrow - Administration</h1>
-        <p>
-            can_borrow - can this book ever be borrowed: $can_borrow(page)
-        </p>
-
 
         <p>
-          You are (ctx.user): $ctx.user
+            You're logged in as: <br />
+            <ul>
+                 <li>$ctx.user <i>(ctx.user)</i>, Admin = $ctx.user.is_admin()</li>
+                 <li>$user_ip <i>IP</i></li>
+                 <li>          
+                     $if "inlibrary" in ctx.features:
+                         In Library: $get_library()
+                     $else:
+                         <i>Not in a Library</i>
+                     </li>
+            </ul>
         </p>
 
-        <p>
-          You are an admin?: $ctx.user.is_admin()
-        </p>
-        
-        <p>
-          IP address: $user_ip
-        </p>
+        <hr />
 
         <p>
-          you are in library? (inlibrary flag set):
-          $if "inlibrary" in ctx.features:
-             yes
-          $else:
-             no
-        </p>
-        
-        <p>
-          which library: $get_library()
-        </p>
-                
-        <p>
-          work subjects: $page.works[0].get_subjects()
+            Book can be borrowed = $can_borrow(page) <!-- can_borrow -->
         </p>
 
         <p>
-            overdrive_id - if set means can be borrowed digitally from an external library using Overdrive: $overdrive_id(page)
+            $if loan_users:
+              Borrowed by: $:format_users(loan_users)
+            $else:
+              Borrowed by: None
         </p>
-        
+
         <p>
-            archive.org item identifier: <a href="http://www.archive.org/details/$page.ocaid">$page.ocaid</a>
+            Available? <i>(what's been borrowed = false)</i><br />
+            <ul>
+                <li>BookReader = $is_loan_available(page, 'bookreader')</li>
+                <li>PDF = $is_loan_available(page, 'pdf')</li>
+                <li>ePub = $is_loan_available(page, 'epub')</li>
+            </ul>
+        </p>
+
         <p>
+            archive.org ID: <a href="http://www.archive.org/details/$page.ocaid">$page.ocaid</a>
+            <ul>
+                <li>IA Collections: $page.get_ia_meta_fields()['collection']</li>
+                <li>OL Subjects: $page.works[0].get_subjects()</li>
+                <li>Overdrive ID: $overdrive_id(page)</li>
+            </ul>
+        <p>
+
+
+
+
+        <hr />
+
+        <p>
+            <b>Current Loan Status:</b><br />
+            $edition_loans
+        </p>
+
         <p>
             external-identifiers from archive.org meta.xml: $page.get_lending_resources()
-        </p>
-        
-        <p>
-            bookreader available: $is_loan_available(page, 'bookreader')<br>
-            pdf available: $is_loan_available(page, 'pdf')<br>
-            epub available: $is_loan_available(page, 'epub')
         </p>
         
         <p>
@@ -71,14 +90,15 @@ $ available_loans = page.get_available_loans()
         </p>
         
         <p>
-            current loans for $page.title: $edition_loans
-        
-        <p>
             <table>
               <tr><th>Available loans for $page.title:</tr></th>
               $for loan in available_loans:
                  <tr><td>$loan</td></tr>
             </table>
+        </p>
+
+        <p>
+            edition.get_current_and_available_loans(): $current_and_available_loans
         </p>
         
         <p>

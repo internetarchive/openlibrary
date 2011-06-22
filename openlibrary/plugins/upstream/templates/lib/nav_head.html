@@ -18,20 +18,6 @@ $def with (page)
               <p class="tagline">$_("One web page for every book.")</p>
             </div>
 
-            <div id="headerTools">
-
-                <div id="headerLogin">
-                $if ctx.user:
-                    <div class="hidden">
-                        <form name='logout' action="$homepath()/account/logout" method="post"></form>
-                    </div>
-                    $:_("Welcome %(user)s", user='<a href="%s">%s</a>' % (ctx.user.key, ctx.user.displayname))
-                    | <a href="#" onclick="document.forms['logout'].submit()">$_("Log out")</a>
-                $else:
-                    <a href="/account/login" class="white">$_("Log in")</a>
-                    /
-                    <a href="/account/create">$_("Sign Up")</a>
-                </div>
-            </div>
+            <div id="headerPlace"></div>
 
         </div>

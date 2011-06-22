@@ -1,3 +1,28 @@
 $def with (libraries)
 $("lat lon title description icon iconSize iconOffset".replace(" ", "\t"))
-37.782308	-122.471551	<a href="http://www.archive.org">Internet Archive</a>	300 Funston Avenue<br>San Francisco, CA 94118  USA<br>415-561-6767	/images/pin.png	26x30	-8,-8    
+$ name_map = {'/libraries/boston_public_library':'BPL', '/libraries/san_francisco_public_library':'SFPL' ,'/libraries/university_of_alberta':'U of Alberta', '/libraries/university_of_florida':'U of Florida', '/libraries/university_of_toronto':'U of Toronto'}
+$for lib in libraries:
+    $for address in lib.addresses.splitlines():
+        $ tokens = address.split("|")
+        $if 9 != len(tokens):
+            $continue
+        $ branch  = tokens[0].strip()
+        $ street  = tokens[1].strip()
+        $ city    = tokens[2].strip()
+        $ state   = tokens[3].strip()
+        $ zip     = tokens[4].strip()
+        $ country = tokens[5].strip()
+        $ phone   = tokens[6].strip()
+        $ link    = tokens[7].strip()
+        $ latlong = tokens[8].strip().split(',')
+        $ lat     = latlong[0].strip()
+        $ long    = latlong[1].strip()
+        $if lib.key in name_map:
+            $ title = '''<a href="%s">%s - %s</a>'''  % (link, name_map[lib.key], branch)
+        $else:
+            $ title = '''<a href="%s">%s</a>'''  % (link, branch)
+        $ desc  = '''%s<br>%s, %s %s  %s<br>%s''' % (street, city, state, zip, country, phone)
+        $ icon  = '/images/pin.png'
+        $ icon_size = '20x20'
+        $ icon_offset = '-10,-20'
+        $:"\t".join((lat, long, title, desc, icon, icon_size, icon_offset))

@@ -83,7 +83,6 @@ function limitChars(textid, limit, infodiv) {
         else:
             title = _("Editing...")
             note = ""
-            
     <h1>$:title</h1>
     $if not ctx.user:
         $:render_template("lib/not_logged")
@@ -139,6 +138,8 @@ $jsdef render_author(i, author):
 
 <div id="contentBody">
     <form method="post" id="addWork" class="olform books validate" name="edit" action="">
+
+    <div class="formElement title">
         <div class="TitleAuthor sansserif">
             <div class="label">
                 <label for="work-title">Title</label> <span class="tip">Use <b><i>Title: Subtitle</i></b> to add a subtitle.</span> <span class="red">*<span class="tip">$_("Required field")</span></span>
@@ -158,6 +159,7 @@ $jsdef render_author(i, author):
                     $:render_author(0, storage(name="", key=""))
             </div>
         </div>
+    </div>
         
         <div id="tabsAddbook">
             <ul>
@@ -194,7 +196,11 @@ $jsdef render_author(i, author):
                 </div>
         </div>
 
-        $:macros.EditButtons(comment=work.comment_)        
+        $:macros.EditButtons(comment=work.comment_)
+
+        $if ctx.user and ctx.user.is_admin():
+            <div class="adminOnly" style="position:absolute;top:20px;right:20px;"><button type="submit" value="$_('Delete Record')" name="_delete" title="$_('Delete this book?')" id="deleteTop">$_("Delete Record")</button></div>
+        
     </form>
 
     $if edition:

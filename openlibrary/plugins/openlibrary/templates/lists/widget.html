@@ -1,4 +1,4 @@
-$def with (page)
+$def with (page, user_lists_only=False)
 
 $if "lists" not in ctx.features:
     $return
@@ -19,10 +19,10 @@ $code:
                 title = page.get('name', 'name missing')
             elif page.key.startswith("/works"):
                 seed_type = "work"
-                title = page.title
+                title = page.get("title", "untitled")
             else:
                 seed_type = "edition"
-                title = page.title
+                title = page.get("title", "untitled")
         return seed, seed_type, title
     
     def get_list_data(list):
@@ -30,11 +30,6 @@ $code:
             "name": list.name or "",
             "key": list.key,
             "active": list.has_seed(seed),
-            
-            "edition_count": list.edition_count,
-            "work_count": list.edition_count,
-            "ebook_count": list.ebook_count,
-            "description": format(list.description or ""),
         })
         cover = list.get_cover() or list.get_default_cover()
         d['cover_url'] = cover and cover.url("S") or "/images/icons/avatar_book-sm.png"
@@ -45,21 +40,24 @@ $code:
         return d
     
     def get_user_lists():
-        lists = ctx.user and ctx.user.get_lists() or []
+        lists = ctx.user and ctx.user.get_lists(sort=False) or []
         return [get_list_data(list) for list in lists]
         
     def get_page_lists():
         user_key = ctx.user and ctx.user.key
-        return [get_list_data(list) for list in page.get_lists()]
+        return [get_list_data(list) for list in page.get_lists(sort=False)]
 
     def get_user_list_index(list):
         for i, ulist in enumerate(user_lists):
             if ulist.key == list.key:
                 return i        
-                
+
 $ seed, seed_type, title = get_seed_info()
 $ user_lists = get_user_lists()
-$ page_lists = get_page_lists()
+$if user_lists_only:
+    $ page_lists = [list for list in user_lists if list.active]
+$else:
+    $ page_lists = get_page_lists()
 $ user_key = ctx.user and ctx.user.key
 $ page_url = page.url()
 
@@ -254,6 +252,9 @@ $if ctx.user:
             \$(this).next('.dropdown').slideToggle();
             \$(this).parent().find('.arrow').toggleClass("up");
         });
+        
+        // Trigger an event to allow adding listeners
+        \$(window).trigger("ol.lists");
     }
     
     function get_user_list_index(list) {
