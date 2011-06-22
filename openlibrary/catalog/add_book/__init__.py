@@ -7,6 +7,7 @@ from openlibrary.catalog.utils import mk_norm
 from pprint import pprint
 from collections import defaultdict
 from openlibrary.catalog.utils import flip_name
+from time import sleep
 
 re_normalize = re.compile('[^[:alphanum:] ]', re.U)
  
@@ -302,7 +303,7 @@ def add_cover(cover_url, ekey):
         if body != '':
             break
         print 'retry, attempt', attempt
-        sleep(5)
+        sleep(2)
     cover_id = int(json.loads(body)['id'])
     return cover_id
 
