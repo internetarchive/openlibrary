@@ -31,6 +31,7 @@ lamson
 celery
 eventer
 sqlalchemy
+Pygments
 """
 
 from openlibrary.core.setup_commands import commands
