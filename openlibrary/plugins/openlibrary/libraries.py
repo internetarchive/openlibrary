@@ -21,7 +21,7 @@ class libraries(delegate.page):
     
     def get_branches(self):
         branches = sorted(get_library_branches(), key=lambda b: b.name.upper())
-        return itertools.groupby(branches, lambda b: b.name[0])
+        return itertools.groupby(branches, lambda b: b.name and b.name[0])
         
 class libraries_notes(delegate.page):
     path = "(/libraries/[^/]+)/notes"

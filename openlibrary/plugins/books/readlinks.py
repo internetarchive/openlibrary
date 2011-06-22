@@ -65,6 +65,39 @@ def get_works_iaids(wkeys):
     return reply
 
 
+def get_eids_for_wids(wids):
+    """ To support testing by passing in a list of work-ids - map each to
+    it's first edition ID """
+    solr_host = 'ol-solr.us.archive.org:8983'
+    solr_select_url = "http://" + solr_host + "/solr/works/select"
+    filter = 'edition_key'
+    q = '+OR+'.join(wids)
+    solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&rows=10&fl=key,%s&qt=standard&wt=json" % (q, filter)
+    json_data = urllib.urlopen(solr_select).read()
+    reply = simplejson.loads(json_data)
+    if reply['response']['numFound'] == 0:
+        return []
+    rows = reply['response']['docs']
+    result = dict((r['key'], r[filter][0]) for r in rows if len(r.get(filter, [])))
+    return result
+
+# Not yet used.  Solr editions aren't up-to-date (6/2011)
+def get_solr_edition_records(iaids):
+    solr_host = 'ol-solr.us.archive.org:8983'
+    solr_select_url = "http://" + solr_host + "/solr/editions/select"
+    filter = 'title'
+    q = '+OR+'.join('ia:' + id for id in iaids)
+    solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&rows=10&fl=key,%s&qt=standard&wt=json" % (q, filter)
+    json_data = urllib.urlopen(solr_select).read()
+    reply = simplejson.loads(json_data)
+    if reply['response']['numFound'] == 0:
+        return []
+    rows = reply['response']['docs']
+    return rows
+    result = dict((r['key'], r[filter][0]) for r in rows if len(r.get(filter, [])))
+    return result
+
+
 class ReadProcessor:
     def __init__(self, options):
         self.options = options
@@ -107,6 +140,7 @@ class ReadProcessor:
         if status == 'full access':
             itemURL = 'http://www.archive.org/stream/%s' % (iaid)
         else:
+            # this could be rewrit in terms of iaid...
             itemURL = u'http://openlibrary.org%s/%s/borrow' % (ekey,
                                                                helpers.urlsafe(edition.get('title',
                                                                                            'untitled')))
@@ -128,6 +162,7 @@ class ReadProcessor:
 
         if edition.get('covers'):
             cover_id = edition['covers'][0]
+            # can be rewrit in terms of iaid
             # XXX covers url from yaml?
             result['cover'] = {
                 "small": "http://covers.openlibrary.org/b/id/%s-S.jpg" % cover_id,
@@ -212,7 +247,12 @@ class ReadProcessor:
         self.datas = dp.process(self.docs)
         self.works = dp.works
 
-        self.wkey_to_iaids = dict((wkey, get_work_iaids(wkey)) for wkey in self.works)
+        # XXX control costs below with [:iaid_limit] - note that this may result
+        # in no 'exact' item match, even if one exists
+        # Note that it's available thru above works/docs
+        iaid_limit = 500
+        self.wkey_to_iaids = dict((wkey, get_work_iaids(wkey)[:iaid_limit])
+                                  for wkey in self.works)
         iaids = sum(self.wkey_to_iaids.values(), [])
         self.iaid_to_meta = dict((iaid, ia.get_meta_xml(iaid)) for iaid in iaids)
 
@@ -221,6 +261,8 @@ class ReadProcessor:
             'ocaid': iaids,
         }
         ekeys = web.ctx.site.things(query)
+
+        # If returned order were reliable, I could skip the below.
         eds = dynlinks.ol_get_many_as_dict(ekeys)
         self.iaid_to_ed = dict((ed['ocaid'], ed) for ed in eds.values())
         # self.iaid_to_ekey = dict((iaid, ed['key'])
@@ -253,6 +295,13 @@ class ReadProcessor:
 def readlinks(req, options):
     try:
         rp = ReadProcessor(options)
+
+        if options.get('listofworks'):
+            """ For load-testing, handle a special syntax """
+            wids = req.split('|')
+            mapping = get_eids_for_wids(wids[:5])
+            req = '|'.join(('olid:' + k) for k in mapping.values())
+
         result = rp.process(req)
 
         if options.get('stats'):
@@ -268,5 +317,5 @@ def readlinks(req, options):
             raise
         else:
             register_exception()
-        result = [] # XXX check for compatibility?
+        result = {}
     return result
