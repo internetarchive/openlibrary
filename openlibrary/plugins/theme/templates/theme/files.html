@@ -43,8 +43,6 @@ $jsdef render_select(files, pattern):
             "*pattern": "filter"
         },
         filter: function(pattern) {
-            console.log(["filter", pattern]);
-            
             if (\$("input#pattern").val() != pattern) {
                 \$("input#pattern").val(pattern);
             }
@@ -54,8 +52,15 @@ $jsdef render_select(files, pattern):
     });    
 
     \$(function() {
-        \$("input#pattern").keyup(function() {
-            document.location.hash = "#" + \$("input#pattern").val();
+        \$("input#pattern").keyup(function(e) {
+            if (e.keyCode == 27) { // ESC
+                document.location.hash = "#";
+                e.preventDefault();            
+            }
+            else {
+                var val = \$("input#pattern").val();
+                document.location.hash = "#" + val;
+            }
         });
         
         var workspace = new FilesController();
