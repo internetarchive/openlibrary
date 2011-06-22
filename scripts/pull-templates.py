@@ -26,6 +26,8 @@ def write(path, text):
     dir = os.path.dirname(path)
     if not os.path.exists(dir):
         os.makedirs(dir)
+
+    text = text.replace("\r\n", "\n").replace("\r", "\n")
         
     f = open(path, "w")
     f.write(text.encode("utf-8"))
