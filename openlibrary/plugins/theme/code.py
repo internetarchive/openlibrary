@@ -97,13 +97,20 @@ class index(delegate.page):
     
     def GET(self):
         raise web.seeother("/theme/files")
-        
+
+class file_index(delegate.page):
+    path = "/theme/files"
+
+    def GET(self):
+        files = FilesList().files
+        return render_template("theme/files", files)
+
 class file_view(delegate.page):
-    path = "/theme/files(?:/(.*))?"
+    path = "/theme/files/(.+)"
     
     def delegate(self, path):
-        if path and not os.path.exists(path):
-            raise web.notfound()
+        if not os.path.isfile(path):
+            raise web.seeother("/theme/files#" + path)
 
         i = web.input(_method="GET")
         name = web.ctx.method.upper() + "_" + i.get("m", "view")
@@ -116,14 +123,8 @@ class file_view(delegate.page):
     GET = POST = delegate
     
     def GET_view(self, path):
-        fileslist = FilesList()
-        if path is None:
-            return render_template("theme/files", "", fileslist)
-        elif os.path.isdir(path):
-            return render_template("theme/files", path, fileslist)
-        else:
-            text = open(path).read()
-            return render_template("theme/viewfile", path, text)
+        text = open(path).read()
+        return render_template("theme/viewfile", path, text)
 
     def GET_edit(self, path):
         text = open(path).read()

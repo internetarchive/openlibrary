@@ -1,17 +1,9 @@
-$def with (path, files)
+$def with (files)
 
 <div id="contentHead">
-    <h2 id="files-header">$:render_template("theme/breadcrums", path)</h2>
-    
-    <div id="finder-header">
-        <h2 style="display: inline">files /</h2>
-        <input type="text" name="pattern" id="pattern" value="" style="width: 300px; border: none;"/>
-    </div>
+    <h1>Files</h1>
 </div>
 
-$if path:
-    $ path = path + "/"
-    
 $code:
     def contains(f, pattern):
         return pattern in f
@@ -32,72 +24,41 @@ $jsdef render_select(files, pattern):
     </ul>
 
 <div id="contentBody">
-    <div id="files">
-        <ul>
-        $for f in files.list(path):
-            <li><a href="$path$f">$f</a></li>
-        </ul>
+    <div id="finder-header" style="padding-bottom: 20px;">
+        <form class="olform">
+        <input type="text" name="pattern" id="pattern" value="" placeholder="Start typing here to filter the file list" autofocus style="width: 100%;"/>
+        </form>
     </div>
     
-    <a href="#select" id="link-select" class="hidden"></a>
-    <div id="finder" class="hidden">
-        <ul>
-        $for f in files.list(recursive=True):
-            <li><a href="/theme/files/$f">$f</a></li>
-        </ul>
+    <div id="finder-body">
+        $:render_select(files, "")
     </div>
 </div>
 
 <script type="text/javascript">
-    var select_mode = false;
+    var files = $:json_encode(files);
     
-    var Workspace = Backbone.Controller.extend({
+    var FilesController = Backbone.Controller.extend({
         routes: {
-            "select": "select_view",
-            "*foo": "regular_view"
+            "*pattern": "filter"
         },
-        select_view: function() {
-            select_mode = true;
-            \$("#files-header").hide();
-            \$("#files").hide();
+        filter: function(pattern) {
+            console.log(["filter", pattern]);
             
-            \$("#finder-header").show();
-            \$("#finder").show();
-            \$("#pattern").focus();
-        },
-        regular_view: function() {
-            select_mode = false;
-            \$("#finder-header").hide();
-            \$("#finder").hide();
-
-            \$("#files-header").show();
-            \$("#files").show();
-        }
-    });
-    
-    var _files = $:json_encode(files.list(recursive=True));
-    
-    \$(function() {
-        \$(document).bind("keydown", function(e) {
-            if (!e.altKey && !e.ctrlKey && !e.metaKey) {
-                if (e.keyCode == 84 && !select_mode) { // t
-                    workspace.select_view();
-                    e.preventDefault();
-                }
-                else if (e.keyCode == 27) { // ESC
-                    workspace.regular_view();
-                    e.preventDefault();
-                }
+            if (\$("input#pattern").val() != pattern) {
+                \$("input#pattern").val(pattern);
             }
+            
+            \$("#finder-body").html(render_select(files, pattern));
+        }
+    });    
+
+    \$(function() {
+        \$("input#pattern").keyup(function() {
+            document.location.hash = "#" + \$("input#pattern").val();
         });
         
-        \$("#pattern").keydown(function() {
-            var pattern = \$("#pattern").val();
-            \$("#finder").html(render_select(_files, pattern));
-        });
-        
-        var workspace = new Workspace();
+        var workspace = new FilesController();
         Backbone.history.start();
     });
-    
 </script>
