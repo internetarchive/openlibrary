@@ -2,14 +2,15 @@ import os
 import re
 import web
 import simplejson
+import logging
 
 from infogami.utils import delegate
 from infogami.utils.view import render_template, add_flash_message
 from collections import defaultdict
 
-class Git:
-    def status(self):
-        pass
+from .git import Git
+
+logger = logging.getLogger("openlibrary.theme")
 
 def find_files(root, filter):
     '''Find all files that pass the filter function in and below
@@ -89,8 +90,8 @@ class file_view(delegate.page):
         raise web.seeother(web.ctx.path)
 
 class gitview(delegate.page):
-    path = "/theme/git"
+    path = "/theme/modified"
     
     def GET(self):
         git = Git()
-        return render_template("theme/git", git)
+        return render_template("theme/git", git.modified())

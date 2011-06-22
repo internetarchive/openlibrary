@@ -1,0 +1,22 @@
+$def with (modified)
+
+<div id="contentHead">
+    <h1>Modifications</h1>
+</div>
+
+<style type="text/css">
+.gd { background: #FDD; }
+.gi { background: #DFD; }
+.gu { color: #AAA; }
+</style>
+
+<div id="contentBody">
+    $for f in modified:
+        <div class="file">
+            <h2>$f.name</h2>
+            <pre class="diff">$:f.htmldiff</pre>
+        </div>
+</div>
+
+<script type="text/javascript">
+</script>
