@@ -69,7 +69,19 @@ def main(config_file):
         fetch_and_update(conn)
         conn.close()
         conn.logout()
+        return 0
+    except KeyboardInterrupt:
+        logger.info("User interrupt. Aborting")
+        conn.close()
+        conn.logout()
+        return -1
+    except Error:
+        logger.info("Abnormal termination")
+        return -2
 
 if __name__ == "__main__":
     import sys
-    sys.exit(main())
+    if len(sys.argv) != 2:
+        print "Usage : python fetchmail.py <password file>"
+        sys.exit(-2)
+    sys.exit(main(sys.argv[1]))
