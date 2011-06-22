@@ -1,8 +1,7 @@
-
 body#user, 
 body#user div.siteSearch.darker 
 {
-    background: #CCBBBB;
+    background: #99AA99;
 }
 
 body#user div#background, 
@@ -12,5 +11,5 @@ body#user div#headerNav,
 body#user div#headerLogo,
 body#user div#headerTools
 {
-    background: #FFDDDD;
+    background: #BBCCBB;
 }
