@@ -297,7 +297,12 @@ def add_cover(cover_url, ekey):
         'ip': web.ctx.ip,
     }
     for attempt in range(5):
-        res = urllib.urlopen(upload_url, urllib.urlencode(params))
+        try:
+            res = urllib.urlopen(upload_url, urllib.urlencode(params))
+        except IOError:
+            print 'retry, attempt', attempt
+            sleep(2)
+            continue
         body = res.read()
         if res.getcode() == 200 and body != '':
             break
