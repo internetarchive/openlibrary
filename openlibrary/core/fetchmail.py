@@ -68,7 +68,7 @@ def connect_to_admindb(config):
     
 
 def get_new_emails(conn):
-    typ, data = conn.search(None, 'ALL')
+    typ, data = conn.search(None, "ALL")
     logger.debug("Fetching new message headers")
     for num in data[0].split():
         typ, data = conn.fetch(num, '(RFC822)')
@@ -109,7 +109,7 @@ def fetch_and_update(imap_conn, db_conn = None):
 
 def fetchmail(config):
     try:
-        conn = set_up_imap_connection(config['email_config_file'])
+        conn = set_up_imap_connection(config.get('email_config_file'))
         db_conn = connect_to_admindb(config)
         fetch_and_update(conn, db_conn)
         conn.close()
