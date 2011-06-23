@@ -43,7 +43,7 @@ table pre.hidden {
 </script>
 
 <h2>Task information</h2>
-$if res['error']:
+$if 'error' in res:
   <em> The results of this task were not properly recorded. There was an error </em>
 <table>
 <tr>
