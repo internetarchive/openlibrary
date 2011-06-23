@@ -23,19 +23,24 @@ def connect_to_taskdb():
 def unpack_result(task):
     try:
         d = pickle.loads(task.result)
-        print d
         return dict(arguments = d['largs'] + d['kargs'],
                     command = d['command'],
                     started_at = d['started_at'],
                     result = d['result'],
                     log = d['log'])
-    except:
-        return dict()
+    except Exception,e:
+        return dict(arguments = "unknown",
+                    command = "unknown",
+                    started_at = datetime.datetime.now(),
+                    result = "unknown",
+                    log = "unknown",
+                    error = True)
 
 
 def massage_tombstones(dtasks):
     """Massages the database task tombstones into things that can be
     displayed by the /admin task templates"""
+    print "We're running with ", dtasks
     if not dtasks:
         raise StopIteration()
     else:
@@ -75,7 +80,7 @@ class tasklist(object):
         except Exception, e:
             return "Error in connecting to tombstone database"
         try:
-            completed_tasks = massage_tombstones(db.select('celery_taskmeta'))
+            completed_tasks = massage_tombstones(db.select('celery_taskmeta', order = "date_done desc", limit=100))
         except psycopg2.ProgrammingError,e:
             return "<p>The celery database has not been created. If this is the first time you're viewing this page, please refresh this page once celery completes a few tasks. The tombstone datbase will automatically be initialised</p>"
         inspector = inspect()
@@ -85,7 +90,7 @@ class tasklist(object):
         return render_template("admin/tasks/index", completed_tasks, active_tasks, reserved_tasks)
 
 
-class task(object):
+class tasks(object):
     def GET(self, taskid):
         try:
             db = connect_to_taskdb()

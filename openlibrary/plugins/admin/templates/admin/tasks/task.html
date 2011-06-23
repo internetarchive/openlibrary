@@ -43,6 +43,8 @@ table pre.hidden {
 </script>
 
 <h2>Task information</h2>
+$if res['error']:
+  <em> The results of this task were not properly recorded. There was an error </em>
 <table>
 <tr>
   <th> UUID </th>
