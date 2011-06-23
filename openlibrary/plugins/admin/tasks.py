@@ -7,6 +7,7 @@ import web
 from celery.task.control import inspect 
 from infogami.utils.view import render_template
 from infogami import config
+import psycopg2
 
 
 logger = logging.getLogger("admin.tasks")
@@ -15,6 +16,8 @@ logger = logging.getLogger("admin.tasks")
 def connect_to_taskdb():
     import celeryconfig
     return web.database(**celeryconfig.OL_RESULT_DB_PARAMETERS)
+
+
 
 
 def unpack_result(task):
@@ -48,6 +51,7 @@ def massage_tombstones(dtasks):
 def massage_taskslists(atasks):
     """Massage the output of the celery inspector into a format that
     can be printed by our template"""
+
     def _start_time(task):
         try:
             return datetime.datetime.utcfromtimestamp(task['time_start'])
@@ -68,22 +72,24 @@ class tasklist(object):
     def GET(self):
         try:
             db = connect_to_taskdb()
-            completed_tasks = massage_tombstones(db.select('celery_taskmeta'))
-            
-            inspector = inspect()
-            active_tasks = massage_taskslists(inspector.active())
-            reserved_tasks = massage_taskslists(inspector.reserved())
-            
-            return render_template("admin/tasks/index", completed_tasks, active_tasks, reserved_tasks)
         except Exception, e:
-            print e
             return "Error in connecting to tombstone database"
+        try:
+            completed_tasks = massage_tombstones(db.select('celery_taskmeta'))
+        except psycopg2.ProgrammingError,e:
+            return "<p>The celery database has not been created. If this is the first time you're viewing this page, please refresh this page once celery completes a few tasks. The tombstone datbase will automatically be initialised</p>"
+        inspector = inspect()
+        active_tasks = massage_taskslists(inspector.active())
+        reserved_tasks = massage_taskslists(inspector.reserved())
+
+        return render_template("admin/tasks/index", completed_tasks, active_tasks, reserved_tasks)
+
 
 class task(object):
     def GET(self, taskid):
         try:
             db = connect_to_taskdb()
-            q = "SELECT * FROM celery_taskmeta WHERE task_id = '%(taskid)s'"%dict(taskid = taskid) #TBD (VERY BAD!!)
+            q = "SELECT * FROM celery_taskmeta WHERE task_id = '%(taskid)s'"%dict(taskid = taskid) 
             ret = db.query(q)
             if not ret:
                 return "No such task"

@@ -13,6 +13,8 @@ support_db = None
 
 class contact(delegate.page):
     def GET(self):
+        if not support_db:
+            return "The Openlibrary support system is currently offline. Please try again later."
         i = web.input(path=None)
         email = context.user and context.user.email
         return render_template("support", email=email, url=i.path)
@@ -38,6 +40,8 @@ class contact(delegate.page):
         return render_template("support", done = True)
 
     def POST_new(self):
+        if not support_db:
+            return "Couldn't initialise connection to support database"
         form = web.input()
         email = form.get("email", "")
         topic = form.get("topic", "")
@@ -51,11 +55,15 @@ class contact(delegate.page):
                                subject           = topic,
                                description       = description,
                                url               = url,
-                               assignee          = "mary@archive.org") # TBD. This has to be dynamic
+                               assignee          = "mary@archive.org")
         return render_template("support", done = True)
 
 
 def setup():
     global support_db
-    support_db = S.Support()
+    try:
+        support_db = S.Support()
+    except S.DatabaseConnectionError:
+        support_db = None
+
 
