@@ -41,7 +41,6 @@ def imap_remove_delete_flag(imap_conn, messageid):
     imap_conn.store(messageid, "-FLAGS", r'(\Deleted \Seen)')
 
 
-
 def set_up_imap_connection(config_file):
     try:
         c = ConfigParser.ConfigParser()
@@ -61,10 +60,8 @@ def set_up_imap_connection(config_file):
         raise Error(str(e))
 
 
-def connect_to_admindb(config_file):
-    f = open(config_file)
-    d = yaml.load(f)
-    db = d.get("admin",{}).get("admin_db",None)
+def connect_to_admindb(config):
+    db = config.get("admin",{}).get("admin_db",None)
     logger.debug("Connected to couch db : %s", db)
     support_db = support.Support(couchdb.Database(db))
     return support_db
@@ -108,12 +105,12 @@ def fetch_and_update(imap_conn, db_conn = None):
             imap_move_to_folder(imap_conn, messageid, "Rejected")
     logger.debug("Expunging deleted messages")
     imap_conn.expunge()
-        
-        
-def main(pw_file, ol_config_file):
+
+
+def fetchmail(config):
     try:
-        conn = set_up_imap_connection(pw_file)
-        db_conn = connect_to_admindb(ol_config_file)
+        conn = set_up_imap_connection(config['email_config_file'])
+        db_conn = connect_to_admindb(config)
         fetch_and_update(conn, db_conn)
         conn.close()
         conn.logout()
@@ -126,10 +123,14 @@ def main(pw_file, ol_config_file):
     except Error:
         logger.info("Abnormal termination")
         return -2
+        
+def main(ol_config_file):
+    config = yaml.load(open(ol_config_file))
+    fetchmail(config)
 
 if __name__ == "__main__":
     import sys
-    if len(sys.argv) != 3:
-        print "Usage : python fetchmail.py <password file> <openlibrary config file>"
+    if len(sys.argv) != 2:
+        print "Usage : python fetchmail.py <openlibrary config file>"
         sys.exit(-2)
     sys.exit(main(*sys.argv[1:]))

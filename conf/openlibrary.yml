@@ -71,6 +71,7 @@ css_root: /upstream/css
 js_root: /upstream/js
 use_google_cdn: false
 logging_config_file: conf/logging.ini
+email_config_file: conf/email.ini
 
 lists:
     seeds_db: http://127.0.0.1:5984/seeds
