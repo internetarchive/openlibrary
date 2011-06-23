@@ -601,7 +601,7 @@ def _get_blog_feeds():
         )
     return [parse_item(item) for item in tree.findall("//item")]
     
-_get_blog_feeds = web.memoize(_get_blog_feeds, expires=5*60, background=True)
+_get_blog_feeds = cache.memcache_memoize(_get_blog_feeds, key_prefix="upstream._get_blog_feeds", timeout=5*60)
 
 @public
 def get_blog_feeds():
