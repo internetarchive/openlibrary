@@ -1,7 +1,7 @@
 import re
 import email
 import imaplib
-import logging
+import logging as Logging
 import logging.config
 import ConfigParser
 
@@ -9,16 +9,31 @@ import ConfigParser
 subject_re = re.compile("^(R[Ee]:)? ?Case #([0-9]+): .*")
 
 logging.config.fileConfig("conf/logging.ini")
-logger = logging.getLogger("openlibrary.fetchmail")
+logger = Logging.getLogger("openlibrary.fetchmail")
 
 class Error(Exception): pass
 
+# Utility functions for the imap coneection
 def parse_imap_response(response):
     code, body = response
     message = email.message_from_string(body)
-    logger.debug("Message parsed : %s ", code)
-    logger.debug("Subject : %s", message.get('Subject',"None"))
-    return code, message
+    logger.debug("Message parsed : %s (Subject : %s)", code, message.get('Subject',""))
+    messageid = code.split()[0]
+    return messageid, message
+
+def imap_reset_to_unseen(imap_conn, messageid):
+    logger.debug(" Resetting %s to unseen", messageid)
+    imap_conn.store(messageid, "-FLAGS", r'(\Seen)')
+
+def imap_mark_for_deletion(imap_conn, messageid):
+    logger.debug(" Marking %s for deletion", messageid)
+    imap_conn.store(messageid, "+FLAGS", r'(\Deleted)')
+
+def imap_remove_delete_flag(imap_conn, messageid):
+    logger.debug(" Removing deletion flag on  %s ", messageid)
+    imap_conn.store(messageid, "-FLAGS", r'(\Deleted \Seen)')
+
+
 
 def set_up_imap_connection(config_file):
     try:
@@ -29,38 +44,47 @@ def set_up_imap_connection(config_file):
         conn = imaplib.IMAP4_SSL("mail.archive.org")
         conn.login(username, password)
         conn.select("INBOX")
-        logger.info("Connected to IMAP server and INBOX selected")
+        logger.info("Connected to IMAP server")
         typ, data =  conn.status("INBOX", "(MESSAGES)")
         if typ == "OK":
-            logger.info("INBOX selected - %s", data)
+            logger.info(" INBOX selected - status:%s", data)
         return conn
     except imaplib.IMAP4.error, e:
-        logging.critical("Connection setup failure : credentials (%s, %s)", username, password, exc_info = True)
+        logger.critical("Connection setup failure : credentials (%s, %s)", username, password, exc_info = True)
         raise Error(str(e))
 
 
 def get_new_emails(conn):
-    typ, data = conn.search(None, 'ALL')
+    typ, data = conn.search(None, 'UNSEEN')
+    logger.debug("Fetching new message headers")
     for num in data[0].split():
         typ, data = conn.fetch(num, '(RFC822)')
         if typ != "OK":
             logger.warn("Message %s reported non okay status - %s", num, typ)
-        else:
-            code, message = parse_imap_response(data[0]) # Parse the one email we've fetched
-        yield message
+        yield data[0]
 
-def update_support_db(message, db):
-    m = subject_re.search(message['Subject'])
-    if m:
-        d, caseid = m.groups()
-        logger.debug(" Updating case %s", caseid)
-    else:
-        logger.debug(" Ignoring message")
+
+def update_support_db(message, caseid, db):
+    pass
     
-
 def fetch_and_update(imap_conn, db_conn = None):
-    for i in get_new_emails(imap_conn):
-        update_support_db(i, db_conn)
+    for resp in get_new_emails(imap_conn):
+        messageid, message = parse_imap_response(resp)
+        m = subject_re.search(message['Subject'])
+        if m:
+            _, caseid = m.groups()
+            logger.debug(" Updating case %s", caseid)
+            try:
+                update_support_db(message.get_payload(), caseid, db_conn)
+                imap_mark_for_deletion(imap_conn, messageid)
+            except Exception:
+                logger.warning(" Couldn't update case. Resetting message", exc_info = True)
+                imap_remove_delete_flag(imap_conn, messageid)
+        else:
+            logger.debug(" Ignoring message and resetting to unread")
+            imap_reset_to_unseen(imap_conn, messageid)
+    logger.debug("Expunging deleted messages")
+    imap_conn.expunge()
         
         
 def main(config_file):
