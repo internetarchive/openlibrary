@@ -1,5 +1,6 @@
 body#user, 
-body#user div.siteSearch.darker 
+body#user div.siteSearch.darker,
+#headerLogin #headerUserOpen
 {
     background: #99AA99;
 }
