@@ -299,8 +299,7 @@ def add_cover(cover_url, ekey):
     for attempt in range(5):
         res = urllib.urlopen(upload_url, urllib.urlencode(params))
         body = res.read()
-        assert res.getcode() == 200
-        if body != '':
+        if res.getcode() == 200 and body != '':
             break
         print 'retry, attempt', attempt
         sleep(2)
