@@ -350,6 +350,10 @@ class ReadProcessor:
             if sub_result:
                 result[result_key] = sub_result
 
+        if self.options.get('debug_items'):
+            result['ekeys'] = ekeys
+            result['eds'] = eds
+
         return result
 
 
