@@ -117,7 +117,7 @@ def load_data(rec):
         q = build_query(rec)
     except InvalidLanguage as e:
         return {
-            'success': True,
+            'success': False,
             'error': str(e),
         }
     edits = []
