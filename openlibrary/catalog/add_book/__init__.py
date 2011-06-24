@@ -305,10 +305,12 @@ def add_cover(cover_url, ekey):
             continue
         body = res.read()
         if res.getcode() == 200 and body != '':
-            break
+            reply = json.loads(body)
+            if 'id' in reply:
+                break
         print 'retry, attempt', attempt
         sleep(2)
-    cover_id = int(json.loads(body)['id'])
+    cover_id = int(reply['id'])
     return cover_id
 
 def load(rec):
