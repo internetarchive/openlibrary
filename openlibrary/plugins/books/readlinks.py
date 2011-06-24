@@ -4,6 +4,7 @@ editions of the same work that might be available.
 """
 import sys
 import urllib
+import re
 
 import web
 from openlibrary.core import inlibrary
@@ -109,10 +110,8 @@ class ReadProcessor:
             self.inlibrary = inlibrary.get_library()
         return self.inlibrary
         
-    def get_readitem(self, iaid, orig_iaid, orig_ekey, wkey, subjects):
-        meta = self.iaid_to_meta[iaid]
-        collections = meta.get("collection", [])
-        status = ''
+
+    def get_item_status(self, ekey, collections, subjects):
         if 'lendinglibrary' in collections:
             if not 'Lending library' in subjects:
                 status = 'restricted'
@@ -129,13 +128,27 @@ class ReadProcessor:
             status = 'restricted'
         else:
             status = 'full access'
-        if status == 'restricted' and not self.options.get('show_all_items'):
+
+        if status == 'lendable':
+            loanstatus =  web.ctx.site.store.get('ebooks' + ekey, {'borrowed': 'false'})
+            if loanstatus['borrowed'] == 'true':
+                status = 'checked out'
+
+        return status
+
+
+    def get_readitem(self, iaid, orig_iaid, orig_ekey, wkey, status, publish_date):
+        meta = self.iaid_to_meta[iaid]
+        collections = meta.get("collection", [])
+
+        if status == 'missing':
+            return None
+
+        if status == 'restricted' or status == 'checked out' and not self.options.get('show_all_items'):
             return None
 
         edition = self.iaid_to_ed.get(iaid)
-        if edition is None:
-            return None
-        ekey = edition['key']
+        ekey = edition.get('key', '')
 
         if status == 'full access':
             itemURL = 'http://www.archive.org/stream/%s' % (iaid)
@@ -144,18 +157,15 @@ class ReadProcessor:
             itemURL = u'http://openlibrary.org%s/%s/borrow' % (ekey,
                                                                helpers.urlsafe(edition.get('title',
                                                                                            'untitled')))
-        if status == 'lendable':
-            loanstatus =  web.ctx.site.store.get('ebooks' + ekey, {'borrowed': 'false'})
-            if loanstatus['borrowed'] == 'true':
-                status = 'checked out'
-
         result = {
+            # XXX add lastUpdate
             'enumcron': False,
             'match': 'exact' if iaid == orig_iaid else 'similar',
             'status': status,
             'fromRecord': orig_ekey,
             'ol-edition-id': key_to_olid(ekey),
             'ol-work-id': key_to_olid(wkey),
+            'publishDate': publish_date,
             'contributor': '',
             'itemURL': itemURL,
             }
@@ -172,6 +182,8 @@ class ReadProcessor:
 
         return result
 
+    date_pat = r'\D*(\d\d\d\d)\D*'
+    date_re = re.compile(date_pat)
 
     def make_record(self, bib_keys):
         # XXX implement hathi no-match logic?
@@ -210,11 +222,57 @@ class ReadProcessor:
             iaids = []
         orig_ekey = data['key']
 
-        items = [self.get_readitem(iaid, orig_iaid, orig_ekey, wkey, subjects)
-                 for iaid in iaids]
+        # Sort iaids.  Is there a more concise way?
+
+        def getstatus(self, iaid):
+            meta = self.iaid_to_meta[iaid]
+            collections = meta.get("collection", [])
+            edition = self.iaid_to_ed.get(iaid)
+            if not edition:
+                status = 'missing'
+            else:
+                ekey = edition.get('key', '')
+                status = self.get_item_status(ekey, collections, subjects)
+            return status
+
+        def getdate(self, iaid):
+            edition = self.iaid_to_ed.get(iaid)
+            if edition:
+                m = self.date_re.match(edition.get('publish_date', ''))
+                if m:
+                    return m.group(1)
+            return ''
+
+        iaids_tosort = [(iaid, getstatus(self, iaid), getdate(self, iaid))
+                        for iaid in iaids]
+
+        def sortfn(sortitem):
+            iaid, status, date = sortitem
+            # sort dateless to end
+            if date == '':
+                date = 5000
+            date = int(date)
+            # reverse-sort modern works by date
+            if status == 'lendable' or status == 'checked out':
+                date = 10000 - date
+            statusvals = { 'full access': 1,
+                           'lendable': 2,
+                           'checked out': 3,
+                           'restricted': 4,
+                           'missing': 5 }
+            return (statusvals[status], date)
+
+        iaids_tosort.sort(key=sortfn)
+
+        items = [self.get_readitem(iaid, orig_iaid, orig_ekey, wkey, status, date)
+                 for iaid, status, date in iaids_tosort] # if status != 'missing'
         items = [item for item in items if item]
 
         ids = data.get('identifiers', {})
+        if self.options.get('no_data'):
+            returned_data = None
+        else:
+            returned_data = data
         result = {'records':
             { data['key']:
                   { 'isbns': sum((ids.get('isbn_10', []), ids.get('isbn_13', [])), []),
@@ -224,10 +282,13 @@ class ReadProcessor:
                     'olids': [ key_to_olid(data['key']) ],
                     'publishDates': [ data.get('publish_date', '') ],
                     'recordURL': data['url'],
-                    'data': data,
+                    'data': returned_data,
                     'details': details,
                     } },
             'items': items }
+
+        if self.options.get('debug_items'):
+            result['tosort'] = iaids_tosort
         return result
 
 
@@ -256,11 +317,22 @@ class ReadProcessor:
         iaids = sum(self.wkey_to_iaids.values(), [])
         self.iaid_to_meta = dict((iaid, ia.get_meta_xml(iaid)) for iaid in iaids)
 
-        query = {
-            'type': '/type/edition',
-            'ocaid': iaids,
-        }
-        ekeys = web.ctx.site.things(query)
+        def lookup_iaids(iaids):
+            step = 10
+            if len(iaids) > step:
+                result = []
+                while iaids:
+                    result += lookup_iaids(iaids[:step])
+                    iaids = iaids[step:]
+                return result
+            query = {
+                'type': '/type/edition',
+                'ocaid': iaids,
+            }
+            result = web.ctx.site.things(query)
+            return result
+
+        ekeys = lookup_iaids(iaids)
 
         # If returned order were reliable, I could skip the below.
         eds = dynlinks.ol_get_many_as_dict(ekeys)
@@ -288,6 +360,11 @@ class ReadProcessor:
             sub_result = self.make_record(bib_keys)
             if sub_result:
                 result[result_key] = sub_result
+
+        if self.options.get('debug_items'):
+            result['ekeys'] = ekeys
+            result['eds'] = eds
+            result['iaids'] = iaids
 
         return result
 
