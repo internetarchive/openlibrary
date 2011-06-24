@@ -353,6 +353,7 @@ class ReadProcessor:
         if self.options.get('debug_items'):
             result['ekeys'] = ekeys
             result['eds'] = eds
+            result['iaids'] = iaids
 
         return result
 
