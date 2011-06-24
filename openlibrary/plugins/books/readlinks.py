@@ -317,11 +317,22 @@ class ReadProcessor:
         iaids = sum(self.wkey_to_iaids.values(), [])
         self.iaid_to_meta = dict((iaid, ia.get_meta_xml(iaid)) for iaid in iaids)
 
-        query = {
-            'type': '/type/edition',
-            'ocaid': iaids,
-        }
-        ekeys = web.ctx.site.things(query)
+        def lookup_iaids(iaids):
+            step = 10
+            if len(iaids) > step:
+                result = []
+                while iaids:
+                    result += lookup_iaids(iaids[:step])
+                    iaids = iaids[step:]
+                return result
+            query = {
+                'type': '/type/edition',
+                'ocaid': iaids,
+            }
+            result = web.ctx.site.things(query)
+            return result
+
+        ekeys = lookup_iaids(iaids)
 
         # If returned order were reliable, I could skip the below.
         eds = dynlinks.ol_get_many_as_dict(ekeys)
