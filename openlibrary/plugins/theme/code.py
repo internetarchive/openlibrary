@@ -52,6 +52,10 @@ class file_index(delegate.page):
     path = "/theme/files"
 
     def GET(self):
+        user = web.ctx.site.get_user()
+        if user is None or not user.is_admin():
+            return render_template("permission_denied", "Permission denied.")
+        
         files = list_files()
         return render_template("theme/files", files)
 
