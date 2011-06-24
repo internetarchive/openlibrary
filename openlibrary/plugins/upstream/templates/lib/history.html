@@ -12,7 +12,8 @@ $ versions = h.recent + h.initial
     <h2 class="collapse">
         $_("History")
     
-        <span class="title">$_("Created %s", datestr(h.initial[0].created)) &middot; </span>
+        $if h.initial:
+            <span class="title">$_("Created %s", datestr(h.initial[0].created)) &middot; </span>
         $if page.url:
             $ url = page.url(m='history')
         $else:
@@ -24,11 +25,15 @@ $ versions = h.recent + h.initial
         $if page.key.startswith("/works") or page.key.startswith("/books") or page.key.startswith("/authors"): 
             $ rdf = page.key + ".rdf"
             $ json = page.key + ".json"
+            $ opds = page.key + ".opds"
             <div id="historyTools" class="smaller brown sansserif" style="float:right;padding-top:8px;">
                 Download catalog record:
                 <a href="$rdf">RDF</a>
                 /
                 <a href="$json">JSON</a>
+                $if page.key.startswith("/books"):
+                    /
+                    <a href="$opds">OPDS</a>
             </div>
 
     </h2>

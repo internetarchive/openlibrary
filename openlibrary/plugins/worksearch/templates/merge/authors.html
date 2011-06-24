@@ -117,7 +117,10 @@ $if formdata:
                     </label>
                     <ul>
                     $for doc in top['books']:
-                        <li><a href="/works/$doc.key" target="new" title="Open in a new window">$doc.title</a> <span class="smaller">$doc.edition_count edition$("s" if doc.edition_count != 1 else "")</small></li>
+                        <li><a href="/works/$doc.key" target="new" title="Open in a new window">$doc.title</a> <span class="smaller">$doc.edition_count edition$("s" if doc.edition_count != 1 else ""),
+                        $if doc.get('first_publish_year'):
+                            <span title="First published in">$doc.first_publish_year</span>
+                        </span></li>
                     </ul>
                 </div>
                 <div class="data count">

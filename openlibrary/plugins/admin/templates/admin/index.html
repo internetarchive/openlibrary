@@ -16,7 +16,13 @@ $ stats = get_admin_stats()
 
 <div id="contentHead">
     <h1>$_("Admin Center")</h1>
-    $:render_template("admin/menu", "/admin")
+	<div class="small">
+	    <a href="http://monitor.us.archive.org/cgi-bin/nagios3/status.cgi?hostgroup=24.openlibrary&style=detail">Nagios</a>
+	    | <a href="/admin/block">Block IPs</a>
+	    | <a href="/admin/loans">Loans</a>
+	    | <a href="/admin/status">Services</a>
+	    | <a href="/admin/support">Support</a>
+	</div>
 </div>
 <div id="contentBody">
 
@@ -73,9 +79,9 @@ $ stats = get_admin_stats()
             <h2>Members</h2>
         </div>
         <div class="chartHolder">
-	  <div class="chartDisplay">
+	  <div class="chartDisplay">	
 	    <div id="membergraph" style="width:430px;height:50px;">
-		<!-- Member graphs go here -->
+	      <!-- Member graphs go here -->
 	    </div>
 	  </div>
         </div>
@@ -147,74 +153,52 @@ $ stats = get_admin_stats()
             <td>Editions</td>
             <td class="amount">$commify(counts.editions.get_summary(7))</td> 
             <td class="amount">$commify(counts.editions.get_summary(28))</td>
-            <td><div class="sparkDisplay"><div id="editions_minigraph" style="width:142px;height:25px;"></div></div></td>
+            <td><div class="sparkDisplay"><div id="editions_minigraph" style="width:200px;height:35px;"></div></div></td>
             <td class="amount">$commify(counts.editions.total)</td>    
         </tr>
         <tr class="major">
             <td>eBooks</td>
             <td class="amount">$commify(counts.ebooks.get_summary(7))</td> 
             <td class="amount">$commify(counts.ebooks.get_summary(28))</td>
-            <td><div class="sparkDisplay"><div id="ebooks_minigraph" style="width:142px;height:25px;"></div></div></td>
+            <td><div class="sparkDisplay"><div id="ebooks_minigraph" style="width:200px;height:35px;"></div></div></td>
             <td class="amount">$commify(counts.ebooks.total)</td>    
         </tr>
         <tr class="major even">
             <td>Covers</td>
             <td class="amount">$commify(counts.covers.get_summary(7))</td> 
             <td class="amount">$commify(counts.covers.get_summary(28))</td>
-            <td><div class="sparkDisplay"><div id="covers_minigraph" style="width:142px;height:25px;"></div></div></td>
+            <td><div class="sparkDisplay"><div id="covers_minigraph" style="width:200px;height:35px;"></div></div></td>
             <td class="amount">$commify(counts.covers.total)</td>    
         </tr>
         <tr class="major">
             <td>Authors</td>
             <td class="amount">$commify(counts.authors.get_summary(7))</td> 
             <td class="amount">$commify(counts.authors.get_summary(28))</td>
-            <td><div class="sparkDisplay"><div id="authors_minigraph" style="width:142px;height:25px;"></div></div></td>
+            <td><div class="sparkDisplay"><div id="authors_minigraph" style="width:200px;height:35px;"></div></div></td>
             <td class="amount">$commify(counts.authors.total)</td>    
         </tr>
         <tr class="major even">
             <td>Subjects</td>
             <td class="amount">$commify(counts.subjects.get_summary(7))</td> 
             <td class="amount">$commify(counts.subjects.get_summary(28))</td>
-            <td><div class="sparkDisplay"><div id="subjects_minigraph" style="width:142px;height:25px;"></div></div></td>
+            <td><div class="sparkDisplay"><div id="subjects_minigraph" style="width:200px;height:35px;"></div></div></td>
             <td class="amount">$commify(counts.subjects.total)</td>    
         </tr>
         <tr class="major">
             <td>Lists</td>
             <td class="amount">$commify(counts.lists.get_summary(7))</td> 
             <td class="amount">$commify(counts.lists.get_summary(28))</td>
-            <td><div class="sparkDisplay"><div id="lists_minigraph" style="width:142px;height:25px;"></div></div></td>
+            <td><div class="sparkDisplay"><div id="lists_minigraph" style="width:200px;height:35px;"></div></div></td>
             <td class="amount">$commify(counts.lists.total)</td>    
         </tr>
         <tr class="major even">
             <td>Members</td>
             <td class="amount">$commify(counts.members.get_summary(7))</td>
             <td class="amount">$commify(counts.members.get_summary(28))</td>
-            <td><div class="sparkDisplay"><div id="members_minigraph" style="width:142px;height:25px;"></div></div></td>
+            <td><div class="sparkDisplay"><div id="members_minigraph" style="width:200px;height:35px;"></div></div></td>
             <td class="amount">$commify(counts.members.total)</td>
         </tr>
     </table>
-
-
-    <div class="clearfix"></div>
-
-    <div id="uniqueIps">
-        <div class="measurements">
-
-        <h3>Unique IPs</h3>
-            <div class="caption">Yesterday</div>
-            <div class="measure large"><strong>xxx</strong></div>
-            <div class="caption">Day</div>
-            <div class="measure large">xxx</div>
-            <div class="caption">Day</div>
-            <div class="measure">xxx</div>
-            <div class="caption">Day</div>
-            <div class="measure">xxx</div>
-        </div>
-        <div style="float:left;">
-            <div id="placeholder" style="width:680px;height:300px;"></div>
-            <div id="overview" style="margin-left:50px;margin-top:20px;width:400px;height:50px"></div>
-        </div>
-    </div>x
 
     <div class="clearfix"></div>
 

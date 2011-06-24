@@ -4,6 +4,7 @@
 *.mo
 var/
 usr/
+static/build/
 build/
 docs/api/openlibrary/
 docs/api/infogami/

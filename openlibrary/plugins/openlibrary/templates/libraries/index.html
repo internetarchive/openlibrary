@@ -44,12 +44,12 @@ $var title: $title
     //Set start centrepoint and zoom
     //TODO: Is it possible to just zoom to extents of defined markers instead?
     
-    var lonLat = new OpenLayers.LonLat( -101, 42)
+    var lonLat = new OpenLayers.LonLat(0, 0)
           .transform(
             new OpenLayers.Projection("EPSG:4326"), // transform from WGS 1984
             map.getProjectionObject() // to Spherical Mercator Projection
           );
-    var zoom=4;
+    var zoom=2;
     map.setCenter (lonLat, zoom); 
 
     OpenLayers.Feature.prototype.createPopup = function(closeBox){

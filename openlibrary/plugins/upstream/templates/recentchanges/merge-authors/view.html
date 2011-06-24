@@ -26,6 +26,7 @@ $ master = change.get_master()
                     $else:
                         ( - $master.death_date)
             </span>
+
         </div>
         
         <div class="smallest lightgreen">Duplicates</div>
@@ -35,6 +36,8 @@ $ master = change.get_master()
                     $dup.name;
             </p>
         </div>
+
+        <p class="smallest gray sansserif">$len(change.changes) records modified.</p>
     </div>
     
     <h3>Updated Records</h3>

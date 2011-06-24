@@ -20,12 +20,9 @@ $def with (comment=None)
     $:_('By saving a change to this wiki, you agree that your contribution is given freely to the world under <a href="http://wiki.creativecommons.org/CC0_FAQ">CC0</a>. Yippee!')
 </div>
 
-<div class="formElement collapse">
-    <div class="input">
-        <button type="submit" class="larger" name="_save" title="$_('Save')">$_("Save")</button>
-        &nbsp;
-        <a href="javascript:history.go(-1);" class="small attn plain">$_('Cancel')</a>
-        <button class="right" type="submit" value="$_('Delete Record')" name="delete" title="$_('Delete this record')" id="delete">$_("Delete Record")</button>
-        <input type="submit" name="_delete" value="Delete" style="display: none;"/>
-    </div>
+<div class="formElement">
+    <button type="submit" class="largest" name="_save" title="$_('Save')">$_("Save")</button>
+    &nbsp;
+    <a href="javascript:history.go(-1);" class="small attn plain">$_('Cancel')</a>
+    <span class="adminOnly right"><button type="submit" value="$_('Delete Record')" name="delete" title="$_('Delete this record')" id="delete">$_("Delete Record")</button></span>
 </div>

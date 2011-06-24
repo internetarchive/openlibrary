@@ -1,0 +1,73 @@
+$def with (files)
+
+<div id="contentHead">
+    <h1>Theme Editor</h1>
+    <div>
+        <strong>Files</strong>
+        | <a href="/theme/modified">Modifications</a>
+    </div>
+</div>
+
+$code:
+    def contains(f, pattern):
+        return pattern in f
+        
+<script type="text/javascript">
+function contains(f, pattern) {
+    return f.indexOf(pattern) >= 0;
+}
+</script>
+    
+$jsdef render_select(files, pattern): 
+    <ul>
+        $for f in files:
+            $if contains(f, pattern):
+                <li>
+                    <a href="/theme/files/$f">$f</a>
+                </li>
+    </ul>
+
+<div id="contentBody">
+    <div id="finder-header" style="padding-bottom: 20px;">
+        <form class="olform">
+        <input type="text" name="pattern" id="pattern" value="" placeholder="Start typing here to filter the file list" autofocus style="width: 100%;"/>
+        </form>
+    </div>
+    
+    <div id="finder-body">
+        $:render_select(files, "")
+    </div>
+</div>
+
+<script type="text/javascript">
+    var files = $:json_encode(files);
+    
+    var FilesController = Backbone.Controller.extend({
+        routes: {
+            "*pattern": "filter"
+        },
+        filter: function(pattern) {
+            if (\$("input#pattern").val() != pattern) {
+                \$("input#pattern").val(pattern);
+            }
+            
+            \$("#finder-body").html(render_select(files, pattern));
+        }
+    });    
+
+    \$(function() {
+        \$("input#pattern").keyup(function(e) {
+            if (e.keyCode == 27) { // ESC
+                document.location.hash = "#";
+                e.preventDefault();            
+            }
+            else {
+                var val = \$("input#pattern").val();
+                document.location.hash = "#" + val;
+            }
+        });
+        
+        var workspace = new FilesController();
+        Backbone.history.start();
+    });
+</script>

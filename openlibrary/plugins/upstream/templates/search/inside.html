@@ -1,7 +1,9 @@
-$def with (get_results, quote_snippet, edition_from_ia, read_from_archive)
+$def with (get_results, quote_snippet, editions_from_ia, read_from_archive)
 
 $ q = query_param('q')
+$ hl_phrase = bool(query_param('hl_phrase'))
 $ results_per_page = 20
+$ no_snippet = set(['printdisabled', 'lendinglibrary', 'browserlending'])
 $ page = query_param('page')
 $if page:
     $ page = int(page)
@@ -17,7 +19,7 @@ $var title: Search Open Library for $q
     </h1>
     $if q:
         $ search_start = time()
-        $ results = get_results(q, offset=offset, limit=results_per_page, snippets=3, fragsize=150)
+        $ results = get_results(q, offset=offset, limit=results_per_page, snippets=3, fragsize=150, hl_phrase=hl_phrase)
         $ search_secs = time() - search_start
     $if q and 'error' not in results:
         $ hl = results['highlighting']
@@ -51,7 +53,9 @@ $var title: Search Open Library for $q
 			<li>
 			$ authors = []
                         $ cover = '/images/icons/avatar_book-sm.png'
-			$ editions = edition_from_ia(ia)
+			$ editions = editions_from_ia(ia)
+                        $ item = read_from_archive(ia)
+                        $ collection = set(item.get('collection', []))
 			$if editions:
 				$ e = get_document(editions[0])
                                 $ key = e.key
@@ -67,7 +71,6 @@ $var title: Search Open Library for $q
 				$else:
                                     $ authors = e.authors
 			$else: 
-				$ item = read_from_archive(ia)
                                 $ title = item.get('title', 'no title for: ' + ia)
                                 $ cover = "http://www.archive.org/download/%s/page/cover_thumb.jpg" % ia
 				$ authors = item.get('creator', [])
@@ -94,15 +97,17 @@ $var title: Search Open Library for $q
 						by $', '.join(e.publishers)
 				$else:
 					<a href="http://www.archive.org/details/$ia">View on archive.org</a>
-				&bull; $doc['page_count'] pages 
-				&bull; <a href="/search/inside/$ia?q=$q">snippets in situ</a>
+				&bull; $doc['page_count'] pages
+				$if not (no_snippet & collection):
+					&bull; <a href="/search/inside/$ia?q=$q">snippets in situ</a>
 			    </span>
 			</span>
 			<span class="actions">
-				<a href="http://www.archive.org/stream/$ia#search/$q" title="$_('Open in online Book Reader. Downloads available in ePub, DAISY, PDF, TXT formats from main book page')">
-					<span class="image read"></span>
-					<span class="label">$_("Read")</span>
-				</a>                
+				$if not (no_snippet & collection):
+					<a href="http://www.archive.org/stream/$ia#search/$q" title="$_('Open in online Book Reader. Downloads available in ePub, DAISY, PDF, TXT formats from main book page')">
+						<span class="image read"></span>
+						<span class="label">$_("Read")</span>
+					</a>                
 			</span>
 			<div class="clearfix"></div>
 			$if ia in hl and 'body' in hl[ia]:
