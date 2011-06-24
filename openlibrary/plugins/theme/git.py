@@ -27,13 +27,13 @@ class Git:
     def status(self):
         """Returns the list of modified files.
         """
-        out = self.system("git status --short")
+        out = self.system("git status --short").stdout
         return [line.strip().split()[-1] for line in out.splitlines() if not line.startswith("??")]
         
     def diff(self, path):
         """
         """
-        return self.system("git diff " + path)
+        return self.system("git diff " + path).stdout
         
     def system(self, cmd, input=None):
         """Executes the command returns the stdout.
@@ -49,7 +49,7 @@ class Git:
         if status != 0:
             raise CommandError(status, err)
         else:
-            return out
+            return web.storage(cmd=cmd, stdout=out, stderr=err)
         
     def modified(self):
         def process(f):

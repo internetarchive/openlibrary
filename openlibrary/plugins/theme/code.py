@@ -102,8 +102,8 @@ class gitview(delegate.page):
         print >> web.debug, "POST", i
         
         git = Git()
-        commit_output = git.commit(i.files, author=self.get_author(), message=i.message or "Changes from dev.")
-        push_output = git.push()
+        commit = git.commit(i.files, author=self.get_author(), message=i.message or "Changes from dev.")
+        push = git.push()
         
         return render_template("theme/committed", commit_output, push_output)
 
