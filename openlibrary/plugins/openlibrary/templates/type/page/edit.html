@@ -1,32 +1,34 @@
 $def with (page)
 
-$ lang = i18n.get_locale() or 'en'
-$ _t = i18n.get_namespace('/type/page')
-$ _ = i18n.get_namespace('/mode/edit')
+$ _x = ctx.setdefault('bodyid', 'edit')
 
-$var title: $_.edit_title(page.key)
+$var title: $_("Edit %(title)s", title=page.title or page.key)
 
-<form name="edit" method="post" action="">
-<div id="slickbox" style="overflow: hidden">
+$:render_template("lib/edit_head", page)
+            
+<div id="contentBody">
+
+    <form name="edit" method="post" action="" class="olform">
+
+    <div class="formElement title">
+        <div class="label"><label for="title">$_("Title"):</label></div>
+        <div class="input">
+            <input type="text" name="title" value="$page.title" />
+        </div>
+    </div>
+
     $:macros.TypeChanger(page.type)
-</div>
 
-<div id="header">
-    <div style="float:left;padding-left:10px;padding-right:15px;"></div>
-    <span class="pretitle">$_.edit_pretitle:<br /></span>
-    <div id="title"> $page.title  
+    <div class="clearfix"></div>
+
+    <div class="formElement">
+        <div class="label"><label for="body">Document Body:</label></div>
+        <div class="input">
+            <textarea id="body" name="body" class="markdown" rows="15" cols="80">$page.body</textarea>
+        </div>
     </div>
-</div>
 
-<div id="form-border">
-    <div id="metadata-body">
-            <strong>$_t.title</strong>
-            <input type="text" name="title" value="$page.title" style="width:100%" />
-            <br/><br/>
-            <textarea name="body" rows="15" cols="80">$page.body</textarea>
-            $:macros.EditButtons()
-        $:macros.HelpFormatting()
-    </div>
-</div>
+    $:macros.EditButtons(comment=page.comment_)
 
-</form>
+    </form>
+</div>

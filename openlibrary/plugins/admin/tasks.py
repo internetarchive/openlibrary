@@ -7,6 +7,7 @@ import web
 from celery.task.control import inspect 
 from infogami.utils.view import render_template
 from infogami import config
+import psycopg2
 
 
 logger = logging.getLogger("admin.tasks")
@@ -17,22 +18,29 @@ def connect_to_taskdb():
     return web.database(**celeryconfig.OL_RESULT_DB_PARAMETERS)
 
 
+
+
 def unpack_result(task):
     try:
         d = pickle.loads(task.result)
-        print d
         return dict(arguments = d['largs'] + d['kargs'],
                     command = d['command'],
                     started_at = d['started_at'],
                     result = d['result'],
                     log = d['log'])
-    except:
-        return dict()
+    except Exception,e:
+        return dict(arguments = "unknown",
+                    command = "unknown",
+                    started_at = datetime.datetime.now(),
+                    result = "unknown",
+                    log = "unknown",
+                    error = True)
 
 
 def massage_tombstones(dtasks):
     """Massages the database task tombstones into things that can be
     displayed by the /admin task templates"""
+    print "We're running with ", dtasks
     if not dtasks:
         raise StopIteration()
     else:
@@ -48,6 +56,7 @@ def massage_tombstones(dtasks):
 def massage_taskslists(atasks):
     """Massage the output of the celery inspector into a format that
     can be printed by our template"""
+
     def _start_time(task):
         try:
             return datetime.datetime.utcfromtimestamp(task['time_start'])
@@ -68,22 +77,24 @@ class tasklist(object):
     def GET(self):
         try:
             db = connect_to_taskdb()
-            completed_tasks = massage_tombstones(db.select('celery_taskmeta'))
-            
-            inspector = inspect()
-            active_tasks = massage_taskslists(inspector.active())
-            reserved_tasks = massage_taskslists(inspector.reserved())
-            
-            return render_template("admin/tasks/index", completed_tasks, active_tasks, reserved_tasks)
         except Exception, e:
-            print e
             return "Error in connecting to tombstone database"
+        try:
+            completed_tasks = massage_tombstones(db.select('celery_taskmeta', order = "date_done desc", limit=100))
+        except psycopg2.ProgrammingError,e:
+            return "<p>The celery database has not been created. If this is the first time you're viewing this page, please refresh this page once celery completes a few tasks. The tombstone datbase will automatically be initialised</p>"
+        inspector = inspect()
+        active_tasks = massage_taskslists(inspector.active())
+        reserved_tasks = massage_taskslists(inspector.reserved())
 
-class task(object):
+        return render_template("admin/tasks/index", completed_tasks, active_tasks, reserved_tasks)
+
+
+class tasks(object):
     def GET(self, taskid):
         try:
             db = connect_to_taskdb()
-            q = "SELECT * FROM celery_taskmeta WHERE task_id = '%(taskid)s'"%dict(taskid = taskid) #TBD (VERY BAD!!)
+            q = "SELECT * FROM celery_taskmeta WHERE task_id = '%(taskid)s'"%dict(taskid = taskid) 
             ret = db.query(q)
             if not ret:
                 return "No such task"

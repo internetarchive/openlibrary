@@ -1,0 +1,22 @@
+$def with (path, text)
+
+<div id="contentHead">
+    <div id="editTools" class="edit">
+        <div id="editButton">
+            <button class="linkButton larger" name="$changequery(m=None)" title="View this file" accesskey="v">View</button>
+        </div>
+    </div>
+    
+    <h2 style="margin: 0; padding:0;">$:render_template("theme/breadcrums", path)</h2>
+</div>
+
+<div id="contentBody">
+    <form method="POST">
+        <textarea name="text" rows="20" cols="80" style="width: 100%">$text</textarea>
+        <br/>
+        <br/>
+        <input type="submit" name="submit" value="Save"/> 
+        &nbsp;
+        <a href="$changequery(m=None)" class="small red">Cancel</a>
+    </form>
+</div>

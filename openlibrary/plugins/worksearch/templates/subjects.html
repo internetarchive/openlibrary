@@ -20,6 +20,23 @@ $ subject_list = [('subjects', 20), ('places', 20), ('people', 10), ('times', 10
         
         <span class="count hidden smaller chartZoom"><a href="javascript:;" class="resetSelection small">$_("Clear this selection")</a></span>
     </h1>
+    <p class="collapse sansserif">
+    <span class="tools brown">
+        <img src="/images/icons/icon_sort.png" alt="Sorting by" width="9" height="11" style="margin-right:10px;"/>
+        Sort by:
+        <span id="sortByNew" style="display:none">
+        <a href="javascript:;" class="sortEditionCount"># of Editions</a>
+        |
+        <strong class="lightgreen">Most Recent Publish Date</strong>
+        </span>
+        <span id="sortByEdition">
+        <strong class="lightgreen"># of Editions</strong>
+        |
+        <a href="javascript:;" class="sortFirstPublish">Most Recent Publish Date</a>
+        </span>
+
+    </span>
+    </p>
 </div>
 
 <script type="text/javascript">
@@ -240,7 +257,7 @@ $:render_template("lib/covers", page)
 	        \$(".clickdata").text(sprintf(_("published in %s."), yearFrom));
 		}
 		else {
-	        \$(".clickdata").text(sprintf(_("published between %s & %s."), yearFrom, yearTo));
+	        \$(".clickdata").text(sprintf(_("published between %s & %s."), yearFrom, yearTo-1));
 		}
 		
 		set_hash(hash);
@@ -296,7 +313,7 @@ $:render_template("lib/covers", page)
     if (dateFrom == (dateTo - 1)) {
         \$(".clickdata").text("$_('published in') " + dateFrom);
     } else {
-        \$(".clickdata").text("$_('published between') " + dateFrom + " & " + dateTo + ".");
+        \$(".clickdata").text("$_('published between') " + dateFrom + " & " + (dateTo-1) + ".");
     };
     
     // ebooks
@@ -314,6 +331,23 @@ $:render_template("lib/covers", page)
         resetCounts();
         \$("#coversCount strong").animate({backgroundColor:'#ffa337'},500).animate({backgroundColor:'#fff'},2000);
     })
+
+    // sort
+
+    \$("a.sortEditionCount").live("click", function() {
+        page.setSort("editions");
+        \$("#sortByNew").hide()
+        \$("#sortByEdition").show()
+        resetCarousel();
+    })
+
+    \$("a.sortFirstPublish").live("click", function() {
+        page.setSort("new");
+        \$("#sortByNew").show()
+        \$("#sortByEdition").hide()
+        resetCarousel();
+    })
+
 
     // handle hash
     
@@ -506,7 +540,7 @@ $if "lists" in ctx.features:
 <form action="/search/subjects" class="olform">
     <h2 class="collapse"><label for="searchSubjects">Subject Search</label>  <span class="sansserif grey smaller">Try a keyword.</span></h2>
     <p>
-        <input type="text" name="q" id="searchSubjects" size="100" class="larger" value="" placeholder="Like 'Abraham Lincoln' or 'Argentina' or '1970'"/>
+        <input type="text" name="q" id="searchSubjects" size="100" class="larger" value="" />
         <button type="submit" class="larger">$_('Search')</button>
     </p>
 </form>

@@ -26,6 +26,8 @@ def write(path, text):
     dir = os.path.dirname(path)
     if not os.path.exists(dir):
         os.makedirs(dir)
+
+    text = text.replace("\r\n", "\n").replace("\r", "\n")
         
     f = open(path, "w")
     f.write(text.encode("utf-8"))
@@ -37,11 +39,16 @@ def delete(path):
         os.remove(path)
 
 def make_path(doc):
-    key = doc['key'].rsplit(".")[0]
-    key = web.lstrips(key, options.template_root)
-    
-    plugin = doc.get("plugin", options.default_plugin)
-    return "openlibrary/plugins/%s%s.html" % (plugin, key)
+    if doc['key'].endswith(".css"):
+        return "static/css/" + doc['key'].split("/")[-1]
+    elif doc['key'].endswith(".js"):
+        return "openlibrary/plugins/openlibrary/js/" + doc['key'].split("/")[-1]
+    else:
+        key = doc['key'].rsplit(".")[0]
+        key = web.lstrips(key, options.template_root)
+        
+        plugin = doc.get("plugin", options.default_plugin)
+        return "openlibrary/plugins/%s%s.html" % (plugin, key)
 
 def get_value(doc, property):
     value = doc.get(property, "")
@@ -66,6 +73,8 @@ def main():
                 write(make_path(doc), get_value(doc, 'body'))
             elif doc['type']['key'] == '/type/macro':
                 write(make_path(doc), get_value(doc, 'macro'))
+            elif doc['type']['key'] == '/type/rawtext':
+                write(make_path(doc), get_value(doc, 'body'))
             else:
                 delete(make_path(doc))
 

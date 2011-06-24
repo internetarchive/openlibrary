@@ -426,7 +426,7 @@ def setup():
     register_admin_page('/admin/support/case/(case-\d+)', support.case, label = "Support cases")
     register_admin_page('/admin/inspect(?:/(.+))?', inspect, label="")
     register_admin_page('/admin/tasks', tasks.tasklist, label = "Task queue")
-    register_admin_page('/admin/task/(.*)', tasks.task, label = "Task details")
+    register_admin_page('/admin/tasks/(.*)', tasks.tasks, label = "Task details")
 
     support.setup()
     import mem

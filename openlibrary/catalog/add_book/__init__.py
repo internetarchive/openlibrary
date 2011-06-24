@@ -7,6 +7,7 @@ from openlibrary.catalog.utils import mk_norm
 from pprint import pprint
 from collections import defaultdict
 from openlibrary.catalog.utils import flip_name
+from time import sleep
 
 re_normalize = re.compile('[^[:alphanum:] ]', re.U)
  
@@ -105,7 +106,7 @@ def new_work(q, rec, cover_id):
     if cover_id:
         w['covers'] = [cover_id]
     w['key'] = wkey
-
+    return w
 
 def load_data(rec):
     cover_url = None
@@ -162,8 +163,11 @@ def load_data(rec):
             assert w_dict and isinstance(w_dict, dict)
             edits.append(w_dict)
     else:
-        edits.append(new_work(q, rec, cover_id))
+        w = new_work(q, rec, cover_id)
+        wkey = w['key']
+        edits.append(w)
 
+    assert wkey
     q['works'] = [{'key': wkey}]
     q['key'] = ekey
     assert isinstance(q, dict)
@@ -293,13 +297,17 @@ def add_cover(cover_url, ekey):
         'ip': web.ctx.ip,
     }
     for attempt in range(5):
-        res = urllib.urlopen(upload_url, urllib.urlencode(params))
+        try:
+            res = urllib.urlopen(upload_url, urllib.urlencode(params))
+        except IOError:
+            print 'retry, attempt', attempt
+            sleep(2)
+            continue
         body = res.read()
-        assert res.getcode() == 200
-        if body != '':
+        if res.getcode() == 200 and body != '':
             break
         print 'retry, attempt', attempt
-        sleep(5)
+        sleep(2)
     cover_id = int(json.loads(body)['id'])
     return cover_id
 
@@ -337,17 +345,23 @@ def load(rec):
     if not match: # 'match found:', match, rec['ia']
         return load_data(rec)
 
+    need_work_save = False
+    need_edition_save = False
     w = None
     e = web.ctx.site.get(match)
     if e.works:
         w = e.works[0].dict()
         assert w and isinstance(w, dict)
+        work_created = False
     else:
+        work_created = True
+        need_work_save = True
         w = {
             'type': {'key': '/type/work'},
             'title': get_title(rec),
             'key': web.ctx.site.new_key('/type/work'),
         }
+        e.works = [{'key': w['key']}]
 
     reply = {
         'success': True,
@@ -356,8 +370,6 @@ def load(rec):
     }
 
     edits = []
-    need_work_save = False
-    need_edition_save = False
     if rec.get('authors'):
         reply['authors'] = []
         east = east_in_by_statement(rec)
@@ -375,7 +387,7 @@ def load(rec):
                 add_to_work = True
                 add_to_edition = True
             else:
-                if not any(i.author.key == a['key'] for i in work_authors):
+                if not any(i['author']['key'] == a['key'] for i in work_authors):
                     add_to_work = True
                 if not any(i.key == a['key'] for i in edition_authors):
                     add_to_edition = True
@@ -402,7 +414,7 @@ def load(rec):
             if s not in work_subjects:
                 work_subjects.append(s)
                 need_work_save = True
-        if need_work_save:
+        if need_work_save and work_subjects:
             w['subjects'] = work_subjects
     if 'ocaid' in rec:
         new = 'ia:' + rec['ocaid']
@@ -418,7 +430,7 @@ def load(rec):
         assert e_dict and isinstance(e_dict, dict)
         edits.append(e_dict)
     if need_work_save:
-        reply['work']['status'] = 'modified'
+        reply['work']['status'] = 'created' if work_created else 'modified'
         assert w and isinstance(w, dict)
         edits.append(w)
     if edits:

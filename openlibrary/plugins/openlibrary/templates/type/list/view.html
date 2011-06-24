@@ -1,0 +1,241 @@
+$def with (list)
+
+$var title: $list.name
+
+$jsdef render_seed_count(seed_count):
+    $ msg = ungettext("%s seed", "%s seeds", seed_count)
+    $:sprintf(msg, seed_count)
+    
+<div id="contentHead" style="margin-bottom:0;"> 
+
+    $:macros.databarView(list)
+ 
+    <div class="superNav">
+        $ owner = list.get_owner()
+        <a href="$owner.key">$owner.displayname</a>
+        / 
+        <a href="$owner.key/lists">Lists</a>
+    </div> 
+    <h1>
+        $list.name 
+        <span class="sansserif small black">
+            <strong id="seed-count">Seeds</strong>
+            &nbsp;|&nbsp;
+            <a href="$list.url('/editions')">Activity</a>
+        </span>
+    </h1>
+    <p class="collapse sansserif">
+        <span class="darkgreen"><strong>$:render_seed_count(len(list.seeds))</strong></span>
+    </p>
+</div>
+
+<script type="text/javascript">
+<!--
+\$().ready(function(){
+    \$('ul#listResults li:last').css('border-bottom','1px dotted #ebebeb');
+});
+
+function remove_seed(list_key, seed, success) {
+    if (seed[0] == "/") {
+        seed = {"key": seed}
+    }
+    
+    \$.ajax({
+        type: "POST",
+        url: list_key + "/seeds.json",
+        contentType: "application/json",
+        data: JSON.stringify({
+            "remove": [seed]
+        }),
+        dataType: "json",
+    
+        beforeSend: function(xhr) {
+            xhr.setRequestHeader("Content-Type", "application/json");
+            xhr.setRequestHeader("Accept", "application/json");
+        },
+        success: success
+    });
+}
+
+function get_seed_count() {
+    return \$("ul#listResults").children().length;
+}
+
+\$(function(){
+    \$(".listDelete a").click(function() {
+        var seed_id = \$(this).closest("li").attr("id");
+        
+        if (get_seed_count() > 1) {
+            \$("#remove-seed-dialog")
+                .data("seed-id", seed_id)
+                .dialog("open");
+        }
+        else {
+            \$("#delete-list-dialog").dialog("open");            
+        }
+            
+    });
+    
+    \$("#remove-seed-dialog").dialog({
+        autoOpen: false,
+        width: 400,
+        modal: true,
+        resizable: false,
+        buttons: {
+            "Yes, I'm sure": function() {
+                var list_key = $:json_encode(list.key);
+                var seed_id = "#" + \$(this).data("seed-id");
+                var seed = \$(seed_id).find("span.seed-key").html();
+                
+                var _this = this;
+                
+                remove_seed(list_key, seed, function() {
+                    \$(seed_id).remove();
+                    // update seed count
+                    \$("#seed-count").html(render_seed_count(get_seed_count()));
+
+                    // TODO: update edition count
+                    
+                    \$(_this).dialog("close");
+                });
+            },
+            "No, cancel": function() {
+                \$(this).dialog("close");
+            }
+        }
+    });
+    
+    \$("#delete-list-dialog").dialog({
+        autoOpen: false,
+        width: 400,
+        modal: true,
+        resizable: false,
+        buttons: {
+            "Yes, I'm sure": function() {
+                var list_key = $:json_encode(list.key);
+                var _this = this;
+                
+                \$.post(list_key + "/delete.json", function() {
+                    \$(this).dialog("close");
+                    window.location.reload();
+                });
+            },
+            "No, cancel": function() {
+                \$(this).dialog("close");
+            }
+        }
+    });
+});
+
+//-->
+</script>
+
+<div id="contentBody"> 
+    <div id="remove-seed-dialog" class="hidden" title="Remove seed">Are you sure you want to remove this seed from the list?</div>
+    <div id="delete-list-dialog" class="hidden" title="Remove Seed">
+        You are about the remove the last seed in the list. That will delete the whole list. Are you sure you want to continue?
+    </div>
+    
+    $def render_authors(authors):
+        $if not authors:
+            <em>Unknown authors</em>
+        $else:
+            $for a in authors:
+                <a href="$a.url()" class="results">$a.name</a>$cond(loop.last, "", ", ")
+ 
+    <div class="contentTwothird" style="margin-bottom:0;"> 
+
+        $if list.description:
+            $:format(list.description)
+
+        <ul id="listResults" class="narrow">
+        $for seed in list.get_seeds(sort=True):
+            <li id="seed-$loop.index">
+                $ cover = seed.get_cover()
+                $ cover_url = cover and cover.url("M") or "/images/icons/avatar_book-sm.png"
+                <span class="image"> 
+                    <a href="$seed.url"><img src="$cover_url" height="70"/></a>
+                </span> 
+                <span class="seed-key hidden">$seed.key</span>
+                <span class="details"> 
+                    <span class="resultTitle">
+                        $if ctx.user and ctx.user.key == list.get_owner().key:
+                            <span class="listDelete sansserif smaller"><a href="javascript:;"><span></span>Remove this seed?</a></span>
+                        <h3> 
+                            <a href="$seed.url" class="results">$seed.title</a>
+                        </h3>
+                        $if seed.type == "work" or seed.type == "edition":
+                            $if seed.type == "work":
+                                $ authors = seed.document.get_authors()
+                            $else:
+                                $if seed.document.works:
+                                    $ authors = seed.document.works[0].get_authors()
+                                $else:
+                                    $ authors = seed.document.get_authors()
+                            <span class="small">by $:render_authors(authors)</span>
+                        <span class="meta">
+                        $if seed.type == "author": 
+                            <span class="type author small">$seed.type</span>
+                        $elif seed.type == "work" or seed.type == "edition":
+                            <span class="type book small">$seed.type</span>
+                        $elif seed.type == "subject":
+                            <span class="type subject small">$seed.type</span>
+                        $elif seed.type == "place":
+                            <span class="type place small">$seed.type</span>
+                        $elif seed.type == "person":
+                            <span class="type people small">$seed.type</span>
+                        $else:
+                            <span class="type small">$seed.type</span>
+                        $if seed.type == "edition":
+                            $if seed.ebook_count:
+                                - eBook available
+                        $elif seed.type == "work":
+                            - $commify(seed.edition_count) edition$("s" if seed.edition_count != 1 else "")$cond(seed.ebook_count, ",")
+                            $if seed.ebook_count:
+                                $commify(seed.ebook_count) ebook$("s" if seed.ebook_count != 1 else "")
+                        $else:
+                            - $commify(seed.work_count) work$("s" if seed.work_count != 1 else "")$cond(seed.ebook_count, ",")
+                            $if seed.ebook_count:
+                                $commify(seed.ebook_count) ebook$("s" if seed.ebook_count != 1 else "")
+                        </span> 
+                        $if seed.last_update:
+                            <span class="time">
+                                Last updated
+                                <span>$datestr(seed.last_update)</span>
+                            </span>
+                    </span>
+                </span>
+            </li>
+        </ul>
+    </div> 
+
+    <div class="contentOnethird" style="margin-bottom:0;">
+ 
+        $:render_template("type/list/exports", list)
+
+        <h3 class="collapse">List Meta</h3>
+        <div class="smaller lightgreen sansserif">Derived from seed metadata</div>
+        <br/>
+        
+        $def render_subjects(label, subjects):
+            $if subjects:
+                <div class="section">
+                    <h6 class="collapse black uppercase">$label</h6>
+                    <div class="sansserif">
+                    $for subject in subjects:
+                        <a href="$subject.url">$subject.title</a>$cond(not loop.last, ",", "")
+                    </div>
+                </div>
+                
+        $ subjects = list.get_subjects()
+        
+        $:render_subjects("Subjects", subjects.subjects)
+        $:render_subjects("People", subjects.people)
+        $:render_subjects("Places", subjects.places)
+        $:render_subjects("Times", subjects.times)
+    </div> 
+ 
+    <div class="clearfix"></div> 
+    
+    $:render_template("lib/history", list)
+</div>

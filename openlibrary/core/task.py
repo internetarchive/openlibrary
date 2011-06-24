@@ -32,7 +32,7 @@ def oltask(fn):
         d = dict(largs = json.dumps(largs),
                  kargs = json.dumps(kargs),
                  command = fn.__name__,
-                 started_at = datetime.datetime.now(), #TBD. This is not when we started.
+                 started_at = datetime.datetime.now(),
                  log = log,
                  result = ret)
         logging.root.removeHandler(h)

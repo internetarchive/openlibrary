@@ -33,7 +33,7 @@ $if q:
     </form>
     
     </div>
-
+    
 $if q and 'error' in results:
     <strong>
         $for line in results['error'].splitlines():
@@ -41,7 +41,7 @@ $if q and 'error' in results:
             $if not loop.last:
                 <br>
     </strong>
-    
+
 $if q and 'error' not in results:
     <ul class="subjectList">
     $for doc in response['docs']:

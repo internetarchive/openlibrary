@@ -109,9 +109,10 @@ function resetCounts() {
 </div> 
 
 <div class="section"> 
-    <form method="get" action="/search?subject_facet=Lending+library" class="siteSearch olform"> 
+    <form method="get" action="/search" class="siteSearch olform"> 
     <label for="q" class="hidden">Keywords</label> 
-    <input type="text" name="q" id="q" value="" size="100" style="width:505px;"/> 
+    <input type="text" name="q" id="q" value="" size="100" style="width:505px;"/>
+    <input type="hidden" name="subject_facet" value="Lending library">
     <button type="submit" class="larger" id="searchsubmit">Search</button> 
     </form> 
 </div> 
@@ -121,6 +122,8 @@ function resetCounts() {
 
 <div class="head"> 
     <h2>Loans Per Day</h2> 
+
+    <br />&nbsp;
     <div class="chart">
         <div id="loans-per-day" class="graph">
             <noscript>$_("You need to have JavaScript turned on to see the nifty chart!")</noscript>
@@ -150,7 +153,8 @@ div.graph,div.chart{width:898px;height:180px;float:none;background-image:none;}
          grid: {
              hoverable: true,
              show: true,
-             borderWidth: 0
+            borderWidth: 1, 
+            borderColor: "#d9d9d9"
          },
          xaxis: {
              mode: "time"

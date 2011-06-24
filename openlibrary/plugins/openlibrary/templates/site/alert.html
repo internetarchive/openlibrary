@@ -1,0 +1,8 @@
+<!-- <div id="topNotice" style="background-color: #000;"><p><b class="orange">Please Note:</b> Open Library will be offline starting at 9:30AM PST on 2011-03-10. Apologies for the short notice. It should be quick. We'll update on the <a href="http://blog.openlibrary.org/2011/03/08/scheduled-downtime-8pm-pst-2011-03-07/" title="More information & updates on blog.openlibrary">blog</a> if needed.</p></div> -->
+
+$if "inlibrary" in ctx.features:
+    $ library = get_library()
+    $if library:
+        <div id="topNotice" style="background-color: #000;"><p><b style="padding:3px; background-color: #748d36; color: #fff;">&nbsp;<i>PSST!</i>&nbsp;</b>&nbsp;&nbsp;Your library is participating in the <a href="http://www.openlibrary.org/borrow" title="Head to the borrow area">"In Library" lending program</a>. 
+
+        That means you can borrow from <a href="/borrow">growing lending library of over 100,000 eBooks</a>!</p></div>

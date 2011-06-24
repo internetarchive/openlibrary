@@ -193,8 +193,9 @@ $def radiobuttons(name, options, value):
                                     <option value="" selected="selected">$_("Select role")</option>
                                     $for role in edition_config.roles:
                                         <option>$role</option>
-                                    <option>---</option>
-                                    <option value="__add__">$_("Add a new role")</option>
+                                    
+                                    <!-- <option>---</option> -->
+                                    <!-- <option value="__add__">$_("Add a new role")</option> -->
                                 </select>
                             </td>
                             <td style="width:170px;">
@@ -349,8 +350,9 @@ $def radiobuttons(name, options, value):
                                 <option value="">Select one of many...</option>
                                 $for id in edition_config.identifiers:
                                     <option value="$id.name">$id.label</option>
-                                <option>---</option>
-                                <option value="__add__">Add a new ID type</option>
+                                
+                                <!-- <option>---</option> -->
+                                <!-- <option value="__add__">Add a new ID type</option> -->
                             </select>
                         </td>
                         <td width="380">
@@ -409,8 +411,9 @@ $def radiobuttons(name, options, value):
                                 <option value="">$_("Select one of many...")</option>
                                 $for d in edition_config.classifications:
                                     <option value="$d.name">$d.label</option>
-                                <option>---</option>
-                                <option value="__add__">$_("Add a new classification type")</option>
+                                
+                                <!-- <option>---</option> -->
+                                <!-- <option value="__add__">$_("Add a new classification type")</option> -->
                             </select>
                         </td>
                         <td width="380">
@@ -530,6 +533,19 @@ $def radiobuttons(name, options, value):
 
 </fieldset>
 
+$if ctx.user and ctx.user.is_admin():
+    <fieldset class="major adminOnly">
+        <legend>$_("Admin Only")</legend>
+        <div class="formElement">
+            <div class="label">
+                <label for="edition-first_sentence">$_("First sentence")</label>
+                <span class="tip"></span> 
+            </div>
+            <div class="input">
+                <textarea name="edition--first_sentence" id="edition-first_sentence" rows="3" cols="50">$book.first_sentence</textarea>
+            </div>
+        </div>
+    </fieldset>
 
 <script type="text/javascript">
 <!--
