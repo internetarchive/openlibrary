@@ -7,6 +7,7 @@ from openlibrary.catalog.utils import mk_norm
 from pprint import pprint
 from collections import defaultdict
 from openlibrary.catalog.utils import flip_name
+from time import sleep
 
 re_normalize = re.compile('[^[:alphanum:] ]', re.U)
  
@@ -105,7 +106,7 @@ def new_work(q, rec, cover_id):
     if cover_id:
         w['covers'] = [cover_id]
     w['key'] = wkey
-
+    return w
 
 def load_data(rec):
     cover_url = None
@@ -162,8 +163,11 @@ def load_data(rec):
             assert w_dict and isinstance(w_dict, dict)
             edits.append(w_dict)
     else:
-        edits.append(new_work(q, rec, cover_id))
+        w = new_work(q, rec, cover_id)
+        wkey = w['key']
+        edits.append(w)
 
+    assert wkey
     q['works'] = [{'key': wkey}]
     q['key'] = ekey
     assert isinstance(q, dict)
@@ -293,13 +297,17 @@ def add_cover(cover_url, ekey):
         'ip': web.ctx.ip,
     }
     for attempt in range(5):
-        res = urllib.urlopen(upload_url, urllib.urlencode(params))
+        try:
+            res = urllib.urlopen(upload_url, urllib.urlencode(params))
+        except IOError:
+            print 'retry, attempt', attempt
+            sleep(2)
+            continue
         body = res.read()
-        assert res.getcode() == 200
-        if body != '':
+        if res.getcode() == 200 and body != '':
             break
         print 'retry, attempt', attempt
-        sleep(5)
+        sleep(2)
     cover_id = int(json.loads(body)['id'])
     return cover_id
 

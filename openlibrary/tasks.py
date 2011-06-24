@@ -2,13 +2,17 @@ import logging
 import eventer
 from openlibrary.core.task import oltask
 
-
-import celeryconfig
-
 from openlibrary.core import formats
 from openlibrary.core.lists.updater import Updater as ListUpdater
 
 logger = logging.getLogger("openlibrary.tasks")
+
+try:
+    import celeryconfig
+except ImportError:
+    logger.error("failed to import celeryconfig")
+    celeryconfig = None
+
 
 @oltask
 def add(x, y):
