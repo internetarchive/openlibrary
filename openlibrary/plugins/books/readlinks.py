@@ -269,6 +269,10 @@ class ReadProcessor:
         items = [item for item in items if item]
 
         ids = data.get('identifiers', {})
+        if self.options.get('no_data'):
+            returned_data = None
+        else:
+            returned_data = data
         result = {'records':
             { data['key']:
                   { 'isbns': sum((ids.get('isbn_10', []), ids.get('isbn_13', [])), []),
@@ -278,7 +282,7 @@ class ReadProcessor:
                     'olids': [ key_to_olid(data['key']) ],
                     'publishDates': [ data.get('publish_date', '') ],
                     'recordURL': data['url'],
-                    'data': data,
+                    'data': returned_data,
                     'details': details,
                     } },
             'items': items }
