@@ -144,7 +144,7 @@ class ReadProcessor:
         if status == 'missing':
             return None
 
-        if status == 'restricted' or status == 'checked out' and not self.options.get('show_all_items'):
+        if (status == 'restricted' or status == 'checked out') and not self.options.get('show_all_items'):
             return None
 
         edition = self.iaid_to_ed.get(iaid)
