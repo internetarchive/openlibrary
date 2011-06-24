@@ -95,3 +95,20 @@ class gitview(delegate.page):
     def GET(self):
         git = Git()
         return render_template("theme/git", git.modified())
+        
+    def POST(self):
+        i = web.input(files=[], message="")
+        
+        print >> web.debug, "POST", i
+        
+        git = Git()
+        commit_output = git.commit(i.files, author=self.get_author(), message=i.message or "Changes from dev.")
+        push_output = git.push()
+        
+        return render_template("theme/committed", commit_output, push_output)
+
+    def get_author(self):
+        user = web.ctx.site.get_user()
+        return "%s <%s>" % (user.displayname, user.get_email())
+
+    

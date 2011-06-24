@@ -8,14 +8,54 @@ $def with (modified)
 .gd { background: #FDD; }
 .gi { background: #DFD; }
 .gu { color: #AAA; }
+
+div.checkbox {
+    float: left;
+    padding: 3px 5px 0;
+    text-align: center;
+    width: 37px;
+}
+
+div.diff-content {
+    float: left;
+    width: 700px;
+}
+
+div.diff-file {
+    clear: right;
+    width: 100%;
+}
 </style>
 
 <div id="contentBody">
-    $for f in modified:
-        <div class="file">
-            <h2>$f.name</h2>
-            <pre class="diff">$:f.htmldiff</pre>
+    <form method="POST" class="olform">
+        $for f in modified:
+            <div class="diff-file">
+                <div class="checkbox">
+                    <input type="checkbox" name="files" value="$f.name"/>
+                </div>
+                <div class="diff-content">
+                    <strong>$f.name</strong><br/>
+                    <pre class="diff">$:f.htmldiff</pre>
+                </div>
+                <div style="clear: both;"></div>
+            </div>
+        <div class="formElement">
+            <div class="label">
+                <label for="message">Please, leave a short note about what you changed:
+                </label>
+            </div>
+            <div class="input">
+                <textarea id="message" rows="3" style="width:900px;" name="message"></textarea>
+            </div>
         </div>
+        <div style="clear: both;"></div>
+        <br/>
+        <div class="formElement">
+            &nbsp;
+            <button class="larger" title="Commit" name="" type="commit">Commit</button>
+        </div>
+    </form>
 </div>
 
 <script type="text/javascript">
