@@ -90,7 +90,7 @@ class file_view(delegate.page):
         raise web.seeother(web.ctx.path)
 
 class gitview(delegate.page):
-    path = "/theme/modified"
+    path = "/theme/modifications"
     
     def GET(self):
         git = Git()
