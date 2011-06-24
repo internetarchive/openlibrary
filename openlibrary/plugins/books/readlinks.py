@@ -265,7 +265,7 @@ class ReadProcessor:
         iaids_tosort.sort(key=sortfn)
 
         items = [self.get_readitem(iaid, orig_iaid, orig_ekey, wkey, status, date)
-                 for iaid, status, date in iaids_tosort if status != 'missing']
+                 for iaid, status, date in iaids_tosort] # if status != 'missing'
         items = [item for item in items if item]
 
         ids = data.get('identifiers', {})
@@ -282,6 +282,9 @@ class ReadProcessor:
                     'details': details,
                     } },
             'items': items }
+
+        if self.options.get('debug_items'):
+            result['tosort'] = iaids_tosort
         return result
 
 
