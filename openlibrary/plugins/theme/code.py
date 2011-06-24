@@ -105,7 +105,7 @@ class gitview(delegate.page):
         commit = git.commit(i.files, author=self.get_author(), message=i.message or "Changes from dev.")
         push = git.push()
         
-        return render_template("theme/committed", commit_output, push_output)
+        return render_template("theme/committed", commit, push)
 
     def get_author(self):
         user = web.ctx.site.get_user()
