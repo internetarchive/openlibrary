@@ -61,6 +61,10 @@ class file_view(delegate.page):
     def delegate(self, path):
         if not os.path.isfile(path):
             raise web.seeother("/theme/files#" + path)
+            
+        user = web.ctx.site.get_user()
+        if user is None or not user.is_admin():
+            return render_template("permission_denied", "Permission denied.")
 
         i = web.input(_method="GET")
         name = web.ctx.method.upper() + "_" + i.get("m", "view")
@@ -93,14 +97,20 @@ class gitview(delegate.page):
     path = "/theme/modifications"
     
     def GET(self):
+        user = web.ctx.site.get_user()
+        if user is None or not user.is_admin():
+            return render_template("permission_denied", "Permission denied.")
+        
         git = Git()
         return render_template("theme/git", git.modified())
         
     def POST(self):
+        user = web.ctx.site.get_user()
+        if user is None or not user.is_admin():
+            return render_template("permission_denied", "Permission denied.")
+        
         i = web.input(files=[], message="")
-        
-        print >> web.debug, "POST", i
-        
+                
         git = Git()
         commit = git.commit(i.files, author=self.get_author(), message=i.message or "Changes from dev.")
         push = git.push()
