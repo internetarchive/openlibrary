@@ -97,7 +97,16 @@ class file_view(delegate.page):
         i.text = i.text.replace("\r\n", "\n").replace("\r", "\n")        
         f = open(path, 'w')
         f.write(i.text)
-        f.close()        
+        f.close()
+        
+        logger.info("Saved %s", path)
+        
+        # run make after editing js or css files
+        if not path.endswith(".html"):
+            logger.info("Running make")
+            cmd = Git().system("make")
+            logger.info(cmd.stdout)
+        
         add_flash_message("info", "Page has been saved successfully.")
         raise web.seeother(web.ctx.path)
 
