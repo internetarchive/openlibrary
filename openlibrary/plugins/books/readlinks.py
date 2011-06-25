@@ -138,7 +138,10 @@ class ReadProcessor:
 
 
     def get_readitem(self, iaid, orig_iaid, orig_ekey, wkey, status, publish_date):
-        meta = self.iaid_to_meta[iaid]
+        meta = self.iaid_to_meta.get(iaid)
+        if meta is None:
+            return None
+
         collections = meta.get("collection", [])
 
         if status == 'missing':
