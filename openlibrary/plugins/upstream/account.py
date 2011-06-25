@@ -192,9 +192,11 @@ class account_verify(delegate.page):
         if docs:
             doc = docs[0]
 
+            account = Account.find(username = doc['username'])
+            if account:
+                if account['status'] != "pending":
+                    return render['account/verify/activated']()
             web.ctx.site.activate_account(username=doc['username'])
-            del web.ctx.site.store[doc['_key']]
-
             user = web.ctx.site.get("/people/" + doc['username'])
             return render['account/verify/success'](user.displayname or doc['username'])
         else:

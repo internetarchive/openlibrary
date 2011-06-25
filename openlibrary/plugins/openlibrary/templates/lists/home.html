@@ -20,7 +20,7 @@ $var title: Lists
         <h2>Create a list of any Subjects, Authors, Works or specific Editions.</h2>
         <p>Once you've made a list, you can <strong>watch for updates</strong> or <strong>export</strong> all the editions in a list as HTML, <a href="http://www.bibtex.org/">BibTeX</a> or JSON. See all your lists and any activity using the "Lists" link on your Account page. <strong><em>Enjoy!</em></strong></p>
     </div>
-    $ lists = get_active_lists_in_random(limit=18)
+    $ lists = get_active_lists_in_random(limit=24)
     <div class="head">
         <h2>Active Lists</h2>
     </div>
@@ -44,7 +44,7 @@ $var title: Lists
                     $if list.last_update:
                         | Last update $datestr(list.last_update)
                 </div>
-                <div class="description">
+                <div class="description no-img">
                 $if list.description:
                     $:format(list.description) 
                 $else:

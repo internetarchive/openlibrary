@@ -1,0 +1,26 @@
+$def with (commit, push)
+
+<div id="contentHead">
+    <h1>Theme Editor</h1>
+    <div>
+        <a href="/theme/files">Files</a>
+        | <a href="/theme/modifications">Modifications</a>
+    </div>
+</div>
+
+<div id="contentBody">
+    <h2>Committed!</h2>
+    <pre>
+$$ $commit.cmd
+$commit.stdout
+$commit.stderr
+    </pre>
+    <pre>
+$$ $push.cmd
+$push.stdout
+$push.stderr
+    </pre>
+    
+    Back to <a href="/theme/files">file list</a>?
+</div>
+

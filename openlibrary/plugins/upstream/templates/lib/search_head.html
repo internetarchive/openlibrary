@@ -25,7 +25,7 @@ $ )
                     </div>
                     <div class="searchCheckbox">
                         <input name="has_fulltext" type="checkbox" value="true" id="ftokenstop"/>
-                        <label for="ftokenstop">$_("Only show ebooks")</label>
+                        <label for="ftokenstop">$_("Only show eBooks")</label>
                     </div>
                 </div>
             </div>
@@ -44,4 +44,28 @@ $ )
             </div>
             </div>
         </form>
+    </div>
+
+
+    <div id="headerTools">
+        <div id="headerLogin">
+        $if ctx.user:
+            <div class="hidden">
+                <form name='logout' action="$homepath()/account/logout" method="post"></form>
+            </div>
+            <div id="headerUser">
+                <a href="javascript:;" id="userToggle" title="Open Menu"><span class="label">$ctx.user.displayname</span><span class="arrow">&nbsp;&#9660;</span></a>
+                <div id="headerUserOpen">
+                    <a href="$ctx.user.key">$_("Your Profile")</a>
+                    <a href="$homepath()/account/loans">$_("Loans")</a>
+                    <a href="$ctx.user.key/lists">$_("Lists")</a>
+                    <a href="$homepath()/account">$_("Settings")</a>
+                    <a href="#" onclick="document.forms['logout'].submit()">Log out</a>
+                </div>
+            </div>
+        $else:
+            <a href="/account/login" class="white">$_("Log in")</a>
+            /
+            <a href="/account/create">$_("Sign Up")</a>
+        </div>
     </div>

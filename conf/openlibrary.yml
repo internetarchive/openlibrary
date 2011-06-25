@@ -36,10 +36,10 @@ plugins:
     - "worksearch"
     - "api"
     - "books"
-    - "oltemplates"
     - "admin"
     - "upstream"
     - "importapi"
+    - "theme"
 
 plugin_worksearch:
     solr: "localhost:8983"
@@ -64,6 +64,7 @@ features:
     stats-header: enabled
     inlibrary: enabled
     support: admin
+    dev: enabled
 
 upstream_to_www_migration: true
 default_template_root: /upstream

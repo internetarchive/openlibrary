@@ -2,26 +2,27 @@ $def with (page)
 
 $ title = page.title or page.key
 
-
 $if title.startswith("i18n::") and title.count(':') == 3:
     $ namespace = title.split(':')[2]
     $ key = title.split(':')[3]
     $ title = i18n.get(namespace, key)
 
 $var title: $title
-
-<div id="header">
-    <div style="float:left;padding-left:10px;padding-right:15px;"></div>
-    <span class="pretitle"></span>
-    <div id="title">$title</div>
-</div>
+        
+$if '<!--suppress-title-->' not in page.body:
+    <div id="contentHead">
+        $:macros.databarView(page)
+        <h1>$title</h1>
+    </div>
 
 $ text = format(page.body)
 
-$if utf8('<!--islist-->') in utf8(text):
+<div id="contentBody">
+
+    $:macros.Subnavigation(page)
+
     $:text
-$else:
-    <div class="contenttext">
-    $:text
-    </div>
-    $:macros.SeeLanguage()
+
+    $:render_template("lib/history", page)
+
+</div>

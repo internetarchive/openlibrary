@@ -6,7 +6,11 @@ $def with (page)
                 <ul class="links">
                     <li class="first"><a href="/subjects" title="$_('Explore subjects')">$_("Subjects")</a></li>
                     <li><a href="/authors" title="$_('Explore authors')">$_("Authors")</a></li>
-                    <li class="second"><a href="/books/add" title="$_('Add a new book to Open Library')">$_("Add a Book")</a></li>
+                    $if "dev" in ctx.features and ctx.user and ctx.user.is_admin():
+                        <li><a href="/books/add" title="$_('Add a new book to Open Library')">$_("Add a Book")</a></li>
+                        <li><a class="adminOnly" href="/theme/files" title="$_('Theme Editor')">$_("Theme")</a>
+                    $else:
+                        <li class="second"><a href="/books/add" title="$_('Add a new book to Open Library')">$_("Add a Book")</a></li>
                     <li><a href="/lists" title="$_('Manage your lists')">$_("Lists")</a></li>
                     <li><a href="/recentchanges" title="$_('Recent edits and additions')">$_("Recently")</a></li>
                     <li><a href="/about" title="$_('About the Open Library staff')">$_("About Us")</a></li>
@@ -18,20 +22,6 @@ $def with (page)
               <p class="tagline">$_("One web page for every book.")</p>
             </div>
 
-            <div id="headerTools">
-
-                <div id="headerLogin">
-                $if ctx.user:
-                    <div class="hidden">
-                        <form name='logout' action="$homepath()/account/logout" method="post"></form>
-                    </div>
-                    $:_("Welcome %(user)s", user='<a href="%s">%s</a>' % (ctx.user.key, ctx.user.displayname))
-                    | <a href="#" onclick="document.forms['logout'].submit()">$_("Log out")</a>
-                $else:
-                    <a href="/account/login" class="white">$_("Log in")</a>
-                    /
-                    <a href="/account/create">$_("Sign Up")</a>
-                </div>
-            </div>
+            <div id="headerPlace"></div>
 
         </div>
