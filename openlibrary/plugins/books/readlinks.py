@@ -248,6 +248,10 @@ class ReadProcessor:
 
         def sortfn(sortitem):
             iaid, status, date = sortitem
+            if iaid == orig_iaid and (status == 'full access' or status == 'lendable'):
+                isexact = '000'
+            else:
+                isexact = '999'
             # sort dateless to end
             if date == '':
                 date = 5000
@@ -260,7 +264,7 @@ class ReadProcessor:
                            'checked out': 3,
                            'restricted': 4,
                            'missing': 5 }
-            return (statusvals[status], date)
+            return (isexact, statusvals[status], date)
 
         iaids_tosort.sort(key=sortfn)
 
