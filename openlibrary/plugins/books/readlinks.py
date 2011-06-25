@@ -122,6 +122,8 @@ class ReadProcessor:
                 status = 'restricted'
             elif not self.get_inlibrary():
                 status = 'restricted'
+                if self.options_get('debug_items'):
+                    status = 'restricted - not inlib'
             else:
                 status = 'lendable'
         elif 'printdisabled' in collections:
@@ -270,6 +272,7 @@ class ReadProcessor:
                            'lendable': 2,
                            'checked out': 3,
                            'restricted': 4,
+                           'restricted - not inlib': 4,
                            'missing': 5 }
             return (isexact, statusvals[status], date)
 
