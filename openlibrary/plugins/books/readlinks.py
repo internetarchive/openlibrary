@@ -122,7 +122,7 @@ class ReadProcessor:
                 status = 'restricted'
             elif not self.get_inlibrary():
                 status = 'restricted'
-                if self.options_get('debug_items'):
+                if self.options.get('debug_items'):
                     status = 'restricted - not inlib'
             else:
                 status = 'lendable'
@@ -149,7 +149,7 @@ class ReadProcessor:
         if status == 'missing':
             return None
 
-        if (status == 'restricted' or status == 'checked out') and not self.options.get('show_all_items'):
+        if (status.startswith('restricted') or status == 'checked out') and not self.options.get('show_all_items'):
             return None
 
         edition = self.iaid_to_ed.get(iaid)
