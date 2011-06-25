@@ -228,9 +228,13 @@ class ReadProcessor:
         # Sort iaids.  Is there a more concise way?
 
         def getstatus(self, iaid):
-            meta = self.iaid_to_meta[iaid]
-            collections = meta.get("collection", [])
-            edition = self.iaid_to_ed.get(iaid)
+            meta = self.iaid_to_meta.get(iaid)
+            if not meta:
+                status = 'missing'
+                edition = None
+            else:
+                collections = meta.get("collection", [])
+                edition = self.iaid_to_ed.get(iaid)
             if not edition:
                 status = 'missing'
             else:
