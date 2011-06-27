@@ -67,6 +67,7 @@ class case(object):
         text = "Case closed"
         case.add_worklog_entry(by = by,
                                text = text)
+        case.change_status("closed", by)
 
 def setup():
     global support_db
