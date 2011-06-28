@@ -1,4 +1,4 @@
-$def with (cases, error = False)
+$def with (summary, cases, error = False)
 
 <div id="contentHead">
     <h1>$_("Admin Center")</h1>
@@ -28,7 +28,9 @@ table.support pre.hidden {
 $if error:
   <p>Couldn't connect to support database</p>
 $else:
-  <p>Filter: 3,617 <strong>Total</strong> | 28 <a href="#filter for new">New</a> | 45 <a href="#filter by replied">Replied</a> | 3,546 <a href="#filter by closed">Closed</a></p>
+  <p>Filter: $len(cases) <strong>Total</strong> | 
+  $for i in summary:
+    $(i.key[0]) <a href="#filter for new">$(i.value)</a> |
     
   <table class = "support" border="0" cellspacing="0" cellpadding="10">
       <tr>

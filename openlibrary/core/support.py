@@ -2,6 +2,7 @@ import datetime
 
 import couchdb
 from couchdb.mapping import TextField, IntegerField, DateTimeField, ListField, DictField, Mapping, Document, ViewField
+from couchdb.design import ViewDefinition
 
 import web
 from infogami import config
@@ -31,17 +32,17 @@ class Support(object):
         seq = web.ctx.site.seq.next_value("support-case")
         created = datetime.datetime.utcnow()
         caseid = "case-%s"%seq
-        c = Case(_id = caseid,
-                 creator_name = creator_name,
-                 creator_email = creator_email,
-                 creator_useragent = creator_useragent,
-                 subject = subject,
-                 description = description,
-                 assignee = assignee,
-                 created = created,
-                 status = "new",
-                 url = url,
-                 support_db = self.db)
+        c = Case.new(_id = caseid,
+                     creator_name = creator_name,
+                     creator_email = creator_email,
+                     creator_useragent = creator_useragent,
+                     subject = subject,
+                     description = description,
+                     assignee = assignee,
+                     created = created,
+                     status = "new",
+                     url = url,
+                     support_db = self.db)
         c.store(self.db)
         return c
 
@@ -52,13 +53,15 @@ class Support(object):
         c = Case.load(self.db, caseid)
         return c
         
-    def get_all_cases(self):
+    def get_all_cases(self, summarise = False):
         "Return all the cases in the system"
-        return Case.all(self.db)
+        if summarise:
+            v = ViewDefinition("cases", "all", "", group_level = 1)
+            return v(self.db)
+        else:
+            return Case.all(self.db)
 
             
-    
-
 class Case(Document):
     _id               = TextField()
     type              = TextField(default = "case")
@@ -75,12 +78,8 @@ class Case(Document):
                                                           by    = TextField(),
                                                           text  = TextField())))
 
-    def __init__(self, **kargs):
-        super(Case, self).__init__(**kargs)
-        item = dict (at = self.created,
-                     by = self.creator_name or self.creator_email,
-                     text = "Case created")
-        self.history.append(item)
+    def __repr__(self):
+        return "<Case ('%s')>"%self._id
 
     def change_status(self, new_status, by):
         self.status = new_status
@@ -132,20 +131,18 @@ class Case(Document):
         "Returns case number"
         return int(self._id.replace("case-",""))
 
-    @ViewField.define('cases')
-    def all(self, doc):
-        if doc.get("type","") == "case":
-            yield doc["_id"], doc
+    @classmethod
+    def new(cls, **kargs):
+        ret = super(Case, cls).__init__(**kargs)
+        item = dict (at = ret.created,
+                     by = ret.creator_name or ret.creator_email,
+                     text = "Case created")
+        ret.history.append(item)
 
+    @classmethod
+    def all(cls, db):
+        result = cls.view(db, "cases/all", reduce = False, include_docs = True)
+        return result.rows
 
     def __eq__(self, second):
         return self._id == second._id
-
-        
-                 
-
-        
-             
-        
-        
-        

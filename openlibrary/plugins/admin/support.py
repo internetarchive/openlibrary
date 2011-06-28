@@ -10,21 +10,22 @@ support_db = None
 class cases(object):
     def GET(self):
         if not support_db:
-            return render_template("admin/cases", None, True)
+            return render_template("admin/cases", None, None, True)
         cases = support_db.get_all_cases()
-        return render_template("admin/cases", cases)
+        summary = support_db.get_all_cases(summarise = True)
+        return render_template("admin/cases", summary, cases)
 
 class case(object):
     def GET(self, caseid):
         if not support_db:
-            return render_template("admin/cases", None, True)
+            return render_template("admin/cases", None, None, True)
         case = support_db.get_case(caseid)
         date_pretty_printer = lambda x: x.strftime("%B %d, %Y")
         return render_template("admin/case", case, date_pretty_printer)
 
     def POST(self, caseid):
         if not support_db:
-            return render_template("admin/cases", None, True)
+            return render_template("admin/cases", None, None, True)
         case = support_db.get_case(caseid)
         form = web.input()
         action = form.get("button","")
