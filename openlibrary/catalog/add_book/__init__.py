@@ -296,7 +296,7 @@ def add_cover(cover_url, ekey):
         'olid': olid,
         'ip': web.ctx.ip,
     }
-    for attempt in range(5):
+    for attempt in range(10):
         try:
             res = urllib.urlopen(upload_url, urllib.urlencode(params))
         except IOError:
