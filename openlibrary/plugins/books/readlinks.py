@@ -333,7 +333,7 @@ class ReadProcessor:
 
         def lookup_iaids(iaids):
             step = 10
-            if len(iaids) > step:
+            if len(iaids) > step and not self.options.get('debug_things'):
                 result = []
                 while iaids:
                     result += lookup_iaids(iaids[:step])
@@ -385,6 +385,13 @@ class ReadProcessor:
 
 def readlinks(req, options):
     try:
+        dbstr = 'debug|'
+        if req.startswith(dbstr):
+            options = { 'stats': True,
+                        'show_exception': True,
+                        'no_data': True,
+                        'no_details': True }
+            req = req[len(dbstr):]
         rp = ReadProcessor(options)
 
         if options.get('listofworks'):
@@ -405,7 +412,7 @@ def readlinks(req, options):
         print >> sys.stderr, 'Error in processing Read API'
         if options.get('show_exception'):
             register_exception()
-            raise
+            result = {'success': False}
         else:
             register_exception()
         result = {}
