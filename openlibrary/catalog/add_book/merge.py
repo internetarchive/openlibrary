@@ -12,6 +12,13 @@ def db_name(a):
         date = a.date
     return ' '.join([a['name'], date]) if date else a['name']
 
+def undelete_author(a):
+    a = web.ctx.site.get(a.key, revision=a.revision-1)
+    author_type = a.type.key
+    assert author_type == '/type/author'
+    web.ctx.site.save(a.dict(), comment='undelete author')
+    return web.ctx.site.get(a.key)
+
 def try_merge(e1, edition_key, existing):
     thing_type = existing.type.key
     if thing_type == '/type/delete':
@@ -28,6 +35,9 @@ def try_merge(e1, edition_key, existing):
         rec2['authors'] = []
         for a in existing.authors:
             author_type = a.type.key
+            if author_type == '/type/delete':
+                a = undelete_author(a)
+                author_type = a.type.key
             assert author_type == '/type/author'
             assert a['name']
             rec2['authors'].append({'name': a['name'], 'db_name': db_name(a)})
