@@ -1,5 +1,6 @@
 from openlibrary.catalog.merge.merge_marc import build_marc, attempt_merge
 from pprint import pprint
+import web
 
 threshold = 875
 
