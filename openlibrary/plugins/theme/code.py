@@ -12,6 +12,16 @@ from .git import Git
 
 logger = logging.getLogger("openlibrary.theme")
 
+
+def admin_only(f):
+    def g(*a, **kw):
+        user = web.ctx.site.get_user()
+        if user is None or not user.is_admin():
+            return render_template("permission_denied",  web.ctx.path, "Permission denied.")
+        return f(*a, **kw)
+    return g
+
+
 def find_files(root, filter):
     '''Find all files that pass the filter function in and below
     the root directory.
@@ -51,17 +61,19 @@ class index(delegate.page):
 class file_index(delegate.page):
     path = "/theme/files"
 
+    @admin_only
     def GET(self):
         files = list_files()
         return render_template("theme/files", files)
 
 class file_view(delegate.page):
     path = "/theme/files/(.+)"
-    
+
+    @admin_only
     def delegate(self, path):
         if not os.path.isfile(path):
             raise web.seeother("/theme/files#" + path)
-
+            
         i = web.input(_method="GET")
         name = web.ctx.method.upper() + "_" + i.get("m", "view")
         f = getattr(self, name, None)
@@ -85,22 +97,31 @@ class file_view(delegate.page):
         i.text = i.text.replace("\r\n", "\n").replace("\r", "\n")        
         f = open(path, 'w')
         f.write(i.text)
-        f.close()        
+        f.close()
+        
+        logger.info("Saved %s", path)
+        
+        # run make after editing js or css files
+        if not path.endswith(".html"):
+            logger.info("Running make")
+            cmd = Git().system("make")
+            logger.info(cmd.stdout)
+        
         add_flash_message("info", "Page has been saved successfully.")
         raise web.seeother(web.ctx.path)
 
 class gitview(delegate.page):
     path = "/theme/modifications"
     
+    @admin_only
     def GET(self):
         git = Git()
         return render_template("theme/git", git.modified())
-        
+
+    @admin_only
     def POST(self):
         i = web.input(files=[], message="")
-        
-        print >> web.debug, "POST", i
-        
+                
         git = Git()
         commit = git.commit(i.files, author=self.get_author(), message=i.message or "Changes from dev.")
         push = git.push()
@@ -110,5 +131,3 @@ class gitview(delegate.page):
     def get_author(self):
         user = web.ctx.site.get_user()
         return "%s <%s>" % (user.displayname, user.get_email())
-
-    

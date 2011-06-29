@@ -228,7 +228,8 @@ class cover:
         try:
             coverid = int(coverid)
         except ValueError:
-            pass
+            return None
+            
         # Use tar index if available to avoid db query. We have 0-6M images in tar balls. 
         if isinstance(coverid, int) and coverid < 6000000 and size in "sml":
             path = self.get_tar_filename(coverid, size)

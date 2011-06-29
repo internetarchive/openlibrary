@@ -117,7 +117,7 @@ def load_data(rec):
         q = build_query(rec)
     except InvalidLanguage as e:
         return {
-            'success': True,
+            'success': False,
             'error': str(e),
         }
     edits = []
@@ -296,7 +296,7 @@ def add_cover(cover_url, ekey):
         'olid': olid,
         'ip': web.ctx.ip,
     }
-    for attempt in range(5):
+    for attempt in range(10):
         try:
             res = urllib.urlopen(upload_url, urllib.urlencode(params))
         except IOError:
@@ -305,10 +305,12 @@ def add_cover(cover_url, ekey):
             continue
         body = res.read()
         if res.getcode() == 200 and body != '':
-            break
+            reply = json.loads(body)
+            if 'id' in reply:
+                break
         print 'retry, attempt', attempt
         sleep(2)
-    cover_id = int(json.loads(body)['id'])
+    cover_id = int(reply['id'])
     return cover_id
 
 def load(rec):
@@ -389,7 +391,7 @@ def load(rec):
             else:
                 if not any(i['author']['key'] == a['key'] for i in work_authors):
                     add_to_work = True
-                if not any(i.key == a['key'] for i in edition_authors):
+                if all(i['key'] != a['key'] for i in edition_authors):
                     add_to_edition = True
             if add_to_work:
                 need_work_save = True
