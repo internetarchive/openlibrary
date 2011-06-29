@@ -24,8 +24,13 @@ def try_merge(e1, edition_key, existing):
         rec2['full_title'] += ' ' + existing.subtitle
     if existing.lccn:
         rec2['lccn'] = existing.lccn
-    rec2['authors'] = [{'name': a.name, 'db_name': db_name(a)}
-        for a in existing.authors]
+    if existing.authors:
+        rec2['authors'] = []
+        for a in existing.authors:
+            author_type = a.type.key
+            assert author_type == '/type/author'
+            assert a['name']
+            rec2['authors'].append({'name': a['name'], 'db_name': db_name(a)})
     if existing.publishers:
         rec2['publishers'] = existing.publishers
     if existing.publish_date:

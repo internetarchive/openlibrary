@@ -296,7 +296,7 @@ def add_cover(cover_url, ekey):
         'olid': olid,
         'ip': web.ctx.ip,
     }
-    for attempt in range(5):
+    for attempt in range(10):
         try:
             res = urllib.urlopen(upload_url, urllib.urlencode(params))
         except IOError:
@@ -391,7 +391,7 @@ def load(rec):
             else:
                 if not any(i['author']['key'] == a['key'] for i in work_authors):
                     add_to_work = True
-                if not any(i.key == a['key'] for i in edition_authors):
+                if all(i['key'] != a['key'] for i in edition_authors):
                     add_to_edition = True
             if add_to_work:
                 need_work_save = True
