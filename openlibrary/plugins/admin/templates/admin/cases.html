@@ -30,7 +30,7 @@ $if error:
 $else:
   <p>Filter: $len(cases) <strong>Total</strong> | 
   $for i in summary:
-    $(i.key[0]) <a href="#filter for new">$(i.value)</a> |
+    $(i.key[0]) <a href="/admin/support/$(i.key[0])">$(i.value)</a> |
     
   <table class = "support" border="0" cellspacing="0" cellpadding="10">
       <tr>

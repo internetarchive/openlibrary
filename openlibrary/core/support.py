@@ -53,13 +53,13 @@ class Support(object):
         c = Case.load(self.db, caseid)
         return c
         
-    def get_all_cases(self, summarise = False):
+    def get_all_cases(self, typ = "all", summarise = False):
         "Return all the cases in the system"
         if summarise:
             v = ViewDefinition("cases", "all", "", group_level = 1)
             return v(self.db)
         else:
-            return Case.all(self.db)
+            return Case.all(self.db, typ)
 
             
 class Case(Document):
@@ -140,8 +140,17 @@ class Case(Document):
         ret.history.append(item)
 
     @classmethod
-    def all(cls, db):
-        result = cls.view(db, "cases/all", reduce = False, include_docs = True)
+    def all(cls, db, typ="all"):
+        if typ == "all":
+            result = cls.view(db, "cases/all", reduce = False, include_docs = True)
+        elif typ == "new":
+            result = cls.view(db, "cases/all", reduce = False, include_docs = True, startkey=["new"], endkey=["replied"])
+        elif typ == "closed":
+            result = cls.view(db, "cases/all", reduce = False, include_docs = True, startkey=["closed"], endkey=["new"])
+        elif typ == "replied":
+            result = cls.view(db, "cases/all", reduce = False, include_docs = True, startkey=["replied"])
+        else:
+            raise KeyError("No such case type '%s'"%typ)
         return result.rows
 
     def __eq__(self, second):

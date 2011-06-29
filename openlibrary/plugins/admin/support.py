@@ -8,11 +8,11 @@ from openlibrary.core import support
 support_db = None
 
 class cases(object):
-    def GET(self):
+    def GET(self, typ = "all"):
         if not support_db:
             return render_template("admin/cases", None, None, True)
-        cases = support_db.get_all_cases()
-        summary = support_db.get_all_cases(summarise = True)
+        cases = support_db.get_all_cases(typ)
+        summary = support_db.get_all_cases(typ, summarise = True)
         return render_template("admin/cases", summary, cases)
 
 class case(object):
