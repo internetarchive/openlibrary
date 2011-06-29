@@ -147,6 +147,10 @@ class account_login(delegate.page):
         return render.login(f)
 
     def POST_login(self, i):
+        # make sure the username is valid
+        if not forms.vlogin.valid(i.username):
+            return self.error("account_user_notfound", i)
+        
         try:
             web.ctx.site.login(i.username, i.password)
         except ClientException, e:
@@ -157,6 +161,8 @@ class account_login(delegate.page):
             if code == "account_not_verified":
                 account = Account.find(username=i.username)
                 return render_template("account/not_verified", username=i.username, password=i.password, email=account.email)
+            elif code == "account_not_found":
+                return self.error("account_user_notfound", i)
             else:
                 return self.error("account_incorrect_password", i)
 
