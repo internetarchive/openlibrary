@@ -9,6 +9,7 @@ from openlibrary.utils import str_to_key, url_quote, read_isbn, finddict, escape
 from unicodedata import normalize
 from collections import defaultdict
 import os
+import logging
 
 ftoken_db = None
 
@@ -20,6 +21,8 @@ from openlibrary.plugins.search.code import search as _edition_search
 from infogami.plugins.api.code import jsonapi
 
 from openlibrary.core.models import Subject
+
+logger = logging.getLogger("openlibrary.worksearch")
 
 re_to_esc = re.compile(r'[\[\]:]')
 
@@ -39,6 +42,7 @@ def get_ebook_count_db():
         params.setdefault('dbn', 'postgres')
         return web.database(**params)
     else:
+        logger.warn("ebook_count_db_parameters is not specified in the config. ebook-count on subject pages will be displayed as 0.")
         return None
 
 if hasattr(config, 'plugin_worksearch'):
