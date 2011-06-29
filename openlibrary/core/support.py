@@ -27,7 +27,7 @@ class Support(object):
         else:
             self.db = get_admin_database()
     
-    def create_case(self, creator_name, creator_email, creator_useragent, subject, description, assignee, url = ""):
+    def create_case(self, creator_name, creator_email, creator_useragent, creator_username, subject, description, assignee, url = ""):
         "Creates a support case with the given parameters"
         seq = web.ctx.site.seq.next_value("support-case")
         created = datetime.datetime.utcnow()
@@ -36,6 +36,7 @@ class Support(object):
                      creator_name = creator_name,
                      creator_email = creator_email,
                      creator_useragent = creator_useragent,
+                     creator_username  = creator_username,
                      subject = subject,
                      description = description,
                      assignee = assignee,
@@ -72,6 +73,7 @@ class Case(Document):
     creator_email     = TextField()
     creator_useragent = TextField()
     creator_name      = TextField()
+    creator_username  = TextField()
     url               = TextField()
     created           = DateTimeField()
     history           = ListField(DictField(Mapping.build(at    = DateTimeField(),
@@ -133,11 +135,12 @@ class Case(Document):
 
     @classmethod
     def new(cls, **kargs):
-        ret = super(Case, cls).__init__(**kargs)
+        ret = cls(**kargs)
         item = dict (at = ret.created,
                      by = ret.creator_name or ret.creator_email,
                      text = "Case created")
         ret.history.append(item)
+        return ret
 
     @classmethod
     def all(cls, db, typ="all", sort = "status"):

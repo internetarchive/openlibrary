@@ -52,6 +52,7 @@ class contact(delegate.page):
         support_db.create_case(creator_name      = user and user.get_name() or "",
                                creator_email     = email,
                                creator_useragent = useragent,
+                               creator_username  = user and user.get_username() or "",
                                subject           = topic,
                                description       = description,
                                url               = url,
