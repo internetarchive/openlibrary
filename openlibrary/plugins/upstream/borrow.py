@@ -100,7 +100,12 @@ class borrow(delegate.page):
     def POST(self, key):
         """Called when the user wants to borrow the edition"""
         
-        i = web.input(action='borrow', format=None)
+        i = web.input(action='borrow', format=None, ol_host=None)
+
+        if i.ol_host:
+            ol_host = i.ol_host
+        else:        
+            ol_host = 'openlibrary.org'
         
         edition = web.ctx.site.get(key)
         if not edition:
@@ -137,7 +142,7 @@ class borrow(delegate.page):
                     stats.increment('loans.epub')
                     
                 if resource_type == 'bookreader':
-                    raise web.seeother(make_bookreader_auth_link(loan.get_key(), edition.ocaid, '/stream/' + edition.ocaid))
+                    raise web.seeother(make_bookreader_auth_link(loan.get_key(), edition.ocaid, '/stream/' + edition.ocaid, ol_host))
                 else:
                     raise web.seeother(loan_link)
             else:
@@ -175,7 +180,7 @@ class borrow(delegate.page):
             loans = get_loans(user)
             for loan in loans:
                 if loan['book'] == edition.key:
-                    raise web.seeother(make_bookreader_auth_link(loan['store_key'], edition.ocaid, '/stream/' + edition.ocaid))
+                    raise web.seeother(make_bookreader_auth_link(loan['store_key'], edition.ocaid, '/stream/' + edition.ocaid, ol_host))
             
         # Action not recognized
         raise web.seeother(error_redirect)
@@ -744,11 +749,14 @@ def get_ia_auth_dict(user, item_id, resource_id, user_specified_loan_key, access
             error_message = 'No BookReader loan'
             resolution_message = 'This book was borrowed as ' + loan['resource_type'] + '. You can <a href="%(base_url)s/ia/%(item_id)s">visit this book\'s page</a> on openlibrary.org to access the book in that format.' % resolution_dict
             return {'success': False, 'msg': error_message, 'resolution': resolution_message }
-        
+
         # If we know who this user is, from third-party cookies and they are logged into openlibrary.org, check if they have the loan
         if user:
             if loan['user'] != user.key:
-                # Borrowed by someone else
+                # Borrowed by someone else - OR possibly came in through ezproxy and there's a stale login in on openlibrary.org
+                
+                
+                
                 error_message = 'This book is checked out'
                 resolution_message = 'This book is currently checked out.  You can <a href="%(base_url)s/ia/%(item_id)s">visit this book\'s page on Open Library</a> or <a href="%(base_url)s/subjects/Lending_library">look at other books available to borrow</a>.' % resolution_dict
             
@@ -833,16 +841,17 @@ def ia_token_is_current(item_id, access_token):
         
     return False
     
-def make_bookreader_auth_link(loan_key, item_id, book_path):
+def make_bookreader_auth_link(loan_key, item_id, book_path, ol_host):
     """
     Generate a link to BookReaderAuth.php that starts the BookReader with the information to initiate reading
     a borrowed book
     """
     
     access_token = make_ia_token(item_id, bookreader_auth_seconds)
-    auth_url = 'http://%s/bookreader/BookReaderAuth.php?uuid=%s&token=%s&id=%s&bookPath=%s' % (
-        bookreader_host, loan_key, access_token, item_id, book_path
+    auth_url = 'http://%s/bookreader/BookReaderAuth.php?uuid=%s&token=%s&id=%s&bookPath=%s&olHost=%s' % (
+        bookreader_host, loan_key, access_token, item_id, book_path, ol_host
     )
+    
     return auth_url
     
 def on_loan_update(loan):

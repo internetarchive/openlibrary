@@ -1,3 +1,7 @@
 $def with(edition_key)
 
-<form class="LoanReadForm" method="POST" action="$edition_key/_doread/borrow"><input type="hidden" name="action" value="read" /><input type="submit" value="Read Online" /></form><br />
+<form class="LoanReadForm" method="POST" action="$edition_key/_doread/borrow"><input type="hidden" name="action" value="read" /><input type="text" name="ol_host" value="" class="hidden ol_host" /><input type="submit" value="Read Online" /></form><br />
+
+<script type="text/javascript">
+    $('.ol_host').attr('value', location.host);
+</script>
