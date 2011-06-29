@@ -9,6 +9,7 @@ from openlibrary.utils import str_to_key, url_quote, read_isbn, finddict, escape
 from unicodedata import normalize
 from collections import defaultdict
 import os
+import logging
 
 ftoken_db = None
 
@@ -21,10 +22,28 @@ from infogami.plugins.api.code import jsonapi
 
 from openlibrary.core.models import Subject
 
+logger = logging.getLogger("openlibrary.worksearch")
+
 re_to_esc = re.compile(r'[\[\]:]')
 
 class edition_search(_edition_search):
     path = "/search/edition"
+    
+
+@web.memoize
+def get_ebook_count_db():
+    """Returns the ebook_count database. 
+    
+    The database object is created on the first call to this function and
+    cached by memoize. Subsequent calls return the same object.
+    """
+    params = config.plugin_worksearch.get('ebook_count_db_parameters')
+    if params:
+        params.setdefault('dbn', 'postgres')
+        return web.database(**params)
+    else:
+        logger.warn("ebook_count_db_parameters is not specified in the config. ebook-count on subject pages will be displayed as 0.")
+        return None
 
 if hasattr(config, 'plugin_worksearch'):
     solr_host = config.plugin_worksearch.get('solr', 'localhost')
@@ -40,15 +59,6 @@ if hasattr(config, 'plugin_worksearch'):
     solr_edition_select_url = "http://" + solr_edition_host + "/solr/editions/select"
 
     default_spellcheck_count = config.plugin_worksearch.get('spellcheck_count', 10)
-
-    ebook_count_host = config.plugin_worksearch.get('ebook_count_host')
-    ebook_count_user = config.plugin_worksearch.get('ebook_count_user') or os.getenv("USER")
-    ebook_count_db_name = config.plugin_worksearch.get('ebook_count_db_name')
-
-    if ebook_count_host:
-        ebook_count_db = web.database(dbn='postgres', db=ebook_count_db_name, host=ebook_count_host, user=ebook_count_user)
-    else:
-        ebook_count_db = web.database(dbn='postgres', db=ebook_count_db_name, user=ebook_count_user)
 
 re_author_facet = re.compile('^(OL\d+A) (.*)$')
 def read_author_facet(af):
@@ -419,6 +429,12 @@ def find_ebook_count(field, key):
     return dict(years)
 
 def get_ebook_count(field, key, publish_year=None):
+    ebook_count_db = get_ebook_count_db()
+    
+    # Handle the case of ebook_count_db_parametres not specified in the config.
+    if ebook_count_db is None:
+        return 0
+    
     def db_lookup(field, key, publish_year=None):
         sql = 'select sum(ebook_count) as num from subjects where field=$field and key=$key'
         if publish_year:
