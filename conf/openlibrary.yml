@@ -47,7 +47,7 @@ plugin_worksearch:
     author_solr: "localhost:8983"
     edition_solr: "localhost:8983"
     spellcheck_count: 3
-    ebook_count_db_paramters:
+    ebook_count_db_parameters:
         db: 'openlibrary_ebook_count'
         host: 'localhost'
 
