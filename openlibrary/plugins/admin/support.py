@@ -11,7 +11,9 @@ class cases(object):
     def GET(self, typ = "all"):
         if not support_db:
             return render_template("admin/cases", None, None, True)
-        cases = support_db.get_all_cases(typ)
+        i = web.input(sort="status")
+        sortby = i['sort']
+        cases = support_db.get_all_cases(typ, summarise = False, sortby = sortby)
         summary = support_db.get_all_cases(typ, summarise = True)
         return render_template("admin/cases", summary, cases)
 
