@@ -233,15 +233,15 @@ class CouchDB(Process):
 class Infobase(Process):
     def get_specs(self):
         return {
-            "command": INTERP + " ./scripts/infobase-server conf/infobase.yml 7500"
+            "command": INTERP + " ./scripts/infobase-server conf/infobase.yml 7000"
         }
 
     def wait_for_start(self):
-        self.wait_for_url("http://127.0.0.1:7500/")
+        self.wait_for_url("http://127.0.0.1:7000/")
         
     def get(self, path):
         try:
-            response = urllib2.urlopen("http://127.0.0.1:7500/openlibrary.org" + path)
+            response = urllib2.urlopen("http://127.0.0.1:7000/openlibrary.org" + path)
             return response.read()
         except urllib2.HTTPError, e:
             if e.getcode() == 404:
@@ -257,7 +257,7 @@ class Infobase(Process):
     def post(self, path, data):   
         if isinstance(data, dict):
             data = urllib.urlencode(data)
-        return urllib2.urlopen("http://127.0.0.1:7500/openlibrary.org" + path, data).read()
+        return urllib2.urlopen("http://127.0.0.1:7000/openlibrary.org" + path, data).read()
 
 class OpenLibrary(Process):
     def get_specs(self):
