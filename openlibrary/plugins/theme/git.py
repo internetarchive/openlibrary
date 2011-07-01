@@ -35,8 +35,10 @@ class Git:
         """
         return self.system("git diff " + path).stdout
         
-    def system(self, cmd, input=None):
+    def system(self, cmd, input=None, check_status=True):
         """Executes the command returns the stdout.
+        
+        Raises CommandError on non-zero status unless check_status is set to False.
         """
         print >> web.debug, "system", repr(cmd), input
         if input:
@@ -46,10 +48,10 @@ class Git:
         p = subprocess.Popen(cmd, shell=True, stdin=stdin, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         out, err = p.communicate(input)
         status = p.wait()
-        if status != 0:
+        if check_status and status != 0:
             raise CommandError(status, err)
         else:
-            return web.storage(cmd=cmd, stdout=out, stderr=err)
+            return web.storage(cmd=cmd, status=status, stdout=out, stderr=err)
         
     def modified(self):
         def process(f):
@@ -65,3 +67,4 @@ class Git:
         
     def push(self):
         return self.system("git push")
+        
