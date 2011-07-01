@@ -74,8 +74,14 @@ $def format_users(users):
         <hr />
 
         <p>
-            <b>Current Loan Status:</b><br />
-            $edition_loans
+            <table>
+              <tr><th>Current Loan Status:</th></tr>
+              $if edition_loans:
+                $for edition_loan in edition_loans:
+                  <tr><td>$edition_loan</td></tr>
+              $else:
+                  <tr><td>No current loans</td></tr>
+             </table>
         </p>
 
         <p>
