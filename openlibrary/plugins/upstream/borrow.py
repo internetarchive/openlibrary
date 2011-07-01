@@ -269,6 +269,17 @@ class borrow_admin_no_update(delegate.page):
             user_loans = get_loans(user)
             
         return render_template("borrow_admin_no_update", edition, edition_loans, user_loans, web.ctx.ip)
+        
+    def POST(self, key):
+        if not is_admin():
+            return render_template('permission_denied', web.ctx.path, "Permission denied.")
+            
+        i = web.input(action=None, loan_key=None)
+
+        if i.action == 'delete' and i.loan_key:
+            delete_loan(i.loan_key)
+            
+        raise web.seeother(web.ctx.path) # $$$ why doesn't this redirect to borrow_admin_no_update?
 
         
 # Handler for /iauth/{itemid}
@@ -707,7 +718,17 @@ def return_resource(resource_id):
     loan = web.ctx.site.store.get(loan_key)
     if loan['resource_type'] != 'bookreader':
         raise Exception('Not possible to return loan %s of type %s' % (loan['resource_id'], loan['resource_type']))
-    # $$$ Could add some stats tracking.  For now we just nuke it.
+    delete_loan(loan_key, loan)
+    
+def delete_loan(loan_key, loan = None):
+    if not loan:
+        loan = web.ctx.site.store.get(loan_key)
+        if not loan:
+            raise Exception('Could not find store record for %s', loan_key)
+                        
+    if loan['type'] != '/type/loan':
+        raise Exception('Record from store for %s is not of type /type/loan. Record: %s', loan_key, loan)
+        
     web.ctx.site.store.delete(loan_key)
     on_loan_delete(loan)
 
@@ -877,6 +898,7 @@ def on_loan_delete(loan):
     key = "ebooks" + loan['book']
     doc = store.get(key) or {}
 
+    # XXX need to check here if any other loans outstanding before setting available
     doc.update({
         "type": "ebook",
         "book_key": loan['book'],
