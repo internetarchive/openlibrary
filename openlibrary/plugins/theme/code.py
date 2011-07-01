@@ -41,6 +41,7 @@ def list_files():
         "openlibrary/plugins/upstream", 
         "openlibrary/plugins/admin",
         "openlibrary/plugins/worksearch",
+        "openlibrary/plugins/theme",
         "openlibrary/admin", 
         "static"
     ]
