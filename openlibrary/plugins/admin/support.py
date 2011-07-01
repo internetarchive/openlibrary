@@ -1,7 +1,10 @@
 import datetime
+import textwrap
 
 import web
 from infogami.utils.view import render_template
+from infogami import config
+from infogami.utils.markdown import markdown
 
 from openlibrary.core import support
 
@@ -23,7 +26,13 @@ class case(object):
             return render_template("admin/cases", None, None, True)
         case = support_db.get_case(caseid)
         date_pretty_printer = lambda x: x.strftime("%B %d, %Y")
-        return render_template("admin/case", case, date_pretty_printer)
+        md = markdown.Markdown()
+        if len(case.history) == 1:
+            last_email = case.description
+        else:
+            last_email = case.history[-1]['text']
+        admins = ((x.get_email(), x.get_username(), x.get_email() == case.assignee) for x in web.ctx.site.get("/usergroup/admin").members)
+        return render_template("admin/case", case, last_email, admins, date_pretty_printer, md.convert)
 
     def POST(self, caseid):
         if not support_db:
@@ -35,18 +44,22 @@ class case(object):
          "UPDATE"     : self.POST_update,
          "CLOSE CASE" : self.POST_closecase}[action](form,case)
         date_pretty_printer = lambda x: x.strftime("%B %d, %Y")
-        return render_template("admin/case", case, date_pretty_printer, True)
+        md = markdown.Markdown()
+        last_email = case.history[-1]['text']
+        last_email = "\n".join("> %s"%x for x in textwrap.wrap(last_email))
+        admins = ((x.get_email(), x.get_username(), x.get_email() == case.assignee) for x in web.ctx.site.get("/usergroup/admin").members)
+        return render_template("admin/case", case, last_email, admins, date_pretty_printer, md.convert, True)
     
     def POST_sendreply(self, form, case):
         user = web.ctx.site.get_user()
-        casenote = form.get("casenote1", False)
-        email_to = form.get("email", False)
+        casenote = form.get("casenote1", "")
+        casenote = "%s replied:\n\n%s"%(user.get_username(), casenote)
         case.add_worklog_entry(by = user.get_email(),
-                               text = casenote or "No note entered")
+                               text = casenote)
         case.change_status("replied", user.get_email())
+        email_to = form.get("email", False)
         if email_to:
             print "Send email to %s"%email_to
-        import pdb;pdb.set_trace()
         # web.sendmail(email_to, config.report_spam_address, msg.subject, str(msg))
         # print config.report_spam_address
 
@@ -59,7 +72,8 @@ class case(object):
         by = user.get_email()
         text = casenote or "No note entered"
         if assignee != case.assignee:
-            text += "\n<br/>Case reassigned to %s"%assignee
+            text += "\n\nCase reassigned to %s"%assignee
+            case.reassign(assignee, by)
         case.add_worklog_entry(by = by,
                                text = text)
 

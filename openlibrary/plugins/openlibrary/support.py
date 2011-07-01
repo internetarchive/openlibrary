@@ -56,7 +56,7 @@ class contact(delegate.page):
                                subject           = topic,
                                description       = description,
                                url               = url,
-                               assignee          = "mary@archive.org")
+                               assignee          = "mary@openlibrary.org")
         return render_template("support", done = True)
 
 

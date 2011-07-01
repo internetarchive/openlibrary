@@ -85,10 +85,6 @@ class Case(Document):
 
     def change_status(self, new_status, by):
         self.status = new_status
-        entry = dict(by = by,
-                     at = datetime.datetime.utcnow(),
-                     text = "Case status changed to '%s'"%new_status)
-        self.history.append(entry)
         self.store(self.db)
 
 
