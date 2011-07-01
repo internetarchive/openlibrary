@@ -240,16 +240,28 @@ class borrow_admin(delegate.page):
         if not edition:
             raise web.notfound()
 
-        edition.update_loan_status()
+        i = web.input(updatestatus=None)
+        if i.updatestatus == 't':
+            edition.update_loan_status()
         edition_loans = get_edition_loans(edition)
             
         user_loans = []
         user = web.ctx.site.get_user()
         if user:
-            user.update_loan_status()
             user_loans = get_loans(user)
             
         return render_template("borrow_admin", edition, edition_loans, ebook, user_loans, web.ctx.ip)
+        
+    def POST(self, key):
+        if not is_admin():
+            return render_template('permission_denied', web.ctx.path, "Permission denied.")
+            
+        i = web.input(action=None, loan_key=None)
+
+        if i.action == 'delete' and i.loan_key:
+            delete_loan(i.loan_key)
+            
+        raise web.seeother(web.ctx.path + '/borrow_admin')
         
 class borrow_admin_no_update(delegate.page):
     path = "(/books/OL\d+M)/borrow_admin_no_update"
@@ -900,10 +912,10 @@ def on_loan_delete(loan):
     doc = store.get(key) or {}
 
     # Check if the book still has an active loan
-    if is_loaned_out(loan['resource_id']):
+    borrowed = "false"
+    loan_keys = web.ctx.site.store.query('/type/loan', 'resource_id', loan['resource_id'])
+    if loan_keys:
         borrowed = "true"
-    else:
-        borrowed = "false"
     
     doc.update({
         "type": "ebook",
@@ -959,6 +971,10 @@ class Loan:
         
     def save(self):
         web.ctx.site.store[self.get_key()] = self.get_dict()
+        
+        # XXX create dupe!
+        web.ctx.site.store[self.get_key() + '-1'] = self.get_dict()
+        
         on_loan_update(self.get_dict())
         
     def remove(self):

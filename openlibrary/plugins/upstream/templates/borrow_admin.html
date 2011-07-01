@@ -50,14 +50,14 @@ $def format_users(users):
               Borrowed by: None
         </p>
 
-        <p>
-            Available? <i>(what's been borrowed = false)</i><br />
-            <ul>
-                <li>BookReader = $is_loan_available(page, 'bookreader')</li>
-                <li>PDF = $is_loan_available(page, 'pdf')</li>
-                <li>ePub = $is_loan_available(page, 'epub')</li>
-            </ul>
-        </p>
+        $# <p>
+        $#     Available? <i>(what's been borrowed = false)</i><br />
+        $#     <ul>
+        $#         <li>BookReader = $is_loan_available(page, 'bookreader')</li>
+        $#         <li>PDF = $is_loan_available(page, 'pdf')</li>
+        $#         <li>ePub = $is_loan_available(page, 'epub')</li>
+        $#     </ul>
+        $#</p>
         
         <p>
             Edition ebook record from datastore: <br />
@@ -111,6 +111,18 @@ $def format_users(users):
         <p>
             edition.get_current_and_available_loans(): $current_and_available_loans
         </p>
+
+        <p>        
+          <table>
+            <tr>
+                <th>Current loans for $page.title:</th>
+            </tr>
+            $for edition_loan in edition_loans:
+                <tr><td>$edition_loan</td><td><form method="POST"><input type="submit" value="Delete record" /><input type="hidden" name="action" value="delete" /><input type="hidden" name="loan_key" value="$edition_loan['store_key']" /></form></td></tr>
+          </table>
+        </p>
+        
+        <hr />
         
         <p>
             Book status in ACS4:<br>
