@@ -660,7 +660,6 @@ def update_all_loan_status():
         # Update status of each loan
         for loan_key in ol_loan_keys:
             loan = web.ctx.site.store.get(loan_key)
-            import sys; sys.stderr.write('XXXX %s' % loan)
             
             bss_status = None
             if resource_uses_bss(loan['resource_id']):
