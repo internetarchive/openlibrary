@@ -970,11 +970,7 @@ class Loan:
     #    self.set_dict(web.ctx.site.store[self.get_key()])
         
     def save(self):
-        web.ctx.site.store[self.get_key()] = self.get_dict()
-        
-        # XXX create dupe!
-        web.ctx.site.store[self.get_key() + '-1'] = self.get_dict()
-        
+        web.ctx.site.store[self.get_key()] = self.get_dict()        
         on_loan_update(self.get_dict())
         
     def remove(self):
