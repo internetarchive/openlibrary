@@ -1,0 +1,26 @@
+$def with (success, commands)
+
+<div id="contentHead">
+    <h1>Theme Editor</h1>
+    $:render_template("theme/menu")
+</div>
+
+$def render_command(cmd):
+    <pre>
+    $$ $cmd.cmd
+    $cmd.stdout
+    $cmd.stderr
+    </pre>
+
+<div id="contentBody">
+$if success:
+    <h2>Success!</h2>
+$else:
+    <h2>Oops!</h2>
+        
+$for cmd in commands:
+    <div>$:render_command(cmd)</div>
+
+$if not success:
+    Failed to complete the operation.
+</div>

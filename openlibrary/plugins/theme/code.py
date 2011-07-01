@@ -8,7 +8,7 @@ from infogami.utils import delegate
 from infogami.utils.view import render_template, add_flash_message
 from collections import defaultdict
 
-from .git import Git
+from .git import Git, CommandError
 
 logger = logging.getLogger("openlibrary.theme")
 
@@ -131,3 +131,33 @@ class gitview(delegate.page):
     def get_author(self):
         user = web.ctx.site.get_user()
         return "%s <%s>" % (user.displayname, user.get_email())
+        
+class manage(delegate.page):
+    path = "/theme/manage"
+    
+    @admin_only
+    def GET(self):
+        return render_template("theme/manage")
+        
+class gitmerge(delegate.page):
+    path = "/theme/git-merge"
+    
+    @admin_only
+    def POST(self):
+        git = Git()
+        
+        d = web.storage(commands=[], success=True)
+        
+        def run(command):
+            if d.success:
+                cmd = git.system(command)
+                d.commands.append(cmd)
+                d.success = (cmd.status == 0)
+                
+        run("git fetch origin master")
+        run("git merge origin/master")
+        run("git push")
+        # Send SIGUP signal to master gunicorn process to reload
+        run("kill -SIGUP %s" % os.getppid())
+        return render_template("theme/commands", d.success, d.commands)
+    
