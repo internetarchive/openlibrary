@@ -387,10 +387,13 @@ def readlinks(req, options):
     try:
         dbstr = 'debug|'
         if req.startswith(dbstr):
-            options = { 'stats': True,
-                        'show_exception': True,
-                        'no_data': True,
-                        'no_details': True }
+            options = {
+                'stats': True,
+                'show_exception': True,
+                'no_data': True,
+                'no_details': True,
+                'show_all_items': True
+            }
             req = req[len(dbstr):]
         rp = ReadProcessor(options)
 
