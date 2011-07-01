@@ -897,11 +897,16 @@ def on_loan_delete(loan):
     key = "ebooks" + loan['book']
     doc = store.get(key) or {}
 
-    # XXX need to check here if any other loans outstanding before setting available
+    # Check if the book still has an active loan
+    if is_loaned_out(loan['resource_id']):
+        borrowed = "true"
+    else:
+        borrowed = "false"
+    
     doc.update({
         "type": "ebook",
         "book_key": loan['book'],
-        "borrowed": "false"
+        "borrowed": borrowed
     })
     store[key] = doc
 
