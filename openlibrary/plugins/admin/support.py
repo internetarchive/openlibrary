@@ -72,7 +72,7 @@ class case(object):
         by = user.get_email()
         text = casenote or "No note entered"
         if assignee != case.assignee:
-            text += "\n\nCase reassigned to %s"%assignee
+            text += "\n\nassigned to %s"%assignee
             case.reassign(assignee, by)
         case.add_worklog_entry(by = by,
                                text = text)
