@@ -154,7 +154,7 @@ class gitmerge(delegate.page):
                 d.commands.append(cmd)
                 d.success = (cmd.status == 0)
                 
-        run("git fetch origin master")
+        run("git fetch origin")
         run("git merge origin/master")
         run("git push")
         # Send SIGUP signal to master gunicorn process to reload
