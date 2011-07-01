@@ -122,6 +122,8 @@ class ReadProcessor:
                 status = 'restricted'
             elif not self.get_inlibrary():
                 status = 'restricted'
+                if self.options.get('debug_items'):
+                    status = 'restricted - not inlib'
             else:
                 status = 'lendable'
         elif 'printdisabled' in collections:
@@ -138,13 +140,16 @@ class ReadProcessor:
 
 
     def get_readitem(self, iaid, orig_iaid, orig_ekey, wkey, status, publish_date):
-        meta = self.iaid_to_meta[iaid]
+        meta = self.iaid_to_meta.get(iaid)
+        if meta is None:
+            return None
+
         collections = meta.get("collection", [])
 
         if status == 'missing':
             return None
 
-        if status == 'restricted' or status == 'checked out' and not self.options.get('show_all_items'):
+        if (status.startswith('restricted') or status == 'checked out') and not self.options.get('show_all_items'):
             return None
 
         edition = self.iaid_to_ed.get(iaid)
@@ -225,9 +230,13 @@ class ReadProcessor:
         # Sort iaids.  Is there a more concise way?
 
         def getstatus(self, iaid):
-            meta = self.iaid_to_meta[iaid]
-            collections = meta.get("collection", [])
-            edition = self.iaid_to_ed.get(iaid)
+            meta = self.iaid_to_meta.get(iaid)
+            if not meta:
+                status = 'missing'
+                edition = None
+            else:
+                collections = meta.get("collection", [])
+                edition = self.iaid_to_ed.get(iaid)
             if not edition:
                 status = 'missing'
             else:
@@ -248,6 +257,10 @@ class ReadProcessor:
 
         def sortfn(sortitem):
             iaid, status, date = sortitem
+            if iaid == orig_iaid and (status == 'full access' or status == 'lendable'):
+                isexact = '000'
+            else:
+                isexact = '999'
             # sort dateless to end
             if date == '':
                 date = 5000
@@ -259,8 +272,9 @@ class ReadProcessor:
                            'lendable': 2,
                            'checked out': 3,
                            'restricted': 4,
+                           'restricted - not inlib': 4,
                            'missing': 5 }
-            return (statusvals[status], date)
+            return (isexact, statusvals[status], date)
 
         iaids_tosort.sort(key=sortfn)
 
@@ -319,7 +333,7 @@ class ReadProcessor:
 
         def lookup_iaids(iaids):
             step = 10
-            if len(iaids) > step:
+            if len(iaids) > step and not self.options.get('debug_things'):
                 result = []
                 while iaids:
                     result += lookup_iaids(iaids[:step])
@@ -371,6 +385,16 @@ class ReadProcessor:
 
 def readlinks(req, options):
     try:
+        dbstr = 'debug|'
+        if req.startswith(dbstr):
+            options = {
+                'stats': True,
+                'show_exception': True,
+                'no_data': True,
+                'no_details': True,
+                'show_all_items': True
+            }
+            req = req[len(dbstr):]
         rp = ReadProcessor(options)
 
         if options.get('listofworks'):
@@ -391,7 +415,7 @@ def readlinks(req, options):
         print >> sys.stderr, 'Error in processing Read API'
         if options.get('show_exception'):
             register_exception()
-            raise
+            result = {'success': False}
         else:
             register_exception()
         result = {}

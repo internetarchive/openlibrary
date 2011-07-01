@@ -36,7 +36,12 @@ def init_plugin():
         ib.add_event_listener(infobase_logger.Logger(config.writelog))
         
     ib.add_event_listener(invalidate_most_recent_change)
-    ib.add_event_listener(notify_celery)
+    
+    # When setting up the dev instance, celery is not available. 
+    # Using DISABLE_CELERY environment variable to decide whether or not to trigger celery events. 
+    # DISABLE_CELERY will be set to true when setting up the dev instance.
+    if os.getenv("DISABLE_CELERY", "").lower() != "true":
+        ib.add_event_listener(notify_celery)
 
     setup_logging()
 
