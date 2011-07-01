@@ -234,6 +234,8 @@ class borrow_admin(delegate.page):
             return render_template('permission_denied', web.ctx.path, "Permission denied.")
     
         edition = web.ctx.site.get(key)
+        ebook_key = "ebooks" + key
+        ebook = web.ctx.site.store.get(ebook_key) or {}
         
         if not edition:
             raise web.notfound()
@@ -247,7 +249,7 @@ class borrow_admin(delegate.page):
             user.update_loan_status()
             user_loans = get_loans(user)
             
-        return render_template("borrow_admin", edition, edition_loans, user_loans, web.ctx.ip)
+        return render_template("borrow_admin", edition, edition_loans, ebook, user_loans, web.ctx.ip)
         
 class borrow_admin_no_update(delegate.page):
     path = "(/books/OL\d+M)/borrow_admin_no_update"

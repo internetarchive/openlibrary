@@ -1,4 +1,4 @@
-$def with (page, edition_loans, user_loans, user_ip)
+$def with (page, edition_loans, edition_ebook, user_loans, user_ip)
 
 $var title: $page.title
 
@@ -57,6 +57,11 @@ $def format_users(users):
                 <li>PDF = $is_loan_available(page, 'pdf')</li>
                 <li>ePub = $is_loan_available(page, 'epub')</li>
             </ul>
+        </p>
+        
+        <p>
+            Edition ebook record from datastore: <br />
+            $edition_ebook
         </p>
 
         <p>
