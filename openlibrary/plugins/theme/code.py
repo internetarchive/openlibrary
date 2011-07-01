@@ -158,6 +158,6 @@ class gitmerge(delegate.page):
         run("git merge origin/master")
         run("git push")
         # Send SIGUP signal to master gunicorn process to reload
-        run("kill -SIGUP %s" % os.getppid())
+        run("kill -HUP %s" % os.getppid())
         return render_template("theme/commands", d.success, d.commands)
     
