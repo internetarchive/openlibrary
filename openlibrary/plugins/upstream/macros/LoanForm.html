@@ -24,6 +24,7 @@ $else:
             \$(this).find('input').attr('checked','checked');
             \$('.preSubmit').hide();
             \$('.postSubmit').show();
+            \$('#ol_host').attr('value', location.host);
             \$('#borrowbook').submit();
             setTimeout('document.location.reload()', 4000);
             return true;
@@ -94,6 +95,7 @@ $else:
                     </tbody></table>
                 </div>
             </fieldset>
+    <input type="text" value="" id="ol_host" name="ol_host" class="hidden"/>
     <input type="submit" value="Borrow This Book" id="borrowBtn" name="borrowBtn" class="hidden"/>
     </form>
     </div>
