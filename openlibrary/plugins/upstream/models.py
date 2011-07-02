@@ -209,7 +209,6 @@ class Edition(models.Edition):
         # Create list of possible loan formats
         resource_pattern = r'acs:(\w+):(.*)'
         for resource_urn in self.get_lending_resources():
-            print 'RESOURCE %s' % resource_urn
             if resource_urn.startswith('acs:'):
                 (type, resource_id) = re.match(resource_pattern, resource_urn).groups()
                 loans.append( { 'resource_id': resource_id, 'resource_type': type, 'size': None } )
