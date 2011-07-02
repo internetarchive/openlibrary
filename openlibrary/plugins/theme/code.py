@@ -151,7 +151,7 @@ class gitmerge(delegate.page):
         
         def run(command):
             if d.success:
-                cmd = git.system(command)
+                cmd = git.system(command, check_status=False)
                 d.commands.append(cmd)
                 d.success = (cmd.status == 0)
                 
