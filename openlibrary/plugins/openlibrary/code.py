@@ -357,8 +357,6 @@ class bookpage(delegate.page):
         key = key.lower()
         suffix = suffix or ""
         
-        print (key, value, suffix)
-        
         if key == "isbn":
             if len(value) == 13:
                 key = "isbn_13"

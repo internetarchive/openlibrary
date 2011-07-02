@@ -102,7 +102,6 @@ class reload:
             yield "<h3>" + s + "</h3>"
             try:
                 response = urllib.urlopen(s).read()
-                print s, response
                 yield "<p><pre>" + response[:100] + "</pre></p>"
             except:
                 yield "<p><pre>%s</pre></p>" % traceback.format_exc()

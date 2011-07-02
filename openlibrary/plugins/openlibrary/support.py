@@ -36,7 +36,6 @@ class contact(delegate.page):
         })
         msg = render_template('email/spam_report', fields)
         web.sendmail(i.email, config.report_spam_address, msg.subject, str(msg))
-        print config.report_spam_address
         return render_template("support", done = True)
 
     def POST_new(self):
