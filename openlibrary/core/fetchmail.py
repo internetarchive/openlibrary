@@ -12,7 +12,7 @@ from openlibrary.core import support
 
 subject_re = re.compile("^(R[Ee]:)? ?Case #([0-9]+): .*")
 
-logging.config.fileConfig("conf/logging.ini")
+logging.config.fileConfig("/opt/openlibrary/olsystem/etc/logging.ini") # Fix this to work properly in the dev node
 logger = Logging.getLogger("openlibrary.fetchmail")
 
 class Error(Exception): pass
