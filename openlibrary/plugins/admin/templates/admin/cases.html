@@ -1,4 +1,4 @@
-$def with (summary, cases, error = False)
+$def with (summary, cases, desc, error = False)
 
 <div id="contentHead">
     <h1>$_("Admin Center")</h1>
@@ -34,13 +34,13 @@ $else:
     
   <table class = "support" border="0" cellspacing="0" cellpadding="10">
       <tr>
-          <th><a href="?sort=created">Created</a></th>
-          <th><a href="?sort=caseid">#</a></th>
-          <th><a href="?sort=subject">Subject</a></th>
-          <th><a href="?sort=user">User</a></th>
-          <th><a href="?sort=assigned">Assigned to</a></th>
-          <th><a href="?sort=lastmodified">Last modified</a></th>
-          <th><a href="?sort=status">Status</a></th>
+          <th><a href="?sort=created&desc=$desc">Created</a></th>
+          <th><a href="?sort=caseid&desc=$desc">#</a></th>
+          <th><a href="?sort=subject&desc=$desc">Subject</a></th>
+          <th><a href="?sort=user&desc=$desc">User</a></th>
+          <th><a href="?sort=assigned&desc=$desc">Assigned to</a></th>
+          <th><a href="?sort=lastmodified&desc=$desc">Last modified</a></th>
+          <th><a href="?sort=status&desc=$desc">Status</a></th>
       </tr>
       $for case in cases:
       <tr>

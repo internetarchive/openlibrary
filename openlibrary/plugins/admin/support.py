@@ -13,17 +13,19 @@ support_db = None
 class cases(object):
     def GET(self, typ = "all"):
         if not support_db:
-            return render_template("admin/cases", None, None, True)
-        i = web.input(sort="status")
+            return render_template("admin/cases", None, None, True, False)
+        i = web.input(sort="status", desc = "false")
         sortby = i['sort']
-        cases = support_db.get_all_cases(typ, summarise = False, sortby = sortby)
+        desc = i['desc']
+        cases = support_db.get_all_cases(typ, summarise = False, sortby = sortby, desc = desc)
         summary = support_db.get_all_cases(typ, summarise = True)
-        return render_template("admin/cases", summary, cases)
+        desc = desc == "false" and "true" or "false"
+        return render_template("admin/cases", summary, cases, desc)
 
 class case(object):
     def GET(self, caseid):
         if not support_db:
-            return render_template("admin/cases", None, None, True)
+            return render_template("admin/cases", None, None, True, False)
         case = support_db.get_case(caseid)
         date_pretty_printer = lambda x: x.strftime("%B %d, %Y")
         md = markdown.Markdown()
@@ -36,7 +38,7 @@ class case(object):
 
     def POST(self, caseid):
         if not support_db:
-            return render_template("admin/cases", None, None, True)
+            return render_template("admin/cases", None, None, True, False)
         case = support_db.get_case(caseid)
         form = web.input()
         action = form.get("button","")

@@ -54,13 +54,13 @@ class Support(object):
         c = Case.load(self.db, caseid)
         return c
         
-    def get_all_cases(self, typ = "all", summarise = False, sortby = "lastmodified"):
+    def get_all_cases(self, typ = "all", summarise = False, sortby = "lastmodified", desc = "false"):
         "Return all the cases in the system"
         if summarise:
             v = ViewDefinition("cases", "sort-status", "", group_level = 1)
             return v(self.db)
         else:
-            return Case.all(self.db, typ, sortby)
+            return Case.all(self.db, typ, sortby, desc)
 
             
 class Case(Document):
@@ -139,7 +139,7 @@ class Case(Document):
         return ret
 
     @classmethod
-    def all(cls, db, typ="all", sort = "status"):
+    def all(cls, db, typ="all", sort = "status", desc = "false"):
         view = {"created"      : "cases/sort-created",
                 "caseid"       : "cases/sort-caseid",
                 "assigned"     : "cases/sort-assignee",
@@ -148,20 +148,30 @@ class Case(Document):
                 "status"       : "cases/sort-status",
                 "subject"      : "cases/sort-subject"}[sort]
         if sort == "status":
-            extra = dict(reduce = False)
+            extra = dict(reduce = False,
+                         descending = desc)
         else:
-            extra = {}
-        print extra
+            extra = dict(descending = desc)
+
         if typ == "all":
             result = cls.view(db, view, include_docs = True, **extra)
+            return result.rows
         elif typ == "new":
-            result = cls.view(db, view, include_docs = True, startkey=["new"], endkey=["replied"], **extra)
+            startkey, endkey = (["new"], ["replied"])
         elif typ == "closed":
-            result = cls.view(db, view, include_docs = True, startkey=["closed"], endkey=["new"], **extra)
+            startkey, endkey = (["closed"], ["new"])
         elif typ == "replied":
-            result = cls.view(db, view, include_docs = True, startkey=["replied"], **extra)
+            startkey, endkey = (["replied"], False)
         else:
             raise KeyError("No such case type '%s'"%typ)
+
+        if desc == "true":
+            startkey, endkey = endkey, startkey
+        if startkey:
+            extra['startkey'] = startkey
+        if endkey:
+            extra['endkey'] = endkey
+        result = cls.view(db, view, include_docs = True, **extra)
         return result.rows
 
     def __eq__(self, second):
