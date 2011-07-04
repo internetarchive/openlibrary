@@ -2,6 +2,7 @@ import datetime
 
 import couchdb
 from couchdb.mapping import TextField, IntegerField, DateTimeField, ListField, DictField, Mapping, Document, ViewField
+from couchdb.design import ViewDefinition
 
 import web
 from infogami import config
@@ -26,22 +27,23 @@ class Support(object):
         else:
             self.db = get_admin_database()
     
-    def create_case(self, creator_name, creator_email, creator_useragent, subject, description, assignee, url = ""):
+    def create_case(self, creator_name, creator_email, creator_useragent, creator_username, subject, description, assignee, url = ""):
         "Creates a support case with the given parameters"
         seq = web.ctx.site.seq.next_value("support-case")
         created = datetime.datetime.utcnow()
         caseid = "case-%s"%seq
-        c = Case(_id = caseid,
-                 creator_name = creator_name,
-                 creator_email = creator_email,
-                 creator_useragent = creator_useragent,
-                 subject = subject,
-                 description = description,
-                 assignee = assignee,
-                 created = created,
-                 status = "new",
-                 url = url,
-                 support_db = self.db)
+        c = Case.new(_id = caseid,
+                     creator_name = creator_name,
+                     creator_email = creator_email,
+                     creator_useragent = creator_useragent,
+                     creator_username  = creator_username,
+                     subject = subject,
+                     description = description,
+                     assignee = assignee,
+                     created = created,
+                     status = "new",
+                     url = url,
+                     support_db = self.db)
         c.store(self.db)
         return c
 
@@ -52,13 +54,15 @@ class Support(object):
         c = Case.load(self.db, caseid)
         return c
         
-    def get_all_cases(self):
+    def get_all_cases(self, typ = "all", summarise = False, sortby = "lastmodified", desc = "false"):
         "Return all the cases in the system"
-        return Case.all(self.db)
+        if summarise:
+            v = ViewDefinition("cases", "sort-status", "", group_level = 1)
+            return v(self.db)
+        else:
+            return Case.all(self.db, typ, sortby, desc)
 
             
-    
-
 class Case(Document):
     _id               = TextField()
     type              = TextField(default = "case")
@@ -69,25 +73,18 @@ class Case(Document):
     creator_email     = TextField()
     creator_useragent = TextField()
     creator_name      = TextField()
+    creator_username  = TextField()
     url               = TextField()
     created           = DateTimeField()
     history           = ListField(DictField(Mapping.build(at    = DateTimeField(),
                                                           by    = TextField(),
                                                           text  = TextField())))
 
-    def __init__(self, **kargs):
-        super(Case, self).__init__(**kargs)
-        item = dict (at = self.created,
-                     by = self.creator_name or self.creator_email,
-                     text = "Case created")
-        self.history.append(item)
+    def __repr__(self):
+        return "<Case ('%s')>"%self._id
 
     def change_status(self, new_status, by):
         self.status = new_status
-        entry = dict(by = by,
-                     at = datetime.datetime.utcnow(),
-                     text = "Case status changed to '%s'"%new_status)
-        self.history.append(entry)
         self.store(self.db)
 
 
@@ -132,20 +129,50 @@ class Case(Document):
         "Returns case number"
         return int(self._id.replace("case-",""))
 
-    @ViewField.define('cases')
-    def all(self, doc):
-        if doc.get("type","") == "case":
-            yield doc["_id"], doc
+    @classmethod
+    def new(cls, **kargs):
+        ret = cls(**kargs)
+        item = dict (at = ret.created,
+                     by = ret.creator_name or ret.creator_email,
+                     text = "Case created")
+        ret.history.append(item)
+        return ret
 
+    @classmethod
+    def all(cls, db, typ="all", sort = "status", desc = "false"):
+        view = {"created"      : "cases/sort-created",
+                "caseid"       : "cases/sort-caseid",
+                "assigned"     : "cases/sort-assignee",
+                "user"         : "cases/sort-creator",
+                "lastmodified" : "cases/sort-lastmodified",
+                "status"       : "cases/sort-status",
+                "subject"      : "cases/sort-subject"}[sort]
+        if sort == "status":
+            extra = dict(reduce = False,
+                         descending = desc)
+        else:
+            extra = dict(descending = desc)
+
+        if typ == "all":
+            result = cls.view(db, view, include_docs = True, **extra)
+            return result.rows
+        elif typ == "new":
+            startkey, endkey = (["new"], ["replied"])
+        elif typ == "closed":
+            startkey, endkey = (["closed"], ["new"])
+        elif typ == "replied":
+            startkey, endkey = (["replied"], False)
+        else:
+            raise KeyError("No such case type '%s'"%typ)
+
+        if desc == "true":
+            startkey, endkey = endkey, startkey
+        if startkey:
+            extra['startkey'] = startkey
+        if endkey:
+            extra['endkey'] = endkey
+        result = cls.view(db, view, include_docs = True, **extra)
+        return result.rows
 
     def __eq__(self, second):
         return self._id == second._id
-
-        
-                 
-
-        
-             
-        
-        
-        
