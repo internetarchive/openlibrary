@@ -424,7 +424,7 @@ def setup():
     register_admin_page('/admin/status', service_status, label = "Open Library services")
     register_admin_page('/admin/support', support.cases, label = "All Support cases")
     register_admin_page('/admin/support/(new|replied|closed)?', support.cases, label = "Filtered Support cases")
-    register_admin_page('/admin/support/case/(case-\d+)', support.case, label = "Support cases")
+    register_admin_page('/admin/support/(\d+)', support.case, label = "Support cases")
     register_admin_page('/admin/inspect(?:/(.+))?', inspect, label="")
     register_admin_page('/admin/tasks', tasks.tasklist, label = "Task queue")
     register_admin_page('/admin/tasks/(.*)', tasks.tasks, label = "Task details")

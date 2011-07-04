@@ -46,7 +46,7 @@ $else:
       <tr>
         <td>$datestr(case.created)</td>
         <td>$case.caseid</td>
-        <td><a href="/admin/support/case/$(case.caseid)">$case.subject</a></td>
+        <td><a href="/admin/support/$(case.caseno)">$case.subject</a></td>
         <td><a href="/admin/people/$(case.creator_username)">$case.creator_name</a></td>
         <td>$case.assignee</td>
         <td>$datestr(case.last_modified)</td>
