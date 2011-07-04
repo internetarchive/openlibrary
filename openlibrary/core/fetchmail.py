@@ -41,13 +41,13 @@ def imap_remove_delete_flag(imap_conn, messageid):
     imap_conn.store(messageid, "-FLAGS", r'(\Deleted \Seen)')
 
 
-def set_up_imap_connection(config_file):
+def set_up_imap_connection(config_file, ol_config):
     try:
         c = ConfigParser.ConfigParser()
         c.read(config_file)
         username = c.get("support","username")
         password = c.get("support","password")
-        email_server = c.get("support", "server")
+        email_server = ol_config.get("smtp_server")
         conn = imaplib.IMAP4_SSL(email_server)
         conn.login(username, password)
         conn.select("INBOX")
@@ -110,7 +110,7 @@ def fetch_and_update(imap_conn, db_conn = None):
 
 def fetchmail(config):
     try:
-        conn = set_up_imap_connection(config.get('email_config_file'))
+        conn = set_up_imap_connection(config.get('email_config_file'), config)
         db_conn = connect_to_admindb(config)
         fetch_and_update(conn, db_conn)
         conn.close()

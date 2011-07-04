@@ -6,6 +6,8 @@ site: "openlibrary.org"
 from_address: "Open Library <noreply@openlibrary.org>"
 report_spam_address: "Open Library <info@openlibrary.org>"
 
+smtp_server: "mail.archive.org"
+
 dummy_sendmail: True
 debug: True
 
