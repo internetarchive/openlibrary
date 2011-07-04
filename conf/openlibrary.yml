@@ -4,7 +4,7 @@ infobase_server: "127.0.0.1:7000"
 site: "openlibrary.org"
 
 from_address: "Open Library <noreply@openlibrary.org>"
-report_spam_address: "Open Library <info@openlibrary.org>"
+report_spam_address: "Open Library <support@openlibrary.org>"
 
 smtp_server: "mail.archive.org"
 
