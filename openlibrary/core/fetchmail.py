@@ -79,7 +79,7 @@ def get_new_emails(conn):
 
 
 def update_support_db(author, message, caseid, db):
-    try:
+    try: #TBD change status here
         case = db.get_case(caseid)
         case.add_worklog_entry(author, message)
         logger.info("  Updated case")
