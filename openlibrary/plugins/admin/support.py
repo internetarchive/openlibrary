@@ -60,12 +60,9 @@ class case(object):
                                text = casenote)
         case.change_status("replied", user.get_email())
         email_to = form.get("email", False)
+        subject = "Case #%s: %s"%(case.caseno, case.subject)
         if email_to:
-            print "Send email to %s"%email_to
-        # web.sendmail(email_to, config.report_spam_address, msg.subject, str(msg))
-        # print config.report_spam_address
-
-
+            web.sendmail(config.report_spam_address, email_to, subject, casenote, cc = "mary@openlibrary.org")
 
     def POST_update(self, form, case):
         casenote = form.get("casenote2", False)
