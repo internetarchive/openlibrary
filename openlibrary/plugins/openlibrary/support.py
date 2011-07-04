@@ -35,7 +35,7 @@ class contact(delegate.page):
             'browser': web.ctx.env.get('HTTP_USER_AGENT', '')
         })
         msg = render_template('email/spam_report', fields)
-        web.sendmail(config.report_spam_address, i.email, msg.subject, str(msg))
+        web.sendmail(i.email, config.report_spam_address, msg.subject, str(msg))
         return render_template("support", done = True)
 
     def POST_new(self):
