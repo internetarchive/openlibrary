@@ -1,7 +1,7 @@
 import logging
 import eventer
 from openlibrary.core.task import oltask
-
+from openlibrary.core.fetchmail import fetchmail
 from openlibrary.core import formats
 from openlibrary.core.lists.updater import Updater as ListUpdater
 
@@ -13,10 +13,16 @@ except ImportError:
     logger.error("failed to import celeryconfig")
     celeryconfig = None
 
-
 @oltask
 def add(x, y):
     return x + y
+
+@oltask
+def update_support_from_email():
+    configfile = celeryconfig.OL_CONFIG
+    ol_config = formats.load_yaml(open(configfile).read())
+    fetchmail(ol_config)
+
 
 @oltask
 def trigger_offline_event(event, *a, **kw):

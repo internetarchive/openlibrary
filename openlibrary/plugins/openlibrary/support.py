@@ -35,7 +35,7 @@ class contact(delegate.page):
             'browser': web.ctx.env.get('HTTP_USER_AGENT', '')
         })
         msg = render_template('email/spam_report', fields)
-        web.sendmail(i.email, config.report_spam_address, msg.subject, str(msg))
+        web.sendmail(config.report_spam_address, i.email, msg.subject, str(msg))
         return render_template("support", done = True)
 
     def POST_new(self):
@@ -48,13 +48,16 @@ class contact(delegate.page):
         url = form.get("url", "")
         user = web.ctx.site.get_user()
         useragent = web.ctx.env.get("HTTP_USER_AGENT","")
-        support_db.create_case(creator_name      = user and user.get_name() or "",
-                               creator_email     = email,
-                               creator_useragent = useragent,
-                               subject           = topic,
-                               description       = description,
-                               url               = url,
-                               assignee          = "mary@archive.org")
+        c = support_db.create_case(creator_name      = user and user.get_name() or "",
+                                   creator_email     = email,
+                                   creator_useragent = useragent,
+                                   creator_username  = user and user.get_username() or "",
+                                   subject           = topic,
+                                   description       = description,
+                                   url               = url,
+                                   assignee          = "mary@openlibrary.org")
+        subject = "Case #%s: %s"%(c.caseno, topic)
+        web.sendmail(config.report_spam_address, email, subject, description, cc="mary@openlibrary.org")
         return render_template("support", done = True)
 
 

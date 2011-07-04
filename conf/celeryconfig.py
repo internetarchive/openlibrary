@@ -13,3 +13,12 @@ OL_RESULT_DB_PARAMETERS = { "dbn" : "postgres",
 CELERY_IMPORTS = ("openlibrary.tasks", )
 
 OL_CONFIG = "conf/openlibrary.yml"
+
+from datetime import timedelta
+
+CELERYBEAT_SCHEDULE = {
+    "runs-every-30-seconds": {
+        "task": "openlibrary.tasks.update_support_from_email",
+        "schedule": timedelta(seconds=30),
+    },
+}

@@ -4,7 +4,9 @@ infobase_server: "127.0.0.1:7000"
 site: "openlibrary.org"
 
 from_address: "Open Library <noreply@openlibrary.org>"
-report_spam_address: "Open Library <info@openlibrary.org>"
+report_spam_address: "Open Library <support@openlibrary.org>"
+
+smtp_server: "mail.archive.org"
 
 dummy_sendmail: True
 debug: True
@@ -73,6 +75,7 @@ css_root: /upstream/css
 js_root: /upstream/js
 use_google_cdn: false
 logging_config_file: conf/logging.ini
+email_config_file: conf/email.ini
 
 lists:
     seeds_db: http://127.0.0.1:5984/seeds

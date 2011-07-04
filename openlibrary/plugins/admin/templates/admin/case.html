@@ -1,4 +1,33 @@
-$def with (case, pretty_print_date, done = False)
+$def with (case, last_email, admins, pretty_print_date, htmlify, done = False)
+
+<style type = "text/css">
+ textarea { 
+            width: 100%;
+            }
+
+th, td {
+         border-bottom: 1px solid #ddd; 
+         vertical-align:top;
+         }
+
+.style1 { 
+         font-size: x-small
+ }
+
+.style2 {
+	color: #CC0000;
+	font-style: italic;
+}
+
+</style>
+
+<script type="text/javascript">
+\$(function() {
+    \$("#checkbox3").change(function() {
+	\$("#textarea").val($:json_encode(last_email));
+    });
+    });
+</script>
 
 <div id="contentHead">
     <h1>$_("Admin Center")</h1>
@@ -15,7 +44,7 @@ $def with (case, pretty_print_date, done = False)
  $if done:
    <em>Case updated</em>
 
-<h1><a href="/admin/support">Help</a> / $(case.caseid) [$case.status]</h1>
+<h1><a href="/admin/support">Cases</a> / $(case.caseid) [$case.status]</h1>
 <form id="form1" name="form1" method="post" action="">
 <table width="95%" border="0" cellpadding="5" cellspacing="0">
   <tr>
@@ -24,7 +53,7 @@ $def with (case, pretty_print_date, done = False)
   </tr>
   <tr>
     <td><p>From:</p></td>
-    <td colspan="2"><p>$(case.creator_name) / $(case.creator_email) / <a href="openlibrary.org/people/123">TBD</a><br/>
+    <td colspan="2"><p>$(case.creator_name) / $(case.creator_email) / <a href="/admin/people/$(case.creator_username)">$(case.creator_username)</a><br/>
     <span class="style1"><em>$(case.creator_useragent)</em></span></p></td>
   </tr>
   <tr>
@@ -41,8 +70,9 @@ $def with (case, pretty_print_date, done = False)
     <td><p>Original note:</p></td>
     <td colspan="2">
 	<p>
-	  $(case.description)
+	  $:htmlify(case.description)
 	</p>
+    </td>
   </tr>
   <tr>
     <td colspan="3"><h4 align="center">Case History</h4></td>
@@ -56,46 +86,54 @@ $def with (case, pretty_print_date, done = False)
 	    <span class="style1">by: $(entry.by)</span>
 	  </p>
 	</td>
-	<td colspan="2"><p>$(entry.text)</p></td>
+	<td colspan="2"><p>$:htmlify(entry.text)</p></td>
     </tr>
+  <tr>
+    <td colspan="3"><h4 align="center">Update case</h4></td>
+  </tr>
+  <tr>
+    <td>Send reply</td>
+    <td>
+      <p>To: <input name="email" type="text" id="email" value="$(case.creator_email)" size="35" /> </p>
+      <p>
+	<input name="quote_email" type="checkbox" id="checkbox3" /> Quote latest email?<br />
+	<textarea class="markdown"   name="casenote1" id="textarea" rows="10"></textarea>
+      </p>
+      <p>
+	<input type="submit" name="button" id="button3" value="SEND REPLY" />
+      </p>	
+    </td>
+  </tr>
 
   <tr>
-    <td><p>Reply:</p></td>
-    <td><p>To:
-    <input name="email" type="text" id="email" value="$(case.creator_email)" size="35" />
-
-  </p>
-  <p>
-    <input name="quote_email" type="checkbox" id="checkbox3" disabled="true"  />
-    Quote latest email?<br />
-    <br />
-    <textarea name="casenote1" id="textarea" rows="20">
-    </textarea>
-  </p>
-  <p>
-
-    <input type="submit" name="button" id="button3" value="SEND REPLY" />
-    </p></td>
-    <td><p>Assigned to: <span class="style1">
-    <select name="assignee" id="assignee">
-	<option selected="selected">Mary</option>
-	<option>List everyone in usergroup/admin</option>
-    </select>
-
-  </span></p>
-  <p>Add Case Note:</p>
-  <p>
-    <textarea name="casenote2" id="textarea2" rows="10"></textarea>
-  </p>
-  <p>
-    <input type="submit" name="button" id="button" value="UPDATE" />
-  </p>
-
-  <p>&nbsp;</p>
-  <p>
-    <input type="submit" name="button" id="close2" value="CLOSE CASE" />
-    </p></td>
+    <td>Reassign/Close case</td>
+    <td>
+      <p>Assigned to: 
+      <select name="assignee" id="assignee">
+	$for email,username,selected in admins:
+	  $if selected:
+	     <option selected="selected" value="$:email">$username</option>
+          $else:
+	     <option value="$:email">$username</option>
+      </select>
+      <p>Add Case Note:</p>
+      <p>
+	<textarea class="markdown" name="casenote2" id="textarea2" rows="10"></textarea>
+      </p>
+      <p>
+	<input type="submit" name="button" id="button" value="UPDATE" />
+      </p>
+      <p>
+	<input type="submit" name="button" id="close2" value="CLOSE CASE" />
+      </p>
+      </p>
+    </td>
   </tr>
 </table>
-</form>
+
+    
+
+  
+
+
 </div>
