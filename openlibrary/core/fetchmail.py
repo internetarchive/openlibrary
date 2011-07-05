@@ -15,7 +15,7 @@ subject_re = re.compile("^(R[Ee]:)? ?Case #([0-9]+): .*")
 
 if os.path.exists("/opt/openlibrary/olsystem/etc/logging.ini"):
     logging.config.fileConfig("/opt/openlibrary/olsystem/etc/logging.ini") # Fix this to work properly in the dev node
-    logger = Logging.getLogger("openlibrary.fetchmail")
+logger = Logging.getLogger("openlibrary.fetchmail")
 
 class Error(Exception): pass
 
