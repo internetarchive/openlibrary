@@ -4,6 +4,7 @@ import imaplib
 import logging as Logging
 import logging.config
 import ConfigParser
+import os
 
 import yaml
 import couchdb
@@ -12,8 +13,9 @@ from openlibrary.core import support
 
 subject_re = re.compile("^(R[Ee]:)? ?Case #([0-9]+): .*")
 
-logging.config.fileConfig("/opt/openlibrary/olsystem/etc/logging.ini") # Fix this to work properly in the dev node
-logger = Logging.getLogger("openlibrary.fetchmail")
+if os.path.exists("/opt/openlibrary/olsystem/etc/logging.ini"):
+    logging.config.fileConfig("/opt/openlibrary/olsystem/etc/logging.ini") # Fix this to work properly in the dev node
+    logger = Logging.getLogger("openlibrary.fetchmail")
 
 class Error(Exception): pass
 
