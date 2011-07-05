@@ -1,3 +1,6 @@
+#
+# Makefile to build css and js files and compile i18n messages
+#
 
 BUILD=static/build
 
