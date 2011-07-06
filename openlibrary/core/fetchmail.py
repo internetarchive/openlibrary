@@ -13,9 +13,6 @@ from openlibrary.core import support
 
 subject_re = re.compile("^(R[Ee]:)? ?Case #([0-9]+): .*")
 
-if os.path.exists("/opt/openlibrary/olsystem/etc/logging.ini"):
-    logging.config.fileConfig("/opt/openlibrary/olsystem/etc/logging.ini") # Fix this to work properly in the dev node
-logger = Logging.getLogger("openlibrary.fetchmail")
 
 class Error(Exception): pass
 
@@ -110,7 +107,10 @@ def fetch_and_update(imap_conn, db_conn = None):
     imap_conn.expunge()
 
 
-def fetchmail(config):
+def fetchmail(config, logging_config_file):
+    global logger
+    logging.config.fileConfig(logging_config_file) 
+    logger = Logging.getLogger("openlibrary.fetchmail")
     try:
         conn = set_up_imap_connection(config.get('email_config_file'), config)
         db_conn = connect_to_admindb(config)
@@ -127,13 +127,13 @@ def fetchmail(config):
         logger.info("Abnormal termination")
         return -2
         
-def main(ol_config_file):
+def main(ol_config_file, logging_config_file):
     config = yaml.load(open(ol_config_file))
-    fetchmail(config)
+    fetchmail(config, logging_config_file)
 
 if __name__ == "__main__":
     import sys
-    if len(sys.argv) != 2:
-        print "Usage : python fetchmail.py <openlibrary config file>"
+    if len(sys.argv) != 3:
+        print "Usage : python fetchmail.py <openlibrary config file> <logging config file>"
         sys.exit(-2)
     sys.exit(main(*sys.argv[1:]))
