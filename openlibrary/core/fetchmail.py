@@ -4,6 +4,7 @@ import imaplib
 import logging as Logging
 import logging.config
 import ConfigParser
+import os
 
 import yaml
 import couchdb
