@@ -1,26 +1,24 @@
+#
+# Makefile to build css and js files and compile i18n messages
+#
 
 BUILD=static/build
 
-TARGETS = $(BUILD)/all.js $(BUILD)/vendor.js $(BUILD)/all.css
+.PHONY: all clean distclean
 
-.PHONY: $(TARGETS)
-
-all: .build $(TARGETS)
-
-i18n: 
-	./scripts/i18n-messages compile
-
-.build:
+all: 
 	mkdir -p $(BUILD)
-
-$(BUILD)/all.js: static/js/all.jsh
-	bash static/js/all.jsh > $@
-
-$(BUILD)/all.css: static/css/all.cssh
-	bash static/css/all.cssh > $@
-
-$(BUILD)/vendor.js: static/js/vendor.jsh
-	bash static/js/vendor.jsh > $@
+	git submodule init
+	git submodule sync
+	git submodule update
+	python ./scripts/i18n-messages compile
+	bash static/js/vendor.jsh > $(BUILD)/vendor.js
+	bash static/js/all.jsh > $(BUILD)/all.js
+	bash static/css/all.cssh > $(BUILD)/all.css
 
 clean:
-	rm -rf $(TARGETS)
+	rm -rf $(BUILD)
+
+distclean:
+	git clean -fdx 
+	git submodule foreach git clean -fdx
