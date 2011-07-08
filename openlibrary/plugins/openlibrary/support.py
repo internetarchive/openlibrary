@@ -57,7 +57,7 @@ class contact(delegate.page):
                                    url               = url,
                                    assignee          = "mary@openlibrary.org")
         subject = "Case #%s: %s"%(c.caseno, topic)
-        web.sendmail(config.report_spam_address, email, subject, description, cc="mary@openlibrary.org")
+        web.sendmail("support@openlibrary.org", email, subject, description, cc="mary@openlibrary.org") # The hardcoded addresses need to go
         return render_template("support", done = True)
 
 

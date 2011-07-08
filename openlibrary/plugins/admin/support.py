@@ -62,7 +62,7 @@ class case(object):
         email_to = form.get("email", False)
         subject = "Case #%s: %s"%(case.caseno, case.subject)
         if email_to:
-            web.sendmail(config.report_spam_address, email_to, subject, casenote, cc = "mary@openlibrary.org")
+            web.sendmail("support@openlibrary.org", email_to, subject, casenote, cc = "mary@openlibrary.org")
 
     def POST_update(self, form, case):
         casenote = form.get("casenote2", False)
