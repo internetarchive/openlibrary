@@ -47,7 +47,12 @@ class show_ia(delegate.page):
 
         from openlibrary.catalog.marc import html
 
-        if len(data) != int(data[:5]):
+        try:
+            leader_len = int(data[:5])
+        except ValueError:
+            return "ERROR reading MARC for " + ia
+
+        if len(data) != leader_len:
             data = data.decode('utf-8').encode('raw_unicode_escape')
         assert len(data) == int(data[:5])
 

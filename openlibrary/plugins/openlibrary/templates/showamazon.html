@@ -1,13 +1,11 @@
 $def with (asin)
 
-$var title: Record details of amazon:$asin
+$var title: $_("Record details of amazon:")$asin
 
-<div id="header">
-    <div id="title">Record details of amazon:$asin</div>
+<div id="contentHead">
+    <h1>$_("Record details of amazon:") $asin</h1>
 </div>
 
-<div class="contenttext">
-<br/>
-This record came from <a href="http://www.amazon.com/gp/product/$asin">http://www.amazon.com/gp/product/$asin</a>.
+<div id="contentBody">
+    <p>$:_('This record came from') <a href="http://www.amazon.com/gp/product/$asin">http://www.amazon.com/gp/product/$asin</a>.</p>
 </div>
-
