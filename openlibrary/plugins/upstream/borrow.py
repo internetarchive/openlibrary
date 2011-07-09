@@ -128,7 +128,7 @@ class borrow(delegate.page):
                     # The loan expiry should be utc isoformat
                     loan.expiry = datetime.datetime.utcfromtimestamp(time.time() + bookreader_loan_seconds).isoformat()
                 loan_link = loan.make_offer() # generate the link and record that loan offer occurred
-                
+                                
                 # $$$ Record fact that user has done a borrow - how do I write into user? do I need permissions?
                 # if not user.has_borrowed:
                 #   user.has_borrowed = True
@@ -931,7 +931,12 @@ def on_loan_delete(loan):
 class Loan:
 
     def __init__(self, user_key, book_key, resource_type, loaned_at = None):
-        self.key = uuid.uuid4().hex
+        # self.key = uuid.uuid4().hex
+        self.key = 'loan-' + book_key
+
+        self.rev = 1 # This triggers the infobase consistency check - if there is an existing record on save
+                     # the consistency check will fail (revision mismatch)
+                             
         self.user_key = user_key
         self.book_key = book_key
         self.resource_type = resource_type
@@ -951,12 +956,14 @@ class Loan:
         
     def get_dict(self):
         return { '_key': self.get_key(),
+                 '_rev': self.rev,
                  'user': self.user_key, 'type': '/type/loan',
                  'book': self.book_key, 'expiry': self.expiry,
                  'loaned_at': self.loaned_at, 'resource_type': self.resource_type,
                  'resource_id': self.resource_id, 'loan_link': self.loan_link }
                  
     def set_dict(self, loan_dict):
+        self.rev = loan_dict['_rev'] 
         self.user_key = loan_dict['user']
         self.type = loan_dict['type']
         self.book_key = loan_dict['book']
