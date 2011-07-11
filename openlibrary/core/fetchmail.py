@@ -8,11 +8,24 @@ import os
 
 import yaml
 import couchdb
+import web
 
 from openlibrary.core import support
 
 subject_re = re.compile("^(R[Ee]:)? ?Case #([0-9]+): .*")
 
+template = """
+Hello,
+
+Case #%(caseno)s was updated recently by <%(author)s>
+with the following message
+
+%(message)s
+
+-- Links --------------------------------------------
+Case page : http://openlibrary.org/admin/support/%(caseno)s
+
+"""
 
 class Error(Exception): pass
 
@@ -97,6 +110,11 @@ def fetch_and_update(imap_conn, db_conn = None):
                 frm = email.utils.parseaddr(message['From'])[1]
                 update_support_db(frm, message.get_payload(), caseid, db_conn)
                 imap_move_to_folder(imap_conn, messageid, "Accepted")
+                message = template%dict(caseno = caseid,
+                                        message = message.get_payload(),
+                                        author = frm)
+                subject = "Case #%s updated"%(caseid)
+                web.sendmail("support@openlibrary.org", "mary@openlibrary.org", subject, message)
             except Exception, e:
                 logger.warning(" Couldn't update case. Resetting message", exc_info = True)
                 imap_reset_to_unseen(imap_conn, messageid)
@@ -107,9 +125,9 @@ def fetch_and_update(imap_conn, db_conn = None):
     imap_conn.expunge()
 
 
-def fetchmail(config, logging_config_file):
+def fetchmail(config):
     global logger
-    logging.config.fileConfig(logging_config_file) 
+    logging.config.fileConfig(config.get('logging_config_file'))
     logger = Logging.getLogger("openlibrary.fetchmail")
     try:
         conn = set_up_imap_connection(config.get('email_config_file'), config)
@@ -127,13 +145,13 @@ def fetchmail(config, logging_config_file):
         logger.info("Abnormal termination")
         return -2
         
-def main(ol_config_file, logging_config_file):
+def main(ol_config_file):
     config = yaml.load(open(ol_config_file))
-    fetchmail(config, logging_config_file)
+    fetchmail(config)
 
 if __name__ == "__main__":
     import sys
-    if len(sys.argv) != 3:
-        print "Usage : python fetchmail.py <openlibrary config file> <logging config file>"
+    if len(sys.argv) != 2:
+        print "Usage : python fetchmail.py <openlibrary config file>"
         sys.exit(-2)
     sys.exit(main(*sys.argv[1:]))
