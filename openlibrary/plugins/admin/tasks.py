@@ -94,8 +94,8 @@ class tasks(object):
     def GET(self, taskid):
         try:
             db = connect_to_taskdb()
-            q = "SELECT * FROM celery_taskmeta WHERE task_id = '%(taskid)s'"%dict(taskid = taskid) 
-            ret = db.query(q)
+            q = "SELECT * FROM celery_taskmeta WHERE task_id = $taskid"
+            ret = db.query(q, vars= locals())
             if not ret:
                 return "No such task"
             else:
