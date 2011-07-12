@@ -15,10 +15,6 @@ from openlibrary.core import support
 subject_re = re.compile("^(R[Ee]:)? ?Case #([0-9]+): .*")
 
 template = """
-Hello,
-
-Case #%(caseno)s was updated recently by <%(author)s>
-with the following message
 
 %(message)s
 
