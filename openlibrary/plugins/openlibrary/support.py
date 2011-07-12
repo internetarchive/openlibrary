@@ -58,7 +58,7 @@ class contact(delegate.page):
                                    assignee          = "mary@openlibrary.org")
         subject = "Case #%s: %s"%(c.caseno, topic)
         message = render_template("email/support_case", c)
-        web.sendmail("support@openlibrary.org", email, subject, message, cc="mary@openlibrary.org") # The hardcoded addresses need to go
+        web.sendmail("support@openlibrary.org", email, subject, message)
         return render_template("support", done = True)
 
 

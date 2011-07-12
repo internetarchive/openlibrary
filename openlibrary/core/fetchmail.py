@@ -90,13 +90,12 @@ def get_new_emails(conn):
         yield data[0]
 
 
-def update_support_db(author, message, caseid, db):
+def update_support_db(author, message, case):
     try: #TBD change status here
-        case = db.get_case(caseid)
         case.add_worklog_entry(author, message)
         logger.info("  Updated case")
     except support.InvalidCase:
-        logger.info("  Invalid case %s message from %s", caseid, author)
+        logger.info("  Invalid case %s message from %s", case.caseno, author)
 
     
 def fetch_and_update(imap_conn, db_conn = None):
@@ -108,13 +107,15 @@ def fetch_and_update(imap_conn, db_conn = None):
             logger.debug(" Updating case %s", caseid)
             try:
                 frm = email.utils.parseaddr(message['From'])[1]
-                update_support_db(frm, message.get_payload(), caseid, db_conn)
+                case = db_conn.get_case(caseid)
+                update_support_db(frm, message.get_payload(), case)
                 imap_move_to_folder(imap_conn, messageid, "Accepted")
                 message = template%dict(caseno = caseid,
                                         message = message.get_payload(),
                                         author = frm)
                 subject = "Case #%s updated"%(caseid)
-                web.sendmail("support@openlibrary.org", "mary@openlibrary.org", subject, message)
+                assignee = case.assignee
+                web.sendmail("support@openlibrary.org", assignee, subject, message)
             except Exception, e:
                 logger.warning(" Couldn't update case. Resetting message", exc_info = True)
                 imap_reset_to_unseen(imap_conn, messageid)
