@@ -63,19 +63,22 @@ class case(object):
         subject = "Case #%s: %s"%(case.caseno, case.subject)
         if email_to:
             message = render_template("admin/email", case, casenote)
-            web.sendmail("support@openlibrary.org", email_to, subject, message, cc = "mary@openlibrary.org")
+            web.sendmail("support@openlibrary.org", email_to, subject, message)
 
     def POST_update(self, form, case):
         casenote = form.get("casenote2", False)
         assignee = form.get("assignee", False)
         user = web.ctx.site.get_user()
         by = user.get_email()
-        text = casenote or "No note entered"
+        text = casenote or ""
         if assignee != case.assignee:
-            text += "\n\nassigned to %s"%assignee
-            case.reassign(assignee, by)
-        case.add_worklog_entry(by = by,
-                               text = text)
+            case.reassign(assignee, by, text)
+            subject = "Case #%s has been assigned to you"%case.caseno
+            message = render_template("admin/email_reassign", case, text)
+            web.sendmail('support@openlibrary.org', assignee, subject, message)
+        else:
+            case.add_worklog_entry(by = by,
+                                   text = text)
 
 
     def POST_closecase(self, form, case):
