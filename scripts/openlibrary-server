@@ -32,6 +32,7 @@ def start_server():
         print >> sys.stderr, "USAGE: %s configfile [subcommand] [arguments]" % (sys.argv[0])
         sys.exit(1)
 
+    import _init_path
     import infogami
     from infogami import config
         
