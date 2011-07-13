@@ -63,7 +63,7 @@ class contact(delegate.page):
 
         subject = "Case #%s created: %s"%(c.caseno, topic)
         notification = render_template("email/case_notification", c)
-        web.sendmail("support@openlibrary.org", "noufal@archive.org", subject, notification)
+        web.sendmail("support@openlibrary.org", "info@openlibrary.org", subject, notification)
 
         return render_template("email/case_created", c)
 
