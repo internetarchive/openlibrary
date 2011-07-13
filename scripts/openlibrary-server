@@ -13,8 +13,6 @@ USAGE:
 """
 import sys
 import os
-import _init_path
-import web
 
 from gunicorn.app.base import Application
 
@@ -42,40 +40,6 @@ def start_server():
     
     infogami.main(*args)
 
-def start_gunicorn_server():
-    """Starts the openlibrary server using gunicorn server.
-    """
-    configfile = sys.argv.pop(1)
-    web.config.debug = False
-    
-    def dummy(*a, **kw):
-        pass
-
-    class WSGIServer(Application):
-        def init(self, parser, opts, args):
-            pass
-
-        def load(self):
-            import infogami
-            from infogami import config
-            from infogami.utils import delegate
-            
-            config.plugin_path += ['openlibrary.plugins']
-            config.site = "openlibrary.org"
-            
-            # add a dummy action and run it
-            infogami.action(dummy)
-            infogami.main(configfile, "dummy")
-            
-            wsgi_app = delegate.app.wsgifunc(*config.middleware)
-            
-            # setup middleware for handling /static
-            wsgi_app = web.httpserver.StaticMiddleware(wsgi_app)
-
-            return wsgi_app
-
-    WSGIServer("%prog openlibrary.yml --gunicorn [options]").run()
-    
 class BaseWSGIServer(Application):
     def __init__(self, config_file):
         self.config_file = config_file
@@ -85,10 +49,13 @@ class BaseWSGIServer(Application):
         pass
         
     def load(self):
+        import _init_path
+        import web
         import infogami
         from infogami import config
         from infogami.utils import delegate
-        
+
+        web.config.debug = False
         config.plugin_path += ['openlibrary.plugins']
         config.site = "openlibrary.org"
         
@@ -122,7 +89,6 @@ def start_admin_server():
     from gunicorn.app.base import Application
 
     configfile = sys.argv.pop(1)
-    web.config.debug = False
 
     def dummy(*a, **kw):
         pass
@@ -132,9 +98,12 @@ def start_admin_server():
             pass
 
         def load(self):
+            import _init_path
             import infogami
             from infogami import config
             from infogami.utils import delegate
+
+            web.config.debug = False
 
             config.plugin_path += ['openlibrary.plugins']
             config.site = "openlibrary.org"
@@ -155,7 +124,6 @@ def start_admin_server():
 
 def main():
     setup_env()
-    web.config.debug = False
     
     if "--gunicorn" in sys.argv:
         sys.argv.pop(sys.argv.index("--gunicorn"))        
