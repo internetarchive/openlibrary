@@ -21,7 +21,7 @@ def add(x, y):
 def update_support_from_email():
     configfile = celeryconfig.OL_CONFIG
     ol_config = formats.load_yaml(open(configfile).read())
-    fetchmail(ol_config, celeryconfig.OL_LOGGING_CONFIG)
+    fetchmail(ol_config)
 
 
 @oltask

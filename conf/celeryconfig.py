@@ -15,8 +15,6 @@ CELERY_IMPORTS = ("openlibrary.tasks", )
 # These two files need to be separately mentioned since the tasks will
 # run in the celery workers
 OL_CONFIG = "conf/openlibrary.yml"
-OL_LOGGING_CONFIG = "conf/logging.ini"
-
 
 # Repeating tasks
 from datetime import timedelta

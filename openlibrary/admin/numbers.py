@@ -38,8 +38,9 @@ sqlitefile = None
 # Utility functions
 def query_single_thing(db, typ, start, end):
     "Query the counts a single type from the things table"
-    q1 = "SELECT id as id from thing where key='/type/%s'"% typ
-    result = db.query(q1)
+    q1 = "SELECT id as id from thing where key=$typ"
+    typ = '/type/%s'%typ
+    result = db.query(q1, vars=locals())
     try:
         kid = result[0].id 
     except IndexError:

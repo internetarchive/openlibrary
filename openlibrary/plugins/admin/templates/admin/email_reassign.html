@@ -1,0 +1,15 @@
+$def with (case, casenote = False)
+
+Hello,
+
+Case #${case.caseno} was reassigned to you.
+
+$if casenote:
+   The following note was appended to the case when it was reassigned
+
+   $casenote
+
+-- Links --------------------------------------------
+Case page : http://openlibrary.org/admin/support/$(case.caseno)
+
+   

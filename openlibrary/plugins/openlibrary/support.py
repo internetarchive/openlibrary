@@ -56,9 +56,16 @@ class contact(delegate.page):
                                    description       = description,
                                    url               = url,
                                    assignee          = "mary@openlibrary.org")
+
         subject = "Case #%s: %s"%(c.caseno, topic)
-        web.sendmail(config.report_spam_address, email, subject, description, cc="mary@openlibrary.org")
-        return render_template("support", done = True)
+        message = render_template("email/support_case", c)
+        web.sendmail("support@openlibrary.org", email, subject, message)
+
+        subject = "Case #%s created: %s"%(c.caseno, topic)
+        notification = render_template("email/case_notification", c)
+        web.sendmail("support@openlibrary.org", "info@openlibrary.org", subject, notification)
+
+        return render_template("email/case_created", c)
 
 
 def setup():

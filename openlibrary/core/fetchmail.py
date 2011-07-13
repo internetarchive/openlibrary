@@ -8,11 +8,20 @@ import os
 
 import yaml
 import couchdb
+import web
 
 from openlibrary.core import support
 
 subject_re = re.compile("^(R[Ee]:)? ?Case #([0-9]+): .*")
 
+template = """
+
+%(message)s
+
+-- Links --------------------------------------------
+Case page : http://openlibrary.org/admin/support/%(caseno)s
+
+"""
 
 class Error(Exception): pass
 
@@ -77,13 +86,12 @@ def get_new_emails(conn):
         yield data[0]
 
 
-def update_support_db(author, message, caseid, db):
+def update_support_db(author, message, case):
     try: #TBD change status here
-        case = db.get_case(caseid)
         case.add_worklog_entry(author, message)
         logger.info("  Updated case")
     except support.InvalidCase:
-        logger.info("  Invalid case %s message from %s", caseid, author)
+        logger.info("  Invalid case %s message from %s", case.caseno, author)
 
     
 def fetch_and_update(imap_conn, db_conn = None):
@@ -95,8 +103,15 @@ def fetch_and_update(imap_conn, db_conn = None):
             logger.debug(" Updating case %s", caseid)
             try:
                 frm = email.utils.parseaddr(message['From'])[1]
-                update_support_db(frm, message.get_payload(), caseid, db_conn)
+                case = db_conn.get_case(caseid)
+                update_support_db(frm, message.get_payload(), case)
                 imap_move_to_folder(imap_conn, messageid, "Accepted")
+                message = template%dict(caseno = caseid,
+                                        message = message.get_payload(),
+                                        author = frm)
+                subject = "Case #%s updated"%(caseid)
+                assignee = case.assignee
+                web.sendmail("support@openlibrary.org", assignee, subject, message)
             except Exception, e:
                 logger.warning(" Couldn't update case. Resetting message", exc_info = True)
                 imap_reset_to_unseen(imap_conn, messageid)
@@ -107,9 +122,9 @@ def fetch_and_update(imap_conn, db_conn = None):
     imap_conn.expunge()
 
 
-def fetchmail(config, logging_config_file):
+def fetchmail(config):
     global logger
-    logging.config.fileConfig(logging_config_file) 
+    logging.config.fileConfig(config.get('logging_config_file'))
     logger = Logging.getLogger("openlibrary.fetchmail")
     try:
         conn = set_up_imap_connection(config.get('email_config_file'), config)
@@ -127,13 +142,13 @@ def fetchmail(config, logging_config_file):
         logger.info("Abnormal termination")
         return -2
         
-def main(ol_config_file, logging_config_file):
+def main(ol_config_file):
     config = yaml.load(open(ol_config_file))
-    fetchmail(config, logging_config_file)
+    fetchmail(config)
 
 if __name__ == "__main__":
     import sys
-    if len(sys.argv) != 3:
-        print "Usage : python fetchmail.py <openlibrary config file> <logging config file>"
+    if len(sys.argv) != 2:
+        print "Usage : python fetchmail.py <openlibrary config file>"
         sys.exit(-2)
     sys.exit(main(*sys.argv[1:]))
