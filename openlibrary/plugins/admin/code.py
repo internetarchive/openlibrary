@@ -437,7 +437,7 @@ class deploy:
         return self.fab(["restart:%s" % i.restart])
         
     def fab(self, tasks):
-        cmd = "cd /olsytem && /olsytem/bin/olenv fab --no-pty " + " ".join(tasks)
+        cmd = "cd /olsystem && /olsystem/bin/olenv fab --no-pty " + " ".join(tasks)
         d = self.system(cmd)
         return render_template("admin/command", d)
         
