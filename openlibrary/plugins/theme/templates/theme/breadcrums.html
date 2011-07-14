@@ -10,5 +10,5 @@ $def breadcrums(base, parts, sep="/"):
             <span class="sep">$sep</span>
 
 <div id="superNav">
-    $:breadcrums(base="/theme", parts=['files'] + path.split("/"), sep="/")
+    $:breadcrums(base="/theme/files", parts=path.split("/"), sep="/")
 </div>
