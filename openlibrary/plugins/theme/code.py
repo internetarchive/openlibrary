@@ -87,7 +87,8 @@ class file_view(delegate.page):
     
     def GET_view(self, path):
         text = open(path).read()
-        return render_template("theme/viewfile", path, text)
+        diff = Git().diff(path)
+        return render_template("theme/viewfile", path, text, diff=diff)
 
     def GET_edit(self, path):
         text = open(path).read()
@@ -110,7 +111,14 @@ class file_view(delegate.page):
         
         add_flash_message("info", "Page has been saved successfully.")
         raise web.seeother(web.ctx.path)
-
+        
+    def POST_revert(self, path):
+        logger.info("running git checkout %s", path)
+        cmd = Git().system("git checkout " + path)
+        logger.info(cmd.stdout)
+        add_flash_message("info", "All changes to this page have been reverted successfully.")
+        raise web.seeother(web.ctx.path)
+                
 class gitview(delegate.page):
     path = "/theme/modifications"
     
@@ -158,6 +166,7 @@ class gitmerge(delegate.page):
         run("git fetch origin")
         run("git merge origin/master")
         run("git push")
+        run("make")
         # Send SIGUP signal to master gunicorn process to reload
         run("kill -HUP %s" % os.getppid())
         return render_template("theme/commands", d.success, d.commands)

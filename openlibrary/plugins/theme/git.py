@@ -31,9 +31,9 @@ class Git:
         return [line.strip().split()[-1] for line in out.splitlines() if not line.startswith("??")]
         
     def diff(self, path):
-        """
-        """
-        return self.system("git diff " + path).stdout
+        diff = self.system("git diff " + path).stdout.strip()
+        html = highlight(diff, DiffLexer(), HtmlFormatter(full=True, style="trac", nowrap=True))
+        return web.storage(name=path, diff=diff, htmldiff=html)
         
     def system(self, cmd, input=None, check_status=True):
         """Executes the command returns the stdout.
@@ -54,11 +54,7 @@ class Git:
             return web.storage(cmd=cmd, status=status, stdout=out, stderr=err)
         
     def modified(self):
-        def process(f):
-            diff = self.diff(f)
-            html = highlight(diff, DiffLexer(), HtmlFormatter(full=True, style="trac", nowrap=True))
-            return web.storage(name=f, diff=diff, htmldiff=html)
-        return [process(f) for f in self.status()]
+        return [self.diff(f) for f in self.status()]
         
     def commit(self, files, author, message):
         author = author.replace("'", "")
