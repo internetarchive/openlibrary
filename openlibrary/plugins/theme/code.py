@@ -95,7 +95,7 @@ class file_view(delegate.page):
         
     def POST_edit(self, path):
         i = web.input(_method="POST", text="")
-        i.text = i.text.replace("\r\n", "\n").replace("\r", "\n")        
+        i.text = i.text.replace("\r\n", "\n").replace("\r", "\n").encode("utf-8")
         f = open(path, 'w')
         f.write(i.text)
         f.close()
