@@ -432,11 +432,11 @@ class deploy:
             command += " deploy:openlibrary"
         elif i.deploy == "olsystem":
             command += " deploy:olsystem"
-        return self.run_command(cmd)
+        return self.run_command(command)
     
     def POST_restart(self, i):
         command = "/olsytem/bin/olenv fab restart:%s" % i.restart
-        return self.run_command(cmd)
+        return self.run_command(command)
         
     def run_command(self, cmd):
         d = self.system(cmd)
