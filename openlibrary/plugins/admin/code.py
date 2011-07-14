@@ -424,7 +424,7 @@ class deploy:
             return render_template("admin/deploy")
         
     def POST_deploy(self, i):
-        command = "/olsystem/bin/olenv fab"
+        command = "cd /olsystem && /olsystem/bin/olenv fab"
         
         if i.deploy == "openlibrary":
             if i.get("merge") == "true":
@@ -435,7 +435,7 @@ class deploy:
         return self.run_command(command)
     
     def POST_restart(self, i):
-        command = "/olsytem/bin/olenv fab restart:%s" % i.restart
+        command = "cd /olsytem && /olsytem/bin/olenv fab restart:%s" % i.restart
         return self.run_command(command)
         
     def run_command(self, cmd):
