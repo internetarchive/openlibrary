@@ -1,4 +1,6 @@
-$def with (path)
+$def with (path=None)
+
+$ path = request.path
 
 $def link(url, title):
     $if url == path:
@@ -6,11 +8,11 @@ $def link(url, title):
     $else:
         <a href="$url">$title</a>
 
-<div class="small">
-    $:link("/admin", _("Home"))
+<div class="superNav">
+    $:link("/admin", _("Admin Center"))
     | $:link("/admin/block", _("Block IPs"))
-    | $:link("/admin/nagios", _("Nagios"))
     | $:link("/admin/loans", _("Loans"))
+    | $:link("/admin/people", _("People"))
     | $:link("/admin/support", _("Support"))
     | $:link("/admin/tasks", _("Tasks")) 
     <strong style="padding: 0px 5px">•</strong>
