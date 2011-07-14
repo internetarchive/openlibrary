@@ -1,0 +1,66 @@
+$def with (deploys=[])
+
+<div id="contentHead">
+    $:render_template("admin/menu")
+    <h1>Deploy</h1>
+</div>
+
+$def render_deploy(d):
+    <li>$d.number - $d.githash: $d.username deployed $d.repo $datestr(parse_datetime(d.timestamp)).</li>
+
+<div id="contentBody">
+    <h2>Recent Deploys</h2>
+    <ul>
+    $for d in deploys:
+        $:render_deploy(d)
+    </ul>
+    $if not deploys:
+        <em>None found.</em>
+    
+    <h2>Deploy openlibrary</h2>
+    <form class="olform" method="POST">
+        <div class="formElement">
+            <div class="label">
+                <input type="checkbox" id="merge-dev" name="merge" value="true"/> 
+                <label for="merge-dev">Merge dev branch?</label>
+            </div>
+            <div class="input"></div>
+        </div>
+        <div class="formElement bottom">
+            <div class="input">
+                <button class="larger" type="submit" name="deploy" value="openlibrary">Deploy!</button>
+            </div>
+        </div>
+    </form>
+    
+    <h2>Deploy olsystem</h2>
+    <form class="olform" method="POST">
+        <div class="formElement bottom">
+            <div class="input">
+                <button class="larger" type="submit" name="deploy" value="olsystem">Deploy!</button>
+            </div>
+        </div>
+    </form>
+    
+    <h2>Restart Services</h2>
+    
+    <form class="olform" method="POST">
+        <div class="formElement">
+            <div class="input">
+                <button class="larger" type="submit" name="restart" value="openlibrary">Restart Open Library</button>
+            </div>
+        </div>
+        <div class="formElement">
+            <div class="input">
+                <button class="larger" type="submit" name="restart" value="coverstore">Restart coverstore</button>
+            </div>
+        </div>
+        <div class="formElement">
+            <div class="input">
+                <button class="larger" type="submit" name="restart" value="infobase">Restart infobase</button>
+            </div>
+        </div>
+    </form>
+    
+    
+</div>

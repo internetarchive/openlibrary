@@ -14,13 +14,20 @@ $def with ()
     <form class="olform" method="POST" action="/theme/git-merge">
         <div class="formElement bottom">
             <br/>
-            <input value="$_('Pull Changes')" type="submit" name="" />
+            <button type="submit" name="">$_('Pull Changes')</button>
         </div>
     </form>
     
     <h2>Deploy Changes</h2>
     
     Deploy changes made on dev to production.
-    
-    Not yet implemented.
+        
+    <form class="olform" method="POST" action="/admin/deploy">
+        <div class="formElement bottom">
+            <input type="hidden" name="merge" value="true"/>
+            <input type="hidden" name="deploy" value="openlibrary"/>
+            <br/>
+            <button type="submit" name="">$_('Deploy Changes')</button>
+        </div>
+    </form>
 </div>

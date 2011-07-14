@@ -1,14 +1,13 @@
 $def with (email=None)
 
-$ _x = ctx.setdefault('bodyid', 'admin')
-$ _x = ctx.setdefault('usergroup', 'admin')
-
 $var title: [Admin Center] People
 
-<div id="contentBody">
-    <h1><a href="/admin/">Admin</a> / People</h1>
-    
+<div id="contentHead">
+    $:render_template("admin/menu")
+    <h1>People</h1>
+</div>
 
+<div id="contentBody">
 <div class="head">
     <h2>$_("Find Account")</h2>
 </div>

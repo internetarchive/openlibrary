@@ -34,7 +34,8 @@ __all__ = [
     "safesort", 
     "datestr", "format_date",    
     "sprintf", "cond", "commify", "truncate",
-    "urlsafe", "texsafe",
+    "urlsafe", "texsafe", 
+    "percentage",
     
     # functions imported from elsewhere
     "parse_datetime", "safeint"
@@ -222,7 +223,20 @@ def texsafe(text):
         _texsafe_re = re.compile(pattern)
         
     return _texsafe_re.sub(lambda m: _texsafe_map[m.group(0)], text)
-    
+
+def percentage(value, total):
+    """Computes percentage.
+        
+        >>> percentage(1, 10)
+        10.0
+        >>> percentage(0, 0)
+        0.0
+    """
+    if total == 0:
+        return 0
+    else:
+        return (value * 100.0)/total
+        
 def _get_helpers():
     _globals = globals()
     return web.storage((k, _globals[k]) for k in __all__)

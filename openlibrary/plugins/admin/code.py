@@ -408,6 +408,50 @@ class inspect:
             docs = web.ctx.site.store.values(type=i.type or None, name=i.name or None, value=i.value or None, limit=100)
             
         return render_template("admin/inspect/store", docs, input=i)
+        
+class deploy:
+    def GET(self):
+        return render_template("admin/deploy")
+        
+    def POST(self):
+        i = web.input(deploy=None, restart=None)
+        
+        if i.deploy:
+            return self.POST_deploy(i)
+        elif i.restart:
+            return self.POST_restart(i)
+        else:
+            return render_template("admin/deploy")
+        
+    def POST_deploy(self, i):
+        tasks = []
+        if i.deploy == "openlibrary":
+            if i.get("merge") == "true":
+                tasks.append("git_merge:openlibrary,branch=dev")
+            tasks.append("deploy:openlibrary")
+        elif i.deploy == "olsystem":
+            tasks.append("deploy:olsystem")
+        return self.fab(tasks)
+    
+    def POST_restart(self, i):
+        return self.fab(["restart:%s" % i.restart])
+        
+    def fab(self, tasks):
+        cmd = "cd /olsystem && /olsystem/bin/olenv fab --no-pty " + " ".join(tasks)
+        d = self.system(cmd)
+        return render_template("admin/command", d)
+        
+    def system(self, cmd, input=None):
+        """Executes the command returns the stdout.
+        """
+        if input:
+            stdin = subprocess.PIPE
+        else:
+            stdin = None
+        p = subprocess.Popen(cmd, shell=True, stdin=stdin, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        out, err = p.communicate(input)
+        status = p.wait()
+        return web.storage(cmd=cmd, status=status, stdout=out, stderr=err)
 
 def setup():
     register_admin_page('/admin/git-pull', gitpull, label='git-pull')
@@ -427,6 +471,7 @@ def setup():
     register_admin_page('/admin/inspect(?:/(.+))?', inspect, label="")
     register_admin_page('/admin/tasks', tasks.tasklist, label = "Task queue")
     register_admin_page('/admin/tasks/(.*)', tasks.tasks, label = "Task details")
+    register_admin_page('/admin/deploy', deploy, label="")
 
     support.setup()
     import mem
