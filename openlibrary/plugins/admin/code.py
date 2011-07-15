@@ -414,28 +414,25 @@ class deploy:
         return render_template("admin/deploy")
         
     def POST(self):
-        i = web.input(deploy=None, restart=None)
+        i = web.input(deploy=None, restart=None, merge="false")
         
-        if i.deploy:
-            return self.POST_deploy(i)
-        elif i.restart:
-            return self.POST_restart(i)
-        else:
-            return render_template("admin/deploy")
-        
-    def POST_deploy(self, i):
         tasks = []
+        
         if i.deploy == "openlibrary":
-            if i.get("merge") == "true":
+            if i.merge == "true":
                 tasks.append("git_merge:openlibrary,branch=dev")
             tasks.append("deploy:openlibrary")
         elif i.deploy == "olsystem":
             tasks.append("deploy:olsystem")
-        return self.fab(tasks)
     
-    def POST_restart(self, i):
-        return self.fab(["restart:%s" % i.restart])
-        
+        if i.restart:
+            tasks.append("restart:" % i.restart)
+            
+        if tasks:
+            return self.fab(tasks)
+        else:
+            return render_template("admin/deploy")
+            
     def fab(self, tasks):
         cmd = "cd /olsystem && /olsystem/bin/olenv fab --no-pty " + " ".join(tasks)
         d = self.system(cmd)
