@@ -39,6 +39,9 @@ def try_merge(e1, edition_key, existing):
             if author_type == '/type/delete':
                 a = undelete_author(a)
                 author_type = a.type.key
+            if author_type == '/type/redirect':
+                a = web.ctx.site.get(a.location)
+                author_type = a.type.key
             assert author_type == '/type/author'
             assert a['name']
             rec2['authors'].append({'name': a['name'], 'db_name': db_name(a)})
