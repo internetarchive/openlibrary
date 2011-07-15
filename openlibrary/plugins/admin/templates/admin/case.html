@@ -1,26 +1,5 @@
 $def with (case, last_email, admins, pretty_print_date, htmlify, done = False)
 
-<style type = "text/css">
- textarea { 
-            width: 100%;
-            }
-
-th, td {
-         border-bottom: 1px solid #ddd; 
-         vertical-align:top;
-         }
-
-.style1 { 
-         font-size: x-small
- }
-
-.style2 {
-	color: #CC0000;
-	font-style: italic;
-}
-
-</style>
-
 <script type="text/javascript">
 \$(function() {
     \$("#checkbox3").change(function() {
@@ -30,78 +9,68 @@ th, td {
 </script>
 
 <div id="contentHead">
-    <h1>$_("Admin Center")</h1>
-    $:render_template("admin/menu", "/admin")
+
+    <div class="superNav">
+        <a href="/admin">$_("Admin Center")</a>
+        / 
+        <a href="/admin/support">Cases</a>
+    </div> 
+    <h1>$(case.caseid)
+        <span class="count">
+            <b>[$case.status]</b>
+            $(pretty_print_date(case.created)) - $(datestr(case.created))
+        </span>
+    </h1>
+
 </div>
 <div id="contentBody">
-  
+
  $if done:
-   <em>Case updated</em>
+    <div id="contentMsg">
+        <div class="alert attn"><span>Case updated!</span></div>
+    </div>
 
-<h1><a href="/admin/support">Cases</a> / $(case.caseid) [$case.status]</h1>
 <form id="form1" name="form1" method="post" action="">
-<table width="95%" border="0" cellpadding="5" cellspacing="0">
+<table class="support" border="0" cellspacing="0">
   <tr>
-    <td width="15%"><span class="style1">Created:</span></td>
-    <td colspan="2"><span class="style1">$(pretty_print_date(case.created)) - $(datestr(case.created))</span></td>
+    <td>Sender:</td>
+    <td>
+        <p>$(case.creator_name) / $(case.creator_email) / <a href="/admin/people/$(case.creator_username)">$(case.creator_username)</a><br/>
+        <em>$(case.creator_useragent)</em></p></td>
   </tr>
   <tr>
-    <td><p>From:</p></td>
-    <td colspan="2"><p>$(case.creator_name) / $(case.creator_email) / <a href="/admin/people/$(case.creator_username)">$(case.creator_username)</a><br/>
-    <span class="style1"><em>$(case.creator_useragent)</em></span></p></td>
+    <td><strong>Subject:</strong></td>
+    <td><strong>$(case.subject)</strong></td>
   </tr>
   <tr>
-
-    <td><p><strong>Subject:</strong></p></td>
-    <td colspan="2"><p><strong>$(case.subject)</strong></p></td>
-  </tr>
-  <tr>
-    <td><p>From URL:</p></td>
-    <td colspan="2"><p><a href="$(case.url)">$(case.url)</a></p></td>
+    <td>From URL:</td>
+    <td><a href="$(case.url)">$(case.url)</a></td>
   </tr>
 
   <tr>
-    <td><p>Original note:</p></td>
-    <td colspan="2">
-	<p>
+    <td>Original note:</td>
+    <td>
 	  $:htmlify(case.description)
-	</p>
     </td>
   </tr>
-  <tr>
-    <td colspan="3"><h4 align="center">Case History</h4></td>
-  </tr>
+</table>
+
+<h3>Case History</h3>
   $for entry in case.history:
-    <tr>
-	<td>
-	  <p>
-	    <strong>$datestr(entry.at)</strong><br/>
-	    <span class="style1">$(pretty_print_date(entry.at))</span><br/>
-	    <span class="style1">by: $(entry.by)</span>
-	  </p>
-	</td>
-	<td colspan="2"><p>$:htmlify(entry.text)</p></td>
-    </tr>
-  <tr>
-    <td colspan="3"><h4 align="center">Update case</h4></td>
-  </tr>
-  <tr>
-    <td>Send reply</td>
-    <td>
+    <p><strong>$(pretty_print_date(entry.at))by: $(entry.by)</strong></p>
+    <p>$:htmlify(entry.text)</p>
+
+<h2>Update case</h2>
+
+<h3>Send reply</h3>
       <p>To: <input name="email" type="text" id="email" value="$(case.creator_email)" size="35" /> </p>
       <p>
 	<input name="quote_email" type="checkbox" id="checkbox3" /> Quote latest email?<br />
-	<textarea class="markdown"   name="casenote1" id="textarea" rows="10"></textarea>
+	<textarea class="markdown" name="casenote1" id="textarea" cols="55" rows="10"></textarea>
       </p>
-      <p>
-	<input type="submit" name="button" id="button3" value="SEND REPLY" />
-      </p>	
-    </td>
-  </tr>
+      <p><input type="submit" name="button" id="button3" value="SEND REPLY" /></p>	
 
-  <tr>
-    <td>Reassign/Close case</td>
-    <td>
+<h3>Send reply</h3>
       <p>Assigned to: 
       <select name="assignee" id="assignee">
 	$for email,username,selected in admins:
@@ -111,19 +80,9 @@ th, td {
 	     <option value="$:email">$username</option>
       </select>
       <p>Add Case Note:</p>
-      <p>
-	<textarea class="markdown" name="casenote2" id="textarea2" rows="10"></textarea>
-      </p>
-      <p>
-	<input type="submit" name="button" id="button" value="UPDATE" />
-      </p>
-      <p>
-	<input type="submit" name="button" id="close2" value="CLOSE CASE" />
-      </p>
-      </p>
-    </td>
-  </tr>
-</table>
+      <p><textarea class="markdown" name="casenote2" id="textarea2" cols="55" rows="10"></textarea></p>
+      <p><input type="submit" name="button" id="button" value="UPDATE" /></p>
+      <p><input type="submit" name="button" id="close2" value="CLOSE CASE" /></p>
 
     
 

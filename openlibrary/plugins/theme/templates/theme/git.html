@@ -29,15 +29,19 @@ div.diff-file {
 </style>
 
 <div id="contentBody">
+    <div class='right'>
+        <a href="javascript:;" id="expand_all">Expand All</a> / <a href="javascript:;" id="collapse_all">Collapse All</a>
+    </div>
     <form method="POST" class="olform">
         $for f in modified:
             <div class="diff-file">
                 <div class="checkbox">
-                    <input type="checkbox" name="files" value="$f.name"/>
+                    <input type="checkbox" name="files" value="$f.name" checked="checked"/>
                 </div>
                 <div class="diff-content">
-                    <strong>$f.name</strong><br/>
-                    <pre class="diff">$:f.htmldiff</pre>
+                    <a href="/theme/files/$f.name">$f.name</a> <a href="javascript:;" class="small toggle-diff">show diff</a>
+                    <br/>
+                    <pre class="diff hidden">$:f.htmldiff</pre>
                 </div>
                 <div style="clear: both;"></div>
             </div>
@@ -60,4 +64,26 @@ div.diff-file {
 </div>
 
 <script type="text/javascript">
+\$(function() {
+    \$("#expand_all").click(function() {
+        \$(".diff").show();
+    });
+    \$("#collapse_all").click(function() {
+        \$(".diff").hide();
+    });
+    
+    \$(".toggle-diff").toggle(function() {
+        \$(this)
+            .text("hide diff")
+            .parent()
+            .find("pre.diff")
+            .show();
+    }, function() {
+        \$(this)
+            .text("show diff")
+            .parent()
+            .find("pre.diff")
+            .hide();        
+    });
+});
 </script>

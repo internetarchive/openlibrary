@@ -1,4 +1,4 @@
-$def with (path, text)
+$def with (path, text, diff)
 
 <div id="contentHead">
     <div id="editTools" class="edit">
@@ -7,9 +7,55 @@ $def with (path, text)
         </div>
     </div>
     
-    <h2 style="margin: 0; padding:0;">$:render_template("theme/breadcrums", path)</h2>
+    $:render_template("theme/menu")
+    <h2 style="margin: 10px 0px 0px 0px; padding:0;">$:render_template("theme/breadcrums", path)</h2>
 </div>
 
 <div id="contentBody">
+    $if diff.diff:
+        <div style="border: 2px solid #ccc; padding: 20px; margin: 10px 0px;">
+            This file has local changes.<br/>
+            <a href="javascript:;" id="show-diff">show diff</a> | <a href="javascript:;" id="revert">revert all changes this file</a>.
+            
+            <style type="text/css">
+            .gd { background: #FDD; }
+            .gi { background: #DFD; }
+            .gu { color: #AAA; }
+
+            div.checkbox {
+                float: left;
+                padding: 3px 5px 0;
+                text-align: center;
+                width: 37px;
+            }
+
+            div.diff-content {
+                float: left;
+                width: 700px;
+            }
+
+            div.diff-file {
+                clear: right;
+                width: 100%;
+            }
+            </style>
+            
+            <div id="diff" class="hidden" style="padding-top: 20px;">
+                <pre>$:diff.htmldiff</pre>
+            </div>
+            <form id="revert-form" class="hidden" method="POST" action="$changequery(m='revert')"/>
+        </div>
     <pre>$text</pre>
 </div>
+
+<script type="text/javascript">
+    \$(function() {
+       \$("#show-diff").click(function() {
+           \$("#diff").toggle();
+       });
+       
+       \$("#revert").click(function() {
+           \$("#revert-form").submit();
+       });
+    });
+</script>

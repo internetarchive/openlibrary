@@ -15,14 +15,8 @@ $ stats = get_admin_stats()
 </script> 
 
 <div id="contentHead">
+    $:render_template("admin/menu")
     <h1>$_("Admin Center")</h1>
-	<div class="small">
-	    <a href="http://monitor.us.archive.org/cgi-bin/nagios3/status.cgi?hostgroup=24.openlibrary&style=detail">Nagios</a>
-	    | <a href="/admin/block">Block IPs</a>
-	    | <a href="/admin/loans">Loans</a>
-	    | <a href="/admin/status">Services</a>
-	    | <a href="/admin/support">Support</a>
-	</div>
 </div>
 <div id="contentBody">
 

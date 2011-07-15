@@ -1,16 +1,13 @@
 $def with (ip)
 
-$ _x = ctx.setdefault('bodyid', 'admin')
-$ _x = ctx.setdefault('usergroup', 'admin')
-
 $var title: [Admin Center] $ip
-<div id="contentHead">
-    <div class="head">
-        <h1><a href="/admin/">Admin</a> / <a href="/admin/ip/">IP</a> / $ip</h1>
-    </div>
-</div>    
 
 <div id="contentHead">
+    $:render_template("admin/menu")
+    <h1><a class="plain" href="/admin/ip">IP</a> / $ip</h1>
+</div>
+
+<div id="contentBody">
 
 $if ip in get_blocked_ips():
     <div>IP $ip is <a href="/admin/block">blocked</a>.</div>

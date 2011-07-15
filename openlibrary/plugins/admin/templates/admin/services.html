@@ -1,13 +1,8 @@
 $def with (nodes)
 
 <div id="contentHead">
-    <h1>$_("Admin Center")</h1>
-	<div class="small">
-	    <a href="/admin/reload/">Reload Templates</a>
-	    | <a href="/admin/block">Block IPs</a>
-	    | <a href="/admin/loans">Loans</a>
-	    | <a href="/admin/status">Services</a>
-	</div>
+    $:render_template("admin/menu")
+    <h1>$_("Services")</h1>
 </div>
 <div id="contentBody">
 

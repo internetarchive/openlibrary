@@ -1,4 +1,4 @@
-$def with (files)
+$def with (files, modified=[])
 
 <div id="contentHead">
     <h1>Theme Editor</h1>
@@ -10,6 +10,8 @@ $code:
         return pattern in f
         
 <script type="text/javascript">
+var modified = $:json_encode(modified);
+
 function contains(f, pattern) {
     return f.indexOf(pattern) >= 0;
 }
@@ -20,7 +22,10 @@ $jsdef render_select(files, pattern):
         $for f in files:
             $if contains(f, pattern):
                 <li>
-                    <a href="/theme/files/$f">$f</a>
+                    $if contains(modified, f):
+                        <a href="/theme/files/$f" style="font-weight: bold;" title="has local modifications">$f</a> *
+                    $else:
+                        <a href="/theme/files/$f">$f</a>
                 </li>
     </ul>
 

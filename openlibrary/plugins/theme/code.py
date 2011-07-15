@@ -34,6 +34,8 @@ def find_files(root, filter):
             f = os.path.join(path, file)
             if filter(f):
                 yield f
+
+RE_PATH = re.compile("(/templates/.*.html|/macros/.*.html|/js/.*.js|/css/.*.css)$")
         
 def list_files():
     dirs = [
@@ -46,11 +48,9 @@ def list_files():
         "static"
     ]
         
-    pattern = re.compile("(/templates/.*.html|/macros/.*.html|/js/.*.js|/css/.*.css)$")
-    
     files = []
     for d in dirs:
-        files += list(find_files(d, pattern.search))    
+        files += list(find_files(d, RE_PATH.search))    
     return sorted(files)
 
 class index(delegate.page):
@@ -65,14 +65,15 @@ class file_index(delegate.page):
     @admin_only
     def GET(self):
         files = list_files()
-        return render_template("theme/files", files)
+        modified = Git().status()
+        return render_template("theme/files", files, modified)
 
 class file_view(delegate.page):
     path = "/theme/files/(.+)"
 
     @admin_only
     def delegate(self, path):
-        if not os.path.isfile(path):
+        if not os.path.isfile(path) or not RE_PATH.search(path):
             raise web.seeother("/theme/files#" + path)
             
         i = web.input(_method="GET")
@@ -87,7 +88,8 @@ class file_view(delegate.page):
     
     def GET_view(self, path):
         text = open(path).read()
-        return render_template("theme/viewfile", path, text)
+        diff = Git().diff(path)
+        return render_template("theme/viewfile", path, text, diff=diff)
 
     def GET_edit(self, path):
         text = open(path).read()
@@ -95,7 +97,7 @@ class file_view(delegate.page):
         
     def POST_edit(self, path):
         i = web.input(_method="POST", text="")
-        i.text = i.text.replace("\r\n", "\n").replace("\r", "\n")        
+        i.text = i.text.replace("\r\n", "\n").replace("\r", "\n").encode("utf-8")
         f = open(path, 'w')
         f.write(i.text)
         f.close()
@@ -110,14 +112,21 @@ class file_view(delegate.page):
         
         add_flash_message("info", "Page has been saved successfully.")
         raise web.seeother(web.ctx.path)
-
+        
+    def POST_revert(self, path):
+        logger.info("running git checkout %s", path)
+        cmd = Git().system("git checkout " + path)
+        logger.info(cmd.stdout)
+        add_flash_message("info", "All changes to this page have been reverted successfully.")
+        raise web.seeother(web.ctx.path)
+                
 class gitview(delegate.page):
     path = "/theme/modifications"
     
     @admin_only
     def GET(self):
-        git = Git()
-        return render_template("theme/git", git.modified())
+        modified = [f for f in Git().modified() if RE_PATH.search(f.name)]
+        return render_template("theme/git", modified)
 
     @admin_only
     def POST(self):
@@ -158,6 +167,7 @@ class gitmerge(delegate.page):
         run("git fetch origin")
         run("git merge origin/master")
         run("git push")
+        run("make")
         # Send SIGUP signal to master gunicorn process to reload
         run("kill -HUP %s" % os.getppid())
         return render_template("theme/commands", d.success, d.commands)

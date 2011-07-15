@@ -6,8 +6,8 @@ $ _x = ctx.setdefault('usergroup', 'admin')
 $var title: [Admin Center] $person.displayname
 
 <div id="contentHead">
-    <h1><a href="/admin/">$_("Admin")</a> / <a href="/admin/people/">$_("People")</a> / 
-    $person.displayname</h1>
+    $:render_template("admin/menu")
+    <h1><a class="plain" href="/admin/people">People</a> / $person.displayname</h1>
 </div>
 
 <style type="text/css">
