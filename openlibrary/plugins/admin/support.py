@@ -19,8 +19,9 @@ class cases(object):
         desc = i['desc']
         cases = support_db.get_all_cases(typ, summarise = False, sortby = sortby, desc = desc)
         summary = support_db.get_all_cases(typ, summarise = True)
+        total = sum(x['value'] for x in summary)
         desc = desc == "false" and "true" or "false"
-        return render_template("admin/cases", summary, cases, desc)
+        return render_template("admin/cases", summary, total, cases, desc)
 
 class case(object):
     def GET(self, caseid):
