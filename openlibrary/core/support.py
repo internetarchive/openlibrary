@@ -154,6 +154,7 @@ class Case(Document):
             extra = dict(descending = desc)
 
         if typ == "all":
+            view = view.replace("-","-all-") 
             result = cls.view(db, view, include_docs = True, **extra)
             return result.rows
         elif typ == "new":
