@@ -426,7 +426,7 @@ class deploy:
             tasks.append("deploy:olsystem")
     
         if i.restart:
-            tasks.append("restart:" % i.restart)
+            tasks.append("restart:%s" % i.restart)
             
         if tasks:
             return self.fab(tasks)
