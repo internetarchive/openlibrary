@@ -39,7 +39,8 @@ $else:
           <th><a href="?sort=subject&desc=$desc">Subject</a></th>
           <th><a href="?sort=user&desc=$desc">User</a></th>
           <th><a href="?sort=assigned&desc=$desc">Assigned to</a></th>
-          <th><a href="?sort=lastmodified&desc=$desc">Last modified</a></th>
+          <th><a href="?sort=lastmodified&desc=$desc">Last modified</a> </th>
+	  <th><a href="?sort=notes&desc=$desc">No. of notes</a></th>
           <th><a href="?sort=status&desc=$desc">Status</a></th>
       </tr>
       $for case in cases:
@@ -50,6 +51,7 @@ $else:
         <td><a href="/admin/people/$(case.creator_username)">$case.creator_name</a></td>
         <td>$case.assignee</td>
         <td>$datestr(case.last_modified)</td>
+	<td>$len(case.history)</td>
         <td>$case.status</td>
       </tr>
   </table>

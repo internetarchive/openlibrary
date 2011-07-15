@@ -146,7 +146,8 @@ class Case(Document):
                 "user"         : "cases/sort-creator",
                 "lastmodified" : "cases/sort-lastmodified",
                 "status"       : "cases/sort-status",
-                "subject"      : "cases/sort-subject"}[sort]
+                "subject"      : "cases/sort-subject",
+                "notes"        : "cases/sort-numnotes"}[sort]
         if sort == "status":
             extra = dict(reduce = False,
                          descending = desc)
