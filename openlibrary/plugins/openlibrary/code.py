@@ -762,6 +762,7 @@ def setup_template_globals():
         "dumps": simplejson.dumps,
     })
 
+
 def setup_logging():
     try:
         logconfig = infogami.config.get("logging_config_file")
@@ -772,7 +773,7 @@ def setup_logging():
         raise
 
 def setup():
-    import home, inlibrary, borrow_home, libraries, stats, support, events
+    import home, inlibrary, borrow_home, libraries, stats, support, events, status
     
     home.setup()
     inlibrary.setup()
@@ -781,6 +782,7 @@ def setup():
     stats.setup()
     support.setup()
     events.setup()
+    status.setup()
     
     from stats import stats_hook
     delegate.app.add_processor(web.unloadhook(stats_hook))

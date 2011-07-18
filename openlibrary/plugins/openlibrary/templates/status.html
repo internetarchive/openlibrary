@@ -1,0 +1,33 @@
+$def with (status = None)
+
+$var title: Open Library server status
+
+<style type="text/css">
+  table th { 
+             padding: 2pt;
+             font-weight: bold;
+             }
+</style>
+
+<div id="contentHead">
+ <h1>$_("Server status")</h1>
+</div>
+
+<div id="contentBody">
+  <table>
+    <tr>
+      <th>Software version </th>
+      <td><a href="https://github.com/internetarchive/openlibrary/commit/$(status.get('version',""))">$(status.get('version',""))</a></td>
+    </tr>
+    <tr>
+      <th>Host</th>
+      <td>$(status.get("host",""))</td>
+    </tr>
+    <tr>
+      <th>Start date</th>
+      <td>$(datestr(status.get('starttime',"")))</td>
+    </tr>
+  </table>
+</div>
+
+
