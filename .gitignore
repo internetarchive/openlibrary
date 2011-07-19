@@ -28,4 +28,6 @@ openlibrary/mailserver/logs/lamson.log
 openlibrary/mailserver/logs/logger.log
 lamson.out
 openlibrary/mailserver/run/
+bad_data.json
+celerybeat-schedule
 
