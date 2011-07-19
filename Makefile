@@ -16,7 +16,6 @@ all:
 	bash static/js/vendor.jsh > $(BUILD)/vendor.js
 	bash static/js/all.jsh > $(BUILD)/all.js
 	bash static/css/all.cssh > $(BUILD)/all.css
-	bash ./scripts/stamp-version.sh
 
 
 clean:
