@@ -64,7 +64,7 @@ class case(object):
         subject = "Case #%s: %s"%(case.caseno, case.subject)
         if email_to:
             message = render_template("admin/email", case, casenote)
-            web.sendmail("support@openlibrary.org", email_to, subject, message)
+            web.sendmail(config.get("support_case_control_address","support@openlibrary.org"), email_to, subject, message)
 
     def POST_update(self, form, case):
         casenote = form.get("casenote2", False)
@@ -76,7 +76,7 @@ class case(object):
             case.reassign(assignee, by, text)
             subject = "Case #%s has been assigned to you"%case.caseno
             message = render_template("admin/email_reassign", case, text)
-            web.sendmail('support@openlibrary.org', assignee, subject, message)
+            web.sendmail(config.get("support_case_control_address","support@openlibrary.org"), assignee, subject, message)
         else:
             case.add_worklog_entry(by = by,
                                    text = text)
