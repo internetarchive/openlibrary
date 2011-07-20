@@ -1,23 +1,23 @@
 $def with ()
 
-$ title = "Register Your Interest in the In-Library Lending Program"
+$ title = "Register Your Library for the In-Library Lending Program"
 
 $var title: $title
 
 <div id="contentHead">
     $:render_template("borrow/navigation", path="/libraries/register")
-    <h1>$_("Register Your Interest")</h1>
+    <h1>$_("Register Your Library")</h1>
 </div>
 
 <div id="contentBody">
 
-    <p class="sansserif small">$_("Thank you for your interest in Open Library's lending program. Please complete the form below to register, obligation free.")<br/><span class="smaller attn"><em>*All fields are required.</em></span></p>
+    <p class="sansserif small">$_("Please complete the form below to register your Library's interest in joining the In-Library lending program, obligation free. If you are an individual patron looking to borrow something, you'll need to create an Open Library account to access available titles. Just click the Sign Up link in the top right.")<br/></p>
 
 <form name="edit" class="olform validate" method="post" action="">
 
     <div class="formElement">
         <div class="label">
-            <label for="contact_person">$_("Your Full Name")<span class="attn">*</span></label>        
+            <label for="contact_person">$_("Your Full Name")<span class="attn">*</span><span class="smaller attn"><em>All fields are required.</em></span></label>        
         </div>
         <div class="input">
             
