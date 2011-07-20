@@ -1,14 +1,18 @@
 $def with (summary, cases, desc, error = False)
 
 <div id="contentHead">
-    <h1>$_("Admin Center")</h1>
-    $:render_template("admin/menu", "/admin")
+    <div class="superNav">
+        <a href="/admin">$_("Admin Center")</a>
+        / 
+    </div> 
+    <h1>Help Cases</h1>
 </div>
 <div id="contentBody">
 <style type="text/css">
 table.support { 
               font-family: Lucida, "Lucida Sans";
               font-size: 0.75em;
+              width: 100%;
               }
 
 table.support th { 
@@ -24,18 +28,18 @@ table.support pre.hidden {
  }
 
 </style>
-<h1>Support Cases</h1>
+
 $if error:
-  <p>Couldn't connect to support database</p>
+  <p>Couldn't connect to support database.</p>
 $else:
-  <p>Filter: $len(cases) <strong>Total</strong> | 
+  <p>Filter: <strong> $len(cases) total</strong> | 
   $for i in summary:
-    $(i.key[0]) <a href="/admin/support/$(i.key[0])">$(i.value)</a> |
+    <a href="/admin/support/$(i.key[0])">$(i.value) $(i.key[0])</a>  |
     
   <table class = "support" border="0" cellspacing="0" cellpadding="10">
       <tr>
-          <th><a href="?sort=created&desc=$desc">Created</a></th>
           <th><a href="?sort=caseid&desc=$desc">#</a></th>
+          <th><a href="?sort=created&desc=$desc">Created</a></th>
           <th><a href="?sort=subject&desc=$desc">Subject</a></th>
           <th><a href="?sort=user&desc=$desc">User</a></th>
           <th><a href="?sort=assigned&desc=$desc">Assigned to</a></th>
@@ -44,8 +48,8 @@ $else:
       </tr>
       $for case in cases:
       <tr>
+        <td align="right">$case.caseid</td>
         <td>$datestr(case.created)</td>
-        <td>$case.caseid</td>
         <td><a href="/admin/support/$(case.caseno)">$case.subject</a></td>
         <td><a href="/admin/people/$(case.creator_username)">$case.creator_name</a></td>
         <td>$case.assignee</td>

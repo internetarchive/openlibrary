@@ -15,12 +15,7 @@ $def with (case, last_email, admins, pretty_print_date, htmlify, done = False)
         / 
         <a href="/admin/support">Cases</a>
     </div> 
-    <h1>$(case.caseid)
-        <span class="count">
-            <b>[$case.status]</b>
-            $(pretty_print_date(case.created)) - $(datestr(case.created))
-        </span>
-    </h1>
+    <h1>$(case.caseid)</h1>
 
 </div>
 <div id="contentBody">
@@ -31,12 +26,18 @@ $def with (case, last_email, admins, pretty_print_date, htmlify, done = False)
     </div>
 
 <form id="form1" name="form1" method="post" action="">
-<table class="support" border="0" cellspacing="0">
+<table class="changeHistory" border="0" cellspacing="0" style="border-top: 1px solid #eee;">
   <tr>
-    <td>Sender:</td>
+    <th colspan="2">
+        <b>Status: $case.status</b>, 
+            Case created: $(datestr(case.created)), $(pretty_print_date(case.created))
+    </th>
+  </tr>
+  <tr>
+    <td style="width: 25%">Sender:</td>
     <td>
-        <p>$(case.creator_name) / $(case.creator_email) / <a href="/admin/people/$(case.creator_username)">$(case.creator_username)</a><br/>
-        <em>$(case.creator_useragent)</em></p></td>
+        $(case.creator_name) / $(case.creator_email) / <a href="/admin/people/$(case.creator_username)">$(case.creator_username)</a><br/>
+        <em>$(case.creator_useragent)</em></td>
   </tr>
   <tr>
     <td><strong>Subject:</strong></td>
@@ -56,32 +57,47 @@ $def with (case, last_email, admins, pretty_print_date, htmlify, done = False)
 </table>
 
 <h3>Case History</h3>
+
+<table class="changeHistory" border="0" cellspacing="0" style="border-top: 1px solid #eee;">
   $for entry in case.history:
-    <p><strong>$(pretty_print_date(entry.at))by: $(entry.by)</strong></p>
-    <p>$:htmlify(entry.text)</p>
+    <tr>
+        <td style="width: 25%">
+            <span class="black"><b>$(datestr(entry.at))</b></span> <span class="smaller">$(pretty_print_date(entry.at))</span>
+            <br />
+            $(entry.by)
+        </td>
+        <td>$:htmlify(entry.text)</td>
+    </tr>
+</table>
 
-<h2>Update case</h2>
-
-<h3>Send reply</h3>
-      <p>To: <input name="email" type="text" id="email" value="$(case.creator_email)" size="35" /> </p>
-      <p>
+<table style="width: 100%">
+<tr>
+<td style="width: 50%; vertical-align: top;">
+    <h2>Send reply</h2>
+    <p>To: <input name="email" type="text" id="email" value="$(case.creator_email)" size="35" /> </p>
+    <p>
 	<input name="quote_email" type="checkbox" id="checkbox3" /> Quote latest email?<br />
-	<textarea class="markdown" name="casenote1" id="textarea" cols="55" rows="10"></textarea>
-      </p>
-      <p><input type="submit" name="button" id="button3" value="SEND REPLY" /></p>	
-
-<h3>Send reply</h3>
-      <p>Assigned to: 
-      <select name="assignee" id="assignee">
+	<textarea class="markdown" name="casenote1" id="textarea" rows="10" style="width: 420px"></textarea>
+    </p>
+    <p><input type="submit" name="button" id="button3" value="SEND REPLY" /></p>	
+</td>
+<td style="width: 50%; vertical-align: top;">
+    <h2>Add Case Note/Re-assign</h2>
+    <p>Assigned to: 
+    <select name="assignee" id="assignee">
 	$for email,username,selected in admins:
 	  $if selected:
 	     <option selected="selected" value="$:email">$username</option>
           $else:
 	     <option value="$:email">$username</option>
-      </select>
-      <p>Add Case Note:</p>
-      <p><textarea class="markdown" name="casenote2" id="textarea2" cols="55" rows="10"></textarea></p>
-      <p><input type="submit" name="button" id="button" value="UPDATE" /></p>
+    </select>
+    <p>Add Case Note:</p>
+    <p><textarea class="markdown" name="casenote2" id="textarea2" rows="10" style="width: 420px"></textarea></p>
+    <p><input type="submit" name="button" id="button" value="UPDATE" /></p>
+</td>
+</tr>
+</table>
+
       <p><input type="submit" name="button" id="close2" value="CLOSE CASE" /></p>
 
     
