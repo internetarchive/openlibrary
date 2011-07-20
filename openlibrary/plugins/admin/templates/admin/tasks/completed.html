@@ -6,7 +6,7 @@ $def with (completed = [])
       <td>$(task['arguments'])</td>
       <td>$(task['status'])</td>
       <td>--</td>
-      <td>$datestr(task['started_at'])</td>
+      <td>$task['started_at']</td>
       <td>$datestr(task['finished_at'])</td>
       <!-- <td><a class = "tb" href="#">...</a><pre class="hidden">(task.traceback)</pre></td> -->
     </tr>

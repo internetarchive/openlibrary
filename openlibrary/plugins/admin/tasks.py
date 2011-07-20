@@ -18,20 +18,18 @@ def connect_to_taskdb():
     return web.database(**celeryconfig.OL_RESULT_DB_PARAMETERS)
 
 
-
-
 def unpack_result(task):
     try:
         d = pickle.loads(task.result)
-        return dict(arguments = d['largs'] + d['kargs'],
-                    command = d['command'],
-                    started_at = d['started_at'],
-                    result = d['result'],
-                    log = d['log'])
-    except Exception,e:
+        return dict(arguments = d.get('largs',"") + d.get('kargs',""),
+                    command = d.get('command',""),
+                    started_at = d.get('started_at',"TBD"),
+                    result = d.get('result',""),
+                    log = d.get('log',""))
+    except Exception, e:
         return dict(arguments = "unknown",
                     command = "unknown",
-                    started_at = datetime.datetime.now(),
+                    started_at = "TBD",
                     result = "unknown",
                     log = "unknown",
                     error = True)
@@ -40,7 +38,6 @@ def unpack_result(task):
 def massage_tombstones(dtasks):
     """Massages the database task tombstones into things that can be
     displayed by the /admin task templates"""
-    print "We're running with ", dtasks
     if not dtasks:
         raise StopIteration()
     else:
@@ -52,6 +49,7 @@ def massage_tombstones(dtasks):
                        status = task.status,
                        finished_at = task.date_done,
                        started_at = p.get('started_at',""))
+
 
 def massage_taskslists(atasks):
     """Massage the output of the celery inspector into a format that
