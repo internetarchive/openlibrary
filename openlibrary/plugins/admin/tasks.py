@@ -2,6 +2,7 @@ import pickle
 import logging
 import datetime
 import urlparse
+import urllib
 
 import web
 from celery.task.control import inspect 
@@ -54,7 +55,6 @@ def massage_tombstones(dtasks):
 def massage_taskslists(atasks):
     """Massage the output of the celery inspector into a format that
     can be printed by our template"""
-
     def _start_time(task):
         try:
             return datetime.datetime.utcfromtimestamp(task['time_start'])
@@ -78,9 +78,11 @@ class tasklist(object):
         except Exception, e:
             return "Error in connecting to tombstone database"
         try:
-            i = web.input(finishedat_start="", finishedat_end = "")
+            i = web.input(finishedat_start="", finishedat_end = "", offset=0, limit = 20)
             finishedat_start = i['finishedat_start']
             finishedat_end = i['finishedat_end']
+            offset = int(i['offset'])
+            limit = int(i['limit'])
             clauses = []
             if finishedat_start:
                 clauses.append("date_done >= '%s'"%datetime.datetime.strptime(finishedat_start,"%m/%d/%Y").isoformat())
@@ -88,16 +90,22 @@ class tasklist(object):
                 clauses.append("date_done <= '%s'"%datetime.datetime.strptime(finishedat_end,"%m/%d/%Y").isoformat())
             where = " AND ".join(clauses)
             if where:
-                completed_tasks = massage_tombstones(db.select('celery_taskmeta', order = "date_done desc", where = where, limit=100))
+                completed_tasks = massage_tombstones(db.select('celery_taskmeta', order = "date_done desc", where = where, limit=limit, offset = offset))
+                ntasks = db.select('celery_taskmeta', where = where, what = "count(*)")[0].count
             else:
-                completed_tasks = massage_tombstones(db.select('celery_taskmeta', order = "date_done desc",  limit=100))
+                completed_tasks = massage_tombstones(db.select('celery_taskmeta', order = "date_done desc",  limit=limit, offset = offset))
+                ntasks = db.select('celery_taskmeta', what = "count(*)")[0].count
+            task_ranges = range(0, ntasks, limit)
         except psycopg2.ProgrammingError, e:
             return "<p>The celery database has not been created. If this is the first time you're viewing this page, please refresh this page once celery completes a few tasks. The tombstone datbase will automatically be initialised</p>"
         inspector = inspect()
         active_tasks = massage_taskslists(inspector.active())
         reserved_tasks = massage_taskslists(inspector.reserved())
-
-        return render_template("admin/tasks/index", completed_tasks, active_tasks, reserved_tasks)
+        url = "/admin/tasks?" + urllib.urlencode(dict(finishedat_start = finishedat_start,
+                                                     finishedat_end = finishedat_end,
+                                                     limit = limit))
+        return render_template("admin/tasks/index", completed_tasks, active_tasks, reserved_tasks,  
+                               limit = limit, offset = offset, fstart = finishedat_start, fend = finishedat_end, base_url = url, task_ranges = task_ranges)
 
 
 class tasks(object):
