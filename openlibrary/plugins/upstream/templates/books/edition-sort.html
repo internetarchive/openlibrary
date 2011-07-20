@@ -7,6 +7,7 @@ $ alibris = " http://click.linksynergy.com/fs-bin/click?id=eSmaWuUpnDY&offerid=9
 $ barnesandnoble = "http://search.barnesandnoble.com/booksearch/isbninquiry.asp?ISBN=XXXafsrc=1&lkid=J14933426&pubid=K172077"
 $ bibliocom = "http://www.biblio.com/editions.php?isbn=XXX&aid=openlibrary"
 $ powells = "http://www.powells.com/partner/33286/biblio/XXX"
+$ bookdepository = "http://www.bookdepository.com/search?searchTerm=XXX"
 
 $ worldcat = "http://worldcat.org/isbn/XXX"
 $ worldcatoclc = "http://worldcat.org/oclc/XXX"
@@ -153,6 +154,7 @@ $ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
                 <li><a href="$amazon.replace('XXX', isbn_10)" title="Look for this edition for sale at Amazon">Amazon</a></li>
                 <li><a href="$abebooks.replace('XXX', isbn_10)" title="Look for this edition for sale at AbeBooks">AbeBooks</a></li>
                 <li><a href="$bibliocom.replace('XXX', isbn_10)" title="Look for this edition for sale at Biblio">Biblio.com</a></li>
+                <li><a href="$bookdepository.replace('XXX', isbn_10)" title="Look for this edition for sale at Book Depository">Book Depository</a></li>                
                 <li><a href="$powells.replace('XXX', isbn_10)" title="Look for this edition for sale at Powell's">Powells</a></li>
             $else:
                 <li><a href="http://www.scribd.com/doc/$scribd" title="Look for this edition for sale at Scribd">Scribd</a><br /><span class="gray smaller">eBook in browser</span></li>

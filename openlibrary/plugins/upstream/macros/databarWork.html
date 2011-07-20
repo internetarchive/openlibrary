@@ -15,6 +15,7 @@ $ alibris = " http://click.linksynergy.com/fs-bin/click?id=eSmaWuUpnDY&offerid=9
 $ barnesandnoble = "http://search.barnesandnoble.com/booksearch/isbninquiry.asp?ISBN=XXXafsrc=1&lkid=J14933426&pubid=K172077"
 $ bibliocom = "http://www.biblio.com/editions.php?isbn=XXX&aid=openlibrary"
 $ powells = "http://www.powells.com/partner/33286/biblio/XXX"
+$ bookdepository = "http://www.bookdepository.com/search?searchTerm=XXX"
 
 $ worldcat = "http://worldcat.org/isbn/XXX"
 $ worldcatoclc = "http://worldcat.org/oclc/XXX"
@@ -169,6 +170,7 @@ $if isbn or asin or scribd:
             $if isbn:
                 <p><a href="$abebooks.replace('XXX', isbn)" title="Check AbeBooks for availability">AbeBooks</a></p>
                 <p><a href="$bibliocom.replace('XXX', isbn)" title="Check Biblio.com for availability">Biblio.com</a></p>
+                <p><a href="$bookdepository.replace('XXX', isbn)" title="Check Book Depository for availability">Book Depository</a></p>
                 <p><a href="$powells.replace('XXX', isbn)" title="Check Powell's for availability">Powells</a></p>
             $if scribd:
                 <p><a href="http://www.scribd.com/doc/$scribd" title="Available on Scribd!">Scribd</a> <span class="smaller grey">eBook in browser</span></p>
