@@ -4,6 +4,12 @@ $def with (completed = [], active = [], reserved = [])
     $:render_template("admin/menu", "/admin")
 </div>
 <div id="contentBody">
+<script type="text/javascript">
+\$(function() {
+    \$( "input.date" ).datepicker({ changeMonth: true });
+});
+</script>
+
 <style type="text/css">
 table.tasks { 
               font-family: Lucida, "Lucida Sans";
@@ -22,7 +28,23 @@ table.tasks pre.hidden {
                          display: none;
  }
 
+div.ui-datepicker { 
+                    background-color:#eee;
+                    border: 1px solid black;
+ }
 </style>
+<form method="GET" action="/admin/tasks">
+  <fieldset>
+    <legend>Filters</legend>
+    <!-- <label> Command </label> -->
+    <!-- <input type="text" name="command" /> -->
+    Finished between (start)
+    <input type="text" class = "date" name="finishedat_start" />
+     and (end)
+     <input type="text" class = "date" name="finishedat_end" />
+     <input type="submit" name="submit" value="Filter"/>
+  </fieldset>
+</form>
 
 <h2>Task status</h2>
 <table class = "tasks" border="0" cellspacing="0" cellpadding="10">

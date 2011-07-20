@@ -78,8 +78,20 @@ class tasklist(object):
         except Exception, e:
             return "Error in connecting to tombstone database"
         try:
-            completed_tasks = massage_tombstones(db.select('celery_taskmeta', order = "date_done desc", limit=100))
-        except psycopg2.ProgrammingError,e:
+            i = web.input(finishedat_start="", finishedat_end = "")
+            finishedat_start = i['finishedat_start']
+            finishedat_end = i['finishedat_end']
+            clauses = []
+            if finishedat_start:
+                clauses.append("date_done >= '%s'"%datetime.datetime.strptime(finishedat_start,"%m/%d/%Y").isoformat())
+            if finishedat_end:
+                clauses.append("date_done <= '%s'"%datetime.datetime.strptime(finishedat_end,"%m/%d/%Y").isoformat())
+            where = " AND ".join(clauses)
+            if where:
+                completed_tasks = massage_tombstones(db.select('celery_taskmeta', order = "date_done desc", where = where, limit=100))
+            else:
+                completed_tasks = massage_tombstones(db.select('celery_taskmeta', order = "date_done desc",  limit=100))
+        except psycopg2.ProgrammingError, e:
             return "<p>The celery database has not been created. If this is the first time you're viewing this page, please refresh this page once celery completes a few tasks. The tombstone datbase will automatically be initialised</p>"
         inspector = inspect()
         active_tasks = massage_taskslists(inspector.active())
@@ -100,7 +112,7 @@ class tasks(object):
                 tsk = ret[0]
                 res = unpack_result(tsk)
             return render_template("admin/tasks/task", tsk, res)
-        except KeyboardInterrupt:
+        except Exception:
             logger.warning("Problem while obtaining task information '%s'", taskid, exc_info = True)
             return "Error in obtaining task information"
                 
