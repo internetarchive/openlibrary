@@ -1,0 +1,26 @@
+$def with (status = {})
+
+$var title: Open Library server status
+
+<style type="text/css">
+  table th { 
+             padding: 2pt;
+             font-weight: bold;
+             }
+</style>
+
+<div id="contentHead">
+ <h1>$_("Server status")</h1>
+</div>
+
+<div id="contentBody">
+  <table>
+    $for i in status:
+       <tr>
+         <th>$i</th>
+         <td>$status[i]</td>
+       </tr>
+  </table>
+</div>
+
+

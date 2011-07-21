@@ -1,5 +1,6 @@
 #
-# Makefile to build css and js files and compile i18n messages
+# Makefile to build css and js files, compile i18n messages and stamp
+# version information
 #
 
 BUILD=static/build
@@ -15,6 +16,7 @@ all:
 	bash static/js/vendor.jsh > $(BUILD)/vendor.js
 	bash static/js/all.jsh > $(BUILD)/all.js
 	bash static/css/all.cssh > $(BUILD)/all.css
+
 
 clean:
 	rm -rf $(BUILD)

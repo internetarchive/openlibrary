@@ -1,15 +1,7 @@
 $def with (task, res)
-
 <div id="contentHead">
-    <h1>$_("Admin Center")</h1>
-	<div class="small">
-	    <a href="/admin/reload/">Reload Templates</a>
-	    | <a href="/admin/block">Block IPs</a>
-	    | <a href="/admin/loans">Loans</a>
-	    | <a href="/admin/status">Services</a>
-	    | <a href="/admin/support">Support</a>
-	    | <a href="/admin/tasks">Tasks</a>
-	</div>
+    $:render_template("admin/menu", "/admin")
+    <h1>Task information</h1>
 </div>
 <div id="contentBody">
 <style type="text/css">
@@ -42,13 +34,16 @@ table pre.hidden {
 });
 </script>
 
-<h2>Task information</h2>
 $if 'error' in res:
-  <em> The results of this task were not properly recorded. There was an error </em>
+  <em> The information here might be incomplete. This task had an error during execution. </em>
 <table>
 <tr>
   <th> UUID </th>
   <td> $task.task_id </td>
+</tr>
+<tr>
+  <th> Status </th>
+  <td> <strong>$task.status</strong> </td>
 </tr>
 <tr>
   <th> Command </th>
@@ -60,7 +55,7 @@ $if 'error' in res:
 </tr>
 <tr>
   <th> Start time </th>
-  <td> $res['started_at'] ($datestr(res['started_at'])) </td>
+  <td> $res['started_at'] </td>
 </tr>
 <tr>
   <th> Result </th>
@@ -69,6 +64,10 @@ $if 'error' in res:
 <tr>
   <th> Logs </th>
   <td> <pre>$res['log']</pre></td>
+</tr>
+<tr>
+  <th> Traceback </th>
+  <td> <pre>$task.traceback</pre></td>
 </tr>
 
 </table>

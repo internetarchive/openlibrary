@@ -146,7 +146,8 @@ class Case(Document):
                 "user"         : "cases/sort-creator",
                 "lastmodified" : "cases/sort-lastmodified",
                 "status"       : "cases/sort-status",
-                "subject"      : "cases/sort-subject"}[sort]
+                "subject"      : "cases/sort-subject",
+                "notes"        : "cases/sort-numnotes"}[sort]
         if sort == "status":
             extra = dict(reduce = False,
                          descending = desc)
@@ -154,6 +155,7 @@ class Case(Document):
             extra = dict(descending = desc)
 
         if typ == "all":
+            view = view.replace("-","-all-") 
             result = cls.view(db, view, include_docs = True, **extra)
             return result.rows
         elif typ == "new":

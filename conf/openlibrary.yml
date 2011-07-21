@@ -6,6 +6,10 @@ site: "openlibrary.org"
 from_address: "Open Library <noreply@openlibrary.org>"
 report_spam_address: "Open Library <info@openlibrary.org>"
 
+support_case_notification_address: "Open Library <info@openlibrary.org>"
+support_case_control_address : "support@openlibrary.org"
+support_case_default_address : "mary@openlibrary.org"
+
 smtp_server: "localhost"
 
 dummy_sendmail: True

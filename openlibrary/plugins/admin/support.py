@@ -19,8 +19,9 @@ class cases(object):
         desc = i['desc']
         cases = support_db.get_all_cases(typ, summarise = False, sortby = sortby, desc = desc)
         summary = support_db.get_all_cases(typ, summarise = True)
+        total = sum(x['value'] for x in summary)
         desc = desc == "false" and "true" or "false"
-        return render_template("admin/cases", summary, cases, desc)
+        return render_template("admin/cases", summary, total, cases, desc)
 
 class case(object):
     def GET(self, caseid):
@@ -33,6 +34,7 @@ class case(object):
             last_email = case.description
         else:
             last_email = case.history[-1]['text']
+        last_email = "\n".join("  > %s"%x for x in last_email.split("\n")) + "\n\n"
         admins = ((x.get_email(), x.get_username(), x.get_email() == case.assignee) for x in web.ctx.site.get("/usergroup/admin").members)
         return render_template("admin/case", case, last_email, admins, date_pretty_printer, md.convert)
 
@@ -63,7 +65,7 @@ class case(object):
         subject = "Case #%s: %s"%(case.caseno, case.subject)
         if email_to:
             message = render_template("admin/email", case, casenote)
-            web.sendmail("support@openlibrary.org", email_to, subject, message)
+            web.sendmail(config.get("support_case_control_address","support@openlibrary.org"), email_to, subject, message)
 
     def POST_update(self, form, case):
         casenote = form.get("casenote2", False)
@@ -75,7 +77,7 @@ class case(object):
             case.reassign(assignee, by, text)
             subject = "Case #%s has been assigned to you"%case.caseno
             message = render_template("admin/email_reassign", case, text)
-            web.sendmail('support@openlibrary.org', assignee, subject, message)
+            web.sendmail(config.get("support_case_control_address","support@openlibrary.org"), assignee, subject, message)
         else:
             case.add_worklog_entry(by = by,
                                    text = text)
