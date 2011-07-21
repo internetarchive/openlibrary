@@ -1,16 +1,7 @@
 $def with (task, res)
-
 <div id="contentHead">
-    <h1>$_("Admin Center")</h1>
-	<div class="small">
-	    <a href="/admin/reload/">Reload Templates</a>
-	    | <a href="/admin/block">Block IPs</a>
-	    | <a href="/admin/loans">Loans</a>
-	    | <a href="/admin/status">Services</a>
-	    | <a href="/admin/support">Support</a>
-	    | <a href="/admin/tasks">Tasks</a>
-	</div>
-</div>
+    $:render_template("admin/menu", "/admin")
+    <h1>Task information</h1>
 <div id="contentBody">
 <style type="text/css">
 table { 
@@ -42,7 +33,6 @@ table pre.hidden {
 });
 </script>
 
-<h2>Task information</h2>
 $if 'error' in res:
   <em> The information here might be incomplete. This task had an error during execution. </em>
 <table>

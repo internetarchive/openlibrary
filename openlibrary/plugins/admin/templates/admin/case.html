@@ -8,14 +8,11 @@ $def with (case, last_email, admins, pretty_print_date, htmlify, done = False)
     });
 </script>
 
-<div id="contentHead">
 
-    <div class="superNav">
-        <a href="/admin">$_("Admin Center")</a>
-        / 
-        <a href="/admin/support">Cases</a>
-    </div> 
+<div id="contentHead">
+    $:render_template("admin/menu", "/admin")
 </div>
+
 <div id="contentBody">
 
  $if done:

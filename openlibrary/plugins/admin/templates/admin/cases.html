@@ -1,11 +1,8 @@
 $def with (summary, total, cases, desc, error = False)
 
 <div id="contentHead">
-    <div class="superNav">
-        <a href="/admin">$_("Admin Center")</a>
-        / 
-    </div> 
-    <h1>Help Cases</h1>
+    $:render_template("admin/menu", "/admin")
+    <h1>Support cases</h1>
 </div>
 <div id="contentBody">
 <style type="text/css">
