@@ -34,6 +34,7 @@ class case(object):
             last_email = case.description
         else:
             last_email = case.history[-1]['text']
+        last_email = "\n".join("  > %s"%x for x in last_email.split("\n")) + "\n\n"
         admins = ((x.get_email(), x.get_username(), x.get_email() == case.assignee) for x in web.ctx.site.get("/usergroup/admin").members)
         return render_template("admin/case", case, last_email, admins, date_pretty_printer, md.convert)
 

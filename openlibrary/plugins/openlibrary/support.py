@@ -20,25 +20,6 @@ class contact(delegate.page):
         return render_template("support", email=email, url=i.path)
 
     def POST(self):
-        if "support" in web.ctx.features:
-            return self.POST_new()
-        else:
-            return self.POST_old()
-
-    def POST_old(self):
-        i = web.input(email='', url='', question='')
-        fields = web.storage({
-            'email': i.email,
-            'irl': i.url,
-            'comment': i.question,
-            'sent': datetime.datetime.utcnow(),
-            'browser': web.ctx.env.get('HTTP_USER_AGENT', '')
-        })
-        msg = render_template('email/spam_report', fields)
-        web.sendmail(i.email, config.report_spam_address, msg.subject, str(msg))
-        return render_template("support", done = True)
-
-    def POST_new(self):
         if not support_db:
             return "Couldn't initialise connection to support database"
         form = web.input()
