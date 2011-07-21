@@ -358,6 +358,7 @@ def load(rec):
     else:
         work_created = True
         need_work_save = True
+        need_edition_save = True
         w = {
             'type': {'key': '/type/work'},
             'title': get_title(rec),
