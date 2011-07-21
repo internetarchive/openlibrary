@@ -1,5 +1,6 @@
 import logging
 import eventer
+import urllib2
 from openlibrary.core.task import oltask
 from openlibrary.core.fetchmail import fetchmail
 from openlibrary.core import formats
@@ -57,3 +58,26 @@ def update_solr(changeset):
     """Updates solr on edit.
     """
     pass
+
+@oltask
+def upload_via_s3(item_id, filename, data, s3_key, s3_secret):
+    logger.info("s3 upload: %s %s" % (item_id, filename) )
+
+    path = "http://s3.us.archive.org/%s/%s" % (item_id, filename)
+    auth = "LOW %s:%s" % (s3_key, s3_secret)
+
+    req = urllib2.Request(path)
+    req.add_header('x-archive-auto-make-bucket', '1')
+    req.add_header('x-archive-meta-collection',  'ol_data')
+    req.add_header('x-archive-meta-mediatype',   'data')
+    req.add_header('x-archive-keep-old-version', '1')
+    req.add_header('x-archive-queue-derive',     '0')
+    req.add_header('authorization', auth)
+
+    req.add_data(data)
+    req.get_method = lambda: 'PUT'
+
+    f = urllib2.urlopen(req)
+    logger.info('s3 upload of %s %s returned status: %d' % (item_id, filename, f.getcode()))
+
+    
