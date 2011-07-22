@@ -182,7 +182,7 @@ def build_doc(w, obj_cache={}, resolve_redirects=False):
                     continue
                 v = v.strip()
                 if v not in identifiers[k]:
-                    identifiers[k].append(v):
+                    identifiers[k].append(v)
 
         editions.append(e)
 
