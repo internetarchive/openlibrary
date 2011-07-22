@@ -49,7 +49,7 @@ def get_marc_ia_data(ia, host=None, path=None):
     else:
         url = 'http://www.archive.org/download/' + ia + '/' + ia + '_' + ending
     f = urlopen_keep_trying(url)
-    return f.read if f else None
+    return f.read() if f else None
 
 def get_marc_ia(ia):
     ia = ia.strip() # 'cyclopdiaofedu00kidd '
@@ -236,11 +236,7 @@ def marc_formats(ia, host=None, path=None):
     has = { 'xml': False, 'bin': False }
     ending = 'files.xml'
     if host and path:
-<<<<<<< HEAD
-        url = 'http://%s%s/%s_files.xml' % (host, path, ia)
-=======
         url = 'http://%s%s/%s_%s' % (host, path, ia, ending)
->>>>>>> a6e890c72315ff97b2f8a600f189fce28668fefe
     else:
         url = 'http://www.archive.org/download/' + ia + '/' + ia + '_' + ending
     for attempt in range(10):
