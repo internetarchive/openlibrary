@@ -29,6 +29,8 @@ class contact(delegate.page):
         url = form.get("url", "")
         user = web.ctx.site.get_user()
         useragent = web.ctx.env.get("HTTP_USER_AGENT","")
+        if not all([email, topic, description, url]):
+            return ""
         c = support_db.create_case(creator_name      = user and user.get_name() or "",
                                    creator_email     = email,
                                    creator_useragent = useragent,

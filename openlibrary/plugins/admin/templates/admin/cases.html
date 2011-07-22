@@ -29,7 +29,7 @@ table.support pre.hidden {
 $if error:
   <p>Couldn't connect to support database.</p>
 $else:
-  <p>Filter: <a href="/admin/support/"><strong> $(total) total</strong> </a>
+  <p>Filter: <a href="/admin/support/all"><strong> $(total) total</strong> </a>
   $for i in summary:
     |  <a href="/admin/support/$(i.key[0])">$(i.value) $(i.key[0])</a>
   </p>
