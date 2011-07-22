@@ -2,6 +2,7 @@ $def with (completed = [], active = [], reserved = [], limit = 20, offset = 0, f
 
 <div id="contentHead">
     $:render_template("admin/menu", "/admin")
+    <h1>Task status</h1>
 </div>
 <div id="contentBody">
 <script type="text/javascript">
@@ -66,7 +67,6 @@ table.tasks tr.reserved td {
   </fieldset>
 </form>
 
-<h2>Task status</h2>
 <table class = "tasks" border="0" cellspacing="0" cellpadding="10">
     <tr>
         <th>Uuid</th>

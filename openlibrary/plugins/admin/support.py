@@ -11,7 +11,7 @@ from openlibrary.core import support
 support_db = None
 
 class cases(object):
-    def GET(self, typ = "all"):
+    def GET(self, typ = "new"):
         if not support_db:
             return render_template("admin/cases", None, None, True, False)
         i = web.input(sort="status", desc = "false")
