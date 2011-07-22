@@ -8,7 +8,8 @@ from openlibrary.catalog.marc.marc_binary import MarcBinary
 from openlibrary.catalog.marc.marc_xml import MarcXml
 from openlibrary.catalog.marc.parse import read_edition
 from openlibrary.catalog.add_book import load
-import openlibrary.tasks
+#import openlibrary.tasks
+from ... import tasks
 
 import web
 import json
@@ -92,7 +93,7 @@ def queue_s3_upload(data, format):
     s3_item_id += '_%03d' % (counter/1000)
 
     #print 'attempting to queue s3 upload with %s:%s file=%s item=%s' % (s3_key, s3_secret, filename, s3_item_id)
-    openlibrary.tasks.upload_via_s3.delay(s3_item_id, filename, data, s3_key, s3_secret)
+    tasks.upload_via_s3.delay(s3_item_id, filename, data, s3_key, s3_secret)
     #print 'done queuing s3 upload'
 
     source_url = 'http://www.archive.org/download/%s/%s' % (s3_item_id, filename)
@@ -101,7 +102,7 @@ def queue_s3_upload(data, format):
 class importapi:
     def GET(self):
         web.header('Content-Type', 'text/plain')
-        openlibrary.tasks.add.delay(777, 777)
+        tasks.add.delay(777, 777)
         return 'Import API only supports POST requests.'
 
     def POST(self):
