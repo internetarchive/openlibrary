@@ -120,15 +120,19 @@ class Updater:
         
         Seeds are updated in the seeds db if update_seeds is True, otherwise they are marked for later update.
         """
+        logger.info("BEGIN process_changesets")
         ctx = UpdaterContext()
         for chunk in web.group(changesets, 50):
             chunk = list(chunk)
+            logger.info("processing changesets %s", [c['id'] for c in chunk])
             
             works = [work for changeset in chunk 
                           for work in self._get_works(changeset)]
 
             editions = [e for changeset in chunk
                         for e in self._get_editions(changeset)]
+                        
+            logger.info("found %d works and %d editions", len(works), len(editions))
                         
             keys = [w['key'] for w in works] + [e['works'][0]['key'] for e in editions if e.get('works')] 
             keys = list(set(keys))
@@ -166,6 +170,7 @@ class Updater:
                 
         self.works_db.db.commit()
         self.works_db.db.reset()
+        logger.info("END process_changesets")
         
     def process_changeset(self, changeset, update_seeds=False):
         logger.info("processing changeset %s", changeset["id"])
