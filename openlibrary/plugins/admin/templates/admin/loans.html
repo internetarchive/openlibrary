@@ -1,14 +1,15 @@
 $def with (loans, action)
 
-$ _x = ctx.setdefault('bodyid', 'admin')
-$ _x = ctx.setdefault('usergroup', 'admin')
-
 $ pdf_count = len([pdf for pdf in loans if pdf['resource_type'] == 'pdf'])
 $ epub_count = len([epub for epub in loans if epub['resource_type'] == 'epub'])
 $ bookreader_count = len([bookreader for bookreader in loans if bookreader['resource_type'] == 'bookreader'])
+$ total = pdf_count + epub_count + bookreader_count + 0.0
+$ pdf_percent = "%d" % percentage(pdf_count, total)
+$ epub_percent = "%d" % percentage(epub_count, total)
+$ bookreader_percent = "%d" % percentage(bookreader_count, total)
 
 <div id="contentHead">
-    <div class="smaller grey"><a href="/admin">Admin</a> /</div>
+    $:render_template("admin/menu")
     <h1>Outstanding eBook Loans</h1>
     <p id="note">
         <em class="red">Note:</em> ACS4 loan status for ePub and PDF is updated hourly and also on demand (when a user looks at a borrow page or their own loans).  You can refresh the status of a loan (synchronize with ACS4 server) by clicking on "refresh". BookReader loan status is always current.  
@@ -35,7 +36,7 @@ $ bookreader_count = len([bookreader for bookreader in loans if bookreader['reso
                     $_("1 Current Loan")
                 $else:
                     $len(loans) $_("Current Loans")<br/>
-                    $bookreader_count $_("BookReader") - $pdf_count $_("PDF") - $epub_count $_("ePub")
+                    $bookreader_count ($bookreader_percent%) $_("BookReader") - $pdf_count ($pdf_percent%) $_("PDF") - $epub_count ($epub_percent%) $_("ePub")
                 </th>
                 <th class="expires">$_("Loan Expires")</th>
                 <th class="what">$_("What")</th>

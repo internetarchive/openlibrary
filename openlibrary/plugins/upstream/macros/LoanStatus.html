@@ -23,12 +23,14 @@ $if user_loan:
         $# "do_return" is a fake "title" for the book that can be used for stats
         $ return_url = user_loan['book'] + '/do_return/borrow'
         $ form_id = 'return_' + user_loan['store_key']
+        $ read_form_id = 'read_' + user_loan['store_key']
 
         <form id='$form_id' action="$return_url" method="post" style='display:hidden'>
         <input type="hidden" name="action" value="return" />
         </form>
-        <p style="margin-bottom:10px;"><a href="$borrow_link" title="Borrow from $contributor">$ebook_text</a> <span class="smaller">You have this book checked out. <br />
-        <a href="$user_loan['loan_link']">Read it</a> or <a href="$return_url" onclick="javascript:jQuery('#$form_id').submit(); return false;">return now</a>?</span></p>
+        <form id='$read_form_id' method="POST" action="$page.key/_doread/borrow" style='display:hidden' id><input type="hidden" name="action" value="read"/><input type="text" name="ol_host" value="" class="hidden ol_host" /></form>
+        <p style="margin-bottom:10px;"><a href="$borrow_link" title="Borrow from $contributor">$ebook_text</a> <span class="smaller">You have this book checked out.   
+        <a href="$user_loan['loan_link']" onclick="javascript:jQuery('#$read_form_id').submit(); return false">Read it</a> or <a href="$return_url" onclick="javascript:jQuery('.ol_host').attr('value', location.host); jQuery('#$form_id').submit(); return false;">return now</a>?</span></p>
     $else:
         <p style="margin-bottom:10px;"><a href="$borrow_link" title="Borrow from $contributor">$ebook_text</a> <span class="smaller">You have this book checked out.</span></p>    
         

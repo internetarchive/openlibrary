@@ -1,31 +1,50 @@
 $def with (page)
 
-$ _t = i18n.get_namespace('/type/template')
-$ _ = i18n.get_namespace('/mode/edit')
+$ _x = ctx.setdefault('bodyid', 'edit')
 
-$var title: $_.edit_title(page.key)
+$var title: $_("Edit %(title)s", title=page.key)
 
+$:render_template("lib/edit_head", page)
 
-<form name="edit" method="post" action="">
-<div id="slickbox" style="overflow: hidden">
-    $:macros.TypeChanger(page.type)
+<div id="contentBody">
+    <form name="edit" method="post" action="" autocomplete="off">
+        
+        <div class="formElement title">
+            <div class="label">
+                <label for="title">$_("Title")</label>
+            </div>
+            <div class="input">
+                <input type="text" name="title" id="title" value="$page.title"/>
+            </div>
+        </div>
+
+        $:macros.TypeChanger(page.type)
+
+        <div class="clearfix"></div>
+
+        <div class="formElement title">
+            <div class="label"><label for="plugin">Plugin</label></div>
+            <div class="input">
+                $ plugins = ["admin", "openlibrary", "scod", "search", "upstream", "worksearch"]
+                $:Dropdown("plugin", args=plugins, value=page.get("plugin", "upstream")).render()
+            </div>
+        </div>
+
+        <div class="clearfix"></div>
+        
+        <div class="formElement">
+            <div class="label">
+                <label for="body">$_("Document Body")</label>
+            </div>
+            <div class="input">
+                <textarea name="body" id="body" rows="40" cols="80">$page.body</textarea>
+            </div>
+        </div>
+
+        $:macros.EditButtons(comment=page.comment_)
+
+        $if ctx.user and ctx.user.is_admin():
+            <div class="adminOnly" style="position:absolute;top:230px;right:20px;"><button type="submit" value="$_('Delete Record')" name="_delete" title="$_('Delete this template?')" id="deleteTop">$_("Delete Record")</button></div>
+        
+    </form>
 </div>
-
-<div id="header">
-    <div style="float:left;padding-left:10px;padding-right:15px;"></div>
-    <span class="pretitle">$_.edit_pretitle:<br/></span>
-    <div id="title"> $page.title</div>
-</div>
-
-<div id="form-border">
-    <div id="metadata-body">
-
-            <strong>$_t.title</strong>
-            <input type="text" name="title" style="width: 100%" value="$page.title" /><br/>
-            <br/>
-            <textarea name="body" rows="40" cols="80" style="font-family: monospace;">$page.body</textarea>
-            $:macros.EditButtons()
-        $:macros.HelpFormatting()
-    </div>
-</div>
-</form>

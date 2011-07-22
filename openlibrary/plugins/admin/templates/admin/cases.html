@@ -1,0 +1,59 @@
+$def with (summary, total, cases, desc, error = False)
+
+<div id="contentHead">
+    $:render_template("admin/menu", "/admin")
+    <h1>Support cases</h1>
+</div>
+<div id="contentBody">
+<style type="text/css">
+table.support { 
+              font-family: Lucida, "Lucida Sans";
+              font-size: 0.75em;
+              width: 100%;
+              }
+
+table.support th { 
+                 font-weight: bold;
+ }
+table.support th, table.support td {
+                                 border-bottom: 1px solid #ddd; 
+                                 vertical-align:top;
+                                 padding: 5pt;
+                                 }
+table.support pre.hidden { 
+                         display: none;
+ }
+
+</style>
+
+$if error:
+  <p>Couldn't connect to support database.</p>
+$else:
+  <p>Filter: <a href="/admin/support/all"><strong> $(total) total</strong> </a>
+  $for i in summary:
+    |  <a href="/admin/support/$(i.key[0])">$(i.value) $(i.key[0])</a>
+  </p>
+  <table class = "support" border="0" cellspacing="0" cellpadding="10">
+      <tr>
+          <th><a href="?sort=caseid&desc=$desc">#</a></th>
+          <th><a href="?sort=created&desc=$desc">Created</a></th>
+          <th><a href="?sort=subject&desc=$desc">Subject</a></th>
+          <th><a href="?sort=user&desc=$desc">User</a></th>
+          <th><a href="?sort=assigned&desc=$desc">Assigned to</a></th>
+          <th><a href="?sort=lastmodified&desc=$desc">Last modified</a> </th>
+	  <th><a href="?sort=notes&desc=$desc">No. of notes</a></th>
+          <th><a href="?sort=status&desc=$desc">Status</a></th>
+      </tr>
+      $for case in cases:
+      <tr>
+        <td align="right">$case.caseid</td>
+        <td>$datestr(case.created)</td>
+        <td><a href="/admin/support/$(case.caseno)">$case.subject</a></td>
+        <td><a href="/admin/people/$(case.creator_username)">$case.creator_name</a></td>
+        <td>$case.assignee</td>
+        <td>$datestr(case.last_modified)</td>
+	<td>$len(case.history)</td>
+        <td>$case.status</td>
+      </tr>
+  </table>
+  </div>

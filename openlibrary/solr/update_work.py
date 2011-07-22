@@ -8,6 +8,7 @@ import simplejson as json
 from time import sleep
 from openlibrary import config
 from unicodedata import normalize
+from collections import defaultdict
 
 re_lang_key = re.compile(r'^/(?:l|languages)/([a-z]{3})$')
 re_author_key = re.compile(r'^/(?:a|authors)/(OL\d+A)')
@@ -132,6 +133,8 @@ def four_types(i):
                 ret['subject'] = {k: v}
     return ret
 
+re_solr_field = re.compile('^[-\w]+$', re.U)
+
 def build_doc(w, obj_cache={}, resolve_redirects=False):
     wkey = w['key']
     assert w['type']['key'] == '/type/work'
@@ -154,6 +157,9 @@ def build_doc(w, obj_cache={}, resolve_redirects=False):
         w['editions'] = list(query_iter(q))
         print 'editions:', [e['key'] for e in w['editions']]
 
+    identifiers = defaultdict(list)
+    isbn_fields = set(['isbn', 'isbn_10', 'isbn_13'])
+
     editions = []
     for e in w['editions']:
         pub_year = get_pub_year(e)
@@ -168,6 +174,16 @@ def build_doc(w, obj_cache={}, resolve_redirects=False):
         if overdrive_id:
             #print 'overdrive:', overdrive_id
             e['overdrive'] = overdrive_id
+        if 'identifiers' in e:
+            for k, v in e:
+                k = k.lower()
+                assert re_solr_field.match(k)
+                if k in isbn_fields:
+                    continue
+                v = v.strip()
+                if v not in identifiers[k]:
+                    identifiers[k].append(v):
+
         editions.append(e)
 
     editions.sort(key=lambda e: e.get('pub_year', None))
@@ -407,6 +423,9 @@ def build_doc(w, obj_cache={}, resolve_redirects=False):
         add_field_list(doc, k + '_facet', subjects[k].keys())
         subject_keys = [str_to_key(s) for s in subjects[k].keys()]
         add_field_list(doc, k + '_key', subject_keys)
+
+    for k in sorted(identifiers.keys()):
+        add_field_list(doc, 'id_' + k, identifiers[v])
 
     return doc
 

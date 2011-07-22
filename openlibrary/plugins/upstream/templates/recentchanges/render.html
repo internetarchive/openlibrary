@@ -14,11 +14,7 @@ $var length = len(changes)
 
 $if "ip" in query:
     <div class="adminOnly">
-        $ ip = query["ip"]
-        <a href="/admin/block?ip=$ip">Block $ip?</a>
-        <br/>
-        <a href="/admin/revert/$ip">Revert all these changes?</a>
-        <br/>
+        <a href="/admin/ip/$query['ip']">Admin view</a>
     </div>
 <style type="text/css">
 a.blocked-ip {

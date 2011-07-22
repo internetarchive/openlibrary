@@ -1,4 +1,4 @@
-$def with (person)
+$def with (person, input={}, errors={})
 
 $ _x = ctx.setdefault('bodyid', 'admin')
 $ _x = ctx.setdefault('usergroup', 'admin')
@@ -6,28 +6,38 @@ $ _x = ctx.setdefault('usergroup', 'admin')
 $var title: [Admin Center] $person.displayname
 
 <div id="contentHead">
-    <h1><a href="/admin/">$_("Admin")</a> / <a href="/admin/people/">$_("People")</a> / 
-    $person.displayname</h1>
+    $:render_template("admin/menu")
+    <h1><a class="plain" href="/admin/people">People</a> / $person.displayname</h1>
 </div>
 
-<div id="contentBody">
+<style type="text/css">
+span.invalid {
+    padding-left: 20px;
+    float: right;
+}
+</style>
 
+<div id="contentBody">
     <table id="adminHistory" style="clear: both;">
     <tbody>
         <tr>
             <td>$_("Email Address:")</td>
             <td>
-                <form method="POST">
-                    <input type="text" value="$person.get_email()"/>
+                <form method="POST" name="form-email" id="form-email" class="validate">
+                    <input type="text" name="email" id="email" class="email" value="$input.get('email', person.get_email())"/>
                     <button type="submit" name="action" value="update_email">Change</button>
+                    <span class="invalid" htmlfor="email" generated="true">$errors.get("email")</span>
                 </form>
             </td>
         </tr>
         <tr>
             <td>$_("Reset Password")</td>
-            <td><form method="POST">
-                <input type="text" name="password" id="password" />
-                <button type="submit" name="action" value="update_password">Change</button>
+            <td>
+                <form method="POST" name="form-password" id="form-password">
+                    <input type="text" name="password" id="password" class="email" value="$input.get('password')"/>
+                    <button type="submit" name="action" value="update_password">Change</button>
+                    <span class="invalid" htmlfor="password" generated="true">$errors.get("password")</span>
+                </form>
             </td>
         </tr>
         <tr>

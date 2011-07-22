@@ -5,6 +5,8 @@ import os
 import Image
 import datetime
 import couchdb
+import logging
+import array
 
 import db
 import config
@@ -13,6 +15,8 @@ from utils import safeint, rm_f, random_string, ol_things, ol_get, changequery, 
 from coverlib import save_image, read_image, read_file
 
 import ratelimit
+
+logger = logging.getLogger("coverstore")
 
 urls = (
     '/', 'index',
@@ -192,14 +196,16 @@ class cover:
         
         if key == 'isbn':
             value = value.replace("-", "").strip() # strip hyphens from ISBN
-            value = self.ratelimit_query(category, key, value)
+            # Disabling ratelimit as iptables is taking care of botnets.
+            #value = self.ratelimit_query(category, key, value)
+            value = self.query(category, key, value)
         elif key != 'id':
             value = self.query(category, key, value)
         
-        d = value and db.details(value)
+        d = value and self.get_details(value, size.lower())
         if not d:
             return notfound()
-
+            
         # set cache-for-ever headers only when requested with ID
         if key == 'id':
             etag = "%s-%s" % (d.id, size.lower())
@@ -217,12 +223,86 @@ class cover:
             return read_image(d, size)
         except IOError:
             raise web.notfound()
-           
+            
+    def get_details(self, coverid, size=""):
+        try:
+            coverid = int(coverid)
+        except ValueError:
+            return None
+            
+        # Use tar index if available to avoid db query. We have 0-6M images in tar balls. 
+        if isinstance(coverid, int) and coverid < 6000000 and size in "sml":
+            path = self.get_tar_filename(coverid, size)
+            
+            if path:
+                if size:
+                    key = "filename_%s" % size
+                else:
+                    key = "filename"
+                return web.storage({"id": coverid, key: path, "created": datetime.datetime(2010, 1, 1)})
+            
+        return db.details(coverid)
+        
+    def get_tar_filename(self, coverid, size):
+        """Returns tarfile:offset:size for given coverid.
+        """
+        tarindex = coverid / 10000
+        index = coverid % 10000
+        array_offset, array_size = get_tar_index(tarindex, size)
+        
+        offset = array_offset and array_offset[index]
+        imgsize = array_size and array_size[index]
+        
+        if size:
+            prefix = "%s_covers" % size
+        else:
+            prefix = "covers"
+        
+        if imgsize:
+            name = "%010d" % coverid
+            return "%s_%s_%s.tar:%s:%s" % (prefix, name[:4], name[4:6], offset, imgsize)
+        
     def query(self, category, key, value):
         return _query(category, key, value)
         
     ratelimit_query = ratelimit.ratelimit()(query)
-            
+
+
+@web.memoize
+def get_tar_index(tarindex, size):
+    path = os.path.join(config.data_root, get_tarindex_path(tarindex, size))    
+    if not os.path.exists(path):
+        return None, None
+    
+    return parse_tarindex(open(path))
+
+def get_tarindex_path(index, size):
+    name = "%06d" % index
+    if size:
+        prefix = "%s_covers" % size
+    else:
+        prefix = "covers"
+    
+    itemname = "%s_%s" % (prefix, name[:4])
+    filename = "%s_%s_%s.index" % (prefix, name[:4], name[4:6])
+    return os.path.join('items', itemname, filename)
+
+def parse_tarindex(file):
+    """Takes tarindex file as file objects and returns array of offsets and array of sizes. The size of the returned arrays will be 10000.
+    """
+    array_offset = array.array('L', [0 for i in range(10000)])
+    array_size = array.array('L', [0 for i in range(10000)])
+    
+    for line in file:
+        line = line.strip()
+        if line:
+            name, offset, imgsize = line.split("\t")
+            coverid = int(name[:10]) # First 10 chars is coverid, followed by ".jpg"
+            index = coverid % 10000
+            array_offset[index] = int(offset)
+            array_size[index] = int(imgsize)
+    return array_offset, array_size
+    
 class cover_details:
     def GET(self, category, key, value):
         d = _query(category, key, value)

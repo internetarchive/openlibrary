@@ -1,29 +1,42 @@
-$def with (record, filename)
+$def with (ia, record, books)
 
-$var title: MARC XML details of $filename
+$ title = "MARC record from Internet Archive"
 
-<div id="header">
-    <div id="title">MARC XML details of $filename</div>
+$var title: $title
+
+<div id="contentHead">
+    $if len(books):
+        $ e = get_document(books[0])
+        <div class="breadcrumbs"><a href="$e.key">$e.title</a> /</div>
+    <h1>$title</h1>
 </div>
+<div id="contentBody">
+    <div class="section">
+        <table class="meta">
+            <tbody>
+                <tr>
+                    <td class="title"><span class="title">Record ID</span></td>
+                    <td><span class="object">ia:$ia</span></td>
+                </tr>
+                <tr>
+                    <td class="title"><span class="title">Source</span></td>
+                    <td><span class="object"><a href="http://www.archive.org/details/$ia">Internet Archive</a></span></td>
+                </tr>
+                <tr>
+                    <td class="title"><span class="title">Download MARC XML</span></td>
+                    <td><span class="object"><a href="http://www.archive.org/download/$ia/$(ia)_marc.xml">http://www.archive.org/download/$ia/$(ia)_marc.xml</a></span></td>
+                </tr>
+                <tr>
+                    <td class="title"><span class="title">Download MARC binary</span></td>
+                    <td><span class="object"><a href="http://www.archive.org/download/$ia/$(ia)_meta.mrc">http://www.archive.org/download/$ia/$(ia)_meta.mrc</a></span></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 
-<div class="contenttext">
-
-<br/>
-Record Locator: $filename
-
-$if not record:
-    Invalid MARC XML record.
-$else:
-    <hr/>
-    <pre>
-    $record
-    </pre>
-
-    <hr/>
-
-    In order to retrieve the exact bytes of this MARC record, perform a
-    HTTP GET on the url 
-
-    <pre>http://www.archive.org/download/$filename</pre> 
-
+    $if not record:
+        <p>$_("Invalid MARC record.")</p>
+    $else:
+        <p><b>LEADER:</b> <code>$record.leader</code><br/>
+        $:record.html()</p>
 </div>

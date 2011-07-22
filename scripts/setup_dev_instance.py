@@ -10,14 +10,18 @@ import sys
 import time
 import urllib, urllib2
 import commands
+import logging
 
-VERSION = 4
+logger = logging.getLogger("bootstrap")
+
+VERSION = 5
 
 CHANGELOG = """
 001 - Initial setup
 002 - Added couchdb and couchdb-lucene links in usr/local.
 003 - Added iptools python module.
 004 - Moved solr location
+005 - Account v2
 """
 
 config = None
@@ -231,16 +235,18 @@ class CouchDB(Process):
     
 class Infobase(Process):
     def get_specs(self):
+        env = dict(os.environ, PYTHONPATH="conf", DISABLE_CELERY="true")
         return {
-            "command": INTERP + " ./scripts/infobase-server conf/infobase.yml 7500"
+            "command": INTERP + " ./scripts/infobase-server conf/infobase.yml 7000",
+            "env": env
         }
 
     def wait_for_start(self):
-        self.wait_for_url("http://127.0.0.1:7500/")
+        self.wait_for_url("http://127.0.0.1:7000/")
         
     def get(self, path):
         try:
-            response = urllib2.urlopen("http://127.0.0.1:7500/openlibrary.org" + path)
+            response = urllib2.urlopen("http://127.0.0.1:7000/openlibrary.org" + path)
             return response.read()
         except urllib2.HTTPError, e:
             if e.getcode() == 404:
@@ -256,7 +262,8 @@ class Infobase(Process):
     def post(self, path, data):   
         if isinstance(data, dict):
             data = urllib.urlencode(data)
-        return urllib2.urlopen("http://127.0.0.1:7500/openlibrary.org" + path, data).read()
+        url = "http://127.0.0.1:7000/openlibrary.org" + path
+        return urllib2.urlopen(url, data).read()
 
 class OpenLibrary(Process):
     def get_specs(self):
@@ -384,6 +391,11 @@ class checkout_submodules:
         info("checking out git submodules ...")
         system("git submodule init")
         system("git submodule update")
+        
+class update_submodules:
+    def run(self):
+        info("updating git submodules")
+        system("git submodule update")
 
 class install_couchdb:
     """Installs couchdb and updates configuration files..
@@ -436,39 +448,6 @@ class install_couchdb:
     def copy_config_files(self):
         debug("copying config files")
         CWD.join("conf/couchdb/local.ini").copy_to("usr/local/etc/couchdb/")
-    
-class install_postgresql:
-    """Installs postgresql on Mac OS X.
-    Doesn't do anything on Linux.
-    """
-    def run(self):
-        distro = find_distro()
-        if distro == "osx":
-            self.install()
-        
-    def install(self):
-        info("installing postgresql..")
-        download_url = "http://www.archive.org/download/ol_vendor/postgresql-8.4.4-osx-binaries.tgz"
-        download_and_extract(download_url, dirname="postgresql-8.4.4")
-        system("cd usr/local/bin && ln -fs ../postgresql-8.4.4/bin/* .")
-        system("cd usr/local/lib && ln -fs ../postgresql-8.4.4/lib/* .")
-        
-        if not os.path.exists("var/lib/postgresql/base"):
-            system("usr/local/bin/initdb --no-locale var/lib/postgresql")
-        
-class start_postgresql:
-    def run(self):
-        distro = find_distro()
-        if distro == "osx":
-            self.start()
-        
-    def start(self):
-        info("starting postgresql..")
-        
-        pg = Postgres()
-        register_cleanup(pg.stop)
-        pg.start()
-        
         
 class setup_coverstore(DBTask):
     """Creates and initialized coverstore db."""
@@ -558,10 +537,7 @@ class setup_accounts:
             info("    openlibrary account is already present")
             
         debug("marking openlibrary as verified user...")
-        infobase.post("/account/update_user_details", {
-            "username": "openlibrary",
-            "verified": "true"
-        })
+        infobase.post("/account/activate", {"username": "openlibrary"})
         
     def add_to_usergroups(self):
         infobase = self.infobase
@@ -576,7 +552,7 @@ class setup_accounts:
                 ]
             }, 
             {
-                "key": "/usergroup/api",
+                "key": "/usergroup/admin",
                 "type": {"key": "/type/usergroup"},
                 "members": [
                     {"key": "/people/admin"},
@@ -590,20 +566,6 @@ class setup_accounts:
             "comment": "Added openlibrary to admin and api usergroups."
         })
         
-class copy_docs:
-    def run(self):
-        info("copying js and css files from openlibrary.org")
-        infobase = Infobase()
-        register_cleanup(infobase.stop)
-        infobase.start()
-        
-        ol = OpenLibrary()
-        ol.run_tasks(self.copy_docs)
-
-    def copy_docs(self):
-        system("./scripts/copydocs.py /upstream/css/* /upstream/js/*")
-
-
 class setup_globals:
     def run(self):
         global config
@@ -611,7 +573,7 @@ class setup_globals:
         
         global INTERP
         pyenv = os.path.expanduser(config['virtualenv'])
-        INTERP = pyenv + "/bin/python"        
+        INTERP = pyenv + "/bin/python"
 
 cleanup_tasks = []
 
@@ -633,16 +595,11 @@ def install():
         install_couchdb(),
         install_solr(),
         install_couchdb_lucene(),
-        install_postgresql(),
-        
-        start_postgresql(),
         
         setup_coverstore(),
         setup_ol(),
         setup_couchdb(),
         setup_accounts(),
-        
-        copy_docs()
     ]
 
     try:
@@ -660,6 +617,7 @@ def update():
     tasks = [
         setup_globals(),
         switch_to_virtualenv(),
+        update_submodules(),
         run_updates()
     ]
     
@@ -696,6 +654,40 @@ def update_004():
     for i in ('authors', 'editions', 'inside', 'subjects', 'works'):
         os.mkdir('var/lib/solr/' + i)
         os.system("mv usr/local/solr_old/solr/" + i + "/data var/lib/solr/" + i) 
+        
+def update_005():
+    import web
+    from infogami.infobase._dbstore.store import Store
+    
+    db = web.database(dbn="postgres", db="openlibrary", user=os.getenv("USER"), pw="")    
+    store = Store(db)
+    
+    for row in db.query("SELECT thing.key, thing.created, account.* FROM thing, account WHERE thing.id=account.thing_id"):
+        username = row.key.split("/")[-1]
+        account_key = "account/" + username
+        
+        if store.get(account_key):
+            continue
+        else:
+            account = {
+                "_key": account_key,
+                "type": "account",
+                "email": row.email,
+                "enc_password": row.password,
+                
+                "username": username,
+                "lusername": username.lower(),
+                
+                "bot": row.bot,
+                "status": row.verified and "verified" or "pending",
+                "created_on": row.created.isoformat(),
+            }
+            email_doc = {
+                "_key": "account-email/" + row.email,
+                "type": "account-email",
+                "username": username
+            }
+            store.put_many([account, email_doc])
 
 def get_current_version():
     """Returns the current version of dev instance.
@@ -721,8 +713,30 @@ def update_current_version():
     f = open("var/run/system.conf", 'w')
     p.write(f)
     f.close()
+    
+def setup_logger():
+    formatter = logging.Formatter("%(asctime)s [%(name)s] [%(levelname)s] %(message)s")
+    
+    h1 = logging.StreamHandler()
+    h1.setLevel(logging.INFO)
+    h1.setFormatter(formatter)
 
+    stderr = open("var/log/install.log", "a")
+    sys.stderr = stderr
+    
+    h2 = logger.StreamHandler(stderr)
+    h2.setLevel(logging.DEBUG)
+    h2.setFormatter(formatter)
+    
+    logger.addHandler(h1)
+    logger.addHandler(h2)
+    
+    logger.info("Welcome")
+    logger.debug("debug")
+    
 if __name__ == '__main__':
+    #setup_logger()
+    
     if "--update" in sys.argv:
         update()
     else:

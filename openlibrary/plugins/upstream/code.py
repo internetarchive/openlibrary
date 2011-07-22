@@ -32,7 +32,7 @@ if not config.get('coverstore_url'):
 class static(delegate.page):
     path = "/images/.*"
     def GET(self):
-        raise web.seeother('/static/upstream' + web.ctx.path)
+        raise web.seeother('/static/' + web.ctx.path)
 
 # handlers for change photo and change cover
 
@@ -53,6 +53,16 @@ def vendor_js():
     path = os.path.abspath(os.path.join(__file__, pardir, pardir, pardir, pardir, 'static', 'upstream', 'js', 'vendor.js'))
     digest = md5.md5(open(path).read()).hexdigest()
     return '/static/upstream/js/vendor.js?v=' + digest
+
+@web.memoize
+@public
+def static_url(path):
+    """Takes path relative to static/ and constructs url to that resource with hash.
+    """
+    pardir = os.path.pardir 
+    fullpath = os.path.abspath(os.path.join(__file__, pardir, pardir, pardir, pardir, "static", path))
+    digest = md5.md5(open(fullpath).read()).hexdigest()
+    return "/static/%s?v=%s" % (path, digest)
     
 class DynamicDocument:
     """Dynamic document is created by concatinating various rawtext documents in the DB.
@@ -215,26 +225,6 @@ class revert(delegate.mode):
         comment = i._comment or "reverted to revision %d" % v
         thing._save(comment)
         raise web.seeother(key)
-
-class report_spam(delegate.page):
-    path = '/contact'
-    def GET(self):
-        i = web.input(path=None)
-        email = context.user and context.user.email
-        return render_template("contact/spam", email=email, irl=i.path)
-
-    def POST(self):
-        i = web.input(email='', irl='', comment='')
-        fields = web.storage({
-            'email': i.email,
-            'irl': i.irl,
-            'comment': i.comment,
-            'sent': datetime.datetime.utcnow(),
-            'browser': web.ctx.env.get('HTTP_USER_AGENT', '')
-        })
-        msg = render_template('email/spam_report', fields)
-        web.sendmail(i.email, config.report_spam_address, msg.subject, str(msg))
-        return render_template("contact/spam/sent")
 
 def setup():
     """Setup for upstream plugin"""

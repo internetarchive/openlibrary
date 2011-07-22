@@ -2,12 +2,16 @@ $def with (page)
 
 $var title: $page.title
 
-<div id="header">
-    <div style="float:left;padding-left:10px;padding-right:15px;"></div>
-    <span class="pretitle"></span>
-    <div id="title">$page.description</div>
-</div>
+$:macros.databarTemplate(page)
 
-<div class="contenttext">
-    <pre>$page.macro</pre>
+$ _x = ctx.setdefault('bodyid', 'edit')
+ 
+$:render_template("lib/view_head", page)
+
+<div id="contentBody">
+    <div>
+        <span class="title">plugin</span>
+        <span class="tag">$page.get("plugin", "upstream")</span>
+    </div>
+    $:macros.DisplayCode(page.macro)
 </div>

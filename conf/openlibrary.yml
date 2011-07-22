@@ -1,15 +1,21 @@
 # Open Library fastcgi configuration
 
-infobase_server: "127.0.0.1:7500"
+infobase_server: "127.0.0.1:7000"
 site: "openlibrary.org"
 
 from_address: "Open Library <noreply@openlibrary.org>"
 report_spam_address: "Open Library <info@openlibrary.org>"
 
+support_case_notification_address: "Open Library <info@openlibrary.org>"
+support_case_control_address : "support@openlibrary.org"
+support_case_default_address : "mary@openlibrary.org"
+
+smtp_server: "localhost"
+
 dummy_sendmail: True
 debug: True
 
-coverstore_url: "http://127.0.0.1:7000/"
+coverstore_url: "http://127.0.0.1:7075/"
 
 state_dir: var/run
 
@@ -36,9 +42,10 @@ plugins:
     - "worksearch"
     - "api"
     - "books"
-    - "oltemplates"
     - "admin"
     - "upstream"
+    - "importapi"
+    - "theme"
 
 plugin_worksearch:
     solr: "localhost:8983"
@@ -46,8 +53,9 @@ plugin_worksearch:
     author_solr: "localhost:8983"
     edition_solr: "localhost:8983"
     spellcheck_count: 3
-    ebook_count_host: 'localhost'
-    ebook_count_db_name: 'openlibrary_ebook_count'
+    ebook_count_db_parameters:
+        db: 'openlibrary_ebook_count'
+        host: 'localhost'
 
 features:
     upstream: enabled
@@ -62,6 +70,8 @@ features:
     stats: enabled
     stats-header: enabled
     inlibrary: enabled
+    support: admin
+    dev: enabled
 
 upstream_to_www_migration: true
 default_template_root: /upstream
@@ -69,6 +79,7 @@ css_root: /upstream/css
 js_root: /upstream/js
 use_google_cdn: false
 logging_config_file: conf/logging.ini
+email_config_file: conf/email.ini
 
 lists:
     seeds_db: http://127.0.0.1:5984/seeds
@@ -81,7 +92,11 @@ admin:
     olsystem_root: /home/noufal/projects/OL/olsystem/
     nagios_url: http://monitor.us.archive.org/cgi-bin/nagios3/status.cgi?hostgroup=24.openlibrary&style=detail
     statsd_server: localhost:9090
-
+    admin_db: http://127.0.0.1:5984/admin
+    
+celery: #Information relevant to celery configuration
+    tombstone_db: celery
+  
 
 stats: # This section is used to state what stats need to be gathered.
     pageload.all:
@@ -123,4 +138,10 @@ stats: # This section is used to state what stats need to be gathered.
       pattern: /lists
       time: total
 
+    ol.pageload.readapi:
+      filter: url
+      pattern: /api/volumes/.*
+      time: total
 
+
+libraries_admin_email: admin@dev-instance

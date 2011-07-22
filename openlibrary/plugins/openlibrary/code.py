@@ -86,6 +86,11 @@ lists.setup()
 
 class hooks(client.hook):
     def before_new_version(self, page):
+        if page.type.key == '/type/library':
+            bad = list(page.find_bad_ip_ranges(page.ip_ranges or ""))
+            if bad:
+                raise ValidationException('Bad IPs: ' + '; '.join(bad))
+
         if page.key.startswith('/a/') or page.key.startswith('/authors/'):
             if page.type.key == '/type/author':
                 return
@@ -351,8 +356,6 @@ class bookpage(delegate.page):
     def GET(self, key, value, suffix):
         key = key.lower()
         suffix = suffix or ""
-        
-        print (key, value, suffix)
         
         if key == "isbn":
             if len(value) == 13:
@@ -743,11 +746,6 @@ class backdoor(delegate.page):
         if isinstance(result, basestring):
             result = delegate.RawText(result)
         return result
-        
-# monkey-patch to check for lowercase usernames on register
-from infogami.core.forms import register
-username_validator = web.form.Validator("Username already used", lambda username: not web.ctx.site._request("/has_user", data={"username": username}))
-register.username.validators = list(register.username.validators) + [username_validator]
 
 def setup_template_globals():
     web.template.Template.globals.update({
@@ -764,6 +762,7 @@ def setup_template_globals():
         "dumps": simplejson.dumps,
     })
 
+
 def setup_logging():
     try:
         logconfig = infogami.config.get("logging_config_file")
@@ -774,13 +773,16 @@ def setup_logging():
         raise
 
 def setup():
-    import home, inlibrary, borrow_home, libraries, stats
+    import home, inlibrary, borrow_home, libraries, stats, support, events, status
     
     home.setup()
     inlibrary.setup()
     borrow_home.setup()
     libraries.setup()
     stats.setup()
+    support.setup()
+    events.setup()
+    status.setup()
     
     from stats import stats_hook
     delegate.app.add_processor(web.unloadhook(stats_hook))

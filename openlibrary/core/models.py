@@ -12,6 +12,7 @@ import helpers as h
 
 #TODO: fix this. openlibrary.core should not import plugins.
 from openlibrary.plugins.upstream.utils import get_history
+from openlibrary.plugins.upstream.account import Account
 
 # relative imports
 from lists.model import ListMixin, Seed
@@ -157,6 +158,17 @@ class User(Thing):
             'members': self.key})
         return self._site.get_many(keys)
     usergroups = property(get_usergroups)
+    
+    def get_account(self):
+        username = self.get_username()
+        return Account.find(username=username)
+        
+    def get_email(self):
+        account = self.get_account() or {}
+        return account.get("email")
+    
+    def get_username(self):
+        return self.key.split("/")[-1]
 
     def is_admin(self):
         return '/usergroup/admin' in [g.key for g in self.usergroups]
@@ -309,17 +321,53 @@ class List(Thing, ListMixin):
     def __repr__(self):
         return "<List: %s (%r)>" % (self.key, self.name)
 
-re_range_star = re.compile(r'(\d+\.\d+)\.(\d+)-(\d+)\.\*')
+four_octet = r'(\d+\.\d+\.\d+\.\d+)'
+
+re_range_star = re.compile(r'^(\d+\.\d+)\.(\d+)\s*-\s*(\d+)\.\*$')
+re_three = re.compile(r'^(\d+\.\d+\.\d+)\.$')
+re_four = re.compile(r'^' + four_octet + r'(/\d+)?$')
+re_range_in_last = re.compile(r'^(\d+\.\d+\.\d+)\.(\d+)\s*-\s*(\d+)$')
+re_four_to_four = re.compile('^%s\s*-\s*%s$' % (four_octet, four_octet))
+
+patterns = (re_four_to_four, re_four, re_range_star, re_three, re_range_in_last)
 
 class Library(Thing):
     """Library document.
     
     Each library has a list of IP addresses belongs to that library. 
     """
+    def url(self, suffix="", **params):
+        u = self.key + suffix
+        if params:
+            u += '?' + urllib.urlencode(params)
+        return u
+
+    def find_bad_ip_ranges(self, text):
+        bad = []
+        for orig in text.splitlines():
+            line = orig.split("#")[0].strip()
+            if not line:
+                continue
+            if any(pat.match(line) for pat in patterns):
+                continue
+            if '*' in line:
+                collected = []
+                octets = line.split('.')
+                while octets[0].isdigit():
+                    collected.append(octets.pop(0))
+                if collected and all(octet == '*' for octet in octets):
+                    continue
+            bad.append(orig)
+        return bad
+    
     def parse_ip_ranges(self, text):
         for line in text.splitlines():
             line = line.split("#")[0].strip()
             if not line:
+                continue
+            m = re_four.match(line)
+            if m:
+                yield line
                 continue
             m = re_range_star.match(line)
             if m:
@@ -327,9 +375,17 @@ class Library(Thing):
                 end = '%s.%s.255' % (m.group(1), m.group(3))
                 yield (start, end)
                 continue
-            if "-" in line:
-                start, end = line.split("-", 1)
-                yield (start.strip(), end.strip())
+            m = re_three.match(line)
+            if m:
+                yield ('%s.0' % m.group(1), '%s.255' % m.group(1))
+                continue
+            m = re_range_in_last.match(line)
+            if m:
+                yield ('%s.%s' % (m.group(1), m.group(2)), '%s.%s' % (m.group(1), m.group(3)))
+                continue
+            m = re_four_to_four.match(line)
+            if m:
+                yield m.groups()
                 continue
             if '*' in line:
                 collected = []
@@ -339,7 +395,6 @@ class Library(Thing):
                 if collected and all(octet == '*' for octet in octets):
                     yield '%s/%d' % ('.'.join(collected + ['0'] * len(octets)), len(collected) * 8)
                 continue
-            yield line
     
     def get_ip_range_list(self):
         """Returns IpRangeList object for the range of IPs of this library.
@@ -351,6 +406,24 @@ class Library(Thing):
         """Return True if the the given ip is part of the library's ip range.
         """
         return ip in self.get_ip_range_list()
+        
+    def get_branches(self):
+        # Library Name | Street | City | State | Zip | Country | Telephone | Website | Lat, Long
+        columns = ["name", "street", "city", "state", "zip", "country", "telephone", "website", "latlong"]
+        def parse(line):
+            branch = web.storage(zip(columns, line.strip().split("|")))
+            
+            # add empty values for missing columns
+            for c in columns:
+                branch.setdefault(c, "")
+            
+            try:
+                branch.lat, branch.lon = branch.latlong.split(",", 1)
+            except ValueError:
+                branch.lat = "0"
+                branch.lon = "0"
+            return branch
+        return [parse(line) for line in self.addresses.splitlines() if line.strip()]
 
 class Subject(web.storage):
     def get_lists(self, limit=1000, offset=0, sort=True):

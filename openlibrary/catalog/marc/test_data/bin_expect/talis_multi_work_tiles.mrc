@@ -13,11 +13,7 @@
     "Classics of children's literature, 1621-1932"
   ], 
   "notes": "Facsims., originally published, London, Stockdale, 1788 and London, Johnson, 1788, respectively.", 
-  "languages": [
-    {
-      "key": "/languages/eng"
-    }
-  ], 
+  "languages": ["eng"],
   "isbn_10": [
     "0824022637"
   ], 

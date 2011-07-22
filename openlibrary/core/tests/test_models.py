@@ -120,10 +120,39 @@ class TestLibrary:
         compare_ranges("1.2.3.*", ["1.2.3.0/24"])
         compare_ranges("1.2.*.*", ["1.2.0.0/16"])
         compare_ranges("1.*.*.*", ["1.0.0.0/8"])
-        compare_ranges("1.*.*.*", ["1.0.0.0/8"])
         compare_ranges("*", [])
         compare_ranges("*.1", [])
         compare_ranges("1.2.3-10.*", [("1.2.3.0", "1.2.10.255")])
+        compare_ranges("1.2.3.", [("1.2.3.0", "1.2.3.255")])
+        compare_ranges("1.1.", [])
+        compare_ranges("1.2.3.1-254", [("1.2.3.1", "1.2.3.254")])
+        compare_ranges("216.63.14.0/24\n207.193.121.0/24\n207.193.118.0/24", ["216.63.14.0/24", "207.193.121.0/24", "207.193.118.0/24"])
+        compare_ranges("208.70.20-30.", [])
+
+    def test_bad_ip_ranges(self):
+        doc = models.Library(None, "/libraries/foo")
+        def test_ranges(test, expect):
+            result = doc.find_bad_ip_ranges(test)
+            assert result == expect
+        test_ranges("", [])
+        test_ranges("1.2.3.4", [])
+        test_ranges("1.1.1.1\n2.2.2.2", [])
+        test_ranges("1.1.1.1-2.2.2.2", [])
+        test_ranges("1.1.1.1 # comment \n2.2.2.2", [])
+        test_ranges("1.1.1.1\n # comment \n2.2.2.2", [])
+        test_ranges("1.2.3.0/24", [])
+        test_ranges("1.2.3.*", [])
+        test_ranges("1.2.*.*", [])
+        test_ranges("1.*.*.*", [])
+        test_ranges("*", ["*"])
+        test_ranges("*.1", ["*.1"])
+        test_ranges("1.2.3-10.*", [])
+        test_ranges("1.2.3.", [])
+        test_ranges("1.1.", ['1.1.'])
+        test_ranges("1.2.3.1-254", [])
+        test_ranges("216.63.14.0/24\n207.193.121.0/24\n207.193.118.0/24", [])
+        test_ranges("1.2.3.4,2.3.4.5", ["1.2.3.4,2.3.4.5"])
+        test_ranges("1.2-3.*", ["1.2-3.*"])
     
     def test_has_ip(self, mock_site):
         mock_site.save({
@@ -133,8 +162,31 @@ class TestLibrary:
         })
         
         ia = mock_site.get("/libraries/ia")
-        assert ia.has_ip("1.1.1.1") is True
-        assert ia.has_ip("1.1.1.2") is False
+        assert ia.has_ip("1.1.1.1") 
+        assert not ia.has_ip("1.1.1.2")
 
-        assert ia.has_ip("2.2.2.10") is True
-        assert ia.has_ip("2.2.10.2") is False
+        assert ia.has_ip("2.2.2.10")
+        assert not ia.has_ip("2.2.10.2")
+
+        mock_site.save({
+            "key": "/libraries/ia",
+            "type": {"key": "/type/library"},
+            "ip_ranges": "1.1.1.",
+        })
+
+        ia = mock_site.get("/libraries/ia")
+        assert ia.has_ip("1.1.1.1")
+        assert ia.has_ip("1.1.1.2")
+
+        assert not ia.has_ip("2.2.2.10")
+        assert not ia.has_ip("2.2.10.2")
+
+        mock_site.save({
+            "key": "/libraries/ia",
+            "type": {"key": "/type/library"},
+            "ip_ranges": "1.1.",
+        })
+
+        ia = mock_site.get("/libraries/ia")
+
+        assert not ia.has_ip("2.2.2.2")

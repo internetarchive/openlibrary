@@ -20,8 +20,11 @@ from infogami.utils.context import context
 from infogami.utils.view import add_flash_message
 import openlibrary
 from openlibrary.core import admin as admin_stats
+from openlibrary.plugins.upstream import forms
+from openlibrary.plugins.upstream.account import Account
 
-import services
+
+from openlibrary.plugins.admin import services, support, tasks
 
 logger = logging.getLogger("openlibrary.admin")
 
@@ -51,6 +54,9 @@ class admin(delegate.page):
         raise web.notfound()
         
     def handle(self, cls, args=()):
+        # Use admin theme
+        context.bodyid = "admin"
+        
         m = getattr(cls(), web.ctx.method, None)
         if not m:
             raise web.nomethod(cls=cls)
@@ -96,7 +102,6 @@ class reload:
             yield "<h3>" + s + "</h3>"
             try:
                 response = urllib.urlopen(s).read()
-                print s, response
                 yield "<p><pre>" + response[:100] + "</pre></p>"
             except:
                 yield "<p><pre>%s</pre></p>" % traceback.format_exc()
@@ -125,7 +130,13 @@ class any:
 
 class people:
     def GET(self):
-        return render_template("admin/people/index")
+        i = web.input(email=None)
+        
+        if i.email:
+            account = Account.find(email=i.email)
+            if account:
+                raise web.seeother("/admin/people/" + account.username)
+        return render_template("admin/people/index", email=i.email)
 
 class people_view:
     def GET(self, key):
@@ -135,6 +146,41 @@ class people_view:
         else:
             raise web.notfound()
             
+    def POST(self, key):
+        user = web.ctx.site.get(key)
+        if not user:
+            raise web.notfound()
+            
+        i = web.input(action=None)
+        if i.action == "update_email":
+            return self.POST_update_email(user, i)
+        elif i.action == "update_password":
+            return self.POST_update_password(user, i)
+    
+    def POST_update_email(self, user, i):
+        if not forms.vemail.valid(i.email):
+            return render_template("admin/people/view", user, i, {"email": forms.vemail.msg})
+
+        if not forms.email_not_already_used.valid(i.email):
+            return render_template("admin/people/view", user, i, {"email": forms.email_not_already_used.msg})
+        
+        account = user.get_account()
+        account.update_email(i.email)
+        
+        add_flash_message("info", "Email updated successfully!")
+        raise web.seeother(web.ctx.path)
+    
+    def POST_update_password(self, user, i):
+        if not forms.vpass.valid(i.password):
+            return render_template("admin/people/view", user, i, {"password": forms.vpass.msg})
+
+        account = user.get_account()
+        account.update_password(i.password)
+        
+        logger.info("updated password of %s", user.key)
+        add_flash_message("info", "Password updated successfully!")
+        raise web.seeother(web.ctx.path)
+        
 class ipaddress:
     def GET(self):
         return render_template('admin/ip/index')
@@ -342,6 +388,68 @@ class service_status(object):
             nodes = []
         return render_template("admin/services", nodes)
 
+class inspect:
+    def GET(self, section):
+        if section == "store":
+            return self.GET_store()
+        else:
+            raise web.notfound()
+        
+    def GET_store(self):
+        i = web.input(key=None, type=None, name=None, value=None)
+        
+        if i.key:
+            doc = web.ctx.site.store.get(i.key)
+            if doc:
+                docs = [doc]
+            else:
+                docs = []
+        else:
+            docs = web.ctx.site.store.values(type=i.type or None, name=i.name or None, value=i.value or None, limit=100)
+            
+        return render_template("admin/inspect/store", docs, input=i)
+        
+class deploy:
+    def GET(self):
+        return render_template("admin/deploy")
+        
+    def POST(self):
+        i = web.input(deploy=None, restart=None, merge="false")
+        
+        tasks = []
+        
+        if i.deploy == "openlibrary":
+            if i.merge == "true":
+                tasks.append("git_merge:openlibrary,branch=dev")
+            tasks.append("deploy:openlibrary")
+        elif i.deploy == "olsystem":
+            tasks.append("deploy:olsystem")
+    
+        if i.restart:
+            tasks.append("restart:%s" % i.restart)
+            
+        if tasks:
+            return self.fab(tasks)
+        else:
+            return render_template("admin/deploy")
+            
+    def fab(self, tasks):
+        cmd = "cd /olsystem && /olsystem/bin/olenv fab --no-pty " + " ".join(tasks)
+        d = self.system(cmd)
+        return render_template("admin/command", d)
+        
+    def system(self, cmd, input=None):
+        """Executes the command returns the stdout.
+        """
+        if input:
+            stdin = subprocess.PIPE
+        else:
+            stdin = None
+        p = subprocess.Popen(cmd, shell=True, stdin=stdin, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        out, err = p.communicate(input)
+        status = p.wait()
+        return web.storage(cmd=cmd, status=status, stdout=out, stderr=err)
+
 def setup():
     register_admin_page('/admin/git-pull', gitpull, label='git-pull')
     register_admin_page('/admin/reload', reload, label='Reload Templates')
@@ -354,7 +462,15 @@ def setup():
     register_admin_page('/admin/block', block, label='')
     register_admin_page('/admin/loans', loans_admin, label='')
     register_admin_page('/admin/status', service_status, label = "Open Library services")
-    
+    register_admin_page('/admin/support', support.cases, label = "All Support cases")
+    register_admin_page('/admin/support/(all|new|replied|closed)?', support.cases, label = "Filtered Support cases")
+    register_admin_page('/admin/support/(\d+)', support.case, label = "Support cases")
+    register_admin_page('/admin/inspect(?:/(.+))?', inspect, label="")
+    register_admin_page('/admin/tasks', tasks.tasklist, label = "Task queue")
+    register_admin_page('/admin/tasks/(.*)', tasks.tasks, label = "Task details")
+    register_admin_page('/admin/deploy', deploy, label="")
+
+    support.setup()
     import mem
 
     for p in [mem._memory, mem._memory_type, mem._memory_id]:

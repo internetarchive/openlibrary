@@ -2,41 +2,66 @@ $def with (page)
 
 $var title: $page.displayname
 
-$ _t = i18n.get_namespace('/type/user')
-$ _ = i18n.get_namespace('/mode/view')
+$if "lists" in ctx.features:
+    $ lists = page.get_lists(limit=3)
+$else:
+    $ lists = []
 
-<div id="header">
-        <div style="float:left;padding-left:10px;padding-right:15px;"></div>
-        <div id="title"> $page.displayname</div>
+<div id="contentHead">
+    $:macros.databarView(page)
+    <h1>$page.displayname</h1>
+    <div class="small sansserif">
+    $if page.created:
+        <i>Joined $datestr(page.created)</i>
+    $if ctx.user and ctx.user.key == page.key:
+        &bull; 
+        <a href="$homepath()/account">$_("Settings")</a>
+        |
+        <a href="$homepath()/account/loans">$_("Loans")</a>
+    $elif ctx.user and ctx.user.is_admin():
+        &bull; 
+        <span class="adminOnly"><a href="/admin$page.key">admin page</a></span>
+        
+    $if "lists" in ctx.features and lists:
+        &bull; 
+        <a href="$homepath()$page.key/lists">$_("Lists")</a>
+    </div>
 </div>
 
+<div id="contentBody">
+    $if page.website:
+        <p>
+        $for url in page.website:
+            <a href="$url" rel="nofollow">$url</a><br/>
+        </p>
 
-<div class="contenttext">
+    $:sanitize(format(page.description))
+    
+    $if "lists" in ctx.features and lists:
+        <script type="text/javascript">
+        \$().ready(function(){
+            \$('ul#listResults li:nth-child(3)').css('padding-right','0');
+            \$('ul#listResults span.imageLg img').removeAttr('height');
+        });
+        </script>
+        <div id="listsDisplay">
+            <h2>Lists
+            <span class="sansserif small"><a href="$page.key/lists">See all</a></span>
+            </h2>
+            <ul id="listResults" class="clean"> 
+                $for list in lists:
+                    <li>$:render_template("lists/snippet", list)</li>
+            </ul>
+        </div>
+        <div class="clearfix"></div>
 
-<p>
-$if page.get('website'):
-    $for url in page.website: <a href="$url">$url</a><br />
-</p>
-
-$if page.get('description'):
-    $:format(page.description)
-
-$if page.get('reviews'):
-    <h2>$_t.book_reviews</h2>
-    $for review in page.reviews:
-        <a href="/$review.name">$review.title</a> (<a href="/$review.book.name">$review.book.title</a>)<br />
-
-<div>
-$if page.sponsored_books:
-    <h2>$_t.sponsored_books</h2>
-    $for record in page.sponsored_books:
-        $ book = record.edition
-        <a href="$book.key">$book.title</a> by ($:thingrepr(book.authors))
+    $if "recentchanges_v2" in ctx.features:
+        $ changes = render_template("recentchanges/render", author=page.key, limit=25)
+        $if changes.length > 1:
+            <h2>Recent Activity</h2>
+            $:changes
+        $else:
+            <p>$_("No edits. Yet.")</p>
+    $else:
+        $:macros.RecentChangesUsers(author=page, limit=25)
 </div>
-
-</div>
-
-<br clear="all" />
-<span class="subhead-emphasis" style="padding-left: 45px;">$_t.users_activity(page.displayname):</span>
-
-$:macros.RecentChanges(author=page, limit=10)

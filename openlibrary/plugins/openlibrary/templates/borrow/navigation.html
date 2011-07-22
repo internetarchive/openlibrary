@@ -1,0 +1,20 @@
+$def with (path)
+
+$def link(url, title):
+    $if url == path:
+        <strong>$title</strong>
+    $else:
+        <a href="$url">$title</a>
+
+<div class="right large sansserif" style="padding-top:10px;">   
+    
+    $:link("/borrow", _("Borrow"))
+    | $:link("/borrow/about", _("How it Works"))
+    | $:link("/libraries", _("Participating Libraries"))
+    | $:link("/libraries/register", _("Register"))
+    | $:link("/libraries/stats", _("Stats"))
+    
+    $if ctx.user and ctx.user.is_admin():
+     | <span class="adminOnly">$:link("/libraries/dashboard", _("Dashboard"))</span>
+     
+</div>

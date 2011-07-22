@@ -17,9 +17,7 @@ import web
 from openlibrary.core import formats, couch
 import engine
 
-logging.basicConfig(level=logging.DEBUG,
-                    format='%(asctime)s %(levelname)-8s %(message)s',
-                    datefmt='%a, %d %b %Y %H:%M:%S')
+logger = logging.getLogger("openlibrary.lists")
 
 class UpdaterContext:
     """The state of the updater.
@@ -84,7 +82,7 @@ class CachedDatabase:
         
     def commit(self):
         if self.dirty:
-            logging.info("commiting %d docs" % len(self.dirty))
+            logger.info("commiting %d docs" % len(self.dirty))
             self.db.update(self.dirty.values())
             self.dirty.clear()
         
@@ -117,16 +115,24 @@ class Updater:
     def create_db(self, url):
         return couch.Database(url)
     
-    def process_changesets(self, changesets):
+    def process_changesets(self, changesets, update_seeds=False):
+        """Updates the lists databases for given changesets.
+        
+        Seeds are updated in the seeds db if update_seeds is True, otherwise they are marked for later update.
+        """
+        logger.info("BEGIN process_changesets")
         ctx = UpdaterContext()
         for chunk in web.group(changesets, 50):
             chunk = list(chunk)
+            logger.info("processing changesets %s", [c['id'] for c in chunk])
             
             works = [work for changeset in chunk 
                           for work in self._get_works(changeset)]
 
             editions = [e for changeset in chunk
                         for e in self._get_editions(changeset)]
+                        
+            logger.info("found %d works and %d editions", len(works), len(editions))
                         
             keys = [w['key'] for w in works] + [e['works'][0]['key'] for e in editions if e.get('works')] 
             keys = list(set(keys))
@@ -136,9 +142,9 @@ class Updater:
                 work = self.works_db.update_work(ctx, work)
 
             # works have been modified. Commit to update the views.
-            logging.info("BEGIN commit works_db")
+            logger.info("BEGIN commit works_db")
             self.works_db.db.commit()
-            logging.info("END commit works_db")
+            logger.info("END commit works_db")
             
             self.works_db.update_editions(ctx, editions)
             self.editions_db.update_editions(ctx.editions.values())
@@ -146,13 +152,16 @@ class Updater:
             
             t = datetime.datetime.utcnow().isoformat()
             if ctx.seeds:
-                logging.info("BEGIN commit works_db")
+                logger.info("BEGIN commit works_db")
                 self.works_db.db.commit()
-                logging.info("END commit works_db")
+                logger.info("END commit works_db")
                 
-                logging.info("BEGIN mark %d seeds for update" % len(ctx.seeds))
-                self.seeds_db.mark_seeds_for_update(ctx.seeds.keys())
-                logging.info("END mark %d seeds for update" % len(ctx.seeds))
+                logger.info("BEGIN mark %d seeds for update" % len(ctx.seeds))
+                if update_seeds:
+                    self.seeds_db.update_seeds(ctx.seeds.keys())
+                else:
+                    self.seeds_db.mark_seeds_for_update(ctx.seeds.keys())
+                logger.info("END mark %d seeds for update" % len(ctx.seeds))
                 ctx.seeds.clear()
             
             # reset to limit the make sure the size of cache never grows without any limit.
@@ -161,22 +170,23 @@ class Updater:
                 
         self.works_db.db.commit()
         self.works_db.db.reset()
+        logger.info("END process_changesets")
         
-    def process_changeset(self, changeset):
-        logging.info("processing changeset %s", changeset["id"])
-        return self.process_changesets([changeset])
-    
+    def process_changeset(self, changeset, update_seeds=False):
+        logger.info("processing changeset %s", changeset["id"])
+        return self.process_changesets([changeset], update_seeds=update_seeds)
+
     def update_seeds(self, seeds):
         self.seeds_db.update_seeds(seeds)
         
     def update_pending_seeds(self, limit=100):
-        logging.info("BEGIN update_pending_seeds")
+        logger.info("BEGIN update_pending_seeds")
         rows = self.seeds_db.db.view("dirty/dirty", limit=limit)
         seeds = [row.id for row in rows]
-        logging.info("found %d seeds", len(seeds))
+        logger.info("found %d seeds", len(seeds))
         if seeds:
             self.update_seeds(seeds)
-        logging.info("END update_pending_seeds")
+        logger.info("END update_pending_seeds")
         return seeds
         
     def _get_works(self, changeset):
@@ -205,7 +215,7 @@ class WorksDB:
         get = get or self.db.get
         save = save or self.db.save
         
-        logging.info("works_db: updating work %s", work['key'])
+        logger.info("works_db: updating work %s", work['key'])
         
         key = work['key']
         old_work = get(key, {})
@@ -238,7 +248,7 @@ class WorksDB:
         
     def update_editions(self, ctx, editions):
         editions = list(editions)
-        logging.info("works_db: BEGIN update_editions %s", len(editions))
+        logger.info("works_db: BEGIN update_editions %s", len(editions))
         # remove duplicate entries from editions
         editions = dict((e['key'], e) for e in editions).values()
         keys = [e['key'] for e in editions]
@@ -265,7 +275,7 @@ class WorksDB:
 
         for e in editions:
             key = e['key']
-            logging.info("works_db: updating edition %s", key)
+            logger.info("works_db: updating edition %s", key)
             
             ctx.add_editions([e])
             ctx.add_seeds([key])
@@ -300,7 +310,7 @@ class WorksDB:
             self._add_edition(work, e)
             self.db.save(work)
             
-        logging.info("works_db: END update_editions %s", len(editions))
+        logger.info("works_db: END update_editions %s", len(editions))
             
     def update_edition(self, ctx, edition):
         self.update_editions(ctx, [edition])
@@ -344,7 +354,7 @@ class EditionsDB:
         self.works_db = works_db
             
     def update_editions(self, editions):
-        logging.info("edition_db: BEGIN updating %d editions", len(editions))
+        logger.info("edition_db: BEGIN updating %d editions", len(editions))
         
         def get_work_key(e):
             if e.get('works'):
@@ -363,7 +373,7 @@ class EditionsDB:
         
         for e in editions:
             key = e['key']
-            logging.info("edition_db: updating edition %s", key)
+            logger.info("edition_db: updating edition %s", key)
             if e['type']['key'] == '/type/edition':
                 wkey = get_work_key(e)
                 e['seeds'] = seeds.get(wkey, []) + [e['key']]
@@ -372,9 +382,9 @@ class EditionsDB:
                 e['_deleted'] = True
             e['_id'] = key
         
-        logging.info("edition_db: saving...")
+        logger.info("edition_db: saving...")
         couchdb_bulk_save(self.db, editions)
-        logging.info("edition_db: END updating %d editions", len(editions))
+        logger.info("edition_db: END updating %d editions", len(editions))
 
 class SeedsDB:
     """The seed db stores summary like work_count, edition_count, ebook_count,
@@ -409,12 +419,12 @@ class SeedsDB:
         big_seeds = self.get_big_seeds()
         seeds2 = sorted(seed for seed in seeds if seed not in big_seeds)
         
-        logging.info("update_seeds %s", len(seeds2))
-        logging.info("ignored %d big seeds", len(seeds)-len(seeds2))
+        logger.info("update_seeds %s", len(seeds2))
+        logger.info("ignored %d big seeds", len(seeds)-len(seeds2))
 
         for i, chunk in enumerate(web.group(seeds2, chunksize)):
             chunk = list(chunk)
-            logging.info("update_seeds %d %d", i, len(chunk))
+            logger.info("update_seeds %d %d", i, len(chunk))
             self._update_seeds(chunk)
         
     def _update_seeds(self, seeds):
@@ -439,7 +449,7 @@ class SeedsDB:
         if not self._big_seeds:
             # consider seeds having more than 500 works as big ones
             self._big_seeds =  set(row.key for row in self.db.view("sort/by_work_count", endkey=500, descending=True, stale="ok"))
-            logging.info("found %d big seeds", len(self._big_seeds))
+            logger.info("found %d big seeds", len(self._big_seeds))
         return self._big_seeds
                 
 def couchdb_bulk_save(db, docs):

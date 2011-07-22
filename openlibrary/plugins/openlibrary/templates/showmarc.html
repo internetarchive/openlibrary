@@ -1,39 +1,46 @@
-$def with (record, filename, begin, length)
+$def with (record, filename, begin, length, books)
 
-$var title: MARC details of $filename:$begin:$length
+$ format = query_param('format')
+$if format == 'raw':
+    $var content_type: application/marc
+    $var rawtext = record.data
 
-$ end = begin + length - 1
+$ get_source_record = render_template("history/sources").get_source_record
+$ source_record = get_source_record("%s:%s:%s" % (filename, begin, length))
+$ title = "MARC Record from " + source_record.source_name
 
-<div id="header">
-    <div id="title">MARC details of $filename:$begin:$length</div>
+$var title: $title
+
+<div id="contentHead">
+    $if len(books):
+        $ e = get_document(books[0])
+        <div class="breadcrumbs"><a href="$e.key">$e.title</a> /</div>
+    <h1>$title</h1>
 </div>
 
-<div class="contenttext">
+<div id="contentBody">
+    <div class="section">
+        <table class="meta">
+            <tbody>
+                <tr>
+                    <td class="title"><span class="title">Record ID</span></td>
+                    <td><span class="object">$source_record.id</span></td>
+                </tr>
+                <tr>
+                    <td class="title"><span class="title">Source</span></td>
+                    <td><span class="object"><a href="$source_record.source_url">$source_record.source_name</a></span></td>
+                </tr>
+                <tr>
+                    <td class="title"><span class="title">Download Link</span></td>
+                    <td><span class="object"><a href="$source_record.url?format=raw">$source_record.url?format=raw</a></span></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 
-<br/>
-Record Locator: $filename
-
-$if not record:
-    Invalid MARC record.
-$else:
-    <hr/>
-    <b>LEADER:</b> <code>$record.leader</code><br/>
-    $:record.html()
-
-    <hr/>
-
-    In order to retrieve the exact bytes of this MARC record, perform a
-    HTTP GET on the url 
-
-    <pre>http://www.archive.org/download/$filename</pre> 
-
-    and include the HTTP header
-
-    <pre>Range: bytes=$begin-$end</pre>
-
-    You will need to do this with a special purpose web client
-    such as <a href=http://curl.haxx.se>curl</a>, not a browser.
-    The curl command you'd use is:
-    
-    <pre>curl -L -r $begin-$end 'http://www.archive.org/download/$filename'</pre>
+    $if not record:
+        <p>$_("Invalid MARC record.")</p>
+    $else:
+        <p><b>LEADER:</b> <code>$record.leader</code><br/>
+        $:record.html()</p>
 </div>

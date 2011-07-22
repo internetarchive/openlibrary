@@ -140,6 +140,8 @@ def get_many_as_dict(keys):
     
 def get_url(doc):
     base = web.ctx.get("home", "http://openlibrary.org")
+    if base == 'http://[unknown]':
+        base = "http://openlibrary.org"
     if doc['key'].startswith("/books/") or doc['key'].startswith("/works/"):
         return base + doc['key'] + "/" + urlsafe(doc.get("title", "untitled"))
     elif doc['key'].startswith("/authors/"):
@@ -205,7 +207,25 @@ class DataProcessor:
                 "text": get_value(e.get("excerpt", {})),
                 "comment": e.get("comment", "")
             }
-                    
+
+        def format_table_of_contents(toc):
+            # after openlibrary.plugins.upstream.models.get_table_of_contents
+            def row(r):
+                if isinstance(r, basestring):
+                    level = 0
+                    label = ""
+                    title = r
+                    pagenum = ""
+                else:
+                    level = h.safeint(r.get('level', '0'), 0)
+                    label = r.get('label', '')
+                    title = r.get('title', '')
+                    pagenum = r.get('pagenum', '')
+                r = dict(level=level, label=label, title=title, pagenum=pagenum)
+                return r
+            d = [row(r) for r in toc]
+            return [row for row in d if any(row.values())]
+
         d = {
             "url": get_url(doc),
             "key": doc['key'],
@@ -243,8 +263,22 @@ class DataProcessor:
             "subject_people": get_subjects("subject_people", "person:"),
             "subject_times": get_subjects("subject_times", "time:"),
             "excerpts": [format_excerpt(e) for e in w.get("excerpts", [])],
+
+            "notes": get_value(doc.get("notes", "")),
+            "table_of_contents": format_table_of_contents(doc.get("table_of_contents", [])),
+
             "links": [dict(title=link.get("title"), url=link['url']) for link in w.get('links', '') if link.get('url')],
         }
+
+        for fs in [doc.get("first_sentence"), w.get('first_sentence')]:
+            if fs:
+                e = {
+                    "text": get_value(fs),
+                    "comment": "",
+                    "first_sentence": True
+                    }
+                d['excerpts'].insert(0, e)
+                break
         
         def ebook(doc):
             itemid = doc['ocaid']

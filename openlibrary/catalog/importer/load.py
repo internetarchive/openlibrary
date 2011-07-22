@@ -16,6 +16,8 @@ if password.endswith('\n'):
 db_error = web.database(dbn='postgres', db='ol_errors', host='localhost', user='openlibrary', pw=password)
 
 def walk_redirects(obj, seen):
+    # called from find_author
+    # uses ol client API
     seen.add(obj['key'])
     while obj['type'] == '/type/redirect':
         assert obj['location'] != obj['key']

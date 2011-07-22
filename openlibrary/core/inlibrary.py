@@ -11,7 +11,7 @@ def _get_libraries(site=None):
     
     site = site or web.ctx.site
 
-    keys = site.things(query={"type": "/type/library", "limit": 1000})
+    keys = site.things(query={"type": "/type/library", "limit": 1000, "status": "approved"})
     libraries = site.get_many(keys)
     return [lib.dict() for lib in libraries]
     
@@ -33,7 +33,9 @@ def _get_library(libraries, ip):
 def get_library():
     """Returns library document if the IP of the current request is in the IP range of that library.
     """
-    return _get_library(get_libraries(), web.ctx.ip)
+    if "library" not in web.ctx:
+        web.ctx.library = _get_library(get_libraries(), web.ctx.ip)
+    return web.ctx.library
     
 def filter_inlibrary():
     """Returns True if the IP of the current request is in the IP range of one of the libraries.

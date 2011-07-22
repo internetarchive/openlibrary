@@ -30,9 +30,10 @@ def create_stats_client():
             host, port = stats_server.rsplit(":", 1)
             return Client(host, port)
         else:
+            logger.critical("Couldn't find statsd_server section in config")
             return False
-    except Exception:
-        #TBD : Log stats error here
+    except Exception, e:
+        logger.critical("Couldn't create stats client - %s", e, exc_info = True)
         return False
 
 def put(key, value):

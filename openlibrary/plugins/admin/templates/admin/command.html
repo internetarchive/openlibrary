@@ -1,0 +1,28 @@
+$def with (cmd)
+
+<div id="contentHead">
+    $:render_template("admin/menu")
+    <h1>Deploy</h1>
+</div>
+
+<div id="contentBody">
+
+<div>
+<a href="/deploy">← Back</a>
+<br/>
+<br/>
+</div>
+    
+<pre>
+$$ $cmd.cmd
+$cmd.stdout
+$cmd.stderr
+</pre>    
+
+<div>
+<br/>
+<br/>
+<a href="/deploy">← Back</a>
+</div>
+
+</div>

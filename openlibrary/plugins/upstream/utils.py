@@ -11,7 +11,7 @@ import gzip
 import StringIO
 
 from infogami import config
-from infogami.utils import view, delegate
+from infogami.utils import view, delegate, stats
 from infogami.utils.view import render, get_template, public
 from infogami.utils.macro import macro
 from infogami.utils.context import context
@@ -304,7 +304,7 @@ def get_changes(query, revision=None):
         return get_changes_v2(query, revision=revision)
     else:
         return get_changes_v1(query, revision=revision)
-
+        
 @public
 def get_history(page):
     h = web.storage(revision=page.revision, lastest_revision=page.revision, created=page.created)
@@ -420,7 +420,6 @@ def parse_toc(text):
     if text is None:
         return []
     return [parse_toc_row(line) for line in text.splitlines() if line.strip(" |")]
-    
 
 _languages = None
     
@@ -585,10 +584,13 @@ def get_random_recent_changes(n):
 def _get_blog_feeds():
     url = "http://blog.openlibrary.org/feed/"
     try:
+        stats.begin("get_blog_feeds", url=url)
         tree = etree.parse(urllib.urlopen(url))
     except IOError:
         # Handle error gracefully.
         return []
+    finally:
+        stats.end()
     
     def parse_item(item):
         pubdate = datetime.datetime.strptime(item.find("pubDate").text, '%a, %d %b %Y %H:%M:%S +0000')
@@ -617,6 +619,9 @@ def setup():
 
     # Provide alternate implementations for websafe and commify
     web.websafe = websafe
+    web.template.Template.FILTERS['.html'] = websafe
+    web.template.Template.FILTERS['.xml'] = websafe
+
     web.commify = commify
     
     web.template.Template.globals.update({

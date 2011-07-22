@@ -1,0 +1,122 @@
+$def with (get_results, quote_snippet, editions_from_ia, read_from_archive)
+
+$ q = query_param('q')
+$ hl_phrase = bool(query_param('hl_phrase'))
+$ results_per_page = 20
+$ no_snippet = set(['printdisabled', 'lendinglibrary', 'browserlending'])
+$ page = query_param('page')
+$if page:
+    $ page = int(page)
+$else:
+    $ page = 1
+$ offset = (page - 1) * results_per_page
+
+$var title: Search Open Library for $q
+
+<div id="contentHead">
+    <h1>
+        $_("Search Inside")
+    </h1>
+    $if q:
+        $ search_start = time()
+        $ results = get_results(q, offset=offset, limit=results_per_page, snippets=3, fragsize=150, hl_phrase=hl_phrase)
+        $ search_secs = time() - search_start
+    $if q and 'error' not in results:
+        $ hl = results['highlighting']
+        $ response = results['response']
+        $ num_found = int(response['numFound'])
+        $if num_found:
+            <p class="sansserif darkgreen collapse"><strong>$commify(response['numFound']) hit$("s" if response['numFound'] != 1 else "")</strong></p>
+        $else:
+            <p class="sansserif red collapse"><strong>No hits</strong></span></p>
+</div>
+
+<div id="contentBody">
+
+    <div class="section">
+
+    <form class="siteSearch olform" action="">
+        <input type="text" class="larger" name="q" size="100" style="width: 505px;" value="$q"/>
+        <input type="submit"  class="large" value="$_('Search')"/>
+    </form>
+
+    </div>
+
+    $if q and 'error' in results:
+        $results['error']
+    $if q and 'error' not in results:
+	<div id="searchResults">
+                Search took $("%.2f" % search_secs) seconds<p>
+		<ul id="siteSearch">
+		$for doc in response['docs']:
+			$ ia = doc['ia']
+			<li>
+			$ authors = []
+                        $ cover = '/images/icons/avatar_book-sm.png'
+			$ editions = editions_from_ia(ia)
+                        $ item = read_from_archive(ia)
+                        $ collection = set(item.get('collection', []))
+			$if editions:
+				$ e = get_document(editions[0])
+                                $ key = e.key
+                                $ url = key
+                                $ title = e.title
+                                $if e.covers:
+                                    $ cover = "http://covers.openlibrary.org/b/id/%d-M.jpg" % e.covers[0]
+                                $else:
+                                    $ cover = "http://www.archive.org/download/%s/page/cover_thumb.jpg" % ia
+				$if e.works:
+                                    $ w = e.works[0]
+                                    $ authors = [a.author for a in w.authors]
+				$else:
+                                    $ authors = e.authors
+			$else: 
+                                $ title = item.get('title', 'no title for: ' + ia)
+                                $ cover = "http://www.archive.org/download/%s/page/cover_thumb.jpg" % ia
+				$ authors = item.get('creator', [])
+                                $ url = "http://www.archive.org/details/" + ia
+                        <span class="bookcover"><a href="$url"><img src="$cover"></a></span>
+                        <span class="details">
+                            <span class="resultTitle">
+			        <h3 class="booktitle sansserif"><a href="$url" class="results">$title</a></h3>
+			        <span class="bookauthor">by            
+			        $if editions and authors:
+				    $for a in authors:
+					<a href="$a.key" class="results">$a.name</a>$('' if loop.last else ', ')
+			        $elif not editions and authors:
+				    $', '.join(authors)
+			        $else:
+				    <em>unknown author</em>
+			    </span>
+			    <span class="resultPublisher">
+				$if editions:
+					Published 
+					$if e.publish_date:
+						in $e.publish_date 
+					$if e.publishers:
+						by $', '.join(e.publishers)
+				$else:
+					<a href="http://www.archive.org/details/$ia">View on archive.org</a>
+				&bull; $doc['page_count'] pages
+				$if not (no_snippet & collection):
+					&bull; <a href="/search/inside/$ia?q=$q">snippets in situ</a>
+			    </span>
+			</span>
+			<span class="actions">
+				$if not (no_snippet & collection):
+					<a href="http://www.archive.org/stream/$ia#search/$q" title="$_('Open in online Book Reader. Downloads available in ePub, DAISY, PDF, TXT formats from main book page')">
+						<span class="image read"></span>
+						<span class="label">$_("Read")</span>
+					</a>                
+			</span>
+			<div class="clearfix"></div>
+			$if ia in hl and 'body' in hl[ia]:
+				$for snippet in hl[ia]['body']:
+					<span class="snippet">                    
+						&hellip;$:quote_snippet(snippet)&hellip;
+					</span>
+			</li>
+		</ul>
+		$:macros.Pager(page, num_found, results_per_page)
+	</div>
+</div>

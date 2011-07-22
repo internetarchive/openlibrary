@@ -8,6 +8,7 @@ import simplejson
 import logging, logging.config
 import sys
 import traceback
+import re, unicodedata
 
 import web
 from infogami.infobase import config, common, server, cache, dbstore
@@ -21,6 +22,9 @@ def init_plugin():
     """Initialize infobase plugin."""
     from infogami.infobase import common, dbstore, server, logger as infobase_logger
     dbstore.default_schema = schema.get_schema()
+    
+    # Replace infobase Indexer with OL custom Indexer
+    dbstore.Indexer = OLIndexer
 
     if config.get('errorlog'):
         common.record_exception = lambda: save_error(config.errorlog, 'infobase')
@@ -32,6 +36,12 @@ def init_plugin():
         ib.add_event_listener(infobase_logger.Logger(config.writelog))
         
     ib.add_event_listener(invalidate_most_recent_change)
+    
+    # When setting up the dev instance, celery is not available. 
+    # Using DISABLE_CELERY environment variable to decide whether or not to trigger celery events. 
+    # DISABLE_CELERY will be set to true when setting up the dev instance.
+    if os.getenv("DISABLE_CELERY", "").lower() != "true":
+        ib.add_event_listener(notify_celery)
 
     setup_logging()
 
@@ -220,7 +230,6 @@ class clear_cache:
 class olid_to_key:
     @server.jsonify
     def GET(self, sitename):
-        print "olid_to_key"
         i = server.input("olid")
         d = get_db().query("SELECT key FROM thing WHERE get_olid(key) = $i.olid", vars=locals())
         key = d and d[0].key or None
@@ -233,6 +242,15 @@ def write(path, data):
     f = open(path, 'w')
     f.write(data)
     f.close()
+    
+from .. import tasks
+
+def notify_celery(event):
+    """Called on infobase events to notify celery for on every edit.
+    """
+    if event.name in ['save', 'save_many']:
+        changeset = event.data['changeset']
+        tasks.on_edit.delay(changeset)
     
 def save_error(dir, prefix):
     try:
@@ -440,21 +458,54 @@ dbstore.process_json = process_json
 
 _Indexer = dbstore.Indexer
 
-class Indexer(_Indexer):
-    """Overwrite default indexer to reduce the str index for editions."""
+re_normalize = re.compile('[^[:alphanum:] ]', re.U)
+
+class OLIndexer(_Indexer):
+    """OL custom indexer to index normalized_title etc.
+    """
     def compute_index(self, doc):
-        index = _Indexer.compute_index(self, doc)
+        type = self.get_type(doc)
 
-        try:
-            if doc['type']['key'] != '/type/edition':
-                return index
-        except KeyError:
-            return index
+        if type == '/type/edition':
+            doc = self.process_edition_doc(doc)
+
+        return _Indexer.compute_index(self, doc)
+
+    def get_type(self, doc):
+        return doc.get("type", {}).get("key")
+
+    def process_edition_doc(self, doc):
+        """Process edition doc to add computed fields used for import.
+
+        Make the computed field names end with an underscore to avoid conflicting with regular fields.
+        """
+        doc = dict(doc)
+
+        title = doc.get("title", "")
+        doc['normalized_title_'] = self.normalize_edition_title(title)
+
+        isbns = doc.get("isbn", []) + doc.get("isbn_13", [])
+        doc['isbn_'] = [self.normalize_isbn(isbn) for isbn in isbns]
+        return doc
+
+    def normalize_edition_title(self, title):
+        if isinstance(title, str):
+            title = title.decode('utf-8', "ignore")
             
-        whitelist = ['identifiers', 'classifications', 'isbn_10', 'isbn_13', 'lccn', 'oclc_numbers', 'ocaid']
-        index = [(datatype, name, value) for datatype, name, value in index 
-                if datatype == 'ref' or name.split(".")[0] in whitelist]
+        if not isinstance(title, unicode):
+            return ""
+            
+        # http://stackoverflow.com/questions/517923/what-is-the-best-way-to-remove-accents-in-a-python-unicode-string
+        def strip_accents(s):
+           return ''.join((c for c in unicodedata.normalize('NFD', s) if unicodedata.category(c) != 'Mn'))
 
-        # avoid indexing table_of_contents.type etc.
-        index = [(datatype, name, value) for datatype, name, value in index if not name.endswith('.type')]
-        return index
+        norm = strip_accents(title).lower()
+        norm = norm.replace(' and ', ' ')
+        if norm.startswith('the '):
+            norm = norm[4:]
+        elif norm.startswith('a '):
+            norm = norm[2:]
+        return norm.replace(' ', '')[:25]
+    
+    def normalize_isbn(self, isbn):
+        return isbn.strip().upper().replace(" ", "").replace("-", "")

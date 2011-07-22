@@ -3,7 +3,7 @@ from openlibrary.catalog.read_rc import read_rc
 import openlibrary.catalog.merge.amazon as amazon
 from openlibrary.catalog.get_ia import *
 from openlibrary.catalog.importer.db_read import withKey, get_mc
-from openlibrary.api import OpenLibrary
+from openlibrary.api import OpenLibrary, Reference
 import openlibrary.catalog.marc.fast_parse as fast_parse
 import xml.parsers.expat
 import web, sys
@@ -150,12 +150,12 @@ def source_records_match(e1, thing):
     return match
 
 def try_merge(e1, edition_key, thing):
-    thing_type = thing['type']['key']
-    if thing_type != '/type/edition':
-        print thing['key'], 'is', thing['type']['key']
-    if thing_type == '/type/delete': # 
+    thing_type = thing['type']
+    if thing_type != Reference('/type/edition'):
+        print thing['key'], 'is', str(thing['type'])
+    if thing_type == Reference('/type/delete'):
         return False
-    assert thing_type == '/type/edition'
+    assert thing_type == Reference('/type/edition')
 
     if 'source_records' in thing:
         if fix_source_records(edition_key, thing):

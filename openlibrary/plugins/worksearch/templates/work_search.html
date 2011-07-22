@@ -218,12 +218,14 @@ function less(header) {
         </script>
         <div id="searchResults">
         <ul id="siteSearch">
+        $ work_keys = []
         $for result_doc in docs:
             $ doc = get_doc(result_doc)
             $ key = doc.key
+            $ work_keys.append(key)
             <li>
             <span class="bookcover">
-                $ cover = get_coverstore_url() + "/b/olid/%s-M.jpg" % doc.cover_edition_key if doc.cover_edition_key else "http://openlibrary.org/images/icons/avatar_book-sm.png"
+                $ cover = get_coverstore_url() + "/b/olid/%s-S.jpg" % doc.cover_edition_key if doc.cover_edition_key else "http://openlibrary.org/images/icons/avatar_book-sm.png"
                 <a href="$doc.url"><img src="$cover" height="70" alt="Cover of: $doc.title$(': ' + doc.subtitle if doc.get('subtitle', None) else '')" title="Cover of: $doc.title$(': ' + doc.subtitle if doc.get('subtitle', None) else '')"/></a>
             </span>
             <span class="details">
@@ -331,7 +333,31 @@ $if param and not error:
         $:macros.Pager(page, num_found, rows)
 
     $if param and not error:
+        $ readapi_percent = 100
         $if ctx.user and ctx.user.is_admin():
-            <div class="small sansserif clearfix"><br/><span class="adminOnly">Searching solr took $("%.2f" % search_secs) seconds</span></div>
-
+            <div id="adminTiming" class="small sansserif clearfix"><br/><span class="adminOnly">Searching solr took $("%.2f" % search_secs) seconds</span></div>
+            $ readapi_percent = 100
+        $ wks = '|'.join(work_keys)
+        $ ol = 'openlibrary.org'
+        <script type="text/javascript">
+        <!--
+        function readapi_callback(data, textStatus, jqXHR) {
+            endtime = Date.now()
+            //document.write(data.stats.summary.toSource())
+            duration = (endtime - starttime) / 1000
+            disp = document.getElementById("adminTiming")
+            if (disp) {
+                disp.innerHTML += '<br/><br/><span class="adminOnly">Read API call took ' + duration + ' seconds</span>'
+            }
+        }
+        if (Math.random() * 100 < $readapi_percent) {
+            starttime = Date.now()
+            \$.ajax({
+                url: 'http://$ol/api/volumes/brief/json/$wks?listofworks=True&no_details=True&stats=True',
+                dataType: 'jsonp',
+                success: readapi_callback
+            })
+        }
+        //-->
+        </script>
 </div>

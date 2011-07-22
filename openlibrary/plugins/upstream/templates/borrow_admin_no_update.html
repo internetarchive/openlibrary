@@ -1,0 +1,112 @@
+$def with (page, edition_loans, user_loans, user_ip)
+
+$var title: $page.title
+
+$ _x = ctx.setdefault('bodyid', 'plain')
+
+$ available_loans = page.get_available_loans()
+
+<div id="contentBody">
+
+    <div class="navBorrow">
+        <a href="javascript:;" onclick="history.go(-1);"><strong>Back</strong></a>
+    </div>
+
+        <h1 class="sansserif">Borrow - Administration</h1>
+        <p>
+            can_borrow - can this book ever be borrowed: $can_borrow(page)
+        </p>
+
+
+        <p>
+          You are (ctx.user): $ctx.user
+        </p>
+
+        <p>
+          You are an admin?: $ctx.user.is_admin()
+        </p>
+        
+        <p>
+          IP address: $user_ip
+        </p>
+
+        <p>
+          you are in library? (inlibrary flag set):
+          $if "inlibrary" in ctx.features:
+             yes
+          $else:
+             no
+        </p>
+        
+        <p>
+          which library: $get_library()
+        </p>
+                
+        <p>
+          work subjects: $page.works[0].get_subjects()
+        </p>
+
+        <p>
+            overdrive_id - if set means can be borrowed digitally from an external library using Overdrive: $overdrive_id(page)
+        </p>
+        
+        <p>
+            archive.org item identifier: <a href="http://www.archive.org/details/$page.ocaid">$page.ocaid</a>
+        <p>
+        <p>
+            external-identifiers from archive.org meta.xml: $page.get_lending_resources()
+        </p>
+        
+        <p>
+            $# bookreader available: $is_loan_available(page, 'bookreader')<br>
+            $# pdf available: $is_loan_available(page, 'pdf')<br>
+            $# epub available: $is_loan_available(page, 'epub')
+        </p>
+        
+        <p>
+            $ pdf_resource_id = page.get_lending_resource_id('pdf')
+            pdf resourceid: $pdf_resource_id<br>
+            $ epub_resource_id = page.get_lending_resource_id('epub')
+            epub resourceid: $epub_resource_id
+        </p>
+        
+        <p>
+             <table>
+                <tr>
+                    <th>Current loans for $page.title:</th>
+                </tr>
+                $for edition_loan in edition_loans:
+                    <tr><td>$edition_loan</td><td><form method="POST"><input type="submit" value="Delete record" /><input type="hidden" name="action" value="delete" /><input type="hidden" name="loan_key" value="$edition_loan['store_key']" /></form></td></tr>
+            </table>
+        </p>
+        
+        <p>
+            <table>
+              <tr><th>Available loans for $page.title:</tr></th>
+              $for loan in available_loans:
+                 <tr><td>$loan</td></tr>
+            </table>
+        </p>
+        
+        <p>
+            Book status in ACS4:<br>
+            $ bss = 'http://lending.us.archive.org/bss/bss.py'
+            $ bss_format = "<a href='" + bss + "/%(what)s/%(urn)s'>%(type)s %(what)s</a><br>"
+            $ pdf_loaned = bss_format % { 'what': 'is_loaned_out', 'urn': pdf_resource_id, 'type': 'pdf' }
+            $:pdf_loaned
+            $ pdf_info = bss_format % { 'what': 'resource_info', 'urn': pdf_resource_id, 'type': 'pdf' }
+            $:pdf_info
+            $ pdf_fulfillment = bss_format % { 'what': 'fulfillment_info', 'urn': pdf_resource_id, 'type': 'pdf' }
+            $:pdf_fulfillment
+            
+            <br>
+            $ epub_loaned = bss_format % { 'what': 'is_loaned_out', 'urn': epub_resource_id, 'type': 'epub' }
+            $:epub_loaned
+            $ epub_info = bss_format % { 'what': 'resource_info', 'urn': epub_resource_id, 'type': 'epub' }
+            $:epub_info
+            $ epub_fulfillment = bss_format % { 'what': 'fulfillment_info', 'urn': epub_resource_id, 'type': 'epub' }
+            $:epub_fulfillment
+        </p>
+        
+
+</div>

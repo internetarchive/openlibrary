@@ -209,7 +209,6 @@ class Edition(models.Edition):
         # Create list of possible loan formats
         resource_pattern = r'acs:(\w+):(.*)'
         for resource_urn in self.get_lending_resources():
-            print 'RESOURCE %s' % resource_urn
             if resource_urn.startswith('acs:'):
                 (type, resource_id) = re.match(resource_pattern, resource_urn).groups()
                 loans.append( { 'resource_id': resource_id, 'resource_type': type, 'size': None } )
@@ -624,11 +623,7 @@ class User(models.User):
     
     def get_edit_history(self, limit=10, offset=0):
         return web.ctx.site.versions({"author": self.key, "limit": limit, "offset": offset})
-        
-    def get_email(self):
-        if web.ctx.path.startswith("/admin"):
-            return account.get_user_email(self.key)
-            
+                
     def get_creation_info(self):
         if web.ctx.path.startswith("/admin"):
             d = web.ctx.site.versions({'key': self.key, "sort": "-created", "limit": 1})[0]
@@ -712,6 +707,12 @@ class Changeset(client.Changeset):
         # return the first undo changeset
         self._undo_changeset = changesets and changesets[-1] or None
         return self._undo_changeset
+        
+class NewAccountChangeset(Changeset):
+    def get_user(self):
+        keys = [c.key for c in self.get_changes()]
+        user_key = "/people/" + keys[0].split("/")[2]
+        return web.ctx.site.get(user_key)
 
 class MergeAuthors(Changeset):
     def can_undo(self):
@@ -792,3 +793,4 @@ def setup():
 
     client.register_changeset_class('add-book', AddBookChangeset)
     client.register_changeset_class('lists', ListChangeset)
+    client.register_changeset_class('new-account', NewAccountChangeset)

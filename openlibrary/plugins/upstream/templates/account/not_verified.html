@@ -1,0 +1,37 @@
+$def with (username, password, email)
+
+$var title: $_("Oops!")
+
+
+<style>
+div.alert {
+    background: url("/images/icons/icon_alert-gold.png") no-repeat scroll 15px 50% #FFFDCD !important;
+    padding: 10px 10px 10px 50px;
+}
+</style>
+
+<div id="contentHead">
+    <h1>$_("Oops!")</h1>
+</div>
+
+<div id="contentBody">
+
+<div class="alert">The email address you signed up with needs to be verified.</div>
+
+<p>When you created your account, we sent an email to $email that contained a link for you to verify your email address. We need you to click that link, please.</p>
+
+<p>If you can't find the email, just hit this button to send a fresh one:</p>
+
+<form method="POST" class="olform">
+    <input type="hidden" name="username" value="$username"/>
+    <input type="hidden" name="password" value="$password"/>
+    <input type="hidden" name="action" value="resend_verification_email"/>
+    
+    <div class="formElement bottom">
+        <br/>
+        <input value="$_('Resend the verification email')" type="submit" name="" title="$_('Resend the verification email')"/>
+    </div>
+</form>
+
+<p>Thanks!</p>
+</div>

@@ -1,0 +1,21 @@
+$def with (path=None)
+
+$ path = request.path
+
+$def link(url, title):
+    $if url == path:
+        <strong>$title</strong>
+    $else:
+        <a href="$url">$title</a>
+
+<div class="superNav">
+    $:link("/admin", _("Admin Center"))
+    | $:link("/admin/block", _("Block IPs"))
+    | $:link("/admin/deploy", _("Deploy"))
+    | $:link("/admin/loans", _("Loans"))
+    | $:link("/admin/people", _("People"))
+    | $:link("/admin/support", _("Support"))
+    | $:link("/admin/tasks", _("Tasks")) 
+    <strong style="padding: 0px 5px">•</strong>
+    $:link("/admin/inspect/store", _("Inspect store"))    
+</div>

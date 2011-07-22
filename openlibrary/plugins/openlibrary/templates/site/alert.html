@@ -1,0 +1,8 @@
+<!-- <div id="topNotice" style="background-color: #000;"><p><b class="orange">Please Note:</b> Open Library's search engine is having issues. We're working on it, and will update on the <a href="http://blog.openlibrary.org" title="More information & updates on blog.openlibrary">blog</a> if needed.</p></div> -->
+
+$if "inlibrary" in ctx.features:
+    $ library = get_library()
+    $if library:
+        <div id="topNotice" style="background-color: #000;"><p><b style="padding:3px; background-color: #748d36; color: #fff;">&nbsp;<i>PSST!</i>&nbsp;</b>&nbsp;&nbsp;<span>$get_library().name</span> is participating in the "In Library" lending program. 
+
+        That means you can borrow from growing lending library of <a href="/borrow">over 100,000 eBooks</a>!</p></div>

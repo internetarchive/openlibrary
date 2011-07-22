@@ -16,8 +16,6 @@ import os
 import _init_path
 import web
 
-from infogami.infobase import server
-
 def setup_env():
     # make sure PYTHON_EGG_CACHE is writable
     os.environ['PYTHON_EGG_CACHE'] = "/tmp/.python-eggs"
@@ -30,8 +28,34 @@ def main(args):
         print >> sys.stderr, "USAGE: %s configfile [port]" % (sys.argv[0])
         sys.exit(1)
         
-    setup_env()
+    from infogami.infobase import server
     server.start(*args)
+    
+
+def start_gunicorn_server():
+    """Starts the infobase server using gunicorn server.
+    """
+    from gunicorn.app.base import Application
+
+    configfile = sys.argv.pop(1)
+
+    class WSGIServer(Application):
+        def init(self, parser, opts, args):
+            pass
+
+        def load(self):
+            from infogami.infobase import server
+            server.load_config(configfile)
+            return server.app.wsgifunc()
+
+    WSGIServer("%prog infobase.yml --gunicorn [options]").run()
+    
 
 if __name__ == "__main__":
-    main(sys.argv[1:])
+    setup_env()
+    
+    if "--gunicorn" in sys.argv:
+        sys.argv.pop(sys.argv.index("--gunicorn"))
+        start_gunicorn_server()
+    else:
+        main(sys.argv[1:])

@@ -1,0 +1,89 @@
+$def with (modified)
+
+<div id="contentHead">
+    <h1>Theme Editor</h1>
+    $:render_template("theme/menu")
+</div>
+
+<style type="text/css">
+.gd { background: #FDD; }
+.gi { background: #DFD; }
+.gu { color: #AAA; }
+
+div.checkbox {
+    float: left;
+    padding: 3px 5px 0;
+    text-align: center;
+    width: 37px;
+}
+
+div.diff-content {
+    float: left;
+    width: 700px;
+}
+
+div.diff-file {
+    clear: right;
+    width: 100%;
+}
+</style>
+
+<div id="contentBody">
+    <div class='right'>
+        <a href="javascript:;" id="expand_all">Expand All</a> / <a href="javascript:;" id="collapse_all">Collapse All</a>
+    </div>
+    <form method="POST" class="olform">
+        $for f in modified:
+            <div class="diff-file">
+                <div class="checkbox">
+                    <input type="checkbox" name="files" value="$f.name" checked="checked"/>
+                </div>
+                <div class="diff-content">
+                    <a href="/theme/files/$f.name">$f.name</a> <a href="javascript:;" class="small toggle-diff">show diff</a>
+                    <br/>
+                    <pre class="diff hidden">$:f.htmldiff</pre>
+                </div>
+                <div style="clear: both;"></div>
+            </div>
+        <div class="formElement">
+            <div class="label">
+                <label for="message">Please, leave a short note about what you changed:
+                </label>
+            </div>
+            <div class="input">
+                <textarea id="message" rows="3" style="width:900px;" name="message"></textarea>
+            </div>
+        </div>
+        <div style="clear: both;"></div>
+        <br/>
+        <div class="formElement">
+            &nbsp;
+            <button class="larger" title="Commit" name="" type="commit">Commit</button>
+        </div>
+    </form>
+</div>
+
+<script type="text/javascript">
+\$(function() {
+    \$("#expand_all").click(function() {
+        \$(".diff").show();
+    });
+    \$("#collapse_all").click(function() {
+        \$(".diff").hide();
+    });
+    
+    \$(".toggle-diff").toggle(function() {
+        \$(this)
+            .text("hide diff")
+            .parent()
+            .find("pre.diff")
+            .show();
+    }, function() {
+        \$(this)
+            .text("show diff")
+            .parent()
+            .find("pre.diff")
+            .hide();        
+    });
+});
+</script>

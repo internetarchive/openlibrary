@@ -1,5 +1,6 @@
 import re
 from openlibrary.catalog.utils import pick_first_date, tidy_isbn, flip_name, remove_trailing_dot, remove_trailing_number_dot
+from get_subjects import subjects_for_work
 from collections import defaultdict
 
 re_question = re.compile('^\?+$')
@@ -93,6 +94,10 @@ def read_oclc(rec):
     for f in rec.get_fields('035'):
         for k, v in f.get_subfields(['a']):
             m = re_oclc.match(v)
+            if not m:
+                m = re_ocn_or_ocm.match(v)
+                if m and not m.group(1).isdigit():
+                    m = None
             if m:
                 oclc = m.group(1)
                 if oclc not in found:
@@ -224,9 +229,17 @@ def read_edition_name(rec):
 
 lang_map = {
     'ser': 'srp', # http://www.archive.org/details/zadovoljstvauivo00lubb
+    'end': 'eng',
+    'enk': 'eng',
+    'ent': 'eng',
+    'cro': 'chu',
+    'jap': 'jpn',
+    'fra': 'fre',
+    'gwr': 'ger',
     'sze': 'slo',
     'fr ': 'fre',
-    'fle': 'dut',
+    'fle': 'dut', # flemish -> dutch
+    'it ': 'ita',
 }
 
 def read_languages(rec):
@@ -235,8 +248,8 @@ def read_languages(rec):
         return
     found = []
     for f in fields:
-        found += [i for i in f.get_subfield_values('a') if i and len(i) == 3]
-    return [{'key': '/languages/' + lang_map.get(i, i)} for i in found]
+        found += [i.lower() for i in f.get_subfield_values('a') if i and len(i) == 3]
+    return [lang_map.get(i, i) for i in found if i != 'zxx']
 
 def read_pub_date(rec):
     fields = rec.get_fields('260')
@@ -564,11 +577,13 @@ def read_edition(rec):
         if publish_country not in ('|||', '   ', '\x01\x01\x01', '???'):
             edition["publish_country"] = publish_country
         lang = str(f)[35:38]
-        if lang not in ('   ', '|||', '', '???'):
+        if lang not in ('   ', '|||', '', '???', 'zxx'):
             # diebrokeradical400poll
-            if lang.startswith('ng') and f[34] == 'e':
+            if str(f)[34:37].lower() == 'eng':
                 lang = 'eng'
-            edition["languages"] = [{ 'key': '/languages/' + lang.lower() }]
+            else:
+                lang = lang.lower()
+            edition['languages'] = [lang_map.get(lang, lang)]
     else:
         assert handle_missing_008
         update_edition(rec, edition, read_languages, 'languages')
@@ -590,6 +605,7 @@ def read_edition(rec):
     update_edition(rec, edition, read_url, 'links')
 
     edition.update(read_contributions(rec))
+    edition.update(subjects_for_work(rec))
 
     try:
         edition.update(read_title(rec))

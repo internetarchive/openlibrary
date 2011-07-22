@@ -1,4 +1,4 @@
-$def with (page)
+$def with (page, all_borrow=False)
 
 <script type="text/javascript">
 <!--
@@ -38,10 +38,8 @@ function loadCoverCarousels(carousel, state) {
 \$().ready(carousels);
 \$().ready(function() {
     carouselSetup(loadCoverCarousels);
-});
-\$().ready(function(){
-    \$('.jcarousel-next').attr('title','View the next editions for this subject.').append('<h4 class="shift"><a href="#" onclick="return false;">View the next editions for this subject</a></h4>');
-    \$('.jcarousel-prev').attr('title','View the previous editions for this subject.').append('<h4 class="shift"><a href="#" onclick="return false;">View the previous editions for this subject</a></h4>');
+    \$('.jcarousel-next').attr('title','View the next editions').append('<h4 class="shift"><a href="#" onclick="return false;">View the next editions</a></h4>');
+    \$('.jcarousel-prev').attr('title','View the previous editions').append('<h4 class="shift"><a href="#" onclick="return false;">View the previous editions</a></h4>');
 });
 //-->
 </script>
@@ -62,6 +60,20 @@ function get_authors(work) {
 //-->
 </script>
 
+$ inlibrary = "inlibrary" in ctx.features and bool(get_library())
+<script> var inlibrary = $:json_encode(inlibrary); </script>
+
+<script> var all_borrow = $:json_encode(all_borrow); </script>
+
+$code:
+    def contains(array, value):
+	    return value in array
+	    
+<script type="text/javascript">
+    function contains(array, value) {
+        return \$.inArray(value, array) >= 0;	
+    }
+</script>
 
 $jsdef render_page(page):
     $for w in page.works:
@@ -80,13 +92,11 @@ $jsdef render_page(page):
                         </div>
                     </div>
                 </a>
-            $ is_lending = 0
-            $for s in w.subject:
-                $if s == 'Lending library':
-                    $ is_lending = 1
-            $if w.has_fulltext and w.lending_edition:
-                <div class="coverEbook"><a href="/books/$w.lending_edition" title="$_('Borrow this book')"><img src="/images/icons/icon_borrow-avail.png" border="0" width="32" height="33" alt="$_('Borrow this book')"/></a></div>
-            $if w.has_fulltext and w.ia and w.public_scan:
+                
+            $ borrowable = all_borrow or contains(w.subject, 'Lending library') or (inlibrary and contains(w.subject, 'In library'))
+            $if w.ia and w.lending_edition and borrowable:
+                <div class="coverEbook"><a href="/books/$w.lending_edition/x/borrow" title="$_('Borrow this book')"><img src="/images/icons/icon_borrow-avail.png" border="0" width="32" height="33" alt="$_('Borrow this book')"/></a></div>
+            $if not all_borrow and w.ia and w.public_scan:
                 <div class="coverEbook"><a href="http://www.archive.org/stream/$w.ia" title="$_('Read online')"><img src="/images/icons/icon_ebook-avail.png" border="0" width="32" height="33" alt="$_('Read online')"/></a></div>
                 <!-- Protected DAISY flag is not set at the Work level (yet)
                 if w.is_daisy_encrypted():
@@ -100,9 +110,9 @@ $jsdef render_page(page):
                 if overdrive_id:
                     <div class="coverEbook"><a href="overdrive.replace('XXX', overdrive_id)" title="_('Borrow this book')"><img src="/images/icons/icon_borrow-avail.png" border="0" width="32" height="33" alt="_('Borrow this book')"/></a></div>
                 -->
-            $if not w.public_scan and w.printdisabled and not w.overdrive and not w.lending_edition:
+            $if not all_borrow and not w.public_scan and w.printdisabled and not w.overdrive and not borrowable:
                 <div class="coverEbook"><a href="$w.key" title="$_('Download a protected DAISY')"><img src="/images/icons/icon_pdaisy-avail.png" border="0" width="32" height="33" alt="$_('Download a protected DAISY')"/></a></div>
-            $if w.overdrive and not w.public_scan:
+            $if not all_borrow and w.overdrive and not w.public_scan and not borrowable:
                 <div class="coverEbook"><a href="http://search.overdrive.com/SearchResults.aspx?ReserveID={$(w.overdrive)}" title="$_('Borrow this book')"><img src="/images/icons/icon_borrow-avail.png" border="0" width="32" height="33" alt="$_('Borrow this book')"/></a></div>
         </div>
 

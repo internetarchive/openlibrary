@@ -1,0 +1,93 @@
+$def with (completed = [], active = [], reserved = [], limit = 20, offset = 0, fstart="", fend="", base_url = "", task_ranges = [])
+
+<div id="contentHead">
+    $:render_template("admin/menu", "/admin")
+    <h1>Task status</h1>
+</div>
+<div id="contentBody">
+<script type="text/javascript">
+\$(function() {
+    \$( "input.date" ).datepicker({ changeMonth: true });
+});
+</script>
+
+<style type="text/css">
+table.tasks { 
+              font-family: Lucida, "Lucida Sans";
+              font-size: 0.75em;
+              }
+
+table.tasks th { 
+                 font-weight: bold;
+ }
+table.tasks th, table.tasks td {
+                                 border-bottom: 1px solid #ddd; 
+                                 vertical-align:top;
+                                 padding: 5pt;
+                                 }
+table.tasks pre.hidden { 
+                         display: none;
+ }
+
+div.ui-datepicker { 
+                    background-color:#eee;
+                    border: 1px solid black;
+                    }
+
+table.tasks tr.active td { 
+                           background-color: #ff0;
+ }
+
+table.tasks tr.reserved td { 
+                           background-color: #ff0;
+ }
+
+
+</style>
+<form method="GET" action="/admin/tasks">
+  <fieldset>
+    <legend>Filters</legend>
+    <!-- <label> Command </label> -->
+    <!-- <input type="text" name="command" /> -->
+    Finished between (start)
+    <input type="text" class = "date" name="finishedat_start" value="$fstart"/>
+     and (end)
+     <input type="text" class = "date" name="finishedat_end" value="$fend"/>
+     <br/>
+     Results per page
+     <select name="limit">
+       $for i in range(10,100,10):
+         $if limit == i:
+           <option selected = "true" value="$i">$i</option>
+	 $else:
+	   <option value="$i">$i</option>
+     </select>
+     <br/>
+     <input type="submit" name="submit" value="Filter"/><br/>
+  </fieldset>
+</form>
+
+<table class = "tasks" border="0" cellspacing="0" cellpadding="10">
+    <tr>
+        <th>Uuid</th>
+        <th>Command</th>
+        <th>Arguments</th>
+	<th>Status</th>
+        <th>Host</th>
+        <th>Started at</th>
+	<th>Finished at</th>
+        <!-- <th>Affected docs</th> -->
+    </tr>
+$:render_template("admin/tasks/completed", completed)
+$:render_template("admin/tasks/active", active)
+$:render_template("admin/tasks/reserved", reserved)
+</table>
+<div class="pagination">
+  $for i in task_ranges:
+  $if i == offset:
+    <span class="this">$i</span>
+  $else:
+    <a href="$(base_url)&offset=$(i)">$i</a>
+</div>
+
+</div>

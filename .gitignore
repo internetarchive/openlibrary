@@ -4,6 +4,7 @@
 *.mo
 var/
 usr/
+static/build/
 build/
 docs/api/openlibrary/
 docs/api/infogami/
@@ -22,3 +23,11 @@ vendor/apache-solr-1.4.0/
 vendor/couchdb-1.0.1/
 vendor/couchdb-lucene-0.6-SNAPSHOT/
 vendor/solr/
+openlibrary/mailserver/logs/lamson.err
+openlibrary/mailserver/logs/lamson.log
+openlibrary/mailserver/logs/logger.log
+lamson.out
+openlibrary/mailserver/run/
+bad_data.json
+celerybeat-schedule
+

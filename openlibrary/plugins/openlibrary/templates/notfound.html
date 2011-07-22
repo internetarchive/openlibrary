@@ -1,16 +1,23 @@
-$def with (path)
+$def with (path, create=None)
 
-$var title: $_.not_found
- 
-$:macros.databar()
+$var title: $_("%s is not found", path)
 
+$if create is None:
+    $ prefixes = ["/authors/", "/books/", "/works/", "/show-marc", "/account/"]
+    $ create = not any(path.startswith(prefix) for prefix in prefixes)
 
-<div id="header-fullpage">
-    <span id="title">$_.not_found</span><br /><br /> 
-    <span id="statement">$_.page_does_not_exist  
-    $if (not path.startswith('/a/')) and (not path.startswith('/b/')):
-        (<a href="$:changequery(m='edit')">$_.create_it</a>)
-    </span>
+<div id="contentHead">
+    <h1>$_("404 - Page Not Found")</h1>
 </div>
 
-<br /><br /><br />
+<div id="contentBody">
+    <p>$_("%s does not exist", path)</p>
+    $if create: 
+        <p><a href="$:changequery(m='edit')">$_("Create it?")</a></p>
+
+    <div>
+    $if "/templates" in path or "/macros" in path:
+        <h3>Looking for a template/macro?</h3>
+        $:macros.PageList(path)
+    </div>
+</div>

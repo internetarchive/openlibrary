@@ -1,0 +1,34 @@
+$def with ()
+
+<div id="contentHead">
+    <h1>Theme Editor</h1>
+    $:render_template("theme/menu")
+</div>
+
+<div id="contentBody">
+    
+    <h2>Pull Changes</h2>
+
+    Press this button to update dev.openlibrary.org with code changes made to master branch.
+    
+    <form class="olform" method="POST" action="/theme/git-merge">
+        <div class="formElement bottom">
+            <br/>
+            <button type="submit" name="">$_('Pull Changes')</button>
+        </div>
+    </form>
+    
+    <h2>Deploy Changes</h2>
+    
+    Deploy changes made on dev to production.
+        
+    <form class="olform" method="POST" action="/admin/deploy">
+        <div class="formElement bottom">
+            <input type="hidden" name="merge" value="true"/>
+            <input type="hidden" name="deploy" value="openlibrary"/>
+            <input type="hidden" name="restart" value="openlibrary"/>
+            <br/>
+            <button type="submit" name="">$_('Deploy Changes')</button>
+        </div>
+    </form>
+</div>
