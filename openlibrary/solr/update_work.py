@@ -10,7 +10,7 @@ from openlibrary import config
 from unicodedata import normalize
 
 re_lang_key = re.compile(r'^/(?:l|languages)/([a-z]{3})$')
-re_author_key = re.compile(r'^/(?:a|authors)/(OL\d+A)$')
+re_author_key = re.compile(r'^/(?:a|authors)/(OL\d+A)')
 re_edition_key = re.compile(r'^/(?:b|books)/(OL\d+M)$')
 
 solr_host = {}
@@ -466,7 +466,7 @@ def update_author(akey, a=None, handle_redirects=True):
     m = re_author_key.match(akey)
     if not m:
         print 'bad key:', akey
-        return
+    assert m
     author_id = m.group(1)
     if not a:
         a = withKey(akey)
