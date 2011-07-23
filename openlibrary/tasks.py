@@ -39,7 +39,7 @@ def on_edit(changeset):
     """This gets triggered whenever an edit happens on Open Library.
     """
     update_lists.delay(changeset)
-    update_solr.delay(changeset)
+    #update_solr.delay(changeset)
     
 @oltask
 def update_lists(changeset):
