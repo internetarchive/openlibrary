@@ -50,7 +50,7 @@ def update_lists(changeset):
     ol_config = formats.load_yaml(open(configfile).read())
     
     updater = ListUpdater(ol_config.get("lists"))
-    updater.process_changeset(changeset, update_seeds=True)
+    updater.process_changeset(changeset, update_seeds=False)
     logger.info("END update_lists")
 
 @oltask
