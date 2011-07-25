@@ -9,13 +9,6 @@ except ImportError:
     couchdb = None
 
 
-def maybe_serialise(data):
-    """Tries to serialise the data into a JSON string. If it fails, it
-    simply returns the str() representation"""
-    try:
-        return json.dumps(data)
-    except TypeError:
-        return str(data)
     
 
 
@@ -37,9 +30,17 @@ class CouchDBBackend(BaseDictBackend):
         
 
     def _store_result(self, task_id, result, status, traceback=None):
-        doc = dict(result = maybe_serialise(result),
-                   status = maybe_serialise(status),
-                   traceback = maybe_serialise(traceback))
+        try:
+            serialised_result = json.dumps(result)
+            doc = dict(result = serialised_result,
+                       status = str(status),
+                       traceback = str(traceback))
+        except TypeError:
+            serialised_result = str(result)
+            doc = dict(result = None,
+                       result_err = serialised_result,
+                       status = str(status),
+                       traceback = str(traceback))
 
         self.database[task_id] = doc
         self.database.save(doc)
