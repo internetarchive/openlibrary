@@ -120,17 +120,29 @@ class Thing(client.Thing):
         return u
                 
     def _get_lists(self, limit=50, offset=0, sort=True):
+        # cache the default case
+        if limit == 50 and offset == 0:
+            keys = self._get_lists_cached()
+        else:
+            keys = self._get_lists_uncached(limit=limit, offset=offset)
+            
+        lists = self._site.get_many(keys)
+        if sort:
+            lists = h.safesort(lists, reverse=True, key=lambda list: list.last_update)
+        return lists
+        
+    @cache.memoize(engine="memcache", key=lambda self: "lists" + self.key)
+    def _get_lists_cached(self):
+        return self._get_lists_uncached(limit=50, offset=0)
+        
+    def _get_lists_uncached(self, limit, offset):
         q = {
             "type": "/type/list",
             "seeds": {"key": self.key},
             "limit": limit,
             "offset": offset
         }
-        keys = self._site.things(q)
-        lists = self._site.get_many(keys)
-        if sort:
-            lists = h.safesort(lists, reverse=True, key=lambda list: list.last_update)
-        return lists
+        return self._site.things(q)
 
 class Edition(Thing):
     """Class to represent /type/edition objects in OL.
