@@ -465,10 +465,13 @@ def get_edition_loans(edition):
     # An edition can't have loans if it doens't have an IA ID. 
     # This check avoids a lot of unnecessary queries.
     if edition.ocaid:
-        # return web.ctx.site.store.values(type='/type/loan', name='book', value=edition.key)
-        return get_all_store_values(type='/type/loan', name='book', value=edition.key)
-    else:
-        return []
+        # Get the loans only if the book is borrowed. Since store.get requests
+        # are memcache-able, checking this will be very fast.
+        # This avoids making expensive infobase query for each book.
+        if web.ctx.site.store.get("ebooks" + edition['key'], {}).get("borrowed") == "true":
+            return get_all_store_values(type='/type/loan', name='book', value=edition.key)
+    
+    return []
 
 def get_loan_link(edition, type):
     """Get the loan link, which may be an ACS4 link or BookReader link depending on the loan type"""
