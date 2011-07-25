@@ -175,8 +175,8 @@ def build_doc(w, obj_cache={}, resolve_redirects=False):
             #print 'overdrive:', overdrive_id
             e['overdrive'] = overdrive_id
         if 'identifiers' in e:
-            for k, v in e:
-                k = k.lower()
+            for k, v in e.iteritems():
+                k = k.replace('.', '_').lower()
                 assert re_solr_field.match(k)
                 if k in isbn_fields:
                     continue
@@ -297,6 +297,10 @@ def build_doc(w, obj_cache={}, resolve_redirects=False):
     cover_edition = pick_cover(w, editions)
     if cover_edition:
         add_field(doc, 'cover_edition_key', re_edition_key.match(cover_edition).group(1))
+    if w.get('covers'):
+        cover = w['covers'][0]
+        assert isinstance(cover, int)
+        add_field(doc, 'cover_i', cover)
 
     k = 'by_statement'
     add_field_list(doc, k, set( e[k] for e in editions if e.get(k, None)))
@@ -425,7 +429,7 @@ def build_doc(w, obj_cache={}, resolve_redirects=False):
         add_field_list(doc, k + '_key', subject_keys)
 
     for k in sorted(identifiers.keys()):
-        add_field_list(doc, 'id_' + k, identifiers[v])
+        add_field_list(doc, 'id_' + k, identifiers[k])
 
     return doc
 
