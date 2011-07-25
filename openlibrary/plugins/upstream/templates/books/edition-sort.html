@@ -119,7 +119,7 @@ $ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
                 <ul>
                 $if overdrive_id:
                     <li><a href="$overdrive.replace('XXX', overdrive_id)" title="Borrow from OverDrive">eBook, local library</a><br /><span class="gray smaller">via OverDrive</span></li>
-                $if  'lendinglibrary' in collection or user_loan or library:
+                $if  'lendinglibrary' in collection or library:
                     $ current_and_available_loans = book.get_current_and_available_loans()
                     $ user_loan = None
                     $if ctx.user:
