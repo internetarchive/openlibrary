@@ -158,7 +158,6 @@ def build_doc(w, obj_cache={}, resolve_redirects=False):
         print 'editions:', [e['key'] for e in w['editions']]
 
     identifiers = defaultdict(list)
-    isbn_fields = set(['isbn', 'isbn_10', 'isbn_13'])
 
     editions = []
     for e in w['editions']:
@@ -175,15 +174,13 @@ def build_doc(w, obj_cache={}, resolve_redirects=False):
             #print 'overdrive:', overdrive_id
             e['overdrive'] = overdrive_id
         if 'identifiers' in e:
-            for k, v in e.iteritems():
+            for k, id_list in e.iteritems():
                 k = k.replace('.', '_').lower()
                 assert re_solr_field.match(k)
-                if k in isbn_fields:
-                    continue
-                v = v.strip()
-                if v not in identifiers[k]:
-                    identifiers[k].append(v)
-
+                for v in id_list:
+                    v = v.strip()
+                    if v not in identifiers[k]:
+                        identifiers[k].append(v)
         editions.append(e)
 
     editions.sort(key=lambda e: e.get('pub_year', None))
