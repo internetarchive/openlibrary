@@ -28,8 +28,11 @@ class CouchDBBackend(BaseDictBackend):
 
         self.database = couchdb.Database(self.dburi)
         
-
-    def _store_result(self, task_id, result, status, traceback=None):
+    def _get_tombstone(self, result, status, traceback):
+        if status == "FAILURE":
+            # Pull out traceback, args and other things from exception in case of FAILURE
+            traceback = result.args[1].pop('traceback')
+            result = result.args[1]
         try:
             serialised_result = json.dumps(result)
             doc = dict(result = serialised_result,
@@ -41,7 +44,10 @@ class CouchDBBackend(BaseDictBackend):
                        result_err = serialised_result,
                        status = str(status),
                        traceback = str(traceback))
+        return doc
 
+    def _store_result(self, task_id, result, status, traceback=None):
+        doc = self._get_tombstone(result, status, traceback)
         self.database[task_id] = doc
         self.database.save(doc)
         
