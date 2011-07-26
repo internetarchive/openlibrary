@@ -112,21 +112,21 @@ $ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
         </div>
         </td>
 
-    $if isbn_10 or oclc_numbers or overdrive_id or 'lendinglibrary' in collection or 'inlibrary' in collection:
-        $ current_and_available_loans = book.get_current_and_available_loans()
-        $ user_loan = None
-        $if ctx.user:
-            $for current_loan in current_and_available_loans[0]:
-                $if current_loan['user'] == ctx.user.key:
-                    $ user_loan = current_loan
-                    $ break
+    $if isbn_10 or oclc_numbers or overdrive_id or 'lendinglibrary' in collection or library:
         <td class="icon borrow">
             <div class="aaaa"></div>
             <div class="links">
                 <ul>
                 $if overdrive_id:
                     <li><a href="$overdrive.replace('XXX', overdrive_id)" title="Borrow from OverDrive">eBook, local library</a><br /><span class="gray smaller">via OverDrive</span></li>
-                $if  'lendinglibrary' in collection or user_loan or library:
+                $if  'lendinglibrary' in collection or library:
+                    $ current_and_available_loans = book.get_current_and_available_loans()
+                    $ user_loan = None
+                    $if ctx.user:
+                        $for current_loan in current_and_available_loans[0]:
+                            $if current_loan['user'] == ctx.user.key:
+                                $ user_loan = current_loan
+                                $ break
                     $:macros.LoanStatus(book, 'eBook', ctx.user, current_and_available_loans, contrib, '')
                 $if isbn_10:
                     <li><a href="$worldcat.replace('XXX', isbn_10)" title="Look for this edition at WorldCat">Physical copy</a><br /><span class="gray smaller">via WorldCat</span></li>
