@@ -174,9 +174,13 @@ def build_doc(w, obj_cache={}, resolve_redirects=False):
             #print 'overdrive:', overdrive_id
             e['overdrive'] = overdrive_id
         if 'identifiers' in e:
-            for k, id_list in e.iteritems():
+            for k, id_list in e['identifiers'].iteritems():
+                k_orig = k
                 k = k.replace('.', '_').lower()
-                assert re_solr_field.match(k)
+                m = re_solr_field.match(k)
+                if not m:
+                    print `k_orig`
+                assert m
                 for v in id_list:
                     v = v.strip()
                     if v not in identifiers[k]:
