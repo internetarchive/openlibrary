@@ -16,6 +16,7 @@ from openlibrary.plugins.upstream.account import Account
 
 # relative imports
 from lists.model import ListMixin, Seed
+from . import cache
 
 class Image:
     def __init__(self, site, category, id):
@@ -43,14 +44,57 @@ class Image:
     def __repr__(self):
         return "<image: %s/%d>" % (self.category, self.id)
 
-
 class Thing(client.Thing):
-    """Base class for all OL models."""
+    """Base class for all OL models."""    
+    
+    @cache.method_memoize
     def get_history_preview(self):
-        if '_history_preview' not in self.__dict__:
-            self.__dict__['_history_preview'] = get_history(self)
-        return self._history_preview
+        """Returns history preview.
+        """
+        history = self._get_history_preview()
+        history = web.storage(history)
         
+        history.revision = self.revision
+        history.lastest_revision = self.revision
+        history.created = self.created
+        
+        def process(v):
+            """Converts entries in version dict into objects.
+            """
+            v = web.storage(v)
+            v.created = h.parse_datetime(v.created)
+            v.author = v.author and self._site.get(v.author, lazy=True)
+            return v
+        
+        history.initial = [process(v) for v in history.initial]
+        history.recent = [process(v) for v in history.recent]
+        
+        return history
+
+    @cache.memoize(engine="memcache", key=lambda self: "history" + self.key)
+    def _get_history_preview(self):
+        h = {}
+        if self.revision < 5:
+            h['recent'] = self._get_versions(limit=5)
+            h['initial'] = h['recent'][-1:]
+            h['recent'] = h['recent'][:-1]
+        else:
+            h['initial'] = self._get_versions(limit=1, offset=self.revision-1)
+            h['recent'] = self._get_versions(limit=4)
+        return h
+            
+    def _get_versions(self, limit, offset=0):
+        q = {"key": self.key, "limit": limit, "offset": offset}
+        versions = self._site.versions(q)
+        for v in versions:
+            v.created = v.created.isoformat()
+            v.author = v.author and v.author.key
+
+            # XXX-Anand: hack to avoid too big data to be stored in memcache.
+            # v.changes is not used and it contrinutes to memcache bloat in a big way.
+            v.changes = '[]'
+        return versions
+                
     def get_most_recent_change(self):
         """Returns the most recent change.
         """
@@ -74,19 +118,31 @@ class Thing(client.Thing):
         if params:
             u += '?' + urllib.urlencode(params)
         return u
-        
+                
     def _get_lists(self, limit=50, offset=0, sort=True):
+        # cache the default case
+        if limit == 50 and offset == 0:
+            keys = self._get_lists_cached()
+        else:
+            keys = self._get_lists_uncached(limit=limit, offset=offset)
+            
+        lists = self._site.get_many(keys)
+        if sort:
+            lists = h.safesort(lists, reverse=True, key=lambda list: list.last_update)
+        return lists
+        
+    @cache.memoize(engine="memcache", key=lambda self: "lists" + self.key)
+    def _get_lists_cached(self):
+        return self._get_lists_uncached(limit=50, offset=0)
+        
+    def _get_lists_uncached(self, limit, offset):
         q = {
             "type": "/type/list",
             "seeds": {"key": self.key},
             "limit": limit,
             "offset": offset
         }
-        keys = self._site.things(q)
-        lists = self._site.get_many(keys)
-        if sort:
-            lists = h.safesort(lists, reverse=True, key=lambda list: list.last_update)
-        return lists
+        return self._site.things(q)
 
 class Edition(Thing):
     """Class to represent /type/edition objects in OL.
@@ -120,18 +176,15 @@ class Work(Thing):
         return "<Work: %s>" % repr(self.key)
     __str__ = __repr__
 
-    def get_edition_count(self):
-        if '_editon_count' not in self.__dict__:
-            self.__dict__['_editon_count'] = self._site._request(
-                                                '/count_editions_by_work', 
-                                                data={'key': self.key})
-        return self.__dict__['_editon_count']
-    
-    edition_count = property(get_edition_count)
+    @property
+    @cache.method_memoize
+    @cache.memoize(engine="memcache", key=lambda self: "edition_count" + self.key)
+    def edition_count(self):
+        return self._site._request("/count_editions_by_work", data={"key": self.key})
 
     def get_lists(self, limit=50, offset=0, sort=True):
         return self._get_lists(limit=limit, offset=offset, sort=sort)
-
+    
 class Author(Thing):
     """Class to represent /type/author objects in OL.
     """
