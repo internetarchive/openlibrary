@@ -4,6 +4,7 @@ import _init_path
 
 from urllib import urlopen
 from urllib2 import URLError
+
 import simplejson, re
 from time import time, sleep
 from openlibrary.catalog.utils.query import withKey, set_query_host
@@ -13,6 +14,7 @@ from lxml.etree import tostring, Element
 from openlibrary.api import OpenLibrary, Reference
 from openlibrary.catalog.read_rc import read_rc
 from openlibrary import config
+
 import argparse
 from os.path import exists
 import sys
