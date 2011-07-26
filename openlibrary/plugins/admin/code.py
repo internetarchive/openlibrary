@@ -412,13 +412,15 @@ class inspect:
         return render_template("admin/inspect/store", docs, input=i)
         
     def GET_memcache(self):
-        i = web.input(key=None)
+        i = web.input()
+        i.setdefault("keys", "")
         
         from openlibrary.plugins.openlibrary import connection
         mc = connection._memcache
         
-        value = i.key and mc.get(i.key)
-        return render_template("admin/inspect/memcache", i.key, value)
+        keys = [k.strip() for k in i["keys"].split() if k.strip()]        
+        mapping = keys and mc.get_multi(keys)
+        return render_template("admin/inspect/memcache", keys, mapping)
         
 class deploy:
     def GET(self):
