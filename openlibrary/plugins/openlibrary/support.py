@@ -29,7 +29,7 @@ class contact(delegate.page):
         url = form.get("url", "")
         user = web.ctx.site.get_user()
         useragent = web.ctx.env.get("HTTP_USER_AGENT","")
-        if not all([email, topic, description, url]):
+        if not all([email, topic, description]):
             return ""
         c = support_db.create_case(creator_name      = user and user.get_name() or "",
                                    creator_email     = email,
@@ -50,7 +50,6 @@ class contact(delegate.page):
         web.sendmail(config.get("support_case_control_address","support@openlibrary.org"),
                      config.get("support_case_notification_address","info@openlibrary.org"),
                      subject, notification)
-
         return render_template("email/case_created", c)
 
 
