@@ -8,7 +8,8 @@ from openlibrary.catalog.marc.marc_binary import MarcBinary
 from openlibrary.catalog.marc.marc_xml import MarcXml
 from openlibrary.catalog.marc.parse import read_edition
 from openlibrary.catalog.add_book import load
-import openlibrary.tasks
+#import openlibrary.tasks
+from ... import tasks
 
 import web
 import json
@@ -84,22 +85,25 @@ def get_next_count():
         return count
 
 def queue_s3_upload(data, format):
-        s3_key = config.plugin_importapi.get('s3_key')
-        s3_secret = config.plugin_importapi.get('s3_secret')
-        counter = get_next_count()
-        filename = '%03d.%s' % (counter, format)
-        s3_item_id = config.plugin_importapi.get('s3_item', 'test_ol_import')
-        s3_item_id += '_%03d' % (counter/1000)
-        #print 'attempting to queue s3 upload with %s:%s file=%s item=%s' % (s3_key, s3_secret, filename, s3_item_id)
-        openlibrary.tasks.upload_via_s3.delay(s3_item_id, filename, data, s3_key, s3_secret)  
-        #print 'done queuing s3 upload'
-        source_url = 'http://www.archive.org/download/%s/%s' % (s3_item_id, filename)
-        return source_url
+    s3_key = config.plugin_importapi.get('s3_key')
+    s3_secret = config.plugin_importapi.get('s3_secret')
+    counter = get_next_count()
+    filename = '%03d.%s' % (counter, format)
+    s3_item_id = config.plugin_importapi.get('s3_item', 'test_ol_import')
+    s3_item_id += '_%03d' % (counter/1000)
+
+    #print 'attempting to queue s3 upload with %s:%s file=%s item=%s' % (s3_key, s3_secret, filename, s3_item_id)
+    tasks.upload_via_s3.delay(s3_item_id, filename, data, s3_key, s3_secret)
+    #print 'done queuing s3 upload'
+
+    source_url = 'http://www.archive.org/download/%s/%s' % (s3_item_id, filename)
+    return source_url
 
 class importapi:
     def GET(self):
         web.header('Content-Type', 'text/plain')
-        return 'The Import API only supports POST requests.'
+        tasks.add.delay(777, 777)
+        return 'Import API only supports POST requests.'
 
     def POST(self):
         web.header('Content-Type', 'application/json')

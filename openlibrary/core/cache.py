@@ -4,6 +4,7 @@ import random
 import string
 import time
 import threading
+import functools
 
 import memcache
 import simplejson
@@ -11,6 +12,8 @@ import web
 
 from infogami import config
 from infogami.utils import stats
+
+from openlibrary.utils import olmemcache
 
 __all__ = [
     "cached_property",
@@ -195,7 +198,6 @@ class memcache_memoize:
         Returns (value, time) when the value is available, None otherwise.
         """
         key = self.compute_key(args, kw)
-
         stats.begin("memcache.get", key=key)
         json = self.memcache.get(key)
         stats.end(hit=bool(json))
@@ -204,14 +206,16 @@ class memcache_memoize:
         
 ####
 
-def cached_property(name, getter):
+def cached_property(getter):
     """Decorator like `property`, but the value is computed on first call and cached.
     
     class Foo:
-        def create_memcache_client(self):
+        
+        @cached_property
+        def memcache_client(self):
             ...
-        memcache_client = cache_property("memcache_client", create_memcache_client)
     """
+    name = getter.__name__
     def g(self):
         if name in self.__dict__:
             return self.__dict__[name]
@@ -274,34 +278,45 @@ class MemcacheCache(Cache):
     
     Expects that the memcache servers are specified in web.config.memcache_servers.
     """
-    def load_memcache(self):
-        servers = web.config.get("memcache_servers", [])
-        return memcache.Client(servers)
-    
-    memcache = cached_property("memcache", load_memcache)
+    @cached_property
+    def memcache(self):
+        servers = config.get("memcache_servers", [])
+        return olmemcache.Client(servers)
     
     def get(self, key):
-        return self.memcache.get(key)
-        
+        key = web.safestr(key)
+        stats.begin("memcache.get", key=key)
+        value = self.memcache.get(key)
+        stats.end(hit=value is not None)
+        return value
+
     def set(self, key, value, expires=0):
-        return self.memcache.set(key, value, expires)
-        
+        key = web.safestr(key)
+        stats.begin("memcache.set", key=key)
+        value = self.memcache.set(key, value, expires)
+        stats.end()
+        return value
+
     def add(self, key, value, expires=0):
-        return self.memcache.add(key, value, expires)
+        key = web.safestr(key)
+        stats.begin("memcache.add", key=key)
+        value = self.memcache.add(key, value, expires)
+        return value
         
     def delete(self, key):
-        return self.memcache.delete(key)
-
+        key = web.safestr(key)
+        stats.begin("memcache.delete", key=key)
+        value = self.memcache.delete(key)
+        return value
 
 class RequestCache(Cache):
     """Request-Local cache.
     
     The values are cached only in the context of the current request.
     """
-    def get_d(self):
+    @property
+    def d(self):
         return web.ctx.setdefault("request-local-cache", {})
-    
-    d = property(get_d)
 
     def get(self, key):
         return self.d.get(key)
@@ -349,11 +364,13 @@ def memoize(engine="memory", expires=0, background=False, key=None, cacheable=No
     
     * expires:
         The amount of time in seconds the value should be cached. Pass expires=0 to cache indefinitely.
+        (Not yet implemented)
         
     * background:
         Indicates that the value must be recomputed in the background after
         the timeout. Until the new value is ready, the function continue to
         return the same old value.
+        (not yet implemented)
         
     * key:
         key to be used in the cache. If this is a string, arguments are append
@@ -366,9 +383,10 @@ def memoize(engine="memory", expires=0, background=False, key=None, cacheable=No
         Function to determine if the returned value is cacheable. Sometimes it
         is desirable to not cache return values generated due to error
         conditions. The cacheable function is called with (key, value) as
-        arguments.
+        arguments. 
+        (Not yet implemented)
         
-    Advanced Usage:
+    Advanced Usage: (not yet implemented)
     
     Sometimes, it is desirable to store results of related functions in the
     same cache entry to reduce memory usage. It can be achieved by making the
@@ -378,7 +396,7 @@ def memoize(engine="memory", expires=0, background=False, key=None, cacheable=No
         def get_history(page):
             pass
             
-        @cache.memoize(engine="memoize", key=lambda key: (key, "doc"))
+        @cache.memoize(engine="memory", key=lambda key: (key, "doc"))
         def get_page(key):
             pass
     """
@@ -388,8 +406,19 @@ def memoize(engine="memory", expires=0, background=False, key=None, cacheable=No
         
     def decorator(f):
         keyfunc = _make_key_func(key, f)
-        return MemoizedFunction(f, cache, keyfunc, cacheable=cacheable)
-    
+        f2 = MemoizedFunction(f, cache, keyfunc, cacheable=cacheable)
+        
+        @functools.wraps(f)
+        def g(*args, **kwargs):
+            key = keyfunc(*args, **kwargs)
+            value = cache.get(key)
+            if value is None:
+                value = f(*args, **kwargs)
+                cache.set(key, simplejson.dumps(value))
+            else:
+                value = simplejson.loads(value)
+            return value
+        return g
     return decorator
 
 def _make_key_func(key, f):
@@ -437,7 +466,7 @@ class MemoizedFunction:
         
     def __call__(self, *args, **kwargs):
         key = self.keyfunc(*args, **kwargs)
-        value_time = self.cache.get(key)
+        value = self.cache.get(key)
         
         # value is not found in cache
         if value_time is None:
@@ -490,3 +519,19 @@ class MemoizedFunction:
             
     def __repr__(self):
         return "<Memoized %r>" % self.f
+
+
+def method_memoize(f):
+    """object-local memoize. 
+    
+    Works only for functions without any arguments.
+    
+    TODO: support arguments.
+    """
+    @functools.wraps(f)
+    def g(self):
+        cache = self.__dict__.setdefault('_memoize_cache', {})
+        if f.__name__ not in cache:
+            cache[f.__name__] = f(self)
+        return cache[f.__name__]
+    return g

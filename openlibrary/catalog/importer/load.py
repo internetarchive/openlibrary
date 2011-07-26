@@ -198,7 +198,30 @@ def build_query(loc, rec):
         print 'fixed:', langs
 
     for l in rec.get('languages', []):
-        assert withKey(l)
+        print l
+        if l['key'] == '/languages/ser':
+            l['key'] = '/languages/srp'
+        if l['key'] in ('/languages/end', '/languages/enk', '/languages/ent', '/languages/enb'):
+            l['key'] = '/languages/eng'
+        if l['key'] == '/languages/emg':
+            l['key'] = '/languages/eng'
+        if l['key'] == '/languages/cro':
+            l['key'] = '/languages/chu'
+        if l['key'] == '/languages/jap':
+            l['key'] = '/languages/jpn'
+        if l['key'] == '/languages/fra':
+            l['key'] = '/languages/fre'
+        if l['key'] == '/languages/ila':
+            l['key'] = '/languages/ita'
+        if l['key'] == '/languages/gwr':
+            l['key'] = '/languages/ger'
+        if l['key'] == '/languages/fr ':
+            l['key'] = '/languages/fre'
+        if l['key'] == '/languages/it ':
+            l['key'] = '/languages/ita'
+        if l['key'] == '/languages/fle': # flemish -> dutch
+            l['key'] = '/languages/dut'
+        assert withKey(l['key'])
 
     for k, v in rec.iteritems():
         if k == 'authors':

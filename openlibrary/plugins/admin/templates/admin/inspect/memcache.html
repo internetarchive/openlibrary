@@ -1,0 +1,36 @@
+$def with (keys, mapping)
+
+$var title: [Admin Center] Inspect Memcache
+
+<div id="contentHead">
+    $:render_template("admin/menu")
+    <h1>Inspect Memcache</h1>
+</div>
+
+<div id="contentBody">
+    
+    <div>
+        <form name="by_key" class="olform">
+            Keys:<br/>
+            <textarea name="keys" rows="5">$"\n".join(keys)</textarea>
+            <br/>
+            <button type="submit">Submit</button>
+        </form>
+        
+        <h3>Result</h3>
+            $if not keys:
+                <em>No keys selected.</em>
+            $else:
+                <div style="padding: 0px 10px;">
+                $for key in keys:
+                    <div style="padding: 5px 0px;">
+                        <strong>$key</strong><br/>
+                        $if key in mapping:
+                            <pre>$:mapping[key]</pre>
+                        $else:
+                            <em>Not found.</em>
+                    </div>
+                </div>
+    </div>
+
+</div>
