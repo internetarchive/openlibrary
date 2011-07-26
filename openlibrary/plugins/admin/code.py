@@ -392,6 +392,8 @@ class inspect:
     def GET(self, section):
         if section == "store":
             return self.GET_store()
+        elif section == "memcache":
+            return self.GET_memcache()
         else:
             raise web.notfound()
         
@@ -408,6 +410,15 @@ class inspect:
             docs = web.ctx.site.store.values(type=i.type or None, name=i.name or None, value=i.value or None, limit=100)
             
         return render_template("admin/inspect/store", docs, input=i)
+        
+    def GET_memcache(self):
+        i = web.input(key=None)
+        
+        from openlibrary.plugins.openlibrary import connection
+        mc = connection._memcache
+        
+        value = i.key and mc.get(i.key)
+        return render_template("admin/inspect/memcache", i.key, value)
         
 class deploy:
     def GET(self):

@@ -1,0 +1,57 @@
+$def with (key=None, value=None)
+
+$var title: [Admin Center] Inspect Memcache
+
+<style type="text/css">
+    tr {
+        border-bottom: 1px solid #eee;
+    }
+    th {
+    	font-weight: bold;
+    	text-transform: uppercase;
+    	color: #333333;    	
+    }
+    td {
+        min-width: 150px;
+        margin: 0px 5px;
+    }
+    
+    input[type=text] {
+        width: 200px;
+    }
+
+    form.olform tr {
+        border: none;
+    }
+    
+    form.olform td {
+        padding: 1px;
+    }
+    
+    form.olform input[type="text"] {
+        width: 200px;
+    }
+</style>
+
+<div id="contentHead">
+    $:render_template("admin/menu")
+    <h1>Inspect Memcache</h1>
+</div>
+
+<div id="contentBody">
+    
+    <div>
+        <form name="by_key" class="olform">
+            Key <input type="text" name="key" value="$key"> <button type="submit">Submit</button>
+        </form>
+        
+        <h3>Value</h3>
+            $if not key:
+                <em>No key selected.</em>
+            $elif not value:
+                <em>Not found</em>
+            $else:
+                <pre>$:value</pre>
+    </div>
+
+</div>
