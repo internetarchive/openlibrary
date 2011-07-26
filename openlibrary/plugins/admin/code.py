@@ -453,6 +453,9 @@ class deploy:
 class graphs:
     def GET(self):
         return render_template("admin/graphs")
+        
+def get_graphite_base_url():
+    return config.get("graphite_base_url", "")
 
 def setup():
     register_admin_page('/admin/git-pull', gitpull, label='git-pull')
@@ -483,6 +486,7 @@ def setup():
 
     public(get_admin_stats)
     public(get_blocked_ips)
+    public(get_graphite_base_url)
     delegate.app.add_processor(block_ip_processor)
     
 setup()

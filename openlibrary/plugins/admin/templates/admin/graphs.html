@@ -6,12 +6,14 @@ $var title: Performance Graphs
     <h1>Performance Graphs</h1>
 </div>
 
+$ grahite_base = get_graphite_base_url()
+
 $def render_graph(target, days):
     $if isinstance(target, list):
         $ target = "&".join('target=' + t for t in target)
     $else:
         $ target = 'target=' + target
-    <img src="http://ol-admin.us.archive.org:7080/render/?width=850&height=303&$target&from=-$days"/>
+    <img src="$grahite_base/render/?width=850&height=303&$target&from=-$days"/>
 
 $def render_graph_page(days):
     <h2>Page Load Time</h2>    
