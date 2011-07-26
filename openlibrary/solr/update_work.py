@@ -8,9 +8,10 @@ import simplejson as json
 from time import sleep
 from openlibrary import config
 from unicodedata import normalize
+from collections import defaultdict
 
 re_lang_key = re.compile(r'^/(?:l|languages)/([a-z]{3})$')
-re_author_key = re.compile(r'^/(?:a|authors)/(OL\d+A)$')
+re_author_key = re.compile(r'^/(?:a|authors)/(OL\d+A)')
 re_edition_key = re.compile(r'^/(?:b|books)/(OL\d+M)$')
 
 solr_host = {}
@@ -132,6 +133,8 @@ def four_types(i):
                 ret['subject'] = {k: v}
     return ret
 
+re_solr_field = re.compile('^[-\w]+$', re.U)
+
 def build_doc(w, obj_cache={}, resolve_redirects=False):
     wkey = w['key']
     assert w['type']['key'] == '/type/work'
@@ -154,6 +157,8 @@ def build_doc(w, obj_cache={}, resolve_redirects=False):
         w['editions'] = list(query_iter(q))
         print 'editions:', [e['key'] for e in w['editions']]
 
+    identifiers = defaultdict(list)
+
     editions = []
     for e in w['editions']:
         pub_year = get_pub_year(e)
@@ -168,6 +173,14 @@ def build_doc(w, obj_cache={}, resolve_redirects=False):
         if overdrive_id:
             #print 'overdrive:', overdrive_id
             e['overdrive'] = overdrive_id
+        if 'identifiers' in e:
+            for k, id_list in e.iteritems():
+                k = k.replace('.', '_').lower()
+                assert re_solr_field.match(k)
+                for v in id_list:
+                    v = v.strip()
+                    if v not in identifiers[k]:
+                        identifiers[k].append(v)
         editions.append(e)
 
     editions.sort(key=lambda e: e.get('pub_year', None))
@@ -281,6 +294,10 @@ def build_doc(w, obj_cache={}, resolve_redirects=False):
     cover_edition = pick_cover(w, editions)
     if cover_edition:
         add_field(doc, 'cover_edition_key', re_edition_key.match(cover_edition).group(1))
+    if w.get('covers'):
+        cover = w['covers'][0]
+        assert isinstance(cover, int)
+        add_field(doc, 'cover_i', cover)
 
     k = 'by_statement'
     add_field_list(doc, k, set( e[k] for e in editions if e.get(k, None)))
@@ -408,6 +425,9 @@ def build_doc(w, obj_cache={}, resolve_redirects=False):
         subject_keys = [str_to_key(s) for s in subjects[k].keys()]
         add_field_list(doc, k + '_key', subject_keys)
 
+    for k in sorted(identifiers.keys()):
+        add_field_list(doc, 'id_' + k, identifiers[k])
+
     return doc
 
 def solr_update(requests, debug=False, index='works'):
@@ -466,7 +486,7 @@ def update_author(akey, a=None, handle_redirects=True):
     m = re_author_key.match(akey)
     if not m:
         print 'bad key:', akey
-        return
+    assert m
     author_id = m.group(1)
     if not a:
         a = withKey(akey)

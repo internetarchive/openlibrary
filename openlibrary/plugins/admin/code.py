@@ -450,6 +450,10 @@ class deploy:
         status = p.wait()
         return web.storage(cmd=cmd, status=status, stdout=out, stderr=err)
 
+class graphs:
+    def GET(self):
+        return render_template("admin/graphs")
+
 def setup():
     register_admin_page('/admin/git-pull', gitpull, label='git-pull')
     register_admin_page('/admin/reload', reload, label='Reload Templates')
@@ -469,6 +473,7 @@ def setup():
     register_admin_page('/admin/tasks', tasks.tasklist, label = "Task queue")
     register_admin_page('/admin/tasks/(.*)', tasks.tasks, label = "Task details")
     register_admin_page('/admin/deploy', deploy, label="")
+    register_admin_page('/admin/graphs', graphs, label="")
 
     support.setup()
     import mem
