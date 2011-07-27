@@ -19,7 +19,14 @@ class ExceptionWrapper(Exception):
         self.data = extra_info
         super(ExceptionWrapper, self).__init__(exception,  extra_info)
     
-    
+
+task_context = {}
+
+def set_task_data(**kargs):
+    "Sets a global task data that can be used in the the tombstone"
+    global task_context
+    task_context = kargs.copy()
+
 
 def oltask(fn):
     """Openlibrary specific decorator for celery tasks that records
@@ -27,6 +34,7 @@ def oltask(fn):
     tracking"""
     @wraps(fn)
     def wrapped(*largs, **kargs):
+        global task_context
         s = StringIO.StringIO()
         h = logging.StreamHandler(s)
         h.setFormatter(logging.Formatter("%(asctime)s [%(name)s] [%(levelname)s] %(message)s"))
@@ -41,7 +49,8 @@ def oltask(fn):
                      command = fn.__name__,
                      started_at = "TBD",
                      log = log,
-                     traceback = tb)
+                     traceback = tb,
+                     context = task_context)
             raise ExceptionWrapper(e, d)
         log = s.getvalue()
         d = dict(largs = json.dumps(largs),
@@ -49,7 +58,9 @@ def oltask(fn):
                  command = fn.__name__,
                  started_at = "TBD",
                  log = log,
-                 result = ret)
+                 result = ret,
+                 context = task_context)
         logging.root.removeHandler(h)
+        task_context = {}
         return d
     return task(wrapped)
