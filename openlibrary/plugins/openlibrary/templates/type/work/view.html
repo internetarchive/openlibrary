@@ -13,7 +13,7 @@ $code:
             title += " by " + ", ".join(a.name or "" for a in page.get_authors())
         items.append(title)
         
-        if page.editions:
+        if page.edition_count:
             items.append("%d %s" % (page.edition_count, cond(page.edition_count > 1, "editions", "edition")))
             
         if page.first_publish_year:
@@ -42,7 +42,7 @@ $code:
             $page.title<span title="subtitle">: $page.subtitle</span>
         $else:
             $page.title
-        $if page.editions:
+        $if page.edition_count:
             <span class="tools" style="white-space:nowrap;">
             $if page.edition_count == 1:
                 $for book in page.editions:

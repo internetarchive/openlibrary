@@ -392,6 +392,8 @@ class inspect:
     def GET(self, section):
         if section == "store":
             return self.GET_store()
+        elif section == "memcache":
+            return self.GET_memcache()
         else:
             raise web.notfound()
         
@@ -408,6 +410,17 @@ class inspect:
             docs = web.ctx.site.store.values(type=i.type or None, name=i.name or None, value=i.value or None, limit=100)
             
         return render_template("admin/inspect/store", docs, input=i)
+        
+    def GET_memcache(self):
+        i = web.input()
+        i.setdefault("keys", "")
+        
+        from openlibrary.plugins.openlibrary import connection
+        mc = connection._memcache
+        
+        keys = [k.strip() for k in i["keys"].split() if k.strip()]        
+        mapping = keys and mc.get_multi(keys)
+        return render_template("admin/inspect/memcache", keys, mapping)
         
 class deploy:
     def GET(self):
@@ -450,6 +463,13 @@ class deploy:
         status = p.wait()
         return web.storage(cmd=cmd, status=status, stdout=out, stderr=err)
 
+class graphs:
+    def GET(self):
+        return render_template("admin/graphs")
+        
+def get_graphite_base_url():
+    return config.get("graphite_base_url", "")
+
 def setup():
     register_admin_page('/admin/git-pull', gitpull, label='git-pull')
     register_admin_page('/admin/reload', reload, label='Reload Templates')
@@ -469,6 +489,7 @@ def setup():
     register_admin_page('/admin/tasks', tasks.tasklist, label = "Task queue")
     register_admin_page('/admin/tasks/(.*)', tasks.tasks, label = "Task details")
     register_admin_page('/admin/deploy', deploy, label="")
+    register_admin_page('/admin/graphs', graphs, label="")
 
     support.setup()
     import mem
@@ -478,6 +499,7 @@ def setup():
 
     public(get_admin_stats)
     public(get_blocked_ips)
+    public(get_graphite_base_url)
     delegate.app.add_processor(block_ip_processor)
     
 setup()

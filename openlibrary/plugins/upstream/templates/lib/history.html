@@ -1,6 +1,6 @@
 $def with (page)
 
-$if "superfast" in ctx.features:
+$if "superfast" in ctx.features and "history_v2" not in ctx.features:
     $ h = page.get_history_preview()
 $else:
     $ h = get_history(page)

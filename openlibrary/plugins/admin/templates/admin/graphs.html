@@ -1,0 +1,37 @@
+
+$var title: Performance Graphs
+
+<div id="contentHead">
+    $:render_template("admin/menu")
+    <h1>Performance Graphs</h1>
+</div>
+
+$ grahite_base = get_graphite_base_url()
+
+$def render_graph(target, days):
+    $if isinstance(target, list):
+        $ target = "&".join('target=' + t for t in target)
+    $else:
+        $ target = 'target=' + target
+    <img src="$grahite_base/render/?width=850&height=303&$target&from=-$days"/>
+
+$def render_graph_page(days):
+    <h2>Page Load Time</h2>    
+    $ names = ["stats.timers.ol.pageload.%s.mean" % name for name in ["all", "home", "search", "authors", "books", "works"]]
+    $:render_graph(names, days)
+    <h2>Infobase Mean</h2>
+    $:render_graph("stats.timers.ol.infobase.mean", days)
+
+<div id="contentBody">
+<div class="tabs">
+    <ul>
+        <li><a href="#day" id="link_day">$_("Today")</a></li>
+        <li><a href="#week" id="link_week">$_("This Week")</a></li>
+        <li><a href="#month" id="link_month">$("This Month")</a></li>
+    </ul>
+    <div id="day">$:render_graph_page("1days")</div>
+    <div id="week">$:render_graph_page("7days")</div>
+    <div id="month">$:render_graph_page("30days")</div>
+</div>
+
+</div>

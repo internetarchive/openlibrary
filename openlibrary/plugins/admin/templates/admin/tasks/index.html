@@ -82,12 +82,12 @@ $:render_template("admin/tasks/completed", completed)
 $:render_template("admin/tasks/active", active)
 $:render_template("admin/tasks/reserved", reserved)
 </table>
-<div class="pagination">
-  $for i in task_ranges:
-  $if i == offset:
-    <span class="this">$i</span>
-  $else:
-    <a href="$(base_url)&offset=$(i)">$i</a>
-</div>
+<div>
+$ offset = safeint(query_param("offset"), 0)
+$ limit = safeint(query_param("limit"), 20)
+
+$if offset > 0:
+    <a href="$changequery(offset=offset-limit)">prev</a> |
+<a href="$changequery(offset=offset+limit)">next</a>
 
 </div>

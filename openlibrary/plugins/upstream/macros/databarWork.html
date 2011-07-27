@@ -121,21 +121,21 @@ $else:
     </div>
     </div>
 
-$if isbn or oclc_numbers or overdrive_id or 'lendinglibrary' in collection or ('inlibrary' in collection and library is not None):
-    $ current_and_available_loans = page.get_current_and_available_loans()
-    $ user_loan = None
-    $if ctx.user:
-        $for current_loan in current_and_available_loans[0]:
-            $if current_loan['user'] == ctx.user.key:
-                $ user_loan = current_loan
-                $ break
+$if isbn or oclc_numbers or overdrive_id or 'lendinglibrary' in collection or library:
     <div>
     <h3 class="header">
         <span class="icon borrow"></span>
         <span class="head">Borrow</span>
     </h3>
     <div class="panel">
-        $if  'lendinglibrary' in collection or user_loan or library:
+        $if  'lendinglibrary' in collection or library:
+            $ current_and_available_loans = page.get_current_and_available_loans()
+            $ user_loan = None
+            $if ctx.user:
+                $for current_loan in current_and_available_loans[0]:
+                    $if current_loan['user'] == ctx.user.key:
+                        $ user_loan = current_loan
+                        $ break        
             $:macros.LoanStatus(page, 'eBook', ctx.user, current_and_available_loans, contrib, '<br/>')
         $if overdrive_id:
             <p><a href="$overdrive.replace('XXX', overdrive_id)" title="Borrow from OverDrive">eBook, local library</a> <span class="smaller">OverDrive</span></p>

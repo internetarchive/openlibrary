@@ -465,10 +465,13 @@ def get_edition_loans(edition):
     # An edition can't have loans if it doens't have an IA ID. 
     # This check avoids a lot of unnecessary queries.
     if edition.ocaid:
-        # return web.ctx.site.store.values(type='/type/loan', name='book', value=edition.key)
-        return get_all_store_values(type='/type/loan', name='book', value=edition.key)
-    else:
-        return []
+        # Get the loans only if the book is borrowed. Since store.get requests
+        # are memcache-able, checking this will be very fast.
+        # This avoids making expensive infobase query for each book.
+        if web.ctx.site.store.get("ebooks" + edition['key'], {}).get("borrowed") == "true":
+            return get_all_store_values(type='/type/loan', name='book', value=edition.key)
+    
+    return []
 
 def get_loan_link(edition, type):
     """Get the loan link, which may be an ACS4 link or BookReader link depending on the loan type"""
@@ -933,10 +936,11 @@ class Loan:
     def __init__(self, user_key, book_key, resource_type, loaned_at = None):
         # self.key = uuid.uuid4().hex
         self.key = 'loan-' + book_key
+        # store a uuid in the loan so that the loan can be uniquely identified. Required for stats.
+        self.uuid = uuid.uuid4().hex
 
         self.rev = 1 # This triggers the infobase consistency check - if there is an existing record on save
                      # the consistency check will fail (revision mismatch)
-                             
         self.user_key = user_key
         self.book_key = book_key
         self.resource_type = resource_type
@@ -959,6 +963,7 @@ class Loan:
                  '_rev': self.rev,
                  'user': self.user_key, 'type': '/type/loan',
                  'book': self.book_key, 'expiry': self.expiry,
+                 'uuid': self.uuid,
                  'loaned_at': self.loaned_at, 'resource_type': self.resource_type,
                  'resource_id': self.resource_id, 'loan_link': self.loan_link }
                  
@@ -972,6 +977,7 @@ class Loan:
         self.loaned_at = loan_dict['loaned_at']
         self.resource_id = loan_dict['resource_id']
         self.loan_link = loan_dict['loan_link']
+        self.uuid = loan_link.get('uuid')
         
     #def load(self):
     #    self.set_dict(web.ctx.site.store[self.get_key()])

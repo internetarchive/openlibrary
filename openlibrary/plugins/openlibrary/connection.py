@@ -86,7 +86,7 @@ class MemcacheMiddleware(ConnectionMiddleware):
     def get(self, sitename, data):
         key = data.get('key')
         revision = data.get('revision')
-        
+                
         if revision is None:
             stats.begin("memcache.get", key=key)
             result = self.memcache.get(key)
@@ -184,7 +184,6 @@ class MemcacheMiddleware(ConnectionMiddleware):
     def account_request(self, sitename, path, method="GET", data=None):
         # For post requests, remove the account entry from the cache.
         if method == "POST" and isinstance(data, dict) and "username" in data:
-            print "deleting"
             self.mc_delete("/_store/account/" + data["username"])
             result = ConnectionMiddleware.account_request(self, sitename, path, method, data)
             self.mc_delete("/_store/account/" + data["username"])
@@ -311,21 +310,12 @@ class MigrationMiddleware(ConnectionMiddleware):
                 # some record got empty author records because of an error
                 # temporary hack to fix 
                 doc['authors'] = [a for a in doc['authors'] if 'author' in a and 'key' in a['author']]
-
-                # fix broken redirects
-                for a in doc['authors']:
-                    a['author']['key'] = self.fix_broken_redirect(a['author']['key'])
         elif type == "/type/edition":
             # get rid of title_prefix.
             if 'title_prefix' in doc:
                 title = doc['title_prefix'].strip() + ' ' + doc.get('title', '')
                 doc['title'] = title.strip()
                 del doc['title_prefix']
-
-            # fix broken redirects
-            for a in doc.get("authors", []):
-                if 'key' in a:
-                    a['key'] = self.fix_broken_redirect(a['key'])
 
         return doc
         
