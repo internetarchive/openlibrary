@@ -17,7 +17,7 @@ $def render_graph(target, days):
 
 $def render_graph_page(days):
     <h2>Page Load Time</h2>    
-    $ names = ["stats.timers.ol.pageload.%s.mean" % name for name in ["all", "home", "search", "authors", "books", "works"]]
+    $ names = ["stats.timers.ol.pageload.%s.mean" % name for name in ["all", "home", "search", "authors", "books", "works", "subjects"]]
     $:render_graph(names, days)
     <h2>Infobase Mean</h2>
     $:render_graph("stats.timers.ol.infobase.mean", days)
