@@ -541,6 +541,10 @@ class SubjectEngine:
         result = work_search(q, offset=offset, limit=limit, sort=sort, **kw)
         for w in result.docs:
             w.ia = w.ia and w.ia[0] or None
+            if w.ia and w.get('lending_edition'):
+                doc = web.ctx.site.store.get("ebooks/books/" + w['lending_edition'])
+                if doc and "borrowed" in doc:
+                    w['checked_out'] = doc.get("borrowed") == "true"
 
         subject = Subject(
             key=key,

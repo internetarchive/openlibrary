@@ -95,7 +95,10 @@ $jsdef render_page(page):
                 
             $ borrowable = all_borrow or contains(w.subject, 'Lending library') or (inlibrary and contains(w.subject, 'In library'))
             $if w.ia and w.lending_edition and borrowable:
-                <div class="coverEbook"><a href="/books/$w.lending_edition/x/borrow" title="$_('Borrow this book')"><img src="/images/icons/icon_borrow-avail.png" border="0" width="32" height="33" alt="$_('Borrow this book')"/></a></div>
+                $if w.get("checked_out", False) is True:
+                    <div class="coverEbook"><img src="/images/icons/icon_borrow-not-avail.png" border="0" width="32" height="33" alt="$_('This book is checkedout')" title="$_('This book is checkedout')"/></div>
+                $else:
+                    <div class="coverEbook"><a href="/books/$w.lending_edition/x/borrow" title="$_('Borrow this book')"><img src="/images/icons/icon_borrow-avail.png" border="0" width="32" height="33" alt="$_('Borrow this book')"/></a></div>
             $if not all_borrow and w.ia and w.public_scan:
                 <div class="coverEbook"><a href="http://www.archive.org/stream/$w.ia" title="$_('Read online')"><img src="/images/icons/icon_ebook-avail.png" border="0" width="32" height="33" alt="$_('Read online')"/></a></div>
                 <!-- Protected DAISY flag is not set at the Work level (yet)
