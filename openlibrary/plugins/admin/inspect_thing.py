@@ -26,13 +26,14 @@ def connect_to_tombstone():
 def process_task_row(task):
     """Makes some changes to the task row from couch so that the
     template can display it properly"""
+    print datetime.datetime.utcfromtimestamp(task.value['started_at'])
     task.value['started_at'] = datetime.datetime.utcfromtimestamp(task.value['started_at'])
     return task.value
 
 def get_tasks_info(thing, tombstone_db):
     if not tombstone_db:
         return "Couldn't initialise connection to tombstone database. No task information available"
-    events = tombstone_db.view("history/by_key")
+    events = tombstone_db.view("history/by_key",startkey=[thing], endkey=[thing,{}], include_docs=True)
     return (process_task_row(x) for x in events)
 
 

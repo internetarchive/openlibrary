@@ -5,6 +5,9 @@ $def with (tasks)
       Task id
     </th>
     <th>
+      Affected keys
+    </th>
+    <th>
       Started at
     </th>
   </tr>
@@ -12,6 +15,14 @@ $def with (tasks)
    <tr>
      <td> 
        $task['_id']
+     </td>
+     <td> 
+       <ul>
+       $for k in task['context']['keys']
+         <li>
+	   <a href="/admin/inspect/$k">$k</a>
+	 </li>
+       </ul>
      </td>
      <td>
        $task['started_at'] ($datestr(task['started_at']))
