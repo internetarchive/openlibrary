@@ -222,10 +222,12 @@ def build_pool(rec):
     del q['normalized_title_']
     pool['title'].update(web.ctx.site.things(q))
 
-    for field in 'isbn', 'oclc_numbers', 'lccn':
+    for field in 'isbn', 'oclc_numbers', 'lccn', 'isbn_10', 'isbn_13':
         for v in rec.get(field, []):
             found = web.ctx.site.things({field: v, 'type': '/type/edition'})
             if found:
+                if field.startswith('isbn_'):
+                    field = 'isbn'
                 pool[field].update(found)
     return dict((k, list(v)) for k, v in pool.iteritems())
 
@@ -321,7 +323,6 @@ def load(rec):
     if isinstance(rec['source_records'], basestring):
         rec['source_records'] = [rec['source_records']]
     edition_pool = build_pool(rec)
-    #print 'pool:', edition_pool
     if not edition_pool:
         return load_data(rec) # 'no books in pool, loading'
 
