@@ -27,23 +27,17 @@ class CouchDBBackend(BaseDictBackend):
                 "CouchDB backend.")
 
         self.database = couchdb.Database(self.dburi)
-        
+
+
+
     def _get_tombstone(self, result, status, traceback):
         if status == "FAILURE":
             # Pull out traceback, args and other things from exception in case of FAILURE
             traceback = result.args[1].pop('traceback')
             result = result.args[1]
-        try:
-            serialised_result = json.dumps(result)
-            doc = dict(result = serialised_result,
-                       status = str(status),
-                       traceback = str(traceback))
-        except TypeError:
-            serialised_result = str(result)
-            doc = dict(result = None,
-                       result_err = serialised_result,
-                       status = str(status),
-                       traceback = str(traceback))
+        doc = dict(status = str(status),
+                   traceback = str(traceback))
+        doc.update(result)
         return doc
 
     def _store_result(self, task_id, result, status, traceback=None):
