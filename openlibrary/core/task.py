@@ -6,8 +6,8 @@ import json
 import datetime
 import logging
 import StringIO
-import json
 import traceback
+import calendar
 
 # from celery.task import task
 from celery.task import task
@@ -47,7 +47,7 @@ def oltask(fn):
             d = dict(largs = json.dumps(largs),
                      kargs = json.dumps(kargs),
                      command = fn.__name__,
-                     started_at = "TBD",
+                     started_at = calendar.timegm(datetime.datetime.utcnow().timetuple()),
                      log = log,
                      traceback = tb,
                      context = task_context)
@@ -56,7 +56,7 @@ def oltask(fn):
         d = dict(largs = json.dumps(largs),
                  kargs = json.dumps(kargs),
                  command = fn.__name__,
-                 started_at = "TBD",
+                 started_at = calendar.timegm(datetime.datetime.utcnow().timetuple()),
                  log = log,
                  result = ret,
                  context = task_context)

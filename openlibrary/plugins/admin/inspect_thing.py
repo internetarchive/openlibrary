@@ -20,7 +20,7 @@ def connect_to_tombstone():
     try:
         tombstone_db_uri = config.get("celery",{})["tombstone_db"]
         tombstone_db = couchdb.Database(tombstone_db_uri)
-    except KeyboardInterrupt,e:
+    except Exception,e:
         logger.warning("Couldn't connect to tombstone database", exc_info = True)
 
 def process_task_row(task):
