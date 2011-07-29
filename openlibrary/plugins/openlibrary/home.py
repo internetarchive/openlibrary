@@ -42,8 +42,23 @@ def carousel_from_list(key, randomize=False, limit=60):
     if randomize:
         random.shuffle(data)
     data = data[:limit]
+    add_checkedout_status(data)
     return render_template("books/carousel", storify(data), id=id)
     
+def add_checkedout_status(books):
+    # This is not very efficient approach.
+    # Todo: Implement the following apprach later.
+    # * Store the borrow status of all books in the list in memcache
+    # * Use that info to add checked_out status
+    # * Invalidate that on any borrow/return
+    for book in books:
+        if book.get("borrow_url"):
+            doc = web.ctx.site.store.get("ebooks" + book['key']) or {}
+            checked_out = doc.get("borrowed") == "true"
+        else:
+            checked_out = False
+        book['checked_out'] = checked_out
+
 @public
 def render_returncart(limit=60, randomize=True):
     data = get_returncart(limit*5)
