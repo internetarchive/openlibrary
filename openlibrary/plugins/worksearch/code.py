@@ -374,9 +374,9 @@ def work_object(w): # called by works_by_author
         ia = w.get('ia', [])
     )
     if obj['lending_edition']:
-        doc = web.ctx.site.get("ebooks/books/" + obj['lending_edition']) or {}
+        doc = web.ctx.site.store.get("ebooks/books/" + obj['lending_edition']) or {}
         obj['checked_out'] = doc.get("borrowed") == "true"
-    else
+    else:
         obj['checked_out'] = "false"
     
     for f in 'has_fulltext', 'subtitle':

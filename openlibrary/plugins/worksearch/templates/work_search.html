@@ -262,7 +262,7 @@ function less(header) {
                     </a>                
                 </span>
             $elif doc.lending_edition and (library or 'inlibrary' not in doc.collections):
-                $if doc.checkedout:
+                $if doc.checked_out:
                     <span class="actions">
                         <span class="image checked-out" title="This book is checked out"></span>
                         <span class="label">Checked out</span>

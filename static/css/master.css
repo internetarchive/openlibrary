@@ -3454,3 +3454,28 @@ body#user #description p {font-size:.875em;margin:0 0 30px 0;}
 #contentBody.map .olControlAttribution {bottom:10px!important;right:10px!important;font-family:"Lucida Grande","Verdana","Arial",sans-serif!important;font-size:.6875em!important;}
 #libraryInfo td {padding-top:5px; padding-bottom: 5px; vertical-align: top; margin-top: 20px;font-family:"Lucida Grande","Verdana","Arial",sans-serif;}
 #libraryInfo .label {font-weight: bold; width: 25%; padding-right: 20px;}
+
+/* Added by Anand July 29, 2011*/
+span.actions span.checked-out {
+    display: block;
+    width: 32px; 
+    height: 32px;
+    margin: 0 auto;
+    padding: 0;
+    background-image: url("/images/icons/icon_borrow-in-list-not-avail.png");
+    background-repeat: no-repeat;
+}
+
+span.actions span.label {
+    display: block;
+    float: left;
+    min-width: 35px;
+    max-width: 45px;
+    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, sans-serif;
+    font-size: 10px;
+    margin-left: 10px;
+    font-weight: 700;
+    text-decoration: none;
+    text-align: center;
+}
+
