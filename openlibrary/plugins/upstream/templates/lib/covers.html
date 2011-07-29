@@ -94,28 +94,16 @@ $jsdef render_page(page):
                 </a>
                 
             $ borrowable = all_borrow or contains(w.subject, 'Lending library') or (inlibrary and contains(w.subject, 'In library'))
-            $if w.ia and w.lending_edition and borrowable:
+            $if not all_borrow and w.ia and w.public_scan:
+                <div class="coverEbook"><a href="http://www.archive.org/stream/$w.ia" title="$_('Read online')"><img src="/images/icons/icon_ebook-avail.png" border="0" width="32" height="33" alt="$_('Read online')"/></a></div>
+            $elif w.ia and w.lending_edition and borrowable:
                 $if w.checked_out:
                     <div class="coverEbook"><img src="/images/icons/icon_borrow-not-avail.png" border="0" width="32" height="33" alt="$_('This book is checkedout')" title="$_('This book is checkedout')"/></div>
                 $else:
                     <div class="coverEbook"><a href="/books/$w.lending_edition/x/borrow" title="$_('Borrow this book')"><img src="/images/icons/icon_borrow-avail.png" border="0" width="32" height="33" alt="$_('Borrow this book')"/></a></div>
-            $if not all_borrow and w.ia and w.public_scan:
-                <div class="coverEbook"><a href="http://www.archive.org/stream/$w.ia" title="$_('Read online')"><img src="/images/icons/icon_ebook-avail.png" border="0" width="32" height="33" alt="$_('Read online')"/></a></div>
-                <!-- Protected DAISY flag is not set at the Work level (yet)
-                if w.is_daisy_encrypted():
-                    <div class="coverEbook"><a href="key('/daisy')" title="$_('Download a protected DAISY')"><img src="/images/icons/icon_pdaisy-avail.png" border="0" width="32" height="33" alt="$_('Download a protected DAISY')"/></a></div>
-                -->
-                <!-- OverDrive availability is not set at the Work level (yet)
-                 overdrive = "http://search.overdrive.com/SearchResults.aspx?ReserveID={XXX}"
-                 overdrive_id = None
-                if w.get('identifiers', None) and w.identifiers.get('overdrive', None):
-                     overdrive_id = w.identifiers.overdrive[0]
-                if overdrive_id:
-                    <div class="coverEbook"><a href="overdrive.replace('XXX', overdrive_id)" title="_('Borrow this book')"><img src="/images/icons/icon_borrow-avail.png" border="0" width="32" height="33" alt="_('Borrow this book')"/></a></div>
-                -->
-            $if not all_borrow and not w.public_scan and w.printdisabled and not w.overdrive and not borrowable:
+            $elif not all_borrow and not w.public_scan and w.printdisabled and not w.overdrive and not borrowable:
                 <div class="coverEbook"><a href="$w.key" title="$_('Download a protected DAISY')"><img src="/images/icons/icon_pdaisy-avail.png" border="0" width="32" height="33" alt="$_('Download a protected DAISY')"/></a></div>
-            $if not all_borrow and w.overdrive and not w.public_scan and not borrowable:
+            $elif not all_borrow and w.overdrive and not w.public_scan and not borrowable:
                 <div class="coverEbook"><a href="http://search.overdrive.com/SearchResults.aspx?ReserveID={$(w.overdrive)}" title="$_('Borrow this book')"><img src="/images/icons/icon_borrow-avail.png" border="0" width="32" height="33" alt="$_('Borrow this book')"/></a></div>
         </div>
 
