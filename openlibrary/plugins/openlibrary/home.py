@@ -8,7 +8,7 @@ from infogami.utils.view import render_template, public
 from infogami.infobase.client import storify
 from infogami import config
 
-from openlibrary.core import admin, cache, ia, helpers as h
+from openlibrary.core import admin, cache, ia, inlibrary, helpers as h
 from openlibrary.plugins.upstream.utils import get_blog_feeds
 from openlibrary.plugins.worksearch import search
 
@@ -62,6 +62,11 @@ def add_checkedout_status(books):
 @public
 def render_returncart(limit=60, randomize=True):
     data = get_returncart(limit*5)
+
+    # Remove all inlibrary books if we not in a participating library
+    if not inlibrary.get_library():
+        data = [d for d in data if 'inlibrary_borrow_url' not in d]
+    
     if randomize:
         random.shuffle(data)
     data = data[:limit]
