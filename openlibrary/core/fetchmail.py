@@ -11,8 +11,9 @@ import couchdb
 import web
 
 from openlibrary.core import support
+from infogami.utils.markdown import markdown
 
-subject_re = re.compile("^(R[Ee]:)? ?Case #([0-9]+): .*")
+subject_re = re.compile("^(R[Ee]:)? ?Case #([0-9]+: .*")
 
 template = """
 
@@ -75,7 +76,6 @@ def connect_to_admindb(config):
     support_db = support.Support(couchdb.Database(db))
     return support_db
     
-
 def get_new_emails(conn):
     typ, data = conn.search(None, "ALL")
     logger.debug("Fetching new message headers")
@@ -94,7 +94,32 @@ def update_support_db(author, message, case):
     except support.InvalidCase:
         logger.info("  Invalid case %s message from %s", case.caseno, author)
 
-    
+def get_casenote(message):
+    "Try to extract the casenote out of the message"
+    md = markdown.Markdown()        
+    if message.get_content_type() == "text/plain":
+        return message.get_payload()
+    if message.get_content_type() == "text/html":
+        casenote = md.convert(message.get_payload())
+        return casenote
+    if message.get_content_type() == "multipart/alternative":
+        # Find something we can use
+        plain = html = None
+        for part in message.get_payload():
+            content_type = part.get_content_type()
+            if content_type == "text/plain":
+                plain = part.get_payload()
+            if content_type == "text/html":
+                html  = part.get_payload()
+        if not plain and not html:
+            pieces = ",".join(x.get_content_type() for x in message.get_payload())
+            logger.warning("This message has no usable payload Types : %s", pieces)
+            return "ERROR : Unparseable message received"
+        if plain:
+            return plain
+        if html:
+            return md.convert(html)
+
 def fetch_and_update(imap_conn, db_conn = None):
     for resp in get_new_emails(imap_conn):
         messageid, message = parse_imap_response(resp)
@@ -105,10 +130,11 @@ def fetch_and_update(imap_conn, db_conn = None):
             try:
                 frm = email.utils.parseaddr(message['From'])[1]
                 case = db_conn.get_case(caseid)
-                update_support_db(frm, message.get_payload(), case)
+                casenote = get_casenote(message)
+                update_support_db(frm, casenote, case)
                 imap_move_to_folder(imap_conn, messageid, "Accepted")
                 message = template%dict(caseno = caseid,
-                                        message = message.get_payload(),
+                                        message = casenote,
                                         author = frm)
                 subject = "Case #%s updated"%(caseid)
                 assignee = case.assignee
