@@ -262,12 +262,18 @@ function less(header) {
                     </a>                
                 </span>
             $elif doc.lending_edition and (library or 'inlibrary' not in doc.collections):
-                <span class="actions">
-                    <a href="/books/$doc.lending_edition/x/borrow" title="Borrow book">
-                        <span class="image borrow"></span>
-                        <span class="label">Borrow</span>
-                    </a>                
-                </span>
+                $if doc.checkedout:
+                    <span class="actions">
+                        <span class="image checked-out" title="This book is checked out"></span>
+                        <span class="label">Checked out</span>
+                    </span>
+                $else:
+                    <span class="actions">
+                        <a href="/books/$doc.lending_edition/x/borrow" title="Borrow book">
+                            <span class="image borrow"></span>
+                            <span class="label">Borrow</span>
+                        </a>
+                    </span>
             $elif doc.overdrive:
                 <span class="actions">
                     <a href="http://search.overdrive.com/SearchResults.aspx?ReserveID={$(doc.overdrive[0])}" title="Borrow this on overdrive.com">
