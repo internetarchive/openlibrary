@@ -17,7 +17,7 @@ $def with (tasks)
  $for task in tasks:
    <tr>
      <td> 
-       $task['_id']
+       <a href="/admin/tasks/$task['_id']">$task['_id']</a>
      </td>
      <td> 
        <ul>

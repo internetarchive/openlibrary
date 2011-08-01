@@ -1,4 +1,4 @@
-$def with (task, res)
+$def with (task)
 <div id="contentHead">
     $:render_template("admin/menu", "/admin")
     <h1>Task information</h1>
@@ -34,40 +34,45 @@ table pre.hidden {
 });
 </script>
 
-$if 'error' in res:
-  <em> The information here might be incomplete. This task had an error during execution. </em>
 <table>
 <tr>
   <th> UUID </th>
-  <td> $task.task_id </td>
+  <td> $task["_id"] </td>
 </tr>
 <tr>
   <th> Status </th>
-  <td> <strong>$task.status</strong> </td>
+  <td> <strong>$task['status']</strong> </td>
 </tr>
 <tr>
   <th> Command </th>
-  <td> $res['command'] </td>
+  <td> $task['command'] </td>
 </tr>
 <tr>
   <th> Arguments </th>
-  <td> $res['arguments'] </td>
+  <td> 
+    <pre><em>largs : </em>$task['largs']</pre>
+    <pre><em>kargs : </em>$task['kargs']</pre>
+ </td>
 </tr>
 <tr>
   <th> Start time </th>
-  <td> $res['started_at'] </td>
+  <td> $task['started_at'] </td>
+</tr>
+<tr>
+  <th> Finished at </th>
+  <td> $task['finished_at'] </td>
 </tr>
 <tr>
   <th> Result </th>
-  <td> $res['result']</td>
+  <td> $task['result']</td>
 </tr>
 <tr>
   <th> Logs </th>
-  <td> <pre>$res['log']</pre></td>
+  <td> <pre>$task['log']</pre></td>
 </tr>
 <tr>
   <th> Traceback </th>
-  <td> <pre>$task.traceback</pre></td>
+  <td> <pre>$task['traceback']</pre></td>
 </tr>
 
 </table>
