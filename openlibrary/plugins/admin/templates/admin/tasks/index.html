@@ -1,4 +1,4 @@
-$def with (completed = [], active = [], reserved = [], limit = 20, offset = 0, fstart="", fend="", base_url = "", task_ranges = [])
+$def with (completed = [])
 
 <div id="contentHead">
     $:render_template("admin/menu", "/admin")
@@ -44,43 +44,18 @@ table.tasks tr.reserved td {
 
 
 </style>
-<form method="GET" action="/admin/tasks">
-  <fieldset>
-    <legend>Filters</legend>
-    <!-- <label> Command </label> -->
-    <!-- <input type="text" name="command" /> -->
-    Finished between (start)
-    <input type="text" class = "date" name="finishedat_start" value="$fstart"/>
-     and (end)
-     <input type="text" class = "date" name="finishedat_end" value="$fend"/>
-     <br/>
-     Results per page
-     <select name="limit">
-       $for i in range(10,100,10):
-         $if limit == i:
-           <option selected = "true" value="$i">$i</option>
-	 $else:
-	   <option value="$i">$i</option>
-     </select>
-     <br/>
-     <input type="submit" name="submit" value="Filter"/><br/>
-  </fieldset>
-</form>
-
 <table class = "tasks" border="0" cellspacing="0" cellpadding="10">
     <tr>
         <th>Uuid</th>
         <th>Command</th>
-        <th>Arguments</th>
 	<th>Status</th>
         <th>Host</th>
+	<th>Enqueued at</th>
         <th>Started at</th>
 	<th>Finished at</th>
-        <!-- <th>Affected docs</th> -->
+        <th>Affected docs</th>
     </tr>
 $:render_template("admin/tasks/completed", completed)
-$:render_template("admin/tasks/active", active)
-$:render_template("admin/tasks/reserved", reserved)
 </table>
 <div>
 $ offset = safeint(query_param("offset"), 0)
