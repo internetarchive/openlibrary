@@ -34,7 +34,8 @@ class CouchDBBackend(BaseDictBackend):
             # Pull out traceback, args and other things from exception in case of FAILURE
             traceback = result.args[1].pop('traceback')
             result = result.args[1]
-        doc = dict(status = str(status),
+        doc = dict(type = "task",
+                   status = str(status),
                    traceback = str(traceback),
                    finished_at = calendar.timegm(datetime.datetime.utcnow().timetuple()))
         doc.update(result)

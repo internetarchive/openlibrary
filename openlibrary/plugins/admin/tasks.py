@@ -29,7 +29,7 @@ def process_task_row(taskdoc):
 class tasklist(object):
     def GET(self):
         db = connect_to_taskdb()
-        completed_tasks = (process_task_row(x.value) for x in db.view("history/by_key"))
+        completed_tasks = (process_task_row(x.doc) for x in db.view("history/tasks", include_docs = True))
         return render_template("admin/tasks/index", completed_tasks)
 
 class tasks(object):
