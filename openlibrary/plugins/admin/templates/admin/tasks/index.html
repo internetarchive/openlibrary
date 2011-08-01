@@ -44,6 +44,23 @@ table.tasks tr.reserved td {
 
 
 </style>
+$ command = query_param("command")
+$ finishedat_start = query_param("finishedat_start")
+$ finishedat_end = query_param("finishedat_end")
+<form method="GET" action="/admin/tasks">
+  <fieldset>
+    <legend>Filters</legend>
+    <label> Command </label>
+    <input type="text" name="command" value="$command"/><br/>
+    Finished between (start)
+    <input type="text" class = "date" name="finishedat_start" value = "$finishedat_start"/>
+     and (end)
+     <input type="text" class = "date" name="finishedat_end" value = "$finishedat_end"/>
+     <br/>
+     <input type="submit" name="submit" value="Filter"/><br/>
+  </fieldset>
+</form>
+
 <table class = "tasks" border="0" cellspacing="0" cellpadding="10">
     <tr>
         <th>Uuid</th>
@@ -57,6 +74,7 @@ table.tasks tr.reserved td {
     </tr>
 $:render_template("admin/tasks/completed", completed)
 </table>
+
 <div>
 $ offset = safeint(query_param("offset"), 0)
 $ limit = safeint(query_param("limit"), 20)
