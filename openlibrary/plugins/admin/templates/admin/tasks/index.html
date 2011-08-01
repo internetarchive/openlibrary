@@ -5,11 +5,6 @@ $def with (completed = [])
     <h1>Task status</h1>
 </div>
 <div id="contentBody">
-<script type="text/javascript">
-\$(function() {
-    \$( "input.date" ).datepicker({ changeMonth: true });
-});
-</script>
 
 <style type="text/css">
 table.tasks { 
@@ -28,11 +23,6 @@ table.tasks th, table.tasks td {
 table.tasks pre.hidden { 
                          display: none;
  }
-
-div.ui-datepicker { 
-                    background-color:#eee;
-                    border: 1px solid black;
-                    }
 
 table.tasks tr.active td { 
                            background-color: #ff0;
@@ -53,12 +43,14 @@ $ finishedat_end = query_param("finishedat_end")
     <label> Command </label>
     <input type="text" name="command" value="$command"/><br/>
     Finished between (start)
-    <input type="text" class = "date" name="finishedat_start" value = "$finishedat_start"/>
+    <input type="text" name="finishedat_start" value = "$finishedat_start"/>
      and (end)
-     <input type="text" class = "date" name="finishedat_end" value = "$finishedat_end"/>
+     <input type="text" name="finishedat_end" value = "$finishedat_end"/>
+     (yyyy-mm-dd hh:mm)
      <br/>
      <input type="submit" name="submit" value="Filter"/><br/>
   </fieldset>
+  <a href="/admin/tasks">Reset all filters</a>
 </form>
 
 <table class = "tasks" border="0" cellspacing="0" cellpadding="10">

@@ -1,3 +1,4 @@
+import calendar
 import pickle
 import logging
 import datetime
@@ -32,9 +33,31 @@ class tasklist(object):
         filters = web.input(command = None,
                             finishedat_start = None,
                             finishedat_end = None)
+        command = filters["command"]
+        if not command: command = None # To make the view parameters work properly. otherwise, command becomes ''
+        if filters["finishedat_start"]:
+            print "start 1"
+            finishedat_start = datetime.datetime.strptime(filters['finishedat_start'],"%Y-%m-%d %H:%M")
+        else:
+            print "start 2"
+            finishedat_start = datetime.datetime(year = 2000, day = 1, month = 1)
+            
+        if filters["finishedat_end"]:
+            print "End 2"
+            finishedat_end = datetime.datetime.strptime(filters['finishedat_end'],"%Y-%m-%d %H:%M")
+        else:
+            print "End 2"
+            finishedat_end = datetime.datetime.utcnow()
+        
+        finishedat_start = calendar.timegm(finishedat_start.timetuple())
+        finishedat_end = calendar.timegm(finishedat_end.timetuple())
+
+        print "startkey ",[command,finishedat_start]
+        print "endkey ", [command,finishedat_end]
+
         completed_tasks = (process_task_row(x.doc) for x in db.view("history/tasks",
-                                                                    startkey = [filters["command"]],
-                                                                    endkey   = [filters["command"],{}],
+                                                                    startkey = [command,finishedat_start],
+                                                                    endkey   = [command,finishedat_end],
                                                                     include_docs = True))
         return render_template("admin/tasks/index", completed_tasks)
 
