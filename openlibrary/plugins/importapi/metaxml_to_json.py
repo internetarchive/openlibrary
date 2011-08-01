@@ -13,8 +13,8 @@ from import_edition_builder import import_edition_builder
 
 def parse_collection(collection):
     collection_dict = {
-        'printdisabled'  : ['protected DAISY', 'Accessible book'],
-        'lendinglibrary' : ['Lending library'],
+        'printdisabled'  : ['Protected DAISY', 'Accessible book'],
+        'lendinglibrary' : ['Lending library', 'Protected DAISY', 'Accessible book'],
         'inlibrary'      : ['In library'],
     }
     
