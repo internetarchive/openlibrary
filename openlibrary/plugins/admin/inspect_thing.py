@@ -39,7 +39,10 @@ def get_tasks_info(thing, tombstone_db):
 
 def get_thing_info(thing):
     global tombstone_db
-    tasks = get_tasks_info(thing, tombstone_db)
+    try:
+        tasks = get_tasks_info(thing, tombstone_db)
+    except couchdb.http.ResourceNotFound:
+        return("No such thing to inspect")
     return render_template("admin/inspect/thing", thing, tasks)
 
 def setup():
