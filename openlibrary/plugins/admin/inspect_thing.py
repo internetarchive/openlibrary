@@ -26,8 +26,8 @@ def connect_to_tombstone():
 def process_task_row(task):
     """Makes some changes to the task row from couch so that the
     template can display it properly"""
-    print datetime.datetime.utcfromtimestamp(task.value['started_at'])
     task.value['started_at'] = datetime.datetime.utcfromtimestamp(task.value['started_at'])
+    task.value['finished_at'] = datetime.datetime.utcfromtimestamp(task.value['finished_at'])
     return task.value
 
 def get_tasks_info(thing, tombstone_db):

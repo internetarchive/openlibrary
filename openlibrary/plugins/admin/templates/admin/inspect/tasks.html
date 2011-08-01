@@ -10,6 +10,9 @@ $def with (tasks)
     <th>
       Started at
     </th>
+    <th>
+      Finished at
+    </th>
   </tr>
  $for task in tasks:
    <tr>
@@ -26,6 +29,9 @@ $def with (tasks)
      </td>
      <td>
        $task['started_at'] ($datestr(task['started_at']))
+     </td>
+     <td>
+       $task['finished_at'] ($datestr(task['finished_at']))
      </td>
    </tr>
 </table>

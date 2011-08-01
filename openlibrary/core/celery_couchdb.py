@@ -1,4 +1,7 @@
+import calendar
+import datetime
 import json
+
 
 from celery.backends.base import BaseDictBackend
 from celery.exceptions import ImproperlyConfigured
@@ -7,9 +10,6 @@ try:
     import couchdb
 except ImportError:
     couchdb = None
-
-
-    
 
 
 class CouchDBBackend(BaseDictBackend): 
@@ -29,14 +29,14 @@ class CouchDBBackend(BaseDictBackend):
         self.database = couchdb.Database(self.dburi)
 
 
-
     def _get_tombstone(self, result, status, traceback):
         if status == "FAILURE":
             # Pull out traceback, args and other things from exception in case of FAILURE
             traceback = result.args[1].pop('traceback')
             result = result.args[1]
         doc = dict(status = str(status),
-                   traceback = str(traceback))
+                   traceback = str(traceback),
+                   finished_at = calendar.timegm(datetime.datetime.utcnow().timetuple()))
         doc.update(result)
         return doc
 

@@ -40,6 +40,7 @@ def oltask(fn):
         h.setFormatter(logging.Formatter("%(asctime)s [%(name)s] [%(levelname)s] %(message)s"))
         logging.root.addHandler(h)
         try:
+            started_at = calendar.timegm(datetime.datetime.utcnow().timetuple())
             ret = fn(*largs, **kargs)
         except Exception,e:
             log = s.getvalue()
@@ -47,7 +48,7 @@ def oltask(fn):
             d = dict(largs = json.dumps(largs),
                      kargs = json.dumps(kargs),
                      command = fn.__name__,
-                     started_at = calendar.timegm(datetime.datetime.utcnow().timetuple()),
+                     started_at = started_at,
                      log = log,
                      traceback = tb,
                      context = task_context)
@@ -56,7 +57,7 @@ def oltask(fn):
         d = dict(largs = json.dumps(largs),
                  kargs = json.dumps(kargs),
                  command = fn.__name__,
-                 started_at = calendar.timegm(datetime.datetime.utcnow().timetuple()),
+                 started_at = started_at,
                  log = log,
                  result = ret,
                  context = task_context)
