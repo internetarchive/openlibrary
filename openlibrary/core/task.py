@@ -28,12 +28,21 @@ def set_task_data(**kargs):
     task_context = kargs.copy()
 
 
+def create_patched_delay(original_fn):
+    """Returns a patched version of delay that we can use to
+    monkeypatch the actual one"""
+    # @wraps(original_fn.delay)
+    def delay2(*largs, **kargs):
+        t = calendar.timegm(datetime.datetime.utcnow().timetuple())
+        return original_fn.original_delay(t, *largs, **kargs)
+    return delay2
+
 def oltask(fn):
     """Openlibrary specific decorator for celery tasks that records
     some extra information in the database which we use for
     tracking"""
     @wraps(fn)
-    def wrapped(*largs, **kargs):
+    def wrapped(enqueue_time, *largs, **kargs):
         global task_context
         s = StringIO.StringIO()
         h = logging.StreamHandler(s)
@@ -48,15 +57,18 @@ def oltask(fn):
             d = dict(largs = json.dumps(largs),
                      kargs = json.dumps(kargs),
                      command = fn.__name__,
+                     enqueued_at = enqueue_time,
                      started_at = started_at,
                      log = log,
                      traceback = tb,
+                     result = None,
                      context = task_context)
             raise ExceptionWrapper(e, d)
         log = s.getvalue()
         d = dict(largs = json.dumps(largs),
                  kargs = json.dumps(kargs),
                  command = fn.__name__,
+                 enqueued_at = enqueue_time,
                  started_at = started_at,
                  log = log,
                  result = ret,
@@ -64,4 +76,8 @@ def oltask(fn):
         logging.root.removeHandler(h)
         task_context = {}
         return d
-    return task(wrapped)
+    retval = task(wrapped)
+    patched_delay = create_patched_delay(retval)
+    retval.original_delay = retval.delay
+    retval.delay = patched_delay
+    return retval

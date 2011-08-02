@@ -9,11 +9,8 @@ BROKER_PORT = 5672
 CELERY_RESULT_BACKEND = "couchdb"
 CELERY_RESULT_DBURI = "http://localhost:5984/celery"
 
-OL_RESULT_DB_PARAMETERS = { "dbn" : "postgres",
-                            "db" : "openlibrary"}
 
-
-CELERY_IMPORTS = ("openlibrary.tasks", "foo")
+CELERY_IMPORTS = ("openlibrary.tasks")
 
 # These two files need to be separately mentioned since the tasks will
 # run in the celery workers
