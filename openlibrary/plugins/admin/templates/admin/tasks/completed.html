@@ -1,7 +1,7 @@
 $def with (completed = [])
     $for task in completed:
     <tr>
-      <td><a href="/admin/tasks/$task['_id']">$task['_id']</a></td>
+      <td><a href="/admin/tasks/$task['_id']">$task['_id'][:8]...</a></td>
       <td>$(task['command'])</td>
       <td>$(task['status'])</td>
       <td>--</td>
