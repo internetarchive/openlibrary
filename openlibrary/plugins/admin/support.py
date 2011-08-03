@@ -35,7 +35,7 @@ class case(object):
         else:
             last_email = case.history[-1]['text']
         last_email = "\n".join("  > %s"%x for x in last_email.split("\n")) + "\n\n"
-        admins = ((x.get_email(), x.get_username(), x.get_email() == case.assignee) for x in web.ctx.site.get("/usergroup/admin").members)
+        admins = ((x.get_email(), x.get_name(), x.get_email() == case.assignee) for x in web.ctx.site.get("/usergroup/admin").members)
         return render_template("admin/case", case, last_email, admins, date_pretty_printer, md.convert)
 
     def POST(self, caseid):
@@ -51,13 +51,13 @@ class case(object):
         md = markdown.Markdown()
         last_email = case.history[-1]['text']
         last_email = "\n".join("> %s"%x for x in textwrap.wrap(last_email))
-        admins = ((x.get_email(), x.get_username(), x.get_email() == case.assignee) for x in web.ctx.site.get("/usergroup/admin").members)
+        admins = ((x.get_email(), x.get_name(), x.get_email() == case.assignee) for x in web.ctx.site.get("/usergroup/admin").members)
         return render_template("admin/case", case, last_email, admins, date_pretty_printer, md.convert, True)
     
     def POST_sendreply(self, form, case):
         user = web.ctx.site.get_user()
         casenote = form.get("casenote1", "")
-        casenote = "%s replied:\n\n%s"%(user.get_username(), casenote)
+        casenote = "%s replied:\n\n%s"%(user.get_name(), casenote)
         case.add_worklog_entry(by = user.get_email(),
                                text = casenote)
         case.change_status("replied", user.get_email())
