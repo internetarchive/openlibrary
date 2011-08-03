@@ -27,7 +27,8 @@ table.support pre.hidden {
 </style>
 
 $ path = request.path
-
+$if path.endswith("support"): 
+   $ path = "/admin/support/new"
 
 
 $def link(url, title, extra):
