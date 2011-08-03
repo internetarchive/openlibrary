@@ -163,18 +163,18 @@ $ library = (get_library() if 'inlibrary' in ctx.features else None)
                                 </a>
                             </span>
                         $elif doc.lending_edition and (library or 'inlibrary' not in doc.collections):
-                            $if doc.checked_out:
-                                <span class="actions read">
-                                    <span class="image checked-out" title="This book is checked out"></span>
-                                    <span class="label">Checked out</span>
-                                </span>
-                            $else:
-                                <span class="actions read">
+                            <span class="actions read">
+                                $if doc.checked_out:
+                                    <a href="/books/$doc.lending_edition/x/borrow" title="This book is checked out">
+                                        <span class="image checked-out"></span>
+                                        <span class="label">Checked out</span>
+                                    </a>
+                                $else:
                                     <a href="/books/$doc.lending_edition/x/borrow" title="Borrow book now">
                                         <span class="image borrow"></span>
                                         <span class="label">Borrow</span>
                                     </a>
-                                </span>
+                            </span>
                         $elif doc.overdrive:
                             <span class="actions read">
                                 <a href="http://search.overdrive.com/SearchResults.aspx?ReserveID={$(doc.overdrive[0])}" title="Link to overdrive.com">
