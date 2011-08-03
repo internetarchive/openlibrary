@@ -227,15 +227,10 @@ class account_verify_old(delegate.page):
     """
     path = "/account/verify"
     def GET(self):
-        i = web.input(username="", email="", code="")
-        verified = verify_hash(get_secret_key(), i.username + ',' + i.email, i.code)
-
-        if verified:
-            web.ctx.site.activate_account(i.username)
-            user = web.ctx.site.get("/people/" + i.username)
-            return render['account/verify/success'](user.displayname or i.username)
-        else:
-            return render['account/verify/failed']()
+        # It is too long since we switched to the new account verification links.
+        # All old links must be expired by now. 
+        # Show failed message without thinking.
+        return render['account/verify/failed']()
 
 class account_email(delegate.page):
     """Change email.
@@ -305,13 +300,10 @@ class account_email_verify_old(account_email_verify):
     path = "/account/email/verify"
 
     def GET(self):
-        i = web.input(username='', email='', code='')
-
-        verified = verify_hash(get_secret_key(), i.username + ',' + i.email, i.code)
-        if verified:
-            return self.update_email(i.username, i.email)
-        else:
-            return self.bad_link()
+        # It is too long since we switched to the new email verification links.
+        # All old links must be expired by now. 
+        # Show failed message without thinking.
+        return self.bad_link()
 
 class account_password(delegate.page):
     path = "/account/password"
