@@ -5,18 +5,26 @@
 
 BUILD=static/build
 
-.PHONY: all clean distclean
+.PHONY: all clean distclean git css js i18n
 
-all: 
+all: git css js i18n
+
+css:
 	mkdir -p $(BUILD)
+	bash static/css/all.cssh > $(BUILD)/all.css
+
+js: 
+	mkdir -p $(BUILD)
+	bash static/js/vendor.jsh > $(BUILD)/vendor.js
+	bash static/js/all.jsh > $(BUILD)/all.js
+
+i18n:
+	python ./scripts/i18n-messages compile
+
+git:
 	git submodule init
 	git submodule sync
 	git submodule update
-	python ./scripts/i18n-messages compile
-	bash static/js/vendor.jsh > $(BUILD)/vendor.js
-	bash static/js/all.jsh > $(BUILD)/all.js
-	bash static/css/all.cssh > $(BUILD)/all.css
-
 
 clean:
 	rm -rf $(BUILD)
