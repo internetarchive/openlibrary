@@ -2231,7 +2231,11 @@ span.actions a {
     display: block;
     float: left;
     min-width: 35px;
-    max-width: 45px;
+
+    /* Anand: commented to fix alignment of "Checked out" */
+    /*
+    max-width: 45px; 
+    */
     font-family: "Lucida Grande", Verdana, Geneva, Helvetica, sans-serif;
     font-size: 10px;
     margin-left: 10px;
