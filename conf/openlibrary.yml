@@ -145,3 +145,5 @@ stats: # This section is used to state what stats need to be gathered.
 
 
 libraries_admin_email: admin@dev-instance
+
+graphite_base_url: ""

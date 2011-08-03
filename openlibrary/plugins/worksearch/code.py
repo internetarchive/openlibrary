@@ -339,6 +339,12 @@ def get_doc(doc): # called from work_search template
         cover_edition_key = (cover.text if cover is not None else None),
     )
     doc.url = '/works/' + doc.key + '/' + urlsafe(doc.title)
+    
+    if doc.lending_edition:
+        store_doc = web.ctx.site.store.get("ebooks/books/" + doc.lending_edition) or {}
+        doc.checked_out = store_doc.get("borrowed") == "true"
+    else:
+        doc.checked_out = "false"
     return doc
 
 re_subject_types = re.compile('^(places|times|people)/(.*)')
@@ -367,6 +373,12 @@ def work_object(w): # called by works_by_author
         first_publish_year = (w['first_publish_year'] if 'first_publish_year' in w else None),
         ia = w.get('ia', [])
     )
+    if obj['lending_edition']:
+        doc = web.ctx.site.store.get("ebooks/books/" + obj['lending_edition']) or {}
+        obj['checked_out'] = doc.get("borrowed") == "true"
+    else:
+        obj['checked_out'] = "false"
+    
     for f in 'has_fulltext', 'subtitle':
         if w.get(f):
             obj[f] = w[f]
@@ -541,6 +553,9 @@ class SubjectEngine:
         result = work_search(q, offset=offset, limit=limit, sort=sort, **kw)
         for w in result.docs:
             w.ia = w.ia and w.ia[0] or None
+            if w.ia and w.get('lending_edition'):
+                doc = web.ctx.site.store.get("ebooks/books/" + w['lending_edition']) or {}
+                w['checked_out'] = doc.get("borrowed") == "true"
 
         subject = Subject(
             key=key,

@@ -1,5 +1,7 @@
 $def with (case, last_email, admins, pretty_print_date, htmlify, done = False)
 
+$var title: $case.subject ($case.creator_username)
+
 <script type="text/javascript">
 \$(function() {
     \$("#checkbox3").change(function() {
