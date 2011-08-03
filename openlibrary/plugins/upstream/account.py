@@ -150,6 +150,12 @@ class account_login(delegate.page):
         # make sure the username is valid
         if not forms.vlogin.valid(i.username):
             return self.error("account_user_notfound", i)
+            
+        # Find the exact username considering possibility that the given
+        # username is a case-varient of the exact one
+        i.username = self.get_case_insensitive_username(i.username)
+        if i.username is None:
+            return self.error("account_user_notfound", i)
         
         try:
             web.ctx.site.login(i.username, i.password)
@@ -172,7 +178,13 @@ class account_login(delegate.page):
         expires = (i.remember and 3600*24*7) or ""
         web.setcookie(config.login_cookie_name, web.ctx.conn.get_auth_token(), expires=expires)
         raise web.seeother(i.redirect)
-
+        
+    def get_case_insensitive_username(self, username):
+        """Returns the exact username by resolving the case variations.
+        """
+        account = Account.find(username=username) or Account.find(lusername=username.lower())
+        return account and account.username
+    
     def POST_resend_verification_email(self, i):
         try:
             web.ctx.site.login(i.username, i.password)
