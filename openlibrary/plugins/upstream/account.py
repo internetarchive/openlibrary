@@ -150,6 +150,12 @@ class account_login(delegate.page):
         # make sure the username is valid
         if not forms.vlogin.valid(i.username):
             return self.error("account_user_notfound", i)
+            
+        # Find the exact username considering possibility that the given
+        # username is a case-variant of the exact one
+        i.username = self.get_case_insensitive_username(i.username)
+        if i.username is None:
+            return self.error("account_user_notfound", i)
         
         try:
             web.ctx.site.login(i.username, i.password)
@@ -172,7 +178,13 @@ class account_login(delegate.page):
         expires = (i.remember and 3600*24*7) or ""
         web.setcookie(config.login_cookie_name, web.ctx.conn.get_auth_token(), expires=expires)
         raise web.seeother(i.redirect)
-
+        
+    def get_case_insensitive_username(self, username):
+        """Returns the exact username by resolving the case variations.
+        """
+        account = Account.find(username=username) or Account.find(lusername=username.lower())
+        return account and account.username
+    
     def POST_resend_verification_email(self, i):
         try:
             web.ctx.site.login(i.username, i.password)
@@ -201,10 +213,10 @@ class account_verify(delegate.page):
             account = Account.find(username = doc['username'])
             if account:
                 if account['status'] != "pending":
-                    return render['account/verify/activated']()
+                    return render['account/verify/activated'](account)
             web.ctx.site.activate_account(username=doc['username'])
             user = web.ctx.site.get("/people/" + doc['username'])
-            return render['account/verify/success'](user.displayname or doc['username'])
+            return render['account/verify/success'](account)
         else:
             return render['account/verify/failed']()
 
@@ -215,15 +227,10 @@ class account_verify_old(delegate.page):
     """
     path = "/account/verify"
     def GET(self):
-        i = web.input(username="", email="", code="")
-        verified = verify_hash(get_secret_key(), i.username + ',' + i.email, i.code)
-
-        if verified:
-            web.ctx.site.activate_account(i.username)
-            user = web.ctx.site.get("/people/" + i.username)
-            return render['account/verify/success'](user.displayname or i.username)
-        else:
-            return render['account/verify/failed']()
+        # It is too long since we switched to the new account verification links.
+        # All old links must be expired by now. 
+        # Show failed message without thinking.
+        return render['account/verify/failed']()
 
 class account_email(delegate.page):
     """Change email.
@@ -293,13 +300,10 @@ class account_email_verify_old(account_email_verify):
     path = "/account/email/verify"
 
     def GET(self):
-        i = web.input(username='', email='', code='')
-
-        verified = verify_hash(get_secret_key(), i.username + ',' + i.email, i.code)
-        if verified:
-            return self.update_email(i.username, i.email)
-        else:
-            return self.bad_link()
+        # It is too long since we switched to the new email verification links.
+        # All old links must be expired by now. 
+        # Show failed message without thinking.
+        return self.bad_link()
 
 class account_password(delegate.page):
     path = "/account/password"

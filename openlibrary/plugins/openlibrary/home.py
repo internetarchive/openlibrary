@@ -8,7 +8,7 @@ from infogami.utils.view import render_template, public
 from infogami.infobase.client import storify
 from infogami import config
 
-from openlibrary.core import admin, cache, ia, helpers as h
+from openlibrary.core import admin, cache, ia, inlibrary, helpers as h
 from openlibrary.plugins.upstream.utils import get_blog_feeds
 from openlibrary.plugins.worksearch import search
 
@@ -42,11 +42,31 @@ def carousel_from_list(key, randomize=False, limit=60):
     if randomize:
         random.shuffle(data)
     data = data[:limit]
+    add_checkedout_status(data)
     return render_template("books/carousel", storify(data), id=id)
     
+def add_checkedout_status(books):
+    # This is not very efficient approach.
+    # Todo: Implement the following apprach later.
+    # * Store the borrow status of all books in the list in memcache
+    # * Use that info to add checked_out status
+    # * Invalidate that on any borrow/return
+    for book in books:
+        if book.get("borrow_url"):
+            doc = web.ctx.site.store.get("ebooks" + book['key']) or {}
+            checked_out = doc.get("borrowed") == "true"
+        else:
+            checked_out = False
+        book['checked_out'] = checked_out
+
 @public
 def render_returncart(limit=60, randomize=True):
     data = get_returncart(limit*5)
+
+    # Remove all inlibrary books if we not in a participating library
+    if not inlibrary.get_library():
+        data = [d for d in data if 'inlibrary_borrow_url' not in d]
+    
     if randomize:
         random.shuffle(data)
     data = data[:limit]

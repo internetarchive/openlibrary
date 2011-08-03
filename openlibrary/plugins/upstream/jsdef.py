@@ -44,12 +44,13 @@ http://github.com/anandology/notebook/tree/master/2010/03/jsdef/
 """
 
 __author__ = "Anand Chitipothu <anandology@gmail.com>"
-__version__ = "0.2"
+__version__ = "0.3"
 
 """change notes:
 
 0.1: first release
 0.2: python to javascript conversion for "and", "or" and "not" keywords
+0.3: Added support for elif.
 """
 
 import simplejson
@@ -103,7 +104,7 @@ class JSNode:
             'break;\n'
             >>> jsemit(web.template.AssignmentNode("x = 1"), "")
             'var x = 1;\n'
-        """   
+        """
         name = "jsemit_" + node.__class__.__name__
         f= getattr(self, name, None)
         if f:
@@ -136,6 +137,10 @@ class JSNode:
     def jsemit_BlockNode(self, node, indent):
         text = ""
         
+        jsnames = {
+            "elif": "else if"
+        }
+        
         for n in ["if", "elif", "else", "for"]:
             if node.stmt.startswith(n):
                 name = n
@@ -146,13 +151,15 @@ class JSNode:
         expr = node.stmt[len(name):].strip(": ")        
         expr = expr and "(" + expr + ")"
         
-        text += indent + "%s %s {\n" % (name, py2js(expr))
+        jsname = jsnames.get(name, name)
+        text += indent + "%s %s {\n" % (jsname, py2js(expr))
         text += self.jsemit(node.suite, indent + INDENT)
         text += indent + "}\n"
         return text
         
     jsemit_IfNode = jsemit_BlockNode
     jsemit_ElseNode = jsemit_BlockNode
+    jsemit_ElifNode = jsemit_BlockNode
     
     def jsemit_ForNode(self, node, indent):
         tok = PythonTokenizer(node.stmt)
@@ -222,7 +229,7 @@ def py2js(expr):
 def _testrun(code):
     parser = extension(web.template.Parser())
     root = parser.parse(code)
-    node = root.suite.sections[0]
+    node = root.suite
     jnode = JSNode(node)
     return jnode.jsemit(node, "")    
     
