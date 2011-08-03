@@ -57,8 +57,11 @@ class Support(object):
     def get_all_cases(self, typ = "all", summarise = False, sortby = "lastmodified", desc = "false"):
         "Return all the cases in the system"
         if summarise:
+            d = {}
             v = ViewDefinition("cases", "sort-status", "", group_level = 1)
-            return v(self.db)
+            for i in v(self.db):
+                d[i.key[0]] = i.value
+            return d
         else:
             return Case.all(self.db, typ, sortby, desc)
 
