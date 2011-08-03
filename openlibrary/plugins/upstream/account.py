@@ -152,7 +152,7 @@ class account_login(delegate.page):
             return self.error("account_user_notfound", i)
             
         # Find the exact username considering possibility that the given
-        # username is a case-varient of the exact one
+        # username is a case-variant of the exact one
         i.username = self.get_case_insensitive_username(i.username)
         if i.username is None:
             return self.error("account_user_notfound", i)
