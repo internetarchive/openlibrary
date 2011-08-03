@@ -4,7 +4,6 @@ import textwrap
 import web
 from infogami.utils.view import render_template
 from infogami import config
-from infogami.utils.markdown import markdown
 
 from openlibrary.core import support
 
@@ -29,14 +28,13 @@ class case(object):
             return render_template("admin/cases", None, None, True, False)
         case = support_db.get_case(caseid)
         date_pretty_printer = lambda x: x.strftime("%B %d, %Y")
-        md = markdown.Markdown()
         if len(case.history) == 1:
             last_email = case.description
         else:
             last_email = case.history[-1]['text']
         last_email = "\n".join("  > %s"%x for x in last_email.split("\n")) + "\n\n"
         admins = ((x.get_email(), x.get_name(), x.get_email() == case.assignee) for x in web.ctx.site.get("/usergroup/admin").members)
-        return render_template("admin/case", case, last_email, admins, date_pretty_printer, md.convert)
+        return render_template("admin/case", case, last_email, admins, date_pretty_printer)
 
     def POST(self, caseid):
         if not support_db:
@@ -48,11 +46,10 @@ class case(object):
          "UPDATE"     : self.POST_update,
          "CLOSE CASE" : self.POST_closecase}[action](form,case)
         date_pretty_printer = lambda x: x.strftime("%B %d, %Y")
-        md = markdown.Markdown()
         last_email = case.history[-1]['text']
         last_email = "\n".join("> %s"%x for x in textwrap.wrap(last_email))
         admins = ((x.get_email(), x.get_name(), x.get_email() == case.assignee) for x in web.ctx.site.get("/usergroup/admin").members)
-        return render_template("admin/case", case, last_email, admins, date_pretty_printer, md.convert, True)
+        return render_template("admin/case", case, last_email, admins, date_pretty_printer, True)
     
     def POST_sendreply(self, form, case):
         user = web.ctx.site.get_user()

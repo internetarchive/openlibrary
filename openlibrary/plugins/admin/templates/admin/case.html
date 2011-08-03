@@ -1,4 +1,4 @@
-$def with (case, last_email, admins, pretty_print_date, htmlify, done = False)
+$def with (case, last_email, admins, pretty_print_date, done = False)
 
 $var title: $case.subject ($case.creator_username)
 
@@ -33,7 +33,7 @@ $var title: $case.subject ($case.creator_username)
   </tr>
   <tr>
     <td colspan="2" style="padding-left: 20px; background-color: #f5f5f5;">
-        <span class="largest">$:htmlify(case.description)</span>
+        <span class="largest">$:format(case.description)</span>
     </td>
   </tr>
   <tr>
@@ -66,7 +66,7 @@ $var title: $case.subject ($case.creator_username)
             <br />
             $(entry.by)
         </td>
-        <td>$:htmlify(entry.text)</td>
+        <td>$:format(entry.text)</td>
     </tr>
 </table>
 
