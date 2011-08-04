@@ -24,9 +24,10 @@ from openlibrary.plugins.upstream import forms
 from openlibrary.plugins.upstream.account import Account
 
 
-from openlibrary.plugins.admin import services, support, tasks
+from openlibrary.plugins.admin import services, support, tasks, inspect_thing
 
 logger = logging.getLogger("openlibrary.admin")
+
 
 def render_template(name, *a, **kw):
     if "." in name:
@@ -390,12 +391,14 @@ class service_status(object):
 
 class inspect:
     def GET(self, section):
-        if section == "store":
+        if section == "/store":
             return self.GET_store()
-        elif section == "memcache":
+        elif section == "/memcache":
             return self.GET_memcache()
         else:
-            raise web.notfound()
+            return inspect_thing.get_thing_info(section)
+        # else:
+        #     raise web.notfound()
         
     def GET_store(self):
         i = web.input(key=None, type=None, name=None, value=None)
@@ -421,6 +424,7 @@ class inspect:
         keys = [k.strip() for k in i["keys"].split() if k.strip()]        
         mapping = keys and mc.get_multi(keys)
         return render_template("admin/inspect/memcache", keys, mapping)
+
         
 class deploy:
     def GET(self):
@@ -485,12 +489,13 @@ def setup():
     register_admin_page('/admin/support', support.cases, label = "All Support cases")
     register_admin_page('/admin/support/(all|new|replied|closed)?', support.cases, label = "Filtered Support cases")
     register_admin_page('/admin/support/(\d+)', support.case, label = "Support cases")
-    register_admin_page('/admin/inspect(?:/(.+))?', inspect, label="")
+    register_admin_page('/admin/inspect(?:(/.+))?', inspect, label="")
     register_admin_page('/admin/tasks', tasks.tasklist, label = "Task queue")
     register_admin_page('/admin/tasks/(.*)', tasks.tasks, label = "Task details")
     register_admin_page('/admin/deploy', deploy, label="")
     register_admin_page('/admin/graphs', graphs, label="")
 
+    inspect_thing.setup()
     support.setup()
     import mem
 

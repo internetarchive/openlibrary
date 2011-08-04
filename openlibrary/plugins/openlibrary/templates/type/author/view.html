@@ -46,6 +46,8 @@ $ olid = page.key.split('/')[-1]
 
 $putctx("description", "Books by " + page.get("name", ""))
 
+$ library = (get_library() if 'inlibrary' in ctx.features else None)
+
 <div id="contentHead">
 
     $:macros.databarView(page)
@@ -160,12 +162,18 @@ $putctx("description", "Books by " + page.get("name", ""))
                                     <span class="label">Read</span>
                                 </a>
                             </span>
-                        $elif doc.lending_edition:
+                        $elif doc.lending_edition and (library or 'inlibrary' not in doc.collections):
                             <span class="actions read">
-                                <a href="/books/$doc.lending_edition/borrow" title="Borrow book now">
-                                    <span class="image borrow"></span>
-                                    <span class="label">Borrow</span>
-                                </a>
+                                $if doc.checked_out:
+                                    <a href="/books/$doc.lending_edition/x/borrow" title="This book is checked out">
+                                        <span class="image checked-out"></span>
+                                        <span class="label">Checked out</span>
+                                    </a>
+                                $else:
+                                    <a href="/books/$doc.lending_edition/x/borrow" title="Borrow book now">
+                                        <span class="image borrow"></span>
+                                        <span class="label">Borrow</span>
+                                    </a>
                             </span>
                         $elif doc.overdrive:
                             <span class="actions read">
