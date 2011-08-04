@@ -9,7 +9,7 @@ def delete_old_links():
         key = doc['_key']
         if expiry_date > now:
             print "Deleting link %s"%(key)
-            del web.ctx.site.store[key]
+            # del web.ctx.site.store[key]
         else:
             print "Retaining link %s"%(key)
 
