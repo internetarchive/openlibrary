@@ -268,7 +268,7 @@ def build_marc(edition):
     marc = build_titles(edition['full_title'])
     marc['isbn'] = []
     for f in 'isbn', 'isbn_10', 'isbn_13':
-        marc['isbn'].append(edition.get(f, []))
+        marc['isbn'].extend(edition.get(f, []))
     if 'publish_country' in edition \
             and edition['publish_country'] not in ('   ', '|||'):
         marc['publish_country'] = edition['publish_country']
