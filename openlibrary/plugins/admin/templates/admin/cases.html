@@ -26,12 +26,27 @@ table.support pre.hidden {
 
 </style>
 
+$ path = request.path
+$if path.endswith("support"): 
+   $ path = "/admin/support/new"
+
+
+$def link(url, title, extra):
+    $if url.endswith(path):
+        <strong>$title ($extra)</strong>
+    $else:
+        <a href="$url">$title $extra</a>
+
+
+
 $if error:
   <p>Couldn't connect to support database.</p>
 $else:
-  <p>Filter: <a href="/admin/support/all"><strong> $(total) total</strong> </a>
-  $for i in summary:
-    |  <a href="/admin/support/$(i.key[0])">$(i.value) $(i.key[0])</a>
+  <p>
+    Filter: $:link("/admin/support/new", "new", summary["new"])  |
+    $:link("/admin/support/replied", "replied", summary["replied"]) |
+    $:link("/admin/support/closed", "closed", summary["closed"]) |
+    $:link("/admin/support/all", "all", total) 
   </p>
   <table class = "support" border="0" cellspacing="0" cellpadding="10">
       <tr>

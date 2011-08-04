@@ -4,13 +4,13 @@ BROKER_PORT = 5672
 # BROKER_PASSWORD = "mypassword"
 # BROKER_VHOST = "myvhost"
 
-CELERY_RESULT_BACKEND = "database"
-CELERY_RESULT_DBURI = "postgresql:///openlibrary"
-OL_RESULT_DB_PARAMETERS = { "dbn" : "postgres",
-                            "db" : "openlibrary"}
+# CELERY_RESULT_BACKEND = "database"
+# CELERY_RESULT_DBURI = "postgresql:///openlibrary"
+CELERY_RESULT_BACKEND = "couchdb"
+CELERY_RESULT_DBURI = "http://localhost:5984/celery"
 
 
-CELERY_IMPORTS = ("openlibrary.tasks", )
+CELERY_IMPORTS = ("openlibrary.tasks")
 
 # These two files need to be separately mentioned since the tasks will
 # run in the celery workers
@@ -25,3 +25,6 @@ CELERYBEAT_SCHEDULE = {
         "schedule": timedelta(seconds=30),
     },
 }
+
+from celery.backends import BACKEND_ALIASES
+BACKEND_ALIASES['couchdb'] = "openlibrary.core.celery_couchdb.CouchDBBackend"
