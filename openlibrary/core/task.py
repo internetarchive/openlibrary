@@ -46,7 +46,7 @@ def oltask(fn):
     @wraps(fn)
     def wrapped(*largs, **kargs):
         global task_context
-        celery_extra_info = kargs.get("celery_extra_info",{})
+        celery_extra_info = kargs.pop("celery_extra_info",{})
         enqueue_time = celery_extra_info.get('enqueue_time',None)
         s = StringIO.StringIO()
         h = logging.StreamHandler(s)
