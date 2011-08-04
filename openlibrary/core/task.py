@@ -34,7 +34,9 @@ def create_patched_delay(original_fn):
     # @wraps(original_fn.delay)
     def delay2(*largs, **kargs):
         t = calendar.timegm(datetime.datetime.utcnow().timetuple())
-        return original_fn.original_delay(t, *largs, **kargs)
+        celery_extra_info = dict(enqueue_time = t)
+        kargs.update(celery_extra_info = celery_extra_info)
+        return original_fn.original_delay(*largs, **kargs)
     return delay2
 
 def oltask(fn):
@@ -42,8 +44,10 @@ def oltask(fn):
     some extra information in the database which we use for
     tracking"""
     @wraps(fn)
-    def wrapped(enqueue_time, *largs, **kargs):
+    def wrapped(*largs, **kargs):
         global task_context
+        celery_extra_info = kargs.get("celery_extra_info",{})
+        enqueue_time = celery_extra_info.get('enqueue_time',None)
         s = StringIO.StringIO()
         h = logging.StreamHandler(s)
         h.setFormatter(logging.Formatter("%(asctime)s [%(name)s] [%(levelname)s] %(message)s"))
