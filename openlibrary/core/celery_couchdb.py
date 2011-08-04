@@ -44,7 +44,6 @@ class CouchDBBackend(BaseDictBackend):
     def _store_result(self, task_id, result, status, traceback=None):
         doc = self._get_tombstone(result, status, traceback)
         self.database[task_id] = doc
-        self.database.save(doc)
         
         
 

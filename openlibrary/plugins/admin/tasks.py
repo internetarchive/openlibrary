@@ -24,7 +24,10 @@ def process_task_row(taskdoc):
     template can display it properly"""
     taskdoc['started_at'] = datetime.datetime.utcfromtimestamp(taskdoc['started_at'])
     taskdoc['finished_at'] = datetime.datetime.utcfromtimestamp(taskdoc['finished_at'])
-    taskdoc['enqueued_at'] = datetime.datetime.utcfromtimestamp(taskdoc['enqueued_at'])
+    try:
+        taskdoc['enqueued_at'] = datetime.datetime.utcfromtimestamp(taskdoc['enqueued_at'])
+    except:
+        taskdoc['enqueued_at'] = taskdoc['started_at']
     taskdoc["keys"] = taskdoc['context'].get("keys",[])
     return taskdoc
 
