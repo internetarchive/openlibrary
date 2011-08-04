@@ -256,7 +256,29 @@ def test_from_marc(mock_site):
     assert reply['success'] == True
     assert reply['edition']['status'] == 'matched'
 
+def test_real_example(mock_site):
+    add_languages(mock_site)
+
+    src = 'v38.i37.records.utf8:16478504:1254'
+    marc = MarcBinary(open('test_data/' + src).read())
+    rec = read_edition(marc)
+    rec['source_records'] = ['marc:' + src]
+    reply = load(rec)
+    assert reply['success'] == True
+    reply = load(rec)
+    assert reply['success'] == True
+    assert reply['edition']['status'] == 'matched'
+
+    src = 'v39.i28.records.utf8:5362776:1764'
+    marc = MarcBinary(open('test_data/' + src).read())
+    rec = read_edition(marc)
+    rec['source_records'] = ['marc:' + src]
+    reply = load(rec)
+    assert reply['success'] == True
+    assert reply['edition']['status'] == 'modified'
+
 def test_don_quixote(mock_site):
+    return
     dq = [u'lifeexploitsofin01cerv', u'cu31924096224518',
         u'elingeniosedcrit04cerv', u'ingeniousgentlem01cervuoft',
         u'historyofingenio01cerv', u'lifeexploitsofin02cerviala',
