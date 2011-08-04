@@ -266,10 +266,9 @@ def level2_merge(e1, e2):
 
 def build_marc(edition):
     marc = build_titles(edition['full_title'])
-    if 'isbn' in edition:
-        marc['isbn'] = edition['isbn']
-    else:
-        marc['isbn'] = []
+    marc['isbn'] = []
+    for f in 'isbn', 'isbn_10', 'isbn_13':
+        marc['isbn'].append(edition.get(f, []))
     if 'publish_country' in edition \
             and edition['publish_country'] not in ('   ', '|||'):
         marc['publish_country'] = edition['publish_country']
