@@ -1,15 +1,10 @@
-$def with (completed = [], active = [], reserved = [], limit = 20, offset = 0, fstart="", fend="", base_url = "", task_ranges = [])
+$def with (completed = [])
 
 <div id="contentHead">
     $:render_template("admin/menu", "/admin")
     <h1>Task status</h1>
 </div>
 <div id="contentBody">
-<script type="text/javascript">
-\$(function() {
-    \$( "input.date" ).datepicker({ changeMonth: true });
-});
-</script>
 
 <style type="text/css">
 table.tasks { 
@@ -29,11 +24,6 @@ table.tasks pre.hidden {
                          display: none;
  }
 
-div.ui-datepicker { 
-                    background-color:#eee;
-                    border: 1px solid black;
-                    }
-
 table.tasks tr.active td { 
                            background-color: #ff0;
  }
@@ -44,44 +34,47 @@ table.tasks tr.reserved td {
 
 
 </style>
+$ command = query_param("command")
+$ finishedat_start = query_param("finishedat_start")
+$ finishedat_end = query_param("finishedat_end")
 <form method="GET" action="/admin/tasks">
   <fieldset>
     <legend>Filters</legend>
-    <!-- <label> Command </label> -->
-    <!-- <input type="text" name="command" /> -->
+    <label> Command </label>
+    <input type="text" name="command" value="$command"/><br/>
     Finished between (start)
-    <input type="text" class = "date" name="finishedat_start" value="$fstart"/>
+    <input type="text" name="finishedat_start" value = "$finishedat_start"/>
      and (end)
-     <input type="text" class = "date" name="finishedat_end" value="$fend"/>
+     <input type="text" name="finishedat_end" value = "$finishedat_end"/>
+     (yyyy-mm-dd hh:mm)
      <br/>
-     Results per page
-     <select name="limit">
-       $for i in range(10,100,10):
-         $if limit == i:
-           <option selected = "true" value="$i">$i</option>
-	 $else:
-	   <option value="$i">$i</option>
+     <label> Entries per page </label>
+     <select value="label">
+       <option>20</option>
+       <option>40</option>
+       <option>60</option>
+       <option>80</option>
+       <option>100</option>
      </select>
-     <br/>
      <input type="submit" name="submit" value="Filter"/><br/>
   </fieldset>
+  <a href="/admin/tasks">Reset all filters</a>
 </form>
 
 <table class = "tasks" border="0" cellspacing="0" cellpadding="10">
     <tr>
         <th>Uuid</th>
         <th>Command</th>
-        <th>Arguments</th>
 	<th>Status</th>
         <th>Host</th>
+	<th>Enqueued at</th>
         <th>Started at</th>
 	<th>Finished at</th>
-        <!-- <th>Affected docs</th> -->
+        <th>Affected docs</th>
     </tr>
 $:render_template("admin/tasks/completed", completed)
-$:render_template("admin/tasks/active", active)
-$:render_template("admin/tasks/reserved", reserved)
 </table>
+
 <div>
 $ offset = safeint(query_param("offset"), 0)
 $ limit = safeint(query_param("limit"), 20)

@@ -1,0 +1,41 @@
+$def with (tasks)
+<table>
+  <tr>
+    <th>
+      Task id
+    </th>
+    <th>
+      Affected keys
+    </th>
+    <th>
+      Started at
+    </th>
+    <th>
+      Finished at
+    </th>
+  </tr>
+ $for task in tasks:
+   <tr>
+     <td> 
+       <a href="/admin/tasks/$task['_id']">$task['_id']</a>
+     </td>
+     <td> 
+       <ul>
+       $for k in task['context']['keys']
+         <li>
+	   <a href="/admin/inspect/$k">$k</a>
+	 </li>
+       </ul>
+     </td>
+     <td>
+       $task['started_at'] ($datestr(task['started_at']))
+     </td>
+     <td>
+       $task['finished_at'] ($datestr(task['finished_at']))
+     </td>
+   </tr>
+</table>
+       
+  
+    
+  
