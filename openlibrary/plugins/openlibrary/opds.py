@@ -153,7 +153,7 @@ class OPDSEntry(OPDS):
     def add_rel_links(self, book, work):
         links = []
         if work:
-            self.create_rel_link(None, 'related', 'http://openlibrary.org'+work.get_url(), 'text/html', 'Open Library Work')
+            self.create_rel_link(None, 'related', 'http://openlibrary.org'+work.key, 'text/html', 'Open Library Work')
 
         for name, values in book.get_identifiers().multi_items():
             for id in values:
