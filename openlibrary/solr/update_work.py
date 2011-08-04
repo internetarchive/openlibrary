@@ -176,7 +176,7 @@ def build_doc(w, obj_cache={}, resolve_redirects=False):
         if 'identifiers' in e:
             for k, id_list in e['identifiers'].iteritems():
                 k_orig = k
-                k = k.replace('.', '_').replace(',', '_').lower()
+                k = k.replace('.', '_').replace(',', '_').replace('(', '').replace(')', '').replace(':', '_').lower()
                 m = re_solr_field.match(k)
                 if not m:
                     print `k_orig`
