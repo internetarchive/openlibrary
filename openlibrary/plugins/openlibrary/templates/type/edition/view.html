@@ -44,11 +44,16 @@ $def display_value(label, value):
 
 $def display_identifiers(label, ids):
     $if label != "Goodreads":
+        $ all_ids = [-1!=id['value'].find('openlib-') for id in ids]
+        $if (True in all_ids) and (1==len(all_ids)):
+            $return
         <tr>
             <td class="title"><h6 class="title">$label</h6></td>
             <td class="object"><span class="object">
                 $for id in ids:
                     $ sep = cond(loop.last, "", ", ")
+                    $if -1 != id.value.find('openlib-'):
+                        $continue
                     $if id.url:
                         <a href="$id.url">$id.value</a>$sep
                     $else:
