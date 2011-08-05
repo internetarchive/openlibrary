@@ -532,8 +532,10 @@ def get_active_lists_in_random(limit=20, preload=True):
     
     while len(lists) < limit:
         result = get_recently_modified_lists(limit*5, offset=offset)
+        if not result:
+            break
+            
         offset += len(result)
-        
         # ignore lists with 4 or less seeds
         lists += [xlist for xlist in result if len(xlist.get("seeds", [])) > 4]
     
@@ -555,5 +557,5 @@ def get_active_lists_in_random(limit=20, preload=True):
     for xlist in lists:
         if xlist.key in seed_summaries:
             xlist.__dict__['seed_summary'] = seed_summaries[xlist.key]
-    
+
     return lists
