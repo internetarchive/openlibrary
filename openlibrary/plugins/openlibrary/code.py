@@ -436,8 +436,9 @@ class opds(delegate.mode):
             raise web.notfound("")
         else:
             from infogami.utils import template
+            import opds
             try:
-                result = template.typetemplate('opds')(page, web)
+                result = template.typetemplate('opds')(page, opds)
             except:
                 raise web.notfound("")
             else:

@@ -31,19 +31,23 @@ def get_solr(index):
         }
     return solr_host[index]
 
-re_collection = re.compile(r'<collection>(.*)</collection>', re.I)
+re_collection = re.compile(r'<(collection|boxid)>(.*)</\1>', re.I)
 
-def get_ia_collection(ia):
+def get_ia_collection_and_box_id(ia):
     url = 'http://www.archive.org/download/%s/%s_meta.xml' % (ia, ia)
     #print 'getting:', url
+    matches = {'boxid': set(), 'collection': set() }
     for attempt in range(5):
         try:
-            matches = (re_collection.search(line) for line in urlopen(url))
-            return set(m.group(1).lower() for m in matches if m)
+            for line in urlopen(url):
+                m = re_collection.search(line)
+                if m:
+                    matches[m.group(1).lower()].add(m.group(2).lower())
+            return matches
         except URLError:
             print 'retry', attempt, url
             sleep(5)
-    return set()
+    return matches
 
 class AuthorRedirect (Exception):
     pass
@@ -165,7 +169,12 @@ def build_doc(w, obj_cache={}, resolve_redirects=False):
         if pub_year:
             e['pub_year'] = pub_year
         if 'ocaid' in e:
-            collection = get_ia_collection(e['ocaid'])
+            ia_meta_fields = get_ia_collection_and_box_id(e['ocaid'])
+            collection = ia_meta_fields['collection']
+            assert len(ia_meta_fields['box_id']) == 1
+            box_id = ia_meta_fields['box_id'][0]
+            if 'ia_box_id' not in e:
+                e['ia_box_id'] = [box_id]
             #print 'collection:', collection
             e['ia_collection'] = collection
             e['public_scan'] = ('lendinglibrary' not in collection) and ('printdisabled' not in collection)
@@ -176,7 +185,7 @@ def build_doc(w, obj_cache={}, resolve_redirects=False):
         if 'identifiers' in e:
             for k, id_list in e['identifiers'].iteritems():
                 k_orig = k
-                k = k.replace('.', '_').replace(',', '_').lower()
+                k = k.replace('.', '_').replace(',', '_').replace('(', '').replace(')', '').replace(':', '_').lower()
                 m = re_solr_field.match(k)
                 if not m:
                     print `k_orig`
@@ -355,11 +364,11 @@ def build_doc(w, obj_cache={}, resolve_redirects=False):
             m = re_lang_key.match(l['key'] if isinstance(l, dict) else l)
             lang.add(m.group(1))
         if e.get('ia_loaded_id'):
-            assert isinstance(e['ia_loaded_id'], basestring)
-            ia_loaded_id.add(e['ia_loaded_id'])
+            assert isinstance(e['ia_loaded_id'], list) and isinstance(e['ia_loaded_id'][0], basestring)
+            ia_loaded_id.update(e['ia_loaded_id'])
         if e.get('ia_box_id'):
-            assert isinstance(e['ia_box_id'], basestring)
-            ia_box_id.add(e['ia_box_id'])
+            assert isinstance(e['ia_box_id'], list) and isinstance(e['ia_box_id'][0], basestring)
+            ia_box_id.update(e['ia_box_id'])
     if lang:
         add_field_list(doc, 'language', lang)
 
