@@ -70,8 +70,8 @@ def oltask(fn):
             started_at = calendar.timegm(datetime.datetime.utcnow().timetuple())
             try:
                 wait_time = started_at - enqueue_time
-                stats.put("task_wait_time", wait_time * 1000)
-                stats.put("%s_wait_time"%fn.__name__, wait_time * 1000)
+                stats.put("ol.celery.task_wait_time", wait_time * 1000)
+                stats.put("ol.celery.%s_wait_time"%fn.__name__, wait_time * 1000)
             except:
                 pass
             ret = fn(*largs, **kargs)
@@ -91,8 +91,8 @@ def oltask(fn):
             try:
                 end_time = calendar.timegm(datetime.datetime.utcnow().timetuple())
                 run_time = end_time - started_at
-                stats.put("task_run_time", run_time * 1000)
-                stats.put("%s_run_time"%fn.__name__, run_time * 1000)
+                stats.put("ol.celery.task_run_time", run_time * 1000)
+                stats.put("ol.celery.%s_run_time"%fn.__name__, run_time * 1000)
             except:
                 pass
             raise ExceptionWrapper(e, d)
