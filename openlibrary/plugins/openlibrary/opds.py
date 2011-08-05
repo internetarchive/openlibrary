@@ -61,9 +61,9 @@ class OPDS():
     def add_list(self, name, values, prefix='', attrs={}):
         if isinstance(values, list) or isinstance(values, tuple):
             for v in values:
-                self.add(name, prefix+v, attrs)
+                self.add(name, prefix+unicode(v), attrs)
         elif values:
-            self.add(name, prefix+values, attrs)
+            self.add(name, prefix+unicode(values), attrs)
 
     # add_author()
     #___________________________________________________________________________
