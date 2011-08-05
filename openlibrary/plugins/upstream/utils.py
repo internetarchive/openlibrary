@@ -242,8 +242,6 @@ def _get_changes_v1_raw(query, revision=None):
             
     return versions
 
-_get_changes_v1_raw = cache.memcache_memoize(_get_changes_v1_raw, key_prefix="upstream._get_changes_v1_raw", timeout=10*60)
-
 def get_changes_v1(query, revision=None):
     # uses the cached function _get_changes_v1_raw to get the raw data
     # and processes to before returning.
