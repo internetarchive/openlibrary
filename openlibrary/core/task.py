@@ -9,9 +9,22 @@ import StringIO
 import traceback
 import calendar
 
+
+import web
+import yaml
+
 # from celery.task import task
 from celery.task import task
 from functools import wraps
+
+import celeryconfig
+
+from openlibrary.core import stats
+
+@web.memoize
+def setup_stats():
+    c = yaml.load(open(celeryconfig.OL_CONFIG))
+    stats.client = stats.create_stats_client(c)
 
 class ExceptionWrapper(Exception):
     def __init__(self, exception, extra_info):
@@ -45,6 +58,7 @@ def oltask(fn):
     tracking"""
     @wraps(fn)
     def wrapped(*largs, **kargs):
+        setup_stats()
         global task_context
         celery_extra_info = kargs.pop("celery_extra_info",{})
         enqueue_time = celery_extra_info.get('enqueue_time',None)
@@ -54,6 +68,9 @@ def oltask(fn):
         logging.root.addHandler(h)
         try:
             started_at = calendar.timegm(datetime.datetime.utcnow().timetuple())
+            wait_time = started_at - enqueue_time
+            stats.put("task_wait_time", wait_time * 1000)
+            stats.put("%s_wait_time"%fn.__name__, wait_time * 1000)
             ret = fn(*largs, **kargs)
         except Exception,e:
             log = s.getvalue()
@@ -67,6 +84,11 @@ def oltask(fn):
                      traceback = tb,
                      result = None,
                      context = task_context)
+            logging.root.removeHandler(h)
+            end_time = calendar.timegm(datetime.datetime.utcnow().timetuple())
+            run_time = end_time - started_at
+            stats.put("task_run_time", run_time * 1000)
+            stats.put("%s_run_time"%fn.__name__, run_time * 1000)
             raise ExceptionWrapper(e, d)
         log = s.getvalue()
         d = dict(largs = json.dumps(largs),
