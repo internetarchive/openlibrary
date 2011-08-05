@@ -1,13 +1,19 @@
 $def with (completed = [])
     $for task in completed:
     <tr>
-      <td><a href="/admin/tasks/$task['uuid']">$task['uuid']</a></td>
+      <td><a href="/admin/tasks/$task['_id']">$task['_id'][:8]...</a></td>
       <td>$(task['command'])</td>
-      <td>$(task['arguments'])</td>
       <td>$(task['status'])</td>
       <td>--</td>
-      <td>$task['started_at']</td>
+      <td>--</td>
+      <td>$task['started_at'] ($datestr(task['finished_at']))</td>
       <td>$task['finished_at'] ($datestr(task['finished_at']))</td>
-      <!-- <td><a class = "tb" href="#">...</a><pre class="hidden">(task.traceback)</pre></td> -->
+      <td>
+	<ul>
+	  $for k in task['keys']:
+	    <li>$k</li>
+	</ul>
+      </td>
+      <th>
     </tr>
 

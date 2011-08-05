@@ -95,7 +95,7 @@ admin:
     admin_db: http://127.0.0.1:5984/admin
     
 celery: #Information relevant to celery configuration
-    tombstone_db: celery
+    tombstone_db: http://localhost:5984/celery
   
 
 stats: # This section is used to state what stats need to be gathered.
