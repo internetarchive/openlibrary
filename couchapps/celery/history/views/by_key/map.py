@@ -1,4 +1,5 @@
 def map(doc):
-    if doc.get("context",""):
-        for i in doc.get("context",{}).get("keys",[]):
-            yield [i,doc.get("started_at","")], doc
+    ctx = doc.get("context")
+    if isinstance(ctx, dict):
+        for i in ctx.get("keys",[]):
+            yield [i,doc.get("started_at","")], None
