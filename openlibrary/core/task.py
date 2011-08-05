@@ -110,8 +110,8 @@ def oltask(fn):
         try:
             end_time = calendar.timegm(datetime.datetime.utcnow().timetuple())
             run_time = end_time - started_at
-            stats.put("task_run_time", run_time * 1000)
-            stats.put("%s_run_time"%fn.__name__, run_time * 1000)
+            stats.put("ol.celery.task_run_time", run_time * 1000)
+            stats.put("ol.celery.%s_run_time"%fn.__name__, run_time * 1000)
         except:
             pass
         return d
