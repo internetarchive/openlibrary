@@ -33,7 +33,7 @@ def process_task_row(task):
 def get_tasks_info(thing, tombstone_db):
     if not tombstone_db:
         return "Couldn't initialise connection to tombstone database. No task information available"
-    events = tombstone_db.view("history/by_key",startkey=[thing], endkey=[thing,{}], include_docs=True)
+    events = tombstone_db.view("history/by_key",startkey=[thing], endkey=[thing,{}], include_docs=True, stale = "ok")
     return (process_task_row(x) for x in events)
 
 

@@ -63,7 +63,8 @@ class tasklist(object):
                                                                     endkey   = [command,finishedat_end],
                                                                     limit = limit,
                                                                     skip = offset,
-                                                                    include_docs = True))
+                                                                    include_docs = True,
+                                                                    stale = "ok"))
         return render_template("admin/tasks/index", completed_tasks)
 
 class tasks(object):
