@@ -3,7 +3,6 @@ OPDS helper class.
 A lightweight version of github.com/internetarchive/bookserver
 """
 
-import web
 import lxml.etree as ET
 from infogami.infobase.utils import parse_datetime
 
@@ -194,8 +193,6 @@ class OPDSEntry(OPDS):
         if meta_fields:
             collection = meta_fields.get('collection', [])
             contrib = meta_fields.get('contributor')
-            if 'inlibrary' in collection and 'inlibrary' in web.ctx.features:
-                library = get_library()
 
         coverLarge = book.get_cover_url('L')
         coverThumb = book.get_cover_url('S')
