@@ -8,7 +8,14 @@ $putctx("robots", "noindex,nofollow")
 
     $:macros.databarDiff() 
 
-    <h2 class="collapse"><a href="$a.key">$a.key</a> &rarr; Diff</h2>  
+    $if a.type.key in ["/type/edition", "/type/work", "/type/page"]:
+        $ title = a.title or a.key
+    $elif a.type.key in ["/type/author"]:
+        $ title = a.name or a.key
+    $else:
+        $ title = a.key
+
+    <h2 class="collapse"><a href="$a.key">$title</a> &rarr; Diff</h2>  
 
     <div id="legend">
        <dl>
