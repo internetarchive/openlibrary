@@ -22,6 +22,7 @@ CHANGELOG = """
 003 - Added iptools python module.
 004 - Moved solr location
 005 - Account v2
+006 - Add extra couch design docs for tasks and support system
 """
 
 config = None
@@ -688,6 +689,30 @@ def update_005():
                 "username": username
             }
             store.put_many([account, email_doc])
+
+def update_006():
+    couchdb = CouchDB()
+    couchdb.create_database("celery")
+    couchdb.add_design_doc("celery", "history/by_key")
+    couchdb.add_design_doc("celery", "history/tasks")
+    for i in ["sort-all-assignee",
+              "sort-all-caseid",
+              "sort-all-created",
+              "sort-all-creator",
+              "sort-all-lastmodified",
+              "sort-all-numnotes",
+              "sort-all-status",
+              "sort-all-subject",
+              "sort-assignee",
+              "sort-caseid",
+              "sort-created",
+              "sort-creator",
+              "sort-lastmodified",
+              "sort-numnotes",
+              "sort-status",
+              "sort-subject"]:
+        couchdb.add_design_doc("admin", "cases/%s"%i)
+
 
 def get_current_version():
     """Returns the current version of dev instance.
