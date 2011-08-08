@@ -124,6 +124,8 @@ class ReadProcessor:
                 status = 'restricted'
                 if self.options.get('debug_items'):
                     status = 'restricted - not inlib'
+                elif self.options.get('show_inlibrary'):
+                    status = 'lendable'
             else:
                 status = 'lendable'
         elif 'printdisabled' in collections:
