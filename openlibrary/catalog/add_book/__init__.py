@@ -444,6 +444,7 @@ def load(rec):
             assert isinstance(rec[f], basestring)
             e[f] = [rec[f]]
             need_edition_save = True
+        assert isinstance(e[f], list)
     if need_edition_save:
         reply['edition']['status'] = 'modified'
         e_dict = e.dict()
