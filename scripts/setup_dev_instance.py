@@ -14,7 +14,7 @@ import logging
 
 logger = logging.getLogger("bootstrap")
 
-VERSION = 5
+VERSION = 6
 
 CHANGELOG = """
 001 - Initial setup
@@ -515,6 +515,26 @@ class setup_couchdb:
         self.couchdb.add_design_doc("editions", "editions/seeds")
         self.couchdb.add_design_doc("seeds", "seeds/dirty")
         self.couchdb.add_design_doc("seeds", "seeds/sort")
+        self.couchdb.add_design_doc("celery", "history/by_key")
+        self.couchdb.add_design_doc("celery", "history/tasks")
+        for i in ["sort-all-assignee",
+                  "sort-all-caseid",
+                  "sort-all-created",
+                  "sort-all-creator",
+                  "sort-all-lastmodified",
+                  "sort-all-numnotes",
+                  "sort-all-status",
+                  "sort-all-subject",
+                  "sort-assignee",
+                  "sort-caseid",
+                  "sort-created",
+                  "sort-creator",
+                  "sort-lastmodified",
+                  "sort-numnotes",
+                  "sort-status",
+                  "sort-subject"]:
+            self.couchdb.add_design_doc("admin", "cases/%s"%i)
+
 
 class setup_accounts:
     """Task for creating openlibrary account and adding it to admin and api usergroups.
@@ -692,26 +712,28 @@ def update_005():
 
 def update_006():
     couchdb = CouchDB()
-    couchdb.create_database("celery")
-    couchdb.add_design_doc("celery", "history/by_key")
-    couchdb.add_design_doc("celery", "history/tasks")
-    for i in ["sort-all-assignee",
-              "sort-all-caseid",
-              "sort-all-created",
-              "sort-all-creator",
-              "sort-all-lastmodified",
-              "sort-all-numnotes",
-              "sort-all-status",
-              "sort-all-subject",
-              "sort-assignee",
-              "sort-caseid",
-              "sort-created",
-              "sort-creator",
-              "sort-lastmodified",
-              "sort-numnotes",
-              "sort-status",
-              "sort-subject"]:
-        couchdb.add_design_doc("admin", "cases/%s"%i)
+    def update_design_docs(couchdb = couchdb):
+        couchdb.create_database("celery")
+        couchdb.add_design_doc("celery", "history/by_key")
+        couchdb.add_design_doc("celery", "history/tasks")
+        for i in ["sort-all-assignee",
+                  "sort-all-caseid",
+                  "sort-all-created",
+                  "sort-all-creator",
+                  "sort-all-lastmodified",
+                  "sort-all-numnotes",
+                  "sort-all-status",
+                  "sort-all-subject",
+                  "sort-assignee",
+                  "sort-caseid",
+                  "sort-created",
+                  "sort-creator",
+                  "sort-lastmodified",
+                  "sort-numnotes",
+                  "sort-status",
+                  "sort-subject"]:
+            couchdb.add_design_doc("admin", "cases/%s"%i)
+    couchdb.run_tasks(update_design_docs)
 
 
 def get_current_version():
