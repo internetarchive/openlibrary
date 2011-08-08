@@ -438,11 +438,11 @@ def load(rec):
                     e[f].append(x)
                     need_edition_save = True
         elif isinstance(rec[f], list):
-            e[f] = rec['ia_box_id']
+            e[f] = rec[f]
             need_edition_save = True
         else:
             assert isinstance(rec[f], basestring)
-            e[f] = [rec['ia_box_id']]
+            e[f] = [rec[f]]
             need_edition_save = True
     if need_edition_save:
         reply['edition']['status'] = 'modified'
