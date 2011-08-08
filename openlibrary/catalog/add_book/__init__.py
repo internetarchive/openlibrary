@@ -433,16 +433,22 @@ def load(rec):
             continue
         if e.get(f):
             assert isinstance(e[f], list)
-            for x in rec[f]:
-                if x not in e[f]:
-                    e[f].append(x)
+            if isinstance(rec[f], basestring):
+                if rec[f] not in e[f]:
+                    e[f].append(rec[f])
                     need_edition_save = True
-        elif isinstance(rec[f], list):
-            e[f] = rec[f]
+            else:
+                assert isinstance(rec[f], list)
+                for x in rec[f]:
+                    if x not in e[f]:
+                        e[f].append(x)
+                        need_edition_save = True
+        if isinstance(rec[f], basestring):
+            e[f] = [rec[f]]
             need_edition_save = True
         else:
-            assert isinstance(rec[f], basestring)
-            e[f] = [rec[f]]
+            assert isinstance(rec[f], list)
+            e[f] = rec[f]
             need_edition_save = True
         assert isinstance(e[f], list)
     if need_edition_save:
