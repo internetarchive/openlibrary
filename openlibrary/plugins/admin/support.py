@@ -53,6 +53,7 @@ class case(object):
     
     def POST_sendreply(self, form, case):
         user = web.ctx.site.get_user()
+        assignee = case.assignee
         casenote = form.get("casenote1", "")
         casenote = "%s replied:\n\n%s"%(user.get_name(), casenote)
         case.add_worklog_entry(by = user.get_email(),
@@ -60,7 +61,8 @@ class case(object):
         case.change_status("replied", user.get_email())
         email_to = form.get("email", False)
         subject = "Case #%s: %s"%(case.caseno, case.subject)
-        case.reassign(user.get_name(), user.get_email(),"")
+        if assignee != user.get_email():
+            case.reassign(user.get_name(), user.get_email(),"")
         if email_to:
             message = render_template("admin/email", case, casenote)
             web.sendmail(config.get("support_case_control_address","support@openlibrary.org"), email_to, subject, message)
