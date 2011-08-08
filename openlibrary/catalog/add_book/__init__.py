@@ -432,6 +432,7 @@ def load(rec):
         if f not in rec:
             continue
         if e.get(f):
+            assert not isinstance(e[f], basestring)
             assert isinstance(e[f], list)
             if isinstance(rec[f], basestring):
                 if rec[f] not in e[f]:
@@ -450,6 +451,7 @@ def load(rec):
             assert isinstance(rec[f], list)
             e[f] = rec[f]
             need_edition_save = True
+        assert not isinstance(e[f], basestring)
         assert isinstance(e[f], list)
     if need_edition_save:
         reply['edition']['status'] = 'modified'
