@@ -1,4 +1,4 @@
-$def with (case, last_email, admins, pretty_print_date, done = False)
+$def with (case, last_email, admins, pretty_print_date)
 
 $var title: $case.subject ($case.creator_username)
 
@@ -16,11 +16,6 @@ $var title: $case.subject ($case.creator_username)
 </div>
 
 <div id="contentBody">
-
- $if done:
-    <div id="contentMsg">
-        <div class="alert attn"><span>Case updated!</span></div>
-    </div>
 
 <form id="form1" name="form1" method="post" action="">
 <table class="changeHistory" border="0" cellspacing="0" style="width: 100%; margin-top: -20px; border-top: 1px solid #eee;">
