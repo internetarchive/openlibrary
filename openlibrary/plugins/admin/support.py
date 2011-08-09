@@ -62,7 +62,7 @@ class case(object):
         email_to = form.get("email", False)
         subject = "Case #%s: %s"%(case.caseno, case.subject)
         if assignee != user.get_email():
-            case.reassign(user.get_name(), user.get_email(),"")
+            case.reassign(user.get_email(), user.get_name(), "")
         if email_to:
             message = render_template("admin/email", case, casenote)
             web.sendmail(config.get("support_case_control_address","support@openlibrary.org"), email_to, subject, message)
