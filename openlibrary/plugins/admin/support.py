@@ -28,10 +28,13 @@ class case(object):
             return render_template("admin/cases", None, None, True, False)
         case = support_db.get_case(caseid)
         date_pretty_printer = lambda x: x.strftime("%B %d, %Y")
-        if len(case.history) == 1:
-            last_email = case.description
-        else:
-            last_email = case.history[-1]['text']
+        try:
+            if len(case.history) == 1:
+                last_email = case.description
+            else:
+                last_email = case.history[-1]['text']
+        except Exception:
+            last_email = ""
         last_email = "\n".join("  > %s"%x for x in last_email.split("\n")) + "\n\n"
         admins = ((x.get_email(), x.get_name(), x.get_email() == case.assignee) for x in web.ctx.site.get("/usergroup/admin").members)
         return render_template("admin/case", case, last_email, admins, date_pretty_printer)
