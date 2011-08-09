@@ -58,7 +58,7 @@ class Support(object):
         "Return all the cases in the system"
         if summarise:
             d = {}
-            v = ViewDefinition("cases", "sort-status", "", group_level = 1)
+            v = ViewDefinition("cases", "sort-status", "", group_level = 1, stale = "ok")
             for i in v(self.db):
                 d[i.key[0]] = i.value
             return d
@@ -159,7 +159,7 @@ class Case(Document):
 
         if typ == "all":
             view = view.replace("-","-all-") 
-            result = cls.view(db, view, include_docs = True, **extra)
+            result = cls.view(db, view, include_docs = True, stale = "ok", **extra)
             return result.rows
         elif typ == "new":
             startkey, endkey = (["new"], ["replied"])
@@ -176,7 +176,7 @@ class Case(Document):
             extra['startkey'] = startkey
         if endkey:
             extra['endkey'] = endkey
-        result = cls.view(db, view, include_docs = True, **extra)
+        result = cls.view(db, view, include_docs = True, stale = "ok", **extra)
         return result.rows
 
     def __eq__(self, second):
