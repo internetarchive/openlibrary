@@ -73,6 +73,8 @@ class case(object):
         user = web.ctx.site.get_user()
         by = user.get_email()
         text = casenote or ""
+        if case.status == "closed":
+            case.change_status("new", by)
         if assignee != case.assignee:
             case.reassign(assignee, by, text)
             subject = "Case #%s has been assigned to you"%case.caseno
