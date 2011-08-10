@@ -1,4 +1,4 @@
-$def with (status = {})
+$def with (status = {}, flags = {})
 
 $var title: Open Library server status
 
@@ -14,6 +14,7 @@ $var title: Open Library server status
 </div>
 
 <div id="contentBody">
+  <h2> System information </h2>
   <table>
     $for i in status:
        <tr>
@@ -21,6 +22,24 @@ $var title: Open Library server status
          <td>$status[i]</td>
        </tr>
   </table>
+
+  <h2> Features enabled </h2>
+  <table>
+    $for i in flags:
+       <tr>
+         <th>$i</th>
+	 <td>
+	 $if not isinstance(flags[i], str):
+           <ul>
+	   $for j in flags[i]:
+	      <li> $j : $flags[i][j] </li>
+	   </ul>
+	 $else:
+           $flags[i]
+	 </td>
+       </tr>
+  </table>
+  
 </div>
 
 

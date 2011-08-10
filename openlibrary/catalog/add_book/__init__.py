@@ -428,6 +428,31 @@ def load(rec):
         if new not in e.setdefault('source_records', []):
             e.source_records.append(new)
             need_edition_save = True
+    for f in 'ia_box_id', 'ia_loaded_id':
+        if f not in rec:
+            continue
+        if e.get(f):
+            assert not isinstance(e[f], basestring)
+            assert isinstance(e[f], list)
+            if isinstance(rec[f], basestring):
+                if rec[f] not in e[f]:
+                    e[f].append(rec[f])
+                    need_edition_save = True
+            else:
+                assert isinstance(rec[f], list)
+                for x in rec[f]:
+                    if x not in e[f]:
+                        e[f].append(x)
+                        need_edition_save = True
+        if isinstance(rec[f], basestring):
+            e[f] = [rec[f]]
+            need_edition_save = True
+        else:
+            assert isinstance(rec[f], list)
+            e[f] = rec[f]
+            need_edition_save = True
+        assert not isinstance(e[f], basestring)
+        assert isinstance(e[f], list)
     if need_edition_save:
         reply['edition']['status'] = 'modified'
         e_dict = e.dict()

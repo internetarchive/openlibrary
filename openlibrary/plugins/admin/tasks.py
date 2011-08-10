@@ -59,11 +59,12 @@ class tasklist(object):
         finishedat_end = calendar.timegm(finishedat_end.timetuple())
 
         completed_tasks = (process_task_row(x.doc) for x in db.view("history/tasks",
-                                                                    startkey = [command,finishedat_start],
-                                                                    endkey   = [command,finishedat_end],
+                                                                    startkey = [command,finishedat_end],
+                                                                    endkey   = [command,finishedat_start],
                                                                     limit = limit,
                                                                     skip = offset,
                                                                     include_docs = True,
+                                                                    descending = True,
                                                                     stale = "ok"))
         return render_template("admin/tasks/index", completed_tasks)
 

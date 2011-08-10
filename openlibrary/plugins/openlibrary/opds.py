@@ -61,9 +61,9 @@ class OPDS():
     def add_list(self, name, values, prefix='', attrs={}):
         if isinstance(values, list) or isinstance(values, tuple):
             for v in values:
-                self.add(name, prefix+v, attrs)
+                self.add(name, prefix+unicode(v), attrs)
         elif values:
-            self.add(name, prefix+values, attrs)
+            self.add(name, prefix+unicode(values), attrs)
 
     # add_author()
     #___________________________________________________________________________
@@ -193,8 +193,6 @@ class OPDSEntry(OPDS):
         if meta_fields:
             collection = meta_fields.get('collection', [])
             contrib = meta_fields.get('contributor')
-            if 'inlibrary' in collection and 'inlibrary' in ctx.features:
-                library = get_library()
 
         coverLarge = book.get_cover_url('L')
         coverThumb = book.get_cover_url('S')

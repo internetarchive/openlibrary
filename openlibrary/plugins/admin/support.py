@@ -2,7 +2,7 @@ import datetime
 import textwrap
 
 import web
-from infogami.utils.view import render_template
+from infogami.utils.view import render_template, add_flash_message
 from infogami import config
 
 from openlibrary.core import support
@@ -32,7 +32,10 @@ class case(object):
             last_email = case.description
         else:
             last_email = case.history[-1]['text']
-        last_email = "\n".join("  > %s"%x for x in last_email.split("\n")) + "\n\n"
+        try:
+            last_email = "\n".join("  > %s"%x for x in last_email.split("\n")) + "\n\n"
+        except Exception:
+            last_email = ""
         admins = ((x.get_email(), x.get_name(), x.get_email() == case.assignee) for x in web.ctx.site.get("/usergroup/admin").members)
         return render_template("admin/case", case, last_email, admins, date_pretty_printer)
 
@@ -49,10 +52,12 @@ class case(object):
         last_email = case.history[-1]['text']
         last_email = "\n".join("> %s"%x for x in textwrap.wrap(last_email))
         admins = ((x.get_email(), x.get_name(), x.get_email() == case.assignee) for x in web.ctx.site.get("/usergroup/admin").members)
-        return render_template("admin/case", case, last_email, admins, date_pretty_printer, True)
+        add_flash_message("info", "Case updated!")
+        return render_template("admin/case", case, last_email, admins, date_pretty_printer)
     
     def POST_sendreply(self, form, case):
         user = web.ctx.site.get_user()
+        assignee = case.assignee
         casenote = form.get("casenote1", "")
         casenote = "%s replied:\n\n%s"%(user.get_name(), casenote)
         case.add_worklog_entry(by = user.get_email(),
@@ -60,7 +65,8 @@ class case(object):
         case.change_status("replied", user.get_email())
         email_to = form.get("email", False)
         subject = "Case #%s: %s"%(case.caseno, case.subject)
-        case.reassign(user.get_name(), user.get_email(),"")
+        if assignee != user.get_email():
+            case.reassign(user.get_email(), user.get_name(), "")
         if email_to:
             message = render_template("admin/email", case, casenote)
             web.sendmail(config.get("support_case_control_address","support@openlibrary.org"), email_to, subject, message)
@@ -71,6 +77,8 @@ class case(object):
         user = web.ctx.site.get_user()
         by = user.get_email()
         text = casenote or ""
+        if case.status == "closed":
+            case.change_status("new", by)
         if assignee != case.assignee:
             case.reassign(assignee, by, text)
             subject = "Case #%s has been assigned to you"%case.caseno
