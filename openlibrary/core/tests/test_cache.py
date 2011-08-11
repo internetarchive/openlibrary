@@ -1,4 +1,5 @@
 import time
+import simplejson
 
 from .. import cache
 from ...mocks import mock_memcache
@@ -81,3 +82,50 @@ class Test_memcache_memoize:
 
         m(10)
         assert m.stats.updates == 2
+        
+class Test_memoize:
+    def teardown_method(self, method):
+        cache.memory_cache.clear()
+    
+    def get(self, key):
+        return cache.memory_cache.get(key)
+        
+    def set(self, key, value):
+        cache.memory_cache.set(key, value)
+    
+    def test_signatures(self):
+        def square(x):
+            """Returns square x.
+            """
+            return x * x
+        msquare = cache.memoize(engine="memory", key="square")(square)
+        assert msquare.__name__ == square.__name__
+        assert msquare.__doc__ == square.__doc__
+        assert help(msquare) == help(square)
+
+    def test_cache(self):
+        @cache.memoize(engine="memory", key="square")
+        def square(x):
+            return x * x
+        
+        assert square(2) == 4
+        assert self.get("square-2") == 4
+        
+        # It should read from cache instead of computing if entry is present in the cache
+        self.set('square-42', 43)
+        assert square(42) == 43
+    
+    def test_cache_with_tuple_keys(self):
+        @cache.memoize(engine="memory", key=lambda x: (str(x), "square"))
+        def square(x):
+            return x * x
+        
+        @cache.memoize(engine="memory", key=lambda x: (str(x), "double"))
+        def double(x):
+            return x + x
+        
+        assert self.get("3") is None
+        assert square(3) == 9
+        assert self.get("3") == {"square": 9}
+        assert double(3) == 6
+        assert self.get("3") == {"square": 9, "double": 6}
