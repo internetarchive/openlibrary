@@ -71,7 +71,7 @@ class Thing(client.Thing):
         
         return history
 
-    @cache.memoize(engine="memcache", key=lambda self: "history" + self.key)
+    @cache.memoize(engine="memcache", key=lambda self: ("d" + self.key, "h"))
     def _get_history_preview(self):
         h = {}
         if self.revision < 5:
@@ -131,7 +131,7 @@ class Thing(client.Thing):
             lists = h.safesort(lists, reverse=True, key=lambda list: list.last_update)
         return lists
         
-    @cache.memoize(engine="memcache", key=lambda self: "lists" + self.key)
+    @cache.memoize(engine="memcache", key=lambda self: ("d" + self.key, "l"))
     def _get_lists_cached(self):
         return self._get_lists_uncached(limit=50, offset=0)
         
@@ -178,7 +178,7 @@ class Work(Thing):
 
     @property
     @cache.method_memoize
-    @cache.memoize(engine="memcache", key=lambda self: "edition_count" + self.key)
+    @cache.memoize(engine="memcache", key=lambda self: ("d" + self.key, "e"))
     def edition_count(self):
         return self._site._request("/count_editions_by_work", data={"key": self.key})
 
