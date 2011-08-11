@@ -8,6 +8,7 @@ $var title: [Admin Center] $person.displayname
 <div id="contentHead">
     $:render_template("admin/menu")
     <h1><a class="plain" href="/admin/people">People</a> / $person.get_username()</h1>
+    <div class="small">Registered on : $datestr(person.created, relative = False) ($datestr(person.created))</div>
 </div>
 
 <style type="text/css">
