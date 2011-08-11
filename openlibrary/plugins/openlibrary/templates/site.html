@@ -9,18 +9,3 @@ $if not ctx.get("sent_neck"):
 $:render_template("site/body", page)
 
 $:render_template("site/footer")
-
-$if "stats" in ctx.features:
-    <!--
-    SUMMARY:
-    
-    $ stats = stats_summary()
-    $for k in stats:
-        $k: $:dict(stats[k])
-    
-    DETAILS:
-    
-    $for s in ctx.get("stats", []):
-        $s.name $s.time
-            $:s.data
-    -->

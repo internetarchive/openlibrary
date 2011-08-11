@@ -1,0 +1,30 @@
+<br style="clear: both"/>
+
+<div class="hidden"  id="debug-stats" style="padding: 10px 20px 20px; background: #eee; margin-bottom: 20px;">
+<h2>Debug Stats</h2>
+
+<h3>SUMMARY</h3>
+<pre>
+$ stats = stats_summary()
+$for k in stats:
+    $k: $:dict(stats[k])
+</pre>
+
+<h3>Details</h3>
+<pre>
+$for s in ctx.get("stats", []):
+    $s.name $s.time
+        $:s.data
+</pre>
+<script type="text/javascript">
+    \$(document).ready(function() {
+        \$(document).keypress(function(e) {
+            // Toggle debug stats on Ctrl+Alt+.
+            if (e.altKey && e.ctrlKey && e.which == 46) {
+                \$("#debug-stats").toggle();
+                document.getElementById("debug-stats").scrollIntoView();
+            };
+        });
+    });
+</script>
+</div>
