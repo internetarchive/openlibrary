@@ -96,7 +96,7 @@ class MemcacheInvalidater:
         
     def find_edition_counts_for_doc(self, doc):
         if doc and doc['type']['key'] == '/type/edition':
-            return ["edition_count" + w['key'] for w in doc.get("works", [])]
+            return ["edition_count" + w['key'] for w in doc.get("works", [])] + ["d" + w['key'] for w in doc.get("works", [])]
         else:
             return []
         
