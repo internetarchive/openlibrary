@@ -72,6 +72,7 @@ features:
     inlibrary: enabled
     support: admin
     dev: enabled
+    superfast: enabled
 
 upstream_to_www_migration: true
 default_template_root: /upstream
@@ -146,4 +147,4 @@ stats: # This section is used to state what stats need to be gathered.
 
 libraries_admin_email: admin@dev-instance
 
-graphite_base_url: ""
+graphite_base_url: "http://ol-admin.us.archive.org:7080"

@@ -13,7 +13,7 @@ logging_config_file: conf/logging.ini
 secret_key: xxx
 
 plugins:
-    - openlibrary.plugins.ol_infobase
+    - openlibrary.olbase
 
 cache:
     type: memcache
