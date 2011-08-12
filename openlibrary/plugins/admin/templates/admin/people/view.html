@@ -7,8 +7,8 @@ $var title: [Admin Center] $person.displayname
 
 <div id="contentHead">
     $:render_template("admin/menu")
-    <h1><a class="plain" href="/admin/people">People</a> / $person.get_username()</h1>
-    <div class="small">Registered on : $datestr(person.created, relative = False) ($datestr(person.created))</div>
+    <h1><a class="plain" href="/admin/people">People</a> / $person.username</h1>
+    <div class="small">Registered on : $datestr(person.creation_time(), relative = False) ($datestr(person.creation_time()))</div>
 </div>
 
 <style type="text/css">
@@ -28,13 +28,22 @@ span.warning {
                padding: 0 3pt;
                color: black;
  }
+
+form.account-actions { 
+                       display:inline;
+ }
 </style>
 
 $def display_status(user):
-   $if user.get_status() == "verified":
-      <span class="safe">$user.get_status()</span>
-   $if user.get_status() == "pending":
-      <span class="warning">$user.get_status()</span>
+   $if user['status'] == "verified":
+      <span class="safe">$user['status']</span>
+      Activated on : $user.get_user().created
+   $if user['status'] == "pending":
+      <form class = "account-actions" method="POST">
+	<span class="warning">$user['status']</span>
+	<input type="button" name="action" value="activate account"/>
+      </form>
+	  
       
    
 
@@ -47,7 +56,7 @@ $def display_status(user):
             <td>$_("Email Address:")</td>
             <td>
                 <form method="POST" name="form-email" id="form-email" class="validate">
-                    <input type="text" name="email" id="email" class="email" value="$input.get('email', person.get_email())"/>
+                    <input type="text" name="email" id="email" class="email" value="$input.get('email', person['email'])"/>
                     <button type="submit" name="action" value="update_email">Change</button>
                     <span class="invalid" htmlfor="email" generated="true">$errors.get("email")</span>
                 </form>
@@ -63,30 +72,32 @@ $def display_status(user):
                 </form>
             </td>
         </tr>
-        <tr>
-            <td>$_("IP Address")</td>
-            <td>
-                $ v = person.get_creation_info()                
-                <a href="/admin/ip/$v.ip">$v.ip</a> - <a href="$homepath()$person.key" style="color: #900; text-decoration: none;">profile</a>
-            </td>
-        </tr>
-        <tr>
-            <td>$_("# Edits")</td>
-            <td>$person.get_edit_count()</td>
-        </tr>
-        <tr>
-            <td>$_("Member Since:")</td>
-            <td>$datestr(person.created)</td>
-        </tr>
-        <tr>
-            <td>$_("Last Login:")</td>
-            <td>x months ago, xx xx xx</td>
-        </tr>
+	$if person['status'] == "verified":
+                <tr>
+                    <td>$_("IP Address")</td>
+                    <td>
+                        $ v = person.get_creation_info()                
+                        <a href="/admin/ip/$v.ip">$v.ip</a> - <a href="$homepath()$person.key" style="color: #900; text-decoration: none;">profile</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td>$_("# Edits")</td>
+                    <td>$person.get_edit_count()</td>
+                </tr>
+                <tr>
+                    <td>$_("Member Since:")</td>
+                    <td>$datestr(person.created)</td>
+                </tr>
+                <tr>
+                    <td>$_("Last Login:")</td>
+                    <td>x months ago, xx xx xx</td>
+                </tr>
     </tbody>
     </table>
 
-<h2>$_("Edit History")</h2>
-$:render_template("admin/history", person.get_edit_history())
+$if person['status'] == "verified":
+    <h2>$_("Edit History")</h2>
+    $:render_template("admin/history", person.get_edit_history())
 
 
 <button class="delete" type="submit" value="$_("Delete Account")" name="_delete" title="$_("Delete Account")" style="float: right; margin-bottom: 20px;">$_("Delete Account")</button>

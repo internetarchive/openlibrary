@@ -21,7 +21,6 @@ import borrow
 logger = logging.getLogger("openlibrary.account")
 
 class Account(web.storage):
-    
     @property
     def username(self):
         return self._key.split("/")[-1]
@@ -36,7 +35,11 @@ class Account(web.storage):
             return self.data.get("displayname") or self.username
         else:
             return self.username
-        
+
+    def creation_time(self):
+        d = self['created_on'].split(".")[0]
+        return datetime.datetime.strptime(d, "%Y-%m-%dT%H:%M:%S")
+
     def verify_password(self, password):
         return verify_hash(get_secret_key(), password, self.enc_password)
         
@@ -45,6 +48,20 @@ class Account(web.storage):
     
     def update_email(self, email):
         web.ctx.site.update_account(self.username, email=email)
+
+    def activate(self):
+        web.ctx.site.activate_account(username=self.username)
+    
+    def get_user(self):
+        key = "/people/" + self.username
+        doc = web.ctx.site.get(key)
+        return doc
+
+    def get_creation_info(self):
+        key = "/people/" + self.username
+        doc = web.ctx.site.get(key)
+        return doc.get_creation_info()
+    
     
     @staticmethod
     def find(username=None, lusername=None, email=None):
@@ -214,7 +231,7 @@ class account_verify(delegate.page):
             if account:
                 if account['status'] != "pending":
                     return render['account/verify/activated'](account)
-            web.ctx.site.activate_account(username=doc['username'])
+            account.activate()
             user = web.ctx.site.get("/people/" + doc['username'])
             return render['account/verify/success'](account)
         else:

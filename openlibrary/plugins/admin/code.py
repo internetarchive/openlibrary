@@ -141,7 +141,7 @@ class people:
 
 class people_view:
     def GET(self, key):
-        user = web.ctx.site.get(key)
+        user = Account.find(username = key)
         if user:
             return render_template('admin/people/view', user)
         else:
@@ -478,7 +478,7 @@ def setup():
     register_admin_page('/admin/git-pull', gitpull, label='git-pull')
     register_admin_page('/admin/reload', reload, label='Reload Templates')
     register_admin_page('/admin/people', people, label='People')
-    register_admin_page('/admin(/people/.*)', people_view, label='View People')
+    register_admin_page('/admin/people/(.*)', people_view, label='View People')
     register_admin_page('/admin/ip', ipaddress, label='IP')
     register_admin_page('/admin/ip/(.*)', ipaddress_view, label='View IP')
     register_admin_page('/admin/stats/(\d\d\d\d-\d\d-\d\d)', stats, label='Stats JSON')
