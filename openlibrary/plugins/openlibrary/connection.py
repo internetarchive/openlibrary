@@ -340,11 +340,43 @@ class MigrationMiddleware(ConnectionMiddleware):
             data = dict((key, self.fix_doc(doc)) for key, doc in data.items())
             response = simplejson.dumps(data)
         return response
+        
+class HybridConnection(client.Connection):
+    """Infobase connection made of both local and remote connections. 
+    
+    The local connection is used for reads and the remote connection is used for writes.
+    
+    Some services in the OL infrastructure depends of the log written by the
+    writer, so remote connection is used, which takes care of writing logs. By
+    using a local connection for reads improves the performance by cutting
+    down the overhead of http calls present in case of remote connections.
+    """
+    def __init__(self, reader, writer):
+        client.Connection.__init__(self)
+        self.reader = reader
+        self.writer = writer
+        
+    def set_auth_token(self, token):
+        self.reader.set_auth_token(token)
+        self.writer.set_auth_token(token)
+    
+    def get_auth_token(self):
+        return self.writer.get_auth_token()
+        
+    def request(self, sitename, path, method="GET", data=None):
+        if method == "GET":
+            return self.reader.request(sitename, path, method, data=data)
+        else:
+            return self.reader.request(sitename, path, method, data=data)
 
 def OLConnection():
     """Create a connection to Open Library infobase server."""
     def create_connection():
-        if config.get('infobase_server'):
+        if config.get("connection_type") == "hybrid":
+           remote = client.connect(type='remote', base_url=config.infobase_server)
+           local = client.connect(type='local', **config.db_parameters)
+           return HybridConnection(local, remote)
+        elif config.get('infobase_server'):
             return client.connect(type='remote', base_url=config.infobase_server)
         elif config.get('db_parameters'):
             return client.connect(type='local', **config.db_parameters)
