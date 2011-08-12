@@ -1,5 +1,7 @@
 # Open Library fastcgi configuration
 
+connection_type: "hybrid"
+
 infobase_server: "127.0.0.1:7000"
 site: "openlibrary.org"
 
