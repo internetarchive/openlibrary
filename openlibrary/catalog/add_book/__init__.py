@@ -256,6 +256,8 @@ def find_exact_match(rec, edition_pool):
             existing = web.ctx.site.get(ekey)
             match = True
             for k, v in rec.items():
+                if k == 'source_records':
+                    continue
                 existing_value = existing.get(k)
                 if not existing_value:
                     continue
@@ -276,10 +278,6 @@ def find_exact_match(rec, edition_pool):
                         #        a[f] = flip_name(a[f])
 
                 if existing_value != v:
-                    if False:
-                        print 'mismatch:', k
-                        print 'new:', `v`
-                        print 'old:', `existing_value`
                     match = False
                     break
             if match:
@@ -339,10 +337,6 @@ def load(rec):
         e1 = build_marc(rec)
         add_db_name(e1)
 
-        #print
-        #print 'e1', e1
-        #print 
-        #print 'pool', edition_pool
         match = find_match(e1, edition_pool)
 
     if not match: # 'match found:', match, rec['ia']
@@ -423,10 +417,10 @@ def load(rec):
     if 'ocaid' in rec:
         new = 'ia:' + rec['ocaid']
         if not e.ocaid:
-            e.ocaid(rec['ocaid'])
+            e['ocaid'] = rec['ocaid']
             need_edition_save = True
         if new not in e.setdefault('source_records', []):
-            e.source_records.append(new)
+            e['source_records'].append(new)
             need_edition_save = True
     for f in 'ia_box_id', 'ia_loaded_id':
         if f not in rec:

@@ -277,6 +277,23 @@ def test_real_example(mock_site):
     assert reply['success'] == True
     assert reply['edition']['status'] == 'modified'
 
+def test_missing_ocaid(mock_site):
+    add_languages(mock_site)
+    ia = 'descendantsofhug00cham'
+    src = ia + '_meta.mrc'
+    marc = MarcBinary(open('test_data/' + src).read())
+    rec = read_edition(marc)
+    rec['source_records'] = ['marc:testdata.mrc']
+    reply = load(rec)
+    assert reply['success'] == True
+    rec['source_records'] = ['ia:' + ia]
+    rec['ocaid'] = ia
+    reply = load(rec)
+    assert reply['success'] == True
+    e = mock_site.get(reply['edition']['key'])
+    assert e.ocaid == ia
+    assert 'ia:' + ia in e.source_records
+
 def test_don_quixote(mock_site):
     return
     dq = [u'lifeexploitsofin01cerv', u'cu31924096224518',
