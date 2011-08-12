@@ -372,8 +372,11 @@ class HybridConnection(client.Connection):
 def create_local_connection():
     # update infobase configuration
     from infogami.infobase import server
+
+    # This sets web.config.db_parameters
     server.update_config(config.infobase)
-    return client.connect(type='local', **config.db_parameters)
+    
+    return client.connect(type='local', **web.config.db_parameters)
     
 def create_remote_connection():
     return client.connect(type='remote', base_url=config.infobase_server)
@@ -390,7 +393,7 @@ def OLConnection():
             return create_hybrid_connection()
         elif config.get('infobase_server'):
             return create_remote_connection()
-        elif config.get('db_parameters'):
+        elif config.get("infobase", {}).get('db_parameters'):
             return create_local_connection()
         else:
             raise Exception("db_parameters are not specified in the configuration")
