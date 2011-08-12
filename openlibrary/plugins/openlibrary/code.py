@@ -65,15 +65,9 @@ infogami.config.infobase_parameters = dict(type="ol")
 from openlibrary.core import schema
 schema.register_schema()
 
-if infogami.config.get('infobase_server') is None:
-    # setup infobase hooks for OL
-    from openlibrary.plugins import ol_infobase
-    ol_infobase.init_plugin()
-
 from openlibrary.core import models
 models.register_models()
 models.register_types()
-
 
 # this adds /show-marc/xxx page to infogami
 import showmarc
