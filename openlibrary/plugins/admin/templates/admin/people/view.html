@@ -16,9 +16,31 @@ span.invalid {
     padding-left: 20px;
     float: right;
 }
+
+span.safe { 
+            background-color: green;
+            padding: 0 3pt;
+            color: black;
+            }
+
+span.warning { 
+               background-color: red;
+               padding: 0 3pt;
+               color: black;
+ }
 </style>
 
+$def display_status(user):
+   $if user.get_status() == "verified":
+      <span class="safe">$user.get_status()</span>
+   $if user.get_status() == "pending":
+      <span class="warning">$user.get_status()</span>
+      
+   
+
 <div id="contentBody">
+  Status : $:display_status(person)
+
     <table id="adminHistory" style="clear: both;">
     <tbody>
         <tr>
