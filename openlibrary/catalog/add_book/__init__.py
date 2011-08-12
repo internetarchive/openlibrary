@@ -428,7 +428,7 @@ def load(rec):
             need_edition_save = True
     if 'cover' in rec and not e.covers:
         cover_url = rec['cover']
-        cover_id = add_cover(cover_url, ekey)
+        cover_id = add_cover(cover_url, e.key)
         q['covers'] = [cover_id]
         need_edition_save = True
         if not w.get('covers'):
