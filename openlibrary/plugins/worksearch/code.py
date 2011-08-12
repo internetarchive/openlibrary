@@ -340,7 +340,7 @@ def get_doc(doc): # called from work_search template
     )
     doc.url = '/works/' + doc.key + '/' + urlsafe(doc.title)
     
-    if doc.lending_edition:
+    if not doc.public_scan and doc.lending_edition:
         store_doc = web.ctx.site.store.get("ebooks/books/" + doc.lending_edition) or {}
         doc.checked_out = store_doc.get("borrowed") == "true"
     else:
