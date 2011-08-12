@@ -368,23 +368,34 @@ class HybridConnection(client.Connection):
             return self.reader.request(sitename, path, method, data=data)
         else:
             return self.reader.request(sitename, path, method, data=data)
+            
+def create_local_connection():
+    # update infobase configuration
+    from infogami.infobase import server
+    server.update_config(config.infobase)
+    return client.connect(type='local', **config.db_parameters)
+    
+def create_remote_connection():
+    return client.connect(type='remote', base_url=config.infobase_server)
+    
+def create_hybrid_connection():
+    local = create_local_connection()
+    remote = create_remote_connection()
+    return HybridConnection(local, remote)
 
 def OLConnection():
     """Create a connection to Open Library infobase server."""
     def create_connection():
         if config.get("connection_type") == "hybrid":
-           remote = client.connect(type='remote', base_url=config.infobase_server)
-           local = client.connect(type='local', **config.db_parameters)
-           return HybridConnection(local, remote)
+            return create_hybrid_connection()
         elif config.get('infobase_server'):
-            return client.connect(type='remote', base_url=config.infobase_server)
+            return create_remote_connection()
         elif config.get('db_parameters'):
-            return client.connect(type='local', **config.db_parameters)
+            return create_local_connection()
         else:
             raise Exception("db_parameters are not specified in the configuration")
 
     conn = create_connection()
-
     if config.get('memcache_servers'):
         conn = MemcacheMiddleware(conn, config.get('memcache_servers'))
     
