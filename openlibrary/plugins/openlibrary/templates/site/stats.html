@@ -14,7 +14,7 @@ $for k in stats:
 <pre>
 $for s in ctx.get("stats", []):
     $s.name $s.time
-        $:s.data
+        $s.data
 </pre>
 <script type="text/javascript">
     \$(document).ready(function() {
