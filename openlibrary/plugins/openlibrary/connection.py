@@ -367,7 +367,7 @@ class HybridConnection(client.Connection):
         if method == "GET":
             return self.reader.request(sitename, path, method, data=data)
         else:
-            return self.reader.request(sitename, path, method, data=data)
+            return self.writer.request(sitename, path, method, data=data)
             
 def create_local_connection():
     # update infobase configuration
