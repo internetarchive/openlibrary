@@ -74,6 +74,7 @@ class BaseWSGIServer(Application):
         load_infogami(self.config_file)
 
         import infogami
+        import web
         infogami._setup()
         wsgi_app = self.get_wsgi_app()
         # setup middleware for handling /static
