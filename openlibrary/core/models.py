@@ -143,7 +143,16 @@ class Thing(client.Thing):
             "offset": offset
         }
         return self._site.things(q)
-
+        
+    def _get_d(self):
+        """Returns the data that goes into memcache as d/$self.key.
+        Used to measure the memcache usage.
+        """
+        return {
+            "h": self._get_history_preview(),
+            "l": self._get_lists_cached(),
+        }
+        
 class Edition(Thing):
     """Class to represent /type/edition objects in OL.
     """
@@ -184,7 +193,17 @@ class Work(Thing):
 
     def get_lists(self, limit=50, offset=0, sort=True):
         return self._get_lists(limit=limit, offset=offset, sort=sort)
-    
+
+    def _get_d(self):
+        """Returns the data that goes into memcache as d/$self.key.
+        Used to measure the memcache usage.
+        """
+        return {
+            "h": self._get_history_preview(),
+            "l": self._get_lists_cached(),
+            "e": self.edition_count
+        }
+
 class Author(Thing):
     """Class to represent /type/author objects in OL.
     """

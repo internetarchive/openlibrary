@@ -3,7 +3,7 @@ $def with (page, h)
 $putctx("robots", "noindex,nofollow")
 
 $# show book title/author name instead of key
-$if page.type.key in ['/type/edition', '/type/work']:
+$if page.type.key in ['/type/edition', '/type/work', '/type/page']:
     $ name = page.title or 'Title unknown'
 $elif page.type.key == '/type/author':
     $ name = page.name or 'Author name unknown'

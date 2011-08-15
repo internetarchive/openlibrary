@@ -256,6 +256,8 @@ def find_exact_match(rec, edition_pool):
             existing = web.ctx.site.get(ekey)
             match = True
             for k, v in rec.items():
+                if k == 'source_records':
+                    continue
                 existing_value = existing.get(k)
                 if not existing_value:
                     continue
@@ -276,10 +278,6 @@ def find_exact_match(rec, edition_pool):
                         #        a[f] = flip_name(a[f])
 
                 if existing_value != v:
-                    if False:
-                        print 'mismatch:', k
-                        print 'new:', `v`
-                        print 'old:', `existing_value`
                     match = False
                     break
             if match:
@@ -339,10 +337,6 @@ def load(rec):
         e1 = build_marc(rec)
         add_db_name(e1)
 
-        #print
-        #print 'e1', e1
-        #print 
-        #print 'pool', edition_pool
         match = find_match(e1, edition_pool)
 
     if not match: # 'match found:', match, rec['ia']
@@ -372,6 +366,13 @@ def load(rec):
         'edition': {'key': match, 'status': 'matched'},
         'work': {'key': w['key'], 'status': 'matched'},
     }
+
+    e.setdefault('source_records', [])
+    existing_source_records = set(e.source_records)
+    for i in rec['source_records']:
+        if i not in existing_source_records:
+            e['source_records'].append(i)
+            need_edition_save = True
 
     edits = []
     if rec.get('authors'):
@@ -423,11 +424,16 @@ def load(rec):
     if 'ocaid' in rec:
         new = 'ia:' + rec['ocaid']
         if not e.ocaid:
-            e.ocaid(rec['ocaid'])
+            e['ocaid'] = rec['ocaid']
             need_edition_save = True
-        if new not in e.setdefault('source_records', []):
-            e.source_records.append(new)
-            need_edition_save = True
+    if 'cover' in rec and not e.covers:
+        cover_url = rec['cover']
+        cover_id = add_cover(cover_url, e.key)
+        e['covers'] = [cover_id]
+        need_edition_save = True
+        if not w.get('covers'):
+            w['covers'] = [cover_id]
+            need_work_save = True
     for f in 'ia_box_id', 'ia_loaded_id':
         if f not in rec:
             continue

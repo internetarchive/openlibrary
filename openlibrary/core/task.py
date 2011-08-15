@@ -17,12 +17,11 @@ import yaml
 from celery.task import task
 from functools import wraps
 
-import celeryconfig
-
 from openlibrary.core import stats
 
 @web.memoize
 def setup_stats():
+    import celeryconfig
     c = yaml.load(open(celeryconfig.OL_CONFIG))
     stats.client = stats.create_stats_client(c)
 
