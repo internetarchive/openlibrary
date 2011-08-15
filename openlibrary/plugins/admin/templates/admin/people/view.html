@@ -79,7 +79,7 @@ $def display_status(user):
 	  </form>
 	</td>
       </tr>
-      $if person['status'] == "verified":
+      $if person['status'] == "verified" or person['status'] == "active":
       <tr>
 	<td>$_("IP Address")</td>
 	<td>
@@ -102,10 +102,21 @@ $def display_status(user):
     </tbody>
   </table>
 
-$if person['status'] == "verified":
+$if person['status'] == "verified" or person['status'] == "active":
     <h2>$_("Edit History")</h2>
     $:render_template("admin/history", person.get_user().get_edit_history())
 
+<h2>$_("Debug information")</h2>
+<table>
+  <tr>
+    <th>Profile information</th>
+    <th>Account information</th>
+  </tr>
+  <tr>
+    <td><pre>$json_encode(person, indent="    ", sort_keys=True)</pre></td>
+    <td><pre>$person.get_user()</pre></td>
+  </tr>
+</table>
 
 <button class="delete" type="submit" value="$_("Delete Account")" name="_delete" title="$_("Delete Account")" style="float: right; margin-bottom: 20px;">$_("Delete Account")</button>
 
