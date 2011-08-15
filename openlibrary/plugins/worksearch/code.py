@@ -149,6 +149,10 @@ def parse_query_fields(q):
             if m:
                 v = v[:-len(m.group(0))]
                 op_found = m.group(1)
+        if field_name == 'isbn':
+            isbn = read_isbn(v)
+            if isbn:
+                v = isbn
         yield {'field': field_name, 'value': v.replace(':', '\:')}
         if op_found:
             yield {'op': op_found }
