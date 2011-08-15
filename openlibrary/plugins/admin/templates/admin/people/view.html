@@ -43,7 +43,7 @@ $def display_status(user):
 	<span class="warning">$user['status']</span>
 	<input type="button" name="action" value="activate account"/>
 	$if user.get_activation_link():
-	   <div class="small"> Activation link expiring on : $user.get_activation_link().get_expiration_time() ($datestr(user.get_activation_link().get_expiration_time())) <button type="submit" name="action" value="resend_link">resend link</button></div>
+	   <div class="small"> Activation link expiring on : $user.get_activation_link().get_expiration_time() <button type="submit" name="action" value="resend_link">resend link</button></div>
       </form>
 	  
       
