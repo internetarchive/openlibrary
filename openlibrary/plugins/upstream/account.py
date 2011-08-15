@@ -20,6 +20,11 @@ import borrow
 
 logger = logging.getLogger("openlibrary.account")
 
+class ActivationLink(web.storage):
+    def get_expiration_time(self):
+        d = self['expires_on'].split(".")[0]
+        return datetime.datetime.strptime(d, "%Y-%m-%dT%H:%M:%S")
+
 class Account(web.storage):
     @property
     def username(self):
@@ -48,6 +53,9 @@ class Account(web.storage):
     
     def update_email(self, email):
         web.ctx.site.update_account(self.username, email=email)
+        
+    def send_verification_email(self):
+        send_verification_email(self.username, self.email)
 
     def activate(self):
         web.ctx.site.activate_account(username=self.username)
@@ -61,7 +69,15 @@ class Account(web.storage):
         key = "/people/" + self.username
         doc = web.ctx.site.get(key)
         return doc.get_creation_info()
-    
+
+    def get_activation_link(self):
+        key = "account/%s/verify"%self.username
+        doc = web.ctx.site.store.get(key)
+        if doc:
+            return ActivationLink(doc)
+        else:
+            return False
+        
     
     @staticmethod
     def find(username=None, lusername=None, email=None):
@@ -126,7 +142,6 @@ class account_create(delegate.page):
             f.note = str(e)
             return render['account/create'](f)
 
-        send_verification_email(i.username, i.email)
         return render['account/verify'](username=i.username, email=i.email)
 
 del delegate.pages['/account/register']
@@ -211,7 +226,7 @@ class account_login(delegate.page):
                 return self.error("account_incorrect_password", i)
 
         account = Account.find(username=i.username)
-        send_verification_email(i.username, account.email)
+        account.send_verification_email()
 
         title = _("Hi %(user)s", user=account.displayname)
         message = _("We've sent the verification email to %(email)s. You'll need to read that and click on the verification link to verify your email.", email=account.email)

@@ -148,7 +148,7 @@ class people_view:
             raise web.notfound()
             
     def POST(self, key):
-        user = web.ctx.site.get(key)
+        user = Account.find(username = key)
         if not user:
             raise web.notfound()
             
@@ -157,6 +157,16 @@ class people_view:
             return self.POST_update_email(user, i)
         elif i.action == "update_password":
             return self.POST_update_password(user, i)
+        elif i.action == "resend_link":
+            return self.POST_resend_link(user)
+
+    def POST_resend_link(self, user):
+        key = "account/%s/verify"%user.username
+        activation_link = web.ctx.site.store.get(key)
+        del activation_link
+        user.send_verification_email()
+        add_flash_message("info", "Activation mail has been resent")
+        raise web.seeother(web.ctx.path)
     
     def POST_update_email(self, user, i):
         if not forms.vemail.valid(i.email):
