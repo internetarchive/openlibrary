@@ -803,8 +803,13 @@ class search(delegate.page):
 
         self.redirect_if_needed(i)
 
-        if 'isbn' in i and all(not v for k, v in i.items() if k != 'isbn'):
-            self.isbn_redirect(i.isbn)
+        if 'isbn' in i:
+            if all(not v for k, v in i.items() if k != 'isbn'):
+                self.isbn_redirect(i.isbn)
+
+            isbn = read_isbn(i.isbn)
+            if isbn: # strip hypens
+                i.isbn = isbn
 
         q_list = []
         q = i.get('q', '').strip()
