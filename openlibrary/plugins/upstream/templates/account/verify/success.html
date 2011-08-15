@@ -7,5 +7,6 @@ $var title: $_("Email Verification Successful")
 </div>
     
 <div id="contentBody">
-    <p>$:_("Yay! Your email address has been verified. Please <a href='/account/login?username=$account.username&redirect=/'>log in to continue</a>.")</p>
+  $ link = "/account/login?redirect=/&username=" + account.username
+  <p>$:_("Yay! Your email address has been verified. Please <a href='%s'>log in to continue</a>.", link)</p>
 </div>
