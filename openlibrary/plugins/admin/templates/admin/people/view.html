@@ -44,6 +44,8 @@ $def display_status(user):
 	<button type="submit" name="action" value="activate_account">activate account</button>
 	$if user.get_activation_link():
 	   <div class="small"> Activation link expiring on : $user.get_activation_link().get_expiration_time() <button type="submit" name="action" value="resend_link">resend link</button></div>
+	$else:
+	   <div class="small"> <strong>No activation link </strong> <button type="submit" name="action" value="resend_link">resend link</button></div>
       </form>
 	  
       
