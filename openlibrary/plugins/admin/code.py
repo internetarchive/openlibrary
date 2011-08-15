@@ -141,7 +141,7 @@ class people:
 
 class people_view:
     def GET(self, key):
-        user = Account.find(username = key)
+        user = Account.find(username = key) or Account.find(email = key)
         if user:
             return render_template('admin/people/view', user)
         else:
