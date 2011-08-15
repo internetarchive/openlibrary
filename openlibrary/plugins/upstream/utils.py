@@ -431,6 +431,16 @@ def get_languages():
     
 @public
 def get_edition_config():
+    return _get_edition_config()
+    
+@web.memoize
+def _get_edition_config():
+    """Returns the edition config.
+    
+    The results are cached on the first invocation. Any changes to /config/edition page require restarting the app.
+    
+    This is is cached because fetching and creating the Thing object was taking about 20ms of time for each book request.
+    """
     thing = web.ctx.site.get('/config/edition')
     classifications = [web.storage(t.dict()) for t in thing.classifications if 'name' in t]
     identifiers = [web.storage(t.dict()) for t in thing.identifiers if 'name' in t]
