@@ -188,8 +188,10 @@ def build_q_list(param):
                 v = re_to_esc.sub(lambda m:'\\' + m.group(), v)
                 q_list.append('(author_name:(' + v + ') OR author_alternative_name:(' + v + '))')
 
-        check_params = ['title', 'publisher', 'isbn', 'oclc', 'lccn', 'contribtor', 'subject', 'place', 'person', 'time']
+        check_params = ['title', 'publisher', 'oclc', 'lccn', 'contribtor', 'subject', 'place', 'person', 'time']
         q_list += ['%s:(%s)' % (k, param[k]) for k in check_params if k in param]
+        if param.get('isbn'):
+            q_list.append('isbn:(%s)' % (read_isbn(param['isbn']) or param['isbn']))
     return (q_list, use_dismax)
 
 def run_solr_query(param = {}, rows=100, page=1, sort=None, spellcheck_count=None):
@@ -803,13 +805,8 @@ class search(delegate.page):
 
         self.redirect_if_needed(i)
 
-        if 'isbn' in i:
-            if all(not v for k, v in i.items() if k != 'isbn'):
-                self.isbn_redirect(i.isbn)
-
-            isbn = read_isbn(i.isbn)
-            if isbn: # strip hypens
-                i.isbn = isbn
+        if 'isbn' in i and all(not v for k, v in i.items() if k != 'isbn'):
+            self.isbn_redirect(i.isbn)
 
         q_list = []
         q = i.get('q', '').strip()
