@@ -368,14 +368,20 @@ class HybridConnection(client.Connection):
             return self.reader.request(sitename, path, method, data=data)
         else:
             return self.writer.request(sitename, path, method, data=data)
-            
-def create_local_connection():
+
+@web.memoize
+def _update_infobase_config():
+    """Updates infobase config when this function is called for the first time.
+    
+    From next time onwards, it doens't do anything becase this function is memoized.
+    """
     # update infobase configuration
     from infogami.infobase import server
-
     # This sets web.config.db_parameters
     server.update_config(config.infobase)
-    
+            
+def create_local_connection():
+    _update_infobase_config()
     return client.connect(type='local', **web.config.db_parameters)
     
 def create_remote_connection():
