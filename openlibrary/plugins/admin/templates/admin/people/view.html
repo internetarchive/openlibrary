@@ -53,51 +53,54 @@ $def display_status(user):
 
 <div id="contentBody">
   Status : $:display_status(person)
-
-    <table id="adminHistory" style="clear: both;">
+  $if person.get_password_reset_link():
+    <div class = "small">
+      Password reset link active. Created on : $datestr(person.get_password_reset_link().get_creation_time(), relative = False)
+    </div>
+  <table id="adminHistory" style="clear: both;">
     <tbody>
-        <tr>
-            <td>$_("Email Address:")</td>
-            <td>
-                <form method="POST" name="form-email" id="form-email" class="validate">
-                    <input type="text" name="email" id="email" class="email" value="$input.get('email', person['email'])"/>
-                    <button type="submit" name="action" value="update_email">Change</button>
-                    <span class="invalid" htmlfor="email" generated="true">$errors.get("email")</span>
-                </form>
-            </td>
-        </tr>
-        <tr>
-            <td>$_("Reset Password")</td>
-            <td>
-                <form method="POST" name="form-password" id="form-password">
-                    <input type="text" name="password" id="password" class="email" value="$input.get('password')"/>
-                    <button type="submit" name="action" value="update_password">Change</button>
-                    <span class="invalid" htmlfor="password" generated="true">$errors.get("password")</span>
-                </form>
-            </td>
-        </tr>
-	$if person['status'] == "verified":
-                <tr>
-                    <td>$_("IP Address")</td>
-                    <td>
-                        $ v = person.get_creation_info()                
-                        <a href="/admin/ip/$v.ip">$v.ip</a> - <a href="$homepath()$person.key" style="color: #900; text-decoration: none;">profile</a>
-                    </td>
-                </tr>
-                <tr>
-                    <td>$_("# Edits")</td>
-                    <td>$person.get_edit_count()</td>
-                </tr>
-                <tr>
-                    <td>$_("Member Since:")</td>
-                    <td>$datestr(person.created)</td>
-                </tr>
-                <tr>
-                    <td>$_("Last Login:")</td>
-                    <td>x months ago, xx xx xx</td>
-                </tr>
+      <tr>
+	<td>$_("Email Address:")</td>
+	<td>
+	  <form method="POST" name="form-email" id="form-email" class="validate">
+	    <input type="text" name="email" id="email" class="email" value="$input.get('email', person['email'])"/>
+	    <button type="submit" name="action" value="update_email">Change</button>
+	    <span class="invalid" htmlfor="email" generated="true">$errors.get("email")</span>
+	  </form>
+	</td>
+      </tr>
+      <tr>
+	<td>$_("Reset Password")</td>
+	<td>
+	  <form method="POST" name="form-password" id="form-password">
+	    <input type="text" name="password" id="password" class="email" value="$input.get('password')"/>
+	    <button type="submit" name="action" value="update_password">Change</button>
+	    <span class="invalid" htmlfor="password" generated="true">$errors.get("password")</span>
+	  </form>
+	</td>
+      </tr>
+      $if person['status'] == "verified":
+      <tr>
+	<td>$_("IP Address")</td>
+	<td>
+	  $ v = person.get_creation_info()                
+	  <a href="/admin/ip/$v.ip">$v.ip</a> - <a href="$homepath()$person.key" style="color: #900; text-decoration: none;">profile</a>
+	</td>
+      </tr>
+      <tr>
+	<td>$_("# Edits")</td>
+	<td>$person.get_edit_count()</td>
+      </tr>
+      <tr>
+	<td>$_("Member Since:")</td>
+	<td>$datestr(person.created)</td>
+      </tr>
+      <tr>
+	<td>$_("Last Login:")</td>
+	<td>x months ago, xx xx xx</td>
+      </tr>
     </tbody>
-    </table>
+  </table>
 
 $if person['status'] == "verified":
     <h2>$_("Edit History")</h2>

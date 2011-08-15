@@ -20,9 +20,13 @@ import borrow
 
 logger = logging.getLogger("openlibrary.account")
 
-class ActivationLink(web.storage):
+class Link(web.storage):
     def get_expiration_time(self):
         d = self['expires_on'].split(".")[0]
+        return datetime.datetime.strptime(d, "%Y-%m-%dT%H:%M:%S")
+
+    def get_creation_time(self):
+        d = self['created_on'].split(".")[0]
         return datetime.datetime.strptime(d, "%Y-%m-%dT%H:%M:%S")
 
 class Account(web.storage):
@@ -74,9 +78,18 @@ class Account(web.storage):
         key = "account/%s/verify"%self.username
         doc = web.ctx.site.store.get(key)
         if doc:
-            return ActivationLink(doc)
+            return Link(doc)
         else:
             return False
+    
+    def get_password_reset_link(self):
+        key = "account/%s/password"%self.username
+        doc = web.ctx.site.store.get(key)
+        if doc:
+            return Link(doc)
+        else:
+            return False
+
         
     
     @staticmethod
@@ -142,6 +155,7 @@ class account_create(delegate.page):
             f.note = str(e)
             return render['account/create'](f)
 
+        send_verification_email(i.username, i.email)
         return render['account/verify'](username=i.username, email=i.email)
 
 del delegate.pages['/account/register']
