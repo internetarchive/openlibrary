@@ -35,13 +35,13 @@ form.account-actions {
 </style>
 
 $def display_status(user):
-   $if user['status'] == "verified":
+   $if user['status'] == "verified" or user['status'] == "active":
       <span class="safe">$user['status']</span>
-      Activated on : $user.get_user().created
+      <div class="small">Activated on : $datestr(user.get_user().created, relative = False) <!-- <input type="submit" name="action" value="block account"> --></div>
    $if user['status'] == "pending":
       <form class = "account-actions" method="POST">
 	<span class="warning">$user['status']</span>
-	<input type="button" name="action" value="activate account"/>
+	<button type="submit" name="action" value="activate_account">activate account</button>
 	$if user.get_activation_link():
 	   <div class="small"> Activation link expiring on : $user.get_activation_link().get_expiration_time() <button type="submit" name="action" value="resend_link">resend link</button></div>
       </form>
