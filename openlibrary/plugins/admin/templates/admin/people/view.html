@@ -84,16 +84,16 @@ $def display_status(user):
 	<td>$_("IP Address")</td>
 	<td>
 	  $ v = person.get_creation_info()                
-	  <a href="/admin/ip/$v.ip">$v.ip</a> - <a href="$homepath()$person.key" style="color: #900; text-decoration: none;">profile</a>
+	  <a href="/admin/ip/$v.ip">$v.ip</a> - <a href="$homepath()$person.username" style="color: #900; text-decoration: none;">profile</a>
 	</td>
       </tr>
       <tr>
 	<td>$_("# Edits")</td>
-	<td>$person.get_edit_count()</td>
+	<td>$person.get_user().get_edit_count()</td>
       </tr>
       <tr>
 	<td>$_("Member Since:")</td>
-	<td>$datestr(person.created)</td>
+	<td>$datestr(person.get_user().created)</td>
       </tr>
       <tr>
 	<td>$_("Last Login:")</td>
@@ -104,7 +104,7 @@ $def display_status(user):
 
 $if person['status'] == "verified":
     <h2>$_("Edit History")</h2>
-    $:render_template("admin/history", person.get_edit_history())
+    $:render_template("admin/history", person.get_user().get_edit_history())
 
 
 <button class="delete" type="submit" value="$_("Delete Account")" name="_delete" title="$_("Delete Account")" style="float: right; margin-bottom: 20px;">$_("Delete Account")</button>
