@@ -224,6 +224,10 @@ class Author(Thing):
         return self._get_lists(limit=limit, offset=offset, sort=sort)
     
 class User(Thing):
+    def get_status(self):
+        account = self.get_account() or {}
+        return account.get("status")
+
     def get_usergroups(self):
         keys = self._site.things({
             'type': '/type/usergroup', 

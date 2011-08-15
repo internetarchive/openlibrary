@@ -40,7 +40,8 @@ $var title: $case.subject ($case.creator_username)
         <a href="/admin/people/$(case.creator_username)">$(case.creator_username)</a>
     $else:
         <span class="black"><b>$(case.creator_email)</b></span>&nbsp;&nbsp;&bull;&nbsp;&nbsp;
-        <span class="smaller">Not logged in</span>
+        <span class="smaller">Not logged in</span> (<a href="/admin/people/$(case.creator_email)">$(case.creator_email)</a>)
+
         
     <br/><br/><span class="smaller">$(case.creator_useragent)</span></td>
   </tr>
