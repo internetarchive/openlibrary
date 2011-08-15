@@ -99,8 +99,9 @@ def safesort(iterable, key=None, reverse=False):
 def datestr(then, now=None, lang=None, relative = True):
     """Internationalized version of web.datestr."""
     if not relative:
-        return then.strftime("%d %b %Y")
-    result = web.datestr(then, now)
+        result = then.strftime("%b %d %Y")
+    else:
+        result = web.datestr(then, now)
     if not result:
         return result
     elif result[0] in string.digits: # eg: 2 milliseconds ago
