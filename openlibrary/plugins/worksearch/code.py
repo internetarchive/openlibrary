@@ -149,6 +149,10 @@ def parse_query_fields(q):
             if m:
                 v = v[:-len(m.group(0))]
                 op_found = m.group(1)
+        if field_name == 'isbn':
+            isbn = read_isbn(v)
+            if isbn:
+                v = isbn
         yield {'field': field_name, 'value': v.replace(':', '\:')}
         if op_found:
             yield {'op': op_found }
@@ -184,8 +188,10 @@ def build_q_list(param):
                 v = re_to_esc.sub(lambda m:'\\' + m.group(), v)
                 q_list.append('(author_name:(' + v + ') OR author_alternative_name:(' + v + '))')
 
-        check_params = ['title', 'publisher', 'isbn', 'oclc', 'lccn', 'contribtor', 'subject', 'place', 'person', 'time']
+        check_params = ['title', 'publisher', 'oclc', 'lccn', 'contribtor', 'subject', 'place', 'person', 'time']
         q_list += ['%s:(%s)' % (k, param[k]) for k in check_params if k in param]
+        if param.get('isbn'):
+            q_list.append('isbn:(%s)' % (read_isbn(param['isbn']) or param['isbn']))
     return (q_list, use_dismax)
 
 def run_solr_query(param = {}, rows=100, page=1, sort=None, spellcheck_count=None):
@@ -340,7 +346,7 @@ def get_doc(doc): # called from work_search template
     )
     doc.url = '/works/' + doc.key + '/' + urlsafe(doc.title)
     
-    if doc.lending_edition:
+    if not doc.public_scan and doc.lending_edition:
         store_doc = web.ctx.site.store.get("ebooks/books/" + doc.lending_edition) or {}
         doc.checked_out = store_doc.get("borrowed") == "true"
     else:
@@ -553,7 +559,7 @@ class SubjectEngine:
         result = work_search(q, offset=offset, limit=limit, sort=sort, **kw)
         for w in result.docs:
             w.ia = w.ia and w.ia[0] or None
-            if w.ia and w.get('lending_edition'):
+            if not w.get('public_scan') and w.ia and w.get('lending_edition'):
                 doc = web.ctx.site.store.get("ebooks/books/" + w['lending_edition']) or {}
                 w['checked_out'] = doc.get("borrowed") == "true"
 

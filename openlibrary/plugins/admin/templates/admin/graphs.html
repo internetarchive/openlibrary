@@ -16,6 +16,8 @@ $def render_graph(target, days):
     <img src="$grahite_base/render/?width=850&height=303&$target&from=-$days"/>
 
 $def render_graph_page(days):
+    <h2>Numbe of Hits</h2>
+    $:render_graph(["stats.timers.ol.total.count"], days)
     <h2>Page Load Time</h2>    
     $ names = ["stats.timers.ol.pageload.%s.mean" % name for name in ["all", "home", "search", "authors", "books", "works", "subjects"]]
     $:render_graph(names, days)

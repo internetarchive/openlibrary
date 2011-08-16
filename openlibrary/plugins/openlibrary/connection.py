@@ -340,19 +340,71 @@ class MigrationMiddleware(ConnectionMiddleware):
             data = dict((key, self.fix_doc(doc)) for key, doc in data.items())
             response = simplejson.dumps(data)
         return response
+        
+class HybridConnection(client.Connection):
+    """Infobase connection made of both local and remote connections. 
+    
+    The local connection is used for reads and the remote connection is used for writes.
+    
+    Some services in the OL infrastructure depends of the log written by the
+    writer, so remote connection is used, which takes care of writing logs. By
+    using a local connection for reads improves the performance by cutting
+    down the overhead of http calls present in case of remote connections.
+    """
+    def __init__(self, reader, writer):
+        client.Connection.__init__(self)
+        self.reader = reader
+        self.writer = writer
+        
+    def set_auth_token(self, token):
+        self.reader.set_auth_token(token)
+        self.writer.set_auth_token(token)
+    
+    def get_auth_token(self):
+        return self.writer.get_auth_token()
+        
+    def request(self, sitename, path, method="GET", data=None):
+        if method == "GET":
+            return self.reader.request(sitename, path, method, data=data)
+        else:
+            return self.writer.request(sitename, path, method, data=data)
+
+@web.memoize
+def _update_infobase_config():
+    """Updates infobase config when this function is called for the first time.
+    
+    From next time onwards, it doens't do anything becase this function is memoized.
+    """
+    # update infobase configuration
+    from infogami.infobase import server
+    # This sets web.config.db_parameters
+    server.update_config(config.infobase)
+            
+def create_local_connection():
+    _update_infobase_config()
+    return client.connect(type='local', **web.config.db_parameters)
+    
+def create_remote_connection():
+    return client.connect(type='remote', base_url=config.infobase_server)
+    
+def create_hybrid_connection():
+    local = create_local_connection()
+    remote = create_remote_connection()
+    return HybridConnection(local, remote)
 
 def OLConnection():
     """Create a connection to Open Library infobase server."""
     def create_connection():
-        if config.get('infobase_server'):
-            return client.connect(type='remote', base_url=config.infobase_server)
-        elif config.get('db_parameters'):
-            return client.connect(type='local', **config.db_parameters)
+        if config.get("connection_type") == "hybrid":
+            return create_hybrid_connection()
+        elif config.get('infobase_server'):
+            return create_remote_connection()
+        elif config.get("infobase", {}).get('db_parameters'):
+            return create_local_connection()
         else:
             raise Exception("db_parameters are not specified in the configuration")
 
     conn = create_connection()
-
     if config.get('memcache_servers'):
         conn = MemcacheMiddleware(conn, config.get('memcache_servers'))
     

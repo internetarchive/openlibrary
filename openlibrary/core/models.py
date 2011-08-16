@@ -71,7 +71,7 @@ class Thing(client.Thing):
         
         return history
 
-    @cache.memoize(engine="memcache", key=lambda self: "history" + self.key)
+    @cache.memoize(engine="memcache", key=lambda self: ("d" + self.key, "h"))
     def _get_history_preview(self):
         h = {}
         if self.revision < 5:
@@ -131,7 +131,7 @@ class Thing(client.Thing):
             lists = h.safesort(lists, reverse=True, key=lambda list: list.last_update)
         return lists
         
-    @cache.memoize(engine="memcache", key=lambda self: "lists" + self.key)
+    @cache.memoize(engine="memcache", key=lambda self: ("d" + self.key, "l"))
     def _get_lists_cached(self):
         return self._get_lists_uncached(limit=50, offset=0)
         
@@ -143,7 +143,16 @@ class Thing(client.Thing):
             "offset": offset
         }
         return self._site.things(q)
-
+        
+    def _get_d(self):
+        """Returns the data that goes into memcache as d/$self.key.
+        Used to measure the memcache usage.
+        """
+        return {
+            "h": self._get_history_preview(),
+            "l": self._get_lists_cached(),
+        }
+        
 class Edition(Thing):
     """Class to represent /type/edition objects in OL.
     """
@@ -178,13 +187,23 @@ class Work(Thing):
 
     @property
     @cache.method_memoize
-    @cache.memoize(engine="memcache", key=lambda self: "edition_count" + self.key)
+    @cache.memoize(engine="memcache", key=lambda self: ("d" + self.key, "e"))
     def edition_count(self):
         return self._site._request("/count_editions_by_work", data={"key": self.key})
 
     def get_lists(self, limit=50, offset=0, sort=True):
         return self._get_lists(limit=limit, offset=offset, sort=sort)
-    
+
+    def _get_d(self):
+        """Returns the data that goes into memcache as d/$self.key.
+        Used to measure the memcache usage.
+        """
+        return {
+            "h": self._get_history_preview(),
+            "l": self._get_lists_cached(),
+            "e": self.edition_count
+        }
+
 class Author(Thing):
     """Class to represent /type/author objects in OL.
     """
@@ -205,6 +224,10 @@ class Author(Thing):
         return self._get_lists(limit=limit, offset=offset, sort=sort)
     
 class User(Thing):
+    def get_status(self):
+        account = self.get_account() or {}
+        return account.get("status")
+
     def get_usergroups(self):
         keys = self._site.things({
             'type': '/type/usergroup', 

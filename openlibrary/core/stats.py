@@ -20,12 +20,12 @@ from infogami import config
 
 l = logging.getLogger("openlibrary.pystats")
 
-def create_stats_client():
+def create_stats_client(cfg = config):
     "Create the client which can be used for logging statistics"
     logger = logging.getLogger("pystatsd.client")
     logger.addHandler(logging.StreamHandler())
     try:
-        stats_server = config.get("admin", {}).get("statsd_server",None)
+        stats_server = cfg.get("admin", {}).get("statsd_server",None)
         if stats_server:
             host, port = stats_server.rsplit(":", 1)
             return Client(host, port)

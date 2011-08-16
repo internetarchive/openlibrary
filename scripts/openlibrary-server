@@ -13,7 +13,7 @@ USAGE:
 """
 import sys
 import os
-
+import yaml
 from gunicorn.app.base import Application
 
 def setup_env():
@@ -61,6 +61,8 @@ class BaseWSGIServer(Application):
         config.site = "openlibrary.org"
         
         infogami.load_config(self.config_file)
+        self.setup_infobase_config(config)
+        
         infogami._setup()
         
         wsgi_app = self.get_wsgi_app()
@@ -68,6 +70,14 @@ class BaseWSGIServer(Application):
         wsgi_app = web.httpserver.StaticMiddleware(wsgi_app)
         return wsgi_app
         
+    def setup_infobase_config(self, config):
+        """Reads the infoabse config file and assign it to config.infobase.
+        """
+        if config.get("infobase_config_file"):
+            dir = os.path.dirname(self.config_file)
+            path = os.path.join(dir, config.infobase_config_file)
+            config.infobase = yaml.safe_load(open(path).read())
+
     def get_wsgi_app(self):
         raise NotImplementedError()
                 

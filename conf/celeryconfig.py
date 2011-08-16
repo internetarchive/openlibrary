@@ -10,7 +10,7 @@ CELERY_RESULT_BACKEND = "couchdb"
 CELERY_RESULT_DBURI = "http://localhost:5984/celery"
 
 
-CELERY_IMPORTS = ("openlibrary.tasks")
+CELERY_IMPORTS = ("openlibrary.tasks",)
 
 # These two files need to be separately mentioned since the tasks will
 # run in the celery workers

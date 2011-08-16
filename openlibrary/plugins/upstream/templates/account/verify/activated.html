@@ -7,5 +7,8 @@ $var title: $_("Account already activated")
 </div>
 
 <div id="contentBody">
-    <p class="instruct">$:('Your account has been activated already. Please <a href="/account/login?username=$username&redirect=/">log in to continue</a>.')</p>
+  $ link = "/account/login?redirect=/&username=" + account.username
+  <p class="instruct">$:_('Your account has been activated already. Please <a href="%s">log in to continue</a>.', link)</p>
 </div>
+
+

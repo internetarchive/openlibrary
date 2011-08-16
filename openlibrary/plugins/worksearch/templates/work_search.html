@@ -348,21 +348,21 @@ $if param and not error:
         <script type="text/javascript">
         <!--
         function readapi_callback(data, textStatus, jqXHR) {
-            endtime = Date.now()
-            //document.write(data.stats.summary.toSource())
-            duration = (endtime - starttime) / 1000
-            disp = document.getElementById("adminTiming")
+            endtime = Date.now();
+            //document.write(data.stats.summary.toSource());
+            duration = (endtime - starttime) / 1000;
+            disp = document.getElementById("adminTiming");
             if (disp) {
-                disp.innerHTML += '<br/><br/><span class="adminOnly">Read API call took ' + duration + ' seconds</span>'
+                disp.innerHTML += '<br/><br/><span class="adminOnly">Read API call took ' + duration + ' seconds</span>';
             }
         }
         if (Math.random() * 100 < $readapi_percent) {
-            starttime = Date.now()
+            starttime = Date.now();
             \$.ajax({
                 url: 'http://$ol/api/volumes/brief/json/$wks?listofworks=True&no_details=True&stats=True',
                 dataType: 'jsonp',
                 success: readapi_callback
-            })
+            });
         }
         //-->
         </script>

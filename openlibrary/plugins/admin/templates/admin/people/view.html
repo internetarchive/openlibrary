@@ -7,7 +7,8 @@ $var title: [Admin Center] $person.displayname
 
 <div id="contentHead">
     $:render_template("admin/menu")
-    <h1><a class="plain" href="/admin/people">People</a> / $person.displayname</h1>
+    <h1><a class="plain" href="/admin/people">People</a> / $person.username</h1>
+    <div class="small">Registered on : $datestr(person.creation_time(), relative = False) ($datestr(person.creation_time()))</div>
 </div>
 
 <style type="text/css">
@@ -15,56 +16,107 @@ span.invalid {
     padding-left: 20px;
     float: right;
 }
+
+span.safe { 
+            background-color: green;
+            padding: 0 3pt;
+            color: black;
+            }
+
+span.warning { 
+               background-color: red;
+               padding: 0 3pt;
+               color: black;
+ }
+
+form.account-actions { 
+                       display:inline;
+ }
 </style>
 
+$def display_status(user):
+   $if user['status'] == "verified" or user['status'] == "active":
+      <span class="safe">$user['status']</span>
+      <div class="small">Activated on : $datestr(user.get_user().created, relative = False) <!-- <input type="submit" name="action" value="block account"> --></div>
+   $if user['status'] == "pending":
+      <form class = "account-actions" method="POST">
+	<span class="warning">$user['status']</span>
+	<button type="submit" name="action" value="activate_account">activate account</button>
+	$if user.get_activation_link():
+	   <div class="small"> Activation link expiring on : $user.get_activation_link().get_expiration_time() <button type="submit" name="action" value="resend_link">resend link</button></div>
+	$else:
+	   <div class="small"> <strong>No activation link </strong> <button type="submit" name="action" value="resend_link">resend link</button></div>
+      </form>
+	  
+      
+   
+
 <div id="contentBody">
-    <table id="adminHistory" style="clear: both;">
+  Status : $:display_status(person)
+  $if person.get_password_reset_link():
+    <div class = "small">
+      Password reset link active. Created on : $datestr(person.get_password_reset_link().get_creation_time(), relative = False)
+    </div>
+  <table id="adminHistory" style="clear: both;">
     <tbody>
-        <tr>
-            <td>$_("Email Address:")</td>
-            <td>
-                <form method="POST" name="form-email" id="form-email" class="validate">
-                    <input type="text" name="email" id="email" class="email" value="$input.get('email', person.get_email())"/>
-                    <button type="submit" name="action" value="update_email">Change</button>
-                    <span class="invalid" htmlfor="email" generated="true">$errors.get("email")</span>
-                </form>
-            </td>
-        </tr>
-        <tr>
-            <td>$_("Reset Password")</td>
-            <td>
-                <form method="POST" name="form-password" id="form-password">
-                    <input type="text" name="password" id="password" class="email" value="$input.get('password')"/>
-                    <button type="submit" name="action" value="update_password">Change</button>
-                    <span class="invalid" htmlfor="password" generated="true">$errors.get("password")</span>
-                </form>
-            </td>
-        </tr>
-        <tr>
-            <td>$_("IP Address")</td>
-            <td>
-                $ v = person.get_creation_info()                
-                <a href="/admin/ip/$v.ip">$v.ip</a> - <a href="$homepath()$person.key" style="color: #900; text-decoration: none;">profile</a>
-            </td>
-        </tr>
-        <tr>
-            <td>$_("# Edits")</td>
-            <td>$person.get_edit_count()</td>
-        </tr>
-        <tr>
-            <td>$_("Member Since:")</td>
-            <td>$datestr(person.created)</td>
-        </tr>
-        <tr>
-            <td>$_("Last Login:")</td>
-            <td>x months ago, xx xx xx</td>
-        </tr>
+      <tr>
+	<td>$_("Email Address:")</td>
+	<td>
+	  <form method="POST" name="form-email" id="form-email" class="validate">
+	    <input type="text" name="email" id="email" class="email" value="$input.get('email', person['email'])"/>
+	    <button type="submit" name="action" value="update_email">Change</button>
+	    <span class="invalid" htmlfor="email" generated="true">$errors.get("email")</span>
+	  </form>
+	</td>
+      </tr>
+      <tr>
+	<td>$_("Reset Password")</td>
+	<td>
+	  <form method="POST" name="form-password" id="form-password">
+	    <input type="text" name="password" id="password" class="email" value="$input.get('password')"/>
+	    <button type="submit" name="action" value="update_password">Change</button>
+	    <span class="invalid" htmlfor="password" generated="true">$errors.get("password")</span>
+	  </form>
+	</td>
+      </tr>
+      $if person['status'] == "verified" or person['status'] == "active":
+      <tr>
+	<td>$_("IP Address")</td>
+	<td>
+	  $ v = person.get_creation_info()                
+	  <a href="/admin/ip/$v.ip">$v.ip</a> - <a href="$homepath()$person.username" style="color: #900; text-decoration: none;">profile</a>
+	</td>
+      </tr>
+      <tr>
+	<td>$_("# Edits")</td>
+	<td>$person.get_user().get_edit_count()</td>
+      </tr>
+      <tr>
+	<td>$_("Member Since:")</td>
+	<td>$datestr(person.get_user().created)</td>
+      </tr>
+      <tr>
+	<td>$_("Last Login:")</td>
+	<td>x months ago, xx xx xx</td>
+      </tr>
     </tbody>
-    </table>
+  </table>
 
-<h2>$_("Edit History")</h2>
-$:render_template("admin/history", person.get_edit_history())
+$if person['status'] == "verified" or person['status'] == "active":
+    <h2>$_("Edit History")</h2>
+    $:render_template("admin/history", person.get_user().get_edit_history())
 
+<h2>$_("Debug information")</h2>
+<table>
+  <tr>
+    <th>Profile information</th>
+    <th>Account information</th>
+  </tr>
+  <tr>
+    <td><pre>$json_encode(person, indent="    ", sort_keys=True)</pre></td>
+    <td><pre>$person.get_user()</pre></td>
+  </tr>
+</table>
 
 <button class="delete" type="submit" value="$_("Delete Account")" name="_delete" title="$_("Delete Account")" style="float: right; margin-bottom: 20px;">$_("Delete Account")</button>
 

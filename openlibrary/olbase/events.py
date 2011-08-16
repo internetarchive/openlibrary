@@ -54,6 +54,7 @@ class MemcacheInvalidater:
         """Returns keys for the effected entries by this change.
         """
         methods = [
+            self.find_data,
             self.find_history,
             self.find_lists,
             self.find_edition_counts
@@ -63,6 +64,13 @@ class MemcacheInvalidater:
         for m in methods:
             keys.update(m(changeset))
         return list(keys)
+        
+    def find_data(self, changeset):
+        """Returns the data entries effected by this change.
+        
+        The data entry stores the history, lists and edition_count of a page.
+        """
+        return ["d" + c['key'] for c in changeset['changes']]
         
     def find_history(self, changeset):
         """Returns the history entries effected by this change.
@@ -88,7 +96,7 @@ class MemcacheInvalidater:
         
     def find_edition_counts_for_doc(self, doc):
         if doc and doc['type']['key'] == '/type/edition':
-            return ["edition_count" + w['key'] for w in doc.get("works", [])]
+            return ["edition_count" + w['key'] for w in doc.get("works", [])] + ["d" + w['key'] for w in doc.get("works", [])]
         else:
             return []
         

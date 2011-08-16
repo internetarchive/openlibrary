@@ -34,6 +34,7 @@ table pre.hidden {
 });
 </script>
 
+
 <table>
 <tr>
   <th> UUID </th>
@@ -77,6 +78,15 @@ table pre.hidden {
 <tr>
   <th> Traceback </th>
   <td> <pre>$task['traceback']</pre></td>
+</tr>
+<tr>
+  <th> Keys affected </th>
+  <td> 
+    <ul>
+      $for k in task['keys']:
+      <li>$k</li>
+    </ul>
+</td>
 </tr>
 
 </table>
