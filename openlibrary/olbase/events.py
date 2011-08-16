@@ -57,7 +57,8 @@ class MemcacheInvalidater:
             self.find_data,
             self.find_history,
             self.find_lists,
-            self.find_edition_counts
+            self.find_edition_counts,
+            self.find_libraries,
         ]
         
         keys = set()        
@@ -99,6 +100,12 @@ class MemcacheInvalidater:
             return ["edition_count" + w['key'] for w in doc.get("works", [])] + ["d" + w['key'] for w in doc.get("works", [])]
         else:
             return []
+            
+    def find_libraries(self, changeset):
+        """When any of the library page is changed, invalidate all library entries.
+        """
+        if any(c['key'].startswith("/libraries/") for c in changeset['changes']):
+            return ['inlibrary.libraries-hash', 'inlibrary.libraries']
         
     def seed_to_key(self, seed):
         """Converts seed to key.
