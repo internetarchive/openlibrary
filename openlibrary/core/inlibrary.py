@@ -62,7 +62,7 @@ def get_library():
     """Returns library document if the IP of the current request is in the IP range of that library.
     """
     if "library" not in web.ctx:
-        d = _get_ip_range_mapping()
+        d = _get_ip_dict()
         lib = d.get(web.ctx.ip)
         web.ctx.library = lib and web.ctx.site.new(lib['key'], lib)
     return web.ctx.library
