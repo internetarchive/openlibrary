@@ -1,7 +1,7 @@
 """Tools to parse ip ranges.
 """
 import re
-from iptools import IpRange
+import iptools
 
 four_octet = r'(\d+\.\d+\.\d+\.\d+)'
 re_range_star = re.compile(r'^(\d+\.\d+)\.(\d+)\s*-\s*(\d+)\.\*$')
@@ -112,6 +112,14 @@ class IPDict:
         >>> ipmap.get('1.2.5.5')
     """
     def __init__(self):
+        # 2-level Dictionary for storing IP ranges
+        #
+        # For efficient lookup, IP ranges are stored in 2-levels. 
+        # First key is the integer representation of first 2 parts of the ip
+        # Second key in the IpRange object.
+        #
+        # When to look for an IP, the integer representation of the first 2
+        # parts of the IP are used to get the IpRanges to check for.
         self.ip_ranges = {}
         
     def add_ip_range(self, ip_range, value):
@@ -123,7 +131,29 @@ class IPDict:
             "1.2.3.0/8"
             ("1.2.3.4", "1.2.3.44")
         """
-        self.ip_ranges[IpRange(ip_range)] = value
+        # Convert ranges in CIDR format into (start, end) tuple
+        if isinstance(ip_range, basestring) and "/" in ip_range:
+            # ignore bad value
+            if not iptools.validate_cidr(ip_range):
+                return
+            ip_range = iptools.cidr2block(ip_range)
+            
+        # Find the integer representation of first 2 parts of the start and end IPs
+        if isinstance(ip_range, tuple):
+            # ignore bad ips
+            if not iptools.validate_ip(ip_range[0]) or not iptools.validate_ip(ip_range[1]):
+                return
+            
+            # Take the first 2 parts of the begin and end ip as integer
+            start = iptools.ip2long(ip_range[0]) >> 16
+            end = iptools.ip2long(ip_range[1]) >> 16
+        else:
+            start = iptools.ip2long(ip_range)
+            end = start
+            
+        # for each integer in the range add an entry.
+        for i in range(start, end+1):
+            self.ip_ranges.setdefault(i, {})[iptools.IpRange(ip_range)] = value
         
     def add_ip_range_text(self, ip_range_text, value):
         """Adds all ip_ranges from the givem multi-line text and associate
@@ -135,7 +165,9 @@ class IPDict:
             self.add_ip_range(ip_range, value)
         
     def __getitem__(self, ip):
-        for ip_range, value in self.ip_ranges.items():
+        # integer representation of first 2 parts 
+        base = iptools.ip2long(ip) >> 16
+        for ip_range, value in self.ip_ranges.get(base, {}).items():
             if ip in ip_range:
                 return value
         raise KeyError(ip)
