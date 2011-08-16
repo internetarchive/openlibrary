@@ -97,6 +97,10 @@ def update_support_db(author, message, case):
 def get_casenote(message):
     "Try to extract the casenote out of the message"
     md = markdown.Markdown()        
+    if message.get_content_type() == "multipart/related":
+        for i in message.get_payload():
+            if i.get_content_type() == "multipart/alternative":
+                message = i
     if message.get_content_type() == "text/plain":
         return message.get_payload()
     if message.get_content_type() == "text/html":
