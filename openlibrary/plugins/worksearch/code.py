@@ -149,6 +149,10 @@ def parse_query_fields(q):
             if m:
                 v = v[:-len(m.group(0))]
                 op_found = m.group(1)
+        if field_name == 'isbn':
+            isbn = read_isbn(v)
+            if isbn:
+                v = isbn
         yield {'field': field_name, 'value': v.replace(':', '\:')}
         if op_found:
             yield {'op': op_found }
@@ -184,8 +188,10 @@ def build_q_list(param):
                 v = re_to_esc.sub(lambda m:'\\' + m.group(), v)
                 q_list.append('(author_name:(' + v + ') OR author_alternative_name:(' + v + '))')
 
-        check_params = ['title', 'publisher', 'isbn', 'oclc', 'lccn', 'contribtor', 'subject', 'place', 'person', 'time']
+        check_params = ['title', 'publisher', 'oclc', 'lccn', 'contribtor', 'subject', 'place', 'person', 'time']
         q_list += ['%s:(%s)' % (k, param[k]) for k in check_params if k in param]
+        if param.get('isbn'):
+            q_list.append('isbn:(%s)' % (read_isbn(param['isbn']) or param['isbn']))
     return (q_list, use_dismax)
 
 def run_solr_query(param = {}, rows=100, page=1, sort=None, spellcheck_count=None):

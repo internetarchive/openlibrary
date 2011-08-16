@@ -96,9 +96,12 @@ def safesort(iterable, key=None, reverse=False):
         return (k.__class__.__name__, k)
     return sorted(iterable, key=safekey, reverse=reverse)
 
-def datestr(then, now=None, lang=None):
+def datestr(then, now=None, lang=None, relative = True):
     """Internationalized version of web.datestr."""
-    result = web.datestr(then, now)
+    if not relative:
+        result = then.strftime("%b %d %Y")
+    else:
+        result = web.datestr(then, now)
     if not result:
         return result
     elif result[0] in string.digits: # eg: 2 milliseconds ago

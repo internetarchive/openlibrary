@@ -20,8 +20,16 @@ import borrow
 
 logger = logging.getLogger("openlibrary.account")
 
+class Link(web.storage):
+    def get_expiration_time(self):
+        d = self['expires_on'].split(".")[0]
+        return datetime.datetime.strptime(d, "%Y-%m-%dT%H:%M:%S")
+
+    def get_creation_time(self):
+        d = self['created_on'].split(".")[0]
+        return datetime.datetime.strptime(d, "%Y-%m-%dT%H:%M:%S")
+
 class Account(web.storage):
-    
     @property
     def username(self):
         return self._key.split("/")[-1]
@@ -36,7 +44,11 @@ class Account(web.storage):
             return self.data.get("displayname") or self.username
         else:
             return self.username
-        
+
+    def creation_time(self):
+        d = self['created_on'].split(".")[0]
+        return datetime.datetime.strptime(d, "%Y-%m-%dT%H:%M:%S")
+
     def verify_password(self, password):
         return verify_hash(get_secret_key(), password, self.enc_password)
         
@@ -45,6 +57,40 @@ class Account(web.storage):
     
     def update_email(self, email):
         web.ctx.site.update_account(self.username, email=email)
+        
+    def send_verification_email(self):
+        send_verification_email(self.username, self.email)
+
+    def activate(self):
+        web.ctx.site.activate_account(username=self.username)
+    
+    def get_user(self):
+        key = "/people/" + self.username
+        doc = web.ctx.site.get(key)
+        return doc
+
+    def get_creation_info(self):
+        key = "/people/" + self.username
+        doc = web.ctx.site.get(key)
+        return doc.get_creation_info()
+
+    def get_activation_link(self):
+        key = "account/%s/verify"%self.username
+        doc = web.ctx.site.store.get(key)
+        if doc:
+            return Link(doc)
+        else:
+            return False
+    
+    def get_password_reset_link(self):
+        key = "account/%s/password"%self.username
+        doc = web.ctx.site.store.get(key)
+        if doc:
+            return Link(doc)
+        else:
+            return False
+
+        
     
     @staticmethod
     def find(username=None, lusername=None, email=None):
@@ -194,7 +240,7 @@ class account_login(delegate.page):
                 return self.error("account_incorrect_password", i)
 
         account = Account.find(username=i.username)
-        send_verification_email(i.username, account.email)
+        account.send_verification_email()
 
         title = _("Hi %(user)s", user=account.displayname)
         message = _("We've sent the verification email to %(email)s. You'll need to read that and click on the verification link to verify your email.", email=account.email)
@@ -214,7 +260,7 @@ class account_verify(delegate.page):
             if account:
                 if account['status'] != "pending":
                     return render['account/verify/activated'](account)
-            web.ctx.site.activate_account(username=doc['username'])
+            account.activate()
             user = web.ctx.site.get("/people/" + doc['username'])
             return render['account/verify/success'](account)
         else:
