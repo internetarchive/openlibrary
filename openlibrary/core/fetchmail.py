@@ -88,7 +88,7 @@ def get_new_emails(conn):
 
 def update_support_db(author, message, case):
     try: 
-        case.add_worklog_entry(author, message)
+        case.add_worklog_entry(author, unicode(message, errors="ignore"))
         case.change_status("new", author)
         logger.info("  Updated case")
     except support.InvalidCase:
