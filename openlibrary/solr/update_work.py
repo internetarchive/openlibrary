@@ -168,13 +168,27 @@ def build_doc(w, obj_cache={}, resolve_redirects=False):
         pub_year = get_pub_year(e)
         if pub_year:
             e['pub_year'] = pub_year
+        ia = None
         if 'ocaid' in e:
-            ia_meta_fields = get_ia_collection_and_box_id(e['ocaid'])
+            ia = e['ocaid']
+        elif 'ia_loaded_id' in e:
+            ia = e['ia_loaded_id'][0]
+        if ia:
+            ia_meta_fields = get_ia_collection_and_box_id(ia)
             collection = ia_meta_fields['collection']
-            assert len(ia_meta_fields['box_id']) == 1
-            box_id = ia_meta_fields['box_id'][0]
-            if 'ia_box_id' not in e:
-                e['ia_box_id'] = [box_id]
+            if ia_meta_fields.get('boxid'):
+                if len(ia_meta_fields['boxid']) != 1:
+                    print e['ocaid']
+                # http://www.archive.org/download/worldalmanacbook00long/worldalmanacbook00long_meta.xml
+                #try:
+                #    assert len(ia_meta_fields['boxid']) == 1
+                #except AssertionError:
+                #    print ia, e['key']
+                #    raise
+                box_id = list(ia_meta_fields['boxid'])[0]
+                e.setdefault('ia_box_id', [])
+                if box_id.lower() not in [x.lower() for x in e['ia_box_id']]:
+                    e['ia_box_id'].append(box_id)
             #print 'collection:', collection
             e['ia_collection'] = collection
             e['public_scan'] = ('lendinglibrary' not in collection) and ('printdisabled' not in collection)
@@ -364,11 +378,26 @@ def build_doc(w, obj_cache={}, resolve_redirects=False):
             m = re_lang_key.match(l['key'] if isinstance(l, dict) else l)
             lang.add(m.group(1))
         if e.get('ia_loaded_id'):
-            assert isinstance(e['ia_loaded_id'], list) and isinstance(e['ia_loaded_id'][0], basestring)
-            ia_loaded_id.update(e['ia_loaded_id'])
+            if isinstance(e['ia_loaded_id'], basestring):
+                ia_loaded_id.add(e['ia_loaded_id'])
+            else:
+                try:
+                    assert isinstance(e['ia_loaded_id'], list) and isinstance(e['ia_loaded_id'][0], basestring)
+                except AssertionError:
+                    print e.get('ia')
+                    print e['ia_loaded_id']
+                    raise
+                ia_loaded_id.update(e['ia_loaded_id'])
         if e.get('ia_box_id'):
-            assert isinstance(e['ia_box_id'], list) and isinstance(e['ia_box_id'][0], basestring)
-            ia_box_id.update(e['ia_box_id'])
+            if isinstance(e['ia_box_id'], basestring):
+                ia_box_id.add(e['ia_box_id'])
+            else:
+                try:
+                    assert isinstance(e['ia_box_id'], list) and isinstance(e['ia_box_id'][0], basestring)
+                except AssertionError:
+                    print e['key']
+                    raise
+                ia_box_id.update(e['ia_box_id'])
     if lang:
         add_field_list(doc, 'language', lang)
 
@@ -388,16 +417,16 @@ def build_doc(w, obj_cache={}, resolve_redirects=False):
             all_overdrive.update(e['overdrive'])
         if 'ocaid' not in e:
             continue
-        if not lending_edition and 'lendinglibrary' in e['ia_collection']:
+        if not lending_edition and 'lendinglibrary' in e.get('ia_collection', []):
             lending_edition = re_edition_key.match(e['key']).group(1)
-        if not in_library_edition and 'inlibrary' in e['ia_collection']:
+        if not in_library_edition and 'inlibrary' in e.get('ia_collection', []):
             in_library_edition = re_edition_key.match(e['key']).group(1)
-        if 'printdisabled' in e['ia_collection']:
+        if 'printdisabled' in e.get('ia_collection', []):
             printdisabled.add(re_edition_key.match(e['key']).group(1))
-        all_collection.update(e['ia_collection'])
+        all_collection.update(e.get('ia_collection', []))
         assert isinstance(e['ocaid'], basestring)
         i = e['ocaid'].strip()
-        if e['public_scan']:
+        if e.get('public_scan'):
             public_scan = True
             if i.endswith('goog'):
                 pub_goog.add(i)
