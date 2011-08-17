@@ -9,19 +9,20 @@ $var title: Performance Graphs
 $ grahite_base = get_graphite_base_url()
 
 $def render_graph(target, days, **kw):
-    $ defaults = dict(width=850, height=303)
-    $ x = defaults.setdefault("from", "-" + days)
+    $ defaults = {"width": 850, "height": 303, "from": days, "yMin": 0}
     $ q = urlencode(dict(defaults, target=target, **kw), doseq=True)
     <img src="$grahite_base/render/?$:q"/>
 
 $def render_graph_page(days):
     <h2>Numbe of Hits</h2>
-    $:render_graph(["stats.timers.ol.total.count"], days)
-    <h2>Page Load Time</h2>    
-    $ names = ["stats.timers.ol.pageload.%s.mean" % name for name in ["all", "home", "search", "authors", "books", "works", "subjects"]]
+    $:render_graph("alias(movingAverage(stats.timers.ol.total.count, 20), '#hits')", days)
+    <h2>Page Load Time</h2>
+
+    $ names = ["alias(movingAverage(stats.timers.ol.pageload.%s.mean, 20), '%s')" % (name, name) for name in ["all", "authors", "books", "works", "home", "search", "subjects"]]
     $:render_graph(names, days, yLimit=100)
+
     <h2>Infobase Mean</h2>
-    $:render_graph("stats.timers.ol.infobase.mean", days, yLimit=200)
+    $:render_graph("alias(movingAverage(stats.timers.ol.infobase.mean, 20), 'infobase.mean')", days, yLimit=300)
 
 <div id="contentBody">
 <div class="tabs">
@@ -30,9 +31,9 @@ $def render_graph_page(days):
         <li><a href="#week" id="link_week">$_("This Week")</a></li>
         <li><a href="#month" id="link_month">$("This Month")</a></li>
     </ul>
-    <div id="day">$:render_graph_page("1days")</div>
-    <div id="week">$:render_graph_page("7days")</div>
-    <div id="month">$:render_graph_page("30days")</div>
+    <div id="day">$:render_graph_page("-1days")</div>
+    <div id="week">$:render_graph_page("-7days")</div>
+    <div id="month">$:render_graph_page("-30days")</div>
 </div>
 
 </div>
