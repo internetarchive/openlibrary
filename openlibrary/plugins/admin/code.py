@@ -486,12 +486,9 @@ class deploy:
         status = p.wait()
         return web.storage(cmd=cmd, status=status, stdout=out, stderr=err)
 
-class graphs:
+class _graphs:
     def GET(self):
         return render_template("admin/graphs")
-        
-def get_graphite_base_url():
-    return config.get("graphite_base_url", "")
 
 def setup():
     register_admin_page('/admin/git-pull', gitpull, label='git-pull')
@@ -512,7 +509,7 @@ def setup():
     register_admin_page('/admin/tasks', tasks.tasklist, label = "Task queue")
     register_admin_page('/admin/tasks/(.*)', tasks.tasks, label = "Task details")
     register_admin_page('/admin/deploy', deploy, label="")
-    register_admin_page('/admin/graphs', graphs, label="")
+    register_admin_page('/admin/graphs', _graphs, label="")
 
     inspect_thing.setup()
     support.setup()
@@ -523,7 +520,9 @@ def setup():
 
     public(get_admin_stats)
     public(get_blocked_ips)
-    public(get_graphite_base_url)
     delegate.app.add_processor(block_ip_processor)
+    
+    import graphs
+    graphs.setup()
     
 setup()
