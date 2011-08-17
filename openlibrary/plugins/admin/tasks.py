@@ -29,6 +29,7 @@ def process_task_row(taskdoc):
     except:
         taskdoc['enqueued_at'] = taskdoc['started_at']
     taskdoc["keys"] = taskdoc['context'].get("keys",[])
+    taskdoc["changeset"] = taskdoc['context'].get("changeset",None)
     return taskdoc
 
 class tasklist(object):

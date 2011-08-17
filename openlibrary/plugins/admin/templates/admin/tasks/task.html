@@ -1,7 +1,7 @@
 $def with (task)
 <div id="contentHead">
     $:render_template("admin/menu", "/admin")
-    <h1>Task information</h1>
+    <h1><a href="/admin/tasks">Tasks</a> / $task["_id"]</h1>
 </div>
 <div id="contentBody">
 <style type="text/css">
@@ -37,16 +37,12 @@ table pre.hidden {
 
 <table>
 <tr>
-  <th> UUID </th>
-  <td> $task["_id"] </td>
+  <th> Command </th>
+  <td> $task['command'] </td>
 </tr>
 <tr>
   <th> Status </th>
   <td> <strong>$task['status']</strong> </td>
-</tr>
-<tr>
-  <th> Command </th>
-  <td> $task['command'] </td>
 </tr>
 <tr>
   <th> Arguments </th>
@@ -84,9 +80,13 @@ table pre.hidden {
   <td> 
     <ul>
       $for k in task['keys']:
-      <li>$k</li>
+      <li><a href="/admin/inspect$k">$k</a></li>
     </ul>
 </td>
+</tr>
+<tr>
+  <th> Changeset </th>
+  <td><a href="/recentchanges/2010/01/01/foo/$task['changeset']">$task['changeset']</a></td>
 </tr>
 
 </table>
