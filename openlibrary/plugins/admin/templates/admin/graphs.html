@@ -8,21 +8,20 @@ $var title: Performance Graphs
 
 $ grahite_base = get_graphite_base_url()
 
-$def render_graph(target, days):
-    $if isinstance(target, list):
-        $ target = "&".join('target=' + t for t in target)
-    $else:
-        $ target = 'target=' + target
-    <img src="$grahite_base/render/?width=850&height=303&$target&from=-$days"/>
+$def render_graph(target, days, **kw):
+    $ defaults = dict(width=850, height=303)
+    $ x = defaults.setdefault("from", "-" + days)
+    $ q = urlencode(dict(defaults, target=target, **kw), doseq=True)
+    <img src="$grahite_base/render/?$:q"/>
 
 $def render_graph_page(days):
     <h2>Numbe of Hits</h2>
     $:render_graph(["stats.timers.ol.total.count"], days)
     <h2>Page Load Time</h2>    
     $ names = ["stats.timers.ol.pageload.%s.mean" % name for name in ["all", "home", "search", "authors", "books", "works", "subjects"]]
-    $:render_graph(names, days)
+    $:render_graph(names, days, yLimit=100)
     <h2>Infobase Mean</h2>
-    $:render_graph("stats.timers.ol.infobase.mean", days)
+    $:render_graph("stats.timers.ol.infobase.mean", days, yLimit=200)
 
 <div id="contentBody">
 <div class="tabs">
