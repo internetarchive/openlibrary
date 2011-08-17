@@ -128,3 +128,5 @@ def setup():
     filters"""
     register_filter("all", stats_filters.all)
     register_filter("url", stats_filters.url)
+    register_filter("loggedin", stats_filters.loggedin)
+    register_filter("not_loggedin", stats_filters.not_loggedin)
