@@ -16,7 +16,7 @@ table.tasks th {
                  font-weight: bold;
  }
 table.tasks th, table.tasks td {
-                                 border-bottom: 1px solid #ddd; 
+                                 border-bottom: 1px solid #888; 
                                  vertical-align:top;
                                  padding: 5pt;
                                  }
@@ -32,6 +32,13 @@ table.tasks tr.reserved td {
                            background-color: #ff0;
  }
 
+table.tasks tr.success td { 
+                            background-color: #cfc;
+ }
+
+table.tasks tr.failure td { 
+                            background-color: #fdd;
+ }
 
 </style>
 $ command = query_param("command")
@@ -65,12 +72,11 @@ $ finishedat_end = query_param("finishedat_end")
     <tr>
         <th>Uuid</th>
         <th>Command</th>
-	<th>Status</th>
-        <th>Host</th>
 	<th>Enqueued at</th>
         <th>Started at</th>
 	<th>Finished at</th>
         <th>Affected docs</th>
+	<th>Changeset</th>
     </tr>
 $:render_template("admin/tasks/completed", completed)
 </table>
