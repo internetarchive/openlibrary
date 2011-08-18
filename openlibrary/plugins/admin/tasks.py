@@ -4,13 +4,15 @@ import logging
 import datetime
 import urlparse
 import urllib
+import json
 
 import couchdb
 from celery.task.control import inspect 
-from infogami.utils.view import render_template
+from infogami.utils.view import render_template, add_flash_message
 from infogami import config
 import web
 
+import openlibrary.tasks
 
 logger = logging.getLogger("admin.tasks")
 
@@ -18,6 +20,7 @@ logger = logging.getLogger("admin.tasks")
 def connect_to_taskdb():
     db_uri = config.get("celery",{})["tombstone_db"]
     return couchdb.Database(db_uri)
+
 
 def process_task_row(taskdoc):
     """Makes some changes to the task row from couch so that the
@@ -69,6 +72,7 @@ class tasklist(object):
                                                                     stale = "ok"))
         return render_template("admin/tasks/index", completed_tasks)
 
+        
 class tasks(object):
     def GET(self, taskid):
         try:
@@ -81,5 +85,25 @@ class tasks(object):
         except Exception:
             logger.warning("Problem while obtaining task information '%s'", taskid, exc_info = True)
             return "Error in obtaining task information"
-                
+
+    def POST(self, taskid):
+        try:
+            db = connect_to_taskdb()
+            try:
+                task = db[taskid]
+            except couchdb.http.ResourceNotFound:
+                return "No such task"
+        except Exception:
+            logger.warning("Problem while obtaining task information '%s'", taskid, exc_info = True)
+            return "Error in obtaining task information"
+        
+        function = getattr(openlibrary.tasks,task['command'])
+
+        largs = json.loads(task['largs'])
+        kargs = json.loads(task['kargs'])
+        kargs["celery_parent_task"] = taskid
+        add_flash_message("info", "%s (%s) refired!"%(taskid, task['command']))
+        function.delay(*largs, **kargs)
+
+        return render_template("admin/tasks/task", process_task_row(task))
             
