@@ -40,32 +40,34 @@ table.tasks tr.failure td {
                             background-color: #fdd;
  }
 
+
 </style>
 $ command = query_param("command")
 $ finishedat_start = query_param("finishedat_start")
 $ finishedat_end = query_param("finishedat_end")
-<form method="GET" action="/admin/tasks">
-  <fieldset>
-    <legend>Filters</legend>
-    <label> Command </label>
-    <input type="text" name="command" value="$command"/><br/>
-    Finished between (start)
-    <input type="text" name="finishedat_start" value = "$finishedat_start"/>
-     and (end)
-     <input type="text" name="finishedat_end" value = "$finishedat_end"/>
-     (yyyy-mm-dd hh:mm)
-     <br/>
-     <label> Entries per page </label>
-     <select value="label">
-       <option>20</option>
-       <option>40</option>
-       <option>60</option>
-       <option>80</option>
-       <option>100</option>
-     </select>
-     <input type="submit" name="submit" value="Filter"/><br/>
-  </fieldset>
-  <a href="/admin/tasks">Reset all filters</a>
+<form metdod="GET" acion="/admin/tasks">
+  <table id="adminHistory" >
+    <caption> Filters </caption>
+    <tr>
+      <td> Command </td>
+      <td><input type="text" name="command" value="$command"/></td>
+    </tr>
+    <tr>
+      <td>Finished between (start)<br/> (yyyy-mm-dd hh:mm)</td>
+      <td><input type="text" name="finishedat_start" value = "$finishedat_start"/></td>
+    </tr>
+    <tr>
+      <td>Finished between (end)<br/> (yyyy-mm-dd hh:mm)</td>
+      <td><input type="text" name="finishedat_end" value = "$finishedat_end"/></td>
+    </tr>
+    <tr>
+      <td colspan="2"> 
+	<input type="submit" name="submit" value="Filter"/>
+      </td>
+    </tr>
+  </table>
+
+
 </form>
 
 <table class = "tasks" border="0" cellspacing="0" cellpadding="10">
