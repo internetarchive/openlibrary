@@ -23,6 +23,13 @@ table pre.hidden {
                          display: none;
  }
 
+tr.SUCCESS td, tr.SUCCESS th{ 
+                            background-color: #cfc;
+ }
+
+tr.FAILURE td, tr.FAILURE th { 
+                            background-color: #fdd;
+ }
 </style>
 
 <script type="text/javascript">
@@ -35,14 +42,18 @@ table pre.hidden {
 </script>
 
 
+<form method="post" action="/admin/tasks/$task['_id']">
+  <input type="submit" name="button" value="refire" />
+</form>
+
 <table>
 <tr>
   <th> Command </th>
   <td> $task['command'] </td>
 </tr>
-<tr>
+<tr class="$task['status']">
   <th> Status </th>
-  <td> <strong>$task['status']</strong> </td>
+  <td> $task['status'] </td>
 </tr>
 <tr>
   <th> Arguments </th>
@@ -88,6 +99,11 @@ table pre.hidden {
   <th> Changeset </th>
   <td><a href="/recentchanges/2010/01/01/foo/$task['changeset']">$task['changeset']</a></td>
 </tr>
+$if "parent_task" in task:
+  <tr>
+    <th> Parent task </th>
+    <td><a href="/admin/tasks/$task['parent_task']">$task['parent_task']</a></td>
+  </tr>
 
 </table>
 </div>

@@ -47,6 +47,10 @@ def create_patched_delay(original_fn):
     def delay2(*largs, **kargs):
         t = calendar.timegm(datetime.datetime.utcnow().timetuple())
         celery_extra_info = dict(enqueue_time = t)
+        if "celery_parent_task" in kargs:
+            celery_extra_info["parent_task"] = kargs.pop("celery_parent_task")
+        else:
+            celery_extra_info["parent_task"] = ""
         kargs.update(celery_extra_info = celery_extra_info)
         return original_fn.original_delay(*largs, **kargs)
     return delay2
@@ -61,6 +65,7 @@ def oltask(fn):
         global task_context
         celery_extra_info = kargs.pop("celery_extra_info",{})
         enqueue_time = celery_extra_info.get('enqueue_time',None)
+        parent_task = celery_extra_info.get('parent_task',None)
         s = StringIO.StringIO()
         h = logging.StreamHandler(s)
         h.setFormatter(logging.Formatter("%(asctime)s [%(name)s] [%(levelname)s] %(message)s"))
@@ -85,7 +90,8 @@ def oltask(fn):
                      log = log,
                      traceback = tb,
                      result = None,
-                     context = task_context)
+                     context = task_context,
+                     parent_task = parent_task)
             logging.root.removeHandler(h)
             try:
                 end_time = calendar.timegm(datetime.datetime.utcnow().timetuple())
@@ -103,7 +109,8 @@ def oltask(fn):
                  started_at = started_at,
                  log = log,
                  result = ret,
-                 context = task_context)
+                 context = task_context,
+                 parent_task = parent_task)
         logging.root.removeHandler(h)
         task_context = {}
         try:
