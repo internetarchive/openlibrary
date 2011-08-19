@@ -36,7 +36,7 @@ form.account-actions {
 
 $def display_status(user):
    $if user['status'] == "verified" or user['status'] == "active":
-      <span class="safe">$user['status']</span>
+      <span class="safe">verified</span>
       <div class="small">Activated on : $datestr(user.get_user().created, relative = False) <!-- <input type="submit" name="action" value="block account"> --></div>
    $if user['status'] == "pending":
       <form class = "account-actions" method="POST">
