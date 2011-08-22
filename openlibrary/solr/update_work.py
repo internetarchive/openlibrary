@@ -177,14 +177,6 @@ def build_doc(w, obj_cache={}, resolve_redirects=False):
             ia_meta_fields = get_ia_collection_and_box_id(ia)
             collection = ia_meta_fields['collection']
             if ia_meta_fields.get('boxid'):
-                if len(ia_meta_fields['boxid']) != 1:
-                    print e['ocaid']
-                # http://www.archive.org/download/worldalmanacbook00long/worldalmanacbook00long_meta.xml
-                #try:
-                #    assert len(ia_meta_fields['boxid']) == 1
-                #except AssertionError:
-                #    print ia, e['key']
-                #    raise
                 box_id = list(ia_meta_fields['boxid'])[0]
                 e.setdefault('ia_box_id', [])
                 if box_id.lower() not in [x.lower() for x in e['ia_box_id']]:
