@@ -273,6 +273,8 @@ while True:
                 continue
             if author_merge and only_author_merge:
                 continue
+            if i['data']['comment'] == 'add ia_box_id to scanned books':
+                continue
             if handle_author_merge and not i['data']['author'].endswith('Bot') and author_merge:
                 first_redirect = i['data']['query'][0]
                 assert first_redirect['type']['key'] == '/type/redirect'
