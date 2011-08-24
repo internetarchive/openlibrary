@@ -27,6 +27,12 @@ class publishers_json(subjects.subjects_json):
 
     def is_enabled(self):
         return "publishers" in web.ctx.features
+        
+    def normalize_key(self, key):
+        return key
+
+    def process_key(self, key):
+        return key.replace("_", " ")
 
 class publisher_works_json(subjects.subject_works_json):
     path = '(/publishers/[^/]+)/works'
@@ -34,6 +40,13 @@ class publisher_works_json(subjects.subject_works_json):
 
     def is_enabled(self):
         return "publishers" in web.ctx.features
+
+    def normalize_key(self, key):
+        return key
+
+    def process_key(self, key):
+        return key.replace("_", " ")
+
         
 class index(delegate.page):
     path = "/publishers"

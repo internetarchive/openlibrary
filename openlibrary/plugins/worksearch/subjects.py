@@ -69,8 +69,13 @@ class subjects_json(delegate.page):
 
     @jsonapi
     def GET(self, key):
-        if key.lower() != key:
-            raise web.redirect(key.lower())
+        # If the key is not in the normalized form, redirect to the normalized form.
+        nkey = self.normalize_key(key)
+        if nkey != key:
+            raise web.redirect(nkey)
+            
+        # Does the key requires any processing before passing using it to query solr?
+        key = self.process_key(key)
 
         i = web.input(offset=0, limit=12, details='false', has_fulltext='false', sort='editions')
 
@@ -94,6 +99,12 @@ class subjects_json(delegate.page):
 
         subject = get_subject(key, offset=i.offset, limit=i.limit, sort=i.sort, details=i.details.lower() == 'true', **filters)
         return json.dumps(subject)
+        
+    def normalize_key(self, key):
+        return key.lower() 
+        
+    def process_key(self, key):
+        return key
 
 class subject_works_json(delegate.page):
     path = '(/subjects/[^/]+)/works'
@@ -101,8 +112,13 @@ class subject_works_json(delegate.page):
 
     @jsonapi
     def GET(self, key):
-        if key.lower() != key:
-            raise web.redirect(key.lower())
+        # If the key is not in the normalized form, redirect to the normalized form.
+        nkey = self.normalize_key(key)
+        if nkey != key:
+            raise web.redirect(nkey)
+            
+        # Does the key requires any processing before passing using it to query solr?
+        key = self.process_key(key)
 
         i = web.input(offset=0, limit=12, has_fulltext="false")
 
@@ -126,6 +142,13 @@ class subject_works_json(delegate.page):
 
         subject = get_subject(key, offset=i.offset, limit=i.limit, details=False, **filters)
         return json.dumps(subject)
+
+    def normalize_key(self, key):
+        return key.lower() 
+
+    def process_key(self, key):
+        return key
+
 
 def get_subject(key, details=False, offset=0, sort='editions', limit=12, **filters):
     """Returns data related to a subject.
