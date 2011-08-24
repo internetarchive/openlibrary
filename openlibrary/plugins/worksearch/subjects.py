@@ -389,14 +389,16 @@ def get_ebook_count_db():
 
 def find_ebook_count(field, key):
     q = '%s_key:%s+AND+(overdrive_s:*+OR+ia:*)' % (field, re_chars.sub(r'\\\1', key).encode('utf-8'))
-
+    return execute_ebook_count_query(q)
+    
+def execute_ebook_count_query(q):
     root_url = solr_select_url + '?wt=json&indent=on&rows=%d&start=%d&q.op=AND&q=%s&fl=edition_key'
     rows = 1000
 
     ebook_count = 0
     start = 0
     solr_url = root_url % (rows, start, q)
-
+    
     stats.begin("solr", url=solr_url)
     response = json.load(urllib.urlopen(solr_url))['response']
     stats.end()
