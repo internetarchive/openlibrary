@@ -626,4 +626,7 @@ def setup():
     
     subjects.setup()
     
+    from . import publishers
+    publishers.setup()
+    
 setup()

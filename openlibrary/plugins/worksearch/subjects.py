@@ -32,34 +32,36 @@ re_chars = re.compile("([%s])" % re.escape(r'+-!(){}[]^"~*?:\\'))
 re_year = re.compile(r'\b(\d+)$')
 
 SUBJECTS = [
-    web.storage(name="subject", key="subjects", prefix="/subjects/", facet="subject_facet", facet_key="subject_key"),
     web.storage(name="person", key="people", prefix="/subjects/person:", facet="person_facet", facet_key="person_key"),
     web.storage(name="place", key="places", prefix="/subjects/place:", facet="place_facet", facet_key="place_key"),
     web.storage(name="time", key="times", prefix="/subjects/time:", facet="time_facet", facet_key="time_key"),
+    web.storage(name="subject", key="subjects", prefix="/subjects/", facet="subject_facet", facet_key="subject_key"),
 ]
 
 class subjects(delegate.page):
     path = '(/subjects/[^/]+)'
 
     def GET(self, key):
-        if key.lower() != key:
-            raise web.redirect(key.lower())
-
-        # temporary code to handle url change from /people/ to /person:
-        if key.count("/") == 3:
-            key2 = key
-            key2 = key2.replace("/people/", "/person:")
-            key2 = key2.replace("/places/", "/place:")
-            key2 = key2.replace("/times/", "/time:")
-            if key2 != key:
-                raise web.seeother(key2)
-
+        nkey = self.normalize_key(key)
+        if nkey != key:
+            raise web.redirect(nkey)
+            
         page = get_subject(key, details=True)
 
         if page.work_count == 0:
             return render_template('subjects/notfound.tmpl', key)
 
         return render_template("subjects", page)
+        
+    def normalize_key(self, key):
+        key = key.lower()
+
+        # temporary code to handle url change from /people/ to /person:
+        if key.count("/") == 3:
+            key = key.replace("/people/", "/person:")
+            key = key.replace("/places/", "/place:")
+            key = key.replace("/times/", "/time:")
+        return key
 
 class subjects_json(delegate.page):
     path = '(/subjects/[^/]+)'
@@ -125,9 +127,6 @@ class subject_works_json(delegate.page):
         subject = get_subject(key, offset=i.offset, limit=i.limit, details=False, **filters)
         return json.dumps(subject)
 
-
-
-
 def get_subject(key, details=False, offset=0, sort='editions', limit=12, **filters):
     """Returns data related to a subject.
 
@@ -184,13 +183,21 @@ def get_subject(key, details=False, offset=0, sort='editions', limit=12, **filte
 
     Optional arguments has_fulltext and published_in can be passed to filter the results.
     """
+    def create_engine():
+        for d in SUBJECTS:
+            if key.startswith(d.prefix):
+                Engine = d.get("engine") or SubjectEngine
+                return Engine()
+        return SubjectEngine()
+        
     sort_options = {
         'editions': 'edition_count desc',
         'new': 'first_publish_year desc',
     }
     sort_order = sort_options.get(sort) or sort_options['editions']
-
-    return SubjectEngine().get_subject(key, details=details, offset=offset, sort=sort_order, limit=limit, **filters)
+    
+    engine = create_engine()
+    return engine.get_subject(key, details=details, offset=offset, sort=sort_order, limit=limit, **filters)
 
 class SubjectEngine:
     def get_subject(self, key, details=False, offset=0, limit=12, sort='first_publish_year desc', **filters):
@@ -237,7 +244,7 @@ class SubjectEngine:
 
             # strip self from subjects and use that to find exact name
             for i, s in enumerate(subject[meta.key]):
-                if s.key.lower() == key.lower():
+                if "key" in s and s.key.lower() == key.lower():
                     subject.name = s.name;
                     subject[meta.key].pop(i)
                     break
@@ -255,18 +262,18 @@ class SubjectEngine:
     def parse_key(self, key):
         """Returns prefix and path from the key.
         """
-        m = web.re_compile(r'/subjects/(place:|time:|person:|)(.+)').match(key)
-        if m:
-            prefix = "/subjects/" + m.group(1)
-            path = m.group(2)
-            return prefix, path
-        else:
-            return None, None
+        for d in SUBJECTS:
+            if key.startswith(d.prefix):
+                return d.prefix, key[len(d.prefix):]
+        return None, None
 
     def make_query(self, key, filters):
         meta = self.get_meta(key)
-
-        q = {meta.facet_key: str_to_key(meta.path).lower()}
+        
+        #q = {meta.facet_key: str_to_key(meta.path).lower()}
+        q = {meta.facet_key: str_to_key(meta.path)}
+        
+        print >> web.debug, "make_query", meta, q        
 
         if filters:
             if filters.get("has_fulltext") == "true":
@@ -361,7 +368,7 @@ def get_ebook_count_db():
 def find_ebook_count(field, key):
     q = '%s_key:%s+AND+(overdrive_s:*+OR+ia:*)' % (field, re_chars.sub(r'\\\1', key).encode('utf-8'))
 
-    root_url = worksearch.solr_select_url + '?wt=json&indent=on&rows=%d&start=%d&q.op=AND&q=%s&fl=edition_key'
+    root_url = solr_select_url + '?wt=json&indent=on&rows=%d&start=%d&q.op=AND&q=%s&fl=edition_key'
     rows = 1000
 
     ebook_count = 0
