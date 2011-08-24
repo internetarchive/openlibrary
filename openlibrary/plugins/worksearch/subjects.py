@@ -270,14 +270,13 @@ class SubjectEngine:
     def make_query(self, key, filters):
         meta = self.get_meta(key)
         
-        q = {meta.facet_key: self.normalize_key(key)}
+        q = {meta.facet_key: self.normalize_key(meta.path)}
         
         if filters:
             if filters.get("has_fulltext") == "true":
                 q['has_fulltext'] = "true"
             if filters.get("publish_year"):
                 q['publish_year'] = filters['publish_year']
-
         return q
         
     def normalize_key(self, key):
