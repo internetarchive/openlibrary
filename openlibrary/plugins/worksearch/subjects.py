@@ -289,7 +289,7 @@ class SubjectEngine:
         if facet == "publish_year":
             return [int(value), count]
         elif facet == "publisher_facet":
-            return web.storage(name=value, count=count)
+            return web.storage(name=value, count=count, key="/publishers/" + value.replace(" ", "_"))
         elif facet == "author_facet":
             author = read_author_facet(value)
             return web.storage(name=author[1], key="/authors/" + author[0], count=count)
