@@ -24,6 +24,7 @@ $var title: $case.subject ($case.creator_username)
             <span class="black highlight"><b>$(case.caseid)</b></span>&nbsp;&nbsp;&bull;&nbsp;&nbsp; 
             <b>Status: $case.status</b>&nbsp;&nbsp;&bull;&nbsp;&nbsp; 
             Case created: $(datestr(case.created)), $(pretty_print_date(case.created))
+        <div style="float: right; margin: 0;"><input type="submit" name="button" id="close2" value="CLOSE CASE" /></div>
     </th>
   </tr>
   <tr>
