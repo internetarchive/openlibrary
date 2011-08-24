@@ -270,11 +270,8 @@ class SubjectEngine:
     def make_query(self, key, filters):
         meta = self.get_meta(key)
         
-        #q = {meta.facet_key: str_to_key(meta.path).lower()}
-        q = {meta.facet_key: str_to_key(meta.path)}
+        q = {meta.facet_key: self.normalize_key(key)}
         
-        print >> web.debug, "make_query", meta, q        
-
         if filters:
             if filters.get("has_fulltext") == "true":
                 q['has_fulltext'] = "true"
@@ -282,6 +279,9 @@ class SubjectEngine:
                 q['publish_year'] = filters['publish_year']
 
         return q
+        
+    def normalize_key(self, key):
+        return str_to_key(key).lower()
 
     def get_ebook_count(self, name, value, publish_year):
         return get_ebook_count(name, value, publish_year)

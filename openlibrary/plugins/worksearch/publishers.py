@@ -47,6 +47,9 @@ class index(delegate.page):
 class PublisherEngine(subjects.SubjectEngine):
     def get_ebook_count(self, name, value, publish_year):
         return 0
+        
+    def normalize_key(self, key):
+        return key
 
 def setup():
     d = web.storage(name="publisher", key="publishers", prefix="/publishers/", facet="publisher_facet", facet_key="publisher_facet", engine=PublisherEngine)
