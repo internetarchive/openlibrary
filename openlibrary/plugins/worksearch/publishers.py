@@ -3,8 +3,10 @@
 from infogami.utils import delegate
 from infogami.utils.view import render_template, safeint
 import web
+import simplejson
 
 from . import subjects
+from . import search
 
 class publishers(subjects.subjects):
     path = '(/publishers/[^/]+)'
@@ -47,7 +49,6 @@ class publisher_works_json(subjects.subject_works_json):
     def process_key(self, key):
         return key.replace("_", " ")
 
-        
 class index(delegate.page):
     path = "/publishers"
     
@@ -56,6 +57,30 @@ class index(delegate.page):
         
     def is_enabled(self):
         return "publishers" in web.ctx.features
+
+class publisher_search(delegate.page):
+    path = '/search/publishers'
+    
+    def GET(self):
+        i = web.input(q="")
+        solr = search.get_works_solr()
+        q = {"publisher": i.q}
+        
+        result = solr.select(q, facets=["publisher_facet"], fields=["publisher", "publisher_facet"], rows=2)
+        result = self.process_result(result)
+        return render_template('search/publishers', i.q, result)
+        
+    def process_result(self, result):
+        solr = search.get_works_solr()
+        
+        def process(p):
+            return web.storage(
+                name=p.value,
+                key="/publishers/" + p.value.replace(" ", "_"),
+                count=solr.select({"publisher_facet": p.value}, rows=0)['num_found']
+            )
+        publisher_facets = result['facets']['publisher_facet'][:25]
+        return [process(p) for p in publisher_facets]
         
 class PublisherEngine(subjects.SubjectEngine):
     def get_ebook_count(self, name, value, publish_year):
