@@ -13,6 +13,7 @@ from infogami.infobase import client, common
 from infogami.utils import stats
 
 from openlibrary.core import helpers as h
+from openlibrary.core import cache
 
 # this will be imported on demand to avoid circular dependency
 worksearch = None
@@ -270,12 +271,19 @@ class ListMixin:
         if isinstance(seed, dict):
             seed = seed['key']
         return seed in self._get_rawseeds()
-        
-    def get_default_cover(self):
+    
+    # cache the default_cover_id for 60 seconds
+    @cache.memoize("memcache", key=lambda self: ("d" + self.key, "default-cover-id"), expires=60)
+    def _get_default_cover_id(self):
         for s in self.get_seeds():
             cover = s.get_cover()
             if cover:
-                return cover
+                return cover.id
+    
+    def get_default_cover(self):
+        from openlibrary.core.models import Image
+        cover_id = self._get_default_cover_id()
+        return Image(self._site, 'b', cover_id)
         
     def _get_seeds_db(self):
         db_url = config.get("lists", {}).get("seeds_db")
