@@ -70,7 +70,7 @@ class publisher_search(delegate.page):
         solr = search.get_works_solr()
         q = {"publisher": i.q}
         
-        result = solr.select(q, facets=["publisher_facet"], fields=["publisher", "publisher_facet"], rows=2)
+        result = solr.select(q, facets=["publisher_facet"], fields=["publisher", "publisher_facet"], rows=0)
         result = self.process_result(result)
         return render_template('search/publishers', i.q, result)
         
@@ -91,58 +91,20 @@ class PublisherEngine(subjects.SubjectEngine):
         return key
     
     def get_ebook_count(self, name, value, publish_year):
-        # TODO: compute ebook_count per year.
-        return 0
+        # Query solr for this publish_year and publish_year combination and read the has_fulltext=true facet
+        solr = search.get_works_solr()
+        q = {
+            "publisher_facet": value
+        }
         
-        # XXX-Anand: The following implementation is not working.
-        
-        #q = 'publisher_facet:(%s)' % (subjects.re_chars.sub(r'\\\1', value).encode('utf-8'))
-        #years = subjects.execute_ebook_count_query(q)
-        try:
-            years = self._find_ebook_count(value)
-        except:
-            logger.error("failed to find_ebook_count", exc_info=True)
-            return 0
-        
-        # publish_year is None when querying for all years
-        # publish_year is a string when querying for a single year
-        # publish_year is a list of 2 strings, start and end years when querying for an interval
-        if publish_year is None:
-            return sum(years.values())
-        elif isinstance(publish_year, list):
-            start, end = publish_year
-            start = safeint(start, 0)
-            end = safeint(end, 1000)
-            return sum(count for year, count in years.items() if start <= year <= end)
-        else:
-            y = safeint(publish_year, 0)
-            return years.get(y, 0)
-        return 0
-    
-    def _find_ebook_count(self, publisher_name):
-        
-        publisher_facet = subjects.re_chars.sub(r'\\\1', publisher_name).encode('utf-8')
-        q = "publisher_facet:(%s) AND (overdrive_s:* OR ia:*)" % (publisher_facet)
-        return subjects.execute_ebook_count_query()
-        
-        url = subjects.solr_select_url + "?" + urllib.urlencode({
-            "q": q,
-            "wt": "json",
-            "rows": 0,
-            "q.op": "AND",
-            "facet": "true",
-            "facet.field": "publish_year",
-            "facet.limit": 10000,
-            "facet.mincount": 1
-        })
-
-        stats.begin("solr", url=url)
-        response = simplejson.load(urllib.urlopen(url))['response']
-        stats.end()
-                
-        facets = response['facet_counts']['facet_fields']['publish_year']
-        years = dict(web.group(facets, 2))
-        return years
+        if isinstance(publish_year, list):
+            q['publish_year'] = tuple(publish_year) # range
+        elif publish_year:
+            q['publish_year'] = publish_year
+            
+        result = solr.select(q, facets=["has_fulltext"], rows=0)        
+        counts = dict((v.value, v.count) for v in result["facets"]["has_fulltext"])
+        return counts.get('true')
 
 def setup():
     d = web.storage(name="publisher", key="publishers", prefix="/publishers/", facet="publisher_facet", facet_key="publisher_facet", engine=PublisherEngine)
