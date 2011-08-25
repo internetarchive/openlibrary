@@ -15,7 +15,7 @@ $if create is None:
 
     $# Show create link only to admins
     $if ctx.user and ctx.user.is_admin() and create:
-        <p><a href="$:changequery(m='edit')">$_("Create it?")</a></p>
+        <p class="adminOnly"><a href="$:changequery(m='edit')">$_("Create it?")</a></p>
 
     <div>
     $if "/templates" in path or "/macros" in path:
