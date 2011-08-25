@@ -16,13 +16,13 @@ from openlibrary.core import helpers as h
 from openlibrary.core import cache
 
 # this will be imported on demand to avoid circular dependency
-worksearch = None
+subjects = None
 
 def get_subject(key):
-    global worksearch
-    if worksearch is None:
-        from openlibrary.plugins.worksearch import code as worksearch
-    return worksearch.get_subject(key)
+    global subjects
+    if subjects is None:
+        from openlibrary.plugins.worksearch import subjects
+    return subjects.get_subject(key)
 
 def cached_property(name, getter):
     """Just like property, but the getter is called only for the first access. 
