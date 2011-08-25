@@ -262,6 +262,8 @@ while True:
                 print i['data']
             assert action in ('save', 'save_many')
             continue
+        if 'ia_box_id' in i.get('data', {}).get('comment', {}):
+            continue
         if action == 'save':
             if only_author_merge:
                 continue
