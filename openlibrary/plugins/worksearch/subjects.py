@@ -350,7 +350,7 @@ def get_ebook_count(field, key, publish_year=None):
     def db_lookup(field, key, publish_year=None):
         sql = 'select sum(ebook_count) as num from subjects where field=$field and key=$key'
         if publish_year:
-            if isinstance(publish_year, list):
+            if isinstance(publish_year, (tuple, list)):
                 sql += ' and publish_year between $y1 and $y2'
                 (y1, y2) = publish_year
             else:
