@@ -2,7 +2,7 @@ $def with (page, user_lists_only=False)
 
 $if "lists" not in ctx.features:
     $return
-
+    
 $code:
     def get_seed_info():
         if page.key.startswith("/subjects/"):
@@ -25,23 +25,23 @@ $code:
                 title = page.get("title", "untitled")
         return seed, seed_type, title
     
-    def get_list_data(list):
+    def get_list_data(list, include_cover_url=True):
         d = storage({
             "name": list.name or "",
             "key": list.key,
             "active": list.has_seed(seed),
         })
-        cover = list.get_cover() or list.get_default_cover()
-        d['cover_url'] = cover and cover.url("S") or "/images/icons/avatar_book-sm.png"
-        
+        if include_cover_url:
+            cover = list.get_cover() or list.get_default_cover()
+            d['cover_url'] = cover and cover.url("S") or "/images/icons/avatar_book-sm.png"
         owner = list.get_owner()
         d['owner'] = storage(displayname=owner.displayname or "", key=owner.key)
-        
         return d
     
     def get_user_lists():
         lists = ctx.user and ctx.user.get_lists(sort=False) or []
-        return [get_list_data(list) for list in lists]
+        # No need to get cover_url for user lists. They are only displayed in the dropdown
+        return [get_list_data(list, include_cover_url=False) for list in lists]
         
     def get_page_lists():
         user_key = ctx.user and ctx.user.key

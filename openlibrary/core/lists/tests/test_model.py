@@ -58,9 +58,9 @@ class TestListMixin:
         
 class TestSeed:
     def test_subject_url(self, monkeypatch):
-        from openlibrary.plugins.worksearch import code
+        from openlibrary.plugins.worksearch import subjects
         from openlibrary.core import models
-        monkeypatch.setattr(code, "get_subject", lambda key: models.Subject(key=key, name=key))
+        monkeypatch.setattr(subjects, "get_subject", lambda key: models.Subject(key=key, name=key))
         
         Seed = model.Seed
         print Seed(None, "subject:foo").url

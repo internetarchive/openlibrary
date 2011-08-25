@@ -11,9 +11,11 @@ $if create is None:
 </div>
 
 <div id="contentBody">
-    <p>$_("%s does not exist", path)</p>
-    $if create: 
-        <p><a href="$:changequery(m='edit')">$_("Create it?")</a></p>
+    <p>$_("%s does not exist.", path)</p>
+
+    $# Show create link only to admins
+    $if ctx.user and ctx.user.is_admin() and create:
+        <p><a class="adminOnly" href="$:changequery(m='edit')">$_("Create it?")</a></p>
 
     <div>
     $if "/templates" in path or "/macros" in path:

@@ -9,7 +9,7 @@ from infogami.utils.view import render_template
 
 from openlibrary.core import helpers as h
 from openlibrary.core import inlibrary
-from openlibrary.plugins.worksearch import code as worksearch
+from openlibrary.plugins.worksearch.subjects import SubjectEngine
 
 from libraries import LoanStats
 
@@ -90,13 +90,13 @@ def get_lending_library(site, inlibrary=False, **kw):
     if inlibrary:
         subject = CustomSubjectEngine().get_subject("/subjects/lending_library", **kw)
     else:
-        subject = worksearch.SubjectEngine().get_subject("/subjects/lending_library", **kw)
+        subject = SubjectEngine().get_subject("/subjects/lending_library", **kw)
     
     subject['key'] = '/borrow'
     convert_works_to_editions(site, subject['works'])
     return subject
     
-class CustomSubjectEngine(worksearch.SubjectEngine):
+class CustomSubjectEngine(SubjectEngine):
     """SubjectEngine for inlibrary and lending_library combined."""
     def make_query(self, key, filters):
         meta = self.get_meta(key)

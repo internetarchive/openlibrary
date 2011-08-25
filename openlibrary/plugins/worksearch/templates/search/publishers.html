@@ -1,0 +1,30 @@
+$def with (q, result)
+
+<div id="contentHead">
+    <h1>
+        $_("Publishers Search")
+    </h1>
+</div>
+    
+<div id="contentMeta">
+    
+    <div class="section">
+    
+    <form class="siteSearch olform" action="">
+        <input type="text" class="larger" name="q" size="100" style="width: 505px;" value="$q"/>
+        <button type="submit" class="larger">$_('Search')</button>
+    </form>
+    
+    </div>
+    <ul class="subjectList">
+        $for p in result:
+            <li>
+                <a href="$p.key">$p.name</a>
+                
+                <span class="count">
+                    $ pattern = ungettext("%s book", "%s books", p.count)
+                    <b>$sprintf(pattern, commify(p.count))</b>
+                </span>
+            </li>
+    </ul>
+</div>
