@@ -25,8 +25,8 @@ def evaluate_and_store_stat(name, stat, summary):
     try:
         f = filters[stat.filter]
     except KeyError:
-        l.critical("Filter %s not registered", stat.filter)
-        raise
+        l.warning("Filter %s not registered", stat.filter)
+        return
     try:
         if f(**stat):
             if stat.has_key("time"):
