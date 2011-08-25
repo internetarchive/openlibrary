@@ -12,7 +12,9 @@ $if create is None:
 
 <div id="contentBody">
     <p>$_("%s does not exist", path)</p>
-    $if create: 
+
+    $# Show create link only to admins
+    $if ctx.user and ctx.user.is_admin() and create:
         <p><a href="$:changequery(m='edit')">$_("Create it?")</a></p>
 
     <div>
