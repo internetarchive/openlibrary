@@ -2,6 +2,7 @@
 """
 import random
 import web
+import logging
 
 from infogami.utils import delegate
 from infogami.utils.view import render_template, public
@@ -11,6 +12,8 @@ from infogami import config
 from openlibrary.core import admin, cache, ia, inlibrary, helpers as h
 from openlibrary.plugins.upstream.utils import get_blog_feeds
 from openlibrary.plugins.worksearch import search
+
+logger = logging.getLogger("openlibrary.home")
 
 class home(delegate.page):
     path = "/"
@@ -22,6 +25,7 @@ class home(delegate.page):
         try:
             stats = admin.get_stats()
         except Exception:
+            logger.error("Error in getting stats", exc_info=True)
             stats = None
         blog_posts = get_blog_feeds()
         
