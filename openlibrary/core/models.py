@@ -191,6 +191,16 @@ class Work(Thing):
     def edition_count(self):
         return self._site._request("/count_editions_by_work", data={"key": self.key})
 
+    def get_one_edition(self):
+        """Returns any one of the editions.
+        
+        Used to get the only edition when edition_count==1.
+        """
+        # If editions from solr are available, use that. 
+        # Otherwise query infobase to get the editions (self.editions makes infobase query).
+        editions = self.get_sorted_editions() or self.editions
+        return editions and editions[0] or None
+
     def get_lists(self, limit=50, offset=0, sort=True):
         return self._get_lists(limit=limit, offset=offset, sort=sort)
 
