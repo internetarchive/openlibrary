@@ -177,7 +177,7 @@ def build_doc(w, obj_cache={}, resolve_redirects=False):
             ia_meta_fields = get_ia_collection_and_box_id(ia)
             collection = ia_meta_fields['collection']
             if 'ia_box_id' in e and isinstance(e['ia_box_id'], basestring):
-                e['ia_box_id'] = [e['ia_box_id']
+                e['ia_box_id'] = [e['ia_box_id']]
             if ia_meta_fields.get('boxid'):
                 box_id = list(ia_meta_fields['boxid'])[0]
                 e.setdefault('ia_box_id', [])
