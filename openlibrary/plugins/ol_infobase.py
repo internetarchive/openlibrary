@@ -76,7 +76,7 @@ def setup_logging():
     try:
         logconfig = config.get("logging_config_file")
         if logconfig and os.path.exists(logconfig):
-            logging.config.fileConfig(logconfig)
+            logging.config.fileConfig(logconfig, disable_existing_loggers=False)
         logger.info("logging initialized")
         logger.debug("debug")
     except Exception, e:
