@@ -79,7 +79,7 @@ def get_returncart(limit):
     items = web.ctx.site.store.items(type='ebook', name='borrowed', value='false', limit=limit)
     keys = [doc['book_key'] for k, doc in items if 'book_key' in doc]
     books = web.ctx.site.get_many(keys)
-    return [format_book_data(book) for book in books]
+    return [format_book_data(book) for book in books if book.type.key == '/type/edition']
     
 # cache the results of get_returncart in memcache for 15 minutes
 get_returncart = cache.memcache_memoize(get_returncart, "home.get_returncart", timeout=15*60)
