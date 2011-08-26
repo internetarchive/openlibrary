@@ -9,16 +9,6 @@ class TestMemcacheInvalidater:
         assert m.seed_to_key("person:mark_twain") == "/subjects/person:mark_twain"
         assert m.seed_to_key("time:2000") == "/subjects/time:2000"
         
-    def test_find_history(self):
-        changeset = {
-            "changes": [
-                {"key": "/sandbox", "revision": 4}, 
-                {"key": "/about", "revision": 2}
-            ]
-        }
-        m = events.MemcacheInvalidater()
-        assert m.find_history(changeset) == ["history/sandbox", "history/about"]
-        
     def test_find_lists(self):
         changeset = {
             "changes": [
@@ -36,7 +26,7 @@ class TestMemcacheInvalidater:
             }]
         }
         m = events.MemcacheInvalidater()
-        assert sorted(m.find_lists(changeset)) == ["lists/books/OL1M", "lists/subjects/love"]
+        assert sorted(m.find_lists(changeset)) == ["d/books/OL1M", "d/people/anand", "d/subjects/love"]
                 
     def test_find_lists2(self):
         changeset = {
@@ -65,12 +55,13 @@ class TestMemcacheInvalidater:
         }
         
         m = events.MemcacheInvalidater()
-        keys = sorted(m.find_lists(changeset))
+        keys = sorted(set(m.find_lists(changeset)))
         assert keys == [
-            "lists/authors/OL1A", 
-            "lists/books/OL1M", 
-            "lists/subjects/love", 
-            "lists/subjects/place:san_francisco"
+            "d/authors/OL1A", 
+            "d/books/OL1M", 
+            "d/people/anand",
+            "d/subjects/love", 
+            "d/subjects/place:san_francisco"
         ]
         
     def test_edition_count_for_doc(self):
@@ -83,5 +74,21 @@ class TestMemcacheInvalidater:
             "type": {"key": "/type/edition"},
             "works": [{"key": "/works/OL1W"}]
         }
-        assert m.find_edition_counts_for_doc(doc) == ["edition_count/works/OL1W"]
+        assert m.find_edition_counts_for_doc(doc) == ["d/works/OL1W"]
         
+    def test_find_keys(self):
+        m = events.MemcacheInvalidater()
+        
+        changeset = {
+            "changes": [
+                {"key": "/sandbox", "revision": 1}
+            ],
+            "old_docs": [None],
+            "docs": [{
+                "key": "/sandbox",
+                "type": {"key": "/type/page"},
+                "revision": 1,
+                "title": "Sandbox"
+            }]
+        }
+        m.find_keys(changeset) == ["d/sandbox"]
