@@ -308,12 +308,14 @@ class MemcacheCache(Cache):
         value = simplejson.dumps(value)
         stats.begin("memcache.add", key=key)
         value = self.memcache.add(key, value, expires)
+        stats.end()
         return value
         
     def delete(self, key):
         key = web.safestr(key)
         stats.begin("memcache.delete", key=key)
         value = self.memcache.delete(key)
+        stats.end()
         return value
 
 class RequestCache(Cache):
