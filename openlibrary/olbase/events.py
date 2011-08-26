@@ -34,6 +34,11 @@ def trigger_subevents(event):
     """
     if event.name in ['save', 'save_many']:
         changeset = event.data['changeset']
+
+        author = changeset['author'] or changeset['ip']
+        keys = [c['key'] for c in changeset['changes']]
+        logger.info("Edit by %s, changeset_id=%s, changes=%s", author, changeset["id"], keys)
+        
         eventer.trigger("infobase.edit", changeset)
     
 @eventer.bind("infobase.edit")
@@ -106,6 +111,8 @@ class MemcacheInvalidater:
         """
         if any(c['key'].startswith("/libraries/") for c in changeset['changes']):
             return ['inlibrary.libraries-hash', 'inlibrary.libraries']
+        else:
+            return []
             
     def seed_to_key(self, seed):
         """Converts seed to key.
