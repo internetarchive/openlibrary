@@ -14,6 +14,7 @@ from infogami.utils.context import context
 import infogami.core.code as core
 
 from openlibrary.i18n import gettext as _
+from openlibrary.core import helpers as h
 import forms
 import utils
 import borrow
@@ -33,6 +34,21 @@ class Account(web.storage):
     @property
     def username(self):
         return self._key.split("/")[-1]
+        
+    def get_edit_count(self):
+        user = self.get_user()
+        return user and user.get_edit_count() or 0
+        
+    @property
+    def registered_on(self):
+        """Returns the registration time."""
+        t = self.get("created_on")
+        return t and h.parse_datetime(t)
+        
+    @property
+    def activated_on(self):
+        user = self.get_user()
+        return user and user.created
         
     @property
     def displayname(self):
@@ -63,6 +79,38 @@ class Account(web.storage):
 
     def activate(self):
         web.ctx.site.activate_account(username=self.username)
+        
+    def login(self, password):
+        """Tries to login with the given password and returns the status.
+        
+        The return value can be one of the following:
+
+            * ok
+            * account_not_vefified
+            * account_not_found
+            * account_incorrect_password
+        
+        If the login is successful, the `last_login` time is updated.
+        """
+        try:
+            web.ctx.site.login(self.username, password)
+        except ClientException, e:
+            code = e.get_data().get("code")
+            return code
+        else:
+            self['last_login'] = datetime.datetime.utcnow().isoformat()
+            web.ctx.site.store[self._key] = self
+            return "ok"
+            
+    @property
+    def last_login(self):
+        """Returns the last_login time of the user, if available.
+
+        The `last_login` will not be available for accounts, who haven't
+        been logged in after this feature is added.
+        """
+        t = self.get("last_login")
+        return t and h.parse_datetime(t)
     
     def get_user(self):
         key = "/people/" + self.username
@@ -200,40 +248,28 @@ class account_login(delegate.page):
         if not forms.vlogin.valid(i.username):
             return self.error("account_user_notfound", i)
             
-        # Find the exact username considering possibility that the given
-        # username is a case-variant of the exact one
-        i.username = self.get_case_insensitive_username(i.username)
-        if i.username is None:
+        # Try to find account with exact username, failing which try for case variations.
+        account = Account.find(username=i.username) or Account.find(lusername=i.username)
+        
+        if not account:
             return self.error("account_user_notfound", i)
         
-        try:
-            web.ctx.site.login(i.username, i.password)
-        except ClientException, e:
-            code = e.get_data().get("code")
-
-            logger.error("login failed for %s with error code %s", i.username, code)
-
-            if code == "account_not_verified":
-                account = Account.find(username=i.username)
-                return render_template("account/not_verified", username=i.username, password=i.password, email=account.email)
-            elif code == "account_not_found":
-                return self.error("account_user_notfound", i)
-            else:
-                return self.error("account_incorrect_password", i)
-
+        
         if i.redirect == "/account/login" or i.redirect == "":
             i.redirect = "/"
-
-        expires = (i.remember and 3600*24*7) or ""
-        web.setcookie(config.login_cookie_name, web.ctx.conn.get_auth_token(), expires=expires)
-        raise web.seeother(i.redirect)
-        
-    def get_case_insensitive_username(self, username):
-        """Returns the exact username by resolving the case variations.
-        """
-        account = Account.find(username=username) or Account.find(lusername=username.lower())
-        return account and account.username
-    
+            
+        status = account.login(i.password)
+        if status == 'ok':
+            expires = (i.remember and 3600*24*7) or ""
+            web.setcookie(config.login_cookie_name, web.ctx.conn.get_auth_token(), expires=expires)
+            raise web.seeother(i.redirect)
+        elif status == "account_not_verified":
+            return render_template("account/not_verified", username=account.username, password=i.password, email=account.email)
+        elif status == "account_not_found":
+            return self.error("account_user_notfound", i)
+        else:
+            return self.error("account_incorrect_password", i)
+            
     def POST_resend_verification_email(self, i):
         try:
             web.ctx.site.login(i.username, i.password)

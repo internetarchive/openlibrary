@@ -164,6 +164,8 @@ class people_view:
             return self.POST_resend_link(user)
         elif i.action == "activate_account":
             return self.POST_activate_account(user)
+        else:
+            raise web.seeother(web.ctx.path)
 
     def POST_activate_account(self, user):
         user.activate()
@@ -174,7 +176,7 @@ class people_view:
         activation_link = web.ctx.site.store.get(key)
         del activation_link
         user.send_verification_email()
-        add_flash_message("info", "Activation mail has been resent")
+        add_flash_message("info", "Activation mail has been resent.")
         raise web.seeother(web.ctx.path)
     
     def POST_update_email(self, account, i):
