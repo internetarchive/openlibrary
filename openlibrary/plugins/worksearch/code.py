@@ -622,7 +622,8 @@ def setup():
     # Importing this module to access them will result in circular import.
     # Setting them like this to avoid circular-import.
     subjects.read_author_facet = read_author_facet
-    subjects.solr_select_url = solr_select_url
+    if hasattr(config, 'plugin_worksearch'):
+        subjects.solr_select_url = solr_select_url
     
     subjects.setup()
     
