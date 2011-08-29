@@ -1,0 +1,81 @@
+$def with (loans, show_percent=False)
+
+$def render_percents():
+    $ pdf_count = len([pdf for pdf in loans if pdf['resource_type'] == 'pdf'])
+    $ epub_count = len([epub for epub in loans if epub['resource_type'] == 'epub'])
+    $ bookreader_count = len([bookreader for bookreader in loans if bookreader['resource_type'] == 'bookreader'])
+    $ total = pdf_count + epub_count + bookreader_count + 0.0
+    $ pdf_percent = "%d" % percentage(pdf_count, total)
+    $ epub_percent = "%d" % percentage(epub_count, total)
+    $ bookreader_percent = "%d" % percentage(bookreader_count, total)
+    $bookreader_count ($bookreader_percent%) $_("BookReader") - $pdf_count ($pdf_percent%) $_("PDF") - $epub_count ($epub_percent%) $_("ePub")
+
+$if not loans:
+    <em>No current loans.</em>
+$else:
+    <div id="borrowTable" class="borrow collapse">
+    <table>
+        <thead>
+            <tr>
+                <th class="titles" colspan="2">
+                $ msg = ungettext("%d Current Loan", "%d Current Loans", len(loans))
+                $sprintf(msg, len(loans))
+                $if show_percent:
+                    <br/>
+                    $:render_percents()
+                </th>
+                <th class="expires">$_("Loan Expires")</th>
+                <th class="what">$_("What")</th>
+                <th class="user">$_("Who")</th>
+                <th>$_("Actions")</th>
+            </tr>
+        </thead>
+        <tbody>
+        <!-- for each borrow -->
+        $for loan in loans:
+            $ book = get_document(loan['book'])
+            <tr>
+                <td class="cover">
+                $:render_template('covers/book_cover_small', book)
+                </td>
+                <td class="titles">
+                    <span class="book">
+                    <a href="$book.key" class="borrowResults">
+                    <strong>$book.title</strong>
+                    </a>
+                    </span>
+                
+                    <span class="author">
+                    $# :macros.AuthorList(book.get_authors())
+                    </span>
+                    <div class="date">
+                    Borrowed $datestr(datetime_from_utc_timestamp(loan['loaned_at']))
+                    </div>
+                </td>
+                <td class="expires">
+                    $:macros.FormatExpiry(loan['expiry'])
+                </td>
+                <td class="what">
+                    $if loan['resource_type'] == 'pdf':
+                        PDF
+                    $elif loan['resource_type'] == 'epub':
+                        ePub
+                    $elif loan['resource_type'] == 'bookreader':
+                        BookReader
+                    $else:
+                        $loan['resource_type']
+                </td>
+                <td class="user">
+                    $# user = get_document(loan['user'])
+                    $# <a href="$user.key">$user.name</a>
+                    <a href="$loan['user']">$loan['user']</a>
+                </td>
+                <td class="action">
+                    $ borrow_admin = loan['book'] + '/title/borrow_admin'
+                    <a href="$borrow_admin">debug_info</a><br/><br/>
+                    <a href="$borrow_admin" class="smaller plain">refresh</a>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    </div>
