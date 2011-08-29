@@ -18,20 +18,24 @@ span.invalid {
 }
 
 span.safe { 
-            background-color: green;
-            padding: 0 3pt;
-            color: black;
-            }
+    background-color: green;
+    padding: 0 3pt;
+    color: black;
+}
 
 span.warning { 
-               background-color: red;
-               padding: 0 3pt;
-               color: black;
- }
+    background-color: red;
+    padding: 0 3pt;
+    color: black;
+}
 
 form.account-actions { 
-                       display:inline;
- }
+    display:inline;
+}
+ 
+#borrowTable .who {
+    display: none;
+}
 </style>
 
 $def display_status(user):
@@ -50,7 +54,6 @@ $def display_status(user):
 	  
       
    
-
 <div id="contentBody">
   Status : $:display_status(person)
   $if person.get_password_reset_link():
@@ -113,6 +116,13 @@ $if person['status'] == "verified" or person['status'] == "active":
         title="$_("Delete Account")" 
         style="float: right; margin-bottom: 20px;">$_("Delete Account")</button>
 </form>
+
+<h2>$_("Loans")</h2>
+$ user = person.get_user()
+$if user:
+    $:render_template("admin/loans_table.html", user.get_loans())
+$else:
+    <em>Account not yet activated.</em>
 
 <h2>$_("Debug information")</h2>
 <div>

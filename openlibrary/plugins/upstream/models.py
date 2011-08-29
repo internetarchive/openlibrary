@@ -638,6 +638,10 @@ class User(models.User):
     def get_loan_count(self):
         return len(borrow.get_loans(self))
         
+    def get_loans(self):
+        self.update_loan_status()
+        return borrow.get_loans(self)
+        
     def update_loan_status(self):
         """Update the status of this user's loans."""
         loans = borrow.get_loans(self)
