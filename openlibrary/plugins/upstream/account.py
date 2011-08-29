@@ -90,7 +90,10 @@ class Account(web.storage):
         else:
             return False
 
-        
+    def get_links(self):
+        """Returns all the verification links present in the database.
+        """
+        return web.ctx.site.store.values(type="account-link", name="username", value=self.username)
     
     @staticmethod
     def find(username=None, lusername=None, email=None):
