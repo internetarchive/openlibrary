@@ -73,7 +73,7 @@ span.time {
     <h1><a class="plain" href="/admin/people">People</a> / $person.username</h1>
 </div>
 
-
+$ has_profile = person.get_user() is not None
 
 <div id="contentBody">
 
@@ -100,8 +100,8 @@ span.time {
                     <strong>Activation link expired.</strong>
                     
                 <button type="submit" name="action" value="resend_link">Resend activation link</button>.
-    	    </div>
-    	</form>
+                </div>
+            </form>
     </div>    
     
   <table id="adminHistory" style="clear: both;">
@@ -114,43 +114,61 @@ span.time {
     <tr>
         <td>$_("Email Address:")</td>
         <td>
-          <form method="POST" name="form-email" id="form-email" class="validate">
-            <input type="text" name="email" id="email" class="email" value="$input.get('email', person['email'])"/>
-            <button type="submit" name="action" value="update_email">Change</button>
-            <span class="invalid" htmlfor="email" generated="true">$errors.get("email")</span>
-          </form>
+            <form method="POST" name="form-email" id="form-email" class="validate">
+                <input type="text" name="email" id="email" class="email" value="$input.get('email', person['email'])"/>
+                <button type="submit" name="action" value="update_email">Change</button>
+                <span class="invalid" htmlfor="email" generated="true">$errors.get("email")</span>
+            </form>
         </td>
     </tr>
     <tr>
-    	<td>$_("Reset Password")</td>
-    	<td>
-    	  <form method="POST" name="form-password" id="form-password">
-    	    <input type="text" name="password" id="password" class="email" value="$input.get('password')"/>
-    	    <button type="submit" name="action" value="update_password">Change</button>
-    	    <span class="invalid" htmlfor="password" generated="true">$errors.get("password")</span>
-    	  </form>
-    	</td>
+        <td>$_("Reset Password")</td>
+        <td>
+            <form method="POST" name="form-password" id="form-password">
+                <input type="text" name="password" id="password" class="email" value="$input.get('password')"/>
+                <button type="submit" name="action" value="update_password">Change</button>
+                <span class="invalid" htmlfor="password" generated="true">$errors.get("password")</span>
+            </form>
+        </td>
     </tr>
     <tr>
-    	<td>$_("# Edits")</td>
-    	<td>$person.get_edit_count()</td>
+        <td>$_("Bot")</td>
+        <td>
+            $if has_profile:
+                <form method="POST" name="form-bot" id="form-bot">
+                    <input type="hidden" name="bot" value="$(not person.get('bot', False))">
+                    $if person.get('bot'):
+                        Yes
+                        <button class="fixthis" type="submit" name="action" value="update_bot">Make Human</button>
+                    $else:
+                        No
+                        <button class="fixthis" type="submit" name="action" value="update_bot">Make Bot</button>
+                </form>
+            $else:
+                <em>Not available</em>
+        </td>
     </tr>
     <tr>
-    	<td>$_("Member Since:")</td>
-    	<td>
-    	    $if person.activated_on:
-    	        $datestr(person.activated_on)
-    	    $else:
-	            <em>Not available</em>
+        <td>$_("# Edits")</td>
+        <td>$person.get_edit_count()</td>
     </tr>
     <tr>
-    	<td>$_("Last Login:")</td>
-    	<td>
-            $if person.last_login:
-                $datestr(person.last_login)
-    	    $else:
-    	        <em>Not available</em>
-    	</td>
+        <td>$_("Member Since:")</td>
+        <td>
+            $if person.activated_on:
+                $datestr(person.activated_on)
+            $else:
+                <em>Not available</em>
+        </td>
+    </tr>
+    <tr>
+        <td>$_("Last Login:")</td>
+        <td>
+        $if person.last_login:
+            $datestr(person.last_login)
+        $else:
+            <em>Not available</em>
+    </td>
     </tr>
     </tbody>
   </table>
