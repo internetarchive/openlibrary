@@ -15,6 +15,7 @@ import infogami.core.code as core
 
 from openlibrary.i18n import gettext as _
 from openlibrary.core import helpers as h
+from openlibrary.core import support
 import forms
 import utils
 import borrow
@@ -60,10 +61,21 @@ class Account(web.storage):
             return self.data.get("displayname") or self.username
         else:
             return self.username
-
+            
     def creation_time(self):
         d = self['created_on'].split(".")[0]
         return datetime.datetime.strptime(d, "%Y-%m-%dT%H:%M:%S")
+        
+    def get_cases(self):
+        """Returns all support cases filed by this user.
+        """
+        email = self.email
+        username = self.username
+        
+        # XXX-Anand: very inefficient. Optimize it later.
+        cases = support.Support().get_all_cases()
+        cases = [c for c in cases if c.creator_email == email or c.creator_username == username]
+        return cases
 
     def verify_password(self, password):
         return verify_hash(get_secret_key(), password, self.enc_password)
