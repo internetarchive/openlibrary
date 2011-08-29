@@ -22,7 +22,7 @@ class publishers(subjects.subjects):
         if page.work_count == 0:
             return render_template('publishers/notfound.tmpl', key)
 
-        return render_template("subjects", page)
+        return render_template("publishers/view", page)
 
     def is_enabled(self):
         return "publishers" in web.ctx.features
