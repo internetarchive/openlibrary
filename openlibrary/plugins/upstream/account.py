@@ -316,8 +316,23 @@ class account_verify(delegate.page):
             return render['account/verify/success'](account)
         else:
             return render['account/verify/failed']()
+    
+    def POST(self, code=None):
+        """Called to regenerate account verification code.
+        """
+        i = web.input(email=None)
+        account = Account.find(email=i.email)
+        if not account:
+            return render_template("account/verify/failed", email=i.email)
+        elif account['status'] != "pending":
+            return render['account/verify/activated'](account)
+        else:
+            account.send_verification_email()
+            title = _("Hi %(user)s", user=account.displayname)
+            message = _("We've sent the verification email to %(email)s. You'll need to read that and click on the verification link to verify your email.", email=account.email)
+            return render.message(title, message)            
 
-class account_verify_old(delegate.page):
+class account_verify_old(account_verify):
     """Old account verification code.
 
     This takes username, email and code as url parameters. The new one takes just the code as part of the url.
