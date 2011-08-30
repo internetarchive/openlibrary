@@ -252,8 +252,8 @@ class SubjectEngine:
         )
 
         if details:
-            #subject.ebook_count = dict(result.facets["has_fulltext"]).get("true", 0)
-            subject.ebook_count = self.get_ebook_count(meta.name, q[meta.facet_key], q.get('publish_year'))
+            subject.ebook_count = dict(result.facets["has_fulltext"]).get("true", 0)
+            #subject.ebook_count = self.get_ebook_count(meta.name, q[meta.facet_key], q.get('publish_year'))
 
             subject.subjects = result.facets["subject_facet"]
             subject.places = result.facets["place_facet"]
