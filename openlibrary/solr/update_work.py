@@ -589,7 +589,11 @@ def update_author(akey, a=None, handle_redirects=True):
     requests = []
     if handle_redirects:
         q = {'type': '/type/redirect', 'location': akey}
-        redirects = ''.join('<id>%s</id>' % re_author_key.match(r['key']).group(1) for r in query_iter(q))
+        try:
+            redirects = ''.join('<id>%s</id>' % re_author_key.match(r['key']).group(1) for r in query_iter(q))
+        except AttributeError:
+            print 'redirects:', [r['key'] for r in query_iter(q)]
+            raise
         if redirects:
             requests.append('<delete>' + redirects + '</delete>')
 
