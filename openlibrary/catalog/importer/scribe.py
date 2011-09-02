@@ -20,13 +20,11 @@ re_census = re.compile('^\d+(st|nd|rd|th)census')
 
 conn = MySQLdb.connect(host=ia_db_host, user=ia_db_user, \
         passwd=ia_db_pass, db='archive')
-cur = conn.cursor()
 
-fields = ['identifier', 'contributor', 'updated', 'noindex', 'collection', 'format']
+fields = ['identifier', 'contributor', 'updated', 'noindex', 'collection', 'format', 'boxid']
 sql_fields = ', '.join(fields)
 
-state_file = 'start'
-start = open(state_file).readline()[:-1]
+scanned_start = open('scanned_start').readline()[:-1]
 
 ignore_noindex = set(['printdisabled', 'lendinglibrary', 'inlibrary'])
 
@@ -61,20 +59,27 @@ class BadLang (Exception):
     pass
 
 import_api_url = base_url + '/api/import'
-def post_to_import_api(ia, marc_data, subjects = []):
+def post_to_import_api(ia, marc_data, contenttype, subjects = [], boxid = None, scanned=True):
     print "POST to /api/import:", (ia, len(marc_data))
 
     cover_url = 'http://www.archive.org/download/' + ia + '/page/' + ia + '_preview.jpg'
 
     headers = {
-        'Content-type': 'application/marc',
+        'Content-type': contenttype,
         'Cookie': cookie,
-        'x-archive-meta-ocaid': ia,
         'x-archive-meta-source-record': 'ia:' + ia,
-        'x-archive-meta-cover': cover_url,
     }
+    if scanned:
+        headers['x-archive-meta-cover'] = cover_url
+        headers['x-archive-meta-ocaid'] = ia
+    else:
+        headers['x-archive-meta-ia-loaded-id'] = ia
+
     for num, s in enumerate(subjects):
         headers['x-archive-meta%02d-subject' % (num + 1)] = s
+
+    if boxid:
+        headers['x-archive-meta-ia-box-id'] = boxid
 
     print import_api_url
     h1 = httplib.HTTPConnection('openlibrary.org')
@@ -125,31 +130,110 @@ def check_marc_data(marc_data):
         return 'double encoded'
     return None
 
+def load_book(ia, collections, boxid, scanned=True):
+    if ia.startswith('annualreportspri'):
+        print 'skipping:', ia
+        return
+    if 'shenzhentest' in collections:
+        return
+
+    if any('census' in c for c in collections):
+        print 'skipping census'
+        return
+
+    if re_census.match(ia) or ia.startswith('populationschedu') or ia.startswith('michigancensus') or 'census00reel' in ia or ia.startswith('populationsc1880'):
+        print 'ia:', ia
+        print 'collections:', list(collections)
+        print 'census not marked correctly'
+        return
+    try:
+        host, path = find_item(ia)
+    except socket.timeout:
+        print 'socket timeout:', ia
+        return
+    bad_binary = None
+    try:
+        formats = marc_formats(ia, host, path)
+    except urllib2.HTTPError as error:
+        return
+
+    if formats['bin']: # binary MARC
+        marc_data = get_marc_ia_data(ia, host, path)
+        assert isinstance(marc_data, str)
+        marc_error = check_marc_data(marc_data)
+        if marc_error == 'double encode':
+            marc_data = marc_data.decode('utf-8').encode('raw_unicode_escape')
+            marc_error = None
+        if marc_error:
+            return
+        contenttype = 'application/marc'
+    elif formats['xml']: # MARC XML
+        return # waiting for Raj to fox MARC XML loader
+        marc_data = urllib2.urlopen('http://' + host + path + '/' + ia + '_meta.xml').read()
+        contenttype = 'text/xml'
+    else:
+        return
+    subjects = []
+    if 'printdisabled' in collections:
+        subjects.append('Protected DAISY')
+    elif 'lendinglibrary' in collections:
+        subjects += ['Protected DAISY', 'Lending library']
+    elif 'inlibrary' in collections:
+        subjects += ['Protected DAISY', 'In library']
+
+    if not boxid:
+        boxid = None
+    try:
+        post_to_import_api(ia, marc_data, contenttype, subjects, boxid, scanned=scanned)
+    except BadImport:
+        print >> bad, ia
+        bad.flush()
+    except BadLang:
+        print >> bad_lang, ia
+        bad_lang.flush()
+
 if __name__ == '__main__':
     skip = 'troubleshootingm00bige'
     skip = None
     while True:
-        print start
+        loaded_start = open('loaded_start').readline()[:-1]
+        print loaded_start
 
-        sql = "select " + sql_fields + \
+        cur = conn.cursor()
+        cur.execute("select " + sql_fields + \
             " from metadata" + \
-            " where scanner is not null and mediatype='texts'" + \
+            " where scanner is null and mediatype='texts'" + \
                 " and (not curatestate='dark' or curatestate is null)" + \
-                " and scandate is not null and format is not null " + \
-                " and updated > '%s'" % start + \
-                " order by updated"
-        print sql
+                " and scancenter is not null and scandate is null" + \
+                " and updated > %s" + \
+                " order by updated", [loaded_start])
+        t_start = time()
 
+        for ia, contributor, updated, noindex, collection, ia_format, boxid in cur.fetchall():
+            print (ia, updated)
+            if contributor == 'Allen County Public Library Genealogy Center':
+                print 'skipping Allen County Public Library Genealogy Center'
+                continue
+            collections = set()
+            if collection:
+                collections = set(i.lower().strip() for i in collection.split(';'))
+
+            load_book(ia, collections, boxid, scanned=False)
+            print >> open('loaded_start', 'w'), updated
+
+        scanned_start = open('scanned_start').readline()[:-1]
+        print scanned_start
+        cur = conn.cursor()
         cur.execute("select " + sql_fields + \
             " from metadata" + \
             " where scanner is not null and mediatype='texts'" + \
                 " and (not curatestate='dark' or curatestate is null)" + \
                 " and scandate is not null and format is not null " + \
                 " and updated > %s" + \
-                " order by updated", [start])
+                " order by updated", [scanned_start])
         t_start = time()
 
-        for ia, contributor, updated, noindex, collection, ia_format in cur.fetchall():
+        for ia, contributor, updated, noindex, collection, ia_format, boxid in cur.fetchall():
             print (ia, updated)
             if skip:
                 if ia == skip:
@@ -179,66 +263,11 @@ if __name__ == '__main__':
                 collections = set(i.lower().strip() for i in collection.split(';'))
                 if not ignore_noindex & collections:
                     continue
-            if ia.startswith('annualreportspri'):
-                print 'skipping:', ia
-                continue
-            if 'shenzhentest' in collections:
-                continue
 
-            if any('census' in c for c in collections):
-                print 'skipping census'
-                continue
+            load_book(ia, collections, boxid, scanned=True)
+            print >> open('scanned_start', 'w'), updated
 
-            if re_census.match(ia) or ia.startswith('populationschedu') or ia.startswith('michigancensus') or 'census00reel' in ia or ia.startswith('populationsc1880'):
-                print 'ia:', ia
-                print 'collections:', list(collections)
-                print 'census not marked correctly'
-                continue
-            assert 'passportapplicat' not in ia and 'passengerlistsof' not in ia
-            if 'passportapplicat' in ia:
-                print 'skip passport applications for now:', ia
-                continue
-            if 'passengerlistsof' in ia:
-                print 'skip passenger lists', ia
-                continue
-            try:
-                host, path = find_item(ia)
-            except socket.timeout:
-                print 'socket timeout:', ia
-            bad_binary = None
-            try:
-                formats = marc_formats(ia, host, path)
-            except urllib2.HTTPError as error:
-                continue
-
-            if not formats['bin']: # no binary MARC
-                continue
-            marc_data = get_marc_ia_data(ia, host, path)
-            assert isinstance(marc_data, str)
-            marc_error = check_marc_data(marc_data)
-            if marc_error == 'double encode':
-                marc_data = marc_data.decode('utf-8').encode('raw_unicode_escape')
-                marc_error = None
-            if marc_error:
-                continue
-            subjects = []
-            if 'printdisabled' in collections:
-                subjects.append('Protected DAISY')
-            elif 'lendinglibrary' in collections:
-                subjects += ['Protected DAISY', 'Lending library']
-            elif 'inlibrary' in collections:
-                subjects += ['Protected DAISY', 'In library']
-
-            try:
-                post_to_import_api(ia, marc_data, subjects)
-            except BadImport:
-                print >> bad, ia
-                bad.flush()
-            except BadLang:
-                print >> bad_lang, ia
-                bad_lang.flush()
-            print >> open(state_file, 'w'), updated
-            start = updated
+        cur.close()
         secs = time() - t_start
         mins = secs / 60
         print "finished %d took mins" % mins
