@@ -539,6 +539,8 @@ def update_work(w, obj_cache={}, debug=False, resolve_redirects=False):
 
 def update_author(akey, a=None, handle_redirects=True):
     # http://ia331507.us.archive.org:8984/solr/works/select?indent=on&q=author_key:OL22098A&facet=true&rows=1&sort=edition_count%20desc&fl=title&facet.field=subject_facet&facet.mincount=1
+    if akey == '/authors/':
+        return
     m = re_author_key.match(akey)
     if not m:
         print 'bad key:', akey
