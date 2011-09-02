@@ -9,6 +9,7 @@ from time import sleep
 from openlibrary import config
 from unicodedata import normalize
 from collections import defaultdict
+from openlibrary.utils.isbn import opposite_isbn
 
 re_lang_key = re.compile(r'^/(?:l|languages)/([a-z]{3})$')
 re_author_key = re.compile(r'^/(?:a|authors)/(OL\d+A)')
@@ -360,7 +361,11 @@ def build_doc(w, obj_cache={}, resolve_redirects=False):
     for e in editions:
         for f in 'isbn_10', 'isbn_13':
             for v in e.get(f, []):
-                isbn.add(v.replace('-', ''))
+                v = v.replace('-', '')
+                isbn.add(v)
+                alt = opposite_isbn(v)
+                if alt:
+                    isbn.add(alt)
     add_field_list(doc, 'isbn', isbn)
 
     lang = set()
