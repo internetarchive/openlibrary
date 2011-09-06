@@ -106,10 +106,10 @@ class BadDictionary(Exception):
     pass
 
 def read_full_title(line, accept_sound = False, is_marc8=False):
-        if not accept_sound and v.lower().startswith("[sound"):
-            raise SoundRecording
-        if v.lower().startswith("[graphic") or v.lower().startswith("[cartographic"):
-            raise NotBook
+    if not accept_sound and v.lower().startswith("[sound"):
+        raise SoundRecording
+    if v.lower().startswith("[graphic") or v.lower().startswith("[cartographic"):
+        raise NotBook
     title = [v.strip(' /,;:') for k, v in get_subfields(line, ['a', 'b'], is_marc8)]
     return ' '.join([t for t in title if t])
 
