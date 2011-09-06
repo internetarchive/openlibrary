@@ -326,13 +326,14 @@ def add_cover(cover_url, ekey):
             sleep(2)
             continue
         body = res.read()
-        if res.getcode() == 200 and body != '':
+        if body != '':
             reply = json.loads(body)
+        if res.getcode() == 200 and body != '':
             if 'id' in reply:
                 break
         print 'retry, attempt', attempt
         sleep(2)
-    if reply.get('message') == 'Invalid URL':
+    if not reply or reply.get('message') == 'Invalid URL':
         return
     cover_id = int(reply['id'])
     return cover_id
