@@ -332,6 +332,8 @@ def add_cover(cover_url, ekey):
                 break
         print 'retry, attempt', attempt
         sleep(2)
+    if reply.get('message') == 'Invalid URL':
+        return
     cover_id = int(reply['id'])
     return cover_id
 
@@ -455,11 +457,12 @@ def load(rec):
     if 'cover' in rec and not e.covers:
         cover_url = rec['cover']
         cover_id = add_cover(cover_url, e.key)
-        e['covers'] = [cover_id]
-        need_edition_save = True
-        if not w.get('covers'):
-            w['covers'] = [cover_id]
-            need_work_save = True
+        if cover_id:
+            e['covers'] = [cover_id]
+            need_edition_save = True
+            if not w.get('covers'):
+                w['covers'] = [cover_id]
+                need_work_save = True
     for f in 'ia_box_id', 'ia_loaded_id':
         if f not in rec:
             continue
