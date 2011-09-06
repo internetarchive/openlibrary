@@ -573,13 +573,28 @@ class subject_search(delegate.page):
 class author_search(delegate.page):
     path = '/search/authors'
     def GET(self):
-        def get_results(q, offset=0, limit=100):
-            valid_fields = ['key', 'name', 'alternate_names', 'birth_date', 'death_date', 'date', 'work_count']
-            q = escape_colon(escape_bracket(q), valid_fields)
-            solr_select = solr_author_select_url + "?q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=*&qt=standard&wt=json" % (web.urlquote(q), offset, limit)
-            solr_select += '&sort=work_count+desc'
-            return run_solr_search(solr_select)
-        return render_template('search/authors.tmpl', get_results)
+        return render_template('search/authors.tmpl', self.get_results)
+    
+    def get_results(self, q, offset=0, limit=100):
+        valid_fields = ['key', 'name', 'alternate_names', 'birth_date', 'death_date', 'date', 'work_count']
+        q = escape_colon(escape_bracket(q), valid_fields)
+        solr_select = solr_author_select_url + "?q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=*&qt=standard&wt=json" % (web.urlquote(q), offset, limit)
+        solr_select += '&sort=work_count+desc'
+        return run_solr_search(solr_select)
+        
+class author_search_json(author_search):
+    path = '/search/authors'
+    encoding = 'json'
+    
+    def GET(self):
+        i = web.input(q='', offset=0, limit=100)
+        offset = safeint(i.offset, 0)
+        limit = safeint(i.limit, 100)
+        limit = min(1000, limit) # limit limit to 1000.
+        
+        response = self.get_results(i.q, offset=offset, limit=limit)['response']
+        web.header('Content-Type', 'application/json')
+        return delegate.RawText(json.dumps(response))
 
 class edition_search(delegate.page):
     path = '/search/editions'
