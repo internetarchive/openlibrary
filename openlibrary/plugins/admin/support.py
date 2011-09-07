@@ -52,7 +52,6 @@ class case(object):
         last_email = case.history[-1]['text']
         last_email = "\n".join("> %s"%x for x in textwrap.wrap(last_email))
         admins = ((x.get_email(), x.get_name(), x.get_email() == case.assignee) for x in web.ctx.site.get("/usergroup/admin").members)
-        add_flash_message("info", "Case updated!")
         return render_template("admin/case", case, last_email, admins, date_pretty_printer)
     
     def POST_sendreply(self, form, case):
@@ -70,6 +69,8 @@ class case(object):
         if email_to:
             message = render_template("admin/email", case, casenote)
             web.sendmail(config.get("support_case_control_address","support@openlibrary.org"), email_to, subject, message)
+        add_flash_message("info", "Reply sent")
+        raise web.redirect("/admin/support")
 
     def POST_update(self, form, case):
         casenote = form.get("casenote2", False)
@@ -87,6 +88,7 @@ class case(object):
         else:
             case.add_worklog_entry(by = by,
                                    text = text)
+        add_flash_message("info", "Case updated")
 
 
     def POST_closecase(self, form, case):
@@ -96,6 +98,7 @@ class case(object):
         case.add_worklog_entry(by = by,
                                text = text)
         case.change_status("closed", by)
+        add_flash_message("info", "Case closed")
 
 def setup():
     global support_db
