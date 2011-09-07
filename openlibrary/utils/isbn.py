@@ -34,3 +34,20 @@ def isbn_13_to_isbn_10(isbn_13):
     except AssertionError:
         return
     return isbn_13[3:-1] + check_digit_10(isbn_13[3:-1])
+
+def isbn_10_to_isbn_13(isbn_10):
+    isbn_10 = isbn_10.replace('-', '')
+    try:
+        assert len(isbn_10) == 10 and isbn_10[:-1].isdigit()
+        assert check_digit_10(isbn_10[:-1]) == isbn_10[-1]
+    except AssertionError:
+        return
+    isbn_13 = '978' + isbn_10[:-1]
+    return isbn_13 + check_digit_13(isbn_13)
+
+def opposite_isbn(isbn): # ISBN10 -> ISBN13 and ISBN13 -> ISBN10
+    isbn = isbn.replace('-', '')
+    for f in isbn_13_to_isbn_10, isbn_10_to_isbn_13:
+        alt = f(isbn)
+        if alt:
+            return alt

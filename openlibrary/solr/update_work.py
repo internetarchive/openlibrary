@@ -9,6 +9,7 @@ from time import sleep
 from openlibrary import config
 from unicodedata import normalize
 from collections import defaultdict
+from openlibrary.utils.isbn import opposite_isbn
 
 re_lang_key = re.compile(r'^/(?:l|languages)/([a-z]{3})$')
 re_author_key = re.compile(r'^/(?:a|authors)/(OL\d+A)')
@@ -360,7 +361,11 @@ def build_doc(w, obj_cache={}, resolve_redirects=False):
     for e in editions:
         for f in 'isbn_10', 'isbn_13':
             for v in e.get(f, []):
-                isbn.add(v.replace('-', ''))
+                v = v.replace('-', '')
+                isbn.add(v)
+                alt = opposite_isbn(v)
+                if alt:
+                    isbn.add(alt)
     add_field_list(doc, 'isbn', isbn)
 
     lang = set()
@@ -534,6 +539,8 @@ def update_work(w, obj_cache={}, debug=False, resolve_redirects=False):
 
 def update_author(akey, a=None, handle_redirects=True):
     # http://ia331507.us.archive.org:8984/solr/works/select?indent=on&q=author_key:OL22098A&facet=true&rows=1&sort=edition_count%20desc&fl=title&facet.field=subject_facet&facet.mincount=1
+    if akey == '/authors/':
+        return
     m = re_author_key.match(akey)
     if not m:
         print 'bad key:', akey
@@ -584,7 +591,11 @@ def update_author(akey, a=None, handle_redirects=True):
     requests = []
     if handle_redirects:
         q = {'type': '/type/redirect', 'location': akey}
-        redirects = ''.join('<id>%s</id>' % re_author_key.match(r['key']).group(1) for r in query_iter(q))
+        try:
+            redirects = ''.join('<id>%s</id>' % re_author_key.match(r['key']).group(1) for r in query_iter(q))
+        except AttributeError:
+            print 'redirects:', [r['key'] for r in query_iter(q)]
+            raise
         if redirects:
             requests.append('<delete>' + redirects + '</delete>')
 
