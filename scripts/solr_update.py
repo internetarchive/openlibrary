@@ -143,7 +143,11 @@ def run_update():
         requests = []
         for akey in authors_to_update:
             print 'update author:', `akey`
-            requests += update_author(akey)
+            try:
+                requests += update_author(akey)
+            except AttributeError:
+                print 'akey:', `akey`
+                raise
         if not args.no_commit:
             solr_update(requests + ['<commit/>'], index='authors', debug=True)
     subject_add = Element("add")
@@ -261,6 +265,8 @@ while True:
                 print action, author, key, i.keys()
                 print i['data']
             assert action in ('save', 'save_many')
+            continue
+        if i.get('data') and i['data'].get('comment') and 'ia_box_id' in i['data']['comment']:
             continue
         if action == 'save':
             if only_author_merge:

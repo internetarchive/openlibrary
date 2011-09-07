@@ -6,11 +6,10 @@ import mnemonics
 from unicodedata import normalize
 from openlibrary.catalog.utils import tidy_isbn
 
-marc8 = MARC8ToUnicode(quiet=True)
-
 re_real_book = re.compile('(pbk|hardcover|alk[^a-z]paper|cloth)', re.I)
 
 def translate(bytes_in, leader_says_marc8=False):
+    marc8 = MARC8ToUnicode(quiet=True)
     try:
         if leader_says_marc8:
             data = marc8.translate(mnemonics.read(bytes_in))
@@ -107,11 +106,10 @@ class BadDictionary(Exception):
     pass
 
 def read_full_title(line, accept_sound = False, is_marc8=False):
-    for k, v in get_subfields(line, ['h'], is_marc8):
-        if not accept_sound and v.lower().startswith("[sound"):
-            raise SoundRecording
-        if v.lower().startswith("[graphic") or v.lower().startswith("[cartographic"):
-            raise NotBook
+    if not accept_sound and v.lower().startswith("[sound"):
+        raise SoundRecording
+    if v.lower().startswith("[graphic") or v.lower().startswith("[cartographic"):
+        raise NotBook
     title = [v.strip(' /,;:') for k, v in get_subfields(line, ['a', 'b'], is_marc8)]
     return ' '.join([t for t in title if t])
 
@@ -393,7 +391,6 @@ def read_edition(data, accept_electronic = False):
         ('260', read_publisher, 'publishers'),
     ]
 
-    marc8 = data[9] != 'a'
     oclc_001 = False
     tag_006_says_electric = False
     is_real_book = False

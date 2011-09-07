@@ -45,8 +45,7 @@ $code:
         $if page.edition_count:
             <span class="tools" style="white-space:nowrap;">
             $if page.edition_count == 1:
-                $for book in page.editions:
-                    <a href="$book.url()" title="View this edition">1 edition</a>
+                <a href="$page.get_one_edition().url()" title="View this edition">1 edition</a>
             $else:
                 <a href="#editions" class="plain brown">$page.edition_count editions</a>
             </span>
@@ -76,7 +75,6 @@ $code:
 //-->
 </script>
 
-
 <div id="contentBody">
 
     <div class="workCover">
@@ -85,14 +83,13 @@ $code:
             $:render_template("covers/change", page, ".bookCover img")
         </div>
         $if page.edition_count == 1:
-            $for book in page.editions:
-                $:render_template("books/edition-toolbar-show", book)
-                $if "lists" in ctx.features:
-                    <div class="Tools">
-                        $:render_template("lists/widget", page)
-                    </div>
+            $:render_template("books/edition-toolbar-show", page.get_one_edition())
+            $if "lists" in ctx.features:
+                <div class="Tools">
+                    $:render_template("lists/widget", page)
+                </div>
     </div>
-
+    
     <div class="workAbout">
         $if not (page.description or page.excerpts or page.first_sentence):
             <div class="workHelp brown sansserif">
@@ -214,8 +211,7 @@ $code:
         </div>
 
     $if page.edition_count == 1:
-        $for book in page.editions:
-            $:render_template("books/edition-show", book)
+        $:render_template("books/edition-show", page.get_one_edition())
 
     $if page.edition_count > 1:
         <script type="text/javascript">
@@ -286,6 +282,7 @@ $code:
         });
         //-->
         </script>
+        
         <table id="editions">
             <thead>
             <tr>

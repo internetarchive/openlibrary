@@ -69,7 +69,7 @@ function check_ip_ranges() {
         </tr>
     <tr>
         <td class="label"><label for="status">$_("Status")</label></td>
-        <td>$:Dropdown(name="status", args=[("approved", "Live"), ("onhold", "Pending")], value=page.status or "onhold", id="status").render()
+        <td>$:Dropdown(name="status", args=[("approved", "Live"), ("onhold", "Pending"), ("frozen", "Frozen")], value=page.status or "onhold", id="status").render()
             <span class="small grey">$_("When the library is ready, shift status to Live.")</span></td>
     </tr>
     <tr>

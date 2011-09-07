@@ -148,7 +148,7 @@ class IPDict:
             start = iptools.ip2long(ip_range[0]) >> 16
             end = iptools.ip2long(ip_range[1]) >> 16
         else:
-            start = iptools.ip2long(ip_range)
+            start = iptools.ip2long(ip_range) >> 16
             end = start
             
         # for each integer in the range add an entry.

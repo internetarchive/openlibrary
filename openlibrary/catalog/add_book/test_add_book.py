@@ -109,10 +109,10 @@ def test_load(mock_site):
     assert akey1 == akey2
 
     rec = {
-        'ocaid': 'test_item',
+        'ocaid': 'test_item2',
         'title': 'Test item',
         'authors': [{'name': 'James Smith'}],
-        'source_records': 'ia:test_item',
+        'source_records': 'ia:test_item2',
     }
     reply = load(rec)
     assert reply['authors'][0]['status'] == 'created'
@@ -120,11 +120,57 @@ def test_load(mock_site):
     assert reply['edition']['status'] == 'created'
     w = mock_site.get(reply['work']['key'])
     e = mock_site.get(reply['edition']['key'])
-    assert e.ocaid == 'test_item'
+    assert e.ocaid == 'test_item2'
     assert len(w.authors) == 1
     assert len(e.authors) == 1
 
 #def test_author_matching(mock_site):
+
+def test_duplicate_ia_book(mock_site):
+    add_languages(mock_site)
+
+    rec = {
+        'ocaid': 'test_item',
+        'source_records': ['ia:test_item'],
+        'title': 'Test item',
+        'languages': ['eng'],
+    }
+    reply = load(rec)
+    assert reply['success'] == True
+
+    assert reply['edition']['status'] == 'created'
+    e = mock_site.get(reply['edition']['key'])
+    assert e.type.key == '/type/edition'
+    assert e.source_records == ['ia:test_item']
+
+    rec = {
+        'ocaid': 'test_item',
+        'source_records': ['ia:test_item'],
+        'title': 'Different item',
+        'languages': ['fre'],
+    }
+
+    reply = load(rec)
+    assert reply['success'] == True
+    assert reply['edition']['status'] == 'matched'
+
+def test_from_marc_2(mock_site):
+    add_languages(mock_site)
+    ia = 'roadstogreatness00gall'
+    
+    data = open('test_data/' + ia + '_meta.mrc').read()
+    assert len(data) == int(data[:5])
+    rec = read_edition(MarcBinary(data))
+    rec['source_records'] = ['ia:' + ia]
+    reply = load(rec)
+    assert reply['success'] == True
+    assert reply['edition']['status'] == 'created'
+    e = mock_site.get(reply['edition']['key'])
+    assert e.type.key == '/type/edition'
+
+    reply = load(rec)
+    assert reply['success'] == True
+    assert reply['edition']['status'] == 'matched'
 
 def test_from_marc(mock_site):
     from openlibrary.catalog.marc.marc_binary import MarcBinary
@@ -201,7 +247,7 @@ def test_load_multiple(mock_site):
     ekey2 = reply['edition']['key']
     assert ekey1 == ekey2
 
-    reply = load({'title': 'Test item', 'source_records': ['ia:test_item'], 'lccn': ['456']})
+    reply = load({'title': 'Test item', 'source_records': ['ia:test_item2'], 'lccn': ['456']})
     assert reply['success'] == True
     ekey3 = reply['edition']['key']
     assert ekey3 != ekey1

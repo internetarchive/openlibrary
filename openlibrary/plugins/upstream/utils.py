@@ -9,6 +9,7 @@ import xml.etree.ElementTree as etree
 import datetime
 import gzip
 import StringIO
+import logging
 
 from infogami import config
 from infogami.utils import view, delegate, stats
@@ -634,7 +635,8 @@ def setup():
     
     web.template.Template.globals.update({
         'HTML': HTML,
-        'request': Request()
+        'request': Request(),
+        'logger': logging.getLogger("openlibrary.template")
     })
     
     from openlibrary.core import helpers as h

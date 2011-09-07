@@ -246,6 +246,28 @@ def add_db_name(rec):
 
 re_lang = re.compile('^/languages/([a-z]{3})$')
 
+def early_exit(rec):
+    f = 'ocaid'
+    if 'ocaid' in rec:
+        q = {
+            'type':'/type/edition',
+            f: rec[f],
+        }
+        ekeys = list(web.ctx.site.things(q))
+        if ekeys:
+            return ekeys[0]
+
+    for f in 'source_records', 'isbn_10', 'isbn_13', 'oclc_numbers':
+        if f in rec:
+            q = {
+                'type':'/type/edition',
+                f: rec[f][0],
+            }
+            ekeys = list(web.ctx.site.things(q))
+            if ekeys:
+                return ekeys[0]
+    return False
+
 def find_exact_match(rec, edition_pool):
     seen = set()
     for field, editions in edition_pool.iteritems():
@@ -304,12 +326,15 @@ def add_cover(cover_url, ekey):
             sleep(2)
             continue
         body = res.read()
-        if res.getcode() == 200 and body != '':
+        if body != '':
             reply = json.loads(body)
+        if res.getcode() == 200 and body != '':
             if 'id' in reply:
                 break
         print 'retry, attempt', attempt
         sleep(2)
+    if not reply or reply.get('message') == 'Invalid URL':
+        return
     cover_id = int(reply['id'])
     return cover_id
 
@@ -320,6 +345,8 @@ def load(rec):
         raise RequiredField('source_records')
     if isinstance(rec['source_records'], basestring):
         rec['source_records'] = [rec['source_records']]
+
+   
     edition_pool = build_pool(rec)
     if not edition_pool:
         return load_data(rec) # 'no books in pool, loading'
@@ -328,7 +355,9 @@ def load(rec):
     #if len(matches) == 1:
     #    return {'success': True, 'edition': {'key': list(matches)[0]}}
 
-    match = find_exact_match(rec, edition_pool)
+    match = early_exit(rec)
+    if not match:
+        match = find_exact_match(rec, edition_pool)
 
     if not match:
         rec['full_title'] = rec['title']
@@ -429,11 +458,12 @@ def load(rec):
     if 'cover' in rec and not e.covers:
         cover_url = rec['cover']
         cover_id = add_cover(cover_url, e.key)
-        e['covers'] = [cover_id]
-        need_edition_save = True
-        if not w.get('covers'):
-            w['covers'] = [cover_id]
-            need_work_save = True
+        if cover_id:
+            e['covers'] = [cover_id]
+            need_edition_save = True
+            if not w.get('covers'):
+                w['covers'] = [cover_id]
+                need_work_save = True
     for f in 'ia_box_id', 'ia_loaded_id':
         if f not in rec:
             continue

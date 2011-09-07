@@ -1,4 +1,5 @@
 import datetime
+from collections import defaultdict
 
 import couchdb
 from couchdb.mapping import TextField, IntegerField, DateTimeField, ListField, DictField, Mapping, Document, ViewField
@@ -57,14 +58,14 @@ class Support(object):
     def get_all_cases(self, typ = "all", summarise = False, sortby = "lastmodified", desc = "false"):
         "Return all the cases in the system"
         if summarise:
-            d = {}
+            d = defaultdict(lambda: 0)
             v = ViewDefinition("cases", "sort-status", "", group_level = 1, stale = "ok")
             for i in v(self.db):
                 d[i.key[0]] = i.value
             return d
         else:
             return Case.all(self.db, typ, sortby, desc)
-
+            
             
 class Case(Document):
     _id               = TextField()
@@ -178,6 +179,6 @@ class Case(Document):
             extra['endkey'] = endkey
         result = cls.view(db, view, include_docs = True, stale = "ok", **extra)
         return result.rows
-
+        
     def __eq__(self, second):
         return self._id == second._id

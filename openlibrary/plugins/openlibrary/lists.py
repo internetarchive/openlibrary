@@ -11,7 +11,7 @@ from infogami.infobase import client
 from openlibrary.core import formats, cache
 import openlibrary.core.helpers as h
 
-from openlibrary.plugins.worksearch import code as worksearch
+from openlibrary.plugins.worksearch import subjects
 
 class lists_home(delegate.page):
     path = "/lists"
@@ -37,7 +37,7 @@ class lists(delegate.page):
         
     def get_doc(self, key):
         if key.startswith("/subjects/"):
-            s = worksearch.get_subject(key)
+            s = subjects.get_subject(key)
             if s.work_count > 0:
                 return s
             else:
@@ -78,7 +78,7 @@ class lists_json(delegate.page):
     
     def GET(self, path):
         if path.startswith("/subjects/"):
-            doc = worksearch.get_subject(path)
+            doc = subjects.get_subject(path)
         else:
             doc = web.ctx.site.get(path)
         if not doc:

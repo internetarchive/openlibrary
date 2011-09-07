@@ -2,6 +2,7 @@
 """
 import random
 import web
+import logging
 
 from infogami.utils import delegate
 from infogami.utils.view import render_template, public
@@ -11,6 +12,8 @@ from infogami import config
 from openlibrary.core import admin, cache, ia, inlibrary, helpers as h
 from openlibrary.plugins.upstream.utils import get_blog_feeds
 from openlibrary.plugins.worksearch import search
+
+logger = logging.getLogger("openlibrary.home")
 
 class home(delegate.page):
     path = "/"
@@ -22,6 +25,7 @@ class home(delegate.page):
         try:
             stats = admin.get_stats()
         except Exception:
+            logger.error("Error in getting stats", exc_info=True)
             stats = None
         blog_posts = get_blog_feeds()
         
@@ -79,7 +83,7 @@ def get_returncart(limit):
     items = web.ctx.site.store.items(type='ebook', name='borrowed', value='false', limit=limit)
     keys = [doc['book_key'] for k, doc in items if 'book_key' in doc]
     books = web.ctx.site.get_many(keys)
-    return [format_book_data(book) for book in books]
+    return [format_book_data(book) for book in books if book.type.key == '/type/edition']
     
 # cache the results of get_returncart in memcache for 15 minutes
 get_returncart = cache.memcache_memoize(get_returncart, "home.get_returncart", timeout=15*60)
