@@ -144,7 +144,7 @@ def run_update():
         for akey in authors_to_update:
             print 'update author:', `akey`
             try:
-                request += update_author(akey)
+                request = update_author(akey)
                 if request:
                     requests += request
             except AttributeError:
