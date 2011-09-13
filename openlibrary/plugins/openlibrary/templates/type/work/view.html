@@ -201,7 +201,7 @@ $code:
         $:render_template("books/edition-show", page.get_one_edition())
     $elif page.edition_count > 1:
         <div class="clearfix"></div>
-        $:render_template("type/work/editions-datatable", page)
+        $:render_template("type/work/editions_datatable", page)
         
     $:render_template("lib/history", page)
 </div>
