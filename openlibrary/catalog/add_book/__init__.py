@@ -326,12 +326,15 @@ def add_cover(cover_url, ekey):
             sleep(2)
             continue
         body = res.read()
-        if res.getcode() == 200 and body != '':
+        if body != '':
             reply = json.loads(body)
+        if res.getcode() == 200 and body != '':
             if 'id' in reply:
                 break
         print 'retry, attempt', attempt
         sleep(2)
+    if not reply or reply.get('message') == 'Invalid URL':
+        return
     cover_id = int(reply['id'])
     return cover_id
 
@@ -455,11 +458,12 @@ def load(rec):
     if 'cover' in rec and not e.covers:
         cover_url = rec['cover']
         cover_id = add_cover(cover_url, e.key)
-        e['covers'] = [cover_id]
-        need_edition_save = True
-        if not w.get('covers'):
-            w['covers'] = [cover_id]
-            need_work_save = True
+        if cover_id:
+            e['covers'] = [cover_id]
+            need_edition_save = True
+            if not w.get('covers'):
+                w['covers'] = [cover_id]
+                need_work_save = True
     for f in 'ia_box_id', 'ia_loaded_id':
         if f not in rec:
             continue

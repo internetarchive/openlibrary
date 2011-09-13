@@ -1,6 +1,6 @@
 $def with (page)
 
-$var title: $page.name
+$var title: Publisher: $page.name
 
 $ subject_list = [('subjects', 20), ('places', 20), ('people', 10), ('times', 10)]
 
@@ -10,7 +10,7 @@ $ subject_list = [('subjects', 20), ('places', 20), ('people', 10), ('times', 10
     <h1>
         $page.name
         <span class="count" id="coversCount">
-            <strong><span>$sprintf(ungettext("%s work", "%s works", page.work_count), commify(page.work_count))</span></strong>
+            <em>Publisher</em> - <strong><span>$sprintf(ungettext("%s work", "%s works", page.work_count), commify(page.work_count))</span></strong>
             $if page.ebook_count > 0:
                 / <a href="javascript:;" class="ebookcount"><span id="ebooks">$sprintf(ungettext("%s ebook", "%s ebooks", page.ebook_count), commify(page.ebook_count))</span></a>
             $else:
@@ -52,9 +52,9 @@ $:render_template("lib/covers", page)
 	<div class="head">
 	    <h2 style="margin-bottom:0px!important;">
 	        $_("Publishing History")
-                <span class="shift">$:_('This is a chart to show the publishing history of editions of works about this subject. Along the X axis is time, and on the y axis is the count of editions published. <a href="#subjectRelated">Click here to skip the chart</a>.')</span>
+                <span class="shift">$:_('This is a chart to show the when this publisher published books. Along the X axis is time, and on the y axis is the count of editions published. <a href="#subjectRelated">Click here to skip the chart</a>.')</span>
 	        <span class="count hidden chartZoom">&nbsp;<a href="javascript:;" class="resetSelection small">$_("Reset chart")</a> $_("or continue zooming in.")</span>
-	        <span class="count chartUnzoom">&nbsp;$_("This graph charts editions published on this subject. Click to view a single year, or drag across a range.")</span>
+	        <span class="count chartUnzoom">&nbsp;$_("This graph charts editions from this publisher over time. Click to view a single year, or drag across a range.")</span>
 	    </h2>
 	</div>
 	
@@ -67,13 +67,13 @@ $:render_template("lib/covers", page)
             bars: { 
                 show: true, 
                 fill: 0.6, 
-                color: "#ffa337", 
+                color: "#615132", 
                 align: "center"
             },
             points: { 
                 show: true 
             },
-            color: "#ffa337"
+            color: "#615132"
         },
         grid: { 
             hoverable: true,
@@ -101,7 +101,7 @@ $:render_template("lib/covers", page)
             display: 'none',
             top: y + 12,
             left: x + 12,
-            border: '1px solid #ffa337',
+            border: '1px solid #615132',
             padding: '2px',
             'background-color': '#fffdcd',
             color: '#615132',
@@ -460,8 +460,8 @@ var _hash = parse_hash();
     <div class="clearfix"></div>
 
         <div class="head" id="subjectRelated">
-            <h2>$_("Related...")
-                <span class="count">        <a href="/search?${page.subject_type}_facet=$page.name.replace('&','%26')">Search within $page.name</a></span>
+            <h2>$_("Common Subjects")
+                <span class="count">        <a href="/search?${page.subject_type}_facet=$page.name.replace('&','%26')">Search for books published by $page.name</a></span>
             </h2>
         </div>
 
@@ -495,8 +495,8 @@ $jsdef renderAuthors(authors):
         <br/>
 <div id="resultsAuthors">
     <div class="head">
-        <h3>$_("Prolific Authors")</h3>
-        <div class="smallest lightgreen sansserif">$_("who have written the most books on this subject")</div>
+        <h3>$_("Authors")</h3>
+        <div class="smallest lightgreen sansserif">$_("published most by this publisher")</div>
     </div>
     <div class="unordered">
         $:renderAuthors(page.authors)
@@ -525,8 +525,8 @@ $jsdef renderPublishers(publishers):
          <br/>
 <div id="resultsPublishers">
     <div class="head">
-        <h3>$_("Prominent Publishers")</h3>
-        <div class="smallest lightgreen sansserif">$_("who have published the most books on this subject")</div>
+        <h3>$_("Related Publishers")</h3>
+        <div class="smallest lightgreen sansserif">$_("that have published the same works")</div>
     </div>
     <div class="unordered">
         $:renderPublishers(page.publishers[:20])
