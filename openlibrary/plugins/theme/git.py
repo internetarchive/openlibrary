@@ -31,7 +31,7 @@ class Git:
         return [line.strip().split()[-1] for line in out.splitlines() if not line.startswith("??")]
         
     def diff(self, path):
-        diff = self.system("git diff " + path).stdout.strip()
+        diff = self.system("git diff --ignore-space-at-eol " + path).stdout.strip()
         html = highlight(diff, DiffLexer(), HtmlFormatter(full=True, style="trac", nowrap=True))
         return web.storage(name=path, diff=diff, htmldiff=html)
         

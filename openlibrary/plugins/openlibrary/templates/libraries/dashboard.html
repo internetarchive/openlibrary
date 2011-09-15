@@ -4,6 +4,22 @@ $var title: Libraries Dashboard
 
 $ loan_stats = get_active_loans_of_libraries()
 
+$def render_libraries(status):
+    $ libs = [lib for lib in libraries if lib.status == status]
+    <table class="history">
+        $for lib in libs:
+            <tr>
+                <td style="padding: 5px; width: 460px;"><a style="font-size: 12px;" href="$lib.url()">$(lib.name or "No Name?")</a><br />$lib.contact_person, $lib.contact_email</td>
+                <td>$lib.country</td>
+                <td>
+                    $ registered_on = lib.registered_on or lib.created
+                        $datestr(registered_on)</td>
+                <td style="text-align: right;">$loan_stats.get(lib.key, 0)</td>
+            </tr>
+        $if not libs:
+            <tr><td><em>None found. Gah!</em></td></tr>
+    </table>
+
 $if ctx.user and ctx.user.is_admin():
     <div id="contentHead">
         $:render_template("borrow/navigation", path="/libraries/dashboard")
@@ -27,35 +43,13 @@ $if ctx.user and ctx.user.is_admin():
         </table>
 
         <h2>Pending Libraries</h2>
-        <table class="history">
-            $ onhold = [lib for lib in libraries if lib.status != "approved"]
-            $for lib in onhold:
-                $if lib.status != "approved":
-                    <tr>
-                        <td style="padding: 5px; width: 460px;"><a style="font-size: 12px;" href="$lib.url()">$(lib.name or "No Name?")</a><br />$lib.contact_person, $lib.contact_email</td>
-                        <td>$lib.country</td>
-                        <td>
-                            $ registered_on = lib.registered_on or lib.created
-                                $datestr(registered_on)</td>
-                        <td style="text-align: right;">$loan_stats.get(lib.key, 0)</td>
-                    </tr>
-            $if not onhold:
-                <tr><td><em>None found. Gah!</em></td></tr>
-        </table>
+        $:render_libraries("onhold")
+
+        <h2>Frozen Libraries</h2>
+        $:render_libraries("frozen")
 
         <h2>Live Libraries</h2>
-        <table class="history">
-            $for lib in libraries:
-                $if lib.status == "approved":
-                    <tr>
-                        <td style="padding: 5px; width: 460px;"><a style="font-size: 12px;" href="$lib.url()">$(lib.name or "No Name?")</a><br />$lib.contact_person, $lib.contact_email</td>
-                        <td>$lib.country</td>
-                        <td>
-                            $ registered_on = lib.registered_on or lib.created
-                                $datestr(registered_on)</td>
-                        <td style="text-align: right;">$loan_stats.get(lib.key, 0)</td>
-                    </tr>
-        </table>
+        $:render_libraries("approved")
 
         <p>
             <b>All Active Libraries' Emails:</b><br />
