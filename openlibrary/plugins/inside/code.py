@@ -124,7 +124,7 @@ class search_inside(delegate.page):
                 if ekeys:
                     ekey_doc[ekeys[0]] = doc
 
-            editions = get_many(ekey_doc.keys())
+            editions = web.ctx.site.get_many(ekey_doc.keys())
             for e in editions:
                 ekey_doc[e['key']]['edition'] = e
             return results
