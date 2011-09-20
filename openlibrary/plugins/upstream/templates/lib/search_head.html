@@ -1,13 +1,13 @@
 $def with (page)
 
 $ advanced = (
-$    ('title', _("Title"),_("like 'To Kill A Mockingbird'")),
-$    ('author', _("Author"),_("like 'Eudora Welty'")),
-$    ('isbn', "ISBN",_("ISBN-10 or ISBN-13")),
-$    ('subject', _("Subject"),_("like 'doors' or 'the sky'")),
-$    ('place', _("Place"),_("like 'Narnia' or 'Rome'")),
-$    ('person', _("Person"),_("like 'Tom Jones'")),
-$    ('publisher', _("Publisher"),_("like 'Harper Collins'")),
+$    ('title', _("Title"),_("")),
+$    ('author', _("Author"),_("")),
+$    ('isbn', "ISBN",_("")),
+$    ('subject', _("Subject"),_("")),
+$    ('place', _("Place"),_("")),
+$    ('person', _("Person"),_("")),
+$    ('publisher', _("Publisher"),_("")),
 $ )
 
     <div class="siteSearch" id="headerSearch">
@@ -25,7 +25,7 @@ $ )
                     </div>
                     <div class="searchCheckbox">
                         <input name="has_fulltext" type="checkbox" value="true" id="ftokenstop"/>
-                        <label for="ftokenstop">$_("Only show eBooks")</label>
+                        <label for="ftokenstop">$_("Show only eBooks")</label>
                     </div>
                 </div>
             </div>
@@ -40,7 +40,7 @@ $ )
                 </div>
             </fieldset>
             <div class="searchPlus">
-                <a href="/search/inside">Search inside books instead</a>?
+                <a href="/search/inside">Full Text Search</a>?
             </div>
             </div>
         </form>

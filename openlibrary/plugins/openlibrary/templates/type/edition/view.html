@@ -278,8 +278,9 @@ $ work = page.works and page.works[0] or None
             $for name, values in page.get_identifiers().multi_items():
                 $:display_goodreads(values[0].label, values)
         </div>
-        
+ 
         </div>
+
 
         <div class="editionTools">
             $:macros.databarWork(page)
