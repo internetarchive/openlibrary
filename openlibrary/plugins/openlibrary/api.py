@@ -45,7 +45,7 @@ class work_editions(delegate.page):
             links['next'] = web.changequery(offset=offset+limit)
         
         return {
-            "links": links
+            "links": links,
             "size": size,
             "entries": editions
         }
