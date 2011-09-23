@@ -53,11 +53,10 @@ $var title: Search Open Library for $q
 			<li>
 			$ authors = []
                         $ cover = '/images/icons/avatar_book-sm.png'
-			$ editions = editions_from_ia(ia)
+			$ e = doc.get('edition')
                         $ item = read_from_archive(ia)
                         $ collection = set(item.get('collection', []))
-			$if editions:
-				$ e = get_document(editions[0])
+			$if e:
                                 $ key = e.key
                                 $ url = key
                                 $ title = e.title
@@ -80,16 +79,16 @@ $var title: Search Open Library for $q
                             <span class="resultTitle">
 			        <h3 class="booktitle sansserif"><a href="$url" class="results">$title</a></h3>
 			        <span class="bookauthor">by            
-			        $if editions and authors:
+			        $if e and authors:
 				    $for a in authors:
 					<a href="$a.key" class="results">$a.name</a>$('' if loop.last else ', ')
-			        $elif not editions and authors:
+			        $elif not e and authors:
 				    $', '.join(authors)
 			        $else:
 				    <em>unknown author</em>
 			    </span>
 			    <span class="resultPublisher">
-				$if editions:
+				$if e:
 					Published 
 					$if e.publish_date:
 						in $e.publish_date 
