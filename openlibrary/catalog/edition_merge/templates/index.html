@@ -1,0 +1,61 @@
+<html>
+<head>
+<title>Merge duplicate editions</title>
+<style>
+td { vertical-align: top; background: #ddd };
+</style>
+</head>
+<body>
+<h1>Merge duplicate editions</h1>
+
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <ul class=flashes>
+    {% for message in messages %}
+      <li>{{ message }}</li>
+    {% endfor %}
+    </ul>
+  {% endif %}
+{% endwith %}
+
+{% macro pager() %}
+Pages: 
+{% for i in range((total / rows)+1) %}
+{% if i + 1 == page %}
+{{ page }}
+{% else %}
+<a href="?page={{ i + 1 }}">{{ i + 1}}</a>
+{% endif %}
+{% endfor %}
+<p>
+{% endmacro %}
+
+{{ pager() }}
+
+{{ total }} items need to be merged ({{ easy }} easy)<p>
+
+<table>
+{% for ia, editions, unmerge_count in merge_list %}
+<tr>
+<td><a href="http://www.archive.org/details/{{ ia }}">{{ ia }}</a></td>
+<td>
+{% for ekey in editions.split(' ') %}
+<a href="http://openlibrary.org{{ ekey }}">{{ekey}}</a>
+{% endfor %}
+</td>
+<td><a href="{{url_for('merge', ia=ia)}}">merge</a></td>
+{% if unmerge_count == 0 %}
+<td style="background: green; color: white">
+{% else %}
+<td>
+{% endif %}
+{{ unmerge_count }}
+</td>
+</tr>
+{% endfor %}
+</table>
+
+{{ pager() }}
+
+</body>
+</html>
