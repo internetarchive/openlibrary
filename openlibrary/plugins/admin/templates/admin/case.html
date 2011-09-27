@@ -98,6 +98,10 @@ $var title: $case.subject ($case.creator_username)
 </tr>
 </table>
 
-      <p align="center"><input type="submit" name="button" id="close2" value="CLOSE CASE" /></p>
+	$if case.status != "closed":
+	   <p align="center"><input type="submit" name="button" id="close2" value="CLOSE CASE" /></p>
+	$else:
+	   <p align="center"><input type="submit" name="button" id="close2" value="REOPEN CASE" /></p>
+
 </div>
 </form>
