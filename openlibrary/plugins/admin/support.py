@@ -99,6 +99,7 @@ class case(object):
                                text = text)
         case.change_status("closed", by)
         add_flash_message("info", "Case closed")
+        raise web.redirect("/admin/support")
 
 def setup():
     global support_db
