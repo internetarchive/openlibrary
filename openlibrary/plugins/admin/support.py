@@ -11,16 +11,22 @@ support_db = None
 
 class cases(object):
     def GET(self, typ = "new"):
+        current_user = web.ctx.site.get_user()
         if not support_db:
             return render_template("admin/cases", None, None, True, False)
-        i = web.input(sort="status", desc = "false")
+        i = web.input(sort="status", desc = "false", all = "false")
         sortby = i['sort']
         desc = i['desc']
         cases = support_db.get_all_cases(typ, summarise = False, sortby = sortby, desc = desc)
-        summary = support_db.get_all_cases(typ, summarise = True)
+        if i['all'] == "false":
+            cases = (x for x in cases if x.assignee == current_user.get_email())
+            summary = support_db.get_all_cases(typ, summarise = True, user = current_user.get_email())
+        else:
+            summary = support_db.get_all_cases(typ, summarise = True)
         total = sum(int(x) for x in summary.values())
         desc = desc == "false" and "true" or "false"
         return render_template("admin/cases", summary, total, cases, desc)
+    POST = GET
 
 class case(object):
     def GET(self, caseid):
