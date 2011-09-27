@@ -47,7 +47,8 @@ class case(object):
         action = form.get("button","")
         {"SEND REPLY" : self.POST_sendreply,
          "UPDATE"     : self.POST_update,
-         "CLOSE CASE" : self.POST_closecase}[action](form,case)
+         "CLOSE CASE" : self.POST_closecase,
+         "REOPEN CASE": self.POST_reopencase}[action](form,case)
         date_pretty_printer = lambda x: x.strftime("%B %d, %Y")
         last_email = case.history[-1]['text']
         last_email = "\n".join("> %s"%x for x in textwrap.wrap(last_email))
@@ -100,6 +101,15 @@ class case(object):
         case.change_status("closed", by)
         add_flash_message("info", "Case closed")
         raise web.redirect("/admin/support")
+
+    def POST_reopencase(self, form, case):
+        user = web.ctx.site.get_user()
+        by = user.get_email()
+        text = "Case reopened"
+        case.add_worklog_entry(by = by,
+                               text = text)
+        case.change_status("new", by)
+        add_flash_message("info", "Case reopened")
 
 def setup():
     global support_db
