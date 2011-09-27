@@ -1,0 +1,88 @@
+<html>
+<head>
+<title>Merge {{ia}}</title>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
+<style>
+td { vertical-align: top; background: #ddd };
+</style>
+</head>
+<body>
+<h1>Merge {{ia}}</h1>
+
+<a href="{{url_for('index')}}">back to index</a><p>
+
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <ul class=flashes>
+    {% for message in messages %}
+      <li>{{ message }}</li>
+    {% endfor %}
+    </ul>
+  {% endif %}
+{% endwith %}
+
+
+
+Merging editions: {{ ekeys }} into {{ master }}<p>
+
+<form method="post">
+<table>
+<tr><td></td>
+{% for ekey in ekeys %}
+<td><a href="http://openlibrary.org{{ekey}}">{{ ekey }}</a></td>
+{% endfor %}
+<td>merged</td>
+</tr>
+{% for k in keys %}
+<tr>
+<td>{{ k }}</td>
+{% for e in editions %}
+{% set ekey = e['key'][7:] %}
+<td>
+{% if k == 'notes' and e.get(k) %}
+{% for line in e[k].splitlines() %}
+{{ line }}<br>
+{% endfor %}
+{% elif k == 'authors' and e.get(k) %}
+{% for akey in e[k] %}
+    <a href="http://openlibrary.org{{akey}}.yml?m=edit">{{akey}}</a>
+{% endfor %}
+
+{% elif not merged.get(k) and e.get(k) %}
+    <input type="radio" name="{{k}}" value="{{ekey}}"><span onclick="$('input:radio[name={{k}}]').filter('[value={{ekey}}]').attr('checked', true)">{{ e.get(k) }}</span>
+{% else %}
+{{ e.get(k) }}
+{% endif %}
+</td>
+{% endfor %}
+{% if merged.get(k) %}
+<td style="background: green; color: white">
+{% if k == 'notes' %}
+{% for line in merged[k].splitlines() %}
+{{ line }}<br>
+{% endfor %}
+{% else %}
+{{ merged[k] }}
+{% endif %}
+</td>
+{% else %}
+<td style="background: red"></td>
+{% endif %}
+</tr>
+{% endfor %}
+<tr>
+<td colspan="3"></td>
+<td><input type="submit" value="merge"></td>
+</tr>
+</table>
+
+<input type="submit" value="merge">
+</form>
+
+<!-- 
+<h3>Works</h3>
+<pre>{{ works | pprint }}</pre>
+-->
+
+</body>
+</html>

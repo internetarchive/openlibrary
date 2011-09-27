@@ -349,7 +349,7 @@ def get_locale():
 @public
 def process_version(v):
     """Looks at the version and adds machine_comment required for showing "View MARC" link."""
-    importers = ['/people/ImportBot', '/people/EdwardBot']
+    importers = set(['/people/ImportBot', '/people/EdwardBot', '/people/LCImportBot'])
     comments = [
         "found a matching marc record",
         "add publisher and source",

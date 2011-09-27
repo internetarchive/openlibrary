@@ -779,6 +779,9 @@ def setup():
     events.setup()
     status.setup()
     
+    import api
+    api.setup()
+    
     from stats import stats_hook
     delegate.app.add_processor(web.unloadhook(stats_hook))
     
