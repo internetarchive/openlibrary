@@ -396,12 +396,14 @@ def load(rec):
         'work': {'key': w['key'], 'status': 'matched'},
     }
 
-    e.setdefault('source_records', [])
-    existing_source_records = set(e.source_records)
+    if not e.get('source_records'):
+        e['source_records'] = []
+    existing_source_records = set(e['source_records'])
     for i in rec['source_records']:
         if i not in existing_source_records:
             e['source_records'].append(i)
             need_edition_save = True
+    assert e['source_records']
 
     edits = []
     if rec.get('authors'):
@@ -421,7 +423,7 @@ def load(rec):
                 add_to_work = True
                 add_to_edition = True
             else:
-                if not any(i['author']['key'] == a['key'] for i in work_authors):
+                if not any(i['author'] == a['key'] for i in work_authors):
                     add_to_work = True
                 if all(i['key'] != a['key'] for i in edition_authors):
                     add_to_edition = True
