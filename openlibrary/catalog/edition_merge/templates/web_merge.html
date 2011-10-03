@@ -1,0 +1,58 @@
+<html>
+<head>
+<title>Merge {{ia}}</title>
+<style>
+td { vertical-align: top; background: #ddd };
+</style>
+</head>
+<body>
+<h1>Merge {{ia}}</h1>
+
+Merging editions: {{ ekeys }} into {{ master }}<p>
+
+<a href="/?master=merge&ia={{ia}}&skip={{skip}}">merge lists</a> &bull; <a href="/?skip={{skip+1}}">skip</a><p>
+
+<table>
+<tr><td></td>
+{% for ekey in ekeys %}
+<td><a href="http://openlibrary.org{{ekey}}">{{ ekey }}</a></td>
+<td><a href="/?master={{ekey}}&ia={{ia}}&skip={{skip}}">merge</a></td>
+{% endfor %}
+<td>merged</td>
+</tr>
+{% for k in keys %}
+<tr>
+<td>{{ k }}</td>
+{% for e in editions %}
+<td colspan="2">
+{% if k == 'notes' and e.get(k) %}
+{% for line in e[k].splitlines() %}
+{{ line }}<br>
+{% endfor %}
+{% else %}
+{{ e.get(k) }}
+{% endif %}
+</td>
+{% endfor %}
+{% if merged.get(k) %}
+<td style="background: green; color: white">
+{% if k == 'notes' %}
+{% for line in merged[k].splitlines() %}
+{{ line }}<br>
+{% endfor %}
+{% else %}
+{{ merged[k] }}
+{% endif %}
+</td>
+{% else %}
+<td style="background: red"></td>
+{% endif %}
+</tr>
+{% endfor %}
+</table>
+
+<h3>Works</h3>
+<pre>{{ works | pprint }}</pre>
+
+</body>
+</html>

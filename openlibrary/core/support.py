@@ -55,16 +55,25 @@ class Support(object):
         c = Case.load(self.db, caseid)
         return c
         
-    def get_all_cases(self, typ = "all", summarise = False, sortby = "lastmodified", desc = "false"):
+    def get_all_cases(self, typ = "all", summarise = False, sortby = "lastmodified", user = False, desc = "false", staleok = False):
         "Return all the cases in the system"
+        args = {}
         if summarise:
             d = defaultdict(lambda: 0)
-            v = ViewDefinition("cases", "sort-status", "", group_level = 1, stale = "ok")
+            if user:
+                args = dict(startkey = [user, "closed"], 
+                            endkey = [user, {}])
+            else:
+                args = dict(startkey = [None, "closed"], 
+                            endkey = [None,{}])
+            if staleok:
+                args.update(stale = "ok")
+            v = ViewDefinition("cases", "assignee", "", group_level = 2, **args)
             for i in v(self.db):
-                d[i.key[0]] = i.value
+                d[i.key[1]] += i.value
             return d
         else:
-            return Case.all(self.db, typ, sortby, desc)
+            return Case.all(self.db, typ, sortby, desc, staleok)
             
             
 class Case(Document):
@@ -143,7 +152,7 @@ class Case(Document):
         return ret
 
     @classmethod
-    def all(cls, db, typ="all", sort = "status", desc = "false"):
+    def all(cls, db, typ="all", sort = "status", desc = "false", staleok = False):
         view = {"created"      : "cases/sort-created",
                 "caseid"       : "cases/sort-caseid",
                 "assigned"     : "cases/sort-assignee",
@@ -157,10 +166,11 @@ class Case(Document):
                          descending = desc)
         else:
             extra = dict(descending = desc)
-
+        if staleok:
+            extra['stale'] = "ok"
         if typ == "all":
             view = view.replace("-","-all-") 
-            result = cls.view(db, view, include_docs = True, stale = "ok", **extra)
+            result = cls.view(db, view, include_docs = True, **extra)
             return result.rows
         elif typ == "new":
             startkey, endkey = (["new"], ["replied"])
@@ -177,7 +187,7 @@ class Case(Document):
             extra['startkey'] = startkey
         if endkey:
             extra['endkey'] = endkey
-        result = cls.view(db, view, include_docs = True, stale = "ok", **extra)
+        result = cls.view(db, view, include_docs = True,**extra)
         return result.rows
         
     def __eq__(self, second):

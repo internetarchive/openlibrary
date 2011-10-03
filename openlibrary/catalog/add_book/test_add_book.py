@@ -154,6 +154,19 @@ def test_duplicate_ia_book(mock_site):
     assert reply['success'] == True
     assert reply['edition']['status'] == 'matched'
 
+def test_from_marc_3(mock_site):
+    add_languages(mock_site)
+    ia = 'treatiseonhistor00dixo'
+    data = open('test_data/' + ia + '_meta.mrc').read()
+    assert len(data) == int(data[:5])
+    rec = read_edition(MarcBinary(data))
+    rec['source_records'] = ['ia:' + ia]
+    reply = load(rec)
+    assert reply['success'] == True
+    assert reply['edition']['status'] == 'created'
+    e = mock_site.get(reply['edition']['key'])
+    assert e.type.key == '/type/edition'
+
 def test_from_marc_2(mock_site):
     add_languages(mock_site)
     ia = 'roadstogreatness00gall'
@@ -339,6 +352,65 @@ def test_missing_ocaid(mock_site):
     e = mock_site.get(reply['edition']['key'])
     assert e.ocaid == ia
     assert 'ia:' + ia in e.source_records
+
+def test_missing_source_records(mock_site):
+    add_languages(mock_site)
+
+    mock_site.save({
+        'key': '/authors/OL592898A',
+        'name': 'Michael Robert Marrus',
+        'personal_name': 'Michael Robert Marrus',
+        'type': { 'key': '/type/author' }
+    })
+
+    mock_site.save({
+        'authors': [{'author': '/authors/OL592898A', 'type': { 'key': '/type/author_role' }}],
+        'key': '/works/OL16029710W',
+        'subjects': ['Nuremberg Trial of Major German War Criminals, Nuremberg, Germany, 1945-1946', 'Protected DAISY', 'Lending library'],
+        'title': 'The Nuremberg war crimes trial, 1945-46',
+        'type': { 'key': '/type/work' },
+    })
+
+    mock_site.save({
+        "number_of_pages": 276, 
+        "subtitle": "a documentary history", 
+        "series": ["The Bedford series in history and culture"], 
+        "covers": [6649715, 3865334, 173632], 
+        "lc_classifications": ["D804.G42 N87 1997"], 
+        "ocaid": "nurembergwarcrim00marr", 
+        "contributions": ["Marrus, Michael Robert."], 
+        "uri_descriptions": ["Book review (H-Net)"], 
+        "title": "The Nuremberg war crimes trial, 1945-46", 
+        "languages": [{"key": "/languages/eng"}], 
+        "subjects": ["Nuremberg Trial of Major German War Criminals, Nuremberg, Germany, 1945-1946"],
+        "publish_country": "mau", "by_statement": "[compiled by] Michael R. Marrus.", 
+        "type": {"key": "/type/edition"}, 
+        "uris": ["http://www.h-net.org/review/hrev-a0a6c9-aa"],
+        "publishers": ["Bedford Books"], 
+        "ia_box_id": ["IA127618"], 
+        "key": "/books/OL1023483M", 
+        "authors": [{"key": "/authors/OL592898A"}], 
+        "publish_places": ["Boston"], 
+        "pagination": "xi, 276 p. :", 
+        "lccn": ["96086777"], 
+        "notes": {"type": "/type/text", "value": "Includes bibliographical references (p. 262-268) and index."}, 
+        "identifiers": {"goodreads": ["326638"], "librarything": ["1114474"]}, 
+        "url": ["http://www.h-net.org/review/hrev-a0a6c9-aa"], 
+        "isbn_10": ["031216386X", "0312136919"], 
+        "publish_date": "1997", 
+        "works": [{"key": "/works/OL16029710W"}]
+    })
+
+    ia = 'nurembergwarcrim1997marr'
+    src = ia + '_meta.mrc'
+    marc = MarcBinary(open('test_data/' + src).read())
+    rec = read_edition(marc)
+    rec['source_records'] = ['ia:' + ia]
+
+    reply = load(rec)
+    assert reply['success'] == True
+    e = mock_site.get(reply['edition']['key'])
+    assert 'source_records' in e
 
 def test_don_quixote(mock_site):
     return
