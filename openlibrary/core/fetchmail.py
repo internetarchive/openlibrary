@@ -4,7 +4,7 @@ import imaplib
 import logging as Logging
 import logging.config
 import ConfigParser
-import os
+import quopri
 
 import yaml
 import couchdb
@@ -120,7 +120,7 @@ def get_casenote(message):
             logger.warning("This message has no usable payload Types : %s", pieces)
             return "ERROR : Unparseable message received"
         if plain:
-            return plain
+            return quopri.decodestring(plain)
         if html:
             return md.convert(html)
 
