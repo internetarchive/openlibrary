@@ -97,15 +97,21 @@ def update_support_db(author, message, case):
 def get_casenote(message):
     "Try to extract the casenote out of the message"
     md = markdown.Markdown()        
-    if message.get_content_type() == "multipart/related":
+    ctype = message.get_content_type()
+    if ctype == "multipart/related" or ctype == "multipart/signed" or ctype == "multipart/mixed":
+        # Look inside for something we can use.
         for i in message.get_payload():
-            if i.get_content_type() == "multipart/alternative":
+            ctype2 = i.get_content_type()
+            if ctype2 == "multipart/alternative" or ctype2 == "text/plain" or ctype2 == "text/html": 
                 message = i
+
     if message.get_content_type() == "text/plain":
-        return message.get_payload()
+        return quopri.decodestring(message.get_payload())
+
     if message.get_content_type() == "text/html":
         casenote = md.convert(message.get_payload())
         return casenote
+
     if message.get_content_type() == "multipart/alternative":
         # Find something we can use
         plain = html = None
@@ -126,7 +132,11 @@ def get_casenote(message):
 
 def fetch_and_update(imap_conn, db_conn = None):
     for resp in get_new_emails(imap_conn):
-        messageid, message = parse_imap_response(resp)
+        try:
+            messageid, message = parse_imap_response(resp)
+        except Exception,e:
+            logger.warning(" Message parsing failed", exc_info = True)
+            continue
         m = subject_re.search(message['Subject'])
         if m:
             _, caseid = m.groups()
