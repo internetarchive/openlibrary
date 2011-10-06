@@ -13,7 +13,7 @@ import web
 from openlibrary.core import support
 from infogami.utils.markdown import markdown
 
-subject_re = re.compile("^(R[Ee]:)? ?Case #([0-9]+): .*")
+subject_re = re.compile("^.*Case #([0-9]+): .*")
 
 template = """
 
