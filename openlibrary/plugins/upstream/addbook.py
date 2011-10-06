@@ -669,6 +669,26 @@ class authors_autocomplete(delegate.page):
                 d['works'] = []
             d['subjects'] = d.pop('top_subjects', [])
         return to_json(docs)
+
+        
+class work_identifiers(delegate.view):
+    suffix = "identifiers"
+    types = ["/type/edition"]
+
+    def GET(self, doc):
+        return "Hello, vorld"
+
+    def GET_json(self, doc):
+        return dict(name = "Hello, Json")
+    
+    def POST_json(self, doc):
+        return dict(name = "POST, json")
+        
+        
+    
+
+
+
                 
 def setup():
     """Do required setup."""
