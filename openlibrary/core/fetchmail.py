@@ -139,7 +139,7 @@ def fetch_and_update(imap_conn, db_conn = None):
             continue
         m = subject_re.search(message['Subject'])
         if m:
-            _, caseid = m.groups()
+            caseid = m.groups()
             logger.debug(" Updating case %s", caseid)
             try:
                 frm = email.utils.parseaddr(message['From'])[1]
