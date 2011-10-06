@@ -74,20 +74,13 @@ $ library = None
 
 <script type="text/javascript">
 \$(function () {
-    // Take care of form appearing
+    // Make form appear when "add isbn" link is clicked.
     \$("#isbnadd").click(function(ev) {
 	\$(this).parent("p").addClass("hidden")
 	\$("#edit-identifiers").removeClass("hidden");
 	return false;
     });
 
-    //Ajax submit form
-    \$("#edit-identifiers").submit(function(ev) {
-	var url = \$(this).attr("action");
-	var parameters = \$(this).serialize()
-	\$.post(url, parameters);
-	return false;
-    });
 
     });
 
@@ -214,7 +207,7 @@ $else:
         <span class="head">Buy</span>
     </h3>
     <div class="panel">
-      <form id="edit-identifiers" method="POST" action="identifiers.json" class="hidden">
+      <form id="edit-identifiers" method="POST" action="${url() + "/x/identifiers"}" class="hidden">
 	<input type="text" name="isbn" value = ""/>
 	<input type="submit" name="button" value="submit"/>
       </form>
