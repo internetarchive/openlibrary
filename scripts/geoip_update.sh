@@ -2,6 +2,8 @@
 
 # Updates the GeoIP database
 
+set -e
+
 CITY_DATABASE=GeoLiteCity.dat
 CITY_DATABASE_URL=http://geolite.maxmind.com/download/geoip/database/${CITY_DATABASE}.gz
 GEOIP_DIR=`dirname $0`/../usr/local/GeoIP
