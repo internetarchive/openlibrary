@@ -13,6 +13,8 @@ function install_linux_dependencies() {
     packages="build-essential memcached postgresql git-core openjdk-6-jre-headless python-virtualenv python-dev libpq-dev libxslt-dev tzdata lighttpd"
     # additional packages required for installing PIL
     packages="$packages  zlib1g-dev libfreetype6-dev libjpeg62-dev liblcms1-dev"
+    # for IP address based access
+    packages="$packages python-geoip"
     
     apt-get -y install $packages
     
