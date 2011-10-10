@@ -8,7 +8,7 @@ def esc(s):
     return re_html_replace.sub(lambda m: trans[m.group(1)], s)
 
 def esc_sp(s):
-    return esc(s).replace(' ', '&nbsp;')
+    return esc(s).replace(' ', '&nbsp;').replace('\x1b', '<b>[esc]</b>')
 
 class html_record():
     def __init__(self, data):
