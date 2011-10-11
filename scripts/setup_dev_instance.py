@@ -710,7 +710,11 @@ def update_007():
     couchdb.run_tasks(update_design_docs)
 
 def update_008():
+    os.system("mkdir -p usr/local/maxmind-geoip")
+    os.system("wget http://www.archive.org/download/ol_vendor/GeoLiteCity.dat.gz -O usr/local/maxmind-geoip/GeoLiteCity.dat.gz")
+    os.system("gzip -d usr/local/maxmind-geoip/GeoLiteCity.dat.gz")
     os.system("python setup.py develop")
+
 
 
 def get_current_version():
