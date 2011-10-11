@@ -1,0 +1,29 @@
+$def with (page)
+
+def render_description():
+    items = []
+
+    title = page.title
+    if page.subtitle:
+         title += ": " + page.subtitle
+    if page.authors:
+        title += " by " + ", ".join(a.name or "" for a in page.get_authors())
+    items.append(title)
+    
+    if page.edition_count:
+        items.append("%d %s" % (page.edition_count, cond(page.edition_count > 1, "editions", "edition")))
+        
+    if page.first_publish_year:
+        items.append("First published in %s" % page.first_publish_year)
+    
+    subjects = page.get_subjects()
+    if subjects:
+        items.append("Subjects: " + ", ".join(s for s in subjects))
+    if page.subject_places:
+        items.append("Places: " + ", ".join(s for s in page.subject_places))
+    if page.subject_people:
+        items.append("People: " + ", ".join(s for s in page.subject_people))
+    if page.subject_times:
+        items.append("Times: " + ", ".join(s for s in page.subject_times))
+        
+    return "; ".join(items)

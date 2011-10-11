@@ -59,7 +59,9 @@ infogami.config.http_ext_header_uri = "http://openlibrary.org/dev/docs/api"
 # setup special connection with caching support
 import connection
 client._connection_types['ol'] = connection.OLConnection
-infogami.config.infobase_parameters = dict(type="ol")
+
+if not infogami.config.get('infobase_parameters'):
+    infogami.config.infobase_parameters = dict(type="ol")
 
 # set up infobase schema. required when running in standalone mode.
 from openlibrary.core import schema
@@ -789,5 +791,8 @@ def setup():
     setup_logging()
     logger = logging.getLogger("openlibrary")
     logger.info("Application init")
+    
+    from ... import storage
+    storage.setup()
 
 setup()

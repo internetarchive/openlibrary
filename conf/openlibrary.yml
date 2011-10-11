@@ -2,6 +2,12 @@
 
 connection_type: "hybrid"
 
+infobase_parameters:
+    type: "storage"
+    storage_type: "local"
+    root: "static/items"
+    base_url: "/static/items"
+
 infobase_server: "127.0.0.1:7000"
 site: "openlibrary.org"
 
