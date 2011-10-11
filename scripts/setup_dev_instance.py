@@ -14,7 +14,7 @@ import logging
 
 logger = logging.getLogger("bootstrap")
 
-VERSION = 7
+VERSION = 8
 
 CHANGELOG = """
 001 - Initial setup
@@ -24,6 +24,7 @@ CHANGELOG = """
 005 - Account v2
 006 - Add extra couch design docs for tasks and support system
 007 - Added loans design doc to admin database.
+008 - Install OL-GeoIP package
 """
 
 config = None
@@ -707,6 +708,9 @@ def update_007():
     def update_design_docs(couchdb = couchdb):
         couchdb.add_design_doc("admin", "admin/loans")
     couchdb.run_tasks(update_design_docs)
+
+def update_008():
+    os.system("python setup.py develop")
 
 
 def get_current_version():
