@@ -33,6 +33,15 @@ class TestEdition:
         e = models.Edition(MockSite(), "/books/OL1M", data=data)
         assert e.url() == "/books/OL1M/untitled"
         
+    def test_get_ebook_info(self):
+        data = {
+            "key": "/books/OL1M", 
+            "type": {"key": "/type/edition"},
+            "title": "foo"
+        }
+        
+        e = models.Edition(MockSite(), "/books/OL1M", data=data)
+        assert e.get_ebook_info() == {}
 
 class TestAuthor:
     def test_url(self):
