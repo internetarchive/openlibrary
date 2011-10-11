@@ -1,14 +1,14 @@
 from openlibrary.catalog.marc.fast_parse import get_all_tag_lines, translate, split_line
 import re
 
-trans = {'&':'&amp;','<':'&lt;','>':'&gt;','\n':'<br>'}
-re_html_replace = re.compile('([&<>\n])')
+trans = {'&':'&amp;','<':'&lt;','>':'&gt;','\n':'<br>', '\x1b': '<b>[esc]</b>'}
+re_html_replace = re.compile('([&<>\n\x1b])')
 
 def esc(s):
     return re_html_replace.sub(lambda m: trans[m.group(1)], s)
 
 def esc_sp(s):
-    return esc(s).replace(' ', '&nbsp;').replace('\x1b', '<b>[esc]</b>')
+    return esc(s).replace(' ', '&nbsp;')
 
 class html_record():
     def __init__(self, data):
