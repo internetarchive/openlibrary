@@ -72,20 +72,7 @@ $ library = None
 
 </style>
 
-<script type="text/javascript">
-\$(function () {
-    // Make form appear when "add isbn" link is clicked.
-    \$("#isbnadd").click(function(ev) {
-	\$(this).parent("p").addClass("hidden")
-	\$("#edit-identifiers").removeClass("hidden");
-	return false;
-    });
 
-
-    });
-
-
-</script>
 
 <div class="Tools">
 $ collection = set()
@@ -207,10 +194,10 @@ $else:
         <span class="head">Buy</span>
     </h3>
     <div class="panel">
-      <form id="edit-identifiers" method="POST" action="${url() + "/x/identifiers"}" class="hidden">
-	<input type="text" name="isbn" value = ""/>
-	<input type="submit" name="button" value="submit"/>
-      </form>
+      <!-- <form id="edit-identifiers" method="POST" action="${url() + "/x/identifiers"}" class="hidden"> -->
+      <!-- 	<input type="text" name="isbn" value = ""/> -->
+      <!-- 	<input type="submit" name="button" value="submit"/> -->
+      <!-- </form> -->
         <p><a id="isbnadd" href="$edit_url">Add an ISBN</a> <span class="smaller">to link to booksellers</span></p>
     </div>
     </div>
