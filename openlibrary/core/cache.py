@@ -286,9 +286,11 @@ class MemcacheCache(Cache):
     @cached_property
     def memcache(self):
         servers = config.get("memcache_servers", [])
-        return olmemcache.Client(servers)
+        return olmemcache.Client(servers) if servers else None
     
     def get(self, key):
+        if not self.memcache:
+            return None
         key = web.safestr(key)
         stats.begin("memcache.get", key=key)
         value = self.memcache.get(key)
@@ -296,6 +298,8 @@ class MemcacheCache(Cache):
         return value and simplejson.loads(value)
 
     def set(self, key, value, expires=0):
+        if not self.memcache:
+            return None
         key = web.safestr(key)
         value = simplejson.dumps(value)
         stats.begin("memcache.set", key=key)
@@ -304,6 +308,8 @@ class MemcacheCache(Cache):
         return value
 
     def add(self, key, value, expires=0):
+        if not self.memcache:
+            return None
         key = web.safestr(key)
         value = simplejson.dumps(value)
         stats.begin("memcache.add", key=key)
@@ -312,6 +318,8 @@ class MemcacheCache(Cache):
         return value
         
     def delete(self, key):
+        if not self.memcache:
+            return None
         key = web.safestr(key)
         stats.begin("memcache.delete", key=key)
         value = self.memcache.delete(key)
