@@ -62,6 +62,17 @@ $if isbn_10 and not asin:
     $ asin = isbn_10
 
 $ library = None
+<style type="text/css">
+#edit-identifiers { 
+                    font-size: 75%;
+                    }
+.hidden { 
+          display:none;
+ }
+
+</style>
+
+
 
 <div class="Tools">
 $ collection = set()
@@ -183,7 +194,11 @@ $else:
         <span class="head">Buy</span>
     </h3>
     <div class="panel">
-        <p><a href="$edit_url">Add an ISBN</a> <span class="smaller">to link to booksellers</span></p>
+      <!-- <form id="edit-identifiers" method="POST" action="${url() + "/x/identifiers"}" class="hidden"> -->
+      <!-- 	<input type="text" name="isbn" value = ""/> -->
+      <!-- 	<input type="submit" name="button" value="submit"/> -->
+      <!-- </form> -->
+        <p><a id="isbnadd" href="$edit_url">Add an ISBN</a> <span class="smaller">to link to booksellers</span></p>
     </div>
     </div>
 

@@ -353,6 +353,50 @@ def test_missing_ocaid(mock_site):
     assert e.ocaid == ia
     assert 'ia:' + ia in e.source_records
 
+def test_extra_author(mock_site):
+    add_languages(mock_site)
+
+    mock_site.save({
+        "name": "Hubert Howe Bancroft",
+        "death_date": "1918.",
+        "alternate_names": ["HUBERT HOWE BANCROFT", "Hubert Howe Bandcroft"], 
+        "key": "/authors/OL563100A", 
+        "birth_date": "1832", 
+        "personal_name": "Hubert Howe Bancroft", 
+        "type": {"key": "/type/author"}, 
+    })
+
+    mock_site.save({
+        "title": "The works of Hubert Howe Bancroft",
+        "covers": [6060295, 5551343],
+        "first_sentence": {"type": "/type/text", "value": "When it first became known to Europe that a new continent had been discovered, the wise men, philosophers, and especially the learned ecclesiastics, were sorely perplexed to account for such a discovery."},
+        "subject_places": ["Alaska", "America", "Arizona", "British Columbia", "California", "Canadian Northwest", "Central America", "Colorado", "Idaho", "Mexico", "Montana", "Nevada", "New Mexico", "Northwest Coast of North America", "Northwest boundary of the United States", "Oregon", "Pacific States", "Texas", "United States", "Utah", "Washington (State)", "West (U.S.)", "Wyoming"], 
+        "excerpts": [{"excerpt": "When it first became known to Europe that a new continent had been discovered, the wise men, philosophers, and especially the learned ecclesiastics, were sorely perplexed to account for such a discovery."}], 
+        "first_publish_date": "1882", 
+        "key": "/works/OL3421434W",
+        "authors": [{"type": {"key": "/type/author_role"}, "author": {"key": "/authors/OL563100A"}}],
+        "subject_times": ["1540-1810", "1810-1821", "1821-1861", "1821-1951", "1846-1850", "1850-1950", "1859-", "1859-1950", "1867-1910", "1867-1959", "1871-1903", "Civil War, 1861-1865", "Conquest, 1519-1540", "European intervention, 1861-1867", "Spanish colony, 1540-1810", "To 1519", "To 1821", "To 1846", "To 1859", "To 1867", "To 1871", "To 1889", "To 1912", "Wars of Independence, 1810-1821"],
+        "type": {"key": "/type/work"},
+        "subjects": ["Antiquities", "Archaeology", "Autobiography", "Bibliography", "California Civil War, 1861-1865", "Comparative Literature", "Comparative civilization", "Courts", "Description and travel", "Discovery and exploration", "Early accounts to 1600", "English essays", "Ethnology", "Foreign relations", "Gold discoveries", "Historians", "History", "Indians", "Indians of Central America", "Indians of Mexico", "Indians of North America", "Languages", "Law", "Mayas", "Mexican War, 1846-1848", "Nahuas", "Nahuatl language", "Oregon question", "Political aspects of Law", "Politics and government", "Religion and mythology", "Religions", "Social life and customs", "Spanish", "Vigilance committees", "Writing", "Zamorano 80", "Accessible book", "Protected DAISY"]
+    })
+
+    ia = 'workshuberthowe00racegoog'
+    src = ia + '_meta.mrc'
+    marc = MarcBinary(open('test_data/' + src).read())
+    rec = read_edition(marc)
+    rec['source_records'] = ['ia:' + ia]
+
+    reply = load(rec)
+    assert reply['success'] == True
+
+    w = mock_site.get(reply['work']['key'])
+
+    reply = load(rec)
+    assert reply['success'] == True
+    w = mock_site.get(reply['work']['key'])
+    assert len(w['authors']) == 1
+
+
 def test_missing_source_records(mock_site):
     add_languages(mock_site)
 

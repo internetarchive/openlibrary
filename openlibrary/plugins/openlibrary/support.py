@@ -40,16 +40,12 @@ class contact(delegate.page):
                                    url               = url,
                                    assignee          = config.get("support_case_default_address","mary@openlibrary.org"))
 
+        # Send an email to the creator of the case
         subject = "Case #%s: %s"%(c.caseno, topic)
         message = render_template("email/support_case", c)
         web.sendmail(config.get("support_case_control_address","support@openlibrary.org"), 
                      email, subject, message)
 
-        subject = "Case #%s created: %s"%(c.caseno, topic)
-        notification = render_template("email/case_notification", c)
-        web.sendmail(config.get("support_case_control_address","support@openlibrary.org"),
-                     config.get("support_case_notification_address","info@openlibrary.org"),
-                     subject, notification)
         return render_template("email/case_created", c)
 
 
