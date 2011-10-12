@@ -121,12 +121,20 @@ class Connection(client.Connection):
     def permission(self, sitename, data):
         return {"write": True, "admin": True}
         
+    def _trim_doc(self, doc):
+        """Removed empty values from the document.
+        """
+        def is_empty(v):
+            return v is None or v == [] or v == {} or (isinstance(v, basestring) and v.strip() == "")
+        return dict((k, v) for k, v in doc.items() if not is_empty(v))
+        
     def save(self, sitename, key, data):
         if isinstance(data, dict):
             # save_many calls this method with data as dict
             doc = data
         else:
             doc = simplejson.loads(data)
+        doc = self._trim_doc(doc)
         
         _comment = doc.pop("_comment", None)
         _action = doc.pop("_action", None)
