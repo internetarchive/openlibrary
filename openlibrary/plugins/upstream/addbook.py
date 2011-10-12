@@ -669,6 +669,37 @@ class authors_autocomplete(delegate.page):
                 d['works'] = []
             d['subjects'] = d.pop('top_subjects', [])
         return to_json(docs)
+
+        
+class work_identifiers(delegate.view):
+    suffix = "identifiers"
+    types = ["/type/edition"]
+
+    def POST(self, edition):
+        saveutil = DocSaveHelper()
+        i = web.input(isbn = "")
+        isbn = i.get("isbn")
+        # Need to do some simple validation here. Perhaps just check if it's a number?
+        if len(isbn) == 10:
+            typ = "ISBN 10"
+            data = [{'name': u'isbn_10', 'value': isbn}]
+        elif len(isbn) == 13:
+            typ = "ISBN 13"
+            data = [{'name': u'isbn_13', 'value': isbn}]
+        else:
+            add_flash_message("error", "The ISBN number you entered was not valid")
+            raise web.redirect(web.ctx.path)
+        if edition.works:
+            work = edition.works[0]
+        else:
+            work = None
+        edition.set_identifiers(data)
+        saveutil.save(edition)
+        saveutil.commit(comment="Added an %s identifier."%typ, action="edit-book")
+        add_flash_message("info", "Thank you very much for improving that record!")
+        raise web.redirect(web.ctx.path)
+        
+
                 
 def setup():
     """Do required setup."""
