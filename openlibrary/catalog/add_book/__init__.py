@@ -376,8 +376,7 @@ def load(rec):
     w = None
     e = web.ctx.site.get(match)
     if e.works:
-        w = e.works[0].dict()
-        assert w and isinstance(w, dict)
+        w = e.works[0]
         work_created = False
     else:
         work_created = True
@@ -423,7 +422,7 @@ def load(rec):
                 add_to_work = True
                 add_to_edition = True
             else:
-                if not any(i['author'] == a['key'] for i in work_authors):
+                if not any(i['author'] == a for i in work_authors):
                     add_to_work = True
                 if all(i['key'] != a['key'] for i in edition_authors):
                     add_to_edition = True
@@ -498,8 +497,7 @@ def load(rec):
         edits.append(e_dict)
     if need_work_save:
         reply['work']['status'] = 'created' if work_created else 'modified'
-        assert w and isinstance(w, dict)
-        edits.append(w)
+        edits.append(w.dict())
     if edits:
         edits_str = `edits`
         for i in edits:
