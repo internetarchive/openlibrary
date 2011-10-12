@@ -3,7 +3,7 @@
 import web
 import cache
 import iprange
-import GeoIP
+import geoip
 from infogami.utils import delegate
 
 def _get_libraries(site=None):
@@ -96,12 +96,8 @@ def get_library():
         if lib:
             web.ctx.library = web.ctx.site.new(lib['key'], lib)
         else:
-            gi = GeoIP.open('/usr/local/GeoIP/GeoLiteCity.dat', GeoIP.GEOIP_STANDARD)
-            try:
-                record = gi.record_by_addr(web.ctx.ip)
-                lib = d_region.get(record['region'])
-            except TypeError:
-                print 'geoip lookup failed for ' + web.ctx.ip
+            region = geoip.get_region(web.ctx.ip)
+            lib = d_region.get(region)
             web.ctx.library = lib and web.ctx.site.new(lib['key'], lib)
     return web.ctx.library
 
