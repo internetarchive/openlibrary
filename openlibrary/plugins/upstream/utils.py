@@ -443,7 +443,7 @@ def _get_edition_config():
     
 def _get_default_edition_config():
     from .. import openlibrary
-    path = os.path.join(os.path.dirname(openlibrary.__file__), "pages", "config_edtion.json")
+    path = os.path.join(os.path.dirname(openlibrary.__file__), "pages", "config_edition.page")
     return eval(open(path).read())
 
 from openlibrary.core.olmarkdown import OLMarkdown
