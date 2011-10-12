@@ -7,8 +7,7 @@ import random
 import urllib
 import xml.etree.ElementTree as etree
 import datetime
-import gzip
-import StringIO
+import os
 import logging
 
 from infogami import config
@@ -20,7 +19,6 @@ from infogami.infobase.client import Thing, Changeset, storify
 
 from openlibrary.core.helpers import commify, parse_datetime
 from openlibrary.core.middleware import GZipMiddleware
-from openlibrary.core import cache
     
 class MultiDict(DictMixin):
     """Ordered Dictionary that can store multiple values.
@@ -317,11 +315,6 @@ def get_history(page):
     
     return h
     
-    if 'history_v2' in web.ctx.features:
-        return get_history_v2(page)
-    else:
-        return get_history_v1(page)    
-    
 @public
 def get_version(key, revision):
     try:
@@ -442,11 +435,16 @@ def _get_edition_config():
     
     This is is cached because fetching and creating the Thing object was taking about 20ms of time for each book request.
     """
-    thing = web.ctx.site.get('/config/edition')
+    thing = web.ctx.site.get('/config/edition') or web.ctx.site.new("/config/edition", _get_default_edition_config())
     classifications = [web.storage(t.dict()) for t in thing.classifications if 'name' in t]
     identifiers = [web.storage(t.dict()) for t in thing.identifiers if 'name' in t]
     roles = thing.roles
     return web.storage(classifications=classifications, identifiers=identifiers, roles=roles)
+    
+def _get_default_edition_config():
+    from .. import openlibrary
+    path = os.path.join(os.path.dirname(openlibrary.__file__), "pages", "config_edtion.json")
+    return eval(open(path).read())
 
 from openlibrary.core.olmarkdown import OLMarkdown
 def get_markdown(text, safe_mode=False):
