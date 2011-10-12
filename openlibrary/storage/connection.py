@@ -18,6 +18,35 @@ class Connection(client.Connection):
         client.Connection.__init__(self)
         self.storage = storage
         self.itemid_prefix = itemid_prefix
+        
+        self.primitive_docs = self.load_primitive_docs()
+        
+    def load_primitive_docs(self):
+        docs = {}
+        def add(doc):
+            if isinstance(doc, list):
+                for d in doc:
+                    add(d)
+            else:
+                docs[doc['key']] = doc
+                
+        def add_type(key):
+            add({"type": {"key": "/type/type"}, "key": key})
+        
+        # Add primitive types
+        types = ["/type/type", "/type/object", "/type/string", "/type/text", "/type/int", "/type/boolean", "/type/datetime"]
+        for t in types:
+            add_type(t)
+        
+        root = os.path.join(os.path.dirname(openlibrary.__file__), "types")
+        for f in sorted(os.listdir(root)):
+            path  = os.path.join(root, f)
+            # the type can either be python dict or JSON
+            g = {"true": True, "false": False}
+            doc = eval(open(path).read(), g)
+            add(doc)
+        
+        return docs
     
     def request(self, sitename, path, method="GET", data=None):
         
@@ -66,18 +95,9 @@ class Connection(client.Connection):
         logger.debug("get %s", data)
 
         key = data['key']
-        # We don't want to store types as items. Read them from repo instead
-        if key.startswith("/type/"):
-            typename = key.split("/")[-1]
-            path = os.path.join(os.path.dirname(openlibrary.__file__), "types", typename + ".type")
-            if os.path.exists(path):
-                # the type can either be python dict or JSON
-                g = {"true": True, "false": False}
-                return eval(open(path).read(), g)
-        # elif key.startswith("/config/edition"):
-        #     path = os.path.join(os.path.dirname(openlibrary.__file__), "pages", "config_edition.page")
-        #     if os.path.exists(path):
-        #         return eval(open(path).read())
+        
+        if key in self.primitive_docs:
+            return self.primitive_docs[key]
         else:
             itemid = self.key2itemid(key)
             item = itemid and self.storage.find_item(itemid)
@@ -163,6 +183,7 @@ def create_storage(type, **params):
     else:
         raise Exception("Unknown storage type %r" % type)
 
+@web.memoize
 def create_storage_conn(storage_type="local", **params):
     storage = create_storage(storage_type, **params)
     return Connection(storage)
