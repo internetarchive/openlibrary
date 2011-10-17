@@ -9,18 +9,18 @@ $if ctx.user and ctx.user.is_admin():
         $:macros.databarView(page)
 
         <div class="superNav">
-            <a href="/libraries">Libraries</a> / 
-            
+            <a href="/libraries">Libraries</a> /
+
             $if ctx.user and ctx.user.is_admin():
                 <span class="adminOnly">$:link("/libraries/dashboard", _("Dashboard"))</span>
         </div>
         <h1>$page.name</h1>
-            
+
     </div>
     <div id="contentBody">
 
         <table id="libraryInfo">
-	    $ status = page.status or "onhold"	
+	    $ status = page.status or "onhold"
 	        <tr>
 		    <td class="label">$_("Status")</td>
 		    <td>
@@ -37,7 +37,7 @@ $if ctx.user and ctx.user.is_admin():
 	    <tr>
 	        <td class="label">$_("Country")</td>
 		<td>$page.country</td>
-	    </tr>	
+	    </tr>
 	    <tr>
 		<td class="label">$_("Contact Person")</td>
 		<td>$page.contact_person</td>
@@ -58,6 +58,10 @@ $if ctx.user and ctx.user.is_admin():
 		<td class="label">$_("IP Ranges")</td>
 		<td style="white-space: pre;">$page.ip_ranges</td>
 	    </tr>
+	    <tr>
+		<td class="label">$_("Lending Region")</td>
+		<td style="white-space: pre;">$page.lending_region</td>
+	    </tr>
         </table>
 
         <h2>Notes</h2>
@@ -69,7 +73,7 @@ $if ctx.user and ctx.user.is_admin():
             <form name="notes" class="olform" method="POST" action="$page.url('/notes')">
                 <div class="formElement">
                     <div class="label">
-                        <label for="note">$_("Leave a Note")</label><br />        
+                        <label for="note">$_("Leave a Note")</label><br />
                     </div>
                     <div class="input">
                         <textarea name="note" id="note" class="markdown" rows="5" cols="80" style="width:900px;"></textarea>
@@ -82,7 +86,7 @@ $if ctx.user and ctx.user.is_admin():
                 </div>
             </form>
         </div>
-			
+
         $if page.addresses:
             <h3>Locations</h3>
             <table class="branches">
