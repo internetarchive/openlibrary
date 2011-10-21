@@ -345,7 +345,6 @@ def load(rec):
         raise RequiredField('source_records')
     if isinstance(rec['source_records'], basestring):
         rec['source_records'] = [rec['source_records']]
-
    
     edition_pool = build_pool(rec)
     if not edition_pool:
@@ -405,7 +404,7 @@ def load(rec):
     assert e['source_records']
 
     edits = []
-    if rec.get('authors'):
+    if False and rec.get('authors'):
         reply['authors'] = []
         east = east_in_by_statement(rec)
         work_authors = list(w.get('authors', []))
