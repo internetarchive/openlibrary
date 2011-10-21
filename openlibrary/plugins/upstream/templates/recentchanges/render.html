@@ -12,7 +12,7 @@ $def call_template(name, change):
 $ changes = recentchanges(dict(query, limit=limit, offset=(page-1) * limit))
 $var length = len(changes)
 
-$if "ip" in query:
+$if "ip" in query and ctx.user and ctx.user.is_admin():
     <div class="adminOnly">
         <a href="/admin/ip/$query['ip']">Admin view</a>
     </div>
