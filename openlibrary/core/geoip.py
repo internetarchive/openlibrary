@@ -1,3 +1,4 @@
+from infogami import config
 import GeoIP
 
 def get_region(ip):
@@ -12,4 +13,5 @@ def get_region(ip):
 
     return region
 
-gi = GeoIP.open('/usr/local/maxmind-geoip/GeoLiteCity.dat', GeoIP.GEOIP_MEMORY_CACHE)
+geoip_db = config.get("geoip_database", '/usr/local/maxmind-geoip/GeoLiteCity.dat')
+gi = GeoIP.open(geoip_db, GeoIP.GEOIP_MEMORY_CACHE)
