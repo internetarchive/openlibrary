@@ -153,10 +153,19 @@ re_h1_error = re.compile('<center><h1>(.+?)</h1></center>')
 class snippets(delegate.page):
     path = '/search/inside/(.+)'
     def GET(self, ia):
+        def find_doc(ia, host, path):
+            abbyy_gz = '_abbyy.gz'
+            files_xml = 'http://%s%s/%s_files.xml' % (host, path, ia)
+            for e in etree.parse(files_xml).getroot():
+                if e.attrib['name'].endswith(abbyy_gz)
+                    return e.attrib['name'][:-len(abbyy_gz)]
+
         def find_matches(ia, q):
             q = escape_q(q)
             host, ia_path = ia_lookup('/download/' + ia)
-            url = 'http://' + host + '/fulltext/inside.php?item_id=' + ia + '&doc=' + ia + '&path=' + ia_path + '&q=' + web.urlquote(q)
+            doc = find_doc(ia, host, path) or ia
+
+            url = 'http://' + host + '/fulltext/inside.php?item_id=' + ia + '&doc=' + doc + '&path=' + ia_path + '&q=' + web.urlquote(q)
             ret = urllib.urlopen(url).read().replace('"matches": [],\n}', '"matches": []\n}')
             try:
                 return simplejson.loads(ret)
