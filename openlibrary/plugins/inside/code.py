@@ -157,7 +157,7 @@ class snippets(delegate.page):
             q = escape_q(q)
             host, ia_path = ia_lookup('/download/' + ia)
             url = 'http://' + host + '/fulltext/inside.php?item_id=' + ia + '&doc=' + ia + '&path=' + ia_path + '&q=' + web.urlquote(q)
-            ret = urllib.urlopen(url).read()
+            ret = urllib.urlopen(url).read().replace('"matches": [],\n}', '"matches": []\n}')
             try:
                 return simplejson.loads(ret)
             except:
