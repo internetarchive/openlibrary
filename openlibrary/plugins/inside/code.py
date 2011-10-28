@@ -157,9 +157,9 @@ class snippets(delegate.page):
             q = escape_q(q)
             host, ia_path = ia_lookup('/download/' + ia)
             url = 'http://' + host + '/fulltext/inside.php?item_id=' + ia + '&doc=' + ia + '&path=' + ia_path + '&q=' + web.urlquote(q)
-            ret = urllib.urlopen(url)
+            ret = urllib.urlopen(url).read()
             try:
-                return simplejson.load(ret)
+                return simplejson.loads(ret)
             except:
                 m = re_h1_error.search(ret)
                 return { 'error': web.htmlunquote(m.group(1)) }
