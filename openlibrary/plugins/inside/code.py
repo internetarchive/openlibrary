@@ -156,7 +156,8 @@ class snippets(delegate.page):
         def find_doc(ia, host, ia_path):
             abbyy_gz = '_abbyy.gz'
             files_xml = 'http://%s%s/%s_files.xml' % (host, ia_path, ia)
-            for e in etree.parse(files_xml).getroot():
+            xml_data = urllib.urlopen(files_xml)
+            for e in etree.parse(xml_data).getroot():
                 if e.attrib['name'].endswith(abbyy_gz):
                     return e.attrib['name'][:-len(abbyy_gz)]
 
