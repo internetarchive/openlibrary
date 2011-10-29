@@ -157,7 +157,7 @@ class snippets(delegate.page):
             abbyy_gz = '_abbyy.gz'
             files_xml = 'http://%s%s/%s_files.xml' % (host, path, ia)
             for e in etree.parse(files_xml).getroot():
-                if e.attrib['name'].endswith(abbyy_gz)
+                if e.attrib['name'].endswith(abbyy_gz):
                     return e.attrib['name'][:-len(abbyy_gz)]
 
         def find_matches(ia, q):
