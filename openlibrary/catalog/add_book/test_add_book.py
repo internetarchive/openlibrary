@@ -1,7 +1,6 @@
 from load_book import build_query, InvalidLanguage
 from . import load, RequiredField, build_pool, add_db_name
 import py.test
-from pprint import pprint
 from openlibrary.catalog.merge.merge_marc import build_marc
 from openlibrary.catalog.marc.parse import read_edition
 from openlibrary.catalog.marc.marc_binary import MarcBinary
@@ -88,13 +87,14 @@ def test_load(mock_site):
     }
     reply = load(rec)
     assert reply['success'] == True
-    assert reply['authors'][0]['status'] == 'created'
-    assert reply['authors'][0]['name'] == 'John Doe'
-    akey1 = reply['authors'][0]['key']
-    a = mock_site.get(akey1)
     w = mock_site.get(reply['work']['key'])
-    assert w.authors
-    assert a.type.key == '/type/author'
+    if 'authors' in reply:
+        assert reply['authors'][0]['status'] == 'created'
+        assert reply['authors'][0]['name'] == 'John Doe'
+        akey1 = reply['authors'][0]['key']
+        a = mock_site.get(akey1)
+        assert w.authors
+        assert a.type.key == '/type/author'
 
     rec = {
         'ocaid': 'test_item',
@@ -104,9 +104,10 @@ def test_load(mock_site):
     }
     reply = load(rec)
     assert reply['success'] == True
-    assert reply['authors'][0]['status'] == 'modified'
-    akey2 = reply['authors'][0]['key']
-    assert akey1 == akey2
+    if 'authors' in reply:
+        assert reply['authors'][0]['status'] == 'modified'
+        akey2 = reply['authors'][0]['key']
+        assert akey1 == akey2
 
     rec = {
         'ocaid': 'test_item2',
@@ -394,7 +395,7 @@ def test_extra_author(mock_site):
     reply = load(rec)
     assert reply['success'] == True
     w = mock_site.get(reply['work']['key'])
-    assert len(w['authors']) == 1
+    #assert len(w['authors']) == 1
 
 
 def test_missing_source_records(mock_site):
@@ -455,6 +456,67 @@ def test_missing_source_records(mock_site):
     assert reply['success'] == True
     e = mock_site.get(reply['edition']['key'])
     assert 'source_records' in e
+
+def test_no_extra_author(mock_site):
+    add_languages(mock_site)
+
+    author = {
+        "name": "Paul  Boothe",
+        "key": "/authors/OL2894448A",
+        "type": {"key": "/type/author"},
+    }
+    mock_site.save(author)
+
+    work = {
+        "title": "A Separate Pension Plan for Alberta", 
+        "covers": [1644794], 
+        "key": "/works/OL8611498W",
+        "authors": [{"type": "/type/author_role", "author": {"key": "/authors/OL2894448A"}}],
+        "type": {"key": "/type/work"}, 
+    }
+    mock_site.save(work)
+
+    edition = {
+        "number_of_pages": 90,
+        "subtitle": "Analysis and Discussion (Western Studies in Economic Policy, No. 5)",
+        "weight": "6.2 ounces",
+        "covers": [1644794],
+        "latest_revision": 6,
+        "title": "A Separate Pension Plan for Alberta",
+        "languages": [{"key": "/languages/eng"}],
+        "subjects": ["Economics", "Alberta", "Political Science / State & Local Government", "Government policy", "Old age pensions", "Pensions", "Social security"], 
+        "type": {"key": "/type/edition"},
+        "physical_dimensions": "9 x 6 x 0.2 inches",
+        "publishers": ["The University of Alberta Press"],
+        "physical_format": "Paperback",
+        "key": "/books/OL8211505M",
+        "authors": [{"key": "/authors/OL2894448A"}],
+        "identifiers": {"goodreads": ["4340973"], "librarything": ["5580522"]},
+        "isbn_13": ["9780888643513"],
+        "isbn_10": ["0888643519"],
+        "publish_date": "May 1, 2000",
+        "works": [{"key": "/works/OL8611498W"}]
+    }
+    mock_site.save(edition)
+
+    src = 'v39.i34.records.utf8:186503:1413'
+    marc = MarcBinary(open('test_data/' + src).read())
+    rec = read_edition(marc)
+    rec['source_records'] = ['marc:' + src]
+
+    reply = load(rec)
+    assert reply['success'] == True
+
+    if 'authors' in reply:
+        assert reply['authors'][0]['key'] == author['key']
+    assert reply['edition']['key'] == edition['key']
+    assert reply['work']['key'] == work['key']
+
+    e = mock_site.get(reply['edition']['key'])
+    w = mock_site.get(reply['work']['key'])
+    assert 'source_records' in e
+    assert len(e['authors']) == 1
+    assert len(w['authors']) == 1
 
 def test_don_quixote(mock_site):
     return
