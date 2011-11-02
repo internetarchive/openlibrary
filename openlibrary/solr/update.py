@@ -9,7 +9,12 @@ solr_subjects = 'ol-solr:8983'
 
 def subject_count(field, subject):
     key = re_escape.sub(r'\\\1', str_to_key(subject)).encode('utf-8')
-    data = urlopen('http://%s/solr/works/select?indent=on&wt=json&rows=0&q=%s_key:%s' % (solr_works, field, key)).read()
+    url = 'http://%s/solr/works/select?indent=on&wt=json&rows=0&q=%s_key:%s' % (solr_works, field, key)
+    try:
+        data = urlopen(url).read()
+    except:
+        print url
+        raise
     try:
         ret = simplejson.loads(data)
     except:
