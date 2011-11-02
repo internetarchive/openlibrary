@@ -26,20 +26,40 @@ def setup_env():
     sys.path.append('conf')
 
 def start_server():
+    import _init_path
     args = sys.argv[1:]
     
     if len(args) < 1 or sys.argv[0] in ['-h', '--help']:
         print >> sys.stderr, "USAGE: %s configfile [subcommand] [arguments]" % (sys.argv[0])
         sys.exit(1)
 
-    import _init_path
+    configfile, args = args[0], args[1:]
+    load_infogami(configfile)
+
+    import infogami
+    infogami.run(args)
+
+def load_infogami(config_file):
+    import web
     import infogami
     from infogami import config
-        
+    from infogami.utils import delegate
+
     config.plugin_path += ['openlibrary.plugins']
     config.site = "openlibrary.org"
     
-    infogami.main(*args)
+    infogami.load_config(config_file)
+    setup_infobase_config(config_file)
+        
+def setup_infobase_config(config_file):
+    """Reads the infoabse config file and assign it to config.infobase.
+    The config_file is used as base to resolve relative path, if specified in the config.
+    """
+    from infogami import config
+    if config.get("infobase_config_file"):
+        dir = os.path.dirname(config_file)
+        path = os.path.join(dir, config.infobase_config_file)
+        config.infobase = yaml.safe_load(open(path).read())
 
 class BaseWSGIServer(Application):
     def __init__(self, config_file):
@@ -51,20 +71,11 @@ class BaseWSGIServer(Application):
         
     def load(self):
         import _init_path
-        import web
-        import infogami
-        from infogami import config
-        from infogami.utils import delegate
+        load_infogami(self.config_file)
 
-        web.config.debug = False
-        config.plugin_path += ['openlibrary.plugins']
-        config.site = "openlibrary.org"
-        
-        infogami.load_config(self.config_file)
-        self.setup_infobase_config(config)
-        
+        import infogami
+        import web
         infogami._setup()
-        
         wsgi_app = self.get_wsgi_app()
         # setup middleware for handling /static
         wsgi_app = web.httpserver.StaticMiddleware(wsgi_app)

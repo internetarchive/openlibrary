@@ -34,6 +34,11 @@ def trigger_subevents(event):
     """
     if event.name in ['save', 'save_many']:
         changeset = event.data['changeset']
+
+        author = changeset['author'] or changeset['ip']
+        keys = [c['key'] for c in changeset['changes']]
+        logger.info("Edit by %s, changeset_id=%s, changes=%s", author, changeset["id"], keys)
+        
         eventer.trigger("infobase.edit", changeset)
     
 @eventer.bind("infobase.edit")
@@ -55,9 +60,9 @@ class MemcacheInvalidater:
         """
         methods = [
             self.find_data,
-            self.find_history,
             self.find_lists,
-            self.find_edition_counts
+            self.find_edition_counts,
+            self.find_libraries
         ]
         
         keys = set()        
@@ -72,34 +77,43 @@ class MemcacheInvalidater:
         """
         return ["d" + c['key'] for c in changeset['changes']]
         
-    def find_history(self, changeset):
-        """Returns the history entries effected by this change.
-        """
-        return ["history" + c['key'] for c in changeset['changes']]
-        
     def find_lists(self, changeset):
         """Returns the list entires effected by this change.
+        
+        When a list is modified, the data of the user and the data of each
+        seed are invalidated.
         """
         docs = changeset['docs'] + changeset['old_docs']
-        return set(k for doc in docs for k in self.find_lists_for_doc(doc))
-        
-    def find_lists_for_doc(self, doc):
-        if doc and doc['type']['key'] == '/type/list':
-            return ["lists" + self.seed_to_key(seed) for seed in doc.get("seeds", [])]
-        else:
-            return []
+        rx = web.re_compile("(/people/[^/]*)/lists/OL\d+L")
+        for doc in docs:
+            match = doc and rx.match(doc['key'])
+            if match:
+                yield "d" + match.group(1) # d/users/foo
+                for seed in doc.get('seeds', []):
+                    yield "d" + self.seed_to_key(seed)
         
     def find_edition_counts(self, changeset):
         """Returns the edition_count entries effected by this change."""
         docs = changeset['docs'] + changeset['old_docs']
-        return set(k for doc in docs for k in self.find_edition_counts_for_doc(doc))
-        
+        return set(k for doc in docs 
+                     for k in self.find_edition_counts_for_doc(doc))
+    
     def find_edition_counts_for_doc(self, doc):
+        """Returns the memcache keys to be invalided for edition_counts effected by editing this doc.
+        """
         if doc and doc['type']['key'] == '/type/edition':
-            return ["edition_count" + w['key'] for w in doc.get("works", [])] + ["d" + w['key'] for w in doc.get("works", [])]
+            return ["d" + w['key'] for w in doc.get("works", [])]
         else:
             return []
-        
+            
+    def find_libraries(self, changeset):
+        """When any of the library page is changed, invalidate all library entries.
+        """
+        if any(c['key'].startswith("/libraries/") for c in changeset['changes']):
+            return ['inlibrary.libraries-hash', 'inlibrary.libraries']
+        else:
+            return []
+            
     def seed_to_key(self, seed):
         """Converts seed to key.
         

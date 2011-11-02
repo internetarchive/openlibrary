@@ -1,0 +1,555 @@
+$def with (page)
+
+$var title: Publisher: $page.name
+
+$ subject_list = [('subjects', 20), ('places', 20), ('people', 10), ('times', 10)]
+
+<div id="scrollHere"></div>
+
+<div id="contentHead">
+    <h1>
+        $page.name
+        <span class="count" id="coversCount">
+            <em>Publisher</em> - <strong><span>$sprintf(ungettext("%s work", "%s works", page.work_count), commify(page.work_count))</span></strong>
+            $if page.ebook_count > 0:
+                / <a href="javascript:;" class="ebookcount"><span id="ebooks">$sprintf(ungettext("%s ebook", "%s ebooks", page.ebook_count), commify(page.ebook_count))</span></a>
+            $else:
+                / 0 ebooks
+            <span class="clickdata"></span>
+        </span>
+        
+        <span class="count hidden smaller chartZoom"><a href="javascript:;" class="resetSelection small">$_("Clear this selection")</a></span>
+    </h1>
+    <p class="collapse sansserif">
+    <span class="tools brown">
+        <img src="/images/icons/icon_sort.png" alt="Sorting by" width="9" height="11" style="margin-right:10px;"/>
+        Sort by:
+        <span id="sortByNew" style="display:none">
+        <a href="javascript:;" class="sortEditionCount"># of Editions</a>
+        |
+        <strong class="lightgreen">Most Recent Publish Date</strong>
+        </span>
+        <span id="sortByEdition">
+        <strong class="lightgreen"># of Editions</strong>
+        |
+        <a href="javascript:;" class="sortFirstPublish">Most Recent Publish Date</a>
+        </span>
+
+    </span>
+    </p>
+</div>
+
+<script type="text/javascript">
+<!--
+var page = new Subject($:json_encode(page));
+//-->
+</script>
+
+$:render_template("lib/covers", page)
+
+<div id="contentMeta" style="padding-top:0;">
+
+	<div class="head">
+	    <h2 style="margin-bottom:0px!important;">
+	        $_("Publishing History")
+                <span class="shift">$:_('This is a chart to show the when this publisher published books. Along the X axis is time, and on the y axis is the count of editions published. <a href="#subjectRelated">Click here to skip the chart</a>.')</span>
+	        <span class="count hidden chartZoom">&nbsp;<a href="javascript:;" class="resetSelection small">$_("Reset chart")</a> $_("or continue zooming in.")</span>
+	        <span class="count chartUnzoom">&nbsp;$_("This graph charts editions from this publisher over time. Click to view a single year, or drag across a range.")</span>
+	    </h2>
+	</div>
+	
+<script type="text/javascript">
+<!--
+\$().ready(function() {    
+    var data = [{data: page.publishing_history}];
+    var options = { 
+       series: {
+            bars: { 
+                show: true, 
+                fill: 0.6, 
+                color: "#615132", 
+                align: "center"
+            },
+            points: { 
+                show: true 
+            },
+            color: "#615132"
+        },
+        grid: { 
+            hoverable: true,
+            clickable: true,
+            autoHighlight: true,
+            tickColor: "#d9d9d9", 
+            borderWidth: 1, 
+            borderColor: "#d9d9d9",
+            backgroundColor: "#fff"
+        },
+        xaxis: { tickDecimals: 0 },
+        yaxis: { tickDecimals: 0 },
+        selection: { mode: "xy", color: "#00636a" },
+        crosshair: {
+            mode: "xy",
+            color: "rgba(000, 099, 106, 0.4)",
+            lineWidth: 1
+        }
+    };
+        
+    var placeholder = \$("#chartPubHistory");
+    function showTooltip(x, y, contents) {
+        \$('<div id="chartLabel">' + contents + '</div>').css( {
+            position: 'absolute',
+            display: 'none',
+            top: y + 12,
+            left: x + 12,
+            border: '1px solid #615132',
+            padding: '2px',
+            'background-color': '#fffdcd',
+            color: '#615132',
+            'font-size': '11px',
+            opacity: 0.90
+        }).appendTo("body").customFadeIn(200);
+    };
+    var previousPoint = null;
+    placeholder.bind("plothover", function (event, pos, item) {
+        \$("#x").text(pos.x.toFixed(0));
+        \$("#y").text(pos.y.toFixed(0));
+        if (item) {
+            if (previousPoint != item.datapoint) {
+                previousPoint = item.datapoint;                
+                \$("#chartLabel").remove();
+                var x = item.datapoint[0].toFixed(0),
+                    y = item.datapoint[1].toFixed(0);
+                if (y == 1) {
+                    showTooltip(item.pageX, item.pageY,
+                                y + " $_('edition in') " + x);
+                } else {
+                    showTooltip(item.pageX, item.pageY,
+                                y + " $_('editions in') " + x);
+                };            
+			}
+        }
+        else {
+            \$("#chartLabel").remove();
+            previousPoint = null;            
+        }
+    });
+    placeholder.bind("plotclick", function (event, pos, item) {
+        \$.scrollTo( \$('#scrollHere'), 800);
+        if (page.getPageCount() > 0) {\$("#coversNone").hide();};
+        \$("#coversLoading").show();
+        \$(".jcarousel-prev").hide();
+        \$(".jcarousel-next").hide();
+        
+        if (item) {
+            plot.unhighlight();
+            var x = item.datapoint[0].toFixed(0),
+                y = item.datapoint[1].toFixed(0);
+            page.addFilter({"published_in": item.datapoint[0]}, reset);            
+            plot.highlight(item.series,item.datapoint);
+        } 
+        else {
+            page.addFilter({"published_in": page._published_in}, reset);
+            plot.unhighlight();
+        }
+    });
+
+    placeholder.bind("plotselected", function (event, ranges) {
+        plot = \$.plot(placeholder, data,
+            \$.extend(true, {}, options, {
+                xaxis: { min: ranges.xaxis.from, max: ranges.xaxis.to },
+                yaxis: { min: ranges.yaxis.from, max: ranges.yaxis.to }
+            })
+        );
+
+        var yearFrom = ranges.xaxis.from.toFixed(0);
+        var yearTo = ranges.xaxis.to.toFixed(0);
+        \$.scrollTo( \$('#scrollHere'), 800);
+        if (page.getPageCount() > 0) {\$("#coversNone").hide();};
+        \$("#coversLoading").show();
+        \$(".jcarousel-prev").hide();
+        \$(".jcarousel-next").hide();
+		page.addFilter({"published_in": yearFrom + "-" + yearTo}, reset);
+    });
+    var plot = \$.plot(placeholder, data, options);
+    var dateFrom = plot.getAxes().xaxis.min.toFixed(0);
+    var dateTo = plot.getAxes().xaxis.max.toFixed(0);
+
+    \$(".resetSelection").click(function(){
+        \$.plot(placeholder, data, options);
+        if (page.getPageCount() > 0) {\$("#coversNone").hide();};
+	\$("#coversLoading").show();
+        \$(".jcarousel-prev").hide();
+        \$(".jcarousel-next").hide();
+	page.reset(reset);
+    });
+
+	//var renderPublishers = createTemplate("#publishers-template");
+	//var renderAuthors = createTemplate("#authors-template");
+	//var renderSubjects = createTemplate("#subjects-template");
+	
+    page._published_in = null;	
+    
+    function resetAndReplot() {
+        \$.plot(placeholder, [{data: page.publishing_history}], options);
+        reset();
+    }
+    
+    function resetCounts() {
+        var hash = {};
+        var counts = \$("<span></span>");
+        
+        var x = sprintf(ungettext("%s work", "%s works", page.work_count), commify(page.work_count));
+        var y = sprintf(ungettext("%s ebook", "%s ebooks", page.ebook_count), commify(page.ebook_count));
+        
+        if (page.has_fulltext == "true") {
+            counts.append('<a class="bookcount" href="javascript:;"></a>').find("a:last").text(x);
+            counts.append(" / ");            
+            counts.append('<strong></strong>').find("strong:last").text(y);
+            
+            hash.ebooks = "true";
+        }
+        else {
+            counts.append('<strong></strong>').find("strong:last").text(x);
+            counts.append(" / ");
+            if (page.ebook_count > 0) {
+                counts.append('<a class="ebookcount" href="javascript:;"></a>').find("a:last").text(y);
+            } else {
+                counts.append('<span class="ebookcount"></span>').find("span.ebookcount:last").text(y);
+            }
+            hash.ebooks = null;
+        }
+        counts.append("&nbsp;");
+        counts.append('<span class="clickdata"></span>');
+        
+		var yearFrom, yearTo;		
+		if (page.filter.published_in) {
+			var y = "" + page.filter.published_in;
+			if (y.indexOf("-") > 0) {
+				var tokens = y.split("-");
+				yearFrom = tokens[0];
+				yearTo = tokens[1];
+				page._published_in = page.filter.published_in;
+			}
+			else {
+				yearFrom = yearTo = y;
+			}
+
+			hash.published_in = y;
+	
+	        \$(".chartUnzoom").hide();
+            \$(".chartZoom").show();		
+		}
+		else {
+		    page._published_in = null;
+		    
+			yearFrom = page.publishing_history[0][0];
+			yearTo = page.publishing_history[page.publishing_history.length-1][0];
+			
+            hash.published_in = null;
+	
+            \$(".chartZoom").hide();
+            \$(".chartUnzoom").show();		
+		}
+		
+		\$("#coversCount").html(counts.html());
+
+		if (yearFrom == yearTo) {
+	        \$(".clickdata").text(sprintf(_("published in %s."), yearFrom));
+		}
+		else {
+	        \$(".clickdata").text(sprintf(_("published between %s & %s."), yearFrom, yearTo-1));
+		}
+		
+		set_hash(hash);
+    }
+    
+    function resetCarousel() {
+	\$("#coversCarousel").html("");
+	page.coverCarousel.scroll(1, false);
+	page.coverCarousel.size(page.getPageCount());
+	page.coverCarousel.reload();
+        \$("#coversNone").hide();
+        if (page.getPageCount() == 0) {
+            \$("#coversLoading").customFadeOut();
+            \$("#coversNone").customFadeIn();
+            if (page.has_fulltext == "true") {
+                \$("span.bookType").text("eBooks");
+            } else {
+                \$("span.bookType").text("editions");
+            };
+            \$("span.bookSubject").text("$page.name");
+        };
+    }
+    
+    function resetFacets() {
+		\$("#resultsPublishers div.unordered").html(renderPublishers(page.publishers));
+		\$("#resultsAuthors div.unordered").html(renderAuthors(page.authors));
+		
+		$for s, limit in subject_list:
+			\$("#subjects-$s").html(renderSubjects(page.${s}.slice(0, $limit))); 
+    }
+    
+    window.resetCarousel = resetCarousel;
+    window.resetCounts = resetCounts;
+	
+	function reset() {
+	    resetCarousel();
+	    resetCounts();
+	    resetFacets();
+
+        if (page.getPageCount() > 0) {\$("#coversNone").hide();};
+        \$("#coversLoading").customFadeOut();
+        \$(".jcarousel-prev").customFadeIn();
+        \$(".jcarousel-next").customFadeIn();
+        \$("#coversCount").animate({backgroundColor:'#ffa337'},500).animate({backgroundColor:'#fff'},2000);
+	}
+
+    if (jQuery.support.opacity) {
+        \$(".chartYaxis").css({'top' : '60px', 'left' : '-60px'})
+    } else {
+        \$(".chartYaxis").css({'top' : '0', 'left' : '0'})
+    };
+
+    if (dateFrom == (dateTo - 1)) {
+        \$(".clickdata").text("$_('published in') " + dateFrom);
+    } else {
+        \$(".clickdata").text("$_('published between') " + dateFrom + " & " + (dateTo-1) + ".");
+    };
+    
+    // ebooks
+    
+    \$("a.ebookcount").live("click", function() {
+        page.setFulltext("true");
+        resetCarousel();
+        resetCounts();
+        \$("#coversCount strong").animate({backgroundColor:'#ffa337'},500).animate({backgroundColor:'#fff'},2000);
+    })
+
+    \$("a.bookcount").live("click", function() {
+        page.setFulltext("false");
+        resetCarousel();
+        resetCounts();
+        \$("#coversCount strong").animate({backgroundColor:'#ffa337'},500).animate({backgroundColor:'#fff'},2000);
+    })
+
+    // sort
+
+    \$("a.sortEditionCount").live("click", function() {
+        page.setSort("editions");
+        \$("#sortByNew").hide()
+        \$("#sortByEdition").show()
+        resetCarousel();
+    })
+
+    \$("a.sortFirstPublish").live("click", function() {
+        page.setSort("new");
+        \$("#sortByNew").show()
+        \$("#sortByEdition").hide()
+        resetCarousel();
+    })
+
+
+    // handle hash
+    
+    function handle_ebooks(hash) {
+        if (hash.ebooks == "true") {
+            page.setFulltext("true");
+            resetCarousel();
+            resetCounts();
+        }
+    }
+    
+    function handle_page(hash) {
+    	\$.log(["handle_page", _hash]);
+        
+    	var index = parseInt(hash.page);
+    	if(index && index > 0) {
+    		page.coverCarousel.scroll(index, false);
+    	}
+    }
+	
+	function handle_published_in(hash) {	    
+    	if (!hash.published_in) 
+    	    return;
+    	    
+	    var yearFrom, yearTo;
+    
+		var y = hash.published_in;
+		if (y.indexOf("-") > 0) {
+			var tokens = y.split("-");
+			yearFrom = tokens[0];
+			yearTo = tokens[1];
+			
+			var _options = \$.extend({}, options, {
+			    xaxis: {min: yearFrom, max: yearTo}
+			});
+		}
+		else {
+			yearFrom = yearTo = y;
+			var _options = options;
+		}
+		
+		if (parseInt(yearFrom) && parseInt(yearTo)) {
+		    page.addFilter({"published_in": hash.published_in}, function() {
+		        reset();
+		        handle_page(hash);
+                var plot = \$.plot(placeholder, data, _options);
+		    });
+		}
+	}
+	
+	handle_ebooks(_hash);
+	handle_published_in(_hash);
+	handle_page(_hash);
+});
+
+function parse_hash() {
+    try {
+    	var hash = document.location.hash || "#";
+    	var tokens = hash.substr(1).split("&");
+    	var d = {};
+    	for (var i in tokens) {
+    		if (tokens[i]) {
+    			var kv = tokens[i].split("=");
+    			d[kv[0]] = kv[1];
+    	    }
+    	}
+    	return d;
+    }
+    catch (error) {
+        // Work-around for IE weirdness
+        return {};
+    }
+}
+
+function set_hash(data) {
+	var d = parse_hash();	
+	
+	for (var k in data) {
+		if (data[k])
+			d[k] = data[k];
+		else
+			delete d[k];
+	}
+	
+	var tokens = [];
+	for (var k in d) {
+		tokens[tokens.length] = k + "=" + d[k];
+	}
+	
+    var hash = "#" + tokens.join("&");
+    var current_hash = document.location.hash || "#";
+    
+    if (hash == current_hash)
+        return;
+	document.location.hash = hash;
+}
+
+var _hash = parse_hash();
+//-->
+</script>
+
+    <div class="chart" style="width:898px;height:140px;">
+        <div id="chartPubHistory" class="thisChart" style="width:898px;height:140px;">
+            <noscript>$_("You need to have JavaScript turned on to see the nifty chart!")</noscript>
+        </div>
+        <div class="chartYaxis" style="width:140px;">$_("Editions Published")</div>
+        <div class="chartXaxis">$_("Year of Publication")</div>
+    </div>
+
+    <div class="clearfix"></div>
+
+        <div class="head" id="subjectRelated">
+            <h2>$_("Common Subjects")
+                <span class="count">        <a href="/search?${page.subject_type}_facet=$page.name.replace('&','%26')">Search for books published by $page.name</a></span>
+            </h2>
+        </div>
+
+	$jsdef renderSubjects(subjects):
+	    $if len(subjects) > 0:
+	        <span class="subject">
+	        $for s in subjects:
+	            <a href="$s.key">$s.name</a>$cond(loop.last, '', ',')
+	        </span>
+	    $else:
+	        <span class="title"><em>$_("None found.")</em></span>
+	
+    $for s, limit in subject_list:
+        <div class="contentQuarter">
+            <h6 class="black collapse uppercase">$s</h6>
+			<div class="subjects" id="subjects-$s">
+				$:renderSubjects(page[s][:limit])
+			</div>
+        </div>
+        $if s != 'times':
+            <div class="contentSpacer"></div>
+            
+    <div class="clearfix"></div>
+
+$jsdef renderAuthors(authors):
+    $for a in page.authors:
+        <span class="tag">
+            <a href="$a.key" title="$_('See more books by, and learn about, this author')">$a.name</a>,
+        </span> 
+        <span class="count">$sprintf(ungettext("%s book", "%s books", a.count), commify(a.count))</span>
+        <br/>
+<div id="resultsAuthors">
+    <div class="head">
+        <h3>$_("Authors")</h3>
+        <div class="smallest lightgreen sansserif">$_("published most by this publisher")</div>
+    </div>
+    <div class="unordered">
+        $:renderAuthors(page.authors)
+    </div>
+</div>
+<div class="spacer"></div>
+
+$ publishers_feature_enabled = "publishers" in ctx.features
+
+<script type="text/javascript">
+<!--
+    $ page_key = page.key[page.key.rindex('/')+1:]
+    var page_key = "$page_key";
+    var publishers_feature_enabled = $:json_encode(publishers_feature_enabled);
+//-->
+</script>
+$jsdef renderPublishers(publishers):
+    $for p in publishers:
+        <span class="tag">
+            $if publishers_feature_enabled:
+                <a href="$p.key">$p.name</a>,
+            $else:
+                <a href="/search?${page.subject_type}_facet=$page.name.replace('&','%26')&amp;publisher_facet=$p.name.replace('"', '\\"').replace('&','%26')" title="$_('Get more information about this publisher')">$p.name</a>,
+        </span>
+        <span class="count">$sprintf(ungettext("%s edition", "%s editions", p.count), commify(p.count))</span>
+         <br/>
+<div id="resultsPublishers">
+    <div class="head">
+        <h3>$_("Related Publishers")</h3>
+        <div class="smallest lightgreen sansserif">$_("that have published the same works")</div>
+    </div>
+    <div class="unordered">
+        $:renderPublishers(page.publishers[:20])
+    </div>
+</div>
+
+$if "lists" in ctx.features:    
+    <style type="text/css">
+    #resultsAuthors,#resultsPublishers,#subjectLists {float:left;width:282px!important;}
+    </style>
+    <div class="spacer"></div>
+    <div id="subjectLists">
+        $:render_template("lists/widget", page)
+    </div>
+
+<div class="section clearfix"></div>
+
+<form action="/search/publishers" class="olform">
+    <h2 class="collapse"><label for="searchSubjects">Publisher Search</label>  <span class="sansserif grey smaller">Try a keyword.</span></h2>
+    <p>
+        <input type="text" name="q" id="searchSubjects" size="100" class="larger" value="" />
+        <button type="submit" class="larger">$_('Search')</button>
+    </p>
+</form>
+
+</div>

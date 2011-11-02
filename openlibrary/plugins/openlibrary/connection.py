@@ -10,6 +10,8 @@ import simplejson
 default_cache_prefixes = ["/type/", "/languages/", "/index.", "/about", "/css/", "/js/", "/config/"]
 
 class ConnectionMiddleware:
+    response_type = "json"
+    
     def __init__(self, conn):
         self.conn = conn
         
@@ -377,6 +379,8 @@ def _update_infobase_config():
     """
     # update infobase configuration
     from infogami.infobase import server
+    if not config.get("infobase"):
+        config.infobase = {}
     # This sets web.config.db_parameters
     server.update_config(config.infobase)
             
@@ -408,12 +412,12 @@ def OLConnection():
     if config.get('memcache_servers'):
         conn = MemcacheMiddleware(conn, config.get('memcache_servers'))
     
+    if config.get('upstream_to_www_migration'):
+        conn = MigrationMiddleware(conn)
+
     cache_prefixes = config.get("cache_prefixes", default_cache_prefixes)
     if cache_prefixes :
         conn = LocalCacheMiddleware(conn, cache_prefixes)
-
-    if config.get('upstream_to_www_migration'):
-        conn = MigrationMiddleware(conn)
 
     return conn
 

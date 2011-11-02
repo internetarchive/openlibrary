@@ -1,10 +1,8 @@
 
-import string
 import web
-import urllib, urllib2
+import urllib2
 import simplejson
 import re
-from lxml import etree
 from collections import defaultdict
 
 from infogami import config
@@ -19,7 +17,7 @@ from openlibrary.plugins.search.code import SearchProcessor
 from openlibrary.plugins.worksearch.code import works_by_author, sorted_work_editions
 from openlibrary.utils.solr import Solr
 
-from utils import get_coverstore_url, MultiDict, parse_toc, parse_datetime, get_edition_config
+from utils import get_coverstore_url, MultiDict, parse_toc, get_edition_config
 import account
 import borrow
 
@@ -424,7 +422,7 @@ class Edition(models.Edition):
             for i, a in enumerate(authors):
                 result['author%s' % (i + 1)] = a.name 
         return result
-        
+
 class Author(models.Author):
     def get_photos(self):
         return [Image(self._site, "a", id) for id in self.photos if id > 0]
@@ -535,7 +533,7 @@ class Work(models.Work):
             return web.ctx.site.get_many(["/books/" + olid for olid in editions])
         else:
             return []
-
+        
     first_publish_year = property(lambda self: self._solr_data.get("first_publish_year"))
         
     def get_edition_covers(self):
@@ -637,6 +635,10 @@ class User(models.User):
             
     def get_loan_count(self):
         return len(borrow.get_loans(self))
+        
+    def get_loans(self):
+        self.update_loan_status()
+        return borrow.get_loans(self)
         
     def update_loan_status(self):
         """Update the status of this user's loans."""

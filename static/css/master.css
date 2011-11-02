@@ -3198,7 +3198,7 @@ body#plain .borrow table {border-bottom: none;}
 #borrowTable table div.date {font-size:.75em;color:#666;}
 #borrowTable table td.expires {text-align:center;padding:15px;white-space:nowrap;}
 #borrowTable table td.returns {background-color: #f5f5f5;font-size:0.8125em;color:#333;text-align:center;padding:20px 15px;}
-#borrowTable table td.user, #borrowTable table td.action {text-align:center;font-size:.75em;padding:15px;}
+#borrowTable table td.user, #borrowTable table td.what, #borrowTable table td.action {text-align:center;font-size:.75em;padding:15px;}
 #borrowTable table td.actions {padding:15px 0;font-size:.75em;text-align:center;}
 
 body#plain #borrowTable {margin: 60px 0 25px;}

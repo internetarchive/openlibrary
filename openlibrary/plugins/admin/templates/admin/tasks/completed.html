@@ -1,19 +1,21 @@
 $def with (completed = [])
     $for task in completed:
-    <tr>
+    <tr class="$task['status'].lower()">
       <td><a href="/admin/tasks/$task['_id']">$task['_id'][:8]...</a></td>
-      <td>$(task['command'])</td>
-      <td>$(task['status'])</td>
-      <td>--</td>
-      <td>--</td>
-      <td>$task['started_at'] ($datestr(task['finished_at']))</td>
-      <td>$task['finished_at'] ($datestr(task['finished_at']))</td>
+      <td><a href="/admin/tasks?command=$(task['command'])">$(task['command'])</a></td>
+      <td>$task['enqueued_at'] </td>
+      <td>$task['started_at'] </td>
+      <td>$task['finished_at'] </td>
       <td>
 	<ul>
-	  $for k in task['keys']:
-	    <li>$k</li>
+	  $for k in task['keys'][:5]:
+	    <li><a href="/admin/inspect$k">$k</a></li>
+	  $if len(task['keys']) >= 5:
+	    <a href="/admin/tasks/$task['_id']#keysaffected">...</a>
 	</ul>
       </td>
-      <th>
+      <td>
+      <a href="/recentchanges/2010/01/01/foo/$task['changeset']">$task['changeset']</a>
+      </td>
     </tr>
 

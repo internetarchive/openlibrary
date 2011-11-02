@@ -1,13 +1,13 @@
 $def with (page)
 
 $ advanced = (
-$    ('title', _("Title"),_("like 'Clockwork Orange'")),
-$    ('author', _("Author"),_("like 'Tom Clancy'")),
-$    ('isbn', "ISBN",_("ISBN-10 or ISBN-13")),
-$    ('subject', _("Subject"),_("like 'butterflies' or 'cooking'")),
-$    ('place', _("Place"),_("like 'London' or 'heaven'")),
-$    ('person', _("Person"),_("like 'Winston Churchill'")),
-$    ('publisher', _("Publisher"),_("like 'Houghton Mifflin'")),
+$    ('title', _("Title"),_("")),
+$    ('author', _("Author"),_("")),
+$    ('isbn', "ISBN",_("")),
+$    ('subject', _("Subject"),_("")),
+$    ('place', _("Place"),_("")),
+$    ('person', _("Person"),_("")),
+$    ('publisher', _("Publisher"),_("")),
 $ )
 
             <div id="formScroll"><div id="scrollBtm"></div></div>
@@ -16,7 +16,7 @@ $ )
             <form method="get" action="/search" class="siteSearch">
                 <div id="bottomOptions" class="searchOptions hidden">
                 <div class="searchPlus">
-                    <a href="/search/inside">Search inside books instead</a>?
+                    <a href="/search/inside">Full Text Search</a>?
                 </div>
                 <fieldset class="home">
                     <legend>More Search Options</legend>
@@ -60,7 +60,7 @@ $ )
                         </div>
                         <div class="searchCheckbox">
                             <input name="has_fulltext" type="checkbox" value="true" id="ftokensbtm"/> 
-                            <label for="ftokensbtm">$_("Only show eBooks")</label>
+                            <label for="ftokensbtm">$_("Show only eBooks")</label>
                         </div>
                     </div>
                 </div>

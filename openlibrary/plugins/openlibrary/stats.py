@@ -25,8 +25,8 @@ def evaluate_and_store_stat(name, stat, summary):
     try:
         f = filters[stat.filter]
     except KeyError:
-        l.critical("Filter %s not registered", stat.filter)
-        raise
+        l.warning("Filter %s not registered", stat.filter)
+        return
     try:
         if f(**stat):
             if stat.has_key("time"):
@@ -128,3 +128,5 @@ def setup():
     filters"""
     register_filter("all", stats_filters.all)
     register_filter("url", stats_filters.url)
+    register_filter("loggedin", stats_filters.loggedin)
+    register_filter("not_loggedin", stats_filters.not_loggedin)

@@ -503,16 +503,23 @@ $jsdef renderAuthors(authors):
     </div>
 </div>
 <div class="spacer"></div>
+
+$ publishers_feature_enabled = "publishers" in ctx.features
+
 <script type="text/javascript">
 <!--
     $ page_key = page.key[page.key.rindex('/')+1:]
     var page_key = "$page_key";
+    var publishers_feature_enabled = $:json_encode(publishers_feature_enabled);
 //-->
 </script>
 $jsdef renderPublishers(publishers):
     $for p in publishers:
         <span class="tag">
-            <a href="/search?${page.subject_type}_facet=$page.name.replace('&','%26')&amp;publisher_facet=$p.name.replace('"', '\\"').replace('&','%26')" title="$_('Get more information about this publisher')">$p.name</a>,
+            $if publishers_feature_enabled:
+                <a href="$p.key">$p.name</a>,
+            $else:
+                <a href="/search?${page.subject_type}_facet=$page.name.replace('&','%26')&amp;publisher_facet=$p.name.replace('"', '\\"').replace('&','%26')" title="$_('Get more information about this publisher')">$p.name</a>,
         </span>
         <span class="count">$sprintf(ungettext("%s edition", "%s editions", p.count), commify(p.count))</span>
          <br/>

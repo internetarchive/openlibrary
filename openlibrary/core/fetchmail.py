@@ -4,7 +4,7 @@ import imaplib
 import logging as Logging
 import logging.config
 import ConfigParser
-import os
+import quopri
 
 import yaml
 import couchdb
@@ -13,7 +13,7 @@ import web
 from openlibrary.core import support
 from infogami.utils.markdown import markdown
 
-subject_re = re.compile("^(R[Ee]:)? ?Case #([0-9]+): .*")
+subject_re = re.compile("^.*Case #([0-9]+): .*")
 
 template = """
 
@@ -88,7 +88,7 @@ def get_new_emails(conn):
 
 def update_support_db(author, message, case):
     try: 
-        case.add_worklog_entry(author, message)
+        case.add_worklog_entry(author, unicode(message, errors="ignore"))
         case.change_status("new", author)
         logger.info("  Updated case")
     except support.InvalidCase:
@@ -97,11 +97,21 @@ def update_support_db(author, message, case):
 def get_casenote(message):
     "Try to extract the casenote out of the message"
     md = markdown.Markdown()        
+    ctype = message.get_content_type()
+    if ctype == "multipart/related" or ctype == "multipart/signed" or ctype == "multipart/mixed":
+        # Look inside for something we can use.
+        for i in message.get_payload():
+            ctype2 = i.get_content_type()
+            if ctype2 == "multipart/alternative" or ctype2 == "text/plain" or ctype2 == "text/html": 
+                message = i
+
     if message.get_content_type() == "text/plain":
-        return message.get_payload()
+        return quopri.decodestring(message.get_payload())
+
     if message.get_content_type() == "text/html":
         casenote = md.convert(message.get_payload())
         return casenote
+
     if message.get_content_type() == "multipart/alternative":
         # Find something we can use
         plain = html = None
@@ -116,16 +126,20 @@ def get_casenote(message):
             logger.warning("This message has no usable payload Types : %s", pieces)
             return "ERROR : Unparseable message received"
         if plain:
-            return plain
+            return quopri.decodestring(plain)
         if html:
             return md.convert(html)
 
 def fetch_and_update(imap_conn, db_conn = None):
     for resp in get_new_emails(imap_conn):
-        messageid, message = parse_imap_response(resp)
+        try:
+            messageid, message = parse_imap_response(resp)
+        except Exception,e:
+            logger.warning(" Message parsing failed", exc_info = True)
+            continue
         m = subject_re.search(message['Subject'])
         if m:
-            _, caseid = m.groups()
+            caseid = m.groups()
             logger.debug(" Updating case %s", caseid)
             try:
                 frm = email.utils.parseaddr(message['From'])[1]

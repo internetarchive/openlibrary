@@ -11,16 +11,22 @@ support_db = None
 
 class cases(object):
     def GET(self, typ = "new"):
+        current_user = web.ctx.site.get_user()
         if not support_db:
             return render_template("admin/cases", None, None, True, False)
-        i = web.input(sort="status", desc = "false")
+        i = web.input(sort="status", desc = "false", all = "false")
         sortby = i['sort']
         desc = i['desc']
         cases = support_db.get_all_cases(typ, summarise = False, sortby = sortby, desc = desc)
-        summary = support_db.get_all_cases(typ, summarise = True)
+        if i['all'] == "false":
+            cases = (x for x in cases if x.assignee == current_user.get_email())
+            summary = support_db.get_all_cases(typ, summarise = True, user = current_user.get_email())
+        else:
+            summary = support_db.get_all_cases(typ, summarise = True)
         total = sum(int(x) for x in summary.values())
         desc = desc == "false" and "true" or "false"
         return render_template("admin/cases", summary, total, cases, desc)
+    POST = GET
 
 class case(object):
     def GET(self, caseid):
@@ -47,12 +53,12 @@ class case(object):
         action = form.get("button","")
         {"SEND REPLY" : self.POST_sendreply,
          "UPDATE"     : self.POST_update,
-         "CLOSE CASE" : self.POST_closecase}[action](form,case)
+         "CLOSE CASE" : self.POST_closecase,
+         "REOPEN CASE": self.POST_reopencase}[action](form,case)
         date_pretty_printer = lambda x: x.strftime("%B %d, %Y")
         last_email = case.history[-1]['text']
         last_email = "\n".join("> %s"%x for x in textwrap.wrap(last_email))
         admins = ((x.get_email(), x.get_name(), x.get_email() == case.assignee) for x in web.ctx.site.get("/usergroup/admin").members)
-        add_flash_message("info", "Case updated!")
         return render_template("admin/case", case, last_email, admins, date_pretty_printer)
     
     def POST_sendreply(self, form, case):
@@ -70,6 +76,8 @@ class case(object):
         if email_to:
             message = render_template("admin/email", case, casenote)
             web.sendmail(config.get("support_case_control_address","support@openlibrary.org"), email_to, subject, message)
+        add_flash_message("info", "Reply sent")
+        raise web.redirect("/admin/support")
 
     def POST_update(self, form, case):
         casenote = form.get("casenote2", False)
@@ -87,6 +95,7 @@ class case(object):
         else:
             case.add_worklog_entry(by = by,
                                    text = text)
+        add_flash_message("info", "Case updated")
 
 
     def POST_closecase(self, form, case):
@@ -96,6 +105,17 @@ class case(object):
         case.add_worklog_entry(by = by,
                                text = text)
         case.change_status("closed", by)
+        add_flash_message("info", "Case closed")
+        raise web.redirect("/admin/support")
+
+    def POST_reopencase(self, form, case):
+        user = web.ctx.site.get_user()
+        by = user.get_email()
+        text = "Case reopened"
+        case.add_worklog_entry(by = by,
+                               text = text)
+        case.change_status("new", by)
+        add_flash_message("info", "Case reopened")
 
 def setup():
     global support_db

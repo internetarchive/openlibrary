@@ -762,7 +762,7 @@ def setup_logging():
     try:
         logconfig = infogami.config.get("logging_config_file")
         if logconfig and os.path.exists(logconfig):
-            logging.config.fileConfig(logconfig)
+            logging.config.fileConfig(logconfig, disable_existing_loggers=False)
     except Exception, e:
         print >> sys.stderr, "Unable to set logging configuration:", str(e)
         raise
@@ -778,6 +778,9 @@ def setup():
     support.setup()
     events.setup()
     status.setup()
+    
+    import api
+    api.setup()
     
     from stats import stats_hook
     delegate.app.add_processor(web.unloadhook(stats_hook))

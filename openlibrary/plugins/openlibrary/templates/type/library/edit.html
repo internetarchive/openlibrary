@@ -16,10 +16,10 @@ $var title: $title
 </div>
 
 <script type="text/javascript">
-function check_ip_ranges() {
+function validate_library_data() {
     var retval = true;
     var error_msg = "";
-    
+
     var re_ip = /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$$/;
     var re_range = /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}-\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$$/;
     var re_cidr = /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/\d{1,2}$$/;
@@ -28,27 +28,38 @@ function check_ip_ranges() {
     var re_wild = /^\d{1,3}\.\d{1,3}\.\d{1,3}(-\d{1,3})?\.\*$$/;
     var re_wild2 = /^\d{1,3}\.\d{1,3}\.\*\.\*$$/;
     var re_three = /^(\d{1,3}\.){3}$$/;
-    
-    ips = jQuery("#ip_ranges").val().split('\n');
+
+    var ips = jQuery("#ip_ranges").val().split('\n');
     jQuery.each(ips, function(index, value) {
         value = jQuery.trim(value.split('#')[0])
         if ("" == value) {
             return true;
         }
-        
+
         if (re_comma.test(value)) {
             retval = false;
             error_msg = "The IP address " + value + " contains a comma, which is not allowed.";
-            return false;        
+            return false;
         }
-        
+
         if (!(re_ip.test(value) | re_range.test(value) | re_cidr.test(value) | re_hyphen.test(value) | re_wild.test(value) | re_wild2.test(value) | re_three.test(value))) {
             retval = false;
             error_msg = "The IP address/range " + value + " does not match one of the forms that OL accepts.";
             return false;
         }
     });
-    
+
+
+    if (retval) {
+        var ip_text = jQuery.trim(jQuery("#ip_ranges").val());
+        var lending_region = jQuery("#lending_region").val();
+
+        if (("" != ip_text) && ("" != lending_region)) {
+            retval = false;
+            error_msg = "You can either provide IP address ranges or a Lending Region, but not both!";
+        }
+    }
+
     if (!retval) {
         alert(error_msg);
     }
@@ -56,20 +67,20 @@ function check_ip_ranges() {
 }
 </script>
 
-<form name="edit" class="olform" method="post" action="" onsubmit="return check_ip_ranges();">
+<form name="edit" class="olform" method="post" action="" onsubmit="return validate_library_data();">
 
 <div id="contentBody">
-    
+
 <table id="libraryInfo">
     $# pending pages will not have revision field
-    $if not page.revision: 
+    $if not page.revision:
         <tr>
             <td class="label"><label for="key">$_("Page Key")</label></td>
             <td><input type="text" name="key" id="key" value="$page.key"/></td>
         </tr>
     <tr>
         <td class="label"><label for="status">$_("Status")</label></td>
-        <td>$:Dropdown(name="status", args=[("approved", "Live"), ("onhold", "Pending")], value=page.status or "onhold", id="status").render()
+        <td>$:Dropdown(name="status", args=[("approved", "Live"), ("onhold", "Pending"), ("frozen", "Frozen")], value=page.status or "onhold", id="status").render()
             <span class="small grey">$_("When the library is ready, shift status to Live.")</span></td>
     </tr>
     <tr>
@@ -83,7 +94,7 @@ function check_ip_ranges() {
     <tr>
         <td class="label"><label for="country">$_("Country")</label> </td>
         <td><input type="text" name="country" id="title" value="$page.country"/></td>
-    </tr>	
+    </tr>
     <tr>
         <td class="label"><label for="contact_person">$_("Contact Person")</label></td>
         <td><input type="text" name="contact_person" id="contact_person" value="$page.contact_person"/></td>
@@ -105,22 +116,28 @@ function check_ip_ranges() {
             <span class="smaller grey">$:_("208.70.27.190<br />208.70.24.0/21<br />208.70.24.0-208.70.31.255<br />208.70.24.*<br />208.70.*.*<br />208.70.20-30.*<br />208.70.24.10-50<br />208.70.24.<br />Add comment using #: 208.70.27.190 #This is the IA main IP")</span></td>
         <td><textarea name="ip_ranges" id="ip_ranges" rows="10" style="height:150px;">$page.ip_ranges</textarea></td>
     </tr>
+    <tr>
+        $ regions = [("", "None"), ("AB", "Alberta"), ("BC", "British Columbia"), ("MB", "Manitoba"), ("NB", "New Brunswick"), ("NL", "Newfoundland"), ("NS", "Nova Scotia"), ("NU", "Nunavut"), ("ON", "Ontario"), ("PE", "Prince Edward Island"), ("QC", "Quebec"), ("SK", "Saskatchewan"), ("NT", "Northwest Territories"), ("YT", "Yukon Territory"), ("AA", "Armed Forces Americas"), ("AE", "Armed Forces Europe,  Middle East,  & Canada"), ("AK", "Alaska"), ("AL", "Alabama"), ("AP", "Armed Forces Pacific"), ("AR", "Arkansas"), ("AS", "American Samoa"), ("AZ", "Arizona"), ("CA", "California"), ("CO", "Colorado"), ("CT", "Connecticut"), ("DC", "District of Columbia"), ("DE", "Delaware"), ("FL", "Florida"), ("FM", "Federated States of Micronesia"), ("GA", "Georgia"), ("GU", "Guam"), ("HI", "Hawaii"), ("IA", "Iowa"), ("ID", "Idaho"), ("IL", "Illinois"), ("IN", "Indiana"), ("KS", "Kansas"), ("KY", "Kentucky"), ("LA", "Louisiana"), ("MA", "Massachusetts"), ("MD", "Maryland"), ("ME", "Maine"), ("MH", "Marshall Islands"), ("MI", "Michigan"), ("MN", "Minnesota"), ("MO", "Missouri"), ("MP", "Northern Mariana Islands"), ("MS", "Mississippi"), ("MT", "Montana"), ("NC", "North Carolina"), ("ND", "North Dakota"), ("NE", "Nebraska"), ("NH", "New Hampshire"), ("NJ", "New Jersey"), ("NM", "New Mexico"), ("NV", "Nevada"), ("NY", "New York"), ("OH", "Ohio"), ("OK", "Oklahoma"), ("OR", "Oregon"), ("PA", "Pennsylvania"), ("PR", "Puerto Rico"), ("PW", "Palau"), ("RI", "Rhode Island"), ("SC", "South Carolina"), ("SD", "South Dakota"), ("TN", "Tennessee"), ("TX", "Texas"), ("UT", "Utah"), ("VA", "Virginia"), ("VI", "Virgin Islands"), ("VT", "Vermont"), ("WA", "Washington"), ("WV", "West Virginia"), ("WI", "Wisconsin"), ("WY", "Wyoming")]
+        <td class="label"><label for="lending_region">$_("Lending Region")</label></td>
+        <td>$:Dropdown(name="lending_region", args=regions, value=page.lending_region or "", id="lending_region").render()
+            <span class="small grey">$_("Be careful when setting Region.")</span></td>
+    </tr>
 </table>
 
     <div class="formElement">
         <div class="label">
-            <label for="addresses">$_("Street Address(es)")</label><br />        
+            <label for="addresses">$_("Street Address(es)")</label><br />
             <span class="tip">$:_("Please use these fields, separated by a (|):<br />Library Name | Street | City | State | Zip | Country | Telephone | Website | Lat, Long")</span>
         </div>
         <div class="input">
             <textarea name="addresses" id="addresses" rows="20" cols="80" style="width:900px;">$page.addresses</textarea>
         </div>
-    </div>    
+    </div>
 
     $:macros.EditButtons(comment=page.comment_)
 
     $if ctx.user and ctx.user.is_admin():
         <div class="adminOnly right" style="position:absolute;top:50px;right:20px;"><button type="submit" value="$_('Delete Record')" name="_delete" title="$_('Delete this Library?')" id="deleteTop">$_("Delete Record")</button></div>
-        
+
 </div>
 </form>

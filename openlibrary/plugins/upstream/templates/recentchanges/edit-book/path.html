@@ -5,6 +5,6 @@ $if len(change.changes) == 1:
 $else:
     $ book = change.get_changes()[-1]
     <div class="truncatepath">
-        <a class="datalink" href="$book.url()">$book.title</a>
+        <a class="datalink" href="$book.url()">$book.title[:100]</a>
         <span class="smallest sansserif"> - <a href="$change.url()" style="text-decoration: none;">expand</a></span>
     </div>

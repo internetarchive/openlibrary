@@ -51,6 +51,43 @@ $def diff_covers(p, a, b):
                     <img src="$get_coverstore_url()/b/id/$img-M.jpg"/>
             </td>
         </tr>
+        
+$def listdiff(name, a, b):
+    $ diffresults = better_diff(a or [], b or [])
+    <tr>
+        <td class="diff-header-side" valign="top">$name</td>
+        <td colspan="2">
+        <table style="width: 100%">
+        $for key, ai, a, bi, b in diffresults:
+            <tbody class="$key">
+            <tr>
+                <td class="diff-number">$ai</td>
+                <td class='l'>$:diff_display(name, a)</td>
+                <td class="diff-number">$bi</td>
+                <td class='r'>$:diff_display(name, b)</td>
+            </tr>
+            </tbody>
+        </table>
+        </td>
+    </tr>
+    
+$def diff_display(name, value):
+    $if isinstance(value, basestring):
+        $value
+    $elif isinstance(value, dict):
+        $value
+    $else:
+        $if name == "links":
+            <a href="$value.url">$value.title</a>
+            <span style="display: block" class="link wrap">$value.url</span>
+        $elif name == "excerpts":
+            <span>$value.excerpt</span>
+        $elif value.key:
+            <a href="$value.key">$(value.name or value.title or value.key)</a>
+            <span style="display: block" class="link wrap">$value.key</span>
+        $else:
+            $ value = value.dict()
+            $value
 
 <div id="contentBody" class="diff">
 
@@ -77,17 +114,26 @@ $def diff_covers(p, a, b):
                 elif p == "title_prefix":
                     return thingdiff("/type/string", "title_prefix", a[p].strip(), b[p].strip())
                 elif p == "authors":
-                    return thingdiff("/type/author", "authors", a.get_authors(), b.get_authors())
+                    label = "authors"
+                    t = "/type/author"
+                    ap = a.get_authors()
+                    bp = b.get_authors()
                 else:
                     ap = a[p]
                     bp = b[p]
                     t = get_expected_type(a, p)
-                    if t == "/type/string":
-                        if is_thing(ap):
-                            ap = ap.dict()
-                        if is_thing(bp):
-                            bp = bp.dict()
-                    return thingdiff(t, label, ap, bp)
+                    
+                if isinstance(ap, list) or isinstance(bp, list):
+                    if ap == bp:
+                        return ""
+                    else:
+                        return listdiff(label, ap, bp)
+                elif t == "/type/string":
+                    if is_thing(ap):
+                        ap = ap.dict()
+                    if is_thing(bp):
+                        bp = bp.dict()
+                return thingdiff(t, label, ap, bp)
         
         $ diff_count = 0
         

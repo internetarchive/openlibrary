@@ -14,7 +14,7 @@ import logging
 
 logger = logging.getLogger("bootstrap")
 
-VERSION = 6
+VERSION = 8
 
 CHANGELOG = """
 001 - Initial setup
@@ -23,6 +23,8 @@ CHANGELOG = """
 004 - Moved solr location
 005 - Account v2
 006 - Add extra couch design docs for tasks and support system
+007 - Added loans design doc to admin database.
+008 - Install OL-GeoIP package
 """
 
 config = None
@@ -517,6 +519,7 @@ class setup_couchdb:
         self.couchdb.add_design_doc("seeds", "seeds/sort")
         self.couchdb.add_design_doc("celery", "celery/history")
         self.couchdb.add_design_doc("admin", "admin/cases")
+        self.couchdb.add_design_doc("admin", "admin/loans")
 
 class setup_accounts:
     """Task for creating openlibrary account and adding it to admin and api usergroups.
@@ -699,6 +702,19 @@ def update_006():
         couchdb.add_design_doc("celery", "celery/history")
         couchdb.add_design_doc("admin", "admin/cases")
     couchdb.run_tasks(update_design_docs)
+
+def update_007():
+    couchdb = CouchDB()
+    def update_design_docs(couchdb = couchdb):
+        couchdb.add_design_doc("admin", "admin/loans")
+    couchdb.run_tasks(update_design_docs)
+
+def update_008():
+    os.system("mkdir -p usr/local/maxmind-geoip")
+    os.system("wget http://www.archive.org/download/ol_vendor/GeoLiteCity.dat.gz -O usr/local/maxmind-geoip/GeoLiteCity.dat.gz")
+    os.system("gzip -d usr/local/maxmind-geoip/GeoLiteCity.dat.gz")
+    os.system("python setup.py develop")
+
 
 
 def get_current_version():

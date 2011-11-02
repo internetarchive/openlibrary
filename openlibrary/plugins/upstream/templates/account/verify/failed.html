@@ -1,11 +1,30 @@
-$def with ()
+$def with (email=None)
 
 $var title: $_("Email Verification Failed")
 
 <div id="contentHead">
-    <h1>$_("Email Verification Failed")</h1>
+    <h1>$_("Oops!")</h1>
 </div>
 
 <div id="contentBody">
-    <p class="instruct">$_("Your email address couldn't be verified. Your verification link seems invalid.")</p>
+    <p class="alert">$_("Your email address couldn't be verified. Your verification link seems invalid or expired.")</p>
+
+    <p>Fill your email and hit this button to resend a fresh verification email:</p>
+
+    <form method="POST" class="olform">
+        <input type="hidden" name="action" value="resent_verification_link"/>
+
+        <div class="input">
+        <input type="text" name="email" id="email" value="$email" placeholder="$_('Enter your email address here')"/>
+        </div>
+        $if email:
+            <div class="invalid clearfix" htmlfor="email">$_("No user registered with this email address.")</div>
+  
+        <div class="formElement bottom">
+            <br/>
+            <input value="$_('Resend the verification email')" type="submit" name="" title="$_('Resend the verification email')"/>
+        </div>
+    </form>
+
+    <p>Thanks!</p>
 </div>

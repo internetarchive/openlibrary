@@ -16,7 +16,7 @@ from openlibrary.plugins.upstream.account import Account
 
 # relative imports
 from lists.model import ListMixin, Seed
-from . import cache
+from . import cache, iprange, inlibrary
 
 class Image:
     def __init__(self, site, category, id):
@@ -174,6 +174,51 @@ class Edition(Thing):
 
     def get_lists(self, limit=50, offset=0, sort=True):
         return self._get_lists(limit=limit, offset=offset, sort=sort)
+        
+
+    def get_ebook_info(self):
+        """Returns the ebook info with the following fields.
+        
+        * read_url - url to read the book
+        * borrow_url - url to borrow the book
+        * borrowed - True if the book is already borrowed
+        * daisy_url - url to access the daisy format of the book
+        
+        Sample return values:
+
+            {
+                "read_url": "http://www.archive.org/stream/foo00bar",
+                "daisy_url": "/books/OL1M/foo/daisy"
+            }
+
+            {
+                "daisy_url": "/books/OL1M/foo/daisy",
+                "borrow_url": "/books/OL1M/foo/borrow",
+                "borrowed": False
+            }
+        """
+        d = {}
+        if self.ocaid:
+            d['daisy_url'] = self.url('/daisy')
+
+            meta = self.get_ia_meta_fields()
+            collections = meta.get('collection', [])
+
+            borrowable = ('lendinglibrary' in collections or
+                         ('inlibrary' in collections and inlibrary.get_library() is not None))
+
+            if borrowable:
+                d['borrow_url'] = self.url("/borrow")
+                key = "ebooks" + self.key
+                doc = self._site.store.get(key) or {}
+                d['borrowed'] = doc.get("borrowed") == "true"
+            elif 'printdisabled' in collections:
+                pass # ebook is not available 
+            else:
+                d['read_url'] = "http://www.archive.org/stream/%s" % self.ocaid
+        return d
+
+
 
 class Work(Thing):
     """Class to represent /type/work objects in OL.
@@ -190,6 +235,16 @@ class Work(Thing):
     @cache.memoize(engine="memcache", key=lambda self: ("d" + self.key, "e"))
     def edition_count(self):
         return self._site._request("/count_editions_by_work", data={"key": self.key})
+
+    def get_one_edition(self):
+        """Returns any one of the editions.
+        
+        Used to get the only edition when edition_count==1.
+        """
+        # If editions from solr are available, use that. 
+        # Otherwise query infobase to get the editions (self.editions makes infobase query).
+        editions = self.get_sorted_editions() or self.editions
+        return editions and editions[0] or None
 
     def get_lists(self, limit=50, offset=0, sort=True):
         return self._get_lists(limit=limit, offset=offset, sort=sort)
@@ -257,6 +312,22 @@ class User(Thing):
         
         seed could be an object or a string like "subject:cheese".
         """
+        # cache the default case
+        if seed is None and limit == 100 and offset == 0:
+            keys = self._get_lists_cached()
+        else:
+            keys = self._get_lists_uncached(seed=seed, limit=limit, offset=offset)
+        
+        lists = self._site.get_many(keys)
+        if sort:
+            lists = h.safesort(lists, reverse=True, key=lambda list: list.last_update)
+        return lists
+
+    @cache.memoize(engine="memcache", key=lambda self: ("d" + self.key, "l"))
+    def _get_lists_cached(self):
+        return self._get_lists_uncached(limit=100, offset=0)
+        
+    def _get_lists_uncached(self, seed=None, limit=100, offset=0):
         q = {
             "type": "/type/list", 
             "key~": self.key + "/lists/*",
@@ -268,11 +339,7 @@ class User(Thing):
                 seed = {"key": seed.key}
             q['seeds'] = seed
             
-        keys = self._site.things(q)
-        lists = self._site.get_many(keys)
-        if sort:
-            lists = h.safesort(lists, reverse=True, key=lambda list: list.last_update)
-        return lists
+        return self._site.things(q)
         
     def new_list(self, name, description, seeds, tags=[]):
         """Creates a new list object with given name, description, and seeds.
@@ -397,16 +464,6 @@ class List(Thing, ListMixin):
     def __repr__(self):
         return "<List: %s (%r)>" % (self.key, self.name)
 
-four_octet = r'(\d+\.\d+\.\d+\.\d+)'
-
-re_range_star = re.compile(r'^(\d+\.\d+)\.(\d+)\s*-\s*(\d+)\.\*$')
-re_three = re.compile(r'^(\d+\.\d+\.\d+)\.$')
-re_four = re.compile(r'^' + four_octet + r'(/\d+)?$')
-re_range_in_last = re.compile(r'^(\d+\.\d+\.\d+)\.(\d+)\s*-\s*(\d+)$')
-re_four_to_four = re.compile('^%s\s*-\s*%s$' % (four_octet, four_octet))
-
-patterns = (re_four_to_four, re_four, re_range_star, re_three, re_range_in_last)
-
 class Library(Thing):
     """Library document.
     
@@ -419,58 +476,10 @@ class Library(Thing):
         return u
 
     def find_bad_ip_ranges(self, text):
-        bad = []
-        for orig in text.splitlines():
-            line = orig.split("#")[0].strip()
-            if not line:
-                continue
-            if any(pat.match(line) for pat in patterns):
-                continue
-            if '*' in line:
-                collected = []
-                octets = line.split('.')
-                while octets[0].isdigit():
-                    collected.append(octets.pop(0))
-                if collected and all(octet == '*' for octet in octets):
-                    continue
-            bad.append(orig)
-        return bad
+        return iprange.find_bad_ip_ranges(text)
     
     def parse_ip_ranges(self, text):
-        for line in text.splitlines():
-            line = line.split("#")[0].strip()
-            if not line:
-                continue
-            m = re_four.match(line)
-            if m:
-                yield line
-                continue
-            m = re_range_star.match(line)
-            if m:
-                start = '%s.%s.0' % (m.group(1), m.group(2))
-                end = '%s.%s.255' % (m.group(1), m.group(3))
-                yield (start, end)
-                continue
-            m = re_three.match(line)
-            if m:
-                yield ('%s.0' % m.group(1), '%s.255' % m.group(1))
-                continue
-            m = re_range_in_last.match(line)
-            if m:
-                yield ('%s.%s' % (m.group(1), m.group(2)), '%s.%s' % (m.group(1), m.group(3)))
-                continue
-            m = re_four_to_four.match(line)
-            if m:
-                yield m.groups()
-                continue
-            if '*' in line:
-                collected = []
-                octets = line.split('.')
-                while octets[0].isdigit():
-                    collected.append(octets.pop(0))
-                if collected and all(octet == '*' for octet in octets):
-                    yield '%s/%d' % ('.'.join(collected + ['0'] * len(octets)), len(collected) * 8)
-                continue
+        return iprange.parse_ip_ranges(text)
     
     def get_ip_range_list(self):
         """Returns IpRangeList object for the range of IPs of this library.
@@ -500,7 +509,7 @@ class Library(Thing):
                 branch.lon = "0"
             return branch
         return [parse(line) for line in self.addresses.splitlines() if line.strip()]
-
+        
 class Subject(web.storage):
     def get_lists(self, limit=1000, offset=0, sort=True):
         q = {

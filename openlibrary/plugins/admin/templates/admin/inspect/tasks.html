@@ -2,10 +2,7 @@ $def with (tasks)
 <table>
   <tr>
     <th>
-      Task id
-    </th>
-    <th>
-      Affected keys
+      Task name
     </th>
     <th>
       Started at
@@ -13,19 +10,15 @@ $def with (tasks)
     <th>
       Finished at
     </th>
+    <th>
+      Changeset
+    </th>
+
   </tr>
  $for task in tasks:
    <tr>
      <td> 
-       <a href="/admin/tasks/$task['_id']">$task['_id']</a>
-     </td>
-     <td> 
-       <ul>
-       $for k in task['context']['keys']
-         <li>
-	   <a href="/admin/inspect/$k">$k</a>
-	 </li>
-       </ul>
+       <a href="/admin/tasks/$task['_id']">$task['command']</a>
      </td>
      <td>
        $task['started_at'] ($datestr(task['started_at']))
@@ -33,9 +26,11 @@ $def with (tasks)
      <td>
        $task['finished_at'] ($datestr(task['finished_at']))
      </td>
+     <td>
+       <a href="/recentchanges/2010/01/01/foo/$task['context']['changeset']">$task['context']['changeset']</a>
+     </td>
    </tr>
 </table>
        
   
     
-  

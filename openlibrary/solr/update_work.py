@@ -9,6 +9,7 @@ from time import sleep
 from openlibrary import config
 from unicodedata import normalize
 from collections import defaultdict
+from openlibrary.utils.isbn import opposite_isbn
 
 re_lang_key = re.compile(r'^/(?:l|languages)/([a-z]{3})$')
 re_author_key = re.compile(r'^/(?:a|authors)/(OL\d+A)')
@@ -34,6 +35,8 @@ def get_solr(index):
 re_collection = re.compile(r'<(collection|boxid)>(.*)</\1>', re.I)
 
 def get_ia_collection_and_box_id(ia):
+    if len(ia) == 1:
+        return
     url = 'http://www.archive.org/download/%s/%s_meta.xml' % (ia, ia)
     #print 'getting:', url
     matches = {'boxid': set(), 'collection': set() }
@@ -159,7 +162,7 @@ def build_doc(w, obj_cache={}, resolve_redirects=False):
     if 'editions' not in w:
         q = { 'type':'/type/edition', 'works': wkey, '*': None }
         w['editions'] = list(query_iter(q))
-        print 'editions:', [e['key'] for e in w['editions']]
+        #print 'editions:', [e['key'] for e in w['editions']]
 
     identifiers = defaultdict(list)
 
@@ -172,19 +175,14 @@ def build_doc(w, obj_cache={}, resolve_redirects=False):
         if 'ocaid' in e:
             ia = e['ocaid']
         elif 'ia_loaded_id' in e:
-            ia = e['ia_loaded_id'][0]
+            loaded = e['ia_loaded_id']
+            ia = loaded if isinstance(loaded, basestring) else loaded[0]
         if ia:
             ia_meta_fields = get_ia_collection_and_box_id(ia)
             collection = ia_meta_fields['collection']
+            if 'ia_box_id' in e and isinstance(e['ia_box_id'], basestring):
+                e['ia_box_id'] = [e['ia_box_id']]
             if ia_meta_fields.get('boxid'):
-                if len(ia_meta_fields['boxid']) != 1:
-                    print e['ocaid']
-                # http://www.archive.org/download/worldalmanacbook00long/worldalmanacbook00long_meta.xml
-                #try:
-                #    assert len(ia_meta_fields['boxid']) == 1
-                #except AssertionError:
-                #    print ia, e['key']
-                #    raise
                 box_id = list(ia_meta_fields['boxid'])[0]
                 e.setdefault('ia_box_id', [])
                 if box_id.lower() not in [x.lower() for x in e['ia_box_id']]:
@@ -199,10 +197,10 @@ def build_doc(w, obj_cache={}, resolve_redirects=False):
         if 'identifiers' in e:
             for k, id_list in e['identifiers'].iteritems():
                 k_orig = k
-                k = k.replace('.', '_').replace(',', '_').replace('(', '').replace(')', '').replace(':', '_').lower()
+                k = k.replace('.', '_').replace(',', '_').replace('(', '').replace(')', '').replace(':', '_').replace('/', '').replace('#', '').lower()
                 m = re_solr_field.match(k)
                 if not m:
-                    print `k_orig`
+                    print (k_orig, k)
                 assert m
                 for v in id_list:
                     v = v.strip()
@@ -246,8 +244,6 @@ def build_doc(w, obj_cache={}, resolve_redirects=False):
             print w['key']
             print
             raise AuthorRedirect
-    for a in authors:
-        print 'author:', a
     assert all(a['type']['key'] == '/type/author' for a in authors)
 
     try:
@@ -366,7 +362,11 @@ def build_doc(w, obj_cache={}, resolve_redirects=False):
     for e in editions:
         for f in 'isbn_10', 'isbn_13':
             for v in e.get(f, []):
-                isbn.add(v.replace('-', ''))
+                v = v.replace('-', '')
+                isbn.add(v)
+                alt = opposite_isbn(v)
+                if alt:
+                    isbn.add(alt)
     add_field_list(doc, 'isbn', isbn)
 
     lang = set()
@@ -495,7 +495,6 @@ def solr_update(requests, debug=False, index='works'):
             print 'request:', `r[:65]` + '...' if len(r) > 65 else `r`
         assert isinstance(r, basestring)
         url = 'http://%s/solr/%s/update' % (get_solr(index), index)
-        print url
         h1.request('POST', url, r, { 'Content-type': 'text/xml;charset=utf-8'})
         response = h1.getresponse()
         response_body = response.read()
@@ -540,6 +539,8 @@ def update_work(w, obj_cache={}, debug=False, resolve_redirects=False):
 
 def update_author(akey, a=None, handle_redirects=True):
     # http://ia331507.us.archive.org:8984/solr/works/select?indent=on&q=author_key:OL22098A&facet=true&rows=1&sort=edition_count%20desc&fl=title&facet.field=subject_facet&facet.mincount=1
+    if akey == '/authors/':
+        return
     m = re_author_key.match(akey)
     if not m:
         print 'bad key:', akey
@@ -590,7 +591,11 @@ def update_author(akey, a=None, handle_redirects=True):
     requests = []
     if handle_redirects:
         q = {'type': '/type/redirect', 'location': akey}
-        redirects = ''.join('<id>%s</id>' % re_author_key.match(r['key']).group(1) for r in query_iter(q))
+        try:
+            redirects = ''.join('<id>%s</id>' % re_author_key.match(r['key']).group(1) for r in query_iter(q))
+        except AttributeError:
+            print 'redirects:', [r['key'] for r in query_iter(q)]
+            raise
         if redirects:
             requests.append('<delete>' + redirects + '</delete>')
 
