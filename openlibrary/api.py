@@ -163,6 +163,7 @@ class OpenLibrary:
         """
         q = dict(q or {})
         q.update(kw)
+        q = marshal(q)
         def unlimited_query(q):
             q['limit'] = 1000
             q.setdefault('offset', 0)
