@@ -15,6 +15,7 @@ from ... import tasks
 import web
 import json
 import re
+import urllib
 import import_opds
 import import_rdf
 import import_edition_builder
@@ -194,7 +195,7 @@ class ils_search:
         isbns = data.pop("isbn", None)
         if isbns:
             data['isbn_13'] = [n for n in isbns if len(n.replace("-", "")) == 13]
-            data['isbn_10'] = [n for n in isbns if len(n.replace("-", "")) == 13]
+            data['isbn_10'] = [n for n in isbns if len(n.replace("-", "")) != 13]
         return data
         
     def search(self, record):
@@ -241,11 +242,54 @@ class ils_cover_upload:
         * authorization: base64 of username:password
         * olid: Key of the edition. e.g. OL12345M
         * file: file
-        
-        * next_url="http://-koha.org/bib?id=12345"        
+        * redirect_url: URL to redirect after upload
+
+    On Success: Redirect to redirect_url?status=ok
+    
+    On Failure: Redirect to redirect_url?status=error&reason=bad+olid
     """
     def POST(self):
-        i = web.input(authorization=None)
+        i = web.input(authorization=None, olid=None, file={}, redirect_url=None, url="")
+        
+        def error(reason):
+            if i.redirect_url:
+                url = self.build_url(i.redirect_url, status="error", reason=reason)
+                return web.seeother(url)
+            else:
+                return web.HTTPError("400 Bad Request", {"Content-type": "text/html"}, reason)
+                
+        def success():
+            if i.redirect_url:
+                url = self.build_url(i.redirect_url, status="ok")
+                return web.seeother(url)
+            else:
+                return web.ok("done!")
+                
+        if not i.olid:
+            error("olid missing")
+            
+        key = '/books/' + i.olid
+        book = web.ctx.site.get(key)
+        if not book:
+            raise error("bad olid")
+            
+        from openlibrary.plugins.upstream import covers
+        add_cover = covers.add_cover()
+        
+        data = add_cover.upload(key, i)
+        coverid = data.get('id')
+        
+        if coverid:
+            add_cover.save(book, coverid)
+            raise success()
+        else:
+            raise error("upload failed")
+    
+    def build_url(self, url, **params):
+        if '?' in url:
+            return url + "&" + urllib.urlencode(params)    
+        else:
+            return url + "?" + urllib.urlencode(params)
 
 add_hook("import", importapi)
 add_hook("ils_search", ils_search)
