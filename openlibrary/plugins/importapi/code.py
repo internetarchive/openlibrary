@@ -7,7 +7,8 @@ from openlibrary.plugins.openlibrary.code import can_write
 from openlibrary.catalog.marc.marc_binary import MarcBinary
 from openlibrary.catalog.marc.marc_xml import MarcXml
 from openlibrary.catalog.marc.parse import read_edition
-from openlibrary.catalog.add_book import load
+from openlibrary.catalog import add_book
+
 #import openlibrary.tasks
 from ... import tasks
 
@@ -123,11 +124,125 @@ class importapi:
 
         #call Edward's code here with the edition dict
         if edition:
-            reply = load(edition)
+            reply = add_book.load(edition)
             if source_url:
                 reply['source_record'] = source_url
             return json.dumps(reply)
         else:
             return json.dumps({'success':False, 'error':'Failed to parse Edition data'})
 
+
+class ils_search:
+    """Search and Import API to use in Koha. 
+    
+    When a new catalog record is added to Koha, it makes a request with all
+    the metadata to find if OL has a matching record. OL returns the OLID of
+    the matching record if exists, if not it creates a new record and returns
+    the new OLID.
+    
+    Request Format:
+    
+        POST /api/ils_search
+        Content-type: application/json
+        Authorization: Basic base64-of-username:password
+    
+        {
+            "title": "",
+            "author": "",
+            "isbn": ...,
+            "publisher": "...",
+            "publish_year": "...",
+            "isbn": [...],
+            "lccn": [...],
+        }
+        
+    Response Format:
+    
+        {
+            'status': 'found | notfound | created',
+            'olid': 'OL12345M',
+            'key': '/books/OL12345M',
+            'cover': {
+                'small': 'http://covers.openlibrary.org/b/12345-S.jpg',
+                'medium': 'http://covers.openlibrary.org/b/12345-M.jpg',
+                'large': 'http://covers.openlibrary.org/b/12345-L.jpg',
+            },
+            ...
+        }
+        
+    When authorization header is not provided and match is not found,
+    status='notfound' is returned instead of creating a new record.
+    """
+    def POST(self):
+        rawdata = json.loads(web.data())
+
+        # step 1: prepare the data
+        data = self.prepare_data(rawdata)
+    
+        # step 2: search 
+        key = self.search(data)
+    
+        # step 3: TODO if no match found, create it
+        
+        # step 4: format the result
+        doc = key and web.ctx.site.get(key).dict()
+        d = self.format_result(doc)
+        return json.dumps(d)
+        
+    def prepare_data(self, rawdata):
+        return rawdata
+        
+    def search(self, record):
+        key = add_book.early_exit(record)
+        if key:
+            return key
+            
+    def format_result(self, doc):
+        if key:
+            d = {
+                'status': 'found',
+                'key': key,
+                'olid': key.split("/")[-1]
+            }
+            
+            doc = web.ctx.site.get(key).dict()
+            covers = doc.get('covers') or []
+            if covers and covers[0] > 0:
+                d['cover'] = {
+                    "small": "http://covers.openlibrary.org/b/id/%s-S.jpg" % covers[0],
+                    "medium": "http://covers.openlibrary.org/b/id/%s-M.jpg" % covers[0],
+                    "large": "http://covers.openlibrary.org/b/id/%s-L.jpg" % covers[0],
+                }
+        else:
+            d = {
+                'status': 'notfound'
+            }
+        return d
+        
+def http_basic_auth():
+    auth = web.ctx.env.get('HTTP_AUTHORIZATION')
+    return auth and web.lstrips(auth, "")
+        
+def basicauth():
+    auth = web.ctx.env.get('HTTP_AUTHORIZATION') or web.input(authorization=None, _method="GET").authorization
+    if auth:
+        username,password = base64.decodestring(auth).split(':')
+        return None
+        
+class ils_cover_upload:
+    """Cover Upload API for Koha.
+    
+    Request Format: Following input fields with enctype multipart/form-data
+    
+        * authorization: base64 of username:password
+        * olid: Key of the edition. e.g. OL12345M
+        * file: file
+        
+        * next_url="http://-koha.org/bib?id=12345"        
+    """
+    def POST(self):
+        i = web.input(authorization=None)
+
 add_hook("import", importapi)
+add_hook("ils_search", ils_search)
+add_hook("ils_cover_upload", ils_cover_upload)
