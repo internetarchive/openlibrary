@@ -190,7 +190,12 @@ class ils_search:
         return json.dumps(d)
         
     def prepare_data(self, rawdata):
-        return rawdata
+        data = dict(rawdata)
+        isbns = data.pop("isbn", None)
+        if isbns:
+            data['isbn_13'] = [n for n in isbns if len(n.replace("-", "")) == 13]
+            data['isbn_10'] = [n for n in isbns if len(n.replace("-", "")) == 13]
+        return data
         
     def search(self, record):
         key = add_book.early_exit(record)
@@ -198,14 +203,13 @@ class ils_search:
             return key
             
     def format_result(self, doc):
-        if key:
+        if doc:
             d = {
                 'status': 'found',
-                'key': key,
-                'olid': key.split("/")[-1]
+                'key': doc['key'],
+                'olid': doc['key'].split("/")[-1]
             }
             
-            doc = web.ctx.site.get(key).dict()
             covers = doc.get('covers') or []
             if covers and covers[0] > 0:
                 d['cover'] = {
