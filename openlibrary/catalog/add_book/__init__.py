@@ -258,7 +258,7 @@ def early_exit(rec):
             return ekeys[0]
 
     for f in 'source_records', 'isbn_10', 'isbn_13', 'oclc_numbers':
-        if f in rec:
+        if rec.get(f):
             q = {
                 'type':'/type/edition',
                 f: rec[f][0],
