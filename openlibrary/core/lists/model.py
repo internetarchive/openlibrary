@@ -173,6 +173,38 @@ class ListMixin:
             "editions": [get_doc(row) for row in d['rows']]
         }
         
+    def get_all_editions(self):
+        """Returns all the editions of this list in arbitrary order.
+        
+        The return value is an iterator over all the edtions. Each entry is a dictionary.
+        (Compare the difference with get_editions.)
+        
+        This works even for lists with too many seeds as it doesn't try to
+        return editions in the order of last-modified.
+        """
+        rawseeds = self._get_rawseeds()
+        
+        # When there are too many seeds, couchdb-lucene fails because the query URL is too long.
+        # Splitting the seeds into groups of 50 to avoid that trouble.
+        for seeds in web.group(rawseeds, 50):
+            for e in self._get_all_editions(seeds):
+                yield e
+    
+    def _get_all_editions(self, seeds):
+        d = self._editions_view(seeds, limit=10000, stale="ok")
+        
+        # couchdb-lucene is single-threaded. Get docs from couchdb instead of
+        # passing include_docs=True to couchdb-lucene to reduce load on it.
+        docs = self.get_couchdb_docs(self._get_editions_db(), [row['id'] for row in d['rows']])
+        
+        def get_doc(row):
+            doc = docs[row['id']]
+            del doc['_id']
+            del doc['_rev']
+            return doc
+
+        return [get_doc(row) for row in d['rows']]
+        
     def _preload(self, keys):
         keys = list(set(keys))
         return self._site.get_many(keys)
