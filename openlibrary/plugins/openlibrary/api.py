@@ -49,3 +49,44 @@ class work_editions(delegate.page):
             "size": size,
             "entries": editions
         }
+
+class author_works(delegate.page):
+    path = "(/authors/OL\d+A)/works"
+    encoding = "json"
+    
+    def GET(self, key):
+        doc = web.ctx.site.get(key)
+        if not doc or doc.type.key != "/type/author":
+            raise web.notfound('')
+        else:
+            i = web.input(limit=50, offset=0)
+            limit = h.safeint(i.limit) or 50
+            offset = h.safeint(i.offset) or 0
+            
+            data = self.get_works_data(doc, limit=limit, offset=offset)
+            return delegate.RawText(simplejson.dumps(data), content_type="applicaiton/json")
+            
+    def get_works_data(self, author, limit, offset):
+        if limit > 1000:
+            limit = 1000
+            
+        keys = web.ctx.site.things({"type": "/type/work", "authors": {"author": {"key": author.key}}, "limit": limit, "offset": offset})
+        works = web.ctx.site.get_many(keys, raw=True)
+        
+        size = author.get_work_count()
+        links = {
+            "self": web.ctx.fullpath,
+            "author": author.key,
+        }
+        
+        if offset > 0:
+            links['prev'] = web.changequery(offset=min(0, offset-limit))
+            
+        if offset + len(works) < size:
+            links['next'] = web.changequery(offset=offset+limit)
+        
+        return {
+            "links": links,
+            "size": size,
+            "entries": works
+        }
