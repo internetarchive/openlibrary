@@ -5,6 +5,7 @@ import logging as Logging
 import logging.config
 import ConfigParser
 import quopri
+import base64
 
 import yaml
 import couchdb
@@ -104,12 +105,15 @@ def get_casenote(message):
             ctype2 = i.get_content_type()
             if ctype2 == "multipart/alternative" or ctype2 == "text/plain" or ctype2 == "text/html": 
                 message = i
+    post_process = lambda x : x
+    if message.get('Content-Transfer-Encoding') == "base64":
+        post_process = base64.decodestring
 
     if message.get_content_type() == "text/plain":
-        return quopri.decodestring(message.get_payload())
+        return quopri.decodestring(post_process(message.get_payload()))
 
     if message.get_content_type() == "text/html":
-        casenote = md.convert(message.get_payload())
+        casenote = md.convert(post_process(message.get_payload()))
         return casenote
 
     if message.get_content_type() == "multipart/alternative":
@@ -118,9 +122,9 @@ def get_casenote(message):
         for part in message.get_payload():
             content_type = part.get_content_type()
             if content_type == "text/plain":
-                plain = part.get_payload()
+                plain = post_process(part.get_payload())
             if content_type == "text/html":
-                html  = part.get_payload()
+                html  = post_process(part.get_payload())
         if not plain and not html:
             pieces = ",".join(x.get_content_type() for x in message.get_payload())
             logger.warning("This message has no usable payload Types : %s", pieces)
@@ -139,7 +143,7 @@ def fetch_and_update(imap_conn, db_conn = None):
             continue
         m = subject_re.search(message['Subject'])
         if m:
-            caseid = m.groups()
+            caseid = m.groups()[0]
             logger.debug(" Updating case %s", caseid)
             try:
                 frm = email.utils.parseaddr(message['From'])[1]
