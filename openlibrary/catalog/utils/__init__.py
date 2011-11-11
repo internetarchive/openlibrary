@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import re, web
+import re, web, cgitb
 from unicodedata import normalize
 import openlibrary.catalog.merge.normalize as merge
 
@@ -307,6 +307,15 @@ def error_mail(msg_from, msg_to, subject, body):
     server = smtplib.SMTP('mail.archive.org')
     server.sendmail(msg_from, msg_to, msg)
     server.quit()
+
+def catch_and_mail_exception(func, msg):
+    try:
+        func()
+    except:
+        body = msg + '\n\n' + cgitb.text(sys.exc_info())
+
+        error_mail( 'edward@archive.org', ['edward@archive.org'], \
+            'Open Library script exception', body)
 
 def bad_marc_alert(ia):
     from pprint import pformat
