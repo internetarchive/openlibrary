@@ -23,7 +23,7 @@ class work_editions(delegate.page):
             offset = h.safeint(i.offset) or 0
             
             data = self.get_editions_data(doc, limit=limit, offset=offset)
-            return delegate.RawText(simplejson.dumps(data), content_type="applicaiton/json")
+            return delegate.RawText(simplejson.dumps(data), content_type="application/json")
             
     def get_editions_data(self, work, limit, offset):
         if limit > 1000:
@@ -64,7 +64,7 @@ class author_works(delegate.page):
             offset = h.safeint(i.offset) or 0
             
             data = self.get_works_data(doc, limit=limit, offset=offset)
-            return delegate.RawText(simplejson.dumps(data), content_type="applicaiton/json")
+            return delegate.RawText(simplejson.dumps(data), content_type="application/json")
             
     def get_works_data(self, author, limit, offset):
         if limit > 1000:
