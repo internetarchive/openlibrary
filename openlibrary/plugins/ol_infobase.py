@@ -484,7 +484,7 @@ class OLIndexer(_Indexer):
         title = doc.get("title", "")
         doc['normalized_title_'] = self.normalize_edition_title(title)
 
-        isbns = doc.get("isbn", []) + doc.get("isbn_13", [])
+        isbns = doc.get("isbn_10", []) + doc.get("isbn_13", [])
         doc['isbn_'] = [self.normalize_isbn(isbn) for isbn in isbns]
         return doc
 
