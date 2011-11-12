@@ -516,12 +516,10 @@ class OLIndexer(_Indexer):
         """Expands the list of isbns by adding ISBN-10 for ISBN-13 and vice-verse.
         """
         s = set(isbns)
-        print >> web.debug,  "s", s
         for isbn in isbns:
             isbn = isbn.replace("-", "")
             if len(isbn) == 10:
                 s.add(isbn_10_to_isbn_13(isbn))
             else:
                 s.add(isbn_13_to_isbn_10(isbn))
-            print >> web.debug,  "s", s
         return [isbn for isbn in s if isbn is not None]
