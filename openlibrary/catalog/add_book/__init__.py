@@ -385,7 +385,7 @@ def load(rec):
     w = None
     e = web.ctx.site.get(match)
     if e.works:
-        w = e.works[0]
+        w = e.works[0].dict()
         work_created = False
     else:
         work_created = True
@@ -506,7 +506,7 @@ def load(rec):
         edits.append(e_dict)
     if need_work_save:
         reply['work']['status'] = 'created' if work_created else 'modified'
-        edits.append(w.dict())
+        edits.append(w)
     if edits:
         edits_str = `edits`
         for i in edits:
