@@ -210,25 +210,35 @@ def find_match(e1, edition_pool):
 
 def build_pool(rec):
     pool = defaultdict(set)
+    
+    ## Find records with matching title
     assert isinstance(rec.get('title'), basestring)
     q = {
         'type': '/type/edition',
         'normalized_title_': normalize(rec['title'])
     }
-
     pool['title'] = set(web.ctx.site.things(q))
 
     q['title'] = rec['title']
     del q['normalized_title_']
     pool['title'].update(web.ctx.site.things(q))
-
-    for field in 'isbn', 'oclc_numbers', 'lccn', 'isbn_10', 'isbn_13':
-        for v in rec.get(field, []):
-            found = web.ctx.site.things({field: v, 'type': '/type/edition'})
+    
+    ## Find records with matching ISBNs
+    isbns = rec.get('isbn', []) + rec.get('isbn_10', []) + rec.get('isbn_13', [])
+    isbns = [isbn.replace("-", "").strip() for isbn in isbns] # strip hyphens
+    if isbns:
+        # Make a single request to find records matching the given ISBNs
+        keys = web.ctx.site.things({"isbn_": isbns, 'type': '/type/edition'})
+        if keys:
+            pool['isbn'] = set(keys)
+    
+    ## Find records with matching oclc_numbers and lccn
+    for field in 'oclc_numbers', 'lccn':
+        values = rec.get(field, [])
+        if values:
+            found = web.ctx.site.things({field: values, 'type': '/type/edition'})
             if found:
-                if field.startswith('isbn_'):
-                    field = 'isbn'
-                pool[field].update(found)
+                pool[field] = set(found)
     return dict((k, list(v)) for k, v in pool.iteritems())
 
 def add_db_name(rec):
