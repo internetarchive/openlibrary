@@ -16,166 +16,18 @@ import infogami.core.code as core
 from openlibrary.i18n import gettext as _
 from openlibrary.core import helpers as h
 from openlibrary.core import support
+from openlibrary import accounts
 import forms
 import utils
 import borrow
 
 logger = logging.getLogger("openlibrary.account")
 
-class Link(web.storage):
-    def get_expiration_time(self):
-        d = self['expires_on'].split(".")[0]
-        return datetime.datetime.strptime(d, "%Y-%m-%dT%H:%M:%S")
+Account = accounts.Account
+send_verification_email = accounts.send_verification_email
+create_link_doc = accounts.create_link_doc
 
-    def get_creation_time(self):
-        d = self['created_on'].split(".")[0]
-        return datetime.datetime.strptime(d, "%Y-%m-%dT%H:%M:%S")
-
-class Account(web.storage):
-    @property
-    def username(self):
-        return self._key.split("/")[-1]
-        
-    def get_edit_count(self):
-        user = self.get_user()
-        return user and user.get_edit_count() or 0
-        
-    @property
-    def registered_on(self):
-        """Returns the registration time."""
-        t = self.get("created_on")
-        return t and h.parse_datetime(t)
-        
-    @property
-    def activated_on(self):
-        user = self.get_user()
-        return user and user.created
-        
-    @property
-    def displayname(self):
-        key = "/people/" + self.username
-        doc = web.ctx.site.get(key)
-        if doc:
-            return doc.displayname or self.username
-        elif "data" in self:
-            return self.data.get("displayname") or self.username
-        else:
-            return self.username
-            
-    def creation_time(self):
-        d = self['created_on'].split(".")[0]
-        return datetime.datetime.strptime(d, "%Y-%m-%dT%H:%M:%S")
-        
-    def get_cases(self):
-        """Returns all support cases filed by this user.
-        """
-        email = self.email
-        username = self.username
-        
-        # XXX-Anand: very inefficient. Optimize it later.
-        cases = support.Support().get_all_cases()
-        cases = [c for c in cases if c.creator_email == email or c.creator_username == username]
-        return cases
-
-    def verify_password(self, password):
-        return verify_hash(get_secret_key(), password, self.enc_password)
-        
-    def update_password(self, new_password):
-        web.ctx.site.update_account(self.username, password=new_password)
     
-    def update_email(self, email):
-        web.ctx.site.update_account(self.username, email=email)
-        
-    def send_verification_email(self):
-        send_verification_email(self.username, self.email)
-
-    def activate(self):
-        web.ctx.site.activate_account(username=self.username)
-        
-    def login(self, password):
-        """Tries to login with the given password and returns the status.
-        
-        The return value can be one of the following:
-
-            * ok
-            * account_not_vefified
-            * account_not_found
-            * account_incorrect_password
-        
-        If the login is successful, the `last_login` time is updated.
-        """
-        try:
-            web.ctx.site.login(self.username, password)
-        except ClientException, e:
-            code = e.get_data().get("code")
-            return code
-        else:
-            self['last_login'] = datetime.datetime.utcnow().isoformat()
-            web.ctx.site.store[self._key] = self
-            return "ok"
-            
-    @property
-    def last_login(self):
-        """Returns the last_login time of the user, if available.
-
-        The `last_login` will not be available for accounts, who haven't
-        been logged in after this feature is added.
-        """
-        t = self.get("last_login")
-        return t and h.parse_datetime(t)
-    
-    def get_user(self):
-        key = "/people/" + self.username
-        doc = web.ctx.site.get(key)
-        return doc
-
-    def get_creation_info(self):
-        key = "/people/" + self.username
-        doc = web.ctx.site.get(key)
-        return doc.get_creation_info()
-
-    def get_activation_link(self):
-        key = "account/%s/verify"%self.username
-        doc = web.ctx.site.store.get(key)
-        if doc:
-            return Link(doc)
-        else:
-            return False
-    
-    def get_password_reset_link(self):
-        key = "account/%s/password"%self.username
-        doc = web.ctx.site.store.get(key)
-        if doc:
-            return Link(doc)
-        else:
-            return False
-
-    def get_links(self):
-        """Returns all the verification links present in the database.
-        """
-        return web.ctx.site.store.values(type="account-link", name="username", value=self.username)
-    
-    @staticmethod
-    def find(username=None, lusername=None, email=None):
-        """Finds an account by username, email or lowercase username.
-        """
-        def query(name, value):
-            try:
-                return web.ctx.site.store.values(type="account", name=name, value=value, limit=1)[0]
-            except IndexError:
-                return None
-        
-        if username:
-            doc = web.ctx.site.store.get("account/" + username)
-        elif lusername:
-            doc = query("lusername", lusername)
-        elif email:
-            doc = query("email", email)
-        else:
-            doc = None
-            
-        return doc and Account(doc)
-
 class account(delegate.page):
     """Account preferences.
     """
@@ -261,7 +113,7 @@ class account_login(delegate.page):
             return self.error("account_user_notfound", i)
             
         # Try to find account with exact username, failing which try for case variations.
-        account = Account.find(username=i.username) or Account.find(lusername=i.username)
+        account = accounts.find(username=i.username) or accounts.find(lusername=i.username)
         
         if not account:
             return self.error("account_user_notfound", i)
@@ -574,17 +426,6 @@ class account_others(delegate.page):
 
 ####
 
-def send_verification_email(username, email):
-    """Sends account verification email.
-    """
-    key = "account/%s/verify" % username
-
-    doc = create_link_doc(key, username, email)
-    web.ctx.site.store[key] = doc
-
-    link = web.ctx.home + "/account/verify/" + doc['code']
-    msg = render_template("email/account/verify", username=username, email=email, password=None, link=link)
-    sendmail(email, msg)
 
 def send_email_change_email(username, email):
     key = "account/%s/email" % username
@@ -606,40 +447,8 @@ def send_forgot_password_email(username, email):
     msg = render_template("email/password/reminder", username=username, link=link)
     sendmail(email, msg)
 
-def create_link_doc(key, username, email):
-    """Creates doc required for generating verification link email.
 
-    The doc contains username, email and a generated code.
-    """
-    code = generate_uuid()
 
-    now = datetime.datetime.utcnow()
-    expires = now + datetime.timedelta(days=14)
-
-    return {
-        "_key": key,
-        "_rev": None,
-        "type": "account-link",
-        "username": username,
-        "email": email,
-        "code": code,
-        "created_on": now.isoformat(),
-        "expires_on": expires.isoformat()
-    }
-
-def verify_hash(secret_key, text, hash):
-    """Verifies if the hash is generated
-    """
-    salt = hash.split('$', 1)[0]
-    return generate_hash(secret_key, text, salt) == hash
-
-def generate_hash(secret_key, text, salt=None):
-    salt = salt or hmac.HMAC(secret_key, str(random.random())).hexdigest()[:5]
-    hash = hmac.HMAC(secret_key, salt + web.utf8(text)).hexdigest()
-    return '%s$%s' % (salt, hash)
-
-def get_secret_key():
-    return config.infobase['secret_key']
 
 def sendmail(to, msg, cc=None):
     cc = cc or []

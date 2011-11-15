@@ -1,3 +1,28 @@
+from .model import * #XXX: Fix this. Import only by name
+
+import web
+
+def find(username=None, lusername=None, email=None):
+    """Finds an account by username, email or lowercase username.
+    """
+    print "I'm running here!"
+    def query(name, value):
+        try:
+            return web.ctx.site.store.values(type="account", name=name, value=value, limit=1)[0]
+        except IndexError:
+            return None
+    
+    if username:
+        doc = web.ctx.site.store.get("account/" + username)
+    elif lusername:
+        doc = query("lusername", lusername)
+    elif email:
+        doc = query("email", email)
+    else:
+        doc = None
+        
+    return doc and Account(doc)
+
 
 def login( username, password, remember=False):
     return self._request('/account/login', 'POST', dict(username=username, password=password))
