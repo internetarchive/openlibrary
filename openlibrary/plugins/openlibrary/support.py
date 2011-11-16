@@ -5,7 +5,6 @@ import web
 from infogami import config
 from infogami.utils import delegate
 from infogami.utils.view import render_template
-from infogami.utils.context import context
 
 from openlibrary.core import support as S
 from openlibrary import accounts
