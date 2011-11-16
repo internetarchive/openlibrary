@@ -246,7 +246,7 @@ class account_email_verify(delegate.page):
             return self.bad_link()
         
     def update_email(self, username, email):
-        if Account.find(email=email):
+        if accounts.find(email=email):
             title = _("Email address is already used.")
             message = _("Your email address couldn't be updated. The specified email address is already used.")
         else:
@@ -298,7 +298,7 @@ class account_password(delegate.page):
             return render['account/password'](f)
         
     def try_login(self, username, password):
-        account = Account.find(username=username)
+        account = accounts.find(username=username)
         return account and account.verify_password(password)
 
 class account_password_forgot(delegate.page):
