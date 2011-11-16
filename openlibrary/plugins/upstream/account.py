@@ -34,7 +34,7 @@ class account(delegate.page):
     """
     @require_login
     def GET(self):
-        user = web.ctx.site.get_user()
+        user = accounts.get_current_user()
         return render.account(user)
 
 class account_create(delegate.page):
@@ -218,7 +218,7 @@ class account_email(delegate.page):
         if not f.validates(i):
             return render['account/email'](self.get_email(), f)
         else:
-            user = web.ctx.site.get_user()
+            user = accounts.get_current_user()
             username = user.key.split('/')[-1]
 
             displayname = user.displayname or username
@@ -286,7 +286,7 @@ class account_password(delegate.page):
         if not f.validates(i):
             return render['account/password'](f)
             
-        user = web.ctx.site.get_user()
+        user = accounts.get_current_user()
         username = user.key.split("/")[-1]
         
         if self.try_login(username, i.password):
@@ -413,7 +413,7 @@ class account_loans(delegate.page):
 
     @require_login
     def GET(self):
-        user = web.ctx.site.get_user()
+        user = accounts.get_current_user()
         user.update_loan_status()
         loans = borrow.get_loans(user)
         return render['account/borrow'](user, loans)
