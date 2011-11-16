@@ -23,10 +23,11 @@ import borrow
 
 logger = logging.getLogger("openlibrary.account")
 
+# XXX: These need to be cleaned up 
 Account = accounts.Account
 send_verification_email = accounts.send_verification_email
 create_link_doc = accounts.create_link_doc
-
+sendmail = accounts.sendmail
     
 class account(delegate.page):
     """Account preferences.
@@ -142,7 +143,7 @@ class account_login(delegate.page):
             if code != "account_not_verified":
                 return self.error("account_incorrect_password", i)
 
-        account = Account.find(username=i.username)
+        account = accounts.find(username=i.username)
         account.send_verification_email()
 
         title = _("Hi %(user)s", user=account.displayname)
@@ -159,12 +160,12 @@ class account_verify(delegate.page):
         if docs:
             doc = docs[0]
 
-            account = Account.find(username = doc['username'])
+            account = accounts.find(username = doc['username'])
             if account:
                 if account['status'] != "pending":
                     return render['account/verify/activated'](account)
             account.activate()
-            user = web.ctx.site.get("/people/" + doc['username'])
+            user = web.ctx.site.get("/people/" + doc['username']) #TBD
             return render['account/verify/success'](account)
         else:
             return render['account/verify/failed']()
@@ -173,7 +174,7 @@ class account_verify(delegate.page):
         """Called to regenerate account verification code.
         """
         i = web.input(email=None)
-        account = Account.find(email=i.email)
+        account = accounts.find(email=i.email)
         if not account:
             return render_template("account/verify/failed", email=i.email)
         elif account['status'] != "pending":
@@ -315,7 +316,7 @@ class account_password_forgot(delegate.page):
         if not f.validates(i):
             return render['account/password/forgot'](f)
 
-        account = Account.find(email=i.email)
+        account = accounts.find(email=i.email)
         
         send_forgot_password_email(account.username, i.email)
         return render['account/password/sent'](i.email)
@@ -449,24 +450,6 @@ def send_forgot_password_email(username, email):
 
 
 
-
-def sendmail(to, msg, cc=None):
-    cc = cc or []
-    if config.get('dummy_sendmail'):
-        message = ('' +
-            'To: ' + to + '\n' +
-            'From:' + config.from_address + '\n' +
-            'Subject:' + msg.subject + '\n' +
-            '\n' +
-            web.safestr(msg))
-
-        print >> web.debug, "sending email", message
-        logger.info("sending mail" + message)
-    else:
-        web.sendmail(config.from_address, to, subject=msg.subject.strip(), message=web.safestr(msg), cc=cc)
-
-def generate_uuid():
-    return str(uuid.uuid4()).replace("-", "")
 
 def as_admin(f):
     """Infobase allows some requests only from admin user. This decorator logs in as admin, executes the function and clears the admin credentials."""

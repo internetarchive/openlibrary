@@ -4,13 +4,30 @@
 import datetime
 import hmac
 import random
+import uuid
 
 import web
 
 from infogami import config
+from infogami.utils.view import render_template
 from infogami.infobase.client import ClientException
 from openlibrary.core import helpers as h
 from openlibrary.core import support
+
+
+def sendmail(to, msg, cc=None):
+    cc = cc or []
+    if config.get('dummy_sendmail'):
+        message = ('' +
+            'To: ' + to + '\n' +
+            'From:' + config.from_address + '\n' +
+            'Subject:' + msg.subject + '\n' +
+            '\n' +
+            web.safestr(msg))
+
+        print >> web.debug, "sending email", message
+    else:
+        web.sendmail(config.from_address, to, subject=msg.subject.strip(), message=web.safestr(msg), cc=cc)
 
 def verify_hash(secret_key, text, hash):
     """Verifies if the hash is generated
@@ -25,6 +42,9 @@ def generate_hash(secret_key, text, salt=None):
 
 def get_secret_key():
     return config.infobase['secret_key']
+
+def generate_uuid():
+    return str(uuid.uuid4()).replace("-", "")
 
 def send_verification_email(username, email):
     """Sends account verification email.

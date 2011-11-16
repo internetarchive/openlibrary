@@ -1,4 +1,4 @@
-from .model import * #XXX: Fix this. Import only by name
+from .model import * #XXX: Fix this. Import only specific names
 
 import web
 

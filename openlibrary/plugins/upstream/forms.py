@@ -4,10 +4,10 @@ from infogami.core import forms
 
 from openlibrary.i18n import lgettext as _
 from openlibrary.utils.form import Form, Textbox, Password, Hidden, Validator, RegexpValidator
+from openlibrary import accounts
 
 def find_account(username=None, lusername=None, email=None):
-    import account
-    return account.Account.find(username=username, lusername=lusername, email=email)
+    return accounts.find(username=username, lusername=lusername, email=email)
 
 Login = Form(
     Textbox('username', description=_('Username'), klass='required'),
