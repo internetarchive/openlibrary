@@ -36,7 +36,7 @@ Register = Form(
 forms.register = Register
 
 def verify_password(password):
-    user = web.ctx.site.get_user()
+    user = accounts.get_current_user()
     if user is None:
         return False
     
