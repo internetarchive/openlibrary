@@ -12,6 +12,7 @@ from infogami import config
 from infogami.utils import delegate
 from infogami.utils.view import render_template, add_flash_message, public
 from openlibrary.core import inlibrary
+from openlibrary import accounts
 
 logger = logging.getLogger("openlibrary.libraries")
 
@@ -35,7 +36,7 @@ class libraries_notes(delegate.page):
         else:
             i = web.input(note="")
             
-            user = web.ctx.site.get_user()
+            user = accounts.get_current_user()
             author = user and {"key": user.key}
             timestamp = {"type": "/type/datetime", "value": datetime.datetime.utcnow().isoformat()}
             
