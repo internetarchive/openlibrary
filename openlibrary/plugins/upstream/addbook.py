@@ -4,6 +4,8 @@ import web
 import urllib, urllib2
 import simplejson
 from collections import defaultdict
+from StringIO import StringIO
+import csv
 
 from infogami import config
 from infogami.core import code as core
@@ -15,8 +17,7 @@ from infogami.infobase.client import ClientException
 from openlibrary.plugins.openlibrary.processors import urlsafe
 from openlibrary.utils.solr import Solr
 from openlibrary.i18n import gettext as _
-from StringIO import StringIO
-import csv
+from openlibrary import accounts
 
 import utils
 from utils import render_template, fuzzy_find
@@ -322,7 +323,7 @@ class SaveBookHelper:
         """Update work and edition documents according to the specified formdata."""
         comment = formdata.pop('_comment', '')
 
-        user = web.ctx.site.get_user()
+        user = accounts.get_current_user()
         delete = user and user.is_admin() and formdata.pop('_delete', '')
         
         formdata = utils.unflatten(formdata)
