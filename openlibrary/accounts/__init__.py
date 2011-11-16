@@ -2,10 +2,25 @@ from .model import * #XXX: Fix this. Import only specific names
 
 import web
 
+## Unconfirmed functions (I'm not sure that these should be here)
+def get_group(name):
+    """
+    Returns the group named 'name'.
+    """
+    return web.ctx.site.get("/usergroup/%s"%name)
+
+
+## Confirmed functions (these have to be here)
+def get_current_user():
+    """
+    Returns the currently logged in user. None if not logged in.
+    """
+    return web.ctx.site.get_user()
+
+
 def find(username=None, lusername=None, email=None):
     """Finds an account by username, email or lowercase username.
     """
-    print "I'm running here!"
     def query(name, value):
         try:
             return web.ctx.site.store.values(type="account", name=name, value=value, limit=1)[0]
@@ -23,7 +38,7 @@ def find(username=None, lusername=None, email=None):
         
     return doc and Account(doc)
 
-
+# XXX: Following methods don't work. NEed to be cleaned up. They're ripped out of infogami/infobase/client.py
 def login( username, password, remember=False):
     return self._request('/account/login', 'POST', dict(username=username, password=password))
     
