@@ -203,7 +203,8 @@ class account_email(delegate.page):
     path = "/account/email"
 
     def get_email(self):
-        return context.user.get_account()['email']
+        user = accounts.get_current_user()
+        return user.get_account()['email']
 
     @require_login
     def GET(self):
@@ -389,14 +390,16 @@ class account_notifications(delegate.page):
 
     @require_login
     def GET(self):
-        prefs = web.ctx.site.get(context.user.key + "/preferences")
+        user = accounts.get_current_user()
+        prefs = web.ctx.site.get(user.key + "/preferences")
         d = (prefs and prefs.get('notifications')) or {}
-        email = context.user.email
+        email = accounts.get_current_user().email
         return render['account/notifications'](d, email)
 
     @require_login
     def POST(self):
-        key = context.user.key + '/preferences'
+        user = accounts.get_current_user()
+        key = user.key + '/preferences'
         prefs = web.ctx.site.get(key)
 
         d = (prefs and prefs.dict()) or {'key': key, 'type': {'key': '/type/object'}}
