@@ -236,9 +236,11 @@ def build_pool(rec):
     for field in 'oclc_numbers', 'lccn':
         values = rec.get(field, [])
         if values:
-            found = web.ctx.site.things({field: values, 'type': '/type/edition'})
-            if found:
-                pool[field] = set(found)
+            for v in values:
+                q = {field: v, 'type': '/type/edition'}
+                found = web.ctx.site.things(q)
+                if found:
+                    pool[field] = set(found)
     return dict((k, list(v)) for k, v in pool.iteritems())
 
 def add_db_name(rec):
