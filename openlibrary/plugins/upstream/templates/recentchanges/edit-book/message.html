@@ -13,7 +13,7 @@ $elif doc.type.key == '/type/author':
     $ what = doc.name or doc.key
 $else:
     $ what = doc.key
-$ what = '<a href="%s" rel="nofollow">%s</a>' % (doc.key, what)
+$ what = '<a href="%s" rel="nofollow">%s</a>' % (doc.key, what[:100])
 $ when = datestr(change.timestamp)
 
 $if doc.revision == 1:

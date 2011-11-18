@@ -10,6 +10,8 @@ import simplejson
 default_cache_prefixes = ["/type/", "/languages/", "/index.", "/about", "/css/", "/js/", "/config/"]
 
 class ConnectionMiddleware:
+    response_type = "json"
+    
     def __init__(self, conn):
         self.conn = conn
         

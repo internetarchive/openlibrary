@@ -35,6 +35,8 @@ def get_solr(index):
 re_collection = re.compile(r'<(collection|boxid)>(.*)</\1>', re.I)
 
 def get_ia_collection_and_box_id(ia):
+    if len(ia) == 1:
+        return
     url = 'http://www.archive.org/download/%s/%s_meta.xml' % (ia, ia)
     #print 'getting:', url
     matches = {'boxid': set(), 'collection': set() }
@@ -160,7 +162,7 @@ def build_doc(w, obj_cache={}, resolve_redirects=False):
     if 'editions' not in w:
         q = { 'type':'/type/edition', 'works': wkey, '*': None }
         w['editions'] = list(query_iter(q))
-        print 'editions:', [e['key'] for e in w['editions']]
+        #print 'editions:', [e['key'] for e in w['editions']]
 
     identifiers = defaultdict(list)
 
@@ -173,7 +175,8 @@ def build_doc(w, obj_cache={}, resolve_redirects=False):
         if 'ocaid' in e:
             ia = e['ocaid']
         elif 'ia_loaded_id' in e:
-            ia = e['ia_loaded_id'][0]
+            loaded = e['ia_loaded_id']
+            ia = loaded if isinstance(loaded, basestring) else loaded[0]
         if ia:
             ia_meta_fields = get_ia_collection_and_box_id(ia)
             collection = ia_meta_fields['collection']
@@ -194,10 +197,10 @@ def build_doc(w, obj_cache={}, resolve_redirects=False):
         if 'identifiers' in e:
             for k, id_list in e['identifiers'].iteritems():
                 k_orig = k
-                k = k.replace('.', '_').replace(',', '_').replace('(', '').replace(')', '').replace(':', '_').replace('/', '').lower()
+                k = k.replace('.', '_').replace(',', '_').replace('(', '').replace(')', '').replace(':', '_').replace('/', '').replace('#', '').lower()
                 m = re_solr_field.match(k)
                 if not m:
-                    print `k_orig`
+                    print (k_orig, k)
                 assert m
                 for v in id_list:
                     v = v.strip()
@@ -241,8 +244,6 @@ def build_doc(w, obj_cache={}, resolve_redirects=False):
             print w['key']
             print
             raise AuthorRedirect
-    for a in authors:
-        print 'author:', a
     assert all(a['type']['key'] == '/type/author' for a in authors)
 
     try:
@@ -494,7 +495,6 @@ def solr_update(requests, debug=False, index='works'):
             print 'request:', `r[:65]` + '...' if len(r) > 65 else `r`
         assert isinstance(r, basestring)
         url = 'http://%s/solr/%s/update' % (get_solr(index), index)
-        print url
         h1.request('POST', url, r, { 'Content-type': 'text/xml;charset=utf-8'})
         response = h1.getresponse()
         response_body = response.read()

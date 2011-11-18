@@ -1,12 +1,11 @@
 """Lists implementaion.
 """
 import random
-
 import web
 
 from infogami.utils import delegate
 from infogami.utils.view import render_template, public
-from infogami.infobase import client
+from infogami.infobase import client, common
 
 from openlibrary.core import formats, cache
 import openlibrary.core.helpers as h
@@ -325,8 +324,8 @@ class list_editions(delegate.page):
         if not list:
             raise web.notfound()
         
-        i = web.input(limit=20, page=1)
-        limit = h.safeint(i.limit, 20)
+        i = web.input(limit=50, page=1)
+        limit = h.safeint(i.limit, 50)
         page = h.safeint(i.page, 1) - 1
         offset = page * limit
 
@@ -348,11 +347,11 @@ class list_editions_json(delegate.page):
         if not list:
             raise web.notfound()
             
-        i = web.input(limit=20, offset=0)
+        i = web.input(limit=50, offset=0)
         
-        limit = h.safeint(i.limit, 20)
+        limit = h.safeint(i.limit, 50)
         offset = h.safeint(i.offset, 0)
-
+        
         editions = list.get_editions(limit=limit, offset=offset, _raw=True)
         
         data = make_collection(
@@ -463,10 +462,17 @@ class export(delegate.page):
             raise web.notfound()
             
     def get_editions(self, list, raw=False):
-        editions = list.get_editions(limit=10000, offset=0, _raw=raw)['editions']
+        editions = sorted(list.get_all_editions(), key=lambda doc: doc['last_modified']['value'], reverse=True)
+        
         if not raw:
+            editions = [self.make_doc(e) for e in editions]
             list.preload_authors(editions)
         return editions
+        
+    def make_doc(self, rawdata):
+        data = web.ctx.site._process_dict(common.parse_query(rawdata))
+        doc = client.create_thing(web.ctx.site, data['key'], data)
+        return doc
         
 class feeds(delegate.page):
     path = "(/people/[^/]+/lists/OL\d+L)/feeds/(updates).(atom)"
