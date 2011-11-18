@@ -13,7 +13,7 @@ $var title: $title
 
 <div id="contentBody" class="map">
 
-<script type="text/javascript"> 
+<script type="text/javascript">
     function jumpTo(lat, lon, zoom, link) {
         var lonLat = new OpenLayers.LonLat( lon, lat)
               .transform(
@@ -21,7 +21,7 @@ $var title: $title
                 map.getProjectionObject() // to Spherical Mercator Projection
               );
         map.setCenter (lonLat, zoom);
- 
+
         \$('.map_jump_link').css({'color':'#036DAA','text-decoration':'underline','font-weight':'normal','cursor':'pointer'});
         \$(link).css({'color':'#748D36','text-decoration':'none','font-weight':'bold','cursor':'default'});
         \$.scrollTo( \$('#contentBody'), 800);
@@ -29,43 +29,45 @@ $var title: $title
     </script>
 
     <div id="mapdiv"></div>
-    <script type="text/javascript" src="http://www.openlayers.org/api/OpenLayers.js"></script> 
-    <script type="text/javascript"> 
+    <script type="text/javascript" src="http://www.openlayers.org/api/OpenLayers.js"></script>
+    <script type="text/javascript">
     map = new OpenLayers.Map("mapdiv");
     map.addLayer(new OpenLayers.Layer.OSM());
-       
+
     var pois = new OpenLayers.Layer.Text( "My Points",
                     { location:"/libraries/locations.txt",
                       projection: map.displayProjection
                     });
     map.addLayer(pois);
- 
-    
+
+
     //Set start centrepoint and zoom
     //TODO: Is it possible to just zoom to extents of defined markers instead?
-    
+
     var lonLat = new OpenLayers.LonLat(0, 0)
           .transform(
             new OpenLayers.Projection("EPSG:4326"), // transform from WGS 1984
             map.getProjectionObject() // to Spherical Mercator Projection
           );
     var zoom=2;
-    map.setCenter (lonLat, zoom); 
+    map.setCenter (lonLat, zoom);
 
-    OpenLayers.Feature.prototype.createPopup = function(closeBox){
-        if(this.lonlat!=null){
-            var id=this.id+"_popup";
-            var anchor=(this.marker)?this.marker.icon:null;
-            if(!this.popup){
-                this.popup=new this.popupClass(id, this.lonlat, new OpenLayers.Size(200,100), this.data.popupContentHTML, anchor,true);
+    OpenLayers.Feature.prototype.createPopup = function(closeBox) {
+        closeBox = true; //OL
+        if(this.lonlat!=null) {
+            if(!this.popup) {
+                var anchor = (this.marker)?this.marker.icon:null;
+                var popupClass = this.popupClass?this.popupClass:OpenLayers.Popup.AnchoredBubble;
+                this.popup = new popupClass(this.id+"_popup",this.lonlat,this.data.popupSize,this.data.popupContentHTML,anchor,closeBox);
             }
-            if(this.data.overflow!=null){
+
+            if(this.data.overflow!=null) {
                 this.popup.contentDiv.style.overflow=this.data.overflow;
             }
             this.popup.feature=this;
         }
         return this.popup;
-    }    
+    }
     </script>
 
 </div>
@@ -100,8 +102,8 @@ $var title: $title
     margin-bottom: 20px;
 }
 #content ul.places li.label {
-    position: absolute; 
-    top: 0; 
+    position: absolute;
+    top: 0;
     left: -1.5em;
 }
 #content ul.places li {
