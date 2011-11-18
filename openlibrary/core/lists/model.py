@@ -184,27 +184,25 @@ class ListMixin:
         """
         rawseeds = self._get_rawseeds()
         
+        def get_edition_keys(seeds):
+            d = self._editions_view(seeds, limit=10000, stale="ok")
+            return [row['id'] for row in d['rows']]
+            
+        keys = set()
+        
         # When there are too many seeds, couchdb-lucene fails because the query URL is too long.
         # Splitting the seeds into groups of 50 to avoid that trouble.
         for seeds in web.group(rawseeds, 50):
-            for e in self._get_all_editions(seeds):
-                yield e
-    
-    def _get_all_editions(self, seeds):
-        d = self._editions_view(seeds, limit=10000, stale="ok")
+            keys.add(get_edition_keys(seeds))
         
-        # couchdb-lucene is single-threaded. Get docs from couchdb instead of
-        # passing include_docs=True to couchdb-lucene to reduce load on it.
-        docs = self.get_couchdb_docs(self._get_editions_db(), [row['id'] for row in d['rows']])
-        
-        def get_doc(row):
-            doc = docs[row['id']]
-            del doc['_id']
-            del doc['_rev']
-            return doc
-
-        return [get_doc(row) for row in d['rows']]
-        
+        # Load docs from couchdb now.
+        for chunk in web.group(keys, 1000):
+            docs = self.get_couchdb_docs(self._get_editions_db(), chunk)
+            for doc in docs:
+                del doc['_id']
+                del doc['_rev']
+                yield doc
+            
     def _preload(self, keys):
         keys = list(set(keys))
         return self._site.get_many(keys)
