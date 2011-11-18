@@ -324,8 +324,8 @@ class list_editions(delegate.page):
         if not list:
             raise web.notfound()
         
-        i = web.input(limit=20, page=1)
-        limit = h.safeint(i.limit, 20)
+        i = web.input(limit=50, page=1)
+        limit = h.safeint(i.limit, 50)
         page = h.safeint(i.page, 1) - 1
         offset = page * limit
 
@@ -347,11 +347,11 @@ class list_editions_json(delegate.page):
         if not list:
             raise web.notfound()
             
-        i = web.input(limit=20, offset=0)
+        i = web.input(limit=50, offset=0)
         
-        limit = h.safeint(i.limit, 20)
+        limit = h.safeint(i.limit, 50)
         offset = h.safeint(i.offset, 0)
-
+        
         editions = list.get_editions(limit=limit, offset=offset, _raw=True)
         
         data = make_collection(
