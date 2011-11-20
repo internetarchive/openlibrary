@@ -159,7 +159,7 @@ class ListMixin:
         rawseeds = self._get_rawseeds()
         for seeds in web.group(rawseeds, 50):
             key_data += self._get_edition_keys(seeds, limit=MAX_OFFSET)
-        keys = [key for key, last_modified in sorted(key_data, key=lambda x: x[1])]
+        keys = [key for key, last_modified in sorted(key_data, key=lambda x: x[1], reverse=True)]
         keys = keys[offset:limit]
         
         # Get the documents from couchdb 
