@@ -233,18 +233,15 @@ class account_email_verify(delegate.page):
     path = "/account/email/verify/([0-9a-f]*)"
 
     def GET(self, code):
-        docs = web.ctx.site.store.values(type="account-link", name="code", value=code)
-        if docs:
-            doc = docs[0]
-            username = doc['username']
-            email = doc['email']
-            response = self.update_email(username, email)
-            # Delete the link doc
-            del web.ctx.site.store[doc['_key']]
-            return response
+        link = accounts.get_link(code)
+        if link:
+            username = link['username']
+            email = link['email']
+            link.delete()
+            return self.update_email(username, email)
         else:
             return self.bad_link()
-        
+
     def update_email(self, username, email):
         if accounts.find(email=email):
             title = _("Email address is already used.")
@@ -322,6 +319,7 @@ class account_password_forgot(delegate.page):
         return render['account/password/sent'](i.email)
 
 class account_password_reset(delegate.page):
+
     path = "/account/password/reset/([0-9a-f]*)"
 
     def GET(self, code):
@@ -335,18 +333,17 @@ class account_password_reset(delegate.page):
         return render['account/password/reset'](f)
 
     def POST(self, code):
-        docs = web.ctx.site.store.values(type="account-link", name="code", value=code)
-        if not docs:
+        link = accounts.get_link(code)
+        if not link:
             title = _("Password reset failed.")
             message = "The password reset link seems invalid or expired."
             return render.message(title, message)
 
-        doc = docs[0]
-        username = doc['username']
+        username = link['username']
         i = web.input()
         
         accounts.update_account(username, password=i.password)
-        del web.ctx.site.store[doc['_key']]
+        link.delete()
         return render_template("account/password/reset_success", username=username)
         
 class account_password_reset_old(delegate.page):

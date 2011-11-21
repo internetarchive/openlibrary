@@ -90,6 +90,10 @@ class Link(web.storage):
         d = self['created_on'].split(".")[0]
         return datetime.datetime.strptime(d, "%Y-%m-%dT%H:%M:%S")
 
+    def delete(self):
+        del web.ctx.site.store[self['_key']]
+
+
 
 class Account(web.storage):
     @property

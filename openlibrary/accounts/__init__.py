@@ -54,3 +54,10 @@ def update_account(username, **kargs):
 def check_reset_code(username, code):
     web.ctx.site.check_reset_code(username, code)
 
+def get_link(code):
+    docs = web.ctx.site.store.values(type="account-link", name="code", value=code)
+    if docs:
+        doc = docs[0]
+        return Link(doc)
+    else:
+        return False
