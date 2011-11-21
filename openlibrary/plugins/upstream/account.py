@@ -62,11 +62,10 @@ class account_create(delegate.page):
             return render['account/create'](f)
 
         try:
-            web.ctx.site.register(
-                username=i.username,
-                email=i.email,
-                password=i.password,
-                displayname=i.displayname)
+            accounts.register(username=i.username,
+                              email=i.email,
+                              password=i.password,
+                              displayname=i.displayname)
         except ClientException, e:
             f.note = str(e)
             return render['account/create'](f)
@@ -137,7 +136,7 @@ class account_login(delegate.page):
             
     def POST_resend_verification_email(self, i):
         try:
-            web.ctx.site.login(i.username, i.password)
+            accounts.login(i.username, i.password)
         except ClientException, e:
             code = e.get_data().get("code")
             if code != "account_not_verified":
@@ -252,7 +251,7 @@ class account_email_verify(delegate.page):
             message = _("Your email address couldn't be updated. The specified email address is already used.")
         else:
             logger.info("updated email of %s to %s", username, email)
-            web.ctx.site.update_account(username=username, email=email, status="active")
+            accounts.update_account(username=username, email=email, status="active")
             title = _("Email verification successful.")
             message = _('Your email address has been successfully verified and updated in your account.')
         return render.message(title, message)
@@ -291,7 +290,7 @@ class account_password(delegate.page):
         username = user.key.split("/")[-1]
         
         if self.try_login(username, i.password):
-            web.ctx.site.update_account(username, password=i.new_password)
+            accounts.update_account(username, password=i.new_password)
             add_flash_message('note', _('Your password has been updated successfully.'))
             raise web.seeother('/account')
         else:
@@ -346,7 +345,7 @@ class account_password_reset(delegate.page):
         username = doc['username']
         i = web.input()
         
-        web.ctx.site.update_account(username, password=i.password)
+        accounts.update_account(username, password=i.password)
         del web.ctx.site.store[doc['_key']]
         return render_template("account/password/reset_success", username=username)
         
@@ -357,7 +356,7 @@ class account_password_reset_old(delegate.page):
         i = web.input(username='', code='')
 
         try:
-            web.ctx.site.check_reset_code(i.username, i.code)
+            accounts.check_reset_code(i.username, i.code)
         except ClientException, e:
             title = _("Password reset failed.")
             message = web.safestr(e)
@@ -381,7 +380,7 @@ class account_password_reset_old(delegate.page):
         if not f.validates(i):
             return render['account/password/reset'](f)
 
-        web.ctx.site.update_account(i.username, password=i.password)
+        accounts.update_account(i.username, password=i.password)
         add_flash_message('info', _("Your password has been updated successfully."))
         raise web.seeother('/account/login')
 
