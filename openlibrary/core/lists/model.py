@@ -221,12 +221,12 @@ class ListMixin:
         # When there are too many seeds, couchdb-lucene fails because the query URL is too long.
         # Splitting the seeds into groups of 50 to avoid that trouble.
         for seeds in web.group(rawseeds, 50):
-            keys.add(get_edition_keys(seeds))
+            keys.update(get_edition_keys(seeds))
         
         # Load docs from couchdb now.
         for chunk in web.group(keys, 1000):
             docs = self.get_couchdb_docs(self._get_editions_db(), chunk)
-            for doc in docs:
+            for doc in docs.values():
                 del doc['_id']
                 del doc['_rev']
                 yield doc
