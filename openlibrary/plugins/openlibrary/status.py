@@ -7,7 +7,6 @@ import subprocess
 from infogami import config
 from infogami.utils import delegate
 from infogami.utils.view import render_template
-from infogami.utils.context import context
 
 status_info = {}
 feature_flags = {}

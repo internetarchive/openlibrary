@@ -16,172 +16,25 @@ import infogami.core.code as core
 from openlibrary.i18n import gettext as _
 from openlibrary.core import helpers as h
 from openlibrary.core import support
+from openlibrary import accounts
 import forms
 import utils
 import borrow
 
 logger = logging.getLogger("openlibrary.account")
 
-class Link(web.storage):
-    def get_expiration_time(self):
-        d = self['expires_on'].split(".")[0]
-        return datetime.datetime.strptime(d, "%Y-%m-%dT%H:%M:%S")
-
-    def get_creation_time(self):
-        d = self['created_on'].split(".")[0]
-        return datetime.datetime.strptime(d, "%Y-%m-%dT%H:%M:%S")
-
-class Account(web.storage):
-    @property
-    def username(self):
-        return self._key.split("/")[-1]
-        
-    def get_edit_count(self):
-        user = self.get_user()
-        return user and user.get_edit_count() or 0
-        
-    @property
-    def registered_on(self):
-        """Returns the registration time."""
-        t = self.get("created_on")
-        return t and h.parse_datetime(t)
-        
-    @property
-    def activated_on(self):
-        user = self.get_user()
-        return user and user.created
-        
-    @property
-    def displayname(self):
-        key = "/people/" + self.username
-        doc = web.ctx.site.get(key)
-        if doc:
-            return doc.displayname or self.username
-        elif "data" in self:
-            return self.data.get("displayname") or self.username
-        else:
-            return self.username
-            
-    def creation_time(self):
-        d = self['created_on'].split(".")[0]
-        return datetime.datetime.strptime(d, "%Y-%m-%dT%H:%M:%S")
-        
-    def get_cases(self):
-        """Returns all support cases filed by this user.
-        """
-        email = self.email
-        username = self.username
-        
-        # XXX-Anand: very inefficient. Optimize it later.
-        cases = support.Support().get_all_cases()
-        cases = [c for c in cases if c.creator_email == email or c.creator_username == username]
-        return cases
-
-    def verify_password(self, password):
-        return verify_hash(get_secret_key(), password, self.enc_password)
-        
-    def update_password(self, new_password):
-        web.ctx.site.update_account(self.username, password=new_password)
+# XXX: These need to be cleaned up 
+Account = accounts.Account
+send_verification_email = accounts.send_verification_email
+create_link_doc = accounts.create_link_doc
+sendmail = accounts.sendmail
     
-    def update_email(self, email):
-        web.ctx.site.update_account(self.username, email=email)
-        
-    def send_verification_email(self):
-        send_verification_email(self.username, self.email)
-
-    def activate(self):
-        web.ctx.site.activate_account(username=self.username)
-        
-    def login(self, password):
-        """Tries to login with the given password and returns the status.
-        
-        The return value can be one of the following:
-
-            * ok
-            * account_not_vefified
-            * account_not_found
-            * account_incorrect_password
-        
-        If the login is successful, the `last_login` time is updated.
-        """
-        try:
-            web.ctx.site.login(self.username, password)
-        except ClientException, e:
-            code = e.get_data().get("code")
-            return code
-        else:
-            self['last_login'] = datetime.datetime.utcnow().isoformat()
-            web.ctx.site.store[self._key] = self
-            return "ok"
-            
-    @property
-    def last_login(self):
-        """Returns the last_login time of the user, if available.
-
-        The `last_login` will not be available for accounts, who haven't
-        been logged in after this feature is added.
-        """
-        t = self.get("last_login")
-        return t and h.parse_datetime(t)
-    
-    def get_user(self):
-        key = "/people/" + self.username
-        doc = web.ctx.site.get(key)
-        return doc
-
-    def get_creation_info(self):
-        key = "/people/" + self.username
-        doc = web.ctx.site.get(key)
-        return doc.get_creation_info()
-
-    def get_activation_link(self):
-        key = "account/%s/verify"%self.username
-        doc = web.ctx.site.store.get(key)
-        if doc:
-            return Link(doc)
-        else:
-            return False
-    
-    def get_password_reset_link(self):
-        key = "account/%s/password"%self.username
-        doc = web.ctx.site.store.get(key)
-        if doc:
-            return Link(doc)
-        else:
-            return False
-
-    def get_links(self):
-        """Returns all the verification links present in the database.
-        """
-        return web.ctx.site.store.values(type="account-link", name="username", value=self.username)
-    
-    @staticmethod
-    def find(username=None, lusername=None, email=None):
-        """Finds an account by username, email or lowercase username.
-        """
-        def query(name, value):
-            try:
-                return web.ctx.site.store.values(type="account", name=name, value=value, limit=1)[0]
-            except IndexError:
-                return None
-        
-        if username:
-            doc = web.ctx.site.store.get("account/" + username)
-        elif lusername:
-            doc = query("lusername", lusername)
-        elif email:
-            doc = query("email", email)
-        else:
-            doc = None
-            
-        return doc and Account(doc)
-
 class account(delegate.page):
     """Account preferences.
     """
     @require_login
     def GET(self):
-        user = web.ctx.site.get_user()
+        user = accounts.get_current_user()
         return render.account(user)
 
 class account_create(delegate.page):
@@ -209,11 +62,10 @@ class account_create(delegate.page):
             return render['account/create'](f)
 
         try:
-            web.ctx.site.register(
-                username=i.username,
-                email=i.email,
-                password=i.password,
-                displayname=i.displayname)
+            accounts.register(username=i.username,
+                              email=i.email,
+                              password=i.password,
+                              displayname=i.displayname)
         except ClientException, e:
             f.note = str(e)
             return render['account/create'](f)
@@ -261,7 +113,7 @@ class account_login(delegate.page):
             return self.error("account_user_notfound", i)
             
         # Try to find account with exact username, failing which try for case variations.
-        account = Account.find(username=i.username) or Account.find(lusername=i.username)
+        account = accounts.find(username=i.username) or accounts.find(lusername=i.username)
         
         if not account:
             return self.error("account_user_notfound", i)
@@ -284,13 +136,13 @@ class account_login(delegate.page):
             
     def POST_resend_verification_email(self, i):
         try:
-            web.ctx.site.login(i.username, i.password)
+            accounts.login(i.username, i.password)
         except ClientException, e:
             code = e.get_data().get("code")
             if code != "account_not_verified":
                 return self.error("account_incorrect_password", i)
 
-        account = Account.find(username=i.username)
+        account = accounts.find(username=i.username)
         account.send_verification_email()
 
         title = _("Hi %(user)s", user=account.displayname)
@@ -307,12 +159,12 @@ class account_verify(delegate.page):
         if docs:
             doc = docs[0]
 
-            account = Account.find(username = doc['username'])
+            account = accounts.find(username = doc['username'])
             if account:
                 if account['status'] != "pending":
                     return render['account/verify/activated'](account)
             account.activate()
-            user = web.ctx.site.get("/people/" + doc['username'])
+            user = web.ctx.site.get("/people/" + doc['username']) #TBD
             return render['account/verify/success'](account)
         else:
             return render['account/verify/failed']()
@@ -321,7 +173,7 @@ class account_verify(delegate.page):
         """Called to regenerate account verification code.
         """
         i = web.input(email=None)
-        account = Account.find(email=i.email)
+        account = accounts.find(email=i.email)
         if not account:
             return render_template("account/verify/failed", email=i.email)
         elif account['status'] != "pending":
@@ -350,7 +202,8 @@ class account_email(delegate.page):
     path = "/account/email"
 
     def get_email(self):
-        return context.user.get_account()['email']
+        user = accounts.get_current_user()
+        return user.get_account()['email']
 
     @require_login
     def GET(self):
@@ -365,7 +218,7 @@ class account_email(delegate.page):
         if not f.validates(i):
             return render['account/email'](self.get_email(), f)
         else:
-            user = web.ctx.site.get_user()
+            user = accounts.get_current_user()
             username = user.key.split('/')[-1]
 
             displayname = user.displayname or username
@@ -380,25 +233,22 @@ class account_email_verify(delegate.page):
     path = "/account/email/verify/([0-9a-f]*)"
 
     def GET(self, code):
-        docs = web.ctx.site.store.values(type="account-link", name="code", value=code)
-        if docs:
-            doc = docs[0]
-            username = doc['username']
-            email = doc['email']
-            response = self.update_email(username, email)
-            # Delete the link doc
-            del web.ctx.site.store[doc['_key']]
-            return response
+        link = accounts.get_link(code)
+        if link:
+            username = link['username']
+            email = link['email']
+            link.delete()
+            return self.update_email(username, email)
         else:
             return self.bad_link()
-        
+
     def update_email(self, username, email):
-        if Account.find(email=email):
+        if accounts.find(email=email):
             title = _("Email address is already used.")
             message = _("Your email address couldn't be updated. The specified email address is already used.")
         else:
             logger.info("updated email of %s to %s", username, email)
-            web.ctx.site.update_account(username=username, email=email, status="active")
+            accounts.update_account(username=username, email=email, status="active")
             title = _("Email verification successful.")
             message = _('Your email address has been successfully verified and updated in your account.')
         return render.message(title, message)
@@ -433,11 +283,11 @@ class account_password(delegate.page):
         if not f.validates(i):
             return render['account/password'](f)
             
-        user = web.ctx.site.get_user()
+        user = accounts.get_current_user()
         username = user.key.split("/")[-1]
         
         if self.try_login(username, i.password):
-            web.ctx.site.update_account(username, password=i.new_password)
+            accounts.update_account(username, password=i.new_password)
             add_flash_message('note', _('Your password has been updated successfully.'))
             raise web.seeother('/account')
         else:
@@ -445,7 +295,7 @@ class account_password(delegate.page):
             return render['account/password'](f)
         
     def try_login(self, username, password):
-        account = Account.find(username=username)
+        account = accounts.find(username=username)
         return account and account.verify_password(password)
 
 class account_password_forgot(delegate.page):
@@ -463,12 +313,13 @@ class account_password_forgot(delegate.page):
         if not f.validates(i):
             return render['account/password/forgot'](f)
 
-        account = Account.find(email=i.email)
+        account = accounts.find(email=i.email)
         
         send_forgot_password_email(account.username, i.email)
         return render['account/password/sent'](i.email)
 
 class account_password_reset(delegate.page):
+
     path = "/account/password/reset/([0-9a-f]*)"
 
     def GET(self, code):
@@ -482,68 +333,34 @@ class account_password_reset(delegate.page):
         return render['account/password/reset'](f)
 
     def POST(self, code):
-        docs = web.ctx.site.store.values(type="account-link", name="code", value=code)
-        if not docs:
+        link = accounts.get_link(code)
+        if not link:
             title = _("Password reset failed.")
             message = "The password reset link seems invalid or expired."
             return render.message(title, message)
 
-        doc = docs[0]
-        username = doc['username']
+        username = link['username']
         i = web.input()
         
-        web.ctx.site.update_account(username, password=i.password)
-        del web.ctx.site.store[doc['_key']]
+        accounts.update_account(username, password=i.password)
+        link.delete()
         return render_template("account/password/reset_success", username=username)
         
-class account_password_reset_old(delegate.page):
-    path = "/account/password/reset"
-
-    def GET(self):
-        i = web.input(username='', code='')
-
-        try:
-            web.ctx.site.check_reset_code(i.username, i.code)
-        except ClientException, e:
-            title = _("Password reset failed.")
-            message = web.safestr(e)
-            return render.message(title, message)
-
-        f = forms.ResetPassword()
-        return render['account/password/reset'](f)
-
-    def POST(self):
-        i = web.input(username='', code='')
-
-        try:
-            web.ctx.site.check_reset_code(i.username, i.code)
-        except ClientException, e:
-            title = _("Password reset failed.")
-            message = web.safestr(e)
-            return render.message(title, message)
-
-        f = forms.ResetPassword()
-
-        if not f.validates(i):
-            return render['account/password/reset'](f)
-
-        web.ctx.site.update_account(i.username, password=i.password)
-        add_flash_message('info', _("Your password has been updated successfully."))
-        raise web.seeother('/account/login')
-
 class account_notifications(delegate.page):
     path = "/account/notifications"
 
     @require_login
     def GET(self):
-        prefs = web.ctx.site.get(context.user.key + "/preferences")
+        user = accounts.get_current_user()
+        prefs = web.ctx.site.get(user.key + "/preferences")
         d = (prefs and prefs.get('notifications')) or {}
-        email = context.user.email
+        email = accounts.get_current_user().email
         return render['account/notifications'](d, email)
 
     @require_login
     def POST(self):
-        key = context.user.key + '/preferences'
+        user = accounts.get_current_user()
+        key = user.key + '/preferences'
         prefs = web.ctx.site.get(key)
 
         d = (prefs and prefs.dict()) or {'key': key, 'type': {'key': '/type/object'}}
@@ -560,7 +377,7 @@ class account_loans(delegate.page):
 
     @require_login
     def GET(self):
-        user = web.ctx.site.get_user()
+        user = accounts.get_current_user()
         user.update_loan_status()
         loans = borrow.get_loans(user)
         return render['account/borrow'](user, loans)
@@ -574,17 +391,6 @@ class account_others(delegate.page):
 
 ####
 
-def send_verification_email(username, email):
-    """Sends account verification email.
-    """
-    key = "account/%s/verify" % username
-
-    doc = create_link_doc(key, username, email)
-    web.ctx.site.store[key] = doc
-
-    link = web.ctx.home + "/account/verify/" + doc['code']
-    msg = render_template("email/account/verify", username=username, email=email, password=None, link=link)
-    sendmail(email, msg)
 
 def send_email_change_email(username, email):
     key = "account/%s/email" % username
@@ -606,58 +412,8 @@ def send_forgot_password_email(username, email):
     msg = render_template("email/password/reminder", username=username, link=link)
     sendmail(email, msg)
 
-def create_link_doc(key, username, email):
-    """Creates doc required for generating verification link email.
 
-    The doc contains username, email and a generated code.
-    """
-    code = generate_uuid()
 
-    now = datetime.datetime.utcnow()
-    expires = now + datetime.timedelta(days=14)
-
-    return {
-        "_key": key,
-        "_rev": None,
-        "type": "account-link",
-        "username": username,
-        "email": email,
-        "code": code,
-        "created_on": now.isoformat(),
-        "expires_on": expires.isoformat()
-    }
-
-def verify_hash(secret_key, text, hash):
-    """Verifies if the hash is generated
-    """
-    salt = hash.split('$', 1)[0]
-    return generate_hash(secret_key, text, salt) == hash
-
-def generate_hash(secret_key, text, salt=None):
-    salt = salt or hmac.HMAC(secret_key, str(random.random())).hexdigest()[:5]
-    hash = hmac.HMAC(secret_key, salt + web.utf8(text)).hexdigest()
-    return '%s$%s' % (salt, hash)
-
-def get_secret_key():
-    return config.infobase['secret_key']
-
-def sendmail(to, msg, cc=None):
-    cc = cc or []
-    if config.get('dummy_sendmail'):
-        message = ('' +
-            'To: ' + to + '\n' +
-            'From:' + config.from_address + '\n' +
-            'Subject:' + msg.subject + '\n' +
-            '\n' +
-            web.safestr(msg))
-
-        print >> web.debug, "sending email", message
-        logger.info("sending mail" + message)
-    else:
-        web.sendmail(config.from_address, to, subject=msg.subject.strip(), message=web.safestr(msg), cc=cc)
-
-def generate_uuid():
-    return str(uuid.uuid4()).replace("-", "")
 
 def as_admin(f):
     """Infobase allows some requests only from admin user. This decorator logs in as admin, executes the function and clears the admin credentials."""
