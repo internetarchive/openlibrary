@@ -346,41 +346,6 @@ class account_password_reset(delegate.page):
         link.delete()
         return render_template("account/password/reset_success", username=username)
         
-class account_password_reset_old(delegate.page):
-    path = "/account/password/reset"
-
-    def GET(self):
-        i = web.input(username='', code='')
-
-        try:
-            accounts.check_reset_code(i.username, i.code)
-        except ClientException, e:
-            title = _("Password reset failed.")
-            message = web.safestr(e)
-            return render.message(title, message)
-
-        f = forms.ResetPassword()
-        return render['account/password/reset'](f)
-
-    def POST(self):
-        i = web.input(username='', code='')
-
-        try:
-            web.ctx.site.check_reset_code(i.username, i.code)
-        except ClientException, e:
-            title = _("Password reset failed.")
-            message = web.safestr(e)
-            return render.message(title, message)
-
-        f = forms.ResetPassword()
-
-        if not f.validates(i):
-            return render['account/password/reset'](f)
-
-        accounts.update_account(i.username, password=i.password)
-        add_flash_message('info', _("Your password has been updated successfully."))
-        raise web.seeother('/account/login')
-
 class account_notifications(delegate.page):
     path = "/account/notifications"
 

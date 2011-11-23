@@ -51,8 +51,6 @@ def login(username, password):
 def update_account(username, **kargs):
     web.ctx.site.update_account(username, **kargs)
 
-def check_reset_code(username, code):
-    web.ctx.site.check_reset_code(username, code)
 
 def get_link(code):
     docs = web.ctx.site.store.values(type="account-link", name="code", value=code)
