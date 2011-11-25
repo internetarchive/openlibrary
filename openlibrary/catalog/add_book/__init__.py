@@ -269,7 +269,19 @@ def early_exit(rec):
         if ekeys:
             return ekeys[0]
 
-    for f in 'source_records', 'isbn_10', 'isbn_13', 'oclc_numbers':
+    if 'isbn_10' or 'isbn_13' in rec:
+        isbns = rec.get("isbn_10", []) + rec.get("isbn_13", [])
+        isbns = [isbn.strip().replace("-", "") for isbn in isbns]
+
+        q = {
+            'type':'/type/edition',
+            'isbn_': isbns
+        }
+        ekeys = list(web.ctx.site.things(q))
+        if ekeys:
+            return ekeys[0]
+
+    for f in 'source_records', 'oclc_numbers':
         if rec.get(f):
             q = {
                 'type':'/type/edition',
