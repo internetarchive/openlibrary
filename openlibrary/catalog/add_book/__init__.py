@@ -281,7 +281,7 @@ def early_exit(rec):
         if ekeys:
             return ekeys[0]
 
-    for f in 'source_records', 'oclc_numbers':
+    for f in 'source_records', 'oclc_numbers', 'lccn':
         if rec.get(f):
             q = {
                 'type':'/type/edition',
