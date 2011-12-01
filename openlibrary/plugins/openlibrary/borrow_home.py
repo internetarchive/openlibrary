@@ -3,6 +3,7 @@
 import simplejson
 import web
 import random
+import datetime
 
 from infogami.plugins.api.code import jsonapi
 from infogami.utils import delegate
@@ -113,7 +114,10 @@ class CustomSubjectEngine(SubjectEngine):
         q = {
             meta.facet_key: ["lending_library"], 
             'public_scan_b': "false",
-            'NOT borrowed_b': "true"
+            'NOT borrowed_b': "true",
+
+            # show only books in last 20 or so years
+            'publish_year': (str(1990), str(datetime.date.today().year)) # range
         }
 
         if filters:
