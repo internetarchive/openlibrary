@@ -103,7 +103,8 @@ class CustomSubjectEngine(SubjectEngine):
 
         q = {
             meta.facet_key: ["lending_library"], 
-            'public_scan_b': "false"
+            'public_scan_b': "false",
+            'NOT borrowed_b': "true"
         }
 
         if filters:
