@@ -3,7 +3,7 @@ from openlibrary.catalog.utils.query import query_iter, withKey, has_cover
 #from openlibrary.catalog.marc.marc_subject import get_work_subjects, four_types
 from lxml.etree import tostring, Element, SubElement
 from pprint import pprint
-from urllib2 import urlopen, URLError
+from urllib2 import urlopen, URLError, HTTPError
 import simplejson as json
 from time import sleep
 from openlibrary import config
@@ -31,6 +31,34 @@ def get_solr(index):
             'editions': config.runtime_config['plugin_worksearch']['edition_solr'],
         }
     return solr_host[index]
+    
+def load_config():
+    if not config.runtime_config:
+        config.load('openlibrary.yml')
+
+def is_borrowed(edition_key):
+    """Returns True of the given edition is borrowed.
+    """
+    key = "/books/" + edition_key
+    
+    load_config()
+    infobase_server = config.runtime_config.get("infobase_server")
+    if infobase_server is None:
+        print "infobase_server not defined in the config. Unabled to find borrowed status."
+        return False
+            
+    url = "http://%s/openlibrary.org/_store/ebooks/books/%s" % (infobase_server, edition_key)
+    
+    try:
+        d = json.loads(urlopen(url).read())
+        print edition_key, d
+    except HTTPError, e:
+        # Return False if that store entry is not found 
+        if e.getcode() == 404:
+            return False
+        # Ignore errors for now
+        return False
+    return d.get("borrowed", "false") == "true"
 
 re_collection = re.compile(r'<(collection|boxid)>(.*)</\1>', re.I)
 
@@ -452,6 +480,9 @@ def build_doc(w, obj_cache={}, resolve_redirects=False):
         add_field(doc, 'lending_edition_s', in_library_edition)
     if printdisabled:
         add_field(doc, 'printdisabled_s', ';'.join(list(printdisabled)))
+        
+    if lending_edition or in_library_edition:
+        add_field(doc, "borrowed_b", is_borrowed(lending_edition or in_library_edition))
 
     author_keys = [re_author_key.match(a['key']).group(1) for a in authors]
     author_names = [a.get('name', '') for a in authors]
@@ -484,7 +515,7 @@ def build_doc(w, obj_cache={}, resolve_redirects=False):
 
     if ia_box_id:
         add_field_list(doc, 'ia_box_id', ia_box_id)
-
+        
     return doc
 
 def solr_update(requests, debug=False, index='works'):
@@ -605,11 +636,15 @@ def update_author(akey, a=None, handle_redirects=True):
 def commit_and_optimize(debug=False):
     requests = ['<commit />', '<optimize />']
     solr_update(requests, debug)
-
-if __name__ == '__main__':
-    key = sys.argv[1]
-    print key
-    w = withKey(key)
-    update_work(w, debug=True)
-    requests = ['<commit />']
+    
+def main(keys):
+    requests = []
+    for k in keys:
+        w = withKey(key)
+        requests += update_work(w, debug=True)
+    requests += ['<commit />']
     solr_update(requests, debug=True)
+        
+if __name__ == '__main__':
+    keys = sys.argv[1:]
+    main(keys)
