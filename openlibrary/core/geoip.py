@@ -1,9 +1,20 @@
 from infogami import config
 import GeoIP
+import web
+
+@web.memoize
+def get_db():
+    try:
+        geoip_db = config.get("geoip_database", '/usr/local/maxmind-geoip/GeoLiteCity.dat')
+        return GeoIP.open(geoip_db, GeoIP.GEOIP_MEMORY_CACHE)
+    except GeoIP.error:
+        print "loading GeoIP file failed"
 
 def get_region(ip):
-    global gi
-
+    gi = get_db()
+    if not gi:
+        return None
+    
     region = None
     try:
         record = gi.record_by_addr(ip)
@@ -13,5 +24,3 @@ def get_region(ip):
 
     return region
 
-geoip_db = config.get("geoip_database", '/usr/local/maxmind-geoip/GeoLiteCity.dat')
-gi = GeoIP.open(geoip_db, GeoIP.GEOIP_MEMORY_CACHE)

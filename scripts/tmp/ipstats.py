@@ -31,10 +31,11 @@ def store_data(db, data, date):
     db.save(vals)
 
 def run_for_day(d):
-    basedir = "/var/log/lighttpd/%(year)d/%(month)02d/%(day)02d/"%dict(year = d.year, month = d.month, day = d.day)
+    basedir = d.strftime("/var/log/lighttpd/%Y/%m/%d/")
     awk = ["awk", '$2 == "openlibrary.org" { print $1 }']
     sort = ["sort", "-u"]
     count = ["wc", "-l"]
+    print basedir
     if os.path.exists(basedir + "access.log.gz"):
         cmd = subprocess.Popen(["zcat", "%s/access.log.gz"%basedir], stdout = subprocess.PIPE)
     elif os.path.exists(basedir + "access.log"):

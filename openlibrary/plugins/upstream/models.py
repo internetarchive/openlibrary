@@ -445,6 +445,13 @@ class Author(models.Author):
         except ValueError:
             page = 1
         return works_by_author(self.get_olid(), sort=i.sort, page=page, rows=100)
+        
+    def get_work_count(self):
+        """Returns the number of works by this author.
+        """
+        # TODO: avoid duplicate works_by_author calls
+        result = works_by_author(self.get_olid(), rows=0)
+        return result.num_found
 
 re_year = re.compile(r'(\d{4})$')
 

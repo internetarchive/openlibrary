@@ -142,6 +142,9 @@ class recentchanges_view(delegate.page):
             web.ctx.status = "404 Not Found"
             return render.notfound(web.ctx.path)
             
+        if web.ctx.encoding == 'json':
+            return self.render_json(change)
+            
         path = self.get_change_url(change)
         if path != web.ctx.path:
             raise web.redirect(path)
@@ -151,6 +154,9 @@ class recentchanges_view(delegate.page):
                 return render_template(tname, change)
             else:
                 return render_template("recentchanges/default/view", change)
+                
+    def render_json(self, change):
+        return delegate.RawText(change.dict(), content_type="application/json")
                 
     def POST(self, id):
         if not features.is_enabled("undo"):

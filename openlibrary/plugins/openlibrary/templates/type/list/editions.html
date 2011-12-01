@@ -88,10 +88,12 @@ $def render_authors(authors):
                     </td>
                 </tr>
         </table>
-        
-        $ page = safeint(query_param("page", 1), 1)
-        $ pagesize = editions['limit']
-        $ pages = editions['count']/pagesize + cond(editions['count']%pagesize, 1, 0)
-        $:render_template("lib/pagination", pages, page, list.url("/editions?page=%(page)s"))
+        <div class="historyPager small sansserif gray">
+            $if 'next_params' in editions:
+                <a href="$:changequery(**editions['next_params'])" rel="nofollow">&larr; $_("Older")</a>                
+            $if 'prev_params' in editions:
+                 &nbsp;|&nbsp;
+                <a href="$:changequery(**editions['prev_params'])" rel="nofollow">$_("Newer") &rarr;</a>
+        </div>        
     </div> 
 </div>

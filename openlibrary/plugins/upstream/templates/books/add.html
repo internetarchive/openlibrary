@@ -1,4 +1,4 @@
-$def with (work=None, author=None)
+$def with (work=None, author=None, recaptcha=None)
 
 $var title: $_("Add a book")
 
@@ -10,11 +10,11 @@ $var title: $_("Add a book")
     $if not ctx.user:
         $:render_template("lib/not_logged")
 </div>
-            
+
 <div id="contentBody">
-            
+
     <form method="post" action="" id="addbook" class="olform addbook1 validate" name="edit">
-    
+
         $ author = (work and work.authors and work.authors[0].author) or author
         <div class="formElement">
             <div class="label"><label for="title">$_("Title")</label></div>
@@ -44,14 +44,14 @@ $var title: $_("Add a book")
                 <input type="text" name="publisher" class="required" id="publisher"/>
             </div>
         </div>
-        
+
         <div class="formElement">
             <div class="label"><label for="publish_date">$_("When was it published?")</label> <span class="smaller lighter">$_("The year it was published is plenty.")</span></div>
             <div class="input">
                 <input type="text" name="publish_date" class="required publish-date" id="publish_date"/>
             </div>
         </div>
-        
+
         <div class="formElement">
             <div class="label"><label for="id_value">$:_("And optionally, an ID number &#151; like an ISBN &#151; would be helpful...")</label></div>
                 <label for="id_name" class="hidden">$_("ID Type")</label>
@@ -68,6 +68,12 @@ $var title: $_("Add a book")
             </div>
         </div>
 
+        $if recaptcha and not ctx.user:
+            <div class="formElement">
+                <div class="label">$_("Since you are not logged in, please type in the two words below.")</div>
+                $:recaptcha.render()
+            </div>
+
         <div class="formElement bottom">
             <div class="input">
                 <br/>
@@ -76,5 +82,5 @@ $var title: $_("Add a book")
                 <a href="javascript:history.go(-1);" class="attn">$_('Cancel')</a>
             </div>
         </div>
-    </form> 
+    </form>
 </div>

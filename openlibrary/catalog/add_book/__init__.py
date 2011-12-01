@@ -210,25 +210,37 @@ def find_match(e1, edition_pool):
 
 def build_pool(rec):
     pool = defaultdict(set)
+    
+    ## Find records with matching title
     assert isinstance(rec.get('title'), basestring)
     q = {
         'type': '/type/edition',
         'normalized_title_': normalize(rec['title'])
     }
-
     pool['title'] = set(web.ctx.site.things(q))
 
     q['title'] = rec['title']
     del q['normalized_title_']
     pool['title'].update(web.ctx.site.things(q))
-
-    for field in 'isbn', 'oclc_numbers', 'lccn', 'isbn_10', 'isbn_13':
-        for v in rec.get(field, []):
-            found = web.ctx.site.things({field: v, 'type': '/type/edition'})
-            if found:
-                if field.startswith('isbn_'):
-                    field = 'isbn'
-                pool[field].update(found)
+    
+    ## Find records with matching ISBNs
+    isbns = rec.get('isbn', []) + rec.get('isbn_10', []) + rec.get('isbn_13', [])
+    isbns = [isbn.replace("-", "").strip() for isbn in isbns] # strip hyphens
+    if isbns:
+        # Make a single request to find records matching the given ISBNs
+        keys = web.ctx.site.things({"isbn_": isbns, 'type': '/type/edition'})
+        if keys:
+            pool['isbn'] = set(keys)
+    
+    ## Find records with matching oclc_numbers and lccn
+    for field in 'oclc_numbers', 'lccn':
+        values = rec.get(field, [])
+        if values:
+            for v in values:
+                q = {field: v, 'type': '/type/edition'}
+                found = web.ctx.site.things(q)
+                if found:
+                    pool[field] = set(found)
     return dict((k, list(v)) for k, v in pool.iteritems())
 
 def add_db_name(rec):
@@ -257,8 +269,20 @@ def early_exit(rec):
         if ekeys:
             return ekeys[0]
 
-    for f in 'source_records', 'isbn_10', 'isbn_13', 'oclc_numbers':
-        if f in rec:
+    if 'isbn_10' or 'isbn_13' in rec:
+        isbns = rec.get("isbn_10", []) + rec.get("isbn_13", [])
+        isbns = [isbn.strip().replace("-", "") for isbn in isbns]
+
+        q = {
+            'type':'/type/edition',
+            'isbn_': isbns
+        }
+        ekeys = list(web.ctx.site.things(q))
+        if ekeys:
+            return ekeys[0]
+
+    for f in 'source_records', 'oclc_numbers', 'lccn':
+        if rec.get(f):
             q = {
                 'type':'/type/edition',
                 f: rec[f][0],
@@ -375,7 +399,7 @@ def load(rec):
     w = None
     e = web.ctx.site.get(match)
     if e.works:
-        w = e.works[0]
+        w = e.works[0].dict()
         work_created = False
     else:
         work_created = True
@@ -496,7 +520,7 @@ def load(rec):
         edits.append(e_dict)
     if need_work_save:
         reply['work']['status'] = 'created' if work_created else 'modified'
-        edits.append(w.dict())
+        edits.append(w)
     if edits:
         edits_str = `edits`
         for i in edits:
