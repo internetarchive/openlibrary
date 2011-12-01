@@ -88,9 +88,9 @@ def get_lending_library(site, inlibrary=False, **kw):
     kw.setdefault("sort", "first_publish_year desc")
     
     if inlibrary:
-        subject = CustomSubjectEngine().get_subject("/subjects/lending_library", **kw)
+        subject = CustomSubjectEngine().get_subject("/subjects/lending_library", in_library=True, **kw)
     else:
-        subject = SubjectEngine().get_subject("/subjects/lending_library", **kw)
+        subject = CustomSubjectEngine().get_subject("/subjects/lending_library", in_library=False, **kw)
     
     subject['key'] = '/borrow'
     convert_works_to_editions(site, subject['works'])
@@ -101,9 +101,14 @@ class CustomSubjectEngine(SubjectEngine):
     def make_query(self, key, filters):
         meta = self.get_meta(key)
 
-        q = {meta.facet_key: ["in_library", "lending_library"]}
+        q = {
+            meta.facet_key: ["lending_library"], 
+            'public_scan_b': "false"
+        }
 
         if filters:
+            if filters.get('in_library') is True:
+                q[meta.facet_key].append('in_library')
             if filters.get("has_fulltext") == "true":
                 q['has_fulltext'] = "true"
             if filters.get("publish_year"):
