@@ -294,6 +294,22 @@ while True:
             for query in i['data']['query']:
                 key = query.pop('key')
                 process_save(key, query)
+        # store.put gets called when any document is updated in the store. Borrowing/Returning a book triggers one.
+        elif action == 'store.put':
+            # A sample record looks like this:
+            # {
+            #   "action": "store.put", 
+            #   "timestamp": "2011-12-01T00:00:44.241604", 
+            #   "data": {
+            #       "data": {"borrowed": "false", "_key": "ebooks/books/OL5854888M", "_rev": "975708", "type": "ebook", "book_key": "/books/OL5854888M"},
+            #       "key": "ebooks/books/OL5854888M"
+            #   }, 
+            #   "site": "openlibrary.org"
+            # }
+            data = i.get('data', {}).get("data")
+            if data.get("type") == "ebook" and data.get("_key", "").startswith("ebooks/books/"):
+                edition_key = data['book_key']
+                process_save(edition_key, withKey(edition_key))
     since_last_update = time() - last_update
     if len(works_to_update) > work_limit or len(authors_to_update) > author_limit or since_last_update > time_limit:
         run_update()
