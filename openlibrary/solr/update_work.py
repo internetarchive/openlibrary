@@ -640,7 +640,7 @@ def commit_and_optimize(debug=False):
 def main(keys):
     requests = []
     for k in keys:
-        w = withKey(key)
+        w = withKey(k)
         requests += update_work(w, debug=True)
     requests += ['<commit />']
     solr_update(requests, debug=True)
