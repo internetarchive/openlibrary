@@ -642,7 +642,8 @@ def setup():
     
     subjects.setup()
     
-    from . import publishers
+    from . import publishers, languages
     publishers.setup()
+    languages.setup()
     
 setup()
