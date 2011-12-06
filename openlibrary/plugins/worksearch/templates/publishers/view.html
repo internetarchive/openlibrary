@@ -260,6 +260,19 @@ $:render_template("lib/covers", page)
 	        \$(".clickdata").text(sprintf(_("published between %s & %s."), yearFrom, yearTo-1));
 		}
 		
+		if (page.sort == 'new') {
+		    hash.sort = 'date_published';
+		    
+		    \$("#sortByNew").show();
+            \$("#sortByEdition").hide();
+		}
+		else if (page.sort == 'editions') {
+		    hash.sort = 'edition_count';
+
+		    \$("#sortByNew").hide();
+            \$("#sortByEdition").show();
+		}
+
 		set_hash(hash);
     }
     
@@ -339,14 +352,16 @@ $:render_template("lib/covers", page)
         \$("#sortByNew").hide()
         \$("#sortByEdition").show()
         resetCarousel();
-    })
+        resetCounts();
+    });
 
     \$("a.sortFirstPublish").live("click", function() {
         page.setSort("new");
         \$("#sortByNew").show()
         \$("#sortByEdition").hide()
         resetCarousel();
-    })
+        resetCounts();
+    });
 
 
     // handle hash
@@ -397,7 +412,25 @@ $:render_template("lib/covers", page)
 		    });
 		}
 	}
-	
+
+	function handle_sort(hash) {
+	    if (!hash.sort) {
+	        return;
+	    }
+	    
+	    if (hash.sort == 'date_published') {
+	        page.setSort('new');
+	        resetCarousel();
+            resetCounts();
+	    }
+	    else if (hash.sort == 'edition_count') {
+	        page.setSort('editions');
+            resetCarousel();
+            resetCounts();
+	    }
+	}
+
+	handle_sort(_hash);	
 	handle_ebooks(_hash);
 	handle_published_in(_hash);
 	handle_page(_hash);
