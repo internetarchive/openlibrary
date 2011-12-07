@@ -61,7 +61,7 @@ class libraries_dashboard(delegate.page):
     def GET(self):
         keys = web.ctx.site.things(query={"type": "/type/library", "limit": 1000})
         libraries = web.ctx.site.get_many(keys)
-        libraries.sort(key=lambda lib: lib.name)
+        libraries.sort(key=lambda lib: lib.name.lstrip('The '))
         return render_template("libraries/dashboard", libraries, self.get_pending_libraries())
         
     def get_pending_libraries(self):
