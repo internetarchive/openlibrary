@@ -75,6 +75,8 @@ def get_ia_collection_and_box_id(ia):
                 if m:
                     matches[m.group(1).lower()].add(m.group(2).lower())
             return matches
+        except UnicodeEncodeError:
+            return
         except URLError:
             print 'retry', attempt, url
             sleep(5)
