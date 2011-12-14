@@ -5,6 +5,10 @@
 
 BUILD=static/build
 
+
+# Use python from local env if it exists or else default to python in the path.
+PYTHON=$(if $(wildcard env),env/bin/python,python)
+
 .PHONY: all clean distclean git css js i18n
 
 all: git css js i18n
@@ -19,7 +23,7 @@ js:
 	bash static/js/all.jsh > $(BUILD)/all.js
 
 i18n:
-	python ./scripts/i18n-messages compile
+	$(PYTHON) ./scripts/i18n-messages compile
 
 git:
 	git submodule init
@@ -38,3 +42,14 @@ run:
 
 restart:
 	supervisorctl -c conf/services.ini restart openlibrary
+
+venv:
+	virtualenv --no-site-packages env
+	./env/bin/pip install -r requirements.txt
+
+bootstrap: venv all
+	./env/bin/python scripts/setup_dev_instance.py
+    
+upgrade: venv all
+	./env/bin/python scripts/setup_dev_instance.py --upgrade
+
