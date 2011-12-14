@@ -44,7 +44,6 @@ def update_solr(changeset):
     docs = changeset['docs'] + changeset['old_docs']
     docs = [doc for doc in docs if doc] # doc can be None if it is newly created.
     for doc in docs:
-        logger.info("doc: %s", doc)
         if doc['type']['key'] == '/type/edition':
             keys.update(w['key'] for w in doc.get('works', []))
         elif doc['type']['key'] == '/type/work':
