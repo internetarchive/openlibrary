@@ -34,10 +34,46 @@ class Path:
     def __init__(self, path):
         self.path = path
         
+    def exists(self):
+        return os.path.exists(self.path)
+        
+    def basename(self):
+        return os.path.basename(self.path)
+    
     def join(self, *a):
         parts = [self.path] + list(a)
         path = os.path.join(*parts)
         return Path(path)
+        
+    def mkdir(self, *parts):
+        path = self.join(*parts).path
+        if not os.path.exists(path):
+            os.makedirs(path)
+            
+    def isdir(self):
+        return os.path.isdir(self.path)
+        
+    def copy_to(self, dest, recursive=False):
+        if isinstance(dest, Path):
+            dest = dest.path
+            
+        options = ""
+        if recursive:
+            options += " -r"
+            
+        cmd = "cp %s %s %s" % (options, self.path, dest)
+        os.system(cmd)
+        
+    def read(self):
+        return open(self.path).read()
+        
+    def write(self, text, append=False):
+        if append:
+            f = open(self.path, 'a')
+        else:
+            f = open(self.path, 'w')
+        f.write(text)
+        f.close()
 
 CWD = Path(os.getcwd())
 
