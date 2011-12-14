@@ -32,3 +32,9 @@ clean:
 distclean:
 	git clean -fdx 
 	git submodule foreach git clean -fdx
+
+run:
+	python setup.py start
+
+restart:
+	supervisorctl -c conf/services.ini restart openlibrary
