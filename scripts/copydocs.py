@@ -55,6 +55,7 @@ def parse_args():
     parser.add_option("--src", dest="src", metavar="SOURCE_URL", default="http://openlibrary.org/", help="URL of the source server (default: %default)")
     parser.add_option("--dest", dest="dest", metavar="DEST_URL", default="http://0.0.0.0:8080/", help="URL of the destination server (default: %default)")
     parser.add_option("-r", "--recursive", dest="recursive", action='store_true', default=False, help="Recursively fetch all the referred docs.")
+    parser.add_option("-l", "--list", dest="lists", action="append", help="copy docs from a list.")
     return parser.parse_args()
 
 class Disk:
@@ -126,6 +127,14 @@ def copy(src, dest, keys, comment, recursive=False, saved=None, cache=None):
     if cache is None:
         cache = {}
         
+    def get_many(keys):
+        docs = marshal(src.get_many(keys).values())
+        # work records may contain excepts, which reference the author of the excerpt. 
+        # Deleting them to prevent loading the users.
+        for doc in docs:
+            doc.pop('excerpts', None)
+        return docs
+        
     def fetch(keys):
         docs = []
         
@@ -136,7 +145,7 @@ def copy(src, dest, keys, comment, recursive=False, saved=None, cache=None):
         keys = [k for k in keys if k not in cache]
         if keys:
             print "fetching", keys
-            docs2 = marshal(src.get_many(keys).values())
+            docs2 = get_many(keys)
             cache.update((doc['key'], doc) for doc in docs2)
             docs.extend(docs2)
         return docs
@@ -157,6 +166,48 @@ def copy(src, dest, keys, comment, recursive=False, saved=None, cache=None):
     print "saving", keys
     print dest.save_many(docs, comment=comment)
     saved.update(keys)
+    
+def copy_list(src, dest, list_key, comment):
+    keys = set()
+    
+    def jsonget(url):
+        url = url.encode("utf-8")
+        text = src._request(url).read()
+        return simplejson.loads(text)
+    
+    def get(key):
+        print "get", key
+        return marshal(src.get(list_key))
+        
+    def query(**q):
+        print "query", q
+        return [x['key'] for x in marshal(src.query(q))]
+        
+    def get_list_seeds(list_key):
+        d = jsonget(list_key + "/seeds.json")
+        return d['entries'] #[x['url'] for x in d['entries']]
+        
+    def add_seed(seed):
+        if seed['type'] == 'edition':
+            keys.add(seed['url'])
+        elif seed['type'] == 'work':
+            keys.add(seed['url'])
+        elif seed['type'] == 'subject':
+            doc = jsonget(seed['url'] + "/works.json")
+            keys.update(w['key'] for w in doc['works'])
+        
+    seeds = get_list_seeds(list_key)
+    for seed in seeds:
+        add_seed(seed)
+        
+    edition_keys = set(k for k in keys if k.startswith("/books/"))
+    work_keys = set(k for k in keys if k.startswith("/works/"))
+    
+    for w in work_keys:
+        edition_keys.update(query(type='/type/edition', works=w, limit=500))
+
+    keys = list(edition_keys) + list(work_keys)
+    copy(src, dest, keys, comment=comment, recursive=True)
             
 def main():
     options, args = parse_args()
@@ -175,6 +226,9 @@ def main():
             dest.login("admin", "admin123")
     else:
         dest = Disk(options.dest)
+        
+    for list_key in options.lists:
+        copy_list(src, dest, list_key, comment=options.comment)
 
     keys = args
     keys = list(expand(src, keys))
