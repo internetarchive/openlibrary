@@ -22,8 +22,9 @@ $if user_loan:
     $if user_loan['resource_type'] == 'bookreader':
         $# "do_return" is a fake "title" for the book that can be used for stats
         $ return_url = user_loan['book'] + '/do_return/borrow'
-        $ form_id = 'return_' + user_loan['store_key']
-        $ read_form_id = 'read_' + user_loan['store_key']
+        $ loan_id = user_loan['store_key'].replace('/', '_') # / not legal in HTML id
+        $ form_id = 'return_' + loan_id
+        $ read_form_id = 'read_' + loan_id
 
         <form id='$form_id' action="$return_url" method="post" style='display:hidden'>
         <input type="hidden" name="action" value="return" />

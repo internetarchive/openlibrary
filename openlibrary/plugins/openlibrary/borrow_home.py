@@ -2,6 +2,8 @@
 """
 import simplejson
 import web
+import random
+import datetime
 
 from infogami.plugins.api.code import jsonapi
 from infogami.utils import delegate
@@ -20,8 +22,10 @@ class borrow(delegate.page):
         return "inlibrary" in web.ctx.features
     
     def GET(self):
-        subject = get_lending_library(web.ctx.site, details=True, inlibrary=inlibrary.get_library() is not None, limit=24)
-        return render_template("borrow/index", subject, stats=LoanStats())
+        rand = random.randint(0, 9999)
+        sort = "random_%d desc" % rand
+        subject = get_lending_library(web.ctx.site, details=True, inlibrary=inlibrary.get_library() is not None, limit=24, sort=sort)
+        return render_template("borrow/index", subject, stats=LoanStats(), rand=rand)
 
 class borrow(delegate.page):
     path = "/borrow"
@@ -32,7 +36,7 @@ class borrow(delegate.page):
 
     @jsonapi
     def GET(self):
-        i = web.input(offset=0, limit=24, details="false", has_fulltext="false")
+        i = web.input(offset=0, limit=24, rand=-1, details="false", has_fulltext="false")
 
         filters = {}
         if i.get("has_fulltext") == "true":
@@ -51,6 +55,12 @@ class borrow(delegate.page):
 
         i.limit = h.safeint(i.limit, 12)
         i.offset = h.safeint(i.offset, 0)
+
+        i.rand = h.safeint(i.rand, -1)
+
+        if i.rand > 0:
+            sort = 'random_%d desc' % i.rand
+            filters['sort'] = sort
 
         subject = get_lending_library(web.ctx.site, 
             offset=i.offset, 
@@ -86,24 +96,33 @@ def convert_works_to_editions(site, works):
 
 def get_lending_library(site, inlibrary=False, **kw):
     kw.setdefault("sort", "first_publish_year desc")
-    
+
     if inlibrary:
-        subject = CustomSubjectEngine().get_subject("/subjects/lending_library", **kw)
+        subject = CustomSubjectEngine().get_subject("/subjects/lending_library", in_library=True, **kw)
     else:
-        subject = SubjectEngine().get_subject("/subjects/lending_library", **kw)
+        subject = CustomSubjectEngine().get_subject("/subjects/lending_library", in_library=False, **kw)
     
     subject['key'] = '/borrow'
     convert_works_to_editions(site, subject['works'])
     return subject
-    
+
 class CustomSubjectEngine(SubjectEngine):
     """SubjectEngine for inlibrary and lending_library combined."""
     def make_query(self, key, filters):
         meta = self.get_meta(key)
 
-        q = {meta.facet_key: ["in_library", "lending_library"]}
+        q = {
+            meta.facet_key: ["lending_library"], 
+            'public_scan_b': "false",
+            'NOT borrowed_b': "true",
+
+            # show only books in last 20 or so years
+            'publish_year': (str(1990), str(datetime.date.today().year)) # range
+        }
 
         if filters:
+            if filters.get('in_library') is True:
+                q[meta.facet_key].append('in_library')
             if filters.get("has_fulltext") == "true":
                 q['has_fulltext'] = "true"
             if filters.get("publish_year"):
