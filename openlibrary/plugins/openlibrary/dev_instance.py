@@ -3,6 +3,7 @@
 This module is imported only if dev_instance is set to True in openlibrary config.
 """
 import web
+import infogami
 from infogami.utils import delegate
 from openlibrary.core.task import oltask
 from openlibrary.tasks import other_on_edit_tasks
@@ -53,3 +54,31 @@ def update_solr(changeset):
             keys.add(doc['key'])
 
     update_work.update_keys(list(keys))
+    
+@infogami.install_hook
+def add_ol_user():
+    """Creates openlibrary user with admin previleges.
+    """
+    # Create openlibrary user
+    if web.ctx.site.get("/people/openlibrary") is None:
+        web.ctx.site.register(
+            username="openlibrary",
+            email="openlibrary@example.com",
+            password="openlibrary",
+            displayname="Open Library")
+        web.ctx.site.activate_account(username="openlibrary")
+        
+    if web.ctx.site.get("/usergroup/api") is None:
+        g_api = web.ctx.site.new("/usergroup/api", {
+            "key": "/usergroup/api",
+            "type": "/type/usergroup",
+            "members": [{"key": "/people/openlibrary"}]
+        })
+        g_api._save(comment="Added openlibrary user to API usergroup.")
+        
+    g_admin = web.ctx.site.get("/usergroup/admin").dict()
+    g_admin.setdefault('members', [])
+    members = [m['key'] for m in g_admin["members"]]
+    if 'openlibrary' not in members:
+        g_admin['members'].append({"key": "/people/openlibrary"})
+        web.ctx.site.save(g_admin, "Added openlibrary user to admin usergroup.")
