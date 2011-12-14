@@ -129,7 +129,7 @@ class Thing(client.Thing):
             
         lists = self._site.get_many(keys)
         if sort:
-            lists = h.safesort(lists, reverse=True, key=lambda list: list.last_update)
+            lists = h.safesort(lists, reverse=True, key=lambda list: list.last_modified)
         return lists
         
     @cache.memoize(engine="memcache", key=lambda self: ("d" + self.key, "l"))
@@ -321,7 +321,7 @@ class User(Thing):
         
         lists = self._site.get_many(keys)
         if sort:
-            lists = h.safesort(lists, reverse=True, key=lambda list: list.last_update)
+            lists = h.safesort(lists, reverse=True, key=lambda list: list.last_modified)
         return lists
 
     @cache.memoize(engine="memcache", key=lambda self: ("d" + self.key, "l"))
@@ -522,7 +522,7 @@ class Subject(web.storage):
         keys = web.ctx.site.things(q)
         lists = web.ctx.site.get_many(keys)
         if sort:
-            lists = h.safesort(lists, reverse=True, key=lambda list: list.last_update)
+            lists = h.safesort(lists, reverse=True, key=lambda list: list.last_modified)
         return lists
         
     def get_seed(self):
