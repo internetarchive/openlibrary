@@ -1,8 +1,7 @@
 # Open Library fastcgi configuration
 
-connection_type: "hybrid"
+connection_type: "local"
 
-infobase_server: "127.0.0.1:7000"
 site: "openlibrary.org"
 
 from_address: "Open Library <noreply@openlibrary.org>"
@@ -35,8 +34,11 @@ infobase_config_file: infobase.yml
 memcache_servers:
     - "localhost:7060"
 
-loanstatus_url: http://localhost:8010
+loanstatus_url: http://localhost:8080
 ia_access_secret: foobar
+
+dev_instance: True
+dev_instance_url: http://127.0.0.1:8080/
 
 plugins:
     - "openlibrary"
