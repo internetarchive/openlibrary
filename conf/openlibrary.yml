@@ -16,7 +16,7 @@ smtp_server: "localhost"
 dummy_sendmail: True
 debug: True
 
-coverstore_url: "http://127.0.0.1:7075/"
+coverstore_url: "http://0.0.0.0:8080/covers/"
 
 state_dir: var/run
 
@@ -30,6 +30,7 @@ login_cookie_name: session
 # contents of this file are assigned to config["infobase"]
 # Path can be relative to this file
 infobase_config_file: infobase.yml
+coverstore_config_file: coverstore.yml
  
 memcache_servers:
     - "localhost:7060"
