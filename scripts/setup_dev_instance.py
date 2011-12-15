@@ -161,15 +161,20 @@ class Process:
         time.sleep(5)
 
     def wait_for_url(self, url):
-        for i in range(10):
+        for i in range(40):
+            info("  waiting for url", url, i)
             try:
                 urllib2.urlopen(url).read()
-            except:
-                time.sleep(0.5)
+            except Exception, e:
+                time.sleep(1)
                 continue
             else:
+                info("  "  + url, "is now ready")
                 return
-        
+                
+        error("timedout")
+        raise Exception("  waiting for %s timedout" % url)
+                        
     def stop(self):
         info("    stopping", self.__class__.__name__.lower())
         self.process and self.process.terminate()
@@ -190,7 +195,9 @@ class OpenLibrary(Process):
         }
 
     def wait_for_start(self):
-        self.wait_for_url("http://127.0.0.1:8080/")
+        # wait for OL and Solr to start
+        self.wait_for_url("http://0.0.0.0:8080/")
+        self.wait_for_url("http://0.0.0.0:8983/solr/")
         
 class Solr(Process):
     def get_specs(self):
@@ -199,7 +206,7 @@ class Solr(Process):
         }
 
     def wait_for_start(self):
-        self.wait_for_url("http://127.0.0.1:9883/")
+        self.wait_for_url("http://127.0.0.1:8983/solr/")
 
 class DBTask:
     def getstatusoutput(self, cmd):
