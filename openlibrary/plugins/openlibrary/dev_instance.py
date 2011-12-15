@@ -117,3 +117,21 @@ def add_ol_user():
     if 'openlibrary' not in members:
         g_admin['members'].append({"key": "/people/openlibrary"})
         web.ctx.site.save(g_admin, "Added openlibrary user to admin usergroup.")
+
+@infogami.action
+def load_sample_data():
+    """Action to load sample data.
+
+    This was an experiment to load sample data as part of install. But it
+    doesn't seem to be working well on linux dev-instance because of some weird
+    supervisor log issues.
+
+    This is unused as of now.
+    """
+    env = {}
+    execfile("scripts/copydocs.py", env, env)
+    src = env['OpenLibrary']()
+    dest = web.ctx.site
+    comment = "Loaded sample data."
+    list_key = "/people/anand/lists/OL1815L"
+    env['copy_list'](src, dest, list_key, comment=comment)
