@@ -55,7 +55,7 @@ def parse_args():
     parser.add_option("--src", dest="src", metavar="SOURCE_URL", default="http://openlibrary.org/", help="URL of the source server (default: %default)")
     parser.add_option("--dest", dest="dest", metavar="DEST_URL", default="http://0.0.0.0:8080/", help="URL of the destination server (default: %default)")
     parser.add_option("-r", "--recursive", dest="recursive", action='store_true', default=False, help="Recursively fetch all the referred docs.")
-    parser.add_option("-l", "--list", dest="lists", action="append", help="copy docs from a list.")
+    parser.add_option("-l", "--list", dest="lists", action="append", default=[], help="copy docs from a list.")
     return parser.parse_args()
 
 class Disk:
@@ -131,8 +131,16 @@ def copy(src, dest, keys, comment, recursive=False, saved=None, cache=None):
         docs = marshal(src.get_many(keys).values())
         # work records may contain excepts, which reference the author of the excerpt. 
         # Deleting them to prevent loading the users.
+        # Deleting the covers and photos also because they don't show up in the dev instance.
         for doc in docs:
             doc.pop('excerpts', None)
+            doc.pop('covers', None)
+            doc.pop('photos', None)
+
+            # Authors are now with works. We don't need authors at editions.
+            if doc['type']['key'] == '/type/edition':
+                doc.pop('authors')
+
         return docs
         
     def fetch(keys):
@@ -155,7 +163,7 @@ def copy(src, dest, keys, comment, recursive=False, saved=None, cache=None):
     
     if recursive:
         refs = get_references(docs)
-        refs = [r for r in list(set(refs)) if not r.startswith("/type/")]
+        refs = [r for r in list(set(refs)) if not r.startswith("/type/") and not r.startswith("/languages/")]
         if refs:
             print "found references", refs
             copy(src, dest, refs, comment, recursive=True, saved=saved, cache=cache)
