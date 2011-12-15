@@ -261,6 +261,7 @@ class load_sample_data:
     
     def load(self):
         # load docs from a list
+        info("loading sample data from http://openlibrary.org/people/anand/lists/OL1815L")
         system(INTERP + " ./scripts/copydocs.py --list /people/anand/lists/OL1815L")
         
         # Hack to load borrowable ebooks to store so that they appear in the return cart
