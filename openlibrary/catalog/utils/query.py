@@ -85,6 +85,9 @@ def query_iter(q, limit=500, offset=0):
             return
         for i in ret:
             yield i
+        # We haven't got as many we have requested. No point making one more request
+        if len(ret) < limit:
+            break
         q['offset'] += limit
 
 def get_editions_with_covers_by_author(author, count):
