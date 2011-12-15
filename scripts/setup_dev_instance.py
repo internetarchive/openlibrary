@@ -191,6 +191,15 @@ class OpenLibrary(Process):
 
     def wait_for_start(self):
         self.wait_for_url("http://127.0.0.1:8080/")
+        
+class Solr(Process):
+    def get_specs(self):
+        return {
+            "command": "cd usr/local/solr/example && java -Dsolr.solr.home=../../../../conf/solr-biblio -Dsolr.data.dir=../../../../var/lib/solr -jar start.jar"
+        }
+
+    def wait_for_start(self):
+        self.wait_for_url("http://127.0.0.1:9883/")
 
 class DBTask:
     def getstatusoutput(self, cmd):
@@ -238,13 +247,13 @@ class setup_coverstore(DBTask):
         else:
             debug("loading schema")
             system("psql coverstore < openlibrary/coverstore/schema.sql")
-        
+
 class setup_ol(DBTask):
     def run(self):
         info("setting up openlibrary database")
         self.create_database("openlibrary")
         system(INTERP + " ./scripts/openlibrary-server conf/openlibrary.yml install")
-        
+
 class load_sample_data:
     def run(self):
         info("loading sample data")
@@ -269,7 +278,9 @@ def install():
         install_solr(),
         setup_coverstore(),
         setup_ol(),
-        load_sample_data()
+        
+        #XXX: This is not working linux due to some weird issues. Taking it off for now.
+        #load_sample_data()
     ]
 
     try:
