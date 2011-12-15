@@ -251,7 +251,11 @@ class load_sample_data:
         OpenLibrary().run_tasks(self.load)
     
     def load(self):
+        # load docs from a list
         system(INTERP + " ./scripts/copydocs.py --list /people/anand/lists/OL1815L")
+        
+        # Hack to load borrowable ebooks to store so that they appear in the return cart
+        urllib2.urlopen("http://0.0.0.0:8080/_dev/process_ebooks").read()
         
 cleanup_tasks = []
 

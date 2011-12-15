@@ -35,6 +35,30 @@ class is_loaned_out(delegate.page):
     def GET(self):
         return delegate.RawText("[]", content_type="application/json")
 
+class process_ebooks(delegate.page):
+    """Hack to add ebooks to store so that books are visible in the returncart.
+    """
+    path = "/_dev/process_ebooks"
+    
+    def GET(self):
+        from openlibrary.plugins.worksearch.search import get_works_solr
+        result = get_works_solr().select(query='borrowed_b:false', fields=['key', 'lending_edition_s'], limit=100)
+        
+        def make_doc(d):
+            # Makes a store doc from solr doc
+            return {
+                "_key": "ebooks/books/" + d['lending_edition_s'],
+                "_rev": None, # Don't worry about consistancy
+                "type": "ebook",
+                "book_key": "/books/" + d['lending_edition_s'],
+                "borrowed": "false"
+            }
+        
+        docs = [make_doc(d) for d in result['docs']]
+        docdict = dict((d['_key'], d) for d in docs)
+        web.ctx.site.store.update(docdict)
+        return delegate.RawText("ok\n")
+
 @oltask
 def update_solr(changeset):
     """Updates solr on edit.
@@ -52,7 +76,7 @@ def update_solr(changeset):
             keys.update(a['author']['key'] for a in doc.get('authors', []) if 'author' in a)
         elif doc['type']['key'] == '/type/author':
             keys.add(doc['key'])
-
+            
     update_work.update_keys(list(keys))
     
 @infogami.install_hook
