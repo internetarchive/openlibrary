@@ -278,9 +278,7 @@ def install():
         install_solr(),
         setup_coverstore(),
         setup_ol(),
-        
-        #XXX: This is not working linux due to some weird issues. Taking it off for now.
-        #load_sample_data()
+        load_sample_data()
     ]
 
     try:
