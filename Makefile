@@ -46,7 +46,7 @@ restart:
 venv:
 	mkdir -p var/cache/pip
 	virtualenv --no-site-packages env
-	./env/bin/pip --download-cache var/cache/pip install http://www.archive.org/download/ol_vendor/openlibrary.pybundle
+	./env/bin/pip install --download-cache var/cache/pip http://www.archive.org/download/ol_vendor/openlibrary.pybundle
 
 bootstrap: venv all
 	./env/bin/python scripts/setup_dev_instance.py
