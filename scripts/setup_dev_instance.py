@@ -8,6 +8,8 @@ import sys
 import time
 import commands
 import logging
+import urllib2
+import subprocess
 
 logger = logging.getLogger("bootstrap")
 
@@ -138,6 +140,58 @@ def download_and_extract(url, dirname=None):
     if not CWD.join("usr/local", dirname).exists():
         system("cd usr/local && tar xzf " + path.path)
 
+class Process:
+    def __init__(self):
+        self.process = None
+        
+    def start(self):
+        info("    starting", self.__class__.__name__.lower())
+        
+        specs = self.get_specs()
+        stdout = open("var/log/install.log", 'a')
+        specs["stdout"] = stdout
+        specs["stderr"] = stdout
+        
+        command = specs.pop("command")
+        args = command.split()
+        self.process = subprocess.Popen(args, **specs)
+        self.wait_for_start()
+
+    def wait_for_start(self):
+        time.sleep(5)
+
+    def wait_for_url(self, url):
+        for i in range(10):
+            try:
+                urllib2.urlopen(url).read()
+            except:
+                time.sleep(0.5)
+                continue
+            else:
+                return
+        
+    def stop(self):
+        info("    stopping", self.__class__.__name__.lower())
+        self.process and self.process.terminate()
+        
+    def run_tasks(self, *tasks):
+        try:
+            self.start()
+            for task in tasks:
+                task()
+        finally:
+            self.stop()
+
+class OpenLibrary(Process):
+    def get_specs(self):
+        return {
+            #"command": INTERP + " ./scripts/openlibrary-server conf/openlibrary.yml startserver 0.0.0.0:8080"
+            "command":  "env/bin/supervisord -n -c conf/services.ini"
+        }
+
+    def wait_for_start(self):
+        self.wait_for_url("http://127.0.0.1:8080/")
+
 class DBTask:
     def getstatusoutput(self, cmd):
         debug("Executing", cmd)
@@ -190,7 +244,15 @@ class setup_ol(DBTask):
         info("setting up openlibrary database")
         self.create_database("openlibrary")
         system(INTERP + " ./scripts/openlibrary-server conf/openlibrary.yml install")
-                
+        
+class load_sample_data:
+    def run(self):
+        info("loading sample data")
+        OpenLibrary().run_tasks(self.load)
+    
+    def load(self):
+        system(INTERP + " ./scripts/copydocs.py --list /people/anand/lists/OL1815L")
+        
 cleanup_tasks = []
 
 def register_cleanup(cleanup):
@@ -203,6 +265,7 @@ def install():
         install_solr(),
         setup_coverstore(),
         setup_ol(),
+        load_sample_data()
     ]
 
     try:
