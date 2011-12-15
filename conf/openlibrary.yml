@@ -71,7 +71,7 @@ features:
     merge-authors: enabled
     undo: enabled
     dev: enabled
-    lists: enabled
+    lists: disabled
     lending_v2: enabled
     stats: enabled
     stats-header: enabled
@@ -79,6 +79,7 @@ features:
     support: admin
     dev: enabled
     superfast: enabled
+    publishers: enabled
 
 upstream_to_www_migration: true
 default_template_root: /upstream
