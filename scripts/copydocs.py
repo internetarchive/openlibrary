@@ -139,7 +139,7 @@ def copy(src, dest, keys, comment, recursive=False, saved=None, cache=None):
 
             # Authors are now with works. We don't need authors at editions.
             if doc['type']['key'] == '/type/edition':
-                doc.pop('authors')
+                doc.pop('authors', None)
 
         return docs
         
