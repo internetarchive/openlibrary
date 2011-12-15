@@ -44,8 +44,9 @@ restart:
 	supervisorctl -c conf/services.ini restart openlibrary
 
 venv:
+	mkdir -p var/cache/pip
 	virtualenv --no-site-packages env
-	./env/bin/pip install -r requirements.txt
+	./env/bin/pip --download-cache var/cache/pip install http://www.archive.org/download/ol_vendor/openlibrary.pybundle
 
 bootstrap: venv all
 	./env/bin/python scripts/setup_dev_instance.py
