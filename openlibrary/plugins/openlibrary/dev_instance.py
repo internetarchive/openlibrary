@@ -9,12 +9,23 @@ from openlibrary.core.task import oltask
 from openlibrary.tasks import other_on_edit_tasks
 
 def setup():
-    print "dev_instance.setup"
     setup_solr_updater()
     
     # Run update_solr on every edit
     other_on_edit_tasks.append(update_solr)
         
+    from openlibrary.catalog.utils import query
+    # monkey-patch query to make solr-updater work with-in the process instead of making http requests.
+    query.query = ol_query
+    query.withKey = ol_get
+
+def ol_query(q):
+    return web.ctx.site.things(q, details=True)
+
+def ol_get(key):
+    d = web.ctx.site.get(key)
+    return d and d.dict()
+
 def setup_solr_updater():
     from infogami import config
     
