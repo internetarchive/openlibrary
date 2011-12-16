@@ -57,11 +57,11 @@ setup_coverstore:
 	@echo "** setting up coverstore **"
 	env/bin/python scripts/setup_dev_instance.py --setup-coverstore
 
-setup_ol:
+setup_ol: git
 	@echo "** setting up openlibrary webapp **"
 	env/bin/python scripts/setup_dev_instance.py --setup-ol
-	# When bootstrapping, PYTHON will not be env/bin/python as env dir won't be there when make is invoked.
-	# Invoking make again to pick the right PYTHON.
+	@# When bootstrapping, PYTHON will not be env/bin/python as env dir won't be there when make is invoked.
+	@# Invoking make again to pick the right PYTHON.
 	make all
 
 bootstrap: venv install_solr setup_coverstore setup_ol
