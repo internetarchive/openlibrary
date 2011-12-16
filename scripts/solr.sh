@@ -13,6 +13,7 @@ START_COMMAND="java -Dsolr.solr.home=../../../../conf/solr-biblio -Dsolr.data.di
 
 start() {
   echo "Starting $NAME"
+  mkdir -p $(dirname $PIDFILE)
 
   if [ -f $PIDFILE ]; then
     echo "$PIDFILE exists. $NAME may be running."
