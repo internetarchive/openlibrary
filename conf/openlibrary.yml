@@ -32,9 +32,6 @@ login_cookie_name: session
 infobase_config_file: infobase.yml
 coverstore_config_file: coverstore.yml
  
-memcache_servers:
-    - "localhost:7060"
-
 loanstatus_url: http://localhost:8080
 ia_access_secret: foobar
 
