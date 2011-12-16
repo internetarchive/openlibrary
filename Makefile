@@ -72,6 +72,7 @@ run:
 load_sample_data:
 	@echo "loading sample docs from openlibrary.org website"
 	env/bin/python scripts/copydocs.py --list /people/anand/lists/OL1815L
+	curl http://localhost:8080/_dev/process_ebooks # hack to show books in returncart
 
 destroy:
 	@echo Destroying the dev instance.
