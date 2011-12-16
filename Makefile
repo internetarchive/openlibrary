@@ -59,7 +59,12 @@ setup_ol: all
 	$(PYTHON) scripts/setup_dev_instance.py --setup-ol
 
 bootstrap: venv install_solr setup_coverstore setup_ol
-
+	
 run:
 	env/bin/python scripts/openlibrary-server conf/openlibrary.yml --gunicorn -w 2 -b 0.0.0.0:8080 -t 300 --access-logfile=/dev/tty --access-logformat=$(ACCESS_LOG_FORMAT)
 
+destroy:
+	@echo Destroying the dev instance.
+	dropdb coverstore
+	dropdb openlibrary
+	rm -rf var usr env
