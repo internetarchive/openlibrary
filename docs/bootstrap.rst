@@ -52,7 +52,7 @@ Open Library depends a lot of third-party programs.
 
 To install all the dependencies::
 
-    $ sudo python setup.py install_dependencies
+    $ sudo ./scripts/install_dependencies.sh
 
 Note that this is run as root.
 
@@ -65,14 +65,12 @@ Once all the dependencies are installed the dev instance can be setup by running
 
 	$ make bootstrap
 	
-This will do the following tasks:
+This will do the following tasks, each of which can be invoked independenetly using make.
 
-* create virtualenv
-* install solr
-* setup coverstore
-* setup openlibrary webapp
-
-Each of these tasks can be run individually by running `make` with `venv`, `install_solr`, `setup_coverstore` and `setup_ol` respectively.
+* create virtualenv (``make venv``)
+* install solr (``make install_solr``)
+* setup coverstore (``make setup_coverstore``)
+* setup openlibrary webapp (``make setup_ol``)
 
 Destroying the dev instance
 ---------------------------
