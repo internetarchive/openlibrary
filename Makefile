@@ -43,19 +43,23 @@ distclean:
 	git submodule foreach git clean -fdx
 
 venv:
+	@echo "** setting up virtualenv **"
 	mkdir -p var/cache/pip
 	virtualenv --no-site-packages env
 	./env/bin/pip install --download-cache var/cache/pip $(OL_VENDOR)/openlibrary.pybundle
 
 install_solr: 
+	@echo "** installing solr **"
 	mkdir -p var/lib/solr var/cache usr/local
 	wget -c $(OL_VENDOR)/$(SOLR_VERSION).tgz -O var/cache/$(SOLR_VERSION).tgz
 	cd usr/local && tar xzf ../../var/cache/$(SOLR_VERSION).tgz && ln -fs $(SOLR_VERSION) solr
 
 setup_coverstore:
+	@echo "** setting up coverstore **"
 	$(PYTHON) scripts/setup_dev_instance.py --setup-coverstore
 
 setup_ol: all
+	@echo "** setting up openlibrary webapp **"
 	$(PYTHON) scripts/setup_dev_instance.py --setup-ol
 
 bootstrap: venv install_solr setup_coverstore setup_ol
