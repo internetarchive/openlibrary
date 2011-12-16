@@ -35,3 +35,4 @@ ordereddict==1.1
 py==1.4.5
 python-dateutil==1.5
 wsgiref==0.1.2
+mockcache==1.0.1
