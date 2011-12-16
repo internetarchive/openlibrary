@@ -115,7 +115,7 @@ Loading sample data
 
 Use the `copydocs.py` script to load sample records from openlibrary.org website.::
 
-	$ ./scripts/copydocs.py --list /people/anand/lists/OL1815L
+	$ make load_sample_data
 
 Make sure both Solr and the webapp are running before running this.
 
