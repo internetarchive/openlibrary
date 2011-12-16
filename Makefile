@@ -67,7 +67,7 @@ setup_ol:
 bootstrap: venv install_solr setup_coverstore setup_ol
 	
 run:
-	env/bin/python scripts/openlibrary-server conf/openlibrary.yml --gunicorn -w 2 -b 0.0.0.0:8080 -t 300 --access-logfile=/dev/tty --access-logformat=$(ACCESS_LOG_FORMAT)
+	env/bin/python scripts/openlibrary-server conf/openlibrary.yml
 
 load_sample_data:
 	@echo "loading sample docs from openlibrary.org website"
