@@ -59,9 +59,6 @@ setup_ol: all
 	$(PYTHON) scripts/setup_dev_instance.py --setup-ol
 
 bootstrap: venv install_solr setup_coverstore setup_ol
-    
-solr: 
-	cd usr/local/solr/example && java -Dsolr.solr.home=../../../../conf/solr-biblio -Dsolr.data.dir=../../../../var/lib/solr -jar start.jar 2>&1
 
 run:
 	env/bin/python scripts/openlibrary-server conf/openlibrary.yml --gunicorn -w 2 -b 0.0.0.0:8080 -t 300 --access-logfile=/dev/tty --access-logformat=$(ACCESS_LOG_FORMAT)
