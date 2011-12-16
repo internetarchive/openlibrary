@@ -10,9 +10,8 @@ OL_VENDOR=http://www.archive.org/download/ol_vendor
 SOLR_VERSION=apache-solr-1.4.0
 ACCESS_LOG_FORMAT='%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s"'
 
-
 # Use python from local env if it exists or else default to python in the path.
-PYTHON=$(if $(wildcard env),env/bin/python,python)
+PYTHON=$(if $(wildcard env),env/bin/python,python) 
 
 .PHONY: all clean distclean git css js i18n
 
@@ -56,11 +55,14 @@ install_solr:
 
 setup_coverstore:
 	@echo "** setting up coverstore **"
-	$(PYTHON) scripts/setup_dev_instance.py --setup-coverstore
+	env/bin/python scripts/setup_dev_instance.py --setup-coverstore
 
-setup_ol: all
+setup_ol:
 	@echo "** setting up openlibrary webapp **"
-	$(PYTHON) scripts/setup_dev_instance.py --setup-ol
+	env/bin/python scripts/setup_dev_instance.py --setup-ol
+	# When bootstrapping, PYTHON will not be env/bin/python as env dir won't be there when make is invoked.
+	# Invoking make again to pick the right PYTHON.
+	make all
 
 bootstrap: venv install_solr setup_coverstore setup_ol
 	
