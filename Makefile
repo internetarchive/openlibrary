@@ -65,6 +65,6 @@ run:
 
 destroy:
 	@echo Destroying the dev instance.
-	dropdb coverstore
-	dropdb openlibrary
+	-dropdb coverstore
+	-dropdb openlibrary
 	rm -rf var usr env
