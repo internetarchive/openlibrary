@@ -18,6 +18,30 @@ def setup():
     # monkey-patch query to make solr-updater work with-in the process instead of making http requests.
     query.query = ol_query
     query.withKey = ol_get
+    
+    infogami.config.middleware.append(CoverstoreMiddleware)
+    
+class CoverstoreMiddleware:
+    """Middleware to delegate all /cover/* requests to coverstore.
+    
+    This avoids starting a new service for coverstore. 
+    Assumes that coverstore config is at conf/coverstore.yml
+    """
+    def __init__(self, app):
+        self.app = app
+        
+        from openlibrary.coverstore import code, server
+        server.load_config("conf/coverstore.yml")
+        self.coverstore_app = code.app.wsgifunc()
+        
+    def __call__(self, environ, start_response):
+        root = "/covers"
+        if environ['PATH_INFO'].startswith(root):
+            environ['PATH_INFO'] = environ['PATH_INFO'][len(root):]
+            environ['SCRIPT_NAME'] = environ['SCRIPT_NAME'] + root
+            return self.coverstore_app(environ, start_response)
+        else:
+            return self.app(environ, start_response)
 
 def ol_query(q):
     return web.ctx.site.things(q, details=True)
