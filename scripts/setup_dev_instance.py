@@ -79,6 +79,8 @@ class Path:
 
 CWD = Path(os.getcwd())
 
+LOGFILE = "var/log/install.log"
+
 ## Common utilities
 def log(level, args):
     msg = " ".join(map(str, args))
@@ -86,7 +88,10 @@ def log(level, args):
         print msg
 
     text = time.asctime() + " " + level.ljust(6) + " " + msg + "\n"
-    CWD.join("var/log/install.log").write(text, append=True)
+    if LOGFILE:
+        CWD.join(LOGFILE).write(text, append=True)
+    else:
+        print text
     
 def info(*args):
     log("INFO", args)
@@ -107,7 +112,9 @@ def write(path, text, append=False):
     
 def system(cmd):
     debug("Executing %r" % cmd)
-    ret = os.system(">>var/log/install.log 2>&1 " + cmd)
+    if LOGFILE:
+        cmd = ">>%s 2>&1 %s" % (LOGFILE, cmd)
+    ret = os.system(cmd)
     if ret != 0:
         raise Exception("%r failed with exit code %d" % (cmd, ret))
 
@@ -435,5 +442,11 @@ if __name__ == '__main__':
     
     if "--update" in sys.argv:
         update()
+    elif "--setup-coverstore" in sys.argv:
+        LOGFILE = None
+        setup_coverstore().run()
+    elif "--setup-ol" in sys.argv:
+        LOGFILE = None
+        setup_ol().run()
     else:
         install()
