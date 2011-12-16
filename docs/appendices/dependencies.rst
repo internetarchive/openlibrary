@@ -23,35 +23,14 @@ Python virtualenv (``python-virtualenv``)
            that we can install packages without touching your system
            distribution. More details at `the virtualenv PyPI
            page <http://pypi.python.org/pypi/virtualenv>`_.
-
-memcached (``memcached``)
-	  Used for distributed caching.
+		   
+Apache Solr (installed by the installation script)		   
+	The search engine.
 
 On Linux, you will also have to install the following dev packages
 ``python-dev``, ``libpq-dev`` and ``libxslt-dev``.
 
 
-The following python packages are necessary for Open Library development but
-they're automatically installed by the installation script. They're
-not all necessary to run but for things like testing, documentation etc.
+Some `Python packages`_ are also required, but they will be automatically installed by the installation script.
 
-* Apache Solr
-* Apache CouchDB
-* CouchDB Lucene
-* Python Packages:
-
-  * argparse
-  * Babel 
-  * couchdb
-  * genshi
-  * lxml
-  * PIL
-  * psycopg2 
-  * pymarc
-  * python-memcached 
-  * pyyaml 
-  * simplejson 
-  * web.py (version 0.33)
-  * supervisor
-  * py.test
-  * sphinx
+.. _Python packages: https://github.com/internetarchive/openlibrary/tree/master/requirements.txt

@@ -117,6 +117,8 @@ Use the `copydocs.py` script to load sample records from openlibrary.org website
 
 Make sure both Solr and the webapp are running before running this.
 
+Restart the webapp to see the books on homepage.
+
 Known Issues
 ------------
 
