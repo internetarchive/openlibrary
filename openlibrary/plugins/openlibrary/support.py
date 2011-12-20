@@ -5,9 +5,9 @@ import web
 from infogami import config
 from infogami.utils import delegate
 from infogami.utils.view import render_template
-from infogami.utils.context import context
 
 from openlibrary.core import support as S
+from openlibrary import accounts
 
 support_db = None
 
@@ -16,7 +16,8 @@ class contact(delegate.page):
         if not support_db:
             return "The Openlibrary support system is currently offline. Please try again later."
         i = web.input(path=None)
-        email = context.user and context.user.email
+        user = accounts.get_current_user()
+        email = user and user.email
         return render_template("support", email=email, url=i.path)
 
     def POST(self):
@@ -27,7 +28,7 @@ class contact(delegate.page):
         topic = form.get("topic", "")
         description = form.get("question", "")
         url = form.get("url", "")
-        user = web.ctx.site.get_user()
+        user = accounts.get_current_user()
         useragent = web.ctx.env.get("HTTP_USER_AGENT","")
         if not all([email, topic, description]):
             return ""

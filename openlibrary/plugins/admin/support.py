@@ -6,12 +6,13 @@ from infogami.utils.view import render_template, add_flash_message
 from infogami import config
 
 from openlibrary.core import support
+from openlibrary import accounts
 
 support_db = None
 
 class cases(object):
     def GET(self, typ = "new"):
-        current_user = web.ctx.site.get_user()
+        current_user = accounts.get_current_user()
         if not support_db:
             return render_template("admin/cases", None, None, True, False)
         i = web.input(sort="status", desc = "false", all = "false")
@@ -42,7 +43,7 @@ class case(object):
             last_email = "\n".join("  > %s"%x for x in last_email.split("\n")) + "\n\n"
         except Exception:
             last_email = ""
-        admins = ((x.get_email(), x.get_name(), x.get_email() == case.assignee) for x in web.ctx.site.get("/usergroup/admin").members)
+        admins = ((x.get_email(), x.get_name(), x.get_email() == case.assignee) for x in accounts.get_group("admin").members)
         return render_template("admin/case", case, last_email, admins, date_pretty_printer)
 
     def POST(self, caseid):
@@ -58,11 +59,11 @@ class case(object):
         date_pretty_printer = lambda x: x.strftime("%B %d, %Y")
         last_email = case.history[-1]['text']
         last_email = "\n".join("> %s"%x for x in textwrap.wrap(last_email))
-        admins = ((x.get_email(), x.get_name(), x.get_email() == case.assignee) for x in web.ctx.site.get("/usergroup/admin").members)
+        admins = ((x.get_email(), x.get_name(), x.get_email() == case.assignee) for x in accounts.get_group("admin").members)
         return render_template("admin/case", case, last_email, admins, date_pretty_printer)
     
     def POST_sendreply(self, form, case):
-        user = web.ctx.site.get_user()
+        user = accounts.get_current_user()
         assignee = case.assignee
         casenote = form.get("casenote1", "")
         casenote = "%s replied:\n\n%s"%(user.get_name(), casenote)
@@ -82,7 +83,7 @@ class case(object):
     def POST_update(self, form, case):
         casenote = form.get("casenote2", False)
         assignee = form.get("assignee", False)
-        user = web.ctx.site.get_user()
+        user = accounts.get_current_user()
         by = user.get_email()
         text = casenote or ""
         if case.status == "closed":
@@ -99,7 +100,7 @@ class case(object):
 
 
     def POST_closecase(self, form, case):
-        user = web.ctx.site.get_user()
+        user = accounts.get_current_user()
         by = user.get_email()
         text = "Case closed"
         case.add_worklog_entry(by = by,
@@ -109,7 +110,7 @@ class case(object):
         raise web.redirect("/admin/support")
 
     def POST_reopencase(self, form, case):
-        user = web.ctx.site.get_user()
+        user = accounts.get_current_user()
         by = user.get_email()
         text = "Case reopened"
         case.add_worklog_entry(by = by,

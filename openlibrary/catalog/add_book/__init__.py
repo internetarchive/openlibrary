@@ -8,6 +8,7 @@ from pprint import pprint
 from collections import defaultdict
 from openlibrary.catalog.utils import flip_name
 from time import sleep
+from openlibrary import accounts
 
 re_normalize = re.compile('[^[:alphanum:] ]', re.U)
  
@@ -334,7 +335,7 @@ def add_cover(cover_url, ekey):
     olid = ekey.split("/")[-1]
     coverstore_url = config.get('coverstore_url').rstrip('/')
     upload_url = coverstore_url + '/b/upload2' 
-    user = web.ctx.site.get_user()
+    user = accounts.get_current_user()
     params = {
         'author': user.key,
         'data': None,
