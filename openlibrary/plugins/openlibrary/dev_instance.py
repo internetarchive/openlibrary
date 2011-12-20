@@ -21,6 +21,10 @@ def setup():
     
     infogami.config.middleware.append(CoverstoreMiddleware)
     
+    # Borrow code tries to find the loan-status by making a URL call
+    from openlibrary.plugins.upstream import borrow
+    borrow.get_loan_status = lambda resource_id: []
+    
 class CoverstoreMiddleware:
     """Middleware to delegate all /cover/* requests to coverstore.
     
