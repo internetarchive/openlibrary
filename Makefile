@@ -34,6 +34,9 @@ git:
 	git submodule sync
 	git submodule update
 
+docs:
+	$(PYTHON) setup.py build_sphinx
+
 clean:
 	rm -rf $(BUILD)
 
