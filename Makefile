@@ -13,7 +13,7 @@ ACCESS_LOG_FORMAT='%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s"'
 # Use python from local env if it exists or else default to python in the path.
 PYTHON=$(if $(wildcard env),env/bin/python,python) 
 
-.PHONY: all clean distclean git css js i18n
+.PHONY: all clean distclean git css js i18n docs
 
 all: git css js i18n
 
