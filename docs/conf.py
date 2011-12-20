@@ -103,7 +103,7 @@ pygments_style = 'sphinx'
 
 # The name of an image file (within the static path) to place at the top of
 # the sidebar.
-html_logo = '../static/upstream/images/logo_OL-lg.png'
+html_logo = '../static/images/logo_OL-lg.png'
 
 # The name of an image file (within the static path) to use as favicon of
 # the docs.  This file should be a Windows icon file (.ico) being 16x16 or
@@ -192,10 +192,6 @@ htmlhelp_basename = 'openlibrary'
 
 autodoc_default_flags = ['members', 'undoc-members', 'show-inheritance']
 
-intersphinx_mapping = {
-    'CouchDB': ('http://packages.python.org/CouchDB', None),
-}
-
 # OL themes
 
 html_theme_options = {
@@ -217,4 +213,3 @@ html_theme_options = {
     'headtextcolor': '#20435C',
     'headlinkcolor': '#036DAA',
 }
-
