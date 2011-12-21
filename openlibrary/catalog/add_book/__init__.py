@@ -123,7 +123,8 @@ def load_data(rec):
     edits = []
 
     reply = {}
-    author_in = q.get('authors', [])
+    east = east_in_by_statement(rec)
+    author_in = [import_author(a, eastern=east) for a in q.get('authors', [])]
     (authors, author_reply) = build_author_reply(author_in, edits)
 
     #q['source_records'] = [loc]
@@ -241,7 +242,7 @@ def build_pool(rec):
                 found = web.ctx.site.things(q)
                 if found:
                     pool[field] = set(found)
-    return dict((k, list(v)) for k, v in pool.iteritems())
+    return dict((k, list(v)) for k, v in pool.iteritems() if v)
 
 def add_db_name(rec):
     if 'authors' not in rec:
