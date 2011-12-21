@@ -1,8 +1,11 @@
 'Merge editions'
-import web
+import web, re
 from openlibrary.utils import uniq, dicthash
 from infogami.utils import delegate
 from infogami.utils.view import render_template
+from collections import defaultdict
+
+re_nonword = re.compile(r'\W', re.U)
 
 class merge_editions(delegate.page):
     path = '/editions/merge'
@@ -78,10 +81,51 @@ class merge_editions(delegate.page):
                         merged[k].append(sr)
 
         for k in all_keys:
-            if k in ('source_records', 'ia_box_id'):
+            if k in ('source_records', 'ia_box_id', 'identifiers', 'ocaid', 'other_titles', 'series'):
                 continue
-#            if all(e[k] == editions[0][k] for e in editions[1:]):
-#                merged = editions[0][k]
+            uniq_values = defaultdict(list)
+            for num, e in enumerate(editions):
+                if e.get(k):
+                    if k == 'publish_date' and len(e[k]) == 4 and e[k].isdigit and any(e[k] in pd for pd in publish_dates):
+                        continue
+                    if k == 'pagination' and any(len(i) > len(e[k]) and e[k] in i for i in all_pagination):
+                        continue
+                    if k in one_item_lists and len(set(e.get(k, []))) == 1 and any(len(i) > len(e[k][0].strip('.')) and e[k][0].strip('.') in i for i in one_item_lists[k]):
+                        continue
+                    if k == 'publish_country' and any_publish_country and e.get(k, '').strip().startswith('xx'):
+                        continue
+                    if k == 'edition_name' and e[k].endswith(' ed edition'):
+                        e[k] = e[k][:-len(' edition')]
+                    uniq_values[re_nonword.sub('', `e[k]`.lower())].append(num)
+
+            if len(uniq_values) == 1:
+                merged[k] = editions[uniq_values.values()[0][0]][k]
+                continue
+
+            if k == 'covers':
+                assert all(isinstance(e[k], list) for e in editions if k in e)
+                covers = set()
+                for e in editions:
+                    if k in e:
+                        covers.update(c for c in e[k] if c != -1)
+                merged['covers'] = sorted(covers)
+                continue
+
+            if k == 'notes':
+                merged['notes'] = ''
+                for e in editions:
+                    if e.get('notes'):
+                        merged['notes'] += e['notes'] + '\n'
+                continue
+
+            if k == 'ocaid':
+                for e in editions:
+                    if e.get('ocaid'):
+                        #assert not e['ocaid'].endswith('goog')
+                        merged['ocaid'] = e['ocaid']
+                        break
+                assert merged['ocaid']
+                continue
 
         return render_template('merge/editions2', editions, all_keys, merged)
 
