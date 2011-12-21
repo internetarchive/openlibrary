@@ -101,7 +101,8 @@ $ book_keys = []
 </table>
 
 $if ctx.user and ctx.user.is_admin():
-    <div class="small sansserif"><span class="adminOnly"><a href="/editions/merge?$'&'.join('keys=' + k for k in book_keys)">Merge editions</a></span></div>
+    <div class="clearfix"></div>
+    <div align="right" class="small sansserif"><span class="adminOnly"><a href="/editions/merge?$'&'.join('key=' + k for k in book_keys)">Merge editions</a></span></div>
 
 $if ctx.user and ctx.user.is_admin():
     <div class="clearfix"></div>
