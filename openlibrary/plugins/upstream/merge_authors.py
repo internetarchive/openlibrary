@@ -6,6 +6,7 @@ from infogami.utils import delegate
 from infogami.utils.view import render_template, safeint
 
 from openlibrary.plugins.worksearch.code import top_books_from_author
+from openlibrary.utils import uniq, dicthash
 
 class BasicMergeEngine:
     """Generic merge functionality useful for all types of merges.
@@ -175,32 +176,6 @@ def space_squash_and_strip(s):
 def name_eq(n1, n2):
     return space_squash_and_strip(n1) == space_squash_and_strip(n2)
     
-def uniq(values, key=None):
-    """Returns the unique entries from the given values in the original order.
-    
-    The value of the optional `key` parameter should be a function that takes
-    a single argument and returns a key to test the uniqueness.
-    """
-    key = key or (lambda x: x)
-    s = set()
-    result = []
-    for v in values:
-        k = key(v)
-        if k not in s:
-            s.add(k)
-            result.append(v)
-    return result
-    
-def dicthash(d):
-    """Dictionaries are not hashable. This function converts dictionary into nested tuples, so that it can hashed.
-    """
-    if isinstance(d, dict):
-        return tuple((k, dicthash(v)) for k, v in d.iteritems())
-    elif isinstance(d, list):
-        return tuple(dicthash(v) for v in d)
-    else:
-        return d
-        
 def fix_table_of_contents(table_of_contents):
     """Some books have bad table_of_contents. This function converts them in to correct format.
     """

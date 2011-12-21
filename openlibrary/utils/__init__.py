@@ -34,4 +34,29 @@ def escape_bracket(q):
         return q
     return re_bracket.sub(lambda m:'\\'+m.group(), q)
 
-
+def uniq(values, key=None):
+    """Returns the unique entries from the given values in the original order.
+    
+    The value of the optional `key` parameter should be a function that takes
+    a single argument and returns a key to test the uniqueness.
+    """
+    key = key or (lambda x: x)
+    s = set()
+    result = []
+    for v in values:
+        k = key(v)
+        if k not in s:
+            s.add(k)
+            result.append(v)
+    return result
+ 
+def dicthash(d):
+    """Dictionaries are not hashable. This function converts dictionary into nested tuples, so that it can hashed.
+    """
+    if isinstance(d, dict):
+        return tuple((k, dicthash(v)) for k, v in d.iteritems())
+    elif isinstance(d, list):
+        return tuple(dicthash(v) for v in d)
+    else:
+        return d
+ 
