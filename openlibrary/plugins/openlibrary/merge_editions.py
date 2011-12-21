@@ -36,6 +36,10 @@ class merge_editions(delegate.page):
         k = 'pagination'
         all_pagination = set(e[k] for e in editions if e.get(k))
 
+        one_item_lists = {}
+        for k in 'lc_classifications', 'publishers', 'contributions', 'series':
+            one_item_lists[k] = set(e[k][0].strip('.') for e in editions if e.get(k) and len(set(e[k])) == 1)
+
         for k in ['other_titles', 'isbn_10', 'series']:
             if k not in all_keys:
                 continue
