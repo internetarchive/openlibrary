@@ -21,7 +21,7 @@ $for k in all_keys:
     <tr>
     <td align="top">$k</td>
     $for e in editions:
-        <td style="background: #ddd">
+        <td style="background: #ddd; padding: 2px">
         $if isinstance(e[k], list):
             $for i in e[k]:
                 $i<br>
