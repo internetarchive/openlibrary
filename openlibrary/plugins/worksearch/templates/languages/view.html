@@ -528,7 +528,7 @@ $jsdef renderAuthors(authors):
 <div id="resultsAuthors">
     <div class="head">
         <h3>$_("Authors")</h3>
-        <div class="smallest lightgreen sansserif">$_("published most by this publisher")</div>
+        <div class="smallest lightgreen sansserif">$_("who have written the most books in this language")</div>
     </div>
     <div class="unordered">
         $:renderAuthors(page.authors)
@@ -558,21 +558,12 @@ $jsdef renderPublishers(publishers):
 <div id="resultsPublishers">
     <div class="head">
         <h3>$_("Related Publishers")</h3>
-        <div class="smallest lightgreen sansserif">$_("that have published the same works")</div>
+        <div class="smallest lightgreen sansserif">$_("who have published the most books in this language")</div>
     </div>
     <div class="unordered">
         $:renderPublishers(page.publishers[:20])
     </div>
 </div>
-
-$if "lists" in ctx.features:    
-    <style type="text/css">
-    #resultsAuthors,#resultsPublishers,#subjectLists {float:left;width:282px!important;}
-    </style>
-    <div class="spacer"></div>
-    <div id="subjectLists">
-        $:render_template("lists/widget", page)
-    </div>
 
 <div class="section clearfix"></div>
 

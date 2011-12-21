@@ -32,6 +32,7 @@ eventer
 sqlalchemy
 Pygments
 OL-GeoIP
+mockcache
 """
 
 from openlibrary.core.setup_commands import commands

@@ -1,7 +1,0 @@
-{
-    'key': '/',
-    'type': {'key': '/type/home'},
-    'title': 'Open Library',
-    'body': "Imagine a library that collected all the world's information about all the world's books and made it available for everyone to view and update. We're building that library. ([More...](/about))",
-    'news': 'Edit to add news'
-}

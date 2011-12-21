@@ -13,6 +13,7 @@ import helpers as h
 #TODO: fix this. openlibrary.core should not import plugins.
 from openlibrary.plugins.upstream.utils import get_history
 from openlibrary.plugins.upstream.account import Account
+from openlibrary import accounts
 
 # relative imports
 from lists.model import ListMixin, Seed
@@ -128,7 +129,7 @@ class Thing(client.Thing):
             
         lists = self._site.get_many(keys)
         if sort:
-            lists = h.safesort(lists, reverse=True, key=lambda list: list.last_update)
+            lists = h.safesort(lists, reverse=True, key=lambda list: list.last_modified)
         return lists
         
     @cache.memoize(engine="memcache", key=lambda self: ("d" + self.key, "l"))
@@ -292,7 +293,7 @@ class User(Thing):
     
     def get_account(self):
         username = self.get_username()
-        return Account.find(username=username)
+        return accounts.find(username=username)
         
     def get_email(self):
         account = self.get_account() or {}
@@ -320,7 +321,7 @@ class User(Thing):
         
         lists = self._site.get_many(keys)
         if sort:
-            lists = h.safesort(lists, reverse=True, key=lambda list: list.last_update)
+            lists = h.safesort(lists, reverse=True, key=lambda list: list.last_modified)
         return lists
 
     @cache.memoize(engine="memcache", key=lambda self: ("d" + self.key, "l"))
@@ -521,7 +522,7 @@ class Subject(web.storage):
         keys = web.ctx.site.things(q)
         lists = web.ctx.site.get_many(keys)
         if sort:
-            lists = h.safesort(lists, reverse=True, key=lambda list: list.last_update)
+            lists = h.safesort(lists, reverse=True, key=lambda list: list.last_modified)
         return lists
         
     def get_seed(self):

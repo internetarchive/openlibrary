@@ -23,7 +23,10 @@ class home(delegate.page):
     
     def GET(self):
         try:
-            stats = admin.get_stats()
+            if 'counts_db' in config.admin:
+                stats = admin.get_stats()
+            else:
+                stats = None
         except Exception:
             logger.error("Error in getting stats", exc_info=True)
             stats = None
@@ -97,15 +100,13 @@ def readonline_carousel(id="read-carousel"):
         return render_template("books/carousel", storify(data), id=id)
     except Exception:
         return None
-
-def random_ebooks(limit=1000):
+        
+def random_ebooks(limit=2000):
     solr = search.get_works_solr()
     sort = "edition_count desc"
-    start = random.randint(0, 1000)
     result = solr.select(
         query='has_fulltext:true -public_scan_b:false', 
         rows=limit, 
-        start=start,
         sort=sort,
         fields=[
             'has_fulltext',

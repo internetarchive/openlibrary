@@ -60,8 +60,8 @@ class memcache_memoize:
                 self._memcache = memcache.Client(servers)
             else:
                 web.debug("Could not find memcache_servers in the configuration. Used dummy memcache.")
-                from openlibrary.mocks import mock_memcache
-                self._memcache = mock_memcache.Client()
+                import mockcache
+                self._memcache = mockcache.Client()
                 
         return self._memcache
         
@@ -285,8 +285,13 @@ class MemcacheCache(Cache):
     """
     @cached_property
     def memcache(self):
-        servers = config.get("memcache_servers", [])
-        return olmemcache.Client(servers)
+        servers = config.get("memcache_servers", None)
+        if servers:
+            return olmemcache.Client(servers)
+        else:
+            web.debug("Could not find memcache_servers in the configuration. Used dummy memcache.")
+            import mockcache
+            return mockcache.Client()
     
     def get(self, key):
         key = web.safestr(key)

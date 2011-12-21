@@ -786,9 +786,13 @@ def setup():
     from stats import stats_hook
     delegate.app.add_processor(web.unloadhook(stats_hook))
     
+    if infogami.config.get("dev_instance") is True:
+        import dev_instance
+        dev_instance.setup()
+
     setup_template_globals()
     setup_logging()
     logger = logging.getLogger("openlibrary")
     logger.info("Application init")
-
+    
 setup()
