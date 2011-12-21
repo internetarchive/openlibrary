@@ -19,9 +19,9 @@ $for k in all_keys:
     $if k in ('key', 'type'):
         $ continue
     <tr>
-    <td>$k</td>
+    <td align="top">$k</td>
     $for e in editions:
-        <td>
+        <td style="background: #ddd">
         $if isinstance(e[k], list):
             $for i in e[k]:
                 $i<br>
