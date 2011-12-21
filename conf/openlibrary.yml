@@ -66,6 +66,7 @@ features:
     recentchanges_v2: enabled
     history_v2: admin
     merge-authors: enabled
+    merge-editions: enabled
     undo: enabled
     dev: enabled
     lists: disabled
