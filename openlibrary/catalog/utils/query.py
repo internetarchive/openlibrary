@@ -111,13 +111,14 @@ def version_iter(q, limit=500, offset=0):
         q['offset'] += limit
 
 def withKey(key):
+    url = base_url() + key + '.json'
     for i in range(20):
         try:
-            return jsonload(base_url() + key + '.json')
+            return jsonload(url)
         except:
             pass
-        print 'retry'
-        sleep(10)
+        print 'retry:', i
+        print url
 
 def get_marc_src(e):
     mc = get_mc(e['key'])
