@@ -21,6 +21,10 @@ class merge_editions(delegate.page):
         full_keys = ['/books/' + k for k in merge_keys]
         editions = [web.ctx.site.get('/books/' + k) for k in merge_keys]
 
+        all_keys = set()
+        for e in editions:
+            all_keys.update(e.keys())
+
         merged = {}
 
         k = 'publish_date'
@@ -72,10 +76,6 @@ class merge_editions(delegate.page):
                 for sr in e.get(k, []):
                     if sr not in merged[k]:
                         merged[k].append(sr)
-
-        all_keys = set()
-        for e in editions:
-            all_keys.update(e.keys())
 
         for k in all_keys:
             if k in ('source_records', 'ia_box_id'):
