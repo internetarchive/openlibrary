@@ -79,6 +79,8 @@ $def with (page)
 //-->
 </script>
 
+$ book_keys = []
+
 <table id="editions">
     <thead>
     <tr>
@@ -91,11 +93,14 @@ $def with (page)
     <tbody>
         $ edition_list_start = time()
         $for book in page.get_sorted_editions():
+            $ book_keys.append(book['key'])
             <tr>$:render_template("books/edition-sort", book)</tr>
         $ edition_list_secs = time() - edition_list_start
 
     </tbody>
 </table>
+
+<!-- $book_keys.join(', ') -->
 
 $if ctx.user and ctx.user.is_admin():
     <div class="clearfix"></div>
