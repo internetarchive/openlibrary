@@ -23,6 +23,45 @@ class merge_editions(delegate.page):
 
         merged = {}
 
+        k = 'publish_date'
+        publish_dates = set(e[k] for e in editions if k in e and len(e[k]) != 4)
+
+        k = 'pagination'
+        all_pagination = set(e[k] for e in editions if e.get(k))
+
+        for k in ['other_titles', 'isbn_10', 'series']:
+            if k not in all_keys:
+                continue
+            merged[k] = []
+            for e in editions:
+                for sr in e.get(k, []):
+                    if sr not in merged[k]:
+                        merged[k].append(sr)
+
+        k = 'ocaid'
+        for e in editions:
+            if e.get(k) and 'ia:' + e[k] not in merged['source_records']:
+                merged['source_records'].append(e[k])
+
+        k = 'identifiers'
+        if k in all_keys:
+            merged[k] = {}
+            for e in editions:
+                if k not in e:
+                    continue
+                for a, b in e[k].items():
+                    for c in b:
+                        if c in merged[k].setdefault(a, []):
+                            continue
+                        merged[k][a].append(c)
+
+        any_publish_country = False
+        k = 'publish_country'
+        if k in all_keys:
+            for e in editions:
+                if e.get(k) and not e[k].strip().startswith('xx'):
+                    any_publish_country = True
+
         for k in 'source_records', 'ia_box_id':
             merged[k] = []
             for e in editions:
