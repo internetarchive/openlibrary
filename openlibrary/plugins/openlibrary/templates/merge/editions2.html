@@ -20,6 +20,15 @@ $for k in all_keys:
         $ continue
     <tr>
     <td align="top">$k</td>
+    <td>
+        $if isinstance(merged.get(k), list):
+            <textarea cols="40" rows="$max(len(merged[k]), 3)">
+            $for i in merged[k]:
+                $i
+            </textarea>
+        $else:
+            <input value="$merged.get(k)">
+    </td>
     $for e in editions:
         <td style="background: #ddd; padding: 2px">
         $if isinstance(e[k], list):
@@ -28,13 +37,6 @@ $for k in all_keys:
         $else:
             $e[k]
         </td>
-    <td>
-        $if isinstance(merged.get(k), list):
-            $for i in merged[k]:
-                $i<br>
-        $else:
-            $merged.get(k)
-    </td>
     </tr>
 </table>
  
