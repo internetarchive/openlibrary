@@ -28,3 +28,5 @@ CELERYBEAT_SCHEDULE = {
 
 from celery.backends import BACKEND_ALIASES
 BACKEND_ALIASES['couchdb'] = "openlibrary.core.celery_couchdb.CouchDBBackend"
+
+CELERY_ALWAYS_EAGER = True

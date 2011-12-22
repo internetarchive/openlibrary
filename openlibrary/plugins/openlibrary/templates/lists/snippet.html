@@ -12,7 +12,7 @@ $def with (list)
         <span class="editions">
             $len(list.seeds) seed$("s" if len(list.seeds) != 1 else "")
             $if list.last_update:
-                | Last update $datestr(list.last_update)
+                | Last modified $datestr(list.last_modified)
         </span>
         <span class="detail">
             $if list.description:

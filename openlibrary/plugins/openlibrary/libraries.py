@@ -12,6 +12,7 @@ from infogami import config
 from infogami.utils import delegate
 from infogami.utils.view import render_template, add_flash_message, public
 from openlibrary.core import inlibrary
+from openlibrary import accounts
 
 logger = logging.getLogger("openlibrary.libraries")
 
@@ -35,7 +36,7 @@ class libraries_notes(delegate.page):
         else:
             i = web.input(note="")
             
-            user = web.ctx.site.get_user()
+            user = accounts.get_current_user()
             author = user and {"key": user.key}
             timestamp = {"type": "/type/datetime", "value": datetime.datetime.utcnow().isoformat()}
             
@@ -61,7 +62,7 @@ class libraries_dashboard(delegate.page):
     def GET(self):
         keys = web.ctx.site.things(query={"type": "/type/library", "limit": 1000})
         libraries = web.ctx.site.get_many(keys)
-        libraries.sort(key=lambda lib: lib.name)
+        libraries.sort(key=lambda lib: lib.name.lstrip('The '))
         return render_template("libraries/dashboard", libraries, self.get_pending_libraries())
         
     def get_pending_libraries(self):

@@ -1,0 +1,40 @@
+$def with (editions, all_keys, merged)
+
+$var title: $_("Merge Editions")
+
+<div id="contentHead">
+    <h1>$_("Merge Editions")</h1>
+</div>
+
+<div id="contentBody">
+
+<table>
+    <tr>
+    <td>key</td>
+    $for e in editions:
+        <td><a href="$e.key">$e.key</a></td>
+    </tr>
+
+$for k in all_keys:
+    $if k in ('key', 'type'):
+        $ continue
+    <tr>
+    <td align="top">$k</td>
+    <td>
+        $if isinstance(merged.get(k), list):
+            <textarea cols="40" rows="$max(len(merged[k]), 3)">$'\n'.join(unicode(i) for i in merged[k])</textarea>
+        $else:
+            <input value="$merged.get(k)">
+    </td>
+    $for e in editions:
+        <td style="background: #ddd; padding: 2px">
+        $if isinstance(e[k], list):
+            $for i in e[k]:
+                $i<br>
+        $else:
+            $e[k]
+        </td>
+    </tr>
+</table>
+ 
+</div>

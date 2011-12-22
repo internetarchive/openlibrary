@@ -1,6 +1,6 @@
 $def with (page)
 
-$var title: $page.name
+$var title: Language: $page.name
 
 $ subject_list = [('subjects', 20), ('places', 20), ('people', 10), ('times', 10)]
 
@@ -10,7 +10,7 @@ $ subject_list = [('subjects', 20), ('places', 20), ('people', 10), ('times', 10
     <h1>
         $page.name
         <span class="count" id="coversCount">
-            <strong><span>$sprintf(ungettext("%s work", "%s works", page.work_count), commify(page.work_count))</span></strong>
+            <em>Language</em> - <strong><span>$sprintf(ungettext("%s work", "%s works", page.work_count), commify(page.work_count))</span></strong>
             $if page.ebook_count > 0:
                 / <a href="javascript:;" class="ebookcount"><span id="ebooks">$sprintf(ungettext("%s ebook", "%s ebooks", page.ebook_count), commify(page.ebook_count))</span></a>
             $else:
@@ -52,9 +52,9 @@ $:render_template("lib/covers", page)
 	<div class="head">
 	    <h2 style="margin-bottom:0px!important;">
 	        $_("Publishing History")
-                <span class="shift">$:_('This is a chart to show the publishing history of editions of works about this subject. Along the X axis is time, and on the y axis is the count of editions published. <a href="#subjectRelated">Click here to skip the chart</a>.')</span>
+                <span class="shift">$:_('This is a chart to show the when this publisher published books. Along the X axis is time, and on the y axis is the count of editions published. <a href="#subjectRelated">Click here to skip the chart</a>.')</span>
 	        <span class="count hidden chartZoom">&nbsp;<a href="javascript:;" class="resetSelection small">$_("Reset chart")</a> $_("or continue zooming in.")</span>
-	        <span class="count chartUnzoom">&nbsp;$_("This graph charts editions published on this subject. Click to view a single year, or drag across a range.")</span>
+	        <span class="count chartUnzoom">&nbsp;$_("This graph charts editions from this publisher over time. Click to view a single year, or drag across a range.")</span>
 	    </h2>
 	</div>
 	
@@ -67,13 +67,13 @@ $:render_template("lib/covers", page)
             bars: { 
                 show: true, 
                 fill: 0.6, 
-                color: "#ffa337", 
+                color: "#615132", 
                 align: "center"
             },
             points: { 
                 show: true 
             },
-            color: "#ffa337"
+            color: "#615132"
         },
         grid: { 
             hoverable: true,
@@ -101,7 +101,7 @@ $:render_template("lib/covers", page)
             display: 'none',
             top: y + 12,
             left: x + 12,
-            border: '1px solid #ffa337',
+            border: '1px solid #615132',
             padding: '2px',
             'background-color': '#fffdcd',
             color: '#615132',
@@ -272,6 +272,7 @@ $:render_template("lib/covers", page)
 		    \$("#sortByNew").hide();
             \$("#sortByEdition").show();
 		}
+		
 		set_hash(hash);
     }
     
@@ -351,16 +352,15 @@ $:render_template("lib/covers", page)
         \$("#sortByNew").hide();
         \$("#sortByEdition").show();
         resetCarousel();
-        resetCounts();
-    });
+    })
 
     \$("a.sortFirstPublish").live("click", function() {
         page.setSort("new");
         \$("#sortByNew").show();
         \$("#sortByEdition").hide();
         resetCarousel();
-        resetCounts();
-    });
+    })
+
 
     // handle hash
     
@@ -411,7 +411,7 @@ $:render_template("lib/covers", page)
 		    });
 		}
 	}
-	
+
 	function handle_sort(hash) {
 	    if (!hash.sort) {
 	        return;
@@ -428,7 +428,7 @@ $:render_template("lib/covers", page)
             resetCounts();
 	    }
 	}
-
+	
 	handle_sort(_hash);
 	handle_ebooks(_hash);
 	handle_published_in(_hash);
@@ -492,8 +492,8 @@ var _hash = parse_hash();
     <div class="clearfix"></div>
 
         <div class="head" id="subjectRelated">
-            <h2>$_("Related...")
-                <span class="count">        <a href="/search?${page.subject_type}_facet=$page.name.replace('&','%26')">Search within $page.name</a></span>
+            <h2>$_("Common Subjects")
+                <span class="count">        <a href="/search?${page.subject_type}_facet=$page.name.replace('&','%26')">Search for books published by $page.name</a></span>
             </h2>
         </div>
 
@@ -527,8 +527,8 @@ $jsdef renderAuthors(authors):
         <br/>
 <div id="resultsAuthors">
     <div class="head">
-        <h3>$_("Prolific Authors")</h3>
-        <div class="smallest lightgreen sansserif">$_("who have written the most books on this subject")</div>
+        <h3>$_("Authors")</h3>
+        <div class="smallest lightgreen sansserif">$_("who have written the most books in this language")</div>
     </div>
     <div class="unordered">
         $:renderAuthors(page.authors)
@@ -557,31 +557,14 @@ $jsdef renderPublishers(publishers):
          <br/>
 <div id="resultsPublishers">
     <div class="head">
-        <h3>$_("Prominent Publishers")</h3>
-        <div class="smallest lightgreen sansserif">$_("who have published the most books on this subject")</div>
+        <h3>$_("Related Publishers")</h3>
+        <div class="smallest lightgreen sansserif">$_("who have published the most books in this language")</div>
     </div>
     <div class="unordered">
         $:renderPublishers(page.publishers[:20])
     </div>
 </div>
 
-$if "lists" in ctx.features:    
-    <style type="text/css">
-    #resultsAuthors,#resultsPublishers,#subjectLists {float:left;width:282px!important;}
-    </style>
-    <div class="spacer"></div>
-    <div id="subjectLists">
-        $:render_template("lists/widget", page)
-    </div>
-
 <div class="section clearfix"></div>
-
-<form action="/search/subjects" class="olform">
-    <h2 class="collapse"><label for="searchSubjects">Subject Search</label>  <span class="sansserif grey smaller">Try a keyword.</span></h2>
-    <p>
-        <input type="text" name="q" id="searchSubjects" size="100" class="larger" value="" />
-        <button type="submit" class="larger">$_('Search')</button>
-    </p>
-</form>
 
 </div>

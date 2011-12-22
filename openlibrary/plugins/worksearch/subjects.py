@@ -242,7 +242,7 @@ class SubjectEngine:
             if not w.get('public_scan') and w.ia and w.get('lending_edition'):
                 doc = web.ctx.site.store.get("ebooks/books/" + w['lending_edition']) or {}
                 w['checked_out'] = doc.get("borrowed") == "true"
-
+                
         subject = Subject(
             key=key,
             name=name,
@@ -262,6 +262,7 @@ class SubjectEngine:
 
             subject.authors = result.facets["author_facet"]
             subject.publishers = result.facets["publisher_facet"]
+            subject.languages = result.facets['language']
 
             subject.publishing_history = [[year, count] for year, count in result.facets["publish_year"] if year > 1000]
 
@@ -333,7 +334,7 @@ class SubjectEngine:
             "publisher_facet",
             {"name": "publish_year", "limit": -1},
             "subject_facet", "person_facet", "place_facet", "time_facet",
-            "has_fulltext"]
+            "has_fulltext", "language"]
         kw['facet.mincount'] = 1
         kw['facet.limit'] = 25
         kw['facet_wrapper'] = self.facet_wrapper

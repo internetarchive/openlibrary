@@ -33,13 +33,18 @@ def trigger_offline_event(event, *a, **kw):
     from openlibrary.plugins.openlibrary import events
     
     eventer.trigger(event, *a, **kw)
-    
+
 @oltask
 def on_edit(changeset):
     """This gets triggered whenever an edit happens on Open Library.
     """
     update_lists.delay(changeset)
-    #update_solr.delay(changeset)
+    for t in other_on_edit_tasks:
+        t.delay(changeset)
+
+# Hook to add other on-edit tasks.
+# Used by dev_instance.py
+other_on_edit_tasks = []
     
 @oltask
 def update_lists(changeset):
@@ -54,12 +59,6 @@ def update_lists(changeset):
     updater = ListUpdater(ol_config.get("lists"))
     updater.process_changeset(changeset, update_seeds=False)
     logger.info("END update_lists")
-
-@oltask
-def update_solr(changeset):
-    """Updates solr on edit.
-    """
-    pass
 
 @oltask
 def upload_via_s3(item_id, filename, data, s3_key, s3_secret):

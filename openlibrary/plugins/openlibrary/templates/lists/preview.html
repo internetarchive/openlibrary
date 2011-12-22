@@ -34,11 +34,9 @@ $def with (list)
                         $sprintf(msg,  commify(list.edition_count))
                         
                     </span>
-                    $if list.last_update:
-                        <span class="smaller lightgreen">
-                            Last update 
-                            $datestr(list.last_update)
-                        </span>
-
+                    <span class="smaller lightgreen">
+                        Last modified 
+                        $datestr(list.last_modified)
+                    </span>
                 </span>
             </span>

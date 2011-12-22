@@ -1,11 +1,12 @@
 import httplib, re, sys
-from openlibrary.catalog.utils.query import query_iter, withKey, has_cover
+from openlibrary.catalog.utils.query import query_iter, withKey, has_cover, set_query_host
 #from openlibrary.catalog.marc.marc_subject import get_work_subjects, four_types
 from lxml.etree import tostring, Element, SubElement
 from pprint import pprint
 from urllib2 import urlopen, URLError, HTTPError
 import simplejson as json
 from time import sleep
+import web
 from openlibrary import config
 from unicodedata import normalize
 from collections import defaultdict
@@ -75,6 +76,8 @@ def get_ia_collection_and_box_id(ia):
                 if m:
                     matches[m.group(1).lower()].add(m.group(2).lower())
             return matches
+        except UnicodeEncodeError:
+            return
         except URLError:
             print 'retry', attempt, url
             sleep(5)
@@ -636,15 +639,49 @@ def update_author(akey, a=None, handle_redirects=True):
 def commit_and_optimize(debug=False):
     requests = ['<commit />', '<optimize />']
     solr_update(requests, debug)
-    
-def main(keys):
+
+def update_keys(keys):
+    # update works
     requests = []
-    for k in keys:
+    wkeys = [k for k in keys if k.startswith("/works/")]
+    print "updating", wkeys
+    for k in wkeys:
         w = withKey(k)
         requests += update_work(w, debug=True)
-    requests += ['<commit />']
-    solr_update(requests, debug=True)
-        
+    if requests:    
+        requests += ['<commit />']
+        solr_update(requests, debug=True)
+    
+    # update authors
+    requests = []    
+    akeys = [k for k in keys if k.startswith("/authors/")]
+    print "updating", akeys
+    for k in akeys:
+        requests += update_author(k)
+    if requests:    
+        requests += ['<commit />']
+        solr_update(requests, index="authors", debug=True)        
+
+def parse_options(args=None):
+    from optparse import OptionParser
+    parser = OptionParser(args)
+    parser.add_option("-s", "--server", dest="server", default="http://openlibrary.org/", help="URL of the openlibrary website (default: %default)")
+    parser.add_option("-c", "--config", dest="config", default="openlibrary.yml", help="Open Library config file")
+
+    options, args = parser.parse_args()
+    return options, args
+
+def main():
+    options, keys = parse_options()
+
+    # set query host
+    host = web.lstrips(options.server, "http://").strip("/")
+    set_query_host(host)
+
+    # load config
+    config.load(options.config)
+
+    update_keys(keys)
+
 if __name__ == '__main__':
-    keys = sys.argv[1:]
-    main(keys)
+    main()

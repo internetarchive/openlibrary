@@ -3,8 +3,9 @@
 Setting up a dev instance
 =========================
 
-Setting up an Open Library dev instance requires installing third-party
-software and running many services.
+Setting up an Open Library dev instance requires installing some third-party 
+software and python modules. This document will step you though the 
+installation process.
 
 Supported Platforms
 -------------------
@@ -51,57 +52,80 @@ Open Library depends a lot of third-party programs.
 
 To install all the dependencies::
 
-    $ sudo python setup.py install_dependencies
+    $ sudo ./scripts/install_dependencies.sh
 
 Note that this is run as root.
 
 See :doc:`appendices/dependencies` for the list of dependencies.
-  
-Running the install script
---------------------------
 
-The installation is driven by the ``conf/install.ini`` config
-file. Edit it if you need customize the installation process.
+Setting up the dev instance
+---------------------------
 
-Now you're ready to go. Run the setuptools ``bootstrap`` command to do
-the everything.::
+Once all the dependencies are installed the dev instance can be setup by running::
 
-    $ python setup.py bootstrap
-
-The bootstrap command creates a virtualenv, installs all necessary
-python packages, installs vendor software and initializes the OL
-databases. A detailed log is written to ``var/log/install.log`` and
-info and errors are reported to stdout and stderr respectively.
-
-Verify the installation
------------------------
-*TDB* (insert notes on how to run smoke tests here).
-
-Using the dev instance
-----------------------
-
-Once in the installation is done, running dev instance is very simple.::
-
-    $ python setup.py start
+	$ make bootstrap
 	
-This starts all the OL services using `supervisord <http://supervisord.org/>`_.
+This will do the following tasks, each of which can be invoked independenetly using make.
 
-Once the services are started, Open Library dev instance will be available at:
+* create virtualenv (``make venv``)
+* install solr (``make install_solr``)
+* setup coverstore (``make setup_coverstore``)
+* setup openlibrary webapp (``make setup_ol``)
 
-http://0.0.0.0:8080/
+Destroying the dev instance
+---------------------------
 
-Logs of the running services will be available in ``var/log/``.
+You want to destroy the current dev instance to build a new one, you can do it using::
+
+	$ make destroy
+	
+Running the dev instance
+------------------------
+
+Running the dev instance requires running 2 services. Solr is run the background as daemon and the the ol webapp is run in the foreground.
+
+The Solr processes can be started and stopped using `solr.sh` script.::
+
+	$ ./scripts/solr.sh start
+	Starting Solr
+	Done. Output is logged to var/log/solr.log.
+	
+	$ ./scripts/solr.sh status
+	Solr running with pid 97208.
+
+	$ ./scripts/solr.sh stop
+	Stopping Solr
+	Done
+	
+	$ ./scripts/solr.sh status
+	Solr is not running
+	
+The OL webapp can be started as::
+
+	$ make run
+	
+Make sure Solr is running before starting the webapp.
+	
+Once the webapp is started, the website can be accessed at http://0.0.0.0:8080/.
 
 Loading sample data
 -------------------
 
-Loading sample data is not yet implemented.
+Use the `copydocs.py` script to load sample records from openlibrary.org website.::
 
-Updating an existing dev instance
-----------------------------------
+	$ make load_sample_data
 
-Like any other software, the dev instance keeps changing with time. 
+Make sure both Solr and the webapp are running before running this.
 
-To update an existing dev instance to latest version, run::
+Restart the webapp to see the books on homepage.
 
-    $ python setup.py bootstrap --update
+Known Issues
+------------
+
+It is known that the following issues.
+
+* Stats on the home page is not working
+* /admin is failing
+* /libraries/stats is failing
+* Lists are not working
+* subject search not working

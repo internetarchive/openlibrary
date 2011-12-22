@@ -3,10 +3,12 @@ import re
 import web
 import simplejson
 import logging
+from collections import defaultdict
 
 from infogami.utils import delegate
 from infogami.utils.view import render_template, add_flash_message
-from collections import defaultdict
+
+from openlibrary import accounts
 
 from .git import Git, CommandError
 
@@ -15,7 +17,7 @@ logger = logging.getLogger("openlibrary.theme")
 
 def admin_only(f):
     def g(*a, **kw):
-        user = web.ctx.site.get_user()
+        user = accounts.get_current_user()
         if user is None or not user.is_admin():
             return render_template("permission_denied",  web.ctx.path, "Permission denied.")
         return f(*a, **kw)
@@ -139,7 +141,7 @@ class gitview(delegate.page):
         return render_template("theme/committed", commit, push)
 
     def get_author(self):
-        user = web.ctx.site.get_user()
+        user = accounts.get_current_user()
         return "%s <%s>" % (user.displayname, user.get_email())
         
 class manage(delegate.page):

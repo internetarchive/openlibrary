@@ -768,7 +768,7 @@ def setup_logging():
         raise
 
 def setup():
-    import home, inlibrary, borrow_home, libraries, stats, support, events, status
+    import home, inlibrary, borrow_home, libraries, stats, support, events, status, merge_editions
     
     home.setup()
     inlibrary.setup()
@@ -778,6 +778,7 @@ def setup():
     support.setup()
     events.setup()
     status.setup()
+    merge_editions.setup()
     
     import api
     api.setup()
@@ -785,9 +786,13 @@ def setup():
     from stats import stats_hook
     delegate.app.add_processor(web.unloadhook(stats_hook))
     
+    if infogami.config.get("dev_instance") is True:
+        import dev_instance
+        dev_instance.setup()
+
     setup_template_globals()
     setup_logging()
     logger = logging.getLogger("openlibrary")
     logger.info("Application init")
-
+    
 setup()

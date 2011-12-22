@@ -8,6 +8,7 @@ from pprint import pprint
 from collections import defaultdict
 from openlibrary.catalog.utils import flip_name
 from time import sleep
+from openlibrary import accounts
 
 re_normalize = re.compile('[^[:alphanum:] ]', re.U)
  
@@ -123,7 +124,8 @@ def load_data(rec):
     edits = []
 
     reply = {}
-    author_in = q.get('authors', [])
+    east = east_in_by_statement(rec)
+    author_in = [import_author(a, eastern=east) for a in q.get('authors', [])]
     (authors, author_reply) = build_author_reply(author_in, edits)
 
     #q['source_records'] = [loc]
@@ -241,7 +243,7 @@ def build_pool(rec):
                 found = web.ctx.site.things(q)
                 if found:
                     pool[field] = set(found)
-    return dict((k, list(v)) for k, v in pool.iteritems())
+    return dict((k, list(v)) for k, v in pool.iteritems() if v)
 
 def add_db_name(rec):
     if 'authors' not in rec:
@@ -334,7 +336,7 @@ def add_cover(cover_url, ekey):
     olid = ekey.split("/")[-1]
     coverstore_url = config.get('coverstore_url').rstrip('/')
     upload_url = coverstore_url + '/b/upload2' 
-    user = web.ctx.site.get_user()
+    user = accounts.get_current_user()
     params = {
         'author': user.key,
         'data': None,
