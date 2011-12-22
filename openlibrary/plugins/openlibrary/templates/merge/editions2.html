@@ -22,7 +22,7 @@ $for k in all_keys:
     <td align="top">$k</td>
     <td>
         $if isinstance(merged.get(k), list):
-            <textarea cols="40" rows="$max(len(merged[k]), 3)">$'\n'.join for i in merged[k]</textarea>
+            <textarea cols="40" rows="$max(len(merged[k]), 3)">$'\n'.join() for i in merged[k]</textarea>
         $else:
             <input value="$merged.get(k)">
     </td>
