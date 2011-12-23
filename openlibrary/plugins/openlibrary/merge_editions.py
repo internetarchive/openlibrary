@@ -27,7 +27,7 @@ class merge_editions(delegate.page):
         all_keys = set()
         for e in editions:
             for k in e.keys():
-                if v[k] is not None:
+                if e[k] is not None:
                     all_keys.add(k)
 
         merged = {}
