@@ -6,6 +6,12 @@ $var title: $_("Merge Editions")
     <h1>$_("Merge Editions")</h1>
 </div>
 
+<script>
+function use_value(k, ekey) {
+    alert(k + ' :: ' + ekey);
+}
+</script>
+
 <div id="contentBody">
 
 $for k in all_keys:
@@ -15,18 +21,19 @@ $for k in all_keys:
 
     <table>
     $for e in editions:
-        <tr><td valign="top">$e.key</td><td>
+        $ ekey = e.key[7:]
+        <tr><td valign="top">$ekey</td><td>
             $if isinstance(e[k], list):
                 $for i in e[k]:
                     $i<br>
             $else:
-                $e[k]
+                <a href="javascript:use_value(k, ekey)">use this</a><span id="$(k).$(ekey)">$e[k]</span>
         </td></tr>
     <tr><td valign="top">merged</td><td>
         $if isinstance(merged.get(k), list):
             <textarea cols="40" rows="$max(len(merged[k]), 3)">$'\n'.join(unicode(i) for i in merged[k])</textarea>
         $else:
-            <input value="$merged.get(k)">
+            <input value="$merged.get(k)" name="merged_$k" id="merged_$k">
     </td></tr>
     <table>
 </div>
