@@ -26,8 +26,8 @@ $for k in all_keys:
             $if isinstance(e[k], list):
                 $for i in e[k]:
                     $i<br>
-            $else:
-                <a href="javascript:use_value(k, ekey)">use this</a><span id="$(k).$(ekey)">$e[k]</span>
+            $elif $e[k]:
+                <a href="javascript:use_value($(k), $(ekey))">use this</a><span id="$(k).$(ekey)">$e[k]</span>
         </td></tr>
     <tr><td valign="top">merged</td><td>
         $if isinstance(merged.get(k), list):
