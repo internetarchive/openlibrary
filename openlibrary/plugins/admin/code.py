@@ -21,7 +21,7 @@ from infogami.utils.view import add_flash_message
 import openlibrary
 from openlibrary.core import admin as admin_stats
 from openlibrary.plugins.upstream import forms
-from openlibrary.plugins.upstream.account import Account
+from openlibrary import accounts
 
 
 from openlibrary.plugins.admin import services, support, tasks, inspect_thing
@@ -134,14 +134,14 @@ class people:
         i = web.input(email=None)
         
         if i.email:
-            account = Account.find(email=i.email)
+            account = accounts.find(email=i.email)
             if account:
                 raise web.seeother("/admin/people/" + account.username)
         return render_template("admin/people/index", email=i.email)
 
 class people_view:
     def GET(self, key):
-        account = Account.find(username = key) or Account.find(email = key)
+        account = accounts.find(username = key) or accounts.find(email = key)
         if account:
             if "@" in key:
                 raise web.seeother("/admin/people/" + account.username)
@@ -151,7 +151,7 @@ class people_view:
             raise web.notfound()
             
     def POST(self, key):
-        user = Account.find(username = key)
+        user = accounts.find(username = key)
         if not user:
             raise web.notfound()
             
