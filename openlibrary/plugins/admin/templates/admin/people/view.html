@@ -222,7 +222,7 @@ $else:
 <h2>$_("Debug Info")</h2>
 
 <h3>Account Information</h3>
-<pre>$:json_encode(person, indent="    ", sort_keys=True)</pre>
+<pre>$:json_encode(person.dict(), indent="    ", sort_keys=True)</pre>
 
 <h3>Verifications Links</h3>
 <div>
