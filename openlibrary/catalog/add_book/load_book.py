@@ -1,12 +1,12 @@
 import web, re, os
 from openlibrary.catalog.utils import flip_name, author_dates_match, key_int, error_mail
 
-def east_in_by_statement(rec):
+def east_in_by_statement(rec, author):
     if 'by_statement' not in rec:
         return False
     if 'authors' not in rec:
         return False
-    name = rec['authors'][0]['name']
+    name = author['name']
     flipped = flip_name(name)
     name = name.replace('.', '')
     name = name.replace(', ', '')
@@ -134,12 +134,14 @@ def build_query(rec):
         'type': { 'key': '/type/edition'},
     }
 
-    east = east_in_by_statement(rec)
 
     for k, v in rec.iteritems():
         if k == 'authors':
             if v and v[0]:
-                book[k] = [import_author(v[0], eastern=east)]
+                book[k] = []
+                for author in v:
+                    east = east_in_by_statement(rec, author)
+                    book[k].append(import_author(author, eastern=east))
             continue
         if k == 'languages':
             langs = []
