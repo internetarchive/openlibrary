@@ -8,7 +8,7 @@ from collections import defaultdict
 re_nonword = re.compile(r'\W', re.U)
 
 class merge_editions(delegate.page):
-    path = '/editions/merge'
+    path = '/books/merge'
 
     def is_enabled(self):
         return "merge-editions" in web.ctx.features
