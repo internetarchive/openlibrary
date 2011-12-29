@@ -768,7 +768,7 @@ def setup_logging():
         raise
 
 def setup():
-    import home, inlibrary, borrow_home, libraries, stats, support, events, status, merge_editions
+    import home, inlibrary, borrow_home, libraries, stats, support, events, status, merge_editions, authors
     
     home.setup()
     inlibrary.setup()
@@ -779,6 +779,7 @@ def setup():
     events.setup()
     status.setup()
     merge_editions.setup()
+    authors.setup()
     
     import api
     api.setup()
