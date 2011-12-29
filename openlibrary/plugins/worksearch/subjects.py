@@ -38,6 +38,12 @@ SUBJECTS = [
     web.storage(name="subject", key="subjects", prefix="/subjects/", facet="subject_facet", facet_key="subject_key"),
 ]
 
+class subjects_index(delegate.page):
+    path = "/subjects"
+    
+    def GET(self):
+        return render_template("subjects/index.html")
+
 class subjects(delegate.page):
     path = '(/subjects/[^/]+)'
 
