@@ -768,12 +768,11 @@ def setup_logging():
         raise
 
 def setup():
-    import home, inlibrary, borrow_home, libraries, stats, support, events, status, merge_editions
+    import home, inlibrary, borrow_home, stats, support, events, status, merge_editions
     
     home.setup()
     inlibrary.setup()
     borrow_home.setup()
-    libraries.setup()
     stats.setup()
     support.setup()
     events.setup()
