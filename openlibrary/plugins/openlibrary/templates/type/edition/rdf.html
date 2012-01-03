@@ -22,6 +22,12 @@ $def with (book)
     $else:
         $ pages = book.number_of_pages
 
+    $ work = book.works and book.works[0]
+    $if work:
+        $ authors = work.get_authors()
+    $else:
+        $ authors = book.get_authors()
+
     $def display(tag, value):
         $if isinstance(value, list):
             $for x in value:
@@ -32,7 +38,7 @@ $def with (book)
     <rdf:Description rdf:about="http://openlibrary.org$bookID">
         <!-- authors -->
         <bibo:authorList rdf:parseType="Collection">
-          $for a in book.authors:
+          $for a in authors:
               <rdf:Description rdf:about="http://openlibrary.org$a.key">
                  <rdf:value>$a.name</rdf:value>
               </rdf:Description>
@@ -48,7 +54,7 @@ $def with (book)
         $:display("bibo:edition", book.edition_name)
         <!-- subjects -->
         $:display("dc:subject", book.subjects)
-        $for DDC in book.dewey_decimal_class:   
+        $for DDC in book.dewey_decimal_class:
             <dcterms:subject>
                 <rdf:Description>
                     <dcam:memberOf rdf:resource="http://purl.org/dc/terms/DDC"/>
