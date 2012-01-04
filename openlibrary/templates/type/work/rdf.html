@@ -76,9 +76,7 @@ $def with (work)
               $ etitle = edition.title
 
             <rdf:Description rdf:about="$eduri">
-               <rdrel:workManifested>
-                  "$wuri"
-                 </rdrel:workManifested>
+               <rdrel:workManifested rdf:resource="$wuri" />
                 <dcterms:title>$etitle</dcterms:title>
                 <dcterms:date>$edition.publish_date</dcterms:date>
             </rdf:Description>    
