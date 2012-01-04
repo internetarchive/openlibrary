@@ -24,7 +24,7 @@ $ epub = "http://www.archive.org/download/XXX/XXX.epub"
 $ mobi = "http://www.archive.org/download/XXX/XXX.mobi"
 $ kindle = "https://www.amazon.com/gp/digital/fiona/web-to-kindle?clientid=IA&itemid=XXX&docid=XXX"
 
-$ djvu = "http://www.archive.org/stream/XXX/XXX.djvu"
+$ djvu = "http://www.archive.org/download/XXX/XXX.djvu"
 $ djvutxt = "http://www.archive.org/download/XXX/XXX_djvu.txt"
 $ seeall = "http://www.archive.org/download/XXX"
 $ google = ""
@@ -99,7 +99,7 @@ $ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
             <li><a href="$djvutxt.replace('XXX', book.ocaid)" title="Download a plain text version">Plain text</a></li>
             <li><a href="$book.url('/daisy')" title="Download a zipped DAISY file">DAISY</a></li>
             <li><a href="$epub.replace('XXX', book.ocaid)" title="Download an ePub">ePub</a></li>
-            <li><a href="$djvu.replace('XXX', book.ocaid)" title="Read a DjVu">DjVu</a> <span class="grey smaller">streaming</span></li>
+            <li><a href="$djvu.replace('XXX', book.ocaid)" title="Download a DjVu">DjVu</a></li>
             <li><a href="$mobi.replace('XXX', book.ocaid)" title="Download a MOBI file from Internet Archive">MOBI</a></li>
             <li><a href="$kindle.replace('XXX', book.ocaid)" title="Send to Kindle">Send to Kindle</a></li>
             </ul>
