@@ -8,6 +8,7 @@ $def with (work)
   xmlns:dcam='http://purl.org/dc/dcam/'
   xmlns:ov='http://open.vocab.org/terms/'
   xmlns:frbr='http://purl.org/vocab/frbr/core#'
+  xmlns:foaf='http://xmlns.com/foaf/0.1/'
 >
 
     $ wuri = "http://openlibrary.org" + work.key
@@ -31,7 +32,7 @@ $def with (work)
         $for a in work.authors:
             <dcterms:creator>
               <rdf:Description rdf:about="http://openlibrary.org$a.author.key">
-              <rdf:value>$a.author.name</rdf:value> 
+              <foaf:name>$a.author.name</foaf:name> 
               </rdf:Description>
             </dcterms:creator> 
        
@@ -83,7 +84,7 @@ $def with (work)
 
     
     <!-- administrative -->
-    <rdf:Description rdf:about="$wAbout">
+    <rdf:Description rdf:about="">
         <dcterms:modified rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">$work.last_modified</dcterms:modified>
         <dcterms:created rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">$work.created</dcterms:created>
         <ov:versionnumber>$work.revision</ov:versionnumber>
