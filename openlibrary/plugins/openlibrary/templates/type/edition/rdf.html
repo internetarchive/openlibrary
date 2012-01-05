@@ -46,7 +46,7 @@ $def with (book)
         <bibo:authorList rdf:parseType="Collection">
           $for a in authors:
               <rdf:Description rdf:about="http://openlibrary.org$a.key">
-                 <rdf:value>$a.name</rdf:value>
+                 <foaf:name>$a.name</foaf:name>
               </rdf:Description>
         </bibo:authorList>
         $if contributors:
@@ -90,7 +90,9 @@ $def with (book)
         $:display("bibo:lccn", book.lccn)
         $:display("bibo:isbn10", book.isbn_10)
         $:display("bibo:isbn13", book.isbn_13)
+    </rdf:Description>
         <!-- administrative -->
+    <rdf:Description rdf:about="">
         $:display("dcterms:modified", book.last_modified)
     </rdf:Description>
 </rdf:RDF>
