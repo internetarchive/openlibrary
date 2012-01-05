@@ -10,7 +10,7 @@ $def with (work)
   xmlns:frbr='http://purl.org/vocab/frbr/core#'
 >
 
-    $ wuri = "http://openlibrary.org" + work.key + "/"
+    $ wuri = "http://openlibrary.org" + work.key
     $ wAbout = "http://openlibrary.org" + work.key + "/about/"
 
     $if work.subtitle:
@@ -69,7 +69,7 @@ $def with (work)
         </frbr:Work> 
 
         $for edition in work.editions:
-            $ eduri = "http://openlibrary.org" + edition.key + "/"
+            $ eduri = "http://openlibrary.org" + edition.key
             $if edition.subtitle:
                $ etitle = edition.title + ": " + edition.subtitle
             $else:
