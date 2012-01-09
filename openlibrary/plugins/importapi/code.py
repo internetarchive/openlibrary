@@ -1,6 +1,6 @@
 """Open Library Import API
 """
- 
+
 from infogami.plugins.api.code import add_hook
 from infogami import config
 from openlibrary.plugins.openlibrary.code import can_write
@@ -8,6 +8,7 @@ from openlibrary.catalog.marc.marc_binary import MarcBinary
 from openlibrary.catalog.marc.marc_xml import MarcXml
 from openlibrary.catalog.marc.parse import read_edition
 from openlibrary.catalog import add_book
+from openlibrary import accounts
 
 #import openlibrary.tasks
 from ... import tasks
@@ -239,40 +240,64 @@ class ils_cover_upload:
     
     Request Format: Following input fields with enctype multipart/form-data
     
-        * authorization: base64 of username:password
         * olid: Key of the edition. e.g. OL12345M
         * file: file
         * redirect_url: URL to redirect after upload
+
+        Other headers:
+           Authorization: Basic base64-of-username:password
 
     On Success: Redirect to redirect_url?status=ok
     
     On Failure: Redirect to redirect_url?status=error&reason=bad+olid
     """
+    def error(self, i, reason):
+        if i.redirect_url:
+            url = self.build_url(i.redirect_url, status="error", reason=reason)
+            return web.seeother(url)
+        else:
+            return web.HTTPError("400 Bad Request", {"Content-type": "text/html"}, reason)
+
+    def success(self, i):
+        if i.redirect_url:
+            url = self.build_url(i.redirect_url, status="ok")
+            return web.seeother(url)
+        else:
+            return web.ok("done!")
+
+    def auth_failed(self, reason):
+        return web.HTTPError("401 Authorization Required", {"WWW-Authenticate": 'Basic realm="http://openlibrary.org"'}, reason)
+
+    def build_url(self, url, **params):
+        if '?' in url:
+            return url + "&" + urllib.urlencode(params)    
+        else:
+            return url + "?" + urllib.urlencode(params)
+
+    def login(self, i, authstring):
+        if not authstring:
+            self.auth_failed("No credentials provided")
+        authstring = authstring.replace("Basic ","")
+        username, password = base64.decodestring(authstring).split(':')
+        accounts.login(username, password)
+
     def POST(self):
-        i = web.input(authorization=None, olid=None, file={}, redirect_url=None, url="")
-        
-        def error(reason):
-            if i.redirect_url:
-                url = self.build_url(i.redirect_url, status="error", reason=reason)
-                return web.seeother(url)
-            else:
-                return web.HTTPError("400 Bad Request", {"Content-type": "text/html"}, reason)
-                
-        def success():
-            if i.redirect_url:
-                url = self.build_url(i.redirect_url, status="ok")
-                return web.seeother(url)
-            else:
-                return web.ok("done!")
-                
+        i = web.input(olid=None, file={}, redirect_url=None, url="")
+
         if not i.olid:
-            error("olid missing")
+            self.error(i, "olid missing")
             
         key = '/books/' + i.olid
         book = web.ctx.site.get(key)
         if not book:
-            raise error("bad olid")
-            
+            raise self.error(i, "bad olid")
+
+        try:
+            ret = self.login(i, http_basic_auth())
+        except accounts.ClientException, e:
+            print "We're here"
+            raise self.auth_failed("Invalid credentials")
+
         from openlibrary.plugins.upstream import covers
         add_cover = covers.add_cover()
         
@@ -281,15 +306,10 @@ class ils_cover_upload:
         
         if coverid:
             add_cover.save(book, coverid)
-            raise success()
+            raise self.success(i)
         else:
-            raise error("upload failed")
+            raise self.error(i, "upload failed")
     
-    def build_url(self, url, **params):
-        if '?' in url:
-            return url + "&" + urllib.urlencode(params)    
-        else:
-            return url + "?" + urllib.urlencode(params)
 
 add_hook("import", importapi)
 add_hook("ils_search", ils_search)
