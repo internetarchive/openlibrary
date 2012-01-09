@@ -1,6 +1,7 @@
 from .model import * #XXX: Fix this. Import only specific names
 
 import web
+from infogami.infobase.client import ClientException
 
 ## Unconfirmed functions (I'm not sure that these should be here)
 def get_group(name):
