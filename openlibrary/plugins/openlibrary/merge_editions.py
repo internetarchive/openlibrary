@@ -23,6 +23,11 @@ class merge_editions(delegate.page):
 
         full_keys = ['/books/' + k for k in merge_keys]
         editions = [web.ctx.site.get('/books/' + k) for k in merge_keys]
+        master = None
+        for e in editions:
+            if e.key == '/books/' + i.master:
+                master = e
+                break
 
         all_keys = set()
         for e in editions:
@@ -53,8 +58,8 @@ class merge_editions(delegate.page):
 
         k = 'ocaid'
         for e in editions:
-            if e.get(k) and 'ia:' + e[k] not in merged['source_records']:
-                merged['source_records'].append(e[k])
+            if e.get(k) and 'ia:' + e[k] not in merged.get('source_records', []):
+                merged.setdefault('source_records', []).append(e[k])
 
         k = 'identifiers'
         if k in all_keys:
@@ -133,7 +138,7 @@ class merge_editions(delegate.page):
                 assert merged['ocaid']
                 continue
 
-        return render_template('merge/editions2', editions, all_keys, merged)
+        return render_template('merge/editions2', master, editions, all_keys, merged)
 
 def setup():
     pass

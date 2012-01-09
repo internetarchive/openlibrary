@@ -1,9 +1,10 @@
-$def with (editions, all_keys, merged)
+$def with (master, editions, all_keys, merged)
 
 $var title: $_("Merge Editions")
 
 <div id="contentHead">
-    <h1>$_("Merge Editions")</h1>
+    <span class="lightgreen sansserief">$(_("Merging %d editions of") % len(editions))</span>
+    <h1>$master.title</h1>
 </div>
 
 <script>
@@ -14,26 +15,62 @@ function use_value(k, ekey) {
 
 <div id="contentBody">
 
-$for k in all_keys:
-    $if k in ('key', 'type'):
-        $ continue
-    <h2>$k</h2>
+    <div id="mergeHead" class="sansserif">
+        <div class="smallest lightgreen">Master</div>
 
+        <div id="recordMaster">
+            <div class="edition">
+                <a class="name" href="$master.key">$master.title</a> $master.publishers[0], $master.publish_date
+            </div>
+        </div>
+
+        <div class="smallest lightgreen">Duplicates</div>
+        <div id="recordDuplicates">
+            $for e in editions:
+                $if e.key == master.key:
+                    $continue
+                <div class="edition">
+                    <a class="name" href="$e.key">$e.title</a> $e.publishers[0], $e.publish_date
+                </div>
+        </div>
+
+    </div>
+
+    <h2>Merge Preview</h2>
+    
+    <p>Please review the merged values before saving.</p>
+            
+    <table class="changeHistory">
+        <tr>
+            <th></th>
+            <th>Merged Value</th>
+            <th>Alternate Values</th>
+        </tr>
+
+    $for k in all_keys:
+        $if k in ('key', 'type', 'works'):
+            $ continue
+        <tr>
+            <td class="name">$k</td>
+            <td class="merged">
+                $if isinstance(merged.get(k), list):
+                    $for i in merged[k]:
+                        $i<br>
+                $else:
+                    $merged.get(k)
+            </td>
+
+            <td class="options">
+
+            $for e in editions:
+                $e[k]<br>
+            </td>
+        </tr>
     <table>
-    $for e in editions:
-        $ ekey = e.key[7:]
-        <tr><td valign="top">$ekey</td><td>
-            $if isinstance(e[k], list):
-                $for i in e[k]:
-                    $i<br>
-            $elif e[k]:
-                <a href="javascript:use_value('$(k)', '$(ekey)')">use this</a><span id="$(k).$(ekey)">$e[k]</span>
-        </td></tr>
-    <tr><td valign="top">merged</td><td>
-        $if isinstance(merged.get(k), list):
-            <textarea cols="40" rows="$max(len(merged[k]), 3)">$'\n'.join(unicode(i) for i in merged[k])</textarea>
-        $else:
-            <input value="$merged.get(k)" name="merged_$k" id="merged_$k">
-    </td></tr>
-    <table>
+
+    <p>
+        <button class="larger">Merge Editions</button>
+        <a href="javascript:history.go(-1);" class="small red sansserif">Cancel</a>
+    </p>
+
 </div>
