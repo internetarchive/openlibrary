@@ -1,4 +1,4 @@
-$def with (master, editions, all_keys, merged)
+$def with (master, editions, all_keys, merged, possible_values)
 
 $var title: $_("Merge Editions")
 
@@ -51,7 +51,7 @@ function use_value(k, ekey) {
         $if k in ('key', 'type', 'works'):
             $ continue
         <tr>
-            <td class="name">$k</td>
+            <td class="name">$_(k)</td>
             <td class="merged">
                 $if isinstance(merged.get(k), list):
                     $for i in merged[k]:
@@ -61,9 +61,8 @@ function use_value(k, ekey) {
             </td>
 
             <td class="options">
-
-            $for e in editions:
-                $e[k]<br>
+            $for v, num in possible_values[k].iteritems():
+                $v (x $num)<br>
             </td>
         </tr>
     <table>

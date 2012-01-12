@@ -36,6 +36,7 @@ class merge_editions(delegate.page):
                     all_keys.add(k)
 
         merged = {}
+        possible_values = defaultdict(lambda: defaultdict(int))
 
         k = 'publish_date'
         publish_dates = set(e[k] for e in editions if k in e and len(e[k]) != 4)
@@ -52,14 +53,19 @@ class merge_editions(delegate.page):
                 continue
             merged[k] = []
             for e in editions:
-                for sr in e.get(k, []):
-                    if sr not in merged[k]:
-                        merged[k].append(sr)
+                for v in e.get(k, []):
+                    if v not in merged[k]:
+                        possible_values[k][v] += 1
+                        merged[k].append(v)
 
         k = 'ocaid'
         for e in editions:
-            if e.get(k) and 'ia:' + e[k] not in merged.get('source_records', []):
-                merged.setdefault('source_records', []).append(e[k])
+            v = e.get(k)
+            if not v:
+                continue
+            possible_values[k][v] += 1
+            if 'ia:' + v not in merged.get('source_records', []):
+                merged.setdefault('source_records', []).append(v)
 
         k = 'identifiers'
         if k in all_keys:
@@ -96,18 +102,24 @@ class merge_editions(delegate.page):
                 continue
             uniq_values = defaultdict(list)
             for num, e in enumerate(editions):
-                if e.get(k):
-                    if k == 'publish_date' and len(e[k]) == 4 and e[k].isdigit and any(e[k] in pd for pd in publish_dates):
+                v = e.get(k) 
+                if v:
+                    if isinstance(v, list):
+                        for lv in v:
+                            possible_values[k][lv] += 1
+                    elif not isinstance(v, dict):
+                        possible_values[k][v] += 1
+                    if k == 'publish_date' and len(v) == 4 and v.isdigit and any(v in pd for pd in publish_dates):
                         continue
-                    if k == 'pagination' and any(len(i) > len(e[k]) and e[k] in i for i in all_pagination):
+                    if k == 'pagination' and any(len(i) > len(v) and v in i for i in all_pagination):
                         continue
-                    if k in one_item_lists and len(set(e.get(k, []))) == 1 and any(len(i) > len(e[k][0].strip('.')) and e[k][0].strip('.') in i for i in one_item_lists[k]):
+                    if k in one_item_lists and len(set(e.get(k, []))) == 1 and any(len(i) > len(v[0].strip('.')) and v[0].strip('.') in i for i in one_item_lists[k]):
                         continue
                     if k == 'publish_country' and any_publish_country and e.get(k, '').strip().startswith('xx'):
                         continue
-                    if k == 'edition_name' and e[k].endswith(' ed edition'):
-                        e[k] = e[k][:-len(' edition')]
-                    uniq_values[re_nonword.sub('', `e[k]`.lower())].append(num)
+                    if k == 'edition_name' and v.endswith(' ed edition'):
+                        v = v[:-len(' edition')]
+                    uniq_values[re_nonword.sub('', `v`.lower())].append(num)
 
             if len(uniq_values) == 1:
                 merged[k] = editions[uniq_values.values()[0][0]][k]
@@ -138,7 +150,7 @@ class merge_editions(delegate.page):
                 assert merged['ocaid']
                 continue
 
-        return render_template('merge/editions2', master, editions, all_keys, merged)
+        return render_template('merge/editions2', master, editions, all_keys, merged, possible_values)
 
 def setup():
     pass
