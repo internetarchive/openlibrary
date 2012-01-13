@@ -42,7 +42,7 @@ $def with (book)
 
     <rdf:Description rdf:about="http://openlibrary.org$bookID">
         $if work:
-            <rdrel:workManifested rdf:resource="http://openlibrary.org/works/$workID"/>
+            <rdrel:workManifested rdf:resource="http://openlibrary.org$workID"/>
 
         <!-- authors -->
         <bibo:authorList rdf:parseType="Collection">
