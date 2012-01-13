@@ -27,7 +27,7 @@ $def with (author)
             <$tag>$value</$tag>
             
 
-    <foaf:Person rdf:about="http://openlibrary.org$author.key">
+    <foaf:Person rdf:about="$auri">
         $:display("foaf:name", name)
         $:display("rdg2:variantNameForThePerson", author.alternate_names)
         $:display("rdg2:biographicalInformation", author.bio)
@@ -70,7 +70,7 @@ $def with (author)
     </foaf:Person>
 
     <!-- administrative -->
-    <rdf:Description rdf:about="$auAbout">
+    <rdf:Description rdf:about="">
         <dcterms:modified rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">$author.last_modified</dcterms:modified>
         <dcterms:created rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">$author.created</dcterms:created>
         <ov:versionnumber>$author.revision</ov:versionnumber>
