@@ -298,7 +298,7 @@ class ils_cover_upload:
 
     def login(self, authstring):
         if not authstring:
-            self.auth_failed("No credentials provided")
+            raise self.auth_failed("No credentials provided")
         authstring = authstring.replace("Basic ","")
         username, password = base64.decodestring(authstring).split(':')
         accounts.login(username, password)
