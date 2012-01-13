@@ -14,9 +14,12 @@ from openlibrary import accounts
 from ... import tasks
 
 import web
+
+import base64
 import json
 import re
 import urllib
+
 import import_opds
 import import_rdf
 import import_edition_builder
@@ -247,26 +250,45 @@ class ils_cover_upload:
         Other headers:
            Authorization: Basic base64-of-username:password
 
-    On Success: Redirect to redirect_url?status=ok
+    On Success: 
+          If redirect URL specified, 
+                redirect to redirect_url?status=ok
+          else 
+                return 
+                {
+                  "status" : "ok"
+                }
     
-    On Failure: Redirect to redirect_url?status=error&reason=bad+olid
+    On Failure: 
+          If redirect URL specified, 
+                redirect to redirect_url?status=error&reason=bad+olid
+          else 
+                return
+                {
+                  "status" : "error",
+                  "reason" : "bad olid"
+                }
     """
     def error(self, i, reason):
         if i.redirect_url:
             url = self.build_url(i.redirect_url, status="error", reason=reason)
             return web.seeother(url)
         else:
-            return web.HTTPError("400 Bad Request", {"Content-type": "text/html"}, reason)
+            d = json.dumps({ "status" : "error", "reason" : reason})
+            return web.HTTPError("400 Bad Request", {"Content-type": "application/json"}, d)
+
 
     def success(self, i):
         if i.redirect_url:
             url = self.build_url(i.redirect_url, status="ok")
             return web.seeother(url)
         else:
-            return web.ok("done!")
+            d = json.dumps({ "status" : "ok" })
+            return web.ok(d, {"Content-type": "application/json"})
 
     def auth_failed(self, reason):
-        return web.HTTPError("401 Authorization Required", {"WWW-Authenticate": 'Basic realm="http://openlibrary.org"'}, reason)
+        d = json.dumps({ "status" : "error", "reason" : reason})
+        return web.HTTPError("401 Authorization Required", {"WWW-Authenticate": 'Basic realm="http://openlibrary.org"', "Content-type": "application/json"}, d)
 
     def build_url(self, url, **params):
         if '?' in url:
@@ -274,7 +296,7 @@ class ils_cover_upload:
         else:
             return url + "?" + urllib.urlencode(params)
 
-    def login(self, i, authstring):
+    def login(self, authstring):
         if not authstring:
             self.auth_failed("No credentials provided")
         authstring = authstring.replace("Basic ","")
@@ -293,9 +315,9 @@ class ils_cover_upload:
             raise self.error(i, "bad olid")
 
         try:
-            ret = self.login(i, http_basic_auth())
-        except accounts.ClientException, e:
-            print "We're here"
+            auth_header = http_basic_auth()
+            self.login(auth_header)
+        except accounts.ClientException:
             raise self.auth_failed("Invalid credentials")
 
         from openlibrary.plugins.upstream import covers
