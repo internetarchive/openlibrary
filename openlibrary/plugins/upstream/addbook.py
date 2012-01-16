@@ -485,7 +485,8 @@ class SaveBookHelper:
 
         for k in ['roles', 'identifiers', 'classifications']:
             edition[k] = edition.get(k) or []
-
+            
+        self._prevent_ocaid_deletion(edition)
         return edition
 
     def process_work(self, work):
@@ -521,11 +522,12 @@ class SaveBookHelper:
         return trim_doc(work)
 
     def _prevent_system_subjects_deletion(self, work):
-        # Allow admins to tinker with system systems
+        # Allow admins to modify system systems
         user = accounts.get_current_user()
         if user and user.is_admin():
             return
-
+            
+        # Note: work is the new work object from the formdata and self.work is the work doc from the database.
         old_subjects = self.work and self.work.get("subjects") or []
 
         # If condition is added to handle the possibility of bad data
@@ -538,6 +540,23 @@ class SaveBookHelper:
                 work_key = self.work and self.work.key
                 logger.warn("Prevented removal of system subject %r from %s.", s, work_key)
                 work.subjects.append(s)
+                
+    def _prevent_ocaid_deletion(self, edition):
+        # Allow admins to modify ocaid
+        user = accounts.get_current_user()
+        if user and user.is_admin():
+            return
+
+        # read ocaid from form data
+        try:
+            ocaid = [id['value'] for id in edition.get('identifiers', []) if id['name'] == 'ocaid'][0]
+        except IndexError:
+            ocaid = None
+        
+        # 'self.edition' is the edition doc from the db and 'edition' is the doc from formdata
+        if self.edition and self.edition.get('ocaid') and self.edition.get('ocaid') != ocaid:
+            logger.warn("%s: Attempt to change ocaid from %r to %r.", self.edition.key, self.edition.get('ocaid'), ocaid)
+            raise ValidationException("Changing Internet Archive ID is not allowed.")
 
 class book_edit(delegate.page):
     path = "(/books/OL\d+M)/edit"
@@ -579,7 +598,6 @@ class book_edit(delegate.page):
 
             raise web.seeother(edition.url())
         except (ClientException, ValidationException), e:
-            raise
             add_flash_message('error', str(e))
             return self.GET(key)
 

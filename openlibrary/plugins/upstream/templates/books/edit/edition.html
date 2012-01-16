@@ -383,7 +383,12 @@ $def radiobuttons(name, options, value):
                                 <input type="hidden" name="edition--identifiers--${i}--name" value="$id.name"/>
                                 <input type="hidden" name="edition--identifiers--${i}--value" value="$id.value"/>
                             </td>
-                            <td width="100%"><a href="javascript:;" class="repeat-remove red plain" title="Remove this identifier">[x]</a></td>
+                            $# Disable removing ocaid for regular users.
+                            $ admin_user = ctx.user and ctx.user.admin()
+                            $if id.name == "ocaid" and not admin_user:
+                                <td width="100%"></td>
+                            $else:
+                                <td width="100%"><a href="javascript:;" class="repeat-remove red plain" title="Remove this identifier">[x]</a></td>
                         </tr>
                     </tbody>
                 </table>

@@ -99,7 +99,7 @@ class Edition(models.Edition):
 
     def get_identifiers(self):
         """Returns (name, value) pairs of all available identifiers."""
-        names = ['isbn_10', 'isbn_13', 'lccn', 'oclc_numbers', 'ocaid']
+        names = ['ocaid', 'isbn_10', 'isbn_13', 'lccn', 'oclc_numbers']
         return self._process_identifiers(get_edition_config().identifiers, names, self.identifiers)
 
     def get_ia_meta_fields(self):
