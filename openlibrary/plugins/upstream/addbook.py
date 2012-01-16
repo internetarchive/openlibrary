@@ -18,12 +18,17 @@ from openlibrary.plugins.openlibrary.processors import urlsafe
 from openlibrary.utils.solr import Solr
 from openlibrary.i18n import gettext as _
 from openlibrary import accounts
+import logging
 
 import utils
 from utils import render_template, fuzzy_find
 
 from account import as_admin
 from openlibrary.plugins.recaptcha import recaptcha
+
+logger = logging.getLogger("openlibrary.book")
+
+SYSTEM_SUBJECTS = ["Accessible Book", "Lending Library", "In Library", "Protected DAISY"]
 
 def get_works_solr():
     base_url = "http://%s/solr/works" % config.plugin_worksearch.get('solr')
@@ -512,7 +517,27 @@ class SaveBookHelper:
         # ignore empty authors
         work.authors = [a for a in work.get('authors', []) if a.get('author', {}).get('key', '').strip()]
 
+        self._prevent_system_subjects_deletion(work)
         return trim_doc(work)
+
+    def _prevent_system_subjects_deletion(self, work):
+        # Allow admins to tinker with system systems
+        user = accounts.get_current_user()
+        if user and user.is_admin():
+            return
+
+        old_subjects = self.work and self.work.get("subjects") or []
+
+        # If condition is added to handle the possibility of bad data
+        set_old_subjects = set(s.lower() for s in old_subjects if isinstance(s, basestring))
+        set_new_subjects = set(s.lower() for s in work.subjects)
+
+        for s in SYSTEM_SUBJECTS:
+            # if a system subject has been removed
+            if s.lower() in set_old_subjects and s.lower() not in set_new_subjects:
+                work_key = self.work and self.work.key
+                logger.warn("Prevented removal of system subject %r from %s.", s, work_key)
+                work.subjects.append(s)
 
 class book_edit(delegate.page):
     path = "(/books/OL\d+M)/edit"
