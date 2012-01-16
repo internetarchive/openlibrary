@@ -244,11 +244,16 @@ class ils_cover_upload:
     Request Format: Following input fields with enctype multipart/form-data
     
         * olid: Key of the edition. e.g. OL12345M
-        * file: file
+        * file: image file 
+        * url: URL to image
         * redirect_url: URL to redirect after upload
 
         Other headers:
            Authorization: Basic base64-of-username:password
+    
+    One of file or url can be provided. If the former, the image is
+    directly used. If the latter, the image at the URL is fetched and
+    used.
 
     On Success: 
           If redirect URL specified, 
