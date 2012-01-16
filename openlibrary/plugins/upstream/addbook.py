@@ -555,7 +555,7 @@ class SaveBookHelper:
         
         # 'self.edition' is the edition doc from the db and 'edition' is the doc from formdata
         if self.edition and self.edition.get('ocaid') and self.edition.get('ocaid') != ocaid:
-            logger.warn("%s: Attempt to change ocaid from %r to %r.", self.edition.key, self.edition.get('ocaid'), ocaid)
+            logger.warn("Attempt to change ocaid of %s from %r to %r.", self.edition.key, self.edition.get('ocaid'), ocaid)
             raise ValidationException("Changing Internet Archive ID is not allowed.")
 
 class book_edit(delegate.page):
