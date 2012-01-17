@@ -44,7 +44,21 @@ def search(params):
     corresponding key will be None.
 
     """
-    pass
+    doc = params.pop("doc")
+    # {'doc': {'identifiers': {'goodreads': ['12345', '12345'],
+    #                          'isbn': ['1234567890'],
+    #                          'lcc': ['123432'],
+    #                          'librarything': ['12312', '231123']},
+    #          'publish_year': '1995',
+    #          'publisher': 'Bantam',
+    #          'title': 'A study in Scarlet'}}
+
+    # Step 1: Search for the results.
+    # If we have ISBNS, search using that.
+
+    # Step 2: Pick the best one and expand it.
+
+    # Step 3: Construct the response and return it. 
     
     
         
