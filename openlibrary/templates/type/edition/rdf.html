@@ -18,7 +18,7 @@ $def with (book)
     $else:
         $ title = book.title
 
-    $ bookID = book.key + "/"
+    $ bookID = book.key
     $if book.pagination:
         $ pages = book.pagination
     $else:
@@ -27,7 +27,7 @@ $def with (book)
     $ work = book.works and book.works[0]
     $if work:
         $ authors = work.get_authors()
-        $ workID = work.key + "/"
+        $ workID = work.key
     $else:
         $ authors = book.get_authors()
 
@@ -47,7 +47,7 @@ $def with (book)
         <!-- authors -->
         <bibo:authorList rdf:parseType="Collection">
           $for a in authors:
-              $ aID = a.key + "/"
+              $ aID = a.key
               <rdf:Description rdf:about="http://openlibrary.org$aID">
                  <foaf:name>$a.name</foaf:name>
               </rdf:Description>
