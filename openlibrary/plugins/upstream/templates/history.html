@@ -34,7 +34,7 @@ $var title: $name
             $for v in h:
                 <tr>
                     <td class="number">$v.revision</td>
-                    <td class="history"><a href="$changequery(m=None, v=v.revision)" title="$_('View revision %s', v.revision)">$datestr(v.created)</a></td>
+                    <td class="history"><a href="$page.url(v=v.revision)" title="$_('View revision %s', v.revision)">$datestr(v.created)</a></td>
                     $if v.author:
                         <td class="displayname" valign="top"><div class="truncatedisplayname"><a href="$homepath()$v.author.key" class="truncate" title="$v.author.displayname">$v.author.displayname</a></div></td>
                     $elif v.ip and v.ip != '127.0.0.1':

@@ -20,6 +20,6 @@ $else:
             <div class="brown smaller sansserif">$_("Last edited by") <a href="$author.key" rel="nofollow">$author.displayname</a></div>
         $else:
             <div class="brown smaller sansserif">$_("Last edited anonymously")</div>
-        <div class="smallest gray sansserif">$(page.last_modified and datestr(page.last_modified)) | <a href="$changequery(m='history')" rel="nofollow" title="View this template's edit history">History</a></div>
+        <div class="smallest gray sansserif">$(page.last_modified and datestr(page.last_modified)) | <a href="$page.url(m='history')" rel="nofollow" title="View this template's edit history">History</a></div>
     </div>
 </div>

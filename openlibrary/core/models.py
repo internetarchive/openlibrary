@@ -115,10 +115,16 @@ class Thing(client.Thing):
     def _make_url(self, label, suffix, **params):
         """Make url of the form $key/$label$suffix?$params.
         """
-        u = self.key + "/" + h.urlsafe(label) + suffix
+        if label is not None:
+            u = self.key + "/" + h.urlsafe(label) + suffix
+        else:
+            u = self.key + suffix
         if params:
             u += '?' + urllib.urlencode(params)
         return u
+
+    def url(self, suffix="", **params):
+        return self._make_url(label=None, suffix=suffix, **params)
                 
     def _get_lists(self, limit=50, offset=0, sort=True):
         # cache the default case
