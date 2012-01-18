@@ -51,11 +51,11 @@ def test_massage_search_results(mock_site):
     
     for i in "key title".split(): # TODO: Check for the rest of the fields here
         assert massaged_results['doc'][i] == best_match[i], "Mismatch in %s field of massaged results and best match"%i
-    assert massaged_results['doc']['isbn'] == best_match['isbn_10'], "Mismatch in ISBN10 field of massaged results and best match"
+    assert massaged_results['doc']['isbn_10'] == best_match['isbn_10'], "Mismatch in ISBN10 field of massaged results and best match"
 
     # The first two matches should be the editions and then the work match (the order of the input)
-    expected_matches = [ {'edition' : editions[0]['key'], 'work' : editions[0].works[0]},
-                         {'edition' : editions[1]['key'], 'work' : editions[1].works[0]},
+    expected_matches = [ {'edition' : editions[0], 'work' : mock_site.get(editions[0]).works[0].key},
+                         {'edition' : editions[1], 'work' : mock_site.get(editions[1]).works[0].key},
                          {'edition' : None, 'work' : wkey } ]
 
     assert massaged_results['matches'] == expected_matches, "Matches field got a different value"
