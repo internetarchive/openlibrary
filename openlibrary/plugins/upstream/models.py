@@ -441,7 +441,8 @@ class Author(models.Author):
     def get_books(self):
         i = web.input(sort='editions', page=1)
         try:
-            page = int(i.page)
+            # safegaurd from passing zero/negative offsets to solr
+            page = max(1, int(i.page))
         except ValueError:
             page = 1
         return works_by_author(self.get_olid(), sort=i.sort, page=page, rows=100)
