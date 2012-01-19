@@ -27,7 +27,7 @@ $def with (author)
             <$tag>$value</$tag>
             
 
-    <foaf:Person rdf:about="$auri">
+    <foaf:Agent rdf:about="$auri">
         $:display("foaf:name", name)
         $:display("rdg2:variantNameForThePerson", author.alternate_names)
         $:display("rdg2:biographicalInformation", author.bio)
@@ -67,7 +67,7 @@ $def with (author)
             <foaf:depiction>
             <foaf:Image rdf:about="$auphoto" /></foaf:depiction>
 
-    </foaf:Person>
+    </foaf:Agent>
 
     <!-- administrative -->
     <rdf:Description rdf:about="">
