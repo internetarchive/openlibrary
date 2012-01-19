@@ -155,7 +155,7 @@ class people_view:
         if not user:
             raise web.notfound()
             
-        i = web.input(action=None)
+        i = web.input(action=None, tag=None)
         if i.action == "update_email":
             return self.POST_update_email(user, i)
         elif i.action == "update_password":
@@ -164,6 +164,10 @@ class people_view:
             return self.POST_resend_link(user)
         elif i.action == "activate_account":
             return self.POST_activate_account(user)
+        elif i.action == "add_tag":
+            return self.POST_add_tag(user, i.tag)
+        elif i.action == "remove_tag":
+            return self.POST_remove_tag(user, i.tag)
         else:
             raise web.seeother(web.ctx.path)
 
@@ -203,6 +207,14 @@ class people_view:
         add_flash_message("info", "Password updated successfully!")
         raise web.seeother(web.ctx.path)
         
+    def POST_add_tag(self, account, tag):
+        account.add_tag(tag)
+        return delegate.RawText('{"ok": "true"}', content_type="application/json")
+
+    def POST_remove_tag(self, account, tag):
+        account.remove_tag(tag)
+        return delegate.RawText('{"ok": "true"}', content_type="application/json")
+
 class ipaddress:
     def GET(self):
         return render_template('admin/ip/index')

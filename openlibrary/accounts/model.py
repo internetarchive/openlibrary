@@ -175,9 +175,14 @@ class Account(web.storage):
             return code
         else:
             self['last_login'] = datetime.datetime.utcnow().isoformat()
-            web.ctx.site.store[self._key] = self
+            self._save()
             return "ok"
             
+    def _save(self):
+        """Saves this account in store.
+        """
+        web.ctx.site.store[self._key] = self
+
     @property
     def last_login(self):
         """Returns the last_login time of the user, if available.
@@ -218,3 +223,26 @@ class Account(web.storage):
         """Returns all the verification links present in the database.
         """
         return web.ctx.site.store.values(type="account-link", name="username", value=self.username)
+
+    def get_tags(self):
+        """Returns list of tags that this user has.
+        """
+        return self.get("tags", [])
+
+    def has_tag(self, tag):
+        return tag in self.get_tags()
+
+    def add_tag(self, tag):
+        tags = self.get_tags()
+        if tag not in tags:
+            tags.append(tag)
+        self['tags'] = tags
+        self._save()
+
+    def remove_tag(self, tag):
+        tags = self.get_tags()
+        if tag in tags:
+            tags.remove(tag)
+        self['tags'] = tags
+        self._save()
+

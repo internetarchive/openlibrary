@@ -72,7 +72,43 @@ input.big {
     width: 20em !important;
 }
 
+a.tag {
+	padding: 5px;
+	background: #eee;
+	border: 1px solid #ddd;
+	border-radius: 5px;
+	cursor: pointer;
+	text-decoration: none;
+	color: #aaa;
+    font-size: 1.1em;
+}
+
+a.tag:hover {
+	text-decoration: underline;
+	color: black;
+}
+
+a.tag.active {
+	background: #fffdcd;
+	border-color: #ccb;
+    color: black;
+}
 </style>
+
+<script type="text/javascript">
+\$(function() {
+    \$("a.tag").click(function(){
+        \$(this).toggleClass("active");
+
+        var action = \$(this).hasClass("active") ? "add_tag": "remove_tag";
+        var tag = \$(this).text();
+        \$.post(window.location.href, {
+            "action": action,
+            "tag": tag
+        });
+    });
+});
+</script>
 
 <div id="contentHead">
     $:render_template("admin/menu")
@@ -171,11 +207,19 @@ $ has_profile = person.get_user() is not None
     <tr>
         <td>$_("Last Login:")</td>
         <td>
-        $if person.last_login:
-            $datestr(person.last_login)
-        $else:
-            <em>Not available</em>
-    </td>
+            $if person.last_login:
+                $datestr(person.last_login)
+            $else:
+                <em>Not available</em>
+        </td>
+    </tr>
+    <tr>
+        <td>$_("Tags:")</td>
+        <td>
+            $ tags = sorted(["beta-tester", "trusted-user", "staff", "alumnus"])
+            $for t in tags:
+                <a class="tag $cond(person.has_tag(t), 'active')">$t</a>
+        </td>
     </tr>
     </tbody>
   </table>
