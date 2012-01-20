@@ -3,6 +3,17 @@ Functions which are used by the records package. The two public ones
 are `search` and `create` which are callable from the outside world.
 """
 
+import web
+
+class NoQueryParam(KeyError):
+    """
+    Exception that is used internally when a find_by_X function is
+    called but no X parameters were provided.
+    """
+    pass
+    
+
+
 def search(params):
     """
     Takes a search parameter and returns a result set
@@ -45,6 +56,7 @@ def search(params):
 
     """
     doc = params.pop("doc")
+    matches = []
     # {'doc': {'identifiers': {'goodreads': ['12345', '12345'],
     #                          'isbn': ['1234567890'],
     #                          'lcc': ['123432'],
@@ -72,11 +84,79 @@ def search(params):
     
 def create(records):
     """
+    Creates one or more new records in the system.
+    TODO: Input/output
     """
-    pass
+    doc = records.pop("doc")
+    typ = doc['type']['key']
+    key = web.ctx.site.new_key(typ)
+    if doc['key'] == None:
+        doc['key'] = key
+    
+    works = authors = []
+    if "works" in doc:
+        work_records = doc.pop("works")
+        works, authors = process_work_records(work_records)
+        # Add work references into the edition.
+        for w in works:
+            wref = {'key': w['key']}
+            doc.setdefault("works",[]).append(wref)
+
+    # Now, doc, works and authors contain the documents that need to
+    # be put into the database
+    docs = [doc] + works + authors
+    web.ctx.site.save_many(docs, 'Import new book')
+    return key
+        
+    
+    
+def process_work_records(work_records):
+    """Converts the given 'work_records' into a list of works and
+    accounts that can then be directly saved into Infobase"""
+    
+
+    works = []
+    authors = []
+    for w in work_records:
+
+        # Give the work record a key
+        if w['key'] == None:
+            w['key'] = web.ctx.site.new_key("/type/work")
+
+        # Process any author records which have been provided. 
+        if "authors" in w:
+            author_records = w.pop("authors")
+            for author in author_records:
+                role = author.keys()[0]
+                author = author[role]
+                if author['key'] == None:
+                    author['key'] = web.ctx.site.new_key("/type/author")
+                authors.append(author) # Add the author to list of records to be saved.
+                a = {'type': '/type/author_role', 'author': author['key']}
+                w.setdefault('authors',[]).append(a) # Attach this author to the work
+
+        works.append(w) # Add the work to list of records to be saved.
+
+    return works, authors
+    
 
 
 
+def find_matches_by_isbn(doc):
+    "Find matches using isbns."
+    try:
+        isbns = doc['identifiers']["isbn"]
+        q = {
+            'type':'/type/edition',
+            'isbn_10': isbns[0] #TODO: Change this to isbn_
+            }
+        ekeys = list(web.ctx.site.things(q))
+        if ekeys:
+            return ekeys[:1] # TODO: We artificially match only one item here
+        else:
+            return []
+    except KeyError, e:
+        raise NoQueryParam(str(e))
 
 def denormalise(item):
     "Denormalises the given item as required by the search results. Used for the best match."

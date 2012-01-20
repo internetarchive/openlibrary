@@ -77,19 +77,22 @@ def test_create_edition(mock_site):
                                  'authors': [{'author': {'birth_date': '1979',
                                                          'death_date': '2010',
                                                          'key': None,
-                                                         'name': 'Test Author'}}]
+                                                         'name': 'Test Author 1'}},
+                                             {'author': {'birth_date': '1979',
+                                                         'death_date': '2010',
+                                                         'key': None,
+                                                         'name': 'Test Author 2'}}]
                     }]}}
     
     r = create(record)
     new_edition = mock_site.get(r)
     new_work = mock_site.get(new_edition.works[0]['key'])
-    new_author = mock_site.get(new_work.authors[0]['author'])
+    new_authors = [mock_site.get(x.author) for x in new_work.authors]
     assert new_edition.title == "THIS IS A TEST BOOK"
     assert new_work.title == 'This is a test book'
-    assert new_author.name == 'Test Author'
+    assert new_authors[0].name == 'Test Author 1' and new_authors[1].name == 'Test Author 2'
 
 
-    #TODO : Check whether the various cross references between records are correct.
 
 
 
