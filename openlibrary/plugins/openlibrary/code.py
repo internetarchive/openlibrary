@@ -540,10 +540,31 @@ class _yaml_edit(_yaml):
             add_flash_message('unknown action')
             return render.edit_yaml(key, i.body)        
 
+def _get_user_root():
+    user_root = infogami.config.get("infobase", {}).get("user_root", "/user")
+    return web.rstrips(user_root, "/")
+
+def _get_bots():
+    bots = web.ctx.site.store.values(type="account", name="bot", value="true")
+    user_root = _get_user_root()
+    return [user_root + "/" + account['username'] for account in bots]
+
+def _get_members_of_group(group_key):
+    """Returns keys of all members of the group identifier by group_key.
+    """
+    usergroup = web.ctx.site.get(group_key) or {}
+    return [m.key for m in usergroup.get("members", [])]
+
 def can_write():
-    user = delegate.context.user and delegate.context.user.key
-    usergroup = web.ctx.site.get('/usergroup/api')
-    return usergroup and user in [u.key for u in usergroup.members]
+    """Any user with bot flag set can write.
+    For backward-compatability, all admin users and people in api usergroup are also allowed to write.
+    """
+    user_key = delegate.context.user and delegate.context.user.key
+    bots = _get_members_of_group("/usergroup/api") + _get_members_of_group("/usergroup/admin") + _get_bots()
+    return user_key in bots
+    
+# overwrite the implementation of can_write in the infogami API plugin with this one.
+api.can_write = can_write
 
 class Forbidden(web.HTTPError):
     def __init__(self, msg=""):

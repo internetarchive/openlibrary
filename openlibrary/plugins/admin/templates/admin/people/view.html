@@ -99,7 +99,7 @@ a.tag.active {
 \$(function() {
     \$("a.tag").click(function(){
         \$(this).toggleClass("active");
-
+        
         var action = \$(this).hasClass("active") ? "add_tag": "remove_tag";
         var tag = \$(this).text();
         \$.post(window.location.href, {
@@ -179,13 +179,14 @@ $ has_profile = person.get_user() is not None
         <td>
             $if has_profile:
                 <form method="POST" name="form-bot" id="form-bot">
+                    <input type="hidden" name="action" value="set_bot_flag">
                     <input type="hidden" name="bot" value="$(not person.get('bot', False))">
                     $if person.get('bot'):
                         Yes
-                        <button class="fixthis" type="submit" name="action" value="update_bot">Make Human</button>
+                        <button type="submit">Make Human</button>
                     $else:
                         No
-                        <button class="fixthis" type="submit" name="action" value="update_bot">Make Bot</button>
+                        <button type="submit">Make Bot</button>
                 </form>
             $else:
                 <em>Not available</em>

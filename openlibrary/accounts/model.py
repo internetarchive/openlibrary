@@ -246,3 +246,8 @@ class Account(web.storage):
         self['tags'] = tags
         self._save()
 
+    def set_bot_flag(self, flag):
+        """Enables/disables the bot flag.
+        """
+        self.bot = flag
+        self._save()

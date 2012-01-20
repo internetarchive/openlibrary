@@ -155,7 +155,7 @@ class people_view:
         if not user:
             raise web.notfound()
             
-        i = web.input(action=None, tag=None)
+        i = web.input(action=None, tag=None, bot=None)
         if i.action == "update_email":
             return self.POST_update_email(user, i)
         elif i.action == "update_password":
@@ -168,6 +168,8 @@ class people_view:
             return self.POST_add_tag(user, i.tag)
         elif i.action == "remove_tag":
             return self.POST_remove_tag(user, i.tag)
+        elif i.action == "set_bot_flag":
+            return self.POST_set_bot_flag(user, i.bot)
         else:
             raise web.seeother(web.ctx.path)
 
@@ -214,7 +216,12 @@ class people_view:
     def POST_remove_tag(self, account, tag):
         account.remove_tag(tag)
         return delegate.RawText('{"ok": "true"}', content_type="application/json")
-
+    
+    def POST_set_bot_flag(self, account, bot):
+        bot = (bot and bot.lower()) == "true"
+        account.set_bot_flag(bot)
+        raise web.seeother(web.ctx.path)
+        
 class ipaddress:
     def GET(self):
         return render_template('admin/ip/index')
@@ -451,8 +458,8 @@ class inspect:
         i = web.input()
         i.setdefault("keys", "")
         
-        from openlibrary.plugins.openlibrary import connection
-        mc = connection._memcache
+        from openlibrary.core import cache
+        mc = cache.get_memcache()
         
         keys = [k.strip() for k in i["keys"].split() if k.strip()]        
         mapping = keys and mc.get_multi(keys)
