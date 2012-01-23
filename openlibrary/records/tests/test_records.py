@@ -141,10 +141,46 @@ def test_update_edition(mock_site):
     assert updated_edition.publishers == "Dover"
     assert updated_edition.publish_date == "2012"
     
+    
+    
+    
+    
+def test_update_work(mock_site):
+    "Update work records in the database"
+    # First create a record using our existing API
+    record = {'doc': {'isbn_10': ['1234567890'],
+                      'key': None,
+                      'title': 'THIS IS A TEST BOOK',
+                      'type': {'key': '/type/edition'},
+                      'works': [{'key': None,
+                                 'title': 'This is a test book',
+                                 'type': {'key': '/type/work'},
+                                 'authors': [{'author': {'birth_date': '1979',
+                                                         'death_date': '2010',
+                                                         'key': None,
+                                                         'name': 'Test Author 1'}},
+                                             {'author': {'birth_date': '1979',
+                                                         'death_date': '2010',
+                                                         'key': None,
+                                                         'name': 'Test Author 2'}}]
+                    }]}}
+    
+    edition_key = create(record)
+    new_edition = mock_site.get(edition_key)
+    new_work_key = new_edition.works[0]['key']
+    new_work = mock_site.get(new_work_key)
+    new_author0, new_author1 = [mock_site.get(x.author) for x in new_work.authors]
 
+    ## Work update
+    record = {'doc': {'key': new_work_key,
+                      'title': 'This is a new test book', #Changed the title here. 
+                      'type': {'key': '/type/work'},
+                      }}
     
-    
-    
+    r = create(record)
+    assert new_work_key == r, "Work key has changed (Original : %s, New : %s)"%(new_work_key, r)
+    updated_work = mock_site.get(r)
+    assert updated_work.title == "This is a new test book", "Work title has not changed"
     
     
     
