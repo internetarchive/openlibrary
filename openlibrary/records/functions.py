@@ -3,6 +3,8 @@ Functions which are used by the records package. The two public ones
 are `search` and `create` which are callable from the outside world.
 """
 
+import copy
+
 import web
 
 class NoQueryParam(KeyError):
@@ -87,6 +89,7 @@ def create(records):
     Creates one or more new records in the system.
     TODO: Describe Input/output
     """
+    records = copy.deepcopy(records) # We do this because we destroy the original
     doc = records.pop("doc")
     typ = doc['type']['key']
     if doc['key'] == None:
