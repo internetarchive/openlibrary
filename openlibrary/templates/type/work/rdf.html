@@ -30,9 +30,8 @@ $def with (work)
         $:display("dcterms:title", title)
 
         $for a in work.authors:
-            $ aID = a.author.key
             <dcterms:creator>
-              <rdf:Description rdf:about="http://openlibrary.org$aID">
+              <rdf:Description rdf:about="http://openlibrary.org$a.author.key">
               <foaf:name>$a.author.name</foaf:name> 
               </rdf:Description>
             </dcterms:creator> 
