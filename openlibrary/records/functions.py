@@ -85,13 +85,14 @@ def search(params):
 def create(records):
     """
     Creates one or more new records in the system.
-    TODO: Input/output
+    TODO: Describe Input/output
     """
     doc = records.pop("doc")
     typ = doc['type']['key']
-    key = web.ctx.site.new_key(typ)
     if doc['key'] == None:
+        key = web.ctx.site.new_key(typ)
         doc['key'] = key
+    key = doc['key']
     
     works = authors = []
     if "works" in doc:
