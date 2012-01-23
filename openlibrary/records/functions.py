@@ -145,14 +145,13 @@ def process_work_records(work_records):
     
 
 
-
 def find_matches_by_isbn(doc):
     "Find matches using isbns."
     try:
         isbns = doc['identifiers']["isbn"]
         q = {
             'type':'/type/edition',
-            'isbn_10': isbns[0] #TODO: Change this to isbn_
+            'isbn_10': str(isbns[0]) #TODO: Change this to isbn_
             }
         ekeys = list(web.ctx.site.things(q))
         if ekeys:
