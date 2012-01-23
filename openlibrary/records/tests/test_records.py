@@ -141,10 +141,6 @@ def test_update_edition(mock_site):
     assert updated_edition.publishers == "Dover"
     assert updated_edition.publish_date == "2012"
     
-    
-    
-    
-    
 def test_update_work(mock_site):
     "Update work records in the database"
     # First create a record using our existing API
@@ -179,8 +175,9 @@ def test_update_work(mock_site):
     
     r = create(record)
     assert new_work_key == r, "Work key has changed (Original : %s, New : %s)"%(new_work_key, r)
-    updated_work = mock_site.get(r)
+    updated_work = mock_site.get(r) 
     assert updated_work.title == "This is a new test book", "Work title has not changed"
     
+    ## TODO : Adding, updating authors and other list items.
     
     
