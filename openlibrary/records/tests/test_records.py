@@ -181,3 +181,37 @@ def test_update_work(mock_site):
     ## TODO : Adding, updating authors and other list items.
     
     
+def test_search_isbn(mock_site, compare_results):
+    "Try to search for a record which should match by ISBN"
+    # First create a record using our existing API
+
+    record = {'doc': {'isbn_10': ['1234567890'],
+                      'key': None,
+                      'title': 'THIS IS A TEST BOOK',
+                      'type': {'key': '/type/edition'},
+                      'works': [{'key': None,
+                                 'title': 'This is a test book',
+                                 'type': {'key': '/type/work'},
+                                 'authors': [{'author': {'birth_date': '1979',
+                                                         'death_date': '2010',
+                                                         'key': None,
+                                                         'name': 'Test Author 1'}},
+                                             {'author': {'birth_date': '1979',
+                                                         'death_date': '2010',
+                                                         'key': None,
+                                                         'name': 'Test Author 2'}}]
+                                 }]}}
+    
+    edition_key = create(record)
+    
+    search_input = {'doc' : {'identifiers' : {'isbn' : [1234567890]}}}
+    search_results = search(search_input)
+    best = search_results.pop("doc")
+    rest = search_results.pop("matches")
+    assert best['key'] == edition_key, "Best didn't match by ISBN"
+    assert rest[0]['edition'] == edition_key, "Edition mismatch in matches %s and %s"%(rest[0]['edition'], edition_key)
+    assert rest[0]['work'] == best['works'][0]['key'], "Work mismatch in matches %s and %s"%(rest[0]['work'], best['works'][0]['key'])
+    
+    
+    
+
