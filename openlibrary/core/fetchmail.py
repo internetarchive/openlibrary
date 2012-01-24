@@ -14,7 +14,7 @@ import web
 from openlibrary.core import support
 from infogami.utils.markdown import markdown
 
-subject_re = re.compile("^.*Case #([0-9]+): .*")
+subject_re = re.compile("^.*[Cc]ase #([0-9]+) .*")
 
 template = """
 
