@@ -19,7 +19,7 @@ a.blocked-ip {
 }
 </style>
 
-$ changes = recentchanges(dict(user=account.username, limit=100, offset=0))
+$ changes = recentchanges(dict(author=account.get_user().key, limit=100, offset=0))
 
 $def call_template(name, change):
     $ t = get_template("recentchanges/" + change.kind + "/" + name) or get_template("recentchanges/default/" + name)
