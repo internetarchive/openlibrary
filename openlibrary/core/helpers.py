@@ -239,6 +239,23 @@ def percentage(value, total):
         return 0
     else:
         return (value * 100.0)/total
+
+def uniq(values, key=None):
+    """Returns the unique entries from the given values in the original order.
+    
+    The value of the optional `key` parameter should be a function that takes
+    a single argument and returns a key to test the uniqueness.
+    """
+    key = key or (lambda x: x)
+    s = set()
+    result = []
+    for v in values:
+        k = key(v)
+        if k not in s:
+            s.add(k)
+            result.append(v)
+    return result
+
         
 def _get_helpers():
     _globals = globals()

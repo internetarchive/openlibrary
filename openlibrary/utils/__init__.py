@@ -39,6 +39,7 @@ def uniq(values, key=None):
     
     The value of the optional `key` parameter should be a function that takes
     a single argument and returns a key to test the uniqueness.
+    TODO: Moved this to core/utils.py
     """
     key = key or (lambda x: x)
     s = set()
