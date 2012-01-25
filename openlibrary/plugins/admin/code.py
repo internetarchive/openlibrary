@@ -221,7 +221,21 @@ class people_view:
         bot = (bot and bot.lower()) == "true"
         account.set_bot_flag(bot)
         raise web.seeother(web.ctx.path)
+
+class people_edits:
+    def GET(self, username):
+        account = accounts.find(username=username)
+        if not account:
+            raise web.notfound()
+        else:
+            return render_template("admin/people/edits", account)
         
+    def POST(self, username):
+        i = web.input(changesets=[], comment="Revert", action="revert")
+        if i.action == "revert" and i.changesets:
+            ipaddress_view().revert(i.changesets, i.comment)
+        raise web.redirect(web.ctx.path)        
+    
 class ipaddress:
     def GET(self):
         return render_template('admin/ip/index')
@@ -515,7 +529,8 @@ def setup():
     register_admin_page('/admin/git-pull', gitpull, label='git-pull')
     register_admin_page('/admin/reload', reload, label='Reload Templates')
     register_admin_page('/admin/people', people, label='People')
-    register_admin_page('/admin/people/(.*)', people_view, label='View People')
+    register_admin_page('/admin/people/([^/]*)', people_view, label='View People')
+    register_admin_page('/admin/people/([^/]*)/edits', people_edits, label='Edits')
     register_admin_page('/admin/ip', ipaddress, label='IP')
     register_admin_page('/admin/ip/(.*)', ipaddress_view, label='View IP')
     register_admin_page('/admin/stats/(\d\d\d\d-\d\d-\d\d)', stats, label='Stats JSON')
