@@ -31,6 +31,7 @@ def test_massage_search_results(mock_site):
             'key'          : ekey,
             'ocaid'        : "12345%d"%i,
             'isbn_10'      : ["123456789%d"%i],
+            'isbn_13'      : ["987123456789%d"%i],
             "works"        : [{ "key": wkey }]
             }
         mock_site.save(e)
@@ -53,6 +54,7 @@ def test_massage_search_results(mock_site):
     for i in "key title".split(): # TODO: Check for the rest of the fields here
         assert massaged_results['doc'][i] == best_match[i], "Mismatch in %s field of massaged results and best match"%i
     assert massaged_results['doc']['isbn_10'] == best_match['isbn_10'], "Mismatch in ISBN10 field of massaged results and best match"
+    assert massaged_results['doc']['isbn_13'] == best_match['isbn_13'], "Mismatch in ISBN13 field of massaged results and best match"
 
     # Check the fields in the remaining matches.
     # The first two matches should be the editions and then the work match (the order of the input)
