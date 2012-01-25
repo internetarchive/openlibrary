@@ -32,3 +32,5 @@ bad_data.json
 celerybeat-schedule
 TAGS
 env/
+.coverage
+htmlcov
