@@ -2,7 +2,7 @@
 Tests for the records package.
 """
 
-from ..functions import search, create, massage_search_results
+from ..functions import search, create, massage_search_results, find_matches_by_identifiers
 
 
 def test_massage_search_results(mock_site):
@@ -175,13 +175,46 @@ def test_update_work(mock_site):
     
     r = create(record)
     assert new_work_key == r, "Work key has changed (Original : %s, New : %s)"%(new_work_key, r)
-    updated_work = mock_site.get(r) 
+    updated_work = mock_site.get(r)
     assert updated_work.title == "This is a new test book", "Work title has not changed"
     
     ## TODO : Adding, updating authors and other list items.
     
+
+def test_find_matches_by_identifiers(mock_site):
+    "Validates the all and any return values of find_matches_by_identifiers"
+    # First create 2 records
+    record0 = {'doc': {'isbn_10': ['1234567890'],
+                      'identifiers' : {"oclc_numbers" : ["1807182"],
+                                       "lccn": [ "34029558"]},
+                      'key': None,
+                      'title': 'THIS IS A TEST BOOK',
+                      'type': {'key': '/type/edition'}}}
+
+    record1 = {'doc': {'isbn_10': ['09876543210'],
+                          'identifiers' : {"oclc_numbers" : ["2817081"],
+                                           "lccn": [ "34029558"]},
+                          'key': None,
+                          'title': 'THIS IS A TEST BOOK',
+                          'type': {'key': '/type/edition'}}}
     
-def test_search_isbn(mock_site, compare_results):
+    edition_key0 = create(record0)    
+    edition_key1 = create(record1)
+
+    q = {'identifiers' : {'oclc_numbers': "1807182",
+                          'lccn': '34029558'}}
+                              
+    results = find_matches_by_identifiers(q)
+
+    assert results["all"] == [edition_key0]
+    assert results["any"] == [edition_key0, edition_key1]
+    
+    
+
+    
+    
+    
+def test_search_isbn(mock_site):
     "Try to search for a record which should match by ISBN"
     # First create a record using our existing API
 
