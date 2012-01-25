@@ -96,7 +96,15 @@ def create(records):
         key = web.ctx.site.new_key(typ)
         doc['key'] = key
     key = doc['key']
-    
+
+    # Unpack primary identifier fields. For backward compatibility
+    # TODO : Might have to add more here
+    identifiers = doc.get("identifiers",{})
+    for i in ["oclc_numbers", "isbn_10", "isbn_13", "lccn", "ocaid"]:
+        if i in identifiers:
+            doc[i] = identifiers.pop(i)
+
+    # Create works and authors if present
     works = authors = []
     if "works" in doc:
         work_records = doc.pop("works")
@@ -144,6 +152,52 @@ def process_work_records(work_records):
     return works, authors
     
 
+
+def find_matches_by_identifiers(doc):
+    """Find matches using all the identifiers in the given doc.
+
+    We consider only oclc_numbers, lccn and ocaid. isbn is dealt with
+    separately.
+    
+    Will return two lists of matches: 
+      all : List of items that match all the given identifiers (better
+            matches).
+      any : List of items that match any of the given identifiers
+            (poorer matches).
+
+    """
+
+    try:
+        identifiers = doc['identifiers']
+        if "isbn" in identifiers: 
+            identifiers.pop("isbn")
+
+        # Find matches that match everything.
+        q = {'type':'/type/edition'}
+        for i in ["oclc_numbers", "lccn", "ocaid"]:
+            if i in identifiers:
+                q[i] = identifiers[i]
+        matches_all = web.ctx.site.things(q)
+
+        # Find matches for any of the given parameters and take the union
+        # of all such matches
+        matches_any = set()
+        for i in ["oclc_numbers", "lccn", "ocaid"]:
+            q = {'type':'/type/edition'}
+            if i in identifiers:
+                q[i] = identifiers[i]
+                matches_any.update(web.ctx.site.things(q))
+        matches_any = list(matches_any)
+        return dict(all = matches_all, any = matches_any)
+    except KeyError, e:
+        raise NoQueryParam(str(e))
+    
+        
+
+
+        
+    
+    
 
 def find_matches_by_isbn(doc):
     "Find matches using isbns."
