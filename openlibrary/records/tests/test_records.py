@@ -2,7 +2,7 @@
 Tests for the records package.
 """
 
-from ..functions import search, create, massage_search_results, find_matches_by_identifiers
+from ..functions import search, create, massage_search_results, find_matches_by_identifiers, denormalise
 
 
 def test_massage_search_results(mock_site):
@@ -64,6 +64,25 @@ def test_massage_search_results(mock_site):
 
     assert massaged_results['matches'] == expected_matches, "Matches field got a different value"
 
+def test_denormalise_work(mock_site, compare_results):
+    """Test denormalisation of work records (edition is tested by
+    test_massage_search_results)"""
+
+    record = {'doc':{'key': None,
+                     'title': 'This is a test book',
+                     'type': {'key': '/type/work'},
+                     'authors': [{'author': {'birth_date': '1979',
+                                             'death_date': '2010',
+                                             'key': None,
+                                             'name': 'Test Author 1'}}]}}
+    work_key = create(record)
+    denormalised_work = denormalise(work_key)
+    print "\n\n"
+    assert compare_results(record['doc'], denormalised_work), "Work denormalisation failed"
+
+    
+    
+    
 
 def test_create_edition(mock_site):
     "Creation of editions"
