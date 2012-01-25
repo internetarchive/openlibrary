@@ -2,7 +2,7 @@
 Tests for the records package.
 """
 
-from ..functions import search, create, massage_search_results, find_matches_by_identifiers, denormalise
+from ..functions import search, create, massage_search_results, find_matches_by_identifiers, denormalise, find_matches_by_title_and_publishers
 
 
 def test_massage_search_results(mock_site):
@@ -62,7 +62,7 @@ def test_massage_search_results(mock_site):
                          {'edition' : editions[1], 'work' : mock_site.get(editions[1]).works[0].key},
                          {'edition' : None, 'work' : wkey } ]
 
-    assert massaged_results['matches'] == expected_matches, "Matches field got a different value"
+    assert massaged_results['matches'] == expected_matches
 
 def test_denormalise_work(mock_site, compare_results):
     """Test denormalisation of work records (edition is tested by
@@ -232,8 +232,44 @@ def test_find_matches_by_identifiers(mock_site):
     
     
 
+def test_find_matches_by_title_and_publishers(mock_site):
+    "Try to search for a record that should match by publisher and year of publishing"
+    record0 = {'doc': {'isbn_10': ['1234567890'],
+                       'key': None,
+                       'title': 'Bantam book',
+                       'type': {'key': '/type/edition'},
+                       'publishers' : ['Bantam'],
+                       'publish_year': '1992'}}
+
+    record1 = {'doc': {'isbn_10': ['0987654321'],
+                       'key': None,
+                       'title': 'Dover book',
+                       'type': {'key': '/type/edition'},
+                       'publishers' : ['Dover'],
+                       'publish_year': '2000'}}
+               
+
+    edition_key0 = create(record0)
+    edition_key1 = create(record1)
     
-    
+    # A search that should fail
+    q = {'publishers': ["Bantam"], 
+         'publish_year': '2000'}
+    result = find_matches_by_title_and_publishers(q)
+    assert not result, "Found a match '%s' where there should have been none"%result
+
+    # A search that should return the first entry (title, publisher and year)
+    q = {'title': 'Bantam book',
+         'publishers': ["Bantam"], 
+         'publish_year': '1992'}
+    result = find_matches_by_title_and_publishers(q)
+    assert result == [edition_key0], "Wrong match '%s'. Should have been %s"%(result, [edition_key0])
+
+    # A search that should return the second entry (title only)
+    q = {'title': 'Dover book'}
+    result = find_matches_by_title_and_publishers(q)
+    assert result == [edition_key1], "Wrong match '%s'. Should have been %s"%(result, [edition_key1])
+    # TODO: Search by title and then filter for publisher in the application directly.
     
 def test_search_isbn(mock_site):
     "Try to search for a record which should match by ISBN"
