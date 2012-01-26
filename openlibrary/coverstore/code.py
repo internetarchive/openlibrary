@@ -171,6 +171,19 @@ class upload2:
 def trim_microsecond(date):
     # ignore microseconds
     return datetime.datetime(*date.timetuple()[:6])
+    
+def zipview_url(item, zipfile, filename):
+    return "http://www.archive.org/download/%s/%s/%s" % (item, zipfile, filename)
+    
+def zipview_url_from_id(coverid, size):
+    suffix = size and ("-" + size.upper())
+
+    IMAGES_PER_ITEM = 10000
+    item_index = coverid/IMAGES_PER_ITEM
+    itemid = "olcovers%d" % item_index
+    zipfile = itemid + suffix + ".zip"
+    filename = "%d%s.jpg" % (coverid, suffix)
+    return zipview_url(itemid, zipfile, filename)
 
 class cover:
     def GET(self, category, key, value, size):
@@ -199,6 +212,15 @@ class cover:
             # Disabling ratelimit as iptables is taking care of botnets.
             #value = self.ratelimit_query(category, key, value)
             value = self.query(category, key, value)
+            
+            # Redirect isbn requests to archive.org. 
+            # This will heavily reduce the load on coverstore server.
+            # The max_coveritem_index config parameter specifies the latest 
+            # olcovers items uploaded to archive.org.
+            IMAGES_PER_ITEM = 10000
+            if value <= IMAGES_PER_ITEM * config.get("max_coveritem_index", 0):
+                url = zipview_url_from_id(value, size)
+                raise web.found(url)
         elif key != 'id':
             value = self.query(category, key, value)
         
