@@ -230,7 +230,7 @@ class cover:
             # The max_coveritem_index config parameter specifies the latest 
             # olcovers items uploaded to archive.org.
             IMAGES_PER_ITEM = 10000
-            if value <= IMAGES_PER_ITEM * config.get("max_coveritem_index", 0):
+            if value and value <= IMAGES_PER_ITEM * config.get("max_coveritem_index", 0):
                 url = zipview_url_from_id(value, size)
                 raise web.found(url)
         elif key != 'id':
