@@ -7,6 +7,8 @@ import copy
 
 import web
 
+from openlibrary.catalog.add_book import normalize
+
 class NoQueryParam(KeyError):
     """
     Exception that is used internally when a find_by_X function is
@@ -28,8 +30,9 @@ def search(params):
                              'lcc': ['123432'],
                              'librarything': ['12312', '231123']},
              'publish_year': '1995',
-             'publisher': 'Bantam',
-             'title': 'A study in Scarlet'}}
+             'publishers': ['Bantam'],
+             'title': 'A study in Scarlet'
+             'authors': ["Arthur Conan Doyle", ...]}}
 
     Output:
     -------
@@ -37,7 +40,7 @@ def search(params):
     {'doc': {'isbn': ['1234567890'],
              'key': '/books/OL1M',
              'publish_year': '1995',
-             'publisher': 'Bantam',
+             'publishers': ['Bantam'],
              'title': 'A study in Scarlet',
              'type': {'key': '/type/edition'},
              'work': [{'authors': [{'authors': [{'birth_date': '1859',
@@ -152,6 +155,19 @@ def process_work_records(work_records):
     return works, authors
     
 
+def find_matches_by_title_and_publishers(doc):
+    "Find matches using title and author in the given doc"
+    try:
+        #TODO: Use normalised_title instead of the regular title
+        #TODO: Use catalog.add_book.load_book:build_query instead of this
+        q = {'type'  :'/type/edition'}
+        for key in ["title", 'publishers', 'publish_year']:
+            if key in doc:
+                q[key] = doc[key]
+        ekeys = web.ctx.site.things(q)
+        return ekeys
+    except KeyError, e:
+        raise NoQueryParam(str(e))
 
 def find_matches_by_identifiers(doc):
     """Find matches using all the identifiers in the given doc.
