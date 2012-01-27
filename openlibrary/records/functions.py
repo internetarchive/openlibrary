@@ -184,7 +184,7 @@ def find_matches_by_identifiers(doc):
     """
 
     try:
-        identifiers = doc['identifiers']
+        identifiers = copy.deepcopy(doc['identifiers'])
         if "isbn" in identifiers: 
             identifiers.pop("isbn")
 
