@@ -63,26 +63,31 @@ def search(params):
     """
     doc = params.pop("doc")
     matches = []
-    # {'doc': {'identifiers': {'goodreads': ['12345', '12345'],
-    #                          'isbn': ['1234567890'],
-    #                          'lcc': ['123432'],
-    #                          'librarything': ['12312', '231123']},
-    #          'publish_year': '1995',
-    #          'publisher': 'Bantam',
-    #          'title': 'A study in Scarlet'}}
+    # Step 1: Search for the results. 
+    # TODO: We are looking only at edition searches here. This should be expanded to works.
 
-    # Step 1: Search for the results.
     # 1.1 If we have ISBNS, search using that.
     try:
         matches.extend(find_matches_by_isbn(doc))
     except NoQueryParam,e:
         pass
 
+    # 1.2 If we have identifiers, search using that.
+    try:
+        d = find_matches_by_identifiers(doc)
+        matches.extend(d['all'])
+        matches.extend(d['any']) # TODO: These are very poor matches. Maybe we should put them later.
+    except NoQueryParam,e:
+        pass
 
-    # Step 2: Pick the best one and expand it.
+    # 1.3 Now search by title and publishers
+    try:
+        d = find_matches_by_title_and_publishers(doc)
+        matches.extend(d)
+    except NoQueryParam,e:
+        pass
 
-    # Step 3: Construct the response and return it. 
-    print matches
+    # Step 2: Convert search results into API return format and return it
     results = massage_search_results(matches)
     return results
 
