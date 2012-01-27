@@ -104,14 +104,17 @@ def create(records):
     if doc['key'] == None:
         key = web.ctx.site.new_key(typ)
         doc['key'] = key
+    #TODO : Update if key already there. 
     key = doc['key']
 
-    # Unpack primary identifier fields. For backward compatibility
+    
+    # Unpack primary identifier fields. For backward compatibility (TODO: document this better)
     # TODO : Might have to add more here
     identifiers = doc.get("identifiers",{})
     for i in ["oclc_numbers", "isbn_10", "isbn_13", "lccn", "ocaid"]:
         if i in identifiers:
             doc[i] = identifiers.pop(i)
+    # TODO: Unpack special classifications just like the identifiers
 
     # Create works and authors if present
     works = authors = []
