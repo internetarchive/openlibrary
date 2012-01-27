@@ -8,6 +8,7 @@ import copy
 import web
 
 from openlibrary.catalog.add_book import normalize
+import openlibrary.core.helpers as h
 
 class NoQueryParam(KeyError):
     """
@@ -281,7 +282,7 @@ def expand(item):
 
 def massage_search_results(matches):
     "Converts a list of keys into the return format of the search API"
-
+    matches= h.uniq(matches)
     first = matches[0]
     all = matches
     # Denormalise the best match
