@@ -172,8 +172,20 @@ def trim_microsecond(date):
     # ignore microseconds
     return datetime.datetime(*date.timetuple()[:6])
     
+
+def locate_item(item):
+    """Locates the archive.org item in the cluster and returns the server and directory.
+    """
+    text = urllib.urlopen("http://www.archive.org/metadata/" + item).read()
+    d = simplejson.loads(text)
+    return d['server'], d['dir']
+    
+# cache for 5 minutes
+locate_item = web.memoize(locate_item, expires=300)
+    
 def zipview_url(item, zipfile, filename):
-    return "http://www.archive.org/download/%s/%s/%s" % (item, zipfile, filename)
+    server, dir = locate_item(item)
+    return "http://%(server)s/zipview.php?zip=%(dir)s/%(zipfile)s&file=%(filename)s" % locals()
     
 def zipview_url_from_id(coverid, size):
     suffix = size and ("-" + size.upper())
