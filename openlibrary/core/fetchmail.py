@@ -15,7 +15,7 @@ import web
 from openlibrary.core import support
 from infogami.utils.markdown import markdown
 
-subject_re = re.compile("^.*[Cc]ase #([0-9]+) .*")
+subject_re = re.compile("^.*[Cc]ase #([0-9]+).*")
 
 template = """
 
@@ -165,6 +165,8 @@ def fetch_and_update(settings, imap_conn, db_conn = None):
                 if settings.debug:
                     logger.debug("Debug mode: Not touching couch database")
                     logger.debug("Case #%s would be updated by '%s' with \n-----\n%s\n-----",caseid, frm, casenote)
+                    case = lambda:0 # To make the assignee checking work in debug mode
+                    case.assignee = None
                 else:
                     case = db_conn.get_case(caseid)
                     update_support_db(frm, casenote, case)
@@ -178,7 +180,8 @@ def fetch_and_update(settings, imap_conn, db_conn = None):
                                                         # Otherwise, to the assignee of the case
                 if smtp_server:
                     web.config.smtp_server = smtp_server
-                web.sendmail("support@openlibrary.org", settings.to, subject, message)
+                logger.debug("Sending notification from 'support@openlibrary.org' to '%s'", assignee)
+                web.sendmail("support@openlibrary.org", assignee, subject, message)
             except Exception, e:
                 logger.warning(" Couldn't update case. Resetting message", exc_info = True)
                 imap_reset_to_unseen(imap_conn, messageid)
