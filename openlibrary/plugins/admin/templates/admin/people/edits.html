@@ -1,0 +1,98 @@
+$def with (account)
+
+$var title: [Admin Center] Edits of $account.displayname
+
+<div id="contentHead">
+    $:render_template("admin/menu")
+    <h1><a class="plain" href="/admin/people">people</a> / <a class="plain" href="/admin/people/$account.username">$account.username</a> / edits </h1>
+</div>
+
+<div id="contentBody">
+
+<p>
+Please select the changesets to revert.
+</p>
+
+<style type="text/css">
+a.blocked-ip {
+    color: red;
+}
+</style>
+
+$ changes = recentchanges(dict(author=account.get_user().key, limit=100, offset=0))
+
+$def call_template(name, change):
+    $ t = get_template("recentchanges/" + change.kind + "/" + name) or get_template("recentchanges/default/" + name)
+    $:t(change)
+
+
+<script type="text/javascript">
+\$(function () {
+	\$('#checkall').click(function () {
+		\$("form.olform").find(':checkbox').attr('checked', this.checked);
+	});
+});
+</script>
+
+<form method="POST" name="revert" class="olform">
+<table class="changeHistory">
+    <thead>
+        <tr>
+            <th><input type="checkbox" id="checkall"></th>            
+            <th>$_("When")</th>
+            <th>$_("What")</th>
+            <th>$_("Who")</th>
+            <th>&#191;Qu&#233;?</th>
+        </tr>
+    </thead>
+    <tbody>
+    $for c in changes:
+        $ reverts = recentchanges({"kind": "revert", "data": {"reverted_changesets": c.id}})
+        $ revert = reverts and reverts[0]
+        $if revert:
+            $if revert.author:
+                $ revert_author = reverts[0].author.displayname
+            $else:
+                $ revert_author = reverts[0].ip
+        <tr>
+            <td>
+                $if not revert:
+                    <input type="checkbox" name="changesets" value="$c.id" checked="checked"/>
+            </td>
+            <td class="time">$datestr(c.timestamp)</td>
+            <td class="path">$:call_template("path", c)</td>
+            $if c.author:
+                <td class="displayname"><a rel="nofollow" href="$c.author.key" title="$c.author.displayname">$c.author.displayname</a></td>
+            $elif c.ip and c.ip != '127.0.0.1':
+                $ klass = cond(c.ip in get_blocked_ips(), 'blocked-ip', "")
+                <td class="history"><a rel="nofollow" href="$changequery()" class="$klass" title="When you see numbers here, that's the IP address of the anonymous editor">$c.ip</a></td>
+            $else:
+                <td class="history">$c.ip</td>
+            <td class="comment">
+                $:call_template("comment", c)
+                $if revert:
+                    <b>-- <a href="$revert.url()">Reverted</a> by $revert_author</b>
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+<br/>
+
+<div class="formElement">
+    <div class="label">
+        <label for="comment">$_("Please, leave a short note about what you changed:") <span class="small gray">(Optional, but very useful!)</span></label>
+    </div>
+    <div class="input">
+        <input type="text" name="comment" id="comment" value="Reverted spam" style="width:900px;"/>
+    </div>
+</div>
+
+<div class="formElement collapse" style="position:relative;">
+    <div class="input">
+        <button type="submit" class="larger" name="submit" title="$_('Submit')">$_("Submit")</button>
+    </div>
+</div>
+
+</form>
+</div>

@@ -256,7 +256,7 @@ $else:
 
 <h2>
     $_("Edit History") 
-    <span class="link fixthis"><a href="/admin/people/$person.username/edits">$person.get_edit_count() edits</a></span>
+    <span class="link"><a href="/admin/people/$person.username/edits">$person.get_edit_count() edits</a></span>
 </h2>
 $if person['status'] == "verified" or person['status'] == "active":
     $:render_template("admin/history", person.get_user().get_edit_history())
