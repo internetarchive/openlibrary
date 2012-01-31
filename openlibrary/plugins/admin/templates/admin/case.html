@@ -1,6 +1,9 @@
-$def with (case, last_email, admins, pretty_print_date)
+$def with (case, last_email, admins, pretty_print_date, prev_url=None, next_url=None)
 
 $var title: $case.subject ($case.creator_username)
+
+$ all = query_param("all", "false")
+$ filter = query_param("filter", "new")
 
 <script type="text/javascript">
 \$(function() {
@@ -21,13 +24,22 @@ $var title: $case.subject ($case.creator_username)
 <table class="changeHistory" border="0" cellspacing="0" style="width: 100%; margin-top: -20px; border-top: 1px solid #eee;">
   <tr>
     <th colspan="2">
+            <a href="/admin/support?all=$all&filter=$filter">Support</a> /
             <span class="black highlight"><b>$(case.caseid)</b></span>&nbsp;&nbsp;&bull;&nbsp;&nbsp; 
             <b>Status: $case.status</b>&nbsp;&nbsp;&bull;&nbsp;&nbsp; 
             Case created: $(datestr(case.created)), $(pretty_print_date(case.created))
-	$if case.status != "closed":
-           <div style="float: right; margin: 0;"><input type="submit" name="button" id="close2" value="CLOSE CASE" /></div>
-	$else:
-	   <div style="float: right; margin: 0;"><input type="submit" name="button" id="close2" value="REOPEN CASE" /></div>
+            
+        <div style="float: right; margin: 0;">            
+            $if prev_url:
+                <a href="$prev_url" id="prev-case">&larr; Prev</a>
+            $else:
+                <span>&larr; Prev</span>
+            | <a href="/admin/support?all=$all&filter=$filter">Home</a>
+            $if next_url:
+                | <a href="$next_url" id="next-case">Next &rarr;</a>
+            $else:
+                | <span>Next &rarr;</span>
+        </div>
     </th>
   </tr>
   <tr>
@@ -51,6 +63,11 @@ $var title: $case.subject ($case.creator_username)
   </tr>
   <tr>
     <td colspan="2" style="padding-left: 20px;">
+        $if case.status != "closed":
+            <div style="float: right; margin: 0;"><input type="submit" name="button" id="close2" value="CLOSE CASE" /></div>
+        $else:
+    	    <div style="float: right; margin: 0;"><input type="submit" name="button" id="close2" value="REOPEN CASE" /></div>
+        
          <strong>$(case.subject)</strong>&nbsp;&nbsp;&bull;&nbsp;&nbsp;From <a href="$(case.url)">$(case.url)</a>&nbsp;&nbsp;&bull;&nbsp;&nbsp;<a href="/admin/support/$(case.caseno)">http://openlibrary.org/admin/support/$(case.caseno)</a>
     </td>
   </tr>
