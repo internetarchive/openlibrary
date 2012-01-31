@@ -61,6 +61,7 @@ def search(params):
     corresponding key will be None.
 
     """
+    params = copy.deepcopy(params)
     doc = params.pop("doc")
     matches = []
     # Step 1: Search for the results. 
