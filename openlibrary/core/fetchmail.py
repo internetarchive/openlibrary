@@ -29,12 +29,20 @@ Case page : http://openlibrary.org/admin/support/%(caseno)s
 class Error(Exception): pass
 
 # Utility functions for the imap coneection
+def parse_email_subject(message):
+    subject = message.get('Subject',"")
+    if subject:
+        if subject.startswith("=?utf-8"):
+            subject = base64.decodestring(subject.split("?")[3])
+    return subject
+        
 def parse_imap_response(response):
     code, body = response
     message = email.message_from_string(body)
-    logger.debug("Message parsed : %s (Subject : %s)", code, message.get('Subject',""))
+    subject = parse_email_subject(message)
+    logger.debug("Message parsed : %s (Subject : %s)", code, subject)
     messageid = code.split()[0]
-    return messageid, message
+    return messageid, message, subject
 
 def imap_reset_to_unseen(imap_conn, messageid):
     logger.debug(" Resetting %s to unseen", messageid)
@@ -151,11 +159,11 @@ def fetch_and_update(settings, imap_conn, db_conn = None):
     reject_mailbox = settings.reject_mailbox
     for resp in get_new_emails(imap_conn):
         try:
-            messageid, message = parse_imap_response(resp)
+            messageid, message, subject = parse_imap_response(resp)
         except Exception, e:
             logger.warning(" Message parsing failed", exc_info = True)
             continue
-        m = subject_re.search(message['Subject'])
+        m = subject_re.search(subject)
         if m:
             caseid = m.groups()[0]
             logger.debug(" Updating case %s", caseid)
@@ -186,7 +194,7 @@ def fetch_and_update(settings, imap_conn, db_conn = None):
                 logger.warning(" Couldn't update case. Resetting message", exc_info = True)
                 imap_reset_to_unseen(imap_conn, messageid)
         else:
-            logger.debug(" No regexp match on subject '%s'", message['Subject'])
+            logger.debug(" No regexp match on subject '%s'", subject)
             logger.debug("  Ignoring message and resetting to unread")
             imap_move_to_folder(imap_conn, messageid, reject_mailbox, debug)
     logger.debug("Expunging deleted messages")
