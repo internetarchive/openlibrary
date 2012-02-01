@@ -123,8 +123,24 @@ class Thing(client.Thing):
             u += '?' + urllib.urlencode(params)
         return u
 
-    def url(self, suffix="", **params):
-        return self._make_url(label=None, suffix=suffix, **params)
+    def get_url(self, suffix="", **params):
+        """Constructs a URL for this page with given suffix and query params.
+        
+        The suffix is added to the URL of the page and query params are appended after adding "?".
+        """
+        return self._make_url(label=self.get_url_suffix(), suffix=suffix, **params)
+        
+    def get_url_suffix(self):
+        """Returns the additional suffix that is added to the key to get the URL of the page.
+        
+        Models of Edition, Work etc. should extend this to return the suffix.
+        
+        This is used to construct the URL of the page. By default URL is the 
+        key of the page. If this method returns None, nothing is added to the 
+        key. If this method returns a string, it is sanitized and added to key 
+        after adding a "/".
+        """
+        return None
                 
     def _get_lists(self, limit=50, offset=0, sort=True):
         # cache the default case
@@ -164,7 +180,10 @@ class Edition(Thing):
     """Class to represent /type/edition objects in OL.
     """
     def url(self, suffix="", **params):
-        return self._make_url(self.title or "untitled", suffix, **params)
+        return self.get_url(suffix, **params)
+        
+    def get_url_suffix(self):
+        return self.title or "untitled"
 
     def __repr__(self):
         return "<Edition: %s>" % repr(self.title)
@@ -231,7 +250,10 @@ class Work(Thing):
     """Class to represent /type/work objects in OL.
     """
     def url(self, suffix="", **params):
-        return self._make_url(self.title or "untitled", suffix, **params)
+        return self.get_url(suffix, **params)
+        
+    def get_url_suffix(self):
+        return self.title or "untitled"
 
     def __repr__(self):
         return "<Work: %s>" % repr(self.key)
@@ -270,8 +292,11 @@ class Author(Thing):
     """Class to represent /type/author objects in OL.
     """
     def url(self, suffix="", **params):
-        return self._make_url(self.name or "unnamed", suffix, **params)
-
+        return self.get_url(suffix, **params)
+        
+    def get_url_suffix(self):
+        return self.mame or "unnamed"
+    
     def __repr__(self):
         return "<Author: %s>" % repr(self.key)
     __str__ = __repr__
@@ -398,8 +423,11 @@ class List(Thing, ListMixin):
         * tags - list of tags to describe this list.
     """
     def url(self, suffix="", **params):
-        return self._make_url(self.name or "unnamed", suffix, **params)
+        return self.get_url(suffix, **params)
         
+    def get_url_suffix(self):
+        return self.name or "unnamed"
+    
     def get_owner(self):
         match = web.re_compile(r"(/people/[^/]+)/lists/OL\d+L").match(self.key)
         if match:
@@ -477,10 +505,7 @@ class Library(Thing):
     Each library has a list of IP addresses belongs to that library. 
     """
     def url(self, suffix="", **params):
-        u = self.key + suffix
-        if params:
-            u += '?' + urllib.urlencode(params)
-        return u
+        return self.get_url(suffix, **params)
 
     def find_bad_ip_ranges(self, text):
         return iprange.find_bad_ip_ranges(text)
@@ -542,6 +567,11 @@ class Subject(web.storage):
         if params:
             u += '?' + urllib.urlencode(params)
         return u
+
+    # get_url is a common method available in all Models. 
+    # Calling it `get_url` instead of `url` because there are some types that 
+    # have a property with name `url`.
+    get_url = url
         
     def get_default_cover(self):
         for w in self.works:
