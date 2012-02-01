@@ -68,8 +68,6 @@ class case(object):
         action = form.get("button","")
         {"SEND REPLY" : self.POST_sendreply,
          "UPDATE"     : self.POST_update,
-         "PREV"       : self.POST_prev,
-         "NEXT"       : self.POST_next,
          "CLOSE CASE" : self.POST_closecase,
          "REOPEN CASE": self.POST_reopencase}[action](form,case)
         date_pretty_printer = lambda x: x.strftime("%B %d, %Y")
@@ -118,12 +116,6 @@ class case(object):
                                    text = text)
         add_flash_message("info", "Case updated")
 
-    def POST_prev(self, form, case):
-        self._redirect_nextprev(case.caseid, -1)
-
-    def POST_next(self, form, case):
-        self._redirect_nextprev(case.caseid, 1)
-            
     def _get_prevnext(self, caseid):
         """Redirects prev and next urls.
         """
