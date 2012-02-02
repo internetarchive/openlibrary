@@ -155,12 +155,17 @@ def massage_search_results(keys, limit_keys = []):
 
     If limit_keys is non empty, remove keys other that these in the 'doc' section.
     """
-    best = keys[0]
-    # TODO: Inconsistency here (thing for to_doc and keys for to_matches)
-    doc = thing_to_doc(web.ctx.site.get(best), limit_keys)
-    matches = things_to_matches(keys)
+    if keys:
+        best = keys[0]
+        # TODO: Inconsistency here (thing for to_doc and keys for to_matches)
+        doc = thing_to_doc(web.ctx.site.get(best), limit_keys)
+        matches = things_to_matches(keys)
+    else:
+        doc = {}
+        matches = []
     return {'doc' : doc,
             'matches' : matches}
+    
     
 
 def edition_to_doc(thing):
@@ -267,8 +272,9 @@ def create(records):
     TODO: Describe Input/output
     """
     doc = records["doc"]
-    things = doc_to_things(copy.deepcopy(doc))
-    web.ctx.site.save_many(things, 'Import new records.')
+    if doc:
+        things = doc_to_things(copy.deepcopy(doc))
+        web.ctx.site.save_many(things, 'Import new records.')
     
 
 # Creation helpers
@@ -377,219 +383,3 @@ def doc_to_things(doc):
     return retval
 
     
-    
-
-
-
-
-#################################### OLD STUFF ########################################3    
-# def search(params):
-#     """
-#     Takes a search parameter and returns a result set
-
-#     Input:
-#     ------
-
-#     {'doc': {'identifiers': {'goodreads': ['12345', '12345'],
-#                              'isbn': ['1234567890'],
-#                              'lcc': ['123432'],
-#                              'librarything': ['12312', '231123']},
-#              'publish_year': '1995',
-#              'publishers': ['Bantam'],
-#              'title': 'A study in Scarlet'
-#              'authors': ["Arthur Conan Doyle", ...]}}
-
-#     Output:
-#     -------
-
-#     {'doc': {'isbn': ['1234567890'],
-#              'key': '/books/OL1M',
-#              'publish_year': '1995',
-#              'publishers': ['Bantam'],
-#              'title': 'A study in Scarlet',
-#              'type': {'key': '/type/edition'},
-#              'work': [{'authors': [{'authors': [{'birth_date': '1859',
-#                                                  'death_date': '1930',
-#                                                  'key': '/author/OL1A',
-#                                                  'name': 'Arthur Conan Doyle'}]}],
-#                        'key': '/works/OL1M',
-#                        'title': 'A study in scarlet',
-#                        'type': {'key': '/type/work'}}]},
-#      'matches': [{'edition': '/books/OL1M', 'work': '/works/OL1W'},
-#                  {'edition': None, 'work': '/works/OL234W'}]}
-
-#     'doc' is the best fit match. It's denormalised for convenience. 
-#     'matches' is a list of possible matches. 
-
-#     If a match couldn't be found for a record (e.g. edition), the
-#     corresponding key will be None.
-
-#     """
-#     params = copy.deepcopy(params)
-#     doc = params.pop("doc")
-#     matches = []
-#     # Step 1: Search for the results. 
-#     # TODO: We are looking only at edition searches here. This should be expanded to works.
-
-#     # 1.1 If we have ISBNS, search using that.
-#     try:
-#         matches.extend(find_matches_by_isbn(doc))
-#     except NoQueryParam,e:
-#         pass                                                                                 
-
-#     # 1.2 If we have identifiers, search using that.
-#     try:
-#         d = find_matches_by_identifiers(doc)
-#         matches.extend(d['all'])
-#         matches.extend(d['any']) # TODO: These are very poor matches. Maybe we should put them later.
-#     except NoQueryParam,e:
-#         pass
-
-#     # 1.3 Now search by title and publishers
-#     try:
-#         d = find_matches_by_title_and_publishers(doc)
-#         matches.extend(d)
-#     except NoQueryParam,e:
-#         pass
-
-#     # Step 2: Convert search results into API return format and return it
-#     results = massage_search_results(matches)
-#     return results
-
-
-# def find_matches_by_title_and_publishers(doc):
-#     "Find matches using title and author in the given doc"
-#     try:
-#         #TODO: Use normalised_title instead of the regular title
-#         #TODO: Use catalog.add_book.load_book:build_query instead of this
-#         q = {'type'  :'/type/edition'}
-#         for key in ["title", 'publishers', 'publish_year']:
-#             if key in doc:
-#                 q[key] = doc[key]
-#         ekeys = web.ctx.site.things(q)
-#         return ekeys
-#     except KeyError, e:
-#         raise NoQueryParam(str(e))
-
-# def find_matches_by_identifiers(doc):
-#     """Find matches using all the identifiers in the given doc.
-
-#     We consider only oclc_numbers, lccn and ocaid. isbn is dealt with
-#     separately.
-    
-#     Will return two lists of matches: 
-#       all : List of items that match all the given identifiers (better
-#             matches).
-#       any : List of items that match any of the given identifiers
-#             (poorer matches).
-
-#     """
-
-#     try:
-#         identifiers = copy.deepcopy(doc['identifiers'])
-#         if "isbn" in identifiers: 
-#             identifiers.pop("isbn")
-
-#         # Find matches that match everything.
-#         q = {'type':'/type/edition'}
-#         for i in ["oclc_numbers", "lccn", "ocaid"]:
-#             if i in identifiers:
-#                 q[i] = identifiers[i]
-#         matches_all = web.ctx.site.things(q)
-
-#         # Find matches for any of the given parameters and take the union
-#         # of all such matches
-#         matches_any = set()
-#         for i in ["oclc_numbers", "lccn", "ocaid"]:
-#             q = {'type':'/type/edition'}
-#             if i in identifiers:
-#                 q[i] = identifiers[i]
-#                 matches_any.update(web.ctx.site.things(q))
-#         matches_any = list(matches_any)
-#         return dict(all = matches_all, any = matches_any)
-#     except KeyError, e:
-#         raise NoQueryParam(str(e))
-    
-        
-
-# def find_matches_by_isbn(doc):
-#     "Find matches using isbns."
-#     try:
-#         isbns = doc['identifiers']["isbn"]
-#         q = {
-#             'type':'/type/edition',
-#             'isbn_10': str(isbns[0]) #TODO: Change this to isbn_
-#             }
-#         ekeys = list(web.ctx.site.things(q))
-#         if ekeys:
-#             return ekeys[:1] # TODO: We artificially match only one item here
-#         else:
-#             return []
-#     except KeyError, e:
-#         raise NoQueryParam(str(e))
-
-# def denormalise(item):
-#     "Denormalises the given item as required by the search results. Used for the best match."
-#     def expand_authors(authors):
-#         expanded_authors = []
-#         for a in authors:
-#             expanded_authors.append(a.dict())
-#         return expanded_authors
-
-#     def expand_works(works):
-#         expanded_works = []
-#         for w in works:
-#             d = w.dict()
-#             authors = expand_authors(w.authors)
-#             d['authors'] = authors
-#             expanded_works.append(d)
-#         return expanded_works
-
-#     def expand_edition(edition):
-#         "Expands an edition"
-#         expanded_edition = edition.dict()
-#         # First expand the identifiers
-#         identifiers = {}
-#         if "isbn_10" in edition and edition["isbn_10"]:
-#             identifiers.setdefault('isbn',[]).extend(edition["isbn_10"])
-#         if "isbn_13" in edition and edition["isbn_13"]:
-#             identifiers.setdefault('isbn',[]).extend(edition["isbn_13"])
-#         edition.identifiers.update(identifiers)
-#         # Recursively expand the works
-#         works = expand_works(edition.works)
-#         # Fixup the return value and return it. 
-#         expanded_edition['identifiers'] = identifiers
-#         expanded_edition['works'] = works
-#         return expanded_edition
-
-#     thing = web.ctx.site.get(item)
-#     if item.startswith("/books/"):
-#         return expand_edition(thing)
-#     elif item.startswith("/works/"):
-#         return expand_works([thing])[0]
-        
-# def expand(item):
-#     "Expands an edition or thing into a dictionary used for the search results"
-#     thing = web.ctx.site.get(item)
-#     if item.startswith("/books/"):
-#         return {"edition" : item, "work" : thing.works and thing.works[0].key} #TODO: Is it right to simply use the first?
-#     if item.startswith("/works/"):
-#         return {"edition" : None, "work" : item} 
-
-# def massage_search_results(matches):
-#     "Converts a list of keys into the return format of the search API"
-#     matches= h.uniq(matches)
-#     first = matches[0]
-#     all = matches
-#     # Denormalise the best match
-#     best_match = denormalise(first)
-    
-#     # Enumerage the rest of the matches
-#     matches = []
-#     for i in all:
-#         matches.append(expand(i))
-
-#     return {"doc" : best_match,
-#             "matches" : matches}
-    
-

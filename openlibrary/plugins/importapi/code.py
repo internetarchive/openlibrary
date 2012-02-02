@@ -9,6 +9,7 @@ from openlibrary.catalog.marc.marc_xml import MarcXml
 from openlibrary.catalog.marc.parse import read_edition
 from openlibrary.catalog import add_book
 from openlibrary import accounts
+from openlibrary import records
 
 #import openlibrary.tasks
 from ... import tasks
@@ -153,8 +154,7 @@ class ils_search:
     
         {
             "title": "",
-            "author": "",
-            "isbn": ...,
+            "authors": ["...","...",...]
             "publisher": "...",
             "publish_year": "...",
             "isbn": [...],
@@ -182,33 +182,43 @@ class ils_search:
         rawdata = json.loads(web.data())
 
         # step 1: prepare the data
-        data = self.prepare_data(rawdata)
+        data = self.prepare_input_data(rawdata)
     
         # step 2: search 
-        key = self.search(data)
+        matches = self.search(data)
     
-        # step 3: TODO if no match found, create it
+        # step 3: create 
+        self.create(matches)
         
         # step 4: format the result
-        doc = key and web.ctx.site.get(key).dict()
-        d = self.format_result(doc)
+        d = self.format_result(matches)
         return json.dumps(d)
         
-    def prepare_data(self, rawdata):
+    def prepare_input_data(self, rawdata):
         data = dict(rawdata)
-        isbns = data.pop("isbn", None)
-        if isbns:
-            data['isbn_13'] = [n for n in isbns if len(n.replace("-", "")) == 13]
-            data['isbn_10'] = [n for n in isbns if len(n.replace("-", "")) != 13]
-        return data
+        identifiers = {}
+        for i in ["oclc_numbers", "lccn", "ocaid", "isbn"]:
+            if i in data:
+                identifiers[i] = data.pop(i)
+        data['identifiers'] = identifiers
+
+        if "authors" in data:
+            authors = data.pop("authors")
+            data['authors'] = [{"name" : i} for i in authors]
+
+        return {"doc" : data}
         
-    def search(self, record):
-        key = add_book.early_exit(record)
-        if key:
-            return key
+    def search(self, params):
+        matches = records.search(params)
+        return matches
+
+    def create(self, items):
+        records.create(items)
             
-    def format_result(self, doc):
+    def format_result(self, matches):
+        doc = matches.pop("doc", None)
         if doc:
+            doc = web.ctx.site.get(doc['key'])
             d = {
                 'status': 'found',
                 'key': doc['key'],
@@ -226,6 +236,7 @@ class ils_search:
             d = {
                 'status': 'notfound'
             }
+        d.update(doc)
         return d
         
 def http_basic_auth():
