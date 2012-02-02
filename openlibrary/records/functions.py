@@ -104,7 +104,7 @@ def create(records):
     web.ctx.site.save_many(things, 'Import new records.')
 
 # Creation helpers
-def process_edition(doc):
+def edition_to_things(doc):
     """
     unpack identifers, classifiers
 
@@ -144,7 +144,7 @@ def process_edition(doc):
     return retval
 
 
-def process_work(doc):
+def work_to_things(doc):
     new_things = []
     if 'authors' in doc:
         if all(isinstance(x, dict) for x in doc['authors']): # Ugly hack to prevent Things from being processed
@@ -160,7 +160,7 @@ def process_work(doc):
     return new_things
 
 
-def process_author(doc):
+def author_to_things(doc):
     return []
 
 def doc_to_things(doc):
@@ -199,9 +199,9 @@ def doc_to_things(doc):
         doc['key'] = key
     
     # Type specific processors
-    processors = {'/type/edition' : process_edition,
-                  '/type/work'    : process_work,
-                  '/type/author'  : process_author}
+    processors = {'/type/edition' : edition_to_things,
+                  '/type/work'    : work_to_things,
+                  '/type/author'  : author_to_things}
     extras = processors[typ](doc)
     retval.append(doc)
     retval.extend(extras)
