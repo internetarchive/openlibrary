@@ -1,7 +1,7 @@
 import pytest
 
 
-from ..functions import doc_to_things
+from ..functions import doc_to_things, create
 
 
 def populate_infobase(site):
@@ -126,8 +126,7 @@ def test_doc_to_thing_unpack_work_and_authors(mock_site):
 def test_doc_to_thing_unpack_identifiers(mock_site):
     "Tests if the identifiers are unpacked from an edition"
     doc = {'type' : '/type/edition', 
-           'identifiers' : {'isbn_10': ['1234567890'], 
-                            "oclc_numbers" : ['1234'],
+           'identifiers' : {"oclc_numbers" : ['1234'],
                             "isbn_10" : ['1234567890'],
                             "isbn_13" : ['1234567890123'],
                             "lccn" : ['5678'],
@@ -138,7 +137,36 @@ def test_doc_to_thing_unpack_identifiers(mock_site):
 
 
 
+def test_create(mock_site):
+    "Tests the create API"
+    doc = {'type' : '/type/edition', 
+           'publisher' : "Test publisher",
+           'work' : { 'title' : 'Test title for work'},
+           'authors' : [{'name' : 'Test author'}],
+           'identifiers' : {"oclc_numbers" : ['1234'],
+                            "isbn_10" : ['1234567890'],
+                            "isbn_13" : ['1234567890123'],
+                            "lccn" : ['5678'],
+                            "ocaid" : ['90']}}
+    create({'doc' : doc})
+    work = mock_site.get("/works/OL1W")
+    edition = mock_site.get("/books/OL1M")
+    author = mock_site.get("/authors/OL1A")
+    # Check work
+    assert work.title == "Test title for work"
+    assert len(work.authors) == 1
+    assert work.authors[0].author == "/authors/OL1A"
+    # Check edition
+    for k,v in doc['identifiers'].iteritems():
+        assert edition[k] == v
+    edition.publisher = "Test publisher"
+    # Check author
+    assert author.name == "Test author"
 
+
+    
+
+    
 
 
 
