@@ -25,75 +25,157 @@ def search(params):
 
     Input:
     ------
-
-    {'doc': {'identifiers': {'goodreads': ['12345', '12345'],
-                             'isbn': ['1234567890'],
-                             'lcc': ['123432'],
-                             'librarything': ['12312', '231123']},
-             'publish_year': '1995',
-             'publishers': ['Bantam'],
-             'title': 'A study in Scarlet'
-             'authors': ["Arthur Conan Doyle", ...]}}
+    {'doc': {'authors': [{'name': 'Arthur Conan Doyle'}],
+             'identifiers': {'isbn': ['1234567890']},
+             'title': 'A study in Scarlet'}}
 
     Output:
     -------
-
-    {'doc': {'isbn': ['1234567890'],
+    {'doc': {'authors': [
+                         {
+                          'key': '/authors/OL1A', 
+                          'name': 'Arthur Conan Doyle'
+                         }
+                        ],
+             'identifiers': {'isbn': ['1234567890']},
              'key': '/books/OL1M',
-             'publish_year': '1995',
-             'publishers': ['Bantam'],
-             'title': 'A study in Scarlet',
-             'type': {'key': '/type/edition'},
-             'work': [{'authors': [{'authors': [{'birth_date': '1859',
-                                                 'death_date': '1930',
-                                                 'key': '/author/OL1A',
-                                                 'name': 'Arthur Conan Doyle'}]}],
-                       'key': '/works/OL1M',
-                       'title': 'A study in scarlet',
-                       'type': {'key': '/type/work'}}]},
+             'title': 'A study in Scarlet'
+             'work' : { 'key' : '/works/OL1W'}
+             },
+
      'matches': [{'edition': '/books/OL1M', 'work': '/works/OL1W'},
                  {'edition': None, 'work': '/works/OL234W'}]}
 
-    'doc' is the best fit match. It's denormalised for convenience. 
-    'matches' is a list of possible matches. 
+    'doc' is the best fit match. It contains only the keys that were
+    provided as input and one extra key called 'key' which will be
+    openlibrary identifier if one was found or None if nothing was.
 
-    If a match couldn't be found for a record (e.g. edition), the
-    corresponding key will be None.
+    There will be two extra keys added to the 'doc'. 
+
+     1. 'work' which is a dictionary with a single element 'key' that
+        contains a link to the work of the matched edition.
+     2. 'authors' is a list of dictionaries each of which contains an
+        element 'key' that links to the appropriate author.
+
+     If a work, author or an edition is not matched, the 'key' at that
+     level will be None. 
+
+     To update fields in a record, add the extra keys to the 'doc' and
+     send the resulting structure to 'create'.
+
+     'matches' contain a list of possible matches ordered in
+     decreasing order of certainty. The first one will be same as
+     'doc' itself.
+
+     TODO: Things to change
+
+     1. For now, if there is a work match, the provided authors
+        will be replaced with the ones that are stored.
 
     """
-    params = copy.deepcopy(params)
-    doc = params.pop("doc")
-    matches = []
-    # Step 1: Search for the results. 
-    # TODO: We are looking only at edition searches here. This should be expanded to works.
 
-    # 1.1 If we have ISBNS, search using that.
-    try:
-        matches.extend(find_matches_by_isbn(doc))
-    except NoQueryParam,e:
-        pass
+def edition_to_doc(thing):
+    """Converts an edition document from infobase into a 'doc' used by
+    the search API.
+    """
+    doc = thing.dict()
 
-    # 1.2 If we have identifiers, search using that.
-    try:
-        d = find_matches_by_identifiers(doc)
-        matches.extend(d['all'])
-        matches.extend(d['any']) # TODO: These are very poor matches. Maybe we should put them later.
-    except NoQueryParam,e:
-        pass
+    # Process identifiers
+    identifiers = doc.get("identifiers",{})
+    for i in ["oclc_numbers", "lccn", "ocaid"]:
+        if i in doc:
+            identifiers[i] = doc.pop(i)
+    for i in ["isbn_10", "isbn_13"]:
+        if i in doc:
+            identifiers.setdefault('isbn',[]).extend(doc.pop(i)) 
+    doc['identifiers'] = identifiers
 
-    # 1.3 Now search by title and publishers
-    try:
-        d = find_matches_by_title_and_publishers(doc)
-        matches.extend(d)
-    except NoQueryParam,e:
-        pass
+    # TODO : Process classifiers here too
 
-    # Step 2: Convert search results into API return format and return it
-    results = massage_search_results(matches)
-    return results
+    # Unpack works and authors
+    work = doc.pop("works")[0]
+    doc['work'] = work
+    authors = [{'key': str(x.author) } for x in thing.works[0].authors]
+    doc['authors'] = authors
 
-
+    return doc
     
+
+def work_to_doc(thing):
+    """
+    Converts the given work into a 'doc' used by the search API.
+    """
+    doc = thing.dict()
+
+    # Unpack works and authors
+    authors = [{'key': x.author.key } for x in thing.authors]
+    doc['authors'] = authors
+
+    return doc
+
+def author_to_doc(thing):
+    return thing.dict()
+
+
+def thing_to_doc(thing, keys = []):
+    """Converts an infobase 'thing' into an entry that can be used in
+    the 'doc' field of the search results.
+
+    If keys provided, it will remove all keys in the item except the
+    ones specified in the 'keys'.
+    """
+    typ = str(thing['type'])
+    key = str(thing['key'])
+
+    processors = {'/type/edition' : edition_to_doc,
+                  '/type/work' : work_to_doc,
+                  '/type/author' : author_to_doc}
+
+    doc = processors[typ](thing)
+
+    # Remove version info
+    for i in ['latest_revision', 'last_modified', 'revision']:
+        if i in doc:
+            doc.pop(i)
+
+    # Unpack 'type'
+    doc['type'] = doc['type']['key']
+
+    if keys:
+        keys += ['key', 'type']
+        keys = set(keys)
+        for i in doc.keys():
+            if i not in keys:
+                doc.pop(i)
+
+    return doc
+
+def things_to_matches(keys):
+    """Coverts a list of keys into a list of 'matches' used by the search API"""
+    matches = []
+    for i in keys:
+        thing = web.ctx.site.get(i)
+        if not thing:
+            continue
+        if i.startswith("/books"):
+            edition = i
+            work = thing.works[0].key
+        if i.startswith("/works"):
+            work = i
+            edition = None
+        matches.append(dict(edition = edition, work = work))
+    return matches
+            
+            
+            
+        
+        
+    
+
+
+        
+
+# Creation/updation entry point
 def create(records):
     """
     Creates one or more new records in the system.
@@ -104,7 +186,7 @@ def create(records):
     web.ctx.site.save_many(things, 'Import new records.')
 
 # Creation helpers
-def edition_to_things(doc):
+def edition_doc_to_things(doc):
     """
     unpack identifers, classifiers
 
@@ -144,7 +226,7 @@ def edition_to_things(doc):
     return retval
 
 
-def work_to_things(doc):
+def work_doc_to_things(doc):
     new_things = []
     if 'authors' in doc:
         if all(isinstance(x, dict) for x in doc['authors']): # Ugly hack to prevent Things from being processed
@@ -160,7 +242,7 @@ def work_to_things(doc):
     return new_things
 
 
-def author_to_things(doc):
+def author_doc_to_things(doc):
     return []
 
 def doc_to_things(doc):
@@ -199,9 +281,9 @@ def doc_to_things(doc):
         doc['key'] = key
     
     # Type specific processors
-    processors = {'/type/edition' : edition_to_things,
-                  '/type/work'    : work_to_things,
-                  '/type/author'  : author_to_things}
+    processors = {'/type/edition' : edition_doc_to_things,
+                  '/type/work'    : work_doc_to_things,
+                  '/type/author'  : author_doc_to_things}
     extras = processors[typ](doc)
     retval.append(doc)
     retval.extend(extras)
@@ -215,35 +297,79 @@ def doc_to_things(doc):
 
 
 #################################### OLD STUFF ########################################3    
-# def process_work_records(work_records):
-#     """Converts the given 'work_records' into a list of works and
-#     accounts that can then be directly saved into Infobase"""
-    
+# def search(params):
+#     """
+#     Takes a search parameter and returns a result set
 
-#     works = []
-#     authors = []
-#     for w in work_records:
+#     Input:
+#     ------
 
-#         # Give the work record a key
-#         if w['key'] == None:
-#             w['key'] = web.ctx.site.new_key("/type/work")
+#     {'doc': {'identifiers': {'goodreads': ['12345', '12345'],
+#                              'isbn': ['1234567890'],
+#                              'lcc': ['123432'],
+#                              'librarything': ['12312', '231123']},
+#              'publish_year': '1995',
+#              'publishers': ['Bantam'],
+#              'title': 'A study in Scarlet'
+#              'authors': ["Arthur Conan Doyle", ...]}}
 
-#         # Process any author records which have been provided. 
-#         if "authors" in w:
-#             author_records = w.pop("authors")
-#             for author in author_records:
-#                 role = author.keys()[0]
-#                 author = author[role]
-#                 if author['key'] == None:
-#                     author['key'] = web.ctx.site.new_key("/type/author")
-#                 authors.append(author) # Add the author to list of records to be saved.
-#                 a = {'type': '/type/author_role', 'author': author['key']}
-#                 w.setdefault('authors',[]).append(a) # Attach this author to the work
+#     Output:
+#     -------
 
-#         works.append(w) # Add the work to list of records to be saved.
+#     {'doc': {'isbn': ['1234567890'],
+#              'key': '/books/OL1M',
+#              'publish_year': '1995',
+#              'publishers': ['Bantam'],
+#              'title': 'A study in Scarlet',
+#              'type': {'key': '/type/edition'},
+#              'work': [{'authors': [{'authors': [{'birth_date': '1859',
+#                                                  'death_date': '1930',
+#                                                  'key': '/author/OL1A',
+#                                                  'name': 'Arthur Conan Doyle'}]}],
+#                        'key': '/works/OL1M',
+#                        'title': 'A study in scarlet',
+#                        'type': {'key': '/type/work'}}]},
+#      'matches': [{'edition': '/books/OL1M', 'work': '/works/OL1W'},
+#                  {'edition': None, 'work': '/works/OL234W'}]}
 
-#     return works, authors
-    
+#     'doc' is the best fit match. It's denormalised for convenience. 
+#     'matches' is a list of possible matches. 
+
+#     If a match couldn't be found for a record (e.g. edition), the
+#     corresponding key will be None.
+
+#     """
+#     params = copy.deepcopy(params)
+#     doc = params.pop("doc")
+#     matches = []
+#     # Step 1: Search for the results. 
+#     # TODO: We are looking only at edition searches here. This should be expanded to works.
+
+#     # 1.1 If we have ISBNS, search using that.
+#     try:
+#         matches.extend(find_matches_by_isbn(doc))
+#     except NoQueryParam,e:
+#         pass
+
+#     # 1.2 If we have identifiers, search using that.
+#     try:
+#         d = find_matches_by_identifiers(doc)
+#         matches.extend(d['all'])
+#         matches.extend(d['any']) # TODO: These are very poor matches. Maybe we should put them later.
+#     except NoQueryParam,e:
+#         pass
+
+#     # 1.3 Now search by title and publishers
+#     try:
+#         d = find_matches_by_title_and_publishers(doc)
+#         matches.extend(d)
+#     except NoQueryParam,e:
+#         pass
+
+#     # Step 2: Convert search results into API return format and return it
+#     results = massage_search_results(matches)
+#     return results
+
 
 # def find_matches_by_title_and_publishers(doc):
 #     "Find matches using title and author in the given doc"

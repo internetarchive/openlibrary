@@ -1,7 +1,7 @@
 import pytest
 
 
-from ..functions import doc_to_things, create
+from ..functions import doc_to_things, create, thing_to_doc, things_to_matches
 
 
 def populate_infobase(site):
@@ -180,17 +180,51 @@ def test_create(mock_site):
     # Check author
     assert author.name == "Test author"
 
+def test_thing_to_doc_edition(mock_site):
+    "Tests whether an edition is properly converted back into a doc"
+    populate_infobase(mock_site)
+    edition = mock_site.get('/books/OL1M')
+    doc = thing_to_doc(edition)
+    expected = {'authors': [{'key': '/authors/OL1A'}, {'key': '/authors/OL2A'}],
+                'identifiers': {'isbn': ['1234567890'],
+                                'lccn': ['1230'],
+                                'ocaid': '123450',
+                                'oclc_numbers': ['4560']},
+                'key': '/books/OL1M',
+                'title': 'test1',
+                'type': u'/type/edition',
+                'work': {'key': u'/works/OL1W'}}
+    assert doc == expected
 
-    
-
-    
-
-
-
-    
-
-
+def test_thing_to_doc_edition_key_limiting(mock_site):
+    "Tests whether extra keys are removed during converting an edition into a doc"
+    populate_infobase(mock_site)
+    edition = mock_site.get('/books/OL1M')
+    doc = thing_to_doc(edition, ["title"])
+    expected = {'key': '/books/OL1M', 'title': 'test1', 'type': u'/type/edition'}
+    assert doc == expected
 
 
-    
+def test_thing_to_doc_work(mock_site):
+    "Tests whether a work is properly converted back into a doc"
+    populate_infobase(mock_site)
+    edition = mock_site.get('/works/OL1W')
+    doc = thing_to_doc(edition)
+    expected = {'authors': [{'key': '/authors/OL1A'}, {'key': '/authors/OL2A'}],
+                'key': '/works/OL1W',
+                'title': 'test1',
+                'type': u'/type/work'}
+    assert doc == expected
+
+def test_things_to_matches(mock_site):
+    """Tests whether a list of keys is converted into a list of
+    'matches' as returned by the search API"""
+    populate_infobase(mock_site)
+    matches = things_to_matches(['/books/OL1M', '/works/OL2W'])
+    expected = [{'edition': '/books/OL1M', 'work': u'/works/OL1W'},
+                {'edition': None, 'work': '/works/OL2W'}]
+    assert matches == expected
+
+
+
     
