@@ -154,12 +154,12 @@ class ils_search:
         Authorization: Basic base64-of-username:password
     
         {
-            "title": "",
-            "authors": ["...","...",...]
-            "publisher": "...",
-            "publish_year": "...",
-            "isbn": [...],
-            "lccn": [...],
+            'title': '',
+            'authors': ['...','...',...]
+            'publisher': '...',
+            'publish_year': '...',
+            'isbn': [...],
+            'lccn': [...],
         }
         
     Response Format:
@@ -187,13 +187,32 @@ class ils_search:
     
         # step 2: search 
         matches = self.search(data)
-    
-        # step 3: create 
-        self.create(matches)
+
+        # step 3: Check auth
+        try:
+            auth_header = http_basic_auth()
+            self.login(auth_header)
+        except accounts.ClientException:
+            raise self.auth_failed("Invalid credentials")
+
+        # step 4: create if logged in
+        if auth_header:
+            self.create(matches)
         
         # step 4: format the result
-        d = self.format_result(matches)
+        d = self.format_result(matches, auth_header)
         return json.dumps(d)
+
+    def auth_failed(self, reason):
+        d = json.dumps({ "status" : "error", "reason" : reason})
+        return web.HTTPError("401 Authorization Required", {"WWW-Authenticate": 'Basic realm="http://openlibrary.org"', "Content-type": "application/json"}, d)
+
+    def login(self, authstring):
+        if not authstring:
+            return
+        authstring = authstring.replace("Basic ","")
+        username, password = base64.decodestring(authstring).split(':')
+        accounts.login(username, password)
         
     def prepare_input_data(self, rawdata):
         data = dict(rawdata)
@@ -216,7 +235,7 @@ class ils_search:
     def create(self, items):
         records.create(items)
             
-    def format_result(self, matches):
+    def format_result(self, matches, authenticated):
         doc = matches.pop("doc", {})
         if doc and doc['key']:
             doc = web.ctx.site.get(doc['key']).dict()
@@ -245,11 +264,14 @@ class ils_search:
             d.update(doc)
 
         else:
-            d = {
-                'status': 'notfound'
-            }
-
-
+            if authenticated:
+                d = {
+                    'status': 'created'
+                    }
+            else:
+                d = {
+                    'status': 'notfound'
+                    }
         return d
         
 def http_basic_auth():
