@@ -102,7 +102,8 @@ def create(records):
     doc = records["doc"]
     things = doc_to_things(doc)
     web.ctx.site.save_many(things, 'Import new records.')
-    
+
+# Creation helpers
 def process_edition(doc):
     """
     unpack identifers, classifiers
@@ -144,7 +145,20 @@ def process_edition(doc):
 
 
 def process_work(doc):
-    return []
+    new_things = []
+    if 'authors' in doc:
+        if all(isinstance(x, dict) for x in doc['authors']): # Ugly hack to prevent Things from being processed
+            authors = doc['authors']
+            author_entries = []
+            for i in authors:
+                i['type'] = '/type/author'
+                new_author = doc_to_things(i)
+                new_things.extend(new_author)
+                a = {'type': '/type/author_role', 'author': new_author[0]['key']} #TODO : Check this with Anandb
+                author_entries.append(a)
+            doc['authors'] = author_entries
+    return new_things
+
 
 def process_author(doc):
     return []
@@ -168,9 +182,6 @@ def doc_to_things(doc):
 
     If the doc doesn't have a key, the function will call
     web.ctx.site.new_key, generate one for it and add that as the key.
-
-    
-
     """
     retval = []
     doc = copy.deepcopy(doc)
@@ -288,11 +299,6 @@ def doc_to_things(doc):
 #         raise NoQueryParam(str(e))
     
         
-
-
-        
-    
-    
 
 # def find_matches_by_isbn(doc):
 #     "Find matches using isbns."

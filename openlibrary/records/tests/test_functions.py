@@ -105,8 +105,8 @@ def test_doc_to_thing_updation_of_work(mock_site):
     assert thing[0] == expected
     assert set(i.author.key for i in authors) == set(['/authors/OL1A', '/authors/OL2A'])
 
-def test_doc_to_thing_unpack_work_and_authors(mock_site):
-    "Tests if the 'work' and 'author' fields in a doc are unpacked and converted."
+def test_doc_to_thing_unpack_work_and_authors_from_edition(mock_site):
+    "Tests if the 'work' and 'author' fields in a an edition doc are unpacked and converted."
     doc = {'type' : '/type/edition', 
            'work' : { 'title' : 'Test title for work'},
            'authors' : [ {'name' : 'Test author'} ]
@@ -117,6 +117,23 @@ def test_doc_to_thing_unpack_work_and_authors(mock_site):
                 {'authors': [{'author': '/authors/OL1A', 'type': '/type/author_role'}],
                  'key': '/works/OL1W',
                  'title': 'Test title for work',
+                 'type': '/type/work'}, # The work
+                
+                {'key': '/authors/OL1A', 'name': 'Test author', 'type': '/type/author'} # The author
+                ]
+    assert expected  == things
+
+def test_doc_to_thing_unpack_authors_from_work(mock_site):
+    "Tests if the 'authors' fields in a work doc are unpacked and converted."
+    doc = {'type' : '/type/work', 
+           'title' : 'This is a test book',
+           'authors' : [ {'name' : 'Test author'} ]
+           }
+    things = doc_to_things(doc)
+    expected = [                
+                {'authors': [{'author': '/authors/OL1A', 'type': '/type/author_role'}],
+                 'key': '/works/OL1W',
+                 'title': 'This is a test book',
                  'type': '/type/work'}, # The work
                 
                 {'key': '/authors/OL1A', 'name': 'Test author', 'type': '/type/author'} # The author
