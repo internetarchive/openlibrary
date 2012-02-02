@@ -101,9 +101,53 @@ def create(records):
     """
     doc = records["doc"]
     things = doc_to_things(doc)
-    
     web.ctx.site.save_many(things, 'Import new records.')
     
+def process_edition(doc):
+    """
+    unpack identifers, classifiers
+
+    Process work and author fields if present
+    """
+    retval = []
+    # Unpack identifiers
+    identifiers = doc.get("identifiers",{})
+    for i in ["oclc_numbers", "isbn_10", "isbn_13", "lccn", "ocaid"]:
+        if i in identifiers:
+            doc[i] = identifiers.pop(i)
+    # TODO: Unpack classifiers
+
+    work = authors = None
+    if 'work' in doc:
+        work = doc.pop('work')
+        work['type'] = '/type/work'
+        work = doc_to_things(work)
+        retval.extend(work)
+
+    if 'authors' in doc:
+        authors = doc.pop('authors')
+        for i in authors:
+            i['type'] = '/type/author'
+        a = []
+        for i in authors:
+            a.extend(doc_to_things(i))
+        retval.extend(a)
+        authors = a
+
+    # Attach authors to the work
+    # TODO: Consider updation here?
+    if work and authors:
+        for i in authors:
+            a = {'type': '/type/author_role', 'author': i['key']} #TODO : Check this with Anandb
+            work[0].setdefault('authors',[]).append(a) # Attach this author to the work
+    return retval
+
+
+def process_work(doc):
+    return []
+
+def process_author(doc):
+    return []
 
 def doc_to_things(doc):
     """
@@ -128,20 +172,6 @@ def doc_to_things(doc):
     
 
     """
-    def unpack_edition(doc):
-        # Unpack identifiers
-        identifiers = doc.get("identifiers",{})
-        for i in ["oclc_numbers", "isbn_10", "isbn_13", "lccn", "ocaid"]:
-            if i in identifiers:
-                doc[i] = identifiers.pop(i)
-        # TODO: Unpack classifiers
-
-    def unpack_work(doc):
-        pass
-
-    def unpack_author(doc):
-        pass
-
     retval = []
     doc = copy.deepcopy(doc)
     key = doc.get('key')
@@ -157,37 +187,16 @@ def doc_to_things(doc):
         key = web.ctx.site.new_key(typ)
         doc['key'] = key
     
-    # Unpack some fields
-    unpackers = {'/type/edition' : unpack_edition,
-                 '/type/work'    : unpack_work,
-                 '/type/author'  : unpack_author}
-    unpackers[typ](doc)
+    # Type specific processors
+    processors = {'/type/edition' : process_edition,
+                  '/type/work'    : process_work,
+                  '/type/author'  : process_author}
+    extras = processors[typ](doc)
     retval.append(doc)
-
-    # Process works and authors if present
-    work = authors = None
-    if 'work' in doc:
-        work = doc.pop('work')
-        work['type'] = '/type/work'
-        work = doc_to_things(work)
-        retval.extend(work)
-
-    if 'authors' in doc:
-        authors = doc.pop('authors')
-        for i in authors:
-            i['type'] = '/type/authors'
-        authors = [doc_to_things(x) for x in authors]
-        retval.extend(authors)
-    
-    # Attach authors to the work
-    # TODO: Consider updation here?
-    if work and authors:
-        for i in authors:
-            a = {'type': '/type/author_role', 'author': i['key']}
-            work.setdefault('authors',[]).append(a) # Attach this author to the work
+    retval.extend(extras)
 
     return retval
-    
+
     
     
 
