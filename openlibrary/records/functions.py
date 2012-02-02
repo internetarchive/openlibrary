@@ -73,6 +73,96 @@ def search(params):
         will be replaced with the ones that are stored.
 
     """
+    params = copy.deepcopy(params)
+    doc = params.pop("doc")
+    
+    matches = []
+    # TODO: We are looking only at edition searches here. This should be expanded to works.  
+    if "isbn" in doc.get('identifiers',{}):
+        matches.extend(find_matches_by_isbn(doc['identifiers']['isbn']))
+
+    if "identifiers" in doc:
+        d = find_matches_by_identifiers(doc['identifiers'])
+        matches.extend(d['all'])
+        matches.extend(d['any']) # TODO: These are very poor matches. Maybe we should put them later.
+
+    if "publisher" in doc or "publish_year" in doc or "title" in doc:
+        matches.extend(find_matches_by_title_and_publishers(doc))
+
+    print "Narrowing to %s"%doc.keys()
+    return massage_search_results(matches, doc.keys())
+
+
+
+def find_matches_by_isbn(isbns):
+    "Find matches using isbns."
+    q = {
+        'type':'/type/edition',
+        'isbn_': str(isbns[0])
+        }
+    ekeys = list(web.ctx.site.things(q))
+    if ekeys:
+        return ekeys[:1] # TODO: We artificially match only one item here
+    else:
+        return []
+
+
+def find_matches_by_identifiers(identifiers):
+    """Find matches using all the identifiers in the given doc.
+
+    We consider only oclc_numbers, lccn and ocaid. isbn is dealt with
+    separately.
+    
+    Will return two lists of matches: 
+      all : List of items that match all the given identifiers (better
+            matches).
+      any : List of items that match any of the given identifiers
+            (poorer matches).
+
+    """
+
+    identifiers = copy.deepcopy(identifiers)
+    # Find matches that match everything.
+    q = {'type':'/type/edition'}
+    for i in ["oclc_numbers", "lccn", "ocaid"]:
+        if i in identifiers:
+            q[i] = identifiers[i]
+    matches_all = web.ctx.site.things(q)
+
+    # Find matches for any of the given parameters and take the union
+    # of all such matches
+    matches_any = set()
+    for i in ["oclc_numbers", "lccn", "ocaid"]:
+        q = {'type':'/type/edition'}
+        if i in identifiers:
+            q[i] = identifiers[i]
+            matches_any.update(web.ctx.site.things(q))
+    matches_any = list(matches_any)
+    return dict(all = matches_all, any = matches_any)
+
+def find_matches_by_title_and_publishers(doc):
+    "Find matches using title and author in the given doc"
+    #TODO: Use normalised_title instead of the regular title
+    #TODO: Use catalog.add_book.load_book:build_query instead of this
+    q = {'type'  :'/type/edition'}
+    for key in ["title", 'publishers', 'publish_year']:
+        if key in doc:
+            q[key] = doc[key]
+    ekeys = web.ctx.site.things(q)
+    return ekeys
+
+def massage_search_results(keys, limit_keys = []):
+    """Converts list of keys into the output expected by users of the search API.
+
+    If limit_keys is non empty, remove keys other that these in the 'doc' section.
+    """
+    best = keys[0]
+    # TODO: Inconsistency here (thing for to_doc and keys for to_matches)
+    doc = thing_to_doc(web.ctx.site.get(best), limit_keys)
+    matches = things_to_matches(keys)
+    return {'doc' : doc,
+            'matches' : matches}
+    
 
 def edition_to_doc(thing):
     """Converts an edition document from infobase into a 'doc' used by
@@ -142,7 +232,7 @@ def thing_to_doc(thing, keys = []):
     doc['type'] = doc['type']['key']
 
     if keys:
-        keys += ['key', 'type']
+        keys += ['key', 'type', 'authors', 'work']
         keys = set(keys)
         for i in doc.keys():
             if i not in keys:
@@ -151,7 +241,7 @@ def thing_to_doc(thing, keys = []):
     return doc
 
 def things_to_matches(keys):
-    """Coverts a list of keys into a list of 'matches' used by the search API"""
+    """Converts a list of keys into a list of 'matches' used by the search API"""
     matches = []
     for i in keys:
         thing = web.ctx.site.get(i)
@@ -170,10 +260,6 @@ def things_to_matches(keys):
             
         
         
-    
-
-
-        
 
 # Creation/updation entry point
 def create(records):
@@ -182,8 +268,9 @@ def create(records):
     TODO: Describe Input/output
     """
     doc = records["doc"]
-    things = doc_to_things(doc)
+    things = doc_to_things(copy.deepcopy(doc))
     web.ctx.site.save_many(things, 'Import new records.')
+    
 
 # Creation helpers
 def edition_doc_to_things(doc):
@@ -349,7 +436,7 @@ def doc_to_things(doc):
 #     try:
 #         matches.extend(find_matches_by_isbn(doc))
 #     except NoQueryParam,e:
-#         pass
+#         pass                                                                                 
 
 #     # 1.2 If we have identifiers, search using that.
 #     try:
