@@ -89,7 +89,6 @@ def search(params):
     if "publisher" in doc or "publish_year" in doc or "title" in doc:
         matches.extend(find_matches_by_title_and_publishers(doc))
 
-    print "Narrowing to %s"%doc.keys()
     return massage_search_results(matches, doc.keys())
 
 
