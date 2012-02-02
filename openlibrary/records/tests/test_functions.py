@@ -366,16 +366,5 @@ def test_massage_search_results_edition(mock_site):
                             {'edition': '/books/OL2M', 'work': u'/works/OL1W'}]}
     assert massaged == expected
     
-
-
-
-
-    
-
-    
-        
-
-    
-    
-
+#TODO : Test when no matches at all are found
     
