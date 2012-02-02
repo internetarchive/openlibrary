@@ -16,6 +16,7 @@ from ... import tasks
 
 import web
 
+
 import base64
 import json
 import re
@@ -216,15 +217,19 @@ class ils_search:
         records.create(items)
             
     def format_result(self, matches):
-        doc = matches.pop("doc", None)
-        if doc:
-            doc = web.ctx.site.get(doc['key'])
+        doc = matches.pop("doc", {})
+        if doc and doc['key']:
+            doc = web.ctx.site.get(doc['key']).dict()
+            # Sanitise for only information that we want to return.
+            for i in ["created", "last_modified", "latest_revision", "type", "revision"]: 
+                doc.pop(i)
+            # Main status information
             d = {
                 'status': 'found',
                 'key': doc['key'],
                 'olid': doc['key'].split("/")[-1]
             }
-            
+            # Cover information
             covers = doc.get('covers') or []
             if covers and covers[0] > 0:
                 d['cover'] = {
@@ -232,11 +237,19 @@ class ils_search:
                     "medium": "http://covers.openlibrary.org/b/id/%s-M.jpg" % covers[0],
                     "large": "http://covers.openlibrary.org/b/id/%s-L.jpg" % covers[0],
                 }
+
+            # Pull out identifiers to top level
+            identifiers = doc.pop("identifiers",{})
+            for i in identifiers:
+                d[i] = identifiers[i]
+            d.update(doc)
+
         else:
             d = {
                 'status': 'notfound'
             }
-        d.update(doc)
+
+
         return d
         
 def http_basic_auth():

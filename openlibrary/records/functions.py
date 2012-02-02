@@ -89,7 +89,7 @@ def search(params):
     if "publisher" in doc or "publish_year" in doc or "title" in doc:
         matches.extend(find_matches_by_title_and_publishers(doc))
 
-    return massage_search_results(matches, doc.keys())
+    return massage_search_results(matches, doc)
 
 
 
@@ -150,22 +150,30 @@ def find_matches_by_title_and_publishers(doc):
     ekeys = web.ctx.site.things(q)
     return ekeys
 
-def massage_search_results(keys, limit_keys = []):
+def massage_search_results(keys, input_query = {}):
     """Converts list of keys into the output expected by users of the search API.
 
-    If limit_keys is non empty, remove keys other that these in the 'doc' section.
+    If input_query is non empty, narrow return keys to the ones in
+    this dictionary. Also, if the keys list is empty, use this to
+    construct a response with key = None.
     """
     if keys:
         best = keys[0]
         # TODO: Inconsistency here (thing for to_doc and keys for to_matches)
-        doc = thing_to_doc(web.ctx.site.get(best), limit_keys)
+        doc = thing_to_doc(web.ctx.site.get(best), input_query.keys())
         matches = things_to_matches(keys)
     else:
-        doc = {}
-        matches = []
+        doc = build_create_input(input_query)
+        matches = [dict(edition = None, work = None)]
     return {'doc' : doc,
             'matches' : matches}
-    
+
+def build_create_input(params):
+    params['key'] = None
+    params['type'] = '/type/edition'
+    params['work'] = {'key' : None}
+    params['authors'] = [{'name' : x['name'], 'key' : None} for x in params['authors']]
+    return params
     
 
 def edition_to_doc(thing):
@@ -187,10 +195,11 @@ def edition_to_doc(thing):
     # TODO : Process classifiers here too
 
     # Unpack works and authors
-    work = doc.pop("works")[0]
-    doc['work'] = work
-    authors = [{'key': str(x.author) } for x in thing.works[0].authors]
-    doc['authors'] = authors
+    if "works" in doc:
+        work = doc.pop("works")[0]
+        doc['work'] = work
+        authors = [{'key': str(x.author) } for x in thing.works[0].authors]
+        doc['authors'] = authors
 
     return doc
     
@@ -363,8 +372,13 @@ def doc_to_things(doc):
     typ = doc['type']
     # Handle key creation and updation of data
     if key:
-        db_thing = web.ctx.site.get(key)
-        for i in db_thing:
+        db_thing = web.ctx.site.get(key).dict()
+        # Remove extra version related fields
+        for i in ['latest_revision', 'last_modified', 'revision']:
+            if i in db_thing:
+                db_thing.pop(i)
+
+        for i in db_thing.keys():
             if i in doc:
                 db_thing.pop(i)
         doc.update(db_thing)

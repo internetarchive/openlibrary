@@ -91,8 +91,8 @@ def test_doc_to_thing_updation_of_edition(mock_site):
                 'key': '/books/OL1M',
                 'ocaid': '123450',
                 'oclc_numbers': ['4560'],
-                'works': [mock_site.get('/works/OL1W')],
-                'type': mock_site.get('/type/edition')}
+                'works': [{'key' : '/works/OL1W'}],
+                'type': '/type/edition'}
     assert thing[0] == expected
 
 def test_doc_to_thing_updation_of_work(mock_site):
@@ -101,9 +101,9 @@ def test_doc_to_thing_updation_of_work(mock_site):
     doc = {'type' : '/type/work', 'key' : '/works/OL1W'}
     thing = doc_to_things(doc)
     authors = thing[0].pop('authors')
-    expected = {'type': mock_site.get('/type/work'), 'key': '/works/OL1W', 'title': 'test1'}
+    expected = {'type': '/type/work', 'key': '/works/OL1W', 'title': 'test1'}
     assert thing[0] == expected
-    assert set(i.author.key for i in authors) == set(['/authors/OL1A', '/authors/OL2A'])
+    assert set(i['author'] for i in authors) == set(['/authors/OL3A', '/authors/OL4A'])
 
 def test_doc_to_thing_unpack_work_and_authors_from_edition(mock_site):
     "Tests if the 'work' and 'author' fields in a an edition doc are unpacked and converted."
@@ -341,7 +341,7 @@ def test_massage_search_results_edition(mock_site):
     populate_infobase(mock_site)
     matches = ['/books/OL1M', '/books/OL2M']
     # With limiting
-    massaged = massage_search_results(matches, ["title"])
+    massaged = massage_search_results(matches, {"title":None})
     expected = {'doc': {'authors': [{'key': '/authors/OL1A'}, {'key': '/authors/OL2A'}],
                         'key': '/books/OL1M',
                         'title': 'test1',
