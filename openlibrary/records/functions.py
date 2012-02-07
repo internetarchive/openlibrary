@@ -86,7 +86,7 @@ def search(params):
         matches.extend(d['all'])
         matches.extend(d['any']) # TODO: These are very poor matches. Maybe we should put them later.
 
-    if "publisher" in doc or "publish_year" in doc or "title" in doc:
+    if "publisher" in doc or "publish_date" in doc or "title" in doc:
         matches.extend(find_matches_by_title_and_publishers(doc))
 
     return massage_search_results(matches, doc)
@@ -145,7 +145,7 @@ def find_matches_by_title_and_publishers(doc):
     #TODO: Use normalised_title instead of the regular title
     #TODO: Use catalog.add_book.load_book:build_query instead of this
     q = {'type'  :'/type/edition'}
-    for key in ["title", 'publishers', 'publish_year']:
+    for key in ["title", 'publishers', 'publish_date']:
         if key in doc:
             q[key] = doc[key]
     ekeys = web.ctx.site.things(q)
