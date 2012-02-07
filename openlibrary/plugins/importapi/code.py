@@ -284,11 +284,6 @@ def http_basic_auth():
     auth = web.ctx.env.get('HTTP_AUTHORIZATION')
     return auth and web.lstrips(auth, "")
         
-def basicauth():
-    auth = web.ctx.env.get('HTTP_AUTHORIZATION') or web.input(authorization=None, _method="GET").authorization
-    if auth:
-        username,password = base64.decodestring(auth).split(':')
-        return None
         
 class ils_cover_upload:
     """Cover Upload API for Koha.
