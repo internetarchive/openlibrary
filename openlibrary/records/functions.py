@@ -77,6 +77,7 @@ def search(params):
     doc = params.pop("doc")
     
     matches = []
+    import pdb; pdb.set_trace()
     # TODO: We are looking only at edition searches here. This should be expanded to works.  
     if "isbn" in doc.get('identifiers',{}):
         matches.extend(find_matches_by_isbn(doc['identifiers']['isbn']))
@@ -99,6 +100,7 @@ def find_matches_by_isbn(isbns):
         'type':'/type/edition',
         'isbn_': str(isbns[0])
         }
+    print "ISBN query : ", q
     ekeys = list(web.ctx.site.things(q))
     if ekeys:
         return ekeys[:1] # TODO: We artificially match only one item here
@@ -172,7 +174,7 @@ def build_create_input(params):
     params['key'] = None
     params['type'] = '/type/edition'
     params['work'] = {'key' : None}
-    params['authors'] = [{'name' : x['name'], 'key' : None} for x in params['authors']]
+    params['authors'] = [{'name' : x['name'], 'key' : None} for x in params.get('authors',[])]
     return params
     
 
@@ -300,6 +302,13 @@ def edition_doc_to_things(doc):
     for i in ["oclc_numbers", "isbn_10", "isbn_13", "lccn", "ocaid"]:
         if i in identifiers:
             doc[i] = identifiers.pop(i)
+    if "isbn" in identifiers:
+        isbns = identifiers.pop("isbn")
+        isbn_10 = [x for x in isbns if len(x) == 10]
+        isbn_13 = [x for x in isbns if len(x) == 13]
+        if isbn_10: doc["isbn_10"] = isbn_10
+        if isbn_13: doc["isbn_13"] = isbn_13
+
     # TODO: Unpack classifiers
 
     work = authors = None
