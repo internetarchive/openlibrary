@@ -180,7 +180,10 @@ class ils_search:
     status='notfound' is returned instead of creating a new record.
     """
     def POST(self):
-        rawdata = json.loads(web.data())
+        try:
+            rawdata = json.loads(web.data())
+        except ValueError,e:
+            raise self.error("Unparseable JSON input \n %s"%web.data())
 
         # step 1: prepare the data
         data = self.prepare_input_data(rawdata)
@@ -203,6 +206,11 @@ class ils_search:
         # step 4: format the result
         d = self.format_result(matches, auth_header, keys)
         return json.dumps(d)
+
+    def error(self, reason):
+        d = json.dumps({ "status" : "error", "reason" : reason})
+        return web.HTTPError("400 Bad Request", {"Content-type": "application/json"}, d)
+
 
     def auth_failed(self, reason):
         d = json.dumps({ "status" : "error", "reason" : reason})
