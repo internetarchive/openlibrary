@@ -77,8 +77,7 @@ def search(params):
     doc = params.pop("doc")
     
     matches = []
-    import pdb; pdb.set_trace()
-    # TODO: We are looking only at edition searches here. This should be expanded to works.  
+    # TODO: We are looking only at edition searches here. This should be expanded to works.
     if "isbn" in doc.get('identifiers',{}):
         matches.extend(find_matches_by_isbn(doc['identifiers']['isbn']))
 

@@ -228,7 +228,10 @@ class ils_search:
         identifiers = {}
         for i in ["oclc_numbers", "lccn", "ocaid", "isbn"]:
             if i in data:
-                identifiers[i] = data.pop(i)
+                val = data.pop(i)
+                if not isinstance(val, list):
+                    val = [val]
+                identifiers[i] = val
         data['identifiers'] = identifiers
 
         if "authors" in data:
