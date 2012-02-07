@@ -283,7 +283,8 @@ def create(records):
     doc = records["doc"]
     if doc:
         things = doc_to_things(copy.deepcopy(doc))
-        web.ctx.site.save_many(things, 'Import new records.')
+        ret = web.ctx.site.save_many(things, 'Import new records.')
+        return [x.key for x in ret]
     
 
 # Creation helpers

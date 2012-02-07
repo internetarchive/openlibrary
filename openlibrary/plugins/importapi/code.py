@@ -196,11 +196,12 @@ class ils_search:
             raise self.auth_failed("Invalid credentials")
 
         # step 4: create if logged in
+        keys = []
         if auth_header:
-            self.create(matches)
+            keys = self.create(matches)
         
         # step 4: format the result
-        d = self.format_result(matches, auth_header)
+        d = self.format_result(matches, auth_header, keys)
         return json.dumps(d)
 
     def auth_failed(self, reason):
@@ -233,9 +234,9 @@ class ils_search:
         return matches
 
     def create(self, items):
-        records.create(items)
+        return records.create(items)
             
-    def format_result(self, matches, authenticated):
+    def format_result(self, matches, authenticated, keys):
         doc = matches.pop("doc", {})
         if doc and doc['key']:
             doc = web.ctx.site.get(doc['key']).dict()
@@ -265,9 +266,14 @@ class ils_search:
 
         else:
             if authenticated:
-                d = {
-                    'status': 'created'
-                    }
+                d = { 'status': 'created' , 'works' : [], 'authors' : [], 'editions': [] }
+                for i in keys:
+                    if i.startswith('/books'):
+                        d['editions'].append(i)
+                    if i.startswith('/works'):
+                        d['works'].append(i)
+                    if i.startswith('/authors'):
+                        d['authors'].append(i)
             else:
                 d = {
                     'status': 'notfound'
