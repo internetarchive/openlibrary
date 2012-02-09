@@ -151,18 +151,17 @@ def find_matches_by_title_and_publishers(doc):
     ekeys = web.ctx.site.things(q)
     return ekeys
 
-def massage_search_results(keys, input_query = {}):
-    """Converts list of keys into the output expected by users of the search API.
+def massage_search_results(things, input_query = {}):
+    """Converts list of things into the output expected by users of the search API.
 
     If input_query is non empty, narrow return keys to the ones in
     this dictionary. Also, if the keys list is empty, use this to
     construct a response with key = None.
     """
-    if keys:
-        best = keys[0]
-        # TODO: Inconsistency here (thing for to_doc and keys for to_matches)
-        doc = thing_to_doc(web.ctx.site.get(best), input_query.keys())
-        matches = things_to_matches(keys)
+    if things:
+        best = things[0]
+        doc = thing_to_doc(best, input_query.keys())
+        matches = things_to_matches(things)
     else:
         doc = build_create_input(input_query)
         matches = [dict(edition = None, work = None)]
@@ -254,18 +253,16 @@ def thing_to_doc(thing, keys = []):
 
     return doc
 
-def things_to_matches(keys):
-    """Converts a list of keys into a list of 'matches' used by the search API"""
+def things_to_matches(things):
+    """Converts a list of things into a list of 'matches' used by the search API"""
     matches = []
-    for i in keys:
-        thing = web.ctx.site.get(i)
-        if not thing:
-            continue
-        if i.startswith("/books"):
-            edition = i
+    for thing in things:
+        key = thing['key']
+        if key.startswith("/books"):
+            edition = key
             work = thing.works[0].key
-        if i.startswith("/works"):
-            work = i
+        if key.startswith("/works"):
+            work = key
             edition = None
         matches.append(dict(edition = edition, work = work))
     return matches
