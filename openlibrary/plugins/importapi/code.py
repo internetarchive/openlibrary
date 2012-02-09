@@ -225,7 +225,8 @@ class ils_search:
         
     def prepare_input_data(self, rawdata):
         data = dict(rawdata)
-        identifiers = {}
+        identifiers = rawdata.get('identifiers',{})
+        #TODO: Massage single strings here into lists. e.g. {"google" : "123"} into {"google" : ["123"]}.
         for i in ["oclc_numbers", "lccn", "ocaid", "isbn"]:
             if i in data:
                 val = data.pop(i)
