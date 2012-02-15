@@ -354,39 +354,7 @@ def overdrive_id(edition):
 
 @public
 def can_borrow(edition):
-    global lending_library_subject, in_library_subject
-    
-    # Check if in overdrive
-    # $$$ Should we also require to be in lending library?
-    if overdrive_id(edition):
-        return True
-    
-    # Check that work is in the general lending library, or available for
-    # in-library loan and the user is in a library
-    lendable = False
-    for work in edition.get('works', []):
-        subjects = work.get_subjects()
-        
-        if subjects:
-            if lending_library_subject in subjects:
-                # General lending library
-                lendable = True
-                break
-            if in_library_subject in subjects:
-                # Books is eligible for in-library loan
-                if 'inlibrary' in web.ctx.features and inlibrary.get_library() is not None:
-                    # Person is in a library
-                    lendable = True
-                    break
-                        
-    if not lendable:
-        return False
-    
-    # Check if hosted at archive.org - sanity check
-    if edition.get('ocaid', False):
-        return True
-    
-    return False
+    return edition.can_borrow()
     
 @public
 def is_loan_available(edition, type):    
