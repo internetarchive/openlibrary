@@ -1,0 +1,84 @@
+Data dump documentation
+
+Fields in Author records:
+	key (string):
+	type (object(key:author)):
+	name (string):
+	personal_name (string):
+	eastern_order (boolean):
+	fuller_name (string):
+	alternate_names (string[]):
+	title (string):
+	enumeration (string):
+	bio (object(type:text, value:string)): biography
+	birth_date (string):
+	death_date (string):
+	date (string):
+	location (string):
+	website (string):
+	wikipedia (string):
+	links (object(type:object(key:link),url:string,title:string)[]):
+	uris (string[]): not used
+	created (object(type:datetime, value:string)): 
+	last_modified (object(type:datetime, value:string)): 
+	latest_revision (int):
+	revision (int):
+	photos (int[]):
+
+Fields in Edition records:
+	key (string):
+	type (object(key:edition)):
+	identifiers (object):
+	isbn_10 (string):
+	isbn_13 (string):
+	ocaid (string):
+	classifications (object):
+	lccn (string[]):
+	dewey_decimal_class (string[]):
+	lc_classifications (string[]):
+	subjects (string[]):
+	genres (string[]):
+	authors (object[]):
+	contributors (object[]):
+	contributions (string[]):
+	by_statement (string):
+	created (object(type:datetime, value:string)): 
+	last_modified (object(type:datetime, value:string)): 
+	latest_revision (int):
+	revision (int):
+	title (string):
+	title_prefix (string):
+	subtitle (string):
+	edition_name (string):
+	other_titles (string[]):
+	series (string[]):
+	number_of_pages (int):
+	pagination (string):
+	copyright_date (string):
+	publish_date (string):
+	publish_places (string[]):
+	publish_country (string):
+	publishers (string[]):
+	distributors (string[]): not used
+	works (object[]):
+	languages (object[]):
+	translation_of (string):
+	translated_from (object[]):
+	notes (object(type:text, value:string)):
+	description (object(type:text, value:string)):
+	physical_format (string):
+	physical_dimensions (string):
+	weight (string):
+	covers (int[]):
+	table_of_contents (object[]):
+	first_sentence (text):
+	scan_on_demand (boolean):
+	scan_records (object[]):
+	uris (string[]):
+	uri_descriptions (string[]):
+	volumes (object[]):
+	ia_box_id (string[])
+	accompanying_material (string):
+	collections (object[]):
+	location (string[]):
+	
