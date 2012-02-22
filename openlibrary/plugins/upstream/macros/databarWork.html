@@ -43,7 +43,7 @@ $ oclc_numbers = (page.oclc_numbers and page.oclc_numbers[0]) or ""
 $ isbn_13 = (page.isbn_13 and page.isbn_13[0]) or ""
 $ isbn_10 = ""
 $if page.isbn_10:
-    $ isbn_10 = page.isbn_10[0]
+    $ isbn_10 = page.isbn_10[0].replace("-", "")
 $elif isbn_13:
     $ isbn_10 = isbn_13_to_isbn_10(isbn_13)
 
