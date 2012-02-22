@@ -208,7 +208,7 @@ def build_doc(w, obj_cache={}, resolve_redirects=False):
         elif 'ia_loaded_id' in e:
             loaded = e['ia_loaded_id']
             ia = loaded if isinstance(loaded, basestring) else loaded[0]
-        ia_meta_fields get_ia_collection_and_box_id(ia) if ia else None
+        ia_meta_fields = get_ia_collection_and_box_id(ia) if ia else None
         if ia_meta_fields:
             collection = ia_meta_fields['collection']
             if 'ia_box_id' in e and isinstance(e['ia_box_id'], basestring):
