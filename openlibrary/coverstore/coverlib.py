@@ -67,7 +67,7 @@ def write_image(data, prefix):
 
         for name, size in config.image_sizes.items():
             path = "%s-%s.jpg" % (path_prefix, name)
-            resize_image(img, size).save(path)
+            resize_image(img, size).save(path, quality=90)
         return img
     except IOError, e:
         print 'ERROR:', str(e)

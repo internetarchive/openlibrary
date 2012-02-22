@@ -101,9 +101,9 @@ $if has_returned_recently and not page.key in [loan['book'] for loan in loans]:
                        <p>Do you need to try <a href="http://www.adobe.com/products/digitaleditions/">downloading Adobe Digital Editions again</a>? The PDF or ePub loans will only open in that program.</p>
                     </div>
 
-        $elif not can_borrow(page):
+        $elif not page.can_borrow():
             $# Check for in-library
-            $if 'In library' in page.works[0].get_subjects():
+            $if 'inlibrary' in page.get_ia_collections():
                 $if available_loans:
                     <div class="message info">
                         $# george copy

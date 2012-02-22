@@ -211,7 +211,6 @@ class LoanStats:
         self.db = get_admin_couchdb()
 
     def view(self, viewname, **kw):
-        kw['stale'] = 'ok'
         if self.db:
             return self.db.view(viewname, **kw)
         else:
