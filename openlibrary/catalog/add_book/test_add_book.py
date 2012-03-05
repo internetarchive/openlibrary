@@ -589,3 +589,19 @@ def test_don_quixote(mock_site):
         assert work_keys
         
         assert reply['success'] == True
+
+def test_same_twice(mock_site):
+    add_languages(mock_site)
+    rec = {
+            'source_records': ['ia:test_item'],
+            "publishers": ["Ten Speed Press"], "pagination": "20 p.", "description": "A macabre mash-up of the children's classic Pat the Bunny and the present-day zombie phenomenon, with the tactile features of the original book revoltingly re-imagined for an adult audience.", "title": "Pat The Zombie", "isbn_13": ["9781607740360"], "languages": ["eng"], "isbn_10": ["1607740362"], "authors": [{"entity_type": "person", "name": "Aaron Ximm", "personal_name": "Aaron Ximm"}], "contributions": ["Kaveh Soofi (Illustrator)"]}
+    reply = load(rec)
+    assert reply['success'] == True
+    assert reply['edition']['status'] == 'created'
+    assert reply['work']['status'] == 'created'
+    reply = load(rec)
+    print reply
+    assert reply['success'] == True
+    assert reply['edition']['status'] != 'created'
+    assert reply['work']['status'] != 'created'
+
