@@ -1,6 +1,7 @@
 # Open Library fastcgi configuration
 
-infobase_server: "127.0.0.1:7000"
+connection_type: "local"
+
 site: "openlibrary.org"
 
 from_address: "Open Library <noreply@openlibrary.org>"
@@ -8,14 +9,35 @@ report_spam_address: "Open Library <info@openlibrary.org>"
 
 support_case_notification_address: "Open Library <info@openlibrary.org>"
 support_case_control_address : "support@openlibrary.org"
-support_case_default_address : "mary@openlibrary.org"
+
+# Legal values for support_default_assignees are 
+#
+# bug_report
+# borrowing_books
+# buying_books
+# contact_an_author
+# deletion_request
+# developer/api/covers_question
+# editing_problem
+# image_upload
+# login_trouble
+# spam_report
+# other
+#
+# and
+#
+# default (in case there is no special email address for the given category)
+
+support_default_assignees:
+    developer/api/covers_question: "noufal@archive.org"
+    default: "mary@openlibrary.org"
 
 smtp_server: "localhost"
 
 dummy_sendmail: True
 debug: True
 
-coverstore_url: "http://127.0.0.1:7075/"
+coverstore_url: "http://0.0.0.0:8080/covers/"
 
 state_dir: var/run
 
@@ -26,14 +48,16 @@ admin_password: "admin123"
 errorlog: "var/log/ol-errors"
 login_cookie_name: session
 
-infobase:
-    secret_key: xxx
+# contents of this file are assigned to config["infobase"]
+# Path can be relative to this file
+infobase_config_file: infobase.yml
+coverstore_config_file: coverstore.yml
  
-memcache_servers:
-    - "localhost:7060"
-
-loanstatus_url: http://localhost:8010
+loanstatus_url: http://localhost:8080
 ia_access_secret: foobar
+
+dev_instance: True
+dev_instance_url: http://127.0.0.1:8080/
 
 plugins:
     - "openlibrary"
@@ -63,15 +87,19 @@ features:
     recentchanges_v2: enabled
     history_v2: admin
     merge-authors: enabled
+    merge-editions: enabled
     undo: enabled
     dev: enabled
-    lists: enabled
+    lists: disabled
     lending_v2: enabled
     stats: enabled
     stats-header: enabled
     inlibrary: enabled
     support: admin
     dev: enabled
+    superfast: enabled
+    publishers: enabled
+    languages: enabled
 
 upstream_to_www_migration: true
 default_template_root: /upstream
@@ -88,14 +116,14 @@ lists:
     editions_view: http://127.0.0.1:5984/editions/_fti/_design/seeds/by_seed
 
 admin:
-    counts_db: http://127.0.0.1:5984/admin
+    #counts_db: http://127.0.0.1:5984/admin
     olsystem_root: /home/noufal/projects/OL/olsystem/
     nagios_url: http://monitor.us.archive.org/cgi-bin/nagios3/status.cgi?hostgroup=24.openlibrary&style=detail
     statsd_server: localhost:9090
     admin_db: http://127.0.0.1:5984/admin
     
 celery: #Information relevant to celery configuration
-    tombstone_db: celery
+    tombstone_db: http://localhost:5984/celery
   
 
 stats: # This section is used to state what stats need to be gathered.
@@ -146,4 +174,5 @@ stats: # This section is used to state what stats need to be gathered.
 
 libraries_admin_email: admin@dev-instance
 
-graphite_base_url: ""
+graphite_base_url: "http://ol-admin.us.archive.org:7080"
+geoip_database: var/cache/GeoLiteCity.dat

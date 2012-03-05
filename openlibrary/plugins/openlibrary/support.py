@@ -5,9 +5,10 @@ import web
 from infogami import config
 from infogami.utils import delegate
 from infogami.utils.view import render_template
-from infogami.utils.context import context
 
 from openlibrary.core import support as S
+from openlibrary import accounts
+from openlibrary.core import stats
 
 support_db = None
 
@@ -16,7 +17,8 @@ class contact(delegate.page):
         if not support_db:
             return "The Openlibrary support system is currently offline. Please try again later."
         i = web.input(path=None)
-        email = context.user and context.user.email
+        user = accounts.get_current_user()
+        email = user and user.email
         return render_template("support", email=email, url=i.path)
 
     def POST(self):
@@ -27,10 +29,18 @@ class contact(delegate.page):
         topic = form.get("topic", "")
         description = form.get("question", "")
         url = form.get("url", "")
-        user = web.ctx.site.get_user()
+        user = accounts.get_current_user()
         useragent = web.ctx.env.get("HTTP_USER_AGENT","")
         if not all([email, topic, description]):
             return ""
+
+        default_assignees = config.get("support_default_assignees",{})
+        topic_key = topic.replace(" ","_").lower()
+        if topic_key in default_assignees:
+            assignee = default_assignees.get(topic_key)
+        else:
+            assignee = default_assignees.get("default", "mary@openlibrary.org")
+        print "Assignee is %s"%assignee
         c = support_db.create_case(creator_name      = user and user.get_name() or "",
                                    creator_email     = email,
                                    creator_useragent = useragent,
@@ -38,18 +48,17 @@ class contact(delegate.page):
                                    subject           = topic,
                                    description       = description,
                                    url               = url,
-                                   assignee          = config.get("support_case_default_address","mary@openlibrary.org"))
+                                   assignee          = assignee)
 
+
+
+        stats.increment("support.all")
+        # Send an email to the creator of the case
         subject = "Case #%s: %s"%(c.caseno, topic)
         message = render_template("email/support_case", c)
         web.sendmail(config.get("support_case_control_address","support@openlibrary.org"), 
                      email, subject, message)
 
-        subject = "Case #%s created: %s"%(c.caseno, topic)
-        notification = render_template("email/case_notification", c)
-        web.sendmail(config.get("support_case_control_address","support@openlibrary.org"),
-                     config.get("support_case_notification_address","info@openlibrary.org"),
-                     subject, notification)
         return render_template("email/case_created", c)
 
 

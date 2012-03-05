@@ -1,7 +1,7 @@
 import logging
 import eventer
 import urllib2
-from openlibrary.core.task import oltask
+from openlibrary.core.task import oltask, set_task_data
 from openlibrary.core.fetchmail import fetchmail
 from openlibrary.core import formats
 from openlibrary.core.lists.updater import Updater as ListUpdater
@@ -33,18 +33,25 @@ def trigger_offline_event(event, *a, **kw):
     from openlibrary.plugins.openlibrary import events
     
     eventer.trigger(event, *a, **kw)
-    
+
 @oltask
 def on_edit(changeset):
     """This gets triggered whenever an edit happens on Open Library.
     """
     update_lists.delay(changeset)
-    #update_solr.delay(changeset)
+    for t in other_on_edit_tasks:
+        t.delay(changeset)
+
+# Hook to add other on-edit tasks.
+# Used by dev_instance.py
+other_on_edit_tasks = []
     
 @oltask
 def update_lists(changeset):
     """Updates the lists database on edit.
     """
+    keys = [x['key'] for x in changeset['docs']]
+    set_task_data(keys = keys, changeset = changeset['id'])
     logger.info("BEGIN update_lists: %s", changeset['id'])
     configfile = celeryconfig.OL_CONFIG
     ol_config = formats.load_yaml(open(configfile).read())
@@ -52,12 +59,6 @@ def update_lists(changeset):
     updater = ListUpdater(ol_config.get("lists"))
     updater.process_changeset(changeset, update_seeds=False)
     logger.info("END update_lists")
-
-@oltask
-def update_solr(changeset):
-    """Updates solr on edit.
-    """
-    pass
 
 @oltask
 def upload_via_s3(item_id, filename, data, s3_key, s3_secret):

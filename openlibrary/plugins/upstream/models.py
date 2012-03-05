@@ -1,10 +1,8 @@
 
-import string
 import web
-import urllib, urllib2
+import urllib2
 import simplejson
 import re
-from lxml import etree
 from collections import defaultdict
 
 from infogami import config
@@ -19,7 +17,7 @@ from openlibrary.plugins.search.code import SearchProcessor
 from openlibrary.plugins.worksearch.code import works_by_author, sorted_work_editions
 from openlibrary.utils.solr import Solr
 
-from utils import get_coverstore_url, MultiDict, parse_toc, parse_datetime, get_edition_config
+from utils import get_coverstore_url, MultiDict, parse_toc, get_edition_config
 import account
 import borrow
 
@@ -101,7 +99,7 @@ class Edition(models.Edition):
 
     def get_identifiers(self):
         """Returns (name, value) pairs of all available identifiers."""
-        names = ['isbn_10', 'isbn_13', 'lccn', 'oclc_numbers', 'ocaid']
+        names = ['ocaid', 'isbn_10', 'isbn_13', 'lccn', 'oclc_numbers']
         return self._process_identifiers(get_edition_config().identifiers, names, self.identifiers)
 
     def get_ia_meta_fields(self):
@@ -424,7 +422,7 @@ class Edition(models.Edition):
             for i, a in enumerate(authors):
                 result['author%s' % (i + 1)] = a.name 
         return result
-        
+
 class Author(models.Author):
     def get_photos(self):
         return [Image(self._site, "a", id) for id in self.photos if id > 0]
@@ -443,10 +441,18 @@ class Author(models.Author):
     def get_books(self):
         i = web.input(sort='editions', page=1)
         try:
-            page = int(i.page)
+            # safegaurd from passing zero/negative offsets to solr
+            page = max(1, int(i.page))
         except ValueError:
             page = 1
         return works_by_author(self.get_olid(), sort=i.sort, page=page, rows=100)
+        
+    def get_work_count(self):
+        """Returns the number of works by this author.
+        """
+        # TODO: avoid duplicate works_by_author calls
+        result = works_by_author(self.get_olid(), rows=0)
+        return result.num_found
 
 re_year = re.compile(r'(\d{4})$')
 
@@ -481,7 +487,7 @@ class Work(models.Work):
         fields = ["cover_edition_key", "cover_id", "edition_key", "first_publish_year"]
         
         solr = get_works_solr()
-        stats.begin("solr", query={"key": "key"}, fields=fields)
+        stats.begin("solr", query={"key": key}, fields=fields)
         try:
             d = solr.select({"key": key}, fields=fields)
         finally:
@@ -535,7 +541,7 @@ class Work(models.Work):
             return web.ctx.site.get_many(["/books/" + olid for olid in editions])
         else:
             return []
-
+        
     first_publish_year = property(lambda self: self._solr_data.get("first_publish_year"))
         
     def get_edition_covers(self):
@@ -637,6 +643,10 @@ class User(models.User):
             
     def get_loan_count(self):
         return len(borrow.get_loans(self))
+        
+    def get_loans(self):
+        self.update_loan_status()
+        return borrow.get_loans(self)
         
     def update_loan_status(self):
         """Update the status of this user's loans."""

@@ -1,7 +1,7 @@
 $def with (page)
 
 $if page.type.key == '/type/work' and page.edition_count == 1:
-    $ edit_url = page.editions[0].key + '?m=edit'
+    $ edit_url = page.get_one_edition().get_url(suffix="/edit") or page.url(suffix="/edit")
 $elif page.type.key in ["/type/work", "/type/edition", "/type/author"]:
     $ edit_url = page.url(suffix="/edit")
 $else:
@@ -20,6 +20,6 @@ $else:
             <div class="brown smaller sansserif">$_("Last edited by") <a href="$author.key" rel="nofollow">$author.displayname</a></div>
         $else:
             <div class="brown smaller sansserif">$_("Last edited anonymously")</div>
-        <div class="smallest gray sansserif">$(page.last_modified and datestr(page.last_modified)) | <a href="$changequery(m='history')" rel="nofollow" title="View this template's edit history">History</a></div>
+        <div class="smallest gray sansserif">$(page.last_modified and datestr(page.last_modified)) | <a href="$page.url(m='history')" rel="nofollow" title="View this template's edit history">History</a></div>
     </div>
 </div>

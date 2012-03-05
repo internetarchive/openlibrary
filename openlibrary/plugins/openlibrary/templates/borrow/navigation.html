@@ -11,7 +11,7 @@ $def link(url, title):
     $:link("/borrow", _("Borrow"))
     | $:link("/borrow/about", _("How it Works"))
     | $:link("/libraries", _("Participating Libraries"))
-    | $:link("/libraries/register", _("Register"))
+    | $:link("/libraries/register", _("Register your library"))
     | $:link("/libraries/stats", _("Stats"))
     
     $if ctx.user and ctx.user.is_admin():

@@ -171,6 +171,32 @@ class upload2:
 def trim_microsecond(date):
     # ignore microseconds
     return datetime.datetime(*date.timetuple()[:6])
+    
+
+def locate_item(item):
+    """Locates the archive.org item in the cluster and returns the server and directory.
+    """
+    text = urllib.urlopen("http://www.archive.org/metadata/" + item).read()
+    d = simplejson.loads(text)
+    return d['server'], d['dir']
+    
+# cache for 5 minutes
+locate_item = web.memoize(locate_item, expires=300)
+    
+def zipview_url(item, zipfile, filename):
+    server, dir = locate_item(item)
+    return "http://%(server)s/zipview.php?zip=%(dir)s/%(zipfile)s&file=%(filename)s" % locals()    
+    
+# Number of images stored in one archive.org item
+IMAGES_PER_ITEM = 10000
+
+def zipview_url_from_id(coverid, size):
+    suffix = size and ("-" + size.upper())
+    item_index = coverid/IMAGES_PER_ITEM
+    itemid = "olcovers%d" % item_index
+    zipfile = itemid + suffix + ".zip"
+    filename = "%d%s.jpg" % (coverid, suffix)
+    return zipview_url(itemid, zipfile, filename)
 
 class cover:
     def GET(self, category, key, value, size):
@@ -199,8 +225,21 @@ class cover:
             # Disabling ratelimit as iptables is taking care of botnets.
             #value = self.ratelimit_query(category, key, value)
             value = self.query(category, key, value)
+            
+            # Redirect isbn requests to archive.org. 
+            # This will heavily reduce the load on coverstore server.
+            # The max_coveritem_index config parameter specifies the latest 
+            # olcovers items uploaded to archive.org.
+            if value and self.is_cover_in_cluster(value):
+                url = zipview_url_from_id(int(value), size)
+                raise web.found(url)
         elif key != 'id':
             value = self.query(category, key, value)
+            
+        # redirect to archive.org cluster for large size and original images whenever possible
+        if value and (size == "L" or size == "") and self.is_cover_in_cluster(value):
+            url = zipview_url_from_id(int(value), size)
+            raise web.found(url)            
         
         d = value and self.get_details(value, size.lower())
         if not d:
@@ -242,6 +281,15 @@ class cover:
                 return web.storage({"id": coverid, key: path, "created": datetime.datetime(2010, 1, 1)})
             
         return db.details(coverid)
+        
+    def is_cover_in_cluster(self, coverid):
+        """Returns True if the cover is moved to archive.org cluster.
+        It is found by looking at the config variable max_coveritem_index.
+        """
+        try:
+            return int(coverid) < IMAGES_PER_ITEM * config.get("max_coveritem_index", 0)
+        except (TypeError, ValueError):
+            return False
         
     def get_tar_filename(self, coverid, size):
         """Returns tarfile:offset:size for given coverid.

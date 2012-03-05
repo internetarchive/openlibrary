@@ -143,7 +143,13 @@ def run_update():
         requests = []
         for akey in authors_to_update:
             print 'update author:', `akey`
-            requests += update_author(akey)
+            try:
+                request = update_author(akey)
+                if request:
+                    requests += request
+            except AttributeError:
+                print 'akey:', `akey`
+                raise
         if not args.no_commit:
             solr_update(requests + ['<commit/>'], index='authors', debug=True)
     subject_add = Element("add")
@@ -262,6 +268,8 @@ while True:
                 print i['data']
             assert action in ('save', 'save_many')
             continue
+        if i.get('data') and i['data'].get('comment') and 'ia_box_id' in i['data']['comment']:
+            continue
         if action == 'save':
             if only_author_merge:
                 continue
@@ -286,6 +294,22 @@ while True:
             for query in i['data']['query']:
                 key = query.pop('key')
                 process_save(key, query)
+        # store.put gets called when any document is updated in the store. Borrowing/Returning a book triggers one.
+        elif action == 'store.put':
+            # A sample record looks like this:
+            # {
+            #   "action": "store.put", 
+            #   "timestamp": "2011-12-01T00:00:44.241604", 
+            #   "data": {
+            #       "data": {"borrowed": "false", "_key": "ebooks/books/OL5854888M", "_rev": "975708", "type": "ebook", "book_key": "/books/OL5854888M"},
+            #       "key": "ebooks/books/OL5854888M"
+            #   }, 
+            #   "site": "openlibrary.org"
+            # }
+            data = i.get('data', {}).get("data")
+            if data.get("type") == "ebook" and data.get("_key", "").startswith("ebooks/books/"):
+                edition_key = data['book_key']
+                process_save(edition_key, withKey(edition_key))
     since_last_update = time() - last_update
     if len(works_to_update) > work_limit or len(authors_to_update) > author_limit or since_last_update > time_limit:
         run_update()

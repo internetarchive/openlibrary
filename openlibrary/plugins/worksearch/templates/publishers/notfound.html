@@ -1,0 +1,19 @@
+$def with (key)
+
+$ name = key.split("/")[-1].replace('_', ' ')
+
+<div id="contentHead">
+    <span class="tools"><a href="/publishers" class="plain">$_("Publishers")</a> /</span>
+    <h1>$name</h1>
+</div>
+<div id="contentBody">
+
+    <p>$_("We couldn't find any books published by %s.", name)</p>
+
+    <h3 class="collapse">$_("Try something else?")</h3>
+
+    <form action="/search/publishers" class="olform">
+        <input type="text" name="q" size="100" class="larger" value=""/> 
+        <button type="submit" class="larger">$_("Search")</button> 
+    </form>
+</div>

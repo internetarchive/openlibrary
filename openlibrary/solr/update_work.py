@@ -1,14 +1,16 @@
 import httplib, re, sys
-from openlibrary.catalog.utils.query import query_iter, withKey, has_cover
+from openlibrary.catalog.utils.query import query_iter, withKey, has_cover, set_query_host
 #from openlibrary.catalog.marc.marc_subject import get_work_subjects, four_types
 from lxml.etree import tostring, Element, SubElement
 from pprint import pprint
-from urllib2 import urlopen, URLError
+from urllib2 import urlopen, URLError, HTTPError
 import simplejson as json
 from time import sleep
+import web
 from openlibrary import config
 from unicodedata import normalize
 from collections import defaultdict
+from openlibrary.utils.isbn import opposite_isbn
 
 re_lang_key = re.compile(r'^/(?:l|languages)/([a-z]{3})$')
 re_author_key = re.compile(r'^/(?:a|authors)/(OL\d+A)')
@@ -30,20 +32,56 @@ def get_solr(index):
             'editions': config.runtime_config['plugin_worksearch']['edition_solr'],
         }
     return solr_host[index]
+    
+def load_config():
+    if not config.runtime_config:
+        config.load('openlibrary.yml')
 
-re_collection = re.compile(r'<collection>(.*)</collection>', re.I)
+def is_borrowed(edition_key):
+    """Returns True of the given edition is borrowed.
+    """
+    key = "/books/" + edition_key
+    
+    load_config()
+    infobase_server = config.runtime_config.get("infobase_server")
+    if infobase_server is None:
+        print "infobase_server not defined in the config. Unabled to find borrowed status."
+        return False
+            
+    url = "http://%s/openlibrary.org/_store/ebooks/books/%s" % (infobase_server, edition_key)
+    
+    try:
+        d = json.loads(urlopen(url).read())
+        print edition_key, d
+    except HTTPError, e:
+        # Return False if that store entry is not found 
+        if e.getcode() == 404:
+            return False
+        # Ignore errors for now
+        return False
+    return d.get("borrowed", "false") == "true"
 
-def get_ia_collection(ia):
+re_collection = re.compile(r'<(collection|boxid)>(.*)</\1>', re.I)
+
+def get_ia_collection_and_box_id(ia):
+    if len(ia) == 1:
+        return
     url = 'http://www.archive.org/download/%s/%s_meta.xml' % (ia, ia)
     #print 'getting:', url
+    matches = {'boxid': set(), 'collection': set() }
     for attempt in range(5):
         try:
-            matches = (re_collection.search(line) for line in urlopen(url))
-            return set(m.group(1).lower() for m in matches if m)
+            for line in urlopen(url):
+                m = re_collection.search(line)
+                if m:
+                    matches[m.group(1).lower()].add(m.group(2).lower())
+            return matches
+        except UnicodeEncodeError:
+            return
         except URLError:
             print 'retry', attempt, url
             sleep(5)
-    return set()
+    return matches
 
 class AuthorRedirect (Exception):
     pass
@@ -155,7 +193,7 @@ def build_doc(w, obj_cache={}, resolve_redirects=False):
     if 'editions' not in w:
         q = { 'type':'/type/edition', 'works': wkey, '*': None }
         w['editions'] = list(query_iter(q))
-        print 'editions:', [e['key'] for e in w['editions']]
+        #print 'editions:', [e['key'] for e in w['editions']]
 
     identifiers = defaultdict(list)
 
@@ -164,8 +202,22 @@ def build_doc(w, obj_cache={}, resolve_redirects=False):
         pub_year = get_pub_year(e)
         if pub_year:
             e['pub_year'] = pub_year
+        ia = None
         if 'ocaid' in e:
-            collection = get_ia_collection(e['ocaid'])
+            ia = e['ocaid']
+        elif 'ia_loaded_id' in e:
+            loaded = e['ia_loaded_id']
+            ia = loaded if isinstance(loaded, basestring) else loaded[0]
+        ia_meta_fields = get_ia_collection_and_box_id(ia) if ia else None
+        if ia_meta_fields:
+            collection = ia_meta_fields['collection']
+            if 'ia_box_id' in e and isinstance(e['ia_box_id'], basestring):
+                e['ia_box_id'] = [e['ia_box_id']]
+            if ia_meta_fields.get('boxid'):
+                box_id = list(ia_meta_fields['boxid'])[0]
+                e.setdefault('ia_box_id', [])
+                if box_id.lower() not in [x.lower() for x in e['ia_box_id']]:
+                    e['ia_box_id'].append(box_id)
             #print 'collection:', collection
             e['ia_collection'] = collection
             e['public_scan'] = ('lendinglibrary' not in collection) and ('printdisabled' not in collection)
@@ -176,10 +228,10 @@ def build_doc(w, obj_cache={}, resolve_redirects=False):
         if 'identifiers' in e:
             for k, id_list in e['identifiers'].iteritems():
                 k_orig = k
-                k = k.replace('.', '_').replace(',', '_').lower()
+                k = k.replace('.', '_').replace(',', '_').replace('(', '').replace(')', '').replace(':', '_').replace('/', '').replace('#', '').lower()
                 m = re_solr_field.match(k)
                 if not m:
-                    print `k_orig`
+                    print (k_orig, k)
                 assert m
                 for v in id_list:
                     v = v.strip()
@@ -223,8 +275,6 @@ def build_doc(w, obj_cache={}, resolve_redirects=False):
             print w['key']
             print
             raise AuthorRedirect
-    for a in authors:
-        print 'author:', a
     assert all(a['type']['key'] == '/type/author' for a in authors)
 
     try:
@@ -343,7 +393,11 @@ def build_doc(w, obj_cache={}, resolve_redirects=False):
     for e in editions:
         for f in 'isbn_10', 'isbn_13':
             for v in e.get(f, []):
-                isbn.add(v.replace('-', ''))
+                v = v.replace('-', '')
+                isbn.add(v)
+                alt = opposite_isbn(v)
+                if alt:
+                    isbn.add(alt)
     add_field_list(doc, 'isbn', isbn)
 
     lang = set()
@@ -355,11 +409,26 @@ def build_doc(w, obj_cache={}, resolve_redirects=False):
             m = re_lang_key.match(l['key'] if isinstance(l, dict) else l)
             lang.add(m.group(1))
         if e.get('ia_loaded_id'):
-            assert isinstance(e['ia_loaded_id'], basestring)
-            ia_loaded_id.add(e['ia_loaded_id'])
+            if isinstance(e['ia_loaded_id'], basestring):
+                ia_loaded_id.add(e['ia_loaded_id'])
+            else:
+                try:
+                    assert isinstance(e['ia_loaded_id'], list) and isinstance(e['ia_loaded_id'][0], basestring)
+                except AssertionError:
+                    print e.get('ia')
+                    print e['ia_loaded_id']
+                    raise
+                ia_loaded_id.update(e['ia_loaded_id'])
         if e.get('ia_box_id'):
-            assert isinstance(e['ia_box_id'], basestring)
-            ia_box_id.add(e['ia_box_id'])
+            if isinstance(e['ia_box_id'], basestring):
+                ia_box_id.add(e['ia_box_id'])
+            else:
+                try:
+                    assert isinstance(e['ia_box_id'], list) and isinstance(e['ia_box_id'][0], basestring)
+                except AssertionError:
+                    print e['key']
+                    raise
+                ia_box_id.update(e['ia_box_id'])
     if lang:
         add_field_list(doc, 'language', lang)
 
@@ -379,16 +448,16 @@ def build_doc(w, obj_cache={}, resolve_redirects=False):
             all_overdrive.update(e['overdrive'])
         if 'ocaid' not in e:
             continue
-        if not lending_edition and 'lendinglibrary' in e['ia_collection']:
+        if not lending_edition and 'lendinglibrary' in e.get('ia_collection', []):
             lending_edition = re_edition_key.match(e['key']).group(1)
-        if not in_library_edition and 'inlibrary' in e['ia_collection']:
+        if not in_library_edition and 'inlibrary' in e.get('ia_collection', []):
             in_library_edition = re_edition_key.match(e['key']).group(1)
-        if 'printdisabled' in e['ia_collection']:
+        if 'printdisabled' in e.get('ia_collection', []):
             printdisabled.add(re_edition_key.match(e['key']).group(1))
-        all_collection.update(e['ia_collection'])
+        all_collection.update(e.get('ia_collection', []))
         assert isinstance(e['ocaid'], basestring)
         i = e['ocaid'].strip()
-        if e['public_scan']:
+        if e.get('public_scan'):
             public_scan = True
             if i.endswith('goog'):
                 pub_goog.add(i)
@@ -414,6 +483,9 @@ def build_doc(w, obj_cache={}, resolve_redirects=False):
         add_field(doc, 'lending_edition_s', in_library_edition)
     if printdisabled:
         add_field(doc, 'printdisabled_s', ';'.join(list(printdisabled)))
+        
+    if lending_edition or in_library_edition:
+        add_field(doc, "borrowed_b", is_borrowed(lending_edition or in_library_edition))
 
     author_keys = [re_author_key.match(a['key']).group(1) for a in authors]
     author_names = [a.get('name', '') for a in authors]
@@ -446,7 +518,7 @@ def build_doc(w, obj_cache={}, resolve_redirects=False):
 
     if ia_box_id:
         add_field_list(doc, 'ia_box_id', ia_box_id)
-
+        
     return doc
 
 def solr_update(requests, debug=False, index='works'):
@@ -457,7 +529,6 @@ def solr_update(requests, debug=False, index='works'):
             print 'request:', `r[:65]` + '...' if len(r) > 65 else `r`
         assert isinstance(r, basestring)
         url = 'http://%s/solr/%s/update' % (get_solr(index), index)
-        print url
         h1.request('POST', url, r, { 'Content-type': 'text/xml;charset=utf-8'})
         response = h1.getresponse()
         response_body = response.read()
@@ -502,6 +573,8 @@ def update_work(w, obj_cache={}, debug=False, resolve_redirects=False):
 
 def update_author(akey, a=None, handle_redirects=True):
     # http://ia331507.us.archive.org:8984/solr/works/select?indent=on&q=author_key:OL22098A&facet=true&rows=1&sort=edition_count%20desc&fl=title&facet.field=subject_facet&facet.mincount=1
+    if akey == '/authors/':
+        return
     m = re_author_key.match(akey)
     if not m:
         print 'bad key:', akey
@@ -552,7 +625,11 @@ def update_author(akey, a=None, handle_redirects=True):
     requests = []
     if handle_redirects:
         q = {'type': '/type/redirect', 'location': akey}
-        redirects = ''.join('<id>%s</id>' % re_author_key.match(r['key']).group(1) for r in query_iter(q))
+        try:
+            redirects = ''.join('<id>%s</id>' % re_author_key.match(r['key']).group(1) for r in query_iter(q))
+        except AttributeError:
+            print 'redirects:', [r['key'] for r in query_iter(q)]
+            raise
         if redirects:
             requests.append('<delete>' + redirects + '</delete>')
 
@@ -563,10 +640,48 @@ def commit_and_optimize(debug=False):
     requests = ['<commit />', '<optimize />']
     solr_update(requests, debug)
 
+def update_keys(keys):
+    # update works
+    requests = []
+    wkeys = [k for k in keys if k.startswith("/works/")]
+    print "updating", wkeys
+    for k in wkeys:
+        w = withKey(k)
+        requests += update_work(w, debug=True)
+    if requests:    
+        requests += ['<commit />']
+        solr_update(requests, debug=True)
+    
+    # update authors
+    requests = []    
+    akeys = [k for k in keys if k.startswith("/authors/")]
+    print "updating", akeys
+    for k in akeys:
+        requests += update_author(k)
+    if requests:    
+        requests += ['<commit />']
+        solr_update(requests, index="authors", debug=True)        
+
+def parse_options(args=None):
+    from optparse import OptionParser
+    parser = OptionParser(args)
+    parser.add_option("-s", "--server", dest="server", default="http://openlibrary.org/", help="URL of the openlibrary website (default: %default)")
+    parser.add_option("-c", "--config", dest="config", default="openlibrary.yml", help="Open Library config file")
+
+    options, args = parser.parse_args()
+    return options, args
+
+def main():
+    options, keys = parse_options()
+
+    # set query host
+    host = web.lstrips(options.server, "http://").strip("/")
+    set_query_host(host)
+
+    # load config
+    config.load(options.config)
+
+    update_keys(keys)
+
 if __name__ == '__main__':
-    key = sys.argv[1]
-    print key
-    w = withKey(key)
-    update_work(w, debug=True)
-    requests = ['<commit />']
-    solr_update(requests, debug=True)
+    main()

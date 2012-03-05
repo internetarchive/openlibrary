@@ -44,11 +44,16 @@ $def display_value(label, value):
 
 $def display_identifiers(label, ids):
     $if label != "Goodreads":
+        $ all_ids = [-1!=id['value'].find('openlib-') for id in ids]
+        $if (True in all_ids) and (1==len(all_ids)):
+            $return
         <tr>
             <td class="title"><h6 class="title">$label</h6></td>
             <td class="object"><span class="object">
                 $for id in ids:
                     $ sep = cond(loop.last, "", ", ")
+                    $if -1 != id.value.find('openlib-'):
+                        $continue
                     $if id.url:
                         <a href="$id.url">$id.value</a>$sep
                     $else:
@@ -174,7 +179,11 @@ $ work = page.works and page.works[0] or None
                         $if page.publishers:
                             by
                             $for p in page.publishers:
-                                <a href="/search?publisher_facet=$p.replace('&','%26')" title="$_('Search for other books from') $p">$p</a>$cond(loop.last, "", ", ")
+                                $if "publishers" in ctx.features:
+                                    <a href="/publishers/$p.replace(' ', '_')" title="$_('Show for other books from %s', p)">$p</a>$cond(loop.last, "", ", ")
+                                $else:
+                                    <a href="/search?publisher_facet=$p.replace('&','%26')" title="$_('Search for other books from') $p">$p</a>$cond(loop.last, "", ", ")
+                                
                         $if page.publish_places:
                             in
                             $for p in page.publish_places:
@@ -269,8 +278,9 @@ $ work = page.works and page.works[0] or None
             $for name, values in page.get_identifiers().multi_items():
                 $:display_goodreads(values[0].label, values)
         </div>
-        
+ 
         </div>
+
 
         <div class="editionTools">
             $:macros.databarWork(page)

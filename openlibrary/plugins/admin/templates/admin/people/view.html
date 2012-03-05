@@ -5,67 +5,278 @@ $ _x = ctx.setdefault('usergroup', 'admin')
 
 $var title: [Admin Center] $person.displayname
 
-<div id="contentHead">
-    $:render_template("admin/menu")
-    <h1><a class="plain" href="/admin/people">People</a> / $person.displayname</h1>
-</div>
-
 <style type="text/css">
+
+div.status {
+    background-color: #eeeeee;
+    border: 1px solid #cccccc;
+    padding: 10px;
+
+    -webkit-border-radius: 10px;
+    -moz-border-radius: 10px;
+    border-radius: 10px;
+    
+    margin-bottom: 20px;
+}
+
+div.status-active, div.status-verified {
+    background: #dfd;
+}
+
+div.status-pending {
+    background: #ffd;
+}
+
 span.invalid {
     padding-left: 20px;
     float: right;
 }
+
+span.status {
+    font-weight: bold;
+    padding: 4px;
+    font-size: 1.1em;
+    
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    border-radius: 4px;
+}
+
+span.safe { 
+    background-color: #aaffaa;
+    padding: 0 3pt;
+    color: black;
+}
+
+span.warning { 
+    /*background-color: #ff8888; */
+    padding: 0 3pt;
+    /*color: black;*/
+    color: darkred;
+}
+
+form.account-actions { 
+    display:inline;
+}
+ 
+#borrowTable .who {
+    display: none;
+}
+
+span.time {
+    font-weight: bold;
+}
+
+input.big {
+    font-size: 1.0em !important; 
+    width: 20em !important;
+}
+
+a.tag {
+	padding: 5px;
+	background: #eee;
+	border: 1px solid #ddd;
+	border-radius: 5px;
+	cursor: pointer;
+	text-decoration: none;
+	color: #aaa;
+    font-size: 1.1em;
+}
+
+a.tag:hover {
+	text-decoration: underline;
+	color: black;
+}
+
+a.tag.active {
+	background: #fffdcd;
+	border-color: #ccb;
+    color: black;
+}
 </style>
 
+<script type="text/javascript">
+\$(function() {
+    \$("a.tag").click(function(){
+        \$(this).toggleClass("active");
+        
+        var action = \$(this).hasClass("active") ? "add_tag": "remove_tag";
+        var tag = \$(this).text();
+        \$.post(window.location.href, {
+            "action": action,
+            "tag": tag
+        });
+    });
+});
+</script>
+
+<div id="contentHead">
+    $:render_template("admin/menu")
+    <h1><a class="plain" href="/admin/people">People</a> / $person.username</h1>
+</div>
+
+$ has_profile = person.get_user() is not None
+
+
 <div id="contentBody">
-    <table id="adminHistory" style="clear: both;">
+
+    <div class="status status-$person.status">
+        <form method="POST">
+            Status: <span class="status">$person.status</span>
+            
+        $if person.status in ['active', 'verified']:
+            <button type="submit" class="fixthis" name="action" value="block">delete account</button>
+            <br/>
+            <br/>
+            <div class="small">Registered on <span class="time">$datestr(person.registered_on, relative=False)</span>.</div>
+            $ v = person.get_creation_info()                
+            <div class="small">Activated on <span class="time">$datestr(person.activated_on, relative=False)</spam> from <a href="/admin/ip/$v.ip">$v.ip</a>.</div>
+        $elif person.status == "pending":
+            <button type="submit" name="action" value="activate_account">activate account</button>
+            <br/>
+            <br/>
+            <div class="small">Registered on <span class="time">$datestr(person.registered_on, relative=False).</span></div>
+            <div class="small">
+                $if person.get_activation_link():
+                    Activation link expiring on <span class="time">$datestr(person.get_activation_link().get_expiration_time()).</span>
+                $else:
+                    <strong>Activation link expired.</strong>
+                    
+                <button type="submit" name="action" value="resend_link">Resend activation link</button>.
+                </div>
+            </form>
+    </div>    
+    
+  <table id="adminHistory" style="clear: both;">
     <tbody>
-        <tr>
-            <td>$_("Email Address:")</td>
-            <td>
-                <form method="POST" name="form-email" id="form-email" class="validate">
-                    <input type="text" name="email" id="email" class="email" value="$input.get('email', person.get_email())"/>
-                    <button type="submit" name="action" value="update_email">Change</button>
-                    <span class="invalid" htmlfor="email" generated="true">$errors.get("email")</span>
+    </tr>
+    <tr>
+        <td>$_("Name:")</td>
+        <td>$person.displayname - <a href="$homepath()$person.username" style="color: #900; text-decoration: none;">view profile</a></td>
+    </tr>
+    <tr>
+        <td>$_("Email Address:")</td>
+        <td>
+            <form method="POST" name="form-email" id="form-email" class="validate">
+                <input type="text" name="email" id="email" class="email big" value="$input.get('email', person['email'])"/>
+                <button type="submit" name="action" value="update_email">Change</button>
+                <span class="invalid" htmlfor="email" generated="true">$errors.get("email")</span>
+            </form>
+        </td>
+    </tr>
+    <tr>
+        <td>$_("Reset Password")</td>
+        <td>
+            <form method="POST" name="form-password" id="form-password">
+                <input type="text" name="password" id="password" class="password big" value="$input.get('password')"/>
+                <button type="submit" name="action" value="update_password">Change</button>
+                <span class="invalid" htmlfor="password" generated="true">$errors.get("password")</span>
+            </form>
+        </td>
+    </tr>
+    <tr>
+        <td>$_("Bot")</td>
+        <td>
+            $if has_profile:
+                <form method="POST" name="form-bot" id="form-bot">
+                    <input type="hidden" name="action" value="set_bot_flag">
+                    <input type="hidden" name="bot" value="$(not person.get('bot', False))">
+                    $if person.get('bot'):
+                        Yes
+                        <button type="submit">Make Human</button>
+                    $else:
+                        No
+                        <button type="submit">Make Bot</button>
                 </form>
-            </td>
-        </tr>
-        <tr>
-            <td>$_("Reset Password")</td>
-            <td>
-                <form method="POST" name="form-password" id="form-password">
-                    <input type="text" name="password" id="password" class="email" value="$input.get('password')"/>
-                    <button type="submit" name="action" value="update_password">Change</button>
-                    <span class="invalid" htmlfor="password" generated="true">$errors.get("password")</span>
-                </form>
-            </td>
-        </tr>
-        <tr>
-            <td>$_("IP Address")</td>
-            <td>
-                $ v = person.get_creation_info()                
-                <a href="/admin/ip/$v.ip">$v.ip</a> - <a href="$homepath()$person.key" style="color: #900; text-decoration: none;">profile</a>
-            </td>
-        </tr>
-        <tr>
-            <td>$_("# Edits")</td>
-            <td>$person.get_edit_count()</td>
-        </tr>
-        <tr>
-            <td>$_("Member Since:")</td>
-            <td>$datestr(person.created)</td>
-        </tr>
-        <tr>
-            <td>$_("Last Login:")</td>
-            <td>x months ago, xx xx xx</td>
-        </tr>
+            $else:
+                <em>Not available</em>
+        </td>
+    </tr>
+    <tr>
+        <td>$_("# Edits")</td>
+        <td>$person.get_edit_count()</td>
+    </tr>
+    <tr>
+        <td>$_("Member Since:")</td>
+        <td>
+            $if person.activated_on:
+                $datestr(person.activated_on)
+            $else:
+                <em>Not available</em>
+        </td>
+    </tr>
+    <tr>
+        <td>$_("Last Login:")</td>
+        <td>
+            $if person.last_login:
+                $datestr(person.last_login)
+            $else:
+                <em>Not available</em>
+        </td>
+    </tr>
+    <tr>
+        <td>$_("Tags:")</td>
+        <td>
+            $ tags = sorted(["beta-tester", "trusted-user", "staff", "alumnus"])
+            $for t in tags:
+                <a class="tag $cond(person.has_tag(t), 'active')">$t</a>
+        </td>
+    </tr>
     </tbody>
+  </table>
+
+
+<h2>$_("Loans")</h2>
+<div>
+$ user = person.get_user()
+$if user:
+  $:render_template("admin/loans_table.html", user.get_loans())
+$else:
+  <em>Account not activated yet.</em>
+</div>
+
+<h2>$_("Cases")</h2>
+$ cases = person.get_cases()
+$if cases:
+    <table class="changeHistory" border="0" cellspacing="0" cellpadding="10">
+    $for case in cases:
+        <tr>
+            <td align="right">$case.caseid</td>
+            <td>$datestr(case.created)</td>
+            <td><a href="/admin/support/$(case.caseno)">$case.subject</a></td>
+            <td><a href="/admin/people/$(case.creator_username)">$case.creator_name</a></td>
+            <td>$case.assignee</td>
+            <td>$datestr(case.last_modified)</td>
+            <td>$len(case.history)</td>
+            <td>$case.status</td>
+        </tr>
     </table>
+$else:
+  <em>None found.</em>
 
-<h2>$_("Edit History")</h2>
-$:render_template("admin/history", person.get_edit_history())
+<h2>
+    $_("Edit History") 
+    <span class="link"><a href="/admin/people/$person.username/edits">$person.get_edit_count() edits</a></span>
+</h2>
+$if person['status'] == "verified" or person['status'] == "active":
+    $:render_template("admin/history", person.get_user().get_edit_history())
+$else:
+    <em>Account not activated yet.</em>
+    
 
+<h2>$_("Debug Info")</h2>
 
-<button class="delete" type="submit" value="$_("Delete Account")" name="_delete" title="$_("Delete Account")" style="float: right; margin-bottom: 20px;">$_("Delete Account")</button>
+<h3>Account Information</h3>
+<pre>$:json_encode(hasattr(person, "dict") and person.dict(), indent="    ", sort_keys=True)</pre>
 
+<h3>Verifications Links</h3>
+<div>
+$for link in person.get_links():
+        <strong>$link['_key']</strong>
+        <br/>
+        <pre>$:json_encode(link, indent="    ", sort_keys=True)</pre>
+    </li>
+</div>
+$if not person.get_links():
+    <em>None found</em>
 </div>

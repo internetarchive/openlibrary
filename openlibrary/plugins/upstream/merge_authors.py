@@ -6,6 +6,7 @@ from infogami.utils import delegate
 from infogami.utils.view import render_template, safeint
 
 from openlibrary.plugins.worksearch.code import top_books_from_author
+from openlibrary.utils import uniq, dicthash
 
 class BasicMergeEngine:
     """Generic merge functionality useful for all types of merges.
@@ -120,7 +121,34 @@ class AuthorMergeEngine(BasicMergeEngine):
             "master": master,
             "duplicates": list(duplicates)
         }
-        return web.ctx.site.save_many(docs, comment='merge authors', action="merge-authors", data=data)
+        
+        # There is a bug (#89) due to which old revisions of the docs are being sent to save.
+        # Collecting all the possible information to detect the problem and saving it in datastore.
+        debug_doc = {}
+        debug_doc['type'] = 'merge-authors-debug' 
+        mc = self._get_memcache()
+        debug_doc['memcache'] = mc and dict((k, simplejson.loads(v)) for k, v in mc.get_multi([doc['key'] for doc in docs]).items())
+        debug_doc['docs'] = docs
+        
+        result = web.ctx.site.save_many(docs, comment='merge authors', action="merge-authors", data=data)
+        
+        docrevs= dict((doc['key'], doc.get('revision')) for doc in docs)
+        revs = dict((row['key'], row['revision']) for row in result)
+        
+        # Bad merges are happening when we are getting non-recent docs.
+        # That can be identified by checking difference in the revision numbers before and after save
+        bad_merge = any(revs[k]-docrevs[k] > 1 for k in revs if docrevs[k] is not None)
+        
+        debug_doc['bad_merge'] = str(bad_merge).lower()
+        debug_doc['result'] = result
+        key = 'merge_authors/%d' % web.ctx.site.seq.next_value('merge-authors-debug')
+        web.ctx.site.store[key] = debug_doc
+        
+        return result
+        
+    def _get_memcache(self):
+        from openlibrary.plugins.openlibrary import connection
+        return connection._memcache
     
     def find_backreferences(self, key):
         q = {
@@ -148,32 +176,6 @@ def space_squash_and_strip(s):
 def name_eq(n1, n2):
     return space_squash_and_strip(n1) == space_squash_and_strip(n2)
     
-def uniq(values, key=None):
-    """Returns the unique entries from the given values in the original order.
-    
-    The value of the optional `key` parameter should be a function that takes
-    a single argument and returns a key to test the uniqueness.
-    """
-    key = key or (lambda x: x)
-    s = set()
-    result = []
-    for v in values:
-        k = key(v)
-        if k not in s:
-            s.add(k)
-            result.append(v)
-    return result
-    
-def dicthash(d):
-    """Dictionaries are not hashable. This function converts dictionary into nested tuples, so that it can hashed.
-    """
-    if isinstance(d, dict):
-        return tuple((k, dicthash(v)) for k, v in d.iteritems())
-    elif isinstance(d, list):
-        return tuple(dicthash(v) for v in d)
-    else:
-        return d
-        
 def fix_table_of_contents(table_of_contents):
     """Some books have bad table_of_contents. This function converts them in to correct format.
     """

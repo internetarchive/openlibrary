@@ -2231,7 +2231,11 @@ span.actions a {
     display: block;
     float: left;
     min-width: 35px;
-    max-width: 45px;
+
+    /* Anand: commented to fix alignment of "Checked out" */
+    /*
+    max-width: 45px; 
+    */
     font-family: "Lucida Grande", Verdana, Geneva, Helvetica, sans-serif;
     font-size: 10px;
     margin-left: 10px;
@@ -3194,7 +3198,7 @@ body#plain .borrow table {border-bottom: none;}
 #borrowTable table div.date {font-size:.75em;color:#666;}
 #borrowTable table td.expires {text-align:center;padding:15px;white-space:nowrap;}
 #borrowTable table td.returns {background-color: #f5f5f5;font-size:0.8125em;color:#333;text-align:center;padding:20px 15px;}
-#borrowTable table td.user, #borrowTable table td.action {text-align:center;font-size:.75em;padding:15px;}
+#borrowTable table td.user, #borrowTable table td.what, #borrowTable table td.action {text-align:center;font-size:.75em;padding:15px;}
 #borrowTable table td.actions {padding:15px 0;font-size:.75em;text-align:center;}
 
 body#plain #borrowTable {margin: 60px 0 25px;}
@@ -3454,3 +3458,14 @@ body#user #description p {font-size:.875em;margin:0 0 30px 0;}
 #contentBody.map .olControlAttribution {bottom:10px!important;right:10px!important;font-family:"Lucida Grande","Verdana","Arial",sans-serif!important;font-size:.6875em!important;}
 #libraryInfo td {padding-top:5px; padding-bottom: 5px; vertical-align: top; margin-top: 20px;font-family:"Lucida Grande","Verdana","Arial",sans-serif;}
 #libraryInfo .label {font-weight: bold; width: 25%; padding-right: 20px;}
+
+/* Added by Anand July 29, 2011*/
+span.actions a span.checked-out {
+    display: block;
+    width: 32px; 
+    height: 32px;
+    margin: 0 auto;
+    padding: 0;
+    background-image: url("/images/icons/icon_borrow-in-list-not-avail.png");
+    background-repeat: no-repeat;
+}

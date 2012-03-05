@@ -9,6 +9,7 @@ import xml.etree.ElementTree as etree
 import datetime
 import gzip
 import StringIO
+import logging
 
 from infogami import config
 from infogami.utils import view, delegate, stats
@@ -242,8 +243,6 @@ def _get_changes_v1_raw(query, revision=None):
             
     return versions
 
-_get_changes_v1_raw = cache.memcache_memoize(_get_changes_v1_raw, key_prefix="upstream._get_changes_v1_raw", timeout=10*60)
-
 def get_changes_v1(query, revision=None):
     # uses the cached function _get_changes_v1_raw to get the raw data
     # and processes to before returning.
@@ -350,7 +349,7 @@ def get_locale():
 @public
 def process_version(v):
     """Looks at the version and adds machine_comment required for showing "View MARC" link."""
-    importers = ['/people/ImportBot', '/people/EdwardBot']
+    importers = set(['/people/ImportBot', '/people/EdwardBot', '/people/LCImportBot'])
     comments = [
         "found a matching marc record",
         "add publisher and source",
@@ -433,6 +432,16 @@ def get_languages():
     
 @public
 def get_edition_config():
+    return _get_edition_config()
+    
+@web.memoize
+def _get_edition_config():
+    """Returns the edition config.
+    
+    The results are cached on the first invocation. Any changes to /config/edition page require restarting the app.
+    
+    This is is cached because fetching and creating the Thing object was taking about 20ms of time for each book request.
+    """
     thing = web.ctx.site.get('/config/edition')
     classifications = [web.storage(t.dict()) for t in thing.classifications if 'name' in t]
     identifiers = [web.storage(t.dict()) for t in thing.identifiers if 'name' in t]
@@ -626,7 +635,8 @@ def setup():
     
     web.template.Template.globals.update({
         'HTML': HTML,
-        'request': Request()
+        'request': Request(),
+        'logger': logging.getLogger("openlibrary.template")
     })
     
     from openlibrary.core import helpers as h

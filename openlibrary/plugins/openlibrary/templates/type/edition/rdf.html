@@ -7,9 +7,11 @@ $def with (book)
   xmlns:owl='http://www.w3.org/2002/07/owl#'
   xmlns:bibo='http://purl.org/ontology/bibo/'
   xmlns:rdvocab='http://RDVocab.info/elements/'
+  xmlns:rdrel='http://RDVocab.info/RDARelationshipsWEMI/'
   xmlns:dcterms='http://purl.org/dc/terms/'
   xmlns:dc='http://purl.org/dc/elements/1.1/'
   xmlns:dcam='http://purl.org/dc/dcam/'
+  xmlns:foaf='http://xmlns.com/foaf/0.1/'
 >
     $if book.subtitle:
         $ title = book.title + " " + book.subtitle
@@ -22,6 +24,14 @@ $def with (book)
     $else:
         $ pages = book.number_of_pages
 
+    $ work = book.works and book.works[0]
+    $if work:
+        $ authors = work.get_authors()
+    $else:
+        $ authors = book.get_authors()
+
+    $ contributors = book.get('contributors', [])
+
     $def display(tag, value):
         $if isinstance(value, list):
             $for x in value:
@@ -30,13 +40,20 @@ $def with (book)
             <$tag>$value</$tag>
 
     <rdf:Description rdf:about="http://openlibrary.org$bookID">
+        $if work:
+        <rdrel:workManifested rdf:resource="http://openlibrary.org$work.key"/>
         <!-- authors -->
         <bibo:authorList rdf:parseType="Collection">
-          $for a in book.authors:
+          $for a in authors:
               <rdf:Description rdf:about="http://openlibrary.org$a.key">
                  <rdf:value>$a.name</rdf:value>
               </rdf:Description>
         </bibo:authorList>
+        $if contributors:
+            <bibo:contributorList rdf:parseType="Collection">
+            $for c in contributors:
+                 <foaf:Person><foaf:name>$c.name</foaf:name></foaf:Person>
+            </bibo:contributorList>
         $:display("dcterms:contributor", book.contributions)
         <!-- bibliographic description -->
         $:display("dcterms:title", title)
@@ -48,7 +65,7 @@ $def with (book)
         $:display("bibo:edition", book.edition_name)
         <!-- subjects -->
         $:display("dc:subject", book.subjects)
-        $for DDC in book.dewey_decimal_class:   
+        $for DDC in book.dewey_decimal_class:
             <dcterms:subject>
                 <rdf:Description>
                     <dcam:memberOf rdf:resource="http://purl.org/dc/terms/DDC"/>

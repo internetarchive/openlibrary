@@ -31,19 +31,23 @@ def store_data(db, data, date):
     db.save(vals)
 
 def run_for_day(d):
-    basedir = "/var/log/lighttpd/%(year)d/%(month)02d/%(day)02d/"%dict(year = d.year, month = d.month, day = d.day)
+    basedir = d.strftime("/var/log/nginx/")
     awk = ["awk", '$2 == "openlibrary.org" { print $1 }']
     sort = ["sort", "-u"]
     count = ["wc", "-l"]
-    if os.path.exists(basedir + "access.log.gz"):
-        cmd = subprocess.Popen(["zcat", "%s/access.log.gz"%basedir], stdout = subprocess.PIPE)
+    print "           ", basedir
+    zipfile = d.strftime("access.log-%Y%m%d.gz")
+    if os.path.exists(basedir + zipfile):
+        print "              Using ",  basedir + zipfile
+        cmd = subprocess.Popen(["zcat", basedir + zipfile], stdout = subprocess.PIPE)
     elif os.path.exists(basedir + "access.log"):
         cmd = subprocess.Popen(["cat", "%s/access.log"%basedir], stdout = subprocess.PIPE)
-    print awk
+        print "              Using ",  basedir + "access.log"
+    print "           ", awk
     cmd = subprocess.Popen(awk,   stdin = cmd.stdout, stdout = subprocess.PIPE)
-    print sort
+    print "           ", sort
     cmd = subprocess.Popen(sort,  stdin = cmd.stdout, stdout = subprocess.PIPE)
-    print count
+    print "           ", count
     cmd = subprocess.Popen(count, stdin = cmd.stdout, stdout = subprocess.PIPE)
     val = cmd.stdout.read()
     return dict (visitors = int(val))
@@ -61,9 +65,3 @@ def main(config):
 if __name__ == "__main__":
     import sys
     sys.exit(main(sys.argv[1]))
-
-
-
-
-
-

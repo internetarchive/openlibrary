@@ -27,11 +27,12 @@ sphinx
 supervisor
 web.py==0.33
 pystatsd
-lamson
 celery
 eventer
 sqlalchemy
 Pygments
+OL-GeoIP
+mockcache
 """
 
 from openlibrary.core.setup_commands import commands

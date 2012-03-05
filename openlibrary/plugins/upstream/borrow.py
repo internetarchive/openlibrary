@@ -22,6 +22,7 @@ from utils import render_template
 from openlibrary.core import inlibrary
 from openlibrary.core import stats
 from openlibrary.core import msgbroker
+from openlibrary import accounts
 
 from lxml import etree
 
@@ -83,7 +84,7 @@ class borrow(delegate.page):
         edition.update_loan_status()
             
         loans = []
-        user = web.ctx.site.get_user()
+        user = accounts.get_current_user()
         if user:
             user.update_loan_status()
             loans = get_loans(user)
@@ -112,7 +113,7 @@ class borrow(delegate.page):
             raise web.notfound()
         error_redirect = edition.url("/borrow")
         
-        user = web.ctx.site.get_user()
+        user = accounts.get_current_user()
         if not user:
             raise web.seeother(error_redirect)
 
@@ -205,9 +206,9 @@ class borrow_status(delegate.page):
         subjects = set([])
         
         for work in edition.get('works', []):
-	        for subject in work.get_subjects():
-	            if subject in lending_subjects:
-    	        	subjects.add(subject)
+            for subject in work.get_subjects():
+                if subject in lending_subjects:
+                    subjects.add(subject)
         
         output = {
         	'id' : key,
@@ -246,7 +247,7 @@ class borrow_admin(delegate.page):
         edition_loans = get_edition_loans(edition)
             
         user_loans = []
-        user = web.ctx.site.get_user()
+        user = accounts.get_current_user()
         if user:
             user_loans = get_loans(user)
             
@@ -278,7 +279,7 @@ class borrow_admin_no_update(delegate.page):
         edition_loans = get_edition_loans(edition)
             
         user_loans = []
-        user = web.ctx.site.get_user()
+        user = accounts.get_current_user()
         if user:
             user_loans = get_loans(user)
             
@@ -308,7 +309,7 @@ class ia_auth(delegate.page):
         
         # check that identifier is valid
         
-        user = web.ctx.site.get_user()
+        user = accounts.get_current_user()
         auth_json = simplejson.dumps( get_ia_auth_dict(user, item_id, resource_id, i.loan, i.token ) )
                 
         output = auth_json
@@ -353,39 +354,7 @@ def overdrive_id(edition):
 
 @public
 def can_borrow(edition):
-    global lending_library_subject, in_library_subject
-    
-    # Check if in overdrive
-    # $$$ Should we also require to be in lending library?
-    if overdrive_id(edition):
-        return True
-    
-    # Check that work is in the general lending library, or available for
-    # in-library loan and the user is in a library
-    lendable = False
-    for work in edition.get('works', []):
-        subjects = work.get_subjects()
-        
-        if subjects:
-            if lending_library_subject in subjects:
-                # General lending library
-                lendable = True
-                break
-            if in_library_subject in subjects:
-                # Books is eligible for in-library loan
-                if 'inlibrary' in web.ctx.features and inlibrary.get_library() is not None:
-                    # Person is in a library
-                    lendable = True
-                    break
-                        
-    if not lendable:
-        return False
-    
-    # Check if hosted at archive.org - sanity check
-    if edition.get('ocaid', False):
-        return True
-    
-    return False
+    return edition.can_borrow()
     
 @public
 def is_loan_available(edition, type):    
@@ -721,7 +690,7 @@ def user_can_borrow_edition(user, edition, type):
 
 def is_admin():
     """"Returns True if the current user is in admin usergroup."""
-    user = web.ctx.site.get_user()
+    user = accounts.get_current_user()
     return user and user.key in [m.key for m in web.ctx.site.get('/usergroup/admin').members]
     
 def return_resource(resource_id):

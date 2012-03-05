@@ -59,7 +59,12 @@ $if len(loans) > 0:
                     </div>
                 </td>
                 <td class="expires">
-                    $:macros.FormatExpiry(loan['expiry'])
+                    $if loan['expiry'] is None:
+                        $# Not yet fulfilled
+                        <span class="red">Not yet downloaded. </span><br/>
+                        <a href="$loan['loan_link']">Download Now</a>
+                    $else:
+                        $:macros.FormatExpiry(loan['expiry'])
                 </td>
                 <td class="actions">
                     $if loan['resource_type'] == 'bookreader':

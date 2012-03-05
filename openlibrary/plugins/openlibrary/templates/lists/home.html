@@ -41,8 +41,7 @@ $var title: Lists
                 <div class="meta">
                     $ msg = ungettext("1 seed", "%(count)d seeds", len(list.seeds))
                     $sprintf(msg, count=len(list.seeds))
-                    $if list.last_update:
-                        | Last update $datestr(list.last_update)
+                    | Last modified $datestr(list.last_modified)
                 </div>
                 <div class="description no-img">
                 $if list.description:

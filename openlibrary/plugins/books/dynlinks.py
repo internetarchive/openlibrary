@@ -12,13 +12,13 @@ from infogami.utils.delegate import register_exception
 def split_key(bib_key):
     """
         >>> split_key('1234567890')
-        ('isbn_10', '1234567890')
+        ('isbn_', '1234567890')
         >>> split_key('ISBN:1234567890')
-        ('isbn_10', '1234567890')
+        ('isbn_', '1234567890')
         >>> split_key('ISBN1234567890')
-        ('isbn_10', '1234567890')
+        ('isbn_', '1234567890')
         >>> split_key('ISBN1234567890123')
-        ('isbn_13', '1234567890123')
+        ('isbn_', '1234567890123')
         >>> split_key('LCCNsa 64009056')
         ('lccn', 'sa 64009056')
         >>> split_key('badkey')
@@ -54,12 +54,10 @@ def split_key(bib_key):
         key = 'olid'
         value = bib_key.upper()
     
-    # decide isbn_10 or isbn_13 based on length.
     if key == 'isbn':
-        if len(value.replace('-', '')) == 13:
-            key = 'isbn_13'
-        else:
-            key = 'isbn_10'
+        # 'isbn_' is a special indexed filed that gets both isbn_10 and isbn_13 in the normalized form.
+        key = 'isbn_'
+        value = value.replace("-", "") # normalize isbn by stripping hyphens
 
     if key == 'oclc':
         key = 'oclc_numbers'
@@ -309,6 +307,8 @@ class DataProcessor:
                 }
             elif availability == "borrow":
                 d['borrow_url'] = u"http://openlibrary.org%s/%s/borrow" % (doc['key'], h.urlsafe(doc.get("title", "untitled")))
+                loanstatus =  web.ctx.site.store.get('ebooks' + doc['key'], {'borrowed': 'false'})
+                d['checkedout'] = (loanstatus['borrowed'] == 'true')
                 d['formats'] = {
                     "djvu": {
                         "url": prefix + ".djvu",

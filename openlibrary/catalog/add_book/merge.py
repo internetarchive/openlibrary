@@ -30,25 +30,25 @@ def try_merge(e1, edition_key, existing):
     rec2['full_title'] = existing.title
     if existing.subtitle:
         rec2['full_title'] += ' ' + existing.subtitle
-    if existing.lccn:
-        rec2['lccn'] = existing.lccn
+    for f in 'isbn', 'isbn_10', 'isbn_13', 'lccn', 'publish_country', 'publishers', 'publish_date':
+        if existing.get(f):
+            rec2[f] = existing[f]
     if existing.authors:
         rec2['authors'] = []
         for a in existing.authors:
             author_type = a.type.key
-            if author_type == '/type/delete':
-                a = undelete_author(a)
-                author_type = a.type.key
-            if author_type == '/type/redirect':
-                a = web.ctx.site.get(a.location)
-                author_type = a.type.key
+            while author_type == '/type/delete' or author_type == '/type/redirect':
+                if author_type == '/type/delete':
+                    a = undelete_author(a)
+                    author_type = a.type.key
+                    continue
+                if author_type == '/type/redirect':
+                    a = web.ctx.site.get(a.location)
+                    author_type = a.type.key
+                    continue
             assert author_type == '/type/author'
             assert a['name']
             rec2['authors'].append({'name': a['name'], 'db_name': db_name(a)})
-    if existing.publishers:
-        rec2['publishers'] = existing.publishers
-    if existing.publish_date:
-        rec2['publisher_date'] = existing.publish_date
 
     e2 = build_marc(rec2)
     return attempt_merge(e1, e2, threshold, debug=False)

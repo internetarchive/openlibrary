@@ -1,6 +1,9 @@
-$def with (case, last_email, admins, pretty_print_date, htmlify, done = False)
+$def with (case, last_email, admins, pretty_print_date, prev_url=None, next_url=None)
 
 $var title: $case.subject ($case.creator_username)
+
+$ all = query_param("all", "false")
+$ filter = query_param("filter", "new")
 
 <script type="text/javascript">
 \$(function() {
@@ -17,23 +20,31 @@ $var title: $case.subject ($case.creator_username)
 
 <div id="contentBody">
 
- $if done:
-    <div id="contentMsg">
-        <div class="alert attn"><span>Case updated!</span></div>
-    </div>
-
 <form id="form1" name="form1" method="post" action="">
 <table class="changeHistory" border="0" cellspacing="0" style="width: 100%; margin-top: -20px; border-top: 1px solid #eee;">
   <tr>
     <th colspan="2">
+            <a href="/admin/support?all=$all&filter=$filter">Support</a> /
             <span class="black highlight"><b>$(case.caseid)</b></span>&nbsp;&nbsp;&bull;&nbsp;&nbsp; 
             <b>Status: $case.status</b>&nbsp;&nbsp;&bull;&nbsp;&nbsp; 
             Case created: $(datestr(case.created)), $(pretty_print_date(case.created))
+            
+        <div style="float: right; margin: 0;">            
+            $if prev_url:
+                <a href="$prev_url" id="prev-case">&larr; Prev</a>
+            $else:
+                <span>&larr; Prev</span>
+            | <a href="/admin/support?all=$all&filter=$filter">Home</a>
+            $if next_url:
+                | <a href="$next_url" id="next-case">Next &rarr;</a>
+            $else:
+                | <span>Next &rarr;</span>
+        </div>
     </th>
   </tr>
   <tr>
     <td colspan="2" style="padding-left: 20px; background-color: #f5f5f5;">
-        <span class="largest">$:htmlify(case.description)</span>
+        <span class="largest">$:format(case.description)</span>
     </td>
   </tr>
   <tr>
@@ -45,12 +56,18 @@ $var title: $case.subject ($case.creator_username)
         <a href="/admin/people/$(case.creator_username)">$(case.creator_username)</a>
     $else:
         <span class="black"><b>$(case.creator_email)</b></span>&nbsp;&nbsp;&bull;&nbsp;&nbsp;
-        <span class="smaller">Not logged in</span>
+        <span class="smaller">Not logged in</span> (<a href="/admin/people/$(case.creator_email)">$(case.creator_email)</a>)
+
         
     <br/><br/><span class="smaller">$(case.creator_useragent)</span></td>
   </tr>
   <tr>
     <td colspan="2" style="padding-left: 20px;">
+        $if case.status != "closed":
+            <div style="float: right; margin: 0;"><input type="submit" name="button" id="close2" value="CLOSE CASE" /></div>
+        $else:
+    	    <div style="float: right; margin: 0;"><input type="submit" name="button" id="close2" value="REOPEN CASE" /></div>
+        
          <strong>$(case.subject)</strong>&nbsp;&nbsp;&bull;&nbsp;&nbsp;From <a href="$(case.url)">$(case.url)</a>&nbsp;&nbsp;&bull;&nbsp;&nbsp;<a href="/admin/support/$(case.caseno)">http://openlibrary.org/admin/support/$(case.caseno)</a>
     </td>
   </tr>
@@ -66,7 +83,7 @@ $var title: $case.subject ($case.creator_username)
             <br />
             $(entry.by)
         </td>
-        <td>$:htmlify(entry.text)</td>
+        <td>$:format(entry.text)</td>
     </tr>
 </table>
 
@@ -98,11 +115,10 @@ $var title: $case.subject ($case.creator_username)
 </tr>
 </table>
 
-      <p align="center"><input type="submit" name="button" id="close2" value="CLOSE CASE" /></p>
-
-    
-
-  
-
+	$if case.status != "closed":
+	   <p align="center"><input type="submit" name="button" id="close2" value="CLOSE CASE" /></p>
+	$else:
+	   <p align="center"><input type="submit" name="button" id="close2" value="REOPEN CASE" /></p>
 
 </div>
+</form>

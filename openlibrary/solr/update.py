@@ -8,8 +8,18 @@ solr_works = 'ol-solr:8983'
 solr_subjects = 'ol-solr:8983'
 
 def subject_count(field, subject):
+    if len(subject) > 256:
+        subject = subject[:256]
     key = re_escape.sub(r'\\\1', str_to_key(subject)).encode('utf-8')
-    data = urlopen('http://%s/solr/works/select?indent=on&wt=json&rows=0&q=%s_key:%s' % (solr_works, field, key)).read()
+    url = 'http://%s/solr/works/select?indent=on&wt=json&rows=0&q=%s_key:%s' % (solr_works, field, key)
+    for attempt in range(5):
+        try:
+            data = urlopen(url).read()
+            break
+        except IOError:
+            pass
+        print 'exception in subject_count, retry, attempt:', attempt
+        print url
     try:
         ret = simplejson.loads(data)
     except:

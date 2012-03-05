@@ -21,12 +21,13 @@ from infogami.utils.view import add_flash_message
 import openlibrary
 from openlibrary.core import admin as admin_stats
 from openlibrary.plugins.upstream import forms
-from openlibrary.plugins.upstream.account import Account
+from openlibrary import accounts
 
 
-from openlibrary.plugins.admin import services, support, tasks
+from openlibrary.plugins.admin import services, support, tasks, inspect_thing
 
 logger = logging.getLogger("openlibrary.admin")
+
 
 def render_template(name, *a, **kw):
     if "." in name:
@@ -133,54 +134,108 @@ class people:
         i = web.input(email=None)
         
         if i.email:
-            account = Account.find(email=i.email)
+            account = accounts.find(email=i.email)
             if account:
                 raise web.seeother("/admin/people/" + account.username)
         return render_template("admin/people/index", email=i.email)
 
 class people_view:
     def GET(self, key):
-        user = web.ctx.site.get(key)
-        if user:
-            return render_template('admin/people/view', user)
+        account = accounts.find(username = key) or accounts.find(email = key)
+        if account:
+            if "@" in key:
+                raise web.seeother("/admin/people/" + account.username)
+            else:
+                return render_template('admin/people/view', account)
         else:
             raise web.notfound()
             
     def POST(self, key):
-        user = web.ctx.site.get(key)
+        user = accounts.find(username = key)
         if not user:
             raise web.notfound()
             
-        i = web.input(action=None)
+        i = web.input(action=None, tag=None, bot=None)
         if i.action == "update_email":
             return self.POST_update_email(user, i)
         elif i.action == "update_password":
             return self.POST_update_password(user, i)
+        elif i.action == "resend_link":
+            return self.POST_resend_link(user)
+        elif i.action == "activate_account":
+            return self.POST_activate_account(user)
+        elif i.action == "add_tag":
+            return self.POST_add_tag(user, i.tag)
+        elif i.action == "remove_tag":
+            return self.POST_remove_tag(user, i.tag)
+        elif i.action == "set_bot_flag":
+            return self.POST_set_bot_flag(user, i.bot)
+        else:
+            raise web.seeother(web.ctx.path)
+
+    def POST_activate_account(self, user):
+        user.activate()
+        raise web.seeother(web.ctx.path)        
+
+    def POST_resend_link(self, user):
+        key = "account/%s/verify"%user.username
+        activation_link = web.ctx.site.store.get(key)
+        del activation_link
+        user.send_verification_email()
+        add_flash_message("info", "Activation mail has been resent.")
+        raise web.seeother(web.ctx.path)
     
-    def POST_update_email(self, user, i):
+    def POST_update_email(self, account, i):
+        user = account.get_user()
         if not forms.vemail.valid(i.email):
             return render_template("admin/people/view", user, i, {"email": forms.vemail.msg})
 
         if not forms.email_not_already_used.valid(i.email):
             return render_template("admin/people/view", user, i, {"email": forms.email_not_already_used.msg})
         
-        account = user.get_account()
         account.update_email(i.email)
         
         add_flash_message("info", "Email updated successfully!")
         raise web.seeother(web.ctx.path)
     
-    def POST_update_password(self, user, i):
+    def POST_update_password(self, account, i):
+        user = account.get_user()
         if not forms.vpass.valid(i.password):
             return render_template("admin/people/view", user, i, {"password": forms.vpass.msg})
 
-        account = user.get_account()
         account.update_password(i.password)
         
         logger.info("updated password of %s", user.key)
         add_flash_message("info", "Password updated successfully!")
         raise web.seeother(web.ctx.path)
         
+    def POST_add_tag(self, account, tag):
+        account.add_tag(tag)
+        return delegate.RawText('{"ok": "true"}', content_type="application/json")
+
+    def POST_remove_tag(self, account, tag):
+        account.remove_tag(tag)
+        return delegate.RawText('{"ok": "true"}', content_type="application/json")
+    
+    def POST_set_bot_flag(self, account, bot):
+        bot = (bot and bot.lower()) == "true"
+        account.set_bot_flag(bot)
+        raise web.seeother(web.ctx.path)
+
+class people_edits:
+    def GET(self, username):
+        account = accounts.find(username=username)
+        if not account:
+            raise web.notfound()
+        else:
+            return render_template("admin/people/edits", account)
+        
+    def POST(self, username):
+        i = web.input(changesets=[], comment="Revert", action="revert")
+        if i.action == "revert" and i.changesets:
+            ipaddress_view().revert(i.changesets, i.comment)
+        raise web.redirect(web.ctx.path)        
+    
 class ipaddress:
     def GET(self):
         return render_template('admin/ip/index')
@@ -390,12 +445,14 @@ class service_status(object):
 
 class inspect:
     def GET(self, section):
-        if section == "store":
+        if section == "/store":
             return self.GET_store()
-        elif section == "memcache":
+        elif section == "/memcache":
             return self.GET_memcache()
         else:
-            raise web.notfound()
+            return inspect_thing.get_thing_info(section)
+        # else:
+        #     raise web.notfound()
         
     def GET_store(self):
         i = web.input(key=None, type=None, name=None, value=None)
@@ -415,12 +472,13 @@ class inspect:
         i = web.input()
         i.setdefault("keys", "")
         
-        from openlibrary.plugins.openlibrary import connection
-        mc = connection._memcache
+        from openlibrary.core import cache
+        mc = cache.get_memcache()
         
         keys = [k.strip() for k in i["keys"].split() if k.strip()]        
         mapping = keys and mc.get_multi(keys)
         return render_template("admin/inspect/memcache", keys, mapping)
+
         
 class deploy:
     def GET(self):
@@ -463,18 +521,16 @@ class deploy:
         status = p.wait()
         return web.storage(cmd=cmd, status=status, stdout=out, stderr=err)
 
-class graphs:
+class _graphs:
     def GET(self):
         return render_template("admin/graphs")
-        
-def get_graphite_base_url():
-    return config.get("graphite_base_url", "")
 
 def setup():
     register_admin_page('/admin/git-pull', gitpull, label='git-pull')
     register_admin_page('/admin/reload', reload, label='Reload Templates')
     register_admin_page('/admin/people', people, label='People')
-    register_admin_page('/admin(/people/.*)', people_view, label='View People')
+    register_admin_page('/admin/people/([^/]*)', people_view, label='View People')
+    register_admin_page('/admin/people/([^/]*)/edits', people_edits, label='Edits')
     register_admin_page('/admin/ip', ipaddress, label='IP')
     register_admin_page('/admin/ip/(.*)', ipaddress_view, label='View IP')
     register_admin_page('/admin/stats/(\d\d\d\d-\d\d-\d\d)', stats, label='Stats JSON')
@@ -485,12 +541,13 @@ def setup():
     register_admin_page('/admin/support', support.cases, label = "All Support cases")
     register_admin_page('/admin/support/(all|new|replied|closed)?', support.cases, label = "Filtered Support cases")
     register_admin_page('/admin/support/(\d+)', support.case, label = "Support cases")
-    register_admin_page('/admin/inspect(?:/(.+))?', inspect, label="")
+    register_admin_page('/admin/inspect(?:(/.+))?', inspect, label="")
     register_admin_page('/admin/tasks', tasks.tasklist, label = "Task queue")
     register_admin_page('/admin/tasks/(.*)', tasks.tasks, label = "Task details")
     register_admin_page('/admin/deploy', deploy, label="")
-    register_admin_page('/admin/graphs', graphs, label="")
+    register_admin_page('/admin/graphs', _graphs, label="")
 
+    inspect_thing.setup()
     support.setup()
     import mem
 
@@ -499,7 +556,9 @@ def setup():
 
     public(get_admin_stats)
     public(get_blocked_ips)
-    public(get_graphite_base_url)
     delegate.app.add_processor(block_ip_processor)
+    
+    import graphs
+    graphs.setup()
     
 setup()

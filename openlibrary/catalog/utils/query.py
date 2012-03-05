@@ -85,6 +85,9 @@ def query_iter(q, limit=500, offset=0):
             return
         for i in ret:
             yield i
+        # We haven't got as many we have requested. No point making one more request
+        if len(ret) < limit:
+            break
         q['offset'] += limit
 
 def get_editions_with_covers_by_author(author, count):
@@ -111,13 +114,14 @@ def version_iter(q, limit=500, offset=0):
         q['offset'] += limit
 
 def withKey(key):
+    url = base_url() + key + '.json'
     for i in range(20):
         try:
-            return jsonload(base_url() + key + '.json')
+            return jsonload(url)
         except:
             pass
-        print 'retry'
-        sleep(10)
+        print 'retry:', i
+        print url
 
 def get_marc_src(e):
     mc = get_mc(e['key'])

@@ -175,9 +175,15 @@ class MockSite:
             op = "="
             
         f = operations[op]
-        for i in index:
-            if i.name == name and f(i, value):
-                yield i.key
+
+        if isinstance(value, list): # Match any of the elements in value if it's a list
+            for i in index:
+                if i.name == name and any(f(i, v) for v in value):
+                    yield i.key
+        else: # Otherwise just match directly
+            for i in index:
+                if i.name == name and f(i, value):
+                    yield i.key
                     
     def compute_index(self, doc):
         key = doc['key']

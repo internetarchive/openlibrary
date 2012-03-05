@@ -60,8 +60,8 @@ class memcache_memoize:
                 self._memcache = memcache.Client(servers)
             else:
                 web.debug("Could not find memcache_servers in the configuration. Used dummy memcache.")
-                from openlibrary.mocks import mock_memcache
-                self._memcache = mock_memcache.Client()
+                import mockcache
+                self._memcache = mockcache.Client()
                 
         return self._memcache
         
@@ -271,27 +271,38 @@ class MemoryCache(Cache):
     
     def delete(self, key):
         return self.d.pop(key, None) is not None
+        
+    def clear(self):
+        self.d.clear()
 
 
 class MemcacheCache(Cache):
     """Cache implementation using memcache.
     
+    The values are json-encoded before adding to memcache and json-decoded on get.
+    
     Expects that the memcache servers are specified in web.config.memcache_servers.
     """
     @cached_property
     def memcache(self):
-        servers = config.get("memcache_servers", [])
-        return olmemcache.Client(servers)
+        servers = config.get("memcache_servers", None)
+        if servers:
+            return olmemcache.Client(servers)
+        else:
+            web.debug("Could not find memcache_servers in the configuration. Used dummy memcache.")
+            import mockcache
+            return mockcache.Client()
     
     def get(self, key):
         key = web.safestr(key)
         stats.begin("memcache.get", key=key)
         value = self.memcache.get(key)
         stats.end(hit=value is not None)
-        return value
+        return value and simplejson.loads(value)
 
     def set(self, key, value, expires=0):
         key = web.safestr(key)
+        value = simplejson.dumps(value)
         stats.begin("memcache.set", key=key)
         value = self.memcache.set(key, value, expires)
         stats.end()
@@ -299,14 +310,17 @@ class MemcacheCache(Cache):
 
     def add(self, key, value, expires=0):
         key = web.safestr(key)
+        value = simplejson.dumps(value)
         stats.begin("memcache.add", key=key)
         value = self.memcache.add(key, value, expires)
+        stats.end()
         return value
         
     def delete(self, key):
         key = web.safestr(key)
         stats.begin("memcache.delete", key=key)
         value = self.memcache.delete(key)
+        stats.end()
         return value
 
 class RequestCache(Cache):
@@ -343,24 +357,29 @@ def _get_cache(engine):
     }
     return d.get(engine)
 
-
-def memoize(engine="memory", expires=0, background=False, key=None, cacheable=None):
+class memoize:
     """Memoize decorator to cache results in various cache engines.
     
-    Usage:
+    Usage::
         
         @cache.memoize(engine="memcache")
         def some_func(args):
             pass
     
-    Arguments:
+    Arguments::
     
     * engine:
-        Engine to store the results. Available options are:
-        
+        Engine to store the results. Available options are:    
             * memory: stores the result in memory.
             * memcache: stores the result in memcached.
             * request: stores the result only in the context of the current request.
+
+    * key:
+        key to be used in the cache. If this is a string, arguments are append
+        to it before making the cache-key. If this is a function, it's
+        return-value is used as cache-key and this function is called with the
+        arguments. If not specified, the default value is computed using the
+        function name and module name.
     
     * expires:
         The amount of time in seconds the value should be cached. Pass expires=0 to cache indefinitely.
@@ -372,21 +391,13 @@ def memoize(engine="memory", expires=0, background=False, key=None, cacheable=No
         return the same old value.
         (not yet implemented)
         
-    * key:
-        key to be used in the cache. If this is a string, arguments are append
-        to it before making the cache-key. If this is a function, it's
-        return-value is used as cache-key and this function is called with the
-        arguments. If not specified, the default value is computed using the
-        function name and module name.
-        
     * cacheable:
         Function to determine if the returned value is cacheable. Sometimes it
         is desirable to not cache return values generated due to error
         conditions. The cacheable function is called with (key, value) as
         arguments. 
-        (Not yet implemented)
         
-    Advanced Usage: (not yet implemented)
+    Advanced Usage:
     
     Sometimes, it is desirable to store results of related functions in the
     same cache entry to reduce memory usage. It can be achieved by making the
@@ -400,34 +411,79 @@ def memoize(engine="memory", expires=0, background=False, key=None, cacheable=No
         def get_page(key):
             pass
     """
-    cache = _get_cache(engine)
-    if cache is None:
-        raise ValueError("Invalid cache engine: %r" % engine)
+    def __init__(self, engine="memory", key=None, expires=0, background=False, cacheable=None):
+        self.cache = _get_cache(engine)
+        self.keyfunc = self._make_key_func(key)
+        self.cacheable = cacheable
+        self.expires = expires
         
-    def decorator(f):
-        keyfunc = _make_key_func(key, f)
-        f2 = MemoizedFunction(f, cache, keyfunc, cacheable=cacheable)
+    def _make_key_func(self, key):
+        if isinstance(key, basestring):
+            return PrefixKeyFunc(key)
+        else:
+            return key
         
+    def __call__(self, f):
+        """Returns the memoized version of f.
+        """
         @functools.wraps(f)
-        def g(*args, **kwargs):
-            key = keyfunc(*args, **kwargs)
-            value = cache.get(key)
+        def func(*args, **kwargs):
+            """The memoized function. 
+
+            If this is the first call with these arguments, function :attr:`f` is called and the return value is cached.
+            Otherwise, value from the cache is returned.
+            """
+            key = self.keyfunc(*args, **kwargs)
+            value = self.cache_get(key)
             if value is None:
                 value = f(*args, **kwargs)
-                cache.set(key, simplejson.dumps(value))
-            else:
-                value = simplejson.loads(value)
+                self.cache_set(key, value)
             return value
-        return g
-    return decorator
+        return func
+            
+    def cache_get(self, key):
+        """Reads value of a key from the cache.
+        
+        When key is a string, this is equvivalant to::
+        
+            return cache[key]
+        
+        When key is a 2-tuple, this is equvivalant to::
+        
+            k0, k1 = key
+            return cache[k0][k1]
+        """
+        if isinstance(key, tuple):
+            k0, k1 = key
+            d = self.cache.get(k0)
+            return d and d.get(k1)
+        else:
+            return self.cache.get(key)
+        
+    def cache_set(self, key, value):
+        """Sets a key to a given value in the cache. 
+        
+        When key is a string, this is equvivalant to::
+            
+            cache[key] = value
+        
+        When key is a 2-tuple, this is equvivalant to::
+        
+            k0, k1 = key
+            cache[k0][k1] = value
+        """
+        # When cacheable is provided, use it to determine whether or not the cache should be updated.
+        if self.cacheable and self.cacheable(key, value) is False:
+            return
+            
+        if isinstance(key, tuple):
+            k1, k2 = key
+            d = self.cache.get(k1) or {}
+            d[k2] = value
+            return self.cache.set(k1, d, expires=self.expires)
+        else:
+            return self.cache.set(key, value, expires=self.expires)
 
-def _make_key_func(key, f):
-    key = key or (f.__module__ + "." + f.__name__)
-    if isinstance(key, basestring):
-        return PrefixKeyFunc(key)
-    else:
-        return key
-    
 class PrefixKeyFunc:
     """A function to generate cache keys using a prefix and arguments.
     """
@@ -454,72 +510,6 @@ class PrefixKeyFunc:
         memcache doesn't like spaces in the key.
         """
         return simplejson.dumps(value, separators=(",", ":"), sort_keys=True)
-    
-class MemoizedFunction:
-    def __init__(self, f, cache, keyfunc, expires=0, background=False, cacheable=None):
-        self.f = f
-        self.cache = cache
-        self.keyfunc = keyfunc
-        self.expires = expires
-        self.background = background
-        self.cacheable = cacheable
-        
-    def __call__(self, *args, **kwargs):
-        key = self.keyfunc(*args, **kwargs)
-        value = self.cache.get(key)
-        
-        # value is not found in cache
-        if value_time is None:
-            value, t = self.update(key, args, kwargs)
-        else:
-            value, t = value_time
-            
-            # value is found in cache, but it is expired
-            if self.expires and t + self.expires < time.time():
-                # update the value
-                if self.background:
-                    self.update_async(key, args, kwargs)
-                else:
-                    value, t = self.update(key, args, kwargs)
-        return value
-        
-    def update(self, key, args, kwargs):
-        value = self.f(*args, **kwargs)
-        t = time.time()
-
-        if self.background:
-            # Give more time to compute the value in background after expiry
-            expires = 2*self.expires
-        else:
-            expires = self.expires
-        
-        if self.cacheable is None or self.cacheable(key, value):
-            self.cache.set(key, [value, t], expires)
-        return value, t
-
-    def update_async(self, key, args, kwargs):
-        """Starts the update process asynchronously.
-        """
-        t = threading.Thread(target=self._update_async_worker, args=(key, args, kwargs))
-        t.start()
-
-    def _update_async_worker(self, key, args, kwargs):
-        flag_key = key + "/flag"
-
-        # set a flag to tell indicate that this value is being computed
-        if not self.cache.add(flag_key, "true", self.expires):
-            # ignore if someone else has already started the compuration
-            return
-
-        try:
-            self.update(key, args, kwargs)
-        finally:
-            # remove the flag
-            self.cache.delete(flag_key)
-            
-    def __repr__(self):
-        return "<Memoized %r>" % self.f
-
 
 def method_memoize(f):
     """object-local memoize. 

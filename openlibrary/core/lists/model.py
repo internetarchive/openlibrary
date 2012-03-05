@@ -13,15 +13,16 @@ from infogami.infobase import client, common
 from infogami.utils import stats
 
 from openlibrary.core import helpers as h
+from openlibrary.core import cache
 
 # this will be imported on demand to avoid circular dependency
-worksearch = None
+subjects = None
 
 def get_subject(key):
-    global worksearch
-    if worksearch is None:
-        from openlibrary.plugins.worksearch import code as worksearch
-    return worksearch.get_subject(key)
+    global subjects
+    if subjects is None:
+        from openlibrary.plugins.worksearch import subjects
+    return subjects.get_subject(key)
 
 def cached_property(name, getter):
     """Just like property, but the getter is called only for the first access. 
@@ -139,25 +140,33 @@ class ListMixin:
         
         When _raw=True, the edtion dicts are returned instead of edtion objects.
         """
-        if not self.seeds:
+        # show at max 10 pages
+        MAX_OFFSET = min(self.edition_count, 50 * 10)
+        
+        if not self.seeds or offset > MAX_OFFSET:
             return {
                 "count": 0,
                 "offset": offset,
                 "limit": limit,
                 "editions": []
             }
-            
-        d = self._editions_view(self._get_rawseeds(), 
-            skip=offset, limit=limit, 
-            sort="last_modified", reverse="true", 
-            stale="ok")
         
-        # couchdb-lucene is single-threaded. Get docs from couchdb instead of
-        # passing include_docs=True to couchdb-lucene to reduce load on it.
-        docs = self.get_couchdb_docs(self._get_editions_db(), [row['id'] for row in d['rows']])
+        # We don't want to give more than 500 editions for performance reasons.
+        if offset + limit > MAX_OFFSET:
+            limit = MAX_OFFSET - offset
+            
+        key_data = []
+        rawseeds = self._get_rawseeds()
+        for seeds in web.group(rawseeds, 50):
+            key_data += self._get_edition_keys(seeds, limit=MAX_OFFSET)
+        keys = [key for key, last_modified in sorted(key_data, key=lambda x: x[1], reverse=True)]
+        keys = keys[offset:limit]
+        
+        # Get the documents from couchdb 
+        docs = self.get_couchdb_docs(self._get_editions_db(), keys)
 
-        def get_doc(row):
-            doc = docs[row['id']]
+        def get_doc(key):
+            doc = docs[key]
             del doc['_id']
             del doc['_rev']
             if not _raw:
@@ -165,13 +174,63 @@ class ListMixin:
                 doc = client.create_thing(self._site, doc['key'], data)
             return doc
         
-        return {
-            "count": d['total_rows'],
-            "offset": d.get('skip', 0),
-            "limit": d['limit'],
-            "editions": [get_doc(row) for row in d['rows']]
+        d = {
+            "count": self.edition_count,
+            "offset": offset,
+            "limit": limit,
+            "editions": [get_doc(key) for key in keys]
         }
         
+        if offset + limit < MAX_OFFSET:
+            d['next_params'] = {
+                'offset': offset+limit
+            }
+            
+        if offset > 0:
+            d['prev_params'] = {
+                'offset': max(0, offset-limit)
+            }
+        return d
+    
+    def _get_edition_keys(self, rawseeds, offset=0, limit=500):
+        """Returns a tuple of (key, last_modified) for all editions associated with given seeds.
+        """
+        d = self._editions_view(rawseeds,
+            skip=offset, limit=limit,
+            sort="last_modified", reverse="true",
+            stale="ok")
+        return [(row['id'], row['sort_order'][0]) for row in d['rows']]
+        
+    def get_all_editions(self):
+        """Returns all the editions of this list in arbitrary order.
+        
+        The return value is an iterator over all the edtions. Each entry is a dictionary.
+        (Compare the difference with get_editions.)
+        
+        This works even for lists with too many seeds as it doesn't try to
+        return editions in the order of last-modified.
+        """
+        rawseeds = self._get_rawseeds()
+        
+        def get_edition_keys(seeds):
+            d = self._editions_view(seeds, limit=10000, stale="ok")
+            return [row['id'] for row in d['rows']]
+            
+        keys = set()
+        
+        # When there are too many seeds, couchdb-lucene fails because the query URL is too long.
+        # Splitting the seeds into groups of 50 to avoid that trouble.
+        for seeds in web.group(rawseeds, 50):
+            keys.update(get_edition_keys(seeds))
+        
+        # Load docs from couchdb now.
+        for chunk in web.group(keys, 1000):
+            docs = self.get_couchdb_docs(self._get_editions_db(), chunk)
+            for doc in docs.values():
+                del doc['_id']
+                del doc['_rev']
+                yield doc
+            
     def _preload(self, keys):
         keys = list(set(keys))
         return self._site.get_many(keys)
@@ -270,12 +329,19 @@ class ListMixin:
         if isinstance(seed, dict):
             seed = seed['key']
         return seed in self._get_rawseeds()
-        
-    def get_default_cover(self):
+    
+    # cache the default_cover_id for 60 seconds
+    @cache.memoize("memcache", key=lambda self: ("d" + self.key, "default-cover-id"), expires=60)
+    def _get_default_cover_id(self):
         for s in self.get_seeds():
             cover = s.get_cover()
             if cover:
-                return cover
+                return cover.id
+    
+    def get_default_cover(self):
+        from openlibrary.core.models import Image
+        cover_id = self._get_default_cover_id()
+        return Image(self._site, 'b', cover_id)
         
     def _get_seeds_db(self):
         db_url = config.get("lists", {}).get("seeds_db")

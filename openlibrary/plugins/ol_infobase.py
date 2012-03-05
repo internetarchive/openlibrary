@@ -14,7 +14,8 @@ import web
 from infogami.infobase import config, common, server, cache, dbstore
 
 # relative import
-from openlibrary import schema
+from .openlibrary import schema
+from ..utils.isbn import isbn_10_to_isbn_13, isbn_13_to_isbn_10
 
 logger = logging.getLogger("infobase.ol")
 
@@ -76,7 +77,7 @@ def setup_logging():
     try:
         logconfig = config.get("logging_config_file")
         if logconfig and os.path.exists(logconfig):
-            logging.config.fileConfig(logconfig)
+            logging.config.fileConfig(logconfig, disable_existing_loggers=False)
         logger.info("logging initialized")
         logger.debug("debug")
     except Exception, e:
@@ -484,8 +485,9 @@ class OLIndexer(_Indexer):
         title = doc.get("title", "")
         doc['normalized_title_'] = self.normalize_edition_title(title)
 
-        isbns = doc.get("isbn", []) + doc.get("isbn_13", [])
-        doc['isbn_'] = [self.normalize_isbn(isbn) for isbn in isbns]
+        isbns = doc.get("isbn_10", []) + doc.get("isbn_13", [])
+        isbns = [self.normalize_isbn(isbn) for isbn in isbns]
+        doc['isbn_'] = self.expand_isbns(isbns)
         return doc
 
     def normalize_edition_title(self, title):
@@ -509,3 +511,15 @@ class OLIndexer(_Indexer):
     
     def normalize_isbn(self, isbn):
         return isbn.strip().upper().replace(" ", "").replace("-", "")
+
+    def expand_isbns(self, isbns):
+        """Expands the list of isbns by adding ISBN-10 for ISBN-13 and vice-verse.
+        """
+        s = set(isbns)
+        for isbn in isbns:
+            isbn = isbn.replace("-", "")
+            if len(isbn) == 10:
+                s.add(isbn_10_to_isbn_13(isbn))
+            else:
+                s.add(isbn_13_to_isbn_10(isbn))
+        return [isbn for isbn in s if isbn is not None]

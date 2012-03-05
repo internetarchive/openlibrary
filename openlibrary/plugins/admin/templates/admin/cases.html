@@ -1,8 +1,11 @@
 $def with (summary, total, cases, desc, error = False)
 
+$ all = query_param("all", "false")
+$ filter = query_param("filter", "new")
+
 <div id="contentHead">
-    $:render_template("admin/menu", "/admin")
-    <h1>Support cases</h1>
+    $:render_template("admin/menu")
+    <h1>Help Cases</h1>
 </div>
 <div id="contentBody">
 <style type="text/css">
@@ -26,14 +29,36 @@ table.support pre.hidden {
 
 </style>
 
+$ path = request.path
+$if path.endswith("support"): 
+   $ path = "/admin/support/new"
+
+
+$def link(url, title, extra):
+    $if url.endswith(path):
+        <strong>$title ($extra)</strong>
+    $else:
+        <a href="$url">$title $extra</a>
+
+$def checkbox_flag(name, value):
+   $if query_param(name) == value:
+     checked="true"
+
+
 $if error:
   <p>Couldn't connect to support database.</p>
 $else:
-  <p>Filter: <a href="/admin/support/all"><strong> $(total) total</strong> </a>
-  $for i in summary:
-    |  <a href="/admin/support/$(i.key[0])">$(i.value) $(i.key[0])</a>
+  <p>
+    Filter: $:link("/admin/support", "new", summary["new"])  |
+    $:link("/admin/support?filter=replied", "replied", summary["replied"]) |
+    $:link("/admin/support?filter=closed", "closed", summary["closed"]) |
+    $:link("/admin/support?filter=all", "all", total)
   </p>
-  <table class = "support" border="0" cellspacing="0" cellpadding="10">
+    <form method="GET" id="userfilter">
+      <label for="mine">Show all cases (not just mine)</label>
+      <input type="checkbox" $checkbox_flag("all", "true") name="all" value="true" id="mine" onChange="\$('#userfilter').submit();"/>
+    </form>
+    <table class = "changeHistory" border="0" cellspacing="0" cellpadding="10">
       <tr>
           <th><a href="?sort=caseid&desc=$desc">#</a></th>
           <th><a href="?sort=created&desc=$desc">Created</a></th>
@@ -45,14 +70,14 @@ $else:
           <th><a href="?sort=status&desc=$desc">Status</a></th>
       </tr>
       $for case in cases:
-      <tr>
+      <tr class="$cond(len(case.history) == 1, 'highlight', '')">
         <td align="right">$case.caseid</td>
         <td>$datestr(case.created)</td>
-        <td><a href="/admin/support/$(case.caseno)">$case.subject</a></td>
+        <td><a href="/admin/support/$(case.caseno)?all=$all&filter=$filter">$case.subject</a></td>
         <td><a href="/admin/people/$(case.creator_username)">$case.creator_name</a></td>
         <td>$case.assignee</td>
         <td>$datestr(case.last_modified)</td>
-	<td>$len(case.history)</td>
+        <td>$len(case.history)</td>
         <td>$case.status</td>
       </tr>
   </table>

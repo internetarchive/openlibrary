@@ -16,40 +16,37 @@ l = logging.getLogger("openlibrary.stats")
 
 filters = {}
 
-def evaluate_and_store_stat(name, stat):
+def evaluate_and_store_stat(name, stat, summary):
     """Evaluates whether the given statistic is to be recorded and if
     so, records it."""
     global filters
-    summary = stats.stats_summary()
     if not summary:
         return
     try:
         f = filters[stat.filter]
     except KeyError:
-        l.critical("Filter %s not registered", stat.filter)
-        raise
+        l.warning("Filter %s not registered", stat.filter)
+        return
     try:
         if f(**stat):
-            l.debug("Storing stat %s", name)
             if stat.has_key("time"):
                 graphite_stats.put(name, summary[stat.time]["time"] * 100)
             elif stat.has_key("count"):
-                print "Storing count for key %s"%stat.count
+                #print "Storing count for key %s"%stat.count
+                # XXX-Anand: where is the code to update counts?
+                pass
             else:
                 l.warning("No storage item specified for stat %s", name)
     except Exception, k:
         l.warning("Error while storing stats (%s). Complete traceback follows"%k)
         l.warning(traceback.format_exc())
-        
-        
     
-def update_all_stats():
+def update_all_stats(stats_summary):
     """
     Run through the filters and record requested items in graphite
     """
     for stat in config.get("stats", []):
-        evaluate_and_store_stat(stat, config.stats.get(stat))
-        
+        evaluate_and_store_stat(stat, config.stats.get(stat), stats_summary)
         
 def stats_hook():
     """web.py unload hook to add X-OL-Stats header.
@@ -58,8 +55,8 @@ def stats_hook():
     
     Also, send stats to graphite using statsd
     """
-    update_all_stats()
     stats_summary = stats.stats_summary()
+    update_all_stats(stats_summary)
     try:
         if "stats-header" in web.ctx.features:
             web.header("X-OL-Stats", format_stats(stats_summary))
@@ -131,3 +128,5 @@ def setup():
     filters"""
     register_filter("all", stats_filters.all)
     register_filter("url", stats_filters.url)
+    register_filter("loggedin", stats_filters.loggedin)
+    register_filter("not_loggedin", stats_filters.not_loggedin)

@@ -1,11 +1,14 @@
-$def with ()
+$def with (account)
 
 $var title: $_("Account already activated")
 
 <div id="contentHead">
-    <h1>$_("Account already activated")</h1>
+    <h1>$_("Hi, %s", account.displayname)</h1>
 </div>
 
 <div id="contentBody">
-    <p class="instruct">$:('This account has already been activated. Please <a href="/account/login?redirect=/">log in to continue</a>.')</p>
+  $ link = "/account/login?redirect=/&username=" + account.username
+  <p class="instruct">$:_('Your account has been activated already. Please <a href="%s">log in to continue</a>.', link)</p>
 </div>
+
+

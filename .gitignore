@@ -30,4 +30,7 @@ lamson.out
 openlibrary/mailserver/run/
 bad_data.json
 celerybeat-schedule
-
+TAGS
+env/
+.coverage
+htmlcov

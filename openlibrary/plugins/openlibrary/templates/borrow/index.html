@@ -1,4 +1,4 @@
-$def with (page, stats)
+$def with (page, stats, rand=-1)
 
 $var title: $page.name
 
@@ -44,6 +44,7 @@ $ subject_list = [('subjects', 20), ('places', 20), ('people', 10), ('times', 10
 <script type="text/javascript">
 <!--
 var page = new Subject($:json_encode(page), {pagesize: 24});
+page.filter.rand = $:json_encode(rand);
 //-->
 </script>
 

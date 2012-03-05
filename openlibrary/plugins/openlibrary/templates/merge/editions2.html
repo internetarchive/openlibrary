@@ -1,0 +1,75 @@
+$def with (master, editions, all_keys, merged, possible_values)
+
+$var title: $_("Merge Editions")
+
+<div id="contentHead">
+    <span class="lightgreen sansserief">$(_("Merging %d editions of") % len(editions))</span>
+    <h1>$master.title</h1>
+</div>
+
+<script>
+function use_value(k, ekey) {
+    alert(k + ' :: ' + ekey);
+}
+</script>
+
+<div id="contentBody">
+
+    <div id="mergeHead" class="sansserif">
+        <div class="smallest lightgreen">Master</div>
+
+        <div id="recordMaster">
+            <div class="edition">
+                <a class="name" href="$master.key">$master.title</a> $master.publishers[0], $master.publish_date
+            </div>
+        </div>
+
+        <div class="smallest lightgreen">Duplicates</div>
+        <div id="recordDuplicates">
+            $for e in editions:
+                $if e.key == master.key:
+                    $continue
+                <div class="edition">
+                    <a class="name" href="$e.key">$e.title</a> $e.publishers[0], $e.publish_date
+                </div>
+        </div>
+
+    </div>
+
+    <h2>Merge Preview</h2>
+    
+    <p>Please review the merged values before saving.</p>
+            
+    <table class="changeHistory">
+        <tr>
+            <th></th>
+            <th>Merged Value</th>
+            <th>Alternate Values</th>
+        </tr>
+
+    $for k in all_keys:
+        $if k in ('key', 'type', 'works'):
+            $ continue
+        <tr>
+            <td class="name">$_(k)</td>
+            <td class="merged">
+                $if isinstance(merged.get(k), list):
+                    $for i in merged[k]:
+                        $i<br>
+                $else:
+                    $merged.get(k)
+            </td>
+
+            <td class="options">
+            $for v, num in possible_values[k].iteritems():
+                $v (x $num)<br>
+            </td>
+        </tr>
+    <table>
+
+    <p>
+        <button class="larger">Merge Editions</button>
+        <a href="javascript:history.go(-1);" class="small red sansserif">Cancel</a>
+    </p>
+
+</div>

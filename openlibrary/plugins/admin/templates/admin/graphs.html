@@ -6,22 +6,33 @@ $var title: Performance Graphs
     <h1>Performance Graphs</h1>
 </div>
 
-$ grahite_base = get_graphite_base_url()
-
-$def render_graph(target, days):
-    $if isinstance(target, list):
-        $ target = "&".join('target=' + t for t in target)
-    $else:
-        $ target = 'target=' + target
-    <img src="$grahite_base/render/?width=850&height=303&$target&from=-$days"/>
-
 $def render_graph_page(days):
-    <h2>Page Load Time</h2>    
-    $ names = ["stats.timers.ol.pageload.%s.mean" % name for name in ["all", "home", "search", "authors", "books", "works"]]
-    $:render_graph(names, days)
+    $ defaults = {"width": 850, "height": 303, "from": days, "yMin": 0}
+    
+    <h2>Numbe of Hits</h2>
+    $ g = GraphiteGraph()
+    $g.add("stats.timers.ol.total.count").apply("movingAverage", 20).alias("#hits")
+    $:g.render(**defaults)
+    
+    <h2>Page Load Times</h2>
+    $ g = GraphiteGraph()
+    $g.add("stats.timers.ol.pageload.all.mean").apply("movingAverage", 20).alias("all")
+    $g.add("stats.timers.ol.pageload.all.loggedin.mean").apply("movingAverage", 20).alias("logged-in")
+    $g.add("stats.timers.ol.pageload.all.not_loggedin.mean").apply("movingAverage", 20).alias("not logged-in")
+    $:g.render(yLimit=100, **defaults)
+    
+    <h2>Page Load Times Split</h2>
+    
+    $ g = GraphiteGraph()
+    $for name in ["authors", "books", "works", "home", "search", "subjects"]:
+        $g.add("stats.timers.ol.pageload.%s.mean" % name).apply("movingAverage", 20).alias(name)
+    $:g.render(yLimit=100, **defaults)
+    
     <h2>Infobase Mean</h2>
-    $:render_graph("stats.timers.ol.infobase.mean", days)
-
+    $ g = GraphiteGraph()
+    $g.add("stats.timers.ol.infobase.mean").apply("movingAverage", 20).alias("infobase.mean")
+    $:g.render(yLimit=300, **defaults)
+    
 <div id="contentBody">
 <div class="tabs">
     <ul>
@@ -29,9 +40,9 @@ $def render_graph_page(days):
         <li><a href="#week" id="link_week">$_("This Week")</a></li>
         <li><a href="#month" id="link_month">$("This Month")</a></li>
     </ul>
-    <div id="day">$:render_graph_page("1days")</div>
-    <div id="week">$:render_graph_page("7days")</div>
-    <div id="month">$:render_graph_page("30days")</div>
+    <div id="day">$:render_graph_page("-1days")</div>
+    <div id="week">$:render_graph_page("-7days")</div>
+    <div id="month">$:render_graph_page("-30days")</div>
 </div>
 
 </div>

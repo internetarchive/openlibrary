@@ -105,11 +105,29 @@ class search_inside(delegate.page):
             stats.begin("solr", url=solr_select)
             json_data = urllib.urlopen(solr_select).read()
             stats.end()
+           
             try:
-                return simplejson.loads(json_data)
+                results = simplejson.loads(json_data)
             except:
                 m = re_query_parser_error.search(json_data)
                 return { 'error': web.htmlunquote(m.group(1)) }
+
+            ekey_doc = {}
+            for doc in results['response']['docs']:
+                ia = doc['ia']
+                q = {'type': '/type/edition', 'ocaid': ia}
+                ekeys = web.ctx.site.things(q)
+                if not ekeys:
+                    del q['ocaid']
+                    q['source_records'] = 'ia:' + ia
+                    ekeys = web.ctx.site.things(q)
+                if ekeys:
+                    ekey_doc[ekeys[0]] = doc
+
+            editions = web.ctx.site.get_many(ekey_doc.keys())
+            for e in editions:
+                ekey_doc[e['key']]['edition'] = e
+            return results
 
         return render_template('search/inside.tmpl', get_results, quote_snippet, editions_from_ia, read_from_archive)
 
@@ -135,13 +153,23 @@ re_h1_error = re.compile('<center><h1>(.+?)</h1></center>')
 class snippets(delegate.page):
     path = '/search/inside/(.+)'
     def GET(self, ia):
+        def find_doc(ia, host, ia_path):
+            abbyy_gz = '_abbyy.gz'
+            files_xml = 'http://%s%s/%s_files.xml' % (host, ia_path, ia)
+            xml_data = urllib.urlopen(files_xml)
+            for e in etree.parse(xml_data).getroot():
+                if e.attrib['name'].endswith(abbyy_gz):
+                    return e.attrib['name'][:-len(abbyy_gz)]
+
         def find_matches(ia, q):
             q = escape_q(q)
             host, ia_path = ia_lookup('/download/' + ia)
-            url = 'http://' + host + '/fulltext/inside.php?item_id=' + ia + '&doc=' + ia + '&path=' + ia_path + '&q=' + web.urlquote(q)
-            ret = urllib.urlopen(url)
+            doc = find_doc(ia, host, ia_path) or ia
+
+            url = 'http://' + host + '/fulltext/inside.php?item_id=' + ia + '&doc=' + doc + '&path=' + ia_path + '&q=' + web.urlquote(q)
+            ret = urllib.urlopen(url).read().replace('"matches": [],\n}', '"matches": []\n}')
             try:
-                return simplejson.load(ret)
+                return simplejson.loads(ret)
             except:
                 m = re_h1_error.search(ret)
                 return { 'error': web.htmlunquote(m.group(1)) }

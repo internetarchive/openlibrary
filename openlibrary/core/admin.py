@@ -3,11 +3,12 @@
 
 import calendar
 import datetime
-
 import couchdb
 
 from infogami import config
+from infogami.utils import stats
 
+from . import cache
 
 class Stats:
     def __init__(self, docs, key, total_key):
@@ -57,16 +58,27 @@ class Stats:
         """
         return sum(x[1] for x in self.get_counts(ndays))
 
-            
-def get_stats(ndays = 30):
-    """Returns the stats for the past `ndays`"""
+@cache.memoize(engine="memcache", key="admin._get_count_docs", expires=5*60)
+def _get_count_docs(ndays):
+    """Returns the count docs from admin couchdb database.
+    
+    This function is memoized to avoid accessing couchdb for every request.
+    """
     admin_db = couchdb.Database(config.admin.counts_db)
     end      = datetime.datetime.now().strftime("counts-%Y-%m-%d")
     start    = (datetime.datetime.now() - datetime.timedelta(days = ndays)).strftime("counts-%Y-%m-%d")
+        
+    stats.begin("couchdb")
     docs = [x.doc for x in admin_db.view("_all_docs",
                                          startkey_docid = start,
                                          endkey_docid   = end,
                                          include_docs = True)]
+    stats.end()
+    return docs
+
+def get_stats(ndays = 30):
+    """Returns the stats for the past `ndays`"""
+    docs = [couchdb.Document(doc) for doc in _get_count_docs(ndays)]
     retval = dict(human_edits = Stats(docs, "human_edits", "human_edits"),
                   bot_edits   = Stats(docs, "bot_edits", "bot_edits"),
                   lists       = Stats(docs, "lists", "total_lists"),
@@ -80,5 +92,3 @@ def get_stats(ndays = 30):
                   authors     = Stats(docs, "authors", "total_authors"),
                   subjects    = Stats(docs, "subjects", "total_subjects"))
     return retval
-    
-
