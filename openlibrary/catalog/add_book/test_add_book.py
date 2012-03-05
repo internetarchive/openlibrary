@@ -8,6 +8,7 @@ from merge import try_merge
 from copy import deepcopy
 from urllib import urlopen
 from collections import defaultdict
+from pprint import pprint
 
 def add_languages(mock_site):
     languages = [
@@ -461,7 +462,7 @@ def test_no_extra_author(mock_site):
     add_languages(mock_site)
 
     author = {
-        "name": "Paul  Boothe",
+        "name": "Paul Michael Boothe",
         "key": "/authors/OL2894448A",
         "type": {"key": "/type/author"},
     }
@@ -504,8 +505,13 @@ def test_no_extra_author(mock_site):
     rec = read_edition(marc)
     rec['source_records'] = ['marc:' + src]
 
+    #pprint(rec)
+
     reply = load(rec)
     assert reply['success'] == True
+
+    a = mock_site.get(reply['authors'][0]['key'])
+    pprint(a.dict())
 
     if 'authors' in reply:
         assert reply['authors'][0]['key'] == author['key']
