@@ -33,6 +33,14 @@ class contact(delegate.page):
         useragent = web.ctx.env.get("HTTP_USER_AGENT","")
         if not all([email, topic, description]):
             return ""
+
+        default_assignees = config.get("support_default_assignees",{})
+        topic_key = topic.replace(" ","_").lower()
+        if topic_key in default_assignees:
+            assignee = default_assignees.get(topic_key)
+        else:
+            assignee = default_assignees.get("default", "mary@openlibrary.org")
+        print "Assignee is %s"%assignee
         c = support_db.create_case(creator_name      = user and user.get_name() or "",
                                    creator_email     = email,
                                    creator_useragent = useragent,
@@ -40,7 +48,7 @@ class contact(delegate.page):
                                    subject           = topic,
                                    description       = description,
                                    url               = url,
-                                   assignee          = config.get("support_case_default_address","mary@openlibrary.org"))
+                                   assignee          = assignee)
 
 
 
