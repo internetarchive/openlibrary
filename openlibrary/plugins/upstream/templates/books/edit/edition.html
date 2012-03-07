@@ -384,7 +384,7 @@ $def radiobuttons(name, options, value):
                                 <input type="hidden" name="edition--identifiers--${i}--value" value="$id.value"/>
                             </td>
                             $# Disable removing ocaid for regular users.
-                            $ admin_user = ctx.user and ctx.user.admin()
+                            $ admin_user = ctx.user and ctx.user.is_admin()
                             $if id.name == "ocaid" and not admin_user:
                                 <td width="100%"></td>
                             $else:
