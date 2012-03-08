@@ -1,14 +1,13 @@
 $def with (type, usetable=0)
 
-<script>
-function changeTemplate() {
-    var t = document.edit['type.key'].value;
-    document.location.href += '&t=' + t;
-}
-</script>
-
 <div class="formElement pagetype collapse adminOnly" id="pageType">
     $if ctx.user and ctx.user.is_admin():
+        <script>
+        function changeTemplate() {
+            var t = document.edit['type.key'].value;
+            document.location.href += '&t=' + t;
+        }
+        </script>
         <div class="label">
             <label for="type.key">$_("Page Type")</label>
             <span class="small gray">&nbsp;<a href="javascript:;" onclick="\$('#typeSplain').slideToggle();">Huh</a>?</span>
@@ -19,4 +18,6 @@ function changeTemplate() {
         <div class="input">
             $:thinginput(type, name="type.key", id="type.key", expected_type="/type/type", kind="regular",  onchange="changeTemplate();")
         </div>
+    $else:
+        <input type="hidden" name="type.key" value="$type"/>
 </div>

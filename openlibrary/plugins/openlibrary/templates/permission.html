@@ -1,17 +1,34 @@
-$def with (p)
+$def with (page)
 
-$var title: Permission of $p.key
+$var title: Permission of $page.key
 
-<div id="header">
-    <div style="float:left;padding-left:10px;padding-right:15px;"></div>
-    <span class="pretitle"></span>
-    <div id="title">Permission of $p.key</div>
+<div id="contentHead">
+    <span class="lightgreen smallest sansserif">$_("Permission of")</span>
+    <h1><a href="$page.key">$page.key</a></h1>
 </div>
 
-<div class="contenttext">
-<form method="POST">
-    Permission: $:thinginput("/type/permission", "permission", p.permission)<br/>
-    Child Permission: $:thinginput("/type/permission", "child_permission", p.child_permission)<br/>
-    <input type="submit" value="Save"/>
+<div class="contentBody">
+<form method="POST" class="olform">
+    <div class="formElement">
+        <div class="label">
+            <label for="edition-language">$_("Permission")</label>
+            <span class="tip"></span>
+        </div>
+        <div class="input">
+			$:thinginput(page.permission, expected_type="/type/permission", name="permission")
+        </div>
+	</div>
+
+    <div class="formElement">
+        <div class="label">
+            <label for="edition-language">$_("Child Permission")</label>
+            <span class="tip"></span>
+        </div>
+        <div class="input">
+			$:thinginput(page.child_permission, expected_type="/type/permission", name="child_permission")
+        </div>
+	</div>
+
+    $:macros.EditButtons(comment=page.comment_)
 </form>
 </div>
