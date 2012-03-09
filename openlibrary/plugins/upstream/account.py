@@ -118,7 +118,6 @@ class account_login(delegate.page):
         if not account:
             return self.error("account_user_notfound", i)
         
-        
         if i.redirect == "/account/login" or i.redirect == "":
             i.redirect = "/"
             
@@ -131,6 +130,8 @@ class account_login(delegate.page):
             return render_template("account/not_verified", username=account.username, password=i.password, email=account.email)
         elif status == "account_not_found":
             return self.error("account_user_notfound", i)
+        elif status == "account_blocked":
+            return self.error("account_blocked", i)
         else:
             return self.error("account_incorrect_password", i)
             
@@ -314,6 +315,10 @@ class account_password_forgot(delegate.page):
             return render['account/password/forgot'](f)
 
         account = accounts.find(email=i.email)
+        
+        if account.is_blocked():
+            f.note = utils.get_error("account_blocked")
+            return render_template('account/password/forgot', f)
         
         send_forgot_password_email(account.username, i.email)
         return render['account/password/sent'](i.email)

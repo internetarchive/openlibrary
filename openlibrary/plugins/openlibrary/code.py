@@ -80,6 +80,11 @@ lists.setup()
 
 class hooks(client.hook):
     def before_new_version(self, page):
+        user = web.ctx.site.get_user()
+        account = user and user.get_account()
+        if account and account.is_blocked():
+            raise ValidationException("Your account has been suspended. You are not allowed to make any edits.")
+        
         if page.type.key == '/type/library':
             bad = list(page.find_bad_ip_ranges(page.ip_ranges or ""))
             if bad:
