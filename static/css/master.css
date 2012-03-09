@@ -210,8 +210,9 @@ div.note {
     font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
     background-color: #fffdcd;
     margin: 0 auto;
-    padding: 0 15px;
+    padding: 10px;
     text-align: left;
+    border: 1px solid #e2de8b;
 }
 div#noLogin {margin-top:10px;background:#fffdcd url("/images/icons/icon_info.png") no-repeat 10px 50%;padding:10px 10px 10px 44px;}
 .flash-messages .bookadded span {
