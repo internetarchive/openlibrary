@@ -74,10 +74,8 @@ def _query(category, key, value):
                 return find_coverid_from_couch(db, key, value)
             
             if key == 'isbn':
-                if len(value.replace('-', '')) == 13:
-                    key = 'isbn_13'
-                else:
-                    key = 'isbn_10'
+                value = value.replace("-", "").strip()
+                key = "isbn_"
             if key == 'oclc':
                 key = 'oclc_numbers'
             olkeys = ol_things(key, value)
