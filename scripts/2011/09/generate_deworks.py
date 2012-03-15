@@ -1,4 +1,8 @@
 """Script to generate denormalizied works dump.
+
+USAGE:
+
+    python scripts/2011/09/generate_deworks.py ol_dump_latest.txt.gz | gzip -c > ol_dump_deworks.txt.gz
 """
 import time
 import sys
@@ -13,6 +17,7 @@ import subprocess
 import web
 from collections import defaultdict
 import re
+import shutil
 
 from openlibrary.data import mapreduce
 from openlibrary.utils import compress
@@ -32,6 +37,11 @@ class DenormalizeWorksTask(mapreduce.Task):
     def __init__(self, *a, **kw):
         mapreduce.Task.__init__(self, *a, **kw)
         self.authors = AuthorsDict()
+
+    def close(self):
+        """Removes all the temp files created for running map-reduce.
+        """
+        shutil.rmtree(self.tmpdir, ignore_errors=True)
 
     def map(self, key, value):
         """Takes key and json as inputs and emits (work-key, work-json) or (work-key, edition-json)
@@ -174,10 +184,10 @@ def main(dumpfile):
     records = read_dump(dumpfile)
     task = DenormalizeWorksTask()
 
-    f = gzip.open("deworks.txt.gz", "w")
     for key, json in task.process(records):
-        f.write(key + "\t" + json + "\n")
-    f.close()
+        print key + "\t" + json
+
+    task.close()
     
 def make_author_db(author_dump_file):
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
@@ -241,6 +251,7 @@ def test_AuthorsDict():
         assert d[doc['key']] == doc
     
 if __name__ == '__main__':
+    # the --authordb and --iadb options are not in use now.
     if "--authordb" in sys.argv:
         sys.argv.remove("--authordb")
         make_author_db(sys.argv[1])
