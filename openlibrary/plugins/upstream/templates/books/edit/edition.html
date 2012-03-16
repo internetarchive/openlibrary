@@ -345,10 +345,18 @@ $def radiobuttons(name, options, value):
                 <table class="identifiers" width="100%">
                     <tr id="identifiers-form">
                         <td align="right">
-                            $ id_labels = dict((d.name, d.label) for d in edition_config.identifiers)
                             <select name="name" id="select-id" style="width:300px!important;">    
+                            $ id_labels = dict((d.name, d.label) for d in edition_config.identifiers)
+                            $ id_dict = dict((id.name, id) for id in edition_config.identifiers)
+ 							$ popular = ["ocaid", "isbn_10", "isbn_13", "lccn", "oclc_numbers", "goodreads", "librarything"]
+							$ set1 = [id_dict[name] for name in popular if name in id_dict]
+                            $ set2 = sorted([id for id in edition_config.identifiers if id.name not in popular], key=lambda id:id.label)
+							
                                 <option value="">Select one of many...</option>
-                                $for id in edition_config.identifiers:
+                                $for id in set1:
+                                    <option value="$id.name">$id.label</option>
+                                <optgroup label="----------"></optgroup>    
+                                $for id in set2:
                                     <option value="$id.name">$id.label</option>
                                 
                                 <!-- <option>---</option> -->
