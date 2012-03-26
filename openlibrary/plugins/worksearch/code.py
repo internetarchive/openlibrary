@@ -619,6 +619,9 @@ class search_json(delegate.page):
         limit = query.pop("limit", None)
         offset = safeint(query.pop("offset", 0))
 
+        q_list, use_dismax = build_q_list(query)
+        query = " ".join(q_list)
+
         from openlibrary.utils.solr import Solr
         import simplejson
 
