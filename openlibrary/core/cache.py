@@ -53,19 +53,9 @@ class memcache_memoize:
         )
         self.active_threads = {}
     
-    def _get_memcache(self):
-        if self._memcache is None:
-            servers = config.get("memcache_servers")
-            if servers:
-                self._memcache = memcache.Client(servers)
-            else:
-                web.debug("Could not find memcache_servers in the configuration. Used dummy memcache.")
-                import mockcache
-                self._memcache = mockcache.Client()
-                
-        return self._memcache
-        
-    memcache = property(_get_memcache)
+    @property
+    def memcache(self):
+        return get_memcache()
         
     def _generate_key_prefix(self):
         try:
@@ -274,7 +264,17 @@ class MemoryCache(Cache):
         
     def clear(self):
         self.d.clear()
-
+        
+        
+@web.memoize
+def get_memcache():
+    servers = config.get("memcache_servers", None)
+    if servers:
+        return olmemcache.Client(servers)
+    else:
+        web.debug("Could not find memcache_servers in the configuration. Used dummy memcache.")
+        import mockcache
+        return mockcache.Client()
 
 class MemcacheCache(Cache):
     """Cache implementation using memcache.
@@ -283,15 +283,9 @@ class MemcacheCache(Cache):
     
     Expects that the memcache servers are specified in web.config.memcache_servers.
     """
-    @cached_property
+    @property
     def memcache(self):
-        servers = config.get("memcache_servers", None)
-        if servers:
-            return olmemcache.Client(servers)
-        else:
-            web.debug("Could not find memcache_servers in the configuration. Used dummy memcache.")
-            import mockcache
-            return mockcache.Client()
+        return get_memcache()
     
     def get(self, key):
         key = web.safestr(key)
@@ -433,12 +427,16 @@ class memoize:
             If this is the first call with these arguments, function :attr:`f` is called and the return value is cached.
             Otherwise, value from the cache is returned.
             """
+            _cache = kwargs.pop("_cache", None)
+            
             key = self.keyfunc(*args, **kwargs)
             value = self.cache_get(key)
             if value is None:
                 value = f(*args, **kwargs)
-                self.cache_set(key, value)
+                if _cache != "readonly":
+                    self.cache_set(key, value)
             return value
+        func._original_function = f
         return func
             
     def cache_get(self, key):
