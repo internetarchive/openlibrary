@@ -156,6 +156,18 @@ class Account(web.storage):
     def activate(self):
         web.ctx.site.activate_account(username=self.username)
         
+    def block(self):
+        """Blocks this account."""
+        web.ctx.site.update_account(self.username, status="blocked")
+
+    def unblock(self):
+        """Unblocks this account."""
+        web.ctx.site.update_account(self.username, status="active")
+
+    def is_blocked(self):
+        """Tests if this account is blocked."""
+        return self.status == "blocked"
+
     def login(self, password):
         """Tries to login with the given password and returns the status.
         
@@ -165,9 +177,12 @@ class Account(web.storage):
             * account_not_vefified
             * account_not_found
             * account_incorrect_password
-        
+            * account_blocked
+
         If the login is successful, the `last_login` time is updated.
         """
+        if self.is_blocked():
+            return "account_blocked"
         try:
             web.ctx.site.login(self.username, password)
         except ClientException, e:

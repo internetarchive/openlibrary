@@ -164,6 +164,10 @@ class people_view:
             return self.POST_resend_link(user)
         elif i.action == "activate_account":
             return self.POST_activate_account(user)
+        elif i.action == "block_account":
+            return self.POST_block_account(user)
+        elif i.action == "unblock_account":
+            return self.POST_unblock_account(user)
         elif i.action == "add_tag":
             return self.POST_add_tag(user, i.tag)
         elif i.action == "remove_tag":
@@ -176,6 +180,14 @@ class people_view:
     def POST_activate_account(self, user):
         user.activate()
         raise web.seeother(web.ctx.path)        
+
+    def POST_block_account(self, account):
+        account.block()
+        raise web.seeother(web.ctx.path)
+
+    def POST_unblock_account(self, account):
+        account.unblock()
+        raise web.seeother(web.ctx.path)
 
     def POST_resend_link(self, user):
         key = "account/%s/verify"%user.username

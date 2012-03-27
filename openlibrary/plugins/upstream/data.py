@@ -25,7 +25,7 @@ def download_url(item, filename):
     return "http://www.archive.org/download/%s/%s" % (item, filename)
 
 class ol_dump_latest(delegate.page):
-    path = "/data/ol_dump(|_authors|_editions|_works)_latest.txt.gz"
+    path = "/data/ol_dump(|_authors|_editions|_works|_deworks)_latest.txt.gz"
     def GET(self, prefix):
         items = [item for item in get_ol_dumps() if item.startswith("ol_dump")]
         if not items:

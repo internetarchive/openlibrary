@@ -1,23 +1,48 @@
-$def with (page, preview=False)
+$def with (page)
 
-$ _x = ctx.setdefault('bodyid', 'admin')
-$ _x = ctx.setdefault('usergroup', 'admin')
+$ _x = ctx.setdefault('bodyid', 'edit')
 
-$ edit = thingedit(page)
-$var title: $:edit.title
-    
-$:macros.databarEdit(page)
+$var title: $_("Edit %(title)s", title=page.key)
 
-$if preview:
+$:render_template("lib/edit_head", page)
+            
+<div id="contentBody">
+
+    <form name="edit" method="post" action="" class="olform">
+
+	$:macros.TypeChanger(page.type)
+
     <div class="clearfix"></div>
-    <div id="preview">
-        <div class="head">
-            <h2>Preview</h2>
+
+    <div class="formElement">
+        <div class="label"><label for="description">Description:</label></div>
+        <div class="input">
+            <textarea id="description" name="description" rows="3" cols="80" style="height: 100px;">$page.description</textarea>
         </div>
-    $:thingview(page)
     </div>
-    <div class="clearfix"></div>
 
-<div id="edit">
-$:edit
+    <div class="formElement">
+        <div class="label"><label for="readers#0">Readers:</label></div>
+        <div class="input">
+            $for i, m in enumerate(page.readers):
+                <input id="readers#$i" type="text" name="readers#${i}.key" value="$page.readers[i].key"/>
+            $for i in range(len(page.readers), len(page.readers)+2):
+                <input id="readers#$i" type="text" name="readers#${i}.key" value=""/>
+        </div>
+    </div>
+
+
+    <div class="formElement">
+        <div class="label"><label for="writers#0">Writers:</label></div>
+        <div class="input">
+            $for i, m in enumerate(page.writers):
+                <input id="writers#$i" type="text" name="writers#${i}.key" value="$page.writes[i].key"/>
+            $for i in range(len(page.writers), len(page.writers)+2):
+                <input id="writers#$i" type="text" name="writers#${i}.key" value=""/>
+        </div>
+    </div>
+
+    $:macros.EditButtons(comment=page.comment_)
+
+    </form>
 </div>
