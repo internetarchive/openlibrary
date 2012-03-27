@@ -432,7 +432,7 @@ class loans_admin:
 
         pagesize = h.safeint(i.pagesize, 200)
         pagecount = 1 + (total_loans-1) / pagesize
-        pageindex = min(h.safeint(i.page, 1), 1)
+        pageindex = max(h.safeint(i.page, 1), 1)
 
         begin = (pageindex-1) * pagesize # pagecount starts from 1
         end = min(begin + pagesize, total_loans)
