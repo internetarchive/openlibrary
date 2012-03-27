@@ -22,7 +22,7 @@ import openlibrary
 from openlibrary.core import admin as admin_stats
 from openlibrary.plugins.upstream import forms
 from openlibrary import accounts
-
+from openlibrary.core import helpers as h
 
 from openlibrary.plugins.admin import services, support, tasks, inspect_thing
 
@@ -424,12 +424,34 @@ from openlibrary.plugins.upstream import borrow
 class loans_admin:
     
     def GET(self):
-        loans = borrow.get_all_loans()
+        i = web.input(page=1, pagesize=200)
+
+        total_loans = len(web.ctx.site.store.keys(type="/type/loan", limit=100000))
+        pdf_loans = len(web.ctx.site.store.keys(type="/type/loan", name="resource_type", value="pdf", limit=100000))
+        epub_loans = len(web.ctx.site.store.keys(type="/type/loan", name="resource_type", value="epub", limit=100000))
+
+        pagesize = h.safeint(i.pagesize, 200)
+        pagecount = 1 + (total_loans-1) / pagesize
+        pageindex = min(h.safeint(i.page, 1), 1)
+
+        begin = (pageindex-1) * pagesize # pagecount starts from 1
+        end = min(begin + pagesize, total_loans)
+
+        loans = web.ctx.site.store.values(type="/type/loan", offset=begin, limit=pagesize)
+
+        stats = {
+            "total_loans": total_loans,
+            "pdf_loans": pdf_loans,
+            "epub_loans": epub_loans,
+            "bookreader_loans": total_loans - pdf_loans - epub_loans,
+            "begin": begin+1, # We count from 1, not 0.
+            "end": end
+        }
 
         # Preload books
         web.ctx.site.get_many([loan['book'] for loan in loans])
 
-        return render_template("admin/loans", loans, None)
+        return render_template("admin/loans", loans, None, pagecount=pagecount, pageindex=pageindex, stats=stats)
         
     def POST(self):
         i = web.input(action=None)
