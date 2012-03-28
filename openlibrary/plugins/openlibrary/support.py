@@ -56,7 +56,7 @@ class contact(delegate.page):
             stats.increment("support.all")
             subject = "Support case *%s*"%topic
             message = "A new support case has been filed\n\nTopic: %s\n\nDescription:\n%s"%(topic, description)
-            web.sendmail(email, assignee, subject, "message")
+            web.sendmail(email, assignee, subject, message)
         
         return render_template("email/case_created", assignee)
             
