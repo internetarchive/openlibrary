@@ -58,7 +58,7 @@ class contact(delegate.page):
             message = "A new support case has been filed\n\nTopic: %s\n\nDescription:\n%s"%(topic, description)
             web.sendmail(email, assignee, subject, "message")
         
-        return render_template("email/case_created")
+        return render_template("email/case_created", assignee)
             
             
 
