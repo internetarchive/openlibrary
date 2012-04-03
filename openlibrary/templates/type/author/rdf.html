@@ -16,7 +16,6 @@ $def with (author)
         $ name = author.name
 
     $ auri = "http://openlibrary.org" + author.key
-    $ auAbout = "http://openlibrary.org" + author.key + "/about/"
 
 
     $def display(tag, value):
@@ -27,7 +26,7 @@ $def with (author)
             <$tag>$value</$tag>
             
 
-    <foaf:Agent rdf:about="$auri">
+    <foaf:Person rdf:about="$auri">
         $:display("foaf:name", name)
         $:display("rdg2:variantNameForThePerson", author.alternate_names)
         $:display("rdg2:biographicalInformation", author.bio)
@@ -39,40 +38,40 @@ $def with (author)
                  <dcterms:date>$author.birth_date</dcterms:date>
             </bio:Birth>
         </bio:event>
-
+      
       $if author.death_date:
         <bio:event>
             <bio:Death>
                 <dcterms:date>$author.death_date</dcterms:date>
             </bio:Death>
-        </bio:event> 
+        </bio:event>
 
+      $if author.wikipedia:
+        <foaf:isPrimaryTopicOf>
+            <foaf:Document rdf:about="$author.wikipedia">
+                <rdfs:label>Wikipedia</rdfs:label>
+            </foaf:Document>
+        </foaf:isPrimaryTopicOf>
 
-        $if author.wikipedia:
-            <foaf:isPrimaryTopicOf>
-                <foaf:Document rdf:about="$author.wikipedia">
-                    <rdfs:label>Wikipedia</rdfs:label>
-                </foaf:Document>
-            </foaf:isPrimaryTopicOf>
+      $for link in author.links:
+        <foaf:page>
+            <foaf:Document rdf:about="$link.url">
+                <rdfs:label>$link.title</rdfs:label>
+            </foaf:Document>
+        </foaf:page>
+      
+      $for photo in author.photos:    
+        $ auphoto = "http://covers.openlibrary.org/b/id/" + str(photo) + "-M.jpg"
+        <foaf:depiction>
+            <foaf:Image rdf:about="$auphoto" />
+        </foaf:depiction>
 
-        $for link in author.links:
-            <foaf:page>
-                <foaf:Document rdf:about="$link.url">
-                    <rdfs:label>$link.title</rdfs:label>
-                </foaf:Document>
-            </foaf:page>
-        
-        $for photo in author.photos:    
-            $ auphoto = "http://covers.openlibrary.org/b/id/" + str(photo) + "-M.jpg"
-            <foaf:depiction>
-            <foaf:Image rdf:about="$auphoto" /></foaf:depiction>
-
-    </foaf:Agent>
+    </foaf:Person>
 
     <!-- administrative -->
     <rdf:Description rdf:about="">
-        <dcterms:modified rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">$author.last_modified</dcterms:modified>
-        <dcterms:created rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">$author.created</dcterms:created>
+        <dcterms:modified rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">$author.last_modified.isoformat()</dcterms:modified>
+        <dcterms:created rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">$author.created.isoformat()</dcterms:created>
         <ov:versionnumber>$author.revision</ov:versionnumber>
     </rdf:Description>
 </rdf:RDF>
