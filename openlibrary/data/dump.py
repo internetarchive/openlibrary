@@ -95,8 +95,8 @@ def sort_dump(dump_file=None, tmpdir="/tmp/", buffer_size="1G"):
         
     M = 1024*1024
     
-    filenames = [os.path.join(tmpdir, "%02x.txt" % i) for i in range(256)]
-    files = [open(f, 'w', 5*M) for f in filenames]
+    filenames = [os.path.join(tmpdir, "%02x.txt.gz" % i) for i in range(256)]
+    files = [gzip.open(f, 'w') for f in filenames]
     
     if dump_file is None:
         stdin = sys.stdin
@@ -114,12 +114,15 @@ def sort_dump(dump_file=None, tmpdir="/tmp/", buffer_size="1G"):
         files[findex].write(line)
         
     for f in files:
+        f.flush()
         f.close()
     files = []
         
     for fname in filenames:
         log("sorting", fname)
-        os.system("sort -S%(buffer_size)s -k2,3 %(fname)s" % locals())
+        status = os.system("gzip -cd %(fname)s | sort -S%(buffer_size)s -k2,3" % locals())
+        if status != 0:
+            raise Exception("sort failed with status %d" % status)
     
 def pmap(f, tasks):
     """Run tasks parallelly."""
