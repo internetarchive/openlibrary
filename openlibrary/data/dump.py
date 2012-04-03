@@ -46,7 +46,7 @@ def print_dump(json_records, filter=None):
         print "\t".join([type, key, str(d['revision']), timestamp, json])
         
 def read_data_file(filename):
-    for line in open(filename):
+    for line in xopen(filename):
         thing_id, revision, json = line.strip().split("\t")
         yield pgdecode(json)
         
