@@ -17,6 +17,7 @@ import itertools
 import os
 import subprocess
 import logging
+import gzip
 
 logger = logging.getLogger("mapreduce")
 
