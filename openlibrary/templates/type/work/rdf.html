@@ -12,7 +12,6 @@ $def with (work)
 >
 
     $ wuri = "http://openlibrary.org" + work.key
-    $ wAbout = "http://openlibrary.org" + work.key + "/about/"
 
     $if work.subtitle:
            $ title = work.title + ": " + work.subtitle
@@ -29,64 +28,62 @@ $def with (work)
     <frbr:Work rdf:about="$wuri">
         $:display("dcterms:title", title)
 
-        $for a in work.authors:
-            <dcterms:creator>
-              <rdf:Description rdf:about="http://openlibrary.org$a.author.key">
-              <foaf:name>$a.author.name</foaf:name> 
-              </rdf:Description>
-            </dcterms:creator> 
-       
+      $for a in work.authors:
+        <dcterms:creator>
+            <rdf:Description rdf:about="http://openlibrary.org$a.author.key">
+                <foaf:name>$a.author.name</foaf:name>
+            </rdf:Description>
+        </dcterms:creator>
        
         $:display("dcterms:subject", work.subjects)
         $:display("dcterms:coverage", work.subject_places)
         $:display("dcterms:coverage", work.subject_times)
         $:display("dcterms:description", work.description)
 
-        $for DDC in work.dewey_number:   
-            <dcterms:subject>
-                <rdf:Description>
+      $for DDC in work.dewey_number:   
+        <dcterms:subject>
+            <rdf:Description>
                 <dcam:memberOf rdf:resource="http://purl.org/dc/terms/DDC"/>
                 <rdf:value>$DDC</rdf:value>
             </rdf:Description>
-            </dcterms:subject>
-        $for LCC in work.lc_classifications:
-            <dcterms:subject>
-                <rdf:Description>
-                    <dcam:memberOf rdf:resource="http://purl.org/dc/terms/LCC"/>
-                    <rdf:value>$LCC</rdf:value>
-                </rdf:Description>
-            </dcterms:subject>
+        </dcterms:subject>
+      $for LCC in work.lc_classifications:
+        <dcterms:subject>
+            <rdf:Description>
+                <dcam:memberOf rdf:resource="http://purl.org/dc/terms/LCC"/>
+                <rdf:value>$LCC</rdf:value>
+            </rdf:Description>
+        </dcterms:subject>
 
         $:display("dcterms:date", work.first_publish_date)
 
         $:display("dcterms:alternative", work.other_titles) 
 
-        $for link in work.links:
-            <foaf:page>
-                <foaf:Document rdf:about="$link.url">
-                    <rdfs:label>$link.title</rdfs:label>
-                </foaf:Document>
-            </foaf:page>
-        </frbr:Work> 
+      $for link in work.links:
+        <foaf:page>
+            <foaf:Document rdf:about="$link.url">
+                <rdfs:label>$link.title</rdfs:label>
+            </foaf:Document>
+        </foaf:page>
+    </frbr:Work> 
 
-        $for edition in work.editions:
-            $ eduri = "http://openlibrary.org" + edition.key
-            $if edition.subtitle:
-               $ etitle = edition.title + ": " + edition.subtitle
-            $else:
-              $ etitle = edition.title
+    $for edition in work.editions:
+        $ eduri = "http://openlibrary.org" + edition.key
+        $if edition.subtitle:
+            $ etitle = edition.title + ": " + edition.subtitle
+        $else:
+            $ etitle = edition.title
 
-            <rdf:Description rdf:about="$eduri">
-               <rdrel:workManifested rdf:resource="$wuri" />
-                <dcterms:title>$etitle</dcterms:title>
-                <dcterms:date>$edition.publish_date</dcterms:date>
-            </rdf:Description>    
+        <rdf:Description rdf:about="$eduri">
+            <rdrel:workManifested rdf:resource="$wuri" />
+            <dcterms:title>$etitle</dcterms:title>
+            <dcterms:date>$edition.publish_date</dcterms:date>
+        </rdf:Description>    
 
-    
     <!-- administrative -->
     <rdf:Description rdf:about="">
-        <dcterms:modified rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">$work.last_modified</dcterms:modified>
-        <dcterms:created rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">$work.created</dcterms:created>
+        <dcterms:modified rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">$work.last_modified.isoformat()</dcterms:modified>
+        <dcterms:created rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">$work.created.isoformat()</dcterms:created>
         <ov:versionnumber>$work.revision</ov:versionnumber>
     </rdf:Description>
 
