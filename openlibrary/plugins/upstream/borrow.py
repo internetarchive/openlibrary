@@ -440,7 +440,16 @@ def get_edition_loans(edition):
         # Get the loans only if the book is borrowed. Since store.get requests
         # are memcache-able, checking this will be very fast.
         # This avoids making expensive infobase query for each book.
-        if web.ctx.site.store.get("ebooks" + edition['key'], {}).get("borrowed") == "true":
+        has_loan = web.ctx.site.store.get("ebooks" + edition['key'], {}).get("borrowed") == "true"
+
+        # The implementation is changed to store the loan as loan-$ocaid.
+        # If there is a loan on this book, we'll find it.
+        # Sometimes there are multiple editions with same ocaid. This takes care of them as well.
+        loan_record = web.ctx.site.store.get("loan-" + edition.ocaid)
+        if has_loan or loan_record:
+            if loan_record:
+                return [loan_record]
+            # for legacy reasons.
             return get_all_store_values(type='/type/loan', name='book', value=edition.key)
     
     return []
@@ -599,7 +608,6 @@ def _update_loan_status(loan_key, loan, bss_status = None):
     # Load status from book status server
     if bss_status is None:
         bss_status = get_loan_status(loan['resource_id'])
-        
     update_loan_from_bss_status(loan_key, loan, bss_status)
         
 def update_loan_from_bss_status(loan_key, loan, status):
@@ -634,8 +642,10 @@ def update_loan_from_bss_status(loan_key, loan, status):
         on_loan_update(loan)
 
 def update_all_loan_status():
-    """Update the status of all loans known to Open Library by cross-checking with the book status server"""
+    """Update the status of all loans known to Open Library by cross-checking with the book status server.
     
+    This is called once an hour from a cron job.
+    """
     # Get book status records of everything loaned out
     bss_statuses = get_all_loaned_out()
     bss_resource_ids = [status['resourceid'] for status in bss_statuses]
@@ -905,12 +915,14 @@ def on_loan_delete(loan):
 ########## Classes
 
 class Loan:
+    """The model class for Loan.
 
+    This is used only to make a loan offer. In other cases, the dict from store is used directly.
+    """
     def __init__(self, user_key, book_key, resource_type, loaned_at = None):
-        # self.key = uuid.uuid4().hex
-        self.key = 'loan-' + book_key
         # store a uuid in the loan so that the loan can be uniquely identified. Required for stats.
         self.uuid = uuid.uuid4().hex
+        self.key = None # Set after resource_id is initialized
 
         self.rev = 1 # This triggers the infobase consistency check - if there is an existing record on save
                      # the consistency check will fail (revision mismatch)
@@ -928,9 +940,8 @@ class Loan:
             self.loaned_at = time.time()
         
     def get_key(self):
-        #return '%s-%s-%s' % (self.user_key, self.book_key, self.resource_type)
         return self.key
-        
+
     def get_dict(self):
         return { '_key': self.get_key(),
                  '_rev': self.rev,
@@ -952,9 +963,6 @@ class Loan:
         self.loan_link = loan_dict['loan_link']
         self.uuid = loan_link.get('uuid')
         
-    #def load(self):
-    #    self.set_dict(web.ctx.site.store[self.get_key()])
-        
     def save(self):
         web.ctx.site.store[self.get_key()] = self.get_dict()        
         on_loan_update(self.get_dict())
@@ -973,6 +981,7 @@ class Loan:
             raise Exception('Could not get loan link for edition %s type %s' % self.book_key, self.resource_type)
         self.loan_link = loan_link
         self.resource_id = resource_id
+        self.key = "loan-" + edition.ocaid
         self.save()
         return self.loan_link
         
