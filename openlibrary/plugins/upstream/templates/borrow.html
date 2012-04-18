@@ -67,12 +67,12 @@ $if has_returned_recently and not page.key in [loan['book'] for loan in loans]:
             </table>
         </div>
 
-        $if page.key in [loan['book'] for loan in loans]:
+        $if page.key in [loan['book'] for loan in loans] or page.ocaid in [loan['ocaid'] for loan in loans]:
             $# checked out by this user!
             
             $# find the loan
             $for candidate in loans:
-                $if candidate['book'] == page.key:
+                $if candidate['book'] == page.key or candidate['ocaid'] == page.ocaid:
                     $ active_loan = candidate
             
             $if can_return_resource_type(active_loan['resource_type']):

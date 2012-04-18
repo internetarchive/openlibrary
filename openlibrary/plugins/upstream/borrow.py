@@ -162,7 +162,10 @@ class borrow(delegate.page):
             # Assumes a user can't borrow multiple formats (resource_type) of the same book.
             user_loan = None
             for loan in loans:
-                if loan['book'] == edition.key and can_return_resource_type(loan['resource_type']):
+                # Handle the case of multiple edition records for the same 
+                # ocaid and the user borrowed from one and returning from another
+                has_loan = (loan['book'] == edition.key or loan['ocaid'] == edition.ocaid)
+                if has_loan and can_return_resource_type(loan['resource_type']):
                     user_loan = loan
                     break
                     
@@ -184,7 +187,7 @@ class borrow(delegate.page):
             loans = get_loans(user)
             for loan in loans:
                 if loan['book'] == edition.key:
-                    raise web.seeother(make_bookreader_auth_link(loan['store_key'], edition.ocaid, '/stream/' + edition.ocaid, ol_host))
+                    raise web.seeother(make_bookreader_auth_link(loan['_key'], edition.ocaid, '/stream/' + edition.ocaid, ol_host))
             
         # Action not recognized
         raise web.seeother(error_redirect)
@@ -419,6 +422,8 @@ def get_all_store_values(**query):
         new_items = web.ctx.site.store.items(**query)
         for new_item in new_items:
             new_item[1].update({'store_key': new_item[0]})
+            # XXX-Anand: Handling the existing loans
+            new_item[1].setdefault("ocaid", None)
             values.append(new_item[1])
         if len(new_items) < query['limit']:
             got_all = True
@@ -441,17 +446,17 @@ def get_edition_loans(edition):
         # are memcache-able, checking this will be very fast.
         # This avoids making expensive infobase query for each book.
         has_loan = web.ctx.site.store.get("ebooks" + edition['key'], {}).get("borrowed") == "true"
-
+        
         # The implementation is changed to store the loan as loan-$ocaid.
         # If there is a loan on this book, we'll find it.
-        # Sometimes there are multiple editions with same ocaid. This takes care of them as well.
+        # Sometimes there are multiple editions with same ocaid. This takes care of them as well. 
         loan_record = web.ctx.site.store.get("loan-" + edition.ocaid)
         if has_loan or loan_record:
             if loan_record:
                 return [loan_record]
             # for legacy reasons.
-            return get_all_store_values(type='/type/loan', name='book', value=edition.key)
-    
+            records = get_all_store_values(type='/type/loan', name='book', value=edition.key)
+            return records
     return []
 
 def get_loan_link(edition, type):
@@ -915,8 +920,8 @@ def on_loan_delete(loan):
 ########## Classes
 
 class Loan:
-    """The model class for Loan.
-
+    """The model class for Loan. 
+    
     This is used only to make a loan offer. In other cases, the dict from store is used directly.
     """
     def __init__(self, user_key, book_key, resource_type, loaned_at = None):
@@ -928,6 +933,7 @@ class Loan:
                      # the consistency check will fail (revision mismatch)
         self.user_key = user_key
         self.book_key = book_key
+        self.ocaid = None
         self.resource_type = resource_type
         self.type = '/type/loan'
         self.resource_id = None
@@ -945,8 +951,11 @@ class Loan:
     def get_dict(self):
         return { '_key': self.get_key(),
                  '_rev': self.rev,
-                 'user': self.user_key, 'type': '/type/loan',
-                 'book': self.book_key, 'expiry': self.expiry,
+                 'type': '/type/loan',
+                 'user': self.user_key, 
+                 'book': self.book_key,
+                 'ocaid': self.ocaid, 
+                 'expiry': self.expiry,
                  'uuid': self.uuid,
                  'loaned_at': self.loaned_at, 'resource_type': self.resource_type,
                  'resource_id': self.resource_id, 'loan_link': self.loan_link }
@@ -982,6 +991,7 @@ class Loan:
         self.loan_link = loan_link
         self.resource_id = resource_id
         self.key = "loan-" + edition.ocaid
+        self.ocaid = edition.ocaid or None
         self.save()
         return self.loan_link
         
