@@ -20,15 +20,15 @@ $ show_returned_message = False
 $if has_returned_recently and not page.key in [loan['book'] for loan in loans]:
     $ show_returned_message = True
 
-<div id="contentBody">
-
+<div id="contentHead">
     <div class="navBorrow">
         <a href="http://openlibrary.org/" title="Return to home page"><img src="/images/logo_OL-sm.png" width="90" height="71" alt="Open Library logo" class="right"/></a>
-        <a href="$page.url()"><strong>Back</strong></a>
+        <a href="$page.url()"><strong>&larr; Back</strong></a>
     </div>
+	<h1 class="sansserif">Borrow</h1>
+</div>
 
-        <h1 class="sansserif">Borrow</h1>
-        
+<div id="contentBody">
         <div class="borrow">
             <table>
                 <tbody>
@@ -38,9 +38,7 @@ $if has_returned_recently and not page.key in [loan['book'] for loan in loans]:
                         </td>
                         <td>
                             <span class="book">
-                                <a class="borrowResults" href="$page.key">
-                                <strong>$page.title</strong>
-                                </a>
+                                <a class="borrowResults" href="$page.url()"><strong>$page.title</strong></a>
                             </span>
                             <span class="author">
                             $ authors = page.works[0].get_authors()
