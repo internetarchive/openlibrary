@@ -10,139 +10,178 @@ $ current_and_available_loans = page.get_current_and_available_loans()
 $ current_loans = current_and_available_loans[0]
 $ loan_users = [loan['user'] for loan in current_loans]
 
+$ pdf_resource_id = page.get_lending_resource_id('pdf')
+$ epub_resource_id = page.get_lending_resource_id('epub')
+
+$ meta_fields = page.get_ia_meta_fields()
+$if meta_fields.has_key('contributor'):
+    $ contrib = meta_fields['contributor']
+$else:
+    $ contrib = None
+
 $def format_users(users):
     $for user_key in users:
         $ user = get_document(user_key)
-        <a href="$user.key">$user.name ($user.key)</a>
+        <a href="$user.key" title="$user.key">$user.name</a>
+        
+<style type="text/css">
+ul.inner {
+    margin-bottom: 0px !important;
+}
+</style>
+
+<div id="contentHead">
+    <div class="navBorrow">
+        <a href="http://openlibrary.org/" title="Return to home page"><img src="/images/logo_OL-sm.png" width="90" height="71" alt="Open Library logo" class="right"/></a>
+        <a href="$page.url()"><strong>&larr; Back</strong></a>
+    </div>
+
+    <h1 class="sansserif">Borrow - Administration</h1>
+</div>
 
 <div id="contentBody">
 
-    <div class="navBorrow">
-        <a href="javascript:;" onclick="history.go(-1);"><strong>Back</strong></a>
+        <div class="borrow">
+            <table>
+                <tbody>
+                    <tr>
+                        <td valign="top" style="padding-right:10px;">
+                            $:render_template('covers/book_cover_small', page)
+                        </td>
+                        <td>
+                            <span class="book">
+                                <a class="borrowResults" href="$page.url()"><strong>$page.title</strong></a>
+                            </span>
+                            <span class="author">
+                            $ authors = page.works[0].get_authors()
+                            $:macros.AuthorList(authors)
+                            </span>
+                            <br/>
+                            <span class="publisher">
+                            $if page.publish_date or page.publishers:
+                                $if page.publish_date:
+                                    $page.publish_date,
+                                $else:
+                                    <em>Published date unknown,</em> 
+                                $if page.publishers:
+                                    $for p in page.publishers:
+                                        $p$cond(loop.last, "", ", ")
+                                $else:
+                                    <em>publisher unknown</em>
+                            </span>
+                            $if contrib:
+                                <span class="contributor small grey">
+                                    from $contrib
+                                </span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+
+    <div class="section">
+        <h3>You</h3>
+        <ul>
+            <li>You are <a href="$ctx.user.key" title="$ctx.user.key">$ctx.user.displayname</a></li>
+            <li>Your IP is <span class="small">$user_ip</li>
+            <li>          
+                $if "inlibrary" in ctx.features:
+                    $ lib = get_library()
+                    In Library: <a href="$lib.key">$lib.name</a>
+                $else:
+                    <i>You are not in a Library</i>
+            </li>
+        </ul>
+    </div>
+        
+    <div class="section">
+        <h3>Borrow Info</h3>
+        Borrowable? <em>$cond(can_borrow(page), "Yes", "No")</em>
+        <br/>
+        $if loan_users:
+          Borrowed by: $:format_users(loan_users)
+        $else:
+          Borrowed by: None
     </div>
 
-        <h1 class="sansserif">Borrow - Administration</h1>
+    <div class="section">
+        <h3>Book Info</h3>
+        <ul>
+            <li>key: <a href="$page.key">$page.key</a></li>
+            <li>archive.org ID: <a href="http://www.archive.org/details/$page.ocaid">$page.ocaid</a>
+            <li>IA Collections: 
+                <ul class="inner">
+                    $for c in page.get_ia_meta_fields()['collection']:
+                        <li><span class="small">$c</span></li>
+                </ul>
+            </li>
+            <li>external-identifiers from archive.org meta.xml
+                <ul class="inner">
+                $for x in page.get_lending_resources():
+                    <li><span class="small">$x</span></li>
+                </ul>
+            </li>
+            <li>OL Subjects
+                <ul class="inner">
+                    $for subject in page.works[0].get_subjects():
+                        <li><span class="small">$subject</span></li>
+                </ul>
+            </li>
+            <li>Overdrive ID: $overdrive_id(page)</li>
+        </ul>
+    </div>
+    <div class="section">
+        <h3>Available loans</h3>
+        $if available_loans:
+            $for loan in available_loans:
+                <pre>$:json_encode(loan, indent="  ", sort_keys=True)</pre>
+        $else:
+            <em>None found</em>
+    </div>
+    <div class="section">
+        <h3>Current loans</h3>
+        $if edition_loans:
+            $for loan in edition_loans:
+                <div style="margin: 20px;">
+                    <pre>$:json_encode(loan, indent="  ", sort_keys=True)
+                    </pre>
+                    <form method="POST">
+                        <input type="submit" value="Delete this record" />
+                        <input type="hidden" name="action" value="delete" />
+                        <input type="hidden" name="loan_key" value="$loan['_key']" />
+                    </form>
+                </div>
+        $else:
+            <em>No current loans</em>
+    </div>
 
-        <p>
-            You're logged in as: <br />
-            <ul>
-                 <li>$ctx.user <i>(ctx.user)</i>, Admin = $ctx.user.is_admin()</li>
-                 <li>$user_ip <i>IP</i></li>
-                 <li>          
-                     $if "inlibrary" in ctx.features:
-                         In Library: $get_library()
-                     $else:
-                         <i>Not in a Library</i>
-                     </li>
-            </ul>
-        </p>
-
-        <hr />
-
-        <p>
-            Book can be borrowed = $can_borrow(page) <!-- can_borrow -->
-        </p>
-
-        <p>
-            $if loan_users:
-              Borrowed by: $:format_users(loan_users)
-            $else:
-              Borrowed by: None
-        </p>
-
-        $# <p>
-        $#     Available? <i>(what's been borrowed = false)</i><br />
-        $#     <ul>
-        $#         <li>BookReader = $is_loan_available(page, 'bookreader')</li>
-        $#         <li>PDF = $is_loan_available(page, 'pdf')</li>
-        $#         <li>ePub = $is_loan_available(page, 'epub')</li>
-        $#     </ul>
-        $#</p>
+    <div class="section">
+        <h3>Edition ebook record from datastore</h3>
+        <pre>$:json_encode(edition_ebook, indent="  ", sort_keys=True)</pre>        
+    </div>
         
-        <p>
-            Edition ebook record from datastore: <br />
-            $edition_ebook
-        </p>
-
-        <p>
-            archive.org ID: <a href="http://www.archive.org/details/$page.ocaid">$page.ocaid</a>
-            <ul>
-                <li>IA Collections: $page.get_ia_meta_fields()['collection']</li>
-                <li>OL Subjects: $page.works[0].get_subjects()</li>
-                <li>Overdrive ID: $overdrive_id(page)</li>
-            </ul>
-        <p>
-
-
-
-
-        <hr />
-
-        <p>
-            <table>
-              <tr><th><b>Current Loan Status:</b></th></tr>
-              $if edition_loans:
-                $for edition_loan in edition_loans:
-                  <tr><td>$edition_loan</td></tr>
-              $else:
-                  <tr><td>No current loans</td></tr>
-             </table>
-        </p>
-
-        <p>
-            external-identifiers from archive.org meta.xml: $page.get_lending_resources()
-        </p>
-        
-        <p>
-            $ pdf_resource_id = page.get_lending_resource_id('pdf')
-            pdf resourceid: $pdf_resource_id<br>
-            $ epub_resource_id = page.get_lending_resource_id('epub')
-            epub resourceid: $epub_resource_id
-        </p>
-        
-        <p>
-            <table>
-              <tr><th>Available loans for $page.title:</tr></th>
-              $for loan in available_loans:
-                 <tr><td>$loan</td></tr>
-            </table>
-        </p>
-
-        <p>
-            edition.get_current_and_available_loans(): $current_and_available_loans
-        </p>
-
-        <p>        
-          <table>
-            <tr>
-                <th>Current loans for $page.title:</th>
-            </tr>
-            $for edition_loan in edition_loans:
-                <tr><td>$edition_loan</td><td><form method="POST"><input type="submit" value="Delete record" /><input type="hidden" name="action" value="delete" /><input type="hidden" name="loan_key" value="$edition_loan['store_key']" /></form></td></tr>
-          </table>
-        </p>
-        
-        <hr />
-        
-        <p>
-            Book status in ACS4:<br>
-            $ bss = 'http://lending.us.archive.org/bss/bss.py'
-            $ bss_format = "<a href='" + bss + "/%(what)s/%(urn)s'>%(type)s %(what)s</a><br>"
-            $ pdf_loaned = bss_format % { 'what': 'is_loaned_out', 'urn': pdf_resource_id, 'type': 'pdf' }
-            $:pdf_loaned
-            $ pdf_info = bss_format % { 'what': 'resource_info', 'urn': pdf_resource_id, 'type': 'pdf' }
-            $:pdf_info
-            $ pdf_fulfillment = bss_format % { 'what': 'fulfillment_info', 'urn': pdf_resource_id, 'type': 'pdf' }
-            $:pdf_fulfillment
+    $def resource_info(urn):
+        $ bss = 'http://lending.us.archive.org/bss/bss.py'
+        <a href="$bss/is_loaned_out/$urn">Loan Status</a>
+        | <a href="$bss/resource_info/$urn">Resource Info</a>
+        | <a href="$bss/fulfillment_info/$urn">Fulfillment Info</a>
             
-            <br>
-            $ epub_loaned = bss_format % { 'what': 'is_loaned_out', 'urn': epub_resource_id, 'type': 'epub' }
-            $:epub_loaned
-            $ epub_info = bss_format % { 'what': 'resource_info', 'urn': epub_resource_id, 'type': 'epub' }
-            $:epub_info
-            $ epub_fulfillment = bss_format % { 'what': 'fulfillment_info', 'urn': epub_resource_id, 'type': 'epub' }
-            $:epub_fulfillment
-        </p>
-        
-
+    <div class="section">
+        <h3>Book status in ACS4</h3>                
+        <ul>
+            <li>
+                <p>
+                PDF <span class="small gray">$pdf_resource_id</span><br/>
+                $:resource_info(pdf_resource_id)
+                </p>
+            </li>
+            <li>
+                <p>
+                ePub <span class="small gray">$epub_resource_id</span><br/>
+                $:resource_info(epub_resource_id)
+                </p>
+            </li>
+        </ul>
+    </div>
 </div>
