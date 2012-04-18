@@ -88,7 +88,10 @@ ul.inner {
             <li>          
                 $if "inlibrary" in ctx.features:
                     $ lib = get_library()
-                    In Library: <a href="$lib.key">$lib.name</a>
+                    $if lib:
+                        In Library: <a href="$lib.key">$lib.name</a>
+                    $else:
+                        <i>You are not in a Library</i>
                 $else:
                     <i>You are not in a Library</i>
             </li>
