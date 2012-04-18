@@ -3164,7 +3164,7 @@ div.mergeThis {
 /* PLAIN PAGE STYLES */
 body#plain div#header,body#plain div#footer,body#plain div#bottom,body#plain .siteSearch {display:none;}
 body#plain,body#plain div#content {background-color: #e2dcc5;}
-body#plain #contentBody {width:690px;padding:0 134px;margin:0;}
+body#plain #contentBody, body#plain #contentHead {width:690px;padding:0 134px;margin:0;}
 body#plain div.contentOnethird {width: 210px;}
 body#plain div.contentSpacer {width:30px;height:15px;}
 body#plain div.nav {margin: 50px 0 50px;font-size:14px;}
