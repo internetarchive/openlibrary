@@ -8,6 +8,7 @@ import simplejson
 import string
 import urllib2
 import uuid
+import logging
 
 import web
 
@@ -27,6 +28,8 @@ from openlibrary import accounts
 from lxml import etree
 
 import acs4
+
+logger = logging.getLogger("openlibrary.borrow")
 
 ########## Constants
 
@@ -480,7 +483,8 @@ def get_loan_key(resource_id):
 
     # Only support single loan of resource at the moment
     if len(loan_keys) > 1:
-        raise Exception('Found too many local loan records for resource %s' % resource_id)
+        #raise Exception('Found too many local loan records for resource %s' % resource_id)
+        logger.error("Found too many loan records for resource %s: %s", resource_id, loan_keys)
         
     loan_key = loan_keys[0]['key']
     return loan_key    
