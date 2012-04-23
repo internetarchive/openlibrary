@@ -2,6 +2,7 @@
 """
 import urllib2
 from xml.dom import minidom
+import simplejson
 import web
 
 from infogami.utils import stats
@@ -11,8 +12,7 @@ import cache
 def get_meta_xml(itemid):
     """Returns the contents of meta_xml as JSON.
     """
-    itemid = itemid.strip()
-    
+    itemid = web.safestr(itemid.strip())
     url = 'http://www.archive.org/download/%s/%s_meta.xml' % (itemid, itemid)
     try:
         stats.begin("archive.org", url=url)
@@ -64,3 +64,25 @@ def xml2dict(xml, **defaults):
                 d[key] = value
                 
     return d
+    
+def _get_metadata(itemid):
+    """Returns metadata by querying the archive.org metadata API.
+    """
+    print >> web.debug, "_get_metadata", itemid
+    url = "http://www.archive.org/metadata/%s" % itemid
+    try:
+        stats.begin("archive.org", url=url)        
+        text = urllib2.urlopen(url).read()
+        stats.end()
+        return simplejson.loads(text)
+    except (IOError, ValueError):
+        return None
+
+# cache the results in memcache for a minute
+_get_metadata = web.memoize(_get_metadata, expires=60)
+        
+def locate_item(itemid):
+    """Returns (hostname, path) for the item. 
+    """
+    d = _get_metadata(itemid)
+    return d.get('server'), d.get('dir')
