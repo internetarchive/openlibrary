@@ -665,6 +665,11 @@ def update_all_loan_status():
         # Update status of each loan
         for loan_key in ol_loan_keys:
             loan = web.ctx.site.store.get(loan_key)
+            # XXX-Anand: loan is becoming None sometimes. May be the loan
+            # is returned while this is in progress. Added this check to        
+            # avoid crash.
+            if loan is None:
+                continue
             
             bss_status = None
             if resource_uses_bss(loan['resource_id']):
