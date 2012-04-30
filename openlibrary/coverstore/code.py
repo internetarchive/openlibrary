@@ -7,6 +7,7 @@ import datetime
 import couchdb
 import logging
 import array
+import memcache
 
 import db
 import config
@@ -169,15 +170,32 @@ class upload2:
 def trim_microsecond(date):
     # ignore microseconds
     return datetime.datetime(*date.timetuple()[:6])
-    
 
-def locate_item(item):
+
+@web.memoize
+def get_memcache():
+    servers = config.get("memcache_servers")
+    return memcache.Client(servers)
+
+def _locate_item(item):
     """Locates the archive.org item in the cluster and returns the server and directory.
     """
+    print >> web.debug, "_locate_item", item
     text = urllib.urlopen("http://www.archive.org/metadata/" + item).read()
     d = simplejson.loads(text)
     return d['server'], d['dir']
-    
+
+def locate_item(item):
+    mc = get_memcache()
+    if not mc:
+        return _locate_item(item)
+    else:
+        x = mc.get(item)
+        if not x:
+            x = _locate_item(item)
+            mc.set(item, x, time=300) # cache it for 5 minutes
+        return x
+
 # cache for 5 minutes
 locate_item = web.memoize(locate_item, expires=300)
     
