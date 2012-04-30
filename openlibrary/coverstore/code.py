@@ -4,6 +4,7 @@ import urllib
 import os
 import Image
 import datetime
+import time
 import couchdb
 import logging
 import array
@@ -181,7 +182,7 @@ def get_memcache():
 def _locate_item(item):
     """Locates the archive.org item in the cluster and returns the server and directory.
     """
-    print >> web.debug, "_locate_item", item
+    print >> web.debug, time.asctime(), "_locate_item", item
     text = urllib.urlopen("http://www.archive.org/metadata/" + item).read()
     d = simplejson.loads(text)
     return d['server'], d['dir']
@@ -194,12 +195,10 @@ def locate_item(item):
         x = mc.get(item)
         if not x:
             x = _locate_item(item)
-            mc.set(item, x, time=300) # cache it for 5 minutes
+            print >> web.debug, time.asctime(), "mc.set", item, x
+            mc.set(item, x, time=600) # cache it for 10 minutes
         return x
 
-# cache for 5 minutes
-locate_item = web.memoize(locate_item, expires=300)
-    
 def zipview_url(item, zipfile, filename):
     server, dir = locate_item(item)
     return "http://%(server)s/zipview.php?zip=%(dir)s/%(zipfile)s&file=%(filename)s" % locals()    
