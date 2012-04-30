@@ -44,7 +44,8 @@ def get_cover_id(olkeys):
         else:
             covers = doc.get('covers', [])
             
-        if covers:
+        # Sometimes covers is stored as [-1] to indicate no covers. Consider it as no covers.
+        if covers and covers[0] >= 0:
             return covers[0]
             
 _couchdb = None
