@@ -10,6 +10,51 @@ $def radiobuttons(name, options, value):
         <label for="$id">$v</label>
         &nbsp;&nbsp;
 
+$jsdef render_language(i, language):
+    <div class="input" id="languages-input-$i">
+      <input name="languages--$i" class="language language-autocomplete" type="text" id="language-$i" value="$language.name" style="width:300px!important;"/>
+      <input name="edition--languages--$i--key" type="hidden" id="language-$i-key" value="$language.key" />
+      <a href="javascript:;" class="remove red plain hidden" title="$_('Remove this language')">[x]</a>
+      <br/><a href="javascript:;" class="add small hidden">Add another language?</a>
+    </div>
+
+<script type="text/javascript">
+  <!--
+  \$(function() {
+      function update_visible() {
+          if (\$("#languages div.input").length > 1) {
+              \$("#languages a.remove").show();
+          }
+          else {
+              \$("#languages a.remove").hide();
+          }
+          \$("#languages a.add:not(:last)").hide();
+          \$("#languages a.add:last").show();
+      }
+      update_visible();
+
+     \$("#languages a.remove").live("click", function() {
+         if (\$("#languages div.input").length > 1) {
+             \$(this).closest("div.input").remove();
+             update_visible();
+         }
+     });
+
+     \$("#languages a.add").live("click", function(event) {
+         event.preventDefault();
+
+         var n = \$("#languages div.input:last").attr("id").substr("languages-input-".length);
+         n = parseInt(n);
+
+         \$("#languages").append(render_language(n+1, {key:"", name: ""}));
+         \$("#languages input.language-autocomplete:last").language_autocomplete();
+         update_visible();
+     });
+  });
+  -->
+</script>
+
+
 <div class="small brown librarianFlip">
     <span id="modeToggle">Turn on</span> <a title="$_('Expose another 20 fields about the edition')" id="libraryMode" accesskey="l" href="javascript:;">$_("Librarian Mode")</a>?
 </div>
@@ -256,16 +301,16 @@ $def radiobuttons(name, options, value):
 
             <legend>Languages</legend>
 
-            <div class="formElement">
+            <div class="formElement" id="languages">
                 <div class="label">
                     <label for="edition-language">$_("What language is this edition written in?")</label>
                     <span class="tip"></span>
                 </div>
-                <div class="input">
-                    $ language = book.languages and book.languages[0]
-                    <input type="text" name="languages" id="edition-language" value="$(language and language.name)" class="language-autocomplete" style="width:300px!important;"/>
-                    <input type="hidden" name="edition--languages--0--key" id="edition-language-key" value="$(language and '/languages/' + language.code)"/>
-                </div>
+                $if book.languages:
+                    $for i, lang in enumerate(book.languages):
+                        $:render_language(i, lang)
+                $else:
+                    $:render_language(0, storage(name="", key=""))
             </div>
             
             <div class="formElement librarian hidden">
