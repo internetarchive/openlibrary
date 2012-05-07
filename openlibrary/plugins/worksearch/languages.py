@@ -19,7 +19,7 @@ def get_language_name(code):
     return name or code
 
 class languages(subjects.subjects):
-    path = '(/languages/[^/]+)'
+    path = '(/languages/[^_][^/]*)'
 
     def GET(self, key):
         page = subjects.get_subject(key, details=True)
@@ -34,7 +34,7 @@ class languages(subjects.subjects):
         return "languages" in web.ctx.features
 
 class languages_json(subjects.subjects_json):
-    path = '(/languages/[^/]+)'
+    path = '(/languages/[^_][^/]*)'
     encoding = "json"
 
     def is_enabled(self):
