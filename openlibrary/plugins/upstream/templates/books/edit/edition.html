@@ -15,7 +15,7 @@ $jsdef render_language(i, language):
       <input name="languages--$i" class="language language-autocomplete" type="text" id="language-$i" value="$language.name" style="width:300px!important;"/>
       <input name="edition--languages--$i--key" type="hidden" id="language-$i-key" value="$language.key" />
       <a href="javascript:;" class="remove red plain hidden" title="$_('Remove this language')">[x]</a>
-      <br/><a href="javascript:;" class="add small hidden">Add another language?</a>
+      <br/><a href="javascript:;" class="add small librarian hidden">Add another language?</a>
     </div>
 
 <script type="text/javascript">
@@ -28,8 +28,14 @@ $jsdef render_language(i, language):
           else {
               \$("#languages a.remove").hide();
           }
-          \$("#languages a.add:not(:last)").hide();
-          \$("#languages a.add:last").show();
+
+          $# The add link should be made visible only if both librarian-on and it is the last element.
+          \$("#languages a.add:not(:last)").attr("style", "display: none");
+          \$("#languages a.add:last").attr("style", "");
+
+          if (\$("#translated-from").hasClass("librarian-on")) {
+              \$("#languages a.add:last").addClass("librarian-on");
+          }
       }
       update_visible();
 
@@ -313,7 +319,7 @@ $jsdef render_language(i, language):
                     $:render_language(0, storage(name="", key=""))
             </div>
             
-            <div class="formElement librarian hidden">
+            <div class="formElement librarian hidden" id="translated-from">
                 <div class="label">
                     <label for="is-translation">$_("Is it a translation of another book?")</label>
                     <span class="tip"></span>
@@ -682,7 +688,7 @@ $if ctx.user and ctx.user.is_admin():
        \$("a#libraryMode").click(function(event) {
            event.preventDefault();
            
-          \$(".librarian").toggle();          
+          \$(".librarian").toggleClass("librarian-on");
           \$(this).parent().find('#modeToggle').toggleText("Turn on","Exit");
        });
     });
