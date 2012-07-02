@@ -1,11 +1,12 @@
-$def with(book, size="S", cover_url=None)
+$def with(book, size="S", cover_url=False)
 
 $ title = book.title
 $ author_names = ", ".join(a.get("name", "Name missing") for a in book.get_authors()) or book.get('by_statement','')
 
 $# Use cover URL if provided by the caller. 
 $# This is used to avoid a solr query for editions with work.edition_count == 1
-$ cover_url = cover_url or book.get_cover_url(size)
+$if cover_url is False:
+    $ cover_url = book.get_cover_url(size)
 
 $if size == "S":
     <div class="coverMagic">
