@@ -96,7 +96,7 @@ $ work = page.works and page.works[0] or None
         $# optimization to avoid solr query to find work cover
         $if work and work.edition_count == 1:
             $ cover_url = work.get_cover_url('S', use_solr=False) or page.get_cover_url('S')
-        $:render_template('covers/book_cover_small', work, cover_url=cover_url)
+        $:render_template('covers/book_cover_small', page.works[0], cover_url=cover_url)
     </td>
     $ item_id = None
     $if 'ocaid' in page:
