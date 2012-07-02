@@ -19,14 +19,14 @@ logger = logging.getLogger("openlibrary.libraries")
 class libraries(delegate.page):
     def GET(self):
         return render_template("libraries/index", self.get_branches())
-    
+
     def get_branches(self):
         branches = sorted(get_library_branches(), key=lambda b: b.name.upper())
         return itertools.groupby(branches, lambda b: b.name and b.name[0])
-        
+
 class libraries_notes(delegate.page):
     path = "(/libraries/[^/]+)/notes"
-    
+
     def POST(self, key):
         doc = web.ctx.site.get(key)
         if doc is None or doc.type.key != "/type/library":
@@ -35,19 +35,19 @@ class libraries_notes(delegate.page):
             raise render_template("permission_denied")
         else:
             i = web.input(note="")
-            
+
             user = accounts.get_current_user()
             author = user and {"key": user.key}
             timestamp = {"type": "/type/datetime", "value": datetime.datetime.utcnow().isoformat()}
-            
+
             note = {"note": i.note, "author": {"key": user.key}, "timestamp": timestamp}
-            
+
             if not doc.notes:
                 doc.notes = []
             doc.notes.append(note)
         doc._save(comment="Added a note.")
         raise web.seeother(key)
-        
+
 def get_library_branches():
     """Returns library branches grouped by first letter."""
     libraries = inlibrary.get_libraries()
@@ -55,64 +55,64 @@ def get_library_branches():
         for branch in lib.get_branches():
             branch.library = lib.name
             yield branch
-            
+
 class libraries_dashboard(delegate.page):
     path = "/libraries/dashboard"
-    
+
     def GET(self):
-        keys = web.ctx.site.things(query={"type": "/type/library", "limit": 1000})
+        keys = web.ctx.site.things(query={"type": "/type/library", "limit": 10000})
         libraries = web.ctx.site.get_many(keys)
         libraries.sort(key=lambda lib: lib.name.lstrip('The '))
         return render_template("libraries/dashboard", libraries, self.get_pending_libraries())
-        
+
     def get_pending_libraries(self):
-        docs = web.ctx.site.store.values(type="library", name="current_status", value="pending")
+        docs = web.ctx.site.store.values(type="library", name="current_status", value="pending", limit=10000)
         return [self._create_pending_library(doc) for doc in docs]
-            
+
     def _create_pending_library(self, doc):
         """Creates a library object from store doc.
         """
         doc = dict(doc)
-        
+
         key = doc.pop("_key")
         if not key.startswith("/"):
             key = "/" + key
-            
+
         for k in doc.keys():
             if k.startswith("_"):
                 del doc[k]
-                
+
         doc['key'] = key
         doc['type'] = {"key": '/type/library'}
         doc['title'] = doc.get("title", doc['name'])
         return web.ctx.site.new(key, doc)
-        
+
 class pending_libraries(delegate.page):
     path = "/(libraries/pending-\d+)"
-    
+
     def GET(self, key):
         doc = web.ctx.site.store.get(key)
         if not doc:
             raise web.notfound()
-            
+
         doc["_key"] = self.generate_key(doc)
-            
+
         page = libraries_dashboard()._create_pending_library(doc)
         return render_template("type/library/edit", page)
-        
+
     def generate_key(self, doc):
         key = "/libraries/" + doc['name'].lower().replace(" ", "_")
-        
+
         _key = key
         count = 1
         while web.ctx.site.get(key) is not None:
             key = "%s_%s" % (_key, count)
             count += 1
         return key
-    
+
     def POST(self, key):
         i = web.input(_method="POST")
-        
+
         if "_delete" in i:
             doc = web.ctx.site.store.get(key)
             if doc:
@@ -120,39 +120,39 @@ class pending_libraries(delegate.page):
                 web.ctx.site.store[doc['_key']] = doc
                 add_flash_message("info", "The requested library has been deleted.")
                 raise web.seeother("/libraries/dashboard")
-        
+
         i._key = web.rstrips(i.key, "/").replace(" ", "_")
         page = libraries_dashboard()._create_pending_library(i)
-        
+
         if web.ctx.site.get(page.key):
             add_flash_message("error", "URL %s is already used. Please choose a different one." % page.key)
             return render_template("type/library/edit", page)
         elif not i.key.startswith("/libraries/"):
             add_flash_message("error", "The key must start with /libraries/.")
             return render_template("type/library/edit", page)
-            
+
         doc = web.ctx.site.store.get(key)
         if doc and "registered_on" in doc:
             page.registered_on = {"type": "/type/datetime", "value": doc['registered_on']}
-        
+
         page._save()
-        
+
         if doc:
             doc['current_status'] = "approved"
             doc['page_key'] = page.key
             web.ctx.site.store[doc['_key']] = doc
         raise web.seeother(page.key)
-        
+
 class libraries_register(delegate.page):
     path = "/libraries/register"
     def GET(self):
         return render_template("libraries/add")
-        
+
     def POST(self):
         i = web.input()
-        
+
         seq = web.ctx.site.seq.next_value("libraries")
-        
+
         doc = dict(i)
         doc.update({
             "_key": "libraries/pending-%d" % seq,
@@ -161,21 +161,21 @@ class libraries_register(delegate.page):
             "registered_on": datetime.datetime.utcnow().isoformat()
         })
         web.ctx.site.store[doc['_key']] = doc
-        
-        self.sendmail(i.contact_email, 
+
+        self.sendmail(i.contact_email,
             render_template("libraries/email_confirmation"))
-        
+
         if config.get("libraries_admin_email"):
             self.sendmail(config.libraries_admin_email,
                 render_template("libraries/email_notification", i))
-        
+
         return render_template("libraries/postadd")
-        
+
     def sendmail(self, to, msg, cc=None):
         cc = cc or []
         subject = msg.subject.strip()
         body = web.safestr(msg).strip()
-        
+
         if config.get('dummy_sendmail'):
             print >> web.debug, 'To:', to
             print >> web.debug, 'From:', config.from_address
@@ -274,17 +274,17 @@ class LoanStats:
         rows = self.view("loans/duration", group_level=2).rows
         minutes_per_day = 60.0 * 24.0
         return [[self.date2timestamp(*row.key)*1000, min(14, row.value['avg']/minutes_per_day)] for row in rows]
-        
+
     def get_average_duration_per_day(self):
         """Returns average duration per day."""
         return [[self.date2millis(*key), value] for key, value in self._get_average_duration_per_day()]
-        
+
     def _get_average_duration_per_day(self):
         """Returns (date, duration-in-days) for each day with duration averaged per day."""
         rows = self.view("loans/duration", group=True).rows
         minutes_per_day = 60.0 * 24.0
         return [[row.key, min(14, row.value['avg']/minutes_per_day)] for row in rows]
-        
+
     def _get_average_duration_per_month(self):
         """Returns (date, duration-in-days) for each day with duration averaged per month."""
         for month, chunk in itertools.groupby(self._get_average_duration_per_day(), lambda x: x[0][:2]):
@@ -292,7 +292,7 @@ class LoanStats:
             avg = sum(v for k, v in chunk) / len(chunk)
             for k, v in chunk:
                 yield k, avg
-        
+
     def get_average_duration_per_month(self):
         """Returns (date-in-millis, duration-in-days) for each day with duration averaged per month."""
         return [[self.date2millis(*key), value] for key, value in self._get_average_duration_per_month()]
@@ -308,12 +308,12 @@ class LoanStats:
         """Returns the distribution of #loans/book."""
         rows = self.view("loans/books", group=True, startkey=[key], endkey=[key, {}]).rows
         return [[row.key[-1], row.value] for row in rows if row.value >= limit]
-        
+
     def get_loans_per_user(self, key="", limit=1):
         """Returns the distribution of #loans/user."""
         rows = self.view("loans/people", group=True, startkey=[key], endkey=[key, {}]).rows
         return [[row.key[-1], row.value] for row in rows if row.value >= limit]
-        
+
     def get_loans_per_library(self):
         # view contains:
         #   [lib_key, status], 1
@@ -321,26 +321,26 @@ class LoanStats:
         rows = self.view("loans/libraries", group=True, group_level=1).rows
         names = self._get_library_names()
         return [[names.get(row.key[0], "-"), row.value] for row in rows]
-        
+
     def get_active_loans_of_libraries(self):
         """Returns count of current active loans per library as a dictionary.
         """
         rows = self.view("loans/libraries", group=True).rows
         return dict((row.key[0], row.value) for row in rows if row.key[1] == "active")
-        
+
     def _get_library_names(self):
         return dict((lib.key, lib.name) for lib in inlibrary.get_libraries())
-        
+
 @public
 def get_active_loans_of_libraries():
     return LoanStats().get_active_loans_of_libraries()
-    
+
 def on_loan_created(loan):
     """Adds the loan info to the admin stats database.
     """
     logger.debug("on_loan_created")
     db = get_admin_couchdb()
-    
+
     # The loan key is now changed from uuid to fixed key.
     # Using _key as key for loan stats will result in overwriting previous loans.
     # Using the unique uuid to create the loan key and falling back to _key
@@ -356,7 +356,7 @@ def on_loan_created(loan):
         "t_start": t_start.isoformat(),
         "status": "active"
     }
-    
+
     library = inlibrary.get_library()
     d['library'] = library and library.key
 
@@ -386,7 +386,7 @@ def on_loan_completed(loan):
     """
     logger.debug("on_loan_completed")
     db = get_admin_couchdb()
-    
+
     # The loan key is now changed from uuid to fixed key.
     # Using _key as key for loan stats will result in overwriting previous loans.
     # Using the unique uuid to create the loan key and falling back to _key
