@@ -5,12 +5,13 @@ from lxml.etree import tostring, Element, SubElement
 from pprint import pprint
 from urllib2 import urlopen, URLError, HTTPError
 import simplejson as json
-from time import sleep
+import time
 import web
 from openlibrary import config
 from unicodedata import normalize
 from collections import defaultdict
 from openlibrary.utils.isbn import opposite_isbn
+from openlibrary.core import helpers as h
 
 re_lang_key = re.compile(r'^/(?:l|languages)/([a-z]{3})$')
 re_author_key = re.compile(r'^/(?:a|authors)/(OL\d+A)')
@@ -80,7 +81,7 @@ def get_ia_collection_and_box_id(ia):
             return
         except URLError:
             print 'retry', attempt, url
-            sleep(5)
+            time.sleep(5)
     return matches
 
 class AuthorRedirect (Exception):
@@ -170,6 +171,20 @@ def four_types(i):
             else:
                 ret['subject'] = {k: v}
     return ret
+
+def datetimestr_to_int(datestr):
+    if isinstance(datestr, dict):
+        datestr = datestr['value']
+
+    if datestr:
+        try:
+            t = h.parse_datetime(datestr)
+        except (TypeError, ValueError):
+            t = datetime.datetime.utcnow()
+    else:
+        t = datetime.datetime.utcnow()
+
+    return int(time.mktime(t.timetuple()))
 
 re_solr_field = re.compile('^[-\w]+$', re.U)
 
@@ -404,6 +419,8 @@ def build_doc(w, obj_cache={}, resolve_redirects=False):
     ia_loaded_id = set()
     ia_box_id = set()
 
+    last_modified_i = datetimestr_to_int(w.get('last_modified'))
+
     for e in editions:
         for l in e.get('languages', []):
             m = re_lang_key.match(l['key'] if isinstance(l, dict) else l)
@@ -468,8 +485,12 @@ def build_doc(w, obj_cache={}, resolve_redirects=False):
                 nonpub_goog.add(i)
             else:
                 nonpub_nongoog.add(i)
+        last_modified_i = max(last_modified_i, datetimestr_to_int(e.get('last_modified')))
     #print 'lending_edition:', lending_edition
     ia_list = list(pub_nongoog) + list(pub_goog) + list(nonpub_nongoog) + list(nonpub_goog)
+    add_field(doc, "ebook_count_i", len(ia_list))
+    add_field(doc, "last_modified_i", last_modified_i)
+
     add_field_list(doc, 'ia', ia_list)
     if has_fulltext:
         add_field(doc, 'public_scan_b', public_scan)
@@ -651,10 +672,10 @@ def update_keys(keys, commit=True):
         edition = withKey(k)
         if edition.get("works"):
             wkeys.add(edition["works"][0]['key'])
-
+        
     # Add work keys
     wkeys.update(k for k in keys if k.startswith("/works/"))
-
+    
     # update works
     requests = []
     for k in wkeys:
@@ -672,7 +693,7 @@ def update_keys(keys, commit=True):
     for k in akeys:
         print "updating", k
         requests += update_author(k)
-    if requests:
+    if requests:  
         if commit:
             requests += ['<commit />']
         solr_update(requests, index="authors", debug=True)
