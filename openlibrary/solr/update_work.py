@@ -640,33 +640,50 @@ def commit_and_optimize(debug=False):
     requests = ['<commit />', '<optimize />']
     solr_update(requests, debug)
 
-def update_keys(keys):
+def update_keys(keys, commit=True):
+    print "BEGIN update_keys"
+    wkeys = set()
+
+    # Get works for all the editions
+    ekeys = set(k for k in keys if k.startswith("/books/"))
+    for k in ekeys:
+        print "processing edition", k
+        edition = withKey(k)
+        if edition.get("works"):
+            wkeys.add(edition["works"][0]['key'])
+
+    # Add work keys
+    wkeys.update(k for k in keys if k.startswith("/works/"))
+
     # update works
     requests = []
-    wkeys = [k for k in keys if k.startswith("/works/")]
-    print "updating", wkeys
     for k in wkeys:
+        print "updating", k
         w = withKey(k)
         requests += update_work(w, debug=True)
     if requests:    
-        requests += ['<commit />']
+        if commit:
+            requests += ['<commit />']
         solr_update(requests, debug=True)
     
     # update authors
-    requests = []    
-    akeys = [k for k in keys if k.startswith("/authors/")]
-    print "updating", akeys
+    requests = []
+    akeys = set(k for k in keys if k.startswith("/authors/"))
     for k in akeys:
+        print "updating", k
         requests += update_author(k)
-    if requests:    
-        requests += ['<commit />']
-        solr_update(requests, index="authors", debug=True)        
+    if requests:
+        if commit:
+            requests += ['<commit />']
+        solr_update(requests, index="authors", debug=True)
+    print "END update_keys"
 
 def parse_options(args=None):
     from optparse import OptionParser
     parser = OptionParser(args)
     parser.add_option("-s", "--server", dest="server", default="http://openlibrary.org/", help="URL of the openlibrary website (default: %default)")
     parser.add_option("-c", "--config", dest="config", default="openlibrary.yml", help="Open Library config file")
+    parser.add_option("--nocommit", dest="nocommit", action="store_true", default=False, help="Don't commit to solr")
 
     options, args = parser.parse_args()
     return options, args
@@ -681,7 +698,7 @@ def main():
     # load config
     config.load(options.config)
 
-    update_keys(keys)
+    update_keys(keys, commit=not options.nocommit)
 
 if __name__ == '__main__':
     main()
