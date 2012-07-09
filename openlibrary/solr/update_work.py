@@ -705,9 +705,81 @@ def parse_options(args=None):
     parser.add_option("-s", "--server", dest="server", default="http://openlibrary.org/", help="URL of the openlibrary website (default: %default)")
     parser.add_option("-c", "--config", dest="config", default="openlibrary.yml", help="Open Library config file")
     parser.add_option("--nocommit", dest="nocommit", action="store_true", default=False, help="Don't commit to solr")
+    parser.add_option("--monkeypatch", dest="monkeypatch", action="store_true", default=False, help="Monkeypatch query functions to access DB directly")
 
     options, args = parser.parse_args()
     return options, args
+
+def new_query_iter(q, limit=500, offset=0):
+    """Alternative implementation of query_iter, that talks to the
+    database directly instead of accessing the website API.
+
+    This is set to `query_iter` when this script is called with
+    --monkeypatch option.
+    """
+    q['limit'] = limit
+    q['offset'] = offset
+    site = web.ctx.site
+
+    while True:
+        keys = site.things(q)
+        docs = keys and site.get_many(keys, raw=True) 
+        for doc in docs:
+            yield doc
+
+        # We haven't got as many we have requested. No point making one more request
+        if len(keys) < limit:
+            break
+        q['offset'] += limit
+
+def new_withKey(key):
+    """Alternative implementation of withKey, that talks to the database
+    directly instead of using the website API.
+
+    This is set to `withKey` when this script is called with --monkeypatch
+    option.
+    """
+    return web.ctx.site._request('/get', data={'key': key})
+
+def monkeypatch(config_file):
+    """Monkeypatch query functions to avoid hitting openlibrary.org.
+    """
+    def load_infogami(config_file):
+        import web
+        import infogami
+        from infogami import config
+        from infogami.utils import delegate
+
+        config.plugin_path += ['openlibrary.plugins']
+        config.site = "openlibrary.org"
+        
+        infogami.load_config(config_file)
+        setup_infobase_config(config_file)
+
+        infogami._setup()
+        delegate.fakeload()
+        
+    def setup_infobase_config(config_file):
+        """Reads the infoabse config file and assign it to config.infobase.
+        The config_file is used as base to resolve relative path, if specified in the config.
+        """
+        from infogami import config
+        import os
+        import yaml
+
+        if config.get("infobase_config_file"):
+            dir = os.path.dirname(config_file)
+            path = os.path.join(dir, config.infobase_config_file)
+            config.infobase = yaml.safe_load(open(path).read())
+
+    global query_iter, withKey
+
+    print "monkeypatching query_iter and withKey functions to talk to database directly."
+    load_infogami(config_file)
+
+    query_iter = new_query_iter
+    withKey = new_withKey
+
 
 def main():
     options, keys = parse_options()
@@ -715,6 +787,9 @@ def main():
     # set query host
     host = web.lstrips(options.server, "http://").strip("/")
     set_query_host(host)
+
+    if options.monkeypatch:
+        monkeypatch(options.config)
 
     # load config
     config.load(options.config)
