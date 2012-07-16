@@ -20,8 +20,8 @@ $var title: $title
         <td class="label"><label for="name">Library Name</label></td>
         <td><input type="text" name="name" id="name" />
         $if errors.get('name'):
+            <br>
             $errors['name']
-            
         </td>
     </tr>
     <tr>
@@ -308,6 +308,9 @@ $var title: $title
             <span class="tip">Please use these fields, separated by a '|':<br />Library Name | Street | City | State | Zip | Country | Telephone | Website | Lat, Long </span>
         </div>
         <div class="input">
+            $if 'addresses' in errors:
+                $errors['addresses']
+                <br>
             <textarea name="addresses" id="addresses" rows="20" cols="80" style="width:900px;"></textarea>
         </div>
     </div>

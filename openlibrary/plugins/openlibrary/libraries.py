@@ -151,8 +151,24 @@ class libraries_register(delegate.page):
     def POST(self):
         i = web.input()
         doc = dict(i)
+        errors = {}
         if not doc.get('name'):
-            errors = {'name': 'name is a required field'}
+            errors['name'] = 'name is a required field'
+        addresses = doc.get('addresses', '').strip()
+        if addresses:
+            for line in addresses.splitlines():
+                tokens = line.split('|')
+                if len(tokens) != 9:
+                    errors['addresses'] = 'address field is invalid'
+                    break
+                latlong = token[8]
+                if ',' not in latlong or len(latlong.split(',') != 2:
+                    errors['addresses'] = 'Lat, Long is invalid'
+                    break
+        else:
+            errors['addresses'] = 'addresses is a required field'
+
+        if errors:
             return render_template("libraries/add", errors)
 
         seq = web.ctx.site.seq.next_value("libraries")
