@@ -152,7 +152,8 @@ class libraries_register(delegate.page):
         i = web.input()
         doc = dict(i)
         if not doc.get('name'):
-            return render_template("libraries/add")
+            errors = {'name': 'name is a required field'}
+            return render_template("libraries/add", errors)
 
         seq = web.ctx.site.seq.next_value("libraries")
 

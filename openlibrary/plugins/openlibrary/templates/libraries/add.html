@@ -1,4 +1,4 @@
-$def with ()
+$def with (errors={})
 
 $ title = "Register Your Library for the In-Library Lending Program"
 
@@ -18,7 +18,11 @@ $var title: $title
 <table id="libraryInfo">
     <tr>
         <td class="label"><label for="name">Library Name</label></td>
-        <td><input type="text" name="name" id="name" /></td>
+        <td><input type="text" name="name" id="name" />
+        $if errors.get('name'):
+            $errors['name']
+            
+        </td>
     </tr>
     <tr>
         <td class="label"><label for="website">Library's Website</label></td>
