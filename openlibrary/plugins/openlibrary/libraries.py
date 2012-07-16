@@ -161,7 +161,7 @@ class libraries_register(delegate.page):
                 if len(tokens) != 9:
                     errors['addresses'] = 'address field is invalid'
                     break
-                latlong = token[8]
+                latlong = tokens[8]
                 if ',' not in latlong or len(latlong.split(',')) != 2:
                     errors['addresses'] = 'Lat, Long is invalid'
                     break
