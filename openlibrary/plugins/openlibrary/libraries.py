@@ -150,10 +150,12 @@ class libraries_register(delegate.page):
 
     def POST(self):
         i = web.input()
+        doc = dict(i)
+        if not doc.get('name'):
+            return render_template("libraries/add")
 
         seq = web.ctx.site.seq.next_value("libraries")
 
-        doc = dict(i)
         doc.update({
             "_key": "libraries/pending-%d" % seq,
             "type": "library",
