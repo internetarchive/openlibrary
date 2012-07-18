@@ -172,7 +172,8 @@ class libraries_register(delegate.page):
         ip_ranges = doc.get('ip_ranges', '').strip()
         if ip_ranges:
             bad = find_bad_ip_ranges(ip_ranges)
-            errors['ip_ranges'] = 'Invalid IP range(s): ' + '; '.join(bad)
+            if bad:
+                errors['ip_ranges'] = 'Invalid IP range(s): ' + '; '.join(bad)
         else:
             errors['ip_ranges'] = 'IP ranges is a required field'
 
