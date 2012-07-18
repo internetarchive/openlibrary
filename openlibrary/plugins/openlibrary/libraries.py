@@ -13,6 +13,7 @@ from infogami.utils import delegate
 from infogami.utils.view import render_template, add_flash_message, public
 from openlibrary.core import inlibrary
 from openlibrary import accounts
+from openlibrary.core.iprange import find_bad_ip_ranges
 
 logger = logging.getLogger("openlibrary.libraries")
 
@@ -167,6 +168,13 @@ class libraries_register(delegate.page):
                     break
         else:
             errors['addresses'] = 'addresses is a required field'
+
+        ip_ranges = doc.get('ip_ranges', '').strip()
+        if ip_ranges:
+            bad = find_bad_ip_ranges(ip_ranges)
+            errors['ip_ranges'] = 'Invalid IP range(s): ' + '; '.join(bad)
+        else:
+            errors['ip_ranges'] = 'IP ranges is a required field'
 
         if errors:
             return render_template("libraries/add", errors)
