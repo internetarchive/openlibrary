@@ -296,7 +296,11 @@ $var title: $title
     <tr>
         <td class="label"><label for="ip_ranges">$_("IP Ranges")</label><br /><br />
             <span class="smaller grey">208.70.27.190<br />208.70.24.0/21<br />208.70.24.0-208.70.31.255<br />208.70.24.*<br />208.70.*.*<br />208.70.20-30.*<br />208.70.24.10-50<br />208.70.24.<br /></span></td>
-        <td><textarea name="ip_ranges" id="ip_ranges" rows="10" style="height:150px;"></textarea></td>
+        <td>
+            $if 'ip_ranges' in errors:
+                $errors['ip_ranges']
+                <br>
+            <textarea name="ip_ranges" id="ip_ranges" rows="10" style="height:150px;"></textarea></td>
     </tr>
     <tr><td></td><td>You must supply the IP ranges that patrons use to access the Internet from within your library branches. We support IP address in various formats, including single IP addresses, wildcard IP ranges, and CIDR notation.</td></tr>
 </table>
