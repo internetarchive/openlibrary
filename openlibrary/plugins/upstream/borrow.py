@@ -536,7 +536,10 @@ def get_loan_status(resource_id):
     except IOError:
         # status server is down
         # $$$ be more graceful
-        raise Exception('Loan status server not available - tried at %s', url)
+        #raise Exception('Loan status server not available - tried at %s', url)
+
+        # XXX-Anand: don't crash
+        return None
     
     raise Exception('Error communicating with loan status server for resource %s' % resource_id)
 
