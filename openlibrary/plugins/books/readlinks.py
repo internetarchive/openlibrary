@@ -14,6 +14,7 @@ from openlibrary.api import OpenLibrary
 from infogami.infobase import _json as simplejson
 from infogami.utils.delegate import register_exception
 from infogami.utils import stats
+from infogami import config
 
 import dynlinks
 
