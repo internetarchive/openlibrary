@@ -125,12 +125,14 @@ $ has_profile = person.get_user() is not None
             Status: <span class="status">$person.status</span>
             
         $if person.status in ['active', 'verified']:
-            <button type="submit" class="fixthis" name="action" value="block">delete account</button>
+            <button type="submit" name="action" value="block_account">block this account</button>
             <br/>
             <br/>
             <div class="small">Registered on <span class="time">$datestr(person.registered_on, relative=False)</span>.</div>
             $ v = person.get_creation_info()                
             <div class="small">Activated on <span class="time">$datestr(person.activated_on, relative=False)</spam> from <a href="/admin/ip/$v.ip">$v.ip</a>.</div>
+        $if person.status == "blocked":
+	        <button type="submit" name="action" value="unblock_account">unblock this account</button>
         $elif person.status == "pending":
             <button type="submit" name="action" value="activate_account">activate account</button>
             <br/>

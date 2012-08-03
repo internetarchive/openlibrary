@@ -564,10 +564,14 @@ class book_edit(delegate.page):
     def GET(self, key):
         i = web.input(v=None)
         v = i.v and safeint(i.v, None)
+
+        if not web.ctx.site.can_write(key):
+            return render_template("permission_denied", web.ctx.fullpath, "Permission denied to edit " + key + ".")
+                    
         edition = web.ctx.site.get(key, v)
         if edition is None:
             raise web.notfound()
-
+            
         work = edition.works and edition.works[0]
         # HACK: create dummy work when work is not available to make edit form work
         work = work or web.ctx.site.new('', {'key': '', 'type': {'key': '/type/work'}, 'title': edition.title})
@@ -607,7 +611,10 @@ class work_edit(delegate.page):
     def GET(self, key):
         i = web.input(v=None, _method="GET")
         v = i.v and safeint(i.v, None)
-
+        
+        if not web.ctx.site.can_write(key):
+            return render_template("permission_denied", web.ctx.fullpath, "Permission denied to edit " + key + ".")
+        
         work = web.ctx.site.get(key, v)
         if work is None:
             raise web.notfound()
@@ -634,6 +641,9 @@ class author_edit(delegate.page):
     path = "(/authors/OL\d+A)/edit"
 
     def GET(self, key):
+        if not web.ctx.site.can_write(key):
+            return render_template("permission_denied", web.ctx.fullpath, "Permission denied to edit " + key + ".")
+        
         author = web.ctx.site.get(key)
         if author is None:
             raise web.notfound()

@@ -1,4 +1,4 @@
-$def with ()
+$def with (errors={})
 
 $ title = "Register Your Library for the In-Library Lending Program"
 
@@ -18,7 +18,11 @@ $var title: $title
 <table id="libraryInfo">
     <tr>
         <td class="label"><label for="name">Library Name</label></td>
-        <td><input type="text" name="name" id="name" /></td>
+        <td><input type="text" name="name" id="name" />
+        $if errors.get('name'):
+            <br>
+            $errors['name']
+        </td>
     </tr>
     <tr>
         <td class="label"><label for="website">Library's Website</label></td>
@@ -292,16 +296,25 @@ $var title: $title
     <tr>
         <td class="label"><label for="ip_ranges">$_("IP Ranges")</label><br /><br />
             <span class="smaller grey">208.70.27.190<br />208.70.24.0/21<br />208.70.24.0-208.70.31.255<br />208.70.24.*<br />208.70.*.*<br />208.70.20-30.*<br />208.70.24.10-50<br />208.70.24.<br /></span></td>
-        <td><textarea name="ip_ranges" id="ip_ranges" rows="10" style="height:150px;"></textarea></td>
+        <td>
+            $if 'ip_ranges' in errors:
+                $errors['ip_ranges']
+                <br>
+            <textarea name="ip_ranges" id="ip_ranges" rows="10" style="height:150px;"></textarea></td>
     </tr>
+    <tr><td></td><td>You must supply the IP ranges that patrons use to access the Internet from within your library branches. We support IP address in various formats, including single IP addresses, wildcard IP ranges, and CIDR notation.</td></tr>
 </table>
 
     <div class="formElement">
         <div class="label">
             <label for="addresses">Street Address(es)</label><br />
-            <span class="tip">Please use these fields, separated by a '|':<br />Library Name | Street | City | State | Zip | Country | Telephone | Website</span>
+            We require that you enter the street addresses with latitude and longitude of each of your branches. If you do not know the coordinates of your branches we recommend a service called <a href="http://getlatlon.com">Get Lat Lon</a>, it will convert a street address into latitude and longitude. <p>
+            <span class="tip">Please use these fields, separated by a '|':<br />Library Name | Street | City | State | Zip | Country | Telephone | Website | Lat, Long </span>
         </div>
         <div class="input">
+            $if 'addresses' in errors:
+                $errors['addresses']
+                <br>
             <textarea name="addresses" id="addresses" rows="20" cols="80" style="width:900px;"></textarea>
         </div>
     </div>

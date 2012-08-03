@@ -12,6 +12,12 @@ $var title: Permission Denied
 
 
 $if not ctx.user:
-    <p>$:_('You may <a href="%s">log in</a> if you have the required permissions.', "/account/login?" + urlencode(dict(redirect=path)))</p>
+    $if path.startswith("/books/") or path.startswith("/works/") or path.startswith("/authors/"):
+        <p>
+            Only logged users are allowed to modify records on Open Library. 
+            Please <a href="/account/login?redirect=$path">log in</a> to edit this page.
+        </p>
+    $else:
+        <p>$:_('You may <a href="%s">log in</a> if you have the required permissions.', "/account/login?" + urlencode(dict(redirect=path)))</p>
 
 </div>

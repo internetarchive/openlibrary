@@ -4,9 +4,11 @@ import urllib
 import os
 import Image
 import datetime
+import time
 import couchdb
 import logging
 import array
+import memcache
 
 import db
 import config
@@ -43,7 +45,8 @@ def get_cover_id(olkeys):
         else:
             covers = doc.get('covers', [])
             
-        if covers:
+        # Sometimes covers is stored as [-1] to indicate no covers. Consider it as no covers.
+        if covers and covers[0] >= 0:
             return covers[0]
             
 _couchdb = None
@@ -74,10 +77,8 @@ def _query(category, key, value):
                 return find_coverid_from_couch(db, key, value)
             
             if key == 'isbn':
-                if len(value.replace('-', '')) == 13:
-                    key = 'isbn_13'
-                else:
-                    key = 'isbn_10'
+                value = value.replace("-", "").strip()
+                key = "isbn_"
             if key == 'oclc':
                 key = 'oclc_numbers'
             olkeys = ol_things(key, value)
@@ -171,18 +172,33 @@ class upload2:
 def trim_microsecond(date):
     # ignore microseconds
     return datetime.datetime(*date.timetuple()[:6])
-    
 
-def locate_item(item):
+
+@web.memoize
+def get_memcache():
+    servers = config.get("memcache_servers")
+    return memcache.Client(servers)
+
+def _locate_item(item):
     """Locates the archive.org item in the cluster and returns the server and directory.
     """
+    print >> web.debug, time.asctime(), "_locate_item", item
     text = urllib.urlopen("http://www.archive.org/metadata/" + item).read()
     d = simplejson.loads(text)
     return d['server'], d['dir']
-    
-# cache for 5 minutes
-locate_item = web.memoize(locate_item, expires=300)
-    
+
+def locate_item(item):
+    mc = get_memcache()
+    if not mc:
+        return _locate_item(item)
+    else:
+        x = mc.get(item)
+        if not x:
+            x = _locate_item(item)
+            print >> web.debug, time.asctime(), "mc.set", item, x
+            mc.set(item, x, time=600) # cache it for 10 minutes
+        return x
+
 def zipview_url(item, zipfile, filename):
     server, dir = locate_item(item)
     return "http://%(server)s/zipview.php?zip=%(dir)s/%(zipfile)s&file=%(filename)s" % locals()    

@@ -1,14 +1,16 @@
-$def with (loans, show_percent=False)
+$def with (loans, show_percent=False, stats={})
 
 $def render_percents():
-    $ pdf_count = len([pdf for pdf in loans if pdf['resource_type'] == 'pdf'])
-    $ epub_count = len([epub for epub in loans if epub['resource_type'] == 'epub'])
-    $ bookreader_count = len([bookreader for bookreader in loans if bookreader['resource_type'] == 'bookreader'])
-    $ total = pdf_count + epub_count + bookreader_count + 0.0
-    $ pdf_percent = "%d" % percentage(pdf_count, total)
-    $ epub_percent = "%d" % percentage(epub_count, total)
-    $ bookreader_percent = "%d" % percentage(bookreader_count, total)
-    $bookreader_count ($bookreader_percent%) $_("BookReader") - $pdf_count ($pdf_percent%) $_("PDF") - $epub_count ($epub_percent%) $_("ePub")
+    $ total_loans = stats.get("total_loans") or len(loans)
+    $ pdf_loans = stats.get("pdf_loans") or len([loan for loan in loans if loan['resource_type'] == 'pdf'])
+    $ epub_loans = stats.get("epub_loans") or len([loan for loan in loans if loan['resource_type'] == 'epub'])
+    $ bookreader_loans = stats.get("bookreader_loans") or len([loan for loan in loans if loan['resource_type'] == 'bookreader'])
+    $ pdf_percent = "%d" % percentage(pdf_loans, total_loans + 0.0)
+    $ epub_percent = "%d" % percentage(epub_loans, total_loans + 0.0)
+    $ bookreader_percent = "%d" % percentage(bookreader_loans, total_loans + 0.0)
+    $bookreader_loans ($bookreader_percent%) $_("BookReader")
+    - $pdf_loans ($pdf_percent%) $_("PDF")
+    - $epub_loans ($epub_percent%) $_("ePub")
 
 $if not loans:
     <em>No current loans.</em>
@@ -18,8 +20,13 @@ $else:
         <thead>
             <tr>
                 <th class="titles" colspan="2">
-                $ msg = ungettext("%d Current Loan", "%d Current Loans", len(loans))
-                $sprintf(msg, len(loans))
+                $ total_loans = stats.get("total_loans", len(loans))
+                $ msg = ungettext("%d Current Loan", "%d Current Loans", total_loans)
+                $sprintf(msg, total_loans)
+
+                $if total_loans > len(loans):
+                    (Showing $stats["begin"]-$stats["end"])
+
                 $if show_percent:
                     <br/>
                     $:render_percents()
@@ -73,7 +80,7 @@ $else:
                 <td class="action">
                     $ borrow_admin = loan['book'] + '/title/borrow_admin'
                     <a href="$borrow_admin">debug_info</a><br/><br/>
-                    <a href="$borrow_admin" class="smaller plain">refresh</a>
+                    <a href="$borrow_admin?updatestatus=t" class="smaller plain">refresh</a>
                 </td>
             </tr>
         </tbody>

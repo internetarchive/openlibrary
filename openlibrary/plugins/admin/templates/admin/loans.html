@@ -1,4 +1,4 @@
-$def with (loans, action)
+$def with (loans, action, pagecount=None, pageindex=None, stats=None)
 
 $ pdf_count = len([pdf for pdf in loans if pdf['resource_type'] == 'pdf'])
 $ epub_count = len([epub for epub in loans if epub['resource_type'] == 'epub'])
@@ -24,8 +24,17 @@ $ bookreader_percent = "%d" % percentage(bookreader_count, total)
         $else:
             <span class="adminOnly" style="font-size: 24px; line-height: 1.5em;"><i>THIS PAGE ISN'T UPDATING LIVE.</u><br />We're currently collecting stats - bulk status update is disabled.  <br />Please do not refresh loan status manually, thanks.</span>
     </p>
-        
 </div>
 <div id="contentBody">
-    $:render_template("admin/loans_table", loans, show_percent=True)
+    $if pagecount is not None:
+        <div style="margin-bottom: 30px; margin-top: -30px;">
+            $:render_template("lib/pagination", pagecount, pageindex, "/admin/loans?page=%(page)s")
+            <br style="clear: both;">
+        </div>
+
+    $:render_template("admin/loans_table", loans, show_percent=True, stats=stats)
+    $if pagecount is not None:
+        <div>
+            $:render_template("lib/pagination", pagecount, pageindex, "/admin/loans?page=%(page)s")
+        </div>
 </div>

@@ -399,6 +399,8 @@ class SeedsDB:
         self._big_seeds = None
         
     def mark_seeds_for_update(self, seeds):
+        # XXX-Anand: temporarily disable updates as the node hosting seeds_db is low on disk
+        return
         docs = {}
         t = datetime.datetime.utcnow().isoformat()
         
@@ -416,6 +418,8 @@ class SeedsDB:
         couchdb_bulk_save(self.db, docs.values())
     
     def update_seeds(self, seeds, chunksize=50):
+        # XXX-Anand: temporarily disable updates as the node hosting seeds_db is low on disk
+        return
         big_seeds = self.get_big_seeds()
         seeds2 = sorted(seed for seed in seeds if seed not in big_seeds)
         

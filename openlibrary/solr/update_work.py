@@ -5,12 +5,13 @@ from lxml.etree import tostring, Element, SubElement
 from pprint import pprint
 from urllib2 import urlopen, URLError, HTTPError
 import simplejson as json
-from time import sleep
+import time
 import web
 from openlibrary import config
 from unicodedata import normalize
 from collections import defaultdict
 from openlibrary.utils.isbn import opposite_isbn
+from openlibrary.core import helpers as h
 
 re_lang_key = re.compile(r'^/(?:l|languages)/([a-z]{3})$')
 re_author_key = re.compile(r'^/(?:a|authors)/(OL\d+A)')
@@ -80,7 +81,7 @@ def get_ia_collection_and_box_id(ia):
             return
         except URLError:
             print 'retry', attempt, url
-            sleep(5)
+            time.sleep(5)
     return matches
 
 class AuthorRedirect (Exception):
@@ -170,6 +171,20 @@ def four_types(i):
             else:
                 ret['subject'] = {k: v}
     return ret
+
+def datetimestr_to_int(datestr):
+    if isinstance(datestr, dict):
+        datestr = datestr['value']
+
+    if datestr:
+        try:
+            t = h.parse_datetime(datestr)
+        except (TypeError, ValueError):
+            t = datetime.datetime.utcnow()
+    else:
+        t = datetime.datetime.utcnow()
+
+    return int(time.mktime(t.timetuple()))
 
 re_solr_field = re.compile('^[-\w]+$', re.U)
 
@@ -404,6 +419,8 @@ def build_doc(w, obj_cache={}, resolve_redirects=False):
     ia_loaded_id = set()
     ia_box_id = set()
 
+    last_modified_i = datetimestr_to_int(w.get('last_modified'))
+
     for e in editions:
         for l in e.get('languages', []):
             m = re_lang_key.match(l['key'] if isinstance(l, dict) else l)
@@ -468,8 +485,12 @@ def build_doc(w, obj_cache={}, resolve_redirects=False):
                 nonpub_goog.add(i)
             else:
                 nonpub_nongoog.add(i)
+        last_modified_i = max(last_modified_i, datetimestr_to_int(e.get('last_modified')))
     #print 'lending_edition:', lending_edition
     ia_list = list(pub_nongoog) + list(pub_goog) + list(nonpub_nongoog) + list(nonpub_goog)
+    add_field(doc, "ebook_count_i", len(ia_list))
+    add_field(doc, "last_modified_i", last_modified_i)
+
     add_field_list(doc, 'ia', ia_list)
     if has_fulltext:
         add_field(doc, 'public_scan_b', public_scan)
@@ -640,36 +661,125 @@ def commit_and_optimize(debug=False):
     requests = ['<commit />', '<optimize />']
     solr_update(requests, debug)
 
-def update_keys(keys):
+def update_keys(keys, commit=True):
+    print "BEGIN update_keys"
+    wkeys = set()
+
+    # Get works for all the editions
+    ekeys = set(k for k in keys if k.startswith("/books/"))
+    for k in ekeys:
+        print "processing edition", k
+        edition = withKey(k)
+        if edition.get("works"):
+            wkeys.add(edition["works"][0]['key'])
+        
+    # Add work keys
+    wkeys.update(k for k in keys if k.startswith("/works/"))
+    
     # update works
     requests = []
-    wkeys = [k for k in keys if k.startswith("/works/")]
-    print "updating", wkeys
     for k in wkeys:
+        print "updating", k
         w = withKey(k)
         requests += update_work(w, debug=True)
     if requests:    
-        requests += ['<commit />']
+        if commit:
+            requests += ['<commit />']
         solr_update(requests, debug=True)
     
     # update authors
-    requests = []    
-    akeys = [k for k in keys if k.startswith("/authors/")]
-    print "updating", akeys
+    requests = []
+    akeys = set(k for k in keys if k.startswith("/authors/"))
     for k in akeys:
+        print "updating", k
         requests += update_author(k)
-    if requests:    
-        requests += ['<commit />']
-        solr_update(requests, index="authors", debug=True)        
+    if requests:  
+        if commit:
+            requests += ['<commit />']
+        solr_update(requests, index="authors", debug=True)
+    print "END update_keys"
 
 def parse_options(args=None):
     from optparse import OptionParser
     parser = OptionParser(args)
     parser.add_option("-s", "--server", dest="server", default="http://openlibrary.org/", help="URL of the openlibrary website (default: %default)")
     parser.add_option("-c", "--config", dest="config", default="openlibrary.yml", help="Open Library config file")
+    parser.add_option("--nocommit", dest="nocommit", action="store_true", default=False, help="Don't commit to solr")
+    parser.add_option("--monkeypatch", dest="monkeypatch", action="store_true", default=False, help="Monkeypatch query functions to access DB directly")
 
     options, args = parser.parse_args()
     return options, args
+
+def new_query_iter(q, limit=500, offset=0):
+    """Alternative implementation of query_iter, that talks to the
+    database directly instead of accessing the website API.
+
+    This is set to `query_iter` when this script is called with
+    --monkeypatch option.
+    """
+    q['limit'] = limit
+    q['offset'] = offset
+    site = web.ctx.site
+
+    while True:
+        keys = site.things(q)
+        docs = keys and site.get_many(keys, raw=True) 
+        for doc in docs:
+            yield doc
+
+        # We haven't got as many we have requested. No point making one more request
+        if len(keys) < limit:
+            break
+        q['offset'] += limit
+
+def new_withKey(key):
+    """Alternative implementation of withKey, that talks to the database
+    directly instead of using the website API.
+
+    This is set to `withKey` when this script is called with --monkeypatch
+    option.
+    """
+    return web.ctx.site._request('/get', data={'key': key})
+
+def monkeypatch(config_file):
+    """Monkeypatch query functions to avoid hitting openlibrary.org.
+    """
+    def load_infogami(config_file):
+        import web
+        import infogami
+        from infogami import config
+        from infogami.utils import delegate
+
+        config.plugin_path += ['openlibrary.plugins']
+        config.site = "openlibrary.org"
+        
+        infogami.load_config(config_file)
+        setup_infobase_config(config_file)
+
+        infogami._setup()
+        delegate.fakeload()
+        
+    def setup_infobase_config(config_file):
+        """Reads the infoabse config file and assign it to config.infobase.
+        The config_file is used as base to resolve relative path, if specified in the config.
+        """
+        from infogami import config
+        import os
+        import yaml
+
+        if config.get("infobase_config_file"):
+            dir = os.path.dirname(config_file)
+            path = os.path.join(dir, config.infobase_config_file)
+            config.infobase = yaml.safe_load(open(path).read())
+
+    global query_iter, withKey
+
+    print "monkeypatching query_iter and withKey functions to talk to database directly."
+    load_infogami(config_file)
+
+    query_iter = new_query_iter
+    withKey = new_withKey
+
 
 def main():
     options, keys = parse_options()
@@ -678,10 +788,13 @@ def main():
     host = web.lstrips(options.server, "http://").strip("/")
     set_query_host(host)
 
+    if options.monkeypatch:
+        monkeypatch(options.config)
+
     # load config
     config.load(options.config)
 
-    update_keys(keys)
+    update_keys(keys, commit=not options.nocommit)
 
 if __name__ == '__main__':
     main()

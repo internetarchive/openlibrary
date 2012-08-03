@@ -37,29 +37,30 @@ class contact(delegate.page):
         default_assignees = config.get("support_default_assignees",{})
         topic_key = topic.replace(" ","_").lower()
         if topic_key in default_assignees:
+            create_case = True
             assignee = default_assignees.get(topic_key)
         else:
+            create_case = False
             assignee = default_assignees.get("default", "mary@openlibrary.org")
-        print "Assignee is %s"%assignee
-        c = support_db.create_case(creator_name      = user and user.get_name() or "",
-                                   creator_email     = email,
-                                   creator_useragent = useragent,
-                                   creator_username  = user and user.get_username() or "",
-                                   subject           = topic,
-                                   description       = description,
-                                   url               = url,
-                                   assignee          = assignee)
-
-
-
-        stats.increment("support.all")
-        # Send an email to the creator of the case
-        subject = "Case #%s: %s"%(c.caseno, topic)
-        message = render_template("email/support_case", c)
-        web.sendmail(config.get("support_case_control_address","support@openlibrary.org"), 
-                     email, subject, message)
-
-        return render_template("email/case_created", c)
+        if create_case:
+            c = support_db.create_case(creator_name      = user and user.get_name() or "",
+                                       creator_email     = email,
+                                       creator_useragent = useragent,
+                                       creator_username  = user and user.get_username() or "",
+                                       subject           = topic,
+                                       description       = description,
+                                       url               = url,
+                                       assignee          = assignee)
+            stats.increment("support.all")
+        else:
+            stats.increment("support.all")
+            subject = "Support case *%s*"%topic
+            message = "A new support case has been filed\n\nTopic: %s\n\nDescription:\n%s"%(topic, description)
+            web.sendmail(email, assignee, subject, message)
+        
+        return render_template("email/case_created", assignee)
+            
+            
 
 
 def setup():

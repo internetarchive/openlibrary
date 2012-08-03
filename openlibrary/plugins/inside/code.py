@@ -35,7 +35,7 @@ def editions_from_ia(ia):
     return editions
 
 def read_from_archive(ia):
-    meta_xml = 'http://www.archive.org/download/' + ia + '/' + ia + '_meta.xml'
+    meta_xml = 'http://archive.org/download/' + ia + '/' + ia + '_meta.xml'
     stats.begin("archive.org", url=meta_xml)
     xml_data = urllib.urlopen(meta_xml)
     item = {}
