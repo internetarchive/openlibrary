@@ -484,8 +484,8 @@ def build_doc(w, obj_cache={}, resolve_redirects=False):
     if printdisabled:
         add_field(doc, 'printdisabled_s', ';'.join(list(printdisabled)))
         
-    if lending_edition or in_library_edition:
-        add_field(doc, "borrowed_b", is_borrowed(lending_edition or in_library_edition))
+    #if lending_edition or in_library_edition:
+    #    add_field(doc, "borrowed_b", is_borrowed(lending_edition or in_library_edition))
 
     author_keys = [re_author_key.match(a['key']).group(1) for a in authors]
     author_names = [a.get('name', '') for a in authors]
