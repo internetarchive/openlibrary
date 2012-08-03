@@ -132,7 +132,7 @@ class search_inside(delegate.page):
         return render_template('search/inside.tmpl', get_results, quote_snippet, editions_from_ia, read_from_archive)
 
 def ia_lookup(path):
-    h1 = httplib.HTTPConnection("www.archive.org")
+    h1 = httplib.HTTPConnection("archive.org")
 
     for attempt in range(5):
         h1.request("GET", path)
