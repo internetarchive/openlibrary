@@ -74,10 +74,13 @@ def read_block(block):
 
 ftp = FTP(host)
 ftp.set_pasv(False)
-print ftp.getwelcome()
+welcome = ftp.getwelcome()
 ftp.login(c['lc_update_user'], c['lc_update_pass'])
 ftp.cwd('/emds/books/all')
 ftp.retrlines('NLST', print_line)
+
+if to_upload:
+    print welcome
 
 item_id = 'marc_loc_updates'
 for f in to_upload:
