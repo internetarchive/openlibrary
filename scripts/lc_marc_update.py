@@ -5,8 +5,7 @@ from openlibrary import config
 from ftplib import FTP
 from time import sleep
 from lxml import etree
-import os, sys, httplib
-import argparse
+import os, sys, httplib, json, argparse
 
 parser = argparse.ArgumentParser(description='Library of Congress MARC update')
 parser.add_argument('--config', default='openlibrary.yml')
@@ -60,6 +59,7 @@ for attempt in range(attempts):
         sleep(wait)
 
 existing = set(f.attrib['name'] for f in root)
+#existing.remove("v40.i32.records.utf8") # for testing
 #existing.remove("v40.i32.report") # for testing
 
 host = 'rs7.loc.gov'
@@ -97,8 +97,8 @@ def iter_marc(data):
         yield (pos, int_length, data[pos:pos+int_length])
         pos += int_length
 
-def login(h1):
-    body = json.dumps({'username': 'LCImportBot', 'password': c['ol_bot_pass']})
+def login(h1, password):
+    body = json.dumps({'username': 'LCImportBot', 'password': password})
     headers = {'Content-Type': 'application/json'}  
     h1.request('POST', base_url + '/account/login', body, headers)
     print base_url + '/account/login'
@@ -115,7 +115,7 @@ def login(h1):
 h1 = httplib.HTTPConnection('openlibrary.org')
 headers = {
     'Content-type': 'application/marc',
-    'Cookie': login(h1),
+    'Cookie': login(h1, c['ol_bot_pass']),
 }
 h1.close()
 
@@ -129,6 +129,8 @@ for f in to_upload:
     con.connect()
     put_file(con, item_id, f, data)
     con.close()
+    if not f.endswith('.records.utf8'):
+        continue
 
     loc_file = item_id + '/' + f
     for p, l, marc_data in iter_marc(data):
