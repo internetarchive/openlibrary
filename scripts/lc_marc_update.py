@@ -15,6 +15,8 @@ args = parser.parse_args()
 config_file = args.config
 config.load(config_file)
 c = config.runtime_config['lc_marc_update']
+base_url = 'http://openlibrary.org'
+import_api_url = base_url + '/api/import'
 
 def put_file(con, ia, filename, data):
     print 'uploading %s' % filename
@@ -81,6 +83,41 @@ ftp.retrlines('NLST', print_line)
 
 if to_upload:
     print welcome
+else:
+    ftp.close()
+    sys.exit(0)
+
+bad = open(c['log_location'] + 'lc_marc_bad_import', 'a')
+
+def iter_marc(data):
+    pos = 0
+    while pos < len(data):
+        length = data[pos:pos+5]
+        int_length = int(length)
+        yield (pos, int_length, data[pos:pos+int_length])
+        pos += int_length
+
+def login(h1):
+    body = json.dumps({'username': 'LCImportBot', 'password': c['ol_bot_pass']})
+    headers = {'Content-Type': 'application/json'}  
+    h1.request('POST', base_url + '/account/login', body, headers)
+    print base_url + '/account/login'
+    res = h1.getresponse()
+
+    print res.read()
+    print 'status:', res.status
+    assert res.status == 200
+    cookies = res.getheader('set-cookie').split(',')
+    cookie =  ';'.join([c.split(';')[0] for c in cookies])
+    return cookie
+
+
+h1 = httplib.HTTPConnection('openlibrary.org')
+headers = {
+    'Content-type': 'application/marc',
+    'Cookie': login(h1),
+}
+h1.close()
 
 item_id = 'marc_loc_updates'
 for f in to_upload:
@@ -92,5 +129,33 @@ for f in to_upload:
     con.connect()
     put_file(con, item_id, f, data)
     con.close()
+
+    loc_file = item_id + '/' + f
+    for p, l, marc_data in iter_marc(data):
+        loc = '%s:%d:%d' % (loc_file, p, l)
+        headers['x-archive-meta-source-record'] = 'marc:' + loc
+        try:
+            h1 = httplib.HTTPConnection('openlibrary.org')
+            h1.request('POST', import_api_url, marc_data, headers)
+            try:
+                res = h1.getresponse()
+            except httplib.BadStatusLine:
+                raise BadImport
+            body = res.read()
+            if res.status != 200:
+                raise BadImport
+            else:
+                try:
+                    reply = json.loads(body)
+                except ValueError:
+                    print 'not JSON:', `body`
+                    raise BadImport
+            assert res.status == 200
+            print reply
+            assert reply['success']
+            h1.close()
+        except BadImport:
+            print >> bad, loc
+            bad.flush()
 
 ftp.close()
