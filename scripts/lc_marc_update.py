@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 from openlibrary.catalog.read_rc import read_rc
 from openlibrary import config
 from ftplib import FTP
