@@ -88,8 +88,8 @@ def get_returncart(limit):
     books = web.ctx.site.get_many(keys)
     return [format_book_data(book) for book in books if book.type.key == '/type/edition']
     
-# cache the results of get_returncart in memcache for 15 minutes
-get_returncart = cache.memcache_memoize(get_returncart, "home.get_returncart", timeout=15*60)
+# cache the results of get_returncart in memcache for 60 sec
+get_returncart = cache.memcache_memoize(get_returncart, "home.get_returncart", timeout=60)
 
 @public
 def readonline_carousel(id="read-carousel"):
