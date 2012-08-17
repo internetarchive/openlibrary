@@ -8,11 +8,8 @@ from openlibrary.catalog.merge.merge_index import add_to_indexes
 
 import psycopg2
 from openlibrary.catalog.read_rc import read_rc
-rc = read_rc()
 conn = psycopg2.connect(database='marc_index', host='ol-db')
 cur = conn.cursor()
-
-index_path = '/1/edward/marc_index/'
 
 pool_url = 'http://0.0.0.0:9020/'
 
@@ -41,11 +38,6 @@ def update(key, q):
         if (field, value) in seen:
             continue
         seen.add((field, value))
-#        cur.execute('select * from ' + field + ' where key=%(key)s and value=%(value)s', vars)
-#        if len(cur.fetchall()) != 0:
-#            print "key dup: key=%s, value=%s" % (key, value)
-#            print q
-#            continue
         cur.execute('insert into ' + field + ' (k, v) values (%(key)s, %(value)s)', vars)
 
 def post_progress(archive_id, q):
