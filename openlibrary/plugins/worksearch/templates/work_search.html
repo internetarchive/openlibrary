@@ -274,13 +274,6 @@ function less(header) {
                             <span class="label">Borrow</span>
                         </a>
                 </span>
-            $elif doc.overdrive:
-                <span class="actions">
-                    <a href="http://search.overdrive.com/SearchResults.aspx?ReserveID={$(doc.overdrive[0])}" title="Borrow this on overdrive.com">
-                        <span class="image borrow"></span>
-                        <span class="label">Borrow</span>
-                    </a>                
-                </span>
             $elif not doc.public_scan and 'printdisabled' in doc.collections:
                 <span class="actions">
                     <a href="/works/$doc.key" title="Protected DAISY">
