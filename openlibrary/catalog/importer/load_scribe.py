@@ -5,7 +5,6 @@ import openlibrary.catalog.importer.pool as pool
 from openlibrary.catalog.marc.marc_xml import read_marc_file, MarcXml, BlankTag, BadSubtag
 from openlibrary.catalog.marc.marc_binary import MarcBinary
 from openlibrary.catalog.merge.merge_marc import build_marc
-from openlibrary.catalog.read_rc import read_rc
 from openlibrary.catalog.importer.load import build_query, east_in_by_statement
 from openlibrary.catalog.utils import error_mail
 from openlibrary.catalog.utils.query import query, withKey
@@ -20,25 +19,31 @@ from openlibrary.catalog.marc import fast_parse, is_display_marc
 from openlibrary.catalog.marc.parse import read_edition, NoTitle
 from openlibrary.catalog.marc.marc_subject import subjects_for_work
 from openlibrary.utils.ia import find_item
+from openlibrary import config
 from time import time, sleep
 from openlibrary.api import OpenLibrary
 from pprint import pprint
+from subprocess import Popen, PIPE
 import argparse
 
 parser = argparse.ArgumentParser(description='scribe loader')
 parser.add_argument('--skip_hide_books', action='store_true')
 parser.add_argument('--item_id')
+parser.add_argument('--config', default='openlibrary.yml')
 args = parser.parse_args()
 
-rc = read_rc()
+config_file = args.config
+config.load(config_file)
+import_bot_password = config.runtime_config['load_scribe']['import_bot_password']
+# '/1/var/log/openlibrary/load_scribe'
+load_scribe_log = config.runtime_config['load_scribe']['log']
+
 ol = OpenLibrary("http://openlibrary.org")
-ol.login('ImportBot', rc['ImportBot']) 
+ol.login('ImportBot', import_bot_password)
 
-db_amazon = web.database(dbn='postgres', db='amazon')
-db_amazon.printing = False
-
-db = web.database(dbn='mysql', host=rc['ia_db_host'], user=rc['ia_db_user'], \
-        passwd=rc['ia_db_pass'], db='archive')
+password = Popen(["/opt/.petabox/dbserver"], stdout=PIPE).communicate()[0]
+db = web.database(dbn='mysql', host='dbmeta.us.archive.org', user='archive', \
+        passwd=password, db='archive')
 db.printing = False
 
 re_census = re.compile('^\d+(st|nd|rd|th)census')
@@ -224,7 +229,7 @@ def write_log(ia, when, msg):
     print >> fh_log, (ia, when, msg)
     fh_log.flush()
 
-hide_state_file = rc['state_dir'] + '/load_scribe_hide'
+hide_state_file = config.runtime_config['state_dir'] + '/load_scribe_hide'
 ignore_noindex = set(['printdisabled', 'lendinglibrary', 'inlibrary'])
 
 def hide_books(start):
@@ -292,9 +297,9 @@ def bad_marc_alert(bad_marc):
     error_mail(msg_from, msg_to, subject, msg)
 
 if __name__ == '__main__':
-    fh_log = open('/1/openlibrary/logs/load_scribe', 'a')
+    fh_log = open(load_scribe_log, 'a')
 
-    state_file = rc['state_dir'] + '/load_scribe'
+    open(config.runtime_config['state_dir'] + '/load_scribe.pid', 'w').write(os.getpid())
     start = open(state_file).readline()[:-1]
     bad_marc_last_sent = time()
     bad_marc = []

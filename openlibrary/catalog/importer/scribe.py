@@ -1,5 +1,7 @@
+#!/usr/bin/python
 from subprocess import Popen, PIPE
-from openlibrary.utils.ia import find_item
+from openlibrary.utils.ia import find_item, FindItemError
+from openlibrary.api import OpenLibrary
 from openlibrary.catalog.read_rc import read_rc
 from openlibrary.catalog.get_ia import marc_formats, get_marc_ia_data
 from openlibrary.catalog.marc import is_display_marc
@@ -9,17 +11,17 @@ from pprint import pprint
 import MySQLdb
 import re, urllib2, httplib, json, codecs, socket, sys
 
+ol = OpenLibrary('http://openlibrary.org/')
+
 rc = read_rc()
 
 base_url = 'http://openlibrary.org'
 
 ia_db_host = 'dbmeta.us.archive.org'
 ia_db_user = 'archive'
+ia_db_pass = Popen(["/opt/.petabox/dbserver"], stdout=PIPE).communicate()[0]
 
 re_census = re.compile('^\d+(st|nd|rd|th)census')
-
-conn = MySQLdb.connect(host=ia_db_host, user=ia_db_user, \
-        passwd=ia_db_pass, db='archive')
 
 fields = ['identifier', 'contributor', 'updated', 'noindex', 'collection', 'format', 'boxid']
 sql_fields = ', '.join(fields)
@@ -151,6 +153,8 @@ def load_book(ia, collections, boxid, scanned=True):
     except socket.timeout:
         print 'socket timeout:', ia
         return
+    except FindItemError:
+        print 'find item error:', ia
     bad_binary = None
     try:
         formats = marc_formats(ia, host, path)
@@ -174,12 +178,13 @@ def load_book(ia, collections, boxid, scanned=True):
     else:
         return
     subjects = []
-    if 'printdisabled' in collections:
-        subjects.append('Protected DAISY')
-    elif 'lendinglibrary' in collections:
-        subjects += ['Protected DAISY', 'Lending library']
-    elif 'inlibrary' in collections:
-        subjects += ['Protected DAISY', 'In library']
+    if scanned:
+        if 'lendinglibrary' in collections:
+            subjects += ['Protected DAISY', 'Lending library']
+        elif 'inlibrary' in collections:
+            subjects += ['Protected DAISY', 'In library']
+        elif 'printdisabled' in collections:
+            subjects.append('Protected DAISY')
 
     if not boxid:
         boxid = None
@@ -199,18 +204,21 @@ if __name__ == '__main__':
         loaded_start = open('loaded_start').readline()[:-1]
         print loaded_start
 
+        conn = MySQLdb.connect(host=ia_db_host, user=ia_db_user, \
+                passwd=ia_db_pass, db='archive')
+
         cur = conn.cursor()
         cur.execute("select " + sql_fields + \
             " from metadata" + \
-            " where scanner is null and mediatype='texts'" + \
+            " where identifier not like '%%test%%' and mediatype='texts'" + \
                 " and (not curatestate='dark' or curatestate is null)" + \
-                " and scancenter is not null and scandate is null" + \
+                " and (collection like 'inlibrary%%' or collection like 'lendinglibrary%%' or (scanner is not null and scancenter is not null and scandate is null))" + \
                 " and updated > %s" + \
                 " order by updated", [loaded_start])
         t_start = time()
 
         for ia, contributor, updated, noindex, collection, ia_format, boxid in cur.fetchall():
-            print (ia, updated)
+            print updated, ia
             if contributor == 'Allen County Public Library Genealogy Center':
                 print 'skipping Allen County Public Library Genealogy Center'
                 continue
@@ -218,23 +226,31 @@ if __name__ == '__main__':
             if collection:
                 collections = set(i.lower().strip() for i in collection.split(';'))
 
+            q = {'type': '/type/edition', 'ocaid': ia}
+            if ol.query(q):
+                continue
+            q = {'type': '/type/edition', 'ia_loaded_id': ia}
+            if ol.query(q):
+                continue
             load_book(ia, collections, boxid, scanned=False)
             print >> open('loaded_start', 'w'), updated
+        cur.close()
 
         scanned_start = open('scanned_start').readline()[:-1]
         print scanned_start
         cur = conn.cursor()
         cur.execute("select " + sql_fields + \
             " from metadata" + \
-            " where scanner is not null and mediatype='texts'" + \
+            " where mediatype='texts'" + \
                 " and (not curatestate='dark' or curatestate is null)" + \
-                " and scandate is not null and format is not null " + \
+                " and format is not null " + \
+                " and (collection like 'inlibrary%%' or collection like 'lendinglibrary%%' or scandate is not null)" + \
                 " and updated > %s" + \
                 " order by updated", [scanned_start])
         t_start = time()
 
         for ia, contributor, updated, noindex, collection, ia_format, boxid in cur.fetchall():
-            print (ia, updated)
+            print updated, ia
             if skip:
                 if ia == skip:
                     skip = None
@@ -253,9 +269,7 @@ if __name__ == '__main__':
                 continue
             if 'pdf' not in ia_format.lower():
                 continue # scancenter and billing staff often use format like "%pdf%" as a proxy for having derived
-            if contributor == 'Allen County Public Library Genealogy Center':
-                print 'skipping Allen County Public Library Genealogy Center'
-                continue
+
             collections = set()
             if noindex:
                 if not collection:
@@ -263,6 +277,9 @@ if __name__ == '__main__':
                 collections = set(i.lower().strip() for i in collection.split(';'))
                 if not ignore_noindex & collections:
                     continue
+            if 'inlibrary' not in collections and contributor == 'Allen County Public Library Genealogy Center':
+                print 'skipping Allen County Public Library Genealogy Center'
+                continue
 
             load_book(ia, collections, boxid, scanned=True)
             print >> open('scanned_start', 'w'), updated
