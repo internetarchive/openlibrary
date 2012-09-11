@@ -12,6 +12,9 @@ from unicodedata import normalize
 from collections import defaultdict
 from openlibrary.utils.isbn import opposite_isbn
 from openlibrary.core import helpers as h
+import logging
+
+logger = logging.getLogger("openlibrary.solr")
 
 re_lang_key = re.compile(r'^/(?:l|languages)/([a-z]{3})$')
 re_author_key = re.compile(r'^/(?:a|authors)/(OL\d+A)')
@@ -67,20 +70,22 @@ re_collection = re.compile(r'<(collection|boxid)>(.*)</\1>', re.I)
 def get_ia_collection_and_box_id(ia):
     if len(ia) == 1:
         return
-    url = 'http://www.archive.org/download/%s/%s_meta.xml' % (ia, ia)
-    #print 'getting:', url
+
+    def get_list(d, key):
+        value = d.get(key, [])
+        if not isinstance(value, list):
+            value = [value]
+        return value
+
     matches = {'boxid': set(), 'collection': set() }
+    url = "http://www.archive.org/metadata/%s" % ia
     for attempt in range(5):
         try:
-            for line in urlopen(url):
-                m = re_collection.search(line)
-                if m:
-                    matches[m.group(1).lower()].add(m.group(2).lower())
-            return matches
-        except UnicodeEncodeError:
-            return
+            d = json.loads(urlopen(url).read())
+            matches['boxid'] = set(get_list(d, 'boxid'))
+            matches['collection'] = set(get_list(d, 'collection'))
         except URLError:
-            print 'retry', attempt, url
+            print "retry", attempt, url
             time.sleep(5)
     return matches
 
@@ -305,9 +310,7 @@ def build_doc(w, obj_cache={}, resolve_redirects=False):
         'subject_people': 'person',
     }
 
-    has_fulltext = any(e.get('ocaid', None) or e.get('overdrive', None) for e in editions)
-
-    #print 'has_fulltext:', has_fulltext
+    has_fulltext = any(e.get('ocaid', None) for e in editions)
 
     for db_field, solr_field in field_map.iteritems():
         if not w.get(db_field, None):
@@ -662,7 +665,7 @@ def commit_and_optimize(debug=False):
     solr_update(requests, debug)
 
 def update_keys(keys, commit=True):
-    print "BEGIN update_keys"
+    logger.info("BEGIN update_keys")
     wkeys = set()
 
     # Get works for all the editions
@@ -679,7 +682,7 @@ def update_keys(keys, commit=True):
     # update works
     requests = []
     for k in wkeys:
-        print "updating", k
+        logger.info("updating %s", k)
         w = withKey(k)
         requests += update_work(w, debug=True)
     if requests:    
@@ -691,13 +694,13 @@ def update_keys(keys, commit=True):
     requests = []
     akeys = set(k for k in keys if k.startswith("/authors/"))
     for k in akeys:
-        print "updating", k
+        logger.info("updating %s", k)
         requests += update_author(k)
     if requests:  
         if commit:
             requests += ['<commit />']
         solr_update(requests, index="authors", debug=True)
-    print "END update_keys"
+    logger.info("END update_keys")
 
 def parse_options(args=None):
     from optparse import OptionParser
@@ -794,6 +797,7 @@ def main():
     # load config
     config.load(options.config)
 
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
     update_keys(keys, commit=not options.nocommit)
 
 if __name__ == '__main__':
