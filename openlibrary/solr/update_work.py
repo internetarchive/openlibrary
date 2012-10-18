@@ -319,7 +319,44 @@ class SolrProcessor:
             m = re_year.search(pub_date)
             if m:
                 return m.group(1)
+                
+    def get_subject_counts(self, w, editions, has_fulltext):
+        try:
+            subjects = four_types(get_work_subjects(w))
+        except:
+            print 'bad work: ', w['key']
+            raise
 
+        field_map = {
+            'subjects': 'subject',
+            'subject_places': 'place',
+            'subject_times': 'time',
+            'subject_people': 'person',
+        }
+
+        for db_field, solr_field in field_map.iteritems():
+            if not w.get(db_field, None):
+                continue
+            cur = subjects.setdefault(solr_field, {})
+            for v in w[db_field]:
+                try:
+                    if isinstance(v, dict):
+                        if 'value' not in v:
+                            continue
+                        v = v['value']
+                    cur[v] = cur.get(v, 0) + 1
+                except:
+                    print 'v:', v
+                    raise
+
+        if any(e.get('ocaid', None) for e in editions):
+            subjects.setdefault('subject', {})
+            subjects['subject']['Accessible book'] = subjects['subject'].get('Accessible book', 0) + 1
+            if not has_fulltext:
+                subjects['subject']['Protected DAISY'] = subjects['subject'].get('Protected DAISY', 0) + 1
+            #print w['key'], subjects['subject']
+        return subjects
+        
 class TestSolrProcessor:
     def test_process_edition(self):
         pass        
@@ -372,45 +409,11 @@ def build_data(w, obj_cache=None, resolve_redirects=False):
     identifiers = defaultdict(list)
     editions = p.process_editions(w, identifiers)
     authors = p.extract_authors(w)
-    
-
-    try:
-        subjects = four_types(get_work_subjects(w))
-    except:
-        print 'bad work: ', w['key']
-        raise
-
-    field_map = {
-        'subjects': 'subject',
-        'subject_places': 'place',
-        'subject_times': 'time',
-        'subject_people': 'person',
-    }
 
     has_fulltext = any(e.get('ocaid', None) for e in editions)
-
-    for db_field, solr_field in field_map.iteritems():
-        if not w.get(db_field, None):
-            continue
-        cur = subjects.setdefault(solr_field, {})
-        for v in w[db_field]:
-            try:
-                if isinstance(v, dict):
-                    if 'value' not in v:
-                        continue
-                    v = v['value']
-                cur[v] = cur.get(v, 0) + 1
-            except:
-                print 'v:', v
-                raise
-
-    if any(e.get('ocaid', None) for e in editions):
-        subjects.setdefault('subject', {})
-        subjects['subject']['Accessible book'] = subjects['subject'].get('Accessible book', 0) + 1
-        if not has_fulltext:
-            subjects['subject']['Protected DAISY'] = subjects['subject'].get('Protected DAISY', 0) + 1
-        #print w['key'], subjects['subject']
-        
+    
+    subjects = p.get_subject_counts(w, editions, has_fulltext)
+            
     def add_field(doc, name, value):
         doc[name] = value
 
@@ -480,14 +483,11 @@ def build_data(w, obj_cache=None, resolve_redirects=False):
         ('oclc_numbers', 'oclc'),
         ('contributions', 'contributor'),
     ]
-
-    for db_key, search_key in field_map:
-        v = set()
-        for e in editions:
-            if db_key not in e:
-                continue
-            v.update(e[db_key])
-        add_field_list(doc, search_key, v)
+    for db_key, solr_key in field_map:
+        values = set(v for e in editions 
+                       if db_key in e
+                       for v in e[db_key])
+        add_field_list(doc, solr_key, values)
 
     isbn = set()
     for e in editions:
