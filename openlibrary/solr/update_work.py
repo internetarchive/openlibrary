@@ -191,16 +191,126 @@ def datetimestr_to_int(datestr):
 
     return int(time.mktime(t.timetuple()))
 
-re_solr_field = re.compile('^[-\w]+$', re.U)
+class SolrProcessor:
+    """Processes data to into a form suitable for adding to works solr.
+    """
+    def __init__(self, obj_cache=None, resolve_redirects=False):
+        if obj_cache is None:
+            obj_cache = {}
+        self.obj_cache = obj_cache
+        self.resolve_redirects = resolve_redirects
+        
+    def process(data):
+        """Builds solr document from data. 
 
-def build_doc(w, obj_cache={}, resolve_redirects=False):
-    wkey = w['key']
-    assert w['type']['key'] == '/type/work'
-    title = w.get('title', None)
-    if not title:
-        return
+        The data is expected to have all the required information to build the doc.
+        If some information is not found, it is considered to be missing. The
+        expected format is:
 
-    def get_pub_year(e):
+            {
+                "work": {...},
+                "editions": [{...}, {...}],
+            }
+        
+        This functions returns a dictionary containing the following fields:
+
+            title
+            subtitle
+            has_fulltext
+            alternative_title
+            alternative_subtitle
+            edition_count
+            edition_key
+            cover_edition_key
+            covers_i
+            by_statement
+            
+
+        """
+        pass
+                        
+    def process_editions(self, w, identifiers):
+        editions = []
+        for e in w['editions']:
+            pub_year = self.get_pub_year(e)
+            if pub_year:
+                e['pub_year'] = pub_year
+            ia = None
+            if 'ocaid' in e:
+                ia = e['ocaid']
+            elif 'ia_loaded_id' in e:
+                loaded = e['ia_loaded_id']
+                ia = loaded if isinstance(loaded, basestring) else loaded[0]
+            ia_meta_fields = get_ia_collection_and_box_id(ia) if ia else None
+            if ia_meta_fields:
+                collection = ia_meta_fields['collection']
+                if 'ia_box_id' in e and isinstance(e['ia_box_id'], basestring):
+                    e['ia_box_id'] = [e['ia_box_id']]
+                if ia_meta_fields.get('boxid'):
+                    box_id = list(ia_meta_fields['boxid'])[0]
+                    e.setdefault('ia_box_id', [])
+                    if box_id.lower() not in [x.lower() for x in e['ia_box_id']]:
+                        e['ia_box_id'].append(box_id)
+                #print 'collection:', collection
+                e['ia_collection'] = collection
+                e['public_scan'] = ('lendinglibrary' not in collection) and ('printdisabled' not in collection)
+            overdrive_id = e.get('identifiers', {}).get('overdrive', None)
+            if overdrive_id:
+                #print 'overdrive:', overdrive_id
+                e['overdrive'] = overdrive_id
+            if 'identifiers' in e:
+                for k, id_list in e['identifiers'].iteritems():
+                    k_orig = k
+                    k = k.replace('.', '_').replace(',', '_').replace('(', '').replace(')', '').replace(':', '_').replace('/', '').replace('#', '').lower()
+                    m = re_solr_field.match(k)
+                    if not m:
+                        print (k_orig, k)
+                    assert m
+                    for v in id_list:
+                        v = v.strip()
+                        if v not in identifiers[k]:
+                            identifiers[k].append(v)
+            editions.append(e)
+
+        editions.sort(key=lambda e: e.get('pub_year', None))
+        return editions
+    
+    def extract_authors(self, w):
+        work_authors = []
+        authors = []
+        author_keys = []
+        for a in w.get('authors', []):
+            if 'author' not in a: # OL Web UI bug
+                continue # http://openlibrary.org/works/OL15365167W.yml?m=edit&v=1
+            akey = a['author']['key']
+            m = re_author_key.match(akey)
+            if not m:
+                print 'invalid author key:', akey
+                continue
+            work_authors.append(akey)
+            author_keys.append(m.group(1))
+            if akey in self.obj_cache and self.obj_cache[akey]['type']['key'] != '/type/redirect':
+                authors.append(self.obj_cache[akey])
+            else:
+                authors.append(withKey(akey))
+        if any(a['type']['key'] == '/type/redirect' for a in authors):
+            if resolve_redirects:
+                def resolve(a):
+                    if a['type']['key'] == '/type/redirect':
+                        a = withKey(a['location'])
+                    return a
+                authors = [resolve(a) for a in authors]
+            else:
+                print
+                for a in authors:
+                    print 'author:', a
+                print w['key']
+                print
+                raise AuthorRedirect
+        assert all(a['type']['key'] == '/type/author' for a in authors)
+        return authors
+
+    def get_pub_year(self, e):
         pub_date = e.get('publish_date', None)
         if pub_date:
             m = re_iso_date.match(pub_date)
@@ -210,92 +320,59 @@ def build_doc(w, obj_cache={}, resolve_redirects=False):
             if m:
                 return m.group(1)
 
+class TestSolrProcessor:
+    def test_process_edition(self):
+        pass        
+
+    def test_pub_year(self):
+        f = SolrProcessor().get_pub_year
+
+        assert f({}) is None
+        assert f({"publish_date": "2010-01-02"}) == "2010"
+        assert f({"publish_date": "02 January 2010"}) == "2010"
+        assert f({"publish_date": "02 Jan 2010"}) == "2010"
+        assert f({"publish_date": "Jan 2010"}) == "2010"
+
+
+re_solr_field = re.compile('^[-\w]+$', re.U)
+
+def build_doc(w, obj_cache={}, resolve_redirects=False):
+    d = build_data(w, obj_cache=obj_cache, resolve_redirects=resolve_redirects)
+    return dict2element(d)
+    
+def dict2element(d):
+    doc = Element("doc")
+    for k, v in d.items():
+        if isinstance(v, (list, set)):
+            add_field_list(doc, k, v)
+        else:
+            add_field(doc, k, v)
+    return doc
+
+def build_data(w, obj_cache=None, resolve_redirects=False):
+    if obj_cache:
+        obj_cache = {}
+
+    wkey = w['key']
+    assert w['type']['key'] == '/type/work'
+    title = w.get('title', None)
+    if not title:
+        return
+        
+    p = SolrProcessor(obj_cache, resolve_redirects)
+    get_pub_year = p.get_pub_year
+
+
+    # Load stuff if not already provided
     if 'editions' not in w:
         q = { 'type':'/type/edition', 'works': wkey, '*': None }
         w['editions'] = list(query_iter(q))
         #print 'editions:', [e['key'] for e in w['editions']]
 
     identifiers = defaultdict(list)
-
-    editions = []
-    for e in w['editions']:
-        pub_year = get_pub_year(e)
-        if pub_year:
-            e['pub_year'] = pub_year
-        ia = None
-        if 'ocaid' in e:
-            ia = e['ocaid']
-        elif 'ia_loaded_id' in e:
-            loaded = e['ia_loaded_id']
-            ia = loaded if isinstance(loaded, basestring) else loaded[0]
-        ia_meta_fields = get_ia_collection_and_box_id(ia) if ia else None
-        if ia_meta_fields:
-            collection = ia_meta_fields['collection']
-            if 'ia_box_id' in e and isinstance(e['ia_box_id'], basestring):
-                e['ia_box_id'] = [e['ia_box_id']]
-            if ia_meta_fields.get('boxid'):
-                box_id = list(ia_meta_fields['boxid'])[0]
-                e.setdefault('ia_box_id', [])
-                if box_id.lower() not in [x.lower() for x in e['ia_box_id']]:
-                    e['ia_box_id'].append(box_id)
-            #print 'collection:', collection
-            e['ia_collection'] = collection
-            e['public_scan'] = ('lendinglibrary' not in collection) and ('printdisabled' not in collection)
-        overdrive_id = e.get('identifiers', {}).get('overdrive', None)
-        if overdrive_id:
-            #print 'overdrive:', overdrive_id
-            e['overdrive'] = overdrive_id
-        if 'identifiers' in e:
-            for k, id_list in e['identifiers'].iteritems():
-                k_orig = k
-                k = k.replace('.', '_').replace(',', '_').replace('(', '').replace(')', '').replace(':', '_').replace('/', '').replace('#', '').lower()
-                m = re_solr_field.match(k)
-                if not m:
-                    print (k_orig, k)
-                assert m
-                for v in id_list:
-                    v = v.strip()
-                    if v not in identifiers[k]:
-                        identifiers[k].append(v)
-        editions.append(e)
-
-    editions.sort(key=lambda e: e.get('pub_year', None))
-
-    #print len(w['editions']), 'editions found'
-
-    #print w['key']
-    work_authors = []
-    authors = []
-    author_keys = []
-    for a in w.get('authors', []):
-        if 'author' not in a: # OL Web UI bug
-            continue # http://openlibrary.org/works/OL15365167W.yml?m=edit&v=1
-        akey = a['author']['key']
-        m = re_author_key.match(akey)
-        if not m:
-            print 'invalid author key:', akey
-            continue
-        work_authors.append(akey)
-        author_keys.append(m.group(1))
-        if akey in obj_cache and obj_cache[akey]['type']['key'] != '/type/redirect':
-            authors.append(obj_cache[akey])
-        else:
-            authors.append(withKey(akey))
-    if any(a['type']['key'] == '/type/redirect' for a in authors):
-        if resolve_redirects:
-            def resolve(a):
-                if a['type']['key'] == '/type/redirect':
-                    a = withKey(a['location'])
-                return a
-            authors = [resolve(a) for a in authors]
-        else:
-            print
-            for a in authors:
-                print 'author:', a
-            print w['key']
-            print
-            raise AuthorRedirect
-    assert all(a['type']['key'] == '/type/author' for a in authors)
+    editions = p.process_editions(w, identifiers)
+    authors = p.extract_authors(w)
+    
 
     try:
         subjects = four_types(get_work_subjects(w))
@@ -333,9 +410,14 @@ def build_doc(w, obj_cache={}, resolve_redirects=False):
         if not has_fulltext:
             subjects['subject']['Protected DAISY'] = subjects['subject'].get('Protected DAISY', 0) + 1
         #print w['key'], subjects['subject']
+        
+    def add_field(doc, name, value):
+        doc[name] = value
 
-    doc = Element("doc")
-
+    def add_field_list(doc, name, field_list):
+        doc[name] = list(field_list)
+    
+    doc = {}
     add_field(doc, 'key', w['key'][7:])
     title = w.get('title', None)
     if title:
@@ -544,7 +626,7 @@ def build_doc(w, obj_cache={}, resolve_redirects=False):
         add_field_list(doc, 'ia_box_id', ia_box_id)
         
     return doc
-
+    
 def solr_update(requests, debug=False, index='works'):
     h1 = httplib.HTTPConnection(get_solr(index))
     h1.connect()
@@ -777,7 +859,7 @@ def monkeypatch(config_file):
 
     global query_iter, withKey
 
-    print "monkeypatching query_iter and withKey functions to talk to database directly."
+    #print "monkeypatching query_iter and withKey functions to talk to database directly."
     load_infogami(config_file)
 
     query_iter = new_query_iter
