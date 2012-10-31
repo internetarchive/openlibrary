@@ -34,9 +34,21 @@ logger = logging.getLogger(None)
 class DenormalizeWorksTask(mapreduce.Task):
     """Map reduce task to generate denormalized works dump from OL dump.
     """
-    def __init__(self, *a, **kw):
-        mapreduce.Task.__init__(self, *a, **kw)
+    def __init__(self, ia_metadata):
+        mapreduce.Task.__init__(self)
+        self.ia = ia_metadata
         self.authors = AuthorsDict()
+
+    def get_ia_metadata(self, identifier):
+        row = self.ia.get(identifier)
+        if row:
+            boxid, collection_str = row.split("\t")
+            collections = collection_str.split(";")
+            return {"boxid": [boxid], "collections": collections}
+        else:
+            # the requested identifier is not found.
+            # returning a fake metadata
+            return {"collections":[]}
 
     def close(self):
         """Removes all the temp files created for running map-reduce.
@@ -61,10 +73,17 @@ class DenormalizeWorksTask(mapreduce.Task):
             # Store all authors for later use
             self.authors[key] = doc
 
+    def process_edition(self, e):
+        if "ocaid" in e:
+            ia = self.get_ia_metadata(e["ocaid"])
+            if ia is not None:
+                e['_ia_meta'] = ia
+
     def reduce(self, key, values):
         docs = {}
         for json in values:
             doc = simplejson.loads(json)
+            self.process_edition(doc)
             docs[doc['key']] = doc
             
         if key.startswith("/works/"):
@@ -160,6 +179,19 @@ def xopen(filename, mode='r'):
             return sys.stdout
     else:
         return open(filename, mode)
+
+def read_ia_metadata(filename):
+    logger.info("BEGIN reading " + filename)
+    t0 = time.time()
+    N = 500000
+    d = {}
+    for i, line in enumerate(xopen(filename)):
+        if i % N == 0:
+            logger.info("reading line %d" % i)
+        id, rest = line.strip("\n").split("\t", 1)
+        d[id] = rest
+    logger.info("END reading " + filename)
+    return d
         
 def read_dump(filename):
     t0 = time.time()
@@ -178,11 +210,12 @@ def mkdir_p(path):
     if not os.path.exists(path):
         os.makedirs(path)
         
-def main(dumpfile):
+def main(dumpfile, ia_dumpfile):
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
 
+    ia_metadata = read_ia_metadata(ia_dumpfile)
     records = read_dump(dumpfile)
-    task = DenormalizeWorksTask()
+    task = DenormalizeWorksTask(ia_metadata)
 
     for key, json in task.process(records):
         print key + "\t" + json
@@ -259,4 +292,4 @@ if __name__ == '__main__':
         sys.argv.remove("--iadb")
         make_ia_db(sys.argv[1])
     else:
-        main(sys.argv[1])
+        main(sys.argv[1], sys.argv[2])
