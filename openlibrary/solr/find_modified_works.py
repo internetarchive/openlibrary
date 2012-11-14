@@ -32,8 +32,10 @@ def extract_works(data):
 def get_modified_works(frm, to):
     one_day = datetime.timedelta(days = 1)
     ret = []
+    logging.debug("Querying between %s and %s", frm, to)
     while frm < to:
         url = frm.strftime(BASE_URL+"%Y/%m/%d.json")
+        logging.debug("Fetching changes from %s", url)
         ret.append(extract_works(json.load(urllib2.urlopen(url))))
         frm += one_day
     return itertools.chain(*ret)
@@ -43,8 +45,10 @@ def poll_for_changes(start_time_file):
     try:
         with open(start_time_file) as f:
             date = datetime.datetime.strptime(f.read(), "%Y/%m/%d")
+            logging.debug("Obtained last end time from file")
     except IOError:
         date = datetime.datetime.now()
+        logging.info("No state file. Starting from now.")
     current_day = date.day
     logging.debug("Starting at %s with current day %d", date, current_day)
     seen = set()
@@ -68,7 +72,7 @@ def poll_for_changes(start_time_file):
         if current_day != datetime.datetime.now().day:
             seen = set() # Clear things seen so far
             date = datetime.datetime.now() # Update date
-            logging.debug("Flipping the clock to %s", date)
+            logging.debug("Flipping the clock to %s and clearing seen changes", date)
 
         for i in works:
             print i
@@ -78,6 +82,7 @@ def poll_for_changes(start_time_file):
         time.sleep(5)
         
         with open(start_time_file, "w") as f:
+            logging.debug("Writing %s to state file", date.strftime("%Y/%m/%d"))
             f.write(date.strftime("%Y/%m/%d"))
 
 
