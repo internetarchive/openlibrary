@@ -23,8 +23,8 @@ Without these options, goes into loop mode which will keep polling openlibrary a
     parser.add_argument('-t', '--to', dest='to', type=str, 
                         help='To date (yyyy/mm/dd)', default = False)
     parser.add_argument('-s', '--start-time-file', dest='start_file', type=str, 
-                        help='File to store last time looked at in loop mode', 
-                        default = os.path.expanduser("~/.find_modified_works.date"))
+                        help='File to store last time polling was done in loop mode', 
+                        default = "find_modified_works.date")
     parser.add_argument('-d', '--delay', dest='delay', type=int, default = 3,
                         help='Number of seconds to wait between polling openlibrary in loop mode')
     parser.add_argument('-m', '--max-chunk-size', dest='max_chunk_size', default = 100, type=int,
