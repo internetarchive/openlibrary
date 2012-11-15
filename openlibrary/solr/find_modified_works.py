@@ -135,6 +135,6 @@ def main():
 
 if __name__ == "__main__":
     import logging
-    logging.basicConfig(level = logging.DEBUG, filename="/home/noufal/works.log")
+    logging.basicConfig(level = logging.DEBUG, format="%(levelname)-7s (%(asctime)s) : %(message)s")#, filename="/home/noufal/works.log")
     sys.exit(main())
 
