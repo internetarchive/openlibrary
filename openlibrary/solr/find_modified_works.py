@@ -13,7 +13,11 @@ BASE_URL = "http://openlibrary.org/recentchanges/"
 # BASE_URL = "http://0.0.0.0:8080/recentchanges/"
 
 def parse_options(args):
-    parser = argparse.ArgumentParser(description='Find works that have been changed in the given time period. With no options, goes into a loop and displays modified entries every 5 seconds.')
+    parser = argparse.ArgumentParser(description="""Find works that have been changed in the given time period.
+
+If the `from` or `to` options are specified. Prints works modified in that time period and quits.
+
+Without these options, goes into loop mode which will keep polling openlibrary and print works modified on stdout. """)
     parser.add_argument('-f', '--from', dest='frm', type=str, 
                         help='From date (yyyy/mm/dd)', default = False)
     parser.add_argument('-t', '--to', dest='to', type=str, 
