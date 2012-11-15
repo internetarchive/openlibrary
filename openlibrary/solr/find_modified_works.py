@@ -18,7 +18,7 @@ def parse_options(args):
                         help='From date (yyyy/mm/dd)', default = False)
     parser.add_argument('-t', '--to', dest='to', type=str, 
                         help='To date (yyyy/mm/dd)', default = False)
-    parser.add_argument('-s', '--start_time_file', dest='start_file', type=str, 
+    parser.add_argument('-s', '--start-time-file', dest='start_file', type=str, 
                         help='File to store last time looked at in loop mode', 
                         default = os.path.expanduser("~/.find_modified_works.date"))
     return parser.parse_args(args)
