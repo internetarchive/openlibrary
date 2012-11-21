@@ -23,40 +23,64 @@ $def render_libraries(status):
 $if ctx.user and ctx.user.is_admin():
     <div id="contentHead">
         $:render_template("borrow/navigation", path="/libraries/dashboard")
-        <h1>Dashboard</h1>
+        <h1>Libraries Dashboard</h1>
     </div> 
-
+    <script type="text/javascript">
+    <!--
+    \$().ready(Tabs);
+    \$().ready(function(){
+        if(jQuery.support.opacity){
+            \$("#library-tabs").tabs({fx:{opacity:'toggle'}});
+        } else {
+            \$("#library-tabs").tabs();
+        };
+    });
+    -->
+    </script>
     <div id="contentBody">
-        <h2>New Registrations</h2>
-        <table class="history">
-            $for lib in pending_libraries:
-                <tr>
-                    <td style="padding: 5px; width: 460px;"><a style="font-size: 12px;" href="$lib.url()">$(lib.name or "No Name?")</a><br />$lib.contact_person, $lib.contact_email</td>
-                    <td>$lib.country</td>
-                    <td>
-                        $ registered_on = lib.registered_on
-                            $datestr(parse_datetime(registered_on))</td>
-                </tr>
-            
-            $if not pending_libraries:
-                <tr><td><em>What's this? No new registrations? WTF? Hi!</em></td></tr>
-        </table>
 
-        <h2>Pending Libraries</h2>
-        $:render_libraries("onhold")
+        <div id="library-tabs">
+            <ul>
+                <li><a href="#live" id="link_live">$("Live Libraries")</a></li>
+                <li><a href="#new" id="link_new">$_("New Registrations")</a></li>
+                <li><a href="#pending" id="link_pending">$_("Pending Libraries")</a></li>
+                <li><a href="#frozen" id="link_frozen">$_("Frozen Libraries")</a></li>
+            </ul>
+        </div>
 
-        <h2>Frozen Libraries</h2>
-        $:render_libraries("frozen")
+        <div id="new">
+            <table class="history">
+                $for lib in pending_libraries:
+                    <tr>
+                        <td style="padding: 5px; width: 460px;"><a style="font-size: 12px;" href="$lib.url()">$(lib.name or "No Name?")</a><br />$lib.contact_person, $lib.contact_email</td>
+                        <td>$lib.country</td>
+                        <td>
+                            $ registered_on = lib.registered_on
+                                $datestr(parse_datetime(registered_on))</td>
+                    </tr>
+                
+                $if not pending_libraries:
+                    <tr><td><em>What's this? No new registrations? WTF? Hi!</em></td></tr>
+            </table>
+        </div>
 
-        <h2>Live Libraries</h2>
-        $:render_libraries("approved")
+        <div id="pending">
+            $:render_libraries("onhold")
+        </div>
 
-        <p>
-            <b>All Active Libraries' Emails:</b><br />
-            $for lib in libraries:
-                $if lib.status == "approved":
-                    $lib.contact_email,    
-        </p>
+        <div id="frozen">
+            $:render_libraries("frozen")
+        </div>
+
+        <div id="live">
+            $:render_libraries("approved")
+            <p>
+                <b>All Active Libraries' Emails:</b><br />
+                $for lib in libraries:
+                    $if lib.status == "approved":
+                        $lib.contact_email,    
+            </p>
+        </div>
     </div>
 $else:    
     <div id="contentHead"><h1>Permission denied.</h1></div>
