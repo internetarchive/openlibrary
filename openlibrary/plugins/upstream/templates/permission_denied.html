@@ -12,7 +12,12 @@ $var title: Permission Denied
 
 
 $if not ctx.user:
-    $if path.startswith("/books/") or path.startswith("/works/") or path.startswith("/authors/"):
+    $if path == "/books/add":
+        <p>
+            Only logged users are allowed to add records on Open Library. 
+            Please <a href="/account/login?redirect=$path">log in</a> to add a book.
+        </p>
+    $elif path.startswith("/books/") or path.startswith("/works/") or path.startswith("/authors/"):
         <p>
             Only logged users are allowed to modify records on Open Library. 
             Please <a href="/account/login?redirect=$path">log in</a> to edit this page.
