@@ -27,7 +27,9 @@ a.blocked-ip {
 }
 </style>
 
-$ changes = recentchanges(dict(ip=ip, limit=100, offset=0))
+$ limit = safeint(query_param('limit'), 100)
+$ offset = safeint(query_param('offset'), 0)
+$ changes = recentchanges(dict(ip=ip, limit=limit, offset=offset))
 
 $def call_template(name, change):
     $ t = get_template("recentchanges/" + change.kind + "/" + name) or get_template("recentchanges/default/" + name)
