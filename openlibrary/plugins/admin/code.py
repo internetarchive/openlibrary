@@ -559,6 +559,45 @@ class _graphs:
     def GET(self):
         return render_template("admin/graphs")
 
+class permissions:
+    def GET(self):
+        perm_pages = self.get_permission("/")
+        # assuming that the permission of books and authors is same as works
+        perm_records = self.get_permission("/works")
+        return render_template("admin/permissions", perm_records, perm_pages)
+
+    def get_permission(self, key):
+        doc = web.ctx.site.get(key)
+        perm = doc and doc.child_permission
+        return perm and perm.key or "/permission/open"
+
+    def set_permission(self, key, permission):
+        """Returns the doc with permission set.
+        The caller must save the doc.
+        """
+        doc = web.ctx.site.get(key)
+        doc = doc and doc.dict() or { "key": key, "type": {"key": "/type/page"}}
+
+        # so that only admins can modify the permission
+        doc["permission"] = {"key": "/permission/restricted"}
+
+        doc["child_permission"] = {"key": permission}
+        return doc
+
+    def POST(self):
+        i = web.input(
+            perm_pages="/permission/loggedinusers",
+            perm_records="/permission/loggedinusers")
+        
+        root = self.set_permission("/", i.perm_pages)
+        works = self.set_permission("/works", i.perm_records)
+        books = self.set_permission("/books", i.perm_records)
+        authors = self.set_permission("/authors", i.perm_records)
+        web.ctx.site.save_many([root, works, books, authors], comment="Updated edit policy.")
+
+        add_flash_message("info", "Edit policy has been updated!")
+        return self.GET()
+
 def setup():
     register_admin_page('/admin/git-pull', gitpull, label='git-pull')
     register_admin_page('/admin/reload', reload, label='Reload Templates')
@@ -580,6 +619,7 @@ def setup():
     register_admin_page('/admin/tasks/(.*)', tasks.tasks, label = "Task details")
     register_admin_page('/admin/deploy', deploy, label="")
     register_admin_page('/admin/graphs', _graphs, label="")
+    register_admin_page('/admin/permissions', permissions, label="")
 
     inspect_thing.setup()
     support.setup()
