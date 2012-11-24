@@ -85,6 +85,10 @@ class addbook(delegate.page):
     path = "/books/add"
 
     def GET(self):
+
+        if not self.has_permission():
+            return render_template("permission_denied", "/books/add", "Permission denied to add a book to Open Library.")
+
         i = web.input(work=None, author=None)
         work = i.work and web.ctx.site.get(i.work)
         author = i.author and web.ctx.site.get(i.author)
@@ -98,6 +102,9 @@ class addbook(delegate.page):
             recap = None
 
         return render_template('books/add', work=work, author=author, recaptcha=recap)
+
+    def has_permission(self):
+        return web.ctx.site.can_write("/books/add")
 
     def POST(self):
         i = web.input(title="", author_name="", author_key="", publisher="", publish_date="", id_name="", id_value="", _test="false")
