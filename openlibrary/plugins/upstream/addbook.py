@@ -492,7 +492,7 @@ class SaveBookHelper:
 
         for k in ['roles', 'identifiers', 'classifications']:
             edition[k] = edition.get(k) or []
-            
+
         self._prevent_ocaid_deletion(edition)
         return edition
 
@@ -533,7 +533,7 @@ class SaveBookHelper:
         user = accounts.get_current_user()
         if user and user.is_admin():
             return
-            
+
         # Note: work is the new work object from the formdata and self.work is the work doc from the database.
         old_subjects = self.work and self.work.get("subjects") or []
 
@@ -547,7 +547,7 @@ class SaveBookHelper:
                 work_key = self.work and self.work.key
                 logger.warn("Prevented removal of system subject %r from %s.", s, work_key)
                 work.subjects.append(s)
-                
+
     def _prevent_ocaid_deletion(self, edition):
         # Allow admins to modify ocaid
         user = accounts.get_current_user()
@@ -559,7 +559,7 @@ class SaveBookHelper:
             ocaid = [id['value'] for id in edition.get('identifiers', []) if id['name'] == 'ocaid'][0]
         except IndexError:
             ocaid = None
-        
+
         # 'self.edition' is the edition doc from the db and 'edition' is the doc from formdata
         if self.edition and self.edition.get('ocaid') and self.edition.get('ocaid') != ocaid:
             logger.warn("Attempt to change ocaid of %s from %r to %r.", self.edition.key, self.edition.get('ocaid'), ocaid)
@@ -574,18 +574,38 @@ class book_edit(delegate.page):
 
         if not web.ctx.site.can_write(key):
             return render_template("permission_denied", web.ctx.fullpath, "Permission denied to edit " + key + ".")
-                    
+
         edition = web.ctx.site.get(key, v)
         if edition is None:
             raise web.notfound()
-            
+
         work = edition.works and edition.works[0]
         # HACK: create dummy work when work is not available to make edit form work
         work = work or web.ctx.site.new('', {'key': '', 'type': {'key': '/type/work'}, 'title': edition.title})
-        return render_template('books/edit', work, edition)
+
+        recap_plugin_active = 'recaptcha' in config.get('plugins')
+        if recap_plugin_active:
+            public_key = config.plugin_recaptcha.public_key
+            private_key = config.plugin_recaptcha.private_key
+            recap = recaptcha.Recaptcha(public_key, private_key)
+        else:
+            recap = None
+
+        return render_template('books/edit', work, edition, recaptcha=recap)
+
 
     def POST(self, key):
         i = web.input(v=None, _method="GET")
+
+        recap_plugin_active = 'recaptcha' in config.get('plugins')
+        if recap_plugin_active:
+            public_key = config.plugin_recaptcha.public_key
+            private_key = config.plugin_recaptcha.private_key
+            recap = recaptcha.Recaptcha(public_key, private_key)
+
+            if not recap.validate():
+                return 'Recaptcha solution was incorrect. Please <a href="javascript:history.back()">go back</a> and try again.'
+
         v = i.v and safeint(i.v, None)
         edition = web.ctx.site.get(key, v)
 
@@ -618,18 +638,37 @@ class work_edit(delegate.page):
     def GET(self, key):
         i = web.input(v=None, _method="GET")
         v = i.v and safeint(i.v, None)
-        
+
         if not web.ctx.site.can_write(key):
             return render_template("permission_denied", web.ctx.fullpath, "Permission denied to edit " + key + ".")
-        
+
         work = web.ctx.site.get(key, v)
         if work is None:
             raise web.notfound()
 
-        return render_template('books/edit', work)
+        recap_plugin_active = 'recaptcha' in config.get('plugins')
+        if recap_plugin_active:
+            public_key = config.plugin_recaptcha.public_key
+            private_key = config.plugin_recaptcha.private_key
+            recap = recaptcha.Recaptcha(public_key, private_key)
+        else:
+            recap = None
+
+        return render_template('books/edit', work, recaptcha=recap)
+
 
     def POST(self, key):
         i = web.input(v=None, _method="GET")
+
+        recap_plugin_active = 'recaptcha' in config.get('plugins')
+        if recap_plugin_active:
+            public_key = config.plugin_recaptcha.public_key
+            private_key = config.plugin_recaptcha.private_key
+            recap = recaptcha.Recaptcha(public_key, private_key)
+
+            if not recap.validate():
+                return 'Recaptcha solution was incorrect. Please <a href="javascript:history.back()">go back</a> and try again.'
+
         v = i.v and safeint(i.v, None)
         work = web.ctx.site.get(key, v)
         if work is None:
@@ -650,7 +689,7 @@ class author_edit(delegate.page):
     def GET(self, key):
         if not web.ctx.site.can_write(key):
             return render_template("permission_denied", web.ctx.fullpath, "Permission denied to edit " + key + ".")
-        
+
         author = web.ctx.site.get(key)
         if author is None:
             raise web.notfound()

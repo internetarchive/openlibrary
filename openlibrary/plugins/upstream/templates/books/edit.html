@@ -1,4 +1,4 @@
-$def with (work, edition=None)
+$def with (work, edition=None, recaptcha=None)
 
 $ this_title = work.title + ': ' + work.subtitle if work.get('subtitle', None) else work.title
 
@@ -19,7 +19,7 @@ $putctx("robots", "noindex,nofollow")
 \$().ready(function(){\$("#coverPop").colorbox({inline:true, opacity:"0.5", href:"#addCover"});});
 
 function limitChars(textid, limit, infodiv) {
-    var text = \$('#'+textid).val(); 
+    var text = \$('#'+textid).val();
     var textlength = text.length;
     if(textlength > limit) {
         \$('#'+infodiv).html('Maximum length is '+limit+' characters');
@@ -37,27 +37,27 @@ function limitChars(textid, limit, infodiv) {
     var tab = hash.split("/")[0]
     var link = "#" + "link_" + tab.substr(1);
     var fieldname = ":input" + hash.replace('/', '-');
-    
+
     \$(link).click();
-        
+
     // input field is enabled only after the tab is selected and that takes some time after clicking the link.
     // wait for 1 sec after clicking the link and focus the input field
     setTimeout(function() {
-        // scroll such that top of the content is visible    
+        // scroll such that top of the content is visible
         if (\$(fieldname).length != 0) {
-            \$(fieldname).focus();   
+            \$(fieldname).focus();
         }
         else {
             \$("#tabsAddbook > div:visible :input:first").focus();
         }
-        \$(window).scrollTop(\$("#contentHead").offset().top);        
+        \$(window).scrollTop(\$("#contentHead").offset().top);
     }, 1000);
 });
 //-->
 </script>
 
 <div id="contentHead">
-    $code: 
+    $code:
         def find_mode():
             mode = query_param("mode")
             if not edition or not work.key:
@@ -69,7 +69,7 @@ function limitChars(textid, limit, infodiv) {
             if mode == "add-book" and edition.revision == 1:
                 return "new_edition"
             return "other"
-            
+
         mode = find_mode()
         if mode == "new_work":
             title = _("Add a little more?")
@@ -103,9 +103,9 @@ function limitChars(textid, limit, infodiv) {
         \$("#authors a.add:not(:last)").hide();
         \$("#authors a.add:last").show();
     }
-    
+
     update_visible();
-    
+
     \$("#authors a.remove").live("click", function() {
         if (\$("#authors div.input").length > 1) {
             \$(this).closest("div.input").remove();
@@ -115,15 +115,15 @@ function limitChars(textid, limit, infodiv) {
 
     \$("#authors a.add").live("click", function(event) {
         event.preventDefault();
-        
+
         var n = \$("#authors div.input:last").attr("id").substr("author-input-".length);
         n = parseInt(n);
-        
+
         \$("#authors").append(render_author(n+1, {key:"", name: ""}));
         \$("#authors input.author-autocomplete:last").author_autocomplete();
         update_visible();
     });
-    
+
 });
 //-->
 </script>
@@ -150,7 +150,7 @@ $jsdef render_author(i, author):
             <div class="label">
                 <label for="author-$0">Author</label>
             </div>
-            $ authors = work.authors and [a.author for a in work.authors]            
+            $ authors = work.authors and [a.author for a in work.authors]
             <div id="authors">
                 $if authors:
                     $for i, author in enumerate(authors):
@@ -160,7 +160,7 @@ $jsdef render_author(i, author):
             </div>
         </div>
     </div>
-        
+
         <div id="tabsAddbook">
             <ul>
                 <li><a href="#about" id="link_about">$_("What's It About?")</a></li>
@@ -171,10 +171,10 @@ $jsdef render_author(i, author):
                         $ edition_name = "; ".join(edition.publishers) + ' edition'
                     $else:
                         $ edition_name = "Unknown publisher" + ' edition'
-                    
+
                     $if edition.publish_date:
                         $ edition_name = truncate(edition_name, 20) + ", " + edition.publish_date
-                    
+
                     <li><a href="#edition" id="link_edition">$edition_name</a></li>
             </ul>
 
@@ -189,18 +189,24 @@ $jsdef render_author(i, author):
             <div id="web">
                 $:render_template("books/edit/web", work, prefix="work--")
             </div>
-        
+
             $if edition:
                 <div id="edition">
                     $:render_template("books/edit/edition", work, edition)
                 </div>
         </div>
 
+        $if recaptcha:
+            <div class="formElement">
+                <div class="label">$_("Please type in the two words below.")</div>
+                $:recaptcha.render()
+            </div>
+
         $:macros.EditButtons(comment=work.comment_)
 
         $if ctx.user and ctx.user.is_admin():
             <div class="adminOnly" style="position:absolute;top:20px;right:20px;"><button type="submit" value="$_('Delete Record')" name="_delete" title="$_('Delete this book?')" id="deleteTop">$_("Delete Record")</button></div>
-        
+
     </form>
 
     $if edition:
