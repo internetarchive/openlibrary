@@ -21,14 +21,17 @@ import forms
 import utils
 import borrow
 
+from openlibrary.plugins.recaptcha import recaptcha
+
+
 logger = logging.getLogger("openlibrary.account")
 
-# XXX: These need to be cleaned up 
+# XXX: These need to be cleaned up
 Account = accounts.Account
 send_verification_email = accounts.send_verification_email
 create_link_doc = accounts.create_link_doc
 sendmail = accounts.sendmail
-    
+
 class account(delegate.page):
     """Account preferences.
     """
@@ -46,14 +49,33 @@ class account_create(delegate.page):
 
     def GET(self):
         f = forms.Register()
-        return render['account/create'](f)
+
+        recap_plugin_active = 'recaptcha' in config.get('plugins')
+        if recap_plugin_active:
+            public_key = config.plugin_recaptcha.public_key
+            private_key = config.plugin_recaptcha.private_key
+            recap = recaptcha.Recaptcha(public_key, private_key)
+        else:
+            recap = None
+
+        return render['account/create'](f, recaptcha=recap)
 
     def POST(self):
         i = web.input('email', 'password', 'username', agreement="no")
         i.displayname = i.get('displayname') or i.username
-        
+
+        recap_plugin_active = 'recaptcha' in config.get('plugins')
+        if recap_plugin_active:
+            public_key = config.plugin_recaptcha.public_key
+            private_key = config.plugin_recaptcha.private_key
+            recap = recaptcha.Recaptcha(public_key, private_key)
+
+            if not recap.validate():
+                return 'Recaptcha solution was incorrect. Please <a href="javascript:history.back()">go back</a> and try again.'
+
+
         f = forms.Register()
-        
+
         if not f.validates(i):
             return render['account/create'](f)
 
@@ -95,7 +117,7 @@ class account_login(delegate.page):
 
     def POST(self):
         i = web.input(remember=False, redirect='/', action="login")
-        
+
         if i.action == "resend_verification_email":
             return self.POST_resend_verification_email(i)
         else:
@@ -111,16 +133,16 @@ class account_login(delegate.page):
         # make sure the username is valid
         if not forms.vlogin.valid(i.username):
             return self.error("account_user_notfound", i)
-            
+
         # Try to find account with exact username, failing which try for case variations.
         account = accounts.find(username=i.username) or accounts.find(lusername=i.username)
-        
+
         if not account:
             return self.error("account_user_notfound", i)
-        
+
         if i.redirect == "/account/login" or i.redirect == "":
             i.redirect = "/"
-            
+
         status = account.login(i.password)
         if status == 'ok':
             expires = (i.remember and 3600*24*7) or ""
@@ -134,7 +156,7 @@ class account_login(delegate.page):
             return self.error("account_blocked", i)
         else:
             return self.error("account_incorrect_password", i)
-            
+
     def POST_resend_verification_email(self, i):
         try:
             accounts.login(i.username, i.password)
@@ -169,7 +191,7 @@ class account_verify(delegate.page):
             return render['account/verify/success'](account)
         else:
             return render['account/verify/failed']()
-    
+
     def POST(self, code=None):
         """Called to regenerate account verification code.
         """
@@ -183,7 +205,7 @@ class account_verify(delegate.page):
             account.send_verification_email()
             title = _("Hi %(user)s", user=account.displayname)
             message = _("We've sent the verification email to %(email)s. You'll need to read that and click on the verification link to verify your email.", email=account.email)
-            return render.message(title, message)            
+            return render.message(title, message)
 
 class account_verify_old(account_verify):
     """Old account verification code.
@@ -193,7 +215,7 @@ class account_verify_old(account_verify):
     path = "/account/verify"
     def GET(self):
         # It is too long since we switched to the new account verification links.
-        # All old links must be expired by now. 
+        # All old links must be expired by now.
         # Show failed message without thinking.
         return render['account/verify/failed']()
 
@@ -253,7 +275,7 @@ class account_email_verify(delegate.page):
             title = _("Email verification successful.")
             message = _('Your email address has been successfully verified and updated in your account.')
         return render.message(title, message)
-        
+
     def bad_link(self):
         title = _("Email address couldn't be verified.")
         message = _("Your email address couldn't be verified. The verification link seems invalid.")
@@ -264,7 +286,7 @@ class account_email_verify_old(account_email_verify):
 
     def GET(self):
         # It is too long since we switched to the new email verification links.
-        # All old links must be expired by now. 
+        # All old links must be expired by now.
         # Show failed message without thinking.
         return self.bad_link()
 
@@ -283,10 +305,10 @@ class account_password(delegate.page):
 
         if not f.validates(i):
             return render['account/password'](f)
-            
+
         user = accounts.get_current_user()
         username = user.key.split("/")[-1]
-        
+
         if self.try_login(username, i.password):
             accounts.update_account(username, password=i.new_password)
             add_flash_message('note', _('Your password has been updated successfully.'))
@@ -294,7 +316,7 @@ class account_password(delegate.page):
         else:
             f.note = "Invalid password"
             return render['account/password'](f)
-        
+
     def try_login(self, username, password):
         account = accounts.find(username=username)
         return account and account.verify_password(password)
@@ -315,11 +337,11 @@ class account_password_forgot(delegate.page):
             return render['account/password/forgot'](f)
 
         account = accounts.find(email=i.email)
-        
+
         if account.is_blocked():
             f.note = utils.get_error("account_blocked")
             return render_template('account/password/forgot', f)
-        
+
         send_forgot_password_email(account.username, i.email)
         return render['account/password/sent'](i.email)
 
@@ -346,11 +368,11 @@ class account_password_reset(delegate.page):
 
         username = link['username']
         i = web.input()
-        
+
         accounts.update_account(username, password=i.password)
         link.delete()
         return render_template("account/password/reset_success", username=username)
-        
+
 class account_notifications(delegate.page):
     path = "/account/notifications"
 
