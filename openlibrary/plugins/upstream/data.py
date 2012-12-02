@@ -12,7 +12,7 @@ def wget(url):
 
 def get_ol_dumps():
     """Get list of all archive.org items in the in the ol_exports collection uploaded of archive.org staff."""
-    url = 'http://www.archive.org/advancedsearch.php?q=(ol_dump+OR+ol_cdump)+AND+collection:ol_exports+AND+uploader:(%40archive.org)&fl[]=identifier&output=json&rows=100'
+    url = 'http://www.archive.org/advancedsearch.php?q=(ol_dump+OR+ol_cdump)+AND+collection:ol_exports&fl[]=identifier&output=json&rows=100'
     
     d = simplejson.loads(wget(url))
     return sorted(doc['identifier'] for doc in d['response']['docs'])
