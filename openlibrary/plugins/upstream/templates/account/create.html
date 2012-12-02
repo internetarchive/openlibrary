@@ -1,4 +1,4 @@
-$def with (form)
+$def with (form, recaptcha=None)
 
 $var title: $_("Sign Up to Open Library")
 
@@ -25,7 +25,7 @@ $if ctx.user:
     <p>$:_("You are already logged into Open Library as %(user)s.", user='<a href="%s">%s</a>' % (ctx.user.key, ctx.user.displayname))</p>
     <p>$:_('If you\'d like to create a new, different Open Library account, you\'ll need to <a href="javascript:;" onclick="document.forms[\'logout\'].submit()">log out</a> and start the signup process afresh.')</p>
 $else:
-    <form id="signup" class="olform create validate" name="signup" method="post" action="">        
+    <form id="signup" class="olform create validate" name="signup" method="post" action="">
         $if form.note:
             <div class="note">$form.note</div>
         <div class="formElement">
@@ -68,6 +68,12 @@ $else:
                 <span class="invalid clearfix" htmlfor="email">$form.email.note</span>
             </div>
         </div>
+        $if recaptcha:
+            <div class="formElement">
+                <div class="label">$_("Please type in the two words below.")</div>
+                $:recaptcha.render()
+            </div>
+
         <div class="formElement">
             <div class="label">
                 <input type="checkbox" id="agreement" class="required" name="agreement" value="yes"/> <label for="agreement" class="smaller">$:_("I acknowledge that my use of Open Library is subject to the Internet Archive's <a href='http://www.archive.org/about/terms.php' target='_new' title='Read the Terms of Use in a new browser.'>Terms of Use</a>.")</label>
@@ -83,6 +89,6 @@ $else:
                 <a href="javascript:history.go(-1);" class="smaller attn">$_("Cancel")</a>
             </div>
         </div>
-    </form> 
+    </form>
 
 </div>
