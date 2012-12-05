@@ -44,7 +44,7 @@ search_fields = ["key", "redirects", "title", "subtitle", "alternative_title", "
 
 all_fields = search_fields + ["has_fulltext", "title_suggest", "edition_count", "publish_year", "language", "number_of_pages", "ia_count", "publisher_facet", "author_facet", "first_publish_year"] + ['%s_key' % f for f in ('subject', 'person', 'place', 'time')]
 
-facet_fields = ["has_fulltext", "author_facet", "language", "first_publish_year", "publisher_facet", "subject_facet", "person_facet", "place_facet", "time_facet"]
+facet_fields = ["has_fulltext", "author_facet", "language", "first_publish_year", "publisher_facet", "subject_facet", "person_facet", "place_facet", "time_facet", "public_scan_b"]
 
 facet_list_fields = [i for i in facet_fields if i not in ("has_fulltext")]
 
@@ -177,7 +177,7 @@ def run_solr_query(param = {}, rows=100, page=1, sort=None, spellcheck_count=Non
 
     (q_list, use_dismax) = build_q_list(param)
 
-    fields = ['key', 'author_name', 'author_key', 'title', 'subtitle', 'edition_count', 'ia', 'has_fulltext', 'first_publish_year', 'cover_edition_key', 'public_scan_b', 'lending_edition_s', 'overdrive_s', 'ia_collection_s']
+    fields = ['key', 'author_name', 'author_key', 'title', 'subtitle', 'edition_count', 'ia', 'has_fulltext', 'first_publish_year', 'cover_i','cover_edition_key', 'public_scan_b', 'lending_edition_s', 'overdrive_s', 'ia_collection_s']
     fl = ','.join(fields)
     if use_dismax:
         q = web.urlquote(' '.join(q_list))
@@ -413,7 +413,7 @@ class search(delegate.page):
 
     def GET(self):
         global ftoken_db
-        i = web.input(author_key=[], language=[], first_publish_year=[], publisher_facet=[], subject_facet=[], person_facet=[], place_facet=[], time_facet=[])
+        i = web.input(author_key=[], language=[], first_publish_year=[], publisher_facet=[], subject_facet=[], person_facet=[], place_facet=[], time_facet=[], public_scan_b=[])
         if i.get('ftokens') and ',' not in i.ftokens:
             token = i.ftokens
             #if ftoken_db is None:
