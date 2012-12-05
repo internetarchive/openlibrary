@@ -129,7 +129,7 @@ def group_branches_by_state(branches):
 def get_libraries_by_country():
     libraries = inlibrary.get_libraries()
     d = {}
-
+    
     usa = "United States of America"
     aliases = {
         "US": usa,
@@ -143,7 +143,6 @@ def get_libraries_by_country():
         for branch in lib.get_branches():
             country = aliases.get(branch.country.strip(), branch.country).strip()
             branch.library = lib
-            print repr((country, branch.country))
             d.setdefault(country, []).append(branch)
     return d
 
