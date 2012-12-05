@@ -6,15 +6,16 @@ $def link(url, title):
     $else:
         <a href="$url">$title</a>
 
-<div class="right large sansserif" style="padding-top:10px;">   
-    
-    $:link("/borrow", _("Borrow"))
-    | $:link("/borrow/about", _("How it Works"))
-    | $:link("/libraries", _("Participating Libraries"))
-    | $:link("/libraries/register", _("Register your library"))
-    | $:link("/libraries/stats", _("Stats"))
-    
+<div class="right large sansserif" style="padding-top: 10px; text-align: right;">
+    <div>
+        $:link("/read", _("Read"))
+        | $:link("/borrow", _("Borrow"))
+        | $:link("/borrow/about", _("How it Works"))
+        | $:link("/libraries", _("Participating Libraries"))
+        | $:link("/libraries/register", _("Register your library"))
+        | $:link("/libraries/stats", _("Stats"))
+    </div>
     $if ctx.user and ctx.user.is_admin():
-     | <span class="adminOnly">$:link("/libraries/dashboard", _("Dashboard"))</span>
-     
+        <div style="margin-top: 10px"><span class="adminOnly">$:link("/libraries/dashboard", _("Dashboard"))</span></div>
 </div>
+     
