@@ -2,13 +2,13 @@ $def with (branches=None)
 
 $ _x = ctx.setdefault('bodyclass', 'map')
 
-$ title = "Borrow"
+$ title = "Participating Libraries"
 
 $var title: $title
 
 <div id="contentHead">
     $:render_template("borrow/navigation", path="/libraries")
-    <h1>$_("Borrow eBooks")</h1>
+    <h1>$_("Participating Libraries")</h1>
 </div>
 
 <div id="contentBody" class="map">
@@ -70,18 +70,23 @@ $var title: $title
     }
     </script>
 
+
 </div>
 
 <div id="contentMeta">
     <br/>
+    <!--
     <h3 class="inline">Participating Libraries</h3>
+    -->
     <p class="inline sansserif small">&nbsp;&nbsp;<a href="/libraries/register">Register Your Library?</a></p>
     <div class="clearfix"></div>
 <script type="text/javascript">
 <!--
 \$(function () {
     \$(".columns").columnize({columns: 3, balance: true});
-    \$(".columns .column:last").css("margin-right","0");
+    \$(".columns").each(function() {
+        \$(this).find(".column:last").css("margin-right","0");
+    });
 });
 //-->
 </script>
@@ -102,9 +107,13 @@ $var title: $title
     margin-bottom: 20px;
 }
 #content ul.places li.label {
+/*
     position: absolute;
     top: 0;
     left: -1.5em;
+*/
+    font-weight: bold;
+    margin: 1em -1em;
 }
 #content ul.places li {
     list-style: none;
@@ -114,17 +123,40 @@ $var title: $title
     font-style: italic;
 }
 </style>
+$def render_libraries(libraries):
+    $for lib in sorted(libraries, key=lambda lib: lib.name):
+        <li>
+            <span class="name">$lib.name</span>,
+            <span class="city">$lib.city</span>
+            <a class="name hidden" href="$lib.library.key">view</a>
+        </li>
+&nbsp;
 
-    <div class="columns">
-        $for letter, group in branches:
-        <ul class="places sansserif smallest">
-            <li class="label">${letter}.</li>
-            $for branch in group:
-                <li>
-                    <span class="name">$branch.name</span>,
-                    <span class="city">$branch.city</span>
-                </li>
-        </ul>
-    </div>
+<div>
+     <h3 class="inline">United States of America</h3>
+     $ us_branches = branches.pop("United States of America", [])
+
+     <div class="columns">
+         <ul class="places sansserief smallest">
+             $for state, libraries in sorted(group_branches_by_state(us_branches).items()):
+                 <li class="label">$state</li>
+                 $:render_libraries(libraries)
+         </ul>
+     </div>
+</div>
+<div class="clearfix"></div>
+
+<div>
+    <h3 class="inline">Other Countries</h3>
+     <div class="columns">
+         <ul class="places sansserief smallest">
+             $for country, libraries in sorted(branches.items()):
+                 <li class="label">$country</li>
+                 $:render_libraries(libraries)
+         </ul>
+     </div>
+</div>
+<div class="clearfix"></div>
+
 
 </div>
