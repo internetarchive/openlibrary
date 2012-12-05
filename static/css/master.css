@@ -116,6 +116,10 @@ h2.author {color:#615132;font-size:1.125em;font-weight:normal;}
 h1.edition, h2.edition {color:#000;font-family:"Lucida Grande", Verdana, Helvetica, Geneva, sans-serif;font-size:1.125em;margin:0;padding:0;font-weight:normal;}
 h2.authorEdition {color:#615132;font-size:1em;font-weight:normal;margin:0;padding:0;}
 h2.publisher {font-size:1.375em;background-color:#efefef;padding:10px;margin:15px 0 0;}
+
+.head h2 a { color: inherit !important; text-decoration: none; }
+.head h2 a:hover { text-decoration: underline; }
+
 h2 a {color:#036daa;text-decoration:none;}
 h2 a:hover{color:#35672e;text-decoration:underline;}
 h3 {font-size: 1.0em;}
