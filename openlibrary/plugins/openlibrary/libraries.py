@@ -19,7 +19,7 @@ logger = logging.getLogger("openlibrary.libraries")
 
 class libraries(delegate.page):
     def GET(self):
-        return render_template("libraries/index", self.get_branches())
+        return render_template("libraries/index", get_libraries_by_country())
 
     def get_branches(self):
         branches = sorted(get_library_branches(), key=lambda b: b.name.upper())
@@ -56,6 +56,96 @@ def get_library_branches():
         for branch in lib.get_branches():
             branch.library = lib.name
             yield branch
+
+#source: https://en.wikipedia.org/wiki/List_of_U.S._state_abbreviations
+US_STATE_CODES = """
+AL  01  Alabama
+AK  02  Alaska
+AZ  04  Arizona
+AR  05  Arkansas
+CA  06  California
+CO  08  Colorado
+CT  09  Connecticut
+DE  10  Delaware
+FL  12  Florida
+GA  13  Georgia
+HI  15  Hawaii
+ID  16  Idaho
+IL  17  Illinois
+IN  18  Indiana
+IA  19  Iowa
+KS  20  Kansas
+KY  21  Kentucky
+A   22  Louisiana
+ME  23  Maine
+MD  24  Maryland
+MA  25  Massachusetts
+MI  26  Michigan
+MN  27  Minnesota
+MS  28  Mississippi
+MO  29  Missouri
+MT  30  Montana
+NE  31  Nebraska
+NV  32  Nevada
+NH  33  New Hampshire
+NJ  34  New Jersey
+NM  35  New Mexico
+NY  36  New York
+NC  37  North Carolina
+ND  38  North Dakota
+OH  39  Ohio
+OK  40  Oklahoma
+OR  41  Oregon
+PA  42  Pennsylvania
+RI  44  Rhode Island
+SC  45  South Carolina
+SD  46  South Dakota
+TN  47  Tennessee
+TX  48  Texas
+UT  49  Utah
+VT  50  Vermont
+VA  51  Virginia
+WA  53  Washington
+WV  54  West Virginia
+WI  55  Wisconsin
+WY  56  Wyoming
+"""
+def parse_state_codes():
+    tokens = (line.split(None, 2) for line in US_STATE_CODES.strip().splitlines())
+    return dict((code, name) for code, _, name in tokens)
+
+US_STATE_CODES_DICT = parse_state_codes()
+
+@public
+def group_branches_by_state(branches):
+    d = {}
+    for branch in branches:
+        state = branch.state.strip()
+        if state.upper() in US_STATE_CODES_DICT:
+            state = US_STATE_CODES_DICT[state.upper()]
+        d.setdefault(state, []).append(branch)
+    return d
+
+def get_libraries_by_country():
+    libraries = inlibrary.get_libraries()
+    d = {}
+
+    usa = "United States of America"
+    aliases = {
+        "US": usa,
+        "U.S.": usa,
+        "USA": usa,
+        "U.S.A.": usa,
+        "United States": usa,
+        "UK": "United Kingdom"
+    }
+    for lib in libraries:
+        for branch in lib.get_branches():
+            country = aliases.get(branch.country.strip(), branch.country).strip()
+            branch.library = lib
+            print repr((country, branch.country))
+            d.setdefault(country, []).append(branch)
+    return d
 
 class libraries_dashboard(delegate.page):
     path = "/libraries/dashboard"
@@ -343,12 +433,20 @@ class LoanStats:
         return [[row.key[-1], row.value] for row in rows if row.value >= limit]
 
     def get_loans_per_library(self):
+        counts = self._get_lib_counts()
+        return [((lib.key, lib.name), count) for lib, count in counts if not lib.lending_region]
+
+    def get_loans_per_state(self):
+        counts = self._get_lib_counts()
+        return [((lib.key, lib.name), count) for lib, count in counts if lib.lending_region]
+
+    def _get_lib_counts(self):
         # view contains:
         #   [lib_key, status], 1
         # Need to use group_level=1 and take key[0] to get the library key.
         rows = self.view("loans/libraries", group=True, group_level=1).rows
-        names = self._get_library_names()
-        return [[names.get(row.key[0], "-"), row.value] for row in rows]
+        libraries = self._get_libraries()
+        return [(libraries[row.key[0]], row.value) for row in rows if row.key[0] in libraries]
 
     def get_active_loans_of_libraries(self):
         """Returns count of current active loans per library as a dictionary.
@@ -358,6 +456,9 @@ class LoanStats:
 
     def _get_library_names(self):
         return dict((lib.key, lib.name) for lib in inlibrary.get_libraries())
+
+    def _get_libraries(self):
+        return dict((lib.key, lib) for lib in inlibrary.get_libraries())
 
 @public
 def get_active_loans_of_libraries():
