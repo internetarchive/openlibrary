@@ -10,12 +10,13 @@ $    ('time_facet', 'Times'),
 $    ('first_publish_year', 'First published'),
 $    ('publisher_facet', 'Publisher'),
 $    ('language', 'Language'),
+$    ('public_scan_b', 'Classic eBooks'),
 $ )
 $ fulltext_names = {'true': 'Only ebooks', 'false': 'eBooks hidden'}
 
-$ facet_fields = ['has_fulltext', 'author_facet', 'language', 'first_publish_year', 'publisher_facet',  'subject_facet', 'person_facet', 'place_facet', 'time_facet']
+$ facet_fields = ['has_fulltext', 'author_facet', 'language', 'first_publish_year', 'publisher_facet',  'subject_facet', 'person_facet', 'place_facet', 'time_facet', 'public_scan_b']
 
-$ sticky = set(['author_facet', 'language', 'first_publish_year', 'publisher_facet',  'subject_facet', 'person_facet', 'place_facet', 'time_facet'])
+$ sticky = set(['author_facet', 'language', 'first_publish_year', 'publisher_facet',  'subject_facet', 'person_facet', 'place_facet', 'time_facet', 'public_scan_b'])
 
 $ library = (get_library() if 'inlibrary' in ctx.features else None)
 
@@ -172,6 +173,10 @@ function less(header) {
                 $title.append(q_param)                
             $if 'has_fulltext' in param:
                 $title.append('eBook')
+
+            $if 'public_scan_b' in param:
+                $title.append('Classic eBook')
+
             $if any(header in param for header, label in facet_map):
                 <!-- facet_map: $:facet_map -->
                 <!-- facet_counts: $:facet_counts -->
@@ -181,11 +186,18 @@ function less(header) {
                     $for k, display, count in counts:
                         $if k not in param.get(header, []):
                             $continue
-                        $if header == 'has_fulltext':
-                            $ display = fulltext_names[k]
-                        $else:
+
+                        $if header not in ['has_fulltext', 'public_scan_b']:
                             $title.append(display)
-                        $if header == 'subject_facet':
+
+                        $if header == 'has_fulltext':
+                            $fulltext_names.get(k, '')
+                        $elif header == 'public_scan_b':
+                            $if display == 'true':
+                                <a href="/read" title="Explore Classic eBooks">Only Classic eBooks</a>
+                            $else:
+                                Classic eBooks hidden
+                        $elif header == 'subject_facet':
                             <a href="/subjects/$display.replace(' ', '_')" title="Explore books about $display" class="facetSubject">$display</a>
                         $elif header == 'person_facet': 
                             <a href="/subjects/person:$display.replace(' ', '_')" title="Explore books about $display" class="facetSubject">$display</a>
@@ -199,8 +211,6 @@ function less(header) {
                             <span title="Written in">$display</span>
                         $elif header == 'publisher_facet':
                             <span title="Published by">$display</span>
-                        $else:
-                            $display
                         <span style="padding-right:15px;"><a href="$:del_facet_url(header, k)" title="$_('Click to remove this facet')" class="facetRemove plain red">[x]</a></span>
                 </strong></span></p>
             $var title: ${', '.join(title)} - search
@@ -299,6 +309,8 @@ $if param and not error:
         <div class="smallest lightgreen sansserif" style="margin-bottom:20px;">$_("Focus your results using these") <a href="/search/howto">$_("filters")</a></div>
         $for header, label in facet_map:
             $if header=='has_fulltext' and 'has_fulltext' in param:
+                $continue
+            $if header=='public_scan_b':
                 $continue
             $ counts = [i for i in facet_counts[header] if i[0] not in param.get(header, [])]
             $if not counts:
