@@ -33,4 +33,4 @@ On Linux, you will also have to install the following dev packages
 
 Some `Python packages`_ are also required, but they will be automatically installed by the installation script.
 
-.. _Python packages: https://github.com/internetarchive/openlibrary/tree/master/requirements.txt
+.. _Python packages: https://github.com/internetarchive/openlibrary/blob/master/requirements.txt

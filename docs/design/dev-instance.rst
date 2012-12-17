@@ -11,7 +11,7 @@ On Linux, installing CouchDB involves installing so many dependencies, some of
 them are incompatible with ubuntu/debian installations. Fortunately, a binary
 distribution with all the binaries is provided by CouchOne.
 
-http://www.couchone.com/get
+http://www.couchbase.com/download
 
 The problem with that distribution is that it is interactive and it won't be
 possible to automate the installation of that. To overcome this problem, the

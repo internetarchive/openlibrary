@@ -5,7 +5,7 @@ Feature flags is a way to have features under development live on production and
 
 The idea of Feature Flags came from Flicker. They manage their development on a single branch using feature flags.
 
-http://code.flickr.com/blog/2009/12/02/flipping-out/
+http://code.flickr.net/2009/12/02/flipping-out/
 
 Using Feature Flags
 -------------------
