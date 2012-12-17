@@ -1,7 +1,7 @@
 Dependencies
 ============
 
-The system requires a lot of third party programs as well as a whole
+The system requires a lot of third-party programs as well as a whole
 bunch of Python libraries. We have an installation script which you
 can run that will setup the entire thing for you but in order to run
 this script, the following packages have to be installed first. 

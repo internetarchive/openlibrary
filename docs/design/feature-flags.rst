@@ -3,7 +3,7 @@ Feature Flags
 
 Feature flags is a way to have features under development live on production and visible only to admins/beta-users.
 
-The idea of Feature Flags came from Flickr. They manage their development on a single branch using feature flags.
+The idea of feature flags came from Flickr. They manage their development on a single branch using feature flags.
 
 http://code.flickr.net/2009/12/02/flipping-out/
 
