@@ -7,6 +7,8 @@ from infogami.utils import stats
 import web
 import simplejson
 
+from openlibrary.core import ia
+
 default_cache_prefixes = ["/type/", "/languages/", "/index.", "/about", "/css/", "/js/", "/config/"]
 
 class ConnectionMiddleware:
@@ -26,6 +28,8 @@ class ConnectionMiddleware:
             return self.get(sitename, data)
         elif path == '/get_many':
             return self.get_many(sitename, data)
+        elif path == '/versions':
+            return self.versions(sitename, data)
         elif path == '/write':
             return self.write(sitename, data)
         elif path.startswith('/save/'):
@@ -53,6 +57,9 @@ class ConnectionMiddleware:
     def get_many(self, sitename, data):
         return self.conn.request(sitename, '/get_many', 'GET', data)
 
+    def versions(self, sitename, data):
+        return self.conn.request(sitename, '/versions', 'GET', data)
+
     def write(self, sitename, data):
         return self.conn.request(sitename, '/write', 'POST', data)
 
@@ -72,6 +79,87 @@ class ConnectionMiddleware:
         return self.conn.request(sitename, path, 'DELETE', data)
         
 _memcache = None
+
+class IAMiddleware(ConnectionMiddleware):
+
+    def _get_itemid(self, key):
+        """Returns internet archive item id from the key.
+
+        If the key is of the form "/books/ia:.*", the part ofter "/books/ia:"
+        is returned, otherwise None is returned.
+        """
+        if key and key.startswith("/books/ia:") and key.count("/") == 2:
+            return key[len("/books/ia:"):]
+
+    def get(self, sitename, data):
+        key = data.get('key')
+
+        itemid = self._get_itemid(key)
+        if itemid:
+            return self._get_ia_item(itemid)
+        else:
+            return ConnectionMiddleware.get(self, sitename, data)
+
+    def _get_ia_item(self, itemid):
+        timestamp = {"type": "/type/datetime", "value": "2010-01-01T00:00:00"}
+        metadata = ia.get_metadata(itemid)
+
+        d = {   
+            "key": "/books/ia:" + itemid,
+            "type": {"key": "/type/edition"}, 
+            "title": itemid, 
+            "ocaid": itemid,
+            "revision": 1,
+            "created": timestamp,
+            "last_modified": timestamp
+        }
+
+        def add(key, key2=None):
+            key2 = key2 or key
+            if key in metadata:
+                value = metadata[key]
+                if isinstance(value, list):
+                    value = value[0]
+                d[key2] = value
+
+        def add_list(key, key2):
+            key2 = key2 or key
+            if key in metadata:
+                value = metadata[key]
+                if not isinstance(value, list):
+                    value = [value]
+                d[key2] = value
+
+        add('title')
+        add_list('publish', 'publishers')
+        
+        return simplejson.dumps(d)
+
+    def versions(self, sitename, data):
+        # handle the query of type {"query": '{"key": "/books/ia:foo00bar", ...}}
+        if 'query' in data:
+            q = simplejson.loads(data['query'])
+            itemid = self._get_itemid(q.get('key'))
+            if itemid:
+                key = q['key']
+                return simplejson.dumps([self.dummy_edit(key)])
+
+        # if not just go the default way
+        return ConnectionMiddleware.versions(self, sitename, data)
+
+    def dummy_edit(self, key):
+        return {
+            "comment": "", 
+            "author": None, 
+            "ip": "127.0.0.1", 
+            "created": "2012-01-01T00:00:00", 
+            "bot": False, 
+            "data": "{}", 
+            "key": key, 
+            "action": "edit-book", 
+            "changes": simplejson.dumps({"key": key, "revision": 1}),
+            "revision": 1
+        }
         
 class MemcacheMiddleware(ConnectionMiddleware):
     def __init__(self, conn, memcache_servers):
@@ -418,6 +506,8 @@ def OLConnection():
     cache_prefixes = config.get("cache_prefixes", default_cache_prefixes)
     if cache_prefixes :
         conn = LocalCacheMiddleware(conn, cache_prefixes)
+
+    conn = IAMiddleware(conn)
 
     return conn
 

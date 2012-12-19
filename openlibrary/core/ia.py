@@ -9,6 +9,18 @@ from infogami.utils import stats
 
 import cache
 
+def get_metadata(itemid):
+    itemid = web.safestr(itemid.strip())
+    url = 'http://archive.org/metadata/%s' % itemid
+    try:
+        stats.begin("archive.org", url=url)
+        metadata_json = urllib2.urlopen(url).read()
+        stats.end()
+        return simplejson.loads(metadata_json).get("metadata", {})
+    except IOError:
+        stats.end()
+        return {}
+
 def get_meta_xml(itemid):
     """Returns the contents of meta_xml as JSON.
     """

@@ -76,7 +76,7 @@ bookreader_stream_base = 'http://' + bookreader_host + '/stream'
 
 # Handler for /books/{bookid}/{title}/borrow
 class borrow(delegate.page):
-    path = "(/books/OL\d+M)/borrow"
+    path = "(/books/.*)/borrow"
     
     def GET(self, key):
         edition = web.ctx.site.get(key)
