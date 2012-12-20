@@ -30,6 +30,10 @@ class ConnectionMiddleware:
             return self.get_many(sitename, data)
         elif path == '/versions':
             return self.versions(sitename, data)
+        elif path == '/_recentchanges':
+            return self.recentchanges(sitename, data)
+        elif path == '/things':
+            return self.things(sitename, data)
         elif path == '/write':
             return self.write(sitename, data)
         elif path.startswith('/save/'):
@@ -59,6 +63,12 @@ class ConnectionMiddleware:
 
     def versions(self, sitename, data):
         return self.conn.request(sitename, '/versions', 'GET', data)
+
+    def recentchanges(self, sitename, data):
+        return self.conn.request(sitename, '/_recentchanges', 'GET', data)
+
+    def things(self, sitename, data):
+        return self.conn.request(sitename, '/things', 'GET', data)
 
     def write(self, sitename, data):
         return self.conn.request(sitename, '/write', 'POST', data)
@@ -96,13 +106,40 @@ class IAMiddleware(ConnectionMiddleware):
 
         itemid = self._get_itemid(key)
         if itemid:
-            return self._get_ia_item(itemid)
+            edition_key = self._find_edition(sitename, itemid)
+            if edition_key:
+                return self._make_redirect(itemid, edition_key)
+            else:
+                return self._get_ia_item(itemid)
         else:
             return ConnectionMiddleware.get(self, sitename, data)
+
+    def _find_edition(self, sitename, itemid):
+        q = {"type": "/type/edition", "ocaid": itemid}
+        keys_json = ConnectionMiddleware.things(self, sitename, {"query": simplejson.dumps(q)})
+        keys = simplejson.loads(keys_json)
+        print "_find_edition", itemid, keys
+        if keys:
+            return keys[0]
+
+    def _make_redirect(self, itemid, location):
+        timestamp = {"type": "/type/datetime", "value": "2010-01-01T00:00:00"}
+        d = {
+            "key": "/books/ia:" +  itemid,
+            "type": {"key": "/type/redirect"}, 
+            "location": location,
+            "revision": 1,
+            "created": timestamp,
+            "last_modified": timestamp
+        }
+        return simplejson.dumps(d)
 
     def _get_ia_item(self, itemid):
         timestamp = {"type": "/type/datetime", "value": "2010-01-01T00:00:00"}
         metadata = ia.get_metadata(itemid)
+
+        if not metadata:
+            raise client.ClientException("404 Not Found", "notfound", simplejson.dumps({"key": "/books/ia:" + itemid}))
 
         d = {   
             "key": "/books/ia:" + itemid,
@@ -147,6 +184,18 @@ class IAMiddleware(ConnectionMiddleware):
         # if not just go the default way
         return ConnectionMiddleware.versions(self, sitename, data)
 
+    def recentchanges(self, sitename, data):
+        # handle the query of type {"query": '{"key": "/books/ia:foo00bar", ...}}
+        if 'query' in data:
+            q = simplejson.loads(data['query'])
+            itemid = self._get_itemid(q.get('key'))
+            if itemid:
+                key = q['key']
+                return simplejson.dumps([self.dummy_recentchange(key)])
+
+        # if not just go the default way
+        return ConnectionMiddleware.recentchanges(self, sitename, data)
+
     def dummy_edit(self, key):
         return {
             "comment": "", 
@@ -158,7 +207,24 @@ class IAMiddleware(ConnectionMiddleware):
             "key": key, 
             "action": "edit-book", 
             "changes": simplejson.dumps({"key": key, "revision": 1}),
-            "revision": 1
+            "revision": 1,
+
+            "kind": "update",
+            "id": "0",
+            "timestamp": "2010-01-01T00:00:00",
+            "data": {}
+        }
+
+    def dummy_recentchange(self, key):
+        return {
+            "comment": "", 
+            "author": None, 
+            "ip": "127.0.0.1", 
+            "timestamp": "2012-01-01T00:00:00", 
+            "data": "{}", 
+            "changes": [{"key": key, "revision": 1}],
+            "kind": "update",
+            "id": "0",
         }
         
 class MemcacheMiddleware(ConnectionMiddleware):

@@ -95,7 +95,15 @@ class Edition(models.Edition):
         
     def get_cover_url(self, size):
         cover = self.get_cover()
-        return cover and cover.url(size)
+        if cover:
+            return cover.url(size)
+        elif self.ocaid:
+            return self.get_ia_cover(self.ocaid, size)
+
+    def get_ia_cover(self, itemid, size):
+        image_sizes = dict(S=(116, 58), M=(180, 360), L=(500, 500))
+        w, h = image_sizes[size.upper()]
+        return "http://archive.org/download/%s/page/cover_w%s_h%s.jpg" % (itemid, w, h)
 
     def get_identifiers(self):
         """Returns (name, value) pairs of all available identifiers."""
