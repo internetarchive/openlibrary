@@ -742,7 +742,7 @@ class edit(core.edit):
             return core.edit.GET(self, key)
 
 class daisy(delegate.page):
-    path = "(/books/OL\d+M)/daisy"
+    path = "(/books/.*)/daisy"
 
     def GET(self, key):
         page = web.ctx.site.get(key)
