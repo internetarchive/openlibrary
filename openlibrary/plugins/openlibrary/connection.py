@@ -138,7 +138,7 @@ class IAMiddleware(ConnectionMiddleware):
         timestamp = {"type": "/type/datetime", "value": "2010-01-01T00:00:00"}
         metadata = ia.get_metadata(itemid)
 
-        if not metadata:
+        if metadata.get("mediatype") != "texts":
             raise client.ClientException("404 Not Found", "notfound", simplejson.dumps({"key": "/books/ia:" + itemid}))
 
         d = {   
