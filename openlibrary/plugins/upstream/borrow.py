@@ -194,7 +194,7 @@ class borrow(delegate.page):
         
 # Handler for /books/{bookid}/{title}/_borrow_status
 class borrow_status(delegate.page):
-    path = "(/books/OL\d+M)/_borrow_status"
+    path = "(/books/.*)/_borrow_status"
     
     def GET(self, key):
     	global lending_subjects
@@ -234,7 +234,7 @@ class borrow_status(delegate.page):
 
 
 class borrow_admin(delegate.page):
-    path = "(/books/OL\d+M)/borrow_admin"
+    path = "(/books/.*)/borrow_admin"
     
     def GET(self, key):
         if not is_admin():
@@ -271,7 +271,7 @@ class borrow_admin(delegate.page):
         raise web.seeother(web.ctx.path + '/borrow_admin')
         
 class borrow_admin_no_update(delegate.page):
-    path = "(/books/OL\d+M)/borrow_admin_no_update"
+    path = "(/books/.*)/borrow_admin_no_update"
     
     def GET(self, key):
         if not is_admin():
