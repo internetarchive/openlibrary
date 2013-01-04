@@ -122,10 +122,10 @@ Restart the webapp to see the books on homepage.
 Known Issues
 ------------
 
-It is known that the following issues.
+It is known that the following issues exist:
 
 * Stats on the home page is not working
 * /admin is failing
 * /libraries/stats is failing
 * Lists are not working
-* subject search not working
+* subject search is not working
