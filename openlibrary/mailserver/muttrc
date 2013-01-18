@@ -1,8 +1,0 @@
-set mbox_type=Maildir
-set folder="run/queue"
-set mask="!^\\.[^.]"
-set mbox="run/queue"
-set record="+.Sent"
-set postponed="+.Drafts"
-set spoolfile="run/queue"
-set sendmail="/usr/bin/env lamson sendmail -port 8823 -host 127.0.0.1"
