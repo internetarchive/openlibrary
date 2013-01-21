@@ -58,6 +58,20 @@ class Stats:
         """
         return sum(x[1] for x in self.get_counts(ndays))
 
+class DummyStats:
+    """Temporarily used to migrate away from couchDB"""
+    def __init__(self, docs, key, total_key):
+        self.latest = 0
+        self.previous = 0
+        self.total = ''
+                
+    def get_counts(self, ndays = 28, times = False):
+        return [[0,0]]
+
+    def get_summary(self, ndays = 28):
+        return sum(x[1] for x in self.get_counts(ndays))
+
+
 @cache.memoize(engine="memcache", key="admin._get_count_docs", expires=5*60)
 def _get_count_docs(ndays):
     """Returns the count docs from admin couchdb database.
@@ -78,17 +92,18 @@ def _get_count_docs(ndays):
 
 def get_stats(ndays = 30):
     """Returns the stats for the past `ndays`"""
-    docs = [couchdb.Document(doc) for doc in _get_count_docs(ndays)]
-    retval = dict(human_edits = Stats(docs, "human_edits", "human_edits"),
-                  bot_edits   = Stats(docs, "bot_edits", "bot_edits"),
-                  lists       = Stats(docs, "lists", "total_lists"),
-                  visitors    = Stats(docs, "visitors", "visitors"),
-                  loans       = Stats(docs, "loans", "loans"),
-                  members     = Stats(docs, "members", "total_members"),
-                  works       = Stats(docs, "works", "total_works"),
-                  editions    = Stats(docs, "editions", "total_editions"),
-                  ebooks      = Stats(docs, "ebooks", "total_ebooks"),
-                  covers      = Stats(docs, "covers", "total_covers"),
-                  authors     = Stats(docs, "authors", "total_authors"),
-                  subjects    = Stats(docs, "subjects", "total_subjects"))
+    # docs = [couchdb.Document(doc) for doc in _get_count_docs(ndays)]
+    docs = []
+    retval = dict(human_edits = DummyStats(docs, "human_edits", "human_edits"),
+                  bot_edits   = DummyStats(docs, "bot_edits", "bot_edits"),
+                  lists       = DummyStats(docs, "lists", "total_lists"),
+                  visitors    = DummyStats(docs, "visitors", "visitors"),
+                  loans       = DummyStats(docs, "loans", "loans"),
+                  members     = DummyStats(docs, "members", "total_members"),
+                  works       = DummyStats(docs, "works", "total_works"),
+                  editions    = DummyStats(docs, "editions", "total_editions"),
+                  ebooks      = DummyStats(docs, "ebooks", "total_ebooks"),
+                  covers      = DummyStats(docs, "covers", "total_covers"),
+                  authors     = DummyStats(docs, "authors", "total_authors"),
+                  subjects    = DummyStats(docs, "subjects", "total_subjects"))
     return retval
