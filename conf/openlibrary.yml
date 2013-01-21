@@ -30,7 +30,7 @@ support_case_control_address : "support@openlibrary.org"
 
 support_default_assignees:
     developer/api/covers_question: "noufal@archive.org"
-    default: "mary@openlibrary.org"
+    default: "noufal@archive.org"
 
 smtp_server: "localhost"
 
