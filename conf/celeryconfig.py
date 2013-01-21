@@ -19,12 +19,6 @@ OL_CONFIG = "conf/openlibrary.yml"
 # Repeating tasks
 from datetime import timedelta
 
-CELERYBEAT_SCHEDULE = {
-    "runs-every-30-seconds": {
-        "task": "openlibrary.tasks.update_support_from_email",
-        "schedule": timedelta(seconds=30),
-    },
-}
 
 from celery.backends import BACKEND_ALIASES
 BACKEND_ALIASES['couchdb'] = "openlibrary.core.celery_couchdb.CouchDBBackend"
