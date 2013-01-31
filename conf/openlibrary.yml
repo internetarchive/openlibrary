@@ -29,8 +29,9 @@ support_case_control_address : "support@openlibrary.org"
 # default (in case there is no special email address for the given category)
 
 support_default_assignees:
-    developer/api/covers_question: "noufal@archive.org"
-    default: "noufal@archive.org"
+  developer/api/covers_question/bug_report: "noufal+bugs@gmail.com"
+  default: "noufal+default@gmail.com"
+
 
 smtp_server: "localhost"
 
