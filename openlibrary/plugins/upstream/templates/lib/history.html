@@ -7,6 +7,8 @@ $else:
 
 $ versions = h.recent + h.initial
 
+$ cur_v = query_param("v", None)
+
 <div class="clearfix"></div>
 <div id="pageHistory">
     <h2 class="collapse">
@@ -23,9 +25,14 @@ $ versions = h.recent + h.initial
         <span class="link"><a rel="nofollow" href="$url">$latest.revision $_("revision")$("s" if latest.revision != 1 else "")</a></span>
 
         $if page.key.startswith("/works") or page.key.startswith("/books") or page.key.startswith("/authors"): 
-            $ rdf = page.key + ".rdf"
-            $ json = page.key + ".json"
-            $ opds = page.key + ".opds"
+            $if cur_v:
+                $ hist_addition = "?v=" + cur_v
+            $else:
+                $ hist_addition = ""
+                
+            $ rdf = page.key + ".rdf" + hist_addition
+            $ json = page.key + ".json" + hist_addition
+            $ opds = page.key + ".opds" + hist_addition
             <div id="historyTools" class="smaller brown sansserif" style="float:right;padding-top:8px;">
                 Download catalog record:
                 <a href="$rdf">RDF</a>
