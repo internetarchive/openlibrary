@@ -5,7 +5,7 @@ Occasionally, new tables get added to the openlibrary database and some existing
 tables get altered. Scripts are provided to migrate the existing dev instances
 to the new schema.
 
-To migrate an existing dev instance:
+To migrate an existing dev instance::
 
     $ python setup.py shell
     $ python scripts/migrate_db.py
