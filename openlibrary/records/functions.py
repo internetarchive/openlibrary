@@ -77,7 +77,7 @@ def search(params):
     doc = params.pop("doc")
     
     matches = []
-    # TODO: We are looking only at edition searches here. This should be expanded to works.  
+    # TODO: We are looking only at edition searches here. This should be expanded to works.
     if "isbn" in doc.get('identifiers',{}):
         matches.extend(find_matches_by_isbn(doc['identifiers']['isbn']))
 
@@ -86,7 +86,7 @@ def search(params):
         matches.extend(d['all'])
         matches.extend(d['any']) # TODO: These are very poor matches. Maybe we should put them later.
 
-    if "publisher" in doc or "publish_year" in doc or "title" in doc:
+    if "publisher" in doc or "publish_date" in doc or "title" in doc:
         matches.extend(find_matches_by_title_and_publishers(doc))
 
     return massage_search_results(matches, doc)
@@ -99,6 +99,7 @@ def find_matches_by_isbn(isbns):
         'type':'/type/edition',
         'isbn_': str(isbns[0])
         }
+    print "ISBN query : ", q
     ekeys = list(web.ctx.site.things(q))
     if ekeys:
         return ekeys[:1] # TODO: We artificially match only one item here
@@ -144,24 +145,23 @@ def find_matches_by_title_and_publishers(doc):
     #TODO: Use normalised_title instead of the regular title
     #TODO: Use catalog.add_book.load_book:build_query instead of this
     q = {'type'  :'/type/edition'}
-    for key in ["title", 'publishers', 'publish_year']:
+    for key in ["title", 'publishers', 'publish_date']:
         if key in doc:
             q[key] = doc[key]
     ekeys = web.ctx.site.things(q)
     return ekeys
 
-def massage_search_results(keys, input_query = {}):
-    """Converts list of keys into the output expected by users of the search API.
+def massage_search_results(things, input_query = {}):
+    """Converts list of things into the output expected by users of the search API.
 
     If input_query is non empty, narrow return keys to the ones in
     this dictionary. Also, if the keys list is empty, use this to
     construct a response with key = None.
     """
-    if keys:
-        best = keys[0]
-        # TODO: Inconsistency here (thing for to_doc and keys for to_matches)
-        doc = thing_to_doc(web.ctx.site.get(best), input_query.keys())
-        matches = things_to_matches(keys)
+    if things:
+        best = things[0]
+        doc = thing_to_doc(best, input_query.keys())
+        matches = things_to_matches(things)
     else:
         doc = build_create_input(input_query)
         matches = [dict(edition = None, work = None)]
@@ -172,7 +172,7 @@ def build_create_input(params):
     params['key'] = None
     params['type'] = '/type/edition'
     params['work'] = {'key' : None}
-    params['authors'] = [{'name' : x['name'], 'key' : None} for x in params['authors']]
+    params['authors'] = [{'name' : x['name'], 'key' : None} for x in params.get('authors',[])]
     return params
     
 
@@ -253,18 +253,16 @@ def thing_to_doc(thing, keys = []):
 
     return doc
 
-def things_to_matches(keys):
-    """Converts a list of keys into a list of 'matches' used by the search API"""
+def things_to_matches(things):
+    """Converts a list of things into a list of 'matches' used by the search API"""
     matches = []
-    for i in keys:
-        thing = web.ctx.site.get(i)
-        if not thing:
-            continue
-        if i.startswith("/books"):
-            edition = i
+    for thing in things:
+        key = thing['key']
+        if key.startswith("/books"):
+            edition = key
             work = thing.works[0].key
-        if i.startswith("/works"):
-            work = i
+        if key.startswith("/works"):
+            work = key
             edition = None
         matches.append(dict(edition = edition, work = work))
     return matches
@@ -283,7 +281,8 @@ def create(records):
     doc = records["doc"]
     if doc:
         things = doc_to_things(copy.deepcopy(doc))
-        web.ctx.site.save_many(things, 'Import new records.')
+        ret = web.ctx.site.save_many(things, 'Import new records.')
+        return [x.key for x in ret]
     
 
 # Creation helpers
@@ -299,6 +298,13 @@ def edition_doc_to_things(doc):
     for i in ["oclc_numbers", "isbn_10", "isbn_13", "lccn", "ocaid"]:
         if i in identifiers:
             doc[i] = identifiers.pop(i)
+    if "isbn" in identifiers:
+        isbns = identifiers.pop("isbn")
+        isbn_10 = [x for x in isbns if len(x) == 10]
+        isbn_13 = [x for x in isbns if len(x) == 13]
+        if isbn_10: doc["isbn_10"] = isbn_10
+        if isbn_13: doc["isbn_13"] = isbn_13
+
     # TODO: Unpack classifiers
 
     work = authors = None

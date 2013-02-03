@@ -70,6 +70,54 @@ class borrow(delegate.page):
             **filters)
         return simplejson.dumps(subject)
 
+class read(delegate.page):
+    path = "/read"
+    
+    def GET(self):
+        rand = random.randint(0, 9999)
+        sort = "random_%d desc" % rand
+        subject = get_readable_books(web.ctx.site, details=True, limit=24, sort=sort)
+        return render_template("borrow/read", subject, stats=LoanStats(), rand=rand)
+
+class read(delegate.page):
+    path = "/read"
+    encoding = "json"
+
+    @jsonapi
+    def GET(self):
+        i = web.input(offset=0, limit=24, rand=-1, details="false", has_fulltext="false")
+
+        filters = {}
+        if i.get("has_fulltext") == "true":
+            filters["has_fulltext"] = "true"
+
+        if i.get("published_in"):
+            if "-" in i.published_in:
+                begin, end = i.published_in.split("-", 1)
+
+                if h.safeint(begin, None) is not None and h.safeint(end, None) is not None:
+                    filters["publish_year"] = [begin, end]
+            else:
+                y = h.safeint(i.published_in, None)
+                if y is not None:
+                    filters["publish_year"] = i.published_in
+
+        i.limit = h.safeint(i.limit, 12)
+        i.offset = h.safeint(i.offset, 0)
+
+        i.rand = h.safeint(i.rand, -1)
+
+        if i.rand > 0:
+            sort = 'random_%d desc' % i.rand
+            filters['sort'] = sort
+
+        subject = get_readable_books(web.ctx.site, 
+            offset=i.offset, 
+            limit=i.limit, 
+            details=i.details.lower() == "true",
+            **filters)
+        return simplejson.dumps(subject)
+
 class borrow_about(delegate.page):
     path = "/borrow/about"
     
@@ -106,6 +154,34 @@ def get_lending_library(site, inlibrary=False, **kw):
     convert_works_to_editions(site, subject['works'])
     return subject
 
+def get_readable_books(site, **kw):
+    kw.setdefault("sort", "first_publish_year desc")
+    subject = ReadableBooksEngine().get_subject("/subjects/dummy", **kw)
+    subject['key'] = '/read'
+    return subject
+
+class ReadableBooksEngine(SubjectEngine):
+    """SubjectEngine for readable books.
+    
+    This doesn't take subject into account, but considers the public_scan_b
+    field, which is derived from ia collections.
+
+    There is a subject "/subjects/accessible_book", but it has some
+    inlibrary/lendinglibrary books as well because of errors in OL data. Using
+    public_scan_b derived from ia collections is more accurate.
+    """
+
+    def make_query(self, key, filters):
+        return {
+            "public_scan_b": "true"
+        }
+
+    def get_ebook_count(self, name, value, publish_year):
+        # we are not displaying ebook count. 
+        # No point making a solr query
+        return 0
+    
+
 class CustomSubjectEngine(SubjectEngine):
     """SubjectEngine for inlibrary and lending_library combined."""
     def make_query(self, key, filters):
@@ -131,7 +207,10 @@ class CustomSubjectEngine(SubjectEngine):
         return q
     
     def get_ebook_count(self, name, value, publish_year):
+        # we are not displaying ebook count. 
+        # No point making a solr query
         return 0
+
 
 def setup():
     pass

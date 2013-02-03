@@ -80,6 +80,11 @@ lists.setup()
 
 class hooks(client.hook):
     def before_new_version(self, page):
+        user = web.ctx.site.get_user()
+        account = user and user.get_account()
+        if account and account.is_blocked():
+            raise ValidationException("Your account has been suspended. You are not allowed to make any edits.")
+        
         if page.type.key == '/type/library':
             bad = list(page.find_bad_ip_ranges(page.ip_ranges or ""))
             if bad:
@@ -788,6 +793,13 @@ def setup_logging():
         print >> sys.stderr, "Unable to set logging configuration:", str(e)
         raise
 
+def setup_context_defaults():
+    from infogami.utils import context
+    context.defaults.update({
+        'features': [],
+        'user': None
+    })
+
 def setup():
     import home, inlibrary, borrow_home, libraries, stats, support, events, status, merge_editions, authors
     
@@ -812,6 +824,7 @@ def setup():
         import dev_instance
         dev_instance.setup()
 
+    setup_context_defaults()
     setup_template_globals()
     setup_logging()
     logger = logging.getLogger("openlibrary")

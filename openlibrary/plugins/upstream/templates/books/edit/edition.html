@@ -10,6 +10,57 @@ $def radiobuttons(name, options, value):
         <label for="$id">$v</label>
         &nbsp;&nbsp;
 
+$jsdef render_language(i, language):
+    <div class="input" id="languages-input-$i">
+      <input name="languages--$i" class="language language-autocomplete" type="text" id="language-$i" value="$language.name" style="width:300px!important;"/>
+      <input name="edition--languages--$i--key" type="hidden" id="language-$i-key" value="$language.key" />
+      <a href="javascript:;" class="remove red plain hidden" title="$_('Remove this language')">[x]</a>
+      <br/><a href="javascript:;" class="add small librarian hidden">Add another language?</a>
+    </div>
+
+<script type="text/javascript">
+  <!--
+  \$(function() {
+      function update_visible() {
+          if (\$("#languages div.input").length > 1) {
+              \$("#languages a.remove").show();
+          }
+          else {
+              \$("#languages a.remove").hide();
+          }
+
+          $# The add link should be made visible only if both librarian-on and it is the last element.
+          \$("#languages a.add:not(:last)").attr("style", "display: none");
+          \$("#languages a.add:last").attr("style", "");
+
+          if (\$("#translated-from").hasClass("librarian-on")) {
+              \$("#languages a.add:last").addClass("librarian-on");
+          }
+      }
+      update_visible();
+
+     \$("#languages a.remove").live("click", function() {
+         if (\$("#languages div.input").length > 1) {
+             \$(this).closest("div.input").remove();
+             update_visible();
+         }
+     });
+
+     \$("#languages a.add").live("click", function(event) {
+         event.preventDefault();
+
+         var n = \$("#languages div.input:last").attr("id").substr("languages-input-".length);
+         n = parseInt(n);
+
+         \$("#languages").append(render_language(n+1, {key:"", name: ""}));
+         \$("#languages input.language-autocomplete:last").language_autocomplete();
+         update_visible();
+     });
+  });
+  -->
+</script>
+
+
 <div class="small brown librarianFlip">
     <span id="modeToggle">Turn on</span> <a title="$_('Expose another 20 fields about the edition')" id="libraryMode" accesskey="l" href="javascript:;">$_("Librarian Mode")</a>?
 </div>
@@ -256,19 +307,19 @@ $def radiobuttons(name, options, value):
 
             <legend>Languages</legend>
 
-            <div class="formElement">
+            <div class="formElement" id="languages">
                 <div class="label">
                     <label for="edition-language">$_("What language is this edition written in?")</label>
                     <span class="tip"></span>
                 </div>
-                <div class="input">
-                    $ language = book.languages and book.languages[0]
-                    <input type="text" name="languages" id="edition-language" value="$(language and language.name)" class="language-autocomplete" style="width:300px!important;"/>
-                    <input type="hidden" name="edition--languages--0--key" id="edition-language-key" value="$(language and '/languages/' + language.code)"/>
-                </div>
+                $if book.languages:
+                    $for i, lang in enumerate(book.languages):
+                        $:render_language(i, lang)
+                $else:
+                    $:render_language(0, storage(name="", key=""))
             </div>
             
-            <div class="formElement librarian hidden">
+            <div class="formElement librarian hidden" id="translated-from">
                 <div class="label">
                     <label for="is-translation">$_("Is it a translation of another book?")</label>
                     <span class="tip"></span>
@@ -345,10 +396,18 @@ $def radiobuttons(name, options, value):
                 <table class="identifiers" width="100%">
                     <tr id="identifiers-form">
                         <td align="right">
-                            $ id_labels = dict((d.name, d.label) for d in edition_config.identifiers)
                             <select name="name" id="select-id" style="width:300px!important;">    
+                            $ id_labels = dict((d.name, d.label) for d in edition_config.identifiers)
+                            $ id_dict = dict((id.name, id) for id in edition_config.identifiers)
+ 							$ popular = ["ocaid", "isbn_10", "isbn_13", "lccn", "oclc_numbers", "goodreads", "librarything"]
+							$ set1 = [id_dict[name] for name in popular if name in id_dict]
+                            $ set2 = sorted([id for id in edition_config.identifiers if id.name not in popular], key=lambda id:id.label)
+							
                                 <option value="">Select one of many...</option>
-                                $for id in edition_config.identifiers:
+                                $for id in set1:
+                                    <option value="$id.name">$id.label</option>
+                                <optgroup label="----------"></optgroup>    
+                                $for id in set2:
                                     <option value="$id.name">$id.label</option>
                                 
                                 <!-- <option>---</option> -->
@@ -384,7 +443,7 @@ $def radiobuttons(name, options, value):
                                 <input type="hidden" name="edition--identifiers--${i}--value" value="$id.value"/>
                             </td>
                             $# Disable removing ocaid for regular users.
-                            $ admin_user = ctx.user and ctx.user.admin()
+                            $ admin_user = ctx.user and ctx.user.is_admin()
                             $if id.name == "ocaid" and not admin_user:
                                 <td width="100%"></td>
                             $else:
@@ -629,7 +688,7 @@ $if ctx.user and ctx.user.is_admin():
        \$("a#libraryMode").click(function(event) {
            event.preventDefault();
            
-          \$(".librarian").toggle();          
+          \$(".librarian").toggleClass("librarian-on");
           \$(this).parent().find('#modeToggle').toggleText("Turn on","Exit");
        });
     });

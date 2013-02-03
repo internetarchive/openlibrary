@@ -20,15 +20,15 @@ $ show_returned_message = False
 $if has_returned_recently and not page.key in [loan['book'] for loan in loans]:
     $ show_returned_message = True
 
-<div id="contentBody">
-
+<div id="contentHead">
     <div class="navBorrow">
         <a href="http://openlibrary.org/" title="Return to home page"><img src="/images/logo_OL-sm.png" width="90" height="71" alt="Open Library logo" class="right"/></a>
-        <a href="$page.url()"><strong>Back</strong></a>
+        <a href="$page.url()"><strong>&larr; Back</strong></a>
     </div>
+	<h1 class="sansserif">Borrow</h1>
+</div>
 
-        <h1 class="sansserif">Borrow</h1>
-        
+<div id="contentBody">
         <div class="borrow">
             <table>
                 <tbody>
@@ -38,9 +38,7 @@ $if has_returned_recently and not page.key in [loan['book'] for loan in loans]:
                         </td>
                         <td>
                             <span class="book">
-                                <a class="borrowResults" href="$page.key">
-                                <strong>$page.title</strong>
-                                </a>
+                                <a class="borrowResults" href="$page.url()"><strong>$page.title</strong></a>
                             </span>
                             <span class="author">
                             $ authors = page.works[0].get_authors()
@@ -69,12 +67,12 @@ $if has_returned_recently and not page.key in [loan['book'] for loan in loans]:
             </table>
         </div>
 
-        $if page.key in [loan['book'] for loan in loans]:
+        $if page.key in [loan['book'] for loan in loans] or page.ocaid in [loan['ocaid'] for loan in loans]:
             $# checked out by this user!
             
             $# find the loan
             $for candidate in loans:
-                $if candidate['book'] == page.key:
+                $if candidate['book'] == page.key or candidate['ocaid'] == page.ocaid:
                     $ active_loan = candidate
             
             $if can_return_resource_type(active_loan['resource_type']):
@@ -101,9 +99,9 @@ $if has_returned_recently and not page.key in [loan['book'] for loan in loans]:
                        <p>Do you need to try <a href="http://www.adobe.com/products/digitaleditions/">downloading Adobe Digital Editions again</a>? The PDF or ePub loans will only open in that program.</p>
                     </div>
 
-        $elif not can_borrow(page):
+        $elif not page.can_borrow():
             $# Check for in-library
-            $if 'In library' in page.works[0].get_subjects():
+            $if 'inlibrary' in page.get_ia_collections():
                 $if available_loans:
                     <div class="message info">
                         $# george copy

@@ -9,7 +9,29 @@ report_spam_address: "Open Library <info@openlibrary.org>"
 
 support_case_notification_address: "Open Library <info@openlibrary.org>"
 support_case_control_address : "support@openlibrary.org"
-support_case_default_address : "mary@openlibrary.org"
+
+# Legal values for support_default_assignees are 
+#
+# bug_report
+# borrowing_books
+# buying_books
+# contact_an_author
+# deletion_request
+# developer/api/covers_question
+# editing_problem
+# image_upload
+# login_trouble
+# spam_report
+# other
+#
+# and
+#
+# default (in case there is no special email address for the given category)
+
+support_default_assignees:
+  developer/api/covers_question/bug_report: "noufal+bugs@gmail.com"
+  default: "noufal+default@gmail.com"
+
 
 smtp_server: "localhost"
 

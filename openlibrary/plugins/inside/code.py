@@ -35,7 +35,7 @@ def editions_from_ia(ia):
     return editions
 
 def read_from_archive(ia):
-    meta_xml = 'http://www.archive.org/download/' + ia + '/' + ia + '_meta.xml'
+    meta_xml = 'http://archive.org/download/' + ia + '/' + ia + '_meta.xml'
     stats.begin("archive.org", url=meta_xml)
     xml_data = urllib.urlopen(meta_xml)
     item = {}
@@ -132,7 +132,7 @@ class search_inside(delegate.page):
         return render_template('search/inside.tmpl', get_results, quote_snippet, editions_from_ia, read_from_archive)
 
 def ia_lookup(path):
-    h1 = httplib.HTTPConnection("www.archive.org")
+    h1 = httplib.HTTPConnection("archive.org")
 
     for attempt in range(5):
         h1.request("GET", path)

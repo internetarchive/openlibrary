@@ -9,7 +9,7 @@ $var title: Performance Graphs
 $def render_graph_page(days):
     $ defaults = {"width": 850, "height": 303, "from": days, "yMin": 0}
     
-    <h2>Numbe of Hits</h2>
+    <h2>Number of Hits</h2>
     $ g = GraphiteGraph()
     $g.add("stats.timers.ol.total.count").apply("movingAverage", 20).alias("#hits")
     $:g.render(**defaults)

@@ -464,11 +464,13 @@ class Work(models.Work):
     def get_olid(self):
         return self.key.split('/')[-1]
 
-    def get_covers(self):
+    def get_covers(self, use_solr=True):
         if self.covers:
             return [Image(self._site, "w", id) for id in self.covers if id > 0]
-        else:
+        elif use_solr:
             return self.get_covers_from_solr()
+        else:
+            return []
             
     def get_covers_from_solr(self):
         w = self._solr_data
@@ -504,12 +506,12 @@ class Work(models.Work):
         
     _solr_data = property(_get_solr_data)
     
-    def get_cover(self):
-        covers = self.get_covers()
+    def get_cover(self, use_solr=True):
+        covers = self.get_covers(use_solr=use_solr)
         return covers and covers[0] or None
     
-    def get_cover_url(self, size):
-        cover = self.get_cover()
+    def get_cover_url(self, size, use_solr=True):
+        cover = self.get_cover(use_solr=use_solr)
         return cover and cover.url(size)
         
     def get_authors(self):

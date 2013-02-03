@@ -85,14 +85,18 @@ $def display_goodreads(label, ids):
 $def display_contributor(c):
     <li><span>$c.role</span><br />$c.name </li>
 
-$ work = page.works and page.works[0] or None    
+$ work = page.works and page.works[0] or None
 
 
 <div id="contentHead">
     <table width="100%"><tbody><tr>
 
     <td valign="top" style="padding-right:10px;">
-        $:render_template('covers/book_cover_small', page.works[0])
+        $ cover_url = None
+        $# optimization to avoid solr query to find work cover
+        $if work and work.edition_count == 1:
+            $ cover_url = work.get_cover_url('S', use_solr=False) or page.get_cover_url('S')
+        $:render_template('covers/book_cover_small', page.works[0], cover_url=cover_url)
     </td>
     $ item_id = None
     $if 'ocaid' in page:
@@ -121,9 +125,9 @@ $ work = page.works and page.works[0] or None
         $if work:
             <span class="smaller">&nbsp;&bull;&nbsp;<a href="/books/add?work=$work.key" title="$_('Add another edition of') $page.title">$_("Add edition")</a>?</span>
         <br />
-        $ prev = page.get_prev()
-        $ next = page.get_next()
         $if page.works[0].edition_count > 1:
+            $ prev = page.get_prev()
+            $ next = page.get_next()
             $if prev:
                 <a href="/books/$prev" title="$:_('View the previous edition of %s', page.title)">&larr; $_("Previous")</a>&nbsp;|
             $else:

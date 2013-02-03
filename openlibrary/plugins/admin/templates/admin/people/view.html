@@ -125,12 +125,14 @@ $ has_profile = person.get_user() is not None
             Status: <span class="status">$person.status</span>
             
         $if person.status in ['active', 'verified']:
-            <button type="submit" class="fixthis" name="action" value="block">delete account</button>
+            <button type="submit" name="action" value="block_account">block this account</button>
             <br/>
             <br/>
             <div class="small">Registered on <span class="time">$datestr(person.registered_on, relative=False)</span>.</div>
             $ v = person.get_creation_info()                
             <div class="small">Activated on <span class="time">$datestr(person.activated_on, relative=False)</spam> from <a href="/admin/ip/$v.ip">$v.ip</a>.</div>
+        $if person.status == "blocked":
+	        <button type="submit" name="action" value="unblock_account">unblock this account</button>
         $elif person.status == "pending":
             <button type="submit" name="action" value="activate_account">activate account</button>
             <br/>
@@ -235,24 +237,6 @@ $else:
   <em>Account not activated yet.</em>
 </div>
 
-<h2>$_("Cases")</h2>
-$ cases = person.get_cases()
-$if cases:
-    <table class="changeHistory" border="0" cellspacing="0" cellpadding="10">
-    $for case in cases:
-        <tr>
-            <td align="right">$case.caseid</td>
-            <td>$datestr(case.created)</td>
-            <td><a href="/admin/support/$(case.caseno)">$case.subject</a></td>
-            <td><a href="/admin/people/$(case.creator_username)">$case.creator_name</a></td>
-            <td>$case.assignee</td>
-            <td>$datestr(case.last_modified)</td>
-            <td>$len(case.history)</td>
-            <td>$case.status</td>
-        </tr>
-    </table>
-$else:
-  <em>None found.</em>
 
 <h2>
     $_("Edit History") 

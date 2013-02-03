@@ -8,6 +8,7 @@ from infogami.utils.view import render_template
 
 from openlibrary.core import support as S
 from openlibrary import accounts
+from openlibrary.core import stats
 
 support_db = None
 
@@ -21,8 +22,8 @@ class contact(delegate.page):
         return render_template("support", email=email, url=i.path)
 
     def POST(self):
-        if not support_db:
-            return "Couldn't initialise connection to support database"
+        # if not support_db:
+        #     return "Couldn't initialise connection to support database"
         form = web.input()
         email = form.get("email", "")
         topic = form.get("topic", "")
@@ -32,22 +33,36 @@ class contact(delegate.page):
         useragent = web.ctx.env.get("HTTP_USER_AGENT","")
         if not all([email, topic, description]):
             return ""
-        c = support_db.create_case(creator_name      = user and user.get_name() or "",
-                                   creator_email     = email,
-                                   creator_useragent = useragent,
-                                   creator_username  = user and user.get_username() or "",
-                                   subject           = topic,
-                                   description       = description,
-                                   url               = url,
-                                   assignee          = config.get("support_case_default_address","mary@openlibrary.org"))
 
-        # Send an email to the creator of the case
-        subject = "Case #%s: %s"%(c.caseno, topic)
-        message = render_template("email/support_case", c)
-        web.sendmail(config.get("support_case_control_address","support@openlibrary.org"), 
-                     email, subject, message)
-
-        return render_template("email/case_created", c)
+        default_assignees = config.get("support_default_assignees",{})
+        topic_key = str(topic.replace(" ","_").lower())
+        if topic_key in default_assignees:
+            # This is set to False to prevent cases from being created
+            # even if there is a designated assignee. This prevents
+            # the database from being updated.
+            create_case = False 
+            assignee = default_assignees.get(topic_key)
+        else:
+            create_case = False
+            assignee = default_assignees.get("default", "mary@openlibrary.org")
+        if create_case:
+            c = support_db.create_case(creator_name      = user and user.get_name() or "",
+                                       creator_email     = email,
+                                       creator_useragent = useragent,
+                                       creator_username  = user and user.get_username() or "",
+                                       subject           = topic,
+                                       description       = description,
+                                       url               = url,
+                                       assignee          = assignee)
+            stats.increment("support.all")
+        else:
+            stats.increment("support.all")
+            subject = "Support case *%s*"%topic
+            message = "A new support case has been filed\n\nTopic: %s\n\nDescription:\n%s"%(topic, description)
+            web.sendmail(email, assignee, subject, message)
+        return render_template("email/case_created", assignee)
+            
+            
 
 
 def setup():

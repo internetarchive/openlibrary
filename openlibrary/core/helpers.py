@@ -168,7 +168,7 @@ def truncate(text, limit):
 def urlsafe(path):
     """Replaces the unsafe chars from path with underscores.
     """
-    return _get_safepath_re().sub('_', path).strip('_')
+    return _get_safepath_re().sub('_', path).strip('_')[:100]
 
 @web.memoize
 def _get_safepath_re():

@@ -17,6 +17,7 @@ import itertools
 import os
 import subprocess
 import logging
+import gzip
 
 logger = logging.getLogger("mapreduce")
 
@@ -89,9 +90,9 @@ class Disk:
         self.files = [self.openfile(i, mode) for i in range(filecount)]
         
     def openfile(self, index, mode):
-        filename = "%s-%03d.txt" % (self.prefix, index)
+        filename = "%s-%03d.txt.gz" % (self.prefix, index)
         path = os.path.join(self.dir, filename)
-        return open(path, mode, self.buffersize)
+        return gzip.open(path, mode)
 
     def write(self, key, value):
         index = self.hashfunc(key) % len(self.files)
@@ -108,9 +109,13 @@ class Disk:
         All the values with same key will come together as each file is sorted, but there is no guaranty on the global order of keys.
         """
         for f in self.files:
-            cmd = "sort -S1G %s" % f.name
+            cmd = "gzip -cd %s | sort -S1G" % f.name
             logger.info(cmd)
             p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
             for line in p.stdout:
                 key, value = line.split("\t", 1)
                 yield key, value
+            status = p.wait()
+            if status != 0:
+                raise Exception("sort failed with status %d" % status)
+

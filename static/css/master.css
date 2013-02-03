@@ -116,6 +116,10 @@ h2.author {color:#615132;font-size:1.125em;font-weight:normal;}
 h1.edition, h2.edition {color:#000;font-family:"Lucida Grande", Verdana, Helvetica, Geneva, sans-serif;font-size:1.125em;margin:0;padding:0;font-weight:normal;}
 h2.authorEdition {color:#615132;font-size:1em;font-weight:normal;margin:0;padding:0;}
 h2.publisher {font-size:1.375em;background-color:#efefef;padding:10px;margin:15px 0 0;}
+
+.head h2 a { color: inherit !important; text-decoration: none; }
+.head h2 a:hover { text-decoration: underline; }
+
 h2 a {color:#036daa;text-decoration:none;}
 h2 a:hover{color:#35672e;text-decoration:underline;}
 h3 {font-size: 1.0em;}
@@ -210,8 +214,9 @@ div.note {
     font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
     background-color: #fffdcd;
     margin: 0 auto;
-    padding: 0 15px;
+    padding: 10px;
     text-align: left;
+    border: 1px solid #e2de8b;
 }
 div#noLogin {margin-top:10px;background:#fffdcd url("/images/icons/icon_info.png") no-repeat 10px 50%;padding:10px 10px 10px 44px;}
 .flash-messages .bookadded span {
@@ -313,6 +318,11 @@ div.formDivider {float:left;width:25px;min-height:100px;}
 .librarian {padding:0 10px 10px 10px; border-left: 10px solid #748d36; margin-bottom:20px;}
 .librarian input[type=text],.librarian textarea {width:798px!important;}
 .librarianFlip {position:relative;float:right;z-index:1000;padding:3px 5px; border-left: 10px solid #748d36;}
+
+.librarian-on {
+    display: block;
+}
+
 .formBackLeft {float:left;width:670px;}
 .formBackRight {float:left;width:120px;padding:10px 10px 15px 30px;text-align:center;}
 #message {font-family: "Lucida Grande", "Trebuchet MS", Geneva, Helvetica, sans-serif;font-size:14px;background-color:##fffdcd;padding:15px;}
@@ -3163,7 +3173,7 @@ div.mergeThis {
 /* PLAIN PAGE STYLES */
 body#plain div#header,body#plain div#footer,body#plain div#bottom,body#plain .siteSearch {display:none;}
 body#plain,body#plain div#content {background-color: #e2dcc5;}
-body#plain #contentBody {width:690px;padding:0 134px;margin:0;}
+body#plain #contentBody, body#plain #contentHead {width:690px;padding:0 134px;margin:0;}
 body#plain div.contentOnethird {width: 210px;}
 body#plain div.contentSpacer {width:30px;height:15px;}
 body#plain div.nav {margin: 50px 0 50px;font-size:14px;}

@@ -14,6 +14,7 @@ from openlibrary.api import OpenLibrary
 from infogami.infobase import _json as simplejson
 from infogami.utils.delegate import register_exception
 from infogami.utils import stats
+from infogami import config
 
 import dynlinks
 
@@ -31,14 +32,15 @@ def ol_query(name, value):
     if keys:
         return keys[0]
 
+def get_works_solr_select_url():
+    c = config.get("plugin_worksearch")
+    host = c and c.get('solr')
+    return host and ("http://" + host + "/solr/works/select")
+
 
 def get_work_iaids(wkey):
     wid = wkey.split('/')[2]
-    # XXX below for solr_host??
-    #     base_url = "http://%s/solr/works" % config.plugin_worksearch.get('solr')
-    # note: better abstraction at worksearch/search.py
-    solr_host = 'ol-solr.us.archive.org:8983'
-    solr_select_url = "http://" + solr_host + "/solr/works/select"
+    solr_select_url = get_works_solr_select_url()
     filter = 'ia'
     q = 'key:' + wid
     stats.begin('solr', url=wkey)
@@ -54,8 +56,7 @@ def get_work_iaids(wkey):
 
 # multi-get version (not yet used)
 def get_works_iaids(wkeys):
-    solr_host = 'ol-solr.us.archive.org:8983'
-    solr_select_url = "http://" + solr_host + "/solr/works/select"
+    solr_select_url = get_works_solr_select_url()
     filter = 'ia'
     q = '+OR+'.join(['key:' + wkey.split('/')[2] for wkey in wkeys])
     solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&rows=10&fl=%s&qt=standard&wt=json" % (q, filter)
@@ -69,8 +70,7 @@ def get_works_iaids(wkeys):
 def get_eids_for_wids(wids):
     """ To support testing by passing in a list of work-ids - map each to
     it's first edition ID """
-    solr_host = 'ol-solr.us.archive.org:8983'
-    solr_select_url = "http://" + solr_host + "/solr/works/select"
+    solr_select_url = get_works_solr_select_url()
     filter = 'edition_key'
     q = '+OR+'.join(wids)
     solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&rows=10&fl=key,%s&qt=standard&wt=json" % (q, filter)
@@ -84,8 +84,7 @@ def get_eids_for_wids(wids):
 
 # Not yet used.  Solr editions aren't up-to-date (6/2011)
 def get_solr_edition_records(iaids):
-    solr_host = 'ol-solr.us.archive.org:8983'
-    solr_select_url = "http://" + solr_host + "/solr/editions/select"
+    solr_select_url = get_works_solr_select_url()
     filter = 'title'
     q = '+OR+'.join('ia:' + id for id in iaids)
     solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&rows=10&fl=key,%s&qt=standard&wt=json" % (q, filter)

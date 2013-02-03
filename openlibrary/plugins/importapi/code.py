@@ -180,7 +180,10 @@ class ils_search:
     status='notfound' is returned instead of creating a new record.
     """
     def POST(self):
-        rawdata = json.loads(web.data())
+        try:
+            rawdata = json.loads(web.data())
+        except ValueError,e:
+            raise self.error("Unparseable JSON input \n %s"%web.data())
 
         # step 1: prepare the data
         data = self.prepare_input_data(rawdata)
@@ -196,12 +199,18 @@ class ils_search:
             raise self.auth_failed("Invalid credentials")
 
         # step 4: create if logged in
+        keys = []
         if auth_header:
-            self.create(matches)
+            keys = self.create(matches)
         
         # step 4: format the result
-        d = self.format_result(matches, auth_header)
+        d = self.format_result(matches, auth_header, keys)
         return json.dumps(d)
+
+    def error(self, reason):
+        d = json.dumps({ "status" : "error", "reason" : reason})
+        return web.HTTPError("400 Bad Request", {"Content-type": "application/json"}, d)
+
 
     def auth_failed(self, reason):
         d = json.dumps({ "status" : "error", "reason" : reason})
@@ -216,10 +225,14 @@ class ils_search:
         
     def prepare_input_data(self, rawdata):
         data = dict(rawdata)
-        identifiers = {}
+        identifiers = rawdata.get('identifiers',{})
+        #TODO: Massage single strings here into lists. e.g. {"google" : "123"} into {"google" : ["123"]}.
         for i in ["oclc_numbers", "lccn", "ocaid", "isbn"]:
             if i in data:
-                identifiers[i] = data.pop(i)
+                val = data.pop(i)
+                if not isinstance(val, list):
+                    val = [val]
+                identifiers[i] = val
         data['identifiers'] = identifiers
 
         if "authors" in data:
@@ -233,9 +246,9 @@ class ils_search:
         return matches
 
     def create(self, items):
-        records.create(items)
+        return records.create(items)
             
-    def format_result(self, matches, authenticated):
+    def format_result(self, matches, authenticated, keys):
         doc = matches.pop("doc", {})
         if doc and doc['key']:
             doc = web.ctx.site.get(doc['key']).dict()
@@ -265,9 +278,14 @@ class ils_search:
 
         else:
             if authenticated:
-                d = {
-                    'status': 'created'
-                    }
+                d = { 'status': 'created' , 'works' : [], 'authors' : [], 'editions': [] }
+                for i in keys:
+                    if i.startswith('/books'):
+                        d['editions'].append(i)
+                    if i.startswith('/works'):
+                        d['works'].append(i)
+                    if i.startswith('/authors'):
+                        d['authors'].append(i)
             else:
                 d = {
                     'status': 'notfound'
@@ -278,11 +296,6 @@ def http_basic_auth():
     auth = web.ctx.env.get('HTTP_AUTHORIZATION')
     return auth and web.lstrips(auth, "")
         
-def basicauth():
-    auth = web.ctx.env.get('HTTP_AUTHORIZATION') or web.input(authorization=None, _method="GET").authorization
-    if auth:
-        username,password = base64.decodestring(auth).split(':')
-        return None
         
 class ils_cover_upload:
     """Cover Upload API for Koha.

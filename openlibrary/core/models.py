@@ -227,9 +227,7 @@ class Edition(Thing):
         if self.ocaid:
             d['daisy_url'] = self.url('/daisy')
 
-            meta = self.get_ia_meta_fields()
-            collections = meta.get('collection', [])
-
+            collections = self.get_ia_collections()
             borrowable = ('lendinglibrary' in collections or
                          ('inlibrary' in collections and inlibrary.get_library() is not None))
 
@@ -244,6 +242,14 @@ class Edition(Thing):
                 d['read_url'] = "http://www.archive.org/stream/%s" % self.ocaid
         return d
 
+    def get_ia_collections(self):
+        return self.get_ia_meta_fields().get("collection", [])
+
+    def can_borrow(self):
+        collections = self.get_ia_collections()
+        return (
+            'lendinglibrary' in collections or
+            ('inlibrary' in collections and inlibrary.get_library() is not None))
 
 
 class Work(Thing):
@@ -600,6 +606,6 @@ def register_types():
     types.register_type('^/libraries/[^/]*$', '/type/library')
 
     types.register_type('^/usergroup/[^/]*$', '/type/usergroup')
-    types.register_type('^/permission/[^/]*$', '/type/permision')
+    types.register_type('^/permission/[^/]*$', '/type/permission')
 
     types.register_type('^/(css|js)/[^/]*$', '/type/rawtext')

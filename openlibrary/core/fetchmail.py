@@ -140,9 +140,9 @@ def get_casenote(message):
         for part in message.get_payload():
             content_type = part.get_content_type()
             if content_type == "text/plain":
-                plain = post_process(part.get_payload())
+                plain = post_process(part.get_payload(None, True))
             if content_type == "text/html":
-                html  = post_process(part.get_payload())
+                html  = post_process(part.get_payload(None, True))
         if not plain and not html:
             pieces = ",".join(x.get_content_type() for x in message.get_payload())
             logger.warning("This message has no usable payload Types : %s", pieces)

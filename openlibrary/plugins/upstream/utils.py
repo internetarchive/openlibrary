@@ -580,7 +580,7 @@ _get_recent_changes2 = web.memoize(_get_recent_changes2, expires=5*60, backgroun
 
 @public
 def get_random_recent_changes(n):
-    if "recentchanges_v2" in web.ctx.features:
+    if "recentchanges_v2" in web.ctx.get("features", []):
         changes = _get_recent_changes2()
     else:
         changes = _get_recent_changes()

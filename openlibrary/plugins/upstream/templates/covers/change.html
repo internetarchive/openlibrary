@@ -1,5 +1,9 @@
 $def with (doc, cover_selector=".bookCover img")
 
+$# If user is not logged-in don't show add/manage link.
+$if not ctx.user:
+    $return
+
 $if doc.type.key == '/type/author':
     $ add_url = doc.url('/add-photo')
     $ manage_url = doc.url('/manage-photos')

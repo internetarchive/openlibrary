@@ -5,12 +5,17 @@ from lxml.etree import tostring, Element, SubElement
 from pprint import pprint
 from urllib2 import urlopen, URLError, HTTPError
 import simplejson as json
-from time import sleep
+import time
 import web
 from openlibrary import config
 from unicodedata import normalize
 from collections import defaultdict
 from openlibrary.utils.isbn import opposite_isbn
+from openlibrary.core import helpers as h
+import logging
+import datetime
+
+logger = logging.getLogger("openlibrary.solr")
 
 re_lang_key = re.compile(r'^/(?:l|languages)/([a-z]{3})$')
 re_author_key = re.compile(r'^/(?:a|authors)/(OL\d+A)')
@@ -66,21 +71,23 @@ re_collection = re.compile(r'<(collection|boxid)>(.*)</\1>', re.I)
 def get_ia_collection_and_box_id(ia):
     if len(ia) == 1:
         return
-    url = 'http://www.archive.org/download/%s/%s_meta.xml' % (ia, ia)
-    #print 'getting:', url
+
+    def get_list(d, key):
+        value = d.get(key, [])
+        if not isinstance(value, list):
+            value = [value]
+        return value
+
     matches = {'boxid': set(), 'collection': set() }
+    url = "http://www.archive.org/metadata/%s" % ia
     for attempt in range(5):
         try:
-            for line in urlopen(url):
-                m = re_collection.search(line)
-                if m:
-                    matches[m.group(1).lower()].add(m.group(2).lower())
-            return matches
-        except UnicodeEncodeError:
-            return
+            d = json.loads(urlopen(url).read())
+            matches['boxid'] = set(get_list(d, 'boxid'))
+            matches['collection'] = set(get_list(d, 'collection'))
         except URLError:
-            print 'retry', attempt, url
-            sleep(5)
+            print "retry", attempt, url
+            time.sleep(5)
     return matches
 
 class AuthorRedirect (Exception):
@@ -171,16 +178,227 @@ def four_types(i):
                 ret['subject'] = {k: v}
     return ret
 
-re_solr_field = re.compile('^[-\w]+$', re.U)
+def datetimestr_to_int(datestr):
+    if isinstance(datestr, dict):
+        datestr = datestr['value']
 
-def build_doc(w, obj_cache={}, resolve_redirects=False):
-    wkey = w['key']
-    assert w['type']['key'] == '/type/work'
-    title = w.get('title', None)
-    if not title:
-        return
+    if datestr:
+        try:
+            t = h.parse_datetime(datestr)
+        except (TypeError, ValueError):
+            t = datetime.datetime.utcnow()
+    else:
+        t = datetime.datetime.utcnow()
 
-    def get_pub_year(e):
+    return int(time.mktime(t.timetuple()))
+
+class SolrProcessor:
+    """Processes data to into a form suitable for adding to works solr.
+    """
+    def __init__(self, obj_cache=None, resolve_redirects=False):
+        if obj_cache is None:
+            obj_cache = {}
+        self.obj_cache = obj_cache
+        self.resolve_redirects = resolve_redirects
+        
+    def process(data):
+        """Builds solr document from data. 
+
+        The data is expected to have all the required information to build the doc.
+        If some information is not found, it is considered to be missing. The
+        expected format is:
+
+            {
+                "work": {...},
+                "editions": [{...}, {...}],
+            }
+        
+        This functions returns a dictionary containing the following fields:
+
+            title
+            subtitle
+            has_fulltext
+            alternative_title
+            alternative_subtitle
+            edition_count
+            edition_key
+            cover_edition_key
+            covers_i
+            by_statement
+            
+
+        """
+        # Not yet implemented
+        pass
+
+    def process_edition(self, e):
+        """Processes an edition and returns a new dictionary with fields required for solr indexing.
+        """
+        d = {}
+        pub_year = self.get_pub_year(e)
+        if pub_year:
+            d['pub_year'] = pub_year
+
+        # Assuming the ia collections info is added to the edition as "_ia"
+        if "_ia" in e:
+            ia = e["ia"]
+        else:
+            # TODO
+            pass
+
+        ia = e.get("ocaid") or e.get("ia_loaded_id") or None
+        if isinstance(ia, list):
+            ia = ia[0]
+            
+
+    def get_ia_id(self, edition):
+        """Returns ia identifier from an edition dict.
+        """
+        if "ocaid" in e:
+            return e["ocaid"]
+        elif e.get("ia_loaded_id"):
+            return self.ensure_string(e['ia_loaded_id'][0])
+
+    def ensure_string(self, value):
+        if isinstance(value, basestring):
+            return value
+
+
+    def sanitize_edition(self, e):
+        """Takes an edition and corrects bad data.
+
+        This will make sure:
+
+        * ia_loaded_id - is a list of strings
+        * ia_box_id - is a list of strings
+        """
+        e["ia_loaded_id"] = self.ensure_list(e.get("ia_loaded_id"), basestring)
+        e["ia_box_id"] = self.ensure_list(e.get("ia_box_id"), basestring)
+
+
+    def ensure_list(self, value, elem_type):
+        """Ensures that value is a list of elem_type elements.
+
+            >>> ensure_list([1, "foo", 2], int)
+            [1, 2]
+            >>> ensure_list("foo", int)
+            []
+            >>> ensure_list(None, int)
+            []
+            >>> ensure_list(1, int)
+            [1]
+        """
+        if not value:
+            return []
+        elif isinstance(value, list):
+            return [v for v in value if isinstance(v, elem_type)]
+        elif isinstance(value, elem_type):
+            # value is supposed to be of type (listof elem_type) but it is of type elem_type by mistake.
+            return [value]
+        else:
+            return []
+
+    def process_editions(self, w, identifiers):
+        editions = []
+        for e in w['editions']:
+            pub_year = self.get_pub_year(e)
+            if pub_year:
+                e['pub_year'] = pub_year
+            ia = None
+            if 'ocaid' in e:
+                ia = e['ocaid']
+            elif 'ia_loaded_id' in e:
+                loaded = e['ia_loaded_id']
+                ia = loaded if isinstance(loaded, basestring) else loaded[0]
+
+            # If the _ia_meta field is already set in the edition, use it instead of querying archive.org.
+            # This is useful to when doing complete reindexing of solr.
+            if ia and '_ia_meta' in e:
+                ia_meta_fields = e['_ia_meta']
+            elif ia:
+                ia_meta_fields = get_ia_collection_and_box_id(ia)
+            else:
+                ia_meta_fields = None
+
+            if ia_meta_fields:
+                collection = ia_meta_fields['collection']
+                if 'ia_box_id' in e and isinstance(e['ia_box_id'], basestring):
+                    e['ia_box_id'] = [e['ia_box_id']]
+                if ia_meta_fields.get('boxid'):
+                    box_id = list(ia_meta_fields['boxid'])[0]
+                    e.setdefault('ia_box_id', [])
+                    if box_id.lower() not in [x.lower() for x in e['ia_box_id']]:
+                        e['ia_box_id'].append(box_id)
+                #print 'collection:', collection
+                e['ia_collection'] = collection
+                e['public_scan'] = ('lendinglibrary' not in collection) and ('printdisabled' not in collection)
+                print "e.public_scan", e["public_scan"]
+            overdrive_id = e.get('identifiers', {}).get('overdrive', None)
+            if overdrive_id:
+                #print 'overdrive:', overdrive_id
+                e['overdrive'] = overdrive_id
+            if 'identifiers' in e:
+                for k, id_list in e['identifiers'].iteritems():
+                    k_orig = k
+                    k = k.replace('.', '_').replace(',', '_').replace('(', '').replace(')', '').replace(':', '_').replace('/', '').replace('#', '').lower()
+                    m = re_solr_field.match(k)
+                    if not m:
+                        print (k_orig, k)
+                    assert m
+                    for v in id_list:
+                        v = v.strip()
+                        if v not in identifiers[k]:
+                            identifiers[k].append(v)
+            editions.append(e)
+
+        editions.sort(key=lambda e: e.get('pub_year', None))
+        return editions
+
+    def get_author(self, a):
+        """Returns the author dict from author entry in the work.
+
+            get_author({"author": {"key": "/authors/OL1A"}})
+        """
+        if 'author' not in a: # OL Web UI bug
+            return # http://openlibrary.org/works/OL15365167W.yml?m=edit&v=1
+
+        author = a['author']
+
+        if 'type' in author:
+            # means it is already the whole object. 
+            # It'll be like this when doing re-indexing of solr.
+            return author
+        
+        key = a['author']['key']
+        m = re_author_key.match(key)
+        if not m:
+            print 'invalid author key:', key
+            return
+        return withKey(key)
+    
+    def extract_authors(self, w):
+        authors = [self.get_author(a) for a in w.get("authors", [])]
+        work_authors = [a['key'] for a in authors]
+        author_keys = [a['key'].split("/")[-1] for a in authors]
+
+        if any(a['type']['key'] == '/type/redirect' for a in authors):
+            if resolve_redirects:
+                def resolve(a):
+                    if a['type']['key'] == '/type/redirect':
+                        a = withKey(a['location'])
+                    return a
+                authors = [resolve(a) for a in authors]
+            else:
+                print
+                for a in authors:
+                    print 'author:', a
+                print w['key']
+                print
+                raise AuthorRedirect
+        assert all(a['type']['key'] == '/type/author' for a in authors)
+        return authors
+
+    def get_pub_year(self, e):
         pub_date = e.get('publish_date', None)
         if pub_date:
             m = re_iso_date.match(pub_date)
@@ -189,161 +407,239 @@ def build_doc(w, obj_cache={}, resolve_redirects=False):
             m = re_year.search(pub_date)
             if m:
                 return m.group(1)
+                
+    def get_subject_counts(self, w, editions, has_fulltext):
+        try:
+            subjects = four_types(get_work_subjects(w))
+        except:
+            print 'bad work: ', w['key']
+            raise
 
+        field_map = {
+            'subjects': 'subject',
+            'subject_places': 'place',
+            'subject_times': 'time',
+            'subject_people': 'person',
+        }
+
+        for db_field, solr_field in field_map.iteritems():
+            if not w.get(db_field, None):
+                continue
+            cur = subjects.setdefault(solr_field, {})
+            for v in w[db_field]:
+                try:
+                    if isinstance(v, dict):
+                        if 'value' not in v:
+                            continue
+                        v = v['value']
+                    cur[v] = cur.get(v, 0) + 1
+                except:
+                    print 'v:', v
+                    raise
+
+        if any(e.get('ocaid', None) for e in editions):
+            subjects.setdefault('subject', {})
+            subjects['subject']['Accessible book'] = subjects['subject'].get('Accessible book', 0) + 1
+            if not has_fulltext:
+                subjects['subject']['Protected DAISY'] = subjects['subject'].get('Protected DAISY', 0) + 1
+            #print w['key'], subjects['subject']
+        return subjects
+        
+    def build_data(self, w, editions, subjects, has_fulltext):
+        d = {}
+        def add(name, value):
+            if value is not None:
+                d[name] = value
+                
+        def add_list(name, values):
+            d[name] = list(values)
+            
+        add('key', w['key'][7:]) # strip /works/             
+        add('title', w.get('title'))
+        add('subtitle', w.get('subtitle'))
+        add('has_fulltext', has_fulltext)
+
+        add_list("alternative_title", self.get_alternate_titles(w, editions))
+        add_list('alternative_subtitle', self.get_alternate_subtitles(w, editions))
+
+        add('edition_count', len(editions))
+        add_list("edition_key", [re_edition_key.match(e['key']).group(1) for e in editions])
+        add_list("by_statement", set(e["by_statement"] for e in editions if "by_statement" in e))
+        
+        k = 'publish_date'
+        pub_dates = set(e[k] for e in editions if e.get(k))
+        add_list(k, pub_dates)
+        pub_years = set(m.group(1) for m in (re_year.search(date) for date in pub_dates) if m)
+        if pub_years:
+            add_list('publish_year', pub_years)
+            add('first_publish_year', min(int(y) for y in pub_years))
+            
+        field_map = [
+            ('lccn', 'lccn'),
+            ('publish_places', 'publish_place'),
+            ('oclc_numbers', 'oclc'),
+            ('contributions', 'contributor'),
+        ]
+        for db_key, solr_key in field_map:
+            values = set(v for e in editions 
+                           if db_key in e
+                           for v in e[db_key])
+            add_list(solr_key, values)
+            
+        add_list("isbn", self.get_isbns(editions))
+        add("last_modified_i", self.get_last_modified(w, editions))
+
+        self.add_ebook_info(d, editions)
+        return d
+        
+        
+    def get_alternate_titles(self, w, editions):
+        result = set()
+        for e in editions:
+            result.add(e.get('title'))
+            result.update(e.get('work_titles', []))
+            result.update(e.get('other_titles', []))
+            
+        # Remove original title and None.
+        # None would've got in if any of the editions has no title.
+        result.discard(None)
+        result.discard(w.get('title'))
+        return result
+
+    def get_alternate_subtitles(self, w, editions):
+        subtitle = w.get('subtitle')
+        return set(e['subtitle'] for e in editions if e.get('subtitle') and e['subtitle'] != subtitle)
+        
+    def get_isbns(self, editions):
+        isbns = set()
+
+        isbns.update(v.replace("_", "").strip() for e in editions for v in e.get("isbn_10", []))
+        isbns.update(v.replace("_", "").strip() for e in editions for v in e.get("isbn_13", []))
+        
+        # Get the isbn13 when isbn10 is present and vice-versa.
+        alt_isbns = [opposite_isbn(v) for v in isbns]
+        isbns.update(v for v in alt_isbns if v is not None)
+        
+        return isbns        
+
+    def get_last_modified(self, work, editions):
+        return max(datetimestr_to_int(doc.get('last_modified')) for doc in [work] + editions)
+        
+    def add_ebook_info(self, doc, editions):
+        def add(name, value):
+            if value is not None:
+                doc[name] = value
+                
+        def add_list(name, values):
+            doc[name] = list(values)
+
+        pub_goog = set() # google
+        pub_nongoog = set()
+        nonpub_goog = set()
+        nonpub_nongoog = set()
+
+        public_scan = False
+        all_collection = set()
+        all_overdrive = set()
+        lending_edition = None
+        in_library_edition = None
+        printdisabled = set()
+        for e in editions:
+            if 'overdrive' in e:
+                all_overdrive.update(e['overdrive'])
+            if 'ocaid' not in e:
+                continue
+            if not lending_edition and 'lendinglibrary' in e.get('ia_collection', []):
+                lending_edition = re_edition_key.match(e['key']).group(1)
+            if not in_library_edition and 'inlibrary' in e.get('ia_collection', []):
+                in_library_edition = re_edition_key.match(e['key']).group(1)
+            if 'printdisabled' in e.get('ia_collection', []):
+                printdisabled.add(re_edition_key.match(e['key']).group(1))
+            all_collection.update(e.get('ia_collection', []))
+            assert isinstance(e['ocaid'], basestring)
+            i = e['ocaid'].strip()
+            print i, e.get("public_scan")
+            if e.get('public_scan'):
+                public_scan = True
+                if i.endswith('goog'):
+                    pub_goog.add(i)
+                else:
+                    pub_nongoog.add(i)
+            else:
+                if i.endswith('goog'):
+                    nonpub_goog.add(i)
+                else:
+                    nonpub_nongoog.add(i)
+        ia_list = list(pub_nongoog) + list(pub_goog) + list(nonpub_nongoog) + list(nonpub_goog)
+        add("ebook_count_i", len(ia_list))
+
+        has_fulltext = any(e.get('ocaid', None) for e in editions)
+
+        add_list('ia', ia_list)
+        if has_fulltext:
+            add('public_scan_b', public_scan)
+        if all_collection:
+            add('ia_collection_s', ';'.join(all_collection))
+        if all_overdrive:
+            add('overdrive_s', ';'.join(all_overdrive))
+        if lending_edition:
+            add('lending_edition_s', lending_edition)
+        elif in_library_edition:
+            add('lending_edition_s', in_library_edition)
+        if printdisabled:
+            add('printdisabled_s', ';'.join(list(printdisabled)))
+        
+
+re_solr_field = re.compile('^[-\w]+$', re.U)
+
+def build_doc(w, obj_cache={}, resolve_redirects=False):
+    d = build_data(w, obj_cache=obj_cache, resolve_redirects=resolve_redirects)
+    return dict2element(d)
+    
+def dict2element(d):
+    doc = Element("doc")
+    for k, v in d.items():
+        if isinstance(v, (list, set)):
+            add_field_list(doc, k, v)
+        else:
+            add_field(doc, k, v)
+    return doc
+
+def build_data(w, obj_cache=None, resolve_redirects=False):
+    if obj_cache:
+        obj_cache = {}
+
+    wkey = w['key']
+    assert w['type']['key'] == '/type/work'
+    title = w.get('title', None)
+    if not title:
+        return
+        
+    p = SolrProcessor(obj_cache, resolve_redirects)
+    get_pub_year = p.get_pub_year
+
+    # Load stuff if not already provided
     if 'editions' not in w:
         q = { 'type':'/type/edition', 'works': wkey, '*': None }
         w['editions'] = list(query_iter(q))
         #print 'editions:', [e['key'] for e in w['editions']]
 
     identifiers = defaultdict(list)
+    editions = p.process_editions(w, identifiers)
+    authors = p.extract_authors(w)
 
-    editions = []
-    for e in w['editions']:
-        pub_year = get_pub_year(e)
-        if pub_year:
-            e['pub_year'] = pub_year
-        ia = None
-        if 'ocaid' in e:
-            ia = e['ocaid']
-        elif 'ia_loaded_id' in e:
-            loaded = e['ia_loaded_id']
-            ia = loaded if isinstance(loaded, basestring) else loaded[0]
-        if ia:
-            ia_meta_fields = get_ia_collection_and_box_id(ia)
-            collection = ia_meta_fields['collection']
-            if 'ia_box_id' in e and isinstance(e['ia_box_id'], basestring):
-                e['ia_box_id'] = [e['ia_box_id']]
-            if ia_meta_fields.get('boxid'):
-                box_id = list(ia_meta_fields['boxid'])[0]
-                e.setdefault('ia_box_id', [])
-                if box_id.lower() not in [x.lower() for x in e['ia_box_id']]:
-                    e['ia_box_id'].append(box_id)
-            #print 'collection:', collection
-            e['ia_collection'] = collection
-            e['public_scan'] = ('lendinglibrary' not in collection) and ('printdisabled' not in collection)
-        overdrive_id = e.get('identifiers', {}).get('overdrive', None)
-        if overdrive_id:
-            #print 'overdrive:', overdrive_id
-            e['overdrive'] = overdrive_id
-        if 'identifiers' in e:
-            for k, id_list in e['identifiers'].iteritems():
-                k_orig = k
-                k = k.replace('.', '_').replace(',', '_').replace('(', '').replace(')', '').replace(':', '_').replace('/', '').replace('#', '').lower()
-                m = re_solr_field.match(k)
-                if not m:
-                    print (k_orig, k)
-                assert m
-                for v in id_list:
-                    v = v.strip()
-                    if v not in identifiers[k]:
-                        identifiers[k].append(v)
-        editions.append(e)
+    has_fulltext = any(e.get('ocaid', None) for e in editions)
+    
+    subjects = p.get_subject_counts(w, editions, has_fulltext)
+            
+    def add_field(doc, name, value):
+        doc[name] = value
 
-    editions.sort(key=lambda e: e.get('pub_year', None))
-
-    #print len(w['editions']), 'editions found'
-
-    #print w['key']
-    work_authors = []
-    authors = []
-    author_keys = []
-    for a in w.get('authors', []):
-        if 'author' not in a: # OL Web UI bug
-            continue # http://openlibrary.org/works/OL15365167W.yml?m=edit&v=1
-        akey = a['author']['key']
-        m = re_author_key.match(akey)
-        if not m:
-            print 'invalid author key:', akey
-            continue
-        work_authors.append(akey)
-        author_keys.append(m.group(1))
-        if akey in obj_cache and obj_cache[akey]['type']['key'] != '/type/redirect':
-            authors.append(obj_cache[akey])
-        else:
-            authors.append(withKey(akey))
-    if any(a['type']['key'] == '/type/redirect' for a in authors):
-        if resolve_redirects:
-            def resolve(a):
-                if a['type']['key'] == '/type/redirect':
-                    a = withKey(a['location'])
-                return a
-            authors = [resolve(a) for a in authors]
-        else:
-            print
-            for a in authors:
-                print 'author:', a
-            print w['key']
-            print
-            raise AuthorRedirect
-    assert all(a['type']['key'] == '/type/author' for a in authors)
-
-    try:
-        subjects = four_types(get_work_subjects(w))
-    except:
-        print 'bad work: ', w['key']
-        raise
-
-    field_map = {
-        'subjects': 'subject',
-        'subject_places': 'place',
-        'subject_times': 'time',
-        'subject_people': 'person',
-    }
-
-    has_fulltext = any(e.get('ocaid', None) or e.get('overdrive', None) for e in editions)
-
-    #print 'has_fulltext:', has_fulltext
-
-    for db_field, solr_field in field_map.iteritems():
-        if not w.get(db_field, None):
-            continue
-        cur = subjects.setdefault(solr_field, {})
-        for v in w[db_field]:
-            try:
-                if isinstance(v, dict):
-                    if 'value' not in v:
-                        continue
-                    v = v['value']
-                cur[v] = cur.get(v, 0) + 1
-            except:
-                print 'v:', v
-                raise
-
-    if any(e.get('ocaid', None) for e in editions):
-        subjects.setdefault('subject', {})
-        subjects['subject']['Accessible book'] = subjects['subject'].get('Accessible book', 0) + 1
-        if not has_fulltext:
-            subjects['subject']['Protected DAISY'] = subjects['subject'].get('Protected DAISY', 0) + 1
-        #print w['key'], subjects['subject']
-
-    doc = Element("doc")
-
-    add_field(doc, 'key', w['key'][7:])
-    title = w.get('title', None)
-    if title:
-        add_field(doc, 'title', title)
-#        add_field(doc, 'title_suggest', title)
-
-    add_field(doc, 'has_fulltext', has_fulltext)
-    if w.get('subtitle', None):
-        add_field(doc, 'subtitle', w['subtitle'])
-
-    alt_titles = set()
-    for e in editions:
-        if 'title' in e and e['title'] != title:
-            alt_titles.add(e['title'])
-        for f in 'work_titles', 'other_titles':
-            for t in e.get(f, []):
-                if t != title:
-                    alt_titles.add(t)
-    add_field_list(doc, 'alternative_title', alt_titles)
-
-    alt_subtitles = set( e['subtitle'] for e in editions if e.get('subtitle', None) and e['subtitle'] != w.get('subtitle', None))
-    add_field_list(doc, 'alternative_subtitle', alt_subtitles)
-
-    add_field(doc, 'edition_count', len(editions))
-    for e in editions:
-        add_field(doc, 'edition_key', re_edition_key.match(e['key']).group(1))
+    def add_field_list(doc, name, field_list):
+        doc[name] = list(field_list)
+    
+    doc = p.build_data(w, editions, subjects, has_fulltext)
+    
 
     cover_edition = pick_cover(w, editions)
     if cover_edition:
@@ -352,17 +648,6 @@ def build_doc(w, obj_cache={}, resolve_redirects=False):
         cover = w['covers'][0]
         assert isinstance(cover, int)
         add_field(doc, 'cover_i', cover)
-
-    k = 'by_statement'
-    add_field_list(doc, k, set( e[k] for e in editions if e.get(k, None)))
-
-    k = 'publish_date'
-    pub_dates = set(e[k] for e in editions if e.get(k, None))
-    add_field_list(doc, k, pub_dates)
-    pub_years = set(m.group(1) for m in (re_year.search(i) for i in pub_dates) if m)
-    if pub_years:
-        add_field_list(doc, 'publish_year', pub_years)
-        add_field(doc, 'first_publish_year', min(int(i) for i in pub_years))
 
     k = 'first_sentence'
     fs = set( e[k]['value'] if isinstance(e[k], dict) else e[k] for e in editions if e.get(k, None))
@@ -374,35 +659,11 @@ def build_doc(w, obj_cache={}, resolve_redirects=False):
     add_field_list(doc, 'publisher', publishers)
 #    add_field_list(doc, 'publisher_facet', publishers)
 
-    field_map = [
-        ('lccn', 'lccn'),
-        ('publish_places', 'publish_place'),
-        ('oclc_numbers', 'oclc'),
-        ('contributions', 'contributor'),
-    ]
-
-    for db_key, search_key in field_map:
-        v = set()
-        for e in editions:
-            if db_key not in e:
-                continue
-            v.update(e[db_key])
-        add_field_list(doc, search_key, v)
-
-    isbn = set()
-    for e in editions:
-        for f in 'isbn_10', 'isbn_13':
-            for v in e.get(f, []):
-                v = v.replace('-', '')
-                isbn.add(v)
-                alt = opposite_isbn(v)
-                if alt:
-                    isbn.add(alt)
-    add_field_list(doc, 'isbn', isbn)
-
     lang = set()
     ia_loaded_id = set()
     ia_box_id = set()
+
+    last_modified_i = datetimestr_to_int(w.get('last_modified'))
 
     for e in editions:
         for l in e.get('languages', []):
@@ -432,60 +693,9 @@ def build_doc(w, obj_cache={}, resolve_redirects=False):
     if lang:
         add_field_list(doc, 'language', lang)
 
-    pub_goog = set() # google
-    pub_nongoog = set()
-    nonpub_goog = set()
-    nonpub_nongoog = set()
-
-    public_scan = False
-    all_collection = set()
-    all_overdrive = set()
-    lending_edition = None
-    in_library_edition = None
-    printdisabled = set()
-    for e in editions:
-        if 'overdrive' in e:
-            all_overdrive.update(e['overdrive'])
-        if 'ocaid' not in e:
-            continue
-        if not lending_edition and 'lendinglibrary' in e.get('ia_collection', []):
-            lending_edition = re_edition_key.match(e['key']).group(1)
-        if not in_library_edition and 'inlibrary' in e.get('ia_collection', []):
-            in_library_edition = re_edition_key.match(e['key']).group(1)
-        if 'printdisabled' in e.get('ia_collection', []):
-            printdisabled.add(re_edition_key.match(e['key']).group(1))
-        all_collection.update(e.get('ia_collection', []))
-        assert isinstance(e['ocaid'], basestring)
-        i = e['ocaid'].strip()
-        if e.get('public_scan'):
-            public_scan = True
-            if i.endswith('goog'):
-                pub_goog.add(i)
-            else:
-                pub_nongoog.add(i)
-        else:
-            if i.endswith('goog'):
-                nonpub_goog.add(i)
-            else:
-                nonpub_nongoog.add(i)
-    #print 'lending_edition:', lending_edition
-    ia_list = list(pub_nongoog) + list(pub_goog) + list(nonpub_nongoog) + list(nonpub_goog)
-    add_field_list(doc, 'ia', ia_list)
-    if has_fulltext:
-        add_field(doc, 'public_scan_b', public_scan)
-    if all_collection:
-        add_field(doc, 'ia_collection_s', ';'.join(all_collection))
-    if all_overdrive:
-        add_field(doc, 'overdrive_s', ';'.join(all_overdrive))
-    if lending_edition:
-        add_field(doc, 'lending_edition_s', lending_edition)
-    elif in_library_edition:
-        add_field(doc, 'lending_edition_s', in_library_edition)
-    if printdisabled:
-        add_field(doc, 'printdisabled_s', ';'.join(list(printdisabled)))
         
-    if lending_edition or in_library_edition:
-        add_field(doc, "borrowed_b", is_borrowed(lending_edition or in_library_edition))
+    #if lending_edition or in_library_edition:
+    #    add_field(doc, "borrowed_b", is_borrowed(lending_edition or in_library_edition))
 
     author_keys = [re_author_key.match(a['key']).group(1) for a in authors]
     author_names = [a.get('name', '') for a in authors]
@@ -520,7 +730,7 @@ def build_doc(w, obj_cache={}, resolve_redirects=False):
         add_field_list(doc, 'ia_box_id', ia_box_id)
         
     return doc
-
+    
 def solr_update(requests, debug=False, index='works'):
     h1 = httplib.HTTPConnection(get_solr(index))
     h1.connect()
@@ -640,36 +850,125 @@ def commit_and_optimize(debug=False):
     requests = ['<commit />', '<optimize />']
     solr_update(requests, debug)
 
-def update_keys(keys):
+def update_keys(keys, commit=True):
+    logger.info("BEGIN update_keys")
+    wkeys = set()
+
+    # Get works for all the editions
+    ekeys = set(k for k in keys if k.startswith("/books/"))
+    for k in ekeys:
+        print "processing edition", k
+        edition = withKey(k)
+        if edition.get("works"):
+            wkeys.add(edition["works"][0]['key'])
+        
+    # Add work keys
+    wkeys.update(k for k in keys if k.startswith("/works/"))
+    
     # update works
     requests = []
-    wkeys = [k for k in keys if k.startswith("/works/")]
-    print "updating", wkeys
     for k in wkeys:
+        logger.info("updating %s", k)
         w = withKey(k)
         requests += update_work(w, debug=True)
     if requests:    
-        requests += ['<commit />']
+        if commit:
+            requests += ['<commit />']
         solr_update(requests, debug=True)
     
     # update authors
-    requests = []    
-    akeys = [k for k in keys if k.startswith("/authors/")]
-    print "updating", akeys
+    requests = []
+    akeys = set(k for k in keys if k.startswith("/authors/"))
     for k in akeys:
+        logger.info("updating %s", k)
         requests += update_author(k)
-    if requests:    
-        requests += ['<commit />']
-        solr_update(requests, index="authors", debug=True)        
+    if requests:  
+        if commit:
+            requests += ['<commit />']
+        solr_update(requests, index="authors", debug=True)
+    logger.info("END update_keys")
 
 def parse_options(args=None):
     from optparse import OptionParser
     parser = OptionParser(args)
     parser.add_option("-s", "--server", dest="server", default="http://openlibrary.org/", help="URL of the openlibrary website (default: %default)")
     parser.add_option("-c", "--config", dest="config", default="openlibrary.yml", help="Open Library config file")
+    parser.add_option("--nocommit", dest="nocommit", action="store_true", default=False, help="Don't commit to solr")
+    parser.add_option("--monkeypatch", dest="monkeypatch", action="store_true", default=False, help="Monkeypatch query functions to access DB directly")
 
     options, args = parser.parse_args()
     return options, args
+
+def new_query_iter(q, limit=500, offset=0):
+    """Alternative implementation of query_iter, that talks to the
+    database directly instead of accessing the website API.
+
+    This is set to `query_iter` when this script is called with
+    --monkeypatch option.
+    """
+    q['limit'] = limit
+    q['offset'] = offset
+    site = web.ctx.site
+
+    while True:
+        keys = site.things(q)
+        docs = keys and site.get_many(keys, raw=True) 
+        for doc in docs:
+            yield doc
+
+        # We haven't got as many we have requested. No point making one more request
+        if len(keys) < limit:
+            break
+        q['offset'] += limit
+
+def new_withKey(key):
+    """Alternative implementation of withKey, that talks to the database
+    directly instead of using the website API.
+
+    This is set to `withKey` when this script is called with --monkeypatch
+    option.
+    """
+    return web.ctx.site._request('/get', data={'key': key})
+
+def monkeypatch(config_file):
+    """Monkeypatch query functions to avoid hitting openlibrary.org.
+    """
+    def load_infogami(config_file):
+        import web
+        import infogami
+        from infogami import config
+        from infogami.utils import delegate
+
+        config.plugin_path += ['openlibrary.plugins']
+        config.site = "openlibrary.org"
+        
+        infogami.load_config(config_file)
+        setup_infobase_config(config_file)
+
+        infogami._setup()
+        delegate.fakeload()
+        
+    def setup_infobase_config(config_file):
+        """Reads the infoabse config file and assign it to config.infobase.
+        The config_file is used as base to resolve relative path, if specified in the config.
+        """
+        from infogami import config
+        import os
+        import yaml
+
+        if config.get("infobase_config_file"):
+            dir = os.path.dirname(config_file)
+            path = os.path.join(dir, config.infobase_config_file)
+            config.infobase = yaml.safe_load(open(path).read())
+
+    global query_iter, withKey
+
+    #print "monkeypatching query_iter and withKey functions to talk to database directly."
+    load_infogami(config_file)
+
+    query_iter = new_query_iter
+    withKey = new_withKey
+
 
 def main():
     options, keys = parse_options()
@@ -678,10 +977,14 @@ def main():
     host = web.lstrips(options.server, "http://").strip("/")
     set_query_host(host)
 
+    if options.monkeypatch:
+        monkeypatch(options.config)
+
     # load config
     config.load(options.config)
 
-    update_keys(keys)
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
+    update_keys(keys, commit=not options.nocommit)
 
 if __name__ == '__main__':
     main()
