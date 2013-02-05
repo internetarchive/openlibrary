@@ -35,7 +35,7 @@ class contact(delegate.page):
             return ""
 
         default_assignees = config.get("support_default_assignees",{})
-        topic_key = topic.replace(" ","_").lower()
+        topic_key = str(topic.replace(" ","_").lower())
         if topic_key in default_assignees:
             # This is set to False to prevent cases from being created
             # even if there is a designated assignee. This prevents
