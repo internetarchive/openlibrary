@@ -4,10 +4,12 @@ import urllib2
 from xml.dom import minidom
 import simplejson
 import web
-
+import logging
 from infogami.utils import stats
 
 import cache
+
+logger = logging.getLogger("openlibrary.ia")
 
 def get_meta_xml(itemid):
     """Returns the contents of meta_xml as JSON.
@@ -19,6 +21,7 @@ def get_meta_xml(itemid):
         metaxml = urllib2.urlopen(url).read()
         stats.end()
     except IOError:
+        logger.error("Failed to download _meta.xml for %s", itemid, exc_info=True)
         stats.end()
         return web.storage()
         
@@ -31,7 +34,7 @@ def get_meta_xml(itemid):
         defaults = {"collection": [], "external-identifier": []}
         return web.storage(xml2dict(metaxml, **defaults))
     except Exception, e:
-        print >> web.debug, "Failed to parse metaxml for %s: %s" % (itemid, str(e)) 
+        logger.error("Failed to parse metaxml for %s", itemid, exc_info=True)
         return web.storage()
         
 get_meta_xml = cache.memcache_memoize(get_meta_xml, key_prefix="ia.get_meta_xml", timeout=5*60)
