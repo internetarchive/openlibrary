@@ -15,7 +15,7 @@ class ReadableUrlProcessor:
     """
     patterns = [
         (r'/\w+/OL\d+M', '/type/edition', 'title', 'untitled'),
-        (r'/books/ia:[a-zA-Z0-9_-]+', '/type/edition', 'title', 'untitled'),
+        (r'/\w+/ia:[a-zA-Z0-9_-]+', '/type/edition', 'title', 'untitled'),
         (r'/\w+/OL\d+A', '/type/author', 'name', 'noname'),
         (r'/\w+/OL\d+W', '/type/work', 'title', 'untitled'),
         (r'/[/\w]+/OL\d+L', '/type/list', 'name', 'unnamed')
@@ -52,6 +52,7 @@ def _get_object(site, key):
     unique.
     """    
     obj = site.get(key)
+
     if obj is None and key.startswith("/a/"):
         key = "/authors/" + key[len("/a/"):]
         obj = key and site.get(key)
@@ -63,6 +64,28 @@ def _get_object(site, key):
     if obj is None and key.startswith("/user/"):
         key = "/people/" + key[len("/user/"):]
         obj = key and site.get(key)
+
+    basename = key.split("/")[-1]
+
+    # redirect all /.*/ia:foo to /books/ia:foo
+    if obj is None and basename.startswith("ia:"):
+        key = "/books/" + basename
+        obj = site.get(key)
+
+    # redirect all /.*/OL123W to /works/OL123W
+    if obj is None and basename.startswith("OL") and basename.endswith("W"):
+        key = "/works/" + basename
+        obj = site.get(key)
+
+    # redirect all /.*/OL123M to /books/OL123M
+    if obj is None and basename.startswith("OL") and basename.endswith("M"):
+        key = "/books/" + basename
+        obj = site.get(key)
+
+    # redirect all /.*/OL123A to /authors/OL123A
+    if obj is None and basename.startswith("OL") and basename.endswith("A"):
+        key = "/authors/" + basename
+        obj = site.get(key)
 
     # Disabled temporarily as the index is not ready the db
     
