@@ -22,8 +22,8 @@ class contact(delegate.page):
         return render_template("support", email=email, url=i.path)
 
     def POST(self):
-        if not support_db:
-            return "Couldn't initialise connection to support database"
+        # if not support_db:
+        #     return "Couldn't initialise connection to support database"
         form = web.input()
         email = form.get("email", "")
         topic = form.get("topic", "")
@@ -35,9 +35,12 @@ class contact(delegate.page):
             return ""
 
         default_assignees = config.get("support_default_assignees",{})
-        topic_key = topic.replace(" ","_").lower()
+        topic_key = str(topic.replace(" ","_").lower())
         if topic_key in default_assignees:
-            create_case = True
+            # This is set to False to prevent cases from being created
+            # even if there is a designated assignee. This prevents
+            # the database from being updated.
+            create_case = False 
             assignee = default_assignees.get(topic_key)
         else:
             create_case = False
@@ -57,7 +60,6 @@ class contact(delegate.page):
             subject = "Support case *%s*"%topic
             message = "A new support case has been filed\n\nTopic: %s\n\nDescription:\n%s"%(topic, description)
             web.sendmail(email, assignee, subject, message)
-        
         return render_template("email/case_created", assignee)
             
             

@@ -101,11 +101,18 @@ function foreach(seq, parent_loop, callback) {
 }
 
 function websafe(value) {
-    if (value == null || value == undefined) {
-        return "";
+    // Safari 6 is failing with weird javascript error in this function.
+    // Added try-catch to avoid it.
+    try {
+        if (value == null || value == undefined) {
+            return "";
+        }
+        else {
+            return htmlquote(value.toString());
+        }
     }
-    else {
-        return htmlquote(value.toString());
+    catch (e) {
+        return "";
     }
 }
 

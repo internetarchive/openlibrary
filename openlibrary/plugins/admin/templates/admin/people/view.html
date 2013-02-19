@@ -237,24 +237,6 @@ $else:
   <em>Account not activated yet.</em>
 </div>
 
-<h2>$_("Cases")</h2>
-$ cases = person.get_cases()
-$if cases:
-    <table class="changeHistory" border="0" cellspacing="0" cellpadding="10">
-    $for case in cases:
-        <tr>
-            <td align="right">$case.caseid</td>
-            <td>$datestr(case.created)</td>
-            <td><a href="/admin/support/$(case.caseno)">$case.subject</a></td>
-            <td><a href="/admin/people/$(case.creator_username)">$case.creator_name</a></td>
-            <td>$case.assignee</td>
-            <td>$datestr(case.last_modified)</td>
-            <td>$len(case.history)</td>
-            <td>$case.status</td>
-        </tr>
-    </table>
-$else:
-  <em>None found.</em>
 
 <h2>
     $_("Edit History") 

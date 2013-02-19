@@ -82,7 +82,7 @@ def get_ia_collection_and_box_id(ia):
     url = "http://www.archive.org/metadata/%s" % ia
     for attempt in range(5):
         try:
-            d = json.loads(urlopen(url).read())
+            d = json.loads(urlopen(url).read())['metadata']
             matches['boxid'] = set(get_list(d, 'boxid'))
             matches['collection'] = set(get_list(d, 'collection'))
         except URLError:

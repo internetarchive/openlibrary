@@ -15,7 +15,6 @@ import infogami.core.code as core
 
 from openlibrary.i18n import gettext as _
 from openlibrary.core import helpers as h
-from openlibrary.core import support
 from openlibrary import accounts
 import forms
 import utils

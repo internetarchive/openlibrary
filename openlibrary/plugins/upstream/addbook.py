@@ -6,6 +6,7 @@ import simplejson
 from collections import defaultdict
 from StringIO import StringIO
 import csv
+import datetime
 
 from infogami import config
 from infogami.core import code as core
@@ -584,7 +585,19 @@ class book_edit(delegate.page):
         work = work or web.ctx.site.new('', {'key': '', 'type': {'key': '/type/work'}, 'title': edition.title})
 
         recap_plugin_active = 'recaptcha' in config.get('plugins')
-        if recap_plugin_active:
+
+        #check to see if account is more than two years old
+        old_user = False
+        user = web.ctx.site.get_user()
+        account = user and user.get_account()
+        if account:
+            create_dt = account.creation_time()
+            now_dt = datetime.datetime.utcnow()
+            delta = now_dt - create_dt
+            if delta.days > 365*2:
+                old_user = True
+
+        if recap_plugin_active and not old_user:
             public_key = config.plugin_recaptcha.public_key
             private_key = config.plugin_recaptcha.private_key
             recap = recaptcha.Recaptcha(public_key, private_key)
@@ -598,7 +611,19 @@ class book_edit(delegate.page):
         i = web.input(v=None, _method="GET")
 
         recap_plugin_active = 'recaptcha' in config.get('plugins')
-        if recap_plugin_active:
+
+        #check to see if account is more than two years old
+        old_user = False
+        user = web.ctx.site.get_user()
+        account = user and user.get_account()
+        if account:
+            create_dt = account.creation_time()
+            now_dt = datetime.datetime.utcnow()
+            delta = now_dt - create_dt
+            if delta.days > 365*2:
+                old_user = True
+
+        if recap_plugin_active and not old_user:
             public_key = config.plugin_recaptcha.public_key
             private_key = config.plugin_recaptcha.private_key
             recap = recaptcha.Recaptcha(public_key, private_key)
