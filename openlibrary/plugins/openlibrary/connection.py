@@ -115,6 +115,7 @@ class IAMiddleware(ConnectionMiddleware):
             return ConnectionMiddleware.get(self, sitename, data)
 
     def _find_edition(self, sitename, itemid):
+        return
         q = {"type": "/type/edition", "ocaid": itemid}
         keys_json = ConnectionMiddleware.things(self, sitename, {"query": simplejson.dumps(q)})
         keys = simplejson.loads(keys_json)
@@ -168,7 +169,10 @@ class IAMiddleware(ConnectionMiddleware):
                 d[key2] = value
 
         add('title')
-        add_list('publish', 'publishers')
+        add('description', 'description')
+        add_list('publisher', 'publishers')
+        add_list("creator", "author_names")
+        add('date', 'publish_date')
         
         return simplejson.dumps(d)
 
@@ -574,6 +578,5 @@ def OLConnection():
         conn = LocalCacheMiddleware(conn, cache_prefixes)
 
     conn = IAMiddleware(conn)
-
     return conn
 
