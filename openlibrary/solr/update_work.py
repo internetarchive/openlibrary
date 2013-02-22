@@ -19,7 +19,8 @@ logger = logging.getLogger("openlibrary.solr")
 
 re_lang_key = re.compile(r'^/(?:l|languages)/([a-z]{3})$')
 re_author_key = re.compile(r'^/(?:a|authors)/(OL\d+A)')
-re_edition_key = re.compile(r'^/(?:b|books)/(OL\d+M)$')
+#re_edition_key = re.compile(r'^/(?:b|books)/(OL\d+M)$')
+re_edition_key = re.compile(r"/books/([^/]+)")
 
 solr_host = {}
 
@@ -759,13 +760,24 @@ def withKey_cached(key, obj_cache={}):
 
 def update_work(w, obj_cache={}, debug=False, resolve_redirects=False):
     wkey = w['key']
-    assert wkey.startswith('/works')
-    assert '/' not in wkey[7:]
+    #assert wkey.startswith('/works')
+    #assert '/' not in wkey[7:]
     q = {'type': '/type/redirect', 'location': wkey}
     redirect_keys = [r['key'][7:] for r in query_iter(q)]
     redirects = ''.join('<query>key:%s</query>' % r for r in redirect_keys if '/' not in r)
-    delete_xml = '<delete><query>key:%s</query>%s</delete>' % (wkey[7:], redirects)
+    delete_xml = '<delete><query>key:%s</query>%s</delete>' % (wkey[7:].replace(":", r"\:"), redirects)
     requests = [delete_xml]
+
+    # handle edition records as well
+    # When an edition is not belonged to a work, create a fake work and index it.
+    if w['type']['key'] == '/type/edition' and w.get('title'):
+        edition = w
+        w = {
+            'key': edition['key'],
+            'type': {'key': '/type/work'},
+            'title': edition['title'],
+            'editions': [edition]
+        }
 
     if w['type']['key'] == '/type/work' and w.get('title'):
         try:
@@ -773,6 +785,7 @@ def update_work(w, obj_cache={}, debug=False, resolve_redirects=False):
         except:
             print w
             raise
+
         if doc is not None:
             add = Element("add")
             add.append(doc)
@@ -861,6 +874,9 @@ def update_keys(keys, commit=True):
         edition = withKey(k)
         if edition.get("works"):
             wkeys.add(edition["works"][0]['key'])
+        else:
+            # index the edition as it does not belong to any work
+            wkeys.add(k)
         
     # Add work keys
     wkeys.update(k for k in keys if k.startswith("/works/"))

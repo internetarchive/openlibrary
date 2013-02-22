@@ -626,7 +626,12 @@ class search_json(delegate.page):
         import simplejson
 
         solr = Solr("http://%s/solr/works" % solr_host)
-        result = solr.select(query, rows=limit, start=offset)
+        params = {
+            "defType": "dismax",
+            "qf": "text title^5 author_name^5",
+            "bf": "sqrt(edition_count)^10"
+        }
+        result = solr.select(query, rows=limit, start=offset, **params)
         web.header('Content-Type', 'application/json')
         return delegate.RawText(simplejson.dumps(result, indent=True))
 
