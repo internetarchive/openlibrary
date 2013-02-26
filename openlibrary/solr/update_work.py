@@ -593,7 +593,9 @@ class SolrProcessor:
 
 re_solr_field = re.compile('^[-\w]+$', re.U)
 
-def build_doc(w, obj_cache={}, resolve_redirects=False):
+def build_doc(w, obj_cache=None, resolve_redirects=False):
+    if obj_cache is None:
+        obj_cache = {}
     d = build_data(w, obj_cache=obj_cache, resolve_redirects=resolve_redirects)
     return dict2element(d)
     
@@ -758,7 +760,10 @@ def withKey_cached(key, obj_cache={}):
         obj_cache[key] = withKey(key)
     return obj_cache[key]
 
-def update_work(w, obj_cache={}, debug=False, resolve_redirects=False):
+def update_work(w, obj_cache=None, debug=False, resolve_redirects=False):
+    if obj_cache is None:
+        obj_cache = {}
+
     wkey = w['key']
     #assert wkey.startswith('/works')
     #assert '/' not in wkey[7:]
