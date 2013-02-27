@@ -169,7 +169,7 @@ def build_q_list(param):
             q_list.append('isbn:(%s)' % (read_isbn(param['isbn']) or param['isbn']))
     return (q_list, use_dismax)
 
-def run_solr_query(param = {}, rows=100, page=1, sort=None, spellcheck_count=None, offset=None):
+def run_solr_query(param = {}, rows=100, page=1, sort=None, spellcheck_count=None, offset=None, fields=None):
     # called by do_search
     if spellcheck_count == None:
         spellcheck_count = default_spellcheck_count
@@ -180,7 +180,13 @@ def run_solr_query(param = {}, rows=100, page=1, sort=None, spellcheck_count=Non
 
     (q_list, use_dismax) = build_q_list(param)
 
-    fields = ['key', 'author_name', 'author_key', 'title', 'subtitle', 'edition_count', 'ia', 'has_fulltext', 'first_publish_year', 'cover_i','cover_edition_key', 'public_scan_b', 'lending_edition_s', 'overdrive_s', 'ia_collection_s']
+    if fields is None:
+        fields = [
+            'key', 'author_name', 'author_key', 
+            'title', 'subtitle', 'edition_count', 
+            'ia', 'has_fulltext', 'first_publish_year', 
+            'cover_i','cover_edition_key', 'public_scan_b', 
+            'lending_edition_s', 'overdrive_s', 'ia_collection_s']
     fl = ','.join(fields)
     if use_dismax:
         q = web.urlquote(' '.join(q_list))
@@ -645,7 +651,8 @@ class search_json(delegate.page):
                                                 rows=limit, 
                                                 page=page, 
                                                 sort=sort_value, 
-                                                offset=offset)
+                                                offset=offset,
+                                                fields="*")
 
         response = json.loads(reply)['response']
 
