@@ -81,9 +81,10 @@ def get_ia_collection_and_box_id(ia):
 
     matches = {'boxid': set(), 'collection': set() }
     url = "http://www.archive.org/metadata/%s" % ia
+    logger.info("loading metadata from %s", url)
     for attempt in range(5):
         try:
-            d = json.loads(urlopen(url).read())['metadata']
+            d = json.loads(urlopen(url).read()).get('metadata', {})
             matches['boxid'] = set(get_list(d, 'boxid'))
             matches['collection'] = set(get_list(d, 'collection'))
         except URLError:
@@ -383,7 +384,7 @@ class SolrProcessor:
         author_keys = [a['key'].split("/")[-1] for a in authors]
 
         if any(a['type']['key'] == '/type/redirect' for a in authors):
-            if resolve_redirects:
+            if self.resolve_redirects:
                 def resolve(a):
                     if a['type']['key'] == '/type/redirect':
                         a = withKey(a['location'])
@@ -788,14 +789,13 @@ def update_work(w, obj_cache=None, debug=False, resolve_redirects=False):
         try:
             doc = build_doc(w, obj_cache, resolve_redirects=resolve_redirects)
         except:
-            print w
-            raise
-
-        if doc is not None:
-            add = Element("add")
-            add.append(doc)
-            add_xml = tostring(add).encode('utf-8')
-            requests.append(add_xml)
+            logger.error("failed to update work %s", w['key'], exc_info=True)
+        else:
+            if doc is not None:
+                add = Element("add")
+                add.append(doc)
+                add_xml = tostring(add).encode('utf-8')
+                requests.append(add_xml)
 
     return requests
 
