@@ -902,7 +902,10 @@ def update_keys(keys, commit=True):
     akeys = set(k for k in keys if k.startswith("/authors/"))
     for k in akeys:
         logger.info("updating %s", k)
-        requests += update_author(k)
+        try:
+            requests += update_author(k)
+        except:
+            logger.error("Failed to update author %s", k, exc_info=True)
     if requests:  
         if commit:
             requests += ['<commit />']
