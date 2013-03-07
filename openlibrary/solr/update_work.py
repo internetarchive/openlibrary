@@ -19,7 +19,8 @@ logger = logging.getLogger("openlibrary.solr")
 
 re_lang_key = re.compile(r'^/(?:l|languages)/([a-z]{3})$')
 re_author_key = re.compile(r'^/(?:a|authors)/(OL\d+A)')
-re_edition_key = re.compile(r'^/(?:b|books)/(OL\d+M)$')
+#re_edition_key = re.compile(r'^/(?:b|books)/(OL\d+M)$')
+re_edition_key = re.compile(r"/books/([^/]+)")
 
 solr_host = {}
 
@@ -80,9 +81,10 @@ def get_ia_collection_and_box_id(ia):
 
     matches = {'boxid': set(), 'collection': set() }
     url = "http://www.archive.org/metadata/%s" % ia
+    logger.info("loading metadata from %s", url)
     for attempt in range(5):
         try:
-            d = json.loads(urlopen(url).read())['metadata']
+            d = json.loads(urlopen(url).read()).get('metadata', {})
             matches['boxid'] = set(get_list(d, 'boxid'))
             matches['collection'] = set(get_list(d, 'collection'))
         except URLError:
@@ -382,7 +384,7 @@ class SolrProcessor:
         author_keys = [a['key'].split("/")[-1] for a in authors]
 
         if any(a['type']['key'] == '/type/redirect' for a in authors):
-            if resolve_redirects:
+            if self.resolve_redirects:
                 def resolve(a):
                     if a['type']['key'] == '/type/redirect':
                         a = withKey(a['location'])
@@ -592,7 +594,9 @@ class SolrProcessor:
 
 re_solr_field = re.compile('^[-\w]+$', re.U)
 
-def build_doc(w, obj_cache={}, resolve_redirects=False):
+def build_doc(w, obj_cache=None, resolve_redirects=False):
+    if obj_cache is None:
+        obj_cache = {}
     d = build_data(w, obj_cache=obj_cache, resolve_redirects=resolve_redirects)
     return dict2element(d)
     
@@ -757,27 +761,41 @@ def withKey_cached(key, obj_cache={}):
         obj_cache[key] = withKey(key)
     return obj_cache[key]
 
-def update_work(w, obj_cache={}, debug=False, resolve_redirects=False):
+def update_work(w, obj_cache=None, debug=False, resolve_redirects=False):
+    if obj_cache is None:
+        obj_cache = {}
+
     wkey = w['key']
-    assert wkey.startswith('/works')
-    assert '/' not in wkey[7:]
+    #assert wkey.startswith('/works')
+    #assert '/' not in wkey[7:]
     q = {'type': '/type/redirect', 'location': wkey}
     redirect_keys = [r['key'][7:] for r in query_iter(q)]
     redirects = ''.join('<query>key:%s</query>' % r for r in redirect_keys if '/' not in r)
-    delete_xml = '<delete><query>key:%s</query>%s</delete>' % (wkey[7:], redirects)
+    delete_xml = '<delete><query>key:%s</query>%s</delete>' % (wkey[7:].replace(":", r"\:"), redirects)
     requests = [delete_xml]
+
+    # handle edition records as well
+    # When an edition is not belonged to a work, create a fake work and index it.
+    if w['type']['key'] == '/type/edition' and w.get('title'):
+        edition = w
+        w = {
+            'key': edition['key'],
+            'type': {'key': '/type/work'},
+            'title': edition['title'],
+            'editions': [edition]
+        }
 
     if w['type']['key'] == '/type/work' and w.get('title'):
         try:
             doc = build_doc(w, obj_cache, resolve_redirects=resolve_redirects)
         except:
-            print w
-            raise
-        if doc is not None:
-            add = Element("add")
-            add.append(doc)
-            add_xml = tostring(add).encode('utf-8')
-            requests.append(add_xml)
+            logger.error("failed to update work %s", w['key'], exc_info=True)
+        else:
+            if doc is not None:
+                add = Element("add")
+                add.append(doc)
+                add_xml = tostring(add).encode('utf-8')
+                requests.append(add_xml)
 
     return requests
 
@@ -861,6 +879,9 @@ def update_keys(keys, commit=True):
         edition = withKey(k)
         if edition.get("works"):
             wkeys.add(edition["works"][0]['key'])
+        else:
+            # index the edition as it does not belong to any work
+            wkeys.add(k)
         
     # Add work keys
     wkeys.update(k for k in keys if k.startswith("/works/"))
@@ -881,7 +902,10 @@ def update_keys(keys, commit=True):
     akeys = set(k for k in keys if k.startswith("/authors/"))
     for k in akeys:
         logger.info("updating %s", k)
-        requests += update_author(k)
+        try:
+            requests += update_author(k)
+        except:
+            logger.error("Failed to update author %s", k, exc_info=True)
     if requests:  
         if commit:
             requests += ['<commit />']

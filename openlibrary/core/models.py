@@ -301,7 +301,7 @@ class Author(Thing):
         return self.get_url(suffix, **params)
         
     def get_url_suffix(self):
-        return self.mame or "unnamed"
+        return self.name or "unnamed"
     
     def __repr__(self):
         return "<Author: %s>" % repr(self.key)
