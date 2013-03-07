@@ -115,7 +115,6 @@ class IAMiddleware(ConnectionMiddleware):
             return ConnectionMiddleware.get(self, sitename, data)
 
     def _find_edition(self, sitename, itemid):
-        return
         q = {"type": "/type/edition", "ocaid": itemid}
         keys_json = ConnectionMiddleware.things(self, sitename, {"query": simplejson.dumps(q)})
         keys = simplejson.loads(keys_json)
@@ -207,7 +206,6 @@ class IAMiddleware(ConnectionMiddleware):
             "ip": "127.0.0.1", 
             "created": "2012-01-01T00:00:00", 
             "bot": False, 
-            "data": "{}", 
             "key": key, 
             "action": "edit-book", 
             "changes": simplejson.dumps({"key": key, "revision": 1}),
@@ -225,7 +223,7 @@ class IAMiddleware(ConnectionMiddleware):
             "author": None, 
             "ip": "127.0.0.1", 
             "timestamp": "2012-01-01T00:00:00", 
-            "data": "{}", 
+            "data": {}, 
             "changes": [{"key": key, "revision": 1}],
             "kind": "update",
             "id": "0",
