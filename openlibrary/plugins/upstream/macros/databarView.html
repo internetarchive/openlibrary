@@ -8,9 +8,10 @@ $else:
     $ edit_url = page.key + "?m=edit"
 
 <div id="editTools" class="edit">
-    <div id="editButton">
-        <button class="linkButton larger" name="$edit_url" title="Edit this template" accesskey="e">$_("Edit")</button>
-    </div>
+    $if not page.is_edit_disabled():
+        <div id="editButton">
+            <button class="linkButton larger" name="$edit_url" title="Edit this template" accesskey="e">$_("Edit")</button>
+        </div>
     <div id="editInfo">
         $if "superfast" in ctx.features:
             $ author = page.get_most_recent_change().author

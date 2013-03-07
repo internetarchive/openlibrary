@@ -431,6 +431,9 @@ class Edition(models.Edition):
                 result['author%s' % (i + 1)] = a.name 
         return result
 
+    def is_edit_disabled(self):
+        return "/ia:" in self.key
+
 class Author(models.Author):
     def get_photos(self):
         return [Image(self._site, "a", id) for id in self.photos if id > 0]
