@@ -15,7 +15,7 @@ class ReadableUrlProcessor:
     """
     patterns = [
         (r'/\w+/OL\d+M', '/type/edition', 'title', 'untitled'),
-        (r'/\w+/ia:[a-zA-Z0-9_-]+', '/type/edition', 'title', 'untitled'),
+        (r'/\w+/ia:[a-zA-Z0-9_\.-]+', '/type/edition', 'title', 'untitled'),
         (r'/\w+/OL\d+A', '/type/author', 'name', 'noname'),
         (r'/\w+/OL\d+W', '/type/work', 'title', 'untitled'),
         (r'/[/\w]+/OL\d+L', '/type/list', 'name', 'unnamed')
