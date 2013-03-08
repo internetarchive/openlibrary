@@ -214,7 +214,9 @@ $if has_returned_recently and not page.key in [loan['book'] for loan in loans]:
                 <h2 class="sansserif">This book is checked out.</h2>
                 <p>Please check back later, or browse <a href="/borrow">more books you can borrow</a>?</p>
             </div>
-            $if ctx.user and ctx.user.is_admin():
+            $# XXX-Anand: why is this enabled only for admins? 
+            $# Disabled this for fake records like ia:foo00bar
+            $if ctx.user and ctx.user.is_admin() and not page.is_fake_record():
                 $# Stuff for adding to a list - NEED NEW WIDGET!
                 <div class="Tools borrow" id="listsWork">
                     $:render_template("lists/widget", page, user_lists_only=True)

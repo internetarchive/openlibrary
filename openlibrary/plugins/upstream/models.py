@@ -431,7 +431,13 @@ class Edition(models.Edition):
                 result['author%s' % (i + 1)] = a.name 
         return result
 
-    def is_edit_disabled(self):
+    def is_fake_record(self):
+        """Returns True if this is a record is not a real record from database, 
+        but created on the fly.
+
+        The /books/ia:foo00bar records are not stored in the database, but 
+        created at runtime using the data from archive.org metadata API.
+        """
         return "/ia:" in self.key
 
 class Author(models.Author):

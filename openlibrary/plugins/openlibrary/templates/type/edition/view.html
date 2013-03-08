@@ -151,7 +151,9 @@ $ work = page.works and page.works[0] or None
 
             <div class="illustration edition-cover">
                 $:render_template('covers/book_cover', page)
-                $:render_template('covers/change', page, ".edition-cover .bookCover img")
+                $# Don't display add/change cover link for /books/ia:foo00bar pages
+                $if not page.is_fake_record():
+                    $:render_template('covers/change', page, ".edition-cover .bookCover img")
             </div>
             
         $ contributors = page.get('contributors', [])
@@ -291,7 +293,9 @@ $ work = page.works and page.works[0] or None
         <div class="editionTools">
             $:macros.databarWork(page)
 
-            $if "lists" in ctx.features:
+            $# pages like /books/ia:foo00bar are fake records created from metadata API.
+            $# Adding them to lists doesn't work. Disabling it to avoid any issues.
+            $if "lists" in ctx.features and not page.is_fake_record():
                 <div class="Tools">
                     $:render_template("lists/widget", page)
                 </div>

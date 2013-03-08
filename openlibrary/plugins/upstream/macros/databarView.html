@@ -8,7 +8,7 @@ $else:
     $ edit_url = page.key + "?m=edit"
 
 <div id="editTools" class="edit">
-    $if not page.is_edit_disabled():
+    $if not page.is_fake_record():
         <div id="editButton">
             <button class="linkButton larger" name="$edit_url" title="Edit this template" accesskey="e">$_("Edit")</button>
         </div>
