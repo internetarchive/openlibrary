@@ -362,7 +362,7 @@ class LoanStats:
         if library is None:
             library = ""
         rows = self.view("loans/loans", group=True, group_level=1, startkey=[library], endkey=[library,{}]).rows
-        return [[self.date2timestamp(*row.key)*1000, row.value.get(resource_type, 0)] for row in rows]
+        return [[self.date2timestamp(*row.key[1:])*1000, row.value.get(resource_type, 0)] for row in rows]
 
     def date2timestamp(self, year, month=1, day=1):
         return time.mktime((year, month, day, 0, 0, 0, 0, 0, 0)) # time.mktime takes 9-tuple as argument
