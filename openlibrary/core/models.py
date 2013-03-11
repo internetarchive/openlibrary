@@ -547,6 +547,10 @@ class Library(Thing):
                 branch.lon = "0"
             return branch
         return [parse(line) for line in self.addresses.splitlines() if line.strip()]
+
+    def get_loans_per_day(self, resource_type="total"):
+        from openlibrary.plugins.openlibrary.libraries import LoanStats
+        return LoanStats().get_loans_per_day(resource_type=resource_type, library=self.key)
         
 class Subject(web.storage):
     def get_lists(self, limit=1000, offset=0, sort=True):
