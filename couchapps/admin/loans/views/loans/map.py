@@ -12,4 +12,6 @@ def _map(doc):
 
     if 't_start' in doc:
         t = parse_datetime(doc['t_start'])        
-        yield [t.year, t.month, t.day], {doc['resource_type']: 1, "total": 1}
+        yield ["", t.year, t.month, t.day], {doc['resource_type']: 1, "total": 1}
+        if "library" in doc:
+            yield [doc["library"], t.year, t.month, t.day], {doc['resource_type']: 1, "total": 1}
