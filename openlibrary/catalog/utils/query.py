@@ -1,14 +1,25 @@
-import urllib, web
+import urllib, urllib2
+import web
 import simplejson as json
 from time import sleep
+import sys
 
 query_host = 'openlibrary.org'
 
+def urlopen(url, data=None):
+    version = "%s.%s.%s" % sys.version_info[:3]
+    user_agent = 'Mozilla/5.0 (openlibrary; %s) Python/%s' % (__name__, version)
+    headers = {
+        'User-Agent': user_agent
+    }
+    req = urllib2.Request(url, data, headers)
+    return urllib2.urlopen(req)
+
 def jsonload(url):
-    return json.load(urllib.urlopen(url))
+    return json.load(urlopen(url))
 
 def urlread(url):
-    return urllib.urlopen(url).read()
+    return urlopen(url).read()
 
 def set_query_host(host):
     global query_host

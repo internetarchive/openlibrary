@@ -3,7 +3,8 @@ from openlibrary.catalog.utils.query import query_iter, withKey, has_cover, set_
 #from openlibrary.catalog.marc.marc_subject import get_work_subjects, four_types
 from lxml.etree import tostring, Element, SubElement
 from pprint import pprint
-from urllib2 import urlopen, URLError, HTTPError
+import urllib2
+from urllib2 import URLError, HTTPError
 import simplejson as json
 import time
 import web
@@ -23,6 +24,15 @@ re_author_key = re.compile(r'^/(?:a|authors)/(OL\d+A)')
 re_edition_key = re.compile(r"/books/([^/]+)")
 
 solr_host = {}
+
+def urlopen(url, data=None):
+    version = "%s.%s.%s" % sys.version_info[:3]
+    user_agent = 'Mozilla/5.0 (openlibrary; %s) Python/%s' % (__file__, version)
+    headers = {
+        'User-Agent': user_agent
+    }
+    req = urllib2.Request(url, data, headers)
+    return urllib2.urlopen(req)
 
 def get_solr(index):
     global solr_host
