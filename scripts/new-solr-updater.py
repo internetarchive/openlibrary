@@ -59,11 +59,12 @@ class InfobaseLog:
     def seek(self, offset):
         self.offset = offset.strip()
 
-    def read_records(self, max_records=100):
+    def read_records(self, max_fetches=10):
         """Reads all the available log records from the server.
         """
-        for i in range(max_records):
+        for i in range(max_fetches):
             url = "%s/%s?limit=100" % (self.base_url, self.offset)
+            logger.info("Reading log from %s", url)
             try:
                 jsontext = urllib2.urlopen(url).read()
             except urllib2.URLError as e:
