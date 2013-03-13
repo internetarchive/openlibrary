@@ -179,6 +179,7 @@ $elif status != "approved":
     <div id="contentBody"><p>Only site administrators can see this page.</p></div>
 $else:
     <div id="contentHead">
+        $:render_template("borrow/navigation", path=page.key)        
         <div class="superNav">
             <a href="/libraries">Libraries</a> /
         </div>

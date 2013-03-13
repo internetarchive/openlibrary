@@ -435,7 +435,7 @@ class LoanStats:
 
     def get_loans_per_library(self):
         counts = self._get_lib_counts()
-        return [((lib.key, lib.name), count) for lib, count in counts if not lib.lending_region]
+        return [((lib.key, lib.name), count) for lib, count in counts]
 
     def get_loans_per_state(self):
         counts = self._get_lib_counts()
