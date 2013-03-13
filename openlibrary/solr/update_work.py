@@ -768,11 +768,14 @@ def update_work(w, obj_cache=None, debug=False, resolve_redirects=False):
     wkey = w['key']
     #assert wkey.startswith('/works')
     #assert '/' not in wkey[7:]
+    deletes = []
+    requests = []
+
     q = {'type': '/type/redirect', 'location': wkey}
     redirect_keys = [r['key'][7:] for r in query_iter(q)]
-    redirects = ''.join('<query>key:%s</query>' % r for r in redirect_keys if '/' not in r)
-    delete_xml = '<delete><query>key:%s</query>%s</delete>' % (wkey[7:].replace(":", r"\:"), redirects)
-    requests = [delete_xml]
+
+    deletes += redirect_keys
+    deletes += [wkey[7:]] # strip /works/ from /works/OL1234W
 
     # handle edition records as well
     # When an edition is not belonged to a work, create a fake work and index it.
@@ -787,17 +790,33 @@ def update_work(w, obj_cache=None, debug=False, resolve_redirects=False):
 
     if w['type']['key'] == '/type/work' and w.get('title'):
         try:
-            doc = build_doc(w, obj_cache, resolve_redirects=resolve_redirects)
+            d = build_data(w, obj_cache=obj_cache, resolve_redirects=resolve_redirects)
+            doc = dict2element(d)
         except:
             logger.error("failed to update work %s", w['key'], exc_info=True)
         else:
-            if doc is not None:
+            if d is not None:
+                # Delete all ia:foobar keys
+                # 
+                if d.get('ia'):
+                    deletes += ["ia:" + iaid for iaid in d['ia']]
+
+                requests.append(make_delete_query(deletes))
+
                 add = Element("add")
                 add.append(doc)
                 add_xml = tostring(add).encode('utf-8')
                 requests.append(add_xml)
 
     return requests
+
+def make_delete_query(keys):
+    # Escape ":" in the keys.
+    # ":" is a special charater and keys like "ia:foo00bar" will
+    # fail if ":" is not escaped
+    keys = [key.replace(":", r"\:") for key in keys]
+    queries = ['<query>key:%s</query>' % key for key in keys]
+    return '<delete>%s</delete>' % ''.join(queries)
 
 def update_author(akey, a=None, handle_redirects=True):
     # http://ia331507.us.archive.org:8984/solr/works/select?indent=on&q=author_key:OL22098A&facet=true&rows=1&sort=edition_count%20desc&fl=title&facet.field=subject_facet&facet.mincount=1
