@@ -116,6 +116,10 @@ def parse_log(records):
                 edition_key = data.get('book_key')
                 if edition_key:
                     yield edition_key
+            elif data.get("type") == "ia-scan" and data.get("_key", "").startswith("ia-scan/"):
+                identifier = data.get('identifier')
+                if identifier:
+                    yield "/books/ia:" + identifier
 
 def update_keys(keys):
     keys = (k for k in keys if k.count("/") == 2 and k.split("/")[1] in ["books", "authors", "works"])

@@ -6,8 +6,13 @@ from infogami.utils import stats
 
 import web
 import simplejson
+import datetime
 
 from openlibrary.core import ia
+
+import logging
+
+logger = logging.getLogger("openlibrary")
 
 default_cache_prefixes = ["/type/", "/languages/", "/index.", "/about", "/css/", "/js/", "/config/"]
 
@@ -110,7 +115,9 @@ class IAMiddleware(ConnectionMiddleware):
             if edition_key:
                 return self._make_redirect(itemid, edition_key)
             else:
-                return self._get_ia_item(itemid)
+                doc = self._get_ia_item(itemid)
+                self._ensure_store_entry(sitename, itemid)
+                return doc
         else:
             return ConnectionMiddleware.get(self, sitename, data)
 
@@ -118,7 +125,6 @@ class IAMiddleware(ConnectionMiddleware):
         q = {"type": "/type/edition", "ocaid": itemid}
         keys_json = ConnectionMiddleware.things(self, sitename, {"query": simplejson.dumps(q)})
         keys = simplejson.loads(keys_json)
-        print "_find_edition", itemid, keys
         if keys:
             return keys[0]
 
@@ -174,6 +180,25 @@ class IAMiddleware(ConnectionMiddleware):
         add('date', 'publish_date')
         
         return simplejson.dumps(d)
+
+    def _ensure_store_entry(self, sitename, identifier):
+        key = "ia-scan/" + identifier
+        store_key = "/_store/" + key
+        # If the entry is not found, create an entry
+        try:
+            self.store_get(sitename, store_key)
+        except client.ClientException, e:
+            logger.error("error", exc_info=True)            
+            if e.status.startswith("404"):
+                doc = {
+                    "_key": key,
+                    "type": "ia-scan",
+                    "identifier": identifier,
+                    "created": datetime.datetime.utcnow().isoformat()
+                }
+                self.store_put(sitename, store_key, simplejson.dumps(doc))
+        except:
+            logger.error("error", exc_info=True)
 
     def versions(self, sitename, data):
         # handle the query of type {"query": '{"key": "/books/ia:foo00bar", ...}}
