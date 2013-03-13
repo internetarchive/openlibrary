@@ -4,6 +4,70 @@ $ title = page.name or page.key
 
 $var title: $title
 
+$ status = page.status or "onhold"
+
+$def show_plot():
+    <h2>Loans Per Day</h2>
+
+    <div class="chart">
+        <div id="loans-per-day" class="graph">
+            <noscript>$_("You need to have JavaScript turned on to see the nifty chart!")</noscript>
+        </div>
+    </div>
+    <script type="text/javascript">
+        \$(function () {
+            \$.plot("#loans-per-day", [
+                {
+                    "data": $:json_encode(page.get_loans_per_day("bookreader")), 
+                    "label": "bookreader",
+                    bars: { "fillColor": "#fffdcd" },
+                    color: "#fffdcd"
+                }, {
+                    "data": $:json_encode(page.get_loans_per_day("pdf")), 
+                    "label": "pdf",
+                    bars: { "fillColor": "#ffa337" },
+                    color: "#ffa337"
+                }, {
+                    "data": $:json_encode(page.get_loans_per_day("epub")), 
+                    "label": "epub",
+                    bars: { "fillColor": "#748d36" },
+                    color: "#748d36"
+                }
+            ], {
+                series: {
+                    stack: 0,
+                    bars: {
+                        show: true,
+                        align: "left",
+                        barWidth: 20 * 60 * 60 * 1000,
+                    },
+                },
+                grid: {
+                    hoverable: true,
+                    show: true,
+                    borderWidth: 1, 
+                    borderColor: "#d9d9d9"
+                },
+                xaxis: {
+                    mode: "time"
+                }
+            });
+        });
+    </script>
+    <style type="text/css">
+        div.graph, div.chart{
+            width:898px;
+            height:180px;
+            float:none;
+            background-image:none;
+        }
+        .chartYaxis{
+             width:180px;
+             top:85px;
+             left:-85px;
+        }
+    </style>
+
 $if ctx.user and ctx.user.is_admin():
     <div id="contentHead">
         $:macros.databarView(page)
@@ -18,50 +82,51 @@ $if ctx.user and ctx.user.is_admin():
 
     </div>
     <div id="contentBody">
+        $:show_plot()
 
+        <h2 class="adminOnly">Admin Info</h2>
         <table id="libraryInfo">
-	    $ status = page.status or "onhold"
-	        <tr>
-		    <td class="label">$_("Status")</td>
-		    <td>
-		        $if status == "approved":
-			    <span class="largest sansserif darkgreen">LIVE</span>
-			$elif status == "onhold":
-			    <span class="largest sansserif red">Pending</span>
-                    </td>
-	        </tr>
-	    <tr>
-	        <td class="label">$_("Library's Website")</td>
-		<td><a href="$page.website" rel="nofollow">$page.website</a></td>
-	    </tr>
-	    <tr>
-	        <td class="label">$_("Country")</td>
-		<td>$page.country</td>
-	    </tr>
-	    <tr>
-		<td class="label">$_("Contact Person")</td>
-		<td>$page.contact_person</td>
-	    </tr>
-	    <tr>
-		<td class="label">$_("Job Title")</td>
-		<td>$page.contact_title</td>
-	    </tr>
-	    <tr>
-		<td class="label">$_("E-mail Address")</td>
-		<td>$page.contact_email</td>
-	    </tr>
-	    <tr>
-		<td class="label">$_("Telephone")</td>
-		<td>$page.telephone</td>
-	    </tr>
-	    <tr>
-		<td class="label">$_("IP Ranges")</td>
-		<td style="white-space: pre;">$page.ip_ranges</td>
-	    </tr>
-	    <tr>
-		<td class="label">$_("Lending Region")</td>
-		<td style="white-space: pre;">$page.lending_region</td>
-	    </tr>
+            <tr>
+            <td class="label">$_("Status")</td>
+            <td>
+            $if status == "approved":
+                <span class="largest sansserif darkgreen">LIVE2</span>
+            $elif status == "onhold":
+                <span class="largest sansserif red">Pending</span>
+            </td>
+            </tr>
+        <tr>
+            <td class="label">$_("Library's Website")</td>
+        <td><a href="$page.website" rel="nofollow">$page.website</a></td>
+        </tr>
+        <tr>
+            <td class="label">$_("Country")</td>
+        <td>$page.country</td>
+        </tr>
+        <tr>
+        <td class="label">$_("Contact Person")</td>
+        <td>$page.contact_person</td>
+        </tr>
+        <tr>
+        <td class="label">$_("Job Title")</td>
+        <td>$page.contact_title</td>
+        </tr>
+        <tr>
+        <td class="label">$_("E-mail Address")</td>
+        <td>$page.contact_email</td>
+        </tr>
+        <tr>
+        <td class="label">$_("Telephone")</td>
+        <td>$page.telephone</td>
+        </tr>
+        <tr>
+        <td class="label">$_("IP Ranges")</td>
+        <td style="white-space: pre;">$page.ip_ranges</td>
+        </tr>
+        <tr>
+        <td class="label">$_("Lending Region")</td>
+        <td style="white-space: pre;">$page.lending_region</td>
+        </tr>
         </table>
 
         <h2>Notes</h2>
@@ -109,6 +174,19 @@ $if ctx.user and ctx.user.is_admin():
     $:render_template("lib/history", page)
 
     </div>
-$else:
-    <div id="contentHead"><h1>Permission denied.</h1></div>
+$elif status != "approved":
+    <div id="contentHead"><h1>XXX Permission denied.</h1></div>
     <div id="contentBody"><p>Only site administrators can see this page.</p></div>
+$else:
+    <div id="contentHead">
+        $:render_template("borrow/navigation", path=page.key)        
+        <div class="superNav">
+            <a href="/libraries">Libraries</a> /
+        </div>
+        <h1>$page.name</h1>
+        <h2 class="collapse small gray">$page.country &bullet; <a href="$page.website">$page.website</a></h2>
+    </div>
+
+    <div class="contentBody">
+        $:show_plot()
+    </div>

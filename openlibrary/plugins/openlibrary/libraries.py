@@ -358,9 +358,11 @@ class LoanStats:
         d['expired_loans'] = sum(count for time, count in freq.items() if int(time) >= 14*24)
         return d
 
-    def get_loans_per_day(self, resource_type="total"):
-        rows = self.view("loans/loans", group=True).rows
-        return [[self.date2timestamp(*row.key)*1000, row.value.get(resource_type, 0)] for row in rows]
+    def get_loans_per_day(self, resource_type="total", library=None):
+        if library is None:
+            library = ""
+        rows = self.view("loans/loans", group=True, startkey=[library], endkey=[library,{}]).rows
+        return [[self.date2timestamp(*row.key[1:])*1000, row.value.get(resource_type, 0)] for row in rows]
 
     def date2timestamp(self, year, month=1, day=1):
         return time.mktime((year, month, day, 0, 0, 0, 0, 0, 0)) # time.mktime takes 9-tuple as argument
@@ -433,7 +435,7 @@ class LoanStats:
 
     def get_loans_per_library(self):
         counts = self._get_lib_counts()
-        return [((lib.key, lib.name), count) for lib, count in counts if not lib.lending_region]
+        return [((lib.key, lib.name), count) for lib, count in counts]
 
     def get_loans_per_state(self):
         counts = self._get_lib_counts()

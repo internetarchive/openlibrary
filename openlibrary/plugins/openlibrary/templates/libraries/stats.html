@@ -2,8 +2,9 @@ $def with (stats)
 
 <div id="contentHead">
     $:render_template("borrow/navigation", path="/libraries/stats")
-    <h1>$_("Borrow eBooks")</h1>
+    <h1>$_("Loan Stats")</h1>
 </div>
+
 
 <script type="text/javascript">
 
@@ -86,42 +87,13 @@ function setup_tooltip(selector, format_message) {
         },
         xaxis: {
             mode: "time"
+        }, 
+        legend: {
+            show: true,
+            position: "nw"
         }
     });
-    
-    $ lib_loans = stats.get_loans_per_library()
-    $ data = [[count, i] for i, (lib, count) in enumerate(lib_loans)]
-    $ yticks = [[i, lib] for i, (lib, count) in enumerate(lib_loans)]
-    \$.plot("#loans-per-library", [$:json_encode(data)], {
-        series: {
-             bars: {
-                 show: true,
-                 align: "center",
-                 color: "#35672e",
-                 fillColor: "#35672e",
-		 lineWidth: 0,
-		 horizontal: true,
-		 barWidth: 1
-             },
-             color: "#ffffff"
-        },
-        grid: {
-            hoverable: true,
-            show: true,
-            borderWidth: 1, 
-            borderColor: "#d9d9d9",
-	    autoHighlight: true
-        },
-	
-
-	yaxis: {
-	    ticks: $:json_encode(yticks),
-	}
-	
-
-
-    });
-    
+        
     \$.plot("#duration", [$:json_encode(stats.get_loan_duration_frequency())], {
         series: {
              bars: {
@@ -180,129 +152,194 @@ function setup_tooltip(selector, format_message) {
         }
     });
 
+    var options = {};
+    if(jQuery.support.opacity){
+        options.fx = {opacity:'toggle'};
+    }
+    \$("#stat-tabs").tabs(options);
+
+    \$("#library-table").dataTable({
+        "aoColumns": [{"sType":"html"}, {"sType": "numeric"}],
+        "aaSorting": [ [1,'desc'] ],
+        "bPaginate": false,
+        "bInfo": false,
+        "bFilter": false,
+        "bStateSave": false,
+        "bAutoWidth": false
+    });
 });
+
+\$().ready(function() {
+    var hash = document.location.hash || "#edition";
+    var link = "#" + "link_" + hash;
+    \$(link).click();
+});
+
 </script>
 
 <style type="text/css">
-div.graph,div.chart{
-                     width:898px;
-                     height:180px;
-                     float:none;
-                     background-image:none;
-                     }
+div.graph, div.chart{
+    width:838px;
+    height:180px;
+    float:none;
+    background-image:none;
+}
 .chartYaxis{
-             width:180px;
-             top:85px;
-             left:-85px;
-             }
+    width:180px;
+    top:85px;
+    left:-85px;
+}
 
+table#library-table th {
+    font-family: "News Gothic MT","Trebuchet MS",Geneva,Helvetica,sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    line-height: normal;
+    text-align: center;
+    background-color: rgb(238,238,238);
+    border-bottom: 1px solid rgb(204,204,204);
+    border-left: 5px solid #fff;
+    border-right: 5px solid #fff;
+    padding: 5px;
+    outline: none;
+    cursor: pointer;
+}
+
+.number {
+    text-align: right;
+}
 
 </style>
 
 <div id="contentBody">
 
-    <h2>Loans Per Day</h2>
-
-    <div class="chart">
-        <div id="loans-per-day" class="graph">
-            <noscript>$_("You need to have JavaScript turned on to see the nifty chart!")</noscript>
-        </div>
-    </div>
-    
-    <h2>Loans Per Library</h2>
-
-    <div class="chart" style="height:400px">
-        <div id="loans-per-library" class="graph" style="height:400px">
-            <noscript>$_("You need to have JavaScript turned on to see the nifty chart!")</noscript>
-        </div>
+    <div id="stat-tabs">
+        <ul>
+            <li><a href="#stats" id="link_stats">$_("Stats")</a></li>
+            <li><a href="#libraries" id="link_libraries">$_("Libraries")</a></li>
+            <li><a href="#books" id="link_books">$_("Popular Books")</a></li>
+        </ul>
     </div>
 
-    <h2>Average Time a Book is Checked Out</h2>
-    <div class="chart">
-        <div id="duration" class="graph">
-            <noscript>$_("You need to have JavaScript turned on to see the nifty chart!")</noscript>
+    <div id="stats">
+        <h2>Loans Per Day</h2>
+
+        <div class="chart">
+            <div id="loans-per-day" class="graph">
+                <noscript>$_("You need to have JavaScript turned on to see the nifty chart!")</noscript>
+            </div>
         </div>
-        <div class="chartYaxis" style="width:180px;">$_("This Many Books")</div>
-        <div class="chartXaxis">$_("Were Borrowed for This Many Days")</div>
-    </div>
+        
+        <h2>Average Time a Book is Checked Out</h2>
+        <div class="chart" style="width: 838px;">
+            <div id="duration" class="graph">
+                <noscript>$_("You need to have JavaScript turned on to see the nifty chart!")</noscript>
+            </div>
+            <div class="chartYaxis" style="width:180px;">$_("This Many Books")</div>
+            <div class="chartXaxis">$_("Were Borrowed for This Many Days")</div>
+        </div>
 
-    <p class="smaller grey sansserif">
-        $ summary = stats.get_summary()
-        $ total = summary['total_loans']
-        $ onehour = summary['one_hour_loans']
-        $ expired = summary['expired_loans']
-        $ percent = lambda v: sprintf("%.2f%%", (100.0 * v)/total)
+        <p class="smaller grey sansserif">
+            $ summary = stats.get_summary()
+            $ total = summary['total_loans']
+            $ onehour = summary['one_hour_loans']
+            $ expired = summary['expired_loans']
+            $ percent = lambda v: sprintf("%.2f%%", (100.0 * v)/total)
 
-        Total Loans: $total
+            Total Loans: $total
+            <br/>
+            Loans returned in less than one hour: $onehour ($percent(onehour))
+            <br/>
+            Expired Loans: $expired ($percent(expired))
+            <br/>
+        </p>
+
+    <!-- Hiding this graph for now -->
+    <!--
+        <h2>Average Loan Duration</h2>
+        <div class="chart">
+            <div id="avg-duration" class="graph">
+                <noscript>$_("You need to have JavaScript turned on to see the nifty chart!")</noscript>
+            </div>
+        </div>
+    -->
+
+        <h2>Average Loans per Person</h2>
+        <div class="chart" style="width: 838px;">
+            <div id="loans-per-user" class="graph">
+                <noscript>$_("You need to have JavaScript turned on to see the nifty chart!")</noscript>
+            </div>
+            <div class="chartYaxis" style="width:180px;">$_("This Many People")</div>
+            <div class="chartXaxis">$_("Borrowed This Many Books")</div>
+        </div>
+        
         <br/>
-        Loans returned in less than one hour: $onehour ($percent(onehour))
-        <br/>
-        Expired Loans: $expired ($percent(expired))
-        <br/>
-    </p>
 
-<!-- Hiding this graph for now -->
-<!--
-    <h2>Average Loan Duration</h2>
-    <div class="chart">
-        <div id="avg-duration" class="graph">
-            <noscript>$_("You need to have JavaScript turned on to see the nifty chart!")</noscript>
+        <h2>Distribution of How Many Times a Book is Borrowed</h2>
+        <div class="chart" style="width: 838px;">
+            <div id="loans-per-book" class="graph">
+                <noscript>$_("You need to have JavaScript turned on to see the nifty chart!")</noscript>
+            </div>
+            <div class="chartYaxis" style="width:180px;">$_("This Many Books")</div>
+            <div class="chartXaxis">$_("Were Borrowed This Many Times")</div>
         </div>
     </div>
--->
+    <div id="libraries">
 
-    <h2>Average Loans per Person</h2>
-    <div class="chart">
-        <div id="loans-per-user" class="graph">
-            <noscript>$_("You need to have JavaScript turned on to see the nifty chart!")</noscript>
-        </div>
-        <div class="chartYaxis" style="width:180px;">$_("This Many People")</div>
-        <div class="chartXaxis">$_("Borrowed This Many Books")</div>
+        $ data = stats.get_loans_per_library()
+
+        <table id="library-table">
+            <thead>
+            <tr>
+                <th class="name" title=""><a href="javascript:;">Library / Region<span></span></a></th>
+                <th class="" title=""><a href="javascript:;">Total Loans<span></span></a></th>
+            </tr>
+            </thead>
+            <tbody>
+            $for (key, name), count in data:
+                <tr>
+                    <td><a href="$key">$name</a></td>
+                    <td class="number">$count</td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="clearfix"></div>        
     </div>
-    
-    <br/>
 
-    <h2>Distribution of How Many Times a Book is Borrowed</h2>
-    <div class="chart">
-        <div id="loans-per-book" class="graph">
-            <noscript>$_("You need to have JavaScript turned on to see the nifty chart!")</noscript>
-        </div>
-        <div class="chartYaxis" style="width:180px;">$_("This Many Books")</div>
-        <div class="chartXaxis">$_("Were Borrowed This Many Times")</div>
-    </div>
+    <div id="books">
+        $def render_authors(book):
+            $ work = book.works and book.works[0]
+            $ authors = work and [a.author for a in work.authors if "author" in a]
+            $if not authors:
+                <em>Unknown authors</em>
+            $else:
+                $for a in authors:
+                    <a href="$a.url()" class="results">$a.name</a>$cond(loop.last, "", ", ")
 
-    <br/>
-
-    <h2>Popular Books</h2>
-    $def render_authors(book):
-        $ work = book.works and book.works[0]
-        $ authors = work and [a.author for a in work.authors if "author" in a]
-        $if not authors:
-            <em>Unknown authors</em>
-        $else:
-            $for a in authors:
-                <a href="$a.url()" class="results">$a.name</a>$cond(loop.last, "", ", ")
-
-    $def render_book(book, count):
-        $ cover = book.get_cover()
-        $ cover_url = cover and cover.url("M") or "/images/icons/avatar_book-sm.png"
-        <span class="image">
-            <a href="$book.url()"><img src="$cover_url" height="70"/></a>
-        </span>
-        <span class="details">
-            <span class="resultTitle">
-                <h3><a href="$book.url()" class="results">$book.title</a></h3>
-                <span class="small">by $:render_authors(book)</span>
-                <span class="meta">
-                    $ msg = ungettext("Borrowed once", "Borrowed %(count)s times", count)
-                    $sprintf(msg, count=count)
-                </span>
+        $def render_book(book, count):
+            $ cover = book.get_cover()
+            $ cover_url = cover and cover.url("M") or "/images/icons/avatar_book-sm.png"
+            <span class="image">
+                <a href="$book.url()"><img src="$cover_url" height="70"/></a>
             </span>
-        </span>
+            <div class="details">
+                <div class="resultTitle">
+                    <h3><a href="$book.url()" class="results">$book.title</a></h3>
+                    <span class="small">by $:render_authors(book)</span>
+                    <span class="meta">
+                        $ msg = ungettext("Borrowed once", "Borrowed %(count)s times", count)
+                        $sprintf(msg, count=count)
+                    </span>
+                </div>
+            </div>
 
-    <ul id="listResults" class="narrow">
-        $for book, count in stats.get_popular_books():
-            <li>
-                $:render_book(book, count)
-            </li>
+        <ul id="listResults" class="narrow">
+            $for book, count in stats.get_popular_books():
+                <li>
+                    $:render_book(book, count)
+                </li>
+        </ul>
+        <div class="clearfix"></div>
+    </div>
 </div>
