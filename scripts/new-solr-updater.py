@@ -17,6 +17,7 @@ import datetime
 import time
 import web
 import sys
+import re
 
 from openlibrary.solr import update_work
 
@@ -118,7 +119,7 @@ def parse_log(records):
                     yield edition_key
             elif data.get("type") == "ia-scan" and data.get("_key", "").startswith("ia-scan/"):
                 identifier = data.get('identifier')
-                if identifier:
+                if identifier and re.match("^[a-zA-Z0-9_.-]*$", identifier):
                     yield "/books/ia:" + identifier
 
 def update_keys(keys):
