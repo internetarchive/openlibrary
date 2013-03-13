@@ -163,7 +163,16 @@ class IAMiddleware(ConnectionMiddleware):
             if key in metadata and metadata[key] != {}:
                 value = metadata[key]
                 if isinstance(value, list):
-                    value = value[0]
+                    value = [v for v in value if v != {}]
+                    if value:
+                        if isinstance(value[0], basestring):
+                            value = "\n\n".join(value)
+                        else:
+                            value = value[0]
+                    else:
+                        # empty list. Ignore.
+                        return
+
                 d[key2] = value
 
         def add_list(key, key2):
