@@ -235,7 +235,12 @@ function less(header) {
             $ work_keys.append(key)
             <li>
             <span class="bookcover">
-                $ cover = get_coverstore_url() + "/b/olid/%s-S.jpg" % doc.cover_edition_key if doc.cover_edition_key else "http://openlibrary.org/images/icons/avatar_book-sm.png"
+                $if doc.cover_edition_key:
+                    $ cover = get_coverstore_url() + "/b/olid/%s-S.jpg" % doc.cover_edition_key 
+                $elif doc.ia:
+                    $ cover = "http://archive.org/download/%s/page/cover_w60_h60.jpg" % doc.ia[0]
+                $else:
+                    $ cover = "/images/icons/avatar_book-sm.png"
                 <a href="$doc.url"><img src="$cover" height="70" alt="Cover of: $doc.title$(': ' + doc.subtitle if doc.get('subtitle', None) else '')" title="Cover of: $doc.title$(': ' + doc.subtitle if doc.get('subtitle', None) else '')"/></a>
             </span>
             <span class="details">
