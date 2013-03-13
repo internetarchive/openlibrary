@@ -159,7 +159,8 @@ class IAMiddleware(ConnectionMiddleware):
 
         def add(key, key2=None):
             key2 = key2 or key
-            if key in metadata:
+            # sometimes the empty values are represneted as {} in metadata API. Avoid them.
+            if key in metadata and metadata[key] != {}:
                 value = metadata[key]
                 if isinstance(value, list):
                     value = value[0]
@@ -167,7 +168,8 @@ class IAMiddleware(ConnectionMiddleware):
 
         def add_list(key, key2):
             key2 = key2 or key
-            if key in metadata:
+            # sometimes the empty values are represneted as {} in metadata API. Avoid them.
+            if key in metadata and metadata[key] != {}:
                 value = metadata[key]
                 if not isinstance(value, list):
                     value = [value]
