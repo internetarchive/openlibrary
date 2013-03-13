@@ -890,8 +890,12 @@ def update_keys(keys, commit=True):
     requests = []
     for k in wkeys:
         logger.info("updating %s", k)
-        w = withKey(k)
-        requests += update_work(w, debug=True)
+        try:
+            w = withKey(k)
+            requests += update_work(w, debug=True)
+        except:
+            logger.error("Failed to update work %s", k, exc_info=True)
+
     if requests:    
         if commit:
             requests += ['<commit />']
