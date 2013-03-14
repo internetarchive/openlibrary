@@ -127,9 +127,12 @@ def is_allowed_itemid(identifier):
     if not re.match("^[a-zA-Z0-9_.-]*$", identifier):
         return False
 
-    # JSTOR ids are all articles, not books. 
-    if identifier.startswith("jstor-"):
-        return False
+    # items starts with these prefixes are not books. Ignore them.
+    ignore_prefixes = ["jstor-", "imslp-"]
+
+    for prefix in ignore_prefixes:
+        if identifier.startswith(prefix):
+            return False
         
     return True            
 
