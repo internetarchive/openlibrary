@@ -144,9 +144,12 @@ class IAMiddleware(ConnectionMiddleware):
         if metadata.get("mediatype") != "texts":
             return False
 
-        # ignore all JSTOR items
-        if itemid.startswith("jstor-"):
-            return False
+        # items start with these prefixes are not books
+        ignore_prefixes = ["jstor-", "imslp-"]
+        for prefix in ignore_prefixes:
+            # ignore all JSTOR items
+            if itemid.startswith(prefix):
+                return False
 
         return True
 
