@@ -197,11 +197,29 @@ class IAMiddleware(ConnectionMiddleware):
                     value = [value]
                 d[key2] = value
 
+        def add_isbns():
+            isbns = metadata.get('isbn')
+            isbn_10 = []
+            isbn_13 = []
+            if isbns:
+                for isbn in isbns:
+                    isbn = isbn.replace("-", "").strip()
+                    if len(isbn) == 13:
+                        isbn_13.append(isbn)
+                    elif len(isbn) == 10:
+                        isbn_10.append(isbn)
+            if isbn_10:
+                d["isbn_10"] = isbn_10
+            if isbn_13: 
+                d["isbn_13"] = isbn_13
+
         add('title')
         add('description', 'description')
         add_list('publisher', 'publishers')
         add_list("creator", "author_names")
         add('date', 'publish_date')
+
+        add_isbns()
         
         return simplejson.dumps(d)
 
