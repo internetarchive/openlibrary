@@ -140,11 +140,21 @@ class IAMiddleware(ConnectionMiddleware):
         }
         return simplejson.dumps(d)
 
+    def _is_valid_item(self, itemid, metadata):
+        if metadata.get("mediatype") != "texts":
+            return False
+
+        # ignore all JSTOR items
+        if itemid.startswith("jstor-"):
+            return False
+
+        return True
+
     def _get_ia_item(self, itemid):
         timestamp = {"type": "/type/datetime", "value": "2010-01-01T00:00:00"}
         metadata = ia.get_metadata(itemid)
 
-        if metadata.get("mediatype") != "texts":
+        if not self._is_valid_item(itemid, metadata):
             raise client.ClientException("404 Not Found", "notfound", simplejson.dumps({"key": "/books/ia:" + itemid}))
 
         d = {   
