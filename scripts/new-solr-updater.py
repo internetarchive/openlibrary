@@ -120,8 +120,18 @@ def parse_log(records):
                     yield edition_key
             elif data.get("type") == "ia-scan" and data.get("_key", "").startswith("ia-scan/"):
                 identifier = data.get('identifier')
-                if identifier and re.match("^[a-zA-Z0-9_.-]*$", identifier):
+                if identifier and is_allowed_itemid(identifier):
                     yield "/books/ia:" + identifier
+
+def is_allowed_itemid(identifier):
+    if not re.match("^[a-zA-Z0-9_.-]*$", identifier):
+        return False
+
+    # JSTOR ids are all articles, not books. 
+    if identifier.startswith("jstor-"):
+        return False
+        
+    return True            
 
 def update_keys(keys):
     keys = (k for k in keys if k.count("/") == 2 and k.split("/")[1] in ["books", "authors", "works"])
