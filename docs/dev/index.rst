@@ -31,8 +31,8 @@ To include a new third-party library:
 
 * Commit vendor.jsh and the library added to the repository
 
-.. _vendor/js: http://github.com/openlibrary/openlibrary/tree/master/vendor/js
-.. _static/js/vendor.jsh: http://github.com/openlibrary/openlibrary/tree/master/static/upstream/js/vendor.jsh
+.. _vendor/js: http://github.com/internetarchive/openlibrary/tree/master/vendor/js
+.. _static/js/vendor.jsh: http://github.com/internetarchive/openlibrary/tree/master/static/upstream/js/vendor.jsh
 
 all.js and custom javascripts
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
