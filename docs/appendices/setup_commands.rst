@@ -34,7 +34,7 @@ Start a bash shell with the env required for running all OL scripts. ::
 
 This starts a bash shell with `conf/bashrc`_ as rc file.
 
-.. _conf/bashrc: http://github.com/openlibrary/openlibrary/blob/master/conf/bashrc
+.. _conf/bashrc: http://github.com/internetarchive/openlibrary/blob/master/conf/bashrc
 
 test
 ----
@@ -62,7 +62,7 @@ The docs will be generated in ``build/sphinx/html/``.
 
 The custom setup.py commands are implemented in `setup_commands.py`_.
 
-.. _setup_commands.py: http://github.com/openlibrary/openlibrary/tree/master/openlibary/core/setup_commands.py
+.. _setup_commands.py: http://github.com/internetarchive/openlibrary/tree/master/openlibary/core/setup_commands.py
 
 To know more about how to add custom setuptools commands, see:
 
