@@ -24,8 +24,9 @@ class borrow(delegate.page):
     def GET(self):
         rand = random.randint(0, 9999)
         sort = "random_%d desc" % rand
-        subject = get_lending_library(web.ctx.site, details=True, inlibrary=inlibrary.get_library() is not None, limit=24, sort=sort)
-        return render_template("borrow/index", subject, stats=LoanStats(), rand=rand)
+        is_inlibrary = inlibrary.get_library() is not None
+        subject = get_lending_library(web.ctx.site, details=True, inlibrary=is_inlibrary, limit=24, sort=sort)
+        return render_template("borrow/index", subject, stats=LoanStats(), rand=rand, inlibrary=is_inlibrary)
 
 class borrow(delegate.page):
     path = "/borrow"
