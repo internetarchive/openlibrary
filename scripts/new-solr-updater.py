@@ -128,7 +128,7 @@ def is_allowed_itemid(identifier):
         return False
 
     # items starts with these prefixes are not books. Ignore them.
-    ignore_prefixes = ["jstor-", "imslp-"]
+    ignore_prefixes = ["jstor-", "imslp-", "nasa_techdoc_"]
 
     for prefix in ignore_prefixes:
         if identifier.startswith(prefix):
