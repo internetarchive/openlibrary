@@ -53,6 +53,11 @@ def load_config():
     if not config.runtime_config:
         config.load('openlibrary.yml')
 
+def is_single_core():
+    """Returns True if we are using new single core solr setup that maintains
+    all type of documents in a single core."""
+    return config.runtime_config.get("single_core_solr", False)
+
 def is_borrowed(edition_key):
     """Returns True of the given edition is borrowed.
     """
@@ -465,8 +470,15 @@ class SolrProcessor:
                 
         def add_list(name, values):
             d[name] = list(values)
-            
-        add('key', w['key'][7:]) # strip /works/             
+        
+        # when using common solr core for all types of documents, 
+        # use the full key and add type to the doc.
+        if is_single_core():
+            add('key', w['key'])
+            add('type', 'work')
+        else:    
+            add('key', w['key'][7:]) # strip /works/
+
         add('title', w.get('title'))
         add('subtitle', w.get('subtitle'))
         add('has_fulltext', has_fulltext)
@@ -746,13 +758,24 @@ def build_data(w, obj_cache=None, resolve_redirects=False):
     return doc
     
 def solr_update(requests, debug=False, index='works'):
+    # As of now, only works are added to single core solr. 
+    # Need to work on supporting other things later
+    if is_single_core() and index != 'works':
+        return
+
     h1 = httplib.HTTPConnection(get_solr(index))
+
+    if is_single_core():
+        url = 'http://%s/solr/update' % get_solr(index)
+    else:
+        url = 'http://%s/solr/%s/update' % (get_solr(index), index)
+    print url
+    
     h1.connect()
     for r in requests:
         if debug:
             print 'request:', `r[:65]` + '...' if len(r) > 65 else `r`
         assert isinstance(r, basestring)
-        url = 'http://%s/solr/%s/update' % (get_solr(index), index)
         h1.request('POST', url, r, { 'Content-type': 'text/xml;charset=utf-8'})
         response = h1.getresponse()
         response_body = response.read()
@@ -792,7 +815,11 @@ def update_work(w, obj_cache=None, debug=False, resolve_redirects=False):
     if w['type']['key'] == '/type/edition' and w.get('title'):
         edition = w
         w = {
-            'key': edition['key'],
+            # Use key as /works/OL1M. 
+            # In case of single-core-solr, we are using full path as key. So it is required
+            # to be unique across all types of documents.
+            # The website takes care of redirecting /works/OL1M to /books/OL1M.
+            'key': edition['key'].replace("/books/", "/works"),
             'type': {'key': '/type/work'},
             'title': edition['title'],
             'editions': [edition]
@@ -810,6 +837,10 @@ def update_work(w, obj_cache=None, debug=False, resolve_redirects=False):
                 # 
                 if d.get('ia'):
                     deletes += ["ia:" + iaid for iaid in d['ia']]
+
+                # In single core solr, we use full path as key, not just the last part
+                if is_single_core():
+                    deletes = ["/works/" + k for k in deletes]
 
                 requests.append(make_delete_query(deletes))
 
