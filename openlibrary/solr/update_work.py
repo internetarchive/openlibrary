@@ -904,8 +904,12 @@ def update_keys(keys, commit=True):
     # Get works for all the editions
     ekeys = set(k for k in keys if k.startswith("/books/"))
     for k in ekeys:
-        print "processing edition", k
+        logger.info("processing edition %s", k)
         edition = withKey(k)
+        if not edition:
+            logger.warn("No edition found for key %r. Ignoring...", k)
+            continue
+
         if edition.get("works"):
             wkeys.add(edition["works"][0]['key'])
         else:
