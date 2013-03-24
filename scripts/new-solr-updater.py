@@ -27,6 +27,7 @@ def parse_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument('-c', '--config')
     parser.add_argument('--state-file', default="solr-update.state")
+    parser.add_argument('--ol-url', default="http://openlibrary.org/")
     return parser.parse_args()
 
 def load_config(path):
@@ -128,7 +129,7 @@ def is_allowed_itemid(identifier):
         return False
 
     # items starts with these prefixes are not books. Ignore them.
-    ignore_prefixes = ["jstor-", "imslp-"]
+    ignore_prefixes = ["jstor-", "imslp-", "nasa_techdoc_"]
 
     for prefix in ignore_prefixes:
         if identifier.startswith(prefix):
@@ -185,7 +186,15 @@ def main():
     FORMAT = "%(asctime)-15s %(levelname)s %(message)s"
     logging.basicConfig(level=logging.INFO, format=FORMAT)
 
+    logger.info("BEGIN new-solr-updater")
+
     args = parse_arguments()
+
+    # set OL URL when running on a dev-instance
+    if args.ol_url:
+        host = web.lstrips(args.ol_url, "http://").strip("/")
+        update_work.set_query_host(host)
+
     config = load_config(args.config)
 
     state_file = args.state_file

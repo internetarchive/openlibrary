@@ -1,6 +1,7 @@
 import datetime
 
 import web
+import logging
 
 from infogami import config
 from infogami.utils import delegate
@@ -11,6 +12,8 @@ from openlibrary import accounts
 from openlibrary.core import stats
 
 support_db = None
+
+logger = logging.getLogger("openlibrary")
 
 class contact(delegate.page):
     def GET(self):
@@ -58,12 +61,40 @@ class contact(delegate.page):
         else:
             stats.increment("support.all")
             subject = "Support case *%s*"%topic
-            message = "A new support case has been filed\n\nTopic: %s\n\nDescription:\n%s"%(topic, description)
-            web.sendmail(email, assignee, subject, message)
-        return render_template("email/case_created", assignee)
-            
-            
 
+            url = web.ctx.home + url
+            displayname = user and user.get_name() or ""
+            username = user and user.get_username() or ""
+
+            message = SUPPORT_EMAIL_TEMPLATE % locals()
+            sendmail(email, assignee, subject, message)
+        return render_template("email/case_created", assignee)
+
+def sendmail(from_address, to_address, subject, message):
+    if config.get('dummy_sendmail'):
+        msg = ('' +
+            'To: ' + to_address + '\n' +
+            'From:' + from_address + '\n' +
+            'Subject:' + subject + '\n' +
+            '\n' +
+            web.safestr(message))
+
+        logger.info("sending email:\n%s", msg)
+    else:
+        web.sendmail(from_address, to_address, subject, message)
+
+            
+SUPPORT_EMAIL_TEMPLATE = """
+A new support case has been filed by %(displayname)s <%(email)s>.
+
+Topic: %(topic)s
+URL: %(url)s
+User-Agent: %(useragent)s
+OL-username: %(username)s
+
+Description:\n
+%(description)s
+"""
 
 def setup():
     global support_db
