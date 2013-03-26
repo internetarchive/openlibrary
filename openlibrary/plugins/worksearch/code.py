@@ -20,19 +20,26 @@ re_to_esc = re.compile(r'[\[\]:]')
 class edition_search(_edition_search):
     path = "/search/edition"
 
+def get_solr_select_url(host, core):
+    if config.get('single_core_solr'):
+        return "http://%s/solr/select" % host 
+    else:
+        return "http://%s/solr/%s/select" % (host, core)
+
 if hasattr(config, 'plugin_worksearch'):
     solr_host = config.plugin_worksearch.get('solr', 'localhost')
-    solr_select_url = "http://" + solr_host + "/solr/works/select"
+
+    solr_select_url = get_solr_select_url(solr_host, 'works')
 
     solr_subject_host = config.plugin_worksearch.get('subject_solr', 'localhost')
-    solr_subject_select_url = "http://" + solr_subject_host + "/solr/subjects/select"
+    solr_subject_select_url = get_solr_select_url(solr_subject_host, 'subjects')
 
     solr_author_host = config.plugin_worksearch.get('author_solr', 'localhost')
-    solr_author_select_url = "http://" + solr_author_host + "/solr/authors/select"
+    solr_author_select_url = get_solr_select_url(solr_author_host, 'authors')
 
     solr_edition_host = config.plugin_worksearch.get('edition_solr', 'localhost')
-    solr_edition_select_url = "http://" + solr_edition_host + "/solr/editions/select"
-
+    solr_edition_select_url = get_solr_select_url(solr_edition_host, 'editions')
+    
     default_spellcheck_count = config.plugin_worksearch.get('spellcheck_count', 10)
 
 re_author_facet = re.compile('^(OL\d+A) (.*)$')
@@ -179,6 +186,9 @@ def run_solr_query(param = {}, rows=100, page=1, sort=None, spellcheck_count=Non
         offset = rows * (page - 1)
 
     (q_list, use_dismax) = build_q_list(param)
+
+    if config.get("single_core_solr"):
+        q_list.append("type:work")
 
     if fields is None:
         fields = [
@@ -330,6 +340,7 @@ def get_doc(doc): # called from work_search template
         subtitle = work_subtitle,
         cover_edition_key = (cover.text if cover is not None else None),
     )
+
     doc.url = '/works/' + doc.key + '/' + urlsafe(doc.title)
     
     if not doc.public_scan and doc.lending_edition:
@@ -591,9 +602,21 @@ class author_search(delegate.page):
     def get_results(self, q, offset=0, limit=100):
         valid_fields = ['key', 'name', 'alternate_names', 'birth_date', 'death_date', 'date', 'work_count']
         q = escape_colon(escape_bracket(q), valid_fields)
+
+        if config.get('single_core_solr'):
+            q += ' type:author'
+
         solr_select = solr_author_select_url + "?q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=*&qt=standard&wt=json" % (web.urlquote(q), offset, limit)
         solr_select += '&sort=work_count+desc'
-        return run_solr_search(solr_select)
+        d = run_solr_search(solr_select)
+
+        if config.get('single_core_solr'):
+            docs = d.get('response', {}).get('docs', [])
+            for doc in docs:
+                # replace /authors/OL1A with OL1A
+                # The template still expects the key to be in the old format
+                doc['key'] = doc['key'].split("/")[-1]
+        return d
         
 class author_search_json(author_search):
     path = '/search/authors'

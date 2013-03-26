@@ -95,7 +95,7 @@ def get_ia_collection_and_box_id(ia):
         return value
 
     matches = {'boxid': set(), 'collection': set() }
-    url = "http://www.archive.org/metadata/%s" % ia
+    url = "http://archive.org/metadata/%s" % ia
     logger.info("loading metadata from %s", url)
     for attempt in range(5):
         try:
@@ -760,7 +760,7 @@ def build_data(w, obj_cache=None, resolve_redirects=False):
 def solr_update(requests, debug=False, index='works'):
     # As of now, only works are added to single core solr. 
     # Need to work on supporting other things later
-    if is_single_core() and index != 'works':
+    if is_single_core() and index not in ['works', 'authors']:
         return
 
     h1 = httplib.HTTPConnection(get_solr(index))
@@ -880,8 +880,16 @@ def update_author(akey, a=None, handle_redirects=True):
 
     facet_fields = ['subject', 'time', 'person', 'place']
 
-    url = 'http://' + get_solr('works') + '/solr/works/select?wt=json&json.nl=arrarr&q=author_key:%s&sort=edition_count+desc&rows=1&fl=title,subtitle&facet=true&facet.mincount=1' % author_id
+    if is_single_core():
+        base_url = 'http://' + get_solr('works') + '/solr/select'
+    else:
+        base_url = 'http://' + get_solr('works') + '/solr/works/select'
+
+    url = base_url + '?wt=json&json.nl=arrarr&q=author_key:%s&sort=edition_count+desc&rows=1&fl=title,subtitle&facet=true&facet.mincount=1' % author_id
     url += ''.join('&facet.field=%s_facet' % f for f in facet_fields)
+
+    logger.info("urlopen %s", url)
+
     reply = json.load(urlopen(url))
     work_count = reply['response']['numFound']
     docs = reply['response'].get('docs', [])
@@ -899,7 +907,13 @@ def update_author(akey, a=None, handle_redirects=True):
 
     add = Element("add")
     doc = SubElement(add, "doc")
-    add_field(doc, 'key', author_id)
+    
+    if is_single_core():
+        add_field(doc, 'key', "/authors/" + author_id)
+        add_field(doc, 'type', "author")
+    else:
+        add_field(doc, 'key', author_id)
+
     if a.get('name', None):
         add_field(doc, 'name', a['name'])
     for f in 'birth_date', 'death_date', 'date':

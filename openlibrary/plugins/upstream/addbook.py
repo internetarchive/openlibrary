@@ -32,11 +32,18 @@ logger = logging.getLogger("openlibrary.book")
 SYSTEM_SUBJECTS = ["Accessible Book", "Lending Library", "In Library", "Protected DAISY"]
 
 def get_works_solr():
-    base_url = "http://%s/solr/works" % config.plugin_worksearch.get('solr')
+    if config.get('single_core_solr'):
+        base_url = "http://%s/solr" % config.plugin_worksearch.get('solr')
+    else:
+        base_url = "http://%s/solr/works" % config.plugin_worksearch.get('solr')
+
     return Solr(base_url)
 
 def get_authors_solr():
-    base_url = "http://%s/solr/authors" % config.plugin_worksearch.get('author_solr')
+    if config.get('single_core_solr'):
+        base_url = "http://%s/solr" % config.plugin_worksearch.get('author_solr')
+    else:
+        base_url = "http://%s/solr/authors" % config.plugin_worksearch.get('author_solr')
     return Solr(base_url)
 
 def make_work(doc):

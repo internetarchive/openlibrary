@@ -474,7 +474,10 @@ class Author(models.Author):
 re_year = re.compile(r'(\d{4})$')
 
 def get_works_solr():
-    base_url = "http://%s/solr/works" % config.plugin_worksearch.get('solr')
+    if config.get("single_core_solr"):
+        base_url = "http://%s/solr" % config.plugin_worksearch.get('solr')
+    else:
+        base_url = "http://%s/solr/works" % config.plugin_worksearch.get('solr')
     return Solr(base_url)
         
 class Work(models.Work):
