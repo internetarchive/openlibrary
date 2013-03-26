@@ -3,7 +3,7 @@
 import web
 import cache
 import iprange
-import geoip
+import geo_ip
 from infogami.utils import delegate
 
 def _get_libraries(site=None):
@@ -96,7 +96,7 @@ def get_library():
         if lib:
             web.ctx.library = web.ctx.site.new(lib['key'], lib)
         else:
-            region = geoip.get_region(web.ctx.ip)
+            region = geo_ip.get_region(web.ctx.ip)
             lib = d_region.get(region)
             web.ctx.library = lib and web.ctx.site.new(lib['key'], lib)
     return web.ctx.library
