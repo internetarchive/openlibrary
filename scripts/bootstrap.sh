@@ -12,8 +12,11 @@ nginx
 solr-tomcat
 postgresql
 build-essential
-curl
 git-core
+memcached
+
+curl
+screen
 
 libgeoip-dev
 
@@ -48,3 +51,22 @@ OL-GeoIP==1.2.4
 mockcache"
 
 pip install $PYTHON_PACKAGES
+
+# For some wierd error, nginx doesn't seem to be starting on boot
+/etc/init.d/nginx restart
+
+# change solr/tomcat port to 8983
+perl -i -pe 's/8080/8983/'  /etc/tomcat6/server.xml
+cp /vagrant/conf/solr/conf/schema.xml /etc/solr/conf/
+/etc/init.d/tomcat6 restart
+
+mkdir -p /var/log/openlibrary /var/lib/openlibrary
+chown vagrant:vagrant /var/log/openlibrary /var/lib/openlibrary
+
+cp /vagrant/conf/init/* /etc/init/
+cd /vagrant/conf/init 
+for name in ol-*
+do 
+	echo starting ${name//.conf}
+	start ${name//.conf}
+done

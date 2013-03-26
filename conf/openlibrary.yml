@@ -1,6 +1,6 @@
 # Open Library fastcgi configuration
 
-connection_type: "local"
+connection_type: "hybrid"
 
 site: "openlibrary.org"
 
@@ -46,15 +46,17 @@ state_dir: var/run
 use_gzip: True
 
 admin_password: "admin123"
-errorlog: "var/log/ol-errors"
+errorlog: "/var/log/openlibrary/ol-errors"
 login_cookie_name: session
+
+infobase_server: "localhost:7000"
 
 # contents of this file are assigned to config["infobase"]
 # Path can be relative to this file
 infobase_config_file: infobase.yml
 coverstore_config_file: coverstore.yml
  
-loanstatus_url: http://localhost:8080
+loanstatus_url: http://localhost/
 ia_access_secret: foobar
 
 dev_instance: True
@@ -70,7 +72,6 @@ plugins:
     - "admin"
     - "upstream"
     - "importapi"
-    - "theme"
 
 plugin_worksearch:
     solr: "localhost:8983"
@@ -81,6 +82,8 @@ plugin_worksearch:
     ebook_count_db_parameters:
         db: 'openlibrary_ebook_count'
         host: 'localhost'
+
+single_core_solr: True
 
 features:
     upstream: enabled

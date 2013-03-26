@@ -9,8 +9,8 @@ Vagrant.configure("2") do |config|
   # Every Vagrant virtual environment requires a box to build off of.
   config.vm.box = "precise32"
   config.vm.provision :shell, :path => "scripts/bootstrap.sh"
-  config.vm.network :forwarded_port, host: 8000, guest: 80
-  config.vm.network :forwarded_port, host: 15432, guest: 5432
+  config.vm.network :forwarded_port, host: 8080, guest: 80
+  config.vm.network :forwarded_port, host: 18983, guest: 8983
 
   config.vm.hostname = "ol-dev"
 

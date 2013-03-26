@@ -9,7 +9,6 @@ user_root: /people/
 verify_user_email: true
 logging_config_file: conf/logging.ini
 
-#secret_key: g6mwujjJAKIB9QAx0EcwCTrN6jrWmm
 secret_key: xxx
 
 plugins:
@@ -18,7 +17,7 @@ plugins:
 cache:
     type: memcache
     servers:
-        - "127.0.0.1:7060"
+        - "127.0.0.1:11211"
 
-errorlog: var/run/infobase-errors
-writelog: var/log/infobase-writelog
+errorlog: /var/log/openlibrary/infobase-errors
+writelog: /var/lib/openlibrary/infobase-writelog
