@@ -99,6 +99,7 @@ def readonline_carousel(id="read-carousel"):
             data = random.sample(data, 120)
         return render_template("books/carousel", storify(data), id=id)
     except Exception:
+        logger.error("Failed to compute data for readonline_carousel", exc_info=True)
         return None
         
 def random_ebooks(limit=2000):
@@ -116,7 +117,7 @@ def random_ebooks(limit=2000):
             "cover_edition_key",
             "author_key", "author_name",
         ])
-    
+
     def process_doc(doc):
         d = {}
         d['url'] = "/works/" + doc['key']
