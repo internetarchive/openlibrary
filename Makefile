@@ -82,3 +82,7 @@ destroy:
 	-dropdb coverstore
 	-dropdb openlibrary
 	rm -rf var usr env
+
+reindex-solr:
+	psql openlibrary -t -c 'select key from thing' | sed 's/ *//' | grep '^/books/' | PYTHONPATH=/vagrant xargs python /vagrant/openlibrary/solr/update_work.py -s http://localhost/ -c /vagrant/conf/openlibrary.yml
+	psql openlibrary -t -c 'select key from thing' | sed 's/ *//' | grep '^/authors/' | PYTHONPATH=/vagrant xargs python /vagrant/openlibrary/solr/update_work.py -s http://localhost/ -c /vagrant/conf/openlibrary.yml
