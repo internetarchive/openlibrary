@@ -187,9 +187,6 @@ def run_solr_query(param = {}, rows=100, page=1, sort=None, spellcheck_count=Non
 
     (q_list, use_dismax) = build_q_list(param)
 
-    if config.get("single_core_solr"):
-        q_list.append("type:work")
-
     if fields is None:
         fields = [
             'key', 'author_name', 'author_key', 
@@ -239,6 +236,10 @@ def run_solr_query(param = {}, rows=100, page=1, sort=None, spellcheck_count=Non
         solr_select += "&sort=" + url_quote(sort)
 
     solr_select += '&wt=' + url_quote(param.get('wt', 'standard'))
+
+    # For single-core solr, filter the results by type:work
+    if config.get("single_core_solr"):
+        solr_select += "&fq=type:work"
 
     stats.begin("solr", url=solr_select)
     reply = urllib.urlopen(solr_select).read()
@@ -603,11 +604,12 @@ class author_search(delegate.page):
         valid_fields = ['key', 'name', 'alternate_names', 'birth_date', 'death_date', 'date', 'work_count']
         q = escape_colon(escape_bracket(q), valid_fields)
 
-        if config.get('single_core_solr'):
-            q += ' type:author'
-
         solr_select = solr_author_select_url + "?q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=*&qt=standard&wt=json" % (web.urlquote(q), offset, limit)
         solr_select += '&sort=work_count+desc'
+
+        if config.get('single_core_solr'):
+            solr_select += '&fq=type:author'
+
         d = run_solr_search(solr_select)
 
         if config.get('single_core_solr'):
