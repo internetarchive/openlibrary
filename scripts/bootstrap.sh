@@ -50,6 +50,8 @@ eventer==0.1.1
 OL-GeoIP==1.2.4
 mockcache"
 
+REINDEX_SOLR=no
+
 function setup_database() {
     echo "finding if posgres user vagrant already exists."
     x=`sudo -u postgres psql -t -c "select count(*) FROM pg_catalog.pg_user where usename='vagrant'"`
@@ -64,15 +66,21 @@ function setup_database() {
 
         echo " setting up openlibrary database"
         setup_ol
+        REINDEX_SOLR=yes
     else
         echo "pg_user vagrant already exists. no need to setup database"
     fi
 }
 
 function setup_ol() {
-    cd /vagrant
-    sed -e 's/hybrid/local/' -e 's/^infobase_server/# infobase_server/' conf/openlibrary.yml > conf/ol-install.yml
-    sudo -u vagrant python scripts/openlibrary-server conf/ol-install.yml install
+    # Download sample dev-instance database from archive.org
+    wget http://archive.org/download/ol_vendor/openlibrary-devinstance.pg_dump.gz -O /tmp/openlibrary-devinstance.pg_dump.gz
+    zcat /tmp/openlibrary-devinstance.pg_dump.gz | sudo -u vagrant psql openlibrary
+
+    # This is an alternative way to install OL from scratch
+    #cd /vagrant
+    #sed -e 's/hybrid/local/' -e 's/^infobase_server/# infobase_server/' conf/openlibrary.yml > conf/ol-install.yml
+    #sudo -u vagrant python scripts/openlibrary-server conf/ol-install.yml install
     #rm conf/ol-install.yml
 }
 
@@ -102,3 +110,9 @@ do
 	echo starting ${name//.conf}
 	start ${name//.conf}
 done
+
+if [ "$REINDEX_SOLR" == "yes" ]
+then
+    cd /vagrant
+    sudo -u vagrant make reindex-solr
+fi
