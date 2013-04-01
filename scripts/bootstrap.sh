@@ -5,7 +5,7 @@
 # Important to do this before installing postgresql
 update-locale LANG=en_US.UTF-8 LC_ALL=POSIX
 
-#apt-get update
+apt-get update
 
 APT_PACKAGES="
 nginx
