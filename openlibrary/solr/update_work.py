@@ -476,6 +476,7 @@ class SolrProcessor:
         if is_single_core():
             add('key', w['key'])
             add('type', 'work')
+            add('seed', BaseDocBuilder().compute_seeds(w, editions))
         else:    
             add('key', w['key'][7:]) # strip /works/
 
@@ -760,7 +761,7 @@ def build_data(w, obj_cache=None, resolve_redirects=False):
 def solr_update(requests, debug=False, index='works'):
     # As of now, only works are added to single core solr. 
     # Need to work on supporting other things later
-    if is_single_core() and index not in ['works', 'authors']:
+    if is_single_core() and index not in ['works', 'authors', 'editions']:
         return
 
     h1 = httplib.HTTPConnection(get_solr(index))
@@ -770,7 +771,6 @@ def solr_update(requests, debug=False, index='works'):
     else:
         url = 'http://%s/solr/%s/update' % (get_solr(index), index)
     print url
-    
     h1.connect()
     for r in requests:
         if debug:
@@ -793,6 +793,132 @@ def withKey_cached(key, obj_cache={}):
     if key not in obj_cache:
         obj_cache[key] = withKey(key)
     return obj_cache[key]
+
+def listify(f):
+    """Decorator to transform a generator function into a function
+    returning list of values.
+    """
+    def g(*a, **kw):
+        return list(f(*a, **kw))
+    return g
+
+class BaseDocBuilder:
+    re_subject = re.compile("[, _]+")
+
+    @listify
+    def compute_seeds(self, work, editions, authors=None):
+        """Computes seeds from given work, editions and authors.
+
+        If authors is not supplied, it is infered from the work.
+        """
+
+        for e in editions:
+            yield e['key']
+
+        if work:
+            yield work['key']
+            for s in self.get_subject_seeds(work):
+                yield s
+
+            if authors is None:
+                authors = [a['author'] for a in work.get("authors", []) 
+                           if 'author' in a and 'key' in a['author']]
+
+        if authors:
+            for a in authors:
+                yield a['key']
+
+    def get_subject_seeds(self, work):
+        """Yields all subject seeds from the work.
+        """
+        return (
+            self._prepare_subject_keys("/subjects/", work.get("subjects")) +
+            self._prepare_subject_keys("/subjects/person:", work.get("subject_people")) +
+            self._prepare_subject_keys("/subjects/place:", work.get("subject_places")) +
+            self._prepare_subject_keys("/subjects/time:", work.get("subject_times")))
+
+    def _prepare_subject_keys(self, prefix, subject_names):
+        subject_names = subject_names or []
+        return [self.get_subject_key(prefix, s) for s in subject_names]
+
+    def get_subject_key(self, prefix, subject):
+        if isinstance(subject, basestring):
+            key = prefix + self.re_subject.sub("_", subject.lower()).strip("_")
+            return key
+
+class EditionBuilder(BaseDocBuilder):
+    """Helper to edition solr data.
+    """
+    def __init__(self, edition, work, authors):
+        self.edition = edition
+        self.work = work
+        self.authors = authors
+
+    def build(self):
+        return dict(self._build())
+
+    def _build(self):
+        yield 'key', self.edition['key']
+        yield 'type', 'edition'
+        yield 'title', self.edition.get('title') or ''
+        yield 'seed', self.compute_seeds(self.work, [self.edition])
+
+        has_fulltext = bool(self.edition.get("ocaid"))
+        yield 'has_fulltext', has_fulltext
+
+        last_modified = datetimestr_to_int(self.edition.get('last_modified'))
+        yield 'last_modified_i', last_modified
+
+class SolrRequestSet:
+    def __init__(self):
+        self.deletes = []
+        self.docs = []
+
+    def delete(self, key):
+        self.deletes.append(key)
+
+    def add(self, doc):
+        self.docs.append(doc)
+
+    def get_requests(self):
+        return list(self._get_requests())
+
+    def _get_requests(self):
+        requests = []
+        requests += [make_delete_query(self.deletes)]
+        requests += [self._add_request(doc) for doc in self.docs]
+        return requests
+
+    def _add_request(self, doc):
+        """Constructs add request using doc dict.
+        """
+        node = dict2element(doc)
+        root = Element("add")
+        root.append(node)
+        return tostring(root).encode('utf-8')
+
+def update_edition(e):
+    if not is_single_core():
+        return []
+
+    ekey = e['key']
+    logger.info("updating edition %s", ekey)
+
+    wkey = e.get('works') and e['works'][0]['key']
+    w = wkey and withKey(wkey)
+    authors = []
+
+    request_set = SolrRequestSet()
+    request_set.delete(ekey)
+
+    q = {'type': '/type/redirect', 'location': ekey}
+    redirect_keys = [r['key'] for r in query_iter(q)]
+    for k in redirect_keys:
+        request_set.delete(k)
+
+    doc = EditionBuilder(e, w, authors).build()
+    request_set.add(doc)
+    return request_set.get_requests()
 
 def update_work(w, obj_cache=None, debug=False, resolve_redirects=False):
     if obj_cache is None:
@@ -978,6 +1104,21 @@ def update_keys(keys, commit=True):
         if commit:
             requests += ['<commit />']
         solr_update(requests, debug=True)
+
+    # update editions
+    requests = []
+    for k in ekeys:
+        try:
+            e = withKey(k)
+            requests += update_edition(e)
+        except:
+            logger.error("Failed to update edition %s", k, exc_info=True)
+        if requests:
+            if commit:
+                requests += ['<commit/>']
+            solr_update(requests, index="editions", debug=True)
+
+
     
     # update authors
     requests = []
