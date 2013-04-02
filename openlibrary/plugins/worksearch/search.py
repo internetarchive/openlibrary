@@ -48,6 +48,9 @@ def work_search(query, limit=20, offset=0, **kw):
     ]
     kw.setdefault("fields", fields)
 
+    if config.get('single_core_solr'):
+        kw.setdefault("fq", "type:work")
+
     query = process_work_query(query)
     solr = get_works_solr()
     
@@ -71,8 +74,12 @@ def process_work_query(query):
     return query
 
 def work_wrapper(w):
+    key = w['key']
+    if not key.startswith("/works/"):
+        key += "/works/"
+
     d = web.storage(
-        key="/works/" + w["key"],
+        key=key,
         title=w["title"],
         edition_count=w["edition_count"]
     )
