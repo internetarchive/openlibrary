@@ -120,7 +120,13 @@ def random_ebooks(limit=2000):
 
     def process_doc(doc):
         d = {}
-        d['url'] = "/works/" + doc['key']
+
+        key = doc['key']
+        # New solr stores the key as /works/OLxxxW
+        if not key.startswith("/works/"):
+            key = "/works/" + key
+
+        d['url'] = key
         d['title'] = doc.get('title', '')
         
         if 'author_key' in doc and 'author_name' in doc:
