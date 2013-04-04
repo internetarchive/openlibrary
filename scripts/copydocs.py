@@ -134,8 +134,8 @@ def copy(src, dest, keys, comment, recursive=False, saved=None, cache=None):
         # Deleting the covers and photos also because they don't show up in the dev instance.
         for doc in docs:
             doc.pop('excerpts', None)
-            doc.pop('covers', None)
-            doc.pop('photos', None)
+            #doc.pop('covers', None)
+            #doc.pop('photos', None)
 
             # Authors are now with works. We don't need authors at editions.
             if doc['type']['key'] == '/type/edition':

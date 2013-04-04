@@ -63,6 +63,8 @@ function setup_database() {
 
         echo "  creating openlibrary database"
         sudo -u vagrant createdb openlibrary
+        sudo -u vagrant createdb coverstore
+        sudo -u vagrant psql coverstore < /vagrant/openlibrary/coverstore/schema.sql
 
         echo " setting up openlibrary database"
         setup_ol

@@ -6,3 +6,6 @@ db_parameters:
 
 data_root: "var/lib/coverstore"
 default_image: "static/images/empty.gif"
+
+# Redirects to this, if the requested cover is not found in the coverstore. Useful for dev-instance
+upstream_base_url: http://covers.openlibrary.org/

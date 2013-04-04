@@ -220,7 +220,11 @@ class cover:
         key = key.lower()
         
         def notfound():
-            if config.default_image and i.default.lower() != "false" and not i.default.startswith('http://'):
+            if key in ["id", "olid"] and config.get("upstream_base_url"):
+                # this is only used in development
+                base = web.rstrips(config.upstream_base_url, "/")
+                raise web.redirect(base + web.ctx.fullpath)
+            elif config.default_image and i.default.lower() != "false" and not i.default.startswith('http://'):
                 return read_file(config.default_image)
             elif i.default.startswith('http://'):
                 raise web.seeother(i.default)
