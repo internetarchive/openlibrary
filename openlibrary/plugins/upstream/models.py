@@ -505,7 +505,11 @@ class Work(models.Work):
         return []
         
     def _get_solr_data(self):
-        key = self.get_olid()
+        if config.get("single_core_solr"):
+            key = self.key
+        else:
+            key = self.get_olid()
+
         fields = ["cover_edition_key", "cover_id", "edition_key", "first_publish_year"]
         
         solr = get_works_solr()
