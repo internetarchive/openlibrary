@@ -20,6 +20,7 @@ import sys
 import re
 
 from openlibrary.solr import update_work
+from openlibrary import config
 
 logger = logging.getLogger("solr-updater")
 
@@ -34,7 +35,6 @@ def load_config(path):
     c = yaml.safe_load(open(path))
 
     # required for update_work module to work
-    from openlibrary import config
     config.runtime_config = c
     return c
 
@@ -129,8 +129,7 @@ def is_allowed_itemid(identifier):
         return False
 
     # items starts with these prefixes are not books. Ignore them.
-    ignore_prefixes = ["jstor-", "imslp-", "nasa_techdoc_", "gov.uscourts."]
-
+    ignore_prefixes = config.runtime_config.get("ia_ignore_prefixes", [])
     for prefix in ignore_prefixes:
         if identifier.startswith(prefix):
             return False

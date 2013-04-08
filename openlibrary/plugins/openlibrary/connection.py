@@ -145,7 +145,7 @@ class IAMiddleware(ConnectionMiddleware):
             return False
 
         # items start with these prefixes are not books
-        ignore_prefixes = ["jstor-", "imslp-", "nasa_techdoc_", "gov.uscourts."]
+        ignore_prefixes = config.get("ia_ignore_prefixes")
         for prefix in ignore_prefixes:
             # ignore all JSTOR items
             if itemid.startswith(prefix):
