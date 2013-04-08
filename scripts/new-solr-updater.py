@@ -18,6 +18,7 @@ import time
 import web
 import sys
 import re
+import socket
 
 from openlibrary.solr import update_work
 from openlibrary import config
@@ -29,6 +30,7 @@ def parse_arguments():
     parser.add_argument('-c', '--config')
     parser.add_argument('--state-file', default="solr-update.state")
     parser.add_argument('--ol-url', default="http://openlibrary.org/")
+    parser.add_argument('--socket-timeout', type=int, default=10)
     return parser.parse_args()
 
 def load_config(path):
@@ -188,6 +190,10 @@ def main():
     logger.info("BEGIN new-solr-updater")
 
     args = parse_arguments()
+
+    # Sometimes archive.org requests blocks forever. 
+    # Setting a timeout will make the request fail instead of waiting forever. 
+    socket.settimeout(args.socket_timeout)
 
     # set OL URL when running on a dev-instance
     if args.ol_url:
