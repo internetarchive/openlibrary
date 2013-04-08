@@ -193,7 +193,7 @@ def main():
 
     # Sometimes archive.org requests blocks forever. 
     # Setting a timeout will make the request fail instead of waiting forever. 
-    socket.settimeout(args.socket_timeout)
+    socket.setdefaulttimeout(args.socket_timeout)
 
     # set OL URL when running on a dev-instance
     if args.ol_url:
