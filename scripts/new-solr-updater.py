@@ -222,7 +222,7 @@ def main():
 
     while True:
         records = logfile.read_records()
-        keys = parse_log(records, args)
+        keys = parse_log(records)
         count = update_keys(keys)
 
         offset = logfile.tell()
