@@ -124,7 +124,7 @@ def parse_log(records):
                 edition_key = data.get('book_key')
                 if edition_key:
                     yield edition_key
-            elif LOAD_IA_SCANS is False and data.get("type") == "ia-scan" and data.get("_key", "").startswith("ia-scan/"):
+            elif LOAD_IA_SCANS and data.get("type") == "ia-scan" and data.get("_key", "").startswith("ia-scan/"):
                 identifier = data.get('identifier')
                 if identifier and is_allowed_itemid(identifier):
                     yield "/books/ia:" + identifier
