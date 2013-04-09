@@ -4,6 +4,8 @@ import time
 import logging
 import datetime
 import itertools
+from cStringIO import StringIO
+import csv
 
 import web
 import couchdb
@@ -317,6 +319,34 @@ class stats(delegate.page):
     def GET(self):
         stats  = LoanStats()
         return render_template("libraries/stats", stats);
+
+class stats_per_library(delegate.page):
+    path = "/libraries/stats/(.*).csv"
+
+    def GET(self, libname):
+        key = "/libraries/" + libname
+        lib = web.ctx.site.get(key)
+        if not lib:
+            raise web.notfound()
+
+        rows = lib.get_loans_per_day("total")        
+
+        dates = [self.to_datestr(row[0]) for row in rows]
+        total = [str(row[1]) for row in rows]
+        pdf = [str(row[1]) for row in lib.get_loans_per_day("pdf")]
+        epub = [str(row[1]) for row in lib.get_loans_per_day("epub")]
+        bookreader = [str(row[1]) for row in lib.get_loans_per_day("bookreader")]
+
+        fileobj = StringIO()
+        writer = csv.writer(fileobj)
+        writer.writerow(["Date", "Total Loans", "PDF Loans", "ePub Loans", "Bookreader Loans"])
+        writer.writerows(zip(dates, total, pdf, epub, bookreader))
+
+        return delegate.RawText(fileobj.getvalue(), content_type="application/csv")
+
+    def to_datestr(self, millis):
+        t = time.gmtime(millis/1000)
+        return "%04d-%02d-%02d" % (t.tm_year, t.tm_mon, t.tm_mday)
 
 @web.memoize
 def get_admin_couchdb():
