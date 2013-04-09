@@ -132,18 +132,22 @@ $def render_libraries(libraries):
         </li>
 &nbsp;
 
-<div>
-     <h3 class="inline">United States of America</h3>
-     $ us_branches = branches.pop("United States of America", [])
+$def display_branches_by_state(name):
+  <div>
+       <h3 class="inline">$name</h3>
+       $ country_branches = branches.pop(name, [])
+       <div class="columns">
+           <ul class="places sansserief smallest">
+               $for state, libraries in sorted(group_branches_by_state(country_branches).items()):
+                   <li class="label">$state</li>
+                   $:render_libraries(libraries)
+           </ul>
+       </div>
+  </div>
 
-     <div class="columns">
-         <ul class="places sansserief smallest">
-             $for state, libraries in sorted(group_branches_by_state(us_branches).items()):
-                 <li class="label">$state</li>
-                 $:render_libraries(libraries)
-         </ul>
-     </div>
-</div>
+$:display_branches_by_state("United States of America")
+$:display_branches_by_state("Canada")
+
 <div class="clearfix"></div>
 
 <div>
