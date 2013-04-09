@@ -25,12 +25,15 @@ from openlibrary import config
 
 logger = logging.getLogger("solr-updater")
 
+LOAD_IA_SCANS = True
+
 def parse_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument('-c', '--config')
     parser.add_argument('--state-file', default="solr-update.state")
     parser.add_argument('--ol-url', default="http://openlibrary.org/")
     parser.add_argument('--socket-timeout', type=int, default=10)
+    parser.add_argument('--ignore-ia-scans', dest="load_ia_scans", action="store_false", default=True)
     return parser.parse_args()
 
 def load_config(path):
@@ -93,7 +96,7 @@ class InfobaseLog:
 
             self.offset = d['offset']
 
-def parse_log(records):
+def parse_log(records):    
     for rec in records:
         action = rec.get('action')
         if action == 'save':
@@ -121,7 +124,7 @@ def parse_log(records):
                 edition_key = data.get('book_key')
                 if edition_key:
                     yield edition_key
-            elif data.get("type") == "ia-scan" and data.get("_key", "").startswith("ia-scan/"):
+            elif LOAD_IA_SCANS is False and data.get("type") == "ia-scan" and data.get("_key", "").startswith("ia-scan/"):
                 identifier = data.get('identifier')
                 if identifier and is_allowed_itemid(identifier):
                     yield "/books/ia:" + identifier
@@ -183,6 +186,16 @@ class Solr:
         update_work.solr_update(['<commit/>'], index="works")
         logger.info("END commit")
 
+def process_args(args):
+    # Sometimes archive.org requests blocks forever. 
+    # Setting a timeout will make the request fail instead of waiting forever. 
+    socket.setdefaulttimeout(args.socket_timeout)
+
+    global LOAD_IA_SCANS
+    LOAD_IA_SCANS = args.load_ia_scans
+
+    print "LOAD_IA_SCANS", LOAD_IA_SCANS
+
 def main():
     FORMAT = "%(asctime)-15s %(levelname)s %(message)s"
     logging.basicConfig(level=logging.INFO, format=FORMAT)
@@ -190,10 +203,7 @@ def main():
     logger.info("BEGIN new-solr-updater")
 
     args = parse_arguments()
-
-    # Sometimes archive.org requests blocks forever. 
-    # Setting a timeout will make the request fail instead of waiting forever. 
-    socket.setdefaulttimeout(args.socket_timeout)
+    process_args(args)
 
     # set OL URL when running on a dev-instance
     if args.ol_url:
@@ -212,7 +222,7 @@ def main():
 
     while True:
         records = logfile.read_records()
-        keys = parse_log(records)
+        keys = parse_log(records, args)
         count = update_keys(keys)
 
         offset = logfile.tell()
