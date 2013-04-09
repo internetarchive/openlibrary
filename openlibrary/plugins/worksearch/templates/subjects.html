@@ -493,7 +493,9 @@ var _hash = parse_hash();
 
         <div class="head" id="subjectRelated">
             <h2>$_("Related...")
+                <!--
                 <span class="count">        <a href="/search?${page.subject_type}_facet=$page.name.replace('&','%26')">Search within $page.name</a></span>
+                -->
             </h2>
         </div>
 
@@ -576,9 +578,10 @@ $if "lists" in ctx.features:
 
 <div class="section clearfix"></div>
 
-<form action="/search/subjects" class="olform">
-    <h2 class="collapse"><label for="searchSubjects">Subject Search</label>  <span class="sansserif grey smaller">Try a keyword.</span></h2>
+<form action="/search" class="olform">
+    <h2 class="collapse"><label for="searchSubjects">Search</label> <span class="sansserif grey smaller">within $page.name</span></h2>
     <p>
+        <input type="hidden" name="${page.subject_type}_facet" value="$page.name" />
         <input type="text" name="q" id="searchSubjects" size="100" class="larger" value="" />
         <button type="submit" class="larger">$_('Search')</button>
     </p>
