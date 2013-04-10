@@ -25,7 +25,7 @@ from openlibrary import config
 
 logger = logging.getLogger("solr-updater")
 
-LOAD_IA_SCANS = True
+LOAD_IA_SCANS = False
 COMMIT = True
 
 def parse_arguments():
@@ -34,7 +34,7 @@ def parse_arguments():
     parser.add_argument('--state-file', default="solr-update.state")
     parser.add_argument('--ol-url', default="http://openlibrary.org/")
     parser.add_argument('--socket-timeout', type=int, default=10)
-    parser.add_argument('--ignore-ia-scans', dest="load_ia_scans", action="store_false", default=True)
+    parser.add_argument('--load-ia-scans', dest="load_ia_scans", action="store_true", default=False)
     parser.add_argument('--no-commit', dest="commit", action="store_false", default=True)
     return parser.parse_args()
 
