@@ -26,6 +26,7 @@ from openlibrary import config
 logger = logging.getLogger("solr-updater")
 
 LOAD_IA_SCANS = True
+COMMIT = True
 
 def parse_arguments():
     parser = argparse.ArgumentParser()
@@ -34,6 +35,7 @@ def parse_arguments():
     parser.add_argument('--ol-url', default="http://openlibrary.org/")
     parser.add_argument('--socket-timeout', type=int, default=10)
     parser.add_argument('--ignore-ia-scans', dest="load_ia_scans", action="store_false", default=True)
+    parser.add_argument('--no-commit', dest="commit", action="store_false", default=True)
     return parser.parse_args()
 
 def load_config(path):
@@ -191,10 +193,9 @@ def process_args(args):
     # Setting a timeout will make the request fail instead of waiting forever. 
     socket.setdefaulttimeout(args.socket_timeout)
 
-    global LOAD_IA_SCANS
+    global LOAD_IA_SCANS, COMMIT
     LOAD_IA_SCANS = args.load_ia_scans
-
-    print "LOAD_IA_SCANS", LOAD_IA_SCANS
+    COMMIT = args.commit
 
 def main():
     FORMAT = "%(asctime)-15s %(levelname)s %(message)s"
@@ -230,7 +231,8 @@ def main():
         with open(state_file, "w") as f:
             f.write(offset)
 
-        solr.commit(ndocs=count)
+        if COMMIT:
+            solr.commit(ndocs=count)
 
         # don't sleep after committing some records. 
         # While the commit was on, some more edits might have happened.
