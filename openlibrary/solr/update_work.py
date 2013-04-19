@@ -824,6 +824,9 @@ def update_work(w, obj_cache=None, debug=False, resolve_redirects=False):
             'title': edition['title'],
             'editions': [edition]
         }
+        # Hack to add subjects when indexing /books/ia:xxx
+        if edition.get("subjects"):
+            w['subjects'] = edition['subjects']
 
     if w['type']['key'] == '/type/work' and w.get('title'):
         try:
