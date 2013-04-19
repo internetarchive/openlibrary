@@ -819,7 +819,7 @@ def update_work(w, obj_cache=None, debug=False, resolve_redirects=False):
             # In case of single-core-solr, we are using full path as key. So it is required
             # to be unique across all types of documents.
             # The website takes care of redirecting /works/OL1M to /books/OL1M.
-            'key': edition['key'].replace("/books/", "/works"),
+            'key': edition['key'].replace("/books/", "/works/"),
             'type': {'key': '/type/work'},
             'title': edition['title'],
             'editions': [edition]
