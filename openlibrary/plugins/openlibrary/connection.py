@@ -122,8 +122,8 @@ class IAMiddleware(ConnectionMiddleware):
                 # Adding subjects to store docs, will add thise subjects to the books.
                 # These subjects are used when indexing the books in solr.
                 if storedoc.get("subjects"):
-                    doc.setdefault("subjects", []).update(storedoc['subjects'])
-                return doc
+                    doc.setdefault("subjects", []).extend(storedoc['subjects'])
+                return simplejson.dumps(doc)
         else:
             return ConnectionMiddleware.get(self, sitename, data)
 
@@ -222,7 +222,6 @@ class IAMiddleware(ConnectionMiddleware):
         def add_subjects():
             collections = metadata.get("collection", [])
             mapping = {
-                "printdisabled": "Protected Daisy",
                 "inlibrary": "In library",
                 "lendinglibrary": "Lending library"
             }
@@ -239,7 +238,7 @@ class IAMiddleware(ConnectionMiddleware):
         add_isbns()
         add_subjects()
         
-        return simplejson.dumps(d)
+        return d
 
     def _ensure_store_entry(self, sitename, identifier):
         key = "ia-scan/" + identifier
