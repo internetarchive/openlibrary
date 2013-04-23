@@ -705,21 +705,34 @@ class UnitParser:
 class Changeset(client.Changeset):
     def can_undo(self):
         return False
+
+    def _get_doc(self, key, revision):
+        if revision == 0:
+            return {
+                "key": key,
+                "type": {"key": "/type/delete"}
+            }
+        else:
+            d = web.ctx.site.get(key, revision).dict()
+            if d['type']['key'] == '/type/edition':
+                d.pop('authors', None)
+            return d
+
+    def process_docs_before_undo(self, docs):
+        """Hook to process docs before saving for undo.
+
+        This is called by _undo method to allow subclasses to check
+        for validity or redirects so that undo doesn't fail.
+
+        The subclasses may overwrite this as required.
+        """
+        return docs
         
     def _undo(self):
         """Undo this transaction."""
-        docs = {}
-        
-        def get_doc(key, revision):
-            if revision == 0:
-                return {
-                    "key": key,
-                    "type": {"key": "/type/delete"}
-                }
-            else:
-                return web.ctx.site.get(key, revision).dict()
-        
-        docs = [get_doc(c['key'], c['revision']-1) for c in self.changes]
+        docs = [self._get_doc(c['key'], c['revision']-1) for c in self.changes]
+        docs = self.process_docs_before_undo(docs)
+
         data = {
             "parent_changeset": self.id
         }
@@ -753,6 +766,17 @@ class NewAccountChangeset(Changeset):
 class MergeAuthors(Changeset):
     def can_undo(self):
         return self.get_undo_changeset() is None
+
+    def process_docs_before_undo(self, docs):
+        works = [doc for doc in docs if doc['key'].startswith("/works/")]
+        for w in works:
+            if w.get("authors"):
+                authors = [follow_redirect(web.ctx.site.get(a['author']['key']))
+                            for a in w.get('authors') 
+                            if 'author' in a 
+                            and 'key' in a['author']]
+                w['authors'] = [{"author": {"key": a.key}} for a in authors]
+        return docs        
         
     def get_master(self):
         master = self.data.get("master")

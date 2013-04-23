@@ -42,7 +42,7 @@ class Recaptcha(web.form.Input):
             key = self.public_key
         return _recaptcha_html.replace('KEY', key)
 
-    def validate(self):
+    def validate(self, value=None):
         i = web.input(recaptcha_challenge_field="", recaptcha_response_field="")
 
         data = dict(

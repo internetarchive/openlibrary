@@ -945,11 +945,14 @@ def update_work(w, obj_cache=None, debug=False, resolve_redirects=False):
             # In case of single-core-solr, we are using full path as key. So it is required
             # to be unique across all types of documents.
             # The website takes care of redirecting /works/OL1M to /books/OL1M.
-            'key': edition['key'].replace("/books/", "/works"),
+            'key': edition['key'].replace("/books/", "/works/"),
             'type': {'key': '/type/work'},
             'title': edition['title'],
             'editions': [edition]
         }
+        # Hack to add subjects when indexing /books/ia:xxx
+        if edition.get("subjects"):
+            w['subjects'] = edition['subjects']
 
     if w['type']['key'] == '/type/work' and w.get('title'):
         try:
