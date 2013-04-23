@@ -863,8 +863,21 @@ class EditionBuilder(BaseDocBuilder):
         yield 'title', self.edition.get('title') or ''
         yield 'seed', self.compute_seeds(self.work, [self.edition])
 
+        isbns = self.edition.get("isbn_10", []) + self.edition.get("isbn_13", [])
+        isbn_set = set()
+        for isbn in isbns:
+            isbn_set.add(isbn)
+            isbn_set.add(isbn.strip().replace("-", ""))
+        yield "isbn", list(isbn_set)
+
         has_fulltext = bool(self.edition.get("ocaid"))
         yield 'has_fulltext', has_fulltext
+
+        if self.authors:
+            author_names = [a.get('name', '') for a in self.authors]
+            author_keys = [a['key'].split("/")[-1] for a in self.authors]
+            yield 'author_name', author_names
+            yield 'author_key', author_keys
 
         last_modified = datetimestr_to_int(self.edition.get('last_modified'))
         yield 'last_modified_i', last_modified
@@ -907,6 +920,9 @@ def update_edition(e):
     wkey = e.get('works') and e['works'][0]['key']
     w = wkey and withKey(wkey)
     authors = []
+
+    if w:
+        authors = [withKey(a['author']['key']) for a in w.get("authors", []) if 'author' in a]
 
     request_set = SolrRequestSet()
     request_set.delete(ekey)
