@@ -639,7 +639,11 @@ class edition_search(delegate.page):
     def GET(self):
         def get_results(q, offset=0, limit=100):
             q = escape_bracket(q)
-            solr_select = solr_edition_select_url + "?q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=*&qt=standard&wt=json" % (web.urlquote(q), offset, limit)
+            solr_select = solr_edition_select_url + "?q.op=AND&q=%s&start=%d&rows=%d&fl=*&qt=standard&wt=json" % (web.urlquote(q), offset, limit)
+
+            if config.get('single_core_solr'):
+                solr_select += '&fq=type:edition'
+
             return run_solr_search(solr_select)
         return render_template('search/editions.tmpl', get_results)
 
