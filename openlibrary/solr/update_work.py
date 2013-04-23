@@ -1116,12 +1116,10 @@ def update_keys(keys, commit=True):
             requests += update_edition(e)
         except:
             logger.error("Failed to update edition %s", k, exc_info=True)
-        if requests:
-            if commit:
-                requests += ['<commit/>']
-            solr_update(requests, index="editions", debug=True)
-
-
+    if requests:
+        if commit:
+            requests += ['<commit/>']
+        solr_update(requests, index="editions", debug=True)
     
     # update authors
     requests = []
