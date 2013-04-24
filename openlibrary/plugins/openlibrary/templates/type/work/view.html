@@ -57,6 +57,10 @@ $code:
     $else:
         <div class="work"><span class="editions">$:_("By <em>unknown author</em>")</span></div>
 
+    <div class="shift">
+        $if page.has_ebook():
+            <a href="#editions">Go to the editions section to read or download ebooks</a>.
+    </div>
 </div>
 
 <div class="clearfix"></div>
@@ -196,7 +200,6 @@ $code:
             </div>
 
     <a name="editions"></a>
-
     $if page.edition_count == 1:
         $:render_template("books/edition-show", page.get_one_edition())
     $elif page.edition_count > 1:
