@@ -562,7 +562,7 @@ class Work(models.Work):
             return []
 
     def has_ebook(self):
-        w = self._solr_data
+        w = self._solr_data or {}
         return w.get("has_fulltext", False)
 
     first_publish_year = property(lambda self: self._solr_data.get("first_publish_year"))
