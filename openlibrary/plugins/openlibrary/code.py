@@ -350,7 +350,7 @@ class change_cover(delegate.mode):
         return render.change_cover(page)
         
 class bookpage(delegate.page):
-    path = r"/(isbn|oclc|lccn|ia|ISBN|OCLC|LCCN|IA)/([^./]*)(/.*)?"
+    path = r"/(isbn|oclc|lccn|ia|ISBN|OCLC|LCCN|IA)/([^/]*)(/.*)?"
 
     def GET(self, key, value, suffix):
         key = key.lower()
@@ -405,6 +405,7 @@ class bookpage(delegate.page):
         except web.HTTPError:
             raise
         except:
+            logger.error("unexpected error", exc_info=True)
             web.ctx.status = "404 Not Found"
             return render.notfound(web.ctx.path, create=False)
 
