@@ -137,6 +137,7 @@ span.tag {font-size:13px;font-family: Georgia, "Palatino Linotype", "Book Antiqu
 span.object, span.subject {font-size: 12px;font-family:"Lucida Grande",Verdana,Geneva,Helvetica,sans-serif;color:#333;}
 span.count {font-size:12px!important;font-weight:normal!important;font-family:"Lucida Grande",Verdana,Helvetica,Geneva,sans-serif;color:#615132;white-space:nowrap;padding:5px 5px 0 5px;}
 h1 span.count {font-size:14px!important;}
+.heading span.count {font-size:14px!important;}
 .caption {font-size:0.5625em;font-family:"Lucida Grande",Verdana,Helvetica,Geneva,sans-serif;font-weight:normal;color:#666;text-transform:uppercase;}
 span.caption {position:absolute;right:0;bottom:2px;}
 a.toggle {text-decoration:none;color:#fff!important;background-color:#748d36!important;padding:3px;-webkit-border-radius:3px;-moz-border-radius:3px;border-radius:3px;}

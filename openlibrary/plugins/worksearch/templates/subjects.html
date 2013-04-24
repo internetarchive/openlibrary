@@ -7,8 +7,10 @@ $ subject_list = [('subjects', 20), ('places', 20), ('people', 10), ('times', 10
 <div id="scrollHere"></div>
 
 <div id="contentHead">
-    <h1>
+    <h1 class="inline">
         $page.name
+    </h1>
+    <span class="heading">
         <span class="count" id="coversCount">
             <strong><span>$sprintf(ungettext("%s work", "%s works", page.work_count), commify(page.work_count))</span></strong>
             $if page.ebook_count > 0:
@@ -19,8 +21,7 @@ $ subject_list = [('subjects', 20), ('places', 20), ('people', 10), ('times', 10
         </span>
 
         <span class="count hidden smaller chartZoom"><a href="javascript:;" class="resetSelection small">$_("Clear this selection")</a></span>
-    </h1>
-
+    </span>
     <a href="#search" class="shift">Search for books with subject ${page.name}.</a>
         
 
