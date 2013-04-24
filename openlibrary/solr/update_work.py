@@ -3,7 +3,7 @@ from openlibrary.catalog.utils.query import query_iter, withKey, has_cover, set_
 #from openlibrary.catalog.marc.marc_subject import get_work_subjects, four_types
 from lxml.etree import tostring, Element, SubElement
 from pprint import pprint
-import urllib2
+import urllib2, urllib
 from urllib2 import URLError, HTTPError
 import simplejson as json
 import time
@@ -761,7 +761,7 @@ def build_data(w, obj_cache=None, resolve_redirects=False):
 def solr_update(requests, debug=False, index='works'):
     # As of now, only works are added to single core solr. 
     # Need to work on supporting other things later
-    if is_single_core() and index not in ['works', 'authors', 'editions']:
+    if is_single_core() and index not in ['works', 'authors', 'editions', 'subjects']:
         return
 
     h1 = httplib.HTTPConnection(get_solr(index))
@@ -935,6 +935,67 @@ def update_edition(e):
     doc = EditionBuilder(e, w, authors).build()
     request_set.add(doc)
     return request_set.get_requests()
+
+def get_subject(key):
+    # This works only for single-core-solr
+    subject_key = key.split("/")[-1]
+
+    if ":" in subject_key:
+        subject_type, subject_key = subject_key.split(":", 1)
+    else:
+        subject_type = "subject"
+
+    search_field = "%s_key" % subject_type
+    facet_field = "%s_facet" % subject_type
+
+    # Handle upper case or any special characters that may be present
+    subject_key = str_to_key(subject_key)
+    key = "/subjects/%s:%s" % (subject_type, subject_key)
+
+    params = {
+        'wt': 'json',
+        'json.nl': 'arrarr',
+        'q': '%s:%s' % (search_field, subject_key),
+        'rows': '0',
+        'facet': 'true',
+        'facet.field': facet_field,
+        'facet.mincount': 1,
+        'facet.limit': 100
+    }
+    base_url = 'http://' + get_solr('works') + '/solr/select'
+    url = base_url + '?' + urllib.urlencode(params)
+    result = json.load(urlopen(url))
+
+    work_count = result['response']['numFound']
+    facets = result['facet_counts']['facet_fields'].get(facet_field, []);
+
+    names = [name for name, count in facets if str_to_key(name) == subject_key]
+
+    if names:
+        name = names[0]
+    else:
+        name = key.replace("_", " ")
+
+    return {
+        "key": key,
+        "type": "subject",
+        "subject_type": subject_type,
+        "name": name,
+        "work_count": work_count,
+    }
+
+def update_subject(key):
+    # updating subject is available only for single-core-solr
+    if not is_single_core():
+        return
+
+    subject = get_subject(key)
+    request_set = SolrRequestSet()
+    request_set.delete(subject['key'])
+
+    if subject['work_count'] > 0:
+        request_set.add(subject)
+    return request_set.get_requests()    
 
 def update_work(w, obj_cache=None, debug=False, resolve_redirects=False):
     if obj_cache is None:
@@ -1146,10 +1207,27 @@ def update_keys(keys, commit=True):
             requests += update_author(k)
         except:
             logger.error("Failed to update author %s", k, exc_info=True)
+
     if requests:  
         if commit:
             requests += ['<commit />']
         solr_update(requests, index="authors", debug=True)
+
+    # update subjects
+    skeys = set(k for k in keys if k.startswith("/subjects/"))
+    requests = []
+    for k in skeys:
+        logger.info("updating %s", k)
+        try:
+            requests += update_subject(k)
+        except:
+            logger.error("Failed to update subject %s", k, exc_info=True)
+    print "requests", requests
+    if requests:  
+        if commit:
+            requests += ['<commit />']
+        solr_update(requests, index="subjects", debug=True)
+
     logger.info("END update_keys")
 
 def parse_options(args=None):
@@ -1232,7 +1310,6 @@ def monkeypatch(config_file):
 
     query_iter = new_query_iter
     withKey = new_withKey
-
 
 def main():
     options, keys = parse_options()

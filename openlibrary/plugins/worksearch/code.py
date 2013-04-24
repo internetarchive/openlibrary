@@ -587,13 +587,43 @@ def parse_search_response(json_data):
 class subject_search(delegate.page):
     path = '/search/subjects'
     def GET(self):
-        def get_results(q, offset=0, limit=100):
+        return render_template('search/subjects.tmpl', self.get_results)
+
+    def get_results(self, q, offset=0, limit=100):
+        if config.get('single_core_solr'):            
+            valid_fields = ['key', 'name', 'subject_type', 'work_count']
+        else:
             valid_fields = ['key', 'name', 'type', 'count']
-            q = escape_colon(escape_bracket(q), valid_fields)
-            solr_select = solr_subject_select_url + "?q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=name,type,count&qt=standard&wt=json" % (web.urlquote(q), offset, limit)
-            solr_select += '&sort=count+desc'
-            return run_solr_search(solr_select)
-        return render_template('search/subjects.tmpl', get_results)
+
+        q = escape_colon(escape_bracket(q), valid_fields)
+        params = {
+            "q.op": "AND",
+            "q": web.urlquote(q),
+            "start": offset,
+            "rows": limit,
+            "fl": ",".join(valid_fields),
+            "qt": "standard",
+            "wt": "json"
+        }
+        if config.get('single_core_solr'):
+            params['fq'] = 'type:subject'
+            params['sort'] = 'work_count desc'
+        else:                
+            params['sort'] = 'count desc'
+
+        solr_select = solr_subject_select_url + "?" + urllib.urlencode(params)
+        results = run_solr_search(solr_select)
+        response = results['response']
+
+        if config.get('single_core_solr'):
+            response['docs'] = [self.process_doc(doc) for doc in response['docs']]
+
+        return results
+
+    def process_doc(self, doc):
+        doc['type'] = doc.get('subject_type', 'subject')
+        doc['count'] = doc.get('work_count', 0)
+        return doc
 
 class author_search(delegate.page):
     path = '/search/authors'

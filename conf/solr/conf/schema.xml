@@ -455,6 +455,7 @@
     <field name="subtitle" type="text"/>
     <field name="alternative_title" type="text" stored="false" multiValued="true"/>
     <field name="alternative_subtitle" type="text" stored="false" multiValued="true"/>
+    
     <field name="edition_count" type="int"/>
     <field name="edition_key" type="string" multiValued="true"/>
     <field name="cover_edition_key" type="string" indexed="false"/>
@@ -508,6 +509,9 @@
    <field name="work_count" type="int" indexed="true" stored="true"/>
    <field name="top_work" type="string" indexed="false" stored="true"/>
    <field name="top_subjects" type="string" indexed="false" stored="true" multiValued="true"/>
+
+   <!-- additional fields used by documents of type subject -->
+   <field name="subject_type" type="string" indexed="true" stored="true"/>
 
    <!--
    <field name="timestamp" type="date" indexed="true" stored="true" default="NOW" multiValued="false"/>
