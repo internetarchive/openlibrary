@@ -127,6 +127,13 @@ $ work = page.works and page.works[0] or None
         $if work:
             <span class="smaller">&nbsp;&bull;&nbsp;<a href="/books/add?work=$work.key" title="$_('Add another edition of') $page.title">$_("Add edition")</a>?</span>
         <br />
+        <div class="shift">
+            $if page.ocaid:
+                An ebook is available for this edition.
+                <a href="#read">Go to the read section to download</a>.
+            $else:
+                No ebook is available for this edition.
+        </div>
         $if page.works[0].edition_count > 1:
             $ prev = page.get_prev()
             $ next = page.get_next()

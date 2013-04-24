@@ -75,6 +75,8 @@ $ library = None
 
 
 <div class="Tools">
+<a name="read"></a>
+
 $ collection = set()
 $ meta_fields = page.get_ia_meta_fields()
 $if meta_fields:
@@ -82,6 +84,7 @@ $if meta_fields:
     $ contrib = meta_fields.get('contributor')
     $if 'inlibrary' in collection and 'inlibrary' in ctx.features:
         $ library = get_library()
+
 
 $if page.volumes:
     <div>
