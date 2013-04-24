@@ -560,7 +560,11 @@ class Work(models.Work):
             return web.ctx.site.get_many(["/books/" + olid for olid in editions])
         else:
             return []
-        
+
+    def has_ebook(self):
+        w = self._solr_data
+        return w.get("has_fulltext", False)
+
     first_publish_year = property(lambda self: self._solr_data.get("first_publish_year"))
         
     def get_edition_covers(self):
