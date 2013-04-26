@@ -3,6 +3,25 @@
 USAGE:
 
     python scripts/2011/09/generate_deworks.py ol_dump_latest.txt.gz | gzip -c > ol_dump_deworks.txt.gz
+
+
+Output Format:
+
+Each row contains a JSON document with the following fields:
+
+* work - The work documents
+* editions - List of editions that belong to this work
+* authors - All the authors of this work
+* ia - IA metadata for all the ia items referenced in the editions as a list
+* duplicates - dictionary of duplicates (key -> it's duplicates) of work and edition docs mentioned above
+
+CHANGELOG:
+
+2013-04-26: Changed the format of denormalized documents and included duplicates/redirects.
+2012-10-31: include IA metadata in the response
+2012-03-15: print the output to stdout so that it can be piped though gzip
+2011-10-04: first version
+
 """
 import time
 import sys
@@ -38,6 +57,7 @@ class DenormalizeWorksTask(mapreduce.Task):
         mapreduce.Task.__init__(self)
         self.ia = ia_metadata
         self.authors = AuthorsDict()
+        self.duplicates = defaultdict(list)
 
     def get_ia_metadata(self, identifier):
         row = self.ia.get(identifier)
@@ -72,6 +92,8 @@ class DenormalizeWorksTask(mapreduce.Task):
         elif type_key == '/type/author':
             # Store all authors for later use
             self.authors[key] = doc
+        elif type_key == '/type/redirect':
+            self.duplicates[doc.get("location")].append(key)
 
     def process_edition(self, e):
         if "ocaid" in e:
@@ -91,9 +113,39 @@ class DenormalizeWorksTask(mapreduce.Task):
         else:
             # work-less edition
             work = {}
-        work['editions'] = docs.values()
-        work['authors'] = [self.get_author_data(a) for a in work.get('authors', [])]
-        return key, simplejson.dumps(work)
+
+        doc = {}
+        doc['work'] = work
+        doc['editions'] = docs.values()
+        doc['authors'] = [self.get_author_data(a['author']) for a in work.get('authors', []) if 'author' in a]
+
+        ia_ids = [e['ocaid'] for e in doc['editions'] if e.get('ocaid') and e['ocaid'] in self.ia]
+        doc['ia'] = [self.get_ia_metadata(ia_id) for ia_id in ia_ids]
+
+        keys = set()
+        keys.add(work.get("key"))
+        keys.update(e.get("key") for e in doc['editions'])
+        if None in keys:
+            keys.remove(None)
+
+        duplicates = [(k, self.get_duplicates(k)) for k in keys]
+        duplicates = [(k, dups) for k, dups in duplicates if dups]
+        doc['duplicates'] = dict(duplicates)
+        return key, simplejson.dumps(doc)
+
+    def get_duplicates(self, key, result=None, level=0):
+        if result is None:
+            result = set()
+
+        # Avoid infinite recursion in case of mutual redirects
+        if level >= 10:
+            return result
+
+        for k in self.duplicates[key]:
+            result.add(k) # add the duplicate and all it's duplicates
+            self.get_duplicates(k, result, level+1)
+
+        return result
 
     def get_author_data(self, author):
         def get(key):

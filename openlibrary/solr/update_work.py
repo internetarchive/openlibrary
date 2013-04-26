@@ -910,6 +910,12 @@ class SolrRequestSet:
         root.append(node)
         return tostring(root).encode('utf-8')
 
+def process_edition_data(edition_data):
+    """Returns a solr document corresponding to an edition using given edition data.
+    """
+    builder = EditionBuilder(edition_data.edition, edition_data.work, edition_data.authors)
+    return builder.build()
+
 def update_edition(e):
     if not is_single_core():
         return []
