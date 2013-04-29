@@ -66,14 +66,13 @@ def is_borrowed(edition_key):
     load_config()
     infobase_server = config.runtime_config.get("infobase_server")
     if infobase_server is None:
-        print "infobase_server not defined in the config. Unabled to find borrowed status."
+        logger.error("infobase_server not defined in the config. Unabled to find borrowed status.")
         return False
             
     url = "http://%s/openlibrary.org/_store/ebooks/books/%s" % (infobase_server, edition_key)
     
     try:
         d = json.loads(urlopen(url).read())
-        print edition_key, d
     except HTTPError, e:
         # Return False if that store entry is not found 
         if e.getcode() == 404:
@@ -103,7 +102,7 @@ def get_ia_collection_and_box_id(ia):
             matches['boxid'] = set(get_list(d, 'boxid'))
             matches['collection'] = set(get_list(d, 'collection'))
         except URLError:
-            print "retry", attempt, url
+            logger.warn("retry %s %s", attempt, url)
             time.sleep(5)
     return matches
 
@@ -123,7 +122,7 @@ def add_field(doc, name, value):
     try:
         field.text = normalize('NFC', unicode(strip_bad_char(value)))
     except:
-        print `value`
+        logger.error('Error in normalizing %r', value)
         raise
     doc.append(field)
 
@@ -179,7 +178,7 @@ def get_work_subjects(w):
                     v = v['value']
                 cur[v] = cur.get(v, 0) + 1
             except:
-                print 'v:', v
+                logger.error("Failed to process subject: %r", v)
                 raise
 
     return subjects
@@ -337,7 +336,6 @@ class SolrProcessor:
                 ia_meta_fields = None
 
             if ia_meta_fields:
-                print e['key'], ia, ia_meta_fields, ia_metadata, e.get("_ia_meta")
                 collection = ia_meta_fields['collection']
                 if 'ia_box_id' in e and isinstance(e['ia_box_id'], basestring):
                     e['ia_box_id'] = [e['ia_box_id']]
@@ -346,13 +344,10 @@ class SolrProcessor:
                     e.setdefault('ia_box_id', [])
                     if box_id.lower() not in [x.lower() for x in e['ia_box_id']]:
                         e['ia_box_id'].append(box_id)
-                #print 'collection:', collection
                 e['ia_collection'] = collection
                 e['public_scan'] = ('lendinglibrary' not in collection) and ('printdisabled' not in collection)
-                print "e.public_scan", e["public_scan"]
             overdrive_id = e.get('identifiers', {}).get('overdrive', None)
             if overdrive_id:
-                #print 'overdrive:', overdrive_id
                 e['overdrive'] = overdrive_id
             if 'identifiers' in e:
                 for k, id_list in e['identifiers'].iteritems():
@@ -360,7 +355,7 @@ class SolrProcessor:
                     k = k.replace('.', '_').replace(',', '_').replace('(', '').replace(')', '').replace(':', '_').replace('/', '').replace('#', '').lower()
                     m = re_solr_field.match(k)
                     if not m:
-                        print (k_orig, k)
+                        logger.error('bad identifier key %s %s', k_orig, k)
                     assert m
                     for v in id_list:
                         v = v.strip()
@@ -386,7 +381,7 @@ class SolrProcessor:
         key = a['author']['key']
         m = re_author_key.match(key)
         if not m:
-            print 'invalid author key:', key
+            logger.error('invalid author key: %s', key)
             return
         return withKey(key)
     
@@ -403,11 +398,6 @@ class SolrProcessor:
                     return a
                 authors = [resolve(a) for a in authors]
             else:
-                print
-                for a in authors:
-                    print 'author:', a
-                print w['key']
-                print
                 raise AuthorRedirect
         assert all(a['type']['key'] == '/type/author' for a in authors)
         return authors
@@ -426,7 +416,7 @@ class SolrProcessor:
         try:
             subjects = four_types(get_work_subjects(w))
         except:
-            print 'bad work: ', w['key']
+            logger.error('bad work: %s', w['key'])
             raise
 
         field_map = {
@@ -448,7 +438,7 @@ class SolrProcessor:
                         v = v['value']
                     cur[v] = cur.get(v, 0) + 1
                 except:
-                    print 'v:', v
+                    logger.error("bad subject: %r", v)
                     raise
 
         if any(e.get('ocaid', None) for e in editions):
@@ -456,7 +446,6 @@ class SolrProcessor:
             subjects['subject']['Accessible book'] = subjects['subject'].get('Accessible book', 0) + 1
             if not has_fulltext:
                 subjects['subject']['Protected DAISY'] = subjects['subject'].get('Protected DAISY', 0) + 1
-            #print w['key'], subjects['subject']
         return subjects
         
     def build_data(self, w, editions, subjects, has_fulltext):
@@ -580,7 +569,6 @@ class SolrProcessor:
             all_collection.update(e.get('ia_collection', []))
             assert isinstance(e['ocaid'], basestring)
             i = e['ocaid'].strip()
-            print i, e.get("public_scan")
             if e.get('public_scan'):
                 public_scan = True
                 if i.endswith('goog'):
@@ -706,8 +694,7 @@ def build_data2(w, editions, authors, ia, duplicates):
                 try:
                     assert isinstance(e['ia_loaded_id'], list) and isinstance(e['ia_loaded_id'][0], basestring)
                 except AssertionError:
-                    print e.get('ia')
-                    print e['ia_loaded_id']
+                    logger.error("AssertionError: ia=%s, ia_loaded_id=%s", e.get("ia"), e['ia_loaded_id'])
                     raise
                 ia_loaded_id.update(e['ia_loaded_id'])
         if e.get('ia_box_id'):
@@ -717,7 +704,7 @@ def build_data2(w, editions, authors, ia, duplicates):
                 try:
                     assert isinstance(e['ia_box_id'], list) and isinstance(e['ia_box_id'][0], basestring)
                 except AssertionError:
-                    print e['key']
+                    logger.error("AssertionError: %s", e['key'])
                     raise
                 ia_box_id.update(e['ia_box_id'])
     if lang:
@@ -773,23 +760,22 @@ def solr_update(requests, debug=False, index='works'):
         url = 'http://%s/solr/update' % get_solr(index)
     else:
         url = 'http://%s/solr/%s/update' % (get_solr(index), index)
-    print url
+
+    logger.info("POSTing update to %s", url)
     h1.connect()
     for r in requests:
         if debug:
-            print 'request:', `r[:65]` + '...' if len(r) > 65 else `r`
+            logger.info('request: %r', r[:65] + '...' if len(r) > 65 else r)
         assert isinstance(r, basestring)
         h1.request('POST', url, r, { 'Content-type': 'text/xml;charset=utf-8'})
         response = h1.getresponse()
         response_body = response.read()
         if response.reason != 'OK':
-            print response.reason
-            print response_body
+            logger.error(response.reason)
+            logger.error(response_body)
         assert response.reason == 'OK'
         if debug:
-            print response.reason
-#            print response_body
-#            print response.getheaders()
+            logger.info(response.reason)
     h1.close()
 
 def withKey_cached(key, obj_cache={}):
@@ -1093,7 +1079,7 @@ def update_author(akey, a=None, handle_redirects=True):
         return
     m = re_author_key.match(akey)
     if not m:
-        print 'bad key:', akey
+        logger.error('bad key: %s', akey)
     assert m
     author_id = m.group(1)
     if not a:
@@ -1103,7 +1089,7 @@ def update_author(akey, a=None, handle_redirects=True):
     try:
         assert a['type']['key'] == '/type/author'
     except AssertionError:
-        print a['type']['key']
+        logger.error("AssertionError: %s", a['type']['key'])
         raise
 
     facet_fields = ['subject', 'time', 'person', 'place']
@@ -1158,7 +1144,7 @@ def update_author(akey, a=None, handle_redirects=True):
         try:
             redirects = ''.join('<id>%s</id>' % re_author_key.match(r['key']).group(1) for r in query_iter(q))
         except AttributeError:
-            print 'redirects:', [r['key'] for r in query_iter(q)]
+            logger.error('AssertionError: redirects: %r', [r['key'] for r in query_iter(q)])
             raise
         if redirects:
             requests.append('<delete>' + redirects + '</delete>')
@@ -1244,7 +1230,6 @@ def update_keys(keys, commit=True):
             requests += update_subject(k)
         except:
             logger.error("Failed to update subject %s", k, exc_info=True)
-    print "requests", requests
     if requests:  
         if commit:
             requests += ['<commit />']
@@ -1327,7 +1312,6 @@ def monkeypatch(config_file):
 
     global query_iter, withKey
 
-    #print "monkeypatching query_iter and withKey functions to talk to database directly."
     load_infogami(config_file)
 
     query_iter = new_query_iter
