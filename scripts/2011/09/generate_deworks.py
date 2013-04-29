@@ -64,11 +64,11 @@ class DenormalizeWorksTask(mapreduce.Task):
         if row:
             boxid, collection_str = row.split("\t")
             collections = collection_str.split(";")
-            return {"boxid": [boxid], "collections": collections}
+            return {"boxid": [boxid], "collection": collections}
         else:
             # the requested identifier is not found.
             # returning a fake metadata
-            return {"collections":[]}
+            return {"collection":[]}
 
     def close(self):
         """Removes all the temp files created for running map-reduce.

@@ -315,9 +315,8 @@ class SolrProcessor:
         else:
             return []
 
-    def process_editions(self, w, identifiers):
-        editions = []
-        for e in w['editions']:
+    def process_editions(self, w, editions, ia_metadata, identifiers):
+        for e in editions:
             pub_year = self.get_pub_year(e)
             if pub_year:
                 e['pub_year'] = pub_year
@@ -333,11 +332,12 @@ class SolrProcessor:
             if ia and '_ia_meta' in e:
                 ia_meta_fields = e['_ia_meta']
             elif ia:
-                ia_meta_fields = get_ia_collection_and_box_id(ia)
+                ia_meta_fields = ia_metadata.get(ia)
             else:
                 ia_meta_fields = None
 
             if ia_meta_fields:
+                print e['key'], ia, ia_meta_fields, ia_metadata, e.get("_ia_meta")
                 collection = ia_meta_fields['collection']
                 if 'ia_box_id' in e and isinstance(e['ia_box_id'], basestring):
                     e['ia_box_id'] = [e['ia_box_id']]
@@ -366,10 +366,7 @@ class SolrProcessor:
                         v = v.strip()
                         if v not in identifiers[k]:
                             identifiers[k].append(v)
-            editions.append(e)
-
-        editions.sort(key=lambda e: e.get('pub_year', None))
-        return editions
+        return sorted(editions, key=lambda e: e.get('pub_year', None))
 
     def get_author(self, a):
         """Returns the author dict from author entry in the work.
@@ -633,8 +630,22 @@ def dict2element(d):
     return doc
 
 def build_data(w, obj_cache=None, resolve_redirects=False):
-    if obj_cache:
-        obj_cache = {}
+    wkey = w['key']
+
+    q = { 'type':'/type/edition', 'works': wkey, '*': None }
+    editions = list(query_iter(q))
+    authors = SolrProcessor().extract_authors(w)
+
+    iaids = [e["ocaid"] for e in editions if "ocaid" in e]
+    ia = dict((iaid, get_ia_collection_and_box_id(iaid)) for iaid in iaids)
+
+    duplicates = {}
+
+    return build_data2(w, editions, authors, ia, duplicates)
+
+def build_data2(w, editions, authors, ia, duplicates):
+    obj_cache = {}
+    resolve_redirects = False
 
     wkey = w['key']
     assert w['type']['key'] == '/type/work'
@@ -645,15 +656,8 @@ def build_data(w, obj_cache=None, resolve_redirects=False):
     p = SolrProcessor(obj_cache, resolve_redirects)
     get_pub_year = p.get_pub_year
 
-    # Load stuff if not already provided
-    if 'editions' not in w:
-        q = { 'type':'/type/edition', 'works': wkey, '*': None }
-        w['editions'] = list(query_iter(q))
-        #print 'editions:', [e['key'] for e in w['editions']]
-
     identifiers = defaultdict(list)
-    editions = p.process_editions(w, identifiers)
-    authors = p.extract_authors(w)
+    editions = p.process_editions(w, editions, ia, identifiers)
 
     has_fulltext = any(e.get('ocaid', None) for e in editions)
     
@@ -667,7 +671,6 @@ def build_data(w, obj_cache=None, resolve_redirects=False):
     
     doc = p.build_data(w, editions, subjects, has_fulltext)
     
-
     cover_edition = pick_cover(w, editions)
     if cover_edition:
         add_field(doc, 'cover_edition_key', re_edition_key.match(cover_edition).group(1))
@@ -913,8 +916,21 @@ class SolrRequestSet:
 def process_edition_data(edition_data):
     """Returns a solr document corresponding to an edition using given edition data.
     """
-    builder = EditionBuilder(edition_data.edition, edition_data.work, edition_data.authors)
+    builder = EditionBuilder(edition_data['edition'], edition_data['work'], edition_data['authors'])
     return builder.build()
+
+def process_work_data(work_data):
+    """Returns a solr document corresponding to a work using the given work_data.
+    """
+    # Force single core
+    config.runtime_config['single_core_solr'] = True
+
+    return build_data2(
+        work_data['work'], 
+        work_data['editions'], 
+        work_data['authors'], 
+        work_data['ia'], 
+        work_data['duplicates'])
 
 def update_edition(e):
     if not is_single_core():

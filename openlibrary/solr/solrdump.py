@@ -23,7 +23,7 @@ import json
 import gzip
 import web
 
-from update_work import process_edition_data
+from update_work import process_edition_data, process_work_data
 
 def process_xwork(doc):
 	"""Process xwork document and yield multiple solr documents.
@@ -31,6 +31,10 @@ def process_xwork(doc):
 	work = doc['work']
 	editions = doc['editions']
 	authors = doc['authors']
+	ia = doc['ia']
+
+	d = dict(work=work, editions=editions, authors=authors, ia=ia, duplicates={})
+	yield process_work_data(d)
 
 	for e in editions:
 		d = web.storage(edition=e, work=work, authors=authors)
