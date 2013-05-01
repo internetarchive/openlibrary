@@ -940,8 +940,16 @@ def update_keys(keys, commit=True):
     for k in ekeys:
         logger.info("processing edition %s", k)
         edition = withKey(k)
+
+        if edition and edition['type']['key'] == '/type/redirect':
+            logger.warn("Found redirect to %s", edition['location'])
+            edition = withKey(edition['location'])
+
         if not edition:
             logger.warn("No edition found for key %r. Ignoring...", k)
+            continue
+        elif edition['type']['key'] != '/type/edition':
+            logger.warn("Found a document of type %r. Ignoring...", edition['type']['key'])
             continue
 
         if edition.get("works"):
