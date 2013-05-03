@@ -837,7 +837,8 @@ def update_work(w, obj_cache=None, debug=False, resolve_redirects=False):
         else:
             if d is not None:
                 # Delete all ia:foobar keys
-                # 
+                # XXX-Anand: The works in in_library subject were getting wiped off for unknown reasons.
+                # I suspect that this might be a cause. Disabling temporarily.
                 if d.get('ia'):
                     deletes += ["ia:" + iaid for iaid in d['ia']]
 
