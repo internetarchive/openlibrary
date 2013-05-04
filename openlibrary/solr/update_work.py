@@ -839,8 +839,8 @@ def update_work(w, obj_cache=None, debug=False, resolve_redirects=False):
                 # Delete all ia:foobar keys
                 # XXX-Anand: The works in in_library subject were getting wiped off for unknown reasons.
                 # I suspect that this might be a cause. Disabling temporarily.
-                if d.get('ia'):
-                    deletes += ["ia:" + iaid for iaid in d['ia']]
+                #if d.get('ia'):
+                #    deletes += ["ia:" + iaid for iaid in d['ia']]
 
                 # In single core solr, we use full path as key, not just the last part
                 if is_single_core():
