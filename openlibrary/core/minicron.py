@@ -21,7 +21,7 @@ class Minicron(object):
         """
         logging.basicConfig(level=logging.INFO, format = "[%(levelname)s] : %(filename)s:%(lineno)d : %(message)s")
         self.ctime = inittime
-        if self.ctime == None:
+        if self.ctime is None:
             self.ctime = datetime.datetime.fromtimestamp(time.time())
         self.tickfreq = tickfreq
         self.cronfile = cronfile
@@ -77,7 +77,7 @@ class Minicron(object):
         self.ctime += datetime.timedelta(seconds = 60)
         logging.debug("Ticker waking up at %s"%self.ctime)
         self._check_and_run_commands(self.ctime)
-        if self.times == None:
+        if self.times is None:
             self.scheduler.enter(self.tickfreq, 1, self._tick, ())
         elif self.times > 0:
             self.times -= 1
