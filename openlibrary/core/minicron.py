@@ -8,7 +8,7 @@ import subprocess
 class BadCronLine(ValueError): pass
 
 class Minicron(object):
-    def __init__(self, cronfile, inittime = None, tickfreq = 60):
+    def __init__(self, cronfile, inittime=None, tickfreq=60):
         """Creates a cron runner that runs starting at
         `inittime` (default is the current time).
         A 'minute' goes by once every `tickfreq` seconds (default is 60)
@@ -59,7 +59,7 @@ class Minicron(object):
     def _run_command(self, cmd):
         "Runs the given command"
         logging.debug(" Running command %s"%cmd)
-        p = subprocess.Popen(cmd, shell = True)
+        p = subprocess.Popen(cmd, shell=True)
         p.wait()
         
     def _check_and_run_commands(self, ctime):
@@ -74,7 +74,7 @@ class Minicron(object):
 
     def _tick(self):
         "The ticker that gets called once a minute"
-        self.ctime += datetime.timedelta(seconds = 60)
+        self.ctime += datetime.timedelta(seconds=60)
         logging.debug("Ticker waking up at %s"%self.ctime)
         self._check_and_run_commands(self.ctime)
         if self.times is None:
@@ -84,6 +84,6 @@ class Minicron(object):
             self.scheduler.enter(self.tickfreq, 1, self._tick, ())
         
 
-    def run(self, times = None):
+    def run(self, times=None):
         self.times = times
         self.scheduler.run()
