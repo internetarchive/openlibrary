@@ -852,6 +852,11 @@ def update_work(w, obj_cache=None, debug=False, resolve_redirects=False):
                 add.append(doc)
                 add_xml = tostring(add).encode('utf-8')
                 requests.append(add_xml)
+    elif w['type']['key'] == '/type/delete':
+        # In single core solr, we use full path as key, not just the last part
+        if is_single_core():
+            deletes = ["/works/" + k for k in deletes]
+        requests.append(make_delete_query(deletes))
 
     return requests
 
