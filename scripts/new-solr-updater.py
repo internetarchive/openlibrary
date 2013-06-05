@@ -18,23 +18,30 @@ import time
 import web
 import sys
 import re
+import socket
 
 from openlibrary.solr import update_work
+from openlibrary import config
 
 logger = logging.getLogger("solr-updater")
+
+LOAD_IA_SCANS = False
+COMMIT = True
 
 def parse_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument('-c', '--config')
     parser.add_argument('--state-file', default="solr-update.state")
     parser.add_argument('--ol-url', default="http://openlibrary.org/")
+    parser.add_argument('--socket-timeout', type=int, default=10)
+    parser.add_argument('--load-ia-scans', dest="load_ia_scans", action="store_true", default=False)
+    parser.add_argument('--no-commit', dest="commit", action="store_false", default=True)
     return parser.parse_args()
 
 def load_config(path):
     c = yaml.safe_load(open(path))
 
     # required for update_work module to work
-    from openlibrary import config
     config.runtime_config = c
     return c
 
@@ -91,7 +98,7 @@ class InfobaseLog:
 
             self.offset = d['offset']
 
-def parse_log(records):
+def parse_log(records):    
     for rec in records:
         action = rec.get('action')
         if action == 'save':
@@ -119,7 +126,7 @@ def parse_log(records):
                 edition_key = data.get('book_key')
                 if edition_key:
                     yield edition_key
-            elif data.get("type") == "ia-scan" and data.get("_key", "").startswith("ia-scan/"):
+            elif LOAD_IA_SCANS and data.get("type") == "ia-scan" and data.get("_key", "").startswith("ia-scan/"):
                 identifier = data.get('identifier')
                 if identifier and is_allowed_itemid(identifier):
                     yield "/books/ia:" + identifier
@@ -129,8 +136,7 @@ def is_allowed_itemid(identifier):
         return False
 
     # items starts with these prefixes are not books. Ignore them.
-    ignore_prefixes = ["jstor-", "imslp-", "nasa_techdoc_"]
-
+    ignore_prefixes = config.runtime_config.get("ia_ignore_prefixes", [])
     for prefix in ignore_prefixes:
         if identifier.startswith(prefix):
             return False
@@ -182,6 +188,15 @@ class Solr:
         update_work.solr_update(['<commit/>'], index="works")
         logger.info("END commit")
 
+def process_args(args):
+    # Sometimes archive.org requests blocks forever. 
+    # Setting a timeout will make the request fail instead of waiting forever. 
+    socket.setdefaulttimeout(args.socket_timeout)
+
+    global LOAD_IA_SCANS, COMMIT
+    LOAD_IA_SCANS = args.load_ia_scans
+    COMMIT = args.commit
+
 def main():
     FORMAT = "%(asctime)-15s %(levelname)s %(message)s"
     logging.basicConfig(level=logging.INFO, format=FORMAT)
@@ -189,6 +204,7 @@ def main():
     logger.info("BEGIN new-solr-updater")
 
     args = parse_arguments()
+    process_args(args)
 
     # set OL URL when running on a dev-instance
     if args.ol_url:
@@ -215,7 +231,8 @@ def main():
         with open(state_file, "w") as f:
             f.write(offset)
 
-        solr.commit(ndocs=count)
+        if COMMIT:
+            solr.commit(ndocs=count)
 
         # don't sleep after committing some records. 
         # While the commit was on, some more edits might have happened.

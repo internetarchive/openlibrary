@@ -1,4 +1,4 @@
-$def with (form, recaptcha=None)
+$def with (form)
 
 $var title: $_("Sign Up to Open Library")
 
@@ -68,10 +68,14 @@ $else:
                 <span class="invalid clearfix" htmlfor="email">$form.email.note</span>
             </div>
         </div>
-        $if recaptcha:
+        $if form.has_recaptcha:
             <div class="formElement">
                 <div class="label">$_("Please type in the two words below.")</div>
-                $:recaptcha.render()
+                <div class="input">
+                    $:form['recaptcha'].render()
+                    $if form['recaptcha'].error:
+                        <span class="invalid clearfix" htmlfor="email">Incorrect. Please try again.</span>
+                </div>
             </div>
 
         <div class="formElement">

@@ -85,15 +85,16 @@ def sendmail(from_address, to_address, subject, message):
 
             
 SUPPORT_EMAIL_TEMPLATE = """
+
+Description:\n
+%(description)s
+
 A new support case has been filed by %(displayname)s <%(email)s>.
 
 Topic: %(topic)s
 URL: %(url)s
 User-Agent: %(useragent)s
 OL-username: %(username)s
-
-Description:\n
-%(description)s
 """
 
 def setup():

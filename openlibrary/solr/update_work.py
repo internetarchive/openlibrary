@@ -819,11 +819,14 @@ def update_work(w, obj_cache=None, debug=False, resolve_redirects=False):
             # In case of single-core-solr, we are using full path as key. So it is required
             # to be unique across all types of documents.
             # The website takes care of redirecting /works/OL1M to /books/OL1M.
-            'key': edition['key'].replace("/books/", "/works"),
+            'key': edition['key'].replace("/books/", "/works/"),
             'type': {'key': '/type/work'},
             'title': edition['title'],
             'editions': [edition]
         }
+        # Hack to add subjects when indexing /books/ia:xxx
+        if edition.get("subjects"):
+            w['subjects'] = edition['subjects']
 
     if w['type']['key'] == '/type/work' and w.get('title'):
         try:
@@ -834,9 +837,10 @@ def update_work(w, obj_cache=None, debug=False, resolve_redirects=False):
         else:
             if d is not None:
                 # Delete all ia:foobar keys
-                # 
-                if d.get('ia'):
-                    deletes += ["ia:" + iaid for iaid in d['ia']]
+                # XXX-Anand: The works in in_library subject were getting wiped off for unknown reasons.
+                # I suspect that this might be a cause. Disabling temporarily.
+                #if d.get('ia'):
+                #    deletes += ["ia:" + iaid for iaid in d['ia']]
 
                 # In single core solr, we use full path as key, not just the last part
                 if is_single_core():
@@ -848,6 +852,11 @@ def update_work(w, obj_cache=None, debug=False, resolve_redirects=False):
                 add.append(doc)
                 add_xml = tostring(add).encode('utf-8')
                 requests.append(add_xml)
+    elif w['type']['key'] == '/type/delete':
+        # In single core solr, we use full path as key, not just the last part
+        if is_single_core():
+            deletes = ["/works/" + k for k in deletes]
+        requests.append(make_delete_query(deletes))
 
     return requests
 
@@ -937,8 +946,16 @@ def update_keys(keys, commit=True):
     for k in ekeys:
         logger.info("processing edition %s", k)
         edition = withKey(k)
+
+        if edition and edition['type']['key'] == '/type/redirect':
+            logger.warn("Found redirect to %s", edition['location'])
+            edition = withKey(edition['location'])
+
         if not edition:
             logger.warn("No edition found for key %r. Ignoring...", k)
+            continue
+        elif edition['type']['key'] != '/type/edition':
+            logger.warn("Found a document of type %r. Ignoring...", edition['type']['key'])
             continue
 
         if edition.get("works"):

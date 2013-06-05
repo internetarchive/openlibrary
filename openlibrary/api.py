@@ -23,6 +23,9 @@ from ConfigParser import ConfigParser
 import urllib, urllib2
 import simplejson
 import web
+import logging
+
+logger = logging.getLogger("openlibrary.api")
 
 class OLError(Exception):
     def __init__(self, http_error):
@@ -37,6 +40,7 @@ class OpenLibrary:
         self.cookie = None
 
     def _request(self, path, method='GET', data=None, headers=None):
+        logger.info("%s %s", method, path)
         url = self.base_url + path
         headers = headers or {}
         if self.cookie:
@@ -102,7 +106,7 @@ class OpenLibrary:
         if len(keys) > 500:
             # get in chunks of 500 to avoid crossing the URL length limit.
             d = {}
-            for chunk in web.group(keys, 500):
+            for chunk in web.group(keys, 100):
                 d.update(self._get_many(chunk))
             return d
         else:

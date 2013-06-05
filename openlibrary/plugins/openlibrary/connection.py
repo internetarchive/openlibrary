@@ -115,9 +115,15 @@ class IAMiddleware(ConnectionMiddleware):
             if edition_key:
                 return self._make_redirect(itemid, edition_key)
             else:
+                storedoc = self._ensure_store_entry(sitename, itemid)
                 doc = self._get_ia_item(itemid)
-                self._ensure_store_entry(sitename, itemid)
-                return doc
+
+                # Hack to add additional subjects /books/ia: pages
+                # Adding subjects to store docs, will add thise subjects to the books.
+                # These subjects are used when indexing the books in solr.
+                if storedoc.get("subjects"):
+                    doc.setdefault("subjects", []).extend(storedoc['subjects'])
+                return simplejson.dumps(doc)
         else:
             return ConnectionMiddleware.get(self, sitename, data)
 
@@ -145,7 +151,7 @@ class IAMiddleware(ConnectionMiddleware):
             return False
 
         # items start with these prefixes are not books
-        ignore_prefixes = ["jstor-", "imslp-", "nasa_techdoc_"]
+        ignore_prefixes = config.get("ia_ignore_prefixes", [])
         for prefix in ignore_prefixes:
             # ignore all JSTOR items
             if itemid.startswith(prefix):
@@ -213,6 +219,16 @@ class IAMiddleware(ConnectionMiddleware):
             if isbn_13: 
                 d["isbn_13"] = isbn_13
 
+        def add_subjects():
+            collections = metadata.get("collection", [])
+            mapping = {
+                "inlibrary": "In library",
+                "lendinglibrary": "Lending library"
+            }
+            subjects = [subject for c, subject in mapping.items() if c in collections]
+            if subjects:
+                d['subjects'] = subjects
+
         add('title')
         add('description', 'description')
         add_list('publisher', 'publishers')
@@ -220,15 +236,17 @@ class IAMiddleware(ConnectionMiddleware):
         add('date', 'publish_date')
 
         add_isbns()
+        add_subjects()
         
-        return simplejson.dumps(d)
+        return d
 
     def _ensure_store_entry(self, sitename, identifier):
         key = "ia-scan/" + identifier
         store_key = "/_store/" + key
         # If the entry is not found, create an entry
         try:
-            self.store_get(sitename, store_key)
+            jsontext = self.store_get(sitename, store_key)
+            return simplejson.loads(jsontext)
         except client.ClientException, e:
             logger.error("error", exc_info=True)            
             if e.status.startswith("404"):
@@ -239,6 +257,7 @@ class IAMiddleware(ConnectionMiddleware):
                     "created": datetime.datetime.utcnow().isoformat()
                 }
                 self.store_put(sitename, store_key, simplejson.dumps(doc))
+                return doc
         except:
             logger.error("error", exc_info=True)
 
