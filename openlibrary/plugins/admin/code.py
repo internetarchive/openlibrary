@@ -503,15 +503,20 @@ class inspect:
         return render_template("admin/inspect/store", docs, input=i)
         
     def GET_memcache(self):
-        i = web.input()
+        i = web.input(action="read")
         i.setdefault("keys", "")
         
         from openlibrary.core import cache
         mc = cache.get_memcache()
         
         keys = [k.strip() for k in i["keys"].split() if k.strip()]        
-        mapping = keys and mc.get_multi(keys)
-        return render_template("admin/inspect/memcache", keys, mapping)
+        if i.action == "delete":
+            mc.delete_multi(keys)
+            add_flash_message("info", "Deleted %s keys from memcache", len(keys))
+            return render_template("admin/inspect/memcache", [], {})
+        else:
+            mapping = keys and mc.get_multi(keys)
+            return render_template("admin/inspect/memcache", keys, mapping)
 
         
 class deploy:

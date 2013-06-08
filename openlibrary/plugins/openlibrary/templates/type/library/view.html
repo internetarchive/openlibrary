@@ -7,7 +7,11 @@ $var title: $title
 $ status = page.status or "onhold"
 
 $def show_plot():
-    <h2>Loans Per Day</h2>
+    <h2>Loans Per Day
+        <span class="tools">
+            <a href="/libraries/stats/${page.key.split('/')[-1]}.csv">Download as CSV</a>
+        </span>
+    </h2>
 
     <div class="chart">
         <div id="loans-per-day" class="graph">
@@ -67,6 +71,7 @@ $def show_plot():
              left:-85px;
         }
     </style>
+
 
 $if ctx.user and ctx.user.is_admin():
     <div id="contentHead">

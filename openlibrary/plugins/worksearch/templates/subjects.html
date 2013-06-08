@@ -7,8 +7,10 @@ $ subject_list = [('subjects', 20), ('places', 20), ('people', 10), ('times', 10
 <div id="scrollHere"></div>
 
 <div id="contentHead">
-    <h1>
+    <h1 class="inline">
         $page.name
+    </h1>
+    <span class="heading">
         <span class="count" id="coversCount">
             <strong><span>$sprintf(ungettext("%s work", "%s works", page.work_count), commify(page.work_count))</span></strong>
             $if page.ebook_count > 0:
@@ -17,9 +19,12 @@ $ subject_list = [('subjects', 20), ('places', 20), ('people', 10), ('times', 10
                 / 0 ebooks
             <span class="clickdata"></span>
         </span>
-        
+
         <span class="count hidden smaller chartZoom"><a href="javascript:;" class="resetSelection small">$_("Clear this selection")</a></span>
-    </h1>
+    </span>
+    <a href="#search" class="shift">Search for books with subject ${page.name}.</a>
+        
+
     <p class="collapse sansserif">
     <span class="tools brown">
         <img src="/images/icons/icon_sort.png" alt="Sorting by" width="9" height="11" style="margin-right:10px;"/>
@@ -493,7 +498,9 @@ var _hash = parse_hash();
 
         <div class="head" id="subjectRelated">
             <h2>$_("Related...")
+                <!--
                 <span class="count">        <a href="/search?${page.subject_type}_facet=$page.name.replace('&','%26')">Search within $page.name</a></span>
+                -->
             </h2>
         </div>
 
@@ -576,9 +583,11 @@ $if "lists" in ctx.features:
 
 <div class="section clearfix"></div>
 
-<form action="/search/subjects" class="olform">
-    <h2 class="collapse"><label for="searchSubjects">Subject Search</label>  <span class="sansserif grey smaller">Try a keyword.</span></h2>
+<a name="search"></a>
+<form action="/search" class="olform">
+    <h2 class="collapse"><label for="searchSubjects">Search</label> <span class="sansserif grey smaller">within $page.name</span></h2>
     <p>
+        <input type="hidden" name="${page.subject_type}_facet" value="$page.name" />
         <input type="text" name="q" id="searchSubjects" size="100" class="larger" value="" />
         <button type="submit" class="larger">$_('Search')</button>
     </p>

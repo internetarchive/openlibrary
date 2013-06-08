@@ -47,34 +47,28 @@ class account_create(delegate.page):
     path = "/account/create"
 
     def GET(self):
-        f = forms.Register()
+        f = self.get_form()
+        return render['account/create'](f)
 
-        recap_plugin_active = 'recaptcha' in config.get('plugins')
-        if recap_plugin_active:
+    def get_form(self):
+        f = forms.Register()
+        recap = self.get_recap()
+        f.has_recaptcha = recap is not None
+        if f.has_recaptcha:
+            f.inputs = list(f.inputs) + [recap]
+        return f
+
+    def get_recap(self):
+        if 'recaptcha' in config.get('plugins'):
             public_key = config.plugin_recaptcha.public_key
             private_key = config.plugin_recaptcha.private_key
-            recap = recaptcha.Recaptcha(public_key, private_key)
-        else:
-            recap = None
-
-        return render['account/create'](f, recaptcha=recap)
+            return recaptcha.Recaptcha(public_key, private_key)
 
     def POST(self):
         i = web.input('email', 'password', 'username', agreement="no")
         i.displayname = i.get('displayname') or i.username
 
-        recap_plugin_active = 'recaptcha' in config.get('plugins')
-        if recap_plugin_active:
-            public_key = config.plugin_recaptcha.public_key
-            private_key = config.plugin_recaptcha.private_key
-            recap = recaptcha.Recaptcha(public_key, private_key)
-
-            if not recap.validate():
-                return 'Recaptcha solution was incorrect. Please <a href="javascript:history.back()">go back</a> and try again.'
-
-
-        f = forms.Register()
-
+        f = self.get_form()
         if not f.validates(i):
             return render['account/create'](f)
 

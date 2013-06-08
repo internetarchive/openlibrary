@@ -14,7 +14,8 @@ $var title: [Admin Center] Inspect Memcache
             Keys:<br/>
             <textarea name="keys" rows="5">$"\n".join(keys)</textarea>
             <br/>
-            <button type="submit">Submit</button>
+            <button type="submit" name="action" value="read">Read</button>
+            <button type="submit" name="action" value="delete">Delete</button>
         </form>
         
         <h3>Result</h3>

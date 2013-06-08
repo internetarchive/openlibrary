@@ -348,6 +348,9 @@ memory_cache = MemoryCache()
 memcache_cache = MemcacheCache()
 request_cache = RequestCache()
 
+def get_memcache():
+    return memcache_cache.memcache
+
 def _get_cache(engine):
     d = {
         "memory": memory_cache,
