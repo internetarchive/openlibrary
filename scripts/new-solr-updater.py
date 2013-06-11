@@ -130,6 +130,13 @@ def parse_log(records):
                 identifier = data.get('identifier')
                 if identifier and is_allowed_itemid(identifier):
                     yield "/books/ia:" + identifier
+        elif action == 'store.delete':
+            key = rec.get("data", {}).get("key")
+            # An ia-scan key is deleted when that book is deleted/darked from IA.
+            # Delete it from OL solr by updating that key
+            if key.startswith("ia-scan/"):
+                ol_key = "/works/ia:" + key.split("/")[-1]
+                yield ol_key
 
 def is_allowed_itemid(identifier):
     if not re.match("^[a-zA-Z0-9_.-]*$", identifier):
