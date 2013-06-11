@@ -603,6 +603,17 @@ class permissions:
         add_flash_message("info", "Edit policy has been updated!")
         return self.GET()
 
+class solr:
+    def GET(self):
+        return render_template("admin/solr")
+
+    def POST(self):
+        i = web.input(keys="")
+        keys = i['keys'].strip().split()
+        web.ctx.site.store['solr-force-update'] = dict(type="solr-force-update", keys=keys, _rev=None)
+        add_flash_message("info", "Added the specified keys to solr update queue.!")
+        return self.GET()
+
 def setup():
     register_admin_page('/admin/git-pull', gitpull, label='git-pull')
     register_admin_page('/admin/reload', reload, label='Reload Templates')
@@ -625,6 +636,7 @@ def setup():
     register_admin_page('/admin/deploy', deploy, label="")
     register_admin_page('/admin/graphs', _graphs, label="")
     register_admin_page('/admin/permissions', permissions, label="")
+    register_admin_page('/admin/solr', solr, label="")
 
     inspect_thing.setup()
     support.setup()

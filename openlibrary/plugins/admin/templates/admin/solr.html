@@ -1,0 +1,41 @@
+$def with (keys="", error="")
+
+$var title: Solr Admin
+
+<div id="contentHead">
+    $:render_template("admin/menu")
+    <h1>Solr Admin</h1>
+</div>
+
+<div id="contentBody">
+	<div>Enter the keys of pages to be updates in OL search engine.<br/>
+
+	Example:
+	<pre>
+/books/OL1M
+/books/ia:foo00bar
+/works/OL1234W
+/authors/OL3456A
+	</pre>
+
+	On update, these keys will be added to solr update queue and it'll take about 15 minutes for them to get reindexed in Solr.
+	</div>
+
+    <form method="POST" class="olform">
+        <div class="formElement">
+            <div class="label">
+                <label for="keys">$_("Enter the keys to reindex in Solr")</label> 
+                <span class="tip">$_("Write one entry per line")</span>
+            </div>
+            <div class="input">
+                <textarea name="keys" id="keys" cols="55" rows="5" tabindex="0">$"\n".join(keys)</textarea>
+            </div>
+        </div>
+
+        <div class="formElement">
+            <div class="formElement collapse" style="position:relative;">
+                <button type="submit" class="larger" name="_update">$_("Update")</button>
+            </div>
+        </div>
+    </form>
+</div>

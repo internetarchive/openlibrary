@@ -487,6 +487,8 @@ class SolrProcessor:
         add_list('alternative_subtitle', self.get_alternate_subtitles(w, editions))
 
         add('edition_count', len(editions))
+
+
         add_list("edition_key", [re_edition_key.match(e['key']).group(1) for e in editions])
         add_list("by_statement", set(e["by_statement"] for e in editions if "by_statement" in e))
         
@@ -953,7 +955,9 @@ def get_document(key):
         print >> sys.stderr, "Failed to get document from %s" % url
         print >> sys.stderr, "retry", i
 
-re_edition_key = re.compile("^[a-zA-Z0-9:.-]+$")
+
+
+re_edition_key_basename = re.compile("^[a-zA-Z0-9:.-]+$")
 
 def solr_select_work(edition_key):
     """Returns work for given edition key in solr.
@@ -961,7 +965,7 @@ def solr_select_work(edition_key):
     # solr only uses the last part as edition_key
     edition_key = edition_key.split("/")[-1]
 
-    if not re_edition_key.match(edition_key):
+    if not re_edition_key_basename.match(edition_key):
         return None
 
     edition_key = edition_key.replace(":", r"\:")
