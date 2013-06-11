@@ -759,7 +759,7 @@ def build_data(w, obj_cache=None, resolve_redirects=False):
         
     return doc
     
-def solr_update(requests, debug=False, index='works'):
+def solr_update(requests, debug=False, index='works', commitWithin=None):
     # As of now, only works are added to single core solr. 
     # Need to work on supporting other things later
     if is_single_core() and index != 'works':
@@ -771,6 +771,10 @@ def solr_update(requests, debug=False, index='works'):
         url = 'http://%s/solr/update' % get_solr(index)
     else:
         url = 'http://%s/solr/%s/update' % (get_solr(index), index)
+
+    if commitWithin is not None:
+        url = url + "?commitWithin=%d" % commitWithin
+
     print url
     
     h1.connect()
@@ -1037,7 +1041,7 @@ def update_keys(keys, commit=True):
     if requests:  
         if commit:
             requests += ['<commit />']
-        solr_update(requests, index="authors", debug=True)
+        solr_update(requests, index="authors", debug=True, commitWithin=1000)
     logger.info("END update_keys")
 
 def parse_options(args=None):
