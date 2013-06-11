@@ -1,5 +1,5 @@
 import httplib, re, sys
-from openlibrary.catalog.utils.query import query_iter, withKey, has_cover, set_query_host
+from openlibrary.catalog.utils.query import query_iter, withKey, has_cover, set_query_host, base_url as get_ol_base_url
 #from openlibrary.catalog.marc.marc_subject import get_work_subjects, four_types
 from lxml.etree import tostring, Element, SubElement
 from pprint import pprint
@@ -937,6 +937,41 @@ def commit_and_optimize(debug=False):
     requests = ['<commit />', '<optimize />']
     solr_update(requests, debug)
 
+def get_document(key):
+    url = get_ol_base_url() + key + ".json"
+    for i in range(10):
+        try:
+            logger.info("urlopen %s", url)
+            contents = urlopen(url).read()
+            return json.loads(contents)
+        except urllib2.HTTPError, e:
+            contents = e.read()
+            # genueue 404, not a server error
+            if e.getcode() == 404 and '"error": "notfound"' in contents:
+                return {"key": key, "type": {"key": "/type/delete"}}
+
+        print >> sys.stderr, "Failed to get document from %s" % url
+        print >> sys.stderr, "retry", i
+
+re_edition_key = re.compile("^[a-zA-Z0-9:.-]+$")
+
+def solr_select_work(edition_key):
+    """Returns work for given edition key in solr.
+    """
+    # solr only uses the last part as edition_key
+    edition_key = edition_key.split("/")[-1]
+
+    if not re_edition_key.match(edition_key):
+        return None
+
+    edition_key = edition_key.replace(":", r"\:")
+
+    url = 'http://' + get_solr('works') + '/solr/works/select?wt=json&q=edition_key:%s&rows=1&fl=key' % edition_key
+    reply = json.load(urlopen(url))
+    docs = reply['response'].get('docs', [])
+    if docs:
+        return '/works/' + docs[0]['key'] # Need to add /works/ to make the actual key
+
 def update_keys(keys, commit=True):
     logger.info("BEGIN update_keys")
     wkeys = set()
@@ -945,7 +980,7 @@ def update_keys(keys, commit=True):
     ekeys = set(k for k in keys if k.startswith("/books/"))
     for k in ekeys:
         logger.info("processing edition %s", k)
-        edition = withKey(k)
+        edition = get_document(k)
 
         if edition and edition['type']['key'] == '/type/redirect':
             logger.warn("Found redirect to %s", edition['location'])
@@ -955,14 +990,18 @@ def update_keys(keys, commit=True):
             logger.warn("No edition found for key %r. Ignoring...", k)
             continue
         elif edition['type']['key'] != '/type/edition':
+            logger.info("%r is a document of type %r. Checking if any work has it as edition in solr...", k, edition['type']['key'])
+            wkey = solr_select_work(k)
+            if wkey:
+                logger.info("found %r, updating it...", wkey)
+                wkeys.add(wkey)
             logger.warn("Found a document of type %r. Ignoring...", edition['type']['key'])
-            continue
-
-        if edition.get("works"):
-            wkeys.add(edition["works"][0]['key'])
         else:
-            # index the edition as it does not belong to any work
-            wkeys.add(k)
+            if edition.get("works"):
+                wkeys.add(edition["works"][0]['key'])
+            else:
+                # index the edition as it does not belong to any work
+                wkeys.add(k)
         
     # Add work keys
     wkeys.update(k for k in keys if k.startswith("/works/"))
@@ -972,7 +1011,7 @@ def update_keys(keys, commit=True):
     for k in wkeys:
         logger.info("updating %s", k)
         try:
-            w = withKey(k)
+            w = get_document(k)
             requests += update_work(w, debug=True)
         except:
             logger.error("Failed to update work %s", k, exc_info=True)
