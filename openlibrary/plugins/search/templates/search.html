@@ -7,5 +7,7 @@ $var title: Search Results
 <input type="submit" value="Search"/>
 </form>
 
+<P><a href="http://openlibrary.org/search/howto">Advanced search tips</a>.</p>
+
 $for p in results:
     <p><a href="/$p.name">$p.get('title', '')</a></p>
