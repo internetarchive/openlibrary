@@ -98,7 +98,7 @@ $if page.volumes:
                 <p><a href="$viewbook.replace('XXX', v.ia_id)">View Volume $v.volume_number</a></p>
             </div>
     </div>
-$elif 'printdisabled' in collection or 'lendinglibrary' in collection:
+$elif page.is_access_restricted():
     <div>
         <h3 class="header">
             <span class="icon read"></span>

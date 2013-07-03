@@ -245,6 +245,12 @@ class Edition(Thing):
     def get_ia_collections(self):
         return self.get_ia_meta_fields().get("collection", [])
 
+    def is_access_restricted(self):
+        collections = self.get_ia_collections()
+        return ('printdisabled' in collections
+                or 'lendinglibrary' in collections
+                or self.get_ia_meta_fields().get("access-restricted") is True)
+
     def can_borrow(self):
         collections = self.get_ia_collections()
         return (
