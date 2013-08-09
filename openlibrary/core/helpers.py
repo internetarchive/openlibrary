@@ -69,10 +69,10 @@ def sanitize(html):
             html = str(BeautifulSoup(html))
             try:
                 html = genshi.HTML(html)
-            except genshi.ParseError:
+            except Exception:
                 # Failed to sanitize.
                 # We can't do any better than returning the original HTML, without sanitizing.
-                return html
+                return html                
         else:
             raise
 
