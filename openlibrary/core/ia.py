@@ -17,12 +17,37 @@ def get_metadata(itemid):
         stats.begin("archive.org", url=url)
         metadata_json = urllib2.urlopen(url).read()
         stats.end()
-        return simplejson.loads(metadata_json).get("metadata", {})
+        d = simplejson.loads(metadata_json)
+        metadata = process_metadata_dict(d.get("metadata", {}))
+
+        # if any of the files is access restricted, consider it as an access-restricted item.
+        metadata['access-restricted'] = any(f.get("private") == "true" for f in d['files'])
+        return metadata
     except IOError:
         stats.end()
         return {}
 
-def get_meta_xml(itemid):
+get_metadata = cache.memcache_memoize(get_metadata, key_prefix="ia.get_metadata", timeout=5*60)
+
+def process_metadata_dict(metadata):
+    """Process metadata dict to make sure multi-valued fields like
+    collection and external-identifier are always lists.
+
+    The metadata API returns a list only if a field has more than one value
+    in _meta.xml. This puts burden on the application to handle both list and
+    non-list cases. This function makes sure the known multi-valued fields are
+    always lists.
+    """
+    mutlivalued = set(["collection", "external-identifier"])
+    def process_item(k, v):
+        if k in mutlivalued and not isinstance(v, list):
+            v = [v]
+        elif k not in mutlivalued and isinstance(v, list):
+            v = v[0]
+        return (k, v)
+    return dict(process_item(k, v) for k, v in metadata.items() if v)
+
+def _old_get_meta_xml(itemid):
     """Returns the contents of meta_xml as JSON.
     """
     itemid = web.safestr(itemid.strip())
@@ -47,9 +72,11 @@ def get_meta_xml(itemid):
     except Exception, e:
         logger.error("Failed to parse metaxml for %s", itemid, exc_info=True)
         return web.storage()
-        
-get_meta_xml = cache.memcache_memoize(get_meta_xml, key_prefix="ia.get_meta_xml", timeout=5*60)
-        
+
+def get_meta_xml(itemid):
+    # use metadata API instead of parsing meta xml manually
+    return get_metadata(itemid)
+
 def xml2dict(xml, **defaults):
     """Converts xml to python dictionary assuming that the xml is not nested.
     

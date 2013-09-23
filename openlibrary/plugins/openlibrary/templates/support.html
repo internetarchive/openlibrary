@@ -10,9 +10,10 @@ $var title: What's the problem?
 
  $if done:
    <em>Your question has been submitted. We'll get back to you shortly.</em>
-    
 
  <form action="" method="post" name="spamForm" class="olform validate">
+  <p>Please review the <a href="/help/faq">Frequently Asked Questions</a> (FAQ) 
+to see if your question is answered there. Thank you.</p>
  <div class="formElement">
  <div class="label"><label for="email">$_("Your Email Address")</label></div>
  <div class="input"><input type="text" class = "email" name="email" id="email" value="$email"/> (We'll need this if you want a reply)</div>
@@ -24,8 +25,6 @@ $var title: What's the problem?
      <select class = "required" name="topic" id="topic">
        <option value="">Select...</option>
        <option value="Borrowing Books">Borrowing Books</option>
-       <option value="Buying Books">Buying Books</option>
-       <option value="Contact an Author">Contact an Author</option>
        <option value="Deletion Request">Deletion Request</option>
        <option value="Developer/API/Covers Question/Bug report">Developer/API/Covers/Bug report Question</option>
        <option value="Editing Problem">Editing Problem</option>
@@ -41,8 +40,8 @@ $var title: What's the problem?
    <div class="input">
      <textarea id="question" name="question" class = "required" cols="40" rows="5"></textarea>
    </div>
-   (If you encounter an error message, please cut and paste it along with the question)<p>
-   For questions about books, please provide the url of the openlibrary.org page or the title/author of the book.
+   <p>If you encounter an error message, please cut and paste it along with the question.</p><p>
+   For questions about books, please provide the url of the openlibrary.org page or the title/author of the book.</p>
 
  </div>
 

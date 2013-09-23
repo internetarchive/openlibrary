@@ -63,11 +63,16 @@ def sanitize(html):
                 
     try:
         html = genshi.HTML(html)
-    except genshi.ParseError:
+    except (genshi.ParseError, UnicodeDecodeError):
         if BeautifulSoup:
             # Bad html. Tidy it up using BeautifulSoup
             html = str(BeautifulSoup(html))
-            html = genshi.HTML(html)
+            try:
+                html = genshi.HTML(html)
+            except Exception:
+                # Failed to sanitize.
+                # We can't do any better than returning the original HTML, without sanitizing.
+                return html                
         else:
             raise
 

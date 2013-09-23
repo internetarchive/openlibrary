@@ -135,8 +135,9 @@ def convert_works_to_editions(site, works):
     
     for w in works:
         if w.get('lending_edition'):
-            e = editions['/books/' + w['lending_edition']]
-            if 'ocaid' in e:
+            ekey = '/books/' + w['lending_edition']
+            e = editions.get(ekey)
+            if e and 'ocaid' in e:
                 covers = e.get('covers') or [None]
                 w['key'] = e['key']
                 w['cover_id'] = covers[0]

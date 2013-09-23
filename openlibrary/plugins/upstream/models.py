@@ -561,7 +561,12 @@ class Work(models.Work):
     def get_sorted_editions(self):
         """Return a list of works sorted by publish date"""
         w = self._solr_data
-        editions = w and w.get('edition_key')
+        editions = w and w.get('edition_key') or []
+
+        # solr is stale
+        if len(editions) < self.edition_count:
+            q = {"type": "/type/edition", "works": self.key, "limit": 10000}
+            editions = [k[len("/books/"):] for k in web.ctx.site.things(q)]
         
         if editions:
             return web.ctx.site.get_many(["/books/" + olid for olid in editions])

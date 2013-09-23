@@ -115,8 +115,20 @@ class IAMiddleware(ConnectionMiddleware):
             if edition_key:
                 return self._make_redirect(itemid, edition_key)
             else:
-                storedoc = self._ensure_store_entry(sitename, itemid)
                 doc = self._get_ia_item(itemid)
+
+                if doc is None:
+                    # Delete store entry, if it exists.
+                    # When an item is darked on archive.org, it should be
+                    # automatically removed from OL. Removing entry from store
+                    # will trigger the solr-updater to delete it from solr as well.
+                    self._ensure_no_store_entry(sitename, itemid)
+
+                    raise client.ClientException(
+                        "404 Not Found", "notfound", 
+                        simplejson.dumps({"key": "/books/ia:" + itemid, "error": "notfound"}))
+
+                storedoc = self._ensure_store_entry(sitename, itemid)
 
                 # Hack to add additional subjects /books/ia: pages
                 # Adding subjects to store docs, will add thise subjects to the books.
@@ -164,7 +176,7 @@ class IAMiddleware(ConnectionMiddleware):
         metadata = ia.get_metadata(itemid)
 
         if not self._is_valid_item(itemid, metadata):
-            raise client.ClientException("404 Not Found", "notfound", simplejson.dumps({"key": "/books/ia:" + itemid}))
+            return None
 
         d = {   
             "key": "/books/ia:" + itemid,
@@ -239,6 +251,17 @@ class IAMiddleware(ConnectionMiddleware):
         add_subjects()
         
         return d
+
+    def _ensure_no_store_entry(self, sitename, identifier):
+        key = "ia-scan/" + identifier
+        store_key = "/_store/" + key
+        # If the entry is not found, create an entry
+        try:
+            jsontext = self.store_get(sitename, store_key)
+            self.store_delete(sitename, store_key, {"_rev": None})
+        except client.ClientException, e:
+            # nothing to do if that doesn't exist
+            pass
 
     def _ensure_store_entry(self, sitename, identifier):
         key = "ia-scan/" + identifier

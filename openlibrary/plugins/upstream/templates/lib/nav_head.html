@@ -8,7 +8,7 @@ $def with (page)
                     <li><a href="/authors" title="$_('Explore authors')">$_("Authors")</a></li>
                     $if "dev" in ctx.features and ctx.user and ctx.user.is_admin():
                         <li><a href="/books/add" title="$_('Add a new book to Open Library')">$_("Add a Book")</a></li>
-                        <li><a class="adminOnly" href="/theme/files" title="$_('Theme Editor')">$_("Theme")</a>
+                        <li><a class="adminOnly" href="/theme/files" title="$_('Theme Editor')">$_("Theme")</a></li>
                     $else:
                         <li class="second"><a href="/books/add" title="$_('Add a new book to Open Library')">$_("Add a Book")</a></li>
                     <li><a href="/lists" title="$_('Manage your lists')">$_("Lists")</a></li>

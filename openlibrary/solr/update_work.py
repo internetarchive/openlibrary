@@ -1,5 +1,5 @@
 import httplib, re, sys
-from openlibrary.catalog.utils.query import query_iter, withKey, has_cover, set_query_host
+from openlibrary.catalog.utils.query import query_iter, withKey, has_cover, set_query_host, base_url as get_ol_base_url
 #from openlibrary.catalog.marc.marc_subject import get_work_subjects, four_types
 from lxml.etree import tostring, Element, SubElement
 from pprint import pprint
@@ -474,6 +474,8 @@ class SolrProcessor:
         add_list('alternative_subtitle', self.get_alternate_subtitles(w, editions))
 
         add('edition_count', len(editions))
+
+
         add_list("edition_key", [re_edition_key.match(e['key']).group(1) for e in editions])
         add_list("by_statement", set(e["by_statement"] for e in editions if "by_statement" in e))
         
@@ -748,7 +750,7 @@ def build_data2(w, editions, authors, ia, duplicates):
         
     return doc
     
-def solr_update(requests, debug=False, index='works'):
+def solr_update(requests, debug=False, index='works', commitWithin=None):
     # As of now, only works are added to single core solr. 
     # Need to work on supporting other things later
     if is_single_core() and index not in ['works', 'authors', 'editions', 'subjects']:
@@ -762,6 +764,9 @@ def solr_update(requests, debug=False, index='works'):
         url = 'http://%s/solr/%s/update' % (get_solr(index), index)
 
     logger.info("POSTing update to %s", url)
+    if commitWithin is not None:
+        url = url + "?commitWithin=%d" % commitWithin
+
     h1.connect()
     for r in requests:
         if debug:
@@ -1048,9 +1053,10 @@ def update_work(w, obj_cache=None, debug=False, resolve_redirects=False):
         else:
             if d is not None:
                 # Delete all ia:foobar keys
-                # 
-                if d.get('ia'):
-                    deletes += ["ia:" + iaid for iaid in d['ia']]
+                # XXX-Anand: The works in in_library subject were getting wiped off for unknown reasons.
+                # I suspect that this might be a cause. Disabling temporarily.
+                #if d.get('ia'):
+                #    deletes += ["ia:" + iaid for iaid in d['ia']]
 
                 # In single core solr, we use full path as key, not just the last part
                 if is_single_core():
@@ -1062,6 +1068,11 @@ def update_work(w, obj_cache=None, debug=False, resolve_redirects=False):
                 add.append(doc)
                 add_xml = tostring(add).encode('utf-8')
                 requests.append(add_xml)
+    elif w['type']['key'] == '/type/delete':
+        # In single core solr, we use full path as key, not just the last part
+        if is_single_core():
+            deletes = ["/works/" + k for k in deletes]
+        requests.append(make_delete_query(deletes))
 
     return requests
 
@@ -1156,6 +1167,43 @@ def commit_and_optimize(debug=False):
     requests = ['<commit />', '<optimize />']
     solr_update(requests, debug)
 
+def get_document(key):
+    url = get_ol_base_url() + key + ".json"
+    for i in range(10):
+        try:
+            logger.info("urlopen %s", url)
+            contents = urlopen(url).read()
+            return json.loads(contents)
+        except urllib2.HTTPError, e:
+            contents = e.read()
+            # genueue 404, not a server error
+            if e.getcode() == 404 and '"error": "notfound"' in contents:
+                return {"key": key, "type": {"key": "/type/delete"}}
+
+        print >> sys.stderr, "Failed to get document from %s" % url
+        print >> sys.stderr, "retry", i
+
+
+
+re_edition_key_basename = re.compile("^[a-zA-Z0-9:.-]+$")
+
+def solr_select_work(edition_key):
+    """Returns work for given edition key in solr.
+    """
+    # solr only uses the last part as edition_key
+    edition_key = edition_key.split("/")[-1]
+
+    if not re_edition_key_basename.match(edition_key):
+        return None
+
+    edition_key = edition_key.replace(":", r"\:")
+
+    url = 'http://' + get_solr('works') + '/solr/works/select?wt=json&q=edition_key:%s&rows=1&fl=key' % edition_key
+    reply = json.load(urlopen(url))
+    docs = reply['response'].get('docs', [])
+    if docs:
+        return '/works/' + docs[0]['key'] # Need to add /works/ to make the actual key
+
 def update_keys(keys, commit=True):
     logger.info("BEGIN update_keys")
     wkeys = set()
@@ -1164,16 +1212,28 @@ def update_keys(keys, commit=True):
     ekeys = set(k for k in keys if k.startswith("/books/"))
     for k in ekeys:
         logger.info("processing edition %s", k)
-        edition = withKey(k)
+        edition = get_document(k)
+
+        if edition and edition['type']['key'] == '/type/redirect':
+            logger.warn("Found redirect to %s", edition['location'])
+            edition = withKey(edition['location'])
+
         if not edition:
             logger.warn("No edition found for key %r. Ignoring...", k)
             continue
-
-        if edition.get("works"):
-            wkeys.add(edition["works"][0]['key'])
+        elif edition['type']['key'] != '/type/edition':
+            logger.info("%r is a document of type %r. Checking if any work has it as edition in solr...", k, edition['type']['key'])
+            wkey = solr_select_work(k)
+            if wkey:
+                logger.info("found %r, updating it...", wkey)
+                wkeys.add(wkey)
+            logger.warn("Found a document of type %r. Ignoring...", edition['type']['key'])
         else:
-            # index the edition as it does not belong to any work
-            wkeys.add(k)
+            if edition.get("works"):
+                wkeys.add(edition["works"][0]['key'])
+            else:
+                # index the edition as it does not belong to any work
+                wkeys.add(k)
         
     # Add work keys
     wkeys.update(k for k in keys if k.startswith("/works/"))
@@ -1183,7 +1243,7 @@ def update_keys(keys, commit=True):
     for k in wkeys:
         logger.info("updating %s", k)
         try:
-            w = withKey(k)
+            w = get_document(k)
             requests += update_work(w, debug=True)
         except:
             logger.error("Failed to update work %s", k, exc_info=True)
@@ -1219,7 +1279,7 @@ def update_keys(keys, commit=True):
     if requests:  
         if commit:
             requests += ['<commit />']
-        solr_update(requests, index="authors", debug=True)
+        solr_update(requests, index="authors", debug=True, commitWithin=1000)
 
     # update subjects
     skeys = set(k for k in keys if k.startswith("/subjects/"))

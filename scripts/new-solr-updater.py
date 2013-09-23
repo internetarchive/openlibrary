@@ -122,14 +122,32 @@ def parse_log(records):
             #   "site": "openlibrary.org"
             # }
             data = rec.get('data', {}).get("data", {})
-            if data.get("type") == "ebook" and data.get("_key", "").startswith("ebooks/books/"):
+            key = data.get("_key", "")
+            if data.get("type") == "ebook" and key.startswith("ebooks/books/"):
                 edition_key = data.get('book_key')
                 if edition_key:
                     yield edition_key
-            elif LOAD_IA_SCANS and data.get("type") == "ia-scan" and data.get("_key", "").startswith("ia-scan/"):
+            elif LOAD_IA_SCANS and data.get("type") == "ia-scan" and key.startswith("ia-scan/"):
                 identifier = data.get('identifier')
                 if identifier and is_allowed_itemid(identifier):
                     yield "/books/ia:" + identifier
+
+            # Hack to force updating something from admin interface
+            # The admin interface writes the keys to update to a document named 
+            # 'solr-force-update' in the store and whatever keys are written to that 
+            # are picked by this script
+            elif key == 'solr-force-update':
+                keys = data.get('keys')
+                for k in keys:
+                    yield k
+
+        elif action == 'store.delete':
+            key = rec.get("data", {}).get("key")
+            # An ia-scan key is deleted when that book is deleted/darked from IA.
+            # Delete it from OL solr by updating that key
+            if key.startswith("ia-scan/"):
+                ol_key = "/works/ia:" + key.split("/")[-1]
+                yield ol_key
 
 def is_allowed_itemid(identifier):
     if not re.match("^[a-zA-Z0-9_.-]*$", identifier):
