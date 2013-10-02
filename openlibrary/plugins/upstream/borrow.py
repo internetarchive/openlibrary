@@ -192,7 +192,7 @@ class borrow(delegate.page):
         elif i.action == 'join-waitinglist':
             return self.POST_join_waitinglist(edition, user)
         elif i.action == 'leave-waitinglist':
-            return self.POST_leave_waitinglist(edition, user)
+            return self.POST_leave_waitinglist(edition, user, i)
 
         # Action not recognized
         raise web.seeother(error_redirect)
@@ -201,9 +201,12 @@ class borrow(delegate.page):
         waitinglist.join_waitinglist(user.key, edition.key)
         raise web.redirect(edition.url("/borrow"))
 
-    def POST_leave_waitinglist(self, edition, user):
+    def POST_leave_waitinglist(self, edition, user, i):
         waitinglist.leave_waitinglist(user.key, edition.key)
-        raise web.redirect(edition.url("/borrow"))
+        if i.get("redirect"):
+            raise web.redirect(i.redirect)
+        else:
+            raise web.redirect(edition.url("/borrow"))
 
 # Handler for /books/{bookid}/{title}/_borrow_status
 class borrow_status(delegate.page):

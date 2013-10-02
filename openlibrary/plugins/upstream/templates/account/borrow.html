@@ -181,7 +181,7 @@ $else:
                     <span class="">Waiting</span><br/>
                 </td>
                 <td class="actions">
-                    <form action="$book.url('/borrow')" method="POST" class="wlform">
+                    <form action="$book.url('/borrow?redirect=/account/loans')" method="POST" class="wlform">
                         <input type="hidden" name="action" value="leave-waitinglist"/>
                     </form>
                     <a href="javascript:;" class="leave">Leave the waiting list?</a>
