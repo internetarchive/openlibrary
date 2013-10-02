@@ -225,7 +225,9 @@ $if has_returned_recently and not page.key in [loan['book'] for loan in loans]:
                 <form method="POST" style="margin-top: 5px;">
                     <input type="hidden" name="action" value="leave-waitinglist"/>
                     <p>
-                    You are #$page.get_waitinglist_position(ctx.user) among $wsize people waiting for this book. 
+                        $ wsize = page.get_waitinglist_size()                        
+                        $ position = page.get_waitinglist_position(ctx.user)
+                        $ungettext("You are the only person waiting for this book.", "You are #%(position)s among %(size)s people waiting for this book.", wsize, position=position, size=wsize)
                     <a href="javascript:;" class="submit">Leave the waiting list?</a>
                     </p>
                 </form>
