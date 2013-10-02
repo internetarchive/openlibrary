@@ -2,6 +2,20 @@ $def with (user, loans)
 
 $var title: $_("Books You've Checked Out")
 
+<style type="text/css">
+.waitinglist .date, waitinglist .waitrank {
+    margin: 5px 0px;
+}
+.dialog .title {
+    font-weight: bold;
+}
+
+tr.expired {
+    background: #ffcdcd;
+}
+</style>
+
+
 $if len(loans) >= 5:
     <script type="text/javascript">
     <!--
@@ -20,8 +34,9 @@ $if len(loans) >= 5:
 </div>
 
 <div id="contentBody">
-
-$if len(loans) > 0:
+$if len(loans) == 0:
+    <div><em>You've not checked out any books at this moment.</em></div>
+$else:
     $# Have current loans
     <div id="borrowTable" class="borrow collapse">
     <table>
@@ -78,6 +93,7 @@ $if len(loans) > 0:
         </tbody>
     </table>
     </div>
+    <!--
     $for loan in loans:
         $:macros.BorrowTrouble(loan['expiry'])
     <h3>How To Return eBooks through Adobe Digital Editions</h3>
@@ -90,10 +106,95 @@ $if len(loans) > 0:
         <li>Click "Return" to confirm</li>
         <li>Done!</li>
     </ol>
+    -->
+
+<h1>$_("Books Are Waiting For")</h1>
+$ waitinglist = user.get_waitinglist()
+$if len(waitinglist) == 0:
+    <div><em>You are not waiting for any books at this moment.</em></div>
+$else:
+    <div id="leave-waitinglist-dialog" class="hidden dialog" title="Leave the Waiting List">Are you sure you want to leave the waiting list of<br/><strong>TITLE</strong>?</div>
+    <script type="text/javascript">
+    \$(function() {
+        \$("#leave-waitinglist-dialog").dialog({
+            autoOpen: false,
+            width: 450,
+            modal: true,
+            resizable: false,
+            buttons: {
+                "Yes, I'm sure": function() {
+                    \$(this).dialog("close");
+                    \$(this).data("origin").closest("td").find("form").submit();
+                },
+                "No, cancel": function() {
+                    \$(this).dialog("close");
+                }
+            }
+        });
+        \$("a.leave").click(function() {
+            var title = \$(this).parents("tr").find(".book").text();
+            console.log("click");
+            console.log([title, \$(this), \$(this).parents("tr")[0]]);
+            \$("#leave-waitinglist-dialog strong").text(title);
+            \$("#leave-waitinglist-dialog")
+                .data("origin", \$(this))
+                .dialog("open");
+        });
+    });
+    </script>
+    <div id="borrowTable" class="borrow collapse waitinglist">
+    <table>
+        <thead>
+            <tr>
+                <th class="titles" colspan="2">
+                $ungettext("%d book", "%d books", len(waitinglist), len(waitinglist))
+                </th>
+                <th class="expires">Status</th>
+                <th class="actions">actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        $for record in waitinglist:
+            $ book = record.get_book()
+            <tr>
+                <td class="cover">
+                $:render_template('covers/book_cover_small', book)
+                </td>
+                <td class="titles">
+                    <span class="book">
+                        <a href="$book.key" class="borrowResults"><strong>$book.title</strong></a>
+                    </span>
+                    <span class="author">
+                        $:macros.AuthorList(book.get_authors())
+                    </span>
+                    <div class="date">
+                        $ ndays = record.get_waiting_in_days()
+                        $ungettext("Waiting for %d day", "Waiting for %d days", ndays, ndays)
+                    </div>
+                    <div class="smallest lightgreen sansserif waitrank">
+                        $ wsize = book.get_waitinglist_size()
+                        $ pos = record.get_position()
+                        $ungettext("You are the only person waiting for this book.", "You are #%(pos)s among %(wsize)s people waiting for this book.", wsize, pos=pos, wsize=wsize)
+                    </div>
+                </td>
+                <td class="expires">
+                    <span class="">Waiting</span><br/>
+                </td>
+                <td class="actions">
+                    <form action="$book.url('/borrow')" method="POST" class="wlform">
+                        <input type="hidden" name="action" value="leave-waitinglist"/>
+                    </form>
+                    <a href="javascript:;" class="leave">Leave the waiting list?</a>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    </div>
+
 
 $# XXX borrow history not yet recorded so we show instructions if no current loans
 <!-- if no borrow history -->
-$if len(loans) == 0:
+$if len(loans) == 0 and len(waitinglist) == 0:
     <div class="contentHalf" style="padding-right:20px;width:419px;">
         <p>
         $_("There are 3 different sources for borrowing books through Open Library:")</p>

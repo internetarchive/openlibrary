@@ -14,24 +14,45 @@ Each waiting instance is represented as a document in the store as follows:
 """
 import datetime
 import web
+from . import helpers as h
+
+class WaitingLoan(dict):
+    def get_book(self):
+        return web.ctx.site.get(self['book'])
+
+    def get_position(self):
+        return get_waitinglist_position(self['user'], self['book'])
+
+    def get_waiting_in_days(self):
+        since = h.parse_datetime(self['since'])
+        delta = datetime.datetime.utcnow() - since
+        # Adding 1 to round off the the extra seconds in the delta
+        return delta.days + 1
+
+def _query_values(name, value):
+    docs = web.ctx.site.store.values(type="waiting-loan", name=name, value=value, limit=1000)
+    return [WaitingLoan(doc) for doc in docs]
+
+def _query_keys(name, value):
+    return web.ctx.site.store.keys(type="waiting-loan", name=name, value=value, limit=1000)
 
 def get_waitinglist_for_book(book_key):
     """Returns the lost of  records for the users waiting for given book.
 
     This is admin-only feature. Works only if the current user is an admin.
     """
-    return web.ctx.site.store.values(type="waiting-loan", name="book", value=book_key, limit=1000)
+    return _query_values(name="book", value=book_key)
 
 def get_waitinglist_size(book_key):
     """Returns size of the waiting list for given book.
     """
-    keys = web.ctx.site.store.keys(type="waiting-loan", name="book", value=book_key, limit=1000)
+    keys = _query_keys(name="book", value=book_key)
     return len(keys)
 
 def get_waitinglist_for_user(user_key):
     """Returns the list of records for all the books that a user is waiting for.
     """
-    return web.ctx.site.store.values(type="waiting-loan", name="user", value=user_key, limit=1000)
+    return _query_values(name="user", value=user_key)
 
 def is_user_waiting_for(user_key, book_key):
     """Returns True if the user is waiting for specified book.
@@ -83,4 +104,3 @@ def leave_waitinglist(user_key, book_key):
     bkey = book_key.split("/")[-1]
     key = "waiting-loan-%s-%s" % (ukey, bkey)
     web.ctx.site.store.delete(key)
-    

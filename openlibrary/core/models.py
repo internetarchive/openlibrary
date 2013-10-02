@@ -435,6 +435,10 @@ class User(Thing):
         """
         return waitinglist.is_user_waiting_for(self.key, book.key)
 
+    def get_waitinglist(self):
+        """Returns list of records for all the books the user is currently waiting for."""
+        return waitinglist.get_waitinglist_for_user(self.key)
+
     def __repr__(self):
         return "<User: %s>" % repr(self.key)
     __str__ = __repr__
