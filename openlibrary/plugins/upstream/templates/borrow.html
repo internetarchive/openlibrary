@@ -141,7 +141,16 @@ $if has_returned_recently and not page.key in [loan['book'] for loan in loans]:
             $if not available_loans:
                 $# not logged in and book is checked-out
                 <div class="message info">
-                    <h2 class="sansserif">This title is checked out.</h2>
+                    $ wsize = page.get_waitinglist_size()
+                    $if wsize:
+                        <h2 class="sansserif">This book is checked out
+                        <span class="small darkgreen">
+                        $ungettext("and %d person is on the waiting list", "and %d people are on the waiting list", wsize).</span>
+
+                    $else:
+                        <h2 class="sansserif">This book is checked out.</h2>
+                    </h2> 
+
                     <p>But, you'll need to <a href="/account/login">log in</a> or <a href="/account/create">open a free account</a> to borrow eBooks from Open library.</p>
                 </div>        
 
@@ -207,27 +216,37 @@ $if has_returned_recently and not page.key in [loan['book'] for loan in loans]:
                 <h2 class="sansserif">Hang on. You've hit the lending limit of 5 concurrent titles.</h2>
                 <p>You can free up space by returning one of <a href="/account/loans/" target="newWindow" title="Open link in a new browser window">your current loans</a> early.</p>
             </div>
-
+        $elif not available_loans and ctx.user and ctx.user.is_waiting_for(page):
+            <div class="message info">
+                $ wsize = page.get_waitinglist_size()
+                <h2 class="sansserif">This book is checked out
+                    <span class="small darkgreen">and you are on the waiting list.</span>
+                </h2>
+                <form method="POST" style="margin-top: 5px;">
+                    <input type="hidden" name="action" value="leave-waitinglist"/>
+                    <p>
+                    You are #$page.get_waitinglist_position(ctx.user) among $wsize people waiting for this book. 
+                    <a href="javascript:;" class="submit">Leave the waiting list?</a>
+                    </p>
+                </form>
+            </div>
         $elif not available_loans:
             $# book is not available for loan
             <div class="message info">
-                <h2 class="sansserif">This book is checked out.</h2>
-                <p>Please check back later, or browse <a href="/borrow">more books you can borrow</a>?</p>
-            </div>
-            $# XXX-Anand: why is this enabled only for admins? 
-            $# Disabled this for fake records like ia:foo00bar
-            $if ctx.user and ctx.user.is_admin() and not page.is_fake_record():
-                $# Stuff for adding to a list - NEED NEW WIDGET!
-                <div class="Tools borrow" id="listsWork">
-                    $:render_template("lists/widget", page, user_lists_only=True)
-                    
-                    <p id="borrowList" class="hidden">to keep an eye on it, or <a href="/subjects/lending_library">browse more titles</a>.</p>
-                </div>
-                <!-- 
-                <p id="postBorrowList"><strong>OK!</strong> This title has been added to your <a href="LIST URL">LIST NAME</a> list.<br/>
-                <a href="/borrow">Go back to browsing</a>?</p>
-                -->
-            
+                $ wsize = page.get_waitinglist_size()
+                $if wsize:
+                    <h2 class="sansserif">This book is checked out
+                    <span class="small darkgreen">
+                    $ungettext("and %(n)d person is on the waiting list", "and %(n)d people are on the waiting list", wsize, n=wsize).</span>
+                $else:
+                    <h2 class="sansserif">This book is checked out.</h2>
+                </h2> 
+                <form method="POST">
+                    <input type="hidden" name="action" value="join-waitinglist"/>
+                    <p style="margin-top: 5px;"><a href="javascript:;" class="submit">Join the waiting list</a> to reserve the book for you when it is available.
+                    </p>
+                </form>
+            </div>            
         $else:
             $# We can borrow it!
             $ user_can_borrow_this = True
@@ -289,5 +308,10 @@ function update_borrow_message(){
     
     update_borrow_message();
     \$(window).bind("ol.lists", update_borrow_message);
+});
+\$(function() {
+    \$("a.submit").click(function() {
+        \$(this).closest("form").submit();
+    });
 });
 </script>

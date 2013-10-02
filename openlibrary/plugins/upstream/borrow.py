@@ -23,6 +23,7 @@ from utils import render_template
 from openlibrary.core import inlibrary
 from openlibrary.core import stats
 from openlibrary.core import msgbroker
+from openlibrary.core import waitinglist
 from openlibrary import accounts
 
 from lxml import etree
@@ -188,10 +189,22 @@ class borrow(delegate.page):
             for loan in loans:
                 if loan['book'] == edition.key:
                     raise web.seeother(make_bookreader_auth_link(loan['_key'], edition.ocaid, '/stream/' + edition.ocaid, ol_host))
-            
+        elif i.action == 'join-waitinglist':
+            return self.POST_join_waitinglist(edition, user)
+        elif i.action == 'leave-waitinglist':
+            return self.POST_leave_waitinglist(edition, user)
+
         # Action not recognized
         raise web.seeother(error_redirect)
-        
+
+    def POST_join_waitinglist(self, edition, user):
+        waitinglist.join_waitinglist(user.key, edition.key)
+        raise web.redirect(edition.url("/borrow"))
+
+    def POST_leave_waitinglist(self, edition, user):
+        waitinglist.leave_waitinglist(user.key, edition.key)
+        raise web.redirect(edition.url("/borrow"))
+
 # Handler for /books/{bookid}/{title}/_borrow_status
 class borrow_status(delegate.page):
     path = "(/books/.*)/_borrow_status"

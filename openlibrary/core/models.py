@@ -17,7 +17,7 @@ from openlibrary import accounts
 
 # relative imports
 from lists.model import ListMixin, Seed
-from . import cache, iprange, inlibrary
+from . import cache, iprange, inlibrary, waitinglist
 
 class Image:
     def __init__(self, site, category, id):
@@ -257,6 +257,17 @@ class Edition(Thing):
             'lendinglibrary' in collections or
             ('inlibrary' in collections and inlibrary.get_library() is not None))
 
+    def get_waitinglist_size(self):
+        """Returns the number of people on waiting list to borrow this book.
+        """
+        return waitinglist.get_waitinglist_size(self.key)
+
+    def get_waitinglist_position(self, user):
+        """Returns the position of this user in the waiting list."""
+        return waitinglist.get_waitinglist_position(user.key, self.key)
+
+    def get_scanning_contributor(self):
+        return self.get_ia_meta_fields().get("contributor")
 
 class Work(Thing):
     """Class to represent /type/work objects in OL.
@@ -418,6 +429,11 @@ class User(Thing):
             "tags": tags
         }
         return self._site.new(key, doc)
+
+    def is_waiting_for(self, book):
+        """Returns True if this user is waiting to loan given book.
+        """
+        return waitinglist.is_user_waiting_for(self.key, book.key)
 
     def __repr__(self):
         return "<User: %s>" % repr(self.key)
