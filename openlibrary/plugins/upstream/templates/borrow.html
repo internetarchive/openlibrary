@@ -145,7 +145,7 @@ $if has_returned_recently and not page.key in [loan['book'] for loan in loans]:
                     $if wsize:
                         <h2 class="sansserif">This book is checked out
                         <span class="small darkgreen">
-                        $ungettext("and %d person is on the waiting list", "and %d people are on the waiting list", wsize).</span>
+                        $ungettext("and %d person is on the waiting list", "and %d people are on the waiting list", wsize, wsize).</span>
 
                     $else:
                         <h2 class="sansserif">This book is checked out.</h2>
