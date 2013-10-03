@@ -122,8 +122,7 @@ if __name__ == "__main__":
         sys.argv.remove("--process")
         process_dump(sys.argv[1])
     elif "--generate" in sys.argv:
-        sys.argv.remove("--generate")
+        sys.argv.remove("--sitemaps")
         generate_sitemaps()
-    elif "--siteindex" in sys.argv:
         generate_siteindex()
 
