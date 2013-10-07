@@ -906,38 +906,43 @@ def make_bookreader_auth_link(loan_key, item_id, book_path, ol_host):
 def on_loan_update(loan):
     store = web.ctx.site.store
 
-    key = "ebooks" + loan['book']
-    doc = store.get(key) or {}
+    # key = "ebooks" + loan['book']
+    # doc = store.get(key) or {}
+    # doc.update({
+    #     "type": "ebook",
+    #     "book_key": loan['book'],
+    #     "borrowed": "true"
+    # })
+    # store[key] = doc
 
-    doc.update({
-        "type": "ebook",
-        "book_key": loan['book'],
-        "borrowed": "true"
-    })
-    store[key] = doc
+    # update the waiting list and ebook document.
+    waitinglist.update_waitinglist(loan['book'])
 
     # TODO: differentiate between loan-updated and loan-created
     msgbroker.send_message("loan-created", loan)
     
 def on_loan_delete(loan):
+    store = web.ctx.site.store
     loan['returned_at'] = time.time()
 
-    store = web.ctx.site.store
-    key = "ebooks" + loan['book']
-    doc = store.get(key) or {}
-
     # Check if the book still has an active loan
-    borrowed = "false"
-    loan_keys = web.ctx.site.store.query('/type/loan', 'resource_id', loan['resource_id'])
-    if loan_keys:
-        borrowed = "true"
     
-    doc.update({
-        "type": "ebook",
-        "book_key": loan['book'],
-        "borrowed": borrowed
-    })
-    store[key] = doc
+    # borrowed = "false"
+    # loan_keys = store.query('/type/loan', 'resource_id', loan['resource_id'])
+    # if loan_keys:
+    #     borrowed = "true"
+
+    # key = "ebooks" + loan['book']
+    # doc = store.get(key) or {}
+    # doc.update({
+    #     "type": "ebook",
+    #     "book_key": loan['book'],
+    #     "borrowed": borrowed
+    # })
+    # store[key] = doc
+
+    # update the waiting list and ebook document.
+    waitinglist.update_waitinglist(loan['book'])
 
     msgbroker.send_message("loan-completed", loan)
 

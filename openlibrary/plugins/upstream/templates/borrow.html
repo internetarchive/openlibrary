@@ -20,9 +20,18 @@ $ show_returned_message = False
 $if has_returned_recently and not page.key in [loan['book'] for loan in loans]:
     $ show_returned_message = True
 
+$ wlsize = page.get_waitinglist_size()
+$ waiting_loan = ctx.user and ctx.user.get_waiting_loan_for(page)
+
+$# When the book is available and there are people waiting for the book,
+$# don't allow anyone other than the first person in the waiting list to borrow the book.
+$if wlsize > 0 and (not waiting_loan or waiting_loan['status'] != 'available'):
+    $ available_loans = []
+
+
 <div id="contentHead">
     <div class="navBorrow">
-        <a href="http://openlibrary.org/" title="Return to home page"><img src="/images/logo_OL-sm.png" width="90" height="71" alt="Open Library logo" class="right"/></a>
+        <a href="/" title="Return to home page"><img src="/images/logo_OL-sm.png" width="90" height="71" alt="Open Library logo" class="right"/></a>
         <a href="$page.url()"><strong>&larr; Back</strong></a>
     </div>
 	<h1 class="sansserif">Borrow</h1>
@@ -67,16 +76,10 @@ $if has_returned_recently and not page.key in [loan['book'] for loan in loans]:
             </table>
         </div>
 
-        $if page.key in [loan['book'] for loan in loans] or page.ocaid in [loan['ocaid'] for loan in loans]:
-            $# checked out by this user!
-            
-            $# find the loan
-            $for candidate in loans:
-                $if candidate['book'] == page.key or candidate['ocaid'] == page.ocaid:
-                    $ active_loan = candidate
-            
+        $if ctx.user and ctx.user.has_borrowed(page):
+            $ active_loan = ctx.user.get_loan_for(page)
             $if can_return_resource_type(active_loan['resource_type']):
-               <div class="message info">
+                <div class="message info">
                     <h2 class="sansserif">You have this book checked out. You can read it online or return the book.
                     <p>
                     $:macros.LoanReadForm(active_loan['book'])
@@ -141,11 +144,10 @@ $if has_returned_recently and not page.key in [loan['book'] for loan in loans]:
             $if not available_loans:
                 $# not logged in and book is checked-out
                 <div class="message info">
-                    $ wsize = page.get_waitinglist_size()
-                    $if wsize:
+                    $if wlsize:
                         <h2 class="sansserif">This book is checked out
                         <span class="small darkgreen">
-                        $ungettext("and %d person is on the waiting list", "and %d people are on the waiting list", wsize, wsize).</span>
+                        $ungettext("and %d person is on the waiting list", "and %d people are on the waiting list", wlsize, wlsize).</span>
 
                     $else:
                         <h2 class="sansserif">This book is checked out.</h2>
@@ -218,16 +220,14 @@ $if has_returned_recently and not page.key in [loan['book'] for loan in loans]:
             </div>
         $elif not available_loans and ctx.user and ctx.user.is_waiting_for(page):
             <div class="message info">
-                $ wsize = page.get_waitinglist_size()
                 <h2 class="sansserif">This book is checked out
                     <span class="small darkgreen">and you are on the waiting list.</span>
                 </h2>
                 <form method="POST" style="margin-top: 5px;">
                     <input type="hidden" name="action" value="leave-waitinglist"/>
                     <p>
-                        $ wsize = page.get_waitinglist_size()                        
                         $ position = page.get_waitinglist_position(ctx.user)
-                        $ungettext("You are the only person waiting for this book.", "You are #%(position)s among %(size)s people waiting for this book.", wsize, position=position, size=wsize)
+                        $ungettext("You are the only person waiting for this book.", "You are #%(position)s among %(size)s people waiting for this book.", wlsize, position=position, size=wlsize)
                     <a href="javascript:;" class="submit">Leave the waiting list?</a>
                     </p>
                 </form>
@@ -235,11 +235,10 @@ $if has_returned_recently and not page.key in [loan['book'] for loan in loans]:
         $elif not available_loans:
             $# book is not available for loan
             <div class="message info">
-                $ wsize = page.get_waitinglist_size()
-                $if wsize:
+                $if wlsize:
                     <h2 class="sansserif">This book is checked out
                     <span class="small darkgreen">
-                    $ungettext("and %(n)d person is on the waiting list", "and %(n)d people are on the waiting list", wsize, n=wsize).</span>
+                    $ungettext("and %(n)d person is on the waiting list", "and %(n)d people are on the waiting list", wlsize, n=wlsize).</span>
                 $else:
                     <h2 class="sansserif">This book is checked out.</h2>
                 </h2> 

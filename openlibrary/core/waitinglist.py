@@ -21,7 +21,10 @@ class WaitingLoan(dict):
         return web.ctx.site.get(self['book'])
 
     def get_position(self):
-        return get_waitinglist_position(self['user'], self['book'])
+        return self['position']
+
+    def get_waitinglist_size(self):
+        return self['wl_size']
 
     def get_waiting_in_days(self):
         since = h.parse_datetime(self['since'])
@@ -41,13 +44,17 @@ def get_waitinglist_for_book(book_key):
 
     This is admin-only feature. Works only if the current user is an admin.
     """
-    return _query_values(name="book", value=book_key)
+    wl = _query_values(name="book", value=book_key)
+    # sort the waiting list by timestamp
+    return sorted(wl, key=lambda doc: doc['since'])
 
 def get_waitinglist_size(book_key):
     """Returns size of the waiting list for given book.
     """
-    keys = _query_keys(name="book", value=book_key)
-    return len(keys)
+    key = "ebooks" + book_key
+    ebook = web.ctx.site.store.get(key) or {}
+    size = ebook.get("wl_size", 0)
+    return int(size)
 
 def get_waitinglist_for_user(user_key):
     """Returns the list of records for all the books that a user is waiting for.
@@ -73,7 +80,7 @@ def get_waitinglist_position(user_key, book_key):
     key = "waiting-loan-%s-%s" % (ukey, bkey)
 
     wl = get_waitinglist_for_book(book_key)
-    keys = [doc['_key'] for doc in sorted(wl, key=lambda doc: doc['since'])]
+    keys = [doc['_key'] for doc in wl]
     try:
         # Adding one to start the position from 1 instead of 0
         return keys.index(key) + 1
@@ -97,9 +104,10 @@ def join_waitinglist(user_key, book_key):
         "book": book_key,
         "status": "waiting",
         "since": timestamp,
-        "last-update": timestamp        
+        "last-update": timestamp,
     }
     web.ctx.site.store[key] = d
+    update_waitinglist(book_key)
 
 def leave_waitinglist(user_key, book_key):
     """Removes the given user from the waiting list of the given book.
@@ -108,3 +116,64 @@ def leave_waitinglist(user_key, book_key):
     bkey = book_key.split("/")[-1]
     key = "waiting-loan-%s-%s" % (ukey, bkey)
     web.ctx.site.store.delete(key)
+    update_waitinglist(book_key)
+
+def update_waitinglist(book_key):
+    """Updates the status of the waiting list.
+
+    It does the following things:
+
+    * updates the position of each person the waiting list (do we need this?)
+    * marks the first one in the waiting-list as active if the book is available to borrow
+    * updates the waiting list size in the ebook document (this is used by solr to index wl size)
+    * If the person who borrowed the book is in the waiting list, removed it (should never happen)
+
+    This function should be called on the following events:
+    * When a book is checked out or returned
+    * When a person joins or leaves the waiting list
+    """
+    wl = get_waitinglist_for_book(book_key)
+    checkedout = _is_loaned_out(book_key)
+
+    ebook_key = "ebooks" + book_key
+    ebook = web.ctx.site.store.get(ebook_key) or {}
+
+    documents = {}
+    def save_later(doc):
+        """Remembers to save on commit."""
+        documents[doc['_key']] = doc
+
+    def commit():
+        """Saves all the documents """
+        web.ctx.site.store.update(documents)
+
+    for i, doc in enumerate(wl):
+        doc['position'] = i + 1
+        doc['wl_size'] = len(wl)
+        save_later(doc)
+
+    # Mark the first entry in the waiting-list as available if the book
+    # is not checked out.
+    if not checkedout and wl:
+        wl[0]['status'] = 'available'
+        save_later(wl[0])
+
+    # for the end user, a book is not available if it is either
+    # checked out or someone is waiting.
+    not_available = bool(checkedout or wl)
+
+    # update ebook document.
+    ebook.update({
+        "_key": ebook_key,
+        "type": "ebook",
+        "book_key": book_key,
+        "borrowed": str(not_available).lower(), # store as string "true" or "false"
+        "wl_size": len(wl)
+    })
+    save_later(ebook)
+    commit()
+
+def _is_loaned_out(book_key):
+    from openlibrary.plugins.upstream import borrow
+    book = web.ctx.site.get(book_key)
+    return borrow.get_edition_loans(book) != []
