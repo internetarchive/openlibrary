@@ -9,6 +9,15 @@ $else:
   $ current_loans = []
   $ available_loans = []
 
+$ wlsize = page.get_waitinglist_size()
+$ waiting_loan = ctx.user and ctx.user.get_waiting_loan_for(page)
+
+$if available_loans:
+    $# When the book is available and there are people waiting for the book,
+    $# don't allow anyone other than the first person in the waiting list to borrow the book.
+    $if wlsize > 0 and (not waiting_loan or waiting_loan['status'] != 'available'):
+        $ available_loans = []
+
 $ user_loan = None
 $if user:
     $for current_loan in current_loans:
@@ -30,12 +39,19 @@ $if user_loan:
         <input type="hidden" name="action" value="return" />
         </form>
         <form id='$read_form_id' method="POST" action="$page.key/_doread/borrow" style='display:hidden' id><input type="hidden" name="action" value="read"/><input type="text" name="ol_host" value="" class="hidden ol_host" /></form>
-        <p style="margin-bottom:10px;"><a href="$borrow_link" title="Borrow from $contributor">$ebook_text</a> <span class="smaller">You have this book checked out.   
+        <p style="padding-bottom:10px;"><a href="$borrow_link" title="Borrow from $contributor">$ebook_text</a> <span class="smaller">You have this book checked out.
         <a href="$user_loan['loan_link']" onclick="javascript:jQuery('#$read_form_id').submit(); return false">Read it</a> or <a href="$return_url" onclick="javascript:jQuery('.ol_host').attr('value', location.host); jQuery('#$form_id').submit(); return false;">return now</a>?</span></p>
     $else:
-        <p style="margin-bottom:10px;"><a href="$borrow_link" title="Borrow from $contributor">$ebook_text</a> <span class="smaller">You have this book checked out.</span></p>    
+        <p style="padding-bottom:10px;"><a href="$borrow_link" title="Borrow from $contributor">$ebook_text</a> <span class="smaller">You have this book checked out.</span></p>
         
 $elif available_loans:
-            <p style="margin-bottom:10px;"><a href="$borrow_link" title="Borrow from $contributor">$ebook_text</a> <span class="smaller">PDF, ePub or in browser $:{line_break}from $contributor</span></p>
+    <p style="padding-bottom:10px;"><a href="$borrow_link" title="Borrow from $contributor">$ebook_text</a> <span class="smaller">PDF, ePub or in browser $:{line_break}from $contributor</span></p>
 $else:
-            <p style="margin-bottom:10px;"><strike><a href="$borrow_link" title="Borrow from $contributor">$ebook_text</a></strike> <span class="smaller">This title is <i class="red">checked out</i>.</span></p>
+    <p style="padding-bottom:10px;">
+        <span class="smaller">eBook is checked out.</span>
+        <br>
+        $if waiting_loan:
+            You are on the <a href="$borrow_link">waiting list</a>.
+        $else:
+            <a href="$borrow_link">Join the waiting list?</a>
+    </p>

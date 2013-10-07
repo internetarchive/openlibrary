@@ -57,11 +57,15 @@ def get_waitinglist_for_user(user_key):
 def is_user_waiting_for(user_key, book_key):
     """Returns True if the user is waiting for specified book.
     """
+    return get_waiting_loan_object(user_key, book_key) is not None
+
+def get_waiting_loan_object(user_key, book_key):
     ukey = user_key.split("/")[-1]
     bkey = book_key.split("/")[-1]
     key = "waiting-loan-%s-%s" % (ukey, bkey)
     doc = web.ctx.site.store.get(key)
-    return doc and doc['status'] != 'expired'
+    if doc and doc['status'] != 'expired':
+        return doc
 
 def get_waitinglist_position(user_key, book_key):
     ukey = user_key.split("/")[-1]

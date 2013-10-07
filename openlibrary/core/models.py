@@ -439,6 +439,26 @@ class User(Thing):
         """Returns list of records for all the books the user is currently waiting for."""
         return waitinglist.get_waitinglist_for_user(self.key)
 
+    def has_borrowed(self, book):
+        """Returns True if this user has borrowed given book.
+        """
+        loan = self.get_loan_for(book)
+        return loan is not None
+
+    def get_loan_for(self, book):
+        """Returns the loan object for given book.
+
+        Returns None if this user hasn't borrowed the given book.
+        """
+        from ..plugins.upstream import borrow
+        loans = borrow.get_loans(self)
+        for loan in loans:
+            if book.key == loan['book'] or book.ocaid == loan['ocaid']:
+                return loan
+
+    def get_waiting_loan_for(self, book):
+        return waitinglist.get_waiting_loan_object(self.key, book.key)
+
     def __repr__(self):
         return "<User: %s>" % repr(self.key)
     __str__ = __repr__
