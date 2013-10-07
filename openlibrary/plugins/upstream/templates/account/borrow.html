@@ -13,6 +13,19 @@ $var title: $_("Books You've Checked Out")
 tr.expired {
     background: #ffcdcd;
 }
+
+td.status, th.status {
+    padding: 15px;
+    text-align: center;
+}
+
+tr.row-available .status-value {
+    color: darkgreen;
+}
+
+tr.row-available {
+    background: #fffdcd;
+}
 </style>
 
 
@@ -149,14 +162,15 @@ $else:
                 <th class="titles" colspan="2">
                 $ungettext("%d book", "%d books", len(waitinglist), len(waitinglist))
                 </th>
-                <th class="expires">Status</th>
+                <th class="status">Status</th>
                 <th class="actions">actions</th>
             </tr>
         </thead>
         <tbody>
         $for record in waitinglist:
             $ book = record.get_book()
-            <tr>
+            $ status = record['status']
+            <tr class="row-$status">
                 <td class="cover">
                 $:render_template('covers/book_cover_small', book)
                 </td>
@@ -177,14 +191,19 @@ $else:
                         $ungettext("You are the only person waiting for this book.", "You are #%(pos)s among %(wsize)s people waiting for this book.", wsize, pos=pos, wsize=wsize)
                     </div>
                 </td>
-                <td class="expires">
-                    <span class="">Waiting</span><br/>
+                <td class="status">
+                    <span class="status-value">$record['status'].title()</span><br/>
+                    <span class="smaller" style="padding-top: 5px">for 17 hours more</span>
                 </td>
                 <td class="actions">
+                    <form action="$book.url('/borrow')" method="post">
+                        <input type="hidden" name="action" value="borrow" />
+                        <input type="submit" value="Borrow Now" />
+                    </form>
                     <form action="$book.url('/borrow?redirect=/account/loans')" method="POST" class="wlform">
                         <input type="hidden" name="action" value="leave-waitinglist"/>
+                        <a href="javascript:;" class="submit">Leave the waiting list?</a>
                     </form>
-                    <a href="javascript:;" class="leave">Leave the waiting list?</a>
                 </td>
             </tr>
         </tbody>
