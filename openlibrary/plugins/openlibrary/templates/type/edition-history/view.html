@@ -11,7 +11,7 @@ $var title: $title
 $ lccn = page["lccn"] and page["lccn"][0] and ("http://lccn.loc.gov/" + page["lccn"][0])
 $ oclc = page["oclc_numbers"] and page["oclc_numbers"][0] and ("http://www.worldcat.org/oclc/" + page["oclc_numbers"][0] + "?tab=details")
 $ key = page.key
-$ detailbook = "http://www.archive.org/details/XXX"
+$ detailbook = "//archive.org/details/XXX"
 
 $ ids = ["isbn_10", "isbn_13", "lccn", "dewey_decimal_class", "lc_classifications", "oclc_numbers"]
 $ object = ["physical_format", "pagination", "physical_dimensions","weight"]
@@ -152,11 +152,11 @@ $ web = ["download_url", "purchase_url"]
                 $if name == 'source_records':
                     $for src in page[name]:
                         $if src.startswith('marc:'):
-                            <td class="tag"><span class="tag"><a href="http://openlibrary.org/show-records/$src[5:]">Library MARC record</a></span></td></tr>
+                            <td class="tag"><span class="tag"><a href="/show-records/$src[5:]">Library MARC record</a></span></td></tr>
                         $elif src.startswith('amazon:'):
                             <td class="tag"><span class="tag"><a href="http://amazon.com/dp/$src[7:17]">Amazon.com</a></span></td></tr>
                         $elif src.startswith('ia:'):
-                            <td class="tag"><span class="tag"><a href="http://www.archive.org/details/$src[3:]">Internet Archive</a></span></td></tr>
+                            <td class="tag"><span class="tag"><a href="//archive.org/details/$src[3:]">Internet Archive</a></span></td></tr>
                         $else:
                             <td class="tag"><span class="tag">$:thingrepr(src)</span></td></tr>
                 $else:

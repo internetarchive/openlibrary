@@ -95,7 +95,7 @@ $jsdef render_page(page):
                 
             $ borrowable = all_borrow or contains(w.subject, 'Lending library') or (inlibrary and contains(w.subject, 'In library'))
             $if not all_borrow and w.ia and w.public_scan:
-                <div class="coverEbook"><a href="http://www.archive.org/stream/$w.ia" title="$_('Read online')"><img src="/images/icons/icon_ebook-avail.png" border="0" width="32" height="33" alt="$_('Read online')"/></a></div>
+                <div class="coverEbook"><a href=//archive.org/stream/$w.ia" title="$_('Read online')"><img src="/images/icons/icon_ebook-avail.png" border="0" width="32" height="33" alt="$_('Read online')"/></a></div>
             $elif w.ia and w.lending_edition and borrowable:
                 $if w.checked_out:
                     $ img_src = "/images/icons/icon_borrow-not-avail.png"

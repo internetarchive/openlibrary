@@ -29,13 +29,13 @@ $code:
         
         if item.startswith("ia:"):
             source_name = "Internet Archive"
-            source_url = "http://www.archive.org/details/" + item[3:]
+            source_url = "//archive.org/details/" + item[3:]
         elif item.startswith("amazon:"):
             source_name = "amazon.com"
             source_url = "http://www.amazon.com/?tag=openlibr-20"
         else:
             source_name = names.get(item, item)
-            source_url = "http://www.archive.org/details/" + item    
+            source_url = "//archive.org/details/" + item    
         return storage(id=record_id, url=url, source_name=source_name, source_url=source_url)
 
 $var get_source_record = get_source_record

@@ -22,7 +22,7 @@ $if has_returned_recently and not page.key in [loan['book'] for loan in loans]:
 
 <div id="contentHead">
     <div class="navBorrow">
-        <a href="http://openlibrary.org/" title="Return to home page"><img src="/images/logo_OL-sm.png" width="90" height="71" alt="Open Library logo" class="right"/></a>
+        <a href="/" title="Return to home page"><img src="/images/logo_OL-sm.png" width="90" height="71" alt="Open Library logo" class="right"/></a>
         <a href="$page.url()"><strong>&larr; Back</strong></a>
     </div>
 	<h1 class="sansserif">Borrow</h1>
@@ -111,12 +111,12 @@ $if has_returned_recently and not page.key in [loan['book'] for loan in loans]:
                             $ show_returned_message = False
                         $else:
                             <h2 class="sansserif">This book isn't available to borrow.</h2>
-                            <p>Unless you find yourself literally sitting inside <a href="http://openlibrary.org/libraries">one of the libraries participating in the "In Library" lending program</a>. Look for something else in the <a href="/borrow">lending library</a>?</p>
+                            <p>Unless you find yourself literally sitting inside <a href="/libraries">one of the libraries participating in the "In Library" lending program</a>. Look for something else in the <a href="/borrow">lending library</a>?</p>
                     </div>               
                 $else:
                     <div class="message info">
                         <h2 class="sansserif">This title is checked out.</h2>
-                        <p>It's special too, since it can only be borrowed from within a library that's participating in <a href="http://openlibrary.org/libraries">the "In Library" lending program</a>. Look for something else in the <a href="/borrow">lending library</a>?</p>
+                        <p>It's special too, since it can only be borrowed from within a library that's participating in <a href="/libraries">the "In Library" lending program</a>. Look for something else in the <a href="/borrow">lending library</a>?</p>
                     </div>               
 
 

@@ -32,7 +32,7 @@ ul.inner {
 
 <div id="contentHead">
     <div class="navBorrow">
-        <a href="http://openlibrary.org/" title="Return to home page"><img src="/images/logo_OL-sm.png" width="90" height="71" alt="Open Library logo" class="right"/></a>
+        <a href="/" title="Return to home page"><img src="/images/logo_OL-sm.png" width="90" height="71" alt="Open Library logo" class="right"/></a>
         <a href="$page.url()"><strong>&larr; Back</strong></a>
     </div>
 
@@ -112,7 +112,7 @@ ul.inner {
         <h3>Book Info</h3>
         <ul>
             <li>key: <a href="$page.key">$page.key</a></li>
-            <li>archive.org ID: <a href="http://www.archive.org/details/$page.ocaid">$page.ocaid</a>
+            <li>archive.org ID: <a href="//archive.org/details/$page.ocaid">$page.ocaid</a>
             <li>IA Collections: 
                 <ul class="inner">
                     $for c in page.get_ia_meta_fields()['collection']:

@@ -13,16 +13,16 @@ $ worldcatoclc = "http://worldcat.org/oclc/XXX"
 $ bookmooch = "http://www.bookmooch.com/m/mooch_choice?asin=XXX"
 $ titletrader = "http://www.titletrader.com/invinfo/XXX.html"
 
-$ viewbook = "http://www.archive.org/stream/XXX"
-$ detailbook = "http://www.archive.org/details/XXX"
-$ downloadbook = "http://www.archive.org/download/XXX/XXX.pdf"
-$ pdfbw = "http://www.archive.org/download/XXX/XXX_bw.pdf"
-$ daisy = "http://www.archive.org/download/XXX/XXX_daisy.zip"
-$ epub = "http://www.archive.org/download/XXX/XXX.epub"
-$ kindle = "http://www.archive.org/download/XXX/XXX.mobi"
-$ djvu = "http://www.archive.org/stream/XXX/XXX.djvu"
-$ djvutxt = "http://www.archive.org/download/XXX/XXX_djvu.txt"
-$ seeall = "http://www.archive.org/download/XXX"
+$ viewbook = "//archive.org/stream/XXX"
+$ detailbook = "//archive.org/details/XXX"
+$ downloadbook = "//archive.org/download/XXX/XXX.pdf"
+$ pdfbw = "//archive.org/download/XXX/XXX_bw.pdf"
+$ daisy = "//archive.org/download/XXX/XXX_daisy.zip"
+$ epub = "//archive.org/download/XXX/XXX.epub"
+$ kindle = "//archive.org/download/XXX/XXX.mobi"
+$ djvu = "//archive.org/stream/XXX/XXX.djvu"
+$ djvutxt = "//archive.org/download/XXX/XXX_djvu.txt"
+$ seeall = "//archive.org/download/XXX"
 $ google = ""
 
 $ isbn = (book.isbn_10 and book.isbn_10[0]) or (book.isbn_13 and book.isbn_13[0]) or ""
@@ -64,7 +64,7 @@ $elif book.get('ocaid'):
     <h3 class="header">
         <span class="icon read"></span>
         <span class="head blue">Read</span>
-        <span class="subhead">on <span class="blue" onclick="location.href='http://www.archive.org/';">Internet Archive</span></span>
+        <span class="subhead">on <span class="blue" onclick="location.href='//archive.org/';">Internet Archive</span></span>
     </h3>
     <div class="panel">
         <p><a href="$viewbook.replace('XXX', book.ocaid)">Read online</a></p>

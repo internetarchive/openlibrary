@@ -40,13 +40,13 @@ $for b in results:
                 $if len(pages)==0: <i>Unknown</i>
                 $ a = []
                 $for pn, pg in pages:
-                    $ a.append('<a href="http://www.archive.org/stream/%s#page/n%s/mode/1up">%s</a>'% (book.ocaid, pn-1, pg))
+                    $ a.append('<a href=//archive.org/stream/%s#page/n%s/mode/1up">%s</a>'% (book.ocaid, pn-1, pg))
                 $:(',&nbsp;&nbsp;'.join(a))
                 </span>
         </span>
         $if book.ocaid: 
             <span class="actions">
-                <a href="http://www.archive.org/stream/$book.ocaid">
+                <a href=//archive.org/stream/$book.ocaid">
                     <span class="image read"></span>
                     <span class="label">Read</span>
                 </a>
