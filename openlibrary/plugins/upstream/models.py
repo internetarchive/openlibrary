@@ -103,7 +103,7 @@ class Edition(models.Edition):
     def get_ia_cover(self, itemid, size):
         image_sizes = dict(S=(116, 58), M=(180, 360), L=(500, 500))
         w, h = image_sizes[size.upper()]
-        return "http://archive.org/download/%s/page/cover_w%s_h%s.jpg" % (itemid, w, h)
+        return "https://archive.org/download/%s/page/cover_w%s_h%s.jpg" % (itemid, w, h)
 
     def get_identifiers(self):
         """Returns (name, value) pairs of all available identifiers."""
