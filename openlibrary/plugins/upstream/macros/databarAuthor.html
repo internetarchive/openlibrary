@@ -76,7 +76,7 @@ $if ctx.user:
         <!-- FOR each list -->
         <li>
             <span class="image">
-            $ cover = "http://covers.openlibrary.org/b/olid/%s-M.jpg" % page.cover_edition_key if page.cover_edition_key else "http://openlibrary.org/images/icons/avatar_book-sm.png"
+            $ cover = "//covers.openlibrary.org/b/olid/%s-M.jpg" % page.cover_edition_key if page.cover_edition_key else "http://openlibrary.org/images/icons/avatar_book-sm.png"
             <a href="$page.url"><img src="$cover" width="32" alt="Cover of: $page.title$(': ' + page.subtitle if page.get('subtitle', None) else '')" title="Cover of: $page.title$(': ' + page.subtitle if page.get('subtitle', None) else '')"/></a>
             </span>
             <span class="data">

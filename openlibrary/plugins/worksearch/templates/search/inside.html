@@ -61,7 +61,7 @@ $var title: Search Open Library for $q
                                 $ url = key
                                 $ title = e.title
                                 $if e.covers:
-                                    $ cover = "http://covers.openlibrary.org/b/id/%d-M.jpg" % e.covers[0]
+                                    $ cover = "//covers.openlibrary.org/b/id/%d-M.jpg" % e.covers[0]
                                 $else:
                                     $ cover = "//archive.org/download/%s/page/cover_thumb.jpg" % ia
 				$if e.works:
