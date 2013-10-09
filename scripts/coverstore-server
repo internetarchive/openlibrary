@@ -63,8 +63,10 @@ def https_middleware(app):
     Using that value to overwrite wsgi.url_scheme in the WSGI environ,
     which is used by all redirects and other utilities.
     """
+    print "** https_middleware"
     def wrapper(environ, start_response):
-        if environ.get('HTTP_X_SCHEME', 'https'):
+        print "HTTP_X_SCHEME", environ.get("HTTP_X_SCHEME")
+        if environ.get('HTTP_X_SCHEME') == 'https':
             environ['wsgi.url_scheme'] = 'https'
         return app(environ, start_response)
     return wrapper
