@@ -112,7 +112,7 @@ def https_middleware(app):
     which is used by all redirects and other utilities.
     """
     def wrapper(environ, start_response):
-        if environ.get('HTTP_X_SCHEME', 'https'):
+        if environ.get('HTTP_X_SCHEME') == 'https':
             environ['wsgi.url_scheme'] = 'https'
         return app(environ, start_response)
     return wrapper
