@@ -1,7 +1,7 @@
 $def with(book)
 
 <h1>
-    <a href="http://archive.org/stream/$book.ocaid">
+    <a href="//archive.orgstream/$book.ocaid">
         <img src="$(book.get_cover_url('M') or '/images/icons/avatar_book-sm.png')" 
              alt="cover image" width="180" height="275" hspace="10" align="right"/>
     </a>
@@ -15,4 +15,4 @@ $def with(book)
         <p><em>$:sanitize(format(book.description))</em></p>
     $if not book.description and book.works and book.works[0].description:
         <p><em>$:sanitize(format(book.works[0].description))</em></p>
-    <p><a href="http://archive.org/stream/$book.ocaid">Read</a></p> 
+    <p><a href="//archive.orgstream/$book.ocaid">Read</a></p> 

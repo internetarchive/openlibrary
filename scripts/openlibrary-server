@@ -55,6 +55,8 @@ def load_infogami(config_file):
     
     infogami.load_config(config_file)
     setup_infobase_config(config_file)
+    config.middleware.append(https_middleware)
+
         
 def setup_infobase_config(config_file):
     """Reads the infoabse config file and assign it to config.infobase.
@@ -93,9 +95,28 @@ class OLWSGIServer(BaseWSGIServer):
     def get_wsgi_app(self):
         from infogami import config
         from infogami.utils import delegate
-        
+
         return delegate.app.wsgifunc(*config.middleware)
-        
+
+
+def https_middleware(app):
+    """Hack to support https even when the app server http only.
+
+    This makes the redirects and web.changequery work correctly with https.
+
+    The nginx configuration has changed to add the following setting:
+
+        proxy_set_header X-Scheme $scheme;
+
+    Using that value to overwrite wsgi.url_scheme in the WSGI environ,
+    which is used by all redirects and other utilities.
+    """
+    def wrapper(environ, start_response):
+        if environ.get('HTTP_X_SCHEME') == 'https':
+            environ['wsgi.url_scheme'] = 'https'
+        return app(environ, start_response)
+    return wrapper
+    
 def main():
     setup_env()
 

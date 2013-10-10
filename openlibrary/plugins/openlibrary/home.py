@@ -135,7 +135,7 @@ def random_ebooks(limit=2000):
         if 'cover_edition_key' in doc:
             d['cover_url'] = h.get_coverstore_url() + "/b/olid/%s-M.jpg" % doc['cover_edition_key']
             
-        d['read_url'] = "http://www.archive.org/stream/" + doc['ia'][0]
+        d['read_url'] = "//archive.org/stream/" + doc['ia'][0]
         return d
         
     return [process_doc(doc) for doc in result['docs'] if doc.get('ia')]

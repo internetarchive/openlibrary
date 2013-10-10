@@ -27,6 +27,8 @@ class Image:
         
     def info(self):
         url = '%s/%s/id/%s.json' % (h.get_coverstore_url(), self.category, self.id)
+        if url.startswith("//"):
+            url = "http:" + url
         try:
             d = simplejson.loads(urllib2.urlopen(url).read())
             d['created'] = h.parse_datetime(d['created'])

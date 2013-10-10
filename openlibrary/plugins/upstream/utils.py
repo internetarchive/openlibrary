@@ -595,8 +595,9 @@ def _get_blog_feeds():
     try:
         stats.begin("get_blog_feeds", url=url)
         tree = etree.parse(urllib.urlopen(url))
-    except IOError:
+    except Exception:
         # Handle error gracefully.
+        logging.getLogger("openlibrary").error("Failed to fetch blog feeds", exc_info=True)
         return []
     finally:
         stats.end()

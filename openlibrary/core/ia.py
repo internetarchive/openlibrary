@@ -21,7 +21,8 @@ def get_metadata(itemid):
         metadata = process_metadata_dict(d.get("metadata", {}))
 
         # if any of the files is access restricted, consider it as an access-restricted item.
-        metadata['access-restricted'] = any(f.get("private") == "true" for f in d['files'])
+        files = d.get('files', [])
+        metadata['access-restricted'] = any(f.get("private") == "true" for f in files)
         return metadata
     except IOError:
         stats.end()

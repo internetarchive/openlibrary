@@ -57,6 +57,10 @@ class add_cover(delegate.page):
         params = dict(author=user and user.key, data=data, source_url=i.url, olid=olid, ip=web.ctx.ip)
 
         upload_url = '%s/%s/upload2' % (get_coverstore_url(), self.cover_category)
+
+        if upload_url.startswith("//"):
+            upload_url = "http:" + upload_url
+
         try:
             response = urllib2.urlopen(upload_url, urllib.urlencode(params))
             out = response.read()

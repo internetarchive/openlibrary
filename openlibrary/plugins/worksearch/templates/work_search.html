@@ -238,7 +238,7 @@ function less(header) {
                 $if doc.cover_edition_key:
                     $ cover = get_coverstore_url() + "/b/olid/%s-S.jpg" % doc.cover_edition_key 
                 $elif doc.ia:
-                    $ cover = "http://archive.org/download/%s/page/cover_w60_h60.jpg" % doc.ia[0]
+                    $ cover = "//archive.org/download/%s/page/cover_w60_h60.jpg" % doc.ia[0]
                 $else:
                     $ cover = "/images/icons/avatar_book-sm.png"
                 <a href="$doc.url"><img src="$cover" height="70" alt="Cover of: $doc.title$(': ' + doc.subtitle if doc.get('subtitle', None) else '')" title="Cover of: $doc.title$(': ' + doc.subtitle if doc.get('subtitle', None) else '')"/></a>
@@ -271,7 +271,7 @@ function less(header) {
             </span>
             $if doc.public_scan and doc.get('has_fulltext'):
                 <span class="actions">
-                    <a href="http://www.archive.org/stream/$doc.ia[0]" title="$_('Open in online Book Reader. Downloads available in ePub, DAISY, PDF, TXT formats from main book page')">
+                    <a href="//archive.org/stream/$doc.ia[0]" title="$_('Open in online Book Reader. Downloads available in ePub, DAISY, PDF, TXT formats from main book page')">
                         <span class="image read"></span>
                         <span class="label">$_("Read")</span>
                     </a>                

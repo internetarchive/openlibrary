@@ -74,7 +74,7 @@ $def display_goodreads(label, ids):
                     </span>
                     <div id="gr_add_to_books">
                         <div class="gr_custom_each_container_">
-                            <iframe height="110" width="280" frameborder="0" scrolling="no" src="http://www.archive.org/openlibrary/goodreads_proxy.php?id=$id.value" /></iframe>
+                            <iframe height="110" width="280" frameborder="0" scrolling="no" src="//archive.org/openlibrary/goodreads_proxy.php?id=$id.value" /></iframe>
                         </div>
                     </div>
                 </td>
@@ -227,7 +227,7 @@ $ work = page.works and page.works[0] or None
                     <tr class="toc-level-$toc.level">
                         <td class="toc-label">$toc.label</td>
                         $if item_id and toc.pagenum.isdigit():
-                            <td class="toc-title"><a href="http://www.archive.org/stream/$item_id#page/$toc.pagenum">$toc.title</a></td>
+                            <td class="toc-title"><a href=//archive.org/stream/$item_id#page/$toc.pagenum">$toc.title</a></td>
                         $else:
                             <td class="toc-title">$toc.title</td>
                         <td class="toc-pagenum">$toc.pagenum</td>

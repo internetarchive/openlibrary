@@ -48,9 +48,28 @@ def start_gunicorn_server():
         def load(self):
             from openlibrary.coverstore import server, code
             server.load_config(configfile)
-            return code.app.wsgifunc()
+            return code.app.wsgifunc(https_middleware)
             
     WSGIServer("%prog coverstore.yml --gunicorn [options]").run()
+
+
+def https_middleware(app):
+    """Hack to support https even when the app server http only.
+
+    The nginx configuration has changed to add the following setting:
+
+        proxy_set_header X-Scheme $scheme;
+
+    Using that value to overwrite wsgi.url_scheme in the WSGI environ,
+    which is used by all redirects and other utilities.
+    """
+    print "** https_middleware"
+    def wrapper(environ, start_response):
+        print "HTTP_X_SCHEME", environ.get("HTTP_X_SCHEME")
+        if environ.get('HTTP_X_SCHEME') == 'https':
+            environ['wsgi.url_scheme'] = 'https'
+        return app(environ, start_response)
+    return wrapper
     
 if __name__ == "__main__":
     setup_env()

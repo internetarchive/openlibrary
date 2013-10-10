@@ -42,11 +42,11 @@ $ olid = page.key.split('/')[-1]
 
     $if type == "book":
         <div id="book-art" class="datalink">
-            <img src="http://covers.openlibrary.org/b/olid/$olid-M.jpg" alt="$page.title_prefix $page.title" width="180"/>
+            <img src="//covers.openlibrary.org/b/olid/$olid-M.jpg" alt="$page.title_prefix $page.title" width="180"/>
             <br clear="all" />
         </div>
     $else:
-        <div id="book-art" class="datalink"><img src="http://covers.openlibrary.org/a/olid/$olid-M.jpg" width="180"/></div>
+        <div id="book-art" class="datalink"><img src="//covers.openlibrary.org/a/olid/$olid-M.jpg" width="180"/></div>
 
 
 <div style="margin-left: 255px; padding-bottom: 60px">
@@ -80,7 +80,7 @@ $ olid = page.key.split('/')[-1]
 
     <div class="coveritem">
         <div class="coverheaders">Upload from your computer</div>
-        <form action="http://covers.openlibrary.org/$category/upload" method="POST" enctype="multipart/form-data">
+        <form action="//covers.openlibrary.org/$category/upload" method="POST" enctype="multipart/form-data">
             <input type="hidden" name="olid" value="$olid"/>
             <input type="hidden" name="author" value="${ctx.user and ctx.user.key}"/>
             <input type="hidden" class="status_url" name="success_url" value=""/>
@@ -92,7 +92,7 @@ $ olid = page.key.split('/')[-1]
     
     <div class="coveritem">
         <div class="coverheaders">Grab $fieldname from a url</div>
-        <form action="http://covers.openlibrary.org/$category/upload" method="POST" enctype="multipart/form-data">
+        <form action="//covers.openlibrary.org/$category/upload" method="POST" enctype="multipart/form-data">
             <input type="hidden" name="olid" value="$olid"/>
             <input type="hidden" class="status_url" name="success_url" value=""/>
             <input type="hidden" class="status_url" name="failure_url" value=""/>
@@ -106,7 +106,7 @@ $ olid = page.key.split('/')[-1]
     <div class="button-border" style="padding-top: 20px;"><img src="/static/images/flourish.left.gif"  alt="[" /><button class="action" type="submit"  value="Continue"  name="_save" title="Continue" onclick="history.back();">Continue</button><img src="/static/images/flourish.gif"  alt="]" /></div>
 
     <div style="display: none">
-        <form name="touch" method="POST" action="http://covers.openlibrary.org/$category/touch">
+        <form name="touch" method="POST" action="//covers.openlibrary.org/$category/touch">
         <input type="hidden" id="touch_cover" name="id" value=""/>
         <input type="hidden" id ="touch_redirect_url" name="redirect_url" value=""/>
         </form>
@@ -153,7 +153,7 @@ function display_covers(ids, offset) {
     display("#next_covers", next);
 
     var elems = \$.map(ids, function(id, i) {
-        return '<td><div style="margin-right: 8px; margin-bottom: 6px;"><a class="coverlink" id="coverlink-XXX" href="#"><img class="cover" src="http://covers.openlibrary.org/$category/id/XXX-S.jpg" /></a></div></td>'.replace(/XXX/g, id);
+        return '<td><div style="margin-right: 8px; margin-bottom: 6px;"><a class="coverlink" id="coverlink-XXX" href="#"><img class="cover" src="//covers.openlibrary.org/$category/id/XXX-S.jpg" /></a></div></td>'.replace(/XXX/g, id);
     });
     
     \$("#covers").empty();
@@ -172,7 +172,7 @@ function display_covers(ids, offset) {
 
 function redisplay_covers(offset) {
     current_offset = offset;
-    var url = "http://covers.openlibrary.org/$category/query?olid=$olid&offset=" + offset + "&limit=$limit&callback=?"
+    var url = "//covers.openlibrary.org/$category/query?olid=$olid&offset=" + offset + "&limit=$limit&callback=?"
     \$.getJSON(url, function(ids) {
         display_covers(ids, offset);
     });
@@ -194,4 +194,4 @@ function redisplay_covers(offset) {
 -->
 </script>
 
-<script type="text/javascript" src="http://covers.openlibrary.org/$category/query?olid=$olid&callback=display_covers&limit=$limit"></script>
+<script type="text/javascript" src="//covers.openlibrary.org/$category/query?olid=$olid&callback=display_covers&limit=$limit"></script>

@@ -201,7 +201,10 @@ def locate_item(item):
 
 def zipview_url(item, zipfile, filename):
     server, dir = locate_item(item)
-    return "http://%(server)s/zipview.php?zip=%(dir)s/%(zipfile)s&file=%(filename)s" % locals()    
+
+    # http or https
+    protocol = web.ctx.protocol
+    return "%(protocol)s://%(server)s/zipview.php?zip=%(dir)s/%(zipfile)s&file=%(filename)s" % locals()
     
 # Number of images stored in one archive.org item
 IMAGES_PER_ITEM = 10000
