@@ -38,7 +38,7 @@ $for match in result['matches']:
         $ halfWidth = par['page_width'] * .5
         <div class="clipOut" id="clipout$par_num" style="position:relative;width:$(width)px;height:$(height)px;max-width:918px;overflow:hidden;padding-bottom:10px;">
             <div class="clipIn" id="clipin$par_num" style="position:absolute;clip:rect($(t)px $(r)px $(b)px $(l)px);top:-$(t)px;left:-$(l)px;">
-                <a href=//archive.org/stream/$ia#page/n$(page-1)/search/$q">
+                <a href="//archive.org/stream/$ia#page/n$(page-1)/search/$q">
                 $if ia.endswith('goog'):
                     <img src="//archive.org/download/$ia/page/leaf$(page)_s$(scale).jpg" class="clipImg" width="$halfWidth"/></a>
                 $else:

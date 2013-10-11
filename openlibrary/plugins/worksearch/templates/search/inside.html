@@ -95,7 +95,7 @@ $var title: Search Open Library for $q
 					$if e.publishers:
 						by $', '.join(e.publishers)
 				$else:
-					<a href=//archive.org/details/$ia">View on archive.org</a>
+					<a href="//archive.org/details/$ia">View on archive.org</a>
 				&bull; $doc['page_count'] pages
 				$if not (no_snippet & collection):
 					&bull; <a href="/search/inside/$ia?q=$q">snippets in situ</a>
@@ -103,7 +103,7 @@ $var title: Search Open Library for $q
 			</span>
 			<span class="actions">
 				$if not (no_snippet & collection):
-					<a href=//archive.org/stream/$ia#search/$q" title="$_('Open in online Book Reader. Downloads available in ePub, DAISY, PDF, TXT formats from main book page')">
+					<a href="//archive.org/stream/$ia#search/$q" title="$_('Open in online Book Reader. Downloads available in ePub, DAISY, PDF, TXT formats from main book page')">
 						<span class="image read"></span>
 						<span class="label">$_("Read")</span>
 					</a>                
