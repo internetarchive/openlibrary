@@ -126,6 +126,7 @@ $ has_profile = person.get_user() is not None
             
         $if person.status in ['active', 'verified']:
             <button type="submit" name="action" value="block_account">block this account</button>
+            &nbsp;&nbsp;<button type="submit" name="action" value="send_password_reset_email">send password reset email</button>
             <br/>
             <br/>
             <div class="small">Registered on <span class="time">$datestr(person.registered_on, relative=False)</span>.</div>
