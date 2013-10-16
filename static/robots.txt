@@ -3,6 +3,6 @@ User-agent: *
 Disallow: /user
 Disallow: /people
 
-Sitemap: http://openlibrary.org/static/sitemaps/siteindex.xml.gz
+Sitemap: https://openlibrary.org/static/sitemaps/siteindex.xml.gz
 
 
