@@ -622,6 +622,16 @@ class Request:
     home = property(lambda self: web.ctx.home)
     domain = property(lambda self: web.ctx.host)
 
+    @property
+    def canonical_url(self):
+        """Returns the https:// version of the URL.
+
+        Used for adding <meta rel="canonical" ..> tag in all web pages.
+        Required to make OL retain the page rank after https migration.
+        """
+        return "https://" + web.ctx.host + web.ctx.get('readable_path', web.ctx.path) + web.ctx.query
+
+
 def setup():
     """Do required initialization"""
     # monkey-patch get_markdown to use OL Flavored Markdown
