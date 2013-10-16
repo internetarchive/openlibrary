@@ -32,6 +32,14 @@ class WaitingLoan(dict):
         # Adding 1 to round off the the extra seconds in the delta
         return delta.days + 1
 
+    def get_expiry_in_hours(self):
+        if "expiry" in self:
+            delta = datetime.datetime.utcnow() - h.parse_datetime(self['expiry'])
+            delta_seconds = delta.days * 24 * 3600 + delta.seconds
+            delta_hours = delta_seconds / 3600
+            return max(0, delta_hours)
+        return 0
+
 def _query_values(name, value):
     docs = web.ctx.site.store.values(type="waiting-loan", name=name, value=value, limit=1000)
     return [WaitingLoan(doc) for doc in docs]
@@ -72,7 +80,7 @@ def get_waiting_loan_object(user_key, book_key):
     key = "waiting-loan-%s-%s" % (ukey, bkey)
     doc = web.ctx.site.store.get(key)
     if doc and doc['status'] != 'expired':
-        return doc
+        return WaitingLoan(doc)
 
 def get_waitinglist_position(user_key, book_key):
     ukey = user_key.split("/")[-1]
@@ -146,6 +154,18 @@ def update_waitinglist(book_key):
     def commit():
         """Saves all the documents """
         web.ctx.site.store.update(documents)
+
+    if checkedout:
+        book = web.ctx.site.get(book_key)
+        loans = book.get_loans()
+        
+        loaned_users = [loan['user'] for loan in loans]
+        for doc in wl[:]:
+            # Delete from waiting list if a user has already borrowed this book
+            if doc['user'] in loaned_users:
+                doc['_delete'] = True
+                save_later(doc)
+                wl.remove(doc)
 
     for i, doc in enumerate(wl):
         doc['position'] = i + 1

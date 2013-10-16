@@ -720,11 +720,17 @@ def user_can_borrow_edition(user, edition, type):
        user holds a current loan for the edition."""
        
     global user_max_loans
-        
+
     if not can_borrow(edition):
         return False
     if user.get_loan_count() >= user_max_loans:
         return False
+    if edition.get_waitinglist_size() > 0:
+        # There some people are already waiting for the book,
+        # it can't be borrowed unless the user is the first in the waiting list.
+        waiting_loan = user.get_waiting_loan(edition)
+        if not waiting_loan or waiting_loan['status'] != 'available':
+            return False
     
     if type in [loan['resource_type'] for loan in edition.get_available_loans()]:
         return True

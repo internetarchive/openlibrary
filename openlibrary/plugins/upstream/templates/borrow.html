@@ -260,6 +260,21 @@ $if wlsize > 0 and (not waiting_loan or waiting_loan['status'] != 'available'):
             </div>
         
         $if user_can_borrow_this:
+
+            $if waiting_loan and waiting_loan['status'] == 'available':
+                <div class="message info">
+                    Hurray! Your waiting for this book has come to an end!<br/>
+                    $ delta_hours = waiting_loan.get_expiry_in_hours()
+                    <div class="small warning" style="padding-top: 10px;">
+                        $if delta_hours == 0:                                        
+                            You have less than an hour to borrow it.
+                        $elif delta_hours == 1:                                        
+                            You have one more hour to borrow it.
+                        $else:
+                            You have $delta_hours more hours to borrow it.
+                    </div>
+                </div>
+
             <div class="borrow">
                 <div class="postSubmit hidden center">
                     <p>Borrowing book...</p>

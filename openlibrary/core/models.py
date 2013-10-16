@@ -259,6 +259,10 @@ class Edition(Thing):
             'lendinglibrary' in collections or
             ('inlibrary' in collections and inlibrary.get_library() is not None))
 
+    def get_waitinglist(self):
+        """Returns list of records for all users currently waiting for this book."""
+        return waitinglist.get_waitinglist_for_book(self.key)
+
     def get_waitinglist_size(self):
         """Returns the number of people on waiting list to borrow this book.
         """
