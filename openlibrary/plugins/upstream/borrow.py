@@ -14,7 +14,7 @@ import web
 
 from infogami import config
 from infogami.utils import delegate
-from infogami.utils.view import public
+from infogami.utils.view import public, add_flash_message
 from infogami.infobase.utils import parse_datetime
 
 import utils
@@ -278,12 +278,18 @@ class borrow_admin(delegate.page):
     def POST(self, key):
         if not is_admin():
             return render_template('permission_denied', web.ctx.path, "Permission denied.")
+
+        edition = web.ctx.site.get(key)
+        if not edition:
+            raise web.notfound()
             
         i = web.input(action=None, loan_key=None)
 
         if i.action == 'delete' and i.loan_key:
             delete_loan(i.loan_key)
-            
+        elif i.action == 'update_loan_info':
+            waitinglist.update_waitinglist(key)
+
         raise web.seeother(web.ctx.path + '/borrow_admin')
         
 class borrow_admin_no_update(delegate.page):
@@ -720,7 +726,7 @@ def user_can_borrow_edition(user, edition, type):
        user holds a current loan for the edition."""
        
     global user_max_loans
-
+    
     if not can_borrow(edition):
         return False
     if user.get_loan_count() >= user_max_loans:

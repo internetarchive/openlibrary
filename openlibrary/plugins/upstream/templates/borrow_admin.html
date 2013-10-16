@@ -187,4 +187,20 @@ ul.inner {
             </li>
         </ul>
     </div>
+
+    <div class="section">
+        <h3>People on the waiting list</h3>
+        $ wl = page.get_waitinglist()
+        <ol>
+            $for record in wl:
+                <li><a href="/admin/$record['user']">$record['user']</a></li>
+        </ol>
+    </div>
+
+    <div class="section">
+        <h3>Actions</h3>
+        <form method="POST">
+            <input type="submit" value="Update loan info" />
+            <input type="hidden" name="action" value="update_loan_info" />
+        </form>
 </div>
