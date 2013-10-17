@@ -275,6 +275,11 @@ class Edition(Thing):
     def get_scanning_contributor(self):
         return self.get_ia_meta_fields().get("contributor")
 
+    def get_loans(self):
+        from ..plugins.upstream import borrow
+        return borrow.get_edition_loans(self)
+
+
 class Work(Thing):
     """Class to represent /type/work objects in OL.
     """
