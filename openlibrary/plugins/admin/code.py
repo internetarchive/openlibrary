@@ -512,7 +512,7 @@ class inspect:
         keys = [k.strip() for k in i["keys"].split() if k.strip()]        
         if i.action == "delete":
             mc.delete_multi(keys)
-            add_flash_message("info", "Deleted %s keys from memcache", len(keys))
+            add_flash_message("info", "Deleted %s keys from memcache" % len(keys))
             return render_template("admin/inspect/memcache", [], {})
         else:
             mapping = keys and mc.get_multi(keys)
