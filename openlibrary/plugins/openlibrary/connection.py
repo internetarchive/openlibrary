@@ -52,6 +52,9 @@ class ConnectionMiddleware:
                 return self.store_put(sitename, path, data)
             elif method == 'DELETE':
                 return self.store_delete(sitename, path, data)
+        elif path == "/_store/_save_many" and method == 'POST':
+            # save multiple things at once
+            return self.store_put_many(sitename, data)
         elif path.startswith("/account"):
             return self.account_request(sitename, path, method, data)
                 
@@ -89,6 +92,9 @@ class ConnectionMiddleware:
         
     def store_put(self, sitename, path, data):
         return self.conn.request(sitename, path, 'PUT', data)
+
+    def store_put_many(self, sitename, data):
+        return self.conn.request(sitename, "/_store/_save_many", 'POST', data)
     
     def store_delete(self, sitename, path, data):
         return self.conn.request(sitename, path, 'DELETE', data)
@@ -422,25 +428,41 @@ class MemcacheMiddleware(ConnectionMiddleware):
         self.memcache.set_multi(mapping)
         stats.end()
 
-    def store_get(self, sitename, key):
-        result = self.mc_get(key)
+    def mc_delete_multi(self, keys):
+        stats.begin("memcache.delete_multi")
+        self.memcache.delete_multi(keys)
+        stats.end()
+
+    def store_get(self, sitename, path):
+        # path will be "/_store/$key"
+        result = self.mc_get(path)
 
         if result is None:
-            result = ConnectionMiddleware.store_get(self, sitename, key)
+            result = ConnectionMiddleware.store_get(self, sitename, path)
             if result:
-                self.mc_add(key, result)
+                self.mc_add(path, result)
         return result
 
-    def store_put(self, sitename, key, data):
+    def store_put(self, sitename, path, data):
+        # path will be "/_store/$key"
+
         # deleting before put to make sure the entry is deleted even if the
         # process dies immediately after put.
         # Still there is very very small chance of invalid cache if someone else
         # updates memcache after stmt-1 and this process dies after stmt-2.
-        self.mc_delete(key)
-        result = ConnectionMiddleware.store_put(self, sitename, key, data)
-        self.mc_delete(key)
+        self.mc_delete(path)
+        result = ConnectionMiddleware.store_put(self, sitename, path, data)
+        self.mc_delete(path)
         return result
-        
+
+    def store_put_many(self, sitename, datajson):
+        data = simplejson.loads(datajson)
+        mc_keys = ["/_store/" + doc['_key'] for doc in data]
+        self.mc_delete_multi(mc_keys)
+        result = ConnectionMiddleware.store_put_many(self, sitename, datajson)
+        self.mc_delete_multi(mc_keys)
+        return result
+
     def store_delete(self, sitename, key, data):
         # see comment in store_put
         self.mc_delete(key)
