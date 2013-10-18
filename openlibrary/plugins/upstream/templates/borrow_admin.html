@@ -189,12 +189,9 @@ ul.inner {
     </div>
 
     <div class="section">
-        <h3>People on the waiting list</h3>
+        <h3>Waiting List</h3>
         $ wl = page.get_waitinglist()
-        <ol>
-            $for record in wl:
-                <li><a href="/admin/$record['user']">$record['user']</a></li>
-        </ol>
+        <pre>$:json_encode(wl, indent="  ", sort_keys=True)</pre>
     </div>
 
     <div class="section">
