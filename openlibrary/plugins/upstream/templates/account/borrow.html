@@ -3,7 +3,7 @@ $def with (user, loans)
 $var title: $_("Books You've Checked Out")
 
 <style type="text/css">
-.waitinglist .date, waitinglist .waitrank {
+.date, .waitrank {
     margin: 5px 0px;
 }
 .dialog .title {
@@ -25,6 +25,17 @@ tr.row-available .status-value {
 
 tr.row-available {
     background: #fffdcd;
+}
+
+td.actions form + form {
+    margin-top: 5px;
+}
+
+th.action {
+    width: 150px;
+}
+th.status {
+    width: 150px;
 }
 </style>
 
@@ -85,6 +96,11 @@ $else:
                     <div class="date">
                     Borrowed $datestr(datetime_from_utc_timestamp(loan['loaned_at']))
                     </div>
+                    $ wlsize = book.get_waitinglist_size()
+                    $if wlsize:
+                        <div class="smallest lightgreen sansserif waitrank">
+                            $ungettext("There is one person waiting for this book.", "There are %(n)s people waiting for this book.", wlsize, n=wlsize)
+                        </div>                    
                 </td>
                 <td class="expires">
                     $if loan['expiry'] is None:
@@ -121,7 +137,7 @@ $else:
     </ol>
     -->
 
-<h1>$_("Books Are Waiting For")</h1>
+<h1>$_("Books You're Waiting For")</h1>
 $ waitinglist = user.get_waitinglist()
 $if len(waitinglist) == 0:
     <div><em>You are not waiting for any books at this moment.</em></div>
@@ -186,14 +202,19 @@ $else:
                         $ungettext("Waiting for %d day", "Waiting for %d days", ndays, ndays)
                     </div>
                     <div class="smallest lightgreen sansserif waitrank">
-                        $ wsize = book.get_waitinglist_size()
-                        $ pos = record.get_position()
-                        $ungettext("You are the only person waiting for this book.", "You are #%(pos)s among %(wsize)s people waiting for this book.", wsize, pos=pos, wsize=wsize)
+                        $if status == "waiting":                        
+                            $ wsize = book.get_waitinglist_size()
+                            $ pos = record.get_position()
+                            $if pos == 1:
+                                You are the next person to receive this book.
+                            $else:
+                                $ungettext("There is one person ahead of you in the waiting list.", "There are %(count)s people ahead of you in the waiting list.", pos-1, count=pos-1)
                     </div>
                 </td>
                 <td class="status">
                     <span class="status-value">$record['status'].title()</span><br/>
-                    <span class="smaller" style="padding-top: 5px">for 17 hours more</span>
+                    $if status == "available":
+                        <div class="smaller" style="padding-top: 5px">The book is on hold for you for 10 more hours.</div>
                 </td>
                 <td class="actions">
                     <form action="$book.url('/borrow')" method="post">
