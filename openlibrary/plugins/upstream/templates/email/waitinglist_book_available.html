@@ -1,0 +1,13 @@
+$def with (user, book)
+$var subject: $book.title is available to borrow
+
+Hello $user.displayname,
+
+The book $book.title has just become available to be borrowed on openlibrary.org. Because you are next in line on the waiting list, we will hold the book for you for 24 hours. To borrow the book, please visit: 
+$book.url("/borrow", relative=False)
+
+Thank you for using Open Library.
+
+Sincerely,
+The Open Library Team
+

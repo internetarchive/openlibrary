@@ -114,7 +114,7 @@ class Thing(client.Thing):
         # preload them
         self._site.get_many(list(authors))
         
-    def _make_url(self, label, suffix, **params):
+    def _make_url(self, label, suffix, relative=True, **params):
         """Make url of the form $key/$label$suffix?$params.
         """
         if label is not None:
@@ -123,6 +123,8 @@ class Thing(client.Thing):
             u = self.key + suffix
         if params:
             u += '?' + urllib.urlencode(params)
+        if not relative:
+            u = web.ctx.home + u            
         return u
 
     def get_url(self, suffix="", **params):
@@ -629,10 +631,12 @@ class Subject(web.storage):
             seed = "subject:" + seed
         return seed
         
-    def url(self, suffix="", **params):
+    def url(self, suffix="", relative=True, **params):
         u = self.key + suffix
         if params:
             u += '?' + urllib.urlencode(params)
+        if not relative:
+            u = web.ctx.home + u
         return u
 
     # get_url is a common method available in all Models. 

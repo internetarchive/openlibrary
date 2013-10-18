@@ -15,10 +15,14 @@ Each waiting instance is represented as a document in the store as follows:
 import datetime
 import web
 from . import helpers as h
+from .sendmail import sendmail_with_template
 
 class WaitingLoan(dict):
     def get_book(self):
         return web.ctx.site.get(self['book'])
+
+    def get_user(self):
+        return web.ctx.site.get(self['user'])
 
     def get_position(self):
         return self['position']
@@ -193,7 +197,57 @@ def update_waitinglist(book_key):
     save_later(ebook)
     commit()
 
+    book = web.ctx.site.get(book_key)
+    if checkedout:
+        sendmail_people_waiting(book)        
+    elif wl:
+        sendmail_book_available(book)
+
 def _is_loaned_out(book_key):
     from openlibrary.plugins.upstream import borrow
     book = web.ctx.site.get(book_key)
     return borrow.get_edition_loans(book) != []
+
+def sendmail_book_available(book):
+    """Informs the first person in the waiting list that the book is available.
+
+    Safe to call multiple times. This'll make sure the email is sent only once.
+    """
+    wl = book.get_waitinglist()
+    if wl and wl[0]['status'] == 'available' and not wl[0].get('available_email_sent'):
+        record = wl[0]
+        user = record.get_user()
+        email = user and user.get_email()
+        sendmail_with_template("email/waitinglist_book_available", to=email, user=user, book=book)
+        record['available_email_sent'] = True
+        web.ctx.site.store[record['_key']] = record
+
+def sendmail_people_waiting(book):
+    """Send mail to the person who borrowed the book when the first person joins the waiting list.
+
+    Safe to call multiple times. This'll make sure the email is sent only once.
+    """
+    # also supports multiple loans per book
+    loans = [loan for loan in book.get_loans() if not loan.get("waiting_email_sent")]
+    for loan in loans:
+        # don't bother the person if the he has borrowed less than 2 days back
+        if _get_loan_timestamp_in_days(loan) < 2:
+            continue
+        user = web.ctx.site.get(loan["user"])
+        email = user and user.get_email()
+        sendmail_with_template("email/waitinglist_people_waiting", to=email, 
+            user=user, 
+            book=book, 
+            expiry_days=_get_expiry_in_days(loan))
+        loan['waiting_email_sent'] = True
+        web.ctx.site.store[loan['_key']] = loan
+
+def _get_expiry_in_days(loan):
+    delta = datetime.datetime.utcnow() - h.parse_datetime(loan['expiry'])
+    # +1 to count the partial day
+    return delta.days + 1
+
+def _get_loan_timestamp_in_days(loan):
+    t = datetime.datetime.fromtimestamp(loan['loaned_at'])
+    delta = datetime.datetime.utcnow() - t
+    return delta.days
