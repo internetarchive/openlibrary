@@ -516,6 +516,13 @@ class SolrProcessor:
         add("last_modified_i", self.get_last_modified(w, editions))
 
         self.add_ebook_info(d, editions)
+
+        # Anand - Oct 2013
+        # If not public scan then add the work to Protected DAISY subject.
+        # This is not the right place to add it, but seems to the quickest way.
+        if has_fulltext and not d.get('public_scan_b'):
+            subjects['subject']['Protected DAISY'] = 1
+
         return d
         
         
