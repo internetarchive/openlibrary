@@ -231,7 +231,9 @@ def sendmail_people_waiting(book):
     loans = [loan for loan in book.get_loans() if not loan.get("waiting_email_sent")]
     for loan in loans:
         # don't bother the person if the he has borrowed less than 2 days back
-        if _get_loan_timestamp_in_days(loan) < 2:
+        #ndays = 2
+        ndays = 0 # temporarily disabled for testing
+        if _get_loan_timestamp_in_days(loan) < ndays:
             continue
         user = web.ctx.site.get(loan["user"])
         email = user and user.get_email()
@@ -243,7 +245,7 @@ def sendmail_people_waiting(book):
         web.ctx.site.store[loan['_key']] = loan
 
 def _get_expiry_in_days(loan):
-    delta = datetime.datetime.utcnow() - h.parse_datetime(loan['expiry'])
+    delta = h.parse_datetime(loan['expiry']) - datetime.datetime.utcnow()
     # +1 to count the partial day
     return delta.days + 1
 
