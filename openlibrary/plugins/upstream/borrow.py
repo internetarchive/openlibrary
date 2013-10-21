@@ -68,9 +68,9 @@ bookreader_auth_seconds = 10*60
 try:
     bookreader_host = config.bookreader_host
 except AttributeError:
-    bookreader_host = 'www.archive.org'
+    bookreader_host = 'archive.org'
     
-bookreader_stream_base = 'http://' + bookreader_host + '/stream'
+bookreader_stream_base = 'https://' + bookreader_host + '/stream'
 
 ########## Page Handlers
 
@@ -881,7 +881,7 @@ def make_bookreader_auth_link(loan_key, item_id, book_path, ol_host):
     """
     
     access_token = make_ia_token(item_id, bookreader_auth_seconds)
-    auth_url = 'http://%s/bookreader/BookReaderAuth.php?uuid=%s&token=%s&id=%s&bookPath=%s&olHost=%s' % (
+    auth_url = 'https://%s/bookreader/BookReaderAuth.php?uuid=%s&token=%s&id=%s&bookPath=%s&olHost=%s' % (
         bookreader_host, loan_key, access_token, item_id, book_path, ol_host
     )
     
