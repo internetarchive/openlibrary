@@ -166,7 +166,7 @@ class IAMiddleware(ConnectionMiddleware):
 
     def _is_valid_item(self, itemid, metadata):
         # Not a book, or scan not complete or no images uploaded
-        if metadata.get("mediatype") != "texts" or metadata.get("repub_state") == "-1" or "imagecount" not in metadata:
+        if metadata.get("mediatype") != "texts" or metadata.get("repub_state", "4") not in ["4", "6"] or "imagecount" not in metadata:
             return False
 
         # items start with these prefixes are not books

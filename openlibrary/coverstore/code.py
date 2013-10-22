@@ -303,8 +303,8 @@ class cover:
         except (IOError, ValueError):
             return
 
-        # Not a text item or no images are uploaded yet
-        if not d or d.get("repub_state") == "-1" or "imagecount" not in d:
+        # Not a text item or no images or scan is not complete yet
+        if d.get("mediatype") != "texts" or d.get("repub_state", "4") not in ["4", "6"] or "imagecount" not in d:
             return
 
         w, h = config.image_sizes[size.upper()]
