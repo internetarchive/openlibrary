@@ -20,6 +20,15 @@ def _get_libraries(site=None):
 # cache the result for an hour in memcache
 _get_libraries_memoized = cache.memcache_memoize(_get_libraries, "inlibrary._get_libraries", timeout=60*60)
 
+def _get_default_library():
+    """Returns the default library when the IP doesn't fall in any of the registered libraries.
+
+    This is used to enable lending world-wide by making everyone else part of "Open Library of Richmond".
+    """
+    libraries = _get_libraries_memoized()
+    d = dict((lib['key'], lib) for lib in libraries)
+    return d.get("/libraries/openlibrary_of_richmond")
+
 @cache.memoize(engine="memcache", key=lambda: "inlibrary.libraries-hash")
 def _get_libraries_hash():
     """Returns a hash of libraries. When any one of the libraries is modified, the hash changes.
@@ -92,13 +101,20 @@ def get_library():
 
     if "library" not in web.ctx:
         d_ip, d_region = _get_ip_region_dict()
+
+        # try with ip
         lib = d_ip.get(web.ctx.ip)
-        if lib:
-            web.ctx.library = web.ctx.site.new(lib['key'], lib)
-        else:
+
+        # if not try the region
+        if not lib:
             region = geo_ip.get_region(web.ctx.ip)
             lib = d_region.get(region)
-            web.ctx.library = lib and web.ctx.site.new(lib['key'], lib)
+
+        # if not try the default library
+        if not lib:
+            lib = _get_default_library()
+
+        web.ctx.library = lib and web.ctx.site.new(lib['key'], lib)
     return web.ctx.library
 
 def filter_inlibrary():
