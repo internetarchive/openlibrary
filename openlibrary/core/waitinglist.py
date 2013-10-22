@@ -38,7 +38,7 @@ class WaitingLoan(dict):
 
     def get_expiry_in_hours(self):
         if "expiry" in self:
-            delta = datetime.datetime.utcnow() - h.parse_datetime(self['expiry'])
+            delta = h.parse_datetime(self['expiry']) - datetime.datetime.utcnow()
             delta_seconds = delta.days * 24 * 3600 + delta.seconds
             delta_hours = delta_seconds / 3600
             return max(0, delta_hours)
@@ -180,6 +180,9 @@ def update_waitinglist(book_key):
     # is not checked out.
     if not checkedout and wl:
         wl[0]['status'] = 'available'
+        # one day
+        expiry = datetime.datetime.utcnow() + datetime.timedelta(1)
+        wl[0]['expiry'] = expiry.isoformat()
         save_later(wl[0])
 
     # for the end user, a book is not available if it is either

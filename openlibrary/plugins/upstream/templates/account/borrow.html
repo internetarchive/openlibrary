@@ -214,7 +214,15 @@ $else:
                 <td class="status">
                     <span class="status-value">$record['status'].title()</span><br/>
                     $if status == "available":
-                        <div class="smaller" style="padding-top: 5px">The book is on hold for you for 10 more hours.</div>
+                        $ delta_hours = record.get_expiry_in_hours()
+                        <div class="smaller" style="padding-top: 5px;">
+                            $if delta_hours == 0:                                        
+                                You have less than an hour to borrow it.
+                            $elif delta_hours == 1:                                        
+                                You have one more hour to borrow it.
+                            $else:
+                                You have $delta_hours more hours to borrow it.
+                        </div>
                 </td>
                 <td class="actions">
                     <form action="$book.url('/borrow')" method="post">
@@ -223,7 +231,7 @@ $else:
                     </form>
                     <form action="$book.url('/borrow?redirect=/account/loans')" method="POST" class="wlform">
                         <input type="hidden" name="action" value="leave-waitinglist"/>
-                        <a href="javascript:;" class="submit">Leave the waiting list?</a>
+                        <a href="javascript:;" class="leave">Leave the waiting list?</a>
                     </form>
                 </td>
             </tr>

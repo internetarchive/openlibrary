@@ -3,11 +3,16 @@ $var subject: $book.title is available to borrow
 
 Hello $user.displayname,
 
-The book $book.title has just become available to be borrowed on openlibrary.org. Because you are next in line on the waiting list, we will hold the book for you for 24 hours. To borrow the book, please visit: 
+Congratulations! The book "$book.title", which you have been waintig to borrow on Open Library, is now available.
+
+We've put the book on hold for you as you are the next person the waiting list. Please visit the following link to borrow the book. 
+
 $book.url("/borrow", relative=False)
+
+You'll have to borrow the book with in 24 hours from now, or else the book will the passed to the next person in the waiting list.
 
 Thank you for using Open Library.
 
 Sincerely,
 The Open Library Team
-
+https://openlibrary.org/
