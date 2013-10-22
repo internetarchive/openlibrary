@@ -137,9 +137,9 @@ def get_many_as_dict(keys):
     return dict((doc['key'], doc) for doc in ol_get_many(keys))
     
 def get_url(doc):
-    base = web.ctx.get("home", "http://openlibrary.org")
+    base = web.ctx.get("home", "https://openlibrary.org")
     if base == 'http://[unknown]':
-        base = "http://openlibrary.org"
+        base = "https://openlibrary.org"
     if doc['key'].startswith("/books/") or doc['key'].startswith("/works/"):
         return base + doc['key'] + "/" + urlsafe(doc.get("title", "untitled"))
     elif doc['key'].startswith("/authors/"):
@@ -188,7 +188,7 @@ class DataProcessor:
                 
             return {
                 "name": name,
-                "url": "http://openlibrary.org/subjects/%s%s" % (prefix, name.lower().replace(" ", "_"))
+                "url": "https://openlibrary.org/subjects/%s%s" % (prefix, name.lower().replace(" ", "_"))
             }
             
         def get_subjects(name, prefix):
@@ -283,13 +283,13 @@ class DataProcessor:
             availability = get_ia_availability(itemid)
             
             d = {
-                "preview_url": "http://www.archive.org/details/" + itemid,
+                "preview_url": "https://archive.org/details/" + itemid,
                 "availability": availability
             }
                 
-            prefix = "http://www.archive.org/download/%s/%s" % (itemid, itemid)
+            prefix = "https://archive.org/download/%s/%s" % (itemid, itemid)
             if availability == 'full':
-                d["read_url"] = "http://www.archive.org/stream/%s" % (itemid)
+                d["read_url"] = "https://archive.org/stream/%s" % (itemid)
                 d['formats'] = {
                     "pdf": {
                         "url": prefix + ".pdf"
@@ -306,7 +306,7 @@ class DataProcessor:
                     }
                 }
             elif availability == "borrow":
-                d['borrow_url'] = u"http://openlibrary.org%s/%s/borrow" % (doc['key'], h.urlsafe(doc.get("title", "untitled")))
+                d['borrow_url'] = u"https://openlibrary.org%s/%s/borrow" % (doc['key'], h.urlsafe(doc.get("title", "untitled")))
                 loanstatus =  web.ctx.site.store.get('ebooks' + doc['key'], {'borrowed': 'false'})
                 d['checkedout'] = (loanstatus['borrowed'] == 'true')
                 d['formats'] = {
@@ -331,9 +331,9 @@ class DataProcessor:
         if doc.get('covers'):
             cover_id = doc['covers'][0]
             d['cover'] = {
-                "small": "http://covers.openlibrary.org/b/id/%s-S.jpg" % cover_id,
-                "medium": "http://covers.openlibrary.org/b/id/%s-M.jpg" % cover_id,
-                "large": "http://covers.openlibrary.org/b/id/%s-L.jpg" % cover_id,
+                "small": "https://covers.openlibrary.org/b/id/%s-S.jpg" % cover_id,
+                "medium": "https://covers.openlibrary.org/b/id/%s-M.jpg" % cover_id,
+                "large": "https://covers.openlibrary.org/b/id/%s-L.jpg" % cover_id,
             }
 
         d['identifiers'] = trim(d['identifiers'])
@@ -394,7 +394,7 @@ def process_doc_for_viewapi(bib_key, page):
     
     if 'ocaid' in page:
         preview = get_ia_availability(page['ocaid'])
-        preview_url = 'http://www.archive.org/details/' + page['ocaid']
+        preview_url = 'https://archive.org/details/' + page['ocaid']
     else:
         preview = 'noview'
         preview_url = url
@@ -407,7 +407,7 @@ def process_doc_for_viewapi(bib_key, page):
     }
     
     if page.get('covers'):
-        d['thumbnail_url'] = 'http://covers.openlibrary.org/b/id/%s-S.jpg' % page["covers"][0]
+        d['thumbnail_url'] = 'https://covers.openlibrary.org/b/id/%s-S.jpg' % page["covers"][0]
 
     return d      
 
