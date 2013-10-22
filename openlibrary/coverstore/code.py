@@ -259,6 +259,12 @@ class cover:
             if value and self.is_cover_in_cluster(value):
                 url = zipview_url_from_id(int(value), size)
                 raise web.found(url)
+        elif key == 'ia':
+            url = self.get_ia_cover_url(value, size)
+            if url:
+                raise web.found(url)
+            else:
+                value = None # notfound or redirect to default. handled later.
         elif key != 'id':
             value = self.query(category, key, value)
             
@@ -288,7 +294,22 @@ class cover:
             return read_image(d, size)
         except IOError:
             raise web.notfound()
-            
+
+    def get_ia_cover_url(self, identifier, size="M"):
+        url = "https://archive.org/metadata/%s/metadata" % identifier
+        try:
+            jsontext = urllib.urlopen(url).read()
+            d = simplejson.loads(jsontext).get("result", {})
+        except (IOError, ValueError):
+            return
+
+        # Not a text item or no images are uploaded yet
+        if not d or d.get("repub_state") == "-1" or "imagecount" not in d:
+            return
+
+        w, h = config.image_sizes[size.upper()]
+        return "https://archive.org/download/%s/page/cover_w%d_h%d.jpg" % (identifier, w, h)
+
     def get_details(self, coverid, size=""):
         try:
             coverid = int(coverid)
