@@ -248,6 +248,12 @@ class SubjectEngine:
             if not w.get('public_scan') and w.ia and w.get('lending_edition'):
                 doc = web.ctx.site.store.get("ebooks/books/" + w['lending_edition']) or {}
                 w['checked_out'] = doc.get("borrowed") == "true"
+
+            # XXX-Anand: Oct 2013
+            # Somewhere something is broken, work keys are coming as OL1234W/works/
+            # Quick fix it solve that issue.
+            if w.key.endswith("/works/"):
+                w.key = "/works/" + w.key.replace("/works/", "")
                 
         subject = Subject(
             key=key,
