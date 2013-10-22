@@ -179,6 +179,9 @@ class IAMiddleware(ConnectionMiddleware):
         # Anand - Oct 2013
         # If an item is with noindex=true and it is not marked as lending or printdisabled, ignore it.
         # It would have been marked as noindex=true for some reason.
+        collections = metadata.get("collection", [])
+        if not isinstance(collections, list):
+            collections = [collections]
         if metadata.get("noindex") == "true" \
             and "printdisabled" not in collections \
             and "inlibrary" not in collections \
