@@ -273,4 +273,4 @@ def prune_expired_waitingloans():
         logger.info("Deleting waiting loan for %s", r['book'])
         # should mark record as expired instead of deleting
         r['_delete'] = True
-    web.ctx.site.update(dict((r['_key'], r) for r in expired))
+    web.ctx.site.store.update(dict((r['_key'], r) for r in expired))
