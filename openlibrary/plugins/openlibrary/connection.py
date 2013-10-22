@@ -165,7 +165,8 @@ class IAMiddleware(ConnectionMiddleware):
         return simplejson.dumps(d)
 
     def _is_valid_item(self, itemid, metadata):
-        if metadata.get("mediatype") != "texts":
+        # Not a book, or scan not complete or no images uploaded
+        if metadata.get("mediatype") != "texts" or metadata.get("repub_state") == "-1" or "imagecount" not in metadata:
             return False
 
         # items start with these prefixes are not books
