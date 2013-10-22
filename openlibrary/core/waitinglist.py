@@ -16,6 +16,9 @@ import datetime
 import web
 from . import helpers as h
 from .sendmail import sendmail_with_template
+import logging
+
+logger = logging.getLogger("openlibrary.waitinglist")
 
 class WaitingLoan(dict):
     def get_book(self):
@@ -256,3 +259,18 @@ def _get_loan_timestamp_in_days(loan):
     t = datetime.datetime.fromtimestamp(loan['loaned_at'])
     delta = datetime.datetime.utcnow() - t
     return delta.days
+
+def prune_expired_waitingloans():
+    """Removes all the waiting loans that are expired.
+
+    A waiting loan expires if the person fails to borrow a book with in 
+    24 hours after his waiting loan becomes "available".
+    """
+    records = web.ctx.site.store.values(type="waiting-loan", name="status", value="available")
+    now = datetime.datetime.utcnow().isoformat()
+    expired = [r for r in records if r.get('expiry', '') < now]
+    for r in expired:
+        logger.info("Deleting waiting loan for %s", r['book'])
+        # should mark record as expired instead of deleting
+        r['_delete'] = True
+    web.ctx.site.update(dict((r['_key'], r) for r in expired))
