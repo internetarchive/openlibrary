@@ -91,7 +91,7 @@ ERROR_BAD_IMAGE = 3, "Invalid Image"
 
 class index:
     def GET(self):
-        return '<h1>Open Library Book Covers Repository</h1><div>See <a href="http://openlibrary.org/dev/docs/api/covers">Open Library Covers API</a> for details.</div>'
+        return '<h1>Open Library Book Covers Repository</h1><div>See <a href="https://openlibrary.org/dev/docs/api/covers">Open Library Covers API</a> for details.</div>'
 
 def _cleanup():
     web.ctx.pop("_fieldstorage", None)
@@ -183,7 +183,7 @@ def _locate_item(item):
     """Locates the archive.org item in the cluster and returns the server and directory.
     """
     print >> web.debug, time.asctime(), "_locate_item", item
-    text = urllib.urlopen("http://www.archive.org/metadata/" + item).read()
+    text = urllib.urlopen("https://archive.org/metadata/" + item).read()
     d = simplejson.loads(text)
     return d['server'], d['dir']
 
@@ -221,15 +221,18 @@ class cover:
     def GET(self, category, key, value, size):
         i = web.input(default="true")
         key = key.lower()
+
+        def is_valid_url(url):
+            return url.startswith("http://") or url.startswith("https://")
         
         def notfound():
             if key in ["id", "olid"] and config.get("upstream_base_url"):
                 # this is only used in development
                 base = web.rstrips(config.upstream_base_url, "/")
                 raise web.redirect(base + web.ctx.fullpath)
-            elif config.default_image and i.default.lower() != "false" and not i.default.startswith('http://'):
+            elif config.default_image and i.default.lower() != "false" and not is_valid_url(i.default):
                 return read_file(config.default_image)
-            elif i.default.startswith('http://'):
+            elif is_valid_url(i.default):
                 raise web.seeother(i.default)
             else:
                 raise web.notfound("")

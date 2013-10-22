@@ -227,7 +227,7 @@ $ work = page.works and page.works[0] or None
                     <tr class="toc-level-$toc.level">
                         <td class="toc-label">$toc.label</td>
                         $if item_id and toc.pagenum.isdigit():
-                            <td class="toc-title"><a href=//archive.org/stream/$item_id#page/$toc.pagenum">$toc.title</a></td>
+                            <td class="toc-title"><a href="//archive.org/stream/$item_id#page/$toc.pagenum">$toc.title</a></td>
                         $else:
                             <td class="toc-title">$toc.title</td>
                         <td class="toc-pagenum">$toc.pagenum</td>

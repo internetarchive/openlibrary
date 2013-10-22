@@ -19,7 +19,7 @@ t_sitemap = """$def with (things)
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     $for t in things:
     <url>
-        <loc>http://openlibrary.org$t.path</loc>
+        <loc>https://openlibrary.org$t.path</loc>
         <lastmod>$t.last_modified</lastmod>
     </url>
 </urlset>
@@ -30,7 +30,7 @@ t_siteindex = """$def with (names, timestamp)
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     $for name in names:
     <sitemap>
-        <loc>http://openlibrary.org/static/sitemaps/$name</loc>
+        <loc>https://openlibrary.org/static/sitemaps/$name</loc>
         <lastmod>$timestamp</lastmod>
     </sitemap>
 </sitemapindex>

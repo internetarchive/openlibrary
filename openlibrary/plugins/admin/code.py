@@ -21,6 +21,7 @@ from infogami.utils.view import add_flash_message
 import openlibrary
 from openlibrary.core import admin as admin_stats
 from openlibrary.plugins.upstream import forms
+from openlibrary.plugins.upstream.account import send_forgot_password_email
 from openlibrary import accounts
 from openlibrary.core import helpers as h
 
@@ -164,6 +165,8 @@ class people_view:
             return self.POST_resend_link(user)
         elif i.action == "activate_account":
             return self.POST_activate_account(user)
+        elif i.action == "send_password_reset_email":
+            return self.POST_send_password_reset_email(user)
         elif i.action == "block_account":
             return self.POST_block_account(user)
         elif i.action == "unblock_account":
@@ -179,6 +182,10 @@ class people_view:
 
     def POST_activate_account(self, user):
         user.activate()
+        raise web.seeother(web.ctx.path)        
+
+    def POST_send_password_reset_email(self, user):
+        send_forgot_password_email(user.username, user.email)
         raise web.seeother(web.ctx.path)        
 
     def POST_block_account(self, account):
