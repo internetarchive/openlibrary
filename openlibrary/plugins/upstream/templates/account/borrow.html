@@ -225,10 +225,11 @@ $else:
                         </div>
                 </td>
                 <td class="actions">
-                    <form action="$book.url('/borrow')" method="post">
-                        <input type="hidden" name="action" value="borrow" />
-                        <input type="submit" value="Borrow Now" />
-                    </form>
+                    $if status == "available":                    
+                        <form action="$book.url('/borrow')" method="post">
+                            <input type="hidden" name="action" value="borrow" />
+                            <input type="submit" value="Borrow Now" />
+                        </form>
                     <form action="$book.url('/borrow?redirect=/account/loans')" method="POST" class="wlform">
                         <input type="hidden" name="action" value="leave-waitinglist"/>
                         <a href="javascript:;" class="leave">Leave the waiting list?</a>
