@@ -241,6 +241,11 @@ def sendmail_people_waiting(book):
         ndays = 0 # temporarily disabled for testing
         if _get_loan_timestamp_in_days(loan) < ndays:
             continue
+        # Anand - Oct 2013
+        # unfinished PDF/ePub loan?
+        # Added temporarily to avoid crashing
+        if not loan.get('expiry'):
+            continue
         user = web.ctx.site.get(loan["user"])
         email = user and user.get_email()
         sendmail_with_template("email/waitinglist_people_waiting", to=email, 
@@ -251,9 +256,10 @@ def sendmail_people_waiting(book):
         web.ctx.site.store[loan['_key']] = loan
 
 def _get_expiry_in_days(loan):
-    delta = h.parse_datetime(loan['expiry']) - datetime.datetime.utcnow()
-    # +1 to count the partial day
-    return delta.days + 1
+    if loan.get("expiry"):
+        delta = h.parse_datetime(loan['expiry']) - datetime.datetime.utcnow()
+        # +1 to count the partial day
+        return delta.days + 1
 
 def _get_loan_timestamp_in_days(loan):
     t = datetime.datetime.fromtimestamp(loan['loaned_at'])
