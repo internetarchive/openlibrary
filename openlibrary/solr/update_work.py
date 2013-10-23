@@ -1239,7 +1239,13 @@ def update_keys(keys, commit=True):
             if wkey:
                 logger.info("found %r, updating it...", wkey)
                 wkeys.add(wkey)
-            logger.warn("Found a document of type %r. Ignoring...", edition['type']['key'])
+
+            if edition['type']['key'] == '/type/delete':
+                logger.info("Found a document of type %r. queuing for deleting it solr..", edition['type']['key'])
+                # Also remove if there is any work with that key in solr.
+                wkeys.add(k)
+            else:
+                logger.warn("Found a document of type %r. Ignoring...", edition['type']['key'])
         else:
             if edition.get("works"):
                 wkeys.add(edition["works"][0]['key'])
