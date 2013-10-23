@@ -629,8 +629,13 @@ def dict2element(d):
 def build_data(w, obj_cache=None, resolve_redirects=False):
     wkey = w['key']
 
-    q = { 'type':'/type/edition', 'works': wkey, '*': None }
-    editions = list(query_iter(q))
+    # Anand - Oct 2013
+    # For /works/ia:xxx, editions are already suplied. Querying will empty response.
+    if "editions" in w:
+        editions = w['editions']
+    else:
+        q = { 'type':'/type/edition', 'works': wkey, '*': None }
+        editions = list(query_iter(q))
     authors = SolrProcessor().extract_authors(w)
 
     iaids = [e["ocaid"] for e in editions if "ocaid" in e]
