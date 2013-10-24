@@ -204,10 +204,16 @@ def update_waitinglist(book_key):
     commit()
 
     book = web.ctx.site.get(book_key)
-    if checkedout:
-        sendmail_people_waiting(book)        
-    elif wl:
-        sendmail_book_available(book)
+    if wl:
+        # If some people are waiting and the book is checked out,
+        # send email to the person who borrowed the book.
+        # 
+        # If the book is not checked out, inform the first person 
+        # in the waiting list
+        if checkedout:
+            sendmail_people_waiting(book)        
+        else:
+            sendmail_book_available(book)
 
 def _is_loaned_out(book_key):
     from openlibrary.plugins.upstream import borrow
