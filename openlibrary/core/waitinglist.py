@@ -243,8 +243,7 @@ def sendmail_people_waiting(book):
     loans = [loan for loan in book.get_loans() if not loan.get("waiting_email_sent")]
     for loan in loans:
         # don't bother the person if the he has borrowed less than 2 days back
-        #ndays = 2
-        ndays = 0 # temporarily disabled for testing
+        ndays = 2
         if _get_loan_timestamp_in_days(loan) < ndays:
             continue
         # Anand - Oct 2013
