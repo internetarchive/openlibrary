@@ -830,6 +830,8 @@ def setup():
     setup_context_defaults()
     setup_template_globals()
     setup_logging()
+
+    global logger
     logger = logging.getLogger("openlibrary")
     logger.info("Application init")
     
