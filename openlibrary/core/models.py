@@ -19,6 +19,14 @@ from openlibrary import accounts
 from lists.model import ListMixin, Seed
 from . import cache, iprange, inlibrary, waitinglist
 
+def _get_ol_base_url():
+    # Anand Oct 2013
+    # Looks like the default value when called from script
+    if "[unknown]" in web.ctx.home:
+        return "https://openlibrary.org"
+    else:
+        return web.ctx.home
+
 class Image:
     def __init__(self, site, category, id):
         self._site = site
@@ -124,7 +132,7 @@ class Thing(client.Thing):
         if params:
             u += '?' + urllib.urlencode(params)
         if not relative:
-            u = web.ctx.home + u            
+            u = _get_ol_base_url() + u            
         return u
 
     def get_url(self, suffix="", **params):
@@ -672,7 +680,7 @@ class Subject(web.storage):
         if params:
             u += '?' + urllib.urlencode(params)
         if not relative:
-            u = web.ctx.home + u
+            u = _get_ol_base_url() + u
         return u
 
     # get_url is a common method available in all Models. 
