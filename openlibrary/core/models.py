@@ -281,6 +281,42 @@ class Edition(Thing):
         from ..plugins.upstream import borrow
         return borrow.get_edition_loans(self)
 
+    def get_ebook_status(self):
+        """
+            None
+            "read-online"
+            "borrow-available"
+            "borrow-checkedout"
+            "borrow-user-checkedout"
+            "borrow-user-waiting"
+            "protected"
+        """
+        if self.get("ocaid"):
+            if not self.is_access_restricted():
+                return "read-online"
+            if not self.is_lendable_book():
+                return "protected"
+
+            loans = self.get_current_loans()
+            if not loans:
+                return "borrow-available"
+
+            user = web.ctx.site.get_user()
+            if not user:
+                return "borrow-checkedout"
+
+            checkedout_by_user = any(loan.get('user') == user.key for loan in loans)
+            if checkedout_by_user:
+                return "borrow-user-checkedout"
+            if user.is_waiting_for(self):
+                return "borrow-user-waiting"
+            else:
+                return "borrow-checkedout"
+
+    def is_lendable_book(self):
+        """Returns True if the book is lendable.
+        """
+        return self.can_borrow()
 
 class Work(Thing):
     """Class to represent /type/work objects in OL.

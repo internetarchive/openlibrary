@@ -90,6 +90,78 @@ $def display_contributor(c):
 
 $ work = page.works and page.works[0] or None
 
+<style type="text/css">
+.page-banner {
+    background: #95A865; 
+    color: black; 
+    background: #036DAA;
+    color: white;
+    text-align: left; 
+    padding: 20px;    
+}
+.page-banner a {
+    color: white;
+}
+.page-banner .button {
+    /*
+    background: #62AAD4;
+    */
+    color: white;
+    border-radius: 5px;
+    padding: 10px;
+    cursor: pointer;
+    display: inline;
+    border: 1px solid #389AD4;
+    color: #95A865;
+}
+.page-banner a.button {
+    color: #95A865;
+    color: white;
+    text-decoration: none;
+    color: #95A865;
+    background: #389AD4;    
+    color: #ffe;
+}
+.page-banner a.button:hover {
+    /*background: #95A865;*/
+    background: #62AAD4;
+    color: white;
+}
+
+</style>
+
+$ ebook_status = page.get_ebook_status()
+
+$if ebook_status == "read-online":
+    <div class="page-banner sansserief">
+        This title is part of the <a href="https://openlibrary.org/read">classic eBook collection</a>. 
+        <a class="button" href="https://archive.org/stream/$page.ocaid">Read online now!</a>
+    </div>
+$elif ebook_status == "borrow-available":
+    <div class="page-banner sansserief">
+        This title is part of the <a href="https://openlibrary.org/borrow">Lending Library collection</a>. 
+        <a class="button" href="$page.url('/borrow')">Borrow eBook</a>
+    </div>
+$elif ebook_status == "borrow-checkedout":
+    <div class="page-banner sansserief">
+        This title from the <a href="https://openlibrary.org/borrow">Lending Library collection</a> is already checked out. 
+        <a class="button" href="$page.url('/borrow')">Join the waiting list</a>
+    </div>
+$elif ebook_status == "borrow-user-waiting":
+    <div class="page-banner sansserief">
+        $ position = page.get_waitinglist_position(ctx.user)
+        $if position == 1:
+            You are waiting for this book and you are the next person to get this book.
+        $elif position == 2:
+            You are waiting for this book and one person ahead of you in the waiting list.
+        $else:
+            You are waiting for this book and $(position-1) people are ahead of you in the waiting list.your loans?
+         <a href="/account/loans">Review your loans?</a>
+    </div>
+$elif ebook_status == "borrow-user-checkedout":
+    <div class="page-banner sansserief">
+        You have checked out this book. <a href="/account/loans">Review your loans?</a>
+    </div>
 
 <div id="contentHead">
     <table width="100%"><tbody><tr>
