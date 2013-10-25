@@ -603,19 +603,23 @@ def _get_blog_feeds():
         stats.end()
     
     def parse_item(item):
-        pubdate = datetime.datetime.strptime(item.find("pubDate").text, '%a, %d %b %Y %H:%M:%S +0000')
-        return web.storage(
+        pubdate = datetime.datetime.strptime(item.find("pubDate").text, '%a, %d %b %Y %H:%M:%S +0000').isoformat()
+        return dict(
             title=item.find("title").text,
             link=item.find("link").text,
             pubdate=pubdate
         )
     return [parse_item(item) for item in tree.findall("//item")]
     
-_get_blog_feeds = web.memoize(_get_blog_feeds, expires=5*60, background=True)
+_get_blog_feeds = cache.memcache_memoize(_get_blog_feeds, key_prefix="upstream.get_blog_feeds", timeout=5*60)
 
 @public
 def get_blog_feeds():
-    return _get_blog_feeds()
+    def process(post):
+        post = web.storage(post)
+        post.pubdate = parse_datetime(post.pubdate)
+        return post
+    return [process(post) for post in _get_blog_feeds()]
 
 class Request:
     path = property(lambda self: web.ctx.path)
