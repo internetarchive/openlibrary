@@ -188,6 +188,9 @@ class Edition(models.Edition):
     def get_current_and_available_loans(self):
         current_loans = borrow.get_edition_loans(self)
         return (current_loans, self._get_available_loans(current_loans))
+
+    def get_current_loans(self):
+        return borrow.get_edition_loans(self)
         
     def get_available_loans(self):
         """
