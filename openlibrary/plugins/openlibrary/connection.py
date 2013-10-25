@@ -14,8 +14,6 @@ import logging
 
 logger = logging.getLogger("openlibrary")
 
-default_cache_prefixes = ["/type/", "/languages/", "/index.", "/about", "/css/", "/js/", "/config/"]
-
 class ConnectionMiddleware:
     response_type = "json"
     
@@ -492,73 +490,7 @@ class MemcacheMiddleware(ConnectionMiddleware):
         else:
             result = ConnectionMiddleware.account_request(self, sitename, path, method, data)
         return result
-        
-_cache = None
-        
-class LocalCacheMiddleware(ConnectionMiddleware):
-    def __init__(self, conn, cache_prefixes, cache_size=10000):
-        ConnectionMiddleware.__init__(self, conn)
-        self.cache_prefixes = cache_prefixes
-        self.cache = self.get_cache(cache_size)
-        
-    def get_cache(self, cache_size):
-        global _cache
-        if _cache is None:
-            _cache = lru.LRU(cache_size)
 
-            class hook(client.hook):
-                def on_new_version(self, page):
-                    if page.key in _cache:
-                        _cache.delete(page.key)
-            
-        return _cache
-    
-    def get(self, sitename, data):
-        key = data.get('key')
-        revision = data.get('revision')
-
-        def _get():
-            return ConnectionMiddleware.get(self, sitename, data)
-
-        if revision is None and self.cachable(key):
-            response = self.cache.get(key)
-            if not response:
-                response = _get()
-                self.cache[key] = response
-        else:
-            response = _get()
-        return response
-        
-    def write(self, sitename, data):
-        response_str = ConnectionMiddleware.write(self, sitename, data)
-
-        result = simplejson.loads(response_str)
-        modified = result['created'] + result['updated']
-        keys = [k for k in modified if self.cachable(k)]
-        self.cache.delete_many(keys)
-        return response_str
-
-    def save(self, sitename, path, data):
-        response_str = ConnectionMiddleware.save(self, sitename, path, data)
-        result = simplejson.loads(response_str)
-        if result:
-            self.cache.delete(result['key'])
-        return response_str
-
-    def save_many(self, sitename, data):
-        response_str = ConnectionMiddleware.save_many(self, sitename, data)
-        result = simplejson.loads(response_str)
-        keys = [r['key'] for r in result]
-        self.cache.delete_many(keys)
-        return response_str
-
-    def cachable(self, key):
-        """Tests if key is cacheable."""
-        for prefix in self.cache_prefixes:
-            if key and key.startswith(prefix):
-                return True
-        return False
-        
 class MigrationMiddleware(ConnectionMiddleware):
     """Temporary middleware to handle upstream to www migration."""
     def _process_key(self, key):
@@ -714,10 +646,6 @@ def OLConnection():
     
     if config.get('upstream_to_www_migration'):
         conn = MigrationMiddleware(conn)
-
-    cache_prefixes = config.get("cache_prefixes", default_cache_prefixes)
-    if cache_prefixes :
-        conn = LocalCacheMiddleware(conn, cache_prefixes)
 
     conn = IAMiddleware(conn)
     return conn
