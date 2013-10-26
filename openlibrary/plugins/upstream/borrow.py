@@ -631,6 +631,8 @@ def _update_loan_status(loan_key, loan, bss_status = None):
         # delete loan record if has expired
         # $$$ consolidate logic for checking expiry.  keep loan record for some time after it expires.
         if loan['expiry'] and loan['expiry'] < datetime.datetime.utcnow().isoformat():
+            logger.info("%s", loan)            
+            logger.info("%s: loan expired. deleting...", loan_key) 
             web.ctx.site.store.delete(loan_key)
             on_loan_delete(loan)
         return
@@ -642,7 +644,6 @@ def _update_loan_status(loan_key, loan, bss_status = None):
         
 def update_loan_from_bss_status(loan_key, loan, status):
     """Update the loan status in the private data store from BSS status"""
-    
     global loan_fulfillment_timeout_seconds
     
     if not resource_uses_bss(loan['resource_id']):
@@ -661,6 +662,8 @@ def update_loan_from_bss_status(loan_key, loan, status):
     
         # Was returned, expired, or timed out
         web.ctx.site.store.delete(loan_key)
+        logger.info("%s", loan)
+        logger.info("%s: loan returned or expired or timedout, deleting...", loan_key)
         on_loan_delete(loan)
         return
 
@@ -669,6 +672,7 @@ def update_loan_from_bss_status(loan_key, loan, status):
     if loan['expiry'] != status['until']:
         loan['expiry'] = status['until']
         web.ctx.site.store[loan_key] = loan
+        logger.info("%s: updated expiry to %s", loan_key, loan['expiry'])
         on_loan_update(loan)
 
 def update_all_loan_status():
@@ -680,37 +684,18 @@ def update_all_loan_status():
     bss_statuses = get_all_loaned_out()
     bss_resource_ids = [status['resourceid'] for status in bss_statuses]
 
-    offset = 0
-    limit = 500
-    all_updated = False
+    loans = web.ctx.site.store.values(type='/type/loan', limit=-1)
+    acs4_loans = [loan for loan in loans if loan['resource_type'] in ['epub', 'pdf']]
+    for i, loan in enumerate(acs4_loans):
+        logger.info("processing loan %s (%s)", loan['_key'], i)
+        bss_status = None
+        if resource_uses_bss(loan['resource_id']):
+            try:
+                bss_status = bss_statuses[bss_resource_ids.index(loan['resource_id'])]
+            except ValueError:
+                bss_status = None
+        _update_loan_status(loan['_key'], loan, bss_status)
 
-    while not all_updated:
-        ol_loan_keys = [row['key'] for row in web.ctx.site.store.query('/type/loan', limit=limit, offset=offset)]
-        
-        # Update status of each loan
-        for loan_key in ol_loan_keys:
-            loan = web.ctx.site.store.get(loan_key)
-            # XXX-Anand: loan is becoming None sometimes. May be the loan
-            # is returned while this is in progress. Added this check to        
-            # avoid crash.
-            if loan is None:
-                continue
-            
-            bss_status = None
-            if resource_uses_bss(loan['resource_id']):
-                try:
-                    bss_status = bss_statuses[ bss_resource_ids.index(loan['resource_id']) ]
-                except ValueError:
-                    bss_status = None
-                    
-            _update_loan_status(loan_key, loan, bss_status)
-                
-        
-        if len(ol_loan_keys) < limit:
-            all_updated = True
-        else:        
-            offset += len(ol_loan_keys)
-            
 def resource_uses_bss(resource_id):
     """Returns true if the resource should use the BSS for status"""
     global acs_resource_id_prefixes
