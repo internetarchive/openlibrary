@@ -279,9 +279,13 @@ def prune_expired_waitingloans():
     """
     records = web.ctx.site.store.values(type="waiting-loan", name="status", value="available")
     now = datetime.datetime.utcnow().isoformat()
-    expired = [r for r in records if r.get('expiry', '') < now]
+    expired = [r for r in records if 'expiry' in r and r['expiry'] < now]
     for r in expired:
         logger.info("Deleting waiting loan for %s", r['book'])
         # should mark record as expired instead of deleting
         r['_delete'] = True
     web.ctx.site.store.update(dict((r['_key'], r) for r in expired))
+
+    # Update the checkedout status and position in the WL for each entry
+    for r in expired:
+        update_waitinglist(r['book'])
