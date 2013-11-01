@@ -17,6 +17,7 @@ import web
 from . import helpers as h
 from .sendmail import sendmail_with_template
 import logging
+from infogami.infobase.client import ClientException
 
 logger = logging.getLogger("openlibrary.waitinglist")
 
@@ -147,6 +148,7 @@ def update_waitinglist(book_key):
     * When a book is checked out or returned
     * When a person joins or leaves the waiting list
     """
+    logger.info("BEGIN updating %r", book_key)
     wl = get_waitinglist_for_book(book_key)
     checkedout = _is_loaned_out(book_key)
 
@@ -158,9 +160,22 @@ def update_waitinglist(book_key):
         """Remembers to save on commit."""
         documents[doc['_key']] = doc
 
+    def update_doc(doc, **kwargs):
+        dirty = False
+        for name, value in kwargs.items():
+            if doc.get(name) != value:
+                doc[name] = value
+                dirty = True
+        if dirty:
+            save_later(doc)
+
     def commit():
         """Saves all the documents """
-        web.ctx.site.store.update(documents)
+        try:
+            web.ctx.site.store.update(documents)
+        except ClientException, e:
+            logger.error("Failed to save documents.", exc_info=True)
+            logger.error("Error data: %r", e.get_data())
 
     if checkedout:
         book = web.ctx.site.get(book_key)
@@ -170,23 +185,18 @@ def update_waitinglist(book_key):
         for doc in wl[:]:
             # Delete from waiting list if a user has already borrowed this book
             if doc['user'] in loaned_users:
-                doc['_delete'] = True
-                save_later(doc)
+                update_doc(doc, _delete=True)
                 wl.remove(doc)
 
     for i, doc in enumerate(wl):
-        doc['position'] = i + 1
-        doc['wl_size'] = len(wl)
-        save_later(doc)
+        update_doc(doc, position=i+1, wl_size=len(wl))
 
     # Mark the first entry in the waiting-list as available if the book
     # is not checked out.
     if not checkedout and wl:
-        wl[0]['status'] = 'available'
         # one day
         expiry = datetime.datetime.utcnow() + datetime.timedelta(1)
-        wl[0]['expiry'] = expiry.isoformat()
-        save_later(wl[0])
+        update_doc(wl[0], status='available', expiry=expiry.isoformat())
 
     # for the end user, a book is not available if it is either
     # checked out or someone is waiting.
@@ -214,6 +224,7 @@ def update_waitinglist(book_key):
             sendmail_people_waiting(book)        
         else:
             sendmail_book_available(book)
+    logger.info("END updating %r", book_key)
 
 def _is_loaned_out(book_key):
     from openlibrary.plugins.upstream import borrow
@@ -277,11 +288,11 @@ def prune_expired_waitingloans():
     A waiting loan expires if the person fails to borrow a book with in 
     24 hours after his waiting loan becomes "available".
     """
-    records = web.ctx.site.store.values(type="waiting-loan", name="status", value="available")
+    records = web.ctx.site.store.values(type="waiting-loan", name="status", value="available", limit=-1)
     now = datetime.datetime.utcnow().isoformat()
     expired = [r for r in records if 'expiry' in r and r['expiry'] < now]
     for r in expired:
-        logger.info("Deleting waiting loan for %s", r['book'])
+        logger.info("Deleting waiting loan for %r", r['book'])
         # should mark record as expired instead of deleting
         r['_delete'] = True
     web.ctx.site.store.update(dict((r['_key'], r) for r in expired))
@@ -289,3 +300,12 @@ def prune_expired_waitingloans():
     # Update the checkedout status and position in the WL for each entry
     for r in expired:
         update_waitinglist(r['book'])
+
+def update_all_ebook_documents():
+    """Updates the status of all ebook documents which are marked as checkedout.
+
+    It is safe to call this function multiple times.
+    """
+    records = web.ctx.site.store.values(type="ebook", name="borrowed", value="true", limit=-1)
+    for r in records:
+        update_waitinglist(r['book_key'])
