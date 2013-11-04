@@ -35,7 +35,7 @@ class OLError(Exception):
 
 
 class OpenLibrary:
-    def __init__(self, base_url="http://openlibrary.org"):
+    def __init__(self, base_url="https://openlibrary.org"):
         self.base_url = base_url.rstrip('/')
         self.cookie = None
 
