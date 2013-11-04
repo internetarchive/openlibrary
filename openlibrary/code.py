@@ -24,6 +24,8 @@ def setup():
         macro.load_macros(path, lazy=True)
         i18n.load_strings(path)
         __import__(modname, globals(), locals(), ['plugins'])
+
+    load_views()
     logger.info("loading complete.")
 
 def setup_logging():
@@ -36,5 +38,10 @@ def setup_logging():
     except Exception, e:
         print >> sys.stderr, "Unable to set logging configuration:", str(e)
         raise
+
+def load_views():
+    """Registers all views by loading all view modules.
+    """
+    from .views import showmarc
 
 setup()

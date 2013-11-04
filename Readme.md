@@ -7,7 +7,7 @@ This repository contains the code that powers https://openlibrary.org/
 ## Code Oraganization
 
 * openlibrary/core - core openlibrary functionality, imported and used by www
-* openlibrary/www - website
+* openlibrary/views - views for rendering web pages 
 * openlibrary/templates - all the tempaltes used in the website
 * openlibrary/macros - macros are like templates, but can be called from wikitext
 * openlibrary/plugins - legacy code. will be moved to core and www soon.
