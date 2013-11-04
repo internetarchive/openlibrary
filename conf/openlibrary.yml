@@ -62,16 +62,10 @@ ia_access_secret: foobar
 dev_instance: True
 dev_instance_url: http://127.0.0.1:8080/
 
-plugins:
-    - "openlibrary"
-    - "links"
-    - "search"
-    - "worksearch"
-    - "api"
-    - "books"
-    - "admin"
-    - "upstream"
-    - "importapi"
+plugin_modules:
+    - openlibrary
+    - infogami.plugins.links
+    - infogami.plugins.api
 
 plugin_worksearch:
     solr: "localhost:8983"
