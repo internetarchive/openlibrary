@@ -138,22 +138,22 @@ class OPDSEntry(OPDS):
             got_pdf  = 'pdf' in loan_types
             
             if got_epub or got_pdf:
-                link = self.create_rel_link(None, 'http://opds-spec.org/acquisition/borrow', 'http://openlibrary.org'+book.url('/borrow'), 'text/html')
+                link = self.create_rel_link(None, 'http://opds-spec.org/acquisition/borrow', 'https://openlibrary.org'+book.url('/borrow'), 'text/html')
                 indirect_acq = self.add_indirect_acq(link, 'application/vnd.adobe.adept+xml')
                 if got_epub:
                     self.add_indirect_acq(indirect_acq, 'application/epub+zip')
                 if got_pdf:
                     self.add_indirect_acq(indirect_acq, 'application/pdf')
         elif 'printdisabled' not in collection:
-            self.create_rel_link(None, 'http://opds-spec.org/acquisition/open-access', 'http://www.archive.org/download/%s/%s.pdf'%(book.ocaid, book.ocaid), 'application/pdf')
-            self.create_rel_link(None, 'http://opds-spec.org/acquisition/open-access', 'http://www.archive.org/download/%s/%s.epub'%(book.ocaid, book.ocaid), 'application/epub+zip')
+            self.create_rel_link(None, 'http://opds-spec.org/acquisition/open-access', 'https://archive.org/download/%s/%s.pdf'%(book.ocaid, book.ocaid), 'application/pdf')
+            self.create_rel_link(None, 'http://opds-spec.org/acquisition/open-access', 'https://archive.org/download/%s/%s.epub'%(book.ocaid, book.ocaid), 'application/epub+zip')
 
     # add_rel_links()
     #___________________________________________________________________________
     def add_rel_links(self, book, work):
         links = []
         if work:
-            self.create_rel_link(None, 'related', 'http://openlibrary.org'+work.key, 'text/html', 'Open Library Work')
+            self.create_rel_link(None, 'related', 'https://openlibrary.org'+work.key, 'text/html', 'Open Library Work')
 
         for name, values in book.get_identifiers().multi_items():
             for id in values:
@@ -167,7 +167,7 @@ class OPDSEntry(OPDS):
         self.root = self.create_root('entry')
 
         bookID = book.key
-        atomID = 'http://openlibrary.org' + bookID + '.opds'
+        atomID = 'https://openlibrary.org' + bookID + '.opds'
         title = book.title
         if book.subtitle:
             title += " " + book.subtitle
@@ -199,12 +199,12 @@ class OPDSEntry(OPDS):
                     
         self.add('id', atomID)
         self.create_rel_link(None, 'self', atomID)
-        self.create_rel_link(None, 'alternate', 'http://openlibrary.org'+book.url(), 'text/html')
+        self.create_rel_link(None, 'alternate', 'https://openlibrary.org'+book.url(), 'text/html')
         self.add('title', title)
         self.add('updated', updated)
         
         for a in authors:
-            self.add_author(a.name, 'http://openlibrary.org'+a.url())
+            self.add_author(a.name, 'https://openlibrary.org'+a.url())
         
         self.add_list(self.dcterms + 'publisher', book.publishers)
         self.add_list(self.rdvocab + 'placeOfPublication', book.publish_places)
@@ -222,8 +222,8 @@ class OPDSEntry(OPDS):
         for lang in book.languages:
             self.add_list(self.dcterms + 'language', lang.code)
     
-        self.add_list(self.dcterms + 'identifier', book.key,     'http://openlibrary.org', {self.xsi+'type':'dcterms:URI'})
-        self.add_list(self.dcterms + 'identifier', book.ocaid,   'http://www.archive.org/details/', {self.xsi+'type':'dcterms:URI'})
+        self.add_list(self.dcterms + 'identifier', book.key,     'https://openlibrary.org', {self.xsi+'type':'dcterms:URI'})
+        self.add_list(self.dcterms + 'identifier', book.ocaid,   'https://archive.org/details/', {self.xsi+'type':'dcterms:URI'})
         self.add_list(self.dcterms + 'identifier', book.isbn_10, 'urn:ISBN:', {self.xsi+'type':'dcterms:ISBN'})
         self.add_list(self.dcterms + 'identifier', book.isbn_13, 'urn:ISBN:', {self.xsi+'type':'dcterms:ISBN'})
         self.add_list(self.bibo + 'oclcnum', book.oclc_numbers)
