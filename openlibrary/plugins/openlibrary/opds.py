@@ -109,14 +109,21 @@ class OPDS():
         self.root = self.create_root(root_name)
 
 class OPDSEntry(OPDS):
+    def _add_subelement(self, tagname, **attrs):
+        """Adds a sub element with given tagname and attributes.
 
+        Ensures all attribute values are xml-safe before setting in the
+        element. Returns the element added.
+        """
+        element = ET.SubElement(self.root, tagname)
+        for name, value in attrs.items():
+            element.attrib[name] = xmlsafe(value)
+        return element
+        
     # add_category()
     #___________________________________________________________________________
     def add_category(self, term, label):
-        element = ET.SubElement(self.root, 'category')
-        element.attrib['term']  = term
-        element.attrib['label'] = label
-        return element
+        return self._add_subelement("category", term=term, label=label)
 
     # add_indirect_acq()
     #___________________________________________________________________________
@@ -236,3 +243,15 @@ class OPDSEntry(OPDS):
 
         self.add_acquisition_links(book, collection)
         self.add_rel_links(book, work)        
+
+def xmlsafe(s):
+    """Removes all the XML-unsafe characters from given string.
+
+    XML cannot include certain characters mainly control ones with
+    byte value below 32. This function strips them all.
+    """
+    if isinstance(s, str):
+        s = s.decode('utf-8')
+    # ignore the first 32 bytes of ASCII, which are not allowd in XML
+    return u"".join(c for c in s if ord(c) >= 0x20)
+
