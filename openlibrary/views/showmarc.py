@@ -1,21 +1,20 @@
 """
 Hook to show mark details in Open Library.
 """
-from infogami.utils import delegate
-from infogami.utils.view import render
+from .. import app
 
 import web
 import urllib2
 import os.path
 import sys, re
 
-class old_show_marc(delegate.page):
+class old_show_marc(app.view):
     path = "/show-marc/(.*)"
 
     def GET(self, param):
         raise web.seeother('/show-records/' + param)
 
-class show_ia(delegate.page):
+class show_ia(app.view):
     path = "/show-records/ia:(.*)"
 
     def GET(self, ia):
@@ -61,18 +60,18 @@ class show_ia(delegate.page):
         except ValueError:
             record = None
 
-        return render.showia(ia, record, books)
+        return app.render_template("showia", ia, record, books)
         
-class show_amazon(delegate.page):
+class show_amazon(app.view):
     path = "/show-records/amazon:(.*)"
     
     def GET(self, asin):
-        return render.showamazon(asin)
+        return app.render_template("showamazon", asin)
 
 re_bad_meta_mrc = re.compile('^([^/]+)_meta\.mrc$')
 re_lc_sanfranpl = re.compile('^sanfranpl(\d+)/sanfranpl(\d+)\.out')
 
-class show_marc(delegate.page):
+class show_marc(app.view):
     path = "/show-records/(.*):(\d+):(\d+)"
 	
     def GET(self, filename, offset, length):
@@ -123,4 +122,4 @@ class show_marc(delegate.page):
         except ValueError:
             record = None
 
-        return render.showmarc(record, filename, offset, length, books)
+        return app.render_template("showmarc", record, filename, offset, length, books)

@@ -53,9 +53,6 @@ from openlibrary.core import models
 models.register_models()
 models.register_types()
 
-# this adds /show-marc/xxx page to infogami
-import showmarc
-
 # Remove movefiles install hook. openlibrary manages its own files.
 infogami._install_hooks = [h for h in infogami._install_hooks if h.__name__ != "movefiles"]
 
