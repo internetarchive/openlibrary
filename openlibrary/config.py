@@ -1,3 +1,8 @@
+"""Legacy config file. 
+
+This will be removed soon.
+"""
+
 import yaml
 
 runtime_config = {}
