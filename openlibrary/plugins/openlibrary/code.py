@@ -62,6 +62,8 @@ infogami._install_hooks = [h for h in infogami._install_hooks if h.__name__ != "
 import lists
 lists.setup()
 
+logger = logging.getLogger("openlibrary")
+
 class hooks(client.hook):
     def before_new_version(self, page):
         user = web.ctx.site.get_user()
@@ -771,15 +773,6 @@ def setup_template_globals():
     })
 
 
-def setup_logging():
-    try:
-        logconfig = infogami.config.get("logging_config_file")
-        if logconfig and os.path.exists(logconfig):
-            logging.config.fileConfig(logconfig, disable_existing_loggers=False)
-    except Exception, e:
-        print >> sys.stderr, "Unable to set logging configuration:", str(e)
-        raise
-
 def setup_context_defaults():
     from infogami.utils import context
     context.defaults.update({
@@ -813,10 +806,5 @@ def setup():
 
     setup_context_defaults()
     setup_template_globals()
-    setup_logging()
-
-    global logger
-    logger = logging.getLogger("openlibrary")
-    logger.info("Application init")
     
 setup()
