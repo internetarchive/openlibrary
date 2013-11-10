@@ -13,6 +13,8 @@ Open Library is licensed under AGPLv3.
 
 [API Documentation](http://openlibrary.org/developers/api)
 
+[How to set up a development instance of Open Library](https://openlibrary.org/dev/docs/setup)
+
 
 Infogami
 ===
