@@ -257,6 +257,12 @@ def sendmail_people_waiting(book):
         ndays = 2
         if _get_loan_timestamp_in_days(loan) < ndays:
             continue
+
+        # Only send email reminder for bookreader loans.
+        # It seems it is hard to return epub/pdf loans, esp. with bluefire reader and overdrive
+        if loan.get("resource_type") != "bookreader":
+            return
+
         # Anand - Oct 2013
         # unfinished PDF/ePub loan?
         # Added temporarily to avoid crashing
