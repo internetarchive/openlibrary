@@ -305,15 +305,14 @@ class Edition(Thing):
             if not self.is_lendable_book():
                 return "protected"
 
-            loans = self.get_current_loans()
-            if not loans:
+            if self.get_available_loans():
                 return "borrow-available"
 
             user = web.ctx.site.get_user()
             if not user:
                 return "borrow-checkedout"
 
-            checkedout_by_user = any(loan.get('user') == user.key for loan in loans)
+            checkedout_by_user = any(loan.get('user') == user.key for loan in self.get_current_loans())
             if checkedout_by_user:
                 return "borrow-user-checkedout"
             if user.is_waiting_for(self):

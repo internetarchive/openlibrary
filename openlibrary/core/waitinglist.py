@@ -227,9 +227,8 @@ def update_waitinglist(book_key):
     logger.info("END updating %r", book_key)
 
 def _is_loaned_out(book_key):
-    from openlibrary.plugins.upstream import borrow
     book = web.ctx.site.get(book_key)
-    return borrow.get_edition_loans(book) != []
+    return book.get_available_loans() == []
 
 def sendmail_book_available(book):
     """Informs the first person in the waiting list that the book is available.
