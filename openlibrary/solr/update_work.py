@@ -13,6 +13,7 @@ from unicodedata import normalize
 from collections import defaultdict
 from openlibrary.utils.isbn import opposite_isbn
 from openlibrary.core import helpers as h
+from infogami.infobase.client import ClientException
 import logging
 import datetime
 
@@ -1355,7 +1356,17 @@ def new_withKey(key):
     This is set to `withKey` when this script is called with --monkeypatch
     option.
     """
+    logger.info("withKey %s", key)
     return web.ctx.site._request('/get', data={'key': key})
+
+def new_get_document(key):
+    try:
+        return new_withKey(key)
+    except ClientException, e:
+        if e.status.startswith('404'):
+            return {"key": key, "type": {"key": "/type/delete"}}
+        else:
+            raise
 
 def monkeypatch(config_file):
     """Monkeypatch query functions to avoid hitting openlibrary.org.
@@ -1388,12 +1399,13 @@ def monkeypatch(config_file):
             path = os.path.join(dir, config.infobase_config_file)
             config.infobase = yaml.safe_load(open(path).read())
 
-    global query_iter, withKey
+    global query_iter, withKey, get_document
 
     load_infogami(config_file)
 
     query_iter = new_query_iter
     withKey = new_withKey
+    get_document = new_get_document
 
 def main():
     options, keys = parse_options()
