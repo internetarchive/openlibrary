@@ -23,6 +23,9 @@ def get_metadata(itemid):
         # if any of the files is access restricted, consider it as an access-restricted item.
         files = d.get('files', [])
         metadata['access-restricted'] = any(f.get("private") == "true" for f in files)
+
+        # remember the filenames to construct download links
+        metadata['_filenames'] = [f['name'] for f in files]
         return metadata
     except IOError:
         stats.end()

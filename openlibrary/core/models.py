@@ -325,6 +325,27 @@ class Edition(Thing):
         """
         return self.can_borrow()
 
+    def get_ia_download_link(self, suffix):
+        """Returns IA download link for given suffix.
+        The suffix is usually one of '.pdf', '.epub', ''.djvu', '.mobi', '_djvu.txt'
+        """
+        if self.ocaid:
+            metadata = self.get_ia_meta_fields()
+            # The _filenames field is set by ia.get_metadata function
+            filenames = metadata.get("_filenames") or []
+            filename = some(f for f in filenames if f.endswith(suffix)) or self.ocaid + suffix
+            return "https://archive.org/download/%s/%s" % (self.ocaid, filename)
+
+def some(values):
+    """Returns the first value that is True from the values iterator.
+    Works like any, but returns the value instead of bool(value).
+    Returns None if none of the values is True.
+    """
+    for v in values:
+        if v:
+            return v
+
+
 class Work(Thing):
     """Class to represent /type/work objects in OL.
     """

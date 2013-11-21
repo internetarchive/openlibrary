@@ -25,11 +25,11 @@ $ titletrader = "http://www.titletrader.com/invinfo/XXX.html"
 
 $ viewbook = "//archive.org/stream/XXX"
 $ detailbook = "//archive.org/details/XXX"
-$ downloadbook = "//archive.org/download/XXX/XXX.pdf"
-$ pdfbw = "//archive.org/download/XXX/XXX_bw.pdf"
-$ daisy = "//archive.org/download/XXX/XXX_daisy.zip"
-$ epub = "//archive.org/download/XXX/XXX.epub"
-$ mobi = "//archive.org/download/XXX/XXX.mobi"
+$ downloadbook = page.get_ia_download_link(".pdf")
+$ pdfbw = page.get_ia_download_link("_bw.pdf")
+$ daisy = page.get_ia_download_link("_daisy.zip")
+$ epub = page.get_ia_download_link(".epub")
+$ mobi = page.get_ia_download_link(".mobi")
 $ kindle = "https://www.amazon.com/gp/digital/fiona/web-to-kindle?clientid=IA&itemid=XXX&docid=XXX"
 
 $ djvu = "//archive.org/download/XXX/XXX.djvu"
