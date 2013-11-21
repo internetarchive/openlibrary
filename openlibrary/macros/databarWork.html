@@ -32,8 +32,8 @@ $ epub = page.get_ia_download_link(".epub")
 $ mobi = page.get_ia_download_link(".mobi")
 $ kindle = "https://www.amazon.com/gp/digital/fiona/web-to-kindle?clientid=IA&itemid=XXX&docid=XXX"
 
-$ djvu = "//archive.org/download/XXX/XXX.djvu"
-$ djvutxt = "//archive.org/download/XXX/XXX_djvu.txt"
+$ djvu = page.get_ia_download_link(".djvu")
+$ djvutxt = page.get_ia_download_link("_djvu.txt")
 $ seeall = "//archive.org/download/XXX"
 $ google = ""
 
@@ -115,13 +115,19 @@ $elif page.get('ocaid'):
             <span class="head">Read</span>
         </h3>
         <div class="panel" id="readBooks">
-            <p><a href="$viewbook.replace('XXX', page.ocaid)" title="Use BookReader to read online"><strong>Read online</strong></a><br/><br/></p>
-            <p><a href="$downloadbook.replace('XXX', page.ocaid)" title="Download a PDF from Internet Archive">PDF</a></p>
-            <p><a href="$djvutxt.replace('XXX', page.ocaid)" title="Download a text version from Internet Archive">Plain text</a></p>
-            <p><a href="$page.url('/daisy')" title="Download a DAISY file from Internet Archive">DAISY</a></p>
-            <p><a href="$epub.replace('XXX', page.ocaid)" title="Download an ePub from Internet Archive">ePub</a></p>
-            <p><a href="$djvu.replace('XXX', page.ocaid)" title="Download a DjVu from Internet Archive">DjVu</a></p>
-            <p><a href="$mobi.replace('XXX', page.ocaid)" title="Download a MOBI file from Internet Archive">MOBI</a> or <a href="$kindle.replace('XXX', page.ocaid)" title="Send to Kindle">send to Kindle</a></p>
+            <p><a href="$viewbook" title="Use BookReader to read online"><strong>Read online</strong></a><br/><br/></p>
+            $if downloadbook:
+                <p><a href="$downloadbook" title="Download a PDF from Internet Archive">PDF</a></p>
+            $if djvutxt: 
+                <p><a href="$djvutxt" title="Download a text version from Internet Archive">Plain text</a></p>
+            $if daisy:
+                <p><a href="$page.url('/daisy')" title="Download a DAISY file from Internet Archive">DAISY</a></p>
+            $if epub:
+                <p><a href="$epub" title="Download an ePub from Internet Archive">ePub</a></p>
+            $if djvu:
+                <p><a href="$djvu" title="Download a DjVu from Internet Archive">DjVu</a></p>
+            $if mobi:
+                <p><a href="$mobi" title="Download a MOBI file from Internet Archive">MOBI</a> or <a href="$kindle.replace('XXX', page.ocaid)" title="Send to Kindle">send to Kindle</a></p>
         </div>
     </div>
 $else:
