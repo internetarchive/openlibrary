@@ -1340,6 +1340,7 @@ def new_query_iter(q, limit=500, offset=0):
 
     while True:
         keys = site.things(q)
+        logger.info("query_iter %s", q)
         docs = keys and site.get_many(keys, raw=True) 
         for doc in docs:
             yield doc
@@ -1364,6 +1365,7 @@ def new_get_document(key):
         return new_withKey(key)
     except ClientException, e:
         if e.status.startswith('404'):
+            logger.warn("%s is not found, considering it as deleted.", key)
             return {"key": key, "type": {"key": "/type/delete"}}
         else:
             raise
