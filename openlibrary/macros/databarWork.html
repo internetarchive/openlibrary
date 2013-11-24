@@ -115,7 +115,7 @@ $elif page.get('ocaid'):
             <span class="head">Read</span>
         </h3>
         <div class="panel" id="readBooks">
-            <p><a href="$viewbook" title="Use BookReader to read online"><strong>Read online</strong></a><br/><br/></p>
+            <p><a href="$viewbook.replace('XXX', page.ocaid)" title="Use BookReader to read online"><strong>Read online</strong></a><br/><br/></p>
             $if downloadbook:
                 <p><a href="$downloadbook" title="Download a PDF from Internet Archive">PDF</a></p>
             $if djvutxt: 
