@@ -339,8 +339,19 @@ class Edition(Thing):
                 # filenames is not in cache. 
                 # This is required only until all the memcache entries expire
                 filename = self.ocaid + suffix
+
+            if filename is None and self.is_ia_scan():                
+                # IA scans will have all the required suffixes. 
+                # Sometimes they are generated on the fly. 
+                filename = self.ocaid + suffix
+
             if filename:
                 return "https://archive.org/download/%s/%s" % (self.ocaid, filename)
+
+    def is_ia_scan(self):
+        metadata = self.get_ia_meta_fields()
+        # all IA scans will have scanningcenter field set
+        return bool(metadata.get("scanningcenter"))
 
 def some(values):
     """Returns the first value that is True from the values iterator.
