@@ -3,7 +3,7 @@ $def with (page)
 $ v = query_param("v", None)
 
 $if ctx.user:
-    $if v:
+    $if v and not page.key.startswith("/books/ia:"):
         <div id="revertNotice">
             <form name="revert" method="POST" action="$changequery(m='revert')">
                 <button type="submit">$_("Revert to this revision?")</button>
