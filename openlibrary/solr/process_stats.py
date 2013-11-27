@@ -143,6 +143,9 @@ def process(data):
     add_subjects("place")
     add_subjects("person")
     add_subjects("time")
+
+    # Remove None values
+    solrdoc = dict((k, v) for k, v in solrdoc.items() if v is not None)
     return solrdoc
 
 def read_events():
