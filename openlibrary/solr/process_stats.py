@@ -11,9 +11,11 @@ import sys
 import web
 import simplejson
 import logging
+import os
 
+from infogami import config
 from openlibrary.solr.solrwriter import SolrWriter
-from ..core import inlibrary
+from ..core import inlibrary, ia
 
 logger = logging.getLogger("openlibrary.solr")
 
@@ -44,6 +46,35 @@ def get_library(key):
         _libraries = dict((lib.key, lib) for lib in inlibrary.get_libraries())
     return _libraries.get(key, None)
 
+_ia_db = None
+def get_ia_db():
+    """Metadata API is slow.
+    Talk to archive.org database directly if it is specified in the configuration.
+    """
+    if not config.get("ia_db"):
+        return
+    global _ia_db
+    if not _ia_db:
+        settings = config.ia_db
+        host = settings['host']
+        db = settings['db']
+        user = settings['user']
+        pw = os.popen(settings['pw_file']).read().strip()
+        _ia_db = web.database(dbn="postgres", host=host, db=db, user=user, pw=pw)
+    return _ia_db
+
+@web.memoize
+def get_metadata(ia_id):
+    if not ia_id:
+        return {}
+    db = get_ia_db()
+    if db:
+        result = db.query("SELECT collection, sponsor, contributor FROM metadata WHERE identifier=$ia_id", vars=locals())
+        meta = result and result[0] or {}
+    else:
+        meta = ia.get_meta_xml(self.ocaid)
+    return meta
+
 class LoanEntry(web.storage):
     @property
     def key(self):
@@ -66,7 +97,7 @@ class LoanEntry(web.storage):
 
     @property
     def metadata(self):
-        return self.book.get_ia_meta_fields() or {}      
+        return get_metadata(self.book.ocaid)
 
     @property
     def library(self):  
@@ -129,7 +160,7 @@ def main(*args):
                 result = process(e['doc'])
                 print simplejson.dumps(result)
             except Exception:
-                logger.error("Failed to process %s", e['doc']['id'])
+                logger.error("Failed to process %s", e['doc']['_id'], exc_info=True)
 
 def update_solr(docs):
     solr = SolrWriter("localhost:8983")
