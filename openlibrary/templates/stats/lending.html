@@ -32,13 +32,13 @@ $def render_counts(label, counts, klass="contentQuarter"):
     <div class="clearfix"></div>    
 
     <div>
-        $:render_counts("Subjects", "subject_facet")
+        $:render_counts("Subjects", stats.get_facet_counts("subject_facet"))
         <div class="contentSpacer"></div>        
-        $:render_counts("Places", "place_facet")
+        $:render_counts("Places", stats.get_facet_counts("place_facet"))
         <div class="contentSpacer"></div>        
-        $:render_counts("People", "person_facet")
+        $:render_counts("People", stats.get_facet_counts("person_facet"))
         <div class="contentSpacer"></div>
-        $:render_counts("Time", "time_facet")
+        $:render_counts("Time", stats.get_facet_counts("time_facet"))
     </div>
     <div class="clearfix"></div>    
 
