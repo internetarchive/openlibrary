@@ -10,8 +10,12 @@ class stats(app.view):
         raise web.seeother("/stats/lending")
 
 class lending_stats(app.view):
-    path = "/stats/lending"
+    path = "/stats/lending(?:/(libraries|regions)/(.+))?"
 
-    def GET(self):
+    def GET(self, key, value):
         stats = LoanStats()
+        if key == 'libraries':
+            stats.library = "/libraries/" + value
+        elif key == 'regions':
+            stats.region = value
         return app.render_template("stats/lending.html", stats)

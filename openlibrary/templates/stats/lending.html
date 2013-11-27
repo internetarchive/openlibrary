@@ -1,16 +1,24 @@
 $def with (stats)
 
 <div id="contentHead">
+$if stats.region:    
+    <h1><a href="/stats/lending">Lending Stats</a> / regions / $stats.region</h1>
+$elif stats.library:
+    <h1><a href="/stats/lending">Lending Stats</a> / libraries / $stats.library.split("/")[-1]</h1>
+$else:
     <h1>Lending Stats</h1>
 </div>
+
+$ facet_urls = {"libraries": "/stats/lending/libraries/%(slug)s"}
 
 $def render_counts(label, counts, klass="contentQuarter"):
     <div class="$klass">
         <h6 class="black collapse uppercase">$label</h6>
         <div class="unordered">
             <div class="tag">
-            $for name, count in counts:
-                <span class="count" style="text-align:right; min-width: 50px;">$commify(count)</span> <a href="#">$name</a><br/>
+            $for facet in counts:
+                $ url = facet_urls.get(label.lower(), '#') % facet
+                <span class="count" style="text-align:right; min-width: 50px;">$commify(facet.count)</span> <a href="$url">$facet.title</a><br/>
             </div>
         </div>
     </div>
@@ -24,12 +32,13 @@ $def render_counts(label, counts, klass="contentQuarter"):
         </div>
     </div>
 
-    <div>
-        $:render_counts("Libraries", stats.get_facet_counts("library_s"), klass="contentHalf")
-        <div class="contentSpacer"></div>        
-        $:render_counts("Regions", stats.get_facet_counts("region_s"), klass="contentHalf")
-    </div>
-    <div class="clearfix"></div>    
+    $if not stats.library and not stats.region:
+        <div>
+            $:render_counts("Libraries", stats.get_facet_counts("library_s"), klass="contentHalf")
+            <div class="contentSpacer"></div>  
+            $:render_counts("Regions", stats.get_facet_counts("region_s"), klass="contentHalf")
+        </div>
+        <div class="clearfix"></div>    
 
     <div>
         $:render_counts("Subjects", stats.get_facet_counts("subject_facet"))
