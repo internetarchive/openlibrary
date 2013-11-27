@@ -56,7 +56,10 @@ class LoanStats:
     def make_facet(self, name, key, count):
         if name == "library_s":
             title = self._get_library_title(key)
-            slug = key.split("/")[-1]
+            slug = key
+        elif name == "region_s":
+            title = key.upper()
+            slug = key
         elif name in ["subject_facet", "person_facet", "place_facet", "time_facet"]:
             title = key
             slug = ""
@@ -68,8 +71,8 @@ class LoanStats:
     def _get_library_title(self, key):
         if self._library_titles is None:
             libraries = inlibrary.get_libraries()
-            self._library_titles = dict((lib.key, lib.title) for lib in libraries)
-        return self._library_titles.get(key, key.split("/")[-1])
+            self._library_titles = dict((lib.key.split("/")[-1], lib.title) for lib in libraries)
+        return self._library_titles.get(key, key)
 
     def date2timestamp(self, year, month=1, day=1):
         return time.mktime((year, month, day, 0, 0, 0, 0, 0, 0)) # time.mktime takes 9-tuple as argument

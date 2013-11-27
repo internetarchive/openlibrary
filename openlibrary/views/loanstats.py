@@ -15,7 +15,7 @@ class lending_stats(app.view):
     def GET(self, key, value):
         stats = LoanStats()
         if key == 'libraries':
-            stats.library = "/libraries/" + value
+            stats.library = value
         elif key == 'regions':
             stats.region = value
         return app.render_template("stats/lending.html", stats)

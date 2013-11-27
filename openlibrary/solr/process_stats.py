@@ -25,7 +25,7 @@ def get_document(key):
 def is_region(library):
     return bool(library.lending_region)
 
-def get_regision(library):
+def get_region(library):
     if library.lending_region:
         return library.lending_region
 
@@ -103,15 +103,15 @@ class LoanEntry(web.storage):
     def library(self):  
         key = self.get("library")
         lib = key and get_library(key)
-        if lib and not lib.is_region():
-            return lib.key
+        if lib and not is_region(lib):
+            return lib.key.split("/")[-1]
 
     @property
     def region(self):
         key = self.get("library")
         lib = key and get_library(key)
         if lib:
-            return get_regision(lib)
+            return get_region(lib).lower()
 
 def process(data):
     doc = LoanEntry(data)
