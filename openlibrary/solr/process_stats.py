@@ -13,11 +13,36 @@ import simplejson
 import logging
 
 from openlibrary.solr.solrwriter import SolrWriter
+from ..core import inlibrary
 
 logger = logging.getLogger("openlibrary.solr")
 
 def get_document(key):
     return web.ctx.site.get(key)
+
+def is_region(library):
+    return bool(library.lending_region)
+
+def get_regision(library):
+    if library.lending_region:
+        return library.lending_region
+
+    # Take column #3 from address. The available columns are:
+    # name, street, city, state, ...        
+    try:
+        # Open library of Richmond is really rest of the world 
+        if library.addresses and library.key != "/libraries/openlibrary_of_richmond":
+            return library.addresses.split("|")[3]
+    except IndexError:
+        pass
+    return "WORLD"
+
+_libraries = None
+def get_library(key):
+    global _libraries
+    if _libraries is None:
+        _libraries = dict((lib.key, lib) for lib in inlibrary.get_libraries())
+    return _libraries.get(key, None)
 
 class LoanEntry(web.storage):
     @property
@@ -41,14 +66,28 @@ class LoanEntry(web.storage):
 
     @property
     def metadata(self):
-        return self.book.get_ia_meta_fields() or {}
+        return self.book.get_ia_meta_fields() or {}      
+
+    @property
+    def library(self):  
+        key = self.get("library")
+        lib = key and get_library(key)
+        if lib and not lib.is_region():
+            return lib.key
+
+    @property
+    def region(self):
+        key = self.get("library")
+        lib = key and get_library(key)
+        if lib:
+            return get_regision(lib)
 
 def process(data):
     doc = LoanEntry(data)
     solrdoc = {
         "key": doc.key,
         "type": "stats",
-        "stat_type_s": "loan",
+        "stats_type_s": "loan",
         "book_key_s": doc.book_key,
         "title": doc.book.title or "Untitled",
         "ia": doc.book.ocaid or None,
@@ -56,6 +95,8 @@ def process(data):
         "ia_collections_id": doc.metadata.get("collection", []),
         "sponsor_s": doc.metadata.get("sponsor"),
         "contributor_s": doc.metadata.get("contributor"),
+        "library_s": doc.library,
+        "region_s": doc.region,
         "start_time_dt": doc.t_start + "Z",
         "start_day_s":doc.t_start.split("T")[0],
     }
@@ -67,7 +108,8 @@ def process(data):
 
     add_subjects("subject")
     add_subjects("place")
-    add_subjects("people")
+    add_subjects("person")
+    add_subjects("time")
     return solrdoc
 
 def read_events():
@@ -78,7 +120,7 @@ def read_events():
 def main(*args):
     logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
     docs = read_events()
-    if "--load" in args:
+    if "--load" in args:        
         update_solr(docs)
     else:
         for e in docs:
