@@ -9,7 +9,7 @@ $else:
     <h1>Lending Stats</h1>
 </div>
 
-$ facet_urls = {"libraries": "/stats/lending/libraries/%(slug)s"}
+$ facet_urls = {"libraries": "/stats/lending/libraries/%(slug)s", "regions": "/stats/lending/regions/%(slug)s"}
 
 $def render_counts(label, counts, klass="contentQuarter"):
     <div class="$klass">
