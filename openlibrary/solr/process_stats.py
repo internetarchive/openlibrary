@@ -123,9 +123,13 @@ def main(*args):
     if "--load" in args:        
         update_solr(docs)
     else:
+        # each doc is one row from couchdb view response when called with include_docs=True
         for e in docs:
-            result = process(e['doc'])
-            print simplejson.dumps(result)
+            try:
+                result = process(e['doc'])
+                print simplejson.dumps(result)
+            except Exception:
+                logger.error("Failed to process %s", e['doc']['id'])
 
 def update_solr(docs):
     solr = SolrWriter("localhost:8983")
