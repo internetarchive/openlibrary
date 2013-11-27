@@ -78,6 +78,7 @@ plugin_worksearch:
         host: 'localhost'
 
 single_core_solr: True
+stats_solr: "localhost:8983"
 
 features:
     upstream: enabled

@@ -6,10 +6,11 @@ import web
 import time
 import urllib
 import simplejson
+from infogami import config
 
 class LoanStats:
     def __init__(self):
-        self.base_url = "http://localhost:8983/solr"
+        self.base_url = "http://%s/solr" % config.get("stats_solr")
 
     def solr_select(self, params):
         q = urllib.urlencode(params, doseq=True)
