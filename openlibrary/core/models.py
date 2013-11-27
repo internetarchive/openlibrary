@@ -405,6 +405,27 @@ class Work(Thing):
             "e": self.edition_count
         }
 
+    def _make_subject_link(self, title, prefix=""):
+        key = "/subjects/%s%s" % (prefix, web.safestr(title.lower().replace(' ', '_').replace(',','')))
+        return web.storage(key=key, title=title)
+
+    def get_subject_links(self, type="subject"):
+        """Returns all the subjects as link objects.         
+        Each link is a web.storage object with title and key fields.
+
+        The type should be one of subject, place, person or time.
+        """
+        if type == 'subject':
+            return [self._make_subject_link(s) for s in self.get_subjects()]
+        elif type == 'place':
+            return [self._make_subject_link(s, "place:") for s in self.subject_places]
+        elif type == 'person':
+            return [self._make_subject_link(s, "person:") for s in self.subject_people]
+        elif type == 'time':
+            return [self._make_subject_link(s, "time:") for s in self.subject_times]
+        else:
+            return []
+
 class Author(Thing):
     """Class to represent /type/author objects in OL.
     """
