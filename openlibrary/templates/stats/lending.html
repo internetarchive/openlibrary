@@ -1,0 +1,112 @@
+$def with (stats)
+
+<div id="contentHead">
+    <h1>Lending Stats</h1>
+</div>
+
+$def render_counts(label, counts, klass="contentQuarter"):
+    <div class="$klass">
+        <h6 class="black collapse uppercase">$label</h6>
+        <div class="unordered">
+            <div class="tag">
+            $for name, count in counts:
+                <span class="count" style="text-align:right; min-width: 50px;">$commify(count)</span> <a href="#">$name</a><br/>
+            </div>
+        </div>
+    </div>
+    
+<div id="contentBody">
+    <h2>Loans Per Day</h2>
+
+    <div class="chart">
+        <div id="loans-per-day" class="graph">
+            <noscript>$_("You need to have JavaScript turned on to see the nifty chart!")</noscript>
+        </div>
+    </div>
+
+    <div>
+        $:render_counts("Libraries", stats.get_facet_counts("library_s"), klass="contentHalf")
+        <div class="contentSpacer"></div>        
+        $:render_counts("Regions", stats.get_facet_counts("region_s"), klass="contentHalf")
+    </div>
+    <div class="clearfix"></div>    
+
+    <div>
+        $:render_counts("Subjects", "subject_facet")
+        <div class="contentSpacer"></div>        
+        $:render_counts("Places", "place_facet")
+        <div class="contentSpacer"></div>        
+        $:render_counts("People", "person_facet")
+        <div class="contentSpacer"></div>
+        $:render_counts("Time", "time_facet")
+    </div>
+    <div class="clearfix"></div>    
+
+    <div>
+        $:render_counts("Collections", stats.get_facet_counts("ia_collections_id"))
+        <div class="contentSpacer"></div>        
+        $:render_counts("Scanning Sponsor", stats.get_facet_counts("sponsor_s"))
+        <div class="contentSpacer"></div>
+        $:render_counts("Contributor", stats.get_facet_counts("contributor_s"))
+    </div>
+    <div class="clearfix"></div>    
+</div>
+
+<script type="text/javascript">
+\$(function () {
+    \$.plot("#loans-per-day", [
+        {
+            "data": $:json_encode(stats.get_loans_per_day("bookreader")), 
+            "label": "bookreader",
+            bars: { "fillColor": "#fffdcd" },
+            color: "#fffdcd"
+        }, {
+            "data": $:json_encode(stats.get_loans_per_day("pdf")), 
+            "label": "pdf",
+            bars: { "fillColor": "#ffa337" },
+            color: "#ffa337"
+        }, {
+            "data": $:json_encode(stats.get_loans_per_day("epub")), 
+            "label": "epub",
+            bars: { "fillColor": "#748d36" },
+            color: "#748d36"
+        }
+    ], {
+        series: {
+            stack: 0,
+            bars: {
+                show: true,
+                align: "left",
+                barWidth: 20 * 60 * 60 * 1000,
+            },
+        },
+        grid: {
+            hoverable: true,
+            show: true,
+            borderWidth: 1, 
+            borderColor: "#d9d9d9"
+        },
+        xaxis: {
+            mode: "time"
+        }, 
+        legend: {
+            show: true,
+            position: "nw"
+        }
+    });
+});
+</script>
+
+<style type="text/css">
+div.graph, div.chart{
+    width:838px;
+    height:180px;
+    float:none;
+    background-image:none;
+}
+.chartYaxis{
+    width:180px;
+    top:85px;
+    left:-85px;
+}
+</style>
