@@ -26,6 +26,10 @@ def setup():
         __import__(modname, globals(), locals(), ['plugins'])
 
     load_views()
+
+    # load actions
+    from . import actions
+
     logger.info("loading complete.")
 
 def setup_logging():
