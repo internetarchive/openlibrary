@@ -48,7 +48,7 @@ def get_library(key):
 
 _ia_db = None
 def get_ia_db():
-    """Metadata API is slow.
+    """Metadata API is slow. 
     Talk to archive.org database directly if it is specified in the configuration.
     """
     if not config.get("ia_db"):
@@ -68,9 +68,11 @@ def get_metadata(ia_id):
     if not ia_id:
         return {}
     db = get_ia_db()
-    if db:
+    if db:        
         result = db.query("SELECT collection, sponsor, contributor FROM metadata WHERE identifier=$ia_id", vars=locals())
         meta = result and result[0] or {}
+        if meta:
+            meta['collection'] = meta['collection'].split(";")
     else:
         meta = ia.get_meta_xml(self.ocaid)
     return meta
@@ -167,4 +169,3 @@ def update_solr(docs):
     for doc in docs:
         solr.update(doc)
     solr.commit()
-
