@@ -170,5 +170,10 @@ def main(*args):
 def update_solr(docs):
     solr = SolrWriter("localhost:8983")
     for doc in docs:
+        # temp fix for handling already processed data
+        doc = dict((k, v) for k, v in doc.items() if v is not None)
+        if isinstance(doc.get("ia_collections_id"), str):
+            doc['ia_collections_id'] = doc['ia_collections_id'].split(";")
+
         solr.update(doc)
     solr.commit()
