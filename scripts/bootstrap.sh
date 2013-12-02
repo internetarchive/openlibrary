@@ -1,10 +1,8 @@
 #! /bin/bash
 # Bootstrap script to setup vagrant dev-instance for Open Library
 
-SCRIPT_ROOT=`dirname $0`
-
-# absoulte path of OL ROOT
-OL_ROOT=`cd $SCRIPT_ROOT/..; pwd`
+# @@@ Change the following 2 lines if you want to install OL from a different place or as a different user
+OL_ROOT=/vagrant
 OL_USER=vagrant
 
 # Set the locale to POSIX
