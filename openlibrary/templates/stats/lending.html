@@ -5,11 +5,13 @@ $if stats.region:
     <h1><a href="/stats/lending">Lending Stats</a> / regions / $stats.region</h1>
 $elif stats.library:
     <h1><a href="/stats/lending">Lending Stats</a> / libraries / $stats.library.split("/")[-1]</h1>
+$elif stats.collection:
+    <h1><a href="/stats/lending">Lending Stats</a> / Collections / $stats.collection</h1>    
 $else:
     <h1>Lending Stats</h1>
 </div>
 
-$ facet_urls = {"libraries": "/stats/lending/libraries/%(slug)s", "regions": "/stats/lending/regions/%(slug)s"}
+$ facet_urls = {"libraries": "/stats/lending/libraries/%(slug)s", "regions": "/stats/lending/regions/%(slug)s", "collections": "/stats/lending/collections/%(slug)s"}
 
 $def render_counts(label, counts, klass="contentQuarter"):
     <div class="$klass">
@@ -51,14 +53,15 @@ $def render_counts(label, counts, klass="contentQuarter"):
     </div>
     <div class="clearfix"></div>    
 
-    <div>
-        $:render_counts("Collections", stats.get_facet_counts("ia_collections_id"))
-        <div class="contentSpacer"></div>        
-        $:render_counts("Scanning Sponsor", stats.get_facet_counts("sponsor_s"))
-        <div class="contentSpacer"></div>
-        $:render_counts("Contributor", stats.get_facet_counts("contributor_s"))
-    </div>
-    <div class="clearfix"></div>    
+    $if not stats.collection:
+        <div>
+            $:render_counts("Collections", stats.get_facet_counts("ia_collections_id"))
+            <div class="contentSpacer"></div>        
+            $:render_counts("Scanning Sponsor", stats.get_facet_counts("sponsor_s"))
+            <div class="contentSpacer"></div>
+            $:render_counts("Contributor", stats.get_facet_counts("contributor_s"))
+        </div>
+        <div class="clearfix"></div>    
 </div>
 
 <script type="text/javascript">

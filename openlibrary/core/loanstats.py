@@ -5,15 +5,19 @@ Unlike other parts of openlibrary, this modules talks to the database directly.
 import web
 import time
 import urllib
+import logging
 import simplejson
 from infogami import config
 from . import inlibrary
 
+logger = logging.getLogger(__name__)
+
 class LoanStats:
-    def __init__(self, region=None, library=None):
+    def __init__(self, region=None, library=None, collection=None):
         self.base_url = "http://%s/solr" % config.get("stats_solr")
         self.region = region
         self.library = library
+        self.collection = collection
         self._library_titles = None
 
     def solr_select(self, params):
@@ -25,6 +29,11 @@ class LoanStats:
             params['fq'].append("region_s:" + self.region)
         if self.library:
             params['fq'].append("library_s:" + self.library)        
+
+        if self.collection:
+            params['fq'].append("ia_collections_id:" + self.collection)
+
+        logger.info("SOLR query %s", params)
 
         q = urllib.urlencode(params, doseq=True)
         url = self.base_url + "/select?" + q
@@ -65,7 +74,7 @@ class LoanStats:
             slug = ""
         else:
             title = key
-            slug = ""
+            slug = key.lower().replace(" ", "_")
         return web.storage(title=title, count=count, slug=slug)
 
     def _get_library_title(self, key):
