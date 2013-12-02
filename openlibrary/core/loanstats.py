@@ -62,15 +62,31 @@ class LoanStats:
 
     def solr_select_facet(self, facet_field):
         facet_counts = self._get_all_facet_counts()
-        return web.group(facet_counts[facet_field], 2)
+        return facet_counts[facet_field]
+
+    def _run_solr_facet_query(self, facet_fields, facet_limit=None):
+        params = {
+            "wt": "json",
+            "fq": "type:stats", 
+            "q": "*:*", 
+            "rows": 0,
+            "facet": "on",
+            "facet.mincount": 1,
+            "facet.field": facet_fields
+        }
+        if facet_limit:
+            params["facet.limit"] = facet_limit
+
+        response = self.solr_select(params)
+        return dict((name, web.group(counts, 2)) for name, counts in response['facet_counts']['facet_fields'].items())
 
     def _get_all_facet_counts(self):
         if not self._facet_counts:
             facets = [
-                "start_day_s",
                 "library_s","region_s",
                 "ia_collections_id", "sponsor_s", "contributor_s",
                 "subject_facet", "place_facet", "person_facet", "time_facet"]
+
             params = {
                 "wt": "json",
                 "fq": "type:stats", 
@@ -78,16 +94,29 @@ class LoanStats:
                 "rows": 0,
                 "facet": "on",
                 "facet.mincount": 1,
-                "facet.limit": 20,
-                "facet.field": facets
+                "facet.field": facets,
+                "facet.limit": 20
             }
             response = self.solr_select(params)
-            self._facet_counts = response['facet_counts']['facet_fields']
+            self._facet_counts = dict((name, web.group(counts, 2)) for name, counts in response['facet_counts']['facet_fields'].items())
         return self._facet_counts
 
-
     def get_loans_per_day(self, resource_type="total"):
-        day_facet = self.solr_select_facet('start_day_s')
+        params = {
+            "wt": "json",
+            "fq": ["type:stats"],
+            "q": "*:*", 
+            "rows": 0,
+            "facet": "on",
+            "facet.mincount": 1,
+            "facet.field": ['start_day_s']
+        }
+        if resource_type != 'total':
+            params['fq'].append("resource_type_s:" + resource_type)
+
+        response = self.solr_select(params)
+        counts0 = response['facet_counts']['facet_fields']['start_day_s']
+        day_facet = web.group(counts0, 2)
         return [[self.date2timestamp(*self.parse_date(day))*1000, count] for day, count in day_facet]
 
     def get_facet_counts(self, name, limit=20):
