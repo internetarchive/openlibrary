@@ -1,6 +1,11 @@
 #! /bin/bash
 # Bootstrap script to setup vagrant dev-instance for Open Library
 
+SCRIPT_ROOT=`dirname $0`
+
+# absoulte path of OL ROOT
+OL_ROOT=`cd $SCRIPT_ROOT/..; pwd`
+
 # Set the locale to POSIX
 # Important to do this before installing postgresql
 update-locale LANG=en_US.UTF-8 LC_ALL=POSIX
@@ -64,7 +69,7 @@ function setup_database() {
         echo "  creating openlibrary database"
         sudo -u vagrant createdb openlibrary
         sudo -u vagrant createdb coverstore
-        sudo -u vagrant psql coverstore < /vagrant/openlibrary/coverstore/schema.sql
+        sudo -u vagrant psql coverstore < $OL_ROOT/openlibrary/coverstore/schema.sql
 
         echo " setting up openlibrary database"
         setup_ol
@@ -87,7 +92,7 @@ function setup_ol() {
 }
 
 function setup_nginx() {
-    ln -sf /vagrant/conf/nginx/sites-available/openlibrary.conf /etc/nginx/sites-available/
+    ln -sf $OL_ROOT/conf/nginx/sites-available/openlibrary.conf /etc/nginx/sites-available/
     ln -sf /etc/nginx/sites-available/openlibrary.conf /etc/nginx/sites-enabled/
     sudo /etc/init.d/nginx restart
 }
@@ -99,17 +104,17 @@ setup_nginx
 
 # change solr/tomcat port to 8983
 perl -i -pe 's/8080/8983/'  /etc/tomcat6/server.xml
-cp /vagrant/conf/solr/conf/schema.xml /etc/solr/conf/
+cp $OL_ROOT/conf/solr/conf/schema.xml /etc/solr/conf/
 /etc/init.d/tomcat6 restart
 
 mkdir -p /var/log/openlibrary /var/lib/openlibrary
 chown vagrant:vagrant /var/log/openlibrary /var/lib/openlibrary
 
 # run make to initialize git submodules, build css and js files
-cd /vagrant && make
+cd $OL_ROOT && make
 
-cp /vagrant/conf/init/* /etc/init/
-cd /vagrant/conf/init 
+cp $OL_ROOT/conf/init/* /etc/init/
+cd $OL_ROOT/conf/init 
 for name in ol-*
 do 
 	echo starting ${name//.conf}
@@ -118,6 +123,6 @@ done
 
 if [ "$REINDEX_SOLR" == "yes" ]
 then
-    cd /vagrant
+    cd $OL_ROOT
     sudo -u vagrant make reindex-solr
 fi
