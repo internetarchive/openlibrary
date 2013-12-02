@@ -105,6 +105,9 @@ cp /vagrant/conf/solr/conf/schema.xml /etc/solr/conf/
 mkdir -p /var/log/openlibrary /var/lib/openlibrary
 chown vagrant:vagrant /var/log/openlibrary /var/lib/openlibrary
 
+# run make to initialize git submodules, build css and js files
+cd /vagrant && make
+
 cp /vagrant/conf/init/* /etc/init/
 cd /vagrant/conf/init 
 for name in ol-*
