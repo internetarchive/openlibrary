@@ -406,8 +406,9 @@ class Work(Thing):
         }
 
     def _make_subject_link(self, title, prefix=""):
-        key = "/subjects/%s%s" % (prefix, web.safestr(title.lower().replace(' ', '_').replace(',','')))
-        return web.storage(key=key, title=title)
+        slug = web.safestr(title.lower().replace(' ', '_').replace(',',''))
+        key = "/subjects/%s%s" % (prefix, slug)
+        return web.storage(key=key, title=title, slug=slug)
 
     def get_subject_links(self, type="subject"):
         """Returns all the subjects as link objects.         

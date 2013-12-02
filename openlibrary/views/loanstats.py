@@ -10,7 +10,7 @@ class stats(app.view):
         raise web.seeother("/stats/lending")
 
 class lending_stats(app.view):
-    path = "/stats/lending(?:/(libraries|regions|collections)/(.+))?"
+    path = "/stats/lending(?:/(libraries|regions|collections|subjects)/(.+))?"
 
     def GET(self, key, value):
         stats = LoanStats()
@@ -20,4 +20,6 @@ class lending_stats(app.view):
             stats.region = value
         elif key == 'collections':
             stats.collection = value
+        elif key == 'subjects': 
+            stats.subject = value
         return app.render_template("stats/lending.html", stats)

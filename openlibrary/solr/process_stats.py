@@ -136,7 +136,7 @@ def process(data):
 
     def add_subjects(type):
         subjects = doc.get_subjects(type)
-        solrdoc[type + '_key'] = [s.key for s in subjects]
+        solrdoc[type + '_key'] = [s.slug for s in subjects]
         solrdoc[type + '_facet'] = [s.title for s in subjects]
 
     add_subjects("subject")
@@ -167,6 +167,10 @@ def main(*args):
             except Exception:
                 logger.error("Failed to process %s", e['doc']['_id'], exc_info=True)
 
+def fix_subject_key(doc, name, prefix):
+    if name in doc:
+        doc[name] = [v.replace(prefix, '') for v in doc[name]]
+
 def update_solr(docs):
     solr = SolrWriter("localhost:8983")
     for doc in docs:
@@ -174,6 +178,11 @@ def update_solr(docs):
         doc = dict((k, v) for k, v in doc.items() if v is not None)
         if isinstance(doc.get("ia_collections_id"), str):
             doc['ia_collections_id'] = doc['ia_collections_id'].split(";")
+
+        fix_subject_key(doc, 'subject_key', '/subjects/')
+        fix_subject_key(doc, 'place_key', '/subjects/place:')
+        fix_subject_key(doc, 'person_key', '/subjects/person:')
+        fix_subject_key(doc, 'time_key', '/subjects/time:')
 
         solr.update(doc)
     solr.commit()

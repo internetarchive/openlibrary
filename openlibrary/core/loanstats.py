@@ -2,22 +2,26 @@
 
 Unlike other parts of openlibrary, this modules talks to the database directly.
 """
-import web
+import re
 import time
 import urllib
 import logging
 import simplejson
+import web
 from infogami import config
 from . import inlibrary
 
 logger = logging.getLogger(__name__)
 
+re_solrescape = re.compile(r'([&|+\-!(){}\[\]^"~*?:])')
+
 class LoanStats:
-    def __init__(self, region=None, library=None, collection=None):
+    def __init__(self, region=None, library=None, collection=None, subject=None):
         self.base_url = "http://%s/solr" % config.get("stats_solr")
         self.region = region
         self.library = library
         self.collection = collection
+        self.subject = subject
         self._library_titles = None
 
     def solr_select(self, params):
@@ -26,19 +30,34 @@ class LoanStats:
             fq = [fq]
         params['fq'] = fq
         if self.region:
-            params['fq'].append("region_s:" + self.region)
+            params['fq'].append("region_s:" + self.solrescape(self.region))
         if self.library:
-            params['fq'].append("library_s:" + self.library)        
+            params['fq'].append("library_s:" + self.solrescape(self.library))
 
         if self.collection:
-            params['fq'].append("ia_collections_id:" + self.collection)
+            params['fq'].append("ia_collections_id:" + self.solrescape(self.collection))
+
+        if self.subject:
+            params['fq'].append(self._get_subject_filter(self.solrescape(self.subject)))
 
         logger.info("SOLR query %s", params)
 
         q = urllib.urlencode(params, doseq=True)
         url = self.base_url + "/select?" + q
+        logger.info("urlopen %s", url)
         response = urllib.urlopen(url).read()
         return simplejson.loads(response)
+
+    def solrescape(self, text):
+        return re_solrescape.sub(r'\\\1', text)
+
+    def _get_subject_filter(self, subject):
+        if ":" in subject:
+            type, subject = subject.split(":", 1)
+        else:
+            type = "subject"
+        key = type + "_key"
+        return "%s:%s" % (key, subject)
 
     def solr_select_facet(self, facet_field):
         params = {
@@ -71,7 +90,12 @@ class LoanStats:
             slug = key
         elif name in ["subject_facet", "person_facet", "place_facet", "time_facet"]:
             title = key
-            slug = ""
+
+            prefix = name.replace("_facet", "") + ":"
+            if prefix == "subject:":
+                prefix = ""
+
+            slug = key.lower().replace(" ", "_").replace(",", "")
         else:
             title = key
             slug = key.lower().replace(" ", "_")
