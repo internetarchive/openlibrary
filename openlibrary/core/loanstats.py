@@ -23,6 +23,7 @@ class LoanStats:
         self.collection = collection
         self.subject = subject
         self._library_titles = None
+        self._facet_counts = None
 
     def solr_select(self, params):
         fq = params.get("fq", [])
@@ -60,18 +61,30 @@ class LoanStats:
         return "%s:%s" % (key, subject)
 
     def solr_select_facet(self, facet_field):
-        params = {
-            "wt": "json",
-            "fq": "type:stats", 
-            "q": "*:*", 
-            "rows": 0,
-            "facet": "on",
-            "facet.mincount": 1,
-            "facet.field": facet_field,
-        }
-        response = self.solr_select(params)
-        facet = web.group(response['facet_counts']['facet_fields'][facet_field], 2)
-        return facet
+        facet_counts = self._get_all_facet_counts()
+        return web.group(facet_counts[facet_field], 2)
+
+    def _get_all_facet_counts(self):
+        if not self._facet_counts:
+            facets = [
+                "start_day_s",
+                "library_s","region_s",
+                "ia_collections_id", "sponsor_s", "contributor_s",
+                "subject_facet", "place_facet", "person_facet", "time_facet"]
+            params = {
+                "wt": "json",
+                "fq": "type:stats", 
+                "q": "*:*", 
+                "rows": 0,
+                "facet": "on",
+                "facet.mincount": 1,
+                "facet.limit": 20,
+                "facet.field": facets
+            }
+            response = self.solr_select(params)
+            self._facet_counts = response['facet_counts']['facet_fields']
+        return self._facet_counts
+
 
     def get_loans_per_day(self, resource_type="total"):
         day_facet = self.solr_select_facet('start_day_s')
