@@ -1,6 +1,10 @@
 #! /bin/bash
 # Bootstrap script to setup vagrant dev-instance for Open Library
 
+# @@@ Change the following 2 lines if you want to install OL from a different place or as a different user
+OL_ROOT=/vagrant
+OL_USER=vagrant
+
 # Set the locale to POSIX
 # Important to do this before installing postgresql
 update-locale LANG=en_US.UTF-8 LC_ALL=POSIX
@@ -54,40 +58,40 @@ REINDEX_SOLR=no
 
 function setup_database() {
     echo "finding if posgres user vagrant already exists."
-    x=`sudo -u postgres psql -t -c "select count(*) FROM pg_catalog.pg_user where usename='vagrant'"`
+    x=`sudo -u postgres psql -t -c "select count(*) FROM pg_catalog.pg_user where usename='$OL_USER'"`
     echo "result = $x"
     if [ "$x" -eq 0 ]; then
         echo "setting up database..."
-        echo "  creating postgres user 'vagrant'"
-        sudo -u postgres createuser -s vagrant
+        echo "  creating postgres user 'OL_USER'"
+        sudo -u postgres createuser -s $OL_USER
 
         echo "  creating openlibrary database"
-        sudo -u vagrant createdb openlibrary
-        sudo -u vagrant createdb coverstore
-        sudo -u vagrant psql coverstore < /vagrant/openlibrary/coverstore/schema.sql
+        sudo -u $OL_USER createdb openlibrary
+        sudo -u $OL_USER createdb coverstore
+        sudo -u $OL_USER psql coverstore < $OL_ROOT/openlibrary/coverstore/schema.sql
 
         echo " setting up openlibrary database"
         setup_ol
         REINDEX_SOLR=yes
     else
-        echo "pg_user vagrant already exists. no need to setup database"
+        echo "pg_user $OL_USER already exists. no need to setup database"
     fi
 }
 
 function setup_ol() {
     # Download sample dev-instance database from archive.org
     wget http://archive.org/download/ol_vendor/openlibrary-devinstance.pg_dump.gz -O /tmp/openlibrary-devinstance.pg_dump.gz
-    zcat /tmp/openlibrary-devinstance.pg_dump.gz | sudo -u vagrant psql openlibrary
+    zcat /tmp/openlibrary-devinstance.pg_dump.gz | sudo -u $OL_USER psql openlibrary
 
     # This is an alternative way to install OL from scratch
-    #cd /vagrant
+    #cd $OL_ROOT
     #sed -e 's/hybrid/local/' -e 's/^infobase_server/# infobase_server/' conf/openlibrary.yml > conf/ol-install.yml
-    #sudo -u vagrant python scripts/openlibrary-server conf/ol-install.yml install
+    #sudo -u $OL_ROOT python scripts/openlibrary-server conf/ol-install.yml install
     #rm conf/ol-install.yml
 }
 
 function setup_nginx() {
-    ln -sf /vagrant/conf/nginx/sites-available/openlibrary.conf /etc/nginx/sites-available/
+    ln -sf $OL_ROOT/conf/nginx/sites-available/openlibrary.conf /etc/nginx/sites-available/
     ln -sf /etc/nginx/sites-available/openlibrary.conf /etc/nginx/sites-enabled/
     sudo /etc/init.d/nginx restart
 }
@@ -99,14 +103,17 @@ setup_nginx
 
 # change solr/tomcat port to 8983
 perl -i -pe 's/8080/8983/'  /etc/tomcat6/server.xml
-cp /vagrant/conf/solr/conf/schema.xml /etc/solr/conf/
+cp $OL_ROOT/conf/solr/conf/schema.xml /etc/solr/conf/
 /etc/init.d/tomcat6 restart
 
 mkdir -p /var/log/openlibrary /var/lib/openlibrary
-chown vagrant:vagrant /var/log/openlibrary /var/lib/openlibrary
+chown $OL_USER:$OL_USER /var/log/openlibrary /var/lib/openlibrary
 
-cp /vagrant/conf/init/* /etc/init/
-cd /vagrant/conf/init 
+# run make to initialize git submodules, build css and js files
+cd $OL_ROOT && make
+
+cp $OL_ROOT/conf/init/* /etc/init/
+cd $OL_ROOT/conf/init 
 for name in ol-*
 do 
 	echo starting ${name//.conf}
@@ -115,6 +122,6 @@ done
 
 if [ "$REINDEX_SOLR" == "yes" ]
 then
-    cd /vagrant
-    sudo -u vagrant make reindex-solr
+    cd $OL_ROOT
+    sudo -u $OL_USER make reindex-solr
 fi
