@@ -85,6 +85,7 @@ class LoanStats:
             facets = [
                 "library_s","region_s",
                 "ia_collections_id", "sponsor_s", "contributor_s",
+                "book_key_s",
                 "subject_facet", "place_facet", "person_facet", "time_facet"]
 
             params = {
@@ -129,6 +130,11 @@ class LoanStats:
             slug = key
         elif name == "region_s":
             title = key.upper()
+            slug = key
+        elif name == "book_key_s":
+            # XXX-Anand: Optimize this by pre loading all books
+            book = web.ctx.site.get(key)
+            title = book and book.title or "untitled"
             slug = key
         elif name in ["subject_facet", "person_facet", "place_facet", "time_facet"]:
             title = key
