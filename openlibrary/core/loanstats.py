@@ -85,7 +85,7 @@ class LoanStats:
             facets = [
                 "library_s","region_s",
                 "ia_collections_id", "sponsor_s", "contributor_s",
-                "book_key_s",
+                "book_key_s", "resource_type_s",
                 "subject_facet", "place_facet", "person_facet", "time_facet"]
 
             params = {
@@ -119,6 +119,10 @@ class LoanStats:
         counts0 = response['facet_counts']['facet_fields']['start_day_s']
         day_facet = web.group(counts0, 2)
         return [[self.date2timestamp(*self.parse_date(day))*1000, count] for day, count in day_facet]
+
+    def get_loans_per_type(self):
+        rows = self.get_facet_counts("resource_type_s")
+        return [{"label": row.title, "data": row.count} for row in rows]
 
     def get_facet_counts(self, name, limit=20):
         facets = list(self.solr_select_facet(name))[:limit]

@@ -36,6 +36,17 @@ $def render_counts(label, counts, klass="contentQuarter"):
         </div>
     </div>
 
+    <h2>Loans Per Type</h2>
+    <div class="left">
+        <div id="loans-types-pie-chart" class="pie">
+            <noscript>$_("You need to have JavaScript turned on to see the nifty chart!")</noscript>
+        </div>
+    </div>
+
+    <div class="clearfix"></div>    
+    <br/>
+    <br/>
+
     $if not stats.library and not stats.region:
         <div>
             $:render_counts("Libraries", stats.get_facet_counts("library_s"), klass="contentHalf")
@@ -117,6 +128,20 @@ $def render_counts(label, counts, klass="contentQuarter"):
             position: "nw"
         }
     });
+
+    \$.plot("#loans-types-pie-chart", $:json_encode(stats.get_loans_per_type()), {
+        series: {
+            pie: {
+                show: true,
+                label: {
+                    show: true,
+                }
+            }
+        },
+        legend: {
+            show: false
+        }
+    });
 });
 </script>
 
@@ -126,6 +151,10 @@ div.graph, div.chart{
     height:180px;
     float:none;
     background-image:none;
+}
+div.pie {
+    width: 350px;
+    height: 250px;
 }
 .chartYaxis{
     width:180px;
