@@ -32,6 +32,7 @@ xcat $VENDORJS/flot/jquery.flot.min.js
 xcat $VENDORJS/flot/jquery.flot.selection.min.js
 xcat $VENDORJS/flot/jquery.flot.crosshair.min.js
 xcat $VENDORJS/flot/jquery.flot.stack.min.js
+xcat $VENDORJS/flot/jquery.flot.pie.min.js
 
 xcat $VENDORJS/json2/json2.js | $JSMIN
 
