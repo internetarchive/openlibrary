@@ -157,6 +157,10 @@ def process(data):
     add_subjects("person")
     add_subjects("time")
 
+    year = doc.book.get_publish_year()
+    if year:
+        solrdoc['publish_year'] = year
+
     # Remove None values
     solrdoc = dict((k, v) for k, v in solrdoc.items() if v is not None)
     return solrdoc
