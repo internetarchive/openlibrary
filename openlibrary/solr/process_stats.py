@@ -97,6 +97,13 @@ class LoanEntry(web.storage):
         else:
             return []
 
+    def get_author_keys(self):
+        w = self.book.works[0]
+        if w:
+            return [a.key for a in w.get_authors()]
+        else:
+            return []
+
     @property
     def metadata(self):
         return get_metadata(self.book.ocaid)
@@ -122,6 +129,7 @@ def process(data):
         "type": "stats",
         "stats_type_s": "loan",
         "book_key_s": doc.book_key,
+        "author_keys_id": doc.get_author_keys(),
         "title": doc.book.title or "Untitled",
         "ia": doc.book.ocaid or None,
         "resource_type_s": doc.resource_type,
