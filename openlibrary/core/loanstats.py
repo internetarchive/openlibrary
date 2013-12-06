@@ -85,7 +85,7 @@ class LoanStats:
             facets = [
                 "library_s","region_s",
                 "ia_collections_id", "sponsor_s", "contributor_s",
-                "book_key_s", "resource_type_s",
+                "book_key_s", "author_keys_id", "resource_type_s",
                 "subject_facet", "place_facet", "person_facet", "time_facet"]
 
             params = {
@@ -139,6 +139,11 @@ class LoanStats:
             # XXX-Anand: Optimize this by pre loading all books
             book = web.ctx.site.get(key)
             title = book and book.title or "untitled"
+            slug = key
+        elif name == "author_keys_id":
+            # XXX-Anand: Optimize this by pre loading all the authors
+            author = web.ctx.site.get(key)
+            title = author and author.name or "unnamed"
             slug = key
         elif name in ["subject_facet", "person_facet", "place_facet", "time_facet"]:
             title = key

@@ -13,7 +13,7 @@ $else:
     <h1>Lending Stats</h1>
 </div>
 
-$ facet_urls = {"libraries": "/stats/lending/libraries/%(slug)s", "regions": "/stats/lending/regions/%(slug)s", "collections": "/stats/lending/collections/%(slug)s", "subjects": "/stats/lending/subjects/%(slug)s", "places": "/stats/lending/subjects/place:%(slug)s", "people": "/stats/lending/subjects/person:%(slug)s", "time": "/stats/lending/subjects/time:%(slug)s", "popular books": "%(slug)s"}
+$ facet_urls = {"libraries": "/stats/lending/libraries/%(slug)s", "regions": "/stats/lending/regions/%(slug)s", "collections": "/stats/lending/collections/%(slug)s", "subjects": "/stats/lending/subjects/%(slug)s", "places": "/stats/lending/subjects/place:%(slug)s", "people": "/stats/lending/subjects/person:%(slug)s", "time": "/stats/lending/subjects/time:%(slug)s", "popular books": "%(slug)s", "popular authors": "%(slug)s"}
 
 $def render_counts(label, counts, klass="contentQuarter"):
     <div class="$klass">
@@ -78,7 +78,8 @@ $def render_counts(label, counts, klass="contentQuarter"):
         <div class="clearfix"></div>    
 
     <div>
-        $:render_counts("Popular Books", stats.get_facet_counts("book_key_s"), klass="")
+        $:render_counts("Popular Books", stats.get_facet_counts("book_key_s"), klass="contentHalf")
+        $:render_counts("Popular Authors", stats.get_facet_counts("author_keys_id"), klass="contentHalf")
     </div>
     <div class="clearfix"></div>
 
