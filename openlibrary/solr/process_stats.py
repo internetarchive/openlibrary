@@ -120,7 +120,9 @@ class LoanEntry(web.storage):
         key = self.get("library")
         lib = key and get_library(key)
         if lib:
-            return get_region(lib).lower()
+            region =  get_region(lib).lower().strip()
+            region_aliases = {"california": "ca"}
+            return region_aliases.get(region.region)
 
 def process(data):
     doc = LoanEntry(data)
