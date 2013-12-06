@@ -42,8 +42,15 @@ $def render_counts(label, counts, klass="contentQuarter"):
             <noscript>$_("You need to have JavaScript turned on to see the nifty chart!")</noscript>
         </div>
     </div>
-
     <div class="clearfix"></div>    
+
+    <h2>Loans by Published Year</h2>
+    <div class="chart">
+        <div id="loans-by-published-year" class="graph">
+            <noscript>$_("You need to have JavaScript turned on to see the nifty chart!")</noscript>
+        </div>
+    </div>
+
     <br/>
     <br/>
 
@@ -142,6 +149,42 @@ $def render_counts(label, counts, klass="contentQuarter"):
         legend: {
             show: false
         }
+    });
+
+    \$.plot("#loans-by-published-year", [{data: $:json_encode(stats.get_loans_by_published_year())}], {
+        series: {
+            bars: {
+                show: true,
+                fill: 0.6,
+                color: "#ffa337",
+                align: "center"
+            },
+            points: {
+                show: true
+            },
+            color: "#ffa337"
+        },
+        grid: {
+            /*
+            hoverable: true,
+            clickable: true,
+            autoHighlight: true,
+            */
+            tickColor: "#d9d9d9",
+            borderWidth: 1,
+            borderColor: "#d9d9d9",
+            backgroundColor: "#fff"
+        },
+        xaxis: { tickDecimals: 0 },
+        yaxis: { tickDecimals: 0 }
+        /*
+        selection: { mode: "xy", color: "#00636a" },
+        crosshair: {
+            mode: "xy",
+            color: "rgba(000, 099, 106, 0.4)",
+            lineWidth: 1
+        }
+        */
     });
 });
 </script>

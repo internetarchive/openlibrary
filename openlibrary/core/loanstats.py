@@ -4,6 +4,7 @@ Unlike other parts of openlibrary, this modules talks to the database directly.
 """
 import re
 import time
+import datetime
 import urllib
 import logging
 import simplejson
@@ -78,7 +79,7 @@ class LoanStats:
             params["facet.limit"] = facet_limit
 
         response = self.solr_select(params)
-        return dict((name, web.group(counts, 2)) for name, counts in response['facet_counts']['facet_fields'].items())
+        return dict((name, list(web.group(counts, 2))) for name, counts in response['facet_counts']['facet_fields'].items())
 
     def _get_all_facet_counts(self):
         if not self._facet_counts:
@@ -127,6 +128,13 @@ class LoanStats:
     def get_facet_counts(self, name, limit=20):
         facets = list(self.solr_select_facet(name))[:limit]
         return [self.make_facet(name, key, count) for key, count in facets]
+
+    def get_loans_by_published_year(self):
+        d = self._run_solr_facet_query("publish_year")['publish_year']
+        # strip bad years
+        current_year = datetime.date.today().year
+        min_year = 1800
+        return [[int(y), count] for y, count in d if min_year < int(y) <= current_year]
 
     def make_facet(self, name, key, count):
         if name == "library_s":
