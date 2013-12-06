@@ -55,17 +55,22 @@ $def render_counts(label, counts, klass="contentQuarter"):
         </div>
         <div class="clearfix"></div>    
 
+    <div>
+        $:render_counts("Popular Books", stats.get_facet_counts("book_key_s"), klass="contentHalf")
+        $:render_counts("Popular Authors", stats.get_facet_counts("author_keys_id"), klass="contentHalf")
+    </div>
+    <div class="clearfix"></div>
+    <br/>
+    <br/>
+
     $if not stats.subject:
         <div>
-            $:render_counts("Subjects", stats.get_facet_counts("subject_facet"))
-            <div class="contentSpacer"></div>        
-            $:render_counts("Places", stats.get_facet_counts("place_facet"))
-            <div class="contentSpacer"></div>        
-            $:render_counts("People", stats.get_facet_counts("person_facet"))
-            <div class="contentSpacer"></div>
-            $:render_counts("Time", stats.get_facet_counts("time_facet"))
+            $:render_counts("Subjects", stats.get_facet_counts("subject_facet"), klass="")
         </div>
         <div class="clearfix"></div>    
+    <br/>
+    <br/>
+
 
     $if not stats.collection:
         <div>
@@ -77,11 +82,6 @@ $def render_counts(label, counts, klass="contentQuarter"):
         </div>
         <div class="clearfix"></div>    
 
-    <div>
-        $:render_counts("Popular Books", stats.get_facet_counts("book_key_s"), klass="contentHalf")
-        $:render_counts("Popular Authors", stats.get_facet_counts("author_keys_id"), klass="contentHalf")
-    </div>
-    <div class="clearfix"></div>
 
 
 </div>

@@ -142,10 +142,15 @@ def process(data):
         "start_day_s":doc.t_start.split("T")[0],
     }
 
+    solrdoc['subject_key'] = []
+    solrdoc['subject_facet'] = []
     def add_subjects(type):
         subjects = doc.get_subjects(type)
-        solrdoc[type + '_key'] = [s.slug for s in subjects]
-        solrdoc[type + '_facet'] = [s.title for s in subjects]
+        if type == 'subject':
+            system_subjects = ['protected_daisy', 'accessible_book', 'in_library', 'lending_library']
+            subjects = [s for s in subjects if s.slug not in system_subjects]
+        solrdoc['subject_key'] += [type+":"+s.slug for s in subjects]
+        solrdoc['subject_facet'] += [type+":"+s.title for s in subjects]
 
     add_subjects("subject")
     add_subjects("place")
@@ -191,6 +196,9 @@ def update_solr(docs):
         fix_subject_key(doc, 'place_key', '/subjects/place:')
         fix_subject_key(doc, 'person_key', '/subjects/person:')
         fix_subject_key(doc, 'time_key', '/subjects/time:')
+
+        system_subjects = ['subject:Protected DAISY', 'subject:Accessible book', 'subject:In library', 'subject:Lending library']
+        doc['subject_facet'] = [s for s in doc['subject_facet'] if s not in system_subjects]
 
         solr.update(doc)
     solr.commit()
