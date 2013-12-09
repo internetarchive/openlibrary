@@ -23,8 +23,16 @@ class LoanStats:
         self.library = library
         self.collection = collection
         self.subject = subject
+        self.time_period = None
+
         self._library_titles = None
         self._facet_counts = None
+        self._total_loans = None
+
+    def get_total_loans(self):
+        # populate total loans
+        self._get_all_facet_counts()
+        return self._total_loans
 
     def solr_select(self, params):
         fq = params.get("fq", [])
@@ -41,6 +49,12 @@ class LoanStats:
 
         if self.subject:
             params['fq'].append(self._get_subject_filter(self.solrescape(self.subject)))
+
+        if self.time_period:
+            start, end = self.time_period
+            def solrtime(t): 
+                return t.isoformat() + "Z"
+            params['fq'].append("start_time_dt:[%s TO %s]" % (solrtime(start), solrtime(end)))
 
         logger.info("SOLR query %s", params)
 
@@ -100,6 +114,7 @@ class LoanStats:
                 "facet.limit": 20
             }
             response = self.solr_select(params)
+            self._total_loans = response['response']['numFound']
             self._facet_counts = dict((name, web.group(counts, 2)) for name, counts in response['facet_counts']['facet_fields'].items())
         return self._facet_counts
 

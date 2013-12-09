@@ -11,6 +11,9 @@ $elif stats.subject:
     <h1><a href="/stats/lending">Lending Stats</a> / Subjects / $stats.subject</h1>
 $else:
     <h1>Lending Stats</h1>
+    <p class="collapse sansserief"><strong class="black">for last 30 days</strong></p>
+
+    Show stats for: <a href="$:changequery(t='30days')">30 days</a> | <a href="$:changequery(t='60days')">60 days</a> | <a href="$:changequery(t='120days')">120 days</a> | <a href="$:changequery(t='99999days')">Entire duration</a>
 </div>
 
 $ facet_urls = {"libraries": "/stats/lending/libraries/%(slug)s", "regions": "/stats/lending/regions/%(slug)s", "collections": "/stats/lending/collections/%(slug)s", "subjects": "/stats/lending/subjects/%(slug)s", "places": "/stats/lending/subjects/place:%(slug)s", "people": "/stats/lending/subjects/person:%(slug)s", "time": "/stats/lending/subjects/time:%(slug)s", "popular books": "%(slug)s", "popular authors": "%(slug)s"}
@@ -35,6 +38,8 @@ $def render_counts(label, counts, klass="contentQuarter"):
             <noscript>$_("You need to have JavaScript turned on to see the nifty chart!")</noscript>
         </div>
     </div>
+
+    Total Loans during this period: $commify(stats.get_total_loans())
 
     <h2>Loans Per Type</h2>
     <div class="left">
