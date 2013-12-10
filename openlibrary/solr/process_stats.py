@@ -15,7 +15,7 @@ import os
 
 from infogami import config
 from openlibrary.solr.solrwriter import SolrWriter
-from ..core import inlibrary, ia
+from ..core import inlibrary, ia, helpers as h
 
 logger = logging.getLogger("openlibrary.solr")
 
@@ -143,6 +143,11 @@ def process(data):
         "start_time_dt": doc.t_start + "Z",
         "start_day_s":doc.t_start.split("T")[0],
     }
+
+    if doc.get('t_end'):
+        dt = h.parse_datetime(doc.t_end) - h.parse_datetime(doc.t_start)
+        hours = dt.days * 24 + dt.seconds / 3600
+        solrdoc['duration_hours_i'] = hours
 
     solrdoc['subject_key'] = []
     solrdoc['subject_facet'] = []

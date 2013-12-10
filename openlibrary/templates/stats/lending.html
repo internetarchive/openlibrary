@@ -2,7 +2,7 @@ $def with (stats)
 
 <div id="contentHead">
 $if stats.region:    
-    <h1><a href="/stats/lending">Lending Stats</a> / regions / $stats.region</h1>
+    <a href="/stats/lending">Lending Stats</a> / regions / $stats.region</h1>
 $elif stats.library:
     <h1><a href="/stats/lending">Lending Stats</a> / libraries / $stats.library.split("/")[-1]</h1>
 $elif stats.collection:
@@ -11,10 +11,10 @@ $elif stats.subject:
     <h1><a href="/stats/lending">Lending Stats</a> / Subjects / $stats.subject</h1>
 $else:
     <h1>Lending Stats</h1>
-    <p class="collapse sansserief"><strong class="black">for last 30 days</strong></p>
-
-    Show stats for: <a href="$:changequery(t='30days')">30 days</a> | <a href="$:changequery(t='60days')">60 days</a> | <a href="$:changequery(t='120days')">120 days</a> | <a href="$:changequery(t='99999days')">Entire duration</a>
+<p class="collapse sansserief"><strong class="black">for last $query_param("t", "30days")</strong></p>    
+Show stats for: <a href="$:changequery(t='30days')">30 days</a> | <a href="$:changequery(t='60days')">60 days</a> | <a href="$:changequery(t='120days')">120 days</a> | <a href="$:changequery(t='99999days')">Entire duration</a>
 </div>
+
 
 $ facet_urls = {"libraries": "/stats/lending/libraries/%(slug)s", "regions": "/stats/lending/regions/%(slug)s", "collections": "/stats/lending/collections/%(slug)s", "subjects": "/stats/lending/subjects/%(slug)s", "places": "/stats/lending/subjects/place:%(slug)s", "people": "/stats/lending/subjects/person:%(slug)s", "time": "/stats/lending/subjects/time:%(slug)s", "popular books": "%(slug)s", "popular authors": "%(slug)s"}
 
@@ -41,10 +41,18 @@ $def render_counts(label, counts, klass="contentQuarter"):
 
     Total Loans during this period: $commify(stats.get_total_loans())
 
-    <h2>Loans Per Type</h2>
-    <div class="left">
-        <div id="loans-types-pie-chart" class="pie">
-            <noscript>$_("You need to have JavaScript turned on to see the nifty chart!")</noscript>
+    <div>
+        <div class="contentHalf">
+            <h2>Loans Per Type</h2>
+            <div id="loans-types-pie-chart" class="pie">
+                <noscript>$_("You need to have JavaScript turned on to see the nifty chart!")</noscript>
+            </div>
+        </div>
+        <div class="contentHalf">
+            <h2>Loan Duration</h2>
+            <div id="duration-pie-chart" class="pie">
+                <noscript>$_("You need to have JavaScript turned on to see the nifty chart!")</noscript>
+            </div>
         </div>
     </div>
     <div class="clearfix"></div>    
@@ -156,6 +164,20 @@ $def render_counts(label, counts, klass="contentQuarter"):
         }
     });
 
+    \$.plot("#duration-pie-chart", $:json_encode(stats.get_loan_durations()), {
+        series: {
+            pie: {
+                show: true,
+                label: {
+                    show: true,
+                }
+            }
+        },
+        legend: {
+            show: false
+        }
+    });
+
     \$.plot("#loans-by-published-year", [{data: $:json_encode(stats.get_loans_by_published_year())}], {
         series: {
             bars: {
@@ -202,7 +224,7 @@ div.graph, div.chart{
     background-image:none;
 }
 div.pie {
-    width: 350px;
+    width: 420px;
     height: 250px;
 }
 .chartYaxis{
