@@ -16,7 +16,7 @@ re_time_period1 = re.compile("(\d+)days")
 #re_time_period2 = re.compile("(\d\d\d)(\d\d)(\d\d)-(\d\d\d\d)(\d\d)(\d\d)")
 
 class lending_stats(app.view):
-    path = "/stats/lending(?:/(libraries|regions|collections|subjects)/(.+))?"
+    path = "/stats/lending(?:/(libraries|regions|collections|subjects|format)/(.+))?"
 
     def GET(self, key, value):
         stats = LoanStats()
@@ -28,6 +28,10 @@ class lending_stats(app.view):
             stats.collection = value
         elif key == 'subjects': 
             stats.subject = value
+        elif key == 'subjects': 
+            stats.subject = value
+        elif key == 'format': 
+            stats.resource_type = value
 
         i = web.input(t="30days")
         stats.time_period = self.parse_time(i.t)
