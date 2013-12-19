@@ -38,6 +38,18 @@ def get_schema():
     $$ LANGUAGE SQL IMMUTABLE;
     
     CREATE INDEX thing_olid_idx ON thing(get_olid(key));
+
+    CREATE TABLE stats (
+        id serial primary key,
+        key text unique,
+        type text,
+        created timestamp without time zone,
+        updated timestamp without time zone,
+        json text
+    );
+    CREATE INDEX stats_type_idx ON stats(type);
+    CREATE INDEX stats_created_idx ON stats(created);
+    CREATE INDEX stats_updated_idx ON stats(updated);
     """
         
     # monkey patch schema.sql to include the custom functions
