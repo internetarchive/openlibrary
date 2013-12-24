@@ -18,6 +18,9 @@ re_time_period1 = re.compile("(\d+)days")
 class lending_stats(app.view):
     path = "/stats/lending(?:/(libraries|regions|collections|subjects|format)/(.+))?"
 
+    def is_enabled(self):
+        return "loanstats" in web.ctx.features
+
     def GET(self, key, value):
         stats = LoanStats()
         if key == 'libraries':
