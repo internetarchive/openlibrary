@@ -88,8 +88,13 @@ def add_field(doc, name, value):
         return
     else:
         field = Element("field", name=name)
+        if not isinstance(value, basestring):
+            value = str(value)
         try:
-            field.text = normalize('NFC', unicode(strip_bad_char(value)))
+            value = strip_bad_char(value)
+            if isinstance(value, str):
+                value = value.decode('utf-8')
+            field.text = normalize('NFC', value)
         except:
             logger.error('Error in normalizing %r', value)
             raise
