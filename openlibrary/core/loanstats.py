@@ -130,6 +130,7 @@ class LoanStats:
             "rows": 0,
             "facet": "on",
             "facet.mincount": 1,
+            "facet.limit": 100000, # don't limit
             "facet.field": ['start_day_s']
         }
         if resource_type != 'total':
@@ -138,7 +139,7 @@ class LoanStats:
         response = self.solr_select(params)
         counts0 = response['facet_counts']['facet_fields']['start_day_s']
         day_facet = web.group(counts0, 2)
-        return [[self.date2timestamp(*self.parse_date(day))*1000, count] for day, count in day_facet]
+        return sorted([[self.datestr2millis(day), count] for day, count in day_facet])
 
     def get_loans_per_type(self):
         rows = self.get_facet_counts("resource_type_s")
@@ -213,12 +214,12 @@ class LoanStats:
             self._library_titles = dict((lib.key.split("/")[-1], lib.title) for lib in libraries)
         return self._library_titles.get(key, key)
 
-    def date2timestamp(self, year, month=1, day=1):
-        return time.mktime((year, month, day, 0, 0, 0, 0, 0, 0)) # time.mktime takes 9-tuple as argument
+    def date2millis(self, date):
+        return time.mktime(date.timetuple()) * 1000
 
-    def date2millis(self, year, month=1, day=1):
-        return self.date2timestamp(year, month, day) * 1000
+    def parse_date(self, datestr):
+        yyyy, mm, dd = datestr.split("-")
+        return datetime.date(int(yyyy), int(mm), int(dd))
 
-    def parse_date(self, date):
-        yyyy, mm, dd = date.split("-")
-        return int(yyyy), int(mm), int(dd)
+    def datestr2millis(self, datestr):
+        return self.date2millis(self.parse_date(datestr))
