@@ -13,7 +13,7 @@ class stats(app.view):
         raise web.seeother("/stats/lending")
 
 re_time_period1 = re.compile("(\d+)days")
-#re_time_period2 = re.compile("(\d\d\d)(\d\d)(\d\d)-(\d\d\d\d)(\d\d)(\d\d)")
+re_time_period2 = re.compile("(\d\d\d\d)(\d\d)(\d\d)-(\d\d\d\d)(\d\d)(\d\d)")
 
 class lending_stats(app.view):
     path = "/stats/lending(?:/(libraries|regions|collections|subjects|format)/(.+))?"
@@ -42,12 +42,18 @@ class lending_stats(app.view):
         return app.render_template("stats/lending.html", stats)
 
     def parse_time(self, t):
-        m = re_time_period1.match(t)
+        m = re_time_period2.match(t)
         if m:
-            delta_days = int(m.group(1))
+            y0, m0, d0, y1, m1, d1 = m.groups()
+            begin = datetime.datetime(int(y0), int(m0), int(d0))
+            end = datetime.datetime(int(y1), int(m1), int(d1))
         else:
-            delta_days = 30
-        now = datetime.datetime.utcnow()
-        begin = now.replace(hour=0, minute=0, second=0, microsecond=0) - datetime.timedelta(days=delta_days)
-        end = now
+            m = re_time_period1.match(t)
+            if m:
+                delta_days = int(m.group(1))
+            else:
+                delta_days = 30
+            now = datetime.datetime.utcnow()
+            begin = now.replace(hour=0, minute=0, second=0, microsecond=0) - datetime.timedelta(days=delta_days)
+            end = now
         return begin, end
