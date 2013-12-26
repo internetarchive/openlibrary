@@ -6,18 +6,29 @@ faceting that allows us to build beautiful views of data.
 This file provides all the functionality to take one loan stats record, 
 query OL and archive.org for other related info like subjects, collections
 etc. and massages that into a form that can be fed into solr.
+
+How to run:
+
+    ./scripts/openlibrary-server openlibrary.yml runmain openlibrary.solr.process_stats --load 
+
 """
 import sys
 import web
 import simplejson
 import logging
 import os
+import time
 
 from infogami import config
 from openlibrary.solr.solrwriter import SolrWriter
 from ..core import inlibrary, ia, helpers as h
+from ..core.loanstats import LoanStats
 
 logger = logging.getLogger("openlibrary.solr")
+
+@web.memoize
+def get_db():
+    return web.database(**web.config.db_parameters)
 
 def get_document(key):
     return web.ctx.site.get(key)
@@ -79,10 +90,6 @@ def get_metadata(ia_id):
 
 class LoanEntry(web.storage):
     @property
-    def key(self):
-        return self['_id']
-
-    @property
     def book_key(self):
         return self['book']
 
@@ -98,7 +105,7 @@ class LoanEntry(web.storage):
             return []
 
     def get_author_keys(self):
-        w = self.book.works[0]
+        w = self.book and self.book.works and self.book.works[0]
         if w:
             return [a.key for a in w.get_authors()]
         else:
@@ -121,11 +128,17 @@ class LoanEntry(web.storage):
         lib = key and get_library(key)
         if lib:
             region =  get_region(lib).lower().strip()
+            # some regions are specified with multiple names.
+            # maintaining this dict to collapse them into single entry.
             region_aliases = {"california": "ca"}
-            return region_aliases.get(region.region)
+            return region_aliases.get(region, region)
 
 def process(data):
     doc = LoanEntry(data)
+    if not doc.book:
+        logger.error("Book not found for %r. Ignoring this loan", doc['book'])
+        return
+
     solrdoc = {
         "key": doc.key,
         "type": "stats",
@@ -148,6 +161,9 @@ def process(data):
         dt = h.parse_datetime(doc.t_end) - h.parse_datetime(doc.t_start)
         hours = dt.days * 24 + dt.seconds / 3600
         solrdoc['duration_hours_i'] = hours
+
+    #last_updated = h.parse_datetime(doc.get('t_end') or doc.get('t_start'))
+    solrdoc['last_updated_dt'] = (doc.get('t_end') or doc.get('t_start')) + 'Z'
 
     solrdoc['subject_key'] = []
     solrdoc['subject_facet'] = []
@@ -177,12 +193,49 @@ def read_events():
         doc = simplejson.loads(line.strip())
         yield doc
 
+def read_events_from_db(keys=None, day=None):
+    if keys:
+        result = get_db().query("SELECT key, json FROM stats WHERE key in $keys ORDER BY updated", vars=locals())
+    elif day:
+        last_updated = day
+        result = get_db().query("SELECT key, json FROM stats WHERE updated >= $last_updated AND updated < $last_updated::timestamp + interval '1' day ORDER BY updated", vars=locals())
+    else:
+        last_updated = LoanStats().get_last_updated()
+        result = get_db().query("SELECT key, json FROM stats WHERE updated > $last_updated ORDER BY updated", vars=locals())
+    for row in result.list():
+        doc = simplejson.loads(row.json)
+        doc['key'] = row.key
+        yield doc
+
+def debug():
+    """Prints debug info about solr.
+    """
+
+def add_events_to_solr(events):
+    solrdocs = (process(e) for e in events)
+    solrdocs = (doc for doc in solrdocs if doc) # ignore Nones
+    update_solr(solrdocs)
+
 def main(*args):
     logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
-    docs = read_events()
     if "--load" in args:        
+        docs = read_events()
         update_solr(docs)
+    elif args and args[0] == "--load-from-db":
+        events = read_events_from_db()
+        add_events_to_solr(events)
+    elif args and args[0] == "--load-keys":
+        keys = args[1:]
+        events = read_events_from_db(keys=keys)
+        add_events_to_solr(events)
+    elif args and args[0] == "--day":
+        day = args[1]
+        events = read_events_from_db(day=day)
+        add_events_to_solr(events)
+    elif args and args[0] == "--debug":
+        debug()
     else:
+        docs = read_events()
         # each doc is one row from couchdb view response when called with include_docs=True
         for e in docs:
             try:

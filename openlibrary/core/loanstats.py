@@ -122,6 +122,21 @@ class LoanStats:
             self._facet_counts = dict((name, web.group(counts, 2)) for name, counts in response['facet_counts']['facet_fields'].items())
         return self._facet_counts
 
+    def get_last_updated(self):
+        params = {
+            "wt": "json",
+            "q": "*:*",
+            "rows": 1, 
+            "sort": "last_updated_dt desc"
+        }
+        response = self.solr_select(params)
+        try:
+            return response['response']['docs'][0]['last_updated_dt']
+        except (IndexError, KeyError):
+            # if last update timestamp is not found in solr,
+            # use year 2000 to consider all docs
+            return "2000-01-01T00:00:00Z"
+
     def get_loans_per_day(self, resource_type="total"):
         params = {
             "wt": "json",
@@ -130,7 +145,7 @@ class LoanStats:
             "rows": 0,
             "facet": "on",
             "facet.mincount": 1,
-            "facet.limit": 100000, # don't limit
+            "facet.limit": 100000, # don't limit 
             "facet.field": ['start_day_s']
         }
         if resource_type != 'total':
