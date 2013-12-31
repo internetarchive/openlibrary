@@ -49,7 +49,7 @@ class LoanStats:
             params['fq'].append("ia_collections_id:" + self.solrescape(self.collection))
 
         if self.subject:
-            params['fq'].append(self._get_subject_filter(self.solrescape(self.subject)))
+            params['fq'].append(self._get_subject_filter(self.subject))
 
         if self.time_period:
             start, end = self.time_period
@@ -72,12 +72,14 @@ class LoanStats:
         return re_solrescape.sub(r'\\\1', text)
 
     def _get_subject_filter(self, subject):
+        # subjects are stored as subject_key field as values like:
+        # ["subject:fiction", "subject:history", "place:england"] 
+        # etc.
         if ":" in subject:
             type, subject = subject.split(":", 1)
         else:
             type = "subject"
-        key = type + "_key"
-        return "%s:%s" % (key, subject)
+        return "subject_key:%s\\:%s" % (type, self.solrescape(subject))
 
     def solr_select_facet(self, facet_field):
         facet_counts = self._get_all_facet_counts()
