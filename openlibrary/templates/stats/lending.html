@@ -1,5 +1,7 @@
 $def with (stats)
 
+$var title: Lending Stats
+
 <div id="contentHead">
 $if stats.region:    
     <a href="/stats/lending">Lending Stats</a> / regions / $stats.region</h1>
@@ -25,7 +27,7 @@ $def render_counts(label, counts, klass="contentQuarter"):
             <div class="tag">
             $for facet in counts:
                 $ url = facet_urls.get(label.lower(), '#') % facet
-                <span class="count" style="text-align:right; min-width: 50px;">$commify(facet.count)</span> <a href="$url">$facet.title</a>
+                <span class="count" style="text-align:right; min-width: 50px;"><strong>$commify(facet.count)</strong></span> <a href="$url">$facet.title</a>
                 $if facet.type:
                     <span class="orange">$facet.type</span>
                 <br/>
