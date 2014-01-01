@@ -25,7 +25,10 @@ $def render_counts(label, counts, klass="contentQuarter"):
             <div class="tag">
             $for facet in counts:
                 $ url = facet_urls.get(label.lower(), '#') % facet
-                <span class="count" style="text-align:right; min-width: 50px;">$commify(facet.count)</span> <a href="$url">$facet.title</a><br/>
+                <span class="count" style="text-align:right; min-width: 50px;">$commify(facet.count)</span> <a href="$url">$facet.title</a>
+                $if facet.type:
+                    <span class="orange">$facet.type</span>
+                <br/>
             </div>
         </div>
     </div>

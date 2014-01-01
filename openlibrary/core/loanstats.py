@@ -196,6 +196,7 @@ class LoanStats:
             {"label": "Loan expired", "data": expired}]
 
     def make_facet(self, name, key, count):
+        type = None
         if name == "library_s":
             title = self._get_library_title(key)
             slug = key
@@ -212,18 +213,15 @@ class LoanStats:
             author = web.ctx.site.get(key)
             title = author and author.name or "unnamed"
             slug = key
-        elif name in ["subject_facet", "person_facet", "place_facet", "time_facet"]:
-            title = key
-
-            prefix = name.replace("_facet", "") + ":"
-            if prefix == "subject:":
-                prefix = ""
-
-            slug = key.lower().replace(" ", "_").replace(",", "")
+        elif name == "subject_facet":
+            type, title = key.split(":", 1)
+            slug = title.lower().replace(" ", "_").replace(",", "")
+            if type != "subject":
+                slug = type + ":" + slug
         else:
             title = key
             slug = key.lower().replace(" ", "_")
-        return web.storage(title=title, count=count, slug=slug)
+        return web.storage(title=title, count=count, slug=slug, type=type)
 
     def _get_library_title(self, key):
         if self._library_titles is None:
