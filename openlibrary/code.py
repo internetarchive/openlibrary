@@ -8,7 +8,7 @@ import logging, logging.config
 from infogami.utils import template, macro, i18n
 import infogami
 
-old_plugins = ["openlibrary", "search", "worksearch", "books", "admin", "upstream", "importapi"]
+old_plugins = ["openlibrary", "search", "worksearch", "inside", "books", "admin", "upstream", "importapi", "recaptcha"]
 
 def setup():
     setup_logging()
