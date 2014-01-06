@@ -85,7 +85,7 @@ def get_metadata(ia_id):
         if meta:
             meta['collection'] = meta['collection'].split(";")
     else:
-        meta = ia.get_meta_xml(self.ocaid)
+        meta = ia.get_meta_xml(ia_id)
     return meta
 
 class LoanEntry(web.storage):
