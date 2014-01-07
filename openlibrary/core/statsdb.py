@@ -40,6 +40,11 @@ def add_entry(key, data, timestamp=None):
     else:
         db.insert("stats", type='loan', key=key, created=t, updated=t, json=jsontext)
 
+def get_entry(key):
+    result = db.query("SELECT * FROM stats WHERE key=$key", vars=locals())
+    if result:
+        return result[0]
+
 def update_entry(key, data, timestamp=None):
     """Updates an already existing entry in the stats table.
 

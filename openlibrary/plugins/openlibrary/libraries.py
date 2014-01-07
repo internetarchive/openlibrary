@@ -593,6 +593,9 @@ def on_loan_completed_statsdb(loan):
         "t_end": t_end.isoformat(),
         "status": "completed",
     }
+    old = statsdb.get_entry(key)
+    if old:
+        d = dict(old, **d)
     statsdb.update_entry(key, d)
 
 def _get_loan_key(loan):
