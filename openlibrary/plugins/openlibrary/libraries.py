@@ -13,7 +13,7 @@ import couchdb
 from infogami import config
 from infogami.utils import delegate
 from infogami.utils.view import render_template, add_flash_message, public
-from openlibrary.core import inlibrary, statsdb
+from openlibrary.core import inlibrary, statsdb, geo_ip
 from openlibrary import accounts
 from openlibrary.core.iprange import find_bad_ip_ranges
 
@@ -519,6 +519,7 @@ def on_loan_created(loan):
 
     library = inlibrary.get_library()
     d['library'] = library and library.key
+    d['geoip_country'] = geo_ip.get_country(web.ctx.ip)
 
     if key in db:
         logger.warn("loan document is already present in the stats database: %r", key)
@@ -578,6 +579,7 @@ def on_loan_created_statsdb(loan):
     }
     library = inlibrary.get_library()
     d['library'] = library and library.key
+    d['geoip_country'] = geo_ip.get_country(web.ctx.ip)
     statsdb.add_entry(key, d)
 
 def on_loan_completed_statsdb(loan):

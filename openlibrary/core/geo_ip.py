@@ -24,3 +24,12 @@ def get_region(ip):
 
     return region
 
+def get_country(ip):
+    gi = get_db()
+    if not gi:
+        return None
+
+    try:
+        return gi.record_by_addr(ip)['country_code']
+    except TypeError:
+        print 'geoip lookup failed for ' + ip
