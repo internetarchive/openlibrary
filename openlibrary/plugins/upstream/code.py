@@ -238,13 +238,14 @@ def setup():
     data.setup()
     
     # setup template globals
-    from openlibrary.i18n import ugettext, ungettext
+    from openlibrary.i18n import ugettext, ungettext, gettext_territory
             
     web.template.Template.globals.update({
         "gettext": ugettext,
         "ugettext": ugettext,
         "_": ugettext,
         "ungettext": ungettext,
+        "gettext_territory": gettext_territory,
         "random": random.Random(),
         "commify": web.commify,
         "group": web.group,
