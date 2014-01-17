@@ -17,7 +17,6 @@ import web
 import simplejson
 import logging
 import os
-import time
 
 from infogami import config
 from openlibrary.solr.solrwriter import SolrWriter
@@ -183,6 +182,9 @@ def process(data):
     year = doc.book.get_publish_year()
     if year:
         solrdoc['publish_year'] = year
+
+    if "geoip_country" in doc:
+        solrdoc['country_s'] = doc['geoip_country']
 
     # Remove None values
     solrdoc = dict((k, v) for k, v in solrdoc.items() if v is not None)
