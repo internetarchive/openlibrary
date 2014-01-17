@@ -16,7 +16,7 @@ re_time_period1 = re.compile("(\d+)days")
 re_time_period2 = re.compile("(\d\d\d\d)(\d\d)(\d\d)-(\d\d\d\d)(\d\d)(\d\d)")
 
 class lending_stats(app.view):
-    path = "/stats/lending(?:/(libraries|regions|collections|subjects|format)/(.+))?"
+    path = "/stats/lending(?:/(libraries|regions|countries|collections|subjects|format)/(.+))?"
 
     def is_enabled(self):
         return "loanstats" in web.ctx.features
@@ -27,6 +27,8 @@ class lending_stats(app.view):
             stats.library = value
         elif key == 'regions':
             stats.region = value
+        elif key == 'countries':
+            stats.country = value
         elif key == 'collections':
             stats.collection = value
         elif key == 'subjects': 

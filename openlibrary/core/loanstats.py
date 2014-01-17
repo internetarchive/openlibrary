@@ -11,16 +11,18 @@ import simplejson
 import web
 from infogami import config
 from . import inlibrary
+from .. import i18n
 
 logger = logging.getLogger(__name__)
 
 re_solrescape = re.compile(r'([&|+\-!(){}\[\]^"~*?:])')
 
 class LoanStats:
-    def __init__(self, region=None, library=None, collection=None, subject=None):
+    def __init__(self, region=None, library=None, country=None, collection=None, subject=None):
         self.base_url = "http://%s/solr" % config.get("stats_solr")
         self.region = region
         self.library = library
+        self.country = country
         self.collection = collection
         self.subject = subject
         self.time_period = None
@@ -44,6 +46,8 @@ class LoanStats:
             params['fq'].append("region_s:" + self.solrescape(self.region))
         if self.library:
             params['fq'].append("library_s:" + self.solrescape(self.library))
+        if self.country:
+            params['fq'].append("country_s:" + self.solrescape(self.country))
 
         if self.collection:
             params['fq'].append("ia_collections_id:" + self.solrescape(self.collection))
@@ -104,7 +108,7 @@ class LoanStats:
     def _get_all_facet_counts(self):
         if not self._facet_counts:
             facets = [
-                "library_s","region_s",
+                "library_s","region_s", "country_s",
                 "ia_collections_id", "sponsor_s", "contributor_s",
                 "book_key_s", "author_keys_id", "resource_type_s",
                 "subject_facet", "place_facet", "person_facet", "time_facet"]
@@ -203,6 +207,9 @@ class LoanStats:
         elif name == "region_s":
             title = key.upper()
             slug = key
+        elif name == "country_s":
+            title = i18n.gettext_territory(key)
+            slug = key   
         elif name == "book_key_s":
             # XXX-Anand: Optimize this by pre loading all books
             book = web.ctx.site.get(key)

@@ -18,7 +18,7 @@ Show stats for: <a href="$:changequery(t='30days')">30 days</a> | <a href="$:cha
 </div>
 
 
-$ facet_urls = {"libraries": "/stats/lending/libraries/%(slug)s", "regions": "/stats/lending/regions/%(slug)s", "collections": "/stats/lending/collections/%(slug)s", "subjects": "/stats/lending/subjects/%(slug)s", "places": "/stats/lending/subjects/place:%(slug)s", "people": "/stats/lending/subjects/person:%(slug)s", "time": "/stats/lending/subjects/time:%(slug)s", "popular books": "%(slug)s", "popular authors": "%(slug)s"}
+$ facet_urls = {"libraries": "/stats/lending/libraries/%(slug)s", "regions": "/stats/lending/regions/%(slug)s", "countries": "/stats/lending/countries/%(slug)s", "collections": "/stats/lending/collections/%(slug)s", "subjects": "/stats/lending/subjects/%(slug)s", "places": "/stats/lending/subjects/place:%(slug)s", "people": "/stats/lending/subjects/person:%(slug)s", "time": "/stats/lending/subjects/time:%(slug)s", "popular books": "%(slug)s", "popular authors": "%(slug)s"}
 
 $def render_counts(label, counts, klass="contentQuarter"):
     <div class="$klass">
@@ -71,6 +71,12 @@ $def render_counts(label, counts, klass="contentQuarter"):
 
     <br/>
     <br/>
+    $if not stats.country:
+        <div>
+            $:render_counts("Countries", stats.get_facet_counts("country_s"))
+        </div>
+        <div class="clearfix"></div>    
+
 
     $if not stats.library and not stats.region:
         <div>
