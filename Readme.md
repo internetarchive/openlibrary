@@ -4,11 +4,11 @@ Open web page for every book ever published.
 
 This repository contains the code that powers https://openlibrary.org/
 
-## Code Oraganization
+## Code Organization
 
 * openlibrary/core - core openlibrary functionality, imported and used by www
 * openlibrary/views - views for rendering web pages 
-* openlibrary/templates - all the tempaltes used in the website
+* openlibrary/templates - all the templates used in the website
 * openlibrary/macros - macros are like templates, but can be called from wikitext
 * openlibrary/plugins - legacy code. will be moved to core and www soon.
 
