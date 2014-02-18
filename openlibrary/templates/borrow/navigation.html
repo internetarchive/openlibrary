@@ -13,7 +13,7 @@ $def link(url, title):
         | $:link("/borrow/about", _("How it Works"))
         | $:link("/libraries", _("Participating Libraries"))
         | $:link("/libraries/register", _("Register your library"))
-        | $:link("/libraries/stats", _("Stats"))
+        | $:link("/stats/lending", _("Stats"))
     </div>
     $if ctx.user and ctx.user.is_admin():
         <div style="margin-top: 10px"><span class="adminOnly">$:link("/libraries/dashboard", _("Dashboard"))</span></div>
