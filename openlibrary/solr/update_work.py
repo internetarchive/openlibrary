@@ -1051,7 +1051,8 @@ def update_work(w, obj_cache=None, debug=False, resolve_redirects=False):
             'key': edition['key'].replace("/books/", "/works/"),
             'type': {'key': '/type/work'},
             'title': edition['title'],
-            'editions': [edition]
+            'editions': [edition],
+            'authors': [{'type': '/type/author_role', 'author': {'key': a['key']}} for a in edition.get('authors', [])]
         }
         # Hack to add subjects when indexing /books/ia:xxx
         if edition.get("subjects"):
