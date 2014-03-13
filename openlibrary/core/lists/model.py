@@ -15,6 +15,8 @@ from infogami.utils import stats
 from openlibrary.core import helpers as h
 from openlibrary.core import cache
 
+from openlibrary.plugins.worksearch.search import get_works_solr
+
 # this will be imported on demand to avoid circular dependency
 subjects = None
 
@@ -80,18 +82,29 @@ class ListMixin:
             result.rows
         finally:
             stats.end()
+
         return result
         
     def _get_edition_count(self):
-        return sum(seed['editions'] for seed in self.seed_summary.values())
+        #return sum(seed['editions'] for seed in self.seed_summary.values())
+        return sum(seed.edition_count for seed in self.get_seeds())
 
     def _get_work_count(self):
-        return sum(seed['works'] for seed in self.seed_summary.values())
+        #return sum(seed['works'] for seed in self.seed_summary.values())
+        return sum(seed.work_count for seed in self.get_seeds())
 
     def _get_ebook_count(self):
-        return sum(seed['ebooks'] for seed in self.seed_summary.values())
+        #return sum(seed['ebooks'] for seed in self.seed_summary.values())
+        return sum(seed.ebook_count for seed in self.get_seeds())
         
     def _get_last_update(self):
+        last_updates = [seed.last_update for seed in self.get_seeds()]
+        last_updates = [x for x in last_updates if x]
+        if last_updates:
+            return max(last_updates)
+        else:
+            return None
+
         if self.seed_summary:
             date = max(seed['last_update'] for seed in self.seed_summary.values()) or None
         else:
@@ -266,32 +279,48 @@ class ListMixin:
                     e['recent_changeset'] = self._site.recentchanges({"key": e.key, "limit": 1})[0]
                 except IndexError:
                     pass
+
+    def _get_solr_query_for_subjects(self):
+        terms = [seed.get_solr_query_term() for seed in self.get_seeds()]
+        return " OR ".join(t for t in terms if t)
     
     def _get_all_subjects(self):
-        d = defaultdict(list)
-        
-        for seed in self.seed_summary.values():
-            for s in seed.get("subjects", []):
-                d[s['key']].append(s)
-                
-        def subject_url(s):
-            if s.startswith("subject:"):
-                return "/subjects/" + s.split(":", 1)[1]
-            else:
-                return "/subjects/" + s                
-                
-        subjects = [
-            web.storage(
-                key=key, 
-                url=subject_url(key),
-                count=sum(s['count'] for s in values), 
-                name=values[0]["name"],
-                title=values[0]["name"]
-                )
-            for key, values in d.items()]
+        solr = get_works_solr()
+        q = self._get_solr_query_for_subjects()
+        facet_names = ['subject_facet', 'place_facet', 'person_facet', 'time_facet']
+        result = solr.select(q, 
+            fields=[], 
+            facets=facet_names,
+            facet_limit=20,
+            facet_mincount=1)
 
-        return sorted(subjects, reverse=True, key=lambda s: s["count"])
-        
+        def get_subject_prefix(facet_name):
+            name = facet_name.replace("_facet", "")
+            if name == 'subject':
+                return ''
+            else:
+                return name + ":"
+
+        def process_subject(facet_name, title, count):
+            prefix = get_subject_prefix(facet_name)
+            key = prefix + title.lower().replace(" ", "_")
+            url = "/subjects/" + key
+            return web.storage({
+                "title": title,
+                "name": title,
+                "count": count,
+                "key": key,
+                "url": url
+            })
+
+        def process_all():
+            facets = result['facets']
+            for k in facet_names:
+                for f in facets.get(k, []):
+                    yield process_subject(f.name, f.value, f.count)
+
+        return sorted(process_all(), reverse=True, key=lambda s: s["count"])
+
     def get_top_subjects(self, limit=20):
         return self._get_all_subjects()[:limit]
         
@@ -420,6 +449,8 @@ class Seed:
             self.type = "subject"
         else:
             self.key = value.key
+
+        self._solrdata = None
             
     def get_document(self):
         if isinstance(self.value, basestring):
@@ -432,7 +463,60 @@ class Seed:
         return doc
             
     document = property(get_document)
-            
+
+    def _get_document_basekey(self):
+        return self.document.key.split("/")[-1]
+
+    def get_solr_query_term(self):
+        if self.type == 'edition':
+            return "edition_key:" + self._get_document_basekey()
+        elif self.type == 'work':
+            return 'key:' + self._get_document_basekey()
+        elif self.type == 'author':
+            return "author_key:" + self._get_document_basekey()
+        elif self.type == 'subject':
+            type, value = self.key.split(":")
+            return "%s_key:%s" % (type, value)
+
+    def get_solrdata(self):
+        if self._solrdata is None:
+            self._solrdata = self._load_solrdata()
+        return self._solrdata
+    
+    def _load_solrdata(self):
+        if self.type == "edition":
+            return {
+                'ebook_count': int(bool(self.document.ocaid)),
+                'edition_count': 1, 
+                'work_count': 1,
+                'last_update': self.document.last_modified
+            }
+        else:
+            q = self.get_solr_query_term()
+            if q:
+                solr = get_works_solr()
+                result = solr.select(q, fields=["edition_count", "ebook_count_i"])
+                last_update_i = [doc['last_update_i'] for doc in result.docs if 'last_update_i' in doc]
+                if last_update_i:
+                    last_update = self._inttime_to_datetime(last_update_i)
+                else:
+                    # if last_update is not present in solr, consider last_modfied of
+                    # that document as last_update
+                    if self.type in ['work', 'author']:
+                        last_update = self.document.last_modified
+                    else:
+                        last_update = None
+                return {
+                    'ebook_count': sum(doc.get('ebook_count_i', 0) for doc in result.docs),
+                    'edition_count': sum(doc.get('edition_count', 0) for doc in result.docs),
+                    'work_count': 0,
+                    'last_update': last_update
+                }
+        return {}
+
+    def _inttime_to_datetime(self, t):
+        return datetime.datetime(*time.gmtime(t)[:6])
+
     def get_type(self):
         type = self.document.type.key
         
@@ -494,13 +578,22 @@ class Seed:
             return None
             
     def _get_last_update(self):
-        date = self._get_summary().get("last_update") or None
-        return date and h.parse_datetime(date)
+        return self.get_solrdata().get("last_update") or None
+
+    def _get_ebook_count(self):
+        return self.get_solrdata().get('ebook_count', 0)
+
+    def _get_edition_count(self):
+        return self.get_solrdata().get('edition_count', 0)
+
+    def _get_work_count(self):
+        return self.get_solrdata().get('work_count', 0)
         
-    work_count = property(lambda self: self._get_summary()['works'])
-    edition_count = property(lambda self: self._get_summary()['editions'])
-    ebook_count = property(lambda self: self._get_summary()['ebooks'])
+    work_count = property(_get_work_count)
+    edition_count = property(_get_edition_count)
+    ebook_count = property(_get_ebook_count)
     last_update = property(_get_last_update)
+
     
     title = property(get_title)
     url = property(get_url)
