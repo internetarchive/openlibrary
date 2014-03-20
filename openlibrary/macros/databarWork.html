@@ -105,7 +105,7 @@ $elif page.is_access_restricted():
             <span class="head">Read</span>
         </h3>
         <div class="panel">
-            <p><a href="$page.url('/daisy')" title="Download Protected DAISY" class="plain"><span class="underline">DAISY</span> <img src="/images/icons/icon-encrypto-sm.png" width="11" height="14" alt="Download Protected DAISY"/></a></p>
+            <p><a href="$page.url('/daisy')" title="Download Protected DAISY" class="plain"><meta itemprop="bookFormat" content="EBook/DAISY3"/><span class="underline">DAISY</span> <img src="/images/icons/icon-encrypto-sm.png" width="11" height="14" alt="Download Protected DAISY"/></a></p>
         </div>
     </div>
 $elif page.get('ocaid'):
@@ -121,7 +121,7 @@ $elif page.get('ocaid'):
             $if djvutxt: 
                 <p><a href="$djvutxt" title="Download a text version from Internet Archive">Plain text</a></p>
             $if daisy:
-                <p><a href="$page.url('/daisy')" title="Download a DAISY file from Internet Archive">DAISY</a></p>
+                <p><a href="$page.url('/daisy')" title="Download a DAISY file from Internet Archive"><meta itemprop="bookFormat" content="EBook/DAISY3"/><meta itemprop="accessibilityFeature" content="unlocked"/>DAISY</a></p>
             $if epub:
                 <p><a href="$epub" title="Download an ePub from Internet Archive">ePub</a></p>
             $if djvu:
