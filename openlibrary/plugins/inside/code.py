@@ -3,13 +3,30 @@ from infogami.utils.view import render_template, public
 from infogami import config
 from lxml import etree
 from openlibrary.utils import escape_bracket
-
-import re, web, urllib, simplejson, httplib
+import logging
+import re, web, urllib, urlparse, simplejson, httplib
 
 re_query_parser_error = re.compile(r'<pre>([^<]+?)</pre>', re.S)
 re_inside_fields = re.compile(r'(ia|body|page_count|body_length):')
 bad_fields = ['title', 'author', 'authors', 'lccn', 'ia', 'oclc', 'isbn', 'publisher', 'subject', 'person', 'place', 'time']
 re_bad_fields = re.compile(r'\b(' + '|'.join(bad_fields) + '):')
+
+logger = logging.getLogger("openlibrary.inside")
+
+def urlopen(url, timeout=5):
+    """Like urllib.urlopen, but built using httplib with timeout support.
+    """
+    o = urlparse.urlparse(url)
+    selector = o.path
+    if o.query:
+        selector += "?" + o.query
+
+    # set 5 second timeout. 
+    # report error if it takes longer than that.
+    # TODO: move the timeout to config
+    conn = httplib.HTTPConnection(o.hostname, o.port, timeout=timeout)
+    conn.request("GET", selector)
+    return conn.getresponse()
 
 def escape_q(q):
     if re_inside_fields.match(q):
@@ -24,6 +41,26 @@ def quote_snippet(snippet):
 if hasattr(config, 'plugin_inside'):
     solr_host = config.plugin_inside['solr']
     solr_select_url = "http://" + solr_host + "/solr/inside/select"
+
+def inside_solr_select(params):
+    params.setdefault("wt", "json")
+    #solr_select = solr_select_url + '?' + '&'.join("%s=%s" % (k, unicode(v)) for k, v in params)
+    solr_select = solr_select_url + "?" + urllib.urlencode(params)
+    stats.begin("solr", url=solr_select)
+
+    try:
+        json_data = urlopen(solr_select).read()
+    except IOError, e:
+        logger.error("Unable to query search inside solr", exc_info=True)
+        return {"error": web.htmlquote(str(e))}
+    finally:
+        stats.end()
+   
+    try:
+        return simplejson.loads(json_data)
+    except:
+        m = re_query_parser_error.search(json_data)
+        return { 'error': web.htmlunquote(m.group(1)) }
 
 def editions_from_ia(ia):
     q = {'type': '/type/edition', 'ocaid': ia, 'title': None, 'covers': None, 'works': None, 'authors': None}
@@ -63,14 +100,15 @@ def read_from_archive(ia):
 @public
 def search_inside_result_count(q):
     q = escape_q(q)
-    solr_select = solr_select_url + "?fl=ia&q.op=AND&wt=json&q=" + web.urlquote(q)
-    stats.begin("solr", url=solr_select)
-    json_data = urllib.urlopen(solr_select).read()
-    stats.end()
-    try:
-        results = simplejson.loads(json_data)
-    except:
+    params = {
+        'fl': 'ia',
+        'q.op': 'AND',
+        'q': web.urlquote(q)
+    }
+    results = inside_solr_select(params)
+    if 'error' in results:
         return None
+
     return results['response']['numFound']
 
 class search_inside(delegate.page):
@@ -101,16 +139,10 @@ class search_inside(delegate.page):
                 ('hl.maxAnalyzedChars', '-1'),
                 ('wt', 'json'),
             ]
-            solr_select = solr_select_url + '?' + '&'.join("%s=%s" % (k, unicode(v)) for k, v in solr_params)
-            stats.begin("solr", url=solr_select)
-            json_data = urllib.urlopen(solr_select).read()
-            stats.end()
-           
-            try:
-                results = simplejson.loads(json_data)
-            except:
-                m = re_query_parser_error.search(json_data)
-                return { 'error': web.htmlunquote(m.group(1)) }
+            results = inside_solr_select(dict(solr_params))
+            # If there is any error in gettig the response, return the error
+            if 'error' in results:
+                return results
 
             ekey_doc = {}
             for doc in results['response']['docs']:
