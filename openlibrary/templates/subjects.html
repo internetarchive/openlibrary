@@ -562,15 +562,16 @@ $jsdef renderPublishers(publishers):
         </span>
         <span class="count">$sprintf(ungettext("%s edition", "%s editions", p.count), commify(p.count))</span>
          <br/>
-<div id="resultsPublishers">
-    <div class="head">
-        <h3>$_("Prominent Publishers")</h3>
-        <div class="smallest lightgreen sansserif">$_("who have published the most books on this subject")</div>
-    </div>
-    <div class="unordered">
-        $:renderPublishers(page.publishers[:20])
-    </div>
-</div>
+
+$# <div id="resultsPublishers">
+$#     <div class="head">
+$#         <h3>$_("Prominent Publishers")</h3>
+$#         <div class="smallest lightgreen sansserif">$_("who have published the most books on this subject")</div>
+$#     </div>
+$#     <div class="unordered">
+$#         $:renderPublishers(page.publishers[:20])
+$#     </div>
+$# </div>
 
 $if "lists" in ctx.features:    
     <style type="text/css">
