@@ -193,7 +193,7 @@ def update_waitinglist(book_key):
 
     # Mark the first entry in the waiting-list as available if the book
     # is not checked out.
-    if not checkedout and wl:
+    if not checkedout and wl and wl[0]['status'] != 'available':
         # one day
         expiry = datetime.datetime.utcnow() + datetime.timedelta(1)
         update_doc(wl[0], status='available', expiry=expiry.isoformat())
