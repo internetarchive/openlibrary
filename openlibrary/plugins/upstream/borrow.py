@@ -324,7 +324,17 @@ class borrow_admin_no_update(delegate.page):
             
         raise web.seeother(web.ctx.path) # $$$ why doesn't this redirect to borrow_admin_no_update?
 
-        
+class ia_loan_status(delegate.page):
+    path = r"/ia_loan_status/(.*)"
+
+    def GET(self, itemid):
+        loan = web.ctx.site.store.get("loan-" + itemid)
+        d = {
+            'identifier': itemid,
+            'checkedout': bool(loan)
+        }
+        return delegate.RawText(simplejson.dumps(d), content_type="application/json")
+
 # Handler for /iauth/{itemid}
 class ia_auth(delegate.page):
     path = r"/ia_auth/(.*)"
