@@ -590,14 +590,14 @@ def get_all_loaned_out():
         raise Exception('Loan status server not available')
 
 def is_loaned_out(resource_id):
-
     # bookreader loan status is stored in the private data store
     if resource_id.startswith('bookreader'):
         # Check our local status
         loan_key = get_loan_key(resource_id)
         if not loan_key:
             # No loan recorded
-            return False
+            identifier = resource_id[len('bookreader:'):]
+            return is_loaned_out_on_ia(identifier)
 
         # Find the loan and check if it has expired
         loan = web.ctx.site.store.get(loan_key)
@@ -610,6 +610,11 @@ def is_loaned_out(resource_id):
     # Assume ACS4 loan - check status server
     status = get_loan_status(resource_id)
     return is_loaned_out_from_status(status)
+
+def is_loaned_out_on_ia(identifier):
+    url = "https://archive.org/services/borrow/%s?action=status" % identifier
+    response = simplejson.loads(urllib2.urlopen(url).read())
+    return response and response.get('checkedout')
     
 def is_loaned_out_from_status(status):
     if not status:
