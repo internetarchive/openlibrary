@@ -20,7 +20,7 @@ from infogami.infobase.client import Thing, Changeset, storify
 
 from openlibrary.core.helpers import commify, parse_datetime
 from openlibrary.core.middleware import GZipMiddleware
-from openlibrary.core import cache
+from openlibrary.core import cache, ab
     
 class MultiDict(DictMixin):
     """Ordered Dictionary that can store multiple values.
@@ -651,7 +651,8 @@ def setup():
     web.template.Template.globals.update({
         'HTML': HTML,
         'request': Request(),
-        'logger': logging.getLogger("openlibrary.template")
+        'logger': logging.getLogger("openlibrary.template"),
+        'get_ab_value': ab.get_ab_value
     })
     
     from openlibrary.core import helpers as h

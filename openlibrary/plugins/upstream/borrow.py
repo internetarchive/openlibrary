@@ -25,6 +25,7 @@ from openlibrary.core import stats
 from openlibrary.core import msgbroker
 from openlibrary.core import waitinglist
 from openlibrary import accounts
+from openlibrary.core import ab
 
 from lxml import etree
 
@@ -99,7 +100,8 @@ class borrow(delegate.page):
             have_returned = True
         else:
             have_returned = False
-        
+
+        ab.participate("borrow-layout")
         return render_template("borrow", edition, loans, have_returned)
         
     def POST(self, key):
@@ -126,6 +128,9 @@ class borrow(delegate.page):
             
             if resource_type not in ['epub', 'pdf', 'bookreader']:
                 raise web.seeother(error_redirect)
+
+            if resource_type == 'bookreader':
+                ab.convert("borrow-layout")
             
             if user_can_borrow_edition(user, edition, resource_type):
                 loan = Loan(user.key, key, resource_type)

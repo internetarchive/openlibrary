@@ -65,7 +65,10 @@ $else:
                     <table cellpadding="0" cellspacing="0" border="0"><tbody>
                         <tr>
                             <td class="icon"><img src="/images/icons/icon_thumbsup-borrow.png" width="25" height="25"/></td>
-                            <td>Read online now.<br/>No extra software!</td>
+                            <td>
+                                <div class="ab-control ab-alt-one-row">Read online now.<br/>No extra software!</div>
+                                <div class="ab-experiment ab-alt-two-rows"><strong>Recommended!</strong><br/>No extra software required.</div>
+                        </td>
                         </tr>
                     </tbody></table>
                 </div>
@@ -99,3 +102,28 @@ $else:
     <input type="submit" value="Borrow This Book" id="borrowBtn" name="borrowBtn" class="hidden"/>
     </form>
     </div>
+
+<style type="text/css">
+    .ab-experiment {
+        display: none;
+    }
+    $if get_ab_value("borrow-layout") == "two-rows":
+        .ab-alt-one-row {
+            display: none;
+        }
+        .ab-alt-two-rows {
+            display: block;
+            text-align: left !important;
+            padding: 0px;
+        }
+        form#borrowbook fieldset {
+            float: none;
+        } 
+        form#borrowbook fieldset.online {
+            width: 455px;
+        }
+        form#borrowbook fieldset.online > div {
+            width: auto;
+            padding: 20px 0px 20px 20px;
+        }
+</style>
