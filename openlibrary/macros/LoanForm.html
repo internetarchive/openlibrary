@@ -67,7 +67,7 @@ $else:
                             <td class="icon"><img src="/images/icons/icon_thumbsup-borrow.png" width="25" height="25"/></td>
                             <td>
                                 <div class="ab-control ab-alt-one-row">Read online now.<br/>No extra software!</div>
-                                <div class="ab-experiment ab-alt-two-rows"><strong>Recommended!</strong><br/>No extra software required.</div>
+                                <div class="ab-experiment ab-alt-two-rows ab-alt-one-row-recommended"><strong>Recommended!</strong><br/>No extra software required.</div>
                         </td>
                         </tr>
                     </tbody></table>
@@ -125,5 +125,18 @@ $else:
         form#borrowbook fieldset.online > div {
             width: auto;
             padding: 20px 0px 20px 20px;
+        }
+    $elif get_ab_value("borrow-layout") == "one-row-recommended":
+        .ab-alt-one-row {
+            display: none;
+        }
+        .ab-alt-one-row-recommended {
+            display: block;
+        }
+        form#borrowbook fieldset div {
+            text-align: left;
+        }
+        form#borrowbook fieldset table td {
+            text-align: left;
         }
 </style>
