@@ -45,7 +45,8 @@ def participate(testname, alternatives=None):
         ab_config = config.get("ab", {})
         alternatives = ab_config.get(testname)
     if alternatives:
-        response = get_session().participate(testname, alternatives)
+        force = web.input(_method="GET").get("sixpack-force-" + testname)
+        response = get_session().participate(testname, alternatives, force=force)
         logger.info("participate %s %s -> %s", testname, alternatives, response)
         value = response['alternative']['name']
     else:
