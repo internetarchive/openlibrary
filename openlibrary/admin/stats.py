@@ -77,7 +77,13 @@ def store_data(db, data, date):
         vals = data
         db[uid] = vals
     db.save(vals)
-    
+
+    # start storing data in store as well, so that we can phase out couch
+    doc = web.ctx.site.store.get(uid)
+    doc.update(data)
+    doc['type'] = 'admin-stats'
+    web.ctx.site.store[uid] = doc
+
 def run_gathering_functions(infobase_db, coverstore_db, seeds_db, editions_db, works_db, admin_db,
                             start, end, logroot, prefix, key_prefix = None):
     """Runs all the data gathering functions with the given prefix
@@ -107,6 +113,28 @@ def run_gathering_functions(infobase_db, coverstore_db, seeds_db, editions_db, w
             logging.warning("  Failed with %s", k)
     return d
 
+def setup_ol_config(openlibrary_config_file):
+    """Setup OL configuration.
+
+    Required for storing counts in store.
+    """
+    import infogami
+    from infogami import config
+    from infogami.utils import delegate
+
+    config.plugin_path += ['openlibrary.plugins']
+    config.site = "openlibrary.org"
+
+    infogami.load_config(openlibrary_config_file)
+    infogami.config.infobase_parameters = dict(type="ol")
+
+    if config.get("infobase_config_file"):
+        dir = os.path.dirname(openlibrary_config_file)
+        path = os.path.join(dir, config.infobase_config_file)
+        config.infobase = yaml.safe_load(open(path).read())
+
+    infogami._setup()
+
 def main(infobase_config, openlibrary_config, coverstore_config, ndays = 1):
     logging.basicConfig(level=logging.DEBUG, format = "%(levelname)-8s : %(filename)-12s:%(lineno)4d : %(message)s")
     logging.info("Parsing config file")
@@ -118,6 +146,9 @@ def main(infobase_config, openlibrary_config, coverstore_config, ndays = 1):
     except KeyError,k:
         logging.critical("Config file section '%s' missing", k.args[0])
         return -1
+
+    setup_ol_config(openlibrary_config)
+
     # Gather delta and total counts
     # Total counts are simply computed and updated for the current day
     # Delta counts are computed by subtracting the current total from yesterday's total
