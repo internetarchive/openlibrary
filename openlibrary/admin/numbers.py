@@ -156,18 +156,15 @@ def admin_range__loans(**kargs):
     WARNING: This script must be run on the node that has infobase logs.
     """
     try:
-        logroot    = kargs['logroot']
+        db         = kargs['thingdb']
         start      = kargs['start']
     except KeyError, k:
         raise TypeError("%s is a required argument for admin_range__loans"%k)
-    if os.path.exists(logroot):
-        path = os.path.join(logroot, "%04d/%02d/%02d.log" % (start.year, start.month, start.day))
-        if os.path.exists(path):
-            return sum(1 for line in open(path) if '"action": "store.put"' in line and '"type": "/type/loan"' in line)
-        else:
-            return 0
-    else:
-        return NoStats("File not found %s" % logroot)
+
+    q = "select count(*) as count from stats where type='loan' and created::date=$date"
+    date = "%04d/%02d/%02d" % (start.year, start.month, start.day)
+    result = db.query(q, vars={"date": date})
+    return result[0].count
 
 def admin_total__authors(**kargs):
     try:
