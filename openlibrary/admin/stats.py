@@ -79,7 +79,7 @@ def store_data(db, data, date):
     db.save(vals)
 
     # start storing data in store as well, so that we can phase out couch
-    doc = web.ctx.site.store.get(uid)
+    doc = web.ctx.site.store.get(uid) or {}
     doc.update(data)
     doc['type'] = 'admin-stats'
     web.ctx.site.store[uid] = doc
