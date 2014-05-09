@@ -177,7 +177,7 @@ $ library = (get_library() if 'inlibrary' in ctx.features else None)
                             </span>
                         $elif doc.overdrive:
                             <span class="actions read">
-                                <a href="http://search.overdrive.com/SearchResults.aspx?ReserveID={$(doc.overdrive[0])}" title="Link to overdrive.com">
+                                <a href="http://www.overdrive.com/search?q={$(doc.overdrive[0])}" title="Link to overdrive.com">
                                     <span class="image borrow"></span>
                                     <span class="label">Borrow</span>
                                 </a>
