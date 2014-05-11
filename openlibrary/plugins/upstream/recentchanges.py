@@ -156,7 +156,7 @@ class recentchanges_view(delegate.page):
                 return render_template("recentchanges/default/view", change)
                 
     def render_json(self, change):
-        return delegate.RawText(change.dict(), content_type="application/json")
+        return delegate.RawText(simplejson.dumps(change.dict()), content_type="application/json")
                 
     def POST(self, id):
         if not features.is_enabled("undo"):
