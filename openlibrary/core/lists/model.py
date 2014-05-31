@@ -7,6 +7,7 @@ import urllib, urllib2
 import couchdb
 import simplejson
 import web
+import logging
 
 from infogami import config
 from infogami.infobase import client, common
@@ -16,6 +17,8 @@ from openlibrary.core import helpers as h
 from openlibrary.core import cache
 
 from openlibrary.plugins.worksearch.search import get_works_solr
+
+logger = logging.getLogger("openlibrary.lists.model")
 
 # this will be imported on demand to avoid circular dependency
 subjects = None
@@ -287,12 +290,22 @@ class ListMixin:
     def _get_all_subjects(self):
         solr = get_works_solr()
         q = self._get_solr_query_for_subjects()
+
+        # Solr has a maxBooleanClauses constraint there too many seeds, the 
+        if len(self.seeds) > 500:
+            logger.warn("More than 500 seeds. skipping solr query for finding subjects.")
+            return []
+
         facet_names = ['subject_facet', 'place_facet', 'person_facet', 'time_facet']
-        result = solr.select(q, 
-            fields=[], 
-            facets=facet_names,
-            facet_limit=20,
-            facet_mincount=1)
+        try:
+            result = solr.select(q, 
+                fields=[], 
+                facets=facet_names,
+                facet_limit=20,
+                facet_mincount=1)
+        except IOError:
+            logger.error("Error in finding subjects of list %s", self.key, exc_info=True)
+            return []
 
         def get_subject_prefix(facet_name):
             name = facet_name.replace("_facet", "")
