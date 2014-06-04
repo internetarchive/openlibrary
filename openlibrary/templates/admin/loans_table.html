@@ -1,4 +1,4 @@
-$def with (loans, show_percent=False, stats={})
+$def with (loans, show_percent=False, stats={}, waiting_loan=False)
 
 $def render_percents():
     $ total_loans = stats.get("total_loans") or len(loans)
@@ -32,7 +32,10 @@ $else:
                     $:render_percents()
                 </th>
                 <th class="expires">$_("Loan Expires")</th>
-                <th class="what">$_("What")</th>
+                $if waiting_loan:
+                    <th class="what">$_("Status")</th>
+                $else:
+                    <th class="what">$_("What")</th>
                 <th class="user">$_("Who")</th>
                 <th>$_("Actions")</th>
             </tr>
@@ -56,14 +59,23 @@ $else:
                     $# :macros.AuthorList(book.get_authors())
                     </span>
                     <div class="date">
-                    Borrowed $datestr(datetime_from_utc_timestamp(loan['loaned_at']))
+                    $if waiting_loan:
+                        Waiting since $datestr(parse_datetime(loan['since']))<br/>
+                        #$loan['position'] among $loan['wl_size'] people waiting for this book<br/>
+                    $else:
+                        Borrowed $datestr(datetime_from_utc_timestamp(loan['loaned_at']))
                     </div>
                 </td>
                 <td class="expires">
-                    $:macros.FormatExpiry(loan['expiry'])
+                    $if 'expiry' in loan:
+                        $:macros.FormatExpiry(loan['expiry'])
+                    $else:
+                        -
                 </td>
                 <td class="what">
-                    $if loan['resource_type'] == 'pdf':
+                    $if waiting_loan:
+                        $loan['status']
+                    $elif loan['resource_type'] == 'pdf':
                         PDF
                     $elif loan['resource_type'] == 'epub':
                         ePub

@@ -238,6 +238,9 @@ $else:
   <em>Account not activated yet.</em>
 </div>
 
+$if user:
+    <h2>$_("Waiting Loans")</h2>
+    $:render_template("admin/loans_table.html", user.get_waitinglist(), waiting_loan=True)
 
 <h2>
     $_("Edit History") 
