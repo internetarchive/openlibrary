@@ -598,7 +598,7 @@ class subject_search(delegate.page):
         q = escape_colon(escape_bracket(q), valid_fields)
         params = {
             "q.op": "AND",
-            "q": web.urlquote(q),
+            "q": q,
             "start": offset,
             "rows": limit,
             "fl": ",".join(valid_fields),
