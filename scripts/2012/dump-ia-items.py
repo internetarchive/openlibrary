@@ -49,7 +49,7 @@ def main():
         p.error("Please specify a database. Try -h for help.")
 
     kw = {
-        "dbn": "mysql",
+        "dbn": "postgres",
         "host": options.host,
         "db": options.database,
         "user": options.user,
