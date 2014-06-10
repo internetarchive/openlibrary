@@ -2,6 +2,9 @@ $def with (list)
 
 $var title: $list.name
 
+$ page = safeint(query_param('page'), 1) - 1
+$ page_size = 50
+
 $jsdef render_seed_count(seed_count):
     $ msg = ungettext("%s seed", "%s seeds", seed_count)
     $:sprintf(msg, seed_count)
@@ -149,7 +152,7 @@ function get_seed_count() {
             $:format(list.description)
 
         <ul id="listResults" class="narrow">
-        $for seed in list.get_seeds(sort=True):
+        $for seed in list.get_seeds(sort=True)[page*page_size:page*page_size+page_size]:
             <li id="seed-$loop.index">
                 $ cover = seed.get_cover()
                 $ cover_url = cover and cover.url("M") or "/images/icons/avatar_book-sm.png"
@@ -236,6 +239,9 @@ function get_seed_count() {
     </div> 
  
     <div class="clearfix"></div> 
+
+    $:macros.Pager(page+1, len(list.seeds), page_size)
+
     
     $:render_template("lib/history", list)
 </div>
