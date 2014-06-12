@@ -30,7 +30,7 @@ import processors
 
 delegate.app.add_processor(processors.ReadableUrlProcessor())
 delegate.app.add_processor(processors.ProfileProcessor())
-
+delegate.app.add_processor(processors.CORSProcessor())
 
 try:
     from infogami.plugins.api import code as api
