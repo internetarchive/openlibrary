@@ -334,9 +334,17 @@ class ia_loan_status(delegate.page):
 
     def GET(self, itemid):
         loan = web.ctx.site.store.get("loan-" + itemid)
+        has_loan = bool(loan)
+
+        edition_keys = web.ctx.site.things({"type": "/type/edition", "ocaid": itemid})
+        editions = web.ctx.site.get_many(edition_keys)
+        has_waitinglist = any(e.get_waitinglist_size() > 0 for e in editions)
+
         d = {
             'identifier': itemid,
-            'checkedout': bool(loan)
+            'checkedout': has_loan or has_waitinglist,
+            'has_loan': has_loan,
+            'has_waitinglist': has_waitinglist
         }
         return delegate.RawText(simplejson.dumps(d), content_type="application/json")
 
