@@ -12,7 +12,17 @@ $var title: [Admin Center] People
     <h2>$_("Find Account")</h2>
 </div>
 
-<table id="adminHistory" style="clear: both;">
+<style type="text/css">
+.user-search td {
+    font-size: 1.0em !important;
+}
+input#email {
+    padding: 3px; 
+    width: 400px;
+}
+</style>
+
+<table class="user-search" id="adminHistory" style="clear: both;">
 <tbody>
     <tr>
         <td>$_("Email Address:")</td>
