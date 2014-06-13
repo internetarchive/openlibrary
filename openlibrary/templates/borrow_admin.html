@@ -109,6 +109,39 @@ ul.inner {
     </div>
 
     <div class="section">
+        <h3>Borrow Status</h3>
+
+        $ status = get_borrow_status(page.ocaid)
+        <div>
+        $if status.checkedout:
+            <strong>Status: Not Available</strong>
+        $else:
+            <strong>Status: Available</strong>
+        <div>
+        <div>
+            <strong>Reason:</strong>
+            $if status.has_loan: Checkedout on OL
+            $elif status.has_waitinglist: Some people are on the waiting list
+            $elif status.checkedout_on_ia: Checkedout on IA
+            $else: not checked out either on OL or IA
+        </div>
+        <br/>
+        <div>Sources:
+        <ul>
+            <li>Open Library - $cond(status.has_loan, 'Checked out', 'Not checked out')$cond(status.has_waitinglist, ", but have people on waiting list", "")</li>
+            <li>Internet Archive - $cond(status.checkedout_on_ia, 'Checked out', 'Not checked out')</li>
+        </ul>
+        </div>
+
+        <div>Formats:
+            <ul>
+                <li>Bookreader - $status.resource_bookreader</li>
+                <li>PDF - $status.resource_pdf</li>
+                <li>ePub - $status.resource_epub</li>
+            </ul>
+        </div>
+    </div>
+    <div class="section">
         <h3>Book Info</h3>
         <ul>
             <li>key: <a href="$page.key">$page.key</a></li>

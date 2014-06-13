@@ -333,20 +333,46 @@ class ia_loan_status(delegate.page):
     path = r"/ia_loan_status/(.*)"
 
     def GET(self, itemid):
-        loan = web.ctx.site.store.get("loan-" + itemid)
-        has_loan = bool(loan)
-
-        edition_keys = web.ctx.site.things({"type": "/type/edition", "ocaid": itemid})
-        editions = web.ctx.site.get_many(edition_keys)
-        has_waitinglist = any(e.get_waitinglist_size() > 0 for e in editions)
-
-        d = {
-            'identifier': itemid,
-            'checkedout': has_loan or has_waitinglist,
-            'has_loan': has_loan,
-            'has_waitinglist': has_waitinglist
-        }
+        d = get_borrow_status(itemid, include_resources=False, include_ia=False)
         return delegate.RawText(simplejson.dumps(d), content_type="application/json")
+
+@public
+def get_borrow_status(itemid, include_resources=True, include_ia=True):
+    """Returns borrow status for each of the sources and formats.
+    """
+    loan = web.ctx.site.store.get("loan-" + itemid)
+    has_loan = bool(loan)
+
+    edition_keys = web.ctx.site.things({"type": "/type/edition", "ocaid": itemid})
+    editions = web.ctx.site.get_many(edition_keys)
+    has_waitinglist = editions and any(e.get_waitinglist_size() > 0 for e in editions)
+
+    d = {
+        'identifier': itemid,
+        'checkedout': has_loan or has_waitinglist,
+        'has_loan': has_loan,
+        'has_waitinglist': has_waitinglist,
+    }
+    if include_ia:
+        ia_checkedout = is_loaned_out_on_ia(itemid)
+        d['checkedout'] = d['checkedout'] or ia_checkedout
+        d['checkedout_on_ia'] = ia_checkedout
+
+    if include_resources:
+        d.update({
+            'resource_bookreader': 'absent',
+            'resource_pdf': 'absent',
+            'resource_epub': 'absent',
+        })
+        if editions:
+            resources = editions[0].get_lending_resources()
+            for resource_id in resources:
+                resource_type = "resource_" + resource_id.replace("acs:", "").split(":", 1)[0]
+                if is_loaned_out(resource_id):
+                    d[resource_type] = 'checkedout'
+                else:
+                    d[resource_type] = 'available'
+    return web.storage(d)
 
 # Handler for /iauth/{itemid}
 class ia_auth(delegate.page):
