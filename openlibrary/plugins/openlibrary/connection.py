@@ -484,15 +484,16 @@ class MemcacheMiddleware(ConnectionMiddleware):
     def account_request(self, sitename, path, method="GET", data=None):
         # For post requests, remove the account entry from the cache.
         if method == "POST" and isinstance(data, dict):
+            deletes = []
             if 'username' in data:
-                self.mc_delete("/_store/account/" + data["username"])
+                deletes.append("/_store/account/" + data["username"])
             if 'email' in data:
-                self.mc_delete("/_store/account-email/" + data["email"].lower())
+                deletes.append("/_store/account-email/" + data["email"])
+                deletes.append("/_store/account-email/" + data["email"].lower())
+
+            self.mc_delete_multi(deletes)
             result = ConnectionMiddleware.account_request(self, sitename, path, method, data)
-            if 'username' in data:
-                self.mc_delete("/_store/account/" + data["username"])
-            if 'email' in data:
-                self.mc_delete("/_store/account-email/" + data["email"].lower())
+            self.mc_delete_multi(deletes)
         else:
             result = ConnectionMiddleware.account_request(self, sitename, path, method, data)
         return result
