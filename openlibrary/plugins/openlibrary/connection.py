@@ -487,7 +487,20 @@ class MemcacheMiddleware(ConnectionMiddleware):
             deletes = []
             if 'username' in data:
                 deletes.append("/_store/account/" + data["username"])
+
+                # get the email from account doc and invalidate the email.
+                # required in cases of email change.
+                try:
+                    docjson = self.store_get(sitename, "/_store/account/" + data['username'])
+                    doc = simplejson.loads(docjson)
+                    deletes.append("/_store/account-email/" + doc["email"])
+                    deletes.append("/_store/account-email/" + doc["email"].lower())
+                except client.ClientException:
+                    # ignore
+                    pass
             if 'email' in data:
+                # if email is being passed, that that email doc is likely to be changed. 
+                # remove that also from cache.
                 deletes.append("/_store/account-email/" + data["email"])
                 deletes.append("/_store/account-email/" + data["email"].lower())
 
