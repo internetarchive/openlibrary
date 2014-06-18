@@ -205,13 +205,6 @@ $if wlsize > 0 and (not waiting_loan or waiting_loan['status'] != 'available'):
                 </div>
                 </form>            
             </div>
-
-    $elif len(loans) >= 5:
-        $# already loaned maximum number of books
-        <div class="message stop">
-            <h2 class="sansserif">Hang on. You've hit the lending limit of 5 concurrent titles.</h2>
-            <p>You can free up space by returning one of <a href="/account/loans/" target="newWindow" title="Open link in a new browser window">your current loans</a> early.</p>
-        </div>
     $elif not available_loans and ctx.user and ctx.user.is_waiting_for(page):
         <div class="message info">
             <h2 class="sansserif">This book is checked out
@@ -241,7 +234,13 @@ $if wlsize > 0 and (not waiting_loan or waiting_loan['status'] != 'available'):
                 <p style="margin-top: 5px;"><a href="javascript:;" class="submit">Join the waiting list</a> to reserve the book for you when it is available.
                 </p>
             </form>
-        </div>            
+        </div>
+    $elif len(loans) >= 5:
+        $# already loaned maximum number of books
+        <div class="message stop">
+            <h2 class="sansserif">Hang on. You've hit the lending limit of 5 concurrent titles.</h2>
+            <p>You can free up space by returning one of <a href="/account/loans/" target="newWindow" title="Open link in a new browser window">your current loans</a> early.</p>
+        </div>               
     $else:
         $# We can borrow it!
         $ user_can_borrow_this = True
