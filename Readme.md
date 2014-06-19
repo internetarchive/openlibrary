@@ -4,6 +4,8 @@ Open web page for every book ever published.
 
 This repository contains the code that powers https://openlibrary.org/
 
+[![Build Status](https://travis-ci.org/internetarchive/openlibrary.svg?branch=master)](https://travis-ci.org/internetarchive/openlibrary)
+
 ## Code Oraganization
 
 * openlibrary/core - core openlibrary functionality, imported and used by www
@@ -15,3 +17,4 @@ This repository contains the code that powers https://openlibrary.org/
 ## License
 
 All source code published here is available under the terms of the GNU Affero General Public License, version 3. Please see http://gplv3.fsf.org/ for more information.
+
