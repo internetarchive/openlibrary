@@ -3,5 +3,5 @@ python:
     - "2.7"
 #before_install:
 #    - sudo apt-get install -qq python-lxml python-yaml python-psycopg2
-install: pip install requirements.txt
+install: pip install -r requirements.txt
 script: make test
