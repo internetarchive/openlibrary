@@ -1,0 +1,24 @@
+# requirements for running tests
+# Expects some apt packages are already installed.
+# see .travis.yml for more details.
+Babel==0.9.6
+argparse==1.2.1
+BeautifulSoup==3.2.0
+CouchDB==0.8
+DBUtils==1.1
+Genshi==0.6
+gunicorn==0.13.4
+iptools==0.4.0
+pymarc==2.8.4
+pytest==2.2.0
+python-memcached==1.48
+simplejson==2.3.0
+Sphinx==1.1.2
+supervisor==3.0a12
+web.py==0.33
+pystatsd==0.1.6
+celery==2.4.5
+eventer==0.1.1
+SQLAlchemy==0.7.4
+Pygments==1.4
+OL-GeoIP==1.2.4
