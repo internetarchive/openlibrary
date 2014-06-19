@@ -25,3 +25,5 @@ OL-GeoIP==1.2.4
 lxml==2.3.2
 psycopg2==2.4.3
 PyYAML==3.10
+mockcache==1.0.1
+sixpack-client==1.1.0
