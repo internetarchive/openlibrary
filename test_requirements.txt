@@ -22,3 +22,6 @@ eventer==0.1.1
 SQLAlchemy==0.7.4
 Pygments==1.4
 OL-GeoIP==1.2.4
+lxml==2.3.2
+psycopg2==2.4.3
+PyYAML==3.10
