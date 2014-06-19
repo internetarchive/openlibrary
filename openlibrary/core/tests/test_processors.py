@@ -130,7 +130,3 @@ def test_list_urls():
         u"/people/joe/lists/OL1L/foo/edit"
     )
     
-    assert f(u"/people/sam/lists/OL1L/foo") == (
-        u"/people/joe/lists/OL1L", 
-        u"/people/joe/lists/OL1L/foo"
-    )
