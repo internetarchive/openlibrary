@@ -1,5 +1,6 @@
 language: python
 python:
     - "2.7"
-install: pip install https://archive.org/download/ol_vendor/openlibrary.pybundle
+before_install: wget https://archive.org/download/ol_vendor/openlibrary.pybundle -O /tmp/openlibrary.pybundle
+install: pip install /tmp/openlibrary.pybundle
 script: make test
