@@ -28,7 +28,6 @@ Jinja2==2.6
 amqplib==1.0.2
 anyjson==0.3.1
 docutils==0.8.1
-importlib==1.0.2
 kombu==1.5.1
 meld3==0.6.7
 ordereddict==1.1
