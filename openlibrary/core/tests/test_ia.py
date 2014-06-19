@@ -11,38 +11,31 @@ def test_get_metaxml(monkeypatch, mock_memcache):
     import StringIO
     import urllib2
     
-    metaxml = None
+    metadata_json = None
     def urlopen(url):
-        return StringIO.StringIO(metaxml)
+        return StringIO.StringIO(metadata_json)
     
     monkeypatch.setattr(urllib2, "urlopen", urlopen)
     
-    
     # test with correct xml
-    metaxml = """<?xml version="1.0" encoding="UTF-8"?>
-    <metadata>
-        <title>Foo</title>
-        <identifier>foo00bar</identifier>
-        <collection>printdisabled</collection>
-        <collection>inlibrary</collection>
-    </metadata>
+    metadata_json = """{
+        "metadata": {
+            "title": "Foo", 
+            "identifier": "foo00bar",
+            "collection": ["printdisabled", "inlibrary"]
+        }
+    }
     """
     
+    print ia.get_meta_xml("foo00bar")
     assert ia.get_meta_xml("foo00bar") == {
         "title": "Foo", 
         "identifier": "foo00bar",
         "collection": ["printdisabled", "inlibrary"],
-        'external-identifier': [],
+        "access-restricted": False,
+        "_filenames": []
     }
-    
-    # test with html errors
-    metaxml = """<html>\n<head>\n <title>Internet Archive: Error</title>..."""
-    assert ia.get_meta_xml("foo01bar") == {}
-    
-    # test with bad xml
-    metaxml = """<?xml version="1.0" encoding="UTF-8"?>
-    <metadata>
-        <title>Foo</title>
-        <identifier>foo00bar
-    """
+        
+    # test with metadata errors
+    metadata_json = "{}"
     assert ia.get_meta_xml("foo02bar") == {}
