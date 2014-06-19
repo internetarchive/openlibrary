@@ -1,5 +1,5 @@
 Babel==0.9.6
-PIL==1.1.7
+#PIL==1.1.7
 argparse==1.2.1
 BeautifulSoup==3.2.0
 CouchDB==0.8

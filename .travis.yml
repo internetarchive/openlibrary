@@ -1,6 +1,7 @@
 language: python
 python:
     - "2.7"
-before_install: wget https://archive.org/download/ol_vendor/openlibrary.pybundle -O /tmp/openlibrary.pybundle
-install: pip install /tmp/openlibrary.pybundle
+#before_install:
+#    - sudo apt-get install -qq python-lxml python-yaml python-psycopg2
+install: pip install requirements.txt
 script: make test
