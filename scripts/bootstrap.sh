@@ -52,7 +52,8 @@ web.py==0.33
 pystatsd==0.1.6
 eventer==0.1.1
 OL-GeoIP==1.2.4
-mockcache"
+mockcache
+sixpack-client"
 
 REINDEX_SOLR=no
 
@@ -80,7 +81,7 @@ function setup_database() {
 
 function setup_ol() {
     # Download sample dev-instance database from archive.org
-    wget http://archive.org/download/ol_vendor/openlibrary-devinstance.pg_dump.gz -O /tmp/openlibrary-devinstance.pg_dump.gz
+    wget https://archive.org/download/ol_vendor/openlibrary-devinstance.pg_dump.gz -O /tmp/openlibrary-devinstance.pg_dump.gz
     zcat /tmp/openlibrary-devinstance.pg_dump.gz | sudo -u $OL_USER psql openlibrary
 
     # This is an alternative way to install OL from scratch
@@ -95,6 +96,13 @@ function setup_nginx() {
     ln -sf /etc/nginx/sites-available/openlibrary.conf /etc/nginx/sites-enabled/
     sudo /etc/init.d/nginx restart
 }
+
+# pip version 1.5.4 gets into some issues when old version of requests is installed.
+# get the latest version of pip in that case
+if pip --version | grep -q 1.5.4
+then
+    pip install -U pip
+fi
 
 pip install $PYTHON_PACKAGES
 
