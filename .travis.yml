@@ -8,5 +8,5 @@ before_install:
 install: pip install -r test_requirements.txt
 before_script:
   - psql -c 'create database oltest' -U postgres
-  - PYTHONPATH=. python openlibrary/core/schema.py | cat
+  - PYTHONPATH=. python openlibrary/core/schema.py | psql -U postgres oltest
 script: make test
