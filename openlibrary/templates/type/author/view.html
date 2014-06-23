@@ -143,7 +143,12 @@ $ library = (get_library() if 'inlibrary' in ctx.features else None)
                     $for doc in books.works:
                         <li>
                         <span class="bookcover">
-                        $ cover = get_coverstore_url() + "/b/olid/%s-S.jpg" % doc.cover_edition_key if doc.cover_edition_key else "/images/icons/avatar_book-sm.png"
+                        $if doc.get('cover_i'):
+                            $ cover =  get_coverstore_url() + "/b/id/%s-S.jpg" % doc.cover_i
+                        $elif doc.get('cover_edition_key'):
+                            $ cover = get_coverstore_url() + "/b/olid/%s-S.jpg" % doc.cover_edition_key
+                        $else:
+                            $ cover = "/images/icons/avatar_book-sm.png"
                         <a href="$doc.url" title="$doc.title"><img src="$cover" height="70" alt="$doc.title"/></a>
                         </span>
                         <span class="details">

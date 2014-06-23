@@ -375,7 +375,8 @@ def work_object(w): # called by works_by_author
         url = '/works/' + w['key'] + '/' + urlsafe(w['title']),
         cover_edition_key = w.get('cover_edition_key'),
         first_publish_year = (w['first_publish_year'] if 'first_publish_year' in w else None),
-        ia = w.get('ia', [])
+        ia = w.get('ia', []),
+        cover_i = w.get('cover_i')
     )
     if obj['lending_edition']:
         doc = web.ctx.site.store.get("ebooks/books/" + obj['lending_edition']) or {}
@@ -478,7 +479,7 @@ def works_by_author(akey, sort='editions', page=1, rows=100):
     fields = ['key', 'author_name', 'author_key', 'title', 'subtitle',
         'edition_count', 'ia', 'cover_edition_key', 'has_fulltext',
         'first_publish_year', 'public_scan_b', 'lending_edition_s',
-        'overdrive_s', 'ia_collection_s']
+        'overdrive_s', 'ia_collection_s', 'cover_i']
     fl = ','.join(fields)
     solr_select = solr_select_url + "?q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=%s&wt=json" % (q, offset, rows, fl)
     facet_fields = ["author_facet", "language", "publish_year", "publisher_facet", "subject_facet", "person_facet", "place_facet", "time_facet"]
