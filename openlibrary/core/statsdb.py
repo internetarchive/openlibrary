@@ -13,15 +13,11 @@ The stats table in the openlibrary database is of the following schema:
 see schema.py for more details.
 """
 import logging
-import web
 import simplejson
 import datetime
+from .db import get_db
 
 logger = logging.getLogger("openlibrary.statsdb")
-
-@web.memoize
-def get_db():
-    return web.database(**web.config.db_parameters)
 
 def add_entry(key, data, timestamp=None):
     """Adds a new entry to the stats table.
@@ -41,7 +37,7 @@ def add_entry(key, data, timestamp=None):
         db.insert("stats", type='loan', key=key, created=t, updated=t, json=jsontext)
 
 def get_entry(key):
-    result = db.query("SELECT * FROM stats WHERE key=$key", vars=locals())
+    result = get_db().query("SELECT * FROM stats WHERE key=$key", vars=locals())
     if result:
         return result[0]
 
