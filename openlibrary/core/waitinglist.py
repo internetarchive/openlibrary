@@ -16,6 +16,7 @@ import datetime
 import web
 from . import helpers as h
 from .sendmail import sendmail_with_template
+from . import db
 import logging
 from infogami.infobase.client import ClientException
 
@@ -47,6 +48,28 @@ class WaitingLoan(dict):
             delta_hours = delta_seconds / 3600
             return max(0, delta_hours)
         return 0
+
+    @classmethod
+    def query(cls, **kw):
+        kw.setdefault('order', 'since')
+        result = db.where("waitingloan", **kw)
+        return [cls(row) for row in result]
+
+    @classmethod
+    def new(cls, **kw):
+        id = db.insert('waitingloan', **kw)
+        result = db.where('waitingloan', id=id)
+        return cls(result[0])
+
+    @classmethod
+    def find(cls, book_key, user_key):
+        """Returns the waitingloan for given book_key and user_key.
+
+        Returns None if there is no such waiting loan.
+        """
+        result = cls.query(book_key=book_key, user_key=user_key)
+        if result:
+            return result[0]
 
 def _query_values(name, value):
     docs = web.ctx.site.store.values(type="waiting-loan", name=name, value=value, limit=1000)
