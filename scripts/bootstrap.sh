@@ -40,7 +40,8 @@ python-yaml
 python-simplejson
 python-sphinx
 python-celery
-python-sqlalchemy"
+python-sqlalchemy
+python-pytest"
 
 apt-get install -y $APT_PACKAGES
 
@@ -77,7 +78,7 @@ function setup_database() {
     else
         echo "pg_user $OL_USER already exists. no need to setup database"
     fi
-}
+}   
 
 function setup_ol() {
     # Download sample dev-instance database from archive.org
