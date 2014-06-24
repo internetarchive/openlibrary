@@ -37,5 +37,6 @@ where = _proxy("where")
 
 insert = _proxy("insert")
 update = _proxy("update")
-
+delete = _proxy("delete")
+transaction = _proxy("transaction")
 
