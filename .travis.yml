@@ -1,7 +1,12 @@
 language: python
+addons:
+  postgresql: "9.3"
 python:
     - "2.7"
 before_install:
     - sudo apt-get install -qq python-lxml python-yaml python-psycopg2 libgeoip-dev
 install: pip install -r test_requirements.txt
+before_script:
+  - psql -c 'create database oltest' -U postgres
+  - PYTHONPATH=. python openlibrary/core/schema.py | psql -U postgres oltest
 script: make test
