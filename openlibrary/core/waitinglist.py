@@ -80,6 +80,19 @@ class WaitingLoan(dict):
         """
         db.delete("waitingloan", where="id=$id", vars=self)
 
+class Stats:
+    def get_popular_books(self, limit=10):
+        rows = db.query(
+            "select book_key, count(*) as count" +
+            " from waitingloan" +
+            " group by 1" +
+            " order by 2 desc" +
+            " limit $limit", vars=locals()).list()
+        docs = web.ctx.site.get_many([row.book_key for row in rows])
+        docs_dict = dict((doc.key, doc) for doc in docs)
+        for row in rows:
+            row.book = docs_dict.get(row.book_key)
+        return rows
 
 def _query_values(name, value):
     docs = web.ctx.site.store.values(type="waiting-loan", name=name, value=value, limit=1000)

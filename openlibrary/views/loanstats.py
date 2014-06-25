@@ -5,6 +5,7 @@ import web
 
 from .. import app
 from ..core.loanstats import LoanStats
+from ..core.waitinglist import Stats as WLStats
 
 class stats(app.view):
     path = "/stats"
@@ -59,3 +60,13 @@ class lending_stats(app.view):
             begin = now.replace(hour=0, minute=0, second=0, microsecond=0) - datetime.timedelta(days=delta_days)
             end = now
         return begin, end
+
+class waitinglist_stats(app.view):
+    path = "/stats/waitinglists"
+
+    def is_enabled(self):
+        return "wlstats" in web.ctx.features
+
+    def GET(self):
+        stats = WLStats()
+        return app.render_template("stats/waitinglists.html", stats)
