@@ -378,3 +378,37 @@ def update_all_ebook_documents():
     records = web.ctx.site.store.values(type="ebook", name="borrowed", value="true", limit=-1)
     for r in records:
         update_waitinglist(r['book_key'])
+
+def sync_waitingloans():
+    """Syncs the waitingloans from store to db.
+    """
+    with db.transaction():
+        records = web.ctx.site.store.values(type="waiting-loan", limit=-1)
+        for r in records:
+            w = WaitingLoan.find(r['user'], r['book'])
+            if not w:
+                WaitingLoan.new(
+                    user_key=r['user'],
+                    book_key=r['book'],
+                    status=r['status'],
+                    position=r['position'],
+                    wl_size=r['wl_size'],
+                    since=r['since'],
+                    last_update=r['last-update'],
+                    expiry=r.get('expiry'),
+                    available_email_sent=r.get('available_email_sent', False))
+
+def verify_sync():
+    records = web.ctx.site.store.values(type="waiting-loan", limit=-1)
+    for r in records:
+        w = WaitingLoan.find(r['user'], r['book'])
+        if w is None:
+            print "MISSING", r['user'], r['book']
+        else:
+            def values(d, keys):
+                return [d.get(k) for k in keys]
+            keys = ['status', 'position', 'wl_size']
+            if values(w, ['user_key', 'book_key'] + keys) != values(r, ['user', 'book'] + keys):
+                print "MISMATCH", w, r
+                print values(w, ['user_key', 'book_key'] + keys)
+                print values(r, ['user', 'book'] + keys)
