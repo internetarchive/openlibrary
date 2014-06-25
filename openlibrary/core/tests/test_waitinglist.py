@@ -2,6 +2,7 @@ from openlibrary.core.waitinglist import WaitingLoan
 from openlibrary.core import db
 import web
 import datetime
+import json
 
 class TestWaitingLoan:
     def setup_method(self, method):
@@ -23,3 +24,10 @@ class TestWaitingLoan:
         assert isinstance(w['last_update'], datetime.datetime)
         assert w['expiry'] is None
         assert w['available_email_sent'] is False
+
+    def test_dict(self):
+        user_key = '/people/user1'
+        book_key = '/books/OL1234M'
+        w = WaitingLoan.new(user_key=user_key, book_key=book_key)
+        # ensure that w.dict() is JSON-able
+        json.dumps(w.dict())

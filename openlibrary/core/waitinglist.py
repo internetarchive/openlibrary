@@ -49,6 +49,17 @@ class WaitingLoan(dict):
             return max(0, delta_hours)
         return 0
 
+    def dict(self):
+        """Converts this object into JSON-able dict.
+
+        Converts all datetime objects into strings.
+        """
+        def process_value(v):
+            if isinstance(v, datetime.datetime):
+                v = v.isoformat()
+            return v
+        return dict((k, process_value(v)) for k, v in self.items())
+
     @classmethod
     def query(cls, **kw):
         kw.setdefault('order', 'since')
