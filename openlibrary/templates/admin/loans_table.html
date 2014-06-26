@@ -43,7 +43,7 @@ $else:
         <tbody>
         <!-- for each borrow -->
         $for loan in loans:
-            $ book = get_document(loan['book'])
+            $ book = get_document(loan.get('book') or loan.get('book_key'))
             <tr>
                 <td class="cover">
                 $:render_template('covers/book_cover_small', book)
