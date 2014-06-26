@@ -229,7 +229,7 @@ ul.inner {
         <table>
             <thead>
                 <tr>
-                    <th class="xtitles">
+                    <th class="xtitles" colspan="2">
                     $ungettext("%d person waiting", "%d people waiting", len(waitinglist), len(waitinglist))
                     </th>
                     <th class="status">Status</th>
@@ -240,6 +240,7 @@ ul.inner {
                 $ u = record.get_user()
                 $ status = record['status']
                 <tr class="row-$status">
+                    <td class="serial">$loop.index</td>
                     <td class="titles">
                         <a href="/admin$u.key">$u.name</a>
                         <div class="date">
@@ -308,6 +309,12 @@ tr.row-available {
 td.status, th.status {
     padding: 15px;
     text-align: center;
+}
+
+td.serial {
+    padding: 15px 0px;
+    text-align: right;
+    width: 20px;
 }
 
 </style>
