@@ -62,7 +62,12 @@ class WaitingLoan(dict):
     @classmethod
     def query(cls, **kw):
         kw.setdefault('order', 'since')
-        result = db.where("waitingloan", **kw)
+        # as of web.py 0.33, the version used by OL, 
+        # db.where doesn't work with no conditions
+        if kw:
+            result = db.where("waitingloan", **kw)
+        else:
+            result = db.select('waitingloan')
         return [cls(row) for row in result]
 
     @classmethod
