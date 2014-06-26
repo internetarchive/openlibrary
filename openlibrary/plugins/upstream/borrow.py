@@ -366,8 +366,13 @@ def get_borrow_status(itemid, include_resources=True, include_ia=True):
         })
         if editions:
             resources = editions[0].get_lending_resources()
-            for resource_id in resources:
-                resource_type = "resource_" + resource_id.replace("acs:", "").split(":", 1)[0]
+            resource_pattern = r'acs:(\w+):(.*)'
+            for resource_urn in resources:
+                if resource_urn.startswith('acs:'):
+                    (resource_type, resource_id) = re.match(resource_pattern, resource_urn).groups()
+                else:
+                    resource_type, resource_id = "bookreader", resource_urn
+                resource_type = "resource_" + resource_type
                 if is_loaned_out(resource_id):
                     d[resource_type] = 'checkedout'
                 else:
