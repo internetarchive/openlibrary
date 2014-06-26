@@ -224,7 +224,7 @@ ul.inner {
     <div class="section">
         <h3>Waiting List</h3>
         $ wl = page.get_waitinglist()
-        <pre>$:json_encode(wl, indent="  ", sort_keys=True)</pre>
+        <pre>$:json_encode([w.dict() for w in wl], indent="  ", sort_keys=True)</pre>
     </div>
 
     <div class="section">
