@@ -64,7 +64,7 @@ class WaitingLoan(dict):
         kw.setdefault('order', 'since')
         # as of web.py 0.33, the version used by OL, 
         # db.where doesn't work with no conditions
-        if kw:
+        if len(kw) > 1: # if has more keys other than "order"
             result = db.where("waitingloan", **kw)
         else:
             result = db.select('waitingloan')
