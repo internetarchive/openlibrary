@@ -43,7 +43,14 @@ $else:
         <tbody>
         <!-- for each borrow -->
         $for loan in loans:
-            $ book = get_document(loan.get('book') or loan.get('book_key'))
+            $if waiting_loan:
+                $ book_key = loan['book_key']
+                $ user_key = loan['user_key']
+            $else:
+                $ book_key = loan['book']
+                $ user_key = loan['user']
+            $ book = get_document(book_key)
+            $ user = get_document(user_key)
             <tr>
                 <td class="cover">
                 $:render_template('covers/book_cover_small', book)
@@ -85,12 +92,10 @@ $else:
                         $loan['resource_type']
                 </td>
                 <td class="user">
-                    $# user = get_document(loan['user'])
-                    $# <a href="$user.key">$user.name</a>
-                    <a href="$loan['user']">$loan['user']</a>
+                    <a href="$user.key">$user.key</a>
                 </td>
                 <td class="action">
-                    $ borrow_admin = loan['book'] + '/title/borrow_admin'
+                    $ borrow_admin = book_key + '/title/borrow_admin'
                     <a href="$borrow_admin">debug_info</a><br/><br/>
                     <a href="$borrow_admin?updatestatus=t" class="smaller plain">refresh</a>
                 </td>
