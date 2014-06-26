@@ -19,6 +19,8 @@ $if meta_fields.has_key('contributor'):
 $else:
     $ contrib = None
 
+$ waitinglist = page.get_waitinglist()
+
 $def format_users(users):
     $for user_key in users:
         $ user = get_document(user_key)
@@ -78,6 +80,109 @@ ul.inner {
                 </tbody>
             </table>
         </div>
+    <div class="section">
+        <h3>Current Loans</h3>
+        $ borrow_status = get_borrow_status(page.ocaid)
+        $if current_loans:
+            $ loan = current_loans[0]
+            <div id="borrowTable" class="borrow collapse current-loan">
+            <table>
+                <thead>
+                    <tr>
+                        <th class="xtitles">
+                        $_("1 Current Loan")
+                        </th>
+                        <th class="expires">$_("Loan Expires")</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="titles">
+                            $ user = get_document(loan['user'])
+                            <a href="/admin$user.key">$user.name</a>
+                            <div class="date">
+                                Borrowed $datestr(datetime_from_utc_timestamp(loan['loaned_at']))
+                            </div>
+                        </td>
+                        <td class="expires">
+                            $if loan['expiry'] is None:
+                                $# Not yet fulfilled
+                                <span class="red">Not yet downloaded. </span><br/>
+                                <a href="$loan['loan_link']">Download Now</a>
+                            $else:
+                                $:macros.FormatExpiry(loan['expiry'])
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            </div>
+        $elif borrow_status.checkedout_on_ia:
+            <div class="checkedout-elsewhere">
+                Checked out on Internet Archive.
+            </div>
+        $elif borrow_status.resource_epub == 'checkedout':
+            <div class="checkedout-elsewhere">
+                ACS4 server is showing that ePub is checked out.
+            </div>
+        $elif borrow_status.resource_pdf == 'checkedout':
+            <div class="checkedout-elsewhere">
+                ACS4 server is showing that ePub is checked out.
+            </div>
+        $elif not waitinglist:
+            <div class="available">
+                This title is available to borrow.
+            </div>
+        $else:
+            <em>No current loans.</em>
+    </div>
+
+    <div class="section">
+        <h3>Waiting List</h3>
+        $if waitinglist:
+            <div id="borrowTable" class="borrow collapse waitinglist">
+            <table>
+                <thead>
+                    <tr>
+                        <th class="xtitles" colspan="2">
+                        $ungettext("%d person waiting", "%d people waiting", len(waitinglist), len(waitinglist))
+                        </th>
+                        <th class="status">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                $for record in waitinglist:
+                    $ u = record.get_user()
+                    $ status = record['status']
+                    <tr class="row-$status">
+                        <td class="serial">$loop.index</td>
+                        <td class="titles">
+                            <a href="/admin$u.key">$u.name</a>
+                            <div class="date">
+                                $ ndays = record.get_waiting_in_days()
+                                $ungettext("Waiting for %d day", "Waiting for %d days", ndays, ndays)
+                                <div class="smaller gray">$record['since'].isoformat()</div>
+                            </div>
+                        </td>
+                        <td class="status">
+                            <span class="status-value">$record['status'].title()</span><br/>
+                            $if status == "available":
+                                $ delta_hours = record.get_expiry_in_hours()
+                                <div class="smaller" style="padding-top: 5px;">
+                                    $if delta_hours == 0:
+                                        Less than an hour to borrow it.
+                                    $elif delta_hours == 1:
+                                        One more hour to borrow it.
+                                    $else:
+                                        $delta_hours more hours to borrow it.
+                                </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            </div>
+        $else:
+            <em>No one is waiting for this title.</em>
+    </div>
 
 
     <div class="section">
@@ -221,52 +326,6 @@ ul.inner {
         </ul>
     </div>
 
-    <div class="section">
-        <h3>Waiting List</h3>
-        $ waitinglist = page.get_waitinglist()
-
-        <div id="borrowTable" class="borrow collapse waitinglist">
-        <table>
-            <thead>
-                <tr>
-                    <th class="xtitles" colspan="2">
-                    $ungettext("%d person waiting", "%d people waiting", len(waitinglist), len(waitinglist))
-                    </th>
-                    <th class="status">Status</th>
-                </tr>
-            </thead>
-            <tbody>
-            $for record in waitinglist:
-                $ u = record.get_user()
-                $ status = record['status']
-                <tr class="row-$status">
-                    <td class="serial">$loop.index</td>
-                    <td class="titles">
-                        <a href="/admin$u.key">$u.name</a>
-                        <div class="date">
-                            $ ndays = record.get_waiting_in_days()
-                            $ungettext("Waiting for %d day", "Waiting for %d days", ndays, ndays)
-                            <div class="smaller gray">$record['since'].isoformat()</div>
-                        </div>
-                    </td>
-                    <td class="status">
-                        <span class="status-value">$record['status'].title()</span><br/>
-                        $if status == "available":
-                            $ delta_hours = record.get_expiry_in_hours()
-                            <div class="smaller" style="padding-top: 5px;">
-                                $if delta_hours == 0:                                   
-                                    Less than an hour to borrow it.
-                                $elif delta_hours == 1:                                        
-                                    One more hour to borrow it.
-                                $else:
-                                    $delta_hours more hours to borrow it.
-                            </div>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-        </div>
-    </div>
 
     <div class="section">
         <h3>Actions</h3>
@@ -302,7 +361,7 @@ tr.row-available .status-value {
 }
 
 tr.row-available {
-    background: #fffdcd;
+    background: #eeecad !important;
 }
 
 
@@ -315,6 +374,28 @@ td.serial {
     padding: 15px 0px;
     text-align: right;
     width: 20px;
+}
+
+.current-loan tbody tr {
+     background: #bce2a5 !important;
+}
+
+.checkedout-elsewhere {
+    padding: 15px;
+    background: #e2bca5 !important;
+}
+
+.available {
+     padding: 15px;
+     background: #bce2a5 !important;
+}
+
+.section {
+    margin: 25px 0px;
+}
+
+.section h3 {
+    margin: 1em 0em 0.5em 0em;
 }
 
 </style>
