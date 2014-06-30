@@ -13,6 +13,9 @@ $putctx("sent_neck", True)
     $for link in ctx.get("links", []):
         $:link
 
+    $for tag in ctx.get("metatags", []):
+        $:tag
+
     <script type="text/javascript">
         \$().ready(setupSearch);
         \$().ready(linkbuttons);

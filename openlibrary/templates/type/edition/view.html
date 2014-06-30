@@ -2,6 +2,13 @@ $def with (page)
 
 $var title: $page.title
 
+$add_metatag(property="twitter:card", content="summary")
+$add_metatag(property="twitter:site", content="@openlibrary")
+$add_metatag(property="twitter:title", content=page.title)
+$add_metatag(property="twitter:description", content="View the book on Open Library.")
+$ cover_url = "https:" + (page.get_cover_url("M") or "//openlibrary.org/images/icons/avatar_book-sm.png")
+$add_metatag(property="twitter:image", content=cover_url)
+
 $code:
     def has_any(*keys):
         return any(page[k] for k in keys)

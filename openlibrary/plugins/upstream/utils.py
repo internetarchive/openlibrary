@@ -373,6 +373,23 @@ def putctx(key, value):
     """Save a value in the context."""
     context[key] = value
     return ""
+
+class Metatag:
+    def __init__(self, tag="meta", **attrs):
+        self.tag = tag
+        self.attrs = attrs
+
+    def __str__(self):
+        attrs = " ".join('%s="%s"' % (web.websafe(k), web.websafe(v)) for k, v in self.attrs.items())
+        return "<%s %s>" % (self.tag, attrs)
+
+    def __repr__(self):
+        return "Metatag(%s)" % str(self)
+
+@public
+def add_metatag(tag="meta", **attrs):
+    context.setdefault('metatags', [])
+    context.metatags.append(Metatag(tag, **attrs))
     
 def pad(seq, size, e=None):
     """
