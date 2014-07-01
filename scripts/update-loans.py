@@ -24,8 +24,11 @@ def main():
         borrow.update_all_loan_status()
     elif cmd == "update-waitinglists":
         waitinglist.prune_expired_waitingloans()
+        waitinglist.update_all_waitinglists()
+    elif cmd == "update-waitinglist":
+        waitinglist.update_waitinglist(sys.argv[2])
     else:
-        help()
+        usage()
 
 if __name__ == "__main__":
     main()

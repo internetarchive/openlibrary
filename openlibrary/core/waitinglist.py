@@ -230,14 +230,16 @@ def update_waitinglist(book_key):
     not_available = bool(checkedout or wl)
 
     # update ebook document.
-    ebook.update({
+    ebook2 =dict(ebook)
+    ebook2.update({
         "_key": ebook_key,
         "type": "ebook",
         "book_key": book_key,
         "borrowed": str(not_available).lower(), # store as string "true" or "false"
         "wl_size": len(wl)
     })
-    web.ctx.site.store[ebook['_key']] = ebook
+    if ebook != ebook2: # save if modified
+        web.ctx.site.store[ebook['_key']] = ebook
 
     if wl:
         # If some people are waiting and the book is checked out,
@@ -321,6 +323,14 @@ def prune_expired_waitingloans():
     # Update the checkedout status and position in the WL for each entry
     for r in expired:
         update_waitinglist(r['book_key'])
+
+def update_all_waitinglists():
+    rows = db.query("SELECT distinct(book_key) from waitingloan")
+    for row in rows:
+        try:
+            update_waitinglist(row.book_key)
+        except Exception:
+            logger.error("failed to update waitinglist for %s", row.book_key, exc_info=True)
 
 def update_all_ebook_documents():
     """Updates the status of all ebook documents which are marked as checkedout.
