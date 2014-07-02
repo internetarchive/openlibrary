@@ -21,11 +21,6 @@ $jsdef render_seed_count(seed_count):
     </div> 
     <h1>
         $list.name 
-        <span class="sansserif small black">
-            <strong id="seed-count">Seeds</strong>
-            &nbsp;|&nbsp;
-            <a href="$list.url('/editions')">Activity</a>
-        </span>
     </h1>
     <p class="collapse sansserif">
         <span class="darkgreen"><strong>$:render_seed_count(len(list.seeds))</strong></span>
