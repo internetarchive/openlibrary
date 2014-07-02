@@ -237,6 +237,7 @@ class Edition(Thing):
         """
         d = {}
         if self.ocaid:
+            d['has_ebook'] = True
             d['daisy_url'] = self.url('/daisy')
 
             collections = self.get_ia_collections()
@@ -251,7 +252,7 @@ class Edition(Thing):
             elif 'printdisabled' in collections:
                 pass # ebook is not available 
             else:
-                d['read_url'] = "http://www.archive.org/stream/%s" % self.ocaid
+                d['read_url'] = "https://archive.org/stream/%s" % self.ocaid
         return d
 
     def get_ia_collections(self):
@@ -426,6 +427,38 @@ class Work(Thing):
             return [self._make_subject_link(s, "time:") for s in self.subject_times]
         else:
             return []
+
+    def get_ebook_info(self):
+        """Returns the ebook info with the following fields.
+
+        * read_url - url to read the book
+        * borrow_url - url to borrow the book
+        * borrowed - True if the book is already borrowed
+        * daisy_url - url to access the daisy format of the book
+
+        Sample return values:
+
+            {
+                "read_url": "http://www.archive.org/stream/foo00bar",
+                "daisy_url": "/books/OL1M/foo/daisy"
+            }
+
+            {
+                "daisy_url": "/books/OL1M/foo/daisy",
+                "borrow_url": "/books/OL1M/foo/borrow",
+                "borrowed": False
+            }
+        """
+        solrdata = web.storage(self._solr_data or {})
+        d = {}
+        if solrdata.get('has_fulltext') and solrdata.get('public_scan_b'):
+            d['read_url'] = "https://archive.org/stream/{0}".format(solrdata.ia[0])
+            d['has_ebook'] = True
+        elif solrdata.get('lending_edition'):
+            d['borrow_url'] = "/books/{0}/x/borrow".format(solrdata.lending_edition)
+            d['borrowed'] = solrdata.checked_out
+            d['has_ebook'] = True
+        return d
 
 class Author(Thing):
     """Class to represent /type/author objects in OL.

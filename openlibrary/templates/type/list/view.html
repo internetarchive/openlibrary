@@ -162,8 +162,34 @@ function get_seed_count() {
                 <span class="seed-key hidden">$seed.key</span>
                 <span class="details"> 
                     <span class="resultTitle">
-                        $if ctx.user and ctx.user.key == list.get_owner().key:
-                            <span class="listDelete sansserif smaller"><a href="javascript:;"><span></span>Remove this seed?</a></span>
+                        $if seed.type in ['edition', 'work']:
+                            $ ebook = seed.document.get_ebook_info()
+                            $ doc = seed.document
+                            <!-- $:json_encode(ebook) -->
+                            <span class="actions" style="float: right;">
+                                $if 'read_url' in ebook:
+                                    <a href="$ebook['read_url']" title="$_('Open in online Book Reader. Downloads available in ePub, DAISY, PDF, TXT formats from main book page')">
+                                        <span class="image read"></span>
+                                        <span class="label">$_("Read")</span>
+                                    </a>
+                                $elif 'borrow_url' in ebook:
+                                    $if ebook.get('borrowed'):
+                                        <a href="$ebook['borrow_url']" title="This book is checked out">
+                                            <span class="image checked-out"></span>
+                                            <span class="label">Checked out</span>
+                                        </a>
+                                    $else:
+                                        <a href="$ebook['borrow_url']" title="Borrow book">
+                                            <span class="image borrow"></span>
+                                            <span class="label">Borrow</span>
+                                        </a>
+                                $elif 'daisy_url' in ebook:
+                                    <a href="$ebook['daisy_url']" title="Protected DAISY">
+                                        <span class="image daisy"></span>
+                                        <span class="label">DAISY</span>
+                                    </a>
+                            </span>
+
                         <h3> 
                             <a href="$seed.url" class="results">$seed.title</a>
                         </h3>
@@ -200,7 +226,11 @@ function get_seed_count() {
                             - $commify(seed.work_count) work$("s" if seed.work_count != 1 else "")$cond(seed.ebook_count, ",")
                             $if seed.ebook_count:
                                 $commify(seed.ebook_count) ebook$("s" if seed.ebook_count != 1 else "")
-                        </span> 
+                        </span>
+
+                        $if ctx.user and ctx.user.key == list.get_owner().key:
+                            <span class="sansserif smaller right"><a href="javascript:;"><span></span>Remove this seed?</a></span>
+
                         $if seed.last_update:
                             <span class="time">
                                 Last updated
@@ -245,3 +275,20 @@ function get_seed_count() {
     
     $:render_template("lib/history", list)
 </div>
+
+<style type="text/css">
+ul#listResults span.actions span.image {
+    display: block;
+    height: 24px;
+    width: 24px;
+    margin: 0 auto;
+    float: none;
+}
+span.actions {
+    max-width: none;
+}
+ul#listResults span.actions a span.checked-out {
+    height: 32px;
+    width: 32px;
+}
+</style>
