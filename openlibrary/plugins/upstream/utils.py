@@ -381,7 +381,7 @@ class Metatag:
 
     def __str__(self):
         attrs = " ".join('%s="%s"' % (web.websafe(k), web.websafe(v)) for k, v in self.attrs.items())
-        return "<%s %s>" % (self.tag, attrs)
+        return "<%s %s />" % (self.tag, attrs)
 
     def __repr__(self):
         return "Metatag(%s)" % str(self)
