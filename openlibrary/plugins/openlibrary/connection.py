@@ -451,7 +451,7 @@ class MemcacheMiddleware(ConnectionMiddleware):
         if result is None:
             result = ConnectionMiddleware.store_get(self, sitename, path)
             if result:
-                self.mc_add(path, result)
+                self.mc_set(path, result, 3600) # cache it only for one hour
         return result
 
     def store_put(self, sitename, path, data):
