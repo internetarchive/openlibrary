@@ -239,7 +239,7 @@ def update_waitinglist(book_key):
         "wl_size": len(wl)
     })
     if ebook != ebook2: # save if modified
-        web.ctx.site.store[ebook['_key']] = ebook
+        web.ctx.site.store[ebook_key] = ebook2
 
     if wl:
         # If some people are waiting and the book is checked out,
