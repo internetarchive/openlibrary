@@ -239,7 +239,7 @@ def update_waitinglist(book_key):
         "wl_size": len(wl)
     })
     if ebook != ebook2: # save if modified
-        web.ctx.site.store[ebook_key] = ebook2
+        web.ctx.site.store[ebook_key] = dict(ebook2, _rev=None) # force update
 
     if wl:
         # If some people are waiting and the book is checked out,
@@ -339,7 +339,10 @@ def update_all_ebook_documents():
     """
     records = web.ctx.site.store.values(type="ebook", name="borrowed", value="true", limit=-1)
     for r in records:
-        update_waitinglist(r['book_key'])
+        try:
+            update_waitinglist(r['book_key'])
+        except Exception:
+            logger.error("failed to update %s", r['book_key'], exc_info=True)
 
 def sync_waitingloans():
     """Syncs the waitingloans from store to db.
