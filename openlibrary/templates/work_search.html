@@ -306,7 +306,7 @@ function less(header) {
 
 $if error:
     <h3>BARF! Search engine ERROR!</h3>
-    <pre>$error</pre>
+    <pre>$error.decode('utf-8', 'ignore')</pre>
 $if param and not error:
     $if results.num_found != 0:
         <div id="searchFacets">
