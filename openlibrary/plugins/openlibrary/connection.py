@@ -144,7 +144,16 @@ class IAMiddleware(ConnectionMiddleware):
             return ConnectionMiddleware.get(self, sitename, data)
 
     def _find_edition(self, sitename, itemid):
+        # match ocaid
         q = {"type": "/type/edition", "ocaid": itemid}
+        keys_json = ConnectionMiddleware.things(self, sitename, {"query": simplejson.dumps(q)})
+        keys = simplejson.loads(keys_json)
+        if keys:
+            return keys[0]
+
+        # Match source_records
+        # When there are multiple scan for the same edition, only scan_records is updated.
+        q = {"type": "/type/edition", "source_records": "ia:" + itemid}
         keys_json = ConnectionMiddleware.things(self, sitename, {"query": simplejson.dumps(q)})
         keys = simplejson.loads(keys_json)
         if keys:
@@ -424,8 +433,8 @@ class MemcacheMiddleware(ConnectionMiddleware):
         self.memcache.delete(key)
         stats.end()
         
-    def mc_add(self, key, value):
-        stats.begin("memcache.add", key=key)
+    def mc_add(self, key, value, time=0):
+        stats.begin("memcache.add", key=key, time=time)
         self.memcache.add(key, value)
         stats.end()
         
