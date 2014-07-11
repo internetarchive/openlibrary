@@ -1,15 +1,12 @@
-from openlibrary.catalog.marc import fast_parse, read_xml, is_display_marc
+from openlibrary.catalog.marc import fast_parse, read_xml
 from openlibrary.catalog.utils import error_mail
 from lxml import etree
 import xml.parsers.expat
 import urllib2, os.path, socket
-from openlibrary.catalog.read_rc import read_rc
 from time import sleep
 from openlibrary.utils.ia import find_item
 
 base = "http://www.archive.org/download/"
-
-rc = read_rc()
 
 class NoMARCXML:
     pass

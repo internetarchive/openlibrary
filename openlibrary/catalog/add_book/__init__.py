@@ -1,3 +1,27 @@
+"""Module to load books into Open Library.
+
+This is used to load books from various MARC sources, including
+Internet Archive.
+
+For loading a book, the available metadata is compiled as a dict,
+called a record internally. Here is a sample record:
+
+    {
+        "title": "The Adventures of Tom Sawyer",
+        "source_records": ["ia:TheAdventuresOfTomSawyer_201303"],
+        "authors": [{
+            "name": "Mark Twain"
+        }]
+    }
+
+The title and source_record fields are mandatory.
+
+A record is loaded by calling the load function.
+
+    record = {...}
+    response = load(record)
+
+"""
 from openlibrary.catalog.merge.merge_marc import build_marc
 from infogami import config
 from load_book import build_query, import_author, east_in_by_statement, InvalidLanguage
@@ -364,6 +388,14 @@ def add_cover(cover_url, ekey):
     return cover_id
 
 def load(rec):
+    """Given a record, tries to add/match that edition in the system.
+
+    Record is a dictionary containing all the metadata of the edition.
+    The following fields are mandatory:
+
+        * title
+        * source_records
+    """
     if not rec.get('title'):
         raise RequiredField('title')
     if not rec.get('source_records'):
