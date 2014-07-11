@@ -5,6 +5,7 @@ from xml.dom import minidom
 import simplejson
 import web
 import logging
+from infogami import config
 from infogami.utils import stats
 import cache
 
@@ -132,3 +133,138 @@ def locate_item(itemid):
     """
     d = _get_metadata(itemid)
     return d.get('server'), d.get('dir')
+
+def edition_from_item_metadata(itemid, metadata):
+    """Converts the item metadata into a form suitable to be used as edition
+    in Open Library.
+
+    This is used to show fake editon pages like '/books/ia:foo00bar' when
+    that item is not yet imported into Open Library.
+    """
+    if ItemEdition.is_valid_item(itemid, metadata):
+        e = ItemEdition(itemid)
+        e.add_metadata(metadata)
+        return e
+
+class ItemEdition(dict):
+    """Class to convert item metadata into edition dict.
+    """
+    def __init__(self, itemid):
+        dict.__init__(self)        
+        self.itemid = itemid
+
+        timestamp = {"type": "/type/datetime", "value": "2010-01-01T00:00:00"}
+        # if not self._is_valid_item(itemid, metadata):
+        #     return None
+
+        self.update({   
+            "key": "/books/ia:" + itemid,
+            "type": {"key": "/type/edition"}, 
+            "title": itemid, 
+            "ocaid": itemid,
+            "revision": 1,
+            "created": timestamp,
+            "last_modified": timestamp
+        })
+
+    @staticmethod
+    def is_valid_item(itemid, metadata):
+        """Returns True if the item with metadata can be useable as edition
+        in Open Library.
+
+        Items that are not book scans, darked or with noindex=true etc. are 
+        not eligible to be shown in Open Library.
+        """
+        # Not a book, or scan not complete or no images uploaded
+        if metadata.get("mediatype") != "texts" or metadata.get("repub_state", "4") not in ["4", "6"] or "imagecount" not in metadata:
+            return False
+
+        # items start with these prefixes are not books
+        ignore_prefixes = config.get("ia_ignore_prefixes", [])
+        for prefix in ignore_prefixes:
+            # ignore all JSTOR items
+            if itemid.startswith(prefix):
+                return False
+
+        # Anand - Oct 2013
+        # If an item is with noindex=true and it is not marked as lending or printdisabled, ignore it.
+        # It would have been marked as noindex=true for some reason.
+        collections = metadata.get("collection", [])
+        if not isinstance(collections, list):
+            collections = [collections]
+        if metadata.get("noindex") == "true" \
+            and "printdisabled" not in collections \
+            and "inlibrary" not in collections \
+            and "lendinglibrary" not in collections:
+            return
+
+        return True
+
+    def add_metadata(self, metadata):
+        self.metadata = metadata
+
+        self.add('title')
+        self.add('description', 'description')
+        self.add_list('publisher', 'publishers')
+        self.add_list("creator", "author_names")
+        self.add('date', 'publish_date')
+
+        self.add_isbns()
+        self.add_subjects()
+
+    def add(self, key, key2=None):
+        metadata = self.metadata
+
+        key2 = key2 or key
+        # sometimes the empty values are represneted as {} in metadata API. Avoid them.
+        if key in metadata and metadata[key] != {}:
+            value = metadata[key]
+            if isinstance(value, list):
+                value = [v for v in value if v != {}]
+                if value:
+                    if isinstance(value[0], basestring):
+                        value = "\n\n".join(value)
+                    else:
+                        value = value[0]
+                else:
+                    # empty list. Ignore.
+                    return
+
+            self[key2] = value
+
+    def add_list(self, key, key2):
+        metadata = self.metadata
+
+        key2 = key2 or key
+        # sometimes the empty values are represneted as {} in metadata API. Avoid them.
+        if key in metadata and metadata[key] != {}:
+            value = metadata[key]
+            if not isinstance(value, list):
+                value = [value]
+            self[key2] = value
+
+    def add_isbns(self):
+        isbns = self.metadata.get('isbn')
+        isbn_10 = []
+        isbn_13 = []
+        if isbns:
+            for isbn in isbns:
+                isbn = isbn.replace("-", "").strip()
+                if len(isbn) == 13:
+                    isbn_13.append(isbn)
+                elif len(isbn) == 10:
+                    isbn_10.append(isbn)
+        if isbn_10:
+            self["isbn_10"] = isbn_10
+        if isbn_13: 
+            self["isbn_13"] = isbn_13
+
+    def add_subjects(self):
+        collections = self.metadata.get("collection", [])
+        mapping = {
+            "inlibrary": "In library",
+            "lendinglibrary": "Lending library"
+        }
+        subjects = [subject for c, subject in mapping.items() if c in collections]
+        if subjects:
+            self['subjects'] = subjects
