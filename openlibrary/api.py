@@ -73,7 +73,7 @@ class OpenLibrary:
         config = ConfigParser()
         config.read(os.path.expanduser('~/.olrc'))
         
-        section = section or self.base_url.replace('http://', '')
+        section = section or self.base_url.replace('http://', '').replace("https://", "")
 
         if not config.has_section(section):
             raise Exception("No section found with name %s in ~/.olrc" % repr(section))
