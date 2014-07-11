@@ -8,6 +8,7 @@ from openlibrary.catalog.marc.marc_binary import MarcBinary
 from openlibrary.catalog.marc.marc_xml import MarcXml
 from openlibrary.catalog.marc.parse import read_edition
 from openlibrary.catalog import add_book
+from openlibrary.catalog.get_ia import get_marc_ia
 from openlibrary import accounts
 from openlibrary import records
 
@@ -66,12 +67,23 @@ def parse_data(data):
         edition_builder = import_edition_builder.import_edition_builder(init_dict=obj)
         format = 'json'
     else:
+        # Special case to load IA records
+        # Just passing ia:foo00bar is enough to load foo00bar from IA.
+        if data.startswith("ia:"):
+            source_records = [data]
+            itemid = data[len("ia:"):]
+            data = get_marc_ia(itemid)
+        else:
+            source_records = None
+
         #Marc Binary
         if len(data) != int(data[:5]):
             return json.dumps({'success':False, 'error':'Bad MARC length'})
     
         rec = MarcBinary(data)
         edition = read_edition(rec)
+        if source_records:
+            edition['source_records'] = source_records
         edition_builder = import_edition_builder.import_edition_builder(init_dict=edition)
         format = 'marc'
 
