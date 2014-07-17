@@ -11,6 +11,7 @@ from openlibrary.catalog import add_book
 from openlibrary.catalog.get_ia import get_marc_ia
 from openlibrary import accounts
 from openlibrary import records
+from openlibrary.core import ia
 
 #import openlibrary.tasks
 from ... import tasks
@@ -27,6 +28,9 @@ import import_opds
 import import_rdf
 import import_edition_builder
 from lxml import etree
+import logging
+
+logger = logging.getLogger("openlibrary.importapi")
 
 def parse_meta_headers(edition_builder):
     # parse S3-style http headers
@@ -72,7 +76,17 @@ def parse_data(data):
         if data.startswith("ia:"):
             source_records = [data]
             itemid = data[len("ia:"):]
-            data = get_marc_ia(itemid)
+
+            metadata = ia.get_metadata(itemid)
+            if not ia.edition_from_item_metadata(itemid, metadata):
+                logger.error("This item is not sutable to load into Open Library.")
+                return None, None
+
+            try:
+                data = get_marc_ia(itemid)
+            except IOError:
+                logger.error("Unable to download MARC record for %s", itemid)
+                return None, None
         else:
             source_records = None
             itemid = None
@@ -138,13 +152,13 @@ class importapi:
         edition, format = parse_data(data)
         #print edition
 
-        source_url = None
-        if 'source_records' not in edition:
-            source_url = queue_s3_upload(data, format)
-            edition['source_records'] = [source_url]
-
         #call Edward's code here with the edition dict
         if edition:
+            source_url = None
+            if 'source_records' not in edition:
+                source_url = queue_s3_upload(data, format)
+                edition['source_records'] = [source_url]
+
             reply = add_book.load(edition)
             if source_url:
                 reply['source_record'] = source_url
