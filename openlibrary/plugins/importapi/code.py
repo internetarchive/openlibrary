@@ -75,6 +75,7 @@ def parse_data(data):
             data = get_marc_ia(itemid)
         else:
             source_records = None
+            itemid = None
 
         #Marc Binary
         if len(data) != int(data[:5]):
@@ -84,6 +85,7 @@ def parse_data(data):
         edition = read_edition(rec)
         if source_records:
             edition['source_records'] = source_records
+            edition['ocaid'] = itemid
         edition_builder = import_edition_builder.import_edition_builder(init_dict=edition)
         format = 'marc'
 
