@@ -1229,6 +1229,11 @@ def update_keys(keys, commit=True):
     logger.info("BEGIN update_keys")
     wkeys = set()
 
+    # To delete the requested keys before updating
+    # This is required because when a redirect is found, the original
+    # key specified is never otherwise get deleted from solr.
+    deletes = []
+
     # Get works for all the editions
     ekeys = set(k for k in keys if k.startswith("/books/"))
     if _monkeypatch:
@@ -1240,6 +1245,11 @@ def update_keys(keys, commit=True):
         if edition and edition['type']['key'] == '/type/redirect':
             logger.warn("Found redirect to %s", edition['location'])
             edition = withKey(edition['location'])
+
+        # When the given key is not found or redirect to another edition/work, 
+        # explicitly delete the key. It won't get deleted otherwise.
+        if not edition or edition['key'] != k:
+            deletes.append(k)
 
         if not edition:
             logger.warn("No edition found for key %r. Ignoring...", k)
@@ -1266,9 +1276,14 @@ def update_keys(keys, commit=True):
 
     # Add work keys
     wkeys.update(k for k in keys if k.startswith("/works/"))
+
+    if not is_single_core():
+        # strip /books/ or /works/
+        deletes = [k.split("/")[-1] for k in deletes]
     
     # update works
     requests = []
+    requests += [make_delete_query(deletes)]
     for k in wkeys:
         logger.info("updating %s", k)
         try:
