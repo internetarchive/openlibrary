@@ -1,14 +1,17 @@
 from openlibrary.catalog.marc import fast_parse, read_xml
 from openlibrary.catalog.utils import error_mail
+from openlibrary.catalog.marc.marc_binary import MarcBinary
+from openlibrary.catalog.marc.marc_xml import MarcXml
 from lxml import etree
 import xml.parsers.expat
 import urllib2, os.path, socket
 from time import sleep
 from openlibrary.utils.ia import find_item
+from openlibrary.core import ia
 
-base = "http://www.archive.org/download/"
+base = "https://archive.org/download/"
 
-class NoMARCXML:
+class NoMARCXML(IOError):
     pass
 
 def urlopen_keep_trying(url):
@@ -61,6 +64,31 @@ def get_marc_ia(ia):
     print 'leader:', data[:24]
     return data
     return fast_parse.read_edition(data, accept_electronic = True)
+
+def get_marc_record_from_ia(identifier):
+    """Takes IA identifiers and returns MARC record instance.
+    """
+    metadata = ia.get_metadata(identifier)
+    filenames = metadata['_filenames']
+
+    marc_xml_filename = identifier + "_marc.xml"
+    marc_bin_filename = identifier + "_marc.bin"
+
+    item_base = base + "/" + identifier + "/"
+
+    # Try marc.xml first
+    if marc_xml_filename in filenames:
+        print 'found', marc_xml_filename, "in filenames"
+        data = urlopen_keep_trying(item_base + marc_xml_filename).read()
+        if data[:10].find('<?xml') != -1:
+            root = etree.fromstring(data)
+            return MarcXml(root)
+
+    # If that fails, try marc.bin
+    if marc_bin_filename in filenames:
+        data = urlopen_keep_trying(item_base + marc_bin_filename).read()
+        if len(data) == int(data[:5]):
+            return MarcBinary(data)
 
 def get_ia(ia):
     ia = ia.strip() # 'cyclopdiaofedu00kidd '

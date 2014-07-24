@@ -8,7 +8,7 @@ from openlibrary.catalog.marc.marc_binary import MarcBinary
 from openlibrary.catalog.marc.marc_xml import MarcXml
 from openlibrary.catalog.marc.parse import read_edition
 from openlibrary.catalog import add_book
-from openlibrary.catalog.get_ia import get_marc_ia
+from openlibrary.catalog.get_ia import get_ia, get_marc_ia, get_marc_record_from_ia
 from openlibrary import accounts
 from openlibrary import records
 from openlibrary.core import ia
@@ -31,6 +31,9 @@ from lxml import etree
 import logging
 
 logger = logging.getLogger("openlibrary.importapi")
+
+class DataError(ValueError):
+    pass
 
 def parse_meta_headers(edition_builder):
     # parse S3-style http headers
@@ -78,24 +81,29 @@ def parse_data(data):
             itemid = data[len("ia:"):]
 
             metadata = ia.get_metadata(itemid)
+            if not metadata:
+                raise DataError("invalid-ia-identifier")
+
             if not ia.edition_from_item_metadata(itemid, metadata):
-                logger.error("This item is not sutable to load into Open Library.")
-                return None, None
+                raise DataError("item-not-a-book")
 
             try:
-                data = get_marc_ia(itemid)
+                rec = get_marc_record_from_ia(itemid)
             except IOError:
-                logger.error("Unable to download MARC record for %s", itemid)
-                return None, None
+                raise DataError("no-marc-record")
+
+            if not rec:
+                raise DataError("no-marc-record")
         else:
             source_records = None
             itemid = None
 
-        #Marc Binary
-        if len(data) != int(data[:5]):
-            return json.dumps({'success':False, 'error':'Bad MARC length'})
-    
-        rec = MarcBinary(data)
+            #Marc Binary
+            if len(data) != int(data[:5]):
+                return json.dumps({'success':False, 'error':'Bad MARC length'})
+
+            rec = MarcBinary(data)
+
         edition = read_edition(rec)
         if source_records:
             edition['source_records'] = source_records
@@ -121,6 +129,11 @@ def get_next_count():
         return count
 
 def queue_s3_upload(data, format):
+    # Anand - July 23, 2014
+    # Disabled this as we are not configured uploading MARC records.
+    # We probably don't want to do this at all.
+    return
+
     s3_key = config.plugin_importapi.get('s3_key')
     s3_secret = config.plugin_importapi.get('s3_secret')
     counter = get_next_count()
@@ -148,23 +161,34 @@ class importapi:
             return json.dumps({'success':False, 'error':'Permission Denied'})
 
         data = web.data()
-       
-        edition, format = parse_data(data)
+        error_code = "unknown_error"
+
+        try:
+            edition, format = parse_data(data)
+        except DataError, e:
+            edition = None
+            error_code = str(e)
+
         #print edition
 
         #call Edward's code here with the edition dict
         if edition:
             source_url = None
-            if 'source_records' not in edition:
-                source_url = queue_s3_upload(data, format)
-                edition['source_records'] = [source_url]
+
+            ## Anand - July 2014
+            ## This is adding source_records as [null] as queue_s3_upload is disabled.
+            ## Disabling this as well to fix the issue.
+
+            # if 'source_records' not in edition:
+            #     source_url = queue_s3_upload(data, format)
+            #     edition['source_records'] = [source_url]
 
             reply = add_book.load(edition)
             if source_url:
                 reply['source_record'] = source_url
             return json.dumps(reply)
         else:
-            return json.dumps({'success':False, 'error':'Failed to parse Edition data'})
+            return json.dumps({'success':False, 'error_code': error_code, 'error':'Failed to parse Edition data'})
 
 
 class ils_search:
