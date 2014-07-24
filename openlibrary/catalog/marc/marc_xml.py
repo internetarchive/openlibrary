@@ -7,6 +7,7 @@ control_tag = '{http://www.loc.gov/MARC21/slim}controlfield'
 subfield_tag = '{http://www.loc.gov/MARC21/slim}subfield'
 leader_tag = '{http://www.loc.gov/MARC21/slim}leader'
 record_tag = '{http://www.loc.gov/MARC21/slim}record'
+collection_tag = '{http://www.loc.gov/MARC21/slim}collection'
 
 def read_marc_file(f):
     for event, elem in etree.iterparse(f, tag=record_tag):
@@ -78,6 +79,9 @@ class DataField:
 
 class MarcXml(MarcBase):
     def __init__(self, record):
+        if record.tag == collection_tag:
+            record = record[0]
+
         assert record.tag == record_tag
         self.record = record
 
