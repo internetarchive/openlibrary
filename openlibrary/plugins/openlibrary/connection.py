@@ -117,6 +117,8 @@ class IAMiddleware(ConnectionMiddleware):
         if itemid:
             edition_key = self._find_edition(sitename, itemid)
             if edition_key:
+                # Delete the store entry, indicating that this is no more is an item to be imported.
+                self._ensure_no_store_entry(sitename, itemid)
                 return self._make_redirect(itemid, edition_key)
             else:
                 metadata = ia.get_metadata(itemid)
