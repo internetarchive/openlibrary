@@ -317,8 +317,7 @@ class stats(delegate.page):
     path = "/libraries/stats"
 
     def GET(self):
-        stats  = LoanStats()
-        return render_template("libraries/stats", stats);
+        raise web.seeother("/stats/lending")
 
 class stats_per_library(delegate.page):
     path = "/libraries/stats/(.*).csv"
