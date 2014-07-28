@@ -14,6 +14,7 @@ import helpers as h
 from openlibrary.plugins.upstream.utils import get_history
 from openlibrary.plugins.upstream.account import Account
 from openlibrary import accounts
+from openlibrary.core import loanstats
 
 # relative imports
 from lists.model import ListMixin, Seed
@@ -744,8 +745,9 @@ class Library(Thing):
         return [parse(line) for line in self.addresses.splitlines() if line.strip()]
 
     def get_loans_per_day(self, resource_type="total"):
-        from openlibrary.plugins.openlibrary.libraries import LoanStats
-        return LoanStats().get_loans_per_day(resource_type=resource_type, library=self.key)
+        name = self.key.split("/")[-1]
+        stats = loanstats.LoanStats(library=name)
+        return stats.get_loans_per_day(resource_type=resource_type)
         
 class Subject(web.storage):
     def get_lists(self, limit=1000, offset=0, sort=True):
