@@ -72,7 +72,7 @@ def get_marc_record_from_ia(identifier):
     filenames = metadata['_filenames']
 
     marc_xml_filename = identifier + "_marc.xml"
-    marc_bin_filename = identifier + "_marc.bin"
+    marc_bin_filename = identifier + "_meta.mrc"
 
     item_base = base + "/" + identifier + "/"
 
@@ -111,10 +111,12 @@ def get_ia(ia):
         try:
             return read_xml.read_edition(f)
         except read_xml.BadXML:
+            print "read_xml BADXML"
             pass
         except xml.parsers.expat.ExpatError:
             #print 'IA:', `ia`
             #print 'XML parse error:', base + loc
+            print "read_xml ExpatError"            
             pass
     print base + loc
     if '<title>Internet Archive: Page Not Found</title>' in urllib2.urlopen(base + loc).read(200):
