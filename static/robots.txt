@@ -5,4 +5,7 @@ Disallow: /people
 
 Sitemap: https://openlibrary.org/static/sitemaps/siteindex.xml.gz
 
+User-agent: Baiduspider
+Clawl-delay: 0.5
+
 
