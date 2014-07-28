@@ -41,8 +41,11 @@ def init_plugin():
     # When setting up the dev instance, celery is not available. 
     # Using DISABLE_CELERY environment variable to decide whether or not to trigger celery events. 
     # DISABLE_CELERY will be set to true when setting up the dev instance.
-    if os.getenv("DISABLE_CELERY", "").lower() != "true":
-        ib.add_event_listener(notify_celery)
+
+    ## Anand - July 2014
+    ## Disabled celery tasks on edits, planning to get rid of celery and couch soon.
+    # if os.getenv("DISABLE_CELERY", "").lower() != "true":
+    #     ib.add_event_listener(notify_celery)
 
     setup_logging()
 
