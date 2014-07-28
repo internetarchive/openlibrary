@@ -207,6 +207,10 @@ class list_view_json(delegate.page):
         list = web.ctx.site.get(key)
         if not list or list.type.key == '/type/delete':
             raise web.notfound()
+
+        i = web.input()
+        if i.get("_raw") == "true":
+            return delegate.RawText(self.dumps(list.dict()))
         
         data = self.get_list_data(list)
         return delegate.RawText(self.dumps(data))
