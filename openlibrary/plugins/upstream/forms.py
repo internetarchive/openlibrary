@@ -25,13 +25,40 @@ vlogin = RegexpValidator(r"^[A-Za-z0-9-_]{3,20}$", _('Must be between 3 and 20 l
 vpass = RegexpValidator(r".{3,20}", _('Must be between 3 and 20 characters'))
 vemail = RegexpValidator(r".*@.*", _("Must be a valid email address"))
 
-Register = Form(
-    Textbox("displayname", description=_("Your Full Name")),
-    Textbox('email', description=_('Your Email Address'), klass='required', validators=[vemail, email_not_already_used, email_not_disposable]),
-    Textbox('username', description=_('Choose a Username'), klass='required', help=_("Only letters and numbers, please, and at least 3 characters."), 
-        validators=[vlogin, username_validator]),
-    Password('password', description=_('Choose a Password'), klass='required', validators=[vpass])
-)
+class EqualToValidator(Validator):
+    def __init__(self, fieldname, message):
+        Validator.__init__(self, message, self.test)
+        self.fieldname = fieldname
+
+    def test(self, value):
+        # self.form will be set by RegisterForm
+        return self.form[self.fieldname].value == value
+
+class Register(Form):
+    INPUTS = [
+        Textbox("displayname", description=_("Your Full Name")),
+        Textbox('email', description=_('Your Email Address'),
+            klass='required',
+            validators=[vemail, email_not_already_used, email_not_disposable]),
+        Textbox('email2', description=_('Confirm Your Email Address'),
+            klass='required',
+            validators=[EqualToValidator('email', _('Your emails do not match. Please try again.'))]),
+        Textbox('username', description=_('Choose a Username'),
+            klass='required',
+            help=_("Only letters and numbers, please, and at least 3 characters."),
+            validators=[vlogin, username_validator]),
+        Password('password', description=_('Choose a Password'),
+            klass='required',
+            validators=[vpass])
+    ]
+    def __init__(self):
+        Form.__init__(self, *self.INPUTS)
+
+        # Set form in each validator so that validators
+        # like EqualToValidator can work
+        for input in self.inputs:
+            for validator in input.validators:
+                validator.form = self
 
 forms.register = Register
 

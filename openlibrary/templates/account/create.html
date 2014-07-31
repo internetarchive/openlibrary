@@ -68,6 +68,16 @@ $else:
                 <span class="invalid clearfix" htmlfor="email">$form.email.note</span>
             </div>
         </div>
+        <div class="formElement">
+            <div class="label">
+                <label for="emailAddr2">$("Confirm Your Email Address")</label>
+                <span class="smaller lighter"></span>
+            </div>
+            <div class="input">
+                <input type="text" class="required email" name="email2" id="emailAddr2" value="$form.email2.value"/>
+                <span class="invalid clearfix" htmlfor="email2">$form.email2.note</span>
+            </div>
+        </div>
         $if form.has_recaptcha:
             <div class="formElement">
                 <div class="label">$_("Please type in the two words below.")</div>
