@@ -60,7 +60,7 @@ class Register(Form):
             for validator in input.validators:
                 validator.form = self
 
-forms.register = Register
+forms.register = Register()
 
 def verify_password(password):
     user = accounts.get_current_user()
