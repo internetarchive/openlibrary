@@ -69,9 +69,14 @@ class OpenLibrary:
             password = joe123
             
         Optionally section name can be passed as argument to force using a different section name.
+
+        If environment variable OPENLIBRARY_RCFILE is specified, it'll read that file instead of ~/.olrc.
         """
         config = ConfigParser()
-        config.read(os.path.expanduser('~/.olrc'))
+
+        configfile = os.getenv('OPENLIBRARY_RCFILE', os.path.expanduser('~/.olrc'))
+        logger.info("reading %s", configfile)
+        config.read(configfile)
         
         section = section or self.base_url.replace('http://', '').replace("https://", "")
 
