@@ -6,6 +6,7 @@ from openlibrary.i18n import lgettext as _
 from openlibrary.utils.form import Form, Textbox, Password, Hidden, Validator, RegexpValidator
 from openlibrary import accounts
 
+
 def find_account(username=None, lusername=None, email=None):
     return accounts.find(username=username, lusername=lusername, email=email)
 
@@ -34,22 +35,22 @@ class EqualToValidator(Validator):
         # self.form will be set by RegisterForm
         return self.form[self.fieldname].value == value
 
-class Register(Form):
+class RegisterForm(Form):
     INPUTS = [
         Textbox("displayname", description=_("Your Full Name")),
-        Textbox('email', description=_('Your Email Address'),
-            klass='required',
+        Textbox('email', description=_('Your Email Address'), 
+            klass='required', 
             validators=[vemail, email_not_already_used, email_not_disposable]),
-        Textbox('email2', description=_('Confirm Your Email Address'),
-            klass='required',
+        Textbox('email2', description=_('Confirm Your Email Address'), 
+            klass='required', 
             validators=[EqualToValidator('email', _('Your emails do not match. Please try again.'))]),
-        Textbox('username', description=_('Choose a Username'),
-            klass='required',
-            help=_("Only letters and numbers, please, and at least 3 characters."),
+        Textbox('username', description=_('Choose a Username'), 
+            klass='required', 
+            help=_("Only letters and numbers, please, and at least 3 characters."), 
             validators=[vlogin, username_validator]),
-        Password('password', description=_('Choose a Password'),
-            klass='required',
-            validators=[vpass])
+        Password('password', description=_('Choose a Password'), 
+            klass='required', 
+            validators=[vpass])    
     ]
     def __init__(self):
         Form.__init__(self, *self.INPUTS)
@@ -60,7 +61,8 @@ class Register(Form):
             for validator in input.validators:
                 validator.form = self
 
-forms.register = Register()
+Register = RegisterForm()
+forms.register = Register
 
 def verify_password(password):
     user = accounts.get_current_user()
