@@ -88,4 +88,4 @@ reindex-solr:
 	psql openlibrary -t -c 'select key from thing' | sed 's/ *//' | grep '^/authors/' | PYTHONPATH=$(PWD) xargs python openlibrary/solr/update_work.py -s http://0.0.0.0/ -c conf/openlibrary.yml
 
 test:
-	py.test openlibrary/core/tests
+	py.test openlibrary/core/tests openlibrary/plugins/upstream/tests/test_forms.py

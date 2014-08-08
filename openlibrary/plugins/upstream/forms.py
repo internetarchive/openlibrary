@@ -27,14 +27,15 @@ vemail = RegexpValidator(r".*@.*", _("Must be a valid email address"))
 
 class EqualToValidator(Validator):
     def __init__(self, fieldname, message):
-        Validator.__init__(self, message, self.test)
+        Validator.__init__(self, message, None)
         self.fieldname = fieldname
+        self.form = None
 
-    def test(self, value):
+    def valid(self, value): 
         # self.form will be set by RegisterForm
         return self.form[self.fieldname].value == value
 
-class Register(Form):
+class RegisterForm(Form):
     INPUTS = [
         Textbox("displayname", description=_("Your Full Name")),
         Textbox('email', description=_('Your Email Address'),
@@ -54,13 +55,16 @@ class Register(Form):
     def __init__(self):
         Form.__init__(self, *self.INPUTS)
 
+    def validates(self, source):
         # Set form in each validator so that validators
         # like EqualToValidator can work
         for input in self.inputs:
             for validator in input.validators:
                 validator.form = self
+        return Form.validates(self, source)
 
-forms.register = Register()
+Register = RegisterForm()
+forms.register = RegisterForm()
 
 def verify_password(password):
     user = accounts.get_current_user()
