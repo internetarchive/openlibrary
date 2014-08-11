@@ -255,6 +255,18 @@ def update_waitinglist(book_key):
 
 def _is_loaned_out(book_key):
     book = web.ctx.site.get(book_key)
+
+    # Anand - Aug 2014
+    # When a book is loaned out, there'll be a loan-$ocaid record
+    # and get_available_loans() will return empty. 
+    # Testing for both of them to make sure we don't give wrong 
+    # result even if there is a slight chance for them to differ.
+    if book.ocaid:
+        loan = web.ctx.site.store.get("loan-" + book.ocaid)
+        if loan:
+            return False
+
+    # Will this return empty list if archive.org is down?
     return book.get_available_loans() == []
 
 def sendmail_book_available(book):
@@ -269,6 +281,7 @@ def sendmail_book_available(book):
         email = user and user.get_email()
         sendmail_with_template("email/waitinglist_book_available", to=email, user=user, book=book)
         record.update(available_email_sent=True)
+        logger.info("%s is available, send email to the first person in WL. wl-size=%s", book.key, len(wl))
 
 def sendmail_people_waiting(book):
     """Send mail to the person who borrowed the book when the first person joins the waiting list.
@@ -301,6 +314,7 @@ def sendmail_people_waiting(book):
             expiry_days=_get_expiry_in_days(loan))
         loan['waiting_email_sent'] = True
         web.ctx.site.store[loan['_key']] = loan
+        logger.info("%s sendmail_people_waiting. wl-size=%s", book.key, len(book.get_waitinglist_size()))
 
 def _get_expiry_in_days(loan):
     if loan.get("expiry"):
