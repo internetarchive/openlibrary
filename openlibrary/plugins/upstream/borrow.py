@@ -690,7 +690,6 @@ def _update_loan_status(loan_key, loan, bss_status = None):
         # delete loan record if has expired
         # $$$ consolidate logic for checking expiry.  keep loan record for some time after it expires.
         if loan['expiry'] and loan['expiry'] < datetime.datetime.utcnow().isoformat():
-            logger.info("%s", loan)            
             logger.info("%s: loan expired. deleting...", loan_key) 
             web.ctx.site.store.delete(loan_key)
             on_loan_delete(loan)
@@ -721,7 +720,6 @@ def update_loan_from_bss_status(loan_key, loan, status):
     
         # Was returned, expired, or timed out
         web.ctx.site.store.delete(loan_key)
-        logger.info("%s", loan)
         logger.info("%s: loan returned or expired or timedout, deleting...", loan_key)
         on_loan_delete(loan)
         return
