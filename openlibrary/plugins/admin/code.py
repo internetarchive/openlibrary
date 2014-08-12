@@ -26,6 +26,7 @@ from openlibrary import accounts
 from openlibrary.core import helpers as h
 
 from openlibrary.plugins.admin import services, support, tasks, inspect_thing
+from openlibrary.plugins.admin.imports import Imports
 
 logger = logging.getLogger("openlibrary.admin")
 
@@ -621,6 +622,14 @@ class solr:
         add_flash_message("info", "Added the specified keys to solr update queue.!")
         return self.GET()
 
+class imports:
+    def GET(self):
+        return render_template("admin/imports", Imports())
+
+class imports_by_date:
+    def GET(self, date):
+        return render_template("admin/imports_by_date", Imports(), date)
+
 def setup():
     register_admin_page('/admin/git-pull', gitpull, label='git-pull')
     register_admin_page('/admin/reload', reload, label='Reload Templates')
@@ -644,6 +653,8 @@ def setup():
     register_admin_page('/admin/graphs', _graphs, label="")
     register_admin_page('/admin/permissions', permissions, label="")
     register_admin_page('/admin/solr', solr, label="")
+    register_admin_page('/admin/imports', imports, label="")
+    register_admin_page('/admin/imports/(\d\d\d\d-\d\d-\d\d)', imports_by_date, label="")
 
     inspect_thing.setup()
     support.setup()

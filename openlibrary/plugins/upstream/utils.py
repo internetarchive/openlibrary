@@ -669,7 +669,8 @@ def setup():
         'HTML': HTML,
         'request': Request(),
         'logger': logging.getLogger("openlibrary.template"),
-        'get_ab_value': ab.get_ab_value
+        'get_ab_value': ab.get_ab_value,
+        'sum': sum
     })
     
     from openlibrary.core import helpers as h
