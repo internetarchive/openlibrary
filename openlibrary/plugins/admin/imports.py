@@ -46,7 +46,9 @@ class Imports:
         rows = db.query(
                 "SELECT status, count(*) as count" +
                 " FROM import_item" +
-                " GROUP BY status")
+                " WHERE added_date::date = $date"
+                " GROUP BY status",
+                vars=locals())
         return {
             "counts": dict([(row.status, row.count) for row in rows])
         }
