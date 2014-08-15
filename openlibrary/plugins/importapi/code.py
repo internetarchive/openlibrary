@@ -89,6 +89,10 @@ def parse_data(data):
 
             try:
                 rec = get_marc_record_from_ia(itemid)
+
+                # skip serials
+                if rec.leader()[7] == 's':
+                    raise DataError("item-is-serial")
             except IOError:
                 raise DataError("no-marc-record")
 
