@@ -80,6 +80,7 @@ class ImportItem(web.storage):
             response = ol._request('/api/import', method='POST', data='ia:' + self.ia_id).read()
         except OLError:
             self.mark_failed('internal-error')
+            return
 
         if response.startswith("{"):
             d = json.loads(response)
