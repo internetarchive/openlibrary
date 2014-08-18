@@ -16,6 +16,22 @@ $var title: Imports
     </div>
 
     <h2>Summary</h2>
+    <p>
+        $ pending_count = stats.get_count(status='pending')
+        <strong>Pending Items:</strong> $pending_count
+    </p>
+    <p>
+        $ rate = stats.get_imports_per_hour()
+        <strong>Current Import Rate:</strong> $rate imports/hour.
+    </p>
+    <p>
+        <strong>ETA:</strong>
+        $ eta = pending_count*1.0 / rate
+        $if rate: ${"%.2f" % eta} hours
+        $else: -
+    </p>
+
+    <h2>Summary By Date</h2>
     <table class="changeHistory">
         <tr>
             <th>Date</th>

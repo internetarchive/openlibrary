@@ -85,6 +85,25 @@ class ImportItem(web.storage):
 
 class Stats:
     """Import Stats."""
+    def get_imports_per_hour(self):
+        """Returns the number imports happened in past one hour duration.
+        """
+        result = db.query(
+            "SELECT count(*) as count FROM import_item" +
+            " WHERE import_time > CURRENT_TIMESTAMP - interval '1' hour")
+        return result[0].count
+
+    def get_count(self, status=None):
+        if status:
+            where = "status=$status"
+        else:
+            where = "1=1"
+        rows = db.select("import_item", 
+            what="count(*) as count", 
+            where=where,
+            vars=locals())
+        return rows[0].count
+
     def get_count_by_status(self, date=None):
         rows = db.query("SELECT status, count(*) FROM import_item GROUP BY status")
         return dict([(row.status, row.count) for row in rows])
