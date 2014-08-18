@@ -15,7 +15,7 @@ logger = logging.getLogger("openlibrary.importer")
 
 @web.memoize
 def get_ol():
-    ol = OpenLibrary("https://anand.openlibrary.org")
+    ol = OpenLibrary()
     ol.autologin()
     return ol
 
