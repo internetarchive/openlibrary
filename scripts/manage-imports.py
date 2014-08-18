@@ -83,7 +83,7 @@ class ImportItem(web.storage):
         try:
             ol = get_ol()
             logger.info("importing %s", self.ia_id)
-            response = ol._request('/api/import', method='POST', data='ia:' + self.ia_id).read()
+            response = ol._request('/api/import/ia', method='POST', data='identifier=' + self.ia_id).read()
         except OLError:
             self.mark_failed('internal-error')
             return

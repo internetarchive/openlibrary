@@ -195,6 +195,103 @@ class importapi:
         else:
             return json.dumps({'success':False, 'error_code': error_code, 'error':'Failed to parse Edition data'})
 
+class ia_importapi:
+    def POST(self):
+        web.header('Content-Type', 'application/json')
+
+        if not can_write():
+            return json.dumps({'success':False, 'error':'Permission Denied'})
+
+        i = web.input()
+        if "identifier" not in i:
+            self.error("bad-input", "identifier not provided")
+        identifier = i.identifier
+
+        # Case 0 - Is the item already loaded
+        key = self.find_edition(identifier)
+        if key:
+            return self.status_matched(key)
+
+        # Case 1 - Is this a valid item?
+        metadata = ia.get_metadata(identifier)
+        if not metadata:
+            return self.error("invalid-ia-identifier")
+
+        # Case 2 - Is the item has openlibrary field specified?
+        # The scan operators search OL before loading the book and adds the
+        # OL key if an match is found. We can trust them as attach the item
+        # to that edition.
+        if metadata.get("mediatype") == "texts" and metadata.get("openlibrary"):
+            d = {
+                "title": metadata['title'],
+                "openlibrary": "/books/" + metadata["openlibrary"]
+            }
+            d = self.populate_edition_data(d, identifier)
+            return add_book.load(d)
+
+        # Case 3 - Can the item be loaded into Open Library?
+        status = ia.get_item_status(identifier, metadata)
+        if status != 'ok':
+            return self.error(status, "Prohibited Item")
+
+        # Case 4 - Does this item have a marc record?
+        marc_record = self.get_marc_record(identifier)
+        if not marc_record:
+            return self.error("no-marc-record")
+
+        # Case 5 - Is the item a serial instead of a book?
+        if marc_record.leader()[7] == 's':
+            return self.error("item-is-serial")
+
+        edition_data = self.get_edition_data(identifier, marc_record)
+        return add_book.load(edition_data)
+
+    def get_edition_data(self, identifier, marc_record):
+        edition = read_edition(marc_record)
+        return self.populate_edition_data(edition, identifier)
+
+    def populate_edition_data(self, edition, identifier):
+        edition['ocaid'] = identifier
+        edition['source_records'] = "ia:" + identifier
+        edition['cover'] = "https://archive.org/download/{0}/{0}/page/title.jpg".format(identifier)
+        return edition
+
+    def get_marc_record(self, identifier):
+        try:
+            return get_marc_record_from_ia(identifier)
+        except IOError:
+            return None
+
+    def find_edition(self, identifier):
+        """Checks if the given identifier is already been imported into OL.
+        """
+        # match ocaid
+        q = {"type": "/type/edition", "ocaid": identifier}
+        keys = web.ctx.site.things(q)
+        if keys:
+            return keys[0]
+
+        # Match source_records
+        # When there are multiple scan for the same edition, only scan_records is updated.
+        q = {"type": "/type/edition", "source_records": "ia:" + identifier}
+        keys = web.ctx.site.things(q)
+        if keys:
+            return keys[0]
+
+    def status_matched(self, key):
+        reply = {
+            'success': True,
+            'edition': {'key': key, 'status': 'matched'}
+        }
+        return json.dumps(reply)
+
+    def error(self, error_code, error="Invalid item"):
+        return json.dumps({
+            "success": False,
+            "error_code": error_code,
+            "error": error
+        });
+
 
 class ils_search:
     """Search and Import API to use in Koha. 
@@ -457,3 +554,4 @@ class ils_cover_upload:
 add_hook("import", importapi)
 add_hook("ils_search", ils_search)
 add_hook("ils_cover_upload", ils_cover_upload)
+add_hook("import/ia", ia_importapi)

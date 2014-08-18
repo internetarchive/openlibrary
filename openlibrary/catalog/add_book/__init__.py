@@ -285,6 +285,12 @@ re_lang = re.compile('^/languages/([a-z]{3})$')
 
 def early_exit(rec):
     f = 'ocaid'
+    # Anand - August 2014
+    # If openlibrary ID is already specified in the record, then use it.
+    # This will be the case when the item metadata already has openlibrary field.
+    if 'openlibrary' in rec:
+        return rec['openlibrary']
+
     if 'ocaid' in rec:
         q = {
             'type':'/type/edition',
@@ -359,6 +365,8 @@ def add_cover(cover_url, ekey):
     olid = ekey.split("/")[-1]
     coverstore_url = config.get('coverstore_url').rstrip('/')
     upload_url = coverstore_url + '/b/upload2' 
+    if upload_url.startswith("//"):
+        upload_url = "{0}:{1}".format(web.ctx.get("protocol", "http"), upload_url)
     user = accounts.get_current_user()
     params = {
         'author': user.key,
@@ -555,10 +563,9 @@ def load(rec):
         reply['work']['status'] = 'created' if work_created else 'modified'
         edits.append(w)
     if edits:
-        edits_str = `edits`
         for i in edits:
-            j = `i`
             assert i
             assert isinstance(i, dict)
+
         web.ctx.site.save_many(edits, 'import new book')
     return reply
