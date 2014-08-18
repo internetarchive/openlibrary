@@ -1,10 +1,10 @@
+#! /usr/bin/env python
 import sys
 import _init_path
 from openlibrary.config import load_config
-from openlibrary.core import db
 from openlibrary.api import OpenLibrary, OLError
 from openlibrary.solr.process_stats import get_ia_db
-
+from openlibrary.core.imports import Batch, ImportItem
 import web
 import json
 import logging
@@ -13,100 +13,43 @@ import time
 
 logger = logging.getLogger("openlibrary.importer")
 
-class Batch(web.storage):
-    @staticmethod
-    def find(name):
-        result = db.query("SELECT * FROM import_batch where name=$name", vars=locals())
-        return result and Batch(result[0]) or None
-
-    @staticmethod
-    def new(name):
-        db.insert("import_batch", name=name)
-        return Batch.find(name=name)
-
-    def load_items(self, filename):
-        """Adds all the items specified in the filename to this batch.
-        """
-        items = [line.strip() for line in open(filename) if line.strip()]
-        self.add_items(items)
-
-    def add_items(self, items):
-        if not items:
-            return
-        logger.info("batch %s: adding %d items", self.name, len(items))
-        already_present = [row.ia_id for row in db.query("SELECT ia_id FROM import_item WHERE ia_id IN $items", vars=locals())]
-        # ignore already present
-        items = list(set(items) - set(already_present))
-
-        logger.info("batch %s: %d items are already present, ignoring...", self.name, len(already_present))
-        if items:
-            values = [dict(batch_id=self.id, ia_id=item) for item in items]
-            db.get_db().multiple_insert("import_item", values)        
-            logger.info("batch %s: added %d items", self.name, len(items))
-
-    def get_items(self, status="pending"):
-        result = db.where("import_item", batch_id=self.id, status=status)
-        return [ImportItem(row) for row in result]
-
-class ImportItem(web.storage):
-    @staticmethod
-    def find_pending(limit=1000):
-        result = db.where("import_item", status="pending", order="id", limit=limit)
-        return [ImportItem(row) for row in result]
-
-    @staticmethod
-    def find_by_identifier(identifier):
-        result = db.where("import_item", ia_id=identifier)
-        if result:
-            return ImportItem(result[0])
-
-    def _set_status(self, status, error=None, ol_key=None):
-        logger.info("set-status %s - %s %s %s", self.ia_id, status, error, ol_key)
-        d = dict(
-            status=status,
-            error=error,
-            ol_key=ol_key,
-            import_time=datetime.datetime.utcnow())
-        db.update("import_item", where="id=$id", vars=self, **d)
-        self.update(d)
-
-    def mark_failed(self, error):
-        self._set_status(status='failed', error=error)
-
-    def mark_found(self, ol_key):
-        self._set_status(status='found', ol_key=ol_key)
-
-    def mark_created(self, ol_key):
-        self._set_status(status='created', ol_key=ol_key)
-
-    def do_import(self):
-        try:
-            ol = get_ol()
-            logger.info("importing %s", self.ia_id)
-            response = ol._request('/api/import/ia', method='POST', data='identifier=' + self.ia_id).read()
-        except OLError:
-            self.mark_failed('internal-error')
-            return
-
-        if response.startswith("{"):
-            d = json.loads(response)
-            if d.get("success") and 'edition' in d:
-                edition = d['edition']
-                if edition['status'] == 'matched':
-                    self.mark_found(edition['key'])
-                    return
-                elif edition['status'] == 'created':
-                    self.mark_created(edition['key'])
-                    return
-            self.mark_failed(d.get('error_code', 'unknown-error'))
-        else:
-            self.mark_failed('internal-error')
-
 @web.memoize
 def get_ol():
-    ol = OpenLibrary()
+    ol = OpenLibrary("https://anand.openlibrary.org")
     ol.autologin()
     return ol
+
+def ol_import_request(item, retries=5):
+    """Requests OL to import an item and retries on server errors.
+    """
+    logger.info("importing %s", item.ia_id)    
+    for i in range(retries):
+        if i != 0:
+            logger.info("sleeping for 5 seconds before next attempt.")
+            time.sleep(5)
+        try:
+            ol = get_ol()
+            return ol._request('/api/import/ia', method='POST', data='identifier=' + item.ia_id).read()
+        except (IOError, OLError), e:
+            logger.warn("Failed to contact OL server. error=%s", e)
+
+
+def do_import(item):
+    response = ol_import_request(item)
+
+    if response and response.startswith("{"):
+        d = json.loads(response)
+        if d.get("success") and 'edition' in d:
+            edition = d['edition']
+            logger.info("success: %s %s", edition['status'], edition['key'])
+            item.set_status(edition['status'], ol_key=edition['key'])
+        else:
+            error_code = d.get('error_code', 'unknown-error')
+            logger.error("failed with error code: %s", error_code)
+            item.set_status("failed", error=error_code)
+    else:
+        logger.error("failed with internal error")
+        item.set_status("failed", error='internal-error')
 
 def add_items(args):
     batch_name = args[0]
@@ -161,13 +104,13 @@ def import_batch(args):
         sys.exit(1)
 
     for item in batch.get_items():
-        item.do_import()
+        do_import(item)
 
 def import_item(args):
     ia_id = args[0]
     item = ImportItem.find_by_identifier(ia_id)
     if item:
-        item.do_import()
+        do_import(item)
     else:
         logger.error("%s is not found in the import queue", ia_id)
 
@@ -179,7 +122,7 @@ def import_all(args):
             time.sleep(60)
 
         for item in items:
-            item.do_import()
+            do_import(item)
 
 def main():
     if "--config" in sys.argv:

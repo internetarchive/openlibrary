@@ -244,14 +244,20 @@ class ia_importapi:
             return self.error("item-is-serial")
 
         edition_data = self.get_edition_data(identifier, marc_record)
+        if not edition_data:
+            return self.error("invalid-marc-record")
         return self.load_book(edition_data)
 
     def load_book(self, edition_data):
         result = add_book.load(edition_data)
-        return json.dump(result)
+        return json.dumps(result)
 
     def get_edition_data(self, identifier, marc_record):
-        edition = read_edition(marc_record)
+        try:
+            edition = read_edition(marc_record)
+        except Exception, e:
+            logger.error("failed to read info from marc_record: %s", str(e))
+            return
         return self.populate_edition_data(edition, identifier)
 
     def populate_edition_data(self, edition, identifier):

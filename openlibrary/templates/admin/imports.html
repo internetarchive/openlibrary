@@ -1,9 +1,10 @@
-$def with (imports)
+$def with (stats)
 $var title: Imports
 
 <div id="contentHead">
     $:render_template("admin/menu")
     <h1>Imports</h1>
+    <div><a href="/admin/imports/add">Add new books to import queue</a></div>
 </div>
     
 <div id="contentBody">
@@ -14,7 +15,7 @@ $var title: Imports
         </div>
     </div>
 
-    <h2>Recent Imports</h2>
+    <h2>Summary</h2>
     <table class="changeHistory">
         <tr>
             <th>Date</th>
@@ -23,20 +24,48 @@ $var title: Imports
             <th>#books already found</th>
             <th>#books failed to import</th>
         </tr>            
-        $for date, counts in imports.get_count_by_date_status():
+        $for date, counts in stats.get_count_by_date_status():
             <tr>
                 <td><a href="/admin/imports/$date">$date</a></td>
                 <td>$sum(counts.values())</td>
                 <td>$counts.get('created', 0)</td>
-                <td>$counts.get('found', 0)</td>
+                <td>${counts.get('found', 0) + counts.get('modified', 0)}</td>
                 <td>$counts.get('failed', 0)</td>
             </tr>
     </table>
+
+    <h2>Recent Imports</h2>
+    <table class="changeHistory">
+        <tr>
+            <th>#</th>
+            <th>Identifier</th>
+            <th>OL Key</th>
+            <th>Status</th>
+            <th>Error</th>
+            <th>Added Time</th>
+            <th>Imported Time</th>
+        </tr>            
+        $for row in stats.get_items(order="import_time desc", limit=20):
+            <tr>
+                <td>$loop.index</td>
+                <td><a href="//archive.org/details/$row.ia_id">$truncate(row.ia_id, 40)</a></td>
+                <td>
+                    $if row.ol_key:
+                        <a href="$row.ol_key">$row.ol_key.split("/")[-1]</a>
+                    $else:
+                        -
+                </td>
+                <td>$row.status</td>
+                <td>${row.error or '-'}</td>
+                <td>$datestr(row.added_time)</td>
+                <td>$datestr(row.import_time)</td>
+            </tr>
+    </table>        
 </div>
 <script type="text/javascript">
 \$(function() {
     \$.plot("#books-added-per-day", [{
-        "data": $:json_encode(imports.get_books_imported_per_day()), 
+        "data": $:json_encode(stats.get_books_imported_per_day()), 
     }], {
         series: {
             stack: 0,

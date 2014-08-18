@@ -14,10 +14,10 @@ def read_marc_file(f):
         yield MarcXml(elem)
         elem.clear()
 
-class BlankTag:
+class BlankTag(Exception):
     pass
 
-class BadSubtag:
+class BadSubtag(Exception):
     pass
 
 def norm(s):

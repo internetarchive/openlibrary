@@ -26,7 +26,7 @@ from openlibrary import accounts
 from openlibrary.core import helpers as h
 
 from openlibrary.plugins.admin import services, support, tasks, inspect_thing
-from openlibrary.plugins.admin.imports import Imports
+from openlibrary.core import imports
 
 logger = logging.getLogger("openlibrary.admin")
 
@@ -622,13 +622,26 @@ class solr:
         add_flash_message("info", "Added the specified keys to solr update queue.!")
         return self.GET()
 
-class imports:
+class imports_home:
     def GET(self):
-        return render_template("admin/imports", Imports())
+        return render_template("admin/imports", imports.Stats())
+
+class imports_add:
+    def GET(self):
+        return render_template("admin/imports-add")
+
+    def POST(self):
+        i = web.input("identifiers")
+        identifiers = [line.strip() for line in i.identifiers.splitlines() if line.strip()]
+        batch_name = "admin"
+        batch = imports.Batch.find(batch_name, create=True)
+        batch.add_items(identifiers)
+        add_flash_message("info", "Added the specified identifiers to import queue.")
+        raise web.seeother("/admin/imports")
 
 class imports_by_date:
     def GET(self, date):
-        return render_template("admin/imports_by_date", Imports(), date)
+        return render_template("admin/imports_by_date", imports.Stats(), date)
 
 def setup():
     register_admin_page('/admin/git-pull', gitpull, label='git-pull')
@@ -653,7 +666,8 @@ def setup():
     register_admin_page('/admin/graphs', _graphs, label="")
     register_admin_page('/admin/permissions', permissions, label="")
     register_admin_page('/admin/solr', solr, label="")
-    register_admin_page('/admin/imports', imports, label="")
+    register_admin_page('/admin/imports', imports_home, label="")
+    register_admin_page('/admin/imports/add', imports_add, label="")
     register_admin_page('/admin/imports/(\d\d\d\d-\d\d-\d\d)', imports_by_date, label="")
 
     inspect_thing.setup()

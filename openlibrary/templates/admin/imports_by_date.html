@@ -1,4 +1,4 @@
-$def with (imports, date)
+$def with (stats, date)
 $var title: Imports / $date
 
 <div id="contentHead">
@@ -6,12 +6,13 @@ $var title: Imports / $date
     <h1><a href="/admin/imports">Imports</a> / $date</h1>
 
 <h2>Summary</h2>
-$ summary = imports.get_items_summary(date)
+$ summary = stats.get_items_summary(date)
 
 <table class="changeHistory" style="width: 300px;">
     <tr><td>Total</td><td>$sum(summary['counts'].values())</td></tr>
     <tr><td>Created</td><td>$summary['counts'].get('created', 0)</td></tr>
     <tr><td>Found</td><td>$summary['counts'].get('found', 0)</td></tr>
+    <tr><td>Modified</td><td>$summary['counts'].get('modified', 0)</td></tr>
     <tr><td>Failed</td><td>$summary['counts'].get('failed', 0)</td></tr>
     <tr><td>Pending</td><td>$summary['counts'].get('pending', 0)</td></tr>
 </table>
@@ -29,7 +30,7 @@ $ summary = imports.get_items_summary(date)
             <th>Added Time</th>
             <th>Imported Time</th>
         </tr>            
-        $for row in imports.get_items(date):
+        $for row in stats.get_items(date):
             <tr>
                 <td>$loop.index</td>
                 <td><a href="//archive.org/details/$row.ia_id">$truncate(row.ia_id, 40)</a></td>
