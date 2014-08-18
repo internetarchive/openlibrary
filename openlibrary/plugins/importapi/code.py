@@ -227,7 +227,7 @@ class ia_importapi:
                 "openlibrary": "/books/" + metadata["openlibrary"]
             }
             d = self.populate_edition_data(d, identifier)
-            return add_book.load(d)
+            return self.load_book(d)
 
         # Case 3 - Can the item be loaded into Open Library?
         status = ia.get_item_status(identifier, metadata)
@@ -244,7 +244,11 @@ class ia_importapi:
             return self.error("item-is-serial")
 
         edition_data = self.get_edition_data(identifier, marc_record)
-        return add_book.load(edition_data)
+        return self.load_book(edition_data)
+
+    def load_book(self, edition_data):
+        result = add_book.load(edition_data)
+        return json.dump(result)
 
     def get_edition_data(self, identifier, marc_record):
         edition = read_edition(marc_record)
