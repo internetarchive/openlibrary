@@ -26,8 +26,9 @@ $var title: Imports
     </p>
     <p>
         <strong>ETA:</strong>
-        $ eta = pending_count*1.0 / rate
-        $if rate: ${"%.2f" % eta} hours
+        $if rate: 
+            $ eta = pending_count*1.0 / rate
+            ${"%.2f" % eta} hours
         $else: -
     </p>
 
