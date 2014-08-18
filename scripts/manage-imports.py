@@ -2,7 +2,7 @@ import sys
 import _init_path
 from openlibrary.config import load_config
 from openlibrary.core import db
-from openlibrary.api import OpenLibrary
+from openlibrary.api import OpenLibrary, OLError
 from openlibrary.solr.process_stats import get_ia_db
 
 import web
@@ -78,7 +78,7 @@ class ImportItem(web.storage):
             ol = get_ol()
             logger.info("importing %s", self.ia_id)
             response = ol._request('/api/import', method='POST', data='ia:' + self.ia_id).read()
-        except IOError:
+        except OLError:
             self.mark_failed('internal-error')
 
         if response.startswith("{"):
