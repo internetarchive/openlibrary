@@ -119,19 +119,29 @@ def add_new_scans(args):
         # yesterday
         date = datetime.date.today() - datetime.timedelta(days=1)
 
-    c1 = 'opensource%'
+    c1 = '%opensource%'
     c2 = '%additional_collections%'
 
+    # Find all scans which are updated/added on the given date 
+    # and have been scanned at most 2 months ago
     q = ("SELECT identifier FROM metadata" +
         " WHERE repub_state=4" +
         "   AND mediatype='texts'" +
+        "   AND scancenter IS NOT NULL" +
         "   AND collection NOT LIKE $c1" +
         "   AND collection NOT LIKE $c2" + 
-        "   AND publicdate >= $date and publicdate < ($date::date + INTERVAL '1' DAY)::text")
+        "   AND (curatestate IS NULL OR curatestate != 'dark')" +
+        "   AND lower(format) LIKE '%%pdf%%' AND lower(format) LIKE '%%marc%%'" +
+        "   AND scandate is NOT NULL AND scandate > $min_scandate" +
+        "   AND updated > $date AND updated < ($date::date + INTERVAL '1' DAY)")
 
-    result = get_ia_db().query(q, vars=dict(c1=c1, c2=c2, date=date.isoformat()))
-    items = [row.identifier for row in result]
-    
+    min_scandate = date - datetime.timedelta(60) # 2 months ago
+    result = get_ia_db().query(q, vars=dict(
+        c1=c1, 
+        c2=c2, 
+        date=date.isoformat(),
+        min_scandate=min_scandate.strftime("%Y%m%d")))
+    items = [row.identifier for row in result]    
     batch_name = "new-scans-%04d%02d" % (date.year, date.month)
     batch = Batch.find(batch_name) or Batch.new(batch_name)
     batch.add_items(items)
