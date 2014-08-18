@@ -5,6 +5,9 @@ import urllib, urllib2
 import re
 import web
 import simplejson
+import logging
+
+logger = logging.getLogger("openlibrary.logger")
 
 def urlencode(d, doseq=False):
     """There is a bug in urllib when used with unicode data.
@@ -86,8 +89,10 @@ class Solr:
         url = self.base_url + "/select"        
         if len(payload) < 500:
             url = url + "?" + payload
+            logger.info("solr request: %s", url)
             data = urllib2.urlopen(url).read()
         else:
+            logger.info("solr request: %s ...", url)
             data = urllib2.urlopen(url, payload).read()
         return self._parse_solr_result(
             simplejson.loads(data), 

@@ -226,27 +226,36 @@ class ListMixin:
         This works even for lists with too many seeds as it doesn't try to
         return editions in the order of last-modified.
         """
-        rawseeds = self._get_rawseeds()
-        
-        def get_edition_keys(seeds):
-            d = self._editions_view(seeds, limit=10000, stale="ok")
-            return [row['id'] for row in d['rows']]
-            
-        keys = set()
-        
-        # When there are too many seeds, couchdb-lucene fails because the query URL is too long.
-        # Splitting the seeds into groups of 50 to avoid that trouble.
-        for seeds in web.group(rawseeds, 50):
-            keys.update(get_edition_keys(seeds))
-        
-        # Load docs from couchdb now.
-        for chunk in web.group(keys, 1000):
-            docs = self.get_couchdb_docs(self._get_editions_db(), chunk)
-            for doc in docs.values():
-                del doc['_id']
-                del doc['_rev']
-                yield doc
-            
+        edition_keys = set([
+                seed.key for seed in self.seeds 
+                if seed and seed.type.key == '/type/edition'])
+
+        def get_query_term(seed):
+            if seed.type.key == "/type/work":
+                return "key:%s" % seed.key.split("/")[-1]
+            if seed.type.key == "/type/author":
+                return "author_key:%s" % seed.key.split("/")[-1]
+
+        query_terms = [get_query_term(seed) for seed in self.seeds]
+        query_terms = [q for q in query_terms if q] # drop Nones
+        edition_keys = set(self._get_edition_keys_from_solr(query_terms))
+
+        # Add all editions
+        edition_keys.update(seed.key for seed in self.seeds 
+                            if seed and seed.type.key == '/type/edition')
+
+        return [doc.dict() for doc in web.ctx.site.get_many(list(edition_keys))]
+
+    def _get_edition_keys_from_solr(self, query_terms):
+        if not query_terms:
+            return
+        q = " OR ".join(query_terms)
+        solr = get_works_solr()
+        result = solr.select(q, fields=["edition_key"], rows=10000)
+        for doc in result['docs']:
+            for k in doc['edition_key']:
+                yield "/books/" + k
+
     def _preload(self, keys):
         keys = list(set(keys))
         return self._site.get_many(keys)
