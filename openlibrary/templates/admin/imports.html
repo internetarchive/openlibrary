@@ -39,6 +39,7 @@ $var title: Imports
             <th>#books created</th>
             <th>#books already found</th>
             <th>#books failed to import</th>
+            <th>#books pending</th>
         </tr>            
         $for date, counts in stats.get_count_by_date_status():
             <tr>
@@ -47,6 +48,7 @@ $var title: Imports
                 <td>$counts.get('created', 0)</td>
                 <td>${counts.get('found', 0) + counts.get('modified', 0)}</td>
                 <td>$counts.get('failed', 0)</td>
+                <td>$counts.get('pending', 0)</td>
             </tr>
     </table>
 
