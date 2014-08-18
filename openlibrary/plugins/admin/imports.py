@@ -46,7 +46,7 @@ class Imports:
         rows = db.query(
                 "SELECT status, count(*) as count" +
                 " FROM import_item" +
-                " WHERE added_date::date = $date"
+                " WHERE added_time::date = $date"
                 " GROUP BY status",
                 vars=locals())
         return {
