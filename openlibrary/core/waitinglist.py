@@ -93,6 +93,11 @@ class WaitingLoan(dict):
 
         If book_key is specified, it deletes only the expired waiting loans of that book.
         """
+        # Anand - Aug 19, 2014
+        # Disabled expiring waiting loans as many people are falling out of WL
+        # without being able to borrow books.
+        return
+
         where = ""
         if book_key:
             where += " AND book_key=$book_key"
