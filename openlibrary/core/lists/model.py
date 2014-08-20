@@ -497,7 +497,9 @@ class Seed:
         elif self.type == 'author':
             return "author_key:" + self._get_document_basekey()
         elif self.type == 'subject':
-            type, value = self.key.split(":")
+            type, value = self.key.split(":", 1)
+            # escaping value as it can have special chars like : etc.
+            value = get_works_solr().escape(value)
             return "%s_key:%s" % (type, value)
 
     def get_solrdata(self):
