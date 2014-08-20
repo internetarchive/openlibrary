@@ -69,7 +69,7 @@ class lists_delete(delegate.page):
             
         web.header("Content-Type", "application/json")
         return delegate.RawText('{"status": "ok"}')
-        
+
 class lists_json(delegate.page):
     path = "(/(?:people|books|works|authors|subjects)/[^/]+)/lists"
     encoding = "json"
@@ -437,6 +437,14 @@ class list_editions_yaml(list_subjects_json):
     encoding = "yml"
     content_type = 'text/yaml; charset="utf-8"'
 
+class lists_embed(delegate.page):
+    path = "(/people/\w+/lists/OL\d+L)/embed"
+
+    def GET(self, key):
+        doc = web.ctx.site.get(key)
+        if doc is None or doc.type.key != '/type/list':
+            raise web.notfound()
+        return render_template("type/list/embed", doc)
 
 class export(delegate.page):
     path = "(/people/\w+/lists/OL\d+L)/export"
