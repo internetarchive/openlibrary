@@ -269,7 +269,7 @@ def _is_loaned_out(book_key):
     if book.ocaid:
         loan = web.ctx.site.store.get("loan-" + book.ocaid)
         if loan:
-            return False
+            return True
 
     # Will this return empty list if archive.org is down?
     return book.get_available_loans() == []
