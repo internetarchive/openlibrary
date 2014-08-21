@@ -134,6 +134,13 @@ ul.inner {
             </div>
         $else:
             <em>No current loans.</em>
+
+        <div style="margin: 20px 0px;">
+            <form method="POST">
+                <input type="submit" value="Update loan info" />
+                <input type="hidden" name="action" value="update_loan_info" />
+            </form>
+        </div>
     </div>
 
     <div class="section">
@@ -325,14 +332,10 @@ ul.inner {
             </li>
         </ul>
     </div>
-
-
     <div class="section">
-        <h3>Actions</h3>
-        <form method="POST">
-            <input type="submit" value="Update loan info" />
-            <input type="hidden" name="action" value="update_loan_info" />
-        </form>
+        <h4>Waiting List JSON</h4>
+        <pre>$:json_encode([doc.dict() for doc in waitinglist], indent=True)</pre>
+    </div>
 </div>
 
 
