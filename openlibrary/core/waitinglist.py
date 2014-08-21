@@ -130,6 +130,20 @@ class Stats:
             row.book = docs_dict.get(row.book_key)
         return rows
 
+    def get_counts_by_status(self):
+        rows = db.query("SELECT status, count(*) as count FROM waitingloan group by 1 order by 2")
+        return rows.list()
+
+    def get_available_waiting_loans(self, offset=0, limit=10):
+        rows = db.query(
+            "SELECT * FROM waitingloan" +
+            " WHERE status='available'" +
+            " ORDER BY expiry desc " +
+            " OFFSET $offset" +
+            " LIMIT $limit",
+            vars=locals())
+        return [WaitingLoan(row) for row in rows]
+
 def get_waitinglist_for_book(book_key):
     """Returns the lost of  records for the users waiting for given book.
 

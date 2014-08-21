@@ -10,14 +10,12 @@ $def link(url, title):
 
 <div class="superNav">
     $:link("/admin", _("Admin Center"))
-    | $:link("/admin/block", _("Block IPs"))
-    | $:link("/admin/deploy", _("Deploy"))
-    | $:link("/admin/loans", _("Loans"))
     | $:link("/admin/people", _("People"))
-    | $:link("/admin/support", _("Support"))
+    | $:link("/admin/loans", _("Loans"))
+    | $:link("/admin/waitinglists", _("Waiting Lists"))
+    | $:link("/admin/block", _("Block IPs"))
     | $:link("/admin/solr", _("Solr")) 
     | $:link("/admin/imports", _("Imports"))
-    | $:link("/admin/permissions", _("Site Permissions")) 
     <strong style="padding: 0px 5px">•</strong>
     $:link("/admin/graphs", _("Graphs"))
     | $:link("/admin/inspect/store", _("Inspect store"))

@@ -1,0 +1,119 @@
+$def with (wlstats)
+
+$var title: Waiting Lists - Admin Center
+
+<div id="contentHead">
+    $:render_template("admin/menu")
+    <h1>Waiting Lists</h1>
+</div>    
+<div id="contentBody">
+    <h2>Recently available waiting loans</h2>
+
+$ page = safeint(query_param("page", 1), 1)
+$ offset = (page-1)*50
+
+$ loans = wlstats.get_available_waiting_loans(limit=50, offset=offset)
+$if not loans:
+    <em>None found.</em>
+$else:
+    <div id="borrowTable" class="borrow collapse">
+    <table>
+        <thead>
+            <tr>
+                <th class="titles" colspan="2">Showing ${offset+1}-${offset+min(50, len(loans))} of many</th>
+                <th class="user">$_("Who")</th>
+                <th class="expires">$_("Expires")</th>
+                <th class="what">$_("Loan Status")</th>
+            </tr>
+        </thead>
+        <tbody>
+        <!-- for each borrow -->
+        $for loan in loans:
+            $ book = loan.get_book()
+            $ user = loan.get_user()
+            $ checkedout = book.get
+            $ borrow_status = get_borrow_status(book.ocaid, edition=book)
+            $if borrow_status.has_loan or borrow_status.resource_epub == 'checkedout' or borrow_status.resource_pdf == 'checkedout':
+                $ klass = "has-loan"
+            $else:
+                $ klass = ""
+            <tr class="$klass">
+                <td class="cover">
+                    $:render_template('covers/book_cover_small', book)
+                </td>
+                <td class="titles">
+                    <div>
+                    <span class="book">
+                        <a href="$book.key" class="borrowResults"><strong>$book.title</strong></a>
+                    </span>
+                    </div>
+                    <div><a href="$book.url(suffix='/borrow_admin')">debug_info</a></div>
+                </td>
+                <td class="user">
+                    <a href="$user.key">$user.displayname</a>
+                    <br/>
+                    <div class="date smaller">
+                        Waiting since $datestr(parse_datetime(loan['since']))<br/>
+                    </div>
+                <td class="expires">
+                    $if 'expiry' in loan:
+                        $ expiry_datetime = datetime_from_isoformat(loan['expiry'])
+                        <span class="smaller darkgreen">$datestr(expiry_datetime)</span>
+                    $else:
+                        -
+                </td>
+                <td class="what">
+                    $if borrow_status.has_loan:
+                        <div class="checkedout">
+                            Checked out on OL
+                        </div>
+                    $elif borrow_status.checkedout_on_ia:
+                        <div class="checkedout-elsewhere">
+                            Checked out on Internet Archive.
+                        </div>
+                    $elif borrow_status.resource_epub == 'checkedout':
+                        <div class="checkedout-elsewhere">
+                            ACS4 server is showing that ePub is checked out.
+                        </div>
+                    $elif borrow_status.resource_pdf == 'checkedout':
+                        <div class="checkedout-elsewhere">
+                            ACS4 server is showing that ePub is checked out.
+                        </div>
+                    $else:
+                        <em>No current loans.</em>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    </div>
+    <div style="text-align: center; margin: 20px 0px;">
+        $if page > 1:
+            <a href="$changequery(page=page-1)">&larr; Newer</a>
+        $if page > 1 and len(loans) == 50:
+            <span>|</span>
+        $if len(loans) == 50:
+            <a href="$changequery(page=page+1)">Older &rarr;</a>
+    </div>
+</div>
+
+<style type="text/css">
+    .SRPCover img {
+        max-height: 58px;
+    }
+    tr.has-loan {
+        background: #e2bca5;
+        border: 1px solid #d2ac95;
+    }
+    td.cover {
+        max-width: 40px;
+    }
+    td.user {
+        min-width: 150px;
+    }    
+    td.expires {
+        min-width: 100px;
+    }    
+    td.what {
+        min-width: 200px;
+    }
+</style>

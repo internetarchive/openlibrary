@@ -337,14 +337,20 @@ class ia_loan_status(delegate.page):
         return delegate.RawText(simplejson.dumps(d), content_type="application/json")
 
 @public
-def get_borrow_status(itemid, include_resources=True, include_ia=True):
+def get_borrow_status(itemid, include_resources=True, include_ia=True, edition=None):
     """Returns borrow status for each of the sources and formats.
+
+    If the optinal argument editions is provided, it uses that edition instead
+    of finding edition from itemid. This is added for performance reasons.
     """
     loan = web.ctx.site.store.get("loan-" + itemid)
     has_loan = bool(loan)
 
-    edition_keys = web.ctx.site.things({"type": "/type/edition", "ocaid": itemid})
-    editions = web.ctx.site.get_many(edition_keys)
+    if edition:
+        editions = [edition]
+    else:
+        edition_keys = web.ctx.site.things({"type": "/type/edition", "ocaid": itemid})
+        editions = web.ctx.site.get_many(edition_keys)
     has_waitinglist = editions and any(e.get_waitinglist_size() > 0 for e in editions)
 
     d = {

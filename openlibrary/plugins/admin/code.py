@@ -27,6 +27,7 @@ from openlibrary.core import helpers as h
 
 from openlibrary.plugins.admin import services, support, tasks, inspect_thing
 from openlibrary.core import imports
+from openlibrary.core.waitinglist import Stats as WLStats
 
 logger = logging.getLogger("openlibrary.admin")
 
@@ -474,6 +475,11 @@ class loans_admin:
             borrow.update_all_loan_status()
         raise web.seeother(web.ctx.path) # Redirect to avoid form re-post on re-load
 
+class waitinglists_admin:
+    def GET(self):
+        stats = WLStats()
+        return render_template("admin/waitinglists", stats)
+
 class service_status(object):
     def GET(self):
         try:
@@ -655,6 +661,8 @@ def setup():
     register_admin_page('/admin/ipstats', ipstats, label='IP Stats JSON')
     register_admin_page('/admin/block', block, label='')
     register_admin_page('/admin/loans', loans_admin, label='')
+    register_admin_page('/admin/waitinglists', waitinglists_admin, label='')
+
     register_admin_page('/admin/status', service_status, label = "Open Library services")
     # register_admin_page('/admin/support', support.cases, label = "All Support cases")
     # register_admin_page('/admin/support/(all|new|replied|closed)?', support.cases, label = "Filtered Support cases")
