@@ -340,7 +340,7 @@ def sendmail_people_waiting(book):
             expiry_days=_get_expiry_in_days(loan))
         loan['waiting_email_sent'] = True
         web.ctx.site.store[loan['_key']] = loan
-        logger.info("%s sendmail_people_waiting. wl-size=%s", book.key, len(book.get_waitinglist_size()))
+        logger.info("%s sendmail_people_waiting. wl-size=%s", book.key, book.get_waitinglist_size())
 
 def _get_expiry_in_days(loan):
     if loan.get("expiry"):
