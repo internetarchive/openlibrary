@@ -450,6 +450,7 @@
     <field name="has_fulltext" type="boolean"/>
     <field name="title" type="text" required="true"/>
     <field name="title_suggest" type="textgen" required="true"/>
+    <field name="title_facet" type="string" stored="false" indexed="true" multiValued="false"/>
     <field name="subtitle" type="text"/>
     <field name="alternative_title" type="text" stored="false" multiValued="true"/>
     <field name="alternative_subtitle" type="text" stored="false" multiValued="true"/>
@@ -555,6 +556,7 @@
         or to add multiple fields to the same field for easier/faster searching.  -->
 
    <copyField source="title" dest="title_suggest"/>
+   <copyField source="title" dest="title_facet"/>
    <copyField source="publisher" dest="publisher_facet"/>
    <copyField source="subject" dest="subject_facet"/>
    <copyField source="place" dest="place_facet"/>
