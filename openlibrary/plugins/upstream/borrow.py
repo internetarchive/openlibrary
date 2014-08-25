@@ -661,6 +661,22 @@ def is_loaned_out(resource_id):
     status = get_loan_status(resource_id)
     return is_loaned_out_from_status(status)
 
+def is_loaned_out_on_acs4(item_id):
+    """Returns True if the item is checked out on acs4 server.
+    """
+    url = '%s/item/%s' % (loanstatus_url, item_id)
+    try:
+        d = simplejson.loads(urllib2.urlopen(url).read())
+    except IOError:
+        # If there is any error, assume that item is checkedout.
+        # Better to deny, than giving 2 loans on the same item.
+        return True
+    for r in d['resources']:
+        if r['loans']:
+            return True
+
+    return False
+
 def is_loaned_out_on_ia(identifier):
     url = "https://archive.org/services/borrow/%s?action=status" % identifier
     response = simplejson.loads(urllib2.urlopen(url).read())

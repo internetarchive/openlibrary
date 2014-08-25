@@ -285,6 +285,13 @@ def _is_loaned_out(book_key):
         if loan:
             return True
 
+    # Anand - August 25, 2014
+    # Noticed some cases where the book is made available for waitlisted users
+    # and also checked out on ACS4. Adding an extra check to avoid that case.
+    from openlibrary.plugins.upstream import borrow
+    if borrow.is_loaned_out_on_acs4(book.ocaid):
+        return True
+
     # Will this return empty list if archive.org is down?
     return book.get_available_loans() == []
 
