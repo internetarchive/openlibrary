@@ -30,6 +30,8 @@ import functools
 import web
 import couchdb
 
+logger = logging.getLogger(__name__)
+
 class InvalidType(TypeError): pass
 class NoStats(TypeError): pass
 
@@ -156,14 +158,17 @@ def admin_range__loans(**kargs):
     WARNING: This script must be run on the node that has infobase logs.
     """
     try:
-        db         = kargs['thingdb']
-        start      = kargs['start']
+        db = kargs['thingdb']        
+        start = kargs['start']
+        end = kargs['end']
     except KeyError, k:
-        raise TypeError("%s is a required argument for admin_range__loans"%k)
-
-    q = "select count(*) as count from stats where type='loan' and created::date=$date"
-    date = "%04d/%02d/%02d" % (start.year, start.month, start.day)
-    result = db.query(q, vars={"date": date})
+        raise TypeError("%s is a required argument for admin_total__ebooks"%k)
+    result = db.query(
+        "SELECT count(*) as count FROM stats" +
+        " WHERE type='loan'" +
+        "   AND created >= $start" + 
+        "   AND created < $end",
+        vars=locals())
     return result[0].count
 
 def admin_total__authors(**kargs):
