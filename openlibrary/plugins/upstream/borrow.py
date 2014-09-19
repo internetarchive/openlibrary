@@ -146,6 +146,10 @@ class borrow(delegate.page):
                 if resource_type == 'bookreader':
                     # The loan expiry should be utc isoformat
                     loan.expiry = datetime.datetime.utcfromtimestamp(time.time() + bookreader_loan_seconds).isoformat()
+                
+                # Store the current waiting-list in loan info so that we can troubleshoot
+                # when the WL issue happens again.
+                loan.debug_info = [wloan.dict() for wloan in wl]
                 loan_link = loan.make_offer() # generate the link and record that loan offer occurred
                                 
                 # $$$ Record fact that user has done a borrow - how do I write into user? do I need permissions?
@@ -1039,7 +1043,7 @@ class Loan:
     
     This is used only to make a loan offer. In other cases, the dict from store is used directly.
     """
-    def __init__(self, user_key, book_key, resource_type, loaned_at = None):
+    def __init__(self, user_key, book_key, resource_type, loaned_at = None, debug_info=None):
         # store a uuid in the loan so that the loan can be uniquely identified. Required for stats.
         self.uuid = uuid.uuid4().hex
         self.key = None # Set after resource_id is initialized
@@ -1059,6 +1063,7 @@ class Loan:
             self.loaned_at = loaned_at
         else:
             self.loaned_at = time.time()
+        self.debug_info = debug_info
         
     def get_key(self):
         return self.key
@@ -1073,7 +1078,8 @@ class Loan:
                  'expiry': self.expiry,
                  'uuid': self.uuid,
                  'loaned_at': self.loaned_at, 'resource_type': self.resource_type,
-                 'resource_id': self.resource_id, 'loan_link': self.loan_link }
+                 'resource_id': self.resource_id, 'loan_link': self.loan_link,
+                 'debug_info': self.debug_info}
                  
     def set_dict(self, loan_dict):
         self.rev = loan_dict['_rev'] 
@@ -1086,6 +1092,7 @@ class Loan:
         self.resource_id = loan_dict['resource_id']
         self.loan_link = loan_dict['loan_link']
         self.uuid = loan_link.get('uuid')
+        self.debug_info = loan_dict.get('debug_info')
         
     def save(self):
         web.ctx.site.store[self.get_key()] = self.get_dict()        
