@@ -6,12 +6,18 @@ lighttpd log files directly.
 import os
 import datetime
 import subprocess
+from openlibrary.config import load_config
+import web
+import infogami
 
 import couchdb
 import yaml
 
 def connect_to_couch(config_file):
     "Connects to the couch databases"
+    load_config(config_file)
+    infogami._setup()
+
     f = open(config_file)
     config = yaml.load(f)
     f.close()
@@ -20,15 +26,25 @@ def connect_to_couch(config_file):
 
 def store_data(db, data, date):
     uid = date.strftime("counts-%Y-%m-%d")
-    print uid
+
+    # start storing data in store as well, so that we can phase out couch
+    doc = web.ctx.site.store.get(uid) or {}
+    doc.update(data)
+    doc['type'] = 'admin-stats'
+    web.ctx.site.store[uid] = doc
+
     try:
-        vals = db[uid]
-        vals.update(data)
-    except couchdb.http.ResourceNotFound:
-        vals = data
-        db[uid] = vals
-    print "saving %s"%vals
-    db.save(vals)
+        try:
+            vals = db[uid]
+            vals.update(data)
+        except couchdb.http.ResourceNotFound:
+            vals = data
+            db[uid] = vals
+        print "saving %s"%vals
+        db.save(vals)
+    except IOError, e:
+        print >> sys.stderr, "unable to save to couchdb:", str(e)
+
 
 def run_for_day(d):
     basedir = d.strftime("/var/log/nginx/")
