@@ -133,6 +133,15 @@ class borrow(delegate.page):
                 ab.convert("borrow-layout")
             
             if user_can_borrow_edition(user, edition, resource_type):
+
+                # XXX-Anand - Sept 2014: 
+                # Extra check to avoid book being given to someone when people are already 
+                # waiting on it. There are some reports of this happening.
+                # Redirect back to the same page if there is waitinglist.
+                wl = edition.get_waitinglist()
+                if wl and (wl[0]['user_key'] != user.key or wl[0]['status'] != 'available'):
+                    raise web.seeother(error_redirect)
+
                 loan = Loan(user.key, key, resource_type)
                 if resource_type == 'bookreader':
                     # The loan expiry should be utc isoformat
