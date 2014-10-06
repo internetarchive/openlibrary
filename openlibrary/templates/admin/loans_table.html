@@ -44,13 +44,13 @@ $else:
         <!-- for each borrow -->
         $for loan in loans:
             $if waiting_loan:
-                $ book_key = loan['book_key']
-                $ user_key = loan['user_key']
+                $ book = loan.get_book()
+                $ user = loan.get_user()
             $else:
                 $ book_key = loan['book']
                 $ user_key = loan['user']
-            $ book = get_document(book_key)
-            $ user = get_document(user_key)
+                $ book = get_document(book_key)
+                $ user = get_document(user_key)
             <tr>
                 <td class="cover">
                 $:render_template('covers/book_cover_small', book)
@@ -95,7 +95,7 @@ $else:
                     <a href="$user.key">$user.key</a>
                 </td>
                 <td class="action">
-                    $ borrow_admin = book_key + '/title/borrow_admin'
+                    $ borrow_admin = book.url('/borrow_admin')
                     <a href="$borrow_admin">debug_info</a><br/><br/>
                     <a href="$borrow_admin?updatestatus=t" class="smaller plain">refresh</a>
                 </td>
