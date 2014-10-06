@@ -80,6 +80,17 @@ ul.inner {
                 </tbody>
             </table>
         </div>
+
+    $ collections = page.get_ia_meta_fields()['collection']
+    $if 'lendinglibrary' not in collections and 'inlibrary' not in collections:
+        <div class="alert attn message" id="alert0">
+            This book is not borrowable.
+        </div>
+    $else:
+        <div class="alert attn">
+            This book is borrowable.
+        </div>
+
     <div class="section">
         <h3>Current Loans</h3>
         $ borrow_status = get_borrow_status(page.ocaid)
@@ -404,6 +415,11 @@ td.serial {
 
 .section h3 {
     margin: 1em 0em 0.5em 0em;
+}
+
+body#plain div#alert0 {
+    background-color: #eeecad !important;
+    border: 1px solid #d2ac95;    
 }
 
 </style>
