@@ -375,6 +375,7 @@ def work_object(w): # called by works_by_author
         title = w['title'],
         public_scan = w.get('public_scan_b', bool(ia)),
         lending_edition = w.get('lending_edition_s', ''),
+        lending_identifier = w.get('lending_identifier_s', ''),
         overdrive = (w['overdrive_s'].split(';') if 'overdrive_s' in w else []),
         collections = set(w['ia_collection_s'].split(';') if 'ia_collection_s' in w else []),
         url = '/works/' + w['key'] + '/' + urlsafe(w['title']),
@@ -383,8 +384,8 @@ def work_object(w): # called by works_by_author
         ia = w.get('ia', []),
         cover_i = w.get('cover_i')
     )
-    if obj['lending_edition']:
-        doc = web.ctx.site.store.get("ebooks/books/" + obj['lending_edition']) or {}
+    if obj['lending_identifier']:
+        doc = web.ctx.site.store.get("ebooks/" + obj['lending_identifier']) or {}
         obj['checked_out'] = doc.get("borrowed") == "true"
     else:
         obj['checked_out'] = "false"

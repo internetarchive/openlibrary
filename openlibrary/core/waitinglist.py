@@ -61,7 +61,6 @@ class WL_API:
         params['token'] = config.get("ia_ol_shared_key")
         payload = urllib.urlencode(params)
         jsontext = urllib2.urlopen(IA_API_URL, payload).read()
-        logger.info("response %s", jsontext)
         return json.loads(jsontext)
 
 _wl_api = WL_API()
@@ -315,17 +314,16 @@ def update_waitinglist(identifier):
     # checked out or someone is waiting.
     not_available = bool(checkedout or wl)
 
-    # update ebook document.
-    ebook2 =dict(ebook)
-    ebook2.update({
-        "_key": ebook_key,
-        "type": "ebook",
-        "book_key": book_key,
-        "borrowed": str(not_available).lower(), # store as string "true" or "false"
-        "wl_size": len(wl)
-    })
-    if ebook != ebook2: # save if modified
-        web.ctx.site.store[ebook_key] = dict(ebook2, _rev=None) # force update
+    update_ebook('ebooks' + book_key, 
+        book_key=book_key,
+        borrowed=str(not_available).lower(), # store as string "true" or "false"
+        wl_size=len(wl))
+
+    # Start storing ebooks/$identifier so that we can handle mutliple editions
+    # with same ocaid more effectively.
+    update_ebook('ebooks/' + identifier, 
+        borrowed=str(not_available).lower(), # store as string "true" or "false"
+        wl_size=len(wl))
 
     if wl:
         # If some people are waiting and the book is checked out,
@@ -338,6 +336,16 @@ def update_waitinglist(identifier):
         else:
             sendmail_book_available(book)
     logger.info("END updating %r", book_key)
+
+
+def update_ebook(ebook_key, **data):
+    ebook = web.ctx.site.store.get(ebook_key) or {}
+    # update ebook document.
+    ebook2 =dict(ebook, _key=ebook_key, type="ebook")
+    ebook2.update(data)
+    if ebook != ebook2: # save if modified
+        web.ctx.site.store[ebook_key] = dict(ebook2, _rev=None) # force update
+
 
 def _is_loaned_out(book_key):
     book = web.ctx.site.get(book_key)

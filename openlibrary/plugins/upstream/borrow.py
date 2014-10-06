@@ -275,11 +275,14 @@ class borrow_admin(delegate.page):
             return render_template('permission_denied', web.ctx.path, "Permission denied.")
     
         edition = web.ctx.site.get(key)
-        ebook_key = "ebooks" + key
-        ebook = web.ctx.site.store.get(ebook_key) or {}
-        
         if not edition:
             raise web.notfound()
+
+        if edition.ocaid:
+            ebook_key = "ebooks/" + edition.ocaid
+            ebook = web.ctx.site.store.get(ebook_key) or {}
+        else:
+            ebook = None
 
         i = web.input(updatestatus=None)
         if i.updatestatus == 't':
@@ -540,7 +543,7 @@ def get_edition_loans(edition):
         # Get the loans only if the book is borrowed. Since store.get requests
         # are memcache-able, checking this will be very fast.
         # This avoids making expensive infobase query for each book.
-        has_loan = web.ctx.site.store.get("ebooks" + edition['key'], {}).get("borrowed") == "true"
+        has_loan = web.ctx.site.store.get("ebooks/" + edition.ocaid, {}).get("borrowed") == "true"
         
         # The implementation is changed to store the loan as loan-$ocaid.
         # If there is a loan on this book, we'll find it.

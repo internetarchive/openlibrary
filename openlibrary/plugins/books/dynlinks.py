@@ -307,7 +307,7 @@ class DataProcessor:
                 }
             elif availability == "borrow":
                 d['borrow_url'] = u"https://openlibrary.org%s/%s/borrow" % (doc['key'], h.urlsafe(doc.get("title", "untitled")))
-                loanstatus =  web.ctx.site.store.get('ebooks' + doc['key'], {'borrowed': 'false'})
+                loanstatus =  web.ctx.site.store.get('ebooks/' + doc['ocaid'], {'borrowed': 'false'})
                 d['checkedout'] = (loanstatus['borrowed'] == 'true')
                 d['formats'] = {
                     "djvu": {

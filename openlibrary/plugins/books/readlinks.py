@@ -110,7 +110,7 @@ class ReadProcessor:
         return self.inlibrary
         
 
-    def get_item_status(self, ekey, collections, subjects):
+    def get_item_status(self, ekey, iaid, collections, subjects):
         if 'lendinglibrary' in collections:
             if not 'Lending library' in subjects:
                 status = 'restricted'
@@ -133,7 +133,7 @@ class ReadProcessor:
             status = 'full access'
 
         if status == 'lendable':
-            loanstatus =  web.ctx.site.store.get('ebooks' + ekey, {'borrowed': 'false'})
+            loanstatus =  web.ctx.site.store.get('ebooks/' + iaid, {'borrowed': 'false'})
             if loanstatus['borrowed'] == 'true':
                 status = 'checked out'
 
@@ -242,7 +242,7 @@ class ReadProcessor:
                 status = 'missing'
             else:
                 ekey = edition.get('key', '')
-                status = self.get_item_status(ekey, collections, subjects)
+                status = self.get_item_status(ekey, iaid, collections, subjects)
             return status
 
         def getdate(self, iaid):
