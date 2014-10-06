@@ -189,8 +189,10 @@ def join_waitinglist(user_key, book_key):
 
     It is done by createing a new record in the store.
     """
-    WaitingLoan.new(user_key=user_key, book_key=book_key)
-    update_waitinglist(book_key)
+    book = web.ctx.site.get(book_key)
+    if book and book.ocaid:
+        WaitingLoan.new(user_key=user_key, book_key=book_key, identifier=book.ocaid)
+        update_waitinglist(book_key)
 
 def leave_waitinglist(user_key, book_key):
     """Removes the given user from the waiting list of the given book.
