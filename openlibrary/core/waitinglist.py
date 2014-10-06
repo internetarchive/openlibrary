@@ -149,7 +149,11 @@ def get_waitinglist_for_book(book_key):
 
     This is admin-only feature. Works only if the current user is an admin.
     """
-    return WaitingLoan.query(book_key=book_key)
+    book = web.ctx.site.get(book_key)
+    if book and book.ocaid:
+        return WaitingLoan.query(identifier=book.ocaid)
+    else:
+        return []
     # wl = _query_values(name="book", value=book_key)
     # # sort the waiting list by timestamp
     # return sorted(wl, key=lambda doc: doc['since'])
