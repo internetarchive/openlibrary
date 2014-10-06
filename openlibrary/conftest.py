@@ -20,8 +20,7 @@ from openlibrary.mocks.mock_ol import pytest_funcarg__ol
 def pytest_funcarg__render_template(request):
     """Utility to test templates.
     """    
-    template.load_templates("openlibrary/plugins/openlibrary")
-    template.load_templates("openlibrary/plugins/upstream")
+    template.load_templates("openlibrary")
     
     #TODO: call setup on upstream and openlibrary plugins to 
     # load all globals.

@@ -53,6 +53,8 @@ def carousel_from_list(key, randomize=False, limit=60):
     return render_template("books/carousel", storify(data), id=id)
     
 def add_checkedout_status(books):
+    """OBSOLETE -- will be deleted.
+    """
     # This is not very efficient approach.
     # Todo: Implement the following apprach later.
     # * Store the borrow status of all books in the list in memcache
