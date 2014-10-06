@@ -93,11 +93,6 @@ class WaitingLoan(dict):
 
         If book_key is specified, it deletes only the expired waiting loans of that book.
         """
-        # Anand - Aug 19, 2014
-        # Disabled expiring waiting loans as many people are falling out of WL
-        # without being able to borrow books.
-        return
-
         where = ""
         if book_key:
             where += " AND book_key=$book_key"
@@ -233,8 +228,11 @@ def update_waitinglist(book_key):
                 w.delete()
 
     with db.transaction():
-        # delete expired any, if any before we start processing.
-        WaitingLoan.prune_expired(book_key=book_key)
+        # delete the expired entries only if the book is not checkout. 
+        # We got into this strange issue due to a bug.
+        if not checkedout:
+            # delete expired any, if any before we start processing.
+            WaitingLoan.prune_expired(book_key=book_key)
 
         # update the position and wl_size for all holds
         wl = get_waitinglist_for_book(book_key)
@@ -365,6 +363,7 @@ def prune_expired_waitingloans():
     A waiting loan expires if the person fails to borrow a book with in 
     24 hours after his waiting loan becomes "available".
     """
+    return
     expired = WaitingLoan.prune_expired()
     # Update the checkedout status and position in the WL for each entry
     for r in expired:
