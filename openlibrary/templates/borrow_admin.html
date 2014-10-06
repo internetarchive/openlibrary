@@ -163,11 +163,14 @@ ul.inner {
                     <tr class="row-$status">
                         <td class="serial">$loop.index</td>
                         <td class="titles">
-                            <a href="/admin$u.key">$u.name</a>
+                            $if u:
+                                <a href="/admin$u.key">$u.name</a>
+                            $else:
+                                $record['userid']
                             <div class="date">
                                 $ ndays = record.get_waiting_in_days()
                                 $ungettext("Waiting for %d day", "Waiting for %d days", ndays, ndays)
-                                <div class="smaller gray">$record['since'].isoformat()</div>
+                                <div class="smaller gray">$record['since']</div>
                             </div>
                         </td>
                         <td class="status">

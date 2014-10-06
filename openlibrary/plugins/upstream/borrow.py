@@ -139,7 +139,7 @@ class borrow(delegate.page):
                 # waiting on it. There are some reports of this happening.
                 # Redirect back to the same page if there is waitinglist.
                 wl = edition.get_waitinglist()
-                if wl and (wl[0]['user_key'] != user.key or wl[0]['status'] != 'available'):
+                if wl and (wl[0].get_user_key() != user.key or wl[0]['status'] != 'available'):
                     raise web.seeother(error_redirect)
 
                 loan = Loan(user.key, key, resource_type)
@@ -306,7 +306,7 @@ class borrow_admin(delegate.page):
         if i.action == 'delete' and i.loan_key:
             delete_loan(i.loan_key)
         elif i.action == 'update_loan_info':
-            waitinglist.update_waitinglist(key)
+            waitinglist.update_waitinglist(edition.ocaid)
 
         raise web.seeother(web.ctx.path + '/borrow_admin')
         
@@ -1006,7 +1006,7 @@ def on_loan_update(loan):
     # store[key] = doc
 
     # update the waiting list and ebook document.
-    waitinglist.update_waitinglist(loan['book'])
+    waitinglist.update_waitinglist(loan['ocaid'])
 
     # TODO: differentiate between loan-updated and loan-created
     msgbroker.send_message("loan-created", loan)
@@ -1032,7 +1032,7 @@ def on_loan_delete(loan):
     # store[key] = doc
 
     # update the waiting list and ebook document.
-    waitinglist.update_waitinglist(loan['book'])
+    waitinglist.update_waitinglist(loan['ocaid'])
 
     msgbroker.send_message("loan-completed", loan)
 
