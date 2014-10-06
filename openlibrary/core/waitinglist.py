@@ -371,7 +371,9 @@ def sendmail_book_available(book):
     if wl and wl[0]['status'] == 'available' and not wl[0].get('available_email_sent'):
         record = wl[0]
         user = record.get_user()
-        email = user and user.get_email()
+        if not user:
+            return
+        email = user.get_email()
         sendmail_with_template("email/waitinglist_book_available", to=email, user=user, book=book)
         record.update(available_email_sent=True)
         logger.info("%s is available, send email to the first person in WL. wl-size=%s", book.key, len(wl))
