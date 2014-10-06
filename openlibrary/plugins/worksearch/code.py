@@ -320,6 +320,7 @@ def get_doc(doc): # called from work_search template
     e_public_scan = doc.find("bool[@name='public_scan_b']")
     e_overdrive = doc.find("str[@name='overdrive_s']")
     e_lending_edition = doc.find("str[@name='lending_edition_s']")
+    e_lending_identifier = doc.find("str[@name='lending_identifier_s']")
     e_collection = doc.find("str[@name='ia_collection_s']")
     collections = set()
     if e_collection is not None:
@@ -334,6 +335,7 @@ def get_doc(doc): # called from work_search template
         public_scan = ((e_public_scan.text == 'true') if e_public_scan is not None else (e_ia is not None)),
         overdrive = (e_overdrive.text.split(';') if e_overdrive is not None else []),
         lending_edition = (e_lending_edition.text if e_lending_edition is not None else None),
+        lending_identifier = (e_lending_identifier and e_lending_identifier.text),
         collections = collections,
         authors = authors,
         first_publish_year = first_pub,
@@ -344,7 +346,10 @@ def get_doc(doc): # called from work_search template
 
     doc.url = '/works/' + doc.key + '/' + urlsafe(doc.title)
     
-    if not doc.public_scan and doc.lending_edition:
+    if not doc.public_scan and doc.lending_identifier:
+        store_doc = web.ctx.site.store.get("ebooks/" + doc.lending_identifier) or {}
+        doc.checked_out = store_doc.get("borrowed") == "true"
+    elif not doc.public_scan and doc.lending_edition:
         store_doc = web.ctx.site.store.get("ebooks/books/" + doc.lending_edition) or {}
         doc.checked_out = store_doc.get("borrowed") == "true"
     else:

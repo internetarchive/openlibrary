@@ -565,6 +565,7 @@ class SolrProcessor:
         all_overdrive = set()
         lending_edition = None
         in_library_edition = None
+        lending_ia_identifier = None
         printdisabled = set()
         for e in editions:
             if 'overdrive' in e:
@@ -573,8 +574,10 @@ class SolrProcessor:
                 continue
             if not lending_edition and 'lendinglibrary' in e.get('ia_collection', []):
                 lending_edition = re_edition_key.match(e['key']).group(1)
+                lending_ia_identifier = e['ocaid']
             if not in_library_edition and 'inlibrary' in e.get('ia_collection', []):
                 in_library_edition = re_edition_key.match(e['key']).group(1)
+                lending_ia_identifier = e['ocaid']
             if 'printdisabled' in e.get('ia_collection', []):
                 printdisabled.add(re_edition_key.match(e['key']).group(1))
             all_collection.update(e.get('ia_collection', []))
@@ -605,8 +608,10 @@ class SolrProcessor:
             add('overdrive_s', ';'.join(all_overdrive))
         if lending_edition:
             add('lending_edition_s', lending_edition)
+            add('lending_identifier_s', lending_ia_identifier)
         elif in_library_edition:
             add('lending_edition_s', in_library_edition)
+            add('lending_identifier_s', lending_ia_identifier)
         if printdisabled:
             add('printdisabled_s', ';'.join(list(printdisabled)))
         
