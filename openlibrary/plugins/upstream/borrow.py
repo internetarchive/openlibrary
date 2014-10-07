@@ -23,6 +23,7 @@ from utils import render_template
 from openlibrary.core import inlibrary
 from openlibrary.core import stats
 from openlibrary.core import msgbroker
+from openlibrary.core import lending
 from openlibrary.core import waitinglist
 from openlibrary import accounts
 from openlibrary.core import ab
@@ -359,7 +360,7 @@ def get_borrow_status(itemid, include_resources=True, include_ia=True, edition=N
     If the optinal argument editions is provided, it uses that edition instead
     of finding edition from itemid. This is added for performance reasons.
     """
-    loan = web.ctx.site.store.get("loan-" + itemid)
+    loan = lending.get_loan(itemid)
     has_loan = bool(loan)
 
     if edition:
@@ -376,7 +377,7 @@ def get_borrow_status(itemid, include_resources=True, include_ia=True, edition=N
         'has_waitinglist': has_waitinglist,
     }
     if include_ia:
-        ia_checkedout = is_loaned_out_on_ia(itemid)
+        ia_checkedout = lending.is_loaned_out_on_ia(itemid)
         d['checkedout'] = d['checkedout'] or ia_checkedout
         d['checkedout_on_ia'] = ia_checkedout
 
@@ -548,7 +549,7 @@ def get_edition_loans(edition):
         # The implementation is changed to store the loan as loan-$ocaid.
         # If there is a loan on this book, we'll find it.
         # Sometimes there are multiple editions with same ocaid. This takes care of them as well. 
-        loan_record = web.ctx.site.store.get("loan-" + edition.ocaid)
+        loan_record = lending.get_loan(edition.ocaid)
         if has_loan or loan_record:
             if loan_record:
                 return [loan_record]
@@ -663,7 +664,7 @@ def is_loaned_out(resource_id):
         if not loan_key:
             # No loan recorded
             identifier = resource_id[len('bookreader:'):]
-            return is_loaned_out_on_ia(identifier)
+            return lending.is_loaned_out_on_ia(identifier)
 
         # Find the loan and check if it has expired
         loan = web.ctx.site.store.get(loan_key)
@@ -676,27 +677,6 @@ def is_loaned_out(resource_id):
     # Assume ACS4 loan - check status server
     status = get_loan_status(resource_id)
     return is_loaned_out_from_status(status)
-
-def is_loaned_out_on_acs4(item_id):
-    """Returns True if the item is checked out on acs4 server.
-    """
-    url = '%s/item/%s' % (loanstatus_url, item_id)
-    try:
-        d = simplejson.loads(urllib2.urlopen(url).read())
-    except IOError:
-        # If there is any error, assume that item is checkedout.
-        # Better to deny, than giving 2 loans on the same item.
-        return True
-    for r in d['resources']:
-        if r['loans']:
-            return True
-
-    return False
-
-def is_loaned_out_on_ia(identifier):
-    url = "https://archive.org/services/borrow/%s?action=status" % identifier
-    response = simplejson.loads(urllib2.urlopen(url).read())
-    return response and response.get('checkedout')
     
 def is_loaned_out_from_status(status):
     if not status:

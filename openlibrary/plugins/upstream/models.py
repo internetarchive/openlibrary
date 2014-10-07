@@ -12,6 +12,7 @@ from infogami.utils import stats
 
 from openlibrary.core import models, ia
 from openlibrary.core.models import Image
+from openlibrary.core import lending
 
 from openlibrary.plugins.search.code import SearchProcessor
 from openlibrary.plugins.worksearch.code import works_by_author, sorted_work_editions
@@ -201,8 +202,16 @@ class Edition(models.Edition):
         Returns [{'resource_id': uuid, 'resource_type': type, 'size': bytes}]
         
         size may be None"""
+        # no ebook
+        if not self.ocaid:
+            return []
+
+        # already checked out
+        if lending.is_loaned_out(self.ocaid):
+            return []
         
-        return self._get_available_loans(borrow.get_edition_loans(self))
+        # find available loans. there are no current loans
+        return self._get_available_loans([])
         
     def _get_available_loans(self, current_loans):
         

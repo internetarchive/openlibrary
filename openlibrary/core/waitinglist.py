@@ -21,6 +21,7 @@ from infogami import config
 from . import helpers as h
 from .sendmail import sendmail_with_template
 from . import db
+from . import lending
 
 logger = logging.getLogger("openlibrary.waitinglist")
 
@@ -292,7 +293,7 @@ def update_waitinglist(identifier):
 
     logger.info("BEGIN updating %r", book_key)
 
-    checkedout = _is_loaned_out(book_key)
+    checkedout = lending.is_loaned_out(identifier)
 
     if checkedout:
         loans = book.get_loans()
@@ -354,29 +355,6 @@ def update_ebook(ebook_key, **data):
     if ebook != ebook2: # save if modified
         web.ctx.site.store[ebook_key] = dict(ebook2, _rev=None) # force update
 
-
-def _is_loaned_out(book_key):
-    book = web.ctx.site.get(book_key)
-
-    # Anand - Aug 2014
-    # When a book is loaned out, there'll be a loan-$ocaid record
-    # and get_available_loans() will return empty. 
-    # Testing for both of them to make sure we don't give wrong 
-    # result even if there is a slight chance for them to differ.
-    if book.ocaid:
-        loan = web.ctx.site.store.get("loan-" + book.ocaid)
-        if loan:
-            return True
-
-    # Anand - August 25, 2014
-    # Noticed some cases where the book is made available for waitlisted users
-    # and also checked out on ACS4. Adding an extra check to avoid that case.
-    from openlibrary.plugins.upstream import borrow
-    if borrow.is_loaned_out_on_acs4(book.ocaid):
-        return True
-
-    # Will this return empty list if archive.org is down?
-    return book.get_available_loans() == []
 
 def sendmail_book_available(book):
     """Informs the first person in the waiting list that the book is available.
