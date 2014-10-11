@@ -67,7 +67,7 @@ $else:
                             <td class="icon"><img src="/images/icons/icon_thumbsup-borrow.png" width="25" height="25"/></td>
                             <td>
                                 <div class="ab-control ab-alt-one-row">Read online now.<br/>No extra software!</div>
-                                <div class="ab-experiment ab-alt-two-rows ab-alt-one-row-recommended"><strong>Recommended!</strong><br/>No extra software required.</div>
+                                <div class="ab-experiment ab-alt-two-rows ab-alt-one-row-recommended"><strong>Recommended!</strong><br/>No extra software required.<br/>The Internet Archive will administer this loan.</div>
                         </td>
                         </tr>
                     </tbody></table>
@@ -93,7 +93,8 @@ $else:
                     <table cellpadding="0" cellspacing="0" border="0"><tbody>
                         <tr>
                             <td class="icon"><img src="/images/icons/icon_wrench-borrow.png" width="30" height="30"/></td>
-                            <td>You <strong>must <a href="http://www.adobe.com/products/digitaleditions/" title="Visit adobe.com in a new browser window to install the software" target="newwindow">install Adobe Digital Editions</a> to view</strong><br/>either of these format options. (It's free.)</td>
+                            <td>You <strong>must <a href="http://www.adobe.com/products/digitaleditions/" title="Visit adobe.com in a new browser window to install the software" target="newwindow">install Adobe Digital Editions</a> to view</strong><br/>either of these format options. (It's free.)<br/><br/>
+                            The Internet Archive will administer this loan, but Adobe may also collect some information.</td>
                         </tr>
                     </tbody></table>
                 </div>
@@ -119,8 +120,8 @@ $else:
         form#borrowbook fieldset {
             float: none;
         } 
-        form#borrowbook fieldset.online {
-            width: 455px;
+        form#borrowbook fieldset.online, form#borrowbook fieldset.offline {
+            width: 605px;
         }
         form#borrowbook fieldset.online > div {
             width: auto;
