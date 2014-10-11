@@ -246,6 +246,7 @@ class SubjectEngine:
         result = work_search(q, offset=offset, limit=limit, sort=sort, **kw)
         for w in result.docs:
             w.ia = w.ia and w.ia[0] or None
+            w['checked_out'] = False
             if not w.get('public_scan') and w.ia and w.get('lending_identifier'):
                 doc = web.ctx.site.store.get("ebooks/" + w['lending_identifier']) or {}
                 w['checked_out'] = doc.get("borrowed") == "true"
