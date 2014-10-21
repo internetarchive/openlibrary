@@ -5,22 +5,18 @@ import datetime, time
 import hmac
 import re
 import simplejson
-import string
 import urllib2
-import uuid
 import logging
 
 import web
 
 from infogami import config
 from infogami.utils import delegate
-from infogami.utils.view import public, add_flash_message
+from infogami.utils.view import public
 from infogami.infobase.utils import parse_datetime
 
-import utils
 from utils import render_template
 
-from openlibrary.core import inlibrary
 from openlibrary.core import stats
 from openlibrary.core import msgbroker
 from openlibrary.core import lending
@@ -143,20 +139,12 @@ class borrow(delegate.page):
                 if wl and (wl[0].get_user_key() != user.key or wl[0]['status'] != 'available'):
                     raise web.seeother(error_redirect)
 
-                loan = Loan(user.key, key, resource_type)
-                if resource_type == 'bookreader':
-                    # The loan expiry should be utc isoformat
-                    loan.expiry = datetime.datetime.utcfromtimestamp(time.time() + bookreader_loan_seconds).isoformat()
-                
-                # Store the current waiting-list in loan info so that we can troubleshoot
-                # when the WL issue happens again.
-                loan.debug_info = [wloan.dict() for wloan in wl]
-                loan_link = loan.make_offer() # generate the link and record that loan offer occurred
-                                
-                # $$$ Record fact that user has done a borrow - how do I write into user? do I need permissions?
-                # if not user.has_borrowed:
-                #   user.has_borrowed = True
-                #   user.save()
+                loan = lending.create_loan(
+                    identifier=edition.ocaid,
+                    resource_type=resource_type,
+                    user_key=user.key,
+                    book_key=key)
+                loan_link = loan['loan_link']
                 
                 if resource_type == 'bookreader':
                     stats.increment('loans.bookreader')
@@ -241,7 +229,7 @@ class borrow_status(delegate.page):
         if not edition:
             raise web.notfound()
 
-        edition.update_loan_status()            
+        edition.update_loan_status()
         available_formats = [loan['resource_type'] for loan in edition.get_available_loans()]
         loan_available = len(available_formats) > 0
         subjects = set([])
@@ -425,6 +413,7 @@ class ia_auth(delegate.page):
         
         return delegate.RawText(output, content_type=content_type)
 
+
 # Handler for /borrow/receive_notification - receive ACS4 status update notifications
 class borrow_receive_notification(delegate.page):
     path = r"/borrow/receive_notification"
@@ -574,7 +563,7 @@ def get_loan_link(edition, type):
             if not config.content_server:
                 # $$$ log
                 return None
-            content_server = ContentServer(config.content_server)
+            content_server = lending.ContentServer(config.content_server)
             
         if not resource_id:
             raise Exception('Could not find resource_id for %s - %s' % (edition.key, type))
@@ -977,141 +966,13 @@ def make_bookreader_auth_link(loan_key, item_id, book_path, ol_host):
     return auth_url
     
 def on_loan_update(loan):
-    store = web.ctx.site.store
-
-    # key = "ebooks" + loan['book']
-    # doc = store.get(key) or {}
-    # doc.update({
-    #     "type": "ebook",
-    #     "book_key": loan['book'],
-    #     "borrowed": "true"
-    # })
-    # store[key] = doc
-
     # update the waiting list and ebook document.
     waitinglist.update_waitinglist(loan['ocaid'])
-
-    # TODO: differentiate between loan-updated and loan-created
-    msgbroker.send_message("loan-created", loan)
     
 def on_loan_delete(loan):
-    store = web.ctx.site.store
-    loan['returned_at'] = time.time()
-
-    # Check if the book still has an active loan
-    
-    # borrowed = "false"
-    # loan_keys = store.query('/type/loan', 'resource_id', loan['resource_id'])
-    # if loan_keys:
-    #     borrowed = "true"
-
-    # key = "ebooks" + loan['book']
-    # doc = store.get(key) or {}
-    # doc.update({
-    #     "type": "ebook",
-    #     "book_key": loan['book'],
-    #     "borrowed": borrowed
-    # })
-    # store[key] = doc
-
     # update the waiting list and ebook document.
     waitinglist.update_waitinglist(loan['ocaid'])
 
-    msgbroker.send_message("loan-completed", loan)
-
-########## Classes
-
-class Loan:
-    """The model class for Loan. 
-    
-    This is used only to make a loan offer. In other cases, the dict from store is used directly.
-    """
-    def __init__(self, user_key, book_key, resource_type, loaned_at = None, debug_info=None):
-        # store a uuid in the loan so that the loan can be uniquely identified. Required for stats.
-        self.uuid = uuid.uuid4().hex
-        self.key = None # Set after resource_id is initialized
-
-        self.rev = 1 # This triggers the infobase consistency check - if there is an existing record on save
-                     # the consistency check will fail (revision mismatch)
-        self.user_key = user_key
-        self.book_key = book_key
-        self.ocaid = None
-        self.resource_type = resource_type
-        self.type = '/type/loan'
-        self.resource_id = None
-        self.loan_link = None
-        self.expiry = None # We leave the expiry blank until we get confirmation of loan from ACS4
-        
-        if loaned_at is not None:
-            self.loaned_at = loaned_at
-        else:
-            self.loaned_at = time.time()
-        self.debug_info = debug_info
-        
-    def get_key(self):
-        return self.key
-
-    def get_dict(self):
-        return { '_key': self.get_key(),
-                 '_rev': self.rev,
-                 'type': '/type/loan',
-                 'user': self.user_key, 
-                 'book': self.book_key,
-                 'ocaid': self.ocaid, 
-                 'expiry': self.expiry,
-                 'uuid': self.uuid,
-                 'loaned_at': self.loaned_at, 'resource_type': self.resource_type,
-                 'resource_id': self.resource_id, 'loan_link': self.loan_link,
-                 'debug_info': self.debug_info}
-                 
-    def set_dict(self, loan_dict):
-        self.rev = loan_dict['_rev'] 
-        self.user_key = loan_dict['user']
-        self.type = loan_dict['type']
-        self.book_key = loan_dict['book']
-        self.resource_type = loan_dict['resource_type']
-        self.expiry = loan_dict['expiry']
-        self.loaned_at = loan_dict['loaned_at']
-        self.resource_id = loan_dict['resource_id']
-        self.loan_link = loan_dict['loan_link']
-        self.uuid = loan_link.get('uuid')
-        self.debug_info = loan_dict.get('debug_info')
-        
-    def save(self):
-        web.ctx.site.store[self.get_key()] = self.get_dict()        
-        on_loan_update(self.get_dict())
-        
-    def remove(self):
-        web.ctx.site.delete(self.get_key())
-        on_loan_delete(self.get_dict())
-        
-    def make_offer(self):
-        """Create loan url and record that loan was offered.  Returns the link URL that triggers
-           Digital Editions to open or the link for the BookReader."""
-           
-        edition = web.ctx.site.get(self.book_key)
-        resource_id, loan_link = get_loan_link(edition, self.resource_type)
-        if not loan_link:
-            raise Exception('Could not get loan link for edition %s type %s' % self.book_key, self.resource_type)
-        self.loan_link = loan_link
-        self.resource_id = resource_id
-        self.key = "loan-" + edition.ocaid
-        self.ocaid = edition.ocaid or None
-        self.save()
-        return self.loan_link
-        
-class ContentServer:
-    def __init__(self, config):
-        self.host = config.host
-        self.port = config.port
-        self.password = config.password
-        self.distributor = config.distributor
-        
-        # Contact server to get shared secret for signing
-        result = acs4.get_distributor_info(self.host, self.password, self.distributor)
-        self.shared_secret = result['sharedSecret']
-        self.name = result['name']
-
-    def get_loan_link(self, resource_id):
-        loan_link = acs4.mint(self.host, self.shared_secret, resource_id, 'enterloan', self.name, port = self.port)
-        return loan_link
+msgbroker.subscribe("loan-created", on_loan_update)
+msgbroker.subscribe("loan-completed", on_loan_delete)
+lending.setup(config)

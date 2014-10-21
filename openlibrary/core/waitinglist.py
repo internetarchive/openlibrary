@@ -330,22 +330,26 @@ def update_waitinglist(identifier):
 
     # Start storing ebooks/$identifier so that we can handle mutliple editions
     # with same ocaid more effectively.
+    logger.info("END updating %r", book_key)
+
+def on_waitinglist_update(identifier, waitinglist):
+    """Triggered when a waiting list is updated.
+    """
     update_ebook('ebooks/' + identifier, 
         borrowed=str(not_available).lower(), # store as string "true" or "false"
-        wl_size=len(wl))
+        wl_size=len(waitinglist))
 
-    if wl:
+    if waitinglist:
+        book = _get_book(identifier)
         # If some people are waiting and the book is checked out,
         # send email to the person who borrowed the book.
         # 
         # If the book is not checked out, inform the first person 
         # in the waiting list
         if checkedout:
-            sendmail_people_waiting(book)        
+            sendmail_people_waiting(book)
         else:
             sendmail_book_available(book)
-    logger.info("END updating %r", book_key)
-
 
 def update_ebook(ebook_key, **data):
     ebook = web.ctx.site.store.get(ebook_key) or {}
@@ -429,11 +433,28 @@ def prune_expired_waitingloans():
         update_waitinglist(r['identifier'])
 
 def update_all_waitinglists():
-    return
-    rows = db.query("SELECT distinct(identifier) from waitingloan")
-    for row in rows:
+    rows = WaitingLoan.query(limit=10000)
+    identifiers = set(row['identifier'] for row in rows)
+    for identifier in identifiers:
         try:
-            update_waitinglist(row.identifier)
+            update_waitinglist(identifier)
         except Exception:
-            logger.error("failed to update waitinglist for %s", row.book_key, exc_info=True)
+            logger.error("failed to update waitinglist for %s", identifier, exc_info=True)
+
+
+def update_all_ebooks():
+    rows = WaitingLoan.query(limit=10000)
+    identifiers = set(row['identifier'] for row in rows)
+
+    loan_keys = web.ctx.site.store.keys(type='/type/loan', limit=-1)
+
+    for k in loan_keys:
+        id = k[len("loan-"):]
+        # would have already been updated
+        if id in identifiers:
+            continue
+        logger.info("updating ebooks/" + id)
+        update_ebook('ebooks/' + id,
+            borrowed='true',
+            wl_size=0)
 
