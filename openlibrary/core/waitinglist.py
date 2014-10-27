@@ -113,6 +113,9 @@ class WaitingLoan(dict):
             return max(0, delta_hours)
         return 0
 
+    def is_expired(self):
+        return self['status'] == 'available' and self['expiry'] < datetime.datetime.utcnow().isoformat()
+
     def dict(self):
         """Converts this object into JSON-able dict.
 
@@ -300,6 +303,11 @@ def update_waitinglist(identifier):
                 w.delete()
 
     wl = get_waitinglist_for_book(book_key)
+
+    # Delete the first entry if it is expired
+    if wl and wl[0].is_expired():
+        wl[0].delete()
+        wl = wl[1:]
 
     # Mark the first entry in the waiting-list as available if the book
     # is not checked out.
