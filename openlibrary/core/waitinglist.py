@@ -291,6 +291,10 @@ def update_waitinglist(identifier):
 
     # Start storing ebooks/$identifier so that we can handle mutliple editions
     # with same ocaid more effectively.
+    update_ebook('ebooks/' + identifier,
+        borrowed=str(not_available).lower(), # store as string "true" or "false"
+        wl_size=len(wl))
+
     logger.info("END updating %r", book_key)
 
 def on_waitinglist_update(identifier, waitinglist):
