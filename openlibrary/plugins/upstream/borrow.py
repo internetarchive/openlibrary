@@ -524,27 +524,14 @@ def get_all_loans():
 
 def get_loans(user):
     # return web.ctx.site.store.values(type='/type/loan', name='user', value=user.key)
-    return get_all_store_values(type='/type/loan', name='user', value=user.key)    
+    #return get_all_store_values(type='/type/loan', name='user', value=user.key)
+    return lending.get_loans_of_user(user.key)
 
 def get_edition_loans(edition):
-    # An edition can't have loans if it doens't have an IA ID. 
-    # This check avoids a lot of unnecessary queries.
     if edition.ocaid:
-        # Get the loans only if the book is borrowed. Since store.get requests
-        # are memcache-able, checking this will be very fast.
-        # This avoids making expensive infobase query for each book.
-        has_loan = web.ctx.site.store.get("ebooks/" + edition.ocaid, {}).get("borrowed") == "true"
-        
-        # The implementation is changed to store the loan as loan-$ocaid.
-        # If there is a loan on this book, we'll find it.
-        # Sometimes there are multiple editions with same ocaid. This takes care of them as well. 
-        loan_record = lending.get_loan(edition.ocaid)
-        if has_loan or loan_record:
-            if loan_record:
-                return [loan_record]
-            # for legacy reasons.
-            records = get_all_store_values(type='/type/loan', name='book', value=edition.key)
-            return records
+        loan = lending.get_loan(edition.ocaid)
+        if loan:
+            return [loan]
     return []
 
 def get_loan_link(edition, type):

@@ -1,17 +1,19 @@
 """Module for providing core functionality of lending on Open Library.
 """
 import web
-import urllib2
 import simplejson
+import datetime
 import time
 import logging
 import uuid
-import datetime
 import hmac
+import urllib
+import urllib2
 from openlibrary.plugins.upstream import acs4
 
 from . import ia
 from . import msgbroker
+from . import helpers as h
 
 logger = logging.getLogger(__name__)
 
@@ -34,22 +36,25 @@ BOOKREADER_AUTH_SECONDS = 10*60
 #     BookReader loan status is always current.
 LOAN_FULFILLMENT_TIMEOUT_SECONDS = 60*5
 
+IA_API_URL = "https://www-anand.archive.org/services/openlibrary.php"
 
 config_content_server = None
 config_loanstatus_url = None
 config_ia_access_secret = None
 config_bookreader_host = None
+config_ia_ol_shared_key = None
 
 def setup(config):
     """Initializes this module from openlibrary config.
     """
-    global config_content_server, config_loanstatus_url, config_ia_access_secret, config_bookreader_host
+    global config_content_server, config_loanstatus_url, config_ia_access_secret, config_bookreader_host, config_ia_ol_shared_key
 
     if config.get("content_server"):
         config_content_server = ContentServer(config.get("content_server"))
     config_loanstatus_url = config.get('loanstatus_url')
     config_ia_access_secret = config.get('ia_access_secret')
     config_bookreader_host = config.get('bookreader_host', 'archive.org')
+    config_ia_ol_shared_key = config.get('ia_ol_shared_key')
 
 def is_loaned_out(identifier):
     """Returns True if the given identifier is loaned out.
@@ -80,7 +85,6 @@ def is_loaned_out_on_ol(identifier):
     loan = get_loan(identifier)
     return bool(loan)
 
-
 def get_loan(identifier, user_key=None):
     """Returns the loan object for given identifier, if a loan exists.
 
@@ -90,12 +94,34 @@ def get_loan(identifier, user_key=None):
     d = web.ctx.site.store.get("loan-" + identifier)
     if d and (user_key is None or d['user'] == user_key):
         return Loan(d)
+    # return _get_ia_loan(identifier, user_key and userkey2userid(user_key))
+
+def _get_ia_loan(identifier, userid):
+    ia_loan = ia_lending_api.get_loan(identifier, userid)
+    return ia_loan and Loan.from_ia_loan(ia_loan)
+
+def get_loans_of_user(user_key):
+    loandata = web.ctx.site.store.values(type='/type/loan', name='user', value=user_key)
+    loans = [Loan(d) for d in loandata] # + _get_ia_loans_of_user(userkey2userid(user_key))
+    return loans
+
+def _get_ia_loans_of_user(userid):
+    ia_loans = ia_lending_api.find_loans(userid=userid)
+    return [Loan.from_ia_loan(d) for d in ia_loans]
 
 def create_loan(identifier, resource_type, user_key, book_key=None):
     """Creates a loan and returns it.
     """
     if config_content_server is None:
         raise Exception("the lending module is not initialized. Please call lending.setup function first.")
+
+    # loan = ia_lending_api.create_loan(
+    #     identifier=identifier,
+    #     format=resource_type,
+    #     userid=userkey2userid(user_key),
+    #     ol_key=book_key)
+
+    # return loan
 
     loan = Loan.new(identifier, resource_type, user_key, book_key)
     loan.save()
@@ -144,6 +170,52 @@ class Loan(dict):
             'loan_link': loan_link,
         })
 
+    @staticmethod
+    def from_ia_loan(data):
+        if data['userid'].startswith('ol:'):
+            user_key = '/people/' + data['userid'][len('ol:'):]
+        else:
+            user_key = None
+
+        if data['ol_key']:
+            book_key = data['ol_key']
+        else:
+            book_key = resolve_identifier(data['identifier'])
+
+        created = h.parse_datetime(data['created'])
+
+        d = {
+            '_key': "loan-{0}".format(data['identifier']),
+            '_rev': 1,
+            'type': '/type/loan',
+            'user': user_key,
+            'book': book_key,
+            'ocaid': data['identifier'],
+            'expiry': data['until'],
+            'uuid': 'loan-{0}'.format(data['id']),
+            'loaned_at': time.mktime(created.timetuple()),
+            'resource_type': data['format'],
+            'resource_id': data['resource_id'],
+            'loan_link': data['loan_link'],
+            'from_ia': True
+        }
+        return Loan(d)
+
+    def to_ia_loan(self):
+        """Converts this loan object into the format of IA loan dict.
+        """
+        d = {
+            'identifier': self['ocaid'],
+            'userid': userkey2userid(self['user']),
+            'ol_key': self['book'],
+            'resource_id': self['resource_id'],
+            'format': self['resource_type'],
+            'loan_link': self['loan_link'],
+            'created': datetime.datetime.fromtimestamp(self['loaned_at']).isoformat(),
+            'until': self['expiry']
+        }
+        return Loan(d)
+
     def get_key(self):
         return self['_key']
 
@@ -168,6 +240,18 @@ class Loan(dict):
         # Inform listers that a loan is completed
         msgbroker.send_message("loan-completed", loan)
 
+def resolve_identifier(identifier):
+    """Returns the OL book key for given IA identifier.
+    """
+    keys = web.ctx.site.things(dict(type='/type/edition', ocaid=identifier))
+    if keys:
+        return keys[0]
+    else:
+        return "/books/ia:" + identifier
+
+def userkey2userid(user_key):
+    username = user_key.split("/")[-1]
+    return "ol:" + username
 
 def get_resource_id(identifier, resource_type):
     """Returns the resource_id for an identifier for the specified resource_type.
@@ -224,6 +308,10 @@ def make_bookreader_auth_link(loan_key, item_id, book_path, ol_host):
 def update_loan_status(identifier):
     """Update the loan status in OL based off status in ACS4.  Used to check for early returns."""
     loan = get_loan(identifier)
+
+    # if the loan is from ia, it is already updated when getting the loan
+    if loan is None or loan.get('from_ia'):
+        return
 
     if loan['resource_type'] == 'bookreader':
         if loan.is_expired():
@@ -297,3 +385,57 @@ class ACS4Item(object):
         }
         return formats[format]
 
+
+class IA_Lending_API:
+    """Archive.org waiting list API.
+    """
+    def get_loan(self, identifier, userid=None):
+        params = dict(method="loan.query", identifier=identifier)
+        if userid:
+            params['userid'] = userid
+        loans = self._post(**params)['result']
+        if loans:
+            return loans[0]
+
+    def find_loans(self, **kw):
+        return self._post(method="loan.query", **kw)['result']
+
+    def create_loan(self, identifier, userid, format, ol_key):
+        response = self._post(method="loan.create", identifier=identifier, userid=userid, format=format, ol_key=ol_key)
+        if response['status'] == 'ok':
+            return response['result']['loan']
+
+    def get_waitinglist_of_book(self, identifier):
+        return self.query(identifier=identifier)
+
+    def get_waitinglist_of_user(self, userid):
+        return self.query(userid=userid)
+
+    def join_waitinglist(self, identifier, userid):
+        return self._post(method="waitinglist.join",
+                          identifier=identifier,
+                          userid=userid)
+
+    def leave_waitinglist(self, identifier, userid):
+        return self._post(method="waitinglist.leave",
+                          identifier=identifier,
+                          userid=userid)
+
+    def update_waitinglist(self, identifier, userid, **kwargs):
+        return self._post(method="waitinglist.update",
+                          identifier=identifier,
+                          userid=userid,
+                          **kwargs)
+
+    def query(self, **params):
+        response = self._post(method="waitinglist.query", **params)
+        return response['result']
+
+    def _post(self, **params):
+        logger.info("POST %s %s", IA_API_URL, params)
+        params['token'] = config_ia_ol_shared_key
+        payload = urllib.urlencode(params)
+        jsontext = urllib2.urlopen(IA_API_URL, payload).read()
+        return simplejson.loads(jsontext)
+
+ia_lending_api = IA_Lending_API()

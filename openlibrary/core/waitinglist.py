@@ -25,46 +25,7 @@ from . import lending
 
 logger = logging.getLogger("openlibrary.waitinglist")
 
-IA_API_URL = "https://archive.org/services/openlibrary.php"
-
-class WL_API:
-    """Archive.org waiting list API.
-    """
-    def get_waitinglist_of_book(self, identifier):
-        return self.query(identifier=identifier)
-
-    def get_waitinglist_of_user(self, userid):
-        return self.query(userid=userid)
-
-    def join_waitinglist(self, identifier, userid):
-        return self._post(method="waitinglist.join", 
-                          identifier=identifier,
-                          userid=userid)
-
-    def leave_waitinglist(self, identifier, userid):
-        return self._post(method="waitinglist.leave", 
-                          identifier=identifier,
-                          userid=userid)
-
-    def update_waitinglist(self, identifier, userid, **kwargs):
-        print "update_waitinglist", identifier, userid, kwargs
-        return self._post(method="waitinglist.update", 
-                          identifier=identifier,
-                          userid=userid,
-                          **kwargs)
-
-    def query(self, **params):
-        response = self._post(method="waitinglist.query", **params)
-        return response['result']
-
-    def _post(self, **params):
-        logger.info("POST %s %s", IA_API_URL, params)
-        params['token'] = config.get("ia_ol_shared_key")
-        payload = urllib.urlencode(params)
-        jsontext = urllib2.urlopen(IA_API_URL, payload).read()
-        return json.loads(jsontext)
-
-_wl_api = WL_API()
+_wl_api = lending.ia_lending_api
 
 
 def userkey2userid(user_key):
