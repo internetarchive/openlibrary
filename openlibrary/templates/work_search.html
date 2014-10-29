@@ -50,7 +50,7 @@ $    ('oclc', 'OCLC'),
 $    ('contributor', 'Contributor'),
 $ )
 
-$ sorts = dict(editions='edition_count desc', old='first_publish_year asc', new='first_publish_year desc', scans='ia_count desc')
+$ sorts = dict(editions='edition_count desc', old='first_publish_year asc', new='first_publish_year desc', title='title_facet asc', scans='ia_count desc')
 
 $ error = None
 $if param:
@@ -138,13 +138,15 @@ function less(header) {
         $if num_found > 1:
             <span class="tools"><img src="/images/icons/icon_sort.png" alt="$_('Sorting by')" width="9" height="11" style="margin-right:10px;"/> 
             $if sort == 'editions':
-                <a href="$changequery(sort=None)">$_("Relevance")</a> | <strong class="lightgreen">$_("Most Editions")</strong> | <a href="$changequery(sort='old')">$_("First Published")</a> | <a href="$changequery(sort='new')">$_("Most Recent")</a>
+                <a href="$changequery(sort=None)">$_("Relevance")</a> | <strong class="lightgreen">$_("Most Editions")</strong> | <a href="$changequery(sort='old')">$_("First Published")</a> | <a href="$changequery(sort='new')">$_("Most Recent")</a> | <a href="$changequery(sort='title')">$_("Alphabetically")</a>
             $elif sort == 'old':
-                <a href="$changequery(sort=None)">$_("Relevance")</a> |  <a href="$changequery(sort='editions')">$_("Most Editions")</a> | <strong class="lightgreen">$_("First Published")</strong> | <a href="$changequery(sort='new')">$_("Most Recent")</a>
+                <a href="$changequery(sort=None)">$_("Relevance")</a> |  <a href="$changequery(sort='editions')">$_("Most Editions")</a> | <strong class="lightgreen">$_("First Published")</strong> | <a href="$changequery(sort='new')">$_("Most Recent")</a> | <a href="$changequery(sort='title')">$_("Alphabetically")</a>
             $elif sort == 'new':
-                <a href="$changequery(sort=None)">$_("Relevance")</a> | <a href="$changequery(sort='editions')">$_("Most Editions")</a> | <a href="$changequery(sort='old')">$_("First Published")</a> | <strong class="lightgreen">$_("Most Recent")</strong>
+                <a href="$changequery(sort=None)">$_("Relevance")</a> | <a href="$changequery(sort='editions')">$_("Most Editions")</a> | <a href="$changequery(sort='old')">$_("First Published")</a> | <strong class="lightgreen">$_("Most Recent")</strong> | <a href="$changequery(sort='title')">$_("Alphabetically")</a>
+            $elif sort == 'title':
+                <a href="$changequery(sort=None)">$_("Relevance")</a> | <a href="$changequery(sort='editions')">$_("Most Editions")</a> | <a href="$changequery(sort='old')">$_("First Published")</a> | <a href="$changequery(sort='new')">$_("Most Recent")</a> | <strong class="lightgreen">$_("Alphabetically")</strong>
             $else:
-                <strong class="lightgreen">$_("Relevance")</strong> | <a href="$changequery(sort='editions')">$_("Most Editions")</a> | <a href="$changequery(sort='old')">$_("First Published")</a> | <a href="$changequery(sort='new')">$_("Most Recent")</a>  
+                <strong class="lightgreen">$_("Relevance")</strong> | <a href="$changequery(sort='editions')">$_("Most Editions")</a> | <a href="$changequery(sort='old')">$_("First Published")</a> | <a href="$changequery(sort='new')">$_("Most Recent")</a>  | <a href="$changequery(sort='title')">$_("Alphabetically")</a>
             </span>
 </p>
 

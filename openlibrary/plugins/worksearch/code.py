@@ -488,7 +488,7 @@ def works_by_author(akey, sort='editions', page=1, rows=100):
         'overdrive_s', 'ia_collection_s', 'cover_i']
     fl = ','.join(fields)
     solr_select = solr_select_url + "?q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=%s&wt=json" % (q, offset, rows, fl)
-    facet_fields = ["author_facet", "language", "publish_year", "publisher_facet", "subject_facet", "person_facet", "place_facet", "time_facet"]
+    facet_fields = ["title_facet", "author_facet", "language", "publish_year", "publisher_facet", "subject_facet", "person_facet", "place_facet", "time_facet"]
     if sort == 'editions':
         solr_select += '&sort=edition_count+desc'
     elif sort.startswith('old'):
@@ -496,7 +496,7 @@ def works_by_author(akey, sort='editions', page=1, rows=100):
     elif sort.startswith('new'):
         solr_select += '&sort=first_publish_year+desc'
     elif sort.startswith('title'):
-        solr_select += '&sort=title+asc'
+        solr_select += '&sort=title_facet+asc'
     solr_select += "&facet=true&facet.mincount=1&f.author_facet.facet.sort=count&f.publish_year.facet.limit=-1&facet.limit=25&" + '&'.join("facet.field=" + f for f in facet_fields)
     stats.begin("solr", url=solr_select)
     reply = json.load(urllib.urlopen(solr_select))
@@ -699,6 +699,7 @@ class search_json(delegate.page):
             editions='edition_count desc', 
             old='first_publish_year asc', 
             new='first_publish_year desc', 
+            title='title_facet asc', 
             scans='ia_count desc')
         sort_name = query.get('sort', None)
         sort_value = sort_name and sorts[sort_name] or None
