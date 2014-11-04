@@ -36,7 +36,7 @@ BOOKREADER_AUTH_SECONDS = 10*60
 #     BookReader loan status is always current.
 LOAN_FULFILLMENT_TIMEOUT_SECONDS = 60*5
 
-IA_API_URL = "https://www-anand.archive.org/services/openlibrary.php"
+IA_API_URL = "https://archive.org/services/openlibrary.php"
 
 config_content_server = None
 config_loanstatus_url = None
