@@ -1395,6 +1395,22 @@ class MonkeyPatch:
         self.ia_db = get_ia_db()
         self.count_withKey = 0
 
+    def clear_cache(self, max_size=10000):
+        """Clears all the caches when size of the largest cache has more than max_size elements.
+
+        Useful to avoid building up memory for long running solr updater.
+        """
+        caches = [self.cache, self.redirect_cache, self.ia_cache, self.ia_redirect_cache]
+        size = max(len(c) for c in caches)
+        if size > max_size:
+            logger.info("clearing monkey patch cache. size of largest cache is %s (> %s)",
+                        len(size), 
+                        len(max_size))
+            for c in caches:
+                c.clear()
+        else:
+            logger.info("not clearing monkey patch cache. size of largest cache small enough. %s (< %s)", len(size), len(max_size))
+
     def monkeypatch(self):
         global query_iter, withKey, get_document, get_ia_collection_and_box_id, find_redirects
 
@@ -1666,6 +1682,10 @@ def monkeypatch(config_file):
 
     _monkeypatch = MonkeyPatch()
     _monkeypatch.monkeypatch()
+
+def clear_monkeypatch_cache(max_size=10000):
+    if _monkeypatch:
+        _monkeypatch.clear_cache(max_size=max_size)
 
 def main():
     options, keys = parse_options()
