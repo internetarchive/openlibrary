@@ -6,6 +6,7 @@ import datetime
 import itertools
 from cStringIO import StringIO
 import csv
+import simplejson
 
 import web
 import couchdb
@@ -596,8 +597,10 @@ def on_loan_completed_statsdb(loan):
     }
     old = statsdb.get_entry(key)
     if old:
-        d = dict(old, **d)
+        olddata = simplejson.loads(old.json)
+        d = dict(olddata, **d)
     statsdb.update_entry(key, d)
+
 
 def _get_loan_key(loan):
     # The loan key is now changed from uuid to fixed key.
