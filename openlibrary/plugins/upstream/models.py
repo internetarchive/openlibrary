@@ -254,19 +254,8 @@ class Edition(models.Edition):
     
     def update_loan_status(self):
         """Update the loan status"""
-        # $$$ search in the store and update
-        loans = borrow.get_edition_loans(self)
-        for loan in loans:
-            borrow.update_loan_status(loan['resource_id'])
-            
-#         urn_pattern = r'acs:\w+:(.*)'
-#         for ia_urn in self.get_lending_resources():
-#             if ia_urn.startswith('acs:'):
-#                 resource_id = re.match(urn_pattern, ia_urn).group(1)
-#             else:
-#                 resource_id = ia_urn
-# 
-#             borrow.update_loan_status(resource_id)
+        if self.ocaid:
+            lending.sync_loan(self.ocaid)
 
     def _process_identifiers(self, config, names, values):
         id_map = {}
@@ -695,13 +684,13 @@ class User(models.User):
         
     def get_loans(self):
         self.update_loan_status()
-        return borrow.get_loans(self)
+        return lending.get_loans_of_user(self.key)
         
     def update_loan_status(self):
         """Update the status of this user's loans."""
-        loans = borrow.get_loans(self)
-        for resource_id in [loan['resource_id'] for loan in loans]:
-            borrow.update_loan_status(resource_id)
+        loans = lending.get_loans_of_user(self.key)
+        for loan in loans:
+            lending.sync_loan(loan['ocaid'])
             
 class UnitParser:
     """Parsers values like dimentions and weight.

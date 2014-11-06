@@ -94,7 +94,7 @@ def get_loan(identifier, user_key=None):
     d = web.ctx.site.store.get("loan-" + identifier)
     if d and (user_key is None or d['user'] == user_key):
         return Loan(d)
-    # return _get_ia_loan(identifier, user_key and userkey2userid(user_key))
+    return _get_ia_loan(identifier, user_key and userkey2userid(user_key))
 
 def _get_ia_loan(identifier, userid):
     ia_loan = ia_lending_api.get_loan(identifier, userid)
@@ -102,7 +102,7 @@ def _get_ia_loan(identifier, userid):
 
 def get_loans_of_user(user_key):
     loandata = web.ctx.site.store.values(type='/type/loan', name='user', value=user_key)
-    loans = [Loan(d) for d in loandata] # + _get_ia_loans_of_user(userkey2userid(user_key))
+    loans = [Loan(d) for d in loandata]  + _get_ia_loans_of_user(userkey2userid(user_key))
     return loans
 
 def _get_ia_loans_of_user(userid):
@@ -115,17 +115,94 @@ def create_loan(identifier, resource_type, user_key, book_key=None):
     if config_content_server is None:
         raise Exception("the lending module is not initialized. Please call lending.setup function first.")
 
-    # loan = ia_lending_api.create_loan(
-    #     identifier=identifier,
-    #     format=resource_type,
-    #     userid=userkey2userid(user_key),
-    #     ol_key=book_key)
+    ia_loan = ia_lending_api.create_loan(
+         identifier=identifier,
+         format=resource_type,
+         userid=userkey2userid(user_key),
+         ol_key=book_key)
 
+    if ia_loan:
+        loan = Loan.from_ia_loan(ia_loan)
+        msgbroker.send_message("loan-created", loan)
+        sync_loan(identifier)
+        return loan
+
+    # loan = Loan.new(identifier, resource_type, user_key, book_key)
+    # loan.save()
     # return loan
 
-    loan = Loan.new(identifier, resource_type, user_key, book_key)
-    loan.save()
-    return loan
+NOT_INITIALIZED = object()
+
+def sync_loan(identifier, loan=NOT_INITIALIZED):
+    """Updates the loan info stored in openlibrary.
+
+    The loan records are stored at the Internet Archive. There is no way for
+    OL to know when a loan is deleted. To handle that situation, the loan info
+    is stored in the ebook document and the deletion is detecting by comparing
+    the current loan id and loan id stored in the ebook.
+
+    This function is called whenever the loan is updated.
+    """
+    logger.info("BEGIN sync_loan %s %s", identifier, loan)
+    if loan is NOT_INITIALIZED:
+        loan = get_loan(identifier)
+
+    ebook = EBookRecord.find(identifier)
+
+    # The data of the loan without the user info.
+    loan_data = loan and dict(
+        uuid=loan['uuid'],
+        loaned_at=loan['loaned_at'],
+        resource_type=loan['resource_type'],
+        ocaid=loan['ocaid'],
+        book=loan['book'])
+
+    # The loan known to us is deleted
+    if ebook.get("loan") and ebook.get("loan") != loan_data:
+        _d = dict(ebook['loan'], returned_at=time.time())
+        msgbroker.send_message("loan-completed", _d)
+
+    wl = ia_lending_api.get_waitinglist_of_book(identifier)
+
+    # for the end user, a book is not available if it is either
+    # checked out or someone is waiting.
+    borrowed = bool(is_loaned_out(identifier) or wl)
+
+    logger.info("loan %s", loan)
+    logger.info("is_loaned_out %s", is_loaned_out(identifier))
+    logger.info("borrowed %s", borrowed)
+
+    # When the current loan is a OL loan, remember the loan_data
+    if loan and loan.is_ol_loan():
+        ebook_loan_data = loan_data
+    else:
+        ebook_loan_data = None
+
+    ebook.update(
+        loan=ebook_loan_data,
+        borrowed=str(borrowed).lower(),
+        wl_size=len(wl))
+    logger.info("END sync_loan %s", identifier)
+
+
+class EBookRecord(dict):
+    @staticmethod
+    def find(identifier):
+        key ="ebooks/" + identifier
+        d = web.ctx.site.store.get(key) or {"_key": key, "_rev": 1}
+        return EBookRecord(d)
+
+    def update(self, **kwargs):
+        logger.info("updating %s %s", self['_key'], kwargs)
+        # Nothing to update if what we have is same as what is being asked to
+        # update.
+        d = dict((k, self.get(k)) for k in kwargs)
+        if d == kwargs:
+            return
+
+        dict.update(self, **kwargs)
+        web.ctx.site.store[self['_key']] = self
+
 
 class Loan(dict):
     """Model for loan.
@@ -184,6 +261,13 @@ class Loan(dict):
 
         created = h.parse_datetime(data['created'])
 
+        # For historic reasons, OL considers expiry == None as un-fulfilled
+        # loan.
+        if data['fulfilled']:
+            expiry = data['until']
+        else:
+            expiry = None
+
         d = {
             '_key': "loan-{0}".format(data['identifier']),
             '_rev': 1,
@@ -191,15 +275,20 @@ class Loan(dict):
             'user': user_key,
             'book': book_key,
             'ocaid': data['identifier'],
-            'expiry': data['until'],
+            'expiry': expiry,
+            'fulfilled': data['fulfilled'],
             'uuid': 'loan-{0}'.format(data['id']),
             'loaned_at': time.mktime(created.timetuple()),
             'resource_type': data['format'],
             'resource_id': data['resource_id'],
             'loan_link': data['loan_link'],
-            'from_ia': True
+            'stored_at': 'ia'
         }
         return Loan(d)
+
+    def is_ol_loan(self):
+        # self['user'] will be None for IA loans
+        return self['user'] is not None
 
     def to_ia_loan(self):
         """Converts this loan object into the format of IA loan dict.
@@ -233,10 +322,22 @@ class Loan(dict):
         """
         return self['expiry'] is None and (time.time() - self['loaned_at']) < LOAN_FULFILLMENT_TIMEOUT_SECONDS
 
+    def return_loan(self):
+        logger.info("*** return_loan ***")
+        if self['resource_type'] == 'bookreader':
+            self.delete()
+            return True
+        else:
+            return False
+
     def delete(self):
         loan = dict(self, returned_at=time.time())
-        web.ctx.site.store.delete(self['_key'])
+        if self.get("stored_at") == 'ia':
+            ia_lending_api.delete_loan(self['ocaid'], userkey2userid(self['user']))
+        else:
+            web.ctx.site.store.delete(self['_key'])
 
+        sync_loan(self['ocaid'])
         # Inform listers that a loan is completed
         msgbroker.send_message("loan-completed", loan)
 
@@ -405,6 +506,9 @@ class IA_Lending_API:
         if response['status'] == 'ok':
             return response['result']['loan']
 
+    def delete_loan(self, identifier, userid):
+        self._post(method="loan.delete", identifier=identifier, userid=userid)
+
     def get_waitinglist_of_book(self, identifier):
         return self.query(identifier=identifier)
 
@@ -436,6 +540,12 @@ class IA_Lending_API:
         params['token'] = config_ia_ol_shared_key
         payload = urllib.urlencode(params)
         jsontext = urllib2.urlopen(IA_API_URL, payload).read()
-        return simplejson.loads(jsontext)
+        logger.info("POST response: %s", jsontext)
+        try:
+            return simplejson.loads(jsontext)
+        except Exception:
+            logger.error("POST failed", exc_info=True)
+            logger.info("jsontext=%s", jsontext)
+            raise
 
 ia_lending_api = IA_Lending_API()

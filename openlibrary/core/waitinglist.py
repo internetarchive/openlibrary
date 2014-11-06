@@ -249,6 +249,8 @@ def update_waitinglist(identifier):
     * When a book is checked out or returned
     * When a person joins or leaves the waiting list
     """
+    return on_waitinglist_update(identifier)
+
     book = _get_book(identifier)
     book_key = book.key
 
@@ -297,15 +299,13 @@ def update_waitinglist(identifier):
 
     logger.info("END updating %r", book_key)
 
-def on_waitinglist_update(identifier, waitinglist):
+def on_waitinglist_update(identifier):
     """Triggered when a waiting list is updated.
     """
-    update_ebook('ebooks/' + identifier, 
-        borrowed=str(not_available).lower(), # store as string "true" or "false"
-        wl_size=len(waitinglist))
-
+    waitinglist = WaitingLoan.query(identifier=identifier)
     if waitinglist:
         book = _get_book(identifier)
+        checkedout = lending.is_loaned_out(identifier)
         # If some people are waiting and the book is checked out,
         # send email to the person who borrowed the book.
         # 
@@ -357,6 +357,11 @@ def sendmail_people_waiting(book):
         # Only send email reminder for bookreader loans.
         # It seems it is hard to return epub/pdf loans, esp. with bluefire reader and overdrive
         if loan.get("resource_type") != "bookreader":
+            return
+
+        # No email to be sent if user is set. That is currently the case if
+        # book is loaned at archive.org
+        if not loan.get('user'):
             return
 
         # Anand - Oct 2013

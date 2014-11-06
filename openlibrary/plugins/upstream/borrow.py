@@ -181,8 +181,7 @@ class borrow(delegate.page):
                 # $$$ add error message
                 raise web.seeother(error_redirect)
                 
-            # They have it -- return it
-            return_resource(user_loan['resource_id'])
+            user_loan.return_loan()
             
             # Show the page with "you've returned this"
             # $$$ this would do better in a session variable that can be cleared
@@ -268,14 +267,12 @@ class borrow_admin(delegate.page):
             raise web.notfound()
 
         if edition.ocaid:
+            lending.sync_loan(edition.ocaid)
             ebook_key = "ebooks/" + edition.ocaid
             ebook = web.ctx.site.store.get(ebook_key) or {}
         else:
             ebook = None
 
-        i = web.input(updatestatus=None)
-        if i.updatestatus == 't':
-            edition.update_loan_status()
         edition_loans = get_edition_loans(edition)
             
         user_loans = []
@@ -292,6 +289,8 @@ class borrow_admin(delegate.page):
         edition = web.ctx.site.get(key)
         if not edition:
             raise web.notfound()
+        if edition.ocaid:
+            lending.sync_loan(edition.ocaid)
             
         i = web.input(action=None, loan_key=None)
 
@@ -299,7 +298,6 @@ class borrow_admin(delegate.page):
             delete_loan(i.loan_key)
         elif i.action == 'update_loan_info':
             waitinglist.update_waitinglist(edition.ocaid)
-
         raise web.seeother(web.ctx.path + '/borrow_admin')
         
 class borrow_admin_no_update(delegate.page):
@@ -436,6 +434,25 @@ class borrow_receive_notification(delegate.page):
         except Exception, e:
             output = simplejson.dumps({'success':False, 'error': str(e)})
         return delegate.RawText(output, content_type='application/json')
+
+
+class ia_borrow_notify(delegate.page):
+    """Invoked by archive.org to notify about change in loan/waiting list
+    status of an item.
+
+    The payload will be of the following format:
+
+        {"identifier": "foo00bar"}
+    """
+    path = "/borrow/notify"
+
+    def POST(self):
+        payload = web.data()
+        d = simplejson.loads(payload)
+        identifier = d and d.get('identifier')
+        if identifier:
+            lending.sync_loan(identifier)
+            waitinglist.on_waitinglist_update(identifier)
         
 ########## Public Functions
 
@@ -802,12 +819,8 @@ def delete_loan(loan_key, loan = None):
         loan = web.ctx.site.store.get(loan_key)
         if not loan:
             raise Exception('Could not find store record for %s', loan_key)
-                        
-    if loan['type'] != '/type/loan':
-        raise Exception('Record from store for %s is not of type /type/loan. Record: %s', loan_key, loan)
-        
-    web.ctx.site.store.delete(loan_key)
-    on_loan_delete(loan)
+
+    loan.delete()
 
 def get_ia_auth_dict(user, item_id, resource_id, user_specified_loan_key, access_token):
     """Returns response similar to one of these:
@@ -831,7 +844,9 @@ def get_ia_auth_dict(user, item_id, resource_id, user_specified_loan_key, access
         return {'success': False, 'msg': error_message, 'resolution': resolution_message }
     
     # Lookup loan information
-    loan_key = get_loan_key(resource_id)
+    #loan_key = get_loan_key(resource_id)
+    loan = lending.get_loan(item_id)
+    loan_key = loan.get_key()
 
     if loan_key is None:
         # Book is not checked out as a BookReader loan - may still be checked out in ACS4
@@ -840,7 +855,7 @@ def get_ia_auth_dict(user, item_id, resource_id, user_specified_loan_key, access
         
     else:
         # Book is checked out (by someone) - get the loan information
-        loan = web.ctx.site.store.get(loan_key)
+        #loan = web.ctx.site.store.get(loan_key)
         
         # Check that this is a bookreader loan
         if loan['resource_type'] != 'bookreader':
@@ -945,9 +960,10 @@ def make_bookreader_auth_link(loan_key, item_id, book_path, ol_host):
     a borrowed book
     """
     
+    olAuthUrl = "https://{0}/ia_auth/XXX".format(ol_host)
     access_token = make_ia_token(item_id, bookreader_auth_seconds)
-    auth_url = 'https://%s/bookreader/BookReaderAuth.php?uuid=%s&token=%s&id=%s&bookPath=%s&olHost=%s' % (
-        bookreader_host, loan_key, access_token, item_id, book_path, ol_host
+    auth_url = 'https://%s/bookreader/BookReaderAuth.php?uuid=%s&token=%s&id=%s&bookPath=%s&olHost=%s&olAuthUrl=%s' % (
+        bookreader_host, loan_key, access_token, item_id, book_path, ol_host, olAuthUrl
     )
     
     return auth_url
