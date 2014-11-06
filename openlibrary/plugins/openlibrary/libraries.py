@@ -573,6 +573,7 @@ def on_loan_created_statsdb(loan):
     t_start = datetime.datetime.utcfromtimestamp(loan['loaned_at'])
     d = {
         "book": loan['book'],
+        "identifier": loan['ocaid'],
         "resource_type": loan['resource_type'],
         "t_start": t_start.isoformat(),
         "status": "active"
@@ -590,6 +591,7 @@ def on_loan_completed_statsdb(loan):
     t_end = datetime.datetime.utcfromtimestamp(loan['returned_at'])
     d = {
         "book": loan['book'],
+        "identifier": loan['ocaid'],
         "resource_type": loan['resource_type'],
         "t_start": t_start.isoformat(),
         "t_end": t_end.isoformat(),
