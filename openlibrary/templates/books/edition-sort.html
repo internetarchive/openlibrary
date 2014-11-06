@@ -8,6 +8,7 @@ $ barnesandnoble = "http://search.barnesandnoble.com/booksearch/isbninquiry.asp?
 $ bibliocom = "http://www.biblio.com/editions.php?isbn=XXX&aid=openlibrary"
 $ powells = "http://www.powells.com/partner/33286/biblio/XXX"
 $ bookdepository = "http://www.bookdepository.com/search?searchTerm=XXX"
+$ shimply = "http://www.shimply.com/p/XXX"
 
 $ worldcat = "http://worldcat.org/isbn/XXX"
 $ worldcatoclc = "http://worldcat.org/oclc/XXX"
@@ -156,6 +157,7 @@ $ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
                 <li><a href="$bibliocom.replace('XXX', isbn_10)" title="Look for this edition for sale at Biblio">Biblio.com</a></li>
                 <li><a href="$bookdepository.replace('XXX', isbn_10)" title="Look for this edition for sale at Book Depository">Book Depository</a></li>                
                 <li><a href="$powells.replace('XXX', isbn_10)" title="Look for this edition for sale at Powell's">Powells</a></li>
+                <li><a href="$shimply.replace('XXX', isbn_10)" title="Look for this edition for sale at Shimply.com">Shimply</a></li>
             $else:
                 <li><a href="http://www.scribd.com/doc/$scribd" title="Look for this edition for sale at Scribd">Scribd</a><br /><span class="gray smaller">eBook in browser</span></li>
             </ul>
