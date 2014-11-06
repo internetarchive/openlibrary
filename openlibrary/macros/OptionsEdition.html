@@ -6,6 +6,7 @@ $ abebooks = "http://gan.doubleclick.net/gan_click?lid=41000000024660875&pubid=2
 $ alibris = " http://click.linksynergy.com/fs-bin/click?id=eSmaWuUpnDY&offerid=99238.122856000&type=2&subid=0&tmpid=939&RD_PARM1=http%253A%252F%252Fwww.alibris.com/booksearch%253Fqsort%253Dp%2526isbn%253DXXX"
 $ barnesandnoble = "http://search.barnesandnoble.com/booksearch/isbninquiry.asp?ISBN=XXXafsrc=1&lkid=J14933426&pubid=K172077"
 $ powells = "http://www.powells.com/partner/33286/biblio/XXX"
+$ shimply = "http://www.shimply.com/p/XXX"
 
 $ worldcat = "http://worldcat.org/isbn/XXX"
 $ worldcatoclc = "http://worldcat.org/oclc/XXX"
@@ -40,6 +41,7 @@ $if isbn_10:
     <a href="$alibris.replace('XXX', isbn_10)" class="datalink">Alibris</a><br />
     <a href="$barnesandnoble.replace('XXX', isbn_10)" class="datalink">Barnes and Noble</a><br />
     <a href="$powells.replace('XXX', isbn_10)" class="datalink">Powells</a>
+    <a href="$shimply.replace('XXX', isbn_10)" class="datalink">Shimply</a>
     </div>
 $else:
     <div class="navsubheader"><em>Not available for this book.</em></div>
