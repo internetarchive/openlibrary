@@ -846,7 +846,7 @@ def get_ia_auth_dict(user, item_id, resource_id, user_specified_loan_key, access
     # Lookup loan information
     #loan_key = get_loan_key(resource_id)
     loan = lending.get_loan(item_id)
-    loan_key = loan.get_key()
+    loan_key = loan and loan.get_key()
 
     if loan_key is None:
         # Book is not checked out as a BookReader loan - may still be checked out in ACS4
