@@ -147,8 +147,6 @@ def sync_loan(identifier, loan=NOT_INITIALIZED):
     if loan is NOT_INITIALIZED:
         loan = get_loan(identifier)
 
-    ebook = EBookRecord.find(identifier)
-
     # The data of the loan without the user info.
     loan_data = loan and dict(
         uuid=loan['uuid'],
@@ -157,20 +155,15 @@ def sync_loan(identifier, loan=NOT_INITIALIZED):
         ocaid=loan['ocaid'],
         book=loan['book'])
 
-    # The loan known to us is deleted
-    if ebook.get("loan") and ebook.get("loan") != loan_data:
-        _d = dict(ebook['loan'], returned_at=time.time())
-        msgbroker.send_message("loan-completed", _d)
-
     wl = ia_lending_api.get_waitinglist_of_book(identifier)
 
     # for the end user, a book is not available if it is either
     # checked out or someone is waiting.
     borrowed = bool(is_loaned_out(identifier) or wl)
 
-    logger.info("loan %s", loan)
-    logger.info("is_loaned_out %s", is_loaned_out(identifier))
-    logger.info("borrowed %s", borrowed)
+    ebook = EBookRecord.find(identifier)
+    # The loan known to us is deleted
+    is_loan_completed = ebook.get("loan") and ebook.get("loan") != loan_data
 
     # When the current loan is a OL loan, remember the loan_data
     if loan and loan.is_ol_loan():
@@ -178,10 +171,21 @@ def sync_loan(identifier, loan=NOT_INITIALIZED):
     else:
         ebook_loan_data = None
 
-    ebook.update(
-        loan=ebook_loan_data,
-        borrowed=str(borrowed).lower(),
-        wl_size=len(wl))
+    try:
+        ebook.update(
+            loan=ebook_loan_data,
+            borrowed=str(borrowed).lower(),
+            wl_size=len(wl))
+    except Exception:
+        # updating ebook document is sometimes failing with
+        # "Document update conflict" error.
+        # Log the error in such cases, don't crash.
+        logger.error("failed to update ebook for %s", identifier, exc_info=True)
+
+    # fire loan-completed event
+    if is_loan_completed:
+        _d = dict(ebook['loan'], returned_at=time.time())
+        msgbroker.send_message("loan-completed", _d)
     logger.info("END sync_loan %s", identifier)
 
 
