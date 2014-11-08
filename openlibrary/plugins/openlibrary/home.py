@@ -86,7 +86,8 @@ def get_returncart(limit):
         delegate.fakeload()
     
     items = web.ctx.site.store.items(type='ebook', name='borrowed', value='false', limit=limit)
-    keys = [doc['book_key'] for k, doc in items if 'book_key' in doc]
+    identifiers = [doc['identifier'] for k, doc in items if 'identifier' in doc]
+    keys = web.ctx.site.things({"type": "/type/edition", "ocaid": identifiers})
     books = web.ctx.site.get_many(keys)
     return [format_book_data(book) for book in books if book.type.key == '/type/edition']
     
