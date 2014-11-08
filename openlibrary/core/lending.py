@@ -173,6 +173,8 @@ def sync_loan(identifier, loan=NOT_INITIALIZED):
 
     try:
         ebook.update(
+            type="ebook",
+            identifier=identifier,
             loan=ebook_loan_data,
             borrowed=str(borrowed).lower(),
             wl_size=len(wl))
@@ -193,7 +195,7 @@ class EBookRecord(dict):
     @staticmethod
     def find(identifier):
         key ="ebooks/" + identifier
-        d = web.ctx.site.store.get(key) or {"_key": key, "_rev": 1}
+        d = web.ctx.site.store.get(key) or {"_key": key, "type": "ebook", "_rev": 1}
         return EBookRecord(d)
 
     def update(self, **kwargs):
