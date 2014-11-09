@@ -1404,12 +1404,12 @@ class MonkeyPatch:
         size = max(len(c) for c in caches)
         if size > max_size:
             logger.info("clearing monkey patch cache. size of largest cache is %s (> %s)",
-                        len(size), 
-                        len(max_size))
+                        size, 
+                        max_size)
             for c in caches:
                 c.clear()
         else:
-            logger.info("not clearing monkey patch cache. size of largest cache small enough. %s (< %s)", len(size), len(max_size))
+            logger.info("not clearing monkey patch cache. size of largest cache small enough. %s (< %s)", size, max_size)
 
     def monkeypatch(self):
         global query_iter, withKey, get_document, get_ia_collection_and_box_id, find_redirects
