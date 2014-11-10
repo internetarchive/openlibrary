@@ -185,7 +185,7 @@ def sync_loan(identifier, loan=NOT_INITIALIZED):
         logger.error("failed to update ebook for %s", identifier, exc_info=True)
 
     # fire loan-completed event
-    if is_loan_completed:
+    if is_loan_completed and ebook.get('loan'):
         _d = dict(ebook['loan'], returned_at=time.time())
         msgbroker.send_message("loan-completed", _d)
     logger.info("END sync_loan %s", identifier)
