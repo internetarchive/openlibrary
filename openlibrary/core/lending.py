@@ -93,7 +93,10 @@ def get_loan(identifier, user_key=None):
     """
     d = web.ctx.site.store.get("loan-" + identifier)
     if d and (user_key is None or d['user'] == user_key):
-        return Loan(d)
+        loan = Loan(d)
+        if loan.is_expired():
+            loan.delete()
+            return
     return _get_ia_loan(identifier, user_key and userkey2userid(user_key))
 
 def _get_ia_loan(identifier, userid):
