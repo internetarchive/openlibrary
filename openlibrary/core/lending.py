@@ -147,6 +147,10 @@ def sync_loan(identifier, loan=NOT_INITIALIZED):
     This function is called whenever the loan is updated.
     """
     logger.info("BEGIN sync_loan %s %s", identifier, loan)
+
+    # update the loan and waiting lists on archive.org
+    ia_lending_api.request(method="loan.sync", identifier=identifier)
+
     if loan is NOT_INITIALIZED:
         loan = get_loan(identifier)
 
@@ -543,6 +547,9 @@ class IA_Lending_API:
     def query(self, **params):
         response = self._post(method="waitinglist.query", **params)
         return response['result']
+
+    def request(self, method, **arguments):
+        return self._post(method=method, **arguments)
 
     def _post(self, **params):
         logger.info("POST %s %s", IA_API_URL, params)
