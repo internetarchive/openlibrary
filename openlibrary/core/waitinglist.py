@@ -407,6 +407,7 @@ def update_all_waitinglists():
     identifiers = set(row['identifier'] for row in rows)
     for identifier in identifiers:
         try:
+            _wl_api.request("loan.sync", identifier=identifier)
             update_waitinglist(identifier)
         except Exception:
             logger.error("failed to update waitinglist for %s", identifier, exc_info=True)
