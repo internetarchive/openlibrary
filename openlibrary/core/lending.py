@@ -148,8 +148,11 @@ def sync_loan(identifier, loan=NOT_INITIALIZED):
     """
     logger.info("BEGIN sync_loan %s %s", identifier, loan)
 
-    # update the loan and waiting lists on archive.org
-    ia_lending_api.request(method="loan.sync", identifier=identifier)
+    ## XXX-Anand: Disabled as this seems to be going in recursive loop.
+    ## IA calling OL hook and OL calling IA back.
+
+    ## update the loan and waiting lists on archive.org
+    # ia_lending_api.request(method="loan.sync", identifier=identifier)
 
     if loan is NOT_INITIALIZED:
         loan = get_loan(identifier)
