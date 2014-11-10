@@ -289,13 +289,16 @@ class borrow_admin(delegate.page):
         edition = web.ctx.site.get(key)
         if not edition:
             raise web.notfound()
-        if edition.ocaid:
-            lending.sync_loan(edition.ocaid)
-            
+        if not edition.ocaid:
+            raise web.seeother(edition.url("/borrow_admin"))
+
+        lending.sync_loan(edition.ocaid)
         i = web.input(action=None, loan_key=None)
 
         if i.action == 'delete' and i.loan_key:
-            delete_loan(i.loan_key)
+            loan = lending.get_loan(edition.ocaid)
+            if loan and loan['_key'] == i.loan_key:
+                loan.delete()
         elif i.action == 'update_loan_info':
             waitinglist.update_waitinglist(edition.ocaid)
         raise web.seeother(web.ctx.path + '/borrow_admin')
