@@ -171,6 +171,8 @@ class people_view:
             return self.POST_send_password_reset_email(user)
         elif i.action == "block_account":
             return self.POST_block_account(user)
+        elif i.action == "block_account_and_revert":
+            return self.POST_block_account_and_revert(user)
         elif i.action == "unblock_account":
             return self.POST_unblock_account(user)
         elif i.action == "add_tag":
@@ -192,6 +194,14 @@ class people_view:
 
     def POST_block_account(self, account):
         account.block()
+        raise web.seeother(web.ctx.path)
+
+    def POST_block_account_and_revert(self, account):
+        account.block()
+        changes = account.get_recentchanges(limit=1000)
+        changeset_ids = [c.id for c in changes]
+        ipaddress_view().revert(changeset_ids, "Reverted Spam")
+        add_flash_message("info", "Blocked the account and reverted all edits.")
         raise web.seeother(web.ctx.path)
 
     def POST_unblock_account(self, account):

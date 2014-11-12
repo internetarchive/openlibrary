@@ -141,6 +141,10 @@ class Account(web.storage):
         cases = [c for c in cases if c.creator_email == email or c.creator_username == username]
         return cases
 
+    def get_recentchanges(self, limit=100, offset=0):
+        q = dict(author=self.get_user().key, limit=limit, offset=offset)
+        return web.ctx.site.recentchanges(q)
+
     def verify_password(self, password):
         return verify_hash(get_secret_key(), password, self.enc_password)
         
