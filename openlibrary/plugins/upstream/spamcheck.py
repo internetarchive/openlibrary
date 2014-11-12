@@ -27,6 +27,12 @@ def is_spam(i=None):
     if is_spam_email(email):
         return True
 
+    # For some odd reason, blocked accounts are still allowed to make edits.
+    # Hack to stop that.
+    account = user and user.get_account()
+    if account and account.get('status') != 'active':
+        return True
+
     spamwords = get_spam_words()
     if i is None:
         i = web.input()
