@@ -93,6 +93,17 @@ def is_plugin_enabled(name):
     plugin_names = delegate.get_plugins()
     return name in plugin_names or "openlibrary.plugins." + name in delegate.get_plugins()
 
+SPAMWORDS = [
+    "bamwar",
+    "bam_war",
+]
+
+def is_spam(i=None):
+    if i is None:
+        i = web.input()
+    text = str(dict(i)).lower()
+    return any(w in text for w in SPAMWORDS)
+
 class addbook(delegate.page):
     path = "/books/add"
 
@@ -120,6 +131,11 @@ class addbook(delegate.page):
 
     def POST(self):
         i = web.input(title="", author_name="", author_key="", publisher="", publish_date="", id_name="", id_value="", _test="false")
+
+        if is_spam(i):
+            return render_template("message.html", 
+                "Oops", 
+                'Something went wrong. Please try again later.')
 
         recap_plugin_active = is_plugin_enabled('recaptcha')
         if recap_plugin_active and not web.ctx.site.get_user():
@@ -628,6 +644,11 @@ class book_edit(delegate.page):
     def POST(self, key):
         i = web.input(v=None, _method="GET")
 
+        if is_spam():
+            return render_template("message.html", 
+                "Oops",
+                'Something went wrong. Please try again later.')
+
         recap_plugin_active = is_plugin_enabled('recaptcha')
 
         #check to see if account is more than two years old
@@ -702,6 +723,11 @@ class work_edit(delegate.page):
 
     def POST(self, key):
         i = web.input(v=None, _method="GET")
+
+        if is_spam():
+            return render_template("message.html", 
+                "Oops", 
+                'Something went wrong. Please try again later.')
 
         recap_plugin_active = is_plugin_enabled('recaptcha')
         if recap_plugin_active:
