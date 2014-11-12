@@ -59,10 +59,13 @@ class account_create(delegate.page):
         return f
 
     def get_recap(self):
-        if 'recaptcha' in config.get('plugins'):
+        if self.is_plugin_enabled('recaptcha'):
             public_key = config.plugin_recaptcha.public_key
             private_key = config.plugin_recaptcha.private_key
             return recaptcha.Recaptcha(public_key, private_key)
+
+    def is_plugin_enabled(self, name):
+        return name in delegate.get_plugins() or "openlibrary.plugins." + name in delegate.get_plugins()
 
     def POST(self):
         i = web.input('email', 'password', 'username', agreement="no")
