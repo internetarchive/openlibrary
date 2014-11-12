@@ -89,6 +89,10 @@ class DocSaveHelper:
         if self.docs:
             web.ctx.site.save_many(self.docs, **kw)
 
+def is_plugin_enabled(name):
+    plugin_names = delegate.get_plugins()
+    return name in plugin_names or "openlibrary.plugins." + name in delegate.get_plugins()
+
 class addbook(delegate.page):
     path = "/books/add"
 
@@ -101,7 +105,7 @@ class addbook(delegate.page):
         work = i.work and web.ctx.site.get(i.work)
         author = i.author and web.ctx.site.get(i.author)
 
-        recap_plugin_active = 'recaptcha' in config.get('plugins')
+        recap_plugin_active = is_plugin_enabled('recaptcha')
         if recap_plugin_active:
             public_key = config.plugin_recaptcha.public_key
             private_key = config.plugin_recaptcha.private_key
@@ -117,7 +121,7 @@ class addbook(delegate.page):
     def POST(self):
         i = web.input(title="", author_name="", author_key="", publisher="", publish_date="", id_name="", id_value="", _test="false")
 
-        recap_plugin_active = 'recaptcha' in config.get('plugins')
+        recap_plugin_active = is_plugin_enabled('recaptcha')
         if recap_plugin_active and not web.ctx.site.get_user():
             public_key = config.plugin_recaptcha.public_key
             private_key = config.plugin_recaptcha.private_key
@@ -598,7 +602,7 @@ class book_edit(delegate.page):
                 'authors': [{'type': '/type/author_role', 'author': {'key': a['key']}} for a in edition.get('authors', [])]
             })
 
-        recap_plugin_active = 'recaptcha' in config.get('plugins')
+        recap_plugin_active = is_plugin_enabled('recaptcha')
 
         #check to see if account is more than two years old
         old_user = False
@@ -624,7 +628,7 @@ class book_edit(delegate.page):
     def POST(self, key):
         i = web.input(v=None, _method="GET")
 
-        recap_plugin_active = 'recaptcha' in config.get('plugins')
+        recap_plugin_active = is_plugin_enabled('recaptcha')
 
         #check to see if account is more than two years old
         old_user = False
@@ -685,7 +689,7 @@ class work_edit(delegate.page):
         if work is None:
             raise web.notfound()
 
-        recap_plugin_active = 'recaptcha' in config.get('plugins')
+        recap_plugin_active = is_plugin_enabled('recaptcha')
         if recap_plugin_active:
             public_key = config.plugin_recaptcha.public_key
             private_key = config.plugin_recaptcha.private_key
@@ -699,7 +703,7 @@ class work_edit(delegate.page):
     def POST(self, key):
         i = web.input(v=None, _method="GET")
 
-        recap_plugin_active = 'recaptcha' in config.get('plugins')
+        recap_plugin_active = is_plugin_enabled('recaptcha')
         if recap_plugin_active:
             public_key = config.plugin_recaptcha.public_key
             private_key = config.plugin_recaptcha.private_key

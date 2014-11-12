@@ -5,7 +5,7 @@ Loaded from Infogami plugin mechanism.
 import sys, os
 import logging, logging.config
 
-from infogami.utils import template, macro, i18n
+from infogami.utils import template, macro, i18n, delegate
 import infogami
 
 old_plugins = ["openlibrary", "search", "worksearch", "inside", "books", "admin", "upstream", "importapi", "recaptcha"]
@@ -24,6 +24,8 @@ def setup():
         macro.load_macros(path, lazy=True)
         i18n.load_strings(path)
         __import__(modname, globals(), locals(), ['plugins'])
+
+    delegate.plugins += [delegate._make_plugin_module('openlibrary.plugins.' + name) for name in old_plugins]
 
     load_views()
 
