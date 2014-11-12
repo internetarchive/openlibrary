@@ -22,6 +22,7 @@ import openlibrary
 from openlibrary.core import admin as admin_stats
 from openlibrary.plugins.upstream import forms
 from openlibrary.plugins.upstream.account import send_forgot_password_email
+from openlibrary.plugins.upstream import spamcheck
 from openlibrary import accounts
 from openlibrary.core import helpers as h
 
@@ -544,22 +545,21 @@ class inspect:
 
 class spamwords:
     def GET(self):
-        spamdoc = web.ctx.site.store.get("spamwords") or {}
-        spamwords = spamdoc.get("spamwords", [])
-        return render_template("admin/spamwords.html", spamwords)
+        spamwords = spamcheck.get_spam_words()
+        domains = spamcheck.get_spam_domains()
+        return render_template("admin/spamwords.html", spamwords, domains)
 
     def POST(self):
-        i = web.input(spamwords="")
-        print "spamwords.POST", i
-        spamdoc = web.ctx.site.store.get("spamwords") or {}
-        spamdoc.update({
-            "_key": "spamwords",
-            "type": "spamwords",
-            "spamwords": i.spamwords.strip().split("\n")})
-        web.ctx.site.store["spamwords"] = spamdoc
-        add_flash_message("info", "Updated spam words successfully.")
+        i = web.input(spamwords="", domains="", action="")
+        if i.action == "save-spamwords":
+            spamcheck.set_spam_words(i.spamwords.strip().split("\n"))
+            add_flash_message("info", "Updated spam words successfully.")
+        elif i.action == "save-domains":
+            spamcheck.set_spam_domains(i.domains.strip().split("\n"))
+            add_flash_message("info", "Updated domains successfully.")
         raise web.redirect("/admin/spamwords")
         
+
 class deploy:
     def GET(self):
         return render_template("admin/deploy")

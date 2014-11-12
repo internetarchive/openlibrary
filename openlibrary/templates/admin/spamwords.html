@@ -1,4 +1,4 @@
-$def with (spamwords)
+$def with (spamwords, domains)
 
 $var title: [Admin Center] Spam Words
 
@@ -8,13 +8,25 @@ $var title: [Admin Center] Spam Words
 </div>
 
 <div id="contentBody">
+    <h2>Spam Words</h2>
     <p>Please enter the SPAM words in the textarea below, one per line.</p>
     
     <div>
         <form name="spamform" class="olform" method="POST">
             <textarea name="spamwords" rows="10">$"\n".join(spamwords)</textarea>
             <br/>
-            <button type="submit" name="action" value="save">Save</button>
+            <button type="submit" name="action" value="save-spamwords">Save</button>
+        </form>
+    </div>
+
+    <h2>Spam Domains</h2>
+    <p>Please enter domains to blacklist in the textarea below, one per line.</p>
+
+    <div>
+        <form name="domains" class="olform" method="POST">
+            <textarea name="domains" rows="10">$"\n".join(domains)</textarea>
+            <br/>
+            <button type="submit" name="action" value="save-domains">Save</button>
         </form>
     </div>
 

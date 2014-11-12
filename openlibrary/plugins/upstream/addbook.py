@@ -26,6 +26,7 @@ from utils import render_template, fuzzy_find
 
 from account import as_admin
 from openlibrary.plugins.recaptcha import recaptcha
+from . import spamcheck
 
 logger = logging.getLogger("openlibrary.book")
 
@@ -93,21 +94,6 @@ def is_plugin_enabled(name):
     plugin_names = delegate.get_plugins()
     return name in plugin_names or "openlibrary.plugins." + name in delegate.get_plugins()
 
-SPAMWORDS = [
-    "bamwar",
-    "bam_war",
-]
-
-def get_spamwords():
-    doc = web.ctx.site.store.get("spamwords") or {}
-    return doc.get("spamwords", [])
-
-def is_spam(i=None):
-    spamwords = get_spamwords()
-    if i is None:
-        i = web.input()
-    text = str(dict(i)).lower()
-    return any(w.lower() in text for w in spamwords)
 
 class addbook(delegate.page):
     path = "/books/add"
@@ -137,7 +123,7 @@ class addbook(delegate.page):
     def POST(self):
         i = web.input(title="", author_name="", author_key="", publisher="", publish_date="", id_name="", id_value="", _test="false")
 
-        if is_spam(i):
+        if spamcheck.is_spam(i):
             return render_template("message.html", 
                 "Oops", 
                 'Something went wrong. Please try again later.')
@@ -649,7 +635,7 @@ class book_edit(delegate.page):
     def POST(self, key):
         i = web.input(v=None, _method="GET")
 
-        if is_spam():
+        if spamcheck.is_spam():
             return render_template("message.html", 
                 "Oops",
                 'Something went wrong. Please try again later.')
@@ -729,7 +715,7 @@ class work_edit(delegate.page):
     def POST(self, key):
         i = web.input(v=None, _method="GET")
 
-        if is_spam():
+        if spamcheck.is_spam():
             return render_template("message.html", 
                 "Oops", 
                 'Something went wrong. Please try again later.')
