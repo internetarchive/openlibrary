@@ -542,6 +542,23 @@ class inspect:
             mapping = keys and mc.get_multi(keys)
             return render_template("admin/inspect/memcache", keys, mapping)
 
+class spamwords:
+    def GET(self):
+        spamdoc = web.ctx.site.store.get("spamwords") or {}
+        spamwords = spamdoc.get("spamwords", [])
+        return render_template("admin/spamwords.html", spamwords)
+
+    def POST(self):
+        i = web.input(spamwords="")
+        print "spamwords.POST", i
+        spamdoc = web.ctx.site.store.get("spamwords") or {}
+        spamdoc.update({
+            "_key": "spamwords",
+            "type": "spamwords",
+            "spamwords": i.spamwords.strip().split("\n")})
+        web.ctx.site.store["spamwords"] = spamdoc
+        add_flash_message("info", "Updated spam words successfully.")
+        raise web.redirect("/admin/spamwords")
         
 class deploy:
     def GET(self):
@@ -687,6 +704,7 @@ def setup():
     register_admin_page('/admin/imports', imports_home, label="")
     register_admin_page('/admin/imports/add', imports_add, label="")
     register_admin_page('/admin/imports/(\d\d\d\d-\d\d-\d\d)', imports_by_date, label="")
+    register_admin_page('/admin/spamwords', spamwords, label="")
 
     inspect_thing.setup()
     support.setup()

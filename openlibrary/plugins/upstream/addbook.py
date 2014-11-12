@@ -98,11 +98,16 @@ SPAMWORDS = [
     "bam_war",
 ]
 
+def get_spamwords():
+    doc = web.ctx.site.store.get("spamwords") or {}
+    return doc.get("spamwords", [])
+
 def is_spam(i=None):
+    spamwords = get_spamwords()
     if i is None:
         i = web.input()
     text = str(dict(i)).lower()
-    return any(w in text for w in SPAMWORDS)
+    return any(w.lower() in text for w in spamwords)
 
 class addbook(delegate.page):
     path = "/books/add"
