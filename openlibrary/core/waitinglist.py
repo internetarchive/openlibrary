@@ -346,6 +346,11 @@ def sendmail_people_waiting(book):
 
     Safe to call multiple times. This'll make sure the email is sent only once.
     """
+    # XXX-Anand: Nov 17, 2014
+    # Disabled temporarily as this is adding a new loan entry to OL even when the loan is stored in IA.
+    # Right solution would be to allow IA to store the waiting_email_sent flag.
+    return
+
     # also supports multiple loans per book
     loans = [loan for loan in book.get_loans() if not loan.get("waiting_email_sent")]
     for loan in loans:
