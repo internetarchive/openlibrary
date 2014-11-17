@@ -325,6 +325,11 @@ class Loan(dict):
         return self['_key']
 
     def save(self):
+        # loans stored at IA are not supposed to be saved at OL.
+        # This call must have been made in mistake.
+        if self.get("stored_at") == "ia":
+            return
+
         web.ctx.site.store[self['_key']] = self
 
         # Inform listers that a loan is creted/updated
