@@ -131,7 +131,8 @@ $ has_profile = person.get_user() is not None
             <br/>
             <br/>
             <div class="small">Registered on <span class="time">$datestr(person.registered_on, relative=False)</span>.</div>
-            $ v = person.get_creation_info()                
+            $ v = person.get_creation_info()
+            <button type="submit" name="action" value="su" style="float: right; background: #ffbbbb;">login as this user</button>
             <div class="small">Activated on <span class="time">$datestr(person.activated_on, relative=False)</spam> from <a href="/admin/ip/$v.ip">$v.ip</a>.</div>
         $if person.status == "blocked":
 	        <button type="submit" name="action" value="unblock_account">unblock this account</button>

@@ -182,6 +182,8 @@ class people_view:
             return self.POST_remove_tag(user, i.tag)
         elif i.action == "set_bot_flag":
             return self.POST_set_bot_flag(user, i.bot)
+        elif i.action == "su":
+            return self.POST_su(user)
         else:
             raise web.seeother(web.ctx.path)
 
@@ -253,6 +255,11 @@ class people_view:
         bot = (bot and bot.lower()) == "true"
         account.set_bot_flag(bot)
         raise web.seeother(web.ctx.path)
+
+    def POST_su(self, account):
+        code = account.generate_login_code()
+        web.setcookie(config.login_cookie_name, code, expires="")
+        return web.seeother("/")
 
 class people_edits:
     def GET(self, username):

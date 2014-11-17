@@ -1,6 +1,7 @@
 """
 
 """
+import time
 import datetime
 import hmac
 import random
@@ -196,6 +197,14 @@ class Account(web.storage):
             self['last_login'] = datetime.datetime.utcnow().isoformat()
             self._save()
             return "ok"
+
+    def generate_login_code(self):
+        """Returns a string that can be set as login cookie to log in as this user.
+        """
+        user_key = "/people/" + self.username
+        t = datetime.datetime(*time.gmtime()[:6]).isoformat()
+        text = "%s,%s" % (user_key, t)
+        return text + "," + generate_hash(get_secret_key(), text)
             
     def _save(self):
         """Saves this account in store.
