@@ -488,6 +488,8 @@ def works_by_author(akey, sort='editions', page=1, rows=100):
         'overdrive_s', 'ia_collection_s', 'cover_i']
     fl = ','.join(fields)
     solr_select = solr_select_url + "?q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=%s&wt=json" % (q, offset, rows, fl)
+    if config.get("single_core_solr"):
+        solr_select += "&fq=type:work"
     facet_fields = ["author_facet", "language", "publish_year", "publisher_facet", "subject_facet", "person_facet", "place_facet", "time_facet"]
     if sort == 'editions':
         solr_select += '&sort=edition_count+desc'
