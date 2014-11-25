@@ -89,7 +89,7 @@ features:
     merge-editions: enabled
     undo: enabled
     dev: enabled
-    lists: disabled
+    lists: enabled
     lending_v2: enabled
     stats: enabled
     stats-header: enabled

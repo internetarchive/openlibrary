@@ -99,7 +99,7 @@ class WaitingLoan(dict):
         # else:
         #     result = db.select('waitingloan')
         # return [cls(row) for row in result]
-        rows = _wl_api.query(**kw)
+        rows = _wl_api.query(**kw) or []
         return [cls(row) for row in rows]
 
     @classmethod

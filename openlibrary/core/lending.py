@@ -493,12 +493,15 @@ class ACS4Item(object):
     def get_loan(self):
         """Returns the information about loan in the ACS4 server.
         """
-        d = self.get_data()
+        d = self.get_data() or {}
+        if not d.get('resources'):
+            return
         for r in d['resources']:
             if r['loans']:
                 loan = dict(r['loans'][0])
                 loan['resource_id'] = r['resourceid']
                 loan['resource_type'] = self._format2resource_type(r['format'])
+                return loan
 
     def _format2resource_type(self, format):
         formats = {
@@ -515,12 +518,12 @@ class IA_Lending_API:
         params = dict(method="loan.query", identifier=identifier)
         if userid:
             params['userid'] = userid
-        loans = self._post(**params)['result']
+        loans = self._post(**params).get('result', [])
         if loans:
             return loans[0]
 
     def find_loans(self, **kw):
-        return self._post(method="loan.query", **kw)['result']
+        return self._post(method="loan.query", **kw).get('result', [])
 
     def create_loan(self, identifier, userid, format, ol_key):
         response = self._post(method="loan.create", identifier=identifier, userid=userid, format=format, ol_key=ol_key)
@@ -554,7 +557,7 @@ class IA_Lending_API:
 
     def query(self, **params):
         response = self._post(method="waitinglist.query", **params)
-        return response['result']
+        return response.get('result')
 
     def request(self, method, **arguments):
         return self._post(method=method, **arguments)
