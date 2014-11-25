@@ -1,8 +1,9 @@
 #! /bin/bash
 # Bootstrap script to setup vagrant dev-instance for Open Library
+set -e
 
 # @@@ Change the following 2 lines if you want to install OL from a different place or as a different user
-OL_ROOT=/vagrant
+OL_ROOT=/openlibrary
 OL_USER=vagrant
 
 # Set the locale to POSIX
@@ -126,7 +127,7 @@ cd $OL_ROOT/conf/init
 for name in ol-*
 do 
 	echo starting ${name//.conf}
-	start ${name//.conf}
+	initctl start ${name//.conf} || initctl restart ${name//.conf}
 done
 
 if [ "$REINDEX_SOLR" == "yes" ]

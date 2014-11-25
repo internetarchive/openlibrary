@@ -12,6 +12,9 @@ Vagrant.configure("2") do |config|
   config.vm.network :forwarded_port, host: 8080, guest: 80
   config.vm.network :forwarded_port, host: 18983, guest: 8983
 
+  config.vm.synced_folder ".", "/vagrant", disabled: true
+  config.vm.synced_folder ".", "/openlibrary"
+
   config.vm.hostname = "ol-dev"
 
   # The url from where the 'config.vm.box' box will be fetched if it
@@ -49,6 +52,12 @@ Vagrant.configure("2") do |config|
   #   # Use VBoxManage to customize the VM. For example to change memory:
   #   vb.customize ["modifyvm", :id, "--memory", "1024"]
   # end
+
+  config.vm.provider "virtualbox" do |v|
+    v.memory = 1024
+    v.cpus = 2
+  end
+
   #
   # View the documentation for the provider you're using for more
   # information on available options.
