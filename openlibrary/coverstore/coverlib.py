@@ -1,6 +1,9 @@
 """Cover management."""
 
-import Image
+try:
+    from PIL import Image
+except ImportError:
+    import Image
 import os
 from cStringIO import StringIO
 import web

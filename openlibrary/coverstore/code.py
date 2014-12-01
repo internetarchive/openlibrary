@@ -2,7 +2,6 @@ import web
 import simplejson
 import urllib
 import os
-import Image
 import datetime
 import time
 import couchdb
