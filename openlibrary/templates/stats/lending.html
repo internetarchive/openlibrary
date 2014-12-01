@@ -36,7 +36,11 @@ $def render_counts(label, counts, klass="contentQuarter"):
     </div>
     
 <div id="contentBody">
-    <h2>Loans Per Day</h2>
+    <h2>Loans Per Day
+        <span class="tools">
+            <a href="$changequery(download='csv')">Download as CSV</a>
+        </span>    
+    </h2>
 
     <div class="chart">
         <div id="loans-per-day" class="graph">

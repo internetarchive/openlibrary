@@ -162,6 +162,25 @@ class LoanStats:
         day_facet = web.group(counts0, 2)
         return sorted([[self.datestr2millis(day), count] for day, count in day_facet])
 
+    def get_raw_loans_per_day(self, resource_type="total"):
+        params = {
+            "wt": "json",
+            "fq": ["type:stats"],
+            "q": "*:*", 
+            "rows": 0,
+            "facet": "on",
+            "facet.mincount": 1,
+            "facet.limit": 100000, # don't limit 
+            "facet.field": ['start_day_s']
+        }
+        if resource_type != 'total':
+            params['fq'].append("resource_type_s:" + resource_type)
+
+        response = self.solr_select(params)
+        counts0 = response['facet_counts']['facet_fields']['start_day_s']
+        day_facet = web.group(counts0, 2)
+        return dict(day_facet)
+
     def get_loans_per_type(self):
         rows = self.get_facet_counts("resource_type_s")
         return [{"label": row.title, "data": row.count} for row in rows]
