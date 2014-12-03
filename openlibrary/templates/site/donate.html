@@ -1,0 +1,297 @@
+<script type="text/javascript">
+function getDonationAmount(i, service) {
+  var v=$$("input[name=amount]:checked").val();
+  if (v == null  ||  v==="") {
+    v=$$("#amount_custom").val();
+  }
+  if (v == null  ||  v==="") {
+    alert('please choose an amount for your donation!');
+    return false;
+  }
+  if (service == "amazon_subscription") {
+    if (v === "5")
+      $$("#amazon_signature").attr("value", "atoC9hG3qFZKdo/yO4QeC2UUYTr887ihBMorzWvsKgA=");
+    else if (v === "10")
+      $$("#amazon_signature").attr("value", "nDbzFddLaNCJbt05zKx5l0BAV9xJboAit2QHRAJGgBo=");
+    else if (v === "25")
+      $$("#amazon_signature").attr("value", "N19eOnEFPS2EbO+/k5oO/y8KpZE74r/O9SXFM9GmW5Q=");
+    else if (v === "50")
+      $$("#amazon_signature").attr("value", "gbyfiRZNWyJdqthKHbGVJ5N87WpprnOS/+yPHFPhFWE=");
+    else if (v === "100")
+      $$("#amazon_signature").attr("value", "ebBML+1shAjryITEjG32NbIaCQVM6WD7Gelpfa7DJP0=");
+    v="USD " + v;
+  }
+  $$("#a"+i).attr("value", v);
+}
+$$(function() {
+  $$('input#amount_custom').focus(function(){
+    $$('#amount_custom_radio').click();
+  });  
+})
+</script>
+<style type="text/css">
+#donate {
+  background-color:#F8992F;
+  padding-right:20px; 
+  padding-left:25px;
+  font-size:11px;
+  overflow:hidden;
+  line-height: 1.1;
+  font-family: Arial, Helvetica, sans-serif;
+}
+#donate .dpad {
+  padding-top:12px;
+}
+#donate .dpad2 {
+  padding-bottom:10px;
+}
+#donate .donate-form {
+  float:right;
+  margin-left:25px;
+  padding:5px;
+  min-height:90px;
+}
+#donate .donate-form {
+  width:260px;
+  background-color:#F4F4F5;
+}
+#donate .donate-form table {
+  width:250px;
+  border-collapse: separate;
+  border-spacing: 2px;
+}
+#donate .donate-form table tbody tr td {
+  font-size:10px;
+  padding-top:0;
+  padding-bottom:0;
+}
+#donate em, #donate a {
+  color:#FFF69C;
+}
+#donate .donate-form input[type=submit] {
+  text-indent:-9999px;
+  border:1px solid #aaa;
+  background-position:center center;
+  background-repeat:no-repeat;
+  background-color:white;
+}
+#donate .donate-form input[type=submit]:hover {
+  opacity:0.9;
+  border-color:black
+}
+.donate-onetime, .donate-monthly {
+  width:80px;
+  height:25px;
+  overflow:hidden;
+  border:1px solid #aaa;
+  background-color:white;
+  text-align:center;
+}
+.donate-onetime:hover, .donate-monthly:hover {
+  opacity:0.9;
+  border-color:black;
+}
+.donate-monthly {
+  display:none;
+}
+ 
+/*
+@media (max-width:768px)                        {.hidden-xs{display:none}}
+@media (min-width:768px ) and (max-width:992px) {.hidden-sm{display:none}}
+@media (min-width:992px ) and (max-width:1200px){.hidden-md{display:none}}
+@media (min-width:1200px)                       {.hidden-lg{display:none}}
+*/
+.hidden-md {
+    display: none;
+}
+
+#donate {
+    width: 960px;
+    margin: 0 auto;
+    clear: both;
+    text-align: left;
+}
+#donate-wrapper {
+  background: #F8992F;
+}
+
+#donate input[type=radio] {
+  margin: 3px;
+}
+
+</style>
+<div id="donate-wrapper">
+  <div id="donate">
+    <div class="hidden-xs donate-form">
+        <table><tbody>
+          <tr>
+            <td colspan="2"> <input id="radio-onetime" type="radio" name="when" onchange="if($$('#radio-onetime:checked').length){$$('.donate-onetime').show();$$('.donate-monthly').hide();}"/ checked="checked"/> One time </td>
+            <td colspan="2"> <input id="radio-monthly" type="radio" name="when" onchange="if($$('#radio-monthly:checked').length){$$('.donate-onetime').hide();$$('.donate-monthly').show();}"/> Monthly </td>
+          </tr>
+          <tr>
+            <td> <input type="radio" name="amount" value="5" /> $$5 </td>
+            <td> <input type="radio" name="amount" value="10" /> $$10 </td>
+            <td> <input type="radio" name="amount" value="25" /> $$25</td>
+            <td> <input type="radio" name="amount" value="50" /> $$50 </td>
+          </tr>
+          <tr>
+            <td> <input type="radio" name="amount" value="75" /> $$75 </td>
+            <td> <input type="radio" name="amount" value="100"/> $$100 </td>
+            <td> <input type="radio" name="amount" value="250"/> $$250</td>
+            <td> <input type="radio" name="amount" value=""  id="amount_custom_radio" /> $$ <input type="text" id="amount_custom" name="amount-custom" style="width:25px;"/></td>
+          </tr>
+        </tbody></table>
+        <table><tbody>
+          <tr>
+            <td>
+              <form class="donate-onetime roundbox3" action="https://authorize.payments.amazon.com/pba/paypipeline" method="post" onsubmit="return getDonationAmount(1)">
+                <input type="hidden" name="returnUrl" value="https://archive.org/services/donate.php?service=amazon" >
+                <input type="hidden" name="processImmediate" value="1" >
+                <input type="hidden" name="collectShippingAddress" value="0" >
+                <input type="hidden" name="isDonationWidget" value="1" >
+                <input type="hidden" name="amazonPaymentsAccountId" value="WPIFXOIIJUCC5KNQF1LLRGPGI1CB3K23X8BZ84" >
+                <input type="hidden" name="referenceId" value="donations-page" >
+                <input type="hidden" name="cobrandingStyle" value="logo" >
+                <input type="hidden" name="recipientEmail" value="donations archive.org" >
+                <input type="hidden" name="immediateReturn" value="1" >
+                <input type="hidden" name="description" value="Donate to the Internet Archive!" >
+                <input type="hidden" name="abandonUrl" value="https://archive.org/donate" >
+                <input type="hidden" name="amount" value="" id="a1" />
+                <input width="60" height="26" type="image" src="https://archive.org/images/amazon.png" border="0"/>
+              </form>
+              <form class="donate-monthly roundbox3" action="https://authorize.payments.amazon.com/pba/paypipeline" method="post" onsubmit="return getDonationAmount(4, 'amazon_subscription')">
+                <input type="hidden" name="returnUrl" value="https://archive.org/services/donate.php?service=amazon" >
+                <input type="hidden" name="processImmediate" value="0" >
+                <input type="hidden" name="signatureMethod" value="HmacSHA256" >
+                <input type="hidden" name="accessKey" value="11SEM03K88SD016FS1G2" >
+                <input type="hidden" name="collectShippingAddress" value="0" >
+                <input type="hidden" name="amazonPaymentsAccountId" value="WPIFXOIIJUCC5KNQF1LLRGPGI1CB3K23X8BZ84" >
+                <input type="hidden" name="referenceId" value="donations-page" >
+                <input type="hidden" name="cobrandingStyle" value="logo" >
+                <input type="hidden" name="immediateReturn" value="1" >
+                <input type="hidden" name="amount" value="" id="a4">
+                <input type="hidden" name="recurringFrequency" value="1 month" >
+                <input type="hidden" name="description" value="Subscribe to the Internet Archive!" >
+                <input type="hidden" name="abandonUrl" value="https://archive.org/donate" >
+                <input type="hidden" name="signatureVersion" value="2" >
+                <input type="hidden" name="signature" value="" id="amazon_signature">
+                <input width="60" height="26" type="image" src="https://archive.org/images/amazon.png" border="0">
+              </form>
+            </td>
+            <td>
+              <form class="donate-onetime roundbox3" action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top" onsubmit="return getDonationAmount(2)">
+                <input type="hidden" name="cmd" value="_donations">
+                <input type="hidden" name="business" value="EBHK3PQRGBQH6">
+                <input type="hidden" name="lc" value="US">
+                <input type="hidden" name="item_name" value="Donate to the Internet Archive">
+                <input type="hidden" name="item_number" value="Help the
+Internet Archive become one of the world's great libraries with a tax-deductible donation." />
+                <input type="hidden" name="no_note" value="1">
+                <input type="hidden" name="no_shipping" value="2">
+                <input type="hidden" name="rm" value="2">
+                <input type="hidden" name="return" value="https://archive.org/services/donate.php?service=paypal">
+                <input type="hidden" name="currency_code" value="USD">
+                <input type="hidden" name="bn" value="PP-DonationsBF:btn_donate_LG.gif:NonHostedGuest">
+                <input type="hidden" name="encrypted" value="-----BEGIN PKCS7-----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-----END PKCS7-----" />
+                <input type="hidden" name="amount" value ="" id="a2" />
+                <input width="78" height="25" type="image" src="https://archive.org/images/paypal.png" border="0"/>
+              </form>
+              <form class="donate-monthly roundbox3" action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top" onsubmit="return getDonationAmount(5)">
+                <input type="hidden" name="cmd" value="_xclick-subscriptions">
+                <input type="hidden" name="business" value="EBHK3PQRGBQH6">
+                <input type="hidden" name="lc" value="US">
+                <input type="hidden" name="item_name" value="Subscribe to the Internet Archive">
+                <input type="hidden" name="item_number" value="help the
+Internet Archive become one of the world's great libraries with a tax-deductible subscription" />
+                <input type="hidden" name="no_note" value="1">
+                <input type="hidden" name="no_shipping" value="2">
+                <input type="hidden" name="rm" value="2">
+                <input type="hidden" name="return" value="https://archive.org/services/donate.php?service=paypal">
+                <input type="hidden" name="currency_code" value="USD">
+                <input type="hidden" name="bn" value="PP-DonationsBF:btn_donate_LG.gif:NonHostedGuest">
+                <input type="hidden" name="encrypted" value="-----BEGIN PKCS7-----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-----END PKCS7-----" />
+                <input type="hidden" name="a3" value = "5" id="a5" >
+                <input type="hidden" name="src" value="1">
+                <input type="hidden" name="p3" value="1">
+                <input type="hidden" name="t3" value="M">
+                <input type="hidden" name="currency_code" value="USD">
+                <input width="78" height="25" type="image" src="https://archive.org/images/paypal.png" border="0">
+              </form>
+            </td>
+            <td>
+              <div style="width:80px">
+                <div class="donate-onetime roundbox3">
+                  <a href="https://archive.org/donate/bitcoin.php"><img style="height:25px;width:76px" src="https://archive.org/images/bitcoin.png"/></a>
+                </div>
+              </div>
+            </td>
+          </tr>
+        </tbody></table>
+    </div> 
+   
+    <div class="dpad hidden-xs hidden-sm hidden-md"><!--lg-->
+      <i>Dear Internet Archivists:</i>
+      It shouldn't cost you to give something away.
+      On the Web, people share things for free, but corporations charge a lot to store and serve that data.
+      The Internet Archive believes in an open internet.
+      Here you can preserve your cultural treasures forever. For free.
+      The good news is people care. They
+      download 20 million books here each month.
+      We get more visitors in a year than most libraries do in a lifetime.
+      The key is to keep improving and to keep it free.
+      That's where you can help us.
+      Internet Archive is a non-profit.
+      We don't run ads, but still need to pay for servers and staff.
+      <em>If everyone reading this gave $$75, we could end our fundraiser right now.</em>
+      For the cost of buying a book, you can make a book permanently available for the next generation.
+      It's is a small amount to inform millions.
+      Help us do more.
+      Thank you.**
+    </div>
+    <div class="dpad hidden-xs hidden-sm hidden-lg"><!--md-->
+      <i>Dear Internet Archivists:</i>
+      It shouldn't cost you to give something away.
+      On the Web, people share things for free, but corporations charge a lot to store and serve that data.
+      The Internet Archive believes in an open internet.
+      Here you can preserve your cultural treasures forever.
+      For free.
+      The good news is people care.
+      They download 20 million books here each month.
+      We get more visitors in a year than most libraries do in a lifetime.
+      The key is to keep it free.
+      That's where you can help us.
+      Internet Archive is a non-profit.
+      We don't run ads, but still need to pay for servers and staff.
+      <em>If everyone reading this gave $$75, we could end our fundraiser right now.</em>
+      It's is a small amount to inform millions.
+      Help us do more.
+      Thank you.**
+    </div>
+    <div class="dpad hidden-xs hidden-md hidden-lg"><!--sm-->
+      <i>Dear Internet Archivists:</i>
+      It shouldn't cost you to give something away.
+      On the Web, people share things for free, but corporations charge a lot to store and serve that data.
+      At the Internet Archive you can preserve your cultural treasures forever.
+      For free.
+      The good news is people care.
+      They download 20 million books here each month.
+      We get more visitors in a year than most libraries do in a lifetime.
+      The key is to keep it free.
+      That's where you can help us.
+      Internet Archive is a non-profit.
+      We don't run ads, but still need to pay for servers and staff.
+      <em>If everyone reading this gave $$75, we could end our fundraiser right now.</em>
+      Help us do more.
+      Thank you.**
+    </div>
+    <div class="dpad hidden-sm hidden-md hidden-lg"><!--xs-->
+      <i>Dear Friends:</i>
+      Internet Archive is a library for the digital generation, on-profit and ad-free.
+      Please <a href="https://archive.org/donate/">donate now</a> so we can make this knowledge accessible forever.
+      Thank you.
+    </div>
+    <div class="dpad2">
+      <i >**Thanks to our friends at Wikimedia for making their fundraising data open source.</i>
+    </div>
+  </div><!--/#donate-->
+</div>
