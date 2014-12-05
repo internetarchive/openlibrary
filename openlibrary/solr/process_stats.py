@@ -73,8 +73,14 @@ def get_ia_db():
         _ia_db = web.database(dbn="postgres", host=host, db=db, user=user, pw=pw)
     return _ia_db
 
-@web.memoize
+metadata_cache = {}
+
 def get_metadata(ia_id):
+    if ia_id not in metadata_cache:
+        metadata_cache[ia_id] = _get_metadata(ia_id)
+    return metadata_cache[ia_id]
+
+def _get_metadata(ia_id):
     if not ia_id:
         return {}
     db = get_ia_db()
@@ -86,6 +92,32 @@ def get_metadata(ia_id):
     else:
         meta = ia.get_meta_xml(ia_id)
     return meta
+
+def preload(entries):
+    logger.info("preload")
+    book_keys = [e['book'] for e in entries]
+    # this will be cached in web.ctx.site, so the later
+    # requests will be fulfilled from cache.
+    books = web.ctx.site.get_many(book_keys)
+    ia_ids = [book.ocaid for book in books]
+    preload_metadata(ia_ids)
+
+def preload_metadata(ia_ids):
+    logger.info("preload metadata for %s identifiers", len(ia_ids))
+    # ignore already loaded ones
+    ia_ids = [id for id in ia_ids if id and id not in metadata_cache]
+
+    db = get_ia_db()
+    rows = db.query("SELECT identifier, collection, sponsor, contributor FROM metadata WHERE identifier IN $ia_ids", vars=locals())
+    for row in rows:
+        row['collection'] = row['collection'].split(";")
+        identifier = row.pop('identifier')
+        metadata_cache[identifier] = row
+
+    # mark the missing ones
+    missing = [id for id in ia_ids if id not in metadata_cache]
+    for id in missing:
+        metadata_cache[id] = {}
 
 class LoanEntry(web.storage):
     @property
@@ -203,7 +235,7 @@ def read_events_from_db(keys=None, day=None):
         result = get_db().query("SELECT key, json FROM stats WHERE updated >= $last_updated AND updated < $last_updated::timestamp + interval '1' day ORDER BY updated", vars=locals())
     else:
         last_updated = LoanStats().get_last_updated()
-        result = get_db().query("SELECT key, json FROM stats WHERE updated > $last_updated ORDER BY updated", vars=locals())
+        result = get_db().query("SELECT key, json FROM stats WHERE updated > $last_updated ORDER BY updated limit 10000", vars=locals())
     for row in result.list():
         doc = simplejson.loads(row.json)
         doc['key'] = row.key
@@ -214,6 +246,9 @@ def debug():
     """
 
 def add_events_to_solr(events):
+    events = list(events)
+    preload(events)
+
     solrdocs = (process(e) for e in events)
     solrdocs = (doc for doc in solrdocs if doc) # ignore Nones
     update_solr(solrdocs)
