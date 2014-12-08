@@ -3,6 +3,7 @@
 Temporary script to store unique IPs in a single day by parsing the
 lighttpd log files directly.
 """
+import _init_path
 import os
 import datetime
 import subprocess
