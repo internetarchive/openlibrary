@@ -797,7 +797,6 @@ def solr_update(requests, debug=False, index='works', commitWithin=None):
         if response.reason != 'OK':
             logger.error(response.reason)
             logger.error(response_body)
-        assert response.reason == 'OK'
         if debug:
             logger.info(response.reason)
     h1.close()
