@@ -5,6 +5,7 @@ from UserDict import DictMixin
 from collections import defaultdict
 import random
 import urllib
+import urllib2
 import xml.etree.ElementTree as etree
 import datetime
 import gzip
@@ -630,6 +631,11 @@ def _get_blog_feeds():
     
 _get_blog_feeds = cache.memcache_memoize(_get_blog_feeds, key_prefix="upstream.get_blog_feeds", timeout=5*60)
 
+def get_donation_include():
+    return urllib2.urlopen("https://archive.org/includes/donate.php").read()
+
+get_donation_include = cache.memcache_memoize(get_donation_include, key_prefix="upstream.get_donation_include", timeout=60)
+
 @public
 def get_blog_feeds():
     def process(post):
@@ -670,7 +676,8 @@ def setup():
         'request': Request(),
         'logger': logging.getLogger("openlibrary.template"),
         'get_ab_value': ab.get_ab_value,
-        'sum': sum
+        'sum': sum,
+        'get_donation_include': get_donation_include
     })
     
     from openlibrary.core import helpers as h
