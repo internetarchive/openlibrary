@@ -88,7 +88,13 @@ class BetterDataProvider(LegacyDataProvider):
 
         from openlibrary.solr.process_stats import get_ia_db, get_db
         self.db = get_db()
-        self.ia_db = get_ia_db()        
+        self.ia_db = get_ia_db()
+
+        import infogami
+        from infogami.utils import delegate
+
+        infogami._setup()
+        delegate.fakeload()
 
     def get_metadata(self, identifier):
         return ia.get_metadata(identifier)
@@ -126,3 +132,43 @@ class BetterDataProvider(LegacyDataProvider):
         for row in rows:
             self.metadata_cache[row.identifier] = row
 
+    def preload_documents(self, keys):
+        logger.info("preload_documents %s", keys)
+
+        identifiers = [k.replace("/books/ia:", "") for k in keys if k.startswith("/books/ia:")]
+        #self.preload_ia_items(identifiers)
+        re_key = web.re_compile("/(books|works|authors)/OL\d+[MWA]")
+
+        keys2 = set(k for k in keys if re_key.match(k))
+        #keys2.update(k for k in self.ia_redirect_cache.values() if k is not None)
+        self.preload_documents0(keys2)
+        self._preload_works()
+        self._preload_authors()
+
+    def preload_documents0(self, keys):
+        keys = [k for k in keys if k not in self.cache]
+        if not keys:
+            return
+        for chunk in web.group(keys, 100):
+            docs = web.ctx.site.get_many(list(chunk))
+            for doc in docs:
+                self.cache[doc['key']] = doc.dict()
+
+    def _preload_works(self):
+        """Preloads works for all editions in the cache.
+        """
+        keys = []
+        for doc in self.cache.values():
+            if doc and doc['type']['key'] == '/type/edition' and doc.get('works'):
+                keys.append(doc['works'][0]['key'])
+        # print "preload_works, found keys", keys
+        self.preload_documents0(keys)
+
+    def _preload_authors(self):
+        """Preloads authors for all works in the cache.
+        """
+        keys = []
+        for doc in self.cache.values():
+            if doc and doc['type']['key'] == '/type/work' and doc.get('authors'):
+                keys.extend(a['author']['key'] for a in doc['authors'])
+        self.preload_documents0(list(set(keys)))
