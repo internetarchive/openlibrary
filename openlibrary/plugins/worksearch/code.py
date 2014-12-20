@@ -343,8 +343,10 @@ def get_doc(doc): # called from work_search template
         subtitle = work_subtitle,
         cover_edition_key = (cover.text if cover is not None else None),
     )
-
-    doc.url = '/works/' + doc.key + '/' + urlsafe(doc.title)
+    if config.get("single_core_solr"):
+        doc.url = doc.key + '/' + urlsafe(doc.title)
+    else:
+        doc.url = '/works/' + doc.key + '/' + urlsafe(doc.title)
     
     if not doc.public_scan and doc.lending_identifier:
         store_doc = web.ctx.site.store.get("ebooks/" + doc.lending_identifier) or {}
