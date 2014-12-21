@@ -370,22 +370,29 @@ re_year_range = re.compile('^(\d{4})-(\d{4})$')
 
 def work_object(w): # called by works_by_author
     ia = w.get('ia', [])
+
+    if config.get("single_core_solr"):
+        key = w['key']
+    else:
+        key = '/works/' + w['key']
+
     obj = dict(
         authors = [web.storage(key='/authors/' + k, name=n) for k, n in zip(w['author_key'], w['author_name'])],
         edition_count = w['edition_count'],
-        key = '/works/' + w['key'],
+        key = key,
         title = w['title'],
         public_scan = w.get('public_scan_b', bool(ia)),
         lending_edition = w.get('lending_edition_s', ''),
         lending_identifier = w.get('lending_identifier_s', ''),
         overdrive = (w['overdrive_s'].split(';') if 'overdrive_s' in w else []),
         collections = set(w['ia_collection_s'].split(';') if 'ia_collection_s' in w else []),
-        url = '/works/' + w['key'] + '/' + urlsafe(w['title']),
+        url = key + '/' + urlsafe(w['title']),
         cover_edition_key = w.get('cover_edition_key'),
         first_publish_year = (w['first_publish_year'] if 'first_publish_year' in w else None),
         ia = w.get('ia', []),
         cover_i = w.get('cover_i')
     )
+
     if obj['lending_identifier']:
         doc = web.ctx.site.store.get("ebooks/" + obj['lending_identifier']) or {}
         obj['checked_out'] = doc.get("borrowed") == "true"
