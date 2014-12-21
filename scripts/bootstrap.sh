@@ -10,7 +10,7 @@ OL_USER=vagrant
 # Important to do this before installing postgresql
 update-locale LANG=en_US.UTF-8 LC_ALL=POSIX
 
-apt-get update
+#apt-get update
 
 APT_PACKAGES="
 nginx
@@ -96,6 +96,7 @@ function setup_ol() {
 function setup_nginx() {
     ln -sf $OL_ROOT/conf/nginx/sites-available/openlibrary.conf /etc/nginx/sites-available/
     ln -sf /etc/nginx/sites-available/openlibrary.conf /etc/nginx/sites-enabled/
+    rm /etc/nginx/sites-enabled/default
     sudo /etc/init.d/nginx restart
 }
 
