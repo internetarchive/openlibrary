@@ -23,8 +23,11 @@ $ waitinglist = page.get_waitinglist()
 
 $def format_users(users):
     $for user_key in users:
-        $ user = get_document(user_key)
-        <a href="$user.key" title="$user.key">$user.name</a>
+        $ user = user_key and get_document(user_key)
+        $if user:
+            <a href="$user.key" title="$user.key">$user.name</a>
+        $else:
+            <em>Unknown</em>
         
 <style type="text/css">
 ul.inner {
@@ -105,8 +108,11 @@ ul.inner {
                 <tbody>
                     <tr>
                         <td class="titles">
-                            $ user = get_document(loan['user'])
-                            <a href="/admin$user.key">$user.name</a>
+                            $ user = loan.get('user') and get_document(loan['user'])
+                            $if user:
+                                <a href="/admin$user.key">$user.name</a>
+                            $else:
+                                <em>Unknown</em>
                             <div class="date">
                                 Borrowed $datestr(datetime_from_utc_timestamp(loan['loaned_at']))
                             </div>
