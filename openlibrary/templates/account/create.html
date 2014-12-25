@@ -80,7 +80,7 @@ $else:
         </div>
         $if form.has_recaptcha:
             <div class="formElement">
-                <div class="label">$_("Please type in the two words below.")</div>
+                <div class="label">$_("Please type in the text or number(s) below.")<br/><span class="smaller lighter">$_("If you have security settings or privacy blockers installed, please disable them to see the reCAPTCHA.")</span></div>
                 <div class="input">
                     $:form['recaptcha'].render()
                     $if form['recaptcha'].error:
