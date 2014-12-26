@@ -275,6 +275,11 @@ class MemcacheMiddleware(ConnectionMiddleware):
     def get(self, sitename, data):
         key = data.get('key')
         revision = data.get('revision')
+
+        if key.startswith("_"):
+            # Don't cache keys that starts with _ to avoid considering _store/foo as things.
+            # The _store stuff is used for storing infobase store docs. 
+            return ConnectionMiddleware.get(self, sitename, data)            
                 
         if revision is None:
             stats.begin("memcache.get", key=key)
