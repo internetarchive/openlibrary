@@ -724,14 +724,18 @@ class search_json(delegate.page):
 
         query['wt'] = 'json'
         
-        (reply, solr_select, q_list) = run_solr_query(query, 
+        try:
+            (reply, solr_select, q_list) = run_solr_query(query,
                                                 rows=limit, 
                                                 page=page, 
                                                 sort=sort_value, 
                                                 offset=offset,
                                                 fields="*")
 
-        response = json.loads(reply)['response']
+            response = json.loads(reply)['response']
+        except (ValueError, IOError), e:
+            logger.error("Error in processing search API.")
+            response = dict(start=0, numFound=0, docs=[], error=str(e))
 
         # backward compatibility
         response['num_found'] = response['numFound']
