@@ -26,7 +26,7 @@ from openlibrary.plugins.upstream import spamcheck
 from openlibrary import accounts
 from openlibrary.core import helpers as h
 
-from openlibrary.plugins.admin import services, support, inspect_thing
+from openlibrary.plugins.admin import services, support
 from openlibrary.core import imports
 from openlibrary.core.waitinglist import Stats as WLStats
 
@@ -516,9 +516,7 @@ class inspect:
         elif section == "/memcache":
             return self.GET_memcache()
         else:
-            return inspect_thing.get_thing_info(section)
-        # else:
-        #     raise web.notfound()
+            raise web.notfound()
         
     def GET_store(self):
         i = web.input(key=None, type=None, name=None, value=None)

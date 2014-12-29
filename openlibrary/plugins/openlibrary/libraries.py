@@ -9,8 +9,6 @@ import csv
 import simplejson
 
 import web
-import couchdb
-
 from infogami import config
 from infogami.utils import delegate
 from infogami.utils.view import render_template, add_flash_message, public
@@ -350,8 +348,11 @@ class stats_per_library(delegate.page):
 
 @web.memoize
 def get_admin_couchdb():
-    db_url = config.get("admin", {}).get("counts_db")
-    return db_url and couchdb.Database(db_url)
+    # Anand - Dec 2014
+    # CouchDB is no more used in production now.
+    return None
+    #db_url = config.get("admin", {}).get("counts_db")
+    #return db_url and couchdb.Database(db_url)
 
 class LoanStats:
     def __init__(self):
