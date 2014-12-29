@@ -26,7 +26,7 @@ from openlibrary.plugins.upstream import spamcheck
 from openlibrary import accounts
 from openlibrary.core import helpers as h
 
-from openlibrary.plugins.admin import services, support, tasks, inspect_thing
+from openlibrary.plugins.admin import services, support, inspect_thing
 from openlibrary.core import imports
 from openlibrary.core.waitinglist import Stats as WLStats
 
@@ -567,47 +567,6 @@ class spamwords:
         raise web.redirect("/admin/spamwords")
         
 
-class deploy:
-    def GET(self):
-        return render_template("admin/deploy")
-        
-    def POST(self):
-        i = web.input(deploy=None, restart=None, merge="false")
-        
-        tasks = []
-        
-        if i.deploy == "openlibrary":
-            if i.merge == "true":
-                tasks.append("git_merge:openlibrary,branch=dev")
-            tasks.append("deploy:openlibrary")
-        elif i.deploy == "olsystem":
-            tasks.append("deploy:olsystem")
-    
-        if i.restart:
-            tasks.append("restart:%s" % i.restart)
-            
-        if tasks:
-            return self.fab(tasks)
-        else:
-            return render_template("admin/deploy")
-            
-    def fab(self, tasks):
-        cmd = "cd /olsystem && /olsystem/bin/olenv fab --no-pty " + " ".join(tasks)
-        d = self.system(cmd)
-        return render_template("admin/command", d)
-        
-    def system(self, cmd, input=None):
-        """Executes the command returns the stdout.
-        """
-        if input:
-            stdin = subprocess.PIPE
-        else:
-            stdin = None
-        p = subprocess.Popen(cmd, shell=True, stdin=stdin, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        out, err = p.communicate(input)
-        status = p.wait()
-        return web.storage(cmd=cmd, status=status, stdout=out, stderr=err)
-
 class _graphs:
     def GET(self):
         return render_template("admin/graphs")
@@ -702,9 +661,6 @@ def setup():
     # register_admin_page('/admin/support/(all|new|replied|closed)?', support.cases, label = "Filtered Support cases")
     # register_admin_page('/admin/support/(\d+)', support.case, label = "Support cases")
     register_admin_page('/admin/inspect(?:(/.+))?', inspect, label="")
-    register_admin_page('/admin/tasks', tasks.tasklist, label = "Task queue")
-    register_admin_page('/admin/tasks/(.*)', tasks.tasks, label = "Task details")
-    register_admin_page('/admin/deploy', deploy, label="")
     register_admin_page('/admin/graphs', _graphs, label="")
     register_admin_page('/admin/permissions', permissions, label="")
     register_admin_page('/admin/solr', solr, label="")
