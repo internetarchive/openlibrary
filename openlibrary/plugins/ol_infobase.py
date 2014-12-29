@@ -37,16 +37,6 @@ def init_plugin():
         ib.add_event_listener(infobase_logger.Logger(config.writelog))
         
     ib.add_event_listener(invalidate_most_recent_change)
-    
-    # When setting up the dev instance, celery is not available. 
-    # Using DISABLE_CELERY environment variable to decide whether or not to trigger celery events. 
-    # DISABLE_CELERY will be set to true when setting up the dev instance.
-
-    ## Anand - July 2014
-    ## Disabled celery tasks on edits, planning to get rid of celery and couch soon.
-    # if os.getenv("DISABLE_CELERY", "").lower() != "true":
-    #     ib.add_event_listener(notify_celery)
-
     setup_logging()
 
     if ol:
@@ -246,15 +236,6 @@ def write(path, data):
     f = open(path, 'w')
     f.write(data)
     f.close()
-    
-from .. import tasks
-
-def notify_celery(event):
-    """Called on infobase events to notify celery for on every edit.
-    """
-    if event.name in ['save', 'save_many']:
-        changeset = event.data['changeset']
-        tasks.on_edit.delay(changeset)
     
 def save_error(dir, prefix):
     try:

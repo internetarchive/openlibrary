@@ -1,7 +1,6 @@
 """Handling various events triggered by Open Library.
 """
 from openlibrary.core import inlibrary
-from openlibrary import tasks
 from infogami.infobase import client
 import logging
 import web
