@@ -3,7 +3,7 @@
 Setting up a dev instance
 =========================
 
-Open Library supports dev instance based on `Vagrant`_. This document will step you though the
+Open Library supports dev instance based on `Vagrant`_. This document will step you though the 
 installation process.
 
 .. _Vagrant: http://vagrantup.com/
@@ -34,7 +34,7 @@ and on Mac OS X using::
 Starting the dev-instance
 -------------------------
 
-The Open Library dev-instance can be started using:
+The Open Library dev-instance can be started using::
 
 	$ vagrant up
 
@@ -46,10 +46,10 @@ http://0.0.0.0:8080/
 
 An admin user with the following credentials is created as part of the installation.
 
-<pre>
-username: openlibrary
-password: openlibrary
-</pre>
+::
+
+  username: openlibrary
+  password: openlibrary
 
 Known Issues
 ------------
