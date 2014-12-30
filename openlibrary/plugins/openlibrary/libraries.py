@@ -496,76 +496,6 @@ class LoanStats:
 def get_active_loans_of_libraries():
     return LoanStats().get_active_loans_of_libraries()
 
-def on_loan_created(loan):
-    """Adds the loan info to the admin stats database.
-    """
-    logger.debug("on_loan_created")
-    db = get_admin_couchdb()
-
-    # The loan key is now changed from uuid to fixed key.
-    # Using _key as key for loan stats will result in overwriting previous loans.
-    # Using the unique uuid to create the loan key and falling back to _key
-    # when uuid is not available.
-    key = "loans/" + loan.get("uuid") or loan["_key"]
-
-    t_start = datetime.datetime.utcfromtimestamp(loan['loaned_at'])
-
-    d = {
-        "_id": key,
-        "book": loan['book'],
-        "resource_type": loan['resource_type'],
-        "t_start": t_start.isoformat(),
-        "status": "active"
-    }
-
-    library = inlibrary.get_library()
-    d['library'] = library and library.key
-    d['geoip_country'] = geo_ip.get_country(web.ctx.ip)
-
-    if key in db:
-        logger.warn("loan document is already present in the stats database: %r", key)
-    else:
-        db[d['_id']] = d
-
-    yyyy_mm = t_start.strftime("%Y-%m")
-
-    logger.debug("incrementing loan count of %s", d['book'])
-
-    # Increment book loan count
-    # Loan count is maintained per month so that it is possible to find popular books per month, year and overall.
-    book = db.get(d['book']) or {"_id": d['book']}
-    book["loans"][yyyy_mm] = book.setdefault("loans", {}).setdefault(yyyy_mm, 0) + 1
-    db[d['book']] = book
-
-    # Increment user loan count
-    user_key = loan['user']
-    user = db.get(user_key) or {"_id": user_key}
-    user["loans"][yyyy_mm] = user.setdefault("loans", {}).setdefault(yyyy_mm, 0) + 1
-    db[user_key] = user
-
-def on_loan_completed(loan):
-    """Marks the loan as completed in the admin stats database.
-    """
-    logger.debug("on_loan_completed")
-    db = get_admin_couchdb()
-
-    # The loan key is now changed from uuid to fixed key.
-    # Using _key as key for loan stats will result in overwriting previous loans.
-    # Using the unique uuid to create the loan key and falling back to _key
-    # when uuid is not available.
-    key = "loans/" + loan.get("uuid") or loan["_key"]
-    doc = db.get(key)
-
-    t_end = datetime.datetime.utcfromtimestamp(loan['returned_at'])
-
-    if doc:
-        doc.update({
-            "status": "completed",
-            "t_end": t_end.isoformat()
-        })
-        db[doc['_id']] = doc
-    else:
-        logger.warn("loan document missing in the stats database: %r", key)
 
 def on_loan_created_statsdb(loan):
     """Adds the loan info to the stats database.
@@ -614,9 +544,5 @@ def _get_loan_key(loan):
 
 def setup():
     from openlibrary.core import msgbroker
-
-    msgbroker.subscribe("loan-created", on_loan_created)
-    msgbroker.subscribe("loan-completed", on_loan_completed)
-
     msgbroker.subscribe("loan-created", on_loan_created_statsdb)
     msgbroker.subscribe("loan-completed", on_loan_completed_statsdb)
