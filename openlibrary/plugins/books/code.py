@@ -62,15 +62,16 @@ class read_multiget(delegate.page):
         # get truncated.  (web.input() still seems ok)
         # see https://github.com/benoitc/gunicorn/issues/215
         raw_uri = web.ctx.env.get("RAW_URI")
-        raw_path = urlparse.urlsplit(raw_uri).path
+        if raw_uri:
+            raw_path = urlparse.urlsplit(raw_uri).path
 
-        # handle e.g. '%7C' for '|'
-        decoded_path = urllib2.unquote(raw_path)
+            # handle e.g. '%7C' for '|'
+            decoded_path = urllib2.unquote(raw_path)
 
-        m = self.path_re.match(decoded_path)
-        if not len(m.groups()) == 2:
-            return simplejson.dumps({})
-        (brief_or_full, req) = m.groups()
+            m = self.path_re.match(decoded_path)
+            if not len(m.groups()) == 2:
+                return simplejson.dumps({})
+            (brief_or_full, req) = m.groups()
 
         web.ctx.headers = []
         result = readlinks.readlinks(req, i)

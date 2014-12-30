@@ -35,16 +35,17 @@ def ol_query(name, value):
 def get_works_solr_select_url():
     c = config.get("plugin_worksearch")
     host = c and c.get('solr')
-    return host and ("http://" + host + "/solr/works/select")
+    # Anand - Dec 2014: Assuming single core solr
+    return host and ("http://" + host + "/solr/select")
 
 
 def get_work_iaids(wkey):
-    wid = wkey.split('/')[2]
+    #wid = wkey.split('/')[2]
     solr_select_url = get_works_solr_select_url()
     filter = 'ia'
-    q = 'key:' + wid
+    q = 'key:' + wkey
     stats.begin('solr', url=wkey)
-    solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&rows=10&fl=%s&qt=standard&wt=json" % (q, filter)
+    solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&rows=10&fl=%s&qt=standard&wt=json&fq=type:work" % (q, filter)
     json_data = urllib.urlopen(solr_select).read()
     stats.end()
     print json_data
@@ -58,8 +59,8 @@ def get_work_iaids(wkey):
 def get_works_iaids(wkeys):
     solr_select_url = get_works_solr_select_url()
     filter = 'ia'
-    q = '+OR+'.join(['key:' + wkey.split('/')[2] for wkey in wkeys])
-    solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&rows=10&fl=%s&qt=standard&wt=json" % (q, filter)
+    q = '+OR+'.join(['key:' + wkey for wkey in wkeys])
+    solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&rows=10&fl=%s&qt=standard&wt=json&fq=type:work" % (q, filter)
     json_data = urllib.urlopen(solr_select).read()
     reply = simplejson.loads(json_data)
     if reply['response']['numFound'] == 0:
@@ -73,7 +74,7 @@ def get_eids_for_wids(wids):
     solr_select_url = get_works_solr_select_url()
     filter = 'edition_key'
     q = '+OR+'.join(wids)
-    solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&rows=10&fl=key,%s&qt=standard&wt=json" % (q, filter)
+    solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&rows=10&fl=key,%s&qt=standard&wt=json&fq=type:work" % (q, filter)
     json_data = urllib.urlopen(solr_select).read()
     reply = simplejson.loads(json_data)
     if reply['response']['numFound'] == 0:
