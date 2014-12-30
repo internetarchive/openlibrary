@@ -57,47 +57,13 @@ class ListMixin:
                 
         return [process(seed) for seed in self.seeds]
         
-    def _get_seed_summary(self):
-        rawseeds = self._get_rawseeds()
-        
-        db = self._get_seeds_db()
-
-        zeros = {"editions": 0, "works": 0, "ebooks": 0, "last_update": ""}
-        d = dict((seed, web.storage(zeros)) for seed in rawseeds)
-        
-        for row in self._couchdb_view(db, "_all_docs", keys=rawseeds, include_docs=True):
-            if row.get('doc'):
-                if 'edition' not in row.doc:
-                    doc = web.storage(zeros, **row.doc)
-                    
-                    # if seed info is not yet created, display edition count as 1
-                    if doc.editions == 0 and row.key.startswith("/books"):
-                        doc.editions = 1
-                    d[row.key] = doc
-        return d
-        
-    def _couchdb_view(self, db, viewname, **kw):
-        stats.begin("couchdb", db=db.name, view=viewname, kw=kw)
-        try:
-            result = db.view(viewname, **kw)
-            
-            # force fetching the results
-            result.rows
-        finally:
-            stats.end()
-
-        return result
-        
     def _get_edition_count(self):
-        #return sum(seed['editions'] for seed in self.seed_summary.values())
         return sum(seed.edition_count for seed in self.get_seeds())
 
     def _get_work_count(self):
-        #return sum(seed['works'] for seed in self.seed_summary.values())
         return sum(seed.work_count for seed in self.get_seeds())
 
     def _get_ebook_count(self):
-        #return sum(seed['ebooks'] for seed in self.seed_summary.values())
         return sum(seed.ebook_count for seed in self.get_seeds())
         
     def _get_last_update(self):
@@ -107,14 +73,6 @@ class ListMixin:
             return max(last_updates)
         else:
             return None
-
-        if self.seed_summary:
-            date = max(seed['last_update'] for seed in self.seed_summary.values()) or None
-        else:
-            date = None
-        return date and h.parse_datetime(date)
-
-    seed_summary = cached_property("seed_summary", _get_seed_summary)
     
     work_count = cached_property("work_count", _get_work_count)
     edition_count = cached_property("edition_count", _get_edition_count)
@@ -135,88 +93,23 @@ class ListMixin:
             "last_update": self.last_update and self.last_update.isoformat() or None
         }
         
-    def get_works(self, limit=50, offset=0):
-        keys = [[seed, "works"] for seed in self._get_rawseeds()]
-        rows = self._seeds_view(keys=keys, reduce=False, limit=limit, skip=offset)
-        return web.storage({
-            "count": self.work_count,
-            "works": [row.value for row in rows]
-        })
-        
-    def get_couchdb_docs(self, db, keys):
-        try:
-            stats.begin(name="_all_docs", keys=keys, include_docs=True)
-            docs = dict((row.id, row.doc) for row in db.view("_all_docs", keys=keys, include_docs=True))
-        finally:
-            stats.end()
-        return docs
-
     def get_editions(self, limit=50, offset=0, _raw=False):
         """Returns the editions objects belonged to this list ordered by last_modified. 
         
         When _raw=True, the edtion dicts are returned instead of edtion objects.
         """
-        # show at max 10 pages
-        MAX_OFFSET = min(self.edition_count, 50 * 10)
-        
-        if not self.seeds or offset > MAX_OFFSET:
-            return {
-                "count": 0,
-                "offset": offset,
-                "limit": limit,
-                "editions": []
-            }
-        
-        # We don't want to give more than 500 editions for performance reasons.
-        if offset + limit > MAX_OFFSET:
-            limit = MAX_OFFSET - offset
-            
-        key_data = []
-        rawseeds = self._get_rawseeds()
-        for seeds in web.group(rawseeds, 50):
-            key_data += self._get_edition_keys(seeds, limit=MAX_OFFSET)
-        keys = [key for key, last_modified in sorted(key_data, key=lambda x: x[1], reverse=True)]
-        keys = keys[offset:limit]
-        
-        # Get the documents from couchdb 
-        docs = self.get_couchdb_docs(self._get_editions_db(), keys)
-
-        def get_doc(key):
-            doc = docs[key]
-            del doc['_id']
-            del doc['_rev']
-            if not _raw:
-                data = self._site._process_dict(common.parse_query(doc))
-                doc = client.create_thing(self._site, doc['key'], data)
-            return doc
-        
-        d = {
-            "count": self.edition_count,
+        # Anand - Dec 2014: Disabled it is wasn't working from long time.
+        return {
+            "count": 0,
             "offset": offset,
             "limit": limit,
-            "editions": [get_doc(key) for key in keys]
+            "editions": []
         }
-        
-        if offset + limit < MAX_OFFSET:
-            d['next_params'] = {
-                'offset': offset+limit
-            }
+        # TODO
+        # We should be able to get the editions from solr and return that.
+        # Might be an issue of the total number of editions is too big, but
+        # that isn't the case for most lists.
             
-        if offset > 0:
-            d['prev_params'] = {
-                'offset': max(0, offset-limit)
-            }
-        return d
-    
-    def _get_edition_keys(self, rawseeds, offset=0, limit=500):
-        """Returns a tuple of (key, last_modified) for all editions associated with given seeds.
-        """
-        d = self._editions_view(rawseeds,
-            skip=offset, limit=limit,
-            sort="last_modified", reverse="true",
-            stale="ok")
-        return [(row['id'], row['sort_order'][0]) for row in d['rows']]
-        
     def get_all_editions(self):
         """Returns all the editions of this list in arbitrary order.
         
@@ -393,55 +286,6 @@ class ListMixin:
         from openlibrary.core.models import Image
         cover_id = self._get_default_cover_id()
         return Image(self._site, 'b', cover_id)
-        
-    def _get_seeds_db(self):
-        db_url = config.get("lists", {}).get("seeds_db")
-        if not db_url:
-            return None
-        
-        return couchdb.Database(db_url)
-        
-    def _get_editions_db(self):
-        db_url = config.get("lists", {}).get("editions_db")
-        if not db_url:
-            return None
-        
-        return couchdb.Database(db_url)
-        
-    def _updates_view(self, **kw):
-        view_url = config.get("lists", {}).get("updates_view")
-        if not view_url:
-            return []
-            
-        kw['stale'] = 'ok'
-        view = couchdb.client.PermanentView(view_url, "updates_view")
-        return view(**kw)
-
-    def _editions_view(self, seeds, **kw):
-        reverse = str(kw.pop("reverse", "")).lower()
-        if 'sort' in kw and reverse == "true":
-            # sort=\field is the couchdb-lucene's way of telling ORDER BY field DESC
-            kw['sort'] = '\\' + kw['sort']
-        view_url = config.get("lists", {}).get("editions_view")
-        if not view_url:
-            return {}
-
-        def escape(value):
-            special_chars = '+-&|!(){}[]^"~*?:\\'
-            pattern = "([%s])" % re.escape(special_chars)
-            
-            quote = '"'
-            return quote + web.re_compile(pattern).sub(r'\\\1', value) + quote
-        
-        q = " OR ".join("seed:" + escape(seed.encode('utf-8')) for seed in seeds)
-        url = view_url + "?" + urllib.urlencode(dict(kw, q=q))
-        
-        stats.begin("couchdb", url=url)
-        try:
-            json = urllib2.urlopen(url).read()
-        finally:
-            stats.end()
-        return simplejson.loads(json)
 
 def valuesort(d):
     """Sorts the keys in the dictionary based on the values.
@@ -554,11 +398,7 @@ class Seed:
             return "unknown"
             
     type = property(get_type)
-    
-    def _get_summary(self):
-        summary = self._list.seed_summary
-        return summary.get(self.key, defaultdict(lambda: 0))
-        
+
     def get_title(self):
         if self.type == "work" or self.type == "edition":
             return self.document.title or self.key
@@ -570,11 +410,7 @@ class Seed:
             return self.key
     
     def _get_subject_title(self):
-        subjects = self._get_summary().get("subjects")
-        if subjects:
-            return subjects[0]['name']
-        else:
-            return self.key.replace("_", " ")
+        return self.key.replace("_", " ")
             
     def get_url(self):
         if self.document:

@@ -515,14 +515,7 @@ def get_recently_modified_lists(limit, offset=0):
     
     keys = web.ctx.site.things({"type": "/type/list", "sort": "-last_modified", "limit": limit, "offset": offset})
     lists = web.ctx.site.get_many(keys)
-    
-    # XXX-Anand, March 2014: This is not required any more. We switched to using solr
-    # instead of relying on this data from couch.
-    #
-    # Cache seed_summary, so that it can be reused later without recomputing.
-    #for list in lists:
-    #    list.seed_summary_cached = list.seed_summary
-        
+
     return [list.dict() for list in lists]
     
 get_recently_modified_lists = cache.memcache_memoize(get_recently_modified_lists, key_prefix="get_recently_modified_lists", timeout=5*60)
@@ -565,18 +558,7 @@ def get_active_lists_in_random(limit=20, preload=True):
 
     if preload:
         _preload_lists(lists)
-        
-    seed_summaries = {}
-    
-    for xlist in lists:
-        seed_summaries[xlist['key']] = xlist.pop("seed_summary_cached", None)
-    
+
     # convert rawdata into models.
     lists = [web.ctx.site.new(xlist['key'], xlist) for xlist in lists]
-    
-    # Initialize seed_summary to avoid recomputing it for all the lists.
-    for xlist in lists:
-        if xlist.key in seed_summaries:
-            xlist.__dict__['seed_summary'] = seed_summaries[xlist.key]
-
     return lists
