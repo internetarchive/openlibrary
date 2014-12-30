@@ -4,7 +4,6 @@ import urllib
 import os
 import datetime
 import time
-import couchdb
 import logging
 import array
 import memcache
@@ -48,13 +47,6 @@ def get_cover_id(olkeys):
         if covers and covers[0] >= 0:
             return covers[0]
             
-_couchdb = None
-def get_couch_database():
-    global _couchdb
-    if config.get("couchdb_database"):
-        _couchdb = couchdb.Database(config.couchdb_database)
-    return _couchdb
-    
 def find_coverid_from_couch(db, key, value):
     rows = db.view("covers/by_id", key=[key, value], limit=10, stale="ok")
     rows = list(rows)
@@ -71,10 +63,6 @@ def _query(category, key, value):
             return get_cover_id([olkey])
     else:
         if category == 'b':
-            db = get_couch_database()
-            if db:
-                return find_coverid_from_couch(db, key, value)
-            
             if key == 'isbn':
                 value = value.replace("-", "").strip()
                 key = "isbn_"
