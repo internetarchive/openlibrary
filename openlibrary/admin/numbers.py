@@ -28,7 +28,6 @@ import calendar
 import functools
 
 import web
-import couchdb
 
 logger = logging.getLogger(__name__)
 
